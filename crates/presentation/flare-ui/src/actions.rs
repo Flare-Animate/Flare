@@ -23,6 +23,7 @@ pub enum MenuAction {
     ToolEllipse,
     ToolLine,
     ToolPen,
+    ToolText,
     InsertFrame,
     CopyFrames,
     PasteFrames,
@@ -53,7 +54,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 45] = [
+    pub const ALL: [MenuAction; 46] = [
         Self::Open,
         Self::Save,
         Self::SaveAs,
@@ -72,6 +73,7 @@ impl MenuAction {
         Self::ToolEllipse,
         Self::ToolLine,
         Self::ToolPen,
+        Self::ToolText,
         Self::InsertFrame,
         Self::CopyFrames,
         Self::PasteFrames,
@@ -157,6 +159,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ToolEllipse),
             Action(A::ToolLine),
             Action(A::ToolPen),
+            Action(A::ToolText),
         ],
     ),
     (

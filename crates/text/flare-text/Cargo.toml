@@ -1,0 +1,20 @@
+[package]
+name = "flare-text"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+flare-core.workspace = true
+flare-document.workspace = true
+parley.workspace = true
+skrifa.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+epaint_default_fonts = "0.37"
+
+[lints]
+workspace = true

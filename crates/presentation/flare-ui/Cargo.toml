@@ -16,12 +16,14 @@ flare-edit.workspace = true
 flare-eval.workspace = true
 glamx.workspace = true
 flare-render.workspace = true
+flare-text.workspace = true
 flare-storage.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+epaint_default_fonts = "0.37"
 
 [lints]
 workspace = true

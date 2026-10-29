@@ -10,7 +10,7 @@ use flare_document::{
 use flare_edit::{Command, EditorSession, LayerChange, frames};
 use glamx::{DAffine2, DVec2};
 
-use crate::background::{Background, Done, IoJob, Mode, RenderJob};
+use crate::background::{Background, Done, IoJob, Mode, RenderJob, TextJob};
 use crate::handles::{self, Handle};
 use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
@@ -80,6 +80,15 @@ struct TextureView {
     size: [u32; 2],
 }
 
+/// Text being typed on the stage.
+struct PendingText {
+    /// Where the top-left corner of the text will be, in stage units.
+    at: Pos2,
+    buffer: String,
+    /// The editor has been shown at least once, so it has been given the keyboard.
+    focused: bool,
+}
+
 /// Selection bounds with the (context, revision, selection hash) they were computed for.
 type SelectionRects = ((u64, u64, u64), Vec<Rect>);
 
@@ -139,6 +148,8 @@ pub enum Tool {
     Ellipse,
     Line,
     Pen,
+    /// Click the stage, type, and place: the text becomes ordinary shapes.
+    Text,
 }
 
 /// Timeline frame operations on the active layer at the current frame.
@@ -245,6 +256,15 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// Font family list and size for the text tool.
+    text_family: String,
+    text_size: f32,
+    /// The text being typed, if the user has clicked the stage with the text tool.
+    text_edit: Option<PendingText>,
+    /// Text handed to the font worker and not yet back: (job number, where to put it).
+    text_pending: Option<(u64, Pos2)>,
+    /// Identity of the text editor popup; fixed so its focus survives from frame to frame.
+    text_editor_id: egui::Id,
     /// The frames selected in the timeline (Shift-click), if any.
     frame_range: Option<FrameRange>,
     /// What Copy Frames remembered, for Paste Frames.
@@ -325,6 +345,11 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            text_family: "sans-serif".into(),
+            text_size: 48.0,
+            text_edit: None,
+            text_pending: None,
+            text_editor_id: egui::Id::unique("flare_text_editor"),
             frame_range: None,
             frame_clipboard: None,
             selection_checked: None,
@@ -491,6 +516,8 @@ impl Workspace {
         fresh.gradient_enabled = self.gradient_enabled;
         fresh.gradient_end = self.gradient_end;
         fresh.gradient_vertical = self.gradient_vertical;
+        fresh.text_family = std::mem::take(&mut self.text_family);
+        fresh.text_size = self.text_size;
         fresh.stroke_enabled = self.stroke_enabled;
         fresh.stroke_color = self.stroke_color;
         fresh.stroke_width = self.stroke_width;
@@ -616,6 +643,107 @@ impl Workspace {
         self.settle_inline();
     }
 
+    // ---- text -------------------------------------------------------------------------
+
+    /// The small editor shown where the user clicked with the text tool. Ctrl/Cmd+Enter or the
+    /// Place button hands the text over; Escape or Cancel drops it.
+    fn text_editor(&mut self, ctx: &egui::Context, image_rect: Rect, scale: f32) {
+        let id = self.text_editor_id;
+        let Some(edit) = self.text_edit.as_mut() else {
+            return;
+        };
+        let at = image_rect.min + edit.at.to_vec2() * scale;
+        let (mut place, mut cancel) = (false, false);
+        egui::Area::new(id)
+            .fixed_pos(at)
+            .order(egui::Order::Foreground)
+            .show(ctx, |ui| {
+                egui::Frame::popup(ui.style()).show(ui, |ui| {
+                    let field = ui.add(
+                        egui::TextEdit::multiline(&mut edit.buffer)
+                            .desired_rows(2)
+                            .desired_width(240.0)
+                            .hint_text("Type text"),
+                    );
+                    if !edit.focused {
+                        field.request_focus();
+                        edit.focused = true;
+                    }
+                    ui.horizontal(|ui| {
+                        place |= ui.button("Place").clicked();
+                        cancel |= ui.button("Cancel").clicked();
+                    });
+                    ui.input(|i| {
+                        place |= i.modifiers.command && i.key_pressed(Key::Enter);
+                        cancel |= i.key_pressed(Key::Escape);
+                    });
+                });
+            });
+        if place {
+            self.place_text();
+        } else if cancel {
+            self.text_edit = None;
+        }
+    }
+
+    /// Starts the text being typed becoming shapes. The font work happens off the UI thread; the
+    /// shapes appear when it is done.
+    pub fn place_text(&mut self) {
+        let Some(edit) = self.text_edit.take() else {
+            return;
+        };
+        if edit.buffer.trim().is_empty() {
+            return;
+        }
+        let id = self.background.next_id();
+        self.text_pending = Some((id, edit.at));
+        self.background.submit_text(TextJob {
+            id,
+            text: edit.buffer,
+            style: flare_text::TextStyle {
+                family: self.text_family.clone(),
+                size: self.text_size,
+            },
+        });
+        self.settle_inline();
+    }
+
+    /// Makes the shape for finished text outlines, with its corner at `at`, on a new layer.
+    fn place_outline(&mut self, outline: flare_text::TextOutline, at: Pos2) {
+        let shift = |p: &flare_core::DocumentPoint| {
+            flare_core::DocumentPoint::new(
+                p.as_vec().x + f64::from(at.x),
+                p.as_vec().y + f64::from(at.y),
+            )
+            .ok()
+        };
+        let moved: Option<Vec<flare_document::PathSegment>> = outline
+            .path
+            .iter()
+            .map(|segment| {
+                use flare_document::PathSegment as S;
+                Some(match segment {
+                    S::MoveTo(p) => S::MoveTo(shift(p)?),
+                    S::LineTo(p) => S::LineTo(shift(p)?),
+                    S::CubicTo(a, b, c) => S::CubicTo(shift(a)?, shift(b)?, shift(c)?),
+                    S::Close => S::Close,
+                })
+            })
+            .collect();
+        let fill = {
+            let c = self.fill.to_array();
+            Rgba8::new(c[0], c[1], c[2], c[3])
+        };
+        let Some(path) = moved else {
+            self.report("Cannot place text: it would leave the drawable range");
+            return;
+        };
+        match Shape::new(ShapeId::new(), path, fill) {
+            Ok(shape) => self.insert_shape_layer(shape, "Text"),
+            Err(error) => self.report(format!("Cannot place text: {error}")),
+        }
+    }
+
     // ---- background work -------------------------------------------------------------
 
     /// Moves drawing and file work onto worker threads. Until this is called it runs on the
@@ -655,6 +783,15 @@ impl Workspace {
     fn handle_done(&mut self, done: Done) {
         match done {
             Done::Rendered { id, result } => self.render_inbox.push((id, result)),
+            Done::Text { id, result } => {
+                let Some((_, at)) = self.text_pending.take_if(|(pending, _)| *pending == id) else {
+                    return; // asked for again since
+                };
+                match result {
+                    Ok(outline) => self.place_outline(outline, at),
+                    Err(message) => self.report(format!("Cannot place text: {message}")),
+                }
+            }
             Done::Saved {
                 path,
                 document,
@@ -782,7 +919,7 @@ impl Workspace {
                     Err(error) => return self.report(error.to_string()),
                 }
             }
-            Tool::Select | Tool::Pen => return,
+            Tool::Select | Tool::Pen | Tool::Text => return,
         };
         let Some(mut shape) = shape else {
             self.report("Shape coordinates must be finite");
@@ -1160,6 +1297,7 @@ impl Workspace {
             | MenuAction::ToolEllipse
             | MenuAction::ToolLine
             | MenuAction::ToolPen
+            | MenuAction::ToolText
             | MenuAction::PlayPause
             | MenuAction::ZoomIn
             | MenuAction::ZoomOut => true,
@@ -1212,6 +1350,7 @@ impl Workspace {
             MenuAction::ToolEllipse => "Ellipse",
             MenuAction::ToolLine => "Line",
             MenuAction::ToolPen => "Pen",
+            MenuAction::ToolText => "Text",
             MenuAction::ZoomIn => "Zoom In",
             MenuAction::ZoomOut => "Zoom Out",
             MenuAction::ZoomFit => "Fit Stage in Window",
@@ -1318,6 +1457,7 @@ impl Workspace {
             MenuAction::ToolEllipse => self.set_tool(Tool::Ellipse),
             MenuAction::ToolLine => self.set_tool(Tool::Line),
             MenuAction::ToolPen => self.set_tool(Tool::Pen),
+            MenuAction::ToolText => self.set_tool(Tool::Text),
             MenuAction::InsertFrame => self.frame_edit(FrameOp::InsertFrame),
             MenuAction::RemoveFrame => self.frame_edit(FrameOp::RemoveFrame),
             MenuAction::InsertKeyframe => self.frame_edit(FrameOp::InsertKeyframe),
@@ -1663,6 +1803,7 @@ impl Workspace {
         if self.tool != tool {
             self.cancel_drag();
             self.pen.clear();
+            self.text_edit = None;
             self.tool = tool;
         }
     }
@@ -1771,7 +1912,7 @@ impl Workspace {
         let mode = match self.tool {
             Tool::Rectangle | Tool::Ellipse | Tool::Line => Some(DragMode::Draw),
             // The pen builds a path point by point; see `pen_press`.
-            Tool::Pen => None,
+            Tool::Pen | Tool::Text => None,
             Tool::Select => {
                 let grabbed = if additive {
                     None
@@ -2614,9 +2755,24 @@ impl Workspace {
         ui.selectable_value(&mut tool, Tool::Ellipse, "Ellipse");
         ui.selectable_value(&mut tool, Tool::Line, "Line");
         ui.selectable_value(&mut tool, Tool::Pen, "Pen");
+        ui.selectable_value(&mut tool, Tool::Text, "Text");
         self.set_tool(tool);
         ui.weak("Drag on the stage. Esc cancels. Delete removes, F8 converts to a symbol.");
         ui.weak("Pen: click for corners, drag for curves, click the first point to close, Enter or double-click to finish.");
+        ui.weak("Text: click the stage, type, then Place (Ctrl+Enter). It becomes shapes.");
+        if self.tool == Tool::Text {
+            ui.separator();
+            ui.label("Font");
+            ui.add(
+                egui::TextEdit::singleline(&mut self.text_family)
+                    .hint_text("Family, e.g. Helvetica, sans-serif"),
+            );
+            ui.add(
+                egui::DragValue::new(&mut self.text_size)
+                    .range(flare_text::MIN_SIZE..=flare_text::MAX_SIZE)
+                    .suffix(" px"),
+            );
+        }
         ui.separator();
         ui.label("Fill");
         ui.color_edit_button_srgba(&mut self.fill);
@@ -2769,6 +2925,7 @@ impl Workspace {
             StrokeKind::Outside,
         );
 
+        self.text_editor(ui.ctx(), image_rect, scale);
         if !self.stage_view.is_fit() {
             painter.text(
                 response.rect.right_bottom() - Vec2::new(8.0, 8.0),
@@ -2783,6 +2940,16 @@ impl Workspace {
         self.skew_modifier = ui.input(|i| i.modifiers.alt);
         let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
+        if self.tool == Tool::Text
+            && response.clicked()
+            && let Some(p) = response.interact_pointer_pos()
+        {
+            self.text_edit = Some(PendingText {
+                at: to_doc(p),
+                buffer: String::new(),
+                focused: false,
+            });
+        }
         if self.tool == Tool::Pen {
             // A press that turns into a drag starts where the button went down, not where
             // egui noticed the drag; a plain click adds a corner point.
@@ -6094,5 +6261,122 @@ mod tests {
         ws.delete_active_layer();
         run(&mut ws, &ctx, 0.1);
         assert!(ws.frame_range.is_none());
+    }
+
+    /// A workspace whose text jobs use the Hack font by name, whatever the machine has.
+    fn text_workspace() -> Workspace {
+        let mut ws = workspace();
+        ws.text_family = "Hack".into();
+        ws.text_size = 40.0;
+        ws.set_tool(Tool::Text);
+        ws
+    }
+
+    fn type_text(ws: &mut Workspace, at: Pos2, text: &str) {
+        ws.text_edit = Some(PendingText {
+            at,
+            buffer: text.into(),
+            focused: true,
+        });
+        ws.place_text();
+    }
+
+    #[test]
+    fn placed_text_becomes_a_filled_shape_at_the_clicked_point_in_one_undo_step() {
+        let mut ws = text_workspace();
+        ws.fill = Color32::from_rgb(10, 20, 30);
+        type_text(&mut ws, Pos2::new(100.0, 50.0), "Hi");
+        assert_eq!(layer_count(&ws), 2, "a layer for the text");
+        let layer = ws.document().scenes()[0].timeline().layers()[1].id();
+        ws.selected = Some(SpanRef { layer, start: 0 });
+        let shape = selected_shape(&ws);
+        assert_eq!(shape.fill(), Rgba8::opaque(10, 20, 30));
+        let b = shape_bounds(&ws);
+        assert!(
+            b.min.x >= 99.0 && b.min.y >= 49.0,
+            "starts at the click: {b:?}"
+        );
+        assert!(
+            b.height() > 20.0 && b.height() < 60.0,
+            "a 40 px capital: {b:?}"
+        );
+        ws.undo();
+        assert_eq!(layer_count(&ws), 1);
+    }
+
+    #[test]
+    fn blank_text_and_changing_tools_place_nothing() {
+        let mut ws = text_workspace();
+        type_text(&mut ws, Pos2::new(10.0, 10.0), "   \n ");
+        assert_eq!(layer_count(&ws), 1);
+        ws.text_edit = Some(PendingText {
+            at: Pos2::new(1.0, 1.0),
+            buffer: "abc".into(),
+            focused: true,
+        });
+        ws.set_tool(Tool::Select);
+        assert!(
+            ws.text_edit.is_none(),
+            "switching tools drops the unfinished text"
+        );
+        assert!(!ws.is_dirty());
+    }
+
+    #[test]
+    fn a_text_error_is_reported_and_leaves_the_document_alone() {
+        let mut ws = text_workspace();
+        ws.text_size = 5000.0; // beyond what the engine accepts
+        type_text(&mut ws, Pos2::new(10.0, 10.0), "a");
+        assert_eq!(layer_count(&ws), 1);
+        assert!(
+            ws.status().is_some_and(|m| m.contains("Cannot place text")),
+            "{:?}",
+            ws.status()
+        );
+    }
+
+    #[test]
+    fn with_workers_text_is_placed_when_the_font_work_finishes() {
+        let (ctx, mut ws) = (egui::Context::default(), text_workspace());
+        ws.start_background_threads(&ctx);
+        type_text(&mut ws, Pos2::new(10.0, 10.0), "Hi");
+        assert_eq!(
+            layer_count(&ws),
+            1,
+            "not placed until the worker has finished"
+        );
+        wait_until(&mut ws, &ctx, |w| w.text_pending.is_none());
+        assert_eq!(layer_count(&ws), 2, "{:?}", ws.status());
+    }
+
+    #[test]
+    fn the_text_tool_is_a_menu_action_and_clicking_the_stage_opens_the_editor() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.perform(MenuAction::ToolText);
+        assert_eq!(ws.tool(), Tool::Text);
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.1);
+        let center = ws.stage_panel.center();
+        let events = vec![
+            Event::PointerMoved(center),
+            Event::PointerButton {
+                pos: center,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: Modifiers::NONE,
+            },
+            Event::PointerButton {
+                pos: center,
+                button: egui::PointerButton::Primary,
+                pressed: false,
+                modifiers: Modifiers::NONE,
+            },
+        ];
+        pass(&mut ws, &ctx, input(0.2, events));
+        assert!(
+            ws.text_edit.is_some(),
+            "a click with the text tool opens the editor"
+        );
+        run(&mut ws, &ctx, 0.3); // the editor draws without trouble
     }
 }

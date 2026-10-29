@@ -35,6 +35,14 @@ pub(crate) struct RenderJob {
     pub background: Rgba8,
 }
 
+/// Text to turn into outlines. Building the font database takes long enough that this has a
+/// worker of its own, so a first use never holds up a save or a redraw.
+pub(crate) struct TextJob {
+    pub id: u64,
+    pub text: String,
+    pub style: flare_text::TextStyle,
+}
+
 pub(crate) enum IoJob {
     Save {
         path: PathBuf,
@@ -55,6 +63,10 @@ pub(crate) enum IoJob {
 
 /// What a worker reports back. Errors are already text: the UI only shows them.
 pub(crate) enum Done {
+    Text {
+        id: u64,
+        result: Result<flare_text::TextOutline, String>,
+    },
     Rendered {
         id: u64,
         result: Result<egui::ColorImage, String>,
@@ -74,6 +86,16 @@ pub(crate) enum Done {
         id: u64,
         result: Result<PathBuf, String>,
     },
+}
+
+impl Done {
+    /// Whether this finished a save, open or autosave (what `Background::io_pending` counts).
+    fn is_io(&self) -> bool {
+        matches!(
+            self,
+            Done::Saved { .. } | Done::Opened { .. } | Done::Autosaved { .. }
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -97,6 +119,7 @@ pub(crate) struct Background {
 struct Workers {
     render_tx: Option<Sender<RenderJob>>,
     io_tx: Option<Sender<IoJob>>,
+    text_tx: Option<Sender<TextJob>>,
     handles: Vec<JoinHandle<()>>,
 }
 
@@ -125,6 +148,7 @@ impl Background {
         }
         let (render_tx, render_rx) = channel::<RenderJob>();
         let (io_tx, io_rx) = channel::<IoJob>();
+        let (text_tx, text_rx) = channel::<TextJob>();
         let render = {
             let (done, ctx) = (self.done_tx.clone(), ctx.clone());
             std::thread::Builder::new()
@@ -132,19 +156,26 @@ impl Background {
                 .spawn(move || render_loop(&render_rx, &done, &ctx))
         };
         let io = {
-            let (done, ctx) = (self.done_tx.clone(), ctx);
+            let (done, ctx) = (self.done_tx.clone(), ctx.clone());
             std::thread::Builder::new()
                 .name("flare-io".into())
                 .spawn(move || io_loop(&io_rx, &done, &ctx))
         };
+        let text = {
+            let (done, ctx) = (self.done_tx.clone(), ctx);
+            std::thread::Builder::new()
+                .name("flare-text".into())
+                .spawn(move || text_loop(&text_rx, &done, &ctx))
+        };
         // If a thread cannot be started, stay inline rather than lose the work.
-        let (Ok(render), Ok(io)) = (render, io) else {
+        let (Ok(render), Ok(io), Ok(text)) = (render, io, text) else {
             return;
         };
         self.workers = Some(Workers {
             render_tx: Some(render_tx),
             io_tx: Some(io_tx),
-            handles: vec![render, io],
+            text_tx: Some(text_tx),
+            handles: vec![render, io, text],
         });
         self.mode = Mode::Threads;
     }
@@ -171,6 +202,19 @@ impl Background {
         }
     }
 
+    pub fn submit_text(&self, job: TextJob) {
+        match self.workers.as_ref().and_then(|w| w.text_tx.as_ref()) {
+            Some(tx) => {
+                if let Err(failed) = tx.send(job) {
+                    let _ = self.done_tx.send(run_text(&failed.0));
+                }
+            }
+            None => {
+                let _ = self.done_tx.send(run_text(&job));
+            }
+        }
+    }
+
     pub fn submit_io(&mut self, job: IoJob) {
         self.io_in_flight += 1;
         match self.workers.as_ref().and_then(|w| w.io_tx.as_ref()) {
@@ -189,7 +233,7 @@ impl Background {
     pub fn poll(&mut self) -> Vec<Done> {
         let done: Vec<Done> = self.done_rx.try_iter().collect();
         for finished in &done {
-            if !matches!(finished, Done::Rendered { .. }) {
+            if finished.is_io() {
                 self.io_in_flight = self.io_in_flight.saturating_sub(1);
             }
         }
@@ -208,7 +252,7 @@ impl Background {
         while self.io_in_flight > 0 {
             match self.done_rx.recv() {
                 Ok(done) => {
-                    if !matches!(done, Done::Rendered { .. }) {
+                    if done.is_io() {
                         self.io_in_flight -= 1;
                     }
                     all.push(done);
@@ -227,6 +271,7 @@ impl Drop for Background {
         if let Some(mut workers) = self.workers.take() {
             workers.render_tx = None;
             workers.io_tx = None;
+            workers.text_tx = None;
             for handle in workers.handles.drain(..) {
                 let _ = handle.join();
             }
@@ -245,6 +290,45 @@ fn render_loop(jobs: &Receiver<RenderJob>, done: &Sender<Done>, ctx: &egui::Cont
         }
         ctx.request_repaint();
     }
+}
+
+fn text_loop(jobs: &Receiver<TextJob>, done: &Sender<Done>, ctx: &egui::Context) {
+    while let Ok(mut job) = jobs.recv() {
+        // As with drawing, only the newest request matters.
+        while let Ok(newer) = jobs.try_recv() {
+            job = newer;
+        }
+        if done.send(run_text(&job)).is_err() {
+            return;
+        }
+        ctx.request_repaint();
+    }
+}
+
+thread_local! {
+    /// The font database of this thread, built the first time text is asked for.
+    static TEXT_ENGINE: std::cell::RefCell<Option<flare_text::TextEngine>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// The engine each thread builds on first use. Under test it also knows the Hack font by name, so
+/// text tests do not depend on the fonts a machine happens to have.
+fn default_text_engine() -> flare_text::TextEngine {
+    #[allow(unused_mut)]
+    let mut engine = flare_text::TextEngine::new();
+    #[cfg(test)]
+    engine.register_font(epaint_default_fonts::HACK_REGULAR.to_vec());
+    engine
+}
+
+pub(crate) fn run_text(job: &TextJob) -> Done {
+    let result = TEXT_ENGINE.with(|slot| {
+        slot.borrow_mut()
+            .get_or_insert_with(default_text_engine)
+            .outline(&job.text, &job.style)
+            .map_err(|e| e.to_string())
+    });
+    Done::Text { id: job.id, result }
 }
 
 fn io_loop(jobs: &Receiver<IoJob>, done: &Sender<Done>, ctx: &egui::Context) {

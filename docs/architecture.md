@@ -17,6 +17,7 @@ Dependencies point down this list; a crate never depends on one above it.
 | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
 | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate. |
+| `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
 | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | `apps/flare-cli` | Headless project editing and export. |
 | `apps/flare-desktop` | The winit/egui-wgpu shell: window, GPU surface, native dialogs and menu. |
@@ -247,10 +248,10 @@ The policy is deliberately honest rather than clever:
 
 `flare-desktop` is a dock of panels: the stage (rendered by the same pipeline), a timeline with scrubbing
 and playback at the document frame rate, a library, and tools: Select/Move, Rectangle,
-Ellipse, Line and Pen (click for corners, drag for smooth handles, click the first point or
+Ellipse, Line, Pen and Text (click for corners, drag for smooth handles, click the first point or
 press Enter to finish, Backspace to remove a point, Esc to cancel), with fill and outline
 settings. The stage zooms (pinch, Ctrl/Cmd+scroll or the View menu, about the cursor)
-and pans (scroll or middle-drag). A layer can be made a mask for the layer directly below it (Layer menu): the mask is never drawn, and the layer below shows only where the mask has shapes (the union of its shapes at that frame; overlapping shapes of opposite winding cut holes). Masked artwork can only be picked where it shows. XFL export writes real mask layers; XFL import still keeps masks as preserved source data, and SWF publishing reports that masks are not written. Shift-click builds a multi-selection that moves and deletes together (other
+and pans (scroll or middle-drag). A layer can be made a mask for the layer directly below it (Layer menu): the mask is never drawn, and the layer below shows only where the mask has shapes (the union of its shapes at that frame; overlapping shapes of opposite winding cut holes). Masked artwork can only be picked where it shows. XFL export writes real mask layers; XFL import still keeps masks as preserved source data, and SWF publishing reports that masks are not written. The Text tool opens a small editor where you click; Place (Ctrl/Cmd+Enter) turns the text into a filled shape on a new layer, in the chosen font family and size, with the font work done on a worker. Shift-click on timeline cells selects frames of a layer; Copy Frames and Paste Frames (Ctrl/Cmd+Alt+C, V) copy them and paste them from the playhead, replacing what is there. Shift-click builds a multi-selection that moves and deletes together (other
 commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the selection onto
 new layers nudged aside; Copy and Paste (Cmd/Ctrl+C, V) remember the selection and paste it in
 place at the current frame on new layers. An instance whose symbol is missing from the document is refused. The Modify menu flips, rotates by 90 degrees and scales the selection about its
@@ -266,7 +267,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 
 ## Known gaps
 
-- No radial or multi-stop gradients, text or bitmap fills. The desktop app creates
+- No radial or multi-stop gradients or bitmap fills. Text is converted to shapes when it is placed, so it cannot be edited as text afterwards, and there is no rich text, text on a path or per-character styling. The desktop app creates
   horizontal or vertical gradients on new shapes only; they cannot yet be edited afterwards.
   XFL export and SWF publishing paint the solid fill, ignoring gradients.
 - XFL import covers a defined subset (see Import) and keeps the rest as source data (see Source preservation); XFL export and SWF publishing are verified only against our own importer and Ruffle's parser, never against Animate or a player.
