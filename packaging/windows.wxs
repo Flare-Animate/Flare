@@ -15,8 +15,14 @@
             <Shortcut Id="LaunchFlare" Name="Flare" Directory="ProgramMenuFolder"
                       Advertise="yes" WorkingDirectory="INSTALLFOLDER" Icon="FlareIcon" />
           </File>
-          <File Id="License" Source="$(var.License)" Name="LICENSE.txt" />
-          <File Id="FontLicense" Source="$(var.FontLicense)" Name="OFL.txt" />
+        </Component>
+        <!-- One file per component: WiX can only make a component's identity itself when it
+             holds a single file or a versioned one, and these are plain text. -->
+        <Component Id="LicenseText" Guid="*" Bitness="always64">
+          <File Id="License" Source="$(var.License)" Name="LICENSE.txt" KeyPath="yes" />
+        </Component>
+        <Component Id="FontLicenseText" Guid="*" Bitness="always64">
+          <File Id="FontLicense" Source="$(var.FontLicense)" Name="OFL.txt" KeyPath="yes" />
         </Component>
         <Component Id="FlareAssociation" Guid="*" Bitness="always64">
           <RegistryValue Root="HKLM" Key="Software\Classes\Flare.Project" Type="string"
@@ -50,6 +56,8 @@
     <StandardDirectory Id="ProgramMenuFolder" />
     <Feature Id="MainFeature" Title="Flare" Level="1">
       <ComponentRef Id="Application" />
+      <ComponentRef Id="LicenseText" />
+      <ComponentRef Id="FontLicenseText" />
       <ComponentRef Id="FlareAssociation" />
     </Feature>
   </Package>

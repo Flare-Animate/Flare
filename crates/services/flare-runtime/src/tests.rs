@@ -131,11 +131,14 @@ fn workers_do_the_jobs_wake_the_front_end_and_finish_saves_before_exit() {
     }
     let results = runtime.finish_io();
     assert_eq!(results.len(), 3, "shutdown waits for every save");
-    assert!(woken.load(Ordering::SeqCst) >= 3);
     assert!(!runtime.io_pending());
     for n in 0..3 {
         assert!(dir.path().join(format!("{n}.flare")).exists());
     }
+    // A worker sends its result and then wakes the front end, so the last wake can still be on
+    // its way when the result is read. Dropping the runtime waits for every worker to finish.
+    drop(runtime);
+    assert!(woken.load(Ordering::SeqCst) >= 3);
 }
 
 #[test]
