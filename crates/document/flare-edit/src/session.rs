@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use flare_document::Document;
 
-use crate::command::{Command, EditError, apply};
+use crate::command::{Command, EditError, apply_all};
 
 const DEFAULT_HISTORY_DEPTH: usize = 1000;
 
@@ -47,15 +47,9 @@ impl EditorSession {
 
     /// Applies the batch all-or-nothing as a single undo step.
     pub fn apply(&mut self, commands: impl IntoIterator<Item = Command>) -> Result<(), EditError> {
-        let mut working = (*self.current).clone();
-        let mut any = false;
-        for command in commands {
-            working = apply(&working, command)?;
-            any = true;
-        }
-        if !any {
+        let Some(working) = apply_all(&self.current, commands)? else {
             return Ok(());
-        }
+        };
         let previous = std::mem::replace(&mut self.current, Arc::new(working));
         self.undo.push_back(previous);
         if self.undo.len() > self.max_depth {

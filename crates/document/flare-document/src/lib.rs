@@ -91,6 +91,12 @@ impl Scene {
     pub fn timeline(&self) -> &Timeline {
         &self.timeline
     }
+
+    /// The timeline for editing. A document built from the edited scenes is validated as a
+    /// whole, so this does not check anything itself.
+    pub fn timeline_mut(&mut self) -> &mut Timeline {
+        &mut self.timeline
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -157,6 +163,10 @@ impl Document {
     /// longer exists. This is how deleting a layer removes what hung off it.
     #[must_use]
     pub fn with_attachments_retained(mut self, attachments: &[Attachment]) -> Self {
+        if attachments.is_empty() {
+            // Nothing to keep, so skip the walk that finds the live anchors.
+            return self;
+        }
         let live = validate::anchors(&self);
         self.attachments = attachments
             .iter()

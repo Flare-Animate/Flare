@@ -1,4 +1,5 @@
 use std::num::NonZeroU32;
+use std::sync::Arc;
 
 use flare_core::{InstanceId, LayerId, SymbolId, Transform2D};
 
@@ -107,8 +108,9 @@ pub enum TimelineError {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Layer {
     id: LayerId,
-    name: String,
-    spans: Vec<FrameSpan>,
+    name: Arc<str>,
+    /// Shared, so copying a layer copies neither its name nor its spans.
+    spans: Arc<[FrameSpan]>,
     visible: bool,
     locked: bool,
 }
@@ -128,8 +130,8 @@ impl Layer {
         }
         Ok(Self {
             id,
-            name: name.into(),
-            spans,
+            name: name.into().into(),
+            spans: spans.into(),
             visible: true,
             locked: false,
         })
@@ -137,7 +139,7 @@ impl Layer {
 
     /// A copy with different spans and everything else (name, visibility, lock) kept.
     pub fn with_spans(&self, spans: Vec<FrameSpan>) -> Result<Self, TimelineError> {
-        let mut layer = Self::new(self.id, self.name.clone(), spans)?;
+        let mut layer = Self::new(self.id, &*self.name, spans)?;
         layer.visible = self.visible;
         layer.locked = self.locked;
         Ok(layer)
@@ -145,7 +147,7 @@ impl Layer {
 
     #[must_use]
     pub fn with_name(mut self, name: impl Into<String>) -> Self {
-        self.name = name.into();
+        self.name = name.into().into();
         self
     }
 
@@ -203,16 +205,25 @@ impl Layer {
 /// Layers ordered top to bottom.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Timeline {
-    layers: Vec<Layer>,
+    /// Shared, so copying a timeline (every undo snapshot does) copies no layers.
+    layers: Arc<Vec<Layer>>,
 }
 
 impl Timeline {
     pub fn new(layers: Vec<Layer>) -> Self {
-        Self { layers }
+        Self {
+            layers: Arc::new(layers),
+        }
     }
 
     pub fn layers(&self) -> &[Layer] {
         &self.layers
+    }
+
+    /// The layers for editing. The list is copied first if another timeline shares it, so an
+    /// edit never shows through a snapshot; layers themselves stay shared until replaced.
+    pub fn layers_mut(&mut self) -> &mut Vec<Layer> {
+        Arc::make_mut(&mut self.layers)
     }
 
     /// Number of frames up to the end of the last span on any layer.

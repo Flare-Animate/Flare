@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use flare_core::{DocumentPoint, Rgba8, ShapeId};
 use thiserror::Error;
 
@@ -114,7 +116,8 @@ impl Gradient {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Shape {
     id: ShapeId,
-    path: Vec<PathSegment>,
+    /// Shared, so copying a shape (every edit and every undo snapshot does) copies no points.
+    path: Arc<[PathSegment]>,
     fill: Rgba8,
     /// When present it is painted instead of the solid `fill`.
     gradient: Option<Gradient>,
@@ -146,7 +149,7 @@ impl Shape {
         }
         Ok(Self {
             id,
-            path,
+            path: path.into(),
             fill,
             gradient: None,
             stroke: None,

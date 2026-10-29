@@ -67,8 +67,44 @@ pub enum DialogRequest {
     SaveAs,
 }
 
+/// Largest side, in pixels, of the stage texture. The texture covers only what is visible, so
+/// this is reached only on a very large window or display.
+const MAX_TEXTURE_SIDE: u32 = 4096;
+
+/// What part of the stage a texture shows and how many pixels it has.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct TextureView {
+    /// The visible part of the stage, in stage units.
+    region: Rect,
+    size: [u32; 2],
+}
+
+/// How many bytes of rendered frames are kept for reuse, and at most how many frames.
+const FRAME_CACHE_BYTES: usize = 96 * 1024 * 1024;
+const FRAME_CACHE_ENTRIES: usize = 48;
+
+/// A rendered frame kept so that showing the same picture again costs no rendering: a drawing
+/// held for many frames, or an animation that loops.
+struct CachedFrame {
+    /// The document state the picture is of; a different one can never be reused.
+    context: u64,
+    revision: u64,
+    /// What the frame (and its onion-skin ghosts) draws; see `Frame::signature`.
+    signature: u64,
+    view: TextureView,
+    handle: egui::TextureHandle,
+}
+
+impl CachedFrame {
+    fn bytes(&self) -> usize {
+        self.view.size[0] as usize * self.view.size[1] as usize * 4
+    }
+}
+
 struct StageTexture {
     handle: egui::TextureHandle,
+    /// Which part of the stage the pixels show, so the image is drawn where it belongs.
+    view: TextureView,
     /// The onion-skin settings the texture was rendered with.
     onion: OnionSkin,
     /// (context, session revision, frame) the texture was rendered for.
@@ -165,6 +201,10 @@ pub struct Workspace {
     play_remainder: f64,
     last_time: Option<f64>,
     texture: Option<StageTexture>,
+    /// Recently shown frames, least recently used first.
+    frame_cache: Vec<CachedFrame>,
+    /// How many frames have been rendered (as opposed to taken from the cache).
+    frames_rendered: u64,
     drag: Option<Drag>,
     /// Set by Escape so the release that follows a cancelled drag commits nothing.
     drag_cancelled: bool,
@@ -228,6 +268,8 @@ impl Workspace {
             play_remainder: 0.0,
             last_time: None,
             texture: None,
+            frame_cache: Vec::new(),
+            frames_rendered: 0,
             drag: None,
             drag_cancelled: false,
             tool: Tool::Rectangle,
@@ -769,6 +811,7 @@ impl Workspace {
         self.current_layer = None;
         self.frame = 0;
         self.texture = None;
+        self.frame_cache.clear();
         self.context_serial += 1;
     }
 
@@ -1844,13 +1887,39 @@ impl Workspace {
         self.onion.after = after.min(MAX_ONION_FRAMES);
     }
 
+    /// The part of the stage to render and at what size: what is on screen, at the resolution it
+    /// is shown, as of the last layout. Before any layout it is the whole stage.
+    fn desired_texture_view(&self, pixels_per_point: f32, max_side: u32) -> Option<TextureView> {
+        let extent = self.stage_extent();
+        let (region, density) = match self.stage_view.visible_region(self.stage_panel, extent) {
+            Some(region) => {
+                let scale = self.stage_view.scale(self.stage_panel, extent);
+                (region, (scale * pixels_per_point).max(f32::EPSILON))
+            }
+            None if self.stage_panel == Rect::NOTHING => {
+                (Rect::from_min_size(Pos2::ZERO, extent), 1.0)
+            }
+            None => return None,
+        };
+        let side = |length: f32| ((length * density).ceil() as u32).clamp(1, max_side.max(1));
+        Some(TextureView {
+            region,
+            size: [side(region.width()), side(region.height())],
+        })
+    }
+
     fn ensure_stage_texture(&mut self, ctx: &egui::Context) {
         let key = (self.context_serial, self.active().revision(), self.frame);
         let onion = self.effective_onion();
+        let Some(view) = self.desired_texture_view(ctx.pixels_per_point(), texture_side_limit(ctx))
+        else {
+            // Nothing of the stage is on screen: keep the last texture, there is nothing to draw.
+            return;
+        };
         if self
             .texture
             .as_ref()
-            .is_some_and(|t| t.key == key && t.onion == onion)
+            .is_some_and(|t| t.key == key && t.onion == onion && t.view == view)
         {
             return;
         }
@@ -1865,9 +1934,16 @@ impl Workspace {
         } else {
             Vec::new()
         };
-        let rendered = flare_eval::evaluate_frame(document, scene, self.frame)
-            .map_err(|e| e.to_string())
-            .and_then(|current| {
+        let (context, revision) = (key.0, key.1);
+
+        enum Outcome {
+            Cached(usize),
+            Rendered(u64, egui::ColorImage),
+            Failed(String),
+        }
+        let outcome = match flare_eval::evaluate_frame(document, scene, self.frame) {
+            Err(e) => Outcome::Failed(e.to_string()),
+            Ok(current) => {
                 // A ghost that fails to evaluate is simply left out; the current frame matters.
                 let evaluated: Vec<(flare_eval::Frame<'_>, f32)> = ghost_frames
                     .iter()
@@ -1877,34 +1953,104 @@ impl Workspace {
                             .map(|e| (e, *opacity))
                     })
                     .collect();
-                let ghosts: Vec<(&flare_eval::Frame<'_>, f32)> =
-                    evaluated.iter().map(|(e, o)| (e, *o)).collect();
-                flare_render::render_onion(
-                    &ghosts,
-                    &current,
-                    stage.width(),
-                    stage.height(),
-                    stage.background(),
-                )
-                .map_err(|e| e.to_string())
-            });
-        match rendered {
-            Ok(image) => {
-                let size = [image.width() as usize, image.height() as usize];
-                let color = egui::ColorImage::from_rgba_unmultiplied(size, image.rgba());
-                match &mut self.texture {
-                    Some(texture) => {
-                        texture.handle.set(color, egui::TextureOptions::LINEAR);
-                        texture.key = key;
-                        texture.onion = onion;
+                let signature = {
+                    use std::hash::{Hash, Hasher};
+                    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                    current.signature().hash(&mut hasher);
+                    for (ghost, opacity) in &evaluated {
+                        ghost.signature().hash(&mut hasher);
+                        opacity.to_bits().hash(&mut hasher);
                     }
+                    hasher.finish()
+                };
+                let hit = self.frame_cache.iter().position(|c| {
+                    c.context == context
+                        && c.revision == revision
+                        && c.signature == signature
+                        && c.view == view
+                });
+                match hit {
+                    Some(index) => Outcome::Cached(index),
                     None => {
-                        let handle = ctx.load_texture("stage", color, egui::TextureOptions::LINEAR);
-                        self.texture = Some(StageTexture { handle, key, onion });
+                        let ghosts: Vec<(&flare_eval::Frame<'_>, f32)> =
+                            evaluated.iter().map(|(e, o)| (e, *o)).collect();
+                        let viewport = flare_render::Viewport {
+                            x: f64::from(view.region.min.x),
+                            y: f64::from(view.region.min.y),
+                            width: f64::from(view.region.width()),
+                            height: f64::from(view.region.height()),
+                        };
+                        match flare_render::render_onion_viewport(
+                            &ghosts,
+                            &current,
+                            &viewport,
+                            view.size[0],
+                            view.size[1],
+                            stage.background(),
+                        ) {
+                            Ok(image) => {
+                                let size = [image.width() as usize, image.height() as usize];
+                                Outcome::Rendered(
+                                    signature,
+                                    egui::ColorImage::from_rgba_unmultiplied(size, image.rgba()),
+                                )
+                            }
+                            Err(e) => Outcome::Failed(e.to_string()),
+                        }
                     }
                 }
             }
-            Err(message) => self.report(format!("Cannot render frame: {message}")),
+        };
+        let handle = match outcome {
+            Outcome::Cached(index) => {
+                // Most recently used goes last.
+                let entry = self.frame_cache.remove(index);
+                let handle = entry.handle.clone();
+                self.frame_cache.push(entry);
+                handle
+            }
+            Outcome::Rendered(signature, color) => {
+                self.frames_rendered += 1;
+                let handle = ctx.load_texture("stage", color, egui::TextureOptions::LINEAR);
+                // Pictures of other document states can never be shown again.
+                self.frame_cache
+                    .retain(|c| c.context == context && c.revision == revision);
+                self.frame_cache.push(CachedFrame {
+                    context,
+                    revision,
+                    signature,
+                    view,
+                    handle: handle.clone(),
+                });
+                self.trim_frame_cache();
+                handle
+            }
+            Outcome::Failed(message) => {
+                self.report(format!("Cannot render frame: {message}"));
+                return;
+            }
+        };
+        self.texture = Some(StageTexture {
+            handle,
+            view,
+            key,
+            onion,
+        });
+    }
+
+    /// Drops the least recently used frames until the cache fits its limits. The newest frame
+    /// is always kept, so a single large frame is still shown.
+    fn trim_frame_cache(&mut self) {
+        while self.frame_cache.len() > 1
+            && (self.frame_cache.len() > FRAME_CACHE_ENTRIES
+                || self
+                    .frame_cache
+                    .iter()
+                    .map(CachedFrame::bytes)
+                    .sum::<usize>()
+                    > FRAME_CACHE_BYTES)
+        {
+            self.frame_cache.remove(0);
         }
     }
 
@@ -2209,12 +2355,30 @@ impl Workspace {
         let scale = self.stage_view.scale(response.rect, extent);
         let image_rect = self.stage_view.image_rect(response.rect, extent);
         if let Some(texture) = &self.texture {
+            // Until the texture catches up with a zoom or pan it is drawn where it belongs, never
+            // stretched over the stage; the stage color shows through the rest.
+            let bg = self.document().stage().background().to_array();
+            painter.rect_filled(
+                image_rect,
+                0.0,
+                Color32::from_rgba_unmultiplied(bg[0], bg[1], bg[2], bg[3]),
+            );
+            let region = texture.view.region;
+            let shown = Rect::from_min_max(
+                image_rect.min + region.min.to_vec2() * scale,
+                image_rect.min + region.max.to_vec2() * scale,
+            );
             painter.image(
                 texture.handle.id(),
-                image_rect,
+                shown,
                 Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
                 Color32::WHITE,
             );
+            if self.desired_texture_view(ui.ctx().pixels_per_point(), texture_side_limit(ui.ctx()))
+                != Some(texture.view)
+            {
+                ui.ctx().request_repaint();
+            }
         } else {
             painter.text(
                 image_rect.center(),
@@ -2520,7 +2684,7 @@ impl Workspace {
                 self.zoom_timeline(zoom);
             }
         }
-        egui::ScrollArea::horizontal().show(ui, |ui| {
+        egui::ScrollArea::both().auto_shrink(false).show(ui, |ui| {
             let frames = self.scene_frames();
             let layer_count = self
                 .document()
@@ -2609,7 +2773,17 @@ impl Workspace {
                 );
             }
             if let Some(scene) = self.document().scenes().first() {
-                for (i, layer) in scene.timeline().layers().iter().enumerate() {
+                // Only the rows in view are painted; with thousands of layers drawing all of
+                // them every frame dominated the cost of an idle frame.
+                let (first, count) = visible_rows(rect.min.y, row, painter.clip_rect());
+                for (i, layer) in scene
+                    .timeline()
+                    .layers()
+                    .iter()
+                    .enumerate()
+                    .skip(first)
+                    .take(count)
+                {
                     let y = rect.min.y + row * (i as f32 + 1.0);
                     if Some(layer.id()) == active {
                         let band = Rect::from_min_max(
@@ -2722,6 +2896,34 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
 /// Whether Enter was pressed this pass.
 fn enter_pressed(ctx: &egui::Context) -> bool {
     key_press(ctx, Key::Enter).is_some()
+}
+
+/// The layer rows (first index, how many) that intersect `clip`, given the top of the track area,
+/// the row height, and one header row above the first layer. Rows partly in view are included.
+fn visible_rows(top: f32, row: f32, clip: Rect) -> (usize, usize) {
+    if !(row > 0.0 && row.is_finite())
+        || !top.is_finite()
+        || !clip.min.y.is_finite()
+        || !clip.max.y.is_finite()
+        || clip.is_negative()
+    {
+        return (0, 0);
+    }
+    // Layer `i` occupies y in [top + row * (i + 1), top + row * (i + 2)).
+    let first = (((clip.min.y - top) / row).floor() - 1.0).max(0.0);
+    let last = (((clip.max.y - top) / row).ceil() - 2.0).max(0.0);
+    if !first.is_finite() || !last.is_finite() || last < first {
+        return (0, 0);
+    }
+    (first as usize, (last - first) as usize + 1)
+}
+
+/// The largest texture side to ask for: the backend's own limit, and never more than we want.
+fn texture_side_limit(ctx: &egui::Context) -> u32 {
+    let backend = ctx.input(|i| i.max_texture_side);
+    u32::try_from(backend)
+        .unwrap_or(u32::MAX)
+        .min(MAX_TEXTURE_SIDE)
 }
 
 /// Modifiers held when `key` was pressed this pass, if it was pressed.
@@ -2904,9 +3106,11 @@ mod tests {
             start: Pos2::new(1.0, 1.0),
             current: Pos2::new(50.0, 50.0),
         });
-        let _ = ctx.run_ui(input(0.1, vec![key(Key::Escape, Modifiers::NONE)]), |ui| {
-            ws.show(ui)
-        });
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.1, vec![key(Key::Escape, Modifiers::NONE)]),
+        );
         assert!(ws.drag.is_none());
         assert!(ws.drag_cancelled);
         assert_eq!(layer_count(&ws), 1);
@@ -4853,5 +5057,207 @@ mod tests {
             vec![(0, 3), (6, 2)],
             "it would overlap, so refused"
         );
+    }
+
+    #[test]
+    fn only_rows_in_view_are_painted() {
+        let clip = |a: f32, b: f32| Rect::from_min_max(Pos2::new(0.0, a), Pos2::new(100.0, b));
+        // Header row 0..22; layer 0 spans 22..44, layer 1 44..66, and so on.
+        assert_eq!(
+            visible_rows(0.0, 22.0, clip(0.0, 44.0)),
+            (0, 1),
+            "only layer 0 is below the header"
+        );
+        assert_eq!(visible_rows(0.0, 22.0, clip(0.0, 45.0)), (0, 2));
+        assert_eq!(visible_rows(0.0, 22.0, clip(100.0, 140.0)), (3, 3));
+        // The track starts below the top of the scroll content.
+        assert_eq!(visible_rows(50.0, 22.0, clip(0.0, 80.0)), (0, 1));
+        for bad in [f32::NAN, f32::INFINITY, -1.0, 0.0] {
+            assert_eq!(visible_rows(0.0, bad, clip(0.0, 80.0)).1, 0, "row {bad}");
+        }
+        assert_eq!(visible_rows(f32::NAN, 22.0, clip(0.0, 80.0)), (0, 0));
+        assert_eq!(visible_rows(0.0, 22.0, clip(f32::NAN, f32::NAN)), (0, 0));
+    }
+
+    #[test]
+    fn the_texture_covers_what_is_on_screen_at_screen_resolution() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.set_stage_size(2000, 1000);
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.1); // the second pass knows the panel
+        let fitted = ws.texture.as_ref().expect("texture").view;
+        assert_eq!(
+            fitted.region.size(),
+            Vec2::new(2000.0, 1000.0),
+            "all of it is visible"
+        );
+        assert!(
+            fitted.size[0] < 1400 && fitted.size[1] < 800,
+            "the texture is about the size of the window, not of the 2000x1000 stage: {:?}",
+            fitted.size
+        );
+
+        // Zoomed in 8x about the center, only an eighth of the stage is visible, and the texture
+        // is no bigger than before: the pixels go into what can be seen.
+        for _ in 0..3 {
+            ws.perform(MenuAction::ZoomIn);
+            ws.perform(MenuAction::ZoomIn);
+            ws.perform(MenuAction::ZoomIn);
+        }
+        run(&mut ws, &ctx, 0.2);
+        run(&mut ws, &ctx, 0.3);
+        let zoomed = ws.texture.as_ref().expect("texture").view;
+        assert!(
+            zoomed.region.width() < fitted.region.width() / 4.0,
+            "{zoomed:?}"
+        );
+        assert!(
+            zoomed.size[0] <= 1400 && zoomed.size[1] <= 800,
+            "{:?}",
+            zoomed.size
+        );
+        let density = |v: &TextureView| v.size[0] as f32 / v.region.width();
+        assert!(
+            density(&zoomed) > density(&fitted) * 4.0,
+            "and it is sharper"
+        );
+    }
+
+    #[test]
+    fn a_stage_too_big_to_render_whole_still_shows_the_visible_part() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.set_stage_size(16_000, 16_000);
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.1);
+        let texture = ws.texture.as_ref().expect("a texture, not a render error");
+        assert!(
+            texture.view.size[0] <= texture_side_limit(&ctx)
+                && texture.view.size[1] <= texture_side_limit(&ctx)
+        );
+        assert!(
+            ws.status().is_none_or(|m| !m.contains("Cannot render")),
+            "{:?}",
+            ws.status()
+        );
+    }
+
+    #[test]
+    fn panning_changes_the_texture_view_but_not_the_document() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.set_stage_size(2000, 1000);
+        run(&mut ws, &ctx, 0.0); // lays out the panel, which zooming aims at
+        for _ in 0..4 {
+            ws.perform(MenuAction::ZoomIn);
+        }
+        run(&mut ws, &ctx, 0.1);
+        run(&mut ws, &ctx, 0.15);
+        let before = ws.texture.as_ref().expect("texture").view;
+        ws.stage_view.pan_by(Vec2::new(-150.0, 0.0));
+        run(&mut ws, &ctx, 0.2);
+        let after = ws.texture.as_ref().expect("texture").view;
+        assert!(
+            after.region.min.x > before.region.min.x,
+            "{before:?} then {after:?}"
+        );
+        assert_eq!(after.size, before.size);
+    }
+
+    /// A shape held for 24 frames, plus a second layer that appears only at frame 12.
+    fn held_then_changing() -> Workspace {
+        let mut ws = workspace();
+        ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(60.0, 60.0));
+        let layer = ws.current_layer.expect("layer");
+        ws.set_frame(12);
+        ws.current_layer = Some(layer);
+        ws.frame_edit(FrameOp::InsertKeyframe);
+        ws.set_frame(0);
+        ws
+    }
+
+    #[test]
+    fn frames_that_look_the_same_are_rendered_once() {
+        let (ctx, mut ws) = (egui::Context::default(), held_then_changing());
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.01); // the panel is known now, so the view settles
+        let settled = ws.frames_rendered;
+        // Frames 1..12 show exactly the picture of frame 0: no further rendering.
+        for frame in 1..12 {
+            ws.set_frame(frame);
+            run(&mut ws, &ctx, 0.1 + f64::from(frame) * 0.01);
+        }
+        assert_eq!(
+            ws.frames_rendered, settled,
+            "a held exposure is rendered once"
+        );
+        assert_eq!(
+            ws.texture.as_ref().map(|t| t.key.2),
+            Some(11),
+            "but the right frame is current"
+        );
+    }
+
+    #[test]
+    fn a_looping_animation_costs_nothing_after_the_first_pass() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(40.0, 40.0));
+        ws.set_tool(Tool::Select);
+        let layer = ws.current_layer.expect("layer");
+        for frame in [8, 16] {
+            ws.set_frame(frame);
+            ws.current_layer = Some(layer);
+            ws.frame_edit(FrameOp::InsertKeyframe);
+        }
+        ws.set_frame(0);
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.01);
+        let first = ws.frames_rendered;
+        for frame in 0..24 {
+            ws.set_frame(frame);
+            run(&mut ws, &ctx, 0.2 + f64::from(frame) * 0.01);
+        }
+        let after_one_pass = ws.frames_rendered;
+        for frame in 0..24 {
+            ws.set_frame(frame);
+            run(&mut ws, &ctx, 1.0 + f64::from(frame) * 0.01);
+        }
+        assert_eq!(
+            ws.frames_rendered, after_one_pass,
+            "the second loop renders nothing"
+        );
+        assert!(after_one_pass >= first);
+    }
+
+    #[test]
+    fn editing_invalidates_cached_pictures_and_the_cache_stays_within_its_limits() {
+        let (ctx, mut ws) = (egui::Context::default(), held_then_changing());
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.01);
+        let before = ws.frames_rendered;
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.move_selection(Vec2::new(20.0, 0.0));
+        run(&mut ws, &ctx, 0.1);
+        assert!(
+            ws.frames_rendered > before,
+            "the edit shows up, not a stale picture"
+        );
+        assert!(
+            ws.frame_cache
+                .iter()
+                .all(|c| c.revision == ws.active().revision()),
+            "pictures of older document states are dropped"
+        );
+        // The limits hold however many different pictures come through.
+        for _ in 0..(FRAME_CACHE_ENTRIES + 10) {
+            ws.frame_cache.push(CachedFrame {
+                context: ws.context_serial,
+                revision: ws.active().revision(),
+                signature: ws.frame_cache.len() as u64 + 1_000,
+                view: ws.texture.as_ref().expect("texture").view,
+                handle: ws.texture.as_ref().expect("texture").handle.clone(),
+            });
+        }
+        ws.trim_frame_cache();
+        assert!(ws.frame_cache.len() <= FRAME_CACHE_ENTRIES);
+        assert!(!ws.frame_cache.is_empty());
     }
 }

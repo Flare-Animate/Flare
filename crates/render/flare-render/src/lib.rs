@@ -147,18 +147,44 @@ pub fn render_onion(
     height: u32,
     background: Rgba8,
 ) -> Result<Image, RenderError> {
+    render_onion_viewport(
+        ghosts,
+        current,
+        &Viewport::full(width, height),
+        width,
+        height,
+        background,
+    )
+}
+
+/// [`render_onion`] for a part of the stage; see [`render_viewport`].
+pub fn render_onion_viewport(
+    ghosts: &[(&Frame<'_>, f32)],
+    current: &Frame<'_>,
+    viewport: &Viewport,
+    width: u32,
+    height: u32,
+    background: Rgba8,
+) -> Result<Image, RenderError> {
     if ghosts.is_empty() {
-        return render(current, width, height, background);
+        return render_viewport(current, viewport, width, height, background);
     }
     let empty = Frame {
         placed: Vec::new(),
         shapes: Vec::new(),
     };
-    let mut image = render(&empty, width, height, background)?;
+    let mut image = render_viewport(&empty, viewport, width, height, background)?;
     for (frame, opacity) in ghosts {
-        image.composite(&render(frame, width, height, Rgba8::TRANSPARENT)?.faded(*opacity))?;
+        let ghost = render_viewport(frame, viewport, width, height, Rgba8::TRANSPARENT)?;
+        image.composite(&ghost.faded(*opacity))?;
     }
-    image.composite(&render(current, width, height, Rgba8::TRANSPARENT)?)?;
+    image.composite(&render_viewport(
+        current,
+        viewport,
+        width,
+        height,
+        Rgba8::TRANSPARENT,
+    )?)?;
     Ok(image)
 }
 
@@ -226,6 +252,38 @@ fn unpremultiply(data: &[u8]) -> Vec<u8> {
     out
 }
 
+/// A rectangle of the stage, in stage units, to draw into an image of any size.
+///
+/// Rendering only what is on screen, at the resolution it is shown, keeps the work and the
+/// memory proportional to the window rather than to the stage, and keeps zoomed-in views sharp.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Viewport {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+impl Viewport {
+    /// The whole stage at one image pixel per stage unit.
+    pub fn full(width: u32, height: u32) -> Self {
+        Self {
+            x: 0.0,
+            y: 0.0,
+            width: f64::from(width),
+            height: f64::from(height),
+        }
+    }
+
+    fn is_valid(&self) -> bool {
+        [self.x, self.y, self.width, self.height]
+            .iter()
+            .all(|v| v.is_finite())
+            && self.width > 0.0
+            && self.height > 0.0
+    }
+}
+
 /// Rasterizes `frame` at `width` x `height` over `background` (use
 /// [`Rgba8::TRANSPARENT`] for no background).
 pub fn render(
@@ -234,6 +292,26 @@ pub fn render(
     height: u32,
     background: Rgba8,
 ) -> Result<Image, RenderError> {
+    render_viewport(
+        frame,
+        &Viewport::full(width, height),
+        width,
+        height,
+        background,
+    )
+}
+
+/// Rasterizes the part of `frame` inside `viewport`, scaled to `width` x `height` pixels.
+pub fn render_viewport(
+    frame: &Frame<'_>,
+    viewport: &Viewport,
+    width: u32,
+    height: u32,
+    background: Rgba8,
+) -> Result<Image, RenderError> {
+    if !viewport.is_valid() {
+        return Err(RenderError::InvalidSize(width, height));
+    }
     let area = u64::from(width) * u64::from(height);
     if width == 0
         || height == 0
@@ -250,9 +328,15 @@ pub fn render(
         ctx.set_paint(color(background));
         ctx.fill_rect(&Rect::new(0.0, 0.0, f64::from(width), f64::from(height)));
     }
+    // Stage units to image pixels. Shapes are culled by the rasterizer, so the cost of a zoomed
+    // view follows what is visible.
+    let base = Affine::scale_non_uniform(
+        f64::from(width) / viewport.width,
+        f64::from(height) / viewport.height,
+    ) * Affine::translate((-viewport.x, -viewport.y));
     for drawn in &frame.shapes {
         let [a, b, c, d, e, f] = drawn.transform.to_cols_array();
-        ctx.set_transform(Affine::new([a, b, c, d, e, f]));
+        ctx.set_transform(base * Affine::new([a, b, c, d, e, f]));
         let path = bez_path(drawn.shape.path());
         match drawn.shape.gradient() {
             Some(gradient) => ctx.set_paint(linear_gradient(&gradient)),
@@ -801,6 +885,95 @@ mod tests {
             assert_eq!(
                 hit_test(&frame, glamx::DVec2::new(20.0, 20.0)).is_some(),
                 hit
+            );
+        }
+    }
+
+    #[test]
+    fn a_viewport_draws_the_chosen_part_of_the_stage_at_the_chosen_resolution() {
+        // Stage 0..100: a red square at 40..60 and a blue one at 80..100.
+        let blue = Rgba8::opaque(0, 0, 255);
+        let (doc, id) = scene_with(
+            vec![
+                span(rect(40.0, 40.0, 20.0, 20.0, RED)),
+                span(rect(80.0, 80.0, 20.0, 20.0, blue)),
+            ],
+            vec![],
+        );
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+
+        // The right-bottom quarter (50..100) shown at 2 pixels per unit: 100 x 100 pixels.
+        let view = Viewport {
+            x: 50.0,
+            y: 50.0,
+            width: 50.0,
+            height: 50.0,
+        };
+        let image = render_viewport(&frame, &view, 100, 100, Rgba8::WHITE).expect("render");
+        assert_eq!((image.width(), image.height()), (100, 100));
+        assert_eq!(
+            image.pixel(5, 5),
+            Some(RED),
+            "stage (52, 52) is inside the red square"
+        );
+        assert_eq!(
+            image.pixel(25, 25),
+            Some(Rgba8::WHITE),
+            "stage (62, 62) is between the squares"
+        );
+        assert_eq!(image.pixel(80, 80), Some(blue), "stage (90, 90)");
+        assert_eq!(
+            image.pixel(19, 5),
+            Some(RED),
+            "the red square ends at stage 60, which is pixel 20"
+        );
+        assert_eq!(image.pixel(20, 5), Some(Rgba8::WHITE));
+
+        // The whole-stage viewport is exactly what `render` draws.
+        let full = render_viewport(&frame, &Viewport::full(100, 100), 100, 100, Rgba8::WHITE)
+            .expect("full");
+        assert_eq!(
+            full,
+            render(&frame, 100, 100, Rgba8::WHITE).expect("render")
+        );
+    }
+
+    #[test]
+    fn viewports_work_with_strokes_and_gradients_and_reject_bad_requests() {
+        let shape = gradient_rect(100.0, 20.0);
+        let (doc, id) = scene_with(vec![span(Content::Shape(shape))], vec![]);
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        // Zoom into the right half: the blue end of the gradient fills the view.
+        let right = Viewport {
+            x: 90.0,
+            y: 0.0,
+            width: 10.0,
+            height: 20.0,
+        };
+        let image = render_viewport(&frame, &right, 50, 100, Rgba8::WHITE).expect("render");
+        let end = image.pixel(45, 50).expect("pixel");
+        assert!(end.b > 220 && end.r < 40, "{end:?}");
+        for bad in [
+            Viewport {
+                x: f64::NAN,
+                ..right
+            },
+            Viewport {
+                width: 0.0,
+                ..right
+            },
+            Viewport {
+                height: -1.0,
+                ..right
+            },
+            Viewport {
+                y: f64::INFINITY,
+                ..right
+            },
+        ] {
+            assert!(
+                render_viewport(&frame, &bad, 10, 10, Rgba8::WHITE).is_err(),
+                "{bad:?}"
             );
         }
     }

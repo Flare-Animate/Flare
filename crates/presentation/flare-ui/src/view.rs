@@ -66,6 +66,25 @@ impl StageView {
         Rect::from_center_size(panel.center() + self.pan, size)
     }
 
+    /// The part of the stage that is on screen, in stage units, or `None` when none of it is.
+    pub fn visible_region(&self, panel: Rect, extent: Vec2) -> Option<Rect> {
+        if !usable(extent) || !panel.min.is_finite() || !panel.max.is_finite() {
+            return None;
+        }
+        let image = self.image_rect(panel, extent);
+        let scale = self.scale(panel, extent);
+        let seen = image.intersect(panel);
+        if !(seen.width() > 0.0 && seen.height() > 0.0) {
+            return None;
+        }
+        let to_stage = |p: Pos2| {
+            let v = (p - image.min) / scale;
+            Pos2::new(v.x.clamp(0.0, extent.x), v.y.clamp(0.0, extent.y))
+        };
+        let region = Rect::from_min_max(to_stage(seen.min), to_stage(seen.max));
+        (region.width() > 0.0 && region.height() > 0.0).then_some(region)
+    }
+
     pub fn pan_by(&mut self, delta: Vec2) {
         if delta.x.is_finite() && delta.y.is_finite() {
             self.pan += delta;
@@ -74,7 +93,8 @@ impl StageView {
 
     /// Multiplies the zoom by `factor`, keeping the stage point under `anchor` where it is.
     pub fn zoom_about(&mut self, anchor: Pos2, factor: f32, panel: Rect, extent: Vec2) {
-        if !factor.is_finite() || factor <= 0.0 || !usable(extent) {
+        let panel_ok = panel.min.is_finite() && panel.max.is_finite() && anchor.is_finite();
+        if !factor.is_finite() || factor <= 0.0 || !usable(extent) || !panel_ok {
             return;
         }
         let before = self.image_rect(panel, extent);
@@ -170,6 +190,45 @@ mod tests {
         assert!(!view.is_fit());
         view.reset();
         assert_eq!(view.image_rect(panel(), EXTENT), home);
+    }
+
+    #[test]
+    fn the_visible_region_is_the_part_of_the_stage_inside_the_panel() {
+        let mut view = StageView::default();
+        // Fitted, the whole stage is visible.
+        let all = view.visible_region(panel(), EXTENT).expect("region");
+        assert_eq!((all.min, all.max), (Pos2::ZERO, Pos2::new(400.0, 200.0)));
+        // Zoomed in 4x about the panel center: a quarter of each side is visible, centered.
+        view.zoom_center(4.0, panel(), EXTENT);
+        let r = view.visible_region(panel(), EXTENT).expect("region");
+        assert!(
+            (r.width() - 100.0).abs() < 0.01 && (r.height() - 50.0).abs() < 0.01,
+            "{r:?}"
+        );
+        assert!(
+            (r.center() - Pos2::new(200.0, 100.0)).length() < 0.01,
+            "{r:?}"
+        );
+        // Panned far away, nothing is visible.
+        view.pan_by(Vec2::new(1e6, 0.0));
+        assert!(view.visible_region(panel(), EXTENT).is_none());
+        // Partly off the panel: only the stage's left part shows, starting at its left edge.
+        let mut view = StageView::default();
+        view.pan_by(Vec2::new(400.0, 0.0));
+        let r = view.visible_region(panel(), EXTENT).expect("region");
+        assert_eq!(r.min.x, 0.0);
+        assert!((r.max.x - 200.0).abs() < 0.01, "{r:?}");
+        for bad in [Vec2::ZERO, Vec2::new(f32::NAN, 1.0)] {
+            assert!(StageView::default().visible_region(panel(), bad).is_none());
+        }
+    }
+
+    #[test]
+    fn zooming_before_the_panel_is_known_changes_nothing() {
+        let mut view = StageView::default();
+        view.zoom_center(2.0, Rect::NOTHING, EXTENT);
+        view.zoom_about(Pos2::new(f32::NAN, 0.0), 2.0, panel(), EXTENT);
+        assert!(view.is_fit(), "no NaN pan from an empty panel");
     }
 
     #[test]

@@ -44,6 +44,25 @@ pub struct Frame<'a> {
     pub shapes: Vec<DrawnShape<'a>>,
 }
 
+impl Frame<'_> {
+    /// A hash of what this frame draws: which shapes, where, in what order. Two frames of one
+    /// document revision with the same signature render identically, so a held exposure (the
+    /// same drawing for many frames) can reuse one image. Shapes are identified by id, which is
+    /// stable within a revision; a different revision needs a different cache key.
+    pub fn signature(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        self.shapes.len().hash(&mut hasher);
+        for drawn in &self.shapes {
+            drawn.shape.id().hash(&mut hasher);
+            for value in drawn.transform.to_cols_array() {
+                value.to_bits().hash(&mut hasher);
+            }
+        }
+        hasher.finish()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct DrawnShape<'a> {
     /// Instances from the scene down to the shape's owner (empty for scene-level shapes).
@@ -463,5 +482,70 @@ mod tests {
         let scene = timeline(vec![vec![span(0, 1, ids[0], at(0.0))]]);
         let (doc, id) = document(scene, symbols);
         assert_eq!(evaluate(&doc, id, 0), Err(EvalError::TooDeep));
+    }
+
+    #[test]
+    fn a_held_exposure_has_one_signature_and_any_visible_change_has_another() {
+        let art = SymbolId::new();
+        let moving = timeline(vec![vec![
+            span(0, 4, art, at(10.0)),
+            span(4, 4, art, at(20.0)),
+        ]]);
+        // The symbol holds a rectangle, so moving the instance moves something visible.
+        let rect = flare_document::Shape::rect(
+            flare_core::ShapeId::new(),
+            0.0,
+            0.0,
+            5.0,
+            5.0,
+            flare_core::Rgba8::WHITE,
+        )
+        .expect("rect");
+        let inner = Timeline::new(vec![
+            Layer::new(
+                LayerId::new(),
+                "inner",
+                vec![FrameSpan::new(
+                    0,
+                    NonZeroU32::new(1).expect("nonzero"),
+                    Content::Shape(rect),
+                )],
+            )
+            .expect("layer"),
+        ]);
+        let (doc, id) = document(moving, vec![Symbol::new(art, "Art", inner)]);
+        let sig = |f| evaluate_frame(&doc, id, f).expect("eval").signature();
+        // Frames 0..4 show the same thing; frame 4 starts the next exposure.
+        assert_eq!(sig(0), sig(3));
+        assert_ne!(sig(3), sig(4));
+
+        let rect_layer = |name: &str| {
+            let shape = flare_document::Shape::rect(
+                flare_core::ShapeId::new(),
+                0.0,
+                0.0,
+                10.0,
+                10.0,
+                flare_core::Rgba8::WHITE,
+            )
+            .expect("rect");
+            let held = FrameSpan::new(
+                0,
+                NonZeroU32::new(5).expect("nonzero"),
+                Content::Shape(shape),
+            );
+            Layer::new(LayerId::new(), name, vec![held]).expect("layer")
+        };
+        let layer = rect_layer("a");
+        let (one, one_id) = document(Timeline::new(vec![layer.clone()]), vec![]);
+        let (two, two_id) = document(Timeline::new(vec![layer, rect_layer("b")]), vec![]);
+        let s1 = evaluate_frame(&one, one_id, 0).expect("eval").signature();
+        let s2 = evaluate_frame(&two, two_id, 0).expect("eval").signature();
+        assert_ne!(s1, s2, "an extra shape changes it");
+        assert_eq!(
+            s1,
+            evaluate_frame(&one, one_id, 0).expect("eval").signature(),
+            "and the same frame always hashes the same"
+        );
     }
 }
