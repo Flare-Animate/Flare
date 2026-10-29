@@ -7,8 +7,8 @@ use flare_core::{
     Transform2D,
 };
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Symbol, Timeline,
-    Tween,
+    Content, Document, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Symbol,
+    Timeline, Tween,
 };
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
@@ -23,13 +23,29 @@ fn uuid(text: &str) -> Result<Uuid, StorageError> {
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Settings {
     frame_rate: (u32, u32),
+    /// Absent in files written before stages existed; those load with the default stage.
+    #[serde(default)]
+    stage: Option<StageWire>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct StageWire {
+    width: u32,
+    height: u32,
+    background: [u8; 4],
 }
 
 impl Settings {
     pub(crate) fn of(document: &Document) -> Self {
         let rate = document.frame_rate();
+        let stage = document.stage();
         Self {
             frame_rate: (rate.numerator(), rate.denominator()),
+            stage: Some(StageWire {
+                width: stage.width(),
+                height: stage.height(),
+                background: stage.background().to_array(),
+            }),
         }
     }
 }
@@ -253,11 +269,20 @@ pub(crate) fn assemble(
     let settings: Settings = serde_json::from_str(settings)?;
     let rate = FrameRate::new(settings.frame_rate.0, settings.frame_rate.1)
         .map_err(|error| StorageError::Corrupt(error.to_string()))?;
-    Document::new(
+    let document = Document::new(
         DocumentId::from_uuid(uuid(project_id)?),
         rate,
         scenes,
         symbols,
     )
-    .map_err(StorageError::Invalid)
+    .map_err(StorageError::Invalid)?;
+    match settings.stage {
+        None => Ok(document),
+        Some(wire) => {
+            let [r, g, b, a] = wire.background;
+            let stage = Stage::new(wire.width, wire.height, Rgba8::new(r, g, b, a))
+                .map_err(|error| StorageError::Corrupt(error.to_string()))?;
+            Ok(document.with_stage(stage))
+        }
+    }
 }

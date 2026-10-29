@@ -183,7 +183,8 @@ mod tests {
         SymbolId, Transform2D,
     };
     use flare_document::{
-        Content, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Symbol, Timeline, Tween,
+        Content, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Symbol, Timeline,
+        Tween,
     };
     use glamx::DAffine2;
 
@@ -241,6 +242,7 @@ mod tests {
             vec![symbol],
         )
         .expect("document")
+        .with_stage(Stage::new(640, 360, Rgba8::new(1, 2, 3, 4)).expect("stage"))
     }
 
     #[test]
@@ -305,6 +307,30 @@ mod tests {
         fs::write(&good, &bytes[..bytes.len() / 2]).expect("truncate");
         assert!(load(&good).is_err());
         assert!(load(&dir.path().join("missing.flare")).is_err());
+    }
+
+    #[test]
+    fn files_without_a_stage_load_with_the_default_and_bad_stages_are_rejected() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        save(&sample(), &path).expect("save");
+        let conn = Connection::open(&path).expect("open");
+        conn.execute(
+            "UPDATE project SET settings_json = '{\"frame_rate\":[30000,1001]}'",
+            [],
+        )
+        .expect("strip stage");
+        drop(conn);
+        assert_eq!(load(&path).expect("legacy load").stage(), Stage::default());
+
+        let conn = Connection::open(&path).expect("open");
+        conn.execute(
+            "UPDATE project SET settings_json = '{\"frame_rate\":[24,1],\"stage\":{\"width\":0,\"height\":5,\"background\":[0,0,0,0]}}'",
+            [],
+        )
+        .expect("bad stage");
+        drop(conn);
+        assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
     }
 
     #[test]
