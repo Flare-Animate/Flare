@@ -33,7 +33,7 @@ Executables are in `apps/`. The folders mean:
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
 | services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound and text, with latest-wins and an inline mode for tests; image export. No UI types. |
-| services | `flare-platform` | What a desktop needs from the operating system: per-user directories, the sound card, native dialogs, recovery prompts, and the threads for publishing, exporting and test movies. No UI types. |
+| services | `flare-platform` | What a desktop needs from the operating system: per-user directories (the `directories` crate), the sound card, native dialogs, recovery prompts, and the threads for publishing, exporting and test movies. No UI types. |
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the stage's pan and zoom math. |
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, tools, menu actions. No window or GPU code. |
 | apps | `flare-cli` | Headless project editing and export. |

@@ -80,7 +80,7 @@ pub(super) fn cubic_is_curved(c: [Point; 4]) -> bool {
 }
 
 pub(super) fn write_shape(
-    out: &mut String,
+    out: &mut Xml,
     shape: &Shape,
     place: &str,
     notes: &mut Vec<Diagnostic>,
@@ -104,47 +104,83 @@ pub(super) fn write_shape(
         });
         return;
     }
-    out.push_str("<DOMShape>");
+    out.open("DOMShape", []);
     if has_fill {
-        out.push_str(&format!(
-            "<fills><FillStyle index=\"1\"><SolidColor color=\"{}\" alpha=\"{}\"/></FillStyle></fills>",
-            hex(fill),
-            alpha(fill)
-        ));
+        out.open("fills", []);
+        out.open("FillStyle", [a("index", 1)]);
+        out.empty(
+            "SolidColor",
+            [a("color", hex(fill)), a("alpha", alpha(fill))],
+        );
+        out.close("FillStyle");
+        out.close("fills");
     }
     if let Some(stroke) = stroke {
-        out.push_str(&format!(
-            "<strokes><StrokeStyle index=\"1\"><SolidStroke weight=\"{}\" caps=\"{}\" joints=\"{}\"><fill><SolidColor color=\"{}\" alpha=\"{}\"/></fill></SolidStroke></StrokeStyle></strokes>",
-            num(stroke.width()),
-            caps_name(stroke.cap()),
-            joints_name(stroke.join()),
-            hex(stroke.color()),
-            alpha(stroke.color())
-        ));
+        out.open("strokes", []);
+        out.open("StrokeStyle", [a("index", 1)]);
+        out.open(
+            "SolidStroke",
+            [
+                a("weight", num(stroke.width())),
+                a("caps", caps_name(stroke.cap())),
+                a("joints", joints_name(stroke.join())),
+            ],
+        );
+        out.open("fill", []);
+        out.empty(
+            "SolidColor",
+            [
+                a("color", hex(stroke.color())),
+                a("alpha", alpha(stroke.color())),
+            ],
+        );
+        out.close("fill");
+        out.close("SolidStroke");
+        out.close("StrokeStyle");
+        out.close("strokes");
     }
-    out.push_str("<edges>");
+    out.open("edges", []);
     for subpath in encode_edges(shape, approximated) {
-        let mut attrs = String::new();
+        let mut attrs = Vec::new();
         if has_fill {
-            attrs.push_str(" fillStyle1=\"1\"");
+            attrs.push(a("fillStyle1", 1));
         }
         if stroke.is_some() {
-            attrs.push_str(" strokeStyle=\"1\"");
+            attrs.push(a("strokeStyle", 1));
         }
-        out.push_str(&format!("<Edge{attrs} edges=\"{}\"/>", subpath.edges));
+        attrs.push(a("edges", subpath.edges));
+        out.empty("Edge", attrs);
     }
-    out.push_str("</edges></DOMShape>");
+    out.close("edges");
+    out.close("DOMShape");
 }
 
 // ---- timelines ------------------------------------------------------------------------
 
-pub(super) fn write_instance(out: &mut String, instance: &Instance, names: &Names) {
-    let [a, b, c, d, tx, ty] = instance.transform().as_affine().to_cols_array();
-    out.push_str(&format!(
-        "<DOMSymbolInstance libraryItemName=\"{}\" symbolType=\"graphic\" loop=\"loop\"><matrix><Matrix a=\"{}\" b=\"{}\" c=\"{}\" d=\"{}\" tx=\"{}\" ty=\"{}\"/></matrix></DOMSymbolInstance>",
-        esc(names.library_name(instance.symbol())),
-        num(a), num(b), num(c), num(d), num(tx), num(ty)
-    ));
+pub(super) fn write_instance(out: &mut Xml, instance: &Instance, names: &Names) {
+    let [m_a, m_b, m_c, m_d, tx, ty] = instance.transform().as_affine().to_cols_array();
+    out.open(
+        "DOMSymbolInstance",
+        [
+            a("libraryItemName", names.library_name(instance.symbol())),
+            a("symbolType", "graphic"),
+            a("loop", "loop"),
+        ],
+    );
+    out.open("matrix", []);
+    out.empty(
+        "Matrix",
+        [
+            a("a", num(m_a)),
+            a("b", num(m_b)),
+            a("c", num(m_c)),
+            a("d", num(m_d)),
+            a("tx", num(tx)),
+            a("ty", num(ty)),
+        ],
+    );
+    out.close("matrix");
+    out.close("DOMSymbolInstance");
 }
 
 /// XFL's names for line ends (`none` is a flat end) and corners.

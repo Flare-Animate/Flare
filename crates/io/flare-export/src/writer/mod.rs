@@ -7,6 +7,7 @@ mod files;
 mod shapes;
 mod text;
 mod timeline;
+mod xml;
 
 #[allow(unused_imports)]
 use files::*;
@@ -17,6 +18,8 @@ use shapes::*;
 use text::*;
 #[allow(unused_imports)]
 use timeline::*;
+#[allow(unused_imports)]
+use xml::{Xml, a};
 
 /// Curve approximation tolerance, in pixels.
 const CURVE_TOLERANCE_PX: f64 = 0.05;
@@ -125,22 +128,28 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
         });
     }
 
-    let mut main = String::from(PROLOG);
-    main.push_str(&format!(
-        "<DOMDocument xmlns=\"{NAMESPACE}\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" frameRate=\"{}\" width=\"{}\" height=\"{}\" backgroundColor=\"{}\" currentTimeline=\"1\" xflVersion=\"2.2\">",
-        frame_rate_text(document.frame_rate()),
-        stage.width(),
-        stage.height(),
-        hex(stage.background())
-    ));
+    let mut main = Xml::new();
+    main.open(
+        "DOMDocument",
+        [
+            a("xmlns", NAMESPACE),
+            a("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"),
+            a("frameRate", frame_rate_text(document.frame_rate())),
+            a("width", stage.width()),
+            a("height", stage.height()),
+            a("backgroundColor", hex(stage.background())),
+            a("currentTimeline", 1),
+            a("xflVersion", "2.2"),
+        ],
+    );
     if !names.library.is_empty() {
-        main.push_str("<symbols>");
+        main.open("symbols", []);
         for (_, _, file) in &names.library {
-            main.push_str(&format!("<Include href=\"{}\"/>", esc(file)));
+            main.empty("Include", [a("href", file)]);
         }
-        main.push_str("</symbols>");
+        main.close("symbols");
     }
-    main.push_str("<timelines>");
+    main.open("timelines", []);
     for scene in document.scenes() {
         write_timeline(
             &mut main,
@@ -151,19 +160,25 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
             &mut ctx,
         );
     }
-    main.push_str("</timelines>");
+    main.close("timelines");
     for xml in ctx.take(Anchor::Document, |p| p == Placement::Child, "document") {
-        main.push_str(xml);
+        main.raw(xml);
     }
-    main.push_str("</DOMDocument>\n");
+    main.close("DOMDocument");
+    main.raw("\n");
 
-    let mut files = vec![("DOMDocument.xml".to_owned(), main)];
+    let mut files = vec![("DOMDocument.xml".to_owned(), main.finish())];
     for (symbol, (_, name, file)) in document.symbols().iter().zip(&names.library) {
-        let mut item = String::from(PROLOG);
-        item.push_str(&format!(
-            "<DOMSymbolItem xmlns=\"{NAMESPACE}\" name=\"{}\" symbolType=\"graphic\"><timeline>",
-            esc(name)
-        ));
+        let mut item = Xml::new();
+        item.open(
+            "DOMSymbolItem",
+            [
+                a("xmlns", NAMESPACE),
+                a("name", name),
+                a("symbolType", "graphic"),
+            ],
+        );
+        item.open("timeline", []);
         write_timeline(
             &mut item,
             name,
@@ -172,16 +187,17 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
             Anchor::Symbol(symbol.id()),
             &mut ctx,
         );
-        item.push_str("</timeline>");
+        item.close("timeline");
         for xml in ctx.take(
             Anchor::Symbol(symbol.id()),
             |p| p == Placement::Child,
             &format!("symbol \"{name}\""),
         ) {
-            item.push_str(xml);
+            item.raw(xml);
         }
-        item.push_str("</DOMSymbolItem>\n");
-        files.push((format!("LIBRARY/{file}"), item));
+        item.close("DOMSymbolItem");
+        item.raw("\n");
+        files.push((format!("LIBRARY/{file}"), item.finish()));
     }
 
     // Source data whose keyframe no longer exists on its layer cannot be placed honestly.

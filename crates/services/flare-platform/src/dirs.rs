@@ -1,48 +1,35 @@
 //! Where per-user files live, and reading and writing the remembered dock layout.
+//!
+//! The places themselves are the `directories` crate's: each platform's own convention, found
+//! the way that platform finds them, rather than guessed from environment variables.
 
-use std::ffi::OsString;
-use std::io::Read;
+use directories::ProjectDirs;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
-/// Flare's per-user data directory, given an environment lookup (injectable for tests).
-/// Returns `None` rather than a relative path when the needed variables are missing.
-pub fn app_dir_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
-    let var = |name: &str| env(name).filter(|v| !v.is_empty()).map(PathBuf::from);
-    let base = if cfg!(target_os = "macos") {
-        var("HOME")?.join("Library").join("Application Support")
-    } else if cfg!(target_os = "windows") {
-        var("APPDATA")?
-    } else {
-        var("XDG_DATA_HOME").or_else(|| var("HOME").map(|h| h.join(".local").join("share")))?
-    };
-    Some(base.join("Flare"))
+fn project() -> Option<ProjectDirs> {
+    ProjectDirs::from("io.github", "Flare-Animate", "Flare")
 }
 
-/// The per-user recovery directory, given an environment lookup (injectable for tests).
-pub fn recovery_dir_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
-    app_dir_with(env).map(|dir| dir.join("recovery"))
+/// Where settings are kept: the dock layout and the preferences. `None` when the platform
+/// cannot say where the person's home is, rather than a relative path.
+pub fn config_dir() -> Option<PathBuf> {
+    project().map(|dirs| dirs.config_dir().to_owned())
 }
 
+/// The per-user recovery directory: unsaved work written in case of a crash.
 pub fn recovery_dir() -> Option<PathBuf> {
-    recovery_dir_with(|name| std::env::var_os(name))
+    project().map(|dirs| dirs.data_local_dir().join("recovery"))
 }
 
 /// Where the dock layout is remembered between sessions.
 pub fn layout_file() -> Option<PathBuf> {
-    layout_file_with(|name| std::env::var_os(name))
-}
-
-pub fn layout_file_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
-    app_dir_with(env).map(|dir| dir.join("layout.json"))
+    config_dir().map(|dir| dir.join("layout.json"))
 }
 
 /// Where the preferences are kept between sessions.
 pub fn preferences_file() -> Option<PathBuf> {
-    preferences_file_with(|name| std::env::var_os(name))
-}
-
-pub fn preferences_file_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
-    app_dir_with(env).map(|dir| dir.join("preferences.json"))
+    config_dir().map(|dir| dir.join("preferences.json"))
 }
 
 /// Reads a saved layout of at most `max_bytes`. A missing file is `None`; the read itself is
@@ -62,14 +49,17 @@ pub fn write_layout(path: &Path, json: &str) -> std::io::Result<()> {
     write_file(path, json)
 }
 
-/// Writes any small settings file the same way.
+/// Writes any small settings file the same way. The staging file is the library's, with a name
+/// of its own, so two windows saving at once cannot trample each other's.
 pub fn write_file(path: &Path, text: &str) -> std::io::Result<()> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    let temp = path.with_extension("json.tmp");
-    std::fs::write(&temp, text)?;
-    std::fs::rename(&temp, path)
+    let parent = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    std::fs::create_dir_all(parent)?;
+    let mut staged = tempfile::NamedTempFile::new_in(parent)?;
+    staged.write_all(text.as_bytes())?;
+    staged.persist(path).map(|_| ()).map_err(|e| e.error)
 }
 
 #[cfg(test)]
@@ -77,77 +67,39 @@ pub fn write_file(path: &Path, text: &str) -> std::io::Result<()> {
 mod tests {
     use super::*;
 
-    fn env<'a>(pairs: &'a [(&'a str, &'a str)]) -> impl Fn(&str) -> Option<OsString> + 'a {
-        move |name| {
-            pairs
-                .iter()
-                .find(|(k, _)| *k == name)
-                .map(|(_, v)| OsString::from(*v))
+    #[test]
+    fn settings_and_recovery_files_have_places_of_their_own_under_flare() {
+        // The platform may have no home (a bare CI container); then there is no place, not a
+        // relative one.
+        let (Some(layout), Some(prefs), Some(recovery)) =
+            (layout_file(), preferences_file(), recovery_dir())
+        else {
+            return;
+        };
+        for path in [&layout, &prefs, &recovery] {
+            assert!(path.is_absolute(), "{path:?}");
         }
+        assert_eq!(layout.parent(), prefs.parent(), "settings sit together");
+        assert!(layout.ends_with("layout.json") && prefs.ends_with("preferences.json"));
+        assert!(recovery.ends_with("recovery"));
+        let text = layout.to_string_lossy().to_lowercase();
+        assert!(text.contains("flare"), "{text}");
     }
 
     #[test]
-    fn the_directory_follows_the_platform_convention() {
-        let vars = [
-            ("HOME", "/home/u"),
-            ("XDG_DATA_HOME", "/data"),
-            ("APPDATA", "C:\\Users\\u\\AppData\\Roaming"),
-        ];
-        let dir = app_dir_with(env(&vars)).expect("dir");
-        assert!(dir.ends_with("Flare"));
-        if cfg!(target_os = "macos") {
-            assert_eq!(
-                dir,
-                PathBuf::from("/home/u/Library/Application Support/Flare")
-            );
-        } else if cfg!(target_os = "linux") {
-            assert_eq!(dir, PathBuf::from("/data/Flare"));
-        }
-        assert!(
-            layout_file_with(env(&vars))
-                .expect("file")
-                .ends_with("Flare/layout.json")
-                || layout_file_with(env(&vars))
-                    .expect("file")
-                    .ends_with("Flare\\layout.json")
-        );
-    }
-
-    #[test]
-    fn recovery_files_live_under_the_app_directory() {
-        let vars = [
-            ("HOME", "/home/u"),
-            ("XDG_DATA_HOME", "/data"),
-            ("APPDATA", "C:\\a"),
-        ];
-        let app = app_dir_with(env(&vars)).expect("app dir");
-        assert_eq!(recovery_dir_with(env(&vars)), Some(app.join("recovery")));
-        assert_eq!(recovery_dir_with(env(&[])), None);
-    }
-
-    #[test]
-    fn settings_files_sit_beside_the_layout_and_any_small_file_is_written_atomically() {
-        let vars = [
-            ("HOME", "/home/u"),
-            ("XDG_DATA_HOME", "/data"),
-            ("APPDATA", "C:\\a"),
-        ];
-        let layout = layout_file_with(env(&vars)).expect("layout");
-        let prefs = preferences_file_with(env(&vars)).expect("prefs");
-        assert_eq!(layout.parent(), prefs.parent());
-        assert!(prefs.ends_with("preferences.json"));
+    fn small_files_are_written_whole_and_replace_the_old_one_leaving_nothing_behind() {
         let dir = tempfile::tempdir().expect("dir");
         let file = dir.path().join("x").join("preferences.json");
         write_file(&file, "{}").expect("write");
         assert_eq!(std::fs::read_to_string(&file).expect("read"), "{}");
-    }
-
-    #[test]
-    fn missing_or_empty_variables_give_no_directory_rather_than_a_relative_path() {
-        assert_eq!(app_dir_with(env(&[])), None);
+        write_file(&file, "{\"a\":1}").expect("overwrite");
+        assert_eq!(std::fs::read_to_string(&file).expect("read"), "{\"a\":1}");
         assert_eq!(
-            app_dir_with(env(&[("HOME", ""), ("APPDATA", ""), ("XDG_DATA_HOME", "")])),
-            None
+            std::fs::read_dir(file.parent().expect("dir"))
+                .expect("ls")
+                .count(),
+            1,
+            "no staging file left"
         );
     }
 
@@ -158,13 +110,6 @@ mod tests {
         write_layout(&path, "{\"x\":1}").expect("write");
         write_layout(&path, "{\"x\":2}").expect("overwrite");
         assert_eq!(read_layout(&path, 1024).as_deref(), Some("{\"x\":2}"));
-        assert_eq!(
-            std::fs::read_dir(path.parent().expect("dir"))
-                .expect("ls")
-                .count(),
-            1,
-            "no temp file left"
-        );
         assert_eq!(read_layout(&dir.path().join("missing.json"), 1024), None);
         let big = dir.path().join("big.json");
         std::fs::write(&big, "x".repeat(2048)).expect("write");

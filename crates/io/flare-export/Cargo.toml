@@ -10,6 +10,7 @@ license.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
 quick-xml.workspace = true
+tempfile.workspace = true
 thiserror.workspace = true
 zip = { workspace = true, features = ["deflate"] }
 
@@ -21,7 +22,6 @@ flare-import.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 glamx.workspace = true
-tempfile.workspace = true
 
 [lints]
 workspace = true

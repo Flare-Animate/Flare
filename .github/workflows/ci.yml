@@ -50,6 +50,9 @@ jobs:
           cargo build -p flare-cli --locked
           python3 -m unittest discover -s scripts/tests -p 'test_cli_smoke.py' -v
 
+      - name: The crate layers hold
+        run: python3 -m unittest discover -s scripts/tests -p 'test_layers.py' -v
+
       - name: The lock file is up to date
         run: cargo metadata --locked --format-version 1 > /dev/null
 

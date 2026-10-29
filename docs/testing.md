@@ -9,6 +9,7 @@ the map.
 | Integration | `crates/*/tests/*.rs`, `apps/*/tests` | a crate through its public API; the CLI and MCP server as a user or agent sees them |
 | Property | `crates/*/tests/properties.rs` (proptest) | invariants over random input: input smoothing, simplify/smooth/brush outlines, align and distribute, document commands and undo, evaluation, `.flare` round trips |
 | Fixtures | `crates/io/flare-import/tests/fixtures`, `crates/adapters/flare-flash/tests/fixtures` | real and hand-made FLA/XFL and SWF/FLV files, truncated and stale-trailer variants |
+| Structure | `scripts/tests/test_layers.py` | a crate depends only on its own layer or one below it (checked from `cargo metadata`) |
 | Benchmarks | `crates/*/benches` (criterion) | the responsiveness budgets in [performance.md](performance.md); measured, not run in CI |
 
 ## Rules of thumb

@@ -1,26 +1,8 @@
-//! Escaping and formatting the text XFL is made of.
+//! Formatting the numbers and names XFL is made of.
 
 use flare_core::{Rgba8, SymbolId};
 
 // ---- text helpers ---------------------------------------------------------------------
-
-/// Escapes text for an XML attribute value. Characters XML 1.0 cannot carry become spaces.
-pub(super) fn esc(text: &str) -> String {
-    let mut out = String::with_capacity(text.len());
-    for c in text.chars() {
-        match c {
-            '&' => out.push_str("&amp;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '"' => out.push_str("&quot;"),
-            '\'' => out.push_str("&apos;"),
-            '\t' | '\n' | '\r' => out.push(' '),
-            c if (c as u32) < 0x20 => out.push(' '),
-            c => out.push(c),
-        }
-    }
-    out
-}
 
 /// A number with up to four decimals and no trailing zeros.
 pub(super) fn num(value: f64) -> String {
@@ -114,8 +96,6 @@ pub(super) fn well_formed(xml: &str) -> bool {
 }
 
 // ---- document -------------------------------------------------------------------------
-
-pub(super) const PROLOG: &str = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
 
 pub(super) fn frame_rate_text(rate: flare_core::FrameRate) -> String {
     if rate.denominator() == 1 {

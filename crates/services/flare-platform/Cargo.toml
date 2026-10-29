@@ -8,6 +8,7 @@ license.workspace = true
 
 [dependencies]
 cpal.workspace = true
+directories.workspace = true
 flare-audio.workspace = true
 flare-document.workspace = true
 flare-publish.workspace = true
