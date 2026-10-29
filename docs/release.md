@@ -51,9 +51,10 @@ downloaded copy needs a right-click, Open the first time.
 Linux needs the libraries in [CONTRIBUTING.md](../CONTRIBUTING.md) plus `cargo-packager` 0.11.8 and
 `cargo-generate-rpm` 0.21.0 (the workflow pins both). Windows needs WiX 5.
 
-What has been run: the macOS bundle, DMG and updater zip were built and verified on Apple Silicon.
-The Linux and Windows scripts are ported from the same layout but have not run yet; the first tagged
-build is their first test.
+What has been run: the macOS bundle, DMG and updater zip were built and verified on Apple Silicon,
+and the full release workflow (all six targets: MSI, `.deb`, `.rpm`, AppImage, DMG, portable
+archives, checksums) ran green on GitHub without publishing. The workflow only runs on a `v*` tag, on
+pull requests that touch packaging, or by hand from the Actions tab (no tag, nothing is published).
 
 ## Icon
 
