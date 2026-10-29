@@ -23,6 +23,8 @@ use winit::window::{Window, WindowId};
 /// Events sent to the event loop from outside it (native menu clicks arrive on AppKit's side).
 enum UserEvent {
     Menu(MenuAction),
+    /// A test movie finished starting (or failed to) on its own thread.
+    MovieStarted(Result<flare_publish::TestMovie, flare_publish::TestMovieError>),
 }
 
 struct Gpu {
@@ -45,6 +47,8 @@ struct App {
 
 impl App {
     fn start(&mut self, event_loop: &ActiveEventLoop) -> Result<()> {
+        // Drawing frames and reading and writing files happen on worker threads, never here.
+        self.workspace.start_background_threads(&self.ctx);
         let attributes = Window::default_attributes()
             .with_title(self.workspace.title())
             .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0));
@@ -152,9 +156,18 @@ impl App {
             );
             return;
         };
-        match flare_publish::launch_test_movie(self.workspace.main_document(), &player) {
-            Ok(movie) => self.movies.push(movie),
-            Err(error) => show_message("Cannot start Test Movie", &error.to_string()),
+        // Publishing the movie can take a while, so it runs on its own thread; the result comes
+        // back as an event. The document is shared, not copied.
+        let (document, proxy) = (self.workspace.main_document().clone(), self.proxy.clone());
+        let spawned = std::thread::Builder::new()
+            .name("flare-test-movie".into())
+            .spawn(move || {
+                let result = flare_publish::launch_test_movie(&document, &player);
+                // A closed event loop means the app is exiting; the movie is dropped with it.
+                let _ = proxy.send_event(UserEvent::MovieStarted(result));
+            });
+        if let Err(error) = spawned {
+            show_message("Cannot start Test Movie", &error.to_string());
         }
     }
 
@@ -198,6 +211,8 @@ impl App {
     }
 
     fn confirm_close(&mut self) -> bool {
+        // A save still being written must finish first, or its work would be reported as lost.
+        self.workspace.finish_background();
         if !self.workspace.is_dirty() {
             return true;
         }
@@ -252,6 +267,10 @@ impl ApplicationHandler<UserEvent> for App {
                 self.handle_dialog();
                 self.handle_test_movie();
                 self.handle_quit(event_loop);
+            }
+            UserEvent::MovieStarted(Ok(movie)) => self.movies.push(movie),
+            UserEvent::MovieStarted(Err(error)) => {
+                show_message("Cannot start Test Movie", &error.to_string());
             }
         }
     }

@@ -88,6 +88,18 @@ impl EditorSession {
         true
     }
 
+    /// The current document as a shared, immutable snapshot. Cheap, and safe to hand to another
+    /// thread: later edits make new snapshots and leave this one alone.
+    pub fn snapshot(&self) -> Arc<Document> {
+        Arc::clone(&self.current)
+    }
+
+    /// Records that `snapshot`, taken earlier, was durably saved. Edits made since then keep the
+    /// session dirty, and undoing back to exactly this content makes it clean again.
+    pub fn mark_snapshot_saved(&mut self, snapshot: &Arc<Document>) {
+        self.saved = Some(Arc::clone(snapshot));
+    }
+
     /// Records that the current content was durably saved.
     pub fn mark_saved(&mut self) {
         self.saved = Some(Arc::clone(&self.current));
@@ -509,5 +521,32 @@ mod tests {
         );
         f.session.undo();
         assert_eq!(f.session.document().attachments(), notes.as_slice());
+    }
+
+    #[test]
+    fn a_snapshot_saved_later_leaves_newer_edits_dirty() {
+        let mut f = fixture();
+        let snapshot = f.session.snapshot();
+        let rename = Command::UpdateLayer {
+            scene: f.scene,
+            layer: f.layer,
+            change: crate::LayerChange::Name("edited while saving".into()),
+        };
+        f.session.apply([rename]).expect("apply");
+        f.session.mark_snapshot_saved(&snapshot);
+        assert!(
+            f.session.is_dirty(),
+            "the edit made during the save is not saved"
+        );
+        assert!(f.session.undo());
+        assert!(
+            !f.session.is_dirty(),
+            "undoing back to the saved content is clean"
+        );
+        // The snapshot is unaffected by what happened to the session since.
+        assert_eq!(
+            snapshot.scenes()[0].timeline().layers()[0].name(),
+            "Layer 1"
+        );
     }
 }

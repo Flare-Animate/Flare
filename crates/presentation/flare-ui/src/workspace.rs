@@ -10,6 +10,7 @@ use flare_document::{
 use flare_edit::{Command, EditorSession, LayerChange, frames};
 use glamx::{DAffine2, DVec2};
 
+use crate::background::{Background, Done, IoJob, Mode, RenderJob};
 use crate::handles::{self, Handle};
 use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
@@ -77,6 +78,15 @@ struct TextureView {
     /// The visible part of the stage, in stage units.
     region: Rect,
     size: [u32; 2],
+}
+
+/// A frame handed to the render worker and not yet back.
+struct PendingRender {
+    id: u64,
+    key: (u64, u64, u32),
+    onion: OnionSkin,
+    view: TextureView,
+    signature: u64,
 }
 
 /// How many bytes of rendered frames are kept for reuse, and at most how many frames.
@@ -203,6 +213,16 @@ pub struct Workspace {
     texture: Option<StageTexture>,
     /// Recently shown frames, least recently used first.
     frame_cache: Vec<CachedFrame>,
+    /// Drawing and file work that runs off the UI thread.
+    background: Background,
+    /// The frame being drawn, if any. A result for anything else is out of date and dropped.
+    pending_render: Option<PendingRender>,
+    /// Finished drawings waiting for the UI to turn them into textures.
+    render_inbox: Vec<(u64, Result<egui::ColorImage, String>)>,
+    /// The open or recover request in flight, if any.
+    opening: Option<u64>,
+    /// The autosave in flight, if any. Another is not started until it finishes.
+    autosaving: Option<u64>,
     /// How many frames have been rendered (as opposed to taken from the cache).
     frames_rendered: u64,
     drag: Option<Drag>,
@@ -269,6 +289,11 @@ impl Workspace {
             last_time: None,
             texture: None,
             frame_cache: Vec::new(),
+            background: Background::inline(),
+            pending_render: None,
+            render_inbox: Vec::new(),
+            opening: None,
+            autosaving: None,
             frames_rendered: 0,
             drag: None,
             drag_cancelled: false,
@@ -446,23 +471,33 @@ impl Workspace {
             egui_tiles::Tree::empty(egui::Id::unique("taken")),
         );
         fresh.onion = self.onion;
+        // The workers belong to the app, not to a document; results of the old document's jobs
+        // find nothing waiting for them and are dropped.
+        fresh.background = std::mem::replace(&mut self.background, Background::inline());
         *self = fresh;
     }
 
-    /// Opens a project, refusing to replace unsaved work.
+    /// Opens a project, refusing to replace unsaved work. The file is read off the UI thread.
     pub fn open(&mut self, path: &Path) {
         if self.is_dirty() {
             self.report("Save or undo your changes before opening another project");
             return;
         }
-        match flare_storage::load(path) {
-            Ok(document) => {
-                // The old document is clean, so any recovery file for it is obsolete.
-                self.discard_recovery();
-                self.install_document(document, Some(path.to_owned()));
-            }
-            Err(error) => self.report(format!("Cannot open {}: {error}", path.display())),
+        self.start_open(path, false);
+    }
+
+    fn start_open(&mut self, path: &Path, recovery: bool) {
+        let id = self.background.next_id();
+        self.opening = Some(id);
+        self.background.submit_io(IoJob::Open {
+            id,
+            path: path.to_owned(),
+            recovery,
+        });
+        if self.background.mode() == Mode::Threads {
+            self.status = Some(format!("Opening {}...", path.display()));
         }
+        self.settle_inline();
     }
 
     // ---- crash recovery --------------------------------------------------------------
@@ -482,17 +517,7 @@ impl Workspace {
             self.report("Save or undo your changes before recovering other work");
             return;
         }
-        match flare_storage::load(path) {
-            Ok(document) => {
-                self.install_document(document, None);
-                self.session.mark_unsaved();
-                // The file stays until the work is saved or discarded, so a second crash
-                // before saving still leaves it recoverable.
-                self.recovery_written = true;
-                self.report("Recovered unsaved work");
-            }
-            Err(error) => self.report(format!("Cannot recover {}: {error}", path.display())),
-        }
+        self.start_open(path, true);
     }
 
     /// Deletes the recovery file for the current document, if there is one.
@@ -525,11 +550,18 @@ impl Workspace {
         {
             return;
         }
-        self.last_autosave = Some(now);
-        match flare_storage::save_recovery(self.session.document(), &dir) {
-            Ok(_) => self.recovery_written = true,
-            Err(error) => self.report(format!("Autosave failed: {error}")),
+        if self.autosaving.is_some() {
+            return; // the last one is still being written
         }
+        self.last_autosave = Some(now);
+        let id = self.background.next_id();
+        self.autosaving = Some(id);
+        self.background.submit_io(IoJob::Autosave {
+            id,
+            dir,
+            document: self.session.snapshot(),
+        });
+        self.settle_inline();
     }
 
     pub fn save(&mut self) {
@@ -544,14 +576,112 @@ impl Workspace {
         if !self.exit_all_symbols() {
             return;
         }
-        match flare_storage::save(self.session.document(), path) {
-            Ok(()) => {
-                self.session.mark_saved();
-                self.discard_recovery();
-                self.path = Some(path.to_owned());
-                self.report(format!("Saved {}", path.display()));
+        // The file is written off the UI thread from a snapshot, so editing carries on while it
+        // is written; whatever changes meanwhile simply stays unsaved.
+        self.background.submit_io(IoJob::Save {
+            path: path.to_owned(),
+            document: self.session.snapshot(),
+        });
+        self.settle_inline();
+    }
+
+    // ---- background work -------------------------------------------------------------
+
+    /// Moves drawing and file work onto worker threads. Until this is called it runs on the
+    /// calling thread, which keeps headless use and tests deterministic.
+    pub fn start_background_threads(&mut self, ctx: &egui::Context) {
+        self.background.start_threads(ctx.clone());
+    }
+
+    /// Whether a save, open or autosave is still being worked on.
+    pub fn has_pending_io(&self) -> bool {
+        self.background.io_pending()
+    }
+
+    /// Waits for every save, open and autosave started so far and applies their results. For
+    /// closing the app only: everything else keeps the UI free of waiting.
+    pub fn finish_background(&mut self) {
+        for done in self.background.finish_io() {
+            self.handle_done(done);
+        }
+    }
+
+    /// Applies the results of finished work. Never blocks.
+    fn drain_background(&mut self) {
+        for done in self.background.poll() {
+            self.handle_done(done);
+        }
+    }
+
+    /// With no worker threads a job has already finished by the time it was handed over, so its
+    /// result is applied at once, as though the work had been instant.
+    fn settle_inline(&mut self) {
+        if self.background.mode() == Mode::Inline {
+            self.drain_background();
+        }
+    }
+
+    fn handle_done(&mut self, done: Done) {
+        match done {
+            Done::Rendered { id, result } => self.render_inbox.push((id, result)),
+            Done::Saved {
+                path,
+                document,
+                result,
+            } => match result {
+                Ok(()) => {
+                    self.session.mark_snapshot_saved(&document);
+                    // Once saved, the recovery file for the work is obsolete.
+                    if !self.session.is_dirty() {
+                        self.discard_recovery();
+                    }
+                    self.path = Some(path.clone());
+                    self.report(format!("Saved {}", path.display()));
+                }
+                Err(error) => self.report(format!("Cannot save: {error}")),
+            },
+            Done::Autosaved { id, result } => {
+                if self.autosaving == Some(id) {
+                    self.autosaving = None;
+                }
+                match result {
+                    Ok(_) => self.recovery_written = true,
+                    Err(error) => self.report(format!("Autosave failed: {error}")),
+                }
             }
-            Err(error) => self.report(format!("Cannot save: {error}")),
+            Done::Opened {
+                id,
+                path,
+                recovery,
+                result,
+            } => {
+                if self.opening != Some(id) {
+                    return; // superseded by a later request
+                }
+                self.opening = None;
+                match result {
+                    Err(error) => {
+                        let what = if recovery { "recover" } else { "open" };
+                        self.report(format!("Cannot {what} {}: {error}", path.display()));
+                    }
+                    Ok(_) if self.is_dirty() => {
+                        self.report("Your project changed while the file was opening, so it was not replaced");
+                    }
+                    Ok(document) if recovery => {
+                        self.install_document(document, None);
+                        self.session.mark_unsaved();
+                        // The file stays until the work is saved or discarded, so a second
+                        // crash before saving still leaves it recoverable.
+                        self.recovery_written = true;
+                        self.report("Recovered unsaved work");
+                    }
+                    Ok(document) => {
+                        // The old document is clean, so any recovery file for it is obsolete.
+                        self.discard_recovery();
+                        self.install_document(document, Some(path));
+                    }
+                }
+            }
         }
     }
 
@@ -1908,7 +2038,11 @@ impl Workspace {
         })
     }
 
+    /// Keeps the stage texture matching what should be on screen. A picture that is already
+    /// cached is shown at once; otherwise the frame is drawn on the render worker and the
+    /// previous picture stays up (drawn where it belongs) until the new one arrives.
     fn ensure_stage_texture(&mut self, ctx: &egui::Context) {
+        self.install_rendered(ctx);
         let key = (self.context_serial, self.active().revision(), self.frame);
         let onion = self.effective_onion();
         let Some(view) = self.desired_texture_view(ctx.pixels_per_point(), texture_side_limit(ctx))
@@ -1923,134 +2057,129 @@ impl Workspace {
         {
             return;
         }
+        if self
+            .pending_render
+            .as_ref()
+            .is_some_and(|p| p.key == key && p.onion == onion && p.view == view)
+        {
+            return; // already being drawn
+        }
         let Some(scene) = self.document().scenes().first().map(|s| s.id()) else {
             self.texture = None;
             return;
         };
-        let stage = self.document().stage();
-        let document = self.document();
         let ghost_frames = if onion.enabled {
             onion_ghosts(self.frame, self.scene_frames(), onion.before, onion.after)
         } else {
             Vec::new()
         };
         let (context, revision) = (key.0, key.1);
-
-        enum Outcome {
-            Cached(usize),
-            Rendered(u64, egui::ColorImage),
-            Failed(String),
-        }
-        let outcome = match flare_eval::evaluate_frame(document, scene, self.frame) {
-            Err(e) => Outcome::Failed(e.to_string()),
-            Ok(current) => {
-                // A ghost that fails to evaluate is simply left out; the current frame matters.
-                let evaluated: Vec<(flare_eval::Frame<'_>, f32)> = ghost_frames
-                    .iter()
-                    .filter_map(|(f, opacity)| {
-                        flare_eval::evaluate_frame(document, scene, *f)
-                            .ok()
-                            .map(|e| (e, *opacity))
-                    })
-                    .collect();
-                let signature = {
-                    use std::hash::{Hash, Hasher};
-                    let mut hasher = std::collections::hash_map::DefaultHasher::new();
-                    current.signature().hash(&mut hasher);
-                    for (ghost, opacity) in &evaluated {
-                        ghost.signature().hash(&mut hasher);
-                        opacity.to_bits().hash(&mut hasher);
-                    }
-                    hasher.finish()
-                };
-                let hit = self.frame_cache.iter().position(|c| {
-                    c.context == context
-                        && c.revision == revision
-                        && c.signature == signature
-                        && c.view == view
-                });
-                match hit {
-                    Some(index) => Outcome::Cached(index),
-                    None => {
-                        let ghosts: Vec<(&flare_eval::Frame<'_>, f32)> =
-                            evaluated.iter().map(|(e, o)| (e, *o)).collect();
-                        let viewport = flare_render::Viewport {
-                            x: f64::from(view.region.min.x),
-                            y: f64::from(view.region.min.y),
-                            width: f64::from(view.region.width()),
-                            height: f64::from(view.region.height()),
-                        };
-                        let rendered = if ghosts.is_empty() {
-                            // The common case goes straight from the rasterizer's premultiplied
-                            // pixels to the texture, with no conversion pass either side.
-                            flare_render::render_viewport_premultiplied(
-                                &current,
-                                &viewport,
-                                view.size[0],
-                                view.size[1],
-                                stage.background(),
-                            )
-                            .map(|image| {
-                                let size = [image.width() as usize, image.height() as usize];
-                                egui::ColorImage::from_rgba_premultiplied(size, image.rgba())
-                            })
-                        } else {
-                            flare_render::render_onion_viewport(
-                                &ghosts,
-                                &current,
-                                &viewport,
-                                view.size[0],
-                                view.size[1],
-                                stage.background(),
-                            )
-                            .map(|image| {
-                                let size = [image.width() as usize, image.height() as usize];
-                                egui::ColorImage::from_rgba_unmultiplied(size, image.rgba())
-                            })
-                        };
-                        match rendered {
-                            Ok(color) => Outcome::Rendered(signature, color),
-                            Err(e) => Outcome::Failed(e.to_string()),
-                        }
-                    }
+        // What the frame draws, to see whether the same picture is already around. Evaluating a
+        // frame is cheap next to drawing it.
+        let signature = {
+            use std::hash::{Hash, Hasher};
+            let document = self.document();
+            let current = match flare_eval::evaluate_frame(document, scene, self.frame) {
+                Ok(frame) => frame,
+                Err(e) => {
+                    self.report(format!("Cannot render frame: {e}"));
+                    return;
+                }
+            };
+            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+            current.signature().hash(&mut hasher);
+            for (frame, opacity) in &ghost_frames {
+                if let Ok(ghost) = flare_eval::evaluate_frame(document, scene, *frame) {
+                    ghost.signature().hash(&mut hasher);
+                    opacity.to_bits().hash(&mut hasher);
                 }
             }
+            hasher.finish()
         };
-        let handle = match outcome {
-            Outcome::Cached(index) => {
-                // Most recently used goes last.
-                let entry = self.frame_cache.remove(index);
-                let handle = entry.handle.clone();
-                self.frame_cache.push(entry);
-                handle
-            }
-            Outcome::Rendered(signature, color) => {
-                self.frames_rendered += 1;
-                let handle = ctx.load_texture("stage", color, egui::TextureOptions::LINEAR);
-                // Pictures of other document states can never be shown again.
-                self.frame_cache
-                    .retain(|c| c.context == context && c.revision == revision);
-                self.frame_cache.push(CachedFrame {
-                    context,
-                    revision,
-                    signature,
-                    view,
-                    handle: handle.clone(),
-                });
-                self.trim_frame_cache();
-                handle
-            }
-            Outcome::Failed(message) => {
-                self.report(format!("Cannot render frame: {message}"));
-                return;
-            }
-        };
-        self.texture = Some(StageTexture {
-            handle,
-            view,
+        let hit = self.frame_cache.iter().position(|c| {
+            c.context == context
+                && c.revision == revision
+                && c.signature == signature
+                && c.view == view
+        });
+        if let Some(index) = hit {
+            // Most recently used goes last.
+            let entry = self.frame_cache.remove(index);
+            let handle = entry.handle.clone();
+            self.frame_cache.push(entry);
+            self.pending_render = None;
+            self.texture = Some(StageTexture {
+                handle,
+                view,
+                key,
+                onion,
+            });
+            return;
+        }
+        let id = self.background.next_id();
+        self.pending_render = Some(PendingRender {
+            id,
             key,
             onion,
+            view,
+            signature,
         });
+        let stage = self.document().stage();
+        self.background.submit_render(RenderJob {
+            id,
+            document: self.active().snapshot(),
+            scene,
+            frame: self.frame,
+            ghosts: ghost_frames,
+            viewport: flare_render::Viewport {
+                x: f64::from(view.region.min.x),
+                y: f64::from(view.region.min.y),
+                width: f64::from(view.region.width()),
+                height: f64::from(view.region.height()),
+            },
+            size: view.size,
+            background: stage.background(),
+        });
+        // Inline, the picture is ready already; with workers it arrives on a later pass.
+        self.settle_inline();
+        self.install_rendered(ctx);
+    }
+
+    /// Turns finished drawings into textures. Only the frame asked for most recently is kept:
+    /// anything else was overtaken while it was being drawn.
+    fn install_rendered(&mut self, ctx: &egui::Context) {
+        for (id, result) in std::mem::take(&mut self.render_inbox) {
+            let Some(pending) = self.pending_render.take_if(|p| p.id == id) else {
+                continue;
+            };
+            let color = match result {
+                Ok(color) => color,
+                Err(message) => {
+                    self.report(format!("Cannot render frame: {message}"));
+                    continue;
+                }
+            };
+            self.frames_rendered += 1;
+            let handle = ctx.load_texture("stage", color, egui::TextureOptions::LINEAR);
+            let (context, revision) = (pending.key.0, pending.key.1);
+            // Pictures of other document states can never be shown again.
+            self.frame_cache
+                .retain(|c| c.context == context && c.revision == revision);
+            self.frame_cache.push(CachedFrame {
+                context,
+                revision,
+                signature: pending.signature,
+                view: pending.view,
+                handle: handle.clone(),
+            });
+            self.trim_frame_cache();
+            self.texture = Some(StageTexture {
+                handle,
+                view: pending.view,
+                key: pending.key,
+                onion: pending.onion,
+            });
+        }
     }
 
     /// Drops the least recently used frames until the cache fits its limits. The newest frame
@@ -2074,6 +2203,7 @@ impl Workspace {
     pub fn show(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
         let now = ui.input(|i| i.time);
+        self.drain_background();
         self.advance(now);
         self.autosave(now);
         self.handle_shortcuts(&ctx);
@@ -5274,5 +5404,132 @@ mod tests {
         ws.trim_frame_cache();
         assert!(ws.frame_cache.len() <= FRAME_CACHE_ENTRIES);
         assert!(!ws.frame_cache.is_empty());
+    }
+
+    /// Runs UI passes until `done` holds or five seconds pass, the way a running app would.
+    fn wait_until(ws: &mut Workspace, ctx: &egui::Context, done: impl Fn(&Workspace) -> bool) {
+        let started = std::time::Instant::now();
+        let mut time = 100.0;
+        while !done(ws) {
+            assert!(
+                started.elapsed().as_secs() < 5,
+                "timed out waiting for background work"
+            );
+            run(ws, ctx, time);
+            time += 0.016;
+            std::thread::sleep(std::time::Duration::from_millis(2));
+        }
+    }
+
+    #[test]
+    fn with_workers_a_frame_arrives_later_and_the_pass_never_waits_for_it() {
+        let (ctx, mut ws) = (egui::Context::default(), held_then_changing());
+        ws.start_background_threads(&ctx);
+        run(&mut ws, &ctx, 0.0);
+        // Nothing has been drawn yet unless the worker was already quick; either way the pass
+        // returned, and a texture shows up on a later pass.
+        wait_until(&mut ws, &ctx, |w| w.texture.is_some());
+        wait_until(&mut ws, &ctx, |w| w.pending_render.is_none());
+        let texture = ws.texture.as_ref().expect("texture");
+        assert_eq!(texture.key.2, 0);
+        assert!(ws.frames_rendered >= 1);
+    }
+
+    #[test]
+    fn with_workers_only_the_latest_request_is_shown() {
+        let (ctx, mut ws) = (egui::Context::default(), held_then_changing());
+        ws.start_background_threads(&ctx);
+        run(&mut ws, &ctx, 0.0);
+        // Ask for a different frame on every pass without waiting for any of them.
+        for frame in [12, 3, 12, 20, 12] {
+            ws.set_frame(frame);
+            run(&mut ws, &ctx, 0.1);
+        }
+        wait_until(&mut ws, &ctx, |w| {
+            w.pending_render.is_none() && w.texture.as_ref().is_some_and(|t| t.key.2 == 12)
+        });
+        assert_eq!(ws.texture.as_ref().map(|t| t.key.2), Some(12));
+    }
+
+    #[test]
+    fn with_workers_saving_does_not_block_and_edits_made_meanwhile_stay_unsaved() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("p.flare");
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.start_background_threads(&ctx);
+        ws.commit_rectangle(Pos2::new(1.0, 1.0), Pos2::new(40.0, 40.0));
+        ws.save_as(&path);
+        assert!(
+            ws.has_pending_io() || path.exists(),
+            "the save was handed to a worker"
+        );
+        // An edit made right after, before the result is applied.
+        ws.commit_rectangle(Pos2::new(50.0, 50.0), Pos2::new(90.0, 90.0));
+        wait_until(&mut ws, &ctx, |w| !w.has_pending_io());
+        assert_eq!(ws.path(), Some(path.as_path()));
+        assert!(ws.is_dirty(), "the second rectangle is not in the file");
+        let saved = flare_storage::load(&path).expect("load");
+        assert_eq!(
+            saved.scenes()[0].timeline().layers().len(),
+            2,
+            "only the first rectangle"
+        );
+        ws.undo();
+        assert!(!ws.is_dirty(), "undoing back to what was written is clean");
+    }
+
+    #[test]
+    fn with_workers_opening_replaces_the_document_when_the_file_has_been_read() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("p.flare");
+        let mut source = workspace();
+        source.commit_rectangle(Pos2::new(1.0, 1.0), Pos2::new(40.0, 40.0));
+        source.save_as(&path);
+
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.start_background_threads(&ctx);
+        ws.open(&path);
+        assert_eq!(
+            layer_count(&ws),
+            1,
+            "not replaced until the file has been read"
+        );
+        wait_until(&mut ws, &ctx, |w| w.path() == Some(path.as_path()));
+        assert_eq!(layer_count(&ws), 2);
+        assert!(!ws.is_dirty());
+        assert!(
+            ws.background.mode() == Mode::Threads,
+            "opening keeps the workers"
+        );
+    }
+
+    #[test]
+    fn work_started_before_a_project_changed_does_not_replace_it() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("p.flare");
+        let mut source = workspace();
+        source.save_as(&path);
+
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.start_background_threads(&ctx);
+        ws.open(&path);
+        ws.commit_rectangle(Pos2::new(1.0, 1.0), Pos2::new(40.0, 40.0)); // edit while it opens
+        wait_until(&mut ws, &ctx, |w| w.opening.is_none());
+        assert_eq!(layer_count(&ws), 2, "the user's edit was kept");
+        assert!(ws.status().is_some_and(|m| m.contains("changed while")));
+    }
+
+    #[test]
+    fn finishing_background_work_applies_pending_saves() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("p.flare");
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.start_background_threads(&ctx);
+        ws.commit_rectangle(Pos2::new(1.0, 1.0), Pos2::new(40.0, 40.0));
+        ws.save_as(&path);
+        ws.finish_background();
+        assert!(!ws.has_pending_io());
+        assert!(!ws.is_dirty());
+        assert!(path.exists());
     }
 }
