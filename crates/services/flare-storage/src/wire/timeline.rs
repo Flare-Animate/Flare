@@ -1,64 +1,28 @@
-//! Private on-disk payloads. Rebuilding goes through the validating constructors.
+//! Layers, spans and the shapes inside them.
 
-use std::num::NonZeroU32;
-
+use crate::StorageError;
 use flare_core::{
-    DocumentId, DocumentPoint, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SoundId,
-    SymbolId, Transform2D,
+    DocumentPoint, InstanceId, LayerId, Rgba8, ShapeId, SoundId, SymbolId, Transform2D,
 };
 use flare_document::{
-    Anchor, Attachment, Content, Document, FrameSpan, Gradient, Instance, Layer, PathSegment,
-    Placement, Scene, Shape, Sound, SoundCue, Stage, Stroke, Symbol, Timeline, Tween,
+    Content, FrameSpan, Gradient, Instance, Layer, PathSegment, Shape, SoundCue, Stroke, Timeline,
+    Tween,
 };
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use std::num::NonZeroU32;
 
-use crate::StorageError;
-
-fn uuid(text: &str) -> Result<Uuid, StorageError> {
-    Uuid::parse_str(text).map_err(|_| StorageError::Corrupt(format!("bad id {text}")))
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct Settings {
-    frame_rate: (u32, u32),
-    /// Absent in files written before stages existed; those load with the default stage.
-    #[serde(default)]
-    stage: Option<StageWire>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct StageWire {
-    width: u32,
-    height: u32,
-    background: [u8; 4],
-}
-
-impl Settings {
-    pub(crate) fn of(document: &Document) -> Self {
-        let rate = document.frame_rate();
-        let stage = document.stage();
-        Self {
-            frame_rate: (rate.numerator(), rate.denominator()),
-            stage: Some(StageWire {
-                width: stage.width(),
-                height: stage.height(),
-                background: stage.background().to_array(),
-            }),
-        }
-    }
-}
+use super::*;
 
 #[derive(Serialize, Deserialize, Default)]
-enum TweenWire {
+pub(super) enum TweenWire {
     #[default]
     None,
     Linear,
 }
 
 #[derive(Serialize, Deserialize)]
-enum SegmentWire {
+pub(super) enum SegmentWire {
     Move([f64; 2]),
     Line([f64; 2]),
     Cubic([f64; 6]),
@@ -66,7 +30,7 @@ enum SegmentWire {
 }
 
 impl SegmentWire {
-    fn of(segment: &PathSegment) -> Self {
+    pub(super) fn of(segment: &PathSegment) -> Self {
         let xy = |p: &DocumentPoint| p.as_vec().to_array();
         match segment {
             PathSegment::MoveTo(p) => Self::Move(xy(p)),
@@ -79,7 +43,7 @@ impl SegmentWire {
         }
     }
 
-    fn build(&self) -> Result<PathSegment, StorageError> {
+    pub(super) fn build(&self) -> Result<PathSegment, StorageError> {
         let point = |x: f64, y: f64| {
             DocumentPoint::new(x, y)
                 .map_err(|_| StorageError::Corrupt("non-finite shape coordinate".into()))
@@ -96,21 +60,21 @@ impl SegmentWire {
 }
 
 #[derive(Serialize, Deserialize)]
-struct StrokeWire {
-    width: f64,
-    rgba: [u8; 4],
+pub(super) struct StrokeWire {
+    pub(super) width: f64,
+    pub(super) rgba: [u8; 4],
 }
 
 #[derive(Serialize, Deserialize)]
-struct GradientWire {
-    from: [f64; 2],
-    to: [f64; 2],
-    start: [u8; 4],
-    end: [u8; 4],
+pub(super) struct GradientWire {
+    pub(super) from: [f64; 2],
+    pub(super) to: [f64; 2],
+    pub(super) start: [u8; 4],
+    pub(super) end: [u8; 4],
 }
 
 #[derive(Serialize, Deserialize)]
-enum ContentWire {
+pub(super) enum ContentWire {
     Empty,
     Shape {
         id: String,
@@ -131,88 +95,43 @@ enum ContentWire {
 }
 
 #[derive(Serialize, Deserialize)]
-struct SpanWire {
+pub(super) struct SpanWire {
     #[serde(default)]
-    tween: TweenWire,
-    start: u32,
-    duration: u32,
-    content: ContentWire,
+    pub(super) tween: TweenWire,
+    pub(super) start: u32,
+    pub(super) duration: u32,
+    pub(super) content: ContentWire,
 }
 
-fn default_visible() -> bool {
+pub(super) fn default_visible() -> bool {
     true
 }
 
 #[derive(Serialize, Deserialize)]
-struct LayerWire {
-    id: String,
-    name: String,
+pub(super) struct LayerWire {
+    pub(super) id: String,
+    pub(super) name: String,
     /// Absent in files written before layer flags existed: visible and unlocked.
     #[serde(default = "default_visible")]
-    visible: bool,
+    pub(super) visible: bool,
     #[serde(default)]
-    locked: bool,
+    pub(super) locked: bool,
     /// Absent in files written before masks existed.
     #[serde(default)]
-    mask: bool,
+    pub(super) mask: bool,
     /// Absent in files written before sounds existed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    cues: Vec<CueWire>,
-    spans: Vec<SpanWire>,
+    pub(super) cues: Vec<CueWire>,
+    pub(super) spans: Vec<SpanWire>,
 }
 
 #[derive(Serialize, Deserialize)]
-struct CueWire {
-    start: u32,
-    sound: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct SoundWire {
-    name: String,
-    /// The imported file, base64.
-    data: String,
-    sample_rate: u32,
-    channels: u16,
-    frames: u64,
-}
-
-impl SoundWire {
-    pub(crate) fn of(sound: &Sound) -> Self {
-        use base64::Engine as _;
-        Self {
-            name: sound.name().to_owned(),
-            data: base64::engine::general_purpose::STANDARD.encode(sound.data()),
-            sample_rate: sound.sample_rate(),
-            channels: sound.channels(),
-            frames: sound.frames(),
-        }
-    }
-
-    pub(crate) fn build(self, id: &str) -> Result<Sound, StorageError> {
-        use base64::Engine as _;
-        let data = base64::engine::general_purpose::STANDARD
-            .decode(self.data)
-            .map_err(|_| StorageError::Corrupt("sound data is not valid base64".into()))?;
-        Sound::new(
-            SoundId::from_uuid(uuid(id)?),
-            self.name,
-            data,
-            self.sample_rate,
-            self.channels,
-            self.frames,
-        )
-        .map_err(|error| StorageError::Corrupt(error.to_string()))
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-struct TimelineWire {
-    layers: Vec<LayerWire>,
+pub(super) struct TimelineWire {
+    pub(super) layers: Vec<LayerWire>,
 }
 
 impl TimelineWire {
-    fn of(timeline: &Timeline) -> Self {
+    pub(super) fn of(timeline: &Timeline) -> Self {
         let layers = timeline
             .layers()
             .iter()
@@ -270,7 +189,7 @@ impl TimelineWire {
         Self { layers }
     }
 
-    fn build(self) -> Result<Timeline, StorageError> {
+    pub(super) fn build(self) -> Result<Timeline, StorageError> {
         let mut layers = Vec::with_capacity(self.layers.len());
         for layer in self.layers {
             let mut spans = Vec::with_capacity(layer.spans.len());
@@ -356,172 +275,5 @@ impl TimelineWire {
             );
         }
         Ok(Timeline::new(layers))
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct SceneWire {
-    name: String,
-    timeline: TimelineWire,
-}
-
-impl SceneWire {
-    pub(crate) fn of(scene: &Scene) -> Self {
-        Self {
-            name: scene.name().to_owned(),
-            timeline: TimelineWire::of(scene.timeline()),
-        }
-    }
-
-    pub(crate) fn build(self, id: &str) -> Result<Scene, StorageError> {
-        Ok(Scene::new(
-            SceneId::from_uuid(uuid(id)?),
-            self.name,
-            self.timeline.build()?,
-        ))
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct SymbolWire {
-    name: String,
-    timeline: TimelineWire,
-}
-
-impl SymbolWire {
-    pub(crate) fn of(symbol: &Symbol) -> Self {
-        Self {
-            name: symbol.name().to_owned(),
-            timeline: TimelineWire::of(symbol.timeline()),
-        }
-    }
-
-    pub(crate) fn build(self, id: &str) -> Result<Symbol, StorageError> {
-        Ok(Symbol::new(
-            SymbolId::from_uuid(uuid(id)?),
-            self.name,
-            self.timeline.build()?,
-        ))
-    }
-}
-
-pub(crate) fn assemble(
-    project_id: &str,
-    settings: &str,
-    scenes: Vec<Scene>,
-    symbols: Vec<Symbol>,
-    attachments: Vec<Attachment>,
-    sounds: Vec<Sound>,
-) -> Result<Document, StorageError> {
-    let settings: Settings = serde_json::from_str(settings)?;
-    let rate = FrameRate::new(settings.frame_rate.0, settings.frame_rate.1)
-        .map_err(|error| StorageError::Corrupt(error.to_string()))?;
-    let document = Document::new(
-        DocumentId::from_uuid(uuid(project_id)?),
-        rate,
-        scenes,
-        symbols,
-    )
-    .map_err(StorageError::Invalid)?;
-    let document = document
-        .with_attachments(attachments)
-        .map_err(StorageError::Invalid)?
-        .with_sounds(sounds)
-        .map_err(StorageError::Invalid)?;
-    match settings.stage {
-        None => Ok(document),
-        Some(wire) => {
-            let [r, g, b, a] = wire.background;
-            let stage = Stage::new(wire.width, wire.height, Rgba8::new(r, g, b, a))
-                .map_err(|error| StorageError::Corrupt(error.to_string()))?;
-            Ok(document.with_stage(stage))
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(tag = "kind", content = "id")]
-enum AnchorWire {
-    Document,
-    Scene(String),
-    Symbol(String),
-    Layer(String),
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(tag = "kind")]
-enum PlacementWire {
-    Child,
-    LayerAt { index: u32 },
-    FrameElement { frame: u32 },
-    FrameExtra { frame: u32 },
-}
-
-#[derive(Serialize, Deserialize)]
-pub(crate) struct AttachmentWire {
-    format: String,
-    anchor: AnchorWire,
-    placement: PlacementWire,
-    content: String,
-    /// Lowercase hex of the content's BLAKE3 digest.
-    digest: String,
-}
-
-fn hex(bytes: &[u8; 32]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
-}
-
-fn unhex(text: &str) -> Option<[u8; 32]> {
-    if text.len() != 64 {
-        return None;
-    }
-    let mut out = [0_u8; 32];
-    for (i, byte) in out.iter_mut().enumerate() {
-        *byte = u8::from_str_radix(text.get(i * 2..i * 2 + 2)?, 16).ok()?;
-    }
-    Some(out)
-}
-
-impl AttachmentWire {
-    pub(crate) fn of(attachment: &Attachment) -> Self {
-        let id = |u: &Uuid| u.to_string();
-        Self {
-            format: attachment.format().to_owned(),
-            anchor: match attachment.anchor() {
-                Anchor::Document => AnchorWire::Document,
-                Anchor::Scene(s) => AnchorWire::Scene(id(s.as_uuid())),
-                Anchor::Symbol(s) => AnchorWire::Symbol(id(s.as_uuid())),
-                Anchor::Layer(l) => AnchorWire::Layer(id(l.as_uuid())),
-            },
-            placement: match attachment.placement() {
-                Placement::Child => PlacementWire::Child,
-                Placement::LayerAt { index } => PlacementWire::LayerAt { index },
-                Placement::FrameElement { frame } => PlacementWire::FrameElement { frame },
-                Placement::FrameExtra { frame } => PlacementWire::FrameExtra { frame },
-            },
-            content: attachment.content().to_owned(),
-            digest: hex(attachment.digest()),
-        }
-    }
-
-    /// Rebuilds the attachment, refusing one whose digest, size or anchor kind is wrong.
-    pub(crate) fn build(self) -> Result<Attachment, StorageError> {
-        let anchor = match self.anchor {
-            AnchorWire::Document => Anchor::Document,
-            AnchorWire::Scene(id) => Anchor::Scene(SceneId::from_uuid(uuid(&id)?)),
-            AnchorWire::Symbol(id) => Anchor::Symbol(SymbolId::from_uuid(uuid(&id)?)),
-            AnchorWire::Layer(id) => Anchor::Layer(LayerId::from_uuid(uuid(&id)?)),
-        };
-        let placement = match self.placement {
-            PlacementWire::Child => Placement::Child,
-            PlacementWire::LayerAt { index } => Placement::LayerAt { index },
-            PlacementWire::FrameElement { frame } => Placement::FrameElement { frame },
-            PlacementWire::FrameExtra { frame } => Placement::FrameExtra { frame },
-        };
-        let digest = unhex(&self.digest).ok_or_else(|| {
-            StorageError::Corrupt("attachment digest is not 64 hex digits".into())
-        })?;
-        Attachment::from_parts(self.format, anchor, placement, self.content, digest)
-            .map_err(|error| StorageError::Corrupt(error.to_string()))
     }
 }

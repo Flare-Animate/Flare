@@ -1,0 +1,198 @@
+//! Frames, layers and timelines.
+
+use flare_document::{Anchor, Attachment, Content, FrameSpan, Layer, Placement, Timeline, Tween};
+
+use super::*;
+
+pub(super) struct Ctx<'a> {
+    pub(super) names: &'a Names,
+    pub(super) notes: Vec<Diagnostic>,
+    pub(super) approximated: bool,
+    /// Source data kept by the importer, and which of it has been written back.
+    pub(super) attachments: &'a [Attachment],
+    pub(super) used: Vec<bool>,
+}
+
+impl<'a> Ctx<'a> {
+    /// The unused attachments on `anchor` whose placement satisfies `wanted`, marked as
+    /// used. Malformed ones are reported and skipped rather than written.
+    pub(super) fn take(
+        &mut self,
+        anchor: Anchor,
+        wanted: impl Fn(Placement) -> bool,
+        place: &str,
+    ) -> Vec<&'a str> {
+        let mut out = Vec::new();
+        for (index, attachment) in self.attachments.iter().enumerate() {
+            if self.used[index] || attachment.anchor() != anchor || !wanted(attachment.placement())
+            {
+                continue;
+            }
+            self.used[index] = true;
+            if attachment.format() != "xfl" {
+                self.notes.push(Diagnostic {
+                    severity: Severity::Warning,
+                    location: place.to_owned(),
+                    message: format!(
+                        "preserved source data in the unknown format {:?} was not written",
+                        attachment.format()
+                    ),
+                });
+                continue;
+            }
+            if well_formed(attachment.content()) {
+                out.push(attachment.content());
+            } else {
+                self.notes.push(Diagnostic {
+                    severity: Severity::Warning,
+                    location: place.to_owned(),
+                    message: "preserved source data is not well-formed XML and was not written"
+                        .into(),
+                });
+            }
+        }
+        out
+    }
+}
+
+pub(super) fn write_frame(
+    out: &mut String,
+    span: &FrameSpan,
+    layer: Anchor,
+    place: &str,
+    ctx: &mut Ctx<'_>,
+) {
+    let tween = match (span.tween(), span.content()) {
+        (Tween::Linear, Content::Instance(_)) => " tweenType=\"motion\"",
+        _ => "",
+    };
+    out.push_str(&format!(
+        "<DOMFrame index=\"{}\" duration=\"{}\"{tween}><elements>",
+        span.start(),
+        span.duration().get()
+    ));
+    match span.content() {
+        Content::Empty => {}
+        Content::Instance(instance) => write_instance(out, instance, ctx.names),
+        Content::Shape(shape) => {
+            let Ctx {
+                notes,
+                approximated,
+                ..
+            } = ctx;
+            write_shape(out, shape, place, notes, approximated);
+        }
+    }
+    let frame = span.start();
+    for xml in ctx.take(layer, |p| p == Placement::FrameElement { frame }, place) {
+        out.push_str(xml);
+    }
+    out.push_str("</elements>");
+    for xml in ctx.take(layer, |p| p == Placement::FrameExtra { frame }, place) {
+        out.push_str(xml);
+    }
+    out.push_str("</DOMFrame>");
+}
+
+/// `mask_parent` is the output index of the mask layer that masks this one, if any.
+pub(super) fn write_layer(
+    out: &mut String,
+    layer: &Layer,
+    mask_parent: Option<usize>,
+    place: &str,
+    ctx: &mut Ctx<'_>,
+) {
+    let mut attrs = String::new();
+    if layer.is_mask() {
+        // Animate keeps mask layers locked; the layers they mask point back at them.
+        attrs.push_str(" layerType=\"mask\" locked=\"true\"");
+    } else if let Some(parent) = mask_parent {
+        attrs.push_str(&format!(" parentLayerIndex=\"{parent}\""));
+    }
+    if !layer.is_visible() {
+        attrs.push_str(" visible=\"false\"");
+    }
+    if layer.is_locked() && !layer.is_mask() {
+        attrs.push_str(" locked=\"true\"");
+    }
+    out.push_str(&format!(
+        "<DOMLayer name=\"{}\"{attrs}><frames>",
+        esc(layer.name())
+    ));
+    let here = format!("{place} / layer \"{}\"", layer.name());
+    if layer.spans().is_empty() {
+        // Animate requires every layer to have a frame; keep the layer alive on re-import.
+        ctx.notes.push(Diagnostic {
+            severity: Severity::Info,
+            location: here.clone(),
+            message: "an empty layer was written with one empty frame".into(),
+        });
+        out.push_str("<DOMFrame index=\"0\" duration=\"1\"><elements>");
+        let anchor = Anchor::Layer(layer.id());
+        for xml in ctx.take(anchor, |p| p == Placement::FrameElement { frame: 0 }, &here) {
+            out.push_str(xml);
+        }
+        out.push_str("</elements>");
+        for xml in ctx.take(anchor, |p| p == Placement::FrameExtra { frame: 0 }, &here) {
+            out.push_str(xml);
+        }
+        out.push_str("</DOMFrame>");
+    }
+    let mut cursor = 0_u64;
+    for span in layer.spans() {
+        if u64::from(span.start()) > cursor {
+            let gap = u64::from(span.start()) - cursor;
+            ctx.notes.push(Diagnostic {
+                severity: Severity::Warning,
+                location: here.clone(),
+                message: format!(
+                    "a gap of {gap} frame(s) before frame {} became empty frames",
+                    span.start()
+                ),
+            });
+            out.push_str(&format!(
+                "<DOMFrame index=\"{cursor}\" duration=\"{gap}\"><elements/></DOMFrame>"
+            ));
+        }
+        write_frame(out, span, Anchor::Layer(layer.id()), &here, ctx);
+        cursor = span.end();
+    }
+    out.push_str("</frames></DOMLayer>");
+}
+
+pub(super) fn write_timeline(
+    out: &mut String,
+    name: &str,
+    timeline: &Timeline,
+    place: &str,
+    owner: Anchor,
+    ctx: &mut Ctx<'_>,
+) {
+    out.push_str(&format!("<DOMTimeline name=\"{}\"><layers>", esc(name)));
+    let count = timeline.layers().len();
+    // Layers written so far, kept ones included: a mask is referred to by this index.
+    let mut written = 0_usize;
+    let mut mask_index: Option<usize> = None;
+    for (position, layer) in timeline.layers().iter().enumerate() {
+        // Whole layers that were kept go back at their original index among the layers.
+        let at =
+            |p: Placement| matches!(p, Placement::LayerAt { index } if index as usize == position);
+        for xml in ctx.take(owner, at, place) {
+            out.push_str(xml);
+            written += 1;
+        }
+        // A mask masks the layer directly below it in the document.
+        let parent = mask_index.take();
+        write_layer(out, layer, parent, place, ctx);
+        if layer.is_mask() {
+            mask_index = Some(written);
+        }
+        written += 1;
+    }
+    // Any whose index lies beyond the layers there are now go last.
+    let after = |p: Placement| matches!(p, Placement::LayerAt { index } if index as usize >= count);
+    for xml in ctx.take(owner, after, place) {
+        out.push_str(xml);
+    }
+    out.push_str("</layers></DOMTimeline>");
+}
