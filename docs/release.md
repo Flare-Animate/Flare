@@ -14,11 +14,11 @@
 - **macOS**: `scripts/package-macos.sh` builds a release binary and wraps it in `Flare.app`
   (Info.plist, icon set), then a zip in `dist/`. Signing and notarising need a developer account
   and are not scripted.
-- **Linux**: `cargo build --release -p flare-desktop` needs the libraries listed in
-  [CONTRIBUTING.md](../CONTRIBUTING.md); ship the binary with `assets` embedded (it is). An
-  AppImage or a distro package can wrap that binary.
-- **Windows**: `cargo build --release -p flare-desktop --target x86_64-pc-windows-msvc`; the
-  binary is self-contained. An installer is not scripted yet.
+- **Linux**: `scripts/package-linux.sh` builds a tarball with the app, `flare-cli` and `flare-mcp`
+  (needs the libraries listed in [CONTRIBUTING.md](../CONTRIBUTING.md)). An AppImage or distro
+  package can wrap the same binaries. Not yet run on Linux; CI only builds and tests there.
+- **Windows**: `scripts/package-windows.ps1` builds a zip with the same three programs. An
+  installer is not scripted yet, and the script has not been run on Windows.
 - **Web**: experimental, not part of a release.
 
 ## Smoke test (by hand, per platform)
