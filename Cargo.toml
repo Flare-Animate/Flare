@@ -7,18 +7,18 @@ members = [
     "apps/flare-desktop",
     "apps/flare-mcp",
     "crates/foundation/flare-core",
-    "crates/document/flare-document",
-    "crates/document/flare-edit",
-    "crates/io/flare-storage",
-    "crates/eval/flare-eval",
-    "crates/render/flare-render",
+    "crates/foundation/flare-document",
+    "crates/editing/flare-edit",
+    "crates/services/flare-storage",
+    "crates/foundation/flare-eval",
+    "crates/services/flare-render",
     "crates/presentation/flare-ui",
-    "crates/io/flare-import",
-    "crates/io/flare-export",
-    "crates/publish/flare-publish",
-    "crates/io/flare-flash",
-    "crates/text/flare-text",
-    "crates/audio/flare-audio",
+    "crates/adapters/flare-import",
+    "crates/adapters/flare-export",
+    "crates/services/flare-publish",
+    "crates/adapters/flare-flash",
+    "crates/services/flare-text",
+    "crates/services/flare-audio",
 ]
 exclude = ["original"]
 default-members = ["apps/flare-desktop"]
@@ -33,18 +33,18 @@ license = "BSD-3-Clause"
 [workspace.dependencies]
 # ---- Internal packages: root owns all paths ----------------------------------
 flare-core = { path = "crates/foundation/flare-core" }
-flare-flash = { path = "crates/io/flare-flash" }
-flare-export = { path = "crates/io/flare-export" }
-flare-publish = { path = "crates/publish/flare-publish" }
-flare-import = { path = "crates/io/flare-import" }
+flare-flash = { path = "crates/adapters/flare-flash" }
+flare-export = { path = "crates/adapters/flare-export" }
+flare-publish = { path = "crates/services/flare-publish" }
+flare-import = { path = "crates/adapters/flare-import" }
 flare-ui = { path = "crates/presentation/flare-ui" }
-flare-render = { path = "crates/render/flare-render" }
-flare-eval = { path = "crates/eval/flare-eval" }
-flare-storage = { path = "crates/io/flare-storage" }
-flare-edit = { path = "crates/document/flare-edit" }
-flare-document = { path = "crates/document/flare-document" }
-flare-text = { path = "crates/text/flare-text" }
-flare-audio = { path = "crates/audio/flare-audio" }
+flare-render = { path = "crates/services/flare-render" }
+flare-eval = { path = "crates/foundation/flare-eval" }
+flare-storage = { path = "crates/services/flare-storage" }
+flare-edit = { path = "crates/editing/flare-edit" }
+flare-document = { path = "crates/foundation/flare-document" }
+flare-text = { path = "crates/services/flare-text" }
+flare-audio = { path = "crates/services/flare-audio" }
 
 # ---- Math and vector geometry ------------------------------------------------
 glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }
