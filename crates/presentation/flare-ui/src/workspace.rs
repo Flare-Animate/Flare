@@ -13,6 +13,7 @@ use glamx::{DAffine2, DVec2};
 use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
 use crate::pen::{PenPath, Press};
+use crate::timeline_view;
 use crate::view::{self, StageView};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 
@@ -164,6 +165,8 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// Timeline zoom: 1.0 fits the whole scene in the panel.
+    timeline_zoom: f32,
     /// Spans selected along with `selected` (Shift-click). Move and Delete act on all of them.
     also_selected: Vec<SpanRef>,
     stage_view: StageView,
@@ -214,6 +217,7 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            timeline_zoom: 1.0,
             also_selected: Vec::new(),
             stage_view: StageView::default(),
             stage_panel: Rect::NOTHING,
@@ -2278,6 +2282,28 @@ impl Workspace {
                 self.set_onion_range(before, after);
             });
             ui.separator();
+            if ui
+                .small_button("\u{2212}")
+                .on_hover_text("Zoom timeline out")
+                .clicked()
+            {
+                self.zoom_timeline(1.0 / timeline_view::STEP);
+            }
+            if ui
+                .small_button("+")
+                .on_hover_text("Zoom timeline in")
+                .clicked()
+            {
+                self.zoom_timeline(timeline_view::STEP);
+            }
+            if ui
+                .small_button("Fit")
+                .on_hover_text("Fit the scene")
+                .clicked()
+            {
+                self.timeline_zoom = timeline_view::MIN_ZOOM;
+            }
+            ui.separator();
             // Renaming needs text input, which a menu item cannot provide.
             let edit = ui.add(
                 egui::TextEdit::singleline(&mut self.layer_name_edit)
@@ -2292,162 +2318,181 @@ impl Workspace {
         });
         ui.separator();
 
-        let frames = self.scene_frames();
-        let layer_count = self
-            .document()
-            .scenes()
-            .first()
-            .map_or(0, |s| s.timeline().layers().len());
-        let row = 22.0;
-        let label_w = 110.0;
-        let height = row * (layer_count as f32 + 1.0);
-        let (rect, response) = ui.allocate_exact_size(
-            Vec2::new(ui.available_width(), height),
-            Sense::click_and_drag(),
-        );
-        let painter = ui.painter_at(rect);
-        let track = Rect::from_min_max(Pos2::new(rect.min.x + label_w, rect.min.y), rect.max);
-        let per_frame = track.width() / frames as f32;
-
-        let frame_at = |x: f32| (x - track.min.x) / per_frame;
-        let row_layer = |y: f32| {
-            let index = ((y - rect.min.y) / row).floor() as i64 - 1;
-            usize::try_from(index).ok().and_then(|i| {
-                let layers = self.document().scenes().first()?.timeline().layers();
-                layers.get(i).map(Layer::id)
-            })
-        };
-        if response.drag_started()
-            && let Some(p) = ui.input(|i| i.pointer.press_origin())
-            && p.x >= track.min.x
-            && let Some(id) = row_layer(p.y)
-            && self.begin_span_drag(id, frame_at(p.x), 6.0 / per_frame)
-        {
-            self.select_layer(id);
+        let available = ui.available_width();
+        if ui.rect_contains_pointer(ui.max_rect()) {
+            let zoom = ui.input(|i| i.zoom_delta());
+            if zoom != 1.0 {
+                self.zoom_timeline(zoom);
+            }
         }
-        if self.span_drag.is_some() {
-            if response.dragged()
+        egui::ScrollArea::horizontal().show(ui, |ui| {
+            let frames = self.scene_frames();
+            let layer_count = self
+                .document()
+                .scenes()
+                .first()
+                .map_or(0, |s| s.timeline().layers().len());
+            let row = 22.0;
+            let label_w = 110.0;
+            let height = row * (layer_count as f32 + 1.0);
+            let per_frame = timeline_view::frame_width(
+                (available - label_w).max(0.0),
+                u64::from(frames),
+                self.timeline_zoom,
+            );
+            let (rect, response) = ui.allocate_exact_size(
+                Vec2::new(label_w + per_frame * frames as f32, height),
+                Sense::click_and_drag(),
+            );
+            let painter = ui.painter_at(rect);
+            let track = Rect::from_min_max(Pos2::new(rect.min.x + label_w, rect.min.y), rect.max);
+
+            let frame_at = |x: f32| (x - track.min.x) / per_frame;
+            let row_layer = |y: f32| {
+                let index = ((y - rect.min.y) / row).floor() as i64 - 1;
+                usize::try_from(index).ok().and_then(|i| {
+                    let layers = self.document().scenes().first()?.timeline().layers();
+                    layers.get(i).map(Layer::id)
+                })
+            };
+            if response.drag_started()
+                && let Some(p) = ui.input(|i| i.pointer.press_origin())
+                && p.x >= track.min.x
+                && let Some(id) = row_layer(p.y)
+                && self.begin_span_drag(id, frame_at(p.x), 6.0 / per_frame)
+            {
+                self.select_layer(id);
+            }
+            if self.span_drag.is_some() {
+                if response.dragged()
+                    && let Some(p) = response.interact_pointer_pos()
+                {
+                    self.update_span_drag(frame_at(p.x).floor().max(0.0) as u32);
+                }
+                if response.drag_stopped() {
+                    self.end_span_drag();
+                }
+            } else if (response.clicked() || response.dragged())
                 && let Some(p) = response.interact_pointer_pos()
             {
-                self.update_span_drag(frame_at(p.x).floor().max(0.0) as u32);
-            }
-            if response.drag_stopped() {
-                self.end_span_drag();
-            }
-        } else if (response.clicked() || response.dragged())
-            && let Some(p) = response.interact_pointer_pos()
-        {
-            if p.x >= track.min.x {
-                let f = ((p.x - track.min.x) / per_frame).floor().max(0.0) as u32;
-                self.set_frame(f);
-            }
-            // Clicking a row (below the ruler) makes that layer the active one.
-            let index = ((p.y - rect.min.y) / row).floor() as i64 - 1;
-            let picked = usize::try_from(index).ok().and_then(|i| {
-                let layers = self.document().scenes().first()?.timeline().layers();
-                layers.get(i).map(Layer::id)
-            });
-            if let Some(id) = picked {
-                // The two small toggles at the right edge of the label column.
-                let eye = p.x >= track.min.x - 40.0 && p.x < track.min.x - 20.0;
-                let lock = p.x >= track.min.x - 20.0 && p.x < track.min.x;
-                if response.clicked() && eye {
-                    self.toggle_layer_visible(id);
-                } else if response.clicked() && lock {
-                    self.toggle_layer_locked(id);
-                } else {
-                    self.select_layer(id);
+                if p.x >= track.min.x {
+                    let f = ((p.x - track.min.x) / per_frame).floor().max(0.0) as u32;
+                    self.set_frame(f);
                 }
-            }
-        }
-        let active = self.active_layer_id();
-
-        // Ruler ticks roughly every 40px.
-        let step = ((40.0 / per_frame).ceil() as u32).max(1);
-        let ink = ui.visuals().text_color();
-        for f in (0..frames).step_by(step as usize) {
-            let x = track.min.x + f as f32 * per_frame;
-            painter.text(
-                Pos2::new(x + 2.0, rect.min.y),
-                Align2::LEFT_TOP,
-                f.to_string(),
-                FontId::monospace(10.0),
-                ink,
-            );
-        }
-        if let Some(scene) = self.document().scenes().first() {
-            for (i, layer) in scene.timeline().layers().iter().enumerate() {
-                let y = rect.min.y + row * (i as f32 + 1.0);
-                if Some(layer.id()) == active {
-                    let band = Rect::from_min_max(
-                        Pos2::new(rect.min.x, y),
-                        Pos2::new(rect.max.x, y + row),
-                    );
-                    painter.rect_filled(
-                        band,
-                        0.0,
-                        Color32::from_rgba_unmultiplied(80, 140, 255, 40),
-                    );
-                }
-                let dim = ink.gamma_multiply(0.35);
-                painter.text(
-                    Pos2::new(rect.min.x + 4.0, y + 3.0),
-                    Align2::LEFT_TOP,
-                    layer.name(),
-                    FontId::proportional(12.0),
-                    if layer.is_visible() { ink } else { dim },
-                );
-                let flag = |x: f32, on: bool, glyph: &str| {
-                    painter.text(
-                        Pos2::new(x, y + 3.0),
-                        Align2::LEFT_TOP,
-                        glyph,
-                        FontId::monospace(12.0),
-                        if on { ink } else { dim },
-                    );
-                };
-                flag(track.min.x - 36.0, layer.is_visible(), "V");
-                flag(track.min.x - 16.0, layer.is_locked(), "L");
-                for span in layer.spans() {
-                    let x0 = track.min.x + span.start() as f32 * per_frame;
-                    let x1 = track.min.x + span.end() as f32 * per_frame;
-                    let color = match span.content() {
-                        Content::Empty => Color32::from_gray(90),
-                        Content::Shape(_) => Color32::from_rgb(70, 130, 180),
-                        Content::Instance(_) => Color32::from_rgb(120, 170, 90),
-                    };
-                    let bar = Rect::from_min_max(
-                        Pos2::new(x0, y + 2.0),
-                        Pos2::new(x1.max(x0 + 1.0), y + row - 2.0),
-                    );
-                    let color = if layer.is_visible() {
-                        color
+                // Clicking a row (below the ruler) makes that layer the active one.
+                let index = ((p.y - rect.min.y) / row).floor() as i64 - 1;
+                let picked = usize::try_from(index).ok().and_then(|i| {
+                    let layers = self.document().scenes().first()?.timeline().layers();
+                    layers.get(i).map(Layer::id)
+                });
+                if let Some(id) = picked {
+                    // The two small toggles at the right edge of the label column.
+                    let eye = p.x >= track.min.x - 40.0 && p.x < track.min.x - 20.0;
+                    let lock = p.x >= track.min.x - 20.0 && p.x < track.min.x;
+                    if response.clicked() && eye {
+                        self.toggle_layer_visible(id);
+                    } else if response.clicked() && lock {
+                        self.toggle_layer_locked(id);
                     } else {
-                        color.gamma_multiply(0.35)
-                    };
-                    painter.rect_filled(bar, 2.0, color);
-                }
-                if let Some((dragged, start, duration)) = self.span_drag_preview()
-                    && dragged == layer.id()
-                {
-                    let x0 = track.min.x + start as f32 * per_frame;
-                    let x1 = x0 + duration as f32 * per_frame;
-                    let ghost =
-                        Rect::from_min_max(Pos2::new(x0, y + 2.0), Pos2::new(x1, y + row - 2.0));
-                    painter.rect_stroke(
-                        ghost,
-                        2.0,
-                        Stroke::new(2.0, Color32::from_rgb(40, 120, 255)),
-                        StrokeKind::Inside,
-                    );
+                        self.select_layer(id);
+                    }
                 }
             }
-        }
-        let head = track.min.x + (self.frame as f32 + 0.5) * per_frame;
-        painter.line_segment(
-            [Pos2::new(head, rect.min.y), Pos2::new(head, rect.max.y)],
-            Stroke::new(2.0, Color32::from_rgb(220, 60, 60)),
-        );
+            let active = self.active_layer_id();
+
+            // Ruler ticks roughly every 40px.
+            let step = ((40.0 / per_frame).ceil() as u32).max(1);
+            let ink = ui.visuals().text_color();
+            for f in (0..frames).step_by(step as usize) {
+                let x = track.min.x + f as f32 * per_frame;
+                painter.text(
+                    Pos2::new(x + 2.0, rect.min.y),
+                    Align2::LEFT_TOP,
+                    f.to_string(),
+                    FontId::monospace(10.0),
+                    ink,
+                );
+            }
+            if let Some(scene) = self.document().scenes().first() {
+                for (i, layer) in scene.timeline().layers().iter().enumerate() {
+                    let y = rect.min.y + row * (i as f32 + 1.0);
+                    if Some(layer.id()) == active {
+                        let band = Rect::from_min_max(
+                            Pos2::new(rect.min.x, y),
+                            Pos2::new(rect.max.x, y + row),
+                        );
+                        painter.rect_filled(
+                            band,
+                            0.0,
+                            Color32::from_rgba_unmultiplied(80, 140, 255, 40),
+                        );
+                    }
+                    let dim = ink.gamma_multiply(0.35);
+                    painter.text(
+                        Pos2::new(rect.min.x + 4.0, y + 3.0),
+                        Align2::LEFT_TOP,
+                        layer.name(),
+                        FontId::proportional(12.0),
+                        if layer.is_visible() { ink } else { dim },
+                    );
+                    let flag = |x: f32, on: bool, glyph: &str| {
+                        painter.text(
+                            Pos2::new(x, y + 3.0),
+                            Align2::LEFT_TOP,
+                            glyph,
+                            FontId::monospace(12.0),
+                            if on { ink } else { dim },
+                        );
+                    };
+                    flag(track.min.x - 36.0, layer.is_visible(), "V");
+                    flag(track.min.x - 16.0, layer.is_locked(), "L");
+                    for span in layer.spans() {
+                        let x0 = track.min.x + span.start() as f32 * per_frame;
+                        let x1 = track.min.x + span.end() as f32 * per_frame;
+                        let color = match span.content() {
+                            Content::Empty => Color32::from_gray(90),
+                            Content::Shape(_) => Color32::from_rgb(70, 130, 180),
+                            Content::Instance(_) => Color32::from_rgb(120, 170, 90),
+                        };
+                        let bar = Rect::from_min_max(
+                            Pos2::new(x0, y + 2.0),
+                            Pos2::new(x1.max(x0 + 1.0), y + row - 2.0),
+                        );
+                        let color = if layer.is_visible() {
+                            color
+                        } else {
+                            color.gamma_multiply(0.35)
+                        };
+                        painter.rect_filled(bar, 2.0, color);
+                    }
+                    if let Some((dragged, start, duration)) = self.span_drag_preview()
+                        && dragged == layer.id()
+                    {
+                        let x0 = track.min.x + start as f32 * per_frame;
+                        let x1 = x0 + duration as f32 * per_frame;
+                        let ghost = Rect::from_min_max(
+                            Pos2::new(x0, y + 2.0),
+                            Pos2::new(x1, y + row - 2.0),
+                        );
+                        painter.rect_stroke(
+                            ghost,
+                            2.0,
+                            Stroke::new(2.0, Color32::from_rgb(40, 120, 255)),
+                            StrokeKind::Inside,
+                        );
+                    }
+                }
+            }
+            let head = track.min.x + (self.frame as f32 + 0.5) * per_frame;
+            painter.line_segment(
+                [Pos2::new(head, rect.min.y), Pos2::new(head, rect.max.y)],
+                Stroke::new(2.0, Color32::from_rgb(220, 60, 60)),
+            );
+        });
+    }
+
+    fn zoom_timeline(&mut self, factor: f32) {
+        self.timeline_zoom = timeline_view::zoomed(self.timeline_zoom, factor);
     }
 }
 
@@ -4373,5 +4418,20 @@ mod tests {
         );
         ws.toggle_layer_locked(id);
         assert!(!ws.begin_span_drag(id, 0.5, 0.3), "locked layers refuse");
+    }
+
+    #[test]
+    fn timeline_zoom_changes_the_view_not_the_document_and_still_draws() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        run(&mut ws, &ctx, 0.0);
+        ws.zoom_timeline(timeline_view::STEP);
+        assert!(ws.timeline_zoom > 1.0);
+        run(&mut ws, &ctx, 0.1);
+        ws.zoom_timeline(1000.0);
+        assert_eq!(ws.timeline_zoom, timeline_view::MAX_ZOOM);
+        run(&mut ws, &ctx, 0.2);
+        ws.zoom_timeline(0.0001);
+        assert_eq!(ws.timeline_zoom, timeline_view::MIN_ZOOM);
+        assert!(!ws.is_dirty());
     }
 }

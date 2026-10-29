@@ -10,6 +10,7 @@ mod actions;
 mod layout;
 mod ops;
 mod pen;
+mod timeline_view;
 mod view;
 mod workspace;
 
