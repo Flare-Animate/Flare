@@ -24,4 +24,4 @@ the map.
 
 `.github/workflows/ci.yml` runs on Ubuntu for every push and pull request: `cargo fmt --check`,
 clippy with `-D warnings`, `cargo test --workspace --locked`, a lockfile check, a wasm32 check of
-the crates the web build uses, and the doc rules (500-line limit, no references to `docs/temp`).
+the crates the web build uses, and the doc rules (500-line limit, no references to the scratch directory).

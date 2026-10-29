@@ -22,6 +22,7 @@ use flare_input::InputSample;
 mod anchors;
 mod arrange;
 mod background_work;
+mod command_labels;
 mod commands;
 mod core;
 mod dock;

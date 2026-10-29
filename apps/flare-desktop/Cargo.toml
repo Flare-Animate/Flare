@@ -42,6 +42,7 @@ assets = [
 glibc = ">= 2.35"
 libgcc = "*"
 alsa-lib = "*"
+fontconfig = "*"
 libX11 = "*"
 libxcb = "*"
 libxkbcommon = "*"

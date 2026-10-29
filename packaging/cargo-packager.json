@@ -14,6 +14,7 @@
       "libc6 (>= 2.35)",
       "libgcc-s1",
       "libasound2",
+      "libfontconfig1",
       "libx11-6",
       "libxcb1",
       "libxkbcommon0",

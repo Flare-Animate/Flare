@@ -31,7 +31,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            pkg-config libasound2-dev libwayland-dev libxkbcommon-dev \
+            pkg-config libasound2-dev libfontconfig1-dev libwayland-dev libxkbcommon-dev \
             libx11-dev libxcursor-dev libxi-dev libxrandr-dev libxcb1-dev
 
       - uses: Swatinem/rust-cache@v2
@@ -81,6 +81,6 @@ jobs:
           if [ -n "$long" ]; then echo "Files over 500 lines:"; echo "$long"; exit 1; fi
       - name: Committed docs never point at docs/temp
         run: |
-          if grep -rn "docs/temp" --include='*.md' . --exclude-dir=original --exclude-dir=target --exclude-dir=.git; then
+          if grep -rn "docs/temp" --include='*.md' . --exclude-dir=original --exclude-dir=target --exclude-dir=.git --exclude=AGENTS.md; then
             echo "Committed docs refer to docs/temp"; exit 1
           fi

@@ -6,7 +6,7 @@ Thanks for helping. Start with [docs/README.md](docs/README.md) for how things a
 ## Setup
 
 Rust is pinned in `rust-toolchain.toml`; `rustup` installs it on the first build. On Linux you need
-`pkg-config libasound2-dev libwayland-dev libxkbcommon-dev libx11-dev libxcursor-dev libxi-dev
+`pkg-config libasound2-dev libfontconfig1-dev libwayland-dev libxkbcommon-dev libx11-dev libxcursor-dev libxi-dev
 libxrandr-dev libxcb1-dev`.
 
 ```
