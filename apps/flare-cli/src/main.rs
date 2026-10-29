@@ -1,5 +1,7 @@
-//! Starter CLI: inspection and rational timing only, not project editing yet.
+//! Flare CLI: inspection, rational timing and headless project editing.
 #![forbid(unsafe_code)]
+
+mod project;
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -31,6 +33,31 @@ enum Command {
         denominator: u32,
         #[arg(long, default_value_t = 0)]
         frame: u64,
+    },
+    /// Create an empty project with one scene and one layer.
+    New {
+        path: PathBuf,
+        #[arg(long, default_value_t = 24)]
+        numerator: u32,
+        #[arg(long, default_value_t = 1)]
+        denominator: u32,
+    },
+    /// Summarize a project.
+    Info { path: PathBuf },
+    /// Add an empty Graphic symbol to the library.
+    AddSymbol { path: PathBuf, name: String },
+    /// Place a symbol instance on the first layer of the first scene.
+    Place {
+        path: PathBuf,
+        symbol: uuid::Uuid,
+        #[arg(long, default_value_t = 0)]
+        start: u32,
+        #[arg(long, default_value_t = 1)]
+        duration: u32,
+        #[arg(long, default_value_t = 0.0)]
+        x: f64,
+        #[arg(long, default_value_t = 0.0)]
+        y: f64,
     },
 }
 
@@ -68,6 +95,21 @@ fn main() -> Result<()> {
                 "frame_start_nanoseconds_floor": rate.frame_start_ns(frame)?
             })
         }
+        Command::New {
+            path,
+            numerator,
+            denominator,
+        } => project::new(&path, numerator, denominator)?,
+        Command::Info { path } => project::info(&path)?,
+        Command::AddSymbol { path, name } => project::add_symbol(&path, &name)?,
+        Command::Place {
+            path,
+            symbol,
+            start,
+            duration,
+            x,
+            y,
+        } => project::place(&path, symbol, start, duration, x, y)?,
     };
     let stdout = std::io::stdout();
     let mut stdout = stdout.lock();

@@ -9,9 +9,17 @@ license.workspace = true
 [dependencies]
 flare-core.workspace = true
 flare-flash.workspace = true
+flare-document.workspace = true
+flare-edit.workspace = true
+flare-storage.workspace = true
+glamx.workspace = true
+uuid.workspace = true
 clap.workspace = true
 serde_json.workspace = true
 anyhow.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
 
 [lints]
 workspace = true

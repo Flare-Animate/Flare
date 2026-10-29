@@ -194,8 +194,14 @@ dependencies = [
  "anyhow",
  "clap",
  "flare-core",
+ "flare-document",
+ "flare-edit",
  "flare-flash",
+ "flare-storage",
+ "glamx",
  "serde_json",
+ "tempfile",
+ "uuid",
 ]
 
 [[package]]
