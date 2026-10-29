@@ -24,6 +24,11 @@ impl App {
                     self.workspace.save_as(&path);
                 }
             }
+            DialogRequest::ImportProject => {
+                if let Some(path) = dialogs::pick_import() {
+                    self.workspace.import_project(&path);
+                }
+            }
             DialogRequest::ImportSound => {
                 if let Some(path) = dialogs::pick_sound() {
                     self.workspace.import_sound(&path);

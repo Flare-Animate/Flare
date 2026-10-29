@@ -125,6 +125,19 @@ pub fn run_io(job: IoJob) -> Done {
                 result,
             }
         }
+        IoJob::Import { id, path } => {
+            let result = flare_import::import_path(&path)
+                .map(|imported| {
+                    let notes = imported
+                        .diagnostics
+                        .iter()
+                        .map(|d| format!("{:?} {}: {}", d.severity, d.location, d.message))
+                        .collect();
+                    (imported.document, notes)
+                })
+                .map_err(|e| e.to_string());
+            Done::Imported { id, path, result }
+        }
         IoJob::Autosave { id, dir, document } => Done::Autosaved {
             id,
             result: flare_storage::save_recovery(&document, &dir).map_err(|e| e.to_string()),

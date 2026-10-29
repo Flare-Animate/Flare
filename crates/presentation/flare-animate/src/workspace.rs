@@ -82,6 +82,8 @@ pub struct Workspace {
     opening: Option<u64>,
     /// The open that is a revert: it replaces the document even though it has changes.
     preferences_open: bool,
+    /// The import being read, if any.
+    importing: Option<u64>,
     reverting: Option<u64>,
     revert_pending: bool,
     /// The autosave in flight, if any. Another is not started until it finishes.
@@ -237,6 +239,7 @@ impl Workspace {
             render_inbox: Vec::new(),
             opening: None,
             preferences_open: false,
+            importing: None,
             reverting: None,
             revert_pending: false,
             autosaving: None,

@@ -29,6 +29,7 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+flare-export.workspace = true
 epaint_default_fonts = "0.37"
 png.workspace = true
 tempfile.workspace = true

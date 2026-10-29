@@ -115,6 +115,33 @@ impl Workspace {
                     Err(error) => self.report(format!("Autosave failed: {error}")),
                 }
             }
+            Done::Imported { id, path, result } => {
+                if self.importing != Some(id) {
+                    return;
+                }
+                self.importing = None;
+                match result {
+                    Err(error) => self.report(format!("Cannot import {}: {error}", path.display())),
+                    Ok(_) if self.is_dirty() => {
+                        self.report("Your project changed while the file was being read, so it was not replaced");
+                    }
+                    Ok((document, notes)) => {
+                        self.discard_recovery();
+                        self.install_document(document, None);
+                        // An import is somebody else's file: it counts as unsaved work until it
+                        // is saved as a project.
+                        self.session.mark_unsaved();
+                        let skipped = notes.len();
+                        for note in notes {
+                            self.log.push(note);
+                        }
+                        self.report(format!(
+                            "Imported {}; {skipped} note(s) about what was not carried over are in the Output panel",
+                            path.display()
+                        ));
+                    }
+                }
+            }
             Done::Opened {
                 id,
                 path,

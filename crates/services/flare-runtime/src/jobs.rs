@@ -52,6 +52,8 @@ pub enum IoJob {
         dir: PathBuf,
         document: Arc<Document>,
     },
+    /// Read an XFL folder or a `.fla` and turn it into a document.
+    Import { id: u64, path: PathBuf },
 }
 
 /// A drawn frame, in whichever form the rasterizer produced it: the common one (no ghosts)
@@ -106,6 +108,12 @@ pub enum Done {
         id: u64,
         result: Result<PathBuf, String>,
     },
+    Imported {
+        id: u64,
+        path: PathBuf,
+        /// The document and what could not be carried over, one line each.
+        result: Result<(Document, Vec<String>), String>,
+    },
 }
 
 impl Done {
@@ -113,7 +121,10 @@ impl Done {
     pub(crate) fn is_io(&self) -> bool {
         matches!(
             self,
-            Done::Saved { .. } | Done::Opened { .. } | Done::Autosaved { .. }
+            Done::Saved { .. }
+                | Done::Opened { .. }
+                | Done::Autosaved { .. }
+                | Done::Imported { .. }
         )
     }
 }

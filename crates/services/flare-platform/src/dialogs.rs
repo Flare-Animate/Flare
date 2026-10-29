@@ -15,6 +15,13 @@ pub fn save_project() -> Option<PathBuf> {
     project().save_file()
 }
 
+/// An XFL file or a modern `.fla` to import.
+pub fn pick_import() -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter("Flash document", &["fla", "xfl"])
+        .pick_file()
+}
+
 pub fn pick_sound() -> Option<PathBuf> {
     rfd::FileDialog::new()
         .add_filter("Sound", &["wav", "mp3", "ogg", "flac"])

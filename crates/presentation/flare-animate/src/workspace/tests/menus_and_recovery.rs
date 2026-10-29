@@ -505,3 +505,38 @@ fn preferences_round_trip_stay_in_range_and_refuse_junk() {
     other.preferences_open = false;
     run(&mut other, &ctx, 0.1);
 }
+
+#[test]
+fn importing_an_xfl_folder_makes_a_new_unsaved_project_and_never_replaces_unsaved_work() {
+    let mut source = workspace();
+    rect(&mut source);
+    let output = flare_export::export_xfl(source.document()).expect("export");
+    let dir = tempfile::tempdir().expect("dir");
+    let folder = dir.path().join("art");
+    flare_export::write_directory(&output, &folder).expect("write");
+
+    let mut ws = workspace();
+    ws.import_project(&folder);
+    assert_eq!(layer_count(&ws), 2, "the drawing came across");
+    assert_eq!(
+        ws.path(),
+        None,
+        "an import is not tied to the file it came from"
+    );
+    assert!(ws.is_dirty(), "it is unsaved work until saved as a project");
+    assert!(ws.status().is_some_and(|s| s.contains("Imported")));
+    // Unsaved work is protected.
+    ws.import_project(&folder);
+    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+    // Something that is not an XFL says why.
+    let mut other = workspace();
+    other.import_project(&dir.path().join("missing"));
+    assert!(other.status().is_some_and(|s| s.contains("Cannot import")));
+    assert_eq!(layer_count(&other), 1);
+    assert_eq!(
+        other.label(MenuAction::ImportProject),
+        "Import XFL or FLA..."
+    );
+    other.perform(MenuAction::ImportProject);
+    assert_eq!(other.take_dialog(), Some(DialogRequest::ImportProject));
+}

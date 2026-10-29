@@ -50,6 +50,22 @@ impl Workspace {
         self.start_open(path, false);
     }
 
+    /// Reads an XFL folder or a `.fla` into a new, unsaved project, refusing to replace unsaved
+    /// work. The file is read off the UI thread.
+    pub fn import_project(&mut self, path: &Path) {
+        if self.is_dirty() {
+            self.report("Save or undo your changes before importing another project");
+            return;
+        }
+        let id = self.background.next_id();
+        self.importing = Some(id);
+        self.background.submit_io(IoJob::Import {
+            id,
+            path: path.to_owned(),
+        });
+        self.settle_inline();
+    }
+
     /// Starts an empty project, refusing to replace unsaved work.
     pub(super) fn new_document(&mut self) {
         if self.is_dirty() {

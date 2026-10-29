@@ -57,6 +57,7 @@ pub enum DialogRequest {
     ImportSound,
     ExportImage,
     PublishSwf,
+    ImportProject,
 }
 
 /// A request for the shell to move or zoom its window, from the integrated title bar.
