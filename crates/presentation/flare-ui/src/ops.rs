@@ -91,7 +91,12 @@ fn translate_shape(shape: &Shape, delta: DVec2) -> Option<Shape> {
             })
         })
         .collect::<Option<Vec<_>>>()?;
-    Shape::new(shape.id(), path, shape.fill()).ok()
+    let moved = Shape::new(shape.id(), path, shape.fill()).ok()?;
+    // Rebuilding must not drop the stroke.
+    Some(match shape.stroke() {
+        Some(stroke) => moved.with_stroke(stroke),
+        None => moved,
+    })
 }
 
 /// Moves a span's content by `delta`, keeping identity, duration and tween.
@@ -199,7 +204,11 @@ pub fn shape_bounds(shape: &Shape) -> Option<Rect> {
             PathSegment::Close => {}
         }
     }
-    bounds
+    // Strokes extend half their width beyond the path.
+    let half = shape
+        .stroke()
+        .map_or(0.0, |stroke| stroke.width() as f32 / 2.0);
+    bounds.map(|b| b.expand(half))
 }
 
 /// Stage-space bounds of a selected span, for drawing the selection outline.
@@ -503,6 +512,35 @@ mod tests {
                 .iter()
                 .any(|d| locate_hit(doc, f.scene, 3, d).is_some_and(|r| r.layer == shape_layer))
         );
+    }
+
+    #[test]
+    fn stroke_width_is_part_of_the_bounds_and_survives_moves() {
+        use flare_document::Stroke;
+        let mut f = fixture();
+        let stroke = Stroke::new(6.0, RED).expect("stroke");
+        let shape = Shape::rect(ShapeId::new(), 10.0, 10.0, 20.0, 20.0, RED)
+            .expect("rect")
+            .with_stroke(stroke);
+        let span = FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(shape));
+        add(&mut f, span);
+        assert_eq!(
+            bounds(&f, 0),
+            Rect::from_min_max(Pos2::new(7.0, 7.0), Pos2::new(33.0, 33.0))
+        );
+        let commands = translate(
+            f.session.document(),
+            f.scene,
+            at(&f, 0),
+            DVec2::new(1.0, 1.0),
+        )
+        .expect("move");
+        f.session.apply(commands).expect("apply");
+        let moved = find_span(f.session.document(), f.scene, at(&f, 0)).expect("span");
+        let Content::Shape(shape) = moved.content() else {
+            panic!("shape expected")
+        };
+        assert_eq!(shape.stroke(), Some(stroke), "moving keeps the stroke");
     }
 
     #[test]

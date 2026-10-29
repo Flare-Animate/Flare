@@ -12,7 +12,7 @@ use flare_document::PathSegment;
 use flare_eval::Frame;
 use thiserror::Error;
 use vello_cpu::color::{AlphaColor, Srgb};
-use vello_cpu::kurbo::{Affine, BezPath, Point, Rect, Shape as _};
+use vello_cpu::kurbo::{Affine, BezPath, Cap, Join, Point, Rect, Shape as _, Stroke};
 use vello_cpu::{Pixmap, RenderContext, Resources};
 
 /// Per-side limit (vello_cpu uses `u16`; we stay well below).
@@ -90,7 +90,7 @@ fn bez_path(segments: &[PathSegment]) -> BezPath {
     path
 }
 
-/// Index into `frame.shapes` of the topmost shape whose fill contains `point` (scene
+/// Index into `frame.shapes` of the topmost shape whose fill (not stroke) contains `point` (scene
 /// coordinates), using the same non-zero fill rule as rendering. Fully transparent
 /// fills and singular transforms are not hittable.
 pub fn hit_test(frame: &Frame<'_>, point: glamx::DVec2) -> Option<usize> {
@@ -153,8 +153,18 @@ pub fn render(
     for drawn in &frame.shapes {
         let [a, b, c, d, e, f] = drawn.transform.to_cols_array();
         ctx.set_transform(Affine::new([a, b, c, d, e, f]));
+        let path = bez_path(drawn.shape.path());
         ctx.set_paint(color(drawn.shape.fill()));
-        ctx.fill_path(&bez_path(drawn.shape.path()));
+        ctx.fill_path(&path);
+        if let Some(stroke) = drawn.shape.stroke() {
+            ctx.set_stroke(
+                Stroke::new(stroke.width())
+                    .with_caps(Cap::Round)
+                    .with_join(Join::Round),
+            );
+            ctx.set_paint(color(stroke.color()));
+            ctx.stroke_path(&path);
+        }
     }
     ctx.flush();
     let mut pixmap = Pixmap::new(w16, h16);
@@ -271,6 +281,41 @@ mod tests {
         ];
         let (doc, id) = scene_with(spans, vec![]);
         assert_eq!(draw(&doc, id, Rgba8::WHITE).pixel(5, 5), Some(RED));
+    }
+
+    #[test]
+    fn strokes_are_drawn_centered_on_the_path_over_the_fill() {
+        use flare_document::Stroke as DocStroke;
+        let blue = Rgba8::opaque(0, 0, 255);
+        let shape = Shape::rect(ShapeId::new(), 5.0, 5.0, 10.0, 10.0, RED)
+            .expect("rect")
+            .with_stroke(DocStroke::new(4.0, blue).expect("stroke"));
+        let (doc, id) = scene_with(vec![span(Content::Shape(shape))], vec![]);
+        let image = draw(&doc, id, Rgba8::WHITE);
+        assert_eq!(image.pixel(10, 10), Some(RED), "interior keeps the fill");
+        assert_eq!(
+            image.pixel(5, 10),
+            Some(blue),
+            "on the edge: stroke covers the fill"
+        );
+        assert_eq!(
+            image.pixel(4, 10),
+            Some(blue),
+            "stroke extends half its width outside"
+        );
+        assert_eq!(
+            image.pixel(2, 10),
+            Some(Rgba8::WHITE),
+            "beyond the stroke is background"
+        );
+        // An outline-only shape: transparent fill leaves the interior untouched.
+        let outline = Shape::rect(ShapeId::new(), 5.0, 5.0, 10.0, 10.0, Rgba8::TRANSPARENT)
+            .expect("rect")
+            .with_stroke(DocStroke::new(2.0, blue).expect("stroke"));
+        let (doc, id) = scene_with(vec![span(Content::Shape(outline))], vec![]);
+        let image = draw(&doc, id, Rgba8::WHITE);
+        assert_eq!(image.pixel(10, 10), Some(Rgba8::WHITE));
+        assert_eq!(image.pixel(5, 10), Some(blue));
     }
 
     #[test]
