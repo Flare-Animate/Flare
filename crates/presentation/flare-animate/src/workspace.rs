@@ -29,6 +29,7 @@ mod draw;
 mod files;
 mod furniture;
 mod gestures;
+mod guides;
 mod help;
 mod helpers;
 mod layers;
@@ -227,6 +228,11 @@ pub struct Workspace {
     show_rulers: bool,
     /// Whether the stage draws outlines in layer colors instead of the artwork.
     outline_mode: bool,
+    /// Guides pulled out of the rulers, and whether they show.
+    guides: Vec<guides::Guide>,
+    show_guides: bool,
+    /// The guide being dragged, by index.
+    guide_drag: Option<usize>,
     /// Playback wraps to the first frame; off, it stops on the last.
     loop_playback: bool,
     muted: bool,
@@ -359,6 +365,9 @@ impl Workspace {
             fps_edit: None,
             show_rulers: true,
             outline_mode: false,
+            guides: Vec::new(),
+            show_guides: true,
+            guide_drag: None,
             loop_playback: true,
             muted: false,
             show_grid: false,

@@ -160,6 +160,7 @@ impl MenuAction {
             Self::ToggleOnionSkin => "onion-skin",
             Self::ToggleOutlineMode => "outline-square",
             Self::ToggleRulers => "ruler",
+            Self::ToggleGuides | Self::ClearGuides => "ruler",
             Self::ToggleGrid => "grid",
             Self::ToggleSnap => "snap",
             Self::ToggleLoop => "transport-loop",

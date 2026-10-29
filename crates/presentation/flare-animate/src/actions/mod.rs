@@ -113,10 +113,12 @@ pub enum MenuAction {
     ToggleOutlineMode,
     NewSymbol,
     PasteInPlace,
+    ToggleGuides,
+    ClearGuides,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 101] = [
+    pub const ALL: [MenuAction; 103] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -218,6 +220,8 @@ impl MenuAction {
         Self::ToggleOutlineMode,
         Self::NewSymbol,
         Self::PasteInPlace,
+        Self::ToggleGuides,
+        Self::ClearGuides,
     ];
 
     /// A stable identifier for native menu items (the variant name).

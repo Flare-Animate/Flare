@@ -113,3 +113,61 @@ fn insert_new_symbol_adds_an_empty_one_and_is_off_while_editing_inside_one() {
     assert!(ws.enter_symbol(id));
     assert!(!ws.is_enabled(MenuAction::NewSymbol));
 }
+
+#[test]
+fn guides_are_bounded_move_snap_and_go_back_to_the_ruler() {
+    use super::super::guides::{Guide, MAX_GUIDES, snap_to_guides};
+    let mut ws = workspace();
+    assert!(!ws.is_enabled(MenuAction::ClearGuides));
+    let first = ws.begin_guide(true, 40.0).expect("a guide");
+    assert!(ws.is_enabled(MenuAction::ClearGuides));
+    ws.move_guide(first, 55.0);
+    ws.move_guide(first, f32::NAN);
+    assert_eq!(
+        ws.guides(),
+        &[Guide {
+            vertical: true,
+            at: 55.0
+        }]
+    );
+    assert_eq!(ws.begin_guide(false, f32::INFINITY), None, "not a number");
+    ws.release_guide(first, true);
+    assert!(ws.guides().is_empty(), "dropped on the ruler it goes away");
+    for i in 0..MAX_GUIDES {
+        assert!(ws.begin_guide(false, i as f32).is_some());
+    }
+    assert_eq!(ws.begin_guide(false, 1.0), None, "there is a limit");
+    ws.perform(MenuAction::ClearGuides);
+    assert!(ws.guides().is_empty());
+
+    let guides = [
+        Guide {
+            vertical: true,
+            at: 100.0,
+        },
+        Guide {
+            vertical: false,
+            at: 50.0,
+        },
+    ];
+    let snapped = snap_to_guides(egui::pos2(103.0, 90.0), &guides, 5.0);
+    assert_eq!(snapped, egui::pos2(100.0, 90.0), "x snaps, y is too far");
+    assert_eq!(
+        snap_to_guides(egui::pos2(103.0, 52.0), &guides, 1.0),
+        egui::pos2(103.0, 52.0),
+        "nothing within reach"
+    );
+}
+
+#[test]
+fn the_stage_draws_with_guides_showing_and_hidden() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    ws.begin_guide(true, 10.0);
+    ws.begin_guide(false, 20.0);
+    run(&mut ws, &ctx, 0.0);
+    assert_eq!(ws.label(MenuAction::ToggleGuides), "Hide Guides");
+    ws.perform(MenuAction::ToggleGuides);
+    assert_eq!(ws.label(MenuAction::ToggleGuides), "Show Guides");
+    run(&mut ws, &ctx, 0.1);
+    assert_eq!(ws.guides().len(), 2, "hiding keeps them");
+}

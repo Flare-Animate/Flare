@@ -106,6 +106,8 @@ impl Workspace {
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
             MenuAction::ResetLayout => true,
+            MenuAction::ToggleGuides => true,
+            MenuAction::ClearGuides => !self.guides.is_empty(),
             MenuAction::NewSymbol => !self.in_symbol(),
             MenuAction::About | MenuAction::KeyboardShortcuts => true,
             MenuAction::ShowProperties
@@ -250,6 +252,14 @@ impl Workspace {
             MenuAction::DeleteLayer => "Delete Layer",
             MenuAction::ResetLayout => "Reset Workspace Layout",
             MenuAction::NewSymbol => "New Symbol",
+            MenuAction::ToggleGuides => {
+                if self.show_guides {
+                    "Hide Guides"
+                } else {
+                    "Show Guides"
+                }
+            }
+            MenuAction::ClearGuides => "Clear Guides",
             MenuAction::About => "About Flare",
             MenuAction::KeyboardShortcuts => "Keyboard Shortcuts",
             MenuAction::ShowProperties => "Properties",
@@ -443,6 +453,11 @@ impl Workspace {
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
             MenuAction::NewSymbol => self.new_symbol(),
+            MenuAction::ToggleGuides => self.show_guides = !self.show_guides,
+            MenuAction::ClearGuides => {
+                self.guides.clear();
+                self.guide_drag = None;
+            }
             MenuAction::About => self.about_open = true,
             MenuAction::KeyboardShortcuts => self.shortcuts_open = true,
             MenuAction::ShowProperties => self.show_pane(Pane::Properties),

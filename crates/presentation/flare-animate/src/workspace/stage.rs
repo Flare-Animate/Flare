@@ -84,6 +84,7 @@ impl Workspace {
         if self.show_rulers {
             self.stage_rulers(&painter, response.rect, image_rect, scale);
         }
+        self.stage_guides(ui, response.rect, image_rect, scale);
         self.text_editor(ui.ctx(), image_rect, scale);
         if !self.stage_view.is_fit() {
             painter.text(
@@ -103,9 +104,17 @@ impl Workspace {
             .snap_to_grid
             .then_some(self.grid_size)
             .filter(|_| tool_places_points(self.tool));
+        let guides = if self.show_guides {
+            self.guides.clone()
+        } else {
+            Vec::new()
+        };
         let to_doc = |p: Pos2| {
             let at = screen_to_stage(p, image_rect, extent);
-            snap.map_or(at, |grid| snap_point(at, grid))
+            snap.map_or(at, |grid| {
+                let on_grid = snap_point(at, grid);
+                guides::snap_to_guides(on_grid, &guides, 6.0 / scale.max(f32::EPSILON))
+            })
         };
         self.pointer_stage = response.hover_pos().map(to_doc);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;

@@ -33,7 +33,6 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 Still planned (everything else in the menus and panels is built):
 
 - Library: folders.
-- View: guides.
 - Edit, Modify, Text, Commands and Help entries still listed dimmed in the menus (Window and the Help windows are real now: panels come to the front, About and a read-only shortcut list).
 
 ## Top bar
@@ -71,3 +70,10 @@ Properties with Tool, Object, Frame and Doc tabs and Publish Settings inside Doc
 (size, position, and the color under the pointer); a Color panel with a fill-type dropdown, hex
 field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown
 and a close button on the document tab. The default arrangement stays as it is.
+
+## Guides
+
+Drag from the top or left ruler to pull a guide onto the stage; drag a guide to move it, or back
+onto a ruler to remove it. View > Hide Guides hides them and Clear Guides removes them all. With
+Snap on, points placed by the pen and the shape tools snap to a guide within six screen pixels.
+Guides belong to the view of one document tab and are not saved in the file (at most 200).
