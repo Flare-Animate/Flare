@@ -69,6 +69,17 @@ jobs:
             cargo check -p "$crate" --target wasm32-unknown-unknown --locked
           done
 
+  audit:
+    name: No known vulnerabilities in the dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+      # Advisories about vulnerabilities fail this; "unmaintained" and "unsound" notes do not.
+      - run: cargo audit
+
   docs:
     name: No file over 500 lines, no stray reference to scratch notes
     runs-on: ubuntu-latest

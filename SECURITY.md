@@ -51,3 +51,12 @@ The rules are in [AGENTS.md](AGENTS.md) and [docs/engineering.md](docs/engineeri
   names only, and caps image sizes.
 - Property tests feed random and truncated data to the importers, storage and the editing core;
   see [docs/testing.md](docs/testing.md).
+
+## Dependencies
+
+CI runs `cargo audit` on `Cargo.lock` for every push. At the time of 0.1.0 it reports no
+vulnerabilities. It does warn that a few indirect dependencies are unmaintained or have an
+unsoundness advisory that Flare does not reach (`ttf-parser`, `proc-macro-error`, the `zbus`
+family and `glib` come in through the font, windowing and desktop-integration libraries). They
+are tracked and will be replaced when their parents move.
+
