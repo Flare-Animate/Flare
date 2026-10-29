@@ -177,7 +177,13 @@ pub(crate) fn apply(document: &Document, command: Command) -> Result<Document, E
         }
     }
     // The stage is carried through every edit; dropping it here would reset it silently.
-    Ok(Document::new(document.id(), document.frame_rate(), scenes, symbols)?.with_stage(stage))
+    // The stage and source attachments are carried through every edit; attachments whose
+    // anchor the edit removed (a deleted layer) are dropped with it.
+    Ok(
+        Document::new(document.id(), document.frame_rate(), scenes, symbols)?
+            .with_stage(stage)
+            .with_attachments_retained(document.attachments()),
+    )
 }
 
 fn edit_layers(
