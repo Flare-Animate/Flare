@@ -191,6 +191,79 @@ impl Shape {
         Self::new(id, path, fill).ok()
     }
 
+    /// A rectangle with rounded corners of radius `r` (clamped to half the shorter side), as
+    /// four straight edges and four cubic corners.
+    pub fn rounded_rect(
+        id: ShapeId,
+        x: f64,
+        y: f64,
+        w: f64,
+        h: f64,
+        r: f64,
+        fill: Rgba8,
+    ) -> Option<Self> {
+        let r = r.clamp(0.0, w.min(h) / 2.0);
+        if r <= 0.0 {
+            return Self::rect(id, x, y, w, h, fill);
+        }
+        // Control-point distance that makes a cubic follow a quarter circle closely.
+        const K: f64 = 0.552_284_749_830_793_4;
+        let k = r * (1.0 - K);
+        let p = |x, y| DocumentPoint::new(x, y).ok();
+        let (x2, y2) = (x + w, y + h);
+        let path = vec![
+            PathSegment::MoveTo(p(x + r, y)?),
+            PathSegment::LineTo(p(x2 - r, y)?),
+            PathSegment::CubicTo(p(x2 - k, y)?, p(x2, y + k)?, p(x2, y + r)?),
+            PathSegment::LineTo(p(x2, y2 - r)?),
+            PathSegment::CubicTo(p(x2, y2 - k)?, p(x2 - k, y2)?, p(x2 - r, y2)?),
+            PathSegment::LineTo(p(x + r, y2)?),
+            PathSegment::CubicTo(p(x + k, y2)?, p(x, y2 - k)?, p(x, y2 - r)?),
+            PathSegment::LineTo(p(x, y + r)?),
+            PathSegment::CubicTo(p(x, y + k)?, p(x + k, y)?, p(x + r, y)?),
+            PathSegment::Close,
+        ];
+        Self::new(id, path, fill).ok()
+    }
+
+    /// A regular polygon with `sides` corners (3 to 64), or a star with `sides` points when
+    /// `inner` is `Some(ratio)`, the inner radius as a fraction of `radius`. The first corner is
+    /// at `rotation` radians clockwise from straight up.
+    pub fn polygon(
+        id: ShapeId,
+        center: (f64, f64),
+        radius: f64,
+        sides: u32,
+        rotation: f64,
+        inner: Option<f64>,
+        fill: Rgba8,
+    ) -> Option<Self> {
+        if !(3..=64).contains(&sides) || !radius.is_finite() || radius <= 0.0 {
+            return None;
+        }
+        let inner = inner.map(|ratio| ratio.clamp(0.05, 0.95) * radius);
+        let corners = if inner.is_some() { sides * 2 } else { sides };
+        let step = std::f64::consts::TAU / f64::from(corners);
+        let mut path = Vec::with_capacity(corners as usize + 2);
+        for i in 0..corners {
+            let r = match inner {
+                Some(inner) if i % 2 == 1 => inner,
+                _ => radius,
+            };
+            let angle = rotation + step * f64::from(i);
+            // Angle zero points up; the stage's y axis points down.
+            let point =
+                DocumentPoint::new(center.0 + r * angle.sin(), center.1 - r * angle.cos()).ok()?;
+            path.push(if i == 0 {
+                PathSegment::MoveTo(point)
+            } else {
+                PathSegment::LineTo(point)
+            });
+        }
+        path.push(PathSegment::Close);
+        Self::new(id, path, fill).ok()
+    }
+
     /// Ellipse centered at (`cx`, `cy`) with radii `rx` and `ry`, as four cubic arcs.
     pub fn ellipse(id: ShapeId, cx: f64, cy: f64, rx: f64, ry: f64, fill: Rgba8) -> Option<Self> {
         // Control-point distance that makes four cubics approximate a circle closely.
@@ -385,5 +458,90 @@ mod tests {
         );
         assert_eq!(shape.gradient(), Some(faded));
         assert!(shape.with_gradient(clear).fill_is_invisible());
+    }
+
+    fn bounds_of(shape: &Shape) -> (f64, f64, f64, f64) {
+        let mut b = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+        for s in shape.path() {
+            let points: Vec<&DocumentPoint> = match s {
+                PathSegment::MoveTo(p) | PathSegment::LineTo(p) => vec![p],
+                PathSegment::CubicTo(a, c, p) => vec![a, c, p],
+                PathSegment::Close => vec![],
+            };
+            for p in points {
+                let v = p.as_vec();
+                b = (b.0.min(v.x), b.1.min(v.y), b.2.max(v.x), b.3.max(v.y));
+            }
+        }
+        b
+    }
+
+    #[test]
+    fn rounded_rectangles_keep_their_bounds_clamp_the_radius_and_square_off_at_zero() {
+        let id = ShapeId::new();
+        let r =
+            Shape::rounded_rect(id, 10.0, 20.0, 100.0, 50.0, 8.0, Rgba8::WHITE).expect("rounded");
+        assert_eq!(bounds_of(&r), (10.0, 20.0, 110.0, 70.0));
+        assert_eq!(
+            r.path()
+                .iter()
+                .filter(|s| matches!(s, PathSegment::CubicTo(..)))
+                .count(),
+            4
+        );
+        // A radius bigger than half the short side is a pill, not a bulge outside the box.
+        let pill =
+            Shape::rounded_rect(id, 0.0, 0.0, 100.0, 20.0, 999.0, Rgba8::WHITE).expect("pill");
+        assert_eq!(bounds_of(&pill), (0.0, 0.0, 100.0, 20.0));
+        let square =
+            Shape::rounded_rect(id, 0.0, 0.0, 10.0, 10.0, 0.0, Rgba8::WHITE).expect("square");
+        assert_eq!(square.path().len(), 5, "zero radius is the plain rectangle");
+        assert!(Shape::rounded_rect(id, f64::NAN, 0.0, 10.0, 10.0, 2.0, Rgba8::WHITE).is_none());
+    }
+
+    #[test]
+    fn polygons_and_stars_have_the_right_corners_on_the_right_circle() {
+        let id = ShapeId::new();
+        let tri =
+            Shape::polygon(id, (50.0, 50.0), 10.0, 3, 0.0, None, Rgba8::WHITE).expect("triangle");
+        let corners: Vec<(f64, f64)> = tri
+            .path()
+            .iter()
+            .filter_map(|s| match s {
+                PathSegment::MoveTo(p) | PathSegment::LineTo(p) => {
+                    Some((p.as_vec().x, p.as_vec().y))
+                }
+                _ => None,
+            })
+            .collect();
+        assert_eq!(corners.len(), 3);
+        assert!(
+            (corners[0].0 - 50.0).abs() < 1e-9 && (corners[0].1 - 40.0).abs() < 1e-9,
+            "first corner straight up"
+        );
+        for (x, y) in &corners {
+            let d = ((x - 50.0).powi(2) + (y - 50.0).powi(2)).sqrt();
+            assert!((d - 10.0).abs() < 1e-9, "on the circle: {d}");
+        }
+        let star =
+            Shape::polygon(id, (0.0, 0.0), 10.0, 5, 0.0, Some(0.5), Rgba8::WHITE).expect("star");
+        let radii: Vec<f64> = star
+            .path()
+            .iter()
+            .filter_map(|s| match s {
+                PathSegment::MoveTo(p) | PathSegment::LineTo(p) => Some(p.as_vec().length()),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(radii.len(), 10, "five points, five notches");
+        for (i, r) in radii.iter().enumerate() {
+            let want = if i % 2 == 0 { 10.0 } else { 5.0 };
+            assert!((r - want).abs() < 1e-9, "{i}: {r}");
+        }
+        for (sides, radius) in [(2, 5.0), (65, 5.0), (5, 0.0), (5, -1.0), (5, f64::NAN)] {
+            assert!(
+                Shape::polygon(id, (0.0, 0.0), radius, sides, 0.0, None, Rgba8::WHITE).is_none()
+            );
+        }
     }
 }
