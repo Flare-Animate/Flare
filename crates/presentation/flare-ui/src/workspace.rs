@@ -97,6 +97,8 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// Spans selected along with `selected` (Shift-click). Move and Delete act on all of them.
+    also_selected: Vec<SpanRef>,
     selected_symbol: Option<SymbolId>,
     current_layer: Option<LayerId>,
     layer_name_edit: String,
@@ -129,6 +131,7 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            also_selected: Vec::new(),
             selected_symbol: None,
             current_layer: None,
             layer_name_edit: String::new(),
@@ -433,6 +436,7 @@ impl Workspace {
     fn reset_view(&mut self) {
         self.cancel_drag();
         self.selected = None;
+        self.also_selected.clear();
         self.current_layer = None;
         self.frame = 0;
         self.texture = None;
@@ -890,14 +894,20 @@ impl Workspace {
 
     /// Drops a selection whose span no longer exists (after undo, delete or open).
     fn validate_selection(&mut self) {
-        if let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) {
-            let editable = ops::find_span(self.document(), scene, selected).is_some()
-                && self
-                    .layer(selected.layer)
-                    .is_some_and(|l| l.is_visible() && !l.is_locked());
-            if !editable {
-                self.selected = None;
-            }
+        if let Some(scene) = self.scene_id() {
+            let editable = |ws: &Self, span: SpanRef| {
+                ops::find_span(ws.document(), scene, span).is_some()
+                    && ws
+                        .layer(span.layer)
+                        .is_some_and(|l| l.is_visible() && !l.is_locked())
+            };
+            let mut all: Vec<SpanRef> = self.selection_all();
+            all.retain(|span| editable(self, *span));
+            self.selected = all.first().copied();
+            self.also_selected = all.into_iter().skip(1).collect();
+        } else {
+            self.selected = None;
+            self.also_selected.clear();
         }
         if let Some(symbol) = self.selected_symbol
             && self.document().symbol(symbol).is_none()
@@ -927,13 +937,55 @@ impl Workspace {
             })
     }
 
+    /// Every selected span, the primary one first.
+    fn selection_all(&self) -> Vec<SpanRef> {
+        self.selected
+            .into_iter()
+            .chain(self.also_selected.iter().copied())
+            .collect()
+    }
+
+    /// Selects what is at `point`. With `additive` (Shift) the span is toggled in or out of
+    /// the selection; without it the selection becomes just that span, or empty.
+    fn select_at(&mut self, point: Pos2, additive: bool) {
+        let hit = self.hit(point);
+        if !additive {
+            self.selected = hit;
+            self.also_selected.clear();
+            return;
+        }
+        let Some(hit) = hit else { return };
+        let mut all = self.selection_all();
+        match all.iter().position(|s| *s == hit) {
+            Some(i) => {
+                all.remove(i);
+            }
+            None => all.push(hit),
+        }
+        self.selected = all.first().copied();
+        self.also_selected = all.into_iter().skip(1).collect();
+    }
+
+    #[cfg(test)]
     fn begin_drag(&mut self, point: Pos2) {
+        self.begin_drag_with(point, false);
+    }
+
+    fn begin_drag_with(&mut self, point: Pos2, additive: bool) {
         self.drag_cancelled = false;
         let mode = match self.tool {
             Tool::Rectangle | Tool::Ellipse | Tool::Line => Some(DragMode::Draw),
             Tool::Select => {
-                self.selected = self.hit(point);
-                self.selected.map(|_| DragMode::Move)
+                // Pressing on something already selected drags the whole selection.
+                let on_selection = !additive
+                    && self
+                        .hit(point)
+                        .is_some_and(|hit| self.selection_all().contains(&hit));
+                if !on_selection {
+                    self.select_at(point, additive);
+                }
+                // Shift only edits the selection; it never starts a move.
+                (!additive && self.selected.is_some()).then_some(DragMode::Move)
             }
         };
         self.drag = mode.map(|mode| Drag {
@@ -976,20 +1028,34 @@ impl Workspace {
     }
 
     fn move_selection(&mut self, delta: Vec2) {
-        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+        let Some(scene) = self.scene_id() else {
             return;
         };
         let delta = DVec2::new(f64::from(delta.x), f64::from(delta.y));
-        if let Some(commands) = ops::translate(self.document(), scene, selected, delta) {
+        let commands: Vec<Command> = self
+            .selection_all()
+            .into_iter()
+            .filter_map(|span| ops::translate(self.document(), scene, span, delta))
+            .flatten()
+            .collect();
+        if !commands.is_empty() {
             self.run_batch(commands, "move");
         }
     }
 
     pub fn delete_selection(&mut self) {
-        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+        let Some(scene) = self.scene_id() else {
             return;
         };
-        self.run_batch(ops::delete(scene, selected), "delete");
+        let commands: Vec<Command> = self
+            .selection_all()
+            .into_iter()
+            .flat_map(|span| ops::delete(scene, span))
+            .collect();
+        if commands.is_empty() {
+            return;
+        }
+        self.run_batch(commands, "delete");
         self.validate_selection();
     }
 
@@ -1383,10 +1449,11 @@ impl Workspace {
 
         let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
+        let additive = ui.input(|i| i.modifiers.shift);
         if response.drag_started()
             && let Some(p) = response.interact_pointer_pos()
         {
-            self.begin_drag(to_doc(p));
+            self.begin_drag_with(to_doc(p), additive);
         }
         if response.dragged()
             && let Some(p) = response.interact_pointer_pos()
@@ -1401,7 +1468,7 @@ impl Workspace {
             && self.tool == Tool::Select
             && let Some(p) = response.interact_pointer_pos()
         {
-            self.selected = self.hit(to_doc(p));
+            self.select_at(to_doc(p), additive);
         }
 
         // Double-click an instance to edit its symbol; double-click empty stage to go back.
@@ -1409,7 +1476,7 @@ impl Workspace {
             && self.tool == Tool::Select
             && let Some(p) = response.interact_pointer_pos()
         {
-            self.selected = self.hit(to_doc(p));
+            self.select_at(to_doc(p), false);
             match self.selected {
                 Some(_) => {
                     if let Some(symbol) = self.selected_instance_symbol() {
@@ -1427,12 +1494,14 @@ impl Workspace {
             .drag
             .filter(|d| d.mode == DragMode::Move)
             .map_or(Vec2::ZERO, |d| d.current - d.start);
-        if let (Some(selected), Some(scene)) = (self.selected, self.scene_id())
-            && let Some(bounds) = ops::span_bounds(self.document(), scene, selected)
-        {
-            let shown = bounds.translate(moving);
-            let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
-            painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
+        if let Some(scene) = self.scene_id() {
+            for selected in self.selection_all() {
+                if let Some(bounds) = ops::span_bounds(self.document(), scene, selected) {
+                    let shown = bounds.translate(moving);
+                    let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
+                    painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
+                }
+            }
         }
         if let Some(drag) = self.drag.filter(|d| d.mode == DragMode::Draw) {
             let (from, to) = (to_screen(drag.start), to_screen(drag.current));
@@ -2648,5 +2717,88 @@ mod tests {
         assert_eq!(ws.tool(), Tool::Ellipse);
         assert_eq!(ws.fill, Color32::from_rgb(1, 2, 3));
         assert!(ws.stroke_enabled);
+    }
+
+    /// Two rectangles side by side on separate layers; returns the workspace.
+    fn two_rectangles() -> Workspace {
+        let mut ws = workspace();
+        for (a, b) in [((10.0, 10.0), (50.0, 50.0)), ((100.0, 10.0), (140.0, 50.0))] {
+            ws.set_tool(Tool::Rectangle);
+            ws.begin_drag(Pos2::new(a.0, a.1));
+            ws.update_drag(Pos2::new(b.0, b.1));
+            ws.end_drag();
+        }
+        ws.set_tool(Tool::Select);
+        ws
+    }
+
+    fn rect_x(ws: &Workspace, layer: usize) -> f32 {
+        let layers = ws.document().scenes()[0].timeline().layers();
+        let Content::Shape(shape) = layers[layer].spans()[0].content() else {
+            panic!("a shape expected")
+        };
+        ops::shape_bounds(shape).expect("bounds").min.x
+    }
+
+    #[test]
+    fn shift_click_adds_and_removes_spans_from_the_selection() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.select_at(Pos2::new(120.0, 30.0), true);
+        assert_eq!(ws.selection_all().len(), 2);
+        ws.select_at(Pos2::new(30.0, 30.0), true);
+        assert_eq!(ws.selection_all().len(), 1, "shift-click again removes it");
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        assert_eq!(
+            ws.selection_all().len(),
+            1,
+            "a plain click replaces the selection"
+        );
+        ws.select_at(Pos2::new(300.0, 300.0), true);
+        assert_eq!(ws.selection_all().len(), 1, "shift on empty stage keeps it");
+        ws.select_at(Pos2::new(300.0, 300.0), false);
+        assert!(ws.selection_all().is_empty());
+    }
+
+    #[test]
+    fn dragging_a_selected_span_moves_the_whole_selection_in_one_undo_step() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.select_at(Pos2::new(120.0, 30.0), true);
+        ws.begin_drag(Pos2::new(30.0, 30.0));
+        ws.update_drag(Pos2::new(40.0, 30.0));
+        ws.end_drag();
+        assert_eq!((rect_x(&ws, 1), rect_x(&ws, 2)), (20.0, 110.0));
+        assert_eq!(ws.selection_all().len(), 2, "the group stays selected");
+        ws.undo();
+        assert_eq!((rect_x(&ws, 1), rect_x(&ws, 2)), (10.0, 100.0));
+    }
+
+    #[test]
+    fn delete_removes_every_selected_span_at_once() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.select_at(Pos2::new(120.0, 30.0), true);
+        ws.delete_selection();
+        assert!(ws.selection_all().is_empty());
+        let layers = ws.document().scenes()[0].timeline().layers();
+        assert!(layers[1].spans().is_empty() && layers[2].spans().is_empty());
+        ws.undo();
+        let layers = ws.document().scenes()[0].timeline().layers();
+        assert!(!layers[1].spans().is_empty() && !layers[2].spans().is_empty());
+    }
+
+    #[test]
+    fn locking_a_layer_drops_only_its_span_from_the_selection() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.select_at(Pos2::new(120.0, 30.0), true);
+        let locked = ws.document().scenes()[0].timeline().layers()[1].id();
+        ws.toggle_layer_locked(locked);
+        assert_eq!(ws.selection_all().len(), 1);
+        assert_eq!(
+            ws.selection_all()[0].layer,
+            ws.document().scenes()[0].timeline().layers()[2].id()
+        );
     }
 }
