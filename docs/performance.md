@@ -11,7 +11,7 @@ goes and what a change bought, not what any other machine will do.
    commit message quotes both. Benchmarks use deterministic fixtures built outside the timed
    section. A result that regresses a neighbouring case is reported, not hidden.
 2. **Nothing slow runs on the UI thread.** Drawing a frame, reading or writing a project, and
-   publishing run on workers (`flare-ui/src/background.rs`). The UI hands over an immutable
+   publishing run on workers (`flare-runtime`). The UI hands over an immutable
    snapshot and polls for the result. A new slow operation (export, import, publish, a new
    effect) is a new job type there, not a blocking call in a handler.
 3. **Share, do not copy.** Documents are immutable snapshots made of shared parts (`Arc`

@@ -8,7 +8,7 @@ restores the default.
 
 ## Look
 
-`flare-ui/src/theme.rs` holds the one dark palette, spacing, rounding and type sizes; colours are
+`flare-ui/src/theme.rs` (shared widgets and the icon set are in `flare-ui`, the workspace in `flare-animate`) holds the one dark palette, spacing, rounding and type sizes; colours are
 named there and used by name. `chrome.rs` holds the shared widgets (icon buttons, section headers,
 label/control rows) so every panel looks alike.
 

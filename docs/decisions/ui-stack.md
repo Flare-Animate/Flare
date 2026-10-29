@@ -9,16 +9,16 @@ window, wgpu 30 for the GPU. The shell integrates winit and egui-wgpu directly (
 loop, no framework wrapper). egui is a widget foundation, not a requirement to look stock;
 the stage and timeline are custom-drawn.
 
-Presentation logic lives in `flare-ui` with no window or GPU code, so it can be tested by
+Presentation logic lives in `flare-animate` (on the shared widgets of `flare-ui`) with no window or GPU code, so it can be tested by
 running real egui passes with synthetic input. `flare-desktop` only owns the window, the
 surface, native dialogs and the native menu.
 
 ## Menus and shortcuts
 
-Menu behaviour is defined once as `MenuAction` in `flare-ui`: whether an action is enabled,
+Menu behaviour is defined once as `MenuAction` in `flare-animate`: whether an action is enabled,
 its current label, and how to perform it. Every menu surface uses that, so behaviour cannot
 drift. On macOS the menu bar is native (muda) and the in-window menu is hidden; elsewhere
-the in-window menu is used. See `crates/presentation/flare-ui/src/actions.rs` and
+the in-window menu is used. See `crates/presentation/flare-animate/src/actions/` and
 `apps/flare-desktop/src/menu.rs`.
 
 Shortcuts follow the familiar Animate profile: F5 insert frame, Shift+F5 remove frame, F6
