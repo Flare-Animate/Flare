@@ -183,8 +183,8 @@ mod tests {
         SymbolId, Transform2D,
     };
     use flare_document::{
-        Content, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Symbol, Timeline,
-        Tween,
+        Content, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Stroke, Symbol,
+        Timeline, Tween,
     };
     use glamx::DAffine2;
 
@@ -218,7 +218,8 @@ mod tests {
             ],
             Rgba8::new(10, 20, 30, 40),
         )
-        .expect("shape");
+        .expect("shape")
+        .with_stroke(Stroke::new(2.5, Rgba8::new(9, 8, 7, 255)).expect("stroke"));
         let drawn = FrameSpan::new(
             10,
             NonZeroU32::new(1).expect("nonzero"),
@@ -329,6 +330,29 @@ mod tests {
             [],
         )
         .expect("bad stage");
+        drop(conn);
+        assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
+    }
+
+    #[test]
+    fn strokes_are_revalidated_and_legacy_shapes_without_strokes_still_load() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        save(&sample(), &path).expect("save");
+
+        let conn = Connection::open(&path).expect("open");
+        conn.execute(
+            "UPDATE entity SET payload_json = replace(payload_json, '\"stroke\":', '\"legacy\":')",
+            [],
+        )
+        .expect("strip stroke key");
+        drop(conn);
+        assert!(load(&path).is_ok(), "an absent stroke is a fill-only shape");
+
+        save(&sample(), &path).expect("save");
+        let conn = Connection::open(&path).expect("open");
+        conn.execute("UPDATE entity SET payload_json = replace(payload_json, '\"width\":2.5', '\"width\":-1.0')", [])
+            .expect("corrupt width");
         drop(conn);
         assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
     }

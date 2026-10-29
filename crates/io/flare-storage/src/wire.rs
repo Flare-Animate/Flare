@@ -7,8 +7,8 @@ use flare_core::{
     Transform2D,
 };
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Symbol,
-    Timeline, Tween,
+    Content, Document, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Stroke,
+    Symbol, Timeline, Tween,
 };
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
@@ -96,12 +96,21 @@ impl SegmentWire {
 }
 
 #[derive(Serialize, Deserialize)]
+struct StrokeWire {
+    width: f64,
+    rgba: [u8; 4],
+}
+
+#[derive(Serialize, Deserialize)]
 enum ContentWire {
     Empty,
     Shape {
         id: String,
         path: Vec<SegmentWire>,
         rgba: [u8; 4],
+        /// Absent in files written before strokes existed.
+        #[serde(default)]
+        stroke: Option<StrokeWire>,
     },
     Instance {
         id: String,
@@ -155,6 +164,10 @@ impl TimelineWire {
                                 id: shape.id().as_uuid().to_string(),
                                 path: shape.path().iter().map(SegmentWire::of).collect(),
                                 rgba: shape.fill().to_array(),
+                                stroke: shape.stroke().map(|stroke| StrokeWire {
+                                    width: stroke.width(),
+                                    rgba: stroke.color().to_array(),
+                                }),
                             },
                             Content::Instance(instance) => ContentWire::Instance {
                                 id: instance.id().as_uuid().to_string(),
@@ -178,14 +191,28 @@ impl TimelineWire {
                     .ok_or_else(|| StorageError::Corrupt("zero-length span".into()))?;
                 let content = match span.content {
                     ContentWire::Empty => Content::Empty,
-                    ContentWire::Shape { id, path, rgba } => {
+                    ContentWire::Shape {
+                        id,
+                        path,
+                        rgba,
+                        stroke,
+                    } => {
                         let path = path
                             .iter()
                             .map(SegmentWire::build)
                             .collect::<Result<_, _>>()?;
                         let fill = Rgba8::new(rgba[0], rgba[1], rgba[2], rgba[3]);
-                        let shape = Shape::new(ShapeId::from_uuid(uuid(&id)?), path, fill)
-                            .map_err(|error| StorageError::Corrupt(error.to_string()))?;
+                        let corrupt = |error: flare_document::ShapeError| {
+                            StorageError::Corrupt(error.to_string())
+                        };
+                        let mut shape = Shape::new(ShapeId::from_uuid(uuid(&id)?), path, fill)
+                            .map_err(corrupt)?;
+                        if let Some(stroke) = stroke {
+                            let [r, g, b, a] = stroke.rgba;
+                            let stroke = Stroke::new(stroke.width, Rgba8::new(r, g, b, a))
+                                .map_err(corrupt)?;
+                            shape = shape.with_stroke(stroke);
+                        }
                         Content::Shape(shape)
                     }
                     ContentWire::Instance { id, symbol, matrix } => {
