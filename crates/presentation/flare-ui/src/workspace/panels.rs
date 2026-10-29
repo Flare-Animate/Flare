@@ -7,10 +7,10 @@
 
 use egui::{Align, Color32, Layout, RichText, Ui, Vec2};
 
-use super::TransformEdit;
 use super::{
     ColorTarget, Command, Layer, LayerId, MAX_ONION_FRAMES, Mode, SymbolId, Tool, Workspace,
 };
+use super::{PropsTab, TransformEdit};
 use crate::actions::MenuAction;
 use crate::chrome;
 use crate::icons;
@@ -149,65 +149,177 @@ impl Workspace {
     // ---- properties --------------------------------------------------------------------
 
     pub(super) fn properties_panel(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            for (tab, label) in [
+                (PropsTab::Tool, "Tool"),
+                (PropsTab::Object, "Object"),
+                (PropsTab::Frame, "Frame"),
+                (PropsTab::Doc, "Doc"),
+            ] {
+                if ui.selectable_label(self.props_tab == tab, label).clicked() {
+                    self.props_tab = tab;
+                }
+            }
+        });
+        ui.separator();
         egui::ScrollArea::vertical()
             .auto_shrink(false)
-            .show(ui, |ui| {
-                let selection = self.selection_bounds();
-                // What the panel is about right now.
-                let (icon, title) = if selection.is_some() {
-                    ("tool-selection", "Selection")
+            .show(ui, |ui| match self.props_tab {
+                PropsTab::Tool => self.tool_tab(ui),
+                PropsTab::Object => self.object_tab(ui),
+                PropsTab::Frame => self.frame_tab(ui),
+                PropsTab::Doc => self.doc_tab(ui),
+            });
+    }
+
+    fn tool_tab(&mut self, ui: &mut Ui) {
+        self.tool_options(ui);
+        chrome::section(ui, "fill-color", "Fill and stroke");
+        chrome::row(ui, "Fill", |ui| {
+            ui.color_edit_button_srgba(&mut self.fill);
+            ui.checkbox(&mut self.gradient_enabled, "Gradient");
+        });
+        if self.gradient_enabled {
+            chrome::row(ui, "To", |ui| {
+                ui.color_edit_button_srgba(&mut self.gradient_end);
+                ui.checkbox(&mut self.gradient_vertical, "Vertical");
+            });
+        }
+        chrome::row(ui, "Stroke", |ui| {
+            ui.color_edit_button_srgba(&mut self.stroke_color);
+            ui.checkbox(&mut self.stroke_enabled, "Outline");
+        });
+        chrome::row(ui, "Width", |ui| {
+            ui.add_enabled(
+                self.stroke_enabled,
+                egui::DragValue::new(&mut self.stroke_width)
+                    .range(0.5..=200.0)
+                    .suffix(" px"),
+            );
+        });
+    }
+
+    /// Position and size of the selection, editable.
+    fn object_tab(&mut self, ui: &mut Ui) {
+        let Some(bounds) = self.selection_bounds() else {
+            chrome::empty_state(ui, "tool-selection", "Nothing selected");
+            ui.vertical_centered(|ui| ui.weak("Select something on the stage."));
+            return;
+        };
+        let count = self.selection_all().len();
+        ui.horizontal(|ui| {
+            ui.add(icons::image("tool-selection", 18.0, theme::ACCENT));
+            ui.label(
+                RichText::new(if count == 1 {
+                    "Selection".to_owned()
                 } else {
-                    ("document", "Document")
-                };
-                ui.horizontal(|ui| {
-                    ui.add(icons::image(icon, 18.0, theme::ACCENT));
-                    ui.label(RichText::new(title).heading());
+                    format!("Selection ({count})")
+                })
+                .heading(),
+            );
+        });
+        chrome::section(ui, "stage-size", "Position and size");
+        let mut v = self.object_edit.unwrap_or([
+            bounds.min.x,
+            bounds.min.y,
+            bounds.width(),
+            bounds.height(),
+        ]);
+        let mut changed = false;
+        let mut done = false;
+        for (label, a, b) in [("Position", 0, 1), ("Size", 2, 3)] {
+            chrome::row(ui, label, |ui| {
+                for i in [a, b] {
+                    let r = ui.add(egui::DragValue::new(&mut v[i]).speed(0.5).max_decimals(1));
+                    changed |= r.changed();
+                    done |= r.drag_stopped() || r.lost_focus();
+                }
+            });
+        }
+        if changed {
+            self.object_edit = Some(v);
+        }
+        // Applied on release or Enter, so scrubbing a value is a single undo step.
+        if done && let Some(v) = self.object_edit.take() {
+            self.set_selection_bounds(egui::Rect::from_min_size(
+                egui::pos2(v[0], v[1]),
+                egui::vec2(v[2], v[3]),
+            ));
+        }
+    }
+
+    /// The current frame and layer.
+    fn frame_tab(&mut self, ui: &mut Ui) {
+        chrome::section(ui, "playhead", "Frame");
+        chrome::row(ui, "Frame", |ui| {
+            ui.label(format!("{} / {}", self.frame + 1, self.scene_frames()));
+        });
+        let info = self.active_layer().map(|layer| {
+            let span = layer
+                .span_at(self.frame)
+                .map(|s| (s.start(), s.duration().get()));
+            (layer.name().to_owned(), span)
+        });
+        match info {
+            Some((name, span)) => {
+                chrome::row(ui, "Layer", |ui| {
+                    ui.label(name);
                 });
-                if let Some(bounds) = selection {
-                    let count = self.selection_all().len();
-                    let title = if count == 1 {
-                        "Selection".to_owned()
-                    } else {
-                        format!("Selection ({count})")
-                    };
-                    chrome::section(ui, "tool-selection", &title);
-                    chrome::row(ui, "Position", |ui| {
-                        chrome::mock_number(ui, &format!("{:.1}", bounds.min.x), "");
-                        chrome::mock_number(ui, &format!("{:.1}", bounds.min.y), "");
-                    });
-                    chrome::row(ui, "Size", |ui| {
-                        chrome::mock_number(ui, &format!("{:.1}", bounds.width()), "");
-                        chrome::mock_number(ui, &format!("{:.1}", bounds.height()), "");
+                chrome::row(ui, "Exposure", |ui| match span {
+                    Some((start, len)) => {
+                        ui.label(format!("from frame {} for {len}", start + 1));
+                    }
+                    None => {
+                        ui.weak("empty");
+                    }
+                });
+            }
+            None => {
+                ui.weak("No layer selected.");
+            }
+        }
+        chrome::section(ui, "frame-tween", "Tween");
+        let can_tween = self.is_enabled(MenuAction::ToggleMotionTween);
+        if ui
+            .add_enabled(can_tween, egui::Button::new("Toggle motion tween"))
+            .clicked()
+        {
+            self.perform(MenuAction::ToggleMotionTween);
+        }
+    }
+
+    fn doc_tab(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            ui.add(icons::image("document", 18.0, theme::ACCENT));
+            ui.label(RichText::new("Document").heading());
+        });
+        self.document_section(ui);
+    }
+
+    /// Messages from earlier actions, newest at the bottom.
+    pub(super) fn output_panel(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            if chrome::icon_button(ui, "delete", BAR_ICON, false, !self.log.is_empty(), "Clear")
+                .clicked()
+            {
+                self.log.clear();
+            }
+            ui.weak(format!("{} messages", self.log.len()));
+        });
+        ui.separator();
+        egui::ScrollArea::vertical()
+            .auto_shrink(false)
+            .stick_to_bottom(true)
+            .show(ui, |ui| {
+                if self.log.is_empty() {
+                    chrome::empty_state(ui, "info", "Nothing to report");
+                }
+                for line in &self.log {
+                    ui.horizontal(|ui| {
+                        ui.add(icons::image("warning", 13.0, theme::WARNING));
+                        ui.label(RichText::new(line).monospace());
                     });
                 }
-                self.tool_options(ui);
-                chrome::section(ui, "fill-color", "Fill and stroke");
-                chrome::row(ui, "Fill", |ui| {
-                    ui.color_edit_button_srgba(&mut self.fill);
-                    ui.checkbox(&mut self.gradient_enabled, "Gradient");
-                });
-                if self.gradient_enabled {
-                    chrome::row(ui, "To", |ui| {
-                        ui.color_edit_button_srgba(&mut self.gradient_end);
-                        ui.checkbox(&mut self.gradient_vertical, "Vertical");
-                    });
-                }
-                chrome::row(ui, "Stroke", |ui| {
-                    ui.color_edit_button_srgba(&mut self.stroke_color);
-                    ui.checkbox(&mut self.stroke_enabled, "Outline");
-                });
-                chrome::row(ui, "Width", |ui| {
-                    ui.add_enabled(
-                        self.stroke_enabled,
-                        egui::DragValue::new(&mut self.stroke_width)
-                            .range(0.5..=200.0)
-                            .suffix(" px"),
-                    );
-                });
-                chrome::row(ui, "Cap / join", |ui| {
-                    chrome::mock_number(ui, "Round", "");
-                });
-                self.document_section(ui);
             });
     }
 

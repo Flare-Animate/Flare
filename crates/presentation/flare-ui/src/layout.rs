@@ -25,10 +25,12 @@ pub enum Pane {
     Align,
     Transform,
     History,
+    /// Messages from the last actions: errors and refusals that the status bar shows once.
+    Output,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 9] = [
+    pub const ALL: [Pane; 10] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
@@ -38,6 +40,7 @@ impl Pane {
         Pane::Align,
         Pane::Transform,
         Pane::History,
+        Pane::Output,
     ];
 
     pub fn title(self) -> &'static str {
@@ -51,6 +54,7 @@ impl Pane {
             Self::Align => "Align",
             Self::Transform => "Transform",
             Self::History => "History",
+            Self::Output => "Output",
         }
     }
 }
@@ -67,33 +71,32 @@ pub enum LayoutError {
 
 const TREE_ID: &str = "flare_workspace_layout";
 
-/// The tool strip, the stage and two stacks of panels side by side above the timeline.
+/// The panel stack, the stage and the properties side by side, the tool strip at the far
+/// right, and the timeline and output as tabs underneath.
 ///
-/// Properties and Library share the upper right; Color, Align, Transform and History the
-/// lower right, as tabs.
+/// Library, Color, Align, Transform and History share the left as tabs.
 pub fn default_tree() -> Tree<Pane> {
     let mut tiles = Tiles::default();
     let tools = tiles.insert_pane(Pane::Tools);
     let stage = tiles.insert_pane(Pane::Stage);
     let timeline = tiles.insert_pane(Pane::Timeline);
+    let output = tiles.insert_pane(Pane::Output);
     let properties = tiles.insert_pane(Pane::Properties);
     let library = tiles.insert_pane(Pane::Library);
     let color = tiles.insert_pane(Pane::Color);
     let align = tiles.insert_pane(Pane::Align);
     let transform = tiles.insert_pane(Pane::Transform);
     let history = tiles.insert_pane(Pane::History);
-    let upper = tiles.insert_tab_tile(vec![properties, library]);
-    let lower = tiles.insert_tab_tile(vec![color, align, transform, history]);
-    let side = tiles.insert_vertical_tile(vec![upper, lower]);
-    let top = tiles.insert_horizontal_tile(vec![tools, stage, side]);
-    let root = tiles.insert_vertical_tile(vec![top, timeline]);
-    set_share(&mut tiles, top, tools, 0.07);
-    set_share(&mut tiles, top, stage, 0.66);
-    set_share(&mut tiles, top, side, 0.27);
-    set_share(&mut tiles, side, upper, 0.55);
-    set_share(&mut tiles, side, lower, 0.45);
-    set_share(&mut tiles, root, top, 0.70);
-    set_share(&mut tiles, root, timeline, 0.30);
+    let left = tiles.insert_tab_tile(vec![library, color, align, transform, history]);
+    let bottom = tiles.insert_tab_tile(vec![timeline, output]);
+    let top = tiles.insert_horizontal_tile(vec![left, stage, properties, tools]);
+    let root = tiles.insert_vertical_tile(vec![top, bottom]);
+    set_share(&mut tiles, top, left, 0.20);
+    set_share(&mut tiles, top, stage, 0.55);
+    set_share(&mut tiles, top, properties, 0.19);
+    set_share(&mut tiles, top, tools, 0.06);
+    set_share(&mut tiles, root, top, 0.68);
+    set_share(&mut tiles, root, bottom, 0.32);
     Tree::new(egui::Id::unique(TREE_ID), root, tiles)
 }
 
@@ -203,5 +206,22 @@ mod tests {
 
         let empty = Tree::<Pane>::empty(egui::Id::unique(TREE_ID));
         assert!(matches!(check(&empty), Err(LayoutError::Invalid(_))));
+    }
+
+    #[test]
+    fn the_timeline_and_output_are_tabs_of_one_stack_so_the_bottom_has_a_tab_bar() {
+        let tree = default_tree();
+        let tabs_holding = |pane: Pane| {
+            tree.tiles.iter().find_map(|(id, tile)| match tile {
+                Tile::Container(Container::Tabs(tabs)) => tabs
+                    .children
+                    .iter()
+                    .any(|c| matches!(tree.tiles.get(*c), Some(Tile::Pane(p)) if *p == pane))
+                    .then_some(*id),
+                _ => None,
+            })
+        };
+        let timeline = tabs_holding(Pane::Timeline).expect("timeline is in a tab stack");
+        assert_eq!(tabs_holding(Pane::Output), Some(timeline));
     }
 }

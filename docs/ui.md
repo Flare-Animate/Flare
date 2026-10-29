@@ -36,7 +36,7 @@ Planned, in the order they will be built:
   Ink Bottle, Eyedropper, Eraser, Hand, Zoom, and the rectangle corner radius.)
 - Panels: Align, Distribute, Bring to front and Send to back, and the typed Transform numbers are built (Group and Ungroup are not).
 - Menu: Cut, Select All, Deselect All, Rewind, Step Forward and Backward and Actual Size are built.
-- Properties: editable position and size, stroke cap and join, text style. (Built: frame rate.)
+- Properties: stroke cap and join, text style. (Built: Tool, Object, Frame and Doc tabs, editable position and size, frame rate.)
 - Library: folders, preview. (Built: search, new symbol, rename, delete.)
 - Color: gradient editor, eyedropper button. (Built: hex entry, no color, swap and default colors.)
 - Align panel: align, distribute, arrange, group.
@@ -57,3 +57,7 @@ moves the window and a double click zooms it; the workspace asks and the desktop
 ## Type
 
 Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font License, licence text beside it), embedded in the program and placed ahead of egui's built-in fonts, which still cover the glyphs it lacks. On macOS the top bar is 28 px tall, the height of the title bar it replaces, so the window buttons the system draws sit centred in it.
+
+## Default layout
+
+Left to right: a tab stack (Library, Color, Align, Transform, History), the stage, Properties (Tool, Object, Frame, Doc tabs) and the tool strip. Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.

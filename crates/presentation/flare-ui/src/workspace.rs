@@ -78,6 +78,17 @@ pub enum WindowRequest {
     ToggleMaximize,
 }
 
+const MAX_LOG_LINES: usize = 200;
+
+/// The tabs of the Properties panel.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PropsTab {
+    Tool,
+    Object,
+    Frame,
+    Doc,
+}
+
 /// The numbers on the Transform panel: scale in percent, rotation and skew in degrees.
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct TransformEdit {
@@ -485,6 +496,11 @@ pub struct Workspace {
     /// Stage size being edited in the tools panel, applied when the edit finishes.
     stage_edit: Option<(u32, u32)>,
     fps_edit: Option<f64>,
+    /// Everything `report` has said, oldest first, for the Output panel.
+    log: Vec<String>,
+    props_tab: PropsTab,
+    /// Position and size typed into the Object tab: x, y, width, height.
+    object_edit: Option<[f32; 4]>,
     status: Option<String>,
     dialog: Option<DialogRequest>,
     window_request: Option<WindowRequest>,
@@ -581,6 +597,9 @@ impl Workspace {
             stroke_width: 4.0,
             stage_edit: None,
             fps_edit: None,
+            log: Vec::new(),
+            props_tab: PropsTab::Tool,
+            object_edit: None,
             status: None,
             dialog: None,
             window_request: None,
@@ -716,7 +735,14 @@ impl Workspace {
     }
 
     fn report(&mut self, message: impl Into<String>) {
-        self.status = Some(message.into());
+        let message = message.into();
+        if self.log.last() != Some(&message) {
+            self.log.push(message.clone());
+            if self.log.len() > MAX_LOG_LINES {
+                self.log.remove(0);
+            }
+        }
+        self.status = Some(message);
     }
 
     fn scene_frames(&self) -> u32 {
@@ -2737,6 +2763,34 @@ impl Workspace {
         self.transform_edit = TransformEdit::default();
     }
 
+    /// Moves and resizes the selection so its bounds become `target`, as one undo step.
+    pub fn set_selection_bounds(&mut self, target: Rect) {
+        let Some(bounds) = self.selection_bounds() else {
+            return;
+        };
+        if bounds.width() < 1e-3
+            || bounds.height() < 1e-3
+            || target.width() < 1.0
+            || target.height() < 1.0
+        {
+            return;
+        }
+        let scale = DVec2::new(
+            f64::from(target.width() / bounds.width()),
+            f64::from(target.height() / bounds.height()),
+        );
+        let (from, to) = (
+            DVec2::new(f64::from(bounds.min.x), f64::from(bounds.min.y)),
+            DVec2::new(f64::from(target.min.x), f64::from(target.min.y)),
+        );
+        let matrix = DAffine2::from_translation(to)
+            * DAffine2::from_scale(scale)
+            * DAffine2::from_translation(-from);
+        if matrix != DAffine2::IDENTITY {
+            self.apply_to_selection(matrix);
+        }
+    }
+
     /// Swaps the fill and stroke colors.
     pub fn swap_colors(&mut self) {
         std::mem::swap(&mut self.fill, &mut self.stroke_color);
@@ -4432,6 +4486,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
             Pane::Align => self.workspace.align_panel(ui),
             Pane::Transform => self.workspace.transform_panel(ui),
             Pane::History => self.workspace.history_panel(ui),
+            Pane::Output => self.workspace.output_panel(ui),
         }
         egui_tiles::UiResponse::None
     }
@@ -8178,5 +8233,32 @@ mod tests {
         ws.undo();
         ws.undo();
         assert_eq!(ws.document().frame_rate().numerator(), 24);
+    }
+
+    #[test]
+    fn reports_reach_the_output_log_without_repeating_and_the_object_tab_resizes_the_selection() {
+        let mut ws = workspace();
+        ws.report("first");
+        ws.report("first");
+        ws.report("second");
+        assert_eq!(ws.log, ["first", "second"]);
+        for i in 0..(MAX_LOG_LINES + 20) {
+            ws.report(format!("line {i}"));
+        }
+        assert_eq!(ws.log.len(), MAX_LOG_LINES);
+        rect(&mut ws); // 10..110 x 10..60
+        ws.perform(MenuAction::SelectAll);
+        ws.set_selection_bounds(Rect::from_min_size(
+            Pos2::new(20.0, 30.0),
+            Vec2::new(200.0, 100.0),
+        ));
+        let b = ws.selection_bounds().expect("bounds");
+        assert!((b.min.x - 20.0).abs() < 1e-2 && (b.min.y - 30.0).abs() < 1e-2);
+        assert!((b.width() - 200.0).abs() < 1e-2 && (b.height() - 100.0).abs() < 1e-2);
+        // Degenerate targets change nothing.
+        ws.set_selection_bounds(Rect::from_min_size(Pos2::ZERO, Vec2::new(0.0, 5.0)));
+        assert!((ws.selection_bounds().expect("bounds").width() - 200.0).abs() < 1e-2);
+        ws.undo();
+        assert!((ws.selection_bounds().expect("bounds").width() - 100.0).abs() < 1e-2);
     }
 }
