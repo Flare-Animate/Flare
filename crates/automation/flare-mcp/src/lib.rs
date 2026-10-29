@@ -77,7 +77,11 @@ impl Server {
             return id.map(|id| Self::error(&id, -32600, "jsonrpc must be \"2.0\""));
         }
         let Some(method) = object.get("method").and_then(Value::as_str) else {
-            // A response from the client to something we never sent: ignore it.
+            // A response from the client (it carries a result or an error) to something we
+            // never sent is ignored: answering it could set off an endless exchange of errors.
+            if object.contains_key("result") || object.contains_key("error") {
+                return None;
+            }
             return id.map(|id| Self::error(&id, -32600, "missing method"));
         };
         let params = object.get("params").cloned().unwrap_or(Value::Null);
