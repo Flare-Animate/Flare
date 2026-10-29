@@ -250,7 +250,7 @@ and playback at the document frame rate, a library, and tools: Select/Move, Rect
 Ellipse, Line and Pen (click for corners, drag for smooth handles, click the first point or
 press Enter to finish, Backspace to remove a point, Esc to cancel), with fill and outline
 settings. The stage zooms (pinch, Ctrl/Cmd+scroll or the View menu, about the cursor)
-and pans (scroll or middle-drag). Shift-click builds a multi-selection that moves and deletes together (other
+and pans (scroll or middle-drag). A layer can be made a mask for the layer directly below it (Layer menu): the mask is never drawn, and the layer below shows only where the mask has shapes (the union of its shapes at that frame; overlapping shapes of opposite winding cut holes). Masked artwork can only be picked where it shows. XFL export writes real mask layers; XFL import still keeps masks as preserved source data, and SWF publishing reports that masks are not written. Shift-click builds a multi-selection that moves and deletes together (other
 commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the selection onto
 new layers nudged aside; Copy and Paste (Cmd/Ctrl+C, V) remember the selection and paste it in
 place at the current frame on new layers. An instance whose symbol is missing from the document is refused. The Modify menu flips, rotates by 90 degrees and scales the selection about its
@@ -263,7 +263,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 
 ## Known gaps
 
-- No radial or multi-stop gradients, masks, text or bitmap fills. The desktop app creates
+- No radial or multi-stop gradients, text or bitmap fills. The desktop app creates
   horizontal or vertical gradients on new shapes only; they cannot yet be edited afterwards.
   XFL export and SWF publishing paint the solid fill, ignoring gradients.
 - XFL import covers a defined subset (see Import) and keeps the rest as source data (see Source preservation); XFL export and SWF publishing are verified only against our own importer and Ruffle's parser, never against Animate or a player.

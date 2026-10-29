@@ -386,12 +386,25 @@ fn write_frame(out: &mut String, span: &FrameSpan, layer: Anchor, place: &str, c
     out.push_str("</DOMFrame>");
 }
 
-fn write_layer(out: &mut String, layer: &Layer, place: &str, ctx: &mut Ctx<'_>) {
+/// `mask_parent` is the output index of the mask layer that masks this one, if any.
+fn write_layer(
+    out: &mut String,
+    layer: &Layer,
+    mask_parent: Option<usize>,
+    place: &str,
+    ctx: &mut Ctx<'_>,
+) {
     let mut attrs = String::new();
+    if layer.is_mask() {
+        // Animate keeps mask layers locked; the layers they mask point back at them.
+        attrs.push_str(" layerType=\"mask\" locked=\"true\"");
+    } else if let Some(parent) = mask_parent {
+        attrs.push_str(&format!(" parentLayerIndex=\"{parent}\""));
+    }
     if !layer.is_visible() {
         attrs.push_str(" visible=\"false\"");
     }
-    if layer.is_locked() {
+    if layer.is_locked() && !layer.is_mask() {
         attrs.push_str(" locked=\"true\"");
     }
     out.push_str(&format!(
@@ -449,14 +462,24 @@ fn write_timeline(
 ) {
     out.push_str(&format!("<DOMTimeline name=\"{}\"><layers>", esc(name)));
     let count = timeline.layers().len();
+    // Layers written so far, kept ones included: a mask is referred to by this index.
+    let mut written = 0_usize;
+    let mut mask_index: Option<usize> = None;
     for (position, layer) in timeline.layers().iter().enumerate() {
         // Whole layers that were kept go back at their original index among the layers.
         let at =
             |p: Placement| matches!(p, Placement::LayerAt { index } if index as usize == position);
         for xml in ctx.take(owner, at, place) {
             out.push_str(xml);
+            written += 1;
         }
-        write_layer(out, layer, place, ctx);
+        // A mask masks the layer directly below it in the document.
+        let parent = mask_index.take();
+        write_layer(out, layer, parent, place, ctx);
+        if layer.is_mask() {
+            mask_index = Some(written);
+        }
+        written += 1;
     }
     // Any whose index lies beyond the layers there are now go last.
     let after = |p: Placement| matches!(p, Placement::LayerAt { index } if index as usize >= count);

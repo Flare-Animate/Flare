@@ -36,12 +36,22 @@ pub enum EvalError {
 }
 
 /// Everything visible at one frame.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Frame<'a> {
     /// Instances, parents before children.
     pub placed: Vec<Placed>,
     /// Shapes in paint order: later entries draw on top.
     pub shapes: Vec<DrawnShape<'a>>,
+    /// The mask regions that `DrawnShape::clips` refer to.
+    pub clips: Vec<Vec<ClipShape<'a>>>,
+}
+
+/// One shape of a mask: the mask's region is the union of these.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ClipShape<'a> {
+    pub shape: &'a Shape,
+    /// Composed transform into scene space.
+    pub transform: DAffine2,
 }
 
 impl Frame<'_> {
@@ -58,6 +68,17 @@ impl Frame<'_> {
             for value in drawn.transform.to_cols_array() {
                 value.to_bits().hash(&mut hasher);
             }
+            drawn.clips.hash(&mut hasher);
+        }
+        // Masks change what shows even when the masked shapes stay put.
+        for clip in &self.clips {
+            clip.len().hash(&mut hasher);
+            for member in clip {
+                member.shape.id().hash(&mut hasher);
+                for value in member.transform.to_cols_array() {
+                    value.to_bits().hash(&mut hasher);
+                }
+            }
         }
         hasher.finish()
     }
@@ -70,6 +91,9 @@ pub struct DrawnShape<'a> {
     pub shape: &'a Shape,
     /// Composed transform into scene space.
     pub transform: DAffine2,
+    /// Indices into `Frame::clips`, outermost mask first. The shape shows only where it lies
+    /// inside every one of these regions.
+    pub clips: Vec<usize>,
 }
 
 fn scene_of(document: &Document, scene: SceneId) -> Result<&flare_document::Scene, EvalError> {
@@ -92,16 +116,14 @@ pub fn evaluate_frame(
     frame: u32,
 ) -> Result<Frame<'_>, EvalError> {
     let scene = scene_of(document, scene)?;
-    let mut out = Frame {
-        placed: Vec::new(),
-        shapes: Vec::new(),
-    };
+    let mut out = Frame::default();
     walk(
         document,
         scene.timeline(),
         frame,
         DAffine2::IDENTITY,
         &mut Vec::new(),
+        &[],
         &mut out,
     )?;
     Ok(out)
@@ -113,54 +135,103 @@ fn walk<'a>(
     frame: u32,
     parent: DAffine2,
     path: &mut Vec<InstanceId>,
+    inherited: &[usize],
     out: &mut Frame<'a>,
 ) -> Result<(), EvalError> {
     if path.len() >= MAX_DEPTH {
         return Err(EvalError::TooDeep);
     }
+    let layers = timeline.layers();
     // Layers are ordered top to bottom, so draw in reverse.
-    for layer in timeline.layers().iter().rev() {
-        if !layer.is_visible() {
+    for (index, layer) in layers.iter().enumerate().rev() {
+        // A mask layer is never drawn itself; a hidden one stops masking.
+        if !layer.is_visible() || layer.is_mask() {
             continue;
         }
-        let Some(span) = layer.span_at(frame) else {
-            continue;
-        };
-        if out.placed.len() + out.shapes.len() >= MAX_NODES {
-            return Err(EvalError::TooManyNodes);
-        }
-        let instance = match span.content() {
-            Content::Empty => continue,
-            Content::Shape(shape) => {
-                out.shapes.push(DrawnShape {
-                    path: path.clone(),
-                    shape,
-                    transform: parent,
-                });
-                continue;
+        let mut clips = inherited.to_vec();
+        if let Some(mask) = index
+            .checked_sub(1)
+            .map(|above| &layers[above])
+            .filter(|above| above.is_mask() && above.is_visible())
+        {
+            let mut scratch = Frame::default();
+            walk_layer(document, mask, frame, parent, path, &[], &mut scratch)?;
+            if out.placed.len() + out.shapes.len() + scratch.shapes.len() >= MAX_NODES {
+                return Err(EvalError::TooManyNodes);
             }
-            Content::Instance(instance) => instance,
-        };
-        let local = tweened(layer, frame, instance)?;
-        let transform = parent * local;
-        path.push(instance.id());
-        out.placed.push(Placed {
-            path: path.clone(),
-            symbol: instance.symbol(),
-            transform,
-        });
-        if let Some(symbol) = document.symbol(instance.symbol()) {
-            let length = symbol.timeline().frame_count();
-            if length > 0 {
-                let elapsed = u64::from(frame - span.start());
-                // `elapsed % length` < length <= u32::MAX * 2; the remainder fits u32 only
-                // when length fits, so fall back to saturation for absurd lengths.
-                let local = u32::try_from(elapsed % length).unwrap_or(u32::MAX);
-                walk(document, symbol.timeline(), local, transform, path, out)?;
-            }
+            clips.push(out.clips.len());
+            out.clips.push(
+                scratch
+                    .shapes
+                    .iter()
+                    .map(|drawn| ClipShape {
+                        shape: drawn.shape,
+                        transform: drawn.transform,
+                    })
+                    .collect(),
+            );
         }
-        path.pop();
+        walk_layer(document, layer, frame, parent, path, &clips, out)?;
     }
+    Ok(())
+}
+
+/// One layer's content at `frame`, added to `out` with the given clip regions.
+fn walk_layer<'a>(
+    document: &'a Document,
+    layer: &'a Layer,
+    frame: u32,
+    parent: DAffine2,
+    path: &mut Vec<InstanceId>,
+    clips: &[usize],
+    out: &mut Frame<'a>,
+) -> Result<(), EvalError> {
+    let Some(span) = layer.span_at(frame) else {
+        return Ok(());
+    };
+    if out.placed.len() + out.shapes.len() >= MAX_NODES {
+        return Err(EvalError::TooManyNodes);
+    }
+    let instance = match span.content() {
+        Content::Empty => return Ok(()),
+        Content::Shape(shape) => {
+            out.shapes.push(DrawnShape {
+                path: path.clone(),
+                shape,
+                transform: parent,
+                clips: clips.to_vec(),
+            });
+            return Ok(());
+        }
+        Content::Instance(instance) => instance,
+    };
+    let local = tweened(layer, frame, instance)?;
+    let transform = parent * local;
+    path.push(instance.id());
+    out.placed.push(Placed {
+        path: path.clone(),
+        symbol: instance.symbol(),
+        transform,
+    });
+    if let Some(symbol) = document.symbol(instance.symbol()) {
+        let length = symbol.timeline().frame_count();
+        if length > 0 {
+            let elapsed = u64::from(frame - span.start());
+            // `elapsed % length` < length <= u32::MAX * 2; the remainder fits u32 only
+            // when length fits, so fall back to saturation for absurd lengths.
+            let local = u32::try_from(elapsed % length).unwrap_or(u32::MAX);
+            walk(
+                document,
+                symbol.timeline(),
+                local,
+                transform,
+                path,
+                clips,
+                out,
+            )?;
+        }
+    }
+    path.pop();
     Ok(())
 }
 
@@ -547,5 +618,141 @@ mod tests {
             evaluate_frame(&one, one_id, 0).expect("eval").signature(),
             "and the same frame always hashes the same"
         );
+    }
+
+    fn shape_layer(name: &str, x: f64, w: f64, mask: bool, visible: bool) -> Layer {
+        let shape = flare_document::Shape::rect(
+            flare_core::ShapeId::new(),
+            x,
+            0.0,
+            w,
+            10.0,
+            flare_core::Rgba8::WHITE,
+        )
+        .expect("rect");
+        let span = FrameSpan::new(
+            0,
+            NonZeroU32::new(5).expect("nonzero"),
+            Content::Shape(shape),
+        );
+        Layer::new(LayerId::new(), name, vec![span])
+            .expect("layer")
+            .with_mask(mask)
+            .with_visible(visible)
+    }
+
+    fn masked_scene(layers: Vec<Layer>) -> (Document, SceneId) {
+        document(Timeline::new(layers), vec![])
+    }
+
+    #[test]
+    fn a_mask_layer_is_not_drawn_and_clips_the_layer_below_it() {
+        // Top to bottom: the mask, then the layer it masks.
+        let (doc, id) = masked_scene(vec![
+            shape_layer("mask", 0.0, 10.0, true, true),
+            shape_layer("art", 0.0, 40.0, false, true),
+        ]);
+        let frame = evaluate_frame(&doc, id, 0).expect("eval");
+        assert_eq!(frame.shapes.len(), 1, "only the masked artwork is drawn");
+        assert_eq!(frame.clips.len(), 1);
+        assert_eq!(frame.clips[0].len(), 1);
+        assert_eq!(frame.shapes[0].clips, vec![0]);
+    }
+
+    #[test]
+    fn a_mask_only_affects_the_layer_directly_below_and_hidden_masks_stop_masking() {
+        let (doc, id) = masked_scene(vec![
+            shape_layer("mask", 0.0, 10.0, true, true),
+            shape_layer("masked", 0.0, 40.0, false, true),
+            shape_layer("free", 0.0, 40.0, false, true),
+        ]);
+        let frame = evaluate_frame(&doc, id, 0).expect("eval");
+        assert_eq!(frame.shapes.len(), 2);
+        // Bottom layer paints first: "free" is unmasked, "masked" is clipped.
+        assert!(frame.shapes[0].clips.is_empty());
+        assert_eq!(frame.shapes[1].clips, vec![0]);
+
+        let (doc, id) = masked_scene(vec![
+            shape_layer("mask", 0.0, 10.0, true, false),
+            shape_layer("art", 0.0, 40.0, false, true),
+        ]);
+        let frame = evaluate_frame(&doc, id, 0).expect("eval");
+        assert_eq!(frame.shapes.len(), 1);
+        assert!(
+            frame.shapes[0].clips.is_empty(),
+            "a hidden mask does not clip"
+        );
+        assert!(frame.clips.is_empty());
+    }
+
+    #[test]
+    fn a_mask_with_no_content_at_the_frame_hides_what_it_masks() {
+        let (doc, id) = masked_scene(vec![
+            shape_layer("mask", 0.0, 10.0, true, true),
+            shape_layer("art", 0.0, 40.0, false, true),
+        ]);
+        let frame = evaluate_frame(&doc, id, 9).expect("eval past the spans");
+        assert!(frame.shapes.is_empty(), "the art also ends at frame 5");
+        // At a frame where only the masked layer has content, the empty mask clips it all.
+        let art_only = Layer::new(
+            LayerId::new(),
+            "art",
+            vec![FrameSpan::new(
+                0,
+                NonZeroU32::new(9).expect("nonzero"),
+                Content::Shape(
+                    flare_document::Shape::rect(
+                        flare_core::ShapeId::new(),
+                        0.0,
+                        0.0,
+                        5.0,
+                        5.0,
+                        flare_core::Rgba8::WHITE,
+                    )
+                    .expect("rect"),
+                ),
+            )],
+        )
+        .expect("layer");
+        let (doc, id) = masked_scene(vec![shape_layer("mask", 0.0, 10.0, true, true), art_only]);
+        let frame = evaluate_frame(&doc, id, 7).expect("eval");
+        assert_eq!(frame.shapes.len(), 1);
+        assert_eq!(
+            frame.clips,
+            vec![Vec::new()],
+            "an empty region clips everything"
+        );
+    }
+
+    #[test]
+    fn masks_inside_symbols_and_outside_them_both_apply() {
+        let art = SymbolId::new();
+        let inner = Timeline::new(vec![
+            shape_layer("m", 0.0, 10.0, true, true),
+            shape_layer("a", 0.0, 40.0, false, true),
+        ]);
+        let outer_mask = shape_layer("outer mask", 0.0, 20.0, true, true);
+        let instance_layer =
+            Layer::new(LayerId::new(), "inst", vec![span(0, 5, art, at(0.0))]).expect("layer");
+        let (doc, id) = document(
+            Timeline::new(vec![outer_mask, instance_layer]),
+            vec![Symbol::new(art, "Art", inner)],
+        );
+        let frame = evaluate_frame(&doc, id, 0).expect("eval");
+        assert_eq!(frame.shapes.len(), 1);
+        assert_eq!(frame.shapes[0].clips.len(), 2, "outer then inner");
+    }
+
+    #[test]
+    fn moving_a_mask_changes_the_signature_even_if_the_masked_art_stays() {
+        let (doc, id) = masked_scene(vec![
+            shape_layer("mask", 0.0, 10.0, true, true),
+            shape_layer("art", 0.0, 40.0, false, true),
+        ]);
+        let frame = evaluate_frame(&doc, id, 0).expect("eval");
+        let mut moved = frame.clone();
+        moved.clips[0][0].transform = DAffine2::from_translation(DVec2::new(5.0, 0.0));
+        assert_eq!(frame.shapes, moved.shapes, "the masked art is untouched");
+        assert_ne!(frame.signature(), moved.signature());
     }
 }

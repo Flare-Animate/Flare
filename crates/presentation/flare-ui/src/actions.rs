@@ -32,6 +32,7 @@ pub enum MenuAction {
     PlayPause,
     ToggleLayerVisible,
     ToggleLayerLocked,
+    ToggleLayerMask,
     MoveLayerUp,
     MoveLayerDown,
     DeleteLayer,
@@ -50,7 +51,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 42] = [
+    pub const ALL: [MenuAction; 43] = [
         Self::Open,
         Self::Save,
         Self::SaveAs,
@@ -78,6 +79,7 @@ impl MenuAction {
         Self::PlayPause,
         Self::ToggleLayerVisible,
         Self::ToggleLayerLocked,
+        Self::ToggleLayerMask,
         Self::MoveLayerUp,
         Self::MoveLayerDown,
         Self::DeleteLayer,
@@ -174,6 +176,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         &[
             Action(A::ToggleLayerVisible),
             Action(A::ToggleLayerLocked),
+            Action(A::ToggleLayerMask),
             Separator,
             Action(A::MoveLayerUp),
             Action(A::MoveLayerDown),

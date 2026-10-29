@@ -180,6 +180,7 @@ pub fn publish_swf(
     let mut next_character: swf::CharacterId = 1;
     let mut approximated = false;
     let mut flattened_gradient = false;
+    let mut ignored_masks = false;
     let mut on_screen: Vec<Placed> = Vec::new();
     let mut frames = 0_u32;
 
@@ -194,6 +195,7 @@ pub fn publish_swf(
                     }
                 })?;
 
+            ignored_masks |= !evaluated.clips.is_empty();
             // Define each distinct shape once, the first time it appears.
             let mut now: Vec<Placed> = Vec::new();
             for drawn in &evaluated.shapes {
@@ -256,6 +258,13 @@ pub fn publish_swf(
             tags.push(Tag::ShowFrame);
             frames += 1;
         }
+    }
+    if ignored_masks {
+        diagnostics.push(Diagnostic {
+            severity: Severity::Warning,
+            message: "SWF publishing does not write masks yet, so masked layers appear unmasked"
+                .into(),
+        });
     }
     if flattened_gradient {
         diagnostics.push(Diagnostic {

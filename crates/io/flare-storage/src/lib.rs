@@ -266,7 +266,8 @@ mod tests {
         )
         .expect("layer")
         .with_visible(false)
-        .with_locked(true);
+        .with_locked(true)
+        .with_mask(true);
         let (scene_one, scene_two) = (SceneId::new(), SceneId::new());
         let scenes = vec![
             Scene::new(scene_one, "One", Timeline::new(vec![layer])),
@@ -482,6 +483,23 @@ mod tests {
         .expect("corrupt gradient");
         drop(conn);
         assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
+    }
+
+    #[test]
+    fn mask_flags_round_trip_and_older_files_without_them_load_as_normal_layers() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        save(&sample(), &path).expect("save");
+        assert!(load(&path).expect("load").scenes()[0].timeline().layers()[0].is_mask());
+        let conn = Connection::open(&path).expect("open");
+        conn.execute(
+            "UPDATE entity SET payload_json = replace(payload_json, '\"mask\":', '\"legacy\":')",
+            [],
+        )
+        .expect("strip mask key");
+        drop(conn);
+        let loaded = load(&path).expect("an absent flag is a normal layer");
+        assert!(!loaded.scenes()[0].timeline().layers()[0].is_mask());
     }
 
     #[test]

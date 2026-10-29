@@ -432,12 +432,14 @@ fn render_swf_frame(parsed: &Parsed, index: usize, background: Rgba8) -> flare_r
                 path: Vec::new(),
                 shape,
                 transform: to_affine(&placed.matrix),
+                clips: Vec::new(),
             });
         }
     }
     let frame = flare_eval::Frame {
         placed: Vec::new(),
         shapes: drawn,
+        clips: Vec::new(),
     };
     flare_render::render(
         &frame,
@@ -723,6 +725,38 @@ fn gradients_are_flattened_to_their_average_color_with_a_warning() {
             .diagnostics
             .iter()
             .any(|d| d.severity == Severity::Warning && d.message.contains("gradients")),
+        "{:?}",
+        published.diagnostics
+    );
+}
+
+#[test]
+fn masks_are_reported_as_not_published_instead_of_silently_dropped() {
+    let mask = layer(
+        "mask",
+        vec![span(
+            0,
+            1,
+            Content::Shape(rect(0.0, 0.0, 5.0, 5.0, Rgba8::WHITE)),
+        )],
+    )
+    .with_mask(true);
+    let art = layer(
+        "art",
+        vec![span(
+            0,
+            1,
+            Content::Shape(rect(0.0, 0.0, 20.0, 20.0, Rgba8::WHITE)),
+        )],
+    );
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![mask, art]));
+    let doc = document(20, 20, vec![scene], vec![]);
+    let published = publish_swf(&doc, &PublishOptions::default()).expect("publish");
+    assert!(
+        published
+            .diagnostics
+            .iter()
+            .any(|d| d.severity == Severity::Warning && d.message.contains("masks")),
         "{:?}",
         published.diagnostics
     );

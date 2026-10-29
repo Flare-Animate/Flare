@@ -152,6 +152,9 @@ struct LayerWire {
     visible: bool,
     #[serde(default)]
     locked: bool,
+    /// Absent in files written before masks existed.
+    #[serde(default)]
+    mask: bool,
     spans: Vec<SpanWire>,
 }
 
@@ -170,6 +173,7 @@ impl TimelineWire {
                 name: layer.name().to_owned(),
                 visible: layer.is_visible(),
                 locked: layer.is_locked(),
+                mask: layer.is_mask(),
                 spans: layer
                     .spans()
                     .iter()
@@ -279,7 +283,8 @@ impl TimelineWire {
             layers.push(
                 Layer::new(LayerId::from_uuid(uuid(&layer.id)?), layer.name, spans)?
                     .with_visible(layer.visible)
-                    .with_locked(layer.locked),
+                    .with_locked(layer.locked)
+                    .with_mask(layer.mask),
             );
         }
         Ok(Timeline::new(layers))

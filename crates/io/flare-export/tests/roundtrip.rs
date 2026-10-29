@@ -326,6 +326,40 @@ fn a_gradient_is_written_as_its_average_color_with_a_warning() {
 }
 
 #[test]
+fn mask_layers_are_exported_as_xfl_masks_that_point_at_the_layer_they_mask() {
+    let mask = layer(
+        "Mask",
+        vec![span(0, 1, Content::Shape(rect(0.0, 0.0, 5.0, 5.0, RED)))],
+    )
+    .with_mask(true);
+    let art = layer(
+        "Art",
+        vec![span(0, 1, Content::Shape(rect(0.0, 0.0, 9.0, 9.0, RED)))],
+    );
+    let free = layer(
+        "Free",
+        vec![span(0, 1, Content::Shape(rect(2.0, 2.0, 3.0, 3.0, RED)))],
+    );
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![free, mask, art]));
+    let doc = Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("doc");
+    let (output, imported) = roundtrip(&doc);
+    let xml = &output.files[0].1;
+    // Layers are written top to bottom: Free (0), Mask (1), Art (2).
+    assert!(xml.contains("<DOMLayer name=\"Free\"><frames>"), "{xml}");
+    assert!(
+        xml.contains("<DOMLayer name=\"Mask\" layerType=\"mask\" locked=\"true\">"),
+        "{xml}"
+    );
+    assert!(
+        xml.contains("<DOMLayer name=\"Art\" parentLayerIndex=\"1\">"),
+        "the masked layer points at the mask's index: {xml}"
+    );
+    // The export still imports; the mask layer comes back as preserved source data.
+    assert!(imported.document.scenes()[0].timeline().layers().len() >= 2);
+}
+
+#[test]
 fn awkward_names_stay_safe_and_unique() {
     let symbols: Vec<Symbol> = [
         "a",

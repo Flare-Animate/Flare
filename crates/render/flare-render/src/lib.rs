@@ -144,6 +144,19 @@ fn linear_gradient(gradient: &flare_document::Gradient) -> Gradient {
         .with_stops([color(gradient.start()), color(gradient.end())])
 }
 
+/// The region of mask `clip`, in scene coordinates: the union of its shapes (a shape drawn
+/// with the opposite winding over another one cuts a hole, as with any single filled path).
+fn clip_path(clip: &[flare_eval::ClipShape<'_>]) -> BezPath {
+    let mut path = BezPath::new();
+    for member in clip {
+        let [a, b, c, d, e, f] = member.transform.to_cols_array();
+        let mut one = bez_path(member.shape.path());
+        one.apply_affine(Affine::new([a, b, c, d, e, f]));
+        path.extend(one.elements().iter().copied());
+    }
+    path
+}
+
 fn bez_path(segments: &[PathSegment]) -> BezPath {
     let mut path = BezPath::new();
     for segment in segments {
@@ -192,10 +205,7 @@ pub fn render_onion_viewport(
     if ghosts.is_empty() {
         return render_viewport(current, viewport, width, height, background);
     }
-    let empty = Frame {
-        placed: Vec::new(),
-        shapes: Vec::new(),
-    };
+    let empty = Frame::default();
     let mut image = render_viewport(&empty, viewport, width, height, background)?;
     for (frame, opacity) in ghosts {
         let ghost = render_viewport(frame, viewport, width, height, Rgba8::TRANSPARENT)?;
@@ -218,12 +228,22 @@ pub fn render_onion_viewport(
 /// singular transforms are not hittable. Callers that must skip some shapes (locked layers)
 /// walk this list instead of taking only the first.
 pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
+    let clip_paths: Vec<BezPath> = frame.clips.iter().map(|clip| clip_path(clip)).collect();
+    let scene_point = Point::new(point.x, point.y);
     frame
         .shapes
         .iter()
         .enumerate()
         .rev()
         .filter(|(_, drawn)| {
+            // Masked artwork can only be picked where it is actually visible.
+            if drawn.clips.iter().any(|index| {
+                clip_paths
+                    .get(*index)
+                    .is_none_or(|p| !p.contains(scene_point))
+            }) {
+                return false;
+            }
             let determinant = drawn.transform.matrix2.determinant();
             if determinant == 0.0 || !determinant.is_finite() {
                 return false;
@@ -423,7 +443,18 @@ fn rasterize(
         f64::from(width) / viewport.width,
         f64::from(height) / viewport.height,
     ) * Affine::translate((-viewport.x, -viewport.y));
+    let clip_paths: Vec<BezPath> = frame.clips.iter().map(|clip| clip_path(clip)).collect();
     for drawn in &frame.shapes {
+        // Masks live in scene space, so they are pushed with the view transform alone, before
+        // the shape's own.
+        ctx.set_transform(base);
+        let mut pushed = 0;
+        for index in &drawn.clips {
+            if let Some(region) = clip_paths.get(*index) {
+                ctx.push_clip_layer(region);
+                pushed += 1;
+            }
+        }
         let [a, b, c, d, e, f] = drawn.transform.to_cols_array();
         ctx.set_transform(base * Affine::new([a, b, c, d, e, f]));
         let path = bez_path(drawn.shape.path());
@@ -440,6 +471,9 @@ fn rasterize(
             );
             ctx.set_paint(color(stroke.color()));
             ctx.stroke_path(&path);
+        }
+        for _ in 0..pushed {
+            ctx.pop_layer();
         }
     }
     ctx.flush();
@@ -478,6 +512,16 @@ mod tests {
         let rate = FrameRate::new(24, 1).expect("rate");
         (
             Document::new(DocumentId::new(), rate, vec![scene], symbols).expect("doc"),
+            id,
+        )
+    }
+
+    fn scene_with_layers(layers: Vec<Layer>) -> (Document, SceneId) {
+        let id = SceneId::new();
+        let scene = Scene::new(id, "S", Timeline::new(layers));
+        let rate = FrameRate::new(24, 1).expect("rate");
+        (
+            Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("doc"),
             id,
         )
     }
@@ -713,6 +757,7 @@ mod tests {
             &flare_eval::Frame {
                 placed: vec![],
                 shapes: vec![],
+                clips: vec![],
             },
             20,
             20,
@@ -729,6 +774,7 @@ mod tests {
             &flare_eval::Frame {
                 placed: vec![],
                 shapes: vec![],
+                clips: vec![],
             },
             20,
             20,
@@ -745,6 +791,7 @@ mod tests {
             &flare_eval::Frame {
                 placed: vec![],
                 shapes: vec![],
+                clips: vec![],
             },
             4,
             4,
@@ -1160,5 +1207,54 @@ mod tests {
             .filter(|(a, b)| a.abs_diff(**b) > 2)
             .count();
         assert_eq!(differing, 0, "threads must not change the picture");
+    }
+
+    /// A mask layer over a layer holding one rectangle.
+    fn masked_doc(
+        mask_rect: (f64, f64, f64, f64),
+        art_rect: (f64, f64, f64, f64),
+    ) -> (Document, SceneId) {
+        let layer = |name: &str, r: (f64, f64, f64, f64), mask: bool| {
+            Layer::new(
+                LayerId::new(),
+                name,
+                vec![span(rect(r.0, r.1, r.2, r.3, RED))],
+            )
+            .expect("layer")
+            .with_mask(mask)
+        };
+        scene_with_layers(vec![
+            layer("mask", mask_rect, true),
+            layer("art", art_rect, false),
+        ])
+    }
+
+    #[test]
+    fn a_mask_shows_the_layer_below_only_where_the_mask_has_shapes() {
+        // Art covers the whole 20x20 stage; the mask is the left-top 8x8 square.
+        let (doc, id) = masked_doc((0.0, 0.0, 8.0, 8.0), (0.0, 0.0, 20.0, 20.0));
+        let image = draw(&doc, id, Rgba8::WHITE);
+        assert_eq!(image.pixel(4, 4), Some(RED), "inside the mask");
+        assert_eq!(image.pixel(12, 4), Some(Rgba8::WHITE), "outside the mask");
+        assert_eq!(image.pixel(4, 12), Some(Rgba8::WHITE));
+        assert_eq!(image.pixel(15, 15), Some(Rgba8::WHITE));
+    }
+
+    #[test]
+    fn the_mask_shape_itself_is_not_drawn() {
+        // The mask lies where the art is not: nothing at all shows.
+        let (doc, id) = masked_doc((0.0, 0.0, 8.0, 8.0), (10.0, 10.0, 8.0, 8.0));
+        let image = draw(&doc, id, Rgba8::WHITE);
+        for (x, y) in [(4, 4), (14, 14), (4, 14)] {
+            assert_eq!(image.pixel(x, y), Some(Rgba8::WHITE), "({x}, {y})");
+        }
+    }
+
+    #[test]
+    fn masked_artwork_is_only_hittable_inside_the_mask() {
+        let (doc, id) = masked_doc((0.0, 0.0, 8.0, 8.0), (0.0, 0.0, 20.0, 20.0));
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("frame");
+        assert_eq!(hit_test_all(&frame, DVec2::new(4.0, 4.0)), vec![0]);
+        assert!(hit_test_all(&frame, DVec2::new(15.0, 15.0)).is_empty());
     }
 }

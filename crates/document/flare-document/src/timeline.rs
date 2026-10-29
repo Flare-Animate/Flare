@@ -113,6 +113,7 @@ pub struct Layer {
     spans: Arc<[FrameSpan]>,
     visible: bool,
     locked: bool,
+    mask: bool,
 }
 
 impl Layer {
@@ -134,6 +135,7 @@ impl Layer {
             spans: spans.into(),
             visible: true,
             locked: false,
+            mask: false,
         })
     }
 
@@ -142,6 +144,7 @@ impl Layer {
         let mut layer = Self::new(self.id, &*self.name, spans)?;
         layer.visible = self.visible;
         layer.locked = self.locked;
+        layer.mask = self.mask;
         Ok(layer)
     }
 
@@ -163,6 +166,18 @@ impl Layer {
     pub fn with_locked(mut self, locked: bool) -> Self {
         self.locked = locked;
         self
+    }
+
+    /// A mask layer is never drawn itself: its shapes are the only place the layer directly
+    /// below it shows through.
+    #[must_use]
+    pub fn with_mask(mut self, mask: bool) -> Self {
+        self.mask = mask;
+        self
+    }
+
+    pub fn is_mask(&self) -> bool {
+        self.mask
     }
 
     pub fn is_visible(&self) -> bool {

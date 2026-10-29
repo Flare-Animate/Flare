@@ -9,6 +9,7 @@ pub enum LayerChange {
     Name(String),
     Visible(bool),
     Locked(bool),
+    Mask(bool),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -154,6 +155,7 @@ fn step(
                 LayerChange::Name(name) => slot.clone().with_name(name),
                 LayerChange::Visible(visible) => slot.clone().with_visible(visible),
                 LayerChange::Locked(locked) => slot.clone().with_locked(locked),
+                LayerChange::Mask(mask) => slot.clone().with_mask(mask),
             };
             Ok(())
         })?,

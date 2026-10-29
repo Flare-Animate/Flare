@@ -1135,7 +1135,9 @@ impl Workspace {
             | MenuAction::InsertBlankKeyframe
             | MenuAction::ClearKeyframe => editable_layer,
             MenuAction::ToggleMotionTween => self.selection_tween().is_some(),
-            MenuAction::ToggleLayerVisible | MenuAction::ToggleLayerLocked => layer.is_some(),
+            MenuAction::ToggleLayerVisible
+            | MenuAction::ToggleLayerLocked
+            | MenuAction::ToggleLayerMask => layer.is_some(),
             MenuAction::MoveLayerUp => position.is_some_and(|p| p > 0),
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
@@ -1207,6 +1209,13 @@ impl Workspace {
                     "Unlock Layer"
                 } else {
                     "Lock Layer"
+                }
+            }
+            MenuAction::ToggleLayerMask => {
+                if layer.is_some_and(Layer::is_mask) {
+                    "Remove Mask"
+                } else {
+                    "Mask Layer Below"
                 }
             }
             MenuAction::MoveLayerUp => "Move Layer Up",
@@ -1297,6 +1306,11 @@ impl Workspace {
                     self.toggle_layer_locked(id);
                 }
             }
+            MenuAction::ToggleLayerMask => {
+                if let Some(id) = layer {
+                    self.toggle_layer_mask(id);
+                }
+            }
             MenuAction::MoveLayerUp => self.move_active_layer(-1),
             MenuAction::MoveLayerDown => self.move_active_layer(1),
             MenuAction::DeleteLayer => self.delete_active_layer(),
@@ -1366,6 +1380,23 @@ impl Workspace {
                 change,
             }],
             "change the lock",
+        );
+        self.validate_selection();
+    }
+
+    /// Turns the layer into a mask for the layer below it, or back into a normal layer.
+    pub fn toggle_layer_mask(&mut self, layer: LayerId) {
+        let Some(scene) = self.scene_id() else { return };
+        let Some(current) = self.layer(layer).map(Layer::is_mask) else {
+            return;
+        };
+        self.run_batch(
+            vec![Command::UpdateLayer {
+                scene,
+                layer,
+                change: LayerChange::Mask(!current),
+            }],
+            "change the mask",
         );
         self.validate_selection();
     }
@@ -2945,7 +2976,11 @@ impl Workspace {
                     painter.text(
                         Pos2::new(rect.min.x + 4.0, y + 3.0),
                         Align2::LEFT_TOP,
-                        layer.name(),
+                        if layer.is_mask() {
+                            format!("Mask: {}", layer.name())
+                        } else {
+                            layer.name().to_owned()
+                        },
                         FontId::proportional(12.0),
                         if layer.is_visible() { ink } else { dim },
                     );
@@ -5531,5 +5566,38 @@ mod tests {
         assert!(!ws.has_pending_io());
         assert!(!ws.is_dirty());
         assert!(path.exists());
+    }
+
+    #[test]
+    fn mask_layer_toggles_through_the_menu_and_changes_what_is_pickable() {
+        let mut ws = two_rectangles();
+        // Layers top to bottom: [Layer 1, first rectangle (x 10..50), second (x 100..140)].
+        let layers = ws.document().scenes()[0].timeline().layers();
+        let (mask_id, masked_id) = (layers[1].id(), layers[2].id());
+        let at_mask = Pos2::new(30.0, 30.0);
+        let at_masked = Pos2::new(120.0, 30.0);
+        assert_eq!(ws.hit(at_mask).map(|s| s.layer), Some(mask_id));
+        assert_eq!(ws.hit(at_masked).map(|s| s.layer), Some(masked_id));
+
+        ws.select_layer(mask_id);
+        assert_eq!(ws.label(MenuAction::ToggleLayerMask), "Mask Layer Below");
+        ws.perform(MenuAction::ToggleLayerMask);
+        assert!(ws.layer(mask_id).expect("layer").is_mask());
+        assert_eq!(ws.label(MenuAction::ToggleLayerMask), "Remove Mask");
+        assert!(
+            ws.hit(at_mask).is_none(),
+            "a mask is never drawn, so it cannot be picked"
+        );
+        assert!(
+            ws.hit(at_masked).is_none(),
+            "the masked art lies outside the mask, so nothing of it shows"
+        );
+
+        ws.undo();
+        assert!(
+            !ws.layer(mask_id).expect("layer").is_mask(),
+            "one undo step"
+        );
+        assert_eq!(ws.hit(at_masked).map(|s| s.layer), Some(masked_id));
     }
 }
