@@ -64,3 +64,10 @@ undo step. The color is kept in `.flare` files and in XFL (`DOMLayer color`). Vi
 draws every shape as a one-pixel line in its layer's color with no fills and ignores masks, so
 everything can be found; the evaluated frame carries each shape's layer color for this
 (`DrawnShape::outline`). A mask layer itself is not drawn, so it has no outline yet.
+
+## Still to match from Animate 2024 (Linux reference)
+
+Properties with Tool, Object, Frame and Doc tabs and Publish Settings inside Doc; an Info panel
+(size, position, and the color under the pointer); a Color panel with a fill-type dropdown, hex
+field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown
+and a close button on the document tab. The default arrangement stays as it is.
