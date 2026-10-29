@@ -29,6 +29,12 @@
   payload sizes, image sizes.
 - Only validated edit transactions mutate documents; a failed batch changes nothing.
 
+## Performance
+
+See [performance.md](performance.md) for the rules (measure first, nothing slow on the UI thread,
+share rather than copy, draw only what is visible, bound everything, drop stale results) and
+the measurements behind them. New features follow them.
+
 ## Verification
 
 Before committing:

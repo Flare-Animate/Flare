@@ -148,3 +148,29 @@ lto = "thin"
 codegen-units = 1
 # Keep unwinding until every FFI/process boundary has an explicit policy.
 # Avoid fast-math, target-cpu=native and global allocator changes by default.
+
+# Keep the hot loops responsive in the default `cargo run`/`cargo test` profile: the rasterizer
+# and the code around it are far too slow unoptimized to draw or test large documents. Debug
+# information and overflow checks stay on; only the optimization level changes.
+[profile.dev.package.flare-document]
+opt-level = 2
+[profile.dev.package.flare-edit]
+opt-level = 2
+[profile.dev.package.flare-eval]
+opt-level = 2
+[profile.dev.package.flare-render]
+opt-level = 2
+[profile.dev.package.vello_cpu]
+opt-level = 3
+[profile.dev.package.vello_common]
+opt-level = 3
+[profile.dev.package.fearless_simd]
+opt-level = 3
+[profile.dev.package.kurbo]
+opt-level = 3
+[profile.dev.package.png]
+opt-level = 3
+[profile.dev.package.fdeflate]
+opt-level = 3
+[profile.dev.package.miniz_oxide]
+opt-level = 3

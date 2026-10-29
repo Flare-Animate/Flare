@@ -79,7 +79,12 @@ pub(crate) fn validate(document: &Document) -> Vec<Diagnostic> {
         }
     }
 
-    let (mut layers, mut instances, mut shapes) = (HashSet::new(), HashSet::new(), HashSet::new());
+    // Sized up front: the sets hold every layer and shape id in the document, and growing them
+    // by doubling rehashed them several times over on every edit.
+    let layer_count: usize = timelines(document).map(|t| t.layers().len()).sum();
+    let mut layers = HashSet::with_capacity(layer_count);
+    let mut shapes = HashSet::with_capacity(layer_count);
+    let mut instances = HashSet::new();
     for timeline in timelines(document) {
         for layer in timeline.layers() {
             if !layers.insert(layer.id()) {

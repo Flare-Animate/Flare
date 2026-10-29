@@ -5,6 +5,7 @@ Flash workspaces and OpenToonz-inspired features follow once the core workflow i
 
 - [architecture.md](architecture.md): crates, the document model, editing, storage, frontends, known gaps
 - [engineering.md](engineering.md): toolchain, conventions, verification, reference code policy
+- [performance.md](performance.md): how the editor stays responsive, measurements, and the rules new work follows
 - [roadmap.md](roadmap.md): milestones, what is done, and the next independent branches
 - [decisions/renderer.md](decisions/renderer.md): why vello_cpu is the CPU rasterizer
 - [decisions/ui-stack.md](decisions/ui-stack.md): egui, winit, wgpu and the native macOS menu
