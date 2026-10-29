@@ -268,6 +268,12 @@ The policy is deliberately honest rather than clever:
 `flare-cli` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`,
 `layer`, `place`, `frame`, `eval`, `export`, `export-frames`, `inspect`, `rate`.
 
+Inside `flare-animate`, `Workspace` is the one object the window talks to, and its topics are modules
+under `workspace/` (layers, selection, timeline, files, tabs, and so on; one module per panel under
+`panels/`). Its settings and working state are grouped by concern in `workspace/groups.rs` (the
+Text tool, paint, what the stage displays, open windows, autosave and recovery, sound) instead of
+being separate fields.
+
 `flare-desktop` is a dock of panels: the stage (rendered by the same pipeline), a timeline with scrubbing
 and playback at the document frame rate, a library, and tools: Select/Move, Rectangle,
 Ellipse, Line, Pen and Text (click for corners, drag for smooth handles, click the first point or
@@ -275,8 +281,8 @@ press Enter to finish, Backspace to remove a point, Esc to cancel), with fill an
 settings. The stage zooms (pinch, Ctrl/Cmd+scroll or the View menu, about the cursor)
 and pans (scroll or middle-drag). A layer can be made a mask for the layer directly below it (Layer menu): the mask is never drawn, and the layer below shows only where the mask has shapes (the union of its shapes at that frame; overlapping shapes of opposite winding cut holes). Masked artwork can only be picked where it shows. XFL export writes real mask layers; XFL import still keeps masks as preserved source data, and SWF publishing reports that masks are not written. Sounds: File > Import Sound reads and decodes a file on a worker, keeps the original file in the project (the document shares it, so snapshots stay cheap), and puts a cue at the playhead on a new layer. A cue plays its sound from its frame while the timeline plays; sounds start with playback, again when the loop wraps or the playhead jumps back, and stop on pause. Cues move with their frames when frames are inserted or removed, and deleting a layer removes sounds nothing else plays. XFL export and SWF publishing report that sounds are not written. The Text tool opens a small editor where you click; Place (Ctrl/Cmd+Enter) turns the text into a filled shape on a new layer, in the chosen font family and size, with the font work done on a worker. Shift-click on timeline cells selects frames of a layer; Copy Frames and Paste Frames (Ctrl/Cmd+Alt+C, V) copy them and paste them from the playhead, replacing what is there. Shift-click builds a multi-selection that moves and deletes together (other
 commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the selection onto
-new layers nudged aside; Copy and Paste (Cmd/Ctrl+C, V) remember the selection and paste it in
-place at the current frame on new layers. An instance whose symbol is missing from the document is refused. The Modify menu flips, rotates by 90 degrees and scales the selection about its
+new layers nudged aside; Copy and Paste (Cmd/Ctrl+C, V) remember the selection and paste it
+centered on the stage at the current frame on new layers; Paste in Place (Edit menu) puts it back where it was. An instance whose symbol is missing from the document is refused. The Modify menu flips, rotates by 90 degrees and scales the selection about its
 center. Eight handles on the
 selection's bounds scale it by dragging (Shift keeps proportions); dragging just outside a
 corner rotates it about its center (Shift snaps to 15 degrees); Alt-dragging an edge handle skews
