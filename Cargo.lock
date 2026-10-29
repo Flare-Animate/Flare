@@ -1287,6 +1287,7 @@ dependencies = [
  "egui",
  "egui-wgpu",
  "egui-winit",
+ "flare-publish",
  "flare-storage",
  "flare-ui",
  "muda",

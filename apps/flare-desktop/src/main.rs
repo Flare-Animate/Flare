@@ -32,6 +32,8 @@ struct Gpu {
 }
 
 struct App {
+    /// Test movies still playing; dropping one stops its player and removes its files.
+    movies: Vec<flare_publish::TestMovie>,
     proxy: EventLoopProxy<UserEvent>,
     #[cfg(target_os = "macos")]
     menu: Option<menu::NativeMenu>,
@@ -130,7 +132,30 @@ impl App {
             menu.sync(&self.workspace);
         }
         self.handle_dialog();
+        self.handle_test_movie();
         self.handle_quit(event_loop);
+    }
+
+    /// Plays the document in an external Ruffle when the workspace asks to. Ruffle is
+    /// optional, so a missing one is explained rather than treated as an error.
+    fn handle_test_movie(&mut self) {
+        // Forget players that have closed; this also removes their temporary files.
+        self.movies
+            .retain_mut(|movie| matches!(movie.try_wait(), Ok(None)));
+        if !self.workspace.take_test_movie_request() {
+            return;
+        }
+        let Some(player) = flare_publish::find_ruffle() else {
+            show_message(
+                "Ruffle not found",
+                "Test Movie plays your project in Ruffle, which is not installed or not on your PATH. Install Ruffle, or set FLARE_RUFFLE to its location, then try again.",
+            );
+            return;
+        };
+        match flare_publish::launch_test_movie(self.workspace.main_document(), &player) {
+            Ok(movie) => self.movies.push(movie),
+            Err(error) => show_message("Cannot start Test Movie", &error.to_string()),
+        }
     }
 
     /// Quits when the workspace asks to, after confirming if there is unsaved work.
@@ -190,6 +215,14 @@ impl App {
     }
 }
 
+fn show_message(title: &str, text: &str) {
+    rfd::MessageDialog::new()
+        .set_title(title)
+        .set_description(text)
+        .set_buttons(rfd::MessageButtons::Ok)
+        .show();
+}
+
 fn project_dialog() -> rfd::FileDialog {
     rfd::FileDialog::new().add_filter("Flare project", &["flare"])
 }
@@ -217,6 +250,7 @@ impl ApplicationHandler<UserEvent> for App {
                     gpu.window.request_redraw();
                 }
                 self.handle_dialog();
+                self.handle_test_movie();
                 self.handle_quit(event_loop);
             }
         }
@@ -291,6 +325,7 @@ fn main() -> Result<()> {
     let event_loop = builder.build().context("create event loop")?;
     event_loop.set_control_flow(ControlFlow::Wait);
     let mut app = App {
+        movies: Vec::new(),
         proxy: event_loop.create_proxy(),
         #[cfg(target_os = "macos")]
         menu: None,

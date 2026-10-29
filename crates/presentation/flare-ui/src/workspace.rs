@@ -157,6 +157,7 @@ pub struct Workspace {
     /// The dockable panel arrangement.
     layout: egui_tiles::Tree<Pane>,
     onion: OnionSkin,
+    test_movie_requested: bool,
     fill: Color32,
     stroke_enabled: bool,
     stroke_color: Color32,
@@ -198,6 +199,7 @@ impl Workspace {
                 before: 1,
                 after: 1,
             },
+            test_movie_requested: false,
             fill: Color32::from_rgb(232, 69, 60),
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
@@ -711,6 +713,17 @@ impl Workspace {
         std::mem::take(&mut self.quit_requested)
     }
 
+    /// Returns (and clears) a request to play the document in an external player.
+    pub fn take_test_movie_request(&mut self) -> bool {
+        std::mem::take(&mut self.test_movie_requested)
+    }
+
+    /// The document as saved, which is what a test movie plays: unlike `document()`, it is
+    /// never a symbol's scratch document.
+    pub fn main_document(&self) -> &Document {
+        self.session.document()
+    }
+
     /// Whether `action` can run right now (menu items are greyed out when it cannot).
     pub fn is_enabled(&self, action: MenuAction) -> bool {
         let layer = self.active_layer();
@@ -754,6 +767,7 @@ impl Workspace {
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
             MenuAction::ResetLayout => true,
             MenuAction::ToggleOnionSkin => true,
+            MenuAction::TestMovie => true,
         }
     }
 
@@ -819,6 +833,7 @@ impl Workspace {
                     "Show Onion Skin"
                 }
             }
+            MenuAction::TestMovie => "Test Movie",
         };
         text.to_owned()
     }
@@ -875,6 +890,12 @@ impl Workspace {
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
+            MenuAction::TestMovie => {
+                // Pending symbol edits belong in the movie, so apply them first, like Save.
+                if self.exit_all_symbols() {
+                    self.test_movie_requested = true;
+                }
+            }
         }
     }
 
@@ -3195,5 +3216,43 @@ mod tests {
                 after: 3
             }
         );
+    }
+
+    #[test]
+    fn test_movie_is_a_request_for_the_shell_and_includes_pending_symbol_edits() {
+        let (mut ws, symbol) = with_symbol();
+        assert!(!ws.take_test_movie_request());
+        ws.perform(MenuAction::TestMovie);
+        assert!(ws.take_test_movie_request());
+        assert!(!ws.take_test_movie_request(), "delivered once");
+
+        ws.edit_selected_symbol();
+        ws.commit_rectangle(Pos2::new(300.0, 300.0), Pos2::new(340.0, 330.0));
+        assert!(ws.in_symbol());
+        assert_eq!(
+            ws.main_document()
+                .symbol(symbol)
+                .expect("symbol")
+                .timeline()
+                .layers()
+                .len(),
+            1
+        );
+        ws.perform(MenuAction::TestMovie);
+        assert!(
+            !ws.in_symbol(),
+            "the symbol edit was applied before playing"
+        );
+        assert_eq!(
+            ws.main_document()
+                .symbol(symbol)
+                .expect("symbol")
+                .timeline()
+                .layers()
+                .len(),
+            2
+        );
+        assert!(ws.take_test_movie_request());
+        assert_eq!(ws.label(MenuAction::TestMovie), "Test Movie");
     }
 }

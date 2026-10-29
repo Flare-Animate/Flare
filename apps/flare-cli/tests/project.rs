@@ -1039,3 +1039,62 @@ fn source_data_survives_import_save_reopen_and_export_through_the_cli() {
         assert!(written.contains(snippet), "missing {snippet}");
     }
 }
+
+#[cfg(unix)]
+#[test]
+fn test_movie_hands_a_valid_swf_to_the_player_and_reports_how_it_exited() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file, "--width", "40", "--height", "20"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "0",
+        "0",
+        "10",
+        "10",
+        "--duration",
+        "4",
+    ]);
+
+    let player = dir.path().join("fake-ruffle");
+    std::fs::write(
+        &player,
+        "#!/bin/sh\nhere=$(dirname \"$0\")\ncp \"$1\" \"$here/received.swf\"\nexit 5\n",
+    )
+    .expect("write");
+    std::fs::set_permissions(&player, std::fs::Permissions::from_mode(0o755)).expect("chmod");
+
+    let report = json(&["test-movie", &file, "--ruffle", &player.to_string_lossy()]);
+    assert_eq!(
+        report["exit_code"], 5,
+        "the player's exit status is reported, not hidden"
+    );
+    let bytes = std::fs::read(dir.path().join("received.swf")).expect("the player received a file");
+    let buf = swf::decompress_swf(&bytes[..]).expect("decompress");
+    assert_eq!(swf::parse_swf(&buf).expect("parses").header.num_frames(), 4);
+
+    let missing = dir
+        .path()
+        .join("nothing-here")
+        .to_string_lossy()
+        .into_owned();
+    let output = run(&["test-movie", &file, "--ruffle", &missing]);
+    assert!(!output.status.success());
+    // With no player given and none on PATH, the error says how to fix it.
+    let none = Command::new(env!("CARGO_BIN_EXE_flare-cli"))
+        .args(["test-movie", &file])
+        .env("PATH", "/nonexistent")
+        .env_remove("FLARE_RUFFLE")
+        .output()
+        .expect("run");
+    assert!(!none.status.success());
+    assert!(
+        String::from_utf8_lossy(&none.stderr).contains("Ruffle was not found"),
+        "{}",
+        String::from_utf8_lossy(&none.stderr)
+    );
+}
