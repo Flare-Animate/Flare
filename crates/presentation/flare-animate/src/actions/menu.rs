@@ -227,6 +227,8 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ShowTimeline),
             Action(A::ShowOutput),
             Separator,
+            Action(A::ShowHome),
+            Separator,
             Mock("Workspace Presets"),
         ],
     ),

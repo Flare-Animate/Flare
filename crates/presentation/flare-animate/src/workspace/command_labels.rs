@@ -169,6 +169,7 @@ impl Workspace {
             MenuAction::ShowTimeline => "Timeline",
             MenuAction::ShowOutput => "Output",
             MenuAction::ShowInfo => "Info",
+            MenuAction::ShowHome => "Home",
             MenuAction::ToggleOnionSkin => {
                 if self.onion.enabled {
                     "Hide Onion Skin"

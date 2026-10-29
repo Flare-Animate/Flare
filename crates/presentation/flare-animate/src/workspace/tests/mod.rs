@@ -19,6 +19,7 @@ use std::path::PathBuf;
 
 mod basics;
 mod frames_text_and_sound;
+mod home;
 mod layers_and_symbols;
 mod menus_and_recovery;
 mod panels_and_view;

@@ -33,6 +33,7 @@ mod groups;
 mod guides;
 mod help;
 mod helpers;
+mod home;
 mod layers;
 mod outlines;
 mod panels;

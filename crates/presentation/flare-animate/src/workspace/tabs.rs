@@ -67,7 +67,9 @@ impl Workspace {
         let mut fresh = Self::new(document, path);
         fresh.adopt_environment(self);
         fresh.parked = std::mem::take(&mut self.parked);
-        let old = std::mem::replace(self, fresh);
+        let mut old = std::mem::replace(self, fresh);
+        // The Home page was a view over that document, not part of it.
+        old.windows.home = false;
         // The new tab goes right after the one it was opened from.
         let at = old.position;
         self.parked.insert(at, old);
@@ -85,6 +87,9 @@ impl Workspace {
 
     /// A new empty document in a new tab.
     pub fn new_tab(&mut self) {
+        if self.windows.home && self.is_blank() {
+            return self.new_document_in_place();
+        }
         match Self::untitled() {
             Ok(fresh) => {
                 let document = fresh.session.document().clone();

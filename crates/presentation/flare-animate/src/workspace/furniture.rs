@@ -43,15 +43,26 @@ impl Workspace {
             })
             .frame(egui::Frame::new().fill(flare_ui::theme::BG))
             .show(ui, |ui| self.menu_bar(ui));
-        egui::CentralPanel::default().show(ui, |ui| {
-            // The dock needs `&mut self` to draw panel contents, so take it out while it runs.
-            let mut layout = std::mem::replace(
-                &mut self.layout,
-                egui_tiles::Tree::empty(egui::Id::unique("taken")),
-            );
-            layout.ui(&mut Dock { workspace: self }, ui);
-            self.layout = layout;
-        });
+        let gutter = flare_ui::theme::GUTTER as i8;
+        egui::CentralPanel::default()
+            .frame(
+                egui::Frame::new()
+                    .fill(flare_ui::theme::BG)
+                    .inner_margin(egui::Margin::same(gutter)),
+            )
+            .show(ui, |ui| {
+                if self.windows.home {
+                    self.home_page(ui);
+                    return;
+                }
+                // The dock needs `&mut self` to draw panel contents, so take it out while it runs.
+                let mut layout = std::mem::replace(
+                    &mut self.layout,
+                    egui_tiles::Tree::empty(egui::Id::unique("taken")),
+                );
+                layout.ui(&mut Dock { workspace: self }, ui);
+                self.layout = layout;
+            });
 
         self.preferences_window(&ctx);
         self.file_windows(&ctx);
@@ -233,12 +244,21 @@ impl Workspace {
         );
         ui.horizontal_centered(|ui| {
             ui.add_space(self.titlebar_inset.max(10.0));
-            ui.add(flare_ui::icons::image("home", 16.0, flare_ui::theme::TEXT));
-            ui.label(
-                egui::RichText::new("Flare")
-                    .strong()
-                    .color(flare_ui::theme::TEXT),
-            );
+            let home = ui
+                .horizontal(|ui| {
+                    ui.add(flare_ui::icons::image("home", 16.0, flare_ui::theme::TEXT));
+                    ui.label(
+                        egui::RichText::new("Flare")
+                            .strong()
+                            .color(flare_ui::theme::TEXT),
+                    );
+                })
+                .response
+                .interact(egui::Sense::click())
+                .on_hover_text("Home");
+            if home.clicked() {
+                self.windows.home = !self.windows.home;
+            }
             ui.add_space(6.0);
             egui::MenuBar::new().ui(ui, |ui| {
                 if self.native_menu {

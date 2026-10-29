@@ -125,6 +125,8 @@ pub(super) struct OpenWindows {
     pub(super) about: bool,
     pub(super) shortcuts: bool,
     pub(super) publish_settings: bool,
+    /// The Home page covers the dock.
+    pub(super) home: bool,
 }
 
 /// Autosave and crash recovery of the document on show.

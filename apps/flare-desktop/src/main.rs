@@ -41,5 +41,10 @@ fn main() -> Result<()> {
             workspace.recover(&newest.path);
         }
     }
+    // A plain launch starts at Home, with the recent projects to hand; the work recovered above
+    // or the project named on the command line is shown at once.
+    if named.is_none() && !workspace.is_dirty() {
+        workspace.set_home(true);
+    }
     ui::run(workspace)
 }

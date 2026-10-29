@@ -79,6 +79,23 @@ Guides belong to the view of one document tab and are not saved in the file (at 
 Points placed by the shape, pen, Ruler and Mirror tools are pulled onto a guide whether or not the
 grid is on.
 
+## Home
+
+A plain launch opens on the Home page: sizes for a new project (HD, 720p, Square, Portrait,
+Classic, all at 24 fps), Open and Import, and the eight most recent projects. Choosing one leaves
+Home; starting a new project over an untouched document replaces it instead of adding a tab. The
+house and "Flare" at the left of the top bar, and Window > Home, bring Home back over the document
+you were working on, and "Back to the document" returns to it. A project named on the command line
+or recovered after a crash opens straight to its document. Home is a view, not a document: it is
+not saved and it is not part of a tab.
+
+## Spacing
+
+Docked panels (everything but the stage and the timeline, which use their whole area) keep their
+content 10 px from the sides and 8 px from the top and bottom (`theme::PANEL_PADDING`); the gutter
+between panels and around the dock is 4 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
+8 by 3 px of padding inside buttons and 22 px rows. These are set in one place, `theme::apply`.
+
 ## Ruler and Mirror
 
 The **Ruler** tool (M) measures: drag between two points and the stage shows the distance, the

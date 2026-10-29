@@ -16,18 +16,30 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         _tile: egui_tiles::TileId,
         pane: &mut Pane,
     ) -> egui_tiles::UiResponse {
+        // The stage and the timeline use their whole area; every other panel keeps its content
+        // off the edge.
+        let (horizontal, vertical) = flare_ui::theme::PANEL_PADDING;
+        let inset = egui::Frame::new().inner_margin(egui::Margin::symmetric(horizontal, vertical));
         match pane {
             Pane::Stage => self.workspace.stage(ui),
             Pane::Timeline => self.workspace.timeline(ui),
-            Pane::Library => self.workspace.library_panel(ui),
+            Pane::Library => inset.show(ui, |ui| self.workspace.library_panel(ui)).inner,
             Pane::Tools => self.workspace.tools_panel(ui),
-            Pane::Properties => self.workspace.properties_panel(ui),
-            Pane::Color => self.workspace.color_panel(ui),
-            Pane::Align => self.workspace.align_panel(ui),
-            Pane::Transform => self.workspace.transform_panel(ui),
-            Pane::History => self.workspace.history_panel(ui),
-            Pane::Info => self.workspace.info_panel(ui),
-            Pane::Output => self.workspace.output_panel(ui),
+            Pane::Properties => {
+                inset
+                    .show(ui, |ui| self.workspace.properties_panel(ui))
+                    .inner
+            }
+            Pane::Color => inset.show(ui, |ui| self.workspace.color_panel(ui)).inner,
+            Pane::Align => inset.show(ui, |ui| self.workspace.align_panel(ui)).inner,
+            Pane::Transform => {
+                inset
+                    .show(ui, |ui| self.workspace.transform_panel(ui))
+                    .inner
+            }
+            Pane::History => inset.show(ui, |ui| self.workspace.history_panel(ui)).inner,
+            Pane::Info => inset.show(ui, |ui| self.workspace.info_panel(ui)).inner,
+            Pane::Output => inset.show(ui, |ui| self.workspace.output_panel(ui)).inner,
         }
         egui_tiles::UiResponse::None
     }
@@ -41,7 +53,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
     }
 
     fn gap_width(&self, _style: &egui::Style) -> f32 {
-        3.0
+        flare_ui::theme::GUTTER
     }
 
     fn tab_bar_color(&self, _visuals: &egui::Visuals) -> egui::Color32 {

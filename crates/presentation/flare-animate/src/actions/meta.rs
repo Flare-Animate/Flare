@@ -191,6 +191,7 @@ impl MenuAction {
             Self::ShowTimeline => "panel-timeline",
             Self::ShowOutput => "panel-tools",
             Self::ShowInfo => "panel-properties",
+            Self::ShowHome => "home",
             Self::Cut => "cut",
             Self::SelectAll => "select-all",
             Self::Rewind => "transport-first",

@@ -34,6 +34,12 @@ fn install_fonts(ctx: &egui::Context) {
     ctx.set_fonts(fonts);
 }
 
+/// The gutter between docked panels and around the dock.
+pub const GUTTER: f32 = 4.0;
+
+/// Space between a docked panel's edge and its content (horizontal, vertical).
+pub const PANEL_PADDING: (i8, i8) = (10, 8);
+
 /// Applies the palette, spacing and type sizes to `ctx`.
 pub fn apply(ctx: &egui::Context) {
     install_fonts(ctx);
@@ -73,10 +79,12 @@ pub fn apply(ctx: &egui::Context) {
     ctx.set_visuals(visuals);
 
     ctx.global_style_mut(|style| {
-        style.spacing.item_spacing = egui::vec2(5.0, 3.0);
-        style.spacing.button_padding = egui::vec2(6.0, 2.0);
-        style.spacing.interact_size.y = 20.0;
-        style.spacing.window_margin = egui::Margin::same(6);
+        style.spacing.item_spacing = egui::vec2(6.0, 4.0);
+        style.spacing.button_padding = egui::vec2(8.0, 3.0);
+        style.spacing.interact_size.y = 22.0;
+        style.spacing.window_margin = egui::Margin::same(10);
+        style.spacing.menu_margin = egui::Margin::symmetric(8, 6);
+        style.spacing.indent = 14.0;
         style
             .text_styles
             .insert(TextStyle::Body, FontId::proportional(14.0));
@@ -90,4 +98,20 @@ pub fn apply(ctx: &egui::Context) {
             .text_styles
             .insert(TextStyle::Heading, FontId::proportional(16.0));
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn spacing_leaves_room_between_and_around_things() {
+        let ctx = egui::Context::default();
+        apply(&ctx);
+        let spacing = ctx.global_style().spacing.clone();
+        assert!(spacing.item_spacing.x >= 6.0 && spacing.item_spacing.y >= 4.0);
+        assert!(spacing.window_margin.left >= 10);
+        assert!(i16::from(PANEL_PADDING.0) > i16::from(GUTTER as i8));
+        assert!(spacing.interact_size.y >= 22.0);
+    }
 }

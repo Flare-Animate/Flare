@@ -127,7 +127,8 @@ impl Workspace {
             | MenuAction::ShowHistory
             | MenuAction::ShowTimeline
             | MenuAction::ShowOutput
-            | MenuAction::ShowInfo => true,
+            | MenuAction::ShowInfo
+            | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleOutlineMode
             | MenuAction::ToggleRulers
@@ -297,6 +298,7 @@ impl Workspace {
             MenuAction::ShowTimeline => self.show_pane(Pane::Timeline),
             MenuAction::ShowOutput => self.show_pane(Pane::Output),
             MenuAction::ShowInfo => self.show_pane(Pane::Info),
+            MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleOutlineMode => self.display.outline_mode = !self.display.outline_mode,
             MenuAction::ToggleRulers => self.display.show_rulers = !self.display.show_rulers,
