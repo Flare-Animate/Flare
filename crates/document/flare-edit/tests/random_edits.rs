@@ -122,12 +122,14 @@ fn assert_valid(document: &Document) {
         document.symbols().to_vec(),
     );
     assert!(rebuilt.is_ok(), "invalid document: {:?}", rebuilt.err());
-    for layer in document.scenes()[0].timeline().layers() {
-        for pair in layer.spans().windows(2) {
-            assert!(
-                pair[0].end() <= u64::from(pair[1].start()),
-                "overlapping spans survived"
-            );
+    for scene in document.scenes() {
+        for layer in scene.timeline().layers() {
+            for pair in layer.spans().windows(2) {
+                assert!(
+                    pair[0].end() <= u64::from(pair[1].start()),
+                    "overlapping spans survived"
+                );
+            }
         }
     }
 }

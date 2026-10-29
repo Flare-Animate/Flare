@@ -501,7 +501,12 @@ mod tests {
             // Some of these are well-formed but extreme (a span ending past u32); those load as
             // valid documents because frame arithmetic is overflow-safe. None may panic.
             let result = load(&path);
-            if payload.contains("\"duration\":0") || payload == "null" || payload == "[]" {
+            if payload.contains("\"duration\":0")
+                || payload == "null"
+                || payload == "[]"
+                || payload.contains("\"name\":1")
+                || payload.contains("\"id\":\"nope\"")
+            {
                 assert!(result.is_err(), "{payload}");
             }
         }
