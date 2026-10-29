@@ -56,6 +56,14 @@ impl WebApp {
                     flare_runtime::png_bytes(&document, frame),
                 );
             }
+            DialogRequest::ExportMovie => {
+                let (document, _) = self.workspace.image_export();
+                self.deliver(
+                    "movie.gif",
+                    "image/gif",
+                    flare_runtime::gif_bytes(&document),
+                );
+            }
             DialogRequest::PublishSwf => {
                 let (document, _) = self.workspace.image_export();
                 let options = flare_publish::PublishOptions { compress: true };

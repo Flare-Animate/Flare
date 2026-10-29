@@ -99,6 +99,7 @@ impl MenuAction {
             Self::Close => "close",
             Self::Revert => "rotate-ccw",
             Self::ExportImage => "file-export",
+            Self::ExportMovie => "test-movie",
             Self::Save | Self::SaveAs => "file-save",
             Self::Undo => "undo",
             Self::Redo => "redo",

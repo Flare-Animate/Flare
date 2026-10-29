@@ -27,6 +27,35 @@ pub fn export_png(
     })
 }
 
+/// Renders the whole animation as a GIF and writes it. Never overwrites; the file appears only
+/// when complete.
+pub fn export_gif(
+    document: Document,
+    path: PathBuf,
+    done: impl FnOnce(Result<(), String>) + Send + 'static,
+) -> io::Result<()> {
+    spawn("flare-export-movie", move || {
+        let result = flare_runtime::gif_bytes(&document).and_then(|bytes| {
+            if path.exists() {
+                return Err(format!("{} already exists", path.display()));
+            }
+            let directory = path
+                .parent()
+                .filter(|p| !p.as_os_str().is_empty())
+                .unwrap_or(std::path::Path::new("."));
+            let mut staged = tempfile::NamedTempFile::new_in(directory)
+                .map_err(|e| format!("Cannot write the movie: {e}"))?;
+            std::io::Write::write_all(&mut staged, &bytes)
+                .map_err(|e| format!("Cannot write the movie: {e}"))?;
+            staged
+                .persist(&path)
+                .map(|_| ())
+                .map_err(|e| format!("Cannot write the movie: {}", e.error))
+        });
+        done(result);
+    })
+}
+
 /// Publishes a SWF. Never overwrites; the file appears only when complete.
 pub fn publish_swf(
     document: Document,

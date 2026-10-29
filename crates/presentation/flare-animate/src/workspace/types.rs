@@ -59,6 +59,7 @@ pub enum DialogRequest {
     SaveAs,
     ImportSound,
     ExportImage,
+    ExportMovie,
     PublishSwf,
     ImportProject,
 }

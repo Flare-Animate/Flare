@@ -43,6 +43,15 @@ impl App {
                     }
                 }
             }
+            DialogRequest::ExportMovie => {
+                if let Some(path) = dialogs::save_gif() {
+                    let (document, _) = self.workspace.image_export();
+                    let done = exported(&self.proxy);
+                    if let Err(error) = jobs::export_gif(document, path, done) {
+                        dialogs::message("Cannot export", &error.to_string());
+                    }
+                }
+            }
             DialogRequest::PublishSwf => {
                 if let Some(path) = dialogs::save_swf() {
                     let (document, _) = self.workspace.image_export();

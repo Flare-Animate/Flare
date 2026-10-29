@@ -104,6 +104,7 @@ swf = "0.3.0"
 # ---- Image assets and font/layout adapters -----------------------------------
 image = { version = "0.25.10", default-features = false }
 png = "0.18.1"
+gif = { version = "0.14", default-features = false, features = ["std", "color_quant"] }
 parley = "0.12.0"
 skrifa = "0.44.0"          # Glyph outlines for the text tool; one copy, shared with the rasterizer.
 # usvg/resvg, lcms2, libmypaint, specialised codecs: add when a feature needs them.

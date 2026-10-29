@@ -35,9 +35,8 @@ Still planned (everything else in the menus and panels is built):
 - Library: folders.
 - Timeline: motion guides, the outline column.
 - View: guides and outline mode.
-- File: Open Recent, Save All, Export Movie, Publish Settings. (Import XFL or FLA, Preferences, New,
-  Close and Revert are built; they work on the one document a window holds until multi-document
-  tabs exist.)
+- File: Open Recent, Save All, Publish Settings. Export Movie writes a looping GIF; New, Close and
+  Revert work on the one document a window holds until multi-document tabs exist.
 - Edit, Modify, Text, Commands and Help entries listed dimmed in the menus.
 
 ## Top bar

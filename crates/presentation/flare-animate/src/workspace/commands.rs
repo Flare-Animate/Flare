@@ -34,7 +34,9 @@ impl Workspace {
             MenuAction::ImportProject => !self.in_symbol(),
             MenuAction::New | MenuAction::Close => !self.in_symbol(),
             MenuAction::Revert => self.path.is_some() && self.is_dirty(),
-            MenuAction::ExportImage => !self.document().scenes().is_empty(),
+            MenuAction::ExportImage | MenuAction::ExportMovie => {
+                !self.document().scenes().is_empty()
+            }
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
             MenuAction::Paste => !self.clipboard.is_empty(),
@@ -122,6 +124,7 @@ impl Workspace {
             MenuAction::Close => "Close",
             MenuAction::Revert => "Revert",
             MenuAction::ExportImage => "Export Image...",
+            MenuAction::ExportMovie => "Export Movie (GIF)...",
             MenuAction::Save => "Save",
             MenuAction::SaveAs => "Save As...",
             MenuAction::Quit => "Quit Flare",
@@ -281,6 +284,7 @@ impl Workspace {
             MenuAction::NewLayerFolder => self.add_layer_folder(),
             MenuAction::Revert => self.revert(),
             MenuAction::ExportImage => self.dialog = Some(DialogRequest::ExportImage),
+            MenuAction::ExportMovie => self.dialog = Some(DialogRequest::ExportMovie),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
             MenuAction::Quit => self.quit_requested = true,

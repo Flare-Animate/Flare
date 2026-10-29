@@ -35,6 +35,13 @@ pub fn save_png() -> Option<PathBuf> {
         .save_file()
 }
 
+pub fn save_gif() -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter("GIF animation", &["gif"])
+        .set_file_name("movie.gif")
+        .save_file()
+}
+
 pub fn save_swf() -> Option<PathBuf> {
     rfd::FileDialog::new()
         .add_filter("SWF movie", &["swf"])
