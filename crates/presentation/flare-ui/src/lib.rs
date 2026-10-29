@@ -9,6 +9,7 @@
 mod actions;
 mod background;
 mod chrome;
+mod export_image;
 mod freehand;
 mod handles;
 mod icons;
@@ -21,6 +22,7 @@ mod view;
 mod workspace;
 
 pub use actions::{MENU_LAYOUT, MenuAction, MenuEntry};
+pub use export_image::export_png;
 pub use layout::{LayoutError, MAX_LAYOUT_BYTES, Pane};
 pub use workspace::{
     AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest,

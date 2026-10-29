@@ -7,6 +7,7 @@
 pub enum MenuAction {
     Open,
     ImportSound,
+    ExportImage,
     Save,
     SaveAs,
     Quit,
@@ -77,9 +78,10 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 69] = [
+    pub const ALL: [MenuAction; 70] = [
         Self::Open,
         Self::ImportSound,
+        Self::ExportImage,
         Self::Save,
         Self::SaveAs,
         Self::Quit,
@@ -238,6 +240,7 @@ impl MenuAction {
         Some(match self {
             Self::Open => "file-open",
             Self::ImportSound => "sound",
+            Self::ExportImage => "file-export",
             Self::Save | Self::SaveAs => "file-save",
             Self::Undo => "undo",
             Self::Redo => "redo",
@@ -350,7 +353,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Mock("Import to Stage..."),
             Mock("Import to Library..."),
             Separator,
-            Mock("Export Image..."),
+            Action(A::ExportImage),
             Mock("Export Movie..."),
             Mock("Publish Settings..."),
             Mock("Publish"),

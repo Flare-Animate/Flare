@@ -25,6 +25,7 @@ serde_json.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+png.workspace = true
 epaint_default_fonts = "0.37"
 
 [lints]

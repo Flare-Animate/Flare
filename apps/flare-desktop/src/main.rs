@@ -25,6 +25,8 @@ enum UserEvent {
     Menu(MenuAction),
     /// A test movie finished starting (or failed to) on its own thread.
     MovieStarted(Result<flare_publish::TestMovie, flare_publish::TestMovieError>),
+    /// An image export finished on its own thread; an error is worded for the person.
+    ImageExported(Result<(), String>),
 }
 
 struct Gpu {
@@ -134,6 +136,26 @@ impl App {
                     .pick_file()
                 {
                     self.workspace.import_sound(&path);
+                }
+            }
+            Some(DialogRequest::ExportImage) => {
+                if let Some(path) = rfd::FileDialog::new()
+                    .add_filter("PNG image", &["png"])
+                    .set_file_name("frame.png")
+                    .save_file()
+                {
+                    let (document, frame) = self.workspace.image_export();
+                    let proxy = self.proxy.clone();
+                    let spawned = std::thread::Builder::new()
+                        .name("flare-export-image".into())
+                        .spawn(move || {
+                            let result = flare_ui::export_png(&document, frame, &path);
+                            // A closed event loop means the app is exiting.
+                            let _ = proxy.send_event(UserEvent::ImageExported(result));
+                        });
+                    if let Err(error) = spawned {
+                        show_message("Cannot export", &error.to_string());
+                    }
                 }
             }
             None => {}
@@ -329,6 +351,8 @@ impl ApplicationHandler<UserEvent> for App {
                 self.handle_quit(event_loop);
             }
             UserEvent::MovieStarted(Ok(movie)) => self.movies.push(movie),
+            UserEvent::ImageExported(Ok(())) => {}
+            UserEvent::ImageExported(Err(message)) => show_message("Export failed", &message),
             UserEvent::MovieStarted(Err(error)) => {
                 show_message("Cannot start Test Movie", &error.to_string());
             }

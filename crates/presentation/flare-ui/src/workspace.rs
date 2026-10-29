@@ -69,6 +69,7 @@ pub enum DialogRequest {
     Open,
     SaveAs,
     ImportSound,
+    ExportImage,
 }
 
 /// A request for the shell to move or zoom its window, from the integrated title bar.
@@ -1742,6 +1743,11 @@ impl Workspace {
         std::mem::take(&mut self.quit_requested)
     }
 
+    /// What an image export needs, shared not copied: the saved document and the frame on show.
+    pub fn image_export(&self) -> (Document, u32) {
+        (self.main_document().clone(), self.frame)
+    }
+
     /// Returns (and clears) a request to play the document in an external player.
     pub fn take_test_movie_request(&mut self) -> bool {
         std::mem::take(&mut self.test_movie_requested)
@@ -1774,6 +1780,7 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
+            MenuAction::ExportImage => !self.document().scenes().is_empty(),
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
             MenuAction::Paste => !self.clipboard.is_empty(),
@@ -1849,6 +1856,7 @@ impl Workspace {
         let text = match action {
             MenuAction::Open => "Open...",
             MenuAction::ImportSound => "Import Sound...",
+            MenuAction::ExportImage => "Export Image...",
             MenuAction::Save => "Save",
             MenuAction::SaveAs => "Save As...",
             MenuAction::Quit => "Quit Flare",
@@ -1995,6 +2003,7 @@ impl Workspace {
         match action {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
+            MenuAction::ExportImage => self.dialog = Some(DialogRequest::ExportImage),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
             MenuAction::Quit => self.quit_requested = true,

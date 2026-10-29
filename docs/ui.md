@@ -37,6 +37,7 @@ Planned, in the order they will be built:
 - Panels: Align, Distribute, Bring to front and Send to back, and the typed Transform numbers are built (Group and Ungroup are not).
 - Control: loop playback and mute sounds are built.
 - View: rulers, grid and snap to grid are built; Guides and Outline Mode are not.
+- File: Export Image (PNG of the frame on show) is built.
 - Menu: Cut, Select All, Deselect All, Rewind, Step Forward and Backward and Actual Size are built.
 - Properties: stroke cap and join, text style. (Built: Tool, Object, Frame and Doc tabs, editable position and size, frame rate.)
 - Library: folders, preview. (Built: search, new symbol, rename, delete.)
