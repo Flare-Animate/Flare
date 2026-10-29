@@ -59,6 +59,8 @@ impl Workspace {
             | MenuAction::DeselectAll
             | MenuAction::FlipHorizontal
             | MenuAction::FlipVertical
+            | MenuAction::MirrorCopyHorizontal
+            | MenuAction::MirrorCopyVertical
             | MenuAction::RotateClockwise
             | MenuAction::RotateCounterclockwise
             | MenuAction::ScaleUp
@@ -88,6 +90,8 @@ impl Workspace {
             | MenuAction::ToolLasso
             | MenuAction::ToolPencil
             | MenuAction::ToolBrush
+            | MenuAction::ToolRuler
+            | MenuAction::ToolMirror
             | MenuAction::PlayPause
             | MenuAction::ZoomIn
             | MenuAction::ZoomOut => true,
@@ -222,6 +226,10 @@ impl Workspace {
             MenuAction::ToolLasso => self.set_tool(Tool::Lasso),
             MenuAction::ToolPencil => self.set_tool(Tool::Pencil),
             MenuAction::ToolBrush => self.set_tool(Tool::Brush),
+            MenuAction::ToolRuler => self.set_tool(Tool::Ruler),
+            MenuAction::ToolMirror => self.set_tool(Tool::Mirror),
+            MenuAction::MirrorCopyHorizontal => self.mirror_copy_selection(true),
+            MenuAction::MirrorCopyVertical => self.mirror_copy_selection(false),
             MenuAction::InsertFrame => self.frame_edit(FrameOp::InsertFrame),
             MenuAction::RemoveFrame => self.frame_edit(FrameOp::RemoveFrame),
             MenuAction::InsertKeyframe => self.frame_edit(FrameOp::InsertKeyframe),

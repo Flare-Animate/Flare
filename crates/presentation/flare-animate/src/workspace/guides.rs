@@ -30,6 +30,18 @@ pub fn snap_to_guides(point: Pos2, guides: &[Guide], reach: f32) -> Pos2 {
     Pos2::new(nearest(true, point.x), nearest(false, point.y))
 }
 
+/// `point` rounded to the grid when there is one, then pulled onto a guide within `reach`.
+/// Guides pull whether or not the grid does.
+pub(super) fn snap_for_drawing(
+    point: Pos2,
+    grid: Option<f32>,
+    guides: &[Guide],
+    reach: f32,
+) -> Pos2 {
+    let on_grid = grid.map_or(point, |size| super::snap_point(point, size));
+    snap_to_guides(on_grid, guides, reach)
+}
+
 impl Workspace {
     /// Starts a guide at `at` and returns its index, unless there are too many already or `at`
     /// is not a number.

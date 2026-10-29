@@ -4,6 +4,7 @@
 use egui::{Color32, Pos2};
 use flare_core::SoundId;
 use flare_document::{Cap, Join};
+use flare_tools::symmetry::Symmetry;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -48,6 +49,14 @@ pub(super) struct Paint {
     pub(super) stroke_width: f32,
     pub(super) stroke_cap: Cap,
     pub(super) stroke_join: Join,
+    /// Pencil and brush strokes are mirrored across these axes.
+    pub(super) symmetry: Symmetry,
+    /// Where the axes cross; the middle of the stage until one is set.
+    pub(super) symmetry_center: Option<Pos2>,
+    /// Pencil and brush strokes are straightened to a line between their ends.
+    pub(super) straight_edge: bool,
+    /// Shift is held, which straightens a stroke for as long as it is.
+    pub(super) straight_held: bool,
 }
 
 impl Default for Paint {
@@ -62,6 +71,10 @@ impl Default for Paint {
             stroke_width: 4.0,
             stroke_cap: Cap::Round,
             stroke_join: Join::Round,
+            symmetry: Symmetry::Off,
+            symmetry_center: None,
+            straight_edge: false,
+            straight_held: false,
         }
     }
 }
@@ -81,6 +94,8 @@ pub(super) struct Display {
     pub(super) guide_drag: Option<usize>,
     /// The stage draws outlines in layer colors instead of the artwork.
     pub(super) outline_mode: bool,
+    /// What the Ruler tool last measured: from one stage point to another.
+    pub(super) measure: Option<(Pos2, Pos2)>,
 }
 
 impl Default for Display {
@@ -94,6 +109,7 @@ impl Default for Display {
             show_guides: true,
             guide_drag: None,
             outline_mode: false,
+            measure: None,
         }
     }
 }

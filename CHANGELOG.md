@@ -15,7 +15,10 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
   spans, shapes with strokes and gradients, symbols, and sounds. Every change is a validated
   command batch and one undo step.
 - Drawing tools: selection, subselection, free transform, lasso, pen, text, line, rectangle,
-  ellipse, polystar, pencil, brush, paint bucket, ink bottle, eyedropper, eraser, hand, zoom.
+  ellipse, polystar, pencil, brush, paint bucket, ink bottle, eyedropper, eraser, hand, zoom,
+  ruler (measures distance and angle) and mirror (sets the axes for symmetric drawing).
+- Pencil and Brush can draw a straight line (option, or hold Shift) and mirror each stroke across
+  one or two axes; Modify > Mirror Copy makes a reflected copy of the selection.
 - Timeline with frames, keyframes, layers, folders, onion skin, linear motion tweens and motion
   guides, and playback with sound.
 - Panels that dock and move: tools, properties, color, align, transform, library, history, output.

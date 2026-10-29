@@ -132,7 +132,14 @@ impl TransformEdit {
 pub(super) fn tool_places_points(tool: Tool) -> bool {
     matches!(
         tool,
-        Tool::Rectangle | Tool::Ellipse | Tool::Line | Tool::Pen | Tool::PolyStar | Tool::Text
+        Tool::Rectangle
+            | Tool::Ellipse
+            | Tool::Line
+            | Tool::Pen
+            | Tool::PolyStar
+            | Tool::Text
+            | Tool::Ruler
+            | Tool::Mirror
     )
 }
 
@@ -229,6 +236,8 @@ pub(super) const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::L, Tool::Lasso),
     (Key::Y, Tool::Pencil),
     (Key::B, Tool::Brush),
+    (Key::M, Tool::Ruler),
+    (Key::X, Tool::Mirror),
 ];
 
 /// Frames `from..=to` of one layer, selected in the timeline for copying.
@@ -314,6 +323,10 @@ pub enum Tool {
     Pencil,
     /// Drag to paint a thick round stroke in the fill color.
     Brush,
+    /// Drag to read the distance and angle between two points.
+    Ruler,
+    /// Click to set the axis that symmetric drawing and mirror copies use.
+    Mirror,
 }
 
 /// Timeline frame operations on the active layer at the current frame.

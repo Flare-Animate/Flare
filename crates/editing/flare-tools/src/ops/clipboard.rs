@@ -42,12 +42,33 @@ pub fn duplicate(
     at: SpanRef,
     offset: DVec2,
 ) -> Option<(Vec<Command>, SpanRef)> {
+    duplicate_through(
+        document,
+        scene,
+        at,
+        DAffine2::from_translation(offset),
+        "copy",
+    )
+}
+
+/// [`duplicate`] through any `matrix` (in stage coordinates): a mirror image of a span is a
+/// copy through a reflection. The new layer is named after the source and `suffix`.
+pub fn duplicate_through(
+    document: &Document,
+    scene: SceneId,
+    at: SpanRef,
+    matrix: DAffine2,
+    suffix: &str,
+) -> Option<(Vec<Command>, SpanRef)> {
+    if !matrix.is_finite() || matrix.matrix2.determinant().abs() < 1e-9 {
+        return None;
+    }
     let timeline = scene_timeline(document, scene)?;
     let source = timeline.layers().iter().find(|l| l.id() == at.layer)?;
     let span = find_span(document, scene, at)?;
-    let content = fresh_content(span.content(), DAffine2::from_translation(offset))?;
+    let content = fresh_content(span.content(), matrix)?;
     let copy = FrameSpan::new(span.start(), span.duration(), content).with_tween(span.tween());
-    new_layer_with(scene, &format!("{} copy", source.name()), copy)
+    new_layer_with(scene, &format!("{} {suffix}", source.name()), copy)
 }
 
 /// What Copy remembers about a span, so it can be pasted later or into another document.

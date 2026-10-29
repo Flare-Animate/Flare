@@ -24,6 +24,7 @@ mod menus_and_recovery;
 mod panels_and_view;
 mod pen_and_selection;
 mod rendering_and_workers;
+mod rulers_and_mirror;
 mod spans_and_handles;
 mod tools_and_menus;
 mod window_menu;

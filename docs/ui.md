@@ -76,6 +76,24 @@ Drag from the top or left ruler to pull a guide onto the stage; drag a guide to 
 onto a ruler to remove it. View > Hide Guides hides them and Clear Guides removes them all. With
 Snap on, points placed by the pen and the shape tools snap to a guide within six screen pixels.
 Guides belong to the view of one document tab and are not saved in the file (at most 200).
+Points placed by the shape, pen, Ruler and Mirror tools are pulled onto a guide whether or not the
+grid is on.
+
+## Ruler and Mirror
+
+The **Ruler** tool (M) measures: drag between two points and the stage shows the distance, the
+angle (counter-clockwise from the right, up positive) and the offsets. The reading stays until the
+next drag and is repeated in the tool's options.
+
+The **Mirror** tool (X) holds the symmetry settings. Symmetry is Off, Left-right, Top-bottom or
+Four-way; click the stage, or type x and y, to put the axes (the middle of the stage until set).
+While Pencil, Brush or Mirror is in hand the axes are drawn in pink. With symmetry on, each
+Pencil or Brush stroke is drawn with its reflections, each on its own layer, as one undo step.
+The same tool offers Copy left-right and Copy top-bottom (also Modify > Mirror Copy), which put a
+reflected copy of the selection across the axes, and Flip.
+
+Pencil and Brush also have **Straight**: with it on, or while Shift is held, a stroke is the
+straight line between where the drag began and where it ended.
 
 ## Info panel
 

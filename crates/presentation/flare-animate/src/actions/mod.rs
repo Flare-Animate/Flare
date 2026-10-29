@@ -59,6 +59,10 @@ pub enum MenuAction {
     ToolLasso,
     ToolPencil,
     ToolBrush,
+    ToolRuler,
+    ToolMirror,
+    MirrorCopyHorizontal,
+    MirrorCopyVertical,
     Cut,
     SelectAll,
     DeselectAll,
@@ -124,7 +128,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 109] = [
+    pub const ALL: [MenuAction; 113] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -172,6 +176,10 @@ impl MenuAction {
         Self::ToolLasso,
         Self::ToolPencil,
         Self::ToolBrush,
+        Self::ToolRuler,
+        Self::ToolMirror,
+        Self::MirrorCopyHorizontal,
+        Self::MirrorCopyVertical,
         Self::Cut,
         Self::SelectAll,
         Self::DeselectAll,

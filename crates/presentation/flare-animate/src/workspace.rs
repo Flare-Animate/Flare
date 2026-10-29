@@ -19,6 +19,7 @@ use flare_input::InputSample;
 
 mod anchors;
 mod arrange;
+mod assist;
 mod background_work;
 mod command_labels;
 mod commands;

@@ -1,5 +1,6 @@
 //! The tool strip and the options of the tool in hand.
 
+use crate::MenuAction;
 use crate::workspace::{Tool, Workspace};
 use egui::Ui;
 use flare_ui::chrome;
@@ -32,6 +33,8 @@ const TOOL_GRID: &[(&str, &str, &str, Option<Tool>)] = &[
     ("tool-polystar", "PolyStar", "G", Some(Tool::PolyStar)),
     ("tool-pencil", "Pencil", "Y", Some(Tool::Pencil)),
     ("tool-brush", "Brush", "B", Some(Tool::Brush)),
+    ("tool-mirror", "Mirror", "X", Some(Tool::Mirror)),
+    ("tool-ruler", "Ruler", "M", Some(Tool::Ruler)),
     ("tool-bucket", "Paint Bucket", "K", Some(Tool::Bucket)),
     ("tool-ink-bottle", "Ink Bottle", "S", Some(Tool::InkBottle)),
     ("tool-eyedropper", "Eyedropper", "I", Some(Tool::Eyedropper)),
@@ -146,6 +149,8 @@ impl Workspace {
             Tool::Lasso => ("tool-lasso", "Lasso"),
             Tool::Pencil => ("tool-pencil", "Pencil"),
             Tool::Brush => ("tool-brush", "Brush"),
+            Tool::Ruler => ("tool-ruler", "Ruler"),
+            Tool::Mirror => ("tool-mirror", "Mirror"),
         };
         chrome::section(ui, icon, &format!("{title} tool"));
         match self.tool {
@@ -230,6 +235,7 @@ impl Workspace {
                             .speed(0.1),
                     );
                 });
+                self.stroke_assists(ui);
                 ui.weak("Drag to draw. The line uses the stroke color and width.");
             }
             Tool::Brush => {
@@ -254,7 +260,23 @@ impl Workspace {
                             .speed(0.01),
                     );
                 });
+                self.stroke_assists(ui);
                 ui.weak("Drag to paint with the fill color; a pen presses wider.");
+            }
+            Tool::Ruler => {
+                let reading = self
+                    .measurement()
+                    .map_or_else(|| "Drag on the stage".to_owned(), |m| m.label());
+                chrome::row(ui, "Reading", |ui| {
+                    ui.label(reading);
+                });
+                ui.weak("Drag from one point to another. Points snap to guides, and to the grid when snapping is on.");
+            }
+            Tool::Mirror => {
+                self.mirror_options(ui);
+                ui.weak(
+                    "Click the stage to put the axes there. Pencil and Brush mirror across them.",
+                );
             }
             Tool::Lasso => {
                 ui.weak("Drag a loop around shapes to select them; Shift adds to the selection.");
@@ -293,6 +315,70 @@ impl Workspace {
             Tool::Lasso => "Lasso: drag a loop around shapes to select them",
             Tool::Pencil => "Pencil: drag to draw",
             Tool::Brush => "Brush: drag to paint",
+            Tool::Ruler => "Ruler: drag to measure; Pencil and Brush draw straight with Shift",
+            Tool::Mirror => "Mirror: click to set the axes that Pencil and Brush mirror across",
         }
+    }
+
+    /// The straight edge and symmetry options the Pencil and Brush share.
+    fn stroke_assists(&mut self, ui: &mut Ui) {
+        chrome::row(ui, "Straight", |ui| {
+            ui.checkbox(&mut self.paint.straight_edge, "Always (or hold Shift)");
+        });
+        chrome::row(ui, "Symmetry", |ui| {
+            self.symmetry_picker(ui);
+        });
+    }
+
+    fn symmetry_picker(&mut self, ui: &mut Ui) {
+        egui::ComboBox::from_id_salt("symmetry")
+            .selected_text(self.paint.symmetry.label())
+            .show_ui(ui, |ui| {
+                for mode in flare_tools::symmetry::Symmetry::ALL {
+                    ui.selectable_value(&mut self.paint.symmetry, mode, mode.label());
+                }
+            });
+    }
+
+    /// The Mirror tool's options: the symmetry mode, the axes, and mirror copies.
+    fn mirror_options(&mut self, ui: &mut Ui) {
+        chrome::row(ui, "Symmetry", |ui| {
+            self.symmetry_picker(ui);
+        });
+        let extent = self.stage_extent();
+        let mut center = self
+            .paint
+            .symmetry_center
+            .unwrap_or_else(|| egui::pos2(extent.x / 2.0, extent.y / 2.0));
+        let before = center;
+        chrome::row(ui, "Axes at", |ui| {
+            ui.add(egui::DragValue::new(&mut center.x).prefix("x ").speed(1.0));
+            ui.add(egui::DragValue::new(&mut center.y).prefix("y ").speed(1.0));
+        });
+        if center != before && center.x.is_finite() && center.y.is_finite() {
+            self.paint.symmetry_center = Some(center);
+        }
+        if ui.small_button("Center on stage").clicked() {
+            self.paint.symmetry_center = None;
+        }
+        let selected = self.has_selection();
+        ui.add_enabled_ui(selected, |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("Copy left-right").clicked() {
+                    self.mirror_copy_selection(true);
+                }
+                if ui.button("Copy top-bottom").clicked() {
+                    self.mirror_copy_selection(false);
+                }
+            });
+            ui.horizontal(|ui| {
+                if ui.button("Flip horizontal").clicked() {
+                    self.perform(MenuAction::FlipHorizontal);
+                }
+                if ui.button("Flip vertical").clicked() {
+                    self.perform(MenuAction::FlipVertical);
+                }
+            });
+        });
     }
 }

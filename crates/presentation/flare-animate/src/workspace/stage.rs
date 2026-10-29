@@ -85,6 +85,7 @@ impl Workspace {
             self.stage_rulers(&painter, response.rect, image_rect, scale);
         }
         self.stage_guides(ui, response.rect, image_rect, scale);
+        self.assist_overlay(&painter, response.rect, image_rect, scale);
         self.text_editor(ui.ctx(), image_rect, scale);
         if !self.stage_view.is_fit() {
             painter.text(
@@ -100,22 +101,21 @@ impl Workspace {
         self.skew_modifier = ui.input(|i| i.modifiers.alt);
         // Tools that place points snap them to the grid; tools that find things do not, or a
         // thin shape could not be clicked.
+        let places = tool_places_points(self.tool);
         let snap = self
             .display
             .snap_to_grid
             .then_some(self.display.grid_size)
-            .filter(|_| tool_places_points(self.tool));
-        let guides = if self.display.show_guides {
+            .filter(|_| places);
+        let guides = if self.display.show_guides && places {
             self.display.guides.clone()
         } else {
             Vec::new()
         };
+        // Guides pull points to them whether or not the grid does.
         let to_doc = |p: Pos2| {
             let at = screen_to_stage(p, image_rect, extent);
-            snap.map_or(at, |grid| {
-                let on_grid = snap_point(at, grid);
-                guides::snap_to_guides(on_grid, &guides, 6.0 / scale.max(f32::EPSILON))
-            })
+            guides::snap_for_drawing(at, snap, &guides, 6.0 / scale.max(f32::EPSILON))
         };
         self.pointer_stage = response.hover_pos().map(to_doc);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
@@ -132,8 +132,18 @@ impl Workspace {
         if self.tool == Tool::Hand && response.dragged_by(egui::PointerButton::Primary) {
             self.stage_view.pan_by(response.drag_delta());
         }
+        if matches!(self.tool, Tool::Ruler | Tool::Mirror) {
+            let primary = egui::PointerButton::Primary;
+            let origin = ui.input(|i| i.pointer.press_origin());
+            if let Some(p) = response.interact_pointer_pos()
+                && (response.dragged_by(primary) || response.clicked())
+            {
+                self.assist_drag(origin.map_or_else(|| to_doc(p), to_doc), to_doc(p));
+            }
+        }
         if matches!(self.tool, Tool::Pencil | Tool::Brush) {
             let primary = egui::PointerButton::Primary;
+            self.paint.straight_held = ui.input(|i| i.modifiers.shift);
             if let Some(p) = response.interact_pointer_pos()
                 && response.dragged_by(primary)
             {
@@ -168,12 +178,10 @@ impl Workspace {
                     Tool::Brush => (self.paint.fill, self.brush_size),
                     _ => (self.paint.stroke_color, self.paint.stroke_width),
                 };
-                let points: Vec<Pos2> = self
-                    .freehand
-                    .iter()
-                    .map(|s| to_screen(Pos2::new(s.x as f32, s.y as f32)))
-                    .collect();
-                painter.add(egui::Shape::line(points, Stroke::new(width * scale, color)));
+                for stroke in self.freehand_preview() {
+                    let points: Vec<Pos2> = stroke.into_iter().map(to_screen).collect();
+                    painter.add(egui::Shape::line(points, Stroke::new(width * scale, color)));
+                }
             }
         }
         if self.tool == Tool::Lasso {

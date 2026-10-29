@@ -132,6 +132,14 @@ impl Workspace {
     /// Adds `shape` on a new layer spanning the scene (at least 24 frames), as one undo step,
     /// and makes that layer active.
     pub(super) fn insert_shape_layer(&mut self, shape: Shape, name: &str) {
+        self.insert_shape_layers(vec![shape], name);
+    }
+
+    /// Adds each shape on a layer of its own, all as one undo step; the first is made active.
+    pub(super) fn insert_shape_layers(&mut self, shapes: Vec<Shape>, name: &str) {
+        if shapes.is_empty() {
+            return;
+        }
         let Some(scene) = self.document().scenes().first() else {
             self.report("This document has no scene");
             return;
@@ -140,34 +148,42 @@ impl Workspace {
         let duration = u32::try_from(scene.timeline().frame_count())
             .unwrap_or(u32::MAX)
             .max(24);
-        let span = FrameSpan::new(
-            0,
-            NonZeroU32::new(duration).unwrap_or(NonZeroU32::MIN),
-            Content::Shape(shape),
-        );
-        let layer_id = LayerId::new();
-        let layer = match Layer::new(layer_id, name, vec![]) {
-            Ok(layer) => layer,
-            Err(error) => return self.report(error.to_string()),
-        };
-        let batch = [
-            Command::AddLayer {
+        let mut batch = Vec::new();
+        let mut first = None;
+        for (index, shape) in shapes.into_iter().enumerate() {
+            let span = FrameSpan::new(
+                0,
+                NonZeroU32::new(duration).unwrap_or(NonZeroU32::MIN),
+                Content::Shape(shape),
+            );
+            let layer_id = LayerId::new();
+            let label = if index == 0 {
+                name.to_owned()
+            } else {
+                format!("{name} mirror {index}")
+            };
+            let layer = match Layer::new(layer_id, label, vec![]) {
+                Ok(layer) => layer,
+                Err(error) => return self.report(error.to_string()),
+            };
+            first.get_or_insert(layer_id);
+            batch.push(Command::AddLayer {
                 scene: scene_id,
                 layer,
-            },
-            Command::InsertSpan {
+            });
+            batch.push(Command::InsertSpan {
                 scene: scene_id,
                 layer: layer_id,
                 span,
-            },
-        ];
+            });
+        }
         match self
             .active_mut()
             .apply_labeled(batch, &format!("Draw {}", name.to_lowercase()))
         {
             Ok(()) => {
                 self.status = None;
-                self.current_layer = Some(layer_id);
+                self.current_layer = first;
             }
             Err(error) => self.report(format!("Cannot draw: {error}")),
         }

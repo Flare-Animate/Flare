@@ -82,6 +82,8 @@ impl MenuAction {
             Self::ToolLasso => "L",
             Self::ToolPencil => "Y",
             Self::ToolBrush => "B",
+            Self::ToolRuler => "M",
+            Self::ToolMirror => "X",
             Self::ToolLine => "N",
             Self::ToolRectangle => "R",
             Self::ToolEllipse => "O",
@@ -140,6 +142,10 @@ impl MenuAction {
             Self::ToolLasso => "tool-lasso",
             Self::ToolPencil => "tool-pencil",
             Self::ToolBrush => "tool-brush",
+            Self::ToolRuler => "tool-ruler",
+            Self::ToolMirror | Self::MirrorCopyHorizontal | Self::MirrorCopyVertical => {
+                "tool-mirror"
+            }
             Self::InsertFrame => "frame-insert",
             Self::RemoveFrame => "frame-remove",
             Self::CopyFrames => "copy",

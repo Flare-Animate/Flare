@@ -32,7 +32,9 @@ impl Workspace {
             | Tool::Eraser
             | Tool::Lasso
             | Tool::Pencil
-            | Tool::Brush => None,
+            | Tool::Brush
+            | Tool::Ruler
+            | Tool::Mirror => None,
             Tool::Subselection => {
                 self.begin_anchor_drag(point);
                 None
@@ -155,24 +157,41 @@ impl Workspace {
 
     /// Commits the pencil or brush stroke as one undo step. The pencil is a smoothed open path in
     /// the stroke color and width; the brush is a filled outline in the fill color whose width
-    /// follows the pressure of the pen.
+    /// follows the pressure of the pen. A straight edge reduces the stroke to a line, and
+    /// symmetry adds its mirror images, all in the same step.
     pub(super) fn finish_freehand(&mut self, scale: f32) {
-        let samples = std::mem::take(&mut self.freehand);
+        let mut samples = std::mem::take(&mut self.freehand);
+        if self.paint.straight_edge || self.paint.straight_held {
+            samples = flare_tools::rulers::straighten(&samples);
+        }
+        let about = self.symmetry_center();
+        let mut strokes = vec![samples.clone()];
+        strokes.extend(
+            self.paint
+                .symmetry
+                .reflections()
+                .iter()
+                .map(|r| r.samples(&samples, about)),
+        );
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
-        let shape = match self.tool {
-            Tool::Brush => self.brush_shape(&samples, f64::from(tolerance)),
-            _ => self.pencil_shape(&samples, tolerance),
-        };
+        let mut shapes = Vec::new();
+        for stroke in &strokes {
+            let shape = match self.tool {
+                Tool::Brush => self.brush_shape(stroke, f64::from(tolerance)),
+                _ => self.pencil_shape(stroke, tolerance),
+            };
+            match shape {
+                Ok(Some(shape)) => shapes.push(shape),
+                Ok(None) => {} // a click, not a drag
+                Err(error) => return self.report(error),
+            }
+        }
         let name = if self.tool == Tool::Brush {
             "Brush stroke"
         } else {
             "Pencil line"
         };
-        match shape {
-            Ok(Some(shape)) => self.insert_shape_layer(shape, name),
-            Ok(None) => {} // a click, not a drag
-            Err(error) => self.report(error),
-        }
+        self.insert_shape_layers(shapes, name);
     }
 
     fn pencil_shape(

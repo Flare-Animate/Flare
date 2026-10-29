@@ -9,3 +9,5 @@ pub mod freehand;
 pub mod handles;
 pub mod ops;
 pub mod pen;
+pub mod rulers;
+pub mod symmetry;
