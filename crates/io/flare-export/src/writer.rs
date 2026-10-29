@@ -328,6 +328,14 @@ impl<'a> Ctx<'a> {
             }
             self.used[index] = true;
             if attachment.format() != "xfl" {
+                self.notes.push(Diagnostic {
+                    severity: Severity::Warning,
+                    location: place.to_owned(),
+                    message: format!(
+                        "preserved source data in the unknown format {:?} was not written",
+                        attachment.format()
+                    ),
+                });
                 continue;
             }
             if well_formed(attachment.content()) {

@@ -665,6 +665,42 @@ fn stroked_closed_shapes_keep_all_four_sides_and_open_filled_shapes_are_closed()
     assert_eq!((max, mean), (0, 0.0));
 }
 
+fn document_of_distinct_shapes(count: u32) -> Document {
+    let layers: Vec<Layer> = (0..count)
+        .map(|i| {
+            layer(
+                &format!("L{i}"),
+                vec![span(
+                    0,
+                    1,
+                    Content::Shape(rect(0.0, 0.0, 1.0, 1.0, Rgba8::WHITE)),
+                )],
+            )
+        })
+        .collect();
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(layers));
+    document(10, 10, vec![scene], vec![])
+}
+
+#[test]
+fn running_out_of_shape_ids_is_an_error_not_a_corrupt_file() {
+    // Ids run 1..=65 534; one more shape than that cannot be numbered.
+    let result = publish_swf(
+        &document_of_distinct_shapes(65_535),
+        &PublishOptions::default(),
+    );
+    assert!(
+        matches!(result, Err(PublishError::TooManyShapes)),
+        "{:?}",
+        result.map(|p| p.frames)
+    );
+    let at_the_limit = publish_swf(
+        &document_of_distinct_shapes(65_534),
+        &PublishOptions::default(),
+    );
+    assert!(at_the_limit.is_ok(), "exactly the limit still publishes");
+}
+
 #[test]
 fn gradients_are_flattened_to_their_average_color_with_a_warning() {
     let gradient = flare_document::Gradient::linear(
