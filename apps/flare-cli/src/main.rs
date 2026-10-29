@@ -73,6 +73,12 @@ enum Command {
         /// Fill color RRGGBB or RRGGBBAA.
         #[arg(long, default_value = "000000")]
         color: String,
+        /// Outline color RRGGBB or RRGGBBAA (no outline when omitted).
+        #[arg(long)]
+        stroke: Option<String>,
+        /// Outline width in document units.
+        #[arg(long, default_value_t = 2.0)]
+        stroke_width: f64,
     },
     /// Draw a filled rectangle on the first layer of the first scene.
     DrawRect {
@@ -81,6 +87,12 @@ enum Command {
         rect: Vec<f64>,
         #[arg(long, default_value = "000000")]
         color: String,
+        /// Outline color RRGGBB or RRGGBBAA (no outline when omitted).
+        #[arg(long)]
+        stroke: Option<String>,
+        /// Outline width in document units.
+        #[arg(long, default_value_t = 2.0)]
+        stroke_width: f64,
         #[arg(long, default_value_t = 0)]
         start: u32,
         #[arg(long, default_value_t = 1)]
@@ -201,28 +213,26 @@ fn main() -> Result<()> {
             name,
             rect,
             color,
+            stroke,
+            stroke_width,
         } => {
-            let rect = rect
-                .map(|r| {
-                    Ok::<_, anyhow::Error>((
-                        [r[0], r[1], r[2], r[3]],
-                        project::parse_color(&color)?,
-                    ))
-                })
-                .transpose()?;
+            let style = project::rect_style(&color, stroke.as_deref(), stroke_width)?;
+            let rect = rect.map(|r| ([r[0], r[1], r[2], r[3]], style));
             project::add_symbol(&path, &name, rect)?
         }
         Command::DrawRect {
             path,
             rect,
             color,
+            stroke,
+            stroke_width,
             start,
             duration,
             layer,
         } => project::draw_rect(
             &path,
             [rect[0], rect[1], rect[2], rect[3]],
-            project::parse_color(&color)?,
+            project::rect_style(&color, stroke.as_deref(), stroke_width)?,
             start,
             duration,
             layer,

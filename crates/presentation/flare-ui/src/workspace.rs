@@ -4,7 +4,8 @@ use std::path::{Path, PathBuf};
 use egui::{Align2, Color32, FontId, Key, Modifiers, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
 use flare_document::{
-    Content, Document, FrameSpan, Layer, MAX_STAGE_SIDE, Scene, Shape, Stage, Timeline,
+    Content, Document, FrameSpan, Layer, MAX_STAGE_SIDE, Scene, Shape, Stage,
+    Stroke as ShapeStroke, Timeline,
 };
 use flare_edit::{Command, EditorSession};
 use glamx::DVec2;
@@ -61,6 +62,9 @@ pub struct Workspace {
     selected: Option<SpanRef>,
     selected_symbol: Option<SymbolId>,
     fill: Color32,
+    stroke_enabled: bool,
+    stroke_color: Color32,
+    stroke_width: f32,
     /// Stage size being edited in the tools panel, applied when the edit finishes.
     stage_edit: Option<(u32, u32)>,
     status: Option<String>,
@@ -83,6 +87,9 @@ impl Workspace {
             selected: None,
             selected_symbol: None,
             fill: Color32::from_rgb(232, 69, 60),
+            stroke_enabled: false,
+            stroke_color: Color32::BLACK,
+            stroke_width: 4.0,
             stage_edit: None,
             status: None,
             dialog: None,
@@ -249,11 +256,21 @@ impl Workspace {
             .max(24);
         let color = self.fill.to_array();
         let fill = Rgba8::new(color[0], color[1], color[2], color[3]);
-        let Some(shape) = Shape::rect(ShapeId::new(), f64::from(x0), f64::from(y0), w, h, fill)
+        let Some(mut shape) = Shape::rect(ShapeId::new(), f64::from(x0), f64::from(y0), w, h, fill)
         else {
             self.report("Rectangle coordinates must be finite");
             return;
         };
+        if self.stroke_enabled {
+            let c = self.stroke_color.to_array();
+            match ShapeStroke::new(
+                f64::from(self.stroke_width),
+                Rgba8::new(c[0], c[1], c[2], c[3]),
+            ) {
+                Ok(stroke) => shape = shape.with_stroke(stroke),
+                Err(error) => return self.report(error.to_string()),
+            }
+        }
         let span = FrameSpan::new(
             0,
             NonZeroU32::new(duration).unwrap_or(NonZeroU32::MIN),
@@ -629,6 +646,15 @@ impl Workspace {
         ui.separator();
         ui.label("Fill");
         ui.color_edit_button_srgba(&mut self.fill);
+        ui.checkbox(&mut self.stroke_enabled, "Outline");
+        ui.add_enabled_ui(self.stroke_enabled, |ui| {
+            ui.color_edit_button_srgba(&mut self.stroke_color);
+            ui.add(
+                egui::DragValue::new(&mut self.stroke_width)
+                    .range(0.5..=200.0)
+                    .suffix(" px"),
+            );
+        });
         ui.separator();
         self.stage_settings(ui);
     }
@@ -962,6 +988,29 @@ mod tests {
         assert!(!ws.is_dirty());
         ws.redo();
         assert_eq!(layer_count(&ws), 2);
+    }
+
+    #[test]
+    fn rectangles_get_a_stroke_only_when_outline_is_enabled() {
+        let mut ws = workspace();
+        rect(&mut ws);
+        ws.stroke_enabled = true;
+        ws.stroke_color = Color32::from_rgb(1, 2, 3);
+        ws.stroke_width = 6.0;
+        ws.commit_rectangle(Pos2::new(200.0, 200.0), Pos2::new(260.0, 240.0));
+        let stroke_of = |layer: usize| {
+            let timeline = ws.document().scenes()[0].timeline();
+            match timeline.layers()[layer].spans()[0].content() {
+                Content::Shape(shape) => shape.stroke(),
+                _ => panic!("shape expected"),
+            }
+        };
+        assert_eq!(stroke_of(1), None);
+        let stroke = stroke_of(2).expect("outlined rectangle");
+        assert_eq!(
+            (stroke.width(), stroke.color()),
+            (6.0, Rgba8::opaque(1, 2, 3))
+        );
     }
 
     #[test]

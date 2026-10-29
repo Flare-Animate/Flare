@@ -8,7 +8,8 @@ use flare_core::{
     DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
 };
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, Scene, Shape, Stage, Symbol, Timeline, Tween,
+    Content, Document, FrameSpan, Instance, Layer, Scene, Shape, Stage, Stroke, Symbol, Timeline,
+    Tween,
 };
 use flare_edit::{Command, EditorSession};
 use glamx::{DAffine2, DVec2};
@@ -92,13 +93,23 @@ pub fn parse_color(text: &str) -> Result<Rgba8> {
     }
 }
 
-fn rect_content(rect: [f64; 4], color: Rgba8) -> Result<Content> {
+/// Fill, and optionally an outline of (width, color), for a rectangle.
+#[derive(Clone, Copy)]
+pub struct RectStyle {
+    pub fill: Rgba8,
+    pub stroke: Option<(f64, Rgba8)>,
+}
+
+fn rect_content(rect: [f64; 4], style: RectStyle) -> Result<Content> {
     let [x, y, w, h] = rect;
     if !(w > 0.0 && h > 0.0) {
         bail!("rectangle width and height must be positive");
     }
-    let shape = Shape::rect(ShapeId::new(), x, y, w, h, color)
+    let mut shape = Shape::rect(ShapeId::new(), x, y, w, h, style.fill)
         .context("rectangle coordinates must be finite")?;
+    if let Some((width, color)) = style.stroke {
+        shape = shape.with_stroke(Stroke::new(width, color)?);
+    }
     Ok(Content::Shape(shape))
 }
 
@@ -112,11 +123,11 @@ fn one_frame_timeline(content: Content) -> Result<Timeline> {
 }
 
 /// Adds a Graphic symbol, optionally containing one filled rectangle.
-pub fn add_symbol(path: &Path, name: &str, rect: Option<([f64; 4], Rgba8)>) -> Result<Value> {
+pub fn add_symbol(path: &Path, name: &str, rect: Option<([f64; 4], RectStyle)>) -> Result<Value> {
     let mut session = open(path)?;
     let id = SymbolId::new();
     let timeline = match rect {
-        Some((rect, color)) => one_frame_timeline(rect_content(rect, color)?)?,
+        Some((rect, style)) => one_frame_timeline(rect_content(rect, style)?)?,
         None => Timeline::default(),
     };
     session.apply([Command::AddSymbol(Symbol::new(id, name, timeline))])?;
@@ -128,7 +139,7 @@ pub fn add_symbol(path: &Path, name: &str, rect: Option<([f64; 4], Rgba8)>) -> R
 pub fn draw_rect(
     path: &Path,
     rect: [f64; 4],
-    color: Rgba8,
+    style: RectStyle,
     start: u32,
     duration: u32,
     layer: Option<Uuid>,
@@ -136,7 +147,7 @@ pub fn draw_rect(
     let mut session = open(path)?;
     let (scene, layer) = target_layer(&session, layer)?;
     let duration = NonZeroU32::new(duration).context("duration must be at least 1")?;
-    let content = rect_content(rect, color)?;
+    let content = rect_content(rect, style)?;
     let span = FrameSpan::new(start, duration, content);
     session.apply([Command::InsertSpan { scene, layer, span }])?;
     commit(&session, path)?;
@@ -295,4 +306,14 @@ pub fn set_stage(
     session.apply([Command::SetStage(stage)])?;
     commit(&session, path)?;
     Ok(json!({ "width": stage.width(), "height": stage.height() }))
+}
+
+/// Builds a rectangle style from the command-line color strings.
+pub fn rect_style(color: &str, stroke: Option<&str>, stroke_width: f64) -> Result<RectStyle> {
+    Ok(RectStyle {
+        fill: parse_color(color)?,
+        stroke: stroke
+            .map(|c| Ok::<_, anyhow::Error>((stroke_width, parse_color(c)?)))
+            .transpose()?,
+    })
 }

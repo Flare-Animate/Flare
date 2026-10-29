@@ -394,3 +394,64 @@ fn invalid_stages_are_rejected_without_touching_the_file() {
     );
     assert_eq!(std::fs::read(&file).expect("read"), before);
 }
+
+#[test]
+fn outlined_rectangles_render_with_their_stroke() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let out = dir.path().join("f.png").to_string_lossy().into_owned();
+    json(&["new", &file, "--width", "30", "--height", "30"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "10",
+        "10",
+        "10",
+        "10",
+        "--color",
+        "FF0000",
+        "--stroke",
+        "0000FF",
+        "--stroke-width",
+        "4",
+    ]);
+    json(&["export", &file, &out]);
+    let image = read_png(&out);
+    assert_eq!(pixel(&image, 15, 15), [255, 0, 0, 255], "fill inside");
+    assert_eq!(
+        pixel(&image, 10, 15),
+        [0, 0, 255, 255],
+        "stroke on the edge"
+    );
+    assert_eq!(
+        pixel(&image, 8, 15),
+        [0, 0, 255, 255],
+        "stroke reaches 2px outside"
+    );
+    assert_eq!(
+        pixel(&image, 5, 15),
+        [255, 255, 255, 255],
+        "background beyond"
+    );
+
+    let before = std::fs::read(&file).expect("read");
+    assert!(
+        !run(&[
+            "draw-rect",
+            &file,
+            "--rect",
+            "0",
+            "0",
+            "5",
+            "5",
+            "--stroke",
+            "000000",
+            "--stroke-width",
+            "0"
+        ])
+        .status
+        .success()
+    );
+    assert_eq!(std::fs::read(&file).expect("read"), before);
+}
