@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 mod menu;
+mod paths;
 mod recovery;
 
 use std::path::PathBuf;
@@ -135,6 +136,7 @@ impl App {
     /// Quits when the workspace asks to, after confirming if there is unsaved work.
     fn handle_quit(&mut self, event_loop: &ActiveEventLoop) {
         if self.workspace.take_quit_request() && self.confirm_close() {
+            self.persist_layout();
             event_loop.exit();
         }
     }
@@ -156,6 +158,17 @@ impl App {
             }
             // Keep the in-window menu if the native one cannot be built.
             Err(error) => eprintln!("native menu unavailable: {error:#}"),
+        }
+    }
+
+    /// Remembers the panel arrangement for the next session. Failure is not worth blocking
+    /// an exit over, so it is only reported.
+    fn persist_layout(&self) {
+        let (Some(path), Ok(json)) = (paths::layout_file(), self.workspace.layout_json()) else {
+            return;
+        };
+        if let Err(error) = paths::write_layout(&path, &json) {
+            eprintln!("could not save the layout: {error}");
         }
     }
 
@@ -227,6 +240,7 @@ impl ApplicationHandler<UserEvent> for App {
         match event {
             WindowEvent::CloseRequested => {
                 if self.confirm_close() {
+                    self.persist_layout();
                     event_loop.exit();
                 }
             }
@@ -250,6 +264,13 @@ fn main() -> Result<()> {
         let document = flare_storage::load(&path)
             .with_context(|| format!("cannot open {}", path.display()))?;
         workspace = Workspace::new(document, Some(path));
+    }
+    if let Some(path) = paths::layout_file()
+        && let Some(json) = paths::read_layout(&path)
+        && let Err(error) = workspace.restore_layout(&json)
+    {
+        // A damaged or outdated layout just means starting from the default.
+        eprintln!("ignoring the saved layout: {error}");
     }
     let mut builder = EventLoop::<UserEvent>::with_user_event();
     // The native menu replaces winit's built-in default one.

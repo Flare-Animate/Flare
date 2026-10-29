@@ -7,8 +7,10 @@
 #![forbid(unsafe_code)]
 
 mod actions;
+mod layout;
 mod ops;
 mod workspace;
 
 pub use actions::{MENU_LAYOUT, MenuAction, MenuEntry};
+pub use layout::{LayoutError, MAX_LAYOUT_BYTES, Pane};
 pub use workspace::{DialogRequest, FrameOp, Tool, Workspace};

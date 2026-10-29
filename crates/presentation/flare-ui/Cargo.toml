@@ -8,6 +8,8 @@ license.workspace = true
 
 [dependencies]
 egui = { workspace = true, features = ["default_fonts"] }
+egui_tiles = { workspace = true, features = ["serde"] }
+thiserror.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
 flare-edit.workspace = true
@@ -15,6 +17,8 @@ flare-eval.workspace = true
 glamx.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -8,16 +8,9 @@ use flare_storage::RecoveryEntry;
 use flare_ui::Workspace;
 
 /// The per-user recovery directory, given an environment lookup (injectable for tests).
+/// The data directory convention itself lives in [`crate::paths`].
 pub fn recovery_dir_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
-    let var = |name: &str| env(name).filter(|v| !v.is_empty()).map(PathBuf::from);
-    let base = if cfg!(target_os = "macos") {
-        var("HOME")?.join("Library").join("Application Support")
-    } else if cfg!(target_os = "windows") {
-        var("APPDATA")?
-    } else {
-        var("XDG_DATA_HOME").or_else(|| var("HOME").map(|h| h.join(".local").join("share")))?
-    };
-    Some(base.join("Flare").join("recovery"))
+    crate::paths::app_dir_with(env).map(|dir| dir.join("recovery"))
 }
 
 pub fn recovery_dir() -> Option<PathBuf> {
