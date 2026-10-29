@@ -112,7 +112,7 @@ and fault-injection tests exist.
 and playback at the document frame rate, a library, and tools: Select/Move, Rectangle,
 Ellipse and Line, with fill and outline settings. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
-F5/F6/F7 (with Shift for the inverse). On macOS the menu bar is native (muda); everywhere
+F5/F6/F7 (with Shift for the inverse). The timeline zooms (buttons, pinch or Ctrl/Cmd+scroll) and scrolls sideways. On macOS the menu bar is native (muda); everywhere
 else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.md).
 
 ## Known gaps
