@@ -216,7 +216,10 @@ pub fn define_shape(id: CharacterId, shape: &Shape, approximated: &mut bool) -> 
         styles.line_styles.push(
             LineStyle::new()
                 .with_width(width)
-                .with_color(color(stroke.color())),
+                .with_color(color(stroke.color()))
+                .with_start_cap(cap_style(stroke.cap()))
+                .with_end_cap(cap_style(stroke.cap()))
+                .with_join_style(join_style(stroke.join())),
         );
     }
     let line = u32::from(stroke.is_some());
@@ -303,4 +306,21 @@ pub fn define_shape(id: CharacterId, shape: &Shape, approximated: &mut bool) -> 
         styles,
         shape: records,
     })
+}
+
+fn cap_style(cap: flare_document::Cap) -> swf::LineCapStyle {
+    match cap {
+        flare_document::Cap::Butt => swf::LineCapStyle::None,
+        flare_document::Cap::Round => swf::LineCapStyle::Round,
+        flare_document::Cap::Square => swf::LineCapStyle::Square,
+    }
+}
+
+fn join_style(join: flare_document::Join) -> swf::LineJoinStyle {
+    match join {
+        flare_document::Join::Round => swf::LineJoinStyle::Round,
+        flare_document::Join::Bevel => swf::LineJoinStyle::Bevel,
+        // A miter limit of 3 is Flash's own default.
+        flare_document::Join::Miter => swf::LineJoinStyle::Miter(swf::Fixed8::from_f32(3.0)),
+    }
 }

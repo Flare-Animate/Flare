@@ -420,3 +420,23 @@ fn bring_to_front_and_send_to_back_reorder_layers_keeping_relative_order() {
     ws.undo();
     assert_eq!(ids(&ws), before);
 }
+
+#[test]
+fn new_strokes_take_the_chosen_cap_and_join() {
+    use flare_document::{Cap, Join};
+    let mut ws = workspace();
+    ws.stroke_cap = Cap::Square;
+    ws.stroke_join = Join::Miter;
+    ws.set_tool(Tool::Line);
+    ws.commit_shape(Tool::Line, Pos2::new(5.0, 5.0), Pos2::new(60.0, 5.0));
+    let line = drawn_shape(&ws, 1).stroke().expect("a line is stroked");
+    assert_eq!((line.cap(), line.join()), (Cap::Square, Join::Miter));
+    // The ink bottle restyles an existing shape's outline the same way.
+    rect(&mut ws);
+    ws.stroke_cap = Cap::Butt;
+    ws.stroke_join = Join::Bevel;
+    ws.set_tool(Tool::InkBottle);
+    ws.click_with_tool(Pos2::new(50.0, 30.0), false);
+    let outlined = drawn_shape(&ws, 2).stroke().expect("outlined");
+    assert_eq!((outlined.cap(), outlined.join()), (Cap::Butt, Join::Bevel));
+}

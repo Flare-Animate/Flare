@@ -60,6 +60,36 @@ impl Workspace {
                     .suffix(" px"),
             );
         });
+        chrome::row(ui, "Cap", |ui| {
+            use flare_document::Cap;
+            egui::ComboBox::from_id_salt("cap_menu")
+                .width(80.0)
+                .selected_text(match self.stroke_cap {
+                    Cap::Butt => "None",
+                    Cap::Round => "Round",
+                    Cap::Square => "Square",
+                })
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut self.stroke_cap, Cap::Butt, "None");
+                    ui.selectable_value(&mut self.stroke_cap, Cap::Round, "Round");
+                    ui.selectable_value(&mut self.stroke_cap, Cap::Square, "Square");
+                });
+        });
+        chrome::row(ui, "Join", |ui| {
+            use flare_document::Join;
+            egui::ComboBox::from_id_salt("join_menu")
+                .width(80.0)
+                .selected_text(match self.stroke_join {
+                    Join::Round => "Round",
+                    Join::Bevel => "Bevel",
+                    Join::Miter => "Miter",
+                })
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut self.stroke_join, Join::Round, "Round");
+                    ui.selectable_value(&mut self.stroke_join, Join::Bevel, "Bevel");
+                    ui.selectable_value(&mut self.stroke_join, Join::Miter, "Miter");
+                });
+        });
     }
 
     /// Position and size of the selection, editable.

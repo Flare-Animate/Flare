@@ -200,6 +200,9 @@ pub struct Workspace {
     stroke_enabled: bool,
     stroke_color: Color32,
     stroke_width: f32,
+    /// How new strokes end and turn corners.
+    stroke_cap: flare_document::Cap,
+    stroke_join: flare_document::Join,
     /// Stage size being edited in the tools panel, applied when the edit finishes.
     stage_edit: Option<(u32, u32)>,
     fps_edit: Option<f64>,
@@ -319,6 +322,8 @@ impl Workspace {
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
             stroke_width: 4.0,
+            stroke_cap: flare_document::Cap::Round,
+            stroke_join: flare_document::Join::Round,
             stage_edit: None,
             fps_edit: None,
             show_rulers: true,

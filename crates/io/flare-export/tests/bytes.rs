@@ -51,3 +51,43 @@ fn bytes_that_are_not_a_fla_are_refused_with_a_reason() {
     assert!(import_fla_bytes(b"definitely not a zip".to_vec()).is_err());
     assert!(import_fla_bytes(Vec::new()).is_err());
 }
+
+#[test]
+fn stroke_ends_and_corners_round_trip_through_xfl() {
+    use flare_document::{Cap, Join, Stroke};
+    let stroke = Stroke::new(4.0, Rgba8::opaque(0, 0, 0))
+        .expect("stroke")
+        .with_cap(Cap::Butt)
+        .with_join(Join::Bevel);
+    let shape = Shape::rect(ShapeId::new(), 0.0, 0.0, 20.0, 10.0, Rgba8::TRANSPARENT)
+        .expect("rect")
+        .with_stroke(stroke);
+    let span = FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(shape));
+    let layer = Layer::new(LayerId::new(), "L", vec![span]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    let output = export_xfl(&document).expect("export");
+    assert!(
+        output
+            .files
+            .iter()
+            .any(|(_, body)| body.contains("caps=\"none\"") && body.contains("joints=\"bevel\"")),
+        "XFL's own names"
+    );
+    let imported = import_fla_bytes(fla_bytes(&output).expect("bytes")).expect("import");
+    let back = imported.document.scenes()[0].timeline().layers()[0]
+        .spans()
+        .iter()
+        .find_map(|s| match s.content() {
+            Content::Shape(shape) => shape.stroke(),
+            _ => None,
+        })
+        .expect("a stroked shape");
+    assert_eq!((back.cap(), back.join()), (Cap::Butt, Join::Bevel));
+}

@@ -5,8 +5,8 @@ use flare_core::{
     DocumentPoint, InstanceId, LayerId, Rgba8, ShapeId, SoundId, SymbolId, Transform2D,
 };
 use flare_document::{
-    Content, FrameSpan, Gradient, Instance, Layer, PathSegment, Shape, SoundCue, Stroke, Timeline,
-    Tween,
+    Cap, Content, FrameSpan, Gradient, Instance, Join, Layer, PathSegment, Shape, SoundCue, Stroke,
+    Timeline, Tween,
 };
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
@@ -63,6 +63,12 @@ impl SegmentWire {
 pub(super) struct StrokeWire {
     pub(super) width: f64,
     pub(super) rgba: [u8; 4],
+    /// "butt", "round" or "square"; absent in older files, which meant round.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) cap: Option<String>,
+    /// "round", "bevel" or "miter"; absent in older files, which meant round.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) join: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -168,6 +174,10 @@ impl TimelineWire {
                                 stroke: shape.stroke().map(|stroke| StrokeWire {
                                     width: stroke.width(),
                                     rgba: stroke.color().to_array(),
+                                    cap: (stroke.cap() != Cap::Round)
+                                        .then(|| cap_name(stroke.cap()).to_owned()),
+                                    join: (stroke.join() != Join::Round)
+                                        .then(|| join_name(stroke.join()).to_owned()),
                                 }),
                                 gradient: shape.gradient().map(|g| GradientWire {
                                     from: [g.from().as_vec().x, g.from().as_vec().y],
@@ -217,8 +227,12 @@ impl TimelineWire {
                             .map_err(corrupt)?;
                         if let Some(stroke) = stroke {
                             let [r, g, b, a] = stroke.rgba;
+                            let cap = cap_from(stroke.cap.as_deref())?;
+                            let join = join_from(stroke.join.as_deref())?;
                             let stroke = Stroke::new(stroke.width, Rgba8::new(r, g, b, a))
-                                .map_err(corrupt)?;
+                                .map_err(corrupt)?
+                                .with_cap(cap)
+                                .with_join(join);
                             shape = shape.with_stroke(stroke);
                         }
                         if let Some(g) = gradient {
@@ -275,5 +289,41 @@ impl TimelineWire {
             );
         }
         Ok(Timeline::new(layers))
+    }
+}
+
+fn cap_name(cap: Cap) -> &'static str {
+    match cap {
+        Cap::Butt => "butt",
+        Cap::Round => "round",
+        Cap::Square => "square",
+    }
+}
+
+fn join_name(join: Join) -> &'static str {
+    match join {
+        Join::Round => "round",
+        Join::Bevel => "bevel",
+        Join::Miter => "miter",
+    }
+}
+
+fn cap_from(name: Option<&str>) -> Result<Cap, StorageError> {
+    match name {
+        None | Some("round") => Ok(Cap::Round),
+        Some("butt") => Ok(Cap::Butt),
+        Some("square") => Ok(Cap::Square),
+        Some(other) => Err(StorageError::Corrupt(format!("unknown line cap {other:?}"))),
+    }
+}
+
+fn join_from(name: Option<&str>) -> Result<Join, StorageError> {
+    match name {
+        None | Some("round") => Ok(Join::Round),
+        Some("bevel") => Ok(Join::Bevel),
+        Some("miter") => Ok(Join::Miter),
+        Some(other) => Err(StorageError::Corrupt(format!(
+            "unknown line join {other:?}"
+        ))),
     }
 }

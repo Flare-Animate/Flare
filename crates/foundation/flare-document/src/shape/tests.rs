@@ -192,3 +192,21 @@ fn polygons_and_stars_have_the_right_corners_on_the_right_circle() {
         assert!(Shape::polygon(id, (0.0, 0.0), radius, sides, 0.0, None, Rgba8::WHITE).is_none());
     }
 }
+
+#[test]
+fn strokes_are_round_unless_told_otherwise_and_keep_their_style() {
+    let stroke = Stroke::new(3.0, Rgba8::WHITE).expect("stroke");
+    assert_eq!((stroke.cap(), stroke.join()), (Cap::Round, Join::Round));
+    let square = stroke.with_cap(Cap::Square).with_join(Join::Miter);
+    assert_eq!((square.cap(), square.join()), (Cap::Square, Join::Miter));
+    assert_eq!(square.width(), 3.0, "the width is unchanged");
+    let shape = Shape::line(ShapeId::new(), (0.0, 0.0), (5.0, 0.0), square).expect("line");
+    let copy = Shape::new(ShapeId::new(), shape.path().to_vec(), Rgba8::TRANSPARENT)
+        .expect("shape")
+        .painted_like(&shape);
+    assert_eq!(
+        copy.stroke(),
+        Some(square),
+        "copying the paint copies the style"
+    );
+}

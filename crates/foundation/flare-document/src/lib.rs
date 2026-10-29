@@ -16,7 +16,8 @@ pub use attachment::{
     Anchor, Attachment, AttachmentError, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, Placement,
 };
 pub use shape::{
-    Gradient, GradientError, MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape, ShapeError, Stroke,
+    Cap, Gradient, GradientError, Join, MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape,
+    ShapeError, Stroke,
 };
 pub use sound::{
     MAX_CUES_PER_LAYER, MAX_SOUND_BYTES, MAX_SOUNDS, MAX_TOTAL_SOUND_BYTES, Sound, SoundCue,

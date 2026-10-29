@@ -6,6 +6,11 @@ use flare_core::{Rgba8, ShapeId};
 use flare_document::{Content, PathSegment, Shape, Stroke};
 use std::collections::{BTreeMap, HashMap};
 
+use flare_document::{Cap, Join};
+
+/// A stroke as read from a file: width, color, and how its ends and corners look.
+type StrokeSpec = (f64, Rgba8, Cap, Join);
+
 use super::*;
 
 impl Importer {
@@ -31,7 +36,7 @@ impl Importer {
             }
             fills.insert(index, color);
         }
-        let mut strokes: HashMap<u32, Option<(f64, Rgba8)>> = HashMap::new();
+        let mut strokes: HashMap<u32, Option<StrokeSpec>> = HashMap::new();
         for style in node
             .child("strokes")
             .into_iter()
@@ -49,7 +54,17 @@ impl Importer {
                 s.attr("weight")
                     .map_or(Some(1.0), |w| w.parse::<f64>().ok())
             });
-            let resolved = color.zip(weight).map(|(c, w)| (w, c));
+            let cap = match solid.and_then(|s| s.attr("caps")) {
+                Some("none") => Cap::Butt,
+                Some("square") => Cap::Square,
+                _ => Cap::Round,
+            };
+            let join = match solid.and_then(|s| s.attr("joints")) {
+                Some("bevel") => Join::Bevel,
+                Some("miter") => Join::Miter,
+                _ => Join::Round,
+            };
+            let resolved = color.zip(weight).map(|(c, w)| (w, c, cap, join));
             if resolved.is_none() {
                 self.note(
                     Severity::Unsupported,
@@ -117,7 +132,7 @@ impl Importer {
             self.push_shape(&mut out, &contours, color, None, true, place);
         }
         for (index, segments) in stroke_edges {
-            let Some(Some((weight, color))) = strokes.get(&index).copied() else {
+            let Some(Some((weight, color, cap, join))) = strokes.get(&index).copied() else {
                 continue;
             };
             let contours = edges::chain(&segments);
@@ -125,7 +140,7 @@ impl Importer {
                 &mut out,
                 &contours,
                 Rgba8::TRANSPARENT,
-                Some((weight, color)),
+                Some((weight, color, cap, join)),
                 false,
                 place,
             );
@@ -138,7 +153,7 @@ impl Importer {
         out: &mut Vec<Content>,
         contours: &[Contour],
         fill: Rgba8,
-        stroke: Option<(f64, Rgba8)>,
+        stroke: Option<StrokeSpec>,
         close: bool,
         place: &str,
     ) {
@@ -175,8 +190,8 @@ impl Importer {
         match Shape::new(ShapeId::new(), path, fill) {
             Ok(shape) => {
                 let shape = match stroke {
-                    Some((weight, color)) => match Stroke::new(weight, color) {
-                        Ok(stroke) => shape.with_stroke(stroke),
+                    Some((weight, color, cap, join)) => match Stroke::new(weight, color) {
+                        Ok(stroke) => shape.with_stroke(stroke.with_cap(cap).with_join(join)),
                         Err(error) => {
                             self.note(
                                 Severity::Unsupported,

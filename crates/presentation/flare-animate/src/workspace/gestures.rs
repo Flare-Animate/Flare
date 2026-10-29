@@ -118,6 +118,7 @@ impl Workspace {
             Tool::InkBottle => {
                 match ShapeStroke::new(f64::from(self.stroke_width), to_rgba(self.stroke_color)) {
                     Ok(stroke) => {
+                        let stroke = stroke.with_cap(self.stroke_cap).with_join(self.stroke_join);
                         ops::restyle(self.document(), scene, at, None, Some(Some(stroke)))
                     }
                     Err(error) => return self.report(error.to_string()),
@@ -183,7 +184,9 @@ impl Workspace {
             f64::from(self.stroke_width),
             Rgba8::new(c[0], c[1], c[2], c[3]),
         )
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| e.to_string())?
+        .with_cap(self.stroke_cap)
+        .with_join(self.stroke_join);
         Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT)
             .map(|shape| Some(shape.with_stroke(stroke)))
             .map_err(|e| e.to_string())

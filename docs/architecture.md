@@ -58,7 +58,7 @@ cloned keyframes.
 
 A `Shape` is a validated path (move/line/cubic/close, segment count capped), a fill, an
 optional two-color linear `Gradient` (painted instead of the solid fill, in the shape's own
-coordinates, so it follows transforms) and an optional round-cap `Stroke`. An `Instance` references a symbol and carries a full
+coordinates, so it follows transforms) and an optional `Stroke` (width, color, and how its ends and corners look; round by default). An `Instance` references a symbol and carries a full
 finite 2D affine matrix (shear and reflection are preserved, not decomposed away).
 Symbols are Graphic symbols: parent-clocked, looping over their own length.
 
@@ -111,8 +111,8 @@ count (100,000) are bounded.
 
 `render` maps document units 1:1 to pixels from the top-left, draws fills then strokes in
 paint order, and returns straight (non-premultiplied) RGBA8. Size is limited to 16384 per
-side and 100 million pixels. Hit testing counts a fill (same non-zero rule) and a stroke (where it is drawn: round caps
-and joins, width scaled by the transform), so a line or an outline-only shape can be picked.
+side and 100 million pixels. Hit testing counts a fill (same non-zero rule) and a stroke (where it is drawn: with its
+caps and joins, width scaled by the transform), so a line or an outline-only shape can be picked.
 It returns candidates topmost first so callers can skip locked layers.
 
 Onion skinning composites translucent copies of neighbouring frames (up to 8 before and

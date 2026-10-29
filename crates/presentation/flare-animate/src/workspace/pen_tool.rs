@@ -72,6 +72,7 @@ impl Workspace {
                 f64::from(self.stroke_width),
                 Rgba8::new(c[0], c[1], c[2], c[3]),
             )
+            .map(|stroke| stroke.with_cap(self.stroke_cap).with_join(self.stroke_join))
         };
         let fill = {
             let c = self.fill.to_array();

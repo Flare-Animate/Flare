@@ -32,8 +32,8 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 
 Still planned (everything else in the menus and panels is built):
 
-- Properties: stroke cap and join, text style.
-- Library: folders, a preview of the symbol.
+- Properties: text style.
+- Library: folders.
 - Timeline: layer folders, motion guides, the outline column.
 - View: guides and outline mode.
 - File: Open Recent, Save All, Export Movie, Publish Settings. (Import XFL or FLA, Preferences, New,

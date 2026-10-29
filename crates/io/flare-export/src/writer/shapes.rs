@@ -114,8 +114,10 @@ pub(super) fn write_shape(
     }
     if let Some(stroke) = stroke {
         out.push_str(&format!(
-            "<strokes><StrokeStyle index=\"1\"><SolidStroke weight=\"{}\" caps=\"round\" joints=\"round\"><fill><SolidColor color=\"{}\" alpha=\"{}\"/></fill></SolidStroke></StrokeStyle></strokes>",
+            "<strokes><StrokeStyle index=\"1\"><SolidStroke weight=\"{}\" caps=\"{}\" joints=\"{}\"><fill><SolidColor color=\"{}\" alpha=\"{}\"/></fill></SolidStroke></StrokeStyle></strokes>",
             num(stroke.width()),
+            caps_name(stroke.cap()),
+            joints_name(stroke.join()),
             hex(stroke.color()),
             alpha(stroke.color())
         ));
@@ -143,4 +145,21 @@ pub(super) fn write_instance(out: &mut String, instance: &Instance, names: &Name
         esc(names.library_name(instance.symbol())),
         num(a), num(b), num(c), num(d), num(tx), num(ty)
     ));
+}
+
+/// XFL's names for line ends (`none` is a flat end) and corners.
+fn caps_name(cap: flare_document::Cap) -> &'static str {
+    match cap {
+        flare_document::Cap::Butt => "none",
+        flare_document::Cap::Round => "round",
+        flare_document::Cap::Square => "square",
+    }
+}
+
+fn joints_name(join: flare_document::Join) -> &'static str {
+    match join {
+        flare_document::Join::Round => "round",
+        flare_document::Join::Bevel => "bevel",
+        flare_document::Join::Miter => "miter",
+    }
 }

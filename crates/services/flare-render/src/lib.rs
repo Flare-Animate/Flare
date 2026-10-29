@@ -174,6 +174,26 @@ fn bez_path(segments: &[PathSegment]) -> BezPath {
     path
 }
 
+/// The line style `stroke` asks for, `width` wide.
+fn stroke_style(width: f64, stroke: flare_document::Stroke) -> Stroke {
+    use flare_document::{Cap as DocCap, Join as DocJoin};
+    let caps = match stroke.cap() {
+        DocCap::Butt => Cap::Butt,
+        DocCap::Round => Cap::Round,
+        DocCap::Square => Cap::Square,
+    };
+    let join = match stroke.join() {
+        DocJoin::Round => Join::Round,
+        DocJoin::Bevel => Join::Bevel,
+        DocJoin::Miter => Join::Miter,
+    };
+    // A miter that would stick out more than four widths is cut off, as other renderers do.
+    Stroke::new(width)
+        .with_caps(caps)
+        .with_join(join)
+        .with_miter_limit(4.0)
+}
+
 /// Renders `current` with translucent `ghosts` (frame, opacity) beneath it, as onion
 /// skinning does. Ghosts are drawn in the order given, then the current frame on top.
 pub fn render_onion(
@@ -323,9 +343,7 @@ pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
             drawn.shape.stroke().is_some_and(|stroke| {
                 // Flatten finely relative to how big a local unit is on screen.
                 let tolerance = 0.1 / determinant.abs().sqrt().max(1e-6);
-                let style = Stroke::new(stroke.width())
-                    .with_caps(Cap::Round)
-                    .with_join(Join::Round);
+                let style = stroke_style(stroke.width(), stroke);
                 let outline = vello_cpu::kurbo::stroke(
                     path.elements().iter().copied(),
                     &style,
@@ -530,11 +548,7 @@ fn rasterize(
         }
         ctx.fill_path(&path);
         if let Some(stroke) = drawn.shape.stroke() {
-            ctx.set_stroke(
-                Stroke::new(stroke.width())
-                    .with_caps(Cap::Round)
-                    .with_join(Join::Round),
-            );
+            ctx.set_stroke(stroke_style(stroke.width(), stroke));
             ctx.set_paint(color(stroke.color()));
             ctx.stroke_path(&path);
         }

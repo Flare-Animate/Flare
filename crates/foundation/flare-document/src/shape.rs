@@ -32,11 +32,33 @@ pub enum ShapeError {
 /// Upper bound on stroke width in document units.
 pub const MAX_STROKE_WIDTH: f64 = 10_000.0;
 
-/// An outline drawn along a shape's path with round caps and joins.
+/// How an open line ends.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Cap {
+    /// Stops exactly at the end point.
+    Butt,
+    #[default]
+    Round,
+    /// Stops half the width past the end point.
+    Square,
+}
+
+/// How a stroke turns a corner.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Join {
+    #[default]
+    Round,
+    Bevel,
+    Miter,
+}
+
+/// An outline drawn along a shape's path. Round caps and joins unless it says otherwise.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Stroke {
     width: f64,
     color: Rgba8,
+    cap: Cap,
+    join: Join,
 }
 
 impl Stroke {
@@ -44,7 +66,34 @@ impl Stroke {
         if !(width.is_finite() && width > 0.0 && width <= MAX_STROKE_WIDTH) {
             return Err(ShapeError::InvalidStrokeWidth);
         }
-        Ok(Self { width, color })
+        Ok(Self {
+            width,
+            color,
+            cap: Cap::Round,
+            join: Join::Round,
+        })
+    }
+
+    /// The same stroke with line ends of another kind.
+    #[must_use]
+    pub fn with_cap(mut self, cap: Cap) -> Self {
+        self.cap = cap;
+        self
+    }
+
+    /// The same stroke with corners of another kind.
+    #[must_use]
+    pub fn with_join(mut self, join: Join) -> Self {
+        self.join = join;
+        self
+    }
+
+    pub fn cap(&self) -> Cap {
+        self.cap
+    }
+
+    pub fn join(&self) -> Join {
+        self.join
     }
 
     pub fn width(&self) -> f64 {

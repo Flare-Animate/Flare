@@ -353,3 +353,45 @@ fn onion_outlines_draw_the_ghost_as_a_line_and_leave_its_inside_empty() {
         "the current frame is drawn solid"
     );
 }
+
+#[test]
+fn line_ends_follow_the_stroke_cap() {
+    let line = |cap: flare_document::Cap| {
+        let stroke = flare_document::Stroke::new(10.0, RED)
+            .expect("stroke")
+            .with_cap(cap);
+        let shape = Shape::line(ShapeId::new(), (20.0, 20.0), (60.0, 20.0), stroke).expect("line");
+        let (doc, scene) = scene_with(vec![span(Content::Shape(shape))], vec![]);
+        draw_sized(&doc, scene, Rgba8::WHITE, 80, 40)
+    };
+    // The line starts at x = 20 and is 10 wide, so a square end reaches back to x = 15 and a
+    // round one to x = 15 only along its middle; a butt end stops at 20.
+    let butt = line(flare_document::Cap::Butt);
+    let square = line(flare_document::Cap::Square);
+    let round = line(flare_document::Cap::Round);
+    assert_eq!(
+        butt.pixel(17, 20),
+        Some(Rgba8::WHITE),
+        "a butt end stops at the point"
+    );
+    assert_eq!(
+        square.pixel(17, 20),
+        Some(RED),
+        "a square end goes half a width further"
+    );
+    assert_eq!(
+        round.pixel(17, 20),
+        Some(RED),
+        "so does the middle of a round end"
+    );
+    assert_eq!(
+        round.pixel(15, 15),
+        Some(Rgba8::WHITE),
+        "but the corner of a round end is cut"
+    );
+    assert_eq!(
+        square.pixel(15, 15),
+        Some(RED),
+        "and the corner of a square end is not"
+    );
+}

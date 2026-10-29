@@ -50,7 +50,12 @@ fn sample() -> Document {
         Rgba8::new(10, 20, 30, 40),
     )
     .expect("shape")
-    .with_stroke(Stroke::new(2.5, Rgba8::new(9, 8, 7, 255)).expect("stroke"))
+    .with_stroke(
+        Stroke::new(2.5, Rgba8::new(9, 8, 7, 255))
+            .expect("stroke")
+            .with_cap(flare_document::Cap::Square)
+            .with_join(flare_document::Join::Miter),
+    )
     .with_gradient(
         Gradient::linear(
             DocumentPoint::new(-1.5, 0.0).expect("finite"),

@@ -321,3 +321,47 @@ fn attachments_round_trip_exactly_including_awkward_text() {
     );
     assert_eq!(attachment_rows(&path).len(), 5);
 }
+
+#[test]
+fn stroke_ends_and_corners_survive_and_older_files_without_them_load_round() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("a.flare");
+    let document = sample();
+    save(&document, &path).expect("save");
+    assert_eq!(
+        load(&path).expect("load"),
+        document,
+        "square and miter survive"
+    );
+    let stroke_of = |doc: &Document| {
+        doc.scenes()[0].timeline().layers()[0]
+            .spans()
+            .iter()
+            .find_map(|s| match s.content() {
+                Content::Shape(shape) => shape.stroke(),
+                _ => None,
+            })
+            .expect("a stroked shape")
+    };
+    let conn = Connection::open(&path).expect("open");
+    conn.execute(
+        "UPDATE entity SET payload_json = replace(replace(payload_json, ',\"cap\":\"square\"', ''), ',\"join\":\"miter\"', '')",
+        [],
+    )
+    .expect("strip the style, as an older file would have it");
+    drop(conn);
+    let old = stroke_of(&load(&path).expect("an older file"));
+    assert_eq!(
+        (old.cap(), old.join()),
+        (flare_document::Cap::Round, flare_document::Join::Round)
+    );
+    save(&document, &path).expect("save");
+    let conn = Connection::open(&path).expect("open");
+    conn.execute(
+        "UPDATE entity SET payload_json = replace(payload_json, '\"square\"', '\"flat\"')",
+        [],
+    )
+    .expect("break the cap name");
+    drop(conn);
+    assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
+}

@@ -23,6 +23,8 @@ impl Workspace {
         fresh.stroke_enabled = self.stroke_enabled;
         fresh.stroke_color = self.stroke_color;
         fresh.stroke_width = self.stroke_width;
+        fresh.stroke_cap = self.stroke_cap;
+        fresh.stroke_join = self.stroke_join;
         fresh.native_menu = self.native_menu;
         fresh.titlebar_inset = self.titlebar_inset;
         fresh.recovery_dir = self.recovery_dir.take();
