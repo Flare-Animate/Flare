@@ -113,7 +113,7 @@ impl Workspace {
                 timeline,
                 new_symbols,
             };
-            if let Err(error) = self.active_mut().apply([merge]) {
+            if let Err(error) = self.active_mut().apply_labeled([merge], "Edit symbol") {
                 self.contexts.push(context);
                 self.report(format!("Cannot leave the symbol: {error}"));
                 return false;

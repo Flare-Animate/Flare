@@ -409,3 +409,62 @@ fn onion_range_is_clamped_and_survives_opening_a_project() {
         }
     );
 }
+
+#[test]
+fn the_history_lists_each_edit_and_clicking_one_returns_to_it() {
+    let mut ws = workspace();
+    let (entries, current) = ws.history_entries();
+    assert_eq!(
+        (entries.as_slice(), current),
+        (["Original".to_owned()].as_slice(), 0)
+    );
+    rect(&mut ws);
+    ws.perform(MenuAction::SelectAll);
+    ws.move_selection(Vec2::new(5.0, 0.0));
+    let (entries, current) = ws.history_entries();
+    assert_eq!(entries, ["Original", "Draw rectangle", "Move"]);
+    assert_eq!(current, 2);
+    ws.jump_in_history(1);
+    assert_eq!(layer_count(&ws), 2, "the drawing is still there");
+    assert_eq!(ws.history_entries().1, 1);
+    assert_eq!(
+        ws.history_entries().0.len(),
+        3,
+        "the later step can still be redone"
+    );
+    ws.jump_in_history(0);
+    assert_eq!(layer_count(&ws), 1);
+    ws.jump_in_history(2);
+    assert_eq!(layer_count(&ws), 2);
+    ws.jump_in_history(99); // out of range: nothing happens
+    assert_eq!(ws.history_entries().1, 2);
+    ws.clear_history();
+    assert_eq!(ws.history_entries().0, ["Original"]);
+    assert_eq!(layer_count(&ws), 2, "the document stays as it is");
+}
+
+#[test]
+fn new_and_close_start_an_empty_project_but_never_over_unsaved_work_and_revert_reloads() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("p.flare");
+    let mut ws = workspace();
+    rect(&mut ws);
+    ws.perform(MenuAction::New);
+    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+    assert_eq!(layer_count(&ws), 2, "unsaved work was kept");
+    assert!(
+        !ws.is_enabled(MenuAction::Revert),
+        "nothing was saved to go back to"
+    );
+    ws.save_as(&path);
+    rect(&mut ws);
+    assert!(ws.is_enabled(MenuAction::Revert));
+    ws.perform(MenuAction::Revert);
+    ws.settle_inline();
+    assert_eq!(layer_count(&ws), 2, "back to the saved copy");
+    assert!(!ws.is_dirty());
+    ws.perform(MenuAction::Close);
+    assert_eq!(layer_count(&ws), 1, "an empty project");
+    assert_eq!(ws.path(), None);
+    assert_eq!(ws.title(), "Untitled - Flare");
+}

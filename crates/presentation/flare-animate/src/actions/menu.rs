@@ -22,15 +22,15 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
     (
         "File",
         &[
-            Mock("New..."),
+            Action(A::New),
             Action(A::Open),
             Mock("Open Recent"),
-            Mock("Close"),
+            Action(A::Close),
             Separator,
             Action(A::Save),
             Action(A::SaveAs),
             Mock("Save All"),
-            Mock("Revert"),
+            Action(A::Revert),
             Separator,
             Action(A::ImportSound),
             Mock("Import to Stage..."),

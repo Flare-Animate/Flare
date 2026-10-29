@@ -65,11 +65,32 @@ impl Workspace {
             {
                 self.perform(MenuAction::Redo);
             }
-            chrome::mock_icon_button(ui, "delete", BAR_ICON, "Clear history");
+            let any = self.active().can_undo() || self.active().can_redo();
+            if chrome::icon_button(ui, "delete", BAR_ICON, false, any, "Clear history").clicked() {
+                self.clear_history();
+            }
         });
-        chrome::empty_state(ui, "panel-history", "Each edit will be listed here");
-        ui.vertical_centered(|ui| {
-            ui.weak("Click an entry to return to that point.");
-        });
+        ui.separator();
+        let (entries, current) = self.history_entries();
+        let mut jump = None;
+        egui::ScrollArea::vertical()
+            .auto_shrink(false)
+            .stick_to_bottom(true)
+            .show(ui, |ui| {
+                for (index, label) in entries.iter().enumerate() {
+                    // Steps after the current one are undone: shown dim, still reachable.
+                    let text = if index > current {
+                        RichText::new(label).color(theme::TEXT_DISABLED)
+                    } else {
+                        RichText::new(label)
+                    };
+                    if ui.selectable_label(index == current, text).clicked() {
+                        jump = Some(index);
+                    }
+                }
+            });
+        if let Some(index) = jump {
+            self.jump_in_history(index);
+        }
     }
 }

@@ -149,4 +149,37 @@ impl Workspace {
     pub fn set_frame(&mut self, frame: u32) {
         self.frame = frame.min(self.scene_frames() - 1);
     }
+
+    /// The steps of the history for a list: "Original" first, then each step in order, and
+    /// which one the document is at now.
+    pub(crate) fn history_entries(&self) -> (Vec<String>, usize) {
+        let session = self.active();
+        let past: Vec<String> = session.undo_labels().map(str::to_owned).collect();
+        let current = past.len() + 1;
+        let entries = std::iter::once("Original".to_owned())
+            .chain(past)
+            .chain(session.redo_labels().map(str::to_owned))
+            .collect();
+        (entries, current - 1)
+    }
+
+    /// Returns the document to the state at `index` of [`Self::history_entries`] by undoing or
+    /// redoing as many steps as it takes.
+    pub(crate) fn jump_in_history(&mut self, index: usize) {
+        let (entries, current) = self.history_entries();
+        if index >= entries.len() {
+            return;
+        }
+        for _ in index..current {
+            self.undo();
+        }
+        for _ in current..index {
+            self.redo();
+        }
+    }
+
+    /// Forgets the undo and redo steps; the document stays as it is.
+    pub(crate) fn clear_history(&mut self) {
+        self.active_mut().clear_history();
+    }
 }

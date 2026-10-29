@@ -13,6 +13,9 @@ pub use menu::{MENU_LAYOUT, MenuEntry};
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum MenuAction {
     Open,
+    New,
+    Close,
+    Revert,
     ImportSound,
     ExportImage,
     Save,
@@ -91,8 +94,11 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 76] = [
+    pub const ALL: [MenuAction; 79] = [
         Self::Open,
+        Self::New,
+        Self::Close,
+        Self::Revert,
         Self::ImportSound,
         Self::ExportImage,
         Self::Save,

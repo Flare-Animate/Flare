@@ -120,7 +120,12 @@ impl Workspace {
     }
 
     pub(super) fn run_batch(&mut self, commands: Vec<Command>, what: &str) {
-        match self.active_mut().apply(commands) {
+        // The history list names the step after what was asked, with a capital.
+        let mut label = what.to_owned();
+        if let Some(first) = label.get_mut(0..1) {
+            first.make_ascii_uppercase();
+        }
+        match self.active_mut().apply_labeled(commands, &label) {
             Ok(()) => self.status = None,
             Err(error) => self.report(format!("Cannot {what}: {error}")),
         }

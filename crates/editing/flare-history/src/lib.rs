@@ -20,6 +20,10 @@ pub struct EditorSession {
     current: Arc<Document>,
     undo: VecDeque<Arc<Document>>,
     redo: Vec<Arc<Document>>,
+    /// What each undo step did, oldest first (one per entry of `undo`).
+    undo_labels: VecDeque<String>,
+    /// What each redo step does, the next one to redo last (one per entry of `redo`).
+    redo_labels: Vec<String>,
     saved: Option<Arc<Document>>,
     max_depth: usize,
     revision: u64,
@@ -38,6 +42,8 @@ impl EditorSession {
             current,
             undo: VecDeque::new(),
             redo: Vec::new(),
+            undo_labels: VecDeque::new(),
+            redo_labels: Vec::new(),
             max_depth,
             revision: 0,
         }
@@ -55,17 +61,47 @@ impl EditorSession {
 
     /// Applies the batch all-or-nothing as a single undo step.
     pub fn apply(&mut self, commands: impl IntoIterator<Item = Command>) -> Result<(), EditError> {
+        self.apply_labeled(commands, "Edit")
+    }
+
+    /// Like [`Self::apply`], naming the step for a history list.
+    pub fn apply_labeled(
+        &mut self,
+        commands: impl IntoIterator<Item = Command>,
+        label: &str,
+    ) -> Result<(), EditError> {
         let Some(working) = apply_all(&self.current, commands)? else {
             return Ok(());
         };
         let previous = std::mem::replace(&mut self.current, Arc::new(working));
         self.undo.push_back(previous);
+        self.undo_labels.push_back(label.to_owned());
         if self.undo.len() > self.max_depth {
             self.undo.pop_front();
+            self.undo_labels.pop_front();
         }
         self.redo.clear();
+        self.redo_labels.clear();
         self.revision += 1;
         Ok(())
+    }
+
+    /// What each step that can be undone did, oldest first.
+    pub fn undo_labels(&self) -> impl ExactSizeIterator<Item = &str> {
+        self.undo_labels.iter().map(String::as_str)
+    }
+
+    /// What each step that can be redone does, the next one first.
+    pub fn redo_labels(&self) -> impl ExactSizeIterator<Item = &str> {
+        self.redo_labels.iter().rev().map(String::as_str)
+    }
+
+    /// Forgets every undo and redo step; the document stays as it is.
+    pub fn clear_history(&mut self) {
+        self.undo.clear();
+        self.redo.clear();
+        self.undo_labels.clear();
+        self.redo_labels.clear();
     }
 
     pub fn can_undo(&self) -> bool {
@@ -82,6 +118,9 @@ impl EditorSession {
         };
         self.redo
             .push(std::mem::replace(&mut self.current, previous));
+        if let Some(label) = self.undo_labels.pop_back() {
+            self.redo_labels.push(label);
+        }
         self.revision += 1;
         true
     }
@@ -92,6 +131,9 @@ impl EditorSession {
         };
         self.undo
             .push_back(std::mem::replace(&mut self.current, next));
+        if let Some(label) = self.redo_labels.pop() {
+            self.undo_labels.push_back(label);
+        }
         self.revision += 1;
         true
     }

@@ -93,6 +93,9 @@ impl MenuAction {
         Some(match self {
             Self::Open => "file-open",
             Self::ImportSound => "sound",
+            Self::New => "file-new",
+            Self::Close => "close",
+            Self::Revert => "rotate-ccw",
             Self::ExportImage => "file-export",
             Self::Save | Self::SaveAs => "file-save",
             Self::Undo => "undo",

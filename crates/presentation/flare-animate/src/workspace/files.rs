@@ -50,9 +50,38 @@ impl Workspace {
         self.start_open(path, false);
     }
 
+    /// Starts an empty project, refusing to replace unsaved work.
+    pub(super) fn new_document(&mut self) {
+        if self.is_dirty() {
+            self.report("Save or undo your changes before starting a new project");
+            return;
+        }
+        match Self::untitled() {
+            Ok(fresh) => {
+                let document = fresh.session.document().clone();
+                self.discard_recovery();
+                self.install_document(document, None);
+            }
+            Err(error) => self.report(error),
+        }
+    }
+
+    /// Goes back to the saved copy of the project, giving up the changes made since.
+    pub(super) fn revert(&mut self) {
+        let Some(path) = self.path.clone() else {
+            return;
+        };
+        // Giving up the changes is the point, so the dirty check does not apply to this open.
+        self.revert_pending = true;
+        self.start_open(&path, false);
+    }
+
     pub(super) fn start_open(&mut self, path: &Path, recovery: bool) {
         let id = self.background.next_id();
         self.opening = Some(id);
+        if std::mem::take(&mut self.revert_pending) {
+            self.reverting = Some(id);
+        }
         self.background.submit_io(IoJob::Open {
             id,
             path: path.to_owned(),

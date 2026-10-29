@@ -78,6 +78,9 @@ pub struct Workspace {
     render_inbox: Vec<(u64, Result<egui::ColorImage, String>)>,
     /// The open or recover request in flight, if any.
     opening: Option<u64>,
+    /// The open that is a revert: it replaces the document even though it has changes.
+    reverting: Option<u64>,
+    revert_pending: bool,
     /// The autosave in flight, if any. Another is not started until it finishes.
     autosaving: Option<u64>,
     /// How many frames have been rendered (as opposed to taken from the cache).
@@ -230,6 +233,8 @@ impl Workspace {
             pending_render: None,
             render_inbox: Vec::new(),
             opening: None,
+            reverting: None,
+            revert_pending: false,
             autosaving: None,
             frames_rendered: 0,
             drag: None,

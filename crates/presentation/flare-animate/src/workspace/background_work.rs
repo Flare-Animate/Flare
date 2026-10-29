@@ -125,12 +125,13 @@ impl Workspace {
                     return; // superseded by a later request
                 }
                 self.opening = None;
+                let reverting = self.reverting.take();
                 match result {
                     Err(error) => {
                         let what = if recovery { "recover" } else { "open" };
                         self.report(format!("Cannot {what} {}: {error}", path.display()));
                     }
-                    Ok(_) if self.is_dirty() => {
+                    Ok(_) if self.is_dirty() && reverting != Some(id) => {
                         self.report("Your project changed while the file was opening, so it was not replaced");
                     }
                     Ok(document) if recovery => {

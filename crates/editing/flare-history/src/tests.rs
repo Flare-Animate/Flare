@@ -471,3 +471,55 @@ fn the_frame_rate_is_an_undoable_edit() {
     assert!(f.session.undo());
     assert_eq!(f.session.document().frame_rate().numerator(), 24);
 }
+
+#[test]
+fn steps_carry_their_labels_through_undo_redo_and_the_depth_limit() {
+    let mut f = fixture();
+    for name in ["one", "two", "three"] {
+        let layer = Layer::new(LayerId::new(), name, vec![]).expect("layer");
+        f.session
+            .apply_labeled(
+                [Command::AddLayer {
+                    scene: f.scene,
+                    layer,
+                }],
+                &format!("Add {name}"),
+            )
+            .expect("apply");
+    }
+    assert_eq!(
+        f.session.undo_labels().collect::<Vec<_>>(),
+        ["Add one", "Add two", "Add three"]
+    );
+    assert!(f.session.undo() && f.session.undo());
+    assert_eq!(f.session.undo_labels().collect::<Vec<_>>(), ["Add one"]);
+    assert_eq!(
+        f.session.redo_labels().collect::<Vec<_>>(),
+        ["Add two", "Add three"],
+        "the next redo is first"
+    );
+    assert!(f.session.redo());
+    assert_eq!(
+        f.session.undo_labels().collect::<Vec<_>>(),
+        ["Add one", "Add two"]
+    );
+    // A new edit drops what could have been redone.
+    f.session
+        .apply([Command::SetStage(f.session.document().stage())])
+        .expect("apply");
+    assert_eq!(f.session.redo_labels().len(), 0);
+    assert_eq!(f.session.undo_labels().last(), Some("Edit"));
+    f.session.clear_history();
+    assert!(!f.session.can_undo() && f.session.undo_labels().len() == 0);
+    // The label list never outgrows a short history.
+    let mut short = EditorSession::with_history_depth(f.session.document().clone(), 2);
+    for i in 0..5 {
+        short
+            .apply_labeled(
+                [Command::SetStage(short.document().stage())],
+                &format!("s{i}"),
+            )
+            .expect("apply");
+    }
+    assert_eq!(short.undo_labels().collect::<Vec<_>>(), ["s3", "s4"]);
+}

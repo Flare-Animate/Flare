@@ -30,6 +30,8 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
+            MenuAction::New | MenuAction::Close => !self.in_symbol(),
+            MenuAction::Revert => self.path.is_some() && self.is_dirty(),
             MenuAction::ExportImage => !self.document().scenes().is_empty(),
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
@@ -111,6 +113,9 @@ impl Workspace {
         let text = match action {
             MenuAction::Open => "Open...",
             MenuAction::ImportSound => "Import Sound...",
+            MenuAction::New => "New",
+            MenuAction::Close => "Close",
+            MenuAction::Revert => "Revert",
             MenuAction::ExportImage => "Export Image...",
             MenuAction::Save => "Save",
             MenuAction::SaveAs => "Save As...",
@@ -264,6 +269,8 @@ impl Workspace {
         match action {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
+            MenuAction::New | MenuAction::Close => self.new_document(),
+            MenuAction::Revert => self.revert(),
             MenuAction::ExportImage => self.dialog = Some(DialogRequest::ExportImage),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),

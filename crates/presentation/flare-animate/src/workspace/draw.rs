@@ -156,7 +156,10 @@ impl Workspace {
                 span,
             },
         ];
-        match self.active_mut().apply(batch) {
+        match self
+            .active_mut()
+            .apply_labeled(batch, &format!("Draw {}", name.to_lowercase()))
+        {
             Ok(()) => {
                 self.status = None;
                 self.current_layer = Some(layer_id);
