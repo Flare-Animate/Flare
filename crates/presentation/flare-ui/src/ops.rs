@@ -251,15 +251,51 @@ pub fn convert_to_symbol(
 
 /// Control-polygon bounds of the shapes in a symbol's first frame (one level deep).
 pub fn symbol_bounds(document: &Document, symbol: SymbolId) -> Option<Rect> {
+    symbol_bounds_nested(document, symbol, 0)
+}
+
+/// How many levels of symbols inside symbols are followed. Documents reject symbol cycles,
+/// so this only bounds work on deep but legal nesting.
+const MAX_BOUNDS_DEPTH: usize = 32;
+
+/// Bounds of the artwork at frame 0, following nested instances through their transforms.
+fn symbol_bounds_nested(document: &Document, symbol: SymbolId, depth: usize) -> Option<Rect> {
+    if depth > MAX_BOUNDS_DEPTH {
+        return None;
+    }
     let timeline = document.symbol(symbol)?.timeline();
     let mut bounds: Option<Rect> = None;
     for layer in timeline.layers() {
-        if let Some(Content::Shape(shape)) = layer.span_at(0).map(FrameSpan::content) {
-            let rect = shape_bounds(shape)?;
+        let rect = match layer.span_at(0).map(FrameSpan::content) {
+            Some(Content::Shape(shape)) => shape_bounds(shape),
+            Some(Content::Instance(instance)) => {
+                symbol_bounds_nested(document, instance.symbol(), depth + 1)
+                    .map(|inner| transformed(inner, instance.transform().as_affine()))
+            }
+            _ => None,
+        };
+        if let Some(rect) = rect {
             bounds = Some(bounds.map_or(rect, |b| b.union(rect)));
         }
     }
     bounds
+}
+
+/// The axis-aligned box around `rect` after `matrix`.
+fn transformed(rect: Rect, matrix: DAffine2) -> Rect {
+    let corners = [
+        rect.left_top(),
+        rect.right_top(),
+        rect.right_bottom(),
+        rect.left_bottom(),
+    ]
+    .map(|c| matrix.transform_point2(DVec2::new(f64::from(c.x), f64::from(c.y))));
+    let first = Pos2::new(corners[0].x as f32, corners[0].y as f32);
+    let mut out = Rect::from_min_max(first, first);
+    for c in &corners[1..] {
+        out.extend_with(Pos2::new(c.x as f32, c.y as f32));
+    }
+    out
 }
 
 pub fn shape_bounds(shape: &Shape) -> Option<Rect> {
@@ -295,22 +331,7 @@ pub fn span_bounds(document: &Document, scene: SceneId, at: SpanRef) -> Option<R
         Content::Shape(shape) => shape_bounds(shape),
         Content::Instance(instance) => {
             let local = symbol_bounds(document, instance.symbol())?;
-            let matrix = instance.transform().as_affine();
-            let corners = [
-                local.left_top(),
-                local.right_top(),
-                local.right_bottom(),
-                local.left_bottom(),
-            ]
-            .map(|c| matrix.transform_point2(DVec2::new(f64::from(c.x), f64::from(c.y))));
-            let mut rect = Rect::from_min_max(
-                Pos2::new(corners[0].x as f32, corners[0].y as f32),
-                Pos2::new(corners[0].x as f32, corners[0].y as f32),
-            );
-            for c in &corners[1..] {
-                rect.extend_with(Pos2::new(c.x as f32, c.y as f32));
-            }
-            Some(rect)
+            Some(transformed(local, instance.transform().as_affine()))
         }
     }
 }
@@ -671,5 +692,40 @@ mod tests {
         add(&mut f, rect_span(0, 5, 0.0, 0.0, 5.0, 5.0));
         f.session.apply(delete(f.scene, at(&f, 0))).expect("delete");
         assert!(find_span(f.session.document(), f.scene, at(&f, 0)).is_none());
+    }
+
+    #[test]
+    fn symbols_made_only_of_other_symbols_have_bounds_through_their_transforms() {
+        let (inner, outer) = (SymbolId::new(), SymbolId::new());
+        let tl = |spans: Vec<FrameSpan>| {
+            Timeline::new(vec![Layer::new(LayerId::new(), "L", spans).expect("layer")])
+        };
+        let shift =
+            Transform2D::new(DAffine2::from_translation(DVec2::new(100.0, 20.0))).expect("finite");
+        let placed = FrameSpan::new(
+            0,
+            NonZeroU32::new(1).expect("nonzero"),
+            Content::Instance(Instance::new(InstanceId::new(), inner, shift)),
+        );
+        let symbols = vec![
+            Symbol::new(
+                inner,
+                "Inner",
+                tl(vec![rect_span(0, 1, 0.0, 0.0, 10.0, 5.0)]),
+            ),
+            Symbol::new(outer, "Outer", tl(vec![placed])),
+        ];
+        let rate = FrameRate::new(24, 1).expect("rate");
+        let scene = Scene::new(SceneId::new(), "S", Timeline::default());
+        let doc = Document::new(DocumentId::new(), rate, vec![scene], symbols).expect("doc");
+        let bounds = symbol_bounds(&doc, outer).expect("nested bounds");
+        assert_eq!(
+            (bounds.min, bounds.max),
+            (Pos2::new(100.0, 20.0), Pos2::new(110.0, 25.0))
+        );
+        assert!(
+            symbol_bounds(&doc, SymbolId::new()).is_none(),
+            "unknown symbol"
+        );
     }
 }
