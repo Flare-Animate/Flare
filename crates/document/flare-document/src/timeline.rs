@@ -109,6 +109,8 @@ pub struct Layer {
     id: LayerId,
     name: String,
     spans: Vec<FrameSpan>,
+    visible: bool,
+    locked: bool,
 }
 
 impl Layer {
@@ -128,7 +130,45 @@ impl Layer {
             id,
             name: name.into(),
             spans,
+            visible: true,
+            locked: false,
         })
+    }
+
+    /// A copy with different spans and everything else (name, visibility, lock) kept.
+    pub fn with_spans(&self, spans: Vec<FrameSpan>) -> Result<Self, TimelineError> {
+        let mut layer = Self::new(self.id, self.name.clone(), spans)?;
+        layer.visible = self.visible;
+        layer.locked = self.locked;
+        Ok(layer)
+    }
+
+    #[must_use]
+    pub fn with_name(mut self, name: impl Into<String>) -> Self {
+        self.name = name.into();
+        self
+    }
+
+    /// Hidden layers are skipped by evaluation, so they neither render nor export.
+    #[must_use]
+    pub fn with_visible(mut self, visible: bool) -> Self {
+        self.visible = visible;
+        self
+    }
+
+    /// Locked layers cannot be selected or edited through the stage.
+    #[must_use]
+    pub fn with_locked(mut self, locked: bool) -> Self {
+        self.locked = locked;
+        self
+    }
+
+    pub fn is_visible(&self) -> bool {
+        self.visible
+    }
+
+    pub fn is_locked(&self) -> bool {
+        self.locked
     }
 
     pub fn id(&self) -> LayerId {

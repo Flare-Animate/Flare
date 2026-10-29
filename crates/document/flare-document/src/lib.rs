@@ -221,6 +221,29 @@ mod tests {
     }
 
     #[test]
+    fn layers_default_to_visible_and_unlocked_and_with_spans_keeps_flags() {
+        let layer = Layer::new(LayerId::new(), "L", vec![]).expect("layer");
+        assert!(layer.is_visible() && !layer.is_locked());
+        let flagged = layer
+            .with_visible(false)
+            .with_locked(true)
+            .with_name("Renamed");
+        let rebuilt = flagged
+            .with_spans(vec![span(0, 2, Content::Empty)])
+            .expect("spans");
+        assert_eq!(
+            (rebuilt.name(), rebuilt.is_visible(), rebuilt.is_locked()),
+            ("Renamed", false, true)
+        );
+        assert_eq!(rebuilt.spans().len(), 1);
+        assert!(
+            flagged
+                .with_spans(vec![span(0, 5, Content::Empty), span(2, 2, Content::Empty)])
+                .is_err()
+        );
+    }
+
+    #[test]
     fn span_lookup_and_frame_count() {
         let spans = vec![span(2, 3, Content::Empty), span(10, 1, Content::Empty)];
         let layer = Layer::new(LayerId::new(), "L", spans).expect("layer");

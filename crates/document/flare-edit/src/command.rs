@@ -113,7 +113,8 @@ fn edit_layer(
             .ok_or(EditError::NoSuchLayer(layer_id))?;
         let mut spans = slot.spans().to_vec();
         edit(&mut spans)?;
-        *slot = Layer::new(slot.id(), slot.name(), spans)?;
+        // with_spans keeps the layer's name, visibility and lock.
+        *slot = slot.with_spans(spans)?;
         Ok(())
     })
 }
