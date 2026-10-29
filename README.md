@@ -23,7 +23,7 @@ cargo run -p flare-desktop
 cargo run -p flare-cli -- --help
 ```
 
-Packaging is described in [docs/release.md](docs/release.md).
+Release builds and packaging are described in [docs/release.md](docs/release.md).
 
 ## Documentation
 
