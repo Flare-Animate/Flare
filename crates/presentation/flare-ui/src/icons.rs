@@ -40,14 +40,6 @@ pub fn image(name: &str, size: f32, tint: Color32) -> Image<'static> {
     .tint(tint)
 }
 
-/// The app's own logo (the same artwork as the app icon), as an image of the given size.
-pub fn logo(size: f32) -> Image<'static> {
-    Image::new(egui::include_image!(
-        "../../../../assets/flare-icon-256.png"
-    ))
-    .fit_to_exact_size(Vec2::splat(size))
-}
-
 /// Every icon's name, sorted.
 pub fn names() -> impl Iterator<Item = &'static str> {
     TABLE.iter().map(|(name, _)| *name)
@@ -142,14 +134,6 @@ mod tests {
                 "{name} uses a colour other than white: {colours:?}"
             );
         }
-    }
-
-    #[test]
-    fn the_app_logo_decodes_so_the_home_page_can_show_it() {
-        let bytes = include_bytes!("../../../../assets/flare-icon-256.png");
-        let image = egui_extras::image::load_image_bytes(bytes).expect("the logo is a valid PNG");
-        assert_eq!(image.size, [256, 256]);
-        assert!(image.pixels.iter().any(|p| p.a() > 0), "it is not blank");
     }
 
     #[test]

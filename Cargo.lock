@@ -1353,7 +1353,6 @@ dependencies = [
  "ahash",
  "egui",
  "enum-map 3.1.0",
- "image",
  "itertools 0.15.0",
  "log",
  "profiling",
@@ -1983,7 +1982,6 @@ version = "0.1.0"
 dependencies = [
  "egui",
  "egui_extras",
- "image",
 ]
 
 [[package]]
