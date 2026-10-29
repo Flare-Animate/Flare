@@ -5,6 +5,7 @@ resolver = "3"
 members = [
     "apps/flare-cli",
     "crates/foundation/flare-core",
+    "crates/document/flare-document",
     "crates/io/flare-flash",
 ]
 exclude = ["original"]
@@ -21,6 +22,7 @@ license = "BSD-3-Clause"
 # ---- Internal packages: root owns all paths ----------------------------------
 flare-core = { path = "crates/foundation/flare-core" }
 flare-flash = { path = "crates/io/flare-flash" }
+flare-document = { path = "crates/document/flare-document" }
 
 # ---- Math and vector geometry ------------------------------------------------
 glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }

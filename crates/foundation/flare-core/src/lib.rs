@@ -8,6 +8,6 @@ pub mod geometry;
 pub mod id;
 pub mod time;
 
-pub use geometry::{DocumentPoint, NonFiniteCoordinate};
-pub use id::DocumentId;
+pub use geometry::{DocumentPoint, NonFiniteCoordinate, Transform2D};
+pub use id::{DocumentId, InstanceId, LayerId, SceneId, SymbolId};
 pub use time::{FrameRate, RateError};
