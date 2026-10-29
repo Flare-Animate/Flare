@@ -62,4 +62,4 @@ Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font Licens
 
 ## Default layout
 
-Left to right: a tab stack (Library, Color, Align, Transform, History), the stage, Properties (Tool, Object, Frame, Doc tabs) and the tool strip. Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
+Left to right: the tool strip, the stage, and one stack of tabs (Properties, Library, Color, Align, Transform, History). Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.

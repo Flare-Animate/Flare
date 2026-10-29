@@ -71,10 +71,8 @@ pub enum LayoutError {
 
 const TREE_ID: &str = "flare_workspace_layout";
 
-/// The panel stack, the stage and the properties side by side, the tool strip at the far
-/// right, and the timeline and output as tabs underneath.
-///
-/// Library, Color, Align, Transform and History share the left as tabs.
+/// The tool strip at the left, the stage, and one stack of tabbed panels at the right (Properties,
+/// Library, Color, Align, Transform, History), with the timeline and output as tabs underneath.
 pub fn default_tree() -> Tree<Pane> {
     let mut tiles = Tiles::default();
     let tools = tiles.insert_pane(Pane::Tools);
@@ -87,14 +85,13 @@ pub fn default_tree() -> Tree<Pane> {
     let align = tiles.insert_pane(Pane::Align);
     let transform = tiles.insert_pane(Pane::Transform);
     let history = tiles.insert_pane(Pane::History);
-    let left = tiles.insert_tab_tile(vec![library, color, align, transform, history]);
+    let side = tiles.insert_tab_tile(vec![properties, library, color, align, transform, history]);
     let bottom = tiles.insert_tab_tile(vec![timeline, output]);
-    let top = tiles.insert_horizontal_tile(vec![left, stage, properties, tools]);
+    let top = tiles.insert_horizontal_tile(vec![tools, stage, side]);
     let root = tiles.insert_vertical_tile(vec![top, bottom]);
-    set_share(&mut tiles, top, left, 0.20);
-    set_share(&mut tiles, top, stage, 0.55);
-    set_share(&mut tiles, top, properties, 0.19);
-    set_share(&mut tiles, top, tools, 0.06);
+    set_share(&mut tiles, top, tools, 0.07);
+    set_share(&mut tiles, top, stage, 0.66);
+    set_share(&mut tiles, top, side, 0.27);
     set_share(&mut tiles, root, top, 0.68);
     set_share(&mut tiles, root, bottom, 0.32);
     Tree::new(egui::Id::unique(TREE_ID), root, tiles)
