@@ -60,6 +60,47 @@ impl Image {
         Some(Rgba8::new(p[0], p[1], p[2], p[3]))
     }
 
+    /// A copy with every pixel's alpha multiplied by `opacity` (clamped to 0..=1). Colors are
+    /// unchanged because the pixels are straight alpha.
+    pub fn faded(&self, opacity: f32) -> Image {
+        let opacity = opacity.clamp(0.0, 1.0);
+        let mut out = self.clone();
+        for px in out.rgba.as_chunks_mut::<4>().0 {
+            px[3] = (f32::from(px[3]) * opacity).round() as u8;
+        }
+        out
+    }
+
+    /// Draws `top` over this image (source-over, straight alpha). Sizes must match.
+    pub fn composite(&mut self, top: &Image) -> Result<(), RenderError> {
+        if (self.width, self.height) != (top.width, top.height) {
+            return Err(RenderError::InvalidSize(top.width, top.height));
+        }
+        let pairs = self
+            .rgba
+            .as_chunks_mut::<4>()
+            .0
+            .iter_mut()
+            .zip(top.rgba.as_chunks::<4>().0);
+        for (bottom, over) in pairs {
+            let (ta, ba) = (u32::from(over[3]), u32::from(bottom[3]));
+            if ta == 0 {
+                continue;
+            }
+            // out_a = ta + ba (1 - ta), in 0..=255 fixed point with rounding.
+            let out_a = ta * 255 + ba * (255 - ta);
+            let out_a_scaled = ((out_a + 127) / 255).min(255);
+            for channel in 0..3 {
+                let top_part = u32::from(over[channel]) * ta * 255;
+                let bottom_part = u32::from(bottom[channel]) * ba * (255 - ta);
+                bottom[channel] =
+                    ((top_part + bottom_part + out_a / 2) / out_a.max(1)).min(255) as u8;
+            }
+            bottom[3] = out_a_scaled as u8;
+        }
+        Ok(())
+    }
+
     pub fn write_png(&self, writer: impl Write) -> Result<(), RenderError> {
         let mut encoder = png::Encoder::new(writer, self.width, self.height);
         encoder.set_color(png::ColorType::Rgba);
@@ -88,6 +129,30 @@ fn bez_path(segments: &[PathSegment]) -> BezPath {
         }
     }
     path
+}
+
+/// Renders `current` with translucent `ghosts` (frame, opacity) beneath it, as onion
+/// skinning does. Ghosts are drawn in the order given, then the current frame on top.
+pub fn render_onion(
+    ghosts: &[(&Frame<'_>, f32)],
+    current: &Frame<'_>,
+    width: u32,
+    height: u32,
+    background: Rgba8,
+) -> Result<Image, RenderError> {
+    if ghosts.is_empty() {
+        return render(current, width, height, background);
+    }
+    let empty = Frame {
+        placed: Vec::new(),
+        shapes: Vec::new(),
+    };
+    let mut image = render(&empty, width, height, background)?;
+    for (frame, opacity) in ghosts {
+        image.composite(&render(frame, width, height, Rgba8::TRANSPARENT)?.faded(*opacity))?;
+    }
+    image.composite(&render(current, width, height, Rgba8::TRANSPARENT)?)?;
+    Ok(image)
 }
 
 /// Indices into `frame.shapes` of every shape whose fill (not stroke) contains `point`
@@ -427,5 +492,104 @@ mod tests {
         let info = reader.next_frame(&mut buf).expect("frame");
         assert_eq!((info.width, info.height), (20, 20));
         assert_eq!(&buf[..info.buffer_size()], image.rgba());
+    }
+
+    #[test]
+    fn fading_scales_alpha_only_and_composition_is_source_over() {
+        let (doc, id) = scene_with(vec![span(rect(0.0, 0.0, 20.0, 20.0, RED))], vec![]);
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        let red = render(&frame, 20, 20, Rgba8::TRANSPARENT).expect("render");
+        let half = red.faded(0.5);
+        assert_eq!(half.pixel(5, 5), Some(Rgba8::new(255, 0, 0, 128)));
+        assert_eq!(red.faded(2.0), red, "opacity clamps to 1");
+        assert_eq!(red.faded(-1.0).pixel(5, 5).map(|p| p.a), Some(0));
+
+        // 50% red over opaque white: halfway between white and red.
+        let mut canvas = render(
+            &flare_eval::Frame {
+                placed: vec![],
+                shapes: vec![],
+            },
+            20,
+            20,
+            Rgba8::WHITE,
+        )
+        .expect("bg");
+        canvas.composite(&half).expect("composite");
+        let p = canvas.pixel(5, 5).expect("pixel");
+        assert_eq!((p.r, p.a), (255, 255));
+        assert!(p.g.abs_diff(127) <= 1 && p.b.abs_diff(127) <= 1, "{p:?}");
+
+        // Over a transparent canvas the ghost keeps its own color and alpha.
+        let mut clear = render(
+            &flare_eval::Frame {
+                placed: vec![],
+                shapes: vec![],
+            },
+            20,
+            20,
+            Rgba8::TRANSPARENT,
+        )
+        .expect("clear");
+        clear.composite(&half).expect("composite");
+        assert_eq!(clear.pixel(5, 5), Some(Rgba8::new(255, 0, 0, 128)));
+        // Transparent pixels change nothing, and mismatched sizes are refused.
+        let before = canvas.clone();
+        canvas.composite(&red.faded(0.0)).expect("composite");
+        assert_eq!(canvas, before);
+        let small = render(
+            &flare_eval::Frame {
+                placed: vec![],
+                shapes: vec![],
+            },
+            4,
+            4,
+            Rgba8::WHITE,
+        )
+        .expect("small");
+        assert!(canvas.composite(&small).is_err());
+    }
+
+    #[test]
+    fn onion_frames_sit_beneath_the_current_frame() {
+        let blue = Rgba8::opaque(0, 0, 255);
+        // Frame 0 has a red square on the left; frame 1 has a blue square overlapping it.
+        let layer = |content: (u32, Content)| {
+            Layer::new(
+                LayerId::new(),
+                "L",
+                vec![FrameSpan::new(content.0, NonZeroU32::MIN, content.1)],
+            )
+            .expect("layer")
+        };
+        let timeline = Timeline::new(vec![
+            layer((1, rect(5.0, 0.0, 10.0, 10.0, blue))),
+            layer((0, rect(0.0, 0.0, 10.0, 10.0, RED))),
+        ]);
+        let id = SceneId::new();
+        let scene = Scene::new(id, "S", timeline);
+        let rate = FrameRate::new(24, 1).expect("rate");
+        let doc = Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("doc");
+        let ghost = flare_eval::evaluate_frame(&doc, id, 0).expect("ghost");
+        let current = flare_eval::evaluate_frame(&doc, id, 1).expect("current");
+
+        let image = render_onion(&[(&ghost, 0.5)], &current, 20, 20, Rgba8::WHITE).expect("onion");
+        // Ghost only (x 0..5): faint red. Overlap (x 5..10): the current frame's solid blue.
+        let faint = image.pixel(2, 5).expect("pixel");
+        assert!(faint.r == 255 && faint.g.abs_diff(127) <= 1, "{faint:?}");
+        assert_eq!(
+            image.pixel(7, 5),
+            Some(blue),
+            "the current frame covers the ghost"
+        );
+        assert_eq!(image.pixel(12, 5), Some(blue));
+        assert_eq!(image.pixel(18, 5), Some(Rgba8::WHITE));
+
+        // Without ghosts it is exactly the normal render.
+        let plain = render(&current, 20, 20, Rgba8::WHITE).expect("plain");
+        assert_eq!(
+            render_onion(&[], &current, 20, 20, Rgba8::WHITE).expect("onion"),
+            plain
+        );
     }
 }
