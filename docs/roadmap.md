@@ -25,7 +25,7 @@ Each of these can be its own branch and PR on top of the current work:
 1. Docking prototype (`egui_tiles` against `egui_dock`) and persisted layout.
 2. Drawing tools: pen/path, selection of multiple objects, transform handles.
 3. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
-4. Timeline UX: span selection and drag, copy/paste, onion skin, zoom.
+4. Timeline UX: span selection and drag, copy/paste, zoom (onion skin is on `feat/onion-skin`).
 5. Recovery: autosave, crash recovery, storage migration tests.
 6. Compatibility evidence: a lawful fixture corpus, then XFL import for a named subset.
 7. Input and accessibility: pen, IME and screen-reader results.

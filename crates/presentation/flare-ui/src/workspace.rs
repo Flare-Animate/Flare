@@ -13,6 +13,48 @@ use glamx::DVec2;
 use crate::ops::{self, SpanRef};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 
+/// How many frames before and after the current one onion skinning can show.
+pub const MAX_ONION_FRAMES: u32 = 8;
+
+const ONION_OPACITY: f32 = 0.4;
+
+/// Onion-skin settings: faint copies of neighbouring frames drawn beneath the current one.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct OnionSkin {
+    pub enabled: bool,
+    pub before: u32,
+    pub after: u32,
+}
+
+impl OnionSkin {
+    const OFF: Self = Self {
+        enabled: false,
+        before: 0,
+        after: 0,
+    };
+}
+
+/// The frames to show as ghosts around `frame` in a scene of `frames` frames, as
+/// (frame, opacity) in drawing order: farthest first, so nearer frames sit on top and are
+/// more opaque (opacity falls off with distance). Frames outside the scene are skipped.
+pub fn onion_ghosts(frame: u32, frames: u32, before: u32, after: u32) -> Vec<(u32, f32)> {
+    let (before, after) = (before.min(MAX_ONION_FRAMES), after.min(MAX_ONION_FRAMES));
+    let opacity = |distance: u32| ONION_OPACITY / distance as f32;
+    let mut out: Vec<(u32, f32, u32)> = Vec::new();
+    for distance in 1..=before {
+        if let Some(f) = frame.checked_sub(distance) {
+            out.push((f, opacity(distance), distance));
+        }
+    }
+    for distance in 1..=after {
+        if let Some(f) = frame.checked_add(distance).filter(|f| *f < frames) {
+            out.push((f, opacity(distance), distance));
+        }
+    }
+    out.sort_by_key(|(_, _, distance)| std::cmp::Reverse(*distance));
+    out.into_iter().map(|(f, o, _)| (f, o)).collect()
+}
+
 /// A file dialog the shell should show on the workspace's behalf.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DialogRequest {
@@ -22,6 +64,8 @@ pub enum DialogRequest {
 
 struct StageTexture {
     handle: egui::TextureHandle,
+    /// The onion-skin settings the texture was rendered with.
+    onion: OnionSkin,
     /// (context, session revision, frame) the texture was rendered for.
     key: (u64, u64, u32),
 }
@@ -103,6 +147,7 @@ pub struct Workspace {
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
     quit_requested: bool,
+    onion: OnionSkin,
     fill: Color32,
     stroke_enabled: bool,
     stroke_color: Color32,
@@ -134,6 +179,11 @@ impl Workspace {
             layer_name_edit: String::new(),
             native_menu: false,
             quit_requested: false,
+            onion: OnionSkin {
+                enabled: false,
+                before: 1,
+                after: 1,
+            },
             fill: Color32::from_rgb(232, 69, 60),
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
@@ -253,7 +303,7 @@ impl Workspace {
 
     /// Opens a project, refusing to replace unsaved work.
     /// Replaces the document being edited, keeping the user's tool and environment settings
-    /// (tool, colors, native menu) rather than resetting them along with the document.
+    /// (tool, colors, native menu, onion skin) rather than resetting them along with it.
     fn install_document(&mut self, document: Document, path: Option<PathBuf>) {
         let mut fresh = Self::new(document, path);
         fresh.tool = self.tool;
@@ -262,6 +312,7 @@ impl Workspace {
         fresh.stroke_color = self.stroke_color;
         fresh.stroke_width = self.stroke_width;
         fresh.native_menu = self.native_menu;
+        fresh.onion = self.onion;
         *self = fresh;
     }
 
@@ -590,6 +641,7 @@ impl Workspace {
             MenuAction::MoveLayerUp => position.is_some_and(|p| p > 0),
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
+            MenuAction::ToggleOnionSkin => true,
         }
     }
 
@@ -647,6 +699,13 @@ impl Workspace {
             MenuAction::MoveLayerUp => "Move Layer Up",
             MenuAction::MoveLayerDown => "Move Layer Down",
             MenuAction::DeleteLayer => "Delete Layer",
+            MenuAction::ToggleOnionSkin => {
+                if self.onion.enabled {
+                    "Hide Onion Skin"
+                } else {
+                    "Show Onion Skin"
+                }
+            }
         };
         text.to_owned()
     }
@@ -701,6 +760,7 @@ impl Workspace {
             MenuAction::MoveLayerUp => self.move_active_layer(-1),
             MenuAction::MoveLayerDown => self.move_active_layer(1),
             MenuAction::DeleteLayer => self.delete_active_layer(),
+            MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
         }
     }
 
@@ -1076,9 +1136,36 @@ impl Workspace {
 
     // ---- rendering -------------------------------------------------------------------
 
+    /// Onion skinning is off while playing, where it would only cost time.
+    fn effective_onion(&self) -> OnionSkin {
+        if self.playing {
+            OnionSkin::OFF
+        } else {
+            self.onion
+        }
+    }
+
+    pub fn onion_skin(&self) -> OnionSkin {
+        self.onion
+    }
+
+    pub fn set_onion_skin(&mut self, enabled: bool) {
+        self.onion.enabled = enabled;
+    }
+
+    pub fn set_onion_range(&mut self, before: u32, after: u32) {
+        self.onion.before = before.min(MAX_ONION_FRAMES);
+        self.onion.after = after.min(MAX_ONION_FRAMES);
+    }
+
     fn ensure_stage_texture(&mut self, ctx: &egui::Context) {
         let key = (self.context_serial, self.active().revision(), self.frame);
-        if self.texture.as_ref().is_some_and(|t| t.key == key) {
+        let onion = self.effective_onion();
+        if self
+            .texture
+            .as_ref()
+            .is_some_and(|t| t.key == key && t.onion == onion)
+        {
             return;
         }
         let Some(scene) = self.document().scenes().first().map(|s| s.id()) else {
@@ -1086,11 +1173,34 @@ impl Workspace {
             return;
         };
         let stage = self.document().stage();
-        let rendered = flare_eval::evaluate_frame(self.document(), scene, self.frame)
+        let document = self.document();
+        let ghost_frames = if onion.enabled {
+            onion_ghosts(self.frame, self.scene_frames(), onion.before, onion.after)
+        } else {
+            Vec::new()
+        };
+        let rendered = flare_eval::evaluate_frame(document, scene, self.frame)
             .map_err(|e| e.to_string())
-            .and_then(|frame| {
-                flare_render::render(&frame, stage.width(), stage.height(), stage.background())
-                    .map_err(|e| e.to_string())
+            .and_then(|current| {
+                // A ghost that fails to evaluate is simply left out; the current frame matters.
+                let evaluated: Vec<(flare_eval::Frame<'_>, f32)> = ghost_frames
+                    .iter()
+                    .filter_map(|(f, opacity)| {
+                        flare_eval::evaluate_frame(document, scene, *f)
+                            .ok()
+                            .map(|e| (e, *opacity))
+                    })
+                    .collect();
+                let ghosts: Vec<(&flare_eval::Frame<'_>, f32)> =
+                    evaluated.iter().map(|(e, o)| (e, *o)).collect();
+                flare_render::render_onion(
+                    &ghosts,
+                    &current,
+                    stage.width(),
+                    stage.height(),
+                    stage.background(),
+                )
+                .map_err(|e| e.to_string())
             });
         match rendered {
             Ok(image) => {
@@ -1100,10 +1210,11 @@ impl Workspace {
                     Some(texture) => {
                         texture.handle.set(color, egui::TextureOptions::LINEAR);
                         texture.key = key;
+                        texture.onion = onion;
                     }
                     None => {
                         let handle = ctx.load_texture("stage", color, egui::TextureOptions::LINEAR);
-                        self.texture = Some(StageTexture { handle, key });
+                        self.texture = Some(StageTexture { handle, key, onion });
                     }
                 }
             }
@@ -1480,6 +1591,24 @@ impl Workspace {
             }
             let rate = self.document().frame_rate();
             ui.weak(format!("{}/{} fps", rate.numerator(), rate.denominator()));
+            ui.separator();
+            let mut enabled = self.onion.enabled;
+            ui.checkbox(&mut enabled, "Onion skin");
+            self.set_onion_skin(enabled);
+            ui.add_enabled_ui(enabled, |ui| {
+                let (mut before, mut after) = (self.onion.before, self.onion.after);
+                ui.add(
+                    egui::DragValue::new(&mut before)
+                        .range(0..=MAX_ONION_FRAMES)
+                        .prefix("before "),
+                );
+                ui.add(
+                    egui::DragValue::new(&mut after)
+                        .range(0..=MAX_ONION_FRAMES)
+                        .prefix("after "),
+                );
+                self.set_onion_range(before, after);
+            });
             ui.separator();
             // Renaming needs text input, which a menu item cannot provide.
             let edit = ui.add(
@@ -2648,5 +2777,94 @@ mod tests {
         assert_eq!(ws.tool(), Tool::Ellipse);
         assert_eq!(ws.fill, Color32::from_rgb(1, 2, 3));
         assert!(ws.stroke_enabled);
+    }
+
+    #[test]
+    fn ghosts_are_chosen_nearest_last_with_falling_opacity_and_stay_inside_the_scene() {
+        // Frame 5 of 10, two before and two after: farthest first so nearer ones draw on top.
+        let ghosts = onion_ghosts(5, 10, 2, 2);
+        let frames: Vec<u32> = ghosts.iter().map(|(f, _)| *f).collect();
+        assert_eq!(frames, vec![3, 7, 4, 6]);
+        assert!(ghosts[0].1 < ghosts[2].1, "farther ghosts are fainter");
+        assert_eq!(ghosts[2].1, ghosts[3].1, "equal distance, equal opacity");
+        // Edges of the scene are skipped, never wrapped or negative.
+        assert_eq!(onion_ghosts(0, 10, 3, 0), vec![]);
+        assert_eq!(onion_ghosts(9, 10, 0, 3), vec![]);
+        assert_eq!(
+            onion_ghosts(1, 3, 3, 3)
+                .iter()
+                .map(|(f, _)| *f)
+                .collect::<Vec<_>>(),
+            vec![0, 2]
+        );
+        // The range is capped, and zero means none.
+        assert_eq!(
+            onion_ghosts(100, 1000, 50, 0).len(),
+            MAX_ONION_FRAMES as usize
+        );
+        assert!(onion_ghosts(5, 10, 0, 0).is_empty());
+        assert!(
+            onion_ghosts(u32::MAX, u32::MAX, 0, 2).is_empty(),
+            "no overflow at the top"
+        );
+    }
+
+    #[test]
+    fn onion_skin_re_renders_when_toggled_and_is_off_while_playing() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        run(&mut ws, &ctx, 0.0);
+        assert_eq!(ws.texture.as_ref().map(|t| t.onion.enabled), Some(false));
+        let before = ws.texture.as_ref().expect("texture").key;
+
+        ws.perform(MenuAction::ToggleOnionSkin);
+        assert!(ws.onion_skin().enabled);
+        assert_eq!(ws.label(MenuAction::ToggleOnionSkin), "Hide Onion Skin");
+        run(&mut ws, &ctx, 0.1);
+        assert_eq!(ws.texture.as_ref().map(|t| t.onion.enabled), Some(true));
+        assert_eq!(
+            ws.texture.as_ref().expect("texture").key,
+            before,
+            "same content, new settings"
+        );
+
+        rect(&mut ws);
+        ws.playing = true;
+        run(&mut ws, &ctx, 0.2);
+        assert_eq!(
+            ws.texture.as_ref().map(|t| t.onion.enabled),
+            Some(false),
+            "off while playing"
+        );
+        ws.playing = false;
+        run(&mut ws, &ctx, 0.3);
+        assert_eq!(
+            ws.texture.as_ref().map(|t| t.onion.enabled),
+            Some(true),
+            "back when stopped"
+        );
+    }
+
+    #[test]
+    fn onion_range_is_clamped_and_survives_opening_a_project() {
+        let dir = tempfile::tempdir().expect("dir");
+        let project = dir.path().join("p.flare");
+        let mut source = workspace();
+        source.save_as(&project);
+        let mut ws = workspace();
+        ws.set_onion_range(99, 3);
+        ws.set_onion_skin(true);
+        assert_eq!(
+            (ws.onion_skin().before, ws.onion_skin().after),
+            (MAX_ONION_FRAMES, 3)
+        );
+        ws.open(&project);
+        assert_eq!(
+            ws.onion_skin(),
+            OnionSkin {
+                enabled: true,
+                before: MAX_ONION_FRAMES,
+                after: 3
+            }
+        );
     }
 }
