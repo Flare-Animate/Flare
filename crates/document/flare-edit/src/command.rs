@@ -1,4 +1,4 @@
-use flare_core::{LayerId, SceneId, SoundId, SymbolId};
+use flare_core::{FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
 use flare_document::{
     Diagnostic, Document, FrameSpan, Layer, Scene, Sound, SoundCue, SoundError, Stage, Symbol,
@@ -39,6 +39,7 @@ pub enum Command {
         new_symbols: Vec<Symbol>,
     },
     SetStage(Stage),
+    SetFrameRate(FrameRate),
     /// Adds a sound to the library.
     AddSound(Sound),
     /// Removes a sound from the library. Fails if a cue still plays it.
@@ -124,13 +125,21 @@ pub(crate) fn apply_all(
     let mut symbols = document.symbols().to_vec();
     let mut sounds = document.sounds().to_vec();
     let mut stage = document.stage();
+    let mut rate = document.frame_rate();
     for command in commands {
-        step(&mut scenes, &mut symbols, &mut sounds, &mut stage, command)?;
+        step(
+            &mut scenes,
+            &mut symbols,
+            &mut sounds,
+            &mut stage,
+            &mut rate,
+            command,
+        )?;
     }
     // The stage and source attachments are carried through every edit; attachments whose
     // anchor the edit removed (a deleted layer) are dropped with it.
     Ok(Some(
-        Document::new(document.id(), document.frame_rate(), scenes, symbols)?
+        Document::new(document.id(), rate, scenes, symbols)?
             .with_sounds(sounds)?
             .with_stage(stage)
             .with_attachments_retained(document.attachments()),
@@ -143,6 +152,7 @@ fn step(
     symbols: &mut Vec<Symbol>,
     sounds: &mut Vec<Sound>,
     stage: &mut Stage,
+    rate: &mut FrameRate,
     command: Command,
 ) -> Result<(), EditError> {
     match command {
@@ -182,6 +192,7 @@ fn step(
             *slot = Symbol::new(slot.id(), slot.name(), timeline);
         }
         Command::SetStage(new_stage) => *stage = new_stage,
+        Command::SetFrameRate(new_rate) => *rate = new_rate,
         Command::AddSound(sound) => sounds.push(sound),
         Command::RemoveSound(id) => {
             let before = sounds.len();

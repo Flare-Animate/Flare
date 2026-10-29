@@ -586,4 +586,14 @@ mod tests {
                 .is_err()
         );
     }
+
+    #[test]
+    fn the_frame_rate_is_an_undoable_edit() {
+        let mut f = fixture();
+        let rate = FrameRate::new(30, 1).expect("rate");
+        f.session.apply([Command::SetFrameRate(rate)]).expect("set");
+        assert_eq!(f.session.document().frame_rate(), rate);
+        assert!(f.session.undo());
+        assert_eq!(f.session.document().frame_rate().numerator(), 24);
+    }
 }

@@ -484,6 +484,7 @@ pub struct Workspace {
     stroke_width: f32,
     /// Stage size being edited in the tools panel, applied when the edit finishes.
     stage_edit: Option<(u32, u32)>,
+    fps_edit: Option<f64>,
     status: Option<String>,
     dialog: Option<DialogRequest>,
     window_request: Option<WindowRequest>,
@@ -579,6 +580,7 @@ impl Workspace {
             stroke_color: Color32::BLACK,
             stroke_width: 4.0,
             stage_edit: None,
+            fps_edit: None,
             status: None,
             dialog: None,
             window_request: None,
@@ -626,6 +628,26 @@ impl Workspace {
         }
         match Stage::new(current.width(), current.height(), background) {
             Ok(stage) => self.run_batch(vec![Command::SetStage(stage)], "change the background"),
+            Err(error) => self.report(error.to_string()),
+        }
+    }
+
+    /// Sets the document's frame rate (0.01 to 240 fps) as one undo step.
+    pub fn set_frame_rate(&mut self, fps: f64) {
+        if self.in_symbol() {
+            self.report("Leave symbol editing to change the frame rate");
+            return;
+        }
+        if !fps.is_finite() || !(0.01..=240.0).contains(&fps) {
+            self.report("The frame rate must be between 0.01 and 240 fps");
+            return;
+        }
+        let milli = (fps * 1000.0).round() as u32;
+        match flare_core::FrameRate::new(milli, 1000) {
+            Ok(rate) if rate != self.document().frame_rate() => {
+                self.run_batch(vec![Command::SetFrameRate(rate)], "change the frame rate");
+            }
+            Ok(_) => {}
             Err(error) => self.report(error.to_string()),
         }
     }
@@ -8138,5 +8160,23 @@ mod tests {
         assert!(ws.selected_symbol.is_none());
         ws.undo();
         assert!(ws.document().symbol(id).is_some());
+    }
+
+    #[test]
+    fn the_frame_rate_changes_in_one_undo_step_and_rejects_nonsense() {
+        let mut ws = workspace();
+        ws.set_frame_rate(30.0);
+        let rate = ws.document().frame_rate();
+        assert_eq!((rate.numerator(), rate.denominator()), (30, 1));
+        ws.set_frame_rate(29.97);
+        let rate = ws.document().frame_rate();
+        assert_eq!((rate.numerator(), rate.denominator()), (2997, 100));
+        ws.set_frame_rate(0.0);
+        ws.set_frame_rate(f64::NAN);
+        ws.set_frame_rate(1000.0);
+        assert_eq!(ws.document().frame_rate().numerator(), 2997);
+        ws.undo();
+        ws.undo();
+        assert_eq!(ws.document().frame_rate().numerator(), 24);
     }
 }

@@ -348,8 +348,24 @@ impl Workspace {
         self.stage_settings(ui);
         let rate = self.document().frame_rate();
         chrome::row(ui, "Frame rate", |ui| {
-            let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
-            chrome::mock_number(ui, &format!("{fps:.2}"), " fps");
+            let current = f64::from(rate.numerator()) / f64::from(rate.denominator());
+            let mut fps = self.fps_edit.unwrap_or(current);
+            let response = ui.add_enabled(
+                !self.in_symbol(),
+                egui::DragValue::new(&mut fps)
+                    .range(0.01..=240.0)
+                    .speed(0.1)
+                    .suffix(" fps"),
+            );
+            if response.changed() {
+                self.fps_edit = Some(fps);
+            }
+            // Applied on release or Enter, so scrubbing the value is one undo step.
+            if (response.drag_stopped() || response.lost_focus())
+                && let Some(fps) = self.fps_edit.take()
+            {
+                self.set_frame_rate(fps);
+            }
         });
         chrome::row(ui, "Scenes", |ui| {
             ui.label(self.document().scenes().len().to_string());
