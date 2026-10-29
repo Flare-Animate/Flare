@@ -252,15 +252,26 @@ impl Workspace {
     // ---- file operations -------------------------------------------------------------
 
     /// Opens a project, refusing to replace unsaved work.
+    /// Replaces the document being edited, keeping the user's tool and environment settings
+    /// (tool, colors, native menu) rather than resetting them along with the document.
+    fn install_document(&mut self, document: Document, path: Option<PathBuf>) {
+        let mut fresh = Self::new(document, path);
+        fresh.tool = self.tool;
+        fresh.fill = self.fill;
+        fresh.stroke_enabled = self.stroke_enabled;
+        fresh.stroke_color = self.stroke_color;
+        fresh.stroke_width = self.stroke_width;
+        fresh.native_menu = self.native_menu;
+        *self = fresh;
+    }
+
     pub fn open(&mut self, path: &Path) {
         if self.is_dirty() {
             self.report("Save or undo your changes before opening another project");
             return;
         }
         match flare_storage::load(path) {
-            Ok(document) => {
-                *self = Self::new(document, Some(path.to_owned()));
-            }
+            Ok(document) => self.install_document(document, Some(path.to_owned())),
             Err(error) => self.report(format!("Cannot open {}: {error}", path.display())),
         }
     }
@@ -2614,5 +2625,28 @@ mod tests {
         ws.set_native_menu(false);
         pass(&mut ws, &ctx, input(0.3, vec![key(Key::Z, command)]));
         assert_eq!(layer_count(&ws), 1);
+    }
+
+    #[test]
+    fn opening_a_project_keeps_tool_colors_and_the_native_menu_setting() {
+        let dir = tempfile::tempdir().expect("dir");
+        let project = dir.path().join("p.flare");
+        let mut source = workspace();
+        source.save_as(&project);
+
+        let mut ws = workspace();
+        ws.set_native_menu(true);
+        ws.set_tool(Tool::Ellipse);
+        ws.fill = Color32::from_rgb(1, 2, 3);
+        ws.stroke_enabled = true;
+        ws.open(&project);
+        assert_eq!(ws.path(), Some(project.as_path()));
+        assert!(
+            ws.native_menu,
+            "opening must not turn the in-window menu back on"
+        );
+        assert_eq!(ws.tool(), Tool::Ellipse);
+        assert_eq!(ws.fill, Color32::from_rgb(1, 2, 3));
+        assert!(ws.stroke_enabled);
     }
 }
