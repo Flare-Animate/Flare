@@ -90,23 +90,30 @@ fn bez_path(segments: &[PathSegment]) -> BezPath {
     path
 }
 
-/// Index into `frame.shapes` of the topmost shape whose fill (not stroke) contains `point` (scene
-/// coordinates), using the same non-zero fill rule as rendering. Fully transparent
-/// fills and singular transforms are not hittable.
-pub fn hit_test(frame: &Frame<'_>, point: glamx::DVec2) -> Option<usize> {
+/// Indices into `frame.shapes` of every shape whose fill (not stroke) contains `point`
+/// (scene coordinates), topmost first, using the same non-zero fill rule as rendering.
+/// Fully transparent fills and singular transforms are not hittable. Callers that must
+/// skip some shapes (locked layers) walk this list instead of taking only the first.
+pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
     frame
         .shapes
         .iter()
         .enumerate()
         .rev()
-        .find_map(|(index, drawn)| {
+        .filter(|(_, drawn)| {
             if drawn.shape.fill().a == 0 || drawn.transform.matrix2.determinant() == 0.0 {
-                return None;
+                return false;
             }
             let local = drawn.transform.inverse().transform_point2(point);
-            let inside = bez_path(drawn.shape.path()).contains(Point::new(local.x, local.y));
-            inside.then_some(index)
+            bez_path(drawn.shape.path()).contains(Point::new(local.x, local.y))
         })
+        .map(|(index, _)| index)
+        .collect()
+}
+
+/// Index into `frame.shapes` of the topmost shape under `point`; see [`hit_test_all`].
+pub fn hit_test(frame: &Frame<'_>, point: glamx::DVec2) -> Option<usize> {
+    hit_test_all(frame, point).into_iter().next()
 }
 
 /// Converts premultiplied to straight alpha with rounding.
@@ -348,6 +355,20 @@ mod tests {
         assert_eq!(hit_test(&frame, DVec2::new(90.0, 90.0)), None);
         // The instance's local origin square (0..10) was moved away; this point is in the blue rect.
         assert_eq!(hit_test(&frame, DVec2::new(5.0, 80.0)), Some(1));
+    }
+
+    #[test]
+    fn hit_test_all_lists_every_overlapping_shape_topmost_first() {
+        let blue = Rgba8::opaque(0, 0, 255);
+        let spans = vec![
+            span(rect(0.0, 0.0, 50.0, 50.0, blue)),
+            span(rect(0.0, 0.0, 100.0, 100.0, RED)),
+        ];
+        let (doc, id) = scene_with(spans, vec![]);
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        assert_eq!(hit_test_all(&frame, DVec2::new(10.0, 10.0)), vec![1, 0]);
+        assert_eq!(hit_test_all(&frame, DVec2::new(80.0, 80.0)), vec![0]);
+        assert!(hit_test_all(&frame, DVec2::new(200.0, 200.0)).is_empty());
     }
 
     #[test]
