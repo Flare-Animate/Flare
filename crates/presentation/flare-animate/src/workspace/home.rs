@@ -111,7 +111,7 @@ impl Workspace {
         dialog: &mut Option<DialogRequest>,
     ) {
         ui.horizontal(|ui| {
-            ui.add(icons::image("home", 22.0, theme::ACCENT));
+            ui.add(icons::image("flare-mark", 22.0, theme::ACCENT));
             ui.label(
                 egui::RichText::new("Flare")
                     .font(FontId::proportional(20.0))
