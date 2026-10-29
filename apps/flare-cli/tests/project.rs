@@ -599,3 +599,70 @@ fn export_frames_writes_a_numbered_animation_sequence() {
             .success()
     );
 }
+
+#[test]
+fn layer_commands_manage_visibility_lock_order_and_deletion() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let out = dir.path().join("f.png").to_string_lossy().into_owned();
+    json(&["new", &file, "--width", "10", "--height", "10"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "0",
+        "0",
+        "10",
+        "10",
+        "--color",
+        "FF0000",
+    ]);
+    let second = json(&["add-layer", &file, "Second"])["layer"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    let layers = |file: &str| json(&["info", file])["scenes"][0]["layers"].clone();
+
+    json(&["layer", "hide", &file]);
+    json(&["export", &file, &out]);
+    assert_eq!(
+        pixel(&read_png(&out), 5, 5),
+        [255, 255, 255, 255],
+        "hidden layers do not render"
+    );
+    json(&["layer", "show", &file]);
+    json(&["export", &file, &out]);
+    assert_eq!(pixel(&read_png(&out), 5, 5), [255, 0, 0, 255]);
+
+    json(&[
+        "layer", "rename", &file, "--layer", &second, "--name", "Backdrop",
+    ]);
+    json(&["layer", "lock", &file, "--layer", &second]);
+    let info = layers(&file);
+    assert_eq!(info[1]["name"], "Backdrop");
+    assert_eq!(info[1]["locked"], true);
+    assert_eq!(info[0]["locked"], false);
+
+    json(&["layer", "up", &file, "--layer", &second]);
+    assert_eq!(layers(&file)[0]["name"], "Backdrop");
+    assert!(
+        !run(&["layer", "up", &file, "--layer", &second])
+            .status
+            .success(),
+        "already at the top"
+    );
+
+    let before = std::fs::read(&file).expect("read");
+    assert!(
+        !run(&["layer", "rename", &file]).status.success(),
+        "needs --name"
+    );
+    assert_eq!(std::fs::read(&file).expect("read"), before);
+
+    json(&["layer", "delete", &file, "--layer", &second]);
+    assert_eq!(layers(&file).as_array().expect("array").len(), 1);
+    assert!(
+        !run(&["layer", "delete", &file]).status.success(),
+        "the last layer stays"
+    );
+}

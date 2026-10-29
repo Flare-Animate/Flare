@@ -129,6 +129,17 @@ enum Command {
         #[arg(long)]
         layer: Option<uuid::Uuid>,
     },
+    /// Rename, hide/show, lock/unlock, reorder or delete a layer.
+    Layer {
+        #[arg(value_enum)]
+        op: project::LayerOperation,
+        path: PathBuf,
+        #[arg(long)]
+        layer: Option<uuid::Uuid>,
+        /// New name, for `rename`.
+        #[arg(long)]
+        name: Option<String>,
+    },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -249,6 +260,12 @@ fn main() -> Result<()> {
             height,
             transparent,
         } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
+        Command::Layer {
+            op,
+            path,
+            layer,
+            name,
+        } => project::layer_op(&path, op, layer, name.as_deref())?,
         Command::Info { path } => project::info(&path)?,
         Command::AddSymbol {
             path,
