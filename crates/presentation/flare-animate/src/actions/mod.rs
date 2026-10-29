@@ -117,10 +117,14 @@ pub enum MenuAction {
     ToggleGuides,
     ClearGuides,
     ConvertToKeyframes,
+    TextBold,
+    TextItalic,
+    TextLarger,
+    TextSmaller,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 105] = [
+    pub const ALL: [MenuAction; 109] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -226,6 +230,10 @@ impl MenuAction {
         Self::ToggleGuides,
         Self::ClearGuides,
         Self::ConvertToKeyframes,
+        Self::TextBold,
+        Self::TextItalic,
+        Self::TextLarger,
+        Self::TextSmaller,
     ];
 
     /// A stable identifier for native menu items (the variant name).

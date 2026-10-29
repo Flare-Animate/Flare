@@ -107,6 +107,10 @@ impl Workspace {
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
             MenuAction::ResetLayout => true,
+            MenuAction::TextBold
+            | MenuAction::TextItalic
+            | MenuAction::TextLarger
+            | MenuAction::TextSmaller => true,
             MenuAction::ToggleGuides => true,
             MenuAction::ClearGuides => !self.guides.is_empty(),
             MenuAction::NewSymbol => !self.in_symbol(),
@@ -255,6 +259,22 @@ impl Workspace {
             MenuAction::DeleteLayer => "Delete Layer",
             MenuAction::ResetLayout => "Reset Workspace Layout",
             MenuAction::NewSymbol => "New Symbol",
+            MenuAction::TextBold => {
+                if self.text_bold {
+                    "Not Bold"
+                } else {
+                    "Bold"
+                }
+            }
+            MenuAction::TextItalic => {
+                if self.text_italic {
+                    "Not Italic"
+                } else {
+                    "Italic"
+                }
+            }
+            MenuAction::TextLarger => "Larger Text",
+            MenuAction::TextSmaller => "Smaller Text",
             MenuAction::ToggleGuides => {
                 if self.show_guides {
                     "Hide Guides"
@@ -458,6 +478,14 @@ impl Workspace {
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
             MenuAction::NewSymbol => self.new_symbol(),
+            MenuAction::TextBold => self.text_bold = !self.text_bold,
+            MenuAction::TextItalic => self.text_italic = !self.text_italic,
+            MenuAction::TextLarger => {
+                self.text_size = (self.text_size * 1.25).min(flare_text::MAX_SIZE)
+            }
+            MenuAction::TextSmaller => {
+                self.text_size = (self.text_size / 1.25).max(flare_text::MIN_SIZE)
+            }
             MenuAction::ToggleGuides => self.show_guides = !self.show_guides,
             MenuAction::ClearGuides => {
                 self.guides.clear();

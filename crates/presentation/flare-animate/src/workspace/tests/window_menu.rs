@@ -209,3 +209,30 @@ fn the_document_tab_with_its_publish_settings_draws() {
     run(&mut ws, &ctx, 0.0);
     run(&mut ws, &ctx, 0.1);
 }
+
+#[test]
+fn the_text_menu_sets_how_new_text_is_made_within_the_size_limits() {
+    let mut ws = workspace();
+    assert_eq!(ws.label(MenuAction::TextBold), "Bold");
+    ws.perform(MenuAction::TextBold);
+    assert!(ws.text_bold);
+    assert_eq!(ws.label(MenuAction::TextBold), "Not Bold");
+    ws.perform(MenuAction::TextItalic);
+    assert!(ws.text_italic);
+    let before = ws.text_size;
+    ws.perform(MenuAction::TextLarger);
+    assert!(ws.text_size > before);
+    ws.perform(MenuAction::TextSmaller);
+    assert!(
+        (ws.text_size - before).abs() < 0.01,
+        "a step up and down returns"
+    );
+    for _ in 0..200 {
+        ws.perform(MenuAction::TextLarger);
+    }
+    assert_eq!(ws.text_size, flare_text::MAX_SIZE, "bounded above");
+    for _ in 0..400 {
+        ws.perform(MenuAction::TextSmaller);
+    }
+    assert_eq!(ws.text_size, flare_text::MIN_SIZE, "bounded below");
+}

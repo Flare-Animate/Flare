@@ -125,7 +125,11 @@ impl MenuAction {
             Self::ToolEllipse => "tool-oval",
             Self::ToolLine => "tool-line",
             Self::ToolPen => "tool-pen",
-            Self::ToolText => "tool-text",
+            Self::ToolText
+            | Self::TextBold
+            | Self::TextItalic
+            | Self::TextLarger
+            | Self::TextSmaller => "tool-text",
             Self::ToolHand => "tool-hand",
             Self::ToolZoom => "tool-zoom",
             Self::ToolEyedropper => "tool-eyedropper",

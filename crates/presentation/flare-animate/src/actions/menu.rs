@@ -123,11 +123,14 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
     (
         "Text",
         &[
-            Mock("Font"),
-            Mock("Size"),
-            Mock("Style"),
-            Mock("Align"),
+            Action(A::TextBold),
+            Action(A::TextItalic),
             Separator,
+            Action(A::TextLarger),
+            Action(A::TextSmaller),
+            Separator,
+            Mock("Font..."),
+            Mock("Align"),
             Mock("Check Spelling"),
         ],
     ),
