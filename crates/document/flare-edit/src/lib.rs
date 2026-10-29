@@ -7,6 +7,7 @@
 #![forbid(unsafe_code)]
 
 mod command;
+pub mod frames;
 mod session;
 
 pub use command::{Command, EditError};
