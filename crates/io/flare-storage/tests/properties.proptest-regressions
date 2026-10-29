@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 121c1eee8a57ef148741dc5411360d30801d805f85254380fac50f83ae9f44e0 # shrinks to layers = [(false, false, 0, 1, ShapeSpec { rect: (0.0, 0.0, 1.0, 217.85264801395158), fill: Rgba8 { r: 0, g: 0, b: 0, a: 0 }, stroke: None, gradient: None })], stage = (1, 1, Rgba8 { r: 0, g: 0, b: 0, a: 0 }), rate = (1, 1)

@@ -80,7 +80,7 @@ half = "2"
 
 # ---- Serialization, identity and typed errors -------------------------------
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", features = ["float_roundtrip"] }
 uuid = "1"                 # v7/serde are enabled by the consuming member.
 thiserror = "2"
 anyhow = "1"               # Executable boundaries, not public library errors.
@@ -182,6 +182,10 @@ lto = "thin"
 codegen-units = 1
 # Keep unwinding until every FFI/process boundary has an explicit policy.
 # Avoid fast-math, target-cpu=native and global allocator changes by default.
+
+# Full debug information made a debug build over 25 GB; line tables are enough for backtraces.
+[profile.dev]
+debug = "line-tables-only"
 
 # Keep the hot loops responsive in the default `cargo run`/`cargo test` profile: the rasterizer
 # and the code around it are far too slow unoptimized to draw or test large documents. Debug

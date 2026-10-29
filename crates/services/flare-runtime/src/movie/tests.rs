@@ -79,3 +79,25 @@ fn big_stages_are_scaled_down_and_absurd_requests_are_refused_in_words() {
     let error = gif_bytes(&long).expect_err("too many frames");
     assert!(error.contains("limited to"), "{error}");
 }
+
+proptest::proptest! {
+    #![proptest_config(proptest::prelude::ProptestConfig::with_cases(24))]
+
+    /// Any small animation encodes to a GIF with one picture per frame, a delay a viewer will
+    /// honour, and a size that fits the limit.
+    #[test]
+    fn any_small_animation_becomes_a_gif_with_a_picture_per_frame(
+        frames in 1_u32..10,
+        width in 1_u32..120,
+        height in 1_u32..120,
+        numerator in 1_u32..240,
+        denominator in 1_u32..4,
+    ) {
+        let bytes = gif_bytes(&animation(frames, (width, height), (numerator, denominator)))
+            .expect("gif");
+        let (decoder, pictures) = decode(&bytes);
+        proptest::prop_assert_eq!(pictures.len(), frames as usize);
+        proptest::prop_assert_eq!((u32::from(decoder.width()), u32::from(decoder.height())), (width, height));
+        proptest::prop_assert!(pictures.iter().all(|f| f.delay >= 2));
+    }
+}

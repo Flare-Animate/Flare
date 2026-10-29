@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [Rust-Rewrite, "stack/**"]
+  pull_request:
+
+# A newer push to the same branch makes an older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  checks:
+    name: Format, lints and tests (Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      # The toolchain is pinned in rust-toolchain.toml; this installs exactly that.
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+
+      - name: System libraries for the window, the sound card and the GPU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config libasound2-dev libwayland-dev libxkbcommon-dev \
+            libx11-dev libxcursor-dev libxi-dev libxrandr-dev libxcb1-dev
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Formatting
+        run: cargo fmt --all --check
+
+      - name: Lints
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Tests
+        run: cargo test --workspace --locked
+
+      - name: The lock file is up to date
+        run: cargo metadata --locked --format-version 1 > /dev/null
+
+  web:
+    name: The browser build compiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install the pinned Rust toolchain and the wasm target
+        run: |
+          rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Lints for wasm32
+        run: cargo clippy -p flare-web --target wasm32-unknown-unknown --locked -- -D warnings
+      - name: Every crate that should work in a page compiles for it
+        run: |
+          for crate in flare-core flare-document flare-eval flare-input flare-commands \
+            flare-history flare-editor flare-tools flare-render flare-text flare-storage \
+            flare-runtime flare-animate flare-publish flare-export flare-import; do
+            cargo check -p "$crate" --target wasm32-unknown-unknown --locked
+          done
+
+  docs:
+    name: No file over 500 lines, no stray reference to scratch notes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust files stay under 500 lines
+        run: |
+          long=$(find crates apps -name '*.rs' -not -path '*/target/*' -print0 \
+            | xargs -0 wc -l | awk '$1 > 500 && $2 != "total" {print}')
+          if [ -n "$long" ]; then echo "Files over 500 lines:"; echo "$long"; exit 1; fi
+      - name: Committed docs never point at docs/temp
+        run: |
+          if grep -rn "docs/temp" --include='*.md' . --exclude-dir=original --exclude-dir=target --exclude-dir=.git; then
+            echo "Committed docs refer to docs/temp"; exit 1
+          fi

@@ -435,3 +435,25 @@ fn motion_guides_survive_and_older_files_have_none() {
             .all(|l| !l.is_guide())
     );
 }
+
+#[test]
+fn every_coordinate_comes_back_to_the_last_bit() {
+    // serde_json's default reader can be one unit in the last place off for some numbers; a
+    // saved drawing must not drift. This height was found by the property test.
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("a.flare");
+    let height = 217.852_648_013_951_6_f64;
+    let shape = Shape::rect(ShapeId::new(), 0.0, 0.0, 1.0, height, Rgba8::WHITE).expect("rect");
+    let span = FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(shape));
+    let layer = Layer::new(LayerId::new(), "L", vec![span]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    save(&document, &path).expect("save");
+    assert_eq!(load(&path).expect("load"), document);
+}

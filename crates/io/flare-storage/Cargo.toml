@@ -21,6 +21,7 @@ uuid.workspace = true
 rusqlite = { workspace = true, features = ["bundled"] }
 
 [dev-dependencies]
+proptest.workspace = true
 criterion.workspace = true
 
 [lints]

@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest something Flare could do.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Flare aims to be a modern replacement for Adobe Animate, so the clearest requests say what
+        you do in Animate (or elsewhere) that Flare cannot yet. Requests with someone ready to
+        build them move fastest.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The work you are stuck on, not the feature you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: animate
+    attributes:
+      label: How does Animate or another tool do it?
+      description: Menu names, panel names and what the result looks like help a lot.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Would you help?
+      options:
+        - label: I can try building it and open a pull request.
+        - label: I can test it and give feedback.

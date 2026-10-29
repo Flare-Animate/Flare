@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question or chat
+    url: https://discord.com/invite/JpeScW8Awa
+    about: For questions and discussion, the Discord is the quickest place.
+  - name: Report a security problem privately
+    url: https://github.com/Flare-Animate/Flare/security/advisories/new
+    about: Please do not open a public issue for a vulnerability; see SECURITY.md.

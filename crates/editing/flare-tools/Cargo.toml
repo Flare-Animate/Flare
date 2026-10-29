@@ -16,6 +16,7 @@ flare-input.workspace = true
 glamx.workspace = true
 
 [dev-dependencies]
+proptest.workspace = true
 flare-history.workspace = true
 
 [lints]

@@ -1,0 +1,60 @@
+name: Bug report
+description: Something does not work the way it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting. A bug we can reproduce is a bug we can fix, so the more exactly
+        you can say what happened the better. A project file that shows the problem is the most
+        useful thing you can attach (remove anything private first).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. New document
+        2. Draw a rectangle
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it happen?
+      options:
+        - Desktop app
+        - Browser build (flare-web)
+        - Command line (flare-cli)
+        - MCP server (flare-mcp)
+        - Importing or exporting a file (XFL, FLA, SWF, PNG, GIF)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The version, or the commit if you built it yourself.
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and graphics
+      placeholder: macOS 15, Apple M2 / Ubuntu 24.04, NVIDIA / Windows 11, Intel
+  - type: textarea
+    id: output
+    attributes:
+      label: Output, error messages and the Output panel
+      description: Anything the app, the terminal or the Output panel said.
+      render: text
+  - type: textarea
+    id: files
+    attributes:
+      label: Files
+      description: Drag a project, a screenshot or a short recording here.

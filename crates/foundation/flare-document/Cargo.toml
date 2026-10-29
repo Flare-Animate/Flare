@@ -11,5 +11,8 @@ blake3.workspace = true
 flare-core.workspace = true
 thiserror.workspace = true
 
+[dev-dependencies]
+proptest.workspace = true
+
 [lints]
 workspace = true

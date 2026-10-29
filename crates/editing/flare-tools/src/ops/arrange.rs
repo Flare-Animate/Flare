@@ -29,7 +29,10 @@ pub fn align_deltas(rects: &[Rect], how: Align, target: Rect) -> Vec<emath::Vec2
 }
 
 /// How far each of `rects` moves to leave equal gaps between neighbours along the axis, the two
-/// outermost staying put. Fewer than three rectangles have nothing to distribute.
+/// outermost staying put. When the shapes are too big for that (together they are longer than the
+/// space between the outer edges, so the gaps would be negative and could even reorder them),
+/// their centers are spaced evenly instead, which keeps their order. Fewer than three
+/// rectangles have nothing to distribute.
 pub fn distribute_deltas(rects: &[Rect], horizontal: bool) -> Vec<emath::Vec2> {
     let mut deltas = vec![emath::Vec2::ZERO; rects.len()];
     if rects.len() < 3 {
@@ -54,6 +57,22 @@ pub fn distribute_deltas(rects: &[Rect], horizontal: bool) -> Vec<emath::Vec2> {
         .fold(f32::MIN, f32::max);
     let total: f32 = rects.iter().map(size).sum();
     let gap = (last - first - total) / (rects.len() - 1) as f32;
+    if gap < 0.0 {
+        let center = |i: usize| (lo(&rects[i]) + hi(&rects[i])) / 2.0;
+        let mut by_center: Vec<usize> = (0..rects.len()).collect();
+        by_center.sort_by(|a, b| center(*a).total_cmp(&center(*b)));
+        let (c0, c1) = (center(by_center[0]), center(by_center[by_center.len() - 1]));
+        let step = (c1 - c0) / (rects.len() - 1) as f32;
+        for (rank, index) in by_center.into_iter().enumerate() {
+            let shift = c0 + step * rank as f32 - center(index);
+            deltas[index] = if horizontal {
+                emath::vec2(shift, 0.0)
+            } else {
+                emath::vec2(0.0, shift)
+            };
+        }
+        return deltas;
+    }
     let mut at = first;
     for index in order {
         let shift = at - lo(&rects[index]);
