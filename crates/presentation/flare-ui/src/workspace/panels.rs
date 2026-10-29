@@ -898,7 +898,19 @@ impl Workspace {
         ui.add_space(6.0);
         ui.horizontal(|ui| {
             chrome::mock_icon_button(ui, "break-apart", BAR_ICON, "Break apart");
-            chrome::mock_icon_button(ui, "convert-symbol", BAR_ICON, "Convert to symbol (F8)");
+            let can = self.is_enabled(MenuAction::ConvertToSymbol);
+            if chrome::icon_button(
+                ui,
+                "convert-symbol",
+                BAR_ICON,
+                false,
+                can,
+                "Convert to symbol (F8)",
+            )
+            .clicked()
+            {
+                self.perform(MenuAction::ConvertToSymbol);
+            }
         });
     }
 
@@ -979,7 +991,18 @@ impl Workspace {
             {
                 self.set_frame(last);
             }
-            chrome::mock_icon_button(ui, "transport-loop", BAR_ICON, "Loop playback");
+            if chrome::icon_button(
+                ui,
+                "transport-loop",
+                BAR_ICON,
+                self.loop_playback,
+                true,
+                "Loop playback",
+            )
+            .clicked()
+            {
+                self.perform(MenuAction::ToggleLoop);
+            }
             ui.separator();
             let mut frame = self.frame;
             ui.add(

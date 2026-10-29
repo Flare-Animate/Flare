@@ -62,6 +62,8 @@ pub enum MenuAction {
     ToggleRulers,
     ToggleGrid,
     ToggleSnap,
+    ToggleLoop,
+    ToggleMute,
     TestMovie,
     ZoomIn,
     ZoomOut,
@@ -75,7 +77,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 67] = [
+    pub const ALL: [MenuAction; 69] = [
         Self::Open,
         Self::ImportSound,
         Self::Save,
@@ -133,6 +135,8 @@ impl MenuAction {
         Self::ToggleRulers,
         Self::ToggleGrid,
         Self::ToggleSnap,
+        Self::ToggleLoop,
+        Self::ToggleMute,
         Self::TestMovie,
         Self::ZoomIn,
         Self::ZoomOut,
@@ -282,6 +286,8 @@ impl MenuAction {
             Self::ToggleRulers => "ruler",
             Self::ToggleGrid => "grid",
             Self::ToggleSnap => "snap",
+            Self::ToggleLoop => "transport-loop",
+            Self::ToggleMute => "sound-mute",
             Self::FlipHorizontal => "flip-horizontal",
             Self::FlipVertical => "flip-vertical",
             Self::RotateClockwise => "rotate-cw",
@@ -476,8 +482,8 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::StepBackward),
             Separator,
             Action(A::TestMovie),
-            Mock("Loop Playback"),
-            Mock("Mute Sounds"),
+            Action(A::ToggleLoop),
+            Action(A::ToggleMute),
         ],
     ),
     (

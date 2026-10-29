@@ -514,6 +514,9 @@ pub struct Workspace {
     stage_edit: Option<(u32, u32)>,
     fps_edit: Option<f64>,
     show_rulers: bool,
+    /// Playback wraps to the first frame; off, it stops on the last.
+    loop_playback: bool,
+    muted: bool,
     show_grid: bool,
     /// Points drawn and moves are rounded to the grid.
     snap_to_grid: bool,
@@ -621,6 +624,8 @@ impl Workspace {
             stage_edit: None,
             fps_edit: None,
             show_rulers: true,
+            loop_playback: true,
+            muted: false,
             show_grid: false,
             snap_to_grid: false,
             grid_size: 20.0,
@@ -1070,7 +1075,11 @@ impl Workspace {
             return;
         };
         for layer in scene.timeline().layers().iter().filter(|l| l.is_visible()) {
-            for cue in layer.cues().iter().filter(|c| c.start >= self.frame) {
+            for cue in layer
+                .cues()
+                .iter()
+                .filter(|c| c.start >= self.frame && !self.muted)
+            {
                 if let Some(audio) = self.decoded.get(&cue.sound) {
                     self.audio_events.push(AudioEvent::Play {
                         audio: Arc::clone(audio),
@@ -1827,7 +1836,9 @@ impl Workspace {
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleRulers
             | MenuAction::ToggleGrid
-            | MenuAction::ToggleSnap => true,
+            | MenuAction::ToggleSnap
+            | MenuAction::ToggleLoop
+            | MenuAction::ToggleMute => true,
             MenuAction::TestMovie => true,
         }
     }
@@ -1956,6 +1967,20 @@ impl Workspace {
                     "Snapping: Off"
                 }
             }
+            MenuAction::ToggleLoop => {
+                if self.loop_playback {
+                    "Loop Playback: On"
+                } else {
+                    "Loop Playback: Off"
+                }
+            }
+            MenuAction::ToggleMute => {
+                if self.muted {
+                    "Unmute Sounds"
+                } else {
+                    "Mute Sounds"
+                }
+            }
             MenuAction::TestMovie => "Test Movie",
         };
         text.to_owned()
@@ -2067,6 +2092,12 @@ impl Workspace {
             MenuAction::ToggleRulers => self.show_rulers = !self.show_rulers,
             MenuAction::ToggleGrid => self.show_grid = !self.show_grid,
             MenuAction::ToggleSnap => self.snap_to_grid = !self.snap_to_grid,
+            MenuAction::ToggleLoop => self.loop_playback = !self.loop_playback,
+            MenuAction::ToggleMute => {
+                self.muted = !self.muted;
+                // Sounds already started stop now; unmuting waits for the next start.
+                self.audio_events.push(AudioEvent::Stop);
+            }
             MenuAction::TestMovie => {
                 // Pending symbol edits belong in the movie, so apply them first, like Save.
                 if self.exit_all_symbols() {
@@ -3262,7 +3293,13 @@ impl Workspace {
         self.play_remainder -= whole;
         let frames = self.scene_frames();
         // `whole` is small (one UI frame's worth), so the cast cannot overflow.
-        self.frame = (u64::from(self.frame) + whole as u64).rem_euclid(u64::from(frames)) as u32;
+        let next = u64::from(self.frame) + whole as u64;
+        if !self.loop_playback && next >= u64::from(frames) {
+            self.frame = frames.saturating_sub(1);
+            self.playing = false;
+            return;
+        }
+        self.frame = next.rem_euclid(u64::from(frames)) as u32;
     }
 
     // ---- rendering -------------------------------------------------------------------
@@ -8400,5 +8437,34 @@ mod tests {
         ws.grid_size = 1.0;
         run(&mut ws, &ctx, 0.0);
         run(&mut ws, &ctx, 0.1);
+    }
+
+    #[test]
+    fn playback_stops_on_the_last_frame_unless_looping_and_mute_silences_cues() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        rect(&mut ws); // 24 frames
+        ws.perform(MenuAction::ToggleLoop);
+        assert!(!ws.loop_playback);
+        assert_eq!(ws.label(MenuAction::ToggleLoop), "Loop Playback: Off");
+        ws.set_frame(22);
+        ws.playing = true;
+        ws.advance(0.0);
+        ws.advance(1.0); // a second at 24 fps runs well past the end
+        assert!(!ws.playing);
+        assert_eq!(ws.frame, 23);
+        ws.perform(MenuAction::ToggleLoop);
+        ws.playing = true;
+        ws.set_frame(22);
+        ws.advance(2.0);
+        ws.advance(3.0);
+        assert!(ws.playing, "looping keeps playing");
+        let _ = ctx;
+        ws.perform(MenuAction::ToggleMute);
+        assert!(ws.muted);
+        assert_eq!(ws.label(MenuAction::ToggleMute), "Unmute Sounds");
+        assert!(matches!(
+            ws.take_audio_events().last(),
+            Some(AudioEvent::Stop)
+        ));
     }
 }
