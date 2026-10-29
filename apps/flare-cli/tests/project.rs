@@ -723,6 +723,8 @@ fn mcp_refuses_a_missing_project() {
     let missing = dir.path().join("none.flare").to_string_lossy().into_owned();
     assert!(!run(&["mcp", &missing]).status.success());
 }
+
+#[test]
 fn import_turns_an_xfl_folder_into_a_project_and_lists_what_was_skipped() {
     let dir = tempfile::tempdir().expect("dir");
     let source = dir.path().join("src");
