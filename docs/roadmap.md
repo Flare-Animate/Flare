@@ -7,7 +7,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 | M0 baseline | Pinned toolchain, centralized dependencies, locked builds, honest tests, renderer decision | Done |
 | M1 source model and safe editing | Typed IDs, validated document, atomic edits, undo/redo, headless CLI | Done |
 | M2 usable vertical slice | Draw, convert to symbol, instances, tween, scrub/play, save/reopen, PNG export, one modern workspace | Done in code; needs hands-on checking (see below) |
-| M3 FLA/XFL compatibility and automation | Raw source IR, modern XFL/FLA subset, unknown-data preservation, MCP over stdio | MCP, XFL import and XFL export done (import and export tested against fixtures and each other only, never against Animate); source preservation not started |
+| M3 FLA/XFL compatibility and automation | Raw source IR, modern XFL/FLA subset, unknown-data preservation, MCP over stdio | MCP, XFL import, XFL export and element-level source preservation done (checked against fixtures and each other only, never against Animate) |
 | M4 Test Movie and advanced features | Hosted Ruffle playback, SWF publishing, richer text/audio, advanced tweens and masks | SWF publishing (baked frames) done, verified by parsing with Ruffle's reader; hosted playback, richer text/audio and masks not started |
 | M5 hardening | Long sessions, crash recovery, packaging, accessibility, corpus expansion | Partly: crash recovery and fault-injection tests done; packaging, accessibility and long-session profiling not started |
 
@@ -31,6 +31,7 @@ merge was resolved by hand and the merged result is tested as a whole.
 | `feat/mcp` | MCP stdio server (`flare-cli mcp`) with permissions, revision checks, robustness tests |
 | `feat/xfl-import` | XFL / modern FLA import subset (`flare-cli import`) with diagnostics, robustness tests |
 | `feat/xfl-export` | XFL / `.fla` export (`flare-cli export-xfl`), stacked on `feat/xfl-import` |
+| `feat/source-preservation` | Keep unsupported XFL data as attachments through edit, save and export; stacked on `feat/xfl-export` |
 | `feat/swf-publish` | SWF publishing (`flare-cli publish-swf`), stacked on `feat/xfl-export` |
 | `feat/docking` | `egui_tiles` dock with a validated, remembered layout and Reset Workspace Layout |
 | `feat/onion-skin` | Onion skinning with before/after ranges |
@@ -53,6 +54,6 @@ Each of these can be its own branch and PR:
 1. Drawing tools: pen/path, selection of multiple objects, transform handles.
 2. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
 3. Timeline UX: span selection and drag, copy/paste, zoom.
-4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, then source preservation of unknown data.
+4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, and check what the importer keeps against files Animate wrote.
 5. Input and accessibility: pen, IME and screen-reader results.
 6. Packaging: app bundles and installers, once the icons are trimmed.

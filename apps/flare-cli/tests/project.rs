@@ -999,3 +999,43 @@ fn publish_swf_writes_a_file_the_ruffle_reader_accepts_and_never_overwrites() {
         "a failed publish leaves no file"
     );
 }
+
+#[test]
+fn source_data_survives_import_save_reopen_and_export_through_the_cli() {
+    let dir = tempfile::tempdir().expect("dir");
+    let source = dir.path().join("src");
+    std::fs::create_dir_all(&source).expect("mkdir");
+    std::fs::write(
+        source.join("DOMDocument.xml"),
+        r##"<DOMDocument frameRate="24" width="20" height="10"><media><DOMBitmapItem name="pic"/></media><timelines><DOMTimeline name="Main"><layers>
+        <DOMLayer name="Box"><frames><DOMFrame index="0" duration="3"><elements><DOMShape>
+          <fills><FillStyle index="1"><SolidColor color="#FF0000"/></FillStyle></fills>
+          <edges><Edge fillStyle1="1" edges="!0 0|100 0|100 100|0 100|0 0"/></edges>
+        </DOMShape><DOMStaticText><textRuns><DOMTextRun><characters>Keep me &amp; my text</characters></DOMTextRun></textRuns></DOMStaticText></elements></DOMFrame></frames></DOMLayer>
+        <DOMLayer name="Cut" layerType="mask"><frames/></DOMLayer></layers></DOMTimeline></timelines></DOMDocument>"##,
+    )
+    .expect("write");
+    let project = dir.path().join("p.flare").to_string_lossy().into_owned();
+    let report = json(&["import", &source.to_string_lossy(), &project]);
+    assert_eq!(
+        report["kept_source_data"], 3,
+        "the media list, the text object and the mask layer"
+    );
+
+    // Editing does not lose it: change the stage and add a layer, then look again.
+    json(&["set-stage", &project, "--width", "30"]);
+    json(&["add-layer", &project, "Extra"]);
+    assert_eq!(json(&["info", &project])["attachments"], 3);
+
+    let out = dir.path().join("out").to_string_lossy().into_owned();
+    json(&["export-xfl", &project, &out]);
+    let written =
+        std::fs::read_to_string(std::path::Path::new(&out).join("DOMDocument.xml")).expect("read");
+    for snippet in [
+        "<characters>Keep me &amp; my text</characters>",
+        "<media><DOMBitmapItem name=\"pic\"/></media>",
+        "<DOMLayer name=\"Cut\" layerType=\"mask\"><frames/></DOMLayer>",
+    ] {
+        assert!(written.contains(snippet), "missing {snippet}");
+    }
+}

@@ -197,6 +197,33 @@ back with that crate's reader, play the display list, rebuild shapes from the de
 and compare renders with the document, and check fill sides against SWF's own definition (a
 style belongs to one side of each edge). That is real evidence the file is well-formed and
 says what we meant. It has not been played in Flash Player or Ruffle.
+## Source preservation
+
+Data Flare cannot edit is kept, not dropped. An `Attachment` is opaque source text (for XFL,
+one XML element) tied to a stable entity ID (the document, a scene, a symbol or a layer),
+with a placement saying where it belongs and a BLAKE3 digest of its content. Attachments
+travel with the document: edits carry them through, undo and redo restore them, projects
+save them, and XFL export writes them back where they came from.
+
+What is kept on XFL import: unsupported elements inside a keyframe (text, bitmaps, video,
+primitives), keyframe extras (frame scripts, sounds), whole layers that were skipped (masks,
+guides, folders, cameras), document-level data (media, fonts, publish settings) and
+symbol-level data. Kept layers return to their original index among the layers.
+
+The policy is deliberately honest rather than clever:
+
+- Deleting the layer, scene or symbol an attachment hangs off deletes the attachment with
+  it. Frame-level data remembers the keyframe it came from; if edits remove that keyframe,
+  export reports it could not be placed and does not write it, instead of guessing.
+- Attachment text is untrusted. It is size-capped (1 MiB each, 10,000 per document), checked
+  against its digest on load, and on export must be exactly one well-formed element with no
+  DTD or processing instruction, otherwise it is reported and skipped.
+- Limits to know about: preservation is element-level, so an unsupported *part* of a supported
+  element (a gradient in a shape, a filter on an instance) is still lost; kept elements are
+  written after Flare's own in their keyframe, so their stacking relative to them can change;
+  masks and their relationships to masked layers are kept as layers but not as semantics;
+  binary assets such as bitmaps are not carried, so kept references to them dangle; and kept
+  data has only been checked by round-tripping through our own importer, not by Adobe Animate.
 
 ## Frontends
 
@@ -213,7 +240,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 ## Known gaps
 
 - No pen or path tool, gradients, masks, text or bitmap fills.
-- XFL import covers a defined subset (see Import); XFL export is verified only against our own importer, there is no source preservation, and no SWF parsing beyond signature inspection.
+- XFL import covers a defined subset (see Import) and keeps the rest as source data (see Source preservation); XFL export is verified only against our own importer, there is no source preservation, and no SWF parsing beyond signature inspection.
 - No stage zoom or pan, no docking, no multi-select, no drag-editing of spans.
 - Undo history is not persisted, and recovery covers one document at a time.
 

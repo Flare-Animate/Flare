@@ -5,11 +5,15 @@
 //! Editing goes through transactions in a later crate, not through public fields.
 #![forbid(unsafe_code)]
 
+mod attachment;
 mod shape;
 mod stage;
 mod timeline;
 mod validate;
 
+pub use attachment::{
+    Anchor, Attachment, AttachmentError, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, Placement,
+};
 pub use shape::{MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape, ShapeError, Stroke};
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
 pub use timeline::{Content, FrameSpan, Instance, Layer, Timeline, TimelineError, Tween};
@@ -94,6 +98,7 @@ pub struct Document {
     scenes: Vec<Scene>,
     symbols: Vec<Symbol>,
     stage: Stage,
+    attachments: Vec<Attachment>,
 }
 
 impl Document {
@@ -110,6 +115,7 @@ impl Document {
             scenes,
             symbols,
             stage: Stage::default(),
+            attachments: Vec::new(),
         };
         let diagnostics = validate::validate(&document);
         if diagnostics.is_empty() {
@@ -123,6 +129,38 @@ impl Document {
     #[must_use]
     pub fn with_stage(mut self, stage: Stage) -> Self {
         self.stage = stage;
+        self
+    }
+
+    pub fn attachments(&self) -> &[Attachment] {
+        &self.attachments
+    }
+
+    /// Attaches source data, validating every anchor and the size limits. Replaces any
+    /// attachments already present.
+    pub fn with_attachments(
+        mut self,
+        attachments: Vec<Attachment>,
+    ) -> Result<Self, Vec<Diagnostic>> {
+        self.attachments = attachments;
+        let diagnostics = validate::validate_attachments(&self);
+        if diagnostics.is_empty() {
+            Ok(self)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
+    /// Carries attachments over to a rebuilt document, dropping those whose anchor no
+    /// longer exists. This is how deleting a layer removes what hung off it.
+    #[must_use]
+    pub fn with_attachments_retained(mut self, attachments: &[Attachment]) -> Self {
+        let live = validate::anchors(&self);
+        self.attachments = attachments
+            .iter()
+            .filter(|a| live.contains(&a.anchor()))
+            .cloned()
+            .collect();
         self
     }
 
@@ -335,5 +373,77 @@ mod tests {
             .chain([Symbol::new(ids[ids.len() - 1], "leaf", Timeline::default())])
             .collect();
         assert!(build(vec![], symbols).is_ok());
+    }
+
+    fn note(anchor: Anchor, placement: Placement) -> Attachment {
+        Attachment::new("xfl", anchor, placement, "<DOMStaticText/>").expect("attachment")
+    }
+
+    #[test]
+    fn attachments_must_hang_off_something_that_exists() {
+        let layer_id = LayerId::new();
+        let layer = Layer::new(layer_id, "L", vec![]).expect("layer");
+        let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+        let scene_id = scene.id();
+        let doc = build(vec![scene], vec![]).expect("doc");
+        assert!(doc.attachments().is_empty(), "a new document carries none");
+
+        let good = vec![
+            note(Anchor::Document, Placement::Child),
+            note(Anchor::Scene(scene_id), Placement::LayerAt { index: 1 }),
+            note(
+                Anchor::Layer(layer_id),
+                Placement::FrameElement { frame: 3 },
+            ),
+        ];
+        let doc = doc.with_attachments(good).expect("valid anchors");
+        assert_eq!(doc.attachments().len(), 3);
+
+        let ghost = LayerId::new();
+        let bad = vec![note(
+            Anchor::Layer(ghost),
+            Placement::FrameExtra { frame: 0 },
+        )];
+        let errors = doc.with_attachments(bad).expect_err("dangling");
+        assert_eq!(
+            errors,
+            vec![Diagnostic::DanglingAttachment(Anchor::Layer(ghost))]
+        );
+    }
+
+    #[test]
+    fn retained_attachments_drop_exactly_those_whose_anchor_is_gone() {
+        let (keep, gone) = (LayerId::new(), LayerId::new());
+        let layer = Layer::new(keep, "L", vec![]).expect("layer");
+        let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+        let doc = build(vec![scene], vec![]).expect("doc");
+        let all = vec![
+            note(Anchor::Document, Placement::Child),
+            note(Anchor::Layer(keep), Placement::FrameElement { frame: 0 }),
+            note(Anchor::Layer(gone), Placement::FrameElement { frame: 0 }),
+        ];
+        let doc = doc.with_attachments_retained(&all);
+        let anchors: Vec<Anchor> = doc.attachments().iter().map(Attachment::anchor).collect();
+        assert_eq!(anchors, vec![Anchor::Document, Anchor::Layer(keep)]);
+    }
+
+    #[test]
+    fn attachments_inside_symbols_count_as_anchors_and_the_count_is_capped() {
+        let (symbol_id, inner) = (SymbolId::new(), LayerId::new());
+        let inner_layer = Layer::new(inner, "in", vec![]).expect("layer");
+        let symbol = Symbol::new(symbol_id, "S", Timeline::new(vec![inner_layer]));
+        let doc = build(vec![], vec![symbol]).expect("doc");
+        let ok = vec![
+            note(Anchor::Symbol(symbol_id), Placement::Child),
+            note(Anchor::Layer(inner), Placement::FrameElement { frame: 0 }),
+        ];
+        assert!(doc.clone().with_attachments(ok).is_ok());
+        let flood: Vec<Attachment> = (0..=MAX_ATTACHMENTS)
+            .map(|_| note(Anchor::Document, Placement::Child))
+            .collect();
+        assert_eq!(
+            doc.with_attachments(flood).expect_err("too many"),
+            vec![Diagnostic::TooManyAttachments]
+        );
     }
 }

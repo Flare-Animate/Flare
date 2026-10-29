@@ -417,4 +417,101 @@ mod tests {
         assert!(f.session.undo());
         assert!(!f.session.undo());
     }
+
+    fn with_notes(f: &Fixture, layer_notes: &[(LayerId, u32)]) -> Vec<flare_document::Attachment> {
+        use flare_document::{Anchor, Attachment, Placement};
+        let mut all = vec![
+            Attachment::new("xfl", Anchor::Document, Placement::Child, "<media/>")
+                .expect("doc note"),
+            Attachment::new(
+                "xfl",
+                Anchor::Scene(f.scene),
+                Placement::LayerAt { index: 0 },
+                "<DOMLayer layerType=\"mask\"/>",
+            )
+            .expect("scene note"),
+        ];
+        for (layer, frame) in layer_notes {
+            all.push(
+                Attachment::new(
+                    "xfl",
+                    Anchor::Layer(*layer),
+                    Placement::FrameElement { frame: *frame },
+                    "<DOMStaticText/>",
+                )
+                .expect("frame note"),
+            );
+        }
+        all
+    }
+
+    #[test]
+    fn source_attachments_survive_every_kind_of_edit() {
+        let mut f = fixture();
+        let doc = f.session.document().clone();
+        let notes = with_notes(&f, &[(f.layer, 0)]);
+        let doc = doc.with_attachments(notes.clone()).expect("attach");
+        f.session = EditorSession::new(doc);
+
+        // Span edits, layer property edits, stage edits and symbol edits all rebuild the
+        // document; none may lose the attachments.
+        f.session
+            .apply([add_symbol(&f), insert(&f, 0)])
+            .expect("edit");
+        let update = |change| Command::UpdateLayer {
+            scene: f.scene,
+            layer: f.layer,
+            change,
+        };
+        f.session
+            .apply([update(crate::LayerChange::Locked(true))])
+            .expect("lock");
+        let stage = flare_document::Stage::new(50, 50, flare_core::Rgba8::WHITE).expect("stage");
+        f.session.apply([Command::SetStage(stage)]).expect("stage");
+        assert_eq!(f.session.document().attachments(), notes.as_slice());
+
+        // Undo and redo restore exact snapshots, attachments included.
+        while f.session.undo() {}
+        assert_eq!(f.session.document().attachments(), notes.as_slice());
+        while f.session.redo() {}
+        assert_eq!(f.session.document().attachments(), notes.as_slice());
+    }
+
+    #[test]
+    fn deleting_a_layer_removes_what_hung_off_it_and_undo_brings_it_back() {
+        let mut f = fixture();
+        let extra = LayerId::new();
+        let add = Command::AddLayer {
+            scene: f.scene,
+            layer: Layer::new(extra, "extra", vec![]).expect("layer"),
+        };
+        f.session.apply([add]).expect("add");
+        let notes = with_notes(&f, &[(f.layer, 0), (extra, 2)]);
+        let doc = f
+            .session
+            .document()
+            .clone()
+            .with_attachments(notes.clone())
+            .expect("attach");
+        f.session = EditorSession::new(doc);
+
+        f.session
+            .apply([Command::RemoveLayer {
+                scene: f.scene,
+                layer: extra,
+            }])
+            .expect("remove");
+        let left = f.session.document().attachments();
+        assert_eq!(
+            left.len(),
+            3,
+            "the removed layer's note is gone, the rest stay"
+        );
+        assert!(
+            left.iter()
+                .all(|a| a.anchor() != flare_document::Anchor::Layer(extra))
+        );
+        f.session.undo();
+        assert_eq!(f.session.document().attachments(), notes.as_slice());
+    }
 }
