@@ -9,4 +9,4 @@
 mod ops;
 mod workspace;
 
-pub use workspace::{DialogRequest, Tool, Workspace};
+pub use workspace::{DialogRequest, FrameOp, Tool, Workspace};

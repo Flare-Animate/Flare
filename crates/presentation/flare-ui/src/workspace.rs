@@ -7,7 +7,7 @@ use flare_document::{
     Content, Document, FrameSpan, Layer, MAX_STAGE_SIDE, Scene, Shape, Stage,
     Stroke as ShapeStroke, Timeline,
 };
-use flare_edit::{Command, EditorSession};
+use flare_edit::{Command, EditorSession, frames};
 use glamx::DVec2;
 
 use crate::ops::{self, SpanRef};
@@ -29,6 +29,28 @@ struct StageTexture {
 pub enum Tool {
     Select,
     Rectangle,
+}
+
+/// Timeline frame operations on the active layer at the current frame.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FrameOp {
+    InsertFrame,
+    RemoveFrame,
+    InsertKeyframe,
+    InsertBlankKeyframe,
+    ClearKeyframe,
+}
+
+impl FrameOp {
+    fn label(self) -> &'static str {
+        match self {
+            Self::InsertFrame => "insert a frame",
+            Self::RemoveFrame => "remove a frame",
+            Self::InsertKeyframe => "insert a keyframe",
+            Self::InsertBlankKeyframe => "insert a blank keyframe",
+            Self::ClearKeyframe => "clear the keyframe",
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -61,6 +83,7 @@ pub struct Workspace {
     tool: Tool,
     selected: Option<SpanRef>,
     selected_symbol: Option<SymbolId>,
+    current_layer: Option<LayerId>,
     fill: Color32,
     stroke_enabled: bool,
     stroke_color: Color32,
@@ -86,6 +109,7 @@ impl Workspace {
             tool: Tool::Rectangle,
             selected: None,
             selected_symbol: None,
+            current_layer: None,
             fill: Color32::from_rgb(232, 69, 60),
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
@@ -293,8 +317,55 @@ impl Workspace {
             },
         ];
         match self.session.apply(batch) {
-            Ok(()) => self.status = None,
+            Ok(()) => {
+                self.status = None;
+                self.current_layer = Some(layer_id);
+            }
             Err(error) => self.report(format!("Cannot draw: {error}")),
+        }
+    }
+
+    // ---- layers and frames -----------------------------------------------------------
+
+    /// The layer frame operations act on: the chosen one, else the first.
+    fn active_layer(&self) -> Option<&Layer> {
+        let layers = self.document().scenes().first()?.timeline().layers();
+        self.current_layer
+            .and_then(|id| layers.iter().find(|layer| layer.id() == id))
+            .or_else(|| layers.first())
+    }
+
+    pub fn active_layer_id(&self) -> Option<LayerId> {
+        self.active_layer().map(Layer::id)
+    }
+
+    pub fn select_layer(&mut self, layer: LayerId) {
+        self.current_layer = Some(layer);
+    }
+
+    /// Runs a frame operation on the active layer at the current frame.
+    pub fn frame_edit(&mut self, op: FrameOp) {
+        let (Some(scene), Some(layer)) = (self.scene_id(), self.active_layer()) else {
+            return;
+        };
+        let commands = match op {
+            FrameOp::InsertFrame => frames::insert_frame(scene, layer, self.frame),
+            FrameOp::RemoveFrame => frames::remove_frame(scene, layer, self.frame),
+            FrameOp::InsertKeyframe => frames::insert_keyframe(scene, layer, self.frame),
+            FrameOp::InsertBlankKeyframe => frames::insert_blank_keyframe(scene, layer, self.frame),
+            FrameOp::ClearKeyframe => frames::clear_keyframe(scene, layer, self.frame),
+        };
+        match commands {
+            Some(commands) => {
+                self.run_batch(commands, op.label());
+                self.set_frame(self.frame);
+                self.validate_selection();
+            }
+            None => self.report(format!(
+                "Cannot {} at frame {} of this layer",
+                op.label(),
+                self.frame
+            )),
         }
     }
 
@@ -575,6 +646,30 @@ impl Workspace {
         if escape {
             self.cancel_drag();
         }
+        if !typing {
+            // Modifiers come from the key event itself, which is what the platform reported
+            // for that press.
+            let f5 = key_press(ctx, Key::F5);
+            let f6 = key_press(ctx, Key::F6);
+            let f7 = key_press(ctx, Key::F7);
+            if let Some(m) = f5 {
+                self.frame_edit(if m.shift {
+                    FrameOp::RemoveFrame
+                } else {
+                    FrameOp::InsertFrame
+                });
+            }
+            if let Some(m) = f6 {
+                self.frame_edit(if m.shift {
+                    FrameOp::ClearKeyframe
+                } else {
+                    FrameOp::InsertKeyframe
+                });
+            }
+            if f7.is_some() {
+                self.frame_edit(FrameOp::InsertBlankKeyframe);
+            }
+        }
     }
 
     fn menu_bar(&mut self, ui: &mut egui::Ui) {
@@ -625,6 +720,21 @@ impl Workspace {
                 {
                     self.convert_selection_to_symbol();
                     ui.close();
+                }
+            });
+            ui.menu_button("Timeline", |ui| {
+                let items = [
+                    (FrameOp::InsertFrame, "Insert Frame (F5)"),
+                    (FrameOp::RemoveFrame, "Remove Frame (Shift+F5)"),
+                    (FrameOp::InsertKeyframe, "Insert Keyframe (F6)"),
+                    (FrameOp::InsertBlankKeyframe, "Insert Blank Keyframe (F7)"),
+                    (FrameOp::ClearKeyframe, "Clear Keyframe (Shift+F6)"),
+                ];
+                for (op, label) in items {
+                    if ui.button(label).clicked() {
+                        self.frame_edit(op);
+                        ui.close();
+                    }
                 }
             });
             ui.separator();
@@ -838,11 +948,22 @@ impl Workspace {
 
         if (response.clicked() || response.dragged())
             && let Some(p) = response.interact_pointer_pos()
-            && p.x >= track.min.x
         {
-            let f = ((p.x - track.min.x) / per_frame).floor().max(0.0) as u32;
-            self.set_frame(f);
+            if p.x >= track.min.x {
+                let f = ((p.x - track.min.x) / per_frame).floor().max(0.0) as u32;
+                self.set_frame(f);
+            }
+            // Clicking a row (below the ruler) makes that layer the active one.
+            let index = ((p.y - rect.min.y) / row).floor() as i64 - 1;
+            let picked = usize::try_from(index).ok().and_then(|i| {
+                let layers = self.document().scenes().first()?.timeline().layers();
+                layers.get(i).map(Layer::id)
+            });
+            if let Some(id) = picked {
+                self.select_layer(id);
+            }
         }
+        let active = self.active_layer_id();
 
         // Ruler ticks roughly every 40px.
         let step = ((40.0 / per_frame).ceil() as u32).max(1);
@@ -860,6 +981,17 @@ impl Workspace {
         if let Some(scene) = self.document().scenes().first() {
             for (i, layer) in scene.timeline().layers().iter().enumerate() {
                 let y = rect.min.y + row * (i as f32 + 1.0);
+                if Some(layer.id()) == active {
+                    let band = Rect::from_min_max(
+                        Pos2::new(rect.min.x, y),
+                        Pos2::new(rect.max.x, y + row),
+                    );
+                    painter.rect_filled(
+                        band,
+                        0.0,
+                        Color32::from_rgba_unmultiplied(80, 140, 255, 40),
+                    );
+                }
                 painter.text(
                     Pos2::new(rect.min.x + 4.0, y + 3.0),
                     Align2::LEFT_TOP,
@@ -889,6 +1021,21 @@ impl Workspace {
             Stroke::new(2.0, Color32::from_rgb(220, 60, 60)),
         );
     }
+}
+
+/// Modifiers held when `key` was pressed this pass, if it was pressed.
+fn key_press(ctx: &egui::Context, key: Key) -> Option<Modifiers> {
+    ctx.input(|i| {
+        i.events.iter().find_map(|event| match event {
+            egui::Event::Key {
+                key: k,
+                pressed: true,
+                modifiers,
+                ..
+            } if *k == key => Some(*modifiers),
+            _ => None,
+        })
+    })
 }
 
 /// Screen position to stage (document) coordinates, clamped to the stage.
@@ -1312,5 +1459,100 @@ mod tests {
         run(&mut ws, &ctx, 0.0);
         assert!(ws.texture.is_some());
         assert_eq!(ws.stage_extent(), Vec2::new(400.0, 200.0));
+    }
+
+    fn active_spans(ws: &Workspace) -> Vec<(u32, u32)> {
+        ws.active_layer()
+            .expect("layer")
+            .spans()
+            .iter()
+            .map(|s| (s.start(), s.duration().get()))
+            .collect()
+    }
+
+    #[test]
+    fn drawing_makes_the_new_layer_active_and_frame_ops_act_on_it() {
+        let mut ws = workspace();
+        rect(&mut ws);
+        assert_eq!(
+            ws.active_layer_id(),
+            Some(ws.document().scenes()[0].timeline().layers()[1].id())
+        );
+        assert_eq!(active_spans(&ws), vec![(0, 24)]);
+        ws.set_frame(10);
+        ws.frame_edit(FrameOp::InsertKeyframe);
+        assert_eq!(active_spans(&ws), vec![(0, 10), (10, 14)]);
+        ws.frame_edit(FrameOp::InsertBlankKeyframe); // already a keyframe at 10
+        assert!(
+            ws.status()
+                .is_some_and(|s| s.contains("Cannot insert a blank keyframe"))
+        );
+        ws.set_frame(3);
+        ws.frame_edit(FrameOp::InsertFrame);
+        assert_eq!(active_spans(&ws), vec![(0, 11), (11, 14)]);
+        ws.frame_edit(FrameOp::RemoveFrame);
+        assert_eq!(active_spans(&ws), vec![(0, 10), (10, 14)]);
+        ws.set_frame(10);
+        ws.frame_edit(FrameOp::ClearKeyframe);
+        assert_eq!(active_spans(&ws), vec![(0, 24)]);
+        ws.undo();
+        assert_eq!(
+            active_spans(&ws),
+            vec![(0, 10), (10, 14)],
+            "each operation is one undo step"
+        );
+    }
+
+    #[test]
+    fn selecting_a_layer_redirects_frame_operations() {
+        let mut ws = workspace();
+        rect(&mut ws);
+        let first = ws.document().scenes()[0].timeline().layers()[0].id();
+        ws.select_layer(first);
+        ws.frame_edit(FrameOp::InsertFrame);
+        assert!(
+            ws.status().is_some(),
+            "the first layer is empty, so there is nothing to extend"
+        );
+        assert_eq!(layer_count(&ws), 2);
+    }
+
+    #[test]
+    fn function_keys_drive_frame_operations() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        rect(&mut ws);
+        run(&mut ws, &ctx, 0.0);
+        ws.set_frame(6);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.1, vec![key(Key::F6, Modifiers::NONE)]),
+        );
+        assert_eq!(active_spans(&ws), vec![(0, 6), (6, 18)]);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.2, vec![key(Key::F5, Modifiers::NONE)]),
+        );
+        assert_eq!(active_spans(&ws), vec![(0, 6), (6, 19)]);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.3, vec![key(Key::F5, Modifiers::SHIFT)]),
+        );
+        assert_eq!(active_spans(&ws), vec![(0, 6), (6, 18)]);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.4, vec![key(Key::F6, Modifiers::SHIFT)]),
+        );
+        assert_eq!(active_spans(&ws), vec![(0, 24)]);
+        ws.set_frame(8);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.5, vec![key(Key::F7, Modifiers::NONE)]),
+        );
+        assert_eq!(active_spans(&ws), vec![(0, 8), (8, 16)]);
     }
 }
