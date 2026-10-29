@@ -100,8 +100,12 @@ impl Workspace {
         self.path.as_deref()
     }
 
-    /// Window title with an unsaved-changes marker.
+    /// Window title: the document's saved name with an unsaved-changes marker, or just the
+    /// application's name on the Home page, where no document is on show.
     pub fn title(&self) -> String {
+        if self.windows.home {
+            return "Flare".to_owned();
+        }
         let name = self.path.as_deref().and_then(Path::file_name).map_or_else(
             || "Untitled".to_owned(),
             |n| n.to_string_lossy().into_owned(),

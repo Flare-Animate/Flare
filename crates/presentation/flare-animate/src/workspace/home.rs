@@ -35,6 +35,12 @@ impl Workspace {
         self.windows.home
     }
 
+    /// Whether the top bar shows undo, redo, play and the document's name: not on Home, where
+    /// no document is on show.
+    pub(super) fn document_controls_shown(&self) -> bool {
+        !self.windows.home
+    }
+
     /// A new project with a stage of `width` by `height`: in place of an untouched new one,
     /// else in a new tab. Refuses a size the stage cannot have.
     pub fn new_project(&mut self, width: u32, height: u32) {

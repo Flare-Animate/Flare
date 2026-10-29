@@ -16,10 +16,18 @@ impl Workspace {
         ui.horizontal(|ui| {
             let message = match &self.status {
                 Some(status) => RichText::new(status.as_str()).color(theme::WARNING),
+                // Home has no tool in hand to describe.
+                None if !self.document_controls_shown() => RichText::new(""),
                 None => RichText::new(self.tool_hint()).color(theme::TEXT_DIM),
             };
             ui.label(message);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                if !self.document_controls_shown() {
+                    if self.background.mode() == Mode::Threads && self.has_pending_io() {
+                        ui.label(RichText::new("Working...").color(theme::ACCENT));
+                    }
+                    return;
+                }
                 let extent = self.stage_extent();
                 let percent = self.stage_view.scale(self.stage_panel, extent).max(0.0) * 100.0;
                 ui.label(RichText::new(format!("{percent:.0}%")).color(theme::TEXT_DIM));

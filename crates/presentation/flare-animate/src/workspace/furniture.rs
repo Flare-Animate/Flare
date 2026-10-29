@@ -282,6 +282,10 @@ impl Workspace {
                 }
             });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                // Undo, play and the document's name belong to a document; Home has none.
+                if !self.document_controls_shown() {
+                    return;
+                }
                 ui.add_space(10.0);
                 let can_redo = self.active().can_redo();
                 if flare_ui::chrome::icon_button(ui, "redo", 16.0, false, can_redo, "Redo")

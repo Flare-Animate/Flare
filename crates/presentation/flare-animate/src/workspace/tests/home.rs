@@ -75,3 +75,33 @@ fn recent_projects_are_listed_newest_first_and_can_be_cleared() {
     run(&mut ws, &ctx, 0.0);
     assert_eq!(ws.recent_files().len(), 2);
 }
+
+#[test]
+fn the_title_is_the_app_on_home_and_the_saved_name_on_a_document() {
+    let mut ws = workspace();
+    ws.set_home(true);
+    assert_eq!(ws.title(), "Flare", "no document is on show");
+    ws.set_home(false);
+    assert_eq!(ws.title(), "Untitled - Flare");
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("Rocket.flare");
+    flare_storage::save(ws.document(), &path).expect("save");
+    ws.open(&path);
+    ws.set_home(true);
+    assert_eq!(ws.title(), "Flare");
+    ws.set_home(false);
+    assert_eq!(ws.title(), "Rocket.flare - Flare");
+}
+
+#[test]
+fn home_has_no_undo_play_or_document_name_in_the_top_bar() {
+    let mut ws = workspace();
+    assert!(ws.document_controls_shown());
+    ws.set_home(true);
+    assert!(!ws.document_controls_shown());
+    ws.perform(MenuAction::ShowHome);
+    assert!(
+        ws.document_controls_shown(),
+        "they come back with the document"
+    );
+}
