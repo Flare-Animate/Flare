@@ -324,6 +324,7 @@ pub enum FrameOp {
     InsertKeyframe,
     InsertBlankKeyframe,
     ClearKeyframe,
+    ConvertToKeyframes,
 }
 
 impl FrameOp {
@@ -334,6 +335,7 @@ impl FrameOp {
             Self::InsertKeyframe => "insert a keyframe",
             Self::InsertBlankKeyframe => "insert a blank keyframe",
             Self::ClearKeyframe => "clear the keyframe",
+            Self::ConvertToKeyframes => "convert to keyframes",
         }
     }
 }

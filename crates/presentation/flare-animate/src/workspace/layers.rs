@@ -218,6 +218,7 @@ impl Workspace {
             FrameOp::InsertKeyframe => frames::insert_keyframe(scene, layer, self.frame),
             FrameOp::InsertBlankKeyframe => frames::insert_blank_keyframe(scene, layer, self.frame),
             FrameOp::ClearKeyframe => frames::clear_keyframe(scene, layer, self.frame),
+            FrameOp::ConvertToKeyframes => frames::convert_to_keyframes(scene, layer, self.frame),
         };
         match commands {
             Some(commands) => {

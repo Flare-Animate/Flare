@@ -34,7 +34,7 @@ fn menus_hold_planned_commands_dimmed_and_every_real_action_once() {
         .flat_map(|(_, entries)| entries.iter())
         .filter(|e| matches!(e, MenuEntry::Mock(_)))
         .count();
-    assert!(mocks > 15, "{mocks} planned commands are listed");
+    assert!(mocks > 10, "{mocks} planned commands are listed");
     let titles: Vec<&str> = MENU_LAYOUT.iter().map(|(t, _)| *t).collect();
     for expected in [
         "File", "Edit", "View", "Insert", "Modify", "Text", "Control", "Window", "Help",

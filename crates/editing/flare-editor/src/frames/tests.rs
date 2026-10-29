@@ -125,6 +125,34 @@ fn insert_keyframe_splits_with_a_copy_that_has_fresh_ids() {
 }
 
 #[test]
+fn convert_to_keyframes_makes_one_copy_per_frame_with_fresh_identities() {
+    let mut f = fixture(vec![shape_span(0, 4)]);
+    assert!(
+        convert_to_keyframes(f.scene, layer(&f), 9).is_none(),
+        "no span there"
+    );
+    let cmds = convert_to_keyframes(f.scene, layer(&f), 2);
+    run(&mut f, cmds);
+    assert_eq!(
+        shape_of(&f),
+        vec![(0, 1, 'S'), (1, 1, 'S'), (2, 1, 'S'), (3, 1, 'S')]
+    );
+    let ids: std::collections::HashSet<_> = layer(&f)
+        .spans()
+        .iter()
+        .map(|s| match s.content() {
+            Content::Shape(shape) => shape.id(),
+            _ => panic!("shape"),
+        })
+        .collect();
+    assert_eq!(ids.len(), 4, "every copy has its own identity");
+    assert!(
+        convert_to_keyframes(f.scene, layer(&f), 1).is_none(),
+        "a one-frame keyframe has nothing to convert"
+    );
+}
+
+#[test]
 fn keyframes_past_the_end_hold_then_add_a_one_frame_keyframe() {
     let mut f = fixture(vec![shape_span(0, 3)]);
     let cmds = insert_keyframe(f.scene, layer(&f), 6);

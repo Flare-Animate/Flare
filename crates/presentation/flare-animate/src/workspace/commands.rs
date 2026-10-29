@@ -96,7 +96,8 @@ impl Workspace {
             | MenuAction::RemoveFrame
             | MenuAction::InsertKeyframe
             | MenuAction::InsertBlankKeyframe
-            | MenuAction::ClearKeyframe => editable_layer,
+            | MenuAction::ClearKeyframe
+            | MenuAction::ConvertToKeyframes => editable_layer,
             MenuAction::ToggleMotionTween => self.selection_tween().is_some(),
             MenuAction::ToggleLayerVisible
             | MenuAction::ToggleLayerLocked
@@ -205,6 +206,7 @@ impl Workspace {
             MenuAction::InsertKeyframe => "Insert Keyframe",
             MenuAction::InsertBlankKeyframe => "Insert Blank Keyframe",
             MenuAction::ClearKeyframe => "Clear Keyframe",
+            MenuAction::ConvertToKeyframes => "Convert to Keyframes",
             MenuAction::ToggleMotionTween => {
                 if self.selection_tween() == Some(Tween::Linear) {
                     "Remove Motion Tween"
@@ -416,6 +418,7 @@ impl Workspace {
             MenuAction::InsertKeyframe => self.frame_edit(FrameOp::InsertKeyframe),
             MenuAction::InsertBlankKeyframe => self.frame_edit(FrameOp::InsertBlankKeyframe),
             MenuAction::ClearKeyframe => self.frame_edit(FrameOp::ClearKeyframe),
+            MenuAction::ConvertToKeyframes => self.frame_edit(FrameOp::ConvertToKeyframes),
             MenuAction::ToggleMotionTween => {
                 let next = if self.selection_tween() == Some(Tween::Linear) {
                     Tween::None

@@ -290,6 +290,36 @@ pub fn insert_keyframe(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<
     split_at(scene, layer, frame, false)
 }
 
+/// Convert to Keyframes: the span holding `frame` becomes one keyframe per frame, each a copy
+/// with its own identities. `None` when no span holds `frame`, it is only one frame long, or it
+/// is tweened (the in-between positions are not baked in).
+pub fn convert_to_keyframes(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Command>> {
+    let target = layer
+        .spans()
+        .iter()
+        .find(|s| s.start() <= frame && u64::from(frame) < s.end())?;
+    if target.duration().get() < 2 || target.tween() != flare_document::Tween::None {
+        return None;
+    }
+    let mut out: Vec<FrameSpan> = layer
+        .spans()
+        .iter()
+        .filter(|s| s.start() != target.start())
+        .cloned()
+        .collect();
+    out.push(span(target.start(), 1, target.content().clone(), target)?);
+    for offset in 1..target.duration().get() {
+        out.push(span(
+            target.start().checked_add(offset)?,
+            1,
+            duplicate(target.content())?,
+            target,
+        )?);
+    }
+    out.sort_by_key(FrameSpan::start);
+    Some(replace_spans(scene, layer, out))
+}
+
 /// Insert Blank Keyframe (F7): a new keyframe at `frame` with nothing in it.
 pub fn insert_blank_keyframe(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Command>> {
     split_at(scene, layer, frame, true)

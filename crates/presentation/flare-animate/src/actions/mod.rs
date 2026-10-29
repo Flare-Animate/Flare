@@ -115,10 +115,11 @@ pub enum MenuAction {
     PasteInPlace,
     ToggleGuides,
     ClearGuides,
+    ConvertToKeyframes,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 103] = [
+    pub const ALL: [MenuAction; 104] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -222,6 +223,7 @@ impl MenuAction {
         Self::PasteInPlace,
         Self::ToggleGuides,
         Self::ClearGuides,
+        Self::ConvertToKeyframes,
     ];
 
     /// A stable identifier for native menu items (the variant name).

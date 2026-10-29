@@ -140,7 +140,7 @@ impl MenuAction {
             Self::RemoveFrame => "frame-remove",
             Self::CopyFrames => "copy",
             Self::PasteFrames => "paste",
-            Self::InsertKeyframe => "frame-keyframe",
+            Self::InsertKeyframe | Self::ConvertToKeyframes => "frame-keyframe",
             Self::InsertBlankKeyframe => "frame-blank-keyframe",
             Self::ClearKeyframe => "frame-blank-keyframe",
             Self::ToggleMotionTween => "frame-tween",
