@@ -9,6 +9,7 @@
 mod actions;
 mod layout;
 mod ops;
+mod pen;
 mod workspace;
 
 pub use actions::{MENU_LAYOUT, MenuAction, MenuEntry};

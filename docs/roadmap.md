@@ -52,8 +52,8 @@ merge was resolved by hand and the merged result is tested as a whole.
 
 Each of these can be its own branch and PR:
 
-1. Drawing tools: pen/path, selection of multiple objects, transform handles.
-2. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
+1. Drawing tools: selection of multiple objects, transform handles.
+2. Fills and strokes: gradients, paint bucket and ink bottle behaviour.
 3. Timeline UX: span selection and drag, copy/paste, zoom.
 4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, and check what the importer keeps against files Animate wrote.
 5. Input and accessibility: pen, IME and screen-reader results.

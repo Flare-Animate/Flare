@@ -12,6 +12,7 @@ use glamx::DVec2;
 
 use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
+use crate::pen::{PenPath, Press};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 
 /// How many frames before and after the current one onion skinning can show.
@@ -77,6 +78,7 @@ pub enum Tool {
     Rectangle,
     Ellipse,
     Line,
+    Pen,
 }
 
 /// Timeline frame operations on the active layer at the current frame.
@@ -158,6 +160,8 @@ pub struct Workspace {
     layout: egui_tiles::Tree<Pane>,
     onion: OnionSkin,
     test_movie_requested: bool,
+    /// The pen tool's path while it is being drawn.
+    pen: PenPath,
     fill: Color32,
     stroke_enabled: bool,
     stroke_color: Color32,
@@ -200,6 +204,7 @@ impl Workspace {
                 after: 1,
             },
             test_movie_requested: false,
+            pen: PenPath::default(),
             fill: Color32::from_rgb(232, 69, 60),
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
@@ -478,14 +483,10 @@ impl Workspace {
         if too_small {
             return; // a click, not a drag
         }
-        let Some(scene) = self.document().scenes().first() else {
+        if self.document().scenes().is_empty() {
             self.report("This document has no scene");
             return;
-        };
-        let scene_id = scene.id();
-        let duration = u32::try_from(scene.timeline().frame_count())
-            .unwrap_or(u32::MAX)
-            .max(24);
+        }
         let fill = {
             let c = self.fill.to_array();
             Rgba8::new(c[0], c[1], c[2], c[3])
@@ -513,7 +514,7 @@ impl Workspace {
                     Err(error) => return self.report(error.to_string()),
                 }
             }
-            Tool::Select => return,
+            Tool::Select | Tool::Pen => return,
         };
         let Some(mut shape) = shape else {
             self.report("Shape coordinates must be finite");
@@ -525,6 +526,20 @@ impl Workspace {
                 Err(error) => return self.report(error.to_string()),
             }
         }
+        self.insert_shape_layer(shape, name);
+    }
+
+    /// Adds `shape` on a new layer spanning the scene (at least 24 frames), as one undo step,
+    /// and makes that layer active.
+    fn insert_shape_layer(&mut self, shape: Shape, name: &str) {
+        let Some(scene) = self.document().scenes().first() else {
+            self.report("This document has no scene");
+            return;
+        };
+        let scene_id = scene.id();
+        let duration = u32::try_from(scene.timeline().frame_count())
+            .unwrap_or(u32::MAX)
+            .max(24);
         let span = FrameSpan::new(
             0,
             NonZeroU32::new(duration).unwrap_or(NonZeroU32::MIN),
@@ -552,6 +567,94 @@ impl Workspace {
                 self.current_layer = Some(layer_id);
             }
             Err(error) => self.report(format!("Cannot draw: {error}")),
+        }
+    }
+
+    // ---- pen tool --------------------------------------------------------------------
+
+    pub fn pen_is_active(&self) -> bool {
+        self.pen.is_active()
+    }
+
+    /// A press with the pen: adds a point (which a following drag turns into a handle), or
+    /// closes the path when it lands on the first point.
+    pub fn pen_press(&mut self, at: Pos2) {
+        if self.tool != Tool::Pen {
+            return;
+        }
+        if self.pen.press(at) == Press::Close {
+            self.commit_pen(true);
+        }
+    }
+
+    pub fn pen_drag(&mut self, to: Pos2) {
+        if self.tool == Tool::Pen {
+            self.pen.drag(to);
+        }
+    }
+
+    pub fn pen_release(&mut self) {
+        self.pen.release();
+    }
+
+    /// Enter or double-click: ends an open path.
+    pub fn pen_finish(&mut self) {
+        if self.tool != Tool::Pen || !self.pen.is_active() {
+            return;
+        }
+        self.pen.trim_duplicates();
+        self.commit_pen(false);
+    }
+
+    /// Backspace: removes the last point.
+    pub fn pen_remove_last(&mut self) {
+        self.pen.remove_last();
+    }
+
+    /// Escape: discards the path without touching the document.
+    pub fn pen_cancel(&mut self) {
+        self.pen.clear();
+    }
+
+    /// Turns the pen path into a shape on a new layer, as one undo step. A closed path is
+    /// filled (and outlined when Outline is on); an open path has no area, so it is drawn with
+    /// the stroke settings, like a line.
+    fn commit_pen(&mut self, closed: bool) {
+        let Some(path) = self.pen.segments(closed) else {
+            self.report(if closed {
+                "A closed path needs at least three points"
+            } else {
+                "A path needs at least two points"
+            });
+            return;
+        };
+        let stroke = {
+            let c = self.stroke_color.to_array();
+            ShapeStroke::new(
+                f64::from(self.stroke_width),
+                Rgba8::new(c[0], c[1], c[2], c[3]),
+            )
+        };
+        let fill = {
+            let c = self.fill.to_array();
+            Rgba8::new(c[0], c[1], c[2], c[3])
+        };
+        let fill = if closed { fill } else { Rgba8::TRANSPARENT };
+        let shape = match Shape::new(ShapeId::new(), path, fill) {
+            Ok(shape) => shape,
+            Err(error) => return self.report(error.to_string()),
+        };
+        let shape = if !closed || self.stroke_enabled {
+            match stroke {
+                Ok(stroke) => shape.with_stroke(stroke),
+                Err(error) => return self.report(error.to_string()),
+            }
+        } else {
+            shape
+        };
+        self.insert_shape_layer(shape, "Path");
+        if self.status.is_none() {
+            self.pen.clear();
         }
     }
 
@@ -754,6 +857,7 @@ impl Workspace {
             | MenuAction::ToolRectangle
             | MenuAction::ToolEllipse
             | MenuAction::ToolLine
+            | MenuAction::ToolPen
             | MenuAction::PlayPause => true,
             MenuAction::InsertFrame
             | MenuAction::RemoveFrame
@@ -789,6 +893,7 @@ impl Workspace {
             MenuAction::ToolRectangle => "Rectangle",
             MenuAction::ToolEllipse => "Ellipse",
             MenuAction::ToolLine => "Line",
+            MenuAction::ToolPen => "Pen",
             MenuAction::InsertFrame => "Insert Frame",
             MenuAction::RemoveFrame => "Remove Frame",
             MenuAction::InsertKeyframe => "Insert Keyframe",
@@ -861,6 +966,7 @@ impl Workspace {
             MenuAction::ToolRectangle => self.set_tool(Tool::Rectangle),
             MenuAction::ToolEllipse => self.set_tool(Tool::Ellipse),
             MenuAction::ToolLine => self.set_tool(Tool::Line),
+            MenuAction::ToolPen => self.set_tool(Tool::Pen),
             MenuAction::InsertFrame => self.frame_edit(FrameOp::InsertFrame),
             MenuAction::RemoveFrame => self.frame_edit(FrameOp::RemoveFrame),
             MenuAction::InsertKeyframe => self.frame_edit(FrameOp::InsertKeyframe),
@@ -1071,6 +1177,7 @@ impl Workspace {
     pub fn set_tool(&mut self, tool: Tool) {
         if self.tool != tool {
             self.cancel_drag();
+            self.pen.clear();
             self.tool = tool;
         }
     }
@@ -1126,6 +1233,8 @@ impl Workspace {
         self.drag_cancelled = false;
         let mode = match self.tool {
             Tool::Rectangle | Tool::Ellipse | Tool::Line => Some(DragMode::Draw),
+            // The pen builds a path point by point; see `pen_press`.
+            Tool::Pen => None,
             Tool::Select => {
                 self.selected = self.hit(point);
                 self.selected.map(|_| DragMode::Move)
@@ -1416,8 +1525,13 @@ impl Workspace {
             if toggle {
                 self.playing = !self.playing;
             }
-            if delete {
+            if delete && self.pen.is_active() {
+                self.pen_remove_last();
+            } else if delete {
                 self.delete_selection();
+            }
+            if enter_pressed(ctx) {
+                self.pen_finish();
             }
             if convert && !self.native_menu {
                 self.convert_selection_to_symbol();
@@ -1431,6 +1545,7 @@ impl Workspace {
         }
         if escape {
             self.cancel_drag();
+            self.pen_cancel();
         }
         if !typing && !self.native_menu {
             // Modifiers come from the key event itself, which is what the platform reported
@@ -1517,8 +1632,10 @@ impl Workspace {
         ui.selectable_value(&mut tool, Tool::Rectangle, "Rectangle");
         ui.selectable_value(&mut tool, Tool::Ellipse, "Ellipse");
         ui.selectable_value(&mut tool, Tool::Line, "Line");
+        ui.selectable_value(&mut tool, Tool::Pen, "Pen");
         self.set_tool(tool);
         ui.weak("Drag on the stage. Esc cancels. Delete removes, F8 converts to a symbol.");
+        ui.weak("Pen: click for corners, drag for curves, click the first point to close, Enter or double-click to finish.");
         ui.separator();
         ui.label("Fill");
         ui.color_edit_button_srgba(&mut self.fill);
@@ -1629,6 +1746,33 @@ impl Workspace {
 
         let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
+        if self.tool == Tool::Pen {
+            // A press that turns into a drag starts where the button went down, not where
+            // egui noticed the drag; a plain click adds a corner point.
+            let origin = ui.input(|i| i.pointer.press_origin());
+            let here = response.interact_pointer_pos();
+            if response.drag_started()
+                && let Some(p) = origin.or(here)
+            {
+                self.pen_press(to_doc(p));
+            }
+            if response.dragged()
+                && let Some(p) = here
+            {
+                self.pen_drag(to_doc(p));
+            }
+            if response.drag_stopped() {
+                self.pen_release();
+            }
+            if response.double_clicked() {
+                self.pen_finish();
+            } else if response.clicked()
+                && let Some(p) = here
+            {
+                self.pen_press(to_doc(p));
+                self.pen_release();
+            }
+        }
         if response.drag_started()
             && let Some(p) = response.interact_pointer_pos()
         {
@@ -1665,6 +1809,55 @@ impl Workspace {
                 None => {
                     self.exit_symbol();
                 }
+            }
+        }
+
+        // The pen path being built: the curve so far, its points, and the dragged handles.
+        if self.pen.is_active() {
+            let ink = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));
+            let handle = Stroke::new(1.0, Color32::from_rgb(120, 120, 120));
+            let points = self.pen.points();
+            for pair in points.windows(2) {
+                let (a, b) = (pair[0], pair[1]);
+                let c1 = a.out.unwrap_or(a.anchor);
+                let c2 = b.out.map_or(b.anchor, |o| b.anchor + (b.anchor - o));
+                let steps = 20;
+                let sample = |t: f32| {
+                    let u = 1.0 - t;
+                    to_screen(Pos2::new(
+                        u * u * u * a.anchor.x
+                            + 3.0 * u * u * t * c1.x
+                            + 3.0 * u * t * t * c2.x
+                            + t * t * t * b.anchor.x,
+                        u * u * u * a.anchor.y
+                            + 3.0 * u * u * t * c1.y
+                            + 3.0 * u * t * t * c2.y
+                            + t * t * t * b.anchor.y,
+                    ))
+                };
+                let line: Vec<Pos2> = (0..=steps)
+                    .map(|i| sample(i as f32 / steps as f32))
+                    .collect();
+                painter.add(egui::Shape::line(line, ink));
+            }
+            for point in points {
+                if let Some(out) = point.out {
+                    let mirror = point.anchor + (point.anchor - out);
+                    painter.line_segment([to_screen(mirror), to_screen(out)], handle);
+                    painter.circle_filled(to_screen(out), 3.0, Color32::from_rgb(120, 120, 120));
+                }
+                let at = to_screen(point.anchor);
+                painter.rect_filled(
+                    Rect::from_center_size(at, Vec2::splat(7.0)),
+                    0.0,
+                    Color32::WHITE,
+                );
+                painter.rect_stroke(
+                    Rect::from_center_size(at, Vec2::splat(7.0)),
+                    0.0,
+                    ink,
+                    StrokeKind::Outside,
+                );
             }
         }
 
@@ -1905,6 +2098,11 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
     fn tab_title_for_pane(&mut self, pane: &Pane) -> egui::WidgetText {
         pane.title().into()
     }
+}
+
+/// Whether Enter was pressed this pass.
+fn enter_pressed(ctx: &egui::Context) -> bool {
+    key_press(ctx, Key::Enter).is_some()
 }
 
 /// Modifiers held when `key` was pressed this pass, if it was pressed.
@@ -3283,5 +3481,104 @@ mod tests {
         );
         ws.begin_drag(Pos2::new(200.0, 400.0));
         assert!(!ws.has_selection(), "empty space still deselects");
+    }
+
+    fn pen_triangle(ws: &mut Workspace) {
+        ws.set_tool(Tool::Pen);
+        for at in [(10.0, 10.0), (110.0, 10.0), (110.0, 90.0)] {
+            ws.pen_press(Pos2::new(at.0, at.1));
+            ws.pen_release();
+        }
+    }
+
+    fn layer_names(ws: &Workspace) -> Vec<String> {
+        ws.document().scenes()[0]
+            .timeline()
+            .layers()
+            .iter()
+            .map(|l| l.name().to_string())
+            .collect()
+    }
+
+    #[test]
+    fn finishing_a_pen_path_is_one_undo_step_on_a_new_layer() {
+        let mut ws = workspace();
+        pen_triangle(&mut ws);
+        assert!(ws.pen_is_active());
+        assert_eq!(layer_count(&ws), 1, "nothing is committed while drawing");
+        ws.pen_finish();
+        assert!(!ws.pen_is_active());
+        assert_eq!(layer_count(&ws), 2);
+        assert_eq!(layer_names(&ws)[1], "Path");
+        ws.undo();
+        assert_eq!(layer_count(&ws), 1, "one step removes the whole path");
+    }
+
+    #[test]
+    fn an_open_pen_path_is_stroked_even_with_outline_off() {
+        let mut ws = workspace();
+        ws.stroke_enabled = false;
+        pen_triangle(&mut ws);
+        ws.pen_finish();
+        let layers = ws.document().scenes()[0].timeline().layers();
+        let Some(Content::Shape(shape)) = layers[1].spans().first().map(|s| s.content().clone())
+        else {
+            panic!("a shape expected")
+        };
+        assert!(
+            shape.stroke().is_some(),
+            "an open path with no stroke would be invisible"
+        );
+    }
+
+    #[test]
+    fn a_closed_pen_path_strokes_only_when_outline_is_on() {
+        for outline in [false, true] {
+            let mut ws = workspace();
+            ws.stroke_enabled = outline;
+            pen_triangle(&mut ws);
+            ws.pen_press(Pos2::new(11.0, 11.0));
+            assert!(
+                !ws.pen_is_active(),
+                "clicking the first point closes and commits"
+            );
+            let layers = ws.document().scenes()[0].timeline().layers();
+            let Some(Content::Shape(shape)) =
+                layers[1].spans().first().map(|s| s.content().clone())
+            else {
+                panic!("a shape expected")
+            };
+            assert_eq!(shape.stroke().is_some(), outline);
+        }
+    }
+
+    #[test]
+    fn escape_and_switching_tools_cancel_the_pen_path() {
+        let mut ws = workspace();
+        pen_triangle(&mut ws);
+        ws.pen_cancel();
+        assert!(!ws.pen_is_active());
+        pen_triangle(&mut ws);
+        ws.set_tool(Tool::Select);
+        assert!(!ws.pen_is_active());
+        assert_eq!(layer_count(&ws), 1, "cancelling commits nothing");
+    }
+
+    #[test]
+    fn finishing_with_one_point_reports_and_keeps_nothing() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Pen);
+        ws.pen_press(Pos2::new(5.0, 5.0));
+        ws.pen_release();
+        ws.pen_finish();
+        assert_eq!(ws.status(), Some("A path needs at least two points"));
+        assert_eq!(layer_count(&ws), 1);
+    }
+
+    #[test]
+    fn the_pen_menu_action_selects_the_tool() {
+        let mut ws = workspace();
+        ws.perform(MenuAction::ToolPen);
+        assert_eq!(ws.tool(), Tool::Pen);
     }
 }

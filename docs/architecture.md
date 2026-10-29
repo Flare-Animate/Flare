@@ -246,14 +246,16 @@ The policy is deliberately honest rather than clever:
 
 `flare-desktop` is a dock of panels: the stage (rendered by the same pipeline), a timeline with scrubbing
 and playback at the document frame rate, a library, and tools: Select/Move, Rectangle,
-Ellipse and Line, with fill and outline settings. It supports undo/redo, Delete, Convert to
+Ellipse, Line and Pen (click for corners, drag for smooth handles, click the first point or
+press Enter to finish, Backspace to remove a point, Esc to cancel), with fill and outline
+settings. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). On macOS the menu bar is native (muda); everywhere
 else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.md).
 
 ## Known gaps
 
-- No pen or path tool, gradients, masks, text or bitmap fills.
+- No gradients, masks, text or bitmap fills.
 - XFL import covers a defined subset (see Import) and keeps the rest as source data (see Source preservation); XFL export is verified only against our own importer, there is no source preservation, and no SWF parsing beyond signature inspection.
 - No stage zoom or pan, no docking, no multi-select, no drag-editing of spans.
 - Undo history is not persisted, and recovery covers one document at a time.
