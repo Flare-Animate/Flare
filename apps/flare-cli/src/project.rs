@@ -76,6 +76,7 @@ pub fn info(path: &Path) -> Result<Value> {
         },
         "scenes": scenes,
         "symbols": symbols,
+        "attachments": document.attachments().len(),
     }))
 }
 
@@ -528,6 +529,7 @@ pub fn import(source: &Path, out: &Path) -> Result<Value> {
         "imported": out.to_string_lossy(),
         "scenes": imported.document.scenes().len(),
         "symbols": imported.document.symbols().len(),
+        "kept_source_data": imported.document.attachments().len(),
         "info": count(flare_import::Severity::Info),
         "warnings": count(flare_import::Severity::Warning),
         "unsupported": count(flare_import::Severity::Unsupported),

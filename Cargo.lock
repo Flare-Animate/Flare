@@ -1219,10 +1219,13 @@ version = "0.1.0"
 dependencies = [
  "flare-core",
  "flare-document",
+ "flare-edit",
  "flare-eval",
  "flare-import",
  "flare-render",
+ "flare-storage",
  "glamx",
+ "quick-xml 0.42.0",
  "tempfile",
  "thiserror 2.0.21",
  "zip",

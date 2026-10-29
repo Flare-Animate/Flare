@@ -5,7 +5,8 @@ use std::path::{Path, PathBuf};
 
 use flare_core::{Rgba8, SymbolId};
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, PathSegment, Shape, Timeline, Tween,
+    Anchor, Attachment, Content, Document, FrameSpan, Instance, Layer, PathSegment, Placement,
+    Shape, Timeline, Tween,
 };
 use thiserror::Error;
 
@@ -260,13 +261,84 @@ fn write_instance(out: &mut String, instance: &Instance, names: &Names) {
     ));
 }
 
+/// Whether `xml` is exactly one well-formed element with no DTD. Preserved source data
+/// came from a file, so it is checked before being written into the output.
+fn well_formed(xml: &str) -> bool {
+    use quick_xml::events::Event;
+    let mut reader = quick_xml::Reader::from_str(xml);
+    let (mut depth, mut roots) = (0_usize, 0_usize);
+    loop {
+        match reader.read_event() {
+            Ok(Event::Start(_)) => {
+                if depth == 0 {
+                    roots += 1;
+                }
+                depth += 1;
+            }
+            Ok(Event::Empty(_)) => {
+                if depth == 0 {
+                    roots += 1;
+                }
+            }
+            Ok(Event::End(_)) => match depth.checked_sub(1) {
+                Some(d) => depth = d,
+                None => return false,
+            },
+            Ok(Event::DocType(_) | Event::PI(_)) => return false,
+            Ok(Event::Text(t)) if depth == 0 && !t.xml10_content().trim().is_empty() => {
+                return false;
+            }
+            Ok(Event::Eof) => return depth == 0 && roots == 1,
+            Err(_) => return false,
+            Ok(_) => {}
+        }
+    }
+}
+
 struct Ctx<'a> {
     names: &'a Names,
     notes: Vec<Diagnostic>,
     approximated: bool,
+    /// Source data kept by the importer, and which of it has been written back.
+    attachments: &'a [Attachment],
+    used: Vec<bool>,
 }
 
-fn write_frame(out: &mut String, span: &FrameSpan, place: &str, ctx: &mut Ctx<'_>) {
+impl<'a> Ctx<'a> {
+    /// The unused attachments on `anchor` whose placement satisfies `wanted`, marked as
+    /// used. Malformed ones are reported and skipped rather than written.
+    fn take(
+        &mut self,
+        anchor: Anchor,
+        wanted: impl Fn(Placement) -> bool,
+        place: &str,
+    ) -> Vec<&'a str> {
+        let mut out = Vec::new();
+        for (index, attachment) in self.attachments.iter().enumerate() {
+            if self.used[index] || attachment.anchor() != anchor || !wanted(attachment.placement())
+            {
+                continue;
+            }
+            self.used[index] = true;
+            if attachment.format() != "xfl" {
+                continue;
+            }
+            if well_formed(attachment.content()) {
+                out.push(attachment.content());
+            } else {
+                self.notes.push(Diagnostic {
+                    severity: Severity::Warning,
+                    location: place.to_owned(),
+                    message: "preserved source data is not well-formed XML and was not written"
+                        .into(),
+                });
+            }
+        }
+        out
+    }
+}
+
+fn write_frame(out: &mut String, span: &FrameSpan, layer: Anchor, place: &str, ctx: &mut Ctx<'_>) {
     let tween = match (span.tween(), span.content()) {
         (Tween::Linear, Content::Instance(_)) => " tweenType=\"motion\"",
         _ => "",
@@ -288,7 +360,15 @@ fn write_frame(out: &mut String, span: &FrameSpan, place: &str, ctx: &mut Ctx<'_
             write_shape(out, shape, place, notes, approximated);
         }
     }
-    out.push_str("</elements></DOMFrame>");
+    let frame = span.start();
+    for xml in ctx.take(layer, |p| p == Placement::FrameElement { frame }, place) {
+        out.push_str(xml);
+    }
+    out.push_str("</elements>");
+    for xml in ctx.take(layer, |p| p == Placement::FrameExtra { frame }, place) {
+        out.push_str(xml);
+    }
+    out.push_str("</DOMFrame>");
 }
 
 fn write_layer(out: &mut String, layer: &Layer, place: &str, ctx: &mut Ctx<'_>) {
@@ -311,7 +391,16 @@ fn write_layer(out: &mut String, layer: &Layer, place: &str, ctx: &mut Ctx<'_>) 
             location: here.clone(),
             message: "an empty layer was written with one empty frame".into(),
         });
-        out.push_str("<DOMFrame index=\"0\" duration=\"1\"><elements/></DOMFrame>");
+        out.push_str("<DOMFrame index=\"0\" duration=\"1\"><elements>");
+        let anchor = Anchor::Layer(layer.id());
+        for xml in ctx.take(anchor, |p| p == Placement::FrameElement { frame: 0 }, &here) {
+            out.push_str(xml);
+        }
+        out.push_str("</elements>");
+        for xml in ctx.take(anchor, |p| p == Placement::FrameExtra { frame: 0 }, &here) {
+            out.push_str(xml);
+        }
+        out.push_str("</DOMFrame>");
     }
     let mut cursor = 0_u64;
     for span in layer.spans() {
@@ -329,7 +418,7 @@ fn write_layer(out: &mut String, layer: &Layer, place: &str, ctx: &mut Ctx<'_>) 
                 "<DOMFrame index=\"{cursor}\" duration=\"{gap}\"><elements/></DOMFrame>"
             ));
         }
-        write_frame(out, span, &here, ctx);
+        write_frame(out, span, Anchor::Layer(layer.id()), &here, ctx);
         cursor = span.end();
     }
     out.push_str("</frames></DOMLayer>");
@@ -340,11 +429,24 @@ fn write_timeline(
     name: &str,
     timeline: &Timeline,
     place: &str,
+    owner: Anchor,
     ctx: &mut Ctx<'_>,
 ) {
     out.push_str(&format!("<DOMTimeline name=\"{}\"><layers>", esc(name)));
-    for layer in timeline.layers() {
+    let count = timeline.layers().len();
+    for (position, layer) in timeline.layers().iter().enumerate() {
+        // Whole layers that were kept go back at their original index among the layers.
+        let at =
+            |p: Placement| matches!(p, Placement::LayerAt { index } if index as usize == position);
+        for xml in ctx.take(owner, at, place) {
+            out.push_str(xml);
+        }
         write_layer(out, layer, place, ctx);
+    }
+    // Any whose index lies beyond the layers there are now go last.
+    let after = |p: Placement| matches!(p, Placement::LayerAt { index } if index as usize >= count);
+    for xml in ctx.take(owner, after, place) {
+        out.push_str(xml);
     }
     out.push_str("</layers></DOMTimeline>");
 }
@@ -405,6 +507,8 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
         names: &names,
         notes: Vec::new(),
         approximated: false,
+        attachments: document.attachments(),
+        used: vec![false; document.attachments().len()],
     };
 
     let stage = document.stage();
@@ -438,10 +542,15 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
             scene.name(),
             scene.timeline(),
             &format!("scene \"{}\"", scene.name()),
+            Anchor::Scene(scene.id()),
             &mut ctx,
         );
     }
-    main.push_str("</timelines></DOMDocument>\n");
+    main.push_str("</timelines>");
+    for xml in ctx.take(Anchor::Document, |p| p == Placement::Child, "document") {
+        main.push_str(xml);
+    }
+    main.push_str("</DOMDocument>\n");
 
     let mut files = vec![("DOMDocument.xml".to_owned(), main)];
     for (symbol, (_, name, file)) in document.symbols().iter().zip(&names.library) {
@@ -455,12 +564,34 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
             name,
             symbol.timeline(),
             &format!("symbol \"{name}\""),
+            Anchor::Symbol(symbol.id()),
             &mut ctx,
         );
-        item.push_str("</timeline></DOMSymbolItem>\n");
+        item.push_str("</timeline>");
+        for xml in ctx.take(
+            Anchor::Symbol(symbol.id()),
+            |p| p == Placement::Child,
+            &format!("symbol \"{name}\""),
+        ) {
+            item.push_str(xml);
+        }
+        item.push_str("</DOMSymbolItem>\n");
         files.push((format!("LIBRARY/{file}"), item));
     }
 
+    // Source data whose keyframe no longer exists on its layer cannot be placed honestly.
+    for (attachment, used) in ctx.attachments.iter().zip(&ctx.used) {
+        if !used {
+            ctx.notes.push(Diagnostic {
+                severity: Severity::Warning,
+                location: "source data".into(),
+                message: format!(
+                    "preserved source data ({:?}) could not be placed because its keyframe no longer exists; it was not written",
+                    attachment.placement()
+                ),
+            });
+        }
+    }
     notes.append(&mut ctx.notes);
     if ctx.approximated {
         notes.push(Diagnostic {
