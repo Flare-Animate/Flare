@@ -407,4 +407,71 @@ mod tests {
         assert_eq!((r.from(), r.to()), ((10.0, 0.0), (0.0, 0.0)));
         assert_eq!(r.reversed(), q);
     }
+
+    struct Rng(u64);
+
+    impl Rng {
+        fn next(&mut self) -> u64 {
+            self.0 = self
+                .0
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
+            self.0 >> 33
+        }
+    }
+
+    #[test]
+    fn random_token_soup_never_panics_and_valid_results_chain_without_panicking() {
+        let alphabet: Vec<char> = "!|[]S0123456789 .-#abcdefABCDEF\t".chars().collect();
+        let mut rng = Rng(0xED6E5);
+        let (mut ok, mut err) = (0, 0);
+        for _ in 0..20_000 {
+            let len = (rng.next() % 60) as usize;
+            let text: String = (0..len)
+                .map(|_| alphabet[(rng.next() as usize) % alphabet.len()])
+                .collect();
+            match decode_edges(&text) {
+                Ok(segments) => {
+                    ok += 1;
+                    for contour in chain(&segments) {
+                        assert!(!contour.segments.is_empty());
+                    }
+                }
+                Err(_) => err += 1,
+            }
+        }
+        assert!(
+            ok > 100 && err > 100,
+            "both outcomes are exercised ({ok} ok, {err} err)"
+        );
+    }
+
+    #[test]
+    fn very_long_edge_strings_are_processed_in_linear_time() {
+        // 200k segments; a quadratic chaining step would not finish.
+        let mut text = String::from("!0 0");
+        for i in 1..=200_000_u32 {
+            text.push_str(&format!("|{i} {}", i % 7));
+        }
+        let segments = decode_edges(&text).expect("decode");
+        assert_eq!(segments.len(), 200_000);
+        let contours = chain(&segments);
+        assert_eq!(contours.len(), 1);
+        assert!(!contours[0].closed);
+    }
+
+    #[test]
+    fn a_single_point_closing_loop_and_shared_endpoints_chain_without_looping_forever() {
+        // Degenerate: a zero-length segment is its own closed contour.
+        let dot = [line((3.0, 3.0), (3.0, 3.0))];
+        assert!(chain(&dot)[0].closed);
+        // Three segments meeting at one point (a branch): each is used exactly once.
+        let star = [
+            line((0.0, 0.0), (5.0, 0.0)),
+            line((5.0, 0.0), (5.0, 5.0)),
+            line((5.0, 0.0), (9.0, 9.0)),
+        ];
+        let total: usize = chain(&star).iter().map(|c| c.segments.len()).sum();
+        assert_eq!(total, 3);
+    }
 }
