@@ -151,6 +151,9 @@ enum Command {
         #[arg(long)]
         export_dir: Option<PathBuf>,
     },
+    /// Import an XFL directory, .xfl file or modern .fla into a new project, listing what was
+    /// not carried over.
+    Import { source: PathBuf, out: PathBuf },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -288,6 +291,7 @@ fn main() -> Result<()> {
             transparent,
         } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
         Command::Mcp { .. } => bail!("mcp is handled before output is prepared"),
+        Command::Import { source, out } => project::import(&source, &out)?,
         Command::Layer {
             op,
             path,

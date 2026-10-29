@@ -495,3 +495,42 @@ pub fn layer_op(
     commit(&session, path)?;
     Ok(json!({ "applied": format!("{op:?}"), "layer": layer.as_uuid() }))
 }
+
+/// Imports an XFL directory, `.xfl` file or zipped `.fla` into a new project file and
+/// reports everything that could not be carried over.
+pub fn import(source: &Path, out: &Path) -> Result<Value> {
+    if out.exists() {
+        bail!("{} already exists", out.display());
+    }
+    let imported = flare_import::import_path(source)
+        .with_context(|| format!("cannot import {}", source.display()))?;
+    flare_storage::save(&imported.document, out)
+        .with_context(|| format!("cannot save {}", out.display()))?;
+    let count = |severity| {
+        imported
+            .diagnostics
+            .iter()
+            .filter(|d| d.severity == severity)
+            .count()
+    };
+    let diagnostics: Vec<Value> = imported
+        .diagnostics
+        .iter()
+        .map(|d| {
+            json!({
+                "severity": format!("{:?}", d.severity).to_lowercase(),
+                "location": d.location,
+                "message": d.message,
+            })
+        })
+        .collect();
+    Ok(json!({
+        "imported": out.to_string_lossy(),
+        "scenes": imported.document.scenes().len(),
+        "symbols": imported.document.symbols().len(),
+        "info": count(flare_import::Severity::Info),
+        "warnings": count(flare_import::Severity::Warning),
+        "unsupported": count(flare_import::Severity::Unsupported),
+        "diagnostics": diagnostics,
+    }))
+}

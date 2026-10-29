@@ -14,6 +14,7 @@ Dependencies point down this list; a crate never depends on one above it.
 | `flare-storage` | The `.flare` SQLite container: save, load, revalidation. |
 | `flare-ui` | The egui workspace: stage, timeline, tools, library, menu actions. No window or GPU code. |
 | `flare-mcp` | An MCP server over stdio for one open project: agent tools built on the same edit commands, with permissions and revision checks. |
+| `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
 | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | `apps/flare-cli` | Headless project editing and export. |
 | `apps/flare-desktop` | The winit/egui-wgpu shell: window, GPU surface, native dialogs and menu. |
@@ -126,6 +127,27 @@ sanitized file name inside it. Mutating tools accept `expected_revision` (from `
 and fail on a mismatch, so an agent cannot overwrite changes it has not seen. Request lines
 are bounded (1 MiB) and batches are not supported. Tool failures are results with
 `isError` set, so the agent can read and react; protocol misuse uses JSON-RPC errors.
+## Import (XFL)
+
+`flare-cli import <source> <out.flare>` reads an XFL directory, an `.xfl` file (its folder is
+used) or a zipped modern `.fla`, and writes a new project. It never overwrites, and the
+result is an ordinary document. Input is untrusted: XML depth, element count and file sizes
+are capped, DTDs are refused, file names cannot escape the document, and symlinks out of an
+XFL folder are not followed. Legacy binary `.fla` files are recognised and refused.
+
+Imported: stage size, frame rate (NTSC rates stay exact) and background; scenes; normal
+layers with name, visibility and lock; keyframes and durations; symbol instances with their
+matrix; solid fills and solid strokes of drawn shapes, including quadratic curves and
+holes (edges are decoded and chained into contours per fill); the library as Graphic
+symbols; classic motion tweens between instances. A keyframe with several elements puts
+the extras on additional layers above, preserving stacking.
+
+Reported and not imported: gradients, bitmaps, text, video, sound, frame scripts, filters,
+color effects, blend modes, masks, guides, folders, shape tweens and easing, primitives, and
+symbol runtime behaviour (movie clips and buttons become Graphic symbols with a warning).
+Foreign data is not preserved, so anything not imported is lost on save. This has been
+tested only against fixtures written for these tests, not against files from Animate; real
+corpus evidence is the next step before calling any feature supported.
 
 ## Frontends
 
@@ -142,7 +164,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 ## Known gaps
 
 - No pen or path tool, gradients, masks, text or bitmap fills.
-- No FLA/XFL import or export, and no SWF parsing beyond signature inspection.
+- XFL import covers a defined subset (see Import); there is no FLA/XFL export, no source preservation, and no SWF parsing beyond signature inspection.
 - No stage zoom or pan, no docking, no multi-select, no drag-editing of spans.
 - Undo history is not persisted, and recovery covers one document at a time.
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
