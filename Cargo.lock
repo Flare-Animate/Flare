@@ -24,6 +24,8 @@ version = "0.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e883d1d28c5fd5568c79ed2d2bd48d9f2fd3945c8974ed0f53690ceddb051be"
 dependencies = [
+ "enumn",
+ "serde",
  "uuid",
 ]
 
@@ -42,6 +44,7 @@ dependencies = [
  "cfg-if",
  "getrandom 0.3.4",
  "once_cell",
+ "serde",
  "version_check",
  "zerocopy",
 ]
@@ -851,6 +854,7 @@ checksum = "31bcbef0d4263a63eb32c4834e5d711613035ce1333468e107d928923e21e6e2"
 dependencies = [
  "bytemuck",
  "emath",
+ "serde",
 ]
 
 [[package]]
@@ -868,6 +872,7 @@ dependencies = [
  "log",
  "nohash-hasher",
  "profiling",
+ "serde",
  "smallvec",
  "unicode-segmentation",
 ]
@@ -917,6 +922,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "egui_tiles"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c08803282261f981e84f422b9f716450caee4c2a0301278e27aab721dff99218"
+dependencies = [
+ "ahash",
+ "egui",
+ "itertools",
+ "log",
+ "serde",
+]
+
+[[package]]
 name = "either"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -929,6 +947,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e73ce90f54750be8672c02be0743fe47530e6f251e066f0ee2869b59eb297af5"
 dependencies = [
  "bytemuck",
+ "serde",
 ]
 
 [[package]]
@@ -959,6 +978,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "enumn"
+version = "0.1.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f9ed6b3789237c8a0c1c505af1c7eb2c560df6186f01b098c3a1064ea532f38"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
 name = "epaint"
 version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -976,6 +1006,7 @@ dependencies = [
  "parking_lot",
  "profiling",
  "self_cell",
+ "serde",
  "skrifa",
  "smallvec",
  "unicode-general-category",
@@ -1152,6 +1183,7 @@ dependencies = [
  "muda",
  "pollster",
  "rfd",
+ "tempfile",
  "winit",
 ]
 
@@ -1223,6 +1255,7 @@ name = "flare-ui"
 version = "0.1.0"
 dependencies = [
  "egui",
+ "egui_tiles",
  "flare-core",
  "flare-document",
  "flare-edit",
@@ -1230,7 +1263,10 @@ dependencies = [
  "flare-render",
  "flare-storage",
  "glamx",
+ "serde",
+ "serde_json",
  "tempfile",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -1263,6 +1299,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "835ae9d781464a79026cde387f9cbc650c9a4909d7cf7e658b127e3c35d2f35d"
 dependencies = [
  "bytemuck",
+ "serde",
 ]
 
 [[package]]
@@ -3428,6 +3465,9 @@ name = "smallvec"
 version = "1.16.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0d5d4b1981b8bbbb7aed204cae5726d683d5d6ac7e74ec54122ea28f315e7c8"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "smithay-client-toolkit"

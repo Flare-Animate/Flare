@@ -31,10 +31,11 @@ pub enum MenuAction {
     MoveLayerUp,
     MoveLayerDown,
     DeleteLayer,
+    ResetLayout,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 26] = [
+    pub const ALL: [MenuAction; 27] = [
         Self::Open,
         Self::Save,
         Self::SaveAs,
@@ -61,6 +62,7 @@ impl MenuAction {
         Self::MoveLayerUp,
         Self::MoveLayerDown,
         Self::DeleteLayer,
+        Self::ResetLayout,
     ];
 
     /// A stable identifier for native menu items (the variant name).
@@ -144,6 +146,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::DeleteLayer),
         ],
     ),
+    ("View", &[Action(A::ResetLayout)]),
 ];
 
 #[cfg(test)]

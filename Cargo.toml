@@ -80,6 +80,7 @@ parley = "0.12.0"
 # ---- GPU and desktop presentation: documented version family ----------------
 wgpu = { version = "30.0", default-features = false }
 egui = { version = "0.37.0", default-features = false }
+egui_tiles = { version = "0.18.0", default-features = false }
 egui-wgpu = { version = "0.37.0", default-features = false }
 egui-winit = { version = "0.37.0", default-features = false }
 winit = { version = "0.30.13", default-features = false }

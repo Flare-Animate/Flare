@@ -26,9 +26,22 @@ insert keyframe, Shift+F6 clear keyframe, F7 insert blank keyframe, F8 convert t
 plus the usual Cmd/Ctrl+Z, Shift+Z, S. Modifiers are read from the key event itself. Single
 letter accelerators are avoided so typing into text fields is never hijacked.
 
-## Open
+## Docking: egui_tiles
 
-- Docking: choose between `egui_tiles` and `egui_dock` after a prototype that tests keyboard
-  use, persistence, multi-monitor and panel lifecycle. Pick one, not both.
+The workspace is a dock of four panels (Tools, Stage, Library, Timeline) built on
+`egui_tiles` 0.18. Panels have stable identities, not translated titles. A saved layout is
+untrusted: it is size-capped and must contain every panel exactly once, otherwise it is
+refused and the default is used, so a stale file can never leave the app without a panel.
+The layout is remembered in the per-user data directory on a confirmed exit, and View >
+Reset Workspace Layout restores the default without touching the document.
+
+Why `egui_tiles` over `egui_dock`: both build against egui 0.37 and both serialize layouts.
+`egui_tiles` fit the model better (tabs and splits in one tree, a small trait to implement,
+simple validation of the pane set). `egui_dock` has floating windows, which would matter
+for multi-monitor use. This choice came from API fit and a working prototype with tests; it
+has not had hands-on UX testing. Revisit it if keyboard navigation, multi-monitor use or
+panel detaching turn out to matter more than the tree model.
+
+## Open
 - Pen pressure and tilt, IME, and accessibility need hardware evidence before this stack is
   considered final. AccessKit is not enabled yet.

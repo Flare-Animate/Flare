@@ -14,7 +14,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 ## M2 remaining
 
 - Look at and fix the desktop window and the native macOS menu; both have only been built and launch-tested, not exercised by hand.
-- Docking and a saved workspace layout.
+- Hands-on UX testing of the docking prototype (`feat/docking`); it is chosen on API fit only.
 - Pen pressure, IME and accessibility checks on real hardware.
 - Autosave and crash recovery; migration and fault-injection tests for storage.
 
@@ -22,7 +22,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 
 Each of these can be its own branch and PR on top of the current work:
 
-1. Docking prototype (`egui_tiles` against `egui_dock`) and persisted layout.
+1. Docking: `egui_tiles` prototype with a persisted layout is on `feat/docking`; it needs hands-on UX testing and the multi-monitor question answered.
 2. Drawing tools: pen/path, selection of multiple objects, transform handles.
 3. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
 4. Timeline UX: span selection and drag, copy/paste, onion skin, zoom.

@@ -10,6 +10,7 @@ use flare_document::{
 use flare_edit::{Command, EditorSession, LayerChange, frames};
 use glamx::DVec2;
 
+use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 
@@ -103,6 +104,8 @@ pub struct Workspace {
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
     quit_requested: bool,
+    /// The dockable panel arrangement.
+    layout: egui_tiles::Tree<Pane>,
     fill: Color32,
     stroke_enabled: bool,
     stroke_color: Color32,
@@ -134,6 +137,7 @@ impl Workspace {
             layer_name_edit: String::new(),
             native_menu: false,
             quit_requested: false,
+            layout: layout::default_tree(),
             fill: Color32::from_rgb(232, 69, 60),
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
@@ -253,7 +257,7 @@ impl Workspace {
 
     /// Opens a project, refusing to replace unsaved work.
     /// Replaces the document being edited, keeping the user's tool and environment settings
-    /// (tool, colors, native menu) rather than resetting them along with the document.
+    /// (tool, colors, native menu, panel layout) rather than resetting them along with it.
     fn install_document(&mut self, document: Document, path: Option<PathBuf>) {
         let mut fresh = Self::new(document, path);
         fresh.tool = self.tool;
@@ -262,6 +266,10 @@ impl Workspace {
         fresh.stroke_color = self.stroke_color;
         fresh.stroke_width = self.stroke_width;
         fresh.native_menu = self.native_menu;
+        fresh.layout = std::mem::replace(
+            &mut self.layout,
+            egui_tiles::Tree::empty(egui::Id::unique("taken")),
+        );
         *self = fresh;
     }
 
@@ -536,6 +544,25 @@ impl Workspace {
         self.exit_to_depth(0)
     }
 
+    // ---- dock layout -----------------------------------------------------------------
+
+    /// The current panel arrangement as JSON, for saving between sessions.
+    pub fn layout_json(&self) -> Result<String, serde_json::Error> {
+        layout::to_json(&self.layout)
+    }
+
+    /// Restores a saved arrangement. An unusable one is refused and the current layout is
+    /// kept, so a stale or damaged file can never leave the workspace without a panel.
+    pub fn restore_layout(&mut self, json: &str) -> Result<(), LayoutError> {
+        self.layout = layout::from_json(json)?;
+        Ok(())
+    }
+
+    /// Back to the default arrangement. Never touches the document.
+    pub fn reset_layout(&mut self) {
+        self.layout = layout::default_tree();
+    }
+
     // ---- menu actions ----------------------------------------------------------------
 
     /// Tells the workspace a native menu bar is present, so it does not draw its own menu
@@ -590,6 +617,7 @@ impl Workspace {
             MenuAction::MoveLayerUp => position.is_some_and(|p| p > 0),
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
+            MenuAction::ResetLayout => true,
         }
     }
 
@@ -647,6 +675,7 @@ impl Workspace {
             MenuAction::MoveLayerUp => "Move Layer Up",
             MenuAction::MoveLayerDown => "Move Layer Down",
             MenuAction::DeleteLayer => "Delete Layer",
+            MenuAction::ResetLayout => "Reset Workspace Layout",
         };
         text.to_owned()
     }
@@ -701,6 +730,7 @@ impl Workspace {
             MenuAction::MoveLayerUp => self.move_active_layer(-1),
             MenuAction::MoveLayerDown => self.move_active_layer(1),
             MenuAction::DeleteLayer => self.delete_active_layer(),
+            MenuAction::ResetLayout => self.reset_layout(),
         }
     }
 
@@ -1121,17 +1151,15 @@ impl Workspace {
         self.ensure_stage_texture(&ctx);
 
         egui::Panel::top("menu").show(ui, |ui| self.menu_bar(ui));
-        egui::Panel::bottom("timeline")
-            .resizable(true)
-            .default_size(180.0)
-            .show(ui, |ui| self.timeline(ui));
-        egui::Panel::left("tools")
-            .default_size(150.0)
-            .show(ui, |ui| self.tools(ui));
-        egui::Panel::right("library")
-            .default_size(180.0)
-            .show(ui, |ui| self.library(ui));
-        egui::CentralPanel::default().show(ui, |ui| self.stage(ui));
+        egui::CentralPanel::default().show(ui, |ui| {
+            // The dock needs `&mut self` to draw panel contents, so take it out while it runs.
+            let mut layout = std::mem::replace(
+                &mut self.layout,
+                egui_tiles::Tree::empty(egui::Id::unique("taken")),
+            );
+            layout.ui(&mut Dock { workspace: self }, ui);
+            self.layout = layout;
+        });
 
         if self.playing {
             ctx.request_repaint();
@@ -1612,6 +1640,34 @@ impl Workspace {
             [Pos2::new(head, rect.min.y), Pos2::new(head, rect.max.y)],
             Stroke::new(2.0, Color32::from_rgb(220, 60, 60)),
         );
+    }
+}
+
+/// Draws each dock panel by calling back into the workspace.
+struct Dock<'a> {
+    workspace: &'a mut Workspace,
+}
+
+impl egui_tiles::Behavior<Pane> for Dock<'_> {
+    fn pane_ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        _tile: egui_tiles::TileId,
+        pane: &mut Pane,
+    ) -> egui_tiles::UiResponse {
+        match pane {
+            Pane::Stage => self.workspace.stage(ui),
+            Pane::Timeline => self.workspace.timeline(ui),
+            Pane::Library => self.workspace.library(ui),
+            Pane::Tools => {
+                egui::ScrollArea::vertical().show(ui, |ui| self.workspace.tools(ui));
+            }
+        }
+        egui_tiles::UiResponse::None
+    }
+
+    fn tab_title_for_pane(&mut self, pane: &Pane) -> egui::WidgetText {
+        pane.title().into()
     }
 }
 
@@ -2648,5 +2704,90 @@ mod tests {
         assert_eq!(ws.tool(), Tool::Ellipse);
         assert_eq!(ws.fill, Color32::from_rgb(1, 2, 3));
         assert!(ws.stroke_enabled);
+    }
+
+    #[test]
+    fn the_dock_survives_drawing_and_every_panel_stays_present() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        for t in 0..5 {
+            run(&mut ws, &ctx, f64::from(t));
+        }
+        let json = ws.layout_json().expect("serialize");
+        assert!(
+            layout::from_json(&json).is_ok(),
+            "all four panels are still in the layout"
+        );
+        assert!(
+            ws.texture.is_some(),
+            "the stage panel was drawn inside the dock"
+        );
+    }
+
+    #[test]
+    fn a_saved_layout_restores_and_an_unusable_one_is_refused_and_changes_nothing() {
+        let mut ws = workspace();
+        let saved = ws.layout_json().expect("serialize");
+        ws.reset_layout();
+        ws.restore_layout(&saved).expect("restore");
+
+        let before = ws.layout_json().expect("serialize");
+        for bad in ["not json", "{}", &saved.replace("\"Tools\"", "\"Stage\"")] {
+            assert!(ws.restore_layout(bad).is_err(), "{bad}");
+        }
+        let after = ws.layout_json().expect("serialize");
+        let value = |t: &str| serde_json::from_str::<serde_json::Value>(t).expect("json");
+        assert_eq!(
+            value(&before),
+            value(&after),
+            "a refused layout leaves the current one alone"
+        );
+    }
+
+    #[test]
+    fn resetting_the_layout_never_touches_the_document() {
+        let mut ws = workspace();
+        rect(&mut ws);
+        let document = ws.document().clone();
+        let dirty = ws.is_dirty();
+        ws.perform(MenuAction::ResetLayout);
+        assert_eq!(ws.document(), &document);
+        assert_eq!(ws.is_dirty(), dirty);
+        assert!(ws.is_enabled(MenuAction::ResetLayout));
+    }
+
+    #[test]
+    fn opening_a_project_keeps_the_users_panel_arrangement() {
+        let dir = tempfile::tempdir().expect("dir");
+        let project = dir.path().join("p.flare");
+        let mut source = workspace();
+        source.save_as(&project);
+        let mut ws = workspace();
+        // A real arrangement: every panel in one tab group, nothing like the default.
+        let mut tiles = egui_tiles::Tiles::default();
+        let panes: Vec<_> = [Pane::Timeline, Pane::Library, Pane::Stage, Pane::Tools]
+            .into_iter()
+            .map(|pane| tiles.insert_pane(pane))
+            .collect();
+        let root = tiles.insert_tab_tile(panes);
+        let custom_tree = egui_tiles::Tree::new(egui::Id::unique("custom"), root, tiles);
+        let custom = layout::to_json(&custom_tree).expect("serialize");
+        ws.restore_layout(&custom)
+            .expect("a tab group of all four panels is valid");
+
+        let value = |t: &str| serde_json::from_str::<serde_json::Value>(t).expect("json");
+        let default = layout::to_json(&layout::default_tree()).expect("serialize");
+        assert_ne!(
+            value(&custom),
+            value(&default),
+            "the test needs a non-default layout"
+        );
+
+        ws.open(&project);
+        assert_eq!(value(&ws.layout_json().expect("serialize")), value(&custom));
+        ws.reset_layout();
+        assert_eq!(
+            value(&ws.layout_json().expect("serialize")),
+            value(&default)
+        );
     }
 }

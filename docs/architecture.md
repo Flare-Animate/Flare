@@ -108,7 +108,7 @@ and fault-injection tests exist.
 `flare-cli` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`,
 `layer`, `place`, `frame`, `eval`, `export`, `export-frames`, `inspect`, `rate`.
 
-`flare-desktop` shows the stage (rendered by the same pipeline), a timeline with scrubbing
+`flare-desktop` is a dock of panels: the stage (rendered by the same pipeline), a timeline with scrubbing
 and playback at the document frame rate, a library, and tools: Select/Move, Rectangle,
 Ellipse and Line, with fill and outline settings. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
@@ -119,7 +119,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 
 - No pen or path tool, gradients, masks, text or bitmap fills.
 - No FLA/XFL import or export, and no SWF parsing beyond signature inspection.
-- No stage zoom or pan, no docking, no multi-select, no drag-editing of spans.
+- No stage zoom or pan, no multi-select, no drag-editing of spans, no detachable panels.
 - No autosave or crash recovery; undo history is not persisted.
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
   menu have been built and launched but not exercised by hand; the menu's enabled-state and
