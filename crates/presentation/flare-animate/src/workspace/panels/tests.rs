@@ -1,4 +1,4 @@
-use super::parse_hex;
+use super::color::parse_hex;
 use egui::Color32;
 
 #[test]

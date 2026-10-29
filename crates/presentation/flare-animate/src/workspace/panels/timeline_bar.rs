@@ -1,0 +1,188 @@
+//! The timeline toolbar.
+
+//! The panels of the workspace: tools, properties, library, color, align, transform, history,
+//! the timeline's toolbar and the status bar.
+//!
+//! Controls that act on the document are real. Controls for features that do not exist yet are
+//! drawn the same way but dimmed, with a hover note, using the mock helpers in `chrome`; each
+//! is a place a later change fills in.
+
+use crate::actions::MenuAction;
+use crate::workspace::{Command, Layer, LayerId, MAX_ONION_FRAMES, Workspace};
+use egui::{RichText, Ui};
+use flare_ui::chrome;
+use flare_ui::theme;
+
+use super::*;
+
+impl Workspace {
+    // ---- timeline toolbar --------------------------------------------------------------
+
+    /// Transport, onion skin, zoom and layer buttons above the timeline.
+    pub(crate) fn timeline_toolbar(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            let last = self.scene_frames() - 1;
+            if chrome::icon_button(ui, "transport-first", BAR_ICON, false, true, "First frame")
+                .clicked()
+            {
+                self.set_frame(0);
+            }
+            if chrome::icon_button(
+                ui,
+                "transport-prev",
+                BAR_ICON,
+                false,
+                true,
+                "Previous frame",
+            )
+            .clicked()
+            {
+                self.set_frame(self.frame.saturating_sub(1));
+            }
+            let (icon, hint) = if self.playing {
+                ("transport-pause", "Pause")
+            } else {
+                ("transport-play", "Play")
+            };
+            if chrome::icon_button(ui, icon, BAR_ICON, self.playing, true, hint).clicked() {
+                self.playing = !self.playing;
+            }
+            if chrome::icon_button(ui, "transport-next", BAR_ICON, false, true, "Next frame")
+                .clicked()
+            {
+                self.set_frame(self.frame.saturating_add(1));
+            }
+            if chrome::icon_button(ui, "transport-last", BAR_ICON, false, true, "Last frame")
+                .clicked()
+            {
+                self.set_frame(last);
+            }
+            if chrome::icon_button(
+                ui,
+                "transport-loop",
+                BAR_ICON,
+                self.loop_playback,
+                true,
+                "Loop playback",
+            )
+            .clicked()
+            {
+                self.perform(MenuAction::ToggleLoop);
+            }
+            ui.separator();
+            let mut frame = self.frame;
+            ui.add(
+                egui::DragValue::new(&mut frame)
+                    .range(0..=last)
+                    .prefix("Frame "),
+            );
+            if frame != self.frame {
+                self.set_frame(frame);
+            }
+            let rate = self.document().frame_rate();
+            let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+            ui.label(RichText::new(format!("{fps:.2} fps")).color(theme::TEXT_DIM));
+            ui.separator();
+            let mut onion = self.onion.enabled;
+            if chrome::icon_button(ui, "onion-skin", BAR_ICON, onion, true, "Onion skin").clicked()
+            {
+                onion = !onion;
+            }
+            self.set_onion_skin(onion);
+            chrome::mock_icon_button(ui, "onion-outline", BAR_ICON, "Onion skin outlines");
+            ui.add_enabled_ui(onion, |ui| {
+                let (mut before, mut after) = (self.onion.before, self.onion.after);
+                ui.add(
+                    egui::DragValue::new(&mut before)
+                        .range(0..=MAX_ONION_FRAMES)
+                        .prefix("\u{2190} "),
+                );
+                ui.add(
+                    egui::DragValue::new(&mut after)
+                        .range(0..=MAX_ONION_FRAMES)
+                        .suffix(" \u{2192}"),
+                );
+                self.set_onion_range(before, after);
+            });
+            ui.separator();
+            if chrome::icon_button(ui, "layer-new", BAR_ICON, false, true, "New layer").clicked() {
+                self.add_layer();
+            }
+            chrome::mock_icon_button(ui, "layer-folder", BAR_ICON, "New layer folder");
+            chrome::mock_icon_button(ui, "layer-motion-guide", BAR_ICON, "Add motion guide");
+            if chrome::icon_button(
+                ui,
+                "layer-mask",
+                BAR_ICON,
+                self.active_layer().is_some_and(Layer::is_mask),
+                self.is_enabled(MenuAction::ToggleLayerMask),
+                "Mask the layer below",
+            )
+            .clicked()
+            {
+                self.perform(MenuAction::ToggleLayerMask);
+            }
+            if chrome::icon_button(
+                ui,
+                "layer-delete",
+                BAR_ICON,
+                false,
+                self.is_enabled(MenuAction::DeleteLayer),
+                "Delete layer",
+            )
+            .clicked()
+            {
+                self.perform(MenuAction::DeleteLayer);
+            }
+            ui.separator();
+            for (icon, hint, factor) in [
+                (
+                    "zoom-out",
+                    "Zoom timeline out",
+                    1.0 / crate::timeline_view::STEP,
+                ),
+                ("zoom-in", "Zoom timeline in", crate::timeline_view::STEP),
+            ] {
+                if chrome::icon_button(ui, icon, BAR_ICON, false, true, hint).clicked() {
+                    self.zoom_timeline(factor);
+                }
+            }
+            if chrome::icon_button(ui, "zoom-fit", BAR_ICON, false, true, "Fit the scene").clicked()
+            {
+                self.timeline_zoom = crate::timeline_view::MIN_ZOOM;
+            }
+            ui.separator();
+            let edit = ui.add(
+                egui::TextEdit::singleline(&mut self.layer_name_edit)
+                    .hint_text("Rename layer")
+                    .desired_width(120.0),
+            );
+            let submitted = edit.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
+            if submitted && !self.layer_name_edit.is_empty() {
+                let name = std::mem::take(&mut self.layer_name_edit);
+                self.rename_active_layer(&name);
+            }
+        });
+    }
+
+    /// A new empty layer above the others, made the active one: one undo step.
+    pub fn add_layer(&mut self) {
+        let Some(scene) = self.scene_id() else {
+            return;
+        };
+        let count = self
+            .document()
+            .scenes()
+            .first()
+            .map_or(0, |s| s.timeline().layers().len());
+        let id = LayerId::new();
+        let layer = match Layer::new(id, format!("Layer {}", count + 1), vec![]) {
+            Ok(layer) => layer,
+            Err(error) => return self.report(error.to_string()),
+        };
+        self.run_batch(vec![Command::AddLayer { scene, layer }], "add a layer");
+        if self.status.is_none() {
+            self.current_layer = Some(id);
+        }
+    }
+}
