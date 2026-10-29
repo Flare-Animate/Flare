@@ -27,5 +27,5 @@ Each of these can be its own branch and PR on top of the current work:
 3. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
 4. Timeline UX: span selection and drag, copy/paste, onion skin, zoom.
 5. Recovery: autosave, crash recovery, storage migration tests.
-6. Compatibility evidence: a lawful fixture corpus, then XFL import for a named subset.
+6. Compatibility evidence: a lawful corpus of real Animate files to test the XFL import against (the importer itself exists on `feat/xfl-import`), then export and source preservation.
 7. Input and accessibility: pen, IME and screen-reader results.

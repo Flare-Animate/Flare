@@ -12,6 +12,7 @@ members = [
     "crates/eval/flare-eval",
     "crates/render/flare-render",
     "crates/presentation/flare-ui",
+    "crates/io/flare-import",
     "crates/io/flare-flash",
 ]
 exclude = ["original"]
@@ -28,6 +29,7 @@ license = "BSD-3-Clause"
 # ---- Internal packages: root owns all paths ----------------------------------
 flare-core = { path = "crates/foundation/flare-core" }
 flare-flash = { path = "crates/io/flare-flash" }
+flare-import = { path = "crates/io/flare-import" }
 flare-ui = { path = "crates/presentation/flare-ui" }
 flare-render = { path = "crates/render/flare-render" }
 flare-eval = { path = "crates/eval/flare-eval" }

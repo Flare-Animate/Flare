@@ -666,3 +666,67 @@ fn layer_commands_manage_visibility_lock_order_and_deletion() {
         "the last layer stays"
     );
 }
+
+#[test]
+fn import_turns_an_xfl_folder_into_a_project_and_lists_what_was_skipped() {
+    let dir = tempfile::tempdir().expect("dir");
+    let source = dir.path().join("src");
+    std::fs::create_dir_all(source.join("LIBRARY")).expect("mkdir");
+    std::fs::write(
+        source.join("DOMDocument.xml"),
+        r##"<DOMDocument frameRate="24" width="20" height="10" backgroundColor="#FFFFFF"><timelines><DOMTimeline name="Main"><layers>
+        <DOMLayer name="Box"><frames><DOMFrame index="0" duration="3"><elements><DOMShape>
+          <fills><FillStyle index="1"><SolidColor color="#FF0000"/></FillStyle></fills>
+          <edges><Edge fillStyle1="1" edges="!0 0|100 0|100 100|0 100|0 0"/></edges>
+        </DOMShape><DOMStaticText/></elements></DOMFrame></frames></DOMLayer>
+        <DOMLayer name="Cut" layerType="mask"><frames/></DOMLayer></layers></DOMTimeline></timelines></DOMDocument>"##,
+    )
+    .expect("write");
+    let out = dir.path().join("out.flare").to_string_lossy().into_owned();
+    let source_arg = source.to_string_lossy().into_owned();
+
+    let report = json(&["import", &source_arg, &out]);
+    assert_eq!(
+        (report["scenes"].as_u64(), report["symbols"].as_u64()),
+        (Some(1), Some(0))
+    );
+    assert_eq!(
+        report["unsupported"], 2,
+        "the text object and the mask layer"
+    );
+    let messages: Vec<&str> = report["diagnostics"]
+        .as_array()
+        .expect("list")
+        .iter()
+        .filter_map(|d| d["message"].as_str())
+        .collect();
+    assert!(
+        messages.iter().any(|m| m.contains("mask layers")),
+        "{messages:?}"
+    );
+
+    // The result is a normal project: it has the imported size and renders the artwork.
+    let info = json(&["info", &out]);
+    assert_eq!(
+        (
+            info["stage"]["width"].as_u64(),
+            info["stage"]["height"].as_u64()
+        ),
+        (Some(20), Some(10))
+    );
+    let png = dir.path().join("f.png").to_string_lossy().into_owned();
+    json(&["export", &out, &png]);
+    assert_eq!(pixel(&read_png(&png), 2, 2), [255, 0, 0, 255]);
+
+    assert!(
+        !run(&["import", &source_arg, &out]).status.success(),
+        "never overwrites"
+    );
+    let missing = dir.path().join("nothing").to_string_lossy().into_owned();
+    let other = dir.path().join("o2.flare").to_string_lossy().into_owned();
+    assert!(!run(&["import", &missing, &other]).status.success());
+    assert!(
+        !std::path::Path::new(&other).exists(),
+        "a failed import leaves no file behind"
+    );
+}

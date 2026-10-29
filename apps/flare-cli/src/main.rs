@@ -140,6 +140,9 @@ enum Command {
         #[arg(long)]
         name: Option<String>,
     },
+    /// Import an XFL directory, .xfl file or modern .fla into a new project, listing what was
+    /// not carried over.
+    Import { source: PathBuf, out: PathBuf },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -260,6 +263,7 @@ fn main() -> Result<()> {
             height,
             transparent,
         } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
+        Command::Import { source, out } => project::import(&source, &out)?,
         Command::Layer {
             op,
             path,

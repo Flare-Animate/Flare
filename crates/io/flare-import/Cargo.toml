@@ -1,0 +1,23 @@
+[package]
+name = "flare-import"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+flare-core.workspace = true
+flare-document.workspace = true
+glamx.workspace = true
+quick-xml.workspace = true
+thiserror.workspace = true
+zip = { workspace = true, features = ["deflate"] }
+
+[dev-dependencies]
+flare-eval.workspace = true
+flare-render.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
