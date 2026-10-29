@@ -23,7 +23,7 @@ members = [
     "crates/io/flare-export",
     "crates/io/flare-publish",
     "crates/adapters/flare-ruffle",
-    "crates/io/flare-flash",
+    "crates/adapters/flare-flash",
     "crates/foundation/flare-text",
     "crates/foundation/flare-audio",
     "crates/services/flare-runtime",
@@ -42,7 +42,7 @@ license = "BSD-3-Clause"
 [workspace.dependencies]
 # ---- Internal packages: root owns all paths ----------------------------------
 flare-core = { path = "crates/foundation/flare-core" }
-flare-flash = { path = "crates/io/flare-flash" }
+flare-flash = { path = "crates/adapters/flare-flash" }
 flare-export = { path = "crates/io/flare-export" }
 flare-publish = { path = "crates/io/flare-publish" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }

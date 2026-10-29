@@ -9,7 +9,7 @@ Executables are in `apps/`. The folders mean:
 - **foundation**: the model and the pure functions over it, including text shaping and sound decoding.
 - **editing**: how a document is changed and how the tools turn gestures into changes.
 - **io**: file formats, in and out (the project container, XFL, SWF).
-- **adapters**: integrations with other programs and projects (today: Ruffle).
+- **adapters**: integrations with the Flash ecosystem: recognising its files (`flare-flash`) and running its player (`flare-ruffle`).
 - **services**: rendering, background work and the operating system.
 - **presentation**: egui widgets and the workspaces built from them.
 
@@ -29,7 +29,7 @@ Executables are in `apps/`. The folders mean:
 | io | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
 | io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | io | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
-| io | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
+| adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
 | services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound and text, with latest-wins and an inline mode for tests; image export. No UI types. |
