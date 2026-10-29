@@ -118,6 +118,14 @@ impl Layer {
     pub fn spans(&self) -> &[FrameSpan] {
         &self.spans
     }
+
+    /// The span exposing `frame`, if any. Spans are sorted and non-overlapping.
+    pub fn span_at(&self, frame: u32) -> Option<&FrameSpan> {
+        let index = self
+            .spans
+            .partition_point(|span| span.end() <= u64::from(frame));
+        self.spans.get(index).filter(|span| span.start() <= frame)
+    }
 }
 
 /// Layers ordered top to bottom.
@@ -133,6 +141,16 @@ impl Timeline {
 
     pub fn layers(&self) -> &[Layer] {
         &self.layers
+    }
+
+    /// Number of frames up to the end of the last span on any layer.
+    pub fn frame_count(&self) -> u64 {
+        self.layers
+            .iter()
+            .filter_map(|layer| layer.spans().last())
+            .map(FrameSpan::end)
+            .max()
+            .unwrap_or(0)
     }
 
     pub(crate) fn instances(&self) -> impl Iterator<Item = &Instance> {

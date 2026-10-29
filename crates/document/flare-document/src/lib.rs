@@ -204,6 +204,20 @@ mod tests {
     }
 
     #[test]
+    fn span_lookup_and_frame_count() {
+        let spans = vec![span(2, 3, Content::Empty), span(10, 1, Content::Empty)];
+        let layer = Layer::new(LayerId::new(), "L", spans).expect("layer");
+        assert!(layer.span_at(1).is_none());
+        assert_eq!(layer.span_at(2).map(FrameSpan::start), Some(2));
+        assert_eq!(layer.span_at(4).map(FrameSpan::start), Some(2));
+        assert!(layer.span_at(5).is_none());
+        assert_eq!(layer.span_at(10).map(FrameSpan::start), Some(10));
+        assert!(layer.span_at(11).is_none());
+        assert_eq!(Timeline::new(vec![layer]).frame_count(), 11);
+        assert_eq!(Timeline::default().frame_count(), 0);
+    }
+
+    #[test]
     fn span_end_cannot_overflow() {
         let tail = span(u32::MAX, u32::MAX, Content::Empty);
         assert_eq!(tail.end(), u64::from(u32::MAX) * 2);
