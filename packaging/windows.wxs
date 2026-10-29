@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Flare" Manufacturer="Flare" Version="$(var.Version)"
+           Scope="perMachine" UpgradeCode="6f1a7c52-3d9e-4b0a-9c64-0e2b7a58d1f3">
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer Flare version is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Icon Id="FlareIcon" SourceFile="$(var.Icon)" />
+    <Property Id="ARPPRODUCTICON" Value="FlareIcon" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/Flare-Animate/Flare" />
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="Flare">
+        <Component Id="Application" Guid="*" Bitness="always64">
+          <File Id="FlareExe" Source="$(var.Binary)" Name="flare.exe" KeyPath="yes">
+            <Shortcut Id="LaunchFlare" Name="Flare" Directory="ProgramMenuFolder"
+                      Advertise="yes" WorkingDirectory="INSTALLFOLDER" Icon="FlareIcon" />
+          </File>
+          <File Id="License" Source="$(var.License)" Name="LICENSE.txt" />
+          <File Id="FontLicense" Source="$(var.FontLicense)" Name="OFL.txt" />
+        </Component>
+        <Component Id="FlareAssociation" Guid="*" Bitness="always64">
+          <RegistryValue Root="HKLM" Key="Software\Classes\Flare.Project" Type="string"
+                         Value="Flare Project" KeyPath="yes" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Flare.Project\DefaultIcon"
+                         Type="string" Value="&quot;[#FlareExe]&quot;,0" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Flare.Project\shell\open\command"
+                         Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\.flare" Type="string" Value="Flare.Project" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\.flare" Name="Content Type"
+                         Type="string" Value="application/x-flare" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\.flare\OpenWithProgids"
+                         Name="Flare.Project" Type="string" Value="" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe"
+                         Name="FriendlyAppName" Type="string" Value="Flare" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\SupportedTypes"
+                         Name=".flare" Type="string" Value="" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\shell\open\command"
+                         Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
+          <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities"
+                         Name="ApplicationName" Type="string" Value="Flare" />
+          <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities"
+                         Name="ApplicationDescription" Type="string" Value="Flare animation tool" />
+          <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".flare" Type="string" Value="Flare.Project" />
+          <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="Flare"
+                         Type="string" Value="Software\Flare\Capabilities" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <Feature Id="MainFeature" Title="Flare" Level="1">
+      <ComponentRef Id="Application" />
+      <ComponentRef Id="FlareAssociation" />
+    </Feature>
+  </Package>
+</Wix>

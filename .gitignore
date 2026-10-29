@@ -1,4 +1,5 @@
 /target
 .DS_Store
 /docs/temp
-.codesight/dist/
+/dist
+/.codesight

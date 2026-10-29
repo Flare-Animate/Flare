@@ -1,0 +1,247 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - '.github/actions/release-tools/**'
+      - 'scripts/packaging/**'
+      - 'scripts/tests/**'
+      - 'packaging/**'
+      - 'assets/flare-icon*'
+      - 'apps/flare-desktop/**'
+      - 'docs/release.md'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+  workflow_dispatch:
+    inputs:
+      artifacts-run:
+        description: Optional completed release run whose successful platform artifacts should be reused
+        type: string
+        default: ''
+      publish-tag:
+        description: Existing tag to publish when reusing artifacts (leave empty for build-only runs)
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  version:
+    name: Validate release contract
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.publish-tag || github.ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - id: version
+        env:
+          RELEASE_TAG: ${{ inputs.publish-tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
+        run: python scripts/packaging/package_release.py validate --tag "$RELEASE_TAG"
+      - name: Verify artifact provenance and all required platform builds
+        if: inputs.artifacts-run != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ inputs.artifacts-run }}
+          RELEASE_TAG: ${{ inputs.publish-tag }}
+        run: python scripts/packaging/verify_release_run.py --repo "$GITHUB_REPOSITORY" --run "$SOURCE_RUN" --tag "$RELEASE_TAG"
+      - run: python -m unittest discover -s scripts/tests -p 'test_package_*.py'
+
+  build:
+    name: Build ${{ matrix.target }}
+    if: inputs.artifacts-run == ''
+    needs: version
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+            executable: flare-desktop.exe
+          - os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            executable: flare-desktop.exe
+          - os: macos-15
+            target: aarch64-apple-darwin
+            executable: flare-desktop
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            executable: flare-desktop
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            executable: flare-desktop
+          - os: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
+            executable: flare-desktop
+    env:
+      CARGO_INCREMENTAL: '0'
+      MACOSX_DEPLOYMENT_TARGET: '13.0'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.99.0'
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        env:
+          CACHE_ON_FAILURE: 'true'
+        with:
+          key: release-gpu-${{ matrix.target }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install Linux build and packaging libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libasound2-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-dev libxcursor-dev libxi-dev libxrandr-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libegl1-mesa-dev libvulkan-dev desktop-file-utils shared-mime-info appstream patchelf file rpm libfuse2
+      - name: Make Windows portable builds independent of the VC runtime installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '"RUSTFLAGS=-C target-feature=+crt-static" >> $env:GITHUB_ENV'
+      - name: Build release
+        run: cargo build --locked --release -p flare-desktop -p flare-cli -p flare-mcp --target ${{ matrix.target }}
+      - name: Install macOS DMG layout tool
+        if: runner.os == 'macOS'
+        run: python -m pip install dmgbuild==1.6.7
+      - name: Package portable archives and macOS images
+        run: python scripts/packaging/package_release.py package --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/${{ matrix.executable }} --output dist
+      - name: Package headless CLI
+        run: python scripts/packaging/package_cli.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare-cli${{ runner.os == 'Windows' && '.exe' || '' }} --mcp-binary target/${{ matrix.target }}/release/flare-mcp${{ runner.os == 'Windows' && '.exe' || '' }} --output dist
+      - uses: ./.github/actions/release-tools
+        if: runner.os == 'Linux'
+      - name: Package Linux installers
+        if: runner.os == 'Linux'
+        run: python scripts/packaging/package_linux.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare-desktop --output dist
+      - name: Inspect Linux desktop integration and native packages
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          desktop-file-validate packaging/flare.desktop
+          appstreamcli validate --no-net packaging/flare.metainfo.xml
+          dpkg-deb --info dist/*.deb
+          dpkg-deb --contents dist/*.deb
+          rpm -qip dist/*.rpm
+          rpm -qlp dist/*.rpm
+          ldd target/${{ matrix.target }}/release/flare-desktop | tee dependencies.txt
+          if grep -q 'not found' dependencies.txt; then exit 1; fi
+          appimage=$(realpath dist/*.AppImage)
+          inspection=$(mktemp -d)
+          cd "$inspection"
+          "$appimage" --appimage-extract > /dev/null
+          test -x squashfs-root/usr/bin/flare
+          test -f squashfs-root/usr/share/mime/packages/flare.xml
+      - name: Install WiX 5 for both Windows architectures
+        if: runner.os == 'Windows'
+        run: dotnet tool install --global wix --version 5.0.2 --allow-roll-forward
+      - name: Package Windows MSI
+        if: runner.os == 'Windows'
+        run: python scripts/packaging/package_windows.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/${{ matrix.executable }} --output dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: flare-${{ needs.version.outputs.version }}-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - uses: actions/upload-artifact@v7
+        if: failure() && runner.os == 'Windows'
+        with:
+          name: windows-installer-logs-${{ matrix.target }}
+          path: msi-*.log
+
+  assemble:
+    name: Verify complete release and checksums
+    needs: [version, build]
+    if: ${{ !cancelled() && needs.version.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.publish-tag || github.ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: flare-${{ needs.version.outputs.version }}-*
+          path: dist
+          merge-multiple: true
+          run-id: ${{ inputs.artifacts-run || github.run_id }}
+          github-token: ${{ github.token }}
+      - name: Require every platform and generate SHA256SUMS.txt
+        run: python scripts/packaging/package_release.py finalize --version ${{ needs.version.outputs.version }} --output dist
+      - name: Independently verify final checksums
+        working-directory: dist
+        run: sha256sum --check SHA256SUMS.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: flare-release-${{ needs.version.outputs.version }}
+          path: dist/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  publish:
+    name: Publish complete GitHub release
+    needs: [version, assemble]
+    if: ${{ !cancelled() && needs.version.result == 'success' && needs.assemble.result == 'success' && ((github.event_name == 'push' && github.ref_type == 'tag') || (github.event_name == 'workflow_dispatch' && inputs.artifacts-run != '' && inputs.publish-tag != '')) }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.publish-tag || github.ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v8
+        with:
+          name: flare-release-${{ needs.version.outputs.version }}
+          path: dist
+      - name: Publish after every platform succeeds
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.publish-tag || github.ref_name }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum --check SHA256SUMS.txt
+          cd ..
+          python scripts/packaging/package_release.py notes --version "$RELEASE_VERSION" --output release-body.md
+          if gh release view "$RELEASE_TAG" --json isDraft > release.json; then
+            if ! jq -e '.isDraft == true' release.json > /dev/null; then
+              echo '::error::Release already published; use a new version tag.'
+              exit 1
+            fi
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --draft --notes-file release-body.md --title "Flare $RELEASE_TAG"
+          fi
+          gh release upload "$RELEASE_TAG" dist/* --clobber
+          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | sort > uploaded.txt
+          find dist -maxdepth 1 -type f -printf '%f\n' | sort > expected.txt
+          diff -u expected.txt uploaded.txt
+          prerelease=false
+          if [[ "$RELEASE_VERSION" == *-* ]]; then prerelease=true; fi
+          gh release edit "$RELEASE_TAG" --draft=false --prerelease="$prerelease" --notes-file release-body.md

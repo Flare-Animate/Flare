@@ -1,0 +1,45 @@
+{
+  "productName": "Flare",
+  "identifier": "io.github.Flare-Animate.Flare",
+  "description": "2D animation",
+  "homepage": "https://github.com/Flare-Animate/Flare",
+  "authors": ["Flare contributors"],
+  "publisher": "Flare",
+  "licenseFile": "LICENSE",
+  "category": "GraphicsAndDesign",
+  "deb": {
+    "section": "graphics",
+    "priority": "optional",
+    "depends": [
+      "libc6 (>= 2.35)",
+      "libgcc-s1",
+      "libasound2",
+      "libx11-6",
+      "libxcb1",
+      "libxkbcommon0",
+      "libwayland-client0",
+      "libegl1",
+      "libgl1",
+      "libvulkan1",
+      "xdg-desktop-portal",
+      "shared-mime-info",
+      "desktop-file-utils",
+      "libx11-xcb1",
+      "libxcursor1",
+      "libxi6",
+      "libxrandr2",
+      "libxkbcommon-x11-0"
+    ]
+  },
+  "appimage": {
+    "libs": [
+      "libX11*.so.*",
+      "libXcursor.so.*",
+      "libXi.so.*",
+      "libXrandr.so.*",
+      "libxkbcommon*.so.*",
+      "libwayland*.so.*",
+      "libxcb*.so.*"
+    ]
+  }
+}

@@ -22,3 +22,33 @@ muda.workspace = true
 
 [lints]
 workspace = true
+
+[package.metadata.generate-rpm]
+name = "flare"
+license = "BSD-3-Clause"
+summary = "2D animation"
+url = "https://github.com/Flare-Animate/Flare"
+assets = [
+    { source = "target/release/flare-desktop", dest = "/usr/bin/flare", mode = "755" },
+    { source = "packaging/flare.desktop", dest = "/usr/share/applications/flare.desktop", mode = "644" },
+    { source = "assets/flare-icon.iconset/icon_256x256.png", dest = "/usr/share/icons/hicolor/256x256/apps/flare.png", mode = "644" },
+    { source = "packaging/flare.metainfo.xml", dest = "/usr/share/metainfo/io.github.Flare-Animate.Flare.metainfo.xml", mode = "644" },
+    { source = "packaging/flare-mime.xml", dest = "/usr/share/mime/packages/flare.xml", mode = "644" },
+    { source = "LICENSE", dest = "/usr/share/licenses/flare/LICENSE", mode = "644", doc = true },
+    { source = "packaging/FONT_LICENSES.txt", dest = "/usr/share/licenses/flare/FONT_LICENSES.txt", mode = "644", doc = true },
+]
+
+[package.metadata.generate-rpm.requires]
+glibc = ">= 2.35"
+libgcc = "*"
+alsa-lib = "*"
+libX11 = "*"
+libxcb = "*"
+libxkbcommon = "*"
+wayland-libs = "*"
+"mesa-libEGL" = "*"
+"mesa-libGL" = "*"
+"vulkan-loader" = "*"
+"xdg-desktop-portal" = "*"
+"shared-mime-info" = "*"
+"desktop-file-utils" = "*"

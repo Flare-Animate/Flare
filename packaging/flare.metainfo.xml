@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.Flare-Animate.Flare</id>
+  <metadata_license>BSD-3-Clause</metadata_license>
+  <project_license>BSD-3-Clause</project_license>
+  <name>Flare</name>
+  <summary>2D animation</summary>
+  <description><p>A free animation tool in the spirit of Adobe Animate: drawing tools, a timeline with layers and tweens, and XFL/FLA import and export.</p></description>
+  <launchable type="desktop-id">flare.desktop</launchable>
+  <url type="homepage">https://github.com/Flare-Animate/Flare</url>
+  <url type="bugtracker">https://github.com/Flare-Animate/Flare/issues</url>
+  <provides><binary>flare</binary><mediatype>application/x-flare</mediatype></provides>
+  <categories><category>Graphics</category><category>2DGraphics</category></categories>
+  <content_rating type="oars-1.1" />
+</component>
