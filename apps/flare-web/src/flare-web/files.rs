@@ -24,8 +24,14 @@ pub fn download(name: &str, mime: &str, bytes: &[u8]) -> Result<(), String> {
     anchor.set_href(&url);
     anchor.set_download(name);
     anchor.click();
-    // The download has started by now; the temporary address is no longer needed.
-    let _ = web_sys::Url::revoke_object_url(&url);
+    // Browsers fetch the blob after `click` returns, so the address is released later.
+    let release = wasm_bindgen::closure::Closure::once_into_js(move || {
+        let _ = web_sys::Url::revoke_object_url(&url);
+    });
+    if let Some(window) = web_sys::window() {
+        let _ = window
+            .set_timeout_with_callback_and_timeout_and_arguments_0(release.unchecked_ref(), 60_000);
+    }
     Ok(())
 }
 
