@@ -266,7 +266,7 @@ fn malformed_or_hostile_preserved_text_is_never_written_into_the_output() {
         // The result is still a document the importer accepts.
         import_xfl(&Mem(output.files.into_iter().collect())).expect("still importable");
     }
-    // Well-formed content is written; an unknown format is ignored without noise.
+    // Well-formed content is written; an unknown format is not, and the report says so.
     let good = Attachment::new(
         "xfl",
         Anchor::Document,
@@ -279,6 +279,14 @@ fn malformed_or_hostile_preserved_text_is_never_written_into_the_output() {
     let output = export_xfl(&doc_with(vec![good, other])).expect("export");
     assert!(output.files[0].1.contains("<ok a=\"1\">text</ok>"));
     assert!(!output.files[0].1.contains("ignored"));
+    assert!(
+        output
+            .diagnostics
+            .iter()
+            .any(|d| d.message.contains("unknown format") && d.message.contains("other")),
+        "{:?}",
+        output.diagnostics
+    );
 }
 
 #[test]
