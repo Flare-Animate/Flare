@@ -24,6 +24,8 @@ pub enum MenuAction {
     ToolLine,
     ToolPen,
     InsertFrame,
+    CopyFrames,
+    PasteFrames,
     RemoveFrame,
     InsertKeyframe,
     InsertBlankKeyframe,
@@ -51,7 +53,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 43] = [
+    pub const ALL: [MenuAction; 45] = [
         Self::Open,
         Self::Save,
         Self::SaveAs,
@@ -71,6 +73,8 @@ impl MenuAction {
         Self::ToolLine,
         Self::ToolPen,
         Self::InsertFrame,
+        Self::CopyFrames,
+        Self::PasteFrames,
         Self::RemoveFrame,
         Self::InsertKeyframe,
         Self::InsertBlankKeyframe,
@@ -160,6 +164,9 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         &[
             Action(A::InsertFrame),
             Action(A::RemoveFrame),
+            Separator,
+            Action(A::CopyFrames),
+            Action(A::PasteFrames),
             Separator,
             Action(A::InsertKeyframe),
             Action(A::InsertBlankKeyframe),

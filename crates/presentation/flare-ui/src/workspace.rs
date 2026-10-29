@@ -83,6 +83,14 @@ struct TextureView {
 /// Selection bounds with the (context, revision, selection hash) they were computed for.
 type SelectionRects = ((u64, u64, u64), Vec<Rect>);
 
+/// Frames `from..=to` of one layer, selected in the timeline for copying.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct FrameRange {
+    layer: LayerId,
+    from: u32,
+    to: u32,
+}
+
 /// A frame handed to the render worker and not yet back.
 struct PendingRender {
     id: u64,
@@ -237,6 +245,10 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// The frames selected in the timeline (Shift-click), if any.
+    frame_range: Option<FrameRange>,
+    /// What Copy Frames remembered, for Paste Frames.
+    frame_clipboard: Option<frames::FrameClip>,
     /// The document state the selection was last checked against, so an unchanged document is
     /// not rechecked every frame.
     selection_checked: Option<(u64, u64)>,
@@ -313,6 +325,8 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            frame_range: None,
+            frame_clipboard: None,
             selection_checked: None,
             selection_rects_cache: std::cell::RefCell::new(None),
             handle_radius: 6.0,
@@ -1125,6 +1139,10 @@ impl Workspace {
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
             MenuAction::Paste => !self.clipboard.is_empty(),
+            MenuAction::CopyFrames => editable_layer || self.frame_range.is_some(),
+            MenuAction::PasteFrames => {
+                self.frame_clipboard.is_some() && layer.is_some_and(|l| !l.is_locked())
+            }
             MenuAction::Delete
             | MenuAction::Duplicate
             | MenuAction::Copy
@@ -1177,6 +1195,8 @@ impl Workspace {
             MenuAction::Delete => "Delete",
             MenuAction::Duplicate => "Duplicate",
             MenuAction::Copy => "Copy",
+            MenuAction::CopyFrames => "Copy Frames",
+            MenuAction::PasteFrames => "Paste Frames",
             MenuAction::Paste => "Paste",
             MenuAction::FlipHorizontal => "Flip Horizontal",
             MenuAction::FlipVertical => "Flip Vertical",
@@ -1267,6 +1287,8 @@ impl Workspace {
             MenuAction::Delete => self.delete_selection(),
             MenuAction::Duplicate => self.duplicate_selection(),
             MenuAction::Copy => self.copy_selection(),
+            MenuAction::CopyFrames => self.copy_frames(),
+            MenuAction::PasteFrames => self.paste_frames(),
             MenuAction::Paste => self.paste(),
             MenuAction::FlipHorizontal => {
                 self.transform_selection(DAffine2::from_scale(DVec2::new(-1.0, 1.0)))
@@ -1656,6 +1678,12 @@ impl Workspace {
     /// Drops a selection whose span no longer exists (after undo, delete or open).
     fn validate_selection(&mut self) {
         self.selection_checked = Some((self.context_serial, self.active().revision()));
+        if self
+            .frame_range
+            .is_some_and(|r| self.layer(r.layer).is_none())
+        {
+            self.frame_range = None;
+        }
         if let Some(scene) = self.scene_id() {
             // One pass over the layers answers for every selected span.
             let editable: std::collections::HashSet<(LayerId, u32)> = self
@@ -1975,6 +2003,68 @@ impl Workspace {
             self.selected = copies.first().copied();
             self.also_selected = copies.iter().skip(1).copied().collect();
             self.current_layer = self.selected.map(|s| s.layer);
+        }
+    }
+
+    /// Selects frames `a..=b` (either order) of `layer` for copying.
+    pub fn select_frames(&mut self, layer: LayerId, a: u32, b: u32) {
+        if self.layer(layer).is_some() {
+            self.frame_range = Some(FrameRange {
+                layer,
+                from: a.min(b),
+                to: a.max(b),
+            });
+        }
+    }
+
+    /// Remembers the selected frames (or, with none selected, the current frame) of the active
+    /// layer for Paste Frames.
+    pub fn copy_frames(&mut self) {
+        let (layer, from, to) = match self.frame_range {
+            Some(r) => (r.layer, r.from, r.to),
+            None => match self.active_layer_id() {
+                Some(id) => (id, self.frame, self.frame),
+                None => return,
+            },
+        };
+        match self
+            .layer(layer)
+            .and_then(|l| frames::copy_frames(l, from, to))
+        {
+            Some(clip) => self.frame_clipboard = Some(clip),
+            None => self.report("There is nothing to copy in those frames"),
+        }
+    }
+
+    /// Pastes the remembered frames onto the active layer starting at the current frame,
+    /// replacing what is there, and selects what was pasted.
+    pub fn paste_frames(&mut self) {
+        let (Some(scene), Some(layer), Some(clip)) = (
+            self.scene_id(),
+            self.active_layer(),
+            self.frame_clipboard.clone(),
+        ) else {
+            return;
+        };
+        if layer.is_locked() {
+            self.report("Cannot paste frames: the layer is locked");
+            return;
+        }
+        let id = layer.id();
+        match frames::paste_frames(scene, layer, self.frame, &clip) {
+            Some(commands) => {
+                self.run_batch(commands, "paste frames");
+                if self.status.is_none() {
+                    self.select_frames(
+                        id,
+                        self.frame,
+                        self.frame.saturating_add(clip.length() - 1),
+                    );
+                    self.set_frame(self.frame);
+                    self.validate_selection();
+                }
+            }
+            None => self.report("Cannot paste frames there: they would run past the last frame"),
         }
     }
 
@@ -2383,6 +2473,13 @@ impl Workspace {
             }
             if save {
                 self.save();
+            }
+            let frames_chord = Modifiers::COMMAND | Modifiers::ALT;
+            if ctx.input_mut(|i| i.consume_key(frames_chord, Key::C)) {
+                self.copy_frames();
+            }
+            if ctx.input_mut(|i| i.consume_key(frames_chord, Key::V)) {
+                self.paste_frames();
             }
             if ctx.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::D))
                 && !ctx.egui_wants_keyboard_input()
@@ -3025,16 +3122,29 @@ impl Workspace {
             } else if (response.clicked() || response.dragged())
                 && let Some(p) = response.interact_pointer_pos()
             {
-                if p.x >= track.min.x {
-                    let f = ((p.x - track.min.x) / per_frame).floor().max(0.0) as u32;
-                    self.set_frame(f);
-                }
+                let in_track = p.x >= track.min.x;
+                let f = ((p.x - track.min.x) / per_frame).floor().max(0.0) as u32;
+                let extend = response.clicked() && in_track && ui.input(|i| i.modifiers.shift);
                 // Clicking a row (below the ruler) makes that layer the active one.
                 let index = ((p.y - rect.min.y) / row).floor() as i64 - 1;
                 let picked = usize::try_from(index).ok().and_then(|i| {
                     let layers = self.document().scenes().first()?.timeline().layers();
                     layers.get(i).map(Layer::id)
                 });
+                if extend && let Some(id) = picked {
+                    // Shift-click selects the frames between the playhead (or the range's own
+                    // start) and the clicked one, without moving the playhead.
+                    let anchor = self
+                        .frame_range
+                        .filter(|r| r.layer == id)
+                        .map_or(self.frame, |r| r.from);
+                    self.select_frames(id, anchor, f);
+                } else if in_track {
+                    self.set_frame(f);
+                    if response.clicked() {
+                        self.frame_range = None;
+                    }
+                }
                 if let Some(id) = picked {
                     // The two small toggles at the right edge of the label column.
                     let eye = p.x >= track.min.x - 40.0 && p.x < track.min.x - 20.0;
@@ -3128,6 +3238,25 @@ impl Workspace {
                             color.gamma_multiply(0.35)
                         };
                         painter.rect_filled(bar, 2.0, color);
+                    }
+                    if let Some(range) = self.frame_range.filter(|r| r.layer == layer.id()) {
+                        let x0 = track.min.x + range.from as f32 * per_frame;
+                        let x1 = track.min.x + (range.to as f32 + 1.0) * per_frame;
+                        let marked = Rect::from_min_max(
+                            Pos2::new(x0, y + 1.0),
+                            Pos2::new(x1, y + row - 1.0),
+                        );
+                        painter.rect_filled(
+                            marked,
+                            2.0,
+                            Color32::from_rgba_unmultiplied(255, 220, 80, 70),
+                        );
+                        painter.rect_stroke(
+                            marked,
+                            2.0,
+                            Stroke::new(1.0, Color32::from_rgb(255, 200, 40)),
+                            StrokeKind::Inside,
+                        );
                     }
                     if let Some((dragged, start, duration)) = self.span_drag_preview()
                         && dragged == layer.id()
@@ -5868,5 +5997,102 @@ mod tests {
         );
         ws.apply_to_selection(handles::rotation_matrix(bounds.center(), 0.3));
         assert_ne!(transform(&ws), before, "a rotation is fine in a tween");
+    }
+
+    /// A rectangle that lasts 12 frames, then a second exposure from frame 12.
+    fn two_exposures() -> (Workspace, LayerId) {
+        let ws = held_then_changing();
+        let layer = ws.current_layer.expect("layer");
+        (ws, layer)
+    }
+
+    fn layer_spans(ws: &Workspace, id: LayerId) -> Vec<(u32, u32)> {
+        ws.layer(id)
+            .expect("layer")
+            .spans()
+            .iter()
+            .map(|s| (s.start(), s.duration().get()))
+            .collect()
+    }
+
+    #[test]
+    fn copy_and_paste_frames_move_a_run_of_frames_to_the_playhead() {
+        let (mut ws, layer) = two_exposures();
+        assert_eq!(layer_spans(&ws, layer), vec![(0, 12), (12, 12)]);
+        ws.select_frames(layer, 14, 10); // either order
+        ws.select_layer(layer);
+        ws.perform(MenuAction::CopyFrames);
+        assert!(ws.is_enabled(MenuAction::PasteFrames));
+        // Paste onto frames 20..25: the second exposure is cut and the pasted run fills in.
+        ws.set_frame(20);
+        ws.perform(MenuAction::PasteFrames);
+        assert_eq!(
+            layer_spans(&ws, layer),
+            vec![(0, 12), (12, 8), (20, 2), (22, 3)],
+            "frames 10..12 of the first exposure and 12..15 of the second, from frame 20"
+        );
+        let r = ws.frame_range.expect("pasted frames are selected");
+        assert_eq!((r.from, r.to), (20, 24));
+        ws.undo();
+        assert_eq!(
+            layer_spans(&ws, layer),
+            vec![(0, 12), (12, 12)],
+            "one undo step"
+        );
+    }
+
+    #[test]
+    fn with_no_frames_selected_copy_takes_the_current_frame() {
+        let (mut ws, layer) = two_exposures();
+        ws.select_layer(layer);
+        ws.set_frame(3);
+        ws.perform(MenuAction::CopyFrames);
+        ws.set_frame(23); // the last frame of the scene
+        ws.perform(MenuAction::PasteFrames);
+        assert_eq!(
+            layer_spans(&ws, layer),
+            vec![(0, 12), (12, 11), (23, 1)],
+            "the one copied frame replaced the last frame"
+        );
+    }
+
+    #[test]
+    fn frame_copy_and_paste_refuse_what_cannot_work() {
+        let (mut ws, layer) = two_exposures();
+        ws.select_layer(layer);
+        ws.select_frames(layer, 40, 45); // nothing there
+        ws.perform(MenuAction::CopyFrames);
+        assert!(ws.status().is_some_and(|m| m.contains("nothing to copy")));
+        assert!(
+            !ws.is_enabled(MenuAction::PasteFrames),
+            "nothing was copied"
+        );
+
+        ws.select_frames(layer, 0, 3);
+        ws.perform(MenuAction::CopyFrames);
+        ws.toggle_layer_locked(layer);
+        assert!(
+            !ws.is_enabled(MenuAction::PasteFrames),
+            "a locked layer is not a target"
+        );
+        ws.toggle_layer_locked(layer);
+        // A copy that would run past the last representable frame is refused by the edit;
+        // that case is covered where the paste is computed.
+        ws.set_frame(0);
+        ws.perform(MenuAction::PasteFrames);
+        assert_eq!(layer_spans(&ws, layer), vec![(0, 4), (4, 8), (12, 12)]);
+    }
+
+    #[test]
+    fn the_frame_selection_goes_away_with_its_layer() {
+        let (ctx, mut ws) = (egui::Context::default(), held_then_changing());
+        let layer = ws.current_layer.expect("layer");
+        ws.select_frames(layer, 2, 5);
+        run(&mut ws, &ctx, 0.0);
+        assert!(ws.frame_range.is_some());
+        ws.select_layer(layer);
+        ws.delete_active_layer();
+        run(&mut ws, &ctx, 0.1);
+        assert!(ws.frame_range.is_none());
     }
 }

@@ -21,6 +21,8 @@ pub fn accelerator(action: MenuAction) -> Option<&'static str> {
         MenuAction::ConvertToSymbol => "F8",
         MenuAction::EditSymbol => "CmdOrCtrl+E",
         MenuAction::ExitSymbol => "CmdOrCtrl+Shift+E",
+        MenuAction::CopyFrames => "CmdOrCtrl+Alt+C",
+        MenuAction::PasteFrames => "CmdOrCtrl+Alt+V",
         MenuAction::InsertFrame => "F5",
         MenuAction::RemoveFrame => "Shift+F5",
         MenuAction::InsertKeyframe => "F6",

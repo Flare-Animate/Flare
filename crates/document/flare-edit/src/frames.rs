@@ -51,6 +51,103 @@ fn shifted(span: &FrameSpan, start: u32) -> Option<FrameSpan> {
     Some(FrameSpan::new(start, span.duration(), span.content().clone()).with_tween(span.tween()))
 }
 
+/// A run of frames lifted from a layer: its spans, relative to the first frame copied.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FrameClip {
+    length: NonZeroU32,
+    spans: Vec<FrameSpan>,
+}
+
+impl FrameClip {
+    /// How many frames the clip covers, gaps included.
+    pub fn length(&self) -> u32 {
+        self.length.get()
+    }
+
+    pub fn spans(&self) -> &[FrameSpan] {
+        &self.spans
+    }
+}
+
+/// Copies frames `start..=end` of `layer`. Spans the range cuts through are cut to it, and a
+/// tween that loses its target by the cut is dropped. `None` when the range is empty or backwards,
+/// or holds no span at all.
+pub fn copy_frames(layer: &Layer, start: u32, end: u32) -> Option<FrameClip> {
+    if start > end {
+        return None;
+    }
+    let stop = u64::from(end) + 1;
+    let mut spans = Vec::new();
+    for s in layer.spans() {
+        let (from, to) = (
+            u64::from(s.start()).max(u64::from(start)),
+            s.end().min(stop),
+        );
+        if from >= to {
+            continue;
+        }
+        let cut_end = s.end() > stop;
+        let piece = FrameSpan::new(
+            u32::try_from(from - u64::from(start)).ok()?,
+            NonZeroU32::new(u32::try_from(to - from).ok()?)?,
+            s.content().clone(),
+        );
+        spans.push(if cut_end {
+            piece
+        } else {
+            piece.with_tween(s.tween())
+        });
+    }
+    if spans.is_empty() {
+        return None;
+    }
+    let length = NonZeroU32::new(end.checked_sub(start)?.checked_add(1)?)?;
+    Some(FrameClip { length, spans })
+}
+
+/// Pastes `clip` over the frames starting at `at`, replacing what is there and leaving the rest of
+/// the layer where it is. A span the pasted range cuts through keeps its two ends, the far one
+/// with fresh identities, and every pasted span gets its own so IDs stay unique. `None` when the
+/// range would run past the largest frame number.
+pub fn paste_frames(
+    scene: SceneId,
+    layer: &Layer,
+    at: u32,
+    clip: &FrameClip,
+) -> Option<Vec<Command>> {
+    let stop = u64::from(at) + u64::from(clip.length.get());
+    if stop > u64::from(u32::MAX) {
+        return None;
+    }
+    let mut out = Vec::with_capacity(layer.spans().len() + clip.spans.len() + 1);
+    for s in layer.spans() {
+        if s.end() <= u64::from(at) || u64::from(s.start()) >= stop {
+            out.push(s.clone());
+            continue;
+        }
+        if s.start() < at {
+            out.push(span(s.start(), at - s.start(), s.content().clone(), s)?);
+        }
+        if s.end() > stop {
+            let from = u32::try_from(stop).ok()?;
+            let rest = u32::try_from(s.end() - stop).ok()?;
+            out.push(span(from, rest, duplicate(s.content())?, s)?);
+        }
+    }
+    for pasted in &clip.spans {
+        out.push(
+            FrameSpan::new(
+                at.checked_add(pasted.start())?,
+                pasted.duration(),
+                duplicate(pasted.content())?,
+            )
+            .with_tween(pasted.tween()),
+        );
+    }
+    out.sort_by_key(FrameSpan::start);
+    Some(replace_spans(scene, layer, out))
+}
+
 /// Insert Frame (F5): lengthens the span at `frame` by one and shifts later spans right.
 /// Past the end of the layer it extends the last span to cover `frame`.
 pub fn insert_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Command>> {
@@ -544,5 +641,103 @@ mod tests {
         };
         assert_eq!(copy.gradient(), Some(gradient));
         assert_eq!(copy.stroke(), Some(stroke));
+    }
+
+    fn first_ids(layer: &Layer) -> Vec<flare_core::ShapeId> {
+        layer
+            .spans()
+            .iter()
+            .filter_map(|s| match s.content() {
+                Content::Shape(shape) => Some(shape.id()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn copying_cuts_spans_to_the_range_and_makes_the_start_frame_zero() {
+        let f = fixture(vec![shape_span(0, 5), shape_span(5, 3), shape_span(10, 2)]);
+        let clip = copy_frames(layer(&f), 3, 6).expect("clip");
+        assert_eq!(clip.length(), 4);
+        let shape: Vec<(u32, u32)> = clip
+            .spans()
+            .iter()
+            .map(|s| (s.start(), s.duration().get()))
+            .collect();
+        assert_eq!(
+            shape,
+            vec![(0, 2), (2, 2)],
+            "frames 3..5 of the first, 5..7 of the second"
+        );
+        // Only a gap: nothing to copy. Backwards: nothing either.
+        assert!(copy_frames(layer(&f), 8, 9).is_none());
+        assert!(copy_frames(layer(&f), 6, 3).is_none());
+        // A range running past the end still copies what is there.
+        let tail = copy_frames(layer(&f), 10, 40).expect("clip");
+        assert_eq!(tail.length(), 31);
+        assert_eq!(tail.spans().len(), 1);
+    }
+
+    #[test]
+    fn pasting_replaces_the_covered_frames_and_keeps_the_rest_in_place() {
+        let mut f = fixture(vec![shape_span(0, 4), shape_span(10, 4)]);
+        let clip = copy_frames(layer(&f), 10, 13).expect("clip"); // one 4-frame span
+        let cmds = paste_frames(f.scene, layer(&f), 2, &clip);
+        run(&mut f, cmds);
+        // 0..2 stays, the paste covers 2..6 (cutting the first span's tail), 10..14 stays.
+        assert_eq!(shape_of(&f), vec![(0, 2, 'S'), (2, 4, 'S'), (10, 4, 'S')]);
+        f.session.undo();
+        assert_eq!(
+            shape_of(&f),
+            vec![(0, 4, 'S'), (10, 4, 'S')],
+            "one undo step"
+        );
+    }
+
+    #[test]
+    fn a_paste_inside_a_span_splits_it_and_every_piece_has_its_own_identity() {
+        let mut f = fixture(vec![shape_span(0, 12), shape_span(20, 2)]);
+        let clip = copy_frames(layer(&f), 20, 21).expect("clip");
+        let cmds = paste_frames(f.scene, layer(&f), 4, &clip);
+        run(&mut f, cmds);
+        assert_eq!(
+            shape_of(&f),
+            vec![(0, 4, 'S'), (4, 2, 'S'), (6, 6, 'S'), (20, 2, 'S')]
+        );
+        let ids = first_ids(layer(&f));
+        let unique: std::collections::HashSet<_> = ids.iter().collect();
+        assert_eq!(ids.len(), unique.len(), "no two pieces share a shape id");
+    }
+
+    #[test]
+    fn pasting_past_the_end_or_over_a_gap_works_and_overflow_is_refused() {
+        let mut f = fixture(vec![shape_span(0, 2)]);
+        let clip = copy_frames(layer(&f), 0, 1).expect("clip");
+        let cmds = paste_frames(f.scene, layer(&f), 8, &clip);
+        run(&mut f, cmds);
+        assert_eq!(shape_of(&f), vec![(0, 2, 'S'), (8, 2, 'S')]);
+        assert!(paste_frames(f.scene, layer(&f), u32::MAX, &clip).is_none());
+        assert!(paste_frames(f.scene, layer(&f), u32::MAX - 1, &clip).is_none());
+        assert!(paste_frames(f.scene, layer(&f), u32::MAX - 2, &clip).is_some());
+    }
+
+    #[test]
+    fn a_tween_cut_off_from_its_target_is_not_copied() {
+        use flare_document::Tween;
+        let mut first = shape_span(0, 4);
+        first = first.with_tween(Tween::Linear);
+        let f = fixture(vec![first, shape_span(4, 4)]);
+        let whole = copy_frames(layer(&f), 0, 3).expect("clip");
+        assert_eq!(
+            whole.spans()[0].tween(),
+            Tween::Linear,
+            "the span is copied whole"
+        );
+        let cut = copy_frames(layer(&f), 0, 1).expect("clip");
+        assert_eq!(
+            cut.spans()[0].tween(),
+            Tween::None,
+            "cut short, its target is gone"
+        );
     }
 }
