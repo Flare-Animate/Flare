@@ -3,18 +3,6 @@
 use super::Workspace;
 use crate::actions::MenuAction;
 
-/// What this version does not do, for people who go looking. Matches the release notes.
-pub(super) const KNOWN_LIMITS: [&str; 8] = [
-    "Shape tweens, more than one scene, scripting and the Commands menu (dimmed in the menus).",
-    "Changing keyboard shortcuts (the list under Help is read-only).",
-    "Editing text after it is placed: text becomes outlines.",
-    "Guides are not saved with the file.",
-    "Outline Mode does not draw mask layers.",
-    "Convert to Keyframes does not work on spans with a motion tween.",
-    "Autosave and crash recovery cover the document being edited, not the other tabs.",
-    "ActionScript in imported files is kept and written back, never run.",
-];
-
 impl Workspace {
     /// The About and Keyboard Shortcuts windows, while they are open.
     pub(super) fn help_windows(&mut self, ctx: &egui::Context) {
@@ -29,12 +17,6 @@ impl Workspace {
                     ui.label(format!("Version {}", env!("CARGO_PKG_VERSION")));
                     ui.weak("An animation tool in the spirit of Adobe Animate.");
                     ui.weak("Early alpha: keep backups of your work.");
-                    ui.add_space(6.0);
-                    egui::CollapsingHeader::new("Not in this version").show(ui, |ui| {
-                        for line in KNOWN_LIMITS {
-                            ui.weak(format!("\u{2022} {line}"));
-                        }
-                    });
                     ui.hyperlink_to(
                         "github.com/Flare-Animate/Flare",
                         "https://github.com/Flare-Animate/Flare",

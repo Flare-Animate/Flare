@@ -28,7 +28,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - An Info panel (selection size and position, color under the pointer).
 - Guides pulled out of the rulers, with snapping; Timeline > Convert to Keyframes.
 - Layer outline colors (timeline chip, `.flare` and XFL) and View > Outline Mode.
-- Window, Help (About with the list of what this version does not do, Keyboard Shortcuts) menus that do something; Insert > New Symbol; Edit > Paste in Place (Paste now centers on the stage).
+- Window, Help (About, Keyboard Shortcuts) menus that do something; Insert > New Symbol; Edit > Paste in Place (Paste now centers on the stage).
 - An experimental web build.
 
 [Unreleased]: https://github.com/Flare-Animate/Flare/compare/v0.1.0...HEAD
