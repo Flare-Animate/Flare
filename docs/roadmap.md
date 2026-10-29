@@ -13,7 +13,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 
 ## M2 remaining
 
-- Look at and fix the desktop window; it has only been launch-tested.
+- Look at and fix the desktop window and the native macOS menu; both have only been built and launch-tested, not exercised by hand.
 - Docking and a saved workspace layout.
 - Pen pressure, IME and accessibility checks on real hardware.
 - Autosave and crash recovery; migration and fault-injection tests for storage.
@@ -22,11 +22,10 @@ Status is evidence-based: a milestone item is done only when it has tests.
 
 Each of these can be its own branch and PR on top of the current work:
 
-1. Native macOS menu (muda) and the shared menu actions.
-2. Docking prototype (`egui_tiles` against `egui_dock`) and persisted layout.
-3. Drawing tools: pen/path, selection of multiple objects, transform handles.
-4. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
-5. Timeline UX: span selection and drag, copy/paste, onion skin, zoom.
-6. Recovery: autosave, crash recovery, storage migration tests.
-7. Compatibility evidence: a lawful fixture corpus, then XFL import for a named subset.
-8. Input and accessibility: pen, IME and screen-reader results.
+1. Docking prototype (`egui_tiles` against `egui_dock`) and persisted layout.
+2. Drawing tools: pen/path, selection of multiple objects, transform handles.
+3. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
+4. Timeline UX: span selection and drag, copy/paste, onion skin, zoom.
+5. Recovery: autosave, crash recovery, storage migration tests.
+6. Compatibility evidence: a lawful fixture corpus, then XFL import for a named subset.
+7. Input and accessibility: pen, IME and screen-reader results.

@@ -112,7 +112,8 @@ and fault-injection tests exist.
 and playback at the document frame rate, a library, and tools: Select/Move, Rectangle,
 Ellipse and Line, with fill and outline settings. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
-F5/F6/F7 (with Shift for the inverse). See [decisions/ui-stack.md](decisions/ui-stack.md).
+F5/F6/F7 (with Shift for the inverse). On macOS the menu bar is native (muda); everywhere
+else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.md).
 
 ## Known gaps
 
@@ -120,5 +121,6 @@ F5/F6/F7 (with Shift for the inverse). See [decisions/ui-stack.md](decisions/ui-
 - No FLA/XFL import or export, and no SWF parsing beyond signature inspection.
 - No stage zoom or pan, no docking, no multi-select, no drag-editing of spans.
 - No autosave or crash recovery; undo history is not persisted.
-- Pen pressure, IME and accessibility are untested; the desktop window has been launched
-  but not visually verified.
+- Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
+  menu have been built and launched but not exercised by hand; the menu's enabled-state and
+  labelling logic is covered by tests, the AppKit integration is not.

@@ -3,6 +3,8 @@
 //! surface and native dialogs.
 #![forbid(unsafe_code)]
 
+mod menu;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -10,11 +12,16 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result};
 use egui::ViewportId;
 use egui_wgpu::{RendererOptions, WgpuConfiguration, winit::Painter};
-use flare_ui::{DialogRequest, Workspace};
+use flare_ui::{DialogRequest, MenuAction, Workspace};
 use winit::application::ApplicationHandler;
 use winit::event::{StartCause, WindowEvent};
-use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
+use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
 use winit::window::{Window, WindowId};
+
+/// Events sent to the event loop from outside it (native menu clicks arrive on AppKit's side).
+enum UserEvent {
+    Menu(MenuAction),
+}
 
 struct Gpu {
     window: Arc<Window>,
@@ -23,6 +30,9 @@ struct Gpu {
 }
 
 struct App {
+    proxy: EventLoopProxy<UserEvent>,
+    #[cfg(target_os = "macos")]
+    menu: Option<menu::NativeMenu>,
     ctx: egui::Context,
     workspace: Workspace,
     gpu: Option<Gpu>,
@@ -113,7 +123,39 @@ impl App {
         } else {
             event_loop.set_control_flow(ControlFlow::Wait);
         }
+        #[cfg(target_os = "macos")]
+        if let Some(menu) = &self.menu {
+            menu.sync(&self.workspace);
+        }
         self.handle_dialog();
+        self.handle_quit(event_loop);
+    }
+
+    /// Quits when the workspace asks to, after confirming if there is unsaved work.
+    fn handle_quit(&mut self, event_loop: &ActiveEventLoop) {
+        if self.workspace.take_quit_request() && self.confirm_close() {
+            event_loop.exit();
+        }
+    }
+
+    /// Installs the native menu bar on macOS and routes its clicks into the event loop.
+    #[cfg(target_os = "macos")]
+    fn install_native_menu(&mut self) {
+        match menu::NativeMenu::build(&self.workspace) {
+            Ok(native) => {
+                native.install();
+                let proxy = self.proxy.clone();
+                menu::NativeMenu::on_action(move |action| {
+                    // A closed event loop means the app is exiting; nothing to do.
+                    let _ = proxy.send_event(UserEvent::Menu(action));
+                });
+                self.workspace.set_native_menu(true);
+                native.sync(&self.workspace);
+                self.menu = Some(native);
+            }
+            // Keep the in-window menu if the native one cannot be built.
+            Err(error) => eprintln!("native menu unavailable: {error:#}"),
+        }
     }
 
     fn confirm_close(&self) -> bool {
@@ -133,13 +175,31 @@ fn project_dialog() -> rfd::FileDialog {
     rfd::FileDialog::new().add_filter("Flare project", &["flare"])
 }
 
-impl ApplicationHandler for App {
+impl ApplicationHandler<UserEvent> for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.gpu.is_none()
             && let Err(error) = self.start(event_loop)
         {
             self.fatal = Some(error);
             event_loop.exit();
+            return;
+        }
+        #[cfg(target_os = "macos")]
+        if self.menu.is_none() {
+            self.install_native_menu();
+        }
+    }
+
+    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
+        match event {
+            UserEvent::Menu(action) => {
+                self.workspace.perform(action);
+                if let Some(gpu) = &self.gpu {
+                    gpu.window.request_redraw();
+                }
+                self.handle_dialog();
+                self.handle_quit(event_loop);
+            }
         }
     }
 
@@ -185,9 +245,19 @@ fn main() -> Result<()> {
             .with_context(|| format!("cannot open {}", path.display()))?;
         workspace = Workspace::new(document, Some(path));
     }
-    let event_loop = EventLoop::new().context("create event loop")?;
+    let mut builder = EventLoop::<UserEvent>::with_user_event();
+    // The native menu replaces winit's built-in default one.
+    #[cfg(target_os = "macos")]
+    {
+        use winit::platform::macos::EventLoopBuilderExtMacOS;
+        builder.with_default_menu(false);
+    }
+    let event_loop = builder.build().context("create event loop")?;
     event_loop.set_control_flow(ControlFlow::Wait);
     let mut app = App {
+        proxy: event_loop.create_proxy(),
+        #[cfg(target_os = "macos")]
+        menu: None,
         ctx: egui::Context::default(),
         workspace,
         gpu: None,
