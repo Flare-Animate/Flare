@@ -164,6 +164,20 @@ test), so holes work whichever way the contours are wound; closed contours get a
 closing edge so strokes have all their sides. Limits are reported or refused: at most 65,535
 frames, stage at most 8,191 px, frame rate capped at 255, background transparency dropped.
 
+### Test Movie
+
+Test Movie plays the published SWF in an *external* Ruffle process (Timeline > Test Movie,
+or `flare-cli test-movie <project>`). Running a foreign player is a trust boundary, so it is
+kept at arm's length: the SWF is written to a private temporary directory, the player is
+started directly with exactly one argument and never through a shell, its standard streams
+are closed, and stopping or dropping the movie kills the player and removes the files. Ruffle
+is found through `FLARE_RUFFLE`, then `ruffle` on `PATH`; if it is missing the app says how to
+install it. Nothing here makes a hostile SWF safe: that is the player's job.
+
+This is tested with a stand-in player (a script that records its arguments and the file it
+received), including a path full of shell syntax and a mutation that routes the launch through
+a shell. It has not been run against a real Ruffle.
+
 Encoding uses the `swf` crate from the Ruffle project (MIT/Apache-2.0). Tests parse the output
 back with that crate's reader, play the display list, rebuild shapes from the decoded records
 and compare renders with the document, and check fill sides against SWF's own definition (a

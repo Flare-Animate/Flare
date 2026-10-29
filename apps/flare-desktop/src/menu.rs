@@ -25,6 +25,7 @@ pub fn accelerator(action: MenuAction) -> Option<&'static str> {
         MenuAction::InsertKeyframe => "F6",
         MenuAction::ClearKeyframe => "Shift+F6",
         MenuAction::InsertBlankKeyframe => "F7",
+        MenuAction::TestMovie => "CmdOrCtrl+Enter",
         _ => return None,
     })
 }

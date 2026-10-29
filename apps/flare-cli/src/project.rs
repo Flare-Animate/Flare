@@ -1,7 +1,7 @@
 //! Headless project commands. They use the same edit session and storage as any future UI.
 
 use std::num::NonZeroU32;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use flare_core::{
@@ -605,4 +605,16 @@ pub fn publish_swf(path: &Path, out: &Path, compress: bool) -> Result<Value> {
         "bytes": published.bytes.len(),
         "diagnostics": diagnostics,
     }))
+}
+
+/// Test Movie: publish the project and play it in an external Ruffle, waiting for it to close.
+pub fn test_movie(path: &Path, ruffle: Option<PathBuf>) -> Result<Value> {
+    let session = open(path)?;
+    let runner = ruffle.or_else(flare_publish::find_ruffle).context(
+        "Ruffle was not found: install it and put it on PATH, set FLARE_RUFFLE, or pass --ruffle <path>",
+    )?;
+    let movie = flare_publish::launch_test_movie(session.document(), &runner)
+        .with_context(|| format!("cannot start {}", runner.display()))?;
+    let status = movie.wait().context("waiting for the player")?;
+    Ok(json!({ "player": runner.to_string_lossy(), "exit_code": status.code() }))
 }

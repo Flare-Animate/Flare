@@ -153,6 +153,13 @@ enum Command {
         #[arg(long)]
         no_compress: bool,
     },
+    /// Play the project in an external Ruffle (Test Movie) and wait for it to close.
+    TestMovie {
+        path: PathBuf,
+        /// The Ruffle executable (default: $FLARE_RUFFLE, then `ruffle` on PATH).
+        #[arg(long)]
+        ruffle: Option<PathBuf>,
+    },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -280,6 +287,7 @@ fn main() -> Result<()> {
             out,
             no_compress,
         } => project::publish_swf(&path, &out, !no_compress)?,
+        Command::TestMovie { path, ruffle } => project::test_movie(&path, ruffle)?,
         Command::Layer {
             op,
             path,

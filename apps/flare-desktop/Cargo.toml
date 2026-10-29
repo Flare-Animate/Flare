@@ -11,6 +11,7 @@ anyhow.workspace = true
 egui.workspace = true
 egui-wgpu = { workspace = true, features = ["default", "winit"] }
 egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
+flare-publish.workspace = true
 flare-storage.workspace = true
 flare-ui.workspace = true
 pollster.workspace = true
