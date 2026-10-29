@@ -13,6 +13,7 @@ Dependencies point down this list; a crate never depends on one above it.
 | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
 | `flare-storage` | The `.flare` SQLite container: save, load, revalidation. |
 | `flare-ui` | The egui workspace: stage, timeline, tools, library, menu actions. No window or GPU code. |
+| `flare-mcp` | An MCP server over stdio for one open project: agent tools built on the same edit commands, with permissions and revision checks. |
 | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | `apps/flare-cli` | Headless project editing and export. |
 | `apps/flare-desktop` | The winit/egui-wgpu shell: window, GPU surface, native dialogs and menu. |
@@ -113,6 +114,18 @@ and removed when the work is saved, undone back to clean, or deliberately discar
 plain launch the newest recovery file is offered: recover, discard, or decide next time.
 Recovered work counts as unsaved. An in-progress symbol edit is not included until it is
 applied, and only the newest recovery is offered per launch.
+
+## Automation (MCP)
+
+`flare-cli mcp <project>` serves the project to an AI agent as newline-delimited JSON-RPC
+over stdio; stdout carries only protocol messages. Tools use the same commands, frame
+operations and renderer as the UI, so validation, atomic batches and undo apply to agents
+too. The server is read-only unless started with `--allow-write`, and nothing reaches disk
+until the `save` tool. `export_png` is off unless `--export-dir` is given and only writes a
+sanitized file name inside it. Mutating tools accept `expected_revision` (from `get_info`)
+and fail on a mismatch, so an agent cannot overwrite changes it has not seen. Request lines
+are bounded (1 MiB) and batches are not supported. Tool failures are results with
+`isError` set, so the agent can read and react; protocol misuse uses JSON-RPC errors.
 
 ## Frontends
 

@@ -11,6 +11,7 @@ flare-core.workspace = true
 flare-flash.workspace = true
 flare-document.workspace = true
 flare-edit.workspace = true
+flare-mcp.workspace = true
 flare-eval.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
