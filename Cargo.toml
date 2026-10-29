@@ -9,6 +9,7 @@ members = [
     "crates/document/flare-edit",
     "crates/io/flare-storage",
     "crates/eval/flare-eval",
+    "crates/render/flare-render",
     "crates/io/flare-flash",
 ]
 exclude = ["original"]
@@ -25,6 +26,7 @@ license = "BSD-3-Clause"
 # ---- Internal packages: root owns all paths ----------------------------------
 flare-core = { path = "crates/foundation/flare-core" }
 flare-flash = { path = "crates/io/flare-flash" }
+flare-render = { path = "crates/render/flare-render" }
 flare-eval = { path = "crates/eval/flare-eval" }
 flare-storage = { path = "crates/io/flare-storage" }
 flare-edit = { path = "crates/document/flare-edit" }
@@ -68,6 +70,7 @@ zip = { version = "9.1.3", default-features = false }
 
 # ---- Image assets and font/layout adapters -----------------------------------
 image = { version = "0.25.10", default-features = false }
+png = "0.18.1"
 parley = "0.12.0"
 # usvg/resvg, lcms2, libmypaint, specialised codecs: see adoption ledger.
 
@@ -80,7 +83,7 @@ winit = { version = "0.30.13", default-features = false }
 # The desktop member must choose native backends/fonts/clipboard/platform features.
 # Do not assume these minimal declarations alone build a desktop application.
 # agg-rust = "1.2.0"        # CPU renderer experiment, not mandatory.
-# vello_cpu = "0.3.0"       # CPU renderer experiment, not mandatory.
+vello_cpu = "0.3.0"          # Selected CPU rasterizer; see experiments/renderers/results/REPORT.md.
 # vello_gpu = "0.3.0"       # Verify published package and wgpu compatibility first.
 # tiny-skia: reference/control candidate; no second default CPU engine yet.
 
