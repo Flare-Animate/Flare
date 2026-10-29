@@ -43,12 +43,17 @@ pub struct Diagnostic {
     pub message: String,
 }
 
+/// SWF character ids are 16 bits and 0 is reserved; the top id is kept free as well.
+const MAX_SHAPES: u32 = 65_534;
+
 #[derive(Debug, Error)]
 pub enum PublishError {
     #[error("the document has {0} frames; a SWF holds at most {MAX_FRAMES}")]
     TooManyFrames(u64),
     #[error("the stage is larger than {MAX_STAGE_PX} px, which a SWF cannot hold")]
     StageTooLarge,
+    #[error("the document has more distinct shapes than a SWF can number (at most {MAX_SHAPES})")]
+    TooManyShapes,
     #[error("evaluating frame {frame}: {message}")]
     Evaluate { frame: u32, message: String },
     #[error("writing the SWF: {0}")]
@@ -195,6 +200,10 @@ pub fn publish_swf(
                 let character = match characters.get(&id) {
                     Some(known) => *known,
                     None => {
+                        // Character ids are 16 bits; running out must not wrap or repeat.
+                        if next_character == swf::CharacterId::MAX {
+                            return Err(PublishError::TooManyShapes);
+                        }
                         let defined = next_character;
                         let made = shapes::define_shape(defined, drawn.shape, &mut approximated);
                         let assigned = made.is_some().then_some(defined);
