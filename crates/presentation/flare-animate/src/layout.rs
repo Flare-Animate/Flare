@@ -89,8 +89,8 @@ pub fn default_tree() -> Tree<Pane> {
     let bottom = tiles.insert_tab_tile(vec![timeline, output]);
     let top = tiles.insert_horizontal_tile(vec![tools, stage, side]);
     let root = tiles.insert_vertical_tile(vec![top, bottom]);
-    set_share(&mut tiles, top, tools, 0.07);
-    set_share(&mut tiles, top, stage, 0.66);
+    set_share(&mut tiles, top, tools, 0.045);
+    set_share(&mut tiles, top, stage, 0.685);
     set_share(&mut tiles, top, side, 0.27);
     set_share(&mut tiles, root, top, 0.68);
     set_share(&mut tiles, root, bottom, 0.32);

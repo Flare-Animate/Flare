@@ -5,7 +5,7 @@
 //! drawn the same way but dimmed, with a hover note, using the mock helpers in `chrome`; each
 //! is a place a later change fills in.
 
-pub(super) const TOOL_ICON: f32 = 20.0;
+pub(super) const TOOL_ICON: f32 = 18.0;
 pub(super) const BAR_ICON: f32 = 16.0;
 
 mod align;

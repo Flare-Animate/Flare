@@ -73,10 +73,10 @@ pub fn apply(ctx: &egui::Context) {
     ctx.set_visuals(visuals);
 
     ctx.global_style_mut(|style| {
-        style.spacing.item_spacing = egui::vec2(6.0, 5.0);
-        style.spacing.button_padding = egui::vec2(8.0, 4.0);
-        style.spacing.interact_size.y = 22.0;
-        style.spacing.window_margin = egui::Margin::same(8);
+        style.spacing.item_spacing = egui::vec2(5.0, 3.0);
+        style.spacing.button_padding = egui::vec2(6.0, 2.0);
+        style.spacing.interact_size.y = 20.0;
+        style.spacing.window_margin = egui::Margin::same(6);
         style
             .text_styles
             .insert(TextStyle::Body, FontId::proportional(14.0));

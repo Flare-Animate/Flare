@@ -25,8 +25,8 @@ impl Workspace {
                 .scenes()
                 .first()
                 .map_or(0, |s| s.timeline().layers().len());
-            let row = 22.0;
-            let label_w = 150.0;
+            let row = 20.0;
+            let label_w = 140.0;
             let height = row * (layer_count as f32 + 1.0);
             let per_frame = timeline_view::frame_width(
                 (available - label_w).max(0.0),

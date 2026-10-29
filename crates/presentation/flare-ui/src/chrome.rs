@@ -21,7 +21,8 @@ pub fn icon_button(
     enabled: bool,
     hint: &str,
 ) -> Response {
-    let pad = 5.0;
+    // Snug around the picture: a strip of these should look like a toolbar, not a grid of keys.
+    let pad = 3.0;
     let (rect, response) = ui.allocate_exact_size(
         Vec2::splat(size + pad * 2.0),
         if enabled {
@@ -38,12 +39,12 @@ pub fn icon_button(
             } else {
                 theme::HOVER
             };
-            ui.painter().rect_filled(rect, 5.0, fill);
+            ui.painter().rect_filled(rect, 4.0, fill);
         }
         if active {
             ui.painter().rect_stroke(
                 rect,
-                5.0,
+                4.0,
                 egui::Stroke::new(1.0, theme::ACCENT),
                 egui::StrokeKind::Inside,
             );
