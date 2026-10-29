@@ -82,6 +82,8 @@ pub struct Workspace {
     opening: Option<u64>,
     /// The open that is a revert: it replaces the document even though it has changes.
     preferences_open: bool,
+    /// Folders shown shut in the timeline, hiding the layers inside.
+    collapsed_folders: std::collections::HashSet<LayerId>,
     /// The picture of the selected library symbol: which symbol, at which revision of the
     /// project, and the texture.
     library_preview: Option<(SymbolId, u64, egui::TextureHandle)>,
@@ -247,6 +249,7 @@ impl Workspace {
             render_inbox: Vec::new(),
             opening: None,
             preferences_open: false,
+            collapsed_folders: std::collections::HashSet::new(),
             library_preview: None,
             importing: None,
             reverting: None,

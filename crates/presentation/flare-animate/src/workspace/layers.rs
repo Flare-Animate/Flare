@@ -125,8 +125,24 @@ impl Workspace {
         let (Some(scene), Some(layer)) = (self.scene_id(), self.active_layer_id()) else {
             return;
         };
+        // What a folder held is let out of it into the folder's own parent first.
+        let outer = self.layer(layer).and_then(Layer::parent);
+        let mut commands: Vec<Command> = self
+            .document()
+            .scenes()
+            .first()
+            .map(|s| s.timeline().layers())
+            .unwrap_or_default()
+            .iter()
+            .filter(|l| l.parent() == Some(layer))
+            .map(|held| Command::UpdateLayer {
+                scene,
+                layer: held.id(),
+                change: LayerChange::Parent(outer),
+            })
+            .collect();
         // Sounds only this layer played go with it, so deleting it leaves nothing behind.
-        let mut commands = vec![Command::RemoveLayer { scene, layer }];
+        commands.push(Command::RemoveLayer { scene, layer });
         commands.extend(
             self.orphaned_sounds(layer)
                 .into_iter()
@@ -369,5 +385,82 @@ impl Workspace {
             }
             None => self.report("Cannot paste frames there: they would run past the last frame"),
         }
+    }
+
+    /// Adds a folder just above the active layer, in the same folder if it is in one, and puts
+    /// the active layer in it. With no layer to hold, the folder goes at the top, empty.
+    pub fn add_layer_folder(&mut self) {
+        let Some(scene) = self.scene_id() else { return };
+        let layers = self
+            .document()
+            .scenes()
+            .first()
+            .map(|s| s.timeline().layers())
+            .unwrap_or_default();
+        let held = self
+            .active_layer_id()
+            .and_then(|id| layers.iter().position(|l| l.id() == id));
+        let folders = layers.iter().filter(|l| l.is_folder()).count();
+        let id = LayerId::new();
+        let outer = held.and_then(|i| layers[i].parent());
+        let folder = match Layer::new(id, format!("Folder {}", folders + 1), vec![]) {
+            Ok(layer) => layer.with_folder(true).with_parent(outer),
+            Err(error) => return self.report(error.to_string()),
+        };
+        let mut commands = vec![
+            Command::AddLayer {
+                scene,
+                layer: folder,
+            },
+            Command::MoveLayer {
+                scene,
+                layer: id,
+                index: held.unwrap_or(0),
+            },
+        ];
+        if let Some(i) = held {
+            commands.push(Command::UpdateLayer {
+                scene,
+                layer: layers[i].id(),
+                change: LayerChange::Parent(Some(id)),
+            });
+        }
+        self.run_batch(commands, "add a folder");
+        if self.status.is_none() {
+            self.current_layer = Some(id);
+        }
+    }
+
+    /// Puts the active layer in `folder` (a folder above it), or takes it out with `None`.
+    pub fn move_active_layer_to_folder(&mut self, folder: Option<LayerId>) {
+        self.layer_command("move the layer into a folder", |scene, layer| {
+            Command::UpdateLayer {
+                scene,
+                layer,
+                change: LayerChange::Parent(folder),
+            }
+        });
+    }
+
+    /// The folders the active layer could go into: those above it, other than the one it is in.
+    pub(crate) fn folders_for_active_layer(&self) -> Vec<(LayerId, String)> {
+        let Some(active) = self.active_layer_id() else {
+            return Vec::new();
+        };
+        let layers = self
+            .document()
+            .scenes()
+            .first()
+            .map(|s| s.timeline().layers())
+            .unwrap_or_default();
+        let Some(position) = layers.iter().position(|l| l.id() == active) else {
+            return Vec::new();
+        };
+        let current = layers[position].parent();
+        layers[..position]
+            .iter()
+            .filter(|l| l.is_folder() && Some(l.id()) != current)
+            .map(|l| (l.id(), l.name().to_owned()))
+            .collect()
     }
 }

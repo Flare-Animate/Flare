@@ -145,6 +145,7 @@ impl MenuAction {
             Self::ToggleLayerVisible => "eye",
             Self::ToggleLayerLocked => "lock",
             Self::ToggleLayerMask => "layer-mask",
+            Self::NewLayerFolder => "layer-folder",
             Self::MoveLayerUp => "chevron-up",
             Self::MoveLayerDown => "chevron-down",
             Self::DeleteLayer => "layer-delete",

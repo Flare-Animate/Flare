@@ -104,8 +104,8 @@ fn imports_stage_scenes_layers_symbols_and_tweens() {
     let names: Vec<&str> = layers.iter().map(|l| l.name()).collect();
     assert_eq!(
         names,
-        vec!["Main", "Art (2)", "Art"],
-        "mask and folder layers are skipped; later elements stack above earlier ones"
+        vec!["Main", "Art (2)", "Art", "Folder"],
+        "mask layers are skipped, folders are kept; later elements stack above earlier ones"
     );
     assert!(layers[0].is_locked() && layers[0].is_visible());
     assert_eq!(layers[0].spans().len(), 2);
@@ -160,8 +160,8 @@ fn unsupported_features_are_reported_not_hidden() {
         "{unsupported}"
     );
     assert!(
-        unsupported.contains("folder layers are not imported"),
-        "{unsupported}"
+        !unsupported.contains("folder"),
+        "folders are imported now, so they are not reported: {unsupported}"
     );
     assert!(
         unsupported.contains("DOMStaticText is not imported"),

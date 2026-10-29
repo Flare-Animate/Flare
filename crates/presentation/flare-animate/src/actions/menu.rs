@@ -95,7 +95,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::InsertBlankKeyframe),
             Separator,
             Mock("Scene"),
-            Mock("Layer Folder"),
+            Action(A::NewLayerFolder),
         ],
     ),
     (

@@ -74,6 +74,7 @@ pub enum MenuAction {
     ToggleLayerVisible,
     ToggleLayerLocked,
     ToggleLayerMask,
+    NewLayerFolder,
     MoveLayerUp,
     MoveLayerDown,
     DeleteLayer,
@@ -97,7 +98,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 82] = [
+    pub const ALL: [MenuAction; 83] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -160,6 +161,7 @@ impl MenuAction {
         Self::ToggleLayerVisible,
         Self::ToggleLayerLocked,
         Self::ToggleLayerMask,
+        Self::NewLayerFolder,
         Self::MoveLayerUp,
         Self::MoveLayerDown,
         Self::DeleteLayer,

@@ -6,6 +6,9 @@ use flare_document::{Content, Layer};
 
 use super::*;
 
+/// How far each level of folder indents a name, in points.
+const FOLDER_INDENT: f32 = 12.0;
+
 impl Workspace {
     pub(super) fn timeline(&mut self, ui: &mut egui::Ui) {
         self.timeline_toolbar(ui);
@@ -20,11 +23,16 @@ impl Workspace {
         }
         egui::ScrollArea::both().auto_shrink(false).show(ui, |ui| {
             let frames = self.scene_frames();
-            let layer_count = self
+            // The rows shown, with how deep each is in folders; a collapsed folder hides its layers.
+            let rows: Vec<(usize, usize)> = self
                 .document()
                 .scenes()
                 .first()
-                .map_or(0, |s| s.timeline().layers().len());
+                .map(|s| {
+                    timeline_view::visible_layers(s.timeline().layers(), &self.collapsed_folders)
+                })
+                .unwrap_or_default();
+            let layer_count = rows.len();
             let row = 20.0;
             let label_w = 140.0;
             let height = row * (layer_count as f32 + 1.0);
@@ -45,7 +53,9 @@ impl Workspace {
                 let index = ((y - rect.min.y) / row).floor() as i64 - 1;
                 usize::try_from(index).ok().and_then(|i| {
                     let layers = self.document().scenes().first()?.timeline().layers();
-                    layers.get(i).map(Layer::id)
+                    rows.get(i)
+                        .and_then(|(layer, _)| layers.get(*layer))
+                        .map(Layer::id)
                 })
             };
             if response.drag_started()
@@ -73,9 +83,12 @@ impl Workspace {
                 let extend = response.clicked() && in_track && ui.input(|i| i.modifiers.shift);
                 // Clicking a row (below the ruler) makes that layer the active one.
                 let index = ((p.y - rect.min.y) / row).floor() as i64 - 1;
-                let picked = usize::try_from(index).ok().and_then(|i| {
+                let picked_row = usize::try_from(index)
+                    .ok()
+                    .and_then(|i| rows.get(i).copied());
+                let picked = picked_row.and_then(|(layer, _)| {
                     let layers = self.document().scenes().first()?.timeline().layers();
-                    layers.get(i).map(Layer::id)
+                    layers.get(layer).map(Layer::id)
                 });
                 if extend && let Some(id) = picked {
                     // Shift-click selects the frames between the playhead (or the range's own
@@ -95,7 +108,22 @@ impl Workspace {
                     // The two small toggles at the right edge of the label column.
                     let eye = p.x >= track.min.x - 54.0 && p.x < track.min.x - 36.0;
                     let lock = p.x >= track.min.x - 36.0 && p.x < track.min.x - 18.0;
-                    if response.clicked() && eye {
+                    // The arrow of a folder, indented to its depth, folds it open or shut.
+                    let depth = picked_row.map_or(0, |(_, depth)| depth);
+                    let arrow_x = rect.min.x + 6.0 + depth as f32 * FOLDER_INDENT;
+                    let on_arrow = p.x >= arrow_x && p.x < arrow_x + 14.0;
+                    let is_folder = self
+                        .document()
+                        .scenes()
+                        .first()
+                        .and_then(|s| s.timeline().layers().iter().find(|l| l.id() == id))
+                        .is_some_and(Layer::is_folder);
+                    if response.clicked() && is_folder && on_arrow {
+                        if !self.collapsed_folders.remove(&id) {
+                            self.collapsed_folders.insert(id);
+                        }
+                        self.select_layer(id);
+                    } else if response.clicked() && eye {
                         self.toggle_layer_visible(id);
                     } else if response.clicked() && lock {
                         self.toggle_layer_locked(id);
@@ -141,14 +169,11 @@ impl Workspace {
                 // Only the rows in view are painted; with thousands of layers drawing all of
                 // them every frame dominated the cost of an idle frame.
                 let (first, count) = visible_rows(rect.min.y, row, painter.clip_rect());
-                for (i, layer) in scene
-                    .timeline()
-                    .layers()
-                    .iter()
-                    .enumerate()
-                    .skip(first)
-                    .take(count)
+                let all_layers = scene.timeline().layers();
+                for (i, (layer_index, depth)) in
+                    rows.iter().copied().enumerate().skip(first).take(count)
                 {
+                    let layer = &all_layers[layer_index];
                     let y = rect.min.y + row * (i as f32 + 1.0);
                     if i % 2 == 1 {
                         painter.rect_filled(
@@ -184,8 +209,33 @@ impl Workspace {
                         );
                     }
                     let dim = flare_ui::theme::TEXT_DISABLED;
+                    let mut text_x = rect.min.x + 6.0 + depth as f32 * FOLDER_INDENT;
+                    if layer.is_folder() {
+                        let shut = self.collapsed_folders.contains(&layer.id());
+                        flare_ui::icons::image(
+                            if shut {
+                                "chevron-right"
+                            } else {
+                                "chevron-down"
+                            },
+                            12.0,
+                            dim,
+                        )
+                        .paint_at(
+                            ui,
+                            Rect::from_min_size(Pos2::new(text_x, y + 4.0), Vec2::splat(12.0)),
+                        );
+                        flare_ui::icons::image("folder", 14.0, ink).paint_at(
+                            ui,
+                            Rect::from_min_size(
+                                Pos2::new(text_x + 14.0, y + 3.0),
+                                Vec2::splat(14.0),
+                            ),
+                        );
+                        text_x += 32.0;
+                    }
                     painter.text(
-                        Pos2::new(rect.min.x + 6.0, y + 4.0),
+                        Pos2::new(text_x, y + 4.0),
                         Align2::LEFT_TOP,
                         if layer.is_mask() {
                             format!("Mask: {}", layer.name())

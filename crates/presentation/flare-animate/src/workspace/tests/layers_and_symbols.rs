@@ -383,3 +383,57 @@ fn entering_and_leaving_refresh_the_stage_and_missing_symbols_are_reported() {
     );
     assert!(before.0 == 0);
 }
+
+#[test]
+fn folders_wrap_the_active_layer_hide_and_lock_what_they_hold_and_let_go_when_deleted() {
+    let mut ws = workspace();
+    rect(&mut ws);
+    ws.perform(MenuAction::SelectAll);
+    let art = ws.active_layer_id().expect("the drawing's layer is active");
+    ws.perform(MenuAction::NewLayerFolder);
+    let layers_of = |ws: &Workspace| ws.document().scenes()[0].timeline().layers().to_vec();
+    let before = layers_of(&ws);
+    let folder = before
+        .iter()
+        .find(|l| l.is_folder())
+        .expect("a folder")
+        .id();
+    let held = before.iter().find(|l| l.id() == art).expect("the layer");
+    assert_eq!(held.parent(), Some(folder), "the active layer went into it");
+    let at = |id| before.iter().position(|l| l.id() == id).expect("position");
+    assert!(at(folder) < at(art), "a folder sits above what it holds");
+    assert_eq!(ws.active_layer_id(), Some(folder));
+
+    // Locking the folder makes its layers unselectable; hiding it removes them from the picture.
+    ws.toggle_layer_locked(folder);
+    ws.select_at(Pos2::new(50.0, 30.0), false);
+    assert!(ws.selected.is_none(), "a locked folder locks what is in it");
+    ws.toggle_layer_locked(folder);
+    ws.select_at(Pos2::new(50.0, 30.0), false);
+    assert!(ws.selected.is_some());
+    ws.toggle_layer_visible(folder);
+    ws.clear_selection();
+    ws.select_at(Pos2::new(50.0, 30.0), false);
+    assert!(ws.selected.is_none(), "a hidden folder hides what is in it");
+    ws.toggle_layer_visible(folder);
+
+    // Layers can be moved out of a folder and into one that is above them.
+    ws.select_layer(art);
+    assert!(
+        ws.folders_for_active_layer().is_empty(),
+        "its own folder is not offered again until it leaves"
+    );
+    ws.move_active_layer_to_folder(None);
+    assert_eq!(ws.layer(art).and_then(|l| l.parent()), None);
+    assert_eq!(ws.folders_for_active_layer().len(), 1);
+    ws.move_active_layer_to_folder(Some(folder));
+    assert_eq!(ws.layer(art).and_then(|l| l.parent()), Some(folder));
+
+    // Deleting the folder lets its layers out instead of refusing or taking them along.
+    ws.select_layer(folder);
+    ws.delete_active_layer();
+    assert!(layers_of(&ws).iter().all(|l| !l.is_folder()));
+    assert_eq!(ws.layer(art).and_then(|l| l.parent()), None);
+    ws.undo();
+    assert!(layers_of(&ws).iter().any(|l| l.is_folder()));
+}

@@ -9,7 +9,7 @@
 //! solid-color fills and solid strokes of drawn shapes (lines and quadratic curves);
 //! the library as Graphic symbols; classic motion tweens between instances.
 //! Reported and skipped: gradients, bitmaps, text, video, sound, scripts, filters, color
-//! effects, masks, guides, folders, primitives, shape tweens, 3D, and symbol runtime
+//! effects, masks, guides, primitives, shape tweens, 3D, and symbol runtime
 //! behaviour (movie clips and buttons become Graphic symbols).
 
 use crate::xml::{Node, XmlError};

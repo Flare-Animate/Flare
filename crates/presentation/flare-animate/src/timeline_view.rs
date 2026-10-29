@@ -1,4 +1,4 @@
-//! Timeline zoom: how wide a frame is drawn.
+//! Timeline zoom: how wide a frame is drawn, and which layers get a row.
 //!
 //! At zoom 1.0 the whole scene fits the panel; zooming in widens each frame and the track
 //! scrolls horizontally.
@@ -6,6 +6,31 @@
 pub const MIN_ZOOM: f32 = 1.0;
 pub const MAX_ZOOM: f32 = 16.0;
 pub const STEP: f32 = 1.5;
+
+/// The layers that get a row, top to bottom, as (index in the timeline, how deep in folders).
+/// Layers inside a collapsed folder, at any depth, are left out.
+pub fn visible_layers(
+    layers: &[flare_document::Layer],
+    collapsed: &std::collections::HashSet<flare_core::LayerId>,
+) -> Vec<(usize, usize)> {
+    // (depth, hidden) of each layer seen so far. A parent always comes earlier in the list.
+    let mut seen: std::collections::HashMap<flare_core::LayerId, (usize, bool)> =
+        std::collections::HashMap::new();
+    let mut rows = Vec::new();
+    for (index, layer) in layers.iter().enumerate() {
+        let (depth, hidden) = layer
+            .parent()
+            .and_then(|parent| seen.get(&parent).copied().map(|(d, h)| (parent, d, h)))
+            .map_or((0, false), |(parent, depth, hidden)| {
+                (depth + 1, hidden || collapsed.contains(&parent))
+            });
+        seen.insert(layer.id(), (depth, hidden));
+        if !hidden {
+            rows.push((index, depth));
+        }
+    }
+    rows
+}
 
 /// `zoom` multiplied by `factor`, kept in range; unusable factors leave it alone.
 pub fn zoomed(zoom: f32, factor: f32) -> f32 {
@@ -31,6 +56,7 @@ pub fn frame_width(available: f32, frames: u64, zoom: f32) -> f32 {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -59,5 +85,38 @@ mod tests {
             20.0_f32.max(1.0) * 1.0,
             "NaN zoom clamps"
         );
+    }
+
+    fn layer(
+        name: &str,
+        folder: bool,
+        parent: Option<flare_core::LayerId>,
+    ) -> flare_document::Layer {
+        flare_document::Layer::new(flare_core::LayerId::new(), name, vec![])
+            .expect("layer")
+            .with_folder(folder)
+            .with_parent(parent)
+    }
+
+    #[test]
+    fn collapsed_folders_hide_what_they_hold_at_every_depth() {
+        let outer = layer("outer", true, None);
+        let inner = layer("inner", true, Some(outer.id()));
+        let leaf = layer("leaf", false, Some(inner.id()));
+        let loose = layer("loose", false, None);
+        let layers = [outer.clone(), inner.clone(), leaf, loose];
+        let none = std::collections::HashSet::new();
+        assert_eq!(
+            visible_layers(&layers, &none),
+            [(0, 0), (1, 1), (2, 2), (3, 0)],
+            "everything shows, indented by depth"
+        );
+        let inner_closed = std::collections::HashSet::from([inner.id()]);
+        assert_eq!(
+            visible_layers(&layers, &inner_closed),
+            [(0, 0), (1, 1), (3, 0)]
+        );
+        let outer_closed = std::collections::HashSet::from([outer.id()]);
+        assert_eq!(visible_layers(&layers, &outer_closed), [(0, 0), (3, 0)]);
     }
 }

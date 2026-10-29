@@ -33,7 +33,7 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 Still planned (everything else in the menus and panels is built):
 
 - Library: folders.
-- Timeline: layer folders, motion guides, the outline column.
+- Timeline: motion guides, the outline column.
 - View: guides and outline mode.
 - File: Open Recent, Save All, Export Movie, Publish Settings. (Import XFL or FLA, Preferences, New,
   Close and Revert are built; they work on the one document a window holds until multi-document

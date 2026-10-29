@@ -114,7 +114,34 @@ impl Workspace {
             if chrome::icon_button(ui, "layer-new", BAR_ICON, false, true, "New layer").clicked() {
                 self.add_layer();
             }
-            chrome::mock_icon_button(ui, "layer-folder", BAR_ICON, "New layer folder");
+            if chrome::icon_button(
+                ui,
+                "layer-folder",
+                BAR_ICON,
+                false,
+                true,
+                "New layer folder",
+            )
+            .clicked()
+            {
+                self.perform(MenuAction::NewLayerFolder);
+            }
+            let folders = self.folders_for_active_layer();
+            let in_folder = self.active_layer().is_some_and(|l| l.parent().is_some());
+            ui.add_enabled_ui(!folders.is_empty() || in_folder, |ui| {
+                ui.menu_button("Folder", |ui| {
+                    for (id, name) in &folders {
+                        if ui.button(format!("Move into {name}")).clicked() {
+                            self.move_active_layer_to_folder(Some(*id));
+                            ui.close();
+                        }
+                    }
+                    if in_folder && ui.button("Move out of its folder").clicked() {
+                        self.move_active_layer_to_folder(None);
+                        ui.close();
+                    }
+                });
+            });
             chrome::mock_icon_button(ui, "layer-motion-guide", BAR_ICON, "Add motion guide");
             if chrome::icon_button(
                 ui,

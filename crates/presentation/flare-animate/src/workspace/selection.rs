@@ -82,11 +82,11 @@ impl Workspace {
                 ops::locate_hit(self.document(), scene, self.frame, &frame.shapes[index])
             })
             .find(|span| {
-                timeline
-                    .layers()
+                let layers = timeline.layers();
+                layers
                     .iter()
-                    .find(|l| l.id() == span.layer)
-                    .is_some_and(|l| !l.is_locked())
+                    .position(|l| l.id() == span.layer)
+                    .is_some_and(|index| !locked_in_folders(layers, index))
             })
     }
 
@@ -265,4 +265,18 @@ impl Workspace {
             None => self.report("Select an instance to change its motion tween"),
         }
     }
+}
+
+/// Whether `layers[index]` is locked, itself or by a locked folder around it.
+fn locked_in_folders(layers: &[Layer], index: usize) -> bool {
+    let mut current = Some(index);
+    while let Some(i) = current {
+        if layers[i].is_locked() {
+            return true;
+        }
+        current = layers[i]
+            .parent()
+            .and_then(|parent| layers[..i].iter().position(|l| l.id() == parent));
+    }
+    false
 }

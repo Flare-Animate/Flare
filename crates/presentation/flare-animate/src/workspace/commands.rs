@@ -30,6 +30,7 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
+            MenuAction::NewLayerFolder => !self.document().scenes().is_empty(),
             MenuAction::ImportProject => !self.in_symbol(),
             MenuAction::New | MenuAction::Close => !self.in_symbol(),
             MenuAction::Revert => self.path.is_some() && self.is_dirty(),
@@ -115,6 +116,7 @@ impl Workspace {
         let text = match action {
             MenuAction::Open => "Open...",
             MenuAction::ImportSound => "Import Sound...",
+            MenuAction::NewLayerFolder => "New Layer Folder",
             MenuAction::ImportProject => "Import XFL or FLA...",
             MenuAction::New => "New",
             MenuAction::Close => "Close",
@@ -276,6 +278,7 @@ impl Workspace {
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
             MenuAction::ImportProject => self.dialog = Some(DialogRequest::ImportProject),
             MenuAction::New | MenuAction::Close => self.new_document(),
+            MenuAction::NewLayerFolder => self.add_layer_folder(),
             MenuAction::Revert => self.revert(),
             MenuAction::ExportImage => self.dialog = Some(DialogRequest::ExportImage),
             MenuAction::Save => self.save(),
