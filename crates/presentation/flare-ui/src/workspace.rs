@@ -29,6 +29,8 @@ struct StageTexture {
 pub enum Tool {
     Select,
     Rectangle,
+    Ellipse,
+    Line,
 }
 
 /// Timeline frame operations on the active layer at the current frame.
@@ -264,10 +266,21 @@ impl Workspace {
 
     /// Commits a rectangle as one undo step: a new layer plus its shape span.
     pub fn commit_rectangle(&mut self, a: Pos2, b: Pos2) {
+        self.commit_shape(Tool::Rectangle, a, b);
+    }
+
+    /// Commits the dragged shape for a drawing tool as one undo step: a new layer plus
+    /// its shape span. Lines need a stroke, so they use the stroke settings even when
+    /// the Outline checkbox is off.
+    fn commit_shape(&mut self, tool: Tool, a: Pos2, b: Pos2) {
         let (x0, x1) = (a.x.min(b.x), a.x.max(b.x));
         let (y0, y1) = (a.y.min(b.y), a.y.max(b.y));
         let (w, h) = (f64::from(x1 - x0), f64::from(y1 - y0));
-        if w < 1.0 || h < 1.0 {
+        let too_small = match tool {
+            Tool::Line => (b - a).length() < 1.0,
+            _ => w < 1.0 || h < 1.0,
+        };
+        if too_small {
             return; // a click, not a drag
         }
         let Some(scene) = self.document().scenes().first() else {
@@ -278,19 +291,41 @@ impl Workspace {
         let duration = u32::try_from(scene.timeline().frame_count())
             .unwrap_or(u32::MAX)
             .max(24);
-        let color = self.fill.to_array();
-        let fill = Rgba8::new(color[0], color[1], color[2], color[3]);
-        let Some(mut shape) = Shape::rect(ShapeId::new(), f64::from(x0), f64::from(y0), w, h, fill)
-        else {
-            self.report("Rectangle coordinates must be finite");
-            return;
+        let fill = {
+            let c = self.fill.to_array();
+            Rgba8::new(c[0], c[1], c[2], c[3])
         };
-        if self.stroke_enabled {
+        let stroke = {
             let c = self.stroke_color.to_array();
-            match ShapeStroke::new(
+            ShapeStroke::new(
                 f64::from(self.stroke_width),
                 Rgba8::new(c[0], c[1], c[2], c[3]),
-            ) {
+            )
+        };
+        let id = ShapeId::new();
+        let (x0, y0) = (f64::from(x0), f64::from(y0));
+        let (shape, name) = match tool {
+            Tool::Rectangle => (Shape::rect(id, x0, y0, w, h, fill), "Rectangle"),
+            Tool::Ellipse => (
+                Shape::ellipse(id, x0 + w / 2.0, y0 + h / 2.0, w / 2.0, h / 2.0, fill),
+                "Ellipse",
+            ),
+            Tool::Line => {
+                let from = (f64::from(a.x), f64::from(a.y));
+                let to = (f64::from(b.x), f64::from(b.y));
+                match &stroke {
+                    Ok(stroke) => (Shape::line(id, from, to, *stroke), "Line"),
+                    Err(error) => return self.report(error.to_string()),
+                }
+            }
+            Tool::Select => return,
+        };
+        let Some(mut shape) = shape else {
+            self.report("Shape coordinates must be finite");
+            return;
+        };
+        if self.stroke_enabled && tool != Tool::Line {
+            match stroke {
                 Ok(stroke) => shape = shape.with_stroke(stroke),
                 Err(error) => return self.report(error.to_string()),
             }
@@ -301,7 +336,7 @@ impl Workspace {
             Content::Shape(shape),
         );
         let layer_id = LayerId::new();
-        let layer = match Layer::new(layer_id, "Rectangle", vec![]) {
+        let layer = match Layer::new(layer_id, name, vec![]) {
             Ok(layer) => layer,
             Err(error) => return self.report(error.to_string()),
         };
@@ -416,7 +451,7 @@ impl Workspace {
     fn begin_drag(&mut self, point: Pos2) {
         self.drag_cancelled = false;
         let mode = match self.tool {
-            Tool::Rectangle => Some(DragMode::Draw),
+            Tool::Rectangle | Tool::Ellipse | Tool::Line => Some(DragMode::Draw),
             Tool::Select => {
                 self.selected = self.hit(point);
                 self.selected.map(|_| DragMode::Move)
@@ -441,7 +476,7 @@ impl Workspace {
             && !cancelled
         {
             match drag.mode {
-                DragMode::Draw => self.commit_rectangle(drag.start, drag.current),
+                DragMode::Draw => self.commit_shape(self.tool, drag.start, drag.current),
                 DragMode::Move => self.move_selection(drag.current - drag.start),
             }
         }
@@ -751,6 +786,8 @@ impl Workspace {
         let mut tool = self.tool;
         ui.selectable_value(&mut tool, Tool::Select, "Select / Move");
         ui.selectable_value(&mut tool, Tool::Rectangle, "Rectangle");
+        ui.selectable_value(&mut tool, Tool::Ellipse, "Ellipse");
+        ui.selectable_value(&mut tool, Tool::Line, "Line");
         self.set_tool(tool);
         ui.weak("Drag on the stage. Esc cancels. Delete removes, F8 converts to a symbol.");
         ui.separator();
@@ -897,14 +934,30 @@ impl Workspace {
             painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
         }
         if let Some(drag) = self.drag.filter(|d| d.mode == DragMode::Draw) {
-            let preview = Rect::from_two_pos(to_screen(drag.start), to_screen(drag.current));
-            painter.rect_filled(preview, 0.0, self.fill.gamma_multiply(0.5));
-            painter.rect_stroke(
-                preview,
-                0.0,
-                Stroke::new(1.0, Color32::BLACK),
-                StrokeKind::Outside,
-            );
+            let (from, to) = (to_screen(drag.start), to_screen(drag.current));
+            let preview = Rect::from_two_pos(from, to);
+            let ink = Stroke::new(1.0, Color32::BLACK);
+            match self.tool {
+                Tool::Line => {
+                    painter.line_segment(
+                        [from, to],
+                        Stroke::new(self.stroke_width * scale, self.stroke_color),
+                    );
+                }
+                Tool::Ellipse => {
+                    let radius = preview.size() / 2.0;
+                    painter.add(egui::epaint::EllipseShape::filled(
+                        preview.center(),
+                        radius,
+                        self.fill.gamma_multiply(0.5),
+                    ));
+                    painter.rect_stroke(preview, 0.0, ink, StrokeKind::Outside);
+                }
+                _ => {
+                    painter.rect_filled(preview, 0.0, self.fill.gamma_multiply(0.5));
+                    painter.rect_stroke(preview, 0.0, ink, StrokeKind::Outside);
+                }
+            }
         }
     }
 
@@ -1554,5 +1607,51 @@ mod tests {
             input(0.5, vec![key(Key::F7, Modifiers::NONE)]),
         );
         assert_eq!(active_spans(&ws), vec![(0, 8), (8, 16)]);
+    }
+
+    #[test]
+    fn ellipse_and_line_tools_commit_shapes_on_their_own_layers() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Ellipse);
+        ws.begin_drag(Pos2::new(100.0, 100.0));
+        ws.update_drag(Pos2::new(160.0, 140.0));
+        ws.end_drag();
+        ws.set_tool(Tool::Line);
+        ws.begin_drag(Pos2::new(10.0, 10.0));
+        ws.update_drag(Pos2::new(90.0, 40.0));
+        ws.end_drag();
+        let layers = ws.document().scenes()[0].timeline().layers();
+        assert_eq!(layers.len(), 3);
+        let shape_of = |layer: usize| match layers[layer].spans()[0].content() {
+            Content::Shape(shape) => shape.clone(),
+            _ => panic!("shape expected"),
+        };
+        assert_eq!(layers[1].name(), "Ellipse");
+        let ellipse = shape_of(1);
+        let bounds = ops::shape_bounds(&ellipse).expect("bounds");
+        assert_eq!(bounds.min, Pos2::new(100.0, 100.0));
+        assert_eq!(bounds.max, Pos2::new(160.0, 140.0));
+        assert_eq!(layers[2].name(), "Line");
+        let line = shape_of(2);
+        assert_eq!(line.path().len(), 2);
+        assert!(
+            line.stroke().is_some(),
+            "a line is its stroke, even with Outline off"
+        );
+        assert!(!ws.stroke_enabled);
+    }
+
+    #[test]
+    fn zero_length_lines_and_flat_ellipses_create_nothing() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Line);
+        ws.begin_drag(Pos2::new(5.0, 5.0));
+        ws.end_drag();
+        ws.set_tool(Tool::Ellipse);
+        ws.begin_drag(Pos2::new(5.0, 5.0));
+        ws.update_drag(Pos2::new(50.0, 5.4));
+        ws.end_drag();
+        assert_eq!(layer_count(&ws), 1);
+        assert!(!ws.is_dirty());
     }
 }
