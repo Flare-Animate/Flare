@@ -31,10 +31,13 @@ pub enum MenuAction {
     MoveLayerUp,
     MoveLayerDown,
     DeleteLayer,
+    ZoomIn,
+    ZoomOut,
+    ZoomFit,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 26] = [
+    pub const ALL: [MenuAction; 29] = [
         Self::Open,
         Self::Save,
         Self::SaveAs,
@@ -61,6 +64,9 @@ impl MenuAction {
         Self::MoveLayerUp,
         Self::MoveLayerDown,
         Self::DeleteLayer,
+        Self::ZoomIn,
+        Self::ZoomOut,
+        Self::ZoomFit,
     ];
 
     /// A stable identifier for native menu items (the variant name).
@@ -143,6 +149,10 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Separator,
             Action(A::DeleteLayer),
         ],
+    ),
+    (
+        "View",
+        &[Action(A::ZoomIn), Action(A::ZoomOut), Action(A::ZoomFit)],
     ),
 ];
 

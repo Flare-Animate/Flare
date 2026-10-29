@@ -8,6 +8,7 @@
 
 mod actions;
 mod ops;
+mod view;
 mod workspace;
 
 pub use actions::{MENU_LAYOUT, MenuAction, MenuEntry};
