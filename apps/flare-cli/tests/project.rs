@@ -507,3 +507,95 @@ fn frame_operations_edit_the_timeline_and_reject_what_does_not_apply() {
     );
     assert_eq!(std::fs::read(&file).expect("read"), before);
 }
+
+#[test]
+fn export_frames_writes_a_numbered_animation_sequence() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let frames = dir.path().join("out").to_string_lossy().into_owned();
+    json(&["new", &file, "--width", "40", "--height", "10"]);
+    let symbol = json(&[
+        "add-symbol",
+        &file,
+        "Dot",
+        "--rect",
+        "0",
+        "0",
+        "4",
+        "4",
+        "--color",
+        "FF0000",
+    ])["symbol"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    json(&[
+        "place",
+        &file,
+        &symbol,
+        "--duration",
+        "4",
+        "--x",
+        "0",
+        "--y",
+        "2",
+        "--tween",
+    ]);
+    json(&[
+        "place",
+        &file,
+        &symbol,
+        "--start",
+        "4",
+        "--duration",
+        "1",
+        "--x",
+        "32",
+        "--y",
+        "2",
+    ]);
+
+    let summary = json(&["export-frames", &file, &frames]);
+    assert_eq!(
+        (summary["frames"].as_u64(), summary["last"].as_u64()),
+        (Some(5), Some(4))
+    );
+    for (frame, x) in [(0, 1), (2, 17), (4, 33)] {
+        let image = read_png(&format!("{frames}/frame_{frame:05}.png"));
+        assert_eq!(pixel(&image, x, 3), [255, 0, 0, 255], "frame {frame}");
+        assert_eq!(
+            pixel(&image, (x + 20) % 40, 3),
+            [255, 255, 255, 255],
+            "frame {frame} elsewhere"
+        );
+    }
+
+    let range = json(&[
+        "export-frames",
+        &file,
+        &frames,
+        "--start",
+        "1",
+        "--end",
+        "2",
+    ]);
+    assert_eq!(range["frames"], 2);
+    assert!(
+        !run(&[
+            "export-frames",
+            &file,
+            &frames,
+            "--start",
+            "5",
+            "--end",
+            "2"
+        ])
+        .status
+        .success()
+    );
+    assert!(
+        !run(&["export-frames", &file, &frames, "--end", "999999"])
+            .status
+            .success()
+    );
+}

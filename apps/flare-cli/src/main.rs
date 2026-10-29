@@ -137,6 +137,22 @@ enum Command {
         #[arg(long)]
         scene: Option<uuid::Uuid>,
     },
+    /// Render a frame range to numbered PNGs (default: the whole first scene).
+    ExportFrames {
+        path: PathBuf,
+        directory: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        start: u32,
+        /// Last frame, inclusive.
+        #[arg(long)]
+        end: Option<u32>,
+        #[arg(long)]
+        width: Option<u32>,
+        #[arg(long)]
+        height: Option<u32>,
+        #[arg(long)]
+        transparent: bool,
+    },
     /// Place a symbol instance on the first layer of the first scene.
     Place {
         path: PathBuf,
@@ -224,6 +240,15 @@ fn main() -> Result<()> {
             at,
             layer,
         } => project::frame_op(&path, op, at, layer)?,
+        Command::ExportFrames {
+            path,
+            directory,
+            start,
+            end,
+            width,
+            height,
+            transparent,
+        } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
         Command::Info { path } => project::info(&path)?,
         Command::AddSymbol {
             path,
