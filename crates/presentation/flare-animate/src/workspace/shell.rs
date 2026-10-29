@@ -53,4 +53,10 @@ impl Workspace {
     pub fn main_document(&self) -> &Document {
         self.session.document()
     }
+
+    /// Brings a panel's tab to the front of its stack.
+    pub(super) fn show_pane(&mut self, pane: Pane) {
+        self.layout
+            .make_active(|_, tile| matches!(tile, egui_tiles::Tile::Pane(p) if *p == pane));
+    }
 }

@@ -158,6 +158,28 @@ impl App {
                     }
                 }
             }
+            Some(DialogRequest::PublishSwf) => {
+                if let Some(path) = rfd::FileDialog::new()
+                    .add_filter("SWF movie", &["swf"])
+                    .set_file_name("movie.swf")
+                    .save_file()
+                {
+                    let (document, _) = self.workspace.image_export();
+                    let proxy = self.proxy.clone();
+                    let spawned = std::thread::Builder::new()
+                        .name("flare-publish".into())
+                        .spawn(move || {
+                            let options = flare_publish::PublishOptions { compress: true };
+                            let result = flare_publish::publish_to_file(&document, &options, &path)
+                                .map(|_| ())
+                                .map_err(|e| e.to_string());
+                            let _ = proxy.send_event(UserEvent::ImageExported(result));
+                        });
+                    if let Err(error) = spawned {
+                        show_message("Cannot publish", &error.to_string());
+                    }
+                }
+            }
             None => {}
         }
     }

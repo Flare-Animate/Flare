@@ -57,6 +57,7 @@ pub enum DialogRequest {
     SaveAs,
     ImportSound,
     ExportImage,
+    PublishSwf,
 }
 
 /// A request for the shell to move or zoom its window, from the integrated title bar.
@@ -213,11 +214,14 @@ pub(super) type SelectionRects = ((u64, u64, u64), Vec<Rect>);
 pub(super) enum ColorTarget {
     Fill,
     Stroke,
+    /// The second color of a gradient fill.
+    GradientEnd,
 }
 
 /// The letter that picks each tool, as in other animation tools.
 pub(super) const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::V, Tool::Select),
+    (Key::A, Tool::Subselection),
     (Key::P, Tool::Pen),
     (Key::T, Tool::Text),
     (Key::N, Tool::Line),
@@ -310,6 +314,8 @@ pub enum Tool {
     PolyStar,
     /// Drag a freehand loop around shapes to select them.
     Lasso,
+    /// Select a shape, then drag its points to reshape it.
+    Subselection,
     /// Drag to draw a smoothed line in the stroke color and width.
     Pencil,
     /// Drag to paint a thick round stroke in the fill color.

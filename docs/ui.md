@@ -30,24 +30,17 @@ hover ("Not available yet"). They are built with the `mock_*` helpers in `chrome
 commands that are planned are `MenuEntry::Mock` entries in `MENU_LAYOUT`. Finding them is a search
 for `mock_` and `Mock(`; building one replaces it with the real control.
 
-Planned, in the order they will be built:
+Still planned (everything else in the menus and panels is built):
 
-- Tools: Subselection, Free Transform. (Built: Pencil, Brush, Lasso, PolyStar, Paint Bucket,
-  Ink Bottle, Eyedropper, Eraser, Hand, Zoom, and the rectangle corner radius.)
-- Panels: Align, Distribute, Bring to front and Send to back, and the typed Transform numbers are built (Group and Ungroup are not).
-- Control: loop playback and mute sounds are built.
-- View: rulers, grid and snap to grid are built; Guides and Outline Mode are not.
-- File: Export Image (PNG of the frame on show) is built.
-- Menu: Cut, Select All, Deselect All, Rewind, Step Forward and Backward and Actual Size are built.
-- Properties: stroke cap and join, text style. (Built: Tool, Object, Frame and Doc tabs, editable position and size, frame rate.)
-- Library: folders, preview. (Built: search, new symbol, rename, delete.)
-- Color: gradient editor, eyedropper button. (Built: hex entry, no color, swap and default colors.)
-- Align panel: align, distribute, arrange, group.
-- Transform panel: numeric scale, rotate and skew; break apart.
+- Tools: Free Transform.
+- Properties: stroke cap and join, text style.
+- Library: folders, a preview of the symbol.
 - History panel: the list of edits and jumping to one.
-- Timeline: loop playback, onion-skin outlines, layer folders, motion guides, the outline column.
-- Stage bar: grid, rulers toggle, snapping.
-- Menus: the commands listed as dimmed entries.
+- Timeline: onion-skin outlines, layer folders, motion guides, the outline column.
+- View: guides and outline mode.
+- File: New, Close, Open Recent, Save All, Revert, Export Movie, Publish Settings, Import to Stage
+  and Library, and Preferences (one document per window until multi-document tabs exist).
+- Edit, Modify, Text, Commands and Help entries listed dimmed in the menus.
 
 ## Top bar
 

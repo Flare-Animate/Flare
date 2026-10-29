@@ -68,6 +68,7 @@ impl MenuAction {
     pub fn tool_key(self) -> Option<&'static str> {
         Some(match self {
             Self::ToolSelect => "V",
+            Self::ToolSubselection => "A",
             Self::ToolPen => "P",
             Self::ToolText => "T",
             Self::ToolHand => "H",
@@ -103,6 +104,12 @@ impl MenuAction {
             Self::ConvertToSymbol => "convert-symbol",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
+            Self::ToolSubselection => "tool-subselection",
+            Self::Group => "group",
+            Self::Ungroup => "ungroup",
+            Self::BreakApart => "break-apart",
+            Self::PublishSwf => "file-publish",
+            Self::DocumentSettings => "settings",
             Self::ToolRectangle => "tool-rectangle",
             Self::ToolEllipse => "tool-oval",
             Self::ToolLine => "tool-line",

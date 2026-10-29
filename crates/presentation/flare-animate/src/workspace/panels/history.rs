@@ -1,12 +1,5 @@
 //! The History and Output panels.
 
-//! The panels of the workspace: tools, properties, library, color, align, transform, history,
-//! the timeline's toolbar and the status bar.
-//!
-//! Controls that act on the document are real. Controls for features that do not exist yet are
-//! drawn the same way but dimmed, with a hover note, using the mock helpers in `chrome`; each
-//! is a place a later change fills in.
-
 use crate::actions::MenuAction;
 use crate::workspace::Workspace;
 use egui::{RichText, Ui};

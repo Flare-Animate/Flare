@@ -230,7 +230,7 @@ impl Workspace {
         }
         // A plain click with the select tool also selects (or clears the selection).
         if response.clicked()
-            && self.tool == Tool::Select
+            && matches!(self.tool, Tool::Select | Tool::Subselection)
             && let Some(p) = response.interact_pointer_pos()
         {
             self.select_at(to_doc(p), additive);
@@ -312,6 +312,19 @@ impl Workspace {
             let shown = bounds.translate(moving);
             let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
             painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
+        }
+        if self.tool == Tool::Subselection {
+            let ink = Stroke::new(1.5, crate::workspace::ANCHOR_INK);
+            for (segment, point) in self.anchor_points() {
+                let at = self
+                    .anchor_drag
+                    .filter(|d| d.segment == segment)
+                    .map_or(point, |d| d.to);
+                let centre = to_screen(at);
+                let square = Rect::from_center_size(centre, Vec2::splat(8.0));
+                painter.rect_filled(square, 1.0, Color32::WHITE);
+                painter.rect_stroke(square, 1.0, ink, StrokeKind::Outside);
+            }
         }
         if self.tool == Tool::Select
             && let Some(bounds) = self.selection_bounds()

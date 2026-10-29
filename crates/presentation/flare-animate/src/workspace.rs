@@ -17,6 +17,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
 
+mod anchors;
 mod arrange;
 mod background_work;
 mod commands;
@@ -46,6 +47,7 @@ mod types;
 use dock::*;
 use helpers::*;
 use types::*;
+pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
 pub use types::{
     AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest,
     onion_ghosts,
@@ -79,6 +81,7 @@ pub struct Workspace {
     /// How many frames have been rendered (as opposed to taken from the cache).
     frames_rendered: u64,
     drag: Option<Drag>,
+    anchor_drag: Option<anchors::AnchorDrag>,
     /// Set by Escape so the release that follows a cancelled drag commits nothing.
     drag_cancelled: bool,
     tool: Tool,
@@ -226,6 +229,7 @@ impl Workspace {
             autosaving: None,
             frames_rendered: 0,
             drag: None,
+            anchor_drag: None,
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,

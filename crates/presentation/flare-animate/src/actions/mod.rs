@@ -25,9 +25,15 @@ pub enum MenuAction {
     Paste,
     Duplicate,
     ConvertToSymbol,
+    Group,
+    Ungroup,
+    BreakApart,
+    PublishSwf,
+    DocumentSettings,
     EditSymbol,
     ExitSymbol,
     ToolSelect,
+    ToolSubselection,
     ToolRectangle,
     ToolEllipse,
     ToolLine,
@@ -85,7 +91,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 70] = [
+    pub const ALL: [MenuAction; 76] = [
         Self::Open,
         Self::ImportSound,
         Self::ExportImage,
@@ -99,9 +105,15 @@ impl MenuAction {
         Self::Paste,
         Self::Duplicate,
         Self::ConvertToSymbol,
+        Self::Group,
+        Self::Ungroup,
+        Self::BreakApart,
+        Self::PublishSwf,
+        Self::DocumentSettings,
         Self::EditSymbol,
         Self::ExitSymbol,
         Self::ToolSelect,
+        Self::ToolSubselection,
         Self::ToolRectangle,
         Self::ToolEllipse,
         Self::ToolLine,

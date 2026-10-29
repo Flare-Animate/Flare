@@ -173,3 +173,79 @@ fn playback_stops_on_the_last_frame_unless_looping_and_mute_silences_cues() {
         Some(AudioEvent::Stop)
     ));
 }
+
+#[test]
+fn group_makes_one_instance_and_ungroup_puts_the_parts_back_in_one_undo_step_each() {
+    let mut ws = two_rectangles();
+    assert!(!ws.is_enabled(MenuAction::Group), "nothing selected");
+    ws.perform(MenuAction::SelectAll);
+    assert!(ws.is_enabled(MenuAction::Group));
+    assert!(
+        !ws.is_enabled(MenuAction::Ungroup),
+        "shapes are not instances"
+    );
+    ws.perform(MenuAction::Group);
+    assert_eq!(ws.document().symbols().len(), 1);
+    assert!(ws.selection_has_instance());
+    assert!(ws.is_enabled(MenuAction::BreakApart));
+    ws.perform(MenuAction::Ungroup);
+    let shapes = ws.document().scenes()[0]
+        .timeline()
+        .layers()
+        .iter()
+        .filter(|l| {
+            matches!(
+                l.spans().first().map(|s| s.content()),
+                Some(Content::Shape(_))
+            )
+        })
+        .count();
+    assert_eq!(shapes, 2, "both rectangles are back");
+    assert_eq!(ws.selection_all().len(), 2, "the parts are selected");
+    ws.undo();
+    assert!(ws.selection_has_instance() || ws.document().symbols().len() == 1);
+    ws.undo();
+    assert!(
+        ws.document().symbols().is_empty(),
+        "undoing the group removes its symbol"
+    );
+}
+
+#[test]
+fn the_subselection_tool_drags_a_point_of_the_selected_shape() {
+    let mut ws = workspace();
+    rect(&mut ws); // 10..110 x 10..60
+    ws.set_tool(Tool::Subselection);
+    ws.select_at(Pos2::new(50.0, 30.0), false);
+    assert_eq!(ws.anchor_points().len(), 4);
+    ws.handle_radius = 6.0;
+    // Pressing away from every point grabs nothing.
+    ws.begin_drag(Pos2::new(60.0, 30.0));
+    assert!(ws.anchor_drag.is_none());
+    ws.end_drag();
+    // The bottom-right corner is at (110, 60).
+    ws.begin_drag(Pos2::new(111.0, 61.0));
+    assert!(ws.anchor_drag.is_some());
+    ws.update_drag(Pos2::new(150.0, 90.0));
+    ws.end_drag();
+    let b = ws.selection_bounds().expect("bounds");
+    assert_eq!((b.max.x, b.max.y), (150.0, 90.0));
+    ws.undo();
+    assert_eq!(ws.selection_bounds().expect("bounds").max.x, 110.0);
+    // Escape cancels a drag in progress.
+    ws.begin_drag(Pos2::new(110.0, 60.0));
+    ws.update_drag(Pos2::new(300.0, 300.0));
+    ws.cancel_drag();
+    ws.end_drag();
+    assert_eq!(ws.selection_bounds().expect("bounds").max.x, 110.0);
+}
+
+#[test]
+fn document_settings_opens_the_doc_tab_and_publishing_asks_the_shell_for_a_file() {
+    let mut ws = workspace();
+    ws.perform(MenuAction::DocumentSettings);
+    assert_eq!(ws.props_tab, PropsTab::Doc);
+    ws.perform(MenuAction::PublishSwf);
+    assert_eq!(ws.take_dialog(), Some(DialogRequest::PublishSwf));
+    assert_eq!(ws.label(MenuAction::PublishSwf), "Publish SWF...");
+}

@@ -1,12 +1,5 @@
 //! The Align and Transform panels.
 
-//! The panels of the workspace: tools, properties, library, color, align, transform, history,
-//! the timeline's toolbar and the status bar.
-//!
-//! Controls that act on the document are real. Controls for features that do not exist yet are
-//! drawn the same way but dimmed, with a hover note, using the mock helpers in `chrome`; each
-//! is a place a later change fills in.
-
 use crate::actions::MenuAction;
 use crate::workspace::TransformEdit;
 use crate::workspace::Workspace;
@@ -81,8 +74,15 @@ impl Workspace {
             {
                 self.arrange_selection(false);
             }
-            chrome::mock_icon_button(ui, "group", BAR_ICON, "Group");
-            chrome::mock_icon_button(ui, "ungroup", BAR_ICON, "Ungroup");
+            let can_group = self.is_enabled(MenuAction::Group);
+            if chrome::icon_button(ui, "group", BAR_ICON, false, can_group, "Group").clicked() {
+                self.perform(MenuAction::Group);
+            }
+            let can_ungroup = self.is_enabled(MenuAction::Ungroup);
+            if chrome::icon_button(ui, "ungroup", BAR_ICON, false, can_ungroup, "Ungroup").clicked()
+            {
+                self.perform(MenuAction::Ungroup);
+            }
         });
         ui.add_space(6.0);
         ui.checkbox(&mut self.align_to_stage, "Align to stage");
@@ -172,7 +172,12 @@ impl Workspace {
         });
         ui.add_space(6.0);
         ui.horizontal(|ui| {
-            chrome::mock_icon_button(ui, "break-apart", BAR_ICON, "Break apart");
+            let can_break = self.is_enabled(MenuAction::BreakApart);
+            if chrome::icon_button(ui, "break-apart", BAR_ICON, false, can_break, "Break apart")
+                .clicked()
+            {
+                self.perform(MenuAction::BreakApart);
+            }
             let can = self.is_enabled(MenuAction::ConvertToSymbol);
             if chrome::icon_button(
                 ui,

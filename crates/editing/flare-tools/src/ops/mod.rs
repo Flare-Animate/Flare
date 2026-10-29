@@ -9,13 +9,18 @@ use flare_core::{LayerId, SceneId};
 use flare_document::{Content, Document, FrameSpan, Timeline};
 use flare_eval::DrawnShape;
 
+mod anchors;
 mod arrange;
 mod bounds;
 mod clipboard;
+mod grouping;
 mod paint;
 mod select;
 mod transform;
 
+#[allow(unused_imports)]
+use anchors::*;
+pub use anchors::{anchors, move_anchor};
 #[allow(unused_imports)]
 use arrange::*;
 pub use arrange::{Align, align_deltas, distribute_deltas};
@@ -25,6 +30,9 @@ pub use bounds::{shape_bounds, span_bounds, spans_bounds, symbol_bounds};
 #[allow(unused_imports)]
 use clipboard::*;
 pub use clipboard::{ClipItem, convert_to_symbol, copy_span, duplicate, paste, place_instance};
+#[allow(unused_imports)]
+use grouping::*;
+pub use grouping::{break_apart, group};
 #[allow(unused_imports)]
 use paint::*;
 pub use paint::{restyle, set_tween};

@@ -3,6 +3,7 @@
 use egui::{Color32, Pos2, Rect, Vec2};
 use flare_commands::Command;
 use flare_core::{LayerId, SceneId};
+use flare_document::Content;
 use flare_tools::ops::{self, SpanRef};
 use glamx::{DAffine2, DVec2};
 
@@ -231,6 +232,58 @@ impl Workspace {
         self.run_batch(commands, "convert to symbol");
         if self.status.is_none() {
             self.selected_symbol = Some(symbol);
+        }
+    }
+
+    /// Whether any selected span is a symbol instance.
+    pub(super) fn selection_has_instance(&self) -> bool {
+        let Some(scene) = self.scene_id() else {
+            return false;
+        };
+        self.selection_all().into_iter().any(|at| {
+            matches!(
+                ops::find_span(self.document(), scene, at).map(|s| s.content()),
+                Some(Content::Instance(_))
+            )
+        })
+    }
+
+    /// Groups the selected shapes into one symbol instance, as one undo step.
+    pub(super) fn group_selection(&mut self) {
+        let Some(scene) = self.scene_id() else { return };
+        let selection = self.selection_all();
+        let Some((commands, symbol)) = ops::group(self.document(), scene, &selection) else {
+            self.report("Select two or more shapes to group");
+            return;
+        };
+        self.run_batch(commands, "group");
+        if self.status.is_none() {
+            // The group takes the topmost shape's place, so that span stays selected.
+            self.also_selected.clear();
+            self.selected_symbol = Some(symbol);
+        }
+    }
+
+    /// Replaces each selected instance with the artwork of its symbol, as one undo step, and
+    /// selects the parts.
+    pub(super) fn break_apart_selection(&mut self) {
+        let Some(scene) = self.scene_id() else { return };
+        let mut commands = Vec::new();
+        let mut parts = Vec::new();
+        for at in self.selection_all() {
+            if let Some((batch, placed)) = ops::break_apart(self.document(), scene, at) {
+                commands.extend(batch);
+                parts.extend(placed);
+            }
+        }
+        if commands.is_empty() {
+            self.report("Select a symbol instance to break apart");
+            return;
+        }
+        self.run_batch(commands, "break apart");
+        if self.status.is_none() {
+            self.selected = parts.first().copied();
+            self.also_selected = parts.into_iter().skip(1).collect();
         }
     }
 }

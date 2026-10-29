@@ -90,21 +90,12 @@ pub fn export_xfl(path: &Path, out: &Path) -> Result<Value> {
 
 /// Publishes a project as a SWF file. Never overwrites; the file appears only when complete.
 pub fn publish_swf(path: &Path, out: &Path, compress: bool) -> Result<Value> {
-    if out.exists() {
-        bail!("{} already exists", out.display());
-    }
     let session = open(path)?;
-    let published = flare_publish::publish_swf(
+    let published = flare_publish::publish_to_file(
         session.document(),
         &flare_publish::PublishOptions { compress },
+        out,
     )?;
-    let directory = out
-        .parent()
-        .filter(|p| !p.as_os_str().is_empty())
-        .unwrap_or(Path::new("."));
-    let mut staged = tempfile::NamedTempFile::new_in(directory)?;
-    std::io::Write::write_all(&mut staged, &published.bytes)?;
-    staged.persist(out).map_err(|error| error.error)?;
     let diagnostics: Vec<Value> = published
         .diagnostics
         .iter()

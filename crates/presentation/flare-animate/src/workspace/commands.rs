@@ -55,9 +55,14 @@ impl Workspace {
             | MenuAction::ScaleUp
             | MenuAction::ScaleDown => self.has_selection(),
             MenuAction::ConvertToSymbol => self.can_convert_selection(),
+            MenuAction::Group => self.selection_all().len() >= 2,
+            MenuAction::Ungroup | MenuAction::BreakApart => self.selection_has_instance(),
+            MenuAction::PublishSwf => !self.document().scenes().is_empty(),
+            MenuAction::DocumentSettings => true,
             MenuAction::EditSymbol => self.can_edit_selected_symbol(),
             MenuAction::ExitSymbol => self.in_symbol(),
             MenuAction::ToolSelect
+            | MenuAction::ToolSubselection
             | MenuAction::ToolRectangle
             | MenuAction::ToolEllipse
             | MenuAction::ToolLine
@@ -132,6 +137,12 @@ impl Workspace {
             MenuAction::ScaleUp => "Scale Up",
             MenuAction::ScaleDown => "Scale Down",
             MenuAction::ConvertToSymbol => "Convert to Symbol",
+            MenuAction::Group => "Group",
+            MenuAction::Ungroup => "Ungroup",
+            MenuAction::BreakApart => "Break Apart",
+            MenuAction::PublishSwf => "Publish SWF...",
+            MenuAction::DocumentSettings => "Document Settings...",
+            MenuAction::ToolSubselection => "Subselection",
             MenuAction::EditSymbol => "Edit Symbol",
             MenuAction::ExitSymbol => "Exit Symbol",
             MenuAction::ToolSelect => "Select / Move",
@@ -291,6 +302,14 @@ impl Workspace {
                 self.transform_selection(DAffine2::from_scale(DVec2::splat(1.0 / SCALE_STEP)))
             }
             MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
+            MenuAction::Group => self.group_selection(),
+            MenuAction::Ungroup | MenuAction::BreakApart => self.break_apart_selection(),
+            MenuAction::PublishSwf => self.dialog = Some(DialogRequest::PublishSwf),
+            MenuAction::DocumentSettings => {
+                self.props_tab = PropsTab::Doc;
+                self.show_pane(Pane::Properties);
+            }
+            MenuAction::ToolSubselection => self.set_tool(Tool::Subselection),
             MenuAction::EditSymbol => self.edit_selected_symbol(),
             MenuAction::ExitSymbol => {
                 self.exit_symbol();

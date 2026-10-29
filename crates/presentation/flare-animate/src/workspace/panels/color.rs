@@ -1,13 +1,6 @@
 //! The Color panel.
 
-//! The panels of the workspace: tools, properties, library, color, align, transform, history,
-//! the timeline's toolbar and the status bar.
-//!
-//! Controls that act on the document are real. Controls for features that do not exist yet are
-//! drawn the same way but dimmed, with a hover note, using the mock helpers in `chrome`; each
-//! is a place a later change fills in.
-
-use crate::workspace::{ColorTarget, Workspace};
+use crate::workspace::{ColorTarget, Tool, Workspace};
 use egui::{Color32, Ui, Vec2};
 use flare_ui::chrome;
 use flare_ui::theme;
@@ -50,21 +43,32 @@ impl Workspace {
             for (target, icon, hint) in [
                 (ColorTarget::Fill, "fill-color", "Edit the fill color"),
                 (ColorTarget::Stroke, "stroke-color", "Edit the stroke color"),
+                (
+                    ColorTarget::GradientEnd,
+                    "gradient",
+                    "Edit the second color of the gradient",
+                ),
             ] {
                 if chrome::icon_button(ui, icon, BAR_ICON, self.color_target == target, true, hint)
                     .clicked()
                 {
                     self.color_target = target;
+                    // Choosing the gradient's color turns the gradient on.
+                    if target == ColorTarget::GradientEnd {
+                        self.gradient_enabled = true;
+                    }
                 }
             }
             ui.weak(match self.color_target {
                 ColorTarget::Fill => "Fill",
                 ColorTarget::Stroke => "Stroke",
+                ColorTarget::GradientEnd => "Gradient end",
             });
         });
         let target = match self.color_target {
             ColorTarget::Fill => &mut self.fill,
             ColorTarget::Stroke => &mut self.stroke_color,
+            ColorTarget::GradientEnd => &mut self.gradient_end,
         };
         egui::color_picker::color_picker_color32(ui, target, egui::color_picker::Alpha::OnlyBlend);
         ui.add_space(4.0);
@@ -118,21 +122,40 @@ impl Workspace {
             match self.color_target {
                 ColorTarget::Fill => self.fill = color,
                 ColorTarget::Stroke => self.stroke_color = color,
+                ColorTarget::GradientEnd => self.gradient_end = color,
             }
         }
         ui.add_space(6.0);
         ui.horizontal(|ui| {
-            chrome::mock_icon_button(ui, "gradient", BAR_ICON, "Gradient editor");
-            chrome::mock_icon_button(
+            if chrome::icon_button(
+                ui,
+                "gradient",
+                BAR_ICON,
+                self.gradient_enabled,
+                true,
+                "Fill new shapes with a gradient",
+            )
+            .clicked()
+            {
+                self.gradient_enabled = !self.gradient_enabled;
+            }
+            if chrome::icon_button(
                 ui,
                 "eyedropper-small",
                 BAR_ICON,
+                self.tool == Tool::Eyedropper,
+                true,
                 "Pick a color from the stage",
-            );
+            )
+            .clicked()
+            {
+                self.set_tool(Tool::Eyedropper);
+            }
             if chrome::icon_button(ui, "no-color", BAR_ICON, false, true, "No color").clicked() {
                 match self.color_target {
                     ColorTarget::Fill => self.fill = Color32::TRANSPARENT,
                     ColorTarget::Stroke => self.stroke_color = Color32::TRANSPARENT,
+                    ColorTarget::GradientEnd => self.gradient_end = Color32::TRANSPARENT,
                 }
             }
         });

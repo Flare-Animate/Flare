@@ -384,3 +384,151 @@ fn many_span_bounds_match_the_one_at_a_time_answers_and_skip_missing_spans() {
     assert_eq!(many, vec![one]);
     assert!(spans_bounds(f.session.document(), SceneId::new(), &[present]).is_empty());
 }
+
+/// A second layer holding a rectangle span, as another selectable span.
+fn add_on_new_layer(f: &mut Fixture, span: FrameSpan) -> SpanRef {
+    let layer = LayerId::new();
+    f.session
+        .apply([
+            Command::AddLayer {
+                scene: f.scene,
+                layer: Layer::new(layer, "M", vec![]).expect("layer"),
+            },
+            Command::InsertSpan {
+                scene: f.scene,
+                layer,
+                span: span.clone(),
+            },
+        ])
+        .expect("insert");
+    SpanRef {
+        layer,
+        start: span.start(),
+    }
+}
+
+#[test]
+fn grouping_shapes_makes_one_symbol_instance_and_breaking_it_apart_restores_the_parts() {
+    let mut f = fixture();
+    add(&mut f, rect_span(0, 6, 0.0, 0.0, 10.0, 10.0));
+    let first = at(&f, 0);
+    let second = add_on_new_layer(&mut f, rect_span(0, 6, 40.0, 0.0, 10.0, 10.0));
+    assert!(
+        group(f.session.document(), f.scene, &[first]).is_none(),
+        "one shape is not a group"
+    );
+    let (commands, symbol) = group(f.session.document(), f.scene, &[first, second]).expect("group");
+    f.session.apply(commands).expect("apply");
+    let document = f.session.document();
+    assert_eq!(
+        document
+            .symbol(symbol)
+            .expect("symbol")
+            .timeline()
+            .layers()
+            .len(),
+        2
+    );
+    assert!(
+        find_span(document, f.scene, second).is_none(),
+        "the other span is gone"
+    );
+    assert!(matches!(
+        find_span(document, f.scene, first)
+            .expect("instance")
+            .content(),
+        Content::Instance(_)
+    ));
+    // The group moves as one, and breaking it apart puts each part back where it now is.
+    let moved = translate(document, f.scene, first, DVec2::new(100.0, 0.0)).expect("move");
+    f.session.apply(moved).expect("apply");
+    let (commands, parts) = break_apart(f.session.document(), f.scene, first).expect("break apart");
+    assert_eq!(parts.len(), 2);
+    f.session.apply(commands).expect("apply");
+    let document = f.session.document();
+    assert!(
+        find_span(document, f.scene, first).is_none(),
+        "the instance is gone"
+    );
+    let mut lefts: Vec<f32> = parts
+        .iter()
+        .map(|p| span_bounds(document, f.scene, *p).expect("bounds").left())
+        .collect();
+    lefts.sort_by(f32::total_cmp);
+    assert_eq!(lefts, vec![100.0, 140.0]);
+    assert!(
+        break_apart(document, f.scene, parts[0]).is_none(),
+        "a shape cannot be broken apart"
+    );
+}
+
+#[test]
+fn anchors_are_the_segment_ends_and_moving_one_reshapes_the_outline() {
+    let mut f = fixture();
+    add(&mut f, rect_span(0, 4, 0.0, 0.0, 10.0, 10.0));
+    let span = at(&f, 0);
+    let Content::Shape(shape) = find_span(f.session.document(), f.scene, span)
+        .expect("span")
+        .content()
+    else {
+        panic!("shape");
+    };
+    let points = anchors(shape);
+    assert_eq!(points.len(), 4, "a rectangle has four corners");
+    assert_eq!(points[2], (2, Pos2::new(10.0, 10.0)));
+    let commands = move_anchor(
+        f.session.document(),
+        f.scene,
+        span,
+        2,
+        DVec2::new(20.0, 30.0),
+    )
+    .expect("move");
+    f.session.apply(commands).expect("apply");
+    let b = bounds(&f, 0);
+    assert_eq!((b.min, b.max), (Pos2::new(0.0, 0.0), Pos2::new(20.0, 30.0)));
+    assert!(
+        move_anchor(
+            f.session.document(),
+            f.scene,
+            span,
+            2,
+            DVec2::new(20.0, 30.0)
+        )
+        .is_none(),
+        "no movement"
+    );
+    assert!(
+        move_anchor(f.session.document(), f.scene, span, 4, DVec2::ZERO).is_none(),
+        "Close is not an anchor"
+    );
+    assert!(move_anchor(f.session.document(), f.scene, span, 99, DVec2::ZERO).is_none());
+}
+
+#[test]
+fn moving_a_curve_anchor_carries_its_handles() {
+    let mut f = fixture();
+    let ellipse = Shape::ellipse(ShapeId::new(), 10.0, 10.0, 10.0, 10.0, RED).expect("ellipse");
+    add(
+        &mut f,
+        FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(ellipse)),
+    );
+    let span = at(&f, 0);
+    let before = bounds(&f, 0);
+    // The first segment is the move to the right-hand point; drag it 6 units to the right.
+    let commands = move_anchor(
+        f.session.document(),
+        f.scene,
+        span,
+        0,
+        DVec2::new(26.0, 10.0),
+    )
+    .expect("move");
+    f.session.apply(commands).expect("apply");
+    let after = bounds(&f, 0);
+    assert!(
+        after.right() > before.right() + 5.0,
+        "{before:?} then {after:?}"
+    );
+    assert_eq!(after.left(), before.left());
+}

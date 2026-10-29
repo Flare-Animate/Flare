@@ -19,10 +19,10 @@ Executables are in `apps/`.
 | services | `flare-storage` | The `.flare` SQLite container: save, load, revalidation, crash recovery files. |
 | services | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
 | services | `flare-audio` | Sound: decoding (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer, and the sound-card output (the only part that needs a device). |
-| services | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate. |
 | services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound and text, with latest-wins and an inline mode for tests; image export. No UI types. |
 | adapters | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
 | adapters | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
+| adapters | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate. |
 | adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the stage's pan and zoom math. |
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, tools, menu actions. No window or GPU code. |

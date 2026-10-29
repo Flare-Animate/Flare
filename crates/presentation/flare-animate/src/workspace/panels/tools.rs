@@ -1,12 +1,5 @@
 //! The tool strip and the options of the tool in hand.
 
-//! The panels of the workspace: tools, properties, library, color, align, transform, history,
-//! the timeline's toolbar and the status bar.
-//!
-//! Controls that act on the document are real. Controls for features that do not exist yet are
-//! drawn the same way but dimmed, with a hover note, using the mock helpers in `chrome`; each
-//! is a place a later change fills in.
-
 use crate::workspace::{Tool, Workspace};
 use egui::Ui;
 use flare_ui::chrome;
@@ -18,7 +11,12 @@ use super::*;
 /// One cell of the tool grid: the tool it selects, or `None` while the tool does not exist.
 const TOOL_GRID: &[(&str, &str, &str, Option<Tool>)] = &[
     ("tool-selection", "Selection", "V", Some(Tool::Select)),
-    ("tool-subselection", "Subselection", "A", None),
+    (
+        "tool-subselection",
+        "Subselection",
+        "A",
+        Some(Tool::Subselection),
+    ),
     ("tool-transform", "Free Transform", "Q", None),
     ("tool-lasso", "Lasso", "L", Some(Tool::Lasso)),
     ("tool-pen", "Pen", "P", Some(Tool::Pen)),
@@ -118,6 +116,7 @@ impl Workspace {
     pub(crate) fn tool_options(&mut self, ui: &mut Ui) {
         let (icon, title) = match self.tool {
             Tool::Select => return,
+            Tool::Subselection => ("tool-subselection", "Subselection"),
             Tool::Rectangle => ("tool-rectangle", "Rectangle"),
             Tool::Ellipse => ("tool-oval", "Oval"),
             Tool::Line => ("tool-line", "Line"),
@@ -242,6 +241,9 @@ impl Workspace {
                 ui.weak("Drag on the stage. A line always has a stroke.");
             }
             Tool::Select => {}
+            Tool::Subselection => {
+                ui.weak("Click a shape, then drag its square points to reshape it.");
+            }
         }
     }
 
@@ -249,6 +251,7 @@ impl Workspace {
     pub(crate) fn tool_hint(&self) -> &'static str {
         match self.tool {
             Tool::Select => "Selection: click to select, drag to move, Shift-click to add",
+            Tool::Subselection => "Subselection: click a shape, drag its points",
             Tool::Rectangle => "Rectangle: drag on the stage",
             Tool::Ellipse => "Oval: drag on the stage",
             Tool::Line => "Line: drag on the stage",

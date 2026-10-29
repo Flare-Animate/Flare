@@ -31,6 +31,10 @@ impl Workspace {
             | Tool::Lasso
             | Tool::Pencil
             | Tool::Brush => None,
+            Tool::Subselection => {
+                self.begin_anchor_drag(point);
+                None
+            }
             Tool::Select => {
                 let grabbed = if additive {
                     None
@@ -180,6 +184,7 @@ impl Workspace {
     }
 
     pub(super) fn update_drag(&mut self, point: Pos2) {
+        self.update_anchor_drag(point);
         if let Some(drag) = &mut self.drag {
             drag.current = point;
         }
@@ -187,6 +192,7 @@ impl Workspace {
 
     pub(super) fn end_drag(&mut self) {
         let cancelled = std::mem::take(&mut self.drag_cancelled);
+        self.end_anchor_drag(cancelled);
         if let Some(drag) = self.drag.take()
             && !cancelled
         {
@@ -216,6 +222,9 @@ impl Workspace {
         self.span_drag = None;
         self.lasso.clear();
         self.freehand.clear();
+        if self.anchor_drag.take().is_some() {
+            self.drag_cancelled = true;
+        }
         if self.drag.take().is_some() {
             self.drag_cancelled = true;
         }
