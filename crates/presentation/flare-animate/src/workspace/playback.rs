@@ -46,6 +46,11 @@ impl Workspace {
         self.onion.enabled = enabled;
     }
 
+    /// Draws the ghosts as outlines (true) or as faded pictures (false).
+    pub fn set_onion_outlines(&mut self, outlines: bool) {
+        self.onion.outlines = outlines;
+    }
+
     pub fn set_onion_range(&mut self, before: u32, after: u32) {
         self.onion.before = before.min(MAX_ONION_FRAMES);
         self.onion.after = after.min(MAX_ONION_FRAMES);

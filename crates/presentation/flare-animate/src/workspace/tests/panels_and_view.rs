@@ -249,3 +249,22 @@ fn document_settings_opens_the_doc_tab_and_publishing_asks_the_shell_for_a_file(
     assert_eq!(ws.take_dialog(), Some(DialogRequest::PublishSwf));
     assert_eq!(ws.label(MenuAction::PublishSwf), "Publish SWF...");
 }
+
+#[test]
+fn onion_outlines_are_a_setting_that_changes_what_is_drawn_not_just_a_flag() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    rect(&mut ws);
+    ws.set_frame(3);
+    ws.set_onion_skin(true);
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    let faded = ws.texture.as_ref().map(|t| t.onion);
+    assert_eq!(faded.map(|o| o.outlines), Some(false));
+    ws.set_onion_outlines(true);
+    run(&mut ws, &ctx, 0.2);
+    run(&mut ws, &ctx, 0.3);
+    assert_eq!(ws.texture.as_ref().map(|t| t.onion.outlines), Some(true));
+    assert!(ws.onion_skin().outlines);
+    ws.set_onion_outlines(false);
+    assert!(!ws.onion_skin().outlines);
+}

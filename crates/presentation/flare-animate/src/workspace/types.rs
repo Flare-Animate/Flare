@@ -18,6 +18,8 @@ pub struct OnionSkin {
     pub enabled: bool,
     pub before: u32,
     pub after: u32,
+    /// Earlier and later frames show as outlines rather than faded pictures.
+    pub outlines: bool,
 }
 
 impl OnionSkin {
@@ -25,6 +27,7 @@ impl OnionSkin {
         enabled: false,
         before: 0,
         after: 0,
+        outlines: false,
     };
 }
 

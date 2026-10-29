@@ -15,6 +15,8 @@ pub struct RenderJob {
     pub frame: u32,
     /// (frame, opacity), farthest first.
     pub ghosts: Vec<(u32, f32)>,
+    /// Draw the ghosts as thin outlines rather than faded pictures.
+    pub outlines: bool,
     pub viewport: flare_render::Viewport,
     pub size: [u32; 2],
     pub background: Rgba8,

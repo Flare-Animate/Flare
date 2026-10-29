@@ -94,16 +94,29 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
         .map(Rendered::Premultiplied)
         .map_err(|e| e.to_string())
     } else {
-        flare_render::render_onion_viewport(
-            &ghosts,
-            &current,
-            &job.viewport,
-            width,
-            height,
-            job.background,
-        )
-        .map(Rendered::Straight)
-        .map_err(|e| e.to_string())
+        let image = if job.outlines {
+            // One pixel of the picture, in stage units.
+            let pixel = job.viewport.width / f64::from(width.max(1));
+            flare_render::render_onion_outlines_viewport(
+                &ghosts,
+                &current,
+                &job.viewport,
+                width,
+                height,
+                job.background,
+                pixel,
+            )
+        } else {
+            flare_render::render_onion_viewport(
+                &ghosts,
+                &current,
+                &job.viewport,
+                width,
+                height,
+                job.background,
+            )
+        };
+        image.map(Rendered::Straight).map_err(|e| e.to_string())
     }
 }
 

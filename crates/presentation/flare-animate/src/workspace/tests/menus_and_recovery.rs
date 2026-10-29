@@ -405,7 +405,8 @@ fn onion_range_is_clamped_and_survives_opening_a_project() {
         OnionSkin {
             enabled: true,
             before: MAX_ONION_FRAMES,
-            after: 3
+            after: 3,
+            outlines: false
         }
     );
 }

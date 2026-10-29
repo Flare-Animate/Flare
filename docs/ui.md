@@ -34,7 +34,7 @@ Still planned (everything else in the menus and panels is built):
 
 - Properties: stroke cap and join, text style.
 - Library: folders, a preview of the symbol.
-- Timeline: onion-skin outlines, layer folders, motion guides, the outline column.
+- Timeline: layer folders, motion guides, the outline column.
 - View: guides and outline mode.
 - File: Open Recent, Save All, Export Movie, Publish Settings. (Import XFL or FLA, Preferences, New,
   Close and Revert are built; they work on the one document a window holds until multi-document

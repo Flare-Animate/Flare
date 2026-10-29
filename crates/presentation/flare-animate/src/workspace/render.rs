@@ -81,6 +81,8 @@ impl Workspace {
             };
             let mut hasher = std::collections::hash_map::DefaultHasher::new();
             current.signature().hash(&mut hasher);
+            // Outlines and faded pictures of the same frames are different images.
+            onion.outlines.hash(&mut hasher);
             for (frame, opacity) in &ghost_frames {
                 if let Ok(ghost) = flare_eval::evaluate_frame(document, scene, *frame) {
                     ghost.signature().hash(&mut hasher);
@@ -123,6 +125,7 @@ impl Workspace {
             document: self.active().snapshot(),
             scene,
             frame: self.frame,
+            outlines: onion.outlines,
             ghosts: ghost_frames,
             viewport: flare_render::Viewport {
                 x: f64::from(view.region.min.x),

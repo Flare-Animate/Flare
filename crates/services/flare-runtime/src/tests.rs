@@ -28,6 +28,7 @@ fn render_job(runtime: &mut Runtime, document: &Arc<Document>) -> RenderJob {
         scene: document.scenes()[0].id(),
         frame: 0,
         ghosts: Vec::new(),
+        outlines: false,
         viewport: flare_render::Viewport::full(16, 8),
         size: [16, 8],
         background: Rgba8::WHITE,

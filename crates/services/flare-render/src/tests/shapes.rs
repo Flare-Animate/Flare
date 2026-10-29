@@ -304,3 +304,52 @@ fn onion_frames_sit_beneath_the_current_frame() {
         plain
     );
 }
+
+#[test]
+fn onion_outlines_draw_the_ghost_as_a_line_and_leave_its_inside_empty() {
+    let blue = Rgba8::opaque(0, 0, 255);
+    let layer = |content: (u32, Content)| {
+        Layer::new(
+            LayerId::new(),
+            "L",
+            vec![FrameSpan::new(content.0, NonZeroU32::MIN, content.1)],
+        )
+        .expect("layer")
+    };
+    // Frame 0: a big red square. Frame 1: a small blue one far from it.
+    let timeline = Timeline::new(vec![
+        layer((1, rect(50.0, 50.0, 10.0, 10.0, blue))),
+        layer((0, rect(5.0, 5.0, 30.0, 30.0, RED))),
+    ]);
+    let id = SceneId::new();
+    let scene = Scene::new(id, "S", timeline);
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let doc = Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("doc");
+    let ghost = flare_eval::evaluate_frame(&doc, id, 0).expect("ghost");
+    let current = flare_eval::evaluate_frame(&doc, id, 1).expect("current");
+    let image = render_onion_outlines_viewport(
+        &[(&ghost, 0.5)],
+        &current,
+        &Viewport::full(80, 80),
+        80,
+        80,
+        Rgba8::WHITE,
+        1.5,
+    )
+    .expect("onion");
+    assert_eq!(
+        image.pixel(20, 20),
+        Some(Rgba8::WHITE),
+        "the inside of the ghost is not painted"
+    );
+    let edge = image.pixel(5, 20).expect("pixel");
+    assert!(
+        edge != Rgba8::WHITE && edge.b > edge.r,
+        "the outline is a bluish line: {edge:?}"
+    );
+    assert_eq!(
+        image.pixel(55, 55),
+        Some(blue),
+        "the current frame is drawn solid"
+    );
+}

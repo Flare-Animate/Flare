@@ -8,7 +8,7 @@
 use std::io::Write;
 
 use flare_core::Rgba8;
-use flare_document::PathSegment;
+use flare_document::{PathSegment, Shape, Stroke as Stroke2};
 use flare_eval::Frame;
 use thiserror::Error;
 use vello_cpu::color::{AlphaColor, Srgb};
@@ -210,6 +210,72 @@ pub fn render_onion_viewport(
     for (frame, opacity) in ghosts {
         let ghost = render_viewport(frame, viewport, width, height, Rgba8::TRANSPARENT)?;
         image.composite(&ghost.faded(*opacity))?;
+    }
+    image.composite(&render_viewport(
+        current,
+        viewport,
+        width,
+        height,
+        Rgba8::TRANSPARENT,
+    )?)?;
+    Ok(image)
+}
+
+/// `frame` as outlines only: each shape becomes its path stroked `line_width` wide (in the
+/// shape's own units, so it stays about that wide however it is scaled) with no fill. These are
+/// what onion-skin outlines draw instead of translucent copies.
+fn outlined(frame: &Frame<'_>, line_width: f64, color: Rgba8) -> Vec<Shape> {
+    frame
+        .shapes
+        .iter()
+        .map(|drawn| {
+            let scale = drawn.transform.matrix2.determinant().abs().sqrt().max(1e-6);
+            let width = (line_width / scale).clamp(1e-6, flare_document::MAX_STROKE_WIDTH);
+            let path = drawn.shape.path().to_vec();
+            match (
+                Shape::new(drawn.shape.id(), path, Rgba8::TRANSPARENT),
+                Stroke2::new(width, color),
+            ) {
+                (Ok(shape), Ok(stroke)) => shape.with_stroke(stroke),
+                _ => drawn.shape.clone(),
+            }
+        })
+        .collect()
+}
+
+/// [`render_onion_viewport`] with the ghosts drawn as thin outlines rather than faded pictures,
+/// `line_width` stage units wide, so earlier and later frames show as guide lines over the
+/// current one.
+pub fn render_onion_outlines_viewport(
+    ghosts: &[(&Frame<'_>, f32)],
+    current: &Frame<'_>,
+    viewport: &Viewport,
+    width: u32,
+    height: u32,
+    background: Rgba8,
+    line_width: f64,
+) -> Result<Image, RenderError> {
+    let empty = Frame::default();
+    let mut image = render_viewport(&empty, viewport, width, height, background)?;
+    for (frame, opacity) in ghosts {
+        let shapes = outlined(frame, line_width, Rgba8::opaque(70, 150, 255));
+        let lines = Frame {
+            placed: Vec::new(),
+            shapes: frame
+                .shapes
+                .iter()
+                .zip(&shapes)
+                .map(|(drawn, shape)| flare_eval::DrawnShape {
+                    path: drawn.path.clone(),
+                    shape,
+                    transform: drawn.transform,
+                    clips: drawn.clips.clone(),
+                })
+                .collect(),
+            clips: frame.clips.clone(),
+        };
+        let ghost = render_viewport(&lines, viewport, width, height, Rgba8::TRANSPARENT)?;
+        image.composite(&ghost.faded(opacity.max(0.35)))?;
     }
     image.composite(&render_viewport(
         current,

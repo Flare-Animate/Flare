@@ -82,7 +82,20 @@ impl Workspace {
                 onion = !onion;
             }
             self.set_onion_skin(onion);
-            chrome::mock_icon_button(ui, "onion-outline", BAR_ICON, "Onion skin outlines");
+            ui.add_enabled_ui(onion, |ui| {
+                if chrome::icon_button(
+                    ui,
+                    "onion-outline",
+                    BAR_ICON,
+                    self.onion.outlines,
+                    true,
+                    "Show onion skin as outlines",
+                )
+                .clicked()
+                {
+                    self.set_onion_outlines(!self.onion.outlines);
+                }
+            });
             ui.add_enabled_ui(onion, |ui| {
                 let (mut before, mut after) = (self.onion.before, self.onion.after);
                 ui.add(

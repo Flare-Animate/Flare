@@ -304,6 +304,7 @@ impl Workspace {
                 enabled: false,
                 before: 1,
                 after: 1,
+                outlines: false,
             },
             test_movie_requested: false,
             pen: PenPath::default(),
