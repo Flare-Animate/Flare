@@ -37,7 +37,7 @@ Planned, in the order they will be built:
 - Panels: Align, Distribute, Bring to front and Send to back, and the typed Transform numbers are built (Group and Ungroup are not).
 - Menu: Cut, Select All, Deselect All, Rewind, Step Forward and Backward and Actual Size are built.
 - Properties: editable position and size, stroke cap and join, text style, frame rate.
-- Library: search, new symbol, folders, symbol properties, delete, preview.
+- Library: folders, preview. (Built: search, new symbol, rename, delete.)
 - Color: gradient editor, eyedropper button. (Built: hex entry, no color, swap and default colors.)
 - Align panel: align, distribute, arrange, group.
 - Transform panel: numeric scale, rotate and skew; break apart.

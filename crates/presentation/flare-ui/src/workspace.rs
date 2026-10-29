@@ -454,6 +454,9 @@ pub struct Workspace {
     stage_panel: Rect,
     span_drag: Option<SpanDrag>,
     selected_symbol: Option<SymbolId>,
+    library_search: String,
+    /// The symbol being renamed in the library and the text so far.
+    renaming: Option<(SymbolId, String)>,
     current_layer: Option<LayerId>,
     layer_name_edit: String,
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
@@ -550,6 +553,8 @@ impl Workspace {
             stage_panel: Rect::NOTHING,
             span_drag: None,
             selected_symbol: None,
+            library_search: String::new(),
+            renaming: None,
             current_layer: None,
             layer_name_edit: String::new(),
             native_menu: false,
@@ -3034,6 +3039,59 @@ impl Workspace {
     }
 
     /// Adds an instance of the library-selected symbol, centered on the stage.
+    /// Adds an empty symbol to the library and selects it. Library edits belong to the main
+    /// document, so they wait until symbol editing is left.
+    pub fn new_symbol(&mut self) {
+        if self.in_symbol() {
+            self.report("Leave symbol editing to change the library");
+            return;
+        }
+        let taken: std::collections::HashSet<String> = self
+            .document()
+            .symbols()
+            .iter()
+            .map(|s| s.name().to_owned())
+            .collect();
+        let name = (1..)
+            .map(|n| format!("Symbol {n}"))
+            .find(|name| !taken.contains(name))
+            .unwrap_or_default();
+        let id = SymbolId::new();
+        let symbol = flare_document::Symbol::new(id, name, flare_document::Timeline::default());
+        self.run_batch(vec![Command::AddSymbol(symbol)], "add the symbol");
+        if self.status.is_none() {
+            self.selected_symbol = Some(id);
+        }
+    }
+
+    /// Renames a library symbol; a blank name is ignored.
+    pub fn rename_symbol(&mut self, id: SymbolId, name: &str) {
+        let name = name.trim();
+        if name.is_empty() || self.in_symbol() {
+            return;
+        }
+        if self.document().symbol(id).is_some_and(|s| s.name() == name) {
+            return;
+        }
+        let command = Command::RenameSymbol {
+            symbol: id,
+            name: name.to_owned(),
+        };
+        self.run_batch(vec![command], "rename the symbol");
+    }
+
+    /// Deletes a library symbol; the edit is refused while an instance still uses it.
+    pub fn delete_symbol(&mut self, id: SymbolId) {
+        if self.in_symbol() {
+            self.report("Leave symbol editing to change the library");
+            return;
+        }
+        self.run_batch(vec![Command::RemoveSymbol(id)], "delete the symbol");
+        if self.selected_symbol == Some(id) {
+            self.selected_symbol = None;
+        }
+    }
+
     pub fn place_selected_symbol(&mut self) {
         let (Some(symbol), Some(scene)) = (self.selected_symbol, self.scene_id()) else {
             self.report("Select a symbol in the library first");
@@ -8051,5 +8109,34 @@ mod tests {
         assert_eq!((ws.fill, ws.stroke_color), (Color32::BLUE, Color32::RED));
         ws.default_colors();
         assert_eq!((ws.fill, ws.stroke_color), (Color32::WHITE, Color32::BLACK));
+    }
+
+    #[test]
+    fn the_library_makes_renames_and_deletes_symbols_but_refuses_to_delete_one_in_use() {
+        let mut ws = workspace();
+        ws.new_symbol();
+        ws.new_symbol();
+        let names: Vec<String> = ws
+            .document()
+            .symbols()
+            .iter()
+            .map(|s| s.name().to_owned())
+            .collect();
+        assert_eq!(names, ["Symbol 1", "Symbol 2"]);
+        let id = ws.selected_symbol.expect("the new symbol is selected");
+        ws.rename_symbol(id, "  Hero ");
+        assert_eq!(ws.document().symbol(id).expect("symbol").name(), "Hero");
+        ws.rename_symbol(id, "   ");
+        assert_eq!(ws.document().symbol(id).expect("symbol").name(), "Hero");
+        ws.place_selected_symbol();
+        ws.delete_symbol(id);
+        assert!(ws.document().symbol(id).is_some(), "in use");
+        assert!(ws.status.is_some());
+        ws.undo();
+        ws.delete_symbol(id);
+        assert!(ws.document().symbol(id).is_none());
+        assert!(ws.selected_symbol.is_none());
+        ws.undo();
+        assert!(ws.document().symbol(id).is_some());
     }
 }

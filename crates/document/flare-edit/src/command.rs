@@ -19,6 +19,12 @@ pub enum LayerChange {
 pub enum Command {
     AddSymbol(Symbol),
     AddScene(Scene),
+    RenameSymbol {
+        symbol: SymbolId,
+        name: String,
+    },
+    /// Removes a symbol from the library. The edit is refused while an instance still uses it.
+    RemoveSymbol(SymbolId),
     /// Replaces a symbol's whole timeline.
     ReplaceSymbolTimeline {
         symbol: SymbolId,
@@ -142,6 +148,20 @@ fn step(
     match command {
         Command::AddSymbol(symbol) => symbols.push(symbol),
         Command::AddScene(scene) => scenes.push(scene),
+        Command::RenameSymbol { symbol, name } => {
+            let slot = symbols
+                .iter_mut()
+                .find(|s| s.id() == symbol)
+                .ok_or(EditError::NoSuchSymbol(symbol))?;
+            *slot = slot.clone().with_name(name);
+        }
+        Command::RemoveSymbol(id) => {
+            let before = symbols.len();
+            symbols.retain(|s| s.id() != id);
+            if symbols.len() == before {
+                return Err(EditError::NoSuchSymbol(id));
+            }
+        }
         Command::MergeSymbolEdit {
             symbol,
             timeline,

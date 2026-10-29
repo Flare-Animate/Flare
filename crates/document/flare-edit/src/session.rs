@@ -549,4 +549,41 @@ mod tests {
             "Layer 1"
         );
     }
+
+    #[test]
+    fn symbols_can_be_renamed_and_removed_unless_an_instance_uses_them() {
+        let mut f = fixture();
+        f.session.apply([add_symbol(&f)]).expect("add");
+        f.session
+            .apply([Command::RenameSymbol {
+                symbol: f.symbol,
+                name: "Hero".into(),
+            }])
+            .expect("rename");
+        assert_eq!(f.session.document().symbols()[0].name(), "Hero");
+        f.session.apply([insert(&f, 0)]).expect("use it");
+        assert!(
+            f.session.apply([Command::RemoveSymbol(f.symbol)]).is_err(),
+            "an instance still uses it"
+        );
+        assert_eq!(f.session.document().symbols().len(), 1);
+        f.session
+            .apply([Command::RemoveSpan {
+                scene: f.scene,
+                layer: f.layer,
+                start: 0,
+            }])
+            .expect("clear");
+        f.session
+            .apply([Command::RemoveSymbol(f.symbol)])
+            .expect("remove");
+        assert!(f.session.document().symbols().is_empty());
+        assert!(f.session.undo());
+        assert_eq!(f.session.document().symbols()[0].name(), "Hero");
+        assert!(
+            f.session
+                .apply([Command::RemoveSymbol(SymbolId::new())])
+                .is_err()
+        );
+    }
 }

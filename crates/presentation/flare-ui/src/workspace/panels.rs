@@ -12,7 +12,7 @@ use super::{
     ColorTarget, Command, Layer, LayerId, MAX_ONION_FRAMES, Mode, SymbolId, Tool, Workspace,
 };
 use crate::actions::MenuAction;
-use crate::chrome::{self, NOT_YET};
+use crate::chrome;
 use crate::icons;
 use crate::theme;
 
@@ -393,14 +393,16 @@ impl Workspace {
             });
         });
         ui.add_space(4.0);
-        let mut search = String::new();
-        ui.add_enabled(
-            false,
-            egui::TextEdit::singleline(&mut search)
+        ui.add(
+            egui::TextEdit::singleline(&mut self.library_search)
                 .hint_text("Search library")
                 .desired_width(f32::INFINITY),
-        )
-        .on_disabled_hover_text(NOT_YET);
+        );
+        let needle = self.library_search.trim().to_lowercase();
+        let entries: Vec<(SymbolId, String)> = entries
+            .into_iter()
+            .filter(|(_, name)| needle.is_empty() || name.to_lowercase().contains(&needle))
+            .collect();
         ui.add_space(4.0);
         let list_height = (ui.available_height() - 34.0).max(40.0);
         egui::ScrollArea::vertical()
@@ -415,12 +417,39 @@ impl Workspace {
                 }
                 for (id, name) in entries {
                     let chosen = self.selected_symbol == Some(id);
+                    if let Some((target, text)) = &mut self.renaming
+                        && *target == id
+                    {
+                        let edit =
+                            ui.add(egui::TextEdit::singleline(text).desired_width(f32::INFINITY));
+                        edit.request_focus();
+                        let done = edit.lost_focus();
+                        let cancel = ui.input(|i| i.key_pressed(egui::Key::Escape));
+                        if done || cancel {
+                            let text = std::mem::take(text);
+                            self.renaming = None;
+                            if !cancel {
+                                self.rename_symbol(id, &text);
+                            }
+                        }
+                        continue;
+                    }
                     let response = ui
                         .horizontal(|ui| {
                             ui.add(icons::image("symbol-graphic", 16.0, theme::TEXT_DIM));
-                            ui.selectable_label(chosen, name)
+                            ui.selectable_label(chosen, name.clone())
                         })
                         .inner;
+                    response.context_menu(|ui| {
+                        if ui.button("Rename").clicked() {
+                            self.renaming = Some((id, name.clone()));
+                            ui.close();
+                        }
+                        if ui.button("Delete").clicked() {
+                            self.delete_symbol(id);
+                            ui.close();
+                        }
+                    });
                     if response.clicked() {
                         self.selected_symbol = Some(id);
                     }
@@ -444,10 +473,48 @@ impl Workspace {
             {
                 self.place_selected_symbol();
             }
-            chrome::mock_icon_button(ui, "symbol-movie-clip", BAR_ICON, "New symbol");
+            let editable = !self.in_symbol();
+            if chrome::icon_button(
+                ui,
+                "symbol-movie-clip",
+                BAR_ICON,
+                false,
+                editable,
+                "New symbol",
+            )
+            .clicked()
+            {
+                self.new_symbol();
+            }
             chrome::mock_icon_button(ui, "folder", BAR_ICON, "New folder");
-            chrome::mock_icon_button(ui, "settings", BAR_ICON, "Symbol properties");
-            chrome::mock_icon_button(ui, "delete", BAR_ICON, "Delete symbol");
+            let selected = self.selected_symbol.filter(|_| editable);
+            if chrome::icon_button(
+                ui,
+                "settings",
+                BAR_ICON,
+                false,
+                selected.is_some(),
+                "Rename symbol",
+            )
+            .clicked()
+                && let Some(id) = selected
+                && let Some(symbol) = self.document().symbol(id)
+            {
+                self.renaming = Some((id, symbol.name().to_owned()));
+            }
+            if chrome::icon_button(
+                ui,
+                "delete",
+                BAR_ICON,
+                false,
+                selected.is_some(),
+                "Delete symbol",
+            )
+            .clicked()
+                && let Some(id) = selected
+            {
+                self.delete_symbol(id);
+            }
         });
     }
 

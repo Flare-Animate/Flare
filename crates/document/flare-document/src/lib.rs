@@ -60,6 +60,13 @@ impl Symbol {
         &self.name
     }
 
+    /// The same symbol under another name.
+    #[must_use]
+    pub fn with_name(mut self, name: impl Into<String>) -> Self {
+        self.name = name.into();
+        self
+    }
+
     pub fn kind(&self) -> SymbolKind {
         self.kind
     }
