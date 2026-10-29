@@ -84,6 +84,43 @@ mod tests {
         }
     }
 
+    /// Arrows that point along an axis are drawn so they look balanced, not so their box is.
+    const OPTICALLY_BALANCED: [&str; 3] = ["transport-play", "transport-prev", "transport-next"];
+
+    #[test]
+    fn every_icon_is_centered_in_its_square_so_buttons_line_up() {
+        for (name, svg) in TABLE {
+            if OPTICALLY_BALANCED.contains(name) {
+                continue;
+            }
+            let rendered = egui_extras::image::load_svg_bytes_with_size(
+                svg,
+                egui::SizeHint::Size {
+                    width: 96,
+                    height: 96,
+                    maintain_aspect_ratio: true,
+                },
+                &Default::default(),
+            )
+            .unwrap_or_else(|e| panic!("{name} does not render: {e}"));
+            let [width, height] = rendered.size;
+            let (mut x0, mut x1, mut y0, mut y1) = (width, 0, height, 0);
+            for (i, pixel) in rendered.pixels.iter().enumerate() {
+                if pixel.a() > 20 {
+                    let (x, y) = (i % width, i / width);
+                    (x0, x1, y0, y1) = (x0.min(x), x1.max(x + 1), y0.min(y), y1.max(y + 1));
+                }
+            }
+            // In 24-unit icon coordinates, how far the drawing's box is from the middle.
+            let off_x = ((x0 + x1) as f32 / 2.0 - width as f32 / 2.0) * 24.0 / width as f32;
+            let off_y = ((y0 + y1) as f32 / 2.0 - height as f32 / 2.0) * 24.0 / height as f32;
+            assert!(
+                off_x.abs() <= 0.8 && off_y.abs() <= 0.8,
+                "{name} sits off-center by ({off_x:.2}, {off_y:.2}) units"
+            );
+        }
+    }
+
     #[test]
     fn icons_are_white_so_a_tint_is_the_whole_colour() {
         for (name, svg) in TABLE {

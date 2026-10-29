@@ -117,3 +117,111 @@ pub fn empty_state(ui: &mut Ui, icon: &str, message: &str) {
         ui.label(egui::RichText::new(message).color(theme::TEXT_DIM));
     });
 }
+
+/// A segmented control: the choices side by side in a recessed track, the chosen one raised
+/// with an accent underline. It is not a row of tabs: it switches what one panel shows, so it
+/// looks unlike the dock's tab bar. Returns the index clicked, if any.
+pub fn segmented(ui: &mut Ui, labels: &[&str], selected: usize) -> Option<usize> {
+    let height = 24.0;
+    let width = ui.available_width();
+    let (track, _) = ui.allocate_exact_size(egui::vec2(width, height), Sense::hover());
+    let painter = ui.painter();
+    painter.rect(
+        track,
+        6.0,
+        theme::FIELD,
+        egui::Stroke::new(1.0, theme::BORDER),
+        egui::StrokeKind::Inside,
+    );
+    let count = labels.len().max(1) as f32;
+    let segment = (track.width() - 4.0) / count;
+    let mut clicked = None;
+    for (index, label) in labels.iter().enumerate() {
+        let rect = egui::Rect::from_min_size(
+            track.min + egui::vec2(2.0 + segment * index as f32, 2.0),
+            egui::vec2(segment, height - 4.0),
+        );
+        let response = ui.interact(
+            rect,
+            ui.make_persistent_id(("segment", index)),
+            Sense::click(),
+        );
+        let chosen = index == selected;
+        if chosen {
+            painter.rect_filled(rect, 4.0, theme::PANEL_RAISED);
+            painter.hline(
+                rect.shrink2(egui::vec2(8.0, 0.0)).x_range(),
+                rect.bottom() - 1.5,
+                egui::Stroke::new(2.0, theme::ACCENT),
+            );
+        } else if response.hovered() {
+            painter.rect_filled(rect, 4.0, theme::HOVER.gamma_multiply(0.6));
+        }
+        painter.text(
+            rect.center(),
+            egui::Align2::CENTER_CENTER,
+            *label,
+            egui::FontId::proportional(13.0),
+            if chosen { theme::TEXT } else { theme::TEXT_DIM },
+        );
+        if response.clicked() {
+            clicked = Some(index);
+        }
+    }
+    clicked
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    fn pass(ctx: &egui::Context, time: f64, events: Vec<egui::Event>, chosen: &mut usize) {
+        let input = egui::RawInput {
+            time: Some(time),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(400.0, 200.0),
+            )),
+            events,
+            ..egui::RawInput::default()
+        };
+        let mut output = ctx.run_ui(input, |ui| {
+            if let Some(index) = segmented(ui, &["One", "Two", "Three", "Four"], *chosen) {
+                *chosen = index;
+            }
+        });
+        output.textures_delta.clear();
+    }
+
+    #[test]
+    fn clicking_a_segment_chooses_it_and_only_that_one() {
+        let ctx = egui::Context::default();
+        let mut chosen = 0;
+        pass(&ctx, 0.0, vec![], &mut chosen);
+        // The track fills the width; the third of four segments is around 5/8 of it.
+        let at = egui::pos2(400.0 * 0.62, 18.0);
+        let click = |pressed| egui::Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        pass(
+            &ctx,
+            0.1,
+            vec![egui::Event::PointerMoved(at), click(true)],
+            &mut chosen,
+        );
+        pass(&ctx, 0.2, vec![click(false)], &mut chosen);
+        assert_eq!(chosen, 2, "the third segment was chosen");
+    }
+
+    #[test]
+    fn an_empty_or_out_of_range_selection_still_draws() {
+        let ctx = egui::Context::default();
+        let mut chosen = 9;
+        pass(&ctx, 0.0, vec![], &mut chosen);
+        assert_eq!(chosen, 9, "nothing clicked, nothing changed");
+    }
+}

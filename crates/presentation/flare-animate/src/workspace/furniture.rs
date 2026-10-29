@@ -134,11 +134,6 @@ impl Workspace {
             if toggle {
                 self.playing = !self.playing;
             }
-            if delete && self.pen.is_active() {
-                self.pen_remove_last();
-            } else if delete {
-                self.delete_selection();
-            }
             if enter_pressed(ctx) {
                 self.pen_finish();
             }
@@ -150,6 +145,15 @@ impl Workspace {
             }
             if right {
                 self.set_frame(self.frame.saturating_add(1));
+            }
+        }
+        // Delete only gives way to a text field being edited: a button that kept the focus after a
+        // click must not swallow it.
+        if delete && !ctx.text_edit_focused() {
+            if self.pen.is_active() {
+                self.pen_remove_last();
+            } else {
+                self.delete_selection();
             }
         }
         if escape {

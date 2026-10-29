@@ -12,19 +12,18 @@ impl Workspace {
     // ---- properties --------------------------------------------------------------------
 
     pub(crate) fn properties_panel(&mut self, ui: &mut Ui) {
-        ui.horizontal(|ui| {
-            for (tab, label) in [
-                (PropsTab::Tool, "Tool"),
-                (PropsTab::Object, "Object"),
-                (PropsTab::Frame, "Frame"),
-                (PropsTab::Doc, "Doc"),
-            ] {
-                if ui.selectable_label(self.props_tab == tab, label).clicked() {
-                    self.props_tab = tab;
-                }
-            }
-        });
-        ui.separator();
+        const TABS: [(PropsTab, &str); 4] = [
+            (PropsTab::Tool, "Tool"),
+            (PropsTab::Object, "Object"),
+            (PropsTab::Frame, "Frame"),
+            (PropsTab::Doc, "Doc"),
+        ];
+        let labels = TABS.map(|(_, label)| label);
+        let current = TABS.iter().position(|(tab, _)| *tab == self.props_tab);
+        if let Some(index) = chrome::segmented(ui, &labels, current.unwrap_or(0)) {
+            self.props_tab = TABS[index].0;
+        }
+        ui.add_space(4.0);
         egui::ScrollArea::vertical()
             .auto_shrink(false)
             .show(ui, |ui| match self.props_tab {

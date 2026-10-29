@@ -62,6 +62,19 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         }
     }
 
+    /// Dock tabs are flat: the raised one is told apart by its fill, not by an outline, which
+    /// leaves the outlined, accent-marked segmented control inside panels clearly a different
+    /// kind of control.
+    fn tab_outline_stroke(
+        &self,
+        _visuals: &egui::Visuals,
+        _tiles: &egui_tiles::Tiles<Pane>,
+        _tile_id: egui_tiles::TileId,
+        _state: &egui_tiles::TabState,
+    ) -> egui::Stroke {
+        egui::Stroke::NONE
+    }
+
     fn tab_text_color(
         &self,
         _visuals: &egui::Visuals,

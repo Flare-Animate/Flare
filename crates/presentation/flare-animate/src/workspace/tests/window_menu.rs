@@ -236,3 +236,37 @@ fn the_text_menu_sets_how_new_text_is_made_within_the_size_limits() {
     }
     assert_eq!(ws.text_size, flare_text::MIN_SIZE, "bounded below");
 }
+
+#[test]
+fn clicking_a_shape_on_the_stage_and_pressing_delete_removes_it() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    let stage = ws.document().stage();
+    ws.commit_rectangle(
+        Pos2::ZERO,
+        Pos2::new(stage.width() as f32, stage.height() as f32),
+    );
+    ws.perform(MenuAction::ToolSelect);
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    let center = ws.stage_panel.center();
+    let click = |pressed| Event::PointerButton {
+        pos: center,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.2, vec![Event::PointerMoved(center), click(true)]),
+    );
+    pass(&mut ws, &ctx, input(0.3, vec![click(false)]));
+    assert!(ws.has_selection(), "the click selected the shape");
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.4, vec![key(Key::Delete, Modifiers::NONE)]),
+    );
+    assert!(!ws.has_selection(), "Delete removed what was selected");
+    assert_eq!(spans_of(&ws, 1), 0);
+}
