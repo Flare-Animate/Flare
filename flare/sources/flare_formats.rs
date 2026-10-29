@@ -276,6 +276,8 @@ pub mod igs_hsv_noise_in_camera;
 pub mod igs_hls_noise_in_camera;
 #[path = "stdfx/iwa_noise1234.rs"]
 pub mod iwa_noise1234;
+#[path = "stdfx/iwa_simplexnoise.rs"]
+pub mod iwa_simplexnoise;
 #[path = "stdfx/igs_resource_sleep.rs"]
 pub mod igs_resource_sleep;
 #[path = "flareqt/trepetitionguard.rs"]
