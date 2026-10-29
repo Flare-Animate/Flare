@@ -12,6 +12,7 @@ mod align;
 mod color;
 mod history;
 mod info;
+#[cfg(test)]
 pub(super) use info::color_at as info_color_at;
 mod library;
 mod properties;
