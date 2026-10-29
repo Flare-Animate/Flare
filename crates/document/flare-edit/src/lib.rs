@@ -7,8 +7,10 @@
 #![forbid(unsafe_code)]
 
 mod command;
+mod context;
 pub mod frames;
 mod session;
 
 pub use command::{Command, EditError, LayerChange};
+pub use context::symbol_workspace;
 pub use session::EditorSession;

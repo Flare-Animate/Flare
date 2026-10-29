@@ -1,4 +1,4 @@
-use flare_core::{LayerId, SceneId};
+use flare_core::{LayerId, SceneId, SymbolId};
 use flare_document::Timeline;
 use flare_document::{Diagnostic, Document, FrameSpan, Layer, Scene, Stage, Symbol, TimelineError};
 use thiserror::Error;
@@ -15,6 +15,11 @@ pub enum LayerChange {
 pub enum Command {
     AddSymbol(Symbol),
     AddScene(Scene),
+    /// Replaces a symbol's whole timeline (used when leaving in-place symbol editing).
+    ReplaceSymbolTimeline {
+        symbol: SymbolId,
+        timeline: Timeline,
+    },
     SetStage(Stage),
     UpdateLayer {
         scene: SceneId,
@@ -51,6 +56,8 @@ pub enum Command {
 pub enum EditError {
     #[error("no such scene {0:?}")]
     NoSuchScene(SceneId),
+    #[error("no such symbol {0:?}")]
+    NoSuchSymbol(SymbolId),
     #[error("no such layer {0:?}")]
     NoSuchLayer(LayerId),
     #[error("no span starts at frame {0}")]
@@ -75,6 +82,13 @@ pub(crate) fn apply(document: &Document, command: Command) -> Result<Document, E
     match command {
         Command::AddSymbol(symbol) => symbols.push(symbol),
         Command::AddScene(scene) => scenes.push(scene),
+        Command::ReplaceSymbolTimeline { symbol, timeline } => {
+            let slot = symbols
+                .iter_mut()
+                .find(|s| s.id() == symbol)
+                .ok_or(EditError::NoSuchSymbol(symbol))?;
+            *slot = Symbol::new(slot.id(), slot.name(), timeline);
+        }
         Command::SetStage(new_stage) => stage = new_stage,
         Command::UpdateLayer {
             scene,
