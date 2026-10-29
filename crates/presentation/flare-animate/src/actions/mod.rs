@@ -33,6 +33,7 @@ pub enum MenuAction {
     BreakApart,
     PublishSwf,
     DocumentSettings,
+    Preferences,
     EditSymbol,
     ExitSymbol,
     ToolSelect,
@@ -95,7 +96,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 80] = [
+    pub const ALL: [MenuAction; 81] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -117,6 +118,7 @@ impl MenuAction {
         Self::BreakApart,
         Self::PublishSwf,
         Self::DocumentSettings,
+        Self::Preferences,
         Self::EditSymbol,
         Self::ExitSymbol,
         Self::ToolSelect,

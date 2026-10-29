@@ -115,6 +115,7 @@ impl MenuAction {
             Self::BreakApart => "break-apart",
             Self::PublishSwf => "file-publish",
             Self::DocumentSettings => "settings",
+            Self::Preferences => "settings",
             Self::ToolRectangle => "tool-rectangle",
             Self::ToolEllipse => "tool-oval",
             Self::ToolLine => "tool-line",

@@ -36,9 +36,8 @@ Still planned (everything else in the menus and panels is built):
 - Library: folders, a preview of the symbol.
 - Timeline: onion-skin outlines, layer folders, motion guides, the outline column.
 - View: guides and outline mode.
-- File: Open Recent, Save All, Export Movie, Publish Settings, Import to Stage and Library, and
-  Preferences (New, Close and Revert work on the one document a window holds until multi-document
-  tabs exist).
+- File: Open Recent, Save All, Export Movie, Publish Settings, Import to Stage and Library. New,
+  Close and Revert work on the one document a window holds until multi-document tabs exist.
 - Edit, Modify, Text, Commands and Help entries listed dimmed in the menus.
 
 ## Top bar

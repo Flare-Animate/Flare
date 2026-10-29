@@ -53,6 +53,7 @@ impl Workspace {
             self.layout = layout;
         });
 
+        self.preferences_window(&ctx);
         if self.playing {
             ctx.request_repaint();
         }

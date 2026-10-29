@@ -34,6 +34,7 @@ mod layers;
 mod panels;
 mod pen_tool;
 mod playback;
+mod preferences;
 mod render;
 mod selection;
 mod shell;
@@ -51,6 +52,7 @@ use helpers::*;
 use types::*;
 pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
 pub use flare_audio::AudioEvent;
+pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use types::{
     DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest, onion_ghosts,
 };
@@ -79,6 +81,7 @@ pub struct Workspace {
     /// The open or recover request in flight, if any.
     opening: Option<u64>,
     /// The open that is a revert: it replaces the document even though it has changes.
+    preferences_open: bool,
     reverting: Option<u64>,
     revert_pending: bool,
     /// The autosave in flight, if any. Another is not started until it finishes.
@@ -233,6 +236,7 @@ impl Workspace {
             pending_render: None,
             render_inbox: Vec::new(),
             opening: None,
+            preferences_open: false,
             reverting: None,
             revert_pending: false,
             autosaving: None,

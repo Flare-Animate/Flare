@@ -7,7 +7,7 @@ mod ui;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use flare_animate::{MAX_LAYOUT_BYTES, Workspace};
+use flare_animate::{MAX_LAYOUT_BYTES, MAX_PREFERENCES_BYTES, Workspace};
 use flare_platform::{dirs, recovery};
 
 fn main() -> Result<()> {
@@ -24,6 +24,12 @@ fn main() -> Result<()> {
     {
         // A damaged or outdated layout just means starting from the default.
         eprintln!("ignoring the saved layout: {error}");
+    }
+    if let Some(path) = dirs::preferences_file()
+        && let Some(json) = dirs::read_layout(&path, MAX_PREFERENCES_BYTES)
+        && let Err(error) = workspace.restore_preferences(&json)
+    {
+        eprintln!("ignoring the saved preferences: {error}");
     }
     if let Some(dir) = dirs::recovery_dir() {
         workspace.enable_recovery(dir.clone());

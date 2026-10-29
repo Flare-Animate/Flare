@@ -84,6 +84,17 @@ impl App {
         }
     }
 
+    /// Remembers the preferences for the next session.
+    pub(super) fn persist_preferences(&self) {
+        let (Some(path), Ok(json)) = (dirs::preferences_file(), self.workspace.preferences_json())
+        else {
+            return;
+        };
+        if let Err(error) = dirs::write_file(&path, &json) {
+            eprintln!("could not save the preferences: {error}");
+        }
+    }
+
     /// Whether closing may go ahead, asking first if there is unsaved work.
     pub(super) fn confirm_close(&mut self) -> bool {
         // A save still being written must finish first, or its work would be reported as lost.

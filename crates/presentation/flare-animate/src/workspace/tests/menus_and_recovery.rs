@@ -468,3 +468,40 @@ fn new_and_close_start_an_empty_project_but_never_over_unsaved_work_and_revert_r
     assert_eq!(ws.path(), None);
     assert_eq!(ws.title(), "Untitled - Flare");
 }
+
+#[test]
+fn preferences_round_trip_stay_in_range_and_refuse_junk() {
+    let mut ws = workspace();
+    ws.perform(MenuAction::Preferences);
+    assert!(ws.preferences_open);
+    let mut wanted = ws.preferences();
+    wanted.autosave_seconds = 90.0;
+    wanted.show_grid = true;
+    wanted.grid_size = 8.0;
+    wanted.loop_playback = false;
+    ws.apply_preferences(&wanted);
+    let json = ws.preferences_json().expect("json");
+    let mut other = workspace();
+    other.restore_preferences(&json).expect("restore");
+    assert_eq!(other.preferences(), wanted);
+    // Out-of-range and missing values are brought into range or defaulted.
+    other
+        .restore_preferences(r#"{"autosave_seconds": 0.0, "grid_size": 1e9}"#)
+        .expect("partial");
+    let p = other.preferences();
+    assert_eq!((p.autosave_seconds, p.grid_size), (5.0, 500.0));
+    assert!(p.show_rulers, "a missing field takes its default");
+    // Junk changes nothing.
+    assert!(other.restore_preferences("{ not json").is_err());
+    assert!(
+        other
+            .restore_preferences(&" ".repeat(MAX_PREFERENCES_BYTES + 1))
+            .is_err()
+    );
+    assert_eq!(other.preferences(), p);
+    // Drawing the window does not panic and closing it works.
+    let ctx = egui::Context::default();
+    run(&mut other, &ctx, 0.0);
+    other.preferences_open = false;
+    run(&mut other, &ctx, 0.1);
+}

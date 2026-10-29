@@ -36,6 +36,15 @@ pub fn layout_file_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBu
     app_dir_with(env).map(|dir| dir.join("layout.json"))
 }
 
+/// Where the preferences are kept between sessions.
+pub fn preferences_file() -> Option<PathBuf> {
+    preferences_file_with(|name| std::env::var_os(name))
+}
+
+pub fn preferences_file_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
+    app_dir_with(env).map(|dir| dir.join("preferences.json"))
+}
+
 /// Reads a saved layout of at most `max_bytes`. A missing file is `None`; the read itself is
 /// capped so an oversized file is never loaded whole.
 pub fn read_layout(path: &Path, max_bytes: usize) -> Option<String> {
@@ -50,11 +59,16 @@ pub fn read_layout(path: &Path, max_bytes: usize) -> Option<String> {
 /// Writes the layout through a temporary file and a rename, so a crash mid-write cannot
 /// leave a truncated layout behind.
 pub fn write_layout(path: &Path, json: &str) -> std::io::Result<()> {
+    write_file(path, json)
+}
+
+/// Writes any small settings file the same way.
+pub fn write_file(path: &Path, text: &str) -> std::io::Result<()> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
     let temp = path.with_extension("json.tmp");
-    std::fs::write(&temp, json)?;
+    std::fs::write(&temp, text)?;
     std::fs::rename(&temp, path)
 }
 
@@ -109,6 +123,23 @@ mod tests {
         let app = app_dir_with(env(&vars)).expect("app dir");
         assert_eq!(recovery_dir_with(env(&vars)), Some(app.join("recovery")));
         assert_eq!(recovery_dir_with(env(&[])), None);
+    }
+
+    #[test]
+    fn settings_files_sit_beside_the_layout_and_any_small_file_is_written_atomically() {
+        let vars = [
+            ("HOME", "/home/u"),
+            ("XDG_DATA_HOME", "/data"),
+            ("APPDATA", "C:\\a"),
+        ];
+        let layout = layout_file_with(env(&vars)).expect("layout");
+        let prefs = preferences_file_with(env(&vars)).expect("prefs");
+        assert_eq!(layout.parent(), prefs.parent());
+        assert!(prefs.ends_with("preferences.json"));
+        let dir = tempfile::tempdir().expect("dir");
+        let file = dir.path().join("x").join("preferences.json");
+        write_file(&file, "{}").expect("write");
+        assert_eq!(std::fs::read_to_string(&file).expect("read"), "{}");
     }
 
     #[test]

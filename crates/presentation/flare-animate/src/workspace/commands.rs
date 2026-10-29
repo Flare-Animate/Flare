@@ -60,7 +60,7 @@ impl Workspace {
             MenuAction::Group => self.selection_all().len() >= 2,
             MenuAction::Ungroup | MenuAction::BreakApart => self.selection_has_instance(),
             MenuAction::PublishSwf => !self.document().scenes().is_empty(),
-            MenuAction::DocumentSettings => true,
+            MenuAction::DocumentSettings | MenuAction::Preferences => true,
             MenuAction::EditSymbol => self.can_edit_selected_symbol(),
             MenuAction::ExitSymbol => self.in_symbol(),
             MenuAction::ToolSelect
@@ -148,6 +148,7 @@ impl Workspace {
             MenuAction::BreakApart => "Break Apart",
             MenuAction::PublishSwf => "Publish SWF...",
             MenuAction::DocumentSettings => "Document Settings...",
+            MenuAction::Preferences => "Preferences...",
             MenuAction::ToolSubselection => "Subselection",
             MenuAction::ToolFreeTransform => "Free Transform",
             MenuAction::EditSymbol => "Edit Symbol",
@@ -319,6 +320,7 @@ impl Workspace {
                 self.show_pane(Pane::Properties);
             }
             MenuAction::ToolSubselection => self.set_tool(Tool::Subselection),
+            MenuAction::Preferences => self.preferences_open = true,
             MenuAction::ToolFreeTransform => self.set_tool(Tool::FreeTransform),
             MenuAction::EditSymbol => self.edit_selected_symbol(),
             MenuAction::ExitSymbol => {

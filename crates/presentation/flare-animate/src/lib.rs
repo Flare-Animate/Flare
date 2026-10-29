@@ -16,6 +16,6 @@ mod workspace;
 pub use actions::{MENU_LAYOUT, MenuAction, MenuEntry};
 pub use layout::{LayoutError, MAX_LAYOUT_BYTES, Pane};
 pub use workspace::{
-    AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest,
-    Workspace, onion_ghosts,
+    AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES, OnionSkin,
+    Preferences, Tool, WindowRequest, Workspace, onion_ghosts,
 };

@@ -83,6 +83,7 @@ impl App {
         self.handle_test_movie();
         if self.workspace.take_quit_request() && self.confirm_close() {
             self.persist_layout();
+            self.persist_preferences();
             event_loop.exit();
         }
     }
@@ -161,6 +162,7 @@ impl ApplicationHandler<UserEvent> for App {
             WindowEvent::CloseRequested => {
                 if self.confirm_close() {
                     self.persist_layout();
+                    self.persist_preferences();
                     event_loop.exit();
                 }
             }

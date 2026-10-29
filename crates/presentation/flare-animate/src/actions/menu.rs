@@ -63,7 +63,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::EditSymbol),
             Action(A::ExitSymbol),
             Separator,
-            Mock("Preferences..."),
+            Action(A::Preferences),
             Mock("Keyboard Shortcuts..."),
         ],
     ),
