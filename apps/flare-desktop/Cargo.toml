@@ -14,7 +14,8 @@ egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayla
 flare-publish.workspace = true
 flare-storage.workspace = true
 flare-audio.workspace = true
-flare-ui.workspace = true
+flare-animate.workspace = true
+flare-runtime.workspace = true
 pollster.workspace = true
 rfd.workspace = true
 winit = { workspace = true, features = ["default"] }

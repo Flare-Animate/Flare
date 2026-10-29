@@ -392,7 +392,10 @@ fn the_theme_and_icons_are_installed_once_and_the_theme_is_dark() {
     run(&mut ws, &ctx, 0.0);
     assert!(ws.chrome_ready);
     assert!(ctx.global_style().visuals.dark_mode);
-    assert_eq!(ctx.global_style().visuals.panel_fill, crate::theme::PANEL);
+    assert_eq!(
+        ctx.global_style().visuals.panel_fill,
+        flare_ui::theme::PANEL
+    );
 }
 
 #[test]

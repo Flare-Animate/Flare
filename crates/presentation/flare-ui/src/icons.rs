@@ -16,7 +16,7 @@ pub fn source(name: &str) -> Option<&'static [u8]> {
         .map(|i| TABLE[i].1)
 }
 
-#[cfg(test)]
+/// Whether an icon of this name exists.
 pub fn exists(name: &str) -> bool {
     source(name).is_some()
 }
@@ -42,6 +42,11 @@ pub fn image(name: &str, size: f32, tint: Color32) -> Image<'static> {
     })
     .fit_to_exact_size(Vec2::splat(size))
     .tint(tint)
+}
+
+/// Every icon's name, sorted.
+pub fn names() -> impl Iterator<Item = &'static str> {
+    TABLE.iter().map(|(name, _)| *name)
 }
 
 const BLANK: &[u8] = br#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"/>"#;
@@ -110,37 +115,5 @@ mod tests {
     #[should_panic(expected = "there is no icon named")]
     fn asking_for_a_missing_icon_is_caught_in_debug_builds() {
         let _ = image("no-such-icon", 16.0, Color32::WHITE);
-    }
-
-    #[test]
-    fn every_icon_name_written_in_the_ui_code_exists() {
-        // Icon names are kebab-case strings that start like an icon's name ("tool-", "layer-"...).
-        // A typo would otherwise show up only as a missing picture.
-        let families: std::collections::HashSet<&str> = TABLE
-            .iter()
-            .filter_map(|(name, _)| name.split('-').next())
-            .collect();
-        for (file, text) in [
-            ("panels.rs", include_str!("workspace/panels.rs")),
-            ("chrome.rs", include_str!("chrome.rs")),
-            ("workspace.rs", include_str!("workspace.rs")),
-        ] {
-            for quoted in text.split('"').skip(1).step_by(2) {
-                let looks_like_icon = quoted.contains('-')
-                    && quoted
-                        .chars()
-                        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
-                    && quoted
-                        .split('-')
-                        .next()
-                        .is_some_and(|f| families.contains(f));
-                if looks_like_icon {
-                    assert!(
-                        exists(quoted),
-                        "{file} names an icon that does not exist: {quoted}"
-                    );
-                }
-            }
-        }
     }
 }

@@ -60,7 +60,7 @@ fn tool_keys_are_unique_letters_and_every_menu_icon_exists() {
         }
         if let Some(icon) = action.icon() {
             assert!(
-                crate::icons::exists(icon),
+                flare_ui::icons::exists(icon),
                 "{action:?} names a missing icon {icon}"
             );
         }

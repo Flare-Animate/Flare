@@ -1523,6 +1523,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 
 [[package]]
+name = "flare-animate"
+version = "0.1.0"
+dependencies = [
+ "egui",
+ "egui_tiles",
+ "epaint_default_fonts",
+ "flare-audio",
+ "flare-commands",
+ "flare-core",
+ "flare-document",
+ "flare-editor",
+ "flare-eval",
+ "flare-history",
+ "flare-render",
+ "flare-runtime",
+ "flare-storage",
+ "flare-text",
+ "flare-tools",
+ "flare-ui",
+ "glamx",
+ "png 0.18.1",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "flare-audio"
 version = "0.1.0"
 dependencies = [
@@ -1585,10 +1613,11 @@ dependencies = [
  "egui",
  "egui-wgpu",
  "egui-winit",
+ "flare-animate",
  "flare-audio",
  "flare-publish",
+ "flare-runtime",
  "flare-storage",
- "flare-ui",
  "muda",
  "pollster",
  "rfd",
@@ -1743,6 +1772,7 @@ dependencies = [
  "flare-render",
  "flare-storage",
  "flare-text",
+ "png 0.18.1",
  "tempfile",
 ]
 
@@ -1794,26 +1824,6 @@ version = "0.1.0"
 dependencies = [
  "egui",
  "egui_extras",
- "egui_tiles",
- "epaint_default_fonts",
- "flare-audio",
- "flare-commands",
- "flare-core",
- "flare-document",
- "flare-editor",
- "flare-eval",
- "flare-history",
- "flare-render",
- "flare-runtime",
- "flare-storage",
- "flare-text",
- "flare-tools",
- "glamx",
- "png 0.18.1",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.21",
 ]
 
 [[package]]

@@ -16,6 +16,7 @@ members = [
     "crates/foundation/flare-eval",
     "crates/services/flare-render",
     "crates/presentation/flare-ui",
+    "crates/presentation/flare-animate",
     "crates/adapters/flare-import",
     "crates/adapters/flare-export",
     "crates/services/flare-publish",
@@ -42,6 +43,7 @@ flare-export = { path = "crates/adapters/flare-export" }
 flare-publish = { path = "crates/services/flare-publish" }
 flare-import = { path = "crates/adapters/flare-import" }
 flare-ui = { path = "crates/presentation/flare-ui" }
+flare-animate = { path = "crates/presentation/flare-animate" }
 flare-render = { path = "crates/services/flare-render" }
 flare-eval = { path = "crates/foundation/flare-eval" }
 flare-storage = { path = "crates/services/flare-storage" }

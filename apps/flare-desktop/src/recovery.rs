@@ -4,8 +4,8 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
+use flare_animate::Workspace;
 use flare_storage::RecoveryEntry;
-use flare_ui::Workspace;
 
 /// The per-user recovery directory, given an environment lookup (injectable for tests).
 /// The data directory convention itself lives in [`crate::paths`].

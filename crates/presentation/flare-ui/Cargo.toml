@@ -9,28 +9,6 @@ license.workspace = true
 [dependencies]
 egui = { workspace = true, features = ["default_fonts"] }
 egui_extras.workspace = true
-egui_tiles = { workspace = true, features = ["serde"] }
-thiserror.workspace = true
-flare-audio.workspace = true
-flare-core.workspace = true
-flare-document.workspace = true
-flare-commands.workspace = true
-flare-editor.workspace = true
-flare-history.workspace = true
-flare-eval.workspace = true
-glamx.workspace = true
-flare-render.workspace = true
-flare-runtime.workspace = true
-flare-text.workspace = true
-flare-tools.workspace = true
-flare-storage.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-
-[dev-dependencies]
-tempfile.workspace = true
-png.workspace = true
-epaint_default_fonts = "0.37"
 
 [lints]
 workspace = true

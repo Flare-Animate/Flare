@@ -1,5 +1,5 @@
-//! Exporting one frame of the document as a PNG. The work is pure and slow for big stages, so
-//! the app runs it on its own thread; nothing here touches the UI.
+//! Exporting one frame of the document as a PNG. The work is slow for big stages, so the app
+//! runs it on a thread of its own.
 
 use std::fs::File;
 use std::io::BufWriter;

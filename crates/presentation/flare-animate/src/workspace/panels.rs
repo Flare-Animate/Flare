@@ -12,9 +12,9 @@ use super::{
 };
 use super::{PropsTab, TransformEdit};
 use crate::actions::MenuAction;
-use crate::chrome;
-use crate::icons;
-use crate::theme;
+use flare_ui::chrome;
+use flare_ui::icons;
+use flare_ui::theme;
 
 const TOOL_ICON: f32 = 20.0;
 const BAR_ICON: f32 = 16.0;

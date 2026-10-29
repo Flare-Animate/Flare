@@ -16,12 +16,12 @@ use glamx::{DAffine2, DVec2};
 
 use crate::layout::{self, LayoutError, Pane};
 use crate::timeline_view;
-use crate::view::{self, StageView};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 use flare_runtime::{AudioJob, Done, IoJob, Mode, RenderJob, Rendered, Runtime, TextJob};
 use flare_tools::handles::{self, Handle};
 use flare_tools::ops::{self, SpanRef};
 use flare_tools::pen::{PenPath, Press};
+use flare_ui::view::{self, StageView};
 
 /// How many frames before and after the current one onion skinning can show.
 pub const MAX_ONION_FRAMES: u32 = 8;
@@ -3548,8 +3548,8 @@ impl Workspace {
     pub fn show(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
         if !self.chrome_ready {
-            crate::theme::apply(&ctx);
-            crate::icons::install(&ctx);
+            flare_ui::theme::apply(&ctx);
+            flare_ui::icons::install(&ctx);
             self.chrome_ready = true;
         }
         let now = ui.input(|i| i.time);
@@ -3575,7 +3575,7 @@ impl Workspace {
             } else {
                 TOP_BAR_HEIGHT
             })
-            .frame(egui::Frame::new().fill(crate::theme::BG))
+            .frame(egui::Frame::new().fill(flare_ui::theme::BG))
             .show(ui, |ui| self.menu_bar(ui));
         egui::CentralPanel::default().show(ui, |ui| {
             // The dock needs `&mut self` to draw panel contents, so take it out while it runs.
@@ -3717,14 +3717,14 @@ impl Workspace {
     fn action_item(&mut self, ui: &mut egui::Ui, action: MenuAction) {
         let enabled = self.is_enabled(action);
         let tint = if enabled {
-            crate::theme::TEXT
+            flare_ui::theme::TEXT
         } else {
-            crate::theme::TEXT_DISABLED
+            flare_ui::theme::TEXT_DISABLED
         };
         let label = self.label(action);
         let mut button = match action.icon() {
             Some(icon) => {
-                egui::Button::image_and_text(crate::icons::image(icon, 14.0, tint), label)
+                egui::Button::image_and_text(flare_ui::icons::image(icon, 14.0, tint), label)
             }
             None => egui::Button::new(label),
         };
@@ -3756,15 +3756,15 @@ impl Workspace {
         ui.painter().hline(
             bar.x_range(),
             bar.bottom() - 0.5,
-            egui::Stroke::new(1.0, crate::theme::BORDER),
+            egui::Stroke::new(1.0, flare_ui::theme::BORDER),
         );
         ui.horizontal_centered(|ui| {
             ui.add_space(self.titlebar_inset.max(10.0));
-            ui.add(crate::icons::image("home", 16.0, crate::theme::TEXT));
+            ui.add(flare_ui::icons::image("home", 16.0, flare_ui::theme::TEXT));
             ui.label(
                 egui::RichText::new("Flare")
                     .strong()
-                    .color(crate::theme::TEXT),
+                    .color(flare_ui::theme::TEXT),
             );
             ui.add_space(6.0);
             egui::MenuBar::new().ui(ui, |ui| {
@@ -3781,7 +3781,7 @@ impl Workspace {
                                 }
                                 MenuEntry::Mock(label) => {
                                     ui.add_enabled(false, egui::Button::new(*label))
-                                        .on_disabled_hover_text(crate::chrome::NOT_YET);
+                                        .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
                                 }
                             }
                         }
@@ -3791,11 +3791,15 @@ impl Workspace {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.add_space(10.0);
                 let can_redo = self.active().can_redo();
-                if crate::chrome::icon_button(ui, "redo", 16.0, false, can_redo, "Redo").clicked() {
+                if flare_ui::chrome::icon_button(ui, "redo", 16.0, false, can_redo, "Redo")
+                    .clicked()
+                {
                     self.redo();
                 }
                 let can_undo = self.active().can_undo();
-                if crate::chrome::icon_button(ui, "undo", 16.0, false, can_undo, "Undo").clicked() {
+                if flare_ui::chrome::icon_button(ui, "undo", 16.0, false, can_undo, "Undo")
+                    .clicked()
+                {
                     self.undo();
                 }
                 let (icon, hint) = if self.is_playing() {
@@ -3803,18 +3807,18 @@ impl Workspace {
                 } else {
                     ("transport-play", "Play")
                 };
-                if crate::chrome::icon_button(ui, icon, 16.0, false, true, hint).clicked() {
+                if flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, hint).clicked() {
                     self.perform(MenuAction::PlayPause);
                 }
                 // The name sits in the middle of what is left, whatever the window width.
-                let title = egui::RichText::new(self.title()).color(crate::theme::TEXT_DIM);
+                let title = egui::RichText::new(self.title()).color(flare_ui::theme::TEXT_DIM);
                 let rect = ui.available_rect_before_wrap();
                 ui.painter().text(
                     egui::pos2(bar.center().x, rect.center().y),
                     egui::Align2::CENTER_CENTER,
                     title.text(),
                     egui::FontId::proportional(13.0),
-                    crate::theme::TEXT_DIM,
+                    flare_ui::theme::TEXT_DIM,
                 );
             });
         });
@@ -3858,7 +3862,7 @@ impl Workspace {
         self.stage_bar(ui);
         let available = ui.available_size();
         let (response, painter) = ui.allocate_painter(available, Sense::click_and_drag());
-        painter.rect_filled(response.rect, 0.0, crate::theme::STAGE_SURROUND);
+        painter.rect_filled(response.rect, 0.0, flare_ui::theme::STAGE_SURROUND);
         let extent = self.stage_extent();
         self.stage_panel = response.rect;
         if response.hovered() {
@@ -4011,7 +4015,7 @@ impl Workspace {
                 points.push(points[0]);
                 painter.add(egui::Shape::line(
                     points,
-                    Stroke::new(1.5, crate::theme::ACCENT),
+                    Stroke::new(1.5, flare_ui::theme::ACCENT),
                 ));
             }
         }
@@ -4341,13 +4345,13 @@ impl Workspace {
             let active = self.active_layer_id();
 
             // The ruler: a band with a tick on every frame and a number every few.
-            let ink = crate::theme::TEXT;
+            let ink = flare_ui::theme::TEXT;
             let band = Rect::from_min_max(rect.min, Pos2::new(rect.max.x, rect.min.y + row));
-            painter.rect_filled(band, 0.0, crate::theme::PANEL_RAISED);
+            painter.rect_filled(band, 0.0, flare_ui::theme::PANEL_RAISED);
             painter.hline(
                 rect.x_range(),
                 band.bottom(),
-                Stroke::new(1.0, crate::theme::BORDER),
+                Stroke::new(1.0, flare_ui::theme::BORDER),
             );
             let step = ((40.0 / per_frame).ceil() as u32).max(1);
             for f in 0..frames {
@@ -4359,7 +4363,7 @@ impl Workspace {
                 painter.vline(
                     x,
                     (band.bottom() - if major { 7.0 } else { 3.0 })..=band.bottom(),
-                    Stroke::new(1.0, crate::theme::TEXT_DISABLED),
+                    Stroke::new(1.0, flare_ui::theme::TEXT_DISABLED),
                 );
                 if major {
                     painter.text(
@@ -4367,7 +4371,7 @@ impl Workspace {
                         Align2::LEFT_TOP,
                         (f + 1).to_string(),
                         FontId::monospace(10.0),
-                        crate::theme::TEXT_DIM,
+                        flare_ui::theme::TEXT_DIM,
                     );
                 }
             }
@@ -4417,7 +4421,7 @@ impl Workspace {
                             Color32::from_rgba_unmultiplied(80, 140, 255, 40),
                         );
                     }
-                    let dim = crate::theme::TEXT_DISABLED;
+                    let dim = flare_ui::theme::TEXT_DISABLED;
                     painter.text(
                         Pos2::new(rect.min.x + 6.0, y + 4.0),
                         Align2::LEFT_TOP,
@@ -4431,7 +4435,7 @@ impl Workspace {
                     );
                     // Visibility, lock and outline columns, as icons.
                     let icon_at = |x: f32, name: &str, tint: Color32| {
-                        crate::icons::image(name, 14.0, tint).paint_at(
+                        flare_ui::icons::image(name, 14.0, tint).paint_at(
                             ui,
                             Rect::from_min_size(Pos2::new(x, y + 4.0), Vec2::splat(14.0)),
                         );
@@ -4440,7 +4444,7 @@ impl Workspace {
                         track.min.x - 52.0,
                         if layer.is_visible() { "eye" } else { "eye-off" },
                         if layer.is_visible() {
-                            crate::theme::TEXT
+                            flare_ui::theme::TEXT
                         } else {
                             dim
                         },
@@ -4453,7 +4457,7 @@ impl Workspace {
                             "lock-open"
                         },
                         if layer.is_locked() {
-                            crate::theme::TEXT
+                            flare_ui::theme::TEXT
                         } else {
                             dim
                         },
@@ -4544,7 +4548,7 @@ impl Workspace {
                 ],
                 Stroke::new(1.5, Color32::from_rgb(232, 69, 60)),
             );
-            crate::icons::image("playhead", 16.0, Color32::from_rgb(232, 69, 60)).paint_at(
+            flare_ui::icons::image("playhead", 16.0, Color32::from_rgb(232, 69, 60)).paint_at(
                 ui,
                 Rect::from_center_size(Pos2::new(head, rect.min.y + 8.0), Vec2::splat(16.0)),
             );
@@ -4589,12 +4593,12 @@ impl Workspace {
         const THICKNESS: f32 = 16.0;
         let top = Rect::from_min_max(panel.min, Pos2::new(panel.max.x, panel.min.y + THICKNESS));
         let left = Rect::from_min_max(panel.min, Pos2::new(panel.min.x + THICKNESS, panel.max.y));
-        let fill = crate::theme::PANEL_RAISED.gamma_multiply(0.92);
+        let fill = flare_ui::theme::PANEL_RAISED.gamma_multiply(0.92);
         painter.rect_filled(top, 0.0, fill);
         painter.rect_filled(left, 0.0, fill);
-        let tick = Stroke::new(1.0, crate::theme::TEXT_DISABLED);
+        let tick = Stroke::new(1.0, flare_ui::theme::TEXT_DISABLED);
         let font = FontId::monospace(9.0);
-        for t in crate::view::ruler_ticks(
+        for t in flare_ui::view::ruler_ticks(
             image.min.x,
             scale,
             panel.min.x + THICKNESS,
@@ -4609,11 +4613,11 @@ impl Workspace {
                     Align2::LEFT_TOP,
                     format!("{}", t.value.round()),
                     font.clone(),
-                    crate::theme::TEXT_DIM,
+                    flare_ui::theme::TEXT_DIM,
                 );
             }
         }
-        for t in crate::view::ruler_ticks(
+        for t in flare_ui::view::ruler_ticks(
             image.min.y,
             scale,
             panel.min.y + THICKNESS,
@@ -4628,14 +4632,14 @@ impl Workspace {
                     Align2::LEFT_TOP,
                     format!("{}", t.value.round()),
                     font.clone(),
-                    crate::theme::TEXT_DIM,
+                    flare_ui::theme::TEXT_DIM,
                 );
             }
         }
         painter.rect_filled(
             Rect::from_min_size(panel.min, Vec2::splat(THICKNESS)),
             0.0,
-            crate::theme::PANEL_RAISED,
+            flare_ui::theme::PANEL_RAISED,
         );
     }
 
@@ -4684,7 +4688,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
     }
 
     fn tab_bar_color(&self, _visuals: &egui::Visuals) -> egui::Color32 {
-        crate::theme::BG
+        flare_ui::theme::BG
     }
 
     fn tab_bg_color(
@@ -4695,9 +4699,9 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         state: &egui_tiles::TabState,
     ) -> egui::Color32 {
         if state.active {
-            crate::theme::PANEL
+            flare_ui::theme::PANEL
         } else {
-            crate::theme::BG
+            flare_ui::theme::BG
         }
     }
 
@@ -4709,9 +4713,9 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         state: &egui_tiles::TabState,
     ) -> egui::Color32 {
         if state.active {
-            crate::theme::TEXT
+            flare_ui::theme::TEXT
         } else {
-            crate::theme::TEXT_DIM
+            flare_ui::theme::TEXT_DIM
         }
     }
 }

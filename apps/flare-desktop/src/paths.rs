@@ -32,7 +32,7 @@ pub fn layout_file_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBu
 pub fn read_layout(path: &Path) -> Option<String> {
     let file = std::fs::File::open(path).ok()?;
     let mut text = String::new();
-    file.take(flare_ui::MAX_LAYOUT_BYTES as u64 + 1)
+    file.take(flare_animate::MAX_LAYOUT_BYTES as u64 + 1)
         .read_to_string(&mut text)
         .ok()?;
     Some(text)
@@ -115,10 +115,10 @@ mod tests {
         );
         assert_eq!(read_layout(&dir.path().join("missing.json")), None);
         let big = dir.path().join("big.json");
-        std::fs::write(&big, "x".repeat(flare_ui::MAX_LAYOUT_BYTES * 2)).expect("write");
+        std::fs::write(&big, "x".repeat(flare_animate::MAX_LAYOUT_BYTES * 2)).expect("write");
         let read = read_layout(&big).expect("read");
         assert!(
-            read.len() <= flare_ui::MAX_LAYOUT_BYTES + 1,
+            read.len() <= flare_animate::MAX_LAYOUT_BYTES + 1,
             "the read itself is capped"
         );
     }

@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result};
 use egui::ViewportId;
 use egui_wgpu::{RendererOptions, WgpuConfiguration, winit::Painter};
-use flare_ui::{AudioEvent, DialogRequest, MenuAction, Workspace};
+use flare_animate::{AudioEvent, DialogRequest, MenuAction, Workspace};
 use winit::application::ApplicationHandler;
 use winit::event::{StartCause, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
@@ -109,10 +109,10 @@ impl App {
         };
         let Some(gpu) = &self.gpu else { return };
         match request {
-            flare_ui::WindowRequest::Drag => {
+            flare_animate::WindowRequest::Drag => {
                 let _ = gpu.window.drag_window();
             }
-            flare_ui::WindowRequest::ToggleMaximize => {
+            flare_animate::WindowRequest::ToggleMaximize => {
                 gpu.window.set_maximized(!gpu.window.is_maximized());
             }
         }
@@ -149,7 +149,7 @@ impl App {
                     let spawned = std::thread::Builder::new()
                         .name("flare-export-image".into())
                         .spawn(move || {
-                            let result = flare_ui::export_png(&document, frame, &path);
+                            let result = flare_runtime::export_png(&document, frame, &path);
                             // A closed event loop means the app is exiting.
                             let _ = proxy.send_event(UserEvent::ImageExported(result));
                         });
