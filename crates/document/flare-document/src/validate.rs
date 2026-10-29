@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use flare_core::{InstanceId, LayerId, SceneId, ShapeId, SymbolId};
 use thiserror::Error;
 
-use crate::{Document, Timeline};
+use crate::{Anchor, Document, MAX_ATTACHMENTS, Timeline};
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum Diagnostic {
@@ -24,6 +24,35 @@ pub enum Diagnostic {
     },
     #[error("symbol {0:?} contains itself, directly or indirectly")]
     SymbolCycle(SymbolId),
+    #[error("an attachment is anchored to {0:?}, which does not exist")]
+    DanglingAttachment(Anchor),
+    #[error("the document has more than {MAX_ATTACHMENTS} attachments")]
+    TooManyAttachments,
+}
+
+/// Every entity an attachment can hang off.
+pub(crate) fn anchors(document: &Document) -> HashSet<Anchor> {
+    let mut set = HashSet::from([Anchor::Document]);
+    set.extend(document.scenes.iter().map(|s| Anchor::Scene(s.id)));
+    set.extend(document.symbols.iter().map(|s| Anchor::Symbol(s.id)));
+    for timeline in timelines(document) {
+        set.extend(timeline.layers().iter().map(|l| Anchor::Layer(l.id())));
+    }
+    set
+}
+
+pub(crate) fn validate_attachments(document: &Document) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    if document.attachments.len() > MAX_ATTACHMENTS {
+        out.push(Diagnostic::TooManyAttachments);
+    }
+    let live = anchors(document);
+    for attachment in &document.attachments {
+        if !live.contains(&attachment.anchor()) {
+            out.push(Diagnostic::DanglingAttachment(attachment.anchor()));
+        }
+    }
+    out
 }
 
 fn timelines(document: &Document) -> impl Iterator<Item = &Timeline> {
