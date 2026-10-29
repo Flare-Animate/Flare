@@ -99,7 +99,7 @@ impl Node {
             out.push(' ');
             out.push_str(key);
             out.push_str("=\"");
-            escape_into(out, value, true);
+            out.push_str(&quick_xml::escape::escape(value));
             out.push('"');
         }
         if self.text.is_empty() && self.children.is_empty() {
@@ -107,25 +107,13 @@ impl Node {
             return;
         }
         out.push('>');
-        escape_into(out, &self.text, false);
+        out.push_str(&quick_xml::escape::escape(&self.text));
         for child in &self.children {
             child.write_xml(out);
         }
         out.push_str("</");
         out.push_str(&self.name);
         out.push('>');
-    }
-}
-
-fn escape_into(out: &mut String, text: &str, attribute: bool) {
-    for c in text.chars() {
-        match c {
-            '&' => out.push_str("&amp;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '"' if attribute => out.push_str("&quot;"),
-            c => out.push(c),
-        }
     }
 }
 

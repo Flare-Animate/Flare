@@ -21,10 +21,6 @@ pub fn exists(name: &str) -> bool {
     source(name).is_some()
 }
 
-fn exists_in_table(name: &str) -> bool {
-    source(name).is_some()
-}
-
 /// Makes the SVG loaders available. Call once per context; calling again is harmless.
 pub fn install(ctx: &egui::Context) {
     egui_extras::install_image_loaders(ctx);
@@ -33,7 +29,7 @@ pub fn install(ctx: &egui::Context) {
 /// An icon as an egui image of the given size and tint. A name with no icon draws nothing
 /// visible (a transparent square), so a typo never breaks a layout.
 pub fn image(name: &str, size: f32, tint: Color32) -> Image<'static> {
-    debug_assert!(exists_in_table(name), "there is no icon named {name:?}");
+    debug_assert!(exists(name), "there is no icon named {name:?}");
     let bytes = source(name).unwrap_or(BLANK);
     let uri = format!("bytes://flare-icon/{name}.svg");
     Image::new(ImageSource::Bytes {
