@@ -114,6 +114,34 @@ impl Shape {
         Self::new(id, path, fill).ok()
     }
 
+    /// Ellipse centered at (`cx`, `cy`) with radii `rx` and `ry`, as four cubic arcs.
+    pub fn ellipse(id: ShapeId, cx: f64, cy: f64, rx: f64, ry: f64, fill: Rgba8) -> Option<Self> {
+        // Control-point distance that makes four cubics approximate a circle closely.
+        const K: f64 = 0.552_284_749_830_793_4;
+        let p = |x, y| DocumentPoint::new(x, y).ok();
+        let (kx, ky) = (K * rx, K * ry);
+        let path = vec![
+            PathSegment::MoveTo(p(cx + rx, cy)?),
+            PathSegment::CubicTo(p(cx + rx, cy + ky)?, p(cx + kx, cy + ry)?, p(cx, cy + ry)?),
+            PathSegment::CubicTo(p(cx - kx, cy + ry)?, p(cx - rx, cy + ky)?, p(cx - rx, cy)?),
+            PathSegment::CubicTo(p(cx - rx, cy - ky)?, p(cx - kx, cy - ry)?, p(cx, cy - ry)?),
+            PathSegment::CubicTo(p(cx + kx, cy - ry)?, p(cx + rx, cy - ky)?, p(cx + rx, cy)?),
+            PathSegment::Close,
+        ];
+        Self::new(id, path, fill).ok()
+    }
+
+    /// An open two-point line. It has no fill, so the stroke is what you see.
+    pub fn line(id: ShapeId, from: (f64, f64), to: (f64, f64), stroke: Stroke) -> Option<Self> {
+        let p = |(x, y): (f64, f64)| DocumentPoint::new(x, y).ok();
+        let path = vec![PathSegment::MoveTo(p(from)?), PathSegment::LineTo(p(to)?)];
+        Some(
+            Self::new(id, path, Rgba8::TRANSPARENT)
+                .ok()?
+                .with_stroke(stroke),
+        )
+    }
+
     pub fn id(&self) -> ShapeId {
         self.id
     }
@@ -148,6 +176,42 @@ mod tests {
     fn well_formed_paths_are_accepted() {
         assert!(Shape::rect(ShapeId::new(), 0.0, 0.0, 10.0, 5.0, Rgba8::WHITE).is_some());
         assert!(Shape::rect(ShapeId::new(), f64::NAN, 0.0, 1.0, 1.0, Rgba8::WHITE).is_none());
+    }
+
+    #[test]
+    fn ellipses_and_lines_are_well_formed() {
+        let ellipse =
+            Shape::ellipse(ShapeId::new(), 10.0, 20.0, 5.0, 3.0, Rgba8::WHITE).expect("ellipse");
+        assert_eq!(ellipse.path().len(), 6);
+        assert!(matches!(ellipse.path()[5], PathSegment::Close));
+        // The four anchor points sit on the axes at the given radii.
+        let anchors: Vec<(f64, f64)> = ellipse
+            .path()
+            .iter()
+            .filter_map(|s| match s {
+                PathSegment::MoveTo(p) => Some((p.as_vec().x, p.as_vec().y)),
+                PathSegment::CubicTo(_, _, p) => Some((p.as_vec().x, p.as_vec().y)),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            anchors,
+            vec![
+                (15.0, 20.0),
+                (10.0, 23.0),
+                (5.0, 20.0),
+                (10.0, 17.0),
+                (15.0, 20.0)
+            ]
+        );
+        assert!(Shape::ellipse(ShapeId::new(), f64::NAN, 0.0, 1.0, 1.0, Rgba8::WHITE).is_none());
+
+        let stroke = Stroke::new(2.0, Rgba8::WHITE).expect("stroke");
+        let line = Shape::line(ShapeId::new(), (0.0, 0.0), (4.0, 3.0), stroke).expect("line");
+        assert_eq!(line.path().len(), 2);
+        assert_eq!(line.fill(), Rgba8::TRANSPARENT);
+        assert_eq!(line.stroke(), Some(stroke));
+        assert!(Shape::line(ShapeId::new(), (0.0, 0.0), (f64::INFINITY, 0.0), stroke).is_none());
     }
 
     #[test]
