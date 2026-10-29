@@ -6,7 +6,13 @@ rust-version.workspace = true
 publish.workspace = true
 license.workspace = true
 
+[[bin]]
+name = "flare-mcp"
+path = "src/main.rs"
+
 [dependencies]
+anyhow.workspace = true
+clap.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
 flare-edit.workspace = true
@@ -14,12 +20,20 @@ flare-eval.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 glamx.workspace = true
+rmcp = { workspace = true, features = ["server", "macros", "schemars", "transport-io"] }
+schemars.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
+tokio = { workspace = true, features = ["rt", "macros", "io-std"] }
 uuid.workspace = true
 
 [dev-dependencies]
+flare-core.workspace = true
+flare-document.workspace = true
 png.workspace = true
+rmcp = { workspace = true, features = ["client"] }
+tokio = { workspace = true, features = ["rt", "macros", "io-util", "io-std", "process"] }
 
 [lints]
 workspace = true

@@ -13,7 +13,6 @@ Dependencies point down this list; a crate never depends on one above it.
 | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
 | `flare-storage` | The `.flare` SQLite container: save, load, revalidation. |
 | `flare-ui` | The egui workspace: stage, timeline, tools, library, menu actions. No window or GPU code. |
-| `flare-mcp` | An MCP server over stdio for one open project: agent tools built on the same edit commands, with permissions and revision checks. |
 | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
 | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate. |
@@ -22,6 +21,7 @@ Dependencies point down this list; a crate never depends on one above it.
 | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | `apps/flare-cli` | Headless project editing and export. |
 | `apps/flare-desktop` | The winit/egui-wgpu shell: window, GPU surface, native dialogs and menu. |
+| `apps/flare-mcp` | An MCP server over stdio for one open project, built on `rmcp`: agent tools over the same edit commands, with permissions and revision checks. |
 
 The CLI and the desktop app edit documents through the same `flare-edit` commands and
 render through the same `flare-eval` and `flare-render`. That is deliberate: there is one
@@ -128,15 +128,17 @@ applied, and only the newest recovery is offered per launch.
 
 ## Automation (MCP)
 
-`flare-cli mcp <project>` serves the project to an AI agent as newline-delimited JSON-RPC
-over stdio; stdout carries only protocol messages. Tools use the same commands, frame
+`flare-mcp <project>` (an app, built on the `rmcp` SDK) serves the project to an AI agent over
+stdio; stdout carries only protocol messages, which `rmcp` frames and validates. Tools are typed
+(their argument schemas come from the parameter structs) and use the same commands, frame
 operations and renderer as the UI, so validation, atomic batches and undo apply to agents
 too. The server is read-only unless started with `--allow-write`, and nothing reaches disk
 until the `save` tool. `export_png` is off unless `--export-dir` is given and only writes a
 sanitized file name inside it. Mutating tools accept `expected_revision` (from `get_info`)
-and fail on a mismatch, so an agent cannot overwrite changes it has not seen. Request lines
-are bounded (1 MiB) and batches are not supported. Tool failures are results with
-`isError` set, so the agent can read and react; protocol misuse uses JSON-RPC errors.
+and fail on a mismatch, so an agent cannot overwrite changes it has not seen. Tool failures
+are results with `isError` set, so the agent can read and react; arguments of the wrong shape
+are protocol errors from `rmcp`.
+
 ## Import (XFL)
 
 `flare-cli import <source> <out.flare>` reads an XFL directory, an `.xfl` file (its folder is

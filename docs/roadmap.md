@@ -28,7 +28,7 @@ merge was resolved by hand and the merged result is tested as a whole.
 | Branch | What it adds |
 |---|---|
 | `feat/recovery` | Autosave to a recovery store, recover on launch, discard on confirmed close |
-| `feat/mcp` | MCP stdio server (`flare-cli mcp`) with permissions, revision checks, robustness tests |
+| `feat/mcp` | MCP stdio server (`flare-mcp`, on `rmcp`) with permissions and revision checks |
 | `feat/xfl-import` | XFL / modern FLA import subset (`flare-cli import`) with diagnostics, robustness tests |
 | `feat/xfl-export` | XFL / `.fla` export (`flare-cli export-xfl`), stacked on `feat/xfl-import` |
 | `feat/source-preservation` | Keep unsupported XFL data as attachments through edit, save and export; stacked on `feat/xfl-export` |

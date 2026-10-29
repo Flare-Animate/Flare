@@ -11,7 +11,6 @@ flare-core.workspace = true
 flare-flash.workspace = true
 flare-document.workspace = true
 flare-edit.workspace = true
-flare-mcp.workspace = true
 flare-export.workspace = true
 flare-publish.workspace = true
 flare-import.workspace = true

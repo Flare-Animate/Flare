@@ -668,63 +668,6 @@ fn layer_commands_manage_visibility_lock_order_and_deletion() {
 }
 
 #[test]
-fn mcp_serves_a_project_over_stdio_and_stdout_carries_only_protocol() {
-    use std::io::Write;
-    use std::process::Stdio;
-
-    let dir = tempfile::tempdir().expect("dir");
-    let file = path(dir.path());
-    json(&["new", &file, "--width", "20", "--height", "20"]);
-
-    let mut child = Command::new(env!("CARGO_BIN_EXE_flare-cli"))
-        .args(["mcp", &file, "--allow-write"])
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("spawn");
-    let messages = [
-        r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}"#,
-        r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#,
-        r#"{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"draw_rect","arguments":{"x":0,"y":0,"width":4,"height":4}}}"#,
-        r#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"save"}}"#,
-    ];
-    let mut stdin = child.stdin.take().expect("stdin");
-    for message in messages {
-        writeln!(stdin, "{message}").expect("write");
-    }
-    drop(stdin); // end of input: the server must exit cleanly
-    let output = child.wait_with_output().expect("wait");
-    assert!(
-        output.status.success(),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-
-    let replies: Vec<Value> = String::from_utf8(output.stdout)
-        .expect("utf8")
-        .lines()
-        .map(|l| serde_json::from_str(l).expect("every stdout line is JSON-RPC"))
-        .collect();
-    assert_eq!(replies.len(), 3, "the notification got no reply");
-    assert_eq!(replies[0]["result"]["serverInfo"]["name"], "flare");
-    assert_eq!(replies[1]["result"]["isError"], false);
-    assert_eq!(replies[2]["result"]["isError"], false);
-    assert_eq!(
-        json(&["info", &file])["scenes"][0]["layers"][0]["spans"],
-        1,
-        "saved by the agent"
-    );
-}
-
-#[test]
-fn mcp_refuses_a_missing_project() {
-    let dir = tempfile::tempdir().expect("dir");
-    let missing = dir.path().join("none.flare").to_string_lossy().into_owned();
-    assert!(!run(&["mcp", &missing]).status.success());
-}
-
-#[test]
 fn import_turns_an_xfl_folder_into_a_project_and_lists_what_was_skipped() {
     let dir = tempfile::tempdir().expect("dir");
     let source = dir.path().join("src");
