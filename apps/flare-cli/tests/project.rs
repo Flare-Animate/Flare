@@ -51,6 +51,19 @@ fn create_edit_reopen_workflow() {
     let info = json(&["info", &file]);
     assert_eq!(info["symbols"].as_array().expect("symbols").len(), 1);
     assert_eq!(info["scenes"][0]["layers"][0]["spans"], 2);
+
+    let first = json(&["eval", &file, "--frame", "3"]);
+    assert_eq!(first["placed"].as_array().expect("placed").len(), 1);
+    assert_eq!(first["placed"][0]["matrix"][4], 10.0);
+    assert_eq!(first["placed"][0]["matrix"][5], 0.0);
+    let second = json(&["eval", &file, "--frame", "12"]);
+    assert_eq!(second["placed"][0]["matrix"][4], 0.0);
+    assert!(
+        json(&["eval", &file, "--frame", "18"])["placed"]
+            .as_array()
+            .expect("placed")
+            .is_empty()
+    );
 }
 
 #[test]

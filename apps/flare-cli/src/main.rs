@@ -46,6 +46,14 @@ enum Command {
     Info { path: PathBuf },
     /// Add an empty Graphic symbol to the library.
     AddSymbol { path: PathBuf, name: String },
+    /// Evaluate one frame and print the placed instances.
+    Eval {
+        path: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        frame: u32,
+        #[arg(long)]
+        scene: Option<uuid::Uuid>,
+    },
     /// Place a symbol instance on the first layer of the first scene.
     Place {
         path: PathBuf,
@@ -100,6 +108,7 @@ fn main() -> Result<()> {
             numerator,
             denominator,
         } => project::new(&path, numerator, denominator)?,
+        Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
         Command::Info { path } => project::info(&path)?,
         Command::AddSymbol { path, name } => project::add_symbol(&path, &name)?,
         Command::Place {

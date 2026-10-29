@@ -110,3 +110,29 @@ pub fn place(
     commit(&session, path)?;
     Ok(json!({ "instance": instance.id().as_uuid() }))
 }
+
+/// Evaluates one frame of a scene (default: the first) using the shared evaluator.
+pub fn eval(path: &Path, frame: u32, scene: Option<Uuid>) -> Result<Value> {
+    let session = open(path)?;
+    let document = session.document();
+    let scene = match scene {
+        Some(id) => SceneId::from_uuid(id),
+        None => document
+            .scenes()
+            .first()
+            .context("document has no scene")?
+            .id(),
+    };
+    let placed = flare_eval::evaluate(document, scene, frame)?;
+    let items: Vec<Value> = placed
+        .iter()
+        .map(|item| {
+            json!({
+                "path": item.path.iter().map(|id| id.as_uuid()).collect::<Vec<_>>(),
+                "symbol": item.symbol.as_uuid(),
+                "matrix": item.transform.to_cols_array(),
+            })
+        })
+        .collect();
+    Ok(json!({ "frame": frame, "placed": items }))
+}

@@ -196,6 +196,7 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-edit",
+ "flare-eval",
  "flare-flash",
  "flare-storage",
  "glamx",
