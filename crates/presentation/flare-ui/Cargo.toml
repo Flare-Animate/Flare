@@ -8,6 +8,7 @@ license.workspace = true
 
 [dependencies]
 egui = { workspace = true, features = ["default_fonts"] }
+egui_extras.workspace = true
 egui_tiles = { workspace = true, features = ["serde"] }
 thiserror.workspace = true
 flare-audio.workspace = true

@@ -89,8 +89,15 @@ mod native {
             items.push((MenuAction::Quit, quit));
             menu.append(&app)?;
 
+            // The system's Window menu (minimize, full screen) also carries Flare's own panel
+            // entries, so there is one Window menu, not two.
+            let window_menu = Submenu::new("Window", true);
             for (title, entries) in MENU_LAYOUT {
-                let submenu = Submenu::new(*title, true);
+                let submenu = if *title == "Window" {
+                    window_menu.clone()
+                } else {
+                    Submenu::new(*title, true)
+                };
                 for entry in *entries {
                     match entry {
                         // Quit lives in the application menu on macOS.
@@ -101,13 +108,18 @@ mod native {
                             items.push((*action, it));
                         }
                         MenuEntry::Separator => submenu.append(&PredefinedMenuItem::separator())?,
+                        // A planned command: present, dimmed, and inert.
+                        MenuEntry::Mock(label) => {
+                            submenu.append(&MenuItem::new(*label, false, None))?;
+                        }
                     }
                 }
-                menu.append(&submenu)?;
+                if *title != "Window" {
+                    menu.append(&submenu)?;
+                }
             }
-
-            let window_menu = Submenu::new("Window", true);
             window_menu.append_items(&[
+                &PredefinedMenuItem::separator(),
                 &PredefinedMenuItem::minimize(None),
                 &PredefinedMenuItem::fullscreen(None),
                 &PredefinedMenuItem::separator(),

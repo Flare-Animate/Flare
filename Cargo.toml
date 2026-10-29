@@ -95,6 +95,7 @@ skrifa = "0.44.0"          # Glyph outlines for the text tool; one copy, shared 
 wgpu = { version = "30.0", default-features = false }
 egui = { version = "0.37.0", default-features = false }
 egui_tiles = { version = "0.18.0", default-features = false }
+egui_extras = { version = "0.37.0", default-features = false, features = ["svg"] }
 egui-wgpu = { version = "0.37.0", default-features = false }
 egui-winit = { version = "0.37.0", default-features = false }
 winit = { version = "0.30.13", default-features = false }

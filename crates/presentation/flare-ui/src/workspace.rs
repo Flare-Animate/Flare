@@ -111,6 +111,15 @@ struct PendingText {
 /// Selection bounds with the (context, revision, selection hash) they were computed for.
 type SelectionRects = ((u64, u64, u64), Vec<Rect>);
 
+mod panels;
+
+/// Which color the color panel edits.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ColorTarget {
+    Fill,
+    Stroke,
+}
+
 /// Frames `from..=to` of one layer, selected in the timeline for copying.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct FrameRange {
@@ -275,6 +284,14 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// Which color the color panel edits.
+    color_target: ColorTarget,
+    /// Align panel option (not wired up yet).
+    align_to_stage: bool,
+    /// Where the pointer is over the stage, in stage units.
+    pointer_stage: Option<Pos2>,
+    /// The theme and icon loaders have been installed on the egui context.
+    chrome_ready: bool,
     /// Sounds decoded and ready to play, by sound.
     decoded: HashMap<flare_core::SoundId, Arc<flare_audio::Audio>>,
     /// Sounds being decoded, and sounds that could not be, so neither is asked for again.
@@ -376,6 +393,10 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            color_target: ColorTarget::Fill,
+            align_to_stage: false,
+            pointer_stage: None,
+            chrome_ready: false,
             decoded: HashMap::new(),
             decoding: HashSet::new(),
             decode_failed: HashSet::new(),
@@ -2804,6 +2825,11 @@ impl Workspace {
 
     pub fn show(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
+        if !self.chrome_ready {
+            crate::theme::apply(&ctx);
+            crate::icons::install(&ctx);
+            self.chrome_ready = true;
+        }
         let now = ui.input(|i| i.time);
         self.drain_background();
         self.advance(now);
@@ -2818,6 +2844,9 @@ impl Workspace {
         }
         self.ensure_stage_texture(&ctx);
 
+        egui::Panel::bottom("status")
+            .exact_size(24.0)
+            .show(ui, |ui| self.status_bar(ui));
         egui::Panel::top("menu").show(ui, |ui| self.menu_bar(ui));
         egui::CentralPanel::default().show(ui, |ui| {
             // The dock needs `&mut self` to draw panel contents, so take it out while it runs.
@@ -2965,86 +2994,25 @@ impl Workspace {
                                 MenuEntry::Separator => {
                                     ui.separator();
                                 }
+                                MenuEntry::Mock(label) => {
+                                    ui.add_enabled(false, egui::Button::new(*label))
+                                        .on_disabled_hover_text(crate::chrome::NOT_YET);
+                                }
                             }
                         }
                     });
                 }
                 ui.separator();
             }
-            let crumbs = self.breadcrumb();
-            if crumbs.len() > 1 {
-                for (depth, name) in crumbs.iter().enumerate() {
-                    if depth > 0 {
-                        ui.label(">");
-                    }
-                    if ui.link(name).clicked() {
-                        self.exit_to_depth(depth);
-                        break;
-                    }
-                }
-                ui.separator();
-            }
-            ui.label(self.title());
-            if let Some(status) = &self.status {
-                ui.separator();
-                ui.label(status);
-            }
-        });
-    }
-
-    fn tools(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Tools");
-        let mut tool = self.tool;
-        ui.selectable_value(&mut tool, Tool::Select, "Select / Move");
-        ui.selectable_value(&mut tool, Tool::Rectangle, "Rectangle");
-        ui.selectable_value(&mut tool, Tool::Ellipse, "Ellipse");
-        ui.selectable_value(&mut tool, Tool::Line, "Line");
-        ui.selectable_value(&mut tool, Tool::Pen, "Pen");
-        ui.selectable_value(&mut tool, Tool::Text, "Text");
-        self.set_tool(tool);
-        ui.weak("Drag on the stage. Esc cancels. Delete removes, F8 converts to a symbol.");
-        ui.weak("Pen: click for corners, drag for curves, click the first point to close, Enter or double-click to finish.");
-        ui.weak("Text: click the stage, type, then Place (Ctrl+Enter). It becomes shapes.");
-        if self.tool == Tool::Text {
-            ui.separator();
-            ui.label("Font");
-            ui.add(
-                egui::TextEdit::singleline(&mut self.text_family)
-                    .hint_text("Family, e.g. Helvetica, sans-serif"),
-            );
-            ui.add(
-                egui::DragValue::new(&mut self.text_size)
-                    .range(flare_text::MIN_SIZE..=flare_text::MAX_SIZE)
-                    .suffix(" px"),
-            );
-        }
-        ui.separator();
-        ui.label("Fill");
-        ui.color_edit_button_srgba(&mut self.fill);
-        ui.checkbox(&mut self.gradient_enabled, "Gradient");
-        ui.add_enabled_ui(self.gradient_enabled, |ui| {
-            ui.horizontal(|ui| {
-                ui.color_edit_button_srgba(&mut self.gradient_end);
-                ui.checkbox(&mut self.gradient_vertical, "Vertical");
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(egui::RichText::new(self.title()).color(crate::theme::TEXT_DIM));
             });
         });
-        ui.checkbox(&mut self.stroke_enabled, "Outline");
-        ui.add_enabled_ui(self.stroke_enabled, |ui| {
-            ui.color_edit_button_srgba(&mut self.stroke_color);
-            ui.add(
-                egui::DragValue::new(&mut self.stroke_width)
-                    .range(0.5..=200.0)
-                    .suffix(" px"),
-            );
-        });
-        ui.separator();
-        self.stage_settings(ui);
     }
 
     /// Stage size and background. Size edits apply on release or Enter so that scrubbing a
     /// value is a single undo step.
     fn stage_settings(&mut self, ui: &mut egui::Ui) {
-        ui.label("Stage");
         let stage = self.document().stage();
         let (mut width, mut height) = self.stage_edit.unwrap_or((stage.width(), stage.height()));
         let wr = ui.add(
@@ -3075,38 +3043,11 @@ impl Workspace {
         }
     }
 
-    fn library(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Library");
-        let entries: Vec<(SymbolId, String)> = self
-            .document()
-            .symbols()
-            .iter()
-            .map(|s| (s.id(), s.name().to_owned()))
-            .collect();
-        if entries.is_empty() {
-            ui.weak("No symbols");
-        }
-        for (id, name) in entries {
-            let chosen = self.selected_symbol == Some(id);
-            if ui.selectable_label(chosen, name).clicked() {
-                self.selected_symbol = Some(id);
-            }
-        }
-        ui.separator();
-        if ui
-            .add_enabled(
-                self.selected_symbol.is_some(),
-                egui::Button::new("Place on stage"),
-            )
-            .clicked()
-        {
-            self.place_selected_symbol();
-        }
-    }
-
     fn stage(&mut self, ui: &mut egui::Ui) {
+        self.stage_bar(ui);
         let available = ui.available_size();
         let (response, painter) = ui.allocate_painter(available, Sense::click_and_drag());
+        painter.rect_filled(response.rect, 0.0, crate::theme::STAGE_SURROUND);
         let extent = self.stage_extent();
         self.stage_panel = response.rect;
         if response.hovered() {
@@ -3170,6 +3111,7 @@ impl Workspace {
             StrokeKind::Outside,
         );
 
+        self.stage_rulers(&painter, response.rect, image_rect, scale);
         self.text_editor(ui.ctx(), image_rect, scale);
         if !self.stage_view.is_fit() {
             painter.text(
@@ -3184,6 +3126,7 @@ impl Workspace {
         self.uniform_scale = ui.input(|i| i.modifiers.shift);
         self.skew_modifier = ui.input(|i| i.modifiers.alt);
         let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
+        self.pointer_stage = response.hover_pos().map(to_doc);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
         if self.tool == Tool::Text
             && response.clicked()
@@ -3405,76 +3348,7 @@ impl Workspace {
     }
 
     fn timeline(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            let label = if self.playing { "Pause" } else { "Play" };
-            if ui.button(label).clicked() {
-                self.playing = !self.playing;
-            }
-            let last = self.scene_frames() - 1;
-            let mut frame = self.frame;
-            ui.add(
-                egui::DragValue::new(&mut frame)
-                    .range(0..=last)
-                    .prefix("Frame "),
-            );
-            if frame != self.frame {
-                self.set_frame(frame);
-            }
-            let rate = self.document().frame_rate();
-            ui.weak(format!("{}/{} fps", rate.numerator(), rate.denominator()));
-            ui.separator();
-            let mut enabled = self.onion.enabled;
-            ui.checkbox(&mut enabled, "Onion skin");
-            self.set_onion_skin(enabled);
-            ui.add_enabled_ui(enabled, |ui| {
-                let (mut before, mut after) = (self.onion.before, self.onion.after);
-                ui.add(
-                    egui::DragValue::new(&mut before)
-                        .range(0..=MAX_ONION_FRAMES)
-                        .prefix("before "),
-                );
-                ui.add(
-                    egui::DragValue::new(&mut after)
-                        .range(0..=MAX_ONION_FRAMES)
-                        .prefix("after "),
-                );
-                self.set_onion_range(before, after);
-            });
-            ui.separator();
-            if ui
-                .small_button("\u{2212}")
-                .on_hover_text("Zoom timeline out")
-                .clicked()
-            {
-                self.zoom_timeline(1.0 / timeline_view::STEP);
-            }
-            if ui
-                .small_button("+")
-                .on_hover_text("Zoom timeline in")
-                .clicked()
-            {
-                self.zoom_timeline(timeline_view::STEP);
-            }
-            if ui
-                .small_button("Fit")
-                .on_hover_text("Fit the scene")
-                .clicked()
-            {
-                self.timeline_zoom = timeline_view::MIN_ZOOM;
-            }
-            ui.separator();
-            // Renaming needs text input, which a menu item cannot provide.
-            let edit = ui.add(
-                egui::TextEdit::singleline(&mut self.layer_name_edit)
-                    .hint_text("Rename active layer")
-                    .desired_width(150.0),
-            );
-            let submitted = edit.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter));
-            if (ui.button("Rename").clicked() || submitted) && !self.layer_name_edit.is_empty() {
-                let name = std::mem::take(&mut self.layer_name_edit);
-                self.rename_active_layer(&name);
-            }
-        });
+        self.timeline_toolbar(ui);
         ui.separator();
 
         let available = ui.available_width();
@@ -3492,7 +3366,7 @@ impl Workspace {
                 .first()
                 .map_or(0, |s| s.timeline().layers().len());
             let row = 22.0;
-            let label_w = 110.0;
+            let label_w = 150.0;
             let height = row * (layer_count as f32 + 1.0);
             let per_frame = timeline_view::frame_width(
                 (available - label_w).max(0.0),
@@ -3559,8 +3433,8 @@ impl Workspace {
                 }
                 if let Some(id) = picked {
                     // The two small toggles at the right edge of the label column.
-                    let eye = p.x >= track.min.x - 40.0 && p.x < track.min.x - 20.0;
-                    let lock = p.x >= track.min.x - 20.0 && p.x < track.min.x;
+                    let eye = p.x >= track.min.x - 54.0 && p.x < track.min.x - 36.0;
+                    let lock = p.x >= track.min.x - 36.0 && p.x < track.min.x - 18.0;
                     if response.clicked() && eye {
                         self.toggle_layer_visible(id);
                     } else if response.clicked() && lock {
@@ -3572,18 +3446,36 @@ impl Workspace {
             }
             let active = self.active_layer_id();
 
-            // Ruler ticks roughly every 40px.
+            // The ruler: a band with a tick on every frame and a number every few.
+            let ink = crate::theme::TEXT;
+            let band = Rect::from_min_max(rect.min, Pos2::new(rect.max.x, rect.min.y + row));
+            painter.rect_filled(band, 0.0, crate::theme::PANEL_RAISED);
+            painter.hline(
+                rect.x_range(),
+                band.bottom(),
+                Stroke::new(1.0, crate::theme::BORDER),
+            );
             let step = ((40.0 / per_frame).ceil() as u32).max(1);
-            let ink = ui.visuals().text_color();
-            for f in (0..frames).step_by(step as usize) {
+            for f in 0..frames {
                 let x = track.min.x + f as f32 * per_frame;
-                painter.text(
-                    Pos2::new(x + 2.0, rect.min.y),
-                    Align2::LEFT_TOP,
-                    f.to_string(),
-                    FontId::monospace(10.0),
-                    ink,
+                if x > painter.clip_rect().max.x {
+                    break;
+                }
+                let major = f % step == 0;
+                painter.vline(
+                    x,
+                    (band.bottom() - if major { 7.0 } else { 3.0 })..=band.bottom(),
+                    Stroke::new(1.0, crate::theme::TEXT_DISABLED),
                 );
+                if major {
+                    painter.text(
+                        Pos2::new(x + 3.0, band.top() + 2.0),
+                        Align2::LEFT_TOP,
+                        (f + 1).to_string(),
+                        FontId::monospace(10.0),
+                        crate::theme::TEXT_DIM,
+                    );
+                }
             }
             if let Some(scene) = self.document().scenes().first() {
                 // Only the rows in view are painted; with thousands of layers drawing all of
@@ -3598,6 +3490,28 @@ impl Workspace {
                     .take(count)
                 {
                     let y = rect.min.y + row * (i as f32 + 1.0);
+                    if i % 2 == 1 {
+                        painter.rect_filled(
+                            Rect::from_min_max(
+                                Pos2::new(rect.min.x, y),
+                                Pos2::new(rect.max.x, y + row),
+                            ),
+                            0.0,
+                            Color32::from_rgba_unmultiplied(255, 255, 255, 6),
+                        );
+                    }
+                    // A line every five frames makes the cells easy to count.
+                    for f in (0..frames).step_by(5) {
+                        let x = track.min.x + f as f32 * per_frame;
+                        if x > painter.clip_rect().max.x {
+                            break;
+                        }
+                        painter.vline(
+                            x,
+                            y..=y + row,
+                            Stroke::new(1.0, Color32::from_rgba_unmultiplied(255, 255, 255, 14)),
+                        );
+                    }
                     if Some(layer.id()) == active {
                         let band = Rect::from_min_max(
                             Pos2::new(rect.min.x, y),
@@ -3609,9 +3523,9 @@ impl Workspace {
                             Color32::from_rgba_unmultiplied(80, 140, 255, 40),
                         );
                     }
-                    let dim = ink.gamma_multiply(0.35);
+                    let dim = crate::theme::TEXT_DISABLED;
                     painter.text(
-                        Pos2::new(rect.min.x + 4.0, y + 3.0),
+                        Pos2::new(rect.min.x + 6.0, y + 4.0),
                         Align2::LEFT_TOP,
                         if layer.is_mask() {
                             format!("Mask: {}", layer.name())
@@ -3621,17 +3535,36 @@ impl Workspace {
                         FontId::proportional(12.0),
                         if layer.is_visible() { ink } else { dim },
                     );
-                    let flag = |x: f32, on: bool, glyph: &str| {
-                        painter.text(
-                            Pos2::new(x, y + 3.0),
-                            Align2::LEFT_TOP,
-                            glyph,
-                            FontId::monospace(12.0),
-                            if on { ink } else { dim },
+                    // Visibility, lock and outline columns, as icons.
+                    let icon_at = |x: f32, name: &str, tint: Color32| {
+                        crate::icons::image(name, 14.0, tint).paint_at(
+                            ui,
+                            Rect::from_min_size(Pos2::new(x, y + 4.0), Vec2::splat(14.0)),
                         );
                     };
-                    flag(track.min.x - 36.0, layer.is_visible(), "V");
-                    flag(track.min.x - 16.0, layer.is_locked(), "L");
+                    icon_at(
+                        track.min.x - 52.0,
+                        if layer.is_visible() { "eye" } else { "eye-off" },
+                        if layer.is_visible() {
+                            crate::theme::TEXT
+                        } else {
+                            dim
+                        },
+                    );
+                    icon_at(
+                        track.min.x - 34.0,
+                        if layer.is_locked() {
+                            "lock"
+                        } else {
+                            "lock-open"
+                        },
+                        if layer.is_locked() {
+                            crate::theme::TEXT
+                        } else {
+                            dim
+                        },
+                    );
+                    icon_at(track.min.x - 16.0, "outline-square", dim);
                     for span in layer.spans() {
                         let x0 = track.min.x + span.start() as f32 * per_frame;
                         let x1 = track.min.x + span.end() as f32 * per_frame;
@@ -3711,10 +3644,72 @@ impl Workspace {
             }
             let head = track.min.x + (self.frame as f32 + 0.5) * per_frame;
             painter.line_segment(
-                [Pos2::new(head, rect.min.y), Pos2::new(head, rect.max.y)],
-                Stroke::new(2.0, Color32::from_rgb(220, 60, 60)),
+                [
+                    Pos2::new(head, rect.min.y + 8.0),
+                    Pos2::new(head, rect.max.y),
+                ],
+                Stroke::new(1.5, Color32::from_rgb(232, 69, 60)),
+            );
+            crate::icons::image("playhead", 16.0, Color32::from_rgb(232, 69, 60)).paint_at(
+                ui,
+                Rect::from_center_size(Pos2::new(head, rect.min.y + 8.0), Vec2::splat(16.0)),
             );
         });
+    }
+
+    /// Rulers along the top and left edge of the stage view, in stage units.
+    fn stage_rulers(&self, painter: &egui::Painter, panel: Rect, image: Rect, scale: f32) {
+        const THICKNESS: f32 = 16.0;
+        let top = Rect::from_min_max(panel.min, Pos2::new(panel.max.x, panel.min.y + THICKNESS));
+        let left = Rect::from_min_max(panel.min, Pos2::new(panel.min.x + THICKNESS, panel.max.y));
+        let fill = crate::theme::PANEL_RAISED.gamma_multiply(0.92);
+        painter.rect_filled(top, 0.0, fill);
+        painter.rect_filled(left, 0.0, fill);
+        let tick = Stroke::new(1.0, crate::theme::TEXT_DISABLED);
+        let font = FontId::monospace(9.0);
+        for t in crate::view::ruler_ticks(
+            image.min.x,
+            scale,
+            panel.min.x + THICKNESS,
+            panel.max.x,
+            56.0,
+        ) {
+            let height = if t.major { THICKNESS - 4.0 } else { 4.0 };
+            painter.vline(t.screen, (top.bottom() - height)..=top.bottom(), tick);
+            if t.major {
+                painter.text(
+                    Pos2::new(t.screen + 2.0, top.top() + 1.0),
+                    Align2::LEFT_TOP,
+                    format!("{}", t.value.round()),
+                    font.clone(),
+                    crate::theme::TEXT_DIM,
+                );
+            }
+        }
+        for t in crate::view::ruler_ticks(
+            image.min.y,
+            scale,
+            panel.min.y + THICKNESS,
+            panel.max.y,
+            56.0,
+        ) {
+            let width = if t.major { THICKNESS - 4.0 } else { 4.0 };
+            painter.hline((left.right() - width)..=left.right(), t.screen, tick);
+            if t.major {
+                painter.text(
+                    Pos2::new(left.left() + 1.0, t.screen + 2.0),
+                    Align2::LEFT_TOP,
+                    format!("{}", t.value.round()),
+                    font.clone(),
+                    crate::theme::TEXT_DIM,
+                );
+            }
+        }
+        painter.rect_filled(
+            Rect::from_min_size(panel.min, Vec2::splat(THICKNESS)),
+            0.0,
+            crate::theme::PANEL_RAISED,
+        );
     }
 
     fn zoom_timeline(&mut self, factor: f32) {
@@ -3737,16 +3732,59 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         match pane {
             Pane::Stage => self.workspace.stage(ui),
             Pane::Timeline => self.workspace.timeline(ui),
-            Pane::Library => self.workspace.library(ui),
-            Pane::Tools => {
-                egui::ScrollArea::vertical().show(ui, |ui| self.workspace.tools(ui));
-            }
+            Pane::Library => self.workspace.library_panel(ui),
+            Pane::Tools => self.workspace.tools_panel(ui),
+            Pane::Properties => self.workspace.properties_panel(ui),
+            Pane::Color => self.workspace.color_panel(ui),
+            Pane::Align => self.workspace.align_panel(ui),
+            Pane::Transform => self.workspace.transform_panel(ui),
+            Pane::History => self.workspace.history_panel(ui),
         }
         egui_tiles::UiResponse::None
     }
 
     fn tab_title_for_pane(&mut self, pane: &Pane) -> egui::WidgetText {
         pane.title().into()
+    }
+
+    fn tab_bar_height(&self, _style: &egui::Style) -> f32 {
+        26.0
+    }
+
+    fn gap_width(&self, _style: &egui::Style) -> f32 {
+        3.0
+    }
+
+    fn tab_bar_color(&self, _visuals: &egui::Visuals) -> egui::Color32 {
+        crate::theme::BG
+    }
+
+    fn tab_bg_color(
+        &self,
+        _visuals: &egui::Visuals,
+        _tiles: &egui_tiles::Tiles<Pane>,
+        _tile_id: egui_tiles::TileId,
+        state: &egui_tiles::TabState,
+    ) -> egui::Color32 {
+        if state.active {
+            crate::theme::PANEL
+        } else {
+            crate::theme::BG
+        }
+    }
+
+    fn tab_text_color(
+        &self,
+        _visuals: &egui::Visuals,
+        _tiles: &egui_tiles::Tiles<Pane>,
+        _tile_id: egui_tiles::TileId,
+        state: &egui_tiles::TabState,
+    ) -> egui::Color32 {
+        if state.active {
+            crate::theme::TEXT
+        } else {
+            crate::theme::TEXT_DIM
+        }
     }
 }
 
@@ -4992,15 +5030,16 @@ mod tests {
         let mut ws = workspace();
         // A real arrangement: every panel in one tab group, nothing like the default.
         let mut tiles = egui_tiles::Tiles::default();
-        let panes: Vec<_> = [Pane::Timeline, Pane::Library, Pane::Stage, Pane::Tools]
+        let panes: Vec<_> = Pane::ALL
             .into_iter()
+            .rev()
             .map(|pane| tiles.insert_pane(pane))
             .collect();
         let root = tiles.insert_tab_tile(panes);
         let custom_tree = egui_tiles::Tree::new(egui::Id::unique("custom"), root, tiles);
         let custom = layout::to_json(&custom_tree).expect("serialize");
         ws.restore_layout(&custom)
-            .expect("a tab group of all four panels is valid");
+            .expect("a tab group of every panel is valid");
 
         let value = |t: &str| serde_json::from_str::<serde_json::Value>(t).expect("json");
         let default = layout::to_json(&layout::default_tree()).expect("serialize");
@@ -6890,5 +6929,122 @@ mod tests {
         assert!(ws.is_enabled(MenuAction::ImportSound));
         ws.perform(MenuAction::ImportSound);
         assert_eq!(ws.take_dialog(), Some(DialogRequest::ImportSound));
+    }
+
+    #[test]
+    fn every_panel_draws_with_every_tool_and_in_the_states_that_change_what_they_show() {
+        let (ctx, mut ws) = (egui::Context::default(), two_rectangles());
+        run(&mut ws, &ctx, 0.0);
+        let mut time = 0.1;
+        for tool in [
+            Tool::Select,
+            Tool::Rectangle,
+            Tool::Ellipse,
+            Tool::Line,
+            Tool::Pen,
+            Tool::Text,
+        ] {
+            ws.set_tool(tool);
+            for (selected, gradient, playing, onion) in [
+                (false, false, false, false),
+                (true, true, false, true),
+                (true, false, true, false),
+            ] {
+                if selected {
+                    ws.select_at(Pos2::new(30.0, 30.0), false);
+                } else {
+                    ws.select_at(Pos2::new(400.0, 400.0), false);
+                }
+                ws.gradient_enabled = gradient;
+                ws.playing = playing;
+                ws.set_onion_skin(onion);
+                // A pass draws every dock panel, the menu and the status bar; a missing icon
+                // name would panic here in a debug build.
+                run(&mut ws, &ctx, time);
+                time += 0.1;
+            }
+        }
+    }
+
+    #[test]
+    fn the_theme_and_icons_are_installed_once_and_the_theme_is_dark() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        assert!(!ws.chrome_ready);
+        run(&mut ws, &ctx, 0.0);
+        assert!(ws.chrome_ready);
+        assert!(ctx.global_style().visuals.dark_mode);
+        assert_eq!(ctx.global_style().visuals.panel_fill, crate::theme::PANEL);
+    }
+
+    #[test]
+    fn the_pointer_position_over_the_stage_is_tracked_in_stage_units() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.1);
+        let center = ws.stage_panel.center();
+        pass(&mut ws, &ctx, input(0.2, vec![Event::PointerMoved(center)]));
+        let at = ws.pointer_stage.expect("the pointer is over the stage");
+        let extent = ws.stage_extent();
+        assert!(
+            at.x > 0.0 && at.x < extent.x && at.y > 0.0 && at.y < extent.y,
+            "{at:?}"
+        );
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.3, vec![Event::PointerMoved(Pos2::new(1.0, 1.0))]),
+        );
+        assert!(
+            ws.pointer_stage.is_none(),
+            "off the stage panel there is no position"
+        );
+    }
+
+    #[test]
+    fn a_new_layer_goes_on_top_becomes_active_and_is_one_undo_step() {
+        let mut ws = workspace();
+        ws.add_layer();
+        assert_eq!(layer_count(&ws), 2);
+        let layers = ws.document().scenes()[0].timeline().layers();
+        assert_eq!(layers[1].name(), "Layer 2");
+        assert_eq!(ws.active_layer_id(), Some(layers[1].id()));
+        ws.undo();
+        assert_eq!(layer_count(&ws), 1);
+    }
+
+    #[test]
+    fn the_zoom_percentage_sets_the_stage_scale_and_fit_returns_to_fitting() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.set_stage_size(400, 200);
+        run(&mut ws, &ctx, 0.0);
+        ws.set_stage_percent(200.0);
+        let scale = ws.stage_view.scale(ws.stage_panel, ws.stage_extent());
+        assert!((scale - 2.0).abs() < 0.01, "{scale}");
+        ws.set_stage_percent(50.0);
+        let scale = ws.stage_view.scale(ws.stage_panel, ws.stage_extent());
+        assert!((scale - 0.5).abs() < 0.01, "{scale}");
+        ws.perform(MenuAction::ZoomFit);
+        assert!(ws.stage_view.is_fit());
+    }
+
+    #[test]
+    fn menus_hold_planned_commands_dimmed_and_every_real_action_once() {
+        let mocks = MENU_LAYOUT
+            .iter()
+            .flat_map(|(_, entries)| entries.iter())
+            .filter(|e| matches!(e, MenuEntry::Mock(_)))
+            .count();
+        assert!(mocks > 30, "{mocks} planned commands are listed");
+        let titles: Vec<&str> = MENU_LAYOUT.iter().map(|(t, _)| *t).collect();
+        for expected in [
+            "File", "Edit", "View", "Insert", "Modify", "Text", "Control", "Window", "Help",
+        ] {
+            assert!(titles.contains(&expected), "{expected} menu: {titles:?}");
+        }
+        let mut seen = std::collections::HashSet::new();
+        assert!(
+            titles.iter().all(|t| seen.insert(*t)),
+            "no menu title twice: {titles:?}"
+        );
     }
 }

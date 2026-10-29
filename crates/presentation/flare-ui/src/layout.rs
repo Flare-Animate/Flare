@@ -20,10 +20,25 @@ pub enum Pane {
     Stage,
     Library,
     Timeline,
+    Properties,
+    Color,
+    Align,
+    Transform,
+    History,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 4] = [Pane::Tools, Pane::Stage, Pane::Library, Pane::Timeline];
+    pub const ALL: [Pane; 9] = [
+        Pane::Tools,
+        Pane::Stage,
+        Pane::Library,
+        Pane::Timeline,
+        Pane::Properties,
+        Pane::Color,
+        Pane::Align,
+        Pane::Transform,
+        Pane::History,
+    ];
 
     pub fn title(self) -> &'static str {
         match self {
@@ -31,6 +46,11 @@ impl Pane {
             Self::Stage => "Stage",
             Self::Library => "Library",
             Self::Timeline => "Timeline",
+            Self::Properties => "Properties",
+            Self::Color => "Color",
+            Self::Align => "Align",
+            Self::Transform => "Transform",
+            Self::History => "History",
         }
     }
 }
@@ -47,20 +67,33 @@ pub enum LayoutError {
 
 const TREE_ID: &str = "flare_workspace_layout";
 
-/// Tools, Stage and Library side by side above the Timeline.
+/// The tool strip, the stage and two stacks of panels side by side above the timeline.
+///
+/// Properties and Library share the upper right; Color, Align, Transform and History the
+/// lower right, as tabs.
 pub fn default_tree() -> Tree<Pane> {
     let mut tiles = Tiles::default();
     let tools = tiles.insert_pane(Pane::Tools);
     let stage = tiles.insert_pane(Pane::Stage);
-    let library = tiles.insert_pane(Pane::Library);
     let timeline = tiles.insert_pane(Pane::Timeline);
-    let top = tiles.insert_horizontal_tile(vec![tools, stage, library]);
+    let properties = tiles.insert_pane(Pane::Properties);
+    let library = tiles.insert_pane(Pane::Library);
+    let color = tiles.insert_pane(Pane::Color);
+    let align = tiles.insert_pane(Pane::Align);
+    let transform = tiles.insert_pane(Pane::Transform);
+    let history = tiles.insert_pane(Pane::History);
+    let upper = tiles.insert_tab_tile(vec![properties, library]);
+    let lower = tiles.insert_tab_tile(vec![color, align, transform, history]);
+    let side = tiles.insert_vertical_tile(vec![upper, lower]);
+    let top = tiles.insert_horizontal_tile(vec![tools, stage, side]);
     let root = tiles.insert_vertical_tile(vec![top, timeline]);
-    set_share(&mut tiles, top, tools, 0.16);
-    set_share(&mut tiles, top, stage, 0.68);
-    set_share(&mut tiles, top, library, 0.16);
-    set_share(&mut tiles, root, top, 0.72);
-    set_share(&mut tiles, root, timeline, 0.28);
+    set_share(&mut tiles, top, tools, 0.07);
+    set_share(&mut tiles, top, stage, 0.66);
+    set_share(&mut tiles, top, side, 0.27);
+    set_share(&mut tiles, side, upper, 0.55);
+    set_share(&mut tiles, side, lower, 0.45);
+    set_share(&mut tiles, root, top, 0.70);
+    set_share(&mut tiles, root, timeline, 0.30);
     Tree::new(egui::Id::unique(TREE_ID), root, tiles)
 }
 

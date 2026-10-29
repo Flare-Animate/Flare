@@ -8,10 +8,13 @@
 
 mod actions;
 mod background;
+mod chrome;
 mod handles;
+mod icons;
 mod layout;
 mod ops;
 mod pen;
+mod theme;
 mod timeline_view;
 mod view;
 mod workspace;

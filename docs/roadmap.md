@@ -48,6 +48,13 @@ merge was resolved by hand and the merged result is tested as a whole.
   authored fixtures and each other.
 - App icons must be trimmed of their black corners before they go in `/assets` (packaging).
 
+## Interface follow-ups
+
+The interface is laid out in full and the planned parts are dimmed (see [ui.md](ui.md)). Each of
+these replaces a mock with the real feature: the missing tools, the editable property fields, the
+Align, Transform and History panels, library management, the color panel's editors, the timeline
+extras, and the remaining menu commands.
+
 ## Next independent branches
 
 Each of these can be its own branch and PR:
