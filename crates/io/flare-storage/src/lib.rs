@@ -171,9 +171,18 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
 }
 
 fn not_flare(error: rusqlite::Error) -> StorageError {
-    // A non-database file fails on the first read with "file is not a database".
+    // A non-database file fails on the first read with "file is not a database" (or, for a
+    // damaged one, "malformed"). Busy, permission and I/O failures are real errors about a file
+    // that may well be a project, so they are reported as such.
     match error {
-        rusqlite::Error::SqliteFailure(_, _) => StorageError::NotFlareFile,
+        rusqlite::Error::SqliteFailure(failure, _)
+            if matches!(
+                failure.code,
+                rusqlite::ErrorCode::NotADatabase | rusqlite::ErrorCode::DatabaseCorrupt
+            ) =>
+        {
+            StorageError::NotFlareFile
+        }
         other => StorageError::Sqlite(other),
     }
 }
@@ -501,9 +510,38 @@ mod tests {
             // Some of these are well-formed but extreme (a span ending past u32); those load as
             // valid documents because frame arithmetic is overflow-safe. None may panic.
             let result = load(&path);
-            if payload.contains("\"duration\":0") || payload == "null" || payload == "[]" {
+            if payload.contains("\"duration\":0")
+                || payload == "null"
+                || payload == "[]"
+                || payload.contains("\"name\":1")
+                || payload.contains("\"id\":\"nope\"")
+            {
                 assert!(result.is_err(), "{payload}");
             }
+        }
+    }
+
+    #[test]
+    fn only_not_a_database_failures_are_reported_as_foreign_files() {
+        let failure = |code| rusqlite::Error::SqliteFailure(rusqlite::ffi::Error::new(code), None);
+        assert!(matches!(
+            not_flare(failure(rusqlite::ffi::SQLITE_NOTADB)),
+            StorageError::NotFlareFile
+        ));
+        assert!(matches!(
+            not_flare(failure(rusqlite::ffi::SQLITE_CORRUPT)),
+            StorageError::NotFlareFile
+        ));
+        for code in [
+            rusqlite::ffi::SQLITE_BUSY,
+            rusqlite::ffi::SQLITE_PERM,
+            rusqlite::ffi::SQLITE_IOERR,
+            rusqlite::ffi::SQLITE_CANTOPEN,
+        ] {
+            assert!(
+                matches!(not_flare(failure(code)), StorageError::Sqlite(_)),
+                "code {code} is a real error, not a foreign file"
+            );
         }
     }
 }
