@@ -9,6 +9,7 @@ use flare_animate::MenuAction;
 /// Single-letter shortcuts are avoided on purpose: a native menu would intercept them
 /// before egui, breaking typing into text fields. Delete and Backspace are handled by the
 /// workspace for the same reason.
+#[cfg(any(target_os = "macos", test))]
 pub fn accelerator(action: MenuAction) -> Option<&'static str> {
     action.shortcut()
 }

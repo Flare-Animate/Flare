@@ -88,6 +88,17 @@ impl App {
         }
     }
 
+    /// The native menu bar exists only on macOS; elsewhere the window draws its own menu.
+    #[cfg(not(target_os = "macos"))]
+    fn ensure_native_menu(&mut self) {}
+
+    #[cfg(target_os = "macos")]
+    fn ensure_native_menu(&mut self) {
+        if self.menu.is_none() {
+            self.install_native_menu();
+        }
+    }
+
     /// Installs the native menu bar on macOS and routes its clicks into the event loop.
     #[cfg(target_os = "macos")]
     fn install_native_menu(&mut self) {
@@ -119,14 +130,12 @@ impl ApplicationHandler<UserEvent> for App {
             event_loop.exit();
             return;
         }
-        #[cfg(target_os = "macos")]
-        if self.menu.is_none() {
-            self.install_native_menu();
-        }
+        self.ensure_native_menu();
     }
 
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
         match event {
+            #[cfg(target_os = "macos")]
             UserEvent::Menu(action) => {
                 self.workspace.perform(action);
                 if let Some(gpu) = &self.gpu {

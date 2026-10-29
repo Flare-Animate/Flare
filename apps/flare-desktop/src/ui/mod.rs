@@ -8,13 +8,14 @@ mod shell;
 mod window;
 
 use anyhow::{Context, Result};
-use flare_animate::{MenuAction, Workspace};
+use flare_animate::Workspace;
 use winit::event_loop::{ControlFlow, EventLoop};
 
 /// Events sent to the event loop from outside it (native menu clicks arrive on AppKit's side,
 /// background work finishes on its own thread).
 pub(crate) enum UserEvent {
-    Menu(MenuAction),
+    #[cfg(target_os = "macos")]
+    Menu(flare_animate::MenuAction),
     /// A test movie finished starting (or failed to) on its own thread.
     MovieStarted(Result<flare_platform::jobs::TestMovie, flare_platform::jobs::TestMovieError>),
     /// An export or publish finished on its own thread; an error is worded for the person.
