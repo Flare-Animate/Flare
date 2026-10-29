@@ -118,6 +118,17 @@ enum Command {
     },
     /// Add an empty layer below the existing ones in the first scene.
     AddLayer { path: PathBuf, name: String },
+    /// Insert or remove frames and keyframes on a layer (default: the first layer).
+    Frame {
+        #[arg(value_enum)]
+        op: project::FrameOperation,
+        path: PathBuf,
+        /// Zero-based frame the operation applies at.
+        #[arg(long)]
+        at: u32,
+        #[arg(long)]
+        layer: Option<uuid::Uuid>,
+    },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -207,6 +218,12 @@ fn main() -> Result<()> {
         }
         Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
+        Command::Frame {
+            op,
+            path,
+            at,
+            layer,
+        } => project::frame_op(&path, op, at, layer)?,
         Command::Info { path } => project::info(&path)?,
         Command::AddSymbol {
             path,

@@ -317,3 +317,36 @@ pub fn rect_style(color: &str, stroke: Option<&str>, stroke_width: f64) -> Resul
             .transpose()?,
     })
 }
+
+/// Timeline frame operations, shared with the desktop UI through `flare_edit::frames`.
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+pub enum FrameOperation {
+    InsertFrame,
+    RemoveFrame,
+    InsertKeyframe,
+    InsertBlankKeyframe,
+    ClearKeyframe,
+}
+
+pub fn frame_op(path: &Path, op: FrameOperation, at: u32, layer: Option<Uuid>) -> Result<Value> {
+    use flare_edit::frames;
+    let mut session = open(path)?;
+    let (scene, layer_id) = target_layer(&session, layer)?;
+    let layer = session
+        .document()
+        .scenes()
+        .first()
+        .and_then(|s| s.timeline().layers().iter().find(|l| l.id() == layer_id))
+        .context("layer disappeared")?;
+    let commands = match op {
+        FrameOperation::InsertFrame => frames::insert_frame(scene, layer, at),
+        FrameOperation::RemoveFrame => frames::remove_frame(scene, layer, at),
+        FrameOperation::InsertKeyframe => frames::insert_keyframe(scene, layer, at),
+        FrameOperation::InsertBlankKeyframe => frames::insert_blank_keyframe(scene, layer, at),
+        FrameOperation::ClearKeyframe => frames::clear_keyframe(scene, layer, at),
+    }
+    .with_context(|| format!("{op:?} does not apply at frame {at} of this layer"))?;
+    session.apply(commands)?;
+    commit(&session, path)?;
+    Ok(json!({ "applied": format!("{op:?}"), "frame": at }))
+}

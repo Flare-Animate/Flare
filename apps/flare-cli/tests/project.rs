@@ -455,3 +455,55 @@ fn outlined_rectangles_render_with_their_stroke() {
     );
     assert_eq!(std::fs::read(&file).expect("read"), before);
 }
+
+#[test]
+fn frame_operations_edit_the_timeline_and_reject_what_does_not_apply() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let spans = |file: &str| json(&["info", file])["scenes"][0]["layers"][0]["spans"].as_u64();
+    json(&["new", &file, "--width", "20", "--height", "20"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "0",
+        "0",
+        "5",
+        "5",
+        "--duration",
+        "10",
+    ]);
+
+    json(&["frame", "insert-keyframe", &file, "--at", "4"]);
+    assert_eq!(spans(&file), Some(2));
+    json(&["frame", "insert-blank-keyframe", &file, "--at", "7"]);
+    assert_eq!(spans(&file), Some(3));
+
+    // Frame 7 onward is now empty, so a render there shows only the background.
+    let out = dir.path().join("f.png").to_string_lossy().into_owned();
+    json(&["export", &file, &out, "--frame", "8"]);
+    assert_eq!(pixel(&read_png(&out), 2, 2), [255, 255, 255, 255]);
+    json(&["export", &file, &out, "--frame", "5"]);
+    assert_eq!(pixel(&read_png(&out), 2, 2), [0, 0, 0, 255]);
+
+    json(&["frame", "clear-keyframe", &file, "--at", "7"]);
+    assert_eq!(
+        spans(&file),
+        Some(2),
+        "the blank keyframe merges into the previous span"
+    );
+    json(&["frame", "remove-frame", &file, "--at", "0"]);
+
+    let before = std::fs::read(&file).expect("read");
+    assert!(
+        !run(&["frame", "insert-keyframe", &file, "--at", "0"])
+            .status
+            .success()
+    );
+    assert!(
+        !run(&["frame", "remove-frame", &file, "--at", "500"])
+            .status
+            .success()
+    );
+    assert_eq!(std::fs::read(&file).expect("read"), before);
+}
