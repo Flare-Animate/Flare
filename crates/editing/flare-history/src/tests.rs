@@ -141,7 +141,7 @@ fn layer_flags(f: &Fixture) -> (String, bool, bool) {
 
 #[test]
 fn layer_properties_change_atomically_and_survive_span_edits() {
-    use crate::LayerChange;
+    use flare_commands::LayerChange;
     let mut f = fixture();
     let (scene, layer) = (f.scene, f.layer);
     let update = |change| Command::UpdateLayer {
@@ -347,7 +347,7 @@ fn source_attachments_survive_every_kind_of_edit() {
         change,
     };
     f.session
-        .apply([update(crate::LayerChange::Locked(true))])
+        .apply([update(flare_commands::LayerChange::Locked(true))])
         .expect("lock");
     let stage = flare_document::Stage::new(50, 50, flare_core::Rgba8::WHITE).expect("stage");
     f.session.apply([Command::SetStage(stage)]).expect("stage");
@@ -405,7 +405,7 @@ fn a_snapshot_saved_later_leaves_newer_edits_dirty() {
     let rename = Command::UpdateLayer {
         scene: f.scene,
         layer: f.layer,
-        change: crate::LayerChange::Name("edited while saving".into()),
+        change: flare_commands::LayerChange::Name("edited while saving".into()),
     };
     f.session.apply([rename]).expect("apply");
     f.session.mark_snapshot_saved(&snapshot);

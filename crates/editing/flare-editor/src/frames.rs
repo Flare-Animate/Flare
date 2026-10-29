@@ -10,7 +10,7 @@ use std::num::NonZeroU32;
 use flare_core::{InstanceId, SceneId, ShapeId};
 use flare_document::{Content, FrameSpan, Instance, Layer, Shape, SoundCue};
 
-use crate::Command;
+use flare_commands::Command;
 
 /// Content for a new keyframe copied from `content`: same artwork, fresh identities so
 /// IDs stay unique across the document.

@@ -2,9 +2,9 @@
 
 use std::num::NonZeroU32;
 
+use flare_commands::Command;
 use flare_core::{LayerId, Rgba8, SceneId, ShapeId};
 use flare_document::{Shape, Stroke};
-use flare_edit::Command;
 use serde_json::{Value, json};
 use uuid::Uuid;
 

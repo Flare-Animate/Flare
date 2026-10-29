@@ -4,7 +4,7 @@ use flare_core::{DocumentId, FrameRate, LayerId, Rgba8};
 use flare_document::{Document, Scene, Timeline, Tween};
 
 use super::*;
-use crate::EditorSession;
+use flare_history::EditorSession;
 
 struct Fixture {
     session: EditorSession,

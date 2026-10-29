@@ -14,7 +14,8 @@ thiserror.workspace = true
 zip = { workspace = true, features = ["deflate"] }
 
 [dev-dependencies]
-flare-edit.workspace = true
+flare-commands.workspace = true
+flare-history.workspace = true
 flare-eval.workspace = true
 flare-import.workspace = true
 flare-render.workspace = true

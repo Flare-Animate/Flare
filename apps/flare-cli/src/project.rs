@@ -4,6 +4,7 @@ use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
+use flare_commands::{Command, LayerChange};
 use flare_core::{
     DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
 };
@@ -11,7 +12,7 @@ use flare_document::{
     Content, Document, FrameSpan, Instance, Layer, Scene, Shape, Stage, Stroke, Symbol, Timeline,
     Tween,
 };
-use flare_edit::{Command, EditorSession, LayerChange};
+use flare_history::EditorSession;
 use glamx::{DAffine2, DVec2};
 use serde_json::{Value, json};
 use uuid::Uuid;
@@ -386,7 +387,7 @@ pub fn rect_style(color: &str, stroke: Option<&str>, stroke_width: f64) -> Resul
     })
 }
 
-/// Timeline frame operations, shared with the desktop UI through `flare_edit::frames`.
+/// Timeline frame operations, shared with the desktop UI through `flare_editor::frames`.
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 pub enum FrameOperation {
     InsertFrame,
@@ -397,7 +398,7 @@ pub enum FrameOperation {
 }
 
 pub fn frame_op(path: &Path, op: FrameOperation, at: u32, layer: Option<Uuid>) -> Result<Value> {
-    use flare_edit::frames;
+    use flare_editor::frames;
     let mut session = open(path)?;
     let (scene, layer_id) = target_layer(&session, layer)?;
     let layer = session

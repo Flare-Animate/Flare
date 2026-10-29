@@ -1,9 +1,17 @@
+//! Undo and redo over validated edits.
+//!
+//! Every mutation goes through [`EditorSession::apply`]: a batch of commands runs against a
+//! working copy, and the session only changes if the whole batch succeeds. History keeps
+//! whole-document snapshots (shared via `Arc`), so undo/redo restore IDs and references
+//! exactly. Structural sharing can replace this if profiling demands it.
+#![forbid(unsafe_code)]
+
 use std::collections::VecDeque;
 use std::sync::Arc;
 
 use flare_document::Document;
 
-use crate::command::{Command, EditError, apply_all};
+use flare_commands::{Command, EditError, apply_all};
 
 const DEFAULT_HISTORY_DEPTH: usize = 1000;
 

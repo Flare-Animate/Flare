@@ -8,7 +8,9 @@ members = [
     "apps/flare-mcp",
     "crates/foundation/flare-core",
     "crates/foundation/flare-document",
-    "crates/editing/flare-edit",
+    "crates/editing/flare-commands",
+    "crates/editing/flare-history",
+    "crates/editing/flare-editor",
     "crates/services/flare-storage",
     "crates/foundation/flare-eval",
     "crates/services/flare-render",
@@ -41,7 +43,9 @@ flare-ui = { path = "crates/presentation/flare-ui" }
 flare-render = { path = "crates/services/flare-render" }
 flare-eval = { path = "crates/foundation/flare-eval" }
 flare-storage = { path = "crates/services/flare-storage" }
-flare-edit = { path = "crates/editing/flare-edit" }
+flare-commands = { path = "crates/editing/flare-commands" }
+flare-history = { path = "crates/editing/flare-history" }
+flare-editor = { path = "crates/editing/flare-editor" }
 flare-document = { path = "crates/foundation/flare-document" }
 flare-text = { path = "crates/services/flare-text" }
 flare-audio = { path = "crates/services/flare-audio" }
@@ -164,7 +168,11 @@ codegen-units = 1
 # information and overflow checks stay on; only the optimization level changes.
 [profile.dev.package.flare-document]
 opt-level = 2
-[profile.dev.package.flare-edit]
+[profile.dev.package.flare-commands]
+opt-level = 2
+[profile.dev.package.flare-history]
+opt-level = 2
+[profile.dev.package.flare-editor]
 opt-level = 2
 [profile.dev.package.flare-eval]
 opt-level = 2

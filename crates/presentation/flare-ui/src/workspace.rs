@@ -4,12 +4,14 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use egui::{Align2, Color32, FontId, Key, Modifiers, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
+use flare_commands::{Command, LayerChange};
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
 use flare_document::{
     Content, Document, FrameSpan, Layer, MAX_STAGE_SIDE, Scene, Shape, Stage,
     Stroke as ShapeStroke, Timeline, Tween,
 };
-use flare_edit::{Command, EditorSession, LayerChange, frames};
+use flare_editor::frames;
+use flare_history::EditorSession;
 use glamx::{DAffine2, DVec2};
 
 use crate::background::{AudioJob, Background, Done, IoJob, Mode, RenderJob, TextJob};
@@ -1616,7 +1618,7 @@ impl Workspace {
 
     /// Starts editing a symbol's own timeline in place. Returns whether it started.
     pub fn enter_symbol(&mut self, symbol: SymbolId) -> bool {
-        let Some((scratch, _)) = flare_edit::symbol_workspace(self.document(), symbol) else {
+        let Some((scratch, _)) = flare_editor::symbol_workspace(self.document(), symbol) else {
             self.report("That symbol no longer exists");
             return false;
         };

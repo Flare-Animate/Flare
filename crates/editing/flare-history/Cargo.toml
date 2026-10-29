@@ -1,0 +1,17 @@
+[package]
+name = "flare-history"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+flare-commands.workspace = true
+flare-document.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+flare-core.workspace = true

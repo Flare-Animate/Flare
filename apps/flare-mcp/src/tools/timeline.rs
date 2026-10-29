@@ -1,6 +1,7 @@
 //! Tools that work on layers and frames.
 
-use flare_edit::{Command, LayerChange, frames};
+use flare_commands::{Command, LayerChange};
+use flare_editor::frames;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 
 use crate::ops::{apply, first_scene, target_layer};

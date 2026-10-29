@@ -43,7 +43,8 @@ mod tests {
     use flare_document::{Content, FrameSpan, Instance, Layer, Shape};
 
     use super::*;
-    use crate::{Command, EditError, EditorSession};
+    use flare_commands::{Command, EditError};
+    use flare_history::EditorSession;
 
     fn one_frame(content: Content) -> FrameSpan {
         FrameSpan::new(0, NonZeroU32::MIN, content)

@@ -1,5 +1,5 @@
 [package]
-name = "flare-edit"
+name = "flare-editor"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -7,9 +7,10 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
+flare-commands.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
-thiserror.workspace = true
+flare-history.workspace = true
 
 [lints]
 workspace = true

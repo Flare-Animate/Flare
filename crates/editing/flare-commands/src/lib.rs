@@ -1,3 +1,7 @@
+//! The vocabulary of document edits: [`Command`]s, and applying a batch of them to a document
+//! as one validated step. History and sessions live in `flare-history`.
+#![forbid(unsafe_code)]
+
 use flare_core::{FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
 use flare_document::{
@@ -113,7 +117,7 @@ impl From<Vec<Diagnostic>> for EditError {
 /// valid, which is the same guarantee callers had, at a fraction of the cost (validation
 /// walks the whole document, so checking after every command made an edit of `n` commands
 /// cost `n` document walks). `None` means the batch was empty. The input is untouched.
-pub(crate) fn apply_all(
+pub fn apply_all(
     document: &Document,
     commands: impl IntoIterator<Item = Command>,
 ) -> Result<Option<Document>, EditError> {

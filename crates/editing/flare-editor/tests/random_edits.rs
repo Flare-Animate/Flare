@@ -5,11 +5,13 @@
 
 use std::num::NonZeroU32;
 
+use flare_commands::{Command, LayerChange};
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SoundId};
 use flare_document::{
     Content, Document, FrameSpan, Layer, Scene, Shape, Sound, SoundCue, Stage, Timeline,
 };
-use flare_edit::{Command, EditorSession, LayerChange, frames};
+use flare_editor::frames;
+use flare_history::EditorSession;
 
 struct Rng(u64);
 

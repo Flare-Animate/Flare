@@ -1537,12 +1537,14 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "flare-commands",
  "flare-core",
  "flare-document",
- "flare-edit",
+ "flare-editor",
  "flare-eval",
  "flare-export",
  "flare-flash",
+ "flare-history",
  "flare-import",
  "flare-publish",
  "flare-render",
@@ -1553,6 +1555,15 @@ dependencies = [
  "swf",
  "tempfile",
  "uuid",
+]
+
+[[package]]
+name = "flare-commands"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "flare-document",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -1595,13 +1606,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "flare-edit"
+name = "flare-editor"
 version = "0.1.0"
 dependencies = [
  "criterion",
+ "flare-commands",
  "flare-core",
  "flare-document",
- "thiserror 2.0.21",
+ "flare-history",
 ]
 
 [[package]]
@@ -1618,10 +1630,11 @@ dependencies = [
 name = "flare-export"
 version = "0.1.0"
 dependencies = [
+ "flare-commands",
  "flare-core",
  "flare-document",
- "flare-edit",
  "flare-eval",
+ "flare-history",
  "flare-import",
  "flare-render",
  "flare-storage",
@@ -1638,6 +1651,15 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "flare-history"
+version = "0.1.0"
+dependencies = [
+ "flare-commands",
+ "flare-core",
+ "flare-document",
 ]
 
 [[package]]
@@ -1661,10 +1683,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "flare-commands",
  "flare-core",
  "flare-document",
- "flare-edit",
+ "flare-editor",
  "flare-eval",
+ "flare-history",
  "flare-render",
  "flare-storage",
  "glamx",
@@ -1746,10 +1770,12 @@ dependencies = [
  "egui_tiles",
  "epaint_default_fonts",
  "flare-audio",
+ "flare-commands",
  "flare-core",
  "flare-document",
- "flare-edit",
+ "flare-editor",
  "flare-eval",
+ "flare-history",
  "flare-render",
  "flare-storage",
  "flare-text",

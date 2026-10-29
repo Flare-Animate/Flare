@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use flare_edit::EditorSession;
+use flare_history::EditorSession;
 use flare_storage::StorageError;
 use rmcp::{
     ServerHandler,

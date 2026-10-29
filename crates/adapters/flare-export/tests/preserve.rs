@@ -4,10 +4,11 @@
 
 use std::collections::HashMap;
 
+use flare_commands::Command;
 use flare_core::{DocumentId, FrameRate, LayerId, SceneId};
 use flare_document::{Anchor, Attachment, Document, Layer, Placement, Scene, Timeline};
-use flare_edit::{Command, EditorSession};
 use flare_export::{Severity, export_xfl};
+use flare_history::EditorSession;
 use flare_import::{FileSource, import_xfl};
 
 struct Mem(HashMap<String, String>);

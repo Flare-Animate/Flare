@@ -7,6 +7,7 @@
 use std::num::NonZeroU32;
 
 use egui::{Pos2, Rect};
+use flare_commands::Command;
 use flare_core::{
     DocumentPoint, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
 };
@@ -14,7 +15,6 @@ use flare_document::{
     Content, Document, FrameSpan, Gradient, Instance, Layer, PathSegment, Shape, Stroke, Symbol,
     Timeline, Tween,
 };
-use flare_edit::Command;
 use flare_eval::DrawnShape;
 use glamx::{DAffine2, DVec2};
 

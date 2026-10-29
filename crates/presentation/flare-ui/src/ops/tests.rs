@@ -2,7 +2,7 @@
 
 use flare_core::{DocumentId, FrameRate, Rgba8, ShapeId};
 use flare_document::Scene;
-use flare_edit::EditorSession;
+use flare_history::EditorSession;
 
 use super::*;
 

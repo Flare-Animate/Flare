@@ -2,9 +2,9 @@
 
 use std::num::NonZeroU32;
 
+use flare_commands::Command;
 use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
 use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Symbol, Timeline, Tween};
-use flare_edit::Command;
 use glamx::{DAffine2, DVec2};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
