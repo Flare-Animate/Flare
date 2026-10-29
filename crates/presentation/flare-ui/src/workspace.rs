@@ -11,6 +11,7 @@ use flare_edit::{Command, EditorSession, LayerChange, frames};
 use glamx::DVec2;
 
 use crate::ops::{self, SpanRef};
+use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 
 /// A file dialog the shell should show on the workspace's behalf.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,8 +22,8 @@ pub enum DialogRequest {
 
 struct StageTexture {
     handle: egui::TextureHandle,
-    /// (session revision, frame) the texture was rendered for.
-    key: (u64, u32),
+    /// (context, session revision, frame) the texture was rendered for.
+    key: (u64, u64, u32),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -70,8 +71,20 @@ struct Drag {
     current: Pos2,
 }
 
+/// One level of in-place symbol editing: a scratch document whose scene is the symbol's
+/// timeline, with its own undo history. Leaving applies it to the parent as one edit.
+struct Context {
+    symbol: SymbolId,
+    name: String,
+    session: EditorSession,
+}
+
 pub struct Workspace {
     session: EditorSession,
+    /// Symbols being edited in place, outermost first. Empty means editing the scene.
+    contexts: Vec<Context>,
+    /// Bumped whenever the editing context changes, so cached renders never mix contexts.
+    context_serial: u64,
     path: Option<PathBuf>,
     frame: u32,
     playing: bool,
@@ -87,6 +100,9 @@ pub struct Workspace {
     selected_symbol: Option<SymbolId>,
     current_layer: Option<LayerId>,
     layer_name_edit: String,
+    /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
+    native_menu: bool,
+    quit_requested: bool,
     fill: Color32,
     stroke_enabled: bool,
     stroke_color: Color32,
@@ -101,6 +117,8 @@ impl Workspace {
     pub fn new(document: Document, path: Option<PathBuf>) -> Self {
         Self {
             session: EditorSession::new(document),
+            contexts: Vec::new(),
+            context_serial: 0,
             path,
             frame: 0,
             playing: false,
@@ -114,6 +132,8 @@ impl Workspace {
             selected_symbol: None,
             current_layer: None,
             layer_name_edit: String::new(),
+            native_menu: false,
+            quit_requested: false,
             fill: Color32::from_rgb(232, 69, 60),
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
@@ -160,8 +180,21 @@ impl Workspace {
         }
     }
 
+    /// The session edits go to: the innermost symbol being edited, else the document's.
+    fn active(&self) -> &EditorSession {
+        self.contexts.last().map_or(&self.session, |c| &c.session)
+    }
+
+    fn active_mut(&mut self) -> &mut EditorSession {
+        match self.contexts.last_mut() {
+            Some(context) => &mut context.session,
+            None => &mut self.session,
+        }
+    }
+
+    /// The document being edited right now (a symbol's scratch document in symbol context).
     pub fn document(&self) -> &Document {
-        self.session.document()
+        self.active().document()
     }
 
     pub fn frame(&self) -> u32 {
@@ -173,7 +206,7 @@ impl Workspace {
     }
 
     pub fn is_dirty(&self) -> bool {
-        self.session.is_dirty()
+        self.session.is_dirty() || self.contexts.iter().any(|c| c.session.is_dirty())
     }
 
     pub fn status(&self) -> Option<&str> {
@@ -240,6 +273,10 @@ impl Workspace {
     }
 
     pub fn save_as(&mut self, path: &Path) {
+        // Saving writes the whole document, so pending symbol edits are applied first.
+        if !self.exit_all_symbols() {
+            return;
+        }
         match flare_storage::save(self.session.document(), path) {
             Ok(()) => {
                 self.session.mark_saved();
@@ -253,14 +290,14 @@ impl Workspace {
     // ---- editing ---------------------------------------------------------------------
 
     pub fn undo(&mut self) {
-        if self.session.undo() {
+        if self.active_mut().undo() {
             self.set_frame(self.frame);
             self.validate_selection();
         }
     }
 
     pub fn redo(&mut self) {
-        if self.session.redo() {
+        if self.active_mut().redo() {
             self.set_frame(self.frame);
             self.validate_selection();
         }
@@ -353,12 +390,306 @@ impl Workspace {
                 span,
             },
         ];
-        match self.session.apply(batch) {
+        match self.active_mut().apply(batch) {
             Ok(()) => {
                 self.status = None;
                 self.current_layer = Some(layer_id);
             }
             Err(error) => self.report(format!("Cannot draw: {error}")),
+        }
+    }
+
+    // ---- in-place symbol editing -----------------------------------------------------
+
+    pub fn in_symbol(&self) -> bool {
+        !self.contexts.is_empty()
+    }
+
+    /// Names from the scene down to the symbol being edited, for a breadcrumb.
+    pub fn breadcrumb(&self) -> Vec<String> {
+        let scene = self
+            .session
+            .document()
+            .scenes()
+            .first()
+            .map(|s| s.name().to_owned());
+        scene
+            .into_iter()
+            .chain(self.contexts.iter().map(|c| c.name.clone()))
+            .collect()
+    }
+
+    fn reset_view(&mut self) {
+        self.cancel_drag();
+        self.selected = None;
+        self.current_layer = None;
+        self.frame = 0;
+        self.texture = None;
+        self.context_serial += 1;
+    }
+
+    /// Starts editing a symbol's own timeline in place. Returns whether it started.
+    pub fn enter_symbol(&mut self, symbol: SymbolId) -> bool {
+        let Some((scratch, _)) = flare_edit::symbol_workspace(self.document(), symbol) else {
+            self.report("That symbol no longer exists");
+            return false;
+        };
+        let name = self
+            .document()
+            .symbol(symbol)
+            .map_or_else(String::new, |s| s.name().to_owned());
+        self.contexts.push(Context {
+            symbol,
+            name,
+            session: EditorSession::new(scratch),
+        });
+        self.reset_view();
+        self.status = None;
+        true
+    }
+
+    /// The symbol behind the selected instance, if an instance is selected.
+    fn selected_instance_symbol(&self) -> Option<SymbolId> {
+        let (selected, scene) = (self.selected?, self.scene_id()?);
+        match ops::find_span(self.document(), scene, selected)?.content() {
+            Content::Instance(instance) => Some(instance.symbol()),
+            _ => None,
+        }
+    }
+
+    pub fn can_edit_selected_symbol(&self) -> bool {
+        self.selected_instance_symbol().is_some()
+    }
+
+    pub fn edit_selected_symbol(&mut self) {
+        match self.selected_instance_symbol() {
+            Some(symbol) => {
+                self.enter_symbol(symbol);
+            }
+            None => self.report("Select a symbol instance to edit it"),
+        }
+    }
+
+    /// Leaves the innermost symbol, applying its edits to the parent as one undo step.
+    /// Symbols created inside it (Convert to Symbol) join the library in the same step.
+    /// If the parent rejects the result (for example a symbol that contains itself) the
+    /// edit stays open and the reason is shown.
+    pub fn exit_symbol(&mut self) -> bool {
+        let Some(context) = self.contexts.pop() else {
+            return false;
+        };
+        let inner = context.session.document();
+        let timeline = inner
+            .scenes()
+            .first()
+            .map(|s| s.timeline().clone())
+            .unwrap_or_default();
+        let parent = self.active().document();
+        let new_symbols: Vec<flare_document::Symbol> = inner
+            .symbols()
+            .iter()
+            .filter(|s| parent.symbol(s.id()).is_none())
+            .cloned()
+            .collect();
+        let changed = parent
+            .symbol(context.symbol)
+            .is_none_or(|s| s.timeline() != &timeline);
+        if changed || !new_symbols.is_empty() {
+            let merge = Command::MergeSymbolEdit {
+                symbol: context.symbol,
+                timeline,
+                new_symbols,
+            };
+            if let Err(error) = self.active_mut().apply([merge]) {
+                self.contexts.push(context);
+                self.report(format!("Cannot leave the symbol: {error}"));
+                return false;
+            }
+        }
+        self.reset_view();
+        self.status = None;
+        true
+    }
+
+    /// Leaves symbols until only `depth` remain (0 = back to the scene).
+    pub fn exit_to_depth(&mut self, depth: usize) -> bool {
+        while self.contexts.len() > depth {
+            if !self.exit_symbol() {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn exit_all_symbols(&mut self) -> bool {
+        self.exit_to_depth(0)
+    }
+
+    // ---- menu actions ----------------------------------------------------------------
+
+    /// Tells the workspace a native menu bar is present, so it does not draw its own menu
+    /// or handle the menu's shortcuts a second time.
+    pub fn set_native_menu(&mut self, native: bool) {
+        self.native_menu = native;
+    }
+
+    /// Returns (and clears) a request to quit the application.
+    pub fn take_quit_request(&mut self) -> bool {
+        std::mem::take(&mut self.quit_requested)
+    }
+
+    /// Whether `action` can run right now (menu items are greyed out when it cannot).
+    pub fn is_enabled(&self, action: MenuAction) -> bool {
+        let layer = self.active_layer();
+        let editable_layer = layer.is_some_and(|l| !l.is_locked());
+        let layer_count = self
+            .document()
+            .scenes()
+            .first()
+            .map_or(0, |s| s.timeline().layers().len());
+        let position = layer.and_then(|l| {
+            self.document()
+                .scenes()
+                .first()?
+                .timeline()
+                .layers()
+                .iter()
+                .position(|c| c.id() == l.id())
+        });
+        match action {
+            MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
+            MenuAction::Undo => self.active().can_undo(),
+            MenuAction::Redo => self.active().can_redo(),
+            MenuAction::Delete => self.has_selection(),
+            MenuAction::ConvertToSymbol => self.can_convert_selection(),
+            MenuAction::EditSymbol => self.can_edit_selected_symbol(),
+            MenuAction::ExitSymbol => self.in_symbol(),
+            MenuAction::ToolSelect
+            | MenuAction::ToolRectangle
+            | MenuAction::ToolEllipse
+            | MenuAction::ToolLine
+            | MenuAction::PlayPause => true,
+            MenuAction::InsertFrame
+            | MenuAction::RemoveFrame
+            | MenuAction::InsertKeyframe
+            | MenuAction::InsertBlankKeyframe
+            | MenuAction::ClearKeyframe => editable_layer,
+            MenuAction::ToggleMotionTween => self.selection_tween().is_some(),
+            MenuAction::ToggleLayerVisible | MenuAction::ToggleLayerLocked => layer.is_some(),
+            MenuAction::MoveLayerUp => position.is_some_and(|p| p > 0),
+            MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
+            MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
+        }
+    }
+
+    /// The menu item's current label (some toggle between two meanings).
+    pub fn label(&self, action: MenuAction) -> String {
+        let layer = self.active_layer();
+        let text = match action {
+            MenuAction::Open => "Open...",
+            MenuAction::Save => "Save",
+            MenuAction::SaveAs => "Save As...",
+            MenuAction::Quit => "Quit Flare",
+            MenuAction::Undo => "Undo",
+            MenuAction::Redo => "Redo",
+            MenuAction::Delete => "Delete",
+            MenuAction::ConvertToSymbol => "Convert to Symbol",
+            MenuAction::EditSymbol => "Edit Symbol",
+            MenuAction::ExitSymbol => "Exit Symbol",
+            MenuAction::ToolSelect => "Select / Move",
+            MenuAction::ToolRectangle => "Rectangle",
+            MenuAction::ToolEllipse => "Ellipse",
+            MenuAction::ToolLine => "Line",
+            MenuAction::InsertFrame => "Insert Frame",
+            MenuAction::RemoveFrame => "Remove Frame",
+            MenuAction::InsertKeyframe => "Insert Keyframe",
+            MenuAction::InsertBlankKeyframe => "Insert Blank Keyframe",
+            MenuAction::ClearKeyframe => "Clear Keyframe",
+            MenuAction::ToggleMotionTween => {
+                if self.selection_tween() == Some(Tween::Linear) {
+                    "Remove Motion Tween"
+                } else {
+                    "Create Motion Tween"
+                }
+            }
+            MenuAction::PlayPause => {
+                if self.playing {
+                    "Pause"
+                } else {
+                    "Play"
+                }
+            }
+            MenuAction::ToggleLayerVisible => {
+                if layer.is_none_or(Layer::is_visible) {
+                    "Hide Layer"
+                } else {
+                    "Show Layer"
+                }
+            }
+            MenuAction::ToggleLayerLocked => {
+                if layer.is_some_and(Layer::is_locked) {
+                    "Unlock Layer"
+                } else {
+                    "Lock Layer"
+                }
+            }
+            MenuAction::MoveLayerUp => "Move Layer Up",
+            MenuAction::MoveLayerDown => "Move Layer Down",
+            MenuAction::DeleteLayer => "Delete Layer",
+        };
+        text.to_owned()
+    }
+
+    /// Runs `action`. Disabled actions do nothing, so menus need not re-check.
+    pub fn perform(&mut self, action: MenuAction) {
+        if !self.is_enabled(action) {
+            return;
+        }
+        let layer = self.active_layer_id();
+        match action {
+            MenuAction::Open => self.dialog = Some(DialogRequest::Open),
+            MenuAction::Save => self.save(),
+            MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
+            MenuAction::Quit => self.quit_requested = true,
+            MenuAction::Undo => self.undo(),
+            MenuAction::Redo => self.redo(),
+            MenuAction::Delete => self.delete_selection(),
+            MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
+            MenuAction::EditSymbol => self.edit_selected_symbol(),
+            MenuAction::ExitSymbol => {
+                self.exit_symbol();
+            }
+            MenuAction::ToolSelect => self.set_tool(Tool::Select),
+            MenuAction::ToolRectangle => self.set_tool(Tool::Rectangle),
+            MenuAction::ToolEllipse => self.set_tool(Tool::Ellipse),
+            MenuAction::ToolLine => self.set_tool(Tool::Line),
+            MenuAction::InsertFrame => self.frame_edit(FrameOp::InsertFrame),
+            MenuAction::RemoveFrame => self.frame_edit(FrameOp::RemoveFrame),
+            MenuAction::InsertKeyframe => self.frame_edit(FrameOp::InsertKeyframe),
+            MenuAction::InsertBlankKeyframe => self.frame_edit(FrameOp::InsertBlankKeyframe),
+            MenuAction::ClearKeyframe => self.frame_edit(FrameOp::ClearKeyframe),
+            MenuAction::ToggleMotionTween => {
+                let next = if self.selection_tween() == Some(Tween::Linear) {
+                    Tween::None
+                } else {
+                    Tween::Linear
+                };
+                self.set_selection_tween(next);
+            }
+            MenuAction::PlayPause => self.playing = !self.playing,
+            MenuAction::ToggleLayerVisible => {
+                if let Some(id) = layer {
+                    self.toggle_layer_visible(id);
+                }
+            }
+            MenuAction::ToggleLayerLocked => {
+                if let Some(id) = layer {
+                    self.toggle_layer_locked(id);
+                }
+            }
+            MenuAction::MoveLayerUp => self.move_active_layer(-1),
+            MenuAction::MoveLayerDown => self.move_active_layer(1),
+            MenuAction::DeleteLayer => self.delete_active_layer(),
         }
     }
 
@@ -627,7 +958,7 @@ impl Workspace {
     }
 
     fn run_batch(&mut self, commands: Vec<Command>, what: &str) {
-        match self.session.apply(commands) {
+        match self.active_mut().apply(commands) {
             Ok(()) => self.status = None,
             Err(error) => self.report(format!("Cannot {what}: {error}")),
         }
@@ -700,6 +1031,10 @@ impl Workspace {
             self.report("Select a symbol in the library first");
             return;
         };
+        if self.contexts.iter().any(|c| c.symbol == symbol) {
+            self.report("A symbol cannot contain itself");
+            return;
+        }
         let stage = self.document().stage();
         let center = DVec2::new(
             f64::from(stage.width()) / 2.0,
@@ -731,7 +1066,7 @@ impl Workspace {
     // ---- rendering -------------------------------------------------------------------
 
     fn ensure_stage_texture(&mut self, ctx: &egui::Context) {
-        let key = (self.session.revision(), self.frame);
+        let key = (self.context_serial, self.active().revision(), self.frame);
         if self.texture.as_ref().is_some_and(|t| t.key == key) {
             return;
         }
@@ -807,13 +1142,17 @@ impl Workspace {
                 !i.modifiers.any() && i.key_pressed(Key::F8),
             )
         });
-        if redo {
-            self.redo();
-        } else if undo {
-            self.undo();
-        }
-        if save {
-            self.save();
+        // With a native menu bar the menu owns these shortcuts; handling them here too
+        // would apply them twice.
+        if !self.native_menu {
+            if redo {
+                self.redo();
+            } else if undo {
+                self.undo();
+            }
+            if save {
+                self.save();
+            }
         }
         let typing = ctx.egui_wants_keyboard_input();
         if !typing {
@@ -823,7 +1162,7 @@ impl Workspace {
             if delete {
                 self.delete_selection();
             }
-            if convert {
+            if convert && !self.native_menu {
                 self.convert_selection_to_symbol();
             }
             if left {
@@ -836,7 +1175,7 @@ impl Workspace {
         if escape {
             self.cancel_drag();
         }
-        if !typing {
+        if !typing && !self.native_menu {
             // Modifiers come from the key event itself, which is what the platform reported
             // for that press.
             let f5 = key_press(ctx, Key::F5);
@@ -862,125 +1201,50 @@ impl Workspace {
         }
     }
 
+    /// One menu item for `action`: greyed out when it cannot run, runs it when clicked.
+    fn action_item(&mut self, ui: &mut egui::Ui, action: MenuAction) {
+        let enabled = self.is_enabled(action);
+        let clicked = ui
+            .add_enabled(enabled, egui::Button::new(self.label(action)))
+            .clicked();
+        if clicked {
+            self.perform(action);
+            ui.close();
+        }
+    }
+
+    /// The in-window menu bar, plus the breadcrumb, title and status. With a native menu
+    /// bar present only the latter are drawn.
     fn menu_bar(&mut self, ui: &mut egui::Ui) {
         egui::MenuBar::new().ui(ui, |ui| {
-            ui.menu_button("File", |ui| {
-                if ui.button("Open...").clicked() {
-                    self.dialog = Some(DialogRequest::Open);
-                    ui.close();
-                }
-                if ui.button("Save").clicked() {
-                    self.save();
-                    ui.close();
-                }
-                if ui.button("Save As...").clicked() {
-                    self.dialog = Some(DialogRequest::SaveAs);
-                    ui.close();
-                }
-            });
-            ui.menu_button("Edit", |ui| {
-                if ui
-                    .add_enabled(self.session.can_undo(), egui::Button::new("Undo"))
-                    .clicked()
-                {
-                    self.undo();
-                    ui.close();
-                }
-                if ui
-                    .add_enabled(self.session.can_redo(), egui::Button::new("Redo"))
-                    .clicked()
-                {
-                    self.redo();
-                    ui.close();
+            if !self.native_menu {
+                for (title, entries) in MENU_LAYOUT {
+                    ui.menu_button(*title, |ui| {
+                        for entry in *entries {
+                            match entry {
+                                MenuEntry::Action(action) => self.action_item(ui, *action),
+                                MenuEntry::Separator => {
+                                    ui.separator();
+                                }
+                            }
+                        }
+                    });
                 }
                 ui.separator();
-                if ui
-                    .add_enabled(self.has_selection(), egui::Button::new("Delete"))
-                    .clicked()
-                {
-                    self.delete_selection();
-                    ui.close();
-                }
-                if ui
-                    .add_enabled(
-                        self.can_convert_selection(),
-                        egui::Button::new("Convert to Symbol (F8)"),
-                    )
-                    .clicked()
-                {
-                    self.convert_selection_to_symbol();
-                    ui.close();
-                }
-            });
-            ui.menu_button("Layer", |ui| {
-                if let Some(id) = self.active_layer_id() {
-                    let (visible, locked) = self
-                        .layer(id)
-                        .map_or((true, false), |l| (l.is_visible(), l.is_locked()));
-                    if ui.button(if visible { "Hide" } else { "Show" }).clicked() {
-                        self.toggle_layer_visible(id);
-                        ui.close();
+            }
+            let crumbs = self.breadcrumb();
+            if crumbs.len() > 1 {
+                for (depth, name) in crumbs.iter().enumerate() {
+                    if depth > 0 {
+                        ui.label(">");
                     }
-                    if ui.button(if locked { "Unlock" } else { "Lock" }).clicked() {
-                        self.toggle_layer_locked(id);
-                        ui.close();
+                    if ui.link(name).clicked() {
+                        self.exit_to_depth(depth);
+                        break;
                     }
-                }
-                if ui.button("Move Up").clicked() {
-                    self.move_active_layer(-1);
-                    ui.close();
-                }
-                if ui.button("Move Down").clicked() {
-                    self.move_active_layer(1);
-                    ui.close();
-                }
-                if ui.button("Delete Layer").clicked() {
-                    self.delete_active_layer();
-                    ui.close();
                 }
                 ui.separator();
-                ui.text_edit_singleline(&mut self.layer_name_edit);
-                if ui.button("Rename").clicked() {
-                    let name = std::mem::take(&mut self.layer_name_edit);
-                    self.rename_active_layer(&name);
-                    ui.close();
-                }
-            });
-            ui.menu_button("Timeline", |ui| {
-                let tween = self.selection_tween();
-                let label = if tween == Some(Tween::Linear) {
-                    "Remove Motion Tween"
-                } else {
-                    "Create Motion Tween"
-                };
-                if ui
-                    .add_enabled(tween.is_some(), egui::Button::new(label))
-                    .clicked()
-                {
-                    let next = if tween == Some(Tween::Linear) {
-                        Tween::None
-                    } else {
-                        Tween::Linear
-                    };
-                    self.set_selection_tween(next);
-                    ui.close();
-                }
-                ui.separator();
-                let items = [
-                    (FrameOp::InsertFrame, "Insert Frame (F5)"),
-                    (FrameOp::RemoveFrame, "Remove Frame (Shift+F5)"),
-                    (FrameOp::InsertKeyframe, "Insert Keyframe (F6)"),
-                    (FrameOp::InsertBlankKeyframe, "Insert Blank Keyframe (F7)"),
-                    (FrameOp::ClearKeyframe, "Clear Keyframe (Shift+F6)"),
-                ];
-                for (op, label) in items {
-                    if ui.button(label).clicked() {
-                        self.frame_edit(op);
-                        ui.close();
-                    }
-                }
-            });
-            ui.separator();
+            }
             ui.label(self.title());
             if let Some(status) = &self.status {
                 ui.separator();
@@ -1129,6 +1393,24 @@ impl Workspace {
             self.selected = self.hit(to_doc(p));
         }
 
+        // Double-click an instance to edit its symbol; double-click empty stage to go back.
+        if response.double_clicked()
+            && self.tool == Tool::Select
+            && let Some(p) = response.interact_pointer_pos()
+        {
+            self.selected = self.hit(to_doc(p));
+            match self.selected {
+                Some(_) => {
+                    if let Some(symbol) = self.selected_instance_symbol() {
+                        self.enter_symbol(symbol);
+                    }
+                }
+                None => {
+                    self.exit_symbol();
+                }
+            }
+        }
+
         let outline = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));
         let moving = self
             .drag
@@ -1187,6 +1469,18 @@ impl Workspace {
             }
             let rate = self.document().frame_rate();
             ui.weak(format!("{}/{} fps", rate.numerator(), rate.denominator()));
+            ui.separator();
+            // Renaming needs text input, which a menu item cannot provide.
+            let edit = ui.add(
+                egui::TextEdit::singleline(&mut self.layer_name_edit)
+                    .hint_text("Rename active layer")
+                    .desired_width(150.0),
+            );
+            let submitted = edit.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter));
+            if (ui.button("Rename").clicked() || submitted) && !self.layer_name_edit.is_empty() {
+                let name = std::mem::take(&mut self.layer_name_edit);
+                self.rename_active_layer(&name);
+            }
         });
         ui.separator();
 
@@ -1390,15 +1684,15 @@ mod tests {
     fn renders_the_stage_and_refreshes_when_content_or_frame_changes() {
         let (ctx, mut ws) = (egui::Context::default(), workspace());
         run(&mut ws, &ctx, 0.0);
-        assert_eq!(ws.texture.as_ref().map(|t| t.key), Some((0, 0)));
+        assert_eq!(ws.texture.as_ref().map(|t| t.key), Some((0, 0, 0)));
         rect(&mut ws);
         run(&mut ws, &ctx, 0.1);
         let after_edit = ws.texture.as_ref().expect("texture").key;
-        assert_eq!(after_edit.1, 0);
-        assert!(after_edit.0 > 0);
+        assert_eq!(after_edit.2, 0);
+        assert!(after_edit.1 > 0);
         ws.set_frame(5);
         run(&mut ws, &ctx, 0.2);
-        assert_eq!(ws.texture.as_ref().map(|t| t.key.1), Some(5));
+        assert_eq!(ws.texture.as_ref().map(|t| t.key.2), Some(5));
     }
 
     #[test]
@@ -2007,5 +2301,318 @@ mod tests {
         let scene = ws.scene_id().expect("scene");
         let frame = flare_eval::evaluate_frame(ws.document(), scene, 0).expect("eval");
         assert!(frame.shapes.is_empty());
+    }
+
+    /// A workspace with symbol "Symbol 1" (a converted rectangle) placed in the scene, with
+    /// the instance selected.
+    fn with_symbol() -> (Workspace, SymbolId) {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        ws.convert_selection_to_symbol();
+        let symbol = ws.selected_symbol.expect("symbol");
+        (ws, symbol)
+    }
+
+    fn symbol_layers(ws: &Workspace, symbol: SymbolId) -> usize {
+        ws.session
+            .document()
+            .symbol(symbol)
+            .expect("symbol")
+            .timeline()
+            .layers()
+            .len()
+    }
+
+    #[test]
+    fn editing_a_symbol_in_place_applies_to_the_parent_as_one_undo_step() {
+        let (mut ws, symbol) = with_symbol();
+        let before = ws.document().clone();
+        ws.edit_selected_symbol();
+        assert!(ws.in_symbol());
+        assert_eq!(
+            ws.breadcrumb(),
+            vec!["Scene 1".to_owned(), "Symbol 1".to_owned()]
+        );
+        assert_eq!(ws.document().scenes().len(), 1);
+        assert_eq!(ws.frame(), 0);
+
+        ws.set_tool(Tool::Rectangle);
+        ws.commit_rectangle(Pos2::new(300.0, 300.0), Pos2::new(340.0, 330.0));
+        assert!(ws.is_dirty());
+        assert_eq!(
+            symbol_layers(&ws, symbol),
+            1,
+            "the parent is untouched until you leave"
+        );
+
+        assert!(ws.exit_symbol());
+        assert!(!ws.in_symbol());
+        assert_eq!(symbol_layers(&ws, symbol), 2);
+        ws.undo();
+        assert_eq!(ws.document(), &before, "leaving was a single undo step");
+    }
+
+    #[test]
+    fn undo_inside_a_symbol_is_local_to_that_symbol() {
+        let (mut ws, symbol) = with_symbol();
+        ws.edit_selected_symbol();
+        ws.commit_rectangle(Pos2::new(300.0, 300.0), Pos2::new(340.0, 330.0));
+        assert_eq!(layer_count(&ws), 2);
+        ws.undo();
+        assert_eq!(layer_count(&ws), 1);
+        ws.undo(); // nothing left to undo inside; the scene's own history is not touched
+        assert_eq!(layer_count(&ws), 1);
+        assert!(ws.exit_symbol());
+        assert_eq!(
+            symbol_layers(&ws, symbol),
+            1,
+            "no net change leaves no edit behind"
+        );
+        assert_eq!(ws.document().symbols().len(), 1);
+    }
+
+    #[test]
+    fn symbols_created_inside_a_symbol_join_the_library_when_you_leave() {
+        let (mut ws, outer) = with_symbol();
+        ws.edit_selected_symbol();
+        // Inside: select the shape and convert it, creating a nested symbol.
+        ws.set_tool(Tool::Select);
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.end_drag();
+        assert!(ws.can_convert_selection());
+        ws.convert_selection_to_symbol();
+        let inner = ws.selected_symbol.expect("inner symbol");
+        assert_ne!(inner, outer);
+        assert!(ws.exit_symbol());
+        assert!(
+            ws.document().symbol(inner).is_some(),
+            "the new symbol reached the library"
+        );
+        assert_eq!(ws.document().symbols().len(), 2);
+        // The outer symbol now contains an instance of the new one.
+        let outer_symbol = ws.document().symbol(outer).expect("outer");
+        assert!(
+            outer_symbol
+                .timeline()
+                .referenced_symbols()
+                .any(|s| s == inner)
+        );
+    }
+
+    #[test]
+    fn nested_symbols_can_be_entered_and_left_by_breadcrumb_depth() {
+        let (mut ws, _) = with_symbol();
+        ws.edit_selected_symbol();
+        ws.set_tool(Tool::Select);
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.end_drag();
+        ws.convert_selection_to_symbol();
+        ws.edit_selected_symbol();
+        assert_eq!(ws.breadcrumb().len(), 3);
+        assert!(ws.exit_to_depth(0));
+        assert!(!ws.in_symbol());
+        assert_eq!(ws.document().symbols().len(), 2);
+    }
+
+    #[test]
+    fn a_symbol_cannot_contain_itself_or_its_own_ancestors() {
+        let (mut ws, outer) = with_symbol();
+        ws.edit_selected_symbol();
+        ws.selected_symbol = Some(outer);
+        ws.place_selected_symbol();
+        assert!(
+            ws.status()
+                .is_some_and(|s| s.contains("cannot contain itself"))
+        );
+        assert_eq!(layer_count(&ws), 1);
+    }
+
+    #[test]
+    fn a_rejected_exit_keeps_the_edit_open_with_the_reason() {
+        use flare_document::{Instance, Symbol};
+        // B contains A. Editing A and placing B inside it would make a loop.
+        let a = SymbolId::new();
+        let b = SymbolId::new();
+        let instance = |symbol| {
+            let i = Instance::new(
+                flare_core::InstanceId::new(),
+                symbol,
+                flare_core::Transform2D::IDENTITY,
+            );
+            Content::Instance(i)
+        };
+        let one = |content| {
+            let span = FrameSpan::new(0, NonZeroU32::MIN, content);
+            Timeline::new(vec![
+                Layer::new(LayerId::new(), "L", vec![span]).expect("layer"),
+            ])
+        };
+        let base = document();
+        let doc = Document::new(
+            base.id(),
+            base.frame_rate(),
+            base.scenes().to_vec(),
+            vec![
+                Symbol::new(a, "A", Timeline::default()),
+                Symbol::new(b, "B", one(instance(a))),
+            ],
+        )
+        .expect("doc");
+        let mut ws = Workspace::new(doc, None);
+        assert!(ws.enter_symbol(a));
+        ws.selected_symbol = Some(b);
+        ws.place_selected_symbol(); // allowed inside the scratch: B is not A
+        assert_eq!(layer_count(&ws), 1, "a layer with B was added");
+        assert!(!ws.exit_symbol(), "A containing B containing A is a loop");
+        assert!(ws.in_symbol(), "still editing A");
+        assert!(ws.status().is_some_and(|s| s.contains("Cannot leave")));
+        ws.undo();
+        assert!(ws.exit_symbol(), "after undoing the loop, leaving works");
+    }
+
+    #[test]
+    fn saving_inside_a_symbol_applies_pending_edits_first() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        let (mut ws, symbol) = with_symbol();
+        ws.edit_selected_symbol();
+        ws.commit_rectangle(Pos2::new(300.0, 300.0), Pos2::new(340.0, 330.0));
+        ws.save_as(&path);
+        assert!(!ws.in_symbol(), "saving left the symbol");
+        assert!(!ws.is_dirty());
+        let mut reopened = workspace();
+        reopened.open(&path);
+        assert_eq!(symbol_layers(&reopened, symbol), 2);
+    }
+
+    #[test]
+    fn entering_and_leaving_refresh_the_stage_and_missing_symbols_are_reported() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        run(&mut ws, &ctx, 0.0);
+        let before = ws.texture.as_ref().expect("texture").key;
+        assert!(!ws.enter_symbol(SymbolId::new()));
+        assert!(ws.status().is_some_and(|s| s.contains("no longer exists")));
+
+        let (mut ws, _) = with_symbol();
+        run(&mut ws, &ctx, 0.1);
+        let scene_key = ws.texture.as_ref().expect("texture").key;
+        ws.edit_selected_symbol();
+        run(&mut ws, &ctx, 0.2);
+        let symbol_key = ws.texture.as_ref().expect("texture").key;
+        assert_ne!(
+            scene_key.0, symbol_key.0,
+            "contexts never share a cache key"
+        );
+        assert!(before.0 == 0);
+    }
+
+    #[test]
+    fn menu_actions_report_state_and_perform_through_the_workspace() {
+        let mut ws = workspace();
+        assert!(!ws.is_enabled(MenuAction::Undo));
+        assert!(!ws.is_enabled(MenuAction::Delete));
+        assert!(!ws.is_enabled(MenuAction::ExitSymbol));
+        assert!(
+            !ws.is_enabled(MenuAction::DeleteLayer),
+            "the last layer stays"
+        );
+        assert!(ws.is_enabled(MenuAction::Save) && ws.is_enabled(MenuAction::Quit));
+
+        ws.perform(MenuAction::Undo); // disabled: must be a no-op, not an error
+        assert!(!ws.is_dirty());
+
+        ws.perform(MenuAction::ToolEllipse);
+        assert_eq!(ws.tool(), Tool::Ellipse);
+        rect(&mut ws);
+        assert!(ws.is_enabled(MenuAction::Undo));
+        assert!(ws.is_enabled(MenuAction::DeleteLayer));
+        assert!(ws.is_enabled(MenuAction::MoveLayerUp));
+        assert!(
+            !ws.is_enabled(MenuAction::MoveLayerDown),
+            "already the bottom layer"
+        );
+        ws.perform(MenuAction::Undo);
+        assert_eq!(layer_count(&ws), 1);
+        ws.perform(MenuAction::Redo);
+        assert_eq!(layer_count(&ws), 2);
+
+        ws.perform(MenuAction::PlayPause);
+        assert!(ws.is_playing());
+        assert_eq!(ws.label(MenuAction::PlayPause), "Pause");
+        ws.perform(MenuAction::PlayPause);
+        assert_eq!(ws.label(MenuAction::PlayPause), "Play");
+    }
+
+    #[test]
+    fn toggling_actions_relabel_themselves() {
+        let mut ws = workspace();
+        rect(&mut ws);
+        assert_eq!(ws.label(MenuAction::ToggleLayerVisible), "Hide Layer");
+        ws.perform(MenuAction::ToggleLayerVisible);
+        assert_eq!(ws.label(MenuAction::ToggleLayerVisible), "Show Layer");
+        assert_eq!(ws.label(MenuAction::ToggleLayerLocked), "Lock Layer");
+        ws.perform(MenuAction::ToggleLayerLocked);
+        assert_eq!(ws.label(MenuAction::ToggleLayerLocked), "Unlock Layer");
+        assert!(
+            !ws.is_enabled(MenuAction::InsertFrame),
+            "a locked layer refuses frame edits"
+        );
+    }
+
+    #[test]
+    fn tween_and_symbol_actions_follow_the_selection() {
+        let (mut ws, _) = with_symbol();
+        assert!(ws.is_enabled(MenuAction::EditSymbol));
+        assert!(
+            !ws.is_enabled(MenuAction::ConvertToSymbol),
+            "an instance is not a shape"
+        );
+        assert_eq!(
+            ws.label(MenuAction::ToggleMotionTween),
+            "Create Motion Tween"
+        );
+        ws.perform(MenuAction::ToggleMotionTween);
+        assert_eq!(
+            ws.label(MenuAction::ToggleMotionTween),
+            "Remove Motion Tween"
+        );
+        ws.perform(MenuAction::EditSymbol);
+        assert!(ws.in_symbol());
+        assert!(ws.is_enabled(MenuAction::ExitSymbol));
+        ws.perform(MenuAction::ExitSymbol);
+        assert!(!ws.in_symbol());
+    }
+
+    #[test]
+    fn dialogs_and_quit_are_requests_for_the_shell() {
+        let mut ws = workspace();
+        ws.perform(MenuAction::Open);
+        assert_eq!(ws.take_dialog(), Some(DialogRequest::Open));
+        ws.perform(MenuAction::SaveAs);
+        assert_eq!(ws.take_dialog(), Some(DialogRequest::SaveAs));
+        assert!(!ws.take_quit_request());
+        ws.perform(MenuAction::Quit);
+        assert!(ws.take_quit_request());
+        assert!(!ws.take_quit_request(), "a request is delivered once");
+    }
+
+    #[test]
+    fn a_native_menu_owns_its_shortcuts_so_they_are_not_applied_twice() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        rect(&mut ws);
+        ws.set_native_menu(true);
+        run(&mut ws, &ctx, 0.0);
+        let command = Modifiers::COMMAND;
+        pass(&mut ws, &ctx, input(0.1, vec![key(Key::Z, command)]));
+        assert_eq!(layer_count(&ws), 2, "undo was left to the native menu");
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.2, vec![key(Key::F6, Modifiers::NONE)]),
+        );
+        assert_eq!(active_spans(&ws), vec![(0, 24)], "so was insert keyframe");
+        ws.set_native_menu(false);
+        pass(&mut ws, &ctx, input(0.3, vec![key(Key::Z, command)]));
+        assert_eq!(layer_count(&ws), 1);
     }
 }
