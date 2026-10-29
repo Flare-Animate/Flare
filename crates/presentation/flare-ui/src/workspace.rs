@@ -1314,7 +1314,10 @@ impl Workspace {
             SpanGrab::Resize => (
                 drag.layer,
                 drag.start,
-                (drag.frame + 1).saturating_sub(drag.start).max(1),
+                drag.frame
+                    .saturating_add(1)
+                    .saturating_sub(drag.start)
+                    .max(1),
             ),
         })
     }
@@ -2552,10 +2555,10 @@ fn fit_scale(panel: Rect, extent: Vec2) -> f32 {
     StageView::default().scale(panel, extent)
 }
 
-/// Screen position to stage (document) coordinates, clamped to the stage.
 /// Scale Up / Scale Down factor.
 const SCALE_STEP: f64 = 1.25;
 
+/// Screen position to stage (document) coordinates, clamped to the stage.
 fn screen_to_stage(p: Pos2, image_rect: Rect, extent: Vec2) -> Pos2 {
     let u = (p.x - image_rect.min.x) / image_rect.width().max(f32::EPSILON);
     let v = (p.y - image_rect.min.y) / image_rect.height().max(f32::EPSILON);
@@ -4433,5 +4436,20 @@ mod tests {
         ws.zoom_timeline(0.0001);
         assert_eq!(ws.timeline_zoom, timeline_view::MIN_ZOOM);
         assert!(!ws.is_dirty());
+    }
+
+    #[test]
+    fn dragging_to_the_very_last_frame_does_not_overflow() {
+        let (mut ws, id) = spans_workspace();
+        assert!(ws.begin_span_drag(id, 2.9, 0.3), "the right edge");
+        ws.update_span_drag(u32::MAX);
+        let (_, start, duration) = ws.span_drag_preview().expect("preview");
+        assert_eq!((start, u64::from(duration)), (0, u64::from(u32::MAX)));
+        ws.end_span_drag();
+        assert_eq!(
+            active_spans_of(&ws, id),
+            vec![(0, 3), (6, 2)],
+            "it would overlap, so refused"
+        );
     }
 }
