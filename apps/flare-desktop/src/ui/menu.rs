@@ -2,6 +2,7 @@
 //! from `Workspace::{is_enabled, label, perform}`, so this file only adds what is specific
 //! to a native menu: accelerators, the app and Window menus, and syncing item state.
 
+#[cfg(any(target_os = "macos", test))]
 use flare_animate::MenuAction;
 
 /// The accelerator for an action, in muda's syntax. `None` means no shortcut.

@@ -133,6 +133,8 @@ impl ApplicationHandler<UserEvent> for App {
         self.ensure_native_menu();
     }
 
+    // `event_loop` is only needed to apply native menu clicks, which exist on macOS.
+    #[cfg_attr(not(target_os = "macos"), allow(unused_variables))]
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
         match event {
             #[cfg(target_os = "macos")]
