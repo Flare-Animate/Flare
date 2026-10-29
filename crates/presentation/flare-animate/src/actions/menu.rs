@@ -1,0 +1,230 @@
+//! The menu bar's structure, shared by the in-window menu and the native one.
+
+use super::MenuAction;
+
+/// One entry in a menu: an action or a separator line.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MenuEntry {
+    Action(MenuAction),
+    Separator,
+    /// A command that is planned but does not exist yet: shown dimmed, does nothing.
+    Mock(&'static str),
+}
+
+use MenuAction as A;
+use MenuEntry::{Action, Mock, Separator};
+
+/// The menu structure, shared by every menu surface: (title, entries).
+///
+/// `Mock` entries are commands that are planned but do not exist yet. They are shown dimmed so the
+/// menus already have their final shape; each becomes an `Action` when its feature lands.
+pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
+    (
+        "File",
+        &[
+            Mock("New..."),
+            Action(A::Open),
+            Mock("Open Recent"),
+            Mock("Close"),
+            Separator,
+            Action(A::Save),
+            Action(A::SaveAs),
+            Mock("Save All"),
+            Mock("Revert"),
+            Separator,
+            Action(A::ImportSound),
+            Mock("Import to Stage..."),
+            Mock("Import to Library..."),
+            Separator,
+            Action(A::ExportImage),
+            Mock("Export Movie..."),
+            Mock("Publish Settings..."),
+            Mock("Publish"),
+            Separator,
+            Action(A::Quit),
+        ],
+    ),
+    (
+        "Edit",
+        &[
+            Action(A::Undo),
+            Action(A::Redo),
+            Separator,
+            Action(A::Cut),
+            Action(A::Copy),
+            Action(A::Paste),
+            Mock("Paste in Place"),
+            Action(A::Duplicate),
+            Action(A::Delete),
+            Separator,
+            Action(A::SelectAll),
+            Action(A::DeselectAll),
+            Separator,
+            Action(A::EditSymbol),
+            Action(A::ExitSymbol),
+            Separator,
+            Mock("Preferences..."),
+            Mock("Keyboard Shortcuts..."),
+        ],
+    ),
+    (
+        "View",
+        &[
+            Action(A::ZoomIn),
+            Action(A::ZoomOut),
+            Action(A::ZoomFit),
+            Action(A::ActualSize),
+            Separator,
+            Action(A::ToggleRulers),
+            Action(A::ToggleGrid),
+            Mock("Guides"),
+            Action(A::ToggleSnap),
+            Separator,
+            Action(A::ToggleOnionSkin),
+            Mock("Outline Mode"),
+            Separator,
+            Action(A::ResetLayout),
+        ],
+    ),
+    (
+        "Insert",
+        &[
+            Mock("New Symbol..."),
+            Separator,
+            Action(A::InsertFrame),
+            Action(A::InsertKeyframe),
+            Action(A::InsertBlankKeyframe),
+            Separator,
+            Mock("Scene"),
+            Mock("Layer Folder"),
+        ],
+    ),
+    (
+        "Modify",
+        &[
+            Action(A::ConvertToSymbol),
+            Mock("Break Apart"),
+            Separator,
+            Action(A::FlipHorizontal),
+            Action(A::FlipVertical),
+            Action(A::RotateClockwise),
+            Action(A::RotateCounterclockwise),
+            Action(A::ScaleUp),
+            Action(A::ScaleDown),
+            Separator,
+            Mock("Arrange"),
+            Mock("Align"),
+            Mock("Group"),
+            Mock("Ungroup"),
+            Separator,
+            Mock("Document Settings..."),
+        ],
+    ),
+    (
+        "Text",
+        &[
+            Mock("Font"),
+            Mock("Size"),
+            Mock("Style"),
+            Mock("Align"),
+            Separator,
+            Mock("Check Spelling"),
+        ],
+    ),
+    (
+        "Layer",
+        &[
+            Action(A::ToggleLayerVisible),
+            Action(A::ToggleLayerLocked),
+            Action(A::ToggleLayerMask),
+            Mock("Guide Layer"),
+            Separator,
+            Action(A::MoveLayerUp),
+            Action(A::MoveLayerDown),
+            Separator,
+            Action(A::DeleteLayer),
+        ],
+    ),
+    (
+        "Timeline",
+        &[
+            Action(A::RemoveFrame),
+            Action(A::CopyFrames),
+            Action(A::PasteFrames),
+            Separator,
+            Action(A::ClearKeyframe),
+            Mock("Convert to Keyframes"),
+            Separator,
+            Action(A::ToggleMotionTween),
+            Mock("Create Shape Tween"),
+        ],
+    ),
+    (
+        "Control",
+        &[
+            Action(A::PlayPause),
+            Action(A::Rewind),
+            Action(A::StepForward),
+            Action(A::StepBackward),
+            Separator,
+            Action(A::TestMovie),
+            Action(A::ToggleLoop),
+            Action(A::ToggleMute),
+        ],
+    ),
+    (
+        "Tools",
+        &[
+            Action(A::ToolSelect),
+            Action(A::ToolLasso),
+            Action(A::ToolPen),
+            Action(A::ToolText),
+            Action(A::ToolLine),
+            Action(A::ToolRectangle),
+            Action(A::ToolEllipse),
+            Action(A::ToolPolyStar),
+            Separator,
+            Action(A::ToolPencil),
+            Action(A::ToolBrush),
+            Separator,
+            Action(A::ToolBucket),
+            Action(A::ToolInkBottle),
+            Action(A::ToolEyedropper),
+            Action(A::ToolEraser),
+            Separator,
+            Action(A::ToolHand),
+            Action(A::ToolZoom),
+        ],
+    ),
+    (
+        "Commands",
+        &[
+            Mock("Run Command..."),
+            Mock("Manage Saved Commands..."),
+            Mock("Get More Commands..."),
+        ],
+    ),
+    (
+        "Window",
+        &[
+            Mock("Properties"),
+            Mock("Library"),
+            Mock("Color"),
+            Mock("Align"),
+            Mock("Transform"),
+            Mock("History"),
+            Mock("Timeline"),
+            Separator,
+            Mock("Workspace Presets"),
+        ],
+    ),
+    (
+        "Help",
+        &[
+            Mock("Flare Help"),
+            Mock("Keyboard Shortcuts"),
+            Separator,
+            Mock("About Flare"),
+        ],
+    ),
+];

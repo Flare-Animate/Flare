@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used)]
 
+use super::MenuEntry::Action;
 use super::*;
 
 #[test]
