@@ -42,7 +42,10 @@ pub fn offer_recovery(workspace: &mut Workspace, newest: &RecoveryEntry) {
     match answer {
         rfd::MessageDialogResult::Yes => workspace.recover(&newest.path),
         rfd::MessageDialogResult::No => {
-            if let Err(error) = std::fs::remove_file(&newest.path) {
+            // The file may already be gone (another instance, or a clean save); that is fine.
+            if let Err(error) = std::fs::remove_file(&newest.path)
+                && error.kind() != std::io::ErrorKind::NotFound
+            {
                 eprintln!("could not discard {}: {error}", newest.path.display());
             }
         }
