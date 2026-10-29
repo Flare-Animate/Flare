@@ -2510,10 +2510,10 @@ fn fit_scale(panel: Rect, extent: Vec2) -> f32 {
     StageView::default().scale(panel, extent)
 }
 
-/// Screen position to stage (document) coordinates, clamped to the stage.
 /// Scale Up / Scale Down factor.
 const SCALE_STEP: f64 = 1.25;
 
+/// Screen position to stage (document) coordinates, clamped to the stage.
 fn screen_to_stage(p: Pos2, image_rect: Rect, extent: Vec2) -> Pos2 {
     let u = (p.x - image_rect.min.x) / image_rect.width().max(f32::EPSILON);
     let v = (p.y - image_rect.min.y) / image_rect.height().max(f32::EPSILON);
