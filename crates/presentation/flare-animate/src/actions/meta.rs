@@ -180,6 +180,7 @@ impl MenuAction {
             Self::ShowHistory => "panel-history",
             Self::ShowTimeline => "panel-timeline",
             Self::ShowOutput => "panel-tools",
+            Self::ShowInfo => "panel-properties",
             Self::Cut => "cut",
             Self::SelectAll => "select-all",
             Self::Rewind => "transport-first",

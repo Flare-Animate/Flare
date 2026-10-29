@@ -49,7 +49,7 @@ Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font Licens
 
 ## Default layout
 
-Left to right: the tool strip, the stage, and one stack of tabs (Properties, Library, Color, Align, Transform, History). Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
+Left to right: the tool strip, the stage, and one stack of tabs (Properties, Library, Color, Align, Transform, History, Info). Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
 
 ## Documents and tabs
 
@@ -66,8 +66,7 @@ everything can be found; the evaluated frame carries each shape's layer color fo
 
 ## Still to match from Animate 2024 (Linux reference)
 
-Properties with Tool, Object, Frame and Doc tabs and Publish Settings inside Doc; an Info panel
-(size, position, and the color under the pointer); a Color panel with a fill-type dropdown, hex
+Properties with Tool, Object, Frame and Doc tabs and Publish Settings inside Doc; a Color panel with a fill-type dropdown, hex
 field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown
 and a close button on the document tab. The default arrangement stays as it is.
 
@@ -77,3 +76,10 @@ Drag from the top or left ruler to pull a guide onto the stage; drag a guide to 
 onto a ruler to remove it. View > Hide Guides hides them and Clear Guides removes them all. With
 Snap on, points placed by the pen and the shape tools snap to a guide within six screen pixels.
 Guides belong to the view of one document tab and are not saved in the file (at most 200).
+
+## Info panel
+
+Size and position of the selection, and under Pointer the stage position and the color of the
+topmost shape there (its fill, the start of a gradient, or its line when it has no fill), found by
+hit-testing the frame rather than reading pixels. Layouts saved before the panel existed get it
+added next to History when they are opened.

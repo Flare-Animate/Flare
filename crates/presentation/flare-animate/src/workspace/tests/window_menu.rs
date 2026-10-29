@@ -39,6 +39,7 @@ fn every_window_entry_is_enabled_and_named_for_its_panel() {
         (MenuAction::ShowHistory, "History"),
         (MenuAction::ShowTimeline, "Timeline"),
         (MenuAction::ShowOutput, "Output"),
+        (MenuAction::ShowInfo, "Info"),
     ] {
         assert!(ws.is_enabled(action), "{name}");
         assert_eq!(ws.label(action), name);
@@ -170,4 +171,33 @@ fn the_stage_draws_with_guides_showing_and_hidden() {
     assert_eq!(ws.label(MenuAction::ToggleGuides), "Show Guides");
     run(&mut ws, &ctx, 0.1);
     assert_eq!(ws.guides().len(), 2, "hiding keeps them");
+}
+
+#[test]
+fn the_info_panel_reports_the_color_under_the_pointer_and_draws() {
+    use super::super::panels::info_color_at;
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    rect(&mut ws);
+    let bounds = ws.document().scenes()[0]
+        .timeline()
+        .layers()
+        .iter()
+        .flat_map(|l| l.spans().iter())
+        .find_map(|s| match s.content() {
+            Content::Shape(shape) => {
+                Some((shape.fill(), ops::shape_bounds(shape).expect("bounds")))
+            }
+            _ => None,
+        })
+        .expect("a rectangle");
+    let (fill, rect) = bounds;
+    let inside = glamx::DVec2::new(rect.center().x.into(), rect.center().y.into());
+    assert_eq!(info_color_at(ws.document(), 0, inside), Some(fill));
+    assert_eq!(
+        info_color_at(ws.document(), 0, glamx::DVec2::new(-500.0, -500.0)),
+        None,
+        "nothing there"
+    );
+    ws.perform(MenuAction::ShowInfo);
+    run(&mut ws, &ctx, 0.0);
 }

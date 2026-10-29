@@ -24,6 +24,7 @@ The first release of the Rust rewrite.
 - Files: the `.flare` project container, XFL/FLA import and export, PNG and GIF export, and SWF
   publish. Flash fixtures are tested against.
 - The `flare-cli` command line (inspect, render, convert) and an MCP server for agents.
+- An Info panel (selection size and position, color under the pointer).
 - Guides pulled out of the rulers, with snapping; Timeline > Convert to Keyframes.
 - Layer outline colors (timeline chip, `.flare` and XFL) and View > Outline Mode.
 - Window, Help (About, Keyboard Shortcuts) menus that do something; Insert > New Symbol; Edit > Paste in Place (Paste now centers on the stage).

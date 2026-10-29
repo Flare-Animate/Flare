@@ -25,12 +25,14 @@ pub enum Pane {
     Align,
     Transform,
     History,
+    /// The size and position of the selection, and what is under the pointer.
+    Info,
     /// Messages from the last actions: errors and refusals that the status bar shows once.
     Output,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 10] = [
+    pub const ALL: [Pane; 11] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
@@ -40,6 +42,7 @@ impl Pane {
         Pane::Align,
         Pane::Transform,
         Pane::History,
+        Pane::Info,
         Pane::Output,
     ];
 
@@ -54,6 +57,7 @@ impl Pane {
             Self::Align => "Align",
             Self::Transform => "Transform",
             Self::History => "History",
+            Self::Info => "Info",
             Self::Output => "Output",
         }
     }
@@ -85,7 +89,10 @@ pub fn default_tree() -> Tree<Pane> {
     let align = tiles.insert_pane(Pane::Align);
     let transform = tiles.insert_pane(Pane::Transform);
     let history = tiles.insert_pane(Pane::History);
-    let side = tiles.insert_tab_tile(vec![properties, library, color, align, transform, history]);
+    let info = tiles.insert_pane(Pane::Info);
+    let side = tiles.insert_tab_tile(vec![
+        properties, library, color, align, transform, history, info,
+    ]);
     let bottom = tiles.insert_tab_tile(vec![timeline, output]);
     let top = tiles.insert_horizontal_tile(vec![tools, stage, side]);
     let root = tiles.insert_vertical_tile(vec![top, bottom]);
@@ -138,12 +145,37 @@ pub fn to_json(tree: &Tree<Pane>) -> Result<String, serde_json::Error> {
     serde_json::to_string(tree)
 }
 
+/// Layouts saved before the Info panel existed have none; it joins the stack that holds History
+/// (or the one that holds any panel) so such a layout still opens.
+fn add_panels_older_layouts_lack(tree: &mut Tree<Pane>) {
+    let find = |tree: &Tree<Pane>, wanted: Pane| {
+        tree.tiles.iter().find_map(|(id, tile)| match tile {
+            Tile::Pane(pane) if *pane == wanted => Some(*id),
+            _ => None,
+        })
+    };
+    if find(tree, Pane::Info).is_some() {
+        return;
+    }
+    let Some(history) = find(tree, Pane::History) else {
+        return;
+    };
+    let Some(parent) = tree.tiles.parent_of(history) else {
+        return;
+    };
+    let info = tree.tiles.insert_pane(Pane::Info);
+    if let Some(Tile::Container(container)) = tree.tiles.get_mut(parent) {
+        container.add_child(info);
+    }
+}
+
 /// Parses and validates a saved layout.
 pub fn from_json(json: &str) -> Result<Tree<Pane>, LayoutError> {
     if json.len() > MAX_LAYOUT_BYTES {
         return Err(LayoutError::TooLarge);
     }
-    let tree: Tree<Pane> = serde_json::from_str(json)?;
+    let mut tree: Tree<Pane> = serde_json::from_str(json)?;
+    add_panels_older_layouts_lack(&mut tree);
     check(&tree)?;
     Ok(tree)
 }
@@ -220,5 +252,39 @@ mod tests {
         };
         let timeline = tabs_holding(Pane::Timeline).expect("timeline is in a tab stack");
         assert_eq!(tabs_holding(Pane::Output), Some(timeline));
+    }
+
+    #[test]
+    fn a_layout_saved_before_the_info_panel_still_opens_with_it_beside_history() {
+        let mut tree = default_tree();
+        let info = tree
+            .tiles
+            .iter()
+            .find_map(|(id, t)| matches!(t, Tile::Pane(Pane::Info)).then_some(*id))
+            .expect("info");
+        // What an older file looks like: the same arrangement without the Info tab.
+        let parent = tree.tiles.parent_of(info).expect("parent");
+        if let Some(Tile::Container(container)) = tree.tiles.get_mut(parent) {
+            container.remove_child(info);
+        }
+        tree.tiles.remove(info);
+        assert!(check(&tree).is_err(), "the old layout lacks a panel");
+        let json = to_json(&tree).expect("serialize");
+        let opened = from_json(&json).expect("an older layout is migrated, not refused");
+        check(&opened).expect("every panel is there now");
+        let info = opened
+            .tiles
+            .iter()
+            .find_map(|(id, t)| matches!(t, Tile::Pane(Pane::Info)).then_some(*id))
+            .expect("info");
+        let history = opened
+            .tiles
+            .iter()
+            .find_map(|(id, t)| matches!(t, Tile::Pane(Pane::History)).then_some(*id))
+            .expect("history");
+        assert_eq!(
+            opened.tiles.parent_of(info),
+            opened.tiles.parent_of(history)
+        );
     }
 }

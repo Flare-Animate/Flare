@@ -26,6 +26,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
             Pane::Align => self.workspace.align_panel(ui),
             Pane::Transform => self.workspace.transform_panel(ui),
             Pane::History => self.workspace.history_panel(ui),
+            Pane::Info => self.workspace.info_panel(ui),
             Pane::Output => self.workspace.output_panel(ui),
         }
         egui_tiles::UiResponse::None

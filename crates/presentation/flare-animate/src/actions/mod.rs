@@ -108,6 +108,7 @@ pub enum MenuAction {
     ShowHistory,
     ShowTimeline,
     ShowOutput,
+    ShowInfo,
     About,
     KeyboardShortcuts,
     ToggleOutlineMode,
@@ -119,7 +120,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 104] = [
+    pub const ALL: [MenuAction; 105] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -216,6 +217,7 @@ impl MenuAction {
         Self::ShowHistory,
         Self::ShowTimeline,
         Self::ShowOutput,
+        Self::ShowInfo,
         Self::About,
         Self::KeyboardShortcuts,
         Self::ToggleOutlineMode,

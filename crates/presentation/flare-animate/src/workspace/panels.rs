@@ -11,6 +11,8 @@ pub(super) const BAR_ICON: f32 = 16.0;
 mod align;
 mod color;
 mod history;
+mod info;
+pub(super) use info::color_at as info_color_at;
 mod library;
 mod properties;
 mod stage_bar;
