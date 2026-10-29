@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId};
 use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Timeline};
-use flare_publish::{TestMovieError, find_ruffle_with, launch_test_movie};
+use flare_ruffle::{TestMovieError, find_ruffle_with, launch_test_movie};
 
 fn document() -> Document {
     let shape = Shape::rect(

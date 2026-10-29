@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use flare_document::Document;
 use flare_publish::PublishOptions;
-pub use flare_publish::{TestMovie, TestMovieError};
+pub use flare_ruffle::{TestMovie, TestMovieError};
 
 fn spawn(name: &str, job: impl FnOnce() + Send + 'static) -> io::Result<()> {
     std::thread::Builder::new()
@@ -57,11 +57,11 @@ pub fn test_movie(
     document: Document,
     done: impl FnOnce(Result<TestMovie, TestMovieError>) + Send + 'static,
 ) -> io::Result<Result<(), TestMovieStart>> {
-    let Some(player) = flare_publish::find_ruffle() else {
+    let Some(player) = flare_ruffle::find_ruffle() else {
         return Ok(Err(TestMovieStart::NoPlayer(NO_RUFFLE)));
     };
     spawn("flare-test-movie", move || {
-        done(flare_publish::launch_test_movie(&document, &player));
+        done(flare_ruffle::launch_test_movie(&document, &player));
     })?;
     Ok(Ok(()))
 }

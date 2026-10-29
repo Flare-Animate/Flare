@@ -6,10 +6,10 @@ Crates sit in layers under `crates/`, and dependencies point down this list: a c
 only on layers above it in the table (and on earlier rows of its own layer), never below.
 Executables are in `apps/`. The folders mean:
 
-- **foundation**: the model and the pure functions over it.
+- **foundation**: the model and the pure functions over it, including text shaping and sound decoding.
 - **editing**: how a document is changed and how the tools turn gestures into changes.
 - **io**: file formats, in and out (the project container, XFL, SWF).
-- **adapters**: wrappers around third-party libraries behind Flare's own types.
+- **adapters**: integrations with other programs and projects (today: Ruffle).
 - **services**: rendering, background work and the operating system.
 - **presentation**: egui widgets and the workspaces built from them.
 
@@ -18,6 +18,8 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-core` | Typed IDs (UUIDv7), `FrameRate`, `DocumentPoint`, `Transform2D`, `Rgba8`. No I/O. |
 | foundation | `flare-document` | The document model and its validation. No GUI, GPU, database or async code. |
 | foundation | `flare-eval` | Pure frame evaluation: document + scene + frame to placed instances and drawn shapes. |
+| foundation | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
+| foundation | `flare-audio` | Sound: decoding with `symphonia` (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer, and the events a front end sends to the sound card. |
 | foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, and the pressure-to-width curve. A mouse is just full pressure. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
@@ -28,8 +30,7 @@ Executables are in `apps/`. The folders mean:
 | io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | io | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
 | io | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
-| adapters | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
-| adapters | `flare-audio` | Sound: decoding with `symphonia` (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer, and the events a front end sends to the sound card. |
+| adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
 | services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound and text, with latest-wins and an inline mode for tests; image export. No UI types. |
 | services | `flare-platform` | What a desktop needs from the operating system: per-user directories, the sound card, native dialogs, recovery prompts, and the threads for publishing, exporting and test movies. No UI types. |

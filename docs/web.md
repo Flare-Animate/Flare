@@ -7,9 +7,9 @@ backend on a canvas. It exists to keep the split honest: whatever compiles for
 ## What is shared
 
 Everything from the document up compiles for the browser and is used unchanged: the foundation
-(`flare-core`, `flare-document`, `flare-eval`, `flare-input`), editing (`flare-commands`,
+(`flare-core`, `flare-document`, `flare-eval`, `flare-input`, `flare-text`, `flare-audio`), editing (`flare-commands`,
 `flare-history`, `flare-editor`, `flare-tools`), the XFL and SWF formats (`flare-import`,
-`flare-export`, `flare-publish`), the text and audio adapters, rendering, `flare-runtime`,
+`flare-export`, `flare-publish`), text and sound (`flare-text`, `flare-audio`), rendering, `flare-runtime`,
 `flare-ui` and `flare-animate`. Check with `cargo check --target wasm32-unknown-unknown -p <crate>`.
 
 ## What is not

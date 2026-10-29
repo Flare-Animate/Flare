@@ -15,7 +15,7 @@ are built, and why, is in `docs/` and is kept up to date with the code.
 ## Structure
 
 - Crates live in layers under `crates/` (foundation, editing, io, adapters, services, presentation);
-  binaries live in `apps/`. Adapters wrap third-party libraries; file formats are io; the operating
+  binaries live in `apps/`. Adapters integrate other programs (Ruffle); file formats are io; text and sound are foundation; the operating
   system is `flare-platform`, so an app is only its window or its protocol. A crate depends only on layers above it. Put new code where its
   responsibility belongs; add a crate only when it has code and tests.
 - `original/` is an archive of the old code. Never depend on it, link it or copy from it.

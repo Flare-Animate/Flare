@@ -10,11 +10,9 @@
 #![forbid(unsafe_code)]
 
 mod file;
-mod launch;
 mod shapes;
 
 pub use file::{PublishFileError, publish_to_file};
-pub use launch::{TestMovie, TestMovieError, find_ruffle, find_ruffle_with, launch_test_movie};
 
 use std::collections::HashMap;
 

@@ -15,6 +15,7 @@ flare-editor.workspace = true
 flare-history.workspace = true
 flare-export.workspace = true
 flare-publish.workspace = true
+flare-ruffle.workspace = true
 flare-import.workspace = true
 flare-eval.workspace = true
 flare-render.workspace = true

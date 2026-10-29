@@ -1,10 +1,12 @@
-//! Test Movie: play the published SWF in an external Ruffle process.
+//! Ruffle, the Flash player: Test Movie plays the published SWF in an external Ruffle process.
 //!
 //! Running a foreign player is a trust boundary, so it is kept at arm's length: the SWF goes
 //! in a private temporary directory, the player is started directly (never through a shell)
 //! with exactly one argument, its standard streams are closed, and the directory is removed
 //! when the movie ends or is dropped. Nothing here makes the SWF itself safe; that is the
 //! player's job. The mechanism is tested with a stand-in player, not with Ruffle.
+
+#![forbid(unsafe_code)]
 
 use std::ffi::OsString;
 use std::io;
@@ -14,7 +16,7 @@ use std::process::{Child, Command, ExitStatus, Stdio};
 use flare_document::Document;
 use thiserror::Error;
 
-use crate::{PublishError, PublishOptions, publish_swf};
+use flare_publish::{PublishError, PublishOptions, publish_swf};
 
 #[derive(Debug, Error)]
 pub enum TestMovieError {

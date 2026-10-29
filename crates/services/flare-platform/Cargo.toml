@@ -11,6 +11,7 @@ cpal.workspace = true
 flare-audio.workspace = true
 flare-document.workspace = true
 flare-publish.workspace = true
+flare-ruffle.workspace = true
 flare-runtime.workspace = true
 flare-storage.workspace = true
 rfd.workspace = true

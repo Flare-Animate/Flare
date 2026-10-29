@@ -1610,6 +1610,7 @@ dependencies = [
  "flare-import",
  "flare-publish",
  "flare-render",
+ "flare-ruffle",
  "flare-storage",
  "glamx",
  "png 0.18.1",
@@ -1773,6 +1774,7 @@ dependencies = [
  "flare-audio",
  "flare-document",
  "flare-publish",
+ "flare-ruffle",
  "flare-runtime",
  "flare-storage",
  "rfd",
@@ -1808,6 +1810,18 @@ dependencies = [
  "png 0.18.1",
  "thiserror 2.0.21",
  "vello_cpu 0.3.0",
+]
+
+[[package]]
+name = "flare-ruffle"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "flare-document",
+ "flare-publish",
+ "swf",
+ "tempfile",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
