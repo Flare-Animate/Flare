@@ -254,7 +254,8 @@ and pans (scroll or middle-drag). Shift-click builds a multi-selection that move
 commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the selection onto
 new layers nudged aside; Copy and Paste (Cmd/Ctrl+C, V) remember the selection and paste it in
 place at the current frame on new layers. An instance whose symbol is missing from the document is refused. The Modify menu flips, rotates by 90 degrees and scales the selection about its
-center. It supports undo/redo, Delete, Convert to
+center. Eight handles on the
+selection's bounds scale it by dragging (Shift keeps proportions). It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). Dragging a span in the timeline moves it, dragging its right edge resizes it; neither may overlap another span. The timeline zooms (buttons, pinch or
 Ctrl/Cmd+scroll) and scrolls sideways. On macOS the menu bar is native (muda); everywhere
@@ -266,7 +267,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
   horizontal or vertical gradients on new shapes only; they cannot yet be edited afterwards.
   XFL export and SWF publishing paint the solid fill, ignoring gradients.
 - XFL import covers a defined subset (see Import) and keeps the rest as source data (see Source preservation); XFL export and SWF publishing are verified only against our own importer and Ruffle's parser, never against Animate or a player.
-- No on-canvas transform handles, no timeline zoom, no detachable panels.
+- No rotate or skew handles, no timeline zoom, no detachable panels.
 - Undo history is not persisted, and recovery covers one document at a time.
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
   menu have been built and launched but not exercised by hand; the menu's enabled-state and

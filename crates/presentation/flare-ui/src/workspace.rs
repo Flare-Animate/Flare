@@ -10,6 +10,7 @@ use flare_document::{
 use flare_edit::{Command, EditorSession, LayerChange, frames};
 use glamx::{DAffine2, DVec2};
 
+use crate::handles::{self, Handle};
 use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
 use crate::pen::{PenPath, Press};
@@ -105,16 +106,20 @@ impl FrameOp {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum DragMode {
     Draw,
     Move,
+    /// Scaling the selection by one of its handles.
+    Scale(Handle),
 }
 
 /// Gesture in progress on the stage, in document coordinates. It is tool state only:
 /// the document changes when the gesture is released.
 #[derive(Clone, Copy)]
 struct Drag {
+    /// The selection's bounds when the gesture began (used by scaling).
+    bounds: Rect,
     mode: DragMode,
     start: Pos2,
     current: Pos2,
@@ -165,6 +170,10 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// How close, in stage units, a press must be to a scale handle to grab it.
+    handle_radius: f32,
+    /// Shift is held: corner scaling keeps the proportions.
+    uniform_scale: bool,
     /// What Copy remembered, for Paste.
     clipboard: Vec<ops::ClipItem>,
     /// Timeline zoom: 1.0 fits the whole scene in the panel.
@@ -223,6 +232,8 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            handle_radius: 6.0,
+            uniform_scale: false,
             clipboard: Vec::new(),
             timeline_zoom: 1.0,
             also_selected: Vec::new(),
@@ -1504,6 +1515,21 @@ impl Workspace {
             // The pen builds a path point by point; see `pen_press`.
             Tool::Pen => None,
             Tool::Select => {
+                let grabbed = if additive {
+                    None
+                } else {
+                    self.selection_bounds()
+                        .and_then(|b| handles::pick(b, point, self.handle_radius))
+                };
+                if let Some(handle) = grabbed {
+                    self.drag = Some(Drag {
+                        bounds: self.selection_bounds().unwrap_or(Rect::NOTHING),
+                        mode: DragMode::Scale(handle),
+                        start: point,
+                        current: point,
+                    });
+                    return;
+                }
                 // Pressing on something already selected drags the whole selection.
                 let on_selection = !additive
                     && self
@@ -1517,6 +1543,7 @@ impl Workspace {
             }
         };
         self.drag = mode.map(|mode| Drag {
+            bounds: Rect::NOTHING,
             mode,
             start: point,
             current: point,
@@ -1537,6 +1564,9 @@ impl Workspace {
             match drag.mode {
                 DragMode::Draw => self.commit_shape(self.tool, drag.start, drag.current),
                 DragMode::Move => self.move_selection(drag.current - drag.start),
+                DragMode::Scale(handle) => {
+                    self.scale_selection(handle, drag.bounds, drag.current);
+                }
             }
         }
     }
@@ -1575,22 +1605,40 @@ impl Workspace {
     /// Applies `matrix` to every selected span about the center of the selection's bounds, as
     /// one undo step. The y axis points down, so a positive angle turns clockwise on screen.
     pub fn transform_selection(&mut self, matrix: DAffine2) {
-        let Some(scene) = self.scene_id() else {
-            return;
-        };
-        let spans = self.selection_all();
-        let mut bounds: Option<Rect> = None;
-        for span in &spans {
-            if let Some(b) = ops::span_bounds(self.document(), scene, *span) {
-                bounds = Some(bounds.map_or(b, |u| u.union(b)));
-            }
-        }
-        let Some(bounds) = bounds else {
+        let Some(bounds) = self.selection_bounds() else {
             return;
         };
         let center = DVec2::new(f64::from(bounds.center().x), f64::from(bounds.center().y));
         let about =
             DAffine2::from_translation(center) * matrix * DAffine2::from_translation(-center);
+        self.apply_to_selection(about);
+    }
+
+    /// The union of the bounds of every selected span.
+    fn selection_bounds(&self) -> Option<Rect> {
+        let scene = self.scene_id()?;
+        self.selection_all()
+            .into_iter()
+            .filter_map(|span| ops::span_bounds(self.document(), scene, span))
+            .reduce(|a, b| a.union(b))
+    }
+
+    /// Scales the selection so `handle` of `bounds` moves to `pointer`, as one undo step.
+    fn scale_selection(&mut self, handle: Handle, bounds: Rect, pointer: Pos2) {
+        if let Some(scale) = handles::scale_for(bounds, handle, pointer, self.uniform_scale) {
+            if scale == (1.0, 1.0) {
+                return;
+            }
+            self.apply_to_selection(handles::matrix(bounds, handle, scale));
+        }
+    }
+
+    /// Maps every selected span through `about` (stage coordinates), as one undo step.
+    fn apply_to_selection(&mut self, about: DAffine2) {
+        let Some(scene) = self.scene_id() else {
+            return;
+        };
+        let spans = self.selection_all();
         let commands: Vec<Command> = spans
             .into_iter()
             .filter_map(|span| ops::transform(self.document(), scene, span, about))
@@ -2189,6 +2237,8 @@ impl Workspace {
                 Color32::GRAY,
             );
         }
+        self.handle_radius = 8.0 / scale.max(f32::EPSILON);
+        self.uniform_scale = ui.input(|i| i.modifiers.shift);
         let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
         if self.tool == Tool::Pen {
@@ -2320,6 +2370,43 @@ impl Workspace {
                     let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
                     painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
                 }
+            }
+        }
+        if self.tool == Tool::Select
+            && let Some(bounds) = self.selection_bounds()
+        {
+            // The handles follow a move in progress, or show the scaled result of a scale.
+            let shown = match self.drag {
+                Some(Drag {
+                    mode: DragMode::Scale(handle),
+                    bounds: grabbed,
+                    current,
+                    ..
+                }) => handles::scale_for(grabbed, handle, current, self.uniform_scale).map_or(
+                    grabbed,
+                    |scale| {
+                        let m = handles::matrix(grabbed, handle, scale);
+                        let corner = |p: Pos2| {
+                            let q = m.transform_point2(DVec2::new(f64::from(p.x), f64::from(p.y)));
+                            Pos2::new(q.x as f32, q.y as f32)
+                        };
+                        Rect::from_two_pos(corner(grabbed.min), corner(grabbed.max))
+                    },
+                ),
+                _ => bounds.translate(moving),
+            };
+            let frame = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
+            painter.rect_stroke(
+                frame,
+                0.0,
+                Stroke::new(1.0, Color32::from_rgb(40, 120, 255)),
+                StrokeKind::Outside,
+            );
+            for handle in Handle::ALL {
+                let at = to_screen(handle.position(shown));
+                let square = Rect::from_center_size(at, Vec2::splat(7.0));
+                painter.rect_filled(square, 0.0, Color32::WHITE);
+                painter.rect_stroke(square, 0.0, outline, StrokeKind::Outside);
             }
         }
         if let Some(drag) = self.drag.filter(|d| d.mode == DragMode::Draw) {
@@ -2809,6 +2896,7 @@ mod tests {
         let (ctx, mut ws) = (egui::Context::default(), workspace());
         run(&mut ws, &ctx, 0.0);
         ws.drag = Some(Drag {
+            bounds: Rect::NOTHING,
             mode: DragMode::Draw,
             start: Pos2::new(1.0, 1.0),
             current: Pos2::new(50.0, 50.0),
@@ -4678,5 +4766,74 @@ mod tests {
         ws.select_at(Pos2::new(300.0, 300.0), false);
         ws.copy_selection();
         assert_eq!(ws.clipboard, kept);
+    }
+
+    #[test]
+    fn dragging_a_corner_handle_scales_the_selection_about_the_opposite_corner() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.begin_drag(Pos2::new(50.0, 50.0)); // the bottom-right handle
+        assert!(matches!(
+            ws.drag.map(|d| d.mode),
+            Some(DragMode::Scale(Handle::BottomRight))
+        ));
+        ws.update_drag(Pos2::new(90.0, 90.0));
+        ws.end_drag();
+        let b = shape_bounds(&ws);
+        assert_eq!(
+            (b.min, b.max),
+            (Pos2::new(10.0, 10.0), Pos2::new(90.0, 90.0))
+        );
+        assert_eq!(rect_x(&ws, 2), 100.0, "the other rectangle is untouched");
+        ws.undo();
+        assert_eq!(
+            shape_bounds(&ws).max,
+            Pos2::new(50.0, 50.0),
+            "one undo step"
+        );
+    }
+
+    #[test]
+    fn handles_of_a_group_scale_every_member_about_the_group_anchor() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.select_at(Pos2::new(120.0, 30.0), true);
+        // The group spans x 10..140; the right handle sits at (140, 30).
+        ws.begin_drag(Pos2::new(140.0, 30.0));
+        ws.update_drag(Pos2::new(270.0, 30.0));
+        ws.end_drag();
+        // Doubling the width about x = 10: the second rectangle (100..140) lands at 190..270.
+        assert_eq!(rect_x(&ws, 1), 10.0);
+        assert_eq!(rect_x(&ws, 2), 190.0);
+    }
+
+    #[test]
+    fn shift_keeps_proportions_and_pressing_off_a_handle_still_moves() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.uniform_scale = true;
+        ws.begin_drag(Pos2::new(50.0, 50.0));
+        ws.update_drag(Pos2::new(90.0, 60.0)); // x doubles, y grows less
+        ws.end_drag();
+        let b = shape_bounds(&ws);
+        assert_eq!((b.width(), b.height()), (80.0, 80.0));
+
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.begin_drag(Pos2::new(30.0, 30.0)); // inside, away from every handle
+        assert_eq!(ws.drag.map(|d| d.mode), Some(DragMode::Move));
+    }
+
+    #[test]
+    fn a_cancelled_scale_changes_nothing_and_shift_press_never_grabs_a_handle() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.begin_drag(Pos2::new(50.0, 50.0));
+        ws.update_drag(Pos2::new(90.0, 90.0));
+        ws.cancel_drag();
+        ws.end_drag();
+        assert_eq!(shape_bounds(&ws).max, Pos2::new(50.0, 50.0));
+        ws.begin_drag_with(Pos2::new(50.0, 50.0), true);
+        assert!(ws.drag.is_none(), "shift only edits the selection");
     }
 }

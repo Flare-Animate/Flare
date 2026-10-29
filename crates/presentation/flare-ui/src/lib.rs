@@ -7,6 +7,7 @@
 #![forbid(unsafe_code)]
 
 mod actions;
+mod handles;
 mod layout;
 mod ops;
 mod pen;
