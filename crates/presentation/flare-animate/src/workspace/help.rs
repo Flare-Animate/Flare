@@ -6,7 +6,7 @@ use crate::actions::MenuAction;
 impl Workspace {
     /// The About and Keyboard Shortcuts windows, while they are open.
     pub(super) fn help_windows(&mut self, ctx: &egui::Context) {
-        if self.about_open {
+        if self.windows.about {
             let mut open = true;
             egui::Window::new("About Flare")
                 .open(&mut open)
@@ -22,9 +22,9 @@ impl Workspace {
                         "https://github.com/Flare-Animate/Flare",
                     );
                 });
-            self.about_open = open;
+            self.windows.about = open;
         }
-        if self.shortcuts_open {
+        if self.windows.shortcuts {
             let mut open = true;
             let lines = self.shortcut_lines();
             egui::Window::new("Keyboard Shortcuts")
@@ -44,7 +44,7 @@ impl Workspace {
                             });
                         });
                 });
-            self.shortcuts_open = open;
+            self.windows.shortcuts = open;
         }
     }
 

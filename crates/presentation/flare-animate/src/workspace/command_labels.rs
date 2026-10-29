@@ -131,14 +131,14 @@ impl Workspace {
             MenuAction::ResetLayout => "Reset Workspace Layout",
             MenuAction::NewSymbol => "New Symbol",
             MenuAction::TextBold => {
-                if self.text_bold {
+                if self.text.bold {
                     "Not Bold"
                 } else {
                     "Bold"
                 }
             }
             MenuAction::TextItalic => {
-                if self.text_italic {
+                if self.text.italic {
                     "Not Italic"
                 } else {
                     "Italic"
@@ -147,7 +147,7 @@ impl Workspace {
             MenuAction::TextLarger => "Larger Text",
             MenuAction::TextSmaller => "Smaller Text",
             MenuAction::ToggleGuides => {
-                if self.show_guides {
+                if self.display.show_guides {
                     "Hide Guides"
                 } else {
                     "Show Guides"
@@ -173,28 +173,28 @@ impl Workspace {
                 }
             }
             MenuAction::ToggleOutlineMode => {
-                if self.outline_mode {
+                if self.display.outline_mode {
                     "Show Artwork"
                 } else {
                     "Outline Mode"
                 }
             }
             MenuAction::ToggleRulers => {
-                if self.show_rulers {
+                if self.display.show_rulers {
                     "Hide Rulers"
                 } else {
                     "Show Rulers"
                 }
             }
             MenuAction::ToggleGrid => {
-                if self.show_grid {
+                if self.display.show_grid {
                     "Hide Grid"
                 } else {
                     "Show Grid"
                 }
             }
             MenuAction::ToggleSnap => {
-                if self.snap_to_grid {
+                if self.display.snap_to_grid {
                     "Snapping: On"
                 } else {
                     "Snapping: Off"

@@ -340,7 +340,7 @@ impl Workspace {
         extent: Vec2,
         scale: f32,
     ) {
-        let step = self.grid_size.max(1.0);
+        let step = self.display.grid_size.max(1.0);
         if step * scale < 6.0 {
             return;
         }

@@ -155,7 +155,7 @@ impl Workspace {
                     ui,
                     "snap",
                     BAR_ICON,
-                    self.snap_to_grid,
+                    self.display.snap_to_grid,
                     true,
                     "Snap to grid",
                 )
@@ -163,12 +163,20 @@ impl Workspace {
                 {
                     self.perform(MenuAction::ToggleSnap);
                 }
-                if chrome::icon_button(ui, "ruler", BAR_ICON, self.show_rulers, true, "Rulers")
-                    .clicked()
+                if chrome::icon_button(
+                    ui,
+                    "ruler",
+                    BAR_ICON,
+                    self.display.show_rulers,
+                    true,
+                    "Rulers",
+                )
+                .clicked()
                 {
                     self.perform(MenuAction::ToggleRulers);
                 }
-                if chrome::icon_button(ui, "grid", BAR_ICON, self.show_grid, true, "Grid").clicked()
+                if chrome::icon_button(ui, "grid", BAR_ICON, self.display.show_grid, true, "Grid")
+                    .clicked()
                 {
                     self.perform(MenuAction::ToggleGrid);
                 }

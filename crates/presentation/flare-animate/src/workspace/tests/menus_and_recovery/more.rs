@@ -169,7 +169,7 @@ fn tabs_hold_several_documents_switch_between_them_and_close_without_losing_work
 fn preferences_round_trip_stay_in_range_and_refuse_junk() {
     let mut ws = workspace();
     ws.perform(MenuAction::Preferences);
-    assert!(ws.preferences_open);
+    assert!(ws.windows.preferences);
     let mut wanted = ws.preferences();
     wanted.autosave_seconds = 90.0;
     wanted.show_grid = true;
@@ -198,7 +198,7 @@ fn preferences_round_trip_stay_in_range_and_refuse_junk() {
     // Drawing the window does not panic and closing it works.
     let ctx = egui::Context::default();
     run(&mut other, &ctx, 0.0);
-    other.preferences_open = false;
+    other.windows.preferences = false;
     run(&mut other, &ctx, 0.1);
 }
 
@@ -305,7 +305,7 @@ fn recent_projects_are_remembered_newest_first_capped_and_kept_with_the_preferen
         [std::path::PathBuf::from("/x/y.flare")]
     );
     restored.perform(MenuAction::OpenRecent);
-    assert!(restored.recent_open);
+    assert!(restored.windows.recent);
     let ctx = egui::Context::default();
     run(&mut restored, &ctx, 0.0);
 }
@@ -329,7 +329,7 @@ fn save_all_saves_what_changed_and_publish_settings_are_remembered() {
     assert!(!ws.is_dirty());
     assert!(ws.publish_compress());
     ws.perform(MenuAction::PublishSettings);
-    assert!(ws.publish_settings_open);
+    assert!(ws.windows.publish_settings);
     let mut prefs = ws.preferences();
     prefs.publish_compress = false;
     ws.apply_preferences(&prefs);

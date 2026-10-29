@@ -78,10 +78,10 @@ impl Workspace {
             StrokeKind::Outside,
         );
 
-        if self.show_grid {
+        if self.display.show_grid {
             self.stage_grid(&painter, response.rect, image_rect, extent, scale);
         }
-        if self.show_rulers {
+        if self.display.show_rulers {
             self.stage_rulers(&painter, response.rect, image_rect, scale);
         }
         self.stage_guides(ui, response.rect, image_rect, scale);
@@ -101,11 +101,12 @@ impl Workspace {
         // Tools that place points snap them to the grid; tools that find things do not, or a
         // thin shape could not be clicked.
         let snap = self
+            .display
             .snap_to_grid
-            .then_some(self.grid_size)
+            .then_some(self.display.grid_size)
             .filter(|_| tool_places_points(self.tool));
-        let guides = if self.show_guides {
-            self.guides.clone()
+        let guides = if self.display.show_guides {
+            self.display.guides.clone()
         } else {
             Vec::new()
         };
@@ -122,7 +123,7 @@ impl Workspace {
             && response.clicked()
             && let Some(p) = response.interact_pointer_pos()
         {
-            self.text_edit = Some(PendingText {
+            self.text.edit = Some(PendingText {
                 at: to_doc(p),
                 buffer: String::new(),
                 focused: false,
@@ -164,8 +165,8 @@ impl Workspace {
             }
             if self.freehand.len() > 1 {
                 let (color, width) = match self.tool {
-                    Tool::Brush => (self.fill, self.brush_size),
-                    _ => (self.stroke_color, self.stroke_width),
+                    Tool::Brush => (self.paint.fill, self.brush_size),
+                    _ => (self.paint.stroke_color, self.paint.stroke_width),
                 };
                 let points: Vec<Pos2> = self
                     .freehand
@@ -447,7 +448,7 @@ impl Workspace {
                 Tool::Line => {
                     painter.line_segment(
                         [from, to],
-                        Stroke::new(self.stroke_width * scale, self.stroke_color),
+                        Stroke::new(self.paint.stroke_width * scale, self.paint.stroke_color),
                     );
                 }
                 Tool::Ellipse => {
@@ -455,12 +456,12 @@ impl Workspace {
                     painter.add(egui::epaint::EllipseShape::filled(
                         preview.center(),
                         radius,
-                        self.fill.gamma_multiply(0.5),
+                        self.paint.fill.gamma_multiply(0.5),
                     ));
                     painter.rect_stroke(preview, 0.0, ink, StrokeKind::Outside);
                 }
                 _ => {
-                    painter.rect_filled(preview, 0.0, self.fill.gamma_multiply(0.5));
+                    painter.rect_filled(preview, 0.0, self.paint.fill.gamma_multiply(0.5));
                     painter.rect_stroke(preview, 0.0, ink, StrokeKind::Outside);
                 }
             }

@@ -14,22 +14,22 @@ impl Workspace {
     /// with placeholders, so it should be dropped or parked, not used.
     pub(super) fn adopt_environment(&mut self, from: &mut Workspace) {
         self.tool = from.tool;
-        self.fill = from.fill;
-        self.gradient_enabled = from.gradient_enabled;
-        self.gradient_end = from.gradient_end;
-        self.gradient_vertical = from.gradient_vertical;
-        self.text_family = std::mem::take(&mut from.text_family);
-        self.text_size = from.text_size;
-        self.text_bold = from.text_bold;
-        self.text_italic = from.text_italic;
-        self.stroke_enabled = from.stroke_enabled;
-        self.stroke_color = from.stroke_color;
-        self.stroke_width = from.stroke_width;
-        self.stroke_cap = from.stroke_cap;
-        self.stroke_join = from.stroke_join;
+        self.paint.fill = from.paint.fill;
+        self.paint.gradient_enabled = from.paint.gradient_enabled;
+        self.paint.gradient_end = from.paint.gradient_end;
+        self.paint.gradient_vertical = from.paint.gradient_vertical;
+        self.text.family = std::mem::take(&mut from.text.family);
+        self.text.size = from.text.size;
+        self.text.bold = from.text.bold;
+        self.text.italic = from.text.italic;
+        self.paint.stroke_enabled = from.paint.stroke_enabled;
+        self.paint.stroke_color = from.paint.stroke_color;
+        self.paint.stroke_width = from.paint.stroke_width;
+        self.paint.stroke_cap = from.paint.stroke_cap;
+        self.paint.stroke_join = from.paint.stroke_join;
         self.native_menu = from.native_menu;
         self.titlebar_inset = from.titlebar_inset;
-        self.recovery_dir = from.recovery_dir.take();
+        self.recovery.dir = from.recovery.dir.take();
         self.apply_preferences(&from.preferences());
         self.layout = std::mem::replace(
             &mut from.layout,
@@ -37,8 +37,8 @@ impl Workspace {
         );
         self.onion = from.onion;
         // Whatever was playing belonged to the old project.
-        self.audio_events = std::mem::take(&mut from.audio_events);
-        self.audio_events.push(AudioEvent::Stop);
+        self.audio.events = std::mem::take(&mut from.audio.events);
+        self.audio.events.push(AudioEvent::Stop);
         // The workers belong to the app, not to a document; results of the old document's jobs
         // find nothing waiting for them and are dropped.
         self.background = std::mem::replace(&mut from.background, new_runtime());
@@ -126,11 +126,11 @@ impl Workspace {
 
     /// Turns on autosave into `dir`. Recovery files are separate from the project file.
     pub fn enable_recovery(&mut self, dir: PathBuf) {
-        self.recovery_dir = Some(dir);
+        self.recovery.dir = Some(dir);
     }
 
     pub fn set_autosave_interval(&mut self, seconds: f64) {
-        self.autosave_interval = seconds.max(1.0);
+        self.recovery.interval = seconds.max(1.0);
     }
 
     /// Loads a recovery file as unsaved work (it counts as dirty until saved to a project).
@@ -144,8 +144,8 @@ impl Workspace {
 
     /// Deletes the recovery file for the current document, if there is one.
     pub fn discard_recovery(&mut self) {
-        self.recovery_written = false;
-        if let Some(dir) = &self.recovery_dir
+        self.recovery.written = false;
+        if let Some(dir) = &self.recovery.dir
             && let Err(error) = flare_storage::discard_recovery(dir, self.session.document().id())
         {
             self.status = Some(format!("Could not remove the recovery file: {error}"));
@@ -155,29 +155,30 @@ impl Workspace {
     /// Writes a recovery file when there are unsaved changes and the interval has passed.
     /// Only the document itself is saved: an in-progress symbol edit is not applied yet.
     pub(super) fn autosave(&mut self, now: f64) {
-        let Some(dir) = self.recovery_dir.clone() else {
+        let Some(dir) = self.recovery.dir.clone() else {
             return;
         };
         if !self.session.is_dirty() {
             // Clean again (saved, or undone back to the saved state): nothing to recover.
-            if self.recovery_written {
+            if self.recovery.written {
                 self.discard_recovery();
             }
-            self.last_autosave = Some(now);
+            self.recovery.last = Some(now);
             return;
         }
         if self
-            .last_autosave
-            .is_some_and(|last| now - last < self.autosave_interval)
+            .recovery
+            .last
+            .is_some_and(|last| now - last < self.recovery.interval)
         {
             return;
         }
-        if self.autosaving.is_some() {
+        if self.recovery.in_flight.is_some() {
             return; // the last one is still being written
         }
-        self.last_autosave = Some(now);
+        self.recovery.last = Some(now);
         let id = self.background.next_id();
-        self.autosaving = Some(id);
+        self.recovery.in_flight = Some(id);
         self.background.submit_io(IoJob::Autosave {
             id,
             dir,

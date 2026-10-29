@@ -38,23 +38,23 @@ impl Workspace {
         self.tool_options(ui);
         chrome::section(ui, "fill-color", "Fill and stroke");
         chrome::row(ui, "Fill", |ui| {
-            ui.color_edit_button_srgba(&mut self.fill);
-            ui.checkbox(&mut self.gradient_enabled, "Gradient");
+            ui.color_edit_button_srgba(&mut self.paint.fill);
+            ui.checkbox(&mut self.paint.gradient_enabled, "Gradient");
         });
-        if self.gradient_enabled {
+        if self.paint.gradient_enabled {
             chrome::row(ui, "To", |ui| {
-                ui.color_edit_button_srgba(&mut self.gradient_end);
-                ui.checkbox(&mut self.gradient_vertical, "Vertical");
+                ui.color_edit_button_srgba(&mut self.paint.gradient_end);
+                ui.checkbox(&mut self.paint.gradient_vertical, "Vertical");
             });
         }
         chrome::row(ui, "Stroke", |ui| {
-            ui.color_edit_button_srgba(&mut self.stroke_color);
-            ui.checkbox(&mut self.stroke_enabled, "Outline");
+            ui.color_edit_button_srgba(&mut self.paint.stroke_color);
+            ui.checkbox(&mut self.paint.stroke_enabled, "Outline");
         });
         chrome::row(ui, "Width", |ui| {
             ui.add_enabled(
-                self.stroke_enabled,
-                egui::DragValue::new(&mut self.stroke_width)
+                self.paint.stroke_enabled,
+                egui::DragValue::new(&mut self.paint.stroke_width)
                     .range(0.5..=200.0)
                     .suffix(" px"),
             );
@@ -63,30 +63,30 @@ impl Workspace {
             use flare_document::Cap;
             egui::ComboBox::from_id_salt("cap_menu")
                 .width(80.0)
-                .selected_text(match self.stroke_cap {
+                .selected_text(match self.paint.stroke_cap {
                     Cap::Butt => "None",
                     Cap::Round => "Round",
                     Cap::Square => "Square",
                 })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut self.stroke_cap, Cap::Butt, "None");
-                    ui.selectable_value(&mut self.stroke_cap, Cap::Round, "Round");
-                    ui.selectable_value(&mut self.stroke_cap, Cap::Square, "Square");
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Butt, "None");
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Round, "Round");
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Square, "Square");
                 });
         });
         chrome::row(ui, "Join", |ui| {
             use flare_document::Join;
             egui::ComboBox::from_id_salt("join_menu")
                 .width(80.0)
-                .selected_text(match self.stroke_join {
+                .selected_text(match self.paint.stroke_join {
                     Join::Round => "Round",
                     Join::Bevel => "Bevel",
                     Join::Miter => "Miter",
                 })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut self.stroke_join, Join::Round, "Round");
-                    ui.selectable_value(&mut self.stroke_join, Join::Bevel, "Bevel");
-                    ui.selectable_value(&mut self.stroke_join, Join::Miter, "Miter");
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Round, "Round");
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Bevel, "Bevel");
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Miter, "Miter");
                 });
         });
     }

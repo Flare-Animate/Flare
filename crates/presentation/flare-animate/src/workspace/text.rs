@@ -13,8 +13,8 @@ impl Workspace {
     /// The small editor shown where the user clicked with the text tool. Ctrl/Cmd+Enter or the
     /// Place button hands the text over; Escape or Cancel drops it.
     pub(super) fn text_editor(&mut self, ctx: &egui::Context, image_rect: Rect, scale: f32) {
-        let id = self.text_editor_id;
-        let Some(edit) = self.text_edit.as_mut() else {
+        let id = self.text.editor_id;
+        let Some(edit) = self.text.edit.as_mut() else {
             return;
         };
         let at = image_rect.min + edit.at.to_vec2() * scale;
@@ -47,29 +47,29 @@ impl Workspace {
         if place {
             self.place_text();
         } else if cancel {
-            self.text_edit = None;
+            self.text.edit = None;
         }
     }
 
     /// Starts the text being typed becoming shapes. The font work happens off the UI thread; the
     /// shapes appear when it is done.
     pub fn place_text(&mut self) {
-        let Some(edit) = self.text_edit.take() else {
+        let Some(edit) = self.text.edit.take() else {
             return;
         };
         if edit.buffer.trim().is_empty() {
             return;
         }
         let id = self.background.next_id();
-        self.text_pending = Some((id, edit.at));
+        self.text.pending = Some((id, edit.at));
         self.background.submit_text(TextJob {
             id,
             text: edit.buffer,
             style: flare_text::TextStyle {
-                family: self.text_family.clone(),
-                size: self.text_size,
-                bold: self.text_bold,
-                italic: self.text_italic,
+                family: self.text.family.clone(),
+                size: self.text.size,
+                bold: self.text.bold,
+                italic: self.text.italic,
             },
         });
         self.settle_inline();
@@ -98,7 +98,7 @@ impl Workspace {
             })
             .collect();
         let fill = {
-            let c = self.fill.to_array();
+            let c = self.paint.fill.to_array();
             Rgba8::new(c[0], c[1], c[2], c[3])
         };
         let Some(path) = moved else {

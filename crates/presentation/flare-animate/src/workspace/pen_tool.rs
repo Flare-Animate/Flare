@@ -67,15 +67,19 @@ impl Workspace {
             return;
         };
         let stroke = {
-            let c = self.stroke_color.to_array();
+            let c = self.paint.stroke_color.to_array();
             ShapeStroke::new(
-                f64::from(self.stroke_width),
+                f64::from(self.paint.stroke_width),
                 Rgba8::new(c[0], c[1], c[2], c[3]),
             )
-            .map(|stroke| stroke.with_cap(self.stroke_cap).with_join(self.stroke_join))
+            .map(|stroke| {
+                stroke
+                    .with_cap(self.paint.stroke_cap)
+                    .with_join(self.paint.stroke_join)
+            })
         };
         let fill = {
-            let c = self.fill.to_array();
+            let c = self.paint.fill.to_array();
             Rgba8::new(c[0], c[1], c[2], c[3])
         };
         let fill = if closed { fill } else { Rgba8::TRANSPARENT };
@@ -83,7 +87,7 @@ impl Workspace {
             Ok(shape) => shape,
             Err(error) => return self.report(error.to_string()),
         };
-        let shape = if !closed || self.stroke_enabled {
+        let shape = if !closed || self.paint.stroke_enabled {
             match stroke {
                 Ok(stroke) => shape.with_stroke(stroke),
                 Err(error) => return self.report(error.to_string()),

@@ -287,14 +287,14 @@ fn layer_spans(ws: &Workspace, id: LayerId) -> Vec<(u32, u32)> {
 /// A workspace whose text jobs use the Hack font by name, whatever the machine has.
 fn text_workspace() -> Workspace {
     let mut ws = workspace();
-    ws.text_family = "Hack".into();
-    ws.text_size = 40.0;
+    ws.text.family = "Hack".into();
+    ws.text.size = 40.0;
     ws.set_tool(Tool::Text);
     ws
 }
 
 fn type_text(ws: &mut Workspace, at: Pos2, text: &str) {
-    ws.text_edit = Some(PendingText {
+    ws.text.edit = Some(PendingText {
         at,
         buffer: text.into(),
         focused: true,

@@ -74,9 +74,9 @@ fn timeline_zoom_changes_the_view_not_the_document_and_still_draws() {
 #[test]
 fn gradient_fills_apply_to_new_shapes_across_their_bounds_and_survive_moves() {
     let mut ws = workspace();
-    ws.gradient_enabled = true;
-    ws.gradient_end = Color32::from_rgb(0, 0, 255);
-    ws.fill = Color32::from_rgb(255, 0, 0);
+    ws.paint.gradient_enabled = true;
+    ws.paint.gradient_end = Color32::from_rgb(0, 0, 255);
+    ws.paint.fill = Color32::from_rgb(255, 0, 0);
     ws.commit_rectangle(Pos2::new(10.0, 20.0), Pos2::new(110.0, 60.0));
     let layer = ws.current_layer.expect("layer");
     ws.selected = Some(SpanRef { layer, start: 0 });
@@ -101,7 +101,7 @@ fn gradient_fills_apply_to_new_shapes_across_their_bounds_and_survive_moves() {
         "and moves it too"
     );
 
-    ws.gradient_vertical = true;
+    ws.paint.gradient_vertical = true;
     ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(50.0, 80.0));
     let layer = ws.current_layer.expect("layer");
     ws.selected = Some(SpanRef { layer, start: 0 });
@@ -118,13 +118,13 @@ fn gradients_survive_duplicating_and_the_setting_survives_opening_a_project() {
     let dir = tempfile::tempdir().expect("dir");
     let project = dir.path().join("p.flare");
     let mut ws = workspace();
-    ws.gradient_enabled = true;
+    ws.paint.gradient_enabled = true;
     ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(40.0, 40.0));
     let layer = ws.current_layer.expect("layer");
     ws.selected = Some(SpanRef { layer, start: 0 });
     ws.save_as(&project);
     ws.open(&project);
-    assert!(ws.gradient_enabled, "opening keeps the tool settings");
+    assert!(ws.paint.gradient_enabled, "opening keeps the tool settings");
     let layer = ws.document().scenes()[0].timeline().layers()[1].id();
     ws.selected = Some(SpanRef { layer, start: 0 });
     assert!(

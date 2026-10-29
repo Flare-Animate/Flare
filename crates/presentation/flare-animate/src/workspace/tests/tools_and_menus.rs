@@ -78,7 +78,7 @@ fn letter_keys_pick_tools_unless_a_modifier_is_held_or_text_is_being_typed() {
     assert_eq!(ws.tool(), Tool::Select);
     // While the text editor has the keyboard, letters are letters.
     ws.set_tool(Tool::Text);
-    ws.text_edit = Some(PendingText {
+    ws.text.edit = Some(PendingText {
         at: Pos2::new(5.0, 5.0),
         buffer: String::new(),
         focused: false,
@@ -100,12 +100,12 @@ fn letter_keys_pick_tools_unless_a_modifier_is_held_or_text_is_being_typed() {
 fn the_bucket_and_ink_bottle_repaint_the_shape_under_the_click_in_one_undo_step() {
     let mut ws = workspace();
     rect(&mut ws);
-    ws.fill = Color32::from_rgb(9, 8, 7);
+    ws.paint.fill = Color32::from_rgb(9, 8, 7);
     ws.set_tool(Tool::Bucket);
     ws.click_with_tool(Pos2::new(50.0, 30.0), false);
     assert_eq!(drawn_shape(&ws, 1).fill(), Rgba8::opaque(9, 8, 7));
-    ws.stroke_color = Color32::from_rgb(1, 2, 3);
-    ws.stroke_width = 5.0;
+    ws.paint.stroke_color = Color32::from_rgb(1, 2, 3);
+    ws.paint.stroke_width = 5.0;
     ws.set_tool(Tool::InkBottle);
     ws.click_with_tool(Pos2::new(50.0, 30.0), false);
     let stroke = drawn_shape(&ws, 1).stroke().expect("outlined");
@@ -128,17 +128,17 @@ fn the_bucket_and_ink_bottle_repaint_the_shape_under_the_click_in_one_undo_step(
 #[test]
 fn the_eyedropper_takes_the_fill_or_with_shift_the_stroke() {
     let mut ws = workspace();
-    ws.fill = Color32::from_rgb(10, 20, 30);
-    ws.stroke_enabled = true;
-    ws.stroke_color = Color32::from_rgb(200, 100, 50);
+    ws.paint.fill = Color32::from_rgb(10, 20, 30);
+    ws.paint.stroke_enabled = true;
+    ws.paint.stroke_color = Color32::from_rgb(200, 100, 50);
     rect(&mut ws);
-    ws.fill = Color32::WHITE;
-    ws.stroke_color = Color32::BLACK;
+    ws.paint.fill = Color32::WHITE;
+    ws.paint.stroke_color = Color32::BLACK;
     ws.set_tool(Tool::Eyedropper);
     ws.click_with_tool(Pos2::new(50.0, 30.0), false);
-    assert_eq!(ws.fill, Color32::from_rgb(10, 20, 30));
+    assert_eq!(ws.paint.fill, Color32::from_rgb(10, 20, 30));
     ws.click_with_tool(Pos2::new(50.0, 30.0), true);
-    assert_eq!(ws.stroke_color, Color32::from_rgb(200, 100, 50));
+    assert_eq!(ws.paint.stroke_color, Color32::from_rgb(200, 100, 50));
     assert!(!ws.is_dirty() || ws.active().can_undo());
 }
 
@@ -252,9 +252,9 @@ fn the_lasso_selects_shapes_centered_inside_the_loop_and_skips_locked_layers() {
 fn pencil_and_brush_strokes_are_one_undo_step_and_the_brush_follows_pressure() {
     use flare_input::{InputSample, PointerKind};
     let mut ws = workspace();
-    ws.stroke_color = Color32::from_rgb(1, 2, 3);
-    ws.stroke_width = 3.0;
-    ws.fill = Color32::from_rgb(9, 9, 9);
+    ws.paint.stroke_color = Color32::from_rgb(1, 2, 3);
+    ws.paint.stroke_width = 3.0;
+    ws.paint.fill = Color32::from_rgb(9, 9, 9);
     ws.brush_size = 20.0;
     let drag = |ws: &mut Workspace, pressure: fn(usize) -> f32| {
         ws.freehand = (0..40)
@@ -425,16 +425,16 @@ fn bring_to_front_and_send_to_back_reorder_layers_keeping_relative_order() {
 fn new_strokes_take_the_chosen_cap_and_join() {
     use flare_document::{Cap, Join};
     let mut ws = workspace();
-    ws.stroke_cap = Cap::Square;
-    ws.stroke_join = Join::Miter;
+    ws.paint.stroke_cap = Cap::Square;
+    ws.paint.stroke_join = Join::Miter;
     ws.set_tool(Tool::Line);
     ws.commit_shape(Tool::Line, Pos2::new(5.0, 5.0), Pos2::new(60.0, 5.0));
     let line = drawn_shape(&ws, 1).stroke().expect("a line is stroked");
     assert_eq!((line.cap(), line.join()), (Cap::Square, Join::Miter));
     // The ink bottle restyles an existing shape's outline the same way.
     rect(&mut ws);
-    ws.stroke_cap = Cap::Butt;
-    ws.stroke_join = Join::Bevel;
+    ws.paint.stroke_cap = Cap::Butt;
+    ws.paint.stroke_join = Join::Bevel;
     ws.set_tool(Tool::InkBottle);
     ws.click_with_tool(Pos2::new(50.0, 30.0), false);
     let outlined = drawn_shape(&ws, 2).stroke().expect("outlined");

@@ -55,7 +55,7 @@ impl Workspace {
                     self.color_target = target;
                     // Choosing the gradient's color turns the gradient on.
                     if target == ColorTarget::GradientEnd {
-                        self.gradient_enabled = true;
+                        self.paint.gradient_enabled = true;
                     }
                 }
             }
@@ -66,9 +66,9 @@ impl Workspace {
             });
         });
         let target = match self.color_target {
-            ColorTarget::Fill => &mut self.fill,
-            ColorTarget::Stroke => &mut self.stroke_color,
-            ColorTarget::GradientEnd => &mut self.gradient_end,
+            ColorTarget::Fill => &mut self.paint.fill,
+            ColorTarget::Stroke => &mut self.paint.stroke_color,
+            ColorTarget::GradientEnd => &mut self.paint.gradient_end,
         };
         egui::color_picker::color_picker_color32(ui, target, egui::color_picker::Alpha::OnlyBlend);
         ui.add_space(4.0);
@@ -120,9 +120,9 @@ impl Workspace {
             .inner;
         if let Some(color) = chosen {
             match self.color_target {
-                ColorTarget::Fill => self.fill = color,
-                ColorTarget::Stroke => self.stroke_color = color,
-                ColorTarget::GradientEnd => self.gradient_end = color,
+                ColorTarget::Fill => self.paint.fill = color,
+                ColorTarget::Stroke => self.paint.stroke_color = color,
+                ColorTarget::GradientEnd => self.paint.gradient_end = color,
             }
         }
         ui.add_space(6.0);
@@ -131,13 +131,13 @@ impl Workspace {
                 ui,
                 "gradient",
                 BAR_ICON,
-                self.gradient_enabled,
+                self.paint.gradient_enabled,
                 true,
                 "Fill new shapes with a gradient",
             )
             .clicked()
             {
-                self.gradient_enabled = !self.gradient_enabled;
+                self.paint.gradient_enabled = !self.paint.gradient_enabled;
             }
             if chrome::icon_button(
                 ui,
@@ -153,9 +153,9 @@ impl Workspace {
             }
             if chrome::icon_button(ui, "no-color", BAR_ICON, false, true, "No color").clicked() {
                 match self.color_target {
-                    ColorTarget::Fill => self.fill = Color32::TRANSPARENT,
-                    ColorTarget::Stroke => self.stroke_color = Color32::TRANSPARENT,
-                    ColorTarget::GradientEnd => self.gradient_end = Color32::TRANSPARENT,
+                    ColorTarget::Fill => self.paint.fill = Color32::TRANSPARENT,
+                    ColorTarget::Stroke => self.paint.stroke_color = Color32::TRANSPARENT,
+                    ColorTarget::GradientEnd => self.paint.gradient_end = Color32::TRANSPARENT,
                 }
             }
         });

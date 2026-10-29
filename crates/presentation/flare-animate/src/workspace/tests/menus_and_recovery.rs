@@ -220,8 +220,8 @@ fn opening_a_project_keeps_the_native_menu_tool_and_recovery_settings() {
     let mut ws = workspace();
     ws.set_native_menu(true);
     ws.set_tool(Tool::Ellipse);
-    ws.fill = Color32::from_rgb(1, 2, 3);
-    ws.stroke_enabled = true;
+    ws.paint.fill = Color32::from_rgb(1, 2, 3);
+    ws.paint.stroke_enabled = true;
     ws.enable_recovery(dir.path().join("recovery"));
     ws.open(&project);
     assert_eq!(ws.path(), Some(project.as_path()));
@@ -230,9 +230,9 @@ fn opening_a_project_keeps_the_native_menu_tool_and_recovery_settings() {
         "opening must not turn the in-window menu back on"
     );
     assert_eq!(ws.tool(), Tool::Ellipse);
-    assert_eq!(ws.fill, Color32::from_rgb(1, 2, 3));
-    assert!(ws.stroke_enabled);
-    assert!(ws.recovery_dir.is_some());
+    assert_eq!(ws.paint.fill, Color32::from_rgb(1, 2, 3));
+    assert!(ws.paint.stroke_enabled);
+    assert!(ws.recovery.dir.is_some());
 }
 
 #[test]

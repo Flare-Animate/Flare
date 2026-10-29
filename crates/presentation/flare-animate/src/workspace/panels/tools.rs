@@ -101,12 +101,12 @@ impl Workspace {
                 ui.horizontal(|ui| {
                     ui.add(icons::image("stroke-color", 14.0, theme::TEXT_DIM))
                         .on_hover_text("Stroke color");
-                    ui.color_edit_button_srgba(&mut self.stroke_color);
+                    ui.color_edit_button_srgba(&mut self.paint.stroke_color);
                 });
                 ui.horizontal(|ui| {
                     ui.add(icons::image("fill-color", 14.0, theme::TEXT_DIM))
                         .on_hover_text("Fill color");
-                    ui.color_edit_button_srgba(&mut self.fill);
+                    ui.color_edit_button_srgba(&mut self.paint.fill);
                 });
             });
         });
@@ -152,21 +152,21 @@ impl Workspace {
             Tool::Text => {
                 chrome::row(ui, "Family", |ui| {
                     ui.add(
-                        egui::TextEdit::singleline(&mut self.text_family)
+                        egui::TextEdit::singleline(&mut self.text.family)
                             .desired_width(150.0)
                             .hint_text("Helvetica, sans-serif"),
                     );
                 });
                 chrome::row(ui, "Size", |ui| {
                     ui.add(
-                        egui::DragValue::new(&mut self.text_size)
+                        egui::DragValue::new(&mut self.text.size)
                             .range(flare_text::MIN_SIZE..=flare_text::MAX_SIZE)
                             .suffix(" px"),
                     );
                 });
                 chrome::row(ui, "Style", |ui| {
-                    ui.toggle_value(&mut self.text_bold, "Bold");
-                    ui.toggle_value(&mut self.text_italic, "Italic");
+                    ui.toggle_value(&mut self.text.bold, "Bold");
+                    ui.toggle_value(&mut self.text.italic, "Italic");
                 });
                 ui.weak("Click the stage, type, then Place (Ctrl+Enter).");
             }

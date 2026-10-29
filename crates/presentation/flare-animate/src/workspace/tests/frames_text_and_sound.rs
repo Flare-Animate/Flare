@@ -43,7 +43,7 @@ fn the_frame_selection_goes_away_with_its_layer() {
 #[test]
 fn placed_text_becomes_a_filled_shape_at_the_clicked_point_in_one_undo_step() {
     let mut ws = text_workspace();
-    ws.fill = Color32::from_rgb(10, 20, 30);
+    ws.paint.fill = Color32::from_rgb(10, 20, 30);
     type_text(&mut ws, Pos2::new(100.0, 50.0), "Hi");
     assert_eq!(layer_count(&ws), 2, "a layer for the text");
     let layer = ws.document().scenes()[0].timeline().layers()[1].id();
@@ -68,14 +68,14 @@ fn blank_text_and_changing_tools_place_nothing() {
     let mut ws = text_workspace();
     type_text(&mut ws, Pos2::new(10.0, 10.0), "   \n ");
     assert_eq!(layer_count(&ws), 1);
-    ws.text_edit = Some(PendingText {
+    ws.text.edit = Some(PendingText {
         at: Pos2::new(1.0, 1.0),
         buffer: "abc".into(),
         focused: true,
     });
     ws.set_tool(Tool::Select);
     assert!(
-        ws.text_edit.is_none(),
+        ws.text.edit.is_none(),
         "switching tools drops the unfinished text"
     );
     assert!(!ws.is_dirty());
@@ -84,7 +84,7 @@ fn blank_text_and_changing_tools_place_nothing() {
 #[test]
 fn a_text_error_is_reported_and_leaves_the_document_alone() {
     let mut ws = text_workspace();
-    ws.text_size = 5000.0; // beyond what the engine accepts
+    ws.text.size = 5000.0; // beyond what the engine accepts
     type_text(&mut ws, Pos2::new(10.0, 10.0), "a");
     assert_eq!(layer_count(&ws), 1);
     assert!(
@@ -104,7 +104,7 @@ fn with_workers_text_is_placed_when_the_font_work_finishes() {
         1,
         "not placed until the worker has finished"
     );
-    wait_until(&mut ws, &ctx, |w| w.text_pending.is_none());
+    wait_until(&mut ws, &ctx, |w| w.text.pending.is_none());
     assert_eq!(layer_count(&ws), 2, "{:?}", ws.status());
 }
 
@@ -133,7 +133,7 @@ fn the_text_tool_is_a_menu_action_and_clicking_the_stage_opens_the_editor() {
     ];
     pass(&mut ws, &ctx, input(0.2, events));
     assert!(
-        ws.text_edit.is_some(),
+        ws.text.edit.is_some(),
         "a click with the text tool opens the editor"
     );
     run(&mut ws, &ctx, 0.3); // the editor draws without trouble
@@ -165,7 +165,7 @@ fn importing_a_sound_adds_it_and_a_cue_at_the_playhead_in_one_undo_step() {
         (6, sounds[0].id())
     );
     assert!(
-        ws.decoded.contains_key(&sounds[0].id()),
+        ws.audio.decoded.contains_key(&sounds[0].id()),
         "ready to play at once"
     );
     ws.undo();
@@ -308,7 +308,7 @@ fn opening_a_project_with_sounds_decodes_them_and_stops_what_was_playing() {
     let mut ws = workspace();
     ws.open(&project);
     assert!(
-        ws.decoded.is_empty(),
+        ws.audio.decoded.is_empty(),
         "decoding is requested by the next pass"
     );
     assert!(matches!(
@@ -317,8 +317,8 @@ fn opening_a_project_with_sounds_decodes_them_and_stops_what_was_playing() {
     ));
     run(&mut ws, &ctx, 0.0);
     let id = ws.document().sounds()[0].id();
-    assert!(ws.decoded.contains_key(&id), "decoded for playback");
-    assert!(ws.decoding.is_empty());
+    assert!(ws.audio.decoded.contains_key(&id), "decoded for playback");
+    assert!(ws.audio.decoding.is_empty());
 }
 
 #[test]
@@ -332,7 +332,7 @@ fn with_workers_a_sound_is_imported_when_it_has_been_decoded() {
         ws.document().sounds().is_empty(),
         "not until the worker has decoded it"
     );
-    wait_until(&mut ws, &ctx, |w| w.importing_sound.is_none());
+    wait_until(&mut ws, &ctx, |w| w.audio.importing.is_none());
     assert_eq!(ws.document().sounds().len(), 1, "{:?}", ws.status());
 }
 
@@ -374,7 +374,7 @@ fn every_panel_draws_with_every_tool_and_in_the_states_that_change_what_they_sho
             } else {
                 ws.select_at(Pos2::new(400.0, 400.0), false);
             }
-            ws.gradient_enabled = gradient;
+            ws.paint.gradient_enabled = gradient;
             ws.playing = playing;
             ws.set_onion_skin(onion);
             // A pass draws every dock panel, the menu and the status bar; a missing icon

@@ -3,7 +3,7 @@
 //! The type lives here; what it can do is split by topic into the modules below.
 
 use crate::layout::{self, Pane};
-use egui::{Color32, Pos2, Rect};
+use egui::{Pos2, Rect};
 use flare_commands::Command;
 use flare_core::{DocumentId, FrameRate, LayerId, SceneId, SymbolId};
 use flare_document::{Document, Layer, Scene, Timeline};
@@ -13,9 +13,7 @@ use flare_runtime::{Mode, Runtime};
 use flare_tools::ops::{self, SpanRef};
 use flare_tools::pen::PenPath;
 use flare_ui::view::StageView;
-use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use flare_input::InputSample;
 
@@ -30,6 +28,7 @@ mod draw;
 mod files;
 mod furniture;
 mod gestures;
+mod groups;
 mod guides;
 mod help;
 mod helpers;
@@ -85,16 +84,10 @@ pub struct Workspace {
     render_inbox: Vec<(u64, Result<egui::ColorImage, String>)>,
     /// The open or recover request in flight, if any.
     opening: Option<u64>,
-    /// The open that is a revert: it replaces the document even though it has changes.
-    preferences_open: bool,
     /// The other documents of the window, whole, in tab order without the current one.
     parked: Vec<Workspace>,
     /// This document's place among the tabs.
     position: usize,
-    recent_open: bool,
-    about_open: bool,
-    shortcuts_open: bool,
-    publish_settings_open: bool,
     publish_compress: bool,
     /// Projects opened or saved lately, newest first.
     recent: Vec<PathBuf>,
@@ -107,8 +100,6 @@ pub struct Workspace {
     importing: Option<u64>,
     reverting: Option<u64>,
     revert_pending: bool,
-    /// The autosave in flight, if any. Another is not started until it finishes.
-    autosaving: Option<u64>,
     /// How many frames have been rendered (as opposed to taken from the cache).
     frames_rendered: u64,
     drag: Option<Drag>,
@@ -129,23 +120,6 @@ pub struct Workspace {
     pointer_stage: Option<Pos2>,
     /// The theme and icon loaders have been installed on the egui context.
     chrome_ready: bool,
-    /// Sounds decoded and ready to play, by sound.
-    decoded: HashMap<flare_core::SoundId, Arc<flare_audio::Audio>>,
-    /// Sounds being decoded, and sounds that could not be, so neither is asked for again.
-    decoding: HashSet<flare_core::SoundId>,
-    decode_failed: HashSet<flare_core::SoundId>,
-    /// What the app should do with the sound card, since it last asked.
-    audio_events: Vec<AudioEvent>,
-    /// The sound import in flight, if any.
-    importing_sound: Option<u64>,
-    /// Whether the timeline was playing, and at which frame, when sound was last brought up
-    /// to date.
-    audio_synced: Option<(bool, u32)>,
-    /// Font family list and size for the text tool.
-    text_family: String,
-    text_size: f32,
-    text_bold: bool,
-    text_italic: bool,
     /// Corner radius of new rectangles, in stage units.
     rect_radius: f32,
     poly_sides: u32,
@@ -160,12 +134,6 @@ pub struct Workspace {
     brush_light: f32,
     /// How far a smoothed line may stray from the drag, in screen pixels.
     smoothing: f32,
-    /// The text being typed, if the user has clicked the stage with the text tool.
-    text_edit: Option<PendingText>,
-    /// Text handed to the font worker and not yet back: (job number, where to put it).
-    text_pending: Option<(u64, Pos2)>,
-    /// Identity of the text editor popup; fixed so its focus survives from frame to frame.
-    text_editor_id: egui::Id,
     /// The frames selected in the timeline (Shift-click), if any.
     frame_range: Option<FrameRange>,
     /// What Copy Frames remembered, for Paste Frames.
@@ -200,48 +168,18 @@ pub struct Workspace {
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
     quit_requested: bool,
-    /// Where autosave writes recovery files, if enabled.
-    recovery_dir: Option<PathBuf>,
-    autosave_interval: f64,
-    last_autosave: Option<f64>,
-    /// A recovery file exists for the current document and has not been discarded.
-    recovery_written: bool,
     /// The dockable panel arrangement.
     layout: egui_tiles::Tree<Pane>,
     onion: OnionSkin,
     test_movie_requested: bool,
     /// The pen tool's path while it is being drawn.
     pen: PenPath,
-    fill: Color32,
-    /// New rectangles and ellipses fade from `fill` to `gradient_end` across their bounds.
-    gradient_enabled: bool,
-    gradient_end: Color32,
-    gradient_vertical: bool,
-    stroke_enabled: bool,
-    stroke_color: Color32,
-    stroke_width: f32,
-    /// How new strokes end and turn corners.
-    stroke_cap: flare_document::Cap,
-    stroke_join: flare_document::Join,
     /// Stage size being edited in the tools panel, applied when the edit finishes.
     stage_edit: Option<(u32, u32)>,
     fps_edit: Option<f64>,
-    show_rulers: bool,
-    /// Whether the stage draws outlines in layer colors instead of the artwork.
-    outline_mode: bool,
-    /// Guides pulled out of the rulers, and whether they show.
-    guides: Vec<guides::Guide>,
-    show_guides: bool,
-    /// The guide being dragged, by index.
-    guide_drag: Option<usize>,
     /// Playback wraps to the first frame; off, it stops on the last.
     loop_playback: bool,
     muted: bool,
-    show_grid: bool,
-    /// Points drawn and moves are rounded to the grid.
-    snap_to_grid: bool,
-    /// Grid spacing in stage units.
-    grid_size: f32,
     /// Everything `report` has said, oldest first, for the Output panel.
     log: Vec<String>,
     props_tab: PropsTab,
@@ -252,6 +190,18 @@ pub struct Workspace {
     window_request: Option<WindowRequest>,
     titlebar_inset: f32,
     top_bar_id: egui::Id,
+    /// The Text tool's settings and the text being typed.
+    text: groups::TextTool,
+    /// How new shapes are painted.
+    paint: groups::Paint,
+    /// What the stage view shows besides the artwork.
+    display: groups::Display,
+    /// Which small windows are open.
+    windows: groups::OpenWindows,
+    /// Autosave and crash recovery.
+    recovery: groups::Recovery,
+    /// Sounds being decoded, imported and played.
+    audio: groups::AudioState,
 }
 
 impl Workspace {
@@ -271,13 +221,8 @@ impl Workspace {
             pending_render: None,
             render_inbox: Vec::new(),
             opening: None,
-            preferences_open: false,
             parked: Vec::new(),
             position: 0,
-            recent_open: false,
-            about_open: false,
-            shortcuts_open: false,
-            publish_settings_open: false,
             publish_compress: true,
             recent: Vec::new(),
             collapsed_folders: std::collections::HashSet::new(),
@@ -285,7 +230,6 @@ impl Workspace {
             importing: None,
             reverting: None,
             revert_pending: false,
-            autosaving: None,
             frames_rendered: 0,
             drag: None,
             anchor_drag: None,
@@ -298,13 +242,6 @@ impl Workspace {
             hex_buffer: None,
             pointer_stage: None,
             chrome_ready: false,
-            decoded: HashMap::new(),
-            decoding: HashSet::new(),
-            decode_failed: HashSet::new(),
-            audio_events: Vec::new(),
-            importing_sound: None,
-            audio_synced: None,
-            text_family: "sans-serif".into(),
             rect_radius: 0.0,
             poly_sides: 5,
             poly_star: false,
@@ -314,12 +251,6 @@ impl Workspace {
             brush_size: 12.0,
             brush_light: 0.15,
             smoothing: 2.0,
-            text_size: 48.0,
-            text_bold: false,
-            text_italic: false,
-            text_edit: None,
-            text_pending: None,
-            text_editor_id: egui::Id::unique("flare_text_editor"),
             frame_range: None,
             frame_clipboard: None,
             selection_checked: None,
@@ -340,10 +271,6 @@ impl Workspace {
             layer_name_edit: String::new(),
             native_menu: false,
             quit_requested: false,
-            recovery_dir: None,
-            autosave_interval: 30.0,
-            last_autosave: None,
-            recovery_written: false,
             layout: layout::default_tree(),
             onion: OnionSkin {
                 enabled: false,
@@ -353,27 +280,10 @@ impl Workspace {
             },
             test_movie_requested: false,
             pen: PenPath::default(),
-            fill: Color32::from_rgb(232, 69, 60),
-            gradient_enabled: false,
-            gradient_end: Color32::from_rgb(60, 90, 220),
-            gradient_vertical: false,
-            stroke_enabled: false,
-            stroke_color: Color32::BLACK,
-            stroke_width: 4.0,
-            stroke_cap: flare_document::Cap::Round,
-            stroke_join: flare_document::Join::Round,
             stage_edit: None,
             fps_edit: None,
-            show_rulers: true,
-            outline_mode: false,
-            guides: Vec::new(),
-            show_guides: true,
-            guide_drag: None,
             loop_playback: true,
             muted: false,
-            show_grid: false,
-            snap_to_grid: false,
-            grid_size: 20.0,
             log: Vec::new(),
             props_tab: PropsTab::Tool,
             object_edit: None,
@@ -382,6 +292,12 @@ impl Workspace {
             window_request: None,
             titlebar_inset: 0.0,
             top_bar_id: egui::Id::unique("top-bar"),
+            text: groups::TextTool::default(),
+            paint: groups::Paint::default(),
+            display: groups::Display::default(),
+            windows: groups::OpenWindows::default(),
+            recovery: groups::Recovery::default(),
+            audio: groups::AudioState::default(),
         }
     }
 

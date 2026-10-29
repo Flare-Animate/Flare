@@ -49,16 +49,20 @@ impl Workspace {
             return;
         }
         let fill = {
-            let c = self.fill.to_array();
+            let c = self.paint.fill.to_array();
             Rgba8::new(c[0], c[1], c[2], c[3])
         };
         let stroke = {
-            let c = self.stroke_color.to_array();
+            let c = self.paint.stroke_color.to_array();
             ShapeStroke::new(
-                f64::from(self.stroke_width),
+                f64::from(self.paint.stroke_width),
                 Rgba8::new(c[0], c[1], c[2], c[3]),
             )
-            .map(|stroke| stroke.with_cap(self.stroke_cap).with_join(self.stroke_join))
+            .map(|stroke| {
+                stroke
+                    .with_cap(self.paint.stroke_cap)
+                    .with_join(self.paint.stroke_join)
+            })
         };
         let id = ShapeId::new();
         let (x0, y0) = (f64::from(x0), f64::from(y0));
@@ -97,12 +101,12 @@ impl Workspace {
             self.report("Shape coordinates must be finite");
             return;
         };
-        if self.gradient_enabled && tool != Tool::Line {
+        if self.paint.gradient_enabled && tool != Tool::Line {
             let end = {
-                let c = self.gradient_end.to_array();
+                let c = self.paint.gradient_end.to_array();
                 Rgba8::new(c[0], c[1], c[2], c[3])
             };
-            let (from, to) = if self.gradient_vertical {
+            let (from, to) = if self.paint.gradient_vertical {
                 ((x0, y0), (x0, y0 + h))
             } else {
                 ((x0, y0), (x0 + w, y0))
@@ -116,7 +120,7 @@ impl Workspace {
                 None => return self.report("The gradient needs a shape with some size"),
             }
         }
-        if self.stroke_enabled && tool != Tool::Line {
+        if self.paint.stroke_enabled && tool != Tool::Line {
             match stroke {
                 Ok(stroke) => shape = shape.with_stroke(stroke),
                 Err(error) => return self.report(error.to_string()),

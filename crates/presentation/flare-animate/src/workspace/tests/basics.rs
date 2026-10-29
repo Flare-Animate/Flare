@@ -42,9 +42,9 @@ fn a_rectangle_is_one_undo_step_and_tracks_dirty_state() {
 fn rectangles_get_a_stroke_only_when_outline_is_enabled() {
     let mut ws = workspace();
     rect(&mut ws);
-    ws.stroke_enabled = true;
-    ws.stroke_color = Color32::from_rgb(1, 2, 3);
-    ws.stroke_width = 6.0;
+    ws.paint.stroke_enabled = true;
+    ws.paint.stroke_color = Color32::from_rgb(1, 2, 3);
+    ws.paint.stroke_width = 6.0;
     ws.commit_rectangle(Pos2::new(200.0, 200.0), Pos2::new(260.0, 240.0));
     let stroke_of = |layer: usize| {
         let timeline = ws.document().scenes()[0].timeline();

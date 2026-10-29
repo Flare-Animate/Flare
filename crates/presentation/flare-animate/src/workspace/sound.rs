@@ -21,7 +21,7 @@ impl Workspace {
             return;
         }
         let id = self.background.next_id();
-        self.importing_sound = Some(id);
+        self.audio.importing = Some(id);
         self.background.submit_audio(AudioJob::Import {
             id,
             path: path.to_owned(),
@@ -73,7 +73,7 @@ impl Workspace {
             "import the sound",
         );
         if self.status.is_none() {
-            self.decoded.insert(id, audio);
+            self.audio.decoded.insert(id, audio);
             self.current_layer = Some(layer_id);
         }
     }
@@ -112,22 +112,22 @@ impl Workspace {
             .iter()
             .map(flare_document::Sound::id)
             .collect();
-        self.decoded.retain(|id, _| present.contains(id));
-        self.decode_failed.retain(|id| present.contains(id));
+        self.audio.decoded.retain(|id, _| present.contains(id));
+        self.audio.decode_failed.retain(|id| present.contains(id));
         let wanted: Vec<(flare_core::SoundId, Arc<[u8]>)> = self
             .session
             .document()
             .sounds()
             .iter()
             .filter(|s| {
-                !self.decoded.contains_key(&s.id())
-                    && !self.decoding.contains(&s.id())
-                    && !self.decode_failed.contains(&s.id())
+                !self.audio.decoded.contains_key(&s.id())
+                    && !self.audio.decoding.contains(&s.id())
+                    && !self.audio.decode_failed.contains(&s.id())
             })
             .map(|s| (s.id(), s.shared_data()))
             .collect();
         for (sound, data) in wanted {
-            self.decoding.insert(sound);
+            self.audio.decoding.insert(sound);
             self.background
                 .submit_audio(AudioJob::Decode { sound, data });
         }
@@ -138,13 +138,13 @@ impl Workspace {
     /// when the timeline wraps or jumps back, and stop when it pauses.
     pub(super) fn sync_audio(&mut self) {
         let now = (self.playing, self.frame);
-        let before = self.audio_synced.replace(now);
+        let before = self.audio.synced.replace(now);
         let rate = self.document().frame_rate();
         let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
         let (was_playing, was_frame) = before.unwrap_or((false, 0));
         if !self.playing {
             if was_playing {
-                self.audio_events.push(AudioEvent::Stop);
+                self.audio.events.push(AudioEvent::Stop);
             }
             return;
         }
@@ -154,7 +154,7 @@ impl Workspace {
         if was_playing && !jumped {
             return;
         }
-        self.audio_events.push(AudioEvent::Stop);
+        self.audio.events.push(AudioEvent::Stop);
         let Some(scene) = self.session.document().scenes().first() else {
             return;
         };
@@ -164,8 +164,8 @@ impl Workspace {
                 .iter()
                 .filter(|c| c.start >= self.frame && !self.muted)
             {
-                if let Some(audio) = self.decoded.get(&cue.sound) {
-                    self.audio_events.push(AudioEvent::Play {
+                if let Some(audio) = self.audio.decoded.get(&cue.sound) {
+                    self.audio.events.push(AudioEvent::Play {
                         audio: Arc::clone(audio),
                         delay_seconds: f64::from(cue.start - self.frame) / fps,
                     });
@@ -176,6 +176,6 @@ impl Workspace {
 
     /// What to do with the sound card since the last call.
     pub fn take_audio_events(&mut self) -> Vec<AudioEvent> {
-        std::mem::take(&mut self.audio_events)
+        std::mem::take(&mut self.audio.events)
     }
 }

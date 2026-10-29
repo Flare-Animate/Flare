@@ -84,7 +84,7 @@ fn finishing_a_pen_path_is_one_undo_step_on_a_new_layer() {
 #[test]
 fn an_open_pen_path_is_stroked_even_with_outline_off() {
     let mut ws = workspace();
-    ws.stroke_enabled = false;
+    ws.paint.stroke_enabled = false;
     pen_triangle(&mut ws);
     ws.pen_finish();
     let layers = ws.document().scenes()[0].timeline().layers();
@@ -101,7 +101,7 @@ fn an_open_pen_path_is_stroked_even_with_outline_off() {
 fn a_closed_pen_path_strokes_only_when_outline_is_on() {
     for outline in [false, true] {
         let mut ws = workspace();
-        ws.stroke_enabled = outline;
+        ws.paint.stroke_enabled = outline;
         pen_triangle(&mut ws);
         ws.pen_press(Pos2::new(11.0, 11.0));
         assert!(

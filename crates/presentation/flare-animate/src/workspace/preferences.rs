@@ -54,11 +54,11 @@ impl Workspace {
     /// The current settings.
     pub fn preferences(&self) -> Preferences {
         Preferences {
-            autosave_seconds: self.autosave_interval,
-            show_rulers: self.show_rulers,
-            show_grid: self.show_grid,
-            snap_to_grid: self.snap_to_grid,
-            grid_size: self.grid_size,
+            autosave_seconds: self.recovery.interval,
+            show_rulers: self.display.show_rulers,
+            show_grid: self.display.show_grid,
+            snap_to_grid: self.display.snap_to_grid,
+            grid_size: self.display.grid_size,
             loop_playback: self.loop_playback,
             smoothing: self.smoothing,
             publish_compress: self.publish_compress,
@@ -73,11 +73,12 @@ impl Workspace {
     /// Takes `preferences` as the current settings, keeping each in its sensible range.
     pub fn apply_preferences(&mut self, preferences: &Preferences) {
         let finite = |v: f64, fallback: f64| if v.is_finite() { v } else { fallback };
-        self.autosave_interval = finite(preferences.autosave_seconds, 30.0).clamp(5.0, 3600.0);
-        self.show_rulers = preferences.show_rulers;
-        self.show_grid = preferences.show_grid;
-        self.snap_to_grid = preferences.snap_to_grid;
-        self.grid_size = finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
+        self.recovery.interval = finite(preferences.autosave_seconds, 30.0).clamp(5.0, 3600.0);
+        self.display.show_rulers = preferences.show_rulers;
+        self.display.show_grid = preferences.show_grid;
+        self.display.snap_to_grid = preferences.snap_to_grid;
+        self.display.grid_size =
+            finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
         self.loop_playback = preferences.loop_playback;
         self.smoothing = finite(f64::from(preferences.smoothing), 2.0).clamp(0.0, 20.0) as f32;
         self.publish_compress = preferences.publish_compress;
@@ -125,7 +126,7 @@ impl Workspace {
 
     /// The small windows opened from the File menu: recent projects and publish settings.
     pub(super) fn file_windows(&mut self, ctx: &egui::Context) {
-        if self.recent_open {
+        if self.windows.recent {
             let mut open = true;
             let mut chosen = None;
             egui::Window::new("Open Recent")
@@ -153,12 +154,12 @@ impl Workspace {
                         self.recent.clear();
                     }
                 });
-            self.recent_open = open && chosen.is_none();
+            self.windows.recent = open && chosen.is_none();
             if let Some(path) = chosen {
                 self.open(&path);
             }
         }
-        if self.publish_settings_open {
+        if self.windows.publish_settings {
             let mut open = true;
             egui::Window::new("Publish Settings")
                 .open(&mut open)
@@ -170,13 +171,13 @@ impl Workspace {
                         "A compressed file is smaller; players older than Flash 6 cannot read it.",
                     );
                 });
-            self.publish_settings_open = open;
+            self.windows.publish_settings = open;
         }
     }
 
     /// The Preferences window, while it is open.
     pub(super) fn preferences_window(&mut self, ctx: &egui::Context) {
-        if !self.preferences_open {
+        if !self.windows.preferences {
             return;
         }
         let mut open = true;
@@ -223,6 +224,6 @@ impl Workspace {
                 }
             });
         self.apply_preferences(&edited);
-        self.preferences_open = open;
+        self.windows.preferences = open;
     }
 }

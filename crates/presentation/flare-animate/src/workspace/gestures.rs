@@ -112,13 +112,22 @@ impl Workspace {
         };
         let commands = match self.tool {
             Tool::Eraser => Some(ops::delete(scene, at)),
-            Tool::Bucket => {
-                ops::restyle(self.document(), scene, at, Some(to_rgba(self.fill)), None)
-            }
+            Tool::Bucket => ops::restyle(
+                self.document(),
+                scene,
+                at,
+                Some(to_rgba(self.paint.fill)),
+                None,
+            ),
             Tool::InkBottle => {
-                match ShapeStroke::new(f64::from(self.stroke_width), to_rgba(self.stroke_color)) {
+                match ShapeStroke::new(
+                    f64::from(self.paint.stroke_width),
+                    to_rgba(self.paint.stroke_color),
+                ) {
                     Ok(stroke) => {
-                        let stroke = stroke.with_cap(self.stroke_cap).with_join(self.stroke_join);
+                        let stroke = stroke
+                            .with_cap(self.paint.stroke_cap)
+                            .with_join(self.paint.stroke_join);
                         ops::restyle(self.document(), scene, at, None, Some(Some(stroke)))
                     }
                     Err(error) => return self.report(error.to_string()),
@@ -132,9 +141,9 @@ impl Workspace {
                 };
                 let from = |c: Rgba8| Color32::from_rgba_unmultiplied(c.r, c.g, c.b, c.a);
                 match (shift, shape.stroke()) {
-                    (true, Some(stroke)) => self.stroke_color = from(stroke.color()),
+                    (true, Some(stroke)) => self.paint.stroke_color = from(stroke.color()),
                     (true, None) => {}
-                    (false, _) => self.fill = from(shape.flat_fill()),
+                    (false, _) => self.paint.fill = from(shape.flat_fill()),
                 }
                 None
             }
@@ -179,14 +188,14 @@ impl Workspace {
         let Some(path) = flare_tools::freehand::smooth_path(&points) else {
             return Ok(None);
         };
-        let c = self.stroke_color.to_array();
+        let c = self.paint.stroke_color.to_array();
         let stroke = ShapeStroke::new(
-            f64::from(self.stroke_width),
+            f64::from(self.paint.stroke_width),
             Rgba8::new(c[0], c[1], c[2], c[3]),
         )
         .map_err(|e| e.to_string())?
-        .with_cap(self.stroke_cap)
-        .with_join(self.stroke_join);
+        .with_cap(self.paint.stroke_cap)
+        .with_join(self.paint.stroke_join);
         Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT)
             .map(|shape| Some(shape.with_stroke(stroke)))
             .map_err(|e| e.to_string())
@@ -203,7 +212,7 @@ impl Workspace {
         else {
             return Ok(None);
         };
-        let c = self.fill.to_array();
+        let c = self.paint.fill.to_array();
         Shape::new(ShapeId::new(), path, Rgba8::new(c[0], c[1], c[2], c[3]))
             .map(Some)
             .map_err(|e| e.to_string())
@@ -245,8 +254,8 @@ impl Workspace {
                 DragMode::Draw => self.commit_shape(self.tool, drag.start, drag.current),
                 DragMode::Move => {
                     let mut delta = drag.current - drag.start;
-                    if self.snap_to_grid {
-                        delta = snap_point(delta.to_pos2(), self.grid_size).to_vec2();
+                    if self.display.snap_to_grid {
+                        delta = snap_point(delta.to_pos2(), self.display.grid_size).to_vec2();
                     }
                     self.move_selection(delta);
                 }

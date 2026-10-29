@@ -30,12 +30,18 @@ fn typed_transforms_apply_about_the_selection_center_and_colors_swap() {
             .abs()
             < 1e-2
     );
-    ws.fill = Color32::RED;
-    ws.stroke_color = Color32::BLUE;
+    ws.paint.fill = Color32::RED;
+    ws.paint.stroke_color = Color32::BLUE;
     ws.swap_colors();
-    assert_eq!((ws.fill, ws.stroke_color), (Color32::BLUE, Color32::RED));
+    assert_eq!(
+        (ws.paint.fill, ws.paint.stroke_color),
+        (Color32::BLUE, Color32::RED)
+    );
     ws.default_colors();
-    assert_eq!((ws.fill, ws.stroke_color), (Color32::WHITE, Color32::BLACK));
+    assert_eq!(
+        (ws.paint.fill, ws.paint.stroke_color),
+        (Color32::WHITE, Color32::BLACK)
+    );
 }
 
 #[test]
@@ -117,12 +123,12 @@ fn rulers_grid_and_snapping_toggle_from_the_menu_and_snapping_rounds_to_the_grid
     let mut ws = workspace();
     assert_eq!(ws.label(MenuAction::ToggleRulers), "Hide Rulers");
     ws.perform(MenuAction::ToggleRulers);
-    assert!(!ws.show_rulers);
+    assert!(!ws.display.show_rulers);
     assert_eq!(ws.label(MenuAction::ToggleGrid), "Show Grid");
     ws.perform(MenuAction::ToggleGrid);
-    assert!(ws.show_grid);
+    assert!(ws.display.show_grid);
     ws.perform(MenuAction::ToggleSnap);
-    assert!(ws.snap_to_grid);
+    assert!(ws.display.snap_to_grid);
     assert_eq!(
         snap_point(Pos2::new(29.0, 31.0), 20.0),
         Pos2::new(20.0, 40.0)
@@ -139,8 +145,8 @@ fn rulers_grid_and_snapping_toggle_from_the_menu_and_snapping_rounds_to_the_grid
     assert_eq!((b.min.x, b.min.y), (30.0, 30.0), "10 + 20, 10 + 20");
     // A grid with lines too close together to see is skipped, not drawn.
     let (ctx, mut ws) = (egui::Context::default(), workspace());
-    ws.show_grid = true;
-    ws.grid_size = 1.0;
+    ws.display.show_grid = true;
+    ws.display.grid_size = 1.0;
     run(&mut ws, &ctx, 0.0);
     run(&mut ws, &ctx, 0.1);
 }

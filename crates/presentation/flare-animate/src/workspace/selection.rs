@@ -20,7 +20,7 @@ impl Workspace {
         if self.tool != tool {
             self.cancel_drag();
             self.pen.clear();
-            self.text_edit = None;
+            self.text.edit = None;
             self.tool = tool;
         }
     }

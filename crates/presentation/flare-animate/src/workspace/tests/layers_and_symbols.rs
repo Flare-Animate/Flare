@@ -68,7 +68,7 @@ fn ellipse_and_line_tools_commit_shapes_on_their_own_layers() {
         line.stroke().is_some(),
         "a line is its stroke, even with Outline off"
     );
-    assert!(!ws.stroke_enabled);
+    assert!(!ws.paint.stroke_enabled);
 }
 
 #[test]
@@ -173,7 +173,7 @@ fn locked_layers_are_not_selectable_and_refuse_frame_edits() {
 #[test]
 fn clicks_select_through_a_locked_layer_to_the_one_below() {
     let mut ws = workspace();
-    ws.stroke_enabled = false;
+    ws.paint.stroke_enabled = false;
     ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(100.0, 100.0)); // lower layer
     ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(100.0, 100.0)); // new layer, on top? (below in order)
     let layers: Vec<LayerId> = ws.document().scenes()[0]

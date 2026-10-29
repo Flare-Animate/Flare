@@ -164,13 +164,13 @@ impl Workspace {
 
     /// Swaps the fill and stroke colors.
     pub fn swap_colors(&mut self) {
-        std::mem::swap(&mut self.fill, &mut self.stroke_color);
+        std::mem::swap(&mut self.paint.fill, &mut self.paint.stroke_color);
     }
 
     /// Black stroke, white fill.
     pub fn default_colors(&mut self) {
-        self.stroke_color = Color32::BLACK;
-        self.fill = Color32::WHITE;
+        self.paint.stroke_color = Color32::BLACK;
+        self.paint.fill = Color32::WHITE;
     }
 
     /// Applies `matrix` to every selected span about the center of the selection's bounds, as

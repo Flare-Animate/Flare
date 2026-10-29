@@ -50,7 +50,8 @@ impl Workspace {
             }
             Done::SoundImported { id, path, result } => {
                 if self
-                    .importing_sound
+                    .audio
+                    .importing
                     .take_if(|pending| *pending == id)
                     .is_none()
                 {
@@ -64,25 +65,25 @@ impl Workspace {
                 }
             }
             Done::SoundDecoded { sound, result } => {
-                self.decoding.remove(&sound);
+                self.audio.decoding.remove(&sound);
                 match result {
                     Ok(audio) => {
-                        let held: usize = self.decoded.values().map(|a| a.frames()).sum();
+                        let held: usize = self.audio.decoded.values().map(|a| a.frames()).sum();
                         if held + audio.frames() > DECODED_AUDIO_SAMPLES / 2 {
-                            self.decode_failed.insert(sound);
+                            self.audio.decode_failed.insert(sound);
                             self.report("Too much sound is loaded to play every sound at once");
                         } else {
-                            self.decoded.insert(sound, audio);
+                            self.audio.decoded.insert(sound, audio);
                         }
                     }
                     Err(message) => {
-                        self.decode_failed.insert(sound);
+                        self.audio.decode_failed.insert(sound);
                         self.report(format!("Cannot play a sound: {message}"));
                     }
                 }
             }
             Done::Text { id, result } => {
-                let Some((_, at)) = self.text_pending.take_if(|(pending, _)| *pending == id) else {
+                let Some((_, at)) = self.text.pending.take_if(|(pending, _)| *pending == id) else {
                     return; // asked for again since
                 };
                 match result {
@@ -108,11 +109,11 @@ impl Workspace {
                 Err(error) => self.report(format!("Cannot save: {error}")),
             },
             Done::Autosaved { id, result } => {
-                if self.autosaving == Some(id) {
-                    self.autosaving = None;
+                if self.recovery.in_flight == Some(id) {
+                    self.recovery.in_flight = None;
                 }
                 match result {
-                    Ok(_) => self.recovery_written = true,
+                    Ok(_) => self.recovery.written = true,
                     Err(error) => self.report(format!("Autosave failed: {error}")),
                 }
             }
@@ -166,7 +167,7 @@ impl Workspace {
                         self.session.mark_unsaved();
                         // The file stays until the work is saved or discarded, so a second
                         // crash before saving still leaves it recoverable.
-                        self.recovery_written = true;
+                        self.recovery.written = true;
                         self.report("Recovered unsaved work");
                     }
                     Ok(document) if reverting == Some(id) => {

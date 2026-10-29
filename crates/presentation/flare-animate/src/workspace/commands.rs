@@ -112,7 +112,7 @@ impl Workspace {
             | MenuAction::TextLarger
             | MenuAction::TextSmaller => true,
             MenuAction::ToggleGuides => true,
-            MenuAction::ClearGuides => !self.guides.is_empty(),
+            MenuAction::ClearGuides => !self.display.guides.is_empty(),
             MenuAction::NewSymbol => !self.in_symbol(),
             MenuAction::About | MenuAction::KeyboardShortcuts => true,
             MenuAction::ShowProperties
@@ -149,8 +149,8 @@ impl Workspace {
             MenuAction::Close => self.close_tab(self.position),
             MenuAction::NewLayerFolder => self.add_layer_folder(),
             MenuAction::SaveAll => self.save(),
-            MenuAction::OpenRecent => self.recent_open = true,
-            MenuAction::PublishSettings => self.publish_settings_open = true,
+            MenuAction::OpenRecent => self.windows.recent = true,
+            MenuAction::PublishSettings => self.windows.publish_settings = true,
             MenuAction::Revert => self.revert(),
             MenuAction::ExportImage => self.dialog = Some(DialogRequest::ExportImage),
             MenuAction::ExportMovie => self.dialog = Some(DialogRequest::ExportMovie),
@@ -200,7 +200,7 @@ impl Workspace {
                 self.show_pane(Pane::Properties);
             }
             MenuAction::ToolSubselection => self.set_tool(Tool::Subselection),
-            MenuAction::Preferences => self.preferences_open = true,
+            MenuAction::Preferences => self.windows.preferences = true,
             MenuAction::ToolFreeTransform => self.set_tool(Tool::FreeTransform),
             MenuAction::EditSymbol => self.edit_selected_symbol(),
             MenuAction::ExitSymbol => {
@@ -265,21 +265,21 @@ impl Workspace {
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
             MenuAction::NewSymbol => self.new_symbol(),
-            MenuAction::TextBold => self.text_bold = !self.text_bold,
-            MenuAction::TextItalic => self.text_italic = !self.text_italic,
+            MenuAction::TextBold => self.text.bold = !self.text.bold,
+            MenuAction::TextItalic => self.text.italic = !self.text.italic,
             MenuAction::TextLarger => {
-                self.text_size = (self.text_size * 1.25).min(flare_text::MAX_SIZE)
+                self.text.size = (self.text.size * 1.25).min(flare_text::MAX_SIZE)
             }
             MenuAction::TextSmaller => {
-                self.text_size = (self.text_size / 1.25).max(flare_text::MIN_SIZE)
+                self.text.size = (self.text.size / 1.25).max(flare_text::MIN_SIZE)
             }
-            MenuAction::ToggleGuides => self.show_guides = !self.show_guides,
+            MenuAction::ToggleGuides => self.display.show_guides = !self.display.show_guides,
             MenuAction::ClearGuides => {
-                self.guides.clear();
-                self.guide_drag = None;
+                self.display.guides.clear();
+                self.display.guide_drag = None;
             }
-            MenuAction::About => self.about_open = true,
-            MenuAction::KeyboardShortcuts => self.shortcuts_open = true,
+            MenuAction::About => self.windows.about = true,
+            MenuAction::KeyboardShortcuts => self.windows.shortcuts = true,
             MenuAction::ShowProperties => self.show_pane(Pane::Properties),
             MenuAction::ShowLibrary => self.show_pane(Pane::Library),
             MenuAction::ShowColor => self.show_pane(Pane::Color),
@@ -290,15 +290,15 @@ impl Workspace {
             MenuAction::ShowOutput => self.show_pane(Pane::Output),
             MenuAction::ShowInfo => self.show_pane(Pane::Info),
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
-            MenuAction::ToggleOutlineMode => self.outline_mode = !self.outline_mode,
-            MenuAction::ToggleRulers => self.show_rulers = !self.show_rulers,
-            MenuAction::ToggleGrid => self.show_grid = !self.show_grid,
-            MenuAction::ToggleSnap => self.snap_to_grid = !self.snap_to_grid,
+            MenuAction::ToggleOutlineMode => self.display.outline_mode = !self.display.outline_mode,
+            MenuAction::ToggleRulers => self.display.show_rulers = !self.display.show_rulers,
+            MenuAction::ToggleGrid => self.display.show_grid = !self.display.show_grid,
+            MenuAction::ToggleSnap => self.display.snap_to_grid = !self.display.snap_to_grid,
             MenuAction::ToggleLoop => self.loop_playback = !self.loop_playback,
             MenuAction::ToggleMute => {
                 self.muted = !self.muted;
                 // Sounds already started stop now; unmuting waits for the next start.
-                self.audio_events.push(AudioEvent::Stop);
+                self.audio.events.push(AudioEvent::Stop);
             }
             MenuAction::TestMovie => {
                 // Pending symbol edits belong in the movie, so apply them first, like Save.

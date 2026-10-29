@@ -17,7 +17,12 @@ fn all_in_one_stack(ws: &mut Workspace) {
 fn window_menu_entries_bring_their_panel_to_the_front() {
     let mut ws = workspace();
     all_in_one_stack(&mut ws);
-    let json = |ws: &Workspace| ws.layout_json().expect("serialize");
+    // The layout is written from a hash map, so equal layouts can list their tiles in a different
+    // order: compare what the JSON says, not its text.
+    let json = |ws: &Workspace| {
+        serde_json::from_str::<serde_json::Value>(&ws.layout_json().expect("serialize"))
+            .expect("json")
+    };
     ws.perform(MenuAction::ShowHistory);
     let history = json(&ws);
     ws.perform(MenuAction::ShowLibrary);
@@ -215,26 +220,26 @@ fn the_text_menu_sets_how_new_text_is_made_within_the_size_limits() {
     let mut ws = workspace();
     assert_eq!(ws.label(MenuAction::TextBold), "Bold");
     ws.perform(MenuAction::TextBold);
-    assert!(ws.text_bold);
+    assert!(ws.text.bold);
     assert_eq!(ws.label(MenuAction::TextBold), "Not Bold");
     ws.perform(MenuAction::TextItalic);
-    assert!(ws.text_italic);
-    let before = ws.text_size;
+    assert!(ws.text.italic);
+    let before = ws.text.size;
     ws.perform(MenuAction::TextLarger);
-    assert!(ws.text_size > before);
+    assert!(ws.text.size > before);
     ws.perform(MenuAction::TextSmaller);
     assert!(
-        (ws.text_size - before).abs() < 0.01,
+        (ws.text.size - before).abs() < 0.01,
         "a step up and down returns"
     );
     for _ in 0..200 {
         ws.perform(MenuAction::TextLarger);
     }
-    assert_eq!(ws.text_size, flare_text::MAX_SIZE, "bounded above");
+    assert_eq!(ws.text.size, flare_text::MAX_SIZE, "bounded above");
     for _ in 0..400 {
         ws.perform(MenuAction::TextSmaller);
     }
-    assert_eq!(ws.text_size, flare_text::MIN_SIZE, "bounded below");
+    assert_eq!(ws.text.size, flare_text::MIN_SIZE, "bounded below");
 }
 
 #[test]
