@@ -7,7 +7,6 @@
 #![forbid(unsafe_code)]
 
 mod actions;
-mod background;
 mod chrome;
 mod export_image;
 mod freehand;

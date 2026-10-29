@@ -1733,6 +1733,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "flare-runtime"
+version = "0.1.0"
+dependencies = [
+ "flare-audio",
+ "flare-core",
+ "flare-document",
+ "flare-eval",
+ "flare-render",
+ "flare-storage",
+ "flare-text",
+ "tempfile",
+]
+
+[[package]]
 name = "flare-storage"
 version = "0.1.0"
 dependencies = [
@@ -1777,6 +1791,7 @@ dependencies = [
  "flare-eval",
  "flare-history",
  "flare-render",
+ "flare-runtime",
  "flare-storage",
  "flare-text",
  "glamx",

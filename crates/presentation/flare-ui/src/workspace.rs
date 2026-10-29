@@ -14,7 +14,6 @@ use flare_editor::frames;
 use flare_history::EditorSession;
 use glamx::{DAffine2, DVec2};
 
-use crate::background::{AudioJob, Background, Done, IoJob, Mode, RenderJob, TextJob};
 use crate::handles::{self, Handle};
 use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
@@ -22,6 +21,7 @@ use crate::pen::{PenPath, Press};
 use crate::timeline_view;
 use crate::view::{self, StageView};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
+use flare_runtime::{AudioJob, Done, IoJob, Mode, RenderJob, Rendered, Runtime, TextJob};
 
 /// How many frames before and after the current one onion skinning can show.
 pub const MAX_ONION_FRAMES: u32 = 8;
@@ -153,6 +153,27 @@ fn snap_point(point: Pos2, grid: f32) -> Pos2 {
         (point.x / grid).round() * grid,
         (point.y / grid).round() * grid,
     )
+}
+
+/// The runtime workers start inline; under test text jobs also know a bundled font by name, so
+/// they do not depend on what a machine has installed.
+fn new_runtime() -> Runtime {
+    #[allow(unused_mut)]
+    let mut runtime = Runtime::inline();
+    #[cfg(test)]
+    runtime.add_font(epaint_default_fonts::HACK_REGULAR.to_vec());
+    runtime
+}
+
+/// A drawn frame as a texture image.
+fn into_color_image(rendered: Rendered) -> egui::ColorImage {
+    let size = rendered.size();
+    match rendered {
+        Rendered::Premultiplied(image) => {
+            egui::ColorImage::from_rgba_premultiplied(size, image.rgba())
+        }
+        Rendered::Straight(image) => egui::ColorImage::from_rgba_unmultiplied(size, image.rgba()),
+    }
 }
 
 /// Height of the top bar, and of the integrated one: macOS centers its window buttons 14 px
@@ -398,7 +419,7 @@ pub struct Workspace {
     /// Recently shown frames, least recently used first.
     frame_cache: Vec<CachedFrame>,
     /// Drawing and file work that runs off the UI thread.
-    background: Background,
+    background: Runtime,
     /// The frame being drawn, if any. A result for anything else is out of date and dropped.
     pending_render: Option<PendingRender>,
     /// Finished drawings waiting for the UI to turn them into textures.
@@ -550,7 +571,7 @@ impl Workspace {
             last_time: None,
             texture: None,
             frame_cache: Vec::new(),
-            background: Background::inline(),
+            background: new_runtime(),
             pending_render: None,
             render_inbox: Vec::new(),
             opening: None,
@@ -823,7 +844,7 @@ impl Workspace {
         fresh.audio_events.push(AudioEvent::Stop);
         // The workers belong to the app, not to a document; results of the old document's jobs
         // find nothing waiting for them and are dropped.
-        fresh.background = std::mem::replace(&mut self.background, Background::inline());
+        fresh.background = std::mem::replace(&mut self.background, new_runtime());
         *self = fresh;
     }
 
@@ -1204,7 +1225,9 @@ impl Workspace {
     /// Moves drawing and file work onto worker threads. Until this is called it runs on the
     /// calling thread, which keeps headless use and tests deterministic.
     pub fn start_background_threads(&mut self, ctx: &egui::Context) {
-        self.background.start_threads(ctx.clone());
+        let ctx = ctx.clone();
+        self.background
+            .start_threads(std::sync::Arc::new(move || ctx.request_repaint()));
     }
 
     /// Whether a save, open or autosave is still being worked on.
@@ -1237,7 +1260,9 @@ impl Workspace {
 
     fn handle_done(&mut self, done: Done) {
         match done {
-            Done::Rendered { id, result } => self.render_inbox.push((id, result)),
+            Done::Rendered { id, result } => {
+                self.render_inbox.push((id, result.map(into_color_image)))
+            }
             Done::SoundImported { id, path, result } => {
                 if self
                     .importing_sound

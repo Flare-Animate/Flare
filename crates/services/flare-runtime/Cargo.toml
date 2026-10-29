@@ -1,0 +1,22 @@
+[package]
+name = "flare-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+flare-audio.workspace = true
+flare-core.workspace = true
+flare-document.workspace = true
+flare-eval.workspace = true
+flare-render.workspace = true
+flare-storage.workspace = true
+flare-text.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true
