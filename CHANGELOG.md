@@ -8,7 +8,7 @@ All notable changes are listed here. The format follows
 
 ## [0.1.0] - not yet released
 
-The first release of the Rust rewrite.
+The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
 
 ### Added
 - A document model with scenes, layers (including mask, folder and motion guide layers), frame
