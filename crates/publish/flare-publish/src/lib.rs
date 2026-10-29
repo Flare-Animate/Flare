@@ -42,7 +42,6 @@ pub struct Diagnostic {
 
 /// SWF character ids are 16 bits and 0 is reserved; the top id is kept free as well.
 const MAX_SHAPES: u32 = 65_534;
-const MAX_SHAPES_END: swf::CharacterId = u16::MAX;
 
 #[derive(Debug, Error)]
 pub enum PublishError {
@@ -199,7 +198,7 @@ pub fn publish_swf(
                     Some(known) => *known,
                     None => {
                         // Character ids are 16 bits; running out must not wrap or repeat.
-                        if next_character >= MAX_SHAPES_END {
+                        if next_character == swf::CharacterId::MAX {
                             return Err(PublishError::TooManyShapes);
                         }
                         let defined = next_character;
