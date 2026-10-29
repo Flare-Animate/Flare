@@ -6,6 +6,7 @@
 //! through the normal constructors. The on-disk schema is a draft, not a stable format.
 #![forbid(unsafe_code)]
 
+mod recovery;
 mod wire;
 
 use std::fs;
@@ -14,6 +15,10 @@ use std::path::Path;
 use flare_document::{Diagnostic, Document, TimelineError};
 use rusqlite::{Connection, OpenFlags, config::DbConfig, params};
 use thiserror::Error;
+
+pub use recovery::{
+    RecoveryEntry, discard_recovery, list_recoveries, recovery_path, save_recovery,
+};
 
 /// ASCII "FLAR".
 const APPLICATION_ID: i64 = 0x464C_4152;

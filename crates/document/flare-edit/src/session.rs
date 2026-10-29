@@ -97,6 +97,12 @@ impl EditorSession {
         self.saved = Some(Arc::clone(&self.current));
     }
 
+    /// Marks the current content as never saved (for example work recovered after a
+    /// crash), so it counts as dirty until it is saved to a project file.
+    pub fn mark_unsaved(&mut self) {
+        self.saved = None;
+    }
+
     /// Dirty means the content differs from what was saved; undoing back to the saved
     /// content is clean again, unlike a monotonically increasing revision counter.
     pub fn is_dirty(&self) -> bool {
@@ -382,6 +388,16 @@ mod tests {
         f.session.undo();
         assert!(f.session.is_dirty());
         f.session.redo();
+        assert!(!f.session.is_dirty());
+    }
+
+    #[test]
+    fn unsaved_content_is_dirty_until_saved() {
+        let mut f = fixture();
+        assert!(!f.session.is_dirty());
+        f.session.mark_unsaved();
+        assert!(f.session.is_dirty());
+        f.session.mark_saved();
         assert!(!f.session.is_dirty());
     }
 
