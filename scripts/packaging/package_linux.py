@@ -29,7 +29,7 @@ def configuration(version, target, binary, output, format_name):
     config = json.loads((release.ROOT / "packaging/cargo-packager.json").read_text())
     config.update(version=version, targetTriple=target, outDir=str(output.resolve()),
                   binaries=[{"path": str(binary), "main": True}], formats=[format_name])
-    config["icons"] = [str(release.ROOT / "assets/flare-icon.iconset/icon_256x256.png")]
+    config["icons"] = [str(release.ROOT / "assets/flare-icon-256.png")]
     config["deb"].update(desktopTemplate=str(release.ROOT / "packaging/flare.desktop"),
                          files=desktop_files())
     return config

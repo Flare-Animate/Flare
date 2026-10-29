@@ -102,8 +102,11 @@ pull requests that touch packaging, or by hand from the Actions tab (no tag, not
 
 ## Icon
 
-`assets/flare-icon.png` is the 1024 px master, trimmed to a transparent rounded square with a thin
-dark edge; `flare-icon.iconset`, `.icns` and `.ico` are made from it.
+`assets/flare-icon.png` is the 1024 px master: a transparent rounded square with a thin dark edge,
+filling its canvas. Windows (`flare-icon.ico`) and Linux (`flare-icon-256.png`) use it full size.
+macOS icons are expected to sit inside a transparent margin, so `flare-icon.iconset` and
+`flare-icon.icns` hold the same art shrunk to 824 of 1024 px (80 percent) and centered; at full
+size the dock shows it larger than its neighbours.
 
 ## Smoke test (by hand)
 
