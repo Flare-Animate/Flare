@@ -44,6 +44,15 @@ cancellation and resource limits. Do not update expected outputs to make a failu
 A skipped test is skipped, not passed. Report status truthfully: a signature check is not a
 parser, a parser is not an editor, and an untested capability is not supported.
 
+### Fault injection and invariants
+
+Beyond example-based tests there are randomized, seeded checks (so failures reproduce):
+corrupted and truncated project files must never panic and are usually refused, and long
+random edit sequences must never produce an invalid document, never change anything on a
+rejected batch, and undo back to the exact starting document. When adding a new edit,
+make sure these cover it. Check that a new invariant test can fail: temporarily break the
+code it protects and confirm the test notices.
+
 ## Commits
 
 Small conventional commits: `feat(scope)`, `fix(scope)`, `refactor(scope)`, `test(scope)`,

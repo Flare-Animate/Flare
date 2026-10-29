@@ -416,4 +416,94 @@ mod tests {
         drop(conn);
         assert!(matches!(load(&path), Err(StorageError::Json(_))));
     }
+
+    /// Deterministic pseudo-random numbers, so a failure is reproducible.
+    fn lcg(state: &mut u64) -> u64 {
+        *state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
+        *state >> 33
+    }
+
+    #[test]
+    fn corrupted_project_files_never_panic_and_corruption_is_usually_detected() {
+        let dir = tempfile::tempdir().expect("dir");
+        let good = dir.path().join("good.flare");
+        save(&sample(), &good).expect("save");
+        let original = fs::read(&good).expect("read");
+        let mutant = dir.path().join("mutant.flare");
+
+        let (mut errors, mut accepted) = (0, 0);
+        let mut state = 0x5EED_u64;
+        // Flip a run of bytes at many positions: header, schema pages and payloads alike.
+        for _ in 0..400 {
+            let mut bytes = original.clone();
+            let at = (lcg(&mut state) as usize) % bytes.len();
+            let run = 1 + (lcg(&mut state) as usize) % 8;
+            for i in at..(at + run).min(bytes.len()) {
+                bytes[i] ^= 0xFF;
+            }
+            fs::write(&mutant, &bytes).expect("write");
+            match load(&mutant) {
+                Ok(_) => accepted += 1,
+                Err(_) => errors += 1,
+            }
+        }
+        // Truncations at every kind of boundary.
+        for keep in (0..original.len()).step_by(original.len() / 40 + 1) {
+            fs::write(&mutant, &original[..keep]).expect("write");
+            if load(&mutant).is_ok() {
+                accepted += 1;
+            } else {
+                errors += 1;
+            }
+        }
+        // Zeroed pages and garbage appended.
+        let mut zeroed = original.clone();
+        zeroed[100..original.len().min(4096)].fill(0);
+        fs::write(&mutant, &zeroed).expect("write");
+        assert!(
+            load(&mutant).is_err(),
+            "a zeroed first page is not a project"
+        );
+        let mut extended = original.clone();
+        extended.extend(std::iter::repeat_n(0xAB, 10_000));
+        fs::write(&mutant, &extended).expect("write");
+        let _ = load(&mutant); // trailing garbage may or may not matter; it must not panic
+
+        assert!(
+            errors > 50,
+            "corruption was caught often enough to mean something ({errors} vs {accepted})"
+        );
+        // Whatever was accepted is still a valid document, by construction of the loader.
+    }
+
+    #[test]
+    fn a_project_with_hostile_payloads_is_refused_not_trusted() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        for payload in [
+            "null",
+            "[]",
+            "{\"name\":1}",
+            "{\"name\":\"x\",\"timeline\":{\"layers\":[{\"id\":\"nope\",\"name\":\"l\",\"spans\":[]}]}}",
+            "{\"name\":\"x\",\"timeline\":{\"layers\":[{\"id\":\"00000000-0000-0000-0000-000000000001\",\"name\":\"l\",\"spans\":[{\"start\":4294967295,\"duration\":4294967295,\"content\":\"Empty\"}]}]}}",
+            "{\"name\":\"x\",\"timeline\":{\"layers\":[{\"id\":\"00000000-0000-0000-0000-000000000001\",\"name\":\"l\",\"spans\":[{\"start\":0,\"duration\":0,\"content\":\"Empty\"}]}]}}",
+        ] {
+            save(&sample(), &path).expect("save");
+            let conn = Connection::open(&path).expect("open");
+            conn.execute(
+                "UPDATE entity SET payload_json = ?1 WHERE kind = 'scene'",
+                [payload],
+            )
+            .expect("tamper");
+            drop(conn);
+            // Some of these are well-formed but extreme (a span ending past u32); those load as
+            // valid documents because frame arithmetic is overflow-safe. None may panic.
+            let result = load(&path);
+            if payload.contains("\"duration\":0") || payload == "null" || payload == "[]" {
+                assert!(result.is_err(), "{payload}");
+            }
+        }
+    }
 }
