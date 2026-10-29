@@ -34,6 +34,10 @@ pub enum Diagnostic {
     TooManySounds,
     #[error("the sounds together are larger than {MAX_TOTAL_SOUND_BYTES} bytes")]
     SoundsTooLarge,
+    #[error("layer {layer:?} is in {parent:?}, which is not a folder above it")]
+    BadFolderParent { layer: LayerId, parent: LayerId },
+    #[error("folder {0:?} has frames; a folder only groups other layers")]
+    FolderWithContent(LayerId),
     #[error("a cue on layer {layer:?} plays sound {sound:?}, which is not in the document")]
     DanglingSound { layer: LayerId, sound: SoundId },
 }
@@ -124,9 +128,25 @@ pub(crate) fn validate(document: &Document) -> Vec<Diagnostic> {
     let mut shapes = HashSet::with_capacity(layer_count);
     let mut instances = HashSet::new();
     for timeline in timelines(document) {
-        for layer in timeline.layers() {
+        for (position, layer) in timeline.layers().iter().enumerate() {
             if !layers.insert(layer.id()) {
                 out.push(Diagnostic::DuplicateLayer(layer.id()));
+            }
+            if layer.is_folder() && (!layer.spans().is_empty() || layer.is_mask()) {
+                out.push(Diagnostic::FolderWithContent(layer.id()));
+            }
+            // A folder sits above what it holds, so a parent is always an earlier layer and
+            // folders cannot contain themselves, directly or around a loop.
+            if let Some(parent) = layer.parent() {
+                let above = timeline.layers()[..position]
+                    .iter()
+                    .any(|l| l.id() == parent && l.is_folder());
+                if !above {
+                    out.push(Diagnostic::BadFolderParent {
+                        layer: layer.id(),
+                        parent,
+                    });
+                }
             }
         }
         for shape in timeline.shapes() {

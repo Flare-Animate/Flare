@@ -463,3 +463,42 @@ fn moving_a_mask_changes_the_signature_even_if_the_masked_art_stays() {
     assert_eq!(frame.shapes, moved.shapes, "the masked art is untouched");
     assert_ne!(frame.signature(), moved.signature());
 }
+
+#[test]
+fn a_hidden_folder_hides_what_it_holds_however_deep() {
+    let folder = |name: &str, visible: bool, parent: Option<LayerId>| {
+        let id = LayerId::new();
+        (
+            id,
+            Layer::new(id, name, vec![])
+                .expect("layer")
+                .with_folder(true)
+                .with_visible(visible)
+                .with_parent(parent),
+        )
+    };
+    let (outer_id, outer) = folder("outer", true, None);
+    let (inner_id, inner) = folder("inner", false, Some(outer_id));
+    let child = shape_layer("child", 0.0, 10.0, false, true).with_parent(Some(inner_id));
+    let loose = shape_layer("loose", 20.0, 10.0, false, true);
+    let (doc, id) = masked_scene(vec![outer, inner, child, loose]);
+    let frame = evaluate_frame(&doc, id, 0).expect("eval");
+    assert_eq!(
+        frame.shapes.len(),
+        1,
+        "only the layer outside the hidden folder shows"
+    );
+
+    // With the inner folder shown again everything is drawn; folders draw nothing themselves.
+    let (outer_id, outer) = folder("outer", true, None);
+    let (inner_id, inner) = folder("inner", true, Some(outer_id));
+    let child = shape_layer("child", 0.0, 10.0, false, true).with_parent(Some(inner_id));
+    let (doc, id) = masked_scene(vec![outer, inner, child]);
+    assert_eq!(evaluate_frame(&doc, id, 0).expect("eval").shapes.len(), 1);
+    // And hiding the outer one hides the child two levels down.
+    let (outer_id, outer) = folder("outer", false, None);
+    let (inner_id, inner) = folder("inner", true, Some(outer_id));
+    let child = shape_layer("child", 0.0, 10.0, false, true).with_parent(Some(inner_id));
+    let (doc, id) = masked_scene(vec![outer, inner, child]);
+    assert!(evaluate_frame(&doc, id, 0).expect("eval").shapes.is_empty());
+}

@@ -114,6 +114,10 @@ pub struct Layer {
     visible: bool,
     locked: bool,
     mask: bool,
+    /// A folder holds no art of its own: it groups the layers below it that name it as parent.
+    folder: bool,
+    /// The folder this layer sits in. It must be a folder layer above this one.
+    parent: Option<LayerId>,
     /// Sounds that start at frames of this layer, in order of frame. Shared like the spans.
     cues: Arc<[SoundCue]>,
 }
@@ -138,6 +142,8 @@ impl Layer {
             visible: true,
             locked: false,
             mask: false,
+            folder: false,
+            parent: None,
             cues: Arc::from([]),
         })
     }
@@ -148,6 +154,8 @@ impl Layer {
         layer.visible = self.visible;
         layer.locked = self.locked;
         layer.mask = self.mask;
+        layer.folder = self.folder;
+        layer.parent = self.parent;
         layer.cues = Arc::clone(&self.cues);
         Ok(layer)
     }
@@ -180,6 +188,21 @@ impl Layer {
         self
     }
 
+    /// Makes this layer a folder (or a plain layer again). Folders hold no spans.
+    #[must_use]
+    pub fn with_folder(mut self, folder: bool) -> Self {
+        self.folder = folder;
+        self
+    }
+
+    /// Puts this layer in the folder `parent`, or takes it out with `None`. A hidden folder
+    /// hides everything in it and a locked one locks it.
+    #[must_use]
+    pub fn with_parent(mut self, parent: Option<LayerId>) -> Self {
+        self.parent = parent;
+        self
+    }
+
     /// Sets the sound cues: sorted by frame, with at most one per frame.
     pub fn with_cues(mut self, mut cues: Vec<SoundCue>) -> Result<Self, SoundError> {
         if cues.len() > MAX_CUES_PER_LAYER {
@@ -197,6 +220,14 @@ impl Layer {
 
     pub fn is_mask(&self) -> bool {
         self.mask
+    }
+
+    pub fn is_folder(&self) -> bool {
+        self.folder
+    }
+
+    pub fn parent(&self) -> Option<LayerId> {
+        self.parent
     }
 
     pub fn is_visible(&self) -> bool {

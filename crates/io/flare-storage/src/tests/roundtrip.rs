@@ -365,3 +365,43 @@ fn stroke_ends_and_corners_survive_and_older_files_without_them_load_round() {
     drop(conn);
     assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
 }
+
+#[test]
+fn folders_and_their_members_survive_and_older_files_have_none() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("a.flare");
+    let folder = Layer::new(LayerId::new(), "Folder", vec![])
+        .expect("layer")
+        .with_folder(true);
+    let child = Layer::new(LayerId::new(), "Child", vec![])
+        .expect("layer")
+        .with_parent(Some(folder.id()));
+    let scene = Scene::new(
+        SceneId::new(),
+        "S",
+        Timeline::new(vec![folder.clone(), child.clone()]),
+    );
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    save(&document, &path).expect("save");
+    let loaded = load(&path).expect("load");
+    assert_eq!(loaded, document);
+    let layers = loaded.scenes()[0].timeline().layers();
+    assert!(layers[0].is_folder() && layers[1].parent() == Some(layers[0].id()));
+    // A file from before folders existed has neither key and loads as plain layers.
+    let plain = sample();
+    save(&plain, &path).expect("save");
+    let loaded = load(&path).expect("load");
+    assert!(
+        loaded.scenes()[0]
+            .timeline()
+            .layers()
+            .iter()
+            .all(|l| !l.is_folder() && l.parent().is_none())
+    );
+}

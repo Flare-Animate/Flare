@@ -96,6 +96,22 @@ pub struct DrawnShape<'a> {
     pub clips: Vec<usize>,
 }
 
+/// Whether a folder above `layers[index]` that holds it (directly or through other folders) is
+/// hidden. Parents are always earlier layers, so one pass up the list finds them all.
+fn hidden_by_folder(layers: &[flare_document::Layer], index: usize) -> bool {
+    let mut parent = layers[index].parent();
+    while let Some(id) = parent {
+        let Some(folder) = layers[..index].iter().find(|l| l.id() == id) else {
+            return false;
+        };
+        if !folder.is_visible() {
+            return true;
+        }
+        parent = folder.parent();
+    }
+    false
+}
+
 fn scene_of(document: &Document, scene: SceneId) -> Result<&flare_document::Scene, EvalError> {
     document
         .scenes()
@@ -145,7 +161,11 @@ fn walk<'a>(
     // Layers are ordered top to bottom, so draw in reverse.
     for (index, layer) in layers.iter().enumerate().rev() {
         // A mask layer is never drawn itself; a hidden one stops masking.
-        if !layer.is_visible() || layer.is_mask() {
+        if !layer.is_visible()
+            || layer.is_mask()
+            || layer.is_folder()
+            || hidden_by_folder(layers, index)
+        {
             continue;
         }
         let mut clips = inherited.to_vec();

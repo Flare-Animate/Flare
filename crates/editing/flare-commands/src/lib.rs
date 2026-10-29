@@ -17,6 +17,8 @@ pub enum LayerChange {
     Visible(bool),
     Locked(bool),
     Mask(bool),
+    /// Puts the layer in a folder, or takes it out with `None`.
+    Parent(Option<LayerId>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -227,6 +229,7 @@ fn step(
                 LayerChange::Visible(visible) => slot.clone().with_visible(visible),
                 LayerChange::Locked(locked) => slot.clone().with_locked(locked),
                 LayerChange::Mask(mask) => slot.clone().with_mask(mask),
+                LayerChange::Parent(parent) => slot.clone().with_parent(parent),
             };
             Ok(())
         })?,

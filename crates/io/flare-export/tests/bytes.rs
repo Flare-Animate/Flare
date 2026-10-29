@@ -91,3 +91,40 @@ fn stroke_ends_and_corners_round_trip_through_xfl() {
         .expect("a stroked shape");
     assert_eq!((back.cap(), back.join()), (Cap::Butt, Join::Bevel));
 }
+
+#[test]
+fn folders_round_trip_through_xfl() {
+    use flare_document::Layer as L;
+    let folder = L::new(LayerId::new(), "Group", vec![])
+        .expect("layer")
+        .with_folder(true);
+    let inside = L::new(LayerId::new(), "Inside", vec![])
+        .expect("layer")
+        .with_parent(Some(folder.id()));
+    let outside = L::new(LayerId::new(), "Outside", vec![]).expect("layer");
+    let scene = Scene::new(
+        SceneId::new(),
+        "S",
+        Timeline::new(vec![folder, inside, outside]),
+    );
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    let output = export_xfl(&document).expect("export");
+    assert!(
+        output
+            .files
+            .iter()
+            .any(|(_, b)| b.contains("layerType=\"folder\""))
+    );
+    let back = import_fla_bytes(fla_bytes(&output).expect("bytes")).expect("import");
+    let layers = back.document.scenes()[0].timeline().layers();
+    assert_eq!(layers.len(), 3);
+    assert!(layers[0].is_folder());
+    assert_eq!(layers[1].parent(), Some(layers[0].id()));
+    assert_eq!(layers[2].parent(), None);
+}

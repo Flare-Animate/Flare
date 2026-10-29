@@ -94,18 +94,36 @@ pub(super) fn write_frame(
     out.push_str("</DOMFrame>");
 }
 
-/// `mask_parent` is the output index of the mask layer that masks this one, if any.
+/// `mask_parent` is the output index of the mask layer that masks this one, if any, and
+/// `folder_parent` that of the folder it sits in. XFL has one parent index per layer, so a layer
+/// that is both masked and in a folder keeps its folder.
 pub(super) fn write_layer(
     out: &mut String,
     layer: &Layer,
     mask_parent: Option<usize>,
+    folder_parent: Option<usize>,
     place: &str,
     ctx: &mut Ctx<'_>,
 ) {
     let mut attrs = String::new();
-    if layer.is_mask() {
+    if layer.is_folder() {
+        attrs.push_str(" layerType=\"folder\"");
+        if let Some(parent) = folder_parent {
+            attrs.push_str(&format!(" parentLayerIndex=\"{parent}\""));
+        }
+    } else if layer.is_mask() {
         // Animate keeps mask layers locked; the layers they mask point back at them.
         attrs.push_str(" layerType=\"mask\" locked=\"true\"");
+    } else if let Some(parent) = folder_parent {
+        attrs.push_str(&format!(" parentLayerIndex=\"{parent}\""));
+        if mask_parent.is_some() {
+            ctx.notes.push(Diagnostic {
+                severity: Severity::Warning,
+                location: format!("{place} / layer \"{}\"", layer.name()),
+                message: "a layer in a folder cannot also be masked in XFL; the mask was dropped"
+                    .into(),
+            });
+        }
     } else if let Some(parent) = mask_parent {
         attrs.push_str(&format!(" parentLayerIndex=\"{parent}\""));
     }
@@ -122,11 +140,13 @@ pub(super) fn write_layer(
     let here = format!("{place} / layer \"{}\"", layer.name());
     if layer.spans().is_empty() {
         // Animate requires every layer to have a frame; keep the layer alive on re-import.
-        ctx.notes.push(Diagnostic {
-            severity: Severity::Info,
-            location: here.clone(),
-            message: "an empty layer was written with one empty frame".into(),
-        });
+        if !layer.is_folder() {
+            ctx.notes.push(Diagnostic {
+                severity: Severity::Info,
+                location: here.clone(),
+                message: "an empty layer was written with one empty frame".into(),
+            });
+        }
         out.push_str("<DOMFrame index=\"0\" duration=\"1\"><elements>");
         let anchor = Anchor::Layer(layer.id());
         for xml in ctx.take(anchor, |p| p == Placement::FrameElement { frame: 0 }, &here) {
@@ -173,6 +193,9 @@ pub(super) fn write_timeline(
     // Layers written so far, kept ones included: a mask is referred to by this index.
     let mut written = 0_usize;
     let mut mask_index: Option<usize> = None;
+    // Where each layer went in the output, for folders to be referred to by.
+    let mut indexes: std::collections::HashMap<flare_core::LayerId, usize> =
+        std::collections::HashMap::new();
     for (position, layer) in timeline.layers().iter().enumerate() {
         // Whole layers that were kept go back at their original index among the layers.
         let at =
@@ -183,7 +206,9 @@ pub(super) fn write_timeline(
         }
         // A mask masks the layer directly below it in the document.
         let parent = mask_index.take();
-        write_layer(out, layer, parent, place, ctx);
+        let folder = layer.parent().and_then(|id| indexes.get(&id).copied());
+        indexes.insert(layer.id(), written);
+        write_layer(out, layer, parent, folder, place, ctx);
         if layer.is_mask() {
             mask_index = Some(written);
         }

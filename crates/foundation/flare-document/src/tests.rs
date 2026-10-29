@@ -360,3 +360,37 @@ fn cues_are_kept_sorted_one_per_frame_and_bounded_and_survive_new_spans() {
         Some(SoundError::TooManyCues)
     );
 }
+
+#[test]
+fn folders_must_sit_above_what_they_hold_and_hold_no_frames_themselves() {
+    let layer = |name: &str| Layer::new(LayerId::new(), name, vec![]).expect("layer");
+    let folder = layer("folder").with_folder(true);
+    let child = layer("child").with_parent(Some(folder.id()));
+    let scene = |layers: Vec<Layer>| Scene::new(SceneId::new(), "S", Timeline::new(layers));
+    assert!(build(vec![scene(vec![folder.clone(), child.clone()])], vec![]).is_ok());
+    // A parent below its child is refused: that is also what keeps folders from looping.
+    let below = build(vec![scene(vec![child.clone(), folder.clone()])], vec![]);
+    assert!(
+        matches!(below, Err(d) if d.iter().any(|d| matches!(d, Diagnostic::BadFolderParent { .. })))
+    );
+    // A parent that is not a folder, and one that does not exist, are refused.
+    let plain = layer("plain");
+    let in_plain = layer("x").with_parent(Some(plain.id()));
+    assert!(build(vec![scene(vec![plain, in_plain])], vec![]).is_err());
+    let orphan = layer("orphan").with_parent(Some(LayerId::new()));
+    assert!(build(vec![scene(vec![orphan])], vec![]).is_err());
+    // A folder with frames of its own is refused.
+    let with_frames = Layer::new(LayerId::new(), "f", vec![span(0, 2, Content::Empty)])
+        .expect("layer")
+        .with_folder(true);
+    let refused = build(vec![scene(vec![with_frames])], vec![]);
+    assert!(
+        matches!(refused, Err(d) if d.iter().any(|d| matches!(d, Diagnostic::FolderWithContent(_))))
+    );
+    // Folders nest.
+    let inner = layer("inner")
+        .with_folder(true)
+        .with_parent(Some(folder.id()));
+    let leaf = layer("leaf").with_parent(Some(inner.id()));
+    assert!(build(vec![scene(vec![folder, inner, leaf])], vec![]).is_ok());
+}

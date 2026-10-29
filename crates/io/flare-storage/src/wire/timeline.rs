@@ -125,6 +125,11 @@ pub(super) struct LayerWire {
     /// Absent in files written before masks existed.
     #[serde(default)]
     pub(super) mask: bool,
+    /// Absent in files written before folders existed.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub(super) folder: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) parent: Option<String>,
     /// Absent in files written before sounds existed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(super) cues: Vec<CueWire>,
@@ -147,6 +152,8 @@ impl TimelineWire {
                 visible: layer.is_visible(),
                 locked: layer.is_locked(),
                 mask: layer.is_mask(),
+                folder: layer.is_folder(),
+                parent: layer.parent().map(|p| p.as_uuid().to_string()),
                 cues: layer
                     .cues()
                     .iter()
@@ -284,6 +291,15 @@ impl TimelineWire {
                     .with_visible(layer.visible)
                     .with_locked(layer.locked)
                     .with_mask(layer.mask)
+                    .with_folder(layer.folder)
+                    .with_parent(
+                        layer
+                            .parent
+                            .as_deref()
+                            .map(uuid)
+                            .transpose()?
+                            .map(LayerId::from_uuid),
+                    )
                     .with_cues(cues)
                     .map_err(|error| StorageError::Corrupt(error.to_string()))?,
             );

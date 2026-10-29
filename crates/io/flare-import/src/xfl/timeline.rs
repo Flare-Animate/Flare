@@ -11,12 +11,33 @@ impl Importer {
         let Some(layers_node) = timeline.child("layers") else {
             return Timeline::default();
         };
-        let mut layers = Vec::new();
+        let mut layers: Vec<Layer> = Vec::new();
+        // Folders seen so far, by the index children refer to them by.
+        let mut folders: std::collections::HashMap<usize, LayerId> =
+            std::collections::HashMap::new();
         for (source_index, layer) in layers_node.children_named("DOMLayer").enumerate() {
             let name = layer.attr("name").unwrap_or("Layer");
             let place = format!("{location} / layer \"{name}\"");
+            let parent = layer
+                .attr("parentLayerIndex")
+                .and_then(|v| v.parse::<usize>().ok())
+                .and_then(|i| folders.get(&i).copied());
             match layer.attr("layerType") {
                 None | Some("normal") => {}
+                Some("folder") => {
+                    let id = LayerId::new();
+                    if let Ok(folder) = Layer::new(id, name, Vec::new()) {
+                        folders.insert(source_index, id);
+                        layers.push(
+                            folder
+                                .with_folder(true)
+                                .with_parent(parent)
+                                .with_visible(bool_attr(layer, "visible", true))
+                                .with_locked(bool_attr(layer, "locked", false)),
+                        );
+                    }
+                    continue;
+                }
                 Some(other) => {
                     self.note(
                         Severity::Unsupported,
@@ -28,10 +49,20 @@ impl Importer {
                     continue;
                 }
             }
-            if layer.attr("parentLayerIndex").is_some() {
-                self.note(Severity::Info, &place, "folder membership is flattened");
+            if layer.attr("parentLayerIndex").is_some() && parent.is_none() {
+                self.note(
+                    Severity::Info,
+                    &place,
+                    "membership of something other than a folder is not kept",
+                );
             }
+            let first = layers.len();
             self.layer(layer, name, &place, &mut layers);
+            if parent.is_some() {
+                for made in &mut layers[first..] {
+                    *made = made.clone().with_parent(parent);
+                }
+            }
         }
         Timeline::new(layers)
     }
