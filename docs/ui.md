@@ -66,7 +66,7 @@ everything can be found; the evaluated frame carries each shape's layer color fo
 
 ## Still to match from Animate 2024 (Linux reference)
 
-Properties with Tool, Object, Frame and Doc tabs and Publish Settings inside Doc; a Color panel with a fill-type dropdown, hex
+a Color panel with a fill-type dropdown, hex
 field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown
 and a close button on the document tab. The default arrangement stays as it is.
 

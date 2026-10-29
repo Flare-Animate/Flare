@@ -186,7 +186,17 @@ impl Workspace {
             ui.add(icons::image("document", 18.0, theme::ACCENT));
             ui.label(RichText::new("Document").heading());
         });
+        self.publish_section(ui);
         self.document_section(ui);
+    }
+
+    /// The SWF publish choices, with the button for the rest.
+    fn publish_section(&mut self, ui: &mut Ui) {
+        chrome::section(ui, "file-publish", "Publish Settings");
+        ui.checkbox(&mut self.publish_compress, "Compress the SWF");
+        if ui.button("More settings...").clicked() {
+            self.perform(MenuAction::PublishSettings);
+        }
     }
 
     /// Stage size, background and the facts about the document.

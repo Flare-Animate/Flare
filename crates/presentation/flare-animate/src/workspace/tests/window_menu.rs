@@ -201,3 +201,11 @@ fn the_info_panel_reports_the_color_under_the_pointer_and_draws() {
     ws.perform(MenuAction::ShowInfo);
     run(&mut ws, &ctx, 0.0);
 }
+
+#[test]
+fn the_document_tab_with_its_publish_settings_draws() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    ws.perform(MenuAction::DocumentSettings);
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+}
