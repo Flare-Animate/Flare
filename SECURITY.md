@@ -55,8 +55,9 @@ The rules are in [AGENTS.md](AGENTS.md) and [docs/engineering.md](docs/engineeri
 ## Dependencies
 
 CI runs `cargo audit` on `Cargo.lock` for every push. At the time of 0.1.0 it reports no
-vulnerabilities. It does warn that a few indirect dependencies are unmaintained or have an
-unsoundness advisory that Flare does not reach (`ttf-parser`, `proc-macro-error`, the `zbus`
-family and `glib` come in through the font, windowing and desktop-integration libraries). They
-are tracked and will be replaced when their parents move.
-
+vulnerabilities. It does warn that a few indirect dependencies are unmaintained or carry an
+unsoundness advisory: `ttf-parser` (through the window-decoration font code), `proc-macro-error`,
+the `zbus` family (through the file dialogs), and `glib` (through the menu library's GTK support,
+which only exists in its Linux build; Flare uses that library on macOS only, so `glib` is in
+`Cargo.lock` but not in any shipped program). They are tracked and will be replaced when their
+parents move.
