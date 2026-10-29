@@ -35,6 +35,7 @@ Planned, in the order they will be built:
 - Tools: Subselection, Free Transform. (Built: Pencil, Brush, Lasso, PolyStar, Paint Bucket,
   Ink Bottle, Eyedropper, Eraser, Hand, Zoom, and the rectangle corner radius.)
 - Panels: Align, Distribute, Bring to front and Send to back, and the typed Transform numbers are built (Group and Ungroup are not).
+- View: rulers, grid and snap to grid are built; Guides and Outline Mode are not.
 - Menu: Cut, Select All, Deselect All, Rewind, Step Forward and Backward and Actual Size are built.
 - Properties: stroke cap and join, text style. (Built: Tool, Object, Frame and Doc tabs, editable position and size, frame rate.)
 - Library: folders, preview. (Built: search, new symbol, rename, delete.)

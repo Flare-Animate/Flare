@@ -135,6 +135,23 @@ impl TransformEdit {
     }
 }
 
+/// Whether a tool puts points where the pointer is, so they should snap to the grid.
+fn tool_places_points(tool: Tool) -> bool {
+    matches!(
+        tool,
+        Tool::Rectangle | Tool::Ellipse | Tool::Line | Tool::Pen | Tool::PolyStar | Tool::Text
+    )
+}
+
+/// `point` rounded to the nearest multiple of `grid` on each axis.
+fn snap_point(point: Pos2, grid: f32) -> Pos2 {
+    let grid = grid.max(f32::EPSILON);
+    Pos2::new(
+        (point.x / grid).round() * grid,
+        (point.y / grid).round() * grid,
+    )
+}
+
 /// Height of the top bar, and of the integrated one: macOS centers its window buttons 14 px
 /// from the top and the shell cannot move them, so the bar they float over is as tall as the
 /// system title bar it replaces.
@@ -496,6 +513,12 @@ pub struct Workspace {
     /// Stage size being edited in the tools panel, applied when the edit finishes.
     stage_edit: Option<(u32, u32)>,
     fps_edit: Option<f64>,
+    show_rulers: bool,
+    show_grid: bool,
+    /// Points drawn and moves are rounded to the grid.
+    snap_to_grid: bool,
+    /// Grid spacing in stage units.
+    grid_size: f32,
     /// Everything `report` has said, oldest first, for the Output panel.
     log: Vec<String>,
     props_tab: PropsTab,
@@ -597,6 +620,10 @@ impl Workspace {
             stroke_width: 4.0,
             stage_edit: None,
             fps_edit: None,
+            show_rulers: true,
+            show_grid: false,
+            snap_to_grid: false,
+            grid_size: 20.0,
             log: Vec::new(),
             props_tab: PropsTab::Tool,
             object_edit: None,
@@ -1797,7 +1824,10 @@ impl Workspace {
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
             MenuAction::ResetLayout => true,
-            MenuAction::ToggleOnionSkin => true,
+            MenuAction::ToggleOnionSkin
+            | MenuAction::ToggleRulers
+            | MenuAction::ToggleGrid
+            | MenuAction::ToggleSnap => true,
             MenuAction::TestMovie => true,
         }
     }
@@ -1903,6 +1933,27 @@ impl Workspace {
                     "Hide Onion Skin"
                 } else {
                     "Show Onion Skin"
+                }
+            }
+            MenuAction::ToggleRulers => {
+                if self.show_rulers {
+                    "Hide Rulers"
+                } else {
+                    "Show Rulers"
+                }
+            }
+            MenuAction::ToggleGrid => {
+                if self.show_grid {
+                    "Hide Grid"
+                } else {
+                    "Show Grid"
+                }
+            }
+            MenuAction::ToggleSnap => {
+                if self.snap_to_grid {
+                    "Snapping: On"
+                } else {
+                    "Snapping: Off"
                 }
             }
             MenuAction::TestMovie => "Test Movie",
@@ -2013,6 +2064,9 @@ impl Workspace {
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
+            MenuAction::ToggleRulers => self.show_rulers = !self.show_rulers,
+            MenuAction::ToggleGrid => self.show_grid = !self.show_grid,
+            MenuAction::ToggleSnap => self.snap_to_grid = !self.snap_to_grid,
             MenuAction::TestMovie => {
                 // Pending symbol edits belong in the movie, so apply them first, like Save.
                 if self.exit_all_symbols() {
@@ -2609,7 +2663,13 @@ impl Workspace {
         {
             match drag.mode {
                 DragMode::Draw => self.commit_shape(self.tool, drag.start, drag.current),
-                DragMode::Move => self.move_selection(drag.current - drag.start),
+                DragMode::Move => {
+                    let mut delta = drag.current - drag.start;
+                    if self.snap_to_grid {
+                        delta = snap_point(delta.to_pos2(), self.grid_size).to_vec2();
+                    }
+                    self.move_selection(delta);
+                }
                 DragMode::Scale(handle) => {
                     self.scale_selection(handle, drag.bounds, drag.current);
                 }
@@ -3789,7 +3849,12 @@ impl Workspace {
             StrokeKind::Outside,
         );
 
-        self.stage_rulers(&painter, response.rect, image_rect, scale);
+        if self.show_grid {
+            self.stage_grid(&painter, response.rect, image_rect, extent, scale);
+        }
+        if self.show_rulers {
+            self.stage_rulers(&painter, response.rect, image_rect, scale);
+        }
         self.text_editor(ui.ctx(), image_rect, scale);
         if !self.stage_view.is_fit() {
             painter.text(
@@ -3803,7 +3868,16 @@ impl Workspace {
         self.handle_radius = 8.0 / scale.max(f32::EPSILON);
         self.uniform_scale = ui.input(|i| i.modifiers.shift);
         self.skew_modifier = ui.input(|i| i.modifiers.alt);
-        let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
+        // Tools that place points snap them to the grid; tools that find things do not, or a
+        // thin shape could not be clicked.
+        let snap = self
+            .snap_to_grid
+            .then_some(self.grid_size)
+            .filter(|_| tool_places_points(self.tool));
+        let to_doc = |p: Pos2| {
+            let at = screen_to_stage(p, image_rect, extent);
+            snap.map_or(at, |grid| snap_point(at, grid))
+        };
         self.pointer_stage = response.hover_pos().map(to_doc);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
         if self.tool == Tool::Text
@@ -4405,6 +4479,39 @@ impl Workspace {
     }
 
     /// Rulers along the top and left edge of the stage view, in stage units.
+    /// Grid lines over the stage, skipped when they would be too close to see.
+    fn stage_grid(
+        &self,
+        painter: &egui::Painter,
+        panel: Rect,
+        image: Rect,
+        extent: Vec2,
+        scale: f32,
+    ) {
+        let step = self.grid_size.max(1.0);
+        if step * scale < 6.0 {
+            return;
+        }
+        let ink = Stroke::new(1.0, Color32::from_white_alpha(22));
+        let clip = image.intersect(panel);
+        let mut x = 0.0;
+        while x <= extent.x {
+            let sx = image.min.x + x * scale;
+            if sx >= clip.min.x && sx <= clip.max.x {
+                painter.vline(sx, clip.y_range(), ink);
+            }
+            x += step;
+        }
+        let mut y = 0.0;
+        while y <= extent.y {
+            let sy = image.min.y + y * scale;
+            if sy >= clip.min.y && sy <= clip.max.y {
+                painter.hline(clip.x_range(), sy, ink);
+            }
+            y += step;
+        }
+    }
+
     fn stage_rulers(&self, painter: &egui::Painter, panel: Rect, image: Rect, scale: f32) {
         const THICKNESS: f32 = 16.0;
         let top = Rect::from_min_max(panel.min, Pos2::new(panel.max.x, panel.min.y + THICKNESS));
@@ -8260,5 +8367,38 @@ mod tests {
         assert!((ws.selection_bounds().expect("bounds").width() - 200.0).abs() < 1e-2);
         ws.undo();
         assert!((ws.selection_bounds().expect("bounds").width() - 100.0).abs() < 1e-2);
+    }
+
+    #[test]
+    fn rulers_grid_and_snapping_toggle_from_the_menu_and_snapping_rounds_to_the_grid() {
+        let mut ws = workspace();
+        assert_eq!(ws.label(MenuAction::ToggleRulers), "Hide Rulers");
+        ws.perform(MenuAction::ToggleRulers);
+        assert!(!ws.show_rulers);
+        assert_eq!(ws.label(MenuAction::ToggleGrid), "Show Grid");
+        ws.perform(MenuAction::ToggleGrid);
+        assert!(ws.show_grid);
+        ws.perform(MenuAction::ToggleSnap);
+        assert!(ws.snap_to_grid);
+        assert_eq!(
+            snap_point(Pos2::new(29.0, 31.0), 20.0),
+            Pos2::new(20.0, 40.0)
+        );
+        assert!(tool_places_points(Tool::Rectangle) && !tool_places_points(Tool::Select));
+        // A snapped move lands on grid multiples.
+        rect(&mut ws);
+        ws.perform(MenuAction::SelectAll);
+        ws.set_tool(Tool::Select);
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.update_drag(Pos2::new(77.0, 49.0)); // moved by (27, 19)
+        ws.end_drag();
+        let b = ws.selection_bounds().expect("bounds");
+        assert_eq!((b.min.x, b.min.y), (30.0, 30.0), "10 + 20, 10 + 20");
+        // A grid with lines too close together to see is skipped, not drawn.
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.show_grid = true;
+        ws.grid_size = 1.0;
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.1);
     }
 }

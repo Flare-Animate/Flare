@@ -59,6 +59,9 @@ pub enum MenuAction {
     DeleteLayer,
     ResetLayout,
     ToggleOnionSkin,
+    ToggleRulers,
+    ToggleGrid,
+    ToggleSnap,
     TestMovie,
     ZoomIn,
     ZoomOut,
@@ -72,7 +75,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 64] = [
+    pub const ALL: [MenuAction; 67] = [
         Self::Open,
         Self::ImportSound,
         Self::Save,
@@ -127,6 +130,9 @@ impl MenuAction {
         Self::DeleteLayer,
         Self::ResetLayout,
         Self::ToggleOnionSkin,
+        Self::ToggleRulers,
+        Self::ToggleGrid,
+        Self::ToggleSnap,
         Self::TestMovie,
         Self::ZoomIn,
         Self::ZoomOut,
@@ -273,6 +279,9 @@ impl MenuAction {
             Self::ZoomOut => "zoom-out",
             Self::ZoomFit => "zoom-fit",
             Self::ToggleOnionSkin => "onion-skin",
+            Self::ToggleRulers => "ruler",
+            Self::ToggleGrid => "grid",
+            Self::ToggleSnap => "snap",
             Self::FlipHorizontal => "flip-horizontal",
             Self::FlipVertical => "flip-vertical",
             Self::RotateClockwise => "rotate-cw",
@@ -374,10 +383,10 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ZoomFit),
             Action(A::ActualSize),
             Separator,
-            Mock("Rulers"),
-            Mock("Grid"),
+            Action(A::ToggleRulers),
+            Action(A::ToggleGrid),
             Mock("Guides"),
-            Mock("Snapping"),
+            Action(A::ToggleSnap),
             Separator,
             Action(A::ToggleOnionSkin),
             Mock("Outline Mode"),

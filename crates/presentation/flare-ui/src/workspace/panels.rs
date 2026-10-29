@@ -1239,9 +1239,27 @@ impl Workspace {
                 {
                     self.perform(MenuAction::ZoomFit);
                 }
-                chrome::mock_icon_button(ui, "grid", BAR_ICON, "Show grid");
-                chrome::mock_icon_button(ui, "ruler", BAR_ICON, "Show rulers");
-                chrome::mock_icon_button(ui, "snap", BAR_ICON, "Snap to objects");
+                if chrome::icon_button(
+                    ui,
+                    "snap",
+                    BAR_ICON,
+                    self.snap_to_grid,
+                    true,
+                    "Snap to grid",
+                )
+                .clicked()
+                {
+                    self.perform(MenuAction::ToggleSnap);
+                }
+                if chrome::icon_button(ui, "ruler", BAR_ICON, self.show_rulers, true, "Rulers")
+                    .clicked()
+                {
+                    self.perform(MenuAction::ToggleRulers);
+                }
+                if chrome::icon_button(ui, "grid", BAR_ICON, self.show_grid, true, "Grid").clicked()
+                {
+                    self.perform(MenuAction::ToggleGrid);
+                }
             });
         });
     }
