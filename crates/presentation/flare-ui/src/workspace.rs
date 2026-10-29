@@ -2,9 +2,12 @@ use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
 
 use egui::{Align2, Color32, FontId, Key, Modifiers, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
-use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId};
+use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
 use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Timeline};
 use flare_edit::{Command, EditorSession};
+use glamx::DVec2;
+
+use crate::ops::{self, SpanRef};
 
 /// Fixed stage size in document units until documents carry their own stage dimensions.
 pub const STAGE_SIZE: (u32, u32) = (800, 450);
@@ -22,9 +25,23 @@ struct StageTexture {
     key: (u64, u32),
 }
 
-/// Rectangle being dragged on the stage, in document coordinates.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Tool {
+    Select,
+    Rectangle,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum DragMode {
+    Draw,
+    Move,
+}
+
+/// Gesture in progress on the stage, in document coordinates. It is tool state only:
+/// the document changes when the gesture is released.
 #[derive(Clone, Copy)]
 struct Drag {
+    mode: DragMode,
     start: Pos2,
     current: Pos2,
 }
@@ -41,6 +58,9 @@ pub struct Workspace {
     drag: Option<Drag>,
     /// Set by Escape so the release that follows a cancelled drag commits nothing.
     drag_cancelled: bool,
+    tool: Tool,
+    selected: Option<SpanRef>,
+    selected_symbol: Option<SymbolId>,
     fill: Color32,
     status: Option<String>,
     dialog: Option<DialogRequest>,
@@ -62,6 +82,9 @@ impl Workspace {
             texture: None,
             drag: None,
             drag_cancelled: false,
+            tool: Tool::Rectangle,
+            selected: None,
+            selected_symbol: None,
             fill: Color32::from_rgb(232, 69, 60),
             status: None,
             dialog: None,
@@ -173,12 +196,14 @@ impl Workspace {
     pub fn undo(&mut self) {
         if self.session.undo() {
             self.set_frame(self.frame);
+            self.validate_selection();
         }
     }
 
     pub fn redo(&mut self) {
         if self.session.redo() {
             self.set_frame(self.frame);
+            self.validate_selection();
         }
     }
 
@@ -229,6 +254,153 @@ impl Workspace {
         match self.session.apply(batch) {
             Ok(()) => self.status = None,
             Err(error) => self.report(format!("Cannot draw: {error}")),
+        }
+    }
+
+    // ---- tools and selection ---------------------------------------------------------
+
+    pub fn tool(&self) -> Tool {
+        self.tool
+    }
+
+    pub fn set_tool(&mut self, tool: Tool) {
+        if self.tool != tool {
+            self.cancel_drag();
+            self.tool = tool;
+        }
+    }
+
+    pub fn has_selection(&self) -> bool {
+        self.selected.is_some()
+    }
+
+    fn scene_id(&self) -> Option<SceneId> {
+        self.document().scenes().first().map(|scene| scene.id())
+    }
+
+    /// Drops a selection whose span no longer exists (after undo, delete or open).
+    fn validate_selection(&mut self) {
+        if let (Some(selected), Some(scene)) = (self.selected, self.scene_id())
+            && ops::find_span(self.document(), scene, selected).is_none()
+        {
+            self.selected = None;
+        }
+        if let Some(symbol) = self.selected_symbol
+            && self.document().symbol(symbol).is_none()
+        {
+            self.selected_symbol = None;
+        }
+    }
+
+    /// The scene-level span of the topmost shape under `point` at the current frame.
+    fn hit(&self, point: Pos2) -> Option<SpanRef> {
+        let scene = self.scene_id()?;
+        let frame = flare_eval::evaluate_frame(self.document(), scene, self.frame).ok()?;
+        let at = DVec2::new(f64::from(point.x), f64::from(point.y));
+        let drawn = frame.shapes.get(flare_render::hit_test(&frame, at)?)?;
+        ops::locate_hit(self.document(), scene, self.frame, drawn)
+    }
+
+    fn begin_drag(&mut self, point: Pos2) {
+        self.drag_cancelled = false;
+        let mode = match self.tool {
+            Tool::Rectangle => Some(DragMode::Draw),
+            Tool::Select => {
+                self.selected = self.hit(point);
+                self.selected.map(|_| DragMode::Move)
+            }
+        };
+        self.drag = mode.map(|mode| Drag {
+            mode,
+            start: point,
+            current: point,
+        });
+    }
+
+    fn update_drag(&mut self, point: Pos2) {
+        if let Some(drag) = &mut self.drag {
+            drag.current = point;
+        }
+    }
+
+    fn end_drag(&mut self) {
+        let cancelled = std::mem::take(&mut self.drag_cancelled);
+        if let Some(drag) = self.drag.take()
+            && !cancelled
+        {
+            match drag.mode {
+                DragMode::Draw => self.commit_rectangle(drag.start, drag.current),
+                DragMode::Move => self.move_selection(drag.current - drag.start),
+            }
+        }
+    }
+
+    /// Escape, tool switches and focus loss cancel a gesture without committing it.
+    fn cancel_drag(&mut self) {
+        if self.drag.take().is_some() {
+            self.drag_cancelled = true;
+        }
+    }
+
+    fn run_batch(&mut self, commands: Vec<Command>, what: &str) {
+        match self.session.apply(commands) {
+            Ok(()) => self.status = None,
+            Err(error) => self.report(format!("Cannot {what}: {error}")),
+        }
+    }
+
+    fn move_selection(&mut self, delta: Vec2) {
+        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+            return;
+        };
+        let delta = DVec2::new(f64::from(delta.x), f64::from(delta.y));
+        if let Some(commands) = ops::translate(self.document(), scene, selected, delta) {
+            self.run_batch(commands, "move");
+        }
+    }
+
+    pub fn delete_selection(&mut self) {
+        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+            return;
+        };
+        self.run_batch(ops::delete(scene, selected), "delete");
+        self.validate_selection();
+    }
+
+    pub fn can_convert_selection(&self) -> bool {
+        match (self.selected, self.scene_id()) {
+            (Some(selected), Some(scene)) => {
+                ops::convert_to_symbol(self.document(), scene, selected).is_some()
+            }
+            _ => false,
+        }
+    }
+
+    /// Convert to Symbol: the selected shape becomes a library symbol with one instance.
+    pub fn convert_selection_to_symbol(&mut self) {
+        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+            return;
+        };
+        let Some((commands, symbol)) = ops::convert_to_symbol(self.document(), scene, selected)
+        else {
+            self.report("Select a shape to convert to a symbol");
+            return;
+        };
+        self.run_batch(commands, "convert to symbol");
+        if self.status.is_none() {
+            self.selected_symbol = Some(symbol);
+        }
+    }
+
+    /// Adds an instance of the library-selected symbol, centered on the stage.
+    pub fn place_selected_symbol(&mut self) {
+        let (Some(symbol), Some(scene)) = (self.selected_symbol, self.scene_id()) else {
+            self.report("Select a symbol in the library first");
+            return;
+        };
+        let center = DVec2::new(f64::from(STAGE_SIZE.0) / 2.0, f64::from(STAGE_SIZE.1) / 2.0);
+        if let Some(commands) = ops::place_instance(self.document(), scene, symbol, center) {
+            self.run_batch(commands, "place instance");
         }
     }
 
@@ -292,6 +464,7 @@ impl Workspace {
         let ctx = ui.ctx().clone();
         self.advance(ui.input(|i| i.time));
         self.handle_shortcuts(&ctx);
+        self.validate_selection();
         self.ensure_stage_texture(&ctx);
 
         egui::Panel::top("menu").show(ui, |ui| self.menu_bar(ui));
@@ -313,7 +486,7 @@ impl Workspace {
     }
 
     fn handle_shortcuts(&mut self, ctx: &egui::Context) {
-        let (redo, undo, save, toggle, left, right, escape) = ctx.input_mut(|i| {
+        let (redo, undo, save, toggle, left, right, escape, delete, convert) = ctx.input_mut(|i| {
             // Redo must be consumed first: egui lets Cmd+Shift+Z also match plain Cmd+Z.
             (
                 i.consume_key(Modifiers::COMMAND | Modifiers::SHIFT, Key::Z),
@@ -323,6 +496,8 @@ impl Workspace {
                 !i.modifiers.any() && i.key_pressed(Key::ArrowLeft),
                 !i.modifiers.any() && i.key_pressed(Key::ArrowRight),
                 i.key_pressed(Key::Escape),
+                !i.modifiers.any() && (i.key_pressed(Key::Delete) || i.key_pressed(Key::Backspace)),
+                !i.modifiers.any() && i.key_pressed(Key::F8),
             )
         });
         if redo {
@@ -338,6 +513,12 @@ impl Workspace {
             if toggle {
                 self.playing = !self.playing;
             }
+            if delete {
+                self.delete_selection();
+            }
+            if convert {
+                self.convert_selection_to_symbol();
+            }
             if left {
                 self.set_frame(self.frame.saturating_sub(1));
             }
@@ -345,8 +526,8 @@ impl Workspace {
                 self.set_frame(self.frame.saturating_add(1));
             }
         }
-        if escape && self.drag.take().is_some() {
-            self.drag_cancelled = true;
+        if escape {
+            self.cancel_drag();
         }
     }
 
@@ -381,6 +562,24 @@ impl Workspace {
                     self.redo();
                     ui.close();
                 }
+                ui.separator();
+                if ui
+                    .add_enabled(self.has_selection(), egui::Button::new("Delete"))
+                    .clicked()
+                {
+                    self.delete_selection();
+                    ui.close();
+                }
+                if ui
+                    .add_enabled(
+                        self.can_convert_selection(),
+                        egui::Button::new("Convert to Symbol (F8)"),
+                    )
+                    .clicked()
+                {
+                    self.convert_selection_to_symbol();
+                    ui.close();
+                }
             });
             ui.separator();
             ui.label(self.title());
@@ -393,7 +592,11 @@ impl Workspace {
 
     fn tools(&mut self, ui: &mut egui::Ui) {
         ui.heading("Tools");
-        ui.label("Rectangle: drag on the stage. Esc cancels.");
+        let mut tool = self.tool;
+        ui.selectable_value(&mut tool, Tool::Select, "Select / Move");
+        ui.selectable_value(&mut tool, Tool::Rectangle, "Rectangle");
+        self.set_tool(tool);
+        ui.weak("Drag on the stage. Esc cancels. Delete removes, F8 converts to a symbol.");
         ui.separator();
         ui.label("Fill");
         ui.color_edit_button_srgba(&mut self.fill);
@@ -401,12 +604,30 @@ impl Workspace {
 
     fn library(&mut self, ui: &mut egui::Ui) {
         ui.heading("Library");
-        let symbols = self.document().symbols();
-        if symbols.is_empty() {
+        let entries: Vec<(SymbolId, String)> = self
+            .document()
+            .symbols()
+            .iter()
+            .map(|s| (s.id(), s.name().to_owned()))
+            .collect();
+        if entries.is_empty() {
             ui.weak("No symbols");
         }
-        for symbol in symbols {
-            ui.label(symbol.name());
+        for (id, name) in entries {
+            let chosen = self.selected_symbol == Some(id);
+            if ui.selectable_label(chosen, name).clicked() {
+                self.selected_symbol = Some(id);
+            }
+        }
+        ui.separator();
+        if ui
+            .add_enabled(
+                self.selected_symbol.is_some(),
+                egui::Button::new("Place on stage"),
+            )
+            .clicked()
+        {
+            self.place_selected_symbol();
         }
     }
 
@@ -440,31 +661,42 @@ impl Workspace {
         );
 
         let to_doc = |p: Pos2| screen_to_stage(p, image_rect);
-        if response.drag_started() {
-            self.drag_cancelled = false;
-            if let Some(p) = response.interact_pointer_pos() {
-                self.drag = Some(Drag {
-                    start: to_doc(p),
-                    current: to_doc(p),
-                });
-            }
+        let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
+        if response.drag_started()
+            && let Some(p) = response.interact_pointer_pos()
+        {
+            self.begin_drag(to_doc(p));
         }
         if response.dragged()
-            && let (Some(drag), Some(p)) = (&mut self.drag, response.interact_pointer_pos())
+            && let Some(p) = response.interact_pointer_pos()
         {
-            drag.current = to_doc(p);
+            self.update_drag(to_doc(p));
         }
         if response.drag_stopped() {
-            if let Some(drag) = self.drag.take()
-                && !self.drag_cancelled
-            {
-                self.commit_rectangle(drag.start, drag.current);
-            }
-            self.drag_cancelled = false;
+            self.end_drag();
         }
-        if let Some(drag) = self.drag {
-            let back = |p: Pos2| image_rect.min + p.to_vec2() * scale;
-            let preview = Rect::from_two_pos(back(drag.start), back(drag.current));
+        // A plain click with the select tool also selects (or clears the selection).
+        if response.clicked()
+            && self.tool == Tool::Select
+            && let Some(p) = response.interact_pointer_pos()
+        {
+            self.selected = self.hit(to_doc(p));
+        }
+
+        let outline = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));
+        let moving = self
+            .drag
+            .filter(|d| d.mode == DragMode::Move)
+            .map_or(Vec2::ZERO, |d| d.current - d.start);
+        if let (Some(selected), Some(scene)) = (self.selected, self.scene_id())
+            && let Some(bounds) = ops::span_bounds(self.document(), scene, selected)
+        {
+            let shown = bounds.translate(moving);
+            let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
+            painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
+        }
+        if let Some(drag) = self.drag.filter(|d| d.mode == DragMode::Draw) {
+            let preview = Rect::from_two_pos(to_screen(drag.start), to_screen(drag.current));
             painter.rect_filled(preview, 0.0, self.fill.gamma_multiply(0.5));
             painter.rect_stroke(
                 preview,
@@ -695,6 +927,7 @@ mod tests {
         let (ctx, mut ws) = (egui::Context::default(), workspace());
         run(&mut ws, &ctx, 0.0);
         ws.drag = Some(Drag {
+            mode: DragMode::Draw,
             start: Pos2::new(1.0, 1.0),
             current: Pos2::new(50.0, 50.0),
         });
@@ -777,5 +1010,137 @@ mod tests {
             screen_to_stage(Pos2::new(-999.0, 9999.0), rect),
             Pos2::new(0.0, 450.0)
         );
+    }
+
+    fn spans_of(ws: &Workspace, layer: usize) -> usize {
+        ws.document().scenes()[0].timeline().layers()[layer]
+            .spans()
+            .len()
+    }
+
+    /// Select the rectangle drawn by `rect()` (it covers 10..110 x 10..60).
+    fn draw_and_select(ws: &mut Workspace) {
+        rect(ws);
+        ws.set_tool(Tool::Select);
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.end_drag(); // a plain press and release: selects, moves nothing
+    }
+
+    fn shape_bounds(ws: &Workspace) -> Rect {
+        let scene = ws.scene_id().expect("scene");
+        let selected = ws.selected.expect("selected");
+        ops::span_bounds(ws.document(), scene, selected).expect("bounds")
+    }
+
+    #[test]
+    fn select_tool_selects_the_shape_under_the_pointer_and_clears_on_empty_space() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        assert!(ws.has_selection());
+        ws.begin_drag(Pos2::new(700.0, 400.0));
+        assert!(!ws.has_selection());
+        assert!(ws.drag.is_none(), "nothing to move");
+    }
+
+    #[test]
+    fn dragging_a_selection_moves_it_as_one_undo_step() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        let before = ws.document().clone();
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.update_drag(Pos2::new(80.0, 20.0));
+        assert_eq!(
+            ws.document(),
+            &before,
+            "the document is untouched mid-gesture"
+        );
+        ws.end_drag();
+        assert_eq!(shape_bounds(&ws).min, Pos2::new(40.0, 0.0));
+        ws.undo();
+        assert_eq!(ws.document(), &before);
+        assert!(ws.has_selection(), "the span still exists after undo");
+    }
+
+    #[test]
+    fn cancelled_and_switched_gestures_commit_nothing() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        let before = ws.document().clone();
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.update_drag(Pos2::new(300.0, 300.0));
+        ws.cancel_drag();
+        ws.end_drag();
+        assert_eq!(ws.document(), &before);
+
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.update_drag(Pos2::new(300.0, 300.0));
+        ws.set_tool(Tool::Rectangle);
+        ws.end_drag();
+        assert_eq!(ws.document(), &before);
+    }
+
+    #[test]
+    fn delete_removes_the_selection_and_undo_brings_it_back() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        ws.delete_selection();
+        assert_eq!(spans_of(&ws, 1), 0);
+        assert!(!ws.has_selection());
+        ws.undo();
+        assert_eq!(spans_of(&ws, 1), 1);
+    }
+
+    #[test]
+    fn convert_to_symbol_then_place_instances_from_the_library() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        assert!(ws.can_convert_selection());
+        ws.convert_selection_to_symbol();
+        assert_eq!(ws.document().symbols().len(), 1);
+        assert!(ws.selected_symbol.is_some());
+        assert!(
+            ws.has_selection(),
+            "the instance span takes the shape's place"
+        );
+        assert!(!ws.can_convert_selection(), "an instance is not a shape");
+
+        let layers = layer_count(&ws);
+        ws.place_selected_symbol();
+        assert_eq!(layer_count(&ws), layers + 1);
+        ws.undo();
+        assert_eq!(layer_count(&ws), layers);
+        ws.undo();
+        assert_eq!(ws.document().symbols().len(), 0);
+        assert!(
+            ws.selected_symbol.is_none(),
+            "stale library selection is dropped"
+        );
+    }
+
+    #[test]
+    fn placing_without_a_library_selection_explains_itself() {
+        let mut ws = workspace();
+        ws.place_selected_symbol();
+        assert!(ws.status().is_some_and(|s| s.contains("library")));
+        assert_eq!(layer_count(&ws), 1);
+    }
+
+    #[test]
+    fn delete_and_f8_shortcuts_act_on_the_selection() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        draw_and_select(&mut ws);
+        run(&mut ws, &ctx, 0.0);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.1, vec![key(Key::F8, Modifiers::NONE)]),
+        );
+        assert_eq!(ws.document().symbols().len(), 1);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.2, vec![key(Key::Delete, Modifiers::NONE)]),
+        );
+        assert_eq!(spans_of(&ws, 1), 0);
     }
 }

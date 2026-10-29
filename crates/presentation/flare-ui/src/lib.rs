@@ -6,6 +6,7 @@
 //! A drag-to-draw gesture is tool state until it is released; Escape cancels it.
 #![forbid(unsafe_code)]
 
+mod ops;
 mod workspace;
 
-pub use workspace::{DialogRequest, STAGE_SIZE, Workspace};
+pub use workspace::{DialogRequest, STAGE_SIZE, Tool, Workspace};

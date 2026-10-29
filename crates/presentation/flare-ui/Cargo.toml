@@ -12,6 +12,7 @@ flare-core.workspace = true
 flare-document.workspace = true
 flare-edit.workspace = true
 flare-eval.workspace = true
+glamx.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 
