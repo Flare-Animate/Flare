@@ -4,6 +4,7 @@
 //! of a document and numbers, so it is tested without a UI.
 #![forbid(unsafe_code)]
 
+pub mod brush;
 pub mod freehand;
 pub mod handles;
 pub mod ops;

@@ -4,6 +4,8 @@ use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2}
 use flare_tools::handles::{self, Handle};
 use glamx::DVec2;
 
+use flare_input::{InputSample, PointerKind};
+
 use super::*;
 
 impl Workspace {
@@ -126,8 +128,26 @@ impl Workspace {
                 && response.dragged_by(primary)
             {
                 let at = to_doc(p);
-                if self.freehand.last().is_none_or(|last| *last != at) {
-                    self.freehand.push(at);
+                // A pen reports how hard it presses; a mouse does not, and counts as full.
+                let (pressure, kind) = ui
+                    .input(|i| {
+                        i.events.iter().rev().find_map(|e| match e {
+                            egui::Event::Touch {
+                                force: Some(force), ..
+                            } => Some((*force, PointerKind::Pen)),
+                            _ => None,
+                        })
+                    })
+                    .unwrap_or((1.0, PointerKind::Mouse));
+                let moved = self
+                    .freehand
+                    .last()
+                    .is_none_or(|last| (last.x as f32, last.y as f32) != (at.x, at.y));
+                if moved
+                    && let Some(sample) =
+                        InputSample::new(f64::from(at.x), f64::from(at.y), pressure, kind)
+                {
+                    self.freehand.push(sample);
                 }
             }
             if response.drag_stopped_by(primary) {
@@ -138,7 +158,11 @@ impl Workspace {
                     Tool::Brush => (self.fill, self.brush_size),
                     _ => (self.stroke_color, self.stroke_width),
                 };
-                let points: Vec<Pos2> = self.freehand.iter().map(|p| to_screen(*p)).collect();
+                let points: Vec<Pos2> = self
+                    .freehand
+                    .iter()
+                    .map(|s| to_screen(Pos2::new(s.x as f32, s.y as f32)))
+                    .collect();
                 painter.add(egui::Shape::line(points, Stroke::new(width * scale, color)));
             }
         }

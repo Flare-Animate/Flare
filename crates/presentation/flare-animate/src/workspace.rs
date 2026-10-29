@@ -17,6 +17,8 @@ use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use flare_input::InputSample;
+
 mod anchors;
 mod arrange;
 mod background_work;
@@ -121,8 +123,10 @@ pub struct Workspace {
     /// The loop being drawn with the lasso, in stage coordinates.
     lasso: Vec<Pos2>,
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
-    freehand: Vec<Pos2>,
+    freehand: Vec<InputSample>,
     brush_size: f32,
+    /// How thin a brush stroke gets at the lightest touch, as a fraction of its size.
+    brush_light: f32,
     /// How far a smoothed line may stray from the drag, in screen pixels.
     smoothing: f32,
     /// The text being typed, if the user has clicked the stage with the text tool.
@@ -253,6 +257,7 @@ impl Workspace {
             lasso: Vec::new(),
             freehand: Vec::new(),
             brush_size: 12.0,
+            brush_light: 0.15,
             smoothing: 2.0,
             text_size: 48.0,
             text_edit: None,

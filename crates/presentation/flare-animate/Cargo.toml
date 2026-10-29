@@ -16,6 +16,7 @@ flare-document.workspace = true
 flare-editor.workspace = true
 flare-eval.workspace = true
 flare-history.workspace = true
+flare-input.workspace = true
 flare-render.workspace = true
 flare-runtime.workspace = true
 flare-storage.workspace = true

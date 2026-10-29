@@ -232,7 +232,14 @@ impl Workspace {
                             .speed(0.1),
                     );
                 });
-                ui.weak("Drag to paint with the fill color.");
+                chrome::row(ui, "Light touch", |ui| {
+                    ui.add(
+                        egui::DragValue::new(&mut self.brush_light)
+                            .range(0.0..=1.0)
+                            .speed(0.01),
+                    );
+                });
+                ui.weak("Drag to paint with the fill color; a pen presses wider.");
             }
             Tool::Lasso => {
                 ui.weak("Drag a loop around shapes to select them; Shift adds to the selection.");

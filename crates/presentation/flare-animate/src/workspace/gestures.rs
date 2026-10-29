@@ -8,6 +8,8 @@ use flare_tools::handles::{self, Handle};
 use flare_tools::ops::{self};
 use glamx::DAffine2;
 
+use flare_input::{InputSample, PressureCurve};
+
 use super::*;
 
 impl Workspace {
@@ -138,30 +140,67 @@ impl Workspace {
         }
     }
 
-    /// Commits the pencil or brush stroke as one undo step: a smoothed open path stroked with
-    /// round caps. The brush paints with the fill color at the brush size; the pencil uses the
-    /// stroke color and width.
+    /// Commits the pencil or brush stroke as one undo step. The pencil is a smoothed open path in
+    /// the stroke color and width; the brush is a filled outline in the fill color whose width
+    /// follows the pressure of the pen.
     pub(super) fn finish_freehand(&mut self, scale: f32) {
-        let points = std::mem::take(&mut self.freehand);
+        let samples = std::mem::take(&mut self.freehand);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
-        let points = flare_tools::freehand::simplify(&points, tolerance);
-        let Some(path) = flare_tools::freehand::smooth_path(&points) else {
-            return; // a click, not a drag
+        let shape = match self.tool {
+            Tool::Brush => self.brush_shape(&samples, f64::from(tolerance)),
+            _ => self.pencil_shape(&samples, tolerance),
         };
-        let (color, width, name) = match self.tool {
-            Tool::Brush => (self.fill, self.brush_size, "Brush stroke"),
-            _ => (self.stroke_color, self.stroke_width, "Pencil line"),
+        let name = if self.tool == Tool::Brush {
+            "Brush stroke"
+        } else {
+            "Pencil line"
         };
-        let c = color.to_array();
-        let stroke = ShapeStroke::new(f64::from(width), Rgba8::new(c[0], c[1], c[2], c[3]));
-        match stroke.map_err(|e| e.to_string()).and_then(|stroke| {
-            Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT)
-                .map(|shape| shape.with_stroke(stroke))
-                .map_err(|e| e.to_string())
-        }) {
-            Ok(shape) => self.insert_shape_layer(shape, name),
+        match shape {
+            Ok(Some(shape)) => self.insert_shape_layer(shape, name),
+            Ok(None) => {} // a click, not a drag
             Err(error) => self.report(error),
         }
+    }
+
+    fn pencil_shape(
+        &self,
+        samples: &[InputSample],
+        tolerance: f32,
+    ) -> Result<Option<Shape>, String> {
+        let points: Vec<Pos2> = samples
+            .iter()
+            .map(|s| Pos2::new(s.x as f32, s.y as f32))
+            .collect();
+        let points = flare_tools::freehand::simplify(&points, tolerance);
+        let Some(path) = flare_tools::freehand::smooth_path(&points) else {
+            return Ok(None);
+        };
+        let c = self.stroke_color.to_array();
+        let stroke = ShapeStroke::new(
+            f64::from(self.stroke_width),
+            Rgba8::new(c[0], c[1], c[2], c[3]),
+        )
+        .map_err(|e| e.to_string())?;
+        Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT)
+            .map(|shape| Some(shape.with_stroke(stroke)))
+            .map_err(|e| e.to_string())
+    }
+
+    fn brush_shape(
+        &self,
+        samples: &[InputSample],
+        tolerance: f64,
+    ) -> Result<Option<Shape>, String> {
+        let curve = PressureCurve::new(self.brush_light, 1.0);
+        let Some(path) =
+            flare_tools::brush::outline(samples, f64::from(self.brush_size), curve, tolerance)
+        else {
+            return Ok(None);
+        };
+        let c = self.fill.to_array();
+        Shape::new(ShapeId::new(), path, Rgba8::new(c[0], c[1], c[2], c[3]))
+            .map(Some)
+            .map_err(|e| e.to_string())
     }
 
     /// Selects what the finished lasso loop encloses; with `additive` it adds to the selection.

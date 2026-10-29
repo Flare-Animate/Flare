@@ -12,17 +12,18 @@ members = [
     "crates/editing/flare-history",
     "crates/editing/flare-editor",
     "crates/editing/flare-tools",
-    "crates/services/flare-storage",
+    "crates/io/flare-storage",
     "crates/foundation/flare-eval",
+    "crates/foundation/flare-input",
     "crates/services/flare-render",
     "crates/presentation/flare-ui",
     "crates/presentation/flare-animate",
-    "crates/adapters/flare-import",
-    "crates/adapters/flare-export",
-    "crates/adapters/flare-publish",
-    "crates/adapters/flare-flash",
-    "crates/services/flare-text",
-    "crates/services/flare-audio",
+    "crates/io/flare-import",
+    "crates/io/flare-export",
+    "crates/io/flare-publish",
+    "crates/io/flare-flash",
+    "crates/adapters/flare-text",
+    "crates/adapters/flare-audio",
     "crates/services/flare-runtime",
     "crates/services/flare-platform",
 ]
@@ -39,23 +40,24 @@ license = "BSD-3-Clause"
 [workspace.dependencies]
 # ---- Internal packages: root owns all paths ----------------------------------
 flare-core = { path = "crates/foundation/flare-core" }
-flare-flash = { path = "crates/adapters/flare-flash" }
-flare-export = { path = "crates/adapters/flare-export" }
-flare-publish = { path = "crates/adapters/flare-publish" }
-flare-import = { path = "crates/adapters/flare-import" }
+flare-flash = { path = "crates/io/flare-flash" }
+flare-export = { path = "crates/io/flare-export" }
+flare-publish = { path = "crates/io/flare-publish" }
+flare-import = { path = "crates/io/flare-import" }
 flare-ui = { path = "crates/presentation/flare-ui" }
 flare-animate = { path = "crates/presentation/flare-animate" }
 flare-render = { path = "crates/services/flare-render" }
 flare-eval = { path = "crates/foundation/flare-eval" }
-flare-storage = { path = "crates/services/flare-storage" }
+flare-input = { path = "crates/foundation/flare-input" }
+flare-storage = { path = "crates/io/flare-storage" }
 flare-commands = { path = "crates/editing/flare-commands" }
 flare-history = { path = "crates/editing/flare-history" }
 flare-editor = { path = "crates/editing/flare-editor" }
 flare-tools = { path = "crates/editing/flare-tools" }
 emath = { version = "0.37.0", default-features = false }
 flare-document = { path = "crates/foundation/flare-document" }
-flare-text = { path = "crates/services/flare-text" }
-flare-audio = { path = "crates/services/flare-audio" }
+flare-text = { path = "crates/adapters/flare-text" }
+flare-audio = { path = "crates/adapters/flare-audio" }
 flare-runtime = { path = "crates/services/flare-runtime" }
 flare-platform = { path = "crates/services/flare-platform" }
 

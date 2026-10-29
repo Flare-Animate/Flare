@@ -3,31 +3,40 @@
 ## Crates
 
 Crates sit in layers under `crates/`, and dependencies point down this list: a crate depends
-only on layers above it in the table (and on its own layer's earlier rows), never below.
-Executables are in `apps/`.
+only on layers above it in the table (and on earlier rows of its own layer), never below.
+Executables are in `apps/`. The folders mean:
+
+- **foundation**: the model and the pure functions over it.
+- **editing**: how a document is changed and how the tools turn gestures into changes.
+- **io**: file formats, in and out (the project container, XFL, SWF).
+- **adapters**: wrappers around third-party libraries behind Flare's own types.
+- **services**: rendering, background work and the operating system.
+- **presentation**: egui widgets and the workspaces built from them.
 
 | Layer | Crate | Responsibility |
 |---|---|---|
 | foundation | `flare-core` | Typed IDs (UUIDv7), `FrameRate`, `DocumentPoint`, `Transform2D`, `Rgba8`. No I/O. |
 | foundation | `flare-document` | The document model and its validation. No GUI, GPU, database or async code. |
 | foundation | `flare-eval` | Pure frame evaluation: document + scene + frame to placed instances and drawn shapes. |
+| foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, and the pressure-to-width curve. A mouse is just full pressure. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
-| editing | `flare-tools` | What the tools compute with no window: handle geometry, the pen's paths, freehand smoothing, and selection operations that turn a gesture into commands. |
+| editing | `flare-tools` | What the tools compute with no window: handle geometry, the pen's paths, freehand smoothing, pressure-sensitive brush outlines, and selection operations that turn a gesture into commands. |
+| io | `flare-storage` | The `.flare` SQLite container: save, load, revalidation, crash recovery files. |
+| io | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
+| io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
+| io | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
+| io | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
+| adapters | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
+| adapters | `flare-audio` | Sound: decoding with `symphonia` (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer, and the events a front end sends to the sound card. |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
-| services | `flare-storage` | The `.flare` SQLite container: save, load, revalidation, crash recovery files. |
-| services | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
-| services | `flare-audio` | Sound: decoding (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer, and the sound-card output (the only part that needs a device). |
 | services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound and text, with latest-wins and an inline mode for tests; image export. No UI types. |
-| adapters | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
-| adapters | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
-| adapters | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate. |
-| adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
+| services | `flare-platform` | What a desktop needs from the operating system: per-user directories, the sound card, native dialogs, recovery prompts, and the threads for publishing, exporting and test movies. No UI types. |
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the stage's pan and zoom math. |
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, tools, menu actions. No window or GPU code. |
 | apps | `flare-cli` | Headless project editing and export. |
-| apps | `flare-desktop` | The winit/egui-wgpu shell: window, GPU surface, native dialogs and menu. |
+| apps | `flare-desktop` | The desktop window (winit, egui-wgpu, the native menu), all in `ui/`; everything else it needs is `flare-platform`. |
 | apps | `flare-mcp` | An MCP server over stdio for one open project, built on `rmcp`: agent tools over the same edit commands, with permissions and revision checks. |
 
 The CLI and the desktop app edit documents through the same `flare-commands` commands and

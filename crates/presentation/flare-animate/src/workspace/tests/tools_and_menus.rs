@@ -249,19 +249,28 @@ fn the_lasso_selects_shapes_centered_inside_the_loop_and_skips_locked_layers() {
 }
 
 #[test]
-fn pencil_and_brush_strokes_are_smoothed_open_paths_in_one_undo_step() {
+fn pencil_and_brush_strokes_are_one_undo_step_and_the_brush_follows_pressure() {
+    use flare_input::{InputSample, PointerKind};
     let mut ws = workspace();
     ws.stroke_color = Color32::from_rgb(1, 2, 3);
     ws.stroke_width = 3.0;
     ws.fill = Color32::from_rgb(9, 9, 9);
     ws.brush_size = 20.0;
-    let drag = |ws: &mut Workspace| {
+    let drag = |ws: &mut Workspace, pressure: fn(usize) -> f32| {
         ws.freehand = (0..40)
-            .map(|i| Pos2::new(10.0 + i as f32 * 3.0, 50.0 + (i as f32 * 0.4).sin() * 20.0))
+            .map(|i| {
+                InputSample::new(
+                    10.0 + i as f64 * 3.0,
+                    50.0 + (i as f64 * 0.4).sin() * 20.0,
+                    pressure(i),
+                    PointerKind::Pen,
+                )
+                .expect("sample")
+            })
             .collect();
     };
     ws.set_tool(Tool::Pencil);
-    drag(&mut ws);
+    drag(&mut ws, |_| 1.0);
     ws.finish_freehand(1.0);
     let pencil = drawn_shape(&ws, 1);
     let stroke = pencil.stroke().expect("stroked");
@@ -270,18 +279,36 @@ fn pencil_and_brush_strokes_are_smoothed_open_paths_in_one_undo_step() {
         (3.0, Rgba8::opaque(1, 2, 3))
     );
     assert!(pencil.path().len() < 40, "the drag is simplified");
+    // The brush is a filled outline, not a stroked line.
     ws.set_tool(Tool::Brush);
-    drag(&mut ws);
+    drag(&mut ws, |_| 1.0);
     ws.finish_freehand(1.0);
-    let brush = drawn_shape(&ws, 2).stroke().expect("stroked");
-    assert_eq!(
-        (brush.width(), brush.color()),
-        (20.0, Rgba8::opaque(9, 9, 9))
-    );
+    let steady = drawn_shape(&ws, 2);
+    assert_eq!(steady.stroke(), None);
+    assert_eq!(steady.fill(), Rgba8::opaque(9, 9, 9));
+    let height = |ws: &Workspace, layer: usize| {
+        let spans = ws.document().scenes()[0].timeline().layers()[layer].spans();
+        flare_tools::ops::span_bounds(
+            ws.document(),
+            ws.scene_id().expect("scene"),
+            SpanRef {
+                layer: ws.document().scenes()[0].timeline().layers()[layer].id(),
+                start: spans[0].start(),
+            },
+        )
+        .expect("bounds")
+        .height()
+    };
+    // Pressing lightly all along gives a thinner stroke than pressing fully.
+    drag(&mut ws, |_| 0.1);
+    ws.finish_freehand(1.0);
+    let (light, full) = (height(&ws, 3), height(&ws, 2));
+    assert!(light < full - 5.0, "{light} vs {full}");
+    ws.undo();
     ws.undo();
     assert_eq!(layer_count(&ws), 2);
     // A press without movement draws nothing.
-    ws.freehand = vec![Pos2::new(5.0, 5.0)];
+    ws.freehand = vec![InputSample::mouse(5.0, 5.0).expect("sample")];
     ws.finish_freehand(1.0);
     assert_eq!(layer_count(&ws), 2);
 }
