@@ -39,10 +39,16 @@ pub enum MenuAction {
     ZoomIn,
     ZoomOut,
     ZoomFit,
+    FlipHorizontal,
+    FlipVertical,
+    RotateClockwise,
+    RotateCounterclockwise,
+    ScaleUp,
+    ScaleDown,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 34] = [
+    pub const ALL: [MenuAction; 40] = [
         Self::Open,
         Self::Save,
         Self::SaveAs,
@@ -77,6 +83,12 @@ impl MenuAction {
         Self::ZoomIn,
         Self::ZoomOut,
         Self::ZoomFit,
+        Self::FlipHorizontal,
+        Self::FlipVertical,
+        Self::RotateClockwise,
+        Self::RotateCounterclockwise,
+        Self::ScaleUp,
+        Self::ScaleDown,
     ];
 
     /// A stable identifier for native menu items (the variant name).
@@ -173,6 +185,19 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ZoomFit),
             Separator,
             Action(A::ResetLayout),
+        ],
+    ),
+    (
+        "Modify",
+        &[
+            Action(A::FlipHorizontal),
+            Action(A::FlipVertical),
+            Separator,
+            Action(A::RotateClockwise),
+            Action(A::RotateCounterclockwise),
+            Separator,
+            Action(A::ScaleUp),
+            Action(A::ScaleDown),
         ],
     ),
 ];
