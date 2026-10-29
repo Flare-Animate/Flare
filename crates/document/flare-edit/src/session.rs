@@ -1,0 +1,262 @@
+use std::sync::Arc;
+
+use flare_document::Document;
+
+use crate::command::{Command, EditError, apply};
+
+const DEFAULT_HISTORY_DEPTH: usize = 1000;
+
+/// Owns the current document, undo/redo history and clean/dirty tracking.
+pub struct EditorSession {
+    current: Arc<Document>,
+    undo: Vec<Arc<Document>>,
+    redo: Vec<Arc<Document>>,
+    saved: Option<Arc<Document>>,
+    max_depth: usize,
+}
+
+impl EditorSession {
+    pub fn new(document: Document) -> Self {
+        Self::with_history_depth(document, DEFAULT_HISTORY_DEPTH)
+    }
+
+    /// `max_depth` bounds the undo stack; the oldest entries are dropped first.
+    pub fn with_history_depth(document: Document, max_depth: usize) -> Self {
+        let current = Arc::new(document);
+        Self {
+            saved: Some(Arc::clone(&current)),
+            current,
+            undo: Vec::new(),
+            redo: Vec::new(),
+            max_depth,
+        }
+    }
+
+    pub fn document(&self) -> &Document {
+        &self.current
+    }
+
+    /// Applies the batch all-or-nothing as a single undo step.
+    pub fn apply(&mut self, commands: impl IntoIterator<Item = Command>) -> Result<(), EditError> {
+        let mut working = (*self.current).clone();
+        let mut any = false;
+        for command in commands {
+            working = apply(&working, command)?;
+            any = true;
+        }
+        if !any {
+            return Ok(());
+        }
+        let previous = std::mem::replace(&mut self.current, Arc::new(working));
+        self.undo.push(previous);
+        if self.undo.len() > self.max_depth {
+            self.undo.remove(0);
+        }
+        self.redo.clear();
+        Ok(())
+    }
+
+    pub fn can_undo(&self) -> bool {
+        !self.undo.is_empty()
+    }
+
+    pub fn can_redo(&self) -> bool {
+        !self.redo.is_empty()
+    }
+
+    pub fn undo(&mut self) -> bool {
+        let Some(previous) = self.undo.pop() else {
+            return false;
+        };
+        self.redo
+            .push(std::mem::replace(&mut self.current, previous));
+        true
+    }
+
+    pub fn redo(&mut self) -> bool {
+        let Some(next) = self.redo.pop() else {
+            return false;
+        };
+        self.undo.push(std::mem::replace(&mut self.current, next));
+        true
+    }
+
+    /// Records that the current content was durably saved.
+    pub fn mark_saved(&mut self) {
+        self.saved = Some(Arc::clone(&self.current));
+    }
+
+    /// Dirty means the content differs from what was saved; undoing back to the saved
+    /// content is clean again, unlike a monotonically increasing revision counter.
+    pub fn is_dirty(&self) -> bool {
+        !self
+            .saved
+            .as_ref()
+            .is_some_and(|saved| Arc::ptr_eq(saved, &self.current))
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use std::num::NonZeroU32;
+
+    use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
+    use flare_document::{Content, FrameSpan, Instance, Layer, Scene, Symbol, Timeline};
+
+    use super::*;
+
+    struct Fixture {
+        session: EditorSession,
+        scene: SceneId,
+        layer: LayerId,
+        symbol: SymbolId,
+    }
+
+    fn fixture() -> Fixture {
+        let (scene, layer, symbol) = (SceneId::new(), LayerId::new(), SymbolId::new());
+        let layer_value = Layer::new(layer, "Layer 1", vec![]).expect("layer");
+        let scene_value = Scene::new(scene, "Scene 1", Timeline::new(vec![layer_value]));
+        let rate = FrameRate::new(24, 1).expect("rate");
+        let document =
+            Document::new(DocumentId::new(), rate, vec![scene_value], vec![]).expect("document");
+        Fixture {
+            session: EditorSession::new(document),
+            scene,
+            layer,
+            symbol,
+        }
+    }
+
+    fn span(start: u32, symbol: SymbolId) -> FrameSpan {
+        let instance = Instance::new(InstanceId::new(), symbol, Transform2D::IDENTITY);
+        FrameSpan::new(
+            start,
+            NonZeroU32::new(5).expect("nonzero"),
+            Content::Instance(instance),
+        )
+    }
+
+    fn add_symbol(f: &Fixture) -> Command {
+        Command::AddSymbol(Symbol::new(f.symbol, "Art", Timeline::default()))
+    }
+
+    fn insert(f: &Fixture, start: u32) -> Command {
+        Command::InsertSpan {
+            scene: f.scene,
+            layer: f.layer,
+            span: span(start, f.symbol),
+        }
+    }
+
+    #[test]
+    fn batch_applies_as_one_undo_step() {
+        let mut f = fixture();
+        let batch = vec![add_symbol(&f), insert(&f, 0), insert(&f, 5)];
+        f.session.apply(batch).expect("apply");
+        assert_eq!(f.session.document().symbols().len(), 1);
+        assert_eq!(
+            f.session.document().scenes()[0].timeline().layers()[0]
+                .spans()
+                .len(),
+            2
+        );
+        assert!(f.session.undo());
+        assert!(f.session.document().symbols().is_empty());
+        assert!(!f.session.can_undo());
+    }
+
+    #[test]
+    fn failed_batch_changes_nothing() {
+        let mut f = fixture();
+        f.session.apply([add_symbol(&f)]).expect("first");
+        let before = f.session.document().clone();
+        // Second command overlaps the first span, so the whole batch must roll back.
+        let batch = vec![insert(&f, 0), insert(&f, 2)];
+        assert!(matches!(
+            f.session.apply(batch),
+            Err(EditError::Timeline(_))
+        ));
+        assert_eq!(f.session.document(), &before);
+        f.session.undo();
+        assert!(f.session.document().symbols().is_empty());
+    }
+
+    #[test]
+    fn dangling_reference_is_rejected_atomically() {
+        let mut f = fixture();
+        assert!(matches!(
+            f.session.apply([insert(&f, 0)]),
+            Err(EditError::Invalid(_))
+        ));
+        assert!(!f.session.can_undo());
+    }
+
+    #[test]
+    fn undo_redo_preserve_identity_and_new_edit_clears_redo() {
+        let mut f = fixture();
+        f.session
+            .apply([add_symbol(&f), insert(&f, 0)])
+            .expect("apply");
+        let edited = f.session.document().clone();
+        assert!(f.session.undo());
+        assert!(f.session.can_redo());
+        assert!(f.session.redo());
+        assert_eq!(f.session.document(), &edited);
+        f.session.undo();
+        f.session.apply([add_symbol(&f)]).expect("new edit");
+        assert!(!f.session.can_redo());
+    }
+
+    #[test]
+    fn missing_targets_report_structured_errors() {
+        let mut f = fixture();
+        let ghost = LayerId::new();
+        let command = Command::RemoveSpan {
+            scene: f.scene,
+            layer: ghost,
+            start: 0,
+        };
+        assert_eq!(
+            f.session.apply([command]),
+            Err(EditError::NoSuchLayer(ghost))
+        );
+        let command = Command::RemoveSpan {
+            scene: f.scene,
+            layer: f.layer,
+            start: 9,
+        };
+        assert_eq!(f.session.apply([command]), Err(EditError::NoSuchSpan(9)));
+    }
+
+    #[test]
+    fn dirty_state_follows_saved_content() {
+        let mut f = fixture();
+        assert!(!f.session.is_dirty());
+        f.session.apply([add_symbol(&f)]).expect("apply");
+        assert!(f.session.is_dirty());
+        f.session.mark_saved();
+        assert!(!f.session.is_dirty());
+        f.session.undo();
+        assert!(f.session.is_dirty());
+        f.session.redo();
+        assert!(!f.session.is_dirty());
+    }
+
+    #[test]
+    fn history_is_bounded() {
+        let mut f = fixture();
+        f.session = EditorSession::with_history_depth(f.session.document().clone(), 2);
+        for start in [0, 5, 10] {
+            let mut batch = vec![];
+            if start == 0 {
+                batch.push(add_symbol(&f));
+            }
+            batch.push(insert(&f, start));
+            f.session.apply(batch).expect("apply");
+        }
+        assert!(f.session.undo());
+        assert!(f.session.undo());
+        assert!(!f.session.undo());
+    }
+}

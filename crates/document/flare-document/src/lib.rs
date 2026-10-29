@@ -19,7 +19,7 @@ pub enum SymbolKind {
     Graphic,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Symbol {
     id: SymbolId,
     name: String,
@@ -54,7 +54,7 @@ impl Symbol {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Scene {
     id: SceneId,
     name: String,
@@ -83,7 +83,7 @@ impl Scene {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Document {
     id: DocumentId,
     frame_rate: FrameRate,

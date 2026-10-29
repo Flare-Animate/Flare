@@ -168,6 +168,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "flare-edit"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "flare-document",
+ "thiserror",
+]
+
+[[package]]
 name = "flare-flash"
 version = "0.1.0"
 dependencies = [
