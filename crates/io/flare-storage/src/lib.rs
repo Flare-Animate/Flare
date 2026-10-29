@@ -30,7 +30,7 @@ CREATE TABLE project (
 ) STRICT;
 CREATE TABLE entity (
     id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol')),
+    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment')),
     ordinal INTEGER NOT NULL,
     payload_version INTEGER NOT NULL CHECK (payload_version > 0),
     payload_json TEXT NOT NULL
@@ -92,6 +92,12 @@ pub fn save(document: &Document, path: &Path) -> Result<(), StorageError> {
                 payload
             ])?;
         }
+        for (ordinal, attachment) in (0_i64..).zip(document.attachments()) {
+            let payload = serde_json::to_string(&wire::AttachmentWire::of(attachment))?;
+            // Attachments have no identity of their own; the row id only has to be unique.
+            let id = uuid::Uuid::now_v7().to_string();
+            insert.execute(params![id, "attachment", ordinal, payload])?;
+        }
         for (ordinal, symbol) in (0_i64..).zip(document.symbols()) {
             let payload = serde_json::to_string(&wire::SymbolWire::of(symbol))?;
             insert.execute(params![
@@ -142,6 +148,7 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
 
     let mut scenes = Vec::new();
     let mut symbols = Vec::new();
+    let mut attachments = Vec::new();
     let mut statement =
         conn.prepare("SELECT id, kind, payload_json FROM entity ORDER BY kind, ordinal")?;
     let mut rows = statement.query([])?;
@@ -155,6 +162,9 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
             "symbol" => {
                 symbols.push(serde_json::from_str::<wire::SymbolWire>(&payload)?.build(&id)?)
             }
+            "attachment" => {
+                attachments.push(serde_json::from_str::<wire::AttachmentWire>(&payload)?.build()?)
+            }
             other => {
                 return Err(StorageError::Corrupt(format!(
                     "unknown entity kind {other}"
@@ -162,7 +172,7 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
             }
         }
     }
-    wire::assemble(&project_id, &settings, scenes, symbols)
+    wire::assemble(&project_id, &settings, scenes, symbols, attachments)
 }
 
 fn not_flare(error: rusqlite::Error) -> StorageError {
@@ -183,8 +193,8 @@ mod tests {
         SymbolId, Transform2D,
     };
     use flare_document::{
-        Content, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Stroke, Symbol,
-        Timeline, Tween,
+        Anchor, Attachment, Content, FrameSpan, Instance, Layer, PathSegment, Placement, Scene,
+        Shape, Stage, Stroke, Symbol, Timeline, Tween,
     };
     use glamx::DAffine2;
 
@@ -225,19 +235,54 @@ mod tests {
             NonZeroU32::new(1).expect("nonzero"),
             Content::Shape(curve),
         );
+        let layer_id = LayerId::new();
         let layer = Layer::new(
-            LayerId::new(),
+            layer_id,
             "Layer 1",
             vec![place(0).with_tween(Tween::Linear), place(4), empty, drawn],
         )
         .expect("layer")
         .with_visible(false)
         .with_locked(true);
+        let (scene_one, scene_two) = (SceneId::new(), SceneId::new());
         let scenes = vec![
-            Scene::new(SceneId::new(), "One", Timeline::new(vec![layer])),
-            Scene::new(SceneId::new(), "Two", Timeline::default()),
+            Scene::new(scene_one, "One", Timeline::new(vec![layer])),
+            Scene::new(scene_two, "Two", Timeline::default()),
         ];
         let symbol = Symbol::new(art, "Art", Timeline::default());
+        let notes = vec![
+            Attachment::new(
+                "xfl",
+                Anchor::Document,
+                Placement::Child,
+                "<media><x a=\"1 &amp; 2\">text</x></media>",
+            )
+            .expect("doc"),
+            Attachment::new(
+                "xfl",
+                Anchor::Scene(scene_one),
+                Placement::LayerAt { index: 3 },
+                "<DOMLayer layerType=\"mask\"/>",
+            )
+            .expect("scene"),
+            Attachment::new(
+                "xfl",
+                Anchor::Layer(layer_id),
+                Placement::FrameElement { frame: 4 },
+                "<DOMStaticText>Hello \u{1F600}</DOMStaticText>",
+            )
+            .expect("frame"),
+            Attachment::new(
+                "xfl",
+                Anchor::Layer(layer_id),
+                Placement::FrameExtra { frame: 0 },
+                "<Actionscript><script><![CDATA[stop();]]></script></Actionscript>",
+            )
+            .expect("extra"),
+            Attachment::new("xfl", Anchor::Symbol(art), Placement::Child, "<scaleGrid/>")
+                .expect("symbol"),
+        ];
+        let _ = scene_two;
         Document::new(
             DocumentId::new(),
             FrameRate::new(30_000, 1_001).expect("rate"),
@@ -245,6 +290,8 @@ mod tests {
             vec![symbol],
         )
         .expect("document")
+        .with_attachments(notes)
+        .expect("attachments")
         .with_stage(Stage::new(640, 360, Rgba8::new(1, 2, 3, 4)).expect("stage"))
     }
 
@@ -410,5 +457,98 @@ mod tests {
             .expect("update");
         drop(conn);
         assert!(matches!(load(&path), Err(StorageError::Json(_))));
+    }
+
+    fn attachment_rows(path: &std::path::Path) -> Vec<(String, String)> {
+        let conn = Connection::open(path).expect("open");
+        let mut statement = conn
+            .prepare(
+                "SELECT id, payload_json FROM entity WHERE kind = 'attachment' ORDER BY ordinal",
+            )
+            .expect("prepare");
+        statement
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+            .expect("query")
+            .collect::<Result<_, _>>()
+            .expect("rows")
+    }
+
+    #[test]
+    fn attachments_round_trip_exactly_including_awkward_text() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        let document = sample();
+        assert_eq!(document.attachments().len(), 5);
+        save(&document, &path).expect("save");
+        let loaded = load(&path).expect("load");
+        assert_eq!(
+            loaded.attachments(),
+            document.attachments(),
+            "same order, same bytes"
+        );
+        assert_eq!(attachment_rows(&path).len(), 5);
+    }
+
+    #[test]
+    fn tampered_or_invented_attachments_are_refused_on_load() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        let edit = |find: &str, replace: &str| {
+            save(&sample(), &path).expect("save");
+            let (id, payload) = attachment_rows(&path).into_iter().next().expect("a row");
+            assert!(payload.contains(find), "{payload}");
+            let conn = Connection::open(&path).expect("open");
+            conn.execute(
+                "UPDATE entity SET payload_json = ?1 WHERE id = ?2",
+                [payload.replace(find, replace), id],
+            )
+            .expect("tamper");
+            drop(conn);
+            load(&path)
+        };
+        // Content changed but the digest was not: refused.
+        assert!(matches!(
+            edit("<media>", "<evil>"),
+            Err(StorageError::Corrupt(_))
+        ));
+        // A digest that is not even hex.
+        let digest = {
+            save(&sample(), &path).expect("save");
+            let payload = attachment_rows(&path).remove(0).1;
+            let value: serde_json::Value = serde_json::from_str(&payload).expect("json");
+            value["digest"].as_str().expect("digest").to_owned()
+        };
+        assert!(matches!(edit(&digest, "zz"), Err(StorageError::Corrupt(_))));
+        // An anchor to a layer that does not exist is an invalid document, not a trusted one.
+        save(&sample(), &path).expect("save");
+        let rows = attachment_rows(&path);
+        let (id, payload) = rows
+            .iter()
+            .find(|(_, p)| p.contains("\"Layer\""))
+            .expect("layer note")
+            .clone();
+        let value: serde_json::Value = serde_json::from_str(&payload).expect("json");
+        let real = value["anchor"]["id"].as_str().expect("id").to_owned();
+        let conn = Connection::open(&path).expect("open");
+        let moved = payload.replace(&real, "00000000-0000-0000-0000-00000000dead");
+        conn.execute(
+            "UPDATE entity SET payload_json = ?1 WHERE id = ?2",
+            [moved, id],
+        )
+        .expect("tamper");
+        drop(conn);
+        assert!(matches!(load(&path), Err(StorageError::Invalid(_))));
+    }
+
+    #[test]
+    fn projects_without_attachments_still_load() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        save(&sample(), &path).expect("save");
+        let conn = Connection::open(&path).expect("open");
+        conn.execute("DELETE FROM entity WHERE kind = 'attachment'", [])
+            .expect("strip");
+        drop(conn);
+        assert!(load(&path).expect("legacy load").attachments().is_empty());
     }
 }
