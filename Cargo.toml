@@ -1,7 +1,123 @@
-[package]
-name = "flare"
+# Flare workspace. See TECH_STACK.md and PACK_STATUS.md before adoption.
+# Only real starter packages are members. Add staged crates when they have code/tests.
+[workspace]
+resolver = "3"
+members = [
+    "apps/flare-cli",
+    "crates/foundation/flare-types",
+    "crates/io/flare-flash",
+]
+exclude = ["original"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.99.1"
+publish = false
 license = "BSD-3-Clause"
 
-[dependencies]
+[workspace.dependencies]
+# ---- Internal packages: root owns all paths ----------------------------------
+flare-types = { path = "crates/foundation/flare-types" }
+flare-flash = { path = "crates/io/flare-flash" }
+
+# ---- Math and vector geometry ------------------------------------------------
+glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }
+kurbo = "0.13.1"
+# i_overlay = "9.1.0"       # Prototype: polygon booleans, not full merge drawing.
+# lyon_tessellation = "1"   # Prototype: fill/stroke mesh path.
+# tess2-rust: choose a verified release after the tessellation experiment.
+
+# ---- Binary data and GPU memory layouts --------------------------------------
+zerocopy = { version = "0.8.63", features = ["derive"] }
+bytemuck = { version = "1.25", features = ["derive"] }
+encase = "0.13.0"
+half = "2"
+# Do not enable glamx/encase blindly: check its underlying glam's encase version.
+
+# ---- Serialization, identity and typed errors -------------------------------
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = "1"                 # v7/serde are enabled by the consuming member.
+thiserror = "2"
+anyhow = "1"               # Executable boundaries, not public library errors.
+
+# ---- Persistence, compression and content identity --------------------------
+rusqlite = { version = "0.41.1", default-features = false }
+# flare-storage adds bundled/backup/blob/limits/hooks at its dependency site.
+blake3 = "1"
+tempfile = "3"
+zstd = "0.13"
+# lz4_flex / rkyv: transient/cache candidates only; add after measurement.
+
+# ---- Flash/XML/archive interchange -------------------------------------------
+quick-xml = { version = "0.42.0", default-features = false }
+zip = { version = "9.1.3", default-features = false }
+# Enable only reviewed compression features in the format adapter.
+# Ruffle swf/core/render packages are NOT guessed Git dependencies here.
+# Choose and record one tested Ruffle revision during the runtime/format spike.
+
+# ---- Image assets and font/layout adapters -----------------------------------
+image = { version = "0.25.10", default-features = false }
+parley = "0.12.0"
+# usvg/resvg, lcms2, libmypaint, specialised codecs: see adoption ledger.
+
+# ---- GPU and desktop presentation: documented version family ----------------
+wgpu = { version = "30.0", default-features = false }
+egui = { version = "0.37.0", default-features = false }
+egui-wgpu = { version = "0.37.0", default-features = false }
+egui-winit = { version = "0.37.0", default-features = false }
+winit = { version = "0.30.13", default-features = false }
+# The desktop member must choose native backends/fonts/clipboard/platform features.
+# Do not assume these minimal declarations alone build a desktop application.
+# agg-rust = "1.2.0"        # CPU renderer experiment, not mandatory.
+# vello_cpu = "0.3.0"       # CPU renderer experiment, not mandatory.
+# vello_gpu = "0.3.0"       # Verify published package and wgpu compatibility first.
+# tiny-skia: reference/control candidate; no second default CPU engine yet.
+
+# ---- CPU workers and asynchronous application services -----------------------
+rayon = "1"
+tokio = { version = "1", default-features = false }
+# crossbeam-channel/rtrb: bounded communication only at justified boundaries.
+
+# ---- CLI, MCP and structured diagnostics -------------------------------------
+clap = { version = "4", features = ["derive"] }
+rmcp = { version = "3.8.0", default-features = false }
+schemars = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# ---- Verification ------------------------------------------------------------
+proptest = "1"
+insta = { version = "1", features = ["json"] }
+criterion = "0.7"
+# cargo-fuzz, cargo-deny, cargo-about and Miri are tools, not app dependencies.
+
+# ---- Deferred functionality: register exact versions when adopted -----------
+# Audio: symphonia, cpal, rubato, rtrb; optional FFmpeg executable adapter.
+# Spatial/physics: parry2d-f64, parry3d-f64, rapier2d-f64; 3D physics deferred.
+# Scripting: boa_engine candidate; plugins/Wasm host deferred.
+# Collections/SIMD: smallvec, indexmap, slotmap, hashbrown, bumpalo, wide on evidence.
+# No kiss3d/rend3 production engine dependency; no blanket game engine or ECS.
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+undocumented_unsafe_blocks = "deny"
+unwrap_used = "warn"
+expect_used = "warn"
+
+[workspace.metadata.flare]
+pack-date = "2026-10-28"
+product-focus = "modern-adobe-animate-first"
+reference-archive = "original"
+lockfile-policy = "Generate with Cargo during bootstrap; review and commit; never fabricate"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+# Keep unwinding until every FFI/process boundary has an explicit policy.
+# Avoid fast-math, target-cpu=native and global allocator changes by default.
