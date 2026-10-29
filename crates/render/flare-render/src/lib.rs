@@ -90,10 +90,12 @@ fn bez_path(segments: &[PathSegment]) -> BezPath {
     path
 }
 
-/// Indices into `frame.shapes` of every shape whose fill (not stroke) contains `point`
-/// (scene coordinates), topmost first, using the same non-zero fill rule as rendering.
-/// Fully transparent fills and singular transforms are not hittable. Callers that must
-/// skip some shapes (locked layers) walk this list instead of taking only the first.
+/// Indices into `frame.shapes` of every shape whose fill or stroke contains `point` (scene
+/// coordinates), topmost first. Fills use the same non-zero rule as rendering; a stroke counts
+/// where it is drawn (round caps and joins, width scaled by the shape's transform), so a line
+/// or an outline-only shape can be picked. Fully transparent fills without a stroke and
+/// singular transforms are not hittable. Callers that must skip some shapes (locked layers)
+/// walk this list instead of taking only the first.
 pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
     frame
         .shapes
@@ -101,11 +103,30 @@ pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
         .enumerate()
         .rev()
         .filter(|(_, drawn)| {
-            if drawn.shape.fill().a == 0 || drawn.transform.matrix2.determinant() == 0.0 {
+            let determinant = drawn.transform.matrix2.determinant();
+            if determinant == 0.0 || !determinant.is_finite() {
                 return false;
             }
             let local = drawn.transform.inverse().transform_point2(point);
-            bez_path(drawn.shape.path()).contains(Point::new(local.x, local.y))
+            let local = Point::new(local.x, local.y);
+            let path = bez_path(drawn.shape.path());
+            if drawn.shape.fill().a > 0 && path.contains(local) {
+                return true;
+            }
+            drawn.shape.stroke().is_some_and(|stroke| {
+                // Flatten finely relative to how big a local unit is on screen.
+                let tolerance = 0.1 / determinant.abs().sqrt().max(1e-6);
+                let style = Stroke::new(stroke.width())
+                    .with_caps(Cap::Round)
+                    .with_join(Join::Round);
+                let outline = vello_cpu::kurbo::stroke(
+                    path.elements().iter().copied(),
+                    &style,
+                    &vello_cpu::kurbo::StrokeOpts::default(),
+                    tolerance,
+                );
+                outline.contains(local)
+            })
         })
         .map(|(index, _)| index)
         .collect()
@@ -427,5 +448,93 @@ mod tests {
         let info = reader.next_frame(&mut buf).expect("frame");
         assert_eq!((info.width, info.height), (20, 20));
         assert_eq!(&buf[..info.buffer_size()], image.rgba());
+    }
+
+    #[test]
+    fn strokes_are_hittable_where_they_are_drawn_including_lines_and_outlines() {
+        use flare_document::Stroke as DocStroke;
+        let ink = Rgba8::opaque(0, 0, 0);
+        let line = Shape::line(
+            ShapeId::new(),
+            (10.0, 10.0),
+            (90.0, 10.0),
+            DocStroke::new(6.0, ink).expect("stroke"),
+        )
+        .expect("line");
+        let outline = Shape::rect(ShapeId::new(), 10.0, 40.0, 40.0, 40.0, Rgba8::TRANSPARENT)
+            .expect("rect")
+            .with_stroke(DocStroke::new(4.0, ink).expect("stroke"));
+        let (doc, id) = scene_with(
+            vec![span(Content::Shape(line)), span(Content::Shape(outline))],
+            vec![],
+        );
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        let at = |x: f64, y: f64| hit_test_all(&frame, DVec2::new(x, y));
+        // Paint order is bottom layer first, so the outline is shape 0 and the line shape 1.
+        // On the line (within half the width) and just past it, including the round cap.
+        assert_eq!(at(50.0, 10.0), vec![1]);
+        assert_eq!(at(50.0, 12.9), vec![1]);
+        assert!(at(50.0, 13.5).is_empty(), "outside the 3px half-width");
+        assert_eq!(
+            at(92.0, 10.0),
+            vec![1],
+            "the round cap extends past the end"
+        );
+        assert!(at(95.0, 10.0).is_empty());
+        // An outline-only rectangle: on its edge yes, in its empty middle no.
+        assert_eq!(at(10.0, 60.0), vec![0]);
+        assert_eq!(at(31.0, 41.0), vec![0]);
+        assert!(
+            at(30.0, 60.0).is_empty(),
+            "transparent fill has nothing to click inside"
+        );
+    }
+
+    #[test]
+    fn a_stroked_filled_shape_is_hit_on_its_fill_and_just_outside_on_the_stroke() {
+        use flare_document::Stroke as DocStroke;
+        let both = Shape::rect(ShapeId::new(), 20.0, 20.0, 20.0, 20.0, RED)
+            .expect("rect")
+            .with_stroke(DocStroke::new(8.0, Rgba8::opaque(0, 0, 0)).expect("stroke"));
+        let (doc, id) = scene_with(vec![span(Content::Shape(both))], vec![]);
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        let at = |x: f64, y: f64| hit_test_all(&frame, DVec2::new(x, y));
+        assert_eq!(at(30.0, 30.0), vec![0], "inside the fill");
+        assert_eq!(
+            at(18.0, 30.0),
+            vec![0],
+            "on the stroke outside the fill edge"
+        );
+        assert!(at(14.0, 30.0).is_empty(), "beyond the stroke");
+    }
+
+    #[test]
+    fn stroke_width_follows_the_instances_scale() {
+        use flare_document::Stroke as DocStroke;
+        let art = SymbolId::new();
+        let line = Shape::line(
+            ShapeId::new(),
+            (0.0, 0.0),
+            (20.0, 0.0),
+            DocStroke::new(2.0, Rgba8::opaque(0, 0, 0)).expect("stroke"),
+        )
+        .expect("line");
+        let art_tl = Timeline::new(vec![
+            Layer::new(LayerId::new(), "L", vec![span(Content::Shape(line))]).expect("l"),
+        ]);
+        let scale = Transform2D::new(
+            DAffine2::from_scale(DVec2::new(3.0, 3.0))
+                * DAffine2::from_translation(DVec2::new(10.0, 10.0)),
+        )
+        .expect("finite");
+        let instance = Instance::new(InstanceId::new(), art, scale);
+        let (doc, id) = scene_with(
+            vec![span(Content::Instance(instance))],
+            vec![Symbol::new(art, "Art", art_tl)],
+        );
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        // The 2-unit stroke is 6px wide at 3x, so 2.9px from the line's centre is still on it.
+        assert_eq!(hit_test_all(&frame, DVec2::new(60.0, 32.9)), vec![0]);
+        assert!(hit_test_all(&frame, DVec2::new(60.0, 33.5)).is_empty());
     }
 }
