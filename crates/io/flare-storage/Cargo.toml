@@ -1,0 +1,21 @@
+[package]
+name = "flare-storage"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+flare-core.workspace = true
+flare-document.workspace = true
+rusqlite = { workspace = true, features = ["bundled"] }
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+glamx.workspace = true
+uuid.workspace = true
+
+[lints]
+workspace = true
