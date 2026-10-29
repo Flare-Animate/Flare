@@ -55,8 +55,9 @@ impl App {
             DialogRequest::PublishSwf => {
                 if let Some(path) = dialogs::save_swf() {
                     let (document, _) = self.workspace.image_export();
+                    let compress = self.workspace.publish_compress();
                     let done = exported(&self.proxy);
-                    if let Err(error) = jobs::publish_swf(document, path, done) {
+                    if let Err(error) = jobs::publish_swf(document, path, compress, done) {
                         dialogs::message("Cannot publish", &error.to_string());
                     }
                 }

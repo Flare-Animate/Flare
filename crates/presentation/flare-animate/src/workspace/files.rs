@@ -36,6 +36,8 @@ impl Workspace {
             egui_tiles::Tree::empty(egui::Id::unique("taken")),
         );
         fresh.onion = self.onion;
+        fresh.publish_compress = self.publish_compress;
+        fresh.recent = std::mem::take(&mut self.recent);
         // Whatever was playing belonged to the old project.
         fresh.audio_events = std::mem::take(&mut self.audio_events);
         fresh.audio_events.push(AudioEvent::Stop);

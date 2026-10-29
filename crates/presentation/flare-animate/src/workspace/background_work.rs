@@ -101,6 +101,7 @@ impl Workspace {
                     if !self.session.is_dirty() {
                         self.discard_recovery();
                     }
+                    self.note_recent(&path);
                     self.path = Some(path.clone());
                     self.report(format!("Saved {}", path.display()));
                 }
@@ -172,6 +173,7 @@ impl Workspace {
                     Ok(document) => {
                         // The old document is clean, so any recovery file for it is obsolete.
                         self.discard_recovery();
+                        self.note_recent(&path);
                         self.install_document(document, Some(path));
                     }
                 }

@@ -60,7 +60,7 @@ fn an_image_and_a_swf_report_through_the_same_callback() {
     })
     .expect("started");
     wait(&rx).expect("png");
-    jobs::publish_swf(document(), dir.path().join("a.swf"), move |r| {
+    jobs::publish_swf(document(), dir.path().join("a.swf"), true, move |r| {
         let _ = tx.send(r);
     })
     .expect("started");

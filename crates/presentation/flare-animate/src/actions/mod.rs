@@ -16,6 +16,9 @@ pub enum MenuAction {
     New,
     Close,
     Revert,
+    SaveAll,
+    OpenRecent,
+    PublishSettings,
     ImportProject,
     ImportSound,
     ExportImage,
@@ -99,11 +102,14 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 84] = [
+    pub const ALL: [MenuAction; 87] = [
         Self::Open,
         Self::New,
         Self::Close,
         Self::Revert,
+        Self::SaveAll,
+        Self::OpenRecent,
+        Self::PublishSettings,
         Self::ImportProject,
         Self::ImportSound,
         Self::ExportImage,

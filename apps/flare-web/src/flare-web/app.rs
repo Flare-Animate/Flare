@@ -66,7 +66,9 @@ impl WebApp {
             }
             DialogRequest::PublishSwf => {
                 let (document, _) = self.workspace.image_export();
-                let options = flare_publish::PublishOptions { compress: true };
+                let options = flare_publish::PublishOptions {
+                    compress: self.workspace.publish_compress(),
+                };
                 let result = flare_publish::publish_swf(&document, &options)
                     .map(|published| published.bytes)
                     .map_err(|e| e.to_string());

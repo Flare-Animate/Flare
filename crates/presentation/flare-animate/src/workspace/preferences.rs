@@ -2,6 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use std::path::PathBuf;
+
 use super::*;
 
 /// Largest preferences file accepted.
@@ -23,7 +25,14 @@ pub struct Preferences {
     pub loop_playback: bool,
     /// How far a smoothed pencil or brush line may stray, in screen pixels.
     pub smoothing: f32,
+    /// Compress SWF files when publishing.
+    pub publish_compress: bool,
+    /// Projects opened or saved lately, newest first.
+    pub recent: Vec<String>,
 }
+
+/// How many recent projects are remembered.
+pub const MAX_RECENT: usize = 10;
 
 impl Default for Preferences {
     fn default() -> Self {
@@ -35,6 +44,8 @@ impl Default for Preferences {
             grid_size: 20.0,
             loop_playback: true,
             smoothing: 2.0,
+            publish_compress: true,
+            recent: Vec::new(),
         }
     }
 }
@@ -50,6 +61,12 @@ impl Workspace {
             grid_size: self.grid_size,
             loop_playback: self.loop_playback,
             smoothing: self.smoothing,
+            publish_compress: self.publish_compress,
+            recent: self
+                .recent
+                .iter()
+                .map(|p| p.to_string_lossy().into_owned())
+                .collect(),
         }
     }
 
@@ -63,6 +80,14 @@ impl Workspace {
         self.grid_size = finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
         self.loop_playback = preferences.loop_playback;
         self.smoothing = finite(f64::from(preferences.smoothing), 2.0).clamp(0.0, 20.0) as f32;
+        self.publish_compress = preferences.publish_compress;
+        self.recent = preferences
+            .recent
+            .iter()
+            .filter(|p| !p.is_empty())
+            .take(MAX_RECENT)
+            .map(PathBuf::from)
+            .collect();
     }
 
     /// The settings as text to keep between sessions.
@@ -79,6 +104,74 @@ impl Workspace {
         let preferences: Preferences = serde_json::from_str(json).map_err(|e| e.to_string())?;
         self.apply_preferences(&preferences);
         Ok(())
+    }
+
+    /// Remembers `path` as the most recently used project.
+    pub(super) fn note_recent(&mut self, path: &std::path::Path) {
+        self.recent.retain(|p| p != path);
+        self.recent.insert(0, path.to_owned());
+        self.recent.truncate(MAX_RECENT);
+    }
+
+    /// Projects opened or saved lately, newest first.
+    pub fn recent_files(&self) -> &[PathBuf] {
+        &self.recent
+    }
+
+    /// Whether published SWF files are compressed.
+    pub fn publish_compress(&self) -> bool {
+        self.publish_compress
+    }
+
+    /// The small windows opened from the File menu: recent projects and publish settings.
+    pub(super) fn file_windows(&mut self, ctx: &egui::Context) {
+        if self.recent_open {
+            let mut open = true;
+            let mut chosen = None;
+            egui::Window::new("Open Recent")
+                .open(&mut open)
+                .collapsible(false)
+                .resizable(false)
+                .show(ctx, |ui| {
+                    if self.recent.is_empty() {
+                        ui.weak("Nothing opened or saved yet.");
+                    }
+                    for path in &self.recent {
+                        let name = path.file_name().map_or_else(
+                            || path.display().to_string(),
+                            |n| n.to_string_lossy().into_owned(),
+                        );
+                        if ui
+                            .button(name)
+                            .on_hover_text(path.display().to_string())
+                            .clicked()
+                        {
+                            chosen = Some(path.clone());
+                        }
+                    }
+                    if !self.recent.is_empty() && ui.small_button("Clear the list").clicked() {
+                        self.recent.clear();
+                    }
+                });
+            self.recent_open = open && chosen.is_none();
+            if let Some(path) = chosen {
+                self.open(&path);
+            }
+        }
+        if self.publish_settings_open {
+            let mut open = true;
+            egui::Window::new("Publish Settings")
+                .open(&mut open)
+                .collapsible(false)
+                .resizable(false)
+                .show(ctx, |ui| {
+                    ui.checkbox(&mut self.publish_compress, "Compress the SWF");
+                    ui.weak(
+                        "A compressed file is smaller; players older than Flash 6 cannot read it.",
+                    );
+                });
+            self.publish_settings_open = open;
+        }
     }
 
     /// The Preferences window, while it is open.

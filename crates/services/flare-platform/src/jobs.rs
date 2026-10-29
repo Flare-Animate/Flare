@@ -60,10 +60,11 @@ pub fn export_gif(
 pub fn publish_swf(
     document: Document,
     path: PathBuf,
+    compress: bool,
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-publish", move || {
-        let options = PublishOptions { compress: true };
+        let options = PublishOptions { compress };
         let result = flare_publish::publish_to_file(&document, &options, &path)
             .map(|_| ())
             .map_err(|e| e.to_string());

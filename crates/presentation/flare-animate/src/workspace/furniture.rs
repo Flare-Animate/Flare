@@ -54,6 +54,7 @@ impl Workspace {
         });
 
         self.preferences_window(&ctx);
+        self.file_windows(&ctx);
         if self.playing {
             ctx.request_repaint();
         }

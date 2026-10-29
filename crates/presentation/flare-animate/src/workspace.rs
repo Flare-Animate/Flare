@@ -82,6 +82,11 @@ pub struct Workspace {
     opening: Option<u64>,
     /// The open that is a revert: it replaces the document even though it has changes.
     preferences_open: bool,
+    recent_open: bool,
+    publish_settings_open: bool,
+    publish_compress: bool,
+    /// Projects opened or saved lately, newest first.
+    recent: Vec<PathBuf>,
     /// Folders shown shut in the timeline, hiding the layers inside.
     collapsed_folders: std::collections::HashSet<LayerId>,
     /// The picture of the selected library symbol: which symbol, at which revision of the
@@ -249,6 +254,10 @@ impl Workspace {
             render_inbox: Vec::new(),
             opening: None,
             preferences_open: false,
+            recent_open: false,
+            publish_settings_open: false,
+            publish_compress: true,
+            recent: Vec::new(),
             collapsed_folders: std::collections::HashSet::new(),
             library_preview: None,
             importing: None,

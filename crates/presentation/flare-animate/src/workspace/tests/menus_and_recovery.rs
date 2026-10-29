@@ -567,3 +567,76 @@ fn export_movie_asks_the_shell_for_a_file() {
     ws.perform(MenuAction::ExportMovie);
     assert_eq!(ws.take_dialog(), Some(DialogRequest::ExportMovie));
 }
+
+#[test]
+fn recent_projects_are_remembered_newest_first_capped_and_kept_with_the_preferences() {
+    let dir = tempfile::tempdir().expect("dir");
+    let (a, b) = (dir.path().join("a.flare"), dir.path().join("b.flare"));
+    let mut ws = workspace();
+    assert!(
+        !ws.is_enabled(MenuAction::OpenRecent),
+        "nothing to open yet"
+    );
+    ws.save_as(&a);
+    ws.save_as(&b);
+    ws.save_as(&a);
+    assert_eq!(
+        ws.recent_files(),
+        [a.clone(), b.clone()],
+        "newest first, no repeats"
+    );
+    assert!(ws.is_enabled(MenuAction::OpenRecent));
+    // Opening a project makes it the newest too.
+    let mut other = workspace();
+    other.open(&b);
+    assert_eq!(other.recent_files().first(), Some(&b));
+    // The list is capped and survives through the preferences.
+    for i in 0..30 {
+        ws.note_recent(&dir.path().join(format!("p{i}.flare")));
+    }
+    assert_eq!(ws.recent_files().len(), 10);
+    let json = ws.preferences_json().expect("json");
+    let mut restored = workspace();
+    restored.restore_preferences(&json).expect("restore");
+    assert_eq!(restored.recent_files(), ws.recent_files());
+    // A file with no list, or blank entries, is fine.
+    restored
+        .restore_preferences(r#"{"recent": ["", "/x/y.flare"]}"#)
+        .expect("restore");
+    assert_eq!(
+        restored.recent_files(),
+        [std::path::PathBuf::from("/x/y.flare")]
+    );
+    restored.perform(MenuAction::OpenRecent);
+    assert!(restored.recent_open);
+    let ctx = egui::Context::default();
+    run(&mut restored, &ctx, 0.0);
+}
+
+#[test]
+fn save_all_saves_what_changed_and_publish_settings_are_remembered() {
+    let dir = tempfile::tempdir().expect("dir");
+    let mut ws = workspace();
+    assert!(!ws.is_enabled(MenuAction::SaveAll), "nothing changed");
+    rect(&mut ws);
+    assert!(ws.is_enabled(MenuAction::SaveAll));
+    ws.perform(MenuAction::SaveAll);
+    assert_eq!(
+        ws.take_dialog(),
+        Some(DialogRequest::SaveAs),
+        "no file yet, so it asks for one"
+    );
+    ws.save_as(&dir.path().join("p.flare"));
+    rect(&mut ws);
+    ws.perform(MenuAction::SaveAll);
+    assert!(!ws.is_dirty());
+    assert!(ws.publish_compress());
+    ws.perform(MenuAction::PublishSettings);
+    assert!(ws.publish_settings_open);
+    let mut prefs = ws.preferences();
+    prefs.publish_compress = false;
+    ws.apply_preferences(&prefs);
+    assert!(!ws.publish_compress());
+    let ctx = egui::Context::default();
+    run(&mut ws, &ctx, 0.0);
+}
