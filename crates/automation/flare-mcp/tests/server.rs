@@ -120,6 +120,15 @@ fn protocol_errors_use_the_standard_codes() {
         code(&mut f, "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"nope\"}"),
         -32601
     );
+    // Without a method it is not a request; with an id it is answered as an invalid request.
+    assert_eq!(code(&mut f, "{\"jsonrpc\":\"2.0\",\"id\":1}"), -32600);
+    // A response from the client is never answered, whether it succeeded or failed.
+    for response in [
+        "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{}}",
+        "{\"jsonrpc\":\"2.0\",\"id\":\"a\",\"error\":{\"code\":-32601,\"message\":\"no\"}}",
+    ] {
+        assert!(f.server.handle_line(response).is_none(), "{response}");
+    }
     assert_eq!(
         code(
             &mut f,
