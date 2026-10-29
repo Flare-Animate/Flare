@@ -29,6 +29,8 @@ when every box below is ticked.
 
 **Quality: what has to be true** (checked by a person, see the smoke test below)
 
+- [x] The packaged macOS app starts and stays running (launched for eight seconds on Apple
+  Silicon: signature valid, no output, no panic). This is a startup check only, nothing was drawn.
 - [ ] The smoke test passes by hand on macOS.
 - [ ] The app starts and draws on one Windows and one Linux machine.
 
