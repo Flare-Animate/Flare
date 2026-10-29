@@ -254,14 +254,14 @@ commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the sele
 new layers. The Modify menu flips, rotates by 90 degrees and scales the selection about its
 center. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
-F5/F6/F7 (with Shift for the inverse). On macOS the menu bar is native (muda); everywhere
+F5/F6/F7 (with Shift for the inverse). Dragging a span in the timeline moves it, dragging its right edge resizes it; neither may overlap another span. On macOS the menu bar is native (muda); everywhere
 else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.md).
 
 ## Known gaps
 
 - No gradients, masks, text or bitmap fills.
 - XFL import covers a defined subset (see Import) and keeps the rest as source data (see Source preservation); XFL export and SWF publishing are verified only against our own importer and Ruffle's parser, never against Animate or a player.
-- No transform handles, no drag-editing of spans, no detachable panels.
+- No on-canvas transform handles, no timeline zoom, no detachable panels.
 - Undo history is not persisted, and recovery covers one document at a time.
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
   menu have been built and launched but not exercised by hand; the menu's enabled-state and
