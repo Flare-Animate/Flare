@@ -33,6 +33,8 @@ pub enum MenuAction {
     ToolEraser,
     ToolPolyStar,
     ToolLasso,
+    ToolPencil,
+    ToolBrush,
     InsertFrame,
     CopyFrames,
     PasteFrames,
@@ -63,7 +65,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 55] = [
+    pub const ALL: [MenuAction; 57] = [
         Self::Open,
         Self::ImportSound,
         Self::Save,
@@ -92,6 +94,8 @@ impl MenuAction {
         Self::ToolEraser,
         Self::ToolPolyStar,
         Self::ToolLasso,
+        Self::ToolPencil,
+        Self::ToolBrush,
         Self::InsertFrame,
         Self::CopyFrames,
         Self::PasteFrames,
@@ -196,6 +200,8 @@ impl MenuAction {
             Self::ToolEraser => "E",
             Self::ToolPolyStar => "G",
             Self::ToolLasso => "L",
+            Self::ToolPencil => "Y",
+            Self::ToolBrush => "B",
             Self::ToolLine => "N",
             Self::ToolRectangle => "R",
             Self::ToolEllipse => "O",
@@ -231,6 +237,8 @@ impl MenuAction {
             Self::ToolEraser => "tool-eraser",
             Self::ToolPolyStar => "tool-polystar",
             Self::ToolLasso => "tool-lasso",
+            Self::ToolPencil => "tool-pencil",
+            Self::ToolBrush => "tool-brush",
             Self::InsertFrame => "frame-insert",
             Self::RemoveFrame => "frame-remove",
             Self::CopyFrames => "copy",
@@ -454,8 +462,8 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ToolEllipse),
             Action(A::ToolPolyStar),
             Separator,
-            Mock("Pencil"),
-            Mock("Brush"),
+            Action(A::ToolPencil),
+            Action(A::ToolBrush),
             Separator,
             Action(A::ToolBucket),
             Action(A::ToolInkBottle),

@@ -9,6 +9,7 @@
 mod actions;
 mod background;
 mod chrome;
+mod freehand;
 mod handles;
 mod icons;
 mod layout;

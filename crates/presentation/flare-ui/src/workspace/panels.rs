@@ -30,8 +30,8 @@ const TOOL_GRID: &[(&str, &str, &str, Option<Tool>)] = &[
     ("tool-rectangle", "Rectangle", "R", Some(Tool::Rectangle)),
     ("tool-oval", "Oval", "O", Some(Tool::Ellipse)),
     ("tool-polystar", "PolyStar", "G", Some(Tool::PolyStar)),
-    ("tool-pencil", "Pencil", "Y", None),
-    ("tool-brush", "Brush", "B", None),
+    ("tool-pencil", "Pencil", "Y", Some(Tool::Pencil)),
+    ("tool-brush", "Brush", "B", Some(Tool::Brush)),
     ("tool-bucket", "Paint Bucket", "K", Some(Tool::Bucket)),
     ("tool-ink-bottle", "Ink Bottle", "S", Some(Tool::InkBottle)),
     ("tool-eyedropper", "Eyedropper", "I", Some(Tool::Eyedropper)),
@@ -219,6 +219,8 @@ impl Workspace {
             Tool::Eraser => ("tool-eraser", "Eraser"),
             Tool::PolyStar => ("tool-polystar", "PolyStar"),
             Tool::Lasso => ("tool-lasso", "Lasso"),
+            Tool::Pencil => ("tool-pencil", "Pencil"),
+            Tool::Brush => ("tool-brush", "Brush"),
         };
         chrome::section(ui, icon, &format!("{title} tool"));
         match self.tool {
@@ -293,6 +295,33 @@ impl Workspace {
             }
             Tool::Eraser => {
                 ui.weak("Click a shape to delete it.");
+            }
+            Tool::Pencil => {
+                chrome::row(ui, "Smoothing", |ui| {
+                    ui.add(
+                        egui::DragValue::new(&mut self.smoothing)
+                            .range(0.0..=20.0)
+                            .speed(0.1),
+                    );
+                });
+                ui.weak("Drag to draw. The line uses the stroke color and width.");
+            }
+            Tool::Brush => {
+                chrome::row(ui, "Size", |ui| {
+                    ui.add(
+                        egui::DragValue::new(&mut self.brush_size)
+                            .range(1.0..=200.0)
+                            .suffix(" px"),
+                    );
+                });
+                chrome::row(ui, "Smoothing", |ui| {
+                    ui.add(
+                        egui::DragValue::new(&mut self.smoothing)
+                            .range(0.0..=20.0)
+                            .speed(0.1),
+                    );
+                });
+                ui.weak("Drag to paint with the fill color.");
             }
             Tool::Lasso => {
                 ui.weak("Drag a loop around shapes to select them; Shift adds to the selection.");
@@ -830,6 +859,8 @@ impl Workspace {
             Tool::Eraser => "Eraser: click a shape to delete it",
             Tool::PolyStar => "PolyStar: drag from the center",
             Tool::Lasso => "Lasso: drag a loop around shapes to select them",
+            Tool::Pencil => "Pencil: drag to draw",
+            Tool::Brush => "Brush: drag to paint",
         }
     }
 

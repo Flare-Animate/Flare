@@ -146,6 +146,8 @@ const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::H, Tool::Hand),
     (Key::Z, Tool::Zoom),
     (Key::L, Tool::Lasso),
+    (Key::Y, Tool::Pencil),
+    (Key::B, Tool::Brush),
 ];
 
 /// Frames `from..=to` of one layer, selected in the timeline for copying.
@@ -222,6 +224,10 @@ pub enum Tool {
     PolyStar,
     /// Drag a freehand loop around shapes to select them.
     Lasso,
+    /// Drag to draw a smoothed line in the stroke color and width.
+    Pencil,
+    /// Drag to paint a thick round stroke in the fill color.
+    Brush,
 }
 
 /// Timeline frame operations on the active layer at the current frame.
@@ -358,6 +364,11 @@ pub struct Workspace {
     poly_inner: f32,
     /// The loop being drawn with the lasso, in stage coordinates.
     lasso: Vec<Pos2>,
+    /// The points of the pencil or brush stroke being drawn, in stage coordinates.
+    freehand: Vec<Pos2>,
+    brush_size: f32,
+    /// How far a smoothed line may stray from the drag, in screen pixels.
+    smoothing: f32,
     /// The text being typed, if the user has clicked the stage with the text tool.
     text_edit: Option<PendingText>,
     /// Text handed to the font worker and not yet back: (job number, where to put it).
@@ -463,6 +474,9 @@ impl Workspace {
             poly_star: false,
             poly_inner: 0.5,
             lasso: Vec::new(),
+            freehand: Vec::new(),
+            brush_size: 12.0,
+            smoothing: 2.0,
             text_size: 48.0,
             text_edit: None,
             text_pending: None,
@@ -1649,6 +1663,8 @@ impl Workspace {
             | MenuAction::ToolEraser
             | MenuAction::ToolPolyStar
             | MenuAction::ToolLasso
+            | MenuAction::ToolPencil
+            | MenuAction::ToolBrush
             | MenuAction::PlayPause
             | MenuAction::ZoomIn
             | MenuAction::ZoomOut => true,
@@ -1711,6 +1727,8 @@ impl Workspace {
             MenuAction::ToolEraser => "Eraser",
             MenuAction::ToolPolyStar => "PolyStar",
             MenuAction::ToolLasso => "Lasso",
+            MenuAction::ToolPencil => "Pencil",
+            MenuAction::ToolBrush => "Brush",
             MenuAction::ZoomIn => "Zoom In",
             MenuAction::ZoomOut => "Zoom Out",
             MenuAction::ZoomFit => "Fit Stage in Window",
@@ -1827,6 +1845,8 @@ impl Workspace {
             MenuAction::ToolEraser => self.set_tool(Tool::Eraser),
             MenuAction::ToolPolyStar => self.set_tool(Tool::PolyStar),
             MenuAction::ToolLasso => self.set_tool(Tool::Lasso),
+            MenuAction::ToolPencil => self.set_tool(Tool::Pencil),
+            MenuAction::ToolBrush => self.set_tool(Tool::Brush),
             MenuAction::InsertFrame => self.frame_edit(FrameOp::InsertFrame),
             MenuAction::RemoveFrame => self.frame_edit(FrameOp::RemoveFrame),
             MenuAction::InsertKeyframe => self.frame_edit(FrameOp::InsertKeyframe),
@@ -2296,7 +2316,9 @@ impl Workspace {
             | Tool::Bucket
             | Tool::InkBottle
             | Tool::Eraser
-            | Tool::Lasso => None,
+            | Tool::Lasso
+            | Tool::Pencil
+            | Tool::Brush => None,
             Tool::Select => {
                 let grabbed = if additive {
                     None
@@ -2400,6 +2422,32 @@ impl Workspace {
         }
     }
 
+    /// Commits the pencil or brush stroke as one undo step: a smoothed open path stroked with
+    /// round caps. The brush paints with the fill color at the brush size; the pencil uses the
+    /// stroke color and width.
+    fn finish_freehand(&mut self, scale: f32) {
+        let points = std::mem::take(&mut self.freehand);
+        let tolerance = self.smoothing / scale.max(f32::EPSILON);
+        let points = crate::freehand::simplify(&points, tolerance);
+        let Some(path) = crate::freehand::smooth_path(&points) else {
+            return; // a click, not a drag
+        };
+        let (color, width, name) = match self.tool {
+            Tool::Brush => (self.fill, self.brush_size, "Brush stroke"),
+            _ => (self.stroke_color, self.stroke_width, "Pencil line"),
+        };
+        let c = color.to_array();
+        let stroke = ShapeStroke::new(f64::from(width), Rgba8::new(c[0], c[1], c[2], c[3]));
+        match stroke.map_err(|e| e.to_string()).and_then(|stroke| {
+            Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT)
+                .map(|shape| shape.with_stroke(stroke))
+                .map_err(|e| e.to_string())
+        }) {
+            Ok(shape) => self.insert_shape_layer(shape, name),
+            Err(error) => self.report(error),
+        }
+    }
+
     /// Selects what the finished lasso loop encloses; with `additive` it adds to the selection.
     fn finish_lasso(&mut self, additive: bool) {
         let polygon = std::mem::take(&mut self.lasso);
@@ -2449,6 +2497,7 @@ impl Workspace {
     fn cancel_drag(&mut self) {
         self.span_drag = None;
         self.lasso.clear();
+        self.freehand.clear();
         if self.drag.take().is_some() {
             self.drag_cancelled = true;
         }
@@ -3410,6 +3459,28 @@ impl Workspace {
         }
         if self.tool == Tool::Hand && response.dragged_by(egui::PointerButton::Primary) {
             self.stage_view.pan_by(response.drag_delta());
+        }
+        if matches!(self.tool, Tool::Pencil | Tool::Brush) {
+            let primary = egui::PointerButton::Primary;
+            if let Some(p) = response.interact_pointer_pos()
+                && response.dragged_by(primary)
+            {
+                let at = to_doc(p);
+                if self.freehand.last().is_none_or(|last| *last != at) {
+                    self.freehand.push(at);
+                }
+            }
+            if response.drag_stopped_by(primary) {
+                self.finish_freehand(scale);
+            }
+            if self.freehand.len() > 1 {
+                let (color, width) = match self.tool {
+                    Tool::Brush => (self.fill, self.brush_size),
+                    _ => (self.stroke_color, self.stroke_width),
+                };
+                let points: Vec<Pos2> = self.freehand.iter().map(|p| to_screen(*p)).collect();
+                painter.add(egui::Shape::line(points, Stroke::new(width * scale, color)));
+            }
         }
         if self.tool == Tool::Lasso {
             let primary = egui::PointerButton::Primary;
@@ -7571,5 +7642,43 @@ mod tests {
         ws.lasso = vec![Pos2::new(0.0, 0.0), Pos2::new(500.0, 500.0)];
         ws.finish_lasso(false);
         assert!(ws.selection_all().is_empty());
+    }
+
+    #[test]
+    fn pencil_and_brush_strokes_are_smoothed_open_paths_in_one_undo_step() {
+        let mut ws = workspace();
+        ws.stroke_color = Color32::from_rgb(1, 2, 3);
+        ws.stroke_width = 3.0;
+        ws.fill = Color32::from_rgb(9, 9, 9);
+        ws.brush_size = 20.0;
+        let drag = |ws: &mut Workspace| {
+            ws.freehand = (0..40)
+                .map(|i| Pos2::new(10.0 + i as f32 * 3.0, 50.0 + (i as f32 * 0.4).sin() * 20.0))
+                .collect();
+        };
+        ws.set_tool(Tool::Pencil);
+        drag(&mut ws);
+        ws.finish_freehand(1.0);
+        let pencil = drawn_shape(&ws, 1);
+        let stroke = pencil.stroke().expect("stroked");
+        assert_eq!(
+            (stroke.width(), stroke.color()),
+            (3.0, Rgba8::opaque(1, 2, 3))
+        );
+        assert!(pencil.path().len() < 40, "the drag is simplified");
+        ws.set_tool(Tool::Brush);
+        drag(&mut ws);
+        ws.finish_freehand(1.0);
+        let brush = drawn_shape(&ws, 2).stroke().expect("stroked");
+        assert_eq!(
+            (brush.width(), brush.color()),
+            (20.0, Rgba8::opaque(9, 9, 9))
+        );
+        ws.undo();
+        assert_eq!(layer_count(&ws), 2);
+        // A press without movement draws nothing.
+        ws.freehand = vec![Pos2::new(5.0, 5.0)];
+        ws.finish_freehand(1.0);
+        assert_eq!(layer_count(&ws), 2);
     }
 }
