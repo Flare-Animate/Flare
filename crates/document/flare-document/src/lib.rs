@@ -6,10 +6,12 @@
 #![forbid(unsafe_code)]
 
 mod shape;
+mod stage;
 mod timeline;
 mod validate;
 
 pub use shape::{MAX_SEGMENTS, PathSegment, Shape, ShapeError};
+pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
 pub use timeline::{Content, FrameSpan, Instance, Layer, Timeline, TimelineError, Tween};
 pub use validate::Diagnostic;
 
@@ -91,6 +93,7 @@ pub struct Document {
     frame_rate: FrameRate,
     scenes: Vec<Scene>,
     symbols: Vec<Symbol>,
+    stage: Stage,
 }
 
 impl Document {
@@ -106,6 +109,7 @@ impl Document {
             frame_rate,
             scenes,
             symbols,
+            stage: Stage::default(),
         };
         let diagnostics = validate::validate(&document);
         if diagnostics.is_empty() {
@@ -113,6 +117,17 @@ impl Document {
         } else {
             Err(diagnostics)
         }
+    }
+
+    /// Replaces the stage. Stage values validate themselves, so this cannot fail.
+    #[must_use]
+    pub fn with_stage(mut self, stage: Stage) -> Self {
+        self.stage = stage;
+        self
+    }
+
+    pub fn stage(&self) -> Stage {
+        self.stage
     }
 
     pub fn id(&self) -> DocumentId {

@@ -241,6 +241,25 @@ mod tests {
     }
 
     #[test]
+    fn stage_changes_are_undoable_and_survive_other_edits() {
+        use flare_core::Rgba8;
+        use flare_document::Stage;
+        let mut f = fixture();
+        let default = f.session.document().stage();
+        let stage = Stage::new(640, 360, Rgba8::opaque(10, 20, 30)).expect("stage");
+        f.session
+            .apply([Command::SetStage(stage)])
+            .expect("set stage");
+        assert_eq!(f.session.document().stage(), stage);
+        // An unrelated edit rebuilds the document; the stage must not reset.
+        f.session.apply([add_symbol(&f)]).expect("symbol");
+        assert_eq!(f.session.document().stage(), stage);
+        f.session.undo();
+        f.session.undo();
+        assert_eq!(f.session.document().stage(), default);
+    }
+
+    #[test]
     fn revision_changes_with_every_document_change_but_not_on_failure() {
         let mut f = fixture();
         let start = f.session.revision();

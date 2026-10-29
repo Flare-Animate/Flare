@@ -1,12 +1,13 @@
 use flare_core::{LayerId, SceneId};
 use flare_document::Timeline;
-use flare_document::{Diagnostic, Document, FrameSpan, Layer, Scene, Symbol, TimelineError};
+use flare_document::{Diagnostic, Document, FrameSpan, Layer, Scene, Stage, Symbol, TimelineError};
 use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Command {
     AddSymbol(Symbol),
     AddScene(Scene),
+    SetStage(Stage),
     AddLayer {
         scene: SceneId,
         layer: Layer,
@@ -47,9 +48,11 @@ impl From<Vec<Diagnostic>> for EditError {
 pub(crate) fn apply(document: &Document, command: Command) -> Result<Document, EditError> {
     let mut scenes = document.scenes().to_vec();
     let mut symbols = document.symbols().to_vec();
+    let mut stage = document.stage();
     match command {
         Command::AddSymbol(symbol) => symbols.push(symbol),
         Command::AddScene(scene) => scenes.push(scene),
+        Command::SetStage(new_stage) => stage = new_stage,
         Command::AddLayer { scene, layer } => {
             edit_layers(&mut scenes, scene, |layers| {
                 layers.push(layer);
@@ -78,12 +81,8 @@ pub(crate) fn apply(document: &Document, command: Command) -> Result<Document, E
             })?;
         }
     }
-    Ok(Document::new(
-        document.id(),
-        document.frame_rate(),
-        scenes,
-        symbols,
-    )?)
+    // The stage is carried through every edit; dropping it here would reset it silently.
+    Ok(Document::new(document.id(), document.frame_rate(), scenes, symbols)?.with_stage(stage))
 }
 
 fn edit_layers(
