@@ -1118,6 +1118,7 @@ dependencies = [
  "flare-document",
  "flare-edit",
  "flare-eval",
+ "flare-export",
  "flare-flash",
  "flare-import",
  "flare-render",
@@ -1181,6 +1182,21 @@ dependencies = [
  "flare-document",
  "glamx",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "flare-export"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "flare-document",
+ "flare-eval",
+ "flare-import",
+ "flare-render",
+ "glamx",
+ "tempfile",
+ "thiserror 2.0.21",
+ "zip",
 ]
 
 [[package]]

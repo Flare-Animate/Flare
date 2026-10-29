@@ -14,6 +14,7 @@ Dependencies point down this list; a crate never depends on one above it.
 | `flare-storage` | The `.flare` SQLite container: save, load, revalidation. |
 | `flare-ui` | The egui workspace: stage, timeline, tools, library, menu actions. No window or GPU code. |
 | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
+| `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | `apps/flare-cli` | Headless project editing and export. |
 | `apps/flare-desktop` | The winit/egui-wgpu shell: window, GPU surface, native dialogs and menu. |
@@ -126,6 +127,25 @@ Foreign data is not preserved, so anything not imported is lost on save. This ha
 tested only against fixtures written for these tests, not against files from Animate; real
 corpus evidence is the next step before calling any feature supported.
 
+## Export (XFL)
+
+`flare-cli export-xfl <project> <out>` writes an XFL folder (with the `.xfl` stub), or a
+zipped `.fla` when `out` ends in `.fla`. It never overwrites, and the folder or archive
+appears only once complete. Written: stage, frame rate, background, scenes, layers with
+visibility and lock, frames and durations, instances with their matrix and motion tweens,
+the library as Graphic symbols, and fills and strokes of shapes.
+
+XFL edges hold only lines and quadratic curves, so cubic curves are approximated: each is
+split into as many quadratic pieces as a published error bound requires to stay within
+0.05 px, and the report says so. Also reported: gaps (written as empty frames), empty layers
+(written with one empty frame), duplicate library names (renamed, since XFL needs unique
+ones), a translucent background (written opaque) and invisible shapes (skipped). Names are
+escaped and file names are made safe and unique.
+
+Verification is round-trip only: exported files re-import with `flare-import` to the same
+structure, identical pixels for straight edges and close pixels for curves. Whether Adobe
+Animate opens them is untested. Source preservation of unknown data is not implemented.
+
 ## Frontends
 
 `flare-cli` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`,
@@ -141,7 +161,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 ## Known gaps
 
 - No pen or path tool, gradients, masks, text or bitmap fills.
-- XFL import covers a defined subset (see Import); there is no FLA/XFL export, no source preservation, and no SWF parsing beyond signature inspection.
+- XFL import covers a defined subset (see Import); XFL export is verified only against our own importer, there is no source preservation, and no SWF parsing beyond signature inspection.
 - No stage zoom or pan, no docking, no multi-select, no drag-editing of spans.
 - No autosave or crash recovery; undo history is not persisted.
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS

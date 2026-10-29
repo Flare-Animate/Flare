@@ -534,3 +534,45 @@ pub fn import(source: &Path, out: &Path) -> Result<Value> {
         "diagnostics": diagnostics,
     }))
 }
+
+/// Exports a project as an XFL folder, or as a zipped modern `.fla` when `out` ends in
+/// `.fla`. Never overwrites, and reports everything the format could not hold exactly.
+pub fn export_xfl(path: &Path, out: &Path) -> Result<Value> {
+    let session = open(path)?;
+    let output = flare_export::export_xfl(session.document())?;
+    let zipped = out
+        .extension()
+        .is_some_and(|e| e.eq_ignore_ascii_case("fla"));
+    if zipped {
+        flare_export::write_fla(&output, out)
+    } else {
+        flare_export::write_directory(&output, out)
+    }
+    .with_context(|| format!("cannot write {}", out.display()))?;
+    let count = |severity| {
+        output
+            .diagnostics
+            .iter()
+            .filter(|d| d.severity == severity)
+            .count()
+    };
+    let diagnostics: Vec<Value> = output
+        .diagnostics
+        .iter()
+        .map(|d| {
+            json!({
+                "severity": format!("{:?}", d.severity).to_lowercase(),
+                "location": d.location,
+                "message": d.message,
+            })
+        })
+        .collect();
+    Ok(json!({
+        "exported": out.to_string_lossy(),
+        "format": if zipped { "fla" } else { "xfl" },
+        "files": output.files.len(),
+        "info": count(flare_export::Severity::Info),
+        "warnings": count(flare_export::Severity::Warning),
+        "diagnostics": diagnostics,
+    }))
+}

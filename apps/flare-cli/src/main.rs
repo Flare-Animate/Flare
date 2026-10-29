@@ -143,6 +143,8 @@ enum Command {
     /// Import an XFL directory, .xfl file or modern .fla into a new project, listing what was
     /// not carried over.
     Import { source: PathBuf, out: PathBuf },
+    /// Export a project as an XFL folder, or a zipped .fla when OUT ends in .fla.
+    ExportXfl { path: PathBuf, out: PathBuf },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -264,6 +266,7 @@ fn main() -> Result<()> {
             transparent,
         } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
         Command::Import { source, out } => project::import(&source, &out)?,
+        Command::ExportXfl { path, out } => project::export_xfl(&path, &out)?,
         Command::Layer {
             op,
             path,

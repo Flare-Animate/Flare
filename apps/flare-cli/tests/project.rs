@@ -730,3 +730,122 @@ fn import_turns_an_xfl_folder_into_a_project_and_lists_what_was_skipped() {
         "a failed import leaves no file behind"
     );
 }
+
+#[test]
+fn export_xfl_round_trips_through_the_cli_as_a_folder_and_as_a_fla() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&[
+        "new",
+        &file,
+        "--width",
+        "40",
+        "--height",
+        "20",
+        "--background",
+        "102030",
+    ]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "2",
+        "2",
+        "10",
+        "10",
+        "--color",
+        "FF0000",
+        "--duration",
+        "4",
+    ]);
+    let symbol = json(&[
+        "add-symbol",
+        &file,
+        "Dot",
+        "--rect",
+        "0",
+        "0",
+        "4",
+        "4",
+        "--color",
+        "00FF00",
+    ])["symbol"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    let layer = json(&["add-layer", &file, "Movers"])["layer"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    json(&[
+        "place",
+        &file,
+        &symbol,
+        "--layer",
+        &layer,
+        "--duration",
+        "4",
+        "--x",
+        "20",
+        "--y",
+        "5",
+        "--tween",
+    ]);
+    json(&[
+        "place", &file, &symbol, "--layer", &layer, "--start", "4", "--x", "30", "--y", "5",
+    ]);
+
+    let folder = dir.path().join("proj_xfl").to_string_lossy().into_owned();
+    let report = json(&["export-xfl", &file, &folder]);
+    assert_eq!(report["format"], "xfl");
+    assert!(
+        std::path::Path::new(&folder)
+            .join("DOMDocument.xml")
+            .is_file()
+    );
+    let fla = dir.path().join("proj.fla").to_string_lossy().into_owned();
+    assert_eq!(json(&["export-xfl", &file, &fla])["format"], "fla");
+
+    for (source, name) in [(&folder, "from_folder"), (&fla, "from_fla")] {
+        let reimported = dir
+            .path()
+            .join(format!("{name}.flare"))
+            .to_string_lossy()
+            .into_owned();
+        json(&["import", source, &reimported]);
+        let info = json(&["info", &reimported]);
+        assert_eq!(
+            (
+                info["stage"]["width"].as_u64(),
+                info["stage"]["height"].as_u64()
+            ),
+            (Some(40), Some(20))
+        );
+        assert_eq!(info["symbols"].as_array().expect("symbols").len(), 1);
+        // The same artwork renders the same way, including the tween halfway through.
+        for frame in ["0", "2"] {
+            let (a, b) = (
+                dir.path()
+                    .join(format!("{name}_a{frame}.png"))
+                    .to_string_lossy()
+                    .into_owned(),
+                dir.path()
+                    .join(format!("{name}_b{frame}.png"))
+                    .to_string_lossy()
+                    .into_owned(),
+            );
+            json(&["export", &file, &a, "--frame", frame]);
+            json(&["export", &reimported, &b, "--frame", frame]);
+            assert_eq!(
+                read_png(&a).0,
+                read_png(&b).0,
+                "{name} frame {frame} differs"
+            );
+        }
+    }
+    assert!(
+        !run(&["export-xfl", &file, &folder]).status.success(),
+        "never overwrites"
+    );
+    assert!(!run(&["export-xfl", &file, &fla]).status.success());
+}
