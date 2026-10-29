@@ -5,7 +5,9 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
-use flare_document::{Content, Document, FrameSpan, Instance, Layer, Scene, Symbol, Timeline};
+use flare_document::{
+    Content, Document, FrameSpan, Instance, Layer, Scene, Symbol, Timeline, Tween,
+};
 use flare_edit::{Command, EditorSession};
 use glamx::{DAffine2, DVec2};
 use serde_json::{Value, json};
@@ -87,6 +89,7 @@ pub fn place(
     duration: u32,
     x: f64,
     y: f64,
+    tween: bool,
 ) -> Result<Value> {
     let mut session = open(path)?;
     let (scene, layer) = {
@@ -105,7 +108,10 @@ pub fn place(
     let transform = Transform2D::new(DAffine2::from_translation(DVec2::new(x, y)))?;
     let instance = Instance::new(InstanceId::new(), SymbolId::from_uuid(symbol), transform);
     let duration = NonZeroU32::new(duration).context("duration must be at least 1")?;
-    let span = FrameSpan::new(start, duration, Content::Instance(instance.clone()));
+    let mut span = FrameSpan::new(start, duration, Content::Instance(instance.clone()));
+    if tween {
+        span = span.with_tween(Tween::Linear);
+    }
     session.apply([Command::InsertSpan { scene, layer, span }])?;
     commit(&session, path)?;
     Ok(json!({ "instance": instance.id().as_uuid() }))

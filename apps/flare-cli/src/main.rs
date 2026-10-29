@@ -66,6 +66,9 @@ enum Command {
         x: f64,
         #[arg(long, default_value_t = 0.0)]
         y: f64,
+        /// Tween linearly to the next adjacent span of the same symbol.
+        #[arg(long)]
+        tween: bool,
     },
 }
 
@@ -118,7 +121,8 @@ fn main() -> Result<()> {
             duration,
             x,
             y,
-        } => project::place(&path, symbol, start, duration, x, y)?,
+            tween,
+        } => project::place(&path, symbol, start, duration, x, y, tween)?,
     };
     let stdout = std::io::stdout();
     let mut stdout = stdout.lock();

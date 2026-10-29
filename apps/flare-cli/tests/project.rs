@@ -92,3 +92,28 @@ fn new_refuses_to_overwrite() {
     json(&["new", &file]);
     assert!(!run(&["new", &file]).status.success());
 }
+
+#[test]
+fn tween_survives_save_and_animates_on_eval() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file]);
+    let symbol = json(&["add-symbol", &file, "Art"])["symbol"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    json(&["place", &file, &symbol, "--duration", "10", "--tween"]);
+    json(&[
+        "place",
+        &file,
+        &symbol,
+        "--start",
+        "10",
+        "--duration",
+        "5",
+        "--x",
+        "100",
+    ]);
+    let mid = json(&["eval", &file, "--frame", "5"]);
+    assert_eq!(mid["placed"][0]["matrix"][4], 50.0);
+}
