@@ -12,7 +12,7 @@ use flare_document::PathSegment;
 use flare_eval::Frame;
 use thiserror::Error;
 use vello_cpu::color::{AlphaColor, Srgb};
-use vello_cpu::kurbo::{Affine, BezPath, Rect};
+use vello_cpu::kurbo::{Affine, BezPath, Point, Rect, Shape as _};
 use vello_cpu::{Pixmap, RenderContext, Resources};
 
 /// Per-side limit (vello_cpu uses `u16`; we stay well below).
@@ -88,6 +88,25 @@ fn bez_path(segments: &[PathSegment]) -> BezPath {
         }
     }
     path
+}
+
+/// Index into `frame.shapes` of the topmost shape whose fill contains `point` (scene
+/// coordinates), using the same non-zero fill rule as rendering. Fully transparent
+/// fills and singular transforms are not hittable.
+pub fn hit_test(frame: &Frame<'_>, point: glamx::DVec2) -> Option<usize> {
+    frame
+        .shapes
+        .iter()
+        .enumerate()
+        .rev()
+        .find_map(|(index, drawn)| {
+            if drawn.shape.fill().a == 0 || drawn.transform.matrix2.determinant() == 0.0 {
+                return None;
+            }
+            let local = drawn.transform.inverse().transform_point2(point);
+            let inside = bez_path(drawn.shape.path()).contains(Point::new(local.x, local.y));
+            inside.then_some(index)
+        })
 }
 
 /// Converts premultiplied to straight alpha with rounding.
@@ -252,6 +271,64 @@ mod tests {
         ];
         let (doc, id) = scene_with(spans, vec![]);
         assert_eq!(draw(&doc, id, Rgba8::WHITE).pixel(5, 5), Some(RED));
+    }
+
+    #[test]
+    fn hit_testing_finds_the_topmost_shape_through_transforms() {
+        let art = SymbolId::new();
+        let art_tl = Timeline::new(vec![
+            Layer::new(
+                LayerId::new(),
+                "L",
+                vec![span(rect(0.0, 0.0, 10.0, 10.0, RED))],
+            )
+            .expect("l"),
+        ]);
+        let shift =
+            Transform2D::new(DAffine2::from_translation(DVec2::new(50.0, 50.0))).expect("finite");
+        let instance = Instance::new(InstanceId::new(), art, shift);
+        let blue = Rgba8::opaque(0, 0, 255);
+        // First layer is on top: the blue rectangle covers the left half of the stage.
+        let spans = vec![
+            span(rect(0.0, 0.0, 55.0, 100.0, blue)),
+            span(Content::Instance(instance)),
+        ];
+        let (doc, id) = scene_with(spans, vec![Symbol::new(art, "Art", art_tl)]);
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        assert_eq!(frame.shapes.len(), 2);
+        // (52, 52) is inside both; the top layer wins (paint order: it is drawn last).
+        assert_eq!(hit_test(&frame, DVec2::new(52.0, 52.0)), Some(1));
+        // (58, 58) is only inside the instance's translated square.
+        assert_eq!(hit_test(&frame, DVec2::new(58.0, 58.0)), Some(0));
+        assert_eq!(hit_test(&frame, DVec2::new(90.0, 90.0)), None);
+        // The instance's local origin square (0..10) was moved away; this point is in the blue rect.
+        assert_eq!(hit_test(&frame, DVec2::new(5.0, 80.0)), Some(1));
+    }
+
+    #[test]
+    fn transparent_fills_and_singular_transforms_are_not_hittable() {
+        let clear = Rgba8::new(1, 2, 3, 0);
+        let (doc, id) = scene_with(vec![span(rect(0.0, 0.0, 10.0, 10.0, clear))], vec![]);
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        assert_eq!(hit_test(&frame, DVec2::new(5.0, 5.0)), None);
+
+        let art = SymbolId::new();
+        let art_tl = Timeline::new(vec![
+            Layer::new(
+                LayerId::new(),
+                "L",
+                vec![span(rect(0.0, 0.0, 10.0, 10.0, RED))],
+            )
+            .expect("l"),
+        ]);
+        let flat = Transform2D::new(DAffine2::from_scale(DVec2::new(0.0, 1.0))).expect("finite");
+        let instance = Instance::new(InstanceId::new(), art, flat);
+        let (doc, id) = scene_with(
+            vec![span(Content::Instance(instance))],
+            vec![Symbol::new(art, "Art", art_tl)],
+        );
+        let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+        assert_eq!(hit_test(&frame, DVec2::new(0.0, 5.0)), None);
     }
 
     #[test]
