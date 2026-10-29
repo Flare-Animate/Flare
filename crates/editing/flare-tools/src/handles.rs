@@ -3,7 +3,7 @@
 //! Everything here is geometry in stage coordinates: where the eight handles sit, which one a
 //! point is on, and what scale a drag of a handle means. The workspace turns that into an edit.
 
-use egui::{Pos2, Rect};
+use emath::{Pos2, Rect};
 use glamx::{DAffine2, DVec2};
 
 /// Smallest magnitude of a scale factor, so a drag cannot collapse the artwork to nothing.

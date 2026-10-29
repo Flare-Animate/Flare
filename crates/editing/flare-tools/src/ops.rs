@@ -1,12 +1,12 @@
 //! Selection-based editing operations as pure functions from a document to commands.
 //!
-//! Nothing here touches egui or the session, so every operation is unit-testable and the
+//! Nothing here touches any UI or the session, so every operation is unit-testable and the
 //! UI only decides *which* operation to run. Selections are frame spans, identified by
 //! their layer and start frame (spans on a layer never overlap, so this is unique).
 
 use std::num::NonZeroU32;
 
-use egui::{Pos2, Rect};
+use emath::{Pos2, Rect};
 use flare_commands::Command;
 use flare_core::{
     DocumentPoint, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
@@ -565,24 +565,24 @@ pub enum Align {
 }
 
 /// How far each of `rects` moves to line up on `target`'s edge or center.
-pub fn align_deltas(rects: &[Rect], how: Align, target: Rect) -> Vec<egui::Vec2> {
+pub fn align_deltas(rects: &[Rect], how: Align, target: Rect) -> Vec<emath::Vec2> {
     rects
         .iter()
         .map(|r| match how {
-            Align::Left => egui::vec2(target.left() - r.left(), 0.0),
-            Align::CenterH => egui::vec2(target.center().x - r.center().x, 0.0),
-            Align::Right => egui::vec2(target.right() - r.right(), 0.0),
-            Align::Top => egui::vec2(0.0, target.top() - r.top()),
-            Align::CenterV => egui::vec2(0.0, target.center().y - r.center().y),
-            Align::Bottom => egui::vec2(0.0, target.bottom() - r.bottom()),
+            Align::Left => emath::vec2(target.left() - r.left(), 0.0),
+            Align::CenterH => emath::vec2(target.center().x - r.center().x, 0.0),
+            Align::Right => emath::vec2(target.right() - r.right(), 0.0),
+            Align::Top => emath::vec2(0.0, target.top() - r.top()),
+            Align::CenterV => emath::vec2(0.0, target.center().y - r.center().y),
+            Align::Bottom => emath::vec2(0.0, target.bottom() - r.bottom()),
         })
         .collect()
 }
 
 /// How far each of `rects` moves to leave equal gaps between neighbours along the axis, the two
 /// outermost staying put. Fewer than three rectangles have nothing to distribute.
-pub fn distribute_deltas(rects: &[Rect], horizontal: bool) -> Vec<egui::Vec2> {
-    let mut deltas = vec![egui::Vec2::ZERO; rects.len()];
+pub fn distribute_deltas(rects: &[Rect], horizontal: bool) -> Vec<emath::Vec2> {
+    let mut deltas = vec![emath::Vec2::ZERO; rects.len()];
     if rects.len() < 3 {
         return deltas;
     }
@@ -609,9 +609,9 @@ pub fn distribute_deltas(rects: &[Rect], horizontal: bool) -> Vec<egui::Vec2> {
     for index in order {
         let shift = at - lo(&rects[index]);
         deltas[index] = if horizontal {
-            egui::vec2(shift, 0.0)
+            emath::vec2(shift, 0.0)
         } else {
-            egui::vec2(0.0, shift)
+            emath::vec2(0.0, shift)
         };
         at += size(&rects[index]) + gap;
     }

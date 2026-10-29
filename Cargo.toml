@@ -11,6 +11,7 @@ members = [
     "crates/editing/flare-commands",
     "crates/editing/flare-history",
     "crates/editing/flare-editor",
+    "crates/editing/flare-tools",
     "crates/services/flare-storage",
     "crates/foundation/flare-eval",
     "crates/services/flare-render",
@@ -47,6 +48,8 @@ flare-storage = { path = "crates/services/flare-storage" }
 flare-commands = { path = "crates/editing/flare-commands" }
 flare-history = { path = "crates/editing/flare-history" }
 flare-editor = { path = "crates/editing/flare-editor" }
+flare-tools = { path = "crates/editing/flare-tools" }
+emath = { version = "0.37.0", default-features = false }
 flare-document = { path = "crates/foundation/flare-document" }
 flare-text = { path = "crates/services/flare-text" }
 flare-audio = { path = "crates/services/flare-audio" }
@@ -175,6 +178,8 @@ opt-level = 2
 [profile.dev.package.flare-history]
 opt-level = 2
 [profile.dev.package.flare-editor]
+opt-level = 2
+[profile.dev.package.flare-tools]
 opt-level = 2
 [profile.dev.package.flare-eval]
 opt-level = 2

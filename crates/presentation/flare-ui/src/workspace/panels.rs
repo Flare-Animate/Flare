@@ -744,7 +744,7 @@ impl Workspace {
     // ---- align -------------------------------------------------------------------------
 
     pub(super) fn align_panel(&mut self, ui: &mut Ui) {
-        use crate::ops::Align;
+        use flare_tools::ops::Align;
         chrome::section(ui, "panel-align", "Align");
         let has = self.has_selection();
         for group in [

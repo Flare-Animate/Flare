@@ -14,14 +14,14 @@ use flare_editor::frames;
 use flare_history::EditorSession;
 use glamx::{DAffine2, DVec2};
 
-use crate::handles::{self, Handle};
 use crate::layout::{self, LayoutError, Pane};
-use crate::ops::{self, SpanRef};
-use crate::pen::{PenPath, Press};
 use crate::timeline_view;
 use crate::view::{self, StageView};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 use flare_runtime::{AudioJob, Done, IoJob, Mode, RenderJob, Rendered, Runtime, TextJob};
+use flare_tools::handles::{self, Handle};
+use flare_tools::ops::{self, SpanRef};
+use flare_tools::pen::{PenPath, Press};
 
 /// How many frames before and after the current one onion skinning can show.
 pub const MAX_ONION_FRAMES: u32 = 8;
@@ -2678,8 +2678,8 @@ impl Workspace {
     fn finish_freehand(&mut self, scale: f32) {
         let points = std::mem::take(&mut self.freehand);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
-        let points = crate::freehand::simplify(&points, tolerance);
-        let Some(path) = crate::freehand::smooth_path(&points) else {
+        let points = flare_tools::freehand::simplify(&points, tolerance);
+        let Some(path) = flare_tools::freehand::smooth_path(&points) else {
             return; // a click, not a drag
         };
         let (color, width, name) = match self.tool {

@@ -9,12 +9,8 @@
 mod actions;
 mod chrome;
 mod export_image;
-mod freehand;
-mod handles;
 mod icons;
 mod layout;
-mod ops;
-mod pen;
 mod theme;
 mod timeline_view;
 mod view;

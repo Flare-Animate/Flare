@@ -1776,6 +1776,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "flare-tools"
+version = "0.1.0"
+dependencies = [
+ "emath",
+ "flare-commands",
+ "flare-core",
+ "flare-document",
+ "flare-eval",
+ "flare-history",
+ "glamx",
+]
+
+[[package]]
 name = "flare-ui"
 version = "0.1.0"
 dependencies = [
@@ -1794,6 +1807,7 @@ dependencies = [
  "flare-runtime",
  "flare-storage",
  "flare-text",
+ "flare-tools",
  "glamx",
  "png 0.18.1",
  "serde",

@@ -22,6 +22,7 @@ glamx.workspace = true
 flare-render.workspace = true
 flare-runtime.workspace = true
 flare-text.workspace = true
+flare-tools.workspace = true
 flare-storage.workspace = true
 serde.workspace = true
 serde_json.workspace = true

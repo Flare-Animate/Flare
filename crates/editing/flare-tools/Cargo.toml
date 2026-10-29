@@ -1,0 +1,21 @@
+[package]
+name = "flare-tools"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+emath.workspace = true
+flare-commands.workspace = true
+flare-core.workspace = true
+flare-document.workspace = true
+flare-eval.workspace = true
+glamx.workspace = true
+
+[dev-dependencies]
+flare-history.workspace = true
+
+[lints]
+workspace = true

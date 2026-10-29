@@ -1,7 +1,7 @@
 //! Turning a freehand drag into a clean path: fewer points (Ramer-Douglas-Peucker), joined by
 //! smooth cubic curves (Catmull-Rom). Pure functions, so the tools stay thin.
 
-use egui::{Pos2, Vec2};
+use emath::{Pos2, Vec2};
 use flare_core::DocumentPoint;
 use flare_document::PathSegment;
 

@@ -5,7 +5,7 @@
 //! point of a path with at least three points closes it. This type holds only the in-progress
 //! geometry in document coordinates; the workspace decides when and how to commit it.
 
-use egui::Pos2;
+use emath::Pos2;
 use flare_core::DocumentPoint;
 use flare_document::PathSegment;
 
