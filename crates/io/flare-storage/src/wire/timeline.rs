@@ -130,6 +130,9 @@ pub(super) struct LayerWire {
     pub(super) folder: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) parent: Option<String>,
+    /// Absent in files written before motion guides existed.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub(super) guide: bool,
     /// Absent in files written before sounds existed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(super) cues: Vec<CueWire>,
@@ -153,6 +156,7 @@ impl TimelineWire {
                 locked: layer.is_locked(),
                 mask: layer.is_mask(),
                 folder: layer.is_folder(),
+                guide: layer.is_guide(),
                 parent: layer.parent().map(|p| p.as_uuid().to_string()),
                 cues: layer
                     .cues()
@@ -292,6 +296,7 @@ impl TimelineWire {
                     .with_locked(layer.locked)
                     .with_mask(layer.mask)
                     .with_folder(layer.folder)
+                    .with_guide(layer.guide)
                     .with_parent(
                         layer
                             .parent

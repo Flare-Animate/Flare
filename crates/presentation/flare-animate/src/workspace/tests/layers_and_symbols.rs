@@ -437,3 +437,35 @@ fn folders_wrap_the_active_layer_hide_and_lock_what_they_hold_and_let_go_when_de
     ws.undo();
     assert!(layers_of(&ws).iter().any(|l| l.is_folder()));
 }
+
+#[test]
+fn a_layer_becomes_a_motion_guide_through_the_menu_and_stops_being_drawn_or_picked() {
+    let ctx = egui::Context::default();
+    let mut ws = workspace();
+    ws.set_tool(Tool::Line);
+    ws.commit_shape(Tool::Line, Pos2::new(10.0, 10.0), Pos2::new(110.0, 10.0));
+    let line_layer = ws.active_layer_id().expect("the line's layer");
+    ws.select_at(Pos2::new(60.0, 10.0), false);
+    assert!(ws.selected.is_some(), "a line can be picked");
+    ws.clear_selection();
+    assert_eq!(
+        ws.label(MenuAction::ToggleLayerGuide),
+        "Motion Guide for Layer Below"
+    );
+    ws.perform(MenuAction::ToggleLayerGuide);
+    assert!(ws.layer(line_layer).is_some_and(|l| l.is_guide()));
+    assert_eq!(ws.label(MenuAction::ToggleLayerGuide), "Make Normal Layer");
+    ws.select_at(Pos2::new(60.0, 10.0), false);
+    assert!(
+        ws.selected.is_none(),
+        "a guide is not drawn, so it cannot be picked"
+    );
+    // Its path still shows on the stage while the workspace draws.
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    ws.undo();
+    assert!(
+        ws.layer(line_layer).is_some_and(|l| !l.is_guide()),
+        "one undo step"
+    );
+}

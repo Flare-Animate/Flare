@@ -394,3 +394,19 @@ fn folders_must_sit_above_what_they_hold_and_hold_no_frames_themselves() {
     let leaf = layer("leaf").with_parent(Some(inner.id()));
     assert!(build(vec![scene(vec![folder, inner, leaf])], vec![]).is_ok());
 }
+
+#[test]
+fn a_motion_guide_cannot_also_be_a_mask_or_a_folder() {
+    let layer = |name: &str| Layer::new(LayerId::new(), name, vec![]).expect("layer");
+    let scene = |l: Layer| Scene::new(SceneId::new(), "S", Timeline::new(vec![l]));
+    assert!(build(vec![scene(layer("g").with_guide(true))], vec![]).is_ok());
+    for bad in [
+        layer("m").with_guide(true).with_mask(true),
+        layer("f").with_guide(true).with_folder(true),
+    ] {
+        let refused = build(vec![scene(bad)], vec![]);
+        assert!(
+            matches!(refused, Err(d) if d.iter().any(|d| matches!(d, Diagnostic::GuideConflict(_))))
+        );
+    }
+}

@@ -116,6 +116,8 @@ pub struct Layer {
     mask: bool,
     /// A folder holds no art of its own: it groups the layers below it that name it as parent.
     folder: bool,
+    /// A motion guide is never drawn: its path steers the motion tween of the layer below it.
+    guide: bool,
     /// The folder this layer sits in. It must be a folder layer above this one.
     parent: Option<LayerId>,
     /// Sounds that start at frames of this layer, in order of frame. Shared like the spans.
@@ -143,6 +145,7 @@ impl Layer {
             locked: false,
             mask: false,
             folder: false,
+            guide: false,
             parent: None,
             cues: Arc::from([]),
         })
@@ -155,6 +158,7 @@ impl Layer {
         layer.locked = self.locked;
         layer.mask = self.mask;
         layer.folder = self.folder;
+        layer.guide = self.guide;
         layer.parent = self.parent;
         layer.cues = Arc::clone(&self.cues);
         Ok(layer)
@@ -185,6 +189,14 @@ impl Layer {
     #[must_use]
     pub fn with_mask(mut self, mask: bool) -> Self {
         self.mask = mask;
+        self
+    }
+
+    /// Makes this layer a motion guide (or a plain layer again): not drawn, and the first shape
+    /// on it at a frame is the path the layer below follows in a motion tween.
+    #[must_use]
+    pub fn with_guide(mut self, guide: bool) -> Self {
+        self.guide = guide;
         self
     }
 
@@ -220,6 +232,10 @@ impl Layer {
 
     pub fn is_mask(&self) -> bool {
         self.mask
+    }
+
+    pub fn is_guide(&self) -> bool {
+        self.guide
     }
 
     pub fn is_folder(&self) -> bool {

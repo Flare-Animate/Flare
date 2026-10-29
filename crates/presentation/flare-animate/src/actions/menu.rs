@@ -136,7 +136,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ToggleLayerVisible),
             Action(A::ToggleLayerLocked),
             Action(A::ToggleLayerMask),
-            Mock("Guide Layer"),
+            Action(A::ToggleLayerGuide),
             Separator,
             Action(A::MoveLayerUp),
             Action(A::MoveLayerDown),

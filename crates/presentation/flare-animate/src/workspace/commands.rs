@@ -100,7 +100,8 @@ impl Workspace {
             MenuAction::ToggleMotionTween => self.selection_tween().is_some(),
             MenuAction::ToggleLayerVisible
             | MenuAction::ToggleLayerLocked
-            | MenuAction::ToggleLayerMask => layer.is_some(),
+            | MenuAction::ToggleLayerMask
+            | MenuAction::ToggleLayerGuide => layer.is_some(),
             MenuAction::MoveLayerUp => position.is_some_and(|p| p > 0),
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
@@ -223,6 +224,13 @@ impl Workspace {
                     "Remove Mask"
                 } else {
                     "Mask Layer Below"
+                }
+            }
+            MenuAction::ToggleLayerGuide => {
+                if layer.is_some_and(Layer::is_guide) {
+                    "Make Normal Layer"
+                } else {
+                    "Motion Guide for Layer Below"
                 }
             }
             MenuAction::MoveLayerUp => "Move Layer Up",
@@ -392,6 +400,11 @@ impl Workspace {
             MenuAction::ToggleLayerMask => {
                 if let Some(id) = layer {
                     self.toggle_layer_mask(id);
+                }
+            }
+            MenuAction::ToggleLayerGuide => {
+                if let Some(id) = layer {
+                    self.toggle_layer_guide(id);
                 }
             }
             MenuAction::MoveLayerUp => self.move_active_layer(-1),

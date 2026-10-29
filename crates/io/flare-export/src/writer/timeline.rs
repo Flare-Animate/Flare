@@ -111,6 +111,8 @@ pub(super) fn write_layer(
         if let Some(parent) = folder_parent {
             attrs.push_str(&format!(" parentLayerIndex=\"{parent}\""));
         }
+    } else if layer.is_guide() {
+        attrs.push_str(" layerType=\"guide\"");
     } else if layer.is_mask() {
         // Animate keeps mask layers locked; the layers they mask point back at them.
         attrs.push_str(" layerType=\"mask\" locked=\"true\"");
@@ -204,12 +206,13 @@ pub(super) fn write_timeline(
             out.push_str(xml);
             written += 1;
         }
-        // A mask masks the layer directly below it in the document.
+        // A mask masks, and a motion guide guides, the layer directly below it in the document;
+        // XFL points the layer below at either by index.
         let parent = mask_index.take();
         let folder = layer.parent().and_then(|id| indexes.get(&id).copied());
         indexes.insert(layer.id(), written);
         write_layer(out, layer, parent, folder, place, ctx);
-        if layer.is_mask() {
+        if layer.is_mask() || layer.is_guide() {
             mask_index = Some(written);
         }
         written += 1;

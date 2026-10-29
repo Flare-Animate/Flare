@@ -38,6 +38,8 @@ pub enum Diagnostic {
     BadFolderParent { layer: LayerId, parent: LayerId },
     #[error("folder {0:?} has frames; a folder only groups other layers")]
     FolderWithContent(LayerId),
+    #[error("layer {0:?} is a motion guide and also a mask or a folder")]
+    GuideConflict(LayerId),
     #[error("a cue on layer {layer:?} plays sound {sound:?}, which is not in the document")]
     DanglingSound { layer: LayerId, sound: SoundId },
 }
@@ -131,6 +133,9 @@ pub(crate) fn validate(document: &Document) -> Vec<Diagnostic> {
         for (position, layer) in timeline.layers().iter().enumerate() {
             if !layers.insert(layer.id()) {
                 out.push(Diagnostic::DuplicateLayer(layer.id()));
+            }
+            if layer.is_guide() && (layer.is_mask() || layer.is_folder()) {
+                out.push(Diagnostic::GuideConflict(layer.id()));
             }
             if layer.is_folder() && (!layer.spans().is_empty() || layer.is_mask()) {
                 out.push(Diagnostic::FolderWithContent(layer.id()));

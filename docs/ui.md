@@ -33,7 +33,7 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 Still planned (everything else in the menus and panels is built):
 
 - Library: folders.
-- Timeline: motion guides, the outline column.
+- Timeline: the outline column.
 - View: guides and outline mode.
 - Edit, Modify, Text, Commands and Help entries listed dimmed in the menus.
 

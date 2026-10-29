@@ -88,6 +88,23 @@ impl Workspace {
         self.validate_selection();
     }
 
+    /// Turns the layer into a motion guide for the layer below it, or back into a normal layer.
+    pub fn toggle_layer_guide(&mut self, layer: LayerId) {
+        let Some(scene) = self.scene_id() else { return };
+        let Some(current) = self.layer(layer).map(Layer::is_guide) else {
+            return;
+        };
+        self.run_batch(
+            vec![Command::UpdateLayer {
+                scene,
+                layer,
+                change: LayerChange::Guide(!current),
+            }],
+            "change the motion guide",
+        );
+        self.validate_selection();
+    }
+
     pub(super) fn layer(&self, id: LayerId) -> Option<&Layer> {
         self.document()
             .scenes()

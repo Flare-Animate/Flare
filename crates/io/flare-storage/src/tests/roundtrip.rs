@@ -405,3 +405,33 @@ fn folders_and_their_members_survive_and_older_files_have_none() {
             .all(|l| !l.is_folder() && l.parent().is_none())
     );
 }
+
+#[test]
+fn motion_guides_survive_and_older_files_have_none() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("a.flare");
+    let guide = Layer::new(LayerId::new(), "Guide", vec![])
+        .expect("layer")
+        .with_guide(true);
+    let below = Layer::new(LayerId::new(), "Below", vec![]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![guide, below]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    save(&document, &path).expect("save");
+    let loaded = load(&path).expect("load");
+    assert_eq!(loaded, document);
+    assert!(loaded.scenes()[0].timeline().layers()[0].is_guide());
+    save(&sample(), &path).expect("save");
+    assert!(
+        load(&path).expect("load").scenes()[0]
+            .timeline()
+            .layers()
+            .iter()
+            .all(|l| !l.is_guide())
+    );
+}

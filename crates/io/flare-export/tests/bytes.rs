@@ -128,3 +128,38 @@ fn folders_round_trip_through_xfl() {
     assert_eq!(layers[1].parent(), Some(layers[0].id()));
     assert_eq!(layers[2].parent(), None);
 }
+
+#[test]
+fn motion_guides_round_trip_through_xfl() {
+    use flare_document::Layer as L;
+    let guide = L::new(LayerId::new(), "Path", vec![])
+        .expect("layer")
+        .with_guide(true);
+    let below = L::new(LayerId::new(), "Mover", vec![]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![guide, below]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    let output = export_xfl(&document).expect("export");
+    assert!(
+        output
+            .files
+            .iter()
+            .any(|(_, b)| b.contains("layerType=\"guide\""))
+    );
+    let back = import_fla_bytes(fla_bytes(&output).expect("bytes")).expect("import");
+    let layers = back.document.scenes()[0].timeline().layers();
+    assert_eq!(layers.len(), 2);
+    assert!(layers[0].is_guide() && !layers[1].is_guide());
+    assert!(
+        !back
+            .diagnostics
+            .iter()
+            .any(|d| d.message.contains("membership")),
+        "the layer below a guide pointing at it is not worth a note"
+    );
+}

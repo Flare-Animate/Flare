@@ -163,6 +163,7 @@ fn walk<'a>(
         // A mask layer is never drawn itself; a hidden one stops masking.
         if !layer.is_visible()
             || layer.is_mask()
+            || layer.is_guide()
             || layer.is_folder()
             || hidden_by_folder(layers, index)
         {
@@ -175,7 +176,15 @@ fn walk<'a>(
             .filter(|above| above.is_mask() && above.is_visible())
         {
             let mut scratch = Frame::default();
-            walk_layer(document, mask, frame, parent, path, &[], &mut scratch)?;
+            walk_layer(
+                document,
+                mask,
+                frame,
+                parent,
+                path,
+                Steer::default(),
+                &mut scratch,
+            )?;
             if out.placed.len() + out.shapes.len() + scratch.shapes.len() >= MAX_NODES {
                 return Err(EvalError::TooManyNodes);
             }
@@ -191,9 +200,38 @@ fn walk<'a>(
                     .collect(),
             );
         }
-        walk_layer(document, layer, frame, parent, path, &clips, out)?;
+        // A visible motion guide directly above steers this layer's motion tweens.
+        let guide = index
+            .checked_sub(1)
+            .map(|above| &layers[above])
+            .filter(|above| above.is_guide() && above.is_visible())
+            .and_then(|above| above.span_at(frame))
+            .and_then(|span| match span.content() {
+                Content::Shape(shape) => Some(shape),
+                _ => None,
+            });
+        walk_layer(
+            document,
+            layer,
+            frame,
+            parent,
+            path,
+            Steer {
+                clips: &clips,
+                guide,
+            },
+            out,
+        )?;
     }
     Ok(())
+}
+
+/// What shapes how one layer is walked: the mask regions its shapes lie inside, and the motion
+/// guide whose path its tweens follow.
+#[derive(Clone, Copy, Default)]
+struct Steer<'s> {
+    clips: &'s [usize],
+    guide: Option<&'s Shape>,
 }
 
 /// One layer's content at `frame`, added to `out` with the given clip regions.
@@ -203,9 +241,10 @@ fn walk_layer<'a>(
     frame: u32,
     parent: DAffine2,
     path: &mut Vec<InstanceId>,
-    clips: &[usize],
+    steer: Steer<'_>,
     out: &mut Frame<'a>,
 ) -> Result<(), EvalError> {
+    let Steer { clips, guide } = steer;
     let Some(span) = layer.span_at(frame) else {
         return Ok(());
     };
@@ -225,7 +264,7 @@ fn walk_layer<'a>(
         }
         Content::Instance(instance) => instance,
     };
-    let local = tweened(layer, frame, instance)?;
+    let local = tweened(layer, frame, instance, guide)?;
     let transform = parent * local;
     path.push(instance.id());
     out.placed.push(Placed {
@@ -259,7 +298,12 @@ fn walk_layer<'a>(
 ///
 /// Interpolates scale, rotation (shortest arc) and translation. Matrices that are not a
 /// pure scale-rotate-translate (shear, reflection) are reported, not approximated.
-fn tweened(layer: &Layer, frame: u32, instance: &Instance) -> Result<DAffine2, EvalError> {
+fn tweened(
+    layer: &Layer,
+    frame: u32,
+    instance: &Instance,
+    guide: Option<&Shape>,
+) -> Result<DAffine2, EvalError> {
     let (id, from) = (instance.id(), instance.transform().as_affine());
     let Some(span) = layer.span_at(frame) else {
         return Ok(from);
@@ -287,10 +331,15 @@ fn tweened(layer: &Layer, frame: u32, instance: &Instance) -> Result<DAffine2, E
     } else if delta < -std::f64::consts::PI {
         delta += std::f64::consts::TAU;
     }
+    // With a guide the registration point rides the guide's path, from its start to its end,
+    // instead of going straight from one position to the other.
+    let position = guide
+        .and_then(|shape| guide::point_along(shape.path(), t))
+        .unwrap_or_else(|| t0.lerp(t1, t));
     Ok(DAffine2::from_scale_angle_translation(
         s0.lerp(s1, t),
         r0 + delta * t,
-        t0.lerp(t1, t),
+        position,
     ))
 }
 
@@ -311,6 +360,10 @@ fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
         .all(|(a, b)| (a - b).abs() <= 1e-9 * (1.0 + b.abs()));
     close.then_some((scale, angle, translation))
 }
+
+mod guide;
+
+pub use guide::{flatten, point_along};
 
 #[cfg(test)]
 mod tests;

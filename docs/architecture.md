@@ -49,7 +49,7 @@ set of semantics, and the UI is not allowed to have private ways to mutate a doc
 
 A `Document` has a frame rate, a `Stage` (size 1 to 16384 per side, background), ordered
 scenes and a library of symbols. A scene or symbol owns a `Timeline`: layers ordered top
-to bottom, each with a name, visible and locked flags, an optional folder it sits in, and non-overlapping `FrameSpan`s. A folder is a layer with no frames of its own that sits above the layers it holds (so a parent is always an earlier layer and folders cannot loop); hiding or locking it hides or locks them.
+to bottom, each with a name, visible and locked flags, an optional folder it sits in, and non-overlapping `FrameSpan`s. A folder is a layer with no frames of its own that sits above the layers it holds (so a parent is always an earlier layer and folders cannot loop); hiding or locking it hides or locks them. A motion guide is a layer that is never drawn: while a layer below it tweens an instance, the instance rides along the guide's first shape from its start to its end (by length) instead of going straight to the next position.
 
 A span is a held exposure: start frame, positive duration, `Content` (`Empty`, `Shape` or
 `Instance`) and an optional linear `Tween`. An empty keyframe is a span with `Empty`

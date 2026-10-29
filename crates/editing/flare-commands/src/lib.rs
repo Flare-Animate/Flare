@@ -17,6 +17,8 @@ pub enum LayerChange {
     Visible(bool),
     Locked(bool),
     Mask(bool),
+    /// Makes the layer a motion guide (or a plain layer again).
+    Guide(bool),
     /// Puts the layer in a folder, or takes it out with `None`.
     Parent(Option<LayerId>),
 }
@@ -229,6 +231,7 @@ fn step(
                 LayerChange::Visible(visible) => slot.clone().with_visible(visible),
                 LayerChange::Locked(locked) => slot.clone().with_locked(locked),
                 LayerChange::Mask(mask) => slot.clone().with_mask(mask),
+                LayerChange::Guide(guide) => slot.clone().with_guide(guide),
                 LayerChange::Parent(parent) => slot.clone().with_parent(parent),
             };
             Ok(())

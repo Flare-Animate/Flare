@@ -142,7 +142,18 @@ impl Workspace {
                     }
                 });
             });
-            chrome::mock_icon_button(ui, "layer-motion-guide", BAR_ICON, "Add motion guide");
+            if chrome::icon_button(
+                ui,
+                "layer-motion-guide",
+                BAR_ICON,
+                self.active_layer().is_some_and(Layer::is_guide),
+                self.is_enabled(MenuAction::ToggleLayerGuide),
+                "Motion guide for the layer below",
+            )
+            .clicked()
+            {
+                self.perform(MenuAction::ToggleLayerGuide);
+            }
             if chrome::icon_button(
                 ui,
                 "layer-mask",

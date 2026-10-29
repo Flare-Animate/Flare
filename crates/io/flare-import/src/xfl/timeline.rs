@@ -15,6 +15,8 @@ impl Importer {
         // Folders seen so far, by the index children refer to them by.
         let mut folders: std::collections::HashMap<usize, LayerId> =
             std::collections::HashMap::new();
+        // Motion guides by source index: the layer below one points at it, which needs no note.
+        let mut guides: std::collections::HashSet<usize> = std::collections::HashSet::new();
         for (source_index, layer) in layers_node.children_named("DOMLayer").enumerate() {
             let name = layer.attr("name").unwrap_or("Layer");
             let place = format!("{location} / layer \"{name}\"");
@@ -24,6 +26,17 @@ impl Importer {
                 .and_then(|i| folders.get(&i).copied());
             match layer.attr("layerType") {
                 None | Some("normal") => {}
+                Some("guide") => {
+                    // A motion guide: its frames are imported like any layer's and the layer is
+                    // marked, so the layer below it follows its path.
+                    guides.insert(source_index);
+                    let first = layers.len();
+                    self.layer(layer, name, &place, &mut layers);
+                    for made in &mut layers[first..] {
+                        *made = made.clone().with_guide(true).with_parent(parent);
+                    }
+                    continue;
+                }
                 Some("folder") => {
                     let id = LayerId::new();
                     if let Ok(folder) = Layer::new(id, name, Vec::new()) {
@@ -49,7 +62,11 @@ impl Importer {
                     continue;
                 }
             }
-            if layer.attr("parentLayerIndex").is_some() && parent.is_none() {
+            let points_at_guide = layer
+                .attr("parentLayerIndex")
+                .and_then(|v| v.parse::<usize>().ok())
+                .is_some_and(|i| guides.contains(&i));
+            if layer.attr("parentLayerIndex").is_some() && parent.is_none() && !points_at_guide {
                 self.note(
                     Severity::Info,
                     &place,

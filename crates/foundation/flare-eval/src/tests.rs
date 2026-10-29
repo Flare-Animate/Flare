@@ -502,3 +502,133 @@ fn a_hidden_folder_hides_what_it_holds_however_deep() {
     let (doc, id) = masked_scene(vec![outer, inner, child]);
     assert!(evaluate_frame(&doc, id, 0).expect("eval").shapes.is_empty());
 }
+
+fn guide_shape(path: Vec<flare_document::PathSegment>) -> FrameSpan {
+    let shape = flare_document::Shape::new(
+        flare_core::ShapeId::new(),
+        path,
+        flare_core::Rgba8::TRANSPARENT,
+    )
+    .expect("shape");
+    FrameSpan::new(
+        0,
+        NonZeroU32::new(15).expect("nonzero"),
+        Content::Shape(shape),
+    )
+}
+
+fn corner_path() -> Vec<flare_document::PathSegment> {
+    use flare_document::PathSegment::{LineTo, MoveTo};
+    let p = |x, y| flare_core::DocumentPoint::new(x, y).expect("finite");
+    // Down 100, then right 100: 200 long, with the corner exactly halfway.
+    vec![
+        MoveTo(p(0.0, 0.0)),
+        LineTo(p(0.0, 100.0)),
+        LineTo(p(100.0, 100.0)),
+    ]
+}
+
+#[test]
+fn a_motion_guide_steers_the_tween_of_the_layer_below_it_and_is_never_drawn() {
+    let art = SymbolId::new();
+    let mover = vec![
+        span(0, 10, art, at(0.0)).with_tween(Tween::Linear),
+        span(10, 5, art, at(100.0)),
+    ];
+    let guide_layer = Layer::new(LayerId::new(), "guide", vec![guide_shape(corner_path())])
+        .expect("layer")
+        .with_guide(true);
+    let mover_layer = Layer::new(LayerId::new(), "mover", mover).expect("layer");
+    let (doc, id) = document(
+        Timeline::new(vec![guide_layer, mover_layer]),
+        vec![Symbol::new(art, "Art", Timeline::default())],
+    );
+    let position = |frame| {
+        let frame = evaluate_frame(&doc, id, frame).expect("eval");
+        assert!(frame.shapes.is_empty(), "the guide is never drawn");
+        frame.placed[0].transform.translation
+    };
+    assert!(
+        (position(0) - DVec2::new(0.0, 0.0)).length() < 1e-9,
+        "starts at the path's start"
+    );
+    // Halfway through the tween the instance is halfway along the path: at the corner.
+    assert!(
+        (position(5) - DVec2::new(0.0, 100.0)).length() < 1e-6,
+        "{:?}",
+        position(5)
+    );
+    // Two frames in is a fifth of the tween: a fifth of the 200 length, 40 down the first leg.
+    let quarter = evaluate_frame(&doc, id, 2).expect("eval").placed[0]
+        .transform
+        .translation;
+    assert!(
+        (quarter - DVec2::new(0.0, 40.0)).length() < 1e-6,
+        "{quarter:?}"
+    );
+
+    // Without the guide the same tween goes straight across.
+    let straight = {
+        let mover = vec![
+            span(0, 10, art, at(0.0)).with_tween(Tween::Linear),
+            span(10, 5, art, at(100.0)),
+        ];
+        let (doc, id) = document(
+            Timeline::new(vec![
+                Layer::new(LayerId::new(), "mover", mover).expect("layer"),
+            ]),
+            vec![Symbol::new(art, "Art", Timeline::default())],
+        );
+        evaluate_frame(&doc, id, 5).expect("eval").placed[0]
+            .transform
+            .translation
+    };
+    assert!((straight - DVec2::new(50.0, 0.0)).length() < 1e-9);
+}
+
+#[test]
+fn a_hidden_guide_stops_guiding_and_paths_are_followed_by_length() {
+    let art = SymbolId::new();
+    let mover = vec![
+        span(0, 10, art, at(0.0)).with_tween(Tween::Linear),
+        span(10, 5, art, at(100.0)),
+    ];
+    let guide_layer = Layer::new(LayerId::new(), "guide", vec![guide_shape(corner_path())])
+        .expect("layer")
+        .with_guide(true)
+        .with_visible(false);
+    let (doc, id) = document(
+        Timeline::new(vec![
+            guide_layer,
+            Layer::new(LayerId::new(), "mover", mover)
+                .expect("layer")
+                .with_visible(true),
+        ]),
+        vec![Symbol::new(art, "Art", Timeline::default())],
+    );
+    let x = evaluate_frame(&doc, id, 5).expect("eval").placed[0]
+        .transform
+        .translation;
+    assert!(
+        (x - DVec2::new(50.0, 0.0)).length() < 1e-9,
+        "a hidden guide does not guide"
+    );
+
+    let path = corner_path();
+    assert_eq!(point_along(&path, 0.0), Some(DVec2::new(0.0, 0.0)));
+    assert_eq!(point_along(&path, 1.0), Some(DVec2::new(100.0, 100.0)));
+    assert_eq!(
+        point_along(&path, 2.0),
+        Some(DVec2::new(100.0, 100.0)),
+        "clamped"
+    );
+    assert_eq!(point_along(&[], 0.5), None);
+    let dot = [flare_document::PathSegment::MoveTo(
+        flare_core::DocumentPoint::new(3.0, 4.0).expect("finite"),
+    )];
+    assert_eq!(
+        point_along(&dot, 0.7),
+        Some(DVec2::new(3.0, 4.0)),
+        "no length is just the point"
+    );
+}

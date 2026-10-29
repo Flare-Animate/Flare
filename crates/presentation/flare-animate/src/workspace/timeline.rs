@@ -239,6 +239,8 @@ impl Workspace {
                         Align2::LEFT_TOP,
                         if layer.is_mask() {
                             format!("Mask: {}", layer.name())
+                        } else if layer.is_guide() {
+                            format!("Guide: {}", layer.name())
                         } else {
                             layer.name().to_owned()
                         },
