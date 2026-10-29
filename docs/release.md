@@ -69,7 +69,7 @@ The web build is experimental and not released.
 4. Set `version` in the root `Cargo.toml` (`[workspace.package]`), run `cargo build --locked` once to
    refresh `Cargo.lock`. The version must be plain semver (the MSI limits the numbers).
 5. Run the smoke test below on at least one platform.
-6. Tag `v<version>` on `main` and push the tag. The workflow validates that the tag matches the
+6. With the maintainer's explicit permission (never before), tag `v<version>` on `main` and push the tag. The workflow validates that the tag matches the
    manifest, builds all six targets, checks the full asset set and checksums, and publishes only if
    every platform succeeded.
 

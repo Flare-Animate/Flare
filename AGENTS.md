@@ -62,6 +62,8 @@ cargo test --workspace --locked
 - Small conventional commits (`feat(scope): ...`, `fix`, `refactor`, `docs`, `chore`, `test`).
 - Work is committed straight to `main` in the Flare-Animate/Flare repository; there are no stacked
   branches or PRs for the maintainers. Outside contributors use a fork and a pull request.
+- Never create or push a version tag, or publish a release, without the maintainer's explicit
+  permission: a `v*` tag builds and publishes.
 - Never commit generated or local files (`target/`, `docs/temp/`, tool caches).
 - Change the docs in the same commit as the behaviour they describe. Committed docs never refer to
   `docs/temp`.
