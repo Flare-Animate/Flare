@@ -1,10 +1,17 @@
 #![allow(clippy::expect_used)]
 
-use flare_core::{DocumentId, FrameRate, Rgba8, ShapeId};
-use flare_document::Scene;
-use flare_history::EditorSession;
-
 use super::*;
+use emath::{Pos2, Rect};
+use flare_commands::Command;
+use flare_core::{
+    DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
+};
+use flare_document::{
+    Content, Document, FrameSpan, Instance, Layer, Scene, Shape, Symbol, Timeline, Tween,
+};
+use flare_history::EditorSession;
+use glamx::{DAffine2, DVec2};
+use std::num::NonZeroU32;
 
 const RED: Rgba8 = Rgba8::opaque(255, 0, 0);
 
