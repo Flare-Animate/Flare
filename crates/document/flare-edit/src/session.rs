@@ -13,6 +13,7 @@ pub struct EditorSession {
     redo: Vec<Arc<Document>>,
     saved: Option<Arc<Document>>,
     max_depth: usize,
+    revision: u64,
 }
 
 impl EditorSession {
@@ -29,7 +30,14 @@ impl EditorSession {
             undo: Vec::new(),
             redo: Vec::new(),
             max_depth,
+            revision: 0,
         }
+    }
+
+    /// Increases on every change to the current document (apply, undo, redo). Use it
+    /// as a cache key for derived data; it is not a dirty indicator, see [`Self::is_dirty`].
+    pub fn revision(&self) -> u64 {
+        self.revision
     }
 
     pub fn document(&self) -> &Document {
@@ -53,6 +61,7 @@ impl EditorSession {
             self.undo.remove(0);
         }
         self.redo.clear();
+        self.revision += 1;
         Ok(())
     }
 
@@ -70,6 +79,7 @@ impl EditorSession {
         };
         self.redo
             .push(std::mem::replace(&mut self.current, previous));
+        self.revision += 1;
         true
     }
 
@@ -78,6 +88,7 @@ impl EditorSession {
             return false;
         };
         self.undo.push(std::mem::replace(&mut self.current, next));
+        self.revision += 1;
         true
     }
 
@@ -227,6 +238,19 @@ mod tests {
             start: 9,
         };
         assert_eq!(f.session.apply([command]), Err(EditError::NoSuchSpan(9)));
+    }
+
+    #[test]
+    fn revision_changes_with_every_document_change_but_not_on_failure() {
+        let mut f = fixture();
+        let start = f.session.revision();
+        assert!(f.session.apply([insert(&f, 0)]).is_err());
+        assert_eq!(f.session.revision(), start);
+        f.session.apply([add_symbol(&f)]).expect("apply");
+        let edited = f.session.revision();
+        assert!(edited > start);
+        f.session.undo();
+        assert!(f.session.revision() > edited);
     }
 
     #[test]
