@@ -138,6 +138,13 @@ const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::N, Tool::Line),
     (Key::R, Tool::Rectangle),
     (Key::O, Tool::Ellipse),
+    (Key::G, Tool::PolyStar),
+    (Key::K, Tool::Bucket),
+    (Key::S, Tool::InkBottle),
+    (Key::I, Tool::Eyedropper),
+    (Key::E, Tool::Eraser),
+    (Key::H, Tool::Hand),
+    (Key::Z, Tool::Zoom),
 ];
 
 /// Frames `from..=to` of one layer, selected in the timeline for copying.
@@ -198,6 +205,20 @@ pub enum Tool {
     Pen,
     /// Click the stage, type, and place: the text becomes ordinary shapes.
     Text,
+    /// Drag to pan the stage.
+    Hand,
+    /// Click to zoom in, Alt-click to zoom out.
+    Zoom,
+    /// Click a shape to take its fill (Shift: its stroke) as the current color.
+    Eyedropper,
+    /// Click a shape to give it the current fill.
+    Bucket,
+    /// Click a shape to give it the current stroke.
+    InkBottle,
+    /// Click a shape to delete it.
+    Eraser,
+    /// Drag from the center out: a regular polygon, or a star.
+    PolyStar,
 }
 
 /// Timeline frame operations on the active layer at the current frame.
@@ -327,6 +348,11 @@ pub struct Workspace {
     /// Font family list and size for the text tool.
     text_family: String,
     text_size: f32,
+    /// Corner radius of new rectangles, in stage units.
+    rect_radius: f32,
+    poly_sides: u32,
+    poly_star: bool,
+    poly_inner: f32,
     /// The text being typed, if the user has clicked the stage with the text tool.
     text_edit: Option<PendingText>,
     /// Text handed to the font worker and not yet back: (job number, where to put it).
@@ -427,6 +453,10 @@ impl Workspace {
             importing_sound: None,
             audio_synced: None,
             text_family: "sans-serif".into(),
+            rect_radius: 0.0,
+            poly_sides: 5,
+            poly_star: false,
+            poly_inner: 0.5,
             text_size: 48.0,
             text_edit: None,
             text_pending: None,
@@ -1173,7 +1203,7 @@ impl Workspace {
         let (y0, y1) = (a.y.min(b.y), a.y.max(b.y));
         let (w, h) = (f64::from(x1 - x0), f64::from(y1 - y0));
         let too_small = match tool {
-            Tool::Line => (b - a).length() < 1.0,
+            Tool::Line | Tool::PolyStar => (b - a).length() < 1.0,
             _ => w < 1.0 || h < 1.0,
         };
         if too_small {
@@ -1197,7 +1227,22 @@ impl Workspace {
         let id = ShapeId::new();
         let (x0, y0) = (f64::from(x0), f64::from(y0));
         let (shape, name) = match tool {
-            Tool::Rectangle => (Shape::rect(id, x0, y0, w, h, fill), "Rectangle"),
+            Tool::Rectangle => (
+                Shape::rounded_rect(id, x0, y0, w, h, f64::from(self.rect_radius), fill),
+                "Rectangle",
+            ),
+            Tool::PolyStar => {
+                let radius = f64::from((b - a).length());
+                // The first corner points where the drag went.
+                let rotation = f64::from((b.x - a.x).atan2(a.y - b.y));
+                let inner = self.poly_star.then_some(f64::from(self.poly_inner));
+                let center = (f64::from(a.x), f64::from(a.y));
+                let name = if self.poly_star { "Star" } else { "Polygon" };
+                (
+                    Shape::polygon(id, center, radius, self.poly_sides, rotation, inner, fill),
+                    name,
+                )
+            }
             Tool::Ellipse => (
                 Shape::ellipse(id, x0 + w / 2.0, y0 + h / 2.0, w / 2.0, h / 2.0, fill),
                 "Ellipse",
@@ -1210,7 +1255,7 @@ impl Workspace {
                     Err(error) => return self.report(error.to_string()),
                 }
             }
-            Tool::Select | Tool::Pen | Tool::Text => return,
+            _ => return,
         };
         let Some(mut shape) = shape else {
             self.report("Shape coordinates must be finite");
@@ -1590,6 +1635,13 @@ impl Workspace {
             | MenuAction::ToolLine
             | MenuAction::ToolPen
             | MenuAction::ToolText
+            | MenuAction::ToolHand
+            | MenuAction::ToolZoom
+            | MenuAction::ToolEyedropper
+            | MenuAction::ToolBucket
+            | MenuAction::ToolInkBottle
+            | MenuAction::ToolEraser
+            | MenuAction::ToolPolyStar
             | MenuAction::PlayPause
             | MenuAction::ZoomIn
             | MenuAction::ZoomOut => true,
@@ -1644,6 +1696,13 @@ impl Workspace {
             MenuAction::ToolLine => "Line",
             MenuAction::ToolPen => "Pen",
             MenuAction::ToolText => "Text",
+            MenuAction::ToolHand => "Hand",
+            MenuAction::ToolZoom => "Zoom",
+            MenuAction::ToolEyedropper => "Eyedropper",
+            MenuAction::ToolBucket => "Paint Bucket",
+            MenuAction::ToolInkBottle => "Ink Bottle",
+            MenuAction::ToolEraser => "Eraser",
+            MenuAction::ToolPolyStar => "PolyStar",
             MenuAction::ZoomIn => "Zoom In",
             MenuAction::ZoomOut => "Zoom Out",
             MenuAction::ZoomFit => "Fit Stage in Window",
@@ -1752,6 +1811,13 @@ impl Workspace {
             MenuAction::ToolLine => self.set_tool(Tool::Line),
             MenuAction::ToolPen => self.set_tool(Tool::Pen),
             MenuAction::ToolText => self.set_tool(Tool::Text),
+            MenuAction::ToolHand => self.set_tool(Tool::Hand),
+            MenuAction::ToolZoom => self.set_tool(Tool::Zoom),
+            MenuAction::ToolEyedropper => self.set_tool(Tool::Eyedropper),
+            MenuAction::ToolBucket => self.set_tool(Tool::Bucket),
+            MenuAction::ToolInkBottle => self.set_tool(Tool::InkBottle),
+            MenuAction::ToolEraser => self.set_tool(Tool::Eraser),
+            MenuAction::ToolPolyStar => self.set_tool(Tool::PolyStar),
             MenuAction::InsertFrame => self.frame_edit(FrameOp::InsertFrame),
             MenuAction::RemoveFrame => self.frame_edit(FrameOp::RemoveFrame),
             MenuAction::InsertKeyframe => self.frame_edit(FrameOp::InsertKeyframe),
@@ -2212,9 +2278,15 @@ impl Workspace {
     fn begin_drag_with(&mut self, point: Pos2, additive: bool) {
         self.drag_cancelled = false;
         let mode = match self.tool {
-            Tool::Rectangle | Tool::Ellipse | Tool::Line => Some(DragMode::Draw),
+            Tool::Rectangle | Tool::Ellipse | Tool::Line | Tool::PolyStar => Some(DragMode::Draw),
             // The pen builds a path point by point; see `pen_press`.
             Tool::Pen | Tool::Text => None,
+            Tool::Hand
+            | Tool::Zoom
+            | Tool::Eyedropper
+            | Tool::Bucket
+            | Tool::InkBottle
+            | Tool::Eraser => None,
             Tool::Select => {
                 let grabbed = if additive {
                     None
@@ -2267,6 +2339,55 @@ impl Workspace {
             start: point,
             current: point,
         });
+    }
+
+    /// A click with one of the tools that act on a single shape: it changes that shape's paint,
+    /// takes its color, or deletes it, as one undo step.
+    fn click_with_tool(&mut self, point: Pos2, shift: bool) {
+        if !matches!(
+            self.tool,
+            Tool::Eyedropper | Tool::Bucket | Tool::InkBottle | Tool::Eraser
+        ) {
+            return;
+        }
+        let (Some(scene), Some(at)) = (self.scene_id(), self.hit(point)) else {
+            return;
+        };
+        let to_rgba = |c: Color32| {
+            let c = c.to_array();
+            Rgba8::new(c[0], c[1], c[2], c[3])
+        };
+        let commands = match self.tool {
+            Tool::Eraser => Some(ops::delete(scene, at)),
+            Tool::Bucket => {
+                ops::restyle(self.document(), scene, at, Some(to_rgba(self.fill)), None)
+            }
+            Tool::InkBottle => {
+                match ShapeStroke::new(f64::from(self.stroke_width), to_rgba(self.stroke_color)) {
+                    Ok(stroke) => {
+                        ops::restyle(self.document(), scene, at, None, Some(Some(stroke)))
+                    }
+                    Err(error) => return self.report(error.to_string()),
+                }
+            }
+            _ => {
+                let Some(Content::Shape(shape)) =
+                    ops::find_span(self.document(), scene, at).map(|s| s.content().clone())
+                else {
+                    return;
+                };
+                let from = |c: Rgba8| Color32::from_rgba_unmultiplied(c.r, c.g, c.b, c.a);
+                match (shift, shape.stroke()) {
+                    (true, Some(stroke)) => self.stroke_color = from(stroke.color()),
+                    (true, None) => {}
+                    (false, _) => self.fill = from(shape.flat_fill()),
+                }
+                None
+            }
+        };
+        if let Some(commands) = commands {
+            self.run_batch(commands, "paint");
+        }
     }
 
     fn update_drag(&mut self, point: Pos2) {
@@ -3256,6 +3377,26 @@ impl Workspace {
                 buffer: String::new(),
                 focused: false,
             });
+        }
+        if self.tool == Tool::Hand && response.dragged_by(egui::PointerButton::Primary) {
+            self.stage_view.pan_by(response.drag_delta());
+        }
+        if self.tool == Tool::Zoom
+            && response.clicked()
+            && let Some(p) = response.interact_pointer_pos()
+        {
+            let factor = if ui.input(|i| i.modifiers.alt) {
+                1.0 / 1.5
+            } else {
+                1.5
+            };
+            self.stage_view.zoom_about(p, factor, response.rect, extent);
+        }
+        if response.clicked()
+            && let Some(p) = response.interact_pointer_pos()
+        {
+            let shift = ui.input(|i| i.modifiers.shift);
+            self.click_with_tool(to_doc(p), shift);
         }
         if self.tool == Tool::Pen {
             // A press that turns into a drag starts where the button went down, not where
@@ -7214,5 +7355,134 @@ mod tests {
             Tool::Text,
             "typing an r does not switch to the rectangle"
         );
+    }
+
+    fn drawn_shape(ws: &Workspace, layer: usize) -> Shape {
+        match ws.document().scenes()[0].timeline().layers()[layer].spans()[0].content() {
+            Content::Shape(shape) => shape.clone(),
+            _ => panic!("shape expected"),
+        }
+    }
+
+    #[test]
+    fn the_bucket_and_ink_bottle_repaint_the_shape_under_the_click_in_one_undo_step() {
+        let mut ws = workspace();
+        rect(&mut ws);
+        ws.fill = Color32::from_rgb(9, 8, 7);
+        ws.set_tool(Tool::Bucket);
+        ws.click_with_tool(Pos2::new(50.0, 30.0), false);
+        assert_eq!(drawn_shape(&ws, 1).fill(), Rgba8::opaque(9, 8, 7));
+        ws.stroke_color = Color32::from_rgb(1, 2, 3);
+        ws.stroke_width = 5.0;
+        ws.set_tool(Tool::InkBottle);
+        ws.click_with_tool(Pos2::new(50.0, 30.0), false);
+        let stroke = drawn_shape(&ws, 1).stroke().expect("outlined");
+        assert_eq!(
+            (stroke.width(), stroke.color()),
+            (5.0, Rgba8::opaque(1, 2, 3))
+        );
+        ws.undo();
+        assert_eq!(drawn_shape(&ws, 1).stroke(), None);
+        ws.undo();
+        assert_ne!(drawn_shape(&ws, 1).fill(), Rgba8::opaque(9, 8, 7));
+        // Painting empty stage changes nothing.
+        let before = ws.is_dirty();
+        ws.set_tool(Tool::Bucket);
+        ws.redo();
+        ws.click_with_tool(Pos2::new(700.0, 400.0), false);
+        assert!(ws.is_dirty() || !before);
+    }
+
+    #[test]
+    fn the_eyedropper_takes_the_fill_or_with_shift_the_stroke() {
+        let mut ws = workspace();
+        ws.fill = Color32::from_rgb(10, 20, 30);
+        ws.stroke_enabled = true;
+        ws.stroke_color = Color32::from_rgb(200, 100, 50);
+        rect(&mut ws);
+        ws.fill = Color32::WHITE;
+        ws.stroke_color = Color32::BLACK;
+        ws.set_tool(Tool::Eyedropper);
+        ws.click_with_tool(Pos2::new(50.0, 30.0), false);
+        assert_eq!(ws.fill, Color32::from_rgb(10, 20, 30));
+        ws.click_with_tool(Pos2::new(50.0, 30.0), true);
+        assert_eq!(ws.stroke_color, Color32::from_rgb(200, 100, 50));
+        assert!(!ws.is_dirty() || ws.active().can_undo());
+    }
+
+    #[test]
+    fn the_eraser_deletes_the_clicked_shape_and_undo_brings_it_back() {
+        let mut ws = workspace();
+        rect(&mut ws);
+        ws.set_tool(Tool::Eraser);
+        ws.click_with_tool(Pos2::new(700.0, 400.0), false);
+        assert_eq!(spans_of(&ws, 1), 1, "empty stage: nothing erased");
+        ws.click_with_tool(Pos2::new(50.0, 30.0), false);
+        assert_eq!(spans_of(&ws, 1), 0);
+        ws.undo();
+        assert_eq!(spans_of(&ws, 1), 1);
+    }
+
+    #[test]
+    fn polystar_draws_polygons_and_stars_sized_by_the_drag() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::PolyStar);
+        ws.poly_sides = 6;
+        ws.commit_shape(
+            Tool::PolyStar,
+            Pos2::new(100.0, 100.0),
+            Pos2::new(100.0, 40.0),
+        );
+        let polygon = drawn_shape(&ws, 1);
+        // Six corners, the first straight up from the center, plus the closing segment.
+        assert_eq!(polygon.path().len(), 7);
+        let flare_document::PathSegment::MoveTo(first) = polygon.path()[0] else {
+            panic!("starts with a move");
+        };
+        assert!((first.as_vec() - DVec2::new(100.0, 40.0)).length() < 1e-3);
+        ws.poly_star = true;
+        ws.commit_shape(
+            Tool::PolyStar,
+            Pos2::new(300.0, 100.0),
+            Pos2::new(340.0, 100.0),
+        );
+        assert_eq!(
+            drawn_shape(&ws, 2).path().len(),
+            13,
+            "twelve corners and a close"
+        );
+        // A click is not a drag.
+        ws.commit_shape(Tool::PolyStar, Pos2::new(5.0, 5.0), Pos2::new(5.0, 5.0));
+        assert_eq!(layer_count(&ws), 3);
+    }
+
+    #[test]
+    fn rectangle_corner_radius_rounds_new_rectangles() {
+        let mut ws = workspace();
+        ws.rect_radius = 12.0;
+        rect(&mut ws);
+        assert!(
+            drawn_shape(&ws, 1)
+                .path()
+                .iter()
+                .any(|s| matches!(s, flare_document::PathSegment::CubicTo(..)))
+        );
+        ws.rect_radius = 0.0;
+        ws.commit_rectangle(Pos2::new(200.0, 10.0), Pos2::new(260.0, 50.0));
+        assert_eq!(drawn_shape(&ws, 2).path().len(), 5);
+    }
+
+    #[test]
+    fn the_hand_pans_and_zoom_clicks_zoom_the_stage() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        run(&mut ws, &ctx, 0.0);
+        let before = ws.stage_view.scale(ws.stage_panel, ws.stage_extent());
+        ws.perform(MenuAction::ToolZoom);
+        assert_eq!(ws.tool(), Tool::Zoom);
+        ws.perform(MenuAction::ZoomIn);
+        let after = ws.stage_view.scale(ws.stage_panel, ws.stage_extent());
+        assert!(after > before);
+        ws.perform(MenuAction::ToolHand);
+        assert_eq!(ws.tool(), Tool::Hand);
     }
 }

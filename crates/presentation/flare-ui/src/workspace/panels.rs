@@ -29,15 +29,15 @@ const TOOL_GRID: &[(&str, &str, &str, Option<Tool>)] = &[
     ("tool-line", "Line", "N", Some(Tool::Line)),
     ("tool-rectangle", "Rectangle", "R", Some(Tool::Rectangle)),
     ("tool-oval", "Oval", "O", Some(Tool::Ellipse)),
-    ("tool-polystar", "PolyStar", "G", None),
+    ("tool-polystar", "PolyStar", "G", Some(Tool::PolyStar)),
     ("tool-pencil", "Pencil", "Y", None),
     ("tool-brush", "Brush", "B", None),
-    ("tool-bucket", "Paint Bucket", "K", None),
-    ("tool-ink-bottle", "Ink Bottle", "S", None),
-    ("tool-eyedropper", "Eyedropper", "I", None),
-    ("tool-eraser", "Eraser", "E", None),
-    ("tool-hand", "Hand", "H", None),
-    ("tool-zoom", "Zoom", "Z", None),
+    ("tool-bucket", "Paint Bucket", "K", Some(Tool::Bucket)),
+    ("tool-ink-bottle", "Ink Bottle", "S", Some(Tool::InkBottle)),
+    ("tool-eyedropper", "Eyedropper", "I", Some(Tool::Eyedropper)),
+    ("tool-eraser", "Eraser", "E", Some(Tool::Eraser)),
+    ("tool-hand", "Hand", "H", Some(Tool::Hand)),
+    ("tool-zoom", "Zoom", "Z", Some(Tool::Zoom)),
 ];
 
 /// Swatches offered by the color panel.
@@ -211,6 +211,13 @@ impl Workspace {
             Tool::Line => ("tool-line", "Line"),
             Tool::Pen => ("tool-pen", "Pen"),
             Tool::Text => ("tool-text", "Text"),
+            Tool::Hand => ("tool-hand", "Hand"),
+            Tool::Zoom => ("tool-zoom", "Zoom"),
+            Tool::Eyedropper => ("tool-eyedropper", "Eyedropper"),
+            Tool::Bucket => ("tool-bucket", "Paint Bucket"),
+            Tool::InkBottle => ("tool-ink-bottle", "Ink Bottle"),
+            Tool::Eraser => ("tool-eraser", "Eraser"),
+            Tool::PolyStar => ("tool-polystar", "PolyStar"),
         };
         chrome::section(ui, icon, &format!("{title} tool"));
         match self.tool {
@@ -237,11 +244,54 @@ impl Workspace {
             Tool::Pen => {
                 ui.weak("Click for corners, drag for curves. Click the first point to close; Enter or double-click to finish.");
             }
-            Tool::Rectangle | Tool::Ellipse => {
+            Tool::Rectangle => {
                 chrome::row(ui, "Corners", |ui| {
-                    chrome::mock_number(ui, "0", " px");
+                    ui.add(
+                        egui::DragValue::new(&mut self.rect_radius)
+                            .range(0.0..=1000.0)
+                            .suffix(" px"),
+                    );
                 });
                 ui.weak("Drag on the stage.");
+            }
+            Tool::Ellipse => {
+                ui.weak("Drag on the stage.");
+            }
+            Tool::PolyStar => {
+                chrome::row(ui, "Sides", |ui| {
+                    ui.add(egui::DragValue::new(&mut self.poly_sides).range(3..=64));
+                });
+                chrome::row(ui, "Star", |ui| {
+                    ui.checkbox(&mut self.poly_star, "");
+                });
+                if self.poly_star {
+                    chrome::row(ui, "Depth", |ui| {
+                        ui.add(
+                            egui::DragValue::new(&mut self.poly_inner)
+                                .range(0.05..=0.95)
+                                .speed(0.01),
+                        );
+                    });
+                }
+                ui.weak("Drag from the center; the drag sets size and rotation.");
+            }
+            Tool::Hand => {
+                ui.weak("Drag the stage to pan. Scrolling and middle-drag pan with any tool.");
+            }
+            Tool::Zoom => {
+                ui.weak("Click to zoom in, Alt-click to zoom out.");
+            }
+            Tool::Eyedropper => {
+                ui.weak("Click a shape to take its fill; Shift-click takes its stroke.");
+            }
+            Tool::Bucket => {
+                ui.weak("Click a shape to fill it with the current fill color.");
+            }
+            Tool::InkBottle => {
+                ui.weak("Click a shape to outline it with the current stroke.");
+            }
+            Tool::Eraser => {
+                ui.weak("Click a shape to delete it.");
             }
             Tool::Line => {
                 ui.weak("Drag on the stage. A line always has a stroke.");
@@ -768,6 +818,13 @@ impl Workspace {
             Tool::Line => "Line: drag on the stage",
             Tool::Pen => "Pen: click for corners, drag for curves, Enter to finish",
             Tool::Text => "Text: click the stage, type, then Place",
+            Tool::Hand => "Hand: drag to pan the stage",
+            Tool::Zoom => "Zoom: click to zoom in, Alt-click to zoom out",
+            Tool::Eyedropper => "Eyedropper: click a shape to take its color, Shift for the stroke",
+            Tool::Bucket => "Paint Bucket: click a shape to fill it",
+            Tool::InkBottle => "Ink Bottle: click a shape to outline it",
+            Tool::Eraser => "Eraser: click a shape to delete it",
+            Tool::PolyStar => "PolyStar: drag from the center",
         }
     }
 

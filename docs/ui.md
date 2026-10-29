@@ -32,10 +32,9 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 
 Planned, in the order they will be built:
 
-- Tools: Subselection, Free Transform, Lasso, PolyStar, Pencil, Brush, Paint Bucket, Ink Bottle,
-  Eyedropper, Eraser, Hand, Zoom.
-- Properties: editable position and size, stroke cap and join, text style, rectangle corner
-  radius, frame rate.
+- Tools: Subselection, Free Transform, Lasso, Pencil, Brush. (Built: PolyStar, Paint Bucket,
+  Ink Bottle, Eyedropper, Eraser, Hand, Zoom, and the rectangle corner radius.)
+- Properties: editable position and size, stroke cap and join, text style, frame rate.
 - Library: search, new symbol, folders, symbol properties, delete, preview.
 - Color: hex entry, gradient editor, eyedropper, no color, swap and default colors.
 - Align panel: align, distribute, arrange, group.

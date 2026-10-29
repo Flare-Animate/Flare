@@ -163,6 +163,22 @@ impl Shape {
         self
     }
 
+    /// This shape with a different solid fill; a gradient is dropped, since the new color is
+    /// what should show.
+    #[must_use]
+    pub fn with_fill(mut self, fill: Rgba8) -> Self {
+        self.fill = fill;
+        self.gradient = None;
+        self
+    }
+
+    /// This shape with its outline replaced, or removed with `None`.
+    #[must_use]
+    pub fn restroked(mut self, stroke: Option<Stroke>) -> Self {
+        self.stroke = stroke;
+        self
+    }
+
     /// Carries `other`'s stroke and gradient over to this shape (a rebuilt or copied one).
     #[must_use]
     pub fn painted_like(mut self, other: &Shape) -> Self {
