@@ -7,7 +7,7 @@
 #![forbid(unsafe_code)]
 
 use flare_core::{InstanceId, SceneId, SymbolId};
-use flare_document::{Content, Document, Instance, Layer, Timeline, Tween};
+use flare_document::{Content, Document, Instance, Layer, Shape, Timeline, Tween};
 use glamx::{DAffine2, DVec2};
 use thiserror::Error;
 
@@ -35,14 +35,48 @@ pub enum EvalError {
     UnsupportedTween(InstanceId),
 }
 
-/// Placed instances at `frame`, parents before children, bottom layer drawn first.
-pub fn evaluate(document: &Document, scene: SceneId, frame: u32) -> Result<Vec<Placed>, EvalError> {
-    let scene = document
+/// Everything visible at one frame.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Frame<'a> {
+    /// Instances, parents before children.
+    pub placed: Vec<Placed>,
+    /// Shapes in paint order: later entries draw on top.
+    pub shapes: Vec<DrawnShape<'a>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct DrawnShape<'a> {
+    /// Instances from the scene down to the shape's owner (empty for scene-level shapes).
+    pub path: Vec<InstanceId>,
+    pub shape: &'a Shape,
+    /// Composed transform into scene space.
+    pub transform: DAffine2,
+}
+
+fn scene_of(document: &Document, scene: SceneId) -> Result<&flare_document::Scene, EvalError> {
+    document
         .scenes()
         .iter()
         .find(|candidate| candidate.id() == scene)
-        .ok_or(EvalError::NoSuchScene(scene))?;
-    let mut out = Vec::new();
+        .ok_or(EvalError::NoSuchScene(scene))
+}
+
+/// Placed instances at `frame`, parents before children, bottom layer drawn first.
+pub fn evaluate(document: &Document, scene: SceneId, frame: u32) -> Result<Vec<Placed>, EvalError> {
+    Ok(evaluate_frame(document, scene, frame)?.placed)
+}
+
+/// Placed instances and drawn shapes at `frame`.
+pub fn evaluate_frame(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+) -> Result<Frame<'_>, EvalError> {
+    let scene = scene_of(document, scene)?;
+    let mut out = Frame {
+        placed: Vec::new(),
+        shapes: Vec::new(),
+    };
     walk(
         document,
         scene.timeline(),
@@ -54,13 +88,13 @@ pub fn evaluate(document: &Document, scene: SceneId, frame: u32) -> Result<Vec<P
     Ok(out)
 }
 
-fn walk(
-    document: &Document,
-    timeline: &Timeline,
+fn walk<'a>(
+    document: &'a Document,
+    timeline: &'a Timeline,
     frame: u32,
     parent: DAffine2,
     path: &mut Vec<InstanceId>,
-    out: &mut Vec<Placed>,
+    out: &mut Frame<'a>,
 ) -> Result<(), EvalError> {
     if path.len() >= MAX_DEPTH {
         return Err(EvalError::TooDeep);
@@ -70,16 +104,25 @@ fn walk(
         let Some(span) = layer.span_at(frame) else {
             continue;
         };
-        let Content::Instance(instance) = span.content() else {
-            continue;
-        };
-        if out.len() >= MAX_NODES {
+        if out.placed.len() + out.shapes.len() >= MAX_NODES {
             return Err(EvalError::TooManyNodes);
         }
+        let instance = match span.content() {
+            Content::Empty => continue,
+            Content::Shape(shape) => {
+                out.shapes.push(DrawnShape {
+                    path: path.clone(),
+                    shape,
+                    transform: parent,
+                });
+                continue;
+            }
+            Content::Instance(instance) => instance,
+        };
         let local = tweened(layer, frame, instance)?;
         let transform = parent * local;
         path.push(instance.id());
-        out.push(Placed {
+        out.placed.push(Placed {
             path: path.clone(),
             symbol: instance.symbol(),
             transform,
@@ -325,6 +368,35 @@ mod tests {
                 0.0
             );
         }
+    }
+
+    #[test]
+    fn shapes_are_emitted_in_paint_order_with_composed_transforms() {
+        use flare_core::{Rgba8, ShapeId};
+        let art = SymbolId::new();
+        let shape = |x| {
+            Shape::rect(ShapeId::new(), x, 0.0, 1.0, 1.0, Rgba8::opaque(1, 2, 3)).expect("rect")
+        };
+        let art_tl = timeline(vec![vec![FrameSpan::new(
+            0,
+            NonZeroU32::new(1).expect("nonzero"),
+            Content::Shape(shape(7.0)),
+        )]]);
+        let scene_shape = FrameSpan::new(
+            0,
+            NonZeroU32::new(10).expect("nonzero"),
+            Content::Shape(shape(0.0)),
+        );
+        // Layers are top to bottom: the shape layer is on top, the instance layer below it.
+        let scene = timeline(vec![vec![scene_shape], vec![span(0, 10, art, at(100.0))]]);
+        let (doc, id) = document(scene, vec![Symbol::new(art, "Art", art_tl)]);
+        let frame = evaluate_frame(&doc, id, 2).expect("eval");
+        assert_eq!(frame.shapes.len(), 2);
+        // Bottom layer first: the symbol's shape, offset by the instance, then the top shape.
+        assert_eq!(frame.shapes[0].transform.translation.x, 100.0);
+        assert_eq!(frame.shapes[0].path.len(), 1);
+        assert!(frame.shapes[1].path.is_empty());
+        assert_eq!(frame.placed.len(), 1);
     }
 
     #[test]
