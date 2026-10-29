@@ -145,6 +145,14 @@ enum Command {
     Import { source: PathBuf, out: PathBuf },
     /// Export a project as an XFL folder, or a zipped .fla when OUT ends in .fla.
     ExportXfl { path: PathBuf, out: PathBuf },
+    /// Publish a project as a SWF. Frames are baked (tweens and symbols are flattened).
+    PublishSwf {
+        path: PathBuf,
+        out: PathBuf,
+        /// Write an uncompressed SWF.
+        #[arg(long)]
+        no_compress: bool,
+    },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -267,6 +275,11 @@ fn main() -> Result<()> {
         } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
         Command::Import { source, out } => project::import(&source, &out)?,
         Command::ExportXfl { path, out } => project::export_xfl(&path, &out)?,
+        Command::PublishSwf {
+            path,
+            out,
+            no_compress,
+        } => project::publish_swf(&path, &out, !no_compress)?,
         Command::Layer {
             op,
             path,

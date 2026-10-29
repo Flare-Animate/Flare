@@ -15,6 +15,7 @@ Dependencies point down this list; a crate never depends on one above it.
 | `flare-ui` | The egui workspace: stage, timeline, tools, library, menu actions. No window or GPU code. |
 | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
 | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
+| `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate. |
 | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | `apps/flare-cli` | Headless project editing and export. |
 | `apps/flare-desktop` | The winit/egui-wgpu shell: window, GPU surface, native dialogs and menu. |
@@ -145,6 +146,29 @@ escaped and file names are made safe and unique.
 Verification is round-trip only: exported files re-import with `flare-import` to the same
 structure, identical pixels for straight edges and close pixels for curves. Whether Adobe
 Animate opens them is untested. Source preservation of unknown data is not implemented.
+
+## Publishing (SWF)
+
+`flare-cli publish-swf <project> <out.swf>` writes a SWF (zlib-compressed unless
+`--no-compress`). It never overwrites, and the file appears only when complete. A SWF has
+one timeline of shapes and placements, so publishing *bakes* each frame with the same
+evaluator the editor uses: tweens become per-frame matrices, symbol instances are flattened
+into their shapes, hidden layers are left out, and scenes play one after another (reported).
+The result shows the same pictures but has no symbols or runtime behaviour, which is a
+different job from Test Movie playback.
+
+Each distinct shape becomes one `DefineShape4`, defined the first time it appears. SWF
+shapes hold only lines and quadratic curves, so cubics are approximated within 0.05 px. Which
+side of a contour is filled is decided from the geometry (probing both sides with a winding
+test), so holes work whichever way the contours are wound; closed contours get an explicit
+closing edge so strokes have all their sides. Limits are reported or refused: at most 65,535
+frames, stage at most 8,191 px, frame rate capped at 255, background transparency dropped.
+
+Encoding uses the `swf` crate from the Ruffle project (MIT/Apache-2.0). Tests parse the output
+back with that crate's reader, play the display list, rebuild shapes from the decoded records
+and compare renders with the document, and check fill sides against SWF's own definition (a
+style belongs to one side of each edge). That is real evidence the file is well-formed and
+says what we meant. It has not been played in Flash Player or Ruffle.
 
 ## Frontends
 

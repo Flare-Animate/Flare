@@ -6,7 +6,7 @@
 //! Adobe Animate, so treat compatibility with Animate as unverified.
 #![forbid(unsafe_code)]
 
-mod curves;
+pub mod curves;
 mod writer;
 
 pub use writer::{

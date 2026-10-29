@@ -14,6 +14,7 @@ members = [
     "crates/presentation/flare-ui",
     "crates/io/flare-import",
     "crates/io/flare-export",
+    "crates/publish/flare-publish",
     "crates/io/flare-flash",
 ]
 exclude = ["original"]
@@ -31,6 +32,7 @@ license = "BSD-3-Clause"
 flare-core = { path = "crates/foundation/flare-core" }
 flare-flash = { path = "crates/io/flare-flash" }
 flare-export = { path = "crates/io/flare-export" }
+flare-publish = { path = "crates/publish/flare-publish" }
 flare-import = { path = "crates/io/flare-import" }
 flare-ui = { path = "crates/presentation/flare-ui" }
 flare-render = { path = "crates/render/flare-render" }
@@ -71,6 +73,7 @@ zstd = "0.13"
 # ---- Flash/XML/archive interchange -------------------------------------------
 quick-xml = { version = "0.42.0", default-features = false }
 zip = { version = "9.1.3", default-features = false }
+swf = "0.3.0"
 # Enable only reviewed compression features in the format adapter.
 # Ruffle swf/core/render packages are NOT guessed Git dependencies here.
 # Choose and record one tested Ruffle revision during the runtime/format spike.
