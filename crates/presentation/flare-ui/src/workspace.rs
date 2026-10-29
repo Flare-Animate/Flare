@@ -2,8 +2,8 @@ use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
 
 use egui::{Align2, Color32, FontId, Key, Modifiers, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
-use flare_core::{LayerId, Rgba8, ShapeId};
-use flare_document::{Content, Document, FrameSpan, Layer, Shape};
+use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId};
+use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Timeline};
 use flare_edit::{Command, EditorSession};
 
 /// Fixed stage size in document units until documents carry their own stage dimensions.
@@ -66,6 +66,16 @@ impl Workspace {
             status: None,
             dialog: None,
         }
+    }
+
+    /// A new untitled document: one scene with one empty layer at 24 fps.
+    pub fn untitled() -> Result<Self, String> {
+        let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).map_err(|e| e.to_string())?;
+        let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
+        let rate = FrameRate::new(24, 1).map_err(|e| e.to_string())?;
+        let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
+            .map_err(|diagnostics| format!("{diagnostics:?}"))?;
+        Ok(Self::new(document, None))
     }
 
     pub fn document(&self) -> &Document {
@@ -569,11 +579,8 @@ fn screen_to_stage(p: Pos2, image_rect: Rect) -> Pos2 {
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use egui::{Event, RawInput};
-    use flare_core::{DocumentId, FrameRate, SceneId};
-    use flare_document::{Scene, Timeline};
-
     use super::*;
+    use egui::{Event, RawInput};
 
     fn document() -> Document {
         let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
@@ -636,6 +643,14 @@ mod tests {
         ws.set_frame(5);
         run(&mut ws, &ctx, 0.2);
         assert_eq!(ws.texture.as_ref().map(|t| t.key.1), Some(5));
+    }
+
+    #[test]
+    fn untitled_documents_start_clean_with_one_layer() {
+        let ws = Workspace::untitled().expect("untitled");
+        assert_eq!(layer_count(&ws), 1);
+        assert!(!ws.is_dirty());
+        assert_eq!(ws.title(), "Untitled - Flare");
     }
 
     #[test]
