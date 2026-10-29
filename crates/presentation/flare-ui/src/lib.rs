@@ -9,4 +9,4 @@
 mod ops;
 mod workspace;
 
-pub use workspace::{DialogRequest, STAGE_SIZE, Tool, Workspace};
+pub use workspace::{DialogRequest, Tool, Workspace};

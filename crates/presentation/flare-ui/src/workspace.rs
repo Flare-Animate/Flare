@@ -3,14 +3,13 @@ use std::path::{Path, PathBuf};
 
 use egui::{Align2, Color32, FontId, Key, Modifiers, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
-use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Timeline};
+use flare_document::{
+    Content, Document, FrameSpan, Layer, MAX_STAGE_SIDE, Scene, Shape, Stage, Timeline,
+};
 use flare_edit::{Command, EditorSession};
 use glamx::DVec2;
 
 use crate::ops::{self, SpanRef};
-
-/// Fixed stage size in document units until documents carry their own stage dimensions.
-pub const STAGE_SIZE: (u32, u32) = (800, 450);
 
 /// A file dialog the shell should show on the workspace's behalf.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,12 +61,10 @@ pub struct Workspace {
     selected: Option<SpanRef>,
     selected_symbol: Option<SymbolId>,
     fill: Color32,
+    /// Stage size being edited in the tools panel, applied when the edit finishes.
+    stage_edit: Option<(u32, u32)>,
     status: Option<String>,
     dialog: Option<DialogRequest>,
-}
-
-fn stage_extent() -> Vec2 {
-    Vec2::new(STAGE_SIZE.0 as f32, STAGE_SIZE.1 as f32)
 }
 
 impl Workspace {
@@ -86,6 +83,7 @@ impl Workspace {
             selected: None,
             selected_symbol: None,
             fill: Color32::from_rgb(232, 69, 60),
+            stage_edit: None,
             status: None,
             dialog: None,
         }
@@ -99,6 +97,32 @@ impl Workspace {
         let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
             .map_err(|diagnostics| format!("{diagnostics:?}"))?;
         Ok(Self::new(document, None))
+    }
+
+    fn stage_extent(&self) -> Vec2 {
+        let stage = self.document().stage();
+        Vec2::new(stage.width() as f32, stage.height() as f32)
+    }
+
+    /// Changes the stage size as one undo step, keeping the background.
+    pub fn set_stage_size(&mut self, width: u32, height: u32) {
+        let current = self.document().stage();
+        match Stage::new(width, height, current.background()) {
+            Ok(stage) => self.run_batch(vec![Command::SetStage(stage)], "resize the stage"),
+            Err(error) => self.report(error.to_string()),
+        }
+    }
+
+    /// Changes the stage background as one undo step, keeping the size.
+    pub fn set_stage_background(&mut self, background: Rgba8) {
+        let current = self.document().stage();
+        if current.background() == background {
+            return;
+        }
+        match Stage::new(current.width(), current.height(), background) {
+            Ok(stage) => self.run_batch(vec![Command::SetStage(stage)], "change the background"),
+            Err(error) => self.report(error.to_string()),
+        }
     }
 
     pub fn document(&self) -> &Document {
@@ -398,7 +422,11 @@ impl Workspace {
             self.report("Select a symbol in the library first");
             return;
         };
-        let center = DVec2::new(f64::from(STAGE_SIZE.0) / 2.0, f64::from(STAGE_SIZE.1) / 2.0);
+        let stage = self.document().stage();
+        let center = DVec2::new(
+            f64::from(stage.width()) / 2.0,
+            f64::from(stage.height()) / 2.0,
+        );
         if let Some(commands) = ops::place_instance(self.document(), scene, symbol, center) {
             self.run_batch(commands, "place instance");
         }
@@ -433,10 +461,11 @@ impl Workspace {
             self.texture = None;
             return;
         };
+        let stage = self.document().stage();
         let rendered = flare_eval::evaluate_frame(self.document(), scene, self.frame)
             .map_err(|e| e.to_string())
             .and_then(|frame| {
-                flare_render::render(&frame, STAGE_SIZE.0, STAGE_SIZE.1, Rgba8::WHITE)
+                flare_render::render(&frame, stage.width(), stage.height(), stage.background())
                     .map_err(|e| e.to_string())
             });
         match rendered {
@@ -600,6 +629,42 @@ impl Workspace {
         ui.separator();
         ui.label("Fill");
         ui.color_edit_button_srgba(&mut self.fill);
+        ui.separator();
+        self.stage_settings(ui);
+    }
+
+    /// Stage size and background. Size edits apply on release or Enter so that scrubbing a
+    /// value is a single undo step.
+    fn stage_settings(&mut self, ui: &mut egui::Ui) {
+        ui.label("Stage");
+        let stage = self.document().stage();
+        let (mut width, mut height) = self.stage_edit.unwrap_or((stage.width(), stage.height()));
+        let wr = ui.add(
+            egui::DragValue::new(&mut width)
+                .range(1..=MAX_STAGE_SIDE)
+                .prefix("W "),
+        );
+        let hr = ui.add(
+            egui::DragValue::new(&mut height)
+                .range(1..=MAX_STAGE_SIDE)
+                .prefix("H "),
+        );
+        if wr.changed() || hr.changed() {
+            self.stage_edit = Some((width, height));
+        }
+        let done = wr.drag_stopped() || wr.lost_focus() || hr.drag_stopped() || hr.lost_focus();
+        if done
+            && let Some((w, h)) = self.stage_edit.take()
+            && (w, h) != (stage.width(), stage.height())
+        {
+            self.set_stage_size(w, h);
+        }
+        let bg = stage.background().to_array();
+        let mut color = Color32::from_rgba_unmultiplied(bg[0], bg[1], bg[2], bg[3]);
+        if ui.color_edit_button_srgba(&mut color).changed() {
+            let c = color.to_srgba_unmultiplied();
+            self.set_stage_background(Rgba8::new(c[0], c[1], c[2], c[3]));
+        }
     }
 
     fn library(&mut self, ui: &mut egui::Ui) {
@@ -634,7 +699,7 @@ impl Workspace {
     fn stage(&mut self, ui: &mut egui::Ui) {
         let available = ui.available_size();
         let (response, painter) = ui.allocate_painter(available, Sense::click_and_drag());
-        let extent = stage_extent();
+        let extent = self.stage_extent();
         let scale = (response.rect.width() / extent.x).min(response.rect.height() / extent.y);
         let image_rect = Rect::from_center_size(response.rect.center(), extent * scale.max(0.01));
         if let Some(texture) = &self.texture {
@@ -660,7 +725,7 @@ impl Workspace {
             StrokeKind::Outside,
         );
 
-        let to_doc = |p: Pos2| screen_to_stage(p, image_rect);
+        let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
         if response.drag_started()
             && let Some(p) = response.interact_pointer_pos()
@@ -801,10 +866,9 @@ impl Workspace {
 }
 
 /// Screen position to stage (document) coordinates, clamped to the stage.
-fn screen_to_stage(p: Pos2, image_rect: Rect) -> Pos2 {
+fn screen_to_stage(p: Pos2, image_rect: Rect, extent: Vec2) -> Pos2 {
     let u = (p.x - image_rect.min.x) / image_rect.width().max(f32::EPSILON);
     let v = (p.y - image_rect.min.y) / image_rect.height().max(f32::EPSILON);
-    let extent = stage_extent();
     Pos2::new(u.clamp(0.0, 1.0) * extent.x, v.clamp(0.0, 1.0) * extent.y)
 }
 
@@ -1001,13 +1065,16 @@ mod tests {
     #[test]
     fn screen_positions_map_to_clamped_stage_coordinates() {
         let rect = Rect::from_min_size(Pos2::new(100.0, 50.0), Vec2::new(400.0, 225.0)); // half scale
-        assert_eq!(screen_to_stage(Pos2::new(100.0, 50.0), rect), Pos2::ZERO);
         assert_eq!(
-            screen_to_stage(Pos2::new(300.0, 162.5), rect),
+            screen_to_stage(Pos2::new(100.0, 50.0), rect, Vec2::new(800.0, 450.0)),
+            Pos2::ZERO
+        );
+        assert_eq!(
+            screen_to_stage(Pos2::new(300.0, 162.5), rect, Vec2::new(800.0, 450.0)),
             Pos2::new(400.0, 225.0)
         );
         assert_eq!(
-            screen_to_stage(Pos2::new(-999.0, 9999.0), rect),
+            screen_to_stage(Pos2::new(-999.0, 9999.0), rect, Vec2::new(800.0, 450.0)),
             Pos2::new(0.0, 450.0)
         );
     }
@@ -1142,5 +1209,59 @@ mod tests {
             input(0.2, vec![key(Key::Delete, Modifiers::NONE)]),
         );
         assert_eq!(spans_of(&ws, 1), 0);
+    }
+
+    #[test]
+    fn stage_edits_are_undoable_and_invalid_sizes_are_refused() {
+        let mut ws = workspace();
+        let original = ws.document().stage();
+        ws.set_stage_size(400, 200);
+        assert_eq!(
+            (
+                ws.document().stage().width(),
+                ws.document().stage().height()
+            ),
+            (400, 200)
+        );
+        assert!(ws.is_dirty());
+        ws.set_stage_background(Rgba8::opaque(1, 2, 3));
+        assert_eq!(ws.document().stage().background(), Rgba8::opaque(1, 2, 3));
+        assert_eq!(ws.document().stage().width(), 400, "size is kept");
+        ws.undo();
+        ws.undo();
+        assert_eq!(ws.document().stage(), original);
+
+        ws.set_stage_size(0, 100);
+        assert!(ws.status().is_some_and(|s| s.contains("stage sides")));
+        assert_eq!(ws.document().stage(), original);
+        let before = ws.document().clone();
+        ws.set_stage_background(original.background());
+        assert_eq!(
+            ws.document(),
+            &before,
+            "an unchanged background is not an edit"
+        );
+    }
+
+    #[test]
+    fn placement_and_rendering_follow_the_document_stage() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.set_stage_size(400, 200);
+        draw_and_select(&mut ws);
+        ws.convert_selection_to_symbol();
+        ws.place_selected_symbol();
+        let scene = ws.scene_id().expect("scene");
+        let layer = ws.document().scenes()[0]
+            .timeline()
+            .layers()
+            .last()
+            .expect("layer")
+            .id();
+        let placed =
+            ops::span_bounds(ws.document(), scene, SpanRef { layer, start: 0 }).expect("bounds");
+        assert_eq!(placed.center(), Pos2::new(200.0, 100.0));
+        run(&mut ws, &ctx, 0.0);
+        assert!(ws.texture.is_some());
+        assert_eq!(ws.stage_extent(), Vec2::new(400.0, 200.0));
     }
 }
