@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 use flare_document::Document;
@@ -9,7 +10,7 @@ const DEFAULT_HISTORY_DEPTH: usize = 1000;
 /// Owns the current document, undo/redo history and clean/dirty tracking.
 pub struct EditorSession {
     current: Arc<Document>,
-    undo: Vec<Arc<Document>>,
+    undo: VecDeque<Arc<Document>>,
     redo: Vec<Arc<Document>>,
     saved: Option<Arc<Document>>,
     max_depth: usize,
@@ -27,7 +28,7 @@ impl EditorSession {
         Self {
             saved: Some(Arc::clone(&current)),
             current,
-            undo: Vec::new(),
+            undo: VecDeque::new(),
             redo: Vec::new(),
             max_depth,
             revision: 0,
@@ -56,9 +57,9 @@ impl EditorSession {
             return Ok(());
         }
         let previous = std::mem::replace(&mut self.current, Arc::new(working));
-        self.undo.push(previous);
+        self.undo.push_back(previous);
         if self.undo.len() > self.max_depth {
-            self.undo.remove(0);
+            self.undo.pop_front();
         }
         self.redo.clear();
         self.revision += 1;
@@ -74,7 +75,7 @@ impl EditorSession {
     }
 
     pub fn undo(&mut self) -> bool {
-        let Some(previous) = self.undo.pop() else {
+        let Some(previous) = self.undo.pop_back() else {
             return false;
         };
         self.redo
@@ -87,7 +88,8 @@ impl EditorSession {
         let Some(next) = self.redo.pop() else {
             return false;
         };
-        self.undo.push(std::mem::replace(&mut self.current, next));
+        self.undo
+            .push_back(std::mem::replace(&mut self.current, next));
         self.revision += 1;
         true
     }
