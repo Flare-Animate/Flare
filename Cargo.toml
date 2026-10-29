@@ -14,6 +14,7 @@ members = [
     "crates/presentation/flare-ui",
     "crates/automation/flare-mcp",
     "crates/io/flare-import",
+    "crates/io/flare-export",
     "crates/io/flare-flash",
 ]
 exclude = ["original"]
@@ -31,6 +32,7 @@ license = "BSD-3-Clause"
 flare-core = { path = "crates/foundation/flare-core" }
 flare-flash = { path = "crates/io/flare-flash" }
 flare-mcp = { path = "crates/automation/flare-mcp" }
+flare-export = { path = "crates/io/flare-export" }
 flare-import = { path = "crates/io/flare-import" }
 flare-ui = { path = "crates/presentation/flare-ui" }
 flare-render = { path = "crates/render/flare-render" }

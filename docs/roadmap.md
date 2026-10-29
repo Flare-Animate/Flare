@@ -6,29 +6,31 @@ Status is evidence-based: a milestone item is done only when it has tests.
 |---|---|---|
 | M0 baseline | Pinned toolchain, centralized dependencies, locked builds, honest tests, renderer decision | Done |
 | M1 source model and safe editing | Typed IDs, validated document, atomic edits, undo/redo, headless CLI | Done |
-| M2 usable vertical slice | Draw, convert to symbol, instances, tween, scrub/play, save/reopen, PNG export, one modern workspace | Mostly done: see below |
-| M3 FLA/XFL compatibility and automation | Raw source IR, modern XFL/FLA subset, unknown-data preservation, MCP over stdio | Not started |
+| M2 usable vertical slice | Draw, convert to symbol, instances, tween, scrub/play, save/reopen, PNG export, one modern workspace | Done in code; needs hands-on checking (see below) |
+| M3 FLA/XFL compatibility and automation | Raw source IR, modern XFL/FLA subset, unknown-data preservation, MCP over stdio | MCP, XFL import and XFL export done (import and export tested against fixtures and each other only, never against Animate); source preservation not started |
 | M4 Test Movie and advanced features | Hosted Ruffle playback, SWF publishing, richer text/audio, advanced tweens and masks | Not started: needs a tested Ruffle revision chosen and an SWF writer, and has no evidence base yet |
-| M5 hardening | Long sessions, crash recovery, packaging, accessibility, corpus expansion | Partly: recovery on `feat/recovery`, fault-injection tests on `feat/hardening`; packaging, accessibility and long-session profiling not started |
+| M5 hardening | Long sessions, crash recovery, packaging, accessibility, corpus expansion | Partly: crash recovery and fault-injection tests done; packaging, accessibility and long-session profiling not started |
 
 ## M2 remaining
 
 - Look at and fix the desktop window and the native macOS menu; both have only been built and launch-tested, not exercised by hand.
-- Hands-on UX testing of the docking prototype (`feat/docking`); it is chosen on API fit only.
+- Hands-on UX testing of the docking prototype; it was chosen on API fit only.
 - Pen pressure, IME and accessibility checks on real hardware.
-- Storage migration tests and broader fault injection (disk full, power loss); autosave and crash recovery exist on `feat/recovery`.
+- Storage migration tests and broader fault injection (disk full, power loss).
 
-## Branches on top of this one
+## How this branch relates to the feature branches
 
-Each is a small, independent PR off `rewrite-from-scratch` and passes the full checks on its
-own. They touch some of the same files (`workspace.rs`, `actions.rs`), so expect small
-merge conflicts when combining them.
+`integration/all` merges every feature branch below and passes the full checks, so they are
+known to combine. Each feature branch also stands alone as a small PR off
+`rewrite-from-scratch`. Where they overlap (`workspace.rs`, `actions.rs`, the CLI), the
+merge was resolved by hand and the merged result is tested as a whole.
 
 | Branch | What it adds |
 |---|---|
 | `feat/recovery` | Autosave to a recovery store, recover on launch, discard on confirmed close |
 | `feat/mcp` | MCP stdio server (`flare-cli mcp`) with permissions, revision checks, robustness tests |
 | `feat/xfl-import` | XFL / modern FLA import subset (`flare-cli import`) with diagnostics, robustness tests |
+| `feat/xfl-export` | XFL / `.fla` export (`flare-cli export-xfl`), stacked on `feat/xfl-import` |
 | `feat/docking` | `egui_tiles` dock with a validated, remembered layout and Reset Workspace Layout |
 | `feat/onion-skin` | Onion skinning with before/after ranges |
 | `feat/hardening` | Fault-injection and random-edit invariant tests |
@@ -36,18 +38,20 @@ merge conflicts when combining them.
 ## Not feasible without more input
 
 - Pen pressure, IME and accessibility need real hardware and a person; AccessKit is not on.
-- Hosted Ruffle playback and SWF publishing need a Ruffle revision chosen and tested.
-- Compatibility claims need real Animate files; the XFL importer has only seen authored fixtures.
+- Hosted Ruffle playback and SWF publishing need a Ruffle revision chosen and tested, and a
+  real player to check output against. A written-but-unverifiable SWF writer would claim more
+  than can be shown.
+- Compatibility claims need real Animate files; the XFL importer and exporter have only seen
+  authored fixtures and each other.
 - App icons must be trimmed of their black corners before they go in `/assets` (packaging).
 
 ## Next independent branches
 
-Each of these can be its own branch and PR on top of the current work:
+Each of these can be its own branch and PR:
 
-1. Docking: `egui_tiles` prototype with a persisted layout is on `feat/docking`; it needs hands-on UX testing and the multi-monitor question answered.
-2. Drawing tools: pen/path, selection of multiple objects, transform handles.
-3. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
-4. Timeline UX: span selection and drag, copy/paste, onion skin, zoom.
-5. Recovery: autosave and crash recovery (done on `feat/recovery`); storage migration and fault-injection tests.
-6. Compatibility evidence: a lawful fixture corpus, then XFL import for a named subset.
-7. Input and accessibility: pen, IME and screen-reader results.
+1. Drawing tools: pen/path, selection of multiple objects, transform handles.
+2. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
+3. Timeline UX: span selection and drag, copy/paste, zoom.
+4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, then source preservation of unknown data.
+5. Input and accessibility: pen, IME and screen-reader results.
+6. Packaging: app bundles and installers, once the icons are trimmed.
