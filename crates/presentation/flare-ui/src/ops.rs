@@ -485,6 +485,55 @@ pub fn shape_bounds(shape: &Shape) -> Option<Rect> {
     bounds.map(|b| b.expand(half))
 }
 
+/// Whether `point` is inside the closed polygon `polygon` (even-odd rule).
+pub fn polygon_contains(polygon: &[Pos2], point: Pos2) -> bool {
+    let mut inside = false;
+    let mut previous = match polygon.last() {
+        Some(p) => *p,
+        None => return false,
+    };
+    for &current in polygon {
+        if (current.y > point.y) != (previous.y > point.y)
+            && point.x
+                < (previous.x - current.x) * (point.y - current.y) / (previous.y - current.y)
+                    + current.x
+        {
+            inside = !inside;
+        }
+        previous = current;
+    }
+    inside
+}
+
+/// The spans on unlocked layers at `frame` whose bounds are centered inside `polygon`: what a
+/// lasso drawn around them selects, topmost layer first.
+pub fn spans_in_polygon(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+    polygon: &[Pos2],
+) -> Vec<SpanRef> {
+    if polygon.len() < 3 {
+        return Vec::new();
+    }
+    let Some(timeline) = scene_timeline(document, scene) else {
+        return Vec::new();
+    };
+    timeline
+        .layers()
+        .iter()
+        .filter(|layer| !layer.is_locked())
+        .filter_map(|layer| {
+            let span = layer.span_at(frame)?;
+            let center = content_bounds(document, span.content())?.center();
+            polygon_contains(polygon, center).then_some(SpanRef {
+                layer: layer.id(),
+                start: span.start(),
+            })
+        })
+        .collect()
+}
+
 /// Stage-space bounds of a selected span, for drawing the selection outline.
 #[cfg(test)]
 pub fn span_bounds(document: &Document, scene: SceneId, at: SpanRef) -> Option<Rect> {

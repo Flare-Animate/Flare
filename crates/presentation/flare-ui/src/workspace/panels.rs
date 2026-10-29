@@ -23,7 +23,7 @@ const TOOL_GRID: &[(&str, &str, &str, Option<Tool>)] = &[
     ("tool-selection", "Selection", "V", Some(Tool::Select)),
     ("tool-subselection", "Subselection", "A", None),
     ("tool-transform", "Free Transform", "Q", None),
-    ("tool-lasso", "Lasso", "L", None),
+    ("tool-lasso", "Lasso", "L", Some(Tool::Lasso)),
     ("tool-pen", "Pen", "P", Some(Tool::Pen)),
     ("tool-text", "Text", "T", Some(Tool::Text)),
     ("tool-line", "Line", "N", Some(Tool::Line)),
@@ -218,6 +218,7 @@ impl Workspace {
             Tool::InkBottle => ("tool-ink-bottle", "Ink Bottle"),
             Tool::Eraser => ("tool-eraser", "Eraser"),
             Tool::PolyStar => ("tool-polystar", "PolyStar"),
+            Tool::Lasso => ("tool-lasso", "Lasso"),
         };
         chrome::section(ui, icon, &format!("{title} tool"));
         match self.tool {
@@ -292,6 +293,9 @@ impl Workspace {
             }
             Tool::Eraser => {
                 ui.weak("Click a shape to delete it.");
+            }
+            Tool::Lasso => {
+                ui.weak("Drag a loop around shapes to select them; Shift adds to the selection.");
             }
             Tool::Line => {
                 ui.weak("Drag on the stage. A line always has a stroke.");
@@ -825,6 +829,7 @@ impl Workspace {
             Tool::InkBottle => "Ink Bottle: click a shape to outline it",
             Tool::Eraser => "Eraser: click a shape to delete it",
             Tool::PolyStar => "PolyStar: drag from the center",
+            Tool::Lasso => "Lasso: drag a loop around shapes to select them",
         }
     }
 

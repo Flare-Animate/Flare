@@ -145,6 +145,7 @@ const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::E, Tool::Eraser),
     (Key::H, Tool::Hand),
     (Key::Z, Tool::Zoom),
+    (Key::L, Tool::Lasso),
 ];
 
 /// Frames `from..=to` of one layer, selected in the timeline for copying.
@@ -219,6 +220,8 @@ pub enum Tool {
     Eraser,
     /// Drag from the center out: a regular polygon, or a star.
     PolyStar,
+    /// Drag a freehand loop around shapes to select them.
+    Lasso,
 }
 
 /// Timeline frame operations on the active layer at the current frame.
@@ -353,6 +356,8 @@ pub struct Workspace {
     poly_sides: u32,
     poly_star: bool,
     poly_inner: f32,
+    /// The loop being drawn with the lasso, in stage coordinates.
+    lasso: Vec<Pos2>,
     /// The text being typed, if the user has clicked the stage with the text tool.
     text_edit: Option<PendingText>,
     /// Text handed to the font worker and not yet back: (job number, where to put it).
@@ -457,6 +462,7 @@ impl Workspace {
             poly_sides: 5,
             poly_star: false,
             poly_inner: 0.5,
+            lasso: Vec::new(),
             text_size: 48.0,
             text_edit: None,
             text_pending: None,
@@ -1642,6 +1648,7 @@ impl Workspace {
             | MenuAction::ToolInkBottle
             | MenuAction::ToolEraser
             | MenuAction::ToolPolyStar
+            | MenuAction::ToolLasso
             | MenuAction::PlayPause
             | MenuAction::ZoomIn
             | MenuAction::ZoomOut => true,
@@ -1703,6 +1710,7 @@ impl Workspace {
             MenuAction::ToolInkBottle => "Ink Bottle",
             MenuAction::ToolEraser => "Eraser",
             MenuAction::ToolPolyStar => "PolyStar",
+            MenuAction::ToolLasso => "Lasso",
             MenuAction::ZoomIn => "Zoom In",
             MenuAction::ZoomOut => "Zoom Out",
             MenuAction::ZoomFit => "Fit Stage in Window",
@@ -1818,6 +1826,7 @@ impl Workspace {
             MenuAction::ToolInkBottle => self.set_tool(Tool::InkBottle),
             MenuAction::ToolEraser => self.set_tool(Tool::Eraser),
             MenuAction::ToolPolyStar => self.set_tool(Tool::PolyStar),
+            MenuAction::ToolLasso => self.set_tool(Tool::Lasso),
             MenuAction::InsertFrame => self.frame_edit(FrameOp::InsertFrame),
             MenuAction::RemoveFrame => self.frame_edit(FrameOp::RemoveFrame),
             MenuAction::InsertKeyframe => self.frame_edit(FrameOp::InsertKeyframe),
@@ -2286,7 +2295,8 @@ impl Workspace {
             | Tool::Eyedropper
             | Tool::Bucket
             | Tool::InkBottle
-            | Tool::Eraser => None,
+            | Tool::Eraser
+            | Tool::Lasso => None,
             Tool::Select => {
                 let grabbed = if additive {
                     None
@@ -2390,6 +2400,25 @@ impl Workspace {
         }
     }
 
+    /// Selects what the finished lasso loop encloses; with `additive` it adds to the selection.
+    fn finish_lasso(&mut self, additive: bool) {
+        let polygon = std::mem::take(&mut self.lasso);
+        let Some(scene) = self.scene_id() else { return };
+        let found = ops::spans_in_polygon(self.document(), scene, self.frame, &polygon);
+        let mut all = if additive {
+            self.selection_all()
+        } else {
+            Vec::new()
+        };
+        for span in found {
+            if !all.contains(&span) {
+                all.push(span);
+            }
+        }
+        self.selected = all.first().copied();
+        self.also_selected = all.into_iter().skip(1).collect();
+    }
+
     fn update_drag(&mut self, point: Pos2) {
         if let Some(drag) = &mut self.drag {
             drag.current = point;
@@ -2419,6 +2448,7 @@ impl Workspace {
     /// Escape, tool switches and focus loss cancel a gesture without committing it.
     fn cancel_drag(&mut self) {
         self.span_drag = None;
+        self.lasso.clear();
         if self.drag.take().is_some() {
             self.drag_cancelled = true;
         }
@@ -3380,6 +3410,33 @@ impl Workspace {
         }
         if self.tool == Tool::Hand && response.dragged_by(egui::PointerButton::Primary) {
             self.stage_view.pan_by(response.drag_delta());
+        }
+        if self.tool == Tool::Lasso {
+            let primary = egui::PointerButton::Primary;
+            if let Some(p) = response.interact_pointer_pos()
+                && response.dragged_by(primary)
+            {
+                let at = to_doc(p);
+                let step = 2.0 / scale.max(f32::EPSILON);
+                if self
+                    .lasso
+                    .last()
+                    .is_none_or(|last| (*last - at).length() >= step)
+                {
+                    self.lasso.push(at);
+                }
+            }
+            if response.drag_stopped_by(primary) {
+                self.finish_lasso(ui.input(|i| i.modifiers.shift));
+            }
+            if self.lasso.len() > 1 {
+                let mut points: Vec<Pos2> = self.lasso.iter().map(|p| to_screen(*p)).collect();
+                points.push(points[0]);
+                painter.add(egui::Shape::line(
+                    points,
+                    Stroke::new(1.5, crate::theme::ACCENT),
+                ));
+            }
         }
         if self.tool == Tool::Zoom
             && response.clicked()
@@ -7484,5 +7541,35 @@ mod tests {
         assert!(after > before);
         ws.perform(MenuAction::ToolHand);
         assert_eq!(ws.tool(), Tool::Hand);
+    }
+
+    #[test]
+    fn the_lasso_selects_shapes_centered_inside_the_loop_and_skips_locked_layers() {
+        let mut ws = workspace();
+        rect(&mut ws); // layer 1, centered at (60, 35)
+        ws.commit_rectangle(Pos2::new(300.0, 300.0), Pos2::new(340.0, 340.0)); // layer 2
+        ws.set_tool(Tool::Lasso);
+        ws.lasso = vec![
+            Pos2::new(0.0, 0.0),
+            Pos2::new(200.0, 0.0),
+            Pos2::new(200.0, 100.0),
+            Pos2::new(0.0, 100.0),
+        ];
+        ws.finish_lasso(false);
+        assert_eq!(ws.selection_all().len(), 1);
+        assert!(ws.lasso.is_empty());
+        // A loop around both, with Shift on top of the first selection.
+        ws.lasso = vec![
+            Pos2::new(250.0, 250.0),
+            Pos2::new(400.0, 250.0),
+            Pos2::new(400.0, 400.0),
+            Pos2::new(250.0, 400.0),
+        ];
+        ws.finish_lasso(true);
+        assert_eq!(ws.selection_all().len(), 2);
+        // Fewer than three points enclose nothing.
+        ws.lasso = vec![Pos2::new(0.0, 0.0), Pos2::new(500.0, 500.0)];
+        ws.finish_lasso(false);
+        assert!(ws.selection_all().is_empty());
     }
 }

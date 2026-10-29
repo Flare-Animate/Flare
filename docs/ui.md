@@ -32,7 +32,7 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 
 Planned, in the order they will be built:
 
-- Tools: Subselection, Free Transform, Lasso, Pencil, Brush. (Built: PolyStar, Paint Bucket,
+- Tools: Subselection, Free Transform, Pencil, Brush. (Built: Lasso, PolyStar, Paint Bucket,
   Ink Bottle, Eyedropper, Eraser, Hand, Zoom, and the rectangle corner radius.)
 - Properties: editable position and size, stroke cap and join, text style, frame rate.
 - Library: search, new symbol, folders, symbol properties, delete, preview.
