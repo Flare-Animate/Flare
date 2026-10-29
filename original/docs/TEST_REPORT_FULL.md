@@ -241,3 +241,46 @@ Defects found and fixed in this pass: use-after-free of the level palette (`incl
 instead of `TPaletteP`) that crashed every SVG/PSD/Toonz Raster level load, hence every XFL/FLA/SWF import and the first Brush
 stroke on an empty cell; PSD 1x1 image divide by zero; XFL import added each bitmap twice; extension-less XFL folder argument
 ignored; D18-D21 from QA2.
+
+## QA4 (Haiku, independent, tested 712cd35)
+
+Independent re-run of the QA3 harness by a second agent. Built from commit 712cd35 (the QA3 harness commit); the branch tip at the time was 2e3c333, which failed to link, so the tested binary is not the current tip. Results are in `/home/user/qa4-out/results.md` (suite) and `/home/user/qa4-out-samples/` (new samples), not committed.
+
+Suite (`run_all.sh --all`): **118 PASS, 1 FAIL, 1 UNTESTED** (same as QA3).
+
+| Area | Result |
+|---|---|
+| 22 toolbar tools (stroke + pixel diff, non-drawing tools checked for panel change) | 22 PASS; PaintBrush/Finger only checked for the raster-only warning |
+| Brush on empty cell (auto-create) | PASS |
+| Edit: undo/redo (keys + command), multi-frame scene, .tnz save | PASS |
+| Playback frame counter | FAIL (constant 3 or 0 under Xvfb; same as QA3, see below) |
+| Preferences (16 pages), rooms (28, 5 layout profiles) | PASS |
+| Imports of harness fixtures (FLA, XFL, SWF, PSD, SVG, GIF, JPG, PNG, AI/AIR/ANE/F4V/FLV, Moho x3) | PASS |
+| Export XFL/FLA/HTML5, re-import counts, HTML5 in chromium | PASS |
+| No fatal in app log | PASS |
+
+New samples (`run_all.sh --all --dir /tmp/qa4`, output `/home/user/qa4-out-samples`):
+
+| Sample set | Files | Import result |
+|---|---|---|
+| SWF (ruffle tests + gnash/avmplus, v5 to v50) | 12 | 12 PASS; 3 with columns (button_keypress, loadmovie, timeline_frame_script), 9 reported 0 columns with the importer note "not converted to levels" |
+| FLA (ruffle tests, zip) | 6 | 6 PASS |
+| GIF 400x400, JPG, SVG (Wikimedia Europe map, ruffle logo x2) | 5 | 5 PASS |
+| MP4 (640x360 400 frames, BBB 360p 300 frames) | 2 | 2 PASS (frame count only, no visual check) |
+| PSD, Moho x3, AI/AIR/F4V/FLV | repo fixtures, not new | PASS |
+
+No new PSD or Moho/ANME sample could be downloaded (PSD URLs 404, archive.org returned 503), so those formats were only covered by repo fixtures.
+
+Coverage: 119 of 120 suite items executed (99%), 118 of 120 PASS (98%). New samples: 25 of 25 files imported with no import FAIL; visual check done on the 2 contradictions and 7 screenshots only.
+
+Contradictions with PASS (investigated):
+- `ruffle_DefineShape.swf` (import, PASS "cols=1 frames=1"): the screenshot shows one large solid black shape at 61% zoom, partly off the stage. Not confirmed as a defect: the fixture may legitimately be a black fill. No reference image is in the repo to compare against.
+- `minimal_rig.moho` (import, PASS "cols=1 frames=48"): the screenshot shows an empty canvas with "Camera1" and "Col1" in the timeline. The file is a rig fixture; whether it contains drawable artwork was not checked. Possible empty-import defect, not proven.
+- 9 of 12 new SWFs import as "0 columns, not converted to levels", including SWF v38/v41/v50 files reporting 0 x 0 px. The harness passes these because the importer explains the result. This is a possible parser gap and needs review against the ruffle expected outputs.
+- Playback frame counter: FAIL again under Xvfb (same as QA3).
+
+LiquidGlass theme (`gui_theme_session.sh LiquidGlass Animate`): the startup dialog and toolbar render; labels are readable; no clipping seen in the one screenshot taken. Not checked: other pages of the theme.
+
+Screenshots: `docs/images/qa/qa4-*.png` (9 files, resized to 800 px wide).
+
+Follow-up: review the 0-column SWF imports, check whether `minimal_rig.moho` has artwork, and re-run playback on a real display.
