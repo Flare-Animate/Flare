@@ -1,6 +1,6 @@
 # CPU rasterizer comparison (tiny-skia 0.12.0, vello_cpu 0.3.0, agg-rust 1.2.0)
 
-Experiment for the pack's renderer gate (WP05 / `perf(render)`). Isolated crate, own lockfile,
+Evidence behind docs/decisions/renderer.md. Isolated crate, own lockfile,
 not part of the product dependency graph. Reproduce with `./run_bench.sh` (needs hyperfine).
 Machine, toolchain and binary hash: `machine.txt`. Raw data: `hf-*.json` (hyperfine) and `warm.txt`
 (in-process, 30 renders each, after the first). Same deterministic scene bytes for every backend.
