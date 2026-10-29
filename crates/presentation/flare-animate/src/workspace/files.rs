@@ -66,6 +66,22 @@ impl Workspace {
         self.settle_inline();
     }
 
+    /// Like [`Self::import_project`] for a `.fla` already in memory, named `name`.
+    pub fn import_project_bytes(&mut self, name: &str, bytes: Vec<u8>) {
+        if self.is_dirty() {
+            self.report("Save or undo your changes before importing another project");
+            return;
+        }
+        let id = self.background.next_id();
+        self.importing = Some(id);
+        self.background.submit_io(IoJob::ImportBytes {
+            id,
+            name: name.to_owned(),
+            bytes,
+        });
+        self.settle_inline();
+    }
+
     /// Starts an empty project, refusing to replace unsaved work.
     pub(super) fn new_document(&mut self) {
         if self.is_dirty() {

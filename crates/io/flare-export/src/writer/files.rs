@@ -45,6 +45,29 @@ pub fn write_directory(output: &Output, dir: &Path) -> Result<(), ExportError> {
     result
 }
 
+/// The bytes of a zipped modern `.fla`, for a place with no file system to write to.
+pub fn fla_bytes(output: &Output) -> Result<Vec<u8>, ExportError> {
+    let mut cursor = std::io::Cursor::new(Vec::new());
+    write_zip(&mut cursor, output)?;
+    Ok(cursor.into_inner())
+}
+
+fn write_zip(sink: &mut (impl Write + std::io::Seek), output: &Output) -> Result<(), ExportError> {
+    let mut zip = zip::ZipWriter::new(sink);
+    let stored =
+        zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+    let deflated = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+    zip.start_file("mimetype", stored)?;
+    zip.write_all(b"application/vnd.adobe.xfl")?;
+    for (name, body) in &output.files {
+        zip.start_file(name.as_str(), deflated)?;
+        zip.write_all(body.as_bytes())?;
+    }
+    zip.finish()?;
+    Ok(())
+}
+
 /// Writes a zipped modern `.fla` to `path`, which must not exist.
 pub fn write_fla(output: &Output, path: &Path) -> Result<(), ExportError> {
     if path.exists() {
@@ -57,20 +80,7 @@ pub fn write_fla(output: &Output, path: &Path) -> Result<(), ExportError> {
     fs::create_dir_all(parent)?;
     let (staging, mut file) = tempfile_in(parent)?;
     let result = (|| -> Result<(), ExportError> {
-        {
-            let mut zip = zip::ZipWriter::new(&mut file);
-            let stored = zip::write::SimpleFileOptions::default()
-                .compression_method(zip::CompressionMethod::Stored);
-            let deflated = zip::write::SimpleFileOptions::default()
-                .compression_method(zip::CompressionMethod::Deflated);
-            zip.start_file("mimetype", stored)?;
-            zip.write_all(b"application/vnd.adobe.xfl")?;
-            for (name, body) in &output.files {
-                zip.start_file(name.as_str(), deflated)?;
-                zip.write_all(body.as_bytes())?;
-            }
-            zip.finish()?;
-        }
+        write_zip(&mut file, output)?;
         file.flush()?;
         fs::rename(&staging, path)?;
         Ok(())

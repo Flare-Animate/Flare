@@ -1,6 +1,7 @@
 //! Doing one job. Shared by the worker threads and the inline mode, so both give the same
 //! answer.
 
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use crate::jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob};
@@ -106,6 +107,22 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
     }
 }
 
+/// An import's outcome as the document and one line per thing that was not carried over.
+fn imported(
+    result: Result<flare_import::Imported, flare_import::ImportError>,
+) -> Result<(flare_document::Document, Vec<String>), String> {
+    result
+        .map(|imported| {
+            let notes = imported
+                .diagnostics
+                .iter()
+                .map(|d| format!("{:?} {}: {}", d.severity, d.location, d.message))
+                .collect();
+            (imported.document, notes)
+        })
+        .map_err(|e| e.to_string())
+}
+
 pub fn run_io(job: IoJob) -> Done {
     match job {
         IoJob::Save { path, document } => {
@@ -126,18 +143,14 @@ pub fn run_io(job: IoJob) -> Done {
             }
         }
         IoJob::Import { id, path } => {
-            let result = flare_import::import_path(&path)
-                .map(|imported| {
-                    let notes = imported
-                        .diagnostics
-                        .iter()
-                        .map(|d| format!("{:?} {}: {}", d.severity, d.location, d.message))
-                        .collect();
-                    (imported.document, notes)
-                })
-                .map_err(|e| e.to_string());
+            let result = imported(flare_import::import_path(&path));
             Done::Imported { id, path, result }
         }
+        IoJob::ImportBytes { id, name, bytes } => Done::Imported {
+            id,
+            path: PathBuf::from(name),
+            result: imported(flare_import::import_fla_bytes(bytes)),
+        },
         IoJob::Autosave { id, dir, document } => Done::Autosaved {
             id,
             result: flare_storage::save_recovery(&document, &dir).map_err(|e| e.to_string()),

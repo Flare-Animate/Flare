@@ -126,6 +126,12 @@ impl Workspace {
         self.dialog.take()
     }
 
+    /// Says something to the person through the status bar and the Output panel, for a shell
+    /// that could not do what was asked (a page that cannot import sounds, a failed download).
+    pub fn report_message(&mut self, message: &str) {
+        self.report(message);
+    }
+
     pub(super) fn report(&mut self, message: impl Into<String>) {
         let message = message.into();
         if self.log.last() != Some(&message) {

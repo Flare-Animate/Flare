@@ -2,7 +2,7 @@
 
 use std::cell::RefCell;
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 
 use crate::xfl::{FileSource, ImportError, Imported, import_xfl, read_capped};
@@ -50,17 +50,35 @@ impl FileSource for DirSource {
 }
 
 /// A zipped modern `.fla`, which is an XFL directory in an archive.
-pub struct ZipSource(RefCell<zip::ZipArchive<File>>);
+pub struct ZipSource<R = File>(RefCell<zip::ZipArchive<R>>);
 
 impl ZipSource {
     pub fn open(path: &Path) -> Result<Self, ImportError> {
-        let archive = zip::ZipArchive::new(File::open(path)?)
+        Self::from_reader(File::open(path)?)
+    }
+}
+
+impl ZipSource<Cursor<Vec<u8>>> {
+    /// A `.fla` already in memory, for a place with no file system to read from.
+    pub fn from_bytes(bytes: Vec<u8>) -> Result<Self, ImportError> {
+        Self::from_reader(Cursor::new(bytes))
+    }
+}
+
+impl<R: Read + Seek> ZipSource<R> {
+    fn from_reader(reader: R) -> Result<Self, ImportError> {
+        let archive = zip::ZipArchive::new(reader)
             .map_err(|e| ImportError::NotXfl(format!("not a readable zip archive: {e}")))?;
         Ok(Self(RefCell::new(archive)))
     }
 }
 
-impl FileSource for ZipSource {
+/// Imports a `.fla` held in memory.
+pub fn import_fla_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
+    import_xfl(&ZipSource::from_bytes(bytes)?)
+}
+
+impl<R: Read + Seek> FileSource for ZipSource<R> {
     fn read(&self, name: &str) -> io::Result<Option<Vec<u8>>> {
         if !is_safe_name(name) {
             return Err(unsafe_name(name));

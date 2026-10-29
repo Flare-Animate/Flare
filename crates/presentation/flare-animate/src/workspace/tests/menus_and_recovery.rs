@@ -540,3 +540,20 @@ fn importing_an_xfl_folder_makes_a_new_unsaved_project_and_never_replaces_unsave
     other.perform(MenuAction::ImportProject);
     assert_eq!(other.take_dialog(), Some(DialogRequest::ImportProject));
 }
+
+#[test]
+fn a_fla_held_in_memory_imports_like_one_read_from_disk() {
+    let mut source = workspace();
+    rect(&mut source);
+    let output = flare_export::export_xfl(source.document()).expect("export");
+    let bytes = flare_export::fla_bytes(&output).expect("bytes");
+    let mut ws = workspace();
+    ws.import_project_bytes("art.fla", bytes);
+    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(ws.path(), None);
+    assert!(ws.is_dirty());
+    let mut other = workspace();
+    other.import_project_bytes("junk.fla", b"not a zip".to_vec());
+    assert!(other.status().is_some_and(|s| s.contains("Cannot import")));
+    assert_eq!(layer_count(&other), 1);
+}

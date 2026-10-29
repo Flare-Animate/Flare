@@ -2,14 +2,14 @@
 //! runs it on a thread of its own.
 
 use std::fs::File;
-use std::io::BufWriter;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use flare_document::Document;
 
-/// Renders `frame` of the first scene at the stage's size over its background and writes it to
-/// `path` as a PNG. Errors are worded for the person who asked for the export.
-pub fn export_png(document: &Document, frame: u32, path: &Path) -> Result<(), String> {
+/// Renders `frame` of the first scene at the stage's size over its background as PNG bytes.
+/// Errors are worded for the person who asked for the export.
+pub fn png_bytes(document: &Document, frame: u32) -> Result<Vec<u8>, String> {
     let scene = document
         .scenes()
         .first()
@@ -19,10 +19,20 @@ pub fn export_png(document: &Document, frame: u32, path: &Path) -> Result<(), St
     let stage = document.stage();
     let image = flare_render::render(&drawn, stage.width(), stage.height(), stage.background())
         .map_err(|error| format!("Cannot render the frame: {error}"))?;
+    let mut bytes = Vec::new();
+    image
+        .write_png(&mut bytes)
+        .map_err(|error| format!("Cannot write the PNG: {error}"))?;
+    Ok(bytes)
+}
+
+/// Writes `frame` to `path` as a PNG (see [`png_bytes`]).
+pub fn export_png(document: &Document, frame: u32, path: &Path) -> Result<(), String> {
+    let bytes = png_bytes(document, frame)?;
     let file =
         File::create(path).map_err(|error| format!("Cannot create {}: {error}", path.display()))?;
-    image
-        .write_png(BufWriter::new(file))
+    BufWriter::new(file)
+        .write_all(&bytes)
         .map_err(|error| format!("Cannot write the PNG: {error}"))
 }
 

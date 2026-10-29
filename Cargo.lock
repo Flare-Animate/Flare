@@ -1898,9 +1898,15 @@ version = "0.1.0"
 dependencies = [
  "eframe",
  "flare-animate",
+ "flare-export",
+ "flare-publish",
+ "flare-runtime",
+ "js-sys",
+ "rfd",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+ "wgpu",
 ]
 
 [[package]]

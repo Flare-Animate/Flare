@@ -54,6 +54,12 @@ pub enum IoJob {
     },
     /// Read an XFL folder or a `.fla` and turn it into a document.
     Import { id: u64, path: PathBuf },
+    /// The same from a `.fla` already in memory (a browser has no path to read).
+    ImportBytes {
+        id: u64,
+        name: String,
+        bytes: Vec<u8>,
+    },
 }
 
 /// A drawn frame, in whichever form the rasterizer produced it: the common one (no ghosts)

@@ -7,5 +7,5 @@ mod source;
 mod xfl;
 mod xml;
 
-pub use source::{DirSource, ZipSource, import_path};
+pub use source::{DirSource, ZipSource, import_fla_bytes, import_path};
 pub use xfl::{Diagnostic, FileSource, ImportError, Imported, Severity, frame_rate, import_xfl};

@@ -20,7 +20,7 @@ mod jobs;
 mod run;
 mod workers;
 
-pub use export::export_png;
+pub use export::{export_png, png_bytes};
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob};
 pub use run::{ExtraFonts, run_audio, run_io, run_render, run_text};
 pub use workers::Wake;

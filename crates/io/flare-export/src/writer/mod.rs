@@ -10,7 +10,7 @@ mod timeline;
 
 #[allow(unused_imports)]
 use files::*;
-pub use files::{write_directory, write_fla};
+pub use files::{fla_bytes, write_directory, write_fla};
 #[allow(unused_imports)]
 use shapes::*;
 #[allow(unused_imports)]
