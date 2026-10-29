@@ -230,7 +230,9 @@ mod tests {
             "Layer 1",
             vec![place(0).with_tween(Tween::Linear), place(4), empty, drawn],
         )
-        .expect("layer");
+        .expect("layer")
+        .with_visible(false)
+        .with_locked(true);
         let scenes = vec![
             Scene::new(SceneId::new(), "One", Timeline::new(vec![layer])),
             Scene::new(SceneId::new(), "Two", Timeline::default()),
@@ -332,6 +334,26 @@ mod tests {
         .expect("bad stage");
         drop(conn);
         assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
+    }
+
+    #[test]
+    fn legacy_layers_without_flags_load_visible_and_unlocked() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        save(&sample(), &path).expect("save");
+        assert!(!load(&path).expect("load").scenes()[0].timeline().layers()[0].is_visible());
+        let conn = Connection::open(&path).expect("open");
+        conn.execute(
+            "UPDATE entity SET payload_json = replace(replace(payload_json, '\"visible\":', '\"v\":'), '\"locked\":', '\"l\":')",
+            [],
+        )
+        .expect("strip flags");
+        drop(conn);
+        let layer = &load(&path).expect("legacy load").scenes()[0]
+            .timeline()
+            .layers()[0]
+            .clone();
+        assert!(layer.is_visible() && !layer.is_locked());
     }
 
     #[test]

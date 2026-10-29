@@ -128,10 +128,19 @@ struct SpanWire {
     content: ContentWire,
 }
 
+fn default_visible() -> bool {
+    true
+}
+
 #[derive(Serialize, Deserialize)]
 struct LayerWire {
     id: String,
     name: String,
+    /// Absent in files written before layer flags existed: visible and unlocked.
+    #[serde(default = "default_visible")]
+    visible: bool,
+    #[serde(default)]
+    locked: bool,
     spans: Vec<SpanWire>,
 }
 
@@ -148,6 +157,8 @@ impl TimelineWire {
             .map(|layer| LayerWire {
                 id: layer.id().as_uuid().to_string(),
                 name: layer.name().to_owned(),
+                visible: layer.is_visible(),
+                locked: layer.is_locked(),
                 spans: layer
                     .spans()
                     .iter()
@@ -231,11 +242,11 @@ impl TimelineWire {
                 };
                 spans.push(FrameSpan::new(span.start, duration, content).with_tween(tween));
             }
-            layers.push(Layer::new(
-                LayerId::from_uuid(uuid(&layer.id)?),
-                layer.name,
-                spans,
-            )?);
+            layers.push(
+                Layer::new(LayerId::from_uuid(uuid(&layer.id)?), layer.name, spans)?
+                    .with_visible(layer.visible)
+                    .with_locked(layer.locked),
+            );
         }
         Ok(Timeline::new(layers))
     }
