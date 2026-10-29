@@ -7,7 +7,7 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
-flare-types.workspace = true
+flare-core.workspace = true
 flare-flash.workspace = true
 clap.workspace = true
 serde_json.workspace = true

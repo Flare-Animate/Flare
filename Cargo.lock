@@ -143,9 +143,20 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "flare-core",
  "flare-flash",
- "flare-types",
  "serde_json",
+]
+
+[[package]]
+name = "flare-core"
+version = "0.1.0"
+dependencies = [
+ "glamx",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "uuid",
 ]
 
 [[package]]
@@ -154,17 +165,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "thiserror",
-]
-
-[[package]]
-name = "flare-types"
-version = "0.1.0"
-dependencies = [
- "glamx",
- "serde",
- "serde_json",
- "thiserror",
- "uuid",
 ]
 
 [[package]]

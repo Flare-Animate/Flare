@@ -4,7 +4,7 @@
 resolver = "3"
 members = [
     "apps/flare-cli",
-    "crates/foundation/flare-types",
+    "crates/foundation/flare-core",
     "crates/io/flare-flash",
 ]
 exclude = ["original"]
@@ -18,7 +18,7 @@ license = "BSD-3-Clause"
 
 [workspace.dependencies]
 # ---- Internal packages: root owns all paths ----------------------------------
-flare-types = { path = "crates/foundation/flare-types" }
+flare-core = { path = "crates/foundation/flare-core" }
 flare-flash = { path = "crates/io/flare-flash" }
 
 # ---- Math and vector geometry ------------------------------------------------

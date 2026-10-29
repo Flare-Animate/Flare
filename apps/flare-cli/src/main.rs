@@ -7,8 +7,8 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
+use flare_core::FrameRate;
 use flare_flash::inspect_prefix;
-use flare_types::FrameRate;
 use serde_json::json;
 
 #[derive(Parser)]
