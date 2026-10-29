@@ -1,5 +1,7 @@
+use std::collections::{HashMap, HashSet};
 use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use egui::{Align2, Color32, FontId, Key, Modifiers, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
@@ -10,7 +12,7 @@ use flare_document::{
 use flare_edit::{Command, EditorSession, LayerChange, frames};
 use glamx::{DAffine2, DVec2};
 
-use crate::background::{Background, Done, IoJob, Mode, RenderJob, TextJob};
+use crate::background::{AudioJob, Background, Done, IoJob, Mode, RenderJob, TextJob};
 use crate::handles::{self, Handle};
 use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
@@ -66,7 +68,24 @@ pub fn onion_ghosts(frame: u32, frames: u32, before: u32, after: u32) -> Vec<(u3
 pub enum DialogRequest {
     Open,
     SaveAs,
+    ImportSound,
 }
+
+/// Something for the app to do with the sound card. The workspace decides what plays when; the
+/// app owns the device (the workspace has no device code).
+#[derive(Clone, Debug)]
+pub enum AudioEvent {
+    /// Silence everything that is playing.
+    Stop,
+    /// Start a sound after a delay.
+    Play {
+        audio: Arc<flare_audio::Audio>,
+        delay_seconds: f64,
+    },
+}
+
+/// Most decoded audio kept for playback, in samples (all channels): about 64 MB of floats.
+const DECODED_AUDIO_SAMPLES: usize = 16_000_000;
 
 /// Largest side, in pixels, of the stage texture. The texture covers only what is visible, so
 /// this is reached only on a very large window or display.
@@ -256,6 +275,18 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// Sounds decoded and ready to play, by sound.
+    decoded: HashMap<flare_core::SoundId, Arc<flare_audio::Audio>>,
+    /// Sounds being decoded, and sounds that could not be, so neither is asked for again.
+    decoding: HashSet<flare_core::SoundId>,
+    decode_failed: HashSet<flare_core::SoundId>,
+    /// What the app should do with the sound card, since it last asked.
+    audio_events: Vec<AudioEvent>,
+    /// The sound import in flight, if any.
+    importing_sound: Option<u64>,
+    /// Whether the timeline was playing, and at which frame, when sound was last brought up
+    /// to date.
+    audio_synced: Option<(bool, u32)>,
     /// Font family list and size for the text tool.
     text_family: String,
     text_size: f32,
@@ -345,6 +376,12 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            decoded: HashMap::new(),
+            decoding: HashSet::new(),
+            decode_failed: HashSet::new(),
+            audio_events: Vec::new(),
+            importing_sound: None,
+            audio_synced: None,
             text_family: "sans-serif".into(),
             text_size: 48.0,
             text_edit: None,
@@ -529,6 +566,9 @@ impl Workspace {
             egui_tiles::Tree::empty(egui::Id::unique("taken")),
         );
         fresh.onion = self.onion;
+        // Whatever was playing belonged to the old project.
+        fresh.audio_events = std::mem::take(&mut self.audio_events);
+        fresh.audio_events.push(AudioEvent::Stop);
         // The workers belong to the app, not to a document; results of the old document's jobs
         // find nothing waiting for them and are dropped.
         fresh.background = std::mem::replace(&mut self.background, Background::inline());
@@ -641,6 +681,165 @@ impl Workspace {
             document: self.session.snapshot(),
         });
         self.settle_inline();
+    }
+
+    // ---- sound ------------------------------------------------------------------------
+
+    /// Imports a sound file: it is read and decoded on a worker, then added to the project with
+    /// a cue at the current frame on a new layer, as one undo step.
+    pub fn import_sound(&mut self, path: &Path) {
+        if self.in_symbol() {
+            self.report("Leave symbol editing before importing a sound");
+            return;
+        }
+        let id = self.background.next_id();
+        self.importing_sound = Some(id);
+        self.background.submit_audio(AudioJob::Import {
+            id,
+            path: path.to_owned(),
+        });
+        if self.background.mode() == Mode::Threads {
+            self.status = Some(format!("Importing {}...", path.display()));
+        }
+        self.settle_inline();
+    }
+
+    fn add_sound(&mut self, path: &Path, bytes: Vec<u8>, audio: Arc<flare_audio::Audio>) {
+        let Some(scene) = self.scene_id() else {
+            return;
+        };
+        let name = path
+            .file_stem()
+            .map_or_else(|| "Sound".to_owned(), |n| n.to_string_lossy().into_owned());
+        let id = flare_core::SoundId::new();
+        let sound = match flare_document::Sound::new(
+            id,
+            name.clone(),
+            bytes,
+            audio.sample_rate(),
+            audio.channels(),
+            audio.frames() as u64,
+        ) {
+            Ok(sound) => sound,
+            Err(error) => return self.report(format!("Cannot import {name}: {error}")),
+        };
+        let layer_id = LayerId::new();
+        let cue = flare_document::SoundCue {
+            start: self.frame,
+            sound: id,
+        };
+        let layer = match Layer::new(layer_id, format!("Sound: {name}"), vec![])
+            .map_err(|e| e.to_string())
+            .and_then(|l| l.with_cues(vec![cue]).map_err(|e| e.to_string()))
+        {
+            Ok(layer) => layer,
+            Err(message) => return self.report(format!("Cannot import {name}: {message}")),
+        };
+        self.run_batch(
+            vec![Command::AddSound(sound), Command::AddLayer { scene, layer }],
+            "import the sound",
+        );
+        if self.status.is_none() {
+            self.decoded.insert(id, audio);
+            self.current_layer = Some(layer_id);
+        }
+    }
+
+    /// The sounds that only the cues of `layer` play: what deleting the layer would leave unused.
+    fn orphaned_sounds(&self, layer: LayerId) -> Vec<flare_core::SoundId> {
+        let document = self.session.document();
+        let timelines = document
+            .scenes()
+            .iter()
+            .map(|s| s.timeline())
+            .chain(document.symbols().iter().map(|s| s.timeline()));
+        let (mut own, mut elsewhere) = (Vec::new(), HashSet::new());
+        for timeline in timelines {
+            for l in timeline.layers() {
+                if l.id() == layer {
+                    own.extend(l.cues().iter().map(|c| c.sound));
+                } else {
+                    elsewhere.extend(l.cues().iter().map(|c| c.sound));
+                }
+            }
+        }
+        own.sort_by_key(|id| *id.as_uuid());
+        own.dedup();
+        own.retain(|id| !elsewhere.contains(id));
+        own
+    }
+
+    /// Asks for every sound in the project to be decoded (once), and forgets decodings of
+    /// sounds that are gone.
+    fn ensure_sounds_decoded(&mut self) {
+        let present: HashSet<flare_core::SoundId> = self
+            .session
+            .document()
+            .sounds()
+            .iter()
+            .map(flare_document::Sound::id)
+            .collect();
+        self.decoded.retain(|id, _| present.contains(id));
+        self.decode_failed.retain(|id| present.contains(id));
+        let wanted: Vec<(flare_core::SoundId, Arc<[u8]>)> = self
+            .session
+            .document()
+            .sounds()
+            .iter()
+            .filter(|s| {
+                !self.decoded.contains_key(&s.id())
+                    && !self.decoding.contains(&s.id())
+                    && !self.decode_failed.contains(&s.id())
+            })
+            .map(|s| (s.id(), s.shared_data()))
+            .collect();
+        for (sound, data) in wanted {
+            self.decoding.insert(sound);
+            self.background
+                .submit_audio(AudioJob::Decode { sound, data });
+        }
+        self.settle_inline();
+    }
+
+    /// Keeps the sound card in step with the timeline: sounds start when playing starts, again
+    /// when the timeline wraps or jumps back, and stop when it pauses.
+    fn sync_audio(&mut self) {
+        let now = (self.playing, self.frame);
+        let before = self.audio_synced.replace(now);
+        let rate = self.document().frame_rate();
+        let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+        let (was_playing, was_frame) = before.unwrap_or((false, 0));
+        if !self.playing {
+            if was_playing {
+                self.audio_events.push(AudioEvent::Stop);
+            }
+            return;
+        }
+        // A jump back (the loop wrapping, or a scrub) or a jump of over a second forward starts
+        // the sounds over from where the playhead is; ordinary playback does not.
+        let jumped = self.frame < was_frame || f64::from(self.frame - was_frame) > fps;
+        if was_playing && !jumped {
+            return;
+        }
+        self.audio_events.push(AudioEvent::Stop);
+        let Some(scene) = self.session.document().scenes().first() else {
+            return;
+        };
+        for layer in scene.timeline().layers().iter().filter(|l| l.is_visible()) {
+            for cue in layer.cues().iter().filter(|c| c.start >= self.frame) {
+                if let Some(audio) = self.decoded.get(&cue.sound) {
+                    self.audio_events.push(AudioEvent::Play {
+                        audio: Arc::clone(audio),
+                        delay_seconds: f64::from(cue.start - self.frame) / fps,
+                    });
+                }
+            }
+        }
+    }
+
+    /// What to do with the sound card since the last call.
+    pub fn take_audio_events(&mut self) -> Vec<AudioEvent> {
+        std::mem::take(&mut self.audio_events)
     }
 
     // ---- text -------------------------------------------------------------------------
@@ -783,6 +982,39 @@ impl Workspace {
     fn handle_done(&mut self, done: Done) {
         match done {
             Done::Rendered { id, result } => self.render_inbox.push((id, result)),
+            Done::SoundImported { id, path, result } => {
+                if self
+                    .importing_sound
+                    .take_if(|pending| *pending == id)
+                    .is_none()
+                {
+                    return;
+                }
+                match result {
+                    Ok((bytes, audio)) => self.add_sound(&path, bytes, audio),
+                    Err(message) => {
+                        self.report(format!("Cannot import {}: {message}", path.display()));
+                    }
+                }
+            }
+            Done::SoundDecoded { sound, result } => {
+                self.decoding.remove(&sound);
+                match result {
+                    Ok(audio) => {
+                        let held: usize = self.decoded.values().map(|a| a.frames()).sum();
+                        if held + audio.frames() > DECODED_AUDIO_SAMPLES / 2 {
+                            self.decode_failed.insert(sound);
+                            self.report("Too much sound is loaded to play every sound at once");
+                        } else {
+                            self.decoded.insert(sound, audio);
+                        }
+                    }
+                    Err(message) => {
+                        self.decode_failed.insert(sound);
+                        self.report(format!("Cannot play a sound: {message}"));
+                    }
+                }
+            }
             Done::Text { id, result } => {
                 let Some((_, at)) = self.text_pending.take_if(|(pending, _)| *pending == id) else {
                     return; // asked for again since
@@ -1273,6 +1505,7 @@ impl Workspace {
         });
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
+            MenuAction::ImportSound => !self.in_symbol(),
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
             MenuAction::Paste => !self.clipboard.is_empty(),
@@ -1325,6 +1558,7 @@ impl Workspace {
         let layer = self.active_layer();
         let text = match action {
             MenuAction::Open => "Open...",
+            MenuAction::ImportSound => "Import Sound...",
             MenuAction::Save => "Save",
             MenuAction::SaveAs => "Save As...",
             MenuAction::Quit => "Quit Flare",
@@ -1418,6 +1652,7 @@ impl Workspace {
         let layer = self.active_layer_id();
         match action {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
+            MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
             MenuAction::Quit => self.quit_requested = true,
@@ -1614,10 +1849,18 @@ impl Workspace {
             self.report("A scene needs at least one layer");
             return;
         }
-        self.layer_command("delete the layer", |scene, layer| Command::RemoveLayer {
-            scene,
-            layer,
-        });
+        let (Some(scene), Some(layer)) = (self.scene_id(), self.active_layer_id()) else {
+            return;
+        };
+        // Sounds only this layer played go with it, so deleting it leaves nothing behind.
+        let mut commands = vec![Command::RemoveLayer { scene, layer }];
+        commands.extend(
+            self.orphaned_sounds(layer)
+                .into_iter()
+                .map(Command::RemoveSound),
+        );
+        self.run_batch(commands, "delete the layer");
+        self.validate_selection();
         self.current_layer = None;
     }
 
@@ -2564,6 +2807,8 @@ impl Workspace {
         let now = ui.input(|i| i.time);
         self.drain_background();
         self.advance(now);
+        self.ensure_sounds_decoded();
+        self.sync_audio();
         self.autosave(now);
         self.handle_shortcuts(&ctx);
         // Only a changed document can make the selection stale; checking it every frame cost
@@ -3405,6 +3650,27 @@ impl Workspace {
                             color.gamma_multiply(0.35)
                         };
                         painter.rect_filled(bar, 2.0, color);
+                    }
+                    for cue in layer.cues() {
+                        let Some(sound) = self.session.document().sound(cue.sound) else {
+                            continue;
+                        };
+                        let fps = f64::from(self.document().frame_rate().numerator())
+                            / f64::from(self.document().frame_rate().denominator());
+                        let length = (sound.seconds() * fps).ceil().max(1.0) as f32;
+                        let x0 = track.min.x + cue.start as f32 * per_frame;
+                        let bar = Rect::from_min_max(
+                            Pos2::new(x0, y + 2.0),
+                            Pos2::new(x0 + length * per_frame, y + row - 2.0),
+                        );
+                        painter.rect_filled(bar, 2.0, Color32::from_rgb(214, 140, 60));
+                        painter.text(
+                            bar.left_center() + Vec2::new(3.0, 0.0),
+                            Align2::LEFT_CENTER,
+                            sound.name(),
+                            FontId::proportional(10.0),
+                            Color32::BLACK,
+                        );
                     }
                     if let Some(range) = self.frame_range.filter(|r| r.layer == layer.id()) {
                         let x0 = track.min.x + range.from as f32 * per_frame;
@@ -6378,5 +6644,251 @@ mod tests {
             "a click with the text tool opens the editor"
         );
         run(&mut ws, &ctx, 0.3); // the editor draws without trouble
+    }
+
+    /// A one-second mono 16-bit WAV file at 8 kHz, written to `dir`.
+    fn wav_file(dir: &std::path::Path, name: &str) -> PathBuf {
+        let samples: Vec<i16> = (0..8000).map(|i| ((i % 100) as i16 - 50) * 300).collect();
+        let data_len = (samples.len() * 2) as u32;
+        let mut out = Vec::new();
+        out.extend_from_slice(b"RIFF");
+        out.extend_from_slice(&(36 + data_len).to_le_bytes());
+        out.extend_from_slice(b"WAVEfmt ");
+        out.extend_from_slice(&16_u32.to_le_bytes());
+        out.extend_from_slice(&1_u16.to_le_bytes());
+        out.extend_from_slice(&1_u16.to_le_bytes());
+        out.extend_from_slice(&8000_u32.to_le_bytes());
+        out.extend_from_slice(&16_000_u32.to_le_bytes());
+        out.extend_from_slice(&2_u16.to_le_bytes());
+        out.extend_from_slice(&16_u16.to_le_bytes());
+        out.extend_from_slice(b"data");
+        out.extend_from_slice(&data_len.to_le_bytes());
+        for sample in samples {
+            out.extend_from_slice(&sample.to_le_bytes());
+        }
+        let path = dir.join(name);
+        std::fs::write(&path, out).expect("write wav");
+        path
+    }
+
+    #[test]
+    fn importing_a_sound_adds_it_and_a_cue_at_the_playhead_in_one_undo_step() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = wav_file(dir.path(), "Clap.wav");
+        let mut ws = workspace();
+        rect(&mut ws); // a 24-frame scene, so the playhead can be at frame 6
+        ws.set_frame(6);
+        ws.import_sound(&path);
+        assert_eq!(layer_count(&ws), 3);
+        let sounds = ws.document().sounds();
+        assert_eq!(sounds.len(), 1);
+        assert_eq!(
+            (
+                sounds[0].name(),
+                sounds[0].sample_rate(),
+                sounds[0].frames()
+            ),
+            ("Clap", 8000, 8000)
+        );
+        let layer = &ws.document().scenes()[0].timeline().layers()[2];
+        assert_eq!(layer.name(), "Sound: Clap");
+        assert_eq!(
+            (layer.cues()[0].start, layer.cues()[0].sound),
+            (6, sounds[0].id())
+        );
+        assert!(
+            ws.decoded.contains_key(&sounds[0].id()),
+            "ready to play at once"
+        );
+        ws.undo();
+        assert!(
+            ws.document().sounds().is_empty(),
+            "the sound and the layer go together"
+        );
+        assert_eq!(layer_count(&ws), 2);
+    }
+
+    #[test]
+    fn sounds_that_cannot_be_imported_are_reported_and_change_nothing() {
+        let dir = tempfile::tempdir().expect("dir");
+        let text = dir.path().join("notes.wav");
+        std::fs::write(&text, b"this is not audio").expect("write");
+        let mut ws = workspace();
+        ws.import_sound(&text);
+        assert!(
+            ws.status().is_some_and(|m| m.contains("Cannot import")),
+            "{:?}",
+            ws.status()
+        );
+        ws.import_sound(&dir.path().join("missing.wav"));
+        assert!(ws.status().is_some_and(|m| m.contains("Cannot import")));
+        assert!(ws.document().sounds().is_empty());
+        assert!(!ws.is_dirty());
+    }
+
+    fn drain_audio(ws: &mut Workspace) -> Vec<String> {
+        ws.take_audio_events()
+            .into_iter()
+            .map(|e| match e {
+                AudioEvent::Stop => "stop".to_owned(),
+                AudioEvent::Play { delay_seconds, .. } => format!("play@{:.3}", delay_seconds),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn playing_starts_cued_sounds_at_the_right_delay_and_pausing_stops_them() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = wav_file(dir.path(), "a.wav");
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        rect(&mut ws); // a 24-frame scene
+        ws.set_frame(6);
+        ws.import_sound(&path); // cue at frame 6
+        ws.set_frame(0);
+        run(&mut ws, &ctx, 0.0);
+        assert!(drain_audio(&mut ws).is_empty(), "paused: nothing happens");
+        ws.playing = true;
+        run(&mut ws, &ctx, 0.0);
+        assert_eq!(
+            drain_audio(&mut ws),
+            vec!["stop", "play@0.250"],
+            "6 frames at 24 fps"
+        );
+        run(&mut ws, &ctx, 0.0);
+        assert!(
+            drain_audio(&mut ws).is_empty(),
+            "ordinary playback adds nothing"
+        );
+        ws.playing = false;
+        run(&mut ws, &ctx, 0.0);
+        assert_eq!(drain_audio(&mut ws), vec!["stop"]);
+    }
+
+    #[test]
+    fn looping_restarts_the_sounds_and_hidden_layers_and_past_cues_are_silent() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = wav_file(dir.path(), "a.wav");
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        rect(&mut ws);
+        ws.set_frame(3);
+        ws.import_sound(&path); // cue at 3
+        let sound_layer = ws.current_layer.expect("layer");
+        ws.set_frame(10); // the playhead is already past the cue
+        ws.playing = true;
+        run(&mut ws, &ctx, 0.0);
+        assert_eq!(
+            drain_audio(&mut ws),
+            vec!["stop"],
+            "a cue behind the playhead does not play"
+        );
+        ws.frame = 2; // the loop wrapped around
+        run(&mut ws, &ctx, 0.0);
+        assert_eq!(
+            drain_audio(&mut ws),
+            vec!["stop", "play@0.042"],
+            "and plays again after the wrap"
+        );
+        ws.toggle_layer_visible(sound_layer);
+        ws.frame = 1;
+        run(&mut ws, &ctx, 0.0);
+        assert_eq!(
+            drain_audio(&mut ws),
+            vec!["stop"],
+            "a hidden layer is silent"
+        );
+    }
+
+    #[test]
+    fn deleting_a_sound_layer_removes_sounds_nothing_else_plays_and_undo_brings_them_back() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = wav_file(dir.path(), "a.wav");
+        let mut ws = workspace();
+        ws.import_sound(&path);
+        let layer = ws.current_layer.expect("layer");
+        // A second layer plays the same sound, so deleting the first must keep it.
+        let scene = ws.scene_id().expect("scene");
+        let sound = ws.document().sounds()[0].id();
+        let second = Layer::new(LayerId::new(), "Again", vec![])
+            .expect("layer")
+            .with_cues(vec![flare_document::SoundCue { start: 9, sound }])
+            .expect("cues");
+        ws.run_batch(
+            vec![Command::AddLayer {
+                scene,
+                layer: second,
+            }],
+            "add",
+        );
+        ws.select_layer(layer);
+        ws.delete_active_layer();
+        assert_eq!(
+            ws.document().sounds().len(),
+            1,
+            "still played by the other layer"
+        );
+        let other = ws.document().scenes()[0].timeline().layers()[1].id();
+        ws.select_layer(other);
+        ws.delete_active_layer();
+        assert!(
+            ws.document().sounds().is_empty(),
+            "nothing plays it any more"
+        );
+        ws.undo();
+        assert_eq!(ws.document().sounds().len(), 1);
+        assert_eq!(layer_count(&ws), 2);
+    }
+
+    #[test]
+    fn opening_a_project_with_sounds_decodes_them_and_stops_what_was_playing() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = wav_file(dir.path(), "a.wav");
+        let project = dir.path().join("p.flare");
+        let (ctx, mut source) = (egui::Context::default(), workspace());
+        source.import_sound(&path);
+        source.save_as(&project);
+
+        let mut ws = workspace();
+        ws.open(&project);
+        assert!(
+            ws.decoded.is_empty(),
+            "decoding is requested by the next pass"
+        );
+        assert!(matches!(
+            ws.take_audio_events().last(),
+            Some(AudioEvent::Stop)
+        ));
+        run(&mut ws, &ctx, 0.0);
+        let id = ws.document().sounds()[0].id();
+        assert!(ws.decoded.contains_key(&id), "decoded for playback");
+        assert!(ws.decoding.is_empty());
+    }
+
+    #[test]
+    fn with_workers_a_sound_is_imported_when_it_has_been_decoded() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = wav_file(dir.path(), "a.wav");
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.start_background_threads(&ctx);
+        ws.import_sound(&path);
+        assert!(
+            ws.document().sounds().is_empty(),
+            "not until the worker has decoded it"
+        );
+        wait_until(&mut ws, &ctx, |w| w.importing_sound.is_none());
+        assert_eq!(ws.document().sounds().len(), 1, "{:?}", ws.status());
+    }
+
+    #[test]
+    fn sound_cannot_be_imported_while_editing_inside_a_symbol_and_has_a_menu_action() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        ws.convert_selection_to_symbol();
+        ws.edit_selected_symbol();
+        assert!(ws.in_symbol());
+        assert!(!ws.is_enabled(MenuAction::ImportSound));
+        ws.exit_symbol();
+        assert!(ws.is_enabled(MenuAction::ImportSound));
+        ws.perform(MenuAction::ImportSound);
+        assert_eq!(ws.take_dialog(), Some(DialogRequest::ImportSound));
     }
 }

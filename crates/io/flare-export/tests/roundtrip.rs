@@ -360,6 +360,31 @@ fn mask_layers_are_exported_as_xfl_masks_that_point_at_the_layer_they_mask() {
 }
 
 #[test]
+fn sounds_are_reported_as_not_exported() {
+    let sound = flare_core::SoundId::new();
+    let layer = layer("Sound", vec![])
+        .with_cues(vec![flare_document::SoundCue { start: 0, sound }])
+        .expect("cues");
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let doc = Document::new(DocumentId::new(), rate, vec![scene], vec![])
+        .expect("doc")
+        .with_sounds(vec![
+            flare_document::Sound::new(sound, "Clap", vec![1], 8000, 1, 1).expect("sound"),
+        ])
+        .expect("sounds");
+    let (output, _) = roundtrip(&doc);
+    assert!(
+        output
+            .diagnostics
+            .iter()
+            .any(|d| d.severity == Severity::Warning && d.message.contains("sound")),
+        "{:?}",
+        output.diagnostics
+    );
+}
+
+#[test]
 fn awkward_names_stay_safe_and_unique() {
     let symbols: Vec<Symbol> = [
         "a",

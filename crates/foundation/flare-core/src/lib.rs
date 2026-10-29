@@ -11,5 +11,5 @@ pub mod time;
 
 pub use color::Rgba8;
 pub use geometry::{DocumentPoint, NonFiniteCoordinate, Transform2D};
-pub use id::{DocumentId, InstanceId, LayerId, SceneId, ShapeId, SymbolId};
+pub use id::{DocumentId, InstanceId, LayerId, SceneId, ShapeId, SoundId, SymbolId};
 pub use time::{FrameRate, RateError};

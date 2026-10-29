@@ -10,6 +10,7 @@ license.workspace = true
 egui = { workspace = true, features = ["default_fonts"] }
 egui_tiles = { workspace = true, features = ["serde"] }
 thiserror.workspace = true
+flare-audio.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
 flare-edit.workspace = true

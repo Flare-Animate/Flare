@@ -35,6 +35,17 @@ pub(crate) struct RenderJob {
     pub background: Rgba8,
 }
 
+/// Sound work, on a worker of its own because decoding a long file takes a while.
+pub(crate) enum AudioJob {
+    /// Read a file, decode it to learn its length and to be ready to play.
+    Import { id: u64, path: PathBuf },
+    /// Decode a sound already in the document.
+    Decode {
+        sound: flare_core::SoundId,
+        data: Arc<[u8]>,
+    },
+}
+
 /// Text to turn into outlines. Building the font database takes long enough that this has a
 /// worker of its own, so a first use never holds up a save or a redraw.
 pub(crate) struct TextJob {
@@ -63,6 +74,16 @@ pub(crate) enum IoJob {
 
 /// What a worker reports back. Errors are already text: the UI only shows them.
 pub(crate) enum Done {
+    SoundImported {
+        id: u64,
+        path: PathBuf,
+        /// The file's bytes and what decoding them gave.
+        result: Result<(Vec<u8>, Arc<flare_audio::Audio>), String>,
+    },
+    SoundDecoded {
+        sound: flare_core::SoundId,
+        result: Result<Arc<flare_audio::Audio>, String>,
+    },
     Text {
         id: u64,
         result: Result<flare_text::TextOutline, String>,
@@ -120,6 +141,7 @@ struct Workers {
     render_tx: Option<Sender<RenderJob>>,
     io_tx: Option<Sender<IoJob>>,
     text_tx: Option<Sender<TextJob>>,
+    audio_tx: Option<Sender<AudioJob>>,
     handles: Vec<JoinHandle<()>>,
 }
 
@@ -149,6 +171,7 @@ impl Background {
         let (render_tx, render_rx) = channel::<RenderJob>();
         let (io_tx, io_rx) = channel::<IoJob>();
         let (text_tx, text_rx) = channel::<TextJob>();
+        let (audio_tx, audio_rx) = channel::<AudioJob>();
         let render = {
             let (done, ctx) = (self.done_tx.clone(), ctx.clone());
             std::thread::Builder::new()
@@ -161,6 +184,12 @@ impl Background {
                 .name("flare-io".into())
                 .spawn(move || io_loop(&io_rx, &done, &ctx))
         };
+        let audio = {
+            let (done, ctx) = (self.done_tx.clone(), ctx.clone());
+            std::thread::Builder::new()
+                .name("flare-audio".into())
+                .spawn(move || audio_loop(&audio_rx, &done, &ctx))
+        };
         let text = {
             let (done, ctx) = (self.done_tx.clone(), ctx);
             std::thread::Builder::new()
@@ -168,14 +197,15 @@ impl Background {
                 .spawn(move || text_loop(&text_rx, &done, &ctx))
         };
         // If a thread cannot be started, stay inline rather than lose the work.
-        let (Ok(render), Ok(io), Ok(text)) = (render, io, text) else {
+        let (Ok(render), Ok(io), Ok(text), Ok(audio)) = (render, io, text, audio) else {
             return;
         };
         self.workers = Some(Workers {
             render_tx: Some(render_tx),
             io_tx: Some(io_tx),
             text_tx: Some(text_tx),
-            handles: vec![render, io, text],
+            audio_tx: Some(audio_tx),
+            handles: vec![render, io, text, audio],
         });
         self.mode = Mode::Threads;
     }
@@ -198,6 +228,19 @@ impl Background {
             }
             None => {
                 let _ = self.done_tx.send(run_render(&job));
+            }
+        }
+    }
+
+    pub fn submit_audio(&self, job: AudioJob) {
+        match self.workers.as_ref().and_then(|w| w.audio_tx.as_ref()) {
+            Some(tx) => {
+                if let Err(failed) = tx.send(job) {
+                    let _ = self.done_tx.send(run_audio(failed.0));
+                }
+            }
+            None => {
+                let _ = self.done_tx.send(run_audio(job));
             }
         }
     }
@@ -272,6 +315,7 @@ impl Drop for Background {
             workers.render_tx = None;
             workers.io_tx = None;
             workers.text_tx = None;
+            workers.audio_tx = None;
             for handle in workers.handles.drain(..) {
                 let _ = handle.join();
             }
@@ -289,6 +333,42 @@ fn render_loop(jobs: &Receiver<RenderJob>, done: &Sender<Done>, ctx: &egui::Cont
             return;
         }
         ctx.request_repaint();
+    }
+}
+
+fn audio_loop(jobs: &Receiver<AudioJob>, done: &Sender<Done>, ctx: &egui::Context) {
+    while let Ok(job) = jobs.recv() {
+        if done.send(run_audio(job)).is_err() {
+            return;
+        }
+        ctx.request_repaint();
+    }
+}
+
+pub(crate) fn run_audio(job: AudioJob) -> Done {
+    match job {
+        AudioJob::Import { id, path } => {
+            let result = std::fs::metadata(&path)
+                .map_err(|e| e.to_string())
+                .and_then(|meta| {
+                    if meta.len() > flare_audio::MAX_INPUT_BYTES as u64 {
+                        Err(flare_audio::AudioError::InputTooLarge.to_string())
+                    } else {
+                        std::fs::read(&path).map_err(|e| e.to_string())
+                    }
+                })
+                .and_then(|bytes| {
+                    let audio = flare_audio::decode(&bytes).map_err(|e| e.to_string())?;
+                    Ok((bytes, Arc::new(audio)))
+                });
+            Done::SoundImported { id, path, result }
+        }
+        AudioJob::Decode { sound, data } => Done::SoundDecoded {
+            sound,
+            result: flare_audio::decode(&data)
+                .map(Arc::new)
+                .map_err(|e| e.to_string()),
+        },
     }
 }
 

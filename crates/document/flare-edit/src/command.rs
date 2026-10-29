@@ -1,6 +1,9 @@
-use flare_core::{LayerId, SceneId, SymbolId};
+use flare_core::{LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
-use flare_document::{Diagnostic, Document, FrameSpan, Layer, Scene, Stage, Symbol, TimelineError};
+use flare_document::{
+    Diagnostic, Document, FrameSpan, Layer, Scene, Sound, SoundCue, SoundError, Stage, Symbol,
+    TimelineError,
+};
 use thiserror::Error;
 
 /// A property change on a layer.
@@ -30,6 +33,16 @@ pub enum Command {
         new_symbols: Vec<Symbol>,
     },
     SetStage(Stage),
+    /// Adds a sound to the library.
+    AddSound(Sound),
+    /// Removes a sound from the library. Fails if a cue still plays it.
+    RemoveSound(SoundId),
+    /// Replaces the sound cues of a layer.
+    SetCues {
+        scene: SceneId,
+        layer: LayerId,
+        cues: Vec<SoundCue>,
+    },
     UpdateLayer {
         scene: SceneId,
         layer: LayerId,
@@ -73,6 +86,10 @@ pub enum EditError {
     NoSuchSpan(u32),
     #[error(transparent)]
     Timeline(#[from] TimelineError),
+    #[error(transparent)]
+    Sound(#[from] SoundError),
+    #[error("no such sound {0:?}")]
+    NoSuchSound(SoundId),
     #[error("edit would make the document invalid: {0:?}")]
     Invalid(Vec<Diagnostic>),
 }
@@ -99,14 +116,16 @@ pub(crate) fn apply_all(
     }
     let mut scenes = document.scenes().to_vec();
     let mut symbols = document.symbols().to_vec();
+    let mut sounds = document.sounds().to_vec();
     let mut stage = document.stage();
     for command in commands {
-        step(&mut scenes, &mut symbols, &mut stage, command)?;
+        step(&mut scenes, &mut symbols, &mut sounds, &mut stage, command)?;
     }
     // The stage and source attachments are carried through every edit; attachments whose
     // anchor the edit removed (a deleted layer) are dropped with it.
     Ok(Some(
         Document::new(document.id(), document.frame_rate(), scenes, symbols)?
+            .with_sounds(sounds)?
             .with_stage(stage)
             .with_attachments_retained(document.attachments()),
     ))
@@ -116,6 +135,7 @@ pub(crate) fn apply_all(
 fn step(
     scenes: &mut Vec<Scene>,
     symbols: &mut Vec<Symbol>,
+    sounds: &mut Vec<Sound>,
     stage: &mut Stage,
     command: Command,
 ) -> Result<(), EditError> {
@@ -142,6 +162,22 @@ fn step(
             *slot = Symbol::new(slot.id(), slot.name(), timeline);
         }
         Command::SetStage(new_stage) => *stage = new_stage,
+        Command::AddSound(sound) => sounds.push(sound),
+        Command::RemoveSound(id) => {
+            let before = sounds.len();
+            sounds.retain(|s| s.id() != id);
+            if sounds.len() == before {
+                return Err(EditError::NoSuchSound(id));
+            }
+        }
+        Command::SetCues { scene, layer, cues } => edit_layers(scenes, scene, |layers| {
+            let slot = layers
+                .iter_mut()
+                .find(|l| l.id() == layer)
+                .ok_or(EditError::NoSuchLayer(layer))?;
+            *slot = slot.clone().with_cues(cues)?;
+            Ok(())
+        })?,
         Command::UpdateLayer {
             scene,
             layer,

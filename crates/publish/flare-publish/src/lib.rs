@@ -181,6 +181,12 @@ pub fn publish_swf(
     let mut approximated = false;
     let mut flattened_gradient = false;
     let mut ignored_masks = false;
+    if !document.sounds().is_empty() {
+        diagnostics.push(Diagnostic {
+            severity: Severity::Warning,
+            message: "SWF publishing does not write sounds yet, so the movie is silent".into(),
+        });
+    }
     let mut on_screen: Vec<Placed> = Vec::new();
     let mut frames = 0_u32;
 

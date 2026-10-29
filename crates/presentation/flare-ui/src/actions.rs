@@ -6,6 +6,7 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum MenuAction {
     Open,
+    ImportSound,
     Save,
     SaveAs,
     Quit,
@@ -54,8 +55,9 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 46] = [
+    pub const ALL: [MenuAction; 47] = [
         Self::Open,
+        Self::ImportSound,
         Self::Save,
         Self::SaveAs,
         Self::Quit,
@@ -129,6 +131,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         "File",
         &[
             Action(A::Open),
+            Action(A::ImportSound),
             Action(A::Save),
             Action(A::SaveAs),
             Separator,

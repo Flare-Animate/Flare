@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result};
 use egui::ViewportId;
 use egui_wgpu::{RendererOptions, WgpuConfiguration, winit::Painter};
-use flare_ui::{DialogRequest, MenuAction, Workspace};
+use flare_ui::{AudioEvent, DialogRequest, MenuAction, Workspace};
 use winit::application::ApplicationHandler;
 use winit::event::{StartCause, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
@@ -36,6 +36,8 @@ struct Gpu {
 struct App {
     /// Test movies still playing; dropping one stops its player and removes its files.
     movies: Vec<flare_publish::TestMovie>,
+    /// The sound card, if there is one. Sounds are silent without it; nothing else changes.
+    player: Option<flare_audio::output::Player>,
     proxy: EventLoopProxy<UserEvent>,
     #[cfg(target_os = "macos")]
     menu: Option<menu::NativeMenu>,
@@ -49,6 +51,13 @@ impl App {
     fn start(&mut self, event_loop: &ActiveEventLoop) -> Result<()> {
         // Drawing frames and reading and writing files happen on worker threads, never here.
         self.workspace.start_background_threads(&self.ctx);
+        self.player = match flare_audio::output::Player::new() {
+            Ok(player) => Some(player),
+            Err(error) => {
+                eprintln!("sound is off: {error}");
+                None
+            }
+        };
         let attributes = Window::default_attributes()
             .with_title(self.workspace.title())
             .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0));
@@ -94,6 +103,14 @@ impl App {
                     self.workspace.save_as(&path);
                 }
             }
+            Some(DialogRequest::ImportSound) => {
+                if let Some(path) = rfd::FileDialog::new()
+                    .add_filter("Sound", &["wav", "mp3", "ogg", "flac"])
+                    .pick_file()
+                {
+                    self.workspace.import_sound(&path);
+                }
+            }
             None => {}
         }
     }
@@ -103,6 +120,7 @@ impl App {
         let raw = gpu.state.take_egui_input(&gpu.window);
         let workspace = &mut self.workspace;
         let mut output = self.ctx.run_ui(raw, |ui| workspace.show(ui));
+        apply_audio(workspace, self.player.as_ref());
         gpu.state
             .handle_platform_output(&gpu.window, output.platform_output.clone());
         gpu.window.set_title(&self.workspace.title());
@@ -230,6 +248,22 @@ impl App {
     }
 }
 
+/// Passes the workspace's wishes to the sound card, if there is one.
+fn apply_audio(workspace: &mut Workspace, player: Option<&flare_audio::output::Player>) {
+    for event in workspace.take_audio_events() {
+        let Some(player) = player else {
+            continue;
+        };
+        match event {
+            AudioEvent::Stop => player.stop_all(),
+            AudioEvent::Play {
+                audio,
+                delay_seconds,
+            } => player.play(audio, delay_seconds),
+        }
+    }
+}
+
 fn show_message(title: &str, text: &str) {
     rfd::MessageDialog::new()
         .set_title(title)
@@ -345,6 +379,7 @@ fn main() -> Result<()> {
     event_loop.set_control_flow(ControlFlow::Wait);
     let mut app = App {
         movies: Vec::new(),
+        player: None,
         proxy: event_loop.create_proxy(),
         #[cfg(target_os = "macos")]
         menu: None,

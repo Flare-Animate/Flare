@@ -505,6 +505,16 @@ fn frame_rate_text(rate: flare_core::FrameRate) -> String {
 /// Builds the files of an XFL document. Nothing is written to disk.
 pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
     let mut notes: Vec<Diagnostic> = Vec::new();
+    if !document.sounds().is_empty() {
+        notes.push(Diagnostic {
+            severity: Severity::Warning,
+            location: "sounds".into(),
+            message: format!(
+                "{} sound(s) are not exported yet; the sound layers were written without them",
+                document.sounds().len()
+            ),
+        });
+    }
 
     // Library names must be unique and file names must be safe and distinct.
     let mut used_names: HashSet<String> = HashSet::new();

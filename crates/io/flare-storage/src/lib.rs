@@ -25,6 +25,8 @@ const APPLICATION_ID: i64 = 0x464C_4152;
 const SCHEMA_VERSION: i64 = 1;
 const MAX_ENTITIES: i64 = 1_000_000;
 const MAX_PAYLOAD_BYTES: usize = 16 * 1024 * 1024;
+/// Base64 of the largest sound file, with room for the rest of the row.
+const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES / 3 * 4 + 4096;
 
 const SCHEMA: &str = "
 CREATE TABLE project (
@@ -35,7 +37,7 @@ CREATE TABLE project (
 ) STRICT;
 CREATE TABLE entity (
     id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment')),
+    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound')),
     ordinal INTEGER NOT NULL,
     payload_version INTEGER NOT NULL CHECK (payload_version > 0),
     payload_json TEXT NOT NULL
@@ -103,6 +105,15 @@ pub fn save(document: &Document, path: &Path) -> Result<(), StorageError> {
             let id = uuid::Uuid::now_v7().to_string();
             insert.execute(params![id, "attachment", ordinal, payload])?;
         }
+        for (ordinal, sound) in (0_i64..).zip(document.sounds()) {
+            let payload = serde_json::to_string(&wire::SoundWire::of(sound))?;
+            insert.execute(params![
+                sound.id().as_uuid().to_string(),
+                "sound",
+                ordinal,
+                payload
+            ])?;
+        }
         for (ordinal, symbol) in (0_i64..).zip(document.symbols()) {
             let payload = serde_json::to_string(&wire::SymbolWire::of(symbol))?;
             insert.execute(params![
@@ -154,12 +165,19 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
     let mut scenes = Vec::new();
     let mut symbols = Vec::new();
     let mut attachments = Vec::new();
+    let mut sounds = Vec::new();
     let mut statement =
         conn.prepare("SELECT id, kind, payload_json FROM entity ORDER BY kind, ordinal")?;
     let mut rows = statement.query([])?;
     while let Some(row) = rows.next()? {
         let (id, kind, payload): (String, String, String) = (row.get(0)?, row.get(1)?, row.get(2)?);
-        if payload.len() > MAX_PAYLOAD_BYTES {
+        // A sound row holds a whole audio file as text, so it is allowed to be bigger.
+        let limit = if kind == "sound" {
+            MAX_SOUND_PAYLOAD_BYTES
+        } else {
+            MAX_PAYLOAD_BYTES
+        };
+        if payload.len() > limit {
             return Err(StorageError::Limit("entity payload size"));
         }
         match kind.as_str() {
@@ -170,6 +188,7 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
             "attachment" => {
                 attachments.push(serde_json::from_str::<wire::AttachmentWire>(&payload)?.build()?)
             }
+            "sound" => sounds.push(serde_json::from_str::<wire::SoundWire>(&payload)?.build(&id)?),
             other => {
                 return Err(StorageError::Corrupt(format!(
                     "unknown entity kind {other}"
@@ -177,7 +196,7 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
             }
         }
     }
-    wire::assemble(&project_id, &settings, scenes, symbols, attachments)
+    wire::assemble(&project_id, &settings, scenes, symbols, attachments, sounds)
 }
 
 fn not_flare(error: rusqlite::Error) -> StorageError {
@@ -216,6 +235,7 @@ mod tests {
 
     fn sample() -> Document {
         let art = SymbolId::new();
+        let sound = flare_core::SoundId::new();
         let transform = Transform2D::new(DAffine2::from_cols_array(&[
             1.0, 0.5, -0.25, 0.0, 3.5, -2.0,
         ]))
@@ -267,7 +287,9 @@ mod tests {
         .expect("layer")
         .with_visible(false)
         .with_locked(true)
-        .with_mask(true);
+        .with_mask(true)
+        .with_cues(vec![flare_document::SoundCue { start: 3, sound }])
+        .expect("cues");
         let (scene_one, scene_two) = (SceneId::new(), SceneId::new());
         let scenes = vec![
             Scene::new(scene_one, "One", Timeline::new(vec![layer])),
@@ -316,6 +338,11 @@ mod tests {
         .expect("document")
         .with_attachments(notes)
         .expect("attachments")
+        .with_sounds(vec![
+            flare_document::Sound::new(sound, "Clap", vec![0, 1, 2, 254, 255], 44_100, 2, 3)
+                .expect("sound"),
+        ])
+        .expect("sounds")
         .with_stage(Stage::new(640, 360, Rgba8::new(1, 2, 3, 4)).expect("stage"))
     }
 
@@ -743,6 +770,75 @@ mod tests {
             assert!(
                 matches!(not_flare(failure(code)), StorageError::Sqlite(_)),
                 "code {code} is a real error, not a foreign file"
+            );
+        }
+    }
+
+    fn sound_row(path: &std::path::Path) -> (String, String) {
+        let conn = Connection::open(path).expect("open");
+        conn.query_row(
+            "SELECT id, payload_json FROM entity WHERE kind = 'sound'",
+            [],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .expect("a sound row")
+    }
+
+    #[test]
+    fn sounds_and_cues_round_trip_byte_for_byte() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        let document = sample();
+        save(&document, &path).expect("save");
+        let loaded = load(&path).expect("load");
+        assert_eq!(loaded.sounds(), document.sounds());
+        assert_eq!(loaded.sounds()[0].data(), &[0, 1, 2, 254, 255]);
+        assert_eq!(loaded.scenes()[0].timeline().layers()[0].cues().len(), 1);
+    }
+
+    #[test]
+    fn older_files_without_sounds_load_and_bad_sound_rows_are_refused() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        // No cues key and no sound rows: how every earlier file looks.
+        save(&sample(), &path).expect("save");
+        let conn = Connection::open(&path).expect("open");
+        conn.execute("DELETE FROM entity WHERE kind = 'sound'", [])
+            .expect("strip");
+        conn.execute(
+            "UPDATE entity SET payload_json = replace(payload_json, '\"cues\":', '\"legacy\":')",
+            [],
+        )
+        .expect("strip cues");
+        drop(conn);
+        let loaded = load(&path).expect("an old file");
+        assert!(loaded.sounds().is_empty());
+
+        // A cue naming a sound that is not in the file is a damaged file.
+        save(&sample(), &path).expect("save");
+        let conn = Connection::open(&path).expect("open");
+        conn.execute("DELETE FROM entity WHERE kind = 'sound'", [])
+            .expect("strip sound");
+        drop(conn);
+        assert!(matches!(load(&path), Err(StorageError::Invalid(_))));
+
+        // Bad base64, and zero channels, are refused rather than trusted.
+        for (from, to) in [
+            ("\"data\":\"", "\"data\":\"!!!"),
+            ("\"channels\":2", "\"channels\":0"),
+        ] {
+            save(&sample(), &path).expect("save");
+            let (id, payload) = sound_row(&path);
+            let conn = Connection::open(&path).expect("open");
+            conn.execute(
+                "UPDATE entity SET payload_json = ?1 WHERE id = ?2",
+                params![payload.replace(from, to), id],
+            )
+            .expect("tamper");
+            drop(conn);
+            assert!(
+                matches!(load(&path), Err(StorageError::Corrupt(_))),
+                "{from}"
             );
         }
     }

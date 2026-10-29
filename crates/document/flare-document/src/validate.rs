@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use flare_core::{InstanceId, LayerId, SceneId, ShapeId, SymbolId};
+use flare_core::{InstanceId, LayerId, SceneId, ShapeId, SoundId, SymbolId};
 use thiserror::Error;
 
-use crate::{Anchor, Document, MAX_ATTACHMENTS, Timeline};
+use crate::{Anchor, Document, MAX_ATTACHMENTS, MAX_SOUNDS, MAX_TOTAL_SOUND_BYTES, Timeline};
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum Diagnostic {
@@ -28,6 +28,14 @@ pub enum Diagnostic {
     DanglingAttachment(Anchor),
     #[error("the document has more than {MAX_ATTACHMENTS} attachments")]
     TooManyAttachments,
+    #[error("duplicate sound id {0:?}")]
+    DuplicateSound(SoundId),
+    #[error("the document has more than {MAX_SOUNDS} sounds")]
+    TooManySounds,
+    #[error("the sounds together are larger than {MAX_TOTAL_SOUND_BYTES} bytes")]
+    SoundsTooLarge,
+    #[error("a cue on layer {layer:?} plays sound {sound:?}, which is not in the document")]
+    DanglingSound { layer: LayerId, sound: SoundId },
 }
 
 /// Every entity an attachment can hang off.
@@ -50,6 +58,36 @@ pub(crate) fn validate_attachments(document: &Document) -> Vec<Diagnostic> {
     for attachment in &document.attachments {
         if !live.contains(&attachment.anchor()) {
             out.push(Diagnostic::DanglingAttachment(attachment.anchor()));
+        }
+    }
+    out
+}
+
+pub(crate) fn validate_sounds(document: &Document) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    if document.sounds.len() > MAX_SOUNDS {
+        out.push(Diagnostic::TooManySounds);
+    }
+    let total: usize = document.sounds.iter().map(|s| s.data().len()).sum();
+    if total > MAX_TOTAL_SOUND_BYTES {
+        out.push(Diagnostic::SoundsTooLarge);
+    }
+    let mut ids = HashSet::with_capacity(document.sounds.len());
+    for sound in &document.sounds {
+        if !ids.insert(sound.id()) {
+            out.push(Diagnostic::DuplicateSound(sound.id()));
+        }
+    }
+    for timeline in timelines(document) {
+        for layer in timeline.layers() {
+            for cue in layer.cues() {
+                if !ids.contains(&cue.sound) {
+                    out.push(Diagnostic::DanglingSound {
+                        layer: layer.id(),
+                        sound: cue.sound,
+                    });
+                }
+            }
         }
     }
     out

@@ -7,6 +7,7 @@
 
 mod attachment;
 mod shape;
+mod sound;
 mod stage;
 mod timeline;
 mod validate;
@@ -16,6 +17,10 @@ pub use attachment::{
 };
 pub use shape::{
     Gradient, GradientError, MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape, ShapeError, Stroke,
+};
+pub use sound::{
+    MAX_CUES_PER_LAYER, MAX_SOUND_BYTES, MAX_SOUNDS, MAX_TOTAL_SOUND_BYTES, Sound, SoundCue,
+    SoundError,
 };
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
 pub use timeline::{Content, FrameSpan, Instance, Layer, Timeline, TimelineError, Tween};
@@ -107,6 +112,7 @@ pub struct Document {
     symbols: Vec<Symbol>,
     stage: Stage,
     attachments: Vec<Attachment>,
+    sounds: Vec<Sound>,
 }
 
 impl Document {
@@ -124,6 +130,7 @@ impl Document {
             symbols,
             stage: Stage::default(),
             attachments: Vec::new(),
+            sounds: Vec::new(),
         };
         let diagnostics = validate::validate(&document);
         if diagnostics.is_empty() {
@@ -174,6 +181,26 @@ impl Document {
             .cloned()
             .collect();
         self
+    }
+
+    /// Attaches the sound library, validating limits and that every cue names a sound in it.
+    /// Replaces any sounds already present.
+    pub fn with_sounds(mut self, sounds: Vec<Sound>) -> Result<Self, Vec<Diagnostic>> {
+        self.sounds = sounds;
+        let diagnostics = validate::validate_sounds(&self);
+        if diagnostics.is_empty() {
+            Ok(self)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
+    pub fn sounds(&self) -> &[Sound] {
+        &self.sounds
+    }
+
+    pub fn sound(&self, id: flare_core::SoundId) -> Option<&Sound> {
+        self.sounds.iter().find(|s| s.id() == id)
     }
 
     pub fn stage(&self) -> Stage {
@@ -456,6 +483,114 @@ mod tests {
         assert_eq!(
             doc.with_attachments(flood).expect_err("too many"),
             vec![Diagnostic::TooManyAttachments]
+        );
+    }
+
+    fn clip(id: flare_core::SoundId) -> Sound {
+        Sound::new(id, "Clip", vec![1, 2, 3, 4], 44_100, 2, 2).expect("sound")
+    }
+
+    fn scene_with_cues(cues: Vec<SoundCue>) -> Scene {
+        let layer = Layer::new(LayerId::new(), "Sound", vec![])
+            .expect("layer")
+            .with_cues(cues)
+            .expect("cues");
+        Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]))
+    }
+
+    #[test]
+    fn cues_must_name_a_sound_in_the_library() {
+        let id = flare_core::SoundId::new();
+        let cues = vec![SoundCue {
+            start: 3,
+            sound: id,
+        }];
+        let document = build(vec![scene_with_cues(cues.clone())], vec![]).expect("valid");
+        let diagnostics = document.clone().with_sounds(vec![]).expect_err("dangling");
+        assert!(matches!(diagnostics[0], Diagnostic::DanglingSound { sound, .. } if sound == id));
+        let ok = document
+            .with_sounds(vec![clip(id)])
+            .expect("with its sound");
+        assert_eq!(ok.sounds().len(), 1);
+        assert!(ok.sound(id).is_some());
+        assert_eq!(ok.scenes()[0].timeline().layers()[0].cues(), cues);
+    }
+
+    #[test]
+    fn sound_limits_and_duplicate_ids_are_refused() {
+        let id = flare_core::SoundId::new();
+        let document = build(vec![scene_with_cues(vec![])], vec![]).expect("valid");
+        let twice = document.clone().with_sounds(vec![clip(id), clip(id)]);
+        assert!(
+            twice
+                .expect_err("duplicate")
+                .contains(&Diagnostic::DuplicateSound(id))
+        );
+        let many: Vec<Sound> = (0..=MAX_SOUNDS)
+            .map(|_| clip(flare_core::SoundId::new()))
+            .collect();
+        assert!(
+            document
+                .clone()
+                .with_sounds(many)
+                .expect_err("many")
+                .contains(&Diagnostic::TooManySounds)
+        );
+        // Single sounds are bounded at construction.
+        assert_eq!(
+            Sound::new(id, "big", vec![0; MAX_SOUND_BYTES + 1], 44_100, 1, 1),
+            Err(SoundError::TooLarge)
+        );
+        for (rate, channels, frames, data) in [
+            (0, 1, 1, vec![1]),
+            (1, 0, 1, vec![1]),
+            (1, 1, 0, vec![1]),
+            (1, 1, 1, vec![]),
+        ] {
+            assert_eq!(
+                Sound::new(id, "x", data, rate, channels, frames),
+                Err(SoundError::Empty)
+            );
+        }
+    }
+
+    #[test]
+    fn cues_are_kept_sorted_one_per_frame_and_bounded_and_survive_new_spans() {
+        let (a, b) = (flare_core::SoundId::new(), flare_core::SoundId::new());
+        let layer = Layer::new(LayerId::new(), "L", vec![])
+            .expect("layer")
+            .with_cues(vec![
+                SoundCue { start: 9, sound: a },
+                SoundCue { start: 2, sound: b },
+                SoundCue { start: 9, sound: b },
+            ])
+            .expect("cues");
+        let starts: Vec<u32> = layer.cues().iter().map(|c| c.start).collect();
+        assert_eq!(starts, vec![2, 9], "sorted, one per frame");
+        let respanned = layer
+            .with_spans(vec![span(0, 3, Content::Empty)])
+            .expect("spans");
+        assert_eq!(
+            respanned.cues(),
+            layer.cues(),
+            "replacing spans keeps the cues"
+        );
+        let too_many = vec![SoundCue { start: 0, sound: a }; 1];
+        assert!(
+            Layer::new(LayerId::new(), "L", vec![])
+                .expect("layer")
+                .with_cues(too_many)
+                .is_ok()
+        );
+        let flood: Vec<SoundCue> = (0..=MAX_CUES_PER_LAYER as u32)
+            .map(|start| SoundCue { start, sound: a })
+            .collect();
+        assert_eq!(
+            Layer::new(LayerId::new(), "L", vec![])
+                .expect("layer")
+                .with_cues(flood)
+                .err(),
+            Some(SoundError::TooManyCues)
         );
     }
 }

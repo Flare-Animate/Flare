@@ -5,8 +5,10 @@
 
 use std::num::NonZeroU32;
 
-use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId};
-use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Stage, Timeline};
+use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SoundId};
+use flare_document::{
+    Content, Document, FrameSpan, Layer, Scene, Shape, Sound, SoundCue, Stage, Timeline,
+};
 use flare_edit::{Command, EditorSession, LayerChange, frames};
 
 struct Rng(u64);
@@ -47,7 +49,7 @@ fn random_batch(rng: &mut Rng, session: &EditorSession, scene: SceneId) -> Vec<C
     let layers = session.document().scenes()[0].timeline().layers();
     let pick = |rng: &mut Rng| layers[rng.below(layers.len())].clone();
     let frame = rng.below(45) as u32;
-    match rng.below(13) {
+    match rng.below(17) {
         0 => vec![Command::AddLayer {
             scene,
             layer: Layer::new(LayerId::new(), "n", vec![]).expect("layer"),
@@ -94,6 +96,39 @@ fn random_batch(rng: &mut Rng, session: &EditorSession, scene: SceneId) -> Vec<C
                 index: rng.below(8),
             }]
         }
+        13 => vec![Command::AddSound(
+            Sound::new(SoundId::new(), "s", vec![1, 2, 3], 8000, 1, 3).expect("sound"),
+        )],
+        14 => {
+            // Remove a sound that exists, or one that does not.
+            let sounds = session.document().sounds();
+            let id = if sounds.is_empty() || rng.below(3) == 0 {
+                SoundId::new()
+            } else {
+                sounds[rng.below(sounds.len())].id()
+            };
+            vec![Command::RemoveSound(id)]
+        }
+        15 => {
+            // Cues naming a sound that may or may not be in the library.
+            let sounds = session.document().sounds();
+            let sound = if sounds.is_empty() || rng.below(4) == 0 {
+                SoundId::new()
+            } else {
+                sounds[rng.below(sounds.len())].id()
+            };
+            let cues = (0..rng.below(4))
+                .map(|_| SoundCue {
+                    start: rng.below(45) as u32,
+                    sound,
+                })
+                .collect();
+            vec![Command::SetCues {
+                scene,
+                layer: pick(rng).id(),
+                cues,
+            }]
+        }
         10 if layers.len() > 1 => vec![Command::RemoveLayer {
             scene,
             layer: pick(rng).id(),
@@ -122,6 +157,15 @@ fn assert_valid(document: &Document) {
         document.symbols().to_vec(),
     );
     assert!(rebuilt.is_ok(), "invalid document: {:?}", rebuilt.err());
+    // The sound library and the cues that name it must still agree.
+    let with_sounds = rebuilt
+        .expect("checked above")
+        .with_sounds(document.sounds().to_vec());
+    assert!(
+        with_sounds.is_ok(),
+        "sounds and cues disagree: {:?}",
+        with_sounds.err()
+    );
     for scene in document.scenes() {
         for layer in scene.timeline().layers() {
             for pair in layer.spans().windows(2) {

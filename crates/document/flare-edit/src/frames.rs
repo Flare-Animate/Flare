@@ -8,7 +8,7 @@
 use std::num::NonZeroU32;
 
 use flare_core::{InstanceId, SceneId, ShapeId};
-use flare_document::{Content, FrameSpan, Instance, Layer, Shape};
+use flare_document::{Content, FrameSpan, Instance, Layer, Shape, SoundCue};
 
 use crate::Command;
 
@@ -148,6 +148,36 @@ pub fn paste_frames(
     Some(replace_spans(scene, layer, out))
 }
 
+/// Moves the sound cues after `frame` along with the spans they sit beside, by `delta` frames.
+fn with_cue_shift(
+    layer: &Layer,
+    frame: u32,
+    delta: i64,
+    scene: SceneId,
+    mut commands: Vec<Command>,
+) -> Option<Vec<Command>> {
+    if layer.cues().iter().any(|c| c.start > frame) {
+        let cues = layer
+            .cues()
+            .iter()
+            .map(|c| {
+                let start = if c.start > frame {
+                    u32::try_from(i64::from(c.start) + delta).ok()?
+                } else {
+                    c.start
+                };
+                Some(SoundCue { start, ..*c })
+            })
+            .collect::<Option<Vec<_>>>()?;
+        commands.push(Command::SetCues {
+            scene,
+            layer: layer.id(),
+            cues,
+        });
+    }
+    Some(commands)
+}
+
 /// Insert Frame (F5): lengthens the span at `frame` by one and shifts later spans right.
 /// Past the end of the layer it extends the last span to cover `frame`.
 pub fn insert_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Command>> {
@@ -178,7 +208,7 @@ pub fn insert_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
         out.extend(spans[..spans.len() - 1].iter().cloned());
         out.push(span(last.start(), grown, last.content().clone(), last)?);
     }
-    Some(replace_spans(scene, layer, out))
+    with_cue_shift(layer, frame, 1, scene, replace_spans(scene, layer, out))
 }
 
 /// Remove Frame (Shift+F5): shortens the span at `frame` by one and shifts later spans
@@ -205,7 +235,7 @@ pub fn remove_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
             std::cmp::Ordering::Greater => out.push(shifted(s, s.start() - 1)?),
         }
     }
-    Some(replace_spans(scene, layer, out))
+    with_cue_shift(layer, frame, -1, scene, replace_spans(scene, layer, out))
 }
 
 /// Splits the span at `frame` so a new keyframe starts there with `content` for the new
@@ -739,5 +769,87 @@ mod tests {
             Tween::None,
             "cut short, its target is gone"
         );
+    }
+
+    #[test]
+    fn sound_cues_after_an_inserted_or_removed_frame_move_with_the_spans() {
+        let mut f = fixture(vec![shape_span(0, 5), shape_span(5, 5)]);
+        let sound = flare_core::SoundId::new();
+        let data = flare_document::Sound::new(sound, "s", vec![1], 8000, 1, 8).expect("sound");
+        f.session.apply([Command::AddSound(data)]).expect("sound");
+        let cues = vec![
+            SoundCue { start: 0, sound },
+            SoundCue { start: 3, sound },
+            SoundCue { start: 7, sound },
+        ];
+        f.session
+            .apply([Command::SetCues {
+                scene: f.scene,
+                layer: layer(&f).id(),
+                cues,
+            }])
+            .expect("cues");
+        let starts =
+            |f: &Fixture| -> Vec<u32> { layer(f).cues().iter().map(|c| c.start).collect() };
+        let cmds = insert_frame(f.scene, layer(&f), 3);
+        run(&mut f, cmds);
+        assert_eq!(
+            starts(&f),
+            vec![0, 3, 8],
+            "only the cue after the frame moved"
+        );
+        let cmds = remove_frame(f.scene, layer(&f), 3);
+        run(&mut f, cmds);
+        assert_eq!(starts(&f), vec![0, 3, 7], "and it moves back");
+        f.session.undo();
+        assert_eq!(
+            starts(&f),
+            vec![0, 3, 8],
+            "one undo step each, spans and cues together"
+        );
+    }
+
+    #[test]
+    fn cues_need_a_sound_and_sounds_in_use_cannot_be_removed() {
+        let mut f = fixture(vec![shape_span(0, 5)]);
+        let missing = flare_core::SoundId::new();
+        let bad = Command::SetCues {
+            scene: f.scene,
+            layer: layer(&f).id(),
+            cues: vec![SoundCue {
+                start: 1,
+                sound: missing,
+            }],
+        };
+        assert!(f.session.apply([bad]).is_err(), "no such sound");
+        assert!(layer(&f).cues().is_empty(), "nothing changed");
+
+        let sound = flare_core::SoundId::new();
+        let data = flare_document::Sound::new(sound, "s", vec![1], 8000, 1, 8).expect("sound");
+        f.session.apply([Command::AddSound(data)]).expect("add");
+        f.session
+            .apply([Command::SetCues {
+                scene: f.scene,
+                layer: layer(&f).id(),
+                cues: vec![SoundCue { start: 1, sound }],
+            }])
+            .expect("cue");
+        assert!(
+            f.session.apply([Command::RemoveSound(sound)]).is_err(),
+            "still played"
+        );
+        assert!(f.session.apply([Command::RemoveSound(missing)]).is_err());
+        // Taking the cue away and the sound out in one step is fine.
+        f.session
+            .apply([
+                Command::SetCues {
+                    scene: f.scene,
+                    layer: layer(&f).id(),
+                    cues: vec![],
+                },
+                Command::RemoveSound(sound),
+            ])
+            .expect("both");
+        assert!(f.session.document().sounds().is_empty());
     }
 }

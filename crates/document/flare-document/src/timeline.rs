@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use flare_core::{InstanceId, LayerId, SymbolId, Transform2D};
 
-use crate::Shape;
+use crate::{MAX_CUES_PER_LAYER, Shape, SoundCue, SoundError};
 use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -114,6 +114,8 @@ pub struct Layer {
     visible: bool,
     locked: bool,
     mask: bool,
+    /// Sounds that start at frames of this layer, in order of frame. Shared like the spans.
+    cues: Arc<[SoundCue]>,
 }
 
 impl Layer {
@@ -136,6 +138,7 @@ impl Layer {
             visible: true,
             locked: false,
             mask: false,
+            cues: Arc::from([]),
         })
     }
 
@@ -145,6 +148,7 @@ impl Layer {
         layer.visible = self.visible;
         layer.locked = self.locked;
         layer.mask = self.mask;
+        layer.cues = Arc::clone(&self.cues);
         Ok(layer)
     }
 
@@ -174,6 +178,21 @@ impl Layer {
     pub fn with_mask(mut self, mask: bool) -> Self {
         self.mask = mask;
         self
+    }
+
+    /// Sets the sound cues: sorted by frame, with at most one per frame.
+    pub fn with_cues(mut self, mut cues: Vec<SoundCue>) -> Result<Self, SoundError> {
+        if cues.len() > MAX_CUES_PER_LAYER {
+            return Err(SoundError::TooManyCues);
+        }
+        cues.sort_by_key(|c| c.start);
+        cues.dedup_by_key(|c| c.start);
+        self.cues = cues.into();
+        Ok(self)
+    }
+
+    pub fn cues(&self) -> &[SoundCue] {
+        &self.cues
     }
 
     pub fn is_mask(&self) -> bool {

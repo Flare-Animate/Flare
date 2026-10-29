@@ -763,6 +763,29 @@ fn masks_are_reported_as_not_published_instead_of_silently_dropped() {
 }
 
 #[test]
+fn sounds_are_reported_as_not_published() {
+    let sound = flare_core::SoundId::new();
+    let layer = layer("sound", vec![])
+        .with_cues(vec![flare_document::SoundCue { start: 0, sound }])
+        .expect("cues");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let doc = document(10, 10, vec![scene], vec![])
+        .with_sounds(vec![
+            flare_document::Sound::new(sound, "Clap", vec![1], 8000, 1, 1).expect("sound"),
+        ])
+        .expect("sounds");
+    let published = publish_swf(&doc, &PublishOptions::default()).expect("publish");
+    assert!(
+        published
+            .diagnostics
+            .iter()
+            .any(|d| d.severity == Severity::Warning && d.message.contains("silent")),
+        "{:?}",
+        published.diagnostics
+    );
+}
+
+#[test]
 fn scenes_play_in_sequence_with_a_warning() {
     let a = one_frame_scene(
         "A",

@@ -18,6 +18,7 @@ members = [
     "crates/publish/flare-publish",
     "crates/io/flare-flash",
     "crates/text/flare-text",
+    "crates/audio/flare-audio",
 ]
 exclude = ["original"]
 default-members = ["apps/flare-desktop"]
@@ -44,6 +45,7 @@ flare-storage = { path = "crates/io/flare-storage" }
 flare-edit = { path = "crates/document/flare-edit" }
 flare-document = { path = "crates/document/flare-document" }
 flare-text = { path = "crates/text/flare-text" }
+flare-audio = { path = "crates/audio/flare-audio" }
 
 # ---- Math and vector geometry ------------------------------------------------
 glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }
@@ -111,6 +113,11 @@ rayon = "1"
 tokio = { version = "1", default-features = false }
 # crossbeam-channel/rtrb: bounded communication only at justified boundaries.
 
+# ---- Audio ---------------------------------------------------------------------
+symphonia = { version = "0.5", default-features = false, features = ["wav", "mp3", "ogg", "vorbis", "flac", "pcm"] }
+cpal = "0.16"
+base64 = "0.22"
+
 # ---- CLI, MCP and structured diagnostics -------------------------------------
 clap = { version = "4", features = ["derive"] }
 rmcp = { version = "3.8.0", default-features = false }
@@ -125,7 +132,7 @@ criterion = "0.7"
 # cargo-fuzz, cargo-deny, cargo-about and Miri are tools, not app dependencies.
 
 # ---- Deferred functionality: register exact versions when adopted -----------
-# Audio: symphonia, cpal, rubato, rtrb; optional FFmpeg executable adapter.
+# Audio resampling and lock-free queues (rubato, rtrb) and an optional FFmpeg adapter: when needed.
 # Spatial/physics: parry2d-f64, parry3d-f64, rapier2d-f64; 3D physics deferred.
 # Scripting: boa_engine candidate; plugins/Wasm host deferred.
 # Collections/SIMD: smallvec, indexmap, slotmap, hashbrown, bumpalo, wide on evidence.

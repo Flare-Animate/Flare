@@ -3,12 +3,12 @@
 use std::num::NonZeroU32;
 
 use flare_core::{
-    DocumentId, DocumentPoint, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId,
-    Transform2D,
+    DocumentId, DocumentPoint, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SoundId,
+    SymbolId, Transform2D,
 };
 use flare_document::{
     Anchor, Attachment, Content, Document, FrameSpan, Gradient, Instance, Layer, PathSegment,
-    Placement, Scene, Shape, Stage, Stroke, Symbol, Timeline, Tween,
+    Placement, Scene, Shape, Sound, SoundCue, Stage, Stroke, Symbol, Timeline, Tween,
 };
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
@@ -155,7 +155,55 @@ struct LayerWire {
     /// Absent in files written before masks existed.
     #[serde(default)]
     mask: bool,
+    /// Absent in files written before sounds existed.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    cues: Vec<CueWire>,
     spans: Vec<SpanWire>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CueWire {
+    start: u32,
+    sound: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct SoundWire {
+    name: String,
+    /// The imported file, base64.
+    data: String,
+    sample_rate: u32,
+    channels: u16,
+    frames: u64,
+}
+
+impl SoundWire {
+    pub(crate) fn of(sound: &Sound) -> Self {
+        use base64::Engine as _;
+        Self {
+            name: sound.name().to_owned(),
+            data: base64::engine::general_purpose::STANDARD.encode(sound.data()),
+            sample_rate: sound.sample_rate(),
+            channels: sound.channels(),
+            frames: sound.frames(),
+        }
+    }
+
+    pub(crate) fn build(self, id: &str) -> Result<Sound, StorageError> {
+        use base64::Engine as _;
+        let data = base64::engine::general_purpose::STANDARD
+            .decode(self.data)
+            .map_err(|_| StorageError::Corrupt("sound data is not valid base64".into()))?;
+        Sound::new(
+            SoundId::from_uuid(uuid(id)?),
+            self.name,
+            data,
+            self.sample_rate,
+            self.channels,
+            self.frames,
+        )
+        .map_err(|error| StorageError::Corrupt(error.to_string()))
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -174,6 +222,14 @@ impl TimelineWire {
                 visible: layer.is_visible(),
                 locked: layer.is_locked(),
                 mask: layer.is_mask(),
+                cues: layer
+                    .cues()
+                    .iter()
+                    .map(|c| CueWire {
+                        start: c.start,
+                        sound: c.sound.as_uuid().to_string(),
+                    })
+                    .collect(),
                 spans: layer
                     .spans()
                     .iter()
@@ -280,11 +336,23 @@ impl TimelineWire {
                 };
                 spans.push(FrameSpan::new(span.start, duration, content).with_tween(tween));
             }
+            let cues = layer
+                .cues
+                .iter()
+                .map(|c| {
+                    Ok(SoundCue {
+                        start: c.start,
+                        sound: SoundId::from_uuid(uuid(&c.sound)?),
+                    })
+                })
+                .collect::<Result<Vec<_>, StorageError>>()?;
             layers.push(
                 Layer::new(LayerId::from_uuid(uuid(&layer.id)?), layer.name, spans)?
                     .with_visible(layer.visible)
                     .with_locked(layer.locked)
-                    .with_mask(layer.mask),
+                    .with_mask(layer.mask)
+                    .with_cues(cues)
+                    .map_err(|error| StorageError::Corrupt(error.to_string()))?,
             );
         }
         Ok(Timeline::new(layers))
@@ -343,6 +411,7 @@ pub(crate) fn assemble(
     scenes: Vec<Scene>,
     symbols: Vec<Symbol>,
     attachments: Vec<Attachment>,
+    sounds: Vec<Sound>,
 ) -> Result<Document, StorageError> {
     let settings: Settings = serde_json::from_str(settings)?;
     let rate = FrameRate::new(settings.frame_rate.0, settings.frame_rate.1)
@@ -356,6 +425,8 @@ pub(crate) fn assemble(
     .map_err(StorageError::Invalid)?;
     let document = document
         .with_attachments(attachments)
+        .map_err(StorageError::Invalid)?
+        .with_sounds(sounds)
         .map_err(StorageError::Invalid)?;
     match settings.stage {
         None => Ok(document),

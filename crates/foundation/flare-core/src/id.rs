@@ -43,6 +43,7 @@ define_id! {
     InstanceId,
     LayerId,
     ShapeId,
+    SoundId,
 }
 
 #[cfg(test)]
