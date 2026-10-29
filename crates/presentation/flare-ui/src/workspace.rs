@@ -103,6 +103,12 @@ pub struct Workspace {
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
     quit_requested: bool,
+    /// Where autosave writes recovery files, if enabled.
+    recovery_dir: Option<PathBuf>,
+    autosave_interval: f64,
+    last_autosave: Option<f64>,
+    /// A recovery file exists for the current document and has not been discarded.
+    recovery_written: bool,
     fill: Color32,
     stroke_enabled: bool,
     stroke_color: Color32,
@@ -134,6 +140,10 @@ impl Workspace {
             layer_name_edit: String::new(),
             native_menu: false,
             quit_requested: false,
+            recovery_dir: None,
+            autosave_interval: 30.0,
+            last_autosave: None,
+            recovery_written: false,
             fill: Color32::from_rgb(232, 69, 60),
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
@@ -251,9 +261,8 @@ impl Workspace {
 
     // ---- file operations -------------------------------------------------------------
 
-    /// Opens a project, refusing to replace unsaved work.
     /// Replaces the document being edited, keeping the user's tool and environment settings
-    /// (tool, colors, native menu) rather than resetting them along with the document.
+    /// (tool, colors, native menu, recovery) rather than resetting them with the document.
     fn install_document(&mut self, document: Document, path: Option<PathBuf>) {
         let mut fresh = Self::new(document, path);
         fresh.tool = self.tool;
@@ -262,17 +271,91 @@ impl Workspace {
         fresh.stroke_color = self.stroke_color;
         fresh.stroke_width = self.stroke_width;
         fresh.native_menu = self.native_menu;
+        fresh.recovery_dir = self.recovery_dir.take();
+        fresh.autosave_interval = self.autosave_interval;
         *self = fresh;
     }
 
+    /// Opens a project, refusing to replace unsaved work.
     pub fn open(&mut self, path: &Path) {
         if self.is_dirty() {
             self.report("Save or undo your changes before opening another project");
             return;
         }
         match flare_storage::load(path) {
-            Ok(document) => self.install_document(document, Some(path.to_owned())),
+            Ok(document) => {
+                // The old document is clean, so any recovery file for it is obsolete.
+                self.discard_recovery();
+                self.install_document(document, Some(path.to_owned()));
+            }
             Err(error) => self.report(format!("Cannot open {}: {error}", path.display())),
+        }
+    }
+
+    // ---- crash recovery --------------------------------------------------------------
+
+    /// Turns on autosave into `dir`. Recovery files are separate from the project file.
+    pub fn enable_recovery(&mut self, dir: PathBuf) {
+        self.recovery_dir = Some(dir);
+    }
+
+    pub fn set_autosave_interval(&mut self, seconds: f64) {
+        self.autosave_interval = seconds.max(1.0);
+    }
+
+    /// Loads a recovery file as unsaved work (it counts as dirty until saved to a project).
+    pub fn recover(&mut self, path: &Path) {
+        if self.is_dirty() {
+            self.report("Save or undo your changes before recovering other work");
+            return;
+        }
+        match flare_storage::load(path) {
+            Ok(document) => {
+                self.install_document(document, None);
+                self.session.mark_unsaved();
+                // The file stays until the work is saved or discarded, so a second crash
+                // before saving still leaves it recoverable.
+                self.recovery_written = true;
+                self.report("Recovered unsaved work");
+            }
+            Err(error) => self.report(format!("Cannot recover {}: {error}", path.display())),
+        }
+    }
+
+    /// Deletes the recovery file for the current document, if there is one.
+    pub fn discard_recovery(&mut self) {
+        self.recovery_written = false;
+        if let Some(dir) = &self.recovery_dir
+            && let Err(error) = flare_storage::discard_recovery(dir, self.session.document().id())
+        {
+            self.status = Some(format!("Could not remove the recovery file: {error}"));
+        }
+    }
+
+    /// Writes a recovery file when there are unsaved changes and the interval has passed.
+    /// Only the document itself is saved: an in-progress symbol edit is not applied yet.
+    fn autosave(&mut self, now: f64) {
+        let Some(dir) = self.recovery_dir.clone() else {
+            return;
+        };
+        if !self.session.is_dirty() {
+            // Clean again (saved, or undone back to the saved state): nothing to recover.
+            if self.recovery_written {
+                self.discard_recovery();
+            }
+            self.last_autosave = Some(now);
+            return;
+        }
+        if self
+            .last_autosave
+            .is_some_and(|last| now - last < self.autosave_interval)
+        {
+            return;
+        }
+        self.last_autosave = Some(now);
+        match flare_storage::save_recovery(self.session.document(), &dir) {
+            Ok(_) => self.recovery_written = true,
+            Err(error) => self.report(format!("Autosave failed: {error}")),
         }
     }
 
@@ -291,6 +374,7 @@ impl Workspace {
         match flare_storage::save(self.session.document(), path) {
             Ok(()) => {
                 self.session.mark_saved();
+                self.discard_recovery();
                 self.path = Some(path.to_owned());
                 self.report(format!("Saved {}", path.display()));
             }
@@ -1115,7 +1199,9 @@ impl Workspace {
 
     pub fn show(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
-        self.advance(ui.input(|i| i.time));
+        let now = ui.input(|i| i.time);
+        self.advance(now);
+        self.autosave(now);
         self.handle_shortcuts(&ctx);
         self.validate_selection();
         self.ensure_stage_texture(&ctx);
@@ -2628,7 +2714,107 @@ mod tests {
     }
 
     #[test]
-    fn opening_a_project_keeps_tool_colors_and_the_native_menu_setting() {
+    fn autosave_writes_a_recovery_file_only_when_dirty_and_the_interval_has_passed() {
+        let dir = tempfile::tempdir().expect("dir");
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.enable_recovery(dir.path().to_owned());
+        ws.set_autosave_interval(10.0);
+        let id = ws.document().id();
+        let file = flare_storage::recovery_path(dir.path(), id);
+
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 60.0);
+        assert!(!file.exists(), "a clean document is never autosaved");
+
+        rect(&mut ws);
+        run(&mut ws, &ctx, 61.0);
+        assert!(
+            !file.exists(),
+            "the interval counts from the last clean moment"
+        );
+        run(&mut ws, &ctx, 71.5);
+        assert!(file.exists());
+        assert_eq!(flare_storage::load(&file).expect("load"), *ws.document());
+
+        let before = std::fs::metadata(&file)
+            .expect("meta")
+            .modified()
+            .expect("time");
+        run(&mut ws, &ctx, 72.0);
+        assert_eq!(
+            std::fs::metadata(&file)
+                .expect("meta")
+                .modified()
+                .expect("time"),
+            before
+        );
+    }
+
+    #[test]
+    fn saving_or_undoing_back_to_clean_removes_the_recovery_file() {
+        let dir = tempfile::tempdir().expect("dir");
+        let project = dir.path().join("p.flare");
+        let store = dir.path().join("recovery");
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        ws.enable_recovery(store.clone());
+        ws.set_autosave_interval(1.0);
+        let file = flare_storage::recovery_path(&store, ws.document().id());
+
+        run(&mut ws, &ctx, 0.0);
+        rect(&mut ws);
+        run(&mut ws, &ctx, 5.0);
+        assert!(file.exists());
+        ws.undo();
+        run(&mut ws, &ctx, 6.0);
+        assert!(!file.exists(), "undone back to the clean state");
+
+        rect(&mut ws);
+        run(&mut ws, &ctx, 20.0);
+        assert!(file.exists());
+        ws.save_as(&project);
+        assert!(
+            !file.exists(),
+            "saving to the project supersedes the recovery file"
+        );
+    }
+
+    #[test]
+    fn recovered_work_is_unsaved_and_keeps_its_file_until_saved() {
+        let dir = tempfile::tempdir().expect("dir");
+        let store = dir.path().join("recovery");
+        let mut crashed = workspace();
+        rect(&mut crashed);
+        let saved = flare_storage::save_recovery(crashed.document(), &store).expect("recovery");
+
+        let mut ws = workspace();
+        ws.enable_recovery(store.clone());
+        ws.recover(&saved);
+        assert_eq!(layer_count(&ws), 2);
+        assert!(
+            ws.is_dirty(),
+            "recovered work has never been saved to a project"
+        );
+        assert!(ws.path().is_none());
+        assert!(saved.exists(), "kept in case of another crash");
+        ws.discard_recovery();
+        assert!(!saved.exists());
+    }
+
+    #[test]
+    fn recovery_refuses_to_replace_unsaved_work_and_reports_bad_files() {
+        let dir = tempfile::tempdir().expect("dir");
+        let mut ws = workspace();
+        rect(&mut ws);
+        ws.recover(&dir.path().join("nope.flare"));
+        assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+        assert_eq!(layer_count(&ws), 2);
+        ws.undo();
+        ws.recover(&dir.path().join("nope.flare"));
+        assert!(ws.status().is_some_and(|s| s.contains("Cannot recover")));
+    }
+
+    #[test]
+    fn opening_a_project_keeps_the_native_menu_tool_and_recovery_settings() {
         let dir = tempfile::tempdir().expect("dir");
         let project = dir.path().join("p.flare");
         let mut source = workspace();
@@ -2639,6 +2825,7 @@ mod tests {
         ws.set_tool(Tool::Ellipse);
         ws.fill = Color32::from_rgb(1, 2, 3);
         ws.stroke_enabled = true;
+        ws.enable_recovery(dir.path().join("recovery"));
         ws.open(&project);
         assert_eq!(ws.path(), Some(project.as_path()));
         assert!(
@@ -2648,5 +2835,6 @@ mod tests {
         assert_eq!(ws.tool(), Tool::Ellipse);
         assert_eq!(ws.fill, Color32::from_rgb(1, 2, 3));
         assert!(ws.stroke_enabled);
+        assert!(ws.recovery_dir.is_some());
     }
 }

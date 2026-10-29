@@ -16,7 +16,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 - Look at and fix the desktop window and the native macOS menu; both have only been built and launch-tested, not exercised by hand.
 - Docking and a saved workspace layout.
 - Pen pressure, IME and accessibility checks on real hardware.
-- Autosave and crash recovery; migration and fault-injection tests for storage.
+- Storage migration tests and broader fault injection (disk full, power loss); autosave and crash recovery exist on `feat/recovery`.
 
 ## Branches on top of this one
 
@@ -48,6 +48,6 @@ Each of these can be its own branch and PR on top of the current work:
 2. Drawing tools: pen/path, selection of multiple objects, transform handles.
 3. Fills and strokes: gradients, stroke hit-testing, paint bucket and ink bottle behaviour.
 4. Timeline UX: span selection and drag, copy/paste, onion skin, zoom.
-5. Recovery: autosave, crash recovery, storage migration tests.
+5. Recovery: autosave and crash recovery (done on `feat/recovery`); storage migration and fault-injection tests.
 6. Compatibility evidence: a lawful fixture corpus, then XFL import for a named subset.
 7. Input and accessibility: pen, IME and screen-reader results.

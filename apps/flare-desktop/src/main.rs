@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 mod menu;
+mod recovery;
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -158,7 +159,7 @@ impl App {
         }
     }
 
-    fn confirm_close(&self) -> bool {
+    fn confirm_close(&mut self) -> bool {
         if !self.workspace.is_dirty() {
             return true;
         }
@@ -167,7 +168,12 @@ impl App {
             .set_description("Close without saving your changes?")
             .set_buttons(rfd::MessageButtons::YesNo)
             .show();
-        answer == rfd::MessageDialogResult::Yes
+        let discard = answer == rfd::MessageDialogResult::Yes;
+        if discard {
+            // Closing without saving really discards the work, including its recovery file.
+            self.workspace.discard_recovery();
+        }
+        discard
     }
 }
 
@@ -251,6 +257,15 @@ fn main() -> Result<()> {
     {
         use winit::platform::macos::EventLoopBuilderExtMacOS;
         builder.with_default_menu(false);
+    }
+    if let Some(dir) = recovery::recovery_dir() {
+        workspace.enable_recovery(dir.clone());
+        // Only offer recovery on a plain launch, not when a project was named explicitly.
+        if std::env::args_os().nth(1).is_none()
+            && let Some(newest) = flare_storage::list_recoveries(&dir).first()
+        {
+            recovery::offer_recovery(&mut workspace, newest);
+        }
     }
     let event_loop = builder.build().context("create event loop")?;
     event_loop.set_control_flow(ControlFlow::Wait);

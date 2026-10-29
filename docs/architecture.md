@@ -103,6 +103,17 @@ and fault-injection tests exist.
   payload size limits, a version check that refuses newer files, and full revalidation.
 - Older files load with defaults for fields added later (stage, layer flags, strokes).
 
+## Crash recovery
+
+Autosave writes the main document to a separate recovery store (per-user app data,
+`Flare/recovery`), never over the project file, so discarding changes really discards them.
+A recovery file is a normal container named by document ID, so each document has one. It is
+written only when there are unsaved changes and the interval (30 s by default) has passed,
+and removed when the work is saved, undone back to clean, or deliberately discarded. On a
+plain launch the newest recovery file is offered: recover, discard, or decide next time.
+Recovered work counts as unsaved. An in-progress symbol edit is not included until it is
+applied, and only the newest recovery is offered per launch.
+
 ## Frontends
 
 `flare-cli` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`,
@@ -120,7 +131,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 - No pen or path tool, gradients, masks, text or bitmap fills.
 - No FLA/XFL import or export, and no SWF parsing beyond signature inspection.
 - No stage zoom or pan, no docking, no multi-select, no drag-editing of spans.
-- No autosave or crash recovery; undo history is not persisted.
+- Undo history is not persisted, and recovery covers one document at a time.
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
   menu have been built and launched but not exercised by hand; the menu's enabled-state and
   labelling logic is covered by tests, the AppKit integration is not.
