@@ -1554,7 +1554,6 @@ dependencies = [
 name = "flare-audio"
 version = "0.1.0"
 dependencies = [
- "cpal",
  "symphonia",
  "thiserror 2.0.21",
 ]
@@ -1614,14 +1613,10 @@ dependencies = [
  "egui-wgpu",
  "egui-winit",
  "flare-animate",
- "flare-audio",
- "flare-publish",
- "flare-runtime",
+ "flare-platform",
  "flare-storage",
  "muda",
  "pollster",
- "rfd",
- "tempfile",
  "winit",
 ]
 
@@ -1729,6 +1724,21 @@ dependencies = [
  "tempfile",
  "tokio",
  "uuid",
+]
+
+[[package]]
+name = "flare-platform"
+version = "0.1.0"
+dependencies = [
+ "cpal",
+ "flare-audio",
+ "flare-document",
+ "flare-publish",
+ "flare-runtime",
+ "flare-storage",
+ "rfd",
+ "tempfile",
+ "thiserror 2.0.21",
 ]
 
 [[package]]

@@ -18,6 +18,15 @@ pub fn app_dir_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
     Some(base.join("Flare"))
 }
 
+/// The per-user recovery directory, given an environment lookup (injectable for tests).
+pub fn recovery_dir_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBuf> {
+    app_dir_with(env).map(|dir| dir.join("recovery"))
+}
+
+pub fn recovery_dir() -> Option<PathBuf> {
+    recovery_dir_with(|name| std::env::var_os(name))
+}
+
 /// Where the dock layout is remembered between sessions.
 pub fn layout_file() -> Option<PathBuf> {
     layout_file_with(|name| std::env::var_os(name))
@@ -27,12 +36,12 @@ pub fn layout_file_with(env: impl Fn(&str) -> Option<OsString>) -> Option<PathBu
     app_dir_with(env).map(|dir| dir.join("layout.json"))
 }
 
-/// Reads a saved layout. A missing file is `None`; the read itself is capped so an
-/// oversized file is never loaded whole.
-pub fn read_layout(path: &Path) -> Option<String> {
+/// Reads a saved layout of at most `max_bytes`. A missing file is `None`; the read itself is
+/// capped so an oversized file is never loaded whole.
+pub fn read_layout(path: &Path, max_bytes: usize) -> Option<String> {
     let file = std::fs::File::open(path).ok()?;
     let mut text = String::new();
-    file.take(flare_animate::MAX_LAYOUT_BYTES as u64 + 1)
+    file.take(max_bytes as u64 + 1)
         .read_to_string(&mut text)
         .ok()?;
     Some(text)
@@ -91,6 +100,18 @@ mod tests {
     }
 
     #[test]
+    fn recovery_files_live_under_the_app_directory() {
+        let vars = [
+            ("HOME", "/home/u"),
+            ("XDG_DATA_HOME", "/data"),
+            ("APPDATA", "C:\\a"),
+        ];
+        let app = app_dir_with(env(&vars)).expect("app dir");
+        assert_eq!(recovery_dir_with(env(&vars)), Some(app.join("recovery")));
+        assert_eq!(recovery_dir_with(env(&[])), None);
+    }
+
+    #[test]
     fn missing_or_empty_variables_give_no_directory_rather_than_a_relative_path() {
         assert_eq!(app_dir_with(env(&[])), None);
         assert_eq!(
@@ -105,7 +126,7 @@ mod tests {
         let path = dir.path().join("a").join("layout.json");
         write_layout(&path, "{\"x\":1}").expect("write");
         write_layout(&path, "{\"x\":2}").expect("overwrite");
-        assert_eq!(read_layout(&path).as_deref(), Some("{\"x\":2}"));
+        assert_eq!(read_layout(&path, 1024).as_deref(), Some("{\"x\":2}"));
         assert_eq!(
             std::fs::read_dir(path.parent().expect("dir"))
                 .expect("ls")
@@ -113,13 +134,10 @@ mod tests {
             1,
             "no temp file left"
         );
-        assert_eq!(read_layout(&dir.path().join("missing.json")), None);
+        assert_eq!(read_layout(&dir.path().join("missing.json"), 1024), None);
         let big = dir.path().join("big.json");
-        std::fs::write(&big, "x".repeat(flare_animate::MAX_LAYOUT_BYTES * 2)).expect("write");
-        let read = read_layout(&big).expect("read");
-        assert!(
-            read.len() <= flare_animate::MAX_LAYOUT_BYTES + 1,
-            "the read itself is capped"
-        );
+        std::fs::write(&big, "x".repeat(2048)).expect("write");
+        let read = read_layout(&big, 1024).expect("read");
+        assert!(read.len() <= 1024 + 1, "the read itself is capped");
     }
 }

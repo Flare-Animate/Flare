@@ -1,11 +1,10 @@
 //! Sound: decoding, and a mixer that turns sounds placed on a timeline into output samples.
 //!
-//! Everything but [`output`] is pure and testable without a sound card. Decoding handles WAV,
+//! Everything here is pure and testable without a sound card; the device itself is opened by
+//! `flare-platform`. Decoding handles WAV,
 //! MP3, Ogg Vorbis and FLAC (`symphonia`) with limits on input size and decoded length, so a
 //! hostile or huge file is refused instead of exhausting memory.
 #![forbid(unsafe_code)]
-
-pub mod output;
 
 use std::io::Cursor;
 use std::sync::Arc;
@@ -18,6 +17,19 @@ use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
 use symphonia::core::probe::Hint;
 use thiserror::Error;
+
+/// Something to do with the sound card. A front end decides what plays when and says so with
+/// these; whoever owns the device carries them out (see `flare-platform`).
+#[derive(Clone, Debug)]
+pub enum AudioEvent {
+    /// Silence everything that is playing.
+    Stop,
+    /// Start a sound after a delay.
+    Play {
+        audio: Arc<Audio>,
+        delay_seconds: f64,
+    },
+}
 
 /// Largest encoded file accepted.
 pub const MAX_INPUT_BYTES: usize = 64 * 1024 * 1024;

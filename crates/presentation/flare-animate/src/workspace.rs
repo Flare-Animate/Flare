@@ -48,9 +48,9 @@ use dock::*;
 use helpers::*;
 use types::*;
 pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
+pub use flare_audio::AudioEvent;
 pub use types::{
-    AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest,
-    onion_ghosts,
+    DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest, onion_ghosts,
 };
 
 pub struct Workspace {

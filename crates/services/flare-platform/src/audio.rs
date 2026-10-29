@@ -1,12 +1,12 @@
 //! The sound card. The only part of this crate that needs a device; everything it plays comes
-//! from a [`Mixer`](crate::Mixer), which is tested without one.
+//! from a [`Mixer`], which is tested without one.
 
 use std::sync::{Arc, Mutex};
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use thiserror::Error;
 
-use crate::{Audio, Mixer};
+use flare_audio::{Audio, AudioEvent, Mixer};
 
 #[derive(Debug, Error)]
 pub enum OutputError {
@@ -79,6 +79,19 @@ impl Player {
         let delay = (delay_seconds.max(0.0) * f64::from(self.rate)) as u64;
         if let Ok(mut mixer) = self.mixer.lock() {
             mixer.play(audio, delay);
+        }
+    }
+
+    /// Carries out what a front end asked for.
+    pub fn apply(&self, events: impl IntoIterator<Item = AudioEvent>) {
+        for event in events {
+            match event {
+                AudioEvent::Stop => self.stop_all(),
+                AudioEvent::Play {
+                    audio,
+                    delay_seconds,
+                } => self.play(audio, delay_seconds),
+            }
         }
     }
 

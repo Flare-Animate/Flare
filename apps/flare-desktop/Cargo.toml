@@ -11,20 +11,14 @@ anyhow.workspace = true
 egui.workspace = true
 egui-wgpu = { workspace = true, features = ["default", "winit"] }
 egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
-flare-publish.workspace = true
-flare-storage.workspace = true
-flare-audio.workspace = true
 flare-animate.workspace = true
-flare-runtime.workspace = true
+flare-platform.workspace = true
+flare-storage.workspace = true
 pollster.workspace = true
-rfd.workspace = true
 winit = { workspace = true, features = ["default"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 muda.workspace = true
-
-[dev-dependencies]
-tempfile.workspace = true
 
 [lints]
 workspace = true

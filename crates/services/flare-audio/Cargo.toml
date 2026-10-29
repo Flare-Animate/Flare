@@ -7,7 +7,6 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
-cpal.workspace = true
 symphonia.workspace = true
 thiserror.workspace = true
 

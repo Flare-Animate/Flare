@@ -24,6 +24,7 @@ members = [
     "crates/services/flare-text",
     "crates/services/flare-audio",
     "crates/services/flare-runtime",
+    "crates/services/flare-platform",
 ]
 exclude = ["original"]
 default-members = ["apps/flare-desktop"]
@@ -56,6 +57,7 @@ flare-document = { path = "crates/foundation/flare-document" }
 flare-text = { path = "crates/services/flare-text" }
 flare-audio = { path = "crates/services/flare-audio" }
 flare-runtime = { path = "crates/services/flare-runtime" }
+flare-platform = { path = "crates/services/flare-platform" }
 
 # ---- Math and vector geometry ------------------------------------------------
 glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }

@@ -1,0 +1,23 @@
+[package]
+name = "flare-platform"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+cpal.workspace = true
+flare-audio.workspace = true
+flare-document.workspace = true
+flare-publish.workspace = true
+flare-runtime.workspace = true
+flare-storage.workspace = true
+rfd.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -6,7 +6,6 @@ use flare_history::EditorSession;
 use flare_runtime::{Rendered, Runtime};
 use flare_tools::handles::Handle;
 use glamx::{DAffine2, DVec2};
-use std::sync::Arc;
 
 /// How many frames before and after the current one onion skinning can show.
 pub const MAX_ONION_FRAMES: u32 = 8;
@@ -168,19 +167,6 @@ pub(super) fn into_color_image(rendered: Rendered) -> egui::ColorImage {
 pub(super) const TOP_BAR_HEIGHT: f32 = 38.0;
 
 pub(super) const INTEGRATED_TOP_BAR_HEIGHT: f32 = 28.0;
-
-/// Something for the app to do with the sound card. The workspace decides what plays when; the
-/// app owns the device (the workspace has no device code).
-#[derive(Clone, Debug)]
-pub enum AudioEvent {
-    /// Silence everything that is playing.
-    Stop,
-    /// Start a sound after a delay.
-    Play {
-        audio: Arc<flare_audio::Audio>,
-        delay_seconds: f64,
-    },
-}
 
 /// Most decoded audio kept for playback, in samples (all channels): about 64 MB of floats.
 pub(super) const DECODED_AUDIO_SAMPLES: usize = 16_000_000;
