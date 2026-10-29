@@ -44,3 +44,11 @@ Planned, in the order they will be built:
 - Timeline: loop playback, onion-skin outlines, layer folders, motion guides, the outline column.
 - Stage bar: grid, rulers toggle, snapping.
 - Menus: the commands listed as dimmed entries.
+
+## Top bar
+
+The window has no system title bar on macOS: the top bar (38 px) takes its place, with room at the
+left for the window buttons, the app mark, the in-window menus where there is no native menu bar,
+the document name in the middle, and play, undo and redo at the right. Empty space in the bar
+moves the window and a double click zooms it; the workspace asks and the desktop app does it
+(`WindowRequest`), so the UI crate stays free of window code.

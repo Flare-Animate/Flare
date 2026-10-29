@@ -71,6 +71,16 @@ pub enum DialogRequest {
     ImportSound,
 }
 
+/// A request for the shell to move or zoom its window, from the integrated title bar.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WindowRequest {
+    Drag,
+    ToggleMaximize,
+}
+
+/// Height of the integrated top bar.
+const TOP_BAR_HEIGHT: f32 = 38.0;
+
 /// Something for the app to do with the sound card. The workspace decides what plays when; the
 /// app owns the device (the workspace has no device code).
 #[derive(Clone, Debug)]
@@ -119,6 +129,16 @@ enum ColorTarget {
     Fill,
     Stroke,
 }
+
+/// The letter that picks each tool, as in other animation tools.
+const TOOL_KEYS: &[(Key, Tool)] = &[
+    (Key::V, Tool::Select),
+    (Key::P, Tool::Pen),
+    (Key::T, Tool::Text),
+    (Key::N, Tool::Line),
+    (Key::R, Tool::Rectangle),
+    (Key::O, Tool::Ellipse),
+];
 
 /// Frames `from..=to` of one layer, selected in the timeline for copying.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -368,6 +388,9 @@ pub struct Workspace {
     stage_edit: Option<(u32, u32)>,
     status: Option<String>,
     dialog: Option<DialogRequest>,
+    window_request: Option<WindowRequest>,
+    titlebar_inset: f32,
+    top_bar_id: egui::Id,
 }
 
 impl Workspace {
@@ -448,6 +471,9 @@ impl Workspace {
             stage_edit: None,
             status: None,
             dialog: None,
+            window_request: None,
+            titlebar_inset: 0.0,
+            top_bar_id: egui::Id::unique("top-bar"),
         }
     }
 
@@ -541,6 +567,17 @@ impl Workspace {
         format!("{name}{dirty} - Flare")
     }
 
+    /// Width at the left of the top bar the window's own buttons cover; non-zero when the shell
+    /// draws no title bar of its own.
+    pub fn set_titlebar_inset(&mut self, inset: f32) {
+        self.titlebar_inset = inset;
+    }
+
+    /// Returns (and clears) a window move or zoom the top bar asked for.
+    pub fn take_window_request(&mut self) -> Option<WindowRequest> {
+        self.window_request.take()
+    }
+
     /// Returns (and clears) a dialog the shell should show.
     pub fn take_dialog(&mut self) -> Option<DialogRequest> {
         self.dialog.take()
@@ -580,6 +617,7 @@ impl Workspace {
         fresh.stroke_color = self.stroke_color;
         fresh.stroke_width = self.stroke_width;
         fresh.native_menu = self.native_menu;
+        fresh.titlebar_inset = self.titlebar_inset;
         fresh.recovery_dir = self.recovery_dir.take();
         fresh.autosave_interval = self.autosave_interval;
         fresh.layout = std::mem::replace(
@@ -2847,7 +2885,10 @@ impl Workspace {
         egui::Panel::bottom("status")
             .exact_size(24.0)
             .show(ui, |ui| self.status_bar(ui));
-        egui::Panel::top("menu").show(ui, |ui| self.menu_bar(ui));
+        egui::Panel::top("menu")
+            .exact_size(TOP_BAR_HEIGHT)
+            .frame(egui::Frame::new().fill(crate::theme::BG))
+            .show(ui, |ui| self.menu_bar(ui));
         egui::CentralPanel::default().show(ui, |ui| {
             // The dock needs `&mut self` to draw panel contents, so take it out while it runs.
             let mut layout = std::mem::replace(
@@ -2903,6 +2944,17 @@ impl Workspace {
             }
         }
         let typing = ctx.egui_wants_keyboard_input();
+        // Letters pick tools, but only when nothing is being typed and no modifier is held, so
+        // they never fight a text field or a shortcut.
+        if !typing {
+            let picked = TOOL_KEYS
+                .iter()
+                .find(|(key, _)| key_press(ctx, *key).is_some_and(|m| !m.any()))
+                .map(|(_, tool)| *tool);
+            if let Some(tool) = picked {
+                self.set_tool(tool);
+            }
+        }
         // Cmd/Ctrl+C and V arrive as Copy and Paste events. They are not menu accelerators, so
         // text fields keep them; when no field wants the keyboard they act on the selection.
         let (copy, paste) = ctx.input(|i| {
@@ -2972,20 +3024,61 @@ impl Workspace {
     /// One menu item for `action`: greyed out when it cannot run, runs it when clicked.
     fn action_item(&mut self, ui: &mut egui::Ui, action: MenuAction) {
         let enabled = self.is_enabled(action);
-        let clicked = ui
-            .add_enabled(enabled, egui::Button::new(self.label(action)))
-            .clicked();
+        let tint = if enabled {
+            crate::theme::TEXT
+        } else {
+            crate::theme::TEXT_DISABLED
+        };
+        let label = self.label(action);
+        let mut button = match action.icon() {
+            Some(icon) => {
+                egui::Button::image_and_text(crate::icons::image(icon, 14.0, tint), label)
+            }
+            None => egui::Button::new(label),
+        };
+        // The shortcut, or for a tool the key that picks it, right-aligned in the item.
+        if let Some(text) = action
+            .shortcut_text()
+            .or_else(|| action.tool_key().map(str::to_owned))
+        {
+            button = button.shortcut_text(text);
+        }
+        let clicked = ui.add_enabled(enabled, button).clicked();
         if clicked {
             self.perform(action);
             ui.close();
         }
     }
 
-    /// The in-window menu bar, plus the breadcrumb, title and status. With a native menu
-    /// bar present only the latter are drawn.
+    /// The top bar: room for the window buttons, the app mark, the in-window menus (when there
+    /// is no native menu bar), the document name, and quick actions. Empty space drags the
+    /// window.
     fn menu_bar(&mut self, ui: &mut egui::Ui) {
-        egui::MenuBar::new().ui(ui, |ui| {
-            if !self.native_menu {
+        let bar = ui.max_rect();
+        let drag = ui.interact(bar, self.top_bar_id, egui::Sense::click_and_drag());
+        if drag.double_clicked() {
+            self.window_request = Some(WindowRequest::ToggleMaximize);
+        } else if drag.drag_started() {
+            self.window_request = Some(WindowRequest::Drag);
+        }
+        ui.painter().hline(
+            bar.x_range(),
+            bar.bottom() - 0.5,
+            egui::Stroke::new(1.0, crate::theme::BORDER),
+        );
+        ui.horizontal_centered(|ui| {
+            ui.add_space(self.titlebar_inset.max(10.0));
+            ui.add(crate::icons::image("lightning", 18.0, crate::theme::ACCENT));
+            ui.label(
+                egui::RichText::new("Flare")
+                    .strong()
+                    .color(crate::theme::TEXT),
+            );
+            ui.add_space(6.0);
+            egui::MenuBar::new().ui(ui, |ui| {
+                if self.native_menu {
+                    return;
+                }
                 for (title, entries) in MENU_LAYOUT {
                     ui.menu_button(*title, |ui| {
                         for entry in *entries {
@@ -3002,10 +3095,35 @@ impl Workspace {
                         }
                     });
                 }
-                ui.separator();
-            }
+            });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.label(egui::RichText::new(self.title()).color(crate::theme::TEXT_DIM));
+                ui.add_space(10.0);
+                let can_redo = self.active().can_redo();
+                if crate::chrome::icon_button(ui, "redo", 16.0, false, can_redo, "Redo").clicked() {
+                    self.redo();
+                }
+                let can_undo = self.active().can_undo();
+                if crate::chrome::icon_button(ui, "undo", 16.0, false, can_undo, "Undo").clicked() {
+                    self.undo();
+                }
+                let (icon, hint) = if self.is_playing() {
+                    ("transport-pause", "Pause")
+                } else {
+                    ("transport-play", "Play")
+                };
+                if crate::chrome::icon_button(ui, icon, 16.0, false, true, hint).clicked() {
+                    self.perform(MenuAction::PlayPause);
+                }
+                // The name sits in the middle of what is left, whatever the window width.
+                let title = egui::RichText::new(self.title()).color(crate::theme::TEXT_DIM);
+                let rect = ui.available_rect_before_wrap();
+                ui.painter().text(
+                    egui::pos2(bar.center().x, rect.center().y),
+                    egui::Align2::CENTER_CENTER,
+                    title.text(),
+                    egui::FontId::proportional(13.0),
+                    crate::theme::TEXT_DIM,
+                );
             });
         });
     }
@@ -3044,6 +3162,7 @@ impl Workspace {
     }
 
     fn stage(&mut self, ui: &mut egui::Ui) {
+        self.document_tabs(ui);
         self.stage_bar(ui);
         let available = ui.available_size();
         let (response, painter) = ui.allocate_painter(available, Sense::click_and_drag());
@@ -6075,6 +6194,7 @@ mod tests {
         let (ctx, mut ws) = (egui::Context::default(), held_then_changing());
         run(&mut ws, &ctx, 0.0);
         run(&mut ws, &ctx, 0.01); // the panel is known now, so the view settles
+        run(&mut ws, &ctx, 0.02);
         let settled = ws.frames_rendered;
         // Frames 1..12 show exactly the picture of frame 0: no further rendering.
         for frame in 1..12 {
@@ -7045,6 +7165,54 @@ mod tests {
         assert!(
             titles.iter().all(|t| seen.insert(*t)),
             "no menu title twice: {titles:?}"
+        );
+    }
+
+    #[test]
+    fn letter_keys_pick_tools_unless_a_modifier_is_held_or_text_is_being_typed() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        run(&mut ws, &ctx, 0.0);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.1, vec![key(Key::R, Modifiers::NONE)]),
+        );
+        assert_eq!(ws.tool(), Tool::Rectangle);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.2, vec![key(Key::O, Modifiers::NONE)]),
+        );
+        assert_eq!(ws.tool(), Tool::Ellipse);
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.3, vec![key(Key::P, Modifiers::COMMAND)]),
+        );
+        assert_eq!(ws.tool(), Tool::Ellipse, "Cmd+P is not the pen");
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.4, vec![key(Key::V, Modifiers::NONE)]),
+        );
+        assert_eq!(ws.tool(), Tool::Select);
+        // While the text editor has the keyboard, letters are letters.
+        ws.set_tool(Tool::Text);
+        ws.text_edit = Some(PendingText {
+            at: Pos2::new(5.0, 5.0),
+            buffer: String::new(),
+            focused: false,
+        });
+        run(&mut ws, &ctx, 0.5); // the editor takes focus
+        pass(
+            &mut ws,
+            &ctx,
+            input(0.6, vec![key(Key::R, Modifiers::NONE)]),
+        );
+        assert_eq!(
+            ws.tool(),
+            Tool::Text,
+            "typing an r does not switch to the rectangle"
         );
     }
 }

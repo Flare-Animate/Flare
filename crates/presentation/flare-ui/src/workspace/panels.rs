@@ -19,25 +19,25 @@ const TOOL_ICON: f32 = 20.0;
 const BAR_ICON: f32 = 16.0;
 
 /// One cell of the tool grid: the tool it selects, or `None` while the tool does not exist.
-const TOOL_GRID: &[(&str, &str, Option<Tool>)] = &[
-    ("tool-selection", "Selection", Some(Tool::Select)),
-    ("tool-subselection", "Subselection", None),
-    ("tool-transform", "Free Transform", None),
-    ("tool-lasso", "Lasso", None),
-    ("tool-pen", "Pen", Some(Tool::Pen)),
-    ("tool-text", "Text", Some(Tool::Text)),
-    ("tool-line", "Line", Some(Tool::Line)),
-    ("tool-rectangle", "Rectangle", Some(Tool::Rectangle)),
-    ("tool-oval", "Oval", Some(Tool::Ellipse)),
-    ("tool-polystar", "PolyStar", None),
-    ("tool-pencil", "Pencil", None),
-    ("tool-brush", "Brush", None),
-    ("tool-bucket", "Paint Bucket", None),
-    ("tool-ink-bottle", "Ink Bottle", None),
-    ("tool-eyedropper", "Eyedropper", None),
-    ("tool-eraser", "Eraser", None),
-    ("tool-hand", "Hand", None),
-    ("tool-zoom", "Zoom", None),
+const TOOL_GRID: &[(&str, &str, &str, Option<Tool>)] = &[
+    ("tool-selection", "Selection", "V", Some(Tool::Select)),
+    ("tool-subselection", "Subselection", "A", None),
+    ("tool-transform", "Free Transform", "Q", None),
+    ("tool-lasso", "Lasso", "L", None),
+    ("tool-pen", "Pen", "P", Some(Tool::Pen)),
+    ("tool-text", "Text", "T", Some(Tool::Text)),
+    ("tool-line", "Line", "N", Some(Tool::Line)),
+    ("tool-rectangle", "Rectangle", "R", Some(Tool::Rectangle)),
+    ("tool-oval", "Oval", "O", Some(Tool::Ellipse)),
+    ("tool-polystar", "PolyStar", "G", None),
+    ("tool-pencil", "Pencil", "Y", None),
+    ("tool-brush", "Brush", "B", None),
+    ("tool-bucket", "Paint Bucket", "K", None),
+    ("tool-ink-bottle", "Ink Bottle", "S", None),
+    ("tool-eyedropper", "Eyedropper", "I", None),
+    ("tool-eraser", "Eraser", "E", None),
+    ("tool-hand", "Hand", "H", None),
+    ("tool-zoom", "Zoom", "Z", None),
 ];
 
 /// Swatches offered by the color panel.
@@ -81,7 +81,8 @@ impl Workspace {
                     // Centred in the panel: a pair is two buttons wide.
                     let used = (TOOL_ICON + 10.0) * 2.0 + ui.spacing().item_spacing.x;
                     ui.add_space(((ui.available_width() - used) / 2.0).max(0.0));
-                    for (icon, name, tool) in pair {
+                    for (icon, name, key, tool) in pair {
+                        let hint = format!("{name} ({key})");
                         match tool {
                             Some(tool) => {
                                 if chrome::icon_button(
@@ -90,7 +91,7 @@ impl Workspace {
                                     TOOL_ICON,
                                     self.tool == *tool,
                                     true,
-                                    name,
+                                    &hint,
                                 )
                                 .clicked()
                                 {
@@ -98,7 +99,7 @@ impl Workspace {
                                 }
                             }
                             None => {
-                                chrome::mock_icon_button(ui, icon, TOOL_ICON, name);
+                                chrome::mock_icon_button(ui, icon, TOOL_ICON, &hint);
                             }
                         }
                     }
@@ -143,6 +144,16 @@ impl Workspace {
             .auto_shrink(false)
             .show(ui, |ui| {
                 let selection = self.selection_bounds();
+                // What the panel is about right now.
+                let (icon, title) = if selection.is_some() {
+                    ("tool-selection", "Selection")
+                } else {
+                    ("document", "Document")
+                };
+                ui.horizontal(|ui| {
+                    ui.add(icons::image(icon, 18.0, theme::ACCENT));
+                    ui.label(RichText::new(title).heading());
+                });
                 if let Some(bounds) = selection {
                     let count = self.selection_all().len();
                     let title = if count == 1 {
@@ -758,6 +769,41 @@ impl Workspace {
             Tool::Pen => "Pen: click for corners, drag for curves, Enter to finish",
             Tool::Text => "Text: click the stage, type, then Place",
         }
+    }
+
+    // ---- document tabs -----------------------------------------------------------------
+
+    /// The strip above the stage with the open document as a tab.
+    pub(super) fn document_tabs(&mut self, ui: &mut Ui) {
+        let name = self
+            .path()
+            .and_then(std::path::Path::file_name)
+            .map_or_else(
+                || "Untitled".to_owned(),
+                |n| n.to_string_lossy().into_owned(),
+            );
+        let dirty = self.is_dirty();
+        ui.horizontal(|ui| {
+            egui::Frame::new()
+                .fill(theme::PANEL)
+                .stroke(egui::Stroke::new(1.0, theme::BORDER))
+                .corner_radius(egui::CornerRadius {
+                    nw: 6,
+                    ne: 6,
+                    sw: 0,
+                    se: 0,
+                })
+                .inner_margin(egui::Margin::symmetric(8, 3))
+                .show(ui, |ui| {
+                    ui.add(icons::image("document", 14.0, theme::TEXT_DIM));
+                    ui.label(RichText::new(name).color(theme::TEXT));
+                    if dirty {
+                        ui.label(RichText::new("\u{25cf}").color(theme::ACCENT).small());
+                    }
+                    chrome::mock_icon_button(ui, "close", 10.0, "Close document");
+                });
+            chrome::mock_icon_button(ui, "plus", 12.0, "New document");
+        });
     }
 
     // ---- stage bar ---------------------------------------------------------------------
