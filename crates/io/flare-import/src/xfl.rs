@@ -19,8 +19,8 @@ use flare_core::{
     DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
 };
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Stroke,
-    Symbol, Timeline, Tween,
+    Anchor, Attachment, Content, Document, FrameSpan, Instance, Layer, MAX_ATTACHMENTS,
+    PathSegment, Placement, Scene, Shape, Stage, Stroke, Symbol, Timeline, Tween,
 };
 use glamx::DAffine2;
 use thiserror::Error;
@@ -151,13 +151,35 @@ fn stage_side(node: &Node, key: &str, default: u32) -> Result<u32, ImportError> 
 
 // ---- the importer ---------------------------------------------------------------------
 
+/// Where an element being imported sits, so what cannot be imported can be kept and later
+/// written back in the same place.
+#[derive(Clone, Copy)]
+struct Spot {
+    layer: LayerId,
+    frame: u32,
+}
+
 struct Importer {
     symbols: HashMap<String, SymbolId>,
     diagnostics: Vec<Diagnostic>,
     suppressed: usize,
+    /// Source text that has no Flare equivalent, kept for export.
+    kept: Vec<Attachment>,
 }
 
 impl Importer {
+    /// Keeps `xml` as source data anchored to `anchor`. Too-large items are reported, not kept.
+    fn keep(&mut self, anchor: Anchor, placement: Placement, xml: String, place: &str) {
+        match Attachment::new("xfl", anchor, placement, xml) {
+            Ok(attachment) => self.kept.push(attachment),
+            Err(error) => self.note(
+                Severity::Unsupported,
+                place,
+                format!("could not be kept as source data ({error})"),
+            ),
+        }
+    }
+
     fn note(&mut self, severity: Severity, location: &str, message: impl Into<String>) {
         let diagnostic = Diagnostic {
             severity,
@@ -174,12 +196,12 @@ impl Importer {
         }
     }
 
-    fn timeline(&mut self, timeline: &Node, location: &str) -> Timeline {
+    fn timeline(&mut self, timeline: &Node, location: &str, owner: Anchor) -> Timeline {
         let Some(layers_node) = timeline.child("layers") else {
             return Timeline::default();
         };
         let mut layers = Vec::new();
-        for layer in layers_node.children_named("DOMLayer") {
+        for (source_index, layer) in layers_node.children_named("DOMLayer").enumerate() {
             let name = layer.attr("name").unwrap_or("Layer");
             let place = format!("{location} / layer \"{name}\"");
             match layer.attr("layerType") {
@@ -190,6 +212,8 @@ impl Importer {
                         &place,
                         format!("{other} layers are not imported; the layer was skipped"),
                     );
+                    let index = u32::try_from(source_index).unwrap_or(u32::MAX);
+                    self.keep(owner, Placement::LayerAt { index }, layer.to_xml(), &place);
                     continue;
                 }
             }
@@ -205,6 +229,8 @@ impl Importer {
     /// extra elements go to additional layers right below, named "<name> (2)" and so on.
     fn layer(&mut self, layer: &Node, name: &str, place: &str, out: &mut Vec<Layer>) {
         let mut slots: Vec<Vec<FrameSpan>> = Vec::new();
+        // The first layer made for this source layer owns what could not be imported from it.
+        let first_id = LayerId::new();
         let frames = layer
             .child("frames")
             .into_iter()
@@ -238,10 +264,14 @@ impl Importer {
                 continue;
             };
             let here = format!("{place} / frame {index}");
-            self.frame_extras(frame, &here);
+            let spot = Spot {
+                layer: first_id,
+                frame: index,
+            };
+            self.frame_extras(frame, &here, spot);
             let contents = frame
                 .child("elements")
-                .map(|e| self.elements(e, &here))
+                .map(|e| self.elements(e, &here, spot))
                 .unwrap_or_default();
             let contents = if contents.is_empty() {
                 vec![Content::Empty]
@@ -281,7 +311,8 @@ impl Importer {
             } else {
                 format!("{name} ({})", slot + 1)
             };
-            match Layer::new(LayerId::new(), layer_name, spans) {
+            let id = if slot == 0 { first_id } else { LayerId::new() };
+            match Layer::new(id, layer_name, spans) {
                 Ok(l) => made.push(l.with_visible(visible).with_locked(locked)),
                 Err(_) => self.note(
                     Severity::Unsupported,
@@ -293,7 +324,7 @@ impl Importer {
         out.extend(made.into_iter().rev());
     }
 
-    fn frame_extras(&mut self, frame: &Node, place: &str) {
+    fn frame_extras(&mut self, frame: &Node, place: &str, spot: Spot) {
         for child in &frame.children {
             let (severity, message) = match child.name.as_str() {
                 "elements" => continue,
@@ -304,11 +335,27 @@ impl Importer {
                     "motion-tween property editors are not imported",
                 ),
                 other => {
-                    self.note(Severity::Info, place, format!("<{other}> was ignored"));
+                    self.note(
+                        Severity::Info,
+                        place,
+                        format!("<{other}> is kept as source data"),
+                    );
+                    self.keep(
+                        Anchor::Layer(spot.layer),
+                        Placement::FrameExtra { frame: spot.frame },
+                        child.to_xml(),
+                        place,
+                    );
                     continue;
                 }
             };
             self.note(severity, place, message);
+            self.keep(
+                Anchor::Layer(spot.layer),
+                Placement::FrameExtra { frame: spot.frame },
+                child.to_xml(),
+                place,
+            );
         }
         if frame.attr("name").is_some() {
             self.note(Severity::Info, place, "frame labels are not imported");
@@ -347,7 +394,7 @@ impl Importer {
         }
     }
 
-    fn elements(&mut self, elements: &Node, place: &str) -> Vec<Content> {
+    fn elements(&mut self, elements: &Node, place: &str, spot: Spot) -> Vec<Content> {
         let mut out = Vec::new();
         for element in &elements.children {
             match element.name.as_str() {
@@ -360,14 +407,22 @@ impl Importer {
                         "groups are flattened into their members",
                     );
                     if let Some(members) = element.child("members") {
-                        out.extend(self.elements(members, place));
+                        out.extend(self.elements(members, place, spot));
                     }
                 }
-                other => self.note(
-                    Severity::Unsupported,
-                    place,
-                    format!("{other} is not imported"),
-                ),
+                other => {
+                    self.note(
+                        Severity::Unsupported,
+                        place,
+                        format!("{other} is not imported"),
+                    );
+                    self.keep(
+                        Anchor::Layer(spot.layer),
+                        Placement::FrameElement { frame: spot.frame },
+                        element.to_xml(),
+                        place,
+                    );
+                }
             }
         }
         out
@@ -649,6 +704,7 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
         symbols: HashMap::new(),
         diagnostics: Vec::new(),
         suppressed: 0,
+        kept: Vec::new(),
     };
 
     // Pass 1: read every library item and assign IDs, so symbols can refer to each other.
@@ -705,7 +761,14 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
         let timeline = item
             .child("timeline")
             .and_then(|t| t.child("DOMTimeline"))
-            .map_or_else(Timeline::default, |t| importer.timeline(t, &place));
+            .map_or_else(Timeline::default, |t| {
+                importer.timeline(t, &place, Anchor::Symbol(*id))
+            });
+        // Anything in the symbol item besides its timeline is kept as source data.
+        for child in item.children.iter().filter(|c| c.name != "timeline") {
+            let note = format!("{place} / <{}>", child.name);
+            importer.keep(Anchor::Symbol(*id), Placement::Child, child.to_xml(), &note);
+        }
         symbols.push(Symbol::new(*id, name.clone(), timeline));
     }
 
@@ -716,8 +779,10 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
         .flat_map(|t| t.children_named("DOMTimeline"))
     {
         let name = node.attr("name").unwrap_or("Scene").to_owned();
-        let timeline = importer.timeline(node, &format!("scene \"{name}\""));
-        scenes.push(Scene::new(SceneId::new(), name, timeline));
+        let scene_id = SceneId::new();
+        let timeline =
+            importer.timeline(node, &format!("scene \"{name}\""), Anchor::Scene(scene_id));
+        scenes.push(Scene::new(scene_id, name, timeline));
     }
     if scenes.is_empty() {
         return Err(ImportError::NoTimelines);
@@ -743,9 +808,47 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
         message: e.to_string(),
     })?;
 
+    // Document-level data Flare has no place for (media, fonts, publish settings, ...).
+    for child in root
+        .children
+        .iter()
+        .filter(|c| !matches!(c.name.as_str(), "symbols" | "timelines"))
+    {
+        let note = format!("document / <{}>", child.name);
+        importer.keep(Anchor::Document, Placement::Child, child.to_xml(), &note);
+    }
     let document = Document::new(DocumentId::new(), rate, scenes, symbols)
         .map_err(ImportError::Invalid)?
         .with_stage(stage);
+
+    // Keep only what still hangs off something that was imported (a layer skipped for
+    // overlapping frames takes its source data with it), and stay within the limits.
+    let wanted = importer.kept.len();
+    let mut kept = std::mem::take(&mut importer.kept);
+    if kept.len() > MAX_ATTACHMENTS {
+        kept.truncate(MAX_ATTACHMENTS);
+    }
+    let document = document.with_attachments_retained(&kept);
+    let retained = document.attachments().len();
+    if retained < wanted {
+        importer.note(
+            Severity::Warning,
+            "import",
+            format!(
+                "{} piece(s) of source data could not be kept (their layer was skipped or the limit of {MAX_ATTACHMENTS} was reached)",
+                wanted - retained
+            ),
+        );
+    }
+    if retained > 0 {
+        importer.note(
+            Severity::Info,
+            "import",
+            format!(
+                "{retained} piece(s) of source data that Flare cannot edit were kept and will be written back on export"
+            ),
+        );
+    }
     if importer.suppressed > 0 {
         let message = format!(
             "{} further diagnostics were suppressed",
