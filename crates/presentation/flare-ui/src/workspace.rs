@@ -7,7 +7,7 @@ use flare_document::{
     Content, Document, FrameSpan, Layer, MAX_STAGE_SIDE, Scene, Shape, Stage,
     Stroke as ShapeStroke, Timeline, Tween,
 };
-use flare_edit::{Command, EditorSession, frames};
+use flare_edit::{Command, EditorSession, LayerChange, frames};
 use glamx::DVec2;
 
 use crate::ops::{self, SpanRef};
@@ -86,6 +86,7 @@ pub struct Workspace {
     selected: Option<SpanRef>,
     selected_symbol: Option<SymbolId>,
     current_layer: Option<LayerId>,
+    layer_name_edit: String,
     fill: Color32,
     stroke_enabled: bool,
     stroke_color: Color32,
@@ -112,6 +113,7 @@ impl Workspace {
             selected: None,
             selected_symbol: None,
             current_layer: None,
+            layer_name_edit: String::new(),
             fill: Color32::from_rgb(232, 69, 60),
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
@@ -378,11 +380,130 @@ impl Workspace {
         self.current_layer = Some(layer);
     }
 
+    fn layer_command(&mut self, what: &str, make: impl FnOnce(SceneId, LayerId) -> Command) {
+        let (Some(scene), Some(layer)) = (self.scene_id(), self.active_layer_id()) else {
+            return;
+        };
+        self.run_batch(vec![make(scene, layer)], what);
+        self.validate_selection();
+    }
+
+    pub fn toggle_layer_visible(&mut self, layer: LayerId) {
+        let Some(scene) = self.scene_id() else { return };
+        let Some(current) = self.layer(layer).map(Layer::is_visible) else {
+            return;
+        };
+        let change = LayerChange::Visible(!current);
+        self.run_batch(
+            vec![Command::UpdateLayer {
+                scene,
+                layer,
+                change,
+            }],
+            "change visibility",
+        );
+    }
+
+    pub fn toggle_layer_locked(&mut self, layer: LayerId) {
+        let Some(scene) = self.scene_id() else { return };
+        let Some(current) = self.layer(layer).map(Layer::is_locked) else {
+            return;
+        };
+        let change = LayerChange::Locked(!current);
+        self.run_batch(
+            vec![Command::UpdateLayer {
+                scene,
+                layer,
+                change,
+            }],
+            "change the lock",
+        );
+        self.validate_selection();
+    }
+
+    fn layer(&self, id: LayerId) -> Option<&Layer> {
+        self.document()
+            .scenes()
+            .first()?
+            .timeline()
+            .layers()
+            .iter()
+            .find(|l| l.id() == id)
+    }
+
+    pub fn rename_active_layer(&mut self, name: &str) {
+        let name = name.trim();
+        if name.is_empty() {
+            self.report("A layer needs a name");
+            return;
+        }
+        let name = name.to_owned();
+        self.layer_command("rename the layer", |scene, layer| Command::UpdateLayer {
+            scene,
+            layer,
+            change: LayerChange::Name(name),
+        });
+    }
+
+    pub fn delete_active_layer(&mut self) {
+        let count = self
+            .document()
+            .scenes()
+            .first()
+            .map_or(0, |s| s.timeline().layers().len());
+        if count <= 1 {
+            self.report("A scene needs at least one layer");
+            return;
+        }
+        self.layer_command("delete the layer", |scene, layer| Command::RemoveLayer {
+            scene,
+            layer,
+        });
+        self.current_layer = None;
+    }
+
+    /// Moves the active layer up (`-1`) or down (`+1`) in the stacking order.
+    pub fn move_active_layer(&mut self, direction: i32) {
+        let Some(id) = self.active_layer_id() else {
+            return;
+        };
+        let Some(layers) = self
+            .document()
+            .scenes()
+            .first()
+            .map(|s| s.timeline().layers())
+        else {
+            return;
+        };
+        let Some(from) = layers.iter().position(|l| l.id() == id) else {
+            return;
+        };
+        let to = if direction < 0 {
+            from.checked_sub(1)
+        } else {
+            Some(from + 1)
+        };
+        match to {
+            Some(index) if index < layers.len() => {
+                self.layer_command("move the layer", |scene, layer| Command::MoveLayer {
+                    scene,
+                    layer,
+                    index,
+                });
+            }
+            _ => self.report("The layer is already at the edge"),
+        }
+    }
+
     /// Runs a frame operation on the active layer at the current frame.
     pub fn frame_edit(&mut self, op: FrameOp) {
         let (Some(scene), Some(layer)) = (self.scene_id(), self.active_layer()) else {
             return;
         };
+        if layer.is_locked() {
+            self.report(format!("Cannot {}: the layer is locked", op.label()));
+            return;
+        }
         let commands = match op {
             FrameOp::InsertFrame => frames::insert_frame(scene, layer, self.frame),
             FrameOp::RemoveFrame => frames::remove_frame(scene, layer, self.frame),
@@ -427,10 +548,14 @@ impl Workspace {
 
     /// Drops a selection whose span no longer exists (after undo, delete or open).
     fn validate_selection(&mut self) {
-        if let (Some(selected), Some(scene)) = (self.selected, self.scene_id())
-            && ops::find_span(self.document(), scene, selected).is_none()
-        {
-            self.selected = None;
+        if let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) {
+            let editable = ops::find_span(self.document(), scene, selected).is_some()
+                && self
+                    .layer(selected.layer)
+                    .is_some_and(|l| l.is_visible() && !l.is_locked());
+            if !editable {
+                self.selected = None;
+            }
         }
         if let Some(symbol) = self.selected_symbol
             && self.document().symbol(symbol).is_none()
@@ -439,13 +564,25 @@ impl Workspace {
         }
     }
 
-    /// The scene-level span of the topmost shape under `point` at the current frame.
+    /// The scene-level span of the topmost shape under `point` at the current frame,
+    /// looking through locked layers.
     fn hit(&self, point: Pos2) -> Option<SpanRef> {
         let scene = self.scene_id()?;
         let frame = flare_eval::evaluate_frame(self.document(), scene, self.frame).ok()?;
         let at = DVec2::new(f64::from(point.x), f64::from(point.y));
-        let drawn = frame.shapes.get(flare_render::hit_test(&frame, at)?)?;
-        ops::locate_hit(self.document(), scene, self.frame, drawn)
+        let timeline = self.document().scenes().first()?.timeline();
+        flare_render::hit_test_all(&frame, at)
+            .into_iter()
+            .filter_map(|index| {
+                ops::locate_hit(self.document(), scene, self.frame, &frame.shapes[index])
+            })
+            .find(|span| {
+                timeline
+                    .layers()
+                    .iter()
+                    .find(|l| l.id() == span.layer)
+                    .is_some_and(|l| !l.is_locked())
+            })
     }
 
     fn begin_drag(&mut self, point: Pos2) {
@@ -775,6 +912,40 @@ impl Workspace {
                     ui.close();
                 }
             });
+            ui.menu_button("Layer", |ui| {
+                if let Some(id) = self.active_layer_id() {
+                    let (visible, locked) = self
+                        .layer(id)
+                        .map_or((true, false), |l| (l.is_visible(), l.is_locked()));
+                    if ui.button(if visible { "Hide" } else { "Show" }).clicked() {
+                        self.toggle_layer_visible(id);
+                        ui.close();
+                    }
+                    if ui.button(if locked { "Unlock" } else { "Lock" }).clicked() {
+                        self.toggle_layer_locked(id);
+                        ui.close();
+                    }
+                }
+                if ui.button("Move Up").clicked() {
+                    self.move_active_layer(-1);
+                    ui.close();
+                }
+                if ui.button("Move Down").clicked() {
+                    self.move_active_layer(1);
+                    ui.close();
+                }
+                if ui.button("Delete Layer").clicked() {
+                    self.delete_active_layer();
+                    ui.close();
+                }
+                ui.separator();
+                ui.text_edit_singleline(&mut self.layer_name_edit);
+                if ui.button("Rename").clicked() {
+                    let name = std::mem::take(&mut self.layer_name_edit);
+                    self.rename_active_layer(&name);
+                    ui.close();
+                }
+            });
             ui.menu_button("Timeline", |ui| {
                 let tween = self.selection_tween();
                 let label = if tween == Some(Tween::Linear) {
@@ -1050,7 +1221,16 @@ impl Workspace {
                 layers.get(i).map(Layer::id)
             });
             if let Some(id) = picked {
-                self.select_layer(id);
+                // The two small toggles at the right edge of the label column.
+                let eye = p.x >= track.min.x - 40.0 && p.x < track.min.x - 20.0;
+                let lock = p.x >= track.min.x - 20.0 && p.x < track.min.x;
+                if response.clicked() && eye {
+                    self.toggle_layer_visible(id);
+                } else if response.clicked() && lock {
+                    self.toggle_layer_locked(id);
+                } else {
+                    self.select_layer(id);
+                }
             }
         }
         let active = self.active_layer_id();
@@ -1082,13 +1262,25 @@ impl Workspace {
                         Color32::from_rgba_unmultiplied(80, 140, 255, 40),
                     );
                 }
+                let dim = ink.gamma_multiply(0.35);
                 painter.text(
                     Pos2::new(rect.min.x + 4.0, y + 3.0),
                     Align2::LEFT_TOP,
                     layer.name(),
                     FontId::proportional(12.0),
-                    ink,
+                    if layer.is_visible() { ink } else { dim },
                 );
+                let flag = |x: f32, on: bool, glyph: &str| {
+                    painter.text(
+                        Pos2::new(x, y + 3.0),
+                        Align2::LEFT_TOP,
+                        glyph,
+                        FontId::monospace(12.0),
+                        if on { ink } else { dim },
+                    );
+                };
+                flag(track.min.x - 36.0, layer.is_visible(), "V");
+                flag(track.min.x - 16.0, layer.is_locked(), "L");
                 for span in layer.spans() {
                     let x0 = track.min.x + span.start() as f32 * per_frame;
                     let x1 = track.min.x + span.end() as f32 * per_frame;
@@ -1101,6 +1293,11 @@ impl Workspace {
                         Pos2::new(x0, y + 2.0),
                         Pos2::new(x1.max(x0 + 1.0), y + row - 2.0),
                     );
+                    let color = if layer.is_visible() {
+                        color
+                    } else {
+                        color.gamma_multiply(0.35)
+                    };
                     painter.rect_filled(bar, 2.0, color);
                 }
             }
@@ -1725,5 +1922,90 @@ mod tests {
         assert_eq!(at_frame(&ws, 0), 0.0);
         assert_eq!(at_frame(&ws, 5), 50.0, "halfway through the tween");
         assert_eq!(at_frame(&ws, 10), 100.0);
+    }
+
+    fn active_layer(ws: &Workspace) -> Layer {
+        ws.active_layer().expect("layer").clone()
+    }
+
+    #[test]
+    fn layer_operations_rename_hide_lock_move_and_delete() {
+        let mut ws = workspace();
+        rect(&mut ws); // layers: [Layer 1 (empty), Rectangle]
+        ws.rename_active_layer("  Hero ");
+        assert_eq!(active_layer(&ws).name(), "Hero");
+        ws.rename_active_layer("   ");
+        assert!(ws.status().is_some_and(|s| s.contains("needs a name")));
+        assert_eq!(active_layer(&ws).name(), "Hero");
+
+        let id = ws.active_layer_id().expect("id");
+        ws.toggle_layer_visible(id);
+        assert!(!active_layer(&ws).is_visible());
+        ws.toggle_layer_visible(id);
+        assert!(active_layer(&ws).is_visible());
+
+        ws.move_active_layer(-1);
+        assert_eq!(ws.document().scenes()[0].timeline().layers()[0].id(), id);
+        ws.move_active_layer(-1);
+        assert!(ws.status().is_some_and(|s| s.contains("edge")));
+        ws.delete_active_layer();
+        assert_eq!(layer_count(&ws), 1);
+        ws.delete_active_layer();
+        assert!(
+            ws.status()
+                .is_some_and(|s| s.contains("at least one layer"))
+        );
+        assert_eq!(layer_count(&ws), 1);
+    }
+
+    #[test]
+    fn locked_layers_are_not_selectable_and_refuse_frame_edits() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        let id = ws.active_layer_id().expect("id");
+        ws.toggle_layer_locked(id);
+        assert!(
+            !ws.has_selection(),
+            "locking drops a selection on that layer"
+        );
+        ws.set_tool(Tool::Select);
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        assert!(!ws.has_selection(), "clicks go through a locked layer");
+        ws.frame_edit(FrameOp::InsertFrame);
+        assert!(ws.status().is_some_and(|s| s.contains("locked")));
+        ws.toggle_layer_locked(id);
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        assert!(ws.has_selection());
+    }
+
+    #[test]
+    fn clicks_select_through_a_locked_layer_to_the_one_below() {
+        let mut ws = workspace();
+        ws.stroke_enabled = false;
+        ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(100.0, 100.0)); // lower layer
+        ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(100.0, 100.0)); // new layer, on top? (below in order)
+        let layers: Vec<LayerId> = ws.document().scenes()[0]
+            .timeline()
+            .layers()
+            .iter()
+            .map(Layer::id)
+            .collect();
+        // Layers are top-to-bottom; the last one is drawn first, so layers[1] paints over layers[2].
+        ws.toggle_layer_locked(layers[1]);
+        ws.set_tool(Tool::Select);
+        ws.begin_drag(Pos2::new(50.0, 50.0));
+        assert_eq!(ws.selected.map(|s| s.layer), Some(layers[2]));
+    }
+
+    #[test]
+    fn hidden_layers_do_not_render_or_hit() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        let id = ws.active_layer_id().expect("id");
+        ws.toggle_layer_visible(id);
+        assert!(ws.hit(Pos2::new(50.0, 30.0)).is_none());
+        let scene = ws.scene_id().expect("scene");
+        let frame = flare_eval::evaluate_frame(ws.document(), scene, 0).expect("eval");
+        assert!(frame.shapes.is_empty());
     }
 }
