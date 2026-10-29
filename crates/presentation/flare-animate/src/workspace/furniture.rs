@@ -254,7 +254,7 @@ impl Workspace {
                     ui.add(flare_ui::icons::image(
                         "flare-mark",
                         16.0,
-                        flare_ui::theme::TEXT,
+                        flare_ui::theme::FLAME,
                     ));
                     ui.label(
                         egui::RichText::new("Flare")
