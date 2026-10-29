@@ -68,7 +68,10 @@ impl Workspace {
         let top = Rect::from_min_size(panel.min, Vec2::new(panel.width(), RULER));
         let left = Rect::from_min_size(panel.min, Vec2::new(RULER, panel.height()));
         if self.show_rulers {
-            let ids = (ui.id().with("guide-top"), ui.id().with("guide-left"));
+            let ids = (
+                ui.make_persistent_id("guide-top"),
+                ui.make_persistent_id("guide-left"),
+            );
             let from_top = ui.interact(top, ids.0, Sense::drag());
             let from_left = ui.interact(left, ids.1, Sense::drag());
             if self.guide_drag.is_none() {
@@ -114,7 +117,7 @@ impl Workspace {
             } else {
                 painter.hline(panel.x_range(), screen, ink);
             }
-            let grip = ui.interact(band, ui.id().with(("guide", index)), Sense::drag());
+            let grip = ui.interact(band, ui.make_persistent_id(("guide", index)), Sense::drag());
             if grip.hovered() || grip.dragged() {
                 ui.ctx().set_cursor_icon(if guide.vertical {
                     egui::CursorIcon::ResizeHorizontal
