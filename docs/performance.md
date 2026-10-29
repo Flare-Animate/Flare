@@ -38,6 +38,7 @@ goes and what a change bought, not what any other machine will do.
 | Move 100 spans, 5 000-layer document | 620 ms | 0.5 ms | same |
 | Validate a 5 000-layer document | 376 us | 136 us | sets sized up front |
 | Idle UI frame, 5 000 layers | 3.2 ms | 0.1 ms | timeline paints only visible rows |
+| Idle UI frame, 1 000 selected spans | 0.86 ms | 0.14 ms | selection bounds cached per document state, one pass for validation |
 | Render 1280x720, 100 shapes | 1.36 ms | 0.9 ms | premultiplied path, no extra conversion passes |
 | Render 1280x720, 5 000 shapes | 6.3 ms | 3.4 ms | 4 rasterizer threads (only above 800 shapes) |
 | Render 1280x720, 20 000 shapes | 23 ms | 8.6 ms | same |

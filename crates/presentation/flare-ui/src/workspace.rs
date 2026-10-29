@@ -80,6 +80,9 @@ struct TextureView {
     size: [u32; 2],
 }
 
+/// Selection bounds with the (context, revision, selection hash) they were computed for.
+type SelectionRects = ((u64, u64, u64), Vec<Rect>);
+
 /// A frame handed to the render worker and not yet back.
 struct PendingRender {
     id: u64,
@@ -230,6 +233,11 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// The document state the selection was last checked against, so an unchanged document is
+    /// not rechecked every frame.
+    selection_checked: Option<(u64, u64)>,
+    /// Bounds of the selected spans, for the document state and selection they were made for.
+    selection_rects_cache: std::cell::RefCell<Option<SelectionRects>>,
     /// How close, in stage units, a press must be to a scale handle to grab it.
     handle_radius: f32,
     /// Shift is held: corner scaling keeps the proportions.
@@ -299,6 +307,8 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            selection_checked: None,
+            selection_rects_cache: std::cell::RefCell::new(None),
             handle_radius: 6.0,
             uniform_scale: false,
             clipboard: Vec::new(),
@@ -1638,15 +1648,21 @@ impl Workspace {
 
     /// Drops a selection whose span no longer exists (after undo, delete or open).
     fn validate_selection(&mut self) {
+        self.selection_checked = Some((self.context_serial, self.active().revision()));
         if let Some(scene) = self.scene_id() {
-            let editable = |ws: &Self, span: SpanRef| {
-                ops::find_span(ws.document(), scene, span).is_some()
-                    && ws
-                        .layer(span.layer)
-                        .is_some_and(|l| l.is_visible() && !l.is_locked())
-            };
+            // One pass over the layers answers for every selected span.
+            let editable: std::collections::HashSet<(LayerId, u32)> = self
+                .document()
+                .scenes()
+                .iter()
+                .find(|s| s.id() == scene)
+                .into_iter()
+                .flat_map(|s| s.timeline().layers())
+                .filter(|l| l.is_visible() && !l.is_locked())
+                .flat_map(|l| l.spans().iter().map(|span| (l.id(), span.start())))
+                .collect();
             let mut all: Vec<SpanRef> = self.selection_all();
-            all.retain(|span| editable(self, *span));
+            all.retain(|span| editable.contains(&(span.layer, span.start)));
             self.selected = all.first().copied();
             self.also_selected = all.into_iter().skip(1).collect();
         } else {
@@ -1823,11 +1839,35 @@ impl Workspace {
 
     /// The union of the bounds of every selected span.
     fn selection_bounds(&self) -> Option<Rect> {
-        let scene = self.scene_id()?;
-        self.selection_all()
-            .into_iter()
-            .filter_map(|span| ops::span_bounds(self.document(), scene, span))
-            .reduce(|a, b| a.union(b))
+        self.selection_rects().into_iter().reduce(|a, b| a.union(b))
+    }
+
+    /// The bounds of every selected span. Kept until the document or the selection changes, so
+    /// painting a big selection each frame costs nothing after the first.
+    fn selection_rects(&self) -> Vec<Rect> {
+        use std::hash::{Hash, Hasher};
+        let spans = self.selection_all();
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        for span in &spans {
+            span.layer.hash(&mut hasher);
+            span.start.hash(&mut hasher);
+        }
+        let stamp = (
+            self.context_serial,
+            self.active().revision(),
+            hasher.finish(),
+        );
+        if let Some((cached, rects)) = &*self.selection_rects_cache.borrow()
+            && *cached == stamp
+        {
+            return rects.clone();
+        }
+        let rects = self
+            .scene_id()
+            .map(|scene| ops::spans_bounds(self.document(), scene, &spans))
+            .unwrap_or_default();
+        *self.selection_rects_cache.borrow_mut() = Some((stamp, rects.clone()));
+        rects
     }
 
     /// Scales the selection so `handle` of `bounds` moves to `pointer`, as one undo step.
@@ -2238,7 +2278,11 @@ impl Workspace {
         self.advance(now);
         self.autosave(now);
         self.handle_shortcuts(&ctx);
-        self.validate_selection();
+        // Only a changed document can make the selection stale; checking it every frame cost
+        // time in proportion to the selection times the layers.
+        if self.selection_checked != Some((self.context_serial, self.active().revision())) {
+            self.validate_selection();
+        }
         self.ensure_stage_texture(&ctx);
 
         egui::Panel::top("menu").show(ui, |ui| self.menu_bar(ui));
@@ -2706,14 +2750,10 @@ impl Workspace {
             .drag
             .filter(|d| d.mode == DragMode::Move)
             .map_or(Vec2::ZERO, |d| d.current - d.start);
-        if let Some(scene) = self.scene_id() {
-            for selected in self.selection_all() {
-                if let Some(bounds) = ops::span_bounds(self.document(), scene, selected) {
-                    let shown = bounds.translate(moving);
-                    let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
-                    painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
-                }
-            }
+        for bounds in self.selection_rects() {
+            let shown = bounds.translate(moving);
+            let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
+            painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
         }
         if self.tool == Tool::Select
             && let Some(bounds) = self.selection_bounds()
@@ -5599,5 +5639,48 @@ mod tests {
             "one undo step"
         );
         assert_eq!(ws.hit(at_masked).map(|s| s.layer), Some(masked_id));
+    }
+
+    #[test]
+    fn selection_bounds_follow_the_selection_and_the_document_not_a_stale_cache() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        let first = ws.selection_rects();
+        assert_eq!(first.len(), 1);
+        assert_eq!(first[0].min, Pos2::new(10.0, 10.0));
+        assert_eq!(
+            ws.selection_rects(),
+            first,
+            "asking again gives the same answer"
+        );
+        // A different span of the same count must not reuse the first one's bounds.
+        ws.select_at(Pos2::new(120.0, 30.0), false);
+        let second = ws.selection_rects();
+        assert_eq!(second.len(), 1);
+        assert_eq!(second[0].min, Pos2::new(100.0, 10.0));
+        // An edit that moves the selected art changes them too.
+        ws.move_selection(Vec2::new(5.0, 0.0));
+        assert_eq!(ws.selection_rects()[0].min, Pos2::new(105.0, 10.0));
+        ws.undo();
+        ws.select_at(Pos2::new(120.0, 30.0), false);
+        assert_eq!(ws.selection_rects()[0].min, Pos2::new(100.0, 10.0));
+        assert_eq!(
+            ws.selection_bounds().map(|b| b.min),
+            Some(Pos2::new(100.0, 10.0))
+        );
+    }
+
+    #[test]
+    fn a_selection_made_stale_by_an_edit_is_dropped_on_the_next_frame_not_kept() {
+        let (ctx, mut ws) = (egui::Context::default(), two_rectangles());
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        run(&mut ws, &ctx, 0.0);
+        let layer = ws.selected.expect("selected").layer;
+        ws.toggle_layer_locked(layer);
+        run(&mut ws, &ctx, 0.1);
+        assert!(
+            !ws.has_selection(),
+            "locking the layer dropped the selection"
+        );
     }
 }

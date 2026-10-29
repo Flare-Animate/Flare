@@ -413,8 +413,35 @@ pub fn shape_bounds(shape: &Shape) -> Option<Rect> {
 }
 
 /// Stage-space bounds of a selected span, for drawing the selection outline.
+#[cfg(test)]
 pub fn span_bounds(document: &Document, scene: SceneId, at: SpanRef) -> Option<Rect> {
-    match find_span(document, scene, at)?.content() {
+    content_bounds(document, find_span(document, scene, at)?.content())
+}
+
+/// Stage-space bounds of each of `spans` that still exists and has something to show. One pass
+/// over the layers serves all of them, so a big selection costs `layers + spans`, not their
+/// product.
+pub fn spans_bounds(document: &Document, scene: SceneId, spans: &[SpanRef]) -> Vec<Rect> {
+    let Some(timeline) = scene_timeline(document, scene) else {
+        return Vec::new();
+    };
+    let by_layer: std::collections::HashMap<LayerId, &Layer> =
+        timeline.layers().iter().map(|l| (l.id(), l)).collect();
+    spans
+        .iter()
+        .filter_map(|at| {
+            let span = by_layer
+                .get(&at.layer)?
+                .spans()
+                .iter()
+                .find(|s| s.start() == at.start)?;
+            content_bounds(document, span.content())
+        })
+        .collect()
+}
+
+fn content_bounds(document: &Document, content: &Content) -> Option<Rect> {
+    match content {
         Content::Empty => None,
         Content::Shape(shape) => shape_bounds(shape),
         Content::Instance(instance) => {
@@ -815,5 +842,22 @@ mod tests {
             symbol_bounds(&doc, SymbolId::new()).is_none(),
             "unknown symbol"
         );
+    }
+
+    #[test]
+    fn many_span_bounds_match_the_one_at_a_time_answers_and_skip_missing_spans() {
+        let mut f = fixture();
+        add(&mut f, rect_span(0, 5, 0.0, 0.0, 10.0, 10.0));
+        let layer = f.layer;
+        let present = SpanRef { layer, start: 0 };
+        let missing = SpanRef { layer, start: 9 };
+        let gone = SpanRef {
+            layer: LayerId::new(),
+            start: 0,
+        };
+        let many = spans_bounds(f.session.document(), f.scene, &[present, missing, gone]);
+        let one = span_bounds(f.session.document(), f.scene, present).expect("bounds");
+        assert_eq!(many, vec![one]);
+        assert!(spans_bounds(f.session.document(), SceneId::new(), &[present]).is_empty());
     }
 }
