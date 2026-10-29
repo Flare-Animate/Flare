@@ -54,7 +54,7 @@ Each of these can be its own branch and PR:
 
 1. Drawing tools: selection of multiple objects, transform handles.
 2. Fills and strokes: radial and multi-stop gradients, editing gradients, gradients in XFL and SWF, paint bucket and ink bottle behaviour.
-3. Timeline UX: span copy/paste.
+3. Timeline UX: copy/paste of frame ranges (the stage selection copies and pastes already).
 4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, and check what the importer keeps against files Animate wrote.
 5. Input and accessibility: pen, IME and screen-reader results.
 6. Packaging: app bundles and installers, once the icons are trimmed.

@@ -172,6 +172,45 @@ pub fn transform(
     ])
 }
 
+/// `content` moved through `matrix` with fresh shape and instance identities, so the result
+/// is independent of the original. `None` for empty content or a non-finite result.
+fn fresh_content(content: &Content, matrix: DAffine2) -> Option<Content> {
+    Some(match content {
+        Content::Empty => return None,
+        Content::Shape(shape) => Content::Shape(transform_shape_as(shape, ShapeId::new(), matrix)?),
+        Content::Instance(instance) => {
+            let moved = matrix * instance.transform().as_affine();
+            let transform = Transform2D::new(moved).ok()?;
+            Content::Instance(Instance::new(
+                InstanceId::new(),
+                instance.symbol(),
+                transform,
+            ))
+        }
+    })
+}
+
+/// A new layer holding one span, as the commands that add it.
+fn new_layer_with(scene: SceneId, name: &str, span: FrameSpan) -> Option<(Vec<Command>, SpanRef)> {
+    let layer_id = LayerId::new();
+    let layer = Layer::new(layer_id, name, vec![]).ok()?;
+    let at = SpanRef {
+        layer: layer_id,
+        start: span.start(),
+    };
+    Some((
+        vec![
+            Command::AddLayer { scene, layer },
+            Command::InsertSpan {
+                scene,
+                layer: layer_id,
+                span,
+            },
+        ],
+        at,
+    ))
+}
+
 /// Copies a span onto a new layer above the others, moved by `offset`, with fresh shape and
 /// instance identities so the copy is independent. Returns the commands and where the copy
 /// lands. `None` when the span is missing, empty, or the result is not finite.
@@ -184,40 +223,54 @@ pub fn duplicate(
     let timeline = scene_timeline(document, scene)?;
     let source = timeline.layers().iter().find(|l| l.id() == at.layer)?;
     let span = find_span(document, scene, at)?;
-    let content = match span.content() {
-        Content::Empty => return None,
-        Content::Shape(shape) => Content::Shape(transform_shape_as(
-            shape,
-            ShapeId::new(),
-            DAffine2::from_translation(offset),
-        )?),
-        Content::Instance(instance) => {
-            let moved = DAffine2::from_translation(offset) * instance.transform().as_affine();
-            let transform = Transform2D::new(moved).ok()?;
-            Content::Instance(Instance::new(
-                InstanceId::new(),
-                instance.symbol(),
-                transform,
-            ))
-        }
-    };
+    let content = fresh_content(span.content(), DAffine2::from_translation(offset))?;
     let copy = FrameSpan::new(span.start(), span.duration(), content).with_tween(span.tween());
-    let layer_id = LayerId::new();
-    let layer = Layer::new(layer_id, format!("{} copy", source.name()), vec![]).ok()?;
-    Some((
-        vec![
-            Command::AddLayer { scene, layer },
-            Command::InsertSpan {
-                scene,
-                layer: layer_id,
-                span: copy,
-            },
-        ],
-        SpanRef {
-            layer: layer_id,
-            start: span.start(),
-        },
-    ))
+    new_layer_with(scene, &format!("{} copy", source.name()), copy)
+}
+
+/// What Copy remembers about a span, so it can be pasted later or into another document.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ClipItem {
+    name: String,
+    duration: NonZeroU32,
+    tween: Tween,
+    content: Content,
+}
+
+/// Remembers a span for pasting. `None` when it is missing or empty.
+pub fn copy_span(document: &Document, scene: SceneId, at: SpanRef) -> Option<ClipItem> {
+    let timeline = scene_timeline(document, scene)?;
+    let source = timeline.layers().iter().find(|l| l.id() == at.layer)?;
+    let span = find_span(document, scene, at)?;
+    if matches!(span.content(), Content::Empty) {
+        return None;
+    }
+    Some(ClipItem {
+        name: source.name().to_owned(),
+        duration: span.duration(),
+        tween: span.tween(),
+        content: span.content().clone(),
+    })
+}
+
+/// Pastes a remembered span in place on a new top layer, starting at `frame`, with fresh
+/// identities. `None` when an instance's symbol is not in this document (pasting into a
+/// document that lacks it would be invalid) or the frame range does not fit.
+pub fn paste(
+    document: &Document,
+    scene: SceneId,
+    item: &ClipItem,
+    frame: u32,
+) -> Option<(Vec<Command>, SpanRef)> {
+    if let Content::Instance(instance) = &item.content
+        && document.symbol(instance.symbol()).is_none()
+    {
+        return None;
+    }
+    frame.checked_add(item.duration.get())?;
+    let content = fresh_content(&item.content, DAffine2::IDENTITY)?;
+    let span = FrameSpan::new(frame, item.duration, content).with_tween(item.tween);
+    new_layer_with(scene, &item.name, span)
 }
 
 /// Sets or clears the motion tween on an instance span. `None` when the span is missing,

@@ -165,6 +165,8 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    /// What Copy remembered, for Paste.
+    clipboard: Vec<ops::ClipItem>,
     /// Timeline zoom: 1.0 fits the whole scene in the panel.
     timeline_zoom: f32,
     /// Spans selected along with `selected` (Shift-click). Move and Delete act on all of them.
@@ -221,6 +223,7 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            clipboard: Vec::new(),
             timeline_zoom: 1.0,
             also_selected: Vec::new(),
             stage_view: StageView::default(),
@@ -920,8 +923,10 @@ impl Workspace {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
+            MenuAction::Paste => !self.clipboard.is_empty(),
             MenuAction::Delete
             | MenuAction::Duplicate
+            | MenuAction::Copy
             | MenuAction::FlipHorizontal
             | MenuAction::FlipVertical
             | MenuAction::RotateClockwise
@@ -968,6 +973,8 @@ impl Workspace {
             MenuAction::Redo => "Redo",
             MenuAction::Delete => "Delete",
             MenuAction::Duplicate => "Duplicate",
+            MenuAction::Copy => "Copy",
+            MenuAction::Paste => "Paste",
             MenuAction::FlipHorizontal => "Flip Horizontal",
             MenuAction::FlipVertical => "Flip Vertical",
             MenuAction::RotateClockwise => "Rotate 90\u{b0} Clockwise",
@@ -1049,6 +1056,8 @@ impl Workspace {
             MenuAction::Redo => self.redo(),
             MenuAction::Delete => self.delete_selection(),
             MenuAction::Duplicate => self.duplicate_selection(),
+            MenuAction::Copy => self.copy_selection(),
+            MenuAction::Paste => self.paste(),
             MenuAction::FlipHorizontal => {
                 self.transform_selection(DAffine2::from_scale(DVec2::new(-1.0, 1.0)))
             }
@@ -1617,6 +1626,52 @@ impl Workspace {
         }
     }
 
+    /// Remembers every selected span for Paste.
+    pub fn copy_selection(&mut self) {
+        let Some(scene) = self.scene_id() else {
+            return;
+        };
+        let items: Vec<ops::ClipItem> = self
+            .selection_all()
+            .into_iter()
+            .filter_map(|span| ops::copy_span(self.document(), scene, span))
+            .collect();
+        if !items.is_empty() {
+            self.clipboard = items;
+        }
+    }
+
+    /// Pastes the remembered spans in place at the current frame, each on its own new layer,
+    /// and selects them.
+    pub fn paste(&mut self) {
+        let Some(scene) = self.scene_id() else {
+            return;
+        };
+        let mut commands = Vec::new();
+        let mut pasted = Vec::new();
+        for item in &self.clipboard {
+            match ops::paste(self.document(), scene, item, self.frame) {
+                Some((batch, at)) => {
+                    commands.extend(batch);
+                    pasted.push(at);
+                }
+                None => {
+                    self.report("Cannot paste: its symbol is not in this document");
+                    return;
+                }
+            }
+        }
+        if commands.is_empty() {
+            return;
+        }
+        self.run_batch(commands, "paste");
+        if self.status.is_none() {
+            self.selected = pasted.first().copied();
+            self.also_selected = pasted.iter().skip(1).copied().collect();
+            self.current_layer = self.selected.map(|s| s.layer);
+        }
+    }
+
     pub fn delete_selection(&mut self) {
         let Some(scene) = self.scene_id() else {
             return;
@@ -1862,7 +1917,21 @@ impl Workspace {
             }
         }
         let typing = ctx.egui_wants_keyboard_input();
+        // Cmd/Ctrl+C and V arrive as Copy and Paste events. They are not menu accelerators, so
+        // text fields keep them; when no field wants the keyboard they act on the selection.
+        let (copy, paste) = ctx.input(|i| {
+            (
+                i.events.iter().any(|e| matches!(e, egui::Event::Copy)),
+                i.events.iter().any(|e| matches!(e, egui::Event::Paste(_))),
+            )
+        });
         if !typing {
+            if copy {
+                self.copy_selection();
+            }
+            if paste {
+                self.paste();
+            }
             if toggle {
                 self.playing = !self.playing;
             }
@@ -4531,5 +4600,83 @@ mod tests {
             selected_shape(&ws).gradient().is_some(),
             "saved and reloaded"
         );
+    }
+
+    #[test]
+    fn copy_then_paste_places_independent_copies_in_place_at_the_current_frame() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.select_at(Pos2::new(120.0, 30.0), true);
+        assert!(!ws.is_enabled(MenuAction::Paste), "nothing copied yet");
+        ws.perform(MenuAction::Copy);
+        assert!(ws.is_enabled(MenuAction::Paste));
+        ws.set_frame(5);
+        ws.perform(MenuAction::Paste);
+        assert_eq!(layer_count(&ws), 5);
+        let pasted = ws.selection_all();
+        assert_eq!(pasted.len(), 2);
+        assert!(pasted.iter().all(|s| s.start == 5), "at the current frame");
+        let scene = ws.scene_id().expect("scene");
+        let ids: Vec<ShapeId> = ws.document().scenes()[0]
+            .timeline()
+            .layers()
+            .iter()
+            .flat_map(|l| l.spans().iter())
+            .filter_map(|s| match s.content() {
+                Content::Shape(shape) => Some(shape.id()),
+                _ => None,
+            })
+            .collect();
+        let unique: std::collections::HashSet<_> = ids.iter().collect();
+        assert_eq!(ids.len(), unique.len(), "every shape has its own identity");
+        let bounds = ops::span_bounds(ws.document(), scene, pasted[0]).expect("bounds");
+        assert_eq!(bounds.min.x, 10.0, "pasted in place, not offset");
+        // The clipboard survives the original being deleted, and one undo removes the paste.
+        ws.undo();
+        assert_eq!(layer_count(&ws), 3);
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.delete_selection();
+        ws.perform(MenuAction::Paste);
+        assert_eq!(layer_count(&ws), 5);
+    }
+
+    #[test]
+    fn copy_and_paste_events_act_on_the_selection_unless_a_field_wants_the_keys() {
+        let (ctx, mut ws) = (egui::Context::default(), two_rectangles());
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        pass(&mut ws, &ctx, input(0.0, vec![Event::Copy]));
+        assert!(ws.is_enabled(MenuAction::Paste));
+        pass(&mut ws, &ctx, input(0.1, vec![Event::Paste(String::new())]));
+        assert_eq!(layer_count(&ws), 4);
+    }
+
+    #[test]
+    fn pasting_an_instance_into_a_document_without_its_symbol_is_refused() {
+        let mut source = workspace();
+        draw_and_select(&mut source);
+        source.convert_selection_to_symbol();
+        source.perform(MenuAction::Copy);
+        assert!(source.is_enabled(MenuAction::Paste));
+        let items = source.clipboard.clone();
+        let mut other = workspace();
+        other.clipboard = items;
+        other.perform(MenuAction::Paste);
+        assert_eq!(layer_count(&other), 1);
+        assert!(other.status().is_some_and(|m| m.contains("symbol")));
+        assert!(!other.is_dirty());
+        // Back in the document that has the symbol it works.
+        source.perform(MenuAction::Paste);
+        assert_eq!(layer_count(&source), 3);
+    }
+
+    #[test]
+    fn copying_nothing_or_an_empty_span_keeps_the_clipboard() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.perform(MenuAction::Copy);
+        let kept = ws.clipboard.clone();
+        ws.select_at(Pos2::new(300.0, 300.0), false);
+        ws.copy_selection();
+        assert_eq!(ws.clipboard, kept);
     }
 }
