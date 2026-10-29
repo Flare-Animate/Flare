@@ -3,11 +3,34 @@ use flare_document::Timeline;
 use flare_document::{Diagnostic, Document, FrameSpan, Layer, Scene, Stage, Symbol, TimelineError};
 use thiserror::Error;
 
+/// A property change on a layer.
+#[derive(Debug, Clone, PartialEq)]
+pub enum LayerChange {
+    Name(String),
+    Visible(bool),
+    Locked(bool),
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Command {
     AddSymbol(Symbol),
     AddScene(Scene),
     SetStage(Stage),
+    UpdateLayer {
+        scene: SceneId,
+        layer: LayerId,
+        change: LayerChange,
+    },
+    RemoveLayer {
+        scene: SceneId,
+        layer: LayerId,
+    },
+    /// Moves a layer to `index` in the top-to-bottom order (clamped to the end).
+    MoveLayer {
+        scene: SceneId,
+        layer: LayerId,
+        index: usize,
+    },
     AddLayer {
         scene: SceneId,
         layer: Layer,
@@ -53,6 +76,44 @@ pub(crate) fn apply(document: &Document, command: Command) -> Result<Document, E
         Command::AddSymbol(symbol) => symbols.push(symbol),
         Command::AddScene(scene) => scenes.push(scene),
         Command::SetStage(new_stage) => stage = new_stage,
+        Command::UpdateLayer {
+            scene,
+            layer,
+            change,
+        } => edit_layers(&mut scenes, scene, |layers| {
+            let slot = layers
+                .iter_mut()
+                .find(|l| l.id() == layer)
+                .ok_or(EditError::NoSuchLayer(layer))?;
+            *slot = match change {
+                LayerChange::Name(name) => slot.clone().with_name(name),
+                LayerChange::Visible(visible) => slot.clone().with_visible(visible),
+                LayerChange::Locked(locked) => slot.clone().with_locked(locked),
+            };
+            Ok(())
+        })?,
+        Command::RemoveLayer { scene, layer } => edit_layers(&mut scenes, scene, |layers| {
+            let before = layers.len();
+            layers.retain(|l| l.id() != layer);
+            if layers.len() == before {
+                Err(EditError::NoSuchLayer(layer))
+            } else {
+                Ok(())
+            }
+        })?,
+        Command::MoveLayer {
+            scene,
+            layer,
+            index,
+        } => edit_layers(&mut scenes, scene, |layers| {
+            let from = layers
+                .iter()
+                .position(|l| l.id() == layer)
+                .ok_or(EditError::NoSuchLayer(layer))?;
+            let moved = layers.remove(from);
+            layers.insert(index.min(layers.len()), moved);
+            Ok(())
+        })?,
         Command::AddLayer { scene, layer } => {
             edit_layers(&mut scenes, scene, |layers| {
                 layers.push(layer);

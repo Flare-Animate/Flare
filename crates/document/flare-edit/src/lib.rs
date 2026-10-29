@@ -10,5 +10,5 @@ mod command;
 pub mod frames;
 mod session;
 
-pub use command::{Command, EditError};
+pub use command::{Command, EditError, LayerChange};
 pub use session::EditorSession;

@@ -240,6 +240,105 @@ mod tests {
         assert_eq!(f.session.apply([command]), Err(EditError::NoSuchSpan(9)));
     }
 
+    fn layer_flags(f: &Fixture) -> (String, bool, bool) {
+        let layer = &f.session.document().scenes()[0].timeline().layers()[0];
+        (
+            layer.name().to_owned(),
+            layer.is_visible(),
+            layer.is_locked(),
+        )
+    }
+
+    #[test]
+    fn layer_properties_change_atomically_and_survive_span_edits() {
+        use crate::LayerChange;
+        let mut f = fixture();
+        let (scene, layer) = (f.scene, f.layer);
+        let update = |change| Command::UpdateLayer {
+            scene,
+            layer,
+            change,
+        };
+        f.session
+            .apply([
+                update(LayerChange::Name("Background".into())),
+                update(LayerChange::Visible(false)),
+                update(LayerChange::Locked(true)),
+            ])
+            .expect("update");
+        assert_eq!(layer_flags(&f), ("Background".to_owned(), false, true));
+        // A span edit rebuilds the layer; its properties must not reset.
+        f.session
+            .apply([add_symbol(&f), insert(&f, 0)])
+            .expect("edit spans");
+        assert_eq!(layer_flags(&f), ("Background".to_owned(), false, true));
+        f.session.undo();
+        f.session.undo();
+        assert_eq!(
+            layer_flags(&f),
+            ("Layer 1".to_owned(), true, false),
+            "one undo step for all three"
+        );
+        let ghost = LayerId::new();
+        let bad = Command::UpdateLayer {
+            scene,
+            layer: ghost,
+            change: LayerChange::Visible(true),
+        };
+        assert_eq!(f.session.apply([bad]), Err(EditError::NoSuchLayer(ghost)));
+    }
+
+    #[test]
+    fn layers_can_be_moved_and_removed() {
+        let mut f = fixture();
+        let (scene, first) = (f.scene, f.layer);
+        let (second, third) = (LayerId::new(), LayerId::new());
+        let add = |id| Command::AddLayer {
+            scene,
+            layer: Layer::new(id, "x", vec![]).expect("layer"),
+        };
+        f.session.apply([add(second), add(third)]).expect("add");
+        let order = |f: &Fixture| -> Vec<LayerId> {
+            f.session.document().scenes()[0]
+                .timeline()
+                .layers()
+                .iter()
+                .map(Layer::id)
+                .collect()
+        };
+        assert_eq!(order(&f), vec![first, second, third]);
+        f.session
+            .apply([Command::MoveLayer {
+                scene,
+                layer: third,
+                index: 0,
+            }])
+            .expect("move up");
+        assert_eq!(order(&f), vec![third, first, second]);
+        f.session
+            .apply([Command::MoveLayer {
+                scene,
+                layer: third,
+                index: 99,
+            }])
+            .expect("clamped");
+        assert_eq!(order(&f), vec![first, second, third]);
+        f.session
+            .apply([Command::RemoveLayer {
+                scene,
+                layer: second,
+            }])
+            .expect("remove");
+        assert_eq!(order(&f), vec![first, third]);
+        f.session.undo();
+        assert_eq!(order(&f), vec![first, second, third]);
+        let ghost = Command::RemoveLayer {
+            scene,
+            layer: LayerId::new(),
+        };
+        assert!(f.session.apply([ghost]).is_err());
+    }
+
     #[test]
     fn stage_changes_are_undoable_and_survive_other_edits() {
         use flare_core::Rgba8;
