@@ -4,9 +4,11 @@ use std::num::NonZeroU32;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
-use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
+use flare_core::{
+    DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
+};
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, Scene, Symbol, Timeline, Tween,
+    Content, Document, FrameSpan, Instance, Layer, Scene, Shape, Symbol, Timeline, Tween,
 };
 use flare_edit::{Command, EditorSession};
 use glamx::{DAffine2, DVec2};
@@ -69,42 +71,163 @@ pub fn info(path: &Path) -> Result<Value> {
     }))
 }
 
-pub fn add_symbol(path: &Path, name: &str) -> Result<Value> {
+/// `#RRGGBB` or `#RRGGBBAA` (the `#` is optional).
+pub fn parse_color(text: &str) -> Result<Rgba8> {
+    let hex = text.trim_start_matches('#');
+    let byte = |i: usize| {
+        hex.get(i..i + 2)
+            .and_then(|pair| u8::from_str_radix(pair, 16).ok())
+            .with_context(|| format!("bad color {text:?}, expected RRGGBB or RRGGBBAA"))
+    };
+    match hex.len() {
+        6 => Ok(Rgba8::opaque(byte(0)?, byte(2)?, byte(4)?)),
+        8 => Ok(Rgba8::new(byte(0)?, byte(2)?, byte(4)?, byte(6)?)),
+        _ => bail!("bad color {text:?}, expected RRGGBB or RRGGBBAA"),
+    }
+}
+
+fn rect_content(rect: [f64; 4], color: Rgba8) -> Result<Content> {
+    let [x, y, w, h] = rect;
+    if !(w > 0.0 && h > 0.0) {
+        bail!("rectangle width and height must be positive");
+    }
+    let shape = Shape::rect(ShapeId::new(), x, y, w, h, color)
+        .context("rectangle coordinates must be finite")?;
+    Ok(Content::Shape(shape))
+}
+
+fn one_frame_timeline(content: Content) -> Result<Timeline> {
+    let span = FrameSpan::new(0, NonZeroU32::MIN, content);
+    Ok(Timeline::new(vec![Layer::new(
+        LayerId::new(),
+        "Layer 1",
+        vec![span],
+    )?]))
+}
+
+/// Adds a Graphic symbol, optionally containing one filled rectangle.
+pub fn add_symbol(path: &Path, name: &str, rect: Option<([f64; 4], Rgba8)>) -> Result<Value> {
     let mut session = open(path)?;
     let id = SymbolId::new();
-    session.apply([Command::AddSymbol(Symbol::new(
-        id,
-        name,
-        Timeline::default(),
-    ))])?;
+    let timeline = match rect {
+        Some((rect, color)) => one_frame_timeline(rect_content(rect, color)?)?,
+        None => Timeline::default(),
+    };
+    session.apply([Command::AddSymbol(Symbol::new(id, name, timeline))])?;
     commit(&session, path)?;
     Ok(json!({ "symbol": id.as_uuid() }))
 }
 
-/// Places an instance on the first layer of the first scene.
-pub fn place(
+/// Draws a filled rectangle directly on the first layer of the first scene.
+pub fn draw_rect(
     path: &Path,
-    symbol: Uuid,
+    rect: [f64; 4],
+    color: Rgba8,
     start: u32,
     duration: u32,
-    x: f64,
-    y: f64,
-    tween: bool,
+    layer: Option<Uuid>,
 ) -> Result<Value> {
     let mut session = open(path)?;
-    let (scene, layer) = {
-        let scene = session
-            .document()
-            .scenes()
-            .first()
-            .context("document has no scene")?;
-        let layer = scene
-            .timeline()
-            .layers()
-            .first()
-            .context("scene has no layer")?;
-        (scene.id(), layer.id())
+    let (scene, layer) = target_layer(&session, layer)?;
+    let duration = NonZeroU32::new(duration).context("duration must be at least 1")?;
+    let content = rect_content(rect, color)?;
+    let span = FrameSpan::new(start, duration, content);
+    session.apply([Command::InsertSpan { scene, layer, span }])?;
+    commit(&session, path)?;
+    Ok(json!({ "drawn": true }))
+}
+
+/// The first scene and the requested layer (default: its first layer).
+fn target_layer(session: &EditorSession, layer: Option<Uuid>) -> Result<(SceneId, LayerId)> {
+    let scene = session
+        .document()
+        .scenes()
+        .first()
+        .context("document has no scene")?;
+    let layers = scene.timeline().layers();
+    let layer = match layer {
+        Some(id) => layers
+            .iter()
+            .find(|candidate| *candidate.id().as_uuid() == id)
+            .with_context(|| format!("no layer {id} in the first scene"))?,
+        None => layers.first().context("scene has no layer")?,
     };
+    Ok((scene.id(), layer.id()))
+}
+
+/// Adds an empty layer below the existing ones in the first scene.
+pub fn add_layer(path: &Path, name: &str) -> Result<Value> {
+    let mut session = open(path)?;
+    let scene = session
+        .document()
+        .scenes()
+        .first()
+        .context("document has no scene")?
+        .id();
+    let id = LayerId::new();
+    let layer = Layer::new(id, name, vec![])?;
+    session.apply([Command::AddLayer { scene, layer }])?;
+    commit(&session, path)?;
+    Ok(json!({ "layer": id.as_uuid() }))
+}
+
+/// Renders one frame to a PNG file.
+pub fn export(
+    path: &Path,
+    out: &Path,
+    frame: u32,
+    width: u32,
+    height: u32,
+    transparent: bool,
+) -> Result<Value> {
+    let session = open(path)?;
+    let document = session.document();
+    let scene = document
+        .scenes()
+        .first()
+        .context("document has no scene")?
+        .id();
+    let evaluated = flare_eval::evaluate_frame(document, scene, frame)?;
+    let background = if transparent {
+        Rgba8::TRANSPARENT
+    } else {
+        Rgba8::WHITE
+    };
+    let image = flare_render::render(&evaluated, width, height, background)?;
+    // Write to a sibling temp file, then rename, so a failed export never leaves a partial PNG.
+    let directory = out
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    let mut staged = tempfile::NamedTempFile::new_in(directory)?;
+    image.write_png(std::io::BufWriter::new(&mut staged))?;
+    staged.persist(out).map_err(|error| error.error)?;
+    Ok(json!({ "exported": out.to_string_lossy(), "width": width, "height": height }))
+}
+
+/// Places an instance on the first layer of the first scene.
+pub struct PlaceOptions {
+    pub symbol: Uuid,
+    pub start: u32,
+    pub duration: u32,
+    pub x: f64,
+    pub y: f64,
+    pub tween: bool,
+    pub layer: Option<Uuid>,
+}
+
+pub fn place(path: &Path, options: PlaceOptions) -> Result<Value> {
+    let PlaceOptions {
+        symbol,
+        start,
+        duration,
+        x,
+        y,
+        tween,
+        layer,
+    } = options;
+    let mut session = open(path)?;
+    let (scene, layer) = target_layer(&session, layer)?;
     let transform = Transform2D::new(DAffine2::from_translation(DVec2::new(x, y)))?;
     let instance = Instance::new(InstanceId::new(), SymbolId::from_uuid(symbol), transform);
     let duration = NonZeroU32::new(duration).context("duration must be at least 1")?;

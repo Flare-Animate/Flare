@@ -12,15 +12,17 @@ flare-flash.workspace = true
 flare-document.workspace = true
 flare-edit.workspace = true
 flare-eval.workspace = true
+flare-render.workspace = true
 flare-storage.workspace = true
 glamx.workspace = true
 uuid.workspace = true
 clap.workspace = true
 serde_json.workspace = true
+tempfile.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
-tempfile.workspace = true
+png.workspace = true
 
 [lints]
 workspace = true

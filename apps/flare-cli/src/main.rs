@@ -44,8 +44,47 @@ enum Command {
     },
     /// Summarize a project.
     Info { path: PathBuf },
-    /// Add an empty Graphic symbol to the library.
-    AddSymbol { path: PathBuf, name: String },
+    /// Add a Graphic symbol to the library, optionally holding one filled rectangle.
+    AddSymbol {
+        path: PathBuf,
+        name: String,
+        /// Rectangle as X Y WIDTH HEIGHT in document units.
+        #[arg(long, num_args = 4, value_names = ["X", "Y", "W", "H"], allow_negative_numbers = true)]
+        rect: Option<Vec<f64>>,
+        /// Fill color RRGGBB or RRGGBBAA.
+        #[arg(long, default_value = "000000")]
+        color: String,
+    },
+    /// Draw a filled rectangle on the first layer of the first scene.
+    DrawRect {
+        path: PathBuf,
+        #[arg(long, num_args = 4, value_names = ["X", "Y", "W", "H"], allow_negative_numbers = true, required = true)]
+        rect: Vec<f64>,
+        #[arg(long, default_value = "000000")]
+        color: String,
+        #[arg(long, default_value_t = 0)]
+        start: u32,
+        #[arg(long, default_value_t = 1)]
+        duration: u32,
+        #[arg(long)]
+        layer: Option<uuid::Uuid>,
+    },
+    /// Render one frame of the first scene to a PNG file.
+    Export {
+        path: PathBuf,
+        out: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        frame: u32,
+        #[arg(long, default_value_t = 1920)]
+        width: u32,
+        #[arg(long, default_value_t = 1080)]
+        height: u32,
+        /// Keep the background transparent instead of white.
+        #[arg(long)]
+        transparent: bool,
+    },
+    /// Add an empty layer below the existing ones in the first scene.
+    AddLayer { path: PathBuf, name: String },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -69,6 +108,9 @@ enum Command {
         /// Tween linearly to the next adjacent span of the same symbol.
         #[arg(long)]
         tween: bool,
+        /// Layer id from `add-layer` or `info` (default: the first layer).
+        #[arg(long)]
+        layer: Option<uuid::Uuid>,
     },
 }
 
@@ -112,8 +154,47 @@ fn main() -> Result<()> {
             denominator,
         } => project::new(&path, numerator, denominator)?,
         Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
+        Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
         Command::Info { path } => project::info(&path)?,
-        Command::AddSymbol { path, name } => project::add_symbol(&path, &name)?,
+        Command::AddSymbol {
+            path,
+            name,
+            rect,
+            color,
+        } => {
+            let rect = rect
+                .map(|r| {
+                    Ok::<_, anyhow::Error>((
+                        [r[0], r[1], r[2], r[3]],
+                        project::parse_color(&color)?,
+                    ))
+                })
+                .transpose()?;
+            project::add_symbol(&path, &name, rect)?
+        }
+        Command::DrawRect {
+            path,
+            rect,
+            color,
+            start,
+            duration,
+            layer,
+        } => project::draw_rect(
+            &path,
+            [rect[0], rect[1], rect[2], rect[3]],
+            project::parse_color(&color)?,
+            start,
+            duration,
+            layer,
+        )?,
+        Command::Export {
+            path,
+            out,
+            frame,
+            width,
+            height,
+            transparent,
+        } => project::export(&path, &out, frame, width, height, transparent)?,
         Command::Place {
             path,
             symbol,
@@ -122,7 +203,19 @@ fn main() -> Result<()> {
             x,
             y,
             tween,
-        } => project::place(&path, symbol, start, duration, x, y, tween)?,
+            layer,
+        } => project::place(
+            &path,
+            project::PlaceOptions {
+                symbol,
+                start,
+                duration,
+                x,
+                y,
+                tween,
+                layer,
+            },
+        )?,
     };
     let stdout = std::io::stdout();
     let mut stdout = stdout.lock();
