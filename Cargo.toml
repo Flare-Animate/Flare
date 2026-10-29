@@ -8,6 +8,7 @@ members = [
     "crates/io/flare-flash",
 ]
 exclude = ["original"]
+default-members = ["apps/flare-cli"]
 
 [workspace.package]
 version = "0.1.0"
