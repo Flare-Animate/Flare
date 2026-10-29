@@ -250,7 +250,8 @@ Ellipse, Line and Pen (click for corners, drag for smooth handles, click the fir
 press Enter to finish, Backspace to remove a point, Esc to cancel), with fill and outline
 settings. The stage zooms (pinch, Ctrl/Cmd+scroll or the View menu, about the cursor)
 and pans (scroll or middle-drag). Shift-click builds a multi-selection that moves and deletes together (other
-commands act on the first selected span). It supports undo/redo, Delete, Convert to
+commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the selection onto
+new layers. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). On macOS the menu bar is native (muda); everywhere
 else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.md).

@@ -866,7 +866,7 @@ impl Workspace {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
-            MenuAction::Delete => self.has_selection(),
+            MenuAction::Delete | MenuAction::Duplicate => self.has_selection(),
             MenuAction::ConvertToSymbol => self.can_convert_selection(),
             MenuAction::EditSymbol => self.can_edit_selected_symbol(),
             MenuAction::ExitSymbol => self.in_symbol(),
@@ -906,6 +906,7 @@ impl Workspace {
             MenuAction::Undo => "Undo",
             MenuAction::Redo => "Redo",
             MenuAction::Delete => "Delete",
+            MenuAction::Duplicate => "Duplicate",
             MenuAction::ConvertToSymbol => "Convert to Symbol",
             MenuAction::EditSymbol => "Edit Symbol",
             MenuAction::ExitSymbol => "Exit Symbol",
@@ -980,6 +981,7 @@ impl Workspace {
             MenuAction::Undo => self.undo(),
             MenuAction::Redo => self.redo(),
             MenuAction::Delete => self.delete_selection(),
+            MenuAction::Duplicate => self.duplicate_selection(),
             MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
             MenuAction::EditSymbol => self.edit_selected_symbol(),
             MenuAction::ExitSymbol => {
@@ -1369,6 +1371,31 @@ impl Workspace {
         }
     }
 
+    /// Copies the selection onto a new layer, nudged so it can be seen, and selects the copy.
+    pub fn duplicate_selection(&mut self) {
+        let Some(scene) = self.scene_id() else {
+            return;
+        };
+        let offset = DVec2::new(DUPLICATE_OFFSET, DUPLICATE_OFFSET);
+        let mut commands = Vec::new();
+        let mut copies = Vec::new();
+        for span in self.selection_all() {
+            if let Some((batch, copy)) = ops::duplicate(self.document(), scene, span, offset) {
+                commands.extend(batch);
+                copies.push(copy);
+            }
+        }
+        if commands.is_empty() {
+            return;
+        }
+        self.run_batch(commands, "duplicate");
+        if self.status.is_none() {
+            self.selected = copies.first().copied();
+            self.also_selected = copies.iter().skip(1).copied().collect();
+            self.current_layer = self.selected.map(|s| s.layer);
+        }
+    }
+
     pub fn delete_selection(&mut self) {
         let Some(scene) = self.scene_id() else {
             return;
@@ -1606,6 +1633,11 @@ impl Workspace {
             }
             if save {
                 self.save();
+            }
+            if ctx.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::D))
+                && !ctx.egui_wants_keyboard_input()
+            {
+                self.duplicate_selection();
             }
         }
         let typing = ctx.egui_wants_keyboard_input();
@@ -2240,12 +2272,15 @@ fn key_press(ctx: &egui::Context, key: Key) -> Option<Modifiers> {
     })
 }
 
-/// Screen position to stage (document) coordinates, clamped to the stage.
+/// How far a duplicate is moved from its original, in stage units.
+const DUPLICATE_OFFSET: f64 = 12.0;
+
 /// The scale at which the whole stage just fits `panel`.
 fn fit_scale(panel: Rect, extent: Vec2) -> f32 {
     StageView::default().scale(panel, extent)
 }
 
+/// Screen position to stage (document) coordinates, clamped to the stage.
 fn screen_to_stage(p: Pos2, image_rect: Rect, extent: Vec2) -> Pos2 {
     let u = (p.x - image_rect.min.x) / image_rect.width().max(f32::EPSILON);
     let v = (p.y - image_rect.min.y) / image_rect.height().max(f32::EPSILON);
@@ -3806,5 +3841,65 @@ mod tests {
         ws.perform(MenuAction::ZoomFit);
         assert!(ws.stage_view.is_fit());
         assert!(!ws.is_dirty(), "the view is not part of the document");
+    }
+
+    #[test]
+    fn duplicate_copies_the_selection_independently_on_a_new_layer() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        let original = ws.selected.expect("selected");
+        ws.perform(MenuAction::Duplicate);
+        assert_eq!(layer_count(&ws), 3);
+        let copy = ws.selected.expect("the copy is selected");
+        assert_ne!(copy.layer, original.layer);
+        let scene = ws.scene_id().expect("scene");
+        let bounds = |at| ops::span_bounds(ws.document(), scene, at).expect("bounds");
+        assert_eq!(bounds(copy).min, bounds(original).min + Vec2::splat(12.0));
+        let id_of = |at: SpanRef| match ops::find_span(ws.document(), scene, at)
+            .expect("span")
+            .content()
+        {
+            Content::Shape(shape) => shape.id(),
+            _ => panic!("a shape expected"),
+        };
+        assert_ne!(
+            id_of(copy),
+            id_of(original),
+            "the copy has its own identity"
+        );
+        // Moving the copy leaves the original alone.
+        let before = bounds(original);
+        let _ = bounds;
+        ws.move_selection(Vec2::new(40.0, 0.0));
+        let scene = ws.scene_id().expect("scene");
+        let after = ops::span_bounds(ws.document(), scene, original).expect("bounds");
+        assert_eq!(after, before);
+        ws.undo();
+        ws.undo();
+        assert_eq!(layer_count(&ws), 2, "duplicating is one undo step");
+    }
+
+    #[test]
+    fn duplicate_without_a_selection_does_nothing() {
+        let mut ws = workspace();
+        assert!(!ws.is_enabled(MenuAction::Duplicate));
+        ws.perform(MenuAction::Duplicate);
+        assert_eq!(layer_count(&ws), 1);
+        assert!(!ws.is_dirty());
+    }
+
+    #[test]
+    fn duplicate_copies_every_selected_span_and_selects_the_copies() {
+        let mut ws = two_rectangles();
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        ws.select_at(Pos2::new(120.0, 30.0), true);
+        let originals = ws.selection_all();
+        ws.perform(MenuAction::Duplicate);
+        assert_eq!(layer_count(&ws), 5);
+        let copies = ws.selection_all();
+        assert_eq!(copies.len(), 2);
+        assert!(copies.iter().all(|c| !originals.contains(c)));
+        ws.undo();
+        assert_eq!(layer_count(&ws), 3, "one undo step for the whole group");
     }
 }
