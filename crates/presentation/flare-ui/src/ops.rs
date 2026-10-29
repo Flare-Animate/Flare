@@ -9,7 +9,7 @@ use std::num::NonZeroU32;
 use egui::{Pos2, Rect};
 use flare_core::{DocumentPoint, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, PathSegment, Shape, Symbol, Timeline,
+    Content, Document, FrameSpan, Instance, Layer, PathSegment, Shape, Symbol, Timeline, Tween,
 };
 use flare_edit::Command;
 use flare_eval::DrawnShape;
@@ -122,6 +122,34 @@ pub fn translate(
     };
     let replacement =
         FrameSpan::new(span.start(), span.duration(), content).with_tween(span.tween());
+    Some(vec![
+        Command::RemoveSpan {
+            scene,
+            layer: at.layer,
+            start: at.start,
+        },
+        Command::InsertSpan {
+            scene,
+            layer: at.layer,
+            span: replacement,
+        },
+    ])
+}
+
+/// Sets or clears the motion tween on an instance span. `None` when the span is missing,
+/// is not an instance (only transforms tween), or already has that setting.
+pub fn set_tween(
+    document: &Document,
+    scene: SceneId,
+    at: SpanRef,
+    tween: Tween,
+) -> Option<Vec<Command>> {
+    let span = find_span(document, scene, at)?;
+    if !matches!(span.content(), Content::Instance(_)) || span.tween() == tween {
+        return None;
+    }
+    let replacement =
+        FrameSpan::new(span.start(), span.duration(), span.content().clone()).with_tween(tween);
     Some(vec![
         Command::RemoveSpan {
             scene,
@@ -271,7 +299,7 @@ pub fn place_instance(
 #[allow(clippy::expect_used)]
 mod tests {
     use flare_core::{DocumentId, FrameRate, Rgba8, ShapeId};
-    use flare_document::{Scene, Tween};
+    use flare_document::Scene;
     use flare_edit::EditorSession;
 
     use super::*;
@@ -541,6 +569,51 @@ mod tests {
             panic!("shape expected")
         };
         assert_eq!(shape.stroke(), Some(stroke), "moving keeps the stroke");
+    }
+
+    #[test]
+    fn tweens_toggle_on_instances_only() {
+        let mut f = fixture();
+        let symbol = SymbolId::new();
+        f.session
+            .apply([Command::AddSymbol(Symbol::new(
+                symbol,
+                "S",
+                Timeline::default(),
+            ))])
+            .expect("symbol");
+        let instance = Instance::new(InstanceId::new(), symbol, Transform2D::IDENTITY);
+        add(
+            &mut f,
+            FrameSpan::new(
+                0,
+                NonZeroU32::new(4).expect("nonzero"),
+                Content::Instance(instance),
+            ),
+        );
+        add(&mut f, rect_span(4, 2, 0.0, 0.0, 5.0, 5.0));
+        let doc = f.session.document();
+        assert!(
+            set_tween(doc, f.scene, at(&f, 4), Tween::Linear).is_none(),
+            "shapes do not tween"
+        );
+        assert!(
+            set_tween(doc, f.scene, at(&f, 0), Tween::None).is_none(),
+            "already untweened"
+        );
+        let commands = set_tween(doc, f.scene, at(&f, 0), Tween::Linear).expect("enable");
+        f.session.apply(commands).expect("apply");
+        let span = find_span(f.session.document(), f.scene, at(&f, 0)).expect("span");
+        assert_eq!((span.tween(), span.duration().get()), (Tween::Linear, 4));
+        let commands =
+            set_tween(f.session.document(), f.scene, at(&f, 0), Tween::None).expect("disable");
+        f.session.apply(commands).expect("apply");
+        assert_eq!(
+            find_span(f.session.document(), f.scene, at(&f, 0))
+                .expect("span")
+                .tween(),
+            Tween::None
+        );
     }
 
     #[test]

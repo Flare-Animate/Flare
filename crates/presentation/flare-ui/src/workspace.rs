@@ -5,7 +5,7 @@ use egui::{Align2, Color32, FontId, Key, Modifiers, Pos2, Rect, Sense, Stroke, S
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
 use flare_document::{
     Content, Document, FrameSpan, Layer, MAX_STAGE_SIDE, Scene, Shape, Stage,
-    Stroke as ShapeStroke, Timeline,
+    Stroke as ShapeStroke, Timeline, Tween,
 };
 use flare_edit::{Command, EditorSession, frames};
 use glamx::DVec2;
@@ -514,6 +514,24 @@ impl Workspace {
         self.validate_selection();
     }
 
+    /// The selected span's tween, when it is an instance (the only thing that can tween).
+    pub fn selection_tween(&self) -> Option<Tween> {
+        let (selected, scene) = (self.selected?, self.scene_id()?);
+        let span = ops::find_span(self.document(), scene, selected)?;
+        matches!(span.content(), Content::Instance(_)).then(|| span.tween())
+    }
+
+    /// Turns the motion tween on the selected instance span on or off.
+    pub fn set_selection_tween(&mut self, tween: Tween) {
+        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+            return;
+        };
+        match ops::set_tween(self.document(), scene, selected, tween) {
+            Some(commands) => self.run_batch(commands, "change the tween"),
+            None => self.report("Select an instance to change its motion tween"),
+        }
+    }
+
     pub fn can_convert_selection(&self) -> bool {
         match (self.selected, self.scene_id()) {
             (Some(selected), Some(scene)) => {
@@ -758,6 +776,25 @@ impl Workspace {
                 }
             });
             ui.menu_button("Timeline", |ui| {
+                let tween = self.selection_tween();
+                let label = if tween == Some(Tween::Linear) {
+                    "Remove Motion Tween"
+                } else {
+                    "Create Motion Tween"
+                };
+                if ui
+                    .add_enabled(tween.is_some(), egui::Button::new(label))
+                    .clicked()
+                {
+                    let next = if tween == Some(Tween::Linear) {
+                        Tween::None
+                    } else {
+                        Tween::Linear
+                    };
+                    self.set_selection_tween(next);
+                    ui.close();
+                }
+                ui.separator();
                 let items = [
                     (FrameOp::InsertFrame, "Insert Frame (F5)"),
                     (FrameOp::RemoveFrame, "Remove Frame (Shift+F5)"),
@@ -1653,5 +1690,40 @@ mod tests {
         ws.end_drag();
         assert_eq!(layer_count(&ws), 1);
         assert!(!ws.is_dirty());
+    }
+
+    #[test]
+    fn motion_tweens_toggle_on_a_selected_instance_and_interpolate() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        assert_eq!(ws.selection_tween(), None, "a shape cannot tween");
+        ws.set_selection_tween(Tween::Linear);
+        assert!(
+            ws.status()
+                .is_some_and(|s| s.contains("Select an instance"))
+        );
+        ws.convert_selection_to_symbol();
+        assert_eq!(ws.selection_tween(), Some(Tween::None));
+        // Two keyframes with different positions, tweened between them.
+        ws.set_frame(10);
+        ws.frame_edit(FrameOp::InsertKeyframe);
+        ws.set_tool(Tool::Select);
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.update_drag(Pos2::new(150.0, 30.0)); // moves the second keyframe 100 right
+        ws.end_drag();
+        ws.set_frame(0);
+        ws.select_layer(ws.active_layer_id().expect("layer"));
+        ws.begin_drag(Pos2::new(50.0, 30.0));
+        ws.end_drag();
+        ws.set_selection_tween(Tween::Linear);
+        assert_eq!(ws.selection_tween(), Some(Tween::Linear));
+        let scene = ws.scene_id().expect("scene");
+        let at_frame = |ws: &Workspace, f: u32| {
+            let frame = flare_eval::evaluate_frame(ws.document(), scene, f).expect("eval");
+            frame.shapes[0].transform.translation.x
+        };
+        assert_eq!(at_frame(&ws, 0), 0.0);
+        assert_eq!(at_frame(&ws, 5), 50.0, "halfway through the tween");
+        assert_eq!(at_frame(&ws, 10), 100.0);
     }
 }
