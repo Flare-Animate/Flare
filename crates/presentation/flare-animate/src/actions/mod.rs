@@ -111,10 +111,12 @@ pub enum MenuAction {
     About,
     KeyboardShortcuts,
     ToggleOutlineMode,
+    NewSymbol,
+    PasteInPlace,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 99] = [
+    pub const ALL: [MenuAction; 101] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -214,6 +216,8 @@ impl MenuAction {
         Self::About,
         Self::KeyboardShortcuts,
         Self::ToggleOutlineMode,
+        Self::NewSymbol,
+        Self::PasteInPlace,
     ];
 
     /// A stable identifier for native menu items (the variant name).

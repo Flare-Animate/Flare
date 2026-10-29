@@ -42,7 +42,7 @@ impl Workspace {
             }
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
-            MenuAction::Paste => !self.clipboard.is_empty(),
+            MenuAction::Paste | MenuAction::PasteInPlace => !self.clipboard.is_empty(),
             MenuAction::SelectAll => self.scene_id().is_some_and(|scene| {
                 !ops::spans_at_frame(self.document(), scene, self.frame).is_empty()
             }),
@@ -106,6 +106,7 @@ impl Workspace {
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
             MenuAction::ResetLayout => true,
+            MenuAction::NewSymbol => !self.in_symbol(),
             MenuAction::About | MenuAction::KeyboardShortcuts => true,
             MenuAction::ShowProperties
             | MenuAction::ShowLibrary
@@ -160,6 +161,7 @@ impl Workspace {
             MenuAction::CopyFrames => "Copy Frames",
             MenuAction::PasteFrames => "Paste Frames",
             MenuAction::Paste => "Paste",
+            MenuAction::PasteInPlace => "Paste in Place",
             MenuAction::FlipHorizontal => "Flip Horizontal",
             MenuAction::FlipVertical => "Flip Vertical",
             MenuAction::RotateClockwise => "Rotate 90\u{b0} Clockwise",
@@ -247,6 +249,7 @@ impl Workspace {
             MenuAction::MoveLayerDown => "Move Layer Down",
             MenuAction::DeleteLayer => "Delete Layer",
             MenuAction::ResetLayout => "Reset Workspace Layout",
+            MenuAction::NewSymbol => "New Symbol",
             MenuAction::About => "About Flare",
             MenuAction::KeyboardShortcuts => "Keyboard Shortcuts",
             MenuAction::ShowProperties => "Properties",
@@ -348,6 +351,7 @@ impl Workspace {
             MenuAction::CopyFrames => self.copy_frames(),
             MenuAction::PasteFrames => self.paste_frames(),
             MenuAction::Paste => self.paste(),
+            MenuAction::PasteInPlace => self.paste_in_place(),
             MenuAction::FlipHorizontal => {
                 self.transform_selection(DAffine2::from_scale(DVec2::new(-1.0, 1.0)))
             }
@@ -438,6 +442,7 @@ impl Workspace {
             MenuAction::MoveLayerDown => self.move_active_layer(1),
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
+            MenuAction::NewSymbol => self.new_symbol(),
             MenuAction::About => self.about_open = true,
             MenuAction::KeyboardShortcuts => self.shortcuts_open = true,
             MenuAction::ShowProperties => self.show_pane(Pane::Properties),

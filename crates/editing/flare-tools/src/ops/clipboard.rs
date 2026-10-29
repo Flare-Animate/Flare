@@ -84,13 +84,29 @@ pub fn paste(
     item: &ClipItem,
     frame: u32,
 ) -> Option<(Vec<Command>, SpanRef)> {
+    paste_offset(document, scene, item, frame, DVec2::ZERO)
+}
+
+/// Where a remembered span lies on the stage, for placing a paste.
+pub fn clip_bounds(document: &Document, item: &ClipItem) -> Option<emath::Rect> {
+    bounds::content_bounds(document, &item.content)
+}
+
+/// [`paste`] moved by `delta` stage units.
+pub fn paste_offset(
+    document: &Document,
+    scene: SceneId,
+    item: &ClipItem,
+    frame: u32,
+    delta: DVec2,
+) -> Option<(Vec<Command>, SpanRef)> {
     if let Content::Instance(instance) = &item.content
         && document.symbol(instance.symbol()).is_none()
     {
         return None;
     }
     frame.checked_add(item.duration.get())?;
-    let content = fresh_content(&item.content, DAffine2::IDENTITY)?;
+    let content = fresh_content(&item.content, DAffine2::from_translation(delta))?;
     let span = FrameSpan::new(frame, item.duration, content).with_tween(item.tween);
     new_layer_with(scene, &item.name, span)
 }

@@ -97,3 +97,19 @@ fn outline_mode_redraws_the_stage_as_lines_and_back() {
     ws.perform(MenuAction::ToggleOutlineMode);
     assert_eq!(ws.label(MenuAction::ToggleOutlineMode), "Outline Mode");
 }
+
+#[test]
+fn insert_new_symbol_adds_an_empty_one_and_is_off_while_editing_inside_one() {
+    let mut ws = workspace();
+    assert!(ws.is_enabled(MenuAction::NewSymbol));
+    let before = ws.document().symbols().len();
+    ws.perform(MenuAction::NewSymbol);
+    assert_eq!(ws.document().symbols().len(), before + 1);
+    ws.undo();
+    assert_eq!(ws.document().symbols().len(), before);
+    let (ws, _) = with_symbol();
+    let mut ws = ws;
+    let id = ws.document().symbols()[0].id();
+    assert!(ws.enter_symbol(id));
+    assert!(!ws.is_enabled(MenuAction::NewSymbol));
+}

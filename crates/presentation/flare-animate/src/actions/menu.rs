@@ -52,7 +52,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::Cut),
             Action(A::Copy),
             Action(A::Paste),
-            Mock("Paste in Place"),
+            Action(A::PasteInPlace),
             Action(A::Duplicate),
             Action(A::Delete),
             Separator,
@@ -88,7 +88,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
     (
         "Insert",
         &[
-            Mock("New Symbol..."),
+            Action(A::NewSymbol),
             Separator,
             Action(A::InsertFrame),
             Action(A::InsertKeyframe),

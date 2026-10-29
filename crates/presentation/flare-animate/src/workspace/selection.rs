@@ -201,16 +201,42 @@ impl Workspace {
         self.also_selected.clear();
     }
 
-    /// Pastes the remembered spans in place at the current frame, each on its own new layer,
-    /// and selects them.
+    /// Pastes the remembered spans at the current frame, each on its own new layer, together
+    /// centered on the stage, and selects them.
     pub fn paste(&mut self) {
+        self.paste_at(true);
+    }
+
+    /// Pastes the remembered spans where they were copied from.
+    pub fn paste_in_place(&mut self) {
+        self.paste_at(false);
+    }
+
+    fn paste_at(&mut self, centered: bool) {
         let Some(scene) = self.scene_id() else {
             return;
+        };
+        // The same move for every item, so a group keeps its arrangement.
+        let delta = if centered {
+            let bounds = self
+                .clipboard
+                .iter()
+                .filter_map(|item| ops::clip_bounds(self.document(), item))
+                .reduce(|a, b| a.union(b));
+            let stage = self.document().stage();
+            bounds.map_or(glamx::DVec2::ZERO, |b| {
+                glamx::DVec2::new(
+                    f64::from(stage.width()) / 2.0 - f64::from(b.center().x),
+                    f64::from(stage.height()) / 2.0 - f64::from(b.center().y),
+                )
+            })
+        } else {
+            glamx::DVec2::ZERO
         };
         let mut commands = Vec::new();
         let mut pasted = Vec::new();
         for item in &self.clipboard {
-            match ops::paste(self.document(), scene, item, self.frame) {
+            match ops::paste_offset(self.document(), scene, item, self.frame, delta) {
                 Some((batch, at)) => {
                     commands.extend(batch);
                     pasted.push(at);

@@ -29,7 +29,10 @@ use bounds::*;
 pub use bounds::{shape_bounds, span_bounds, spans_bounds, symbol_bounds};
 #[allow(unused_imports)]
 use clipboard::*;
-pub use clipboard::{ClipItem, convert_to_symbol, copy_span, duplicate, paste, place_instance};
+pub use clipboard::{
+    ClipItem, clip_bounds, convert_to_symbol, copy_span, duplicate, paste, paste_offset,
+    place_instance,
+};
 #[allow(unused_imports)]
 use grouping::*;
 pub use grouping::{break_apart, group};

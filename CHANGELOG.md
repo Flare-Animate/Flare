@@ -25,7 +25,7 @@ The first release of the Rust rewrite.
   publish. Flash fixtures are tested against.
 - The `flare-cli` command line (inspect, render, convert) and an MCP server for agents.
 - Layer outline colors (timeline chip, `.flare` and XFL) and View > Outline Mode.
-- Window, Help (About, Keyboard Shortcuts) menus that do something.
+- Window, Help (About, Keyboard Shortcuts) menus that do something; Insert > New Symbol; Edit > Paste in Place (Paste now centers on the stage).
 - An experimental web build.
 
 [Unreleased]: https://github.com/Flare-Animate/Flare/compare/v0.1.0...HEAD

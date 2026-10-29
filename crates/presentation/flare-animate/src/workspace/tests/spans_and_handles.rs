@@ -142,7 +142,7 @@ fn copy_then_paste_places_independent_copies_in_place_at_the_current_frame() {
     ws.perform(MenuAction::Copy);
     assert!(ws.is_enabled(MenuAction::Paste));
     ws.set_frame(5);
-    ws.perform(MenuAction::Paste);
+    ws.perform(MenuAction::PasteInPlace);
     assert_eq!(layer_count(&ws), 5);
     let pasted = ws.selection_all();
     assert_eq!(pasted.len(), 2);
@@ -167,8 +167,30 @@ fn copy_then_paste_places_independent_copies_in_place_at_the_current_frame() {
     assert_eq!(layer_count(&ws), 3);
     ws.select_at(Pos2::new(30.0, 30.0), false);
     ws.delete_selection();
-    ws.perform(MenuAction::Paste);
+    ws.perform(MenuAction::PasteInPlace);
     assert_eq!(layer_count(&ws), 5);
+}
+
+#[test]
+fn plain_paste_centers_the_copies_on_the_stage_together_in_place_does_not() {
+    let mut ws = two_rectangles();
+    ws.select_at(Pos2::new(30.0, 30.0), false);
+    ws.perform(MenuAction::Copy);
+    ws.perform(MenuAction::Paste);
+    let scene = ws.scene_id().expect("scene");
+    let pasted = ws.selection_all()[0];
+    let bounds = ops::span_bounds(ws.document(), scene, pasted).expect("bounds");
+    let stage = ws.document().stage();
+    assert!(
+        (bounds.center().x - stage.width() as f32 / 2.0).abs() < 0.01
+            && (bounds.center().y - stage.height() as f32 / 2.0).abs() < 0.01,
+        "centered on the stage: {bounds:?}"
+    );
+    ws.undo();
+    ws.perform(MenuAction::PasteInPlace);
+    let pasted = ws.selection_all()[0];
+    let bounds = ops::span_bounds(ws.document(), scene, pasted).expect("bounds");
+    assert_eq!(bounds.min.x, 10.0, "where it was copied from");
 }
 
 #[test]
