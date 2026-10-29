@@ -15,10 +15,18 @@ pub enum LayerChange {
 pub enum Command {
     AddSymbol(Symbol),
     AddScene(Scene),
-    /// Replaces a symbol's whole timeline (used when leaving in-place symbol editing).
+    /// Replaces a symbol's whole timeline.
     ReplaceSymbolTimeline {
         symbol: SymbolId,
         timeline: Timeline,
+    },
+    /// Leaving in-place symbol editing: replaces `symbol`'s timeline and adds the symbols
+    /// created while editing, as one step. They must go together because artwork may have
+    /// moved from the edited timeline into a new symbol, which is only valid as a whole.
+    MergeSymbolEdit {
+        symbol: SymbolId,
+        timeline: Timeline,
+        new_symbols: Vec<Symbol>,
     },
     SetStage(Stage),
     UpdateLayer {
@@ -82,6 +90,18 @@ pub(crate) fn apply(document: &Document, command: Command) -> Result<Document, E
     match command {
         Command::AddSymbol(symbol) => symbols.push(symbol),
         Command::AddScene(scene) => scenes.push(scene),
+        Command::MergeSymbolEdit {
+            symbol,
+            timeline,
+            new_symbols,
+        } => {
+            symbols.extend(new_symbols);
+            let slot = symbols
+                .iter_mut()
+                .find(|s| s.id() == symbol)
+                .ok_or(EditError::NoSuchSymbol(symbol))?;
+            *slot = Symbol::new(slot.id(), slot.name(), timeline);
+        }
         Command::ReplaceSymbolTimeline { symbol, timeline } => {
             let slot = symbols
                 .iter_mut()

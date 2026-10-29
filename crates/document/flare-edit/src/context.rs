@@ -170,4 +170,48 @@ mod tests {
         assert_eq!(main.apply([missing]), Err(EditError::NoSuchSymbol(ghost)));
         assert!(!main.can_undo(), "failed replacements change nothing");
     }
+
+    #[test]
+    fn merging_moves_artwork_into_a_new_symbol_as_a_single_valid_step() {
+        let (doc, inner, _) = nested();
+        let mut main = EditorSession::new(doc);
+        // The shape inside `inner` moves into a brand-new symbol and `inner` holds an instance of it.
+        let moved = main
+            .document()
+            .symbol(inner)
+            .expect("inner")
+            .timeline()
+            .clone();
+        let fresh = SymbolId::new();
+        let new_symbol = Symbol::new(fresh, "Fresh", moved);
+        let merge = Command::MergeSymbolEdit {
+            symbol: inner,
+            timeline: timeline(instance(fresh)),
+            new_symbols: vec![new_symbol.clone()],
+        };
+        main.apply([merge]).expect("valid as a whole");
+        assert!(main.document().symbol(fresh).is_some());
+        assert!(
+            main.document()
+                .symbol(inner)
+                .expect("inner")
+                .timeline()
+                .referenced_symbols()
+                .any(|s| s == fresh)
+        );
+        // Applied separately the same two edits would each be invalid (duplicate shape, dangling reference).
+        main.undo();
+        let add_first = Command::AddSymbol(new_symbol);
+        assert!(matches!(
+            main.apply([add_first]),
+            Err(EditError::Invalid(_))
+        ));
+        let ghost = SymbolId::new();
+        let bad = Command::MergeSymbolEdit {
+            symbol: ghost,
+            timeline: Timeline::default(),
+            new_symbols: vec![],
+        };
+        assert_eq!(main.apply([bad]), Err(EditError::NoSuchSymbol(ghost)));
+    }
 }

@@ -235,6 +235,11 @@ impl Timeline {
             })
     }
 
+    /// Every symbol this timeline places an instance of (with repeats).
+    pub fn referenced_symbols(&self) -> impl Iterator<Item = SymbolId> + '_ {
+        self.instances().map(Instance::symbol)
+    }
+
     pub(crate) fn instances(&self) -> impl Iterator<Item = &Instance> {
         self.layers
             .iter()
