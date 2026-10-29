@@ -1,0 +1,15 @@
+Benchmark 1: tiny-skia (20 runs)
+                mean     ±       σ          min     …     max
+  Wall Time    830.4 ms  ±    24.7 ms     801.7 ms  …   920.6 ms
+  Memory        65.5 MiB ±     0.1 MiB     65.4 MiB …    65.6 MiB
+ 
+Benchmark 2: vello-cpu (20 runs)
+                mean     ±       σ          min     …     max
+  Wall Time    136.9 ms  ±     4.8 ms     130.2 ms  …   149.4 ms           -83.5%  (6.1x faster)
+  Memory       152.8 MiB ±     5.3 MiB    140.5 MiB …   160.9 MiB         +133.5%  (2.3x more)
+ 
+Benchmark 3: agg (20 runs)
+                mean     ±       σ          min     …     max
+  Wall Time    441.0 ms  ±    16.8 ms     411.7 ms  …   470.7 ms           -46.9%  (1.9x faster)
+  Memory        34.1 MiB ±     0.1 MiB     33.9 MiB …    34.2 MiB          -47.9%  (1.9x less)
+ 

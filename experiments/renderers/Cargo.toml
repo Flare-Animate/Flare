@@ -1,0 +1,19 @@
+[package]
+name = "renderer-bench"
+version = "0.0.0"
+edition = "2024"
+publish = false
+license = "BSD-3-Clause"
+
+# Isolated experiment: its own workspace and lockfile, never part of the product graph.
+[workspace]
+
+[dependencies]
+tiny-skia = "0.12.0"
+vello_cpu = "0.3.0"
+agg-rust = "1.2.0"
+png = "0.18.1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
