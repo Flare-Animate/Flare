@@ -90,9 +90,9 @@ count (100,000) are bounded.
 
 `render` maps document units 1:1 to pixels from the top-left, draws fills then strokes in
 paint order, and returns straight (non-premultiplied) RGBA8. Size is limited to 16384 per
-side and 100 million pixels. Hit testing uses the fill with the same non-zero rule and
-returns candidates topmost first so callers can skip locked layers. Strokes are not
-hit-tested yet.
+side and 100 million pixels. Hit testing counts a fill (same non-zero rule) and a stroke (where it is drawn: round caps
+and joins, width scaled by the transform), so a line or an outline-only shape can be picked.
+It returns candidates topmost first so callers can skip locked layers.
 
 Onion skinning composites translucent copies of neighbouring frames (up to 8 before and
 after, fainter with distance) beneath the current one using straight-alpha source-over

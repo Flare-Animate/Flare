@@ -3255,4 +3255,33 @@ mod tests {
         assert!(ws.take_test_movie_request());
         assert_eq!(ws.label(MenuAction::TestMovie), "Test Movie");
     }
+
+    #[test]
+    fn a_line_can_be_selected_by_clicking_its_stroke_and_moved() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Line);
+        ws.begin_drag(Pos2::new(100.0, 100.0));
+        ws.update_drag(Pos2::new(300.0, 100.0));
+        ws.end_drag();
+        ws.set_tool(Tool::Select);
+        ws.begin_drag(Pos2::new(200.0, 101.0)); // within half the 4px stroke
+        assert!(
+            ws.has_selection(),
+            "a line has no fill, so only its stroke can be clicked"
+        );
+        ws.update_drag(Pos2::new(200.0, 151.0));
+        ws.end_drag();
+        let bounds = ops::span_bounds(
+            ws.document(),
+            ws.scene_id().expect("scene"),
+            ws.selected.expect("selected"),
+        )
+        .expect("bounds");
+        assert!(
+            (bounds.center().y - 150.0).abs() < 1.0,
+            "moved 50 down: {bounds:?}"
+        );
+        ws.begin_drag(Pos2::new(200.0, 400.0));
+        assert!(!ws.has_selection(), "empty space still deselects");
+    }
 }
