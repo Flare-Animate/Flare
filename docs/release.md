@@ -1,5 +1,47 @@
 # Releasing
 
+## What 0.1.0 means
+
+0.1.0 is a **usable early alpha of the core workflow**: a person can draw, animate on a
+timeline, keep several documents open, save and reopen them, trade them with Animate, and export
+the result, on macOS, Windows and Linux. It is not feature parity with Animate. It is released
+when every box below is ticked.
+
+**Scope: what has to work** (all built; each has automated tests unless marked by hand)
+
+- [x] Drawing: the tool set, fills, strokes, gradients, text, undo and redo, copy and paste.
+- [x] Animating: layers, folders, masks, motion guides, keyframes, linear motion tweens, onion
+  skin, playback with sound.
+- [x] A library of symbols and instances placed on the stage.
+- [x] Projects: save, open, revert, recent files, several documents as tabs, autosave and crash
+  recovery.
+- [x] Animate exchange: import and export XFL and FLA, with what is not carried over reported.
+- [x] Output: PNG, GIF and SWF.
+- [x] The same documents from a command line (`flare-cli`) and an MCP server (`flare-mcp`).
+
+**Quality: what has to be true** (checked by machines)
+
+- [x] CI green on `main`: format, lints, tests on Linux, the browser build, the 500-line rule.
+- [x] `cargo audit` reports no vulnerabilities.
+- [x] The command line works end to end on real files (`scripts/tests/test_cli_smoke.py`).
+- [x] Hostile and damaged input is refused, not a crash (property tests, fuzz-style tests).
+- [x] A tagged build produces all six platform packages and verified checksums (run once, green).
+
+**Quality: what has to be true** (checked by a person, see the smoke test below)
+
+- [ ] The smoke test passes by hand on macOS.
+- [ ] The app starts and draws on one Windows and one Linux machine.
+
+**Honesty: what has to be written down**
+
+- [x] Release notes and `CHANGELOG.md` say what 0.1.0 does not do.
+- [x] `SECURITY.md` says how to report a problem and what the dependency audit shows.
+
+**Not in 0.1.0** (shown dimmed in the menus, or listed in the notes): shape tweens, more than
+one scene, scripting and the Commands menu, editable keyboard shortcuts, editable text after it
+is placed, the web build, Developer-ID signing and notarising, an auto-update.
+
+
 Packaging follows the same layout as the other Craft projects: platform files in
 [`packaging/`](../packaging), the build scripts in [`scripts/packaging/`](../scripts/packaging)
 (Python, one per platform), icons in [`assets/`](../assets), and one workflow,

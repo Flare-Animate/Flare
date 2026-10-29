@@ -34,26 +34,27 @@ fn structure_survives_a_round_trip() {
         .map(|s| (s.start(), s.duration().get(), s.tween()))
         .collect();
     assert_eq!(hero, vec![(0, 5, Tween::Linear), (5, 5, Tween::None)]);
-    // A shape with fill and stroke becomes two elements, so two layers with the stroke on top.
+    // A shape with fill and stroke comes back as one shape, not a fill and a line on two layers.
     let names: Vec<&str> = layers.iter().map(|l| l.name()).collect();
-    assert_eq!(
-        names,
-        vec!["Hero", "Hidden (2)", "Hidden", "Gappy", "Blank"]
-    );
+    assert_eq!(names, vec!["Hero", "Hidden", "Gappy", "Blank"]);
+    assert!(!layers[1].is_visible(), "visibility is kept");
+    let Content::Shape(hidden) = layers[1].spans()[0].content() else {
+        panic!("the hidden layer holds a shape");
+    };
     assert!(
-        !layers[1].is_visible() && !layers[2].is_visible(),
-        "visibility is kept on both halves"
+        hidden.stroke().is_some() && hidden.fill().a > 0,
+        "one shape with both its fill and its outline"
     );
     // The gap became explicit empty frames; the empty layer got its single empty frame.
-    let gappy: Vec<_> = layers[3]
+    let gappy: Vec<_> = layers[2]
         .spans()
         .iter()
         .map(|s| (s.start(), s.duration().get()))
         .collect();
     assert_eq!(gappy, vec![(0, 2), (2, 3), (5, 3)]);
-    assert!(matches!(layers[3].spans()[1].content(), Content::Empty));
-    assert!(matches!(layers[4].spans()[0].content(), Content::Empty));
-    assert_eq!(layers[4].spans().len(), 1);
+    assert!(matches!(layers[2].spans()[1].content(), Content::Empty));
+    assert!(matches!(layers[3].spans()[0].content(), Content::Empty));
+    assert_eq!(layers[3].spans().len(), 1);
 }
 
 #[test]

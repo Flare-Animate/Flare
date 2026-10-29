@@ -45,6 +45,11 @@ jobs:
       - name: Tests
         run: cargo test --workspace --locked
 
+      - name: The command line works end to end
+        run: |
+          cargo build -p flare-cli --locked
+          python3 -m unittest discover -s scripts/tests -p 'test_cli_smoke.py' -v
+
       - name: The lock file is up to date
         run: cargo metadata --locked --format-version 1 > /dev/null
 

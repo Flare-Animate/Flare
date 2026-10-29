@@ -1,0 +1,91 @@
+"""End-to-end check of the command line tool: make a project, draw, export, round-trip it through
+Animate's file format and publish it, on the real binary and the real fixtures.
+
+Run after building: `cargo build -p flare-cli`, then
+`python3 -m unittest discover -s scripts/tests -p 'test_cli_smoke.py'`.
+Skipped when the binary has not been built.
+"""
+import json
+import os
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare-cli"))
+FIXTURES = ROOT / "crates/io/flare-import/tests/fixtures"
+
+
+@unittest.skipUnless(CLI.is_file(), f"{CLI} is not built")
+class CommandLineSmoke(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.dir = Path(self.directory.name)
+
+    def run_cli(self, *args, ok=True):
+        done = subprocess.run([str(CLI), *map(str, args)], capture_output=True, text=True)
+        if ok:
+            self.assertEqual(done.returncode, 0, f"{args}: {done.stderr}")
+        else:
+            self.assertNotEqual(done.returncode, 0, f"{args} should have been refused")
+        return done
+
+    def info(self, path):
+        return json.loads(self.run_cli("info", path).stdout)
+
+    def drawn_project(self):
+        project = self.dir / "a.flare"
+        self.run_cli("new", project)
+        self.run_cli("set-stage", project, "--width", 320, "--height", 180, "--background", "202020")
+        self.run_cli("draw-rect", project, "--rect", 20, 20, 100, 60, "--color", "FF6A00",
+                     "--stroke", "000000", "--duration", 12)
+        self.run_cli("frame", "insert-keyframe", project, "--at", 6)
+        return project
+
+    def test_drawing_and_exporting_a_frame(self):
+        project = self.drawn_project()
+        png = self.dir / "out.png"
+        self.run_cli("export", project, png, "--frame", 3)
+        data = png.read_bytes()
+        self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
+        width, height = int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+        self.assertEqual((width, height), (320, 180))
+
+    def test_a_filled_outlined_shape_survives_a_round_trip_through_fla_as_one_layer(self):
+        project = self.drawn_project()
+        fla, back = self.dir / "out.fla", self.dir / "back.flare"
+        self.run_cli("export-xfl", project, fla)
+        self.run_cli("import", fla, back)
+        layers = self.info(back)["scenes"][0]["layers"]
+        self.assertEqual([(l["name"], l["spans"]) for l in layers], [("Layer 1", 2)])
+        # Exporting never overwrites what is there.
+        self.run_cli("export-xfl", project, fla, ok=False)
+
+    def test_publishing_a_swf(self):
+        project = self.drawn_project()
+        swf = self.dir / "out.swf"
+        self.run_cli("publish-swf", project, swf)
+        self.assertIn(swf.read_bytes()[:3], (b"CWS", b"FWS", b"ZWS"))
+
+    def test_real_files_import_and_render(self):
+        for name in ("sample.fla", "handmade.fla"):
+            project = self.dir / (name + ".flare")
+            self.run_cli("import", FIXTURES / name, project)
+            self.run_cli("export", project, self.dir / (name + ".png"))
+            self.assertGreater((self.dir / (name + ".png")).stat().st_size, 100)
+
+    def test_bad_input_is_refused_not_a_crash(self):
+        project = self.drawn_project()
+        self.run_cli("info", self.dir / "missing.flare", ok=False)
+        self.run_cli("draw-rect", project, "--rect", 0, 0, -5, 10, ok=False)
+        self.run_cli("export", project, self.dir / "x.png", "--width", 99999999, ok=False)
+        junk = self.dir / "junk.fla"
+        junk.write_bytes(b"PK\x03\x04 not really a zip")
+        refused = self.run_cli("import", junk, self.dir / "j.flare", ok=False)
+        self.assertNotIn("panicked", refused.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

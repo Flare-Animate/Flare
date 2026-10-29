@@ -121,6 +121,8 @@ impl Importer {
         }
 
         let mut out = Vec::new();
+        // Strokes that became the outline of a fill, so they are not drawn a second time.
+        let mut outlines: std::collections::HashSet<u32> = std::collections::HashSet::new();
         for (index, segments) in fill_edges {
             let Some(Some(color)) = fills.get(&index).copied() else {
                 continue;
@@ -129,9 +131,29 @@ impl Importer {
             if contours.iter().any(|c| !c.closed) {
                 self.note(Severity::Info, place, "an open fill outline was closed");
             }
-            self.push_shape(&mut out, &contours, color, None, true, place);
+            // A stroke along exactly the fill's edges is its outline: one shape, as drawn here,
+            // rather than a fill and a line on a layer of their own.
+            let outline = stroke_edges
+                .iter()
+                .filter(|(i, _)| !outlines.contains(*i))
+                .find(|(i, s)| matches!(strokes.get(*i), Some(Some(_))) && same_edges(&segments, s))
+                .and_then(|(i, _)| strokes.get(i).copied().flatten().map(|spec| (*i, spec)));
+            if let Some((i, _)) = outline {
+                outlines.insert(i);
+            }
+            self.push_shape(
+                &mut out,
+                &contours,
+                color,
+                outline.map(|(_, spec)| spec),
+                true,
+                place,
+            );
         }
         for (index, segments) in stroke_edges {
+            if outlines.contains(&index) {
+                continue;
+            }
             let Some(Some((weight, color, cap, join))) = strokes.get(&index).copied() else {
                 continue;
             };
@@ -212,4 +234,35 @@ impl Importer {
             ),
         }
     }
+}
+
+/// Whether two sets of edges are the same lines and curves, whichever way each is traversed.
+fn same_edges(a: &[Segment], b: &[Segment]) -> bool {
+    fn key(segment: &Segment) -> [u64; 7] {
+        let bits = |(x, y): edges::Point| [x.to_bits(), y.to_bits()];
+        let order =
+            |p: edges::Point, q: edges::Point| p.0.total_cmp(&q.0).then(p.1.total_cmp(&q.1));
+        let (from, to) = (segment.from(), segment.to());
+        let (first, last) = if order(from, to).is_le() {
+            (from, to)
+        } else {
+            (to, from)
+        };
+        let (kind, ctrl) = match *segment {
+            Segment::Line { .. } => (0, (0.0, 0.0)),
+            Segment::Quad { ctrl, .. } => (1, ctrl),
+        };
+        let [a0, a1] = bits(first);
+        let [b0, b1] = bits(last);
+        let [c0, c1] = bits(ctrl);
+        [kind, a0, a1, b0, b1, c0, c1]
+    }
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut left: Vec<[u64; 7]> = a.iter().map(key).collect();
+    let mut right: Vec<[u64; 7]> = b.iter().map(key).collect();
+    left.sort_unstable();
+    right.sort_unstable();
+    left == right
 }
