@@ -251,11 +251,7 @@ impl Workspace {
             ui.add_space(self.titlebar_inset.max(10.0));
             let home = ui
                 .horizontal(|ui| {
-                    ui.add(flare_ui::icons::image(
-                        "flare-mark",
-                        16.0,
-                        flare_ui::theme::FLAME,
-                    ));
+                    ui.add(flare_ui::icons::image("home", 16.0, flare_ui::theme::TEXT));
                     ui.label(
                         egui::RichText::new("Flare")
                             .strong()
