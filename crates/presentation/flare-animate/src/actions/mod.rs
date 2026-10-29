@@ -37,6 +37,7 @@ pub enum MenuAction {
     ExitSymbol,
     ToolSelect,
     ToolSubselection,
+    ToolFreeTransform,
     ToolRectangle,
     ToolEllipse,
     ToolLine,
@@ -94,7 +95,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 79] = [
+    pub const ALL: [MenuAction; 80] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -120,6 +121,7 @@ impl MenuAction {
         Self::ExitSymbol,
         Self::ToolSelect,
         Self::ToolSubselection,
+        Self::ToolFreeTransform,
         Self::ToolRectangle,
         Self::ToolEllipse,
         Self::ToolLine,

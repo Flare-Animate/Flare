@@ -69,6 +69,7 @@ impl MenuAction {
         Some(match self {
             Self::ToolSelect => "V",
             Self::ToolSubselection => "A",
+            Self::ToolFreeTransform => "Q",
             Self::ToolPen => "P",
             Self::ToolText => "T",
             Self::ToolHand => "H",
@@ -108,6 +109,7 @@ impl MenuAction {
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",
+            Self::ToolFreeTransform => "tool-transform",
             Self::Group => "group",
             Self::Ungroup => "ungroup",
             Self::BreakApart => "break-apart",

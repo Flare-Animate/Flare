@@ -214,6 +214,7 @@ fn copying_nothing_or_an_empty_span_keeps_the_clipboard() {
 #[test]
 fn dragging_a_corner_handle_scales_the_selection_about_the_opposite_corner() {
     let mut ws = two_rectangles();
+    ws.set_tool(Tool::FreeTransform);
     ws.select_at(Pos2::new(30.0, 30.0), false);
     ws.begin_drag(Pos2::new(50.0, 50.0)); // the bottom-right handle
     assert!(matches!(
@@ -239,6 +240,7 @@ fn dragging_a_corner_handle_scales_the_selection_about_the_opposite_corner() {
 #[test]
 fn handles_of_a_group_scale_every_member_about_the_group_anchor() {
     let mut ws = two_rectangles();
+    ws.set_tool(Tool::FreeTransform);
     ws.select_at(Pos2::new(30.0, 30.0), false);
     ws.select_at(Pos2::new(120.0, 30.0), true);
     // The group spans x 10..140; the right handle sits at (140, 30).
@@ -253,6 +255,7 @@ fn handles_of_a_group_scale_every_member_about_the_group_anchor() {
 #[test]
 fn shift_keeps_proportions_and_pressing_off_a_handle_still_moves() {
     let mut ws = two_rectangles();
+    ws.set_tool(Tool::FreeTransform);
     ws.select_at(Pos2::new(30.0, 30.0), false);
     ws.uniform_scale = true;
     ws.begin_drag(Pos2::new(50.0, 50.0));
@@ -270,6 +273,7 @@ fn shift_keeps_proportions_and_pressing_off_a_handle_still_moves() {
 #[test]
 fn a_cancelled_scale_changes_nothing_and_shift_press_never_grabs_a_handle() {
     let mut ws = two_rectangles();
+    ws.set_tool(Tool::FreeTransform);
     ws.select_at(Pos2::new(30.0, 30.0), false);
     ws.begin_drag(Pos2::new(50.0, 50.0));
     ws.update_drag(Pos2::new(90.0, 90.0));
@@ -396,4 +400,29 @@ fn panning_changes_the_texture_view_but_not_the_document() {
         "{before:?} then {after:?}"
     );
     assert_eq!(after.size, before.size);
+}
+
+#[test]
+fn only_the_free_transform_tool_grabs_handles_and_both_select_by_clicking() {
+    let mut ws = two_rectangles();
+    ws.select_at(Pos2::new(30.0, 30.0), false);
+    // With the selection tool the corner is just part of the shape: pressing near it moves it.
+    ws.begin_drag(Pos2::new(46.0, 46.0));
+    assert!(matches!(ws.drag.map(|d| d.mode), Some(DragMode::Move)));
+    ws.end_drag();
+    ws.set_tool(Tool::FreeTransform);
+    ws.begin_drag(Pos2::new(50.0, 50.0));
+    assert!(matches!(
+        ws.drag.map(|d| d.mode),
+        Some(DragMode::Scale(Handle::BottomRight))
+    ));
+    ws.cancel_drag();
+    // It still picks what is under the pointer.
+    ws.begin_drag(Pos2::new(120.0, 30.0));
+    ws.end_drag();
+    assert_eq!(ws.selection_all().len(), 1);
+    assert_eq!(ws.label(MenuAction::ToolFreeTransform), "Free Transform");
+    ws.perform(MenuAction::ToolSelect);
+    ws.perform(MenuAction::ToolFreeTransform);
+    assert_eq!(ws.tool(), Tool::FreeTransform);
 }

@@ -17,7 +17,12 @@ const TOOL_GRID: &[(&str, &str, &str, Option<Tool>)] = &[
         "A",
         Some(Tool::Subselection),
     ),
-    ("tool-transform", "Free Transform", "Q", None),
+    (
+        "tool-transform",
+        "Free Transform",
+        "Q",
+        Some(Tool::FreeTransform),
+    ),
     ("tool-lasso", "Lasso", "L", Some(Tool::Lasso)),
     ("tool-pen", "Pen", "P", Some(Tool::Pen)),
     ("tool-text", "Text", "T", Some(Tool::Text)),
@@ -117,6 +122,7 @@ impl Workspace {
         let (icon, title) = match self.tool {
             Tool::Select => return,
             Tool::Subselection => ("tool-subselection", "Subselection"),
+            Tool::FreeTransform => ("tool-transform", "Free Transform"),
             Tool::Rectangle => ("tool-rectangle", "Rectangle"),
             Tool::Ellipse => ("tool-oval", "Oval"),
             Tool::Line => ("tool-line", "Line"),
@@ -251,6 +257,9 @@ impl Workspace {
             Tool::Subselection => {
                 ui.weak("Click a shape, then drag its square points to reshape it.");
             }
+            Tool::FreeTransform => {
+                ui.weak("Drag a handle to scale, outside a corner to rotate; Alt on an edge handle skews, Shift keeps proportions.");
+            }
         }
     }
 
@@ -259,6 +268,7 @@ impl Workspace {
         match self.tool {
             Tool::Select => "Selection: click to select, drag to move, Shift-click to add",
             Tool::Subselection => "Subselection: click a shape, drag its points",
+            Tool::FreeTransform => "Free Transform: drag the handles to scale, rotate or skew",
             Tool::Rectangle => "Rectangle: drag on the stage",
             Tool::Ellipse => "Oval: drag on the stage",
             Tool::Line => "Line: drag on the stage",

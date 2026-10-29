@@ -37,8 +37,10 @@ impl Workspace {
                 self.begin_anchor_drag(point);
                 None
             }
-            Tool::Select => {
-                let grabbed = if additive {
+            Tool::Select | Tool::FreeTransform => {
+                // Only the free transform tool shows and grabs the handles.
+                let transforming = self.tool == Tool::FreeTransform;
+                let grabbed = if additive || !transforming {
                     None
                 } else {
                     self.selection_bounds()
@@ -60,6 +62,7 @@ impl Workspace {
                     return;
                 }
                 if !additive
+                    && transforming
                     && let Some(bounds) = self.selection_bounds()
                     && handles::in_rotate_zone(bounds, point, self.handle_radius)
                 {

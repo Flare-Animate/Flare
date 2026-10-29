@@ -32,14 +32,13 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 
 Still planned (everything else in the menus and panels is built):
 
-- Tools: Free Transform.
 - Properties: stroke cap and join, text style.
 - Library: folders, a preview of the symbol.
-- History panel: the list of edits and jumping to one.
 - Timeline: onion-skin outlines, layer folders, motion guides, the outline column.
 - View: guides and outline mode.
-- File: New, Close, Open Recent, Save All, Revert, Export Movie, Publish Settings, Import to Stage
-  and Library, and Preferences (one document per window until multi-document tabs exist).
+- File: Open Recent, Save All, Export Movie, Publish Settings, Import to Stage and Library, and
+  Preferences (New, Close and Revert work on the one document a window holds until multi-document
+  tabs exist).
 - Edit, Modify, Text, Commands and Help entries listed dimmed in the menus.
 
 ## Top bar

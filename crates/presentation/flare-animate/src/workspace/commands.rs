@@ -65,6 +65,7 @@ impl Workspace {
             MenuAction::ExitSymbol => self.in_symbol(),
             MenuAction::ToolSelect
             | MenuAction::ToolSubselection
+            | MenuAction::ToolFreeTransform
             | MenuAction::ToolRectangle
             | MenuAction::ToolEllipse
             | MenuAction::ToolLine
@@ -148,6 +149,7 @@ impl Workspace {
             MenuAction::PublishSwf => "Publish SWF...",
             MenuAction::DocumentSettings => "Document Settings...",
             MenuAction::ToolSubselection => "Subselection",
+            MenuAction::ToolFreeTransform => "Free Transform",
             MenuAction::EditSymbol => "Edit Symbol",
             MenuAction::ExitSymbol => "Exit Symbol",
             MenuAction::ToolSelect => "Select / Move",
@@ -317,6 +319,7 @@ impl Workspace {
                 self.show_pane(Pane::Properties);
             }
             MenuAction::ToolSubselection => self.set_tool(Tool::Subselection),
+            MenuAction::ToolFreeTransform => self.set_tool(Tool::FreeTransform),
             MenuAction::EditSymbol => self.edit_selected_symbol(),
             MenuAction::ExitSymbol => {
                 self.exit_symbol();

@@ -279,6 +279,7 @@ fn a_selection_made_stale_by_an_edit_is_dropped_on_the_next_frame_not_kept() {
 #[test]
 fn dragging_outside_a_corner_rotates_the_selection_about_its_center() {
     let mut ws = wide_rectangle_selected();
+    ws.set_tool(Tool::FreeTransform);
     ws.begin_drag(Pos2::new(120.0, 70.0)); // just outside the bottom-right corner
     assert_eq!(ws.drag.map(|d| d.mode), Some(DragMode::Rotate));
     // The pointer is 30.26 degrees clockwise of the center's right; turn it a quarter.
@@ -300,6 +301,7 @@ fn dragging_outside_a_corner_rotates_the_selection_about_its_center() {
 #[test]
 fn shift_snaps_a_rotation_and_a_cancelled_one_changes_nothing() {
     let mut ws = wide_rectangle_selected();
+    ws.set_tool(Tool::FreeTransform);
     ws.uniform_scale = true;
     ws.begin_drag(Pos2::new(120.0, 70.0));
     // About 36 degrees: snapped to 30.
@@ -318,6 +320,7 @@ fn shift_snaps_a_rotation_and_a_cancelled_one_changes_nothing() {
 #[test]
 fn alt_makes_an_edge_handle_skew_and_corners_still_scale() {
     let mut ws = wide_rectangle_selected();
+    ws.set_tool(Tool::FreeTransform);
     ws.skew_modifier = true;
     ws.begin_drag(Pos2::new(110.0, 60.0)); // the bottom-right corner
     assert_eq!(

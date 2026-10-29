@@ -208,6 +208,7 @@ pub(super) enum ColorTarget {
 pub(super) const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::V, Tool::Select),
     (Key::A, Tool::Subselection),
+    (Key::Q, Tool::FreeTransform),
     (Key::P, Tool::Pen),
     (Key::T, Tool::Text),
     (Key::N, Tool::Line),
@@ -302,6 +303,8 @@ pub enum Tool {
     Lasso,
     /// Select a shape, then drag its points to reshape it.
     Subselection,
+    /// Select, then scale, rotate or skew by the handles around the selection.
+    FreeTransform,
     /// Drag to draw a smoothed line in the stroke color and width.
     Pencil,
     /// Drag to paint a thick round stroke in the fill color.

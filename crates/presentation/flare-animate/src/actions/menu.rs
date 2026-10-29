@@ -177,6 +177,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         &[
             Action(A::ToolSelect),
             Action(A::ToolSubselection),
+            Action(A::ToolFreeTransform),
             Action(A::ToolLasso),
             Action(A::ToolPen),
             Action(A::ToolText),

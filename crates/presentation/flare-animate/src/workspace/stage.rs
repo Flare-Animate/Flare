@@ -254,7 +254,10 @@ impl Workspace {
         }
         // A plain click with the select tool also selects (or clears the selection).
         if response.clicked()
-            && matches!(self.tool, Tool::Select | Tool::Subselection)
+            && matches!(
+                self.tool,
+                Tool::Select | Tool::Subselection | Tool::FreeTransform
+            )
             && let Some(p) = response.interact_pointer_pos()
         {
             self.select_at(to_doc(p), additive);
@@ -350,7 +353,7 @@ impl Workspace {
                 painter.rect_stroke(square, 1.0, ink, StrokeKind::Outside);
             }
         }
-        if self.tool == Tool::Select
+        if self.tool == Tool::FreeTransform
             && let Some(bounds) = self.selection_bounds()
         {
             // The handles follow a move in progress, or show the scaled result of a scale.
