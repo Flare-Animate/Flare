@@ -7,6 +7,7 @@
 
 use egui::{Align, Color32, Layout, RichText, Ui, Vec2};
 
+use super::TransformEdit;
 use super::{
     ColorTarget, Command, Layer, LayerId, MAX_ONION_FRAMES, Mode, SymbolId, Tool, Workspace,
 };
@@ -132,8 +133,16 @@ impl Workspace {
         });
         ui.horizontal(|ui| {
             ui.add_space(((ui.available_width() - 70.0) / 2.0).max(0.0));
-            chrome::mock_icon_button(ui, "default-colors", 12.0, "Black and white");
-            chrome::mock_icon_button(ui, "swap-colors", 12.0, "Swap fill and stroke");
+            if chrome::icon_button(ui, "default-colors", 12.0, false, true, "Black and white")
+                .clicked()
+            {
+                self.default_colors();
+            }
+            if chrome::icon_button(ui, "swap-colors", 12.0, false, true, "Swap fill and stroke")
+                .clicked()
+            {
+                self.swap_colors();
+            }
         });
     }
 
@@ -469,7 +478,19 @@ impl Workspace {
         ui.add_space(4.0);
         chrome::row(ui, "Hex", |ui| {
             let c = *target;
-            chrome::mock_number(ui, &format!("#{:02X}{:02X}{:02X}", c.r(), c.g(), c.b()), "");
+            let current = format!("#{:02X}{:02X}{:02X}", c.r(), c.g(), c.b());
+            let mut text = self.hex_buffer.clone().unwrap_or_else(|| current.clone());
+            let response = ui.add(egui::TextEdit::singleline(&mut text).desired_width(80.0));
+            if response.changed() {
+                if let Some(parsed) = parse_hex(&text) {
+                    *target =
+                        Color32::from_rgba_unmultiplied(parsed.r(), parsed.g(), parsed.b(), c.a());
+                }
+                self.hex_buffer = Some(text);
+            }
+            if !response.has_focus() {
+                self.hex_buffer = None;
+            }
         });
         ui.add_space(4.0);
         ui.weak("Swatches");
@@ -516,64 +537,140 @@ impl Workspace {
                 BAR_ICON,
                 "Pick a color from the stage",
             );
-            chrome::mock_icon_button(ui, "no-color", BAR_ICON, "No color");
+            if chrome::icon_button(ui, "no-color", BAR_ICON, false, true, "No color").clicked() {
+                match self.color_target {
+                    ColorTarget::Fill => self.fill = Color32::TRANSPARENT,
+                    ColorTarget::Stroke => self.stroke_color = Color32::TRANSPARENT,
+                }
+            }
         });
     }
 
     // ---- align -------------------------------------------------------------------------
 
     pub(super) fn align_panel(&mut self, ui: &mut Ui) {
+        use crate::ops::Align;
         chrome::section(ui, "panel-align", "Align");
+        let has = self.has_selection();
         for group in [
             [
-                ("align-left", "Align left edges"),
-                ("align-center-h", "Align horizontal centers"),
-                ("align-right", "Align right edges"),
+                ("align-left", "Align left edges", Align::Left),
+                ("align-center-h", "Align horizontal centers", Align::CenterH),
+                ("align-right", "Align right edges", Align::Right),
             ],
             [
-                ("align-top", "Align top edges"),
-                ("align-center-v", "Align vertical centers"),
-                ("align-bottom", "Align bottom edges"),
+                ("align-top", "Align top edges", Align::Top),
+                ("align-center-v", "Align vertical centers", Align::CenterV),
+                ("align-bottom", "Align bottom edges", Align::Bottom),
             ],
         ] {
             ui.horizontal(|ui| {
-                for (icon, hint) in group {
-                    chrome::mock_icon_button(ui, icon, BAR_ICON, hint);
+                for (icon, hint, how) in group {
+                    if chrome::icon_button(ui, icon, BAR_ICON, false, has, hint).clicked() {
+                        self.align_selection(how);
+                    }
                 }
             });
         }
         chrome::section(ui, "distribute-h", "Distribute");
+        let three = self.selection_all().len() >= 3;
         ui.horizontal(|ui| {
-            chrome::mock_icon_button(ui, "distribute-h", BAR_ICON, "Distribute horizontally");
-            chrome::mock_icon_button(ui, "distribute-v", BAR_ICON, "Distribute vertically");
+            if chrome::icon_button(
+                ui,
+                "distribute-h",
+                BAR_ICON,
+                false,
+                three,
+                "Distribute horizontally",
+            )
+            .clicked()
+            {
+                self.distribute_selection(true);
+            }
+            if chrome::icon_button(
+                ui,
+                "distribute-v",
+                BAR_ICON,
+                false,
+                three,
+                "Distribute vertically",
+            )
+            .clicked()
+            {
+                self.distribute_selection(false);
+            }
         });
         chrome::section(ui, "bring-front", "Arrange");
         ui.horizontal(|ui| {
-            chrome::mock_icon_button(ui, "bring-front", BAR_ICON, "Bring to front");
-            chrome::mock_icon_button(ui, "send-back", BAR_ICON, "Send to back");
+            if chrome::icon_button(ui, "bring-front", BAR_ICON, false, has, "Bring to front")
+                .clicked()
+            {
+                self.arrange_selection(true);
+            }
+            if chrome::icon_button(ui, "send-back", BAR_ICON, false, has, "Send to back").clicked()
+            {
+                self.arrange_selection(false);
+            }
             chrome::mock_icon_button(ui, "group", BAR_ICON, "Group");
             chrome::mock_icon_button(ui, "ungroup", BAR_ICON, "Ungroup");
         });
         ui.add_space(6.0);
-        let mut to_stage = self.align_to_stage;
-        ui.add_enabled(false, egui::Checkbox::new(&mut to_stage, "Align to stage"))
-            .on_disabled_hover_text(NOT_YET);
+        ui.checkbox(&mut self.align_to_stage, "Align to stage");
     }
 
     // ---- transform ---------------------------------------------------------------------
 
     pub(super) fn transform_panel(&mut self, ui: &mut Ui) {
         chrome::section(ui, "panel-transform", "Transform");
-        chrome::row(ui, "Scale", |ui| {
-            chrome::mock_number(ui, "100", "%");
-            chrome::mock_number(ui, "100", "%");
+        let has = self.has_selection();
+        let edit = &mut self.transform_edit;
+        ui.add_enabled_ui(has, |ui| {
+            chrome::row(ui, "Scale", |ui| {
+                ui.add(
+                    egui::DragValue::new(&mut edit.scale_x)
+                        .range(1.0..=10_000.0)
+                        .suffix("%"),
+                );
+                ui.add(
+                    egui::DragValue::new(&mut edit.scale_y)
+                        .range(1.0..=10_000.0)
+                        .suffix("%"),
+                );
+            });
+            chrome::row(ui, "Rotate", |ui| {
+                ui.add(
+                    egui::DragValue::new(&mut edit.rotate)
+                        .range(-360.0..=360.0)
+                        .suffix("\u{b0}"),
+                );
+            });
+            chrome::row(ui, "Skew", |ui| {
+                ui.add(
+                    egui::DragValue::new(&mut edit.skew_x)
+                        .range(-80.0..=80.0)
+                        .suffix("\u{b0}"),
+                );
+                ui.add(
+                    egui::DragValue::new(&mut edit.skew_y)
+                        .range(-80.0..=80.0)
+                        .suffix("\u{b0}"),
+                );
+            });
         });
-        chrome::row(ui, "Rotate", |ui| {
-            chrome::mock_number(ui, "0", "\u{b0}");
-        });
-        chrome::row(ui, "Skew", |ui| {
-            chrome::mock_number(ui, "0", "\u{b0}");
-            chrome::mock_number(ui, "0", "\u{b0}");
+        let changed = self.transform_edit != TransformEdit::default();
+        ui.horizontal(|ui| {
+            if ui
+                .add_enabled(has && changed, egui::Button::new("Apply"))
+                .clicked()
+            {
+                self.apply_transform_edit();
+            }
+            if ui
+                .add_enabled(changed, egui::Button::new("Reset"))
+                .clicked()
+            {
+                self.transform_edit = TransformEdit::default();
+            }
         });
         chrome::section(ui, "rotate-cw", "Quick transforms");
         let enabled = self.has_selection();
@@ -961,5 +1058,48 @@ impl Workspace {
         let wanted = (percent / 100.0).max(0.001);
         self.stage_view
             .zoom_center(wanted / current.max(f32::EPSILON), self.stage_panel, extent);
+    }
+}
+
+/// `#RRGGBB` or `RRGGBB` (also three-digit `#RGB`) as an opaque color.
+fn parse_hex(text: &str) -> Option<Color32> {
+    let digits = text.trim().trim_start_matches('#');
+    let expand = |s: &str| u8::from_str_radix(s, 16).ok();
+    match digits.len() {
+        6 => Some(Color32::from_rgb(
+            expand(&digits[0..2])?,
+            expand(&digits[2..4])?,
+            expand(&digits[4..6])?,
+        )),
+        3 => {
+            let d = |i: usize| expand(&digits[i..=i]).map(|v| v * 17);
+            Some(Color32::from_rgb(d(0)?, d(1)?, d(2)?))
+        }
+        _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_hex;
+    use egui::Color32;
+
+    #[test]
+    fn hex_colors_parse_with_or_without_the_hash_and_reject_junk() {
+        assert_eq!(
+            parse_hex("#E8453C"),
+            Some(Color32::from_rgb(0xe8, 0x45, 0x3c))
+        );
+        assert_eq!(
+            parse_hex("e8453c"),
+            Some(Color32::from_rgb(0xe8, 0x45, 0x3c))
+        );
+        assert_eq!(
+            parse_hex(" #fa0 "),
+            Some(Color32::from_rgb(0xff, 0xaa, 0x00))
+        );
+        assert_eq!(parse_hex("#12"), None);
+        assert_eq!(parse_hex("#GGGGGG"), None);
+        assert_eq!(parse_hex("#é1234"), None);
     }
 }

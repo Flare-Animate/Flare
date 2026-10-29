@@ -78,6 +78,52 @@ pub enum WindowRequest {
     ToggleMaximize,
 }
 
+/// The numbers on the Transform panel: scale in percent, rotation and skew in degrees.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct TransformEdit {
+    scale_x: f32,
+    scale_y: f32,
+    rotate: f32,
+    skew_x: f32,
+    skew_y: f32,
+}
+
+impl Default for TransformEdit {
+    fn default() -> Self {
+        Self {
+            scale_x: 100.0,
+            scale_y: 100.0,
+            rotate: 0.0,
+            skew_x: 0.0,
+            skew_y: 0.0,
+        }
+    }
+}
+
+impl TransformEdit {
+    /// The matrix these numbers describe, taken about `center`; `None` for the identity or a
+    /// scale that would collapse the art.
+    fn matrix(self, center: Pos2) -> Option<DAffine2> {
+        if self == Self::default() || self.scale_x.abs() < 0.01 || self.scale_y.abs() < 0.01 {
+            return None;
+        }
+        let c = DVec2::new(f64::from(center.x), f64::from(center.y));
+        let linear = DAffine2::from_angle(f64::from(self.rotate.to_radians()))
+            * DAffine2::from_mat2_translation(
+                glamx::DMat2::from_cols(
+                    DVec2::new(1.0, f64::from(self.skew_y.to_radians().tan())),
+                    DVec2::new(f64::from(self.skew_x.to_radians().tan()), 1.0),
+                ),
+                DVec2::ZERO,
+            )
+            * DAffine2::from_scale(DVec2::new(
+                f64::from(self.scale_x / 100.0),
+                f64::from(self.scale_y / 100.0),
+            ));
+        Some(DAffine2::from_translation(c) * linear * DAffine2::from_translation(-c))
+    }
+}
+
 /// Height of the top bar, and of the integrated one: macOS centers its window buttons 14 px
 /// from the top and the shell cannot move them, so the bar they float over is as tall as the
 /// system title bar it replaces.
@@ -341,6 +387,10 @@ pub struct Workspace {
     color_target: ColorTarget,
     /// Align panel option (not wired up yet).
     align_to_stage: bool,
+    /// Scale (percent), rotation and skew (degrees) typed into the Transform panel.
+    transform_edit: TransformEdit,
+    /// The hex field in the Color panel while it is being typed in.
+    hex_buffer: Option<String>,
     /// Where the pointer is over the stage, in stage units.
     pointer_stage: Option<Pos2>,
     /// The theme and icon loaders have been installed on the egui context.
@@ -463,6 +513,8 @@ impl Workspace {
             selected: None,
             color_target: ColorTarget::Fill,
             align_to_stage: false,
+            transform_edit: TransformEdit::default(),
+            hex_buffer: None,
             pointer_stage: None,
             chrome_ready: false,
             decoded: HashMap::new(),
@@ -2548,6 +2600,125 @@ impl Workspace {
         if !commands.is_empty() {
             self.run_batch(commands, "move");
         }
+    }
+
+    /// Moves the selection so its shapes line up on one another's extent, or on the stage when
+    /// "Align to stage" is on, as one undo step.
+    pub fn align_selection(&mut self, how: ops::Align) {
+        let Some((scene, spans, rects)) = self.selection_with_bounds() else {
+            return;
+        };
+        let target = if self.align_to_stage {
+            Rect::from_min_size(Pos2::ZERO, self.stage_extent())
+        } else {
+            rects
+                .iter()
+                .copied()
+                .reduce(|a, b| a.union(b))
+                .unwrap_or(Rect::NOTHING)
+        };
+        let deltas = ops::align_deltas(&rects, how, target);
+        self.move_each(scene, &spans, &deltas);
+    }
+
+    /// Spaces three or more selected shapes evenly along an axis.
+    pub fn distribute_selection(&mut self, horizontal: bool) {
+        let Some((scene, spans, rects)) = self.selection_with_bounds() else {
+            return;
+        };
+        if spans.len() < 3 {
+            self.report("Distributing needs at least three shapes selected");
+            return;
+        }
+        let deltas = ops::distribute_deltas(&rects, horizontal);
+        self.move_each(scene, &spans, &deltas);
+    }
+
+    /// Selected spans that have bounds, with those bounds, in selection order.
+    fn selection_with_bounds(&self) -> Option<(SceneId, Vec<SpanRef>, Vec<Rect>)> {
+        let scene = self.scene_id()?;
+        let (spans, rects): (Vec<_>, Vec<_>) = self
+            .selection_all()
+            .into_iter()
+            .filter_map(|at| Some((at, ops::span_bounds(self.document(), scene, at)?)))
+            .unzip();
+        (!spans.is_empty()).then_some((scene, spans, rects))
+    }
+
+    fn move_each(&mut self, scene: SceneId, spans: &[SpanRef], deltas: &[Vec2]) {
+        let commands: Vec<Command> = spans
+            .iter()
+            .zip(deltas)
+            .filter_map(|(at, d)| {
+                ops::translate(
+                    self.document(),
+                    scene,
+                    *at,
+                    DVec2::new(f64::from(d.x), f64::from(d.y)),
+                )
+            })
+            .flatten()
+            .collect();
+        if !commands.is_empty() {
+            self.run_batch(commands, "align");
+        }
+    }
+
+    /// Moves the selected shapes' layers to the top (`front`) or the bottom of the stack,
+    /// keeping their order among themselves, as one undo step.
+    pub fn arrange_selection(&mut self, front: bool) {
+        let Some(scene) = self.scene_id() else { return };
+        let Some(timeline) = self.document().scenes().first().map(|s| s.timeline()) else {
+            return;
+        };
+        let count = timeline.layers().len();
+        let mut positions: Vec<(usize, LayerId)> = self
+            .selection_all()
+            .iter()
+            .filter_map(|at| {
+                let p = timeline.layers().iter().position(|l| l.id() == at.layer)?;
+                Some((p, at.layer))
+            })
+            .collect();
+        positions.sort();
+        positions.dedup();
+        if front {
+            positions.reverse();
+        }
+        let commands: Vec<Command> = positions
+            .into_iter()
+            .map(|(_, layer)| Command::MoveLayer {
+                scene,
+                layer,
+                index: if front { 0 } else { count.saturating_sub(1) },
+            })
+            .collect();
+        if !commands.is_empty() {
+            self.run_batch(commands, "arrange");
+        }
+    }
+
+    /// Applies the Transform panel's numbers to the selection about the center of its bounds
+    /// and resets them, as one undo step.
+    pub fn apply_transform_edit(&mut self) {
+        let Some(bounds) = self.selection_bounds() else {
+            return;
+        };
+        if let Some(matrix) = self.transform_edit.matrix(bounds.center()) {
+            self.apply_to_selection(matrix);
+        }
+        self.transform_edit = TransformEdit::default();
+    }
+
+    /// Swaps the fill and stroke colors.
+    pub fn swap_colors(&mut self) {
+        std::mem::swap(&mut self.fill, &mut self.stroke_color);
+    }
+
+    /// Black stroke, white fill.
+    pub fn default_colors(&mut self) {
+        self.stroke_color = Color32::BLACK;
+        self.fill = Color32::WHITE;
     }
 
     /// Applies `matrix` to every selected span about the center of the selection's bounds, as
@@ -7775,5 +7946,110 @@ mod tests {
         ws.perform(MenuAction::ActualSize);
         let scale = ws.stage_view.scale(ws.stage_panel, ws.stage_extent());
         assert!((scale - 1.0).abs() < 1e-3, "{scale}");
+    }
+
+    #[test]
+    fn align_distribute_and_arrange_move_the_selection_in_one_undo_step() {
+        let mut ws = workspace();
+        for x in [10.0, 100.0, 400.0] {
+            ws.commit_rectangle(
+                Pos2::new(x, 10.0 + x / 10.0),
+                Pos2::new(x + 40.0, 60.0 + x / 10.0),
+            );
+        }
+        ws.perform(MenuAction::SelectAll);
+        assert_eq!(ws.selection_all().len(), 3);
+        ws.align_selection(ops::Align::Left);
+        let lefts = |ws: &Workspace| -> Vec<f32> {
+            (1..=3)
+                .map(|l| {
+                    let at = SpanRef {
+                        layer: ws.document().scenes()[0].timeline().layers()[l].id(),
+                        start: 0,
+                    };
+                    ops::span_bounds(ws.document(), ws.scene_id().expect("scene"), at)
+                        .expect("bounds")
+                        .left()
+                })
+                .collect()
+        };
+        assert!(
+            lefts(&ws).iter().all(|x| (x - 10.0).abs() < 1e-3),
+            "{:?}",
+            lefts(&ws)
+        );
+        ws.undo();
+        assert_eq!(lefts(&ws).len(), 3);
+        assert!((lefts(&ws)[2] - 400.0).abs() < 1e-3);
+        ws.distribute_selection(true);
+        let spread = lefts(&ws);
+        // 40 wide each, first at 10, last ending at 440: gaps of 155.
+        assert!((spread[1] - 205.0).abs() < 1e-3, "{spread:?}");
+        // Stage alignment centers on the stage instead of the selection.
+        ws.align_to_stage = true;
+        ws.align_selection(ops::Align::CenterH);
+        let center = ws.stage_extent().x / 2.0;
+        assert!((lefts(&ws)[0] + 20.0 - center).abs() < 1e-3);
+    }
+
+    #[test]
+    fn bring_to_front_and_send_to_back_reorder_layers_keeping_relative_order() {
+        let mut ws = two_rectangles();
+        let ids = |ws: &Workspace| -> Vec<LayerId> {
+            ws.document().scenes()[0]
+                .timeline()
+                .layers()
+                .iter()
+                .map(|l| l.id())
+                .collect()
+        };
+        let before = ids(&ws);
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        let chosen = ws.selected.expect("selected").layer;
+        ws.arrange_selection(true);
+        assert_eq!(ids(&ws)[0], chosen);
+        ws.arrange_selection(false);
+        assert_eq!(*ids(&ws).last().expect("layers"), chosen);
+        ws.undo();
+        ws.undo();
+        assert_eq!(ids(&ws), before);
+    }
+
+    #[test]
+    fn typed_transforms_apply_about_the_selection_center_and_colors_swap() {
+        let mut ws = workspace();
+        rect(&mut ws); // 10..110 x 10..60, center (60, 35)
+        ws.perform(MenuAction::SelectAll);
+        ws.transform_edit.scale_x = 200.0;
+        ws.apply_transform_edit();
+        let scene = ws.scene_id().expect("scene");
+        let at = ws.selected.expect("selected");
+        let bounds = ops::span_bounds(ws.document(), scene, at).expect("bounds");
+        assert!((bounds.width() - 200.0).abs() < 1e-2 && (bounds.center().x - 60.0).abs() < 1e-2);
+        assert_eq!(
+            ws.transform_edit,
+            TransformEdit::default(),
+            "the panel resets"
+        );
+        ws.transform_edit.rotate = 90.0;
+        ws.apply_transform_edit();
+        let turned = ops::span_bounds(ws.document(), scene, at).expect("bounds");
+        assert!((turned.height() - 200.0).abs() < 1e-2);
+        ws.undo();
+        ws.undo();
+        assert!(
+            (ops::span_bounds(ws.document(), scene, at)
+                .expect("bounds")
+                .width()
+                - 100.0)
+                .abs()
+                < 1e-2
+        );
+        ws.fill = Color32::RED;
+        ws.stroke_color = Color32::BLUE;
+        ws.swap_colors();
+        assert_eq!((ws.fill, ws.stroke_color), (Color32::BLUE, Color32::RED));
+        ws.default_colors();
+        assert_eq!((ws.fill, ws.stroke_color), (Color32::WHITE, Color32::BLACK));
     }
 }

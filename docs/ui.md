@@ -34,10 +34,11 @@ Planned, in the order they will be built:
 
 - Tools: Subselection, Free Transform. (Built: Pencil, Brush, Lasso, PolyStar, Paint Bucket,
   Ink Bottle, Eyedropper, Eraser, Hand, Zoom, and the rectangle corner radius.)
+- Panels: Align, Distribute, Bring to front and Send to back, and the typed Transform numbers are built (Group and Ungroup are not).
 - Menu: Cut, Select All, Deselect All, Rewind, Step Forward and Backward and Actual Size are built.
 - Properties: editable position and size, stroke cap and join, text style, frame rate.
 - Library: search, new symbol, folders, symbol properties, delete, preview.
-- Color: hex entry, gradient editor, eyedropper, no color, swap and default colors.
+- Color: gradient editor, eyedropper button. (Built: hex entry, no color, swap and default colors.)
 - Align panel: align, distribute, arrange, group.
 - Transform panel: numeric scale, rotate and skew; break apart.
 - History panel: the list of edits and jumping to one.
