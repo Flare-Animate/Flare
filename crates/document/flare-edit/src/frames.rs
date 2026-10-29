@@ -201,6 +201,72 @@ pub fn clear_keyframe(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<C
     Some(replace_spans(scene, layer, out))
 }
 
+/// Whether `candidate` (start, end) would overlap any span of `layer` other than the one
+/// starting at `skip`.
+fn collides(layer: &Layer, skip: u32, start: u32, end: u64) -> bool {
+    layer
+        .spans()
+        .iter()
+        .filter(|other| other.start() != skip)
+        .any(|other| u64::from(start) < other.end() && u64::from(other.start()) < end)
+}
+
+/// Drags the span starting at `from` so it starts at `to`, keeping its length. `None` when
+/// there is no such span, nothing changes, the move would overlap a neighbour or run past
+/// the largest frame number.
+pub fn move_span(scene: SceneId, layer: &Layer, from: u32, to: u32) -> Option<Vec<Command>> {
+    if from == to {
+        return None;
+    }
+    let old = layer.spans().iter().find(|s| s.start() == from)?;
+    let end = u64::from(to) + u64::from(old.duration().get());
+    if end > u64::from(u32::MAX) || collides(layer, from, to, end) {
+        return None;
+    }
+    Some(vec![
+        Command::RemoveSpan {
+            scene,
+            layer: layer.id(),
+            start: from,
+        },
+        Command::InsertSpan {
+            scene,
+            layer: layer.id(),
+            span: shifted(old, to)?,
+        },
+    ])
+}
+
+/// Drags the end of the span starting at `from` so it lasts `duration` frames. `None` when
+/// there is no such span, the length is zero or unchanged, or it would overlap the next span.
+pub fn resize_span(
+    scene: SceneId,
+    layer: &Layer,
+    from: u32,
+    duration: u32,
+) -> Option<Vec<Command>> {
+    let old = layer.spans().iter().find(|s| s.start() == from)?;
+    if duration == 0 || duration == old.duration().get() {
+        return None;
+    }
+    let end = u64::from(from) + u64::from(duration);
+    if end > u64::from(u32::MAX) || collides(layer, from, from, end) {
+        return None;
+    }
+    Some(vec![
+        Command::RemoveSpan {
+            scene,
+            layer: layer.id(),
+            start: from,
+        },
+        Command::InsertSpan {
+            scene,
+            layer: layer.id(),
+            span: span(from, duration, old.content().clone(), old)?,
+        },
+    ])
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
@@ -392,5 +458,65 @@ mod tests {
         assert!(insert_frame(f.scene, layer(&f), u32::MAX).is_none());
         // A keyframe at the far end is representable; the layer simply becomes very long.
         assert!(insert_keyframe(f.scene, layer(&f), u32::MAX).is_some());
+    }
+
+    #[test]
+    fn move_span_shifts_one_span_and_refuses_overlaps() {
+        let mut f = fixture(vec![shape_span(0, 3), shape_span(6, 2)]);
+        let cmds = move_span(f.scene, layer(&f), 0, 2);
+        run(&mut f, cmds);
+        assert_eq!(shape_of(&f), vec![(2, 3, 'S'), (6, 2, 'S')]);
+        assert!(
+            move_span(f.scene, layer(&f), 2, 4).is_none(),
+            "4..7 meets 6..8"
+        );
+        assert!(
+            move_span(f.scene, layer(&f), 2, 3).is_some(),
+            "3..6 just touches"
+        );
+        assert!(move_span(f.scene, layer(&f), 2, 2).is_none(), "no movement");
+        assert!(
+            move_span(f.scene, layer(&f), 1, 9).is_none(),
+            "no span starts at 1"
+        );
+        assert!(
+            move_span(f.scene, layer(&f), 6, u32::MAX).is_none(),
+            "past the last frame"
+        );
+        // Moving past a neighbour is allowed when the destination is free, and the list
+        // stays sorted.
+        let cmds = move_span(f.scene, layer(&f), 2, 10);
+        run(&mut f, cmds);
+        assert_eq!(shape_of(&f), vec![(6, 2, 'S'), (10, 3, 'S')]);
+        f.session.undo();
+        assert_eq!(
+            shape_of(&f),
+            vec![(2, 3, 'S'), (6, 2, 'S')],
+            "one undo step"
+        );
+    }
+
+    #[test]
+    fn resize_span_changes_only_the_length_and_stops_at_the_next_span() {
+        let mut f = fixture(vec![shape_span(0, 3), shape_span(6, 2)]);
+        let cmds = resize_span(f.scene, layer(&f), 0, 6);
+        run(&mut f, cmds);
+        assert_eq!(shape_of(&f), vec![(0, 6, 'S'), (6, 2, 'S')]);
+        assert!(
+            resize_span(f.scene, layer(&f), 0, 7).is_none(),
+            "would overlap"
+        );
+        assert!(
+            resize_span(f.scene, layer(&f), 0, 0).is_none(),
+            "zero length"
+        );
+        assert!(resize_span(f.scene, layer(&f), 0, 6).is_none(), "unchanged");
+        let cmds = resize_span(f.scene, layer(&f), 6, 1);
+        run(&mut f, cmds);
+        assert_eq!(
+            shape_of(&f),
+            vec![(0, 6, 'S'), (6, 1, 'S')],
+            "shrinking is fine"
+        );
     }
 }

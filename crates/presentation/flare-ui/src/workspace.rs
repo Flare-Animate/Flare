@@ -71,6 +71,25 @@ struct Drag {
     current: Pos2,
 }
 
+/// What a timeline drag grabbed on a span.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SpanGrab {
+    /// The body: `offset` frames in from the span's first frame.
+    Move { offset: u32 },
+    /// The right edge.
+    Resize,
+}
+
+/// A span being dragged in the timeline; the document changes when it is released.
+#[derive(Clone, Copy, Debug)]
+struct SpanDrag {
+    layer: LayerId,
+    start: u32,
+    grab: SpanGrab,
+    /// The frame under the pointer now.
+    frame: u32,
+}
+
 /// One level of in-place symbol editing: a scratch document whose scene is the symbol's
 /// timeline, with its own undo history. Leaving applies it to the parent as one edit.
 struct Context {
@@ -97,6 +116,7 @@ pub struct Workspace {
     drag_cancelled: bool,
     tool: Tool,
     selected: Option<SpanRef>,
+    span_drag: Option<SpanDrag>,
     selected_symbol: Option<SymbolId>,
     current_layer: Option<LayerId>,
     layer_name_edit: String,
@@ -129,6 +149,7 @@ impl Workspace {
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,
+            span_drag: None,
             selected_symbol: None,
             current_layer: None,
             layer_name_edit: String::new(),
@@ -867,6 +888,112 @@ impl Workspace {
         }
     }
 
+    // ---- dragging spans in the timeline -----------------------------------------------
+
+    /// Starts dragging the span of `layer` under the fractional frame position `at`: its right
+    /// edge (within `edge` frames) resizes, the rest moves. False when there is no span there
+    /// or the layer is locked, in which case the drag should scrub instead.
+    fn begin_span_drag(&mut self, layer: LayerId, at: f32, edge: f32) -> bool {
+        if !at.is_finite() || at < 0.0 {
+            return false;
+        }
+        let frame = at.floor() as u32;
+        let Some(found) = self.layer(layer) else {
+            return false;
+        };
+        if found.is_locked() {
+            return false;
+        }
+        let Some(span) = found
+            .spans()
+            .iter()
+            .find(|s| s.start() <= frame && u64::from(frame) < s.end())
+        else {
+            return false;
+        };
+        let grab = if span.end() as f32 - at <= edge {
+            SpanGrab::Resize
+        } else {
+            SpanGrab::Move {
+                offset: frame - span.start(),
+            }
+        };
+        self.span_drag = Some(SpanDrag {
+            layer,
+            start: span.start(),
+            grab,
+            frame,
+        });
+        true
+    }
+
+    fn update_span_drag(&mut self, frame: u32) {
+        if let Some(drag) = &mut self.span_drag {
+            drag.frame = frame;
+        }
+    }
+
+    /// Where the dragged span would land: (layer, start, duration).
+    fn span_drag_preview(&self) -> Option<(LayerId, u32, u32)> {
+        let drag = self.span_drag?;
+        let span = self
+            .layer(drag.layer)?
+            .spans()
+            .iter()
+            .find(|s| s.start() == drag.start)?;
+        Some(match drag.grab {
+            SpanGrab::Move { offset } => (
+                drag.layer,
+                drag.frame.saturating_sub(offset),
+                span.duration().get(),
+            ),
+            SpanGrab::Resize => (
+                drag.layer,
+                drag.start,
+                (drag.frame + 1).saturating_sub(drag.start).max(1),
+            ),
+        })
+    }
+
+    fn end_span_drag(&mut self) {
+        let Some((layer, start, duration)) = self.span_drag_preview() else {
+            self.span_drag = None;
+            return;
+        };
+        let Some(drag) = self.span_drag.take() else {
+            return;
+        };
+        let (Some(scene), Some(found)) = (self.scene_id(), self.layer(layer)) else {
+            return;
+        };
+        let (commands, what) = match drag.grab {
+            SpanGrab::Move { .. } => (frames::move_span(scene, found, drag.start, start), "move"),
+            SpanGrab::Resize => (
+                frames::resize_span(scene, found, drag.start, duration),
+                "resize",
+            ),
+        };
+        let unchanged = match drag.grab {
+            SpanGrab::Move { .. } => start == drag.start,
+            SpanGrab::Resize => found
+                .spans()
+                .iter()
+                .find(|s| s.start() == drag.start)
+                .is_some_and(|s| s.duration().get() == duration),
+        };
+        match commands {
+            Some(commands) => {
+                self.run_batch(commands, what);
+                self.set_frame(self.frame);
+                self.validate_selection();
+            }
+            None if !unchanged => self.report(format!(
+                "Cannot {what} the span there: it would overlap another one"
+            )),
+            None => {}
+        }
+    }
+
     // ---- tools and selection ---------------------------------------------------------
 
     pub fn tool(&self) -> Tool {
@@ -963,6 +1090,7 @@ impl Workspace {
 
     /// Escape, tool switches and focus loss cancel a gesture without committing it.
     fn cancel_drag(&mut self) {
+        self.span_drag = None;
         if self.drag.take().is_some() {
             self.drag_cancelled = true;
         }
@@ -1512,7 +1640,32 @@ impl Workspace {
         let track = Rect::from_min_max(Pos2::new(rect.min.x + label_w, rect.min.y), rect.max);
         let per_frame = track.width() / frames as f32;
 
-        if (response.clicked() || response.dragged())
+        let frame_at = |x: f32| (x - track.min.x) / per_frame;
+        let row_layer = |y: f32| {
+            let index = ((y - rect.min.y) / row).floor() as i64 - 1;
+            usize::try_from(index).ok().and_then(|i| {
+                let layers = self.document().scenes().first()?.timeline().layers();
+                layers.get(i).map(Layer::id)
+            })
+        };
+        if response.drag_started()
+            && let Some(p) = ui.input(|i| i.pointer.press_origin())
+            && p.x >= track.min.x
+            && let Some(id) = row_layer(p.y)
+            && self.begin_span_drag(id, frame_at(p.x), 6.0 / per_frame)
+        {
+            self.select_layer(id);
+        }
+        if self.span_drag.is_some() {
+            if response.dragged()
+                && let Some(p) = response.interact_pointer_pos()
+            {
+                self.update_span_drag(frame_at(p.x).floor().max(0.0) as u32);
+            }
+            if response.drag_stopped() {
+                self.end_span_drag();
+            }
+        } else if (response.clicked() || response.dragged())
             && let Some(p) = response.interact_pointer_pos()
         {
             if p.x >= track.min.x {
@@ -1604,6 +1757,20 @@ impl Workspace {
                         color.gamma_multiply(0.35)
                     };
                     painter.rect_filled(bar, 2.0, color);
+                }
+                if let Some((dragged, start, duration)) = self.span_drag_preview()
+                    && dragged == layer.id()
+                {
+                    let x0 = track.min.x + start as f32 * per_frame;
+                    let x1 = x0 + duration as f32 * per_frame;
+                    let ghost =
+                        Rect::from_min_max(Pos2::new(x0, y + 2.0), Pos2::new(x1, y + row - 2.0));
+                    painter.rect_stroke(
+                        ghost,
+                        2.0,
+                        Stroke::new(2.0, Color32::from_rgb(40, 120, 255)),
+                        StrokeKind::Inside,
+                    );
                 }
             }
         }
@@ -2648,5 +2815,87 @@ mod tests {
         assert_eq!(ws.tool(), Tool::Ellipse);
         assert_eq!(ws.fill, Color32::from_rgb(1, 2, 3));
         assert!(ws.stroke_enabled);
+    }
+
+    /// One layer holding spans at 0..3 and 6..8, for timeline drags.
+    fn spans_workspace() -> (Workspace, LayerId) {
+        let id = LayerId::new();
+        let span = |start: u32, len: u32| {
+            FrameSpan::new(
+                start,
+                NonZeroU32::new(len).expect("nonzero"),
+                Content::Empty,
+            )
+        };
+        let layer = Layer::new(id, "L", vec![span(0, 3), span(6, 2)]).expect("layer");
+        let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+        let rate = FrameRate::new(24, 1).expect("rate");
+        let doc = Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("doc");
+        (Workspace::new(doc, None), id)
+    }
+
+    #[test]
+    fn dragging_a_span_body_moves_it_and_the_edge_resizes_it() {
+        let (mut ws, id) = spans_workspace();
+        assert!(ws.begin_span_drag(id, 1.5, 0.3));
+        ws.update_span_drag(4);
+        assert_eq!(
+            ws.span_drag_preview(),
+            Some((id, 3, 3)),
+            "grabbed one frame in"
+        );
+        ws.end_span_drag();
+        assert_eq!(active_spans_of(&ws, id), vec![(3, 3), (6, 2)]);
+        ws.undo();
+        assert_eq!(
+            active_spans_of(&ws, id),
+            vec![(0, 3), (6, 2)],
+            "one undo step"
+        );
+
+        assert!(ws.begin_span_drag(id, 2.9, 0.3), "within the edge");
+        ws.update_span_drag(5);
+        assert_eq!(ws.span_drag_preview(), Some((id, 0, 6)));
+        ws.end_span_drag();
+        assert_eq!(active_spans_of(&ws, id), vec![(0, 6), (6, 2)]);
+    }
+
+    fn active_spans_of(ws: &Workspace, id: LayerId) -> Vec<(u32, u32)> {
+        ws.layer(id)
+            .expect("layer")
+            .spans()
+            .iter()
+            .map(|s| (s.start(), s.duration().get()))
+            .collect()
+    }
+
+    #[test]
+    fn a_span_drag_that_would_overlap_is_refused_with_a_message() {
+        let (mut ws, id) = spans_workspace();
+        assert!(ws.begin_span_drag(id, 0.5, 0.3));
+        ws.update_span_drag(5); // 5..8 meets the span at 6
+        ws.end_span_drag();
+        assert_eq!(active_spans_of(&ws, id), vec![(0, 3), (6, 2)]);
+        assert!(ws.status().is_some_and(|m| m.contains("overlap")));
+        assert!(!ws.is_dirty());
+    }
+
+    #[test]
+    fn gaps_locked_layers_and_escape_do_not_drag_spans() {
+        let (mut ws, id) = spans_workspace();
+        assert!(!ws.begin_span_drag(id, 4.5, 0.3), "a gap scrubs instead");
+        assert!(!ws.begin_span_drag(id, -1.0, 0.3));
+        assert!(!ws.begin_span_drag(id, f32::NAN, 0.3));
+        assert!(ws.begin_span_drag(id, 0.5, 0.3));
+        ws.update_span_drag(2);
+        ws.cancel_drag();
+        ws.end_span_drag();
+        assert_eq!(
+            active_spans_of(&ws, id),
+            vec![(0, 3), (6, 2)],
+            "escape cancels"
+        );
+        ws.toggle_layer_locked(id);
+        assert!(!ws.begin_span_drag(id, 0.5, 0.3), "locked layers refuse");
     }
 }
