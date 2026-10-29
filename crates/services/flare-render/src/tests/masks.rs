@@ -72,3 +72,46 @@ fn masked_artwork_is_only_hittable_inside_the_mask() {
     assert_eq!(hit_test_all(&frame, DVec2::new(4.0, 4.0)), vec![0]);
     assert!(hit_test_all(&frame, DVec2::new(15.0, 15.0)).is_empty());
 }
+
+#[test]
+fn outline_mode_draws_each_layer_as_a_line_in_its_own_color_and_ignores_masks() {
+    let layer = |shape: Content| {
+        Layer::new(
+            LayerId::new(),
+            "L",
+            vec![FrameSpan::new(0, std::num::NonZeroU32::MIN, shape)],
+        )
+        .expect("layer")
+    };
+    // Layer 0 masks layer 1, which a normal render would hide completely (its square lies far
+    // outside the mask); layer 2 is plain. Colors come from position in the palette.
+    let timeline = Timeline::new(vec![
+        layer(rect(0.0, 0.0, 10.0, 10.0, RED)).with_mask(true),
+        layer(rect(30.0, 30.0, 20.0, 20.0, RED)),
+        layer(rect(5.0, 40.0, 15.0, 15.0, RED)),
+    ]);
+    let id = SceneId::new();
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let doc = Document::new(
+        DocumentId::new(),
+        rate,
+        vec![Scene::new(id, "S", timeline)],
+        vec![],
+    )
+    .expect("doc");
+    let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+    let image =
+        render_outline_mode_viewport(&frame, &Viewport::full(60, 60), 60, 60, Rgba8::WHITE, 1.5)
+            .expect("outline mode");
+    assert_eq!(image.pixel(40, 40), Some(Rgba8::WHITE), "no fill");
+    assert_eq!(image.pixel(12, 47), Some(Rgba8::WHITE), "no fill");
+    let masked = image.pixel(30, 40).expect("pixel");
+    let plain = image.pixel(5, 47).expect("pixel");
+    let near = |p: Rgba8, c: Rgba8| p.r.abs_diff(c.r) < 90 && p.b.abs_diff(c.b) < 90;
+    assert!(
+        near(masked, flare_document::OUTLINE_PALETTE[1]),
+        "{masked:?}"
+    );
+    assert!(near(plain, flare_document::OUTLINE_PALETTE[2]), "{plain:?}");
+    assert_ne!(masked, plain, "layers are told apart by color");
+}

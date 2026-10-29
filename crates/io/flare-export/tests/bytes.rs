@@ -195,3 +195,32 @@ fn a_guide_inside_a_folder_keeps_its_folder() {
     assert!(layers[1].is_guide());
     assert_eq!(layers[1].parent(), Some(layers[0].id()));
 }
+
+#[test]
+fn a_layers_outline_color_round_trips_through_xfl() {
+    use flare_core::Rgba8;
+    use flare_document::Layer as L;
+    let colored = L::new(LayerId::new(), "Colored", vec![])
+        .expect("layer")
+        .with_outline(Some(Rgba8::opaque(0x12, 0xAB, 0xEF)));
+    let plain = L::new(LayerId::new(), "Plain", vec![]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![colored, plain]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    let output = export_xfl(&document).expect("export");
+    assert!(
+        output
+            .files
+            .iter()
+            .any(|(_, b)| b.contains("color=\"#12ABEF\""))
+    );
+    let back = import_fla_bytes(fla_bytes(&output).expect("bytes")).expect("import");
+    let layers = back.document.scenes()[0].timeline().layers();
+    assert_eq!(layers[0].outline(), Some(Rgba8::opaque(0x12, 0xAB, 0xEF)));
+    assert_eq!(layers[1].outline(), None);
+}

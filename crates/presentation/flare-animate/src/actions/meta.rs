@@ -158,6 +158,7 @@ impl MenuAction {
             Self::ZoomOut => "zoom-out",
             Self::ZoomFit => "zoom-fit",
             Self::ToggleOnionSkin => "onion-skin",
+            Self::ToggleOutlineMode => "outline-square",
             Self::ToggleRulers => "ruler",
             Self::ToggleGrid => "grid",
             Self::ToggleSnap => "snap",

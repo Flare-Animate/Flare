@@ -17,6 +17,8 @@ pub struct RenderJob {
     pub ghosts: Vec<(u32, f32)>,
     /// Draw the ghosts as thin outlines rather than faded pictures.
     pub outlines: bool,
+    /// Outline Mode: every shape as a line in its layer's color, no ghosts.
+    pub outline_mode: bool,
     pub viewport: flare_render::Viewport,
     pub size: [u32; 2],
     pub background: Rgba8,

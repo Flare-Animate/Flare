@@ -250,6 +250,7 @@ pub fn render_swf_frame(parsed: &Parsed, index: usize, background: Rgba8) -> fla
                 shape,
                 transform: to_affine(&placed.matrix),
                 clips: Vec::new(),
+                outline: flare_document::OUTLINE_PALETTE[0],
             });
         }
     }

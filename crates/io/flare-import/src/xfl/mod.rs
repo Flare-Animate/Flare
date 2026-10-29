@@ -102,6 +102,9 @@ fn color_from(text: &str, alpha: Option<&str>) -> Option<Rgba8> {
     if hex.len() != 6 {
         return None;
     }
+    if !hex.is_ascii() {
+        return None;
+    }
     let byte = |i: usize| u8::from_str_radix(&hex[i..i + 2], 16).ok();
     let alpha = match alpha {
         None => 255,

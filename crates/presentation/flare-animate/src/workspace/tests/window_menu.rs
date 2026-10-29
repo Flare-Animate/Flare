@@ -62,3 +62,38 @@ fn help_windows_open_and_the_shortcut_list_names_real_commands() {
     let ctx = egui::Context::default();
     run(&mut ws, &ctx, 0.0); // both windows draw without panicking
 }
+
+#[test]
+fn clicking_the_outline_chip_cycles_the_layer_color_as_one_undo_step() {
+    let mut ws = workspace();
+    let id = ws.active_layer_id().expect("a layer");
+    let color = |ws: &Workspace| ws.document().scenes()[0].timeline().layers()[0].outline();
+    assert_eq!(color(&ws), None, "a new layer has no color of its own");
+    ws.cycle_layer_outline(id);
+    // Layer 0 shows the first palette color until it is given one, so the next is the second.
+    assert_eq!(color(&ws), Some(flare_document::OUTLINE_PALETTE[1]));
+    ws.cycle_layer_outline(id);
+    assert_eq!(color(&ws), Some(flare_document::OUTLINE_PALETTE[2]));
+    ws.undo();
+    assert_eq!(color(&ws), Some(flare_document::OUTLINE_PALETTE[1]));
+    ws.undo();
+    assert_eq!(color(&ws), None);
+}
+
+#[test]
+fn outline_mode_redraws_the_stage_as_lines_and_back() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    ws.set_stage_size(40, 40);
+    rect(&mut ws);
+    run(&mut ws, &ctx, 0.0);
+    let normal = ws.frames_rendered;
+    ws.perform(MenuAction::ToggleOutlineMode);
+    assert_eq!(ws.label(MenuAction::ToggleOutlineMode), "Show Artwork");
+    run(&mut ws, &ctx, 0.1);
+    assert!(
+        ws.frames_rendered > normal,
+        "the stage was drawn again in the new mode"
+    );
+    ws.perform(MenuAction::ToggleOutlineMode);
+    assert_eq!(ws.label(MenuAction::ToggleOutlineMode), "Outline Mode");
+}

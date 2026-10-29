@@ -116,6 +116,7 @@ impl Workspace {
             | MenuAction::ShowTimeline
             | MenuAction::ShowOutput => true,
             MenuAction::ToggleOnionSkin
+            | MenuAction::ToggleOutlineMode
             | MenuAction::ToggleRulers
             | MenuAction::ToggleGrid
             | MenuAction::ToggleSnap
@@ -261,6 +262,13 @@ impl Workspace {
                     "Hide Onion Skin"
                 } else {
                     "Show Onion Skin"
+                }
+            }
+            MenuAction::ToggleOutlineMode => {
+                if self.outline_mode {
+                    "Show Artwork"
+                } else {
+                    "Outline Mode"
                 }
             }
             MenuAction::ToggleRulers => {
@@ -441,6 +449,7 @@ impl Workspace {
             MenuAction::ShowTimeline => self.show_pane(Pane::Timeline),
             MenuAction::ShowOutput => self.show_pane(Pane::Output),
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
+            MenuAction::ToggleOutlineMode => self.outline_mode = !self.outline_mode,
             MenuAction::ToggleRulers => self.show_rulers = !self.show_rulers,
             MenuAction::ToggleGrid => self.show_grid = !self.show_grid,
             MenuAction::ToggleSnap => self.snap_to_grid = !self.snap_to_grid,

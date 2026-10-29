@@ -24,6 +24,8 @@ The first release of the Rust rewrite.
 - Files: the `.flare` project container, XFL/FLA import and export, PNG and GIF export, and SWF
   publish. Flash fixtures are tested against.
 - The `flare-cli` command line (inspect, render, convert) and an MCP server for agents.
+- Layer outline colors (timeline chip, `.flare` and XFL) and View > Outline Mode.
+- Window, Help (About, Keyboard Shortcuts) menus that do something.
 - An experimental web build.
 
 [Unreleased]: https://github.com/Flare-Animate/Flare/compare/v0.1.0...HEAD

@@ -6,7 +6,7 @@
 //! the symbol's length. Movie Clip and Button runtime behaviour is out of scope.
 #![forbid(unsafe_code)]
 
-use flare_core::{InstanceId, SceneId, SymbolId};
+use flare_core::{InstanceId, Rgba8, SceneId, SymbolId};
 use flare_document::{Content, Document, Instance, Layer, Shape, Timeline, Tween};
 use glamx::{DAffine2, DVec2};
 use thiserror::Error;
@@ -94,6 +94,8 @@ pub struct DrawnShape<'a> {
     /// Indices into `Frame::clips`, outermost mask first. The shape shows only where it lies
     /// inside every one of these regions.
     pub clips: Vec<usize>,
+    /// The color of the layer the shape is on, which outline mode draws it in.
+    pub outline: Rgba8,
 }
 
 /// Whether a folder above `layers[index]` that holds it (directly or through other folders) is
@@ -219,6 +221,7 @@ fn walk<'a>(
             Steer {
                 clips: &clips,
                 guide,
+                outline: Some(layer.outline_or_default(index)),
             },
             out,
         )?;
@@ -232,6 +235,8 @@ fn walk<'a>(
 struct Steer<'s> {
     clips: &'s [usize],
     guide: Option<&'s Shape>,
+    /// The layer's outline color; the first palette color when not known.
+    outline: Option<Rgba8>,
 }
 
 /// One layer's content at `frame`, added to `out` with the given clip regions.
@@ -244,7 +249,11 @@ fn walk_layer<'a>(
     steer: Steer<'_>,
     out: &mut Frame<'a>,
 ) -> Result<(), EvalError> {
-    let Steer { clips, guide } = steer;
+    let Steer {
+        clips,
+        guide,
+        outline,
+    } = steer;
     let Some(span) = layer.span_at(frame) else {
         return Ok(());
     };
@@ -259,6 +268,7 @@ fn walk_layer<'a>(
                 shape,
                 transform: parent,
                 clips: clips.to_vec(),
+                outline: outline.unwrap_or(flare_document::OUTLINE_PALETTE[0]),
             });
             return Ok(());
         }

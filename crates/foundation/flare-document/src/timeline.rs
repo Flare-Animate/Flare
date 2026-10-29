@@ -1,7 +1,7 @@
 use std::num::NonZeroU32;
 use std::sync::Arc;
 
-use flare_core::{InstanceId, LayerId, SymbolId, Transform2D};
+use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
 
 use crate::{MAX_CUES_PER_LAYER, Shape, SoundCue, SoundError};
 use thiserror::Error;
@@ -105,6 +105,18 @@ pub enum TimelineError {
     OverlappingSpans(u32),
 }
 
+/// The colors layers without one of their own are marked with, by position.
+pub const OUTLINE_PALETTE: [Rgba8; 8] = [
+    Rgba8::opaque(0x4F, 0x80, 0xFF),
+    Rgba8::opaque(0xFF, 0x4F, 0x4F),
+    Rgba8::opaque(0x4F, 0xFF, 0x4F),
+    Rgba8::opaque(0xFF, 0xE0, 0x4F),
+    Rgba8::opaque(0xC0, 0x4F, 0xFF),
+    Rgba8::opaque(0x4F, 0xE8, 0xE8),
+    Rgba8::opaque(0xFF, 0x9A, 0x30),
+    Rgba8::opaque(0xFF, 0x4F, 0xC0),
+];
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Layer {
     id: LayerId,
@@ -118,6 +130,8 @@ pub struct Layer {
     folder: bool,
     /// A motion guide is never drawn: its path steers the motion tween of the layer below it.
     guide: bool,
+    /// The color the layer is drawn in by outline mode and marked with in the timeline.
+    outline: Option<Rgba8>,
     /// The folder this layer sits in. It must be a folder layer above this one.
     parent: Option<LayerId>,
     /// Sounds that start at frames of this layer, in order of frame. Shared like the spans.
@@ -146,6 +160,7 @@ impl Layer {
             mask: false,
             folder: false,
             guide: false,
+            outline: None,
             parent: None,
             cues: Arc::from([]),
         })
@@ -159,6 +174,7 @@ impl Layer {
         layer.mask = self.mask;
         layer.folder = self.folder;
         layer.guide = self.guide;
+        layer.outline = self.outline;
         layer.parent = self.parent;
         layer.cues = Arc::clone(&self.cues);
         Ok(layer)
@@ -200,6 +216,13 @@ impl Layer {
         self
     }
 
+    /// Sets the layer's outline color, or clears it so the timeline picks one by position.
+    #[must_use]
+    pub fn with_outline(mut self, outline: Option<Rgba8>) -> Self {
+        self.outline = outline;
+        self
+    }
+
     /// Makes this layer a folder (or a plain layer again). Folders hold no spans.
     #[must_use]
     pub fn with_folder(mut self, folder: bool) -> Self {
@@ -232,6 +255,17 @@ impl Layer {
 
     pub fn is_mask(&self) -> bool {
         self.mask
+    }
+
+    pub fn outline(&self) -> Option<Rgba8> {
+        self.outline
+    }
+
+    /// The color to show for this layer, which sits at `index` in its timeline: its own, or one
+    /// of the palette by position.
+    pub fn outline_or_default(&self, index: usize) -> Rgba8 {
+        self.outline
+            .unwrap_or(OUTLINE_PALETTE[index % OUTLINE_PALETTE.len()])
     }
 
     pub fn is_guide(&self) -> bool {

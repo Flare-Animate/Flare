@@ -108,6 +108,7 @@ impl Workspace {
                     // The two small toggles at the right edge of the label column.
                     let eye = p.x >= track.min.x - 54.0 && p.x < track.min.x - 36.0;
                     let lock = p.x >= track.min.x - 36.0 && p.x < track.min.x - 18.0;
+                    let outline = p.x >= track.min.x - 18.0 && p.x < track.min.x;
                     // The arrow of a folder, indented to its depth, folds it open or shut.
                     let depth = picked_row.map_or(0, |(_, depth)| depth);
                     let arrow_x = rect.min.x + 6.0 + depth as f32 * FOLDER_INDENT;
@@ -127,6 +128,8 @@ impl Workspace {
                         self.toggle_layer_visible(id);
                     } else if response.clicked() && lock {
                         self.toggle_layer_locked(id);
+                    } else if response.clicked() && outline {
+                        self.cycle_layer_outline(id);
                     } else {
                         self.select_layer(id);
                     }
@@ -276,7 +279,15 @@ impl Workspace {
                             dim
                         },
                     );
-                    icon_at(track.min.x - 16.0, "outline-square", dim);
+                    let chip = layer.outline_or_default(layer_index);
+                    painter.rect_filled(
+                        Rect::from_min_size(
+                            Pos2::new(track.min.x - 14.0, y + row / 2.0 - 5.0),
+                            Vec2::splat(10.0),
+                        ),
+                        2.0,
+                        Color32::from_rgb(chip.r, chip.g, chip.b),
+                    );
                     for span in layer.spans() {
                         let x0 = track.min.x + span.start() as f32 * per_frame;
                         let x1 = track.min.x + span.end() as f32 * per_frame;

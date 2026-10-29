@@ -83,6 +83,20 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
     let ghosts: Vec<(&flare_eval::Frame<'_>, f32)> =
         evaluated.iter().map(|(e, o)| (e, *o)).collect();
     let [width, height] = job.size;
+    if job.outline_mode {
+        // One pixel of the picture, in stage units, so lines stay thin however far in you are.
+        let pixel = job.viewport.width / f64::from(width.max(1));
+        return flare_render::render_outline_mode_viewport(
+            &current,
+            &job.viewport,
+            width,
+            height,
+            job.background,
+            pixel,
+        )
+        .map(Rendered::Straight)
+        .map_err(|e| e.to_string());
+    }
     if ghosts.is_empty() {
         flare_render::render_viewport_premultiplied(
             &current,

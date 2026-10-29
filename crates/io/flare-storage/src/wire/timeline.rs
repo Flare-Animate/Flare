@@ -133,6 +133,9 @@ pub(super) struct LayerWire {
     /// Absent in files written before motion guides existed.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub(super) guide: bool,
+    /// Absent in files written before outline colors existed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) outline: Option<[u8; 3]>,
     /// Absent in files written before sounds existed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(super) cues: Vec<CueWire>,
@@ -157,6 +160,7 @@ impl TimelineWire {
                 mask: layer.is_mask(),
                 folder: layer.is_folder(),
                 guide: layer.is_guide(),
+                outline: layer.outline().map(|c| [c.r, c.g, c.b]),
                 parent: layer.parent().map(|p| p.as_uuid().to_string()),
                 cues: layer
                     .cues()
@@ -297,6 +301,7 @@ impl TimelineWire {
                     .with_mask(layer.mask)
                     .with_folder(layer.folder)
                     .with_guide(layer.guide)
+                    .with_outline(layer.outline.map(|[r, g, b]| Rgba8::opaque(r, g, b)))
                     .with_parent(
                         layer
                             .parent

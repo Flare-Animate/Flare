@@ -457,3 +457,30 @@ fn every_coordinate_comes_back_to_the_last_bit() {
     save(&document, &path).expect("save");
     assert_eq!(load(&path).expect("load"), document);
 }
+
+#[test]
+fn outline_colors_survive_and_older_files_have_none() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("a.flare");
+    let colored = Layer::new(LayerId::new(), "Colored", vec![])
+        .expect("layer")
+        .with_outline(Some(flare_core::Rgba8::opaque(10, 200, 30)));
+    let plain = Layer::new(LayerId::new(), "Plain", vec![]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![colored, plain]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    save(&document, &path).expect("save");
+    let loaded = load(&path).expect("load");
+    assert_eq!(loaded, document);
+    let layers = loaded.scenes()[0].timeline().layers();
+    assert_eq!(
+        layers[0].outline(),
+        Some(flare_core::Rgba8::opaque(10, 200, 30))
+    );
+    assert_eq!(layers[1].outline(), None);
+}

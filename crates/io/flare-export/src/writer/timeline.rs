@@ -132,6 +132,9 @@ pub(super) fn write_layer(
     } else if let Some(parent) = mask_parent {
         attrs.push_str(&format!(" parentLayerIndex=\"{parent}\""));
     }
+    if let Some(color) = layer.outline() {
+        attrs.push_str(&format!(" color=\"{}\"", super::text::hex(color)));
+    }
     if !layer.is_visible() {
         attrs.push_str(" visible=\"false\"");
     }

@@ -19,6 +19,7 @@ impl Importer {
         let mut guides: std::collections::HashSet<usize> = std::collections::HashSet::new();
         for (source_index, layer) in layers_node.children_named("DOMLayer").enumerate() {
             let name = layer.attr("name").unwrap_or("Layer");
+            let outline = layer.attr("color").and_then(|c| super::color_from(c, None));
             let place = format!("{location} / layer \"{name}\"");
             let parent = layer
                 .attr("parentLayerIndex")
@@ -33,7 +34,11 @@ impl Importer {
                     let first = layers.len();
                     self.layer(layer, name, &place, &mut layers);
                     for made in &mut layers[first..] {
-                        *made = made.clone().with_guide(true).with_parent(parent);
+                        *made = made
+                            .clone()
+                            .with_guide(true)
+                            .with_parent(parent)
+                            .with_outline(outline);
                     }
                     continue;
                 }
@@ -45,6 +50,7 @@ impl Importer {
                             folder
                                 .with_folder(true)
                                 .with_parent(parent)
+                                .with_outline(outline)
                                 .with_visible(bool_attr(layer, "visible", true))
                                 .with_locked(bool_attr(layer, "locked", false)),
                         );
@@ -75,9 +81,12 @@ impl Importer {
             }
             let first = layers.len();
             self.layer(layer, name, &place, &mut layers);
-            if parent.is_some() {
-                for made in &mut layers[first..] {
+            for made in &mut layers[first..] {
+                if parent.is_some() {
                     *made = made.clone().with_parent(parent);
+                }
+                if outline.is_some() {
+                    *made = made.clone().with_outline(outline);
                 }
             }
         }

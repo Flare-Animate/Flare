@@ -191,3 +191,17 @@ fn diagnostics_are_capped_so_a_hostile_file_cannot_flood_memory() {
             .is_some_and(|d| d.message.contains("suppressed"))
     );
 }
+
+#[test]
+fn a_layer_color_that_is_not_plain_hex_is_ignored_not_a_panic() {
+    // Six bytes, but not six characters: slicing it by byte would split a character.
+    let main = MAIN.replacen(
+        "<DOMLayer name=\"Main\"",
+        "<DOMLayer color=\"#\u{e9}\u{e9}\u{e9}\" name=\"Main\"",
+        1,
+    );
+    let files = valid().with("DOMDocument.xml", main.as_bytes());
+    let imported = import_xfl(&files).expect("still imports");
+    let layers = imported.document.scenes()[0].timeline().layers();
+    assert!(layers.iter().all(|l| l.outline().is_none()));
+}

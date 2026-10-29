@@ -33,8 +33,7 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 Still planned (everything else in the menus and panels is built):
 
 - Library: folders.
-- Timeline: the outline column.
-- View: guides and outline mode.
+- View: guides.
 - Edit, Modify, Text, Commands and Help entries still listed dimmed in the menus (Window and the Help windows are real now: panels come to the front, About and a read-only shortcut list).
 
 ## Top bar
@@ -56,3 +55,12 @@ Left to right: the tool strip, the stage, and one stack of tabs (Properties, Lib
 ## Documents and tabs
 
 A window holds several documents as tabs above the stage. One is edited; the others are parked whole and swapped in when their tab is chosen, so each keeps its own history, selection and view. The person's tool, colors, settings and panel layout stay with the window, not the document. Open, Import and New open in a tab of their own, except that a blank untouched document gives way to what is opened. Revert reloads in the same tab. Closing a tab with unsaved work is refused, and closing the window asks about every tab. Autosave and crash recovery cover only the document on show for now.
+
+## Outline colors and Outline Mode
+
+Every layer has a color chip at the right edge of its label (the outline column): its own color if
+it was given one, otherwise one of eight by position. Clicking the chip cycles the palette as one
+undo step. The color is kept in `.flare` files and in XFL (`DOMLayer color`). View > Outline Mode
+draws every shape as a one-pixel line in its layer's color with no fills and ignores masks, so
+everything can be found; the evaluated frame carries each shape's layer color for this
+(`DrawnShape::outline`). A mask layer itself is not drawn, so it has no outline yet.

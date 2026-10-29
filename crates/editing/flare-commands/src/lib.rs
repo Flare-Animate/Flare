@@ -19,6 +19,8 @@ pub enum LayerChange {
     Mask(bool),
     /// Makes the layer a motion guide (or a plain layer again).
     Guide(bool),
+    /// Sets the layer's outline color, or clears it.
+    Outline(Option<flare_core::Rgba8>),
     /// Puts the layer in a folder, or takes it out with `None`.
     Parent(Option<LayerId>),
 }
@@ -232,6 +234,7 @@ fn step(
                 LayerChange::Locked(locked) => slot.clone().with_locked(locked),
                 LayerChange::Mask(mask) => slot.clone().with_mask(mask),
                 LayerChange::Guide(guide) => slot.clone().with_guide(guide),
+                LayerChange::Outline(color) => slot.clone().with_outline(color),
                 LayerChange::Parent(parent) => slot.clone().with_parent(parent),
             };
             Ok(())

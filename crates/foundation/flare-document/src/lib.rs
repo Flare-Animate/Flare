@@ -24,7 +24,9 @@ pub use sound::{
     SoundError,
 };
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
-pub use timeline::{Content, FrameSpan, Instance, Layer, Timeline, TimelineError, Tween};
+pub use timeline::{
+    Content, FrameSpan, Instance, Layer, OUTLINE_PALETTE, Timeline, TimelineError, Tween,
+};
 pub use validate::Diagnostic;
 
 use flare_core::{DocumentId, FrameRate, SceneId, SymbolId};

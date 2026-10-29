@@ -80,7 +80,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ToggleSnap),
             Separator,
             Action(A::ToggleOnionSkin),
-            Mock("Outline Mode"),
+            Action(A::ToggleOutlineMode),
             Separator,
             Action(A::ResetLayout),
         ],

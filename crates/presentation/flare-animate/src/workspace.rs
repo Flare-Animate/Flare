@@ -32,6 +32,7 @@ mod gestures;
 mod help;
 mod helpers;
 mod layers;
+mod outlines;
 mod panels;
 mod pen_tool;
 mod playback;
@@ -224,6 +225,8 @@ pub struct Workspace {
     stage_edit: Option<(u32, u32)>,
     fps_edit: Option<f64>,
     show_rulers: bool,
+    /// Whether the stage draws outlines in layer colors instead of the artwork.
+    outline_mode: bool,
     /// Playback wraps to the first frame; off, it stops on the last.
     loop_playback: bool,
     muted: bool,
@@ -355,6 +358,7 @@ impl Workspace {
             stage_edit: None,
             fps_edit: None,
             show_rulers: true,
+            outline_mode: false,
             loop_playback: true,
             muted: false,
             show_grid: false,
