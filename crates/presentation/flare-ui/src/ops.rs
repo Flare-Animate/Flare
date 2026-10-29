@@ -74,9 +74,12 @@ pub fn delete(scene: SceneId, at: SpanRef) -> Vec<Command> {
     }]
 }
 
-fn translate_shape(shape: &Shape, delta: DVec2) -> Option<Shape> {
-    let moved =
-        |p: &DocumentPoint| DocumentPoint::new(p.as_vec().x + delta.x, p.as_vec().y + delta.y).ok();
+/// `shape` with every point mapped through `matrix`; the stroke width is kept.
+fn transform_shape(shape: &Shape, matrix: DAffine2) -> Option<Shape> {
+    let moved = |p: &DocumentPoint| {
+        let q = matrix.transform_point2(p.as_vec());
+        DocumentPoint::new(q.x, q.y).ok()
+    };
     let path = shape
         .path()
         .iter()
@@ -110,12 +113,30 @@ pub fn translate(
     if delta == DVec2::ZERO {
         return None;
     }
+    transform(document, scene, at, DAffine2::from_translation(delta))
+}
+
+/// Maps a span's content through `matrix` (in stage coordinates), keeping identity, duration
+/// and tween. `None` when the span is missing or empty, the matrix is the identity or cannot
+/// be inverted (a zero scale would destroy the content), or the result is not finite.
+pub fn transform(
+    document: &Document,
+    scene: SceneId,
+    at: SpanRef,
+    matrix: DAffine2,
+) -> Option<Vec<Command>> {
+    if matrix == DAffine2::IDENTITY
+        || !matrix.is_finite()
+        || matrix.matrix2.determinant().abs() < 1e-9
+    {
+        return None;
+    }
     let span = find_span(document, scene, at)?;
     let content = match span.content() {
         Content::Empty => return None,
-        Content::Shape(shape) => Content::Shape(translate_shape(shape, delta)?),
+        Content::Shape(shape) => Content::Shape(transform_shape(shape, matrix)?),
         Content::Instance(instance) => {
-            let moved = DAffine2::from_translation(delta) * instance.transform().as_affine();
+            let moved = matrix * instance.transform().as_affine();
             let transform = Transform2D::new(moved).ok()?;
             Content::Instance(Instance::new(instance.id(), instance.symbol(), transform))
         }

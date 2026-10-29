@@ -110,7 +110,7 @@ and fault-injection tests exist.
 
 `flare-desktop` shows the stage (rendered by the same pipeline), a timeline with scrubbing
 and playback at the document frame rate, a library, and tools: Select/Move, Rectangle,
-Ellipse and Line, with fill and outline settings. It supports undo/redo, Delete, Convert to
+Ellipse and Line, with fill and outline settings. The Modify menu flips, rotates by 90 degrees and scales the selection about its center. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). On macOS the menu bar is native (muda); everywhere
 else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.md).

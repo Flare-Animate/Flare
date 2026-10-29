@@ -8,7 +8,7 @@ use flare_document::{
     Stroke as ShapeStroke, Timeline, Tween,
 };
 use flare_edit::{Command, EditorSession, LayerChange, frames};
-use glamx::DVec2;
+use glamx::{DAffine2, DVec2};
 
 use crate::ops::{self, SpanRef};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
@@ -571,7 +571,13 @@ impl Workspace {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
-            MenuAction::Delete => self.has_selection(),
+            MenuAction::Delete
+            | MenuAction::FlipHorizontal
+            | MenuAction::FlipVertical
+            | MenuAction::RotateClockwise
+            | MenuAction::RotateCounterclockwise
+            | MenuAction::ScaleUp
+            | MenuAction::ScaleDown => self.has_selection(),
             MenuAction::ConvertToSymbol => self.can_convert_selection(),
             MenuAction::EditSymbol => self.can_edit_selected_symbol(),
             MenuAction::ExitSymbol => self.in_symbol(),
@@ -604,6 +610,12 @@ impl Workspace {
             MenuAction::Undo => "Undo",
             MenuAction::Redo => "Redo",
             MenuAction::Delete => "Delete",
+            MenuAction::FlipHorizontal => "Flip Horizontal",
+            MenuAction::FlipVertical => "Flip Vertical",
+            MenuAction::RotateClockwise => "Rotate 90\u{b0} Clockwise",
+            MenuAction::RotateCounterclockwise => "Rotate 90\u{b0} Counterclockwise",
+            MenuAction::ScaleUp => "Scale Up",
+            MenuAction::ScaleDown => "Scale Down",
             MenuAction::ConvertToSymbol => "Convert to Symbol",
             MenuAction::EditSymbol => "Edit Symbol",
             MenuAction::ExitSymbol => "Exit Symbol",
@@ -665,6 +677,24 @@ impl Workspace {
             MenuAction::Undo => self.undo(),
             MenuAction::Redo => self.redo(),
             MenuAction::Delete => self.delete_selection(),
+            MenuAction::FlipHorizontal => {
+                self.transform_selection(DAffine2::from_scale(DVec2::new(-1.0, 1.0)))
+            }
+            MenuAction::FlipVertical => {
+                self.transform_selection(DAffine2::from_scale(DVec2::new(1.0, -1.0)))
+            }
+            MenuAction::RotateClockwise => {
+                self.transform_selection(DAffine2::from_angle(std::f64::consts::FRAC_PI_2));
+            }
+            MenuAction::RotateCounterclockwise => {
+                self.transform_selection(DAffine2::from_angle(-std::f64::consts::FRAC_PI_2));
+            }
+            MenuAction::ScaleUp => {
+                self.transform_selection(DAffine2::from_scale(DVec2::splat(SCALE_STEP)))
+            }
+            MenuAction::ScaleDown => {
+                self.transform_selection(DAffine2::from_scale(DVec2::splat(1.0 / SCALE_STEP)))
+            }
             MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
             MenuAction::EditSymbol => self.edit_selected_symbol(),
             MenuAction::ExitSymbol => {
@@ -982,6 +1012,23 @@ impl Workspace {
         let delta = DVec2::new(f64::from(delta.x), f64::from(delta.y));
         if let Some(commands) = ops::translate(self.document(), scene, selected, delta) {
             self.run_batch(commands, "move");
+        }
+    }
+
+    /// Applies `matrix` to the selection about the center of its bounds, as one undo step.
+    /// The y axis points down, so a positive angle turns clockwise on screen.
+    pub fn transform_selection(&mut self, matrix: DAffine2) {
+        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+            return;
+        };
+        let Some(bounds) = ops::span_bounds(self.document(), scene, selected) else {
+            return;
+        };
+        let center = DVec2::new(f64::from(bounds.center().x), f64::from(bounds.center().y));
+        let about =
+            DAffine2::from_translation(center) * matrix * DAffine2::from_translation(-center);
+        if let Some(commands) = ops::transform(self.document(), scene, selected, about) {
+            self.run_batch(commands, "transform");
         }
     }
 
@@ -1631,6 +1678,9 @@ fn key_press(ctx: &egui::Context, key: Key) -> Option<Modifiers> {
 }
 
 /// Screen position to stage (document) coordinates, clamped to the stage.
+/// Scale Up / Scale Down factor.
+const SCALE_STEP: f64 = 1.25;
+
 fn screen_to_stage(p: Pos2, image_rect: Rect, extent: Vec2) -> Pos2 {
     let u = (p.x - image_rect.min.x) / image_rect.width().max(f32::EPSILON);
     let v = (p.y - image_rect.min.y) / image_rect.height().max(f32::EPSILON);
@@ -2648,5 +2698,149 @@ mod tests {
         assert_eq!(ws.tool(), Tool::Ellipse);
         assert_eq!(ws.fill, Color32::from_rgb(1, 2, 3));
         assert!(ws.stroke_enabled);
+    }
+
+    fn selected_shape(ws: &Workspace) -> Shape {
+        let scene = ws.scene_id().expect("scene");
+        match ops::find_span(ws.document(), scene, ws.selected.expect("selected"))
+            .expect("span")
+            .content()
+        {
+            Content::Shape(shape) => shape.clone(),
+            _ => panic!("a shape expected"),
+        }
+    }
+
+    fn endpoints(shape: &Shape) -> Vec<(f64, f64)> {
+        shape
+            .path()
+            .iter()
+            .filter_map(|s| match s {
+                flare_document::PathSegment::MoveTo(p) | flare_document::PathSegment::LineTo(p) => {
+                    Some((p.as_vec().x, p.as_vec().y))
+                }
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// A selected line from (10, 10) to (50, 30), which is not symmetric under flips.
+    fn line_selected() -> Workspace {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Line);
+        ws.begin_drag(Pos2::new(10.0, 10.0));
+        ws.update_drag(Pos2::new(50.0, 30.0));
+        ws.end_drag();
+        ws.set_tool(Tool::Select);
+        // Strokes are not hit-testable on this branch, so select the new layer's span directly.
+        let layer = ws.current_layer.expect("the line's layer");
+        ws.selected = Some(SpanRef { layer, start: 0 });
+        ws
+    }
+
+    #[test]
+    fn flips_mirror_about_the_center_of_the_selection() {
+        let mut ws = line_selected();
+        ws.perform(MenuAction::FlipHorizontal);
+        assert_eq!(
+            endpoints(&selected_shape(&ws)),
+            vec![(50.0, 10.0), (10.0, 30.0)]
+        );
+        ws.perform(MenuAction::FlipVertical);
+        assert_eq!(
+            endpoints(&selected_shape(&ws)),
+            vec![(50.0, 30.0), (10.0, 10.0)]
+        );
+        assert!(
+            selected_shape(&ws).stroke().is_some(),
+            "the stroke survives"
+        );
+    }
+
+    #[test]
+    fn rotation_turns_clockwise_on_screen_and_four_turns_come_home() {
+        let mut ws = line_selected();
+        ws.perform(MenuAction::RotateClockwise);
+        let turned = endpoints(&selected_shape(&ws));
+        // (10,10) is up-left of the center (30,20); clockwise 90 degrees puts it at (40,0).
+        assert!(
+            (turned[0].0 - 40.0).abs() < 1e-9 && turned[0].1.abs() < 1e-9,
+            "{turned:?}"
+        );
+        ws.perform(MenuAction::RotateCounterclockwise);
+        let back = endpoints(&selected_shape(&ws));
+        assert!(
+            (back[0].0 - 10.0).abs() < 1e-9 && (back[0].1 - 10.0).abs() < 1e-9,
+            "{back:?}"
+        );
+        for _ in 0..4 {
+            ws.perform(MenuAction::RotateClockwise);
+        }
+        let home = endpoints(&selected_shape(&ws));
+        assert!(
+            (home[1].0 - 50.0).abs() < 1e-9 && (home[1].1 - 30.0).abs() < 1e-9,
+            "{home:?}"
+        );
+    }
+
+    #[test]
+    fn scaling_grows_and_shrinks_about_the_center_and_each_is_one_undo_step() {
+        let mut ws = line_selected();
+        // The path itself scales; the stroke width does not, so measure the path.
+        let length = |ws: &Workspace| {
+            let p = endpoints(&selected_shape(ws));
+            ((p[1].0 - p[0].0).powi(2) + (p[1].1 - p[0].1).powi(2)).sqrt()
+        };
+        let middle = |ws: &Workspace| {
+            let p = endpoints(&selected_shape(ws));
+            ((p[0].0 + p[1].0) / 2.0, (p[0].1 + p[1].1) / 2.0)
+        };
+        let before = length(&ws);
+        ws.perform(MenuAction::ScaleUp);
+        let grown = length(&ws);
+        assert!((grown - before * 1.25).abs() < 1e-9);
+        assert_eq!(middle(&ws), (30.0, 20.0), "scaling is about the center");
+        ws.perform(MenuAction::ScaleDown);
+        assert!((length(&ws) - before).abs() < 1e-9);
+        ws.undo();
+        assert!((length(&ws) - grown).abs() < 1e-9);
+    }
+
+    #[test]
+    fn transforms_need_a_selection_and_an_instance_keeps_its_symbol() {
+        let mut ws = workspace();
+        assert!(!ws.is_enabled(MenuAction::FlipHorizontal));
+        draw_and_select(&mut ws);
+        ws.convert_selection_to_symbol();
+        let scene = ws.scene_id().expect("scene");
+        let at = ws.selected.expect("instance selected");
+        let symbol = match ops::find_span(ws.document(), scene, at)
+            .expect("span")
+            .content()
+        {
+            Content::Instance(i) => i.symbol(),
+            _ => panic!("an instance expected"),
+        };
+        let before = shape_bounds(&ws);
+        ws.perform(MenuAction::RotateClockwise);
+        let after = shape_bounds(&ws);
+        assert!((after.width() - before.height()).abs() < 1e-3);
+        assert!((after.center() - before.center()).length() < 1e-3);
+        match ops::find_span(ws.document(), scene, at)
+            .expect("span")
+            .content()
+        {
+            Content::Instance(i) => assert_eq!(i.symbol(), symbol),
+            _ => panic!("still an instance"),
+        }
+    }
+
+    #[test]
+    fn degenerate_matrices_are_refused() {
+        let mut ws = line_selected();
+        let before = ws.document().clone();
+        ws.transform_selection(DAffine2::from_scale(DVec2::ZERO));
+        ws.transform_selection(DAffine2::from_scale(DVec2::new(f64::NAN, 1.0)));
+        assert_eq!(ws.document(), &before);
     }
 }
