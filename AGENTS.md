@@ -60,9 +60,8 @@ cargo test --workspace --locked
 ## Git
 
 - Small conventional commits (`feat(scope): ...`, `fix`, `refactor`, `docs`, `chore`, `test`).
-- Work is a linear stack of branches (`stack/NN-topic`), each a draft PR against the one before it
-  in the Flare-Animate/Flare repository. Bring a lower branch's changes forward by merging, not
-  rebasing. Push only stack branches.
+- Work is committed straight to `main` in the Flare-Animate/Flare repository; there are no stacked
+  branches or PRs for the maintainers. Outside contributors use a fork and a pull request.
 - Never commit generated or local files (`target/`, `docs/temp/`, tool caches).
 - Change the docs in the same commit as the behaviour they describe. Committed docs never refer to
   `docs/temp`.

@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [Rust-Rewrite, "stack/**"]
+    branches: [main]
   pull_request:
 
 # A newer push to the same branch makes an older run pointless.
