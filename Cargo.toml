@@ -4,6 +4,7 @@
 resolver = "3"
 members = [
     "apps/flare-cli",
+    "apps/flare-desktop",
     "crates/foundation/flare-core",
     "crates/document/flare-document",
     "crates/document/flare-edit",
@@ -82,6 +83,8 @@ egui = { version = "0.37.0", default-features = false }
 egui-wgpu = { version = "0.37.0", default-features = false }
 egui-winit = { version = "0.37.0", default-features = false }
 winit = { version = "0.30.13", default-features = false }
+rfd = "0.15.4"
+pollster = "0.4.0"
 # The desktop member must choose native backends/fonts/clipboard/platform features.
 # Do not assume these minimal declarations alone build a desktop application.
 # agg-rust = "1.2.0"        # CPU renderer experiment, not mandatory.

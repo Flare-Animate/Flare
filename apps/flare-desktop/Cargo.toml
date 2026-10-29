@@ -1,0 +1,21 @@
+[package]
+name = "flare-desktop"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+egui.workspace = true
+egui-wgpu = { workspace = true, features = ["default", "winit"] }
+egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
+flare-storage.workspace = true
+flare-ui.workspace = true
+pollster.workspace = true
+rfd.workspace = true
+winit = { workspace = true, features = ["default"] }
+
+[lints]
+workspace = true
