@@ -906,3 +906,96 @@ fn export_xfl_round_trips_through_the_cli_as_a_folder_and_as_a_fla() {
     );
     assert!(!run(&["export-xfl", &file, &fla]).status.success());
 }
+
+#[test]
+fn publish_swf_writes_a_file_the_ruffle_reader_accepts_and_never_overwrites() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&[
+        "new",
+        &file,
+        "--width",
+        "64",
+        "--height",
+        "32",
+        "--background",
+        "102030",
+    ]);
+    let symbol = json(&[
+        "add-symbol",
+        &file,
+        "Dot",
+        "--rect",
+        "0",
+        "0",
+        "8",
+        "8",
+        "--color",
+        "FF0000",
+    ])["symbol"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    json(&[
+        "place",
+        &file,
+        &symbol,
+        "--duration",
+        "6",
+        "--x",
+        "0",
+        "--y",
+        "4",
+        "--tween",
+    ]);
+    json(&[
+        "place", &file, &symbol, "--start", "6", "--x", "40", "--y", "4",
+    ]);
+
+    let out = dir.path().join("movie.swf").to_string_lossy().into_owned();
+    let report = json(&["publish-swf", &file, &out]);
+    assert_eq!(report["frames"], 7);
+    assert!(
+        report["diagnostics"]
+            .as_array()
+            .expect("list")
+            .iter()
+            .any(|d| d["message"].as_str().is_some_and(|m| m.contains("baked")))
+    );
+
+    let bytes = std::fs::read(&out).expect("read");
+    assert_eq!(&bytes[..3], b"CWS");
+    let buf = swf::decompress_swf(&bytes[..]).expect("decompress");
+    let parsed = swf::parse_swf(&buf).expect("the SWF parses");
+    assert_eq!(parsed.header.num_frames(), 7);
+    assert_eq!(
+        (
+            parsed.header.stage_size().x_max.to_pixels(),
+            parsed.header.stage_size().y_max.to_pixels()
+        ),
+        (64.0, 32.0)
+    );
+    assert_eq!(
+        parsed
+            .tags
+            .iter()
+            .filter(|t| matches!(t, swf::Tag::ShowFrame))
+            .count(),
+        7
+    );
+
+    let plain = dir.path().join("plain.swf").to_string_lossy().into_owned();
+    json(&["publish-swf", &file, &plain, "--no-compress"]);
+    assert_eq!(&std::fs::read(&plain).expect("read")[..3], b"FWS");
+    assert!(
+        !run(&["publish-swf", &file, &out]).status.success(),
+        "never overwrites"
+    );
+    let missing = dir.path().join("none.flare").to_string_lossy().into_owned();
+    let other = dir.path().join("o.swf").to_string_lossy().into_owned();
+    assert!(!run(&["publish-swf", &missing, &other]).status.success());
+    assert!(
+        !std::path::Path::new(&other).exists(),
+        "a failed publish leaves no file"
+    );
+}

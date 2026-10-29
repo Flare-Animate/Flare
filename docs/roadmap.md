@@ -8,7 +8,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 | M1 source model and safe editing | Typed IDs, validated document, atomic edits, undo/redo, headless CLI | Done |
 | M2 usable vertical slice | Draw, convert to symbol, instances, tween, scrub/play, save/reopen, PNG export, one modern workspace | Done in code; needs hands-on checking (see below) |
 | M3 FLA/XFL compatibility and automation | Raw source IR, modern XFL/FLA subset, unknown-data preservation, MCP over stdio | MCP, XFL import and XFL export done (import and export tested against fixtures and each other only, never against Animate); source preservation not started |
-| M4 Test Movie and advanced features | Hosted Ruffle playback, SWF publishing, richer text/audio, advanced tweens and masks | Not started: needs a tested Ruffle revision chosen and an SWF writer, and has no evidence base yet |
+| M4 Test Movie and advanced features | Hosted Ruffle playback, SWF publishing, richer text/audio, advanced tweens and masks | SWF publishing (baked frames) done, verified by parsing with Ruffle's reader; hosted playback, richer text/audio and masks not started |
 | M5 hardening | Long sessions, crash recovery, packaging, accessibility, corpus expansion | Partly: crash recovery and fault-injection tests done; packaging, accessibility and long-session profiling not started |
 
 ## M2 remaining
@@ -31,6 +31,7 @@ merge was resolved by hand and the merged result is tested as a whole.
 | `feat/mcp` | MCP stdio server (`flare-cli mcp`) with permissions, revision checks, robustness tests |
 | `feat/xfl-import` | XFL / modern FLA import subset (`flare-cli import`) with diagnostics, robustness tests |
 | `feat/xfl-export` | XFL / `.fla` export (`flare-cli export-xfl`), stacked on `feat/xfl-import` |
+| `feat/swf-publish` | SWF publishing (`flare-cli publish-swf`), stacked on `feat/xfl-export` |
 | `feat/docking` | `egui_tiles` dock with a validated, remembered layout and Reset Workspace Layout |
 | `feat/onion-skin` | Onion skinning with before/after ranges |
 | `feat/hardening` | Fault-injection and random-edit invariant tests |
