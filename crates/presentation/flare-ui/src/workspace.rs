@@ -1310,7 +1310,10 @@ impl Workspace {
             SpanGrab::Resize => (
                 drag.layer,
                 drag.start,
-                (drag.frame + 1).saturating_sub(drag.start).max(1),
+                drag.frame
+                    .saturating_add(1)
+                    .saturating_sub(drag.start)
+                    .max(1),
             ),
         })
     }
@@ -4373,5 +4376,20 @@ mod tests {
         );
         ws.toggle_layer_locked(id);
         assert!(!ws.begin_span_drag(id, 0.5, 0.3), "locked layers refuse");
+    }
+
+    #[test]
+    fn dragging_to_the_very_last_frame_does_not_overflow() {
+        let (mut ws, id) = spans_workspace();
+        assert!(ws.begin_span_drag(id, 2.9, 0.3), "the right edge");
+        ws.update_span_drag(u32::MAX);
+        let (_, start, duration) = ws.span_drag_preview().expect("preview");
+        assert_eq!((start, u64::from(duration)), (0, u64::from(u32::MAX)));
+        ws.end_span_drag();
+        assert_eq!(
+            active_spans_of(&ws, id),
+            vec![(0, 3), (6, 2)],
+            "it would overlap, so refused"
+        );
     }
 }
