@@ -34,6 +34,7 @@ Planned, in the order they will be built:
 
 - Tools: Subselection, Free Transform. (Built: Pencil, Brush, Lasso, PolyStar, Paint Bucket,
   Ink Bottle, Eyedropper, Eraser, Hand, Zoom, and the rectangle corner radius.)
+- Menu: Cut, Select All, Deselect All, Rewind, Step Forward and Backward and Actual Size are built.
 - Properties: editable position and size, stroke cap and join, text style, frame rate.
 - Library: search, new symbol, folders, symbol properties, delete, preview.
 - Color: hex entry, gradient editor, eyedropper, no color, swap and default colors.
@@ -51,3 +52,7 @@ left for the window buttons, the app mark, the in-window menus where there is no
 the document name in the middle, and play, undo and redo at the right. Empty space in the bar
 moves the window and a double click zooms it; the workspace asks and the desktop app does it
 (`WindowRequest`), so the UI crate stays free of window code.
+
+## Type
+
+Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font License, licence text beside it), embedded in the program and placed ahead of egui's built-in fonts, which still cover the glyphs it lacks. On macOS the top bar is 28 px tall, the height of the title bar it replaces, so the window buttons the system draws sit centred in it.

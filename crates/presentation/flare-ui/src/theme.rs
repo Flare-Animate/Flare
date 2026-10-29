@@ -17,8 +17,26 @@ pub const ACCENT: Color32 = Color32::from_rgb(0x4c, 0x8d, 0xff);
 pub const WARNING: Color32 = Color32::from_rgb(0xe8, 0xb3, 0x4a);
 pub const STAGE_SURROUND: Color32 = Color32::from_rgb(0x16, 0x18, 0x1c);
 
+/// Source Sans 3 (SIL Open Font License; see `assets/ui/fonts/OFL.txt`).
+const SOURCE_SANS: &[u8] = include_bytes!("../../../../assets/ui/fonts/SourceSans3-Regular.ttf");
+
+/// Source Sans first for proportional text; egui's built-in fonts stay behind it for the glyphs
+/// it lacks, and monospace is untouched.
+fn install_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+    fonts.font_data.insert(
+        "source-sans-3".to_owned(),
+        std::sync::Arc::new(egui::FontData::from_static(SOURCE_SANS)),
+    );
+    if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+        family.insert(0, "source-sans-3".to_owned());
+    }
+    ctx.set_fonts(fonts);
+}
+
 /// Applies the palette, spacing and type sizes to `ctx`.
 pub fn apply(ctx: &egui::Context) {
+    install_fonts(ctx);
     let mut visuals = Visuals::dark();
     visuals.panel_fill = PANEL;
     visuals.window_fill = PANEL_RAISED;
@@ -61,15 +79,15 @@ pub fn apply(ctx: &egui::Context) {
         style.spacing.window_margin = egui::Margin::same(8);
         style
             .text_styles
-            .insert(TextStyle::Body, FontId::proportional(13.0));
+            .insert(TextStyle::Body, FontId::proportional(14.0));
         style
             .text_styles
-            .insert(TextStyle::Button, FontId::proportional(13.0));
+            .insert(TextStyle::Button, FontId::proportional(14.0));
         style
             .text_styles
-            .insert(TextStyle::Small, FontId::proportional(11.0));
+            .insert(TextStyle::Small, FontId::proportional(12.0));
         style
             .text_styles
-            .insert(TextStyle::Heading, FontId::proportional(15.0));
+            .insert(TextStyle::Heading, FontId::proportional(16.0));
     });
 }

@@ -78,8 +78,11 @@ pub enum WindowRequest {
     ToggleMaximize,
 }
 
-/// Height of the integrated top bar.
+/// Height of the top bar, and of the integrated one: macOS centers its window buttons 14 px
+/// from the top and the shell cannot move them, so the bar they float over is as tall as the
+/// system title bar it replaces.
 const TOP_BAR_HEIGHT: f32 = 38.0;
+const INTEGRATED_TOP_BAR_HEIGHT: f32 = 28.0;
 
 /// Something for the app to do with the sound card. The workspace decides what plays when; the
 /// app owns the device (the workspace has no device code).
@@ -1633,6 +1636,11 @@ impl Workspace {
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
             MenuAction::Paste => !self.clipboard.is_empty(),
+            MenuAction::SelectAll => self.scene_id().is_some_and(|scene| {
+                !ops::spans_at_frame(self.document(), scene, self.frame).is_empty()
+            }),
+            MenuAction::Rewind | MenuAction::StepBackward => self.frame > 0,
+            MenuAction::StepForward | MenuAction::ActualSize => true,
             MenuAction::CopyFrames => editable_layer || self.frame_range.is_some(),
             MenuAction::PasteFrames => {
                 self.frame_clipboard.is_some() && layer.is_some_and(|l| !l.is_locked())
@@ -1640,6 +1648,8 @@ impl Workspace {
             MenuAction::Delete
             | MenuAction::Duplicate
             | MenuAction::Copy
+            | MenuAction::Cut
+            | MenuAction::DeselectAll
             | MenuAction::FlipHorizontal
             | MenuAction::FlipVertical
             | MenuAction::RotateClockwise
@@ -1701,6 +1711,13 @@ impl Workspace {
             MenuAction::Delete => "Delete",
             MenuAction::Duplicate => "Duplicate",
             MenuAction::Copy => "Copy",
+            MenuAction::Cut => "Cut",
+            MenuAction::SelectAll => "Select All",
+            MenuAction::DeselectAll => "Deselect All",
+            MenuAction::Rewind => "Rewind",
+            MenuAction::StepForward => "Step Forward",
+            MenuAction::StepBackward => "Step Backward",
+            MenuAction::ActualSize => "Actual Size",
             MenuAction::CopyFrames => "Copy Frames",
             MenuAction::PasteFrames => "Paste Frames",
             MenuAction::Paste => "Paste",
@@ -1805,6 +1822,13 @@ impl Workspace {
             MenuAction::Delete => self.delete_selection(),
             MenuAction::Duplicate => self.duplicate_selection(),
             MenuAction::Copy => self.copy_selection(),
+            MenuAction::Cut => self.cut_selection(),
+            MenuAction::SelectAll => self.select_all(),
+            MenuAction::DeselectAll => self.clear_selection(),
+            MenuAction::Rewind => self.set_frame(0),
+            MenuAction::StepForward => self.set_frame(self.frame.saturating_add(1)),
+            MenuAction::StepBackward => self.set_frame(self.frame.saturating_sub(1)),
+            MenuAction::ActualSize => self.set_stage_percent(100.0),
             MenuAction::CopyFrames => self.copy_frames(),
             MenuAction::PasteFrames => self.paste_frames(),
             MenuAction::Paste => self.paste(),
@@ -2726,6 +2750,28 @@ impl Workspace {
         }
     }
 
+    /// Copy, then delete: one undo step restores what was cut.
+    pub fn cut_selection(&mut self) {
+        if !self.has_selection() {
+            return;
+        }
+        self.copy_selection();
+        self.delete_selection();
+    }
+
+    /// Selects everything on unlocked layers at the current frame.
+    pub fn select_all(&mut self) {
+        let Some(scene) = self.scene_id() else { return };
+        let all = ops::spans_at_frame(self.document(), scene, self.frame);
+        self.selected = all.first().copied();
+        self.also_selected = all.into_iter().skip(1).collect();
+    }
+
+    pub fn clear_selection(&mut self) {
+        self.selected = None;
+        self.also_selected.clear();
+    }
+
     /// Pastes the remembered spans in place at the current frame, each on its own new layer,
     /// and selects them.
     pub fn paste(&mut self) {
@@ -3086,7 +3132,11 @@ impl Workspace {
             .exact_size(24.0)
             .show(ui, |ui| self.status_bar(ui));
         egui::Panel::top("menu")
-            .exact_size(TOP_BAR_HEIGHT)
+            .exact_size(if self.titlebar_inset > 0.0 {
+                INTEGRATED_TOP_BAR_HEIGHT
+            } else {
+                TOP_BAR_HEIGHT
+            })
             .frame(egui::Frame::new().fill(crate::theme::BG))
             .show(ui, |ui| self.menu_bar(ui));
         egui::CentralPanel::default().show(ui, |ui| {
@@ -3157,15 +3207,19 @@ impl Workspace {
         }
         // Cmd/Ctrl+C and V arrive as Copy and Paste events. They are not menu accelerators, so
         // text fields keep them; when no field wants the keyboard they act on the selection.
-        let (copy, paste) = ctx.input(|i| {
+        let (copy, cut, paste) = ctx.input(|i| {
             (
                 i.events.iter().any(|e| matches!(e, egui::Event::Copy)),
+                i.events.iter().any(|e| matches!(e, egui::Event::Cut)),
                 i.events.iter().any(|e| matches!(e, egui::Event::Paste(_))),
             )
         });
         if !typing {
             if copy {
                 self.copy_selection();
+            }
+            if cut {
+                self.cut_selection();
             }
             if paste {
                 self.paste();
@@ -3268,7 +3322,7 @@ impl Workspace {
         );
         ui.horizontal_centered(|ui| {
             ui.add_space(self.titlebar_inset.max(10.0));
-            ui.add(crate::icons::image("lightning", 18.0, crate::theme::ACCENT));
+            ui.add(crate::icons::image("home", 16.0, crate::theme::TEXT));
             ui.label(
                 egui::RichText::new("Flare")
                     .strong()
@@ -7680,5 +7734,46 @@ mod tests {
         ws.freehand = vec![Pos2::new(5.0, 5.0)];
         ws.finish_freehand(1.0);
         assert_eq!(layer_count(&ws), 2);
+    }
+
+    #[test]
+    fn cut_select_all_and_deselect_all_work_on_the_current_frame() {
+        let mut ws = two_rectangles();
+        assert!(ws.is_enabled(MenuAction::SelectAll));
+        ws.perform(MenuAction::SelectAll);
+        assert_eq!(ws.selection_all().len(), 2);
+        ws.perform(MenuAction::DeselectAll);
+        assert!(!ws.has_selection());
+        assert!(!ws.is_enabled(MenuAction::Cut));
+        ws.select_at(Pos2::new(30.0, 30.0), false);
+        let spans_before: usize = (0..layer_count(&ws)).map(|l| spans_of(&ws, l)).sum();
+        ws.perform(MenuAction::Cut);
+        let spans_after: usize = (0..layer_count(&ws)).map(|l| spans_of(&ws, l)).sum();
+        assert_eq!(spans_after + 1, spans_before);
+        assert!(
+            ws.is_enabled(MenuAction::Paste),
+            "what was cut can be pasted"
+        );
+        ws.undo();
+        let restored: usize = (0..layer_count(&ws)).map(|l| spans_of(&ws, l)).sum();
+        assert_eq!(restored, spans_before);
+    }
+
+    #[test]
+    fn transport_menu_steps_the_playhead_and_actual_size_shows_the_stage_at_100_percent() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        rect(&mut ws); // gives the scene its 24 frames
+        run(&mut ws, &ctx, 0.0);
+        assert!(!ws.is_enabled(MenuAction::Rewind));
+        ws.perform(MenuAction::StepForward);
+        ws.perform(MenuAction::StepForward);
+        assert_eq!(ws.frame(), 2);
+        ws.perform(MenuAction::StepBackward);
+        assert_eq!(ws.frame(), 1);
+        ws.perform(MenuAction::Rewind);
+        assert_eq!(ws.frame(), 0);
+        ws.perform(MenuAction::ActualSize);
+        let scale = ws.stage_view.scale(ws.stage_panel, ws.stage_extent());
+        assert!((scale - 1.0).abs() < 1e-3, "{scale}");
     }
 }

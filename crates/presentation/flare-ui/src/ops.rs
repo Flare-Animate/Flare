@@ -534,6 +534,25 @@ pub fn spans_in_polygon(
         .collect()
 }
 
+/// Every span with something to show on unlocked layers at `frame`: what Select All selects.
+pub fn spans_at_frame(document: &Document, scene: SceneId, frame: u32) -> Vec<SpanRef> {
+    let Some(timeline) = scene_timeline(document, scene) else {
+        return Vec::new();
+    };
+    timeline
+        .layers()
+        .iter()
+        .filter(|layer| !layer.is_locked())
+        .filter_map(|layer| {
+            let span = layer.span_at(frame)?;
+            (!matches!(span.content(), Content::Empty)).then_some(SpanRef {
+                layer: layer.id(),
+                start: span.start(),
+            })
+        })
+        .collect()
+}
+
 /// Stage-space bounds of a selected span, for drawing the selection outline.
 #[cfg(test)]
 pub fn span_bounds(document: &Document, scene: SceneId, at: SpanRef) -> Option<Rect> {
