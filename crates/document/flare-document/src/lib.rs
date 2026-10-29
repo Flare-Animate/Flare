@@ -10,7 +10,9 @@ mod stage;
 mod timeline;
 mod validate;
 
-pub use shape::{MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape, ShapeError, Stroke};
+pub use shape::{
+    Gradient, GradientError, MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape, ShapeError, Stroke,
+};
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
 pub use timeline::{Content, FrameSpan, Instance, Layer, Timeline, TimelineError, Tween};
 pub use validate::Diagnostic;

@@ -13,6 +13,7 @@ use flare_eval::Frame;
 use thiserror::Error;
 use vello_cpu::color::{AlphaColor, Srgb};
 use vello_cpu::kurbo::{Affine, BezPath, Cap, Join, Point, Rect, Shape as _, Stroke};
+use vello_cpu::peniko::Gradient;
 use vello_cpu::{Pixmap, RenderContext, Resources};
 
 /// Per-side limit (vello_cpu uses `u16`; we stay well below).
@@ -73,6 +74,12 @@ fn color(c: Rgba8) -> AlphaColor<Srgb> {
     AlphaColor::from_rgba8(c.r, c.g, c.b, c.a)
 }
 
+fn linear_gradient(gradient: &flare_document::Gradient) -> Gradient {
+    let (from, to) = (gradient.from().as_vec(), gradient.to().as_vec());
+    Gradient::new_linear((from.x, from.y), (to.x, to.y))
+        .with_stops([color(gradient.start()), color(gradient.end())])
+}
+
 fn bez_path(segments: &[PathSegment]) -> BezPath {
     let mut path = BezPath::new();
     for segment in segments {
@@ -101,7 +108,7 @@ pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
         .enumerate()
         .rev()
         .filter(|(_, drawn)| {
-            if drawn.shape.fill().a == 0 || drawn.transform.matrix2.determinant() == 0.0 {
+            if drawn.shape.fill_is_invisible() || drawn.transform.matrix2.determinant() == 0.0 {
                 return false;
             }
             let local = drawn.transform.inverse().transform_point2(point);
@@ -161,7 +168,10 @@ pub fn render(
         let [a, b, c, d, e, f] = drawn.transform.to_cols_array();
         ctx.set_transform(Affine::new([a, b, c, d, e, f]));
         let path = bez_path(drawn.shape.path());
-        ctx.set_paint(color(drawn.shape.fill()));
+        match drawn.shape.gradient() {
+            Some(gradient) => ctx.set_paint(linear_gradient(&gradient)),
+            None => ctx.set_paint(color(drawn.shape.fill())),
+        }
         ctx.fill_path(&path);
         if let Some(stroke) = drawn.shape.stroke() {
             ctx.set_stroke(
@@ -222,8 +232,12 @@ mod tests {
     }
 
     fn draw(doc: &Document, scene: SceneId, bg: Rgba8) -> Image {
+        draw_sized(doc, scene, bg, 20, 20)
+    }
+
+    fn draw_sized(doc: &Document, scene: SceneId, bg: Rgba8, w: u32, h: u32) -> Image {
         let frame = flare_eval::evaluate_frame(doc, scene, 0).expect("eval");
-        render(&frame, 20, 20, bg).expect("render")
+        render(&frame, w, h, bg).expect("render")
     }
 
     #[test]
@@ -427,5 +441,94 @@ mod tests {
         let info = reader.next_frame(&mut buf).expect("frame");
         assert_eq!((info.width, info.height), (20, 20));
         assert_eq!(&buf[..info.buffer_size()], image.rgba());
+    }
+
+    fn gradient_rect(w: f64, h: f64) -> Shape {
+        use flare_core::DocumentPoint;
+        let end = DocumentPoint::new(w, 0.0).expect("finite");
+        let start = DocumentPoint::new(0.0, 0.0).expect("finite");
+        let gradient = flare_document::Gradient::linear(
+            start,
+            end,
+            Rgba8::opaque(255, 0, 0),
+            Rgba8::opaque(0, 0, 255),
+        )
+        .expect("gradient");
+        Shape::rect(ShapeId::new(), 0.0, 0.0, w, h, Rgba8::WHITE)
+            .expect("rect")
+            .with_gradient(gradient)
+    }
+
+    #[test]
+    fn a_linear_gradient_blends_between_its_two_points() {
+        let (doc, id) = scene_with(
+            vec![span(Content::Shape(gradient_rect(100.0, 20.0)))],
+            vec![],
+        );
+        let image = draw_sized(&doc, id, Rgba8::WHITE, 100, 20);
+        let at = |x| image.pixel(x, 10).expect("pixel");
+        assert!(at(2).r > 230 && at(2).b < 25, "red end: {:?}", at(2));
+        assert!(at(97).b > 230 && at(97).r < 25, "blue end: {:?}", at(97));
+        let mid = at(50);
+        assert!(
+            mid.r.abs_diff(127) < 20 && mid.b.abs_diff(127) < 20,
+            "middle: {mid:?}"
+        );
+        assert!(at(30).r > at(70).r, "red falls off left to right");
+    }
+
+    #[test]
+    fn the_gradient_follows_the_instance_transform() {
+        // The same 100-wide gradient, scaled to half size by the instance: the blue end now
+        // sits at x = 50, not 100.
+        let art = SymbolId::new();
+        let art_tl = Timeline::new(vec![
+            Layer::new(
+                LayerId::new(),
+                "L",
+                vec![span(Content::Shape(gradient_rect(100.0, 20.0)))],
+            )
+            .expect("l"),
+        ]);
+        let half = Transform2D::new(DAffine2::from_scale(DVec2::splat(0.5))).expect("finite");
+        let instance = Instance::new(InstanceId::new(), art, half);
+        let (doc, id) = scene_with(
+            vec![span(Content::Instance(instance))],
+            vec![Symbol::new(art, "Art", art_tl)],
+        );
+        let image = draw_sized(&doc, id, Rgba8::WHITE, 100, 20);
+        let end = image.pixel(48, 5).expect("pixel");
+        assert!(end.b > 220 && end.r < 35, "blue at the scaled end: {end:?}");
+        assert_eq!(
+            image.pixel(70, 5),
+            Some(Rgba8::WHITE),
+            "nothing beyond the shape"
+        );
+    }
+
+    #[test]
+    fn a_gradient_over_a_clear_fill_is_hittable_and_a_clear_one_is_not() {
+        use flare_core::DocumentPoint;
+        let visible = gradient_rect(40.0, 40.0);
+        let p = |x| DocumentPoint::new(x, 0.0).expect("finite");
+        let clear = Shape::rect(ShapeId::new(), 0.0, 0.0, 40.0, 40.0, Rgba8::WHITE)
+            .expect("rect")
+            .with_gradient(
+                flare_document::Gradient::linear(
+                    p(0.0),
+                    p(40.0),
+                    Rgba8::TRANSPARENT,
+                    Rgba8::TRANSPARENT,
+                )
+                .expect("gradient"),
+            );
+        for (shape, hit) in [(visible, true), (clear, false)] {
+            let (doc, id) = scene_with(vec![span(Content::Shape(shape))], vec![]);
+            let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("frame");
+            assert_eq!(
+                hit_test(&frame, glamx::DVec2::new(20.0, 20.0)).is_some(),
+                hit
+            );
+        }
     }
 }

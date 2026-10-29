@@ -183,8 +183,8 @@ mod tests {
         SymbolId, Transform2D,
     };
     use flare_document::{
-        Content, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Stroke, Symbol,
-        Timeline, Tween,
+        Content, FrameSpan, Gradient, Instance, Layer, PathSegment, Scene, Shape, Stage, Stroke,
+        Symbol, Timeline, Tween,
     };
     use glamx::DAffine2;
 
@@ -219,7 +219,16 @@ mod tests {
             Rgba8::new(10, 20, 30, 40),
         )
         .expect("shape")
-        .with_stroke(Stroke::new(2.5, Rgba8::new(9, 8, 7, 255)).expect("stroke"));
+        .with_stroke(Stroke::new(2.5, Rgba8::new(9, 8, 7, 255)).expect("stroke"))
+        .with_gradient(
+            Gradient::linear(
+                DocumentPoint::new(-1.5, 0.0).expect("finite"),
+                DocumentPoint::new(6.0, 2.25).expect("finite"),
+                Rgba8::new(255, 0, 0, 200),
+                Rgba8::new(0, 0, 255, 100),
+            )
+            .expect("gradient"),
+        );
         let drawn = FrameSpan::new(
             10,
             NonZeroU32::new(1).expect("nonzero"),
@@ -375,6 +384,41 @@ mod tests {
         let conn = Connection::open(&path).expect("open");
         conn.execute("UPDATE entity SET payload_json = replace(payload_json, '\"width\":2.5', '\"width\":-1.0')", [])
             .expect("corrupt width");
+        drop(conn);
+        assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
+    }
+
+    #[test]
+    fn gradients_are_revalidated_and_legacy_shapes_without_them_still_load() {
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("a.flare");
+        save(&sample(), &path).expect("save");
+        let conn = Connection::open(&path).expect("open");
+        conn.execute(
+            "UPDATE entity SET payload_json = replace(payload_json, '\"gradient\":', '\"legacy\":')",
+            [],
+        )
+        .expect("strip gradient key");
+        drop(conn);
+        let loaded = load(&path).expect("an absent gradient is a solid shape");
+        let shape = loaded.scenes()[0].timeline().layers()[0]
+            .spans()
+            .iter()
+            .find_map(|s| match s.content() {
+                Content::Shape(shape) => Some(shape.clone()),
+                _ => None,
+            })
+            .expect("shape");
+        assert!(shape.gradient().is_none());
+
+        save(&sample(), &path).expect("save");
+        let conn = Connection::open(&path).expect("open");
+        // Make the two gradient points identical: a gradient with no direction is corrupt.
+        conn.execute(
+            "UPDATE entity SET payload_json = replace(payload_json, '\"to\":[6.0,2.25]', '\"to\":[-1.5,0.0]')",
+            [],
+        )
+        .expect("corrupt gradient");
         drop(conn);
         assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
     }

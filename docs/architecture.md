@@ -32,8 +32,9 @@ A span is a held exposure: start frame, positive duration, `Content` (`Empty`, `
 content, which is not the same as having no span. A held exposure is one span, never many
 cloned keyframes.
 
-A `Shape` is a validated path (move/line/cubic/close, segment count capped), a fill and
-an optional round-cap `Stroke`. An `Instance` references a symbol and carries a full
+A `Shape` is a validated path (move/line/cubic/close, segment count capped), a fill, an
+optional two-color linear `Gradient` (painted instead of the solid fill, in the shape's own
+coordinates, so it follows transforms) and an optional round-cap `Stroke`. An `Instance` references a symbol and carries a full
 finite 2D affine matrix (shear and reflection are preserved, not decomposed away).
 Symbols are Graphic symbols: parent-clocked, looping over their own length.
 
@@ -117,7 +118,9 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 
 ## Known gaps
 
-- No pen or path tool, gradients, masks, text or bitmap fills.
+- No pen or path tool, radial or multi-stop gradients, masks, text or bitmap fills. The
+  desktop app creates horizontal or vertical gradients on new shapes only; they cannot yet be
+  edited afterwards.
 - No FLA/XFL import or export, and no SWF parsing beyond signature inspection.
 - No stage zoom or pan, no docking, no multi-select, no drag-editing of spans.
 - No autosave or crash recovery; undo history is not persisted.
