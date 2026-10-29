@@ -1119,6 +1119,7 @@ dependencies = [
  "flare-edit",
  "flare-eval",
  "flare-flash",
+ "flare-mcp",
  "flare-render",
  "flare-storage",
  "glamx",
@@ -1188,6 +1189,23 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "flare-mcp"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "flare-document",
+ "flare-edit",
+ "flare-eval",
+ "flare-render",
+ "flare-storage",
+ "glamx",
+ "png",
+ "serde_json",
+ "tempfile",
+ "uuid",
 ]
 
 [[package]]

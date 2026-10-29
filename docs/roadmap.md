@@ -7,7 +7,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 | M0 baseline | Pinned toolchain, centralized dependencies, locked builds, honest tests, renderer decision | Done |
 | M1 source model and safe editing | Typed IDs, validated document, atomic edits, undo/redo, headless CLI | Done |
 | M2 usable vertical slice | Draw, convert to symbol, instances, tween, scrub/play, save/reopen, PNG export, one modern workspace | Mostly done: see below |
-| M3 FLA/XFL compatibility and automation | Raw source IR, modern XFL/FLA subset, unknown-data preservation, MCP over stdio | Not started |
+| M3 FLA/XFL compatibility and automation | Raw source IR, modern XFL/FLA subset, unknown-data preservation, MCP over stdio | MCP done on `feat/mcp`; format work not started |
 | M4 Test Movie and advanced features | Hosted Ruffle playback, SWF publishing, richer text/audio, advanced tweens and masks | Not started |
 | M5 hardening | Long sessions, crash recovery, packaging, accessibility, corpus expansion | Not started |
 

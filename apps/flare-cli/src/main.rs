@@ -140,6 +140,17 @@ enum Command {
         #[arg(long)]
         name: Option<String>,
     },
+    /// Serve a project to an AI agent over MCP (stdio). Read-only unless --allow-write.
+    /// Protocol messages use stdout, so nothing else is ever printed there.
+    Mcp {
+        path: PathBuf,
+        /// Allow tools that change the project and save it.
+        #[arg(long)]
+        allow_write: bool,
+        /// Directory the export_png tool may write into (exports are off without it).
+        #[arg(long)]
+        export_dir: Option<PathBuf>,
+    },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -187,6 +198,22 @@ enum Command {
 
 fn main() -> Result<()> {
     let arguments = Arguments::parse();
+    if let Command::Mcp {
+        path,
+        allow_write,
+        export_dir,
+    } = &arguments.command
+    {
+        let permissions = flare_mcp::Permissions {
+            write: *allow_write,
+            export_dir: export_dir.clone(),
+        };
+        let mut server = flare_mcp::Server::open(path.clone(), permissions)
+            .with_context(|| format!("cannot open {}", path.display()))?;
+        return server
+            .serve(std::io::stdin().lock(), std::io::stdout().lock())
+            .context("mcp session");
+    }
     let output = match arguments.command {
         Command::Inspect { path } => {
             let file =
@@ -260,6 +287,7 @@ fn main() -> Result<()> {
             height,
             transparent,
         } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
+        Command::Mcp { .. } => bail!("mcp is handled before output is prepared"),
         Command::Layer {
             op,
             path,
