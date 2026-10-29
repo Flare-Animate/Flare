@@ -216,7 +216,10 @@ impl Workspace {
                 });
                 ui.add_space(6.0);
                 if ui.button("Restore defaults").clicked() {
-                    edited = Preferences::default();
+                    edited = Preferences {
+                        recent: edited.recent.clone(),
+                        ..Preferences::default()
+                    };
                 }
             });
         self.apply_preferences(&edited);

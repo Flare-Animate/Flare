@@ -35,6 +35,13 @@ pub fn publish_to_file(
         .unwrap_or(Path::new("."));
     let mut staged = tempfile::NamedTempFile::new_in(directory)?;
     staged.write_all(&published.bytes)?;
-    staged.persist(out).map_err(|error| error.error)?;
+    // Refuses atomically if the file appeared since the check above.
+    staged.persist_noclobber(out).map_err(|error| {
+        if error.error.kind() == std::io::ErrorKind::AlreadyExists {
+            PublishFileError::Exists(out.to_path_buf())
+        } else {
+            error.error.into()
+        }
+    })?;
     Ok(published)
 }

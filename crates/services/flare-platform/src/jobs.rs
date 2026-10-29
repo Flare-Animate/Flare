@@ -47,10 +47,13 @@ pub fn export_gif(
                 .map_err(|e| format!("Cannot write the movie: {e}"))?;
             std::io::Write::write_all(&mut staged, &bytes)
                 .map_err(|e| format!("Cannot write the movie: {e}"))?;
-            staged
-                .persist(&path)
-                .map(|_| ())
-                .map_err(|e| format!("Cannot write the movie: {}", e.error))
+            staged.persist_noclobber(&path).map(|_| ()).map_err(|e| {
+                if e.error.kind() == io::ErrorKind::AlreadyExists {
+                    format!("{} already exists", path.display())
+                } else {
+                    format!("Cannot write the movie: {}", e.error)
+                }
+            })
         });
         done(result);
     })

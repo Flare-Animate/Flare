@@ -94,7 +94,7 @@ mod tests {
             );
             let colours: Vec<&str> = text
                 .match_indices('#')
-                .map(|(i, _)| &text[i..i + 4])
+                .map(|(i, _)| text.get(i..i + 4).unwrap_or("#"))
                 .collect();
             assert!(
                 colours.iter().all(|c| *c == "#fff"),

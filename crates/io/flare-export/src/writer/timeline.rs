@@ -113,6 +113,9 @@ pub(super) fn write_layer(
         }
     } else if layer.is_guide() {
         attrs.push_str(" layerType=\"guide\"");
+        if let Some(parent) = folder_parent {
+            attrs.push_str(&format!(" parentLayerIndex=\"{parent}\""));
+        }
     } else if layer.is_mask() {
         // Animate keeps mask layers locked; the layers they mask point back at them.
         attrs.push_str(" layerType=\"mask\" locked=\"true\"");

@@ -94,6 +94,10 @@ impl FlareServer {
                 args.width.unwrap_or(stage.width()),
                 args.height.unwrap_or(stage.height()),
             );
+            const MAX_SIDE: u32 = 16384;
+            if width == 0 || height == 0 || width > MAX_SIDE || height > MAX_SIDE {
+                return Err(format!("width and height must be between 1 and {MAX_SIDE}"));
+            }
             let evaluated = flare_eval::evaluate_frame(document, first_scene(state)?, args.frame)
                 .map_err(|e| e.to_string())?;
             let image = flare_render::render(&evaluated, width, height, stage.background())

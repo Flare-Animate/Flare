@@ -32,6 +32,9 @@ pub fn gif_bytes(document: &Document) -> Result<Vec<u8>, String> {
     let side = |n: u32| u16::try_from(n).map_err(|_| "The movie is too large.".to_owned());
     let rate = document.frame_rate();
     let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+    if !fps.is_finite() || fps <= 0.0 {
+        return Err("The frame rate must be above zero to export a movie.".to_owned());
+    }
     let delay = ((100.0 / fps).round() as u16).max(2);
 
     let mut bytes = Vec::new();
