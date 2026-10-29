@@ -33,6 +33,12 @@ impl Handle {
         Handle::Left,
     ];
 
+    /// Whether this is an edge handle (the only kind that skews).
+    pub fn is_edge(self) -> bool {
+        let (dx, dy) = self.direction();
+        dx == 0 || dy == 0
+    }
+
     /// Which sides this handle moves: (-1, 0, +1) for left/none/right and top/none/bottom.
     fn direction(self) -> (i8, i8) {
         match self {
@@ -139,6 +145,103 @@ pub fn matrix(bounds: Rect, handle: Handle, scale: (f64, f64)) -> DAffine2 {
         * DAffine2::from_translation(-anchor)
 }
 
+/// How far outside a corner handle, in multiples of its pick radius, the rotate zone reaches.
+const ROTATE_ZONE: f32 = 3.0;
+/// Largest skew, as a shear factor (about 80 degrees), so a drag cannot flatten the artwork.
+const MAX_SHEAR: f64 = 5.67;
+/// Rotation snaps to multiples of this many degrees when Shift is held.
+const SNAP_DEGREES: f64 = 15.0;
+
+/// Whether `point` is in the rotate zone: just outside a corner of `bounds`, beyond the scale
+/// handle's own reach but within a few radii of it.
+pub fn in_rotate_zone(bounds: Rect, point: Pos2, radius: f32) -> bool {
+    if !bounds.min.is_finite() || !bounds.max.is_finite() || !point.is_finite() || radius <= 0.0 {
+        return false;
+    }
+    if bounds.contains(point) {
+        return false;
+    }
+    [
+        Handle::TopLeft,
+        Handle::TopRight,
+        Handle::BottomRight,
+        Handle::BottomLeft,
+    ]
+    .into_iter()
+    .any(|corner| {
+        let distance = (corner.position(bounds) - point).length();
+        distance > radius && distance <= radius * ROTATE_ZONE
+    })
+}
+
+/// The angle, in radians and in the stage's y-down orientation (positive is clockwise on
+/// screen), that carries the direction from `center` to `from` onto the direction to `to`.
+/// `snap` rounds it to a multiple of 15 degrees. `None` when either point sits on the center
+/// (no direction) or is not finite.
+pub fn rotation_between(center: Pos2, from: Pos2, to: Pos2, snap: bool) -> Option<f64> {
+    if ![center, from, to].iter().all(|p| p.is_finite()) {
+        return None;
+    }
+    let (a, b) = (from - center, to - center);
+    if a.length() < 1e-3 || b.length() < 1e-3 {
+        return None;
+    }
+    let mut angle = f64::from(b.y).atan2(f64::from(b.x)) - f64::from(a.y).atan2(f64::from(a.x));
+    let tau = std::f64::consts::TAU;
+    angle = (angle + std::f64::consts::PI).rem_euclid(tau) - std::f64::consts::PI;
+    if snap {
+        let step = SNAP_DEGREES.to_radians();
+        angle = (angle / step).round() * step;
+    }
+    Some(angle)
+}
+
+/// The rotation about `center` by `angle`.
+pub fn rotation_matrix(center: Pos2, angle: f64) -> DAffine2 {
+    let c = DVec2::new(f64::from(center.x), f64::from(center.y));
+    DAffine2::from_translation(c) * DAffine2::from_angle(angle) * DAffine2::from_translation(-c)
+}
+
+/// The shear factor for dragging an edge handle sideways: how far the handle's edge moves
+/// along the edge, per unit of distance from the opposite edge, which stays put. Only edge
+/// handles skew; `None` for corners, a flat box, or non-finite input.
+pub fn skew_for(bounds: Rect, handle: Handle, pointer: Pos2) -> Option<f64> {
+    if !pointer.is_finite() || !bounds.min.is_finite() || !bounds.max.is_finite() {
+        return None;
+    }
+    let (dx, dy) = handle.direction();
+    let from = handle.position(bounds);
+    let anchor = handle.anchor(bounds);
+    let factor = match (dx, dy) {
+        // Top and bottom edges slide along x.
+        (0, _) => {
+            let span = f64::from(from.y - anchor.y);
+            (span.abs() > 1e-6).then(|| f64::from(pointer.x - from.x) / span)?
+        }
+        // Left and right edges slide along y.
+        (_, 0) => {
+            let span = f64::from(from.x - anchor.x);
+            (span.abs() > 1e-6).then(|| f64::from(pointer.y - from.y) / span)?
+        }
+        _ => return None,
+    };
+    Some(factor.clamp(-MAX_SHEAR, MAX_SHEAR))
+}
+
+/// The shear that moves the dragged edge by factor `k` while the opposite edge stays put.
+pub fn skew_matrix(bounds: Rect, handle: Handle, k: f64) -> DAffine2 {
+    let a = handle.anchor(bounds);
+    let anchor = DVec2::new(f64::from(a.x), f64::from(a.y));
+    let (dx, _) = handle.direction();
+    // x' = x + k (y - anchor.y) for top/bottom; y' = y + k (x - anchor.x) for left/right.
+    let shear = if dx == 0 {
+        DAffine2::from_cols_array(&[1.0, 0.0, k, 1.0, 0.0, 0.0])
+    } else {
+        DAffine2::from_cols_array(&[1.0, k, 0.0, 1.0, 0.0, 0.0])
+    };
+    DAffine2::from_translation(anchor) * shear * DAffine2::from_translation(-anchor)
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
@@ -235,5 +338,113 @@ mod tests {
         let flat = Rect::from_min_max(Pos2::new(0.0, 5.0), Pos2::new(50.0, 5.0));
         let s = scale_for(flat, Handle::BottomRight, Pos2::new(100.0, 40.0), false).expect("scale");
         assert_eq!(s, (2.0, 1.0));
+    }
+
+    #[test]
+    fn the_rotate_zone_is_a_ring_around_each_corner_outside_the_box() {
+        let b = bounds(); // (10,20)-(110,70)
+        assert!(
+            in_rotate_zone(b, Pos2::new(120.0, 80.0), 6.0),
+            "diagonally outside a corner"
+        );
+        assert!(in_rotate_zone(b, Pos2::new(0.0, 12.0), 6.0));
+        assert!(
+            !in_rotate_zone(b, Pos2::new(111.0, 71.0), 6.0),
+            "that is the scale handle"
+        );
+        assert!(
+            !in_rotate_zone(b, Pos2::new(60.0, 45.0), 6.0),
+            "inside the box"
+        );
+        assert!(
+            !in_rotate_zone(b, Pos2::new(300.0, 300.0), 6.0),
+            "too far away"
+        );
+        assert!(!in_rotate_zone(b, Pos2::new(f32::NAN, 0.0), 6.0));
+        assert!(!in_rotate_zone(b, Pos2::new(120.0, 80.0), 0.0));
+    }
+
+    #[test]
+    fn rotation_is_the_angle_between_the_two_directions_and_snaps_on_request() {
+        let c = Pos2::new(0.0, 0.0);
+        let quarter =
+            rotation_between(c, Pos2::new(10.0, 0.0), Pos2::new(0.0, 10.0), false).expect("angle");
+        assert!(
+            (quarter - std::f64::consts::FRAC_PI_2).abs() < 1e-9,
+            "clockwise on screen"
+        );
+        let back =
+            rotation_between(c, Pos2::new(0.0, 10.0), Pos2::new(10.0, 0.0), false).expect("angle");
+        assert!((back + std::f64::consts::FRAC_PI_2).abs() < 1e-9);
+        // Across the +-180 degree seam the short way round is taken.
+        let seam = rotation_between(c, Pos2::new(-10.0, -1.0), Pos2::new(-10.0, 1.0), false)
+            .expect("angle");
+        assert!(seam.abs() < 0.3, "{seam}");
+        let near =
+            rotation_between(c, Pos2::new(10.0, 0.0), Pos2::new(10.0, 3.0), true).expect("angle");
+        assert!(
+            (near - 15.0_f64.to_radians()).abs() < 1e-9,
+            "16.7 degrees snaps to 15: {near}"
+        );
+    }
+
+    #[test]
+    fn rotation_needs_two_real_directions() {
+        let c = Pos2::new(5.0, 5.0);
+        assert!(rotation_between(c, c, Pos2::new(9.0, 5.0), false).is_none());
+        assert!(rotation_between(c, Pos2::new(9.0, 5.0), c, false).is_none());
+        assert!(
+            rotation_between(c, Pos2::new(f32::NAN, 1.0), Pos2::new(9.0, 5.0), false).is_none()
+        );
+    }
+
+    #[test]
+    fn rotating_about_the_center_keeps_it_fixed() {
+        let m = rotation_matrix(Pos2::new(60.0, 45.0), std::f64::consts::FRAC_PI_2);
+        let moved = m.transform_point2(DVec2::new(60.0, 45.0));
+        assert!((moved - DVec2::new(60.0, 45.0)).length() < 1e-9);
+        let corner = m.transform_point2(DVec2::new(110.0, 45.0));
+        assert!(
+            (corner - DVec2::new(60.0, 95.0)).length() < 1e-9,
+            "{corner:?}"
+        );
+    }
+
+    #[test]
+    fn skewing_an_edge_slides_it_along_itself_and_holds_the_opposite_edge() {
+        let b = bounds(); // 100 wide, 50 tall
+        // Drag the top edge's handle (60, 20) 25 to the right.
+        let k = skew_for(b, Handle::Top, Pos2::new(85.0, 20.0)).expect("shear");
+        assert!((k - (25.0 / -50.0)).abs() < 1e-9, "{k}");
+        let m = skew_matrix(b, Handle::Top, k);
+        let top = m.transform_point2(DVec2::new(60.0, 20.0));
+        assert!(
+            (top - DVec2::new(85.0, 20.0)).length() < 1e-9,
+            "the handle follows the pointer"
+        );
+        let bottom = m.transform_point2(DVec2::new(60.0, 70.0));
+        assert!(
+            (bottom - DVec2::new(60.0, 70.0)).length() < 1e-9,
+            "the opposite edge is fixed"
+        );
+        // The right edge slides along y.
+        let k = skew_for(b, Handle::Right, Pos2::new(110.0, 95.0)).expect("shear");
+        let m = skew_matrix(b, Handle::Right, k);
+        let right = m.transform_point2(DVec2::new(110.0, 45.0));
+        assert!(
+            (right - DVec2::new(110.0, 95.0)).length() < 1e-9,
+            "{right:?}"
+        );
+    }
+
+    #[test]
+    fn corners_and_flat_boxes_do_not_skew_and_the_shear_is_bounded() {
+        let b = bounds();
+        assert!(skew_for(b, Handle::TopLeft, Pos2::new(0.0, 0.0)).is_none());
+        let flat = Rect::from_min_max(Pos2::new(0.0, 5.0), Pos2::new(50.0, 5.0));
+        assert!(skew_for(flat, Handle::Top, Pos2::new(9.0, 5.0)).is_none());
+        let huge = skew_for(b, Handle::Top, Pos2::new(1e9, 20.0)).expect("shear");
+        assert_eq!(huge.abs(), MAX_SHEAR);
+        assert!(skew_for(b, Handle::Top, Pos2::new(f32::NAN, 0.0)).is_none());
     }
 }

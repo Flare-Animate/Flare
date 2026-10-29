@@ -161,6 +161,10 @@ enum DragMode {
     Move,
     /// Scaling the selection by one of its handles.
     Scale(Handle),
+    /// Turning the selection about the center of its bounds (dragging outside a corner).
+    Rotate,
+    /// Shearing the selection by an edge handle (dragging it with Alt held).
+    Skew(Handle),
 }
 
 /// Gesture in progress on the stage, in document coordinates. It is tool state only:
@@ -242,6 +246,8 @@ pub struct Workspace {
     handle_radius: f32,
     /// Shift is held: corner scaling keeps the proportions.
     uniform_scale: bool,
+    /// Alt is held: an edge handle skews instead of scaling.
+    skew_modifier: bool,
     /// What Copy remembered, for Paste.
     clipboard: Vec<ops::ClipItem>,
     /// Timeline zoom: 1.0 fits the whole scene in the panel.
@@ -311,6 +317,7 @@ impl Workspace {
             selection_rects_cache: std::cell::RefCell::new(None),
             handle_radius: 6.0,
             uniform_scale: false,
+            skew_modifier: false,
             clipboard: Vec::new(),
             timeline_zoom: 1.0,
             also_selected: Vec::new(),
@@ -1745,9 +1752,27 @@ impl Workspace {
                         .and_then(|b| handles::pick(b, point, self.handle_radius).map(|h| (h, b)))
                 };
                 if let Some((handle, bounds)) = grabbed {
+                    // Alt turns an edge handle from scaling into skewing.
+                    let mode = if self.skew_modifier && handle.is_edge() {
+                        DragMode::Skew(handle)
+                    } else {
+                        DragMode::Scale(handle)
+                    };
                     self.drag = Some(Drag {
                         bounds,
-                        mode: DragMode::Scale(handle),
+                        mode,
+                        start: point,
+                        current: point,
+                    });
+                    return;
+                }
+                if !additive
+                    && let Some(bounds) = self.selection_bounds()
+                    && handles::in_rotate_zone(bounds, point, self.handle_radius)
+                {
+                    self.drag = Some(Drag {
+                        bounds,
+                        mode: DragMode::Rotate,
                         start: point,
                         current: point,
                     });
@@ -1789,6 +1814,11 @@ impl Workspace {
                 DragMode::Move => self.move_selection(drag.current - drag.start),
                 DragMode::Scale(handle) => {
                     self.scale_selection(handle, drag.bounds, drag.current);
+                }
+                DragMode::Rotate | DragMode::Skew(_) => {
+                    if let Some(matrix) = self.drag_matrix(&drag) {
+                        self.apply_to_selection(matrix);
+                    }
                 }
             }
         }
@@ -1870,6 +1900,27 @@ impl Workspace {
         rects
     }
 
+    /// The transform a rotate or skew drag stands for right now, if it stands for one.
+    fn drag_matrix(&self, drag: &Drag) -> Option<DAffine2> {
+        match drag.mode {
+            DragMode::Rotate => {
+                let center = drag.bounds.center();
+                let angle = handles::rotation_between(
+                    center,
+                    drag.start,
+                    drag.current,
+                    self.uniform_scale,
+                )?;
+                (angle != 0.0).then(|| handles::rotation_matrix(center, angle))
+            }
+            DragMode::Skew(handle) => {
+                let k = handles::skew_for(drag.bounds, handle, drag.current)?;
+                (k != 0.0).then(|| handles::skew_matrix(drag.bounds, handle, k))
+            }
+            DragMode::Draw | DragMode::Move | DragMode::Scale(_) => None,
+        }
+    }
+
     /// Scales the selection so `handle` of `bounds` moves to `pointer`, as one undo step.
     fn scale_selection(&mut self, handle: Handle, bounds: Rect, pointer: Pos2) {
         if let Some(scale) = handles::scale_for(bounds, handle, pointer, self.uniform_scale) {
@@ -1891,7 +1942,13 @@ impl Workspace {
             .filter_map(|span| ops::transform(self.document(), scene, span, about))
             .flatten()
             .collect();
-        if !commands.is_empty() {
+        if commands.is_empty() {
+            if about != DAffine2::IDENTITY {
+                self.report(
+                    "Nothing could be transformed (an instance in a motion tween cannot be skewed or mirrored)",
+                );
+            }
+        } else {
             self.run_batch(commands, "transform");
         }
     }
@@ -2626,6 +2683,7 @@ impl Workspace {
         }
         self.handle_radius = 8.0 / scale.max(f32::EPSILON);
         self.uniform_scale = ui.input(|i| i.modifiers.shift);
+        self.skew_modifier = ui.input(|i| i.modifiers.alt);
         let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
         if self.tool == Tool::Pen {
@@ -2778,6 +2836,23 @@ impl Workspace {
                 ),
                 _ => bounds.translate(moving),
             };
+            // A rotate or skew in progress shows the turned or sheared frame.
+            if let Some(drag) = self.drag
+                && let Some(m) = self.drag_matrix(&drag)
+            {
+                let corner = |p: Pos2| {
+                    let q = m.transform_point2(DVec2::new(f64::from(p.x), f64::from(p.y)));
+                    to_screen(Pos2::new(q.x as f32, q.y as f32))
+                };
+                let b = drag.bounds;
+                let outline_points = vec![
+                    corner(b.left_top()),
+                    corner(b.right_top()),
+                    corner(b.right_bottom()),
+                    corner(b.left_bottom()),
+                ];
+                painter.add(egui::Shape::closed_line(outline_points, outline));
+            }
             let frame = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
             painter.rect_stroke(
                 frame,
@@ -5682,5 +5757,116 @@ mod tests {
             !ws.has_selection(),
             "locking the layer dropped the selection"
         );
+    }
+
+    /// A selected 100 x 50 rectangle at (10, 10), center (60, 35), for rotate and skew drags.
+    fn wide_rectangle_selected() -> Workspace {
+        let mut ws = workspace();
+        ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(110.0, 60.0));
+        ws.set_tool(Tool::Select);
+        let layer = ws.current_layer.expect("layer");
+        ws.selected = Some(SpanRef { layer, start: 0 });
+        ws
+    }
+
+    #[test]
+    fn dragging_outside_a_corner_rotates_the_selection_about_its_center() {
+        let mut ws = wide_rectangle_selected();
+        ws.begin_drag(Pos2::new(120.0, 70.0)); // just outside the bottom-right corner
+        assert_eq!(ws.drag.map(|d| d.mode), Some(DragMode::Rotate));
+        // The pointer is 30.26 degrees clockwise of the center's right; turn it a quarter.
+        ws.update_drag(Pos2::new(25.0, 95.0));
+        ws.end_drag();
+        let b = shape_bounds(&ws);
+        assert!(
+            (b.width() - 50.0).abs() < 0.01 && (b.height() - 100.0).abs() < 0.01,
+            "{b:?}"
+        );
+        assert!(
+            (b.center() - Pos2::new(60.0, 35.0)).length() < 0.01,
+            "about its own center"
+        );
+        ws.undo();
+        assert_eq!(shape_bounds(&ws).width(), 100.0, "one undo step");
+    }
+
+    #[test]
+    fn shift_snaps_a_rotation_and_a_cancelled_one_changes_nothing() {
+        let mut ws = wide_rectangle_selected();
+        ws.uniform_scale = true;
+        ws.begin_drag(Pos2::new(120.0, 70.0));
+        // About 36 degrees: snapped to 30.
+        let a = 30.26_f32.to_radians() + 36.0_f32.to_radians();
+        let r = 69.5_f32;
+        ws.update_drag(Pos2::new(60.0 + r * a.cos(), 35.0 + r * a.sin()));
+        let drag = ws.drag.expect("drag");
+        let matrix = ws.drag_matrix(&drag).expect("rotation");
+        let angle = matrix.matrix2.x_axis.y.atan2(matrix.matrix2.x_axis.x);
+        assert!((angle - 30.0_f64.to_radians()).abs() < 1e-6, "{angle}");
+        ws.cancel_drag();
+        ws.end_drag();
+        assert_eq!(shape_bounds(&ws).width(), 100.0);
+    }
+
+    #[test]
+    fn alt_makes_an_edge_handle_skew_and_corners_still_scale() {
+        let mut ws = wide_rectangle_selected();
+        ws.skew_modifier = true;
+        ws.begin_drag(Pos2::new(110.0, 60.0)); // the bottom-right corner
+        assert_eq!(
+            ws.drag.map(|d| d.mode),
+            Some(DragMode::Scale(Handle::BottomRight))
+        );
+        ws.cancel_drag();
+        ws.end_drag();
+
+        ws.begin_drag(Pos2::new(60.0, 10.0)); // the top edge
+        assert_eq!(ws.drag.map(|d| d.mode), Some(DragMode::Skew(Handle::Top)));
+        ws.update_drag(Pos2::new(85.0, 10.0));
+        ws.end_drag();
+        let shape = selected_shape(&ws);
+        let first = shape.path().iter().find_map(|s| match s {
+            flare_document::PathSegment::MoveTo(p) => Some((p.as_vec().x, p.as_vec().y)),
+            _ => None,
+        });
+        assert_eq!(
+            first,
+            Some((35.0, 10.0)),
+            "the top-left corner slid right by 25"
+        );
+        // The bottom edge stayed where it was.
+        let bottom = shape.path().iter().filter_map(|s| match s {
+            flare_document::PathSegment::LineTo(p) if p.as_vec().y == 60.0 => Some(p.as_vec().x),
+            _ => None,
+        });
+        assert_eq!(bottom.collect::<Vec<_>>(), vec![110.0, 10.0]);
+    }
+
+    #[test]
+    fn a_tweened_instance_can_be_rotated_but_not_skewed() {
+        let mut ws = workspace();
+        draw_and_select(&mut ws);
+        ws.convert_selection_to_symbol();
+        ws.set_selection_tween(Tween::Linear);
+        let scene = ws.scene_id().expect("scene");
+        let at = ws.selected.expect("instance");
+        let transform = |ws: &Workspace| match ops::find_span(ws.document(), scene, at)
+            .expect("span")
+            .content()
+        {
+            Content::Instance(i) => i.transform(),
+            _ => panic!("an instance expected"),
+        };
+        let before = transform(&ws);
+        let bounds = ws.selection_bounds().expect("bounds");
+        ws.apply_to_selection(handles::skew_matrix(bounds, Handle::Top, 0.5));
+        assert_eq!(transform(&ws), before, "refused");
+        assert!(
+            ws.status().is_some_and(|m| m.contains("cannot be skewed")),
+            "{:?}",
+            ws.status()
+        );
+        ws.apply_to_selection(handles::rotation_matrix(bounds.center(), 0.3));
+        assert_ne!(transform(&ws), before, "a rotation is fine in a tween");
     }
 }

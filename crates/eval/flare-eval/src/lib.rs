@@ -274,6 +274,12 @@ fn tweened(layer: &Layer, frame: u32, instance: &Instance) -> Result<DAffine2, E
     ))
 }
 
+/// Whether a motion tween can start or end at `matrix`: only a scale, rotation and translation
+/// can be interpolated, so a matrix with shear or reflection cannot.
+pub fn can_tween(matrix: DAffine2) -> bool {
+    matrix.is_finite() && decompose(matrix).is_some()
+}
+
 /// Scale, angle, translation, or `None` when the matrix is not exactly representable.
 fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
     let (scale, angle, translation) = matrix.to_scale_angle_translation();

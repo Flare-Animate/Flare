@@ -131,6 +131,34 @@ pub fn translate(
     transform(document, scene, at, DAffine2::from_translation(delta))
 }
 
+/// Whether an instance span may take the transform `moved`. A motion tween interpolates between
+/// two exposures, which only works for a scale, rotation and translation, so shearing or
+/// mirroring an exposure that starts or ends a tween would make the frame impossible to draw.
+fn tween_allows(
+    document: &Document,
+    scene: SceneId,
+    at: SpanRef,
+    span: &FrameSpan,
+    moved: DAffine2,
+) -> bool {
+    if flare_eval::can_tween(moved) {
+        return true;
+    }
+    if span.tween() == Tween::Linear {
+        return false;
+    }
+    // An earlier exposure that tweens into this one needs it to be tweenable too.
+    let tweened_into = scene_timeline(document, scene)
+        .and_then(|t| t.layers().iter().find(|l| l.id() == at.layer))
+        .is_some_and(|layer| {
+            layer
+                .spans()
+                .iter()
+                .any(|p| p.end() == u64::from(span.start()) && p.tween() == Tween::Linear)
+        });
+    !tweened_into
+}
+
 /// Maps a span's content through `matrix` (in stage coordinates), keeping identity, duration
 /// and tween. `None` when the span is missing or empty, the matrix is the identity or cannot
 /// be inverted (a zero scale would destroy the content), or the result is not finite.
@@ -152,6 +180,9 @@ pub fn transform(
         Content::Shape(shape) => Content::Shape(transform_shape(shape, matrix)?),
         Content::Instance(instance) => {
             let moved = matrix * instance.transform().as_affine();
+            if !tween_allows(document, scene, at, span, moved) {
+                return None;
+            }
             let transform = Transform2D::new(moved).ok()?;
             Content::Instance(Instance::new(instance.id(), instance.symbol(), transform))
         }
