@@ -64,7 +64,12 @@ fn evaluate(c: &mut Criterion) {
 fn render_full(c: &mut Criterion) {
     let mut group = c.benchmark_group("render_1280x720");
     group.sample_size(20);
-    for (count, gradient) in [(100, false), (1_000, false), (1_000, true), (5_000, false)] {
+    for (count, gradient) in [
+        (100, false),
+        (1_000, false),
+        (5_000, false),
+        (20_000, false),
+    ] {
         let (doc, scene) = document(count, gradient);
         let frame = flare_eval::evaluate_frame(&doc, scene, 3).expect("frame");
         let label = format!("{count}{}", if gradient { "_gradient" } else { "" });

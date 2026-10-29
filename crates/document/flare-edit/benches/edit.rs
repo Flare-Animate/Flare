@@ -116,6 +116,28 @@ fn move_selection(c: &mut Criterion) {
     group.finish();
 }
 
+/// Rebuilding a document runs its whole validation; every edit pays this once.
+fn validate(c: &mut Criterion) {
+    let mut group = c.benchmark_group("validate_document");
+    for size in [1_000, 5_000, 20_000] {
+        let f = fixture(size);
+        group.bench_with_input(BenchmarkId::from_parameter(size), &size, |b, _| {
+            b.iter(|| {
+                black_box(
+                    Document::new(
+                        f.document.id(),
+                        f.document.frame_rate(),
+                        f.document.scenes().to_vec(),
+                        f.document.symbols().to_vec(),
+                    )
+                    .expect("valid"),
+                )
+            });
+        });
+    }
+    group.finish();
+}
+
 fn undo_redo(c: &mut Criterion) {
     let f = fixture(5_000);
     let rename = Command::UpdateLayer {
@@ -134,5 +156,5 @@ fn undo_redo(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, rename_one, move_selection, undo_redo);
+criterion_group!(benches, rename_one, move_selection, validate, undo_redo);
 criterion_main!(benches);

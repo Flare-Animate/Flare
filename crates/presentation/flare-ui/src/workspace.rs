@@ -1980,21 +1980,36 @@ impl Workspace {
                             width: f64::from(view.region.width()),
                             height: f64::from(view.region.height()),
                         };
-                        match flare_render::render_onion_viewport(
-                            &ghosts,
-                            &current,
-                            &viewport,
-                            view.size[0],
-                            view.size[1],
-                            stage.background(),
-                        ) {
-                            Ok(image) => {
+                        let rendered = if ghosts.is_empty() {
+                            // The common case goes straight from the rasterizer's premultiplied
+                            // pixels to the texture, with no conversion pass either side.
+                            flare_render::render_viewport_premultiplied(
+                                &current,
+                                &viewport,
+                                view.size[0],
+                                view.size[1],
+                                stage.background(),
+                            )
+                            .map(|image| {
                                 let size = [image.width() as usize, image.height() as usize];
-                                Outcome::Rendered(
-                                    signature,
-                                    egui::ColorImage::from_rgba_unmultiplied(size, image.rgba()),
-                                )
-                            }
+                                egui::ColorImage::from_rgba_premultiplied(size, image.rgba())
+                            })
+                        } else {
+                            flare_render::render_onion_viewport(
+                                &ghosts,
+                                &current,
+                                &viewport,
+                                view.size[0],
+                                view.size[1],
+                                stage.background(),
+                            )
+                            .map(|image| {
+                                let size = [image.width() as usize, image.height() as usize];
+                                egui::ColorImage::from_rgba_unmultiplied(size, image.rgba())
+                            })
+                        };
+                        match rendered {
+                            Ok(color) => Outcome::Rendered(signature, color),
                             Err(e) => Outcome::Failed(e.to_string()),
                         }
                     }

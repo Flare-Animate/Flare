@@ -17,5 +17,12 @@ thiserror.workspace = true
 glamx.workspace = true
 uuid.workspace = true
 
+[dev-dependencies]
+criterion.workspace = true
+
 [lints]
 workspace = true
+
+[[bench]]
+name = "storage"
+harness = false

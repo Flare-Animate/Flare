@@ -99,7 +99,7 @@ muda = "0.21.2"          # Native menu bar (macOS); other platforms use the in-w
 # The desktop member must choose native backends/fonts/clipboard/platform features.
 # Do not assume these minimal declarations alone build a desktop application.
 # agg-rust = "1.2.0"        # CPU renderer experiment, not mandatory.
-vello_cpu = "0.3.0"          # Selected CPU rasterizer; see experiments/renderers/results/REPORT.md.
+vello_cpu = { version = "0.3.0", features = ["multithreading"] } # Selected CPU rasterizer; see experiments/renderers/results/REPORT.md. Threads are opt-in per render.
 # vello_gpu = "0.3.0"       # Verify published package and wgpu compatibility first.
 # tiny-skia: reference/control candidate; no second default CPU engine yet.
 
