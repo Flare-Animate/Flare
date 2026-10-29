@@ -1519,11 +1519,11 @@ impl Workspace {
                     None
                 } else {
                     self.selection_bounds()
-                        .and_then(|b| handles::pick(b, point, self.handle_radius))
+                        .and_then(|b| handles::pick(b, point, self.handle_radius).map(|h| (h, b)))
                 };
-                if let Some(handle) = grabbed {
+                if let Some((handle, bounds)) = grabbed {
                     self.drag = Some(Drag {
-                        bounds: self.selection_bounds().unwrap_or(Rect::NOTHING),
+                        bounds,
                         mode: DragMode::Scale(handle),
                         start: point,
                         current: point,
