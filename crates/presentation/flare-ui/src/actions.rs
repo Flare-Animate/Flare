@@ -12,6 +12,7 @@ pub enum MenuAction {
     Undo,
     Redo,
     Delete,
+    Duplicate,
     ConvertToSymbol,
     EditSymbol,
     ExitSymbol,
@@ -34,7 +35,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 26] = [
+    pub const ALL: [MenuAction; 27] = [
         Self::Open,
         Self::Save,
         Self::SaveAs,
@@ -42,6 +43,7 @@ impl MenuAction {
         Self::Undo,
         Self::Redo,
         Self::Delete,
+        Self::Duplicate,
         Self::ConvertToSymbol,
         Self::EditSymbol,
         Self::ExitSymbol,
@@ -102,6 +104,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::Redo),
             Separator,
             Action(A::Delete),
+            Action(A::Duplicate),
             Separator,
             Action(A::ConvertToSymbol),
             Action(A::EditSymbol),

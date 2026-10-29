@@ -17,6 +17,7 @@ pub fn accelerator(action: MenuAction) -> Option<&'static str> {
         MenuAction::Quit => "CmdOrCtrl+Q",
         MenuAction::Undo => "CmdOrCtrl+Z",
         MenuAction::Redo => "CmdOrCtrl+Shift+Z",
+        MenuAction::Duplicate => "CmdOrCtrl+D",
         MenuAction::ConvertToSymbol => "F8",
         MenuAction::EditSymbol => "CmdOrCtrl+E",
         MenuAction::ExitSymbol => "CmdOrCtrl+Shift+E",

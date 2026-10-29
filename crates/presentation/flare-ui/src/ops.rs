@@ -7,7 +7,7 @@
 use std::num::NonZeroU32;
 
 use egui::{Pos2, Rect};
-use flare_core::{DocumentPoint, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
+use flare_core::{DocumentPoint, InstanceId, LayerId, SceneId, ShapeId, SymbolId, Transform2D};
 use flare_document::{
     Content, Document, FrameSpan, Instance, Layer, PathSegment, Shape, Symbol, Timeline, Tween,
 };
@@ -75,6 +75,11 @@ pub fn delete(scene: SceneId, at: SpanRef) -> Vec<Command> {
 }
 
 fn translate_shape(shape: &Shape, delta: DVec2) -> Option<Shape> {
+    translate_shape_as(shape, shape.id(), delta)
+}
+
+/// A copy of `shape` moved by `delta` under a new identity `id`.
+fn translate_shape_as(shape: &Shape, id: ShapeId, delta: DVec2) -> Option<Shape> {
     let moved =
         |p: &DocumentPoint| DocumentPoint::new(p.as_vec().x + delta.x, p.as_vec().y + delta.y).ok();
     let path = shape
@@ -91,7 +96,7 @@ fn translate_shape(shape: &Shape, delta: DVec2) -> Option<Shape> {
             })
         })
         .collect::<Option<Vec<_>>>()?;
-    let moved = Shape::new(shape.id(), path, shape.fill()).ok()?;
+    let moved = Shape::new(id, path, shape.fill()).ok()?;
     // Rebuilding must not drop the stroke.
     Some(match shape.stroke() {
         Some(stroke) => moved.with_stroke(stroke),
@@ -134,6 +139,50 @@ pub fn translate(
             span: replacement,
         },
     ])
+}
+
+/// Copies a span onto a new layer above the others, moved by `offset`, with fresh shape and
+/// instance identities so the copy is independent. Returns the commands and where the copy
+/// lands. `None` when the span is missing, empty, or the result is not finite.
+pub fn duplicate(
+    document: &Document,
+    scene: SceneId,
+    at: SpanRef,
+    offset: DVec2,
+) -> Option<(Vec<Command>, SpanRef)> {
+    let timeline = scene_timeline(document, scene)?;
+    let source = timeline.layers().iter().find(|l| l.id() == at.layer)?;
+    let span = find_span(document, scene, at)?;
+    let content = match span.content() {
+        Content::Empty => return None,
+        Content::Shape(shape) => Content::Shape(translate_shape_as(shape, ShapeId::new(), offset)?),
+        Content::Instance(instance) => {
+            let moved = DAffine2::from_translation(offset) * instance.transform().as_affine();
+            let transform = Transform2D::new(moved).ok()?;
+            Content::Instance(Instance::new(
+                InstanceId::new(),
+                instance.symbol(),
+                transform,
+            ))
+        }
+    };
+    let copy = FrameSpan::new(span.start(), span.duration(), content).with_tween(span.tween());
+    let layer_id = LayerId::new();
+    let layer = Layer::new(layer_id, format!("{} copy", source.name()), vec![]).ok()?;
+    Some((
+        vec![
+            Command::AddLayer { scene, layer },
+            Command::InsertSpan {
+                scene,
+                layer: layer_id,
+                span: copy,
+            },
+        ],
+        SpanRef {
+            layer: layer_id,
+            start: span.start(),
+        },
+    ))
 }
 
 /// Sets or clears the motion tween on an instance span. `None` when the span is missing,
