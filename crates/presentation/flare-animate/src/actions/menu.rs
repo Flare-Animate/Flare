@@ -208,13 +208,14 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
     (
         "Window",
         &[
-            Mock("Properties"),
-            Mock("Library"),
-            Mock("Color"),
-            Mock("Align"),
-            Mock("Transform"),
-            Mock("History"),
-            Mock("Timeline"),
+            Action(A::ShowProperties),
+            Action(A::ShowLibrary),
+            Action(A::ShowColor),
+            Action(A::ShowAlign),
+            Action(A::ShowTransform),
+            Action(A::ShowHistory),
+            Action(A::ShowTimeline),
+            Action(A::ShowOutput),
             Separator,
             Mock("Workspace Presets"),
         ],
@@ -223,9 +224,9 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         "Help",
         &[
             Mock("Flare Help"),
-            Mock("Keyboard Shortcuts"),
+            Action(A::KeyboardShortcuts),
             Separator,
-            Mock("About Flare"),
+            Action(A::About),
         ],
     ),
 ];

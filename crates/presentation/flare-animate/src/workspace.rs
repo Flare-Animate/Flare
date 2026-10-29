@@ -29,6 +29,7 @@ mod draw;
 mod files;
 mod furniture;
 mod gestures;
+mod help;
 mod helpers;
 mod layers;
 mod panels;
@@ -88,6 +89,8 @@ pub struct Workspace {
     /// This document's place among the tabs.
     position: usize,
     recent_open: bool,
+    about_open: bool,
+    shortcuts_open: bool,
     publish_settings_open: bool,
     publish_compress: bool,
     /// Projects opened or saved lately, newest first.
@@ -262,6 +265,8 @@ impl Workspace {
             parked: Vec::new(),
             position: 0,
             recent_open: false,
+            about_open: false,
+            shortcuts_open: false,
             publish_settings_open: false,
             publish_compress: true,
             recent: Vec::new(),

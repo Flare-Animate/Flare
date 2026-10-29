@@ -170,6 +170,14 @@ impl MenuAction {
             Self::ScaleUp => "zoom-in",
             Self::ScaleDown => "zoom-out",
             Self::ResetLayout => "panel-tools",
+            Self::ShowProperties => "panel-properties",
+            Self::ShowLibrary => "panel-library",
+            Self::ShowColor => "panel-color",
+            Self::ShowAlign => "panel-align",
+            Self::ShowTransform => "panel-transform",
+            Self::ShowHistory => "panel-history",
+            Self::ShowTimeline => "panel-timeline",
+            Self::ShowOutput => "panel-tools",
             Self::Cut => "cut",
             Self::SelectAll => "select-all",
             Self::Rewind => "transport-first",
@@ -177,6 +185,7 @@ impl MenuAction {
             Self::StepBackward => "transport-prev",
             Self::ActualSize => "zoom-actual",
             Self::DeselectAll => return None,
+            Self::About | Self::KeyboardShortcuts => return None,
             Self::Quit => return None,
         })
     }

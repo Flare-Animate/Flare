@@ -35,7 +35,7 @@ Still planned (everything else in the menus and panels is built):
 - Library: folders.
 - Timeline: the outline column.
 - View: guides and outline mode.
-- Edit, Modify, Text, Commands and Help entries listed dimmed in the menus.
+- Edit, Modify, Text, Commands and Help entries still listed dimmed in the menus (Window and the Help windows are real now: panels come to the front, About and a read-only shortcut list).
 
 ## Top bar
 
@@ -51,7 +51,7 @@ Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font Licens
 
 ## Default layout
 
-Left to right: the tool strip, the stage, and one stack of tabs (Properties, Library, Color, Align, Transform, History). Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
+Left to right: the tool strip, the stage, and one stack of tabs (Properties, Library, Color, Align, Transform, History). Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
 
 ## Documents and tabs
 

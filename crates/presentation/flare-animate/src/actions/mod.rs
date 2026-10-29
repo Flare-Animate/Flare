@@ -100,10 +100,20 @@ pub enum MenuAction {
     RotateCounterclockwise,
     ScaleUp,
     ScaleDown,
+    ShowProperties,
+    ShowLibrary,
+    ShowColor,
+    ShowAlign,
+    ShowTransform,
+    ShowHistory,
+    ShowTimeline,
+    ShowOutput,
+    About,
+    KeyboardShortcuts,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 88] = [
+    pub const ALL: [MenuAction; 98] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -192,6 +202,16 @@ impl MenuAction {
         Self::RotateCounterclockwise,
         Self::ScaleUp,
         Self::ScaleDown,
+        Self::ShowProperties,
+        Self::ShowLibrary,
+        Self::ShowColor,
+        Self::ShowAlign,
+        Self::ShowTransform,
+        Self::ShowHistory,
+        Self::ShowTimeline,
+        Self::ShowOutput,
+        Self::About,
+        Self::KeyboardShortcuts,
     ];
 
     /// A stable identifier for native menu items (the variant name).

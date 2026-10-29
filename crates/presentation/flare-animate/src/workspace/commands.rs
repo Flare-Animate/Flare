@@ -106,6 +106,15 @@ impl Workspace {
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
             MenuAction::ResetLayout => true,
+            MenuAction::About | MenuAction::KeyboardShortcuts => true,
+            MenuAction::ShowProperties
+            | MenuAction::ShowLibrary
+            | MenuAction::ShowColor
+            | MenuAction::ShowAlign
+            | MenuAction::ShowTransform
+            | MenuAction::ShowHistory
+            | MenuAction::ShowTimeline
+            | MenuAction::ShowOutput => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleRulers
             | MenuAction::ToggleGrid
@@ -237,6 +246,16 @@ impl Workspace {
             MenuAction::MoveLayerDown => "Move Layer Down",
             MenuAction::DeleteLayer => "Delete Layer",
             MenuAction::ResetLayout => "Reset Workspace Layout",
+            MenuAction::About => "About Flare",
+            MenuAction::KeyboardShortcuts => "Keyboard Shortcuts",
+            MenuAction::ShowProperties => "Properties",
+            MenuAction::ShowLibrary => "Library",
+            MenuAction::ShowColor => "Color",
+            MenuAction::ShowAlign => "Align",
+            MenuAction::ShowTransform => "Transform",
+            MenuAction::ShowHistory => "History",
+            MenuAction::ShowTimeline => "Timeline",
+            MenuAction::ShowOutput => "Output",
             MenuAction::ToggleOnionSkin => {
                 if self.onion.enabled {
                     "Hide Onion Skin"
@@ -411,6 +430,16 @@ impl Workspace {
             MenuAction::MoveLayerDown => self.move_active_layer(1),
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
+            MenuAction::About => self.about_open = true,
+            MenuAction::KeyboardShortcuts => self.shortcuts_open = true,
+            MenuAction::ShowProperties => self.show_pane(Pane::Properties),
+            MenuAction::ShowLibrary => self.show_pane(Pane::Library),
+            MenuAction::ShowColor => self.show_pane(Pane::Color),
+            MenuAction::ShowAlign => self.show_pane(Pane::Align),
+            MenuAction::ShowTransform => self.show_pane(Pane::Transform),
+            MenuAction::ShowHistory => self.show_pane(Pane::History),
+            MenuAction::ShowTimeline => self.show_pane(Pane::Timeline),
+            MenuAction::ShowOutput => self.show_pane(Pane::Output),
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleRulers => self.show_rulers = !self.show_rulers,
             MenuAction::ToggleGrid => self.show_grid = !self.show_grid,
