@@ -130,7 +130,7 @@ fn frames_are_clamped_to_the_scene() {
 }
 
 #[test]
-fn save_and_open_round_trip_and_unsaved_work_is_protected() {
+fn save_and_open_round_trip_and_unsaved_work_opens_beside_not_over_it() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     let mut ws = workspace();
@@ -143,7 +143,9 @@ fn save_and_open_round_trip_and_unsaved_work_is_protected() {
 
     rect(&mut ws);
     ws.open(&path);
-    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+    assert_eq!(ws.tabs().len(), 2, "the file opened in a tab of its own");
+    assert_eq!(layer_count(&ws), 2, "the saved copy is on show");
+    ws.switch_to_tab(0);
     assert_eq!(layer_count(&ws), 3, "dirty work was not replaced");
 
     ws.save();

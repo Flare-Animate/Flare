@@ -171,7 +171,7 @@ fn with_workers_opening_replaces_the_document_when_the_file_has_been_read() {
 }
 
 #[test]
-fn work_started_before_a_project_changed_does_not_replace_it() {
+fn a_project_opened_while_the_user_edits_opens_in_a_new_tab_and_leaves_their_work_alone() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("p.flare");
     let mut source = workspace();
@@ -182,8 +182,12 @@ fn work_started_before_a_project_changed_does_not_replace_it() {
     ws.open(&path);
     ws.commit_rectangle(Pos2::new(1.0, 1.0), Pos2::new(40.0, 40.0)); // edit while it opens
     wait_until(&mut ws, &ctx, |w| w.opening.is_none());
+    // The file arrives in a tab of its own; the document that was edited is parked, unharmed.
+    assert_eq!(ws.tabs().len(), 2);
+    assert!(ws.any_dirty(), "the user's edit is still waiting, unsaved");
+    assert_eq!(layer_count(&ws), 1, "the opened file is the one on show");
+    ws.switch_to_tab(0);
     assert_eq!(layer_count(&ws), 2, "the user's edit was kept");
-    assert!(ws.status().is_some_and(|m| m.contains("changed while")));
 }
 
 #[test]

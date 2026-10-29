@@ -51,35 +51,56 @@ impl Workspace {
 
     /// The strip above the stage with the open document as a tab.
     pub(crate) fn document_tabs(&mut self, ui: &mut Ui) {
-        let name = self
-            .path()
-            .and_then(std::path::Path::file_name)
-            .map_or_else(
-                || "Untitled".to_owned(),
-                |n| n.to_string_lossy().into_owned(),
-            );
-        let dirty = self.is_dirty();
+        let tabs = self.tabs();
+        let (mut switch, mut close, mut add) = (None, None, false);
         ui.horizontal(|ui| {
-            egui::Frame::new()
-                .fill(theme::PANEL)
-                .stroke(egui::Stroke::new(1.0, theme::BORDER))
-                .corner_radius(egui::CornerRadius {
-                    nw: 6,
-                    ne: 6,
-                    sw: 0,
-                    se: 0,
-                })
-                .inner_margin(egui::Margin::symmetric(8, 3))
-                .show(ui, |ui| {
-                    ui.add(icons::image("document", 14.0, theme::TEXT_DIM));
-                    ui.label(RichText::new(name).color(theme::TEXT));
-                    if dirty {
-                        ui.label(RichText::new("\u{25cf}").color(theme::ACCENT).small());
-                    }
-                    chrome::mock_icon_button(ui, "close", 10.0, "Close document");
-                });
-            chrome::mock_icon_button(ui, "plus", 12.0, "New document");
+            for (index, tab) in tabs.iter().enumerate() {
+                let fill = if tab.current { theme::PANEL } else { theme::BG };
+                egui::Frame::new()
+                    .fill(fill)
+                    .stroke(egui::Stroke::new(1.0, theme::BORDER))
+                    .corner_radius(egui::CornerRadius {
+                        nw: 6,
+                        ne: 6,
+                        sw: 0,
+                        se: 0,
+                    })
+                    .inner_margin(egui::Margin::symmetric(8, 3))
+                    .show(ui, |ui| {
+                        ui.add(icons::image("document", 14.0, theme::TEXT_DIM));
+                        let color = if tab.current {
+                            theme::TEXT
+                        } else {
+                            theme::TEXT_DIM
+                        };
+                        let label = ui.add(
+                            egui::Label::new(RichText::new(&tab.title).color(color))
+                                .sense(egui::Sense::click()),
+                        );
+                        if label.clicked() {
+                            switch = Some(index);
+                        }
+                        if tab.dirty {
+                            ui.label(RichText::new("\u{25cf}").color(theme::ACCENT).small());
+                        }
+                        if chrome::icon_button(ui, "close", 10.0, false, true, "Close document")
+                            .clicked()
+                        {
+                            close = Some(index);
+                        }
+                    });
+            }
+            if chrome::icon_button(ui, "plus", 12.0, false, true, "New document").clicked() {
+                add = true;
+            }
         });
+        if add {
+            self.new_tab();
+        } else if let Some(index) = close {
+            self.close_tab(index);
+        } else if let Some(index) = switch {
+            self.switch_to_tab(index);
+        }
     }
 
     // ---- stage bar ---------------------------------------------------------------------

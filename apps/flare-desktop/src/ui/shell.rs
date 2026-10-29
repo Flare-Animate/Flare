@@ -114,7 +114,7 @@ impl App {
     pub(super) fn confirm_close(&mut self) -> bool {
         // A save still being written must finish first, or its work would be reported as lost.
         self.workspace.finish_background();
-        if !self.workspace.is_dirty() {
+        if !self.workspace.any_dirty() {
             return true;
         }
         let discard = dialogs::confirm_discard();

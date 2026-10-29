@@ -41,6 +41,7 @@ mod shell;
 mod sound;
 mod stage;
 mod symbols;
+mod tabs;
 #[cfg(test)]
 mod tests;
 mod text;
@@ -82,6 +83,10 @@ pub struct Workspace {
     opening: Option<u64>,
     /// The open that is a revert: it replaces the document even though it has changes.
     preferences_open: bool,
+    /// The other documents of the window, whole, in tab order without the current one.
+    parked: Vec<Workspace>,
+    /// This document's place among the tabs.
+    position: usize,
     recent_open: bool,
     publish_settings_open: bool,
     publish_compress: bool,
@@ -254,6 +259,8 @@ impl Workspace {
             render_inbox: Vec::new(),
             opening: None,
             preferences_open: false,
+            parked: Vec::new(),
+            position: 0,
             recent_open: false,
             publish_settings_open: false,
             publish_compress: true,

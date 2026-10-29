@@ -123,12 +123,11 @@ impl Workspace {
                 self.importing = None;
                 match result {
                     Err(error) => self.report(format!("Cannot import {}: {error}", path.display())),
-                    Ok(_) if self.is_dirty() => {
-                        self.report("Your project changed while the file was being read, so it was not replaced");
-                    }
                     Ok((document, notes)) => {
-                        self.discard_recovery();
-                        self.install_document(document, None);
+                        if self.is_blank() {
+                            self.discard_recovery();
+                        }
+                        self.show_document(document, None);
                         // An import is somebody else's file: it counts as unsaved work until it
                         // is saved as a project.
                         self.session.mark_unsaved();
@@ -159,8 +158,8 @@ impl Workspace {
                         let what = if recovery { "recover" } else { "open" };
                         self.report(format!("Cannot {what} {}: {error}", path.display()));
                     }
-                    Ok(_) if self.is_dirty() && reverting != Some(id) => {
-                        self.report("Your project changed while the file was opening, so it was not replaced");
+                    Ok(_) if recovery && self.is_dirty() => {
+                        self.report("Your project changed while the work was being read, so it was not replaced");
                     }
                     Ok(document) if recovery => {
                         self.install_document(document, None);
@@ -170,11 +169,19 @@ impl Workspace {
                         self.recovery_written = true;
                         self.report("Recovered unsaved work");
                     }
-                    Ok(document) => {
-                        // The old document is clean, so any recovery file for it is obsolete.
+                    Ok(document) if reverting == Some(id) => {
+                        // Going back to the saved copy replaces the document in its own tab.
                         self.discard_recovery();
                         self.note_recent(&path);
                         self.install_document(document, Some(path));
+                    }
+                    Ok(document) => {
+                        // An untouched new document gives way to it; otherwise it opens beside.
+                        if self.is_blank() {
+                            self.discard_recovery();
+                        }
+                        self.note_recent(&path);
+                        self.show_document(document, Some(path));
                     }
                 }
             }

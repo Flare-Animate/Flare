@@ -445,14 +445,11 @@ fn the_history_lists_each_edit_and_clicking_one_returns_to_it() {
 }
 
 #[test]
-fn new_and_close_start_an_empty_project_but_never_over_unsaved_work_and_revert_reloads() {
+fn revert_reloads_the_saved_copy_and_closing_the_last_document_leaves_an_empty_one() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("p.flare");
     let mut ws = workspace();
     rect(&mut ws);
-    ws.perform(MenuAction::New);
-    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
-    assert_eq!(layer_count(&ws), 2, "unsaved work was kept");
     assert!(
         !ws.is_enabled(MenuAction::Revert),
         "nothing was saved to go back to"
@@ -464,10 +461,59 @@ fn new_and_close_start_an_empty_project_but_never_over_unsaved_work_and_revert_r
     ws.settle_inline();
     assert_eq!(layer_count(&ws), 2, "back to the saved copy");
     assert!(!ws.is_dirty());
+    assert_eq!(ws.tabs().len(), 1, "reverting stays in the same tab");
     ws.perform(MenuAction::Close);
     assert_eq!(layer_count(&ws), 1, "an empty project");
     assert_eq!(ws.path(), None);
     assert_eq!(ws.title(), "Untitled - Flare");
+    assert_eq!(ws.tabs().len(), 1);
+}
+
+#[test]
+fn tabs_hold_several_documents_switch_between_them_and_close_without_losing_work() {
+    let mut ws = workspace();
+    rect(&mut ws); // tab 0: a drawing, unsaved
+    ws.perform(MenuAction::New);
+    assert_eq!(ws.tabs().len(), 2);
+    assert!(ws.tabs()[1].current && !ws.tabs()[0].current);
+    assert_eq!(layer_count(&ws), 1, "the new document is empty");
+    assert!(ws.any_dirty(), "the first tab's unsaved work counts");
+    assert!(!ws.is_dirty(), "the one on show is untouched");
+    ws.set_tool(Tool::Ellipse);
+    ws.commit_shape(Tool::Ellipse, Pos2::new(5.0, 5.0), Pos2::new(60.0, 40.0));
+    ws.commit_shape(Tool::Ellipse, Pos2::new(70.0, 5.0), Pos2::new(90.0, 40.0));
+    assert_eq!(layer_count(&ws), 3);
+
+    // Switching brings the other document back whole and keeps the person's tool.
+    ws.switch_to_tab(0);
+    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(ws.tool(), Tool::Ellipse, "the tool in hand stays in hand");
+    assert!(ws.tabs()[0].current);
+    ws.switch_to_tab(1);
+    assert_eq!(layer_count(&ws), 3);
+    ws.switch_to_tab(7); // no such tab: nothing happens
+    assert_eq!(layer_count(&ws), 3);
+
+    // Dirty tabs are not closed from under their work.
+    ws.perform(MenuAction::Close);
+    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+    assert_eq!(ws.tabs().len(), 2);
+    ws.close_tab(0);
+    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+    // Undoing back to clean allows it; the neighbour takes over.
+    ws.undo();
+    ws.undo();
+    assert!(!ws.is_dirty());
+    ws.perform(MenuAction::Close);
+    assert_eq!(ws.tabs().len(), 1);
+    assert_eq!(layer_count(&ws), 2, "the first document is the one left");
+    // A parked, clean tab closes without being shown.
+    ws.perform(MenuAction::New);
+    ws.switch_to_tab(0);
+    ws.undo();
+    ws.undo();
+    ws.close_tab(1);
+    assert_eq!(ws.tabs().len(), 1);
 }
 
 #[test]
@@ -508,7 +554,8 @@ fn preferences_round_trip_stay_in_range_and_refuse_junk() {
 }
 
 #[test]
-fn importing_an_xfl_folder_makes_a_new_unsaved_project_and_never_replaces_unsaved_work() {
+fn importing_an_xfl_folder_makes_a_new_unsaved_project_in_place_of_a_blank_one_and_beside_other_work()
+ {
     let mut source = workspace();
     rect(&mut source);
     let output = flare_export::export_xfl(source.document()).expect("export");
@@ -526,9 +573,10 @@ fn importing_an_xfl_folder_makes_a_new_unsaved_project_and_never_replaces_unsave
     );
     assert!(ws.is_dirty(), "it is unsaved work until saved as a project");
     assert!(ws.status().is_some_and(|s| s.contains("Imported")));
-    // Unsaved work is protected.
+    // A second import opens beside the first rather than over its unsaved work.
     ws.import_project(&folder);
-    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+    assert_eq!(ws.tabs().len(), 2);
+    assert!(ws.any_dirty());
     // Something that is not an XFL says why.
     let mut other = workspace();
     other.import_project(&dir.path().join("missing"));

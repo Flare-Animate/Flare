@@ -9,60 +9,58 @@ use super::*;
 impl Workspace {
     // ---- file operations -------------------------------------------------------------
 
-    /// Replaces the document being edited, keeping the user's tool and environment settings
-    /// (tool, colors, native menu, recovery, panel layout, onion skin) rather than resetting them with it.
-    pub(super) fn install_document(&mut self, document: Document, path: Option<PathBuf>) {
-        let mut fresh = Self::new(document, path);
-        fresh.tool = self.tool;
-        fresh.fill = self.fill;
-        fresh.gradient_enabled = self.gradient_enabled;
-        fresh.gradient_end = self.gradient_end;
-        fresh.gradient_vertical = self.gradient_vertical;
-        fresh.text_family = std::mem::take(&mut self.text_family);
-        fresh.text_size = self.text_size;
-        fresh.text_bold = self.text_bold;
-        fresh.text_italic = self.text_italic;
-        fresh.stroke_enabled = self.stroke_enabled;
-        fresh.stroke_color = self.stroke_color;
-        fresh.stroke_width = self.stroke_width;
-        fresh.stroke_cap = self.stroke_cap;
-        fresh.stroke_join = self.stroke_join;
-        fresh.native_menu = self.native_menu;
-        fresh.titlebar_inset = self.titlebar_inset;
-        fresh.recovery_dir = self.recovery_dir.take();
-        fresh.autosave_interval = self.autosave_interval;
-        fresh.layout = std::mem::replace(
-            &mut self.layout,
+    /// Takes over what belongs to the person and the app rather than to a document: the tool,
+    /// colors, settings, panel layout, the runtime's workers and what is playing. `from` is left
+    /// with placeholders, so it should be dropped or parked, not used.
+    pub(super) fn adopt_environment(&mut self, from: &mut Workspace) {
+        self.tool = from.tool;
+        self.fill = from.fill;
+        self.gradient_enabled = from.gradient_enabled;
+        self.gradient_end = from.gradient_end;
+        self.gradient_vertical = from.gradient_vertical;
+        self.text_family = std::mem::take(&mut from.text_family);
+        self.text_size = from.text_size;
+        self.text_bold = from.text_bold;
+        self.text_italic = from.text_italic;
+        self.stroke_enabled = from.stroke_enabled;
+        self.stroke_color = from.stroke_color;
+        self.stroke_width = from.stroke_width;
+        self.stroke_cap = from.stroke_cap;
+        self.stroke_join = from.stroke_join;
+        self.native_menu = from.native_menu;
+        self.titlebar_inset = from.titlebar_inset;
+        self.recovery_dir = from.recovery_dir.take();
+        self.apply_preferences(&from.preferences());
+        self.layout = std::mem::replace(
+            &mut from.layout,
             egui_tiles::Tree::empty(egui::Id::unique("taken")),
         );
-        fresh.onion = self.onion;
-        fresh.publish_compress = self.publish_compress;
-        fresh.recent = std::mem::take(&mut self.recent);
+        self.onion = from.onion;
         // Whatever was playing belonged to the old project.
-        fresh.audio_events = std::mem::take(&mut self.audio_events);
-        fresh.audio_events.push(AudioEvent::Stop);
+        self.audio_events = std::mem::take(&mut from.audio_events);
+        self.audio_events.push(AudioEvent::Stop);
         // The workers belong to the app, not to a document; results of the old document's jobs
         // find nothing waiting for them and are dropped.
-        fresh.background = std::mem::replace(&mut self.background, new_runtime());
+        self.background = std::mem::replace(&mut from.background, new_runtime());
+    }
+
+    /// Replaces the document being edited in its tab, keeping the person's environment.
+    pub(super) fn install_document(&mut self, document: Document, path: Option<PathBuf>) {
+        let mut fresh = Self::new(document, path);
+        fresh.adopt_environment(self);
+        fresh.parked = std::mem::take(&mut self.parked);
+        fresh.position = self.position;
         *self = fresh;
     }
 
     /// Opens a project, refusing to replace unsaved work. The file is read off the UI thread.
     pub fn open(&mut self, path: &Path) {
-        if self.is_dirty() {
-            self.report("Save or undo your changes before opening another project");
-            return;
-        }
         self.start_open(path, false);
     }
 
-    /// Reads an XFL folder or a `.fla` into a new, unsaved project, refusing to replace unsaved
-    /// work. The file is read off the UI thread.
+    /// Reads an XFL folder or a `.fla` into a new, unsaved project, in a new tab unless the current
+    /// document is untouched. The file is read off the UI thread.
     pub fn import_project(&mut self, path: &Path) {
-        if self.is_dirty() {
-            self.report("Save or undo your changes before importing another project");
-            return;
-        }
         let id = self.background.next_id();
         self.importing = Some(id);
         self.background.submit_io(IoJob::Import {
@@ -74,10 +72,6 @@ impl Workspace {
 
     /// Like [`Self::import_project`] for a `.fla` already in memory, named `name`.
     pub fn import_project_bytes(&mut self, name: &str, bytes: Vec<u8>) {
-        if self.is_dirty() {
-            self.report("Save or undo your changes before importing another project");
-            return;
-        }
         let id = self.background.next_id();
         self.importing = Some(id);
         self.background.submit_io(IoJob::ImportBytes {
@@ -88,12 +82,9 @@ impl Workspace {
         self.settle_inline();
     }
 
-    /// Starts an empty project, refusing to replace unsaved work.
-    pub(super) fn new_document(&mut self) {
-        if self.is_dirty() {
-            self.report("Save or undo your changes before starting a new project");
-            return;
-        }
+    /// Replaces the document in its tab with an empty one. The caller has made sure that loses
+    /// nothing.
+    pub(super) fn new_document_in_place(&mut self) {
         match Self::untitled() {
             Ok(fresh) => {
                 let document = fresh.session.document().clone();
