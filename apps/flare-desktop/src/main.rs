@@ -61,6 +61,16 @@ impl App {
         let attributes = Window::default_attributes()
             .with_title(self.workspace.title())
             .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0));
+        // The top bar replaces the title bar on macOS; the traffic lights float over its left end.
+        #[cfg(target_os = "macos")]
+        let attributes = {
+            use winit::platform::macos::WindowAttributesExtMacOS;
+            self.workspace.set_titlebar_inset(78.0);
+            attributes
+                .with_titlebar_transparent(true)
+                .with_title_hidden(true)
+                .with_fullsize_content_view(true)
+        };
         let window = Arc::new(
             event_loop
                 .create_window(attributes)
@@ -89,6 +99,21 @@ impl App {
             painter,
         });
         Ok(())
+    }
+
+    fn handle_window_request(&mut self) {
+        let Some(request) = self.workspace.take_window_request() else {
+            return;
+        };
+        let Some(gpu) = &self.gpu else { return };
+        match request {
+            flare_ui::WindowRequest::Drag => {
+                let _ = gpu.window.drag_window();
+            }
+            flare_ui::WindowRequest::ToggleMaximize => {
+                gpu.window.set_maximized(!gpu.window.is_maximized());
+            }
+        }
     }
 
     fn handle_dialog(&mut self) {
@@ -154,6 +179,7 @@ impl App {
             menu.sync(&self.workspace);
         }
         self.handle_dialog();
+        self.handle_window_request();
         self.handle_test_movie();
         self.handle_quit(event_loop);
     }

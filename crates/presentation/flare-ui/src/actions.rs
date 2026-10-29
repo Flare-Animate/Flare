@@ -105,6 +105,131 @@ impl MenuAction {
         Self::ScaleDown,
     ];
 
+    /// The keyboard shortcut in muda's syntax (`CmdOrCtrl+O`), or `None`. This is the one table:
+    /// the native menu registers these, and the in-window menu shows them.
+    ///
+    /// Single letters are never shortcuts here: a native menu would take them before a text field
+    /// could. Tool keys are handled by the workspace itself, only when nothing is being typed.
+    pub fn shortcut(self) -> Option<&'static str> {
+        Some(match self {
+            Self::Open => "CmdOrCtrl+O",
+            Self::Save => "CmdOrCtrl+S",
+            Self::SaveAs => "CmdOrCtrl+Shift+S",
+            Self::Quit => "CmdOrCtrl+Q",
+            Self::Undo => "CmdOrCtrl+Z",
+            Self::Redo => "CmdOrCtrl+Shift+Z",
+            Self::Duplicate => "CmdOrCtrl+D",
+            Self::ConvertToSymbol => "F8",
+            Self::EditSymbol => "CmdOrCtrl+E",
+            Self::ExitSymbol => "CmdOrCtrl+Shift+E",
+            Self::CopyFrames => "CmdOrCtrl+Alt+C",
+            Self::PasteFrames => "CmdOrCtrl+Alt+V",
+            Self::InsertFrame => "F5",
+            Self::RemoveFrame => "Shift+F5",
+            Self::InsertKeyframe => "F6",
+            Self::ClearKeyframe => "Shift+F6",
+            Self::InsertBlankKeyframe => "F7",
+            Self::TestMovie => "CmdOrCtrl+Enter",
+            _ => return None,
+        })
+    }
+
+    /// The shortcut as a person reads it on this platform: `Ctrl+O`, or `\u{2318}O` on macOS.
+    pub fn shortcut_text(self) -> Option<String> {
+        let shortcut = self.shortcut()?;
+        Some(
+            shortcut
+                .replace(
+                    "CmdOrCtrl+",
+                    if cfg!(target_os = "macos") {
+                        "\u{2318}"
+                    } else {
+                        "Ctrl+"
+                    },
+                )
+                .replace(
+                    "Shift+",
+                    if cfg!(target_os = "macos") {
+                        "\u{21e7}"
+                    } else {
+                        "Shift+"
+                    },
+                )
+                .replace(
+                    "Alt+",
+                    if cfg!(target_os = "macos") {
+                        "\u{2325}"
+                    } else {
+                        "Alt+"
+                    },
+                ),
+        )
+    }
+
+    /// The key that picks this tool when nothing is being typed.
+    pub fn tool_key(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ToolSelect => "V",
+            Self::ToolPen => "P",
+            Self::ToolText => "T",
+            Self::ToolLine => "N",
+            Self::ToolRectangle => "R",
+            Self::ToolEllipse => "O",
+            _ => return None,
+        })
+    }
+
+    /// The icon drawn beside the menu item, if it has one.
+    pub fn icon(self) -> Option<&'static str> {
+        Some(match self {
+            Self::Open => "file-open",
+            Self::ImportSound => "sound",
+            Self::Save | Self::SaveAs => "file-save",
+            Self::Undo => "undo",
+            Self::Redo => "redo",
+            Self::Copy => "copy",
+            Self::Paste => "paste",
+            Self::Duplicate => "duplicate",
+            Self::Delete => "delete",
+            Self::ConvertToSymbol => "convert-symbol",
+            Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
+            Self::ToolSelect => "tool-selection",
+            Self::ToolRectangle => "tool-rectangle",
+            Self::ToolEllipse => "tool-oval",
+            Self::ToolLine => "tool-line",
+            Self::ToolPen => "tool-pen",
+            Self::ToolText => "tool-text",
+            Self::InsertFrame => "frame-insert",
+            Self::RemoveFrame => "frame-remove",
+            Self::CopyFrames => "copy",
+            Self::PasteFrames => "paste",
+            Self::InsertKeyframe => "frame-keyframe",
+            Self::InsertBlankKeyframe => "frame-blank-keyframe",
+            Self::ClearKeyframe => "frame-blank-keyframe",
+            Self::ToggleMotionTween => "frame-tween",
+            Self::PlayPause => "transport-play",
+            Self::TestMovie => "test-movie",
+            Self::ToggleLayerVisible => "eye",
+            Self::ToggleLayerLocked => "lock",
+            Self::ToggleLayerMask => "layer-mask",
+            Self::MoveLayerUp => "chevron-up",
+            Self::MoveLayerDown => "chevron-down",
+            Self::DeleteLayer => "layer-delete",
+            Self::ZoomIn => "zoom-in",
+            Self::ZoomOut => "zoom-out",
+            Self::ZoomFit => "zoom-fit",
+            Self::ToggleOnionSkin => "onion-skin",
+            Self::FlipHorizontal => "flip-horizontal",
+            Self::FlipVertical => "flip-vertical",
+            Self::RotateClockwise => "rotate-cw",
+            Self::RotateCounterclockwise => "rotate-ccw",
+            Self::ScaleUp => "zoom-in",
+            Self::ScaleDown => "zoom-out",
+            Self::ResetLayout => "panel-tools",
+            Self::Quit => return None,
+        })
+    }
+
     /// A stable identifier for native menu items (the variant name).
     pub fn id(self) -> String {
         format!("{self:?}")
@@ -335,6 +460,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
 ];
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -364,5 +490,43 @@ mod tests {
             assert_eq!(MenuAction::from_id(&action.id()), Some(action));
         }
         assert_eq!(MenuAction::from_id("NoSuchAction"), None);
+    }
+
+    #[test]
+    fn shortcuts_are_unique_never_a_bare_letter_and_read_naturally() {
+        let mut seen = std::collections::HashSet::new();
+        for action in MenuAction::ALL {
+            if let Some(shortcut) = action.shortcut() {
+                assert!(seen.insert(shortcut), "{shortcut} is used twice");
+                let key = shortcut.rsplit('+').next().unwrap_or_default();
+                let bare = !shortcut.contains('+');
+                assert!(
+                    !(bare && key.len() == 1),
+                    "{action:?}: a bare letter {shortcut}"
+                );
+                let text = action.shortcut_text().expect("text");
+                assert!(!text.contains("CmdOrCtrl"), "{text}");
+            }
+        }
+        assert!(MenuAction::Open.shortcut_text().is_some());
+        assert!(MenuAction::Delete.shortcut().is_none());
+    }
+
+    #[test]
+    fn tool_keys_are_unique_letters_and_every_menu_icon_exists() {
+        let mut keys = std::collections::HashSet::new();
+        for action in MenuAction::ALL {
+            if let Some(key) = action.tool_key() {
+                assert!(keys.insert(key), "{key} is used twice");
+                assert_eq!(key.len(), 1);
+            }
+            if let Some(icon) = action.icon() {
+                assert!(
+                    crate::icons::exists(icon),
+                    "{action:?} names a missing icon {icon}"
+                );
+            }
+        }
+        assert!(keys.len() >= 6);
     }
 }

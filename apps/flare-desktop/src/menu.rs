@@ -10,27 +10,7 @@ use flare_ui::MenuAction;
 /// before egui, breaking typing into text fields. Delete and Backspace are handled by the
 /// workspace for the same reason.
 pub fn accelerator(action: MenuAction) -> Option<&'static str> {
-    Some(match action {
-        MenuAction::Open => "CmdOrCtrl+O",
-        MenuAction::Save => "CmdOrCtrl+S",
-        MenuAction::SaveAs => "CmdOrCtrl+Shift+S",
-        MenuAction::Quit => "CmdOrCtrl+Q",
-        MenuAction::Undo => "CmdOrCtrl+Z",
-        MenuAction::Redo => "CmdOrCtrl+Shift+Z",
-        MenuAction::Duplicate => "CmdOrCtrl+D",
-        MenuAction::ConvertToSymbol => "F8",
-        MenuAction::EditSymbol => "CmdOrCtrl+E",
-        MenuAction::ExitSymbol => "CmdOrCtrl+Shift+E",
-        MenuAction::CopyFrames => "CmdOrCtrl+Alt+C",
-        MenuAction::PasteFrames => "CmdOrCtrl+Alt+V",
-        MenuAction::InsertFrame => "F5",
-        MenuAction::RemoveFrame => "Shift+F5",
-        MenuAction::InsertKeyframe => "F6",
-        MenuAction::ClearKeyframe => "Shift+F6",
-        MenuAction::InsertBlankKeyframe => "F7",
-        MenuAction::TestMovie => "CmdOrCtrl+Enter",
-        _ => return None,
-    })
+    action.shortcut()
 }
 
 #[cfg(target_os = "macos")]
