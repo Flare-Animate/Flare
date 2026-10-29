@@ -270,3 +270,17 @@ fn clicking_a_shape_on_the_stage_and_pressing_delete_removes_it() {
     assert!(!ws.has_selection(), "Delete removed what was selected");
     assert_eq!(spans_of(&ws, 1), 0);
 }
+
+#[test]
+fn the_about_window_lists_what_this_version_does_not_do() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    assert!(
+        super::super::help::KNOWN_LIMITS
+            .iter()
+            .any(|line| line.contains("Shape tweens")),
+        "the limits include the dimmed features"
+    );
+    ws.perform(MenuAction::About);
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+}
