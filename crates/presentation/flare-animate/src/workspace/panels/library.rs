@@ -11,6 +11,51 @@ use super::*;
 impl Workspace {
     // ---- library -----------------------------------------------------------------------
 
+    /// A small picture of the symbol's first frame, drawn once per change to the project.
+    pub(crate) fn symbol_preview(
+        &mut self,
+        ctx: &egui::Context,
+        symbol: SymbolId,
+    ) -> Option<egui::TextureHandle> {
+        const BOX: f32 = 96.0;
+        let revision = self.session.revision();
+        if let Some((id, at, handle)) = &self.library_preview
+            && *id == symbol
+            && *at == revision
+        {
+            return Some(handle.clone());
+        }
+        let document = self.session.document();
+        let bounds = flare_tools::ops::symbol_bounds(document, symbol)?;
+        let (w, h) = (bounds.width().max(1.0), bounds.height().max(1.0));
+        let scale = (BOX / w).min(BOX / h);
+        let (pw, ph) = (
+            (w * scale).ceil().max(1.0) as u32,
+            (h * scale).ceil().max(1.0) as u32,
+        );
+        let (scratch, scene) = flare_editor::symbol_workspace(document, symbol)?;
+        let frame = flare_eval::evaluate_frame(&scratch, scene, 0).ok()?;
+        let viewport = flare_render::Viewport {
+            x: f64::from(bounds.min.x),
+            y: f64::from(bounds.min.y),
+            width: f64::from(w),
+            height: f64::from(h),
+        };
+        let image = flare_render::render_viewport(
+            &frame,
+            &viewport,
+            pw,
+            ph,
+            flare_core::Rgba8::TRANSPARENT,
+        )
+        .ok()?;
+        let picture =
+            egui::ColorImage::from_rgba_unmultiplied([pw as usize, ph as usize], image.rgba());
+        let handle = ctx.load_texture("library-preview", picture, egui::TextureOptions::LINEAR);
+        self.library_preview = Some((symbol, revision, handle.clone()));
+        Some(handle)
+    }
+
     pub(crate) fn library_panel(&mut self, ui: &mut Ui) {
         let entries: Vec<(SymbolId, String)> = self
             .document()
@@ -18,6 +63,7 @@ impl Workspace {
             .iter()
             .map(|s| (s.id(), s.name().to_owned()))
             .collect();
+        let ctx = ui.ctx().clone();
         // A preview well above the list, as in other animation tools.
         let well = egui::Frame::new()
             .fill(theme::FIELD)
@@ -26,9 +72,20 @@ impl Workspace {
         well.show(ui, |ui| {
             ui.set_min_height(64.0);
             ui.set_width(ui.available_width());
+            let preview = self
+                .selected_symbol
+                .and_then(|id| self.symbol_preview(&ctx, id));
             ui.vertical_centered(|ui| {
-                ui.add_space(14.0);
-                ui.add(icons::image("symbol-graphic", 28.0, theme::TEXT_DISABLED));
+                match &preview {
+                    Some(texture) => {
+                        ui.add_space(4.0);
+                        ui.add(egui::Image::new(texture).max_size(egui::vec2(96.0, 96.0)));
+                    }
+                    None => {
+                        ui.add_space(14.0);
+                        ui.add(icons::image("symbol-graphic", 28.0, theme::TEXT_DISABLED));
+                    }
+                }
                 ui.weak(
                     match self.selected_symbol.and_then(|id| {
                         entries

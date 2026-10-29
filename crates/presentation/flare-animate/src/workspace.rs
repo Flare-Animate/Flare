@@ -82,6 +82,9 @@ pub struct Workspace {
     opening: Option<u64>,
     /// The open that is a revert: it replaces the document even though it has changes.
     preferences_open: bool,
+    /// The picture of the selected library symbol: which symbol, at which revision of the
+    /// project, and the texture.
+    library_preview: Option<(SymbolId, u64, egui::TextureHandle)>,
     /// The import being read, if any.
     importing: Option<u64>,
     reverting: Option<u64>,
@@ -239,6 +242,7 @@ impl Workspace {
             render_inbox: Vec::new(),
             opening: None,
             preferences_open: false,
+            library_preview: None,
             importing: None,
             reverting: None,
             revert_pending: false,

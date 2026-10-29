@@ -268,3 +268,26 @@ fn onion_outlines_are_a_setting_that_changes_what_is_drawn_not_just_a_flag() {
     ws.set_onion_outlines(false);
     assert!(!ws.onion_skin().outlines);
 }
+
+#[test]
+fn the_library_draws_a_preview_of_the_selected_symbol_once_per_change() {
+    let ctx = egui::Context::default();
+    let mut ws = workspace();
+    draw_and_select(&mut ws);
+    ws.perform(MenuAction::ConvertToSymbol);
+    let symbol = ws.selected_symbol.expect("the new symbol is selected");
+    let first = ws.symbol_preview(&ctx, symbol).expect("a preview");
+    assert!(first.size()[0] > 0 && first.size()[1] > 0);
+    // Same project, same texture; an edit makes a new one.
+    let again = ws.symbol_preview(&ctx, symbol).expect("a preview");
+    assert_eq!(first.id(), again.id());
+    ws.new_symbol();
+    let empty = ws.selected_symbol.expect("selected");
+    assert!(
+        ws.symbol_preview(&ctx, empty).is_none(),
+        "an empty symbol has nothing to show"
+    );
+    // The panel itself draws with a symbol selected.
+    ws.selected_symbol = Some(symbol);
+    run(&mut ws, &ctx, 0.0);
+}
