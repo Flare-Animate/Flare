@@ -8,7 +8,7 @@ use flare_core::{
     DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
 };
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, Scene, Shape, Symbol, Timeline, Tween,
+    Content, Document, FrameSpan, Instance, Layer, Scene, Shape, Stage, Symbol, Timeline, Tween,
 };
 use flare_edit::{Command, EditorSession};
 use glamx::{DAffine2, DVec2};
@@ -26,7 +26,7 @@ fn commit(session: &EditorSession, path: &Path) -> Result<()> {
         .with_context(|| format!("cannot save {}", path.display()))
 }
 
-pub fn new(path: &Path, numerator: u32, denominator: u32) -> Result<Value> {
+pub fn new(path: &Path, numerator: u32, denominator: u32, stage: Stage) -> Result<Value> {
     if path.exists() {
         bail!("{} already exists", path.display());
     }
@@ -34,7 +34,8 @@ pub fn new(path: &Path, numerator: u32, denominator: u32) -> Result<Value> {
     let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
     let rate = FrameRate::new(numerator, denominator)?;
     let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
-        .map_err(|errors| anyhow::anyhow!("{errors:?}"))?;
+        .map_err(|errors| anyhow::anyhow!("{errors:?}"))?
+        .with_stage(stage);
     flare_storage::save(&document, path)?;
     Ok(json!({ "created": path.to_string_lossy(), "id": document.id().as_uuid() }))
 }
@@ -66,6 +67,11 @@ pub fn info(path: &Path) -> Result<Value> {
     Ok(json!({
         "id": document.id().as_uuid(),
         "frame_rate": document.frame_rate(),
+        "stage": {
+            "width": document.stage().width(),
+            "height": document.stage().height(),
+            "background": document.stage().background().to_array(),
+        },
         "scenes": scenes,
         "symbols": symbols,
     }))
@@ -176,8 +182,8 @@ pub fn export(
     path: &Path,
     out: &Path,
     frame: u32,
-    width: u32,
-    height: u32,
+    width: Option<u32>,
+    height: Option<u32>,
     transparent: bool,
 ) -> Result<Value> {
     let session = open(path)?;
@@ -188,10 +194,16 @@ pub fn export(
         .context("document has no scene")?
         .id();
     let evaluated = flare_eval::evaluate_frame(document, scene, frame)?;
+    // Size and background default to the document's stage.
+    let stage = document.stage();
+    let (width, height) = (
+        width.unwrap_or(stage.width()),
+        height.unwrap_or(stage.height()),
+    );
     let background = if transparent {
         Rgba8::TRANSPARENT
     } else {
-        Rgba8::WHITE
+        stage.background()
     };
     let image = flare_render::render(&evaluated, width, height, background)?;
     // Write to a sibling temp file, then rename, so a failed export never leaves a partial PNG.
@@ -264,4 +276,23 @@ pub fn eval(path: &Path, frame: u32, scene: Option<Uuid>) -> Result<Value> {
         })
         .collect();
     Ok(json!({ "frame": frame, "placed": items }))
+}
+
+/// Replaces any of the stage's width, height and background.
+pub fn set_stage(
+    path: &Path,
+    width: Option<u32>,
+    height: Option<u32>,
+    background: Option<Rgba8>,
+) -> Result<Value> {
+    let mut session = open(path)?;
+    let current = session.document().stage();
+    let stage = Stage::new(
+        width.unwrap_or(current.width()),
+        height.unwrap_or(current.height()),
+        background.unwrap_or(current.background()),
+    )?;
+    session.apply([Command::SetStage(stage)])?;
+    commit(&session, path)?;
+    Ok(json!({ "width": stage.width(), "height": stage.height() }))
 }

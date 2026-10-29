@@ -335,3 +335,62 @@ fn layers_allow_overlapping_frames_and_unknown_layers_are_rejected() {
         .success()
     );
 }
+
+#[test]
+fn stage_size_and_background_drive_export_defaults() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let out = dir.path().join("f.png").to_string_lossy().into_owned();
+    json(&[
+        "new",
+        &file,
+        "--width",
+        "32",
+        "--height",
+        "16",
+        "--background",
+        "102030",
+    ]);
+    let info = json(&["info", &file]);
+    assert_eq!(
+        (
+            info["stage"]["width"].as_u64(),
+            info["stage"]["height"].as_u64()
+        ),
+        (Some(32), Some(16))
+    );
+
+    // No size flags: the PNG matches the stage and uses its background color.
+    json(&["export", &file, &out]);
+    let image = read_png(&out);
+    assert_eq!((image.1, image.2), (32, 16));
+    assert_eq!(pixel(&image, 5, 5), [0x10, 0x20, 0x30, 255]);
+
+    // The stage can be changed later, and only the given fields change.
+    json(&["set-stage", &file, "--width", "8"]);
+    json(&["export", &file, &out]);
+    let image = read_png(&out);
+    assert_eq!((image.1, image.2), (8, 16));
+    assert_eq!(pixel(&image, 1, 1), [0x10, 0x20, 0x30, 255]);
+}
+
+#[test]
+fn invalid_stages_are_rejected_without_touching_the_file() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    assert!(!run(&["new", &file, "--width", "0"]).status.success());
+    assert!(!std::path::Path::new(&file).exists());
+    json(&["new", &file]);
+    let before = std::fs::read(&file).expect("read");
+    assert!(
+        !run(&["set-stage", &file, "--height", "99999"])
+            .status
+            .success()
+    );
+    assert!(
+        !run(&["set-stage", &file, "--background", "nope"])
+            .status
+            .success()
+    );
+    assert_eq!(std::fs::read(&file).expect("read"), before);
+}

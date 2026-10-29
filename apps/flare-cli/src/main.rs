@@ -41,6 +41,25 @@ enum Command {
         numerator: u32,
         #[arg(long, default_value_t = 1)]
         denominator: u32,
+        /// Stage width in pixels.
+        #[arg(long, default_value_t = 1920)]
+        width: u32,
+        /// Stage height in pixels.
+        #[arg(long, default_value_t = 1080)]
+        height: u32,
+        /// Stage background color RRGGBB or RRGGBBAA.
+        #[arg(long, default_value = "FFFFFF")]
+        background: String,
+    },
+    /// Change the stage size and/or background of a project.
+    SetStage {
+        path: PathBuf,
+        #[arg(long)]
+        width: Option<u32>,
+        #[arg(long)]
+        height: Option<u32>,
+        #[arg(long)]
+        background: Option<String>,
     },
     /// Summarize a project.
     Info { path: PathBuf },
@@ -75,10 +94,12 @@ enum Command {
         out: PathBuf,
         #[arg(long, default_value_t = 0)]
         frame: u32,
-        #[arg(long, default_value_t = 1920)]
-        width: u32,
-        #[arg(long, default_value_t = 1080)]
-        height: u32,
+        /// Defaults to the stage width.
+        #[arg(long)]
+        width: Option<u32>,
+        /// Defaults to the stage height.
+        #[arg(long)]
+        height: Option<u32>,
         /// Keep the background transparent instead of white.
         #[arg(long)]
         transparent: bool,
@@ -152,7 +173,26 @@ fn main() -> Result<()> {
             path,
             numerator,
             denominator,
-        } => project::new(&path, numerator, denominator)?,
+            width,
+            height,
+            background,
+        } => {
+            let stage =
+                flare_document::Stage::new(width, height, project::parse_color(&background)?)?;
+            project::new(&path, numerator, denominator, stage)?
+        }
+        Command::SetStage {
+            path,
+            width,
+            height,
+            background,
+        } => {
+            let background = background
+                .as_deref()
+                .map(project::parse_color)
+                .transpose()?;
+            project::set_stage(&path, width, height, background)?
+        }
         Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
         Command::Info { path } => project::info(&path)?,
