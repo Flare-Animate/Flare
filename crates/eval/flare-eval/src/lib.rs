@@ -101,6 +101,9 @@ fn walk<'a>(
     }
     // Layers are ordered top to bottom, so draw in reverse.
     for layer in timeline.layers().iter().rev() {
+        if !layer.is_visible() {
+            continue;
+        }
         let Some(span) = layer.span_at(frame) else {
             continue;
         };
@@ -397,6 +400,43 @@ mod tests {
         assert_eq!(frame.shapes[0].path.len(), 1);
         assert!(frame.shapes[1].path.is_empty());
         assert_eq!(frame.placed.len(), 1);
+    }
+
+    #[test]
+    fn hidden_layers_place_and_draw_nothing_including_inside_symbols() {
+        use flare_core::{Rgba8, ShapeId};
+        let art = SymbolId::new();
+        let shape = |x| {
+            Content::Shape(
+                Shape::rect(ShapeId::new(), x, 0.0, 1.0, 1.0, Rgba8::WHITE).expect("rect"),
+            )
+        };
+        let one = |content| FrameSpan::new(0, NonZeroU32::new(5).expect("nonzero"), content);
+        let hidden_inside = Timeline::new(vec![
+            Layer::new(LayerId::new(), "shown", vec![one(shape(1.0))]).expect("layer"),
+            Layer::new(LayerId::new(), "hidden", vec![one(shape(2.0))])
+                .expect("layer")
+                .with_visible(false),
+        ]);
+        let scene = Timeline::new(vec![
+            Layer::new(LayerId::new(), "hidden", vec![span(0, 5, art, at(0.0))])
+                .expect("layer")
+                .with_visible(false),
+            Layer::new(LayerId::new(), "shown", vec![span(0, 5, art, at(10.0))]).expect("layer"),
+        ]);
+        let (doc, id) = document(scene, vec![Symbol::new(art, "Art", hidden_inside)]);
+        let frame = evaluate_frame(&doc, id, 1).expect("eval");
+        assert_eq!(
+            frame.placed.len(),
+            1,
+            "the hidden scene layer's instance is skipped"
+        );
+        assert_eq!(
+            frame.shapes.len(),
+            1,
+            "the hidden layer inside the symbol is skipped too"
+        );
+        assert_eq!(frame.placed[0].transform.translation.x, 10.0);
     }
 
     #[test]
