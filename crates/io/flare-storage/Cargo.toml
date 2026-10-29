@@ -10,13 +10,15 @@ license.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
 base64.workspace = true
-rusqlite = { workspace = true, features = ["bundled"] }
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
 glamx.workspace = true
 uuid.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rusqlite = { workspace = true, features = ["bundled"] }
 
 [dev-dependencies]
 criterion.workspace = true

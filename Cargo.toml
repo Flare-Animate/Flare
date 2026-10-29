@@ -6,6 +6,7 @@ members = [
     "apps/flare-cli",
     "apps/flare-desktop",
     "apps/flare-mcp",
+    "apps/flare-web",
     "crates/foundation/flare-core",
     "crates/foundation/flare-document",
     "crates/editing/flare-commands",
@@ -108,6 +109,7 @@ skrifa = "0.44.0"          # Glyph outlines for the text tool; one copy, shared 
 # ---- GPU and desktop presentation: documented version family ----------------
 wgpu = { version = "30.0", default-features = false }
 egui = { version = "0.37.0", default-features = false }
+eframe = { version = "0.37.0", default-features = false }
 egui_tiles = { version = "0.18.0", default-features = false }
 egui_extras = { version = "0.37.0", default-features = false, features = ["svg"] }
 egui-wgpu = { version = "0.37.0", default-features = false }
@@ -115,6 +117,9 @@ egui-winit = { version = "0.37.0", default-features = false }
 winit = { version = "0.30.13", default-features = false }
 rfd = "0.15.4"
 pollster = "0.4.0"
+wasm-bindgen = "0.2.129"
+wasm-bindgen-futures = "0.4"
+web-sys = "0.3"
 muda = "0.21.2"          # Native menu bar (macOS); other platforms use the in-window menu.
 # The desktop member must choose native backends/fonts/clipboard/platform features.
 # Do not assume these minimal declarations alone build a desktop application.

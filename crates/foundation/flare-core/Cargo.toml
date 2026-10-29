@@ -15,5 +15,9 @@ thiserror.workspace = true
 [dev-dependencies]
 serde_json.workspace = true
 
+# A browser has no operating system to ask for randomness; it has its own.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+uuid = { workspace = true, features = ["js"] }
+
 [lints]
 workspace = true

@@ -2,15 +2,19 @@
 #![allow(clippy::expect_used)]
 
 use super::*;
+use crate::sqlite::*;
 use flare_core::{
     DocumentId, DocumentPoint, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId,
     Transform2D,
 };
+use flare_document::Document;
 use flare_document::{
     Anchor, Attachment, Content, FrameSpan, Gradient, Instance, Layer, PathSegment, Placement,
     Scene, Shape, Stage, Stroke, Symbol, Timeline, Tween,
 };
 use glamx::DAffine2;
+use rusqlite::{Connection, params};
+use std::fs;
 use std::num::NonZeroU32;
 
 mod failures;

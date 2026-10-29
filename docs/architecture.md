@@ -37,6 +37,7 @@ Executables are in `apps/`. The folders mean:
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, tools, menu actions. No window or GPU code. |
 | apps | `flare-cli` | Headless project editing and export. |
 | apps | `flare-desktop` | The desktop window (winit, egui-wgpu, the native menu), all in `ui/`; everything else it needs is `flare-platform`. |
+| apps | `flare-web` | The same workspace in a browser tab (eframe on a canvas); compiles for `wasm32-unknown-unknown` only, see [web.md](web.md). |
 | apps | `flare-mcp` | An MCP server over stdio for one open project, built on `rmcp`: agent tools over the same edit commands, with permissions and revision checks. |
 
 The CLI and the desktop app edit documents through the same `flare-commands` commands and
