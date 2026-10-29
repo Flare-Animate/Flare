@@ -57,6 +57,8 @@ pub(super) struct Paint {
     pub(super) straight_edge: bool,
     /// Shift is held, which straightens a stroke for as long as it is.
     pub(super) straight_held: bool,
+    /// The stroke just committed, shown until the stage picture that has it arrives.
+    pub(super) settling: Option<super::stroke_preview::Settling>,
 }
 
 impl Default for Paint {
@@ -75,6 +77,7 @@ impl Default for Paint {
             symmetry_center: None,
             straight_edge: false,
             straight_held: false,
+            settling: None,
         }
     }
 }

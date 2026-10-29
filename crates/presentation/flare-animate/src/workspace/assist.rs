@@ -69,35 +69,23 @@ impl Workspace {
         }
     }
 
-    /// The stroke being drawn as it will be committed: straightened if that is asked for, with
-    /// its mirror images. Each is a list of stage points.
-    pub(super) fn freehand_preview(&self) -> Vec<Vec<Pos2>> {
-        let mut samples = self.freehand.clone();
-        if self.paint.straight_edge || self.paint.straight_held {
-            samples = flare_tools::rulers::straighten(&samples);
-        }
-        let about = self.symmetry_center();
-        let mut strokes = vec![samples.clone()];
-        strokes.extend(
-            self.paint
-                .symmetry
-                .reflections()
-                .iter()
-                .map(|r| r.samples(&samples, about)),
-        );
-        strokes
-            .iter()
-            .map(|s| {
-                s.iter()
-                    .map(|p| Pos2::new(p.x as f32, p.y as f32))
-                    .collect()
-            })
-            .collect()
-    }
-
     /// Draws the measurement and the symmetry axes over the stage.
-    pub(super) fn assist_overlay(&self, painter: &Painter, panel: Rect, image: Rect, scale: f32) {
+    pub(super) fn assist_overlay(
+        &mut self,
+        painter: &Painter,
+        panel: Rect,
+        image: Rect,
+        scale: f32,
+    ) {
         let to_screen = |p: Pos2| image.min + p.to_vec2() * scale;
+        self.retire_settled();
+        if let Some(settling) = &self.paint.settling {
+            painter.add(egui::Shape::mesh(stroke_preview::mesh(
+                &settling.strokes,
+                to_screen,
+                scale,
+            )));
+        }
         let drawing = matches!(self.tool, Tool::Pencil | Tool::Brush | Tool::Mirror);
         let (vertical, horizontal) = self.paint.symmetry.axes();
         if drawing && (vertical || horizontal) {

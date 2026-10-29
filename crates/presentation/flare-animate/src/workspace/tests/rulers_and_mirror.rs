@@ -201,3 +201,98 @@ fn the_new_tools_are_chosen_from_the_menu_and_the_keyboard() {
     assert!(TOOL_KEYS.contains(&(Key::M, Tool::Ruler)));
     assert!(TOOL_KEYS.contains(&(Key::X, Tool::Mirror)));
 }
+
+mod stroke_preview {
+    use super::*;
+    use crate::workspace::stroke_preview::MAX_FREEHAND_SAMPLES;
+
+    fn drag(ws: &mut Workspace) {
+        ws.set_tool(Tool::Brush);
+        ws.freehand = stroke(&[(10.0, 10.0), (40.0, 30.0), (80.0, 10.0)]);
+        ws.finish_freehand(1.0);
+    }
+
+    #[test]
+    fn samples_closer_than_half_a_pixel_are_dropped_and_a_stroke_has_a_limit() {
+        let mut ws = workspace();
+        let sample = |x: f64| InputSample::new(x, 0.0, 1.0, PointerKind::Mouse).expect("sample");
+        ws.push_freehand(sample(0.0), 1.0);
+        ws.push_freehand(sample(0.2), 1.0);
+        assert_eq!(ws.freehand.len(), 1, "a sub-pixel move adds nothing");
+        ws.push_freehand(sample(0.2), 4.0);
+        assert_eq!(
+            ws.freehand.len(),
+            2,
+            "zoomed in, the same move is a visible step"
+        );
+        for i in 0..MAX_FREEHAND_SAMPLES + 50 {
+            ws.push_freehand(sample(10.0 + i as f64), 1.0);
+        }
+        assert_eq!(ws.freehand.len(), MAX_FREEHAND_SAMPLES);
+    }
+
+    #[test]
+    fn a_committed_stroke_stays_on_screen_until_the_stage_picture_has_it() {
+        let mut ws = workspace();
+        let ctx = egui::Context::default();
+        run(&mut ws, &ctx, 0.0);
+        drag(&mut ws);
+        assert!(
+            ws.paint.settling.is_some(),
+            "the stroke is held after release"
+        );
+        // The picture on the stage is of the document before the stroke.
+        ws.retire_settled();
+        assert!(ws.paint.settling.is_some());
+        // Once the picture of the new document state is up, the held stroke goes.
+        ws.ensure_stage_texture(&ctx);
+        ws.retire_settled();
+        assert!(ws.paint.settling.is_none());
+    }
+
+    #[test]
+    fn undo_or_another_edit_drops_a_held_stroke_that_is_no_longer_true() {
+        let mut ws = workspace();
+        drag(&mut ws);
+        assert!(ws.paint.settling.is_some());
+        ws.undo();
+        ws.retire_settled();
+        assert!(ws.paint.settling.is_none());
+    }
+
+    #[test]
+    fn nothing_is_held_for_a_click_or_a_failed_commit() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Brush);
+        ws.freehand = stroke(&[(5.0, 5.0)]);
+        ws.finish_freehand(1.0);
+        assert!(ws.paint.settling.is_none());
+    }
+
+    #[test]
+    fn the_preview_is_as_wide_as_the_committed_stroke_and_follows_pressure() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Brush);
+        ws.brush_size = 20.0;
+        ws.brush_light = 0.0;
+        let light = InputSample::new(0.0, 0.0, 0.0, PointerKind::Pen).expect("sample");
+        let full = InputSample::new(30.0, 0.0, 1.0, PointerKind::Pen).expect("sample");
+        ws.freehand = vec![light, full];
+        let preview = ws.freehand_preview();
+        assert_eq!(preview.len(), 1);
+        assert_eq!(preview[0].halves, [0.0, 10.0]);
+        ws.set_tool(Tool::Pencil);
+        ws.freehand = vec![light, full];
+        ws.paint.stroke_width = 6.0;
+        assert_eq!(ws.freehand_preview()[0].halves, [3.0, 3.0]);
+    }
+
+    #[test]
+    fn the_preview_has_the_mirror_images_the_commit_will_have() {
+        let mut ws = workspace();
+        ws.set_tool(Tool::Pencil);
+        ws.paint.symmetry = Symmetry::Both;
+        ws.freehand = stroke(&[(1.0, 1.0), (5.0, 9.0)]);
+        assert_eq!(ws.freehand_preview().len(), 4);
+    }
+}

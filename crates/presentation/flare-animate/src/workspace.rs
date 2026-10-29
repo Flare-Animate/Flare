@@ -44,6 +44,7 @@ mod selection;
 mod shell;
 mod sound;
 mod stage;
+mod stroke_preview;
 mod symbols;
 mod tabs;
 #[cfg(test)]

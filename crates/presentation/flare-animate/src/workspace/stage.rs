@@ -159,29 +159,20 @@ impl Workspace {
                         })
                     })
                     .unwrap_or((1.0, PointerKind::Mouse));
-                let moved = self
-                    .freehand
-                    .last()
-                    .is_none_or(|last| (last.x as f32, last.y as f32) != (at.x, at.y));
-                if moved
-                    && let Some(sample) =
-                        InputSample::new(f64::from(at.x), f64::from(at.y), pressure, kind)
+                if let Some(sample) =
+                    InputSample::new(f64::from(at.x), f64::from(at.y), pressure, kind)
                 {
-                    self.freehand.push(sample);
+                    self.push_freehand(sample, scale);
                 }
             }
             if response.drag_stopped_by(primary) {
                 self.finish_freehand(scale);
             }
             if self.freehand.len() > 1 {
-                let (color, width) = match self.tool {
-                    Tool::Brush => (self.paint.fill, self.brush_size),
-                    _ => (self.paint.stroke_color, self.paint.stroke_width),
-                };
-                for stroke in self.freehand_preview() {
-                    let points: Vec<Pos2> = stroke.into_iter().map(to_screen).collect();
-                    painter.add(egui::Shape::line(points, Stroke::new(width * scale, color)));
-                }
+                let strokes = self.freehand_preview();
+                painter.add(egui::Shape::mesh(stroke_preview::mesh(
+                    &strokes, to_screen, scale,
+                )));
             }
         }
         if self.tool == Tool::Lasso {

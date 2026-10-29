@@ -160,19 +160,8 @@ impl Workspace {
     /// follows the pressure of the pen. A straight edge reduces the stroke to a line, and
     /// symmetry adds its mirror images, all in the same step.
     pub(super) fn finish_freehand(&mut self, scale: f32) {
-        let mut samples = std::mem::take(&mut self.freehand);
-        if self.paint.straight_edge || self.paint.straight_held {
-            samples = flare_tools::rulers::straighten(&samples);
-        }
-        let about = self.symmetry_center();
-        let mut strokes = vec![samples.clone()];
-        strokes.extend(
-            self.paint
-                .symmetry
-                .reflections()
-                .iter()
-                .map(|r| r.samples(&samples, about)),
-        );
+        let samples = std::mem::take(&mut self.freehand);
+        let strokes = self.stroke_set(samples);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
         let mut shapes = Vec::new();
         for stroke in &strokes {
@@ -191,7 +180,15 @@ impl Workspace {
         } else {
             "Pencil line"
         };
+        let preview = if shapes.is_empty() {
+            Vec::new()
+        } else {
+            self.previews_of(&strokes)
+        };
         self.insert_shape_layers(shapes, name);
+        if self.status.is_none() && !preview.is_empty() {
+            self.settle(preview);
+        }
     }
 
     fn pencil_shape(
