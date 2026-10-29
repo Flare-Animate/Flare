@@ -39,12 +39,23 @@ pub enum Content {
     Instance(Instance),
 }
 
+/// How a span's transform moves toward the next span on the same layer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Tween {
+    /// Held for the whole span.
+    #[default]
+    None,
+    /// Linear motion tween to the next adjacent span's instance transform.
+    Linear,
+}
+
 /// A held exposure: `content` stays for `duration` frames starting at `start`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FrameSpan {
     start: u32,
     duration: NonZeroU32,
     content: Content,
+    tween: Tween,
 }
 
 impl FrameSpan {
@@ -53,7 +64,17 @@ impl FrameSpan {
             start,
             duration,
             content,
+            tween: Tween::None,
         }
+    }
+
+    pub fn with_tween(mut self, tween: Tween) -> Self {
+        self.tween = tween;
+        self
+    }
+
+    pub fn tween(&self) -> Tween {
+        self.tween
     }
 
     pub fn start(&self) -> u32 {
@@ -117,6 +138,14 @@ impl Layer {
 
     pub fn spans(&self) -> &[FrameSpan] {
         &self.spans
+    }
+
+    /// The span starting exactly at `frame`, if any.
+    pub fn span_at_start(&self, frame: u64) -> Option<&FrameSpan> {
+        u32::try_from(frame)
+            .ok()
+            .and_then(|f| self.span_at(f))
+            .filter(|s| u64::from(s.start()) == frame)
     }
 
     /// The span exposing `frame`, if any. Spans are sorted and non-overlapping.

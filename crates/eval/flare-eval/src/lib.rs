@@ -7,8 +7,8 @@
 #![forbid(unsafe_code)]
 
 use flare_core::{InstanceId, SceneId, SymbolId};
-use flare_document::{Content, Document, Timeline};
-use glamx::DAffine2;
+use flare_document::{Content, Document, Instance, Layer, Timeline, Tween};
+use glamx::{DAffine2, DVec2};
 use thiserror::Error;
 
 const MAX_DEPTH: usize = 64;
@@ -31,6 +31,8 @@ pub enum EvalError {
     TooDeep,
     #[error("more than {MAX_NODES} placed instances")]
     TooManyNodes,
+    #[error("instance {0:?} cannot be tweened: its matrix has shear or reflection")]
+    UnsupportedTween(InstanceId),
 }
 
 /// Placed instances at `frame`, parents before children, bottom layer drawn first.
@@ -74,7 +76,8 @@ fn walk(
         if out.len() >= MAX_NODES {
             return Err(EvalError::TooManyNodes);
         }
-        let transform = parent * instance.transform().as_affine();
+        let local = tweened(layer, frame, instance)?;
+        let transform = parent * local;
         path.push(instance.id());
         out.push(Placed {
             path: path.clone(),
@@ -96,13 +99,64 @@ fn walk(
     Ok(())
 }
 
+/// Applies a linear motion tween toward the next adjacent span on the same layer.
+///
+/// Interpolates scale, rotation (shortest arc) and translation. Matrices that are not a
+/// pure scale-rotate-translate (shear, reflection) are reported, not approximated.
+fn tweened(layer: &Layer, frame: u32, instance: &Instance) -> Result<DAffine2, EvalError> {
+    let (id, from) = (instance.id(), instance.transform().as_affine());
+    let Some(span) = layer.span_at(frame) else {
+        return Ok(from);
+    };
+    if span.tween() != Tween::Linear {
+        return Ok(from);
+    }
+    let Some(next) = layer.span_at_start(span.end()) else {
+        return Ok(from);
+    };
+    let Content::Instance(target) = next.content() else {
+        return Ok(from);
+    };
+    if target.symbol() != instance.symbol() {
+        return Ok(from);
+    }
+    let to = target.transform().as_affine();
+    let (Some((s0, r0, t0)), Some((s1, r1, t1))) = (decompose(from), decompose(to)) else {
+        return Err(EvalError::UnsupportedTween(id));
+    };
+    let t = f64::from(frame - span.start()) / f64::from(span.duration().get());
+    let mut delta = (r1 - r0) % std::f64::consts::TAU;
+    if delta > std::f64::consts::PI {
+        delta -= std::f64::consts::TAU;
+    } else if delta < -std::f64::consts::PI {
+        delta += std::f64::consts::TAU;
+    }
+    Ok(DAffine2::from_scale_angle_translation(
+        s0.lerp(s1, t),
+        r0 + delta * t,
+        t0.lerp(t1, t),
+    ))
+}
+
+/// Scale, angle, translation, or `None` when the matrix is not exactly representable.
+fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
+    let (scale, angle, translation) = matrix.to_scale_angle_translation();
+    let rebuilt = DAffine2::from_scale_angle_translation(scale, angle, translation);
+    let close = rebuilt
+        .to_cols_array()
+        .iter()
+        .zip(matrix.to_cols_array())
+        .all(|(a, b)| (a - b).abs() <= 1e-9 * (1.0 + b.abs()));
+    close.then_some((scale, angle, translation))
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
     use std::num::NonZeroU32;
 
     use flare_core::{DocumentId, FrameRate, LayerId, Transform2D};
-    use flare_document::{FrameSpan, Instance, Layer, Scene, Symbol};
+    use flare_document::{FrameSpan, Layer, Scene, Symbol};
     use glamx::DVec2;
 
     use super::*;
@@ -195,6 +249,82 @@ mod tests {
         assert_eq!(evaluate(&doc, id, 3).expect("eval").len(), 1);
         assert!(evaluate(&doc, id, 4).expect("eval").is_empty());
         assert!(evaluate(&doc, id, 99).expect("eval").is_empty());
+    }
+
+    fn tween_scene(from: Transform2D, to: Transform2D) -> (Document, SceneId) {
+        let art = SymbolId::new();
+        let first = span(0, 10, art, from).with_tween(Tween::Linear);
+        let scene = timeline(vec![vec![first, span(10, 5, art, to)]]);
+        document(scene, vec![Symbol::new(art, "Art", Timeline::default())])
+    }
+
+    fn rotation(angle: f64) -> Transform2D {
+        Transform2D::new(DAffine2::from_angle(angle)).expect("finite")
+    }
+
+    #[test]
+    fn linear_tween_interpolates_translation_and_holds_at_the_end() {
+        let (doc, id) = tween_scene(at(0.0), at(100.0));
+        let x = |frame| {
+            evaluate(&doc, id, frame).expect("eval")[0]
+                .transform
+                .translation
+                .x
+        };
+        assert_eq!(x(0), 0.0);
+        assert_eq!(x(5), 50.0);
+        assert_eq!(x(10), 100.0);
+        assert_eq!(x(12), 100.0, "last span has no tween and holds");
+    }
+
+    #[test]
+    fn rotation_tween_takes_the_shortest_arc() {
+        use std::f64::consts::PI;
+        let (doc, id) = tween_scene(rotation(0.9 * PI), rotation(-0.9 * PI));
+        let mid = evaluate(&doc, id, 5).expect("eval")[0].transform;
+        // Halfway along the short arc is pi, not 0.
+        let (_, angle, _) = mid.to_scale_angle_translation();
+        assert!((angle.abs() - PI).abs() < 1e-9, "angle {angle}");
+    }
+
+    #[test]
+    fn tweening_a_sheared_matrix_is_an_error_not_an_approximation() {
+        let shear = Transform2D::new(DAffine2::from_cols_array(&[1.0, 0.0, 0.5, 1.0, 0.0, 0.0]))
+            .expect("finite");
+        let (doc, id) = tween_scene(shear, at(0.0));
+        assert!(matches!(
+            evaluate(&doc, id, 3),
+            Err(EvalError::UnsupportedTween(_))
+        ));
+        // Frames of a span without a tween never decompose.
+        assert!(evaluate(&doc, id, 11).is_ok());
+    }
+
+    #[test]
+    fn tween_needs_an_adjacent_span_with_the_same_symbol() {
+        let (a, b) = (SymbolId::new(), SymbolId::new());
+        let gap = timeline(vec![vec![
+            span(0, 5, a, at(0.0)).with_tween(Tween::Linear),
+            span(6, 5, a, at(100.0)),
+        ]]);
+        let other = timeline(vec![vec![
+            span(0, 5, a, at(0.0)).with_tween(Tween::Linear),
+            span(5, 5, b, at(100.0)),
+        ]]);
+        for scene in [gap, other] {
+            let symbols = vec![
+                Symbol::new(a, "A", Timeline::default()),
+                Symbol::new(b, "B", Timeline::default()),
+            ];
+            let (doc, id) = document(scene, symbols);
+            assert_eq!(
+                evaluate(&doc, id, 2).expect("eval")[0]
+                    .transform
+                    .translation
+                    .x,
+                0.0
+            );
+        }
     }
 
     #[test]

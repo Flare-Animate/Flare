@@ -179,7 +179,7 @@ mod tests {
     use std::num::NonZeroU32;
 
     use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
-    use flare_document::{Content, FrameSpan, Instance, Layer, Scene, Symbol, Timeline};
+    use flare_document::{Content, FrameSpan, Instance, Layer, Scene, Symbol, Timeline, Tween};
     use glamx::DAffine2;
 
     use super::*;
@@ -199,8 +199,12 @@ mod tests {
             )
         };
         let empty = FrameSpan::new(8, NonZeroU32::new(2).expect("nonzero"), Content::Empty);
-        let layer =
-            Layer::new(LayerId::new(), "Layer 1", vec![place(0), place(4), empty]).expect("layer");
+        let layer = Layer::new(
+            LayerId::new(),
+            "Layer 1",
+            vec![place(0).with_tween(Tween::Linear), place(4), empty],
+        )
+        .expect("layer");
         let scenes = vec![
             Scene::new(SceneId::new(), "One", Timeline::new(vec![layer])),
             Scene::new(SceneId::new(), "Two", Timeline::default()),

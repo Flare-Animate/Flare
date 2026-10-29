@@ -3,7 +3,9 @@
 use std::num::NonZeroU32;
 
 use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
-use flare_document::{Content, Document, FrameSpan, Instance, Layer, Scene, Symbol, Timeline};
+use flare_document::{
+    Content, Document, FrameSpan, Instance, Layer, Scene, Symbol, Timeline, Tween,
+};
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -28,6 +30,13 @@ impl Settings {
     }
 }
 
+#[derive(Serialize, Deserialize, Default)]
+enum TweenWire {
+    #[default]
+    None,
+    Linear,
+}
+
 #[derive(Serialize, Deserialize)]
 enum ContentWire {
     Empty,
@@ -40,6 +49,8 @@ enum ContentWire {
 
 #[derive(Serialize, Deserialize)]
 struct SpanWire {
+    #[serde(default)]
+    tween: TweenWire,
     start: u32,
     duration: u32,
     content: ContentWire,
@@ -69,6 +80,10 @@ impl TimelineWire {
                     .spans()
                     .iter()
                     .map(|span| SpanWire {
+                        tween: match span.tween() {
+                            Tween::None => TweenWire::None,
+                            Tween::Linear => TweenWire::Linear,
+                        },
                         start: span.start(),
                         duration: span.duration().get(),
                         content: match span.content() {
@@ -105,7 +120,11 @@ impl TimelineWire {
                         ))
                     }
                 };
-                spans.push(FrameSpan::new(span.start, duration, content));
+                let tween = match span.tween {
+                    TweenWire::None => Tween::None,
+                    TweenWire::Linear => Tween::Linear,
+                };
+                spans.push(FrameSpan::new(span.start, duration, content).with_tween(tween));
             }
             layers.push(Layer::new(
                 LayerId::from_uuid(uuid(&layer.id)?),
