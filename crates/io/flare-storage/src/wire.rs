@@ -7,8 +7,8 @@ use flare_core::{
     Transform2D,
 };
 use flare_document::{
-    Anchor, Attachment, Content, Document, FrameSpan, Instance, Layer, PathSegment, Placement,
-    Scene, Shape, Stage, Stroke, Symbol, Timeline, Tween,
+    Anchor, Attachment, Content, Document, FrameSpan, Gradient, Instance, Layer, PathSegment,
+    Placement, Scene, Shape, Stage, Stroke, Symbol, Timeline, Tween,
 };
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
@@ -102,6 +102,14 @@ struct StrokeWire {
 }
 
 #[derive(Serialize, Deserialize)]
+struct GradientWire {
+    from: [f64; 2],
+    to: [f64; 2],
+    start: [u8; 4],
+    end: [u8; 4],
+}
+
+#[derive(Serialize, Deserialize)]
 enum ContentWire {
     Empty,
     Shape {
@@ -111,6 +119,9 @@ enum ContentWire {
         /// Absent in files written before strokes existed.
         #[serde(default)]
         stroke: Option<StrokeWire>,
+        /// Absent in files written before gradients existed.
+        #[serde(default)]
+        gradient: Option<GradientWire>,
     },
     Instance {
         id: String,
@@ -179,6 +190,12 @@ impl TimelineWire {
                                     width: stroke.width(),
                                     rgba: stroke.color().to_array(),
                                 }),
+                                gradient: shape.gradient().map(|g| GradientWire {
+                                    from: [g.from().as_vec().x, g.from().as_vec().y],
+                                    to: [g.to().as_vec().x, g.to().as_vec().y],
+                                    start: g.start().to_array(),
+                                    end: g.end().to_array(),
+                                }),
                             },
                             Content::Instance(instance) => ContentWire::Instance {
                                 id: instance.id().as_uuid().to_string(),
@@ -207,6 +224,7 @@ impl TimelineWire {
                         path,
                         rgba,
                         stroke,
+                        gradient,
                     } => {
                         let path = path
                             .iter()
@@ -223,6 +241,22 @@ impl TimelineWire {
                             let stroke = Stroke::new(stroke.width, Rgba8::new(r, g, b, a))
                                 .map_err(corrupt)?;
                             shape = shape.with_stroke(stroke);
+                        }
+                        if let Some(g) = gradient {
+                            let point = |p: [f64; 2]| {
+                                DocumentPoint::new(p[0], p[1]).map_err(|_| {
+                                    StorageError::Corrupt("non-finite gradient".into())
+                                })
+                            };
+                            let color = |c: [u8; 4]| Rgba8::new(c[0], c[1], c[2], c[3]);
+                            let gradient = Gradient::linear(
+                                point(g.from)?,
+                                point(g.to)?,
+                                color(g.start),
+                                color(g.end),
+                            )
+                            .map_err(|error| StorageError::Corrupt(error.to_string()))?;
+                            shape = shape.with_gradient(gradient);
                         }
                         Content::Shape(shape)
                     }

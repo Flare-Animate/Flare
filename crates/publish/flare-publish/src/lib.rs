@@ -174,6 +174,7 @@ pub fn publish_swf(
     let mut characters: HashMap<ShapeId, Option<swf::CharacterId>> = HashMap::new();
     let mut next_character: swf::CharacterId = 1;
     let mut approximated = false;
+    let mut flattened_gradient = false;
     let mut on_screen: Vec<Placed> = Vec::new();
     let mut frames = 0_u32;
 
@@ -196,6 +197,7 @@ pub fn publish_swf(
                     Some(known) => *known,
                     None => {
                         let defined = next_character;
+                        flattened_gradient |= drawn.shape.gradient().is_some();
                         let made = shapes::define_shape(defined, drawn.shape, &mut approximated);
                         let assigned = made.is_some().then_some(defined);
                         if let Some(shape) = made {
@@ -245,6 +247,14 @@ pub fn publish_swf(
             tags.push(Tag::ShowFrame);
             frames += 1;
         }
+    }
+    if flattened_gradient {
+        diagnostics.push(Diagnostic {
+            severity: Severity::Warning,
+            message:
+                "SWF publishing does not write gradients yet, so they were flattened to one color"
+                    .into(),
+        });
     }
     if approximated {
         diagnostics.push(Diagnostic {

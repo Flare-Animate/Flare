@@ -9,7 +9,8 @@ use std::num::NonZeroU32;
 use egui::{Pos2, Rect};
 use flare_core::{DocumentPoint, InstanceId, LayerId, SceneId, ShapeId, SymbolId, Transform2D};
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, PathSegment, Shape, Symbol, Timeline, Tween,
+    Content, Document, FrameSpan, Gradient, Instance, Layer, PathSegment, Shape, Symbol, Timeline,
+    Tween,
 };
 use flare_edit::Command;
 use flare_eval::DrawnShape;
@@ -100,9 +101,18 @@ fn transform_shape_as(shape: &Shape, id: ShapeId, matrix: DAffine2) -> Option<Sh
         })
         .collect::<Option<Vec<_>>>()?;
     let moved = Shape::new(id, path, shape.fill()).ok()?;
-    // Rebuilding must not drop the stroke.
-    Some(match shape.stroke() {
-        Some(stroke) => moved.with_stroke(stroke),
+    // Rebuilding must not drop the stroke or the gradient, and the gradient moves with the
+    // artwork.
+    let moved = moved.painted_like(shape);
+    Some(match shape.gradient() {
+        Some(g) => {
+            let map = |p: DocumentPoint| {
+                let q = matrix.transform_point2(p.as_vec());
+                DocumentPoint::new(q.x, q.y).ok()
+            };
+            let mapped = Gradient::linear(map(g.from())?, map(g.to())?, g.start(), g.end()).ok()?;
+            moved.with_gradient(mapped)
+        }
         None => moved,
     })
 }

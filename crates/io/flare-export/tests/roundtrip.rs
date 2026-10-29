@@ -290,6 +290,42 @@ fn the_report_says_what_changed() {
 }
 
 #[test]
+fn a_gradient_is_written_as_its_average_color_with_a_warning() {
+    let gradient = flare_document::Gradient::linear(
+        pt(0.0, 0.0),
+        pt(10.0, 0.0),
+        Rgba8::opaque(200, 0, 0),
+        Rgba8::opaque(0, 100, 0),
+    )
+    .expect("gradient");
+    let shape = rect(0.0, 0.0, 10.0, 10.0, Rgba8::TRANSPARENT).with_gradient(gradient);
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let scene = Scene::new(SceneId::new(), "S", one_layer(shape));
+    let doc = Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("doc");
+    let (output, imported) = roundtrip(&doc);
+    assert!(
+        output
+            .diagnostics
+            .iter()
+            .any(|d| d.severity == Severity::Warning && d.message.contains("gradient")),
+        "{:?}",
+        output.diagnostics
+    );
+    let Content::Shape(back) = imported.document.scenes()[0].timeline().layers()[0].spans()[0]
+        .content()
+        .clone()
+    else {
+        panic!("a shape expected")
+    };
+    assert_eq!(
+        back.fill(),
+        Rgba8::opaque(100, 50, 0),
+        "the average of the two stops"
+    );
+    assert!(back.gradient().is_none());
+}
+
+#[test]
 fn awkward_names_stay_safe_and_unique() {
     let symbols: Vec<Symbol> = [
         "a",

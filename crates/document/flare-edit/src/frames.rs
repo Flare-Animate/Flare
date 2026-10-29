@@ -22,10 +22,7 @@ fn duplicate(content: &Content) -> Option<Content> {
         }
         Content::Shape(s) => {
             let copy = Shape::new(ShapeId::new(), s.path().to_vec(), s.fill()).ok()?;
-            Content::Shape(match s.stroke() {
-                Some(stroke) => copy.with_stroke(stroke),
-                None => copy,
-            })
+            Content::Shape(copy.painted_like(s))
         }
     })
 }
@@ -518,5 +515,34 @@ mod tests {
             vec![(0, 6, 'S'), (6, 1, 'S')],
             "shrinking is fine"
         );
+    }
+
+    #[test]
+    fn a_new_keyframe_copies_the_stroke_and_gradient_of_the_artwork() {
+        use flare_core::DocumentPoint;
+        use flare_document::{Gradient, Stroke};
+        let point = |x| DocumentPoint::new(x, 0.0).expect("finite");
+        let gradient = Gradient::linear(point(0.0), point(5.0), Rgba8::WHITE, Rgba8::TRANSPARENT)
+            .expect("gradient");
+        let stroke = Stroke::new(2.0, Rgba8::WHITE).expect("stroke");
+        let shape = Shape::rect(ShapeId::new(), 0.0, 0.0, 5.0, 5.0, Rgba8::WHITE)
+            .expect("rect")
+            .with_stroke(stroke)
+            .with_gradient(gradient);
+        let span = FrameSpan::new(
+            0,
+            NonZeroU32::new(6).expect("nonzero"),
+            Content::Shape(shape),
+        );
+        let mut f = fixture(vec![span]);
+        let cmds = insert_keyframe(f.scene, layer(&f), 3);
+        run(&mut f, cmds);
+        let spans = layer(&f).spans();
+        assert_eq!(spans.len(), 2);
+        let Content::Shape(copy) = spans[1].content() else {
+            panic!("a shape expected")
+        };
+        assert_eq!(copy.gradient(), Some(gradient));
+        assert_eq!(copy.stroke(), Some(stroke));
     }
 }

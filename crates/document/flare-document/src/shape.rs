@@ -54,12 +54,70 @@ impl Stroke {
     }
 }
 
+/// A two-color linear gradient between two points in the shape's own coordinates. Colors
+/// are straight-alpha and interpolated in sRGB; outside the two points the end colors hold.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Gradient {
+    from: DocumentPoint,
+    to: DocumentPoint,
+    start: Rgba8,
+    end: Rgba8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+pub enum GradientError {
+    #[error("a gradient needs two different points")]
+    SamePoint,
+}
+
+impl Gradient {
+    pub fn linear(
+        from: DocumentPoint,
+        to: DocumentPoint,
+        start: Rgba8,
+        end: Rgba8,
+    ) -> Result<Self, GradientError> {
+        if from == to {
+            return Err(GradientError::SamePoint);
+        }
+        Ok(Self {
+            from,
+            to,
+            start,
+            end,
+        })
+    }
+
+    pub fn from(&self) -> DocumentPoint {
+        self.from
+    }
+
+    pub fn to(&self) -> DocumentPoint {
+        self.to
+    }
+
+    pub fn start(&self) -> Rgba8 {
+        self.start
+    }
+
+    pub fn end(&self) -> Rgba8 {
+        self.end
+    }
+
+    /// Whether both colors are fully transparent, so nothing would be drawn.
+    pub fn is_invisible(&self) -> bool {
+        self.start.a == 0 && self.end.a == 0
+    }
+}
+
 /// A filled vector shape. Points are already validated finite by `DocumentPoint`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Shape {
     id: ShapeId,
     path: Vec<PathSegment>,
     fill: Rgba8,
+    /// When present it is painted instead of the solid `fill`.
+    gradient: Option<Gradient>,
     stroke: Option<Stroke>,
 }
 
@@ -90,6 +148,7 @@ impl Shape {
             id,
             path,
             fill,
+            gradient: None,
             stroke: None,
         })
     }
@@ -98,6 +157,21 @@ impl Shape {
     #[must_use]
     pub fn with_stroke(mut self, stroke: Stroke) -> Self {
         self.stroke = Some(stroke);
+        self
+    }
+
+    /// Carries `other`'s stroke and gradient over to this shape (a rebuilt or copied one).
+    #[must_use]
+    pub fn painted_like(mut self, other: &Shape) -> Self {
+        self.stroke = other.stroke;
+        self.gradient = other.gradient;
+        self
+    }
+
+    /// Paints the fill with `gradient`; the solid fill color is kept as the fallback.
+    #[must_use]
+    pub fn with_gradient(mut self, gradient: Gradient) -> Self {
+        self.gradient = Some(gradient);
         self
     }
 
@@ -156,6 +230,36 @@ impl Shape {
 
     pub fn stroke(&self) -> Option<Stroke> {
         self.stroke
+    }
+
+    pub fn gradient(&self) -> Option<Gradient> {
+        self.gradient
+    }
+
+    /// The fill as one color, for formats without gradients: the solid fill, or the average of
+    /// a gradient's two colors.
+    pub fn flat_fill(&self) -> Rgba8 {
+        match self.gradient {
+            Some(g) => {
+                let mean = |a: u8, b: u8| (u16::from(a) + u16::from(b)).div_ceil(2) as u8;
+                let (s, e) = (g.start, g.end);
+                Rgba8::new(
+                    mean(s.r, e.r),
+                    mean(s.g, e.g),
+                    mean(s.b, e.b),
+                    mean(s.a, e.a),
+                )
+            }
+            None => self.fill,
+        }
+    }
+
+    /// Whether the fill paints nothing (a transparent solid fill and no visible gradient).
+    pub fn fill_is_invisible(&self) -> bool {
+        match self.gradient {
+            Some(gradient) => gradient.is_invisible(),
+            None => self.fill.a == 0,
+        }
     }
 }
 
@@ -245,5 +349,38 @@ mod tests {
         assert_eq!(shape(line_after_close), Err(ShapeError::NoCurrentPoint));
         let too_long = vec![PathSegment::MoveTo(p(0.0, 0.0)); MAX_SEGMENTS + 1];
         assert_eq!(shape(too_long), Err(ShapeError::TooManySegments));
+    }
+
+    #[test]
+    fn gradients_need_two_different_points_and_report_visibility() {
+        assert_eq!(
+            Gradient::linear(
+                p(1.0, 1.0),
+                p(1.0, 1.0),
+                Rgba8::WHITE,
+                Rgba8::opaque(0, 0, 0)
+            ),
+            Err(GradientError::SamePoint)
+        );
+        let clear = Gradient::linear(
+            p(0.0, 0.0),
+            p(1.0, 0.0),
+            Rgba8::TRANSPARENT,
+            Rgba8::TRANSPARENT,
+        )
+        .expect("gradient");
+        assert!(clear.is_invisible());
+        let faded = Gradient::linear(p(0.0, 0.0), p(1.0, 0.0), Rgba8::TRANSPARENT, Rgba8::WHITE)
+            .expect("gradient");
+        let shape =
+            Shape::rect(ShapeId::new(), 0.0, 0.0, 4.0, 4.0, Rgba8::TRANSPARENT).expect("rect");
+        assert!(shape.fill_is_invisible());
+        let shape = shape.with_gradient(faded);
+        assert!(
+            !shape.fill_is_invisible(),
+            "a visible gradient paints even over a clear fill"
+        );
+        assert_eq!(shape.gradient(), Some(faded));
+        assert!(shape.with_gradient(clear).fill_is_invisible());
     }
 }

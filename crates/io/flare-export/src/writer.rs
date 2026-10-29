@@ -209,8 +209,15 @@ fn write_shape(
     notes: &mut Vec<Diagnostic>,
     approximated: &mut bool,
 ) {
-    let fill = shape.fill();
+    let fill = shape.flat_fill();
     let has_fill = fill.a > 0;
+    if shape.gradient().is_some() {
+        notes.push(Diagnostic {
+            severity: Severity::Warning,
+            location: place.to_owned(),
+            message: "a gradient was written as a flat color".into(),
+        });
+    }
     let stroke = shape.stroke();
     if !has_fill && stroke.is_none() {
         notes.push(Diagnostic {

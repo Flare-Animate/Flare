@@ -192,6 +192,10 @@ pub struct Workspace {
     /// The pen tool's path while it is being drawn.
     pen: PenPath,
     fill: Color32,
+    /// New rectangles and ellipses fade from `fill` to `gradient_end` across their bounds.
+    gradient_enabled: bool,
+    gradient_end: Color32,
+    gradient_vertical: bool,
     stroke_enabled: bool,
     stroke_color: Color32,
     stroke_width: f32,
@@ -240,6 +244,9 @@ impl Workspace {
             test_movie_requested: false,
             pen: PenPath::default(),
             fill: Color32::from_rgb(232, 69, 60),
+            gradient_enabled: false,
+            gradient_end: Color32::from_rgb(60, 90, 220),
+            gradient_vertical: false,
             stroke_enabled: false,
             stroke_color: Color32::BLACK,
             stroke_width: 4.0,
@@ -369,6 +376,9 @@ impl Workspace {
         let mut fresh = Self::new(document, path);
         fresh.tool = self.tool;
         fresh.fill = self.fill;
+        fresh.gradient_enabled = self.gradient_enabled;
+        fresh.gradient_end = self.gradient_end;
+        fresh.gradient_vertical = self.gradient_vertical;
         fresh.stroke_enabled = self.stroke_enabled;
         fresh.stroke_color = self.stroke_color;
         fresh.stroke_width = self.stroke_width;
@@ -561,6 +571,25 @@ impl Workspace {
             self.report("Shape coordinates must be finite");
             return;
         };
+        if self.gradient_enabled && tool != Tool::Line {
+            let end = {
+                let c = self.gradient_end.to_array();
+                Rgba8::new(c[0], c[1], c[2], c[3])
+            };
+            let (from, to) = if self.gradient_vertical {
+                ((x0, y0), (x0, y0 + h))
+            } else {
+                ((x0, y0), (x0 + w, y0))
+            };
+            let point = |(x, y): (f64, f64)| flare_core::DocumentPoint::new(x, y).ok();
+            let gradient = point(from)
+                .zip(point(to))
+                .and_then(|(from, to)| flare_document::Gradient::linear(from, to, fill, end).ok());
+            match gradient {
+                Some(gradient) => shape = shape.with_gradient(gradient),
+                None => return self.report("The gradient needs a shape with some size"),
+            }
+        }
         if self.stroke_enabled && tool != Tool::Line {
             match stroke {
                 Ok(stroke) => shape = shape.with_stroke(stroke),
@@ -1951,6 +1980,13 @@ impl Workspace {
         ui.separator();
         ui.label("Fill");
         ui.color_edit_button_srgba(&mut self.fill);
+        ui.checkbox(&mut self.gradient_enabled, "Gradient");
+        ui.add_enabled_ui(self.gradient_enabled, |ui| {
+            ui.horizontal(|ui| {
+                ui.color_edit_button_srgba(&mut self.gradient_end);
+                ui.checkbox(&mut self.gradient_vertical, "Vertical");
+            });
+        });
         ui.checkbox(&mut self.stroke_enabled, "Outline");
         ui.add_enabled_ui(self.stroke_enabled, |ui| {
             ui.color_edit_button_srgba(&mut self.stroke_color);
@@ -4433,5 +4469,67 @@ mod tests {
         ws.zoom_timeline(0.0001);
         assert_eq!(ws.timeline_zoom, timeline_view::MIN_ZOOM);
         assert!(!ws.is_dirty());
+    }
+
+    #[test]
+    fn gradient_fills_apply_to_new_shapes_across_their_bounds_and_survive_moves() {
+        let mut ws = workspace();
+        ws.gradient_enabled = true;
+        ws.gradient_end = Color32::from_rgb(0, 0, 255);
+        ws.fill = Color32::from_rgb(255, 0, 0);
+        ws.commit_rectangle(Pos2::new(10.0, 20.0), Pos2::new(110.0, 60.0));
+        let layer = ws.current_layer.expect("layer");
+        ws.selected = Some(SpanRef { layer, start: 0 });
+        let g = selected_shape(&ws).gradient().expect("a gradient");
+        assert_eq!((g.from().as_vec().x, g.from().as_vec().y), (10.0, 20.0));
+        assert_eq!(
+            (g.to().as_vec().x, g.to().as_vec().y),
+            (110.0, 20.0),
+            "horizontal"
+        );
+        assert_eq!(g.start(), Rgba8::opaque(255, 0, 0));
+        assert_eq!(g.end(), Rgba8::opaque(0, 0, 255));
+
+        ws.move_selection(Vec2::new(5.0, 7.0));
+        let g = selected_shape(&ws)
+            .gradient()
+            .expect("the move keeps the gradient");
+        assert_eq!((g.from().as_vec().x, g.from().as_vec().y), (15.0, 27.0));
+        assert_eq!(
+            (g.to().as_vec().x, g.to().as_vec().y),
+            (115.0, 27.0),
+            "and moves it too"
+        );
+
+        ws.gradient_vertical = true;
+        ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(50.0, 80.0));
+        let layer = ws.current_layer.expect("layer");
+        ws.selected = Some(SpanRef { layer, start: 0 });
+        let g = selected_shape(&ws).gradient().expect("a gradient");
+        assert_eq!(
+            (g.to().as_vec().x, g.to().as_vec().y),
+            (0.0, 80.0),
+            "vertical"
+        );
+    }
+
+    #[test]
+    fn gradients_survive_duplicating_and_the_setting_survives_opening_a_project() {
+        let dir = tempfile::tempdir().expect("dir");
+        let project = dir.path().join("p.flare");
+        let mut ws = workspace();
+        ws.gradient_enabled = true;
+        ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(40.0, 40.0));
+        let layer = ws.current_layer.expect("layer");
+        ws.selected = Some(SpanRef { layer, start: 0 });
+        ws.save_as(&project);
+        ws.open(&project);
+        assert!(ws.gradient_enabled, "opening keeps the tool settings");
+        let layer = ws.document().scenes()[0].timeline().layers()[1].id();
+        ws.selected = Some(SpanRef { layer, start: 0 });
+        assert!(
+            selected_shape(&ws).gradient().is_some(),
+            "saved and reloaded"
+        );
     }
 }

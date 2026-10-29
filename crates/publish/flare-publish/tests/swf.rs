@@ -666,6 +666,33 @@ fn stroked_closed_shapes_keep_all_four_sides_and_open_filled_shapes_are_closed()
 }
 
 #[test]
+fn gradients_are_flattened_to_their_average_color_with_a_warning() {
+    let gradient = flare_document::Gradient::linear(
+        pt(0.0, 0.0),
+        pt(20.0, 0.0),
+        Rgba8::opaque(200, 0, 0),
+        Rgba8::opaque(0, 100, 0),
+    )
+    .expect("gradient");
+    let shape = rect(0.0, 0.0, 20.0, 20.0, Rgba8::TRANSPARENT).with_gradient(gradient);
+    let doc = document(20, 20, vec![one_frame_scene("A", vec![shape], 1)], vec![]);
+    let published = publish_swf(&doc, &PublishOptions::default()).expect("publish");
+    let parsed = parse(&published.bytes);
+    assert_eq!(
+        render_swf_frame(&parsed, 0, doc.stage().background()).pixel(10, 10),
+        Some(Rgba8::opaque(100, 50, 0))
+    );
+    assert!(
+        published
+            .diagnostics
+            .iter()
+            .any(|d| d.severity == Severity::Warning && d.message.contains("gradients")),
+        "{:?}",
+        published.diagnostics
+    );
+}
+
+#[test]
 fn scenes_play_in_sequence_with_a_warning() {
     let a = one_frame_scene(
         "A",

@@ -190,7 +190,7 @@ fn color(c: flare_core::Rgba8) -> Color {
 
 /// The shape as a `DefineShape4`, or `None` when nothing would be drawn.
 pub fn define_shape(id: CharacterId, shape: &Shape, approximated: &mut bool) -> Option<swf::Shape> {
-    let fill = shape.fill();
+    let fill = shape.flat_fill();
     let has_fill = fill.a > 0;
     let stroke = shape.stroke();
     if !has_fill && stroke.is_none() {
