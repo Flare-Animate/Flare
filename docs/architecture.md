@@ -253,8 +253,7 @@ settings. The stage zooms (pinch, Ctrl/Cmd+scroll or the View menu, about the cu
 and pans (scroll or middle-drag). Shift-click builds a multi-selection that moves and deletes together (other
 commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the selection onto
 new layers nudged aside; Copy and Paste (Cmd/Ctrl+C, V) remember the selection and paste it in
-place at the current frame on new layers, including into another open document that has the
-same symbols. The Modify menu flips, rotates by 90 degrees and scales the selection about its
+place at the current frame on new layers. An instance whose symbol is missing from the document is refused. The Modify menu flips, rotates by 90 degrees and scales the selection about its
 center. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). Dragging a span in the timeline moves it, dragging its right edge resizes it; neither may overlap another span. The timeline zooms (buttons, pinch or
