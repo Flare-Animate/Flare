@@ -35,10 +35,13 @@ pub enum MenuAction {
     ResetLayout,
     ToggleOnionSkin,
     TestMovie,
+    ZoomIn,
+    ZoomOut,
+    ZoomFit,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 30] = [
+    pub const ALL: [MenuAction; 33] = [
         Self::Open,
         Self::Save,
         Self::SaveAs,
@@ -69,6 +72,9 @@ impl MenuAction {
         Self::ResetLayout,
         Self::ToggleOnionSkin,
         Self::TestMovie,
+        Self::ZoomIn,
+        Self::ZoomOut,
+        Self::ZoomFit,
     ];
 
     /// A stable identifier for native menu items (the variant name).
@@ -156,7 +162,15 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
     ),
     (
         "View",
-        &[Action(A::ToggleOnionSkin), Action(A::ResetLayout)],
+        &[
+            Action(A::ToggleOnionSkin),
+            Separator,
+            Action(A::ZoomIn),
+            Action(A::ZoomOut),
+            Action(A::ZoomFit),
+            Separator,
+            Action(A::ResetLayout),
+        ],
     ),
 ];
 

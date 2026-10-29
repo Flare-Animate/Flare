@@ -248,7 +248,8 @@ The policy is deliberately honest rather than clever:
 and playback at the document frame rate, a library, and tools: Select/Move, Rectangle,
 Ellipse, Line and Pen (click for corners, drag for smooth handles, click the first point or
 press Enter to finish, Backspace to remove a point, Esc to cancel), with fill and outline
-settings. Shift-click builds a multi-selection that moves and deletes together (other
+settings. The stage zooms (pinch, Ctrl/Cmd+scroll or the View menu, about the cursor)
+and pans (scroll or middle-drag). Shift-click builds a multi-selection that moves and deletes together (other
 commands act on the first selected span). It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). On macOS the menu bar is native (muda); everywhere
@@ -258,7 +259,7 @@ else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.m
 
 - No gradients, masks, text or bitmap fills.
 - XFL import covers a defined subset (see Import) and keeps the rest as source data (see Source preservation); XFL export and SWF publishing are verified only against our own importer and Ruffle's parser, never against Animate or a player.
-- No stage zoom or pan, no transform handles, no drag-editing of spans, no detachable panels.
+- No transform handles, no drag-editing of spans, no detachable panels.
 - Undo history is not persisted, and recovery covers one document at a time.
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
   menu have been built and launched but not exercised by hand; the menu's enabled-state and

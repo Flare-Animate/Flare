@@ -13,6 +13,7 @@ use glamx::DVec2;
 use crate::layout::{self, LayoutError, Pane};
 use crate::ops::{self, SpanRef};
 use crate::pen::{PenPath, Press};
+use crate::view::{self, StageView};
 use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 
 /// How many frames before and after the current one onion skinning can show.
@@ -146,6 +147,9 @@ pub struct Workspace {
     selected: Option<SpanRef>,
     /// Spans selected along with `selected` (Shift-click). Move and Delete act on all of them.
     also_selected: Vec<SpanRef>,
+    stage_view: StageView,
+    /// The stage panel's last rectangle, so menu zoom can aim at its center.
+    stage_panel: Rect,
     selected_symbol: Option<SymbolId>,
     current_layer: Option<LayerId>,
     layer_name_edit: String,
@@ -191,6 +195,8 @@ impl Workspace {
             tool: Tool::Rectangle,
             selected: None,
             also_selected: Vec::new(),
+            stage_view: StageView::default(),
+            stage_panel: Rect::NOTHING,
             selected_symbol: None,
             current_layer: None,
             layer_name_edit: String::new(),
@@ -226,6 +232,13 @@ impl Workspace {
         let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
             .map_err(|diagnostics| format!("{diagnostics:?}"))?;
         Ok(Self::new(document, None))
+    }
+
+    /// Zooms the stage about the center of its panel (menu commands).
+    fn zoom_stage(&mut self, factor: f32) {
+        let extent = self.stage_extent();
+        self.stage_view
+            .zoom_center(factor, self.stage_panel, extent);
     }
 
     fn stage_extent(&self) -> Vec2 {
@@ -862,7 +875,10 @@ impl Workspace {
             | MenuAction::ToolEllipse
             | MenuAction::ToolLine
             | MenuAction::ToolPen
-            | MenuAction::PlayPause => true,
+            | MenuAction::PlayPause
+            | MenuAction::ZoomIn
+            | MenuAction::ZoomOut => true,
+            MenuAction::ZoomFit => !self.stage_view.is_fit(),
             MenuAction::InsertFrame
             | MenuAction::RemoveFrame
             | MenuAction::InsertKeyframe
@@ -898,6 +914,9 @@ impl Workspace {
             MenuAction::ToolEllipse => "Ellipse",
             MenuAction::ToolLine => "Line",
             MenuAction::ToolPen => "Pen",
+            MenuAction::ZoomIn => "Zoom In",
+            MenuAction::ZoomOut => "Zoom Out",
+            MenuAction::ZoomFit => "Fit Stage in Window",
             MenuAction::InsertFrame => "Insert Frame",
             MenuAction::RemoveFrame => "Remove Frame",
             MenuAction::InsertKeyframe => "Insert Keyframe",
@@ -985,6 +1004,9 @@ impl Workspace {
                 self.set_selection_tween(next);
             }
             MenuAction::PlayPause => self.playing = !self.playing,
+            MenuAction::ZoomIn => self.zoom_stage(view::STEP),
+            MenuAction::ZoomOut => self.zoom_stage(1.0 / view::STEP),
+            MenuAction::ZoomFit => self.stage_view.reset(),
             MenuAction::ToggleLayerVisible => {
                 if let Some(id) = layer {
                     self.toggle_layer_visible(id);
@@ -1785,8 +1807,27 @@ impl Workspace {
         let available = ui.available_size();
         let (response, painter) = ui.allocate_painter(available, Sense::click_and_drag());
         let extent = self.stage_extent();
-        let scale = (response.rect.width() / extent.x).min(response.rect.height() / extent.y);
-        let image_rect = Rect::from_center_size(response.rect.center(), extent * scale.max(0.01));
+        self.stage_panel = response.rect;
+        if response.hovered() {
+            // Pinch or Ctrl/Cmd+scroll zooms about the cursor; plain scroll and middle-drag pan.
+            let (zoom, scroll, cursor) =
+                ui.input(|i| (i.zoom_delta(), i.smooth_scroll_delta, i.pointer.hover_pos()));
+            if zoom != 1.0 {
+                self.stage_view.zoom_about(
+                    cursor.unwrap_or(response.rect.center()),
+                    zoom,
+                    response.rect,
+                    extent,
+                );
+            } else if scroll != Vec2::ZERO {
+                self.stage_view.pan_by(scroll);
+            }
+        }
+        if response.dragged_by(egui::PointerButton::Middle) {
+            self.stage_view.pan_by(response.drag_delta());
+        }
+        let scale = self.stage_view.scale(response.rect, extent);
+        let image_rect = self.stage_view.image_rect(response.rect, extent);
         if let Some(texture) = &self.texture {
             painter.image(
                 texture.handle.id(),
@@ -1810,6 +1851,15 @@ impl Workspace {
             StrokeKind::Outside,
         );
 
+        if !self.stage_view.is_fit() {
+            painter.text(
+                response.rect.right_bottom() - Vec2::new(8.0, 8.0),
+                Align2::RIGHT_BOTTOM,
+                format!("{:.0}%", scale / fit_scale(response.rect, extent) * 100.0),
+                FontId::proportional(12.0),
+                Color32::GRAY,
+            );
+        }
         let to_doc = |p: Pos2| screen_to_stage(p, image_rect, extent);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
         if self.tool == Tool::Pen {
@@ -1817,17 +1867,17 @@ impl Workspace {
             // egui noticed the drag; a plain click adds a corner point.
             let origin = ui.input(|i| i.pointer.press_origin());
             let here = response.interact_pointer_pos();
-            if response.drag_started()
+            if response.drag_started_by(egui::PointerButton::Primary)
                 && let Some(p) = origin.or(here)
             {
                 self.pen_press(to_doc(p));
             }
-            if response.dragged()
+            if response.dragged_by(egui::PointerButton::Primary)
                 && let Some(p) = here
             {
                 self.pen_drag(to_doc(p));
             }
-            if response.drag_stopped() {
+            if response.drag_stopped_by(egui::PointerButton::Primary) {
                 self.pen_release();
             }
             if response.double_clicked() {
@@ -1840,17 +1890,18 @@ impl Workspace {
             }
         }
         let additive = ui.input(|i| i.modifiers.shift);
-        if response.drag_started()
+        let primary = egui::PointerButton::Primary;
+        if response.drag_started_by(primary)
             && let Some(p) = response.interact_pointer_pos()
         {
             self.begin_drag_with(to_doc(p), additive);
         }
-        if response.dragged()
+        if response.dragged_by(primary)
             && let Some(p) = response.interact_pointer_pos()
         {
             self.update_drag(to_doc(p));
         }
-        if response.drag_stopped() {
+        if response.drag_stopped_by(primary) {
             self.end_drag();
         }
         // A plain click with the select tool also selects (or clears the selection).
@@ -2190,6 +2241,11 @@ fn key_press(ctx: &egui::Context, key: Key) -> Option<Modifiers> {
 }
 
 /// Screen position to stage (document) coordinates, clamped to the stage.
+/// The scale at which the whole stage just fits `panel`.
+fn fit_scale(panel: Rect, extent: Vec2) -> f32 {
+    StageView::default().scale(panel, extent)
+}
+
 fn screen_to_stage(p: Pos2, image_rect: Rect, extent: Vec2) -> Pos2 {
     let u = (p.x - image_rect.min.x) / image_rect.width().max(f32::EPSILON);
     let v = (p.y - image_rect.min.y) / image_rect.height().max(f32::EPSILON);
@@ -3732,5 +3788,23 @@ mod tests {
             ws.selection_all()[0].layer,
             ws.document().scenes()[0].timeline().layers()[2].id()
         );
+    }
+
+    #[test]
+    fn zoom_menu_actions_zoom_the_stage_and_fit_resets_it() {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        run(&mut ws, &ctx, 0.0); // lays out the stage panel
+        assert!(!ws.is_enabled(MenuAction::ZoomFit), "already fitted");
+        ws.perform(MenuAction::ZoomIn);
+        assert!(!ws.stage_view.is_fit());
+        assert!(ws.is_enabled(MenuAction::ZoomFit));
+        let zoomed = ws.stage_view;
+        ws.perform(MenuAction::ZoomOut);
+        assert_ne!(ws.stage_view, zoomed);
+        ws.perform(MenuAction::ZoomIn);
+        ws.perform(MenuAction::ZoomIn);
+        ws.perform(MenuAction::ZoomFit);
+        assert!(ws.stage_view.is_fit());
+        assert!(!ws.is_dirty(), "the view is not part of the document");
     }
 }
