@@ -1,0 +1,22 @@
+[package]
+name = "flare-ui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+egui = { workspace = true, features = ["default_fonts"] }
+flare-core.workspace = true
+flare-document.workspace = true
+flare-edit.workspace = true
+flare-eval.workspace = true
+flare-render.workspace = true
+flare-storage.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true
