@@ -20,6 +20,8 @@ impl Workspace {
         fresh.gradient_vertical = self.gradient_vertical;
         fresh.text_family = std::mem::take(&mut self.text_family);
         fresh.text_size = self.text_size;
+        fresh.text_bold = self.text_bold;
+        fresh.text_italic = self.text_italic;
         fresh.stroke_enabled = self.stroke_enabled;
         fresh.stroke_color = self.stroke_color;
         fresh.stroke_width = self.stroke_width;

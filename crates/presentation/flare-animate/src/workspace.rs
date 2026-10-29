@@ -126,6 +126,8 @@ pub struct Workspace {
     /// Font family list and size for the text tool.
     text_family: String,
     text_size: f32,
+    text_bold: bool,
+    text_italic: bool,
     /// Corner radius of new rectangles, in stage units.
     rect_radius: f32,
     poly_sides: u32,
@@ -279,6 +281,8 @@ impl Workspace {
             brush_light: 0.15,
             smoothing: 2.0,
             text_size: 48.0,
+            text_bold: false,
+            text_italic: false,
             text_edit: None,
             text_pending: None,
             text_editor_id: egui::Id::unique("flare_text_editor"),

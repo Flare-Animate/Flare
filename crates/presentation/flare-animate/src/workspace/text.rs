@@ -68,6 +68,8 @@ impl Workspace {
             style: flare_text::TextStyle {
                 family: self.text_family.clone(),
                 size: self.text_size,
+                bold: self.text_bold,
+                italic: self.text_italic,
             },
         });
         self.settle_inline();

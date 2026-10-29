@@ -32,7 +32,6 @@ for `mock_` and `Mock(`; building one replaces it with the real control.
 
 Still planned (everything else in the menus and panels is built):
 
-- Properties: text style.
 - Library: folders.
 - Timeline: layer folders, motion guides, the outline column.
 - View: guides and outline mode.

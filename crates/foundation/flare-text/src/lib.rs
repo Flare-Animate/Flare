@@ -9,7 +9,7 @@
 
 use flare_core::DocumentPoint;
 use flare_document::{MAX_SEGMENTS, PathSegment};
-use parley::style::{FontFamily, StyleProperty};
+use parley::style::{FontFamily, FontStyle, FontWeight, StyleProperty};
 use parley::{Alignment, AlignmentOptions, FontContext, LayoutContext, PositionedLayoutItem};
 use skrifa::instance::{LocationRef, Size};
 use skrifa::outline::{DrawSettings, OutlinePen};
@@ -42,6 +42,10 @@ pub struct TextStyle {
     /// A CSS-style family list, such as `"Helvetica, Arial, sans-serif"`.
     pub family: String,
     pub size: f32,
+    /// Heavy strokes, using the family's bold face when it has one.
+    pub bold: bool,
+    /// Slanted letters, using the family's italic face when it has one.
+    pub italic: bool,
 }
 
 /// The outlines of a text object, with their top-left corner at the origin: x grows right, y
@@ -104,6 +108,12 @@ impl TextEngine {
         builder.push_default(StyleProperty::FontFamily(FontFamily::Source(
             style.family.as_str().into(),
         )));
+        if style.bold {
+            builder.push_default(StyleProperty::FontWeight(FontWeight::BOLD));
+        }
+        if style.italic {
+            builder.push_default(StyleProperty::FontStyle(FontStyle::Italic));
+        }
         let mut layout = builder.build(text);
         layout.break_all_lines(None);
         layout.align(Alignment::Start, AlignmentOptions::default());
@@ -248,6 +258,8 @@ mod tests {
 
     fn style(size: f32) -> TextStyle {
         TextStyle {
+            bold: false,
+            italic: false,
             family: "Hack".into(),
             size,
         }
@@ -381,9 +393,25 @@ mod tests {
     fn an_unknown_family_falls_back_instead_of_failing() {
         let mut e = engine();
         let style = TextStyle {
+            bold: false,
+            italic: false,
             family: "No Such Font, Hack".into(),
             size: 30.0,
         };
         assert!(e.outline("a", &style).is_ok());
+    }
+
+    #[test]
+    fn bold_and_italic_are_accepted_and_still_give_outlines() {
+        let mut engine = engine();
+        for (bold, italic) in [(true, false), (false, true), (true, true)] {
+            let styled = TextStyle {
+                bold,
+                italic,
+                ..style(32.0)
+            };
+            let outline = engine.outline("Flare", &styled).expect("outline");
+            assert!(!outline.path.is_empty() && outline.width > 0.0);
+        }
     }
 }

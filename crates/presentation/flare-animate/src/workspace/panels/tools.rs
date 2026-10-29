@@ -165,7 +165,8 @@ impl Workspace {
                     );
                 });
                 chrome::row(ui, "Style", |ui| {
-                    chrome::mock_number(ui, "Regular", "");
+                    ui.toggle_value(&mut self.text_bold, "Bold");
+                    ui.toggle_value(&mut self.text_italic, "Italic");
                 });
                 ui.weak("Click the stage, type, then Place (Ctrl+Enter).");
             }
