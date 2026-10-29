@@ -112,8 +112,13 @@ size the dock shows it larger than its neighbours.
 
 The GUI is not driven by the automated tests, so before a release someone does this once:
 
-1. Launch; the window, tool strip, stage, panels and timeline appear.
-2. Draw with the pencil, the rectangle and the pen; undo and redo each.
+1. Launch; the Home page appears (new-project sizes, Open, Import, recent projects). Start a new
+   project; the window, tool strip, stage, panels and timeline appear, and the panels have room
+   around their content.
+2. Draw with the pencil, the brush, the rectangle and the pen; undo and redo each. Drag a brush
+   stroke and release: it must not blink. With the Mirror tool set to left-right, draw a stroke
+   (both halves appear, one undo removes both); hold Shift with the pencil for a straight line;
+   measure a distance with the Ruler.
 3. Insert keyframes, add a motion tween, scrub and play the timeline.
 4. Save as `.flare`, close, open it again; the drawing is intact.
 5. Import a `.fla`; export a PNG and a GIF; publish a SWF.
