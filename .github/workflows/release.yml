@@ -2,6 +2,19 @@ name: Release
 on:
   push:
     tags: ['v*']
+    branches: [main]
+    paths:
+      - '.github/workflows/release.yml'
+      - '.github/actions/release-tools/**'
+      - 'scripts/packaging/**'
+      - 'scripts/tests/**'
+      - 'packaging/**'
+      - 'assets/flare-icon*'
+      - 'apps/flare-desktop/**'
+      - 'docs/release.md'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
   pull_request:
     paths:
       - '.github/workflows/release.yml'
