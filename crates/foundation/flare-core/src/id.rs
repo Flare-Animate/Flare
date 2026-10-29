@@ -42,6 +42,7 @@ define_id! {
     SymbolId,
     InstanceId,
     LayerId,
+    ShapeId,
 }
 
 #[cfg(test)]

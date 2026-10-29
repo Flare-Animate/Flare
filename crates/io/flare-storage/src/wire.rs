@@ -2,9 +2,13 @@
 
 use std::num::NonZeroU32;
 
-use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
+use flare_core::{
+    DocumentId, DocumentPoint, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId,
+    Transform2D,
+};
 use flare_document::{
-    Content, Document, FrameSpan, Instance, Layer, Scene, Symbol, Timeline, Tween,
+    Content, Document, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Symbol, Timeline,
+    Tween,
 };
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
@@ -38,8 +42,51 @@ enum TweenWire {
 }
 
 #[derive(Serialize, Deserialize)]
+enum SegmentWire {
+    Move([f64; 2]),
+    Line([f64; 2]),
+    Cubic([f64; 6]),
+    Close,
+}
+
+impl SegmentWire {
+    fn of(segment: &PathSegment) -> Self {
+        let xy = |p: &DocumentPoint| p.as_vec().to_array();
+        match segment {
+            PathSegment::MoveTo(p) => Self::Move(xy(p)),
+            PathSegment::LineTo(p) => Self::Line(xy(p)),
+            PathSegment::CubicTo(a, b, c) => {
+                let (a, b, c) = (xy(a), xy(b), xy(c));
+                Self::Cubic([a[0], a[1], b[0], b[1], c[0], c[1]])
+            }
+            PathSegment::Close => Self::Close,
+        }
+    }
+
+    fn build(&self) -> Result<PathSegment, StorageError> {
+        let point = |x: f64, y: f64| {
+            DocumentPoint::new(x, y)
+                .map_err(|_| StorageError::Corrupt("non-finite shape coordinate".into()))
+        };
+        Ok(match *self {
+            Self::Move([x, y]) => PathSegment::MoveTo(point(x, y)?),
+            Self::Line([x, y]) => PathSegment::LineTo(point(x, y)?),
+            Self::Cubic([a, b, c, d, e, f]) => {
+                PathSegment::CubicTo(point(a, b)?, point(c, d)?, point(e, f)?)
+            }
+            Self::Close => PathSegment::Close,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 enum ContentWire {
     Empty,
+    Shape {
+        id: String,
+        path: Vec<SegmentWire>,
+        rgba: [u8; 4],
+    },
     Instance {
         id: String,
         symbol: String,
@@ -88,6 +135,11 @@ impl TimelineWire {
                         duration: span.duration().get(),
                         content: match span.content() {
                             Content::Empty => ContentWire::Empty,
+                            Content::Shape(shape) => ContentWire::Shape {
+                                id: shape.id().as_uuid().to_string(),
+                                path: shape.path().iter().map(SegmentWire::of).collect(),
+                                rgba: shape.fill().to_array(),
+                            },
                             Content::Instance(instance) => ContentWire::Instance {
                                 id: instance.id().as_uuid().to_string(),
                                 symbol: instance.symbol().as_uuid().to_string(),
@@ -110,6 +162,16 @@ impl TimelineWire {
                     .ok_or_else(|| StorageError::Corrupt("zero-length span".into()))?;
                 let content = match span.content {
                     ContentWire::Empty => Content::Empty,
+                    ContentWire::Shape { id, path, rgba } => {
+                        let path = path
+                            .iter()
+                            .map(SegmentWire::build)
+                            .collect::<Result<_, _>>()?;
+                        let fill = Rgba8::new(rgba[0], rgba[1], rgba[2], rgba[3]);
+                        let shape = Shape::new(ShapeId::from_uuid(uuid(&id)?), path, fill)
+                            .map_err(|error| StorageError::Corrupt(error.to_string()))?;
+                        Content::Shape(shape)
+                    }
                     ContentWire::Instance { id, symbol, matrix } => {
                         let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
                             .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;

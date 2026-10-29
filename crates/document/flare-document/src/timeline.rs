@@ -1,6 +1,8 @@
 use std::num::NonZeroU32;
 
 use flare_core::{InstanceId, LayerId, SymbolId, Transform2D};
+
+use crate::Shape;
 use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -37,6 +39,7 @@ impl Instance {
 pub enum Content {
     Empty,
     Instance(Instance),
+    Shape(Shape),
 }
 
 /// How a span's transform moves toward the next span on the same layer.
@@ -182,13 +185,23 @@ impl Timeline {
             .unwrap_or(0)
     }
 
+    pub(crate) fn shapes(&self) -> impl Iterator<Item = &Shape> {
+        self.layers
+            .iter()
+            .flat_map(|layer| layer.spans())
+            .filter_map(|span| match span.content() {
+                Content::Shape(shape) => Some(shape),
+                Content::Empty | Content::Instance(_) => None,
+            })
+    }
+
     pub(crate) fn instances(&self) -> impl Iterator<Item = &Instance> {
         self.layers
             .iter()
             .flat_map(|layer| layer.spans())
             .filter_map(|span| match span.content() {
                 Content::Instance(instance) => Some(instance),
-                Content::Empty => None,
+                Content::Empty | Content::Shape(_) => None,
             })
     }
 }

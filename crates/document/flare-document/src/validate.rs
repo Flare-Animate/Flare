@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use flare_core::{InstanceId, LayerId, SceneId, SymbolId};
+use flare_core::{InstanceId, LayerId, SceneId, ShapeId, SymbolId};
 use thiserror::Error;
 
 use crate::{Document, Timeline};
@@ -15,6 +15,8 @@ pub enum Diagnostic {
     DuplicateLayer(LayerId),
     #[error("duplicate instance id {0:?}")]
     DuplicateInstance(InstanceId),
+    #[error("duplicate shape id {0:?}")]
+    DuplicateShape(ShapeId),
     #[error("instance {instance:?} references missing symbol {symbol:?}")]
     DanglingSymbol {
         instance: InstanceId,
@@ -48,11 +50,16 @@ pub(crate) fn validate(document: &Document) -> Vec<Diagnostic> {
         }
     }
 
-    let (mut layers, mut instances) = (HashSet::new(), HashSet::new());
+    let (mut layers, mut instances, mut shapes) = (HashSet::new(), HashSet::new(), HashSet::new());
     for timeline in timelines(document) {
         for layer in timeline.layers() {
             if !layers.insert(layer.id()) {
                 out.push(Diagnostic::DuplicateLayer(layer.id()));
+            }
+        }
+        for shape in timeline.shapes() {
+            if !shapes.insert(shape.id()) {
+                out.push(Diagnostic::DuplicateShape(shape.id()));
             }
         }
         for instance in timeline.instances() {

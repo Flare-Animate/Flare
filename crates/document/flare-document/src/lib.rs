@@ -5,9 +5,11 @@
 //! Editing goes through transactions in a later crate, not through public fields.
 #![forbid(unsafe_code)]
 
+mod shape;
 mod timeline;
 mod validate;
 
+pub use shape::{MAX_SEGMENTS, PathSegment, Shape, ShapeError};
 pub use timeline::{Content, FrameSpan, Instance, Layer, Timeline, TimelineError, Tween};
 pub use validate::Diagnostic;
 
@@ -234,6 +236,22 @@ mod tests {
         let errors = build(vec![scene], vec![]).expect_err("dangling");
         assert!(
             matches!(errors[..], [Diagnostic::DanglingSymbol { symbol, .. }] if symbol == missing)
+        );
+    }
+
+    #[test]
+    fn duplicate_shape_ids_are_diagnosed() {
+        use flare_core::{Rgba8, ShapeId};
+        let id = ShapeId::new();
+        let shape = || Shape::rect(id, 0.0, 0.0, 1.0, 1.0, Rgba8::WHITE).expect("rect");
+        let spans = vec![
+            span(0, 1, Content::Shape(shape())),
+            span(1, 1, Content::Shape(shape())),
+        ];
+        let scene = Scene::new(SceneId::new(), "S", timeline(spans));
+        assert_eq!(
+            build(vec![scene], vec![]).expect_err("dup"),
+            vec![Diagnostic::DuplicateShape(id)]
         );
     }
 

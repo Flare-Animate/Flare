@@ -178,8 +178,13 @@ fn not_flare(error: rusqlite::Error) -> StorageError {
 mod tests {
     use std::num::NonZeroU32;
 
-    use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
-    use flare_document::{Content, FrameSpan, Instance, Layer, Scene, Symbol, Timeline, Tween};
+    use flare_core::{
+        DocumentId, DocumentPoint, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId,
+        SymbolId, Transform2D,
+    };
+    use flare_document::{
+        Content, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Symbol, Timeline, Tween,
+    };
     use glamx::DAffine2;
 
     use super::*;
@@ -199,10 +204,29 @@ mod tests {
             )
         };
         let empty = FrameSpan::new(8, NonZeroU32::new(2).expect("nonzero"), Content::Empty);
+        let curve = Shape::new(
+            ShapeId::new(),
+            vec![
+                PathSegment::MoveTo(DocumentPoint::new(0.0, 0.5).expect("finite")),
+                PathSegment::CubicTo(
+                    DocumentPoint::new(1.0, 2.0).expect("finite"),
+                    DocumentPoint::new(3.0, -4.0).expect("finite"),
+                    DocumentPoint::new(5.5, 6.25).expect("finite"),
+                ),
+                PathSegment::Close,
+            ],
+            Rgba8::new(10, 20, 30, 40),
+        )
+        .expect("shape");
+        let drawn = FrameSpan::new(
+            10,
+            NonZeroU32::new(1).expect("nonzero"),
+            Content::Shape(curve),
+        );
         let layer = Layer::new(
             LayerId::new(),
             "Layer 1",
-            vec![place(0).with_tween(Tween::Linear), place(4), empty],
+            vec![place(0).with_tween(Tween::Linear), place(4), empty, drawn],
         )
         .expect("layer");
         let scenes = vec![
