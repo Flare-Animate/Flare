@@ -165,12 +165,20 @@ impl Workspace {
             Tool::Brush => (self.paint.fill, self.brush_size, true),
             _ => (self.paint.stroke_color, self.paint.stroke_width, false),
         };
-        let half = |s: &InputSample| {
-            if brush {
-                size / 2.0 * curve.width_factor(s.pressure)
-            } else {
-                size / 2.0
+        let nib = self.brush_nib;
+        // A flat nib paints thick where the line crosses its long axis, so the preview ribbon
+        // takes the same reach from the direction the line is heading.
+        let half = |stroke: &[InputSample], i: usize| {
+            let s = &stroke[i];
+            if !brush {
+                return size / 2.0;
             }
+            let (a, b) = (
+                &stroke[i.saturating_sub(1)],
+                &stroke[(i + 1).min(stroke.len() - 1)],
+            );
+            let reach = nib.reach_across(glamx::DVec2::new(b.x - a.x, b.y - a.y)) as f32;
+            size / 2.0 * curve.width_factor(s.pressure) * reach
         };
         strokes
             .iter()
@@ -179,7 +187,7 @@ impl Workspace {
                     .iter()
                     .map(|p| Pos2::new(p.x as f32, p.y as f32))
                     .collect(),
-                halves: stroke.iter().map(half).collect(),
+                halves: (0..stroke.len()).map(|i| half(stroke, i)).collect(),
                 color,
             })
             .collect()

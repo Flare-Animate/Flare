@@ -9,6 +9,9 @@ use flare_document::{MAX_SEGMENTS, PathSegment};
 use flare_input::{InputSample, PressureCurve};
 use glamx::DVec2;
 
+mod nib;
+pub use nib::{Nib, NibShape};
+
 /// Points added between two kept points when smoothing.
 const SUBDIVISIONS: usize = 4;
 /// Points in each round end.
@@ -77,13 +80,27 @@ fn smooth(spine: &[Spine], steps: usize) -> Vec<Spine> {
     out
 }
 
-/// The closed outline of a brush stroke through `samples` at `width`, or `None` for a click (no
-/// movement), a non-positive width or an outline that would not be a valid path.
+/// The closed outline of a round brush stroke through `samples` at `width`, or `None` for a click
+/// (no movement), a non-positive width or an outline that would not be a valid path.
 pub fn outline(
     samples: &[InputSample],
     width: f64,
     curve: PressureCurve,
     tolerance: f64,
+) -> Option<Vec<PathSegment>> {
+    outline_with(samples, width, curve, tolerance, Nib::ROUND)
+}
+
+/// Like [`outline`], painted with `nib`. The sides follow the farthest point of the nib in each
+/// direction of travel and the ends are the nib's own half outline, so a flat nib draws thick
+/// where the line crosses it and thin where it runs along it. A square nib turns in steps at its
+/// corners, which the straight joins between points smooth over.
+pub fn outline_with(
+    samples: &[InputSample],
+    width: f64,
+    curve: PressureCurve,
+    tolerance: f64,
+    nib: Nib,
 ) -> Option<Vec<PathSegment>> {
     if !(width.is_finite() && width > 0.0) {
         return None;
@@ -123,13 +140,13 @@ pub fn outline(
             DVec2::new(-direction.y, direction.x)
         })
         .collect();
-    let left = |i: usize| line[i].at + normals[i] * line[i].half;
-    let right = |i: usize| line[i].at - normals[i] * line[i].half;
+    let left = |i: usize| line[i].at + nib.support(normals[i]) * line[i].half;
+    let right = |i: usize| line[i].at - nib.support(normals[i]) * line[i].half;
     let end = line.len() - 1;
     let mut points: Vec<DVec2> = (0..=end).map(left).collect();
-    points.extend(cap(line[end].at, normals[end], line[end].half));
+    points.extend(cap(line[end].at, normals[end], line[end].half, nib));
     points.extend((0..=end).rev().map(right));
-    points.extend(cap(line[0].at, -normals[0], line[0].half));
+    points.extend(cap(line[0].at, -normals[0], line[0].half, nib));
     let point = |p: DVec2| DocumentPoint::new(p.x, p.y).ok();
     let mut path = vec![PathSegment::MoveTo(point(points[0])?)];
     for p in &points[1..] {
@@ -141,12 +158,12 @@ pub fn outline(
 
 /// The half circle around `centre` from the `normal` side to the opposite side, turning the way
 /// the stroke is heading (without the two end points, which the sides already have).
-fn cap(centre: DVec2, normal: DVec2, radius: f64) -> Vec<DVec2> {
+fn cap(centre: DVec2, normal: DVec2, radius: f64, nib: Nib) -> Vec<DVec2> {
     let heading = DVec2::new(normal.y, -normal.x);
     (1..CAP_STEPS)
         .map(|k| {
             let angle = std::f64::consts::PI * k as f64 / CAP_STEPS as f64;
-            centre + (normal * angle.cos() + heading * angle.sin()) * radius
+            centre + nib.support(normal * angle.cos() + heading * angle.sin()) * radius
         })
         .collect()
 }

@@ -216,6 +216,7 @@ impl Workspace {
                             .suffix(" px"),
                     );
                 });
+                self.nib_controls(ui);
                 chrome::row(ui, "Smoothing", |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.smoothing)
@@ -288,6 +289,43 @@ impl Workspace {
             Tool::Ruler => "Ruler: drag to measure; Pencil and Brush draw straight with Shift",
             Tool::Mirror => "Mirror: click to set the axes that Pencil and Brush mirror across",
         }
+    }
+
+    /// The brush's nib: its shape, the angle of its long axis and how flat it is.
+    fn nib_controls(&mut self, ui: &mut Ui) {
+        use flare_tools::brush::{Nib, NibShape};
+        let nib = self.brush_nib;
+        let (mut shape, mut angle, mut flatness) = (
+            nib.shape(),
+            nib.angle_degrees() as f32,
+            nib.flatness_percent() as f32,
+        );
+        chrome::row(ui, "Nib", |ui| {
+            egui::ComboBox::from_id_salt("brush-nib-shape")
+                .selected_text(match shape {
+                    NibShape::Round => "Round",
+                    NibShape::Square => "Square",
+                })
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut shape, NibShape::Round, "Round");
+                    ui.selectable_value(&mut shape, NibShape::Square, "Square");
+                });
+        });
+        chrome::row(ui, "Angle", |ui| {
+            ui.add(
+                egui::DragValue::new(&mut angle)
+                    .range(0.0..=359.0)
+                    .suffix("\u{b0}"),
+            );
+        });
+        chrome::row(ui, "Flatness", |ui| {
+            ui.add(
+                egui::DragValue::new(&mut flatness)
+                    .range(1.0..=100.0)
+                    .suffix(" %"),
+            );
+        });
+        self.brush_nib = Nib::new(shape, f64::from(angle), f64::from(flatness));
     }
 
     /// The straight edge and symmetry options the Pencil and Brush share.

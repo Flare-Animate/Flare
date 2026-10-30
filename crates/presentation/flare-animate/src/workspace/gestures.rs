@@ -223,9 +223,13 @@ impl Workspace {
         tolerance: f64,
     ) -> Result<Option<Shape>, String> {
         let curve = PressureCurve::new(self.brush_light, 1.0);
-        let Some(path) =
-            flare_tools::brush::outline(samples, f64::from(self.brush_size), curve, tolerance)
-        else {
+        let Some(path) = flare_tools::brush::outline_with(
+            samples,
+            f64::from(self.brush_size),
+            curve,
+            tolerance,
+            self.brush_nib,
+        ) else {
             return Ok(None);
         };
         let c = self.paint.fill.to_array();

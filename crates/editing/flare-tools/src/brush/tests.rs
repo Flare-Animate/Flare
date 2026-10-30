@@ -89,3 +89,121 @@ fn a_click_a_bad_width_and_a_straight_run_of_points_behave() {
     let short = outline(&line, 4.0, PressureCurve::default(), 0.5).expect("outline");
     assert!(short.len() < 60, "{} segments", short.len());
 }
+
+fn run(from: (f64, f64), to: (f64, f64)) -> Vec<InputSample> {
+    (0..=20)
+        .map(|i| {
+            let t = f64::from(i) / 20.0;
+            sample(
+                from.0 + (to.0 - from.0) * t,
+                from.1 + (to.1 - from.1) * t,
+                1.0,
+            )
+        })
+        .collect()
+}
+
+fn height(path: &[PathSegment]) -> f64 {
+    let ys: Vec<f64> = points(path).iter().map(|p| p.y).collect();
+    ys.iter().copied().fold(f64::MIN, f64::max) - ys.iter().copied().fold(f64::MAX, f64::min)
+}
+
+fn horizontal_extent_near(path: &[PathSegment], y: f64) -> f64 {
+    let near: Vec<f64> = points(path)
+        .into_iter()
+        .filter(|p| (p.y - y).abs() < 2.5)
+        .map(|p| p.x)
+        .collect();
+    near.iter().copied().fold(f64::MIN, f64::max) - near.iter().copied().fold(f64::MAX, f64::min)
+}
+
+#[test]
+fn a_round_full_nib_paints_the_same_as_the_plain_brush() {
+    let samples = run((0.0, 0.0), (100.0, 40.0));
+    let plain = outline(&samples, 12.0, PressureCurve::default(), 0.5);
+    let nibbed = outline_with(&samples, 12.0, PressureCurve::default(), 0.5, Nib::ROUND);
+    assert_eq!(plain, nibbed);
+    assert!(plain.is_some());
+}
+
+#[test]
+fn a_flat_nib_is_thick_across_its_long_axis_and_thin_along_it() {
+    let flat = Nib::new(NibShape::Round, 0.0, 10.0);
+    let curve = PressureCurve::default();
+    let across = outline_with(&run((50.0, 0.0), (50.0, 100.0)), 20.0, curve, 0.5, flat)
+        .expect("vertical stroke");
+    let along = outline_with(&run((0.0, 50.0), (100.0, 50.0)), 20.0, curve, 0.5, flat)
+        .expect("horizontal stroke");
+    // Its long axis is horizontal: a vertical stroke is as wide as the nib, a horizontal one is
+    // a tenth of that.
+    assert!((horizontal_extent_near(&across, 50.0) - 20.0).abs() < 0.5);
+    assert!((thickness_at(&along, 50.0) - 2.0).abs() < 0.3);
+}
+
+#[test]
+fn turning_the_nib_turns_the_stroke() {
+    let curve = PressureCurve::default();
+    let flat_up = Nib::new(NibShape::Round, 90.0, 10.0);
+    let horizontal =
+        outline_with(&run((0.0, 50.0), (100.0, 50.0)), 20.0, curve, 0.5, flat_up).expect("stroke");
+    // The long axis now points up, so a horizontal stroke is as thick as the nib is long.
+    assert!((thickness_at(&horizontal, 50.0) - 20.0).abs() < 0.5);
+}
+
+#[test]
+fn a_square_nib_has_flat_ends_and_corner_reach_when_turned() {
+    let curve = PressureCurve::default();
+    let square = Nib::new(NibShape::Square, 0.0, 100.0);
+    let path =
+        outline_with(&run((10.0, 10.0), (60.0, 10.0)), 10.0, curve, 0.5, square).expect("stroke");
+    let xs: Vec<f64> = points(&path).iter().map(|p| p.x).collect();
+    let lo = xs.iter().copied().fold(f64::MAX, f64::min);
+    let hi = xs.iter().copied().fold(f64::MIN, f64::max);
+    assert!(
+        (lo - 5.0).abs() < 0.01 && (hi - 65.0).abs() < 0.01,
+        "{lo}..{hi}"
+    );
+    assert!((height(&path) - 10.0).abs() < 0.01);
+    // Turned a quarter-eighth, the corner points straight up: half a side times the root of two.
+    let diamond = Nib::new(NibShape::Square, 45.0, 100.0);
+    let path =
+        outline_with(&run((10.0, 10.0), (60.0, 10.0)), 10.0, curve, 0.5, diamond).expect("stroke");
+    assert!((height(&path) - 10.0 * 2f64.sqrt()).abs() < 0.01);
+}
+
+#[test]
+fn nib_settings_are_kept_in_range_and_a_bad_number_means_the_plain_setting() {
+    let wrapped = Nib::new(NibShape::Round, -90.0, 250.0);
+    assert!((wrapped.angle_degrees() - 270.0).abs() < 1e-9);
+    assert!((wrapped.flatness_percent() - 100.0).abs() < 1e-9);
+    let thin = Nib::new(NibShape::Square, 400.0, -5.0);
+    assert!((thin.angle_degrees() - 40.0).abs() < 1e-9);
+    assert!((thin.flatness_percent() - 1.0).abs() < 1e-9);
+    let bad = Nib::new(NibShape::Round, f64::NAN, f64::INFINITY);
+    assert_eq!(bad, Nib::ROUND);
+}
+
+#[test]
+fn a_nib_never_makes_a_stroke_that_is_not_a_valid_closed_path() {
+    let curve = PressureCurve::new(0.1, 1.0);
+    let samples: Vec<_> = (0..=40)
+        .map(|i| {
+            let t = f64::from(i);
+            sample(
+                t * 3.0,
+                (t * 0.4).sin() * 20.0,
+                0.2 + (t % 7.0) as f32 / 9.0,
+            )
+        })
+        .collect();
+    for shape in [NibShape::Round, NibShape::Square] {
+        for angle in [0.0, 30.0, 90.0, 200.0] {
+            for flat in [1.0, 25.0, 100.0] {
+                let path = outline_with(&samples, 14.0, curve, 0.5, Nib::new(shape, angle, flat))
+                    .expect("outline");
+                assert!(matches!(path.first(), Some(PathSegment::MoveTo(_))));
+                assert!(matches!(path.last(), Some(PathSegment::Close)));
+            }
+        }
+    }
+}

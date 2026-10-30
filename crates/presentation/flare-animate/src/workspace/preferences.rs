@@ -25,6 +25,11 @@ pub struct Preferences {
     pub loop_playback: bool,
     /// How far a smoothed pencil or brush line may stray, in screen pixels.
     pub smoothing: f32,
+    /// The brush: its size and nib, so a session starts as the last one ended.
+    pub brush_size: f32,
+    pub brush_nib_square: bool,
+    pub brush_nib_angle: f32,
+    pub brush_nib_flatness: f32,
     /// Compress SWF files when publishing.
     pub publish_compress: bool,
     /// Publish a Flash movie, and an HTML5 Canvas page, and how the page behaves.
@@ -50,6 +55,10 @@ impl Default for Preferences {
             grid_size: 20.0,
             loop_playback: true,
             smoothing: 2.0,
+            brush_size: 12.0,
+            brush_nib_square: false,
+            brush_nib_angle: 0.0,
+            brush_nib_flatness: 100.0,
             publish_compress: true,
             publish_swf: true,
             publish_html5: true,
@@ -72,6 +81,10 @@ impl Workspace {
             grid_size: self.display.grid_size,
             loop_playback: self.loop_playback,
             smoothing: self.smoothing,
+            brush_size: self.brush_size,
+            brush_nib_square: self.brush_nib.shape() == flare_tools::brush::NibShape::Square,
+            brush_nib_angle: self.brush_nib.angle_degrees() as f32,
+            brush_nib_flatness: self.brush_nib.flatness_percent() as f32,
             publish_compress: self.publish.compress,
             publish_swf: self.publish.swf,
             publish_html5: self.publish.html5,
@@ -97,6 +110,16 @@ impl Workspace {
             finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
         self.loop_playback = preferences.loop_playback;
         self.smoothing = finite(f64::from(preferences.smoothing), 2.0).clamp(0.0, 20.0) as f32;
+        self.brush_size = finite(f64::from(preferences.brush_size), 12.0).clamp(1.0, 200.0) as f32;
+        self.brush_nib = flare_tools::brush::Nib::new(
+            if preferences.brush_nib_square {
+                flare_tools::brush::NibShape::Square
+            } else {
+                flare_tools::brush::NibShape::Round
+            },
+            f64::from(preferences.brush_nib_angle),
+            f64::from(preferences.brush_nib_flatness),
+        );
         self.publish = PublishSettings {
             swf: preferences.publish_swf,
             compress: preferences.publish_compress,

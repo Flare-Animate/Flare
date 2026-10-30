@@ -138,6 +138,8 @@ pub struct Workspace {
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
     freehand: Vec<InputSample>,
     brush_size: f32,
+    /// The tip the brush paints with.
+    brush_nib: flare_tools::brush::Nib,
     /// How thin a brush stroke gets at the lightest touch, as a fraction of its size.
     brush_light: f32,
     /// How far a smoothed line may stray from the drag, in screen pixels.
@@ -259,6 +261,7 @@ impl Workspace {
             lasso: Vec::new(),
             freehand: Vec::new(),
             brush_size: 12.0,
+            brush_nib: flare_tools::brush::Nib::ROUND,
             brush_light: 0.15,
             smoothing: 2.0,
             frame_range: None,

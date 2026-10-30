@@ -18,6 +18,7 @@ use std::num::NonZeroU32;
 use std::path::PathBuf;
 
 mod basics;
+mod brush_nib;
 mod frames_text_and_sound;
 mod home;
 mod layers_and_symbols;
