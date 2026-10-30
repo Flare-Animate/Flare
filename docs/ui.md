@@ -79,6 +79,13 @@ Guides belong to the view of one document tab and are not saved in the file (at 
 Points placed by the shape, pen, Ruler and Mirror tools are pulled onto a guide whether or not the
 grid is on.
 
+## Panel rail
+
+A narrow bar at the right edge, like Animate's collapsed panel strip, has an icon for each panel
+of the right-hand stack: Properties, Library, Color, Align, Transform, History and Info. Clicking one
+brings that panel to the front of its stack; the one showing is highlighted. It is a shortcut to what
+the tabs and Window menu already do, so no panel moves or closes. It is not shown on Home.
+
 ## Tool strip
 
 The tools are in two columns, divided by a line into categories: selecting (Selection, Subselection,

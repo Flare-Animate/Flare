@@ -49,6 +49,12 @@ impl Workspace {
             })
             .frame(egui::Frame::new().fill(flare_ui::theme::BG))
             .show(ui, |ui| self.menu_bar(ui));
+        if self.document_controls_shown() {
+            egui::Panel::right("panel_rail")
+                .exact_size(rail::RAIL_WIDTH)
+                .frame(egui::Frame::new().fill(flare_ui::theme::BG))
+                .show(ui, |ui| self.panel_rail(ui));
+        }
         let gutter = flare_ui::theme::GUTTER as i8;
         egui::CentralPanel::default()
             .frame(

@@ -46,6 +46,20 @@ impl Pane {
         Pane::Output,
     ];
 
+    /// The icon of the panel in the side rail, for the panels that have a place there.
+    pub fn rail_icon(self) -> Option<&'static str> {
+        Some(match self {
+            Self::Properties => "panel-properties",
+            Self::Library => "panel-library",
+            Self::Color => "panel-color",
+            Self::Align => "panel-align",
+            Self::Transform => "panel-transform",
+            Self::History => "panel-history",
+            Self::Info => "panel-info",
+            Self::Tools | Self::Stage | Self::Timeline | Self::Output => return None,
+        })
+    }
+
     pub fn title(self) -> &'static str {
         match self {
             Self::Tools => "Tools",

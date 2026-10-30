@@ -41,6 +41,7 @@ mod panels;
 mod pen_tool;
 mod playback;
 mod preferences;
+mod rail;
 mod render;
 mod selection;
 mod shell;

@@ -25,6 +25,7 @@ mod menus_and_recovery;
 mod open_any;
 mod panels_and_view;
 mod pen_and_selection;
+mod rail;
 mod rendering_and_workers;
 mod rulers_and_mirror;
 mod spans_and_handles;
