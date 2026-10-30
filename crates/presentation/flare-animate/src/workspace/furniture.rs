@@ -241,6 +241,25 @@ impl Workspace {
     /// The top bar: room for the window buttons, the app mark, the in-window menus (when there
     /// is no native menu bar), the document name, and quick actions. Empty space drags the
     /// window.
+    /// The entries of one menu, with a menu inside it opened as its own.
+    fn menu_entries(&mut self, ui: &mut egui::Ui, entries: &[MenuEntry]) {
+        for entry in entries {
+            match entry {
+                MenuEntry::Action(action) => self.action_item(ui, *action),
+                MenuEntry::Separator => {
+                    ui.separator();
+                }
+                MenuEntry::Mock(label) => {
+                    ui.add_enabled(false, egui::Button::new(*label))
+                        .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
+                }
+                MenuEntry::Submenu(title, inner) => {
+                    ui.menu_button(*title, |ui| self.menu_entries(ui, inner));
+                }
+            }
+        }
+    }
+
     pub(super) fn menu_bar(&mut self, ui: &mut egui::Ui) {
         let bar = ui.max_rect();
         let drag = ui.interact(bar, self.top_bar_id, egui::Sense::click_and_drag());
@@ -277,20 +296,7 @@ impl Workspace {
                     return;
                 }
                 for (title, entries) in MENU_LAYOUT {
-                    ui.menu_button(*title, |ui| {
-                        for entry in *entries {
-                            match entry {
-                                MenuEntry::Action(action) => self.action_item(ui, *action),
-                                MenuEntry::Separator => {
-                                    ui.separator();
-                                }
-                                MenuEntry::Mock(label) => {
-                                    ui.add_enabled(false, egui::Button::new(*label))
-                                        .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
-                                }
-                            }
-                        }
-                    });
+                    ui.menu_button(*title, |ui| self.menu_entries(ui, entries));
                 }
             });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {

@@ -135,7 +135,7 @@ The GUI is not driven by the automated tests, so before a release someone does t
    stroke and release: it must not blink. With the Mirror tool set to left-right, draw a stroke
    (both halves appear, one undo removes both); hold Shift with the pencil for a straight line;
    measure a distance with the Ruler.
-3. Insert keyframes; add a motion tween to an instance and a shape tween to a shape (Timeline menu or the Properties panel), set the Ease, scrub and play the timeline. Tweened spans show an arrow and their own color.
+3. Insert keyframes; add a motion tween to an instance and a shape tween to a shape (Insert menu or the Properties panel), set the Ease, scrub and play the timeline. Tweened spans show an arrow and their own color.
 4. Save as `.flare`, close, open it again; the drawing is intact.
 5. Import a `.fla`; export a PNG and an animated GIF; File > Publish with both formats ticked, and open the page in a browser (it must play, loop and fit the window as set).
 6. Open two documents as tabs and switch between them.

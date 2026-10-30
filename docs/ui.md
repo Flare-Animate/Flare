@@ -79,10 +79,23 @@ Guides belong to the view of one document tab and are not saved in the file (at 
 Points placed by the shape, pen, Ruler and Mirror tools are pulled onto a guide whether or not the
 grid is on.
 
+## Menu bar
+
+The menus are Animate's, in its order: File, Edit, View, Insert, Modify, Text, Commands, Control,
+Window, Help (Debug is for ActionScript and is left out). A command sits where Animate keeps it, taken
+from Adobe's Help pages: File > Import and Export, Publish Settings and Publish; Edit > Timeline
+(Remove, Copy and Paste Frames); Insert > Timeline (Layer, Layer Folder, Frame, Keyframe, Blank
+Keyframe) with Create Motion Tween and Create Shape Tween beside it; Modify > Timeline (the layer
+commands, Clear Keyframe, Convert to Keyframes) and Modify > Transform (Flip, Rotate, Scale, and Flare's
+Mirror Copy); Control > Test. There is no Tools, Layer or Timeline menu, because Animate has none: the
+tools are picked from the tool strip or by their keys (listed in Help > Keyboard Shortcuts), and
+Home is the house in the top bar. Planned commands stay in their Animate places, dimmed. New
+commands are put where Adobe puts the nearest one, not in a menu of Flare's own.
+
 ## Tweens
 
-Timeline > Create Motion Tween works on a selected instance, which moves, scales and turns toward the
-next keyframe's instance of the same symbol (a motion guide above it steers the path). Timeline >
+Insert > Create Motion Tween works on a selected instance, which moves, scales and turns toward the
+next keyframe's instance of the same symbol (a motion guide above it steers the path). Insert >
 Create Shape Tween works on a selected shape, which turns into the next keyframe's shape: the
 outlines are matched contour by contour (the shorter is split until the counts agree, a closed one is
 turned and flipped to the nearest start), and colors, gradients, stroke widths and fills are
@@ -125,7 +138,7 @@ Home is a view, not a document, and none of the document's controls show on it: 
 no undo, redo, play or document name, there is no status bar, and the window is titled just
 "Flare" (a document's title is its saved name, or Untitled, with `*` when unsaved). Keys and commands
 that act on the document are off while it is up. The house and "Flare" at the left of the top bar
-and Window > Home toggle it; choosing a tab, even the current one, goes to that tab's document. A
+toggles it; choosing a tab, even the current one, goes to that tab's document. A
 project named on the command line or recovered after a crash opens straight to its document.
 
 ## Spacing
@@ -145,7 +158,7 @@ The **Mirror** tool (X) holds the symmetry settings. Symmetry is Off, Left-right
 Four-way; click the stage, or type x and y, to put the axes (the middle of the stage until set).
 While Pencil, Brush or Mirror is in hand the axes are drawn in pink. With symmetry on, each
 Pencil or Brush stroke is drawn with its reflections, each on its own layer, as one undo step.
-The same tool offers Copy left-right and Copy top-bottom (also Modify > Mirror Copy), which put a
+The same tool offers Copy left-right and Copy top-bottom (also Modify > Transform > Mirror Copy), which put a
 reflected copy of the selection across the axes, and Flip.
 
 Pencil and Brush also have **Straight**: with it on, or while Shift is held, a stroke is the

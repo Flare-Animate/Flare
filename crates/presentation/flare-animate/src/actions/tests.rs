@@ -5,22 +5,23 @@ use super::*;
 
 #[test]
 fn every_action_appears_in_the_layout_exactly_once() {
-    let mut seen = Vec::new();
-    for (_, entries) in MENU_LAYOUT {
-        for entry in *entries {
-            if let Action(action) = entry {
-                seen.push(*action);
-            }
-        }
-    }
+    let seen: Vec<MenuAction> = all_entries()
+        .into_iter()
+        .filter_map(|entry| match entry {
+            Action(action) => Some(action),
+            _ => None,
+        })
+        .collect();
     for action in MenuAction::ALL {
+        let in_menus = seen.iter().filter(|a| **a == action).count();
+        let off_menu = OFF_MENU.contains(&action);
         assert_eq!(
-            seen.iter().filter(|a| **a == action).count(),
-            1,
-            "{action:?}"
+            in_menus,
+            usize::from(!off_menu),
+            "{action:?}: in the menus {in_menus} times, off the menus: {off_menu}"
         );
     }
-    assert_eq!(seen.len(), MenuAction::ALL.len());
+    assert_eq!(seen.len() + OFF_MENU.len(), MenuAction::ALL.len());
 }
 
 #[test]

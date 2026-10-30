@@ -44,6 +44,37 @@ mod native {
         Ok(MenuItem::with_id(action.id(), label, true, accelerator))
     }
 
+    /// Adds `entries` to `submenu`, opening each menu inside it as a submenu of its own.
+    fn append_entries(
+        submenu: &Submenu,
+        entries: &[MenuEntry],
+        workspace: &Workspace,
+        items: &mut Vec<(MenuAction, MenuItem)>,
+    ) -> Result<()> {
+        for entry in entries {
+            match entry {
+                // Quit lives in the application menu on macOS.
+                MenuEntry::Action(MenuAction::Quit) => {}
+                MenuEntry::Action(action) => {
+                    let it = item(*action, &workspace.label(*action))?;
+                    submenu.append(&it)?;
+                    items.push((*action, it));
+                }
+                MenuEntry::Separator => submenu.append(&PredefinedMenuItem::separator())?,
+                // A planned command: present, dimmed, and inert.
+                MenuEntry::Mock(label) => {
+                    submenu.append(&MenuItem::new(*label, false, None))?;
+                }
+                MenuEntry::Submenu(title, inner) => {
+                    let nested = Submenu::new(*title, true);
+                    append_entries(&nested, inner, workspace, items)?;
+                    submenu.append(&nested)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     impl NativeMenu {
         pub fn build(workspace: &Workspace) -> Result<Self> {
             let menu = Menu::new();
@@ -75,39 +106,25 @@ mod native {
             // entries, so there is one Window menu, not two.
             let window_menu = Submenu::new("Window", true);
             for (title, entries) in MENU_LAYOUT {
-                let submenu = if *title == "Window" {
+                let is_window = *title == "Window";
+                let submenu = if is_window {
                     window_menu.clone()
                 } else {
                     Submenu::new(*title, true)
                 };
-                for entry in *entries {
-                    match entry {
-                        // Quit lives in the application menu on macOS.
-                        MenuEntry::Action(MenuAction::Quit) => {}
-                        MenuEntry::Action(action) => {
-                            let it = item(*action, &workspace.label(*action))?;
-                            submenu.append(&it)?;
-                            items.push((*action, it));
-                        }
-                        MenuEntry::Separator => submenu.append(&PredefinedMenuItem::separator())?,
-                        // A planned command: present, dimmed, and inert.
-                        MenuEntry::Mock(label) => {
-                            submenu.append(&MenuItem::new(*label, false, None))?;
-                        }
-                    }
+                append_entries(&submenu, entries, workspace, &mut items)?;
+                if is_window {
+                    window_menu.append_items(&[
+                        &PredefinedMenuItem::separator(),
+                        &PredefinedMenuItem::minimize(None),
+                        &PredefinedMenuItem::fullscreen(None),
+                        &PredefinedMenuItem::separator(),
+                        &PredefinedMenuItem::close_window(None),
+                    ])?;
                 }
-                if *title != "Window" {
-                    menu.append(&submenu)?;
-                }
+                // Window is placed where the layout puts it, before Help, as in Animate.
+                menu.append(&submenu)?;
             }
-            window_menu.append_items(&[
-                &PredefinedMenuItem::separator(),
-                &PredefinedMenuItem::minimize(None),
-                &PredefinedMenuItem::fullscreen(None),
-                &PredefinedMenuItem::separator(),
-                &PredefinedMenuItem::close_window(None),
-            ])?;
-            menu.append(&window_menu)?;
             Ok(Self {
                 menu,
                 window_menu,

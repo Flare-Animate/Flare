@@ -1,14 +1,10 @@
 use super::*;
-use crate::{MENU_LAYOUT, MenuEntry};
+use crate::MenuEntry;
 
 #[test]
 fn the_file_menu_names_publishing_as_animate_does() {
-    let (_, file) = MENU_LAYOUT
-        .iter()
-        .find(|(t, _)| *t == "File")
-        .expect("File menu");
     let ws = workspace();
-    let labels: Vec<String> = file
+    let labels: Vec<String> = crate::all_entries()
         .iter()
         .filter_map(|e| match e {
             MenuEntry::Action(a) => Some(ws.label(*a)),

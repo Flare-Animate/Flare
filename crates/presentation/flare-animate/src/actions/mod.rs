@@ -7,7 +7,7 @@ mod meta;
 #[cfg(test)]
 mod tests;
 
-pub use menu::{MENU_LAYOUT, MenuEntry};
+pub use menu::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
 
 /// A user-invokable command. Variants map one-to-one onto menu items.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -84,6 +84,7 @@ pub enum MenuAction {
     ToggleLayerLocked,
     ToggleLayerMask,
     ToggleLayerGuide,
+    NewLayer,
     NewLayerFolder,
     MoveLayerUp,
     MoveLayerDown,
@@ -130,7 +131,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 115] = [
+    pub const ALL: [MenuAction; 116] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -203,6 +204,7 @@ impl MenuAction {
         Self::ToggleLayerLocked,
         Self::ToggleLayerMask,
         Self::ToggleLayerGuide,
+        Self::NewLayer,
         Self::NewLayerFolder,
         Self::MoveLayerUp,
         Self::MoveLayerDown,

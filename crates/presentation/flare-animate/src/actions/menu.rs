@@ -9,15 +9,20 @@ pub enum MenuEntry {
     Separator,
     /// A command that is planned but does not exist yet: shown dimmed, does nothing.
     Mock(&'static str),
+    /// A menu inside the menu, as Animate's Import, Export, Transform and Timeline are.
+    Submenu(&'static str, &'static [MenuEntry]),
 }
 
 use MenuAction as A;
-use MenuEntry::{Action, Mock, Separator};
+use MenuEntry::{Action, Mock, Separator, Submenu};
 
 /// The menu structure, shared by every menu surface: (title, entries).
 ///
-/// `Mock` entries are commands that are planned but do not exist yet. They are shown dimmed so the
-/// menus already have their final shape; each becomes an `Action` when its feature lands.
+/// The titles and where commands sit follow Animate's menu bar (File, Edit, View, Insert, Modify,
+/// Text, Commands, Control, Window, Help; Debug is for ActionScript and is left out), so a person
+/// who knows Animate finds things where they expect them. `Mock` entries are commands that are
+/// planned but do not exist yet. They are shown dimmed so the menus already have their final shape;
+/// each becomes an `Action` when its feature lands.
 pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
     (
         "File",
@@ -32,11 +37,12 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::SaveAll),
             Action(A::Revert),
             Separator,
-            Action(A::ImportSound),
-            Action(A::ImportProject),
+            Submenu(
+                "Import",
+                &[Action(A::ImportSound), Action(A::ImportProject)],
+            ),
+            Submenu("Export", &[Action(A::ExportImage), Action(A::ExportMovie)]),
             Separator,
-            Action(A::ExportImage),
-            Action(A::ExportMovie),
             Action(A::PublishSettings),
             Action(A::Publish),
             Separator,
@@ -58,6 +64,15 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Separator,
             Action(A::SelectAll),
             Action(A::DeselectAll),
+            Separator,
+            Submenu(
+                "Timeline",
+                &[
+                    Action(A::RemoveFrame),
+                    Action(A::CopyFrames),
+                    Action(A::PasteFrames),
+                ],
+            ),
             Separator,
             Action(A::EditSymbol),
             Action(A::ExitSymbol),
@@ -91,35 +106,67 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         &[
             Action(A::NewSymbol),
             Separator,
-            Action(A::InsertFrame),
-            Action(A::InsertKeyframe),
-            Action(A::InsertBlankKeyframe),
+            Submenu(
+                "Timeline",
+                &[
+                    Action(A::NewLayer),
+                    Action(A::NewLayerFolder),
+                    Action(A::InsertFrame),
+                    Action(A::InsertKeyframe),
+                    Action(A::InsertBlankKeyframe),
+                ],
+            ),
+            Separator,
+            Action(A::ToggleMotionTween),
+            Action(A::ToggleShapeTween),
             Separator,
             Mock("Scene"),
-            Action(A::NewLayerFolder),
         ],
     ),
     (
         "Modify",
         &[
+            Action(A::DocumentSettings),
+            Separator,
             Action(A::ConvertToSymbol),
             Action(A::BreakApart),
             Separator,
-            Action(A::FlipHorizontal),
-            Action(A::FlipVertical),
-            Action(A::MirrorCopyHorizontal),
-            Action(A::MirrorCopyVertical),
-            Action(A::RotateClockwise),
-            Action(A::RotateCounterclockwise),
-            Action(A::ScaleUp),
-            Action(A::ScaleDown),
-            Separator,
+            Submenu(
+                "Timeline",
+                &[
+                    Action(A::ToggleLayerVisible),
+                    Action(A::ToggleLayerLocked),
+                    Action(A::ToggleLayerMask),
+                    Action(A::ToggleLayerGuide),
+                    Separator,
+                    Action(A::MoveLayerUp),
+                    Action(A::MoveLayerDown),
+                    Action(A::DeleteLayer),
+                    Separator,
+                    Action(A::ClearKeyframe),
+                    Action(A::ConvertToKeyframes),
+                ],
+            ),
+            Submenu(
+                "Transform",
+                &[
+                    Action(A::FlipHorizontal),
+                    Action(A::FlipVertical),
+                    Separator,
+                    Action(A::RotateClockwise),
+                    Action(A::RotateCounterclockwise),
+                    Action(A::ScaleUp),
+                    Action(A::ScaleDown),
+                    Separator,
+                    Action(A::MirrorCopyHorizontal),
+                    Action(A::MirrorCopyVertical),
+                ],
+            ),
             Mock("Arrange"),
             Mock("Align"),
+            Separator,
             Action(A::Group),
             Action(A::Ungroup),
-            Separator,
-            Action(A::DocumentSettings),
         ],
     ),
     (
@@ -137,31 +184,11 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         ],
     ),
     (
-        "Layer",
+        "Commands",
         &[
-            Action(A::ToggleLayerVisible),
-            Action(A::ToggleLayerLocked),
-            Action(A::ToggleLayerMask),
-            Action(A::ToggleLayerGuide),
-            Separator,
-            Action(A::MoveLayerUp),
-            Action(A::MoveLayerDown),
-            Separator,
-            Action(A::DeleteLayer),
-        ],
-    ),
-    (
-        "Timeline",
-        &[
-            Action(A::RemoveFrame),
-            Action(A::CopyFrames),
-            Action(A::PasteFrames),
-            Separator,
-            Action(A::ClearKeyframe),
-            Action(A::ConvertToKeyframes),
-            Separator,
-            Action(A::ToggleMotionTween),
-            Action(A::ToggleShapeTween),
+            Mock("Run Command..."),
+            Mock("Manage Saved Commands..."),
+            Mock("Get More Commands..."),
         ],
     ),
     (
@@ -173,50 +200,15 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::StepBackward),
             Separator,
             Action(A::TestMovie),
+            Separator,
             Action(A::ToggleLoop),
             Action(A::ToggleMute),
         ],
     ),
     (
-        "Tools",
-        &[
-            Action(A::ToolSelect),
-            Action(A::ToolSubselection),
-            Action(A::ToolFreeTransform),
-            Action(A::ToolLasso),
-            Action(A::ToolPen),
-            Action(A::ToolText),
-            Action(A::ToolLine),
-            Action(A::ToolRectangle),
-            Action(A::ToolEllipse),
-            Action(A::ToolPolyStar),
-            Separator,
-            Action(A::ToolPencil),
-            Action(A::ToolBrush),
-            Separator,
-            Action(A::ToolRuler),
-            Action(A::ToolMirror),
-            Separator,
-            Action(A::ToolBucket),
-            Action(A::ToolInkBottle),
-            Action(A::ToolEyedropper),
-            Action(A::ToolEraser),
-            Separator,
-            Action(A::ToolHand),
-            Action(A::ToolZoom),
-        ],
-    ),
-    (
-        "Commands",
-        &[
-            Mock("Run Command..."),
-            Mock("Manage Saved Commands..."),
-            Mock("Get More Commands..."),
-        ],
-    ),
-    (
         "Window",
         &[
+            Action(A::ShowTimeline),
             Action(A::ShowProperties),
             Action(A::ShowLibrary),
             Action(A::ShowColor),
@@ -224,10 +216,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ShowTransform),
             Action(A::ShowHistory),
             Action(A::ShowInfo),
-            Action(A::ShowTimeline),
             Action(A::ShowOutput),
-            Separator,
-            Action(A::ShowHome),
             Separator,
             Mock("Workspace Presets"),
         ],
@@ -242,3 +231,46 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         ],
     ),
 ];
+
+/// The commands that have no menu item, because Animate has none for them either: the tools are
+/// picked from the tool strip or by their keys, and Home is the house in the top bar.
+pub const OFF_MENU: &[MenuAction] = &[
+    A::ToolSelect,
+    A::ToolSubselection,
+    A::ToolFreeTransform,
+    A::ToolRectangle,
+    A::ToolEllipse,
+    A::ToolLine,
+    A::ToolPen,
+    A::ToolText,
+    A::ToolHand,
+    A::ToolZoom,
+    A::ToolEyedropper,
+    A::ToolBucket,
+    A::ToolInkBottle,
+    A::ToolEraser,
+    A::ToolPolyStar,
+    A::ToolLasso,
+    A::ToolPencil,
+    A::ToolBrush,
+    A::ToolRuler,
+    A::ToolMirror,
+    A::ShowHome,
+];
+
+/// Every entry of every menu, submenus opened, in order.
+pub fn all_entries() -> Vec<MenuEntry> {
+    fn walk(entries: &[MenuEntry], out: &mut Vec<MenuEntry>) {
+        for entry in entries {
+            out.push(*entry);
+            if let MenuEntry::Submenu(_, inner) = entry {
+                walk(inner, out);
+            }
+        }
+    }
+    let mut out = Vec::new();
+    for (_, entries) in MENU_LAYOUT {
+        walk(entries, &mut out);
+    }
+    out
+}

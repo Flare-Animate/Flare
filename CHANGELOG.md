@@ -17,12 +17,12 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - Drawing tools: selection, subselection, free transform, lasso, pen, text, line, rectangle,
   ellipse, polystar, pencil, brush, paint bucket, ink bottle, eyedropper, eraser, hand, zoom,
   ruler (measures distance and angle) and mirror (sets the axes for symmetric drawing).
-- Shape tweens (Timeline > Create Shape Tween) turn one shape into the next, and both tween kinds have Animate's Ease (-100 to 100) in the Properties panel. Tweened spans show an arrow and a color of their own in the timeline. XFL's `tweenType="shape"` and `acceleration` are imported and exported, and `flare-cli frame` has `motion-tween`, `shape-tween`, `remove-tween` and `set-ease`.
+- Shape tweens (Insert > Create Shape Tween) turn one shape into the next, and both tween kinds have Animate's Ease (-100 to 100) in the Properties panel. Tweened spans show an arrow and a color of their own in the timeline. XFL's `tweenType="shape"` and `acceleration` are imported and exported, and `flare-cli frame` has `motion-tween`, `shape-tween`, `remove-tween` and `set-ease`.
 - File > Publish writes an HTML5 Canvas page and a Flash movie, as chosen in File > Publish Settings (Loop timeline, Center stage, Make responsive), with sounds started at their cues; `flare-cli publish-html5` does the same from the command line.
 - Symbols have a type (Graphic, Movie Clip or Button), chosen when making one or changed in the Library, saved in the project and exchanged through XFL.
 - A Home page at launch: new-project sizes, Open, Import and recent projects.
 - Pencil and Brush can draw a straight line (option, or hold Shift) and mirror each stroke across
-  one or two axes; Modify > Mirror Copy makes a reflected copy of the selection.
+  one or two axes; Modify > Transform > Mirror Copy makes a reflected copy of the selection.
 - Timeline with frames, keyframes, layers, folders, onion skin, linear motion tweens and motion
   guides, and playback with sound.
 - Panels that dock and move: tools, properties, color, align, transform, library, history, output.
@@ -33,7 +33,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - The `flare-cli` command line (inspect, render, convert) and an MCP server for agents.
 - Text menu: bold, italic, larger and smaller for new text.
 - An Info panel (selection size and position, color under the pointer).
-- Guides pulled out of the rulers, with snapping; Timeline > Convert to Keyframes.
+- Guides pulled out of the rulers, with snapping; Modify > Timeline > Convert to Keyframes.
 - Layer outline colors (timeline chip, `.flare` and XFL) and View > Outline Mode.
 - Window, Help (About, Keyboard Shortcuts) menus that do something; Insert > New Symbol; Edit > Paste in Place (Paste now centers on the stage).
 - An experimental web build.

@@ -29,15 +29,14 @@ fn the_zoom_percentage_sets_the_stage_scale_and_fit_returns_to_fitting() {
 
 #[test]
 fn menus_hold_planned_commands_dimmed_and_every_real_action_once() {
-    let mocks = MENU_LAYOUT
+    let mocks = crate::all_entries()
         .iter()
-        .flat_map(|(_, entries)| entries.iter())
         .filter(|e| matches!(e, MenuEntry::Mock(_)))
         .count();
     assert!(mocks > 10, "{mocks} planned commands are listed");
     let titles: Vec<&str> = MENU_LAYOUT.iter().map(|(t, _)| *t).collect();
     for expected in [
-        "File", "Edit", "View", "Insert", "Modify", "Text", "Control", "Window", "Help",
+        "File", "Edit", "View", "Insert", "Modify", "Text", "Commands", "Control", "Window", "Help",
     ] {
         assert!(titles.contains(&expected), "{expected} menu: {titles:?}");
     }
