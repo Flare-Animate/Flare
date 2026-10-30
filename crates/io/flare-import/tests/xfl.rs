@@ -327,7 +327,7 @@ fn awkward_frames_are_skipped_with_a_reason() {
     assert!(unsupported.contains("invalid duration"), "{unsupported}");
     assert!(unsupported.contains("frames overlap"), "{unsupported}");
     assert!(
-        unsupported.contains("shape tweens are not imported"),
+        unsupported.contains("a shape tween needs a drawn shape"),
         "{unsupported}"
     );
     let names: Vec<&str> = imported.document.scenes()[0]

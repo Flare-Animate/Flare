@@ -78,6 +78,7 @@ pub enum MenuAction {
     InsertBlankKeyframe,
     ClearKeyframe,
     ToggleMotionTween,
+    ToggleShapeTween,
     PlayPause,
     ToggleLayerVisible,
     ToggleLayerLocked,
@@ -129,7 +130,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 114] = [
+    pub const ALL: [MenuAction; 115] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -196,6 +197,7 @@ impl MenuAction {
         Self::InsertBlankKeyframe,
         Self::ClearKeyframe,
         Self::ToggleMotionTween,
+        Self::ToggleShapeTween,
         Self::PlayPause,
         Self::ToggleLayerVisible,
         Self::ToggleLayerLocked,

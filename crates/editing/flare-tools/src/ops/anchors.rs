@@ -66,8 +66,8 @@ pub fn move_anchor(
     let moved = Shape::new(shape.id(), path, shape.fill())
         .ok()?
         .painted_like(shape);
-    let replacement = FrameSpan::new(span.start(), span.duration(), Content::Shape(moved))
-        .with_tween(span.tween());
+    let replacement =
+        FrameSpan::new(span.start(), span.duration(), Content::Shape(moved)).with_motion_of(span);
     Some(vec![
         Command::RemoveSpan {
             scene,

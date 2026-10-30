@@ -98,6 +98,26 @@ class CommandLineSmoke(unittest.TestCase):
         self.assertTrue(all("fill" in [c[0] for c in frame] for frame in report["later"]))
         self.assertEqual(report["frames"], 12)
 
+    def test_a_shape_tween_with_an_ease_is_made_and_played_in_the_page(self):
+        project = self.drawn_project()  # a rectangle held for 12 frames, a keyframe at 6
+        self.run_cli("frame", "shape-tween", project, "--at", 0)
+        self.run_cli("frame", "set-ease", project, "--at", 0, "--ease", -40)
+        spans = self.info(project)["scenes"][0]["layers"][0]["spans"]
+        self.assertEqual(spans, 2)
+        # Only a shape can be shape-tweened, and a span must be there to tween.
+        self.run_cli("frame", "motion-tween", project, "--at", 0, ok=False)
+        self.run_cli("frame", "shape-tween", project, "--at", 0, ok=False)  # already set
+        self.run_cli("frame", "set-ease", project, "--at", 0, ok=False)  # --ease is needed
+        page = self.dir / "tween.html"
+        self.run_cli("publish-html5", project, page)
+        text = page.read_text()
+        data = json.loads(text.split('type="application/json">')[1].split("</script>")[0])
+        # Six tweened steps, then the second keyframe held for six frames: seven pictures.
+        self.assertEqual(len(data["seq"]), 12)
+        self.assertEqual(len(set(data["seq"])), 7)
+        self.run_cli("frame", "remove-tween", project, "--at", 0)
+        self.run_cli("frame", "remove-tween", project, "--at", 0, ok=False)  # nothing to remove
+
     def test_the_html5_options_reach_the_page(self):
         project = self.drawn_project()
         page = self.dir / "fixed.html"

@@ -17,6 +17,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - Drawing tools: selection, subselection, free transform, lasso, pen, text, line, rectangle,
   ellipse, polystar, pencil, brush, paint bucket, ink bottle, eyedropper, eraser, hand, zoom,
   ruler (measures distance and angle) and mirror (sets the axes for symmetric drawing).
+- Shape tweens (Timeline > Create Shape Tween) turn one shape into the next, and both tween kinds have Animate's Ease (-100 to 100) in the Properties panel. Tweened spans show an arrow and a color of their own in the timeline. XFL's `tweenType="shape"` and `acceleration` are imported and exported, and `flare-cli frame` has `motion-tween`, `shape-tween`, `remove-tween` and `set-ease`.
 - File > Publish writes an HTML5 Canvas page and a Flash movie, as chosen in File > Publish Settings (Loop timeline, Center stage, Make responsive); `flare-cli publish-html5` does the same from the command line.
 - Symbols have a type (Graphic, Movie Clip or Button), chosen when making one or changed in the Library, saved in the project and exchanged through XFL.
 - A Home page at launch: new-project sizes, Open, Import and recent projects.

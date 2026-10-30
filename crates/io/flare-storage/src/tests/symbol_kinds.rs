@@ -86,3 +86,87 @@ fn an_unknown_kind_is_a_damaged_file_not_a_guess() {
     drop(conn);
     assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
 }
+
+fn tweened() -> Document {
+    let shape = |x: f64| {
+        Content::Shape(Shape::rect(ShapeId::new(), x, 0.0, 10.0, 10.0, Rgba8::WHITE).expect("rect"))
+    };
+    let span =
+        |start, content| FrameSpan::new(start, NonZeroU32::new(4).expect("nonzero"), content);
+    let layer = Layer::new(
+        LayerId::new(),
+        "L",
+        vec![
+            span(0, shape(0.0)).with_tween(Tween::Shape).with_ease(-35),
+            span(4, shape(50.0)),
+        ],
+    )
+    .expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document")
+}
+
+#[test]
+fn a_shape_tween_and_its_ease_survive_saving_and_opening() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("tween.flare");
+    let document = tweened();
+    save(&document, &path).expect("save");
+    let back = load(&path).expect("load");
+    assert_eq!(back, document);
+    let spans = back.scenes()[0].timeline().layers()[0].spans();
+    assert_eq!((spans[0].tween(), spans[0].ease()), (Tween::Shape, -35));
+}
+
+#[test]
+fn a_project_from_before_easing_opens_with_none() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("old.flare");
+    save(&tweened(), &path).expect("save");
+    let conn = Connection::open(&path).expect("open");
+    let rows: Vec<(String, String)> = {
+        let mut statement = conn
+            .prepare("SELECT id, payload_json FROM entity WHERE kind = 'scene'")
+            .expect("select");
+        statement
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+            .expect("rows")
+            .map(|r| r.expect("row"))
+            .collect()
+    };
+    assert!(!rows.is_empty());
+    // Take `ease` out of every span, as an older version wrote them.
+    fn strip(value: &mut serde_json::Value, found: &mut usize) {
+        match value {
+            serde_json::Value::Object(map) => {
+                if map.remove("ease").is_some() {
+                    *found += 1;
+                }
+                map.values_mut().for_each(|v| strip(v, found));
+            }
+            serde_json::Value::Array(items) => items.iter_mut().for_each(|v| strip(v, found)),
+            _ => {}
+        }
+    }
+    let mut found = 0;
+    for (id, payload) in rows {
+        let mut value: serde_json::Value = serde_json::from_str(&payload).expect("json");
+        strip(&mut value, &mut found);
+        conn.execute(
+            "UPDATE entity SET payload_json = ?1 WHERE id = ?2",
+            params![value.to_string(), id],
+        )
+        .expect("update");
+    }
+    assert!(found >= 2, "the ease was stored on each span ({found})");
+    drop(conn);
+    let back = load(&path).expect("an older file still opens");
+    let spans = back.scenes()[0].timeline().layers()[0].spans();
+    assert_eq!((spans[0].tween(), spans[0].ease()), (Tween::Shape, 0));
+}

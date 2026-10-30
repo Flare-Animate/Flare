@@ -33,6 +33,6 @@ first thing taken over and are in the importer and Flash adapter tests.
 
 ## Gaps against Animate that remain
 
-The outline column's color picker (the chip cycles a palette for now), shape tweens, classic tweens with easing, text menu
+The outline column's color picker (the chip cycles a palette for now), classic tweens as their own kind (a motion tween on an instance is the nearest), shape hints, tweens of color effects, text menu
 commands, command scripting, keyboard shortcut editor, browser sound and pen input, autosave for
 every tab. These appear as dimmed entries in the menus until built ([ui.md](ui.md)).

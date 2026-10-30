@@ -1695,6 +1695,7 @@ dependencies = [
  "flare-render",
  "flare-ruffle",
  "flare-storage",
+ "flare-tools",
  "glamx",
  "png 0.18.1",
  "serde_json",

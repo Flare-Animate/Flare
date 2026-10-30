@@ -2,7 +2,7 @@
 
 use crate::timeline_view;
 use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
-use flare_document::{Content, Layer};
+use flare_document::Layer;
 
 use super::*;
 
@@ -291,11 +291,9 @@ impl Workspace {
                     for span in layer.spans() {
                         let x0 = track.min.x + span.start() as f32 * per_frame;
                         let x1 = track.min.x + span.end() as f32 * per_frame;
-                        let color = match span.content() {
-                            Content::Empty => Color32::from_gray(90),
-                            Content::Shape(_) => Color32::from_rgb(70, 130, 180),
-                            Content::Instance(_) => Color32::from_rgb(120, 170, 90),
-                        };
+                        let [r, g, b] =
+                            crate::timeline_view::span_color(span.content(), span.tween());
+                        let color = Color32::from_rgb(r, g, b);
                         let bar = Rect::from_min_max(
                             Pos2::new(x0, y + 2.0),
                             Pos2::new(x1.max(x0 + 1.0), y + row - 2.0),
@@ -306,6 +304,18 @@ impl Workspace {
                             color.gamma_multiply(0.35)
                         };
                         painter.rect_filled(bar, 2.0, color);
+                        // A tween has an arrow along its span, toward the next keyframe.
+                        if span.tween() != flare_document::Tween::None && bar.width() > 12.0 {
+                            let line = Stroke::new(1.5, Color32::WHITE);
+                            let (from, to) = (
+                                bar.left_center() + Vec2::new(4.0, 0.0),
+                                bar.right_center() - Vec2::new(4.0, 0.0),
+                            );
+                            painter.line_segment([from, to], line);
+                            for tip in [Vec2::new(-4.0, -3.0), Vec2::new(-4.0, 3.0)] {
+                                painter.line_segment([to, to + tip], line);
+                            }
+                        }
                     }
                     for cue in layer.cues() {
                         let Some(sound) = self.session.document().sound(cue.sound) else {

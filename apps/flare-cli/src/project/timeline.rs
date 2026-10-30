@@ -16,12 +16,66 @@ pub enum FrameOperation {
     InsertKeyframe,
     InsertBlankKeyframe,
     ClearKeyframe,
+    /// Tween the instance in the span at the frame toward the next span's.
+    MotionTween,
+    /// Turn the shape in the span at the frame into the next span's shape.
+    ShapeTween,
+    /// Take the tween off the span at the frame.
+    RemoveTween,
+    /// Set the easing (`--ease`, -100 to 100) of the span's tween.
+    SetEase,
 }
 
-pub fn frame_op(path: &Path, op: FrameOperation, at: u32, layer: Option<Uuid>) -> Result<Value> {
+pub fn frame_op(
+    path: &Path,
+    op: FrameOperation,
+    at: u32,
+    layer: Option<Uuid>,
+    ease: Option<i8>,
+) -> Result<Value> {
     use flare_editor::frames;
+    use flare_tools::ops::{self, SpanRef};
     let mut session = open(path)?;
     let (scene, layer_id) = target_layer(&session, layer)?;
+    if let FrameOperation::MotionTween
+    | FrameOperation::ShapeTween
+    | FrameOperation::RemoveTween
+    | FrameOperation::SetEase = op
+    {
+        let document = session.document();
+        let start = document
+            .scenes()
+            .first()
+            .and_then(|s| s.timeline().layers().iter().find(|l| l.id() == layer_id))
+            .and_then(|l| l.span_at(at))
+            .map(flare_document::FrameSpan::start)
+            .with_context(|| format!("there is no span at frame {at} of this layer"))?;
+        let span = SpanRef {
+            layer: layer_id,
+            start,
+        };
+        let commands = match op {
+            FrameOperation::MotionTween => {
+                ops::set_tween(document, scene, span, flare_document::Tween::Linear)
+            }
+            FrameOperation::ShapeTween => {
+                ops::set_tween(document, scene, span, flare_document::Tween::Shape)
+            }
+            FrameOperation::RemoveTween => {
+                ops::set_tween(document, scene, span, flare_document::Tween::None)
+            }
+            _ => {
+                let ease = ease.context("set-ease needs --ease, from -100 to 100")?;
+                ops::set_ease(document, scene, span, ease)
+            }
+        }
+        .with_context(|| {
+            format!("{op:?} does not apply: a motion tween needs an instance, a shape tween a shape, and nothing may already be set that way")
+        })?;
+        session.apply(commands)?;
+        commit(&session, path)?;
+        return Ok(json!({ "applied": format!("{op:?}"), "frame": at }));
+    }
     let layer = session
         .document()
         .scenes()
@@ -34,6 +88,7 @@ pub fn frame_op(path: &Path, op: FrameOperation, at: u32, layer: Option<Uuid>) -
         FrameOperation::InsertKeyframe => frames::insert_keyframe(scene, layer, at),
         FrameOperation::InsertBlankKeyframe => frames::insert_blank_keyframe(scene, layer, at),
         FrameOperation::ClearKeyframe => frames::clear_keyframe(scene, layer, at),
+        _ => None,
     }
     .with_context(|| format!("{op:?} does not apply at frame {at} of this layer"))?;
     session.apply(commands)?;

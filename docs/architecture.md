@@ -170,11 +170,11 @@ layers with name, visibility and lock; keyframes and durations; symbol instances
 matrix; solid fills and solid strokes of drawn shapes, including quadratic curves and
 holes (edges are decoded and chained into contours per fill); the library, each symbol with its
 Graphic, Movie Clip or Button type; layer folders (a layer in a folder points at it by index, and a hidden or locked
-folder hides or locks what it holds); classic motion tweens between instances. A keyframe with several elements puts
+folder hides or locks what it holds); motion tweens between instances and shape tweens between shapes (with the ease, `acceleration` in XFL). A keyframe with several elements puts
 the extras on additional layers above, preserving stacking.
 
 Reported and not imported: gradients, bitmaps, text, video, sound, frame scripts, filters,
-color effects, blend modes, masks, guides, shape tweens and easing, primitives, and
+color effects, blend modes, masks, guides, primitives, and
 symbol runtime behaviour (a movie clip's own clock and a button's states keep their type but are not carried out, with a warning).
 Foreign data is not preserved, so anything not imported is lost on save. This has been
 tested only against fixtures written for these tests, not against files from Animate; real

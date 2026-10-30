@@ -22,7 +22,7 @@ fn outlined(frame: &Frame<'_>, line_width: f64, color: Option<Rgba8>) -> Vec<Sha
                 Stroke2::new(width, color.unwrap_or(drawn.outline)),
             ) {
                 (Ok(shape), Ok(stroke)) => shape.with_stroke(stroke),
-                _ => drawn.shape.clone(),
+                _ => drawn.shape.as_ref().clone(),
             }
         })
         .collect()
@@ -68,7 +68,8 @@ fn as_lines<'a>(frame: &Frame<'a>, shapes: &'a [Shape], clips: bool) -> Frame<'a
             .zip(shapes)
             .map(|(drawn, shape)| flare_eval::DrawnShape {
                 path: drawn.path.clone(),
-                shape,
+                shape: std::borrow::Cow::Borrowed(shape),
+                phase: drawn.phase,
                 transform: drawn.transform,
                 clips: if clips {
                     drawn.clips.clone()

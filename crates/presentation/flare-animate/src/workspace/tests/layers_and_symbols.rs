@@ -89,12 +89,17 @@ fn zero_length_lines_and_flat_ellipses_create_nothing() {
 fn motion_tweens_toggle_on_a_selected_instance_and_interpolate() {
     let mut ws = workspace();
     draw_and_select(&mut ws);
-    assert_eq!(ws.selection_tween(), None, "a shape cannot tween");
-    ws.set_selection_tween(Tween::Linear);
-    assert!(
-        ws.status()
-            .is_some_and(|s| s.contains("Select an instance"))
+    assert_eq!(
+        ws.selection_tween(),
+        Some(Tween::None),
+        "a shape starts untweened"
     );
+    assert!(
+        !ws.is_enabled(MenuAction::ToggleMotionTween),
+        "a motion tween needs an instance"
+    );
+    ws.set_selection_tween(Tween::Linear);
+    assert!(ws.status().is_some_and(|s| s.contains("needs an instance")));
     ws.convert_selection_to_symbol();
     assert_eq!(ws.selection_tween(), Some(Tween::None));
     // Two keyframes with different positions, tweened between them.

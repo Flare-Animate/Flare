@@ -180,7 +180,7 @@ pub fn publish_swf(
         }),
     ];
 
-    let mut characters: HashMap<ShapeId, Option<swf::CharacterId>> = HashMap::new();
+    let mut characters: HashMap<(ShapeId, u64), Option<swf::CharacterId>> = HashMap::new();
     let mut next_character: swf::CharacterId = 1;
     let mut approximated = false;
     let mut flattened_gradient = false;
@@ -209,7 +209,8 @@ pub fn publish_swf(
             // Define each distinct shape once, the first time it appears.
             let mut now: Vec<Placed> = Vec::new();
             for drawn in &evaluated.shapes {
-                let id = drawn.shape.id();
+                // A step of a shape tween has its shape's identity, so its phase tells it apart.
+                let id = (drawn.shape.id(), drawn.phase);
                 let character = match characters.get(&id) {
                     Some(known) => *known,
                     None => {
@@ -219,7 +220,7 @@ pub fn publish_swf(
                         }
                         let defined = next_character;
                         flattened_gradient |= drawn.shape.gradient().is_some();
-                        let made = shapes::define_shape(defined, drawn.shape, &mut approximated);
+                        let made = shapes::define_shape(defined, &drawn.shape, &mut approximated);
                         let assigned = made.is_some().then_some(defined);
                         if let Some(shape) = made {
                             next_character = next_character.saturating_add(1);

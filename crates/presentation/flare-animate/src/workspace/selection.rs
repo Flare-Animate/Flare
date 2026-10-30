@@ -274,21 +274,54 @@ impl Workspace {
         self.validate_selection();
     }
 
-    /// The selected span's tween, when it is an instance (the only thing that can tween).
-    pub fn selection_tween(&self) -> Option<Tween> {
+    /// The selected span, when it holds an instance or a shape (the two things that can tween).
+    fn selected_tweenable(&self) -> Option<&flare_document::FrameSpan> {
         let (selected, scene) = (self.selected?, self.scene_id()?);
         let span = ops::find_span(self.document(), scene, selected)?;
-        matches!(span.content(), Content::Instance(_)).then(|| span.tween())
+        matches!(span.content(), Content::Instance(_) | Content::Shape(_)).then_some(span)
     }
 
-    /// Turns the motion tween on the selected instance span on or off.
+    /// The selected span's tween, when it holds something that can tween.
+    pub fn selection_tween(&self) -> Option<Tween> {
+        self.selected_tweenable().map(|span| span.tween())
+    }
+
+    /// The easing of the selected span's tween, when it holds something that can tween.
+    pub fn selection_ease(&self) -> Option<i8> {
+        self.selected_tweenable().map(|span| span.ease())
+    }
+
+    /// The selected span is an instance, which a motion tween moves.
+    pub fn selection_holds_instance(&self) -> bool {
+        self.selected_tweenable()
+            .is_some_and(|span| matches!(span.content(), Content::Instance(_)))
+    }
+
+    /// The selected span is a shape, which a shape tween changes.
+    pub fn selection_holds_shape(&self) -> bool {
+        self.selected_tweenable()
+            .is_some_and(|span| matches!(span.content(), Content::Shape(_)))
+    }
+
+    /// Turns the tween on the selected span on or off: a motion tween on an instance, a shape
+    /// tween on a shape.
     pub fn set_selection_tween(&mut self, tween: Tween) {
         let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
             return;
         };
         match ops::set_tween(self.document(), scene, selected, tween) {
             Some(commands) => self.run_batch(commands, "change the tween"),
-            None => self.report("Select an instance to change its motion tween"),
+            None => self.report("A motion tween needs an instance selected, a shape tween a shape"),
+        }
+    }
+
+    /// Sets the easing of the selected span's tween, from -100 (starts slow) to 100 (ends slow).
+    pub fn set_selection_ease(&mut self, ease: i8) {
+        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+            return;
+        };
+        if let Some(commands) = ops::set_ease(self.document(), scene, selected, ease) {
+            self.run_batch(commands, "change the tween's ease");
         }
     }
 }

@@ -3,8 +3,12 @@
 //! No I/O, rendering or UI state. Instances are identified by their instance *path*, so
 //! two occurrences of one symbol keep separate clocks and transforms. Graphic symbols
 //! are parent-clocked: child frame = frames since the instance span began, looping over
-//! the symbol's length. Movie Clip and Button runtime behaviour is out of scope.
+//! the symbol's length. Movie Clip and Button runtime behaviour is out of scope. Tweens are
+//! evaluated here too: motion tweens move an instance, shape tweens build the in-between shapes
+//! (so a shape can be owned, not borrowed from the document), and both can be eased.
 #![forbid(unsafe_code)]
+
+use std::borrow::Cow;
 
 use flare_core::{InstanceId, Rgba8, SceneId, SymbolId};
 use flare_document::{Content, Document, Instance, Layer, Shape, Timeline, Tween};
@@ -49,7 +53,9 @@ pub struct Frame<'a> {
 /// One shape of a mask: the mask's region is the union of these.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ClipShape<'a> {
-    pub shape: &'a Shape,
+    pub shape: Cow<'a, Shape>,
+    /// See [`DrawnShape::phase`].
+    pub phase: u64,
     /// Composed transform into scene space.
     pub transform: DAffine2,
 }
@@ -65,6 +71,7 @@ impl Frame<'_> {
         self.shapes.len().hash(&mut hasher);
         for drawn in &self.shapes {
             drawn.shape.id().hash(&mut hasher);
+            drawn.phase.hash(&mut hasher);
             for value in drawn.transform.to_cols_array() {
                 value.to_bits().hash(&mut hasher);
             }
@@ -75,6 +82,7 @@ impl Frame<'_> {
             clip.len().hash(&mut hasher);
             for member in clip {
                 member.shape.id().hash(&mut hasher);
+                member.phase.hash(&mut hasher);
                 for value in member.transform.to_cols_array() {
                     value.to_bits().hash(&mut hasher);
                 }
@@ -88,7 +96,12 @@ impl Frame<'_> {
 pub struct DrawnShape<'a> {
     /// Instances from the scene down to the shape's owner (empty for scene-level shapes).
     pub path: Vec<InstanceId>,
-    pub shape: &'a Shape,
+    /// The shape: borrowed from the document, or owned when it is a step of a shape tween (it
+    /// keeps the identity of the shape it started from, so it can be picked on the stage).
+    pub shape: Cow<'a, Shape>,
+    /// Which step of a shape tween this is, as the bits of how far along it is; 0 when the shape is
+    /// the document's own. Two drawn shapes with one identity and one phase are one picture.
+    pub phase: u64,
     /// Composed transform into scene space.
     pub transform: DAffine2,
     /// Indices into `Frame::clips`, outermost mask first. The shape shows only where it lies
@@ -194,9 +207,10 @@ fn walk<'a>(
             out.clips.push(
                 scratch
                     .shapes
-                    .iter()
+                    .into_iter()
                     .map(|drawn| ClipShape {
                         shape: drawn.shape,
+                        phase: drawn.phase,
                         transform: drawn.transform,
                     })
                     .collect(),
@@ -263,9 +277,11 @@ fn walk_layer<'a>(
     let instance = match span.content() {
         Content::Empty => return Ok(()),
         Content::Shape(shape) => {
+            let (shape, phase) = shape_at(layer, span, frame, shape);
             out.shapes.push(DrawnShape {
                 path: path.clone(),
                 shape,
+                phase,
                 transform: parent,
                 clips: clips.to_vec(),
                 outline: outline.unwrap_or(flare_document::OUTLINE_PALETTE[0]),
@@ -304,6 +320,34 @@ fn walk_layer<'a>(
     Ok(())
 }
 
+/// The shape a span shows at `frame`: its own, or a step of its shape tween toward the next
+/// adjacent span's shape. A tween that cannot be built (no shape after it, or two outlines that
+/// cannot be matched) holds the span's own shape.
+fn shape_at<'a>(
+    layer: &'a Layer,
+    span: &'a flare_document::FrameSpan,
+    frame: u32,
+    shape: &'a Shape,
+) -> (Cow<'a, Shape>, u64) {
+    let own = (Cow::Borrowed(shape), 0);
+    if span.tween() != Tween::Shape || frame == span.start() {
+        return own;
+    }
+    let Some(Content::Shape(target)) = layer.span_at_start(span.end()).map(|next| next.content())
+    else {
+        return own;
+    };
+    let t = morph::eased(
+        f64::from(frame - span.start()) / f64::from(span.duration().get()),
+        span.ease(),
+    );
+    match morph::morph(shape, target, t) {
+        // Not zero, so a step is never taken for the shape itself.
+        Some(step) => (Cow::Owned(step), t.to_bits().max(1)),
+        None => own,
+    }
+}
+
 /// Applies a linear motion tween toward the next adjacent span on the same layer.
 ///
 /// Interpolates scale, rotation (shortest arc) and translation. Matrices that are not a
@@ -334,7 +378,10 @@ fn tweened(
     let (Some((s0, r0, t0)), Some((s1, r1, t1))) = (decompose(from), decompose(to)) else {
         return Err(EvalError::UnsupportedTween(id));
     };
-    let t = f64::from(frame - span.start()) / f64::from(span.duration().get());
+    let t = morph::eased(
+        f64::from(frame - span.start()) / f64::from(span.duration().get()),
+        span.ease(),
+    );
     let mut delta = (r1 - r0) % std::f64::consts::TAU;
     if delta > std::f64::consts::PI {
         delta -= std::f64::consts::TAU;
@@ -372,6 +419,9 @@ fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
 }
 
 mod guide;
+mod morph;
+
+pub use morph::{eased, morph};
 
 pub use guide::{flatten, point_along};
 

@@ -69,7 +69,7 @@ pub fn duplicate_through(
     let source = timeline.layers().iter().find(|l| l.id() == at.layer)?;
     let span = find_span(document, scene, at)?;
     let content = fresh_content(span.content(), matrix)?;
-    let copy = FrameSpan::new(span.start(), span.duration(), content).with_tween(span.tween());
+    let copy = FrameSpan::new(span.start(), span.duration(), content).with_motion_of(span);
     new_layer_with(scene, &format!("{} {suffix}", source.name()), copy)
 }
 
@@ -79,6 +79,7 @@ pub struct ClipItem {
     name: String,
     duration: NonZeroU32,
     tween: Tween,
+    ease: i8,
     content: Content,
 }
 
@@ -94,6 +95,7 @@ pub fn copy_span(document: &Document, scene: SceneId, at: SpanRef) -> Option<Cli
         name: source.name().to_owned(),
         duration: span.duration(),
         tween: span.tween(),
+        ease: span.ease(),
         content: span.content().clone(),
     })
 }
@@ -130,7 +132,9 @@ pub fn paste_offset(
     }
     frame.checked_add(item.duration.get())?;
     let content = fresh_content(&item.content, DAffine2::from_translation(delta))?;
-    let span = FrameSpan::new(frame, item.duration, content).with_tween(item.tween);
+    let span = FrameSpan::new(frame, item.duration, content)
+        .with_tween(item.tween)
+        .with_ease(item.ease);
     new_layer_with(scene, &item.name, span)
 }
 

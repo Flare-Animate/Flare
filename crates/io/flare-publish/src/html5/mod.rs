@@ -210,12 +210,12 @@ pub fn publish_html5(
     });
 
     let mut shapes: Vec<Value> = Vec::new();
-    let mut known: HashMap<ShapeId, Option<usize>> = HashMap::new();
+    let mut known: HashMap<(ShapeId, u64), Option<usize>> = HashMap::new();
     let mut frames: Vec<Value> = Vec::new();
     let mut seen: HashMap<String, usize> = HashMap::new();
     let mut seq: Vec<usize> = Vec::new();
-    let mut index_of = |shape: &Shape, shapes: &mut Vec<Value>| -> Option<usize> {
-        *known.entry(shape.id()).or_insert_with(|| {
+    let mut index_of = |shape: &Shape, phase: u64, shapes: &mut Vec<Value>| -> Option<usize> {
+        *known.entry((shape.id(), phase)).or_insert_with(|| {
             describe(shape).map(|value| {
                 shapes.push(value);
                 shapes.len() - 1
@@ -235,7 +235,7 @@ pub fn publish_html5(
                 })?;
             let mut drawn: Vec<Value> = Vec::new();
             for item in &evaluated.shapes {
-                let Some(index) = index_of(item.shape, &mut shapes) else {
+                let Some(index) = index_of(&item.shape, item.phase, &mut shapes) else {
                     continue;
                 };
                 let m = matrix(item.transform);
@@ -250,7 +250,7 @@ pub fn publish_html5(
             for region in &evaluated.clips {
                 let mut members: Vec<Value> = Vec::new();
                 for member in region {
-                    let Some(index) = index_of(member.shape, &mut shapes) else {
+                    let Some(index) = index_of(&member.shape, member.phase, &mut shapes) else {
                         continue;
                     };
                     let mut entry = vec![json!(index)];

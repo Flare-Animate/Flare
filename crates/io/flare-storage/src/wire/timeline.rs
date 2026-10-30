@@ -19,6 +19,7 @@ pub(super) enum TweenWire {
     #[default]
     None,
     Linear,
+    Shape,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -104,6 +105,9 @@ pub(super) enum ContentWire {
 pub(super) struct SpanWire {
     #[serde(default)]
     pub(super) tween: TweenWire,
+    /// Easing of the tween; spans saved before it have none.
+    #[serde(default)]
+    pub(super) ease: i8,
     pub(super) start: u32,
     pub(super) duration: u32,
     pub(super) content: ContentWire,
@@ -177,7 +181,9 @@ impl TimelineWire {
                         tween: match span.tween() {
                             Tween::None => TweenWire::None,
                             Tween::Linear => TweenWire::Linear,
+                            Tween::Shape => TweenWire::Shape,
                         },
+                        ease: span.ease(),
                         start: span.start(),
                         duration: span.duration().get(),
                         content: match span.content() {
@@ -281,8 +287,13 @@ impl TimelineWire {
                 let tween = match span.tween {
                     TweenWire::None => Tween::None,
                     TweenWire::Linear => Tween::Linear,
+                    TweenWire::Shape => Tween::Shape,
                 };
-                spans.push(FrameSpan::new(span.start, duration, content).with_tween(tween));
+                spans.push(
+                    FrameSpan::new(span.start, duration, content)
+                        .with_tween(tween)
+                        .with_ease(span.ease),
+                );
             }
             let cues = layer
                 .cues

@@ -247,7 +247,8 @@ pub fn render_swf_frame(parsed: &Parsed, index: usize, background: Rgba8) -> fla
         for shape in &by_character[&placed.character] {
             drawn.push(flare_eval::DrawnShape {
                 path: Vec::new(),
-                shape,
+                shape: std::borrow::Cow::Borrowed(shape),
+                phase: 0,
                 transform: to_affine(&placed.matrix),
                 clips: Vec::new(),
                 outline: flare_document::OUTLINE_PALETTE[0],

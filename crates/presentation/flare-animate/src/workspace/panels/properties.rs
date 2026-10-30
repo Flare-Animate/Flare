@@ -171,12 +171,48 @@ impl Workspace {
             }
         }
         chrome::section(ui, "frame-tween", "Tween");
-        let can_tween = self.is_enabled(MenuAction::ToggleMotionTween);
+        self.tween_controls(ui);
+    }
+
+    /// Whether the selected span is tweened and by how much it eases, with the controls to change
+    /// both. A motion tween moves an instance; a shape tween changes a shape.
+    fn tween_controls(&mut self, ui: &mut Ui) {
+        let action = if self.selection_holds_shape() {
+            MenuAction::ToggleShapeTween
+        } else {
+            MenuAction::ToggleMotionTween
+        };
+        let name = if action == MenuAction::ToggleShapeTween {
+            "Shape tween"
+        } else {
+            "Motion tween"
+        };
+        let tweened = matches!(
+            self.selection_tween(),
+            Some(flare_document::Tween::Linear | flare_document::Tween::Shape)
+        );
+        let mut on = tweened;
+        let usable = self.is_enabled(action);
         if ui
-            .add_enabled(can_tween, egui::Button::new("Toggle motion tween"))
-            .clicked()
+            .add_enabled(usable, egui::Checkbox::new(&mut on, name))
+            .changed()
         {
-            self.perform(MenuAction::ToggleMotionTween);
+            self.perform(action);
+        }
+        let mut ease = self.selection_ease().unwrap_or(0);
+        let before = ease;
+        chrome::row(ui, "Ease", |ui| {
+            ui.add_enabled(
+                tweened,
+                egui::Slider::new(
+                    &mut ease,
+                    -flare_document::MAX_EASE..=flare_document::MAX_EASE,
+                ),
+            )
+            .on_hover_text("Negative starts slowly, positive ends slowly");
+        });
+        if ease != before {
+            self.set_selection_ease(ease);
         }
     }
 

@@ -66,8 +66,13 @@ pub(super) fn write_frame(
         a("index", span.start()),
         a("duration", span.duration().get()),
     ];
-    if let (Tween::Linear, Content::Instance(_)) = (span.tween(), span.content()) {
-        attrs.push(a("tweenType", "motion"));
+    match (span.tween(), span.content()) {
+        (Tween::Linear, Content::Instance(_)) => attrs.push(a("tweenType", "motion")),
+        (Tween::Shape, Content::Shape(_)) => attrs.push(a("tweenType", "shape")),
+        _ => {}
+    }
+    if span.tween() != Tween::None && span.ease() != 0 {
+        attrs.push(a("acceleration", span.ease()));
     }
     out.open("DOMFrame", attrs);
     out.open("elements", []);

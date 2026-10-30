@@ -153,7 +153,7 @@ impl MenuAction {
             Self::InsertKeyframe | Self::ConvertToKeyframes => "frame-keyframe",
             Self::InsertBlankKeyframe => "frame-blank-keyframe",
             Self::ClearKeyframe => "frame-blank-keyframe",
-            Self::ToggleMotionTween => "frame-tween",
+            Self::ToggleMotionTween | Self::ToggleShapeTween => "frame-tween",
             Self::PlayPause => "transport-play",
             Self::TestMovie => "test-movie",
             Self::ToggleLayerVisible => "eye",

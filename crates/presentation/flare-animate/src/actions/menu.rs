@@ -161,7 +161,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ConvertToKeyframes),
             Separator,
             Action(A::ToggleMotionTween),
-            Mock("Create Shape Tween"),
+            Action(A::ToggleShapeTween),
         ],
     ),
     (

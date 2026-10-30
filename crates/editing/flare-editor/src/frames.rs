@@ -29,7 +29,7 @@ fn duplicate(content: &Content) -> Option<Content> {
 
 fn span(start: u32, duration: u32, content: Content, like: &FrameSpan) -> Option<FrameSpan> {
     let duration = NonZeroU32::new(duration)?;
-    Some(FrameSpan::new(start, duration, content).with_tween(like.tween()))
+    Some(FrameSpan::new(start, duration, content).with_motion_of(like))
 }
 
 /// Replaces a layer's whole span list. Removals come first, so every step is valid.
@@ -48,7 +48,7 @@ fn replace_spans(scene: SceneId, layer: &Layer, new: Vec<FrameSpan>) -> Vec<Comm
 }
 
 fn shifted(span: &FrameSpan, start: u32) -> Option<FrameSpan> {
-    Some(FrameSpan::new(start, span.duration(), span.content().clone()).with_tween(span.tween()))
+    Some(FrameSpan::new(start, span.duration(), span.content().clone()).with_motion_of(span))
 }
 
 /// A run of frames lifted from a layer: its spans, relative to the first frame copied.
@@ -95,7 +95,7 @@ pub fn copy_frames(layer: &Layer, start: u32, end: u32) -> Option<FrameClip> {
         spans.push(if cut_end {
             piece
         } else {
-            piece.with_tween(s.tween())
+            piece.with_motion_of(s)
         });
     }
     if spans.is_empty() {
@@ -141,7 +141,7 @@ pub fn paste_frames(
                 pasted.duration(),
                 duplicate(pasted.content())?,
             )
-            .with_tween(pasted.tween()),
+            .with_motion_of(pasted),
         );
     }
     out.sort_by_key(FrameSpan::start);

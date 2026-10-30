@@ -55,6 +55,19 @@ pub fn frame_width(available: f32, frames: u64, zoom: f32) -> f32 {
     (available.max(0.0) / frames * zoom).max(1.0)
 }
 
+/// The color of a span's bar in the timeline: by what it holds, and a tween has its own so it can
+/// be told from a held drawing (motion tweens blue, shape tweens green, as in Animate).
+pub fn span_color(content: &flare_document::Content, tween: flare_document::Tween) -> [u8; 3] {
+    use flare_document::{Content, Tween};
+    match (content, tween) {
+        (_, Tween::Linear) => [100, 140, 220],
+        (_, Tween::Shape) => [100, 180, 110],
+        (Content::Empty, _) => [90, 90, 90],
+        (Content::Shape(_), _) => [70, 130, 180],
+        (Content::Instance(_), _) => [120, 170, 90],
+    }
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {

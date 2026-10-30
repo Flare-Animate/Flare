@@ -119,8 +119,7 @@ pub fn transform(
             Content::Instance(Instance::new(instance.id(), instance.symbol(), transform))
         }
     };
-    let replacement =
-        FrameSpan::new(span.start(), span.duration(), content).with_tween(span.tween());
+    let replacement = FrameSpan::new(span.start(), span.duration(), content).with_motion_of(span);
     Some(vec![
         Command::RemoveSpan {
             scene,

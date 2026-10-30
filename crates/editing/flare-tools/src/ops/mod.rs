@@ -38,7 +38,7 @@ use grouping::*;
 pub use grouping::{break_apart, group};
 #[allow(unused_imports)]
 use paint::*;
-pub use paint::{restyle, set_tween};
+pub use paint::{restyle, set_ease, set_tween};
 #[allow(unused_imports)]
 use select::*;
 pub use select::{polygon_contains, spans_at_frame, spans_in_polygon};

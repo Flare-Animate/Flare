@@ -79,6 +79,21 @@ Guides belong to the view of one document tab and are not saved in the file (at 
 Points placed by the shape, pen, Ruler and Mirror tools are pulled onto a guide whether or not the
 grid is on.
 
+## Tweens
+
+Timeline > Create Motion Tween works on a selected instance, which moves, scales and turns toward the
+next keyframe's instance of the same symbol (a motion guide above it steers the path). Timeline >
+Create Shape Tween works on a selected shape, which turns into the next keyframe's shape: the
+outlines are matched contour by contour (the shorter is split until the counts agree, a closed one is
+turned and flipped to the nearest start), and colors, gradients, stroke widths and fills are
+blended; a contour with no partner shrinks to its middle or grows from it; a stroke that only one
+shape has fades. A tween that cannot be built (a closed outline against an open one, or more than
+256 contours or 4096 segments) holds the first shape. Each command removes its tween when chosen
+again. The Properties panel has the same two switches and an **Ease** slider from -100 (starts
+slowly) to 100 (ends slowly); the curve is a blend of a straight line and a quadratic, exact at the
+ends and at both extremes but not checked against Animate's. A tweened span is drawn blue (motion)
+or green (shape) with an arrow in the timeline.
+
 ## Panel rail
 
 A narrow bar at the right edge, like Animate's collapsed panel strip, has an icon for each panel

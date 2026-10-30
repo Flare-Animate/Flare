@@ -119,7 +119,8 @@ impl Workspace {
             | MenuAction::InsertBlankKeyframe
             | MenuAction::ClearKeyframe
             | MenuAction::ConvertToKeyframes => editable_layer,
-            MenuAction::ToggleMotionTween => self.selection_tween().is_some(),
+            MenuAction::ToggleMotionTween => self.selection_holds_instance(),
+            MenuAction::ToggleShapeTween => self.selection_holds_shape(),
             MenuAction::ToggleLayerVisible
             | MenuAction::ToggleLayerLocked
             | MenuAction::ToggleLayerMask
@@ -259,6 +260,14 @@ impl Workspace {
                     Tween::None
                 } else {
                     Tween::Linear
+                };
+                self.set_selection_tween(next);
+            }
+            MenuAction::ToggleShapeTween => {
+                let next = if self.selection_tween() == Some(Tween::Shape) {
+                    Tween::None
+                } else {
+                    Tween::Shape
                 };
                 self.set_selection_tween(next);
             }

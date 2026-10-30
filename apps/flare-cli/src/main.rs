@@ -128,6 +128,9 @@ enum Command {
         at: u32,
         #[arg(long)]
         layer: Option<uuid::Uuid>,
+        /// Easing for `set-ease`, from -100 (starts slowly) to 100 (ends slowly).
+        #[arg(long, allow_hyphen_values = true)]
+        ease: Option<i8>,
     },
     /// Rename, hide/show, lock/unlock, reorder or delete a layer.
     Layer {
@@ -285,7 +288,8 @@ fn main() -> Result<()> {
             path,
             at,
             layer,
-        } => project::frame_op(&path, op, at, layer)?,
+            ease,
+        } => project::frame_op(&path, op, at, layer, ease)?,
         Command::ExportFrames {
             path,
             directory,

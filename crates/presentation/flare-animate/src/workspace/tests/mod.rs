@@ -32,6 +32,7 @@ mod rulers_and_mirror;
 mod spans_and_handles;
 mod tool_strip;
 mod tools_and_menus;
+mod tweens;
 mod window_menu;
 
 fn document() -> Document {

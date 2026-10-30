@@ -51,7 +51,13 @@ pub enum Tween {
     None,
     /// Linear motion tween to the next adjacent span's instance transform.
     Linear,
+    /// The shape changes into the next adjacent span's shape, point by point.
+    Shape,
 }
+
+/// How far a tween's easing can go either way: Animate's Ease runs from -100 (starts slow) to
+/// 100 (ends slow).
+pub const MAX_EASE: i8 = 100;
 
 /// A held exposure: `content` stays for `duration` frames starting at `start`.
 #[derive(Debug, Clone, PartialEq)]
@@ -60,6 +66,8 @@ pub struct FrameSpan {
     duration: NonZeroU32,
     content: Content,
     tween: Tween,
+    /// Easing of the tween, from `-MAX_EASE` to `MAX_EASE`; 0 is even speed.
+    ease: i8,
 }
 
 impl FrameSpan {
@@ -69,12 +77,31 @@ impl FrameSpan {
             duration,
             content,
             tween: Tween::None,
+            ease: 0,
         }
     }
 
     pub fn with_tween(mut self, tween: Tween) -> Self {
         self.tween = tween;
         self
+    }
+
+    /// The same span with the easing set, kept within `-MAX_EASE..=MAX_EASE`.
+    #[must_use]
+    pub fn with_ease(mut self, ease: i8) -> Self {
+        self.ease = ease.clamp(-MAX_EASE, MAX_EASE);
+        self
+    }
+
+    /// The same span taking the tween and easing of `other`, for a span rebuilt around new
+    /// content or a new time range.
+    #[must_use]
+    pub fn with_motion_of(self, other: &FrameSpan) -> Self {
+        self.with_tween(other.tween).with_ease(other.ease)
+    }
+
+    pub fn ease(&self) -> i8 {
+        self.ease
     }
 
     pub fn tween(&self) -> Tween {

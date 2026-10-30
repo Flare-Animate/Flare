@@ -20,6 +20,7 @@ flare-import.workspace = true
 flare-eval.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
+flare-tools.workspace = true
 glamx.workspace = true
 uuid.workspace = true
 clap.workspace = true

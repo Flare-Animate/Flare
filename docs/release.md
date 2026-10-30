@@ -10,7 +10,7 @@ when every box below is ticked.
 **Scope: what has to work** (all built; each has automated tests unless marked by hand)
 
 - [x] Drawing: the tool set, fills, strokes, gradients, text, undo and redo, copy and paste.
-- [x] Animating: layers, folders, masks, motion guides, keyframes, linear motion tweens, onion
+- [x] Animating: layers, folders, masks, motion guides, keyframes, motion tweens and shape tweens with Ease, onion
   skin, playback with sound.
 - [x] A library of symbols and instances placed on the stage.
 - [x] Projects: save, open, revert, recent files, several documents as tabs, autosave and crash
@@ -39,7 +39,7 @@ when every box below is ticked.
 - [x] Release notes and `CHANGELOG.md` say what 0.1.0 does not do.
 - [x] `SECURITY.md` says how to report a problem and what the dependency audit shows.
 
-**Not in 0.1.0** (shown dimmed in the menus, or listed in the notes): shape tweens, more than
+**Not in 0.1.0** (shown dimmed in the menus, or listed in the notes): shape hints, more than
 one scene, scripting and the Commands menu, editable keyboard shortcuts, editable text after it
 is placed, the web build, Developer-ID signing and notarising, an auto-update.
 
@@ -135,7 +135,7 @@ The GUI is not driven by the automated tests, so before a release someone does t
    stroke and release: it must not blink. With the Mirror tool set to left-right, draw a stroke
    (both halves appear, one undo removes both); hold Shift with the pencil for a straight line;
    measure a distance with the Ruler.
-3. Insert keyframes, add a motion tween, scrub and play the timeline.
+3. Insert keyframes; add a motion tween to an instance and a shape tween to a shape (Timeline menu or the Properties panel), set the Ease, scrub and play the timeline. Tweened spans show an arrow and their own color.
 4. Save as `.flare`, close, open it again; the drawing is intact.
 5. Import a `.fla`; export a PNG and an animated GIF; File > Publish with both formats ticked, and open the page in a browser (it must play, loop and fit the window as set).
 6. Open two documents as tabs and switch between them.

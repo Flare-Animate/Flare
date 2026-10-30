@@ -94,6 +94,13 @@ impl Workspace {
                     "Create Motion Tween"
                 }
             }
+            MenuAction::ToggleShapeTween => {
+                if self.selection_tween() == Some(Tween::Shape) {
+                    "Remove Shape Tween"
+                } else {
+                    "Create Shape Tween"
+                }
+            }
             MenuAction::PlayPause => {
                 if self.playing {
                     "Pause"

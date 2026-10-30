@@ -146,14 +146,14 @@ impl Importer {
             } else {
                 contents
             };
-            let tween = self.tween_for(frame, &contents, &here);
+            let (tween, ease) = self.tween_for(frame, &contents, &here);
             for (slot, content) in contents.into_iter().enumerate() {
                 if slots.len() <= slot {
                     slots.push(Vec::new());
                 }
                 let mut span = FrameSpan::new(index, duration, content);
                 if slot == 0 {
-                    span = span.with_tween(tween);
+                    span = span.with_tween(tween).with_ease(ease);
                 }
                 slots[slot].push(span);
             }
@@ -230,34 +230,45 @@ impl Importer {
         }
     }
 
-    pub(super) fn tween_for(&mut self, frame: &Node, contents: &[Content], place: &str) -> Tween {
-        match frame.attr("tweenType") {
-            None | Some("none") => Tween::None,
-            Some("motion") if matches!(contents.first(), Some(Content::Instance(_))) => {
-                if frame.attr("acceleration").is_some_and(|a| a != "0") {
-                    self.note(
-                        Severity::Warning,
-                        place,
-                        "tween easing is ignored; the tween is linear",
-                    );
-                }
-                Tween::Linear
-            }
-            Some("motion") => {
+    /// The tween a keyframe asks for, and its easing (XFL's `acceleration`, -100 to 100).
+    pub(super) fn tween_for(
+        &mut self,
+        frame: &Node,
+        contents: &[Content],
+        place: &str,
+    ) -> (Tween, i8) {
+        let ease = frame
+            .attr("acceleration")
+            .and_then(|a| a.trim().parse::<f64>().ok())
+            .filter(|a| a.is_finite())
+            .map_or(0, |a| a.round().clamp(-100.0, 100.0) as i8);
+        match (frame.attr("tweenType"), contents.first()) {
+            (None | Some("none"), _) => (Tween::None, 0),
+            (Some("motion"), Some(Content::Instance(_))) => (Tween::Linear, ease),
+            (Some("motion"), _) => {
                 self.note(
                     Severity::Unsupported,
                     place,
                     "only instance transforms can be tweened",
                 );
-                Tween::None
+                (Tween::None, 0)
             }
-            Some(other) => {
+            (Some("shape"), Some(Content::Shape(_))) => (Tween::Shape, ease),
+            (Some("shape"), _) => {
+                self.note(
+                    Severity::Unsupported,
+                    place,
+                    "a shape tween needs a drawn shape here; it was not imported",
+                );
+                (Tween::None, 0)
+            }
+            (Some(other), _) => {
                 self.note(
                     Severity::Unsupported,
                     place,
                     format!("{other} tweens are not imported"),
                 );
-                Tween::None
+                (Tween::None, 0)
             }
         }
     }
