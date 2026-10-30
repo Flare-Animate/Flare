@@ -118,6 +118,40 @@ class CommandLineSmoke(unittest.TestCase):
         self.run_cli("frame", "remove-tween", project, "--at", 0)
         self.run_cli("frame", "remove-tween", project, "--at", 0, ok=False)  # nothing to remove
 
+    def test_a_page_with_sounds_waits_for_a_click_and_plays_each_at_its_cue_every_pass(self):
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is not installed, so the player was not run")
+        project = self.drawn_project()
+        page = self.dir / "sound.html"
+        self.run_cli("publish-html5", project, page)
+        text = page.read_text()
+        marker = 'type="application/json">'
+        head, rest = text.split(marker, 1)
+        body, tail = rest.split("</script>", 1)
+        data = json.loads(body)
+        # Two sounds, cued at frames 2 and 8 of the 12.
+        data["sounds"] = [
+            {"name": "a", "mime": "audio/wav", "data": "QQ=="},
+            {"name": "b", "mime": "audio/mpeg", "data": "Qg=="},
+        ]
+        data["cues"] = [[2, 0], [8, 1]]
+        page.write_text(head + marker + json.dumps(data) + "</script>" + tail)
+        harness = ROOT / "scripts/tests/html5_player_harness.js"
+        ran = subprocess.run([node, str(harness), str(page)], capture_output=True, text=True)
+        self.assertEqual(ran.returncode, 0, ran.stderr)
+        report = json.loads(ran.stdout)
+        self.assertEqual(report["startShown"], "flex", "the page asks for a click first")
+        self.assertEqual(report["queuedBeforeClick"], 0, "and does not play before it")
+        plays = [(e[1], e[2]) for e in report["audio"] if e[0] == "play"]
+        # Sound 0 at frame 2 and sound 1 at frame 8, then again on the next pass (12 frames on).
+        self.assertEqual(plays, [(0, 2), (1, 8), (0, 14), (1, 20)])
+        pauses = [e[2] for e in report["audio"] if e[0] == "pause"]
+        self.assertTrue(pauses and all(t >= 12 for t in pauses), "a new pass stops what was playing")
+        sources = [e[2] for e in report["audio"] if e[0] == "new"]
+        self.assertTrue(sources[0].startswith("data:audio/wav;base64,"))
+        self.assertTrue(sources[1].startswith("data:audio/mpeg;base64"))
+
     def test_the_html5_options_reach_the_page(self):
         project = self.drawn_project()
         page = self.dir / "fixed.html"
@@ -125,7 +159,7 @@ class CommandLineSmoke(unittest.TestCase):
         text = page.read_text()
         data = json.loads(text.split('type="application/json">')[1].split("</script>")[0])
         self.assertEqual((data["loop"], data["responsive"]), (False, True))
-        self.assertNotIn("justify-content:center", text)
+        self.assertNotIn("body{display:flex", text)
 
     def test_real_files_import_and_render(self):
         for name in ("sample.fla", "handmade.fla"):

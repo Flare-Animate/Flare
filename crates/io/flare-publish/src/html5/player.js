@@ -87,23 +87,72 @@
     draw(shown);
   }
 
+  // Sounds start at their cues' frames; a new pass through the timeline starts them over.
+  var sounds = (data.sounds || []).map(function (sound) {
+    var audio = new Audio("data:" + sound.mime + ";base64," + sound.data);
+    audio.preload = "auto";
+    return audio;
+  });
+  var cues = data.cues || [];
+  var next = 0;
+  var previous = -1;
+  function stopSounds() {
+    sounds.forEach(function (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+  }
+  function playCues(position) {
+    if (position < previous) {
+      stopSounds();
+      next = 0;
+    }
+    previous = position;
+    while (next < cues.length && cues[next][0] <= position) {
+      var audio = sounds[cues[next][1]];
+      next += 1;
+      try {
+        audio.currentTime = 0;
+        var started = audio.play();
+        if (started && started.catch) started.catch(function () {});
+      } catch (error) {
+        // A sound that will not play does not stop the picture.
+      }
+    }
+  }
+
   var started = null;
   function tick(now) {
     if (started === null) started = now;
     var count = data.seq.length;
     var position = Math.floor(((now - started) * data.fps) / 1000);
-    var last = position >= count;
-    if (last && !data.loop) {
+    if (position >= count && !data.loop) {
+      playCues(count - 1);
       draw(count - 1);
       return;
     }
+    playCues(position % count);
     draw(position % count);
     window.requestAnimationFrame(tick);
   }
 
+  function begin() {
+    if (data.seq.length > 1 || cues.length > 0) {
+      window.requestAnimationFrame(tick);
+    }
+  }
+
   window.addEventListener("resize", fit);
   fit();
-  if (data.seq.length > 1) {
-    window.requestAnimationFrame(tick);
+  var start = document.getElementById("start");
+  if (cues.length > 0 && start) {
+    // Browsers keep a page silent until someone interacts with it.
+    start.style.display = "flex";
+    start.addEventListener("click", function () {
+      start.style.display = "none";
+      begin();
+    });
+  } else {
+    begin();
   }
 })();

@@ -12,7 +12,8 @@
 use std::collections::HashMap;
 use std::fmt::Write as _;
 
-use flare_core::ShapeId;
+use base64::Engine as _;
+use flare_core::{ShapeId, SoundId};
 use flare_document::{Cap, Document, Join, PathSegment, Shape};
 use serde_json::{Value, json};
 
@@ -148,6 +149,32 @@ fn describe(shape: &Shape) -> Option<Value> {
     Some(out)
 }
 
+/// The kind of audio a file holds, going by how it begins, or `None` for what a browser is not
+/// expected to play.
+fn audio_mime(bytes: &[u8]) -> Option<&'static str> {
+    match bytes {
+        [
+            b'R',
+            b'I',
+            b'F',
+            b'F',
+            _,
+            _,
+            _,
+            _,
+            b'W',
+            b'A',
+            b'V',
+            b'E',
+            ..,
+        ] => Some("audio/wav"),
+        [b'I', b'D', b'3', ..] | [0xFF, 0xFB | 0xF3 | 0xF2, ..] => Some("audio/mpeg"),
+        [b'O', b'g', b'g', b'S', ..] => Some("audio/ogg"),
+        [b'f', b'L', b'a', b'C', ..] => Some("audio/flac"),
+        _ => None,
+    }
+}
+
 fn matrix(m: glamx::DAffine2) -> [Value; 6] {
     m.to_cols_array().map(n)
 }
@@ -197,12 +224,6 @@ pub fn publish_html5(
                 .into(),
         });
     }
-    if !document.sounds().is_empty() {
-        diagnostics.push(Diagnostic {
-            severity: Severity::Warning,
-            message: "HTML5 publishing does not write sounds yet, so the page is silent".into(),
-        });
-    }
     diagnostics.push(Diagnostic {
         severity: Severity::Info,
         message: "frames were baked: tweens became per-frame positions and symbols were flattened"
@@ -223,7 +244,39 @@ pub fn publish_html5(
         })
     };
 
+    let mut sounds: Vec<Value> = Vec::new();
+    let mut sound_index: HashMap<SoundId, Option<usize>> = HashMap::new();
+    let mut cues: Vec<(u64, usize)> = Vec::new();
+
     for scene in document.scenes() {
+        // Cues are in the scene's own frames; the page counts from the first scene's first frame.
+        let offset = seq.len() as u64;
+        for layer in scene.timeline().layers() {
+            for cue in layer.cues() {
+                let known = sound_index.entry(cue.sound).or_insert_with(|| {
+                    let sound = document.sound(cue.sound)?;
+                    let Some(mime) = audio_mime(sound.data()) else {
+                        diagnostics.push(Diagnostic {
+                            severity: Severity::Warning,
+                            message: format!(
+                                "the sound \"{}\" is in a format a browser may not play, so it was left out",
+                                sound.name()
+                            ),
+                        });
+                        return None;
+                    };
+                    sounds.push(json!({
+                        "name": sound.name(),
+                        "mime": mime,
+                        "data": base64::engine::general_purpose::STANDARD.encode(sound.data()),
+                    }));
+                    Some(sounds.len() - 1)
+                });
+                if let Some(index) = *known {
+                    cues.push((offset + u64::from(cue.start), index));
+                }
+            }
+        }
         let length = u32::try_from(scene.timeline().frame_count().max(1)).unwrap_or(u32::MAX);
         for frame in 0..length {
             let evaluated =
@@ -282,7 +335,15 @@ pub fn publish_html5(
         "shapes": shapes,
         "frames": frames,
         "seq": seq,
+        "sounds": sounds,
+        "cues": cues,
     });
+    if !cues.is_empty() {
+        diagnostics.push(Diagnostic {
+            severity: Severity::Info,
+            message: "the page waits for a click before it plays, because browsers keep a page silent until someone interacts with it".into(),
+        });
+    }
     let data = script_safe(&data.to_string());
     if data.len() > MAX_PAGE_BYTES {
         return Err(PublishError::PageTooLarge(MAX_PAGE_BYTES));
@@ -298,8 +359,11 @@ pub fn publish_html5(
          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\
          <title>{title}</title>\n\
          <style>html,body{{margin:0;height:100%;background:#{r:02x}{g:02x}{b:02x}}}\
-         body{{{centering}}}canvas{{display:block}}</style>\n</head>\n<body>\n\
+         body{{{centering}}}canvas{{display:block}}\
+         #start{{position:fixed;inset:0;align-items:center;justify-content:center;\
+         background:rgba(0,0,0,.45);color:#fff;font:600 18px sans-serif;cursor:pointer}}</style>\n</head>\n<body>\n\
          <canvas id=\"stage\"></canvas>\n\
+         <div id=\"start\" style=\"display:none\">Click to play</div>\n\
          <script id=\"flare-data\" type=\"application/json\">{data}</script>\n\
          <script>\n{PLAYER}</script>\n</body>\n</html>\n",
         title = escape_html(&options.title),

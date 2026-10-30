@@ -249,14 +249,18 @@ fn the_publish_settings_choose_looping_centering_and_scaling() {
         (d["loop"].as_bool(), d["responsive"].as_bool()),
         (Some(false), Some(true))
     );
-    assert!(!plain.html.contains("justify-content:center"));
+    assert!(!plain.html.contains("body{display:flex"));
     let default = publish_html5(&doc, &Html5Options::default()).expect("publish");
     let d = data(&default.html);
     assert_eq!(
         (d["loop"].as_bool(), d["responsive"].as_bool()),
         (Some(true), Some(false))
     );
-    assert!(default.html.contains("justify-content:center"));
+    assert!(
+        default
+            .html
+            .contains("body{display:flex;justify-content:center")
+    );
 }
 
 #[test]
@@ -309,4 +313,163 @@ fn the_page_is_written_whole_and_never_over_an_existing_file() {
         1,
         "no temp files"
     );
+}
+
+mod sound {
+    use super::*;
+    use flare_core::SoundId;
+    use flare_document::{Sound, SoundCue};
+
+    const WAV: &[u8] = b"RIFF\x24\x00\x00\x00WAVEfmt \x10\x00\x00\x00";
+
+    fn sound(name: &str, bytes: &[u8]) -> Sound {
+        Sound::new(SoundId::new(), name, bytes.to_vec(), 8000, 1, 8000).expect("sound")
+    }
+
+    fn scene_with(cues: Vec<SoundCue>, frames: u32) -> Scene {
+        let layer = layer(
+            "L",
+            vec![span(
+                0,
+                frames,
+                Content::Shape(rect(0.0, 5.0, Rgba8::WHITE)),
+            )],
+        )
+        .with_cues(cues)
+        .expect("cues");
+        scene(vec![layer])
+    }
+
+    #[test]
+    fn a_cued_sound_is_embedded_once_with_its_type_and_the_page_asks_for_a_click() {
+        let heard = sound("beep", WAV);
+        let unused = sound("never", WAV);
+        let id = heard.id();
+        let cues = vec![
+            SoundCue {
+                start: 1,
+                sound: id,
+            },
+            SoundCue {
+                start: 3,
+                sound: id,
+            },
+        ];
+        let doc = document(vec![scene_with(cues, 6)], vec![])
+            .with_sounds(vec![heard, unused])
+            .expect("sounds");
+        let published = publish_html5(&doc, &Html5Options::default()).expect("publish");
+        let d = data(&published.html);
+        let sounds = d["sounds"].as_array().expect("sounds");
+        assert_eq!(sounds.len(), 1, "a sound nothing cues is not carried");
+        assert_eq!(sounds[0]["mime"], "audio/wav");
+        assert_eq!(sounds[0]["name"], "beep");
+        assert_eq!(d["cues"], serde_json::json!([[1, 0], [3, 0]]));
+        assert!(published.html.contains("<div id=\"start\""));
+        assert!(
+            published
+                .diagnostics
+                .iter()
+                .any(|m| m.message.contains("waits for a click"))
+        );
+    }
+
+    #[test]
+    fn cues_in_later_scenes_count_from_the_start_of_the_whole_movie() {
+        let a = sound("a", WAV);
+        let id = a.id();
+        let first = scene_with(vec![], 5);
+        let second = scene_with(
+            vec![SoundCue {
+                start: 2,
+                sound: id,
+            }],
+            4,
+        );
+        let doc = document(vec![first, second], vec![])
+            .with_sounds(vec![a])
+            .expect("sounds");
+        let d = data(
+            &publish_html5(&doc, &Html5Options::default())
+                .expect("publish")
+                .html,
+        );
+        assert_eq!(d["cues"], serde_json::json!([[7, 0]]));
+    }
+
+    #[test]
+    fn a_format_a_browser_may_not_play_is_left_out_with_a_warning_and_a_silent_movie_has_no_prompt()
+    {
+        let odd = sound("odd", b"MThd not audio at all");
+        let id = odd.id();
+        let doc = document(
+            vec![scene_with(
+                vec![SoundCue {
+                    start: 0,
+                    sound: id,
+                }],
+                3,
+            )],
+            vec![],
+        )
+        .with_sounds(vec![odd])
+        .expect("sounds");
+        let published = publish_html5(&doc, &Html5Options::default()).expect("publish");
+        let d = data(&published.html);
+        assert!(d["sounds"].as_array().expect("sounds").is_empty());
+        assert!(d["cues"].as_array().expect("cues").is_empty());
+        assert!(
+            published
+                .diagnostics
+                .iter()
+                .any(|m| m.message.contains("\"odd\""))
+        );
+        assert!(
+            !published
+                .diagnostics
+                .iter()
+                .any(|m| m.message.contains("waits for a click")),
+            "nothing to wait for"
+        );
+    }
+
+    #[test]
+    fn each_common_format_is_told_by_how_it_begins() {
+        let mime = |bytes: &[u8]| {
+            let s = sound("s", bytes);
+            let id = s.id();
+            let doc = document(
+                vec![scene_with(
+                    vec![SoundCue {
+                        start: 0,
+                        sound: id,
+                    }],
+                    2,
+                )],
+                vec![],
+            )
+            .with_sounds(vec![s])
+            .expect("sounds");
+            let d = data(
+                &publish_html5(&doc, &Html5Options::default())
+                    .expect("publish")
+                    .html,
+            );
+            d["sounds"]
+                .get(0)
+                .map(|s| s["mime"].as_str().expect("mime").to_owned())
+        };
+        assert_eq!(mime(b"ID3\x04\x00 mp3").as_deref(), Some("audio/mpeg"));
+        assert_eq!(
+            mime(&[0xFF, 0xFB, 0x90, 0x00]).as_deref(),
+            Some("audio/mpeg")
+        );
+        assert_eq!(mime(b"OggS\x00\x02").as_deref(), Some("audio/ogg"));
+        assert_eq!(mime(b"fLaC\x00\x00").as_deref(), Some("audio/flac"));
+        assert_eq!(
+            mime(b"RIFF\x00\x00\x00\x00AVI LIST").as_deref(),
+            None,
+            "RIFF that is not WAVE"
+        );
+    }
 }

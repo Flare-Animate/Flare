@@ -1877,6 +1877,7 @@ dependencies = [
 name = "flare-publish"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "flare-core",
  "flare-document",
  "flare-eval",

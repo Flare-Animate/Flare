@@ -13,6 +13,7 @@ flare-eval.workspace = true
 flare-export.workspace = true
 tempfile.workspace = true
 glamx.workspace = true
+base64.workspace = true
 serde_json.workspace = true
 swf.workspace = true
 thiserror.workspace = true
