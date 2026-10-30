@@ -13,8 +13,6 @@ pub const HOVER: Color32 = Color32::from_rgb(0x39, 0x3e, 0x47);
 pub const TEXT: Color32 = Color32::from_rgb(0xd9, 0xdd, 0xe3);
 pub const TEXT_DIM: Color32 = Color32::from_rgb(0x9a, 0xa1, 0xac);
 pub const TEXT_DISABLED: Color32 = Color32::from_rgb(0x5d, 0x63, 0x6d);
-/// The red-orange of the flame in the app icon, for the flame mark.
-pub const FLAME: Color32 = Color32::from_rgb(0xff, 0x5a, 0x2e);
 pub const ACCENT: Color32 = Color32::from_rgb(0x4c, 0x8d, 0xff);
 pub const WARNING: Color32 = Color32::from_rgb(0xe8, 0xb3, 0x4a);
 pub const STAGE_SURROUND: Color32 = Color32::from_rgb(0x16, 0x18, 0x1c);

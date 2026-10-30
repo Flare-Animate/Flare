@@ -40,6 +40,13 @@ pub fn image(name: &str, size: f32, tint: Color32) -> Image<'static> {
     .tint(tint)
 }
 
+/// The flame from the app icon, cut out of it with its own colors (not a tinted icon), as an
+/// image of the given size.
+pub fn flame(size: f32) -> Image<'static> {
+    Image::new(egui::include_image!("../../../../assets/flare-flame.png"))
+        .fit_to_exact_size(Vec2::splat(size))
+}
+
 /// Every icon's name, sorted.
 pub fn names() -> impl Iterator<Item = &'static str> {
     TABLE.iter().map(|(name, _)| *name)
@@ -134,6 +141,35 @@ mod tests {
                 "{name} uses a colour other than white: {colours:?}"
             );
         }
+    }
+
+    #[test]
+    fn the_flame_is_a_coloured_cutout_with_a_clear_background() {
+        let bytes = include_bytes!("../../../../assets/flare-flame.png");
+        let image = egui_extras::image::load_image_bytes(bytes).expect("the flame is a valid PNG");
+        let [width, height] = image.size;
+        assert_eq!([width, height], [256, 256]);
+        let at = |x: usize, y: usize| image.pixels[y * width + x];
+        for corner in [
+            at(2, 2),
+            at(width - 3, 2),
+            at(2, height - 3),
+            at(width - 3, height - 3),
+        ] {
+            assert_eq!(corner.a(), 0, "the corners are transparent");
+        }
+        let solid = image.pixels.iter().filter(|p| p.a() == 255).count();
+        assert!(
+            solid > 256 * 256 / 3,
+            "the flame fills much of the square: {solid}"
+        );
+        assert!(
+            image
+                .pixels
+                .iter()
+                .any(|p| p.a() == 255 && p.r() > 240 && p.g() > 240),
+            "the pale heart of the flame is kept"
+        );
     }
 
     #[test]

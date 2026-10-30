@@ -9,6 +9,8 @@ license.workspace = true
 [dependencies]
 egui = { workspace = true, features = ["default_fonts"] }
 egui_extras.workspace = true
+# egui_extras decodes the app logo (a PNG) through this crate; PNG is the only format needed.
+image = { workspace = true, features = ["png"] }
 
 [lints]
 workspace = true
