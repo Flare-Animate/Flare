@@ -186,3 +186,25 @@ fn custom_brushes_and_the_chosen_one_are_kept_with_the_preferences() {
     assert_eq!(past.selected_brush(), None);
     assert_eq!(past.brush_nib, Nib::ROUND);
 }
+
+#[test]
+fn the_brush_cursor_shows_the_nib_at_its_size_only_while_painting_with_the_brush() {
+    let mut ws = workspace();
+    ws.brush_size = 20.0;
+    ws.pointer_stage = Some(Pos2::new(100.0, 50.0));
+    ws.set_tool(Tool::Select);
+    assert!(ws.brush_cursor().is_none());
+    ws.set_tool(Tool::Brush);
+    let round = ws.brush_cursor().expect("cursor");
+    assert!(
+        round
+            .iter()
+            .all(|p| ((p.x - 100.0).hypot(p.y - 50.0) - 10.0).abs() < 1e-3)
+    );
+    ws.set_brush_nib(Nib::new(NibShape::Round, 0.0, 10.0));
+    let flat = ws.brush_cursor().expect("cursor");
+    let tall = flat.iter().map(|p| (p.y - 50.0).abs()).fold(0.0, f32::max);
+    assert!(tall < 1.5, "{tall}");
+    ws.pointer_stage = None;
+    assert!(ws.brush_cursor().is_none(), "no pointer over the stage");
+}

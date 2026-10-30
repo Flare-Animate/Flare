@@ -69,6 +69,24 @@ impl Workspace {
         }
     }
 
+    /// The outline of the brush at the pointer, in stage units: the nib at the size it will paint
+    /// at, so the cursor shows what a click would leave. `None` unless the Brush is in hand over
+    /// the stage.
+    pub(super) fn brush_cursor(&self) -> Option<Vec<Pos2>> {
+        if self.tool != Tool::Brush {
+            return None;
+        }
+        let at = self.pointer_stage?;
+        let half = f64::from(self.brush_size) / 2.0;
+        Some(
+            self.brush_nib
+                .outline_points(half, 48)
+                .into_iter()
+                .map(|p| Pos2::new(at.x + p.x as f32, at.y + p.y as f32))
+                .collect(),
+        )
+    }
+
     /// Draws the measurement and the symmetry axes over the stage.
     pub(super) fn assist_overlay(
         &mut self,
@@ -85,6 +103,18 @@ impl Workspace {
                 to_screen,
                 scale,
             )));
+        }
+        if let Some(outline) = self.brush_cursor() {
+            let points: Vec<Pos2> = outline.into_iter().map(to_screen).collect();
+            // A dark line under a light one reads on any color, and neither covers the artwork.
+            painter.add(egui::Shape::closed_line(
+                points.clone(),
+                Stroke::new(2.0, Color32::from_black_alpha(160)),
+            ));
+            painter.add(egui::Shape::closed_line(
+                points,
+                Stroke::new(1.0, Color32::WHITE),
+            ));
         }
         let drawing = matches!(self.tool, Tool::Pencil | Tool::Brush | Tool::Mirror);
         let (vertical, horizontal) = self.paint.symmetry.axes();

@@ -83,6 +83,17 @@ impl Nib {
         self.support(side).dot(side).abs()
     }
 
+    /// The closed outline of the nib at `radius`, `steps` points around it, for drawing a cursor.
+    pub fn outline_points(&self, radius: f64, steps: usize) -> Vec<DVec2> {
+        let steps = steps.clamp(8, 256);
+        (0..steps)
+            .map(|k| {
+                let angle = std::f64::consts::TAU * k as f64 / steps as f64;
+                self.support(DVec2::new(angle.cos(), angle.sin())) * radius
+            })
+            .collect()
+    }
+
     /// The point of a unit nib farthest in the direction `toward`; the nib is symmetric, so the
     /// far side is the negative of it. A zero direction gives no offset.
     pub(super) fn support(&self, toward: DVec2) -> DVec2 {

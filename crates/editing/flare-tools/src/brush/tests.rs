@@ -207,3 +207,21 @@ fn a_nib_never_makes_a_stroke_that_is_not_a_valid_closed_path() {
         }
     }
 }
+
+#[test]
+fn the_outline_points_of_a_nib_are_its_edge() {
+    let round = Nib::ROUND.outline_points(10.0, 32);
+    assert_eq!(round.len(), 32);
+    assert!(round.iter().all(|p| (p.length() - 10.0).abs() < 1e-9));
+    // A flat nib is squashed across its long axis and still reaches the full length along it.
+    let flat = Nib::new(NibShape::Round, 0.0, 20.0).outline_points(10.0, 64);
+    let tall = flat.iter().map(|p| p.y.abs()).fold(0.0, f64::max);
+    let wide = flat.iter().map(|p| p.x.abs()).fold(0.0, f64::max);
+    assert!(
+        (wide - 10.0).abs() < 1e-6 && (tall - 2.0).abs() < 0.05,
+        "{wide} {tall}"
+    );
+    // The count is kept to something drawable.
+    assert_eq!(Nib::ROUND.outline_points(1.0, 0).len(), 8);
+    assert_eq!(Nib::ROUND.outline_points(1.0, 1_000_000).len(), 256);
+}
