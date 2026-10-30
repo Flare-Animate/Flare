@@ -7,6 +7,7 @@ Skipped when the binary has not been built.
 """
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -68,6 +69,43 @@ class CommandLineSmoke(unittest.TestCase):
         swf = self.dir / "out.swf"
         self.run_cli("publish-swf", project, swf)
         self.assertIn(swf.read_bytes()[:3], (b"CWS", b"FWS", b"ZWS"))
+
+    def test_publishing_an_html5_page_that_plays_when_its_player_is_run(self):
+        project = self.drawn_project()
+        page = self.dir / "out.html"
+        published = json.loads(self.run_cli("publish-html5", project, page).stdout)
+        self.assertEqual(published["frames"], 12)
+        text = page.read_text()
+        self.assertTrue(text.startswith("<!DOCTYPE html>"))
+        self.run_cli("publish-html5", project, page, ok=False)  # never overwrites
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("node is not installed, so the player was not run")
+        harness = ROOT / "scripts/tests/html5_player_harness.js"
+        ran = subprocess.run([node, str(harness), str(page)], capture_output=True, text=True)
+        self.assertEqual(ran.returncode, 0, ran.stderr)
+        report = json.loads(ran.stdout)
+        # The 320 x 180 stage is drawn at its own size, and the first frame has the shape.
+        self.assertEqual(report["size"], [320, 180])
+        names = [call[0] for call in report["first"]]
+        self.assertIn("fillRect", names)
+        self.assertIn("fill", names)
+        self.assertIn("stroke", names)
+        fills = [c for c in report["first"] if c[0] == "set fillStyle"]
+        self.assertIn("rgba(255,106,0,1)", [c[1] for c in fills])
+        # It keeps playing, and a held drawing is drawn the same way each time.
+        self.assertGreater(report["rafLeft"], 0)
+        self.assertTrue(all("fill" in [c[0] for c in frame] for frame in report["later"]))
+        self.assertEqual(report["frames"], 12)
+
+    def test_the_html5_options_reach_the_page(self):
+        project = self.drawn_project()
+        page = self.dir / "fixed.html"
+        self.run_cli("publish-html5", project, page, "--no-loop", "--no-center", "--responsive")
+        text = page.read_text()
+        data = json.loads(text.split('type="application/json">')[1].split("</script>")[0])
+        self.assertEqual((data["loop"], data["responsive"]), (False, True))
+        self.assertNotIn("justify-content:center", text)
 
     def test_real_files_import_and_render(self):
         for name in ("sample.fla", "handmade.fla"):

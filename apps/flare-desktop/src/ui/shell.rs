@@ -52,12 +52,25 @@ impl App {
                     }
                 }
             }
-            DialogRequest::PublishSwf => {
-                if let Some(path) = dialogs::save_swf() {
+            DialogRequest::Publish => {
+                let settings = self.workspace.publish_settings();
+                if !settings.any() {
+                    dialogs::message("Publish", "Choose a format in Publish Settings first.");
+                } else if let Some(path) = dialogs::save_publish() {
                     let (document, _) = self.workspace.image_export();
-                    let compress = self.workspace.publish_compress();
+                    let plan = jobs::PublishPlan {
+                        swf: settings.swf.then_some(jobs::PublishOptions {
+                            compress: settings.compress,
+                        }),
+                        html5: settings.html5.then(|| jobs::Html5Options {
+                            loop_timeline: settings.loop_timeline,
+                            center_stage: settings.center_stage,
+                            responsive: settings.responsive,
+                            ..jobs::Html5Options::default()
+                        }),
+                    };
                     let done = exported(&self.proxy);
-                    if let Err(error) = jobs::publish_swf(document, path, compress, done) {
+                    if let Err(error) = jobs::publish(document, path, plan, done) {
                         dialogs::message("Cannot publish", &error.to_string());
                     }
                 }

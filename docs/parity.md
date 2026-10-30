@@ -29,7 +29,7 @@ first thing taken over and are in the importer and Flash adapter tests.
 - **Symbols:** Graphic, Movie Clip and Button exist as types (see [architecture.md](architecture.md)).
   Only the type is carried; a movie clip's own clock and a button's states are not run yet.
 - **ActionScript:** not in 0.1. It is kept as data in imported files, never run or edited.
-- **HTML5:** there is no HTML5 Canvas or WebGL export yet. PNG, GIF and SWF are the outputs.
+- **HTML5:** File > Publish writes an HTML5 Canvas page (one self-contained `.html` file) as well as a SWF, chosen in File > Publish Settings, where Animate has them: Loop timeline, Center stage and Make responsive. The page is baked like the SWF (tweens and symbols flattened, scenes played one after another) and has masks, gradients and strokes, but no sound, scripting or interactivity, and it is not a CreateJS document. WebGL is not planned for 0.1.
 
 ## Gaps against Animate that remain
 

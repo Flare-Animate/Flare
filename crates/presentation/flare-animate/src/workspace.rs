@@ -41,6 +41,7 @@ mod panels;
 mod pen_tool;
 mod playback;
 mod preferences;
+mod publish_settings;
 mod rail;
 mod render;
 mod selection;
@@ -63,6 +64,7 @@ pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 25
 pub use flare_audio::AudioEvent;
 pub use open_any::{IMPORT_EXTENSIONS, PROJECT_EXTENSIONS, PathKind, classify};
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
+pub use publish_settings::PublishSettings;
 pub use types::{
     DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest, onion_ghosts,
 };
@@ -94,7 +96,7 @@ pub struct Workspace {
     parked: Vec<Workspace>,
     /// This document's place among the tabs.
     position: usize,
-    publish_compress: bool,
+    publish: PublishSettings,
     /// Projects opened or saved lately, newest first.
     recent: Vec<PathBuf>,
     /// Folders shown shut in the timeline, hiding the layers inside.
@@ -231,7 +233,7 @@ impl Workspace {
             opening: None,
             parked: Vec::new(),
             position: 0,
-            publish_compress: true,
+            publish: PublishSettings::default(),
             recent: Vec::new(),
             collapsed_folders: std::collections::HashSet::new(),
             library_preview: None,

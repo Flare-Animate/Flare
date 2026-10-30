@@ -109,6 +109,39 @@ pub fn publish_swf(path: &Path, out: &Path, compress: bool) -> Result<Value> {
     }))
 }
 
+/// Publishes a project as an HTML5 Canvas page. Never overwrites; the file appears only when
+/// complete.
+pub fn publish_html5(
+    path: &Path,
+    out: &Path,
+    loop_timeline: bool,
+    center_stage: bool,
+    responsive: bool,
+) -> Result<Value> {
+    let session = open(path)?;
+    let title = out
+        .file_stem()
+        .map_or_else(|| "movie".to_owned(), |s| s.to_string_lossy().into_owned());
+    let options = flare_publish::Html5Options {
+        title,
+        loop_timeline,
+        center_stage,
+        responsive,
+    };
+    let published = flare_publish::publish_html5_to_file(session.document(), &options, out)?;
+    let diagnostics: Vec<Value> = published
+        .diagnostics
+        .iter()
+        .map(|d| json!({ "severity": format!("{:?}", d.severity).to_lowercase(), "message": d.message }))
+        .collect();
+    Ok(json!({
+        "published": out.to_string_lossy(),
+        "frames": published.frames,
+        "bytes": published.html.len(),
+        "diagnostics": diagnostics,
+    }))
+}
+
 /// Test Movie: publish the project and play it in an external Ruffle, waiting for it to close.
 pub fn test_movie(path: &Path, ruffle: Option<PathBuf>) -> Result<Value> {
     let session = open(path)?;

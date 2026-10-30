@@ -64,15 +64,34 @@ impl WebApp {
                     flare_runtime::gif_bytes(&document),
                 );
             }
-            DialogRequest::PublishSwf => {
+            DialogRequest::Publish => {
                 let (document, _) = self.workspace.image_export();
-                let options = flare_publish::PublishOptions {
-                    compress: self.workspace.publish_compress(),
-                };
-                let result = flare_publish::publish_swf(&document, &options)
-                    .map(|published| published.bytes)
-                    .map_err(|e| e.to_string());
-                self.deliver("movie.swf", "application/x-shockwave-flash", result);
+                let settings = self.workspace.publish_settings();
+                if !settings.any() {
+                    self.workspace
+                        .report_message("Choose a format in Publish Settings first");
+                }
+                if settings.swf {
+                    let options = flare_publish::PublishOptions {
+                        compress: settings.compress,
+                    };
+                    let result = flare_publish::publish_swf(&document, &options)
+                        .map(|published| published.bytes)
+                        .map_err(|e| e.to_string());
+                    self.deliver("movie.swf", "application/x-shockwave-flash", result);
+                }
+                if settings.html5 {
+                    let options = flare_publish::Html5Options {
+                        title: "movie".to_owned(),
+                        loop_timeline: settings.loop_timeline,
+                        center_stage: settings.center_stage,
+                        responsive: settings.responsive,
+                    };
+                    let result = flare_publish::publish_html5(&document, &options)
+                        .map(|published| published.html.into_bytes())
+                        .map_err(|e| e.to_string());
+                    self.deliver("movie.html", "text/html", result);
+                }
             }
             DialogRequest::ImportSound => {
                 self.workspace

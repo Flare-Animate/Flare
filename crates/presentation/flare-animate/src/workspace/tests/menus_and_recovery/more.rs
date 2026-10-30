@@ -259,7 +259,7 @@ fn a_fla_held_in_memory_imports_like_one_read_from_disk() {
 #[test]
 fn export_movie_asks_the_shell_for_a_file() {
     let mut ws = workspace();
-    assert_eq!(ws.label(MenuAction::ExportMovie), "Export Movie (GIF)...");
+    assert_eq!(ws.label(MenuAction::ExportMovie), "Export Animated GIF...");
     assert!(ws.is_enabled(MenuAction::ExportMovie));
     ws.perform(MenuAction::ExportMovie);
     assert_eq!(ws.take_dialog(), Some(DialogRequest::ExportMovie));

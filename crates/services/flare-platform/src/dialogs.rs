@@ -42,10 +42,11 @@ pub fn save_gif() -> Option<PathBuf> {
         .save_file()
 }
 
-pub fn save_swf() -> Option<PathBuf> {
+/// Asks where to publish. The name is shared by every format written, each with its own ending.
+pub fn save_publish() -> Option<PathBuf> {
     rfd::FileDialog::new()
-        .add_filter("SWF movie", &["swf"])
-        .set_file_name("movie.swf")
+        .set_title("Publish")
+        .set_file_name("movie")
         .save_file()
 }
 

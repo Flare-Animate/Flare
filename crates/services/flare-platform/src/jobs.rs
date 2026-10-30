@@ -5,7 +5,7 @@ use std::io;
 use std::path::PathBuf;
 
 use flare_document::Document;
-use flare_publish::PublishOptions;
+pub use flare_publish::{Html5Options, PublishOptions};
 pub use flare_ruffle::{TestMovie, TestMovieError};
 
 fn spawn(name: &str, job: impl FnOnce() + Send + 'static) -> io::Result<()> {
@@ -59,20 +59,73 @@ pub fn export_gif(
     })
 }
 
-/// Publishes a SWF. Never overwrites; the file appears only when complete.
-pub fn publish_swf(
+/// What to publish: each format that is present is written, beside the others.
+#[derive(Clone, Debug)]
+pub struct PublishPlan {
+    pub swf: Option<PublishOptions>,
+    pub html5: Option<Html5Options>,
+}
+
+/// The name a published file shares with its siblings: `path` without a `.swf` or `.html`
+/// ending, which a person may well have typed.
+fn publish_stem(path: &std::path::Path) -> String {
+    let name = path
+        .file_name()
+        .map_or_else(|| "movie".to_owned(), |n| n.to_string_lossy().into_owned());
+    let lower = name.to_ascii_lowercase();
+    for ending in [".swf", ".html", ".htm"] {
+        if lower.ends_with(ending) {
+            return name[..name.len() - ending.len()].to_owned();
+        }
+    }
+    name
+}
+
+/// Publishes the formats in `plan` next to `path` (`<name>.swf`, `<name>.html`) on a thread.
+/// Never overwrites; each file appears only when complete. The first failure is reported, but
+/// the other formats are still tried.
+pub fn publish(
     document: Document,
     path: PathBuf,
-    compress: bool,
+    plan: PublishPlan,
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-publish", move || {
-        let options = PublishOptions { compress };
-        let result = flare_publish::publish_to_file(&document, &options, &path)
-            .map(|_| ())
-            .map_err(|e| e.to_string());
-        done(result);
+        done(publish_now(&document, &path, &plan));
     })
+}
+
+/// [`publish`] on the calling thread.
+pub fn publish_now(
+    document: &Document,
+    path: &std::path::Path,
+    plan: &PublishPlan,
+) -> Result<(), String> {
+    if plan.swf.is_none() && plan.html5.is_none() {
+        return Err("Choose a format in Publish Settings first".to_owned());
+    }
+    let stem = publish_stem(path);
+    let at = |extension: &str| path.with_file_name(format!("{stem}.{extension}"));
+    let mut failures = Vec::new();
+    if let Some(options) = &plan.swf {
+        let target = at("swf");
+        if let Err(error) = flare_publish::publish_to_file(document, options, &target) {
+            failures.push(format!("{}: {error}", target.display()));
+        }
+    }
+    if let Some(options) = &plan.html5 {
+        let mut options = options.clone();
+        options.title = stem.clone();
+        let target = at("html");
+        if let Err(error) = flare_publish::publish_html5_to_file(document, &options, &target) {
+            failures.push(format!("{}: {error}", target.display()));
+        }
+    }
+    if failures.is_empty() {
+        Ok(())
+    } else {
+        Err(failures.join("; "))
+    }
 }
 
 /// Why a test movie could not be started.

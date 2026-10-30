@@ -16,7 +16,7 @@ when every box below is ticked.
 - [x] Projects: save, open, revert, recent files, several documents as tabs, autosave and crash
   recovery.
 - [x] Animate exchange: import and export XFL and FLA, with what is not carried over reported.
-- [x] Output: PNG, GIF and SWF.
+- [x] Output: PNG, GIF, SWF and an HTML5 Canvas page.
 - [x] The same documents from a command line (`flare-cli`) and an MCP server (`flare-mcp`).
 
 **Quality: what has to be true** (checked by machines)
@@ -137,6 +137,6 @@ The GUI is not driven by the automated tests, so before a release someone does t
    measure a distance with the Ruler.
 3. Insert keyframes, add a motion tween, scrub and play the timeline.
 4. Save as `.flare`, close, open it again; the drawing is intact.
-5. Import a `.fla`; export a PNG and a GIF; publish a SWF.
+5. Import a `.fla`; export a PNG and an animated GIF; File > Publish with both formats ticked, and open the page in a browser (it must play, loop and fit the window as set).
 6. Open two documents as tabs and switch between them.
 7. Quit with unsaved changes; the app asks first. Relaunch after a forced quit; recovery is offered.

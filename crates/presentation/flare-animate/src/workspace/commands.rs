@@ -85,7 +85,7 @@ impl Workspace {
             MenuAction::ConvertToSymbol => self.can_convert_selection(),
             MenuAction::Group => self.selection_all().len() >= 2,
             MenuAction::Ungroup | MenuAction::BreakApart => self.selection_has_instance(),
-            MenuAction::PublishSwf => !self.document().scenes().is_empty(),
+            MenuAction::Publish => !self.document().scenes().is_empty(),
             MenuAction::DocumentSettings | MenuAction::Preferences => true,
             MenuAction::EditSymbol => self.can_edit_selected_symbol(),
             MenuAction::ExitSymbol => self.in_symbol(),
@@ -216,7 +216,7 @@ impl Workspace {
             MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
             MenuAction::Group => self.group_selection(),
             MenuAction::Ungroup | MenuAction::BreakApart => self.break_apart_selection(),
-            MenuAction::PublishSwf => self.dialog = Some(DialogRequest::PublishSwf),
+            MenuAction::Publish => self.dialog = Some(DialogRequest::Publish),
             MenuAction::DocumentSettings => {
                 self.props_tab = PropsTab::Doc;
                 self.show_pane(Pane::Properties);

@@ -251,9 +251,9 @@ fn document_settings_opens_the_doc_tab_and_publishing_asks_the_shell_for_a_file(
     let mut ws = workspace();
     ws.perform(MenuAction::DocumentSettings);
     assert_eq!(ws.props_tab, PropsTab::Doc);
-    ws.perform(MenuAction::PublishSwf);
-    assert_eq!(ws.take_dialog(), Some(DialogRequest::PublishSwf));
-    assert_eq!(ws.label(MenuAction::PublishSwf), "Publish SWF...");
+    ws.perform(MenuAction::Publish);
+    assert_eq!(ws.take_dialog(), Some(DialogRequest::Publish));
+    assert_eq!(ws.label(MenuAction::Publish), "Publish");
 }
 
 #[test]

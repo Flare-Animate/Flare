@@ -20,4 +20,4 @@ apps/flare-web/scripts/build.sh
 
 Open and Import read a `.fla` with the browser's file picker. Save downloads the project as a `.fla`
 (XFL), because the `.flare` container is SQLite, which a page does not have. Export Image and
-Publish SWF download their file. Preferences are kept in local storage.
+Publish download their files. Preferences are kept in local storage.

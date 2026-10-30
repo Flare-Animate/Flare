@@ -1882,6 +1882,7 @@ dependencies = [
  "flare-export",
  "flare-render",
  "glamx",
+ "serde_json",
  "swf",
  "tempfile",
  "thiserror 2.0.21",

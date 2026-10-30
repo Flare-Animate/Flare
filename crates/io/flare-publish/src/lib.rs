@@ -10,9 +10,11 @@
 #![forbid(unsafe_code)]
 
 mod file;
+mod html5;
 mod shapes;
 
-pub use file::{PublishFileError, publish_to_file};
+pub use file::{PublishFileError, publish_html5_to_file, publish_to_file};
+pub use html5::{Html5Options, MAX_PAGE_BYTES, PublishedHtml, publish_html5};
 
 use std::collections::HashMap;
 
@@ -58,6 +60,8 @@ pub enum PublishError {
     Evaluate { frame: u32, message: String },
     #[error("writing the SWF: {0}")]
     Write(String),
+    #[error("the page would be larger than {0} bytes")]
+    PageTooLarge(usize),
 }
 
 #[derive(Debug, Clone)]

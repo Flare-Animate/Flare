@@ -192,10 +192,7 @@ impl Workspace {
     /// The SWF publish choices, with the button for the rest.
     fn publish_section(&mut self, ui: &mut Ui) {
         chrome::section(ui, "file-publish", "Publish Settings");
-        ui.checkbox(&mut self.publish_compress, "Compress the SWF");
-        if ui.button("More settings...").clicked() {
-            self.perform(MenuAction::PublishSettings);
-        }
+        self.publish_settings_ui(ui);
     }
 
     /// Stage size, background and the facts about the document.

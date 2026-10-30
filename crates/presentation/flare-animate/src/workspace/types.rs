@@ -60,7 +60,7 @@ pub enum DialogRequest {
     ImportSound,
     ExportImage,
     ExportMovie,
-    PublishSwf,
+    Publish,
     ImportProject,
 }
 

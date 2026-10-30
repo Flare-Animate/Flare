@@ -27,6 +27,12 @@ pub struct Preferences {
     pub smoothing: f32,
     /// Compress SWF files when publishing.
     pub publish_compress: bool,
+    /// Publish a Flash movie, and an HTML5 Canvas page, and how the page behaves.
+    pub publish_swf: bool,
+    pub publish_html5: bool,
+    pub html5_loop: bool,
+    pub html5_center: bool,
+    pub html5_responsive: bool,
     /// Projects opened or saved lately, newest first.
     pub recent: Vec<String>,
 }
@@ -45,6 +51,11 @@ impl Default for Preferences {
             loop_playback: true,
             smoothing: 2.0,
             publish_compress: true,
+            publish_swf: true,
+            publish_html5: true,
+            html5_loop: true,
+            html5_center: true,
+            html5_responsive: false,
             recent: Vec::new(),
         }
     }
@@ -61,7 +72,12 @@ impl Workspace {
             grid_size: self.display.grid_size,
             loop_playback: self.loop_playback,
             smoothing: self.smoothing,
-            publish_compress: self.publish_compress,
+            publish_compress: self.publish.compress,
+            publish_swf: self.publish.swf,
+            publish_html5: self.publish.html5,
+            html5_loop: self.publish.loop_timeline,
+            html5_center: self.publish.center_stage,
+            html5_responsive: self.publish.responsive,
             recent: self
                 .recent
                 .iter()
@@ -81,7 +97,14 @@ impl Workspace {
             finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
         self.loop_playback = preferences.loop_playback;
         self.smoothing = finite(f64::from(preferences.smoothing), 2.0).clamp(0.0, 20.0) as f32;
-        self.publish_compress = preferences.publish_compress;
+        self.publish = PublishSettings {
+            swf: preferences.publish_swf,
+            compress: preferences.publish_compress,
+            html5: preferences.publish_html5,
+            loop_timeline: preferences.html5_loop,
+            center_stage: preferences.html5_center,
+            responsive: preferences.html5_responsive,
+        };
         self.recent = preferences
             .recent
             .iter()
@@ -121,7 +144,7 @@ impl Workspace {
 
     /// Whether published SWF files are compressed.
     pub fn publish_compress(&self) -> bool {
-        self.publish_compress
+        self.publish.compress
     }
 
     /// The small windows opened from the File menu: recent projects and publish settings.
@@ -166,10 +189,8 @@ impl Workspace {
                 .collapsible(false)
                 .resizable(false)
                 .show(ctx, |ui| {
-                    ui.checkbox(&mut self.publish_compress, "Compress the SWF");
-                    ui.weak(
-                        "A compressed file is smaller; players older than Flash 6 cannot read it.",
-                    );
+                    self.publish_settings_ui(ui);
+                    ui.weak("File > Publish writes each format that is ticked, side by side.");
                 });
             self.windows.publish_settings = open;
         }

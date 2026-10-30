@@ -17,6 +17,6 @@ pub use actions::{MENU_LAYOUT, MenuAction, MenuEntry};
 pub use layout::{LayoutError, MAX_LAYOUT_BYTES, Pane};
 pub use workspace::{
     AudioEvent, DialogRequest, FrameOp, IMPORT_EXTENSIONS, MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES,
-    OnionSkin, PROJECT_EXTENSIONS, PathKind, Preferences, Tool, WindowRequest, Workspace, classify,
-    onion_ghosts,
+    OnionSkin, PROJECT_EXTENSIONS, PathKind, Preferences, PublishSettings, Tool, WindowRequest,
+    Workspace, classify, onion_ghosts,
 };

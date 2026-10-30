@@ -120,7 +120,7 @@ impl MenuAction {
             Self::Group => "group",
             Self::Ungroup => "ungroup",
             Self::BreakApart => "break-apart",
-            Self::PublishSwf => "file-publish",
+            Self::Publish => "file-publish",
             Self::DocumentSettings => "settings",
             Self::Preferences => "settings",
             Self::ToolRectangle => "tool-rectangle",

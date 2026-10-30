@@ -153,6 +153,21 @@ enum Command {
         #[arg(long)]
         no_compress: bool,
     },
+    /// Publish a project as one HTML5 Canvas page that plays it in a browser. Frames are baked
+    /// (tweens and symbols are flattened). The options are Animate's Publish Settings.
+    PublishHtml5 {
+        path: PathBuf,
+        out: PathBuf,
+        /// Stop on the last frame instead of looping the timeline.
+        #[arg(long)]
+        no_loop: bool,
+        /// Leave the stage at the top left instead of centering it.
+        #[arg(long)]
+        no_center: bool,
+        /// Scale the stage to fit the browser window.
+        #[arg(long)]
+        responsive: bool,
+    },
     /// Play the project in an external Ruffle (Test Movie) and wait for it to close.
     TestMovie {
         path: PathBuf,
@@ -287,6 +302,13 @@ fn main() -> Result<()> {
             out,
             no_compress,
         } => project::publish_swf(&path, &out, !no_compress)?,
+        Command::PublishHtml5 {
+            path,
+            out,
+            no_loop,
+            no_center,
+            responsive,
+        } => project::publish_html5(&path, &out, !no_loop, !no_center, responsive)?,
         Command::TestMovie { path, ruffle } => project::test_movie(&path, ruffle)?,
         Command::Layer {
             op,

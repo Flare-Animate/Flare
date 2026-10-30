@@ -38,7 +38,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ExportImage),
             Action(A::ExportMovie),
             Action(A::PublishSettings),
-            Action(A::PublishSwf),
+            Action(A::Publish),
             Separator,
             Action(A::Quit),
         ],

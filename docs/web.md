@@ -18,7 +18,7 @@ Everything from the document up compiles for the browser and is used unchanged: 
 JavaScript that loads it in `src/lib/`, a static page in `public/`, and a build script.
 
 - **Files.** There is no file system, so Open and Import read a `.fla` through the browser's file
-  picker (`flare-import` can read one from memory), and Save, Export Image and Publish SWF offer a
+  picker (`flare-import` can read one from memory), and Save, Export Image and Publish offer a
   download (`flare-export` writes a `.fla` to memory; `flare-runtime` and `flare-publish` return
   bytes).
 - **Preferences** live in local storage instead of `flare-platform`'s files.
