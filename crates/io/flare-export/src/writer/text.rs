@@ -47,9 +47,20 @@ pub(super) fn safe_stem(name: &str) -> String {
     }
 }
 
+/// The `symbolType` XFL gives a kind, or none: Animate leaves the attribute off a movie clip.
+pub(super) fn xfl_symbol_type(kind: flare_document::SymbolKind) -> Option<&'static str> {
+    match kind {
+        flare_document::SymbolKind::Graphic => Some("graphic"),
+        flare_document::SymbolKind::Button => Some("button"),
+        flare_document::SymbolKind::MovieClip => None,
+    }
+}
+
 pub(super) struct Names {
     /// Library names (unique) and file names, in symbol order.
     pub(super) library: Vec<(SymbolId, String, String)>,
+    /// What each symbol is, for the instances of it.
+    pub(super) kinds: Vec<(SymbolId, flare_document::SymbolKind)>,
 }
 
 impl Names {
@@ -58,6 +69,13 @@ impl Names {
             .iter()
             .find(|(s, _, _)| *s == id)
             .map_or("", |(_, name, _)| name)
+    }
+
+    pub(super) fn kind(&self, id: SymbolId) -> flare_document::SymbolKind {
+        self.kinds
+            .iter()
+            .find(|(s, _)| *s == id)
+            .map_or(flare_document::SymbolKind::Graphic, |(_, kind)| *kind)
     }
 }
 

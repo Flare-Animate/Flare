@@ -178,21 +178,6 @@ fn unsupported_features_are_reported_not_hidden() {
 }
 
 #[test]
-fn movie_clips_and_buttons_import_as_graphics_with_a_warning() {
-    let item = |kind: &str| format!(r#"<DOMSymbolItem name="S" symbolType="{kind}"/>"#);
-    let doc = r#"<DOMDocument><symbols><Include href="S.xml"/></symbols><timelines><DOMTimeline name="S"/></timelines></DOMDocument>"#;
-    for (kind, expected) in [("movie clip", "movie clip"), ("button", "button")] {
-        let files = Files::default()
-            .with("DOMDocument.xml", doc)
-            .with("LIBRARY/S.xml", &item(kind));
-        let imported = import_xfl(&files).expect("import");
-        assert_eq!(imported.document.symbols().len(), 1);
-        let warnings = messages(&imported, Severity::Warning).join("\n");
-        assert!(warnings.contains(expected), "{kind}: {warnings}");
-    }
-}
-
-#[test]
 fn shapes_with_holes_use_opposite_orientations_and_render_as_holes() {
     let xml = r##"<DOMDocument frameRate="24" width="30" height="30"><timelines><DOMTimeline name="S"><layers>
     <DOMLayer name="L"><frames><DOMFrame index="0"><elements><DOMShape>

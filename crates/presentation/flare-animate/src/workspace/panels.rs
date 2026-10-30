@@ -15,7 +15,7 @@ mod history;
 mod info;
 #[cfg(test)]
 pub(super) use info::color_at as info_color_at;
-mod library;
+pub(crate) mod library;
 mod properties;
 mod stage_bar;
 #[cfg(test)]

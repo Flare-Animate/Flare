@@ -19,6 +19,7 @@ use std::num::NonZeroU32;
 
 mod failures;
 mod roundtrip;
+mod symbol_kinds;
 
 fn sample() -> Document {
     let art = SymbolId::new();

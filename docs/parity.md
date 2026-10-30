@@ -19,6 +19,18 @@ first thing taken over and are in the importer and Flash adapter tests.
 | Android build, P2P remote control, game ECS | Not planned |
 | Issue-to-fix map and regression script | Replaced by tests that name the behaviour they protect |
 
+## Questions people ask
+
+- **`.fla` files:** modern ones (CS5 and later, which are zipped XFL) and XFL folders import and
+  export. Older binary `.fla` files (CS4 and before) are recognised and refused with a reason; open
+  them in Animate and save as a modern `.fla` or XFL. Reading the old binary format is not planned for 0.1.
+- **Pen pressure:** the Brush's width follows pressure (the Pencil's does not), for tablets that report force through the
+  window system. It is untested on real hardware.
+- **Symbols:** Graphic, Movie Clip and Button exist as types (see [architecture.md](architecture.md)).
+  Only the type is carried; a movie clip's own clock and a button's states are not run yet.
+- **ActionScript:** not in 0.1. It is kept as data in imported files, never run or edited.
+- **HTML5:** there is no HTML5 Canvas or WebGL export yet. PNG, GIF and SWF are the outputs.
+
 ## Gaps against Animate that remain
 
 The outline column's color picker (the chip cycles a palette for now), shape tweens, classic tweens with easing, text menu

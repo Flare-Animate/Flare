@@ -2,7 +2,9 @@
 
 use flare_commands::Command;
 use flare_core::{InstanceId, LayerId, SceneId, SymbolId, Transform2D};
-use flare_document::{Content, Document, FrameSpan, Instance, Layer, Symbol, Timeline, Tween};
+use flare_document::{
+    Content, Document, FrameSpan, Instance, Layer, Symbol, SymbolKind, Timeline, Tween,
+};
 use glamx::{DAffine2, DVec2};
 use std::num::NonZeroU32;
 
@@ -139,6 +141,16 @@ pub fn convert_to_symbol(
     scene: SceneId,
     at: SpanRef,
 ) -> Option<(Vec<Command>, SymbolId)> {
+    convert_to_symbol_as(document, scene, at, SymbolKind::Graphic)
+}
+
+/// [`convert_to_symbol`] making a symbol of the given kind.
+pub fn convert_to_symbol_as(
+    document: &Document,
+    scene: SceneId,
+    at: SpanRef,
+    kind: SymbolKind,
+) -> Option<(Vec<Command>, SymbolId)> {
     let span = find_span(document, scene, at)?;
     let Content::Shape(shape) = span.content() else {
         return None;
@@ -147,7 +159,7 @@ pub fn convert_to_symbol(
     let inner = FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(shape.clone()));
     let layer = Layer::new(LayerId::new(), "Layer 1", vec![inner]).ok()?;
     let name = format!("Symbol {}", document.symbols().len() + 1);
-    let symbol = Symbol::new(symbol_id, name, Timeline::new(vec![layer]));
+    let symbol = Symbol::new(symbol_id, name, Timeline::new(vec![layer])).with_kind(kind);
     let instance = Instance::new(InstanceId::new(), symbol_id, Transform2D::IDENTITY);
     let outer = FrameSpan::new(span.start(), span.duration(), Content::Instance(instance));
     Some((

@@ -6,7 +6,7 @@
 //! (including symbol cycles) like any other edit.
 
 use flare_core::{SceneId, SymbolId};
-use flare_document::{Document, Scene, Symbol, Timeline};
+use flare_document::{Document, Scene, Timeline};
 
 /// A scratch document whose only scene is `symbol`'s timeline, plus that scene's ID.
 ///
@@ -22,7 +22,7 @@ pub fn symbol_workspace(document: &Document, symbol: SymbolId) -> Option<(Docume
         .iter()
         .map(|s| {
             if s.id() == symbol {
-                Symbol::new(s.id(), s.name(), Timeline::default())
+                s.clone().with_timeline(Timeline::default())
             } else {
                 s.clone()
             }
@@ -40,7 +40,7 @@ mod tests {
     use std::num::NonZeroU32;
 
     use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, Rgba8, ShapeId, Transform2D};
-    use flare_document::{Content, FrameSpan, Instance, Layer, Shape};
+    use flare_document::{Content, FrameSpan, Instance, Layer, Shape, Symbol};
 
     use super::*;
     use flare_commands::{Command, EditError};

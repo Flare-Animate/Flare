@@ -2,7 +2,7 @@
 
 use crate::StorageError;
 use flare_core::{DocumentId, FrameRate, Rgba8, SceneId, SymbolId};
-use flare_document::{Attachment, Document, Scene, Sound, Stage, Symbol};
+use flare_document::{Attachment, Document, Scene, Sound, Stage, Symbol, SymbolKind};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -53,6 +53,9 @@ impl SceneWire {
 #[derive(Serialize, Deserialize)]
 pub(crate) struct SymbolWire {
     name: String,
+    /// Files from before symbol kinds name none, and mean a graphic.
+    #[serde(default)]
+    kind: String,
     timeline: TimelineWire,
 }
 
@@ -60,16 +63,26 @@ impl SymbolWire {
     pub(crate) fn of(symbol: &Symbol) -> Self {
         Self {
             name: symbol.name().to_owned(),
+            kind: symbol.kind().name().to_owned(),
             timeline: TimelineWire::of(symbol.timeline()),
         }
     }
 
     pub(crate) fn build(self, id: &str) -> Result<Symbol, StorageError> {
+        // A name that is not a kind is a damaged file, not something to guess at.
+        let kind = if self.kind.is_empty() {
+            SymbolKind::Graphic
+        } else {
+            SymbolKind::from_name(&self.kind).ok_or_else(|| {
+                StorageError::Corrupt(format!("unknown symbol kind {:?}", self.kind))
+            })?
+        };
         Ok(Symbol::new(
             SymbolId::from_uuid(uuid(id)?),
             self.name,
             self.timeline.build()?,
-        ))
+        )
+        .with_kind(kind))
     }
 }
 

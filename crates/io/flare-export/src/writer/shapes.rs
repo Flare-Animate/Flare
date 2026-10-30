@@ -159,14 +159,16 @@ pub(super) fn write_shape(
 
 pub(super) fn write_instance(out: &mut Xml, instance: &Instance, names: &Names) {
     let [m_a, m_b, m_c, m_d, tx, ty] = instance.transform().as_affine().to_cols_array();
-    out.open(
-        "DOMSymbolInstance",
-        [
-            a("libraryItemName", names.library_name(instance.symbol())),
-            a("symbolType", "graphic"),
-            a("loop", "loop"),
-        ],
-    );
+    let kind = names.kind(instance.symbol());
+    let mut attrs = vec![a("libraryItemName", names.library_name(instance.symbol()))];
+    if let Some(symbol_type) = xfl_symbol_type(kind) {
+        attrs.push(a("symbolType", symbol_type));
+    }
+    // Only a graphic has a frame-loop setting.
+    if kind == flare_document::SymbolKind::Graphic {
+        attrs.push(a("loop", "loop"));
+    }
+    out.open("DOMSymbolInstance", attrs);
     out.open("matrix", []);
     out.empty(
         "Matrix",

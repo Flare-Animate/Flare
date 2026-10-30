@@ -157,11 +157,27 @@ impl Workspace {
             .find(|name| !taken.contains(name))
             .unwrap_or_default();
         let id = SymbolId::new();
-        let symbol = flare_document::Symbol::new(id, name, flare_document::Timeline::default());
+        let symbol = flare_document::Symbol::new(id, name, flare_document::Timeline::default())
+            .with_kind(self.new_symbol_kind);
         self.run_batch(vec![Command::AddSymbol(symbol)], "add the symbol");
         if self.status.is_none() {
             self.selected_symbol = Some(id);
         }
+    }
+
+    /// Makes a library symbol another kind, as one undo step.
+    pub fn set_symbol_kind(&mut self, id: SymbolId, kind: flare_document::SymbolKind) {
+        if self.in_symbol() {
+            self.report("Leave symbol editing to change the library");
+            return;
+        }
+        if self.document().symbol(id).is_none_or(|s| s.kind() == kind) {
+            return;
+        }
+        self.run_batch(
+            vec![Command::SetSymbolKind { symbol: id, kind }],
+            "change the symbol's type",
+        );
     }
 
     /// Renames a library symbol; a blank name is ignored.

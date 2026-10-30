@@ -110,7 +110,12 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
         }
         library.push((symbol.id(), name, file));
     }
-    let names = Names { library };
+    let kinds = document
+        .symbols()
+        .iter()
+        .map(|s| (s.id(), s.kind()))
+        .collect();
+    let names = Names { library, kinds };
     let mut ctx = Ctx {
         names: &names,
         notes: Vec::new(),
@@ -170,14 +175,11 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
     let mut files = vec![("DOMDocument.xml".to_owned(), main.finish())];
     for (symbol, (_, name, file)) in document.symbols().iter().zip(&names.library) {
         let mut item = Xml::new();
-        item.open(
-            "DOMSymbolItem",
-            [
-                a("xmlns", NAMESPACE),
-                a("name", name),
-                a("symbolType", "graphic"),
-            ],
-        );
+        let mut attrs = vec![a("xmlns", NAMESPACE), a("name", name)];
+        if let Some(kind) = xfl_symbol_type(symbol.kind()) {
+            attrs.push(a("symbolType", kind));
+        }
+        item.open("DOMSymbolItem", attrs);
         item.open("timeline", []);
         write_timeline(
             &mut item,

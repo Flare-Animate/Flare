@@ -29,6 +29,7 @@ impl Workspace {
         self.paint.stroke_join = from.paint.stroke_join;
         self.paint.symmetry = from.paint.symmetry;
         self.paint.straight_edge = from.paint.straight_edge;
+        self.new_symbol_kind = from.new_symbol_kind;
         self.native_menu = from.native_menu;
         self.titlebar_inset = from.titlebar_inset;
         self.recovery.dir = from.recovery.dir.take();

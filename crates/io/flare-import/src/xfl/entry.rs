@@ -3,7 +3,7 @@
 use crate::xml::{self, Node};
 use flare_core::{DocumentId, Rgba8, SceneId, SymbolId};
 use flare_document::{
-    Anchor, Document, MAX_ATTACHMENTS, Placement, Scene, Stage, Symbol, Timeline,
+    Anchor, Document, MAX_ATTACHMENTS, Placement, Scene, Stage, Symbol, SymbolKind, Timeline,
 };
 use std::collections::HashMap;
 
@@ -87,10 +87,16 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
     let mut symbols = Vec::with_capacity(items.len());
     for (name, id, item) in &items {
         let place = format!("symbol \"{name}\"");
-        match item.attr("symbolType") {
-            Some("graphic") => {}
-            Some("button") => importer.note(Severity::Warning, &place, "a button was imported as a Graphic symbol; its states and events are not preserved"),
-            _ => importer.note(Severity::Warning, &place, "a movie clip was imported as a Graphic symbol; its independent clock and scripts are not preserved"),
+        // XFL leaves the type out for a movie clip.
+        let kind = match item.attr("symbolType") {
+            Some("graphic") => SymbolKind::Graphic,
+            Some("button") => SymbolKind::Button,
+            _ => SymbolKind::MovieClip,
+        };
+        match kind {
+            SymbolKind::Graphic => {}
+            SymbolKind::Button => importer.note(Severity::Warning, &place, "a button keeps its type, but its up, over, down and hit states and its events are not carried out"),
+            SymbolKind::MovieClip => importer.note(Severity::Warning, &place, "a movie clip keeps its type, but its own clock and its scripts are not carried out"),
         }
         let timeline = item
             .child("timeline")
@@ -103,7 +109,7 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
             let note = format!("{place} / <{}>", child.name);
             importer.keep(Anchor::Symbol(*id), Placement::Child, child.to_xml(), &note);
         }
-        symbols.push(Symbol::new(*id, name.clone(), timeline));
+        symbols.push(Symbol::new(*id, name.clone(), timeline).with_kind(kind));
     }
 
     let mut scenes = Vec::new();

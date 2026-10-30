@@ -410,3 +410,30 @@ fn a_motion_guide_cannot_also_be_a_mask_or_a_folder() {
         );
     }
 }
+
+#[test]
+fn a_symbol_is_a_graphic_until_made_another_kind_and_keeps_its_kind_through_edits() {
+    let id = SymbolId::new();
+    let symbol = Symbol::new(id, "Ball", timeline(vec![]));
+    assert_eq!(symbol.kind(), SymbolKind::Graphic);
+    let button = symbol.clone().with_kind(SymbolKind::Button);
+    assert_eq!(
+        (button.name(), button.timeline()),
+        ("Ball", symbol.timeline())
+    );
+    let renamed = button.clone().with_name("Press");
+    assert_eq!(renamed.kind(), SymbolKind::Button);
+    let moved = button.with_timeline(timeline(vec![span(0, 2, Content::Empty)]));
+    assert_eq!((moved.kind(), moved.name()), (SymbolKind::Button, "Ball"));
+    assert_eq!(moved.timeline().layers()[0].spans().len(), 1);
+}
+
+#[test]
+fn kinds_have_names_that_read_back_and_other_names_are_not_kinds() {
+    for kind in SymbolKind::ALL {
+        assert_eq!(SymbolKind::from_name(kind.name()), Some(kind));
+        assert!(!kind.label().is_empty());
+    }
+    assert_eq!(SymbolKind::from_name("sprite"), None);
+    assert_eq!(SymbolKind::from_name(""), None);
+}

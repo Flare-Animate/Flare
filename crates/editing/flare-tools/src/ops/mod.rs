@@ -30,8 +30,8 @@ pub use bounds::{shape_bounds, span_bounds, spans_bounds, symbol_bounds};
 #[allow(unused_imports)]
 use clipboard::*;
 pub use clipboard::{
-    ClipItem, clip_bounds, convert_to_symbol, copy_span, duplicate, duplicate_through, paste,
-    paste_offset, place_instance,
+    ClipItem, clip_bounds, convert_to_symbol, convert_to_symbol_as, copy_span, duplicate,
+    duplicate_through, paste, paste_offset, place_instance,
 };
 #[allow(unused_imports)]
 use grouping::*;

@@ -11,6 +11,15 @@ use super::*;
 /// Height of the preview well above the list: room for a picture and the symbol's name.
 const PREVIEW_WELL: f32 = 110.0;
 
+/// The icon that tells the kinds of symbol apart in the list.
+pub(crate) fn kind_icon(kind: flare_document::SymbolKind) -> &'static str {
+    match kind {
+        flare_document::SymbolKind::Graphic => "symbol-graphic",
+        flare_document::SymbolKind::MovieClip => "symbol-movie-clip",
+        flare_document::SymbolKind::Button => "symbol-button",
+    }
+}
+
 impl Workspace {
     // ---- library -----------------------------------------------------------------------
 
@@ -60,11 +69,11 @@ impl Workspace {
     }
 
     pub(crate) fn library_panel(&mut self, ui: &mut Ui) {
-        let entries: Vec<(SymbolId, String)> = self
+        let entries: Vec<(SymbolId, String, flare_document::SymbolKind)> = self
             .document()
             .symbols()
             .iter()
-            .map(|s| (s.id(), s.name().to_owned()))
+            .map(|s| (s.id(), s.name().to_owned(), s.kind()))
             .collect();
         let ctx = ui.ctx().clone();
         // A preview well above the list, as in other animation tools.
@@ -91,8 +100,8 @@ impl Workspace {
                     match self.selected_symbol.and_then(|id| {
                         entries
                             .iter()
-                            .find(|(s, _)| *s == id)
-                            .map(|(_, n)| n.clone())
+                            .find(|(s, _, _)| *s == id)
+                            .map(|(_, n, _)| n.clone())
                     }) {
                         Some(name) => name,
                         None => "No symbol selected".to_owned(),
@@ -101,15 +110,24 @@ impl Workspace {
             });
         });
         ui.add_space(4.0);
+        chrome::row(ui, "New symbols", |ui| {
+            egui::ComboBox::from_id_salt("new_symbol_kind")
+                .selected_text(self.new_symbol_kind.label())
+                .show_ui(ui, |ui| {
+                    for kind in flare_document::SymbolKind::ALL {
+                        ui.selectable_value(&mut self.new_symbol_kind, kind, kind.label());
+                    }
+                });
+        });
         ui.add(
             egui::TextEdit::singleline(&mut self.library_search)
                 .hint_text("Search library")
                 .desired_width(f32::INFINITY),
         );
         let needle = self.library_search.trim().to_lowercase();
-        let entries: Vec<(SymbolId, String)> = entries
+        let entries: Vec<(SymbolId, String, flare_document::SymbolKind)> = entries
             .into_iter()
-            .filter(|(_, name)| needle.is_empty() || name.to_lowercase().contains(&needle))
+            .filter(|(_, name, _)| needle.is_empty() || name.to_lowercase().contains(&needle))
             .collect();
         ui.add_space(4.0);
         let list_height = (ui.available_height() - 34.0).max(40.0);
@@ -123,7 +141,7 @@ impl Workspace {
                         ui.weak("Select artwork and press F8 to make one.");
                     });
                 }
-                for (id, name) in entries {
+                for (id, name, kind) in entries {
                     let chosen = self.selected_symbol == Some(id);
                     if let Some((target, text)) = &mut self.renaming
                         && *target == id
@@ -144,7 +162,8 @@ impl Workspace {
                     }
                     let response = ui
                         .horizontal(|ui| {
-                            ui.add(icons::image("symbol-graphic", 16.0, theme::TEXT_DIM));
+                            ui.add(icons::image(kind_icon(kind), 16.0, theme::TEXT_DIM))
+                                .on_hover_text(kind.label());
                             ui.selectable_label(chosen, name.clone())
                         })
                         .inner;
@@ -153,6 +172,17 @@ impl Workspace {
                             self.renaming = Some((id, name.clone()));
                             ui.close();
                         }
+                        ui.menu_button("Type", |ui| {
+                            for option in flare_document::SymbolKind::ALL {
+                                if ui
+                                    .selectable_label(kind == option, option.label())
+                                    .clicked()
+                                {
+                                    self.set_symbol_kind(id, option);
+                                    ui.close();
+                                }
+                            }
+                        });
                         if ui.button("Delete").clicked() {
                             self.delete_symbol(id);
                             ui.close();
@@ -184,11 +214,11 @@ impl Workspace {
             let editable = !self.in_symbol();
             if chrome::icon_button(
                 ui,
-                "symbol-movie-clip",
+                kind_icon(self.new_symbol_kind),
                 BAR_ICON,
                 false,
                 editable,
-                "New symbol",
+                &format!("New {} symbol", self.new_symbol_kind.label()),
             )
             .clicked()
             {

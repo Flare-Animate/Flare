@@ -213,7 +213,8 @@ impl Workspace {
     pub fn can_convert_selection(&self) -> bool {
         match (self.selected, self.scene_id()) {
             (Some(selected), Some(scene)) => {
-                ops::convert_to_symbol(self.document(), scene, selected).is_some()
+                ops::convert_to_symbol_as(self.document(), scene, selected, self.new_symbol_kind)
+                    .is_some()
             }
             _ => false,
         }
@@ -224,7 +225,8 @@ impl Workspace {
         let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
             return;
         };
-        let Some((commands, symbol)) = ops::convert_to_symbol(self.document(), scene, selected)
+        let Some((commands, symbol)) =
+            ops::convert_to_symbol_as(self.document(), scene, selected, self.new_symbol_kind)
         else {
             self.report("Select a shape to convert to a symbol");
             return;

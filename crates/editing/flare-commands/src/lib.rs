@@ -6,7 +6,7 @@ use flare_core::{FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
 use flare_document::{
     Diagnostic, Document, FrameSpan, Layer, Scene, Sound, SoundCue, SoundError, Stage, Symbol,
-    TimelineError,
+    SymbolKind, TimelineError,
 };
 use thiserror::Error;
 
@@ -29,6 +29,10 @@ pub enum LayerChange {
 pub enum Command {
     AddSymbol(Symbol),
     AddScene(Scene),
+    SetSymbolKind {
+        symbol: SymbolId,
+        kind: SymbolKind,
+    },
     RenameSymbol {
         symbol: SymbolId,
         name: String,
@@ -175,6 +179,13 @@ fn step(
                 .ok_or(EditError::NoSuchSymbol(symbol))?;
             *slot = slot.clone().with_name(name);
         }
+        Command::SetSymbolKind { symbol, kind } => {
+            let slot = symbols
+                .iter_mut()
+                .find(|s| s.id() == symbol)
+                .ok_or(EditError::NoSuchSymbol(symbol))?;
+            *slot = slot.clone().with_kind(kind);
+        }
         Command::RemoveSymbol(id) => {
             let before = symbols.len();
             symbols.retain(|s| s.id() != id);
@@ -192,14 +203,14 @@ fn step(
                 .iter_mut()
                 .find(|s| s.id() == symbol)
                 .ok_or(EditError::NoSuchSymbol(symbol))?;
-            *slot = Symbol::new(slot.id(), slot.name(), timeline);
+            *slot = slot.clone().with_timeline(timeline);
         }
         Command::ReplaceSymbolTimeline { symbol, timeline } => {
             let slot = symbols
                 .iter_mut()
                 .find(|s| s.id() == symbol)
                 .ok_or(EditError::NoSuchSymbol(symbol))?;
-            *slot = Symbol::new(slot.id(), slot.name(), timeline);
+            *slot = slot.clone().with_timeline(timeline);
         }
         Command::SetStage(new_stage) => *stage = new_stage,
         Command::SetFrameRate(new_rate) => *rate = new_rate,

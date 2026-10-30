@@ -297,3 +297,50 @@ fn the_library_draws_a_preview_of_the_selected_symbol_once_per_change() {
     ws.selected_symbol = Some(symbol);
     run(&mut ws, &ctx, 0.0);
 }
+
+#[test]
+fn symbols_can_be_made_and_changed_into_each_kind_with_one_undo_step() {
+    use flare_document::SymbolKind;
+    let mut ws = workspace();
+    for kind in SymbolKind::ALL {
+        ws.new_symbol_kind = kind;
+        ws.new_symbol();
+        let id = ws.selected_symbol.expect("the new symbol is selected");
+        assert_eq!(ws.document().symbol(id).expect("symbol").kind(), kind);
+    }
+    let id = ws.selected_symbol.expect("selected");
+    ws.set_symbol_kind(id, SymbolKind::Graphic);
+    assert_eq!(
+        ws.document().symbol(id).expect("symbol").kind(),
+        SymbolKind::Graphic
+    );
+    ws.undo();
+    assert_eq!(
+        ws.document().symbol(id).expect("symbol").kind(),
+        SymbolKind::Button
+    );
+    // The same kind again is not an edit.
+    let revision = ws.active().revision();
+    ws.set_symbol_kind(id, SymbolKind::Button);
+    assert_eq!(ws.active().revision(), revision);
+}
+
+#[test]
+fn converting_a_selection_makes_the_chosen_kind_and_each_kind_has_its_own_icon() {
+    use crate::workspace::panels::library::kind_icon;
+    use flare_document::SymbolKind;
+    let mut ws = workspace();
+    draw_and_select(&mut ws);
+    ws.new_symbol_kind = SymbolKind::MovieClip;
+    ws.perform(MenuAction::ConvertToSymbol);
+    let id = ws.selected_symbol.expect("the symbol is selected");
+    assert_eq!(
+        ws.document().symbol(id).expect("symbol").kind(),
+        SymbolKind::MovieClip
+    );
+    let icons: std::collections::HashSet<_> = SymbolKind::ALL.into_iter().map(kind_icon).collect();
+    assert_eq!(icons.len(), 3);
+    for icon in icons {
+        assert!(flare_ui::icons::exists(icon), "{icon}");
+    }
+}

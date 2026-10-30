@@ -339,3 +339,24 @@ fn a_mirror_copy_has_its_own_identity_and_a_collapsing_matrix_is_refused() {
     assert!(duplicate_through(&document, f.scene, at(&f, 0), flat, "x").is_none());
     assert!(duplicate_through(&document, f.scene, at(&f, 9), flip, "x").is_none());
 }
+
+#[test]
+fn converting_can_make_a_button_or_movie_clip_and_defaults_to_a_graphic() {
+    use flare_document::SymbolKind;
+    for (kind, convert) in [
+        (SymbolKind::Graphic, None),
+        (SymbolKind::Button, Some(SymbolKind::Button)),
+        (SymbolKind::MovieClip, Some(SymbolKind::MovieClip)),
+    ] {
+        let mut f = fixture();
+        add(&mut f, rect_span(0, 4, 0.0, 0.0, 10.0, 10.0));
+        let (commands, symbol) = match convert {
+            Some(kind) => convert_to_symbol_as(f.session.document(), f.scene, at(&f, 0), kind),
+            None => convert_to_symbol(f.session.document(), f.scene, at(&f, 0)),
+        }
+        .expect("convertible");
+        f.session.apply(commands).expect("apply");
+        let made = f.session.document().symbol(symbol).expect("symbol");
+        assert_eq!(made.kind(), kind);
+    }
+}

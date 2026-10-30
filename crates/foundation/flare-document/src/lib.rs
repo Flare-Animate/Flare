@@ -31,10 +31,46 @@ pub use validate::Diagnostic;
 
 use flare_core::{DocumentId, FrameRate, SceneId, SymbolId};
 
-/// Graphic symbols only for now; Movie Clip and Button are preserved data later.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// What a symbol is, as in Animate. The kind is kept, edited, saved and exchanged through XFL; in
+/// 0.1.0 all three play alike (a symbol's frames follow the parent's), so a movie clip's own clock
+/// and a button's up, over, down and hit states are not carried out.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum SymbolKind {
+    #[default]
     Graphic,
+    MovieClip,
+    Button,
+}
+
+impl SymbolKind {
+    pub const ALL: [Self; 3] = [Self::Graphic, Self::MovieClip, Self::Button];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Graphic => "Graphic",
+            Self::MovieClip => "Movie Clip",
+            Self::Button => "Button",
+        }
+    }
+
+    /// The name XFL and the project file use for it.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Graphic => "graphic",
+            Self::MovieClip => "movie clip",
+            Self::Button => "button",
+        }
+    }
+
+    /// The kind a name stands for, or `None` for a name that is not one of the three.
+    pub fn from_name(name: &str) -> Option<Self> {
+        Some(match name {
+            "graphic" => Self::Graphic,
+            "movie clip" => Self::MovieClip,
+            "button" => Self::Button,
+            _ => return None,
+        })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -72,6 +108,20 @@ impl Symbol {
 
     pub fn kind(&self) -> SymbolKind {
         self.kind
+    }
+
+    /// The same symbol as another kind.
+    #[must_use]
+    pub fn with_kind(mut self, kind: SymbolKind) -> Self {
+        self.kind = kind;
+        self
+    }
+
+    /// The same symbol (name and kind kept) with another timeline.
+    #[must_use]
+    pub fn with_timeline(mut self, timeline: Timeline) -> Self {
+        self.timeline = timeline;
+        self
     }
 
     pub fn timeline(&self) -> &Timeline {

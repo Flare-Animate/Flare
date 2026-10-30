@@ -17,6 +17,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - Drawing tools: selection, subselection, free transform, lasso, pen, text, line, rectangle,
   ellipse, polystar, pencil, brush, paint bucket, ink bottle, eyedropper, eraser, hand, zoom,
   ruler (measures distance and angle) and mirror (sets the axes for symmetric drawing).
+- Symbols have a type (Graphic, Movie Clip or Button), chosen when making one or changed in the Library, saved in the project and exchanged through XFL.
 - A Home page at launch: new-project sizes, Open, Import and recent projects.
 - Pencil and Brush can draw a straight line (option, or hold Shift) and mirror each stroke across
   one or two axes; Modify > Mirror Copy makes a reflected copy of the selection.
