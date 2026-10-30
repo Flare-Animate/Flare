@@ -19,6 +19,7 @@ impl Workspace {
             self.chrome_ready = true;
         }
         let now = ui.input(|i| i.time);
+        self.open_dropped(&ctx);
         self.drain_background();
         self.advance(now);
         self.ensure_sounds_decoded();

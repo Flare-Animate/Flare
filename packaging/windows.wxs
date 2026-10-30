@@ -36,10 +36,26 @@
                          Type="string" Value="application/x-flare" />
           <RegistryValue Root="HKLM" Key="Software\Classes\.flare\OpenWithProgids"
                          Name="Flare.Project" Type="string" Value="" />
+          <!-- Animate's formats are offered under "Open with" and in Default apps, never made the
+               default. -->
+          <RegistryValue Root="HKLM" Key="Software\Classes\Flare.Animate" Type="string"
+                         Value="Animate Document" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Flare.Animate\DefaultIcon"
+                         Type="string" Value="&quot;[#FlareExe]&quot;,0" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Flare.Animate\shell\open\command"
+                         Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\.fla\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\.xfl\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe"
                          Name="FriendlyAppName" Type="string" Value="Flare" />
           <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\SupportedTypes"
                          Name=".flare" Type="string" Value="" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\SupportedTypes"
+                         Name=".fla" Type="string" Value="" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\SupportedTypes"
+                         Name=".xfl" Type="string" Value="" />
           <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\shell\open\command"
                          Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
           <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities"
@@ -48,6 +64,10 @@
                          Name="ApplicationDescription" Type="string" Value="Flare animation tool" />
           <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".flare" Type="string" Value="Flare.Project" />
+          <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".fla" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".xfl" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="Flare"
                          Type="string" Value="Software\Flare\Capabilities" />
         </Component>

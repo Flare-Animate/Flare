@@ -100,6 +100,22 @@ and the full release workflow (all six targets: MSI, `.deb`, `.rpm`, AppImage, D
 archives, checksums) ran green on GitHub without publishing. The workflow only runs on a `v*` tag, on
 pull requests that touch packaging, or by hand from the Actions tab (no tag, nothing is published).
 
+## File types
+
+Flare is registered for `.flare` projects (it owns them) and for Animate's `.fla` and `.xfl`
+files, which it imports as a new, unsaved project; it is offered for those two, never made their
+default. Opening any of them, from the file manager, "Open with", the command line (several files
+at once) or by dropping them on the window, goes through one place (`open_any.rs`), and
+`scripts/tests/test_associations.py` checks that the macOS bundle, the Linux desktop entry and MIME
+types and the Windows installer name exactly the extensions that file lists. An XFL folder is opened
+by dropping it on the window or with File > Import; a folder cannot be a registered type. Flare is
+not registered for what it only writes (PNG, GIF, SWF) or imports as sound.
+
+macOS hands a double-clicked file to a running app as an Apple event, which the window library
+(winit 0.30) does not pass on and which cannot be handled in safe Rust. So on macOS the types are
+registered (Open With and Get Info list Flare) but a double-click does not open the file yet; drop it on
+the window or use File > Open instead. Windows and Linux pass the path on the command line.
+
 ## Icon
 
 `assets/flare-icon.png` is the 1024 px master: a transparent rounded square with a thin dark edge,

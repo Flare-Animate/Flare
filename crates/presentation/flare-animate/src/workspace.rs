@@ -35,6 +35,7 @@ mod help;
 mod helpers;
 mod home;
 mod layers;
+mod open_any;
 mod outlines;
 mod panels;
 mod pen_tool;
@@ -59,6 +60,7 @@ use helpers::*;
 use types::*;
 pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
 pub use flare_audio::AudioEvent;
+pub use open_any::{IMPORT_EXTENSIONS, PROJECT_EXTENSIONS, PathKind, classify};
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use types::{
     DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest, onion_ghosts,

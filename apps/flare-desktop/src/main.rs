@@ -6,18 +6,14 @@ mod ui;
 
 use std::path::PathBuf;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use flare_animate::{MAX_LAYOUT_BYTES, MAX_PREFERENCES_BYTES, Workspace};
 use flare_platform::{dirs, recovery};
 
 fn main() -> Result<()> {
-    let named = std::env::args_os().nth(1).map(PathBuf::from);
+    // Every file the system hands over: a double-click, "Open with" or the command line.
+    let named: Vec<PathBuf> = std::env::args_os().skip(1).map(PathBuf::from).collect();
     let mut workspace = Workspace::untitled().map_err(anyhow::Error::msg)?;
-    if let Some(path) = &named {
-        let document =
-            flare_storage::load(path).with_context(|| format!("cannot open {}", path.display()))?;
-        workspace = Workspace::new(document, Some(path.clone()));
-    }
     if let Some(path) = dirs::layout_file()
         && let Some(json) = dirs::read_layout(&path, MAX_LAYOUT_BYTES)
         && let Err(error) = workspace.restore_layout(&json)
@@ -34,7 +30,7 @@ fn main() -> Result<()> {
     if let Some(dir) = dirs::recovery_dir() {
         workspace.enable_recovery(dir.clone());
         // Only offer recovery on a plain launch, not when a project was named explicitly.
-        if named.is_none()
+        if named.is_empty()
             && let Some(newest) = flare_storage::list_recoveries(&dir).first()
             && recovery::offer(newest) == recovery::Choice::Recover
         {
@@ -43,8 +39,11 @@ fn main() -> Result<()> {
     }
     // A plain launch starts at Home, with the recent projects to hand; the work recovered above
     // or the project named on the command line is shown at once.
-    if named.is_none() && !workspace.is_dirty() {
+    if named.is_empty() && !workspace.is_dirty() {
         workspace.set_home(true);
+    }
+    for path in &named {
+        workspace.open_any(path);
     }
     ui::run(workspace)
 }

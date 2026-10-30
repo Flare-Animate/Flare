@@ -38,6 +38,21 @@
             <key>CFBundleTypeIconFile</key>
             <string>flare-icon.icns</string>
         </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Animate Document</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>fla</string>
+                <string>xfl</string>
+            </array>
+            <key>CFBundleTypeIconFile</key>
+            <string>flare-icon.icns</string>
+        </dict>
     </array>
     <key>UTExportedTypeDeclarations</key>
     <array>

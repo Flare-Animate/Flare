@@ -2,9 +2,9 @@
 Type=Application
 Name=Flare
 Comment=2D animation
-Exec=flare %f
+Exec=flare %F
 Icon=flare
 Terminal=false
 Categories=Graphics;2DGraphics;VectorGraphics;
-MimeType=application/x-flare;
+MimeType=application/x-flare;application/x-flare-fla;application/x-flare-xfl;
 StartupNotify=true
