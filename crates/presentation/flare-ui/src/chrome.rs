@@ -154,6 +154,40 @@ pub fn centered_block(ui: &mut Ui, height: f32, add: impl Fn(&mut Ui)) -> (egui:
     (block, content)
 }
 
+/// A small icon and a text label on one row, their middles on one line. Returns the icon's
+/// rectangle and the label's response.
+pub fn icon_and_label(
+    ui: &mut Ui,
+    icon: &str,
+    icon_size: f32,
+    text: egui::RichText,
+) -> (egui::Rect, egui::Response) {
+    ui.horizontal(|ui| {
+        let icon = ui.add(icons::image(icon, icon_size, theme::TEXT_DIM)).rect;
+        let label = ui.add(egui::Label::new(text).sense(Sense::click()));
+        (icon, label)
+    })
+    .inner
+}
+
+/// A clickable breadcrumb: the text with an underline a little below it, so the line does not
+/// crowd the letters.
+pub fn crumb(ui: &mut Ui, text: egui::RichText) -> egui::Response {
+    let response = ui
+        .add(egui::Label::new(text).sense(Sense::click()))
+        .on_hover_cursor(egui::CursorIcon::PointingHand);
+    let y = response.rect.bottom() + CRUMB_UNDERLINE_DROP;
+    ui.painter().hline(
+        response.rect.x_range(),
+        y,
+        egui::Stroke::new(1.0, ui.visuals().hyperlink_color),
+    );
+    response
+}
+
+/// How far below the text's box a breadcrumb's underline sits.
+pub const CRUMB_UNDERLINE_DROP: f32 = 1.0;
+
 /// A segmented control: the choices side by side in a recessed track, the chosen one raised.
 /// It is not a row of tabs: it switches what one panel shows, so it looks unlike the dock's tab
 /// bar. Returns the index clicked, if any.
@@ -254,6 +288,66 @@ mod tests {
             );
             assert!((block.center().x - content.center().x).abs() < 1.0);
         }
+    }
+
+    #[test]
+    fn an_icon_and_its_label_share_a_middle() {
+        let ctx = egui::Context::default();
+        for size in [10.0, 14.0, 20.0] {
+            let input = egui::RawInput {
+                time: Some(0.0),
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(400.0, 100.0),
+                )),
+                ..egui::RawInput::default()
+            };
+            let mut measured = None;
+            let mut output = ctx.run_ui(input, |ui| {
+                measured = Some(icon_and_label(
+                    ui,
+                    "document",
+                    size,
+                    egui::RichText::new("Untitled"),
+                ));
+            });
+            output.textures_delta.clear();
+            let (icon, label) = measured.expect("drawn");
+            assert!(
+                (icon.center().y - label.rect.center().y).abs() < 0.6,
+                "icon {icon:?} against label {:?}",
+                label.rect
+            );
+        }
+    }
+
+    #[test]
+    fn a_breadcrumbs_underline_is_below_its_text() {
+        let ctx = egui::Context::default();
+        let input = egui::RawInput {
+            time: Some(0.0),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(400.0, 100.0),
+            )),
+            ..egui::RawInput::default()
+        };
+        let mut rect = egui::Rect::NOTHING;
+        let mut output = ctx.run_ui(input, |ui| {
+            rect = crumb(ui, egui::RichText::new("Scene 1")).rect;
+        });
+        let line_at = rect.bottom() + CRUMB_UNDERLINE_DROP;
+        assert!(line_at > rect.bottom(), "the line is under the text's box");
+        let underline = output
+            .shapes
+            .iter()
+            .filter_map(|s| match &s.shape {
+                egui::epaint::Shape::LineSegment { points, .. } => Some(points[0].y),
+                _ => None,
+            })
+            .any(|y| (y - line_at).abs() < 0.01);
+        assert!(underline, "the underline is drawn at {line_at}");
+        output.textures_delta.clear();
     }
 
     #[test]

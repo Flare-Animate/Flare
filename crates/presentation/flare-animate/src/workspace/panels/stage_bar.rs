@@ -67,27 +67,31 @@ impl Workspace {
                     })
                     .inner_margin(egui::Margin::symmetric(8, 3))
                     .show(ui, |ui| {
-                        ui.add(icons::image("document", 14.0, theme::TEXT_DIM));
                         let color = if tab.current {
                             theme::TEXT
                         } else {
                             theme::TEXT_DIM
                         };
-                        let label = ui.add(
-                            egui::Label::new(RichText::new(&tab.title).color(color))
-                                .sense(egui::Sense::click()),
-                        );
-                        if label.clicked() {
-                            switch = Some(index);
-                        }
-                        if tab.dirty {
-                            ui.label(RichText::new("\u{25cf}").color(theme::ACCENT).small());
-                        }
-                        if chrome::icon_button(ui, "close", 10.0, false, true, "Close document")
-                            .clicked()
-                        {
-                            close = Some(index);
-                        }
+                        // One row, with the icon and the name on the same middle.
+                        ui.horizontal(|ui| {
+                            let (_, label) = chrome::icon_and_label(
+                                ui,
+                                "document",
+                                14.0,
+                                RichText::new(&tab.title).color(color),
+                            );
+                            if label.clicked() {
+                                switch = Some(index);
+                            }
+                            if tab.dirty {
+                                ui.label(RichText::new("\u{25cf}").color(theme::ACCENT).small());
+                            }
+                            if chrome::icon_button(ui, "close", 10.0, false, true, "Close document")
+                                .clicked()
+                            {
+                                close = Some(index);
+                            }
+                        });
                     });
             }
             if chrome::icon_button(ui, "plus", 12.0, false, true, "New document").clicked() {
@@ -120,7 +124,7 @@ impl Workspace {
                 } else {
                     RichText::new(name).color(theme::TEXT_DIM)
                 };
-                if ui.link(label).clicked() && !last {
+                if chrome::crumb(ui, label).clicked() && !last {
                     self.exit_to_depth(depth);
                     break;
                 }
