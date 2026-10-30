@@ -118,6 +118,42 @@ pub fn empty_state(ui: &mut Ui, icon: &str, message: &str) {
     });
 }
 
+/// A block of `height` across the available width with what `add` draws centered in it, both
+/// ways. Returns the block's rectangle and the rectangle the content took.
+pub fn centered_block(ui: &mut Ui, height: f32, add: impl Fn(&mut Ui)) -> (egui::Rect, egui::Rect) {
+    let width = ui.available_width();
+    let (block, _) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
+    let layout = egui::Layout::top_down(egui::Align::Center);
+    // Draw it once unseen to learn how tall it is, then again with the space above it that
+    // puts it in the middle.
+    let mut wanted = 0.0;
+    ui.scope_builder(
+        egui::UiBuilder::new()
+            .max_rect(block)
+            .layout(layout)
+            .sizing_pass()
+            .invisible(),
+        |ui| {
+            add(ui);
+            wanted = ui.min_rect().height();
+        },
+    );
+    let mut content = egui::Rect::NOTHING;
+    ui.scope_builder(
+        egui::UiBuilder::new().max_rect(block).layout(layout),
+        |ui| {
+            ui.add_space(((height - wanted) / 2.0).max(0.0));
+            let top = ui.cursor().min.y;
+            add(ui);
+            content = egui::Rect::from_min_max(
+                egui::pos2(block.left(), top),
+                egui::pos2(block.right(), ui.min_rect().max.y),
+            );
+        },
+    );
+    (block, content)
+}
+
 /// A segmented control: the choices side by side in a recessed track, the chosen one raised
 /// with an accent underline. It is not a row of tabs: it switches what one panel shows, so it
 /// looks unlike the dock's tab bar. Returns the index clicked, if any.
@@ -192,6 +228,37 @@ mod tests {
             }
         });
         output.textures_delta.clear();
+    }
+
+    #[test]
+    fn content_is_centered_in_its_block_whatever_it_is() {
+        let ctx = egui::Context::default();
+        for lines in [1, 2, 3] {
+            let input = egui::RawInput {
+                time: Some(0.0),
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(400.0, 300.0),
+                )),
+                ..egui::RawInput::default()
+            };
+            let mut measured = None;
+            let mut output = ctx.run_ui(input, |ui| {
+                measured = Some(centered_block(ui, 120.0, |ui| {
+                    for _ in 0..lines {
+                        ui.label("No symbol selected");
+                    }
+                }));
+            });
+            output.textures_delta.clear();
+            let (block, content) = measured.expect("drawn");
+            assert_eq!(block.height(), 120.0);
+            assert!(
+                (block.center().y - content.center().y).abs() < 1.0,
+                "{lines} lines: block {block:?}, content {content:?}"
+            );
+            assert!((block.center().x - content.center().x).abs() < 1.0);
+        }
     }
 
     #[test]

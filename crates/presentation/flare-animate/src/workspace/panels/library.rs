@@ -8,6 +8,9 @@ use flare_ui::theme;
 
 use super::*;
 
+/// Height of the preview well above the list: room for a picture and the symbol's name.
+const PREVIEW_WELL: f32 = 110.0;
+
 impl Workspace {
     // ---- library -----------------------------------------------------------------------
 
@@ -70,19 +73,17 @@ impl Workspace {
             .stroke(egui::Stroke::new(1.0, theme::BORDER))
             .corner_radius(4.0);
         well.show(ui, |ui| {
-            ui.set_min_height(64.0);
             ui.set_width(ui.available_width());
             let preview = self
                 .selected_symbol
                 .and_then(|id| self.symbol_preview(&ctx, id));
-            ui.vertical_centered(|ui| {
+            // The same height with or without a picture, with what there is centered in it.
+            chrome::centered_block(ui, PREVIEW_WELL, |ui| {
                 match &preview {
                     Some(texture) => {
-                        ui.add_space(4.0);
-                        ui.add(egui::Image::new(texture).max_size(egui::vec2(96.0, 96.0)));
+                        ui.add(egui::Image::new(texture).max_size(egui::vec2(80.0, 80.0)));
                     }
                     None => {
-                        ui.add_space(14.0);
                         ui.add(icons::image("symbol-graphic", 28.0, theme::TEXT_DISABLED));
                     }
                 }
