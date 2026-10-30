@@ -111,7 +111,7 @@ impl Workspace {
         dialog: &mut Option<DialogRequest>,
     ) {
         ui.horizontal(|ui| {
-            ui.add(icons::flame(36.0));
+            ui.add(icons::flame(32.0));
             ui.label(
                 egui::RichText::new("Flare")
                     .font(FontId::proportional(20.0))
