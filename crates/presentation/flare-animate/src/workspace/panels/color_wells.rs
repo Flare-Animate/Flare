@@ -8,13 +8,13 @@ use flare_ui::{chrome, theme};
 use crate::workspace::Workspace;
 
 /// Side of the box the squares sit in.
-const BOX: f32 = 66.0;
+pub(crate) const BOX: f32 = 50.0;
 /// Side of each square, and how far the front one is pushed down and right.
-const SQUARE: f32 = 40.0;
-const OFFSET: f32 = 24.0;
+pub(crate) const SQUARE: f32 = 30.0;
+pub(crate) const OFFSET: f32 = 18.0;
 /// Width of the stroke's frame.
-const FRAME: f32 = 8.0;
-const SMALL: f32 = 18.0;
+const FRAME: f32 = 6.0;
+pub(crate) const SMALL: f32 = 16.0;
 
 /// Where everything in the color box goes, from the box's top-left corner.
 pub(crate) struct WellRects {

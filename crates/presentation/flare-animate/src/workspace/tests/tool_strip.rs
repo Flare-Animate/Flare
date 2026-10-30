@@ -74,3 +74,22 @@ fn the_tool_strip_draws_at_narrow_and_wide_widths() {
         );
     }
 }
+
+#[test]
+fn the_color_box_fits_inside_the_narrowest_tool_strip_and_its_own_height() {
+    use crate::workspace::panels::TOOL_ICON;
+    use crate::workspace::panels::color_wells::{BOX, OFFSET, SQUARE};
+    let narrowest = (TOOL_ICON + 6.0) * 2.0 + 3.0;
+    assert!(
+        OFFSET + SQUARE <= narrowest,
+        "{} against {narrowest}",
+        OFFSET + SQUARE
+    );
+    let r = well_rects(Pos2::ZERO);
+    for rect in [r.fill, r.stroke, r.swap, r.defaults] {
+        assert!(
+            rect.max.y <= BOX && rect.max.x <= OFFSET + SQUARE,
+            "{rect:?}"
+        );
+    }
+}
