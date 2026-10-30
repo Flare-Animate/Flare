@@ -79,6 +79,16 @@ Guides belong to the view of one document tab and are not saved in the file (at 
 Points placed by the shape, pen, Ruler and Mirror tools are pulled onto a guide whether or not the
 grid is on.
 
+## Tool strip
+
+The tools are in two columns, divided by a line into categories: selecting (Selection, Subselection,
+Free Transform, Lasso), drawing (Pen, Text, Pencil, Brush, Line, Rectangle, Oval, PolyStar), painting
+(Paint Bucket, Ink Bottle, Eyedropper, Eraser), helpers (Mirror, Ruler) and viewing (Hand, Zoom).
+Below them the fill and stroke colors are two overlapping squares, the stroke in front as a frame
+around an empty middle; click either to open its color picker. The corner buttons swap them and
+reset them to black and white. The segmented control inside panels (Properties' Tool, Object,
+Frame and Doc) marks the chosen segment by raising it, with no underline.
+
 ## Home
 
 A plain launch opens on the Home page, laid out like Animate's: a sidebar with the app name and

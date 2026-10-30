@@ -28,6 +28,7 @@ mod pen_and_selection;
 mod rendering_and_workers;
 mod rulers_and_mirror;
 mod spans_and_handles;
+mod tool_strip;
 mod tools_and_menus;
 mod window_menu;
 

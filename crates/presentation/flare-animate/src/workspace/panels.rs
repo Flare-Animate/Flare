@@ -10,6 +10,7 @@ pub(super) const BAR_ICON: f32 = 16.0;
 
 mod align;
 mod color;
+pub(crate) mod color_wells;
 mod history;
 mod info;
 #[cfg(test)]
@@ -20,4 +21,4 @@ mod stage_bar;
 #[cfg(test)]
 mod tests;
 mod timeline_bar;
-mod tools;
+pub(crate) mod tools;

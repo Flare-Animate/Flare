@@ -154,9 +154,9 @@ pub fn centered_block(ui: &mut Ui, height: f32, add: impl Fn(&mut Ui)) -> (egui:
     (block, content)
 }
 
-/// A segmented control: the choices side by side in a recessed track, the chosen one raised
-/// with an accent underline. It is not a row of tabs: it switches what one panel shows, so it
-/// looks unlike the dock's tab bar. Returns the index clicked, if any.
+/// A segmented control: the choices side by side in a recessed track, the chosen one raised.
+/// It is not a row of tabs: it switches what one panel shows, so it looks unlike the dock's tab
+/// bar. Returns the index clicked, if any.
 pub fn segmented(ui: &mut Ui, labels: &[&str], selected: usize) -> Option<usize> {
     let height = 24.0;
     let width = ui.available_width();
@@ -185,11 +185,6 @@ pub fn segmented(ui: &mut Ui, labels: &[&str], selected: usize) -> Option<usize>
         let chosen = index == selected;
         if chosen {
             painter.rect_filled(rect, 4.0, theme::PANEL_RAISED);
-            painter.hline(
-                rect.shrink2(egui::vec2(8.0, 0.0)).x_range(),
-                rect.bottom() - 1.5,
-                egui::Stroke::new(2.0, theme::ACCENT),
-            );
         } else if response.hovered() {
             painter.rect_filled(rect, 4.0, theme::HOVER.gamma_multiply(0.6));
         }

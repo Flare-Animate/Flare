@@ -4,43 +4,45 @@ use crate::MenuAction;
 use crate::workspace::{Tool, Workspace};
 use egui::Ui;
 use flare_ui::chrome;
-use flare_ui::icons;
-use flare_ui::theme;
 
 use super::*;
 
-/// One cell of the tool grid: the tool it selects, or `None` while the tool does not exist.
-const TOOL_GRID: &[(&str, &str, &str, Option<Tool>)] = &[
-    ("tool-selection", "Selection", "V", Some(Tool::Select)),
-    (
-        "tool-subselection",
-        "Subselection",
-        "A",
-        Some(Tool::Subselection),
-    ),
-    (
-        "tool-transform",
-        "Free Transform",
-        "Q",
-        Some(Tool::FreeTransform),
-    ),
-    ("tool-lasso", "Lasso", "L", Some(Tool::Lasso)),
-    ("tool-pen", "Pen", "P", Some(Tool::Pen)),
-    ("tool-text", "Text", "T", Some(Tool::Text)),
-    ("tool-line", "Line", "N", Some(Tool::Line)),
-    ("tool-rectangle", "Rectangle", "R", Some(Tool::Rectangle)),
-    ("tool-oval", "Oval", "O", Some(Tool::Ellipse)),
-    ("tool-polystar", "PolyStar", "G", Some(Tool::PolyStar)),
-    ("tool-pencil", "Pencil", "Y", Some(Tool::Pencil)),
-    ("tool-brush", "Brush", "B", Some(Tool::Brush)),
-    ("tool-mirror", "Mirror", "X", Some(Tool::Mirror)),
-    ("tool-ruler", "Ruler", "M", Some(Tool::Ruler)),
-    ("tool-bucket", "Paint Bucket", "K", Some(Tool::Bucket)),
-    ("tool-ink-bottle", "Ink Bottle", "S", Some(Tool::InkBottle)),
-    ("tool-eyedropper", "Eyedropper", "I", Some(Tool::Eyedropper)),
-    ("tool-eraser", "Eraser", "E", Some(Tool::Eraser)),
-    ("tool-hand", "Hand", "H", Some(Tool::Hand)),
-    ("tool-zoom", "Zoom", "Z", Some(Tool::Zoom)),
+/// One tool in the strip: its icon, name, key and the tool itself.
+type Cell = (&'static str, &'static str, &'static str, Tool);
+
+/// The strip's categories, divided by a line: selecting, drawing, painting, helping and viewing.
+/// Every tool appears in exactly one.
+pub(crate) const TOOL_GROUPS: &[&[Cell]] = &[
+    &[
+        ("tool-selection", "Selection", "V", Tool::Select),
+        ("tool-subselection", "Subselection", "A", Tool::Subselection),
+        ("tool-transform", "Free Transform", "Q", Tool::FreeTransform),
+        ("tool-lasso", "Lasso", "L", Tool::Lasso),
+    ],
+    &[
+        ("tool-pen", "Pen", "P", Tool::Pen),
+        ("tool-text", "Text", "T", Tool::Text),
+        ("tool-pencil", "Pencil", "Y", Tool::Pencil),
+        ("tool-brush", "Brush", "B", Tool::Brush),
+        ("tool-line", "Line", "N", Tool::Line),
+        ("tool-rectangle", "Rectangle", "R", Tool::Rectangle),
+        ("tool-oval", "Oval", "O", Tool::Ellipse),
+        ("tool-polystar", "PolyStar", "G", Tool::PolyStar),
+    ],
+    &[
+        ("tool-bucket", "Paint Bucket", "K", Tool::Bucket),
+        ("tool-ink-bottle", "Ink Bottle", "S", Tool::InkBottle),
+        ("tool-eyedropper", "Eyedropper", "I", Tool::Eyedropper),
+        ("tool-eraser", "Eraser", "E", Tool::Eraser),
+    ],
+    &[
+        ("tool-mirror", "Mirror", "X", Tool::Mirror),
+        ("tool-ruler", "Ruler", "M", Tool::Ruler),
+    ],
+    &[
+        ("tool-hand", "Hand", "H", Tool::Hand),
+        ("tool-zoom", "Zoom", "Z", Tool::Zoom),
+    ],
 ];
 
 impl Workspace {
@@ -58,73 +60,41 @@ impl Workspace {
             } else {
                 1
             };
-            for pair in TOOL_GRID.chunks(columns) {
-                ui.horizontal(|ui| {
-                    // Centred in the panel: a pair is two buttons wide.
-                    let used =
-                        cell * columns as f32 + ui.spacing().item_spacing.x * (columns - 1) as f32;
-                    ui.add_space(((ui.available_width() - used) / 2.0).max(0.0));
-                    for (icon, name, key, tool) in pair {
-                        let hint = format!("{name} ({key})");
-                        match tool {
-                            Some(tool) => {
-                                if chrome::icon_button(
-                                    ui,
-                                    icon,
-                                    TOOL_ICON,
-                                    self.tool == *tool,
-                                    true,
-                                    &hint,
-                                )
-                                .clicked()
-                                {
-                                    chosen = *tool;
-                                }
-                            }
-                            None => {
-                                chrome::mock_icon_button(ui, icon, TOOL_ICON, &hint);
+            for (index, group) in TOOL_GROUPS.iter().enumerate() {
+                if index > 0 {
+                    ui.add_space(3.0);
+                    ui.separator();
+                    ui.add_space(0.0);
+                }
+                for pair in group.chunks(columns) {
+                    ui.horizontal(|ui| {
+                        // Centred in the panel: a pair is two buttons wide.
+                        let used = cell * columns as f32
+                            + ui.spacing().item_spacing.x * (columns - 1) as f32;
+                        ui.add_space(((ui.available_width() - used) / 2.0).max(0.0));
+                        for (icon, name, key, tool) in pair {
+                            let hint = format!("{name} ({key})");
+                            if chrome::icon_button(
+                                ui,
+                                icon,
+                                TOOL_ICON,
+                                self.tool == *tool,
+                                true,
+                                &hint,
+                            )
+                            .clicked()
+                            {
+                                chosen = *tool;
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
             self.set_tool(chosen);
             ui.add_space(4.0);
             ui.separator();
             ui.add_space(2.0);
             self.color_wells(ui);
-        });
-    }
-
-    /// The fill and stroke swatches with the swap and reset buttons beneath.
-    pub(crate) fn color_wells(&mut self, ui: &mut Ui) {
-        ui.horizontal(|ui| {
-            ui.add_space(((ui.available_width() - 74.0) / 2.0).max(0.0));
-            ui.vertical(|ui| {
-                ui.horizontal(|ui| {
-                    ui.add(icons::image("stroke-color", 14.0, theme::TEXT_DIM))
-                        .on_hover_text("Stroke color");
-                    ui.color_edit_button_srgba(&mut self.paint.stroke_color);
-                });
-                ui.horizontal(|ui| {
-                    ui.add(icons::image("fill-color", 14.0, theme::TEXT_DIM))
-                        .on_hover_text("Fill color");
-                    ui.color_edit_button_srgba(&mut self.paint.fill);
-                });
-            });
-        });
-        ui.horizontal(|ui| {
-            ui.add_space(((ui.available_width() - 70.0) / 2.0).max(0.0));
-            if chrome::icon_button(ui, "default-colors", 12.0, false, true, "Black and white")
-                .clicked()
-            {
-                self.default_colors();
-            }
-            if chrome::icon_button(ui, "swap-colors", 12.0, false, true, "Swap fill and stroke")
-                .clicked()
-            {
-                self.swap_colors();
-            }
         });
     }
 
