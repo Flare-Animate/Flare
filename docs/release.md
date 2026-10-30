@@ -12,16 +12,16 @@ when every box below is ticked.
 - [x] Drawing: the tool set, fills, strokes, gradients, text, undo and redo, copy and paste.
 - [x] Animating: layers, folders, masks, motion guides, keyframes, motion tweens and shape tweens with Ease, onion
   skin, playback with sound.
-- [x] A library of symbols and instances placed on the stage.
+- [x] A library of symbols (Graphic, Movie Clip and Button types) and instances placed on the stage.
 - [x] Projects: save, open, revert, recent files, several documents as tabs, autosave and crash
   recovery.
-- [x] Animate exchange: import and export XFL and FLA, with what is not carried over reported.
+- [x] Animate exchange: import and export XFL and FLA, with what is not carried over reported; `.flare`, `.fla` and `.xfl` files open from the file manager on Windows and Linux, from the command line, and by dropping them on the window.
 - [x] Output: PNG, GIF, SWF and an HTML5 Canvas page.
 - [x] The same documents from a command line (`flare-cli`) and an MCP server (`flare-mcp`).
 
 **Quality: what has to be true** (checked by machines)
 
-- [x] CI green on `main`: format, lints, tests on Linux, the browser build, the 500-line rule.
+- [ ] CI green on `main` at the commit that is tagged: format, lints, tests on Linux, the browser build, the 500-line rule. (It was green on what had been pushed; the newest commits are local and have not run in CI.)
 - [x] `cargo audit` reports no vulnerabilities.
 - [x] The command line works end to end on real files (`scripts/tests/test_cli_smoke.py`).
 - [x] Hostile and damaged input is refused, not a crash (property tests, fuzz-style tests).
@@ -33,6 +33,7 @@ when every box below is ticked.
   Silicon: signature valid, no output, no panic). This is a startup check only, nothing was drawn.
 - [ ] The smoke test passes by hand on macOS.
 - [ ] The app starts and draws on one Windows and one Linux machine.
+- [ ] A page published with File > Publish plays in a browser, with its sound after the click.
 
 **Honesty: what has to be written down**
 
@@ -41,7 +42,7 @@ when every box below is ticked.
 
 **Not in 0.1.0** (shown dimmed in the menus, or listed in the notes): shape hints, more than
 one scene, scripting and the Commands menu, editable keyboard shortcuts, editable text after it
-is placed, the web build, Developer-ID signing and notarising, an auto-update.
+is placed, opening a file by double-clicking it on macOS (Apple events need unsafe code; drop the file on the window or use File > Open), the web build, Developer-ID signing and notarising, an auto-update.
 
 
 Packaging follows the same layout as the other Craft projects: platform files in
