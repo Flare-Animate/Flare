@@ -294,6 +294,43 @@ impl Workspace {
     /// The brush's nib: its shape, the angle of its long axis and how flat it is.
     fn nib_controls(&mut self, ui: &mut Ui) {
         use flare_tools::brush::{Nib, NibShape};
+        chrome::row(ui, "Brush", |ui| {
+            let chosen = self.selected_brush();
+            let mut pick = None;
+            egui::ComboBox::from_id_salt("brush-list")
+                .selected_text(chosen.map_or("Plain", |i| self.custom_brushes()[i].name.as_str()))
+                .show_ui(ui, |ui| {
+                    if ui.selectable_label(chosen.is_none(), "Plain").clicked() {
+                        pick = Some(None);
+                    }
+                    for (i, brush) in self.custom_brushes().iter().enumerate() {
+                        if ui
+                            .selectable_label(chosen == Some(i), &brush.name)
+                            .clicked()
+                        {
+                            pick = Some(Some(i));
+                        }
+                    }
+                });
+            if let Some(index) = pick {
+                self.choose_brush(index);
+            }
+            if ui
+                .button("New")
+                .on_hover_text("Keep this nib as a custom brush")
+                .clicked()
+            {
+                self.new_custom_brush();
+            }
+            if ui
+                .add_enabled(chosen.is_some(), egui::Button::new("Delete"))
+                .on_hover_text("Delete the chosen custom brush")
+                .clicked()
+            {
+                self.delete_custom_brush();
+            }
+        });
+        // Choosing a brush above may have changed the nib: read the controls from it.
         let nib = self.brush_nib;
         let (mut shape, mut angle, mut flatness) = (
             nib.shape(),
@@ -325,7 +362,10 @@ impl Workspace {
                     .suffix(" %"),
             );
         });
-        self.brush_nib = Nib::new(shape, f64::from(angle), f64::from(flatness));
+        let edited = Nib::new(shape, f64::from(angle), f64::from(flatness));
+        if edited != nib {
+            self.set_brush_nib(edited);
+        }
     }
 
     /// The straight edge and symmetry options the Pencil and Brush share.

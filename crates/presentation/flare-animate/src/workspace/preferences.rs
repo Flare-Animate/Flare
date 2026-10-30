@@ -30,6 +30,9 @@ pub struct Preferences {
     pub brush_nib_square: bool,
     pub brush_nib_angle: f32,
     pub brush_nib_flatness: f32,
+    /// Custom brushes, and the one in hand.
+    pub brushes: Vec<BrushPreset>,
+    pub brush_selected: Option<usize>,
     /// Compress SWF files when publishing.
     pub publish_compress: bool,
     /// Publish a Flash movie, and an HTML5 Canvas page, and how the page behaves.
@@ -59,6 +62,8 @@ impl Default for Preferences {
             brush_nib_square: false,
             brush_nib_angle: 0.0,
             brush_nib_flatness: 100.0,
+            brushes: Vec::new(),
+            brush_selected: None,
             publish_compress: true,
             publish_swf: true,
             publish_html5: true,
@@ -85,6 +90,8 @@ impl Workspace {
             brush_nib_square: self.brush_nib.shape() == flare_tools::brush::NibShape::Square,
             brush_nib_angle: self.brush_nib.angle_degrees() as f32,
             brush_nib_flatness: self.brush_nib.flatness_percent() as f32,
+            brushes: self.brushes.clone(),
+            brush_selected: self.selected_brush(),
             publish_compress: self.publish.compress,
             publish_swf: self.publish.swf,
             publish_html5: self.publish.html5,
@@ -120,6 +127,16 @@ impl Workspace {
             f64::from(preferences.brush_nib_angle),
             f64::from(preferences.brush_nib_flatness),
         );
+        self.brushes = preferences
+            .brushes
+            .iter()
+            .take(MAX_BRUSHES)
+            .map(BrushPreset::sanitized)
+            .collect();
+        // The chosen custom brush wins over the loose nib numbers saved beside it.
+        if preferences.brush_selected.is_some() {
+            self.choose_brush(preferences.brush_selected);
+        }
         self.publish = PublishSettings {
             swf: preferences.publish_swf,
             compress: preferences.publish_compress,
