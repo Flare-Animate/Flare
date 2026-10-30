@@ -130,16 +130,7 @@ pub fn outline_with(
         1
     };
     let line = smooth(&spine, steps);
-    // The direction at each point is the average of the directions into and out of it.
-    let normals: Vec<DVec2> = (0..line.len())
-        .map(|i| {
-            let before = line[i].at - line[i.saturating_sub(1)].at;
-            let after = line[(i + 1).min(line.len() - 1)].at - line[i].at;
-            let direction =
-                (before.normalize_or_zero() + after.normalize_or_zero()).normalize_or_zero();
-            DVec2::new(-direction.y, direction.x)
-        })
-        .collect();
+    let normals = normals(&line);
     let left = |i: usize| line[i].at + nib.support(normals[i]) * line[i].half;
     let right = |i: usize| line[i].at - nib.support(normals[i]) * line[i].half;
     let end = line.len() - 1;
@@ -154,6 +145,43 @@ pub fn outline_with(
     }
     path.push(PathSegment::Close);
     Some(path)
+}
+
+/// How far along the line, as a fraction of the half-width at a point, its direction is taken
+/// from. Hand-drawn points are a pixel or so apart and never quite in line, so a direction taken
+/// from the two nearest points swings back and forth; offset by half the width, those swings make
+/// the two sides cross themselves in slivers, most of all when nothing has been smoothed away.
+const DIRECTION_REACH: f64 = 0.75;
+
+/// The unit normal at each point of `line`, from the direction of the line a short way before
+/// and after it ([`DIRECTION_REACH`] times the half-width, or the neighbours if that is nothing).
+fn normals(line: &[Spine]) -> Vec<DVec2> {
+    let mut along = Vec::with_capacity(line.len());
+    let mut total = 0.0;
+    for (i, point) in line.iter().enumerate() {
+        if i > 0 {
+            total += (point.at - line[i - 1].at).length();
+        }
+        along.push(total);
+    }
+    let last = line.len() - 1;
+    (0..line.len())
+        .map(|i| {
+            let reach = line[i].half * DIRECTION_REACH;
+            let ahead = along.partition_point(|d| *d < along[i] + reach).min(last);
+            let behind = along
+                .partition_point(|d| *d <= along[i] - reach)
+                .saturating_sub(1);
+            let mut direction = (line[ahead].at - line[behind].at).normalize_or_zero();
+            if direction == DVec2::ZERO {
+                let before = line[i].at - line[i.saturating_sub(1)].at;
+                let after = line[(i + 1).min(last)].at - line[i].at;
+                direction =
+                    (before.normalize_or_zero() + after.normalize_or_zero()).normalize_or_zero();
+            }
+            DVec2::new(-direction.y, direction.x)
+        })
+        .collect()
 }
 
 /// The half circle around `centre` from the `normal` side to the opposite side, turning the way

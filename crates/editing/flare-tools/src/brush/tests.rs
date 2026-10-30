@@ -225,3 +225,66 @@ fn the_outline_points_of_a_nib_are_its_edge() {
     assert_eq!(Nib::ROUND.outline_points(1.0, 0).len(), 8);
     assert_eq!(Nib::ROUND.outline_points(1.0, 1_000_000).len(), 256);
 }
+
+fn crosses(a: DVec2, b: DVec2, c: DVec2, d: DVec2) -> bool {
+    let side = |p: DVec2, q: DVec2, r: DVec2| (q - p).perp_dot(r - p);
+    side(a, b, c) * side(a, b, d) < 0.0 && side(c, d, a) * side(c, d, b) < 0.0
+}
+
+/// Pairs of outline edges close along the path that cross: slivers in the drawn stroke.
+fn local_crossings(path: &[PathSegment]) -> usize {
+    let pts = points(path);
+    let mut found = 0;
+    for i in 0..pts.len().saturating_sub(1) {
+        for j in i + 2..(i + 40).min(pts.len().saturating_sub(1)) {
+            if crosses(pts[i], pts[i + 1], pts[j], pts[j + 1]) {
+                found += 1;
+            }
+        }
+    }
+    found
+}
+
+#[test]
+fn an_unsmoothed_shaky_hand_does_not_make_the_outline_cross_itself() {
+    // Points under a pixel apart, each off the line by a little: what a mouse gives with
+    // smoothing at nothing.
+    let samples: Vec<_> = (0..600)
+        .map(|i| {
+            let t = f64::from(i);
+            let x_noise = (f64::from((i * 7919) % 11) / 11.0 - 0.5) * 0.9;
+            let y_noise = (f64::from((i * 104_729) % 13) / 13.0 - 0.5) * 0.9;
+            sample(t * 0.7 + x_noise, (t * 0.04).sin() * 50.0 + y_noise, 1.0)
+        })
+        .collect();
+    let path = outline(&samples, 12.0, PressureCurve::new(0.15, 1.0), 0.0).expect("outline");
+    assert!(
+        local_crossings(&path) <= 12,
+        "{} slivers",
+        local_crossings(&path)
+    );
+}
+
+#[test]
+fn a_tight_turn_is_still_followed_and_a_dot_of_movement_still_draws() {
+    let corner = [
+        sample(0.0, 0.0, 1.0),
+        sample(30.0, 0.0, 1.0),
+        sample(30.0, 30.0, 1.0),
+    ];
+    let path = outline(&corner, 6.0, PressureCurve::default(), 0.0).expect("outline");
+    let xs: Vec<f64> = points(&path).iter().map(|p| p.x).collect();
+    let ys: Vec<f64> = points(&path).iter().map(|p| p.y).collect();
+    let reach = |v: &[f64]| {
+        (
+            v.iter().copied().fold(f64::MAX, f64::min),
+            v.iter().copied().fold(f64::MIN, f64::max),
+        )
+    };
+    let (x_lo, x_hi) = reach(&xs);
+    let (y_lo, y_hi) = reach(&ys);
+    assert!(x_lo <= -2.9 && x_hi >= 32.9, "{x_lo}..{x_hi}");
+    assert!(y_lo <= -2.9 && y_hi >= 32.9, "{y_lo}..{y_hi}");
+    let tiny = [sample(5.0, 5.0, 1.0), sample(5.3, 5.0, 1.0)];
+    assert!(outline(&tiny, 8.0, PressureCurve::default(), 0.0).is_some());
+}
