@@ -87,6 +87,22 @@ impl Workspace {
         )
     }
 
+    /// Draws the stroke that was just committed, until the stage picture includes it.
+    pub(super) fn draw_settling(
+        &self,
+        painter: &Painter,
+        to_screen: impl Fn(Pos2) -> Pos2,
+        scale: f32,
+    ) {
+        if let Some(settling) = &self.paint.settling {
+            painter.add(egui::Shape::mesh(stroke_preview::mesh(
+                &settling.strokes,
+                to_screen,
+                scale,
+            )));
+        }
+    }
+
     /// Draws the measurement and the symmetry axes over the stage.
     pub(super) fn assist_overlay(
         &mut self,
@@ -97,13 +113,7 @@ impl Workspace {
     ) {
         let to_screen = |p: Pos2| image.min + p.to_vec2() * scale;
         self.retire_settled();
-        if let Some(settling) = &self.paint.settling {
-            painter.add(egui::Shape::mesh(stroke_preview::mesh(
-                &settling.strokes,
-                to_screen,
-                scale,
-            )));
-        }
+        self.draw_settling(painter, to_screen, scale);
         if let Some(outline) = self.brush_cursor() {
             let points: Vec<Pos2> = outline.into_iter().map(to_screen).collect();
             // A dark line under a light one reads on any color, and neither covers the artwork.

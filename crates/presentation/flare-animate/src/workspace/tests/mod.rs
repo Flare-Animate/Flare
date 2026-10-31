@@ -29,6 +29,7 @@ mod panels_and_view;
 mod pen_and_selection;
 mod publish_settings;
 mod rail;
+mod release_frame;
 mod rendering_and_workers;
 mod rulers_and_mirror;
 mod spans_and_handles;

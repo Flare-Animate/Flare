@@ -22,7 +22,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - Symbols have a type (Graphic, Movie Clip or Button), chosen when making one or changed in the Library, saved in the project and exchanged through XFL.
 - A Home page at launch: new-project sizes, Open, Import and recent projects.
 - The Brush has a nib (Round or Square, with an angle and a flatness) that shapes the stroke; the
-  nib and size are kept between sessions. New, choose and Delete keep named custom brushes, and the Brush shows its nib as an outline at the pointer. A brush stroke drawn with smoothing at 0 no longer crosses itself in slivers, so it no longer jumps when the pointer is released.
+  nib and size are kept between sessions. New, choose and Delete keep named custom brushes, and the Brush shows its nib as an outline at the pointer. A brush stroke drawn with smoothing at 0 no longer crosses itself in slivers, so it no longer jumps when the pointer is released, and a Pencil or Brush stroke no longer blinks out for a frame at release.
 - Pencil and Brush can draw a straight line (option, or hold Shift) and mirror each stroke across
   one or two axes; Modify > Transform > Mirror Copy makes a reflected copy of the selection.
 - Timeline with frames, keyframes, layers, folders, onion skin, linear motion tweens and motion

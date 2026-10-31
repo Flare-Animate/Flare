@@ -167,6 +167,9 @@ impl Workspace {
             }
             if response.drag_stopped_by(primary) {
                 self.finish_freehand(scale);
+                // The overlay above has already been drawn this frame, so the stroke that was just
+                // committed would be missing until the next one: a blink on release.
+                self.draw_settling(&painter, to_screen, scale);
             }
             if self.freehand.len() > 1 {
                 let strokes = self.freehand_preview();
