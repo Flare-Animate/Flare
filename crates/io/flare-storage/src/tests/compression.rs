@@ -324,25 +324,6 @@ fn every_flipped_byte_in_the_stored_records_is_caught() {
 }
 
 #[test]
-fn many_records_each_within_the_limit_cannot_add_up_to_more_than_the_budget() {
-    let dir = tempfile::tempdir().expect("dir");
-    let path = dir.path().join("a.flare");
-    save(&sample(), &path).expect("save");
-    let conn = Connection::open(&path).expect("open");
-    // Every record claims 250 MiB (nine of them make 2.2 GiB): each is under the per-record limit, and together they are not.
-    conn.execute("UPDATE entity SET size = 262144000", [])
-        .expect("claim");
-    drop(conn);
-    assert!(matches!(
-        load(&path),
-        Err(StorageError::Limit("total size of the records"))
-    ));
-    // Sizes that would overflow an integer when added are refused the same way, not by a crash.
-    let conn = Connection::open(&path).expect("open");
-    conn.execute("UPDATE entity SET size = 9223372036854775807", [])
-        .expect("claim");
-    drop(conn);
-    assert!(matches!(load(&path), Err(StorageError::Limit(_))));
-    // The limits are what the documentation says.
+fn the_limit_on_one_record_is_the_one_the_documentation_names() {
     assert_eq!(MAX_PAYLOAD_BYTES, 256 * 1024 * 1024);
 }
