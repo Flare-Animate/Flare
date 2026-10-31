@@ -16,11 +16,11 @@ flare-import.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
+tempfile.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
 png.workspace = true
-tempfile.workspace = true
 
 [lints]
 workspace = true
