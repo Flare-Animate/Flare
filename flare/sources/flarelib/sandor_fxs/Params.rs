@@ -1,5 +1,6 @@
 // ============================================================================
-// AI-GENERATED DRAFT -- cpp2rust, commit bf51851849257e7bbb84438f8a3e55e032a84fb5. DO NOT MERGE AS-IS.
+// AI-GENERATED DRAFT -- cpp2rust, commit 44a4d0471a8af80013252b7a619e0bf6f77cdf83. DO NOT MERGE AS-IS.
+// AI-GENERATED DRAFT -- cpp2rust, commit ce0915cb829a7092ad0bab6fec65c292d62a7856. DO NOT MERGE AS-IS.
 //
 // Source:   flarelib/sandor_fxs/Params.cpp   (the original .cpp is untouched and still in the tree)
 //
