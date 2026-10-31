@@ -87,6 +87,36 @@ mod tests {
         }
     }
 
+    fn ink(name: &str) -> usize {
+        let svg = source(name).expect("icon");
+        let rendered = egui_extras::image::load_svg_bytes_with_size(
+            svg,
+            egui::SizeHint::Size {
+                width: 96,
+                height: 96,
+                maintain_aspect_ratio: true,
+            },
+            &Default::default(),
+        )
+        .expect("renders");
+        rendered.pixels.iter().filter(|p| p.a() > 20).count()
+    }
+
+    #[test]
+    fn play_is_a_solid_triangle_and_the_frame_steps_are_open_arrows_so_they_are_not_mixed_up() {
+        let play = ink("transport-play");
+        for step in ["transport-prev", "transport-next"] {
+            assert!(
+                play > ink(step) * 2,
+                "{step} must look lighter than play: {} against {play}",
+                ink(step)
+            );
+        }
+        assert_ne!(source("transport-next"), source("transport-play"));
+        assert_ne!(source("transport-prev"), source("transport-first"));
+        assert_ne!(source("transport-next"), source("transport-last"));
+    }
+
     /// Arrows that point along an axis are drawn so they look balanced, not so their box is.
     const OPTICALLY_BALANCED: [&str; 3] = ["transport-play", "transport-prev", "transport-next"];
 
