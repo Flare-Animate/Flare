@@ -8,6 +8,11 @@ pub fn render(backend: &str, items: &[Item], w: u32, h: u32) -> Vec<u8> {
         "tiny-skia" => tiny(items, w, h),
         "vello-cpu" => vello(items, w, h),
         "agg" => agg(items, w, h),
+        // The product's shape: the GPU when there is one, the CPU rasterizer when there is not.
+        "vello-gpu" => crate::gpu::render(items, w, h).unwrap_or_else(|why| {
+            eprintln!("GPU unavailable ({why}); falling back to vello-cpu");
+            vello(items, w, h)
+        }),
         other => panic!("unknown backend {other}"),
     }
 }

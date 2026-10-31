@@ -12,6 +12,9 @@ license = "BSD-3-Clause"
 tiny-skia = "0.12.0"
 vello_cpu = "0.3.0"
 agg-rust = "1.2.0"
+vello_gpu = "0.3.0"
+wgpu = "30.0.0"
+pollster = "0.4"
 png = "0.18.1"
 
 [profile.release]

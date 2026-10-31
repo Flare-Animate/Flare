@@ -4,6 +4,7 @@
 //! Without --out nothing is encoded, so hyperfine measures scene build + raster only.
 
 mod backends;
+mod gpu;
 mod scene;
 
 use std::fs::File;
@@ -47,10 +48,11 @@ fn main() {
                 last = backends::render(backend, &items, w, h);
                 times.push(start.elapsed().as_secs_f64() * 1000.0);
             }
+            let first = times[0];
             if repeat > 1 {
                 times.sort_by(f64::total_cmp);
                 println!(
-                    "{backend} {scene_name} {size}: n={repeat} p50={:.2}ms p95={:.2}ms min={:.2}ms",
+                    "{backend} {scene_name} {size}: n={repeat} first={first:.2}ms p50={:.2}ms p95={:.2}ms min={:.2}ms",
                     percentile(&times, 0.5),
                     percentile(&times, 0.95),
                     times[0]
