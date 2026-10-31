@@ -35,6 +35,7 @@ mod guides;
 mod help;
 mod helpers;
 mod home;
+mod home_recent;
 mod layers;
 mod open_any;
 mod outlines;
@@ -101,6 +102,9 @@ pub struct Workspace {
     publish: PublishSettings,
     /// Projects opened or saved lately, newest first.
     recent: Vec<PathBuf>,
+    /// What the Home page shows of each recent project's file, and what is typed in its search.
+    recent_info: home_recent::RecentInfo,
+    home_search: String,
     /// Folders shown shut in the timeline, hiding the layers inside.
     collapsed_folders: std::collections::HashSet<LayerId>,
     /// The picture of the selected library symbol: which symbol, at which revision of the
@@ -242,6 +246,8 @@ impl Workspace {
             position: 0,
             publish: PublishSettings::default(),
             recent: Vec::new(),
+            recent_info: home_recent::RecentInfo::default(),
+            home_search: String::new(),
             collapsed_folders: std::collections::HashSet::new(),
             library_preview: None,
             importing: None,

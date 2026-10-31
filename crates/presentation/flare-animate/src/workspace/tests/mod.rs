@@ -21,6 +21,7 @@ mod basics;
 mod brush_nib;
 mod frames_text_and_sound;
 mod home;
+mod home_recent;
 mod layers_and_symbols;
 mod menus_and_recovery;
 mod menus_like_animate;

@@ -7,6 +7,7 @@ use flare_document::{Document, Layer, Scene, Stage, Timeline};
 use flare_ui::{chrome, icons, theme};
 use std::path::PathBuf;
 
+use super::home_recent;
 use super::*;
 
 /// The sizes offered for a new project: name, width, height, frames per second.
@@ -26,7 +27,9 @@ const PAGE_MARGIN: f32 = 28.0;
 const GAP: f32 = 12.0;
 const TILE_WIDTH: f32 = 168.0;
 const PREVIEW_HEIGHT: f32 = 96.0;
-const LABEL_HEIGHT: f32 = 46.0;
+/// Room for the title, and for each line of detail under it.
+const LABEL_BASE: f32 = 32.0;
+const DETAIL_HEIGHT: f32 = 14.0;
 
 impl Workspace {
     /// Shows or hides the Home page over the document.
@@ -168,7 +171,7 @@ impl Workspace {
                 let response = tile(
                     ui,
                     name,
-                    &format!("{w} × {h} · {fps} fps"),
+                    &[&format!("{w} × {h} · {fps} fps")],
                     |painter, rect| {
                         stage_glyph(painter, rect, w, h);
                     },
@@ -185,7 +188,13 @@ impl Workspace {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if ui.small_button("Clear the list").clicked() {
                         self.recent.clear();
+                        self.recent_info.refresh();
                     }
+                    ui.add(
+                        egui::TextEdit::singleline(&mut self.home_search)
+                            .hint_text("Search recent projects")
+                            .desired_width(220.0),
+                    );
                 });
             }
         });
@@ -196,18 +205,37 @@ impl Workspace {
             );
             return;
         }
+        let ctx = ui.ctx().clone();
+        self.recent_info
+            .ask(&self.recent, move || ctx.request_repaint());
+        let now = std::time::SystemTime::now();
+        let shown: Vec<PathBuf> = self
+            .recent
+            .iter()
+            .filter(|path| {
+                let (name, folder) = name_and_folder(path);
+                home_recent::matches(&name, &folder, &self.home_search)
+            })
+            .take(RECENT_SHOWN)
+            .cloned()
+            .collect();
+        if shown.is_empty() {
+            ui.label(
+                egui::RichText::new(format!("No recent project matches “{}”.", self.home_search))
+                    .color(theme::TEXT_DIM),
+            );
+            return;
+        }
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing = vec2(GAP, GAP);
-            for path in self.recent.iter().take(RECENT_SHOWN) {
-                let name = path.file_name().map_or_else(
-                    || path.display().to_string(),
-                    |n| n.to_string_lossy().into_owned(),
-                );
-                let folder = path
-                    .parent()
-                    .map(|p| p.display().to_string())
-                    .unwrap_or_default();
-                let response = tile(ui, &name, &folder, |painter, rect| {
+            for path in &shown {
+                let (name, folder) = name_and_folder(path);
+                // Until the thread has answered, the line says so instead of guessing.
+                let facts = self
+                    .recent_info
+                    .get(path)
+                    .map_or_else(|| "Reading…".to_owned(), |info| info.describe(now));
+                let response = tile(ui, &name, &[&folder, &facts], |painter, rect| {
                     file_glyph(painter, rect);
                 })
                 .on_hover_text(path.display().to_string());
@@ -217,6 +245,19 @@ impl Workspace {
             }
         });
     }
+}
+
+/// The file's name and the folder it is in, as the cards and the search read them.
+fn name_and_folder(path: &std::path::Path) -> (String, String) {
+    let name = path.file_name().map_or_else(
+        || path.display().to_string(),
+        |n| n.to_string_lossy().into_owned(),
+    );
+    let folder = path
+        .parent()
+        .map(|p| p.display().to_string())
+        .unwrap_or_default();
+    (name, folder)
 }
 
 fn section_title(ui: &mut Ui, text: &str) {
@@ -297,11 +338,14 @@ fn wide_button(ui: &mut Ui, width: f32, icon: &str, label: &str, primary: bool) 
 fn tile(
     ui: &mut Ui,
     title: &str,
-    detail: &str,
+    details: &[&str],
     preview: impl FnOnce(&egui::Painter, Rect),
 ) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(
-        vec2(TILE_WIDTH, PREVIEW_HEIGHT + LABEL_HEIGHT),
+        vec2(
+            TILE_WIDTH,
+            PREVIEW_HEIGHT + LABEL_BASE + DETAIL_HEIGHT * details.len() as f32,
+        ),
         Sense::click(),
     );
     if ui.is_rect_visible(rect) {
@@ -335,13 +379,18 @@ fn tile(
             FontId::proportional(13.0),
             theme::TEXT,
         );
-        text.text(
-            pos2(rect.left() + 10.0, rect.bottom() - 8.0),
-            Align2::LEFT_BOTTOM,
-            detail,
-            FontId::proportional(11.0),
-            theme::TEXT_DIM,
-        );
+        for (row, detail) in details.iter().rev().enumerate() {
+            text.text(
+                pos2(
+                    rect.left() + 10.0,
+                    rect.bottom() - 8.0 - row as f32 * DETAIL_HEIGHT,
+                ),
+                Align2::LEFT_BOTTOM,
+                *detail,
+                FontId::proportional(11.0),
+                theme::TEXT_DIM,
+            );
+        }
     }
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }

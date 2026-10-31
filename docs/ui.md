@@ -130,8 +130,11 @@ A plain launch opens on the Home page, laid out like Animate's: a sidebar with t
 version, Home (and Learn, dimmed: not built), and the buttons New File, Open and Import; in the main
 area **Create new** (cards for Character Animation 1920 x 1080 at 24 fps, Social 1080 x 1080 at 30,
 Portrait 1080 x 1920 at 30, Web 1280 x 720 at 24, Classic 550 x 400 at 24, each drawn with the
-proportions of its stage), then **Recent** (up to twelve project cards, newest first, with a
-Clear the list button). The presets are Flare's own, not Animate's. Choosing a card, New File,
+proportions of its stage), then **Recent** (up to twelve project cards, newest first, each with the
+folder, when the file was last changed and its size, a search box over the names and folders, and a
+Clear the list button). The date reads as "Modified 2 hours ago" and, from a week on, as a day in UTC; a file that
+is gone says "Not found". The files are read on a thread of their own, so a slow drive never
+stalls the page, and a card says "Reading…" until the answer is in. The presets are Flare's own, not Animate's. Choosing a card, New File,
 Open or Import leaves Home; a new project over an untouched document replaces it instead of adding a tab.
 
 Home is a view, not a document, and none of the document's controls show on it: the top bar has
