@@ -131,8 +131,7 @@ version, Home (and Learn, dimmed: not built), and the buttons New File, Open and
 area **Create new** (cards for Character Animation 1920 x 1080 at 24 fps, Social 1080 x 1080 at 30,
 Portrait 1080 x 1920 at 30, Web 1280 x 720 at 24, Classic 550 x 400 at 24, each drawn with the
 proportions of its stage), then **Recent** (up to twelve project cards, newest first, each with the
-folder, when the file was last changed and its size, a search box over the names and folders, and a
-Clear the list button). The time reads as how long ago ("Modified 2 hours ago", then days, months and years), never a date, so it is the same in every time zone; a file that
+folder, when the file was last changed and its size, a search box over the names and folders). There is no button on Home to clear the list: it is **Clear recent projects** in Preferences, away from the search box and the cards, because one slip there forgets every project. The time reads as how long ago ("Modified 2 hours ago", then days, months and years), never a date, so it is the same in every time zone; a file that
 is gone says "Not found". The files are read on a thread of their own, so a slow drive never
 stalls the page, and a card says "Reading…" until the answer is in. The presets are Flare's own, not Animate's. Choosing a card, New File,
 Open or Import leaves Home; a new project over an untouched document replaces it instead of adding a tab.

@@ -166,3 +166,42 @@ fn the_search_narrows_the_cards_and_says_when_nothing_matches() {
     );
     assert_eq!(ws.recent_files().len(), 2, "searching forgets nothing");
 }
+
+/// Where the text `wanted` was drawn in a pass.
+fn text_at(ws: &mut Workspace, ctx: &egui::Context, time: f64, wanted: &str) -> Option<Pos2> {
+    let mut out = ctx.run_ui(input(time, vec![]), |ui| ws.show(ui));
+    out.textures_delta.clear();
+    out.shapes.iter().find_map(|s| match &s.shape {
+        egui::epaint::Shape::Text(t) if t.galley.text() == wanted => {
+            Some(t.visual_bounding_rect().center())
+        }
+        _ => None,
+    })
+}
+
+#[test]
+fn clearing_the_recent_list_is_in_preferences_and_not_on_home() {
+    let mut ws = workspace();
+    ws.note_recent(std::path::Path::new("/a/one.flare"));
+    ws.set_home(true);
+    let ctx = egui::Context::default();
+    let home = texts(&mut ws, &ctx, 0.0);
+    assert!(
+        !home.iter().any(|t| t.contains("Clear")),
+        "nothing on Home forgets the list: {home:?}"
+    );
+    ws.windows.preferences = true;
+    // A window is laid out on its first pass and shown from the second.
+    run(&mut ws, &ctx, 0.05);
+    let at = text_at(&mut ws, &ctx, 0.1, "Clear recent projects").expect("the button is drawn");
+    let click = |pressed| Event::PointerButton {
+        pos: at,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    pass(&mut ws, &ctx, input(0.2, vec![Event::PointerMoved(at)]));
+    pass(&mut ws, &ctx, input(0.3, vec![click(true)]));
+    pass(&mut ws, &ctx, input(0.4, vec![click(false)]));
+    assert!(ws.recent_files().is_empty(), "the button forgot the list");
+}

@@ -276,6 +276,20 @@ impl Workspace {
                             .speed(0.1),
                     );
                 });
+                flare_ui::chrome::section(ui, "file-open", "Recent projects");
+                flare_ui::chrome::row(ui, "Remembered", |ui| {
+                    ui.label(edited.recent.len().to_string());
+                });
+                if ui
+                    .add_enabled(
+                        !edited.recent.is_empty(),
+                        egui::Button::new("Clear recent projects"),
+                    )
+                    .on_hover_text("Forgets the list on the Home page and in Open Recent. The files stay where they are.")
+                    .clicked()
+                {
+                    edited.recent.clear();
+                }
                 ui.add_space(6.0);
                 if ui.button("Restore defaults").clicked() {
                     edited = Preferences {

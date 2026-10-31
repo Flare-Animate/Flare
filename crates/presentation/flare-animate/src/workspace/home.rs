@@ -34,6 +34,10 @@ const DETAIL_HEIGHT: f32 = 14.0;
 impl Workspace {
     /// Shows or hides the Home page over the document.
     pub fn set_home(&mut self, shown: bool) {
+        if shown && !self.windows.home {
+            // Files saved since the last look have a new time and size.
+            self.recent_info.refresh();
+        }
         self.windows.home = shown;
     }
 
@@ -184,12 +188,10 @@ impl Workspace {
         ui.add_space(PAGE_MARGIN);
         ui.horizontal(|ui| {
             section_title(ui, "Recent");
+            // Clearing the list is in Preferences: here it sat next to the search box, one
+            // slip from Enter's neighbour.
             if !self.recent.is_empty() {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                    if ui.small_button("Clear the list").clicked() {
-                        self.recent.clear();
-                        self.recent_info.refresh();
-                    }
                     ui.add(
                         egui::TextEdit::singleline(&mut self.home_search)
                             .hint_text("Search recent projects")
