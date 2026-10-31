@@ -1,6 +1,6 @@
 //! The stroke and fill colors in the tool strip, arranged as Animate's toolbar has them: a
 //! swatch for the stroke over a swatch for the fill, each with a small picture of its tool, and
-//! under them a row of three small buttons: black and white, no color, and swap.
+//! under them two small buttons: black and white, and swap. No color is in each swatch's picker.
 
 use egui::color_picker::{Alpha, color_picker_color32};
 use egui::{Color32, Popup, PopupCloseBehavior, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, vec2};
@@ -12,10 +12,10 @@ use crate::workspace::{ColorTarget, Workspace};
 pub(crate) const SWATCH: f32 = 16.0;
 pub(crate) const PICTURE: f32 = 10.0;
 const GAP: f32 = 2.0;
-/// The widest and narrowest the three small buttons are drawn.
+/// The widest and narrowest the two small buttons are drawn.
 const BUTTON_MAX: f32 = 16.0;
-const BUTTON_MIN: f32 = 9.0;
-/// The space between the three small buttons.
+const BUTTON_MIN: f32 = 12.0;
+/// The space between the two small buttons.
 const BUTTON_GAP: f32 = 1.0;
 
 /// Where everything in the color section goes, from its top-left corner.
@@ -25,16 +25,15 @@ pub(crate) struct WellRects {
     pub(crate) fill_picture: Rect,
     pub(crate) fill: Rect,
     pub(crate) defaults: Rect,
-    pub(crate) none: Rect,
     pub(crate) swap: Rect,
 }
 
 /// Width of the swatch rows.
 pub(crate) const ROW_WIDTH: f32 = PICTURE + GAP + SWATCH;
 
-/// The side of each of the three small buttons in a strip `width` wide.
+/// The side of each of the two small buttons in a strip `width` wide.
 pub(crate) fn button_side(width: f32) -> f32 {
-    ((width - 2.0 * BUTTON_GAP) / 3.0).clamp(BUTTON_MIN, BUTTON_MAX)
+    ((width - BUTTON_GAP) / 2.0).clamp(BUTTON_MIN, BUTTON_MAX)
 }
 
 /// The height of the section in a strip `width` wide.
@@ -46,8 +45,8 @@ pub(crate) fn well_rects(origin: Pos2, width: f32) -> WellRects {
     let at = |x: f32, y: f32, w: f32, h: f32| Rect::from_min_size(origin + vec2(x, y), vec2(w, h));
     let side = button_side(width);
     let buttons_y = SWATCH * 2.0 + 4.0 + 6.0;
-    // The three buttons are centered under the rows, wider than them if the strip allows.
-    let row = side * 3.0 + 2.0 * BUTTON_GAP;
+    // The two buttons are centered under the rows.
+    let row = side * 2.0 + BUTTON_GAP;
     let left = (ROW_WIDTH - row) / 2.0;
     let picture_y = (SWATCH - PICTURE) / 2.0;
     WellRects {
@@ -56,16 +55,15 @@ pub(crate) fn well_rects(origin: Pos2, width: f32) -> WellRects {
         fill_picture: at(0.0, SWATCH + 4.0 + picture_y, PICTURE, PICTURE),
         fill: at(PICTURE + GAP, SWATCH + 4.0, SWATCH, SWATCH),
         defaults: at(left, buttons_y, side, side),
-        none: at(left + side + BUTTON_GAP, buttons_y, side, side),
-        swap: at(left + (side + BUTTON_GAP) * 2.0, buttons_y, side, side),
+        swap: at(left + side + BUTTON_GAP, buttons_y, side, side),
     }
 }
 
 /// Where the section goes in `area`, which is the width of the strip: everything is centered
-/// across it, the rows and the three buttons around the same middle.
+/// across it, the rows and the two buttons around the same middle.
 pub(crate) fn rects_in(area: Rect) -> WellRects {
     let width = area.width();
-    let row = ROW_WIDTH.max(button_side(width) * 3.0 + 2.0 * BUTTON_GAP);
+    let row = ROW_WIDTH.max(button_side(width) * 2.0 + BUTTON_GAP);
     let origin = Pos2::new(area.center().x - row / 2.0, area.top());
     well_rects(
         Pos2::new(origin.x + (row - ROW_WIDTH) / 2.0, origin.y),
@@ -120,19 +118,26 @@ impl Workspace {
                 .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
                 .show(|ui| {
                     ui.spacing_mut().slider_width = 200.0;
+                    // As in Animate's swatch picker: a way to have none of this color.
+                    ui.horizontal(|ui| {
+                        let none = ui
+                            .add(egui::Button::image_and_text(
+                                icons::image("no-color", 14.0, theme::TEXT),
+                                "No color",
+                            ))
+                            .on_hover_text(match target {
+                                ColorTarget::Stroke => "No stroke",
+                                _ => "No fill",
+                            });
+                        if none.clicked() {
+                            *color = Color32::TRANSPARENT;
+                        }
+                    });
                     color_picker_color32(ui, color, Alpha::OnlyBlend);
                 });
         }
         if tiny_button(ui, rects.defaults, "default-colors", "Black and white") {
             self.default_colors();
-        }
-        if tiny_button(
-            ui,
-            rects.none,
-            "no-color",
-            "No color: the selected swatch, stroke or fill, becomes empty",
-        ) {
-            self.no_color();
         }
         if tiny_button(ui, rects.swap, "swap-colors", "Swap fill and stroke") {
             self.swap_colors();

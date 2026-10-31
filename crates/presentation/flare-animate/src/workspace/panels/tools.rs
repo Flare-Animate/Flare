@@ -12,20 +12,18 @@ use super::*;
 /// percent of the window, stays one column at any usual window size.
 const TWO_COLUMNS_FROM: f32 = 72.0;
 
-/// Thickness of the line at the strip's right edge.
-const DIVIDER_WIDTH: f32 = 2.0;
-
 impl Workspace {
     // ---- tools -------------------------------------------------------------------------
 
     pub(crate) fn tools_panel(&mut self, ui: &mut Ui) {
-        // The strip's right edge, drawn firmly so the strip reads as a bar of its own and not as
-        // part of the page beside it.
+        // A bar of its own, as Animate's toolbar is: a shade lighter than the page around it,
+        // with a thin dark line down its right edge.
         let edge = ui.max_rect();
+        ui.painter().rect_filled(edge, 0.0, theme::PANEL_RAISED);
         ui.painter().vline(
-            edge.right() - 1.0,
+            edge.right() - 0.5,
             edge.y_range(),
-            Stroke::new(DIVIDER_WIDTH, theme::DIVIDER),
+            Stroke::new(1.0, theme::STAGE_SURROUND),
         );
         // One column of every tool and the color box is taller than a short window: it scrolls.
         egui::ScrollArea::vertical()

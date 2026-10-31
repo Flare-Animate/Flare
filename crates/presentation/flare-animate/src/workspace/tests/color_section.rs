@@ -22,7 +22,6 @@ fn the_swatches_and_buttons_fit_the_strip_and_none_overlap() {
             r.fill_picture,
             r.fill,
             r.defaults,
-            r.none,
             r.swap,
         ];
         let room = Rect::from_min_size(Pos2::ZERO, Vec2::new(width.max(ROW_WIDTH), height(width)));
@@ -41,21 +40,30 @@ fn the_swatches_and_buttons_fit_the_strip_and_none_overlap() {
         }
         // The stroke is over the fill, and the buttons are under both.
         assert!(r.stroke.max.y < r.fill.min.y && r.fill.max.y < r.defaults.min.y);
-        // In Animate's order: black and white, no color, swap.
-        assert!(r.defaults.max.x <= r.none.min.x && r.none.max.x <= r.swap.min.x);
-        assert!(button_side(width) >= 9.0);
+        // Black and white, then swap, side by side under the swatches.
+        assert!(r.defaults.max.x <= r.swap.min.x && (r.defaults.min.y - r.swap.min.y).abs() < 0.01);
+        assert!(button_side(width) >= 12.0);
     }
 }
 
-/// One pass of just the color section in a 40 px wide window (a default strip), with `events`.
+/// The section in a 40 px wide column at the top left of a roomy window, as in a default strip,
+/// so its picker has room to open.
+fn strip(ws: &mut Workspace, ui: &mut egui::Ui) {
+    let column = Rect::from_min_size(Pos2::ZERO, Vec2::new(40.0, 200.0));
+    ui.scope_builder(egui::UiBuilder::new().max_rect(column), |ui| {
+        ws.color_wells(ui)
+    });
+}
+
+/// One pass of just the color section in a 40 px wide column (a default strip), with `events`.
 fn pass_at(ws: &mut Workspace, ctx: &egui::Context, time: f64, events: Vec<Event>) {
     let raw = RawInput {
         time: Some(time),
-        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(40.0, 200.0))),
+        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(400.0, 300.0))),
         events,
         ..RawInput::default()
     };
-    let mut out = ctx.run_ui(raw, |ui| ws.color_wells(ui));
+    let mut out = ctx.run_ui(raw, |ui| strip(ws, ui));
     out.textures_delta.clear();
 }
 
@@ -91,27 +99,67 @@ fn black_and_white_and_swap_are_the_buttons_under_the_swatches() {
     assert_eq!(ws.paint.fill, Color32::WHITE, "black and white");
 }
 
+/// Where the text `wanted` was drawn in a pass of the section.
+fn text_at(ws: &mut Workspace, ctx: &egui::Context, time: f64, wanted: &str) -> Option<Pos2> {
+    let raw = RawInput {
+        time: Some(time),
+        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(400.0, 300.0))),
+        ..RawInput::default()
+    };
+    let mut out = ctx.run_ui(raw, |ui| strip(ws, ui));
+    out.textures_delta.clear();
+    out.shapes.iter().rev().find_map(|s| match &s.shape {
+        egui::epaint::Shape::Text(t) if t.galley.text() == wanted => {
+            Some(t.visual_bounding_rect().center())
+        }
+        _ => None,
+    })
+}
+
 #[test]
-fn no_color_empties_the_swatch_that_is_selected_and_only_that_one() {
+fn no_color_is_in_each_swatchs_picker_and_there_is_no_button_for_it_in_the_strip() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);
-    pass_at(&mut ws, &ctx, 0.0, vec![]);
-    // Choosing the stroke swatch selects it (and opens its picker, which is dismissed).
-    click(&mut ws, &ctx, 0.1, centers().stroke.center());
-    assert_eq!(ws.color_target, ColorTarget::Stroke);
-    egui::Popup::close_all(&ctx);
-    pass_at(&mut ws, &ctx, 0.9, vec![]);
-    let fill_before = ws.paint.fill;
-    click(&mut ws, &ctx, 1.0, centers().none.center());
-    assert_eq!(ws.paint.stroke_color.a(), 0, "no stroke");
-    assert_eq!(ws.paint.fill, fill_before, "the fill is untouched");
-    // And the fill, once it is the selected one.
-    click(&mut ws, &ctx, 2.0, centers().fill.center());
-    assert_eq!(ws.color_target, ColorTarget::Fill);
-    egui::Popup::close_all(&ctx);
-    pass_at(&mut ws, &ctx, 2.9, vec![]);
-    click(&mut ws, &ctx, 3.0, centers().none.center());
-    assert_eq!(ws.paint.fill.a(), 0, "no fill");
+    let mut time = 0.0;
+    let mut tick = |step: f64| {
+        time += step;
+        time
+    };
+    pass_at(&mut ws, &ctx, tick(0.1), vec![]);
+    assert!(
+        text_at(&mut ws, &ctx, tick(0.1), "No color").is_none(),
+        "nothing in the strip itself says no color"
+    );
+    for (swatch, target) in [
+        (centers().stroke.center(), ColorTarget::Stroke),
+        (centers().fill.center(), ColorTarget::Fill),
+    ] {
+        egui::Popup::close_all(&ctx);
+        pass_at(&mut ws, &ctx, tick(0.1), vec![]);
+        click(&mut ws, &ctx, tick(0.1), swatch);
+        tick(0.5); // a click takes three more passes
+        assert_eq!(ws.color_target, target, "choosing a swatch selects it");
+        for _ in 0..3 {
+            pass_at(&mut ws, &ctx, tick(0.1), vec![]);
+        }
+        let none = text_at(&mut ws, &ctx, tick(0.1), "No color").expect("the picker has No color");
+        let (stroke_before, fill_before) = (ws.paint.stroke_color, ws.paint.fill);
+        click(&mut ws, &ctx, tick(0.1), none);
+        tick(0.5);
+        match target {
+            ColorTarget::Stroke => {
+                assert_eq!(ws.paint.stroke_color.a(), 0, "no stroke");
+                assert_eq!(ws.paint.fill, fill_before, "the fill is untouched");
+            }
+            _ => {
+                assert_eq!(ws.paint.fill.a(), 0, "no fill");
+                assert_eq!(
+                    ws.paint.stroke_color, stroke_before,
+                    "the stroke is untouched"
+                );
+            }
+        }
+    }
 }
 
 #[test]

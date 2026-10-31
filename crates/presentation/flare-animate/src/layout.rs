@@ -190,7 +190,7 @@ fn add_panels_older_layouts_lack(tree: &mut Tree<Pane>) {
 }
 
 /// The earlier default had the tool strip in the same row as the stage, above the timeline. A
-/// saved layout like that is dropped for the new default, which is what a reset would give.
+/// saved layout like that opens as the new default, which is what a reset would give.
 fn tool_strip_is_beside_the_stage(tree: &Tree<Pane>) -> bool {
     let find = |wanted: Pane| {
         tree.tiles.iter().find_map(|(id, tile)| match tile {
@@ -222,9 +222,8 @@ pub fn from_json(json: &str) -> Result<Tree<Pane>, LayoutError> {
     add_panels_older_layouts_lack(&mut tree);
     check(&tree)?;
     if tool_strip_is_beside_the_stage(&tree) {
-        return Err(LayoutError::Invalid(
-            "it is from before the tool strip ran the full height".into(),
-        ));
+        // The earlier default: it opens as the new one, with nothing to report.
+        return Ok(default_tree());
     }
     Ok(tree)
 }
@@ -288,7 +287,7 @@ mod tests {
     }
 
     #[test]
-    fn a_layout_with_the_strip_above_the_timeline_is_dropped_for_the_default() {
+    fn a_layout_with_the_strip_above_the_timeline_opens_as_the_new_default_without_complaint() {
         // The earlier default: tools, stage and the stack in one row, over the bottom tabs.
         let mut tiles = Tiles::default();
         let tools = tiles.insert_pane(Pane::Tools);
@@ -302,10 +301,26 @@ mod tests {
         let row = tiles.insert_horizontal_tile(vec![tools, stage, tabs]);
         let old = Tree::new(egui::Id::unique(TREE_ID), row, tiles);
         check(&old).expect("it is a complete layout");
-        let error = from_json(&to_json(&old).expect("json")).expect_err("outdated");
-        assert!(error.to_string().contains("full height"), "{error}");
-        // The new default is not mistaken for it.
-        from_json(&to_json(&default_tree()).expect("json")).expect("the default opens");
+        let opened = from_json(&to_json(&old).expect("json")).expect("it opens, as the default");
+        let tools = opened
+            .tiles
+            .iter()
+            .find_map(|(id, t)| matches!(t, Tile::Pane(Pane::Tools)).then_some(*id))
+            .expect("tools");
+        assert_eq!(
+            opened.tiles.parent_of(tools),
+            opened.root(),
+            "the strip has its own column"
+        );
+        // The new default is left as it is.
+        let value = |tree: &Tree<Pane>| {
+            serde_json::from_str::<serde_json::Value>(&to_json(tree).expect("json")).expect("json")
+        };
+        let fresh = default_tree();
+        assert_eq!(
+            value(&from_json(&to_json(&fresh).expect("json")).expect("opens")),
+            value(&fresh)
+        );
     }
 
     #[test]

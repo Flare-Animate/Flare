@@ -131,13 +131,13 @@ are not built. Tools that are not built are dimmed with a note, like the menu's 
 and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a list. The strip scrolls
 when it is taller than its panel.
 Below them, as in Animate's toolbar, a swatch for the stroke color over a swatch for the fill color,
-each with a small picture of its tool, and under them three small buttons: black and white, no
-color, and swap. Click a swatch to choose it and open its color picker; No color empties the
-swatch that is chosen (an empty swatch is drawn as a white square with a red slash), which is how a
-shape is drawn with no stroke or no fill. The strip is one tool wide by default and runs the whole
-height of the window, from the top bar to the bottom, with the timeline beside it, not under it;
-it has two columns only when it is made at least 72 px wide. A firm line marks its right edge.
-Layouts saved before this are dropped for the new default.
+each with a small picture of its tool, and under them two small buttons: black and white, and swap.
+Click a swatch to choose it and open its color picker, which starts with a No color button (an
+empty swatch is drawn as a white square with a red slash): that is how a shape is drawn with no
+stroke or no fill. The strip is one tool wide by default and runs the whole height of the window,
+from the top bar to the bottom, with the timeline beside it, not under it; it has two columns only
+when it is made at least 72 px wide. It is a shade lighter than the page around it, with a thin dark
+line down its right edge. A layout saved with the old arrangement opens as the new default.
 The segmented control inside panels (Properties' Tool, Object,
 Frame and Doc) marks the chosen segment by raising it, with no underline.
 

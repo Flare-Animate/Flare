@@ -238,12 +238,12 @@ fn the_strip_draws_one_picture_for_each_slot_and_nothing_else_but_the_color_sect
             })
             .count();
     }
-    // The color section has a picture for each of its two swatches and three small buttons. A
+    // The color section has a picture for each of its two swatches and two small buttons. A
     // second copy of any cell, the dots included, would make one more.
     assert_eq!(
         pictures,
-        slots + 5,
-        "{slots} slots, two swatch pictures and three buttons"
+        slots + 4,
+        "{slots} slots, two swatch pictures and two buttons"
     );
 }
 
@@ -304,11 +304,11 @@ fn the_default_strip_is_one_tool_wide_and_a_wide_one_has_two_columns() {
 }
 
 #[test]
-fn the_strips_right_edge_has_a_firm_divider() {
+fn the_strip_is_a_bar_of_its_own_with_a_thin_dark_line_down_its_right_edge() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);
     let width = 48.0;
-    let mut found = None;
+    let mut shapes = Vec::new();
     for pass in 0..2 {
         let raw = RawInput {
             time: Some(f64::from(pass) * 0.1),
@@ -317,22 +317,36 @@ fn the_strips_right_edge_has_a_firm_divider() {
         };
         let mut out = ctx.run_ui(raw, |ui| ws.tools_panel(ui));
         out.textures_delta.clear();
-        found = out.shapes.iter().find_map(|s| match &s.shape {
-            egui::epaint::Shape::LineSegment { points, stroke }
-                if (points[0].x - points[1].x).abs() < 0.01 && points[0].x > width - 4.0 =>
-            {
-                Some((points[0].x, *stroke))
-            }
-            _ => None,
-        });
+        shapes = out.shapes.into_iter().map(|s| s.shape).collect();
     }
-    let (x, stroke) = found.expect("a vertical line at the right edge");
-    assert!((x - (width - 1.0)).abs() < 0.01, "on the edge: {x}");
-    assert!(stroke.width >= 2.0, "firm: {}", stroke.width);
-    assert_eq!(stroke.color, flare_ui::theme::DIVIDER);
-    assert_ne!(
-        flare_ui::theme::DIVIDER,
-        flare_ui::theme::BORDER,
-        "firmer than a border"
+    let fill = shapes.iter().find_map(|s| match s {
+        egui::epaint::Shape::Rect(r)
+            if r.rect.width() >= width - 1.0 && r.rect.height() >= 299.0 =>
+        {
+            Some(r.fill)
+        }
+        _ => None,
+    });
+    assert_eq!(
+        fill,
+        Some(flare_ui::theme::PANEL_RAISED),
+        "a lighter bar behind the tools"
+    );
+    let line = shapes.iter().find_map(|s| match s {
+        egui::epaint::Shape::LineSegment { points, stroke }
+            if (points[0].x - points[1].x).abs() < 0.01 && points[0].x > width - 2.0 =>
+        {
+            Some((points[0].x, *stroke))
+        }
+        _ => None,
+    });
+    let (x, stroke) = line.expect("a vertical line at the right edge");
+    assert!((x - (width - 0.5)).abs() < 0.01, "on the edge: {x}");
+    assert!((stroke.width - 1.0).abs() < 0.01, "thin: {}", stroke.width);
+    assert_eq!(stroke.color, flare_ui::theme::STAGE_SURROUND);
+    let luma = |c: egui::Color32| u32::from(c.r()) + u32::from(c.g()) + u32::from(c.b());
+    assert!(
+        luma(stroke.color) < luma(flare_ui::theme::PANEL_RAISED),
+        "the line is darker than the bar"
     );
 }
