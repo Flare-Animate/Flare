@@ -21,6 +21,20 @@ pub fn icon_button(
     enabled: bool,
     hint: &str,
 ) -> Response {
+    icon_button_for(ui, icon, size, active, enabled, hint, false)
+}
+
+/// [`icon_button`], and `unbuilt` says the feature does not exist yet, so the hint says so. A
+/// button that is only disabled for now (Undo with nothing to undo) keeps its plain name.
+pub fn icon_button_for(
+    ui: &mut Ui,
+    icon: &str,
+    size: f32,
+    active: bool,
+    enabled: bool,
+    hint: &str,
+    unbuilt: bool,
+) -> Response {
     // Snug around the picture: a strip of these should look like a toolbar, not a grid of keys.
     let pad = 3.0;
     let (rect, response) = ui.allocate_exact_size(
@@ -58,16 +72,16 @@ pub fn icon_button(
         };
         icons::image(icon, size, tint).paint_at(ui, rect.shrink(pad));
     }
-    if enabled {
-        response.on_hover_text(hint)
-    } else {
+    if unbuilt {
         response.on_hover_text(format!("{hint} ({NOT_YET})"))
+    } else {
+        response.on_hover_text(hint)
     }
 }
 
 /// An icon button for something that does not exist yet: drawn normally, dimmed, and says so.
 pub fn mock_icon_button(ui: &mut Ui, icon: &str, size: f32, hint: &str) -> Response {
-    icon_button(ui, icon, size, false, false, hint)
+    icon_button_for(ui, icon, size, false, false, hint, true)
 }
 
 /// A small heading that opens a group of controls in a panel.
@@ -257,6 +271,50 @@ mod tests {
             }
         });
         output.textures_delta.clear();
+    }
+
+    /// The tooltip a button shows when the pointer rests on it, drawn by `add`.
+    fn tooltip_of(add: impl Fn(&mut Ui)) -> String {
+        let ctx = egui::Context::default();
+        let at = egui::pos2(14.0, 14.0);
+        let mut text = String::new();
+        for step in 0..12 {
+            let events = if step == 0 {
+                vec![egui::Event::PointerMoved(at)]
+            } else {
+                vec![]
+            };
+            let input = egui::RawInput {
+                time: Some(f64::from(step) * 0.2),
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(200.0, 100.0),
+                )),
+                events,
+                ..egui::RawInput::default()
+            };
+            let mut out = ctx.run_ui(input, |ui| add(ui));
+            out.textures_delta.clear();
+            for shape in &out.shapes {
+                if let egui::epaint::Shape::Text(t) = &shape.shape {
+                    text.push_str(t.galley.text());
+                }
+            }
+        }
+        text
+    }
+
+    #[test]
+    fn a_button_that_is_only_off_for_now_keeps_its_plain_name_and_only_unbuilt_ones_say_so() {
+        let off = tooltip_of(|ui| {
+            icon_button(ui, "undo", 16.0, false, false, "Undo");
+        });
+        assert!(off.contains("Undo"), "{off}");
+        assert!(!off.contains("Not available"), "{off}");
+        let unbuilt = tooltip_of(|ui| {
+            mock_icon_button(ui, "undo", 16.0, "Undo");
+        });
+        assert!(unbuilt.contains("Not available yet"), "{unbuilt}");
     }
 
     #[test]

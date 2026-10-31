@@ -159,13 +159,14 @@ impl Workspace {
         } else {
             format!("{} ({})", shown.name, shown.key)
         };
-        let response = chrome::icon_button(
+        let response = chrome::icon_button_for(
             ui,
             if extra { "toolbar-more" } else { shown.icon },
             TOOL_ICON,
             active,
             extra || shown.tool.is_some(),
             &hint,
+            !extra && shown.tool.is_none(),
         );
         let mut chosen = shown.tool.filter(|_| response.clicked() && !extra);
         if self.is_pinned(shown.name) && slot.len() == 1 {
