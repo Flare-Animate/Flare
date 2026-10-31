@@ -344,6 +344,13 @@ impl Workspace {
                 if flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, hint).clicked() {
                     self.perform(MenuAction::PlayPause);
                 }
+                // Animate's Publish button is next to Play too.
+                let can_publish = self.is_enabled(MenuAction::Publish);
+                if flare_ui::chrome::icon_button(ui, "publish", 16.0, false, can_publish, "Publish")
+                    .clicked()
+                {
+                    self.perform(MenuAction::Publish);
+                }
                 // The name sits in the middle of what is left, whatever the window width.
                 let title = egui::RichText::new(self.title()).color(flare_ui::theme::TEXT_DIM);
                 let rect = ui.available_rect_before_wrap();

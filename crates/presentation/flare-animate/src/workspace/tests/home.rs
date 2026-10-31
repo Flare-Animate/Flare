@@ -217,3 +217,53 @@ fn the_settings_gear_is_centered_over_the_rail_on_home_and_in_the_editor() {
         assert!(!opened(home, center + 12.0), "beyond the right edge");
     }
 }
+
+/// Clicks the top bar at `x` in a fresh editor and says what that did.
+fn press_top_bar(x: f32) -> (bool, bool, bool) {
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    let at = Pos2::new(x, 14.0);
+    let click = |pressed| Event::PointerButton {
+        pos: at,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    pass(&mut ws, &ctx, input(0.2, vec![Event::PointerMoved(at)]));
+    pass(&mut ws, &ctx, input(0.3, vec![click(true)]));
+    pass(&mut ws, &ctx, input(0.4, vec![click(false)]));
+    (
+        ws.take_dialog() == Some(DialogRequest::Publish),
+        ws.is_playing(),
+        ws.windows.preferences,
+    )
+}
+
+#[test]
+fn the_publish_button_is_left_of_play_in_the_top_bar() {
+    // Walking left from the undo button, play comes, then publish.
+    let mut play = None;
+    let mut publish = None;
+    let mut x = 1210.0;
+    while x > 1100.0 {
+        let (published, playing, _) = press_top_bar(x);
+        if playing && play.is_none() {
+            play = Some(x);
+        }
+        if published && publish.is_none() {
+            publish = Some(x);
+        }
+        x -= 8.0; // the buttons are 22 px wide, so no step misses one
+    }
+    let (play, publish) = (
+        play.expect("play is in the bar"),
+        publish.expect("publish is in the bar"),
+    );
+    assert!(publish < play, "publish at {publish}, play at {play}");
+    assert!(
+        play - publish < 40.0,
+        "they are neighbours: {publish} and {play}"
+    );
+}
