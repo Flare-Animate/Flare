@@ -396,11 +396,9 @@ fn a_frame_that_lies_or_is_not_what_this_format_writes_is_refused_before_it_is_d
     let mut dictionary = good.clone();
     dictionary[4] |= 0x01;
     assert!(check(&dictionary, 5000).is_err());
-    let mut unchecked = good.clone();
-    unchecked[4] &= !0x04;
-    assert!(check(&unchecked, 5000).is_err());
-    // A window bigger than the format writes: byte 5 is the window descriptor when the frame is
-    // not a single segment; build one that is by hand, with a 128 MiB window.
+    // (A frame with no checksum is fine: the digest covers it. See the next test.)
+    // A window bigger than any this format reads (8 MiB): byte 5 is the window descriptor when the
+    // frame is not a single segment; build one by hand, with a window of 2^35 bytes.
     let big_window = [
         0x28,
         0xB5,
@@ -421,4 +419,32 @@ fn a_frame_that_lies_or_is_not_what_this_format_writes_is_refused_before_it_is_d
     assert!(check(&big_window, 0).is_err());
     // And no header at all is no frame.
     assert!(frame_header(&[]).is_none() && frame_header(&[0x28, 0xB5, 0x2F]).is_none());
+}
+
+#[test]
+fn frames_made_by_the_browsers_zstd_are_read_and_decompress_to_what_went_in() {
+    // Made by scripts/web/make_zstd_fixtures.mjs with @bokuweb/zstd-wasm at level 3: no checksum,
+    // and a frame of a few hundred kilobytes is one segment whose window is its whole content.
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/zstd-wasm");
+    let mut zstd = NativeZstd::new().expect("zstd");
+    let mut seen = 0;
+    for entry in fs::read_dir(&dir).expect("fixtures") {
+        let path = entry.expect("entry").path();
+        let len: usize = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .and_then(|s| s.parse().ok())
+            .expect("a name that is the length");
+        let frame = fs::read(&path).expect("frame");
+        let header = frame_header(&frame).expect("a zstd frame");
+        assert_eq!(header.content_size, Some(len as u64));
+        assert!(!header.checksum, "the browser's frames carry none");
+        let expected: Vec<u8> = (0..len).map(|i| (i % 251) as u8).collect();
+        let digest = *blake3::hash(&frame).as_bytes();
+        let raw = unpack(&mut zstd, "cbor+zstd", len as i64, &digest, &frame, 1 << 26)
+            .unwrap_or_else(|e| panic!("{len} bytes: {e}"));
+        assert_eq!(raw, expected, "{len} bytes");
+        seen += 1;
+    }
+    assert!(seen >= 4, "the fixtures are there: {seen}");
 }

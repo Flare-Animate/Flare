@@ -4,8 +4,9 @@
 //! Everything read back is untrusted. The digest is checked before anything is decoded, the size
 //! the record claims is checked against a limit before anything is allocated, and the zstd frame's
 //! own header is read here, in code of ours, and must agree: the content size it declares is the
-//! size the record states, its window is no bigger than the writer's, it carries a checksum and
-//! it names no dictionary. Only then is a decompressor asked, and told to stop at that size. So a
+//! size the record states, its window (when it is not the whole content in one segment, whose
+//! window is that size, already bounded) is no bigger than 8 MiB, and it names no dictionary.
+//! (A checksum is not asked for: the digest above already covers every stored byte.) Only then is a decompressor asked, and told to stop at that size. So a
 //! record cannot be a decompression bomb whichever zstd is behind it (a library in the desktop
 //! app, WebAssembly in the browser).
 
@@ -17,8 +18,11 @@ use crate::StorageError;
 
 /// Records shorter than this are stored as they are: a zstd frame costs more than it saves.
 const COMPRESS_FROM: usize = 64;
-/// How far back the compressor looks (2^18 bytes), which is also all a frame may declare.
+/// How far back the desktop app's compressor looks (2^18 bytes).
 pub(crate) const WINDOW_LOG: u32 = 18;
+/// How far back a frame may say its decoder has to look: 2^23 bytes. The browser's compressor
+/// picks its own window (about 2 MiB for a big record), so this is wider than what is written here.
+pub(crate) const MAX_WINDOW_LOG: u32 = 23;
 /// Deepest nesting of arrays and maps a record may have.
 const MAX_DEPTH: usize = 128;
 
@@ -116,7 +120,9 @@ pub(crate) fn from_cbor<T: DeserializeOwned>(bytes: &[u8]) -> Result<T, StorageE
 /// What a zstd frame's header says about it (RFC 8878, section 3.1.1.1).
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct FrameHeader {
+    /// The window the decoder needs; for a single-segment frame, the content size.
     pub(crate) window: u64,
+    pub(crate) single_segment: bool,
     pub(crate) content_size: Option<u64>,
     pub(crate) checksum: bool,
     pub(crate) dictionary: bool,
@@ -168,6 +174,7 @@ pub(crate) fn frame_header(frame: &[u8]) -> Option<FrameHeader> {
     };
     Some(FrameHeader {
         window,
+        single_segment,
         content_size,
         checksum,
         dictionary: dictionary_bytes > 0,
@@ -214,7 +221,8 @@ pub fn unpack(
                     "a record's frame does not declare its stated size".into(),
                 ));
             }
-            if header.window > 1 << WINDOW_LOG || !header.checksum || header.dictionary {
+            if (!header.single_segment && header.window > 1 << MAX_WINDOW_LOG) || header.dictionary
+            {
                 return Err(StorageError::Corrupt(
                     "a record's frame is not one this format writes".into(),
                 ));
@@ -253,7 +261,7 @@ impl NativeZstd {
         }
         let mut decompressor = zstd::bulk::Decompressor::new()?;
         decompressor
-            .set_parameter(DParameter::WindowLogMax(WINDOW_LOG))
+            .set_parameter(DParameter::WindowLogMax(MAX_WINDOW_LOG))
             .map_err(|e| StorageError::Corrupt(format!("cannot set up decompression: {e}")))?;
         Ok(Self {
             compressor,

@@ -3,3 +3,5 @@
 /docs/temp
 /dist
 /.codesight
+/apps/flare-web/node_modules
+/apps/flare-web/dist
