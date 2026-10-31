@@ -16,7 +16,8 @@ struct Arguments {
     /// Let the agent change the project and save it. Without this the server is read-only.
     #[arg(long)]
     allow_write: bool,
-    /// Directory the agent may export PNGs into. Exports are off without it.
+    /// Directory the agent may export into (PNG, GIF, SWF, HTML5, XFL and .fla) and import from.
+    /// Exports are off without it.
     #[arg(long)]
     export_dir: Option<PathBuf>,
 }

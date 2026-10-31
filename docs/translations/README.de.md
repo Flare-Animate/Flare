@@ -1,41 +1,71 @@
-# Flare
+[English](../../README.md) | [Español](README.es.md) | [Français](README.fr.md) | **Deutsch** | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
-Ein freies Open-Source-Animationswerkzeug im Stil von Adobe Animate, geschrieben in Rust.
+<p align="center">
+  <img src="../../assets/flare-icon-256.png" width="128" height="128" alt="Flare">
+</p>
 
-> **Frühe Alpha.** Fehler und ein unvollständiger Flash/Animate-Import sind zu erwarten. Sichern Sie Ihre Arbeit.
+# Flare 🔥
 
-[English](../../README.md) · [Español](README.es.md) · [Français](README.fr.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md)
+[![CI](https://img.shields.io/github/actions/workflow/status/Flare-Animate/Flare/ci.yml?branch=main&label=CI)](https://github.com/Flare-Animate/Flare/actions/workflows/ci.yml)
+[![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue)](../../LICENSE)
+[![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/JpeScW8Awa)
 
-## Was Flare kann
+Ein freies Open-Source-Animationswerkzeug im Sinne von Adobe Animate, geschrieben in Rust. Gebaut für Windows, macOS und Linux, mit Kommandozeile und MCP-Server für Skripte und Agenten.
 
-- Mit den vertrauten Werkzeugen zeichnen, Bilder und Ebenen auf einer Zeitleiste anordnen und Tweens entlang von Bewegungsführungen erstellen.
-- `.flare`-Projekte öffnen und speichern; XFL/FLA von Animate importieren und exportieren; PNG und GIF exportieren; SWF veröffentlichen.
-- Mehrere Dokumente als Tabs, andockbare Panels, automatisches Speichern und Wiederherstellung nach einem unerwarteten Ende.
-- Ein Kommandozeilenwerkzeug (`flare-cli`) und ein MCP-Server (`flare-mcp`), damit Skripte und KI-Agenten sicher an denselben Dokumenten arbeiten können.
+> **Frühe Alpha.** Rechnen Sie mit Fehlern und unvollständigem Flash/Animate-Import. Sichern Sie Ihre Arbeit.
 
-## Bauen und starten
+<!-- Hier kommt ein Screenshot des Editors hin: assets/repository/flare-app.png -->
 
-Rust ist in `rust-toolchain.toml` festgelegt. Unter Linux die in [CONTRIBUTING.md](../../CONTRIBUTING.md) genannten Bibliotheken installieren.
+### Funktionen
 
-```
-cargo run -p flare-desktop
-cargo run -p flare-cli -- --help
-```
+- Zeichnen mit den gewohnten Werkzeugen: Auswahl, Teilauswahl, Frei transformieren, Lasso und Polygon-Lasso, Zeichenstift, Bleistift, Pinsel mit Spitze, Radierer, Rechteck, Oval, PolyStar, Linie, Text, Farbeimer, Tintenfass und Pipette, mit Füllungen, Konturen und Verläufen.
+- Bilder und Ebenen auf einer Zeitleiste anordnen, mit Ordnern, Masken, Bewegungsführungen, Bewegungs- und Formtweens mit Ease sowie Onion Skin.
+- Symbole (Grafik, Movieclip und Schaltfläche) in einer Bibliothek, als Instanzen auf der Bühne platziert.
+- Die Animation mit Ton abspielen; Film testen führt das veröffentlichte SWF in Ruffle aus (auf dem Desktop in der App, im Browser auf der Seite).
+- Mehrere Dokumente als Tabs, andockbare Bedienfelder, automatisches Speichern und Wiederherstellung nach einem Absturz.
+- `.flare`-Projekte öffnen und speichern. XFL und `.fla` von Animate importieren und exportieren, mit einem Bericht darüber, was nicht übernommen werden konnte.
+- PNG, GIF und MP4 exportieren sowie ein SWF oder eine HTML5-Canvas-Seite veröffentlichen.
+- Eine Kommandozeile (`flare`) und ein MCP-Server (`flare-mcp`), damit Skripte und KI-Agenten sicher an denselben Dokumenten arbeiten können.
 
-Release-Builds und Paketierung sind in [docs/release.md](../release.md) beschrieben.
+### Bauen und starten
 
-## Dokumentation
+Rust ist in `rust-toolchain.toml` festgelegt. Ruffle ist ein Git-Submodul, also mit Submodulen klonen:
 
-[docs/README.md](../README.md) erklärt, wie Flare aufgebaut ist. Siehe auch [CONTRIBUTING.md](../../CONTRIBUTING.md), [SECURITY.md](../../SECURITY.md) und [CHANGELOG.md](../../CHANGELOG.md). Diese Dokumente sind auf Englisch.
+    git clone --recurse-submodules https://github.com/Flare-Animate/Flare.git
+    cd Flare
+    cargo run --release -p flare-desktop
 
-## Community
+Unter Linux die in [CONTRIBUTING.md](../../CONTRIBUTING.md) aufgeführten Bibliotheken installieren.
+
+Releases erzeugen native Pakete für macOS, Windows und Linux auf x64 und arm64: ein DMG, ein MSI und ein portables Zip sowie `.deb`-, `.rpm`- und AppImage-Dateien, dazu die Kommandozeile als eigenes Archiv. Es wurde noch keine Version veröffentlicht; bauen Sie daher vorerst aus dem Quellcode. [docs/release.md](../release.md) beschreibt die Pakete und wie ein Release entsteht.
+
+### Kommandozeile und MCP
+
+    flare new project.flare --width 1280 --height 720
+    flare draw-rect project.flare --rect 100 100 300 200 --color FF6600
+    flare export project.flare frame.png
+    flare export project.flare loop.gif --format gif
+    flare publish-html5 project.flare page.html
+    flare --help
+
+`flare-mcp project.flare --allow-write --export-dir exports` stellt einem KI-Agenten ein Projekt über stdio bereit. Ohne `--allow-write` ist es schreibgeschützt, Exporte gehen nur in das Exportverzeichnis, und jede Änderung ist ein geprüfter, rückgängig zu machender Schritt.
+
+### Noch nicht
+
+Nicht gebaut sind: Formhinweise, mehr als eine Szene, Skripting und das Menü Befehle, bearbeitbare Tastenkürzel, Textbearbeitung nach dem Platzieren, Zeichnen mit Verschmelzung (Formen sind getrennte Objekte, nicht Flashs schneidende und verschmelzende planare Karte) und eine Kameraebene. Was geplant, aber nicht gebaut ist, erscheint abgedunkelt in der Oberfläche. Die Web-Version ist experimentell und nicht veröffentlicht. [docs/roadmap.md](../roadmap.md) sagt, was als Nächstes kommt.
+
+### Dokumentation
+
+[docs/README.md](../README.md) erklärt, wie Flare aufgebaut ist. Siehe auch [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md) mit den Arbeitsregeln, [SECURITY.md](../../SECURITY.md) und [CHANGELOG.md](../../CHANGELOG.md). Diese Dokumente sind auf Englisch.
+
+### Community
 
 [Discord](https://discord.com/invite/JpeScW8Awa) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
-## Lizenz
+### Lizenz
 
-Siehe [LICENSE](../../LICENSE).
+BSD 3-Clause. Siehe [LICENSE](../../LICENSE).
 
 ---
 
-*Diese Übersetzung kann der [englischen README](../../README.md) hinterherhinken; maßgeblich ist das Englische.*
+*Diese Übersetzung kann hinter dem [englischen README](../../README.md) zurückliegen, das maßgeblich ist.*

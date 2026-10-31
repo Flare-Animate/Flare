@@ -80,3 +80,7 @@ cargo test --workspace --locked
 - Never commit generated or local files (`target/`, `docs/temp/`, tool caches).
 - Change the docs in the same commit as the behaviour they describe. Committed docs never refer to
   `docs/temp`.
+- `README.md` and its translations in `docs/translations/` change together: an edit to the English
+  README is made in every translation in the same commit, with the same structure, links and
+  commands. Command lines, file names and code stay as they are; only the prose is translated. If a
+  translation cannot be done well, say so in the commit instead of leaving the file behind.
