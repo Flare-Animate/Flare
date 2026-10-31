@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       # The toolchain is pinned in rust-toolchain.toml; this installs exactly that.
       - name: Install the pinned Rust toolchain
@@ -70,6 +72,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Install the pinned Rust toolchain and the wasm target
         run: |
           rustup toolchain install

@@ -42,6 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: true
           fetch-depth: 0
           ref: ${{ inputs.publish-tag || github.ref }}
       - uses: actions/setup-python@v7
@@ -93,6 +94,8 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: '13.0'
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: true
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: '1.99.0'
@@ -174,6 +177,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: true
           ref: ${{ inputs.publish-tag || github.ref }}
       - uses: actions/setup-python@v7
         with:
@@ -209,6 +213,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          submodules: true
           ref: ${{ inputs.publish-tag || github.ref }}
       - uses: actions/setup-python@v7
         with:

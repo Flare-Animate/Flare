@@ -22,6 +22,10 @@
   workspace and must never become a build dependency, symlink, `include!` or copied tree.
   Code adapted from it needs recorded provenance (source path, license, changes, tests).
   Do not claim clean-room provenance for translated code.
+- `third_party/` holds pinned submodules (today `ruffle`), also excluded from the workspace. Their
+  source is used unmodified under their licences and only through a path dependency behind a
+  feature that is off by default (`flare-ruffle`'s `render-check`); CI and release checkouts fetch
+  them because cargo reads their manifests. Moving the pin is a commit of its own.
 - `experiments/` holds isolated experiments with their own lockfiles; they are never part
   of the product dependency graph.
 

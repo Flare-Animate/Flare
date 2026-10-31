@@ -38,7 +38,7 @@ members = [
     "crates/presentation/flare-ui",
     "crates/presentation/flare-animate",
 ]
-exclude = ["original"]
+exclude = ["original", "third_party"]
 default-members = ["apps/flare-desktop"]
 
 [workspace.package]
@@ -71,6 +71,8 @@ flare-publish = { path = "crates/io/flare-publish" }
 # adapters
 flare-flash = { path = "crates/adapters/flare-flash" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }
+# Ruffle's exporter from the pinned submodule; only flare-ruffle's render-check feature uses it.
+exporter = { path = "third_party/ruffle/exporter" }
 # services
 flare-render = { path = "crates/services/flare-render" }
 flare-runtime = { path = "crates/services/flare-runtime" }

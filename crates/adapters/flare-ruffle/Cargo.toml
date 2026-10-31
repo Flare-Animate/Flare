@@ -12,9 +12,21 @@ flare-publish.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
 
+# Ruffle's own exporter, from the pinned checkout in third_party/ruffle. It draws a SWF with
+# Ruffle's renderer on the GPU, so a test can compare Ruffle's picture of what we publish with
+# ours. Off by default: it adds Ruffle's whole dependency tree and needs Java to build.
+exporter = { workspace = true, optional = true }
+
+[features]
+render-check = ["dep:exporter"]
+
 [dev-dependencies]
 flare-core.workspace = true
+flare-eval.workspace = true
+flare-render.workspace = true
 swf.workspace = true
+clap.workspace = true
+png.workspace = true
 
 [lints]
 workspace = true

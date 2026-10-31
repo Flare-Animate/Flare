@@ -257,13 +257,24 @@ install it. Nothing here makes a hostile SWF safe: that is the player's job.
 
 This is tested with a stand-in player (a script that records its arguments and the file it
 received), including a path full of shell syntax and a mutation that routes the launch through
-a shell. It has not been run against a real Ruffle.
+a shell. The launch itself has not been run against a real Ruffle.
+
+What Ruffle *draws* for our files is checked separately. Ruffle is pinned as a git submodule at
+`third_party/ruffle` (a shallow checkout; `cargo` loads the whole of Ruffle's workspace, so it is not sparse), and with the
+`render-check` feature `flare-ruffle` builds Ruffle's own `exporter` and its tests have Ruffle
+render a published SWF on the GPU and compare the picture with Flare's own render of the same
+frame: solid shapes, a gradient and a mask. It is off by default, because it adds Ruffle's
+dependency tree (about 1.5 minutes and 2 GB of build output on top of a warm build) and needs
+Java (Ruffle compiles its ActionScript library with Adobe's `asc.jar`) and a GPU adapter, so CI
+does not run it: `cargo test -p flare-ruffle --features render-check`. Ruffle's source is used
+unmodified under its MIT/Apache-2.0 licence, not copied or stripped.
 
 Encoding uses the `swf` crate from the Ruffle project (MIT/Apache-2.0). Tests parse the output
 back with that crate's reader, play the display list, rebuild shapes from the decoded records
 and compare renders with the document, and check fill sides against SWF's own definition (a
 style belongs to one side of each edge). That is real evidence the file is well-formed and
-says what we meant. It has not been played in Flash Player or Ruffle.
+says what we meant. Ruffle has drawn the frames of the render-check movies (above); sound,
+playback over time and Flash Player have not been checked.
 ## Source preservation
 
 Data Flare cannot edit is kept, not dropped. An `Attachment` is opaque source text (for XFL,
