@@ -12,6 +12,7 @@
 mod file;
 mod html5;
 mod shapes;
+mod sound;
 
 pub use file::{PublishFileError, publish_html5_to_file, publish_to_file};
 pub use html5::{Html5Options, MAX_PAGE_BYTES, PublishedHtml, publish_html5};
@@ -170,7 +171,7 @@ pub fn publish_swf(
         });
     }
 
-    let mut tags: Vec<Tag<'static>> = vec![
+    let mut tags: Vec<Tag<'_>> = vec![
         Tag::FileAttributes(swf::FileAttributes::empty()),
         Tag::SetBackgroundColor(Color {
             r: stage.background().r,
@@ -181,16 +182,18 @@ pub fn publish_swf(
     ];
 
     let mut characters: HashMap<(ShapeId, u64), Option<swf::CharacterId>> = HashMap::new();
-    let mut next_character: swf::CharacterId = 1;
+    // Sounds are defined first, so shapes take the ids after them.
+    let sound::Sounds {
+        define: defined_sounds,
+        starts: mut sound_starts,
+        diagnostics: mut sound_diagnostics,
+        mut next_character,
+    } = sound::define(document, 1, sound::MAX_SAMPLES);
+    diagnostics.append(&mut sound_diagnostics);
+    tags.extend(defined_sounds.iter().map(sound::Defined::tag));
     let mut approximated = false;
     let mut flattened_gradient = false;
     let mut ignored_masks = false;
-    if !document.sounds().is_empty() {
-        diagnostics.push(Diagnostic {
-            severity: Severity::Warning,
-            message: "SWF publishing does not write sounds yet, so the movie is silent".into(),
-        });
-    }
     let mut on_screen: Vec<Placed> = Vec::new();
     let mut frames = 0_u32;
 
@@ -266,6 +269,9 @@ pub fn publish_swf(
                 }));
             }
             on_screen = now;
+            for start in sound_starts.remove(&frames).unwrap_or_default() {
+                tags.push(Tag::StartSound(start));
+            }
             tags.push(Tag::ShowFrame);
             frames += 1;
         }

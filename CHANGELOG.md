@@ -6,6 +6,9 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+- SWF publishing writes sounds: each cued sound is defined once as uncompressed 16-bit audio at the nearest SWF sample rate at or above its own, and started at every cue, with scenes offsetting the frames. The total is bounded.
+
 ## [0.1.0] - not yet released
 
 The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.

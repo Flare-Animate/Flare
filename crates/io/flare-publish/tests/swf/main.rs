@@ -11,6 +11,7 @@ use swf::Tag;
 
 mod frames;
 mod shapes;
+mod sounds;
 mod support;
 
 use support::*;

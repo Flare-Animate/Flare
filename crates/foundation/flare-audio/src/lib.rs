@@ -90,6 +90,38 @@ impl Audio {
         self.frames() as f64 / f64::from(self.sample_rate)
     }
 
+    /// The sound as 16-bit signed samples at `rate`, interleaved, in one channel if it has one
+    /// and in two otherwise (a sound with more is cut to its first two, as the mixer does).
+    /// Resampled by linear interpolation, and clamped to what 16 bits hold. Returns the samples
+    /// and how many channels they have. `None` if `rate` is zero or the result would have more
+    /// than `max_samples` samples.
+    pub fn to_pcm16(&self, rate: u32, max_samples: usize) -> Option<(Vec<i16>, u16)> {
+        if rate == 0 {
+            return None;
+        }
+        let channels = usize::from(self.channels.min(2));
+        let frames = self.frames();
+        let out_frames = (frames as u128 * u128::from(rate)).div_ceil(u128::from(self.sample_rate));
+        let out_frames = usize::try_from(out_frames).ok()?;
+        if out_frames.checked_mul(channels)? > max_samples {
+            return None;
+        }
+        let step = f64::from(self.sample_rate) / f64::from(rate);
+        let mut out = Vec::with_capacity(out_frames * channels);
+        for n in 0..out_frames {
+            let t = n as f64 * step;
+            let i = (t as usize).min(frames - 1);
+            let j = (i + 1).min(frames - 1);
+            let fraction = (t - i as f64) as f32;
+            for channel in 0..channels {
+                let (a, b) = (self.at(i, channel), self.at(j, channel));
+                let sample = a + (b - a) * fraction;
+                out.push((sample * 32767.0).round().clamp(-32768.0, 32767.0) as i16);
+            }
+        }
+        Some((out, channels as u16))
+    }
+
     fn at(&self, frame: usize, channel: usize) -> f32 {
         self.samples[frame * usize::from(self.channels) + channel]
     }
@@ -251,6 +283,34 @@ impl Mixer {
 #[allow(clippy::expect_used)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pcm16_keeps_the_rate_and_clamps() {
+        let audio = Audio::new(8000, 1, vec![0.0, 0.5, -0.5, 2.0, -2.0]).expect("audio");
+        let (pcm, channels) = audio.to_pcm16(8000, 100).expect("pcm");
+        assert_eq!(channels, 1);
+        assert_eq!(pcm, vec![0, 16384, -16384, 32767, -32768]);
+    }
+
+    #[test]
+    fn pcm16_resamples_and_cuts_to_two_channels() {
+        let frames = 100;
+        let samples: Vec<f32> = (0..frames * 3).map(|n| (n % 3) as f32 * 0.1).collect();
+        let audio = Audio::new(22050, 3, samples).expect("audio");
+        let (pcm, channels) = audio.to_pcm16(11025, 1000).expect("pcm");
+        assert_eq!(channels, 2);
+        assert_eq!(pcm.len(), 50 * 2);
+        assert_eq!(pcm[0], 0);
+        assert_eq!(pcm[1], 3277);
+    }
+
+    #[test]
+    fn pcm16_refuses_a_zero_rate_and_too_many_samples() {
+        let audio = Audio::new(8000, 2, vec![0.0; 20]).expect("audio");
+        assert!(audio.to_pcm16(0, 100).is_none());
+        assert!(audio.to_pcm16(8000, 19).is_none());
+        assert!(audio.to_pcm16(8000, 20).is_some());
+    }
 
     /// A 16-bit PCM WAV file holding `samples` (interleaved).
     fn wav(sample_rate: u32, channels: u16, samples: &[i16]) -> Vec<u8> {

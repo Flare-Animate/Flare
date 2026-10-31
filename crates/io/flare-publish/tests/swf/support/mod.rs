@@ -164,6 +164,14 @@ pub fn owned_tags(tags: Vec<Tag<'_>>) -> Vec<Tag<'static>> {
             Tag::DefineShape(shape) => Some(Tag::DefineShape(shape)),
             Tag::RemoveObject(r) => Some(Tag::RemoveObject(r)),
             Tag::ShowFrame => Some(Tag::ShowFrame),
+            Tag::StartSound(start) => Some(Tag::StartSound(start)),
+            // Leaked so the tag can outlive the buffer; this is test code that parses a few files.
+            Tag::DefineSound(sound) => Some(Tag::DefineSound(swf::Sound {
+                id: sound.id,
+                format: sound.format,
+                num_samples: sound.num_samples,
+                data: Box::leak(sound.data.to_vec().into_boxed_slice()),
+            })),
             Tag::PlaceObject(p) => {
                 let p = *p;
                 Some(Tag::PlaceObject(Box::new(swf::PlaceObject {
