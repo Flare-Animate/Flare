@@ -292,6 +292,14 @@ impl Workspace {
                 },
             );
             ui.add_space(4.0);
+            // A language's name in itself, in the font that draws it whatever the interface speaks.
+            let native_name = |language: flare_i18n::Language| {
+                let text = egui::RichText::new(language.native_name());
+                match flare_ui::theme::cjk_family(language.code()) {
+                    Some(family) => text.family(family),
+                    None => text,
+                }
+            };
             // A label and its control on one line; the label is as wide as the language needs.
             let labelled = |ui: &mut egui::Ui, key: &str, add: &mut dyn FnMut(&mut egui::Ui)| {
                 ui.horizontal(|ui| {
@@ -302,8 +310,8 @@ impl Workspace {
             flare_ui::chrome::group(ui, "settings", &tr.text("prefs-general"), |ui| {
                 labelled(ui, "prefs-language", &mut |ui| {
                     let shown = match flare_i18n::Choice::from_code(&edited.language) {
-                        flare_i18n::Choice::System => system_label.clone(),
-                        flare_i18n::Choice::Language(l) => l.native_name().to_owned(),
+                        flare_i18n::Choice::System => egui::RichText::new(system_label.clone()),
+                        flare_i18n::Choice::Language(l) => native_name(l),
                     };
                     egui::ComboBox::from_id_salt("language")
                         .selected_text(shown)
@@ -317,7 +325,7 @@ impl Workspace {
                                 ui.selectable_value(
                                     &mut edited.language,
                                     language.code().to_owned(),
-                                    language.native_name(),
+                                    native_name(language),
                                 );
                             }
                         });

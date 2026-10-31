@@ -135,21 +135,29 @@ fn a_choice_is_kept_by_code_and_anything_unknown_follows_the_system() {
         Choice::Language(Language::Spanish).resolve("de-DE"),
         Language::Spanish
     );
-    assert!(Language::Japanese.needs_cjk_font() && !Language::German.needs_cjk_font());
     for language in Language::ALL {
         assert_eq!(Language::from_code(language.code()), Some(language));
     }
 }
 
 #[test]
-fn the_language_list_is_english_first_then_alphabetical_by_english_name() {
+fn the_language_list_is_english_then_latin_names_alphabetically_then_the_rest_by_tag() {
     assert_eq!(Language::ALL[0], Language::English);
-    let rest: Vec<&str> = Language::ALL[1..]
-        .iter()
-        .map(|l| l.english_name())
-        .collect();
-    let mut sorted = rest.clone();
-    sorted.sort_unstable();
-    assert_eq!(rest, sorted);
-    assert_eq!(rest.len(), Language::ALL.len() - 1);
+    let latin = |l: &Language| l.native_name().chars().all(|c| (c as u32) < 0x250);
+    let rest = &Language::ALL[1..];
+    let split = rest.iter().take_while(|l| latin(l)).count();
+    let (latin_names, others) = rest.split_at(split);
+    assert!(
+        others.iter().all(|l| !latin(l)),
+        "no Latin name after a non-Latin one"
+    );
+    let names: Vec<&str> = latin_names.iter().map(|l| l.native_name()).collect();
+    let mut sorted = names.clone();
+    sorted.sort_unstable_by_key(|n| n.to_lowercase());
+    assert_eq!(names, sorted, "Latin names alphabetical: {names:?}");
+    let codes: Vec<&str> = others.iter().map(|l| l.code()).collect();
+    let mut sorted_codes = codes.clone();
+    sorted_codes.sort_unstable();
+    assert_eq!(codes, sorted_codes, "the others by tag: {codes:?}");
+    assert!(!latin_names.is_empty() && !others.is_empty());
 }

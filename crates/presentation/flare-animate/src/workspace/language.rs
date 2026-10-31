@@ -61,14 +61,14 @@ impl Workspace {
         }
     }
 
-    /// Japanese and Chinese need a font the interface does not carry; the system's is added when
-    /// one of them is the language.
+    /// Puts the font of the interface's language first among the CJK ones the interface carries,
+    /// when the language changes.
     pub(super) fn ensure_language_font(&mut self, ctx: &egui::Context) {
         let language = self.translator.language();
-        if self.cjk_font_for == Some(language) || !language.needs_cjk_font() {
+        if self.cjk_font_for == Some(language) {
             return;
         }
         self.cjk_font_for = Some(language);
-        flare_ui::theme::add_cjk_font(ctx, language.code());
+        flare_ui::theme::set_cjk_priority(ctx, language.code());
     }
 }

@@ -159,97 +159,74 @@ pub fn stage_surround() -> Color32 {
 /// Source Sans 3 (SIL Open Font License; see `assets/ui/fonts/OFL.txt`).
 const SOURCE_SANS: &[u8] = include_bytes!("../../../../assets/ui/fonts/SourceSans3-Regular.ttf");
 
-/// The fonts: Source Sans first for proportional text, then `cjk` (a system font with Chinese,
-/// Japanese and Korean characters) when there is one, with egui's built-in fonts behind them for
-/// the glyphs they lack. Monospace is untouched.
-fn definitions(cjk: Option<egui::FontData>) -> egui::FontDefinitions {
+/// Noto Sans CJK (SIL Open Font License; see `assets/ui/fonts/OFL-NotoSansCJK.txt`), cut down to
+/// the characters of each language's national character set and of its translations by
+/// `scripts/fonts/subset_cjk.py`. Japanese, Chinese and Korean draw some of the same characters
+/// differently, so each has its own.
+const CJK_JA: &[u8] = include_bytes!("../../../../assets/ui/fonts/NotoSansCJK-ja-subset.otf");
+const CJK_ZH: &[u8] = include_bytes!("../../../../assets/ui/fonts/NotoSansCJK-zh-subset.otf");
+const CJK_KO: &[u8] = include_bytes!("../../../../assets/ui/fonts/NotoSansCJK-ko-subset.otf");
+
+/// The CJK fonts, as (the language code that picks it, its name in the font definitions, data).
+const CJK_FONTS: [(&str, &str, &[u8]); 3] = [
+    ("zh-CN", "noto-cjk-zh", CJK_ZH),
+    ("ja", "noto-cjk-ja", CJK_JA),
+    ("ko", "noto-cjk-ko", CJK_KO),
+];
+
+/// A font family that draws only in the CJK font of `code` (`ja`, `zh-CN` or `ko`): for a name
+/// that has to look right whatever language the interface is in, such as the language list's own
+/// entries.
+pub fn cjk_family(code: &str) -> Option<egui::FontFamily> {
+    CJK_FONTS
+        .iter()
+        .find(|(c, _, _)| *c == code)
+        .map(|(_, name, _)| egui::FontFamily::Name((*name).into()))
+}
+
+/// The fonts: Source Sans first for proportional text, then the CJK fonts with the one for `code`
+/// (the interface's language) ahead of the others, then egui's built-in fonts for the glyphs
+/// these lack. Monospace is untouched.
+fn definitions(code: &str) -> egui::FontDefinitions {
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
         "source-sans-3".to_owned(),
         std::sync::Arc::new(egui::FontData::from_static(SOURCE_SANS)),
     );
-    let mut order = vec!["source-sans-3".to_owned()];
-    if let Some(data) = cjk {
+    let mut order: Vec<&str> = Vec::new();
+    for (language, name, data) in CJK_FONTS {
+        fonts.font_data.insert(
+            name.to_owned(),
+            std::sync::Arc::new(egui::FontData::from_static(data)),
+        );
         fonts
-            .font_data
-            .insert("system-cjk".to_owned(), std::sync::Arc::new(data));
-        order.push("system-cjk".to_owned());
+            .families
+            .insert(egui::FontFamily::Name(name.into()), vec![name.to_owned()]);
+        // A language's own font first; for the rest, Chinese, Japanese and Korean in turn, so
+        // a name typed in any of them shows.
+        if language == code {
+            order.insert(0, name);
+        } else {
+            order.push(name);
+        }
     }
     if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+        family.insert(0, "source-sans-3".to_owned());
         for (at, name) in order.into_iter().enumerate() {
-            family.insert(at, name);
+            family.insert(at + 1, name.to_owned());
         }
     }
     fonts
 }
 
 fn install_fonts(ctx: &egui::Context) {
-    ctx.set_fonts(definitions(None));
+    ctx.set_fonts(definitions("en"));
 }
 
-/// The system fonts that carry Chinese and Japanese characters for the language `code` (`ja` or
-/// `zh-CN`), best first, with the face to use in a collection. The two languages draw some of the
-/// same characters differently, so each looks first for a font made for it.
-pub fn cjk_font_candidates(code: &str) -> Vec<(&'static str, u32)> {
-    let japanese = code.starts_with("ja");
-    let mut found: Vec<(&'static str, u32)> = Vec::new();
-    if japanese {
-        found.extend([
-            ("/System/Library/Fonts/\u{30d2}\u{30e9}\u{30ae}\u{30ce}\u{89d2}\u{30b4}\u{30b7}\u{30c3}\u{30af} W3.ttc", 0),
-            ("C:\\Windows\\Fonts\\YuGothM.ttc", 0),
-            ("C:\\Windows\\Fonts\\meiryo.ttc", 0),
-            ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 0),
-            ("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc", 0),
-            ("/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc", 0),
-            ("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", 0),
-        ]);
-    } else {
-        found.extend([
-            ("/System/Library/Fonts/PingFang.ttc", 0),
-            ("C:\\Windows\\Fonts\\msyh.ttc", 0),
-            ("C:\\Windows\\Fonts\\simsun.ttc", 0),
-            ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 2),
-            ("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc", 2),
-            (
-                "/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc",
-                2,
-            ),
-            ("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", 2),
-            ("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc", 0),
-        ]);
-    }
-    // The other language's fonts after, then one font that covers most of both.
-    found.extend([
-        // macOS keeps no Japanese-specific font in this folder on every version; PingFang has the
-        // kana, with Chinese forms of the characters they share.
-        ("/System/Library/Fonts/PingFang.ttc", 0),
-        ("/System/Library/Fonts/Hiragino Sans GB.ttc", 0),
-        ("/Library/Fonts/Arial Unicode.ttf", 0),
-        ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 0),
-    ]);
-    found
-}
-
-/// The largest font file read, so an odd file in a font folder cannot take the memory.
-const MAX_FONT_BYTES: u64 = 64 * 1024 * 1024;
-
-/// Adds the system's Chinese and Japanese characters to the interface's fonts, for the language
-/// `code`. Nothing changes when the system has no such font.
-pub fn add_cjk_font(ctx: &egui::Context, code: &str) {
-    for (path, face) in cjk_font_candidates(code) {
-        let Ok(meta) = std::fs::metadata(path) else {
-            continue;
-        };
-        if meta.len() > MAX_FONT_BYTES {
-            continue;
-        }
-        if let Ok(bytes) = std::fs::read(path) {
-            let mut data = egui::FontData::from_owned(bytes);
-            data.index = face;
-            ctx.set_fonts(definitions(Some(data)));
-            return;
-        }
-    }
+/// Puts the CJK font of the interface's language `code` ahead of the other two, so characters the
+/// languages share are drawn the way that language draws them.
+pub fn set_cjk_priority(ctx: &egui::Context, code: &str) {
+    ctx.set_fonts(definitions(code));
 }
 
 /// The gutter between docked panels and around the dock.
@@ -343,40 +320,52 @@ mod tests {
         assert!(spacing.interact_size.y >= 22.0);
     }
 
-    #[test]
-    fn each_cjk_language_looks_first_for_its_own_font_and_only_for_whole_paths() {
-        let ja = cjk_font_candidates("ja");
-        let zh = cjk_font_candidates("zh-CN");
-        assert_ne!(ja[0], zh[0], "the two draw some characters differently");
-        assert!(
-            ja[0].0.contains("Hiragino") || ja[0].0.contains("\u{30d2}") || ja[0].0.contains("Yu")
-        );
-        assert!(zh[0].0.contains("PingFang"));
-        for (path, _) in ja.iter().chain(&zh) {
-            assert!(
-                path.starts_with('/') || path.starts_with("C:\\"),
-                "{path} is not an absolute path"
-            );
-        }
-        assert!(ja.len() < 40 && zh.len() < 40);
+    fn proportional(code: &str) -> Vec<String> {
+        definitions(code).families[&egui::FontFamily::Proportional].clone()
     }
 
     #[test]
-    fn a_missing_font_changes_nothing_and_a_found_one_goes_after_the_interface_font() {
+    fn the_interface_font_is_first_and_the_languages_own_cjk_font_leads_the_others() {
+        for (code, own) in [
+            ("ja", "noto-cjk-ja"),
+            ("zh-CN", "noto-cjk-zh"),
+            ("ko", "noto-cjk-ko"),
+        ] {
+            let family = proportional(code);
+            assert_eq!(family[0], "source-sans-3");
+            assert_eq!(family[1], own, "{code}");
+            assert_eq!(
+                family.iter().filter(|f| f.starts_with("noto-cjk")).count(),
+                3,
+                "a name in any CJK language still shows"
+            );
+        }
+        // For a language without one, all three follow, in a fixed order.
+        assert_eq!(
+            proportional("de")[..4],
+            ["source-sans-3", "noto-cjk-zh", "noto-cjk-ja", "noto-cjk-ko"]
+        );
+        assert!(cjk_family("ja").is_some() && cjk_family("de").is_none());
+    }
+
+    #[test]
+    fn egui_loads_each_embedded_font_and_finds_the_languages_own_name_in_it() {
         let ctx = egui::Context::default();
         apply(&ctx);
-        add_cjk_font(&ctx, "ja"); // there may be no such font here: that must be harmless
-        let plain = definitions(None);
-        assert_eq!(
-            plain.families[&egui::FontFamily::Proportional][0],
-            "source-sans-3"
-        );
-        let with = definitions(Some(egui::FontData::from_static(SOURCE_SANS)));
-        let family = &with.families[&egui::FontFamily::Proportional];
-        assert_eq!(
-            (family[0].as_str(), family[1].as_str()),
-            ("source-sans-3", "system-cjk")
-        );
+        set_cjk_priority(&ctx, "ja");
+        // Fonts take a pass to be set up.
+        for step in 0..2 {
+            let input = egui::RawInput {
+                time: Some(f64::from(step)),
+                ..egui::RawInput::default()
+            };
+            ctx.run_ui(input, |_| {}).textures_delta.clear();
+        }
+        for (code, name) in [("ja", "日本語"), ("zh-CN", "简体中文"), ("ko", "한국어")] {
+            let family = cjk_family(code).expect("family");
+            let found = ctx.fonts_mut(|f| f.has_glyphs(&FontId::new(14.0, family), name));
+            assert!(found, "{code}'s font draws {name}");
+        }
     }
 
     /// WCAG relative luminance of a color.

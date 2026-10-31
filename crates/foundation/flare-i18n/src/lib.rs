@@ -10,16 +10,18 @@ use fluent_bundle::concurrent::FluentBundle;
 use fluent_bundle::{FluentArgs, FluentResource, FluentValue};
 use unic_langid::LanguageIdentifier;
 
-/// A language the interface is written in.
+/// A language the interface is written in, in the order a list shows them: English, then the
+/// languages written in Latin letters alphabetically by their own names, then the others by the
+/// order of their language tags.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Language {
     English,
-    Japanese,
-    Korean,
-    ChineseSimplified,
     German,
     Spanish,
     PortugueseBrazil,
+    Japanese,
+    Korean,
+    ChineseSimplified,
 }
 
 /// The sections of the interface that have files, in every language.
@@ -40,27 +42,27 @@ macro_rules! sections {
 }
 
 impl Language {
-    /// English first, then the rest in the alphabetical order of their English names.
+    /// In list order (see the type's description).
     pub const ALL: [Self; 7] = [
         Self::English,
-        Self::ChineseSimplified,
         Self::German,
+        Self::Spanish,
+        Self::PortugueseBrazil,
         Self::Japanese,
         Self::Korean,
-        Self::PortugueseBrazil,
-        Self::Spanish,
+        Self::ChineseSimplified,
     ];
 
     /// The language's tag, which is also the name of its folder.
     pub fn code(self) -> &'static str {
         match self {
             Self::English => "en",
-            Self::Japanese => "ja",
-            Self::Korean => "ko",
-            Self::ChineseSimplified => "zh-CN",
             Self::German => "de",
             Self::Spanish => "es",
             Self::PortugueseBrazil => "pt-BR",
+            Self::Japanese => "ja",
+            Self::Korean => "ko",
+            Self::ChineseSimplified => "zh-CN",
         }
     }
 
@@ -68,16 +70,16 @@ impl Language {
         Self::ALL.into_iter().find(|l| l.code() == code)
     }
 
-    /// The language's name in English, which is what the list is ordered by.
+    /// The language's name in English.
     pub fn english_name(self) -> &'static str {
         match self {
             Self::English => "English",
-            Self::Japanese => "Japanese",
-            Self::Korean => "Korean",
-            Self::ChineseSimplified => "Chinese (Simplified)",
             Self::German => "German",
             Self::Spanish => "Spanish",
             Self::PortugueseBrazil => "Portuguese (Brazil)",
+            Self::Japanese => "Japanese",
+            Self::Korean => "Korean",
+            Self::ChineseSimplified => "Chinese (Simplified)",
         }
     }
 
@@ -85,21 +87,13 @@ impl Language {
     pub fn native_name(self) -> &'static str {
         match self {
             Self::English => "English",
-            Self::Japanese => "日本語",
-            Self::Korean => "한국어",
-            Self::ChineseSimplified => "简体中文",
             Self::German => "Deutsch",
             Self::Spanish => "Español",
             Self::PortugueseBrazil => "Português (Brasil)",
+            Self::Japanese => "日本語",
+            Self::Korean => "한국어",
+            Self::ChineseSimplified => "简体中文",
         }
-    }
-
-    /// Whether its text needs a font with Chinese, Japanese or Korean characters.
-    pub fn needs_cjk_font(self) -> bool {
-        matches!(
-            self,
-            Self::Japanese | Self::Korean | Self::ChineseSimplified
-        )
     }
 
     /// The language that fits a system locale tag such as `de-AT`, `zh_Hans_CN` or `pt-PT`:
@@ -108,16 +102,14 @@ impl Language {
         let tag = tag.trim().replace('_', "-").to_ascii_lowercase();
         let mut parts = tag.split(['-', '.', '@']);
         match parts.next().unwrap_or("") {
-            "ja" => Self::Japanese,
-            "ko" => Self::Korean,
-            "zh" => {
-                // Traditional Chinese is not here yet, and simplified text is the nearer of the
-                // two for a reader who knows either.
-                Self::ChineseSimplified
-            }
             "de" => Self::German,
             "es" => Self::Spanish,
             "pt" => Self::PortugueseBrazil,
+            "ja" => Self::Japanese,
+            "ko" => Self::Korean,
+            // Traditional Chinese is not here yet, and simplified text is the nearer of the two
+            // for a reader who knows either.
+            "zh" => Self::ChineseSimplified,
             _ => Self::English,
         }
     }
@@ -125,12 +117,12 @@ impl Language {
     fn sources(self) -> [&'static str; SECTIONS.len()] {
         match self {
             Self::English => sections!("en"),
-            Self::Japanese => sections!("ja"),
-            Self::Korean => sections!("ko"),
-            Self::ChineseSimplified => sections!("zh-CN"),
             Self::German => sections!("de"),
             Self::Spanish => sections!("es"),
             Self::PortugueseBrazil => sections!("pt-BR"),
+            Self::Japanese => sections!("ja"),
+            Self::Korean => sections!("ko"),
+            Self::ChineseSimplified => sections!("zh-CN"),
         }
     }
 
