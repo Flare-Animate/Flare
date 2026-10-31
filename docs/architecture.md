@@ -143,7 +143,9 @@ justify giving up SQLite's atomic writes and the ability to open a project in an
   failed save leaves the previous file intact. The directory is not fsynced after the rename.
 - Load treats the file as untrusted: defensive SQLite settings, schema trust off, a version check
   that refuses other versions, the entity count limited, each record's digest checked before it is
-  decoded, its stated size limited before anything is allocated and the decompressor held to that
+  decoded, its stated size limited before anything is allocated (256 MiB for one record, 2 GiB
+  for all of them together: far above what drawing produces, and a bound all the same) and the
+  decompressor held to that
   size and to the window the writer uses (so a record cannot be a decompression bomb), CBOR
   nesting limited, and full revalidation through the document's constructors.
 - There is one version of the format. Files made before the records were compressed (JSON in

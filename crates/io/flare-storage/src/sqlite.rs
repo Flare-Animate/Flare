@@ -19,8 +19,13 @@ use crate::{StorageError, wire};
 pub(crate) const APPLICATION_ID: i64 = 0x464C_4152;
 pub(crate) const SCHEMA_VERSION: i64 = 1;
 pub(crate) const MAX_ENTITIES: i64 = 1_000_000;
-/// The most one record may be once decompressed.
-pub(crate) const MAX_PAYLOAD_BYTES: usize = 16 * 1024 * 1024;
+/// The most one record (a whole scene, at most) may be once decompressed: 256 MiB, which is
+/// hundreds of thousands of shapes. A record's size is read from the file and used to size the
+/// buffer, so some bound has to hold; this one is far above what drawing produces.
+pub(crate) const MAX_PAYLOAD_BYTES: usize = 256 * 1024 * 1024;
+/// The most all the records together may be once decompressed, so many records each under the
+/// limit above cannot add up to more than a computer should be asked for.
+pub(crate) const MAX_TOTAL_BYTES: f64 = 2.0 * 1024.0 * 1024.0 * 1024.0;
 /// The most a sound record may be: the largest sound file, and its fields.
 pub(crate) const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES + 64 * 1024 + 4;
 /// Small pages waste less on the many small records and the empty space after the last one.
@@ -140,6 +145,11 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
     let count: i64 = conn.query_row("SELECT count(*) FROM entity", [], |row| row.get(0))?;
     if count > MAX_ENTITIES {
         return Err(StorageError::Limit("entity count"));
+    }
+    // `total` adds as floating point, so sizes that would overflow an integer are still a number.
+    let total: f64 = conn.query_row("SELECT total(size) FROM entity", [], |row| row.get(0))?;
+    if total > MAX_TOTAL_BYTES {
+        return Err(StorageError::Limit("total size of the records"));
     }
     let (project_id, settings): (String, String) = conn.query_row(
         "SELECT project_id, settings_json FROM project WHERE singleton = 1",
