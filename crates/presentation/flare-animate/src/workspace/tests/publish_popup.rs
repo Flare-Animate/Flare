@@ -58,6 +58,7 @@ fn the_popup_offers_every_format_and_the_three_places_to_share() {
         "Twitter",
         "YouTube",
         "Newgrounds",
+        "Facebook",
     ] {
         time += 0.1;
         assert!(find(&mut ws, &ctx, time, wanted).is_some(), "{wanted}");
@@ -122,5 +123,6 @@ fn the_share_pages_are_fixed_https_addresses_and_twitter_goes_to_x() {
     assert!(ShareTarget::YouTube.url().contains("youtube.com"));
     assert!(ShareTarget::Newgrounds.url().contains("newgrounds.com"));
     let labels: Vec<_> = ShareTarget::ALL.iter().map(|t| t.label()).collect();
-    assert_eq!(labels, ["Twitter", "YouTube", "Newgrounds"]);
+    assert_eq!(labels, ["Twitter", "YouTube", "Newgrounds", "Facebook"]);
+    assert!(ShareTarget::Facebook.url().contains("facebook.com"));
 }

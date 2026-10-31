@@ -59,10 +59,16 @@ pub enum ShareTarget {
     Twitter,
     YouTube,
     Newgrounds,
+    Facebook,
 }
 
 impl ShareTarget {
-    pub const ALL: [Self; 3] = [Self::Twitter, Self::YouTube, Self::Newgrounds];
+    pub const ALL: [Self; 4] = [
+        Self::Twitter,
+        Self::YouTube,
+        Self::Newgrounds,
+        Self::Facebook,
+    ];
 
     /// The name artists know it by (Twitter's page is on x.com now, but nobody here calls it that).
     pub fn label(self) -> &'static str {
@@ -70,6 +76,7 @@ impl ShareTarget {
             Self::Twitter => "Twitter",
             Self::YouTube => "YouTube",
             Self::Newgrounds => "Newgrounds",
+            Self::Facebook => "Facebook",
         }
     }
 
@@ -79,6 +86,9 @@ impl ShareTarget {
             Self::Twitter => "https://x.com/intent/post?text=Made%20with%20Flare",
             Self::YouTube => "https://www.youtube.com/upload",
             Self::Newgrounds => "https://www.newgrounds.com/projects/movies/new",
+            // Facebook's own share page needs an address to share; there is none for a file on
+            // this computer, so it opens Facebook, where the post is made.
+            Self::Facebook => "https://www.facebook.com/",
         }
     }
 }
