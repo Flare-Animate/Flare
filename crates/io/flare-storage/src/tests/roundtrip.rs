@@ -391,3 +391,51 @@ fn outline_colors_survive() {
     );
     assert_eq!(layers[1].outline(), None);
 }
+
+#[test]
+fn a_camera_layer_and_its_keyframes_survive_to_the_last_bit() {
+    use flare_core::DocumentPoint;
+    use flare_document::{Camera, Content, FrameSpan, Tween};
+    let camera = |x: f64, zoom: f64, rotation: f64| {
+        Camera::new(
+            DocumentPoint::new(x, 0.1 + x / 3.0).expect("finite"),
+            zoom,
+            rotation,
+        )
+        .expect("camera")
+    };
+    let spans = vec![
+        FrameSpan::new(
+            0,
+            std::num::NonZeroU32::new(6).expect("nonzero"),
+            Content::Camera(camera(1.0, 1.5, 0.3)),
+        )
+        .with_tween(Tween::Linear)
+        .with_ease(-40),
+        FrameSpan::new(
+            6,
+            std::num::NonZeroU32::new(6).expect("nonzero"),
+            Content::Camera(camera(7.0, 0.25, -2.0)),
+        ),
+    ];
+    let layer = Layer::new(LayerId::new(), "Camera", spans)
+        .expect("layer")
+        .with_camera(true);
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("camera.flare");
+    save(&document, &path).expect("save");
+    let loaded = load(&path).expect("load");
+    assert_eq!(
+        loaded.scenes()[0].timeline(),
+        document.scenes()[0].timeline()
+    );
+    assert!(loaded.scenes()[0].timeline().layers()[0].is_camera());
+}

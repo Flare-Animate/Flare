@@ -12,6 +12,8 @@ pub struct DocumentPoint(DVec2);
 pub struct NonFiniteCoordinate;
 
 impl DocumentPoint {
+    pub const ORIGIN: Self = Self(DVec2::ZERO);
+
     pub fn new(x: f64, y: f64) -> Result<Self, NonFiniteCoordinate> {
         if !x.is_finite() || !y.is_finite() {
             return Err(NonFiniteCoordinate);

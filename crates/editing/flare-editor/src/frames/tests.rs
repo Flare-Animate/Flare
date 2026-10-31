@@ -46,6 +46,7 @@ fn shape_of(f: &Fixture) -> Vec<(u32, u32, char)> {
                 Content::Empty => 'E',
                 Content::Shape(_) => 'S',
                 Content::Instance(_) => 'I',
+                Content::Camera(_) => 'C',
             };
             (s.start(), s.duration().get(), kind)
         })

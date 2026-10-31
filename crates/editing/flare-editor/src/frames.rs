@@ -17,6 +17,7 @@ use flare_commands::Command;
 fn duplicate(content: &Content) -> Option<Content> {
     Some(match content {
         Content::Empty => Content::Empty,
+        Content::Camera(c) => Content::Camera(*c),
         Content::Instance(i) => Content::Instance(
             Instance::new(InstanceId::new(), i.symbol(), i.transform()).with_playback(i.playback()),
         ),

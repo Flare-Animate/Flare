@@ -105,6 +105,12 @@ pub(super) enum ContentWire {
         #[serde(default)]
         first_frame: u32,
     },
+    /// Absent in files written before cameras existed. The angle is in radians.
+    Camera {
+        center: [f64; 2],
+        zoom: f64,
+        rotation: f64,
+    },
 }
 
 #[derive(Serialize, Deserialize)]
@@ -143,6 +149,9 @@ pub(super) struct LayerWire {
     /// Absent in files written before motion guides existed.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub(super) guide: bool,
+    /// Absent in files written before cameras existed.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub(super) camera: bool,
     /// Absent in files written before outline colors existed.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) outline: Option<[u8; 3]>,
@@ -170,6 +179,7 @@ impl TimelineWire {
                 mask: layer.is_mask(),
                 folder: layer.is_folder(),
                 guide: layer.is_guide(),
+                camera: layer.is_camera(),
                 outline: layer.outline().map(|c| [c.r, c.g, c.b]),
                 parent: layer.parent().map(|p| p.as_uuid().to_string()),
                 cues: layer
@@ -219,6 +229,11 @@ impl TimelineWire {
                                 matrix: instance.transform().as_affine().to_cols_array(),
                                 play: Some(instance.playback().mode.name().to_owned()),
                                 first_frame: instance.playback().first_frame,
+                            },
+                            Content::Camera(camera) => ContentWire::Camera {
+                                center: camera.center().as_vec().to_array(),
+                                zoom: camera.zoom(),
+                                rotation: camera.rotation(),
                             },
                         },
                     })
@@ -310,6 +325,18 @@ impl TimelineWire {
                             .with_playback(flare_document::Playback { mode, first_frame }),
                         )
                     }
+                    ContentWire::Camera {
+                        center,
+                        zoom,
+                        rotation,
+                    } => {
+                        let center = DocumentPoint::new(center[0], center[1])
+                            .map_err(|_| StorageError::Corrupt("non-finite camera".into()))?;
+                        Content::Camera(
+                            flare_document::Camera::new(center, zoom, rotation)
+                                .map_err(|e| StorageError::Corrupt(e.to_string()))?,
+                        )
+                    }
                 };
                 let tween = match span.tween {
                     TweenWire::None => Tween::None,
@@ -339,6 +366,7 @@ impl TimelineWire {
                     .with_mask(layer.mask)
                     .with_folder(layer.folder)
                     .with_guide(layer.guide)
+                    .with_camera(layer.camera)
                     .with_outline(layer.outline.map(|[r, g, b]| Rgba8::opaque(r, g, b)))
                     .with_parent(
                         layer

@@ -47,6 +47,9 @@ pub struct Level<'a> {
     /// The mask regions the items refer to, in this timeline's space. A mask that holds an
     /// instance is flattened into the shapes it draws.
     pub clips: Vec<Vec<ClipShape<'a>>>,
+    /// What the camera does to everything on this level: the identity unless the timeline has
+    /// a camera layer.
+    pub view: DAffine2,
 }
 
 /// `timeline` at `frame`, one level deep.
@@ -56,11 +59,15 @@ pub fn evaluate_level<'a>(
     frame: u32,
 ) -> Result<Level<'a>, EvalError> {
     let layers = timeline.layers();
-    let mut level = Level::default();
+    let mut level = Level {
+        view: super::camera_view(document, timeline, frame),
+        ..Level::default()
+    };
     for (index, layer) in layers.iter().enumerate().rev() {
         if !layer.is_visible()
             || layer.is_mask()
             || layer.is_guide()
+            || layer.is_camera()
             || layer.is_folder()
             || hidden_by_folder(layers, index)
         {
@@ -110,7 +117,7 @@ pub fn evaluate_level<'a>(
             continue;
         };
         let content = match span.content() {
-            Content::Empty => continue,
+            Content::Empty | Content::Camera(_) => continue,
             Content::Shape(shape) => {
                 let (shape, phase) = shape_at(layer, span, frame, shape);
                 LevelContent::Shape { shape, phase }

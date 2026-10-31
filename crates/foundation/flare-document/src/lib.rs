@@ -6,6 +6,7 @@
 #![forbid(unsafe_code)]
 
 mod attachment;
+mod camera;
 mod shape;
 mod sound;
 mod stage;
@@ -15,6 +16,7 @@ mod validate;
 pub use attachment::{
     Anchor, Attachment, AttachmentError, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, Placement,
 };
+pub use camera::{Camera, CameraError, MAX_ZOOM, MIN_ZOOM};
 pub use shape::{
     Cap, Gradient, GradientError, Join, MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape,
     ShapeError, Stroke,

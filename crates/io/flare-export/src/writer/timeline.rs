@@ -79,6 +79,8 @@ pub(super) fn write_frame(
     match span.content() {
         Content::Empty => {}
         Content::Instance(instance) => write_instance(out, instance, ctx.names),
+        // XFL's camera layer is not written (see `write_layer`).
+        Content::Camera(_) => {}
         Content::Shape(shape) => {
             let Ctx {
                 notes,
@@ -111,6 +113,14 @@ pub(super) fn write_layer(
     ctx: &mut Ctx<'_>,
 ) {
     let mut attrs = vec![a("name", layer.name())];
+    if layer.is_camera() {
+        // Written as an empty layer so the others keep their places.
+        ctx.notes.push(Diagnostic {
+            severity: Severity::Warning,
+            location: format!("{place} / layer \"{}\"", layer.name()),
+            message: "the camera layer is not written to XFL; its keyframes were left out".into(),
+        });
+    }
     if layer.is_folder() {
         attrs.push(a("layerType", "folder"));
         if let Some(parent) = folder_parent {

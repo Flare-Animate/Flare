@@ -40,6 +40,16 @@ pub enum Diagnostic {
     FolderWithContent(LayerId),
     #[error("layer {0:?} is a motion guide and also a mask or a folder")]
     GuideConflict(LayerId),
+    #[error("layer {0:?} is a camera and also a mask, a guide or a folder")]
+    CameraConflict(LayerId),
+    #[error("layer {0:?} is a camera but holds something other than camera keyframes")]
+    CameraContent(LayerId),
+    #[error("layer {0:?} holds camera keyframes but is not a camera layer")]
+    CameraKeyframesElsewhere(LayerId),
+    #[error("layer {0:?} is a camera inside a symbol; only a scene has a camera")]
+    CameraInSymbol(LayerId),
+    #[error("scene {0:?} has more than one camera layer")]
+    TooManyCameras(SceneId),
     #[error("a cue on layer {layer:?} plays sound {sound:?}, which is not in the document")]
     DanglingSound { layer: LayerId, sound: SoundId },
 }
@@ -172,8 +182,51 @@ pub(crate) fn validate(document: &Document) -> Vec<Diagnostic> {
         }
     }
 
+    validate_cameras(document, &mut out);
     out.extend(find_cycles(document));
     out
+}
+
+/// A scene has at most one camera layer, which holds only camera keyframes, and a symbol has
+/// none.
+fn validate_cameras(document: &Document, out: &mut Vec<Diagnostic>) {
+    use crate::Content;
+    fn check(timeline: &Timeline, allowed: bool, out: &mut Vec<Diagnostic>) -> usize {
+        let mut cameras = 0;
+        for layer in timeline.layers() {
+            let keyframes = layer
+                .spans()
+                .iter()
+                .any(|s| matches!(s.content(), Content::Camera(_)));
+            if layer.is_camera() {
+                cameras += 1;
+                if !allowed {
+                    out.push(Diagnostic::CameraInSymbol(layer.id()));
+                }
+                if layer.is_mask() || layer.is_guide() || layer.is_folder() {
+                    out.push(Diagnostic::CameraConflict(layer.id()));
+                }
+                if layer
+                    .spans()
+                    .iter()
+                    .any(|s| !matches!(s.content(), Content::Camera(_) | Content::Empty))
+                {
+                    out.push(Diagnostic::CameraContent(layer.id()));
+                }
+            } else if keyframes {
+                out.push(Diagnostic::CameraKeyframesElsewhere(layer.id()));
+            }
+        }
+        cameras
+    }
+    for scene in &document.scenes {
+        if check(&scene.timeline, true, out) > 1 {
+            out.push(Diagnostic::TooManyCameras(scene.id));
+        }
+    }
+    for symbol in &document.symbols {
+        check(&symbol.timeline, false, out);
+    }
 }
 
 /// Depth-first search over symbol containment; reports each symbol that is on a cycle.

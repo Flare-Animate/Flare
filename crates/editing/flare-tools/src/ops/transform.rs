@@ -108,7 +108,7 @@ pub fn transform(
     }
     let span = find_span(document, scene, at)?;
     let content = match span.content() {
-        Content::Empty => return None,
+        Content::Empty | Content::Camera(_) => return None,
         Content::Shape(shape) => Content::Shape(transform_shape(shape, matrix)?),
         Content::Instance(instance) => {
             let moved = matrix * instance.transform().as_affine();
@@ -141,7 +141,7 @@ pub fn transform(
 /// is independent of the original. `None` for empty content or a non-finite result.
 pub(super) fn fresh_content(content: &Content, matrix: DAffine2) -> Option<Content> {
     Some(match content {
-        Content::Empty => return None,
+        Content::Empty | Content::Camera(_) => return None,
         Content::Shape(shape) => Content::Shape(transform_shape_as(shape, ShapeId::new(), matrix)?),
         Content::Instance(instance) => {
             let moved = matrix * instance.transform().as_affine();

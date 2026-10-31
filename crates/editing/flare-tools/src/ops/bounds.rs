@@ -115,7 +115,8 @@ pub fn spans_bounds(document: &Document, scene: SceneId, spans: &[SpanRef]) -> V
 
 pub(super) fn content_bounds(document: &Document, content: &Content) -> Option<Rect> {
     match content {
-        Content::Empty => None,
+        // The camera is not art: it has no outline to select or move.
+        Content::Empty | Content::Camera(_) => None,
         Content::Shape(shape) => shape_bounds(shape),
         Content::Instance(instance) => {
             let local = symbol_bounds(document, instance.symbol())?;

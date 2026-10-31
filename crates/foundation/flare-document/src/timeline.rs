@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
 
-use crate::{MAX_CUES_PER_LAYER, Shape, SoundCue, SoundError};
+use crate::{Camera, MAX_CUES_PER_LAYER, Shape, SoundCue, SoundError};
 use thiserror::Error;
 
 /// How a Graphic instance plays the frames of its symbol, as in Animate's Properties: round and
@@ -97,6 +97,8 @@ pub enum Content {
     Empty,
     Instance(Instance),
     Shape(Shape),
+    /// Where the camera looks; only on a camera layer.
+    Camera(Camera),
 }
 
 /// How a span's transform moves toward the next span on the same layer.
@@ -213,6 +215,8 @@ pub struct Layer {
     folder: bool,
     /// A motion guide is never drawn: its path steers the motion tween of the layer below it.
     guide: bool,
+    /// The scene's camera: never drawn, and its spans say where the picture is taken from.
+    camera: bool,
     /// The color the layer is drawn in by outline mode and marked with in the timeline.
     outline: Option<Rgba8>,
     /// The folder this layer sits in. It must be a folder layer above this one.
@@ -243,6 +247,7 @@ impl Layer {
             mask: false,
             folder: false,
             guide: false,
+            camera: false,
             outline: None,
             parent: None,
             cues: Arc::from([]),
@@ -257,6 +262,7 @@ impl Layer {
         layer.mask = self.mask;
         layer.folder = self.folder;
         layer.guide = self.guide;
+        layer.camera = self.camera;
         layer.outline = self.outline;
         layer.parent = self.parent;
         layer.cues = Arc::clone(&self.cues);
@@ -288,6 +294,13 @@ impl Layer {
     #[must_use]
     pub fn with_mask(mut self, mask: bool) -> Self {
         self.mask = mask;
+        self
+    }
+
+    /// Makes this layer the camera (or a plain layer again).
+    #[must_use]
+    pub fn with_camera(mut self, camera: bool) -> Self {
+        self.camera = camera;
         self
     }
 
@@ -353,6 +366,11 @@ impl Layer {
 
     pub fn is_guide(&self) -> bool {
         self.guide
+    }
+
+    /// A camera layer is never drawn: it says where the scene is looked at from.
+    pub fn is_camera(&self) -> bool {
+        self.camera
     }
 
     pub fn is_folder(&self) -> bool {
@@ -440,7 +458,7 @@ impl Timeline {
             .flat_map(|layer| layer.spans())
             .filter_map(|span| match span.content() {
                 Content::Shape(shape) => Some(shape),
-                Content::Empty | Content::Instance(_) => None,
+                Content::Empty | Content::Instance(_) | Content::Camera(_) => None,
             })
     }
 
@@ -455,7 +473,7 @@ impl Timeline {
             .flat_map(|layer| layer.spans())
             .filter_map(|span| match span.content() {
                 Content::Instance(instance) => Some(instance),
-                Content::Empty | Content::Shape(_) => None,
+                Content::Empty | Content::Shape(_) | Content::Camera(_) => None,
             })
     }
 }

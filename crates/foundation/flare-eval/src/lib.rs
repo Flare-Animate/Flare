@@ -141,11 +141,32 @@ pub fn evaluate(document: &Document, scene: SceneId, frame: u32) -> Result<Vec<P
     Ok(evaluate_frame(document, scene, frame)?.placed)
 }
 
-/// Placed instances and drawn shapes at `frame`.
+/// Placed instances and drawn shapes at `frame`, as the camera sees them: the picture every
+/// export and the stage's preview show. A scene without a camera is seen as drawn.
 pub fn evaluate_frame(
     document: &Document,
     scene: SceneId,
     frame: u32,
+) -> Result<Frame<'_>, EvalError> {
+    let view = camera_view(document, scene_of(document, scene)?.timeline(), frame);
+    evaluate_frame_seen_by(document, scene, frame, view)
+}
+
+/// [`evaluate_frame`] with the camera ignored: the scene in its own coordinates, which is what
+/// is edited, so what is picked and drawn on the stage lines up with what was drawn.
+pub fn evaluate_frame_without_camera(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+) -> Result<Frame<'_>, EvalError> {
+    evaluate_frame_seen_by(document, scene, frame, DAffine2::IDENTITY)
+}
+
+fn evaluate_frame_seen_by(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+    view: DAffine2,
 ) -> Result<Frame<'_>, EvalError> {
     let scene = scene_of(document, scene)?;
     let mut out = Frame::default();
@@ -153,7 +174,7 @@ pub fn evaluate_frame(
         document,
         scene.timeline(),
         frame,
-        DAffine2::IDENTITY,
+        view,
         &mut Vec::new(),
         &[],
         &mut out,
@@ -180,6 +201,7 @@ fn walk<'a>(
         if !layer.is_visible()
             || layer.is_mask()
             || layer.is_guide()
+            || layer.is_camera()
             || layer.is_folder()
             || hidden_by_folder(layers, index)
         {
@@ -290,6 +312,8 @@ fn walk_layer<'a>(
             return Ok(());
         }
         Content::Instance(instance) => instance,
+        // The camera is not drawn: it moves everything else (see `camera_view`).
+        Content::Camera(_) => return Ok(()),
     };
     let local = tweened(layer, frame, instance, guide)?;
     let transform = parent * local;
@@ -446,10 +470,12 @@ fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
     close.then_some((scale, angle, translation))
 }
 
+mod camera;
 mod guide;
 mod level;
 mod morph;
 
+pub use camera::{camera_at, camera_view};
 pub use level::{Level, LevelContent, LevelItem, evaluate_level, symbol_frame};
 pub use morph::{eased, morph};
 
