@@ -56,6 +56,11 @@ jobs:
       - name: The crate layers hold
         run: python3 -m unittest discover -s scripts/tests -p 'test_layers.py' -v
 
+      - name: The manifests follow the workspace rules and the surfaces table is well formed
+        run: |
+          python3 -m unittest discover -s scripts/tests -p 'test_manifests.py' -v
+          python3 -m unittest discover -s scripts/tests -p 'test_surfaces.py' -v
+
       - name: The lock file is up to date
         run: cargo metadata --locked --format-version 1 > /dev/null
 
@@ -79,6 +84,21 @@ jobs:
             flare-runtime flare-animate flare-publish flare-export flare-import; do
             cargo check -p "$crate" --target wasm32-unknown-unknown --locked
           done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@0.2.129
+      - name: SQLite and zstd for the page (from npm, exact versions)
+        working-directory: apps/flare-web
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: The page reads and writes .flare files
+        run: |
+          cargo build -p flare-cli --locked
+          python3 -m unittest discover -s scripts/tests -p 'test_web_flare_file.py' -v
+          python3 -m unittest discover -s scripts/tests -p 'test_web_wasm.py' -v
 
   audit:
     name: No known vulnerabilities in the dependencies
