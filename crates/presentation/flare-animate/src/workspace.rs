@@ -221,6 +221,9 @@ pub struct Workspace {
     slot_choice: std::collections::HashMap<&'static str, usize>,
     /// The slot whose list of tools is open, by its first name.
     slot_open: Option<&'static str>,
+    /// Tools from the "…" list put in the strip, and the one being dragged there now.
+    pinned_tools: Vec<&'static str>,
+    slot_drag: Option<&'static str>,
     /// The Text tool's settings and the text being typed.
     text: groups::TextTool,
     /// How new shapes are painted.
@@ -334,6 +337,8 @@ impl Workspace {
             preferences_id: egui::Id::unique("preferences"),
             slot_choice: std::collections::HashMap::new(),
             slot_open: None,
+            pinned_tools: Vec::new(),
+            slot_drag: None,
             text: groups::TextTool::default(),
             paint: groups::Paint::default(),
             display: groups::Display::default(),

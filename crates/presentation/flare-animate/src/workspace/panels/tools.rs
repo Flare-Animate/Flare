@@ -5,7 +5,7 @@ use crate::workspace::{Tool, Workspace};
 use egui::{Stroke, Ui};
 use flare_ui::{chrome, theme};
 
-use super::tool_slots::SLOT_GROUPS;
+use super::tool_slots::{SLOT_GROUPS, Slot, is_extra};
 use super::*;
 
 /// The strip is one tool wide unless it is made at least this wide: the default width, a few
@@ -46,7 +46,13 @@ impl Workspace {
                             ui.separator();
                             ui.add_space(0.0);
                         }
-                        for pair in group.chunks(columns) {
+                        // Tools put in the strip from the "…" list sit just above the dots.
+                        let mut slots: Vec<Slot> = group.to_vec();
+                        if let Some(dots) = slots.iter().position(|s| is_extra(s)) {
+                            let pinned = self.pinned_slots();
+                            slots.splice(dots..dots, pinned);
+                        }
+                        for pair in slots.chunks(columns) {
                             ui.horizontal(|ui| {
                                 // Centred in the panel: a pair is two buttons wide.
                                 let used = cell * pair.len() as f32
@@ -61,6 +67,7 @@ impl Workspace {
                         }
                     }
                     self.set_tool(chosen);
+                    self.tool_drag(ui, edge);
                     ui.add_space(4.0);
                     ui.separator();
                     ui.add_space(2.0);

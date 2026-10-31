@@ -37,6 +37,7 @@ mod release_frame;
 mod rendering_and_workers;
 mod rulers_and_mirror;
 mod spans_and_handles;
+mod tool_pins;
 mod tool_slots;
 mod tool_strip;
 mod tools_and_menus;

@@ -41,6 +41,8 @@ pub struct Preferences {
     pub html5_loop: bool,
     pub html5_center: bool,
     pub html5_responsive: bool,
+    /// Tools from the "…" list kept in the tool strip.
+    pub pinned_tools: Vec<String>,
     /// Projects opened or saved lately, newest first.
     pub recent: Vec<String>,
 }
@@ -70,6 +72,7 @@ impl Default for Preferences {
             html5_loop: true,
             html5_center: true,
             html5_responsive: false,
+            pinned_tools: Vec::new(),
             recent: Vec::new(),
         }
     }
@@ -98,6 +101,7 @@ impl Workspace {
             html5_loop: self.publish.loop_timeline,
             html5_center: self.publish.center_stage,
             html5_responsive: self.publish.responsive,
+            pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
             recent: self
                 .recent
                 .iter()
@@ -108,6 +112,11 @@ impl Workspace {
 
     /// Takes `preferences` as the current settings, keeping each in its sensible range.
     pub fn apply_preferences(&mut self, preferences: &Preferences) {
+        // Only names the list has, each once; a file naming anything else changes nothing.
+        self.pinned_tools.clear();
+        for name in &preferences.pinned_tools {
+            self.pin_tool(name);
+        }
         let finite = |v: f64, fallback: f64| if v.is_finite() { v } else { fallback };
         self.recovery.interval = finite(preferences.autosave_seconds, 30.0).clamp(5.0, 3600.0);
         self.display.show_rulers = preferences.show_rulers;

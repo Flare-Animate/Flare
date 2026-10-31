@@ -132,6 +132,7 @@ Flare's own Mirror and Ruler, and 3D Rotation, 3D Translation, Deco, Bone, Bind,
 are not built. Tools that are not built are dimmed with a note, like the menu's planned commands,
 and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a list. The strip scrolls
 when it is taller than its panel.
+Any tool in the dots list can be dragged out of it onto the strip, where it becomes a cell of its own just above the dots (the tools not built too, dimmed); a right click on it offers Remove from toolbar, and it is in the list again. The tools put there are kept with the preferences, and Restore defaults empties them. Escape, or letting go away from the strip, drops the tool being dragged.
 Below them the fill and stroke colors are two overlapping squares, the stroke in front as a frame
 around an empty middle (smaller in a strip one tool wide). Two small buttons keep their old places:
 swap at the top right of the squares and black and white at the bottom left (stacked beneath them in

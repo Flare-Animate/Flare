@@ -118,8 +118,8 @@ pub(crate) static EXTRA: Slot = &[
 ];
 
 /// Whether `slot` is the "…" cell, which shows its dots whatever tool is in hand.
-fn is_extra(slot: Slot) -> bool {
-    std::ptr::eq(slot.as_ptr(), EXTRA.as_ptr())
+pub(crate) fn is_extra(slot: Slot) -> bool {
+    slot.len() == EXTRA.len() && std::ptr::eq(slot.as_ptr(), EXTRA.as_ptr())
 }
 
 /// The member of `slot` the cell shows: the tool in hand if the slot has it, else the one last
@@ -168,6 +168,20 @@ impl Workspace {
             &hint,
         );
         let mut chosen = shown.tool.filter(|_| response.clicked() && !extra);
+        if self.is_pinned(shown.name) && slot.len() == 1 {
+            // A tool put in the strip from the list goes back with a right click, built or not.
+            let menu = ui.interact(
+                response.rect,
+                ui.make_persistent_id(("pinned", shown.name)),
+                egui::Sense::click(),
+            );
+            menu.context_menu(|ui| {
+                if ui.button("Remove from toolbar").clicked() {
+                    self.unpin_tool(shown.name);
+                    ui.close();
+                }
+            });
+        }
         if slot.len() < 2 {
             return chosen;
         }
@@ -192,9 +206,17 @@ impl Workspace {
                 .show(&ctx, |ui| {
                     egui::Frame::popup(ui.style()).show(ui, |ui| {
                         for (index, variant) in slot.iter().enumerate() {
-                            if let Some(tool) = variant_row(ui, variant) {
+                            // A tool put in the strip is not in the list while it is there.
+                            if extra && self.is_pinned(variant.name) {
+                                continue;
+                            }
+                            let (tool, dragged) = variant_row(ui, variant);
+                            if let Some(tool) = tool {
                                 self.slot_choice.insert(slot[0].name, index);
                                 chosen = Some(tool);
+                            }
+                            if dragged && extra {
+                                self.slot_drag = Some(variant.name);
                             }
                         }
                     });
@@ -216,26 +238,32 @@ impl Workspace {
     }
 }
 
-/// A row of a slot's list: the tool's picture, name and key. A tool not built is dimmed.
-fn variant_row(ui: &mut Ui, variant: &Variant) -> Option<Tool> {
+/// A row of a slot's list: the tool's picture, name and key. A tool not built is dimmed and
+/// does nothing when clicked. Returns the tool picked, and whether the row has been dragged.
+fn variant_row(ui: &mut Ui, variant: &Variant) -> (Option<Tool>, bool) {
     let built = variant.tool.is_some();
     let ink = if built {
         theme::TEXT
     } else {
         theme::TEXT_DISABLED
     };
-    let mut button =
-        egui::Button::image_and_text(icons::image(variant.icon, 16.0, ink), variant.name);
+    let mut label = egui::RichText::new(variant.name);
+    if !built {
+        label = label.color(theme::TEXT_DISABLED);
+    }
+    let mut button = egui::Button::image_and_text(icons::image(variant.icon, 16.0, ink), label)
+        .sense(egui::Sense::click_and_drag());
     if !variant.key.is_empty() {
         button = button.shortcut_text(variant.key);
     }
-    let response = ui.add_enabled(built, button);
-    if built {
-        response.clicked().then_some(variant.tool).flatten()
-    } else {
-        response.on_disabled_hover_text(chrome::NOT_YET);
-        None
+    let response = ui.add(button);
+    if !built {
+        response.clone().on_hover_text(chrome::NOT_YET);
     }
+    (
+        response.clicked().then_some(variant.tool).flatten(),
+        response.drag_started(),
+    )
 }
 
 /// The small triangle in a cell's corner that says there is a list.
