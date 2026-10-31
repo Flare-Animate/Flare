@@ -1,7 +1,7 @@
 /target
 .DS_Store
 /docs/temp
-/dist
-/.codesight
-/apps/flare-web/node_modules
-/apps/flare-web/dist
+dist/
+.codesight
+node_modules/
+__pycache__/
