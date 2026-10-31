@@ -241,7 +241,8 @@ is written from one frame to the next. A sprite plays by its own clock, so each 
 published the way its playback says: a Movie Clip and a looping Graphic loop (starting at the
 instance's first frame), a Graphic that plays once ends on a `stop()`, a Graphic that holds a
 frame is a one-frame sprite, and a Button is a one-frame sprite showing its Up state
-(reported). A new span of an instance is a new object, so the symbol starts again. Tweens are
+(reported). A new span of an instance is a new object, so the symbol starts again. A camera is applied to the scene's own placements (its view multiplies each one's matrix),
+so the movie shows the camera's picture and the sprites stay as they are. Tweens are
 baked into a position or a shape for each frame, hidden layers are left out, and scenes play
 one after another (reported). Real Ruffle plays the result on the clocks Flare predicts
 (`flare-ruffle`'s render test), and a small SWF player in `flare-publish`'s tests checks the

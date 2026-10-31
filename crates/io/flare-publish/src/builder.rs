@@ -10,7 +10,6 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use flare_core::SymbolId;
 use flare_document::{Document, PlayMode, Playback, SymbolKind, Timeline};
 use flare_eval::{LevelContent, evaluate_level};
-use glamx::DAffine2;
 use swf::{CharacterId, Matrix, PlaceObjectAction, RemoveObject, Sprite, Tag};
 
 use crate::{Characters, MAX_FRAMES, PublishError, matrix, place};
@@ -93,7 +92,7 @@ impl<'d> Builder<'d> {
             let (character, matrix, token) = match &item.content {
                 LevelContent::Shape { shape, phase } => (
                     self.characters.define(&mut self.defs, shape, *phase)?,
-                    matrix(DAffine2::IDENTITY),
+                    matrix(level.view),
                     0,
                 ),
                 LevelContent::Instance {
@@ -108,7 +107,7 @@ impl<'d> Builder<'d> {
                     (id, span_start).hash(&mut hasher);
                     (
                         self.sprite(*symbol, *playback)?,
-                        matrix(*transform),
+                        matrix(level.view * *transform),
                         hasher.finish(),
                     )
                 }
@@ -134,7 +133,7 @@ impl<'d> Builder<'d> {
                         depth - 1,
                         Slot {
                             character: clip,
-                            matrix: crate::matrix(member.transform),
+                            matrix: crate::matrix(level.view * member.transform),
                             clip_depth: Some(depth),
                             token: 0,
                         },

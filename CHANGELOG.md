@@ -7,7 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Added
-- A scene can have a camera layer whose keyframes (position, zoom, rotation) and motion tweens change the picture in every render and export; the editor's controls for it, and its SWF and XFL support, are still to come (see docs/roadmap.md).
+- A scene can have a camera layer whose keyframes (position, zoom, rotation) and motion tweens change the picture in every render and export; the SWF and HTML5 pages show it too (real Ruffle draws the same picture); the editor's controls for it and XFL support are still to come (see docs/roadmap.md).
 - SWF publishing keeps symbols: each becomes a sprite defined once, each instance a placement of it, with the clock its playback says (a looping Graphic and a Movie Clip loop, a Graphic that plays once ends on `stop()`, a held frame is one frame, a Button shows its Up state, and a new span starts the symbol again). Real Ruffle plays the result on the clocks Flare predicts. Tweens are still baked.
 - French is an interface language (Preferences > General > Language, and followed from a French system), and the README is translated into every interface language, with a test that keeps the two lists together.
 - `flare export --format gif` (the command line is now `flare`; the crate is still `flare-cli`), and MCP tools `export_gif`, `publish_swf`, `publish_html5`, `export_xfl` and `import_project`: they write into the export directory only, never overwrite, and report what the format could not hold. The MCP server now has every export the CLI has except MP4.

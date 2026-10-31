@@ -9,6 +9,7 @@ use flare_document::{Content, Document, PathSegment, Scene, Shape, Stage, Stroke
 use flare_publish::{PublishError, PublishOptions, Severity, publish_swf};
 use swf::Tag;
 
+mod camera;
 mod frames;
 mod shapes;
 mod sounds;

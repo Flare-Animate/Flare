@@ -307,3 +307,92 @@ fn ruffle_plays_the_published_symbols_on_the_clocks_flare_gives_them() {
     assert_ne!(seen[0], seen[1], "the symbols move from frame to frame");
     assert_ne!(seen[1], seen[2]);
 }
+
+/// A red and a green shape, and a camera that zooms in on the red one while turning.
+fn filmed() -> Document {
+    let shape = |shape: Shape| {
+        Layer::new(
+            LayerId::new(),
+            "art",
+            vec![FrameSpan::new(
+                0,
+                NonZeroU32::new(8).expect("nonzero"),
+                Content::Shape(shape),
+            )],
+        )
+        .expect("layer")
+    };
+    let rect = Shape::rect(
+        ShapeId::new(),
+        20.0,
+        20.0,
+        40.0,
+        30.0,
+        Rgba8::opaque(220, 30, 30),
+    )
+    .expect("rect");
+    let disc = Shape::ellipse(
+        ShapeId::new(),
+        85.0,
+        45.0,
+        18.0,
+        18.0,
+        Rgba8::opaque(30, 160, 60),
+    )
+    .expect("ellipse");
+    let key = |start: u32, zoom: f64, turns: f64, tween: bool| {
+        let camera = flare_document::Camera::new(
+            flare_core::DocumentPoint::new(40.0, 35.0).expect("finite"),
+            zoom,
+            turns * std::f64::consts::TAU,
+        )
+        .expect("camera");
+        let span = FrameSpan::new(
+            start,
+            NonZeroU32::new(4).expect("nonzero"),
+            Content::Camera(camera),
+        );
+        if tween {
+            span.with_tween(flare_document::Tween::Linear)
+        } else {
+            span
+        }
+    };
+    let cam = Layer::new(
+        LayerId::new(),
+        "Camera",
+        vec![key(0, 1.0, 0.0, true), key(4, 2.0, 0.125, false)],
+    )
+    .expect("layer")
+    .with_camera(true);
+    let scene = Scene::new(
+        SceneId::new(),
+        "S",
+        Timeline::new(vec![cam, shape(disc), shape(rect)]),
+    );
+    Document::new(
+        DocumentId::new(),
+        FrameRate::new(12, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document")
+    .with_stage(Stage::new(WIDTH, HEIGHT, Rgba8::opaque(250, 250, 250)).expect("stage"))
+}
+
+#[test]
+fn ruffle_draws_what_the_camera_sees_as_flare_does() {
+    let doc = filmed();
+    let mut seen = Vec::new();
+    for frame in [0, 1, 2, 3, 4, 6] {
+        let (theirs, ours) = both_at(&doc, &doc, frame);
+        let mean = difference(&ours, &theirs);
+        assert!(
+            mean < 1.5,
+            "frame {frame}: the pictures differ by {mean} per channel on average"
+        );
+        seen.push(ours.rgba().to_vec());
+    }
+    assert_ne!(seen[0], seen[2], "the camera moves the picture");
+    assert_ne!(seen[2], seen[4]);
+}
