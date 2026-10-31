@@ -209,8 +209,9 @@ fn a_card_says_reading_until_the_files_have_been_looked_at() {
     let path = std::path::Path::new("/a/one.flare");
     ws.note_recent(path);
     let recent = ws.recent_files().to_vec();
-    ws.recent_info.pretend_asked(&recent);
+    // Showing Home forgets what was read, so it comes first; then nothing is looked at.
     ws.set_home(true);
+    ws.recent_info.pretend_asked(&recent);
     let ctx = egui::Context::default();
     let drawn = texts(&mut ws, &ctx, 0.0);
     assert!(drawn.iter().any(|t| t == "Reading…"), "{drawn:?}");
