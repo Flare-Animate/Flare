@@ -30,6 +30,7 @@ mod draw;
 mod files;
 mod furniture;
 mod gestures;
+mod graphic_playback;
 mod groups;
 mod guides;
 mod help;
@@ -213,6 +214,8 @@ pub struct Workspace {
     log: Vec<String>,
     props_tab: PropsTab,
     /// Position and size typed into the Object tab: x, y, width, height.
+    /// The first frame being typed or dragged in the Looping section, until it is let go.
+    playback_first_edit: Option<u32>,
     object_edit: Option<[f32; 4]>,
     status: Option<String>,
     dialog: Option<DialogRequest>,
@@ -344,6 +347,7 @@ impl Workspace {
             log: Vec::new(),
             props_tab: PropsTab::Tool,
             object_edit: None,
+            playback_first_edit: None,
             status: None,
             dialog: None,
             window_request: None,

@@ -21,6 +21,7 @@ mod basics;
 mod brush_nib;
 mod color_section;
 mod frames_text_and_sound;
+mod graphic_playback;
 mod home;
 mod home_recent;
 mod language;

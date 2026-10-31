@@ -138,6 +138,7 @@ impl Workspace {
                 egui::vec2(v[2], v[3]),
             ));
         }
+        self.looping_section(ui);
     }
 
     /// The current frame and layer.
