@@ -7,19 +7,25 @@
 //! and full document revalidation through the normal constructors.
 #![forbid(unsafe_code)]
 
-#[cfg(not(target_arch = "wasm32"))]
 mod codec;
+mod records;
 mod recovery;
 #[cfg(not(target_arch = "wasm32"))]
 mod sqlite;
 #[cfg(target_arch = "wasm32")]
 mod unsupported;
-#[cfg(not(target_arch = "wasm32"))]
 mod wire;
 
 use flare_document::{Diagnostic, TimelineError};
 use thiserror::Error;
 
+#[cfg(not(target_arch = "wasm32"))]
+pub use codec::NativeZstd;
+pub use codec::{Codec, Packer, Stored, Zstd, unpack};
+pub use records::{
+    MAX_ENTITIES, MAX_PAYLOAD_BYTES, MAX_SOUND_PAYLOAD_BYTES, Parts, Record, SCHEMA_VERSION,
+    from_parts, to_parts,
+};
 pub use recovery::{
     RecoveryEntry, discard_recovery, list_recoveries, recovery_path, save_recovery,
 };

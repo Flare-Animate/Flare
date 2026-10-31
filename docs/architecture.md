@@ -139,6 +139,15 @@ JSON in text columns was 7.3 MB; with a megabyte of sound, 0.96 MB against 3.8 M
 container of our own with the same records came out within 1% to 4% of that, which did not
 justify giving up SQLite's atomic writes and the ability to open a project in any SQLite tool.
 
+The records are made and checked in code that touches neither SQLite nor a compression library
+(`records.rs`: a document to rows and rows to a document, with the checks; `codec.rs`: CBOR, the
+digest, and the zstd frame header read by code of ours). zstd and the database are supplied from
+outside: the desktop app brings the `zstd` library and SQLite, and a browser build brings a
+WebAssembly zstd and a WebAssembly SQLite and gets exactly the same checks. The frame header is
+read here (declared size equal to the record's, window no bigger than the writer's, a checksum,
+no dictionary) before any decompressor is asked, so a record cannot be a decompression bomb
+whichever zstd is behind it.
+
 - Save writes a complete staged database next to the target and renames it into place, so a
   failed save leaves the previous file intact. The directory is not fsynced after the rename.
 - Load treats the file as untrusted: defensive SQLite settings, schema trust off, a version check

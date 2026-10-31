@@ -1,7 +1,7 @@
 //! What the compression does and what it must never allow.
 
 use super::*;
-use crate::codec::{Codec, Packer, unpack};
+use crate::codec::{Codec, NativeZstd, Packer, frame_header, unpack};
 
 fn stored(path: &Path) -> Vec<(String, String, String, i64, usize)> {
     let conn = Connection::open(path).expect("open");
@@ -121,7 +121,8 @@ fn a_record_is_compressed_only_when_that_makes_it_smaller() {
     assert_eq!(scene.2, "cbor+zstd");
     assert!((scene.4 as i64) < scene.3, "stored smaller than its size");
     // A record under the threshold, and noise, stay as they are.
-    let mut packer = Packer::new().expect("packer");
+    let mut zstd = NativeZstd::new().expect("zstd");
+    let mut packer = Packer::new(&mut zstd);
     let short = packer.pack(&[7u8; 20]).expect("pack");
     assert_eq!(short.codec, Codec::Plain);
     let mut state = 99u64;
@@ -240,8 +241,10 @@ fn the_stated_size_the_codec_and_the_frame_are_checked_before_they_are_trusted()
     );
     // The same checks, without a database in the way.
     let raw = to_cbor_for_test();
-    let stored = Packer::new().expect("packer").pack(&raw).expect("pack");
+    let mut zstd = NativeZstd::new().expect("zstd");
+    let stored = Packer::new(&mut zstd).pack(&raw).expect("pack");
     let ok = unpack(
+        &mut zstd,
         stored.codec.name(),
         stored.size as i64,
         &stored.digest,
@@ -249,11 +252,12 @@ fn the_stated_size_the_codec_and_the_frame_are_checked_before_they_are_trusted()
         1 << 20,
     );
     assert_eq!(ok.expect("unpacks"), raw);
-    assert!(unpack("lzma", 1, &stored.digest, &stored.bytes, 1 << 20).is_err());
+    assert!(unpack(&mut zstd, "lzma", 1, &stored.digest, &stored.bytes, 1 << 20).is_err());
     let mut wrong = stored.digest;
     wrong[0] ^= 1;
     assert!(
         unpack(
+            &mut zstd,
             stored.codec.name(),
             stored.size as i64,
             &wrong,
@@ -326,4 +330,95 @@ fn every_flipped_byte_in_the_stored_records_is_caught() {
 #[test]
 fn the_limit_on_one_record_is_the_one_the_documentation_names() {
     assert_eq!(MAX_PAYLOAD_BYTES, 256 * 1024 * 1024);
+}
+
+/// A zstd that must never be asked to decompress: the checks before it have to refuse first.
+struct NeverAsked;
+
+impl crate::codec::Zstd for NeverAsked {
+    fn compress(&mut self, _: &[u8]) -> Result<Vec<u8>, StorageError> {
+        unreachable!("not asked to compress")
+    }
+    fn decompress(&mut self, _: &[u8], _: usize) -> Result<Vec<u8>, StorageError> {
+        panic!("the decompressor was reached by a frame that should have been refused");
+    }
+}
+
+fn frame_of(raw: &[u8]) -> Vec<u8> {
+    NativeZstd::new().expect("zstd").compress_for_test(raw)
+}
+
+impl NativeZstd {
+    fn compress_for_test(&mut self, raw: &[u8]) -> Vec<u8> {
+        use crate::codec::Zstd;
+        self.compress(raw).expect("compress")
+    }
+}
+
+#[test]
+fn the_frame_header_is_read_the_way_the_format_says_for_every_size_of_record() {
+    for len in [64usize, 300, 5_000, 70_000, 400_000, 3_000_000] {
+        let raw: Vec<u8> = (0..len).map(|i| (i % 251) as u8).collect();
+        let header = frame_header(&frame_of(&raw)).expect("a zstd frame");
+        assert_eq!(header.content_size, Some(len as u64), "{len} bytes");
+        assert!(header.checksum && !header.dictionary, "{len}");
+        assert!(
+            header.window <= 1 << 18,
+            "window {} for {len}",
+            header.window
+        );
+    }
+}
+
+#[test]
+fn a_frame_that_lies_or_is_not_what_this_format_writes_is_refused_before_it_is_decompressed() {
+    let raw = vec![7u8; 5000];
+    let good = frame_of(&raw);
+    let check = |frame: &[u8], size: i64| {
+        let digest = *blake3::hash(frame).as_bytes();
+        unpack(&mut NeverAsked, "cbor+zstd", size, &digest, frame, 1 << 20)
+    };
+    // The header says 5000; the record says otherwise, either way.
+    assert!(matches!(check(&good, 4000), Err(StorageError::Corrupt(_))));
+    assert!(matches!(check(&good, 6000), Err(StorageError::Corrupt(_))));
+    // Not a zstd frame at all, and a truncated header.
+    assert!(check(b"plain bytes that are not a frame", 5000).is_err());
+    assert!(check(&good[..5], 5000).is_err());
+    // A frame with no content size (a streaming frame) cannot be checked against the size.
+    let mut no_size = good.clone();
+    no_size[4] &= 0b0011_1111; // size flag 0
+    no_size[4] &= !0x20; // not single segment: so no size field at all
+    assert!(check(&no_size, 5000).is_err());
+    // A reserved bit, a dictionary, and no checksum.
+    let mut reserved = good.clone();
+    reserved[4] |= 0x08;
+    assert!(check(&reserved, 5000).is_err());
+    let mut dictionary = good.clone();
+    dictionary[4] |= 0x01;
+    assert!(check(&dictionary, 5000).is_err());
+    let mut unchecked = good.clone();
+    unchecked[4] &= !0x04;
+    assert!(check(&unchecked, 5000).is_err());
+    // A window bigger than the format writes: byte 5 is the window descriptor when the frame is
+    // not a single segment; build one that is by hand, with a 128 MiB window.
+    let big_window = [
+        0x28,
+        0xB5,
+        0x2F,
+        0xFD,
+        0b0000_0100,
+        0xC8,
+        0x01,
+        0x00,
+        0x00,
+        0x00,
+    ];
+    let header = frame_header(&big_window);
+    assert!(
+        header.as_ref().is_some_and(|h| h.window > 1 << 18),
+        "{header:?}"
+    );
+    assert!(check(&big_window, 0).is_err());
+    // And no header at all is no frame.
+    assert!(frame_header(&[]).is_none() && frame_header(&[0x28, 0xB5, 0x2F]).is_none());
 }

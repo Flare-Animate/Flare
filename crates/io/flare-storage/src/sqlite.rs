@@ -12,19 +12,12 @@ use std::path::Path;
 use flare_document::Document;
 use rusqlite::{Connection, OpenFlags, config::DbConfig, params};
 
-use crate::codec::{Packer, from_cbor, to_cbor, unpack};
-use crate::{StorageError, wire};
+use crate::StorageError;
+use crate::codec::NativeZstd;
+use crate::records::{MAX_ENTITIES, Parts, Record, SCHEMA_VERSION, from_parts, to_parts};
 
 /// ASCII "FLAR".
 pub(crate) const APPLICATION_ID: i64 = 0x464C_4152;
-pub(crate) const SCHEMA_VERSION: i64 = 1;
-pub(crate) const MAX_ENTITIES: i64 = 1_000_000;
-/// The most one record (a whole scene, at most) may be once decompressed: 256 MiB, which is
-/// hundreds of thousands of shapes. A record's size is read from the file and used to size the
-/// buffer, so some bound has to hold; this one is far above what drawing produces.
-pub(crate) const MAX_PAYLOAD_BYTES: usize = 256 * 1024 * 1024;
-/// The most a sound record may be: the largest sound file, and its fields.
-pub(crate) const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES + 64 * 1024 + 4;
 /// Small pages waste less on the many small records and the empty space after the last one.
 pub(crate) const PAGE_SIZE: i64 = 1024;
 
@@ -63,52 +56,22 @@ pub fn save(document: &Document, path: &Path) -> Result<(), StorageError> {
         conn.pragma_update(None, "user_version", SCHEMA_VERSION)?;
         let tx = conn.transaction()?;
         tx.execute_batch(SCHEMA)?;
-        let settings = serde_json::to_string(&wire::Settings::of(document))?;
+        let parts = to_parts(document, &mut NativeZstd::new()?)?;
         tx.execute(
             "INSERT INTO project VALUES (1, ?1, ?2, ?3)",
-            params![
-                document.id().as_uuid().to_string(),
-                SCHEMA_VERSION,
-                settings
-            ],
+            params![parts.project_id, SCHEMA_VERSION, parts.settings],
         )?;
-        let mut packer = Packer::new()?;
         let mut insert = tx.prepare("INSERT INTO entity VALUES (?1, ?2, ?3, 1, ?4, ?5, ?6, ?7)")?;
-        let mut put =
-            |id: &str, kind: &str, ordinal: i64, raw: &[u8]| -> Result<(), StorageError> {
-                let stored = packer.pack(raw)?;
-                insert.execute(params![
-                    id,
-                    kind,
-                    ordinal,
-                    stored.codec.name(),
-                    i64::try_from(stored.size).unwrap_or(i64::MAX),
-                    stored.digest.as_slice(),
-                    stored.bytes.as_ref()
-                ])?;
-                Ok(())
-            };
-        for (ordinal, scene) in (0_i64..).zip(document.scenes()) {
-            let raw = to_cbor(&wire::SceneWire::of(scene))?;
-            put(&scene.id().as_uuid().to_string(), "scene", ordinal, &raw)?;
-        }
-        for (ordinal, attachment) in (0_i64..).zip(document.attachments()) {
-            let raw = to_cbor(&wire::AttachmentWire::of(attachment))?;
-            // Attachments have no identity of their own; the row id only has to be unique.
-            put(
-                &uuid::Uuid::now_v7().to_string(),
-                "attachment",
-                ordinal,
-                &raw,
-            )?;
-        }
-        for (ordinal, sound) in (0_i64..).zip(document.sounds()) {
-            let raw = wire::SoundMeta::frame(sound)?;
-            put(&sound.id().as_uuid().to_string(), "sound", ordinal, &raw)?;
-        }
-        for (ordinal, symbol) in (0_i64..).zip(document.symbols()) {
-            let raw = to_cbor(&wire::SymbolWire::of(symbol))?;
-            put(&symbol.id().as_uuid().to_string(), "symbol", ordinal, &raw)?;
+        for record in &parts.records {
+            insert.execute(params![
+                record.id,
+                record.kind,
+                record.ordinal,
+                record.codec,
+                record.size,
+                record.digest,
+                record.payload
+            ])?;
         }
         drop(insert);
         tx.commit()?;
@@ -140,7 +103,7 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
     }
 
     let count: i64 = conn.query_row("SELECT count(*) FROM entity", [], |row| row.get(0))?;
-    if count > MAX_ENTITIES {
+    if usize::try_from(count).map_or(true, |n| n > MAX_ENTITIES) {
         return Err(StorageError::Limit("entity count"));
     }
     let (project_id, settings): (String, String) = conn.query_row(
@@ -148,42 +111,30 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
         [],
         |row| Ok((row.get(0)?, row.get(1)?)),
     )?;
-
-    let mut scenes = Vec::new();
-    let mut symbols = Vec::new();
-    let mut attachments = Vec::new();
-    let mut sounds = Vec::new();
     let mut statement = conn.prepare(
-        "SELECT id, kind, codec, size, digest, payload FROM entity ORDER BY kind, ordinal",
+        "SELECT id, kind, ordinal, codec, size, digest, payload FROM entity ORDER BY kind, ordinal",
     )?;
-    let mut rows = statement.query([])?;
-    while let Some(row) = rows.next()? {
-        let id: String = row.get(0)?;
-        let kind: String = row.get(1)?;
-        let codec: String = row.get(2)?;
-        let size: i64 = row.get(3)?;
-        let digest: Vec<u8> = row.get(4)?;
-        let stored: Vec<u8> = row.get(5)?;
-        // A sound record holds a whole audio file, so it is allowed to be bigger.
-        let limit = if kind == "sound" {
-            MAX_SOUND_PAYLOAD_BYTES
-        } else {
-            MAX_PAYLOAD_BYTES
-        };
-        let record = unpack(&codec, size, &digest, &stored, limit)?;
-        match kind.as_str() {
-            "scene" => scenes.push(from_cbor::<wire::SceneWire>(&record)?.build(&id)?),
-            "symbol" => symbols.push(from_cbor::<wire::SymbolWire>(&record)?.build(&id)?),
-            "attachment" => attachments.push(from_cbor::<wire::AttachmentWire>(&record)?.build()?),
-            "sound" => sounds.push(wire::SoundMeta::unframe(&id, &record)?),
-            other => {
-                return Err(StorageError::Corrupt(format!(
-                    "unknown entity kind {other}"
-                )));
-            }
-        }
-    }
-    wire::assemble(&project_id, &settings, scenes, symbols, attachments, sounds)
+    let records = statement
+        .query_map([], |row| {
+            Ok(Record {
+                id: row.get(0)?,
+                kind: row.get(1)?,
+                ordinal: row.get(2)?,
+                codec: row.get(3)?,
+                size: row.get(4)?,
+                digest: row.get(5)?,
+                payload: row.get(6)?,
+            })
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+    from_parts(
+        Parts {
+            project_id,
+            settings,
+            records,
+        },
+        &mut NativeZstd::new()?,
+    )
 }
 
 pub(crate) fn not_flare(error: rusqlite::Error) -> StorageError {

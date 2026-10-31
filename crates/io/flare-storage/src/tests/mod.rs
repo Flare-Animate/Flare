@@ -2,6 +2,7 @@
 #![allow(clippy::expect_used)]
 
 use super::*;
+use crate::records::{MAX_PAYLOAD_BYTES, MAX_SOUND_PAYLOAD_BYTES};
 use crate::sqlite::*;
 use flare_core::{
     DocumentId, DocumentPoint, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId,

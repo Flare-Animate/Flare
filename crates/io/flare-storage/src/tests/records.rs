@@ -6,7 +6,7 @@
 //! test chose and in no other way.
 
 use super::*;
-use crate::codec::{Packer, from_cbor, to_cbor, unpack};
+use crate::codec::{NativeZstd, Packer, from_cbor, to_cbor, unpack};
 use serde_json::Value;
 use std::path::Path;
 
@@ -34,6 +34,7 @@ pub(super) fn rows(path: &Path) -> Vec<Row> {
         .query_map([], |row| {
             let kind: String = row.get(1)?;
             let record = unpack(
+                &mut NativeZstd::new().expect("zstd"),
                 &row.get::<_, String>(2)?,
                 row.get(3)?,
                 &row.get::<_, Vec<u8>>(4)?,
@@ -67,7 +68,8 @@ pub(super) fn json(path: &Path, kind: &str) -> Vec<(String, String)> {
 /// Stores `record` as row `id`'s payload, properly packed and digested.
 pub(super) fn put_record(path: &Path, id: &str, record: &[u8]) {
     let conn = Connection::open(path).expect("open");
-    let stored = Packer::new().expect("packer").pack(record).expect("pack");
+    let mut zstd = NativeZstd::new().expect("zstd");
+    let stored = Packer::new(&mut zstd).pack(record).expect("pack");
     conn.execute(
         "UPDATE entity SET codec = ?1, size = ?2, digest = ?3, payload = ?4 WHERE id = ?5",
         params![
