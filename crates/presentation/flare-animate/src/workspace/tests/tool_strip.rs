@@ -1,5 +1,9 @@
 use super::*;
-use crate::workspace::panels::color_wells::well_rects;
+use crate::workspace::panels::color_wells::{Metrics, rects_with};
+
+fn well_rects(origin: Pos2) -> crate::workspace::panels::color_wells::WellRects {
+    rects_with(origin, Metrics::FULL)
+}
 use crate::workspace::panels::tools::TOOL_GROUPS;
 
 #[test]
@@ -56,7 +60,7 @@ fn the_color_box_overlaps_the_squares_but_not_the_buttons() {
 
 #[test]
 fn the_tool_strip_draws_at_narrow_and_wide_widths() {
-    for width in [60.0, 120.0, 600.0] {
+    for width in [30.0, 36.0, 60.0, 120.0, 600.0] {
         let mut ws = workspace();
         ws.paint.stroke_color = Color32::from_rgb(1, 2, 3);
         let ctx = egui::Context::default();
@@ -140,4 +144,38 @@ fn a_tool_strip_taller_than_its_panel_scrolls_so_the_color_box_can_be_reached() 
         "scrolled to the end, the color box is on screen: {after} against {}",
         screen.height()
     );
+}
+
+#[test]
+fn in_a_strip_one_tool_wide_the_color_box_is_the_compact_one_and_it_fits() {
+    use crate::workspace::panels::TOOL_ICON;
+    let cell = TOOL_ICON + 6.0;
+    let wide = (TOOL_ICON + 6.0) * 2.0 + 3.0;
+    // A one-tool strip is a cell and its margins across, a few pixels more than the cell.
+    assert!(
+        Metrics::for_width(cell).width() <= cell + 4.0,
+        "the compact box is {} wide for a {cell} cell",
+        Metrics::for_width(cell).width()
+    );
+    assert_eq!(
+        Metrics::for_width(wide + 20.0).width(),
+        Metrics::FULL.width()
+    );
+    let m = Metrics::COMPACT;
+    let r = rects_with(Pos2::ZERO, m);
+    let all = [r.fill, r.stroke, r.swap, r.defaults];
+    for rect in all {
+        assert!(
+            rect.min.x >= 0.0 && rect.max.x <= m.width() && rect.max.y <= m.height(),
+            "{rect:?} is outside the {} x {} box",
+            m.width(),
+            m.height()
+        );
+    }
+    // The two squares overlap on purpose; the buttons touch neither square nor each other.
+    for button in [r.swap, r.defaults] {
+        assert!(!button.intersects(r.fill) && !button.intersects(r.stroke));
+    }
+    assert!(!r.swap.intersects(r.defaults));
+    assert!(r.stroke.min.x > r.fill.min.x && r.stroke.min.y > r.fill.min.y);
 }
