@@ -15,6 +15,7 @@ use unic_langid::LanguageIdentifier;
 pub enum Language {
     English,
     Japanese,
+    Korean,
     ChineseSimplified,
     German,
     Spanish,
@@ -40,11 +41,12 @@ macro_rules! sections {
 
 impl Language {
     /// English first, then the rest in the alphabetical order of their English names.
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::English,
         Self::ChineseSimplified,
         Self::German,
         Self::Japanese,
+        Self::Korean,
         Self::PortugueseBrazil,
         Self::Spanish,
     ];
@@ -54,6 +56,7 @@ impl Language {
         match self {
             Self::English => "en",
             Self::Japanese => "ja",
+            Self::Korean => "ko",
             Self::ChineseSimplified => "zh-CN",
             Self::German => "de",
             Self::Spanish => "es",
@@ -70,6 +73,7 @@ impl Language {
         match self {
             Self::English => "English",
             Self::Japanese => "Japanese",
+            Self::Korean => "Korean",
             Self::ChineseSimplified => "Chinese (Simplified)",
             Self::German => "German",
             Self::Spanish => "Spanish",
@@ -82,6 +86,7 @@ impl Language {
         match self {
             Self::English => "English",
             Self::Japanese => "日本語",
+            Self::Korean => "한국어",
             Self::ChineseSimplified => "简体中文",
             Self::German => "Deutsch",
             Self::Spanish => "Español",
@@ -91,7 +96,10 @@ impl Language {
 
     /// Whether its text needs a font with Chinese, Japanese or Korean characters.
     pub fn needs_cjk_font(self) -> bool {
-        matches!(self, Self::Japanese | Self::ChineseSimplified)
+        matches!(
+            self,
+            Self::Japanese | Self::Korean | Self::ChineseSimplified
+        )
     }
 
     /// The language that fits a system locale tag such as `de-AT`, `zh_Hans_CN` or `pt-PT`:
@@ -101,6 +109,7 @@ impl Language {
         let mut parts = tag.split(['-', '.', '@']);
         match parts.next().unwrap_or("") {
             "ja" => Self::Japanese,
+            "ko" => Self::Korean,
             "zh" => {
                 // Traditional Chinese is not here yet, and simplified text is the nearer of the
                 // two for a reader who knows either.
@@ -117,6 +126,7 @@ impl Language {
         match self {
             Self::English => sections!("en"),
             Self::Japanese => sections!("ja"),
+            Self::Korean => sections!("ko"),
             Self::ChineseSimplified => sections!("zh-CN"),
             Self::German => sections!("de"),
             Self::Spanish => sections!("es"),

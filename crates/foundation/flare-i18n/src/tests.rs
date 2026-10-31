@@ -108,6 +108,7 @@ fn a_system_locale_finds_the_nearest_language_and_english_when_there_is_none() {
         ("zh_Hans_CN", Language::ChineseSimplified),
         ("de-AT", Language::German),
         ("es-MX", Language::Spanish),
+        ("ko-KR", Language::Korean),
         ("pt-BR", Language::PortugueseBrazil),
         ("pt-PT", Language::PortugueseBrazil),
         ("fr-FR", Language::English),

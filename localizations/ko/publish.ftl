@@ -1,0 +1,15 @@
+pubpop-title = 게시
+pubpop-formats = 형식
+pubpop-button = 게시
+pubpop-button-hint = 파일을 저장할 위치를 고르고, 선택한 형식을 모두 기록합니다
+pubpop-share = 공유
+pubpop-share-hint = 먼저 게시한 다음, 열린 페이지에서 파일을 추가하세요.
+pubpop-nothing-chosen = 형식을 선택하세요. 선택하지 않으면 기록할 내용이 없습니다.
+pubpop-format-swf = Flash (.swf)
+pubpop-compress = 동영상 압축
+pubpop-format-html5 = HTML5 Canvas (.html)
+pubpop-loop = 타임라인 반복
+pubpop-center = 무대를 가운데에 배치
+pubpop-responsive = 반응형으로 만들기
+pubpop-format-gif = 애니메이션 GIF (.gif)
+pubpop-format-mp4 = MP4 동영상 (.mp4)
