@@ -10,6 +10,7 @@ Flash workspaces and OpenToonz-inspired features follow once the core workflow i
 - [web.md](web.md): the browser build, what it shares with the desktop and what is missing
 - [testing.md](testing.md): what is tested, how, and in CI
 - [release.md](release.md): release checklist, packaging, the manual smoke test
+- [surfaces.md](surfaces.md): what the desktop app, the browser build, the command line and the MCP server each do, and the gaps
 - [parity.md](parity.md): what the archived C++ project had and what Flare does with it
 - [roadmap.md](roadmap.md): milestones, what is done, and the next independent branches
 - [decisions/renderer.md](decisions/renderer.md): why vello_cpu is the CPU rasterizer

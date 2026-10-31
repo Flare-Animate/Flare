@@ -23,6 +23,19 @@ are built, and why, is in `docs/` and is kept up to date with the code.
 - Keep every Rust file under 500 lines. Split by responsibility into modules, and keep tests in
   their own files.
 
+## Every surface
+
+- A feature is not finished until it works in the desktop app, the browser build, `flare-cli` and
+  `flare-mcp`, as far as that surface can have it at all (a command line has no stage to drag on,
+  but it can create, set, export and inspect). The change that adds a feature adds it to each. Where
+  one cannot yet, that surface says so: dimmed with the usual hint in the interface, a clear error
+  naming the feature in the command line and the MCP server. Record the gap and its reason in
+  [docs/surfaces.md](docs/surfaces.md); every row there is a debt, looked at before a release.
+- Behaviour lives in the libraries, never in an app. An app is a window or a protocol over them, so
+  parity is a few lines and not a second implementation.
+- A surface is tested: either its own test drives it, or the library's test covers the behaviour and
+  the surface's covers the wiring.
+
 ## Code
 
 - Safe Rust, typed errors in libraries, `anyhow` only in binaries. No `unwrap`, `expect` or panics on
