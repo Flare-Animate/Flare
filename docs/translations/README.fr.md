@@ -19,7 +19,7 @@ Un outil d'animation libre et open source, dans l'esprit d'Adobe Animate, écrit
 ### Fonctionnalités
 
 - Dessinez avec les outils d'Animate, plus une bibliothèque élargie d'outils, comme la Règle (mesure distance et angle) et le Miroir.
-- Organisez images et calques sur une scénario, avec dossiers, masques, guides de mouvement, interpolations de mouvement et de forme avec Ease, et pelure d'oignon.
+- Organisez images et calques sur un scénario, avec dossiers, masques, guides de mouvement, interpolations de mouvement et de forme avec Ease, pelure d'oignon et un calque de caméra.
 - Des symboles (Graphique, Clip et Bouton) dans une bibliothèque, placés comme occurrences sur la scène.
 - Lisez l'animation avec le son ; Tester l'animation exécute le SWF publié dans Ruffle.
 - Ouvrez et enregistrez des projets `.flare`. Importez et exportez le XFL et le `.fla` d'Animate.

@@ -22,6 +22,7 @@ mod arrange;
 mod assist;
 mod background_work;
 mod brushes;
+mod camera_tool;
 mod command_labels;
 mod commands;
 mod core;
@@ -138,6 +139,8 @@ pub struct Workspace {
     hex_buffer: Option<String>,
     /// Where the pointer is over the stage, in stage units.
     pointer_stage: Option<Pos2>,
+    /// The stage shows what the scene's camera sees, and cannot be edited while it does.
+    camera_preview: bool,
     /// The theme and icon loaders have been installed on the egui context.
     chrome_ready: bool,
     /// Corner radius of new rectangles, in stage units.
@@ -294,6 +297,7 @@ impl Workspace {
             transform_edit: TransformEdit::default(),
             hex_buffer: None,
             pointer_stage: None,
+            camera_preview: false,
             chrome_ready: false,
             rect_radius: 0.0,
             poly_sides: 5,

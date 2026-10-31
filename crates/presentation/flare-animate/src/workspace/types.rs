@@ -374,6 +374,8 @@ pub enum Tool {
     Lasso,
     /// Click the corners of a loop around shapes to select them.
     PolygonLasso,
+    /// Drag to move the scene's camera; its controls are in Properties.
+    Camera,
     /// Select a shape, then drag its points to reshape it.
     Subselection,
     /// Select, then scale, rotate or skew by the handles around the selection.

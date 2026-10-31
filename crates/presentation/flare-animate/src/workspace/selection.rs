@@ -22,6 +22,9 @@ impl Workspace {
             self.pen.clear();
             self.text.edit = None;
             self.tool = tool;
+            if tool == Tool::Camera {
+                self.ensure_camera();
+            }
         }
     }
 
@@ -73,7 +76,8 @@ impl Workspace {
     /// looking through locked layers.
     pub(super) fn hit(&self, point: Pos2) -> Option<SpanRef> {
         let scene = self.scene_id()?;
-        let frame = flare_eval::evaluate_frame(self.document(), scene, self.frame).ok()?;
+        let frame =
+            flare_eval::evaluate_frame_without_camera(self.document(), scene, self.frame).ok()?;
         let at = DVec2::new(f64::from(point.x), f64::from(point.y));
         let timeline = self.document().scenes().first()?.timeline();
         flare_render::hit_test_all(&frame, at)

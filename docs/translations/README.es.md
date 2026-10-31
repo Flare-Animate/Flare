@@ -19,7 +19,7 @@ Una herramienta de animación libre y de código abierto, en el espíritu de Ado
 ### Características
 
 - Dibuje con las herramientas que tiene Animate, más una biblioteca ampliada de herramientas, como la Regla (mide distancia y ángulo) y el Espejo.
-- Organice fotogramas y capas en una línea de tiempo, con carpetas, máscaras, guías de movimiento, interpolaciones de movimiento y de forma con Ease, y papel cebolla.
+- Organice fotogramas y capas en una línea de tiempo, con carpetas, máscaras, guías de movimiento, interpolaciones de movimiento y de forma con Ease, papel cebolla y una capa de cámara.
 - Símbolos (Gráfico, Clip de película y Botón) en una biblioteca, colocados como instancias en el escenario.
 - Reproduzca la animación con sonido; Probar película ejecuta el SWF publicado en Ruffle.
 - Abra y guarde proyectos `.flare`. Importe y exporte XFL y `.fla` de Animate.

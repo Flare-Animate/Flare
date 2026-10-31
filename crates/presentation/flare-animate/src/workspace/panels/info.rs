@@ -12,7 +12,7 @@ use crate::workspace::Workspace;
 /// none. `None` over empty stage.
 pub(crate) fn color_at(document: &Document, frame: u32, point: DVec2) -> Option<Rgba8> {
     let scene = document.scenes().first()?.id();
-    let evaluated = flare_eval::evaluate_frame(document, scene, frame).ok()?;
+    let evaluated = flare_eval::evaluate_frame_without_camera(document, scene, frame).ok()?;
     let top = *flare_render::hit_test_all(&evaluated, point).first()?;
     let shape = &evaluated.shapes.get(top)?.shape;
     if let Some(gradient) = shape.gradient() {

@@ -19,7 +19,7 @@ A free, open-source animation tool in the spirit of Adobe Animate, written in Ru
 ### Features
 
 - Draw with the tools Animate has, plus an extended library of tools such as Ruler (measures distance and angle) and Mirror. 
-- Lay out frames and layers on a timeline, with folders, masks, motion guides, motion and shape tweens with Ease, and onion skin.
+- Lay out frames and layers on a timeline, with folders, masks, motion guides, motion and shape tweens with Ease, onion skin and a camera layer.
 - Symbols (Graphic, Movie Clip and Button) in a library, placed as instances on the stage.
 - Play the animation with sound, and Test Movie runs the published SWF in Ruffle.
 - Open and save `.flare` projects. Import and export Animate's XFL and .fla

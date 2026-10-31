@@ -96,6 +96,7 @@ impl Workspace {
             Tool::PolyStar => ("tool-polystar", "PolyStar"),
             Tool::Lasso => ("tool-lasso", "Lasso"),
             Tool::PolygonLasso => ("tool-lasso-polygon", "Polygon"),
+            Tool::Camera => ("tool-camera", "Camera"),
             Tool::Pencil => ("tool-pencil", "Pencil"),
             Tool::Brush => ("tool-brush", "Brush"),
             Tool::Ruler => ("tool-ruler", "Ruler"),
@@ -231,6 +232,7 @@ impl Workspace {
             Tool::Lasso => {
                 ui.weak("Drag a loop around shapes to select them; Shift adds to the selection.");
             }
+            Tool::Camera => self.camera_options(ui),
             Tool::PolygonLasso => {
                 ui.weak("Click the corners of a loop around shapes; double-click, Enter or the first corner closes it. Shift adds to the selection.");
             }
@@ -267,6 +269,7 @@ impl Workspace {
             Tool::PolyStar => "PolyStar: drag from the center",
             Tool::Lasso => "Lasso: drag a loop around shapes to select them",
             Tool::PolygonLasso => "Polygon: click corners, double-click to close and select",
+            Tool::Camera => "Camera: drag to move the camera; its controls are in Properties",
             Tool::Pencil => "Pencil: drag to draw",
             Tool::Brush => "Brush: drag to paint",
             Tool::Ruler => "Ruler: drag to measure; Pencil and Brush draw straight with Shift",

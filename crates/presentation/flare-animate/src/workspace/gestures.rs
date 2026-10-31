@@ -32,6 +32,7 @@ impl Workspace {
             | Tool::Eraser
             | Tool::Lasso
             | Tool::PolygonLasso
+            | Tool::Camera
             | Tool::Pencil
             | Tool::Brush
             | Tool::Ruler

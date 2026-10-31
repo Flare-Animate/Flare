@@ -159,6 +159,19 @@ impl Workspace {
                 {
                     self.perform(MenuAction::ZoomFit);
                 }
+                if self.has_camera()
+                    && chrome::icon_button(
+                        ui,
+                        "tool-camera",
+                        BAR_ICON,
+                        self.camera_preview,
+                        true,
+                        "Preview through the camera",
+                    )
+                    .clicked()
+                {
+                    self.set_camera_preview(!self.camera_preview);
+                }
                 if chrome::icon_button(
                     ui,
                     "snap",

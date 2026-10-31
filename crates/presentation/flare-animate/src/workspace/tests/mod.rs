@@ -19,6 +19,7 @@ use std::path::PathBuf;
 
 mod basics;
 mod brush_nib;
+mod camera;
 mod color_section;
 mod frames_text_and_sound;
 mod graphic_playback;

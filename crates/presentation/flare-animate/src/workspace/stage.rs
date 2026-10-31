@@ -110,6 +110,9 @@ impl Workspace {
         };
         self.pointer_stage = response.hover_pos().map(to_doc);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
+        if self.camera_stage(&response, &painter, scale, &to_screen) {
+            return;
+        }
         if self.tool == Tool::Text
             && response.clicked()
             && let Some(p) = response.interact_pointer_pos()

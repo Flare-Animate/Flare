@@ -30,6 +30,7 @@ fn render_job(runtime: &mut Runtime, document: &Arc<Document>) -> RenderJob {
         ghosts: Vec::new(),
         outlines: false,
         outline_mode: false,
+        through_camera: false,
         viewport: flare_render::Viewport::full(16, 8),
         size: [16, 8],
         background: Rgba8::WHITE,

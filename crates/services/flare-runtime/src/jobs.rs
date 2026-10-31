@@ -19,6 +19,8 @@ pub struct RenderJob {
     pub outlines: bool,
     /// Outline Mode: every shape as a line in its layer's color, no ghosts.
     pub outline_mode: bool,
+    /// Draw what the scene's camera sees rather than the scene as it is edited.
+    pub through_camera: bool,
     pub viewport: flare_render::Viewport,
     pub size: [u32; 2],
     pub background: Rgba8,

@@ -19,7 +19,7 @@ Ein freies Open-Source-Animationswerkzeug im Sinne von Adobe Animate, geschriebe
 ### Funktionen
 
 - Zeichnen mit den Werkzeugen, die Animate hat, dazu eine erweiterte Werkzeugbibliothek, etwa Lineal (misst Abstand und Winkel) und Spiegel.
-- Bilder und Ebenen auf einer Zeitleiste anordnen, mit Ordnern, Masken, Bewegungsführungen, Bewegungs- und Formtweens mit Ease sowie Onion Skin.
+- Bilder und Ebenen auf einer Zeitleiste anordnen, mit Ordnern, Masken, Bewegungsführungen, Bewegungs- und Formtweens mit Ease, Onion Skin und einer Kameraebene.
 - Symbole (Grafik, Movieclip und Schaltfläche) in einer Bibliothek, als Instanzen auf der Bühne platziert.
 - Die Animation mit Ton abspielen; Film testen führt das veröffentlichte SWF in Ruffle aus.
 - `.flare`-Projekte öffnen und speichern. XFL und `.fla` von Animate importieren und exportieren.

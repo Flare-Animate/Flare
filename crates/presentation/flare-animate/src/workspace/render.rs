@@ -35,6 +35,10 @@ impl Workspace {
     /// cached is shown at once; otherwise the frame is drawn on the render worker and the
     /// previous picture stays up (drawn where it belongs) until the new one arrives.
     pub(super) fn ensure_stage_texture(&mut self, ctx: &egui::Context) {
+        // The camera can go (undo, removal) while it is being looked through.
+        if self.camera_preview && !self.has_camera() {
+            self.set_camera_preview(false);
+        }
         self.install_rendered(ctx);
         let key = (self.context_serial, self.active().revision(), self.frame);
         let onion = self.effective_onion();
@@ -73,7 +77,14 @@ impl Workspace {
         let signature = {
             use std::hash::{Hash, Hasher};
             let document = self.document();
-            let current = match flare_eval::evaluate_frame(document, scene, self.frame) {
+            let evaluate = |frame: u32| {
+                if self.camera_preview {
+                    flare_eval::evaluate_frame(document, scene, frame)
+                } else {
+                    flare_eval::evaluate_frame_without_camera(document, scene, frame)
+                }
+            };
+            let current = match evaluate(self.frame) {
                 Ok(frame) => frame,
                 Err(e) => {
                     self.report(format!("Cannot render frame: {e}"));
@@ -82,11 +93,13 @@ impl Workspace {
             };
             let mut hasher = std::collections::hash_map::DefaultHasher::new();
             current.signature().hash(&mut hasher);
-            // Outlines and faded pictures of the same frames are different images.
+            // Outlines and faded pictures of the same frames are different images, and so is
+            // the view through the camera.
+            self.camera_preview.hash(&mut hasher);
             onion.outlines.hash(&mut hasher);
             self.display.outline_mode.hash(&mut hasher);
             for (frame, opacity) in &ghost_frames {
-                if let Ok(ghost) = flare_eval::evaluate_frame(document, scene, *frame) {
+                if let Ok(ghost) = evaluate(*frame) {
                     ghost.signature().hash(&mut hasher);
                     opacity.to_bits().hash(&mut hasher);
                 }
@@ -130,6 +143,7 @@ impl Workspace {
             frame: self.frame,
             outlines: onion.outlines,
             outline_mode: self.display.outline_mode,
+            through_camera: self.camera_preview,
             ghosts: ghost_frames,
             viewport: flare_render::Viewport {
                 x: f64::from(view.region.min.x),

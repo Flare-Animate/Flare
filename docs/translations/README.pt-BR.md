@@ -19,7 +19,7 @@ Uma ferramenta de animação livre e de código aberto, no espírito do Adobe An
 ### Recursos
 
 - Desenhe com as ferramentas que o Animate tem, mais uma biblioteca ampliada de ferramentas, como a Régua (mede distância e ângulo) e o Espelho.
-- Organize quadros e camadas em uma linha do tempo, com pastas, máscaras, guias de movimento, interpolações de movimento e de forma com Ease e papel de cebola.
+- Organize quadros e camadas em uma linha do tempo, com pastas, máscaras, guias de movimento, interpolações de movimento e de forma com Ease, papel de cebola e uma camada de câmera.
 - Símbolos (Gráfico, Clipe de filme e Botão) em uma biblioteca, colocados como instâncias no palco.
 - Reproduza a animação com som; Testar filme executa o SWF publicado no Ruffle.
 - Abra e salve projetos `.flare`. Importe e exporte XFL e `.fla` do Animate.

@@ -114,7 +114,7 @@ pub(crate) static EXTRA: Slot = &[
     mock("tool-bone", "Bone"),
     mock("tool-bind", "Bind"),
     mock("tool-width", "Width"),
-    mock("tool-camera", "Camera"),
+    real("tool-camera", "Camera", "", Tool::Camera),
 ];
 
 /// Whether `slot` is the "…" cell, which shows its dots whatever tool is in hand.

@@ -68,17 +68,19 @@ pub fn run_render(job: &RenderJob) -> Done {
 }
 
 fn draw(job: &RenderJob) -> Result<Rendered, String> {
-    let current = flare_eval::evaluate_frame(&job.document, job.scene, job.frame)
-        .map_err(|e| e.to_string())?;
+    let evaluate = |frame: u32| {
+        if job.through_camera {
+            flare_eval::evaluate_frame(&job.document, job.scene, frame)
+        } else {
+            flare_eval::evaluate_frame_without_camera(&job.document, job.scene, frame)
+        }
+    };
+    let current = evaluate(job.frame).map_err(|e| e.to_string())?;
     // A ghost that fails to evaluate is simply left out; the current frame matters.
     let evaluated: Vec<(flare_eval::Frame<'_>, f32)> = job
         .ghosts
         .iter()
-        .filter_map(|(frame, opacity)| {
-            flare_eval::evaluate_frame(&job.document, job.scene, *frame)
-                .ok()
-                .map(|e| (e, *opacity))
-        })
+        .filter_map(|(frame, opacity)| evaluate(*frame).ok().map(|e| (e, *opacity)))
         .collect();
     let ghosts: Vec<(&flare_eval::Frame<'_>, f32)> =
         evaluated.iter().map(|(e, o)| (e, *o)).collect();

@@ -138,8 +138,8 @@ Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
 shows, and keys that pick a tool (A for Subselection, O for Oval) change what its cell shows too.
 The "…" button (More tools) opens a list of the tools that are not in the strip:
-Flare's own Mirror and Ruler, and 3D Rotation, 3D Translation, Deco, Bone, Bind, Width and Camera, which
-are not built. Tools that are not built are dimmed with a note, like the menu's planned commands,
+Flare's own Mirror and Ruler, the Camera, and 3D Rotation, 3D Translation, Deco, Bone, Bind and Width, which
+are not built (the Camera is). Tools that are not built are dimmed with a note, like the menu's planned commands,
 and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a list. The strip scrolls
 when it is taller than its panel.
 Any tool in the dots list can be dragged out of it onto the strip, where it becomes a cell of its own just above the dots (the tools not built too, dimmed); a right click on it offers Remove from toolbar, and it is in the list again. The tools put there are kept with the preferences, and Restore defaults empties them. Escape, or letting go away from the strip, drops the tool being dragged.
@@ -206,3 +206,19 @@ Size and position of the selection, and under Pointer the stage position and the
 topmost shape there (its fill, the start of a gradient, or its line when it has no fill), found by
 hit-testing the frame rather than reading pixels. Layouts saved before the panel existed get it
 added next to History when they are opened.
+
+## Camera
+
+The Camera tool (in the "…" list) adds the scene's camera layer, above the others and drawn in orange in
+the timeline, the first time it is picked; the camera then looks at the stage as it is. With the tool
+in hand a frame on the stage marks what the camera sees at the current frame (turned and smaller or
+larger as the camera is), and dragging moves the camera the other way, so the picture follows the
+pointer; each drag, and each edit in Properties (X, Y, Zoom in percent, Rotation in degrees), keys the
+camera at the current frame as one undo step. A keyframe inside another splits it, and "Move to the
+next keyframe" (with an Ease) is the camera's motion tween, also available as Create Motion Tween in the
+timeline. A button in the bar above the stage (shown when the scene has a camera) previews the picture
+through the camera; the preview cannot be edited, and the stage is otherwise drawn and picked in the
+scene's own coordinates whatever the camera does. Removing the camera removes its layer. Known gaps: a
+camera keyframe does not follow frames inserted at the end of the movie (the last keyframe runs to the
+end the movie had when it was set), "attach to camera" for a layer that should not move with it, and
+the camera's color effects. Nobody has used it by hand yet.

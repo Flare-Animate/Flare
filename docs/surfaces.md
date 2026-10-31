@@ -22,6 +22,6 @@ First audit, from the code, 2026-10-31.
 | Sound playback | yes | **no** | n/a | n/a | No browser sound output yet. |
 | Frames, layers, folders, masks, guides | yes | yes | partly | partly | The CLI and MCP cover frames and layers; folders, masks and guides are not exposed. |
 | Symbol kinds and a graphic's looping options | yes | yes | **no** | **no** | The CLI and MCP make Graphic symbols only; they need the kind and the playback settings as options. |
-| Camera (a camera layer with keyframes and motion tweens) | **no** | **no** | yes (`flare camera`) | yes (`set_camera`) | The editor has no Camera tool, camera layer controls or preview yet; it draws the scene as edited, and renders and exports already follow the camera. The XFL export leaves the camera out with a warning, and nothing reads it back. |
+| Camera (a camera layer with keyframes and motion tweens) | yes (Camera tool, Properties, preview) | yes (the same workspace) | yes (`flare camera`) | yes (`set_camera`) | The XFL export leaves the camera out with a warning, and nothing reads it back. The editor part is tested by driving the workspace, not by a person. |
 | Language and theme | yes | yes | n/a | n/a | |
 | Share from the Publish popup | yes (Twitter only) | **no** | n/a | n/a | The browser's own `window.open` is wired, but the popup is a desktop dialog today. |

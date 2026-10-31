@@ -46,7 +46,8 @@ pub fn restyle(
     ])
 }
 
-/// Sets or clears the tween on a span: a motion tween on an instance, a shape tween on a shape.
+/// Sets or clears the tween on a span: a motion tween on an instance or a camera keyframe, a shape
+/// tween on a shape.
 /// `None` when the span is missing, the tween does not fit what the span holds, or it already
 /// has that setting. The easing is kept.
 pub fn set_tween(
@@ -59,7 +60,7 @@ pub fn set_tween(
     let fits = matches!(
         (span.content(), tween),
         (_, Tween::None)
-            | (Content::Instance(_), Tween::Linear)
+            | (Content::Instance(_) | Content::Camera(_), Tween::Linear)
             | (Content::Shape(_), Tween::Shape)
     );
     if !fits || span.tween() == tween {
