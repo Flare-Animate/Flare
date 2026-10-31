@@ -1,0 +1,15 @@
+publish-title = パブリッシュ
+publish-formats = 形式
+publish-button = パブリッシュ
+publish-button-hint = 保存先を選び、チェックした形式をすべて書き出します
+publish-share = 共有
+publish-share-hint = 先にパブリッシュしてから、開いたページでファイルを追加してください。
+publish-nothing-chosen = 形式を選んでください。選ばないと書き出すものがありません。
+publish-format-swf = Flash（.swf）
+publish-compress = ムービーを圧縮
+publish-format-html5 = HTML5 Canvas（.html）
+publish-loop = タイムラインをループ
+publish-center = ステージを中央に配置
+publish-responsive = レスポンシブにする
+publish-format-gif = アニメーションGIF（.gif）
+publish-format-mp4 = MP4ビデオ（.mp4）

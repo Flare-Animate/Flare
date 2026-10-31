@@ -1,0 +1,15 @@
+publish-title = 发布
+publish-formats = 格式
+publish-button = 发布
+publish-button-hint = 选择保存位置，并写出所有已勾选的格式
+publish-share = 分享
+publish-share-hint = 请先发布，然后在打开的页面中添加该文件。
+publish-nothing-chosen = 请选择一种格式，否则没有可发布的内容。
+publish-format-swf = Flash（.swf）
+publish-compress = 压缩影片
+publish-format-html5 = HTML5 Canvas（.html）
+publish-loop = 循环时间轴
+publish-center = 舞台居中
+publish-responsive = 自适应窗口大小
+publish-format-gif = 动画 GIF（.gif）
+publish-format-mp4 = MP4 视频（.mp4）

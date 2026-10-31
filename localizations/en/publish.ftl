@@ -1,0 +1,15 @@
+publish-title = Publish
+publish-formats = Formats
+publish-button = Publish
+publish-button-hint = Choose where the files go, and write each format ticked
+publish-share = Share
+publish-share-hint = Publish first, then add the file on the page that opens.
+publish-nothing-chosen = Choose a format, or Publish has nothing to write.
+publish-format-swf = Flash (.swf)
+publish-compress = Compress movie
+publish-format-html5 = HTML5 Canvas (.html)
+publish-loop = Loop timeline
+publish-center = Center stage
+publish-responsive = Make responsive
+publish-format-gif = Animated GIF (.gif)
+publish-format-mp4 = MP4 video (.mp4)

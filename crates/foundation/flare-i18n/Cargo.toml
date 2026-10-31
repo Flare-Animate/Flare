@@ -1,0 +1,17 @@
+[package]
+name = "flare-i18n"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+fluent-bundle.workspace = true
+unic-langid.workspace = true
+
+[dev-dependencies]
+fluent-syntax.workspace = true
+
+[lints]
+workspace = true

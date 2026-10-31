@@ -26,6 +26,7 @@ members = [
     "crates/adapters/flare-flash",
     "crates/foundation/flare-text",
     "crates/foundation/flare-audio",
+    "crates/foundation/flare-i18n",
     "crates/services/flare-runtime",
     "crates/services/flare-platform",
 ]
@@ -43,6 +44,7 @@ license = "BSD-3-Clause"
 # ---- Internal packages: root owns all paths ----------------------------------
 flare-core = { path = "crates/foundation/flare-core" }
 flare-flash = { path = "crates/adapters/flare-flash" }
+flare-i18n = { path = "crates/foundation/flare-i18n" }
 flare-export = { path = "crates/io/flare-export" }
 flare-publish = { path = "crates/io/flare-publish" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }
@@ -83,6 +85,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 uuid = "1"                 # v7/serde are enabled by the consuming member.
 thiserror = "2"
+fluent-bundle = "0.16"
+unic-langid = "0.9"
+fluent-syntax = "0.12"
 anyhow = "1"               # Executable boundaries, not public library errors.
 
 # ---- Persistence, compression and content identity --------------------------

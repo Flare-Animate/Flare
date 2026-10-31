@@ -1,0 +1,15 @@
+publish-title = Veröffentlichen
+publish-formats = Formate
+publish-button = Veröffentlichen
+publish-button-hint = Zielordner wählen und jedes angehakte Format schreiben
+publish-share = Teilen
+publish-share-hint = Erst veröffentlichen, dann die Datei auf der geöffneten Seite hinzufügen.
+publish-nothing-chosen = Wähle ein Format, sonst gibt es nichts zu schreiben.
+publish-format-swf = Flash (.swf)
+publish-compress = Film komprimieren
+publish-format-html5 = HTML5 Canvas (.html)
+publish-loop = Zeitleiste wiederholen
+publish-center = Bühne zentrieren
+publish-responsive = Responsiv machen
+publish-format-gif = Animiertes GIF (.gif)
+publish-format-mp4 = MP4-Video (.mp4)
