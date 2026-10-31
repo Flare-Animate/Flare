@@ -18,6 +18,8 @@ serve `apps/flare-web/dist` with any static file server:
 apps/flare-web/scripts/build.sh
 ```
 
-Open and Import read a `.fla` with the browser's file picker. Save downloads the project as a `.fla`
-(XFL), because the `.flare` container is SQLite, which a page does not have. Export Image and
-Publish download their files. Preferences are kept in local storage.
+Open reads a `.flare` or a `.fla` with the browser's file picker, and Import a `.fla`. Save downloads
+the project as a `.flare`, the file the desktop app writes: the page loads SQLite and zstd as
+WebAssembly (from npm, see `package.json` and `scripts/vendor.mjs`) and the checks on what a file
+contains are `flare-storage`'s own. File > Export > Flash Document downloads a `.fla`. Export Image
+and Publish download their files. Preferences are kept in local storage.

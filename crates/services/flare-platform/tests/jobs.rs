@@ -195,3 +195,33 @@ fn an_existing_mp4_is_never_replaced_and_the_other_formats_are_still_written() {
         "the page was still written"
     );
 }
+
+#[test]
+fn a_project_is_exported_as_a_fla_that_imports_back_and_is_never_replaced() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("project.fla");
+    let (tx, rx) = mpsc::channel();
+    let report = tx.clone();
+    jobs::export_fla(document(), path.clone(), move |r| {
+        let _ = report.send(r);
+    })
+    .expect("started");
+    wait(&rx).expect("exported");
+    let bytes = std::fs::read(&path).expect("the file");
+    let imported =
+        flare_import::import_fla_bytes(bytes.clone()).expect("Animate's format reads back");
+    assert_eq!(imported.document.scenes().len(), document().scenes().len());
+    // A second export to the same place is refused and leaves the first alone.
+    jobs::export_fla(document(), path.clone(), move |r| {
+        let _ = tx.send(r);
+    })
+    .expect("started");
+    let error = wait(&rx).expect_err("it exists");
+    assert!(error.contains("already exists"), "{error}");
+    assert_eq!(std::fs::read(&path).expect("read"), bytes);
+    assert_eq!(
+        std::fs::read_dir(dir.path()).expect("ls").count(),
+        1,
+        "no staging file left"
+    );
+}

@@ -23,6 +23,7 @@ impl Workspace {
             MenuAction::Revert => "Revert",
             MenuAction::ExportImage => "Export Image...",
             MenuAction::ExportMovie => "Export Animated GIF...",
+            MenuAction::ExportFla => "Export Flash Document (.fla)...",
             MenuAction::Save => "Save",
             MenuAction::SaveAs => "Save As...",
             MenuAction::Quit => "Quit Flare",

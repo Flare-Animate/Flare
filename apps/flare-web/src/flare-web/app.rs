@@ -7,12 +7,18 @@ use std::rc::Rc;
 use eframe::egui;
 use flare_animate::{DialogRequest, Workspace};
 
-use crate::{files, preferences};
+use crate::{files, flare_file, preferences};
 
 /// A file the person picked, waiting to be handed to the workspace.
 struct Picked {
     name: String,
     bytes: Vec<u8>,
+}
+
+/// Whether `name` is a Flare project (`.flare`), which the page reads itself, rather than a
+/// Flash document to import.
+fn is_flare(name: &str) -> bool {
+    name.to_ascii_lowercase().ends_with(".flare")
 }
 
 pub struct WebApp {
@@ -41,13 +47,15 @@ impl WebApp {
             DialogRequest::Open | DialogRequest::ImportProject => {
                 let (inbox, ctx) = (Rc::clone(&self.picked), ctx.clone());
                 wasm_bindgen_futures::spawn_local(async move {
-                    if let Some((name, bytes)) = files::pick("Flash document", &["fla"]).await {
+                    if let Some((name, bytes)) =
+                        files::pick("Flare project or Flash document", &["flare", "fla"]).await
+                    {
                         inbox.borrow_mut().push(Picked { name, bytes });
                         ctx.request_repaint();
                     }
                 });
             }
-            DialogRequest::SaveAs => self.save_fla(),
+            DialogRequest::SaveAs => self.save_flare(),
             DialogRequest::ExportImage => {
                 let (document, frame) = self.workspace.image_export();
                 self.deliver(
@@ -63,6 +71,13 @@ impl WebApp {
                     "image/gif",
                     flare_runtime::gif_bytes(&document),
                 );
+            }
+            DialogRequest::ExportFla => {
+                let (document, _) = self.workspace.image_export();
+                let bytes = flare_export::export_xfl(&document)
+                    .and_then(|output| flare_export::fla_bytes(&output))
+                    .map_err(|e| e.to_string());
+                self.deliver("project.fla", "application/zip", bytes);
             }
             DialogRequest::Share(target) => {
                 let opened = web_sys::window()
@@ -119,14 +134,25 @@ impl WebApp {
         }
     }
 
-    /// Saving offers the project as a `.fla` download: the `.flare` container needs SQLite,
-    /// which a page does not have, and XFL keeps everything an Animate user can open elsewhere.
-    fn save_fla(&mut self) {
+    /// Saving offers the project as a `.flare` download, the same file the desktop app writes: the
+    /// page brings SQLite and zstd as WebAssembly for it (see `flare_file`).
+    fn save_flare(&mut self) {
         let (document, _) = self.workspace.image_export();
-        let bytes = flare_export::export_xfl(&document)
-            .and_then(|output| flare_export::fla_bytes(&output))
+        let bytes = flare_file::FlareFile::registered()
+            .and_then(|library| library.write(&document))
             .map_err(|e| e.to_string());
-        self.deliver("project.fla", "application/zip", bytes);
+        self.deliver("project.flare", "application/octet-stream", bytes);
+    }
+
+    /// Opens a `.flare` the person picked, which the page reads itself.
+    fn open_flare(&mut self, name: &str, bytes: &[u8]) {
+        let read = flare_file::FlareFile::registered().and_then(|library| library.read(bytes));
+        match read {
+            Ok(document) => self.workspace.open_loaded(name, document),
+            Err(error) => self
+                .workspace
+                .report_message(&format!("Cannot open {name}: {error}")),
+        }
     }
 
     fn deliver(&mut self, name: &str, mime: &str, bytes: Result<Vec<u8>, String>) {
@@ -142,7 +168,11 @@ impl eframe::App for WebApp {
         let ctx = ui.ctx().clone();
         let picked: Vec<Picked> = self.picked.borrow_mut().drain(..).collect();
         for file in picked {
-            self.workspace.import_project_bytes(&file.name, file.bytes);
+            if is_flare(&file.name) {
+                self.open_flare(&file.name, &file.bytes);
+            } else {
+                self.workspace.import_project_bytes(&file.name, file.bytes);
+            }
         }
         self.workspace.show(ui);
         self.handle_dialog(&ctx);

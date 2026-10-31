@@ -138,6 +138,7 @@ directories = "6"
 pollster = "0.4.0"
 js-sys = "0.3"
 wasm-bindgen = "0.2.129"
+wasm-bindgen-test = "0.3"   # Tests of the browser build's bridge, run under node (scripts/tests/test_web_wasm.py).
 wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
 muda = "0.21.2"          # Native menu bar (macOS); other platforms use the in-window menu.

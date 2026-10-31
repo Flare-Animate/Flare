@@ -60,6 +60,22 @@ impl Workspace {
             && !self.is_dirty()
             && !self.session.can_undo()
             && self.contexts.is_empty()
+            && self.has_no_content()
+    }
+
+    /// Whether the document holds nothing drawn: no frame with anything in it, no symbol, no
+    /// sound. A project the browser has read has no path either, and must not count as blank.
+    fn has_no_content(&self) -> bool {
+        let document = self.document();
+        document.symbols().is_empty()
+            && document.sounds().is_empty()
+            && document.scenes().iter().all(|scene| {
+                scene
+                    .timeline()
+                    .layers()
+                    .iter()
+                    .all(|layer| layer.spans().is_empty())
+            })
     }
 
     /// Shows `document` in a new tab beside the current one, and makes it the current one.

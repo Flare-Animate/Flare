@@ -23,6 +23,7 @@ pub enum MenuAction {
     ImportSound,
     ExportImage,
     ExportMovie,
+    ExportFla,
     Save,
     SaveAs,
     Quit,
@@ -132,7 +133,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 117] = [
+    pub const ALL: [MenuAction; 118] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -144,6 +145,7 @@ impl MenuAction {
         Self::ImportSound,
         Self::ExportImage,
         Self::ExportMovie,
+        Self::ExportFla,
         Self::Save,
         Self::SaveAs,
         Self::Quit,

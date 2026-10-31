@@ -41,7 +41,14 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                 "Import",
                 &[Action(A::ImportSound), Action(A::ImportProject)],
             ),
-            Submenu("Export", &[Action(A::ExportImage), Action(A::ExportMovie)]),
+            Submenu(
+                "Export",
+                &[
+                    Action(A::ExportImage),
+                    Action(A::ExportMovie),
+                    Action(A::ExportFla),
+                ],
+            ),
             Separator,
             Action(A::PublishSettings),
             Action(A::Publish),

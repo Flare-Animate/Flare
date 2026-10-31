@@ -42,6 +42,14 @@ pub fn save_gif() -> Option<PathBuf> {
         .save_file()
 }
 
+/// Where to write a project as a Flash document.
+pub fn save_fla() -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter("Flash document", &["fla"])
+        .set_file_name("project.fla")
+        .save_file()
+}
+
 /// Asks where to publish. The name is shared by every format written, each with its own ending.
 pub fn save_publish() -> Option<PathBuf> {
     rfd::FileDialog::new()

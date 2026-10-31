@@ -52,6 +52,15 @@ impl App {
                     }
                 }
             }
+            DialogRequest::ExportFla => {
+                if let Some(path) = dialogs::save_fla() {
+                    let (document, _) = self.workspace.image_export();
+                    let done = exported(&self.proxy);
+                    if let Err(error) = jobs::export_fla(document, path, done) {
+                        dialogs::message("Cannot export", &error.to_string());
+                    }
+                }
+            }
             DialogRequest::Share(target) => {
                 if let Err(error) = flare_platform::browser::open_url(target.url()) {
                     dialogs::message("Cannot open the browser", &error.to_string());

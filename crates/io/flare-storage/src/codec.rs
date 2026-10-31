@@ -19,6 +19,7 @@ use crate::StorageError;
 /// Records shorter than this are stored as they are: a zstd frame costs more than it saves.
 const COMPRESS_FROM: usize = 64;
 /// How far back the desktop app's compressor looks (2^18 bytes).
+#[cfg(not(target_arch = "wasm32"))]
 pub(crate) const WINDOW_LOG: u32 = 18;
 /// How far back a frame may say its decoder has to look: 2^23 bytes. The browser's compressor
 /// picks its own window (about 2 MiB for a big record), so this is wider than what is written here.

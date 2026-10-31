@@ -12,6 +12,7 @@ sys-locale.workspace = true
 cpal.workspace = true
 directories.workspace = true
 flare-audio.workspace = true
+flare-export.workspace = true
 flare-video.workspace = true
 flare-document.workspace = true
 flare-publish.workspace = true
@@ -23,6 +24,7 @@ tempfile.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+flare-import.workspace = true
 flare-core.workspace = true
 
 [lints]

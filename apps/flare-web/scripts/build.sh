@@ -1,6 +1,7 @@
 #!/bin/sh
 # Builds the browser app into apps/flare-web/dist, ready for any static file server.
-# Needs the wasm32-unknown-unknown target and the wasm-bindgen command-line tool.
+# Needs the wasm32-unknown-unknown target, the wasm-bindgen command-line tool and node with npm
+# (for SQLite and zstd as WebAssembly, which .flare files need: see src/lib/flare-file.js).
 set -eu
 here=$(cd "$(dirname "$0")/.." && pwd)
 root=$(cd "$here/../.." && pwd)
@@ -13,6 +14,9 @@ rm -rf "$here/dist"
 mkdir -p "$here/dist/pkg"
 wasm-bindgen --target web --out-dir "$here/dist/pkg" \
   "$root/target/wasm32-unknown-unknown/$profile/flare_web.wasm"
+(cd "$here" && npm ci --ignore-scripts --no-audit --no-fund)
+node "$here/scripts/vendor.mjs" "$here/dist/vendor"
 cp "$here/public/index.html" "$here/dist/index.html"
 cp "$here/src/lib/main.js" "$here/dist/main.js"
+cp "$here/src/lib/flare-file.js" "$here/dist/flare-file.js"
 echo "built $here/dist"

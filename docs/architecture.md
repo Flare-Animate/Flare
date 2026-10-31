@@ -146,7 +146,9 @@ outside: the desktop app brings the `zstd` library and SQLite, and a browser bui
 WebAssembly zstd and a WebAssembly SQLite and gets exactly the same checks. The frame header is
 read here (declared size equal to the record's, window no bigger than the writer's, a checksum,
 no dictionary) before any decompressor is asked, so a record cannot be a decompression bomb
-whichever zstd is behind it.
+whichever zstd is behind it. A test (`scripts/tests/test_web_wasm.py`) compiles the browser
+build's bridge to WebAssembly, runs it under node with the two npm libraries, has it read a
+project `flare-cli` made and write one back, and has the desktop's code read that.
 
 - Save writes a complete staged database next to the target and renames it into place, so a
   failed save leaves the previous file intact. The directory is not fsynced after the rename.

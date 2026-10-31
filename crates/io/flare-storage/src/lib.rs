@@ -42,6 +42,9 @@ pub enum StorageError {
     Sqlite(#[from] rusqlite::Error),
     #[error("{0}")]
     Unsupported(&'static str),
+    /// A library the page brings (SQLite or zstd as WebAssembly) failed.
+    #[error("{0}")]
+    Host(String),
     #[error("i/o error: {0}")]
     Io(#[from] std::io::Error),
     #[error("malformed payload: {0}")]

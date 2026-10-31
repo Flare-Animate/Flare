@@ -393,3 +393,25 @@ fn selecting_a_layer_redirects_frame_operations() {
     );
     assert_eq!(layer_count(&ws), 2);
 }
+
+#[test]
+fn a_project_read_by_the_front_end_opens_clean_in_place_of_a_blank_one_and_beside_a_used_one() {
+    let mut source = workspace();
+    rect(&mut source);
+    let document = source.document().clone();
+    let mut ws = workspace();
+    assert!(ws.is_blank());
+    ws.open_loaded("film.flare", document.clone());
+    assert_eq!(ws.document(), &document, "it replaced the blank one");
+    assert!(!ws.is_dirty(), "a file just opened has nothing unsaved");
+    assert_eq!(ws.tabs().len(), 1);
+    assert!(ws.status().is_some_and(|s| s.contains("film.flare")));
+    // The next one does not replace work.
+    let mut other = workspace();
+    rect(&mut other);
+    other.set_stage_size(300, 300);
+    let second = other.document().clone();
+    ws.open_loaded("second.flare", second.clone());
+    assert_eq!(ws.tabs().len(), 2, "beside, not over");
+    assert_eq!(ws.document(), &second);
+}

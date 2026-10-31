@@ -42,7 +42,12 @@ pub fn export_gif(
 /// Renders `document` as a GIF into `path`. Never overwrites; the file appears only when it is
 /// complete.
 fn write_gif(document: &Document, path: &std::path::Path) -> Result<(), String> {
-    let bytes = flare_runtime::gif_bytes(document)?;
+    write_new(path, &flare_runtime::gif_bytes(document)?)
+}
+
+/// Writes `bytes` to a file that does not exist yet: the file appears only when complete, and an
+/// existing one is never replaced.
+fn write_new(path: &std::path::Path, bytes: &[u8]) -> Result<(), String> {
     if path.exists() {
         return Err(format!("{} already exists", path.display()));
     }
@@ -51,15 +56,30 @@ fn write_gif(document: &Document, path: &std::path::Path) -> Result<(), String> 
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or(std::path::Path::new("."));
     let mut staged = tempfile::NamedTempFile::new_in(directory)
-        .map_err(|e| format!("Cannot write the movie: {e}"))?;
-    std::io::Write::write_all(&mut staged, &bytes)
-        .map_err(|e| format!("Cannot write the movie: {e}"))?;
+        .map_err(|e| format!("Cannot write the file: {e}"))?;
+    std::io::Write::write_all(&mut staged, bytes)
+        .map_err(|e| format!("Cannot write the file: {e}"))?;
     staged.persist_noclobber(path).map(|_| ()).map_err(|e| {
         if e.error.kind() == io::ErrorKind::AlreadyExists {
             format!("{} already exists", path.display())
         } else {
-            format!("Cannot write the movie: {}", e.error)
+            format!("Cannot write the file: {}", e.error)
         }
+    })
+}
+
+/// Writes the project as a `.fla` Animate can open, on a thread. Never overwrites.
+pub fn export_fla(
+    document: Document,
+    path: PathBuf,
+    done: impl FnOnce(Result<(), String>) + Send + 'static,
+) -> io::Result<()> {
+    spawn("flare-export-fla", move || {
+        let result = flare_export::export_xfl(&document)
+            .and_then(|output| flare_export::fla_bytes(&output))
+            .map_err(|e| e.to_string())
+            .and_then(|bytes| write_new(&path, &bytes));
+        done(result);
     })
 }
 

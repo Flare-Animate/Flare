@@ -80,3 +80,31 @@ fn the_settings_window_and_the_document_tab_draw_and_say_when_nothing_is_chosen(
     run(&mut ws, &ctx, 0.1);
     assert!(ws.windows.publish_settings, "the window stays up");
 }
+
+#[test]
+fn export_flash_document_is_in_the_export_menu_and_asks_the_shell_for_a_place() {
+    let mut ws = workspace();
+    assert!(ws.is_enabled(MenuAction::ExportFla));
+    assert_eq!(
+        ws.label(MenuAction::ExportFla),
+        "Export Flash Document (.fla)..."
+    );
+    let export = MENU_LAYOUT
+        .iter()
+        .find(|(title, _)| *title == "File")
+        .and_then(|(_, entries)| {
+            entries.iter().find_map(|e| match e {
+                MenuEntry::Submenu("Export", inner) => Some(*inner),
+                _ => None,
+            })
+        })
+        .expect("File > Export");
+    assert!(
+        export
+            .iter()
+            .any(|e| matches!(e, MenuEntry::Action(MenuAction::ExportFla))),
+        "it is in File > Export"
+    );
+    ws.perform(MenuAction::ExportFla);
+    assert_eq!(ws.take_dialog(), Some(DialogRequest::ExportFla));
+}

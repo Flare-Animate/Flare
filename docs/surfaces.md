@@ -11,9 +11,9 @@ First audit, from the code, 2026-10-31.
 
 | Feature | Desktop | Browser | CLI | MCP | Why a gap, and what closes it |
 |---|---|---|---|---|---|
-| Open and save `.flare` | yes | **no** | yes | yes | The browser has no SQLite or zstd build. Closed by a JavaScript SQLite and zstd behind the same records, or by a pure-Rust container. |
+| Open and save `.flare` | yes | yes | yes | yes | The browser brings SQLite and zstd as WebAssembly (`@sqlite.org/sqlite-wasm`, `@bokuweb/zstd-wasm`) and `flare-storage`'s own checks run in the page. It is a download and a file picker there, not a path. |
 | Import XFL and `.fla` | yes | yes | yes | **no** | An MCP tool over `flare-import`. |
-| Export XFL and `.fla` | yes | yes (as a download) | yes | **no** | An MCP tool over `flare-export`. |
+| Export XFL and `.fla` | yes (File > Export) | yes (as a download) | yes | **no** | An MCP tool over `flare-export`. What was not carried over is listed by the CLI and not yet by the two windows. |
 | Export PNG | yes | yes | yes | **no** | `evaluate_frame` returns the frame's contents, not a picture; a PNG tool over `flare-runtime`. |
 | Export GIF | yes | yes | **no** | **no** | A `flare-cli` subcommand and an MCP tool over `flare_runtime::gif_bytes`. |
 | Export MP4 | yes | **no** | **no** | **no** | `flare-video` is native only today; the browser needs the encoders on wasm, the CLI and MCP only need to call it. |

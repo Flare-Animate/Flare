@@ -110,6 +110,8 @@ pub enum DialogRequest {
     ImportSound,
     ExportImage,
     ExportMovie,
+    /// Write the project as a `.fla` Animate can open.
+    ExportFla,
     Publish,
     ImportProject,
 }

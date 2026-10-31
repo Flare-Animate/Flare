@@ -41,7 +41,8 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - Guides pulled out of the rulers, with snapping; Modify > Timeline > Convert to Keyframes.
 - Layer outline colors (timeline chip, `.flare` and XFL) and View > Outline Mode.
 - Window, Help (About, Keyboard Shortcuts) menus that do something; Insert > New Symbol; Edit > Paste in Place (Paste now centers on the stage).
-- An experimental web build.
+- An experimental web build, which opens and saves `.flare` files (SQLite and zstd as WebAssembly) as well as importing Animate files.
+- File > Export > Flash Document writes a `.fla` Animate can open.
 
 [Unreleased]: https://github.com/Flare-Animate/Flare/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Flare-Animate/Flare/releases/tag/v0.1.0

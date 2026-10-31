@@ -73,6 +73,17 @@ impl Workspace {
         self.settle_inline();
     }
 
+    /// Shows a project the front end has already read from a `.flare` itself: the browser reads
+    /// the file with its own SQLite, since a page has no path for the workspace to open. It has no
+    /// path to save back to either, so Save offers a download, as for a new project.
+    pub fn open_loaded(&mut self, name: &str, document: Document) {
+        if self.is_blank() {
+            self.discard_recovery();
+        }
+        self.show_document(document, None);
+        self.report(format!("Opened {name}"));
+    }
+
     /// Like [`Self::import_project`] for a `.fla` already in memory, named `name`.
     pub fn import_project_bytes(&mut self, name: &str, bytes: Vec<u8>) {
         let id = self.background.next_id();

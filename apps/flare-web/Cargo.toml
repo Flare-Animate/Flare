@@ -16,9 +16,11 @@ flare-animate.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 eframe = { workspace = true, features = ["default_fonts", "wgpu"] }
+flare-document.workspace = true
 flare-export.workspace = true
 flare-publish.workspace = true
 flare-runtime.workspace = true
+flare-storage.workspace = true
 js-sys.workspace = true
 rfd.workspace = true
 wasm-bindgen.workspace = true
@@ -26,6 +28,9 @@ wasm-bindgen-futures.workspace = true
 web-sys = { workspace = true, features = ["Window", "Document", "Navigator", "HtmlCanvasElement", "HtmlAnchorElement", "Element", "Storage", "Blob", "BlobPropertyBag", "Url", "console"] }
 # Explicit browser backends: prefer WebGPU, retain WebGL where available.
 wgpu = { workspace = true, features = ["webgpu", "webgl"] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test.workspace = true
 
 [lints]
 workspace = true

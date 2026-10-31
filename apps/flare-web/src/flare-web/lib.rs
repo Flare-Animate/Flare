@@ -14,4 +14,6 @@ mod canvas;
 #[cfg(target_arch = "wasm32")]
 mod files;
 #[cfg(target_arch = "wasm32")]
+pub mod flare_file;
+#[cfg(target_arch = "wasm32")]
 mod preferences;

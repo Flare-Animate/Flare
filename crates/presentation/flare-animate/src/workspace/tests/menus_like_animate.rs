@@ -59,7 +59,11 @@ fn commands_sit_where_animate_keeps_them() {
     );
     assert_eq!(
         shown(&ws, submenu(file, "Export")),
-        ["Export Image...", "Export Animated GIF..."]
+        [
+            "Export Image...",
+            "Export Animated GIF...",
+            "Export Flash Document (.fla)..."
+        ]
     );
     let top = shown(&ws, file);
     assert!(top.contains(&"Publish Settings...".to_owned()) && top.contains(&"Publish".to_owned()));
