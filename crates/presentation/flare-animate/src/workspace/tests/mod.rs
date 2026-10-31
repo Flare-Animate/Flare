@@ -38,6 +38,7 @@ mod spans_and_handles;
 mod tool_strip;
 mod tools_and_menus;
 mod tweens;
+mod undo_pictures;
 mod window_menu;
 
 fn document() -> Document {

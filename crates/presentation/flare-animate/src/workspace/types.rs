@@ -252,6 +252,8 @@ pub(super) struct FrameRange {
 pub(super) struct PendingRender {
     pub(super) id: u64,
     pub(super) key: (u64, u64, u32),
+    /// The document state being drawn.
+    pub(super) document: std::sync::Arc<flare_document::Document>,
     pub(super) onion: OnionSkin,
     pub(super) view: TextureView,
     pub(super) signature: u64,
@@ -267,7 +269,10 @@ pub(super) const FRAME_CACHE_ENTRIES: usize = 48;
 pub(super) struct CachedFrame {
     /// The document state the picture is of; a different one can never be reused.
     pub(super) context: u64,
-    pub(super) revision: u64,
+    /// The very snapshot the picture was drawn from. Undo and redo bring back the same snapshot,
+    /// so a picture of a state that was shown before is shown again without drawing it. Holding
+    /// the snapshot also keeps its address from being reused by another document.
+    pub(super) document: std::sync::Arc<flare_document::Document>,
     /// What the frame (and its onion-skin ghosts) draws; see `Frame::signature`.
     pub(super) signature: u64,
     pub(super) view: TextureView,

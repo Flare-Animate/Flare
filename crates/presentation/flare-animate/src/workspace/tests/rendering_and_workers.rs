@@ -55,7 +55,7 @@ fn a_looping_animation_costs_nothing_after_the_first_pass() {
 }
 
 #[test]
-fn editing_invalidates_cached_pictures_and_the_cache_stays_within_its_limits() {
+fn editing_shows_a_new_picture_and_the_cache_stays_within_its_limits() {
     let (ctx, mut ws) = (egui::Context::default(), held_then_changing());
     run(&mut ws, &ctx, 0.0);
     run(&mut ws, &ctx, 0.01);
@@ -67,17 +67,22 @@ fn editing_invalidates_cached_pictures_and_the_cache_stays_within_its_limits() {
         ws.frames_rendered > before,
         "the edit shows up, not a stale picture"
     );
+    assert_eq!(
+        ws.texture.as_ref().map(|t| t.key.1),
+        Some(ws.active().revision()),
+        "what is shown is the picture of the state now current"
+    );
     assert!(
         ws.frame_cache
             .iter()
-            .all(|c| c.revision == ws.active().revision()),
-        "pictures of older document states are dropped"
+            .any(|c| !std::sync::Arc::ptr_eq(&c.document, &ws.active().snapshot())),
+        "the picture of the state before the edit is kept, for undo"
     );
     // The limits hold however many different pictures come through.
     for _ in 0..(FRAME_CACHE_ENTRIES + 10) {
         ws.frame_cache.push(CachedFrame {
             context: ws.context_serial,
-            revision: ws.active().revision(),
+            document: ws.active().snapshot(),
             signature: ws.frame_cache.len() as u64 + 1_000,
             view: ws.texture.as_ref().expect("texture").view,
             handle: ws.texture.as_ref().expect("texture").handle.clone(),

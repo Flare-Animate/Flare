@@ -120,10 +120,7 @@ fn the_cards_show_when_the_file_changed_and_how_big_it_is() {
     ws.note_recent(&dir.path().join("Missing.flare"));
     ws.set_home(true);
     let ctx = egui::Context::default();
-    assert!(
-        texts(&mut ws, &ctx, 0.0).iter().any(|t| t == "Reading…"),
-        "before the answer the card says it is reading"
-    );
+    run(&mut ws, &ctx, 0.0);
     let recent = ws.recent_files().to_vec();
     assert!(
         ws.recent_info.ask(&recent, || {}).is_none(),
@@ -204,4 +201,17 @@ fn clearing_the_recent_list_is_in_preferences_and_not_on_home() {
     pass(&mut ws, &ctx, input(0.3, vec![click(true)]));
     pass(&mut ws, &ctx, input(0.4, vec![click(false)]));
     assert!(ws.recent_files().is_empty(), "the button forgot the list");
+}
+
+#[test]
+fn a_card_says_reading_until_the_files_have_been_looked_at() {
+    let mut ws = workspace();
+    let path = std::path::Path::new("/a/one.flare");
+    ws.note_recent(path);
+    let recent = ws.recent_files().to_vec();
+    ws.recent_info.pretend_asked(&recent);
+    ws.set_home(true);
+    let ctx = egui::Context::default();
+    let drawn = texts(&mut ws, &ctx, 0.0);
+    assert!(drawn.iter().any(|t| t == "Reading…"), "{drawn:?}");
 }

@@ -80,6 +80,13 @@ impl RecentInfo {
             .ok()
     }
 
+    /// Counts `paths` as asked about without reading them, so a test can look at the page while
+    /// nothing is known yet; a real thread might answer before the page is drawn.
+    #[cfg(test)]
+    pub(super) fn pretend_asked(&mut self, paths: &[PathBuf]) {
+        self.asked.extend(paths.iter().cloned());
+    }
+
     /// Forgets what was read, so the next look at the list reads it again.
     pub(super) fn refresh(&mut self) {
         self.asked.clear();

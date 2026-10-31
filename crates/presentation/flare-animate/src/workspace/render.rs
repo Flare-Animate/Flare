@@ -66,7 +66,8 @@ impl Workspace {
         } else {
             Vec::new()
         };
-        let (context, revision) = (key.0, key.1);
+        let context = key.0;
+        let snapshot = self.active().snapshot();
         // What the frame draws, to see whether the same picture is already around. Evaluating a
         // frame is cheap next to drawing it.
         let signature = {
@@ -94,7 +95,7 @@ impl Workspace {
         };
         let hit = self.frame_cache.iter().position(|c| {
             c.context == context
-                && c.revision == revision
+                && std::sync::Arc::ptr_eq(&c.document, &snapshot)
                 && c.signature == signature
                 && c.view == view
         });
@@ -116,6 +117,7 @@ impl Workspace {
         self.pending_render = Some(PendingRender {
             id,
             key,
+            document: std::sync::Arc::clone(&snapshot),
             onion,
             view,
             signature,
@@ -123,7 +125,7 @@ impl Workspace {
         let stage = self.document().stage();
         self.background.submit_render(RenderJob {
             id,
-            document: self.active().snapshot(),
+            document: snapshot,
             scene,
             frame: self.frame,
             outlines: onion.outlines,
@@ -159,13 +161,13 @@ impl Workspace {
             };
             self.frames_rendered += 1;
             let handle = ctx.load_texture("stage", color, egui::TextureOptions::LINEAR);
-            let (context, revision) = (pending.key.0, pending.key.1);
-            // Pictures of other document states can never be shown again.
-            self.frame_cache
-                .retain(|c| c.context == context && c.revision == revision);
+            let context = pending.key.0;
+            // Pictures of other tabs can never be shown again; those of earlier states of this
+            // one can, by undo, so they stay until the cache's limits push them out.
+            self.frame_cache.retain(|c| c.context == context);
             self.frame_cache.push(CachedFrame {
                 context,
-                revision,
+                document: pending.document,
                 signature: pending.signature,
                 view: pending.view,
                 handle: handle.clone(),

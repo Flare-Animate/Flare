@@ -20,8 +20,10 @@ goes and what a change bought, not what any other machine will do.
 4. **Draw what is visible, at the resolution shown.** The stage texture is the visible part of
    the stage at screen resolution, never the whole stage at one pixel per unit. Anything new
    that draws takes a `Viewport`.
-5. **Reuse identical work.** A frame is keyed by what it draws (`Frame::signature`); held
-   exposures and loops are rendered once. Caches have a byte budget and a size cap, and drop
+5. **Reuse identical work.** A frame is keyed by what it draws (`Frame::signature`) and by the
+   very document snapshot it was drawn from, so held exposures and loops are rendered once and
+   undo and redo bring back pictures already drawn without drawing them again (the cache holds
+   the snapshot, which also keeps its address from being reused). Caches have a byte budget and a size cap, and drop
    entries of document states that can no longer be shown.
 6. **Every unit of work is bounded** (see `engineering.md`) and uses threads only above a
    measured size: below it, starting workers costs more than it saves.
@@ -42,6 +44,7 @@ goes and what a change bought, not what any other machine will do.
 | Render 1280x720, 100 shapes | 1.36 ms | 0.9 ms | premultiplied path, no extra conversion passes |
 | Render 1280x720, 5 000 shapes | 6.3 ms | 3.4 ms | 4 rasterizer threads (only above 800 shapes) |
 | Render 1280x720, 20 000 shapes | 23 ms | 8.6 ms | same |
+| Undo then redo, 5 000-layer document (`cargo bench -p flare-editor`) | 6.6 ns | unchanged | a pointer swap of shared snapshots; what undo costs on screen is the redraw, which the picture cache now skips for states shown before |
 | Open / save 10 000 shapes | 31 ms / 61 ms | unchanged | measured; not worth a new format yet |
 
 Seven threads were no better than four (20 000 shapes: 9.2 ms against 8.6 ms) and slower on
