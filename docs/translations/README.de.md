@@ -1,4 +1,4 @@
-[English](../../README.md) | [Español](README.es.md) | [Français](README.fr.md) | **Deutsch** | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+[English](../../README.md) | **Deutsch** | [Español](README.es.md) | [Français](README.fr.md) | [Português (Brasil)](README.pt-BR.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
 <p align="center">
   <img src="../../assets/flare-icon-256.png" width="128" height="128" alt="Flare">

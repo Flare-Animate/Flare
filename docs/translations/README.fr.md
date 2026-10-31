@@ -1,4 +1,4 @@
-[English](../../README.md) | [Español](README.es.md) | **Français** | [Deutsch](README.de.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | **Français** | [Português (Brasil)](README.pt-BR.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
 <p align="center">
   <img src="../../assets/flare-icon-256.png" width="128" height="128" alt="Flare">
@@ -19,7 +19,7 @@ Un outil d'animation libre et open source, dans l'esprit d'Adobe Animate, écrit
 ### Fonctionnalités
 
 - Dessinez avec les outils habituels : Sélection, Sous-sélection, Transformation libre, Lasso et Lasso polygonal, Plume, Crayon, Pinceau à pointe, Gomme, Rectangle, Ovale, PolyStar, Ligne, Texte, Pot de peinture, Encrier et Pipette, avec remplissages, contours et dégradés.
-- Organisez images et calques sur une scénarisation, avec dossiers, masques, guides de mouvement, interpolations de mouvement et de forme avec Ease, et pelure d'oignon.
+- Organisez images et calques sur une scénario, avec dossiers, masques, guides de mouvement, interpolations de mouvement et de forme avec Ease, et pelure d'oignon.
 - Des symboles (Graphique, Clip et Bouton) dans une bibliothèque, placés comme occurrences sur la scène.
 - Lisez l'animation avec le son ; Tester l'animation exécute le SWF publié dans Ruffle (dans l'application sur le bureau, dans la page dans le navigateur).
 - Plusieurs documents dans des onglets, panneaux ancrables, enregistrement automatique et récupération après une fermeture inattendue.

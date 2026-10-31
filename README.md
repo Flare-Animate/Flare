@@ -1,16 +1,16 @@
-[**English**](README.md) | [Español](docs/translations/README.es.md) | [Français](docs/translations/README.fr.md) | [Deutsch](docs/translations/README.de.md) | [日本語](docs/translations/README.ja.md) | [简体中文](docs/translations/README.zh-CN.md)
+**English** | [Deutsch](docs/translations/README.de.md) | [Español](docs/translations/README.es.md) | [Français](docs/translations/README.fr.md) | [Português (Brasil)](docs/translations/README.pt-BR.md) | [日本語](docs/translations/README.ja.md) | [한국어](docs/translations/README.ko.md) | [简体中文](docs/translations/README.zh-CN.md)
 
 <p align="center">
   <img src="assets/flare-icon-256.png" width="128" height="128" alt="The Flare flame">
 </p>
 
-# Flare 🔥
+# Flare
 
 [![CI](https://img.shields.io/github/actions/workflow/status/Flare-Animate/Flare/ci.yml?branch=main&label=CI)](https://github.com/Flare-Animate/Flare/actions/workflows/ci.yml)
 [![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/JpeScW8Awa)
 
-A free, open-source animation tool in the spirit of Adobe Animate, written in Rust. Built for Windows, macOS and Linux, with a command line and an MCP server for scripts and agents.
+A free, open-source animation tool in the spirit of Adobe Animate, written in Rust. Built for Windows, macOS and Linux.
 
 > **Early alpha.** Expect bugs and incomplete Flash/Animate import fidelity. Back up your work.
 

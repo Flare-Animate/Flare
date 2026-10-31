@@ -81,6 +81,11 @@ fn text_is_in_the_language_and_missing_ones_fall_back_to_english_then_to_the_key
     assert_eq!(ja.text("prefs-title"), "環境設定");
     assert_eq!(Translator::new(Language::German).text("close"), "Schließen");
     assert_eq!(Translator::new(Language::Spanish).text("close"), "Cerrar");
+    assert_eq!(Translator::new(Language::French).text("close"), "Fermer");
+    assert_eq!(
+        Translator::new(Language::French).text("prefs-title"),
+        "Préférences"
+    );
     assert_eq!(ja.text("no-such-message"), "no-such-message");
     assert!(ja.has("prefs-title") && !ja.has("no-such-message"));
 }
@@ -111,7 +116,9 @@ fn a_system_locale_finds_the_nearest_language_and_english_when_there_is_none() {
         ("ko-KR", Language::Korean),
         ("pt-BR", Language::PortugueseBrazil),
         ("pt-PT", Language::PortugueseBrazil),
-        ("fr-FR", Language::English),
+        ("fr-FR", Language::French),
+        ("fr_CA.UTF-8", Language::French),
+        ("it-IT", Language::English),
         ("", Language::English),
         ("???", Language::English),
     ] {
@@ -160,4 +167,30 @@ fn the_language_list_is_english_then_latin_names_alphabetically_then_the_rest_by
     sorted_codes.sort_unstable();
     assert_eq!(codes, sorted_codes, "the others by tag: {codes:?}");
     assert!(!latin_names.is_empty() && !others.is_empty());
+}
+
+#[test]
+fn the_readme_is_translated_into_every_interface_language_and_each_switcher_lists_them_all() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let first_line = |path: std::path::PathBuf| {
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("{} is missing: {e}", path.display()));
+        text.lines().next().unwrap_or_default().to_owned()
+    };
+    let mut switchers = vec![("README.md".to_owned(), first_line(root.join("README.md")))];
+    for language in Language::ALL {
+        if language != Language::English {
+            let name = format!("docs/translations/README.{}.md", language.code());
+            switchers.push((name.clone(), first_line(root.join(name))));
+        }
+    }
+    for (file, line) in &switchers {
+        for language in Language::ALL {
+            assert!(
+                line.contains(language.native_name()),
+                "{file}'s language switcher does not list {}",
+                language.native_name()
+            );
+        }
+    }
 }

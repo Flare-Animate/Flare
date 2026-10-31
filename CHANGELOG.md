@@ -7,6 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Added
+- French is an interface language (Preferences > General > Language, and followed from a French system), and the README is translated into every interface language, with a test that keeps the two lists together.
 - `flare export --format gif` (the command line is now `flare`; the crate is still `flare-cli`), and MCP tools `export_gif`, `publish_swf`, `publish_html5`, `export_xfl` and `import_project`: they write into the export directory only, never overwrite, and report what the format could not hold. The MCP server now has every export the CLI has except MP4.
 - The Polygon lasso (in the Lasso cell): click the corners of a loop, then double-click, press Enter or click the first corner to select what it encloses; Shift adds to the selection and Escape drops the loop.
 - Test Movie plays inside the desktop app: a window in the editor shows the movie with Ruffle running in the same process, on the editor's own GPU device, with sound (Pause/Play and Restart). Building without the `ruffle` feature starts an external Ruffle instead.

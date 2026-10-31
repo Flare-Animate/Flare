@@ -18,6 +18,7 @@ pub enum Language {
     English,
     German,
     Spanish,
+    French,
     PortugueseBrazil,
     Japanese,
     Korean,
@@ -43,10 +44,11 @@ macro_rules! sections {
 
 impl Language {
     /// In list order (see the type's description).
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 8] = [
         Self::English,
         Self::German,
         Self::Spanish,
+        Self::French,
         Self::PortugueseBrazil,
         Self::Japanese,
         Self::Korean,
@@ -59,6 +61,7 @@ impl Language {
             Self::English => "en",
             Self::German => "de",
             Self::Spanish => "es",
+            Self::French => "fr",
             Self::PortugueseBrazil => "pt-BR",
             Self::Japanese => "ja",
             Self::Korean => "ko",
@@ -76,6 +79,7 @@ impl Language {
             Self::English => "English",
             Self::German => "German",
             Self::Spanish => "Spanish",
+            Self::French => "French",
             Self::PortugueseBrazil => "Portuguese (Brazil)",
             Self::Japanese => "Japanese",
             Self::Korean => "Korean",
@@ -89,6 +93,7 @@ impl Language {
             Self::English => "English",
             Self::German => "Deutsch",
             Self::Spanish => "Español",
+            Self::French => "Français",
             Self::PortugueseBrazil => "Português (Brasil)",
             Self::Japanese => "日本語",
             Self::Korean => "한국어",
@@ -104,6 +109,7 @@ impl Language {
         match parts.next().unwrap_or("") {
             "de" => Self::German,
             "es" => Self::Spanish,
+            "fr" => Self::French,
             "pt" => Self::PortugueseBrazil,
             "ja" => Self::Japanese,
             "ko" => Self::Korean,
@@ -119,6 +125,7 @@ impl Language {
             Self::English => sections!("en"),
             Self::German => sections!("de"),
             Self::Spanish => sections!("es"),
+            Self::French => sections!("fr"),
             Self::PortugueseBrazil => sections!("pt-BR"),
             Self::Japanese => sections!("ja"),
             Self::Korean => sections!("ko"),

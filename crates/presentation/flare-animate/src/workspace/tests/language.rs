@@ -57,8 +57,13 @@ fn following_the_system_speaks_its_language_and_the_list_names_it() {
     assert!(has(&text, "Einstellungen"), "{text:?}");
     assert!(has(&text, "Systemsprache (Deutsch)"), "{text:?}");
     assert!(!has(&text, "Preferences"));
-    // A system language there is no translation for is English, and the list says English.
     ws.set_system_locale("fr-FR");
+    assert_eq!(ws.language(), Language::French);
+    let text = preferences_text(&mut ws);
+    assert!(has(&text, "Préférences"), "{text:?}");
+    assert!(has(&text, "Langue du système (Français)"), "{text:?}");
+    // A system language there is no translation for is English, and the list says English.
+    ws.set_system_locale("it-IT");
     assert_eq!(ws.language(), Language::English);
     let text = preferences_text(&mut ws);
     assert!(has(&text, "System locale (English)"), "{text:?}");
