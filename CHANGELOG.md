@@ -7,6 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Added
+- SWF publishing writes linear gradients as gradient fills (matrix placing the first color at the start and the last at the end) and masks of one shape as clip layers; masks of several shapes and masks inside masks are reported and left out.
 - SWF publishing writes sounds: each cued sound is defined once as uncompressed 16-bit audio at the nearest SWF sample rate at or above its own, and started at every cue, with scenes offsetting the frames. The total is bounded.
 
 ## [0.1.0] - not yet released

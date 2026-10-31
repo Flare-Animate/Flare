@@ -110,9 +110,52 @@ fn matrix(m: glamx::DAffine2) -> Matrix {
 struct Placed {
     character: swf::CharacterId,
     matrix: Matrix,
+    /// Makes this a clip layer for the depths above it up to this one.
+    clip_depth: Option<u16>,
 }
 
-fn place(depth: u16, action: PlaceObjectAction, matrix: Option<Matrix>) -> Tag<'static> {
+/// The shapes defined so far: each distinct drawing is defined once, the first time it appears.
+struct Characters {
+    known: HashMap<(ShapeId, u64), Option<swf::CharacterId>>,
+    next: swf::CharacterId,
+    approximated: bool,
+}
+
+impl Characters {
+    /// The character that draws `shape`, or `None` when it draws nothing. A step of a shape
+    /// tween has its shape's identity, so `phase` tells the steps apart.
+    fn define<'a>(
+        &mut self,
+        tags: &mut Vec<Tag<'a>>,
+        shape: &flare_document::Shape,
+        phase: u64,
+    ) -> Result<Option<swf::CharacterId>, PublishError> {
+        let id = (shape.id(), phase);
+        if let Some(known) = self.known.get(&id) {
+            return Ok(*known);
+        }
+        // Character ids are 16 bits; running out must not wrap or repeat.
+        if self.next == swf::CharacterId::MAX {
+            return Err(PublishError::TooManyShapes);
+        }
+        let defined = self.next;
+        let made = shapes::define_shape(defined, shape, &mut self.approximated);
+        let assigned = made.is_some().then_some(defined);
+        if let Some(shape) = made {
+            self.next = self.next.saturating_add(1);
+            tags.push(Tag::DefineShape(Box::new(shape)));
+        }
+        self.known.insert(id, assigned);
+        Ok(assigned)
+    }
+}
+
+fn place(
+    depth: u16,
+    action: PlaceObjectAction,
+    matrix: Option<Matrix>,
+    clip_depth: Option<u16>,
+) -> Tag<'static> {
     Tag::PlaceObject(Box::new(PlaceObject {
         version: 2,
         action,
@@ -121,7 +164,7 @@ fn place(depth: u16, action: PlaceObjectAction, matrix: Option<Matrix>) -> Tag<'
         color_transform: None,
         ratio: None,
         name: None,
-        clip_depth: None,
+        clip_depth,
         class_name: None,
         filters: None,
         background_color: None,
@@ -181,19 +224,21 @@ pub fn publish_swf(
         }),
     ];
 
-    let mut characters: HashMap<(ShapeId, u64), Option<swf::CharacterId>> = HashMap::new();
     // Sounds are defined first, so shapes take the ids after them.
     let sound::Sounds {
         define: defined_sounds,
         starts: mut sound_starts,
         diagnostics: mut sound_diagnostics,
-        mut next_character,
+        next_character,
     } = sound::define(document, 1, sound::MAX_SAMPLES);
     diagnostics.append(&mut sound_diagnostics);
     tags.extend(defined_sounds.iter().map(sound::Defined::tag));
-    let mut approximated = false;
-    let mut flattened_gradient = false;
-    let mut ignored_masks = false;
+    let mut characters = Characters {
+        known: HashMap::new(),
+        next: next_character,
+        approximated: false,
+    };
+    let mut unmasked = false;
     let mut on_screen: Vec<Placed> = Vec::new();
     let mut frames = 0_u32;
 
@@ -208,37 +253,56 @@ pub fn publish_swf(
                     }
                 })?;
 
-            ignored_masks |= !evaluated.clips.is_empty();
-            // Define each distinct shape once, the first time it appears.
             let mut now: Vec<Placed> = Vec::new();
-            for drawn in &evaluated.shapes {
-                // A step of a shape tween has its shape's identity, so its phase tells it apart.
-                let id = (drawn.shape.id(), drawn.phase);
-                let character = match characters.get(&id) {
-                    Some(known) => *known,
-                    None => {
-                        // Character ids are 16 bits; running out must not wrap or repeat.
-                        if next_character == swf::CharacterId::MAX {
-                            return Err(PublishError::TooManyShapes);
-                        }
-                        let defined = next_character;
-                        flattened_gradient |= drawn.shape.gradient().is_some();
-                        let made = shapes::define_shape(defined, &drawn.shape, &mut approximated);
-                        let assigned = made.is_some().then_some(defined);
-                        if let Some(shape) = made {
-                            next_character = next_character.saturating_add(1);
-                            tags.push(Tag::DefineShape(Box::new(shape)));
-                        }
-                        characters.insert(id, assigned);
-                        assigned
+            let drawn = &evaluated.shapes;
+            let mut start = 0;
+            while start < drawn.len() {
+                // A run of shapes under the same masks shares them.
+                let masks = &drawn[start].clips;
+                let end = start
+                    + drawn[start..]
+                        .iter()
+                        .take_while(|d| d.clips == *masks)
+                        .count();
+                let mut run: Vec<Placed> = Vec::new();
+                for shape in &drawn[start..end] {
+                    if let Some(character) =
+                        characters.define(&mut tags, &shape.shape, shape.phase)?
+                    {
+                        run.push(Placed {
+                            character,
+                            matrix: matrix(shape.transform),
+                            clip_depth: None,
+                        });
                     }
-                };
-                if let Some(character) = character {
-                    now.push(Placed {
-                        character,
-                        matrix: matrix(drawn.transform),
-                    });
                 }
+                match masks.as_slice() {
+                    [] => now.append(&mut run),
+                    // A clip layer covers the depths above it up to its `clip_depth`, so a mask
+                    // of one shape goes just under its run. Several shapes or several masks
+                    // would need their union or intersection, which depths cannot say.
+                    [mask] if evaluated.clips[*mask].len() == 1 => {
+                        let member = &evaluated.clips[*mask][0];
+                        // A mask that draws nothing hides everything under it.
+                        if let Some(character) =
+                            characters.define(&mut tags, &member.shape, member.phase)?
+                            && !run.is_empty()
+                        {
+                            let last = now.len() + run.len() + 1;
+                            now.push(Placed {
+                                character,
+                                matrix: matrix(member.transform),
+                                clip_depth: Some(u16::try_from(last).unwrap_or(u16::MAX)),
+                            });
+                            now.append(&mut run);
+                        }
+                    }
+                    _ => {
+                        unmasked = true;
+                        now.append(&mut run);
+                    }
+                }
+                start = end;
             }
 
             // Bring the display list from `on_screen` to `now` with the fewest tags.
@@ -246,18 +310,28 @@ pub fn publish_swf(
                 let depth = u16::try_from(index + 1).unwrap_or(u16::MAX);
                 match on_screen.get(index) {
                     Some(old) if old == target => {}
-                    Some(old) if old.character == target.character => {
-                        tags.push(place(depth, PlaceObjectAction::Modify, Some(target.matrix)));
+                    Some(old)
+                        if old.character == target.character
+                            && old.clip_depth == target.clip_depth =>
+                    {
+                        tags.push(place(
+                            depth,
+                            PlaceObjectAction::Modify,
+                            Some(target.matrix),
+                            None,
+                        ));
                     }
                     Some(_) => tags.push(place(
                         depth,
                         PlaceObjectAction::Replace(target.character),
                         Some(target.matrix),
+                        target.clip_depth,
                     )),
                     None => tags.push(place(
                         depth,
                         PlaceObjectAction::Place(target.character),
                         Some(target.matrix),
+                        target.clip_depth,
                     )),
                 }
             }
@@ -276,22 +350,13 @@ pub fn publish_swf(
             frames += 1;
         }
     }
-    if ignored_masks {
+    if unmasked {
         diagnostics.push(Diagnostic {
             severity: Severity::Warning,
-            message: "SWF publishing does not write masks yet, so masked layers appear unmasked"
-                .into(),
+            message: "SWF publishing writes masks of one shape; masks of several shapes, and masks inside masks, were left out, so those layers appear unmasked".into(),
         });
     }
-    if flattened_gradient {
-        diagnostics.push(Diagnostic {
-            severity: Severity::Warning,
-            message:
-                "SWF publishing does not write gradients yet, so they were flattened to one color"
-                    .into(),
-        });
-    }
-    if approximated {
+    if characters.approximated {
         diagnostics.push(Diagnostic {
             severity: Severity::Info,
             message: "SWF shapes hold only lines and quadratic curves, so cubic curves were approximated within 0.05 px".into(),

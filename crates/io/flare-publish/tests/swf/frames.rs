@@ -190,53 +190,198 @@ fn running_out_of_shape_ids_is_an_error_not_a_corrupt_file() {
 }
 
 #[test]
-fn gradients_are_flattened_to_their_average_color_with_a_warning() {
+fn a_gradient_is_written_with_its_colors_and_a_matrix_that_puts_them_at_its_ends() {
     let gradient = flare_document::Gradient::linear(
-        pt(0.0, 0.0),
-        pt(20.0, 0.0),
+        pt(10.0, 20.0),
+        pt(10.0, 120.0),
         Rgba8::opaque(200, 0, 0),
-        Rgba8::opaque(0, 100, 0),
+        Rgba8::new(0, 100, 0, 128),
     )
     .expect("gradient");
-    let shape = rect(0.0, 0.0, 20.0, 20.0, Rgba8::TRANSPARENT).with_gradient(gradient);
-    let doc = document(20, 20, vec![one_frame_scene("A", vec![shape], 1)], vec![]);
+    let shape = rect(0.0, 0.0, 20.0, 140.0, Rgba8::TRANSPARENT).with_gradient(gradient);
+    let doc = document(20, 140, vec![one_frame_scene("A", vec![shape], 1)], vec![]);
     let published = publish_swf(&doc, &PublishOptions::default()).expect("publish");
-    let parsed = parse(&published.bytes);
-    assert_eq!(
-        render_swf_frame(&parsed, 0, doc.stage().background()).pixel(10, 10),
-        Some(Rgba8::opaque(100, 50, 0))
-    );
     assert!(
         published
             .diagnostics
             .iter()
-            .any(|d| d.severity == Severity::Warning && d.message.contains("gradients")),
+            .all(|d| !d.message.contains("gradient")),
         "{:?}",
         published.diagnostics
+    );
+    let parsed = parse(&published.bytes);
+    let fills: Vec<&swf::FillStyle> = parsed
+        .tags
+        .iter()
+        .filter_map(|t| match t {
+            Tag::DefineShape(s) => Some(&s.styles.fill_styles),
+            _ => None,
+        })
+        .flatten()
+        .collect();
+    assert_eq!(fills.len(), 1);
+    let swf::FillStyle::LinearGradient(g) = fills[0] else {
+        panic!("not a linear gradient: {:?}", fills[0]);
+    };
+    assert_eq!(g.records.len(), 2);
+    assert_eq!((g.records[0].ratio, g.records[1].ratio), (0, 255));
+    assert_eq!(
+        (
+            g.records[0].color.r,
+            g.records[0].color.a,
+            g.records[1].color.g,
+            g.records[1].color.a
+        ),
+        (200, 255, 100, 128)
+    );
+    assert_eq!(g.spread, swf::GradientSpread::Pad);
+    // The gradient's x axis (-16384..16384 twips) must land on the line, in pixels.
+    let at = |x: f64| {
+        let m = &g.matrix;
+        (
+            (m.a.to_f64() * x + m.tx.get() as f64) / 20.0,
+            (m.b.to_f64() * x + m.ty.get() as f64) / 20.0,
+        )
+    };
+    let (start, end) = (at(-16384.0), at(16384.0));
+    assert!(
+        (start.0 - 10.0).abs() < 0.1 && (start.1 - 20.0).abs() < 0.1,
+        "{start:?}"
+    );
+    assert!(
+        (end.0 - 10.0).abs() < 0.1 && (end.1 - 120.0).abs() < 0.1,
+        "{end:?}"
     );
 }
 
 #[test]
-fn masks_are_reported_as_not_published_instead_of_silently_dropped() {
-    let mask = layer(
-        "mask",
-        vec![span(
-            0,
-            1,
-            Content::Shape(rect(0.0, 0.0, 5.0, 5.0, Rgba8::WHITE)),
-        )],
+fn a_fully_transparent_gradient_draws_nothing() {
+    let gradient = flare_document::Gradient::linear(
+        pt(0.0, 0.0),
+        pt(20.0, 0.0),
+        Rgba8::TRANSPARENT,
+        Rgba8::TRANSPARENT,
     )
-    .with_mask(true);
+    .expect("gradient");
+    let shape = rect(0.0, 0.0, 20.0, 20.0, Rgba8::TRANSPARENT).with_gradient(gradient);
+    let doc = document(20, 20, vec![one_frame_scene("A", vec![shape], 1)], vec![]);
+    let parsed = parse(
+        &publish_swf(&doc, &PublishOptions::default())
+            .expect("publish")
+            .bytes,
+    );
+    assert!(!parsed.tags.iter().any(|t| matches!(t, Tag::DefineShape(_))));
+}
+
+/// Every PlaceObject of the first frame as (depth, clip depth).
+fn first_frame_places(parsed: &Parsed) -> Vec<(u16, Option<u16>)> {
+    parsed
+        .tags
+        .iter()
+        .take_while(|t| !matches!(t, Tag::ShowFrame))
+        .filter_map(|t| match t {
+            Tag::PlaceObject(p) => Some((p.depth, p.clip_depth)),
+            _ => None,
+        })
+        .collect()
+}
+
+/// A scene whose top layer masks the one below with `mask` shapes.
+fn masked(mask: Vec<Shape>, art: Vec<Shape>) -> Document {
+    let spans = |shapes: Vec<Shape>| -> Vec<flare_document::FrameSpan> {
+        shapes
+            .into_iter()
+            .map(|s| span(0, 1, Content::Shape(s)))
+            .collect()
+    };
+    let mask_layer = layer("mask", spans(mask)).with_mask(true);
+    let art_layers: Vec<_> = art
+        .into_iter()
+        .map(|s| layer("art", vec![span(0, 1, Content::Shape(s))]))
+        .collect();
+    let mut layers = vec![mask_layer];
+    layers.extend(art_layers);
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(layers));
+    document(20, 20, vec![scene], vec![])
+}
+
+#[test]
+fn a_mask_is_a_clip_layer_under_the_shapes_it_masks() {
+    let doc = masked(
+        vec![rect(0.0, 0.0, 5.0, 5.0, Rgba8::WHITE)],
+        vec![rect(0.0, 0.0, 20.0, 20.0, Rgba8::opaque(255, 0, 0))],
+    );
+    let published = publish_swf(&doc, &PublishOptions::default()).expect("publish");
+    assert!(
+        published
+            .diagnostics
+            .iter()
+            .all(|d| d.severity != Severity::Warning),
+        "{:?}",
+        published.diagnostics
+    );
+    // The mask at depth 1 clips depth 2, the masked shape.
+    assert_eq!(
+        first_frame_places(&parse(&published.bytes)),
+        vec![(1, Some(2)), (2, None)]
+    );
+}
+
+#[test]
+fn a_mask_with_nothing_to_mask_or_nothing_drawn_writes_no_clip_layer() {
+    let nothing = masked(
+        vec![rect(0.0, 0.0, 5.0, 5.0, Rgba8::WHITE)],
+        vec![rect(0.0, 0.0, 20.0, 20.0, Rgba8::TRANSPARENT)],
+    );
+    let parsed = parse(
+        &publish_swf(&nothing, &PublishOptions::default())
+            .expect("p")
+            .bytes,
+    );
+    assert!(first_frame_places(&parsed).is_empty());
+    // A mask that draws nothing hides what is under it.
+    let empty_mask = masked(
+        vec![rect(0.0, 0.0, 5.0, 5.0, Rgba8::TRANSPARENT)],
+        vec![rect(0.0, 0.0, 20.0, 20.0, Rgba8::opaque(255, 0, 0))],
+    );
+    let parsed = parse(
+        &publish_swf(&empty_mask, &PublishOptions::default())
+            .expect("p")
+            .bytes,
+    );
+    assert!(first_frame_places(&parsed).is_empty());
+}
+
+#[test]
+fn a_mask_of_several_shapes_is_reported_and_leaves_the_layer_unmasked() {
+    // A symbol of two shapes makes a mask whose region is the union of both.
+    let pair = flare_core::SymbolId::new();
+    let shape_layer = |x: f64| {
+        layer(
+            "L",
+            vec![span(
+                0,
+                1,
+                Content::Shape(rect(x, 0.0, 5.0, 5.0, Rgba8::WHITE)),
+            )],
+        )
+    };
+    let symbol = flare_document::Symbol::new(
+        pair,
+        "Pair",
+        Timeline::new(vec![shape_layer(0.0), shape_layer(10.0)]),
+    );
+    let mask = layer("mask", vec![span(0, 1, instance(pair, 0.0, 0.0))]).with_mask(true);
     let art = layer(
         "art",
         vec![span(
             0,
             1,
-            Content::Shape(rect(0.0, 0.0, 20.0, 20.0, Rgba8::WHITE)),
+            Content::Shape(rect(0.0, 0.0, 20.0, 20.0, Rgba8::opaque(255, 0, 0))),
         )],
     );
     let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![mask, art]));
-    let doc = document(20, 20, vec![scene], vec![]);
+    let doc = document(20, 20, vec![scene], vec![symbol]);
     let published = publish_swf(&doc, &PublishOptions::default()).expect("publish");
     assert!(
         published
@@ -245,6 +390,10 @@ fn masks_are_reported_as_not_published_instead_of_silently_dropped() {
             .any(|d| d.severity == Severity::Warning && d.message.contains("masks")),
         "{:?}",
         published.diagnostics
+    );
+    assert_eq!(
+        first_frame_places(&parse(&published.bytes)),
+        vec![(1, None)]
     );
 }
 

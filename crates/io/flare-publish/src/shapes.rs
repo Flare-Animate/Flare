@@ -8,8 +8,8 @@
 use flare_document::{PathSegment, Shape};
 use flare_export::curves::{self, Point};
 use swf::{
-    CharacterId, Color, FillStyle, LineStyle, PointDelta, Rectangle, ShapeFlag, ShapeRecord,
-    ShapeStyles, StyleChangeData, Twips,
+    CharacterId, Color, FillStyle, Fixed16, LineStyle, Matrix, PointDelta, Rectangle, ShapeFlag,
+    ShapeRecord, ShapeStyles, StyleChangeData, Twips,
 };
 
 const TOLERANCE_PX: f64 = 0.05;
@@ -188,10 +188,44 @@ fn color(c: flare_core::Rgba8) -> Color {
     }
 }
 
+/// A SWF gradient fills a square whose x axis runs from -16384 to 16384 twips; the matrix
+/// carries that axis onto the line from the gradient's start to its end, so the first color is at
+/// the start and the last at the end, and the colors beyond are held (`Pad`).
+fn linear_gradient(gradient: &flare_document::Gradient) -> FillStyle {
+    const HALF_SPAN: f64 = 16384.0;
+    let (from, to) = (px(&gradient.from()), px(&gradient.to()));
+    let (dx, dy) = (to.0 - from.0, to.1 - from.1);
+    let scale = 20.0 * dx.hypot(dy) / (2.0 * HALF_SPAN);
+    let angle = dy.atan2(dx);
+    let (a, b) = (scale * angle.cos(), scale * angle.sin());
+    FillStyle::LinearGradient(swf::Gradient {
+        matrix: Matrix {
+            a: Fixed16::from_f64(a),
+            b: Fixed16::from_f64(b),
+            c: Fixed16::from_f64(-b),
+            d: Fixed16::from_f64(a),
+            tx: Twips::new(twips((from.0 + to.0) / 2.0)),
+            ty: Twips::new(twips((from.1 + to.1) / 2.0)),
+        },
+        spread: swf::GradientSpread::Pad,
+        interpolation: swf::GradientInterpolation::Rgb,
+        records: vec![
+            swf::GradientRecord {
+                ratio: 0,
+                color: color(gradient.start()),
+            },
+            swf::GradientRecord {
+                ratio: 255,
+                color: color(gradient.end()),
+            },
+        ],
+    })
+}
+
 /// The shape as a `DefineShape4`, or `None` when nothing would be drawn.
 pub fn define_shape(id: CharacterId, shape: &Shape, approximated: &mut bool) -> Option<swf::Shape> {
     let fill = shape.flat_fill();
-    let has_fill = fill.a > 0;
+    let has_fill = shape.gradient().map_or(fill.a > 0, |g| !g.is_invisible());
     let stroke = shape.stroke();
     if !has_fill && stroke.is_none() {
         return None;
@@ -207,7 +241,10 @@ pub fn define_shape(id: CharacterId, shape: &Shape, approximated: &mut bool) -> 
         line_styles: Vec::new(),
     };
     if has_fill {
-        styles.fill_styles.push(FillStyle::Color(color(fill)));
+        styles.fill_styles.push(match shape.gradient() {
+            Some(gradient) => linear_gradient(&gradient),
+            None => FillStyle::Color(color(fill)),
+        });
     }
     let mut grow = 0;
     if let Some(stroke) = stroke {

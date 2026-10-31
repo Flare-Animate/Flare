@@ -7,7 +7,7 @@ first thing taken over and are in the importer and Flash adapter tests.
 | Idea in `original/` | Flare |
 | ------------------- | ----- |
 | Flash/XFL/FLA import, real-file fixtures | Done: `flare-import`, fixtures under its tests |
-| SWF publish | Done: `flare-publish`; sounds are written as uncompressed 16-bit audio at their cues (masks and gradients next) |
+| SWF publish | Done: `flare-publish`; sounds are written as uncompressed 16-bit audio at their cues, linear gradients as gradient fills, and masks of one shape as clip layers (masks of several shapes or inside masks are reported and left out) |
 | FLV/F4V/SWF detection | Done: `flare-flash` |
 | `.sol` (shared object) container and AMF0 reading | Planned: belongs in `flare-flash`, with its own fixtures |
 | Merge-drawing model (Flash planar-map shapes: edge bending, boolean cuts) | Planned and the largest gap against Animate's drawing model; today shapes are separate objects |

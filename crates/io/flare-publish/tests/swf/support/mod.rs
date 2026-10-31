@@ -182,7 +182,7 @@ pub fn owned_tags(tags: Vec<Tag<'_>>) -> Vec<Tag<'static>> {
                     color_transform: None,
                     ratio: None,
                     name: None,
-                    clip_depth: None,
+                    clip_depth: p.clip_depth,
                     class_name: None,
                     filters: None,
                     background_color: None,
