@@ -27,7 +27,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
   one or two axes; Modify > Transform > Mirror Copy makes a reflected copy of the selection.
 - Timeline with frames, keyframes, layers, folders, onion skin, linear motion tweens and motion
   guides, and playback with sound.
-- Panels that dock and move: tools, properties, color, align, transform, library, history, output. The tool strip groups related tools in slots as Animate does (press and hold, or right-click, for the list; Oval, PolyStar and Ink Bottle are in their slots' lists), with the tools Flare has not built shown dimmed. It scrolls when it is taller than its panel, so the color box can always be reached, and the color box is drawn smaller in a strip one tool wide. A Publish button sits beside Play in the top bar. Undo and redo bring back pictures already drawn without drawing them again.
+- Panels that dock and move: tools, properties, color, align, transform, library, history, output. The tool strip groups related tools in slots as Animate does (press and hold, or right-click, for the list; Subselection, Oval, PolyStar and Ink Bottle are in their slots' lists), with the tools Flare has not built shown dimmed. It scrolls when it is taller than its panel, so the color box can always be reached, and the color box is drawn smaller in a strip one tool wide. A Publish button sits beside Play in the top bar. Undo and redo bring back pictures already drawn without drawing them again.
 - Several documents in a window as tabs, Open Recent, Save All, autosave and crash recovery,
   Preferences.
 - Files: the `.flare` project container, XFL/FLA import and export, PNG and GIF export, and SWF

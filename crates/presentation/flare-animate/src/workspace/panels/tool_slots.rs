@@ -46,13 +46,10 @@ const HOLD: f64 = 0.35;
 /// Every tool Flare has is in exactly one slot.
 pub(crate) const SLOT_GROUPS: &[&[Slot]] = &[
     &[
-        &[real("tool-selection", "Selection", "V", Tool::Select)],
-        &[real(
-            "tool-subselection",
-            "Subselection",
-            "A",
-            Tool::Subselection,
-        )],
+        &[
+            real("tool-selection", "Selection", "V", Tool::Select),
+            real("tool-subselection", "Subselection", "A", Tool::Subselection),
+        ],
         &[
             real("tool-transform", "Free Transform", "Q", Tool::FreeTransform),
             mock("tool-gradient-transform", "Gradient Transform"),
@@ -94,6 +91,7 @@ pub(crate) const SLOT_GROUPS: &[&[Slot]] = &[
             real("tool-ink-bottle", "Ink Bottle", "S", Tool::InkBottle),
         ],
         &[real("tool-eyedropper", "Eyedropper", "I", Tool::Eyedropper)],
+        &[mock("tool-asset-warp", "Asset Warp")],
         &[real("tool-eraser", "Eraser", "E", Tool::Eraser)],
     ],
     &[
@@ -101,7 +99,10 @@ pub(crate) const SLOT_GROUPS: &[&[Slot]] = &[
         &[real("tool-ruler", "Ruler", "M", Tool::Ruler)],
     ],
     &[
-        &[real("tool-hand", "Hand", "H", Tool::Hand)],
+        &[
+            real("tool-hand", "Hand", "H", Tool::Hand),
+            mock("tool-rotate-view", "Rotate View"),
+        ],
         &[real("tool-zoom", "Zoom", "Z", Tool::Zoom)],
         &[mock("tool-camera", "Camera")],
     ],
@@ -131,8 +132,9 @@ impl Workspace {
         let picked = self.slot_choice.get(slot[0].name).copied();
         let shown = front(slot, self.tool, picked);
         let active = shown.tool.is_some_and(|t| t == self.tool);
+        // A tool not built gets "(Not available yet)" added by the button itself.
         let hint = if shown.key.is_empty() {
-            format!("{} ({})", shown.name, chrome::NOT_YET)
+            shown.name.to_owned()
         } else {
             format!("{} ({})", shown.name, shown.key)
         };

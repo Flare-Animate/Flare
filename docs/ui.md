@@ -116,16 +116,20 @@ the tabs and Window menu already do, so no panel moves or closes. It is not show
 
 ## Tool strip
 
-The tools are in two columns, divided by a line into categories: selecting (Selection,
-Subselection, Free Transform, 3D Rotation, Lasso), drawing (Pen, Text, Pencil, Brush, Line,
-Rectangle, Deco, Bone), painting (Paint Bucket, Eyedropper, Eraser), helpers (Mirror, Ruler) and
-viewing (Hand, Zoom, Camera). As in Animate a cell is a slot that holds related tools and shows the
-one in use, with a small triangle in its corner: Free Transform holds Gradient Transform, Lasso
-holds Polygon and Magic Wand, Pen holds Add, Delete and Convert Anchor Point, Rectangle holds
-Oval, Rectangle Primitive, Oval Primitive and PolyStar, Bone holds Bind, and Paint Bucket holds Ink Bottle. Press and hold a slot, or right-click it, to open its list; picking
-a tool from the list makes it the one the cell shows, and keys that pick a tool (O for Oval) change what its cell shows too. Tools that are not built are in the lists, and in the
-strip where a whole slot is not built (3D Rotation, Deco, Bone, Camera), dimmed with a note, like the
-menu's planned commands. Escape, a pick or a click elsewhere closes a list. The strip scrolls when it is taller than its panel.
+The tools are in two columns, divided by a line into categories: selecting (Selection, Free
+Transform, 3D Rotation, Lasso), drawing (Pen, Text, Pencil, Brush, Line, Rectangle, Deco, Bone),
+painting (Paint Bucket, Eyedropper, Asset Warp, Eraser), helpers (Mirror, Ruler) and viewing (Hand,
+Zoom, Camera), then an Edit toolbar button. As in Animate a cell is a slot that holds related tools
+and shows the one in use, with a small triangle in its corner: Selection holds Subselection, Free
+Transform holds Gradient Transform, Lasso holds Polygon and Magic Wand, Pen holds Add, Delete and
+Convert Anchor Point, Rectangle holds Oval, Rectangle Primitive, Oval Primitive and PolyStar, Bone
+holds Bind, Hand holds Rotate View, and Paint Bucket holds Ink Bottle. Press and hold a slot, or
+right-click it, to open its list; picking a tool from the list makes it the one the cell shows, and
+keys that pick a tool (A for Subselection, O for Oval) change what its cell shows too. Tools that
+are not built are in the lists, and in the strip where a whole slot is not built (3D Rotation, Deco,
+Bone, Asset Warp, Camera, and the Edit toolbar button), dimmed with a note, like the menu's
+planned commands. Escape, a pick or a click elsewhere closes a list. The strip scrolls when it is
+taller than its panel.
 Below them the fill and stroke colors are two overlapping squares, the stroke in front as a frame
 around an empty middle; click either to open its color picker. The corner buttons swap them and
 reset them to black and white. The segmented control inside panels (Properties' Tool, Object,

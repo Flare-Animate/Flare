@@ -75,7 +75,8 @@ fn a_slot_shows_the_tool_in_hand_then_the_one_picked_then_the_first_built() {
     // A choice of a tool that is not built is ignored.
     assert_eq!(front(slot, Tool::Pen, Some(2)).name, "Rectangle");
     // A slot with nothing built shows its first and cannot be picked.
-    let three_d = SLOT_GROUPS[0][3];
+    let three_d = SLOT_GROUPS[0][2];
+    assert_eq!(three_d[0].name, "3D Rotation");
     assert!(front(three_d, Tool::Pen, None).tool.is_none());
 }
 
@@ -342,4 +343,42 @@ fn a_long_press_opens_the_list_and_escape_shuts_it() {
     slot_pass(&mut ws, &ctx, 1.1, vec![]);
     let (_, after) = slot_pass(&mut ws, &ctx, 1.2, vec![]);
     assert!(!after.iter().any(|(t, _)| t == "Oval"), "Escape shuts it");
+}
+
+#[test]
+fn subselection_is_in_the_selection_slot_and_the_strip_has_animates_other_tools() {
+    let slots: Vec<Slot> = SLOT_GROUPS.iter().flat_map(|g| g.iter().copied()).collect();
+    let selection = slots
+        .iter()
+        .find(|s| s[0].name == "Selection")
+        .expect("slot");
+    assert_eq!(selection[1].name, "Subselection");
+    assert_eq!(selection[1].tool, Some(Tool::Subselection));
+    // With Subselection in hand, its own slot shows it, and picking it elsewhere does not move it.
+    assert_eq!(
+        front(selection, Tool::Subselection, None).name,
+        "Subselection"
+    );
+    assert_eq!(front(selection, Tool::Select, None).name, "Selection");
+    let names: Vec<&str> = slots
+        .iter()
+        .flat_map(|s| s.iter().map(|v| v.name))
+        .collect();
+    for name in [
+        "Asset Warp",
+        "Rotate View",
+        "Gradient Transform",
+        "Ink Bottle",
+        "Oval",
+    ] {
+        assert!(names.contains(&name), "{name} is in the strip's lists");
+    }
+    // Those not built are marked so, never selectable.
+    for slot in &slots {
+        for v in slot.iter() {
+            if ["Asset Warp", "Rotate View"].contains(&v.name) {
+                assert!(v.tool.is_none(), "{} is not built", v.name);
+            }
+        }
+    }
 }

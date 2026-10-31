@@ -47,6 +47,8 @@ impl Workspace {
                             });
                         }
                     }
+                    // Animate's "Edit toolbar": the tools not shown, and a say in which are.
+                    chrome::mock_icon_button(ui, "toolbar-more", TOOL_ICON, "Edit toolbar");
                     self.set_tool(chosen);
                     ui.add_space(4.0);
                     ui.separator();
