@@ -77,7 +77,7 @@ fn open(w: u16, h: u16) -> Result<State, String> {
     })
 }
 
-pub fn render(items: &[Item], w: u32, h: u32) -> Result<Vec<u8>, String> {
+pub fn render(items: &[Item], w: u32, h: u32, readback: bool) -> Result<Vec<u8>, String> {
     let (w16, h16) = (
         u16::try_from(w).map_err(|_| "too wide")?,
         u16::try_from(h).map_err(|_| "too tall")?,
@@ -88,11 +88,11 @@ pub fn render(items: &[Item], w: u32, h: u32) -> Result<Vec<u8>, String> {
             *slot = Some(open(w16, h16)?);
         }
         let state = slot.as_mut().ok_or("no state")?;
-        draw(state, items, w16, h16)
+        draw(state, items, w16, h16, readback)
     })
 }
 
-fn draw(state: &mut State, items: &[Item], w: u16, h: u16) -> Result<Vec<u8>, String> {
+fn draw(state: &mut State, items: &[Item], w: u16, h: u16, readback: bool) -> Result<Vec<u8>, String> {
     let mut scene = Scene::new(w, h);
     scene.set_paint(AlphaColor::<Srgb>::from_rgba8(255, 255, 255, 255));
     scene.fill_rect(&Rect::new(0.0, 0.0, f64::from(w), f64::from(h)));
@@ -150,6 +150,14 @@ fn draw(state: &mut State, items: &[Item], w: u16, h: u16) -> Result<Vec<u8>, St
             TargetInit::Clear(ClearSettings::default()),
         )
         .map_err(|e| format!("render: {e:?}"))?;
+    if !readback {
+        state.queue.submit([encoder.finish()]);
+        state
+            .device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .map_err(|e| format!("poll: {e:?}"))?;
+        return Ok(Vec::new());
+    }
     let row = (u32::from(w) * 4).next_multiple_of(256);
     let buffer = state.device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("readback"),

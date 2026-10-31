@@ -6,12 +6,20 @@ use crate::scene::{Item, Seg};
 pub fn render(backend: &str, items: &[Item], w: u32, h: u32) -> Vec<u8> {
     match backend {
         "tiny-skia" => tiny(items, w, h),
-        "vello-cpu" => vello(items, w, h),
+        "vello-cpu" => vello(items, w, h, 0),
+        // The product's setting: worker threads on (7 on this 10-core machine).
+        "vello-cpu-mt" => vello(items, w, h, 7),
         "agg" => agg(items, w, h),
         // The product's shape: the GPU when there is one, the CPU rasterizer when there is not.
-        "vello-gpu" => crate::gpu::render(items, w, h).unwrap_or_else(|why| {
+        "vello-gpu" => crate::gpu::render(items, w, h, true).unwrap_or_else(|why| {
             eprintln!("GPU unavailable ({why}); falling back to vello-cpu");
-            vello(items, w, h)
+            vello(items, w, h, 0)
+        }),
+        // The frame is drawn and finished on the GPU but not copied back: what drawing straight
+        // into a texture the editor shows would cost. Returns a blank image.
+        "vello-gpu-noread" => crate::gpu::render(items, w, h, false).unwrap_or_else(|why| {
+            eprintln!("GPU unavailable ({why})");
+            Vec::new()
         }),
         other => panic!("unknown backend {other}"),
     }
@@ -56,13 +64,20 @@ fn tiny(items: &[Item], w: u32, h: u32) -> Vec<u8> {
     pixmap.data().to_vec()
 }
 
-fn vello(items: &[Item], w: u32, h: u32) -> Vec<u8> {
+fn vello(items: &[Item], w: u32, h: u32, threads: u16) -> Vec<u8> {
     use vello_cpu::color::{AlphaColor, Srgb};
     use vello_cpu::kurbo::{BezPath, Cap, Join, Rect, Stroke};
-    use vello_cpu::{Pixmap, RenderContext, Resources};
+    use vello_cpu::{Pixmap, RenderContext, RenderSettings, Resources};
 
     let (w16, h16) = (w as u16, h as u16);
-    let mut ctx = RenderContext::new(w16, h16);
+    let mut ctx = RenderContext::new_with(
+        w16,
+        h16,
+        RenderSettings {
+            num_threads: threads,
+            ..RenderSettings::default()
+        },
+    );
     let mut resources = Resources::new();
     ctx.set_paint(AlphaColor::<Srgb>::from_rgba8(255, 255, 255, 255));
     ctx.fill_rect(&Rect::new(0.0, 0.0, f64::from(w), f64::from(h)));

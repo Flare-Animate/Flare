@@ -58,7 +58,8 @@ fn main() {
                     times[0]
                 );
             }
-            if let Some(out) = opt("--out") {
+            // The no-readback backend returns nothing to write.
+            if let Some(out) = opt("--out").filter(|_| !last.is_empty()) {
                 write_png(&out, &last, w, h);
             }
             // Keep the work observable so it cannot be optimized away.

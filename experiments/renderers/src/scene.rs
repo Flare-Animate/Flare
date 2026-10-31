@@ -61,35 +61,13 @@ pub fn build(name: &str, w: f32, h: f32) -> Option<Vec<Item>> {
             }
         }
         // Translucent closed cubic blobs with jittered handles (some self-intersect).
-        "blobs" => {
-            for _ in 0..1500 {
-                let (cx, cy, r) = (rng.range(0.0, w), rng.range(0.0, h), rng.range(10.0, 120.0));
-                let radii: Vec<f32> = (0..4).map(|_| rng.range(0.5 * r, r)).collect();
-                let anchor = |i: usize| {
-                    let t = i as f32 * std::f32::consts::FRAC_PI_2;
-                    (cx + radii[i % 4] * t.cos(), cy + radii[i % 4] * t.sin(), t)
-                };
-                let mut segs = Vec::new();
-                let (x0, y0, _) = anchor(0);
-                segs.push(Seg::Move(x0, y0));
-                for i in 0..4 {
-                    let (ax, ay, at) = anchor(i);
-                    let (bx, by, bt) = anchor(i + 1);
-                    let k = 0.5523;
-                    let j = 0.4 * r;
-                    segs.push(Seg::Cubic(
-                        ax - k * radii[i % 4] * at.sin() + rng.range(-j, j),
-                        ay + k * radii[i % 4] * at.cos() + rng.range(-j, j),
-                        bx + k * radii[(i + 1) % 4] * bt.sin() + rng.range(-j, j),
-                        by - k * radii[(i + 1) % 4] * bt.cos() + rng.range(-j, j),
-                        bx,
-                        by,
-                    ));
-                }
-                segs.push(Seg::Close);
-                items.push(Item { segs, rgba: [rng.byte(), rng.byte(), rng.byte(), 150], stroke: None });
-            }
-        }
+        "blobs" => blobs(&mut items, &mut rng, w, h, 1500, 10.0, 120.0),
+        // What an animation frame usually is: a few dozen large shapes.
+        "light" => blobs(&mut items, &mut rng, w, h, 40, 60.0, 300.0),
+        // A detailed drawing: very many small shapes.
+        "small" => blobs(&mut items, &mut rng, w, h, 20000, 3.0, 15.0),
+        // The blobs scene, four times as many.
+        "blobs4" => blobs(&mut items, &mut rng, w, h, 6000, 10.0, 120.0),
         // Thick round-capped curves.
         "strokes" => {
             for _ in 0..1500 {
@@ -105,4 +83,36 @@ pub fn build(name: &str, w: f32, h: f32) -> Option<Vec<Item>> {
         _ => return None,
     }
     Some(items)
+}
+
+/// `count` translucent closed cubic blobs with radii between `lo` and `hi`; the same generator
+/// for every blob scene, so "blobs" is unchanged from the first experiment.
+fn blobs(items: &mut Vec<Item>, rng: &mut Lcg, w: f32, h: f32, count: usize, lo: f32, hi: f32) {
+    for _ in 0..count {
+        let (cx, cy, r) = (rng.range(0.0, w), rng.range(0.0, h), rng.range(lo, hi));
+        let radii: Vec<f32> = (0..4).map(|_| rng.range(0.5 * r, r)).collect();
+        let anchor = |i: usize| {
+            let t = i as f32 * std::f32::consts::FRAC_PI_2;
+            (cx + radii[i % 4] * t.cos(), cy + radii[i % 4] * t.sin(), t)
+        };
+        let mut segs = Vec::new();
+        let (x0, y0, _) = anchor(0);
+        segs.push(Seg::Move(x0, y0));
+        for i in 0..4 {
+            let (ax, ay, at) = anchor(i);
+            let (bx, by, bt) = anchor(i + 1);
+            let k = 0.5523;
+            let j = 0.4 * r;
+            segs.push(Seg::Cubic(
+                ax - k * radii[i % 4] * at.sin() + rng.range(-j, j),
+                ay + k * radii[i % 4] * at.cos() + rng.range(-j, j),
+                bx + k * radii[(i + 1) % 4] * bt.sin() + rng.range(-j, j),
+                by - k * radii[(i + 1) % 4] * bt.cos() + rng.range(-j, j),
+                bx,
+                by,
+            ));
+        }
+        segs.push(Seg::Close);
+        items.push(Item { segs, rgba: [rng.byte(), rng.byte(), rng.byte(), 150], stroke: None });
+    }
 }
