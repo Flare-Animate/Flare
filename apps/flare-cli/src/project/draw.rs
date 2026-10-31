@@ -45,7 +45,7 @@ pub fn draw_rect(
     Ok(json!({ "drawn": true }))
 }
 
-/// The first scene and the requested layer (default: its first layer).
+/// The first scene and the requested layer (default: its first layer that is not the camera).
 pub(super) fn target_layer(
     session: &EditorSession,
     layer: Option<Uuid>,
@@ -61,7 +61,10 @@ pub(super) fn target_layer(
             .iter()
             .find(|candidate| *candidate.id().as_uuid() == id)
             .with_context(|| format!("no layer {id} in the first scene"))?,
-        None => layers.first().context("scene has no layer")?,
+        None => layers
+            .iter()
+            .find(|l| !l.is_camera())
+            .context("scene has no layer to draw on")?,
     };
     Ok((scene.id(), layer.id()))
 }

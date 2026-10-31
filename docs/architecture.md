@@ -343,7 +343,7 @@ The policy is deliberately honest rather than clever:
 
 ## Frontends
 
-`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`,
+`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`, `camera`,
 `layer`, `place`, `frame`, `eval`, `export`, `export-frames`, `inspect`, `rate`.
 
 Inside `flare-animate`, `Workspace` is the one object the window talks to, and its topics are modules

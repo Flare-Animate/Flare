@@ -144,6 +144,26 @@ pub struct SetStage {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct SetCamera {
+    /// Frame number, counting from 0, that the camera is pointed from.
+    pub frame: u32,
+    /// The point of the scene at the middle of the picture. Stays as it is when omitted.
+    pub x: Option<f64>,
+    pub y: Option<f64>,
+    /// 1 shows the stage as it is, 2 twice as large; from 0.01 to 100. Stays when omitted.
+    pub zoom: Option<f64>,
+    /// Degrees, clockwise. Stays when omitted.
+    pub rotation: Option<f64>,
+    /// "motion" moves the camera to the next keyframe's; "none" holds it until then. Keeps what
+    /// the keyframe has when omitted.
+    pub motion: Option<String>,
+    /// The motion's ease, from -100 (starts slowly) to 100 (ends slowly).
+    pub ease: Option<i8>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct ExportName {
     /// File name only: letters, digits, '.', '_' or '-'. The extension is added when missing.
     pub name: String,

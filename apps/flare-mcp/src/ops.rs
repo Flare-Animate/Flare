@@ -26,7 +26,7 @@ pub fn parse_id(text: &str, what: &str) -> Result<Uuid, String> {
     Uuid::parse_str(text).map_err(|_| format!("{what} must be a UUID"))
 }
 
-/// The layer named by `layer`, or the first one.
+/// The layer named by `layer`, or the first one that is not the camera.
 pub fn target_layer(state: &State, layer: Option<&str>) -> Result<LayerId, String> {
     let scene = state
         .session
@@ -43,7 +43,10 @@ pub fn target_layer(state: &State, layer: Option<&str>) -> Result<LayerId, Strin
                 .find(|l| *l.id().as_uuid() == id)
                 .ok_or_else(|| format!("no layer {id} in the first scene"))?
         }
-        None => layers.first().ok_or("the scene has no layer")?,
+        None => layers
+            .iter()
+            .find(|l| !l.is_camera())
+            .ok_or("the scene has no layer to draw on")?,
     };
     Ok(found.id())
 }

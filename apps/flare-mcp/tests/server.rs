@@ -27,6 +27,7 @@ async fn the_server_announces_tools_and_every_tool_has_an_object_schema() {
         "export_xfl",
         "import_project",
         "draw_rect",
+        "set_camera",
         "add_layer",
         "add_symbol",
         "place_instance",

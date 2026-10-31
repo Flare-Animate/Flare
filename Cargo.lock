@@ -2062,6 +2062,7 @@ dependencies = [
  "flare-commands",
  "flare-core",
  "flare-document",
+ "flare-eval",
  "flare-history",
 ]
 

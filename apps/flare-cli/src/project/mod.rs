@@ -8,11 +8,15 @@ use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
 
+mod camera;
 mod draw;
 mod interchange;
 mod render;
 mod timeline;
 
+#[allow(unused_imports)]
+use camera::*;
+pub use camera::{CameraMotion, camera};
 #[allow(unused_imports)]
 use draw::*;
 pub use draw::{PlaceOptions, add_layer, add_symbol, draw_rect, eval, place, set_stage};

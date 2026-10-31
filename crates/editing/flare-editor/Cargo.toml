@@ -10,6 +10,7 @@ license.workspace = true
 flare-commands.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
+flare-eval.workspace = true
 flare-history.workspace = true
 
 [lints]

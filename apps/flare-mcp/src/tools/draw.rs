@@ -10,7 +10,7 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
 
 use crate::ops::{apply, color_or, duration, first_scene, parse_id, rect_shape, target_layer};
-use crate::params::{AddLayer, AddSymbol, DrawRect, PlaceInstance, SetStage};
+use crate::params::{AddLayer, AddSymbol, DrawRect, PlaceInstance, SetCamera, SetStage};
 use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = draw_tools, vis = "pub(super)")]
@@ -109,6 +109,54 @@ impl FlareServer {
             let background: Rgba8 = color_or(args.background.as_deref(), current.background())?;
             let stage = Stage::new(width, height, background).map_err(|e| e.to_string())?;
             apply(state, vec![Command::SetStage(stage)])
+        })
+    }
+
+    #[tool(
+        description = "Point the first scene's camera from a frame on, making the camera layer if there is none; what is not given stays what the camera has there (needs write access)."
+    )]
+    fn set_camera(&self, Parameters(args): Parameters<SetCamera>) -> Outcome {
+        self.write(args.expected_revision, |state| {
+            use flare_document::{Camera, Tween};
+            let scene = first_scene(state)?;
+            let document = state.session.document();
+            let now = flare_editor::camera_now(document, scene, args.frame)
+                .ok_or("the document has no scene")?;
+            let point = flare_core::DocumentPoint::new(
+                args.x.unwrap_or(now.center().as_vec().x),
+                args.y.unwrap_or(now.center().as_vec().y),
+            )
+            .map_err(|e| e.to_string())?;
+            let camera = Camera::new(
+                point,
+                args.zoom.unwrap_or(now.zoom()),
+                args.rotation.map_or(now.rotation(), f64::to_radians),
+            )
+            .map_err(|e| e.to_string())?;
+            let kind = match args.motion.as_deref() {
+                None => None,
+                Some("motion") => Some(Tween::Linear),
+                Some("none") => Some(Tween::None),
+                Some(other) => {
+                    return Err(format!(
+                        "motion must be \"motion\" or \"none\", not {other:?}"
+                    ));
+                }
+            };
+            let motion = match (kind, args.ease) {
+                (None, None) => None,
+                (kind, ease) => Some((kind.unwrap_or(Tween::Linear), ease.unwrap_or(0))),
+            };
+            let commands =
+                flare_editor::set_camera_key(document, scene, args.frame, camera, motion)
+                    .ok_or_else(|| {
+                        format!(
+                            "frame {} is past the last frame a camera can be keyed on, {}",
+                            args.frame,
+                            flare_editor::MAX_CAMERA_FRAME
+                        )
+                    })?;
+            apply(state, commands)
         })
     }
 }

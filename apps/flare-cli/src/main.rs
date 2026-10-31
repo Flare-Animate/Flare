@@ -120,6 +120,31 @@ enum Command {
         #[arg(long)]
         transparent: bool,
     },
+    /// Point the first scene's camera from a frame on (the camera layer is made when there is
+    /// none). What is not given stays what the camera has at that frame.
+    Camera {
+        path: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        frame: u32,
+        /// The point of the scene at the middle of the picture.
+        #[arg(long, allow_hyphen_values = true)]
+        x: Option<f64>,
+        #[arg(long, allow_hyphen_values = true)]
+        y: Option<f64>,
+        /// 1 shows the stage as it is, 2 twice as large; from 0.01 to 100.
+        #[arg(long)]
+        zoom: Option<f64>,
+        /// Degrees, clockwise.
+        #[arg(long, allow_hyphen_values = true)]
+        rotation: Option<f64>,
+        /// Hold the camera until the next keyframe, or move it to the next one.
+        #[arg(long, value_enum)]
+        motion: Option<project::CameraMotion>,
+        /// The motion's ease, from -100 (starts slowly) to 100 (ends slowly); an ease alone makes it a
+        /// motion.
+        #[arg(long, allow_hyphen_values = true)]
+        ease: Option<i8>,
+    },
     /// Add an empty layer below the existing ones in the first scene.
     AddLayer { path: PathBuf, name: String },
     /// Insert or remove frames and keyframes on a layer (default: the first layer).
@@ -287,6 +312,16 @@ fn main() -> Result<()> {
             project::set_stage(&path, width, height, background)?
         }
         Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
+        Command::Camera {
+            path,
+            frame,
+            x,
+            y,
+            zoom,
+            rotation,
+            motion,
+            ease,
+        } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
         Command::Frame {
             op,
