@@ -78,8 +78,8 @@ impl Workspace {
         let ctx = ui.ctx().clone();
         // A preview well above the list, as in other animation tools.
         let well = egui::Frame::new()
-            .fill(theme::FIELD)
-            .stroke(egui::Stroke::new(1.0, theme::BORDER))
+            .fill(theme::field())
+            .stroke(egui::Stroke::new(1.0, theme::border()))
             .corner_radius(4.0);
         well.show(ui, |ui| {
             ui.set_width(ui.available_width());
@@ -93,7 +93,7 @@ impl Workspace {
                         ui.add(egui::Image::new(texture).max_size(egui::vec2(80.0, 80.0)));
                     }
                     None => {
-                        ui.add(icons::image("symbol-graphic", 28.0, theme::TEXT_DISABLED));
+                        ui.add(icons::image("symbol-graphic", 28.0, theme::text_disabled()));
                     }
                 }
                 ui.weak(
@@ -162,7 +162,7 @@ impl Workspace {
                     }
                     let response = ui
                         .horizontal(|ui| {
-                            ui.add(icons::image(kind_icon(kind), 16.0, theme::TEXT_DIM))
+                            ui.add(icons::image(kind_icon(kind), 16.0, theme::text_dim()))
                                 .on_hover_text(kind.label());
                             ui.selectable_label(chosen, name.clone())
                         })

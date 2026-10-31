@@ -227,6 +227,9 @@ pub struct Workspace {
     translator: flare_i18n::Translator,
     /// The language the CJK font was last looked for, so it is not looked for every frame.
     cjk_font_for: Option<flare_i18n::Language>,
+    /// The palette in use, and the one the egui styles were last set up for.
+    theme_mode: flare_ui::theme::Mode,
+    styled_for: Option<flare_ui::theme::Mode>,
     /// Which tool of each tool-strip slot was last picked from its list, by the slot's first name.
     slot_choice: std::collections::HashMap<&'static str, usize>,
     /// The slot whose list of tools is open, by its first name.
@@ -350,6 +353,8 @@ impl Workspace {
             system_locale: "en".to_owned(),
             translator: flare_i18n::Translator::new(flare_i18n::Language::English),
             cjk_font_for: None,
+            theme_mode: flare_ui::theme::Mode::Dark,
+            styled_for: None,
             slot_choice: std::collections::HashMap::new(),
             slot_open: None,
             pinned_tools: Vec::new(),

@@ -100,7 +100,7 @@ impl Workspace {
         };
         let count = self.selection_all().len();
         ui.horizontal(|ui| {
-            ui.add(icons::image("tool-selection", 18.0, theme::ACCENT));
+            ui.add(icons::image("tool-selection", 18.0, theme::accent()));
             ui.label(
                 RichText::new(if count == 1 {
                     "Selection".to_owned()
@@ -218,7 +218,7 @@ impl Workspace {
 
     pub(crate) fn doc_tab(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
-            ui.add(icons::image("document", 18.0, theme::ACCENT));
+            ui.add(icons::image("document", 18.0, theme::accent()));
             ui.label(RichText::new("Document").heading());
         });
         self.publish_section(ui);

@@ -55,7 +55,7 @@ impl Workspace {
                 .fixed_pos(at + egui::vec2(8.0, 8.0))
                 .interactable(false)
                 .show(ctx, |ui| {
-                    ui.add(icons::image(variant.icon, 24.0, flare_ui::theme::TEXT));
+                    ui.add(icons::image(variant.icon, 24.0, flare_ui::theme::text()));
                 });
             ctx.set_cursor_icon(egui::CursorIcon::Grabbing);
         }

@@ -151,13 +151,13 @@ impl Workspace {
             let active = self.active_layer_id();
 
             // The ruler: a band with a tick on every frame and a number every few.
-            let ink = flare_ui::theme::TEXT;
+            let ink = flare_ui::theme::text();
             let band = Rect::from_min_max(rect.min, Pos2::new(rect.max.x, rect.min.y + row));
-            painter.rect_filled(band, 0.0, flare_ui::theme::PANEL_RAISED);
+            painter.rect_filled(band, 0.0, flare_ui::theme::panel_raised());
             painter.hline(
                 rect.x_range(),
                 band.bottom(),
-                Stroke::new(1.0, flare_ui::theme::BORDER),
+                Stroke::new(1.0, flare_ui::theme::border()),
             );
             let step = ((40.0 / per_frame).ceil() as u32).max(1);
             for f in 0..frames {
@@ -169,7 +169,7 @@ impl Workspace {
                 painter.vline(
                     x,
                     (band.bottom() - if major { 7.0 } else { 3.0 })..=band.bottom(),
-                    Stroke::new(1.0, flare_ui::theme::TEXT_DISABLED),
+                    Stroke::new(1.0, flare_ui::theme::text_disabled()),
                 );
                 if major {
                     painter.text(
@@ -177,7 +177,7 @@ impl Workspace {
                         Align2::LEFT_TOP,
                         (f + 1).to_string(),
                         FontId::monospace(10.0),
-                        flare_ui::theme::TEXT_DIM,
+                        flare_ui::theme::text_dim(),
                     );
                 }
             }
@@ -198,7 +198,8 @@ impl Workspace {
                                 Pos2::new(rect.max.x, y + row),
                             ),
                             0.0,
-                            Color32::from_rgba_unmultiplied(255, 255, 255, 6),
+                            // A tint of the lit text color: white on dark, black on light.
+                            flare_ui::theme::text_strong().gamma_multiply(6.0 / 255.0),
                         );
                     }
                     // A line every five frames makes the cells easy to count.
@@ -210,7 +211,10 @@ impl Workspace {
                         painter.vline(
                             x,
                             y..=y + row,
-                            Stroke::new(1.0, Color32::from_rgba_unmultiplied(255, 255, 255, 14)),
+                            Stroke::new(
+                                1.0,
+                                flare_ui::theme::text_strong().gamma_multiply(14.0 / 255.0),
+                            ),
                         );
                     }
                     if Some(layer.id()) == active {
@@ -224,7 +228,7 @@ impl Workspace {
                             Color32::from_rgba_unmultiplied(80, 140, 255, 40),
                         );
                     }
-                    let dim = flare_ui::theme::TEXT_DISABLED;
+                    let dim = flare_ui::theme::text_disabled();
                     let mut text_x = rect.min.x + 6.0 + depth as f32 * FOLDER_INDENT;
                     if layer.is_folder() {
                         let shut = self.collapsed_folders.contains(&layer.id());
@@ -274,7 +278,7 @@ impl Workspace {
                         track.min.x - 52.0,
                         if layer.is_visible() { "eye" } else { "eye-off" },
                         if layer.is_visible() {
-                            flare_ui::theme::TEXT
+                            flare_ui::theme::text()
                         } else {
                             dim
                         },
@@ -287,7 +291,7 @@ impl Workspace {
                             "lock-open"
                         },
                         if layer.is_locked() {
-                            flare_ui::theme::TEXT
+                            flare_ui::theme::text()
                         } else {
                             dim
                         },

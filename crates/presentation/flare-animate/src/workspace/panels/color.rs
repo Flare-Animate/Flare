@@ -106,7 +106,7 @@ impl Workspace {
                             if response.hovered() {
                                 Color32::WHITE
                             } else {
-                                theme::BORDER
+                                theme::border()
                             },
                         ),
                         egui::StrokeKind::Inside,

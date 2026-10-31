@@ -325,7 +325,7 @@ fn the_strip_is_a_bar_of_its_own_with_a_thin_dark_line_down_its_right_edge() {
     });
     assert_eq!(
         fill,
-        Some(flare_ui::theme::PANEL_RAISED),
+        Some(flare_ui::theme::panel_raised()),
         "a lighter bar behind the tools"
     );
     let line = shapes.iter().find_map(|s| match s {
@@ -339,10 +339,10 @@ fn the_strip_is_a_bar_of_its_own_with_a_thin_dark_line_down_its_right_edge() {
     let (x, stroke) = line.expect("a vertical line at the right edge");
     assert!((x - (width - 0.5)).abs() < 0.01, "on the edge: {x}");
     assert!((stroke.width - 1.0).abs() < 0.01, "thin: {}", stroke.width);
-    assert_eq!(stroke.color, flare_ui::theme::STAGE_SURROUND);
+    assert_eq!(stroke.color, flare_ui::theme::stage_surround());
     let luma = |c: egui::Color32| u32::from(c.r()) + u32::from(c.g()) + u32::from(c.b());
     assert!(
-        luma(stroke.color) < luma(flare_ui::theme::PANEL_RAISED),
+        luma(stroke.color) < luma(flare_ui::theme::panel_raised()),
         "the line is darker than the bar"
     );
 }

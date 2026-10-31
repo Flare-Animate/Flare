@@ -74,7 +74,7 @@ fn a_group_has_its_heading_above_a_box_that_holds_its_controls() {
     let (mut heading, mut control) = (None, None);
     for shape in &out.shapes {
         match &shape.shape {
-            egui::epaint::Shape::Rect(r) if r.fill == theme::FIELD => boxed = Some(r.rect),
+            egui::epaint::Shape::Rect(r) if r.fill == theme::field() => boxed = Some(r.rect),
             egui::epaint::Shape::Text(t) if t.galley.text() == "General" => {
                 heading = Some(t.visual_bounding_rect());
             }

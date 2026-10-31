@@ -14,7 +14,7 @@ impl Workspace {
         self.stage_bar(ui);
         let available = ui.available_size();
         let (response, painter) = ui.allocate_painter(available, Sense::click_and_drag());
-        painter.rect_filled(response.rect, 0.0, flare_ui::theme::STAGE_SURROUND);
+        painter.rect_filled(response.rect, 0.0, flare_ui::theme::stage_surround());
         let extent = self.stage_extent();
         self.stage_panel = response.rect;
         if response.hovered() {
@@ -192,7 +192,7 @@ impl Workspace {
                 points.push(points[0]);
                 painter.add(egui::Shape::line(
                     points,
-                    Stroke::new(1.5, flare_ui::theme::ACCENT),
+                    Stroke::new(1.5, flare_ui::theme::accent()),
                 ));
             }
         }

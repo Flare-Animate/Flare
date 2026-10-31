@@ -30,7 +30,7 @@ impl Workspace {
                 }
                 for line in &self.log {
                     ui.horizontal(|ui| {
-                        ui.add(icons::image("warning", 13.0, theme::WARNING));
+                        ui.add(icons::image("warning", 13.0, theme::warning()));
                         ui.label(RichText::new(line).monospace());
                     });
                 }
@@ -80,7 +80,7 @@ impl Workspace {
                 for (index, label) in entries.iter().enumerate() {
                     // Steps after the current one are undone: shown dim, still reachable.
                     let text = if index > current {
-                        RichText::new(label).color(theme::TEXT_DISABLED)
+                        RichText::new(label).color(theme::text_disabled())
                     } else {
                         RichText::new(label)
                     };

@@ -15,14 +15,14 @@ impl Workspace {
     pub(crate) fn status_bar(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             let message = match &self.status {
-                Some(status) => RichText::new(status.as_str()).color(theme::WARNING),
-                None => RichText::new(self.tool_hint()).color(theme::TEXT_DIM),
+                Some(status) => RichText::new(status.as_str()).color(theme::warning()),
+                None => RichText::new(self.tool_hint()).color(theme::text_dim()),
             };
             ui.label(message);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 let extent = self.stage_extent();
                 let percent = self.stage_view.scale(self.stage_panel, extent).max(0.0) * 100.0;
-                ui.label(RichText::new(format!("{percent:.0}%")).color(theme::TEXT_DIM));
+                ui.label(RichText::new(format!("{percent:.0}%")).color(theme::text_dim()));
                 ui.separator();
                 ui.label(
                     RichText::new(format!(
@@ -30,18 +30,18 @@ impl Workspace {
                         self.frame + 1,
                         self.scene_frames()
                     ))
-                    .color(theme::TEXT_DIM),
+                    .color(theme::text_dim()),
                 );
                 ui.separator();
                 let at = match self.pointer_stage {
                     Some(p) => format!("{:.0}, {:.0}", p.x, p.y),
                     None => "-, -".to_owned(),
                 };
-                ui.label(RichText::new(at).color(theme::TEXT_DIM).monospace());
-                ui.add(icons::image("tool-selection", 12.0, theme::TEXT_DISABLED));
+                ui.label(RichText::new(at).color(theme::text_dim()).monospace());
+                ui.add(icons::image("tool-selection", 12.0, theme::text_disabled()));
                 if self.background.mode() == Mode::Threads && self.has_pending_io() {
                     ui.separator();
-                    ui.label(RichText::new("Working...").color(theme::ACCENT));
+                    ui.label(RichText::new("Working...").color(theme::accent()));
                 }
             });
         });
@@ -55,10 +55,14 @@ impl Workspace {
         let (mut switch, mut close, mut add) = (None, None, false);
         ui.horizontal(|ui| {
             for (index, tab) in tabs.iter().enumerate() {
-                let fill = if tab.current { theme::PANEL } else { theme::BG };
+                let fill = if tab.current {
+                    theme::panel()
+                } else {
+                    theme::bg()
+                };
                 egui::Frame::new()
                     .fill(fill)
-                    .stroke(egui::Stroke::new(1.0, theme::BORDER))
+                    .stroke(egui::Stroke::new(1.0, theme::border()))
                     .corner_radius(egui::CornerRadius {
                         nw: 6,
                         ne: 6,
@@ -68,9 +72,9 @@ impl Workspace {
                     .inner_margin(egui::Margin::symmetric(8, 3))
                     .show(ui, |ui| {
                         let color = if tab.current {
-                            theme::TEXT
+                            theme::text()
                         } else {
-                            theme::TEXT_DIM
+                            theme::text_dim()
                         };
                         // One row, with the icon and the name on the same middle.
                         ui.horizontal(|ui| {
@@ -84,7 +88,7 @@ impl Workspace {
                                 switch = Some(index);
                             }
                             if tab.dirty {
-                                ui.label(RichText::new("\u{25cf}").color(theme::ACCENT).small());
+                                ui.label(RichText::new("\u{25cf}").color(theme::accent()).small());
                             }
                             if chrome::icon_button(ui, "close", 10.0, false, true, "Close document")
                                 .clicked()
@@ -113,16 +117,16 @@ impl Workspace {
     pub(crate) fn stage_bar(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             let crumbs = self.breadcrumb();
-            ui.add(icons::image("scene", 16.0, theme::TEXT_DIM));
+            ui.add(icons::image("scene", 16.0, theme::text_dim()));
             for (depth, name) in crumbs.iter().enumerate() {
                 if depth > 0 {
-                    ui.add(icons::image("chevron-right", 12.0, theme::TEXT_DISABLED));
+                    ui.add(icons::image("chevron-right", 12.0, theme::text_disabled()));
                 }
                 let last = depth + 1 == crumbs.len();
                 let label = if last {
                     RichText::new(name).strong()
                 } else {
-                    RichText::new(name).color(theme::TEXT_DIM)
+                    RichText::new(name).color(theme::text_dim())
                 };
                 if chrome::crumb(ui, label).clicked() && !last {
                     self.exit_to_depth(depth);

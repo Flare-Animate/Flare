@@ -70,7 +70,7 @@ impl Workspace {
         )
         .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
         if !self.publish.any() {
-            ui.colored_label(flare_ui::theme::WARNING, tr.text("pubpop-nothing-chosen"));
+            ui.colored_label(flare_ui::theme::warning(), tr.text("pubpop-nothing-chosen"));
         }
     }
 }

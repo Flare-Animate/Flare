@@ -65,15 +65,15 @@ impl Workspace {
 fn rail_button(ui: &mut Ui, icon: &str, front: bool, hint: &str) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(vec2(BUTTON, BUTTON), Sense::click());
     if front {
-        ui.painter().rect_filled(rect, 5.0, theme::PANEL_RAISED);
+        ui.painter().rect_filled(rect, 5.0, theme::panel_raised());
     } else if response.hovered() {
         ui.painter()
-            .rect_filled(rect, 5.0, theme::HOVER.gamma_multiply(0.6));
+            .rect_filled(rect, 5.0, theme::hover().gamma_multiply(0.6));
     }
     let tint = if front || response.hovered() {
-        theme::TEXT
+        theme::text()
     } else {
-        theme::TEXT_DIM
+        theme::text_dim()
     };
     let at = Rect::from_center_size(rect.center(), vec2(ICON, ICON));
     icons::image(icon, ICON, tint).paint_at(ui, at);

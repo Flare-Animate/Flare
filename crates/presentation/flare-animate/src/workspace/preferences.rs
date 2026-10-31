@@ -44,6 +44,8 @@ pub struct Preferences {
     pub publish_gif: bool,
     /// The interface's language: `system`, or a language's tag such as `de` or `pt-BR`.
     pub language: String,
+    /// The look of the interface: `dark` or `light`.
+    pub theme: String,
     /// Tools from the "…" list kept in the tool strip.
     pub pinned_tools: Vec<String>,
     /// Projects opened or saved lately, newest first.
@@ -77,6 +79,7 @@ impl Default for Preferences {
             html5_responsive: false,
             publish_gif: false,
             language: "system".to_owned(),
+            theme: "dark".to_owned(),
             pinned_tools: Vec::new(),
             recent: Vec::new(),
         }
@@ -108,6 +111,7 @@ impl Workspace {
             html5_responsive: self.publish.responsive,
             publish_gif: self.publish.gif,
             language: self.language_choice.code().to_owned(),
+            theme: self.theme_mode.code().to_owned(),
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
             recent: self
                 .recent
@@ -120,6 +124,7 @@ impl Workspace {
     /// Takes `preferences` as the current settings, keeping each in its sensible range.
     pub fn apply_preferences(&mut self, preferences: &Preferences) {
         self.set_language_choice(flare_i18n::Choice::from_code(&preferences.language));
+        self.theme_mode = flare_ui::theme::Mode::from_code(&preferences.theme);
         // Only names the list has, each once; a file naming anything else changes nothing.
         self.pinned_tools.clear();
         for name in &preferences.pinned_tools {
@@ -290,7 +295,7 @@ impl Workspace {
             // A label and its control on one line; the label is as wide as the language needs.
             let labelled = |ui: &mut egui::Ui, key: &str, add: &mut dyn FnMut(&mut egui::Ui)| {
                 ui.horizontal(|ui| {
-                    ui.label(egui::RichText::new(tr.text(key)).color(flare_ui::theme::TEXT_DIM));
+                    ui.label(egui::RichText::new(tr.text(key)).color(flare_ui::theme::text_dim()));
                     add(ui);
                 });
             };
@@ -316,6 +321,13 @@ impl Workspace {
                                 );
                             }
                         });
+                });
+                labelled(ui, "prefs-theme", &mut |ui| {
+                    for (code, key) in
+                        [("dark", "prefs-theme-dark"), ("light", "prefs-theme-light")]
+                    {
+                        ui.selectable_value(&mut edited.theme, code.to_owned(), tr.text(key));
+                    }
                 });
                 labelled(ui, "prefs-autosave", &mut |ui| {
                     ui.add(
@@ -375,7 +387,7 @@ impl Workspace {
                         egui::RichText::new(tr.text("prefs-restore-defaults"))
                             .color(egui::Color32::WHITE),
                     )
-                    .fill(flare_ui::theme::DANGER);
+                    .fill(flare_ui::theme::danger());
                     if ui.add(restore).clicked() {
                         edited = Preferences {
                             recent: edited.recent.clone(),

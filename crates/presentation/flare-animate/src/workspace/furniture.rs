@@ -16,11 +16,14 @@ impl Workspace {
 
     pub fn show(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
+        flare_ui::theme::set_mode(self.theme_mode);
         if !self.chrome_ready {
             flare_ui::theme::apply(&ctx);
             flare_ui::icons::install(&ctx);
             self.chrome_ready = true;
+            self.styled_for = Some(self.theme_mode);
         }
+        self.ensure_palette(&ctx);
         let now = ui.input(|i| i.time);
         self.open_dropped(&ctx);
         self.drain_background();
@@ -50,19 +53,19 @@ impl Workspace {
             } else {
                 TOP_BAR_HEIGHT
             })
-            .frame(egui::Frame::new().fill(flare_ui::theme::BG))
+            .frame(egui::Frame::new().fill(flare_ui::theme::bg()))
             .show(ui, |ui| self.menu_bar(ui));
         if self.document_controls_shown() {
             egui::Panel::right("panel_rail")
                 .exact_size(rail::RAIL_WIDTH)
-                .frame(egui::Frame::new().fill(flare_ui::theme::BG))
+                .frame(egui::Frame::new().fill(flare_ui::theme::bg()))
                 .show(ui, |ui| self.panel_rail(ui));
         }
         let gutter = flare_ui::theme::GUTTER as i8;
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
-                    .fill(flare_ui::theme::BG)
+                    .fill(flare_ui::theme::bg())
                     .inner_margin(egui::Margin::same(gutter)),
             )
             .show(ui, |ui| {
@@ -225,9 +228,9 @@ impl Workspace {
     pub(super) fn action_item(&mut self, ui: &mut egui::Ui, action: MenuAction) {
         let enabled = self.is_enabled(action);
         let tint = if enabled {
-            flare_ui::theme::TEXT
+            flare_ui::theme::text()
         } else {
-            flare_ui::theme::TEXT_DISABLED
+            flare_ui::theme::text_disabled()
         };
         let label = self.label(action);
         let mut button = match action.icon() {
@@ -283,17 +286,21 @@ impl Workspace {
         ui.painter().hline(
             bar.x_range(),
             bar.bottom() - 0.5,
-            egui::Stroke::new(1.0, flare_ui::theme::BORDER),
+            egui::Stroke::new(1.0, flare_ui::theme::border()),
         );
         ui.horizontal_centered(|ui| {
             ui.add_space(self.titlebar_inset.max(10.0));
             let home = ui
                 .horizontal(|ui| {
-                    ui.add(flare_ui::icons::image("home", 16.0, flare_ui::theme::TEXT));
+                    ui.add(flare_ui::icons::image(
+                        "home",
+                        16.0,
+                        flare_ui::theme::text(),
+                    ));
                     ui.label(
                         egui::RichText::new("Flare")
                             .strong()
-                            .color(flare_ui::theme::TEXT),
+                            .color(flare_ui::theme::text()),
                     );
                 })
                 .response
@@ -364,14 +371,14 @@ impl Workspace {
                     self.perform(MenuAction::Publish);
                 }
                 // The name sits in the middle of what is left, whatever the window width.
-                let title = egui::RichText::new(self.title()).color(flare_ui::theme::TEXT_DIM);
+                let title = egui::RichText::new(self.title()).color(flare_ui::theme::text_dim());
                 let rect = ui.available_rect_before_wrap();
                 ui.painter().text(
                     egui::pos2(bar.center().x, rect.center().y),
                     egui::Align2::CENTER_CENTER,
                     title.text(),
                     egui::FontId::proportional(13.0),
-                    flare_ui::theme::TEXT_DIM,
+                    flare_ui::theme::text_dim(),
                 );
             });
         });
@@ -454,10 +461,10 @@ impl Workspace {
         const THICKNESS: f32 = 16.0;
         let top = Rect::from_min_max(panel.min, Pos2::new(panel.max.x, panel.min.y + THICKNESS));
         let left = Rect::from_min_max(panel.min, Pos2::new(panel.min.x + THICKNESS, panel.max.y));
-        let fill = flare_ui::theme::PANEL_RAISED.gamma_multiply(0.92);
+        let fill = flare_ui::theme::panel_raised().gamma_multiply(0.92);
         painter.rect_filled(top, 0.0, fill);
         painter.rect_filled(left, 0.0, fill);
-        let tick = Stroke::new(1.0, flare_ui::theme::TEXT_DISABLED);
+        let tick = Stroke::new(1.0, flare_ui::theme::text_disabled());
         let font = FontId::monospace(9.0);
         for t in flare_ui::view::ruler_ticks(
             image.min.x,
@@ -474,7 +481,7 @@ impl Workspace {
                     Align2::LEFT_TOP,
                     format!("{}", t.value.round()),
                     font.clone(),
-                    flare_ui::theme::TEXT_DIM,
+                    flare_ui::theme::text_dim(),
                 );
             }
         }
@@ -493,14 +500,14 @@ impl Workspace {
                     Align2::LEFT_TOP,
                     format!("{}", t.value.round()),
                     font.clone(),
-                    flare_ui::theme::TEXT_DIM,
+                    flare_ui::theme::text_dim(),
                 );
             }
         }
         painter.rect_filled(
             Rect::from_min_size(panel.min, Vec2::splat(THICKNESS)),
             0.0,
-            flare_ui::theme::PANEL_RAISED,
+            flare_ui::theme::panel_raised(),
         );
     }
 

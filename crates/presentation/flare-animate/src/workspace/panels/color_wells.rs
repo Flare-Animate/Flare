@@ -131,8 +131,8 @@ impl Workspace {
         painter.rect(
             rects.stroke.shrink(m.frame),
             1.0,
-            theme::PANEL_RAISED,
-            Stroke::new(1.0, theme::BORDER),
+            theme::panel_raised(),
+            Stroke::new(1.0, theme::border()),
             StrokeKind::Inside,
         );
         for (response, target) in [(&fill, ColorTarget::Fill), (&stroke, ColorTarget::Stroke)] {
@@ -144,7 +144,7 @@ impl Workspace {
                 painter.rect_stroke(
                     response.rect,
                     3.0,
-                    Stroke::new(1.5, theme::ACCENT),
+                    Stroke::new(1.5, theme::accent()),
                     StrokeKind::Outside,
                 );
             }
@@ -158,7 +158,7 @@ impl Workspace {
                     // As in Animate's swatch picker: a way to have none of this color.
                     let none = ui
                         .add(egui::Button::image_and_text(
-                            icons::image("no-color", 14.0, theme::TEXT),
+                            icons::image("no-color", 14.0, theme::text()),
                             "No color",
                         ))
                         .on_hover_text(match target {
@@ -194,7 +194,7 @@ fn paint_square(painter: &egui::Painter, rect: Rect, color: Color32) {
     painter.rect_stroke(
         rect,
         3.0,
-        Stroke::new(1.0, theme::BORDER),
+        Stroke::new(1.0, theme::border()),
         StrokeKind::Inside,
     );
 }
@@ -205,12 +205,12 @@ fn tiny_button(ui: &mut Ui, rect: Rect, icon: &str, hint: &str) -> bool {
         .interact(rect, ui.make_persistent_id(icon), Sense::click())
         .on_hover_text(hint);
     if response.hovered() {
-        ui.painter().rect_filled(rect, 2.0, theme::HOVER);
+        ui.painter().rect_filled(rect, 2.0, theme::hover());
     }
     let tint = if response.hovered() {
-        Color32::WHITE
+        theme::text_strong()
     } else {
-        theme::TEXT
+        theme::text()
     };
     icons::image(icon, rect.width(), tint).paint_at(ui, rect.shrink(1.0));
     response.clicked()

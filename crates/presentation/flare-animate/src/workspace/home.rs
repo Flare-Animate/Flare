@@ -79,11 +79,11 @@ impl Workspace {
         let area = ui.available_rect_before_wrap();
         let side = Rect::from_min_max(area.min, pos2(area.min.x + SIDEBAR_WIDTH, area.max.y));
         let main = Rect::from_min_max(pos2(side.max.x, area.min.y), area.max);
-        ui.painter().rect_filled(side, 0.0, theme::PANEL);
+        ui.painter().rect_filled(side, 0.0, theme::panel());
         ui.painter().vline(
             side.max.x - 0.5,
             side.y_range(),
-            Stroke::new(1.0, theme::BORDER),
+            Stroke::new(1.0, theme::border()),
         );
         ui.scope_builder(egui::UiBuilder::new().max_rect(side.shrink(14.0)), |ui| {
             self.home_sidebar(ui, &mut chosen, &mut dialog);
@@ -123,13 +123,13 @@ impl Workspace {
                 egui::RichText::new("Flare")
                     .font(FontId::proportional(20.0))
                     .strong()
-                    .color(theme::TEXT),
+                    .color(theme::text()),
             );
         });
         ui.label(
             egui::RichText::new(format!("Version {}", env!("CARGO_PKG_VERSION")))
                 .font(FontId::proportional(11.0))
-                .color(theme::TEXT_DIM),
+                .color(theme::text_dim()),
         );
         ui.add_space(18.0);
         nav_item(ui, "home", "Home", true);
@@ -165,7 +165,7 @@ impl Workspace {
         open: &mut Option<PathBuf>,
     ) {
         if let Some(status) = &self.status {
-            ui.label(egui::RichText::new(status.as_str()).color(theme::WARNING));
+            ui.label(egui::RichText::new(status.as_str()).color(theme::warning()));
             ui.add_space(8.0);
         }
         section_title(ui, "Create new");
@@ -203,7 +203,7 @@ impl Workspace {
         if self.recent.is_empty() {
             ui.label(
                 egui::RichText::new("Projects you open or save show up here.")
-                    .color(theme::TEXT_DIM),
+                    .color(theme::text_dim()),
             );
             return;
         }
@@ -224,7 +224,7 @@ impl Workspace {
         if shown.is_empty() {
             ui.label(
                 egui::RichText::new(format!("No recent project matches “{}”.", self.home_search))
-                    .color(theme::TEXT_DIM),
+                    .color(theme::text_dim()),
             );
             return;
         }
@@ -267,7 +267,7 @@ fn section_title(ui: &mut Ui, text: &str) {
         egui::RichText::new(text)
             .font(FontId::proportional(16.0))
             .strong()
-            .color(theme::TEXT),
+            .color(theme::text()),
     );
     ui.add_space(8.0);
 }
@@ -276,16 +276,16 @@ fn nav_item(ui: &mut Ui, icon: &str, label: &str, selected: bool) {
     let (rect, response) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::click());
     if selected || response.hovered() {
         let fill = if selected {
-            theme::PANEL_RAISED
+            theme::panel_raised()
         } else {
-            theme::HOVER
+            theme::hover()
         };
         ui.painter().rect_filled(rect, 5.0, fill);
     }
     let ink = if ui.is_enabled() {
-        theme::TEXT
+        theme::text()
     } else {
-        theme::TEXT_DISABLED
+        theme::text_disabled()
     };
     let image = icons::image(icon, 16.0, ink);
     let icon_rect =
@@ -304,10 +304,10 @@ fn nav_item(ui: &mut Ui, icon: &str, label: &str, selected: bool) {
 fn wide_button(ui: &mut Ui, width: f32, icon: &str, label: &str, primary: bool) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(vec2(width, 32.0), Sense::click());
     let fill = match (primary, response.hovered()) {
-        (true, true) => theme::ACCENT.gamma_multiply(0.9),
-        (true, false) => theme::ACCENT.gamma_multiply(0.75),
-        (false, true) => theme::HOVER,
-        (false, false) => theme::PANEL_RAISED,
+        (true, true) => theme::accent().gamma_multiply(0.9),
+        (true, false) => theme::accent().gamma_multiply(0.75),
+        (false, true) => theme::hover(),
+        (false, false) => theme::panel_raised(),
     };
     ui.painter().rect(
         rect,
@@ -316,9 +316,9 @@ fn wide_button(ui: &mut Ui, width: f32, icon: &str, label: &str, primary: bool) 
         Stroke::new(
             1.0,
             if primary {
-                theme::ACCENT
+                theme::accent()
             } else {
-                theme::BORDER
+                theme::border()
             },
         ),
         StrokeKind::Inside,
@@ -353,14 +353,14 @@ fn tile(
     if ui.is_rect_visible(rect) {
         let painter = ui.painter();
         let border = if response.hovered() {
-            theme::ACCENT
+            theme::accent()
         } else {
-            theme::BORDER
+            theme::border()
         };
         painter.rect(
             rect,
             6.0,
-            theme::PANEL,
+            theme::panel(),
             Stroke::new(1.0, border),
             StrokeKind::Inside,
         );
@@ -368,7 +368,7 @@ fn tile(
             rect.min + Vec2::splat(1.0),
             vec2(rect.width() - 2.0, PREVIEW_HEIGHT),
         );
-        painter.rect_filled(top, 5.0, theme::STAGE_SURROUND);
+        painter.rect_filled(top, 5.0, theme::stage_surround());
         preview(&painter.with_clip_rect(top), top);
         let text = painter.with_clip_rect(Rect::from_min_max(
             pos2(rect.left() + 10.0, top.bottom()),
@@ -379,7 +379,7 @@ fn tile(
             Align2::LEFT_TOP,
             title,
             FontId::proportional(13.0),
-            theme::TEXT,
+            theme::text(),
         );
         for (row, detail) in details.iter().rev().enumerate() {
             text.text(
@@ -390,7 +390,7 @@ fn tile(
                 Align2::LEFT_BOTTOM,
                 *detail,
                 FontId::proportional(11.0),
-                theme::TEXT_DIM,
+                theme::text_dim(),
             );
         }
     }
@@ -407,7 +407,7 @@ fn stage_glyph(painter: &egui::Painter, rect: Rect, width: u32, height: u32) {
         glyph,
         2.0,
         Color32::WHITE,
-        Stroke::new(1.0, theme::BORDER),
+        Stroke::new(1.0, theme::border()),
         StrokeKind::Inside,
     );
 }
@@ -418,8 +418,8 @@ fn file_glyph(painter: &egui::Painter, rect: Rect) {
     painter.rect(
         page,
         3.0,
-        theme::PANEL_RAISED,
-        Stroke::new(1.5, theme::TEXT_DIM),
+        theme::panel_raised(),
+        Stroke::new(1.5, theme::text_dim()),
         StrokeKind::Inside,
     );
     for row in 0..3 {
@@ -427,7 +427,7 @@ fn file_glyph(painter: &egui::Painter, rect: Rect) {
         painter.hline(
             (page.left() + 9.0)..=(page.right() - 9.0),
             y,
-            Stroke::new(1.5, theme::BORDER),
+            Stroke::new(1.5, theme::border()),
         );
     }
 }

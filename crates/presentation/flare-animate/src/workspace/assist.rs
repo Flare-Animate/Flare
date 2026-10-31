@@ -146,10 +146,10 @@ impl Workspace {
             return;
         };
         let (a, b) = (to_screen(from), to_screen(to));
-        let ink = Stroke::new(1.5, flare_ui::theme::ACCENT);
+        let ink = Stroke::new(1.5, flare_ui::theme::accent());
         painter.line_segment([a, b], ink);
         for end in [a, b] {
-            painter.circle_filled(end, 3.0, flare_ui::theme::ACCENT);
+            painter.circle_filled(end, 3.0, flare_ui::theme::accent());
         }
         let label = measured.label();
         let font = FontId::proportional(12.0);

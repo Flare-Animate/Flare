@@ -88,7 +88,7 @@ impl Workspace {
         }
         let rate = self.document().frame_rate();
         let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
-        ui.label(RichText::new(format!("{fps:.2} fps")).color(theme::TEXT_DIM));
+        ui.label(RichText::new(format!("{fps:.2} fps")).color(theme::text_dim()));
         ui.separator();
         let mut onion = self.onion.enabled;
         if chrome::icon_button(ui, "onion-skin", BAR_ICON, onion, true, "Onion skin").clicked() {

@@ -394,7 +394,7 @@ fn the_theme_and_icons_are_installed_once_and_the_theme_is_dark() {
     assert!(ctx.global_style().visuals.dark_mode);
     assert_eq!(
         ctx.global_style().visuals.panel_fill,
-        flare_ui::theme::PANEL
+        flare_ui::theme::panel()
     );
 }
 

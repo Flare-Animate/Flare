@@ -16,3 +16,6 @@ prefs-remembered = 記憶している件数
 prefs-clear-recent = 最近使ったプロジェクトを消去
 prefs-clear-recent-hint = ホームページと「最近使ったファイルを開く」の一覧を消去します。ファイルはそのまま残ります。
 prefs-restore-defaults = 初期設定に戻す
+prefs-theme = テーマ
+prefs-theme-dark = ダーク
+prefs-theme-light = ライト

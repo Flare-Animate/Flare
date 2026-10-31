@@ -51,6 +51,16 @@ impl Workspace {
         )
     }
 
+    /// Draws with the palette the person chose: the colors are read from it as they are used,
+    /// and egui's own widgets are restyled when it changes.
+    pub(super) fn ensure_palette(&mut self, ctx: &egui::Context) {
+        flare_ui::theme::set_mode(self.theme_mode);
+        if self.styled_for != Some(self.theme_mode) {
+            self.styled_for = Some(self.theme_mode);
+            flare_ui::theme::apply_palette(ctx);
+        }
+    }
+
     /// Japanese and Chinese need a font the interface does not carry; the system's is added when
     /// one of them is the language.
     pub(super) fn ensure_language_font(&mut self, ctx: &egui::Context) {

@@ -19,11 +19,11 @@ impl Workspace {
         // A bar of its own, as Animate's toolbar is: a shade lighter than the page around it,
         // with a thin dark line down its right edge.
         let edge = ui.max_rect();
-        ui.painter().rect_filled(edge, 0.0, theme::PANEL_RAISED);
+        ui.painter().rect_filled(edge, 0.0, theme::panel_raised());
         ui.painter().vline(
             edge.right() - 0.5,
             edge.y_range(),
-            Stroke::new(1.0, theme::STAGE_SURROUND),
+            Stroke::new(1.0, theme::stage_surround()),
         );
         // One column of every tool and the color box is taller than a short window: it scrolls.
         egui::ScrollArea::vertical()

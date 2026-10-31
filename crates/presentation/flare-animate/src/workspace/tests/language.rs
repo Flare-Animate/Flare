@@ -130,3 +130,56 @@ fn the_publish_popup_and_its_format_names_follow_the_language() {
     // The places to share are names, the same in every language.
     assert!(has(&all, "Twitter") && has(&all, "Facebook"));
 }
+
+#[test]
+fn the_theme_is_dark_by_default_light_when_chosen_and_kept_with_the_preferences() {
+    let mut ws = workspace();
+    assert_eq!(ws.preferences().theme, "dark");
+    let ctx = egui::Context::default();
+    flare_ui::icons::install(&ctx);
+    run(&mut ws, &ctx, 0.0);
+    assert!(ctx.global_style().visuals.dark_mode);
+    let mut prefs = ws.preferences();
+    prefs.theme = "light".to_owned();
+    ws.apply_preferences(&prefs);
+    run(&mut ws, &ctx, 0.1);
+    assert!(
+        !ctx.global_style().visuals.dark_mode,
+        "egui's widgets are restyled"
+    );
+    assert_eq!(flare_ui::theme::mode(), flare_ui::theme::Mode::Light);
+    assert_eq!(
+        ctx.global_style().visuals.panel_fill,
+        flare_ui::theme::panel()
+    );
+    // Kept, and an odd value is the dark one.
+    let saved = ws.preferences_json().expect("json");
+    let mut fresh = workspace();
+    fresh.restore_preferences(&saved).expect("restored");
+    assert_eq!(fresh.preferences().theme, "light");
+    fresh
+        .restore_preferences(r#"{"theme": "neon"}"#)
+        .expect("odd");
+    assert_eq!(fresh.preferences().theme, "dark");
+    // Back to dark, and Restore defaults is dark too.
+    ws.apply_preferences(&Preferences::default());
+    run(&mut ws, &ctx, 0.2);
+    assert!(ctx.global_style().visuals.dark_mode);
+    flare_ui::theme::set_mode(flare_ui::theme::Mode::Dark);
+}
+
+#[test]
+fn the_theme_row_is_in_general_and_in_the_chosen_language() {
+    let mut ws = workspace();
+    let text = preferences_text(&mut ws);
+    for wanted in ["Theme", "Dark", "Light"] {
+        assert!(has(&text, wanted), "{wanted}: {text:?}");
+    }
+    let mut prefs = ws.preferences();
+    prefs.language = "de".to_owned();
+    ws.apply_preferences(&prefs);
+    let text = preferences_text(&mut ws);
+    for wanted in ["Design", "Dunkel", "Hell"] {
+        assert!(has(&text, wanted), "{wanted}: {text:?}");
+    }
+}

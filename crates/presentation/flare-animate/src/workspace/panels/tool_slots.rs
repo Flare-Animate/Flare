@@ -244,13 +244,13 @@ impl Workspace {
 fn variant_row(ui: &mut Ui, variant: &Variant) -> (Option<Tool>, bool) {
     let built = variant.tool.is_some();
     let ink = if built {
-        theme::TEXT
+        theme::text()
     } else {
-        theme::TEXT_DISABLED
+        theme::text_disabled()
     };
     let mut label = egui::RichText::new(variant.name);
     if !built {
-        label = label.color(theme::TEXT_DISABLED);
+        label = label.color(theme::text_disabled());
     }
     let mut button = egui::Button::image_and_text(icons::image(variant.icon, 16.0, ink), label)
         .sense(egui::Sense::click_and_drag());
@@ -276,7 +276,7 @@ fn corner_mark(ui: &Ui, cell: egui::Rect) {
             corner - egui::vec2(4.0, 0.0),
             corner - egui::vec2(0.0, 4.0),
         ],
-        theme::TEXT_DIM,
+        theme::text_dim(),
         egui::Stroke::NONE,
     ));
 }

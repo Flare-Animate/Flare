@@ -4,7 +4,7 @@
 //! helpers here, so it looks right, says plainly that it does nothing yet, and is easy to find
 //! and replace when the feature lands.
 
-use egui::{Color32, Response, Sense, Ui, Vec2};
+use egui::{Response, Sense, Ui, Vec2};
 
 use crate::icons;
 use crate::theme;
@@ -49,9 +49,9 @@ pub fn icon_button_for(
         let hovered = response.hovered() && enabled;
         if active || hovered {
             let fill = if active {
-                theme::ACCENT.gamma_multiply(0.35)
+                theme::accent().gamma_multiply(0.35)
             } else {
-                theme::HOVER
+                theme::hover()
             };
             ui.painter().rect_filled(rect, 4.0, fill);
         }
@@ -59,16 +59,16 @@ pub fn icon_button_for(
             ui.painter().rect_stroke(
                 rect,
                 4.0,
-                egui::Stroke::new(1.0, theme::ACCENT),
+                egui::Stroke::new(1.0, theme::accent()),
                 egui::StrokeKind::Inside,
             );
         }
         let tint = if !enabled {
-            theme::TEXT_DISABLED
+            theme::text_disabled()
         } else if active || hovered {
-            Color32::WHITE
+            theme::text_strong()
         } else {
-            theme::TEXT
+            theme::text()
         };
         icons::image(icon, size, tint).paint_at(ui, rect.shrink(pad));
     }
@@ -88,15 +88,15 @@ pub fn mock_icon_button(ui: &mut Ui, icon: &str, size: f32, hint: &str) -> Respo
 pub fn section(ui: &mut Ui, icon: &str, title: &str) {
     ui.add_space(6.0);
     ui.horizontal(|ui| {
-        ui.add(icons::image(icon, 14.0, theme::TEXT_DIM));
-        ui.label(egui::RichText::new(title).strong().color(theme::TEXT));
+        ui.add(icons::image(icon, 14.0, theme::text_dim()));
+        ui.label(egui::RichText::new(title).strong().color(theme::text()));
     });
     ui.add_space(2.0);
     let rect = ui.available_rect_before_wrap();
     ui.painter().hline(
         rect.x_range(),
         rect.top(),
-        egui::Stroke::new(1.0, theme::BORDER),
+        egui::Stroke::new(1.0, theme::border()),
     );
     ui.add_space(4.0);
 }
@@ -106,18 +106,18 @@ pub fn section(ui: &mut Ui, icon: &str, title: &str) {
 pub fn group<R>(ui: &mut Ui, icon: &str, title: &str, add: impl FnOnce(&mut Ui) -> R) -> R {
     ui.add_space(12.0);
     ui.horizontal(|ui| {
-        ui.add(icons::image(icon, 16.0, theme::TEXT_DIM));
+        ui.add(icons::image(icon, 16.0, theme::text_dim()));
         ui.label(
             egui::RichText::new(title)
                 .strong()
                 .size(15.0)
-                .color(theme::TEXT),
+                .color(theme::text()),
         );
     });
     ui.add_space(4.0);
     egui::Frame::new()
-        .fill(theme::FIELD)
-        .stroke(egui::Stroke::new(1.0, theme::BORDER))
+        .fill(theme::field())
+        .stroke(egui::Stroke::new(1.0, theme::border()))
         .corner_radius(6)
         .inner_margin(egui::Margin::symmetric(10, 8))
         .show(ui, |ui| {
@@ -132,7 +132,7 @@ pub fn row(ui: &mut Ui, label: &str, add: impl FnOnce(&mut Ui)) {
     ui.horizontal(|ui| {
         ui.add_sized(
             [64.0, 18.0],
-            egui::Label::new(egui::RichText::new(label).color(theme::TEXT_DIM)),
+            egui::Label::new(egui::RichText::new(label).color(theme::text_dim())),
         );
         add(ui);
     });
@@ -152,9 +152,9 @@ pub fn mock_number(ui: &mut Ui, value: &str, suffix: &str) {
 pub fn empty_state(ui: &mut Ui, icon: &str, message: &str) {
     ui.add_space(16.0);
     ui.vertical_centered(|ui| {
-        ui.add(icons::image(icon, 28.0, theme::TEXT_DISABLED));
+        ui.add(icons::image(icon, 28.0, theme::text_disabled()));
         ui.add_space(4.0);
-        ui.label(egui::RichText::new(message).color(theme::TEXT_DIM));
+        ui.label(egui::RichText::new(message).color(theme::text_dim()));
     });
 }
 
@@ -203,7 +203,9 @@ pub fn icon_and_label(
     text: egui::RichText,
 ) -> (egui::Rect, egui::Response) {
     ui.horizontal(|ui| {
-        let icon = ui.add(icons::image(icon, icon_size, theme::TEXT_DIM)).rect;
+        let icon = ui
+            .add(icons::image(icon, icon_size, theme::text_dim()))
+            .rect;
         let label = ui.add(egui::Label::new(text).sense(Sense::click()));
         (icon, label)
     })
@@ -239,8 +241,8 @@ pub fn segmented(ui: &mut Ui, labels: &[&str], selected: usize) -> Option<usize>
     painter.rect(
         track,
         6.0,
-        theme::FIELD,
-        egui::Stroke::new(1.0, theme::BORDER),
+        theme::field(),
+        egui::Stroke::new(1.0, theme::border()),
         egui::StrokeKind::Inside,
     );
     let count = labels.len().max(1) as f32;
@@ -258,16 +260,20 @@ pub fn segmented(ui: &mut Ui, labels: &[&str], selected: usize) -> Option<usize>
         );
         let chosen = index == selected;
         if chosen {
-            painter.rect_filled(rect, 4.0, theme::PANEL_RAISED);
+            painter.rect_filled(rect, 4.0, theme::panel_raised());
         } else if response.hovered() {
-            painter.rect_filled(rect, 4.0, theme::HOVER.gamma_multiply(0.6));
+            painter.rect_filled(rect, 4.0, theme::hover().gamma_multiply(0.6));
         }
         painter.text(
             rect.center(),
             egui::Align2::CENTER_CENTER,
             *label,
             egui::FontId::proportional(13.0),
-            if chosen { theme::TEXT } else { theme::TEXT_DIM },
+            if chosen {
+                theme::text()
+            } else {
+                theme::text_dim()
+            },
         );
         if response.clicked() {
             clicked = Some(index);
