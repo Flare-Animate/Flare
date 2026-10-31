@@ -64,6 +64,14 @@ impl WebApp {
                     flare_runtime::gif_bytes(&document),
                 );
             }
+            DialogRequest::Share(target) => {
+                let opened = web_sys::window()
+                    .and_then(|w| w.open_with_url_and_target(target.url(), "_blank").ok());
+                if opened.is_none() {
+                    self.workspace
+                        .report_message("The browser blocked the new tab");
+                }
+            }
             DialogRequest::Publish => {
                 let (document, _) = self.workspace.image_export();
                 let settings = self.workspace.publish_settings();
@@ -79,6 +87,13 @@ impl WebApp {
                         .map(|published| published.bytes)
                         .map_err(|e| e.to_string());
                     self.deliver("movie.swf", "application/x-shockwave-flash", result);
+                }
+                if settings.gif {
+                    self.deliver(
+                        "movie.gif",
+                        "image/gif",
+                        flare_runtime::gif_bytes(&document),
+                    );
                 }
                 if settings.html5 {
                     let options = flare_publish::Html5Options {

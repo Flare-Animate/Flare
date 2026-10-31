@@ -234,11 +234,7 @@ fn press_top_bar(x: f32) -> (bool, bool, bool) {
     pass(&mut ws, &ctx, input(0.2, vec![Event::PointerMoved(at)]));
     pass(&mut ws, &ctx, input(0.3, vec![click(true)]));
     pass(&mut ws, &ctx, input(0.4, vec![click(false)]));
-    (
-        ws.take_dialog() == Some(DialogRequest::Publish),
-        ws.is_playing(),
-        ws.windows.preferences,
-    )
+    (ws.windows.publish, ws.is_playing(), ws.windows.preferences)
 }
 
 #[test]

@@ -15,6 +15,8 @@ pub struct PublishSettings {
     pub loop_timeline: bool,
     pub center_stage: bool,
     pub responsive: bool,
+    /// Write an animated GIF (`.gif`).
+    pub gif: bool,
 }
 
 impl Default for PublishSettings {
@@ -26,6 +28,7 @@ impl Default for PublishSettings {
             loop_timeline: true,
             center_stage: true,
             responsive: false,
+            gif: false,
         }
     }
 }
@@ -33,7 +36,7 @@ impl Default for PublishSettings {
 impl PublishSettings {
     /// Whether anything is switched on to publish.
     pub fn any(&self) -> bool {
-        self.swf || self.html5
+        self.swf || self.html5 || self.gif
     }
 }
 
@@ -58,6 +61,10 @@ impl Workspace {
                 ui.checkbox(&mut self.publish.responsive, "Make responsive");
             });
         });
+        ui.checkbox(&mut self.publish.gif, "Animated GIF (.gif)");
+        // Video needs an encoder Flare does not have yet: shown, dimmed, where it will go.
+        ui.add_enabled(false, egui::Checkbox::new(&mut false, "MP4 video (.mp4)"))
+            .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
         if !self.publish.any() {
             ui.colored_label(
                 flare_ui::theme::WARNING,

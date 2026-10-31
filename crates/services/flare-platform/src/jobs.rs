@@ -35,27 +35,31 @@ pub fn export_gif(
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-export-movie", move || {
-        let result = flare_runtime::gif_bytes(&document).and_then(|bytes| {
-            if path.exists() {
-                return Err(format!("{} already exists", path.display()));
-            }
-            let directory = path
-                .parent()
-                .filter(|p| !p.as_os_str().is_empty())
-                .unwrap_or(std::path::Path::new("."));
-            let mut staged = tempfile::NamedTempFile::new_in(directory)
-                .map_err(|e| format!("Cannot write the movie: {e}"))?;
-            std::io::Write::write_all(&mut staged, &bytes)
-                .map_err(|e| format!("Cannot write the movie: {e}"))?;
-            staged.persist_noclobber(&path).map(|_| ()).map_err(|e| {
-                if e.error.kind() == io::ErrorKind::AlreadyExists {
-                    format!("{} already exists", path.display())
-                } else {
-                    format!("Cannot write the movie: {}", e.error)
-                }
-            })
-        });
-        done(result);
+        done(write_gif(&document, &path));
+    })
+}
+
+/// Renders `document` as a GIF into `path`. Never overwrites; the file appears only when it is
+/// complete.
+fn write_gif(document: &Document, path: &std::path::Path) -> Result<(), String> {
+    let bytes = flare_runtime::gif_bytes(document)?;
+    if path.exists() {
+        return Err(format!("{} already exists", path.display()));
+    }
+    let directory = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(std::path::Path::new("."));
+    let mut staged = tempfile::NamedTempFile::new_in(directory)
+        .map_err(|e| format!("Cannot write the movie: {e}"))?;
+    std::io::Write::write_all(&mut staged, &bytes)
+        .map_err(|e| format!("Cannot write the movie: {e}"))?;
+    staged.persist_noclobber(path).map(|_| ()).map_err(|e| {
+        if e.error.kind() == io::ErrorKind::AlreadyExists {
+            format!("{} already exists", path.display())
+        } else {
+            format!("Cannot write the movie: {}", e.error)
+        }
     })
 }
 
@@ -64,6 +68,8 @@ pub fn export_gif(
 pub struct PublishPlan {
     pub swf: Option<PublishOptions>,
     pub html5: Option<Html5Options>,
+    /// Also write an animated GIF.
+    pub gif: bool,
 }
 
 /// The name a published file shares with its siblings: `path` without a `.swf` or `.html`
@@ -73,7 +79,7 @@ fn publish_stem(path: &std::path::Path) -> String {
         .file_name()
         .map_or_else(|| "movie".to_owned(), |n| n.to_string_lossy().into_owned());
     let lower = name.to_ascii_lowercase();
-    for ending in [".swf", ".html", ".htm"] {
+    for ending in [".swf", ".html", ".htm", ".gif"] {
         if lower.ends_with(ending) {
             return name[..name.len() - ending.len()].to_owned();
         }
@@ -81,7 +87,7 @@ fn publish_stem(path: &std::path::Path) -> String {
     name
 }
 
-/// Publishes the formats in `plan` next to `path` (`<name>.swf`, `<name>.html`) on a thread.
+/// Publishes the formats in `plan` next to `path` (`<name>.swf`, `<name>.html`, `<name>.gif`) on a thread.
 /// Never overwrites; each file appears only when complete. The first failure is reported, but
 /// the other formats are still tried.
 pub fn publish(
@@ -101,7 +107,7 @@ pub fn publish_now(
     path: &std::path::Path,
     plan: &PublishPlan,
 ) -> Result<(), String> {
-    if plan.swf.is_none() && plan.html5.is_none() {
+    if plan.swf.is_none() && plan.html5.is_none() && !plan.gif {
         return Err("Choose a format in Publish Settings first".to_owned());
     }
     let stem = publish_stem(path);
@@ -119,6 +125,12 @@ pub fn publish_now(
         let target = at("html");
         if let Err(error) = flare_publish::publish_html5_to_file(document, &options, &target) {
             failures.push(format!("{}: {error}", target.display()));
+        }
+    }
+    if plan.gif {
+        let target = at("gif");
+        if let Err(error) = write_gif(document, &target) {
+            failures.push(error);
         }
     }
     if failures.is_empty() {

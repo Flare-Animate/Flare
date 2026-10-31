@@ -31,14 +31,16 @@ fn the_file_menu_names_publishing_as_animate_does() {
 }
 
 #[test]
-fn publish_asks_the_shell_for_a_place_and_settings_start_with_both_formats() {
+fn publish_opens_its_popup_and_settings_start_with_both_formats_and_no_gif() {
     let mut ws = workspace();
     let settings = ws.publish_settings();
     assert!(settings.swf && settings.html5 && settings.compress && settings.any());
     assert!(settings.loop_timeline && settings.center_stage && !settings.responsive);
+    assert!(!settings.gif);
     assert!(ws.is_enabled(MenuAction::Publish));
     ws.perform(MenuAction::Publish);
-    assert_eq!(ws.take_dialog(), Some(DialogRequest::Publish));
+    assert!(ws.windows.publish, "the popup opens");
+    assert_eq!(ws.take_dialog(), None, "nothing is asked of the shell yet");
 }
 
 #[test]
@@ -51,6 +53,7 @@ fn the_choices_are_kept_with_the_other_preferences_and_old_files_still_load() {
         loop_timeline: false,
         center_stage: false,
         responsive: true,
+        gif: true,
     };
     let saved = ws.preferences_json().expect("json");
     let mut fresh = workspace();

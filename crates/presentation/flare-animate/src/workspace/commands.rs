@@ -220,7 +220,7 @@ impl Workspace {
             MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
             MenuAction::Group => self.group_selection(),
             MenuAction::Ungroup | MenuAction::BreakApart => self.break_apart_selection(),
-            MenuAction::Publish => self.dialog = Some(DialogRequest::Publish),
+            MenuAction::Publish => self.windows.publish = true,
             MenuAction::DocumentSettings => {
                 self.props_tab = PropsTab::Doc;
                 self.show_pane(Pane::Properties);

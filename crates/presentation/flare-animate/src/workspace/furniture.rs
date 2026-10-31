@@ -80,6 +80,7 @@ impl Workspace {
             });
 
         self.preferences_window(&ctx);
+        self.publish_window(&ctx);
         self.file_windows(&ctx);
         self.help_windows(&ctx);
         if self.playing {

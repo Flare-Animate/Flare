@@ -63,6 +63,7 @@ fn an_image_and_a_swf_report_through_the_same_callback() {
     let plan = jobs::PublishPlan {
         swf: Some(jobs::PublishOptions { compress: true }),
         html5: None,
+        gif: false,
     };
     jobs::publish(document(), dir.path().join("a.swf"), plan, move |r| {
         let _ = tx.send(r);
@@ -76,6 +77,7 @@ fn plan(swf: bool, html5: bool) -> jobs::PublishPlan {
     jobs::PublishPlan {
         swf: swf.then_some(jobs::PublishOptions { compress: false }),
         html5: html5.then(jobs::Html5Options::default),
+        gif: false,
     }
 }
 
@@ -124,4 +126,32 @@ fn an_existing_file_is_never_replaced_and_the_other_format_is_still_written() {
         dir.path().join("a.html").exists(),
         "the page was still written"
     );
+}
+
+#[test]
+fn a_gif_is_written_with_the_others_and_alone_it_is_enough_to_publish() {
+    let dir = tempfile::tempdir().expect("dir");
+    let mut with_gif = plan(true, true);
+    with_gif.gif = true;
+    jobs::publish_now(&document(), &dir.path().join("m.GIF"), &with_gif).expect("published");
+    let mut names: Vec<String> = std::fs::read_dir(dir.path())
+        .expect("ls")
+        .map(|e| e.expect("entry").file_name().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    assert_eq!(names, ["m.gif", "m.html", "m.swf"]);
+    assert!(
+        std::fs::read(dir.path().join("m.gif"))
+            .expect("read")
+            .starts_with(b"GIF89a")
+    );
+
+    let mut alone = plan(false, false);
+    alone.gif = true;
+    jobs::publish_now(&document(), &dir.path().join("solo"), &alone).expect("a gif alone");
+    assert!(dir.path().join("solo.gif").exists());
+    // And an existing one is never replaced.
+    let error =
+        jobs::publish_now(&document(), &dir.path().join("solo"), &alone).expect_err("it exists");
+    assert!(error.contains("solo.gif"), "{error}");
 }

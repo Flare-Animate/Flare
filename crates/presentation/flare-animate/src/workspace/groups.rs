@@ -125,6 +125,8 @@ pub(super) struct OpenWindows {
     pub(super) about: bool,
     pub(super) shortcuts: bool,
     pub(super) publish_settings: bool,
+    /// The Publish popup: formats to write, and where to share them.
+    pub(super) publish: bool,
     /// The Home page covers the dock.
     pub(super) home: bool,
 }

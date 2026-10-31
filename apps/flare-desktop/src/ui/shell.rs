@@ -52,6 +52,11 @@ impl App {
                     }
                 }
             }
+            DialogRequest::Share(target) => {
+                if let Err(error) = flare_platform::browser::open_url(target.url()) {
+                    dialogs::message("Cannot open the browser", &error.to_string());
+                }
+            }
             DialogRequest::Publish => {
                 let settings = self.workspace.publish_settings();
                 if !settings.any() {
@@ -68,6 +73,7 @@ impl App {
                             responsive: settings.responsive,
                             ..jobs::Html5Options::default()
                         }),
+                        gif: settings.gif,
                     };
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::publish(document, path, plan, done) {

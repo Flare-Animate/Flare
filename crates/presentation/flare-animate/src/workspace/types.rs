@@ -52,9 +52,42 @@ pub fn onion_ghosts(frame: u32, frames: u32, before: u32, after: u32) -> Vec<(u3
     out.into_iter().map(|(f, o, _)| (f, o)).collect()
 }
 
+/// Where the Publish popup sends a person to share what they made. Each opens the site's own page
+/// for adding it: Flare holds no account on any of them and sends nothing itself.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ShareTarget {
+    Twitter,
+    YouTube,
+    Newgrounds,
+}
+
+impl ShareTarget {
+    pub const ALL: [Self; 3] = [Self::Twitter, Self::YouTube, Self::Newgrounds];
+
+    /// The name artists know it by (Twitter's page is on x.com now, but nobody here calls it that).
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Twitter => "Twitter",
+            Self::YouTube => "YouTube",
+            Self::Newgrounds => "Newgrounds",
+        }
+    }
+
+    /// The page the browser is opened at. Always one of these fixed addresses.
+    pub fn url(self) -> &'static str {
+        match self {
+            Self::Twitter => "https://x.com/intent/post?text=Made%20with%20Flare",
+            Self::YouTube => "https://www.youtube.com/upload",
+            Self::Newgrounds => "https://www.newgrounds.com/projects/movies/new",
+        }
+    }
+}
+
 /// A file dialog the shell should show on the workspace's behalf.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DialogRequest {
+    /// Open this site's page in the browser.
+    Share(ShareTarget),
     Open,
     SaveAs,
     ImportSound,

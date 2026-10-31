@@ -41,6 +41,7 @@ pub struct Preferences {
     pub html5_loop: bool,
     pub html5_center: bool,
     pub html5_responsive: bool,
+    pub publish_gif: bool,
     /// Tools from the "…" list kept in the tool strip.
     pub pinned_tools: Vec<String>,
     /// Projects opened or saved lately, newest first.
@@ -72,6 +73,7 @@ impl Default for Preferences {
             html5_loop: true,
             html5_center: true,
             html5_responsive: false,
+            publish_gif: false,
             pinned_tools: Vec::new(),
             recent: Vec::new(),
         }
@@ -101,6 +103,7 @@ impl Workspace {
             html5_loop: self.publish.loop_timeline,
             html5_center: self.publish.center_stage,
             html5_responsive: self.publish.responsive,
+            publish_gif: self.publish.gif,
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
             recent: self
                 .recent
@@ -153,6 +156,7 @@ impl Workspace {
             loop_timeline: preferences.html5_loop,
             center_stage: preferences.html5_center,
             responsive: preferences.html5_responsive,
+            gif: preferences.publish_gif,
         };
         self.recent = preferences
             .recent

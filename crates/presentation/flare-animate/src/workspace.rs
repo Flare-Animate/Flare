@@ -45,6 +45,7 @@ mod pen_tool;
 mod playback;
 mod preferences;
 mod publish_settings;
+mod publish_window;
 mod rail;
 mod render;
 mod selection;
@@ -70,7 +71,8 @@ pub use open_any::{IMPORT_EXTENSIONS, PROJECT_EXTENSIONS, PathKind, classify};
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use publish_settings::PublishSettings;
 pub use types::{
-    DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest, onion_ghosts,
+    DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, ShareTarget, Tool, WindowRequest,
+    onion_ghosts,
 };
 
 pub struct Workspace {
@@ -217,6 +219,7 @@ pub struct Workspace {
     titlebar_inset: f32,
     top_bar_id: egui::Id,
     preferences_id: egui::Id,
+    publish_id: egui::Id,
     /// Which tool of each tool-strip slot was last picked from its list, by the slot's first name.
     slot_choice: std::collections::HashMap<&'static str, usize>,
     /// The slot whose list of tools is open, by its first name.
@@ -335,6 +338,7 @@ impl Workspace {
             titlebar_inset: 0.0,
             top_bar_id: egui::Id::unique("top-bar"),
             preferences_id: egui::Id::unique("preferences"),
+            publish_id: egui::Id::unique("publish"),
             slot_choice: std::collections::HashMap::new(),
             slot_open: None,
             pinned_tools: Vec::new(),
