@@ -42,9 +42,9 @@ pub(crate) type Slot = &'static [Variant];
 /// How long a press has to last to open a slot's list, in seconds.
 const HOLD: f64 = 0.35;
 
-/// The strip's categories, divided by a line: selecting, drawing, painting, helping and viewing.
-/// Every tool Flare has is in exactly one slot.
-pub(crate) const SLOT_GROUPS: &[&[Slot]] = &[
+/// The strip's categories, divided by a line, in the order Animate's toolbar has them. Every tool
+/// Flare has is in exactly one slot or in [`EXTRA`].
+pub(crate) static SLOT_GROUPS: &[&[Slot]] = &[
     &[
         &[
             real("tool-selection", "Selection", "V", Tool::Select),
@@ -55,14 +55,23 @@ pub(crate) const SLOT_GROUPS: &[&[Slot]] = &[
             mock("tool-gradient-transform", "Gradient Transform"),
         ],
         &[
-            mock("tool-3d-rotation", "3D Rotation"),
-            mock("tool-3d-translation", "3D Translation"),
-        ],
-        &[
             real("tool-lasso", "Lasso", "L", Tool::Lasso),
             mock("tool-lasso-polygon", "Polygon"),
             mock("tool-magic-wand", "Magic Wand"),
         ],
+    ],
+    &[
+        &[real("tool-brush", "Brush", "B", Tool::Brush)],
+        &[real("tool-pencil", "Pencil", "Y", Tool::Pencil)],
+        &[real("tool-eraser", "Eraser", "E", Tool::Eraser)],
+        &[
+            real("tool-rectangle", "Rectangle", "R", Tool::Rectangle),
+            real("tool-oval", "Oval", "O", Tool::Ellipse),
+            mock("tool-rectangle-primitive", "Rectangle Primitive"),
+            mock("tool-oval-primitive", "Oval Primitive"),
+            real("tool-polystar", "PolyStar", "G", Tool::PolyStar),
+        ],
+        &[real("tool-line", "Line", "N", Tool::Line)],
     ],
     &[
         &[
@@ -72,31 +81,12 @@ pub(crate) const SLOT_GROUPS: &[&[Slot]] = &[
             mock("tool-anchor-convert", "Convert Anchor Point"),
         ],
         &[real("tool-text", "Text", "T", Tool::Text)],
-        &[real("tool-pencil", "Pencil", "Y", Tool::Pencil)],
-        &[real("tool-brush", "Brush", "B", Tool::Brush)],
-        &[real("tool-line", "Line", "N", Tool::Line)],
-        &[
-            real("tool-rectangle", "Rectangle", "R", Tool::Rectangle),
-            real("tool-oval", "Oval", "O", Tool::Ellipse),
-            mock("tool-rectangle-primitive", "Rectangle Primitive"),
-            mock("tool-oval-primitive", "Oval Primitive"),
-            real("tool-polystar", "PolyStar", "G", Tool::PolyStar),
-        ],
-        &[mock("tool-deco", "Deco")],
-        &[mock("tool-bone", "Bone"), mock("tool-bind", "Bind")],
-    ],
-    &[
         &[
             real("tool-bucket", "Paint Bucket", "K", Tool::Bucket),
             real("tool-ink-bottle", "Ink Bottle", "S", Tool::InkBottle),
         ],
         &[real("tool-eyedropper", "Eyedropper", "I", Tool::Eyedropper)],
         &[mock("tool-asset-warp", "Asset Warp")],
-        &[real("tool-eraser", "Eraser", "E", Tool::Eraser)],
-    ],
-    &[
-        &[real("tool-mirror", "Mirror", "X", Tool::Mirror)],
-        &[real("tool-ruler", "Ruler", "M", Tool::Ruler)],
     ],
     &[
         &[
@@ -104,9 +94,28 @@ pub(crate) const SLOT_GROUPS: &[&[Slot]] = &[
             mock("tool-rotate-view", "Rotate View"),
         ],
         &[real("tool-zoom", "Zoom", "Z", Tool::Zoom)],
-        &[mock("tool-camera", "Camera")],
+        EXTRA,
     ],
 ];
+
+/// The "…" cell at the foot of the strip, Animate's Edit toolbar: the tools that are not in
+/// the strip itself. Its list holds Flare's own Mirror and Ruler, and the tools Animate has that
+/// Flare has not built.
+pub(crate) static EXTRA: Slot = &[
+    real("tool-mirror", "Mirror", "X", Tool::Mirror),
+    real("tool-ruler", "Ruler", "M", Tool::Ruler),
+    mock("tool-3d-rotation", "3D Rotation"),
+    mock("tool-3d-translation", "3D Translation"),
+    mock("tool-deco", "Deco"),
+    mock("tool-bone", "Bone"),
+    mock("tool-bind", "Bind"),
+    mock("tool-camera", "Camera"),
+];
+
+/// Whether `slot` is the "…" cell, which shows its dots whatever tool is in hand.
+fn is_extra(slot: Slot) -> bool {
+    std::ptr::eq(slot.as_ptr(), EXTRA.as_ptr())
+}
 
 /// The member of `slot` the cell shows: the tool in hand if the slot has it, else the one last
 /// picked from its list, else the first that is built, else the first.
@@ -131,26 +140,35 @@ impl Workspace {
     pub(crate) fn slot_cell(&mut self, ui: &mut Ui, slot: Slot) -> Option<Tool> {
         let picked = self.slot_choice.get(slot[0].name).copied();
         let shown = front(slot, self.tool, picked);
-        let active = shown.tool.is_some_and(|t| t == self.tool);
+        let extra = is_extra(slot);
+        let active = if extra {
+            slot.iter().any(|v| v.tool == Some(self.tool))
+        } else {
+            shown.tool.is_some_and(|t| t == self.tool)
+        };
         // A tool not built gets "(Not available yet)" added by the button itself.
-        let hint = if shown.key.is_empty() {
+        let hint = if extra {
+            "Edit toolbar".to_owned()
+        } else if shown.key.is_empty() {
             shown.name.to_owned()
         } else {
             format!("{} ({})", shown.name, shown.key)
         };
         let response = chrome::icon_button(
             ui,
-            shown.icon,
+            if extra { "toolbar-more" } else { shown.icon },
             TOOL_ICON,
             active,
-            shown.tool.is_some(),
+            extra || shown.tool.is_some(),
             &hint,
         );
-        let mut chosen = shown.tool.filter(|_| response.clicked());
+        let mut chosen = shown.tool.filter(|_| response.clicked() && !extra);
         if slot.len() < 2 {
             return chosen;
         }
-        corner_mark(ui, response.rect);
+        if !extra {
+            corner_mark(ui, response.rect);
+        }
         let ctx = ui.ctx().clone();
         let held = response.is_pointer_button_down_on()
             && ctx
@@ -159,7 +177,7 @@ impl Workspace {
         if response.is_pointer_button_down_on() {
             ctx.request_repaint_after(std::time::Duration::from_secs_f64(HOLD));
         }
-        if response.secondary_clicked() || held {
+        if response.secondary_clicked() || held || (extra && response.clicked()) {
             self.slot_open = Some(slot[0].name);
         }
         if self.slot_open == Some(slot[0].name) {
@@ -181,7 +199,7 @@ impl Workspace {
                 && ctx
                     .pointer_interact_pos()
                     .is_some_and(|at| !list.response.rect.contains(at));
-            let opened_now = response.secondary_clicked() || held;
+            let opened_now = response.secondary_clicked() || held || (extra && response.clicked());
             if chosen.is_some()
                 || ctx.input(|i| i.key_pressed(egui::Key::Escape))
                 || (clicked_elsewhere && !opened_now)

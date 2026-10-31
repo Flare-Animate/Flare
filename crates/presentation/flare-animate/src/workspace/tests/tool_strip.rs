@@ -66,7 +66,7 @@ fn every_tool_is_in_exactly_one_slot_and_the_strip_has_categories() {
 
 #[test]
 fn a_slot_shows_the_tool_in_hand_then_the_one_picked_then_the_first_built() {
-    let slot = SLOT_GROUPS[1][5];
+    let slot = SLOT_GROUPS[1][3];
     assert_eq!(slot[0].name, "Rectangle");
     assert_eq!(front(slot, Tool::Pen, None).name, "Rectangle");
     assert_eq!(front(slot, Tool::Pen, Some(1)).name, "Oval");
@@ -75,9 +75,9 @@ fn a_slot_shows_the_tool_in_hand_then_the_one_picked_then_the_first_built() {
     // A choice of a tool that is not built is ignored.
     assert_eq!(front(slot, Tool::Pen, Some(2)).name, "Rectangle");
     // A slot with nothing built shows its first and cannot be picked.
-    let three_d = SLOT_GROUPS[0][2];
-    assert_eq!(three_d[0].name, "3D Rotation");
-    assert!(front(three_d, Tool::Pen, None).tool.is_none());
+    let warp = SLOT_GROUPS[2][4];
+    assert_eq!(warp[0].name, "Asset Warp");
+    assert!(front(warp, Tool::Pen, None).tool.is_none());
 }
 
 #[test]
@@ -232,7 +232,7 @@ fn slot_pass(
         ..RawInput::default()
     };
     let mut picked = None;
-    let mut out = ctx.run_ui(raw, |ui| picked = ws.slot_cell(ui, SLOT_GROUPS[1][5]));
+    let mut out = ctx.run_ui(raw, |ui| picked = ws.slot_cell(ui, SLOT_GROUPS[1][3]));
     out.textures_delta.clear();
     let texts = out
         .shapes
@@ -381,4 +381,73 @@ fn subselection_is_in_the_selection_slot_and_the_strip_has_animates_other_tools(
             }
         }
     }
+}
+
+#[test]
+fn the_strip_is_in_animates_order() {
+    let order: Vec<Vec<&str>> = SLOT_GROUPS
+        .iter()
+        .map(|group| group.iter().map(|slot| slot[0].name).collect())
+        .collect();
+    assert_eq!(
+        order,
+        [
+            vec!["Selection", "Free Transform", "Lasso"],
+            vec!["Brush", "Pencil", "Eraser", "Rectangle", "Line"],
+            vec!["Pen", "Text", "Paint Bucket", "Eyedropper", "Asset Warp"],
+            vec!["Hand", "Zoom", "Mirror"],
+        ],
+        "the last cell is the dots; its list starts with Mirror"
+    );
+}
+
+#[test]
+fn the_dots_cell_lists_the_other_tools_and_picking_one_selects_it() {
+    use crate::workspace::panels::tool_slots::EXTRA;
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    flare_ui::icons::install(&ctx);
+    let pass_with = |ws: &mut Workspace, time: f64, events: Vec<Event>| {
+        let raw = RawInput {
+            time: Some(time),
+            screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(300.0, 300.0))),
+            events,
+            ..RawInput::default()
+        };
+        let mut picked = None;
+        let mut out = ctx.run_ui(raw, |ui| picked = ws.slot_cell(ui, EXTRA));
+        out.textures_delta.clear();
+        let texts: Vec<(String, Pos2)> = out
+            .shapes
+            .iter()
+            .filter_map(|s| match &s.shape {
+                egui::epaint::Shape::Text(t) => Some((
+                    t.galley.text().to_owned(),
+                    t.visual_bounding_rect().center(),
+                )),
+                _ => None,
+            })
+            .collect();
+        (picked, texts)
+    };
+    let cell = Pos2::new(12.0, 12.0);
+    let primary = egui::PointerButton::Primary;
+    pass_with(&mut ws, 0.0, vec![Event::PointerMoved(cell)]);
+    pass_with(&mut ws, 0.1, vec![]);
+    pass_with(&mut ws, 0.2, vec![button(cell, primary, true)]);
+    pass_with(&mut ws, 0.3, vec![button(cell, primary, false)]);
+    pass_with(&mut ws, 0.4, vec![]);
+    let (_, open) = pass_with(&mut ws, 0.5, vec![]);
+    let names: Vec<&str> = open.iter().map(|(t, _)| t.as_str()).collect();
+    for name in ["Mirror", "Ruler", "3D Rotation", "Deco", "Bone", "Camera"] {
+        assert!(names.contains(&name), "{name} is listed: {names:?}");
+    }
+    let ruler = open.iter().find(|(t, _)| t == "Ruler").expect("row").1;
+    pass_with(&mut ws, 0.6, vec![Event::PointerMoved(ruler)]);
+    pass_with(&mut ws, 0.7, vec![button(ruler, primary, true)]);
+    let (picked, _) = pass_with(&mut ws, 0.8, vec![button(ruler, primary, false)]);
+    assert_eq!(
+        picked,
+        Some(Tool::Ruler),
+        "a built tool is picked from the dots"
+    );
 }
