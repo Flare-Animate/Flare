@@ -238,13 +238,9 @@ fn the_strip_draws_one_picture_for_each_slot_and_nothing_else_but_the_color_sect
             })
             .count();
     }
-    // The color section has a picture for each of its two swatches and two small buttons. A
+    // The color section has two small buttons. A
     // second copy of any cell, the dots included, would make one more.
-    assert_eq!(
-        pictures,
-        slots + 4,
-        "{slots} slots, two swatch pictures and two buttons"
-    );
+    assert_eq!(pictures, slots + 2, "{slots} slots, two small buttons");
 }
 
 /// The pictures the strip drew about as large as a tool, as rectangles on screen.

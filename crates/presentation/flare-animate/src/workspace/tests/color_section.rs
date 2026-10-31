@@ -1,49 +1,50 @@
-//! The stroke and fill swatches and the three small buttons under them, in the tool strip.
+//! The stroke and fill squares and the two small buttons under them, in the tool strip.
 
 use super::*;
 use crate::workspace::ColorTarget;
-use crate::workspace::panels::color_wells::{ROW_WIDTH, WellRects, button_side, height, rects_in};
+use crate::workspace::panels::color_wells::{Metrics, WellRects, rects_with};
 
+/// Where the parts are in a strip `width` wide whose left edge is at x = 0: the box is centered
+/// across the strip.
 fn rects(width: f32) -> WellRects {
-    rects_in(Rect::from_min_size(
-        Pos2::ZERO,
-        Vec2::new(width, height(width)),
-    ))
+    let m = Metrics::for_width(width);
+    rects_with(Pos2::new(width / 2.0 - m.width() / 2.0, 0.0), m)
 }
 
 #[test]
-fn the_swatches_and_buttons_fit_the_strip_and_none_overlap() {
+fn the_squares_and_buttons_fit_the_strip_and_the_buttons_are_under_the_squares() {
     // From a strip one tool wide to a wide one.
-    for width in [30.0, 34.0, 38.0, 48.0, 72.0, 120.0] {
-        let r = rects(width);
-        let all = [
-            r.stroke_picture,
-            r.stroke,
-            r.fill_picture,
-            r.fill,
-            r.defaults,
-            r.swap,
-        ];
-        let room = Rect::from_min_size(Pos2::ZERO, Vec2::new(width.max(ROW_WIDTH), height(width)));
-        for rect in all {
+    for width in [30.0, 34.0, 38.0, 47.0, 48.0, 72.0, 120.0] {
+        let m = Metrics::for_width(width);
+        assert!(
+            m.width() <= width.max(25.0),
+            "the box fits a strip {width} wide"
+        );
+        let r = rects_with(Pos2::ZERO, m);
+        let room = Rect::from_min_size(Pos2::ZERO, Vec2::new(m.width(), m.height()));
+        for rect in [r.fill, r.stroke, r.defaults, r.swap] {
             assert!(
-                rect.min.x >= room.min.x - 0.01
+                rect.min.x >= -0.01
                     && rect.max.x <= room.max.x + 0.01
                     && rect.max.y <= room.max.y + 0.01,
                 "{rect:?} is outside {room:?} at width {width}"
             );
         }
-        for (i, a) in all.iter().enumerate() {
-            for b in &all[i + 1..] {
-                assert!(!a.intersects(*b), "{a:?} overlaps {b:?} at width {width}");
-            }
+        // The two squares overlap on purpose, the stroke in front, down and to the right.
+        assert!(r.stroke.min.x > r.fill.min.x && r.stroke.min.y > r.fill.min.y);
+        assert!(r.stroke.intersects(r.fill));
+        // The buttons touch neither square nor each other, and sit under them: black and white,
+        // then swap, side by side.
+        for button in [r.defaults, r.swap] {
+            assert!(!button.intersects(r.fill) && !button.intersects(r.stroke));
+            assert!(button.min.y >= r.stroke.max.y);
         }
-        // The stroke is over the fill, and the buttons are under both.
-        assert!(r.stroke.max.y < r.fill.min.y && r.fill.max.y < r.defaults.min.y);
-        // Black and white, then swap, side by side under the swatches.
-        assert!(r.defaults.max.x <= r.swap.min.x && (r.defaults.min.y - r.swap.min.y).abs() < 0.01);
-        assert!(button_side(width) >= 12.0);
+        assert!(!r.defaults.intersects(r.swap));
+        assert!(r.defaults.max.x <= r.swap.min.x);
+        assert!((r.defaults.min.y - r.swap.min.y).abs() < 0.01);
     }
+    // A narrow strip gets the smaller box, a wide one the full size.
+    assert!(Metrics::for_width(34.0).width() < Metrics::for_width(120.0).width());
 }
 
 /// The section in a 40 px wide column at the top left of a roomy window, as in a default strip,
