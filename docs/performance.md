@@ -67,6 +67,13 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
   1.4 ms (7%), converted to YUV in 2.7 ms (14%) and encoded in 15 ms (79%), and the encoder has
   to see the frames in order. `wide` for the conversion would save at most a tenth of an export
   and is not worth a dependency yet.
+- **rtrb** carries sound commands from the window to the audio callback (`flare-platform`): a
+  lock-free queue of 256 commands. The callback owns the mixer outright, takes the commands
+  waiting at the start of each buffer in order, and never waits for anything. Before this the
+  mixer sat behind a mutex the window also took, and a buffer that met the lock held was
+  silent (a dropout). A full queue drops the newest command and returns false rather than make
+  the window wait. One thing is still on the callback thread: a sound that finishes drops its
+  `Arc`, which frees memory only if it was the last owner (the window keeps the decoded sound).
 - **zerocopy, rkyv, encase, half** have no site yet. The project file's records are CBOR,
   compressed with zstd (see architecture.md); at 10 000 shapes the old JSON opened in 31 ms and
   the new records are a seventh the size, so reading numbers in place is not justified by

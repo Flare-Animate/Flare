@@ -1880,6 +1880,7 @@ dependencies = [
  "flare-storage",
  "flare-video",
  "rfd",
+ "rtrb",
  "sys-locale",
  "tempfile",
  "thiserror 2.0.21",
@@ -4750,6 +4751,12 @@ checksum = "9da7f59328b09405b181fee1018925fad50f157afb43c0c0f5c522c256dd5907"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "rtrb"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "342e1478a6e1c839e7405033eabfdc954d4d5dabd39f34e83420a43a95acfb04"
 
 [[package]]
 name = "rusqlite"

@@ -18,11 +18,82 @@ pub enum OutputError {
     Device(String),
 }
 
+/// What the window asks of the sound card, queued without a lock.
+enum Command {
+    Play { audio: Arc<Audio>, delay: u64 },
+    Stop,
+}
+
+/// How many commands can wait for the next buffer. A person cannot start this many sounds in the
+/// few milliseconds between buffers; a full queue drops the newest rather than make anyone wait.
+const QUEUE: usize = 256;
+
+/// The window's end of the queue.
+pub(crate) struct Sender {
+    commands: Mutex<rtrb::Producer<Command>>,
+    rate: u32,
+}
+
+/// The audio callback's end: the mixer, which nothing else touches, and the commands waiting for
+/// it. Rendering takes no lock and waits for nobody, so a sound being started on the window
+/// thread can never make a buffer drop out.
+pub(crate) struct Engine {
+    mixer: Mixer,
+    commands: rtrb::Consumer<Command>,
+}
+
+/// A queue and the engine at its other end, for sound at `rate`.
+pub(crate) fn channel(rate: u32) -> (Sender, Engine) {
+    let (producer, consumer) = rtrb::RingBuffer::new(QUEUE);
+    (
+        Sender {
+            commands: Mutex::new(producer),
+            rate,
+        },
+        Engine {
+            mixer: Mixer::new(rate),
+            commands: consumer,
+        },
+    )
+}
+
+impl Sender {
+    fn push(&self, command: Command) -> bool {
+        // Only the window thread ever takes this lock; the audio callback never sees it.
+        self.commands
+            .lock()
+            .is_ok_and(|mut commands| commands.push(command).is_ok())
+    }
+
+    /// Starts `audio` after `delay_seconds`. False if the queue was full and the sound dropped.
+    pub(crate) fn play(&self, audio: Arc<Audio>, delay_seconds: f64) -> bool {
+        let delay = (delay_seconds.max(0.0) * f64::from(self.rate)) as u64;
+        self.push(Command::Play { audio, delay })
+    }
+
+    pub(crate) fn stop_all(&self) -> bool {
+        self.push(Command::Stop)
+    }
+}
+
+impl Engine {
+    /// Fills `out` (interleaved stereo) with the next buffer: first what was asked since the last
+    /// one, in the order it was asked, then the sound.
+    pub(crate) fn render(&mut self, out: &mut [f32]) {
+        while let Ok(command) = self.commands.pop() {
+            match command {
+                Command::Play { audio, delay } => self.mixer.play(audio, delay),
+                Command::Stop => self.mixer.stop_all(),
+            }
+        }
+        self.mixer.render(out);
+    }
+}
+
 /// Plays sounds on the default output device until dropped. Create it once, on the thread that
 /// owns the window: the stream is not `Send`.
 pub struct Player {
-    mixer: Arc<Mutex<Mixer>>,
-    rate: u32,
+    sender: Sender,
     _stream: cpal::Stream,
 }
 
@@ -39,8 +110,7 @@ impl Player {
         }
         let rate = config.sample_rate().0;
         let channels = usize::from(config.channels()).max(1);
-        let mixer = Arc::new(Mutex::new(Mixer::new(rate)));
-        let callback_mixer = Arc::clone(&mixer);
+        let (sender, mut engine) = channel(rate);
         let mut stereo: Vec<f32> = Vec::new();
         let stream = device
             .build_output_stream(
@@ -48,12 +118,7 @@ impl Player {
                 move |out: &mut [f32], _| {
                     let frames = out.len() / channels;
                     stereo.resize(frames * 2, 0.0);
-                    // Never wait for the UI thread inside the audio callback: if the mixer is
-                    // being changed right now, this buffer is silent.
-                    match callback_mixer.try_lock() {
-                        Ok(mut mixer) => mixer.render(&mut stereo),
-                        Err(_) => stereo.fill(0.0),
-                    }
+                    engine.render(&mut stereo);
                     for (frame, pair) in out.chunks_mut(channels).zip(stereo.chunks(2)) {
                         for (i, slot) in frame.iter_mut().enumerate() {
                             *slot = if i < 2 { pair[i] } else { 0.0 };
@@ -68,18 +133,14 @@ impl Player {
             .play()
             .map_err(|e| OutputError::Device(e.to_string()))?;
         Ok(Self {
-            mixer,
-            rate,
+            sender,
             _stream: stream,
         })
     }
 
     /// Starts `audio` after `delay_seconds`.
     pub fn play(&self, audio: Arc<Audio>, delay_seconds: f64) {
-        let delay = (delay_seconds.max(0.0) * f64::from(self.rate)) as u64;
-        if let Ok(mut mixer) = self.mixer.lock() {
-            mixer.play(audio, delay);
-        }
+        self.sender.play(audio, delay_seconds);
     }
 
     /// Carries out what a front end asked for.
@@ -96,8 +157,10 @@ impl Player {
     }
 
     pub fn stop_all(&self) {
-        if let Ok(mut mixer) = self.mixer.lock() {
-            mixer.stop_all();
-        }
+        self.sender.stop_all();
     }
 }
+
+#[cfg(test)]
+#[path = "audio_tests.rs"]
+mod tests;

@@ -151,7 +151,8 @@ vello_cpu = { version = "0.3.0", features = ["multithreading"] } # Selected CPU 
 # ---- CPU workers and asynchronous application services -----------------------
 rayon = "1"                 # Data parallelism inside one background job (GIF frames), on a pool that leaves a core for the window.
 tokio = { version = "1", default-features = false }
-# crossbeam-channel/rtrb: bounded communication only at justified boundaries.
+rtrb = "0.3"                # A lock-free queue from the window thread to the audio callback, which must never wait.
+# crossbeam-channel: bounded communication only at justified boundaries.
 
 # ---- Audio ---------------------------------------------------------------------
 symphonia = { version = "0.5", default-features = false, features = ["wav", "mp3", "ogg", "vorbis", "flac", "pcm"] }
