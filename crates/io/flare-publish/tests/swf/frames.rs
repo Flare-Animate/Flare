@@ -1,29 +1,26 @@
 use super::*;
 
 #[test]
-fn the_display_list_matches_the_evaluator_frame_by_frame() {
+fn the_played_movie_matches_the_evaluator_frame_by_frame() {
     let doc = animated();
     let parsed = parse(
         &publish_swf(&doc, &PublishOptions::default())
             .expect("publish")
             .bytes,
     );
-    let lists = display_lists(&parsed.tags);
+    let played = play(&parsed);
     let scene = doc.scenes()[0].id();
-    for (frame, list) in lists.iter().enumerate() {
+    assert_eq!(played.len(), 10);
+    for (frame, flat) in played.iter().enumerate() {
         let evaluated = flare_eval::evaluate_frame(&doc, scene, frame as u32).expect("eval");
         assert_eq!(
-            list.len(),
+            flat.shapes.len(),
             evaluated.shapes.len(),
-            "frame {frame}: same number of objects"
+            "frame {frame}: same number of shapes"
         );
-        for ((depth, placed), drawn) in list.iter().zip(&evaluated.shapes) {
-            assert_eq!(
-                usize::from(*depth),
-                list.iter().position(|(d, _)| d == depth).expect("pos") + 1
-            );
+        for (placed, drawn) in flat.shapes.iter().zip(&evaluated.shapes) {
             let (got, want) = (
-                to_affine(&placed.matrix).to_cols_array(),
+                placed.transform.to_cols_array(),
                 drawn.transform.to_cols_array(),
             );
             for (g, w) in got.iter().zip(want) {
@@ -391,9 +388,10 @@ fn a_mask_of_several_shapes_is_reported_and_leaves_the_layer_unmasked() {
         "{:?}",
         published.diagnostics
     );
+    // The art is the lower of two layers, so it is at depth 2; nothing clips it.
     assert_eq!(
         first_frame_places(&parse(&published.bytes)),
-        vec![(1, None)]
+        vec![(2, None)]
     );
 }
 
@@ -413,8 +411,7 @@ fn scenes_play_in_sequence_with_a_warning() {
     let published = publish_swf(&doc, &PublishOptions::default()).expect("publish");
     assert_eq!(published.frames, 5);
     let parsed = parse(&published.bytes);
-    let lists = display_lists(&parsed.tags);
-    assert_eq!(lists.len(), 5);
+    assert_eq!(play(&parsed).len(), 5);
     let background = doc.stage().background();
     assert_eq!(
         render_swf_frame(&parsed, 1, background).pixel(5, 5),

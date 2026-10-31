@@ -8,7 +8,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 | M1 source model and safe editing | Typed IDs, validated document, atomic edits, undo/redo, headless CLI | Done |
 | M2 usable vertical slice | Draw, convert to symbol, instances, tween, scrub/play, save/reopen, PNG export, one modern workspace | Done in code; needs hands-on checking (see below) |
 | M3 FLA/XFL compatibility and automation | Raw source IR, modern XFL/FLA subset, unknown-data preservation, MCP over stdio | MCP, XFL import, XFL export and element-level source preservation done (checked against fixtures and each other only, never against Animate) |
-| M4 Test Movie and advanced features | Hosted Ruffle playback, SWF publishing, richer text/audio, advanced tweens and masks | SWF publishing (baked frames) and Test Movie through an external Ruffle process done and tested without a real player; richer text/audio and masks not started |
+| M4 Test Movie and advanced features | Hosted Ruffle playback, SWF publishing, richer text/audio, advanced tweens and masks | SWF publishing (symbols kept as sprites, tweens baked) and Test Movie through an external Ruffle process done and tested without a real player; richer text/audio and masks not started |
 | M5 hardening | Long sessions, crash recovery, packaging, accessibility, corpus expansion | Partly: crash recovery and fault-injection tests done; packaging, accessibility and long-session profiling not started |
 
 ## Required before a release (the maintainer's bar)
@@ -20,7 +20,7 @@ If drawing, exporting and playing do not all work well, Flare is not released. W
 3. **Merge drawing**: Flash's planar-map shapes, where overlapping shapes cut and merge each other and strokes and fills are edited separately. The largest gap in [parity.md](parity.md) and a change to the document model, not a feature on top of it.
 4. **Camera**: a camera layer and tool whose keyframed position, zoom and rotation drive the stage view and every export.
 5. **Timeline controls** good enough to animate with, and **Ruffle** playback proven against a real player.
-6. **SWF that keeps its symbols**: publishing today bakes every frame (tweens and symbols are flattened). A published movie should keep symbols as sprites, buttons as buttons and tweens as tweens (`DefineSprite`, `DefineButton2`, `DefineMorphShape`), so a SWF made by Flare plays and edits like one made by Animate.
+6. **SWF that keeps its symbols**: symbols are published as sprites, each on the clock its playback says, and a real Ruffle plays them as Flare does (done). Still to do: buttons as buttons with their states (`DefineButton2`; today a Button is a sprite showing its Up state), shape tweens as morphs (`DefineMorphShape`; today each step is its own shape), masks of several shapes, and sounds inside symbols. The HTML5 page is still baked.
 7. **Sharing the way Animate does it**: its Share menu logs in to YouTube and Twitter and uploads the exported video itself. That needs each service's API with credentials the project registers (YouTube is the practical first, now that MP4 exists); only Twitter's button is live (it fills in the post); the others are dimmed until then.
 
 ## M2 remaining

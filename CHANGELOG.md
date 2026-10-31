@@ -7,6 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Added
+- SWF publishing keeps symbols: each becomes a sprite defined once, each instance a placement of it, with the clock its playback says (a looping Graphic and a Movie Clip loop, a Graphic that plays once ends on `stop()`, a held frame is one frame, a Button shows its Up state, and a new span starts the symbol again). Real Ruffle plays the result on the clocks Flare predicts. Tweens are still baked.
 - French is an interface language (Preferences > General > Language, and followed from a French system), and the README is translated into every interface language, with a test that keeps the two lists together.
 - `flare export --format gif` (the command line is now `flare`; the crate is still `flare-cli`), and MCP tools `export_gif`, `publish_swf`, `publish_html5`, `export_xfl` and `import_project`: they write into the export directory only, never overwrite, and report what the format could not hold. The MCP server now has every export the CLI has except MP4.
 - The Polygon lasso (in the Lasso cell): click the corners of a loop, then double-click, press Enter or click the first corner to select what it encloses; Shift adds to the selection and Escape drops the loop.

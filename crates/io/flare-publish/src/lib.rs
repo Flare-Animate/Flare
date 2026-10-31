@@ -1,14 +1,15 @@
 //! Publishes a Flare document as a SWF file.
 //!
-//! A SWF has one timeline of characters and placements, whereas a Flare document has symbols,
-//! tweens and scenes. Publishing therefore *bakes* each frame with the same evaluator the
-//! editor uses: tweens become per-frame matrices, symbol instances are flattened into their
-//! shapes, and scenes are played one after another. The result plays the same pictures but
-//! has no symbols or runtime behaviour. It is encoded by the `swf` crate from the Ruffle
-//! project and checked in tests by parsing it back with that crate's reader; it has not been
-//! played in Flash Player or Ruffle.
+//! A SWF has one timeline of characters and placements, whereas a Flare document has scenes and
+//! tweens. Publishing keeps the symbols: each one becomes a sprite, defined once, and each
+//! instance a placement of it, with the evaluator's own rules for where it is and which of its
+//! frames shows. Tweens are baked: a motion tween becomes a position for each frame and a shape
+//! tween a shape for each frame. Scenes are played one after another. The result is encoded by
+//! the `swf` crate from the Ruffle project and checked in tests by playing it back with that
+//! crate's reader and comparing the pictures with Flare's own render.
 #![forbid(unsafe_code)]
 
+mod builder;
 mod file;
 mod html5;
 mod shapes;
@@ -23,7 +24,7 @@ use flare_core::ShapeId;
 use flare_document::Document;
 use swf::{
     Color, Compression, Fixed8, Fixed16, Header, Matrix, PlaceObject, PlaceObjectAction, Rectangle,
-    RemoveObject, Tag, Twips,
+    Tag, Twips,
 };
 use thiserror::Error;
 
@@ -57,6 +58,10 @@ pub enum PublishError {
     StageTooLarge,
     #[error("the document has more distinct shapes than a SWF can number (at most {MAX_SHAPES})")]
     TooManyShapes,
+    #[error("a timeline has {0} layers; a SWF has depths for at most 16000")]
+    TooManyLayers(usize),
+    #[error("symbols hold symbols more than 32 deep")]
+    SymbolsTooDeep,
     #[error("evaluating frame {frame}: {message}")]
     Evaluate { frame: u32, message: String },
     #[error("writing the SWF: {0}")]
@@ -105,15 +110,6 @@ fn matrix(m: glamx::DAffine2) -> Matrix {
     }
 }
 
-/// What is on screen at one depth.
-#[derive(Clone, PartialEq)]
-struct Placed {
-    character: swf::CharacterId,
-    matrix: Matrix,
-    /// Makes this a clip layer for the depths above it up to this one.
-    clip_depth: Option<u16>,
-}
-
 /// The shapes defined so far: each distinct drawing is defined once, the first time it appears.
 struct Characters {
     known: HashMap<(ShapeId, u64), Option<swf::CharacterId>>,
@@ -122,6 +118,16 @@ struct Characters {
 }
 
 impl Characters {
+    /// The next character id, for something other than a shape.
+    fn take(&mut self) -> Result<swf::CharacterId, PublishError> {
+        if self.next == swf::CharacterId::MAX {
+            return Err(PublishError::TooManyShapes);
+        }
+        let id = self.next;
+        self.next = self.next.saturating_add(1);
+        Ok(id)
+    }
+
     /// The character that draws `shape`, or `None` when it draws nothing. A step of a shape
     /// tween has its shape's identity, so `phase` tells the steps apart.
     fn define<'a>(
@@ -150,7 +156,7 @@ impl Characters {
     }
 }
 
-fn place(
+pub(crate) fn place(
     depth: u16,
     action: PlaceObjectAction,
     matrix: Option<Matrix>,
@@ -204,8 +210,9 @@ pub fn publish_swf(
     }
     diagnostics.push(Diagnostic {
         severity: Severity::Info,
-        message: "frames were baked: tweens became per-frame positions and symbols were flattened"
-            .into(),
+        message:
+            "tweens were baked into per-frame positions and shapes; symbols are kept as sprites"
+                .into(),
     });
     if stage.background().a != 255 {
         diagnostics.push(Diagnostic {
@@ -233,122 +240,44 @@ pub fn publish_swf(
     } = sound::define(document, 1, sound::MAX_SAMPLES);
     diagnostics.append(&mut sound_diagnostics);
     tags.extend(defined_sounds.iter().map(sound::Defined::tag));
-    let mut characters = Characters {
+    let characters = Characters {
         known: HashMap::new(),
         next: next_character,
         approximated: false,
     };
-    let mut unmasked = false;
-    let mut on_screen: Vec<Placed> = Vec::new();
+    let mut builder = builder::Builder::new(document, characters);
+    let mut display = builder::Display::default();
+    let mut frame_tags: Vec<Tag<'_>> = Vec::new();
     let mut frames = 0_u32;
 
     for scene in document.scenes() {
         let length = u32::try_from(scene.timeline().frame_count().max(1)).unwrap_or(u32::MAX);
         for frame in 0..length {
-            let evaluated =
-                flare_eval::evaluate_frame(document, scene.id(), frame).map_err(|e| {
-                    PublishError::Evaluate {
-                        frame: frames,
-                        message: e.to_string(),
-                    }
-                })?;
-
-            let mut now: Vec<Placed> = Vec::new();
-            let drawn = &evaluated.shapes;
-            let mut start = 0;
-            while start < drawn.len() {
-                // A run of shapes under the same masks shares them.
-                let masks = &drawn[start].clips;
-                let end = start
-                    + drawn[start..]
-                        .iter()
-                        .take_while(|d| d.clips == *masks)
-                        .count();
-                let mut run: Vec<Placed> = Vec::new();
-                for shape in &drawn[start..end] {
-                    if let Some(character) =
-                        characters.define(&mut tags, &shape.shape, shape.phase)?
-                    {
-                        run.push(Placed {
-                            character,
-                            matrix: matrix(shape.transform),
-                            clip_depth: None,
-                        });
-                    }
-                }
-                match masks.as_slice() {
-                    [] => now.append(&mut run),
-                    // A clip layer covers the depths above it up to its `clip_depth`, so a mask
-                    // of one shape goes just under its run. Several shapes or several masks
-                    // would need their union or intersection, which depths cannot say.
-                    [mask] if evaluated.clips[*mask].len() == 1 => {
-                        let member = &evaluated.clips[*mask][0];
-                        // A mask that draws nothing hides everything under it.
-                        if let Some(character) =
-                            characters.define(&mut tags, &member.shape, member.phase)?
-                            && !run.is_empty()
-                        {
-                            let last = now.len() + run.len() + 1;
-                            now.push(Placed {
-                                character,
-                                matrix: matrix(member.transform),
-                                clip_depth: Some(u16::try_from(last).unwrap_or(u16::MAX)),
-                            });
-                            now.append(&mut run);
-                        }
-                    }
-                    _ => {
-                        unmasked = true;
-                        now.append(&mut run);
-                    }
-                }
-                start = end;
+            for tag in builder.show(&mut display, scene.timeline(), frame)? {
+                frame_tags.push(tag);
             }
-
-            // Bring the display list from `on_screen` to `now` with the fewest tags.
-            for (index, target) in now.iter().enumerate() {
-                let depth = u16::try_from(index + 1).unwrap_or(u16::MAX);
-                match on_screen.get(index) {
-                    Some(old) if old == target => {}
-                    Some(old)
-                        if old.character == target.character
-                            && old.clip_depth == target.clip_depth =>
-                    {
-                        tags.push(place(
-                            depth,
-                            PlaceObjectAction::Modify,
-                            Some(target.matrix),
-                            None,
-                        ));
-                    }
-                    Some(_) => tags.push(place(
-                        depth,
-                        PlaceObjectAction::Replace(target.character),
-                        Some(target.matrix),
-                        target.clip_depth,
-                    )),
-                    None => tags.push(place(
-                        depth,
-                        PlaceObjectAction::Place(target.character),
-                        Some(target.matrix),
-                        target.clip_depth,
-                    )),
-                }
-            }
-            for index in now.len()..on_screen.len() {
-                let depth = u16::try_from(index + 1).unwrap_or(u16::MAX);
-                tags.push(Tag::RemoveObject(RemoveObject {
-                    depth,
-                    character_id: None,
-                }));
-            }
-            on_screen = now;
             for start in sound_starts.remove(&frames).unwrap_or_default() {
-                tags.push(Tag::StartSound(start));
+                frame_tags.push(Tag::StartSound(start));
             }
-            tags.push(Tag::ShowFrame);
+            frame_tags.push(Tag::ShowFrame);
             frames += 1;
         }
+    }
+    let builder::Builder {
+        defs,
+        characters,
+        unmasked,
+        buttons,
+        ..
+    } = builder;
+    // Everything is defined before the first frame uses it.
+    tags.extend(defs);
+    tags.extend(frame_tags);
+    if buttons {
+        diagnostics.push(Diagnostic {
+            severity: Severity::Info,
+            message: "buttons were written as sprites showing their Up state".into(),
+        });
     }
     if unmasked {
         diagnostics.push(Diagnostic {

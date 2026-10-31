@@ -152,7 +152,8 @@ enum Command {
     Import { source: PathBuf, out: PathBuf },
     /// Export a project as an XFL folder, or a zipped .fla when OUT ends in .fla.
     ExportXfl { path: PathBuf, out: PathBuf },
-    /// Publish a project as a SWF. Frames are baked (tweens and symbols are flattened).
+    /// Publish a project as a SWF. Symbols are kept as sprites; tweens are baked into per-frame
+    /// positions and shapes.
     PublishSwf {
         path: PathBuf,
         out: PathBuf,

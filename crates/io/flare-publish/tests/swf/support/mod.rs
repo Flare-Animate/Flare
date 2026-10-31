@@ -11,15 +11,16 @@ use flare_document::{
 };
 use flare_publish::{PublishOptions, publish_swf};
 use glamx::{DAffine2, DVec2};
-use std::collections::HashMap;
 use std::num::NonZeroU32;
-use swf::{PlaceObjectAction, Tag};
+use swf::Tag;
 
 mod geometry;
+mod player;
 
 #[allow(unused_imports)]
 use geometry::*;
 pub use geometry::{original_contains, rebuild, segments, swf_fill_at, to_affine};
+pub use player::{play, render_swf_frame};
 
 // ---- building documents ---------------------------------------------------------------
 
@@ -162,6 +163,15 @@ pub fn owned_tags(tags: Vec<Tag<'_>>) -> Vec<Tag<'static>> {
     tags.into_iter()
         .filter_map(|tag| match tag {
             Tag::DefineShape(shape) => Some(Tag::DefineShape(shape)),
+            Tag::DefineSprite(sprite) => Some(Tag::DefineSprite(swf::Sprite {
+                id: sprite.id,
+                num_frames: sprite.num_frames,
+                tags: owned_tags(sprite.tags),
+            })),
+            // Leaked like the sound data, so the tag outlives the buffer.
+            Tag::DoAction(bytes) => {
+                Some(Tag::DoAction(Box::leak(bytes.to_vec().into_boxed_slice())))
+            }
             Tag::RemoveObject(r) => Some(Tag::RemoveObject(r)),
             Tag::ShowFrame => Some(Tag::ShowFrame),
             Tag::StartSound(start) => Some(Tag::StartSound(start)),
@@ -197,89 +207,6 @@ pub fn owned_tags(tags: Vec<Tag<'_>>) -> Vec<Tag<'static>> {
             _ => None,
         })
         .collect()
-}
-
-#[derive(Clone)]
-pub struct OnScreen {
-    pub character: u16,
-    pub matrix: swf::Matrix,
-}
-
-/// Plays the display list and returns what is on screen after each ShowFrame, bottom first.
-pub fn display_lists(tags: &[Tag<'static>]) -> Vec<Vec<(u16, OnScreen)>> {
-    let mut depths: std::collections::BTreeMap<u16, OnScreen> = std::collections::BTreeMap::new();
-    let mut frames = Vec::new();
-    for tag in tags {
-        match tag {
-            Tag::PlaceObject(p) => match p.action {
-                PlaceObjectAction::Place(c) | PlaceObjectAction::Replace(c) => {
-                    let matrix = p.matrix.unwrap_or(swf::Matrix::IDENTITY);
-                    depths.insert(
-                        p.depth,
-                        OnScreen {
-                            character: c,
-                            matrix,
-                        },
-                    );
-                }
-                PlaceObjectAction::Modify => {
-                    let entry = depths.get_mut(&p.depth).expect("Modify of an empty depth");
-                    if let Some(m) = p.matrix {
-                        entry.matrix = m;
-                    }
-                }
-                PlaceObjectAction::None => {
-                    panic!(
-                        "a placement with neither a character nor the move flag is never written"
-                    )
-                }
-            },
-            Tag::RemoveObject(r) => {
-                depths
-                    .remove(&r.depth)
-                    .expect("RemoveObject of an empty depth");
-            }
-            Tag::ShowFrame => frames.push(depths.iter().map(|(d, o)| (*d, o.clone())).collect()),
-            _ => {}
-        }
-    }
-    frames
-}
-
-/// Re-renders frame `index` of the SWF from what the reader decoded.
-pub fn render_swf_frame(parsed: &Parsed, index: usize, background: Rgba8) -> flare_render::Image {
-    let mut by_character: HashMap<u16, Vec<Shape>> = HashMap::new();
-    for tag in &parsed.tags {
-        if let Tag::DefineShape(shape) = tag {
-            by_character.insert(shape.id, rebuild(shape));
-        }
-    }
-    let list = &display_lists(&parsed.tags)[index];
-    let mut drawn = Vec::new();
-    for (_, placed) in list {
-        for shape in &by_character[&placed.character] {
-            drawn.push(flare_eval::DrawnShape {
-                path: Vec::new(),
-                shape: std::borrow::Cow::Borrowed(shape),
-                phase: 0,
-                transform: to_affine(&placed.matrix),
-                clips: Vec::new(),
-                outline: flare_document::OUTLINE_PALETTE[0],
-            });
-        }
-    }
-    let frame = flare_eval::Frame {
-        placed: Vec::new(),
-        shapes: drawn,
-        clips: Vec::new(),
-    };
-    flare_render::render(
-        &frame,
-        (parsed.stage.0 / 20) as u32,
-        (parsed.stage.1 / 20) as u32,
-        background,
-    )
-    .expect("render")
 }
 
 pub fn render_original(document: &Document, scene: usize, frame: u32) -> flare_render::Image {
@@ -329,19 +256,11 @@ pub fn the_header_stage_frame_rate_background_and_frame_count_are_right() {
     );
 }
 
+/// One layer that shows a different shape in each of `count` frames.
 pub fn document_of_distinct_shapes(count: u32) -> Document {
-    let layers: Vec<Layer> = (0..count)
-        .map(|i| {
-            layer(
-                &format!("L{i}"),
-                vec![span(
-                    0,
-                    1,
-                    Content::Shape(rect(0.0, 0.0, 1.0, 1.0, Rgba8::WHITE)),
-                )],
-            )
-        })
+    let spans: Vec<FrameSpan> = (0..count)
+        .map(|i| span(i, 1, Content::Shape(rect(0.0, 0.0, 1.0, 1.0, Rgba8::WHITE))))
         .collect();
-    let scene = Scene::new(SceneId::new(), "S", Timeline::new(layers));
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer("L", spans)]));
     document(10, 10, vec![scene], vec![])
 }

@@ -29,7 +29,7 @@ Executables are in `apps/`. The folders mean:
 | io | `flare-storage` | The `.flare` SQLite container with compressed CBOR records: save, load, revalidation, crash recovery files. |
 | io | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
 | io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
-| io | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
+| io | `flare-publish` | SWF publishing: a document as a SWF with its symbols kept as sprites and its tweens baked, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
 | adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
@@ -233,11 +233,20 @@ Animate opens them is untested. Source preservation of unknown data is not imple
 
 `flare publish-swf <project> <out.swf>` writes a SWF (zlib-compressed unless
 `--no-compress`). It never overwrites, and the file appears only when complete. A SWF has
-one timeline of shapes and placements, so publishing *bakes* each frame with the same
-evaluator the editor uses: tweens become per-frame matrices, symbol instances are flattened
-into their shapes, hidden layers are left out, and scenes play one after another (reported).
-The result shows the same pictures but has no symbols or runtime behaviour, which is a
-different job from Test Movie playback.
+one timeline of characters and placements, so publishing keeps what a SWF can hold and bakes
+the rest, with the editor's own evaluator (`flare_eval::evaluate_level`, one timeline a level at
+a time). Every symbol becomes a `DefineSprite`, defined once however many instances there are,
+and every instance a placement of it; each layer has a depth of its own and only what changed
+is written from one frame to the next. A sprite plays by its own clock, so each symbol is
+published the way its playback says: a Movie Clip and a looping Graphic loop (starting at the
+instance's first frame), a Graphic that plays once ends on a `stop()`, a Graphic that holds a
+frame is a one-frame sprite, and a Button is a one-frame sprite showing its Up state
+(reported). A new span of an instance is a new object, so the symbol starts again. Tweens are
+baked into a position or a shape for each frame, hidden layers are left out, and scenes play
+one after another (reported). Real Ruffle plays the result on the clocks Flare predicts
+(`flare-ruffle`'s render test), and a small SWF player in `flare-publish`'s tests checks the
+same for every kind of symbol. Buttons that react to the pointer (`DefineButton2`) and shape
+tweens kept as morphs (`DefineMorphShape`) are not written yet.
 
 Each distinct shape becomes one `DefineShape4`, defined the first time it appears. SWF
 shapes hold only lines and quadratic curves, so cubics are approximated within 0.05 px. Which

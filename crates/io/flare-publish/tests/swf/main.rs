@@ -13,5 +13,6 @@ mod frames;
 mod shapes;
 mod sounds;
 mod support;
+mod symbols;
 
 use support::*;

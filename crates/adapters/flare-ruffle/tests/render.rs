@@ -7,7 +7,10 @@
 
 use clap::Parser;
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId};
-use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Stage, Timeline};
+use flare_document::{
+    Content, Document, FrameSpan, Instance, Layer, PlayMode, Playback, Scene, Shape, Stage, Symbol,
+    SymbolKind, Timeline,
+};
 use flare_publish::{PublishOptions, publish_swf};
 use std::num::NonZeroU32;
 
@@ -49,13 +52,16 @@ fn document() -> Document {
     .with_stage(Stage::new(WIDTH, HEIGHT, Rgba8::opaque(250, 250, 250)).expect("stage"))
 }
 
-/// Ruffle's picture of frame 0 of `swf`, as RGBA rows.
-fn ruffle_draws(swf: &std::path::Path, png_path: &std::path::Path) -> Vec<u8> {
+/// Ruffle's picture of frame `skip` of `swf`, as RGBA rows.
+fn ruffle_draws(swf: &std::path::Path, png_path: &std::path::Path, skip: u32) -> Vec<u8> {
+    let skip = skip.to_string();
     let options = exporter::cli::Opt::parse_from([
         "exporter".as_ref(),
         swf.as_os_str(),
         png_path.as_os_str(),
         "--silent".as_ref(),
+        "--skipframes".as_ref(),
+        skip.as_ref(),
     ]);
     exporter::run_main(options).expect("Ruffle exports the frame");
     let decoder = png::Decoder::new(std::io::BufReader::new(
@@ -71,14 +77,20 @@ fn ruffle_draws(swf: &std::path::Path, png_path: &std::path::Path) -> Vec<u8> {
 
 /// Publishes `doc`, has Ruffle draw frame 0, and returns that with Flare's own drawing of `compare`.
 fn both(doc: &Document, compare: &Document) -> (Vec<u8>, flare_render::Image) {
+    both_at(doc, compare, 0)
+}
+
+/// [`both`] for a frame other than the first.
+fn both_at(doc: &Document, compare: &Document, frame: u32) -> (Vec<u8>, flare_render::Image) {
     let published = publish_swf(doc, &PublishOptions::default()).expect("publish");
     let dir = tempfile::tempdir().expect("dir");
     let swf = dir.path().join("movie.swf");
     std::fs::write(&swf, &published.bytes).expect("write");
-    let theirs = ruffle_draws(&swf, &dir.path().join("frame.png"));
-    let frame = flare_eval::evaluate_frame(compare, compare.scenes()[0].id(), 0).expect("frame");
-    let ours =
-        flare_render::render(&frame, WIDTH, HEIGHT, compare.stage().background()).expect("draw");
+    let theirs = ruffle_draws(&swf, &dir.path().join("frame.png"), frame);
+    let evaluated =
+        flare_eval::evaluate_frame(compare, compare.scenes()[0].id(), frame).expect("frame");
+    let ours = flare_render::render(&evaluated, WIDTH, HEIGHT, compare.stage().background())
+        .expect("draw");
     (theirs, ours)
 }
 
@@ -205,9 +217,93 @@ fn the_comparison_fails_for_a_different_picture() {
     let dir = tempfile::tempdir().expect("dir");
     let swf = dir.path().join("movie.swf");
     std::fs::write(&swf, &published.bytes).expect("write");
-    let theirs = ruffle_draws(&swf, &dir.path().join("frame.png"));
+    let theirs = ruffle_draws(&swf, &dir.path().join("frame.png"), 0);
     let frame = flare_eval::evaluate_frame(&light, light.scenes()[0].id(), 0).expect("frame");
     let ours =
         flare_render::render(&frame, WIDTH, HEIGHT, light.stage().background()).expect("draw");
     assert!(difference(&ours, &theirs) > 50.0);
+}
+
+/// Three rows of one symbol of three colored frames, each playing it a different way, and each
+/// starting again after a gap.
+fn symbols() -> Document {
+    let steps = |kind| {
+        let square = |x: f64, c: Rgba8| {
+            Content::Shape(Shape::rect(ShapeId::new(), x, 0.0, 20.0, 20.0, c).expect("rect"))
+        };
+        let frame = |at: u32, content| FrameSpan::new(at, NonZeroU32::MIN, content);
+        let layer = Layer::new(
+            LayerId::new(),
+            "L",
+            vec![
+                frame(0, square(0.0, Rgba8::opaque(220, 30, 30))),
+                frame(1, square(30.0, Rgba8::opaque(30, 160, 60))),
+                frame(2, square(60.0, Rgba8::opaque(30, 60, 220))),
+            ],
+        )
+        .expect("layer");
+        Symbol::new(
+            flare_core::SymbolId::new(),
+            "Steps",
+            Timeline::new(vec![layer]),
+        )
+        .with_kind(kind)
+    };
+    let (graphic, clip) = (steps(SymbolKind::Graphic), steps(SymbolKind::MovieClip));
+    let row = |symbol: &Symbol, y: f64, playback: Playback| {
+        let place = |start: u32| {
+            let at = flare_core::Transform2D::new(glamx::DAffine2::from_translation(
+                glamx::DVec2::new(0.0, y),
+            ))
+            .expect("finite");
+            FrameSpan::new(
+                start,
+                NonZeroU32::new(5).expect("nonzero"),
+                Content::Instance(
+                    Instance::new(flare_core::InstanceId::new(), symbol.id(), at)
+                        .with_playback(playback),
+                ),
+            )
+        };
+        Layer::new(LayerId::new(), "row", vec![place(0), place(6)]).expect("layer")
+    };
+    let rows = vec![
+        row(&graphic, 0.0, Playback::default()),
+        row(
+            &graphic,
+            25.0,
+            Playback {
+                mode: PlayMode::PlayOnce,
+                first_frame: 1,
+            },
+        ),
+        row(&clip, 50.0, Playback::default()),
+    ];
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(rows));
+    Document::new(
+        DocumentId::new(),
+        FrameRate::new(12, 1).expect("rate"),
+        vec![scene],
+        vec![graphic, clip],
+    )
+    .expect("document")
+    .with_stage(Stage::new(WIDTH, HEIGHT, Rgba8::opaque(250, 250, 250)).expect("stage"))
+}
+
+#[test]
+fn ruffle_plays_the_published_symbols_on_the_clocks_flare_gives_them() {
+    let doc = symbols();
+    let mut seen = Vec::new();
+    for frame in [0, 1, 2, 3, 4, 6, 7, 8, 9, 10] {
+        let (theirs, ours) = both_at(&doc, &doc, frame);
+        let mean = difference(&ours, &theirs);
+        assert!(
+            mean < 1.0,
+            "frame {frame}: the pictures differ by {mean} per channel on average"
+        );
+        seen.push(ours.rgba().to_vec());
+    }
+    // The test could not tell a stopped clock from a running one if every frame were alike.
+    assert_ne!(seen[0], seen[1], "the symbols move from frame to frame");
+    assert_ne!(seen[1], seen[2]);
 }

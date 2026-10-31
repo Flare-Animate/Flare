@@ -35,6 +35,7 @@ flare-audio.workspace = true
 flare-core.workspace = true
 flare-eval.workspace = true
 flare-render.workspace = true
+glamx.workspace = true
 swf.workspace = true
 clap.workspace = true
 png.workspace = true

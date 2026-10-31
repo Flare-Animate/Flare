@@ -58,7 +58,7 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Publish the project as a SWF in the export directory. Frames are baked: tweens and symbols are flattened."
+        description = "Publish the project as a SWF in the export directory. Symbols are kept as sprites; tweens are baked into per-frame positions and shapes."
     )]
     fn publish_swf(&self, Parameters(args): Parameters<PublishSwf>) -> Outcome {
         self.read(|state| {
