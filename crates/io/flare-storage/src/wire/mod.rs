@@ -17,7 +17,7 @@ use attachment::*;
 pub(crate) use settings::Settings;
 #[allow(unused_imports)]
 use settings::*;
-pub(crate) use sound::SoundWire;
+pub(crate) use sound::SoundMeta;
 #[allow(unused_imports)]
 use sound::*;
 #[allow(unused_imports)]

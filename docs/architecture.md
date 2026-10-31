@@ -26,7 +26,7 @@ Executables are in `apps/`. The folders mean:
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
 | editing | `flare-tools` | What the tools compute with no window: handle geometry, the pen's paths, freehand smoothing, pressure-sensitive brush outlines, and selection operations that turn a gesture into commands. |
-| io | `flare-storage` | The `.flare` SQLite container: save, load, revalidation, crash recovery files. |
+| io | `flare-storage` | The `.flare` SQLite container with compressed CBOR records: save, load, revalidation, crash recovery files. |
 | io | `flare-import` | XFL import: XFL directories and zipped modern `.fla` files into a Flare document, with a diagnostic for everything it cannot carry over. |
 | io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | io | `flare-publish` | SWF publishing: a document as a baked SWF, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
@@ -125,15 +125,29 @@ affects exports.
 ## Storage
 
 A `.flare` file is a SQLite database (`application_id` "FLAR", `user_version` 1) with a
-`project` row and an `entity` table of scene and symbol payloads (JSON, versioned). The
-format is a draft and not stable: do not ship user documents before migration, recovery
-and fault-injection tests exist.
+`project` row (frame rate, stage) and an `entity` table with one row for each scene, symbol,
+sound and source attachment. A row's payload is the record's fields as CBOR, compressed with zstd
+(level 3, 256 KiB window, content size and checksum) when that is smaller, beside the record's
+`codec`, its uncompressed `size` and the BLAKE3 `digest` of the stored bytes. A sound is one
+record too: the length of its fields, the fields as CBOR, then the audio file as its own bytes,
+not as text.
+
+The database is arranged to cost little: 1 KiB pages and an `entity` table without a second
+index (`WITHOUT ROWID`), so an empty project is about 2 KiB and a large one about 1% over its
+compressed records. Measured on a generated animation of 6,000 shapes, this is 1.0 MB where the
+JSON in text columns was 7.3 MB; with a megabyte of sound, 0.96 MB against 3.8 MB. A raw binary
+container of our own with the same records came out within 1% to 4% of that, which did not
+justify giving up SQLite's atomic writes and the ability to open a project in any SQLite tool.
 
 - Save writes a complete staged database next to the target and renames it into place, so a
   failed save leaves the previous file intact. The directory is not fsynced after the rename.
-- Load treats the file as untrusted: defensive SQLite settings, schema trust off, entity and
-  payload size limits, a version check that refuses newer files, and full revalidation.
-- Older files load with defaults for fields added later (stage, layer flags, strokes).
+- Load treats the file as untrusted: defensive SQLite settings, schema trust off, a version check
+  that refuses other versions, the entity count limited, each record's digest checked before it is
+  decoded, its stated size limited before anything is allocated and the decompressor held to that
+  size and to the window the writer uses (so a record cannot be a decompression bomb), CBOR
+  nesting limited, and full revalidation through the document's constructors.
+- There is one version of the format. Files made before the records were compressed (JSON in
+  text columns) are not read.
 
 ## Crash recovery
 

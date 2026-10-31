@@ -65,19 +65,10 @@ fn non_flare_and_truncated_files_are_rejected() {
 }
 
 #[test]
-fn files_without_a_stage_load_with_the_default_and_bad_stages_are_rejected() {
+fn a_stage_that_cannot_exist_is_refused() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     save(&sample(), &path).expect("save");
-    let conn = Connection::open(&path).expect("open");
-    conn.execute(
-        "UPDATE project SET settings_json = '{\"frame_rate\":[30000,1001]}'",
-        [],
-    )
-    .expect("strip stage");
-    drop(conn);
-    assert_eq!(load(&path).expect("legacy load").stage(), Stage::default());
-
     let conn = Connection::open(&path).expect("open");
     conn.execute(
         "UPDATE project SET settings_json = '{\"frame_rate\":[24,1],\"stage\":{\"width\":0,\"height\":5,\"background\":[0,0,0,0]}}'",
@@ -89,63 +80,26 @@ fn files_without_a_stage_load_with_the_default_and_bad_stages_are_rejected() {
 }
 
 #[test]
-fn legacy_layers_without_flags_load_visible_and_unlocked() {
+fn strokes_are_revalidated_and_a_shape_may_have_none() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     save(&sample(), &path).expect("save");
-    assert!(!load(&path).expect("load").scenes()[0].timeline().layers()[0].is_visible());
-    let conn = Connection::open(&path).expect("open");
-    conn.execute(
-        "UPDATE entity SET payload_json = replace(replace(payload_json, '\"visible\":', '\"v\":'), '\"locked\":', '\"l\":')",
-        [],
-    )
-    .expect("strip flags");
-    drop(conn);
-    let layer = &load(&path).expect("legacy load").scenes()[0]
-        .timeline()
-        .layers()[0]
-        .clone();
-    assert!(layer.is_visible() && !layer.is_locked());
-}
-
-#[test]
-fn strokes_are_revalidated_and_legacy_shapes_without_strokes_still_load() {
-    let dir = tempfile::tempdir().expect("dir");
-    let path = dir.path().join("a.flare");
-    save(&sample(), &path).expect("save");
-
-    let conn = Connection::open(&path).expect("open");
-    conn.execute(
-        "UPDATE entity SET payload_json = replace(payload_json, '\"stroke\":', '\"legacy\":')",
-        [],
-    )
-    .expect("strip stroke key");
-    drop(conn);
+    edit_values(&path, &["scene"], |v| strip_key(v, "stroke"));
     assert!(load(&path).is_ok(), "an absent stroke is a fill-only shape");
 
     save(&sample(), &path).expect("save");
-    let conn = Connection::open(&path).expect("open");
-    conn.execute(
-        "UPDATE entity SET payload_json = replace(payload_json, '\"width\":2.5', '\"width\":-1.0')",
-        [],
-    )
-    .expect("corrupt width");
-    drop(conn);
+    edit_values(&path, &["scene"], |v| {
+        set_key(v, "width", &serde_json::json!(-1.0))
+    });
     assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
 }
 
 #[test]
-fn gradients_are_revalidated_and_legacy_shapes_without_them_still_load() {
+fn gradients_are_revalidated_and_a_shape_may_have_none() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     save(&sample(), &path).expect("save");
-    let conn = Connection::open(&path).expect("open");
-    conn.execute(
-        "UPDATE entity SET payload_json = replace(payload_json, '\"gradient\":', '\"legacy\":')",
-        [],
-    )
-    .expect("strip gradient key");
-    drop(conn);
+    edit_values(&path, &["scene"], |v| strip_key(v, "gradient"));
     let loaded = load(&path).expect("an absent gradient is a solid shape");
     let shape = loaded.scenes()[0].timeline().layers()[0]
         .spans()
@@ -158,32 +112,19 @@ fn gradients_are_revalidated_and_legacy_shapes_without_them_still_load() {
     assert!(shape.gradient().is_none());
 
     save(&sample(), &path).expect("save");
-    let conn = Connection::open(&path).expect("open");
     // Make the two gradient points identical: a gradient with no direction is corrupt.
-    conn.execute(
-        "UPDATE entity SET payload_json = replace(payload_json, '\"to\":[6.0,2.25]', '\"to\":[-1.5,0.0]')",
-        [],
-    )
-    .expect("corrupt gradient");
-    drop(conn);
+    edit_values(&path, &["scene"], |v| {
+        set_key(v, "to", &serde_json::json!([-1.5, 0.0]))
+    });
     assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
 }
 
 #[test]
-fn mask_flags_round_trip_and_older_files_without_them_load_as_normal_layers() {
+fn mask_flags_round_trip() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     save(&sample(), &path).expect("save");
     assert!(load(&path).expect("load").scenes()[0].timeline().layers()[0].is_mask());
-    let conn = Connection::open(&path).expect("open");
-    conn.execute(
-        "UPDATE entity SET payload_json = replace(payload_json, '\"mask\":', '\"legacy\":')",
-        [],
-    )
-    .expect("strip mask key");
-    drop(conn);
-    let loaded = load(&path).expect("an absent flag is a normal layer");
-    assert!(!loaded.scenes()[0].timeline().layers()[0].is_mask());
 }
 
 #[test]
@@ -212,11 +153,10 @@ fn tampered_content_is_revalidated_on_load() {
     drop(conn);
     assert!(matches!(load(&path), Err(StorageError::Invalid(_))));
 
-    let conn = Connection::open(&path).expect("open");
-    conn.execute("UPDATE entity SET payload_json = '{nope'", [])
-        .expect("update");
-    drop(conn);
-    assert!(matches!(load(&path), Err(StorageError::Json(_))));
+    // A record that is not CBOR of anything, stored as properly as any other.
+    save(&sample(), &path).expect("save");
+    set_raw(&path, "scene", b"{nope");
+    assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
 }
 
 #[test]
@@ -285,13 +225,7 @@ fn a_project_with_hostile_payloads_is_refused_not_trusted() {
         "{\"name\":\"x\",\"timeline\":{\"layers\":[{\"id\":\"00000000-0000-0000-0000-000000000001\",\"name\":\"l\",\"spans\":[{\"start\":0,\"duration\":0,\"content\":\"Empty\"}]}]}}",
     ] {
         save(&sample(), &path).expect("save");
-        let conn = Connection::open(&path).expect("open");
-        conn.execute(
-            "UPDATE entity SET payload_json = ?1 WHERE kind = 'scene'",
-            [payload],
-        )
-        .expect("tamper");
-        drop(conn);
+        set_json(&path, "scene", payload);
         // Some of these are well-formed but extreme (a span ending past u32); those load as
         // valid documents because frame arithmetic is overflow-safe. None may panic.
         let result = load(&path);
@@ -319,11 +253,11 @@ fn attachments_round_trip_exactly_including_awkward_text() {
         document.attachments(),
         "same order, same bytes"
     );
-    assert_eq!(attachment_rows(&path).len(), 5);
+    assert_eq!(json(&path, "attachment").len(), 5);
 }
 
 #[test]
-fn stroke_ends_and_corners_survive_and_older_files_without_them_load_round() {
+fn stroke_ends_and_corners_survive_and_a_name_that_is_not_one_is_refused() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     let document = sample();
@@ -333,41 +267,14 @@ fn stroke_ends_and_corners_survive_and_older_files_without_them_load_round() {
         document,
         "square and miter survive"
     );
-    let stroke_of = |doc: &Document| {
-        doc.scenes()[0].timeline().layers()[0]
-            .spans()
-            .iter()
-            .find_map(|s| match s.content() {
-                Content::Shape(shape) => shape.stroke(),
-                _ => None,
-            })
-            .expect("a stroked shape")
-    };
-    let conn = Connection::open(&path).expect("open");
-    conn.execute(
-        "UPDATE entity SET payload_json = replace(replace(payload_json, ',\"cap\":\"square\"', ''), ',\"join\":\"miter\"', '')",
-        [],
-    )
-    .expect("strip the style, as an older file would have it");
-    drop(conn);
-    let old = stroke_of(&load(&path).expect("an older file"));
-    assert_eq!(
-        (old.cap(), old.join()),
-        (flare_document::Cap::Round, flare_document::Join::Round)
-    );
-    save(&document, &path).expect("save");
-    let conn = Connection::open(&path).expect("open");
-    conn.execute(
-        "UPDATE entity SET payload_json = replace(payload_json, '\"square\"', '\"flat\"')",
-        [],
-    )
-    .expect("break the cap name");
-    drop(conn);
+    edit_values(&path, &["scene"], |v| {
+        set_key(v, "cap", &serde_json::json!("flat"))
+    });
     assert!(matches!(load(&path), Err(StorageError::Corrupt(_))));
 }
 
 #[test]
-fn folders_and_their_members_survive_and_older_files_have_none() {
+fn folders_and_their_members_survive() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     let folder = Layer::new(LayerId::new(), "Folder", vec![])
@@ -407,7 +314,7 @@ fn folders_and_their_members_survive_and_older_files_have_none() {
 }
 
 #[test]
-fn motion_guides_survive_and_older_files_have_none() {
+fn motion_guides_survive() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     let guide = Layer::new(LayerId::new(), "Guide", vec![])
@@ -459,7 +366,7 @@ fn every_coordinate_comes_back_to_the_last_bit() {
 }
 
 #[test]
-fn outline_colors_survive_and_older_files_have_none() {
+fn outline_colors_survive() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("a.flare");
     let colored = Layer::new(LayerId::new(), "Colored", vec![])

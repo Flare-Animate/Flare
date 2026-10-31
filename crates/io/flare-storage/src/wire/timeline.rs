@@ -291,11 +291,16 @@ impl TimelineWire {
                     } => {
                         let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
                             .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;
-                        // A name this version does not know plays as the default, a loop.
-                        let mode = play
-                            .as_deref()
-                            .and_then(flare_document::PlayMode::from_name)
-                            .unwrap_or_default();
+                        // No name means the default, a loop; a name that is not a mode is a damaged
+                        // file, not something to guess at.
+                        let mode = match play.as_deref() {
+                            None => flare_document::PlayMode::default(),
+                            Some(name) => {
+                                flare_document::PlayMode::from_name(name).ok_or_else(|| {
+                                    StorageError::Corrupt(format!("unknown play mode {name:?}"))
+                                })?
+                            }
+                        };
                         Content::Instance(
                             Instance::new(
                                 InstanceId::from_uuid(uuid(&id)?),

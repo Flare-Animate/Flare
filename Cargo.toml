@@ -103,6 +103,8 @@ rusqlite = { version = "0.41.1", default-features = false }
 # flare-storage adds bundled/backup/blob/limits/hooks at its dependency site.
 blake3 = "1"
 tempfile = "3"
+zstd = "0.13"
+ciborium = "0.2"          # CBOR: the binary form of the project file's records.
 # lz4_flex / rkyv: transient/cache candidates only; add after measurement.
 
 # ---- Flash/XML/archive interchange -------------------------------------------
@@ -192,7 +194,6 @@ criterion = "0.7"
 # tracing = "0.1"
 # tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 # zerocopy = { version = "0.8.63", features = ["derive"] }
-# zstd = "0.13"
 
 # ---- Deferred functionality: register exact versions when adopted -----------
 # Audio resampling and lock-free queues (rubato, rtrb) and an optional FFmpeg adapter: when needed.

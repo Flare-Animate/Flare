@@ -16,10 +16,16 @@ use glamx::DAffine2;
 use rusqlite::{Connection, params};
 use std::fs;
 use std::num::NonZeroU32;
+use std::path::Path;
 
+mod compression;
 mod failures;
+mod records;
 mod roundtrip;
 mod symbol_kinds;
+use records::{
+    edit_sound, edit_text, edit_values, json, rows, set_json, set_key, set_raw, strip_key,
+};
 
 fn sample() -> Document {
     let art = SymbolId::new();
@@ -145,26 +151,4 @@ fn lcg(state: &mut u64) -> u64 {
         .wrapping_mul(6364136223846793005)
         .wrapping_add(1442695040888963407);
     *state >> 33
-}
-
-fn attachment_rows(path: &std::path::Path) -> Vec<(String, String)> {
-    let conn = Connection::open(path).expect("open");
-    let mut statement = conn
-        .prepare("SELECT id, payload_json FROM entity WHERE kind = 'attachment' ORDER BY ordinal")
-        .expect("prepare");
-    statement
-        .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
-        .expect("query")
-        .collect::<Result<_, _>>()
-        .expect("rows")
-}
-
-fn sound_row(path: &std::path::Path) -> (String, String) {
-    let conn = Connection::open(path).expect("open");
-    conn.query_row(
-        "SELECT id, payload_json FROM entity WHERE kind = 'sound'",
-        [],
-        |row| Ok((row.get(0)?, row.get(1)?)),
-    )
-    .expect("a sound row")
 }

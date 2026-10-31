@@ -1,4 +1,10 @@
 //! The SQLite container itself: saving and loading a project file.
+//!
+//! Each record (a scene, a symbol, a sound, an attachment) is a row whose payload is the record's
+//! fields as CBOR, compressed with zstd where that is smaller, beside the digest of what is stored
+//! (see `codec`). The pages are 1 KiB and the records table has no second index, so the database
+//! itself costs about 2 KiB and about 1% over the payload, and the file is as small as a binary
+//! file of our own would be, with SQLite's atomic writes and tooling kept.
 
 use std::fs;
 use std::path::Path;
@@ -6,15 +12,19 @@ use std::path::Path;
 use flare_document::Document;
 use rusqlite::{Connection, OpenFlags, config::DbConfig, params};
 
+use crate::codec::{Packer, from_cbor, to_cbor, unpack};
 use crate::{StorageError, wire};
 
 /// ASCII "FLAR".
 pub(crate) const APPLICATION_ID: i64 = 0x464C_4152;
 pub(crate) const SCHEMA_VERSION: i64 = 1;
 pub(crate) const MAX_ENTITIES: i64 = 1_000_000;
+/// The most one record may be once decompressed.
 pub(crate) const MAX_PAYLOAD_BYTES: usize = 16 * 1024 * 1024;
-/// Base64 of the largest sound file, with room for the rest of the row.
-pub(crate) const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES / 3 * 4 + 4096;
+/// The most a sound record may be: the largest sound file, and its fields.
+pub(crate) const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES + 64 * 1024 + 4;
+/// Small pages waste less on the many small records and the empty space after the last one.
+pub(crate) const PAGE_SIZE: i64 = 1024;
 
 pub(crate) const SCHEMA: &str = "
 CREATE TABLE project (
@@ -28,8 +38,11 @@ CREATE TABLE entity (
     kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound')),
     ordinal INTEGER NOT NULL,
     payload_version INTEGER NOT NULL CHECK (payload_version > 0),
-    payload_json TEXT NOT NULL
-) STRICT;
+    codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
+    size INTEGER NOT NULL CHECK (size >= 0),
+    digest BLOB NOT NULL CHECK (length(digest) = 32),
+    payload BLOB NOT NULL
+) STRICT, WITHOUT ROWID;
 ";
 
 /// Writes `document` to `path`, replacing any existing file only on full success.
@@ -41,6 +54,8 @@ pub fn save(document: &Document, path: &Path) -> Result<(), StorageError> {
     let staged = tempfile::NamedTempFile::new_in(directory)?;
     {
         let mut conn = Connection::open(staged.path())?;
+        // The page size can only be chosen before the first table exists.
+        conn.pragma_update(None, "page_size", PAGE_SIZE)?;
         conn.pragma_update(None, "journal_mode", "DELETE")?;
         conn.pragma_update(None, "application_id", APPLICATION_ID)?;
         conn.pragma_update(None, "user_version", SCHEMA_VERSION)?;
@@ -55,39 +70,43 @@ pub fn save(document: &Document, path: &Path) -> Result<(), StorageError> {
                 settings
             ],
         )?;
-        let mut insert = tx.prepare("INSERT INTO entity VALUES (?1, ?2, ?3, 1, ?4)")?;
+        let mut packer = Packer::new()?;
+        let mut insert = tx.prepare("INSERT INTO entity VALUES (?1, ?2, ?3, 1, ?4, ?5, ?6, ?7)")?;
+        let mut put =
+            |id: &str, kind: &str, ordinal: i64, raw: &[u8]| -> Result<(), StorageError> {
+                let stored = packer.pack(raw)?;
+                insert.execute(params![
+                    id,
+                    kind,
+                    ordinal,
+                    stored.codec.name(),
+                    i64::try_from(stored.size).unwrap_or(i64::MAX),
+                    stored.digest.as_slice(),
+                    stored.bytes.as_ref()
+                ])?;
+                Ok(())
+            };
         for (ordinal, scene) in (0_i64..).zip(document.scenes()) {
-            let payload = serde_json::to_string(&wire::SceneWire::of(scene))?;
-            insert.execute(params![
-                scene.id().as_uuid().to_string(),
-                "scene",
-                ordinal,
-                payload
-            ])?;
+            let raw = to_cbor(&wire::SceneWire::of(scene))?;
+            put(&scene.id().as_uuid().to_string(), "scene", ordinal, &raw)?;
         }
         for (ordinal, attachment) in (0_i64..).zip(document.attachments()) {
-            let payload = serde_json::to_string(&wire::AttachmentWire::of(attachment))?;
+            let raw = to_cbor(&wire::AttachmentWire::of(attachment))?;
             // Attachments have no identity of their own; the row id only has to be unique.
-            let id = uuid::Uuid::now_v7().to_string();
-            insert.execute(params![id, "attachment", ordinal, payload])?;
+            put(
+                &uuid::Uuid::now_v7().to_string(),
+                "attachment",
+                ordinal,
+                &raw,
+            )?;
         }
         for (ordinal, sound) in (0_i64..).zip(document.sounds()) {
-            let payload = serde_json::to_string(&wire::SoundWire::of(sound))?;
-            insert.execute(params![
-                sound.id().as_uuid().to_string(),
-                "sound",
-                ordinal,
-                payload
-            ])?;
+            let raw = wire::SoundMeta::frame(sound)?;
+            put(&sound.id().as_uuid().to_string(), "sound", ordinal, &raw)?;
         }
         for (ordinal, symbol) in (0_i64..).zip(document.symbols()) {
-            let payload = serde_json::to_string(&wire::SymbolWire::of(symbol))?;
-            insert.execute(params![
-                symbol.id().as_uuid().to_string(),
-                "symbol",
-                ordinal,
-                payload
-            ])?;
+            let raw = to_cbor(&wire::SymbolWire::of(symbol))?;
+            put(&symbol.id().as_uuid().to_string(), "symbol", ordinal, &raw)?;
         }
         drop(insert);
         tx.commit()?;
@@ -132,29 +151,29 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
     let mut symbols = Vec::new();
     let mut attachments = Vec::new();
     let mut sounds = Vec::new();
-    let mut statement =
-        conn.prepare("SELECT id, kind, payload_json FROM entity ORDER BY kind, ordinal")?;
+    let mut statement = conn.prepare(
+        "SELECT id, kind, codec, size, digest, payload FROM entity ORDER BY kind, ordinal",
+    )?;
     let mut rows = statement.query([])?;
     while let Some(row) = rows.next()? {
-        let (id, kind, payload): (String, String, String) = (row.get(0)?, row.get(1)?, row.get(2)?);
-        // A sound row holds a whole audio file as text, so it is allowed to be bigger.
+        let id: String = row.get(0)?;
+        let kind: String = row.get(1)?;
+        let codec: String = row.get(2)?;
+        let size: i64 = row.get(3)?;
+        let digest: Vec<u8> = row.get(4)?;
+        let stored: Vec<u8> = row.get(5)?;
+        // A sound record holds a whole audio file, so it is allowed to be bigger.
         let limit = if kind == "sound" {
             MAX_SOUND_PAYLOAD_BYTES
         } else {
             MAX_PAYLOAD_BYTES
         };
-        if payload.len() > limit {
-            return Err(StorageError::Limit("entity payload size"));
-        }
+        let record = unpack(&codec, size, &digest, &stored, limit)?;
         match kind.as_str() {
-            "scene" => scenes.push(serde_json::from_str::<wire::SceneWire>(&payload)?.build(&id)?),
-            "symbol" => {
-                symbols.push(serde_json::from_str::<wire::SymbolWire>(&payload)?.build(&id)?)
-            }
-            "attachment" => {
-                attachments.push(serde_json::from_str::<wire::AttachmentWire>(&payload)?.build()?)
-            }
-            "sound" => sounds.push(serde_json::from_str::<wire::SoundWire>(&payload)?.build(&id)?),
+            "scene" => scenes.push(from_cbor::<wire::SceneWire>(&record)?.build(&id)?),
+            "symbol" => symbols.push(from_cbor::<wire::SymbolWire>(&record)?.build(&id)?),
+            "attachment" => attachments.push(from_cbor::<wire::AttachmentWire>(&record)?.build()?),
+            "sound" => sounds.push(wire::SoundMeta::unframe(&id, &record)?),
             other => {
                 return Err(StorageError::Corrupt(format!(
                     "unknown entity kind {other}"

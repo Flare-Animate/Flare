@@ -1,11 +1,14 @@
-//! Native `.flare` container: a SQLite file holding the saved document.
+//! Native `.flare` container: a SQLite file holding the saved document, its records compressed.
 //!
 //! Saving stages a complete database next to the target and atomically renames it into
-//! place, so a failed save never damages the previous file. Loading treats the file as
-//! untrusted: defensive SQLite settings, size limits, and full document revalidation
-//! through the normal constructors. The on-disk schema is a draft, not a stable format.
+//! place, so a failed save never damages the previous file. Each record is CBOR, zstd-compressed
+//! where that is smaller, with a BLAKE3 digest. Loading treats the file as untrusted: defensive
+//! SQLite settings, digests, size limits checked before anything is allocated or decompressed,
+//! and full document revalidation through the normal constructors.
 #![forbid(unsafe_code)]
 
+#[cfg(not(target_arch = "wasm32"))]
+mod codec;
 mod recovery;
 #[cfg(not(target_arch = "wasm32"))]
 mod sqlite;
