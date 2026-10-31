@@ -112,7 +112,8 @@ ciborium = "0.2"          # CBOR: the binary form of the project file's records.
 # ---- Flash/XML/archive interchange -------------------------------------------
 quick-xml = { version = "0.42.0", default-features = false }
 zip = { version = "9.1.3", default-features = false }
-swf = "0.3.0"
+# Ruffle's own swf crate from the pinned submodule, so there is one copy of it in the build.
+swf = { path = "third_party/ruffle/swf" }
 # Enable only reviewed compression features in the format adapter.
 # Ruffle swf/core/render packages are NOT guessed Git dependencies here.
 # Choose and record one tested Ruffle revision during the runtime/format spike.
@@ -262,3 +263,8 @@ opt-level = 3
 opt-level = 3
 [profile.dev.package.miniz_oxide]
 opt-level = 3
+
+# One copy of swf in the whole build: Ruffle's `rascal` asks crates.io for it, and gets the
+# pinned checkout's instead.
+[patch.crates-io]
+swf = { path = "third_party/ruffle/swf" }

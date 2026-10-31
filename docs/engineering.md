@@ -25,7 +25,9 @@
 - `third_party/` holds pinned submodules (today `ruffle`), also excluded from the workspace. Their
   source is used unmodified under their licences and only through a path dependency behind a
   feature that is off by default (`flare-ruffle`'s `render-check`); CI and release checkouts fetch
-  them because cargo reads their manifests. Moving the pin is a commit of its own.
+  them because cargo reads their manifests. Moving the pin is a commit of its own. The `swf` crate that
+  publishing uses is the submodule's, so every build needs the checkout, and a `[patch.crates-io]`
+  entry makes Ruffle's own dependencies use that copy too: one `swf` in the build.
 - `experiments/` holds isolated experiments with their own lockfiles; they are never part
   of the product dependency graph.
 

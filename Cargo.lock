@@ -617,7 +617,7 @@ dependencies = [
  "quote",
  "rascal",
  "regex",
- "swf 0.3.0",
+ "swf",
  "walkdir",
 ]
 
@@ -1851,7 +1851,7 @@ dependencies = [
  "glamx",
  "png 0.18.1",
  "serde_json",
- "swf 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "swf",
  "tempfile",
  "uuid",
 ]
@@ -2052,7 +2052,7 @@ dependencies = [
  "flare-render",
  "glamx",
  "serde_json",
- "swf 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "swf",
  "tempfile",
  "thiserror 2.0.18",
 ]
@@ -2084,7 +2084,7 @@ dependencies = [
  "flare-publish",
  "flare-render",
  "png 0.18.1",
- "swf 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "swf",
  "tempfile",
  "thiserror 2.0.18",
 ]
@@ -4986,7 +4986,7 @@ dependencies = [
  "annotate-snippets",
  "indexmap",
  "serde",
- "swf 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "swf",
  "winnow 1.0.4",
 ]
 
@@ -5265,7 +5265,7 @@ dependencies = [
  "regress",
  "ruffle_macros",
  "ruffle_wstr",
- "swf 0.3.0",
+ "swf",
  "thiserror 2.0.18",
  "tracing",
  "url",
@@ -5318,7 +5318,7 @@ dependencies = [
  "serde_json",
  "slotmap",
  "smallvec",
- "swf 0.3.0",
+ "swf",
  "thiserror 2.0.18",
  "tracing",
  "ttf-parser",
@@ -5359,7 +5359,7 @@ dependencies = [
  "png 0.18.1",
  "ruffle_wstr",
  "smallvec",
- "swf 0.3.0",
+ "swf",
  "thiserror 2.0.18",
  "tracing",
  "wgpu",
@@ -5382,7 +5382,7 @@ dependencies = [
  "naga-pixelbender",
  "ruffle_render",
  "smallvec",
- "swf 0.3.0",
+ "swf",
  "tracing",
  "web-sys",
  "wgpu",
@@ -5395,7 +5395,7 @@ version = "0.7.1"
 dependencies = [
  "ruffle_render",
  "slotmap",
- "swf 0.3.0",
+ "swf",
  "thiserror 2.0.18",
 ]
 
@@ -5994,24 +5994,6 @@ dependencies = [
 [[package]]
 name = "swf"
 version = "0.3.0"
-dependencies = [
- "bitflags 2.13.2",
- "bitstream-io",
- "encoding_rs",
- "enum-map 2.7.3",
- "flate2",
- "log",
- "lzma-rs",
- "num-derive",
- "num-traits",
- "simple_asn1",
-]
-
-[[package]]
-name = "swf"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1840721af70281567fdcbbf16e81b297db77d695c7b4a64860b18da15bb401a"
 dependencies = [
  "bitflags 2.13.2",
  "bitstream-io",
