@@ -149,6 +149,7 @@ vello_cpu = { version = "0.3.0", features = ["multithreading"] } # Selected CPU 
 # tiny-skia: reference/control candidate; no second default CPU engine yet.
 
 # ---- CPU workers and asynchronous application services -----------------------
+rayon = "1"                 # Data parallelism inside one background job (GIF frames), on a pool that leaves a core for the window.
 tokio = { version = "1", default-features = false }
 # crossbeam-channel/rtrb: bounded communication only at justified boundaries.
 
@@ -190,7 +191,6 @@ criterion = "0.7"
 # half = "2"
 # insta = { version = "1", features = ["json"] }
 # kurbo = "0.13.1"
-# rayon = "1"
 # tracing = "0.1"
 # tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 # zerocopy = { version = "0.8.63", features = ["derive"] }

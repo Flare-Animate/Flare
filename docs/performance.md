@@ -56,14 +56,26 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
   without copying. It is the right tool wherever a buffer changes shape without changing
   content.
 - **Threads and SIMD for rasterizing** come from `vello_cpu` (its `multithreading` feature,
-  which uses rayon internally, and its own SIMD kernels). Flare does not repeat them in its
-  own code, so there is no separate use of `rayon` or `wide` yet. They get a site when a
-  benchmark shows one: for example parallel validation of very large documents, or a SIMD
-  compositing kernel for onion skin if it ever shows up in a profile.
-- **zerocopy, rkyv, encase, half** have no site yet. The project file stores JSON; at 10 000
-  shapes it opens in 31 ms, so a binary format is not justified by measurement. When it is
-  (very long paths, or large libraries), `zerocopy` is the planned way to read the numbers.
-  `encase` and GPU-layout types arrive with a GPU renderer.
+  which uses rayon internally, and its own SIMD kernels).
+- **rayon** has one site of Flare's own: GIF export (`flare-runtime`), where every frame is
+  drawn and colour-quantized independently. Frames are made a few at a time on a pool of every
+  core but one (at most eight; the window keeps one), and written in order, so the bytes are the
+  same whatever the thread count (a test checks 1, 2, 3 and 8). Measured on a busy 30-frame
+  movie in release: 0.171 s on one thread, 0.088 s on four. It is a desktop-only path; the browser
+  has no threads to give and makes the frames one at a time.
+  **MP4 export does not use it, by measurement:** per frame at 1280 x 720 the picture is drawn in
+  1.4 ms (7%), converted to YUV in 2.7 ms (14%) and encoded in 15 ms (79%), and the encoder has
+  to see the frames in order. `wide` for the conversion would save at most a tenth of an export
+  and is not worth a dependency yet.
+- **zerocopy, rkyv, encase, half** have no site yet. The project file's records are CBOR,
+  compressed with zstd (see architecture.md); at 10 000 shapes the old JSON opened in 31 ms and
+  the new records are a seventh the size, so reading numbers in place is not justified by
+  measurement. `encase` and GPU-layout types arrive with a GPU renderer.
+- **kurbo, tracing, smallvec, indexmap, slotmap, hashbrown, bumpalo** have no site yet and are
+  listed in the root manifest as candidates. `kurbo` is already in the tree through `vello_cpu`;
+  the code that converts curves for XFL and SWF is hand-written and tested, and is the place to
+  look if a curve routine is ever wrong or slow. `tracing` is what the performance work will want
+  for spans around render, export and save, and goes in with it.
 - **winit** is a direct dependency because the desktop app owns the event loop and window. It
   must stay in the same version family as `egui-winit`; the tree has one copy.
 

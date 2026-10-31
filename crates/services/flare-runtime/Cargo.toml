@@ -17,6 +17,9 @@ flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rayon.workspace = true
+
 [dev-dependencies]
 proptest.workspace = true
 png.workspace = true

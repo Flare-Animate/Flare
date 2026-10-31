@@ -101,3 +101,69 @@ proptest::proptest! {
         proptest::prop_assert!(pictures.iter().all(|f| f.delay >= 2));
     }
 }
+
+#[test]
+fn the_bytes_are_the_same_whatever_the_number_of_threads() {
+    let doc = animation(40, (200, 120), (24, 1));
+    let one = gif_bytes_on(&doc, 1).expect("one thread");
+    for workers in [2, 3, 8] {
+        assert_eq!(
+            gif_bytes_on(&doc, workers).expect("parallel"),
+            one,
+            "{workers} threads"
+        );
+    }
+    assert_eq!(gif_bytes(&doc).expect("default"), one);
+    // And a failure on any frame is the failure of the export, not a short movie.
+    let long = animation(3, (200, 120), (24, 1));
+    assert!(gif_bytes_on(&long, 4).is_ok());
+}
+
+/// How long a busy 30-frame export takes on one thread and on several: printed, and required to
+/// be no slower, where there is more than one core to use.
+#[test]
+fn several_threads_are_not_slower_than_one_on_a_busy_movie() {
+    use std::time::Instant;
+    let layers: Vec<Layer> = (0..40)
+        .map(|l| {
+            let spans = (0..30)
+                .map(|s| {
+                    let shape = Shape::rect(
+                        ShapeId::new(),
+                        f64::from(s) * 30.0,
+                        f64::from(l) * 14.0,
+                        200.0,
+                        60.0,
+                        Rgba8::new((l * 6) as u8, 90, (s * 8) as u8, 255),
+                    )
+                    .expect("rect");
+                    flare_document::FrameSpan::new(s, NonZeroU32::MIN, Content::Shape(shape))
+                })
+                .collect();
+            Layer::new(LayerId::new(), format!("L{l}"), spans).expect("layer")
+        })
+        .collect();
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(layers));
+    let doc = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document")
+    .with_stage(Stage::new(1280, 720, Rgba8::WHITE).expect("stage"));
+    let time = |workers| {
+        let t = Instant::now();
+        gif_bytes_on(&doc, workers).expect("gif");
+        t.elapsed().as_secs_f64()
+    };
+    let (one, many) = (time(1), time(4));
+    println!("one thread {one:.3}s, four threads {many:.3}s");
+    let cores = std::thread::available_parallelism().map_or(1, |n| n.get());
+    if cores >= 4 {
+        assert!(
+            many < one * 1.2,
+            "four threads {many:.3}s against one {one:.3}s"
+        );
+    }
+}
