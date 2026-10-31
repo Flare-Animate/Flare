@@ -11,6 +11,7 @@ sys-locale.workspace = true
 cpal.workspace = true
 directories.workspace = true
 flare-audio.workspace = true
+flare-video.workspace = true
 flare-document.workspace = true
 flare-publish.workspace = true
 flare-ruffle.workspace = true

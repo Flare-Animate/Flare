@@ -64,7 +64,7 @@ fn an_image_and_a_swf_report_through_the_same_callback() {
         swf: Some(jobs::PublishOptions { compress: true }),
         html5: None,
         gif: false,
-        mp4: None,
+        mp4: false,
     };
     jobs::publish(document(), dir.path().join("a.swf"), plan, move |r| {
         let _ = tx.send(r);
@@ -79,7 +79,7 @@ fn plan(swf: bool, html5: bool) -> jobs::PublishPlan {
         swf: swf.then_some(jobs::PublishOptions { compress: false }),
         html5: html5.then(jobs::Html5Options::default),
         gif: false,
-        mp4: None,
+        mp4: false,
     }
 }
 
@@ -158,47 +158,40 @@ fn a_gif_is_written_with_the_others_and_alone_it_is_enough_to_publish() {
     assert!(error.contains("solo.gif"), "{error}");
 }
 
-#[cfg(unix)]
-fn fake_ffmpeg(dir: &std::path::Path, body: &str) -> std::path::PathBuf {
-    use std::os::unix::fs::PermissionsExt;
-    let path = dir.join("fake-ffmpeg");
-    std::fs::write(&path, format!("#!/bin/sh\n{body}\n")).expect("write");
-    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).expect("chmod");
-    path
-}
-
-#[cfg(unix)]
 #[test]
-fn an_mp4_is_written_beside_the_others_and_a_failing_encoder_does_not_stop_them() {
-    let tools = tempfile::tempdir().expect("tools");
-    let good = fake_ffmpeg(tools.path(), "for last; do :; done\ncat > \"$last\"");
+fn an_mp4_is_written_beside_the_others_and_one_alone_is_enough() {
     let dir = tempfile::tempdir().expect("dir");
     let mut with_video = plan(false, true);
-    with_video.mp4 = Some(good);
+    with_video.mp4 = true;
     jobs::publish_now(&document(), &dir.path().join("Film.MP4"), &with_video).expect("published");
-    assert!(dir.path().join("Film.mp4").exists() && dir.path().join("Film.html").exists());
+    let bytes = std::fs::read(dir.path().join("Film.mp4")).expect("the video");
+    assert_eq!(&bytes[4..8], b"ftyp", "a real MP4");
+    assert!(dir.path().join("Film.html").exists());
 
-    let bad = fake_ffmpeg(
-        tools.path(),
-        "cat > /dev/null\necho 'no libx264' >&2\nexit 2",
-    );
-    let mut failing = plan(false, true);
-    failing.mp4 = Some(bad);
-    let error = jobs::publish_now(&document(), &dir.path().join("Other"), &failing)
-        .expect_err("the video fails");
-    assert!(error.contains("no libx264"), "{error}");
-    assert!(
-        dir.path().join("Other.html").exists(),
-        "the page was still written"
-    );
-    assert!(!dir.path().join("Other.mp4").exists());
-
-    // An MP4 alone is enough to publish.
     let mut alone = plan(false, false);
-    alone.mp4 = Some(fake_ffmpeg(
-        tools.path(),
-        "for last; do :; done\ncat > \"$last\"",
-    ));
+    alone.mp4 = true;
     jobs::publish_now(&document(), &dir.path().join("Solo"), &alone).expect("a video alone");
     assert!(dir.path().join("Solo.mp4").exists());
+}
+
+#[test]
+fn an_existing_mp4_is_never_replaced_and_the_other_formats_are_still_written() {
+    let dir = tempfile::tempdir().expect("dir");
+    std::fs::write(dir.path().join("Film.mp4"), b"mine").expect("write");
+    let mut both = plan(false, true);
+    both.mp4 = true;
+    let error = jobs::publish_now(&document(), &dir.path().join("Film"), &both)
+        .expect_err("the video exists");
+    assert!(
+        error.contains("Film.mp4") && error.contains("already exists"),
+        "{error}"
+    );
+    assert_eq!(
+        std::fs::read(dir.path().join("Film.mp4")).expect("read"),
+        b"mine"
+    );
+    assert!(
+        dir.path().join("Film.html").exists(),
+        "the page was still written"
+    );
 }

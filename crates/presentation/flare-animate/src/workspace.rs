@@ -224,8 +224,6 @@ pub struct Workspace {
     top_bar_id: egui::Id,
     preferences_id: egui::Id,
     publish_id: egui::Id,
-    /// Whether an ffmpeg was found, so MP4 can be written.
-    video_encoder: bool,
     /// What the person chose for the interface's language, and the system's own, as a locale tag.
     language_choice: flare_i18n::Choice,
     system_locale: String,
@@ -355,7 +353,6 @@ impl Workspace {
             top_bar_id: egui::Id::unique("top-bar"),
             preferences_id: egui::Id::unique("preferences"),
             publish_id: egui::Id::unique("publish"),
-            video_encoder: false,
             language_choice: flare_i18n::Choice::System,
             system_locale: "en".to_owned(),
             translator: flare_i18n::Translator::new(flare_i18n::Language::English),

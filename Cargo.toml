@@ -29,6 +29,7 @@ members = [
     "crates/foundation/flare-i18n",
     "crates/services/flare-runtime",
     "crates/services/flare-platform",
+    "crates/services/flare-video",
 ]
 exclude = ["original"]
 default-members = ["apps/flare-desktop"]
@@ -45,6 +46,7 @@ license = "BSD-3-Clause"
 flare-core = { path = "crates/foundation/flare-core" }
 flare-flash = { path = "crates/adapters/flare-flash" }
 flare-i18n = { path = "crates/foundation/flare-i18n" }
+flare-video = { path = "crates/services/flare-video" }
 flare-export = { path = "crates/io/flare-export" }
 flare-publish = { path = "crates/io/flare-publish" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }
@@ -87,6 +89,10 @@ uuid = "1"                 # v7/serde are enabled by the consuming member.
 thiserror = "2"
 fluent-bundle = "0.16"
 unic-langid = "0.9"
+# MP4 video without an encoder to install: H.264 (rusty_h264), AAC-LC (OxideAV) and the container.
+rusty_h264 = { version = "0.17", default-features = false, features = ["std", "global-alloc"] }
+muxide = { version = "0.5", default-features = false }
+oxideav-aac = "0.1.7"
 sys-locale = "0.3"
 fluent-syntax = "0.12"
 anyhow = "1"               # Executable boundaries, not public library errors.

@@ -13,4 +13,3 @@ pubpop-center = ステージを中央に配置
 pubpop-responsive = レスポンシブにする
 pubpop-format-gif = アニメーションGIF（.gif）
 pubpop-format-mp4 = MP4ビデオ（.mp4）
-pubpop-mp4-needs-ffmpeg = ffmpeg が必要です。インストールするか、FLARE_FFMPEG にその場所を設定してください。

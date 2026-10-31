@@ -33,7 +33,8 @@ Executables are in `apps/`. The folders mean:
 | adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
-| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound and text, with latest-wins and an inline mode for tests; image export, and MP4 video through an external `ffmpeg` that is found, never bundled (frames fed on its input, sound mixed down first, the file kept only if the encoder succeeded). No UI types. |
+| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound and text, with latest-wins and an inline mode for tests; image export. No UI types. |
+| services | `flare-video` | The movie as an MP4 with its sound, made in pure Rust: H.264 from `rusty_h264`, AAC-LC from OxideAV's `oxideav-aac`, the container from `muxide`. Frames are drawn, encoded and written one at a time, the cued sounds mixed and encoded beside them, and the file appears only when whole and never over another. Desktop only: the web build does not carry it. |
 | services | `flare-platform` | What a desktop needs from the operating system: per-user directories (the `directories` crate), the sound card, native dialogs, recovery prompts, and the threads for publishing, exporting and test movies. No UI types. |
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the stage's pan and zoom math. |
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, tools, menu actions. No window or GPU code. |

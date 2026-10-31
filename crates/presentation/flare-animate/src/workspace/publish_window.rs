@@ -43,7 +43,7 @@ impl Workspace {
             flare_ui::chrome::section(ui, "file-publish", &tr("pubpop-formats"));
             self.publish_settings_ui(ui);
             ui.add_space(6.0);
-            let ready = self.can_publish_something() && !self.document().scenes().is_empty();
+            let ready = self.publish.any() && !self.document().scenes().is_empty();
             if ui
                 .add_enabled(ready, egui::Button::new(tr("pubpop-button")))
                 .on_hover_text(tr("pubpop-button-hint"))

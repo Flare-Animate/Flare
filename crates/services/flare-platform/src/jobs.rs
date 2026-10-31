@@ -70,8 +70,8 @@ pub struct PublishPlan {
     pub html5: Option<Html5Options>,
     /// Also write an animated GIF.
     pub gif: bool,
-    /// Also write an MP4 video with this ffmpeg.
-    pub mp4: Option<PathBuf>,
+    /// Also write an MP4 video.
+    pub mp4: bool,
 }
 
 /// The name a published file shares with its siblings: `path` without a `.swf` or `.html`
@@ -109,7 +109,7 @@ pub fn publish_now(
     path: &std::path::Path,
     plan: &PublishPlan,
 ) -> Result<(), String> {
-    if plan.swf.is_none() && plan.html5.is_none() && !plan.gif && plan.mp4.is_none() {
+    if plan.swf.is_none() && plan.html5.is_none() && !plan.gif && !plan.mp4 {
         return Err("Choose a format in Publish Settings first".to_owned());
     }
     let stem = publish_stem(path);
@@ -135,9 +135,9 @@ pub fn publish_now(
             failures.push(error);
         }
     }
-    if let Some(ffmpeg) = &plan.mp4 {
+    if plan.mp4 {
         let target = at("mp4");
-        if let Err(error) = flare_runtime::write_mp4(document, ffmpeg, &target) {
+        if let Err(error) = flare_video::write_mp4(document, &target) {
             failures.push(error);
         }
     }
@@ -170,9 +170,4 @@ pub fn test_movie(
         done(flare_ruffle::launch_test_movie(&document, &player));
     })?;
     Ok(Ok(()))
-}
-
-/// The ffmpeg that MP4 needs, if this computer has one.
-pub fn video_encoder() -> Option<PathBuf> {
-    flare_runtime::find_ffmpeg()
 }

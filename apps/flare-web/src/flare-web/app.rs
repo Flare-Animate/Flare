@@ -88,6 +88,10 @@ impl WebApp {
                         .map_err(|e| e.to_string());
                     self.deliver("movie.swf", "application/x-shockwave-flash", result);
                 }
+                if settings.mp4 {
+                    self.workspace
+                        .report_message("MP4 is not available in the browser yet");
+                }
                 if settings.gif {
                     self.deliver(
                         "movie.gif",

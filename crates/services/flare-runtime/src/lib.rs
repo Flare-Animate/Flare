@@ -19,17 +19,12 @@ mod export;
 mod jobs;
 mod movie;
 mod run;
-mod video;
 mod workers;
 
 pub use export::{export_png, png_bytes};
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob};
 pub use movie::{MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, gif_bytes};
 pub use run::{ExtraFonts, run_audio, run_io, run_render, run_text};
-pub use video::{
-    MAX_VIDEO_FRAMES, MAX_VIDEO_SIDE, ffmpeg_args, find_ffmpeg, find_ffmpeg_with, video_size,
-    write_mp4,
-};
 pub use workers::Wake;
 
 use std::sync::Arc;
