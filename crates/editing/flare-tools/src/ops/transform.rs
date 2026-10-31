@@ -116,7 +116,10 @@ pub fn transform(
                 return None;
             }
             let transform = Transform2D::new(moved).ok()?;
-            Content::Instance(Instance::new(instance.id(), instance.symbol(), transform))
+            Content::Instance(
+                Instance::new(instance.id(), instance.symbol(), transform)
+                    .with_playback(instance.playback()),
+            )
         }
     };
     let replacement = FrameSpan::new(span.start(), span.duration(), content).with_motion_of(span);
@@ -143,11 +146,10 @@ pub(super) fn fresh_content(content: &Content, matrix: DAffine2) -> Option<Conte
         Content::Instance(instance) => {
             let moved = matrix * instance.transform().as_affine();
             let transform = Transform2D::new(moved).ok()?;
-            Content::Instance(Instance::new(
-                InstanceId::new(),
-                instance.symbol(),
-                transform,
-            ))
+            Content::Instance(
+                Instance::new(InstanceId::new(), instance.symbol(), transform)
+                    .with_playback(instance.playback()),
+            )
         }
     })
 }

@@ -485,3 +485,50 @@ fn cues_need_a_sound_and_sounds_in_use_cannot_be_removed() {
         .expect("both");
     assert!(f.session.document().sounds().is_empty());
 }
+
+#[test]
+fn a_new_keyframe_of_a_graphic_keeps_how_it_plays() {
+    use flare_core::{InstanceId, SymbolId, Transform2D};
+    use flare_document::{Instance, PlayMode, Playback, Symbol};
+    let symbol = SymbolId::new();
+    let playback = Playback {
+        mode: PlayMode::PlayOnce,
+        first_frame: 2,
+    };
+    let instance =
+        Instance::new(InstanceId::new(), symbol, Transform2D::IDENTITY).with_playback(playback);
+    let span = FrameSpan::new(
+        0,
+        NonZeroU32::new(8).expect("nonzero"),
+        Content::Instance(instance),
+    );
+    let (scene, layer_id) = (SceneId::new(), LayerId::new());
+    let layer_value = Layer::new(layer_id, "L", vec![span]).expect("layer");
+    let scene_value = Scene::new(scene, "S", Timeline::new(vec![layer_value]));
+    let doc = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene_value],
+        vec![Symbol::new(symbol, "Walk", Timeline::default())],
+    )
+    .expect("doc");
+    let mut f = Fixture {
+        session: EditorSession::new(doc),
+        scene,
+    };
+    let commands = insert_keyframe(f.scene, layer(&f), 4);
+    run(&mut f, commands);
+    let playbacks: Vec<Playback> = layer(&f)
+        .spans()
+        .iter()
+        .map(|s| match s.content() {
+            Content::Instance(i) => i.playback(),
+            other => panic!("{other:?}"),
+        })
+        .collect();
+    assert_eq!(
+        playbacks,
+        [playback, playback],
+        "the copy plays like the original"
+    );
+}

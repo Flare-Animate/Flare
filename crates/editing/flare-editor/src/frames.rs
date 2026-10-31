@@ -17,9 +17,9 @@ use flare_commands::Command;
 fn duplicate(content: &Content) -> Option<Content> {
     Some(match content {
         Content::Empty => Content::Empty,
-        Content::Instance(i) => {
-            Content::Instance(Instance::new(InstanceId::new(), i.symbol(), i.transform()))
-        }
+        Content::Instance(i) => Content::Instance(
+            Instance::new(InstanceId::new(), i.symbol(), i.transform()).with_playback(i.playback()),
+        ),
         Content::Shape(s) => {
             let copy = Shape::new(ShapeId::new(), s.path().to_vec(), s.fill()).ok()?;
             Content::Shape(copy.painted_like(s))

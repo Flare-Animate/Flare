@@ -15,6 +15,7 @@ mod bounds;
 mod clipboard;
 mod grouping;
 mod paint;
+mod playback;
 mod select;
 mod transform;
 
@@ -39,6 +40,7 @@ pub use grouping::{break_apart, group};
 #[allow(unused_imports)]
 use paint::*;
 pub use paint::{restyle, set_ease, set_tween};
+pub use playback::set_playback;
 #[allow(unused_imports)]
 use select::*;
 pub use select::{polygon_contains, spans_at_frame, spans_in_polygon};
