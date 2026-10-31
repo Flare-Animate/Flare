@@ -131,8 +131,9 @@ are not built. Tools that are not built are dimmed with a note, like the menu's 
 and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a list. The strip scrolls
 when it is taller than its panel.
 Below them the fill and stroke colors are two overlapping squares, the stroke in front as a frame
-around an empty middle (smaller in a strip one tool wide), and under them, as in Animate's toolbar,
-two small buttons: black and white, and swap. Click either square to choose it and open its color
+around an empty middle (smaller in a strip one tool wide). Two small buttons keep their old places:
+swap at the top right of the squares and black and white at the bottom left (stacked beneath them in
+a strip one tool wide). An outline shows only while the pointer is over a square. Click either square to choose it and open its color
 picker, which starts with a No color button (an empty square is drawn white with a red slash): that
 is how a shape is drawn with no stroke or no fill. The strip is one tool wide by default and runs
 the whole height of the window, from the top bar to the bottom, with the timeline beside it, not

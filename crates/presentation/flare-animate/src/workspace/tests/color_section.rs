@@ -1,4 +1,4 @@
-//! The stroke and fill squares and the two small buttons under them, in the tool strip.
+//! The stroke and fill squares and the two small buttons beside or under them, in the tool strip.
 
 use super::*;
 use crate::workspace::ColorTarget;
@@ -12,7 +12,7 @@ fn rects(width: f32) -> WellRects {
 }
 
 #[test]
-fn the_squares_and_buttons_fit_the_strip_and_the_buttons_are_under_the_squares() {
+fn the_squares_and_buttons_fit_the_strip_and_the_buttons_are_at_the_corners() {
     // From a strip one tool wide to a wide one.
     for width in [30.0, 34.0, 38.0, 47.0, 48.0, 72.0, 120.0] {
         let m = Metrics::for_width(width);
@@ -33,15 +33,19 @@ fn the_squares_and_buttons_fit_the_strip_and_the_buttons_are_under_the_squares()
         // The two squares overlap on purpose, the stroke in front, down and to the right.
         assert!(r.stroke.min.x > r.fill.min.x && r.stroke.min.y > r.fill.min.y);
         assert!(r.stroke.intersects(r.fill));
-        // The buttons touch neither square nor each other, and sit under them: black and white,
-        // then swap, side by side.
+        // The buttons touch neither square nor each other, and are where they have always been:
+        // swap at the top right of the squares and black and white at the bottom left in a wide
+        // strip, one above the other beneath them in a narrow one.
         for button in [r.defaults, r.swap] {
             assert!(!button.intersects(r.fill) && !button.intersects(r.stroke));
-            assert!(button.min.y >= r.stroke.max.y);
         }
         assert!(!r.defaults.intersects(r.swap));
-        assert!(r.defaults.max.x <= r.swap.min.x);
-        assert!((r.defaults.min.y - r.swap.min.y).abs() < 0.01);
+        if width < 48.0 {
+            assert!(r.defaults.min.y >= r.stroke.max.y && r.swap.min.y > r.defaults.max.y);
+        } else {
+            assert!(r.swap.min.x > r.fill.max.x && r.swap.min.y < r.defaults.min.y);
+            assert!(r.defaults.min.y > r.fill.max.y && r.defaults.min.x < r.swap.min.x);
+        }
     }
     // A narrow strip gets the smaller box, a wide one the full size.
     assert!(Metrics::for_width(34.0).width() < Metrics::for_width(120.0).width());
@@ -86,7 +90,7 @@ fn centers() -> WellRects {
 }
 
 #[test]
-fn black_and_white_and_swap_are_the_buttons_under_the_swatches() {
+fn black_and_white_and_swap_are_the_buttons_by_the_swatches() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);
     pass_at(&mut ws, &ctx, 0.0, vec![]);

@@ -87,15 +87,6 @@ impl Workspace {
         self.stage_guides(ui, response.rect, image_rect, scale);
         self.assist_overlay(&painter, response.rect, image_rect, scale);
         self.text_editor(ui.ctx(), image_rect, scale);
-        if !self.stage_view.is_fit() {
-            painter.text(
-                response.rect.right_bottom() - Vec2::new(8.0, 8.0),
-                Align2::RIGHT_BOTTOM,
-                format!("{:.0}%", scale / fit_scale(response.rect, extent) * 100.0),
-                FontId::proportional(12.0),
-                Color32::GRAY,
-            );
-        }
         self.handle_radius = 8.0 / scale.max(f32::EPSILON);
         self.uniform_scale = ui.input(|i| i.modifiers.shift);
         self.skew_modifier = ui.input(|i| i.modifiers.alt);

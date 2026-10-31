@@ -28,6 +28,32 @@ fn the_zoom_percentage_sets_the_stage_scale_and_fit_returns_to_fitting() {
 }
 
 #[test]
+fn the_stage_draws_no_zoom_percentage_of_its_own_the_stage_bar_has_it() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    run(&mut ws, &ctx, 0.0);
+    ws.set_stage_percent(200.0);
+    let raw = RawInput {
+        time: Some(1.0),
+        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(1200.0, 800.0))),
+        ..RawInput::default()
+    };
+    let mut out = ctx.run_ui(raw, |ui| ws.show(ui));
+    out.textures_delta.clear();
+    // The stage bar has the number in a box (14 pt); the stage itself drew a second, loose 12 pt
+    // one in its corner.
+    let loose = out.shapes.iter().any(|s| {
+        matches!(&s.shape, egui::epaint::Shape::Text(t)
+            if t.galley.text().ends_with('%') && t.galley.job.sections[0].format.font_id.size == 12.0)
+    });
+    assert!(!loose, "no second zoom label in the stage's corner");
+    let bar = out
+        .shapes
+        .iter()
+        .any(|s| matches!(&s.shape, egui::epaint::Shape::Text(t) if t.galley.text() == "200%"));
+    assert!(bar, "the stage bar still shows the zoom");
+}
+
+#[test]
 fn menus_hold_planned_commands_dimmed_and_every_real_action_once() {
     let mocks = crate::all_entries()
         .iter()

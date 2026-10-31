@@ -1,7 +1,6 @@
 //! Small functions the panels share.
 
 use egui::{Key, Modifiers, Pos2, Rect, Vec2};
-use flare_ui::view::StageView;
 
 use super::*;
 
@@ -55,11 +54,6 @@ pub(super) fn key_press(ctx: &egui::Context, key: Key) -> Option<Modifiers> {
 
 /// How far a duplicate is moved from its original, in stage units.
 pub(super) const DUPLICATE_OFFSET: f64 = 12.0;
-
-/// The scale at which the whole stage just fits `panel`.
-pub(super) fn fit_scale(panel: Rect, extent: Vec2) -> f32 {
-    StageView::default().scale(panel, extent)
-}
 
 /// Scale Up / Scale Down factor.
 pub(super) const SCALE_STEP: f64 = 1.25;
