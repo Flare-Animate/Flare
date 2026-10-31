@@ -117,16 +117,16 @@ the tabs and Window menu already do, so no panel moves or closes. It is not show
 ## Tool strip
 
 The tools are in two columns, in the order Animate's toolbar has them, divided by a line into
-categories: Selection, Free Transform, Lasso; Brush, Pencil, Eraser, Rectangle, Line; Pen, Text,
+categories: Selection, Free Transform, Lasso; Pencil, Brush, Eraser, Rectangle, Line; Pen, Text,
 Paint Bucket, Eyedropper, Asset Warp; Hand, Zoom and the "…" button. As in Animate a cell is a slot
 that holds related tools and shows the one in use, with a small triangle in its corner: Selection
 holds Subselection, Free Transform holds Gradient Transform, Lasso holds Polygon and Magic Wand,
 Rectangle holds Oval, Rectangle Primitive, Oval Primitive and PolyStar, Pen holds Add, Delete and
-Convert Anchor Point, Paint Bucket holds Ink Bottle, and Hand holds Rotate View. Press and hold a
+Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, and Hand holds Rotation and Time scrub. Press and hold a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
 shows, and keys that pick a tool (A for Subselection, O for Oval) change what its cell shows too.
 The "…" button (Animate's Edit toolbar) opens a list of the tools that are not in the strip:
-Flare's own Mirror and Ruler, and 3D Rotation, 3D Translation, Deco, Bone, Bind and Camera, which
+Flare's own Mirror and Ruler, and 3D Rotation, 3D Translation, Deco, Bone, Bind, Width and Camera, which
 are not built. Tools that are not built are dimmed with a note, like the menu's planned commands,
 and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a list. The strip scrolls
 when it is taller than its panel.

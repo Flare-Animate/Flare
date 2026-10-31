@@ -366,7 +366,10 @@ fn subselection_is_in_the_selection_slot_and_the_strip_has_animates_other_tools(
         .collect();
     for name in [
         "Asset Warp",
-        "Rotate View",
+        "Rotation",
+        "Time scrub",
+        "Paint Brush",
+        "Width",
         "Gradient Transform",
         "Ink Bottle",
         "Oval",
@@ -376,7 +379,15 @@ fn subselection_is_in_the_selection_slot_and_the_strip_has_animates_other_tools(
     // Those not built are marked so, never selectable.
     for slot in &slots {
         for v in slot.iter() {
-            if ["Asset Warp", "Rotate View"].contains(&v.name) {
+            if [
+                "Asset Warp",
+                "Rotation",
+                "Time scrub",
+                "Paint Brush",
+                "Width",
+            ]
+            .contains(&v.name)
+            {
                 assert!(v.tool.is_none(), "{} is not built", v.name);
             }
         }
@@ -393,7 +404,7 @@ fn the_strip_is_in_animates_order() {
         order,
         [
             vec!["Selection", "Free Transform", "Lasso"],
-            vec!["Brush", "Pencil", "Eraser", "Rectangle", "Line"],
+            vec!["Pencil", "Brush", "Eraser", "Rectangle", "Line"],
             vec!["Pen", "Text", "Paint Bucket", "Eyedropper", "Asset Warp"],
             vec!["Hand", "Zoom", "Mirror"],
         ],
@@ -450,4 +461,32 @@ fn the_dots_cell_lists_the_other_tools_and_picking_one_selects_it() {
         Some(Tool::Ruler),
         "a built tool is picked from the dots"
     );
+}
+
+#[test]
+fn the_strip_draws_one_picture_for_each_slot_and_nothing_else_but_the_color_buttons() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    flare_ui::icons::install(&ctx);
+    let slots: usize = SLOT_GROUPS.iter().map(|group| group.len()).sum();
+    let mut pictures = 0;
+    for pass in 0..3 {
+        let raw = RawInput {
+            time: Some(f64::from(pass) * 0.1),
+            screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(120.0, 900.0))),
+            ..RawInput::default()
+        };
+        let mut out = ctx.run_ui(raw, |ui| ws.tools_panel(ui));
+        out.textures_delta.clear();
+        pictures = out
+            .shapes
+            .iter()
+            .filter(|s| {
+                matches!(&s.shape, egui::epaint::Shape::Rect(r)
+                    if r.fill_texture_id() != egui::TextureId::default())
+            })
+            .count();
+    }
+    // The color box has two small buttons, swap and defaults. A second copy of any cell, the
+    // dots included, would make one more.
+    assert_eq!(pictures, slots + 2, "{slots} slots and two color buttons");
 }

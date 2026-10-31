@@ -61,8 +61,11 @@ pub(crate) static SLOT_GROUPS: &[&[Slot]] = &[
         ],
     ],
     &[
+        &[
+            real("tool-pencil", "Pencil", "Y", Tool::Pencil),
+            mock("tool-paint-brush", "Paint Brush"),
+        ],
         &[real("tool-brush", "Brush", "B", Tool::Brush)],
-        &[real("tool-pencil", "Pencil", "Y", Tool::Pencil)],
         &[real("tool-eraser", "Eraser", "E", Tool::Eraser)],
         &[
             real("tool-rectangle", "Rectangle", "R", Tool::Rectangle),
@@ -91,7 +94,8 @@ pub(crate) static SLOT_GROUPS: &[&[Slot]] = &[
     &[
         &[
             real("tool-hand", "Hand", "H", Tool::Hand),
-            mock("tool-rotate-view", "Rotate View"),
+            mock("tool-rotate-view", "Rotation"),
+            mock("tool-time-scrub", "Time scrub"),
         ],
         &[real("tool-zoom", "Zoom", "Z", Tool::Zoom)],
         EXTRA,
@@ -109,6 +113,7 @@ pub(crate) static EXTRA: Slot = &[
     mock("tool-deco", "Deco"),
     mock("tool-bone", "Bone"),
     mock("tool-bind", "Bind"),
+    mock("tool-width", "Width"),
     mock("tool-camera", "Camera"),
 ];
 
