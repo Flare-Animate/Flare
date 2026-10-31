@@ -4,6 +4,7 @@ use crate::timeline_view;
 use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use flare_document::Layer;
 
+use super::layer_names;
 use super::*;
 
 /// How far each level of folder indents a name, in points.
@@ -124,6 +125,8 @@ impl Workspace {
                             self.collapsed_folders.insert(id);
                         }
                         self.select_layer(id);
+                    } else if response.double_clicked() && layer_names::on_name(p.x, track.min.x) {
+                        self.begin_layer_rename(id);
                     } else if response.clicked() && eye {
                         self.toggle_layer_visible(id);
                     } else if response.clicked() && lock {
@@ -134,6 +137,16 @@ impl Workspace {
                         self.select_layer(id);
                     }
                 }
+            }
+            // A right click in the layer column opens that layer's menu.
+            if response.secondary_clicked() {
+                self.layer_menu_for = response
+                    .interact_pointer_pos()
+                    .filter(|p| p.x < track.min.x)
+                    .and_then(|p| self.layer_at(&rows, rect.min.y + row, row, p.y));
+            }
+            if let Some(layer) = self.layer_menu_for {
+                response.context_menu(|ui| self.layer_menu(ui, layer));
             }
             let active = self.active_layer_id();
 
@@ -375,6 +388,14 @@ impl Workspace {
                     }
                 }
             }
+            self.layer_name_editor(
+                ui,
+                &rows,
+                rect.min.y + row,
+                row,
+                rect.min.x + 4.0,
+                track.min.x - 56.0,
+            );
             let head = track.min.x + (self.frame as f32 + 0.5) * per_frame;
             painter.line_segment(
                 [

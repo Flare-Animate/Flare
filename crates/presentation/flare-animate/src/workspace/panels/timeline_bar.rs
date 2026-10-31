@@ -207,17 +207,6 @@ impl Workspace {
         if chrome::icon_button(ui, "zoom-fit", BAR_ICON, false, true, "Fit the scene").clicked() {
             self.timeline_zoom = crate::timeline_view::MIN_ZOOM;
         }
-        ui.separator();
-        let edit = ui.add(
-            egui::TextEdit::singleline(&mut self.layer_name_edit)
-                .hint_text("Rename layer")
-                .desired_width(120.0),
-        );
-        let submitted = edit.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-        if submitted && !self.layer_name_edit.is_empty() {
-            let name = std::mem::take(&mut self.layer_name_edit);
-            self.rename_active_layer(&name);
-        }
     }
 
     /// A new empty layer above the others, made the active one: one undo step.

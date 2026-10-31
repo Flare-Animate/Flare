@@ -51,6 +51,8 @@ Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font Licens
 
 Left to right: the tool strip, the stage, and one stack of tabs (Properties, Library, Color, Align, Transform, History, Info). Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
 
+In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar.
+
 ## Documents and tabs
 
 A window holds several documents as tabs above the stage. One is edited; the others are parked whole and swapped in when their tab is chosen, so each keeps its own history, selection and view. The person's tool, colors, settings and panel layout stay with the window, not the document. Open, Import and New open in a tab of their own, except that a blank untouched document gives way to what is opened. Revert reloads in the same tab. Closing a tab with unsaved work is refused, and closing the window asks about every tab. Autosave and crash recovery cover only the document on show for now.

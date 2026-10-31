@@ -36,6 +36,7 @@ mod help;
 mod helpers;
 mod home;
 mod home_recent;
+mod layer_names;
 mod layers;
 mod open_any;
 mod outlines;
@@ -185,7 +186,11 @@ pub struct Workspace {
     /// The symbol being renamed in the library and the text so far.
     renaming: Option<(SymbolId, String)>,
     current_layer: Option<LayerId>,
-    layer_name_edit: String,
+    /// The layer being renamed in the timeline and the text so far.
+    layer_renaming: Option<(LayerId, String)>,
+    layer_rename_serial: u32,
+    /// The layer a right click in the timeline's layer column opened a menu for.
+    layer_menu_for: Option<LayerId>,
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
     quit_requested: bool,
@@ -300,7 +305,9 @@ impl Workspace {
             library_search: String::new(),
             renaming: None,
             current_layer: None,
-            layer_name_edit: String::new(),
+            layer_renaming: None,
+            layer_rename_serial: 0,
+            layer_menu_for: None,
             native_menu: false,
             quit_requested: false,
             layout: layout::default_tree(),
