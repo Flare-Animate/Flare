@@ -10,7 +10,7 @@ mod layers_and_stage;
 mod rendering;
 
 fn run(args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_flare-cli"))
+    Command::new(env!("CARGO_BIN_EXE_flare"))
         .args(args)
         .output()
         .expect("run cli")

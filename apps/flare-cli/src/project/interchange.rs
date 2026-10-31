@@ -88,6 +88,24 @@ pub fn export_xfl(path: &Path, out: &Path) -> Result<Value> {
     }))
 }
 
+/// Renders every frame of the first scene as an endlessly looping GIF. Never overwrites; the
+/// file appears only when complete.
+pub fn export_gif(path: &Path, out: &Path) -> Result<Value> {
+    if out.exists() {
+        bail!("{} already exists", out.display());
+    }
+    let session = open(path)?;
+    let bytes = flare_runtime::gif_bytes(session.document()).map_err(anyhow::Error::msg)?;
+    let directory = out
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    let mut staged = tempfile::NamedTempFile::new_in(directory)?;
+    std::io::Write::write_all(&mut staged, &bytes)?;
+    staged.persist(out).map_err(|error| error.error)?;
+    Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes.len() }))
+}
+
 /// Publishes a project as a SWF file. Never overwrites; the file appears only when complete.
 pub fn publish_swf(path: &Path, out: &Path, compress: bool) -> Result<Value> {
     let session = open(path)?;

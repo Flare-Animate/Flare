@@ -40,11 +40,11 @@ merge was resolved by hand and the merged result is tested as a whole.
 |---|---|
 | `feat/recovery` | Autosave to a recovery store, recover on launch, discard on confirmed close |
 | `feat/mcp` | MCP stdio server (`flare-mcp`, on `rmcp`) with permissions and revision checks |
-| `feat/xfl-import` | XFL / modern FLA import subset (`flare-cli import`) with diagnostics, robustness tests |
-| `feat/xfl-export` | XFL / `.fla` export (`flare-cli export-xfl`), stacked on `feat/xfl-import` |
+| `feat/xfl-import` | XFL / modern FLA import subset (`flare import`) with diagnostics, robustness tests |
+| `feat/xfl-export` | XFL / `.fla` export (`flare export-xfl`), stacked on `feat/xfl-import` |
 | `feat/source-preservation` | Keep unsupported XFL data as attachments through edit, save and export; stacked on `feat/xfl-export` |
 | `feat/test-movie` | Test Movie via an external Ruffle process, stacked on `feat/swf-publish` |
-| `feat/swf-publish` | SWF publishing (`flare-cli publish-swf`), stacked on `feat/xfl-export` |
+| `feat/swf-publish` | SWF publishing (`flare publish-swf`), stacked on `feat/xfl-export` |
 | `feat/docking` | `egui_tiles` dock with a validated, remembered layout and Reset Workspace Layout |
 | `feat/onion-skin` | Onion skinning with before/after ranges |
 | `feat/hardening` | Fault-injection and random-edit invariant tests |

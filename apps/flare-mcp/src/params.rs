@@ -142,3 +142,43 @@ pub struct SetStage {
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ExportName {
+    /// File name only: letters, digits, '.', '_' or '-'. The extension is added when missing.
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct PublishSwf {
+    /// File name only; `.swf` is added when missing.
+    pub name: String,
+    /// Write an uncompressed SWF.
+    pub no_compress: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct PublishHtml5 {
+    /// File name only; `.html` is added when missing.
+    pub name: String,
+    /// Stop on the last frame instead of looping.
+    pub no_loop: Option<bool>,
+    /// Leave the stage at the top left instead of centering it.
+    pub no_center: Option<bool>,
+    /// Scale the stage to fit the browser window.
+    pub responsive: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ExportXfl {
+    /// File name only. Ending in `.fla` writes a zipped .fla; any other name is a folder of XFL.
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ImportProject {
+    /// An XFL folder, `.xfl` or `.fla` already inside the export directory (a file name only).
+    pub source: String,
+    /// File name for the new project; `.flare` is added when missing.
+    pub name: String,
+}

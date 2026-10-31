@@ -7,6 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Added
+- `flare export --format gif` (the command line is now `flare`; the crate is still `flare-cli`), and MCP tools `export_gif`, `publish_swf`, `publish_html5`, `export_xfl` and `import_project`: they write into the export directory only, never overwrite, and report what the format could not hold. The MCP server now has every export the CLI has except MP4.
 - The Polygon lasso (in the Lasso cell): click the corners of a loop, then double-click, press Enter or click the first corner to select what it encloses; Shift adds to the selection and Escape drops the loop.
 - Test Movie plays inside the desktop app: a window in the editor shows the movie with Ruffle running in the same process, on the editor's own GPU device, with sound (Pause/Play and Restart). Building without the `ruffle` feature starts an external Ruffle instead.
 - `flare-ruffle`'s `embedded` feature runs Ruffle inside the process on a wgpu device it is given: a published movie plays over time into a texture, with sound through Ruffle's mixer (tested: frames advance with the time given, pausing holds, the sound we publish is heard).
@@ -27,11 +28,11 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - Drawing tools: selection, subselection, free transform, lasso, pen, text, line, rectangle,
   ellipse, polystar, pencil, brush, paint bucket, ink bottle, eyedropper, eraser, hand, zoom,
   ruler (measures distance and angle) and mirror (sets the axes for symmetric drawing).
-- Shape tweens (Insert > Create Shape Tween) turn one shape into the next, and both tween kinds have Animate's Ease (-100 to 100) in the Properties panel. Tweened spans show an arrow and a color of their own in the timeline. XFL's `tweenType="shape"` and `acceleration` are imported and exported, and `flare-cli frame` has `motion-tween`, `shape-tween`, `remove-tween` and `set-ease`.
+- Shape tweens (Insert > Create Shape Tween) turn one shape into the next, and both tween kinds have Animate's Ease (-100 to 100) in the Properties panel. Tweened spans show an arrow and a color of their own in the timeline. XFL's `tweenType="shape"` and `acceleration` are imported and exported, and `flare frame` has `motion-tween`, `shape-tween`, `remove-tween` and `set-ease`.
 - A light theme, chosen in Preferences > General beside Dark, which stays the default.
 - The interface can be shown in English, Chinese (Simplified), German, Japanese, Korean, Portuguese (Brazil) or Spanish, chosen in Preferences > General (System locale by default); Preferences and Publish are translated so far, with the rest to follow.
 - Publish opens a popup with the formats (Flash, HTML5, animated GIF, and MP4 video with its sound, written by Flare itself in pure Rust) and a Twitter button that opens the post already filled in, and YouTube, Newgrounds and Facebook shown dimmed until they can be filled in too.
-- File > Publish writes an HTML5 Canvas page and a Flash movie, as chosen in File > Publish Settings (Loop timeline, Center stage, Make responsive), with sounds started at their cues; `flare-cli publish-html5` does the same from the command line.
+- File > Publish writes an HTML5 Canvas page and a Flash movie, as chosen in File > Publish Settings (Loop timeline, Center stage, Make responsive), with sounds started at their cues; `flare publish-html5` does the same from the command line.
 - Symbols have a type (Graphic, Movie Clip or Button), chosen when making one or changed in the Library, saved in the project and exchanged through XFL. A Button shows its Up state in the stage and in every export, instead of looping through its frames, and a Graphic instance has Animate's Looping options (Loop, Play Once, Single Frame, and the first frame) in the Object tab, kept in the project and in XFL.
 - A Home page at launch: new-project sizes, Open, Import and recent projects, each with when the file was last changed and its size, and a search box.
 - The Brush has a nib (Round or Square, with an angle and a flatness) that shapes the stroke; the

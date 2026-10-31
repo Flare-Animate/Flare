@@ -11,7 +11,7 @@ Translations: [Español](docs/translations/README.es.md) · [Français](docs/tra
 - Draw with the familiar tools, lay out frames and layers on a timeline, tween along motion guides.
 - Open and save `.flare` projects; import and export Animate's XFL/FLA; export PNG and GIF; publish SWF.
 - Several documents as tabs, dockable panels, autosave and crash recovery.
-- A command-line tool (`flare-cli`) and an MCP server (`flare-mcp`) so scripts and AI agents can work on the same documents safely.
+- A command-line tool (`flare`) and an MCP server (`flare-mcp`) so scripts and AI agents can work on the same documents safely.
 
 ## Build and run
 

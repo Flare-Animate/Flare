@@ -8,6 +8,13 @@ use std::path::Path;
 
 use super::*;
 
+/// What `export` writes.
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+pub enum ExportFormat {
+    Png,
+    Gif,
+}
+
 pub(super) struct RenderTarget {
     pub(super) width: u32,
     pub(super) height: u32,

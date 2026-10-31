@@ -60,7 +60,7 @@ For each of six targets (Windows, macOS and Linux, x64 and arm64):
 | Windows | `.msi` (WiX 5, registers `.flare`), `-portable.zip`, and a bare `.exe` | `flare-cli-<v>-windows-<arch>.zip` |
 | Linux | `.deb`, `.rpm`, `.AppImage` and a `.tar.gz` | `flare-cli-<v>-linux-<arch>.tar.gz` |
 
-The command line archive holds `flare-cli` and `flare-mcp`. A `SHA256SUMS.txt` covers everything.
+The command line archive holds `flare` (the command line) and `flare-mcp`. A `SHA256SUMS.txt` covers everything.
 The web build is experimental and not released.
 
 ## Checklist for a version

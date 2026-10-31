@@ -188,7 +188,7 @@ are protocol errors from `rmcp`.
 
 ## Import (XFL)
 
-`flare-cli import <source> <out.flare>` reads an XFL directory, an `.xfl` file (its folder is
+`flare import <source> <out.flare>` reads an XFL directory, an `.xfl` file (its folder is
 used) or a zipped modern `.fla`, and writes a new project. It never overwrites, and the
 result is an ordinary document. Input is untrusted: XML depth, element count and file sizes
 are capped, DTDs are refused, file names cannot escape the document, and symlinks out of an
@@ -211,7 +211,7 @@ corpus evidence is the next step before calling any feature supported.
 
 ## Export (XFL)
 
-`flare-cli export-xfl <project> <out>` writes an XFL folder (with the `.xfl` stub), or a
+`flare export-xfl <project> <out>` writes an XFL folder (with the `.xfl` stub), or a
 zipped `.fla` when `out` ends in `.fla`. It never overwrites, and the folder or archive
 appears only once complete. Written: stage, frame rate, background, scenes, layers with
 visibility and lock, frames and durations, instances with their matrix and motion tweens,
@@ -230,7 +230,7 @@ Animate opens them is untested. Source preservation of unknown data is not imple
 
 ## Publishing (SWF)
 
-`flare-cli publish-swf <project> <out.swf>` writes a SWF (zlib-compressed unless
+`flare publish-swf <project> <out.swf>` writes a SWF (zlib-compressed unless
 `--no-compress`). It never overwrites, and the file appears only when complete. A SWF has
 one timeline of shapes and placements, so publishing *bakes* each frame with the same
 evaluator the editor uses: tweens become per-frame matrices, symbol instances are flattened
@@ -248,7 +248,7 @@ frames, stage at most 8,191 px, frame rate capped at 255, background transparenc
 ### Test Movie
 
 Test Movie plays the published SWF in an *external* Ruffle process (Control > Test Movie,
-or `flare-cli test-movie <project>`). Running a foreign player is a trust boundary, so it is
+or `flare test-movie <project>`). Running a foreign player is a trust boundary, so it is
 kept at arm's length: the SWF is written to a private temporary directory, the player is
 started directly with exactly one argument and never through a shell, its standard streams
 are closed, and stopping or dropping the movie kills the player and removes the files. Ruffle
@@ -332,7 +332,7 @@ The policy is deliberately honest rather than clever:
 
 ## Frontends
 
-`flare-cli` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`,
+`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`,
 `layer`, `place`, `frame`, `eval`, `export`, `export-frames`, `inspect`, `rate`.
 
 Inside `flare-animate`, `Workspace` is the one object the window talks to, and its topics are modules

@@ -2,6 +2,7 @@
 //! edit commands, frame operations and renderer that the CLI and desktop app use.
 
 mod draw;
+mod export;
 mod history;
 mod read;
 mod timeline;
@@ -13,6 +14,10 @@ use crate::server::FlareServer;
 impl FlareServer {
     /// Every tool, from the groups' routers.
     pub(crate) fn router() -> ToolRouter<Self> {
-        Self::read_tools() + Self::draw_tools() + Self::timeline_tools() + Self::history_tools()
+        Self::read_tools()
+            + Self::export_tools()
+            + Self::draw_tools()
+            + Self::timeline_tools()
+            + Self::history_tools()
     }
 }

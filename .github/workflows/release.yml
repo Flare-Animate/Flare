@@ -125,7 +125,7 @@ jobs:
       - name: Package portable archives and macOS images
         run: python scripts/packaging/package_release.py package --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/${{ matrix.executable }} --output dist
       - name: Package headless CLI
-        run: python scripts/packaging/package_cli.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare-cli${{ runner.os == 'Windows' && '.exe' || '' }} --mcp-binary target/${{ matrix.target }}/release/flare-mcp${{ runner.os == 'Windows' && '.exe' || '' }} --output dist
+        run: python scripts/packaging/package_cli.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare${{ runner.os == 'Windows' && '.exe' || '' }} --mcp-binary target/${{ matrix.target }}/release/flare-mcp${{ runner.os == 'Windows' && '.exe' || '' }} --output dist
       - uses: ./.github/actions/release-tools
         if: runner.os == 'Linux'
       - name: Package Linux installers

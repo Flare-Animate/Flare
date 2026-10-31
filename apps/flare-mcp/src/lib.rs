@@ -16,5 +16,5 @@ mod params;
 mod server;
 mod tools;
 
-pub use color::{parse_color, safe_file_name};
+pub use color::{parse_color, safe_file_name, safe_file_name_with, safe_name};
 pub use server::{FlareServer, Permissions};

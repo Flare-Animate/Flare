@@ -18,10 +18,10 @@ use draw::*;
 pub use draw::{PlaceOptions, add_layer, add_symbol, draw_rect, eval, place, set_stage};
 #[allow(unused_imports)]
 use interchange::*;
-pub use interchange::{export_xfl, import, publish_html5, publish_swf, test_movie};
+pub use interchange::{export_gif, export_xfl, import, publish_html5, publish_swf, test_movie};
 #[allow(unused_imports)]
 use render::*;
-pub use render::{export, export_frames};
+pub use render::{ExportFormat, export, export_frames};
 #[allow(unused_imports)]
 use timeline::*;
 pub use timeline::{FrameOperation, LayerOperation, frame_op, layer_op};

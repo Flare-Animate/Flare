@@ -18,8 +18,8 @@ pub fn parse_color(text: &str) -> Result<Rgba8, String> {
     }
 }
 
-/// A file name that cannot escape the export directory, with `.png` added when missing.
-pub fn safe_file_name(name: &str) -> Result<String, String> {
+/// A name that cannot escape the export directory: no separators, no leading '.' or '-'.
+pub fn safe_name(name: &str) -> Result<&str, String> {
     let ok = !name.is_empty()
         && name.len() <= 100
         && !name.starts_with(['.', '-'])
@@ -29,11 +29,23 @@ pub fn safe_file_name(name: &str) -> Result<String, String> {
     if !ok {
         return Err("name must be 1-100 characters of letters, digits, '.', '_' or '-', not starting with '.' or '-'".to_owned());
     }
-    Ok(if name.to_ascii_lowercase().ends_with(".png") {
+    Ok(name)
+}
+
+/// [`safe_name`] with `.{ext}` added when the name does not end in it.
+pub fn safe_file_name_with(name: &str, ext: &str) -> Result<String, String> {
+    let name = safe_name(name)?;
+    let suffix = format!(".{ext}");
+    Ok(if name.to_ascii_lowercase().ends_with(&suffix) {
         name.to_owned()
     } else {
-        format!("{name}.png")
+        format!("{name}{suffix}")
     })
+}
+
+/// A file name that cannot escape the export directory, with `.png` added when missing.
+pub fn safe_file_name(name: &str) -> Result<String, String> {
+    safe_file_name_with(name, "png")
 }
 
 #[cfg(test)]

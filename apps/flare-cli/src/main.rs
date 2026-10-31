@@ -15,6 +15,7 @@ use serde_json::json;
 
 #[derive(Parser)]
 #[command(
+    name = "flare",
     version,
     about = "Flare starter: bounded inspection, not full format support"
 )]
@@ -100,12 +101,15 @@ enum Command {
         #[arg(long)]
         layer: Option<uuid::Uuid>,
     },
-    /// Render one frame of the first scene to a PNG file.
+    /// Render the first scene: one frame as a PNG (the default), or every frame as a looping GIF.
     Export {
         path: PathBuf,
         out: PathBuf,
-        #[arg(long, default_value_t = 0)]
-        frame: u32,
+        #[arg(long, value_enum, default_value_t = project::ExportFormat::Png)]
+        format: project::ExportFormat,
+        /// The frame to render (PNG only; default 0).
+        #[arg(long)]
+        frame: Option<u32>,
         /// Defaults to the stage width.
         #[arg(long)]
         width: Option<u32>,
@@ -353,11 +357,24 @@ fn main() -> Result<()> {
         Command::Export {
             path,
             out,
+            format,
             frame,
             width,
             height,
             transparent,
-        } => project::export(&path, &out, frame, width, height, transparent)?,
+        } => match format {
+            project::ExportFormat::Png => {
+                project::export(&path, &out, frame.unwrap_or(0), width, height, transparent)?
+            }
+            project::ExportFormat::Gif => {
+                if frame.is_some() || width.is_some() || height.is_some() || transparent {
+                    bail!(
+                        "a GIF holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG"
+                    );
+                }
+                project::export_gif(&path, &out)?
+            }
+        },
         Command::Place {
             path,
             symbol,

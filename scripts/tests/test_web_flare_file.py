@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "apps/flare-web"
-CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare-cli"))
+CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare"))
 READY = (
     shutil.which("node") is not None
     and (WEB / "node_modules/@sqlite.org/sqlite-wasm").is_dir()

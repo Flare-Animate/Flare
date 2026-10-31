@@ -178,7 +178,7 @@ fn test_movie_hands_a_valid_swf_to_the_player_and_reports_how_it_exited() {
     let output = run(&["test-movie", &file, "--ruffle", &missing]);
     assert!(!output.status.success());
     // With no player given and none on PATH, the error says how to fix it.
-    let none = Command::new(env!("CARGO_BIN_EXE_flare-cli"))
+    let none = Command::new(env!("CARGO_BIN_EXE_flare"))
         .args(["test-movie", &file])
         .env("PATH", "/nonexistent")
         .env_remove("FLARE_RUFFLE")
@@ -189,5 +189,74 @@ fn test_movie_hands_a_valid_swf_to_the_player_and_reports_how_it_exited() {
         String::from_utf8_lossy(&none.stderr).contains("Ruffle was not found"),
         "{}",
         String::from_utf8_lossy(&none.stderr)
+    );
+}
+
+#[test]
+fn export_format_gif_writes_an_animated_gif_never_overwrites_and_refuses_png_only_options() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file, "--width", "16", "--height", "16"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "2",
+        "2",
+        "6",
+        "6",
+        "--color",
+        "FF0000",
+        "--duration",
+        "3",
+    ]);
+    let out = dir.path().join("loop.gif").to_string_lossy().into_owned();
+    let report = json(&["export", &file, &out, "--format", "gif"]);
+    let bytes = std::fs::read(&out).expect("read");
+    assert_eq!(&bytes[..6], b"GIF89a");
+    assert_eq!(report["bytes"], bytes.len());
+    assert!(
+        !run(&["export", &file, &out, "--format", "gif"])
+            .status
+            .success(),
+        "never overwrites"
+    );
+    let option_out = dir.path().join("x.gif").to_string_lossy().into_owned();
+    for option in [["--frame", "1"], ["--width", "8"], ["--height", "8"]] {
+        let refused = run(&[
+            "export",
+            &file,
+            &option_out,
+            "--format",
+            "gif",
+            option[0],
+            option[1],
+        ]);
+        assert!(!refused.status.success(), "{option:?} is for PNG");
+        assert!(String::from_utf8_lossy(&refused.stderr).contains("for PNG"));
+    }
+    assert!(
+        !run(&[
+            "export",
+            &file,
+            &option_out,
+            "--format",
+            "gif",
+            "--transparent"
+        ])
+        .status
+        .success()
+    );
+    assert!(!std::path::Path::new(&option_out).exists());
+    let missing = dir.path().join("none.flare").to_string_lossy().into_owned();
+    let other = dir.path().join("o.gif").to_string_lossy().into_owned();
+    assert!(
+        !run(&["export", &missing, &other, "--format", "gif"])
+            .status
+            .success()
+    );
+    assert!(
+        !std::path::Path::new(&other).exists(),
+        "a failed export leaves no file"
     );
 }

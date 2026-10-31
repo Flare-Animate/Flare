@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare-cli"))
+CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare"))
 FIXTURES = ROOT / "crates/io/flare-import/tests/fixtures"
 
 

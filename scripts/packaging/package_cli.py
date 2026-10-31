@@ -15,7 +15,7 @@ def package(version, target, cli, mcp, output):
     windows = "windows" in target
     suffix = ".exe" if windows else ""
     archive = output / (f"flare-cli-{version}-{release.TARGETS[target]}" + (".zip" if windows else ".tar.gz"))
-    files = [(cli, "flare-cli" + suffix), (mcp, "flare-mcp" + suffix),
+    files = [(cli, "flare" + suffix), (mcp, "flare-mcp" + suffix),
              (release.ROOT / "LICENSE", "LICENSE")]
     if windows:
         with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as stream:
