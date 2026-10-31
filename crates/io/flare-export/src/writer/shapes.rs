@@ -166,7 +166,9 @@ pub(super) fn write_instance(out: &mut Xml, instance: &Instance, names: &Names) 
     }
     // Only a graphic has a frame-loop setting.
     if kind == flare_document::SymbolKind::Graphic {
-        attrs.push(a("loop", "loop"));
+        let playback = instance.playback();
+        attrs.push(a("loop", playback.mode.name()));
+        attrs.push(a("firstFrame", playback.first_frame));
     }
     out.open("DOMSymbolInstance", attrs);
     out.open("matrix", []);

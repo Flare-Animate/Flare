@@ -60,3 +60,61 @@ fn symbols_keep_their_kind_and_the_behaviour_that_is_not_carried_out_is_reported
         );
     }
 }
+
+#[test]
+fn a_graphics_frame_setting_is_read_and_an_odd_one_loops_with_a_note() {
+    use flare_document::{Content, PlayMode, Playback};
+    let main = |instance_attrs: &str| {
+        format!(
+            r#"<DOMDocument><symbols><Include href="Walk.xml"/></symbols><timelines><DOMTimeline name="S"><layers><DOMLayer name="L"><frames><DOMFrame index="0" duration="1"><elements><DOMSymbolInstance libraryItemName="Walk" symbolType="graphic"{instance_attrs}/></elements></DOMFrame></frames></DOMLayer></layers></DOMTimeline></timelines></DOMDocument>"#
+        )
+    };
+    let import = |attrs: &str| {
+        let files = Files::default().with("DOMDocument.xml", &main(attrs)).with(
+            "LIBRARY/Walk.xml",
+            r#"<DOMSymbolItem name="Walk" symbolType="graphic"/>"#,
+        );
+        import_xfl(&files).expect("import")
+    };
+    let playback = |imported: &flare_import::Imported| match imported.document.scenes()[0]
+        .timeline()
+        .layers()[0]
+        .spans()[0]
+        .content()
+    {
+        Content::Instance(i) => i.playback(),
+        other => panic!("{other:?}"),
+    };
+    let once = import(r#" loop="play once" firstFrame="3""#);
+    assert_eq!(
+        playback(&once),
+        Playback {
+            mode: PlayMode::PlayOnce,
+            first_frame: 3
+        }
+    );
+    let single = import(r#" loop="single frame" firstFrame="9""#);
+    assert_eq!(
+        playback(&single),
+        Playback {
+            mode: PlayMode::SingleFrame,
+            first_frame: 9
+        }
+    );
+    // Neither attribute: a loop from the first frame.
+    assert_eq!(playback(&import("")), Playback::default());
+    // Garbage in either: the default, and the odd mode is said.
+    let odd = import(r#" loop="bounce" firstFrame="-4""#);
+    assert_eq!(playback(&odd), Playback::default());
+    assert!(
+        messages(&odd, Severity::Info)
+            .iter()
+            .any(|m| m.contains("bounce")),
+        "{:?}",
+        odd.diagnostics
+    );
+    assert_eq!(
+        playback(&import(r#" firstFrame="abc""#)),
+        Playback::default()
+    );
+}

@@ -86,3 +86,48 @@ fn every_kind_comes_back_from_an_exported_fla() {
         .collect();
     assert_eq!(kinds, expected);
 }
+
+#[test]
+fn a_graphics_frame_setting_goes_out_as_xfl_writes_it_and_comes_back() {
+    use flare_document::{PlayMode, Playback};
+    let symbol = Symbol::new(SymbolId::new(), "Walk", Timeline::default());
+    let make = |mode, first_frame| {
+        let instance = Instance::new(InstanceId::new(), symbol.id(), Transform2D::IDENTITY)
+            .with_playback(Playback { mode, first_frame });
+        let span = FrameSpan::new(0, NonZeroU32::MIN, Content::Instance(instance));
+        let layer = Layer::new(LayerId::new(), "L", vec![span]).expect("layer");
+        let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+        Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![scene],
+            vec![symbol.clone()],
+        )
+        .expect("document")
+    };
+    for (mode, first, written) in [
+        (PlayMode::PlayOnce, 4, r#"loop="play once" firstFrame="4""#),
+        (
+            PlayMode::SingleFrame,
+            2,
+            r#"loop="single frame" firstFrame="2""#,
+        ),
+        (PlayMode::Loop, 0, r#"loop="loop" firstFrame="0""#),
+    ] {
+        let output = export_xfl(&make(mode, first)).expect("export");
+        let main = file(&output.files, "DOMDocument.xml");
+        assert!(main.contains(written), "{written}: {main}");
+        let back = import_fla_bytes(fla_bytes(&output).expect("bytes")).expect("import");
+        let seen = match back.document.scenes()[0].timeline().layers()[0].spans()[0].content() {
+            Content::Instance(i) => i.playback(),
+            other => panic!("{other:?}"),
+        };
+        assert_eq!(
+            seen,
+            Playback {
+                mode,
+                first_frame: first
+            }
+        );
+    }
+}

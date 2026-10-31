@@ -98,6 +98,12 @@ pub(super) enum ContentWire {
         id: String,
         symbol: String,
         matrix: [f64; 6],
+        /// How a graphic plays: `loop`, `play once` or `single frame`. Absent in files written
+        /// before the option existed, which loop from the first frame.
+        #[serde(default)]
+        play: Option<String>,
+        #[serde(default)]
+        first_frame: u32,
     },
 }
 
@@ -211,6 +217,8 @@ impl TimelineWire {
                                 id: instance.id().as_uuid().to_string(),
                                 symbol: instance.symbol().as_uuid().to_string(),
                                 matrix: instance.transform().as_affine().to_cols_array(),
+                                play: Some(instance.playback().mode.name().to_owned()),
+                                first_frame: instance.playback().first_frame,
                             },
                         },
                     })
@@ -274,14 +282,28 @@ impl TimelineWire {
                         }
                         Content::Shape(shape)
                     }
-                    ContentWire::Instance { id, symbol, matrix } => {
+                    ContentWire::Instance {
+                        id,
+                        symbol,
+                        matrix,
+                        play,
+                        first_frame,
+                    } => {
                         let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
                             .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;
-                        Content::Instance(Instance::new(
-                            InstanceId::from_uuid(uuid(&id)?),
-                            SymbolId::from_uuid(uuid(&symbol)?),
-                            transform,
-                        ))
+                        // A name this version does not know plays as the default, a loop.
+                        let mode = play
+                            .as_deref()
+                            .and_then(flare_document::PlayMode::from_name)
+                            .unwrap_or_default();
+                        Content::Instance(
+                            Instance::new(
+                                InstanceId::from_uuid(uuid(&id)?),
+                                SymbolId::from_uuid(uuid(&symbol)?),
+                                transform,
+                            )
+                            .with_playback(flare_document::Playback { mode, first_frame }),
+                        )
                     }
                 };
                 let tween = match span.tween {

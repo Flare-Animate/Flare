@@ -92,10 +92,26 @@ impl Importer {
             );
             return None;
         };
-        Some(Content::Instance(Instance::new(
-            InstanceId::new(),
-            symbol,
-            transform,
-        )))
+        // A graphic's frame-loop setting; Animate leaves both off an instance that loops from the
+        // first frame, and writes them on every graphic instance.
+        let mode = match node.attr("loop") {
+            None => flare_document::PlayMode::Loop,
+            Some(name) => flare_document::PlayMode::from_name(name).unwrap_or_else(|| {
+                self.note(
+                    Severity::Info,
+                    place,
+                    format!("the frame setting \"{name}\" is not known; the instance loops"),
+                );
+                flare_document::PlayMode::Loop
+            }),
+        };
+        let first_frame = node
+            .attr("firstFrame")
+            .and_then(|v| v.trim().parse::<u32>().ok())
+            .unwrap_or(0);
+        Some(Content::Instance(
+            Instance::new(InstanceId::new(), symbol, transform)
+                .with_playback(flare_document::Playback { mode, first_frame }),
+        ))
     }
 }
