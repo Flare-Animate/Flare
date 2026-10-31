@@ -34,6 +34,15 @@ async fn each_export_tool_writes_its_format_into_the_export_directory() {
     );
     assert!(bytes(&gif["path"]).starts_with(b"GIF89a"));
 
+    let mp4 = f.ok("export_mp4", json!({ "name": "video" })).await;
+    assert!(
+        mp4["path"]
+            .as_str()
+            .expect("p")
+            .ends_with("exports/video.mp4")
+    );
+    assert_eq!(&bytes(&mp4["path"])[4..8], b"ftyp");
+
     let swf = f.ok("publish_swf", json!({ "name": "movie" })).await;
     assert!(
         swf["path"]
@@ -111,6 +120,7 @@ async fn export_tools_are_off_without_a_directory_never_overwrite_and_refuse_nam
     let off = fixture(false, false).await;
     for (tool, args) in [
         ("export_gif", json!({ "name": "a" })),
+        ("export_mp4", json!({ "name": "a" })),
         ("publish_swf", json!({ "name": "a" })),
         ("publish_html5", json!({ "name": "a" })),
         ("export_xfl", json!({ "name": "a" })),
@@ -126,6 +136,7 @@ async fn export_tools_are_off_without_a_directory_never_overwrite_and_refuse_nam
     let f = drawn().await;
     for (tool, args) in [
         ("export_gif", json!({ "name": "same" })),
+        ("export_mp4", json!({ "name": "same" })),
         ("publish_swf", json!({ "name": "same" })),
         ("publish_html5", json!({ "name": "same" })),
         ("export_xfl", json!({ "name": "same.fla" })),
@@ -137,7 +148,13 @@ async fn export_tools_are_off_without_a_directory_never_overwrite_and_refuse_nam
             "{tool} overwrote: {message}"
         );
     }
-    for tool in ["export_gif", "publish_swf", "publish_html5", "export_xfl"] {
+    for tool in [
+        "export_gif",
+        "export_mp4",
+        "publish_swf",
+        "publish_html5",
+        "export_xfl",
+    ] {
         for name in [
             "../escape",
             "a/b",

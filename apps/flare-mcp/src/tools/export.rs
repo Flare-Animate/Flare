@@ -58,6 +58,19 @@ impl FlareServer {
     }
 
     #[tool(
+        description = "Render the first scene as an MP4 video, with its sound, in the export directory (disabled when no export directory is configured). Encoding takes a while for a long movie."
+    )]
+    fn export_mp4(&self, Parameters(args): Parameters<ExportName>) -> Outcome {
+        self.read(|state| {
+            let dir = export_dir(state)?;
+            let out = fresh(&dir, &safe_file_name_with(&args.name, "mp4")?)?;
+            flare_video::write_mp4(state.session.document(), &out)?;
+            let bytes = std::fs::metadata(&out).map_err(|e| e.to_string())?.len();
+            Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes }))
+        })
+    }
+
+    #[tool(
         description = "Publish the project as a SWF in the export directory. Symbols are kept as sprites; tweens are baked into per-frame positions and shapes."
     )]
     fn publish_swf(&self, Parameters(args): Parameters<PublishSwf>) -> Outcome {

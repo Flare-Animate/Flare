@@ -23,6 +23,7 @@ flare-export.workspace = true
 flare-import.workspace = true
 flare-publish.workspace = true
 flare-runtime.workspace = true
+flare-video.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 glamx.workspace = true

@@ -16,7 +16,7 @@ First audit, from the code, 2026-10-31.
 | Export XFL and `.fla` | yes (File > Export) | yes (as a download) | yes | yes | What was not carried over is listed by the CLI and the MCP tool and not yet by the two windows. |
 | Export PNG | yes | yes | yes | yes | |
 | Export GIF | yes | yes | yes | yes | |
-| Export MP4 | yes | **no** | **no** | **no** | `flare-video` is native only today; the browser needs the encoders on wasm, the CLI and MCP only need to call it (the encoders are the thing to check first). |
+| Export MP4 | yes | **no** | yes (`flare export --format mp4`) | yes (`export_mp4`) | `flare-video` is native only today; the browser needs the H.264 and AAC encoders on wasm (the thing to check first). |
 | Publish SWF and HTML5 | yes | yes | yes | yes | |
 | Test Movie in Ruffle | yes (in a window of the app) | yes (Ruffle in the page) | yes | **no** | The CLI and desktop start a Ruffle on the machine; the page runs Ruffle's own web build, fetched on first use. An MCP tool needs a Ruffle on the machine, as the CLI does. |
 | Sound playback | yes | **no** | n/a | n/a | No browser sound output yet. |

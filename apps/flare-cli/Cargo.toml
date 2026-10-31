@@ -23,6 +23,7 @@ flare-ruffle.workspace = true
 flare-import.workspace = true
 flare-eval.workspace = true
 flare-runtime.workspace = true
+flare-video.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-tools.workspace = true

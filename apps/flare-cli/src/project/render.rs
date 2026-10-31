@@ -13,6 +13,7 @@ use super::*;
 pub enum ExportFormat {
     Png,
     Gif,
+    Mp4,
 }
 
 pub(super) struct RenderTarget {

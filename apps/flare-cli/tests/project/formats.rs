@@ -260,3 +260,60 @@ fn export_format_gif_writes_an_animated_gif_never_overwrites_and_refuses_png_onl
         "a failed export leaves no file"
     );
 }
+
+#[test]
+fn export_format_mp4_writes_a_video_never_overwrites_and_refuses_png_only_options() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file, "--width", "64", "--height", "32"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "4",
+        "4",
+        "20",
+        "20",
+        "--color",
+        "FF0000",
+        "--duration",
+        "6",
+    ]);
+    let out = dir.path().join("movie.mp4").to_string_lossy().into_owned();
+    let report = json(&["export", &file, &out, "--format", "mp4"]);
+    let bytes = std::fs::read(&out).expect("read");
+    assert_eq!(
+        &bytes[4..8],
+        b"ftyp",
+        "an MP4 starts with its file-type box"
+    );
+    assert_eq!(report["bytes"], bytes.len());
+    assert!(
+        !run(&["export", &file, &out, "--format", "mp4"])
+            .status
+            .success(),
+        "never overwrites"
+    );
+    let other = dir.path().join("o.mp4").to_string_lossy().into_owned();
+    for option in [["--frame", "1"], ["--width", "8"]] {
+        let refused = run(&[
+            "export", &file, &other, "--format", "mp4", option[0], option[1],
+        ]);
+        assert!(!refused.status.success(), "{option:?} is for PNG");
+    }
+    let missing = dir.path().join("none.flare").to_string_lossy().into_owned();
+    assert!(
+        !run(&["export", &missing, &other, "--format", "mp4"])
+            .status
+            .success()
+    );
+    assert!(
+        std::fs::read_dir(dir.path()).expect("ls").all(|e| !e
+            .expect("entry")
+            .file_name()
+            .to_string_lossy()
+            .starts_with(".flare-video")),
+        "no half-written file is left"
+    );
+    assert!(!std::path::Path::new(&other).exists());
+}

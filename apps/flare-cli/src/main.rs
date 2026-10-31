@@ -101,7 +101,8 @@ enum Command {
         #[arg(long)]
         layer: Option<uuid::Uuid>,
     },
-    /// Render the first scene: one frame as a PNG (the default), or every frame as a looping GIF.
+    /// Render the first scene: one frame as a PNG (the default), every frame as a looping GIF, or a
+    /// video with its sound as an MP4.
     Export {
         path: PathBuf,
         out: PathBuf,
@@ -402,13 +403,17 @@ fn main() -> Result<()> {
             project::ExportFormat::Png => {
                 project::export(&path, &out, frame.unwrap_or(0), width, height, transparent)?
             }
-            project::ExportFormat::Gif => {
+            project::ExportFormat::Gif | project::ExportFormat::Mp4 => {
                 if frame.is_some() || width.is_some() || height.is_some() || transparent {
                     bail!(
-                        "a GIF holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG"
+                        "a GIF or a video holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG"
                     );
                 }
-                project::export_gif(&path, &out)?
+                if matches!(format, project::ExportFormat::Gif) {
+                    project::export_gif(&path, &out)?
+                } else {
+                    project::export_mp4(&path, &out)?
+                }
             }
         },
         Command::Place {
