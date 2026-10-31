@@ -8,6 +8,9 @@ use flare_document::MAX_STAGE_SIDE;
 
 use super::*;
 
+/// The gear button's square: its 16 px icon with the padding `icon_button` adds.
+const GEAR_SLOT: f32 = 22.0;
+
 impl Workspace {
     // ---- UI --------------------------------------------------------------------------
 
@@ -300,15 +303,22 @@ impl Workspace {
                 }
             });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.add_space(10.0);
                 // Preferences are the app's, not a document's: the gear is in the same corner on
-                // Home and in the editor.
+                // Home and in the editor, centered over the rail's icons below it.
                 let open = self.windows.preferences;
-                if flare_ui::chrome::icon_button(ui, "gear", 16.0, open, true, "Preferences")
-                    .clicked()
-                {
+                let slot = Rect::from_center_size(
+                    Pos2::new(bar.right() - rail::CENTER_FROM_EDGE, bar.center().y),
+                    Vec2::splat(GEAR_SLOT),
+                );
+                let gear = ui
+                    .scope_builder(egui::UiBuilder::new().max_rect(slot), |ui| {
+                        flare_ui::chrome::icon_button(ui, "gear", 16.0, open, true, "Preferences")
+                    })
+                    .inner;
+                if gear.clicked() {
                     self.windows.preferences = !open;
                 }
+                ui.add_space(rail::CENTER_FROM_EDGE + GEAR_SLOT / 2.0 + 6.0);
                 // Undo, play and the document's name belong to a document; Home has none.
                 if !self.document_controls_shown() {
                     return;

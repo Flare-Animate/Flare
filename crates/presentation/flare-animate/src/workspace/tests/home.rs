@@ -186,16 +186,18 @@ fn the_home_page_draws_with_and_without_recent_projects_at_small_and_large_sizes
 }
 
 #[test]
-fn the_settings_gear_is_in_the_same_corner_on_home_and_in_the_editor() {
-    // The rightmost button of the top bar, 1280 wide: a click there opens Preferences.
-    let at = Pos2::new(1280.0 - 10.0 - 12.0, 14.0);
-    for home in [false, true] {
+fn the_settings_gear_is_centered_over_the_rail_on_home_and_in_the_editor() {
+    // The rail's icons are centered 16.5 px in from the right edge of a 1280 wide window (the
+    // rail draws them there); the gear is a 22 px button, so it takes a click 10 px either side of
+    // that line and not 12.
+    let center = 1280.0 - crate::workspace::rail::CENTER_FROM_EDGE;
+    let opened = |home: bool, x: f32| {
         let mut ws = workspace();
         ws.set_home(home);
         let ctx = egui::Context::default();
         run(&mut ws, &ctx, 0.0);
         run(&mut ws, &ctx, 0.1);
-        assert!(!ws.windows.preferences);
+        let at = Pos2::new(x, 14.0);
         let click = |pressed| Event::PointerButton {
             pos: at,
             button: egui::PointerButton::Primary,
@@ -205,9 +207,13 @@ fn the_settings_gear_is_in_the_same_corner_on_home_and_in_the_editor() {
         pass(&mut ws, &ctx, input(0.2, vec![Event::PointerMoved(at)]));
         pass(&mut ws, &ctx, input(0.3, vec![click(true)]));
         pass(&mut ws, &ctx, input(0.4, vec![click(false)]));
-        assert!(
-            ws.windows.preferences,
-            "the gear opens Preferences with home shown = {home}"
-        );
+        ws.windows.preferences
+    };
+    for home in [false, true] {
+        assert!(opened(home, center), "the middle, home = {home}");
+        assert!(opened(home, center - 10.0), "left edge, home = {home}");
+        assert!(opened(home, center + 10.0), "right edge, home = {home}");
+        assert!(!opened(home, center - 12.0), "beyond the left edge");
+        assert!(!opened(home, center + 12.0), "beyond the right edge");
     }
 }
