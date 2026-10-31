@@ -3,7 +3,8 @@
 //! No I/O, rendering or UI state. Instances are identified by their instance *path*, so
 //! two occurrences of one symbol keep separate clocks and transforms. Graphic symbols
 //! are parent-clocked: child frame = frames since the instance span began, looping over
-//! the symbol's length. Movie Clip and Button runtime behaviour is out of scope. Tweens are
+//! the symbol's length, as a Movie Clip does when it is baked into a movie. A Button shows its
+//! first frame, the Up state, whatever the frame: it has no pointer to bring on the others. Tweens are
 //! evaluated here too: motion tweens move an instance, shape tweens build the in-between shapes
 //! (so a shape can be owned, not borrowed from the document), and both can be eased.
 #![forbid(unsafe_code)]
@@ -304,7 +305,11 @@ fn walk_layer<'a>(
             let elapsed = u64::from(frame - span.start());
             // `elapsed % length` < length <= u32::MAX * 2; the remainder fits u32 only
             // when length fits, so fall back to saturation for absurd lengths.
-            let local = u32::try_from(elapsed % length).unwrap_or(u32::MAX);
+            let local = if symbol.kind() == flare_document::SymbolKind::Button {
+                0
+            } else {
+                u32::try_from(elapsed % length).unwrap_or(u32::MAX)
+            };
             walk(
                 document,
                 symbol.timeline(),

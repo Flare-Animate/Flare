@@ -31,9 +31,10 @@ pub use validate::Diagnostic;
 
 use flare_core::{DocumentId, FrameRate, SceneId, SymbolId};
 
-/// What a symbol is, as in Animate. The kind is kept, edited, saved and exchanged through XFL; in
-/// 0.1.0 all three play alike (a symbol's frames follow the parent's), so a movie clip's own clock
-/// and a button's up, over, down and hit states are not carried out.
+/// What a symbol is, as in Animate. The kind is kept, edited, saved and exchanged through XFL. A
+/// Graphic and a Movie Clip play their frames from the one the instance starts on, looping (a
+/// movie clip has no clock of its own beyond that, and no scripts); a Button shows only its first
+/// frame, the Up state, because the others need a pointer.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum SymbolKind {
     #[default]

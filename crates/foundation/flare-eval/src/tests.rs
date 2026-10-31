@@ -84,6 +84,45 @@ fn nested_symbols_compose_transforms_and_loop() {
     assert_eq!(leaf_x(10), 111.0); // inner frame 5 loops to 1
 }
 
+/// Three states of a symbol: the leaf sits at x = 1, then 2, then 3, a frame each.
+fn three_states(kind: flare_document::SymbolKind) -> (Document, SceneId) {
+    let (leaf, states) = (SymbolId::new(), SymbolId::new());
+    let tl = timeline(vec![vec![
+        span(0, 1, leaf, at(1.0)),
+        span(1, 1, leaf, at(2.0)),
+        span(2, 1, leaf, at(3.0)),
+    ]]);
+    let symbols = vec![
+        Symbol::new(leaf, "Leaf", Timeline::default()),
+        Symbol::new(states, "States", tl).with_kind(kind),
+    ];
+    document(timeline(vec![vec![span(0, 9, states, at(100.0))]]), symbols)
+}
+
+#[test]
+fn a_button_shows_its_up_state_at_every_frame_where_a_movie_clip_and_a_graphic_play_on() {
+    use flare_document::SymbolKind;
+    let leaf_x = |doc: &Document, id, frame| {
+        evaluate(doc, id, frame).expect("eval")[1]
+            .transform
+            .translation
+            .x
+    };
+    let (button, id) = three_states(SymbolKind::Button);
+    for frame in 0..9 {
+        assert_eq!(leaf_x(&button, id, frame), 101.0, "button, frame {frame}");
+    }
+    for kind in [SymbolKind::MovieClip, SymbolKind::Graphic] {
+        let (doc, id) = three_states(kind);
+        let seen: Vec<f64> = (0..6).map(|f| leaf_x(&doc, id, f)).collect();
+        assert_eq!(
+            seen,
+            [101.0, 102.0, 103.0, 101.0, 102.0, 103.0],
+            "{kind:?} loops"
+        );
+    }
+}
+
 #[test]
 fn frames_outside_spans_and_empty_spans_place_nothing() {
     let art = SymbolId::new();

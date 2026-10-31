@@ -61,7 +61,7 @@ A `Shape` is a validated path (move/line/cubic/close, segment count capped), a f
 optional two-color linear `Gradient` (painted instead of the solid fill, in the shape's own
 coordinates, so it follows transforms) and an optional `Stroke` (width, color, and how its ends and corners look; round by default). An `Instance` references a symbol and carries a full
 finite 2D affine matrix (shear and reflection are preserved, not decomposed away).
-A symbol has a kind: Graphic, Movie Clip or Button. The kind is kept, edited in the Library, saved in the project and exchanged through XFL, but in 0.1.0 all three play alike, parent-clocked and looping over their own length: a movie clip's own clock and a button's up, over, down and hit states are not carried out.
+A symbol has a kind: Graphic, Movie Clip or Button. The kind is kept, edited in the Library, saved in the project and exchanged through XFL, and played as follows: a Graphic and a Movie Clip are parent-clocked, looping over their own length from the frame their instance starts on (a movie clip has no clock beyond that, and no scripts); a Button shows its first frame, the Up state, and its Over, Down and Hit states are not used. A Graphic's Loop, Play Once and Single Frame options are not built yet.
 
 Invariants, enforced by constructors and by `Document::new`, which reports every
 violation as a `Diagnostic`:
