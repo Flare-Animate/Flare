@@ -12,6 +12,14 @@ use oxideav_aac::encoder::{EncoderConfig, StreamEncoder};
 pub(crate) const RATE: u32 = 48_000;
 /// Samples per channel in one AAC frame.
 pub(crate) const FRAME_SAMPLES: usize = 1024;
+/// How many samples the AAC encoder holds back: what goes in at sample `n` comes out of a
+/// decoder at sample `n + ENCODER_DELAY`. A test pins this against the encoder itself.
+pub(crate) const ENCODER_DELAY: usize = 1024;
+/// The same in seconds. The container here has no edit list to tell a player to skip that much,
+/// so every picture after the first comes this late instead (the first is held that much
+/// longer) and the two stay together. The container will not take sound that starts before the
+/// first picture, which is why the first picture still starts at zero.
+pub(crate) const DELAY_SECONDS: f64 = ENCODER_DELAY as f64 / RATE as f64;
 /// The bit rate of the encoded sound.
 const BITRATE: u32 = 160_000;
 

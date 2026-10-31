@@ -171,8 +171,15 @@ pub fn write_mp4(document: &Document, path: &Path) -> Result<(), String> {
     let mut muxer = builder
         .build()
         .map_err(|e| format!("Cannot start the movie: {e}"))?;
+    // With sound every picture after the first waits for the sound encoder's delay (see
+    // `audio::DELAY_SECONDS`); the first is held that much longer.
+    let offset = if sound.is_some() {
+        audio::DELAY_SECONDS
+    } else {
+        0.0
+    };
     for n in 0..frames as u32 {
-        let pts = f64::from(n) / fps;
+        let pts = f64::from(n) / fps + if n == 0 { 0.0 } else { offset };
         let yuv = color::to_i420(&drawn.rgba(n)?, size.0 as usize, size.1 as usize);
         let unit = encoder.encode(&yuv);
         muxer

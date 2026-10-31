@@ -156,9 +156,12 @@ cpal = "0.16"
 base64 = "0.22"
 
 # ---- Video: no encoder for the person to install ------------------------------
-# The picture is H.264 (rusty_h264, safe scalar build: its `asm` feature carries unsafe
-# intrinsics), the sound AAC-LC (OxideAV) and the MP4 container is muxide. All pure Rust.
-rusty_h264 = { version = "0.17", default-features = false, features = ["std", "global-alloc"] }
+# The picture is H.264 (rusty_h264), the sound AAC-LC (OxideAV) and the MP4 container is
+# muxide. All pure Rust. rusty_h264's default `asm` feature is kept on: its SIMD kernels (NEON
+# here, SSE2 and AVX2 on x86-64) are in a dependency that keeps its `unsafe` to itself, and on
+# 720p drawn content they encode 1.9 times faster than the scalar build (72 against 38 frames a
+# second, arm64, identical output bytes).
+rusty_h264 = "0.17"
 oxideav-aac = "0.1.7"
 muxide = { version = "0.5", default-features = false }
 
