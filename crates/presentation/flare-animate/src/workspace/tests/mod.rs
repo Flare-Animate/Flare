@@ -32,6 +32,7 @@ mod menus_like_animate;
 mod open_any;
 mod panels_and_view;
 mod pen_and_selection;
+mod polygon_lasso;
 mod preferences_dialog;
 mod publish_popup;
 mod publish_settings;

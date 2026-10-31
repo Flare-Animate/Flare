@@ -372,6 +372,8 @@ pub enum Tool {
     PolyStar,
     /// Drag a freehand loop around shapes to select them.
     Lasso,
+    /// Click the corners of a loop around shapes to select them.
+    PolygonLasso,
     /// Select a shape, then drag its points to reshape it.
     Subselection,
     /// Select, then scale, rotate or skew by the handles around the selection.

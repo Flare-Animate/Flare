@@ -167,6 +167,8 @@ impl Workspace {
             }
             if enter_pressed(ctx) {
                 self.pen_finish();
+                let additive = ctx.input(|i| i.modifiers.shift);
+                self.polygon_lasso_finish(additive);
             }
             if convert && !self.native_menu {
                 self.convert_selection_to_symbol();

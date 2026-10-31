@@ -95,6 +95,7 @@ impl Workspace {
             Tool::Eraser => ("tool-eraser", "Eraser"),
             Tool::PolyStar => ("tool-polystar", "PolyStar"),
             Tool::Lasso => ("tool-lasso", "Lasso"),
+            Tool::PolygonLasso => ("tool-lasso-polygon", "Polygon"),
             Tool::Pencil => ("tool-pencil", "Pencil"),
             Tool::Brush => ("tool-brush", "Brush"),
             Tool::Ruler => ("tool-ruler", "Ruler"),
@@ -230,6 +231,9 @@ impl Workspace {
             Tool::Lasso => {
                 ui.weak("Drag a loop around shapes to select them; Shift adds to the selection.");
             }
+            Tool::PolygonLasso => {
+                ui.weak("Click the corners of a loop around shapes; double-click, Enter or the first corner closes it. Shift adds to the selection.");
+            }
             Tool::Line => {
                 ui.weak("Drag on the stage. A line always has a stroke.");
             }
@@ -262,6 +266,7 @@ impl Workspace {
             Tool::Eraser => "Eraser: click a shape to delete it",
             Tool::PolyStar => "PolyStar: drag from the center",
             Tool::Lasso => "Lasso: drag a loop around shapes to select them",
+            Tool::PolygonLasso => "Polygon: click corners, double-click to close and select",
             Tool::Pencil => "Pencil: drag to draw",
             Tool::Brush => "Brush: drag to paint",
             Tool::Ruler => "Ruler: drag to measure; Pencil and Brush draw straight with Shift",

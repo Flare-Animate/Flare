@@ -18,6 +18,7 @@ fn every_tool_is_in_exactly_one_slot_and_the_strip_has_categories() {
         Tool::Eraser,
         Tool::PolyStar,
         Tool::Lasso,
+        Tool::PolygonLasso,
         Tool::Subselection,
         Tool::FreeTransform,
         Tool::Pencil,
@@ -49,9 +50,9 @@ fn every_tool_is_in_exactly_one_slot_and_the_strip_has_categories() {
     }
     for slot in &slots {
         for v in slot.iter() {
-            assert_eq!(
-                v.key.is_empty(),
-                v.tool.is_none(),
+            // Some built tools have no key, as in Animate (the polygon lasso).
+            assert!(
+                v.key.is_empty() || v.tool.is_some(),
                 "{}: a key only for a built tool",
                 v.name
             );

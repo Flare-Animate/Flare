@@ -31,6 +31,7 @@ impl Workspace {
             | Tool::InkBottle
             | Tool::Eraser
             | Tool::Lasso
+            | Tool::PolygonLasso
             | Tool::Pencil
             | Tool::Brush
             | Tool::Ruler

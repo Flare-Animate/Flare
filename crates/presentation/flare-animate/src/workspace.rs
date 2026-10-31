@@ -45,6 +45,7 @@ mod outlines;
 mod panels;
 mod pen_tool;
 mod playback;
+mod polygon_lasso;
 mod preferences;
 mod publish_settings;
 mod publish_window;
