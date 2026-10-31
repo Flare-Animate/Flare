@@ -2,16 +2,31 @@
 
 use crate::MenuAction;
 use crate::workspace::{Tool, Workspace};
-use egui::Ui;
-use flare_ui::chrome;
+use egui::{Stroke, Ui};
+use flare_ui::{chrome, theme};
 
 use super::tool_slots::SLOT_GROUPS;
 use super::*;
+
+/// The strip is one tool wide unless it is made at least this wide: the default width, a few
+/// percent of the window, stays one column at any usual window size.
+const TWO_COLUMNS_FROM: f32 = 72.0;
+
+/// Thickness of the line at the strip's right edge.
+const DIVIDER_WIDTH: f32 = 2.0;
 
 impl Workspace {
     // ---- tools -------------------------------------------------------------------------
 
     pub(crate) fn tools_panel(&mut self, ui: &mut Ui) {
+        // The strip's right edge, drawn firmly so the strip reads as a bar of its own and not as
+        // part of the page beside it.
+        let edge = ui.max_rect();
+        ui.painter().vline(
+            edge.right() - 1.0,
+            edge.y_range(),
+            Stroke::new(DIVIDER_WIDTH, theme::DIVIDER),
+        );
         // One column of every tool and the color box is taller than a short window: it scrolls.
         egui::ScrollArea::vertical()
             .auto_shrink([false, false])
@@ -22,7 +37,7 @@ impl Workspace {
                     // Snug cells; two columns when the strip is wide enough for them, else one.
                     ui.spacing_mut().item_spacing = egui::vec2(3.0, 3.0);
                     let cell = TOOL_ICON + 6.0;
-                    let columns = if ui.available_width() >= cell * 2.0 + 3.0 {
+                    let columns = if ui.available_width() >= TWO_COLUMNS_FROM {
                         2
                     } else {
                         1

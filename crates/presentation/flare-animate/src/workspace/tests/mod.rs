@@ -19,6 +19,7 @@ use std::path::PathBuf;
 
 mod basics;
 mod brush_nib;
+mod color_section;
 mod frames_text_and_sound;
 mod home;
 mod home_recent;
@@ -35,6 +36,7 @@ mod release_frame;
 mod rendering_and_workers;
 mod rulers_and_mirror;
 mod spans_and_handles;
+mod tool_slots;
 mod tool_strip;
 mod tools_and_menus;
 mod tweens;

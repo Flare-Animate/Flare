@@ -102,7 +102,7 @@ pub(crate) static SLOT_GROUPS: &[&[Slot]] = &[
     ],
 ];
 
-/// The "…" cell at the foot of the strip, Animate's Edit toolbar: the tools that are not in
+/// The "…" cell at the foot of the strip: the tools that are not in
 /// the strip itself. Its list holds Flare's own Mirror and Ruler, and the tools Animate has that
 /// Flare has not built.
 pub(crate) static EXTRA: Slot = &[
@@ -153,7 +153,7 @@ impl Workspace {
         };
         // A tool not built gets "(Not available yet)" added by the button itself.
         let hint = if extra {
-            "Edit toolbar".to_owned()
+            "More tools".to_owned()
         } else if shown.key.is_empty() {
             shown.name.to_owned()
         } else {

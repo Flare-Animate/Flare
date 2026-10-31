@@ -167,6 +167,15 @@ impl Workspace {
         std::mem::swap(&mut self.paint.fill, &mut self.paint.stroke_color);
     }
 
+    /// Empties the swatch that is selected (stroke or fill), so the next shape has none of it.
+    pub fn no_color(&mut self) {
+        match self.color_target {
+            ColorTarget::Fill => self.paint.fill = Color32::TRANSPARENT,
+            ColorTarget::Stroke => self.paint.stroke_color = Color32::TRANSPARENT,
+            ColorTarget::GradientEnd => self.paint.gradient_end = Color32::TRANSPARENT,
+        }
+    }
+
     /// Black stroke, white fill.
     pub fn default_colors(&mut self) {
         self.paint.stroke_color = Color32::BLACK;

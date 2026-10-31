@@ -89,8 +89,9 @@ pub enum LayoutError {
 
 const TREE_ID: &str = "flare_workspace_layout";
 
-/// The tool strip at the left, the stage, and one stack of tabbed panels at the right (Properties,
-/// Library, Color, Align, Transform, History), with the timeline and output as tabs underneath.
+/// The tool strip down the whole left edge, from the top bar to the bottom, then the stage and
+/// one stack of tabbed panels (Properties, Library, Color, Align, Transform, History) with the
+/// timeline and output as tabs underneath them. The strip is narrow, one tool wide.
 pub fn default_tree() -> Tree<Pane> {
     let mut tiles = Tiles::default();
     let tools = tiles.insert_pane(Pane::Tools);
@@ -108,15 +109,20 @@ pub fn default_tree() -> Tree<Pane> {
         properties, library, color, align, transform, history, info,
     ]);
     let bottom = tiles.insert_tab_tile(vec![timeline, output]);
-    let top = tiles.insert_horizontal_tile(vec![tools, stage, side]);
-    let root = tiles.insert_vertical_tile(vec![top, bottom]);
-    set_share(&mut tiles, top, tools, 0.045);
-    set_share(&mut tiles, top, stage, 0.685);
-    set_share(&mut tiles, top, side, 0.27);
-    set_share(&mut tiles, root, top, 0.68);
-    set_share(&mut tiles, root, bottom, 0.32);
+    let top = tiles.insert_horizontal_tile(vec![stage, side]);
+    let work = tiles.insert_vertical_tile(vec![top, bottom]);
+    let root = tiles.insert_horizontal_tile(vec![tools, work]);
+    set_share(&mut tiles, root, tools, TOOLS_SHARE);
+    set_share(&mut tiles, root, work, 1.0 - TOOLS_SHARE);
+    set_share(&mut tiles, top, stage, 0.715);
+    set_share(&mut tiles, top, side, 0.285);
+    set_share(&mut tiles, work, top, 0.68);
+    set_share(&mut tiles, work, bottom, 0.32);
     Tree::new(egui::Id::unique(TREE_ID), root, tiles)
 }
+
+/// The tool strip's share of the window's width: 38 px of 1280, one tool wide.
+const TOOLS_SHARE: f32 = 0.03;
 
 fn set_share(tiles: &mut Tiles<Pane>, container: TileId, child: TileId, share: f32) {
     if let Some(Tile::Container(Container::Linear(linear))) = tiles.get_mut(container) {
@@ -183,6 +189,30 @@ fn add_panels_older_layouts_lack(tree: &mut Tree<Pane>) {
     }
 }
 
+/// The earlier default had the tool strip in the same row as the stage, above the timeline. A
+/// saved layout like that is dropped for the new default, which is what a reset would give.
+fn tool_strip_is_beside_the_stage(tree: &Tree<Pane>) -> bool {
+    let find = |wanted: Pane| {
+        tree.tiles.iter().find_map(|(id, tile)| match tile {
+            Tile::Pane(pane) if *pane == wanted => Some(*id),
+            _ => None,
+        })
+    };
+    let (Some(tools), Some(stage)) = (find(Pane::Tools), find(Pane::Stage)) else {
+        return false;
+    };
+    let (Some(a), Some(b)) = (tree.tiles.parent_of(tools), tree.tiles.parent_of(stage)) else {
+        return false;
+    };
+    // Side by side in one row; a tab group holding both is somebody's own arrangement.
+    let in_a_row = matches!(
+        tree.tiles.get(a),
+        Some(Tile::Container(Container::Linear(linear)))
+            if linear.dir == egui_tiles::LinearDir::Horizontal
+    );
+    a == b && in_a_row
+}
+
 /// Parses and validates a saved layout.
 pub fn from_json(json: &str) -> Result<Tree<Pane>, LayoutError> {
     if json.len() > MAX_LAYOUT_BYTES {
@@ -191,6 +221,11 @@ pub fn from_json(json: &str) -> Result<Tree<Pane>, LayoutError> {
     let mut tree: Tree<Pane> = serde_json::from_str(json)?;
     add_panels_older_layouts_lack(&mut tree);
     check(&tree)?;
+    if tool_strip_is_beside_the_stage(&tree) {
+        return Err(LayoutError::Invalid(
+            "it is from before the tool strip ran the full height".into(),
+        ));
+    }
     Ok(tree)
 }
 
@@ -210,6 +245,67 @@ mod tests {
                 .count(),
             Pane::ALL.len()
         );
+    }
+
+    #[test]
+    fn the_tool_strip_runs_the_full_height_in_its_own_column() {
+        let tree = default_tree();
+        let id_of = |wanted: Pane| {
+            tree.tiles
+                .iter()
+                .find_map(|(id, t)| matches!(t, Tile::Pane(p) if *p == wanted).then_some(*id))
+                .expect("pane")
+        };
+        let (tools, stage, timeline) = (
+            id_of(Pane::Tools),
+            id_of(Pane::Stage),
+            id_of(Pane::Timeline),
+        );
+        assert_eq!(
+            tree.tiles.parent_of(tools),
+            tree.root(),
+            "the strip is a child of the root"
+        );
+        assert_ne!(tree.tiles.parent_of(tools), tree.tiles.parent_of(stage));
+        // The timeline is inside the other child of the root, beside the strip, not under it.
+        let mut at = tree.tiles.parent_of(timeline);
+        let mut inside_work = false;
+        while let Some(id) = at {
+            if Some(id) == tree.root() {
+                break;
+            }
+            inside_work = true;
+            at = tree.tiles.parent_of(id);
+        }
+        assert!(inside_work);
+        // Narrow: a share small enough for one tool at common window widths.
+        let Some(Tile::Container(Container::Linear(root))) =
+            tree.root().and_then(|r| tree.tiles.get(r))
+        else {
+            panic!("the root is a row");
+        };
+        assert!(root.shares[tools] <= 0.04, "narrow: {}", root.shares[tools]);
+    }
+
+    #[test]
+    fn a_layout_with_the_strip_above_the_timeline_is_dropped_for_the_default() {
+        // The earlier default: tools, stage and the stack in one row, over the bottom tabs.
+        let mut tiles = Tiles::default();
+        let tools = tiles.insert_pane(Pane::Tools);
+        let stage = tiles.insert_pane(Pane::Stage);
+        let rest: Vec<_> = Pane::ALL
+            .into_iter()
+            .filter(|p| !matches!(p, Pane::Tools | Pane::Stage))
+            .map(|p| tiles.insert_pane(p))
+            .collect();
+        let tabs = tiles.insert_tab_tile(rest);
+        let row = tiles.insert_horizontal_tile(vec![tools, stage, tabs]);
+        let old = Tree::new(egui::Id::unique(TREE_ID), row, tiles);
+        check(&old).expect("it is a complete layout");
+        let error = from_json(&to_json(&old).expect("json")).expect_err("outdated");
+        assert!(error.to_string().contains("full height"), "{error}");
+        // The new default is not mistaken for it.
+        from_json(&to_json(&default_tree()).expect("json")).expect("the default opens");
     }
 
     #[test]

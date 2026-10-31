@@ -1,186 +1,178 @@
-//! The fill and stroke colors in the tool strip: two overlapping squares, the stroke in front as
-//! a frame around an empty middle, with the swap and default buttons at the corners. In a strip
-//! one tool wide the same box is drawn smaller, with the two buttons stacked beneath it.
+//! The stroke and fill colors in the tool strip, arranged as Animate's toolbar has them: a
+//! swatch for the stroke over a swatch for the fill, each with a small picture of its tool, and
+//! under them a row of three small buttons: black and white, no color, and swap.
 
 use egui::color_picker::{Alpha, color_picker_color32};
-use egui::{Popup, PopupCloseBehavior, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, vec2};
-use flare_ui::{chrome, theme};
+use egui::{Color32, Popup, PopupCloseBehavior, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, vec2};
+use flare_ui::{icons, theme};
 
-use crate::workspace::Workspace;
+use crate::workspace::{ColorTarget, Workspace};
 
-/// Side of the box the squares sit in.
-pub(crate) const BOX: f32 = 50.0;
-/// Side of each square, and how far the front one is pushed down and right.
-pub(crate) const SQUARE: f32 = 30.0;
-pub(crate) const OFFSET: f32 = 18.0;
-/// Width of the stroke's frame.
-const FRAME: f32 = 6.0;
-pub(crate) const SMALL: f32 = 16.0;
+/// Side of a color swatch, and of the small picture of its tool beside it.
+pub(crate) const SWATCH: f32 = 16.0;
+pub(crate) const PICTURE: f32 = 10.0;
+const GAP: f32 = 2.0;
+/// The widest and narrowest the three small buttons are drawn.
+const BUTTON_MAX: f32 = 16.0;
+const BUTTON_MIN: f32 = 9.0;
+/// The space between the three small buttons.
+const BUTTON_GAP: f32 = 1.0;
 
-/// The sizes of one drawing of the box.
-#[derive(Clone, Copy)]
-pub(crate) struct Metrics {
-    square: f32,
-    offset: f32,
-    frame: f32,
-    small: f32,
-    /// Whether the two buttons are stacked beneath the squares rather than at their corners.
-    stacked: bool,
-}
-
-impl Metrics {
-    pub(crate) const FULL: Self = Self {
-        square: SQUARE,
-        offset: OFFSET,
-        frame: FRAME,
-        small: SMALL,
-        stacked: false,
-    };
-    /// For a strip one tool wide (24 px a tool, a little more with its margins): the squares are
-    /// 25 px across and the buttons, 16 px, sit under them one above the other.
-    pub(crate) const COMPACT: Self = Self {
-        square: 16.0,
-        offset: 9.0,
-        frame: 4.0,
-        small: SMALL,
-        stacked: true,
-    };
-
-    /// The drawing that fits `width`.
-    pub(crate) fn for_width(width: f32) -> Self {
-        if width < OFFSET + SQUARE {
-            Self::COMPACT
-        } else {
-            Self::FULL
-        }
-    }
-
-    pub(crate) fn width(self) -> f32 {
-        if self.stacked {
-            self.offset + self.square
-        } else {
-            BOX.min(self.offset + self.square)
-        }
-    }
-
-    pub(crate) fn height(self) -> f32 {
-        if self.stacked {
-            self.offset + self.square + 2.0 + self.small * 2.0 + 2.0
-        } else {
-            BOX
-        }
-    }
-}
-
-/// Where everything in the color box goes, from the box's top-left corner.
+/// Where everything in the color section goes, from its top-left corner.
 pub(crate) struct WellRects {
-    pub(crate) fill: Rect,
+    pub(crate) stroke_picture: Rect,
     pub(crate) stroke: Rect,
-    pub(crate) swap: Rect,
+    pub(crate) fill_picture: Rect,
+    pub(crate) fill: Rect,
     pub(crate) defaults: Rect,
+    pub(crate) none: Rect,
+    pub(crate) swap: Rect,
 }
 
-pub(crate) fn rects_with(origin: Pos2, m: Metrics) -> WellRects {
-    let at = |x: f32, y: f32, side: f32| Rect::from_min_size(origin + vec2(x, y), vec2(side, side));
-    let below = m.offset + m.square + 2.0;
-    let (swap, defaults) = if m.stacked {
-        let x = (m.width() - m.small) / 2.0;
-        (at(x, below + m.small + 2.0, m.small), at(x, below, m.small))
-    } else {
-        (
-            at(m.square + 2.0, 0.0, m.small),
-            at(0.0, m.square + 2.0, m.small),
-        )
-    };
+/// Width of the swatch rows.
+pub(crate) const ROW_WIDTH: f32 = PICTURE + GAP + SWATCH;
+
+/// The side of each of the three small buttons in a strip `width` wide.
+pub(crate) fn button_side(width: f32) -> f32 {
+    ((width - 2.0 * BUTTON_GAP) / 3.0).clamp(BUTTON_MIN, BUTTON_MAX)
+}
+
+/// The height of the section in a strip `width` wide.
+pub(crate) fn height(width: f32) -> f32 {
+    SWATCH * 2.0 + 4.0 + 6.0 + button_side(width)
+}
+
+pub(crate) fn well_rects(origin: Pos2, width: f32) -> WellRects {
+    let at = |x: f32, y: f32, w: f32, h: f32| Rect::from_min_size(origin + vec2(x, y), vec2(w, h));
+    let side = button_side(width);
+    let buttons_y = SWATCH * 2.0 + 4.0 + 6.0;
+    // The three buttons are centered under the rows, wider than them if the strip allows.
+    let row = side * 3.0 + 2.0 * BUTTON_GAP;
+    let left = (ROW_WIDTH - row) / 2.0;
+    let picture_y = (SWATCH - PICTURE) / 2.0;
     WellRects {
-        fill: at(0.0, 0.0, m.square),
-        stroke: at(m.offset, m.offset, m.square),
-        swap,
-        defaults,
+        stroke_picture: at(0.0, picture_y, PICTURE, PICTURE),
+        stroke: at(PICTURE + GAP, 0.0, SWATCH, SWATCH),
+        fill_picture: at(0.0, SWATCH + 4.0 + picture_y, PICTURE, PICTURE),
+        fill: at(PICTURE + GAP, SWATCH + 4.0, SWATCH, SWATCH),
+        defaults: at(left, buttons_y, side, side),
+        none: at(left + side + BUTTON_GAP, buttons_y, side, side),
+        swap: at(left + (side + BUTTON_GAP) * 2.0, buttons_y, side, side),
     }
+}
+
+/// Where the section goes in `area`, which is the width of the strip: everything is centered
+/// across it, the rows and the three buttons around the same middle.
+pub(crate) fn rects_in(area: Rect) -> WellRects {
+    let width = area.width();
+    let row = ROW_WIDTH.max(button_side(width) * 3.0 + 2.0 * BUTTON_GAP);
+    let origin = Pos2::new(area.center().x - row / 2.0, area.top());
+    well_rects(
+        Pos2::new(origin.x + (row - ROW_WIDTH) / 2.0, origin.y),
+        width,
+    )
 }
 
 impl Workspace {
-    /// The color box and its popups, centered in the strip.
+    /// The color section and its pickers, centered in the strip.
     pub(crate) fn color_wells(&mut self, ui: &mut Ui) {
         let width = ui.available_width();
-        let m = Metrics::for_width(width);
-        let (area, _) = ui.allocate_exact_size(vec2(width, m.height()), Sense::hover());
-        let rects = rects_with(pos2_centered(area, m), m);
+        let (area, _) = ui.allocate_exact_size(vec2(width, height(width)), Sense::hover());
+        let rects = rects_in(area);
         let painter = ui.painter().clone();
-        // The fill, behind.
-        let fill = ui
-            .interact(
-                rects.fill,
-                ui.make_persistent_id("fill_swatch"),
-                Sense::click(),
-            )
-            .on_hover_text("Fill color");
-        painter.rect(
-            rects.fill,
-            3.0,
-            self.paint.fill,
-            Stroke::new(1.0, theme::BORDER),
-            StrokeKind::Inside,
-        );
-        // The stroke, in front: a frame around the panel showing through.
-        let stroke = ui
-            .interact(
-                rects.stroke,
-                ui.make_persistent_id("stroke_swatch"),
-                Sense::click(),
-            )
-            .on_hover_text("Stroke color");
-        painter.rect(
-            rects.stroke,
-            3.0,
-            self.paint.stroke_color,
-            Stroke::new(1.0, theme::BORDER),
-            StrokeKind::Inside,
-        );
-        painter.rect(
-            rects.stroke.shrink(m.frame),
-            1.0,
-            theme::PANEL,
-            Stroke::new(1.0, theme::BORDER),
-            StrokeKind::Inside,
-        );
-        for (response, color) in [
-            (&fill, &mut self.paint.fill),
-            (&stroke, &mut self.paint.stroke_color),
+        for (picture, icon) in [
+            (rects.stroke_picture, "stroke-color"),
+            (rects.fill_picture, "fill-color"),
         ] {
-            if response.hovered() {
+            icons::image(icon, PICTURE, theme::TEXT_DIM).paint_at(ui, picture);
+        }
+        let wells = [
+            (
+                rects.stroke,
+                ColorTarget::Stroke,
+                "stroke_swatch",
+                "Stroke color",
+            ),
+            (rects.fill, ColorTarget::Fill, "fill_swatch", "Fill color"),
+        ];
+        for (rect, target, id, hint) in wells {
+            let response = ui
+                .interact(rect, ui.make_persistent_id(id), Sense::click())
+                .on_hover_text(hint);
+            let color = match target {
+                ColorTarget::Stroke => &mut self.paint.stroke_color,
+                _ => &mut self.paint.fill,
+            };
+            paint_swatch(&painter, rect, *color);
+            let selected = self.color_target == target;
+            if selected || response.hovered() {
                 painter.rect_stroke(
-                    response.rect,
+                    rect,
                     3.0,
                     Stroke::new(1.5, theme::ACCENT),
                     StrokeKind::Outside,
                 );
             }
-            Popup::from_toggle_button_response(response)
+            if response.clicked() {
+                self.color_target = target;
+            }
+            Popup::from_toggle_button_response(&response)
                 .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
                 .show(|ui| {
                     ui.spacing_mut().slider_width = 200.0;
                     color_picker_color32(ui, color, Alpha::OnlyBlend);
                 });
         }
-        if small_button(ui, rects.swap, "swap-colors", "Swap fill and stroke", m) {
-            self.swap_colors();
-        }
-        if small_button(ui, rects.defaults, "default-colors", "Black and white", m) {
+        if tiny_button(ui, rects.defaults, "default-colors", "Black and white") {
             self.default_colors();
+        }
+        if tiny_button(
+            ui,
+            rects.none,
+            "no-color",
+            "No color: the selected swatch, stroke or fill, becomes empty",
+        ) {
+            self.no_color();
+        }
+        if tiny_button(ui, rects.swap, "swap-colors", "Swap fill and stroke") {
+            self.swap_colors();
         }
     }
 }
 
-/// The top-left corner that centers the squares across `area`.
-fn pos2_centered(area: Rect, m: Metrics) -> Pos2 {
-    Pos2::new(area.center().x - m.width() / 2.0, area.top())
+/// A swatch of `color`. An empty one (no color) is drawn as a white square with a red slash, as
+/// Animate draws it.
+fn paint_swatch(painter: &egui::Painter, rect: Rect, color: Color32) {
+    if color.a() == 0 {
+        painter.rect_filled(rect, 3.0, Color32::WHITE);
+        painter.line_segment(
+            [rect.left_bottom(), rect.right_top()],
+            Stroke::new(1.5, Color32::from_rgb(0xd0, 0x2b, 0x2b)),
+        );
+    } else {
+        painter.rect_filled(rect, 3.0, color);
+    }
+    painter.rect_stroke(
+        rect,
+        3.0,
+        Stroke::new(1.0, theme::BORDER),
+        StrokeKind::Inside,
+    );
 }
 
-fn small_button(ui: &mut Ui, rect: Rect, icon: &str, hint: &str, m: Metrics) -> bool {
-    ui.put(rect, |ui: &mut Ui| {
-        chrome::icon_button(ui, icon, m.small - 4.0, false, true, hint)
-    })
-    .clicked()
+/// One of the small buttons under the swatches.
+fn tiny_button(ui: &mut Ui, rect: Rect, icon: &str, hint: &str) -> bool {
+    let response = ui
+        .interact(rect, ui.make_persistent_id(icon), Sense::click())
+        .on_hover_text(hint);
+    if response.hovered() {
+        ui.painter().rect_filled(rect, 2.0, theme::HOVER);
+    }
+    let tint = if response.hovered() {
+        Color32::WHITE
+    } else {
+        theme::TEXT
+    };
+    icons::image(icon, rect.width(), tint).paint_at(ui, rect.shrink(1.0));
+    response.clicked()
 }

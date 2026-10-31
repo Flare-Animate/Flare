@@ -9,6 +9,8 @@ pub const PANEL: Color32 = Color32::from_rgb(0x25, 0x28, 0x2e);
 pub const PANEL_RAISED: Color32 = Color32::from_rgb(0x2d, 0x31, 0x38);
 pub const FIELD: Color32 = Color32::from_rgb(0x1a, 0x1c, 0x20);
 pub const BORDER: Color32 = Color32::from_rgb(0x3a, 0x3f, 0x47);
+/// A divider between a bar and the page beside it: firmer than a panel's border.
+pub const DIVIDER: Color32 = Color32::from_rgb(0x5a, 0x61, 0x6d);
 pub const HOVER: Color32 = Color32::from_rgb(0x39, 0x3e, 0x47);
 pub const TEXT: Color32 = Color32::from_rgb(0xd9, 0xdd, 0xe3);
 pub const TEXT_DIM: Color32 = Color32::from_rgb(0x9a, 0xa1, 0xac);

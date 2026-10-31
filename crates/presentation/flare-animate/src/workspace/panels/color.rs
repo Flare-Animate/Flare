@@ -152,11 +152,7 @@ impl Workspace {
                 self.set_tool(Tool::Eyedropper);
             }
             if chrome::icon_button(ui, "no-color", BAR_ICON, false, true, "No color").clicked() {
-                match self.color_target {
-                    ColorTarget::Fill => self.paint.fill = Color32::TRANSPARENT,
-                    ColorTarget::Stroke => self.paint.stroke_color = Color32::TRANSPARENT,
-                    ColorTarget::GradientEnd => self.paint.gradient_end = Color32::TRANSPARENT,
-                }
+                self.no_color();
             }
         });
     }

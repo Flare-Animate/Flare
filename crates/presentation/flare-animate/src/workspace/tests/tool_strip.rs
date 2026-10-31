@@ -1,9 +1,4 @@
 use super::*;
-use crate::workspace::panels::color_wells::{Metrics, rects_with};
-
-fn well_rects(origin: Pos2) -> crate::workspace::panels::color_wells::WellRects {
-    rects_with(origin, Metrics::FULL)
-}
 use crate::workspace::panels::tool_slots::{SLOT_GROUPS, Slot, front};
 
 #[test]
@@ -81,17 +76,6 @@ fn a_slot_shows_the_tool_in_hand_then_the_one_picked_then_the_first_built() {
 }
 
 #[test]
-fn the_color_box_overlaps_the_squares_but_not_the_buttons() {
-    let r = well_rects(Pos2::new(10.0, 20.0));
-    assert!(r.fill.intersects(r.stroke), "the stroke sits over the fill");
-    assert!(r.stroke.min.x > r.fill.min.x && r.stroke.min.y > r.fill.min.y);
-    for button in [r.swap, r.defaults] {
-        assert!(!button.intersects(r.fill) && !button.intersects(r.stroke));
-    }
-    assert!(!r.swap.intersects(r.defaults));
-}
-
-#[test]
 fn the_tool_strip_draws_at_narrow_and_wide_widths() {
     for width in [30.0, 36.0, 60.0, 120.0, 600.0] {
         let mut ws = workspace();
@@ -108,25 +92,6 @@ fn the_tool_strip_draws_at_narrow_and_wide_widths() {
             ws.tool(),
             Tool::Rectangle,
             "drawing the strip changes nothing"
-        );
-    }
-}
-
-#[test]
-fn the_color_box_fits_inside_the_narrowest_tool_strip_and_its_own_height() {
-    use crate::workspace::panels::TOOL_ICON;
-    use crate::workspace::panels::color_wells::{BOX, OFFSET, SQUARE};
-    let narrowest = (TOOL_ICON + 6.0) * 2.0 + 3.0;
-    assert!(
-        OFFSET + SQUARE <= narrowest,
-        "{} against {narrowest}",
-        OFFSET + SQUARE
-    );
-    let r = well_rects(Pos2::ZERO);
-    for rect in [r.fill, r.stroke, r.swap, r.defaults] {
-        assert!(
-            rect.max.y <= BOX && rect.max.x <= OFFSET + SQUARE,
-            "{rect:?}"
         );
     }
 }
@@ -181,168 +146,6 @@ fn a_tool_strip_taller_than_its_panel_scrolls_so_the_color_box_can_be_reached() 
         "scrolled to the end, the color box is on screen: {after} against {}",
         screen.height()
     );
-}
-
-#[test]
-fn in_a_strip_one_tool_wide_the_color_box_is_the_compact_one_and_it_fits() {
-    use crate::workspace::panels::TOOL_ICON;
-    let cell = TOOL_ICON + 6.0;
-    let wide = (TOOL_ICON + 6.0) * 2.0 + 3.0;
-    // A one-tool strip is a cell and its margins across, a few pixels more than the cell.
-    assert!(
-        Metrics::for_width(cell).width() <= cell + 4.0,
-        "the compact box is {} wide for a {cell} cell",
-        Metrics::for_width(cell).width()
-    );
-    assert_eq!(
-        Metrics::for_width(wide + 20.0).width(),
-        Metrics::FULL.width()
-    );
-    let m = Metrics::COMPACT;
-    let r = rects_with(Pos2::ZERO, m);
-    let all = [r.fill, r.stroke, r.swap, r.defaults];
-    for rect in all {
-        assert!(
-            rect.min.x >= 0.0 && rect.max.x <= m.width() && rect.max.y <= m.height(),
-            "{rect:?} is outside the {} x {} box",
-            m.width(),
-            m.height()
-        );
-    }
-    // The two squares overlap on purpose; the buttons touch neither square nor each other.
-    for button in [r.swap, r.defaults] {
-        assert!(!button.intersects(r.fill) && !button.intersects(r.stroke));
-    }
-    assert!(!r.swap.intersects(r.defaults));
-    assert!(r.stroke.min.x > r.fill.min.x && r.stroke.min.y > r.fill.min.y);
-}
-
-/// One pass of a lone Rectangle-slot cell at the top left of a 300 x 300 window: the tool it
-/// picked, and where each piece of text was drawn.
-fn slot_pass(
-    ws: &mut Workspace,
-    ctx: &egui::Context,
-    time: f64,
-    events: Vec<Event>,
-) -> (Option<Tool>, Vec<(String, Pos2)>) {
-    let raw = RawInput {
-        time: Some(time),
-        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(300.0, 300.0))),
-        events,
-        ..RawInput::default()
-    };
-    let mut picked = None;
-    let mut out = ctx.run_ui(raw, |ui| picked = ws.slot_cell(ui, SLOT_GROUPS[1][3]));
-    out.textures_delta.clear();
-    let texts = out
-        .shapes
-        .iter()
-        .filter_map(|s| match &s.shape {
-            egui::epaint::Shape::Text(t) => Some((
-                t.galley.text().to_owned(),
-                t.visual_bounding_rect().center(),
-            )),
-            _ => None,
-        })
-        .collect();
-    (picked, texts)
-}
-
-fn button(at: Pos2, which: egui::PointerButton, pressed: bool) -> Event {
-    Event::PointerButton {
-        pos: at,
-        button: which,
-        pressed,
-        modifiers: Modifiers::NONE,
-    }
-}
-
-#[test]
-fn a_right_click_opens_the_slots_list_and_picking_from_it_changes_what_the_cell_shows() {
-    let (ctx, mut ws) = (egui::Context::default(), workspace());
-    flare_ui::icons::install(&ctx);
-    let cell = Pos2::new(12.0, 12.0);
-    let secondary = egui::PointerButton::Secondary;
-    slot_pass(&mut ws, &ctx, 0.0, vec![Event::PointerMoved(cell)]);
-    let (_, closed) = slot_pass(&mut ws, &ctx, 0.1, vec![]);
-    assert!(
-        !closed.iter().any(|(t, _)| t == "Oval"),
-        "the list starts shut"
-    );
-    slot_pass(&mut ws, &ctx, 0.2, vec![button(cell, secondary, true)]);
-    slot_pass(&mut ws, &ctx, 0.3, vec![button(cell, secondary, false)]);
-    slot_pass(&mut ws, &ctx, 0.4, vec![]);
-    let (_, open) = slot_pass(&mut ws, &ctx, 0.5, vec![]);
-    let names: Vec<&str> = open.iter().map(|(t, _)| t.as_str()).collect();
-    for name in [
-        "Rectangle",
-        "Oval",
-        "Rectangle Primitive",
-        "Oval Primitive",
-        "PolyStar",
-    ] {
-        assert!(names.contains(&name), "{name} is in the list: {names:?}");
-    }
-    // The tool that is not built cannot be picked.
-    let primitive = open
-        .iter()
-        .find(|(t, _)| t == "Rectangle Primitive")
-        .expect("row")
-        .1;
-    let primary = egui::PointerButton::Primary;
-    slot_pass(&mut ws, &ctx, 0.6, vec![Event::PointerMoved(primitive)]);
-    slot_pass(&mut ws, &ctx, 0.7, vec![button(primitive, primary, true)]);
-    let (picked, _) = slot_pass(&mut ws, &ctx, 0.8, vec![button(primitive, primary, false)]);
-    assert_eq!(
-        picked, None,
-        "a tool that is not built is dimmed and does nothing"
-    );
-    // A built one is picked and the cell then shows it.
-    let oval = open.iter().find(|(t, _)| t == "Oval").expect("row").1;
-    slot_pass(&mut ws, &ctx, 0.9, vec![Event::PointerMoved(oval)]);
-    slot_pass(&mut ws, &ctx, 1.0, vec![button(oval, primary, true)]);
-    let (picked, _) = slot_pass(&mut ws, &ctx, 1.1, vec![button(oval, primary, false)]);
-    assert_eq!(picked, Some(Tool::Ellipse));
-    assert_eq!(
-        ws.slot_choice.get("Rectangle"),
-        Some(&1),
-        "and it is remembered"
-    );
-}
-
-#[test]
-fn a_long_press_opens_the_list_and_escape_shuts_it() {
-    let (ctx, mut ws) = (egui::Context::default(), workspace());
-    flare_ui::icons::install(&ctx);
-    let cell = Pos2::new(12.0, 12.0);
-    let primary = egui::PointerButton::Primary;
-    slot_pass(&mut ws, &ctx, 0.0, vec![Event::PointerMoved(cell)]);
-    slot_pass(&mut ws, &ctx, 0.1, vec![]);
-    slot_pass(&mut ws, &ctx, 0.2, vec![button(cell, primary, true)]);
-    slot_pass(&mut ws, &ctx, 0.3, vec![]);
-    let (_, short) = slot_pass(&mut ws, &ctx, 0.4, vec![]);
-    assert!(
-        !short.iter().any(|(t, _)| t == "Oval"),
-        "a short press opens nothing"
-    );
-    // Held past the delay, still down.
-    slot_pass(&mut ws, &ctx, 0.7, vec![]);
-    slot_pass(&mut ws, &ctx, 0.8, vec![]);
-    let (_, held) = slot_pass(&mut ws, &ctx, 0.9, vec![]);
-    assert!(
-        held.iter().any(|(t, _)| t == "Oval"),
-        "the list is open: {held:?}"
-    );
-    let escape = key(Key::Escape, Modifiers::NONE);
-    slot_pass(
-        &mut ws,
-        &ctx,
-        1.0,
-        vec![button(cell, primary, false), escape],
-    );
-    slot_pass(&mut ws, &ctx, 1.1, vec![]);
-    let (_, after) = slot_pass(&mut ws, &ctx, 1.2, vec![]);
-    assert!(!after.iter().any(|(t, _)| t == "Oval"), "Escape shuts it");
 }
 
 #[test]
@@ -413,58 +216,7 @@ fn the_strip_is_in_animates_order() {
 }
 
 #[test]
-fn the_dots_cell_lists_the_other_tools_and_picking_one_selects_it() {
-    use crate::workspace::panels::tool_slots::EXTRA;
-    let (ctx, mut ws) = (egui::Context::default(), workspace());
-    flare_ui::icons::install(&ctx);
-    let pass_with = |ws: &mut Workspace, time: f64, events: Vec<Event>| {
-        let raw = RawInput {
-            time: Some(time),
-            screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(300.0, 300.0))),
-            events,
-            ..RawInput::default()
-        };
-        let mut picked = None;
-        let mut out = ctx.run_ui(raw, |ui| picked = ws.slot_cell(ui, EXTRA));
-        out.textures_delta.clear();
-        let texts: Vec<(String, Pos2)> = out
-            .shapes
-            .iter()
-            .filter_map(|s| match &s.shape {
-                egui::epaint::Shape::Text(t) => Some((
-                    t.galley.text().to_owned(),
-                    t.visual_bounding_rect().center(),
-                )),
-                _ => None,
-            })
-            .collect();
-        (picked, texts)
-    };
-    let cell = Pos2::new(12.0, 12.0);
-    let primary = egui::PointerButton::Primary;
-    pass_with(&mut ws, 0.0, vec![Event::PointerMoved(cell)]);
-    pass_with(&mut ws, 0.1, vec![]);
-    pass_with(&mut ws, 0.2, vec![button(cell, primary, true)]);
-    pass_with(&mut ws, 0.3, vec![button(cell, primary, false)]);
-    pass_with(&mut ws, 0.4, vec![]);
-    let (_, open) = pass_with(&mut ws, 0.5, vec![]);
-    let names: Vec<&str> = open.iter().map(|(t, _)| t.as_str()).collect();
-    for name in ["Mirror", "Ruler", "3D Rotation", "Deco", "Bone", "Camera"] {
-        assert!(names.contains(&name), "{name} is listed: {names:?}");
-    }
-    let ruler = open.iter().find(|(t, _)| t == "Ruler").expect("row").1;
-    pass_with(&mut ws, 0.6, vec![Event::PointerMoved(ruler)]);
-    pass_with(&mut ws, 0.7, vec![button(ruler, primary, true)]);
-    let (picked, _) = pass_with(&mut ws, 0.8, vec![button(ruler, primary, false)]);
-    assert_eq!(
-        picked,
-        Some(Tool::Ruler),
-        "a built tool is picked from the dots"
-    );
-}
-
-#[test]
-fn the_strip_draws_one_picture_for_each_slot_and_nothing_else_but_the_color_buttons() {
+fn the_strip_draws_one_picture_for_each_slot_and_nothing_else_but_the_color_section() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);
     let slots: usize = SLOT_GROUPS.iter().map(|group| group.len()).sum();
@@ -486,7 +238,101 @@ fn the_strip_draws_one_picture_for_each_slot_and_nothing_else_but_the_color_butt
             })
             .count();
     }
-    // The color box has two small buttons, swap and defaults. A second copy of any cell, the
-    // dots included, would make one more.
-    assert_eq!(pictures, slots + 2, "{slots} slots and two color buttons");
+    // The color section has a picture for each of its two swatches and three small buttons. A
+    // second copy of any cell, the dots included, would make one more.
+    assert_eq!(
+        pictures,
+        slots + 5,
+        "{slots} slots, two swatch pictures and three buttons"
+    );
+}
+
+/// The pictures the strip drew about as large as a tool, as rectangles on screen.
+fn tool_pictures(ws: &mut Workspace, ctx: &egui::Context, width: f32) -> Vec<Rect> {
+    let mut last = Vec::new();
+    for pass in 0..3 {
+        let raw = RawInput {
+            time: Some(f64::from(pass) * 0.1),
+            screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(width, 900.0))),
+            ..RawInput::default()
+        };
+        let mut out = ctx.run_ui(raw, |ui| ws.tools_panel(ui));
+        out.textures_delta.clear();
+        last = out
+            .shapes
+            .iter()
+            .filter_map(|s| match &s.shape {
+                egui::epaint::Shape::Rect(r)
+                    if r.fill_texture_id() != egui::TextureId::default()
+                        && (r.rect.width() - crate::workspace::panels::TOOL_ICON).abs() < 0.5 =>
+                {
+                    Some(r.rect)
+                }
+                _ => None,
+            })
+            .collect();
+    }
+    last
+}
+
+#[test]
+fn the_default_strip_is_one_tool_wide_and_a_wide_one_has_two_columns() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    flare_ui::icons::install(&ctx);
+    let columns = |pictures: &[Rect]| {
+        let mut xs: Vec<i32> = pictures
+            .iter()
+            .map(|r| r.center().x.round() as i32)
+            .collect();
+        xs.sort_unstable();
+        xs.dedup();
+        xs.len()
+    };
+    // The default share of a 1280 or 1920 wide window, and a strip dragged wider.
+    for width in [38.0, 58.0] {
+        let pictures = tool_pictures(&mut ws, &ctx, width);
+        assert!(
+            pictures.len() >= 16,
+            "every tool is drawn: {}",
+            pictures.len()
+        );
+        assert_eq!(columns(&pictures), 1, "one column at {width}");
+    }
+    let wide = tool_pictures(&mut ws, &ctx, 120.0);
+    // Two columns, and the odd last cell (the dots) centered under them: three places across.
+    assert!(columns(&wide) > 1, "more than one column at 120");
+}
+
+#[test]
+fn the_strips_right_edge_has_a_firm_divider() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    flare_ui::icons::install(&ctx);
+    let width = 48.0;
+    let mut found = None;
+    for pass in 0..2 {
+        let raw = RawInput {
+            time: Some(f64::from(pass) * 0.1),
+            screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(width, 300.0))),
+            ..RawInput::default()
+        };
+        let mut out = ctx.run_ui(raw, |ui| ws.tools_panel(ui));
+        out.textures_delta.clear();
+        found = out.shapes.iter().find_map(|s| match &s.shape {
+            egui::epaint::Shape::LineSegment { points, stroke }
+                if (points[0].x - points[1].x).abs() < 0.01 && points[0].x > width - 4.0 =>
+            {
+                Some((points[0].x, *stroke))
+            }
+            _ => None,
+        });
+    }
+    let (x, stroke) = found.expect("a vertical line at the right edge");
+    assert!((x - (width - 1.0)).abs() < 0.01, "on the edge: {x}");
+    assert!(stroke.width >= 2.0, "firm: {}", stroke.width);
+    assert_eq!(stroke.color, flare_ui::theme::DIVIDER);
+    assert_ne!(
+        flare_ui::theme::DIVIDER,
+        flare_ui::theme::BORDER,
+        "firmer than a border"
+    );
 }
