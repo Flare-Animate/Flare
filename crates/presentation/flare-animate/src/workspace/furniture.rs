@@ -304,7 +304,7 @@ impl Workspace {
                 // Preferences are the app's, not a document's: the gear is in the same corner on
                 // Home and in the editor.
                 let open = self.windows.preferences;
-                if flare_ui::chrome::icon_button(ui, "settings", 16.0, open, true, "Preferences")
+                if flare_ui::chrome::icon_button(ui, "gear", 16.0, open, true, "Preferences")
                     .clicked()
                 {
                     self.windows.preferences = !open;

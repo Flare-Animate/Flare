@@ -122,7 +122,7 @@ impl MenuAction {
             Self::BreakApart => "break-apart",
             Self::Publish => "file-publish",
             Self::DocumentSettings => "settings",
-            Self::Preferences => "settings",
+            Self::Preferences => "gear",
             Self::ToolRectangle => "tool-rectangle",
             Self::ToolEllipse => "tool-oval",
             Self::ToolLine => "tool-line",
