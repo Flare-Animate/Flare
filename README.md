@@ -18,12 +18,11 @@ A free, open-source animation tool in the spirit of Adobe Animate, written in Ru
 
 ### Features
 
-- Draw with the tools Animate has, plus Flare's own Ruler (measures distance and angle) and Mirror (draws symmetrically), with fills, strokes and gradients.
+- Draw with the tools Animate has, plus an extended library of tools such as Ruler (measures distance and angle) and Mirror. 
 - Lay out frames and layers on a timeline, with folders, masks, motion guides, motion and shape tweens with Ease, and onion skin.
 - Symbols (Graphic, Movie Clip and Button) in a library, placed as instances on the stage.
-- Play the animation with sound, and Test Movie runs the published SWF in Ruffle (inside the app on the desktop, in the page in the browser).
-- Several documents as tabs, dockable panels, autosave and crash recovery.
-- Open and save `.flare` projects. Import and export Animate's XFL and `.fla`, with what could not be carried over reported.
+- Play the animation with sound, and Test Movie runs the published SWF in Ruffle.
+- Open and save `.flare` projects. Import and export Animate's XFL and .fla
 - Export PNG, GIF and MP4, and publish a SWF or an HTML5 Canvas page.
 - A command line (`flare`) to create, edit, export and publish projects from scripts.
 
@@ -53,21 +52,20 @@ Releases build native packages for macOS, Windows and Linux on x64 and arm64: a 
 Planned but not built yet. Most of it is shown dimmed in the interface. [docs/roadmap.md](docs/roadmap.md) has the order and the reasons.
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
-- A camera layer with keyframed position, zoom and rotation
 - Bones and inverse kinematics (the Bone and Bind tools)
 - The rest of Animate's tools: 3D Rotation and Translation, Deco, Width, Asset Warp, Gradient Transform and Magic Wand
 - Shape hints, more than one scene, and scripting with the Commands menu
-- A Flash 8 interface skin, and custom themes (Dark and Light are built in)
+- A Flash 8 interface skin, and custom themes
 - A fully rearrangeable toolbar (tools can already be pinned from the "…" list) and editable keyboard shortcuts
 - Editing text after it is placed
-- SWF publishing that keeps symbols, buttons and tweens instead of baking every frame
 - Sharing from the Share menu to YouTube and other services
 - A released web build (it is experimental today)
-- Developer-ID signing and notarising on macOS, and automatic updates
 
 ### Documentation
 
-[docs/README.md](docs/README.md) explains how Flare is built. See also [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md) for the rules of working here, [SECURITY.md](SECURITY.md) and [CHANGELOG.md](CHANGELOG.md).
+[docs/README.md](docs/README.md) explains how Flare is built. 
+
+Contributors should look at [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md), [SECURITY.md](SECURITY.md) and [CHANGELOG.md](CHANGELOG.md).
 
 ### Community
 

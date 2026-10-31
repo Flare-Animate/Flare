@@ -18,12 +18,11 @@ Ein freies Open-Source-Animationswerkzeug im Sinne von Adobe Animate, geschriebe
 
 ### Funktionen
 
-- Zeichnen mit den Werkzeugen, die Animate hat, dazu Flares eigenes Lineal (misst Abstand und Winkel) und Spiegel (zeichnet symmetrisch), mit Füllungen, Konturen und Verläufen.
+- Zeichnen mit den Werkzeugen, die Animate hat, dazu eine erweiterte Werkzeugbibliothek, etwa Lineal (misst Abstand und Winkel) und Spiegel.
 - Bilder und Ebenen auf einer Zeitleiste anordnen, mit Ordnern, Masken, Bewegungsführungen, Bewegungs- und Formtweens mit Ease sowie Onion Skin.
 - Symbole (Grafik, Movieclip und Schaltfläche) in einer Bibliothek, als Instanzen auf der Bühne platziert.
-- Die Animation mit Ton abspielen; Film testen führt das veröffentlichte SWF in Ruffle aus (auf dem Desktop in der App, im Browser auf der Seite).
-- Mehrere Dokumente als Tabs, andockbare Bedienfelder, automatisches Speichern und Wiederherstellung nach einem Absturz.
-- `.flare`-Projekte öffnen und speichern. XFL und `.fla` von Animate importieren und exportieren, mit einem Bericht darüber, was nicht übernommen werden konnte.
+- Die Animation mit Ton abspielen; Film testen führt das veröffentlichte SWF in Ruffle aus.
+- `.flare`-Projekte öffnen und speichern. XFL und `.fla` von Animate importieren und exportieren.
 - PNG, GIF und MP4 exportieren sowie ein SWF oder eine HTML5-Canvas-Seite veröffentlichen.
 - Eine Kommandozeile (`flare`), um Projekte aus Skripten zu erstellen, zu bearbeiten, zu exportieren und zu veröffentlichen.
 
@@ -53,21 +52,20 @@ Releases erzeugen native Pakete für macOS, Windows und Linux auf x64 und arm64:
 Geplant, aber noch nicht gebaut. Das meiste ist in der Oberfläche abgedunkelt zu sehen. [docs/roadmap.md](../roadmap.md) nennt Reihenfolge und Gründe.
 
 - Zeichnen mit Verschmelzung: Flashs planare Formen, bei denen sich überlappende Formen gegenseitig schneiden und verschmelzen (heute sind Formen getrennte Objekte)
-- Eine Kameraebene mit Keyframes für Position, Zoom und Drehung
 - Bones und inverse Kinematik (die Werkzeuge Bone und Bind)
 - Die übrigen Werkzeuge von Animate: 3D-Drehung und -Verschiebung, Deco, Breite, Asset Warp, Verlauf transformieren und Zauberstab
 - Formmarken, mehr als eine Szene und Skripting mit dem Menü Befehle
-- Eine Flash-8-Oberfläche und eigene Designs (Dunkel und Hell sind eingebaut)
+- Eine Flash-8-Oberfläche und eigene Designs
 - Eine frei anordenbare Werkzeugleiste (Werkzeuge lassen sich schon aus der „…“-Liste anheften) und bearbeitbare Tastenkürzel
 - Text bearbeiten, nachdem er platziert wurde
-- SWF-Veröffentlichung, die Symbole, Schaltflächen und Tweens behält, statt jedes Bild einzubrennen
 - Teilen aus dem Menü Teilen zu YouTube und anderen Diensten
 - Eine veröffentlichte Web-Version (heute experimentell)
-- Developer-ID-Signierung und Notarisierung unter macOS sowie automatische Updates
 
 ### Dokumentation
 
-[docs/README.md](../README.md) erklärt, wie Flare aufgebaut ist. Siehe auch [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md) mit den Arbeitsregeln, [SECURITY.md](../../SECURITY.md) und [CHANGELOG.md](../../CHANGELOG.md). Diese Dokumente sind auf Englisch.
+[docs/README.md](../README.md) erklärt, wie Flare aufgebaut ist.
+
+Mitwirkende sollten [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md), [SECURITY.md](../../SECURITY.md) und [CHANGELOG.md](../../CHANGELOG.md) lesen. Diese Dokumente sind auf Englisch.
 
 ### Community
 

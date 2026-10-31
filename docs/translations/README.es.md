@@ -18,12 +18,11 @@ Una herramienta de animación libre y de código abierto, en el espíritu de Ado
 
 ### Características
 
-- Dibuje con las herramientas que tiene Animate, más la Regla (mide distancia y ángulo) y el Espejo (dibuja de forma simétrica) propios de Flare, con rellenos, trazos y degradados.
+- Dibuje con las herramientas que tiene Animate, más una biblioteca ampliada de herramientas, como la Regla (mide distancia y ángulo) y el Espejo.
 - Organice fotogramas y capas en una línea de tiempo, con carpetas, máscaras, guías de movimiento, interpolaciones de movimiento y de forma con Ease, y papel cebolla.
 - Símbolos (Gráfico, Clip de película y Botón) en una biblioteca, colocados como instancias en el escenario.
-- Reproduzca la animación con sonido; Probar película ejecuta el SWF publicado en Ruffle (dentro de la aplicación en el escritorio, en la página en el navegador).
-- Varios documentos en pestañas, paneles acoplables, guardado automático y recuperación tras un cierre inesperado.
-- Abra y guarde proyectos `.flare`. Importe y exporte XFL y `.fla` de Animate, con un informe de lo que no se pudo trasladar.
+- Reproduzca la animación con sonido; Probar película ejecuta el SWF publicado en Ruffle.
+- Abra y guarde proyectos `.flare`. Importe y exporte XFL y `.fla` de Animate.
 - Exporte PNG, GIF y MP4, y publique un SWF o una página HTML5 Canvas.
 - Una línea de comandos (`flare`) para crear, editar, exportar y publicar proyectos desde scripts.
 
@@ -53,21 +52,20 @@ Las versiones generan paquetes nativos para macOS, Windows y Linux en x64 y arm6
 Planeado pero todavía no construido. Casi todo se muestra atenuado en la interfaz. [docs/roadmap.md](../roadmap.md) tiene el orden y los motivos.
 
 - Dibujo de fusión: las formas de mapa planar de Flash, donde las formas superpuestas se cortan y se fusionan (hoy las formas son objetos separados)
-- Una capa de cámara con posición, zoom y rotación animados con fotogramas clave
 - Huesos y cinemática inversa (las herramientas Hueso y Vincular)
 - El resto de las herramientas de Animate: Rotación 3D y Traslación 3D, Deco, Anchura, Asset Warp, Transformación de degradado y Varita mágica
 - Sugerencias de forma, más de una escena y scripts con el menú Comandos
-- Un aspecto de interfaz como Flash 8 y temas personalizados (Oscuro y Claro vienen incluidos)
+- Un aspecto de interfaz como Flash 8 y temas personalizados
 - Una barra de herramientas totalmente reorganizable (ya se pueden fijar herramientas desde la lista «…») y atajos de teclado editables
 - Editar el texto una vez colocado
-- Una publicación SWF que conserve símbolos, botones e interpolaciones en lugar de fijar cada fotograma
 - Compartir desde el menú Compartir en YouTube y otros servicios
 - Una versión web publicada (hoy es experimental)
-- Firma con Developer ID y notarización en macOS, y actualizaciones automáticas
 
 ### Documentación
 
-[docs/README.md](../README.md) explica cómo está construido Flare. Vea también [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md) con las reglas de trabajo, [SECURITY.md](../../SECURITY.md) y [CHANGELOG.md](../../CHANGELOG.md). Estos documentos están en inglés.
+[docs/README.md](../README.md) explica cómo está construido Flare.
+
+Quien quiera contribuir debería ver [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md), [SECURITY.md](../../SECURITY.md) y [CHANGELOG.md](../../CHANGELOG.md). Estos documentos están en inglés.
 
 ### Comunidad
 

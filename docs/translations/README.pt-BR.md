@@ -18,12 +18,11 @@ Uma ferramenta de animação livre e de código aberto, no espírito do Adobe An
 
 ### Recursos
 
-- Desenhe com as ferramentas que o Animate tem, mais a Régua (mede distância e ângulo) e o Espelho (desenha simetricamente) próprios do Flare, com preenchimentos, traços e gradientes.
+- Desenhe com as ferramentas que o Animate tem, mais uma biblioteca ampliada de ferramentas, como a Régua (mede distância e ângulo) e o Espelho.
 - Organize quadros e camadas em uma linha do tempo, com pastas, máscaras, guias de movimento, interpolações de movimento e de forma com Ease e papel de cebola.
 - Símbolos (Gráfico, Clipe de filme e Botão) em uma biblioteca, colocados como instâncias no palco.
-- Reproduza a animação com som; Testar filme executa o SWF publicado no Ruffle (dentro do aplicativo no desktop, na página no navegador).
-- Vários documentos em abas, painéis acopláveis, salvamento automático e recuperação após um fechamento inesperado.
-- Abra e salve projetos `.flare`. Importe e exporte XFL e `.fla` do Animate, com um relatório do que não pôde ser trazido.
+- Reproduza a animação com som; Testar filme executa o SWF publicado no Ruffle.
+- Abra e salve projetos `.flare`. Importe e exporte XFL e `.fla` do Animate.
 - Exporte PNG, GIF e MP4 e publique um SWF ou uma página HTML5 Canvas.
 - Uma linha de comando (`flare`) para criar, editar, exportar e publicar projetos a partir de scripts.
 
@@ -53,21 +52,20 @@ As versões geram pacotes nativos para macOS, Windows e Linux em x64 e arm64: um
 Planejado, mas ainda não construído. Quase tudo aparece esmaecido na interface. [docs/roadmap.md](../roadmap.md) tem a ordem e os motivos.
 
 - Desenho por mesclagem: as formas de mapa planar do Flash, em que formas sobrepostas se cortam e se mesclam (hoje as formas são objetos separados)
-- Uma camada de câmera com posição, zoom e rotação em quadros-chave
 - Ossos e cinemática inversa (as ferramentas Osso e Vincular)
 - O restante das ferramentas do Animate: Rotação 3D e Translação 3D, Deco, Largura, Asset Warp, Transformação de gradiente e Varinha mágica
 - Dicas de forma, mais de uma cena e scripts com o menu Comandos
-- Uma aparência de interface do Flash 8 e temas personalizados (Escuro e Claro já vêm incluídos)
+- Uma aparência de interface do Flash 8 e temas personalizados
 - Uma barra de ferramentas totalmente reorganizável (já dá para fixar ferramentas pela lista "…") e atalhos de teclado editáveis
 - Editar o texto depois de colocado
-- Uma publicação SWF que mantenha símbolos, botões e interpolações em vez de fixar cada quadro
 - Compartilhar pelo menu Compartilhar no YouTube e em outros serviços
 - Uma versão web publicada (hoje é experimental)
-- Assinatura com Developer ID e notarização no macOS, e atualizações automáticas
 
 ### Documentação
 
-[docs/README.md](../README.md) explica como o Flare é construído. Veja também [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md) com as regras de trabalho, [SECURITY.md](../../SECURITY.md) e [CHANGELOG.md](../../CHANGELOG.md). Esses documentos estão em inglês.
+[docs/README.md](../README.md) explica como o Flare é construído.
+
+Quem for contribuir deve ver [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md), [SECURITY.md](../../SECURITY.md) e [CHANGELOG.md](../../CHANGELOG.md). Esses documentos estão em inglês.
 
 ### Comunidade
 

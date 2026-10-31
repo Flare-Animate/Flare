@@ -18,12 +18,11 @@
 
 ### 功能
 
-- 使用 Animate 具备的工具绘图,另有 Flare 自己的标尺(测量距离和角度)和镜像(对称绘制),支持填充、描边和渐变。
+- 使用 Animate 具备的工具绘图,另有扩展的工具库,例如标尺(测量距离和角度)和镜像。
 - 在时间轴上排布帧和图层,支持文件夹、遮罩、运动引导线、带 Ease 的补间动画和形状补间,以及绘图纸外观。
 - 库中的元件(图形、影片剪辑和按钮),作为实例放置在舞台上。
-- 带声音播放动画;测试影片会在 Ruffle 中运行发布的 SWF(桌面版在应用内,浏览器中在页面内)。
-- 以标签页打开多个文档,可停靠的面板,自动保存和崩溃恢复。
-- 打开和保存 `.flare` 项目。导入和导出 Animate 的 XFL 和 `.fla`,并报告未能带过来的内容。
+- 带声音播放动画;测试影片会在 Ruffle 中运行发布的 SWF。
+- 打开和保存 `.flare` 项目。导入和导出 Animate 的 XFL 和 `.fla`。
 - 导出 PNG、GIF 和 MP4,并发布 SWF 或 HTML5 Canvas 页面。
 - 命令行(`flare`),可在脚本中创建、编辑、导出和发布项目。
 
@@ -53,21 +52,20 @@ Rust 版本固定在 `rust-toolchain.toml` 中。Ruffle 是 git 子模块,因此
 已规划但尚未构建。大部分在界面中以变暗形式显示。顺序和原因见 [docs/roadmap.md](../roadmap.md)。
 
 - 合并绘图:Flash 的平面图形,重叠的形状会相互切割并合并(目前形状是彼此独立的对象)
-- 可用关键帧控制位置、缩放和旋转的摄像机图层
 - 骨骼与反向运动学(骨骼工具和绑定工具)
 - Animate 的其余工具:3D 旋转和 3D 平移、装饰性绘画、宽度、资源变形、渐变变形和魔术棒
 - 形状提示、多个场景,以及通过“命令”菜单使用脚本
-- Flash 8 风格的界面外观,以及自定义主题(内置深色和浅色)
+- Flash 8 风格的界面外观,以及自定义主题
 - 可完全重新排列的工具栏(已经可以从“…”列表固定工具)和可编辑的键盘快捷键
 - 放置后编辑文本
-- 保留元件、按钮和补间,而不是固化每一帧的 SWF 发布
 - 从“分享”菜单分享到 YouTube 等服务
 - 正式发布的网页版(目前是实验性的)
-- macOS 上的 Developer ID 签名与公证,以及自动更新
 
 ### 文档
 
-[docs/README.md](../README.md) 说明了 Flare 是如何构建的。另见 [CONTRIBUTING.md](../../CONTRIBUTING.md)、工作规则 [AGENTS.md](../../AGENTS.md)、[SECURITY.md](../../SECURITY.md) 和 [CHANGELOG.md](../../CHANGELOG.md)。这些文档为英文。
+[docs/README.md](../README.md) 说明了 Flare 是如何构建的。
+
+贡献者请查看 [CONTRIBUTING.md](../../CONTRIBUTING.md)、[AGENTS.md](../../AGENTS.md)、[SECURITY.md](../../SECURITY.md) 和 [CHANGELOG.md](../../CHANGELOG.md)。这些文档为英文。
 
 ### 社区
 
