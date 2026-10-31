@@ -15,6 +15,8 @@ pub const TEXT_DIM: Color32 = Color32::from_rgb(0x9a, 0xa1, 0xac);
 pub const TEXT_DISABLED: Color32 = Color32::from_rgb(0x5d, 0x63, 0x6d);
 pub const ACCENT: Color32 = Color32::from_rgb(0x4c, 0x8d, 0xff);
 pub const WARNING: Color32 = Color32::from_rgb(0xe8, 0xb3, 0x4a);
+/// A button that throws work away.
+pub const DANGER: Color32 = Color32::from_rgb(0xc2, 0x3b, 0x3b);
 pub const STAGE_SURROUND: Color32 = Color32::from_rgb(0x16, 0x18, 0x1c);
 
 /// Source Sans 3 (SIL Open Font License; see `assets/ui/fonts/OFL.txt`).
