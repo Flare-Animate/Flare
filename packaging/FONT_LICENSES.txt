@@ -1,3 +1,14 @@
+Flare carries two font families, both under the SIL Open Font License, Version 1.1 (below).
+
+1. Source Sans 3 (the interface font).
+   Copyright 2010-2024 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'.
+   All Rights Reserved. Source is a trademark of Adobe in the United States and/or other countries.
+
+2. Noto Sans CJK (Japanese, Korean and Simplified Chinese; cut down to the characters Flare can
+   show by scripts/fonts/subset_cjk.py, so these are modified versions with the glyphs removed).
+   Copyright 2014-2021 Adobe (http://www.adobe.com/).
+   Source: https://github.com/notofonts/noto-cjk
+
 Copyright 2010-2024 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'. All Rights Reserved. Source is a trademark of Adobe in the United States and/or other countries.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.

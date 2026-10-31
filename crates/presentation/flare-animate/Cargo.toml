@@ -31,7 +31,7 @@ thiserror.workspace = true
 
 [dev-dependencies]
 flare-export.workspace = true
-epaint_default_fonts = "0.37"
+epaint_default_fonts.workspace = true
 png.workspace = true
 tempfile.workspace = true
 

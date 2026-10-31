@@ -3,33 +3,40 @@
 [workspace]
 resolver = "3"
 members = [
+    # apps
     "apps/flare-cli",
     "apps/flare-desktop",
     "apps/flare-mcp",
     "apps/flare-web",
+    # foundation
     "crates/foundation/flare-core",
     "crates/foundation/flare-document",
+    "crates/foundation/flare-eval",
+    "crates/foundation/flare-text",
+    "crates/foundation/flare-audio",
+    "crates/foundation/flare-i18n",
+    "crates/foundation/flare-input",
+    # editing
     "crates/editing/flare-commands",
     "crates/editing/flare-history",
     "crates/editing/flare-editor",
     "crates/editing/flare-tools",
+    # io
     "crates/io/flare-storage",
-    "crates/foundation/flare-eval",
-    "crates/foundation/flare-input",
-    "crates/services/flare-render",
-    "crates/presentation/flare-ui",
-    "crates/presentation/flare-animate",
     "crates/io/flare-import",
     "crates/io/flare-export",
     "crates/io/flare-publish",
-    "crates/adapters/flare-ruffle",
+    # adapters
     "crates/adapters/flare-flash",
-    "crates/foundation/flare-text",
-    "crates/foundation/flare-audio",
-    "crates/foundation/flare-i18n",
+    "crates/adapters/flare-ruffle",
+    # services
+    "crates/services/flare-render",
     "crates/services/flare-runtime",
-    "crates/services/flare-platform",
     "crates/services/flare-video",
+    "crates/services/flare-platform",
+    # presentation
+    "crates/presentation/flare-ui",
+    "crates/presentation/flare-animate",
 ]
 exclude = ["original"]
 default-members = ["apps/flare-desktop"]
@@ -42,44 +49,46 @@ publish = false
 license = "BSD-3-Clause"
 
 [workspace.dependencies]
-# ---- Internal packages: root owns all paths ----------------------------------
+# ---- Internal packages: root owns all paths, listed by layer -----------------
+# foundation
 flare-core = { path = "crates/foundation/flare-core" }
-flare-flash = { path = "crates/adapters/flare-flash" }
-flare-i18n = { path = "crates/foundation/flare-i18n" }
-flare-video = { path = "crates/services/flare-video" }
-flare-export = { path = "crates/io/flare-export" }
-flare-publish = { path = "crates/io/flare-publish" }
-flare-ruffle = { path = "crates/adapters/flare-ruffle" }
-flare-import = { path = "crates/io/flare-import" }
-flare-ui = { path = "crates/presentation/flare-ui" }
-flare-animate = { path = "crates/presentation/flare-animate" }
-flare-render = { path = "crates/services/flare-render" }
+flare-document = { path = "crates/foundation/flare-document" }
 flare-eval = { path = "crates/foundation/flare-eval" }
+flare-text = { path = "crates/foundation/flare-text" }
+flare-audio = { path = "crates/foundation/flare-audio" }
+flare-i18n = { path = "crates/foundation/flare-i18n" }
 flare-input = { path = "crates/foundation/flare-input" }
-flare-storage = { path = "crates/io/flare-storage" }
+# editing
 flare-commands = { path = "crates/editing/flare-commands" }
 flare-history = { path = "crates/editing/flare-history" }
 flare-editor = { path = "crates/editing/flare-editor" }
 flare-tools = { path = "crates/editing/flare-tools" }
-emath = { version = "0.37.0", default-features = false }
-flare-document = { path = "crates/foundation/flare-document" }
-flare-text = { path = "crates/foundation/flare-text" }
-flare-audio = { path = "crates/foundation/flare-audio" }
+# io
+flare-storage = { path = "crates/io/flare-storage" }
+flare-import = { path = "crates/io/flare-import" }
+flare-export = { path = "crates/io/flare-export" }
+flare-publish = { path = "crates/io/flare-publish" }
+# adapters
+flare-flash = { path = "crates/adapters/flare-flash" }
+flare-ruffle = { path = "crates/adapters/flare-ruffle" }
+# services
+flare-render = { path = "crates/services/flare-render" }
 flare-runtime = { path = "crates/services/flare-runtime" }
+flare-video = { path = "crates/services/flare-video" }
 flare-platform = { path = "crates/services/flare-platform" }
+# presentation
+flare-ui = { path = "crates/presentation/flare-ui" }
+flare-animate = { path = "crates/presentation/flare-animate" }
 
 # ---- Math and vector geometry ------------------------------------------------
+emath = { version = "0.37.0", default-features = false }
 glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }
-kurbo = "0.13.1"
 # i_overlay = "9.1.0"       # Prototype: polygon booleans, not full merge drawing.
 # lyon_tessellation = "1"   # Prototype: fill/stroke mesh path.
 # tess2-rust: choose a verified release after the tessellation experiment.
 
 # ---- Binary data and GPU memory layouts --------------------------------------
-zerocopy = { version = "0.8.63", features = ["derive"] }
 bytemuck = { version = "1.25", features = ["derive"] }
-encase = "0.13.0"
-half = "2"
 # Do not enable glamx/encase blindly: check its underlying glam's encase version.
 
 # ---- Serialization, identity and typed errors -------------------------------
@@ -87,14 +96,6 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 uuid = "1"                 # v7/serde are enabled by the consuming member.
 thiserror = "2"
-fluent-bundle = "0.16"
-unic-langid = "0.9"
-# MP4 video without an encoder to install: H.264 (rusty_h264), AAC-LC (OxideAV) and the container.
-rusty_h264 = { version = "0.17", default-features = false, features = ["std", "global-alloc"] }
-muxide = { version = "0.5", default-features = false }
-oxideav-aac = "0.1.7"
-sys-locale = "0.3"
-fluent-syntax = "0.12"
 anyhow = "1"               # Executable boundaries, not public library errors.
 
 # ---- Persistence, compression and content identity --------------------------
@@ -102,7 +103,6 @@ rusqlite = { version = "0.41.1", default-features = false }
 # flare-storage adds bundled/backup/blob/limits/hooks at its dependency site.
 blake3 = "1"
 tempfile = "3"
-zstd = "0.13"
 # lz4_flex / rkyv: transient/cache candidates only; add after measurement.
 
 # ---- Flash/XML/archive interchange -------------------------------------------
@@ -118,6 +118,7 @@ image = { version = "0.25.10", default-features = false }
 png = "0.18.1"
 gif = { version = "0.14", default-features = false, features = ["std", "color_quant"] }
 parley = "0.12.0"
+epaint_default_fonts = "0.37"   # egui's own fonts, for tests that need glyphs.
 skrifa = "0.44.0"          # Glyph outlines for the text tool; one copy, shared with the rasterizer.
 # usvg/resvg, lcms2, libmypaint, specialised codecs: add when a feature needs them.
 
@@ -146,7 +147,6 @@ vello_cpu = { version = "0.3.0", features = ["multithreading"] } # Selected CPU 
 # tiny-skia: reference/control candidate; no second default CPU engine yet.
 
 # ---- CPU workers and asynchronous application services -----------------------
-rayon = "1"
 tokio = { version = "1", default-features = false }
 # crossbeam-channel/rtrb: bounded communication only at justified boundaries.
 
@@ -155,18 +155,41 @@ symphonia = { version = "0.5", default-features = false, features = ["wav", "mp3
 cpal = "0.16"
 base64 = "0.22"
 
+# ---- Video: no encoder for the person to install ------------------------------
+# The picture is H.264 (rusty_h264, safe scalar build: its `asm` feature carries unsafe
+# intrinsics), the sound AAC-LC (OxideAV) and the MP4 container is muxide. All pure Rust.
+rusty_h264 = { version = "0.17", default-features = false, features = ["std", "global-alloc"] }
+oxideav-aac = "0.1.7"
+muxide = { version = "0.5", default-features = false }
+
+# ---- Localization -------------------------------------------------------------
+fluent-bundle = "0.16"
+fluent-syntax = "0.12"      # Only to read the messages in tests.
+unic-langid = "0.9"
+sys-locale = "0.3"
+
 # ---- CLI, MCP and structured diagnostics -------------------------------------
 clap = { version = "4", features = ["derive"] }
 rmcp = { version = "3.8.0", default-features = false }
 schemars = "1"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
 # ---- Verification ------------------------------------------------------------
 proptest = "1"
-insta = { version = "1", features = ["json"] }
 criterion = "0.7"
 # cargo-fuzz, cargo-deny, cargo-about and Miri are tools, not app dependencies.
+
+# ---- Candidates: not used by any member yet --------------------------------
+# Declared here, uncommented, when a crate first needs them (scripts/tests/test_manifests.py
+# fails on a declared entry that nothing uses).
+# encase = "0.13.0"
+# half = "2"
+# insta = { version = "1", features = ["json"] }
+# kurbo = "0.13.1"
+# rayon = "1"
+# tracing = "0.1"
+# tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+# zerocopy = { version = "0.8.63", features = ["derive"] }
+# zstd = "0.13"
 
 # ---- Deferred functionality: register exact versions when adopted -----------
 # Audio resampling and lock-free queues (rubato, rtrb) and an optional FFmpeg adapter: when needed.

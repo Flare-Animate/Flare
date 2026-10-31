@@ -14,7 +14,7 @@ skrifa.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-epaint_default_fonts = "0.37"
+epaint_default_fonts.workspace = true
 
 [lints]
 workspace = true
