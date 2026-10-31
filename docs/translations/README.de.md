@@ -54,7 +54,8 @@ Geplant, aber noch nicht gebaut. Das meiste ist in der Oberfläche abgedunkelt z
 - Zeichnen mit Verschmelzung: Flashs planare Formen, bei denen sich überlappende Formen gegenseitig schneiden und verschmelzen (heute sind Formen getrennte Objekte)
 - Bones und inverse Kinematik (die Werkzeuge Bone und Bind)
 - Die übrigen Werkzeuge von Animate: 3D-Drehung und -Verschiebung, Deco, Breite, Asset Warp, Verlauf transformieren und Zauberstab
-- Formmarken, mehr als eine Szene und Skripting mit dem Menü Befehle
+- Formmarken und mehr als eine Szene
+- ActionScript und ein Skripteditor sowie Skripting mit dem Menü Befehle (ActionScript in einer importierten Datei bleibt als Daten erhalten und wird nie ausgeführt)
 - Eine Flash-8-Oberfläche und eigene Designs
 - Eine frei anordenbare Werkzeugleiste (Werkzeuge lassen sich schon aus der „…“-Liste anheften) und bearbeitbare Tastenkürzel
 - Text bearbeiten, nachdem er platziert wurde

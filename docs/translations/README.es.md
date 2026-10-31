@@ -54,7 +54,8 @@ Planeado pero todavía no construido. Casi todo se muestra atenuado en la interf
 - Dibujo de fusión: las formas de mapa planar de Flash, donde las formas superpuestas se cortan y se fusionan (hoy las formas son objetos separados)
 - Huesos y cinemática inversa (las herramientas Hueso y Vincular)
 - El resto de las herramientas de Animate: Rotación 3D y Traslación 3D, Deco, Anchura, Asset Warp, Transformación de degradado y Varita mágica
-- Sugerencias de forma, más de una escena y scripts con el menú Comandos
+- Sugerencias de forma y más de una escena
+- ActionScript y un editor de scripts, y los scripts del menú Comandos (el ActionScript de un archivo importado se conserva como datos y nunca se ejecuta)
 - Un aspecto de interfaz como Flash 8 y temas personalizados
 - Una barra de herramientas totalmente reorganizable (ya se pueden fijar herramientas desde la lista «…») y atajos de teclado editables
 - Editar el texto una vez colocado

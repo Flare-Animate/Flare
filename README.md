@@ -54,7 +54,8 @@ Planned but not built yet. Most of it is shown dimmed in the interface. [docs/ro
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
 - Bones and inverse kinematics (the Bone and Bind tools)
 - The rest of Animate's tools: 3D Rotation and Translation, Deco, Width, Asset Warp, Gradient Transform and Magic Wand
-- Shape hints, more than one scene, and scripting with the Commands menu
+- Shape hints and more than one scene
+- ActionScript and a script editor, and scripting with the Commands menu (ActionScript in an imported file is kept as data and never run)
 - A Flash 8 interface skin, and custom themes
 - A fully rearrangeable toolbar (tools can already be pinned from the "…" list) and editable keyboard shortcuts
 - Editing text after it is placed

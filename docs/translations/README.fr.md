@@ -54,7 +54,8 @@ Prévu mais pas encore construit. La plupart est affiché estompé dans l'interf
 - Dessin par fusion : les formes à carte planaire de Flash, où les formes qui se chevauchent se découpent et fusionnent (aujourd'hui les formes sont des objets séparés)
 - Armatures et cinématique inverse (les outils Os et Lier)
 - Le reste des outils d'Animate : Rotation 3D et Translation 3D, Deco, Largeur, Asset Warp, Transformation de dégradé et Baguette magique
-- Repères de forme, plus d'une scène, et les scripts avec le menu Commandes
+- Repères de forme et plus d'une scène
+- ActionScript et un éditeur de scripts, et les scripts du menu Commandes (l'ActionScript d'un fichier importé est conservé comme données et jamais exécuté)
 - Un habillage d'interface Flash 8 et des thèmes personnalisés
 - Une barre d'outils entièrement réorganisable (on peut déjà épingler des outils depuis la liste « … ») et des raccourcis clavier modifiables
 - La modification du texte une fois placé

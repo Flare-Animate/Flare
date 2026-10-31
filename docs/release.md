@@ -41,7 +41,7 @@ when every box below is ticked.
 - [x] `SECURITY.md` says how to report a problem and what the dependency audit shows.
 
 **Not in 0.1.0** (shown dimmed in the menus, or listed in the notes): shape hints, more than
-one scene, scripting and the Commands menu, editable keyboard shortcuts, editable text after it
+one scene, ActionScript and a script editor, scripting and the Commands menu, editable keyboard shortcuts, editable text after it
 is placed, opening a file by double-clicking it on macOS (Apple events need unsafe code; drop the file on the window or use File > Open), the web build, Developer-ID signing and notarising, an auto-update.
 
 

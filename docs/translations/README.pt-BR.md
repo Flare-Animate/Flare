@@ -54,7 +54,8 @@ Planejado, mas ainda não construído. Quase tudo aparece esmaecido na interface
 - Desenho por mesclagem: as formas de mapa planar do Flash, em que formas sobrepostas se cortam e se mesclam (hoje as formas são objetos separados)
 - Ossos e cinemática inversa (as ferramentas Osso e Vincular)
 - O restante das ferramentas do Animate: Rotação 3D e Translação 3D, Deco, Largura, Asset Warp, Transformação de gradiente e Varinha mágica
-- Dicas de forma, mais de uma cena e scripts com o menu Comandos
+- Dicas de forma e mais de uma cena
+- ActionScript e um editor de scripts, e os scripts do menu Comandos (o ActionScript de um arquivo importado é mantido como dados e nunca é executado)
 - Uma aparência de interface do Flash 8 e temas personalizados
 - Uma barra de ferramentas totalmente reorganizável (já dá para fixar ferramentas pela lista "…") e atalhos de teclado editáveis
 - Editar o texto depois de colocado
