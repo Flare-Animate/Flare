@@ -14,6 +14,8 @@ use flare_platform::dialogs;
 pub(super) struct App {
     /// Test movies still playing; dropping one stops its player and removes its files.
     pub(super) movies: Vec<flare_platform::jobs::TestMovie>,
+    /// The Test Movie window, when the player runs inside this one.
+    pub(super) movie: super::Movie,
     /// The sound card, if there is one. Sounds are silent without it; nothing else changes.
     player: Option<flare_platform::audio::Player>,
     pub(super) proxy: EventLoopProxy<UserEvent>,
@@ -21,7 +23,7 @@ pub(super) struct App {
     menu: Option<super::menu::NativeMenu>,
     ctx: egui::Context,
     pub(super) workspace: Workspace,
-    gpu: Option<Gpu>,
+    pub(super) gpu: Option<Gpu>,
     fatal: Option<anyhow::Error>,
 }
 
@@ -29,6 +31,7 @@ impl App {
     pub(super) fn new(workspace: Workspace, proxy: EventLoopProxy<UserEvent>) -> Self {
         Self {
             movies: Vec::new(),
+            movie: Default::default(),
             player: None,
             proxy,
             #[cfg(target_os = "macos")]
@@ -60,7 +63,7 @@ impl App {
 
     fn redraw(&mut self, event_loop: &ActiveEventLoop) {
         let Some(gpu) = &mut self.gpu else { return };
-        gpu.frame(&self.ctx, &mut self.workspace, event_loop);
+        gpu.frame(&self.ctx, &mut self.workspace, &mut self.movie, event_loop);
         if let Some(player) = &self.player {
             player.apply(self.workspace.take_audio_events());
         } else {
@@ -145,9 +148,13 @@ impl ApplicationHandler<UserEvent> for App {
                 }
                 self.after_actions(event_loop);
             }
+            #[cfg(feature = "ruffle")]
+            UserEvent::MovieBytes(result) => self.open_movie(result),
+            #[cfg(not(feature = "ruffle"))]
             UserEvent::MovieStarted(Ok(movie)) => self.movies.push(movie),
             UserEvent::Exported(Ok(())) => {}
             UserEvent::Exported(Err(message)) => dialogs::message("Export failed", &message),
+            #[cfg(not(feature = "ruffle"))]
             UserEvent::MovieStarted(Err(error)) => {
                 dialogs::message("Cannot start Test Movie", &error.to_string());
             }

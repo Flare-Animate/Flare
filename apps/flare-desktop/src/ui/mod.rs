@@ -4,8 +4,16 @@
 
 mod app;
 mod menu;
+#[cfg(feature = "ruffle")]
+mod movie;
 mod shell;
 mod window;
+
+/// The Test Movie window, when this build has the player inside it.
+#[cfg(feature = "ruffle")]
+pub(crate) type Movie = Option<movie::MovieWindow>;
+#[cfg(not(feature = "ruffle"))]
+pub(crate) type Movie = ();
 
 use anyhow::{Context, Result};
 use flare_animate::Workspace;
@@ -16,8 +24,13 @@ use winit::event_loop::{ControlFlow, EventLoop};
 pub(crate) enum UserEvent {
     #[cfg(target_os = "macos")]
     Menu(flare_animate::MenuAction),
-    /// A test movie finished starting (or failed to) on its own thread.
+    /// A test movie finished starting (or failed to) on its own thread, in a Ruffle program of
+    /// its own; the in-window player has `MovieBytes` instead.
+    #[cfg(not(feature = "ruffle"))]
     MovieStarted(Result<flare_platform::jobs::TestMovie, flare_platform::jobs::TestMovieError>),
+    /// The movie for the in-window player is published (or could not be).
+    #[cfg(feature = "ruffle")]
+    MovieBytes(Result<Vec<u8>, String>),
     /// An export or publish finished on its own thread; an error is worded for the person.
     Exported(Result<(), String>),
 }

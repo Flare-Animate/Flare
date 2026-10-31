@@ -168,6 +168,21 @@ pub fn publish_now(
     }
 }
 
+/// Publishes the document as a SWF on a thread, for a player that runs inside the app. `done`
+/// gets the bytes, or the reason worded for the person.
+pub fn publish_movie(
+    document: Document,
+    done: impl FnOnce(Result<Vec<u8>, String>) + Send + 'static,
+) -> io::Result<()> {
+    spawn("flare-publish-movie", move || {
+        done(
+            flare_publish::publish_swf(&document, &PublishOptions::default())
+                .map(|published| published.bytes)
+                .map_err(|e| e.to_string()),
+        );
+    })
+}
+
 /// Why a test movie could not be started.
 pub enum TestMovieStart {
     /// Ruffle is not installed; the message tells the person what to do.

@@ -29,6 +29,7 @@ render-check = ["dep:exporter"]
 embedded = ["dep:ruffle_core", "dep:ruffle_render_wgpu", "dep:ruffle_frontend_utils", "dep:futures-lite"]
 
 [dev-dependencies]
+pollster.workspace = true
 ruffle_core.workspace = true
 flare-audio.workspace = true
 flare-core.workspace = true

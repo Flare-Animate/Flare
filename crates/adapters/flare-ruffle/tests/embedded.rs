@@ -1,8 +1,9 @@
 //! Ruffle playing inside the process: a movie advances with the time it is given, and the sound
 //! a published movie carries comes out of Ruffle's mixer.
 //!
-//! Needs the `embedded` feature and a GPU adapter wgpu can open (`cargo test -p flare-ruffle
-//! --features embedded`); without one `Gpu::headless` fails and so do these.
+//! Needs the `embedded` feature and a GPU adapter wgpu can open, so they are ignored in the
+//! ordinary run (a machine without a GPU would fail them): `scripts/gpu_tests.sh` runs them, and
+//! must pass before a change to the player or to what we publish for it.
 #![cfg(feature = "embedded")]
 #![allow(clippy::expect_used)]
 
@@ -67,6 +68,7 @@ fn centre(movie: &EmbeddedMovie) -> [u8; 3] {
 }
 
 #[test]
+#[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
 fn a_movie_advances_with_the_time_it_is_given() {
     let red = Rgba8::opaque(220, 30, 30);
     let blue = Rgba8::opaque(30, 30, 220);
@@ -100,6 +102,7 @@ fn a_movie_advances_with_the_time_it_is_given() {
 }
 
 #[test]
+#[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
 fn something_that_is_not_a_swf_is_refused_not_a_crash() {
     let gpu = Gpu::headless().expect("a GPU adapter");
     let refused = EmbeddedMovie::start(b"this is not a movie", &gpu, 1.0, false);
@@ -179,6 +182,7 @@ fn loudest(cued: bool) -> f32 {
 }
 
 #[test]
+#[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
 fn the_sound_we_publish_is_played_by_ruffle_and_a_movie_without_a_cue_is_silent() {
     let heard = loudest(true);
     assert!(
@@ -187,4 +191,37 @@ fn the_sound_we_publish_is_played_by_ruffle_and_a_movie_without_a_cue_is_silent(
     );
     assert_eq!(loudest(false), 0.0, "nothing is cued, so nothing sounds");
     let _ = flare_audio::decode(&tone_wav()).expect("the test tone is a real sound");
+}
+
+/// A device made the way the editor's window makes its own (wgpu's defaults, not Ruffle's), to
+/// show that Ruffle can draw on a device it did not create.
+#[test]
+#[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
+fn ruffle_draws_on_a_device_made_with_default_limits_like_the_editors() {
+    use flare_ruffle::embedded::wgpu;
+    let instance = wgpu::Instance::default();
+    let adapter =
+        pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions::default()))
+            .expect("an adapter");
+    let (device, queue) =
+        pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor::default()))
+            .expect("a device");
+    let gpu = Gpu {
+        instance,
+        adapter,
+        device,
+        queue,
+    };
+    let layer = Layer::new(
+        LayerId::new(),
+        "L",
+        vec![span(0, full(Rgba8::opaque(220, 30, 30)))],
+    )
+    .expect("layer");
+    let swf = publish(&document(vec![layer], vec![]));
+    let mut movie = EmbeddedMovie::start(&swf, &gpu, 1.0, false).expect("start");
+    for ms in [1, 100] {
+        movie.tick(Duration::from_millis(ms)).expect("tick");
+    }
+    assert_eq!(centre(&movie), [220, 30, 30]);
 }

@@ -83,10 +83,22 @@ impl Gpu {
         &mut self,
         ctx: &egui::Context,
         workspace: &mut Workspace,
+        #[cfg_attr(not(feature = "ruffle"), allow(unused_variables))] movie: &mut super::Movie,
         event_loop: &ActiveEventLoop,
     ) {
+        // A closed Test Movie window goes now, a frame after it stopped drawing its picture.
+        #[cfg(feature = "ruffle")]
+        if movie.as_ref().is_some_and(|window| window.is_closed()) {
+            *movie = None;
+        }
         let raw = self.state.take_egui_input(&self.window);
-        let mut output = ctx.run_ui(raw, |ui| workspace.show(ui));
+        let mut output = ctx.run_ui(raw, |ui| {
+            workspace.show(ui);
+            #[cfg(feature = "ruffle")]
+            if let Some(window) = movie {
+                window.show(ui.ctx());
+            }
+        });
         self.state
             .handle_platform_output(&self.window, output.platform_output.clone());
         self.window.set_title(&workspace.title());

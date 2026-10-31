@@ -94,7 +94,8 @@ impl App {
         }
     }
 
-    /// Plays the document in an external Ruffle when the workspace asks to.
+    /// Plays the document when the workspace asks to: in a window of this app, or in a Ruffle
+    /// of its own, depending on how the app was built.
     pub(super) fn handle_test_movie(&mut self) {
         // Forget players that have closed; this also removes their temporary files.
         self.movies
@@ -104,6 +105,55 @@ impl App {
         }
         let proxy = self.proxy.clone();
         let document = self.workspace.main_document().clone();
+        self.start_movie(document, proxy);
+    }
+
+    /// Publishes on a thread; the window opens when the bytes come back.
+    #[cfg(feature = "ruffle")]
+    fn start_movie(
+        &mut self,
+        document: flare_document::Document,
+        proxy: EventLoopProxy<UserEvent>,
+    ) {
+        let started = jobs::publish_movie(document, move |result| {
+            // A closed event loop means the app is exiting; nothing to do.
+            let _ = proxy.send_event(UserEvent::MovieBytes(result));
+        });
+        if let Err(error) = started {
+            dialogs::message("Cannot start Test Movie", &error.to_string());
+        }
+    }
+
+    /// Opens the Test Movie window on the editor's own GPU device.
+    #[cfg(feature = "ruffle")]
+    pub(super) fn open_movie(&mut self, result: Result<Vec<u8>, String>) {
+        let bytes = match result {
+            Ok(bytes) => bytes,
+            Err(error) => return dialogs::message("Cannot start Test Movie", &error),
+        };
+        let Some(gpu) = &self.gpu else { return };
+        let Some(state) = gpu.painter.render_state() else {
+            return dialogs::message(
+                "Cannot start Test Movie",
+                "The window has no GPU to draw on.",
+            );
+        };
+        match super::movie::MovieWindow::open(bytes, &state, gpu.window.scale_factor() as f32) {
+            Ok(window) => {
+                self.movie = Some(window);
+                gpu.window.request_redraw();
+            }
+            Err(error) => dialogs::message("Cannot start Test Movie", &error.to_string()),
+        }
+    }
+
+    /// Starts a Ruffle program of its own on the movie.
+    #[cfg(not(feature = "ruffle"))]
+    fn start_movie(
+        &mut self,
+        document: flare_document::Document,
+        proxy: EventLoopProxy<UserEvent>,
+    ) {
         let started = jobs::test_movie(document, move |result| {
             // A closed event loop means the app is exiting; the movie is dropped with it.
             let _ = proxy.send_event(UserEvent::MovieStarted(result));

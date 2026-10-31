@@ -60,6 +60,11 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 ```
 
+The tests that need a GPU adapter (Ruffle playing and drawing our movies) are `#[ignore]`d there,
+because a machine without a GPU would fail them, and CI does not run them. Run
+`scripts/gpu_tests.sh` on a machine with a GPU before changing the player, or what we publish
+for it, and report its result.
+
 Add a regression test before or with a behaviour fix. Test malformed input, save failures,
 cancellation and resource limits. Do not update expected outputs to make a failure disappear.
 A skipped test is skipped, not passed. Report status truthfully: a signature check is not a

@@ -225,3 +225,17 @@ fn a_project_is_exported_as_a_fla_that_imports_back_and_is_never_replaced() {
         "no staging file left"
     );
 }
+
+#[test]
+fn a_movie_for_the_in_app_player_is_published_on_a_thread_and_handed_back_as_bytes() {
+    let (tx, rx) = mpsc::channel();
+    jobs::publish_movie(document(), move |r| {
+        let _ = tx.send(r);
+    })
+    .expect("started");
+    let bytes = rx
+        .recv_timeout(Duration::from_secs(20))
+        .expect("the job reports back")
+        .expect("published");
+    assert!(bytes.starts_with(b"CWS") || bytes.starts_with(b"FWS"));
+}

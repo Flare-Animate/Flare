@@ -12,10 +12,18 @@ egui.workspace = true
 egui-wgpu = { workspace = true, features = ["default", "winit"] }
 egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
 flare-animate.workspace = true
+flare-document.workspace = true
 flare-platform.workspace = true
+flare-ruffle = { workspace = true, features = ["embedded"], optional = true }
 flare-storage.workspace = true
 pollster.workspace = true
 winit = { workspace = true, features = ["default"] }
+
+[features]
+# Test Movie plays inside the window, with Ruffle running in this process. Without it, Test Movie
+# starts a Ruffle program found through FLARE_RUFFLE or PATH.
+default = ["ruffle"]
+ruffle = ["dep:flare-ruffle"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
 muda.workspace = true
