@@ -6,11 +6,55 @@ use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
 use crate::{MAX_CUES_PER_LAYER, Shape, SoundCue, SoundError};
 use thiserror::Error;
 
+/// How a Graphic instance plays the frames of its symbol, as in Animate's Properties: round and
+/// round, once and then holding the last frame, or one frame held.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum PlayMode {
+    #[default]
+    Loop,
+    PlayOnce,
+    SingleFrame,
+}
+
+impl PlayMode {
+    pub const ALL: [Self; 3] = [Self::Loop, Self::PlayOnce, Self::SingleFrame];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Loop => "Loop",
+            Self::PlayOnce => "Play Once",
+            Self::SingleFrame => "Single Frame",
+        }
+    }
+
+    /// The name XFL and the project file use for it.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Loop => "loop",
+            Self::PlayOnce => "play once",
+            Self::SingleFrame => "single frame",
+        }
+    }
+
+    pub fn from_name(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|m| m.name() == name)
+    }
+}
+
+/// Where a Graphic instance starts in its symbol and how it goes on from there.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Playback {
+    pub mode: PlayMode,
+    /// The symbol's frame (counting from 0) shown when the instance's span begins.
+    pub first_frame: u32,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instance {
     id: InstanceId,
     symbol: SymbolId,
     transform: Transform2D,
+    playback: Playback,
 }
 
 impl Instance {
@@ -19,7 +63,19 @@ impl Instance {
             id,
             symbol,
             transform,
+            playback: Playback::default(),
         }
+    }
+
+    /// The same instance playing its symbol another way.
+    #[must_use]
+    pub fn with_playback(mut self, playback: Playback) -> Self {
+        self.playback = playback;
+        self
+    }
+
+    pub fn playback(&self) -> Playback {
+        self.playback
     }
 
     pub fn id(&self) -> InstanceId {

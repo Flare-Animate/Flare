@@ -393,3 +393,100 @@ fn masked_scene(layers: Vec<Layer>) -> (Document, SceneId) {
 }
 
 mod more;
+
+#[test]
+fn a_graphic_starts_at_its_first_frame_and_loops_plays_once_or_holds_as_asked() {
+    use flare_document::{PlayMode, Playback, SymbolKind};
+    let (leaf, states) = (SymbolId::new(), SymbolId::new());
+    let tl = timeline(vec![vec![
+        span(0, 1, leaf, at(1.0)),
+        span(1, 1, leaf, at(2.0)),
+        span(2, 1, leaf, at(3.0)),
+    ]]);
+    let symbols = vec![
+        Symbol::new(leaf, "Leaf", Timeline::default()),
+        Symbol::new(states, "States", tl).with_kind(SymbolKind::Graphic),
+    ];
+    let seen = |mode, first_frame| {
+        let instance = Instance::new(InstanceId::new(), states, at(100.0))
+            .with_playback(Playback { mode, first_frame });
+        let held = FrameSpan::new(
+            0,
+            NonZeroU32::new(8).expect("nonzero"),
+            Content::Instance(instance),
+        );
+        let (doc, id) = document(timeline(vec![vec![held]]), symbols.clone());
+        (0..8)
+            .map(|f| {
+                evaluate(&doc, id, f).expect("eval")[1]
+                    .transform
+                    .translation
+                    .x
+                    - 100.0
+            })
+            .collect::<Vec<f64>>()
+    };
+    assert_eq!(
+        seen(PlayMode::Loop, 0),
+        [1.0, 2.0, 3.0, 1.0, 2.0, 3.0, 1.0, 2.0]
+    );
+    assert_eq!(
+        seen(PlayMode::Loop, 2),
+        [3.0, 1.0, 2.0, 3.0, 1.0, 2.0, 3.0, 1.0]
+    );
+    assert_eq!(
+        seen(PlayMode::PlayOnce, 0),
+        [1.0, 2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0]
+    );
+    assert_eq!(
+        seen(PlayMode::PlayOnce, 1),
+        [2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0]
+    );
+    assert_eq!(seen(PlayMode::SingleFrame, 1), [2.0; 8]);
+    // A first frame past the end is held at the last one, never a panic or a blank.
+    assert_eq!(seen(PlayMode::SingleFrame, 99), [3.0; 8]);
+    assert_eq!(seen(PlayMode::Loop, 99)[0], 3.0);
+}
+
+#[test]
+fn playback_options_belong_to_graphics_and_a_movie_clip_or_button_ignores_them() {
+    use flare_document::{PlayMode, Playback, SymbolKind};
+    let (leaf, states) = (SymbolId::new(), SymbolId::new());
+    let tl = timeline(vec![vec![
+        span(0, 1, leaf, at(1.0)),
+        span(1, 1, leaf, at(2.0)),
+    ]]);
+    for (kind, expected) in [
+        (SymbolKind::MovieClip, [1.0, 2.0, 1.0, 2.0]),
+        (SymbolKind::Button, [1.0; 4]),
+    ] {
+        let symbols = vec![
+            Symbol::new(leaf, "Leaf", Timeline::default()),
+            Symbol::new(states, "S", tl.clone()).with_kind(kind),
+        ];
+        let instance = Instance::new(InstanceId::new(), states, at(0.0)).with_playback(Playback {
+            mode: PlayMode::SingleFrame,
+            first_frame: 1,
+        });
+        let held = FrameSpan::new(
+            0,
+            NonZeroU32::new(4).expect("nonzero"),
+            Content::Instance(instance),
+        );
+        let (doc, id) = document(timeline(vec![vec![held]]), symbols);
+        let seen: Vec<f64> = (0..4)
+            .map(|f| {
+                evaluate(&doc, id, f).expect("eval")[1]
+                    .transform
+                    .translation
+                    .x
+            })
+            .collect();
+        assert_eq!(seen, expected, "{kind:?}");
+    }
+    assert_eq!(PlayMode::from_name("play once"), Some(PlayMode::PlayOnce));
+    assert_eq!(PlayMode::from_name("bounce"), None);
+    for mode in PlayMode::ALL {
+        assert_eq!(PlayMode::from_name(mode.name()), Some(mode));
+    }
+}

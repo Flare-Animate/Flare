@@ -305,11 +305,7 @@ fn walk_layer<'a>(
             let elapsed = u64::from(frame - span.start());
             // `elapsed % length` < length <= u32::MAX * 2; the remainder fits u32 only
             // when length fits, so fall back to saturation for absurd lengths.
-            let local = if symbol.kind() == flare_document::SymbolKind::Button {
-                0
-            } else {
-                u32::try_from(elapsed % length).unwrap_or(u32::MAX)
-            };
+            let local = child_frame(symbol.kind(), instance.playback(), elapsed, length);
             walk(
                 document,
                 symbol.timeline(),
@@ -323,6 +319,33 @@ fn walk_layer<'a>(
     }
     path.pop();
     Ok(())
+}
+
+/// The frame of its symbol an instance shows `elapsed` frames after its span began. A Button
+/// holds its first frame. A Graphic follows its playback: it starts at its first frame and then
+/// loops, plays to the end and holds the last frame, or holds the first frame. A Movie Clip
+/// loops from its first frame, as it would in a movie.
+fn child_frame(
+    kind: flare_document::SymbolKind,
+    playback: flare_document::Playback,
+    elapsed: u64,
+    length: u64,
+) -> u32 {
+    use flare_document::{PlayMode, SymbolKind};
+    let last = length.saturating_sub(1);
+    let frame = match kind {
+        SymbolKind::Button => 0,
+        SymbolKind::MovieClip => elapsed % length,
+        SymbolKind::Graphic => {
+            let first = u64::from(playback.first_frame).min(last);
+            match playback.mode {
+                PlayMode::SingleFrame => first,
+                PlayMode::PlayOnce => (first + elapsed).min(last),
+                PlayMode::Loop => (first + elapsed) % length,
+            }
+        }
+    };
+    u32::try_from(frame).unwrap_or(u32::MAX)
 }
 
 /// The shape a span shows at `frame`: its own, or a step of its shape tween toward the next

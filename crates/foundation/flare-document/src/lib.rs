@@ -25,7 +25,8 @@ pub use sound::{
 };
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
 pub use timeline::{
-    Content, FrameSpan, Instance, Layer, MAX_EASE, OUTLINE_PALETTE, Timeline, TimelineError, Tween,
+    Content, FrameSpan, Instance, Layer, MAX_EASE, OUTLINE_PALETTE, PlayMode, Playback, Timeline,
+    TimelineError, Tween,
 };
 pub use validate::Diagnostic;
 
