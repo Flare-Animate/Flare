@@ -11,6 +11,17 @@ Status is evidence-based: a milestone item is done only when it has tests.
 | M4 Test Movie and advanced features | Hosted Ruffle playback, SWF publishing, richer text/audio, advanced tweens and masks | SWF publishing (baked frames) and Test Movie through an external Ruffle process done and tested without a real player; richer text/audio and masks not started |
 | M5 hardening | Long sessions, crash recovery, packaging, accessibility, corpus expansion | Partly: crash recovery and fault-injection tests done; packaging, accessibility and long-session profiling not started |
 
+## Required before a release (the maintainer's bar)
+
+If drawing, exporting and playing do not all work well, Flare is not released. What is known to be missing against that bar, in the order it is meant to be tackled:
+
+1. **MP4**: done through an external `ffmpeg` (see [architecture.md](architecture.md)); a build that carries its own encoder is not planned.
+2. **Symbols that behave like Animate's.** Today every symbol is evaluated as a Graphic that loops with its parent (`flare-eval`), so a Button plays all of its frames instead of showing its Up state, a Graphic has no Loop, Play Once or Single Frame option with a first frame, and a Movie Clip has no clock of its own beyond that loop. Needs the instance's playback options in the document model, the file format and XFL, Properties controls, and the evaluator.
+3. **Merge drawing**: Flash's planar-map shapes, where overlapping shapes cut and merge each other and strokes and fills are edited separately. The largest gap in [parity.md](parity.md) and a change to the document model, not a feature on top of it.
+4. **Camera**: a camera layer and tool whose keyframed position, zoom and rotation drive the stage view and every export.
+5. **Timeline controls** good enough to animate with, and **Ruffle** playback proven against a real player.
+6. **Sharing the way Animate does it**: its Share menu logs in to YouTube and Twitter and uploads the exported video itself. That needs each service's API with credentials the project registers (YouTube is the practical first, now that MP4 exists); the Publish popup's buttons only open each site's page until then.
+
 ## M2 remaining
 
 - Look at and fix the desktop window and the native macOS menu; both have only been built and launch-tested, not exercised by hand.
