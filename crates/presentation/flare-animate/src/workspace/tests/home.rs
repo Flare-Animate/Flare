@@ -242,8 +242,10 @@ fn the_publish_button_is_left_of_play_in_the_top_bar() {
     // Walking left from the undo button, play comes, then publish.
     let mut play = None;
     let mut publish = None;
-    let mut x = 1210.0;
-    while x > 1100.0 {
+    // The interface switcher beside the gear moved the others left; the scan starts at the undo
+    // button and goes on past publish.
+    let mut x = 1180.0;
+    while x > 1040.0 {
         let (published, playing, _) = press_top_bar(x);
         if playing && play.is_none() {
             play = Some(x);
@@ -261,5 +263,57 @@ fn the_publish_button_is_left_of_play_in_the_top_bar() {
     assert!(
         play - publish < 40.0,
         "they are neighbours: {publish} and {play}"
+    );
+}
+
+/// The tooltip the top bar shows with the pointer at `x`, in a window 1280 wide.
+fn top_bar_hint(x: f32) -> String {
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    flare_ui::icons::install(&ctx);
+    run(&mut ws, &ctx, 0.0);
+    let at = Pos2::new(x, 14.0);
+    let mut text = String::new();
+    for step in 0..10 {
+        let events = if step == 0 {
+            vec![Event::PointerMoved(at)]
+        } else {
+            vec![]
+        };
+        let mut out = ctx.run_ui(input(0.1 + f64::from(step) * 0.2, events), |ui| ws.show(ui));
+        out.textures_delta.clear();
+        for shape in &out.shapes {
+            if let egui::epaint::Shape::Text(t) = &shape.shape {
+                text.push_str(t.galley.text());
+                text.push('|');
+            }
+        }
+    }
+    text
+}
+
+#[test]
+fn the_interface_switcher_is_a_dimmed_button_in_the_top_right_corner_beside_the_gear() {
+    let width = 1280.0;
+    let mut found = None;
+    let mut gear = None;
+    let mut x = width - 4.0;
+    while x > width - 140.0 {
+        let hint = top_bar_hint(x);
+        if hint.contains("Interface switcher (Not available yet)") {
+            found.get_or_insert(x);
+        }
+        if hint.contains("Preferences") {
+            gear.get_or_insert(x);
+        }
+        x -= 6.0;
+    }
+    let (found, gear) = (
+        found.expect("the switcher is there"),
+        gear.expect("the gear"),
+    );
+    assert!(
+        found < gear,
+        "it is left of the gear: {found} against {gear}"
     );
 }

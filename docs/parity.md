@@ -13,7 +13,7 @@ first thing taken over and are in the importer and Flash adapter tests.
 | Merge-drawing model (Flash planar-map shapes: edge bending, boolean cuts) | Planned and the largest gap against Animate's drawing model; today shapes are separate objects |
 | AS3 decompile / ActionScript editing | Not planned for 0.1; ActionScript is preserved as data, never run |
 | Moho projects, rig rendering | Not planned; import is a later milestone after the Animate workflow |
-| FlipaClip layout profile, custom room layouts | Flare has dockable panels and "Reset layout"; named workspace presets are a dimmed menu entry |
+| FlipaClip layout profile, custom room layouts | Flare has dockable panels and "Reset layout"; switching between whole interfaces (Animate's workspace switcher) is a dimmed button at the top right and a dimmed Window > Interfaces entry |
 | Auto-update with SHA-256 verification | Planned after the first release exists to update from |
 | Windows installer (NSIS), Chocolatey | Planned; see [release.md](release.md) |
 | Android build, P2P remote control, game ECS | Not planned |
