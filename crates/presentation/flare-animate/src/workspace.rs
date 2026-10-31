@@ -212,6 +212,10 @@ pub struct Workspace {
     titlebar_inset: f32,
     top_bar_id: egui::Id,
     preferences_id: egui::Id,
+    /// Which tool of each tool-strip slot was last picked from its list, by the slot's first name.
+    slot_choice: std::collections::HashMap<&'static str, usize>,
+    /// The slot whose list of tools is open, by its first name.
+    slot_open: Option<&'static str>,
     /// The Text tool's settings and the text being typed.
     text: groups::TextTool,
     /// How new shapes are painted.
@@ -321,6 +325,8 @@ impl Workspace {
             titlebar_inset: 0.0,
             top_bar_id: egui::Id::unique("top-bar"),
             preferences_id: egui::Id::unique("preferences"),
+            slot_choice: std::collections::HashMap::new(),
+            slot_open: None,
             text: groups::TextTool::default(),
             paint: groups::Paint::default(),
             display: groups::Display::default(),

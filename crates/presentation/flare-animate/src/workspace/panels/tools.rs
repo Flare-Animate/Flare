@@ -5,45 +5,8 @@ use crate::workspace::{Tool, Workspace};
 use egui::Ui;
 use flare_ui::chrome;
 
+use super::tool_slots::SLOT_GROUPS;
 use super::*;
-
-/// One tool in the strip: its icon, name, key and the tool itself.
-type Cell = (&'static str, &'static str, &'static str, Tool);
-
-/// The strip's categories, divided by a line: selecting, drawing, painting, helping and viewing.
-/// Every tool appears in exactly one.
-pub(crate) const TOOL_GROUPS: &[&[Cell]] = &[
-    &[
-        ("tool-selection", "Selection", "V", Tool::Select),
-        ("tool-subselection", "Subselection", "A", Tool::Subselection),
-        ("tool-transform", "Free Transform", "Q", Tool::FreeTransform),
-        ("tool-lasso", "Lasso", "L", Tool::Lasso),
-    ],
-    &[
-        ("tool-pen", "Pen", "P", Tool::Pen),
-        ("tool-text", "Text", "T", Tool::Text),
-        ("tool-pencil", "Pencil", "Y", Tool::Pencil),
-        ("tool-brush", "Brush", "B", Tool::Brush),
-        ("tool-line", "Line", "N", Tool::Line),
-        ("tool-rectangle", "Rectangle", "R", Tool::Rectangle),
-        ("tool-oval", "Oval", "O", Tool::Ellipse),
-        ("tool-polystar", "PolyStar", "G", Tool::PolyStar),
-    ],
-    &[
-        ("tool-bucket", "Paint Bucket", "K", Tool::Bucket),
-        ("tool-ink-bottle", "Ink Bottle", "S", Tool::InkBottle),
-        ("tool-eyedropper", "Eyedropper", "I", Tool::Eyedropper),
-        ("tool-eraser", "Eraser", "E", Tool::Eraser),
-    ],
-    &[
-        ("tool-mirror", "Mirror", "X", Tool::Mirror),
-        ("tool-ruler", "Ruler", "M", Tool::Ruler),
-    ],
-    &[
-        ("tool-hand", "Hand", "H", Tool::Hand),
-        ("tool-zoom", "Zoom", "Z", Tool::Zoom),
-    ],
-];
 
 impl Workspace {
     // ---- tools -------------------------------------------------------------------------
@@ -64,7 +27,7 @@ impl Workspace {
                     } else {
                         1
                     };
-                    for (index, group) in TOOL_GROUPS.iter().enumerate() {
+                    for (index, group) in SLOT_GROUPS.iter().enumerate() {
                         if index > 0 {
                             ui.add_space(3.0);
                             ui.separator();
@@ -73,22 +36,12 @@ impl Workspace {
                         for pair in group.chunks(columns) {
                             ui.horizontal(|ui| {
                                 // Centred in the panel: a pair is two buttons wide.
-                                let used = cell * columns as f32
-                                    + ui.spacing().item_spacing.x * (columns - 1) as f32;
+                                let used = cell * pair.len() as f32
+                                    + ui.spacing().item_spacing.x * (pair.len() - 1) as f32;
                                 ui.add_space(((ui.available_width() - used) / 2.0).max(0.0));
-                                for (icon, name, key, tool) in pair {
-                                    let hint = format!("{name} ({key})");
-                                    if chrome::icon_button(
-                                        ui,
-                                        icon,
-                                        TOOL_ICON,
-                                        self.tool == *tool,
-                                        true,
-                                        &hint,
-                                    )
-                                    .clicked()
-                                    {
-                                        chosen = *tool;
+                                for slot in pair {
+                                    if let Some(tool) = self.slot_cell(ui, slot) {
+                                        chosen = tool;
                                     }
                                 }
                             });

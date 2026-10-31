@@ -21,4 +21,5 @@ mod stage_bar;
 #[cfg(test)]
 mod tests;
 mod timeline_bar;
+pub(crate) mod tool_slots;
 pub(crate) mod tools;
