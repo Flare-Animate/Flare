@@ -49,53 +49,58 @@ impl Workspace {
     // ---- tools -------------------------------------------------------------------------
 
     pub(crate) fn tools_panel(&mut self, ui: &mut Ui) {
-        ui.add_space(4.0);
-        ui.vertical_centered(|ui| {
-            let mut chosen = self.tool;
-            // Snug cells; two columns when the strip is wide enough for them, else one.
-            ui.spacing_mut().item_spacing = egui::vec2(3.0, 3.0);
-            let cell = TOOL_ICON + 6.0;
-            let columns = if ui.available_width() >= cell * 2.0 + 3.0 {
-                2
-            } else {
-                1
-            };
-            for (index, group) in TOOL_GROUPS.iter().enumerate() {
-                if index > 0 {
-                    ui.add_space(3.0);
-                    ui.separator();
-                    ui.add_space(0.0);
-                }
-                for pair in group.chunks(columns) {
-                    ui.horizontal(|ui| {
-                        // Centred in the panel: a pair is two buttons wide.
-                        let used = cell * columns as f32
-                            + ui.spacing().item_spacing.x * (columns - 1) as f32;
-                        ui.add_space(((ui.available_width() - used) / 2.0).max(0.0));
-                        for (icon, name, key, tool) in pair {
-                            let hint = format!("{name} ({key})");
-                            if chrome::icon_button(
-                                ui,
-                                icon,
-                                TOOL_ICON,
-                                self.tool == *tool,
-                                true,
-                                &hint,
-                            )
-                            .clicked()
-                            {
-                                chosen = *tool;
-                            }
+        // One column of every tool and the color box is taller than a short window: it scrolls.
+        egui::ScrollArea::vertical()
+            .auto_shrink([false, false])
+            .show(ui, |ui| {
+                ui.add_space(4.0);
+                ui.vertical_centered(|ui| {
+                    let mut chosen = self.tool;
+                    // Snug cells; two columns when the strip is wide enough for them, else one.
+                    ui.spacing_mut().item_spacing = egui::vec2(3.0, 3.0);
+                    let cell = TOOL_ICON + 6.0;
+                    let columns = if ui.available_width() >= cell * 2.0 + 3.0 {
+                        2
+                    } else {
+                        1
+                    };
+                    for (index, group) in TOOL_GROUPS.iter().enumerate() {
+                        if index > 0 {
+                            ui.add_space(3.0);
+                            ui.separator();
+                            ui.add_space(0.0);
                         }
-                    });
-                }
-            }
-            self.set_tool(chosen);
-            ui.add_space(4.0);
-            ui.separator();
-            ui.add_space(2.0);
-            self.color_wells(ui);
-        });
+                        for pair in group.chunks(columns) {
+                            ui.horizontal(|ui| {
+                                // Centred in the panel: a pair is two buttons wide.
+                                let used = cell * columns as f32
+                                    + ui.spacing().item_spacing.x * (columns - 1) as f32;
+                                ui.add_space(((ui.available_width() - used) / 2.0).max(0.0));
+                                for (icon, name, key, tool) in pair {
+                                    let hint = format!("{name} ({key})");
+                                    if chrome::icon_button(
+                                        ui,
+                                        icon,
+                                        TOOL_ICON,
+                                        self.tool == *tool,
+                                        true,
+                                        &hint,
+                                    )
+                                    .clicked()
+                                    {
+                                        chosen = *tool;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    self.set_tool(chosen);
+                    ui.add_space(4.0);
+                    ui.separator();
+                    ui.add_space(2.0);
+                    self.color_wells(ui);
+                });
+            });
     }
 
     /// Options of the current tool, if it has any.

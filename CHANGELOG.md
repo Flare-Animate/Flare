@@ -27,7 +27,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
   one or two axes; Modify > Transform > Mirror Copy makes a reflected copy of the selection.
 - Timeline with frames, keyframes, layers, folders, onion skin, linear motion tweens and motion
   guides, and playback with sound.
-- Panels that dock and move: tools, properties, color, align, transform, library, history, output.
+- Panels that dock and move: tools, properties, color, align, transform, library, history, output. The tool strip scrolls when it is taller than its panel, so the color box can always be reached.
 - Several documents in a window as tabs, Open Recent, Save All, autosave and crash recovery,
   Preferences.
 - Files: the `.flare` project container, XFL/FLA import and export, PNG and GIF export, and SWF

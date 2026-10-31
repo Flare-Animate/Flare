@@ -93,3 +93,51 @@ fn the_color_box_fits_inside_the_narrowest_tool_strip_and_its_own_height() {
         );
     }
 }
+
+/// The lowest edge of anything the strip drew, and what was drawn there.
+fn lowest_edge(ws: &mut Workspace, ctx: &egui::Context, raw: RawInput) -> f32 {
+    let mut output = ctx.run_ui(raw, |ui| ws.tools_panel(ui));
+    output.textures_delta.clear();
+    output
+        .shapes
+        .iter()
+        .map(|s| s.shape.visual_bounding_rect().max.y)
+        .filter(|y| y.is_finite())
+        .fold(0.0, f32::max)
+}
+
+#[test]
+fn a_tool_strip_taller_than_its_panel_scrolls_so_the_color_box_can_be_reached() {
+    // One narrow column and a short window: the tools and the color box do not fit.
+    let screen = Rect::from_min_size(Pos2::ZERO, Vec2::new(60.0, 300.0));
+    let raw = |time, events| RawInput {
+        time: Some(time),
+        screen_rect: Some(screen),
+        events,
+        ..RawInput::default()
+    };
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    let inside = Pos2::new(30.0, 150.0);
+    // Two passes to settle the layout, with the pointer over the strip.
+    lowest_edge(&mut ws, &ctx, raw(0.0, vec![Event::PointerMoved(inside)]));
+    let before = lowest_edge(&mut ws, &ctx, raw(0.1, vec![]));
+    assert!(
+        before > screen.height(),
+        "the strip is taller than its panel: {before}"
+    );
+    let wheel = Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: Vec2::new(0.0, -2000.0),
+        phase: egui::TouchPhase::Move,
+        source: egui::MouseWheelSource::Wheel,
+        modifiers: Modifiers::NONE,
+    };
+    lowest_edge(&mut ws, &ctx, raw(0.2, vec![wheel]));
+    let after = lowest_edge(&mut ws, &ctx, raw(0.3, vec![]));
+    assert!(
+        after <= screen.height() + 8.0,
+        "scrolled to the end, the color box is on screen: {after} against {}",
+        screen.height()
+    );
+}
