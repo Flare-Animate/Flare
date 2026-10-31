@@ -8,6 +8,9 @@
 
 #![forbid(unsafe_code)]
 
+#[cfg(feature = "embedded")]
+pub mod embedded;
+
 use std::ffi::OsString;
 use std::io;
 use std::path::{Path, PathBuf};

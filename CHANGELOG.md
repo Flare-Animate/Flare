@@ -7,6 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Added
+- `flare-ruffle`'s `embedded` feature runs Ruffle inside the process on a wgpu device it is given: a published movie plays over time into a texture, with sound through Ruffle's mixer (tested: frames advance with the time given, pausing holds, the sound we publish is heard).
 - Test Movie works in the browser: the page runs Ruffle's WebAssembly build (`@ruffle-rs/ruffle` 0.7.1, vendored with its licences, fetched on first use) in an overlay over the editor.
 - `scripts/build_ruffle.sh` builds Ruffle's desktop player from the pinned checkout, and Test Movie has been run against it (an ignored test opens a published movie in it and checks it keeps playing).
 - Ruffle is pinned as a submodule at third_party/ruffle, and `flare-ruffle`'s `render-check` feature has Ruffle's exporter render published SWFs and compares them with Flare's render (solid shapes, a gradient and a mask agree).

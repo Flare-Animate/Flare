@@ -17,10 +17,20 @@ thiserror.workspace = true
 # ours. Off by default: it adds Ruffle's whole dependency tree and needs Java to build.
 exporter = { workspace = true, optional = true }
 
+# Ruffle running inside the app: its core drawing on a wgpu device we are given, and sound
+# through the sound card. Needs Java to build, like render-check.
+ruffle_core = { workspace = true, optional = true }
+ruffle_render_wgpu = { workspace = true, optional = true }
+ruffle_frontend_utils = { workspace = true, optional = true }
+futures-lite = { workspace = true, optional = true }
+
 [features]
 render-check = ["dep:exporter"]
+embedded = ["dep:ruffle_core", "dep:ruffle_render_wgpu", "dep:ruffle_frontend_utils", "dep:futures-lite"]
 
 [dev-dependencies]
+ruffle_core.workspace = true
+flare-audio.workspace = true
 flare-core.workspace = true
 flare-eval.workspace = true
 flare-render.workspace = true

@@ -73,6 +73,12 @@ flare-flash = { path = "crates/adapters/flare-flash" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }
 # Ruffle's exporter from the pinned submodule; only flare-ruffle's render-check feature uses it.
 exporter = { path = "third_party/ruffle/exporter" }
+# The player itself, for flare-ruffle's `embedded` feature: the core, its wgpu renderer, and the
+# frontend helpers that bring the sound card (unmodified, from the pinned checkout).
+ruffle_core = { path = "third_party/ruffle/core", features = ["default_font"] }
+ruffle_render_wgpu = { path = "third_party/ruffle/render/wgpu" }
+futures-lite = "2.6.1"
+ruffle_frontend_utils = { path = "third_party/ruffle/frontend-utils", default-features = false, features = ["cpal"] }
 # services
 flare-render = { path = "crates/services/flare-render" }
 flare-runtime = { path = "crates/services/flare-runtime" }

@@ -275,6 +275,16 @@ Java (Ruffle compiles its ActionScript library with Adobe's `asc.jar`) and a GPU
 does not run it: `cargo test -p flare-ruffle --features render-check`. Ruffle's source is used
 unmodified under its MIT/Apache-2.0 licence, not copied or stripped.
 
+Ruffle also runs *inside* the app, with `flare-ruffle`'s `embedded` feature: `EmbeddedMovie` builds
+Ruffle's own core and wgpu renderer over a movie held in memory, on a `wgpu` device it is given
+(the app's own, so the picture stays on the GPU as a texture), advances it by the time that
+passed, and plays its sound through Ruffle's CPAL backend (or any backend a test injects). A
+panic inside the foreign engine is caught and marks the movie failed instead of ending the
+editor. Tests play published movies for real: a two-frame movie shows its second frame only after
+a frame's time has passed and holds still when paused, a non-SWF is refused, and the sound a
+published movie carries comes out of Ruffle's mixer (a movie with no cue is exactly silent).
+Ruffle's first tick only loads the movie; the first frame follows once a frame's time has passed.
+
 Encoding uses the `swf` crate from the Ruffle project (MIT/Apache-2.0). Tests parse the output
 back with that crate's reader, play the display list, rebuild shapes from the decoded records
 and compare renders with the document, and check fill sides against SWF's own definition (a
