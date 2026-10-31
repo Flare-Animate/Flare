@@ -228,6 +228,11 @@ pub fn display_lists(tags: &[Tag<'static>]) -> Vec<Vec<(u16, OnScreen)>> {
                         entry.matrix = m;
                     }
                 }
+                PlaceObjectAction::None => {
+                    panic!(
+                        "a placement with neither a character nor the move flag is never written"
+                    )
+                }
             },
             Tag::RemoveObject(r) => {
                 depths
