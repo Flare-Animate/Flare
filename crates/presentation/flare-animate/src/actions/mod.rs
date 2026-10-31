@@ -67,6 +67,7 @@ pub enum MenuAction {
     SelectAll,
     DeselectAll,
     Rewind,
+    GoToEnd,
     StepForward,
     StepBackward,
     ActualSize,
@@ -131,7 +132,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 116] = [
+    pub const ALL: [MenuAction; 117] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -187,6 +188,7 @@ impl MenuAction {
         Self::SelectAll,
         Self::DeselectAll,
         Self::Rewind,
+        Self::GoToEnd,
         Self::StepForward,
         Self::StepBackward,
         Self::ActualSize,

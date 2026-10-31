@@ -196,6 +196,7 @@ impl MenuAction {
             Self::Cut => "cut",
             Self::SelectAll => "select-all",
             Self::Rewind => "transport-first",
+            Self::GoToEnd => "transport-last",
             Self::StepForward => "transport-next",
             Self::StepBackward => "transport-prev",
             Self::ActualSize => "zoom-actual",

@@ -196,6 +196,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
         &[
             Action(A::PlayPause),
             Action(A::Rewind),
+            Action(A::GoToEnd),
             Action(A::StepForward),
             Action(A::StepBackward),
             Separator,

@@ -465,3 +465,36 @@ fn new_strokes_take_the_chosen_cap_and_join() {
     let outlined = drawn_shape(&ws, 2).stroke().expect("outlined");
     assert_eq!((outlined.cap(), outlined.join()), (Cap::Butt, Join::Bevel));
 }
+
+#[test]
+fn go_to_end_jumps_to_the_last_frame_and_comma_and_period_step_like_animate() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    rect(&mut ws); // 24 frames
+    run(&mut ws, &ctx, 0.0);
+    assert!(ws.is_enabled(MenuAction::GoToEnd));
+    ws.perform(MenuAction::GoToEnd);
+    assert_eq!(ws.frame(), 23);
+    assert!(!ws.is_enabled(MenuAction::GoToEnd), "already at the end");
+    assert_eq!(ws.label(MenuAction::GoToEnd), "Go to End");
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.1, vec![key(Key::Comma, Modifiers::NONE)]),
+    );
+    assert_eq!(ws.frame(), 22, "comma steps back");
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.2, vec![key(Key::Period, Modifiers::NONE)]),
+    );
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.3, vec![key(Key::Period, Modifiers::NONE)]),
+    );
+    assert_eq!(
+        ws.frame(),
+        23,
+        "period steps forward, and stops at the last frame"
+    );
+}

@@ -66,6 +66,7 @@ impl Workspace {
                 !ops::spans_at_frame(self.document(), scene, self.frame).is_empty()
             }),
             MenuAction::Rewind | MenuAction::StepBackward => self.frame > 0,
+            MenuAction::GoToEnd => self.frame + 1 < self.scene_frames(),
             MenuAction::StepForward | MenuAction::ActualSize => true,
             MenuAction::CopyFrames => editable_layer || self.frame_range.is_some(),
             MenuAction::PasteFrames => {
@@ -192,6 +193,7 @@ impl Workspace {
             MenuAction::SelectAll => self.select_all(),
             MenuAction::DeselectAll => self.clear_selection(),
             MenuAction::Rewind => self.set_frame(0),
+            MenuAction::GoToEnd => self.set_frame(self.scene_frames() - 1),
             MenuAction::StepForward => self.set_frame(self.frame.saturating_add(1)),
             MenuAction::StepBackward => self.set_frame(self.frame.saturating_sub(1)),
             MenuAction::ActualSize => self.set_stage_percent(100.0),

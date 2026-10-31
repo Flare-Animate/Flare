@@ -35,6 +35,7 @@ impl Workspace {
             MenuAction::SelectAll => "Select All",
             MenuAction::DeselectAll => "Deselect All",
             MenuAction::Rewind => "Rewind",
+            MenuAction::GoToEnd => "Go to End",
             MenuAction::StepForward => "Step Forward",
             MenuAction::StepBackward => "Step Backward",
             MenuAction::ActualSize => "Actual Size",

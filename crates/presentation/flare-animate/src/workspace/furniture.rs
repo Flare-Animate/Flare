@@ -167,10 +167,17 @@ impl Workspace {
             if convert && !self.native_menu {
                 self.convert_selection_to_symbol();
             }
-            if left {
+            // Animate steps with the comma and the period as well as the arrow keys.
+            let (comma, period) = ctx.input(|i| {
+                (
+                    !i.modifiers.any() && i.key_pressed(Key::Comma),
+                    !i.modifiers.any() && i.key_pressed(Key::Period),
+                )
+            });
+            if left || comma {
                 self.set_frame(self.frame.saturating_sub(1));
             }
-            if right {
+            if right || period {
                 self.set_frame(self.frame.saturating_add(1));
             }
         }
