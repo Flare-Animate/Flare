@@ -20,27 +20,28 @@ fn sizes_read_in_the_unit_that_fits() {
 }
 
 #[test]
-fn modified_times_read_as_how_long_ago_and_then_as_a_date() {
+fn modified_times_read_as_how_long_ago_up_through_months_and_years() {
     let now = at(1_800_000_000);
     let ago = |seconds: u64| format_modified(at(1_800_000_000 - seconds), now);
     assert_eq!(ago(5), "Modified just now");
     assert_eq!(ago(60), "Modified 1 minute ago");
     assert_eq!(ago(2 * 3600), "Modified 2 hours ago");
+    assert_eq!(ago(86_400), "Modified 1 day ago");
     assert_eq!(ago(3 * 86_400), "Modified 3 days ago");
-    // 2027-01-15 08:00:00 UTC is 1_800_000_000; a month before it:
-    assert_eq!(ago(30 * 86_400), "Modified 16 Dec 2026");
-    assert_eq!(format_modified(at(0), now), "Modified 1 Jan 1970");
-    assert_eq!(
-        format_modified(at(951_782_400), now),
-        "Modified 29 Feb 2000",
-        "a leap day"
-    );
+    assert_eq!(ago(29 * 86_400), "Modified 29 days ago");
+    assert_eq!(ago(30 * 86_400), "Modified 1 month ago");
+    assert_eq!(ago(364 * 86_400), "Modified 12 months ago");
+    assert_eq!(ago(365 * 86_400), "Modified 1 year ago");
+    assert_eq!(ago(3 * 365 * 86_400 + 5), "Modified 3 years ago");
+    assert_eq!(format_modified(at(0), now), "Modified 57 years ago");
 }
 
 #[test]
 fn a_time_in_the_future_reads_as_just_now() {
-    let now = at(1_000);
-    assert_eq!(format_modified(at(9_000_000), now), "Modified just now");
+    assert_eq!(
+        format_modified(at(9_000_000), at(1_000)),
+        "Modified just now"
+    );
 }
 
 #[test]
