@@ -4,13 +4,13 @@
   <img src="../../assets/flare-icon-256.png" width="128" height="128" alt="Flare">
 </p>
 
-# Flare 🔥
+# Flare Animate
 
 [![CI](https://img.shields.io/github/actions/workflow/status/Flare-Animate/Flare/ci.yml?branch=main&label=CI)](https://github.com/Flare-Animate/Flare/actions/workflows/ci.yml)
 [![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue)](../../LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/JpeScW8Awa)
 
-Adobe Animate の考え方に沿った、Rust 製の無料のオープンソース・アニメーションツールです。Windows、macOS、Linux 向けで、スクリプトやエージェント用のコマンドラインと MCP サーバーも備えています。
+Adobe Animate の考え方に沿った、Rust 製の無料のオープンソース・アニメーションツールです。Windows、macOS、Linux 向けです。
 
 > **初期アルファ版です。** 不具合や、Flash/Animate のインポートが不完全なことを想定してください。作業のバックアップを取ってください。
 
@@ -18,14 +18,14 @@ Adobe Animate の考え方に沿った、Rust 製の無料のオープンソー�
 
 ### 機能
 
-- おなじみのツールで描画できます: 選択、部分選択、自由変形、投げ縄と多角形投げ縄、ペン、鉛筆、ペン先付きブラシ、消しゴム、長方形、楕円、多角形/星形、直線、テキスト、塗りつぶし、インク壺、スポイト。塗り、線、グラデーションに対応します。
+- Animate にあるツールで描画できるほか、Flare 独自の定規(距離と角度を測る)とミラー(左右対称に描く)があります。塗り、線、グラデーションに対応します。
 - タイムライン上でフレームとレイヤーを配置できます。フォルダー、マスク、モーションガイド、Ease 付きのモーショントゥイーンとシェイプトゥイーン、オニオンスキンに対応します。
 - シンボル(グラフィック、ムービークリップ、ボタン)をライブラリに置き、インスタンスとしてステージに配置できます。
 - アニメーションを音付きで再生できます。ムービープレビューは、公開した SWF を Ruffle で実行します(デスクトップではアプリ内、ブラウザーではページ内)。
 - 複数のドキュメントをタブで開き、ドッキング可能なパネル、自動保存、クラッシュ後の復元に対応します。
 - `.flare` プロジェクトを開いて保存できます。Animate の XFL と `.fla` をインポート/エクスポートでき、引き継げなかったものは報告されます。
 - PNG、GIF、MP4 を書き出し、SWF または HTML5 Canvas ページを公開できます。
-- コマンドライン(`flare`)と MCP サーバー(`flare-mcp`)により、スクリプトや AI エージェントが同じドキュメントを安全に扱えます。
+- スクリプトからプロジェクトを作成、編集、書き出し、公開できるコマンドライン(`flare`)。
 
 ### ビルドと実行
 
@@ -39,7 +39,7 @@ Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に挙げたライブラ�
 
 リリースでは、macOS、Windows、Linux(x64 と arm64)向けのネイティブパッケージを作ります: DMG、MSI、ポータブル zip、`.deb`、`.rpm`、AppImage、そしてコマンドラインの別アーカイブです。まだ公開されたバージョンはないため、今はソースからビルドしてください。パッケージとリリースの手順は [docs/release.md](../release.md) にあります。
 
-### コマンドラインと MCP
+### コマンドライン
 
     flare new project.flare --width 1280 --height 720
     flare draw-rect project.flare --rect 100 100 300 200 --color FF6600
@@ -48,11 +48,22 @@ Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に挙げたライブラ�
     flare publish-html5 project.flare page.html
     flare --help
 
-`flare-mcp project.flare --allow-write --export-dir exports` は、プロジェクトを stdio 経由で AI エージェントに提供します。`--allow-write` がなければ読み取り専用で、書き出しはエクスポート用ディレクトリの中だけに行われ、すべての変更は検証済みで元に戻せる 1 ステップになります。
+### ロードマップ
 
-### 未対応のもの
+計画済みでまだ作っていないものです。多くはインターフェースで薄く表示されます。順序と理由は [docs/roadmap.md](../roadmap.md) にあります。
 
-未対応のもの: シェイプヒント、複数シーン、スクリプトとコマンドメニュー、キーボードショートカットの編集、配置後のテキスト編集、マージ描画(図形は別々のオブジェクトで、Flash のように切り合って結合する平面マップではありません)、カメラレイヤー。計画済みで未実装のものは、インターフェースで薄く表示されます。Web 版は実験的で、公開されていません。次の予定は [docs/roadmap.md](../roadmap.md) にあります。
+- マージ描画: Flash の平面マップ型シェイプ(重なった図形が互いに切り合って結合する。現在、図形は別々のオブジェクトです)
+- 位置、ズーム、回転をキーフレームで動かせるカメラレイヤー
+- ボーンと逆運動学(ボーンツールとバインドツール)
+- Animate の残りのツール: 3D 回転と 3D 移動、Deco、幅、アセットワープ、グラデーション変形、マジックワンド
+- シェイプヒント、複数のシーン、コマンドメニューによるスクリプト
+- Flash 8 風のインターフェーススキンと、カスタムテーマ(ダークとライトは標準で内蔵)
+- 自由に並べ替えられるツールバー(「…」の一覧からツールを固定することは既にできます)と、編集できるキーボードショートカット
+- 配置後のテキスト編集
+- すべてのフレームを固定せず、シンボル、ボタン、トゥイーンを保つ SWF 公開
+- 共有メニューから YouTube などへの共有
+- 公開された Web 版(現在は実験的です)
+- macOS の Developer ID 署名と公証、および自動アップデート
 
 ### ドキュメント
 

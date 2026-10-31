@@ -4,7 +4,7 @@
   <img src="assets/flare-icon-256.png" width="128" height="128" alt="The Flare flame">
 </p>
 
-# Flare
+# Flare Animate
 
 [![CI](https://img.shields.io/github/actions/workflow/status/Flare-Animate/Flare/ci.yml?branch=main&label=CI)](https://github.com/Flare-Animate/Flare/actions/workflows/ci.yml)
 [![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue)](LICENSE)
@@ -18,14 +18,14 @@ A free, open-source animation tool in the spirit of Adobe Animate, written in Ru
 
 ### Features
 
-- Draw with the familiar tools: Selection, Subselection, Free Transform, Lasso and Polygon lasso, Pen, Pencil, Brush with a nib, Eraser, Rectangle, Oval, PolyStar, Line, Text, Paint Bucket, Ink Bottle and Eyedropper, with fills, strokes and gradients.
+- Draw with the tools Animate has, plus Flare's own Ruler (measures distance and angle) and Mirror (draws symmetrically), with fills, strokes and gradients.
 - Lay out frames and layers on a timeline, with folders, masks, motion guides, motion and shape tweens with Ease, and onion skin.
 - Symbols (Graphic, Movie Clip and Button) in a library, placed as instances on the stage.
 - Play the animation with sound, and Test Movie runs the published SWF in Ruffle (inside the app on the desktop, in the page in the browser).
 - Several documents as tabs, dockable panels, autosave and crash recovery.
 - Open and save `.flare` projects. Import and export Animate's XFL and `.fla`, with what could not be carried over reported.
 - Export PNG, GIF and MP4, and publish a SWF or an HTML5 Canvas page.
-- A command line (`flare`) and an MCP server (`flare-mcp`) so scripts and AI agents can work on the same documents safely.
+- A command line (`flare`) to create, edit, export and publish projects from scripts.
 
 ### Build and run
 
@@ -39,7 +39,7 @@ On Linux install the libraries listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Releases build native packages for macOS, Windows and Linux on x64 and arm64: a DMG, an MSI and a portable zip, and `.deb`, `.rpm` and AppImage files, plus the command line as its own archive. No version has been released yet, so for now build from source. [docs/release.md](docs/release.md) describes the packages and how a release is made.
 
-### Command line and MCP
+### Command line
 
     flare new project.flare --width 1280 --height 720
     flare draw-rect project.flare --rect 100 100 300 200 --color FF6600
@@ -48,11 +48,22 @@ Releases build native packages for macOS, Windows and Linux on x64 and arm64: a 
     flare publish-html5 project.flare page.html
     flare --help
 
-`flare-mcp project.flare --allow-write --export-dir exports` serves a project to an AI agent over stdio. It is read-only without `--allow-write`, exports go only into the export directory, and every change is one validated, undoable step.
+### Roadmap
 
-### Not yet
+Planned but not built yet. Most of it is shown dimmed in the interface. [docs/roadmap.md](docs/roadmap.md) has the order and the reasons.
 
-Shape hints, more than one scene, scripting and the Commands menu, editable keyboard shortcuts, editing text after it is placed, merge drawing (shapes are separate objects, not Flash's cutting and merging planar map), and a camera layer are not built. What is planned but not built is shown dimmed in the interface. The web build is experimental and not released. [docs/roadmap.md](docs/roadmap.md) says what is next.
+- Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
+- A camera layer with keyframed position, zoom and rotation
+- Bones and inverse kinematics (the Bone and Bind tools)
+- The rest of Animate's tools: 3D Rotation and Translation, Deco, Width, Asset Warp, Gradient Transform and Magic Wand
+- Shape hints, more than one scene, and scripting with the Commands menu
+- A Flash 8 interface skin, and custom themes (Dark and Light are built in)
+- A fully rearrangeable toolbar (tools can already be pinned from the "…" list) and editable keyboard shortcuts
+- Editing text after it is placed
+- SWF publishing that keeps symbols, buttons and tweens instead of baking every frame
+- Sharing from the Share menu to YouTube and other services
+- A released web build (it is experimental today)
+- Developer-ID signing and notarising on macOS, and automatic updates
 
 ### Documentation
 
