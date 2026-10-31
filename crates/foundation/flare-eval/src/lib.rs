@@ -447,8 +447,10 @@ fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
 }
 
 mod guide;
+mod level;
 mod morph;
 
+pub use level::{Level, LevelContent, LevelItem, evaluate_level, symbol_frame};
 pub use morph::{eased, morph};
 
 pub use guide::{flatten, point_along};
