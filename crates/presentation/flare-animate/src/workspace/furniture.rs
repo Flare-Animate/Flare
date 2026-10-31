@@ -300,11 +300,20 @@ impl Workspace {
                 }
             });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.add_space(10.0);
+                // Preferences are the app's, not a document's: the gear is in the same corner on
+                // Home and in the editor.
+                let open = self.windows.preferences;
+                if flare_ui::chrome::icon_button(ui, "settings", 16.0, open, true, "Preferences")
+                    .clicked()
+                {
+                    self.windows.preferences = !open;
+                }
                 // Undo, play and the document's name belong to a document; Home has none.
                 if !self.document_controls_shown() {
                     return;
                 }
-                ui.add_space(10.0);
+                ui.add_space(6.0);
                 let can_redo = self.active().can_redo();
                 if flare_ui::chrome::icon_button(ui, "redo", 16.0, false, can_redo, "Redo")
                     .clicked()

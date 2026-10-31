@@ -136,6 +136,8 @@ is gone says "Not found". The files are read on a thread of their own, so a slow
 stalls the page, and a card says "Reading…" until the answer is in. The presets are Flare's own, not Animate's. Choosing a card, New File,
 Open or Import leaves Home; a new project over an untouched document replaces it instead of adding a tab.
 
+The settings gear (Preferences) is the rightmost button of the top bar, in the same corner on Home and in the editor.
+
 Home is a view, not a document, and none of the document's controls show on it: the top bar has
 no undo, redo, play or document name, there is no status bar, and the window is titled just
 "Flare" (a document's title is its saved name, or Untitled, with `*` when unsaved). Keys and commands
