@@ -36,6 +36,7 @@ mod help;
 mod helpers;
 mod home;
 mod home_recent;
+mod language;
 mod layer_names;
 mod layers;
 mod open_any;
@@ -220,6 +221,12 @@ pub struct Workspace {
     top_bar_id: egui::Id,
     preferences_id: egui::Id,
     publish_id: egui::Id,
+    /// What the person chose for the interface's language, and the system's own, as a locale tag.
+    language_choice: flare_i18n::Choice,
+    system_locale: String,
+    translator: flare_i18n::Translator,
+    /// The language the CJK font was last looked for, so it is not looked for every frame.
+    cjk_font_for: Option<flare_i18n::Language>,
     /// Which tool of each tool-strip slot was last picked from its list, by the slot's first name.
     slot_choice: std::collections::HashMap<&'static str, usize>,
     /// The slot whose list of tools is open, by its first name.
@@ -339,6 +346,10 @@ impl Workspace {
             top_bar_id: egui::Id::unique("top-bar"),
             preferences_id: egui::Id::unique("preferences"),
             publish_id: egui::Id::unique("publish"),
+            language_choice: flare_i18n::Choice::System,
+            system_locale: "en".to_owned(),
+            translator: flare_i18n::Translator::new(flare_i18n::Language::English),
+            cjk_font_for: None,
             slot_choice: std::collections::HashMap::new(),
             slot_open: None,
             pinned_tools: Vec::new(),

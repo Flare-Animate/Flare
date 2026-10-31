@@ -47,29 +47,30 @@ impl Workspace {
 
     /// The Publish Settings choices, as the window and the Document tab show them.
     pub(super) fn publish_settings_ui(&mut self, ui: &mut egui::Ui) {
-        ui.checkbox(&mut self.publish.swf, "Flash (.swf)");
+        let tr = &self.translator;
+        ui.checkbox(&mut self.publish.swf, tr.text("pubpop-format-swf"));
         ui.add_enabled_ui(self.publish.swf, |ui| {
             ui.indent("swf_options", |ui| {
-                ui.checkbox(&mut self.publish.compress, "Compress movie");
+                ui.checkbox(&mut self.publish.compress, tr.text("pubpop-compress"));
             });
         });
-        ui.checkbox(&mut self.publish.html5, "HTML5 Canvas (.html)");
+        ui.checkbox(&mut self.publish.html5, tr.text("pubpop-format-html5"));
         ui.add_enabled_ui(self.publish.html5, |ui| {
             ui.indent("html5_options", |ui| {
-                ui.checkbox(&mut self.publish.loop_timeline, "Loop timeline");
-                ui.checkbox(&mut self.publish.center_stage, "Center stage");
-                ui.checkbox(&mut self.publish.responsive, "Make responsive");
+                ui.checkbox(&mut self.publish.loop_timeline, tr.text("pubpop-loop"));
+                ui.checkbox(&mut self.publish.center_stage, tr.text("pubpop-center"));
+                ui.checkbox(&mut self.publish.responsive, tr.text("pubpop-responsive"));
             });
         });
-        ui.checkbox(&mut self.publish.gif, "Animated GIF (.gif)");
+        ui.checkbox(&mut self.publish.gif, tr.text("pubpop-format-gif"));
         // Video needs an encoder Flare does not have yet: shown, dimmed, where it will go.
-        ui.add_enabled(false, egui::Checkbox::new(&mut false, "MP4 video (.mp4)"))
-            .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
+        ui.add_enabled(
+            false,
+            egui::Checkbox::new(&mut false, tr.text("pubpop-format-mp4")),
+        )
+        .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
         if !self.publish.any() {
-            ui.colored_label(
-                flare_ui::theme::WARNING,
-                "Choose a format, or Publish has nothing to write.",
-            );
+            ui.colored_label(flare_ui::theme::WARNING, tr.text("pubpop-nothing-chosen"));
         }
     }
 }

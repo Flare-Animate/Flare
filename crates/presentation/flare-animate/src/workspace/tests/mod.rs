@@ -23,6 +23,7 @@ mod color_section;
 mod frames_text_and_sound;
 mod home;
 mod home_recent;
+mod language;
 mod layer_names;
 mod layers_and_symbols;
 mod menus_and_recovery;

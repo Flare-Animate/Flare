@@ -81,6 +81,7 @@ impl Workspace {
 
         self.preferences_window(&ctx);
         self.publish_window(&ctx);
+        self.ensure_language_font(&ctx);
         self.file_windows(&ctx);
         self.help_windows(&ctx);
         if self.playing {

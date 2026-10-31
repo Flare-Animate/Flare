@@ -14,6 +14,7 @@ fn main() -> Result<()> {
     // Every file the system hands over: a double-click, "Open with" or the command line.
     let named: Vec<PathBuf> = std::env::args_os().skip(1).map(PathBuf::from).collect();
     let mut workspace = Workspace::untitled().map_err(anyhow::Error::msg)?;
+    workspace.set_system_locale(&flare_platform::locale::system_tag());
     if let Some(path) = dirs::layout_file()
         && let Some(json) = dirs::read_layout(&path, MAX_LAYOUT_BYTES)
         && let Err(error) = workspace.restore_layout(&json)

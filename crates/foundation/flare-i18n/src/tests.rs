@@ -139,3 +139,16 @@ fn a_choice_is_kept_by_code_and_anything_unknown_follows_the_system() {
         assert_eq!(Language::from_code(language.code()), Some(language));
     }
 }
+
+#[test]
+fn the_language_list_is_english_first_then_alphabetical_by_english_name() {
+    assert_eq!(Language::ALL[0], Language::English);
+    let rest: Vec<&str> = Language::ALL[1..]
+        .iter()
+        .map(|l| l.english_name())
+        .collect();
+    let mut sorted = rest.clone();
+    sorted.sort_unstable();
+    assert_eq!(rest, sorted);
+    assert_eq!(rest.len(), Language::ALL.len() - 1);
+}

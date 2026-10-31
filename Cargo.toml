@@ -87,6 +87,7 @@ uuid = "1"                 # v7/serde are enabled by the consuming member.
 thiserror = "2"
 fluent-bundle = "0.16"
 unic-langid = "0.9"
+sys-locale = "0.3"
 fluent-syntax = "0.12"
 anyhow = "1"               # Executable boundaries, not public library errors.
 

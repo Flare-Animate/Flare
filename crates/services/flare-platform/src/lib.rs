@@ -8,4 +8,5 @@ pub mod browser;
 pub mod dialogs;
 pub mod dirs;
 pub mod jobs;
+pub mod locale;
 pub mod recovery;

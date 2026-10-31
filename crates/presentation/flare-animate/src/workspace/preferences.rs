@@ -42,6 +42,8 @@ pub struct Preferences {
     pub html5_center: bool,
     pub html5_responsive: bool,
     pub publish_gif: bool,
+    /// The interface's language: `system`, or a language's tag such as `de` or `pt-BR`.
+    pub language: String,
     /// Tools from the "…" list kept in the tool strip.
     pub pinned_tools: Vec<String>,
     /// Projects opened or saved lately, newest first.
@@ -74,6 +76,7 @@ impl Default for Preferences {
             html5_center: true,
             html5_responsive: false,
             publish_gif: false,
+            language: "system".to_owned(),
             pinned_tools: Vec::new(),
             recent: Vec::new(),
         }
@@ -104,6 +107,7 @@ impl Workspace {
             html5_center: self.publish.center_stage,
             html5_responsive: self.publish.responsive,
             publish_gif: self.publish.gif,
+            language: self.language_choice.code().to_owned(),
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
             recent: self
                 .recent
@@ -115,6 +119,7 @@ impl Workspace {
 
     /// Takes `preferences` as the current settings, keeping each in its sensible range.
     pub fn apply_preferences(&mut self, preferences: &Preferences) {
+        self.set_language_choice(flare_i18n::Choice::from_code(&preferences.language));
         // Only names the list has, each once; a file naming anything else changes nothing.
         self.pinned_tools.clear();
         for name in &preferences.pinned_tools {
@@ -255,26 +260,64 @@ impl Workspace {
             return;
         }
         let mut edited = self.preferences();
+        let tr = &self.translator;
+        let system_label = self.system_choice_label();
         // A dialog in the middle of the window over a dimmed backdrop, as PaintCraft's are:
         // Escape or a click outside closes it.
         let response = egui::Modal::new(self.preferences_id).show(ctx, |ui| {
-            ui.set_width(360.0);
+            ui.set_width(380.0);
             egui::Sides::new().show(
                 ui,
                 |ui| {
-                    ui.heading("Preferences");
+                    ui.heading(tr.text("prefs-title"));
                 },
                 |ui| {
-                    if flare_ui::chrome::icon_button(ui, "close", 14.0, false, true, "Close")
-                        .clicked()
+                    if flare_ui::chrome::icon_button(
+                        ui,
+                        "close",
+                        14.0,
+                        false,
+                        true,
+                        &tr.text("close"),
+                    )
+                    .clicked()
                     {
                         ui.close();
                     }
                 },
             );
             ui.add_space(4.0);
-            flare_ui::chrome::group(ui, "settings", "General", |ui| {
-                flare_ui::chrome::row(ui, "Autosave every", |ui| {
+            // A label and its control on one line; the label is as wide as the language needs.
+            let labelled = |ui: &mut egui::Ui, key: &str, add: &mut dyn FnMut(&mut egui::Ui)| {
+                ui.horizontal(|ui| {
+                    ui.label(egui::RichText::new(tr.text(key)).color(flare_ui::theme::TEXT_DIM));
+                    add(ui);
+                });
+            };
+            flare_ui::chrome::group(ui, "settings", &tr.text("prefs-general"), |ui| {
+                labelled(ui, "prefs-language", &mut |ui| {
+                    let shown = match flare_i18n::Choice::from_code(&edited.language) {
+                        flare_i18n::Choice::System => system_label.clone(),
+                        flare_i18n::Choice::Language(l) => l.native_name().to_owned(),
+                    };
+                    egui::ComboBox::from_id_salt("language")
+                        .selected_text(shown)
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(
+                                &mut edited.language,
+                                "system".to_owned(),
+                                system_label.clone(),
+                            );
+                            for language in flare_i18n::Language::ALL {
+                                ui.selectable_value(
+                                    &mut edited.language,
+                                    language.code().to_owned(),
+                                    language.native_name(),
+                                );
+                            }
+                        });
+                });
+                labelled(ui, "prefs-autosave", &mut |ui| {
                     ui.add(
                         egui::DragValue::new(&mut edited.autosave_seconds)
                             .range(5.0..=3600.0)
@@ -282,11 +325,11 @@ impl Workspace {
                     );
                 });
             });
-            flare_ui::chrome::group(ui, "grid", "Stage", |ui| {
-                ui.checkbox(&mut edited.show_rulers, "Show rulers");
-                ui.checkbox(&mut edited.show_grid, "Show grid");
-                ui.checkbox(&mut edited.snap_to_grid, "Snap to grid");
-                flare_ui::chrome::row(ui, "Grid size", |ui| {
+            flare_ui::chrome::group(ui, "grid", &tr.text("prefs-stage"), |ui| {
+                ui.checkbox(&mut edited.show_rulers, tr.text("prefs-show-rulers"));
+                ui.checkbox(&mut edited.show_grid, tr.text("prefs-show-grid"));
+                ui.checkbox(&mut edited.snap_to_grid, tr.text("prefs-snap-to-grid"));
+                labelled(ui, "prefs-grid-size", &mut |ui| {
                     ui.add(
                         egui::DragValue::new(&mut edited.grid_size)
                             .range(1.0..=500.0)
@@ -294,9 +337,9 @@ impl Workspace {
                     );
                 });
             });
-            flare_ui::chrome::group(ui, "transport-loop", "Timeline and drawing", |ui| {
-                ui.checkbox(&mut edited.loop_playback, "Loop playback");
-                flare_ui::chrome::row(ui, "Line smoothing", |ui| {
+            flare_ui::chrome::group(ui, "transport-loop", &tr.text("prefs-timeline"), |ui| {
+                ui.checkbox(&mut edited.loop_playback, tr.text("prefs-loop-playback"));
+                labelled(ui, "prefs-line-smoothing", &mut |ui| {
                     ui.add(
                         egui::DragValue::new(&mut edited.smoothing)
                             .range(0.0..=20.0)
@@ -304,19 +347,16 @@ impl Workspace {
                     );
                 });
             });
-            flare_ui::chrome::group(ui, "file-open", "Recent projects", |ui| {
-                flare_ui::chrome::row(ui, "Remembered", |ui| {
+            flare_ui::chrome::group(ui, "file-open", &tr.text("prefs-recent"), |ui| {
+                labelled(ui, "prefs-remembered", &mut |ui| {
                     ui.label(edited.recent.len().to_string());
                 });
                 let forget = ui.add_enabled(
                     !edited.recent.is_empty(),
-                    egui::Button::new("Clear recent projects"),
+                    egui::Button::new(tr.text("prefs-clear-recent")),
                 );
                 if forget
-                    .on_hover_text(
-                        "Forgets the list on the Home page and in Open Recent. \
-                         The files stay where they are.",
-                    )
+                    .on_hover_text(tr.text("prefs-clear-recent-hint"))
                     .clicked()
                 {
                     edited.recent.clear();
@@ -332,7 +372,8 @@ impl Workspace {
                 egui::Layout::left_to_right(egui::Align::Center),
                 |ui| {
                     let restore = egui::Button::new(
-                        egui::RichText::new("Restore defaults").color(egui::Color32::WHITE),
+                        egui::RichText::new(tr.text("prefs-restore-defaults"))
+                            .color(egui::Color32::WHITE),
                     )
                     .fill(flare_ui::theme::DANGER);
                     if ui.add(restore).clicked() {
@@ -342,7 +383,7 @@ impl Workspace {
                         };
                     }
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        if ui.button("Close").clicked() {
+                        if ui.button(tr.text("close")).clicked() {
                             ui.close();
                         }
                     });

@@ -22,18 +22,97 @@ pub const STAGE_SURROUND: Color32 = Color32::from_rgb(0x16, 0x18, 0x1c);
 /// Source Sans 3 (SIL Open Font License; see `assets/ui/fonts/OFL.txt`).
 const SOURCE_SANS: &[u8] = include_bytes!("../../../../assets/ui/fonts/SourceSans3-Regular.ttf");
 
-/// Source Sans first for proportional text; egui's built-in fonts stay behind it for the glyphs
-/// it lacks, and monospace is untouched.
-fn install_fonts(ctx: &egui::Context) {
+/// The fonts: Source Sans first for proportional text, then `cjk` (a system font with Chinese,
+/// Japanese and Korean characters) when there is one, with egui's built-in fonts behind them for
+/// the glyphs they lack. Monospace is untouched.
+fn definitions(cjk: Option<egui::FontData>) -> egui::FontDefinitions {
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
         "source-sans-3".to_owned(),
         std::sync::Arc::new(egui::FontData::from_static(SOURCE_SANS)),
     );
-    if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
-        family.insert(0, "source-sans-3".to_owned());
+    let mut order = vec!["source-sans-3".to_owned()];
+    if let Some(data) = cjk {
+        fonts
+            .font_data
+            .insert("system-cjk".to_owned(), std::sync::Arc::new(data));
+        order.push("system-cjk".to_owned());
     }
-    ctx.set_fonts(fonts);
+    if let Some(family) = fonts.families.get_mut(&egui::FontFamily::Proportional) {
+        for (at, name) in order.into_iter().enumerate() {
+            family.insert(at, name);
+        }
+    }
+    fonts
+}
+
+fn install_fonts(ctx: &egui::Context) {
+    ctx.set_fonts(definitions(None));
+}
+
+/// The system fonts that carry Chinese and Japanese characters for the language `code` (`ja` or
+/// `zh-CN`), best first, with the face to use in a collection. The two languages draw some of the
+/// same characters differently, so each looks first for a font made for it.
+pub fn cjk_font_candidates(code: &str) -> Vec<(&'static str, u32)> {
+    let japanese = code.starts_with("ja");
+    let mut found: Vec<(&'static str, u32)> = Vec::new();
+    if japanese {
+        found.extend([
+            ("/System/Library/Fonts/\u{30d2}\u{30e9}\u{30ae}\u{30ce}\u{89d2}\u{30b4}\u{30b7}\u{30c3}\u{30af} W3.ttc", 0),
+            ("C:\\Windows\\Fonts\\YuGothM.ttc", 0),
+            ("C:\\Windows\\Fonts\\meiryo.ttc", 0),
+            ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 0),
+            ("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc", 0),
+            ("/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc", 0),
+            ("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", 0),
+        ]);
+    } else {
+        found.extend([
+            ("/System/Library/Fonts/PingFang.ttc", 0),
+            ("C:\\Windows\\Fonts\\msyh.ttc", 0),
+            ("C:\\Windows\\Fonts\\simsun.ttc", 0),
+            ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 2),
+            ("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc", 2),
+            (
+                "/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc",
+                2,
+            ),
+            ("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", 2),
+            ("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc", 0),
+        ]);
+    }
+    // The other language's fonts after, then one font that covers most of both.
+    found.extend([
+        // macOS keeps no Japanese-specific font in this folder on every version; PingFang has the
+        // kana, with Chinese forms of the characters they share.
+        ("/System/Library/Fonts/PingFang.ttc", 0),
+        ("/System/Library/Fonts/Hiragino Sans GB.ttc", 0),
+        ("/Library/Fonts/Arial Unicode.ttf", 0),
+        ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 0),
+    ]);
+    found
+}
+
+/// The largest font file read, so an odd file in a font folder cannot take the memory.
+const MAX_FONT_BYTES: u64 = 64 * 1024 * 1024;
+
+/// Adds the system's Chinese and Japanese characters to the interface's fonts, for the language
+/// `code`. Nothing changes when the system has no such font.
+pub fn add_cjk_font(ctx: &egui::Context, code: &str) {
+    for (path, face) in cjk_font_candidates(code) {
+        let Ok(meta) = std::fs::metadata(path) else {
+            continue;
+        };
+        if meta.len() > MAX_FONT_BYTES {
+            continue;
+        }
+        if let Ok(bytes) = std::fs::read(path) {
+            let mut data = egui::FontData::from_owned(bytes);
+            data.index = face;
+            ctx.set_fonts(definitions(Some(data)));
+            return;
+        }
+    }
 }
 
 /// The gutter between docked panels and around the dock.
@@ -115,5 +194,41 @@ mod tests {
         assert!(spacing.window_margin.left >= 10);
         assert!(i16::from(PANEL_PADDING.0) > i16::from(GUTTER as i8));
         assert!(spacing.interact_size.y >= 22.0);
+    }
+
+    #[test]
+    fn each_cjk_language_looks_first_for_its_own_font_and_only_for_whole_paths() {
+        let ja = cjk_font_candidates("ja");
+        let zh = cjk_font_candidates("zh-CN");
+        assert_ne!(ja[0], zh[0], "the two draw some characters differently");
+        assert!(
+            ja[0].0.contains("Hiragino") || ja[0].0.contains("\u{30d2}") || ja[0].0.contains("Yu")
+        );
+        assert!(zh[0].0.contains("PingFang"));
+        for (path, _) in ja.iter().chain(&zh) {
+            assert!(
+                path.starts_with('/') || path.starts_with("C:\\"),
+                "{path} is not an absolute path"
+            );
+        }
+        assert!(ja.len() < 40 && zh.len() < 40);
+    }
+
+    #[test]
+    fn a_missing_font_changes_nothing_and_a_found_one_goes_after_the_interface_font() {
+        let ctx = egui::Context::default();
+        apply(&ctx);
+        add_cjk_font(&ctx, "ja"); // there may be no such font here: that must be harmless
+        let plain = definitions(None);
+        assert_eq!(
+            plain.families[&egui::FontFamily::Proportional][0],
+            "source-sans-3"
+        );
+        let with = definitions(Some(egui::FontData::from_static(SOURCE_SANS)));
+        let family = &with.families[&egui::FontFamily::Proportional];
+        assert_eq!(
+            (family[0].as_str(), family[1].as_str()),
+            ("source-sans-3", "system-cjk")
+        );
     }
 }

@@ -1,0 +1,64 @@
+//! The interface's language: what the person chose, what the system speaks, and the words.
+
+use flare_i18n::{Choice, Language, Translator};
+
+use super::*;
+
+impl Workspace {
+    /// Tells the workspace what language the system is set to (a tag such as `de-DE`), for a
+    /// choice of "System locale".
+    pub fn set_system_locale(&mut self, tag: &str) {
+        // A tag from outside is only compared, but keep it short all the same.
+        self.system_locale = tag.chars().take(32).collect();
+        self.rebuild_translator();
+    }
+
+    /// What was chosen for the language.
+    pub fn language_choice(&self) -> Choice {
+        self.language_choice
+    }
+
+    /// The language being spoken now.
+    pub fn language(&self) -> Language {
+        self.translator.language()
+    }
+
+    pub(super) fn set_language_choice(&mut self, choice: Choice) {
+        if choice != self.language_choice {
+            self.language_choice = choice;
+            self.rebuild_translator();
+        }
+    }
+
+    fn rebuild_translator(&mut self) {
+        let language = self.language_choice.resolve(&self.system_locale);
+        if language != self.translator.language() {
+            self.translator = Translator::new(language);
+        }
+    }
+
+    /// The message called `key` in the interface's language.
+    pub(super) fn tr(&self, key: &str) -> String {
+        self.translator.text(key)
+    }
+
+    /// The name "System locale" carries in a list: the language it stands for.
+    pub(super) fn system_choice_label(&self) -> String {
+        let system = Language::from_system(&self.system_locale);
+        self.translator.text_with(
+            "prefs-language-system",
+            &[("language", system.native_name())],
+        )
+    }
+
+    /// Japanese and Chinese need a font the interface does not carry; the system's is added when
+    /// one of them is the language.
+    pub(super) fn ensure_language_font(&mut self, ctx: &egui::Context) {
+        let language = self.translator.language();
+        if self.cjk_font_for == Some(language) || !language.needs_cjk_font() {
+            return;
+        }
+        self.cjk_font_for = Some(language);
+        flare_ui::theme::add_cjk_font(ctx, language.code());
+    }
+}

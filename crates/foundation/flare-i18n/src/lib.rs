@@ -39,13 +39,14 @@ macro_rules! sections {
 }
 
 impl Language {
+    /// English first, then the rest in the alphabetical order of their English names.
     pub const ALL: [Self; 6] = [
         Self::English,
-        Self::Japanese,
         Self::ChineseSimplified,
         Self::German,
-        Self::Spanish,
+        Self::Japanese,
         Self::PortugueseBrazil,
+        Self::Spanish,
     ];
 
     /// The language's tag, which is also the name of its folder.
@@ -62,6 +63,18 @@ impl Language {
 
     pub fn from_code(code: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|l| l.code() == code)
+    }
+
+    /// The language's name in English, which is what the list is ordered by.
+    pub fn english_name(self) -> &'static str {
+        match self {
+            Self::English => "English",
+            Self::Japanese => "Japanese",
+            Self::ChineseSimplified => "Chinese (Simplified)",
+            Self::German => "German",
+            Self::Spanish => "Spanish",
+            Self::PortugueseBrazil => "Portuguese (Brazil)",
+        }
     }
 
     /// The language's name in itself, as a language list shows it.

@@ -21,6 +21,9 @@ pub fn start() {
         let (Some(canvas), Ok(mut workspace)) = (canvas, Workspace::untitled()) else {
             return;
         };
+        if let Some(language) = web_sys::window().and_then(|w| w.navigator().language()) {
+            workspace.set_system_locale(&language);
+        }
         if let Some(saved) = preferences::load()
             && let Err(error) = workspace.restore_preferences(&saved)
         {
