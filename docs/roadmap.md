@@ -20,7 +20,7 @@ If drawing, exporting and playing do not all work well, Flare is not released. W
 3. **Merge drawing**: Flash's planar-map shapes, where overlapping shapes cut and merge each other and strokes and fills are edited separately. The largest gap in [parity.md](parity.md) and a change to the document model, not a feature on top of it.
 4. **Camera**: a camera layer and tool whose keyframed position, zoom and rotation drive the stage view and every export.
 5. **Timeline controls** good enough to animate with, and **Ruffle** playback proven against a real player.
-6. **Sharing the way Animate does it**: its Share menu logs in to YouTube and Twitter and uploads the exported video itself. That needs each service's API with credentials the project registers (YouTube is the practical first, now that MP4 exists); the Publish popup's buttons only open each site's page until then.
+6. **Sharing the way Animate does it**: its Share menu logs in to YouTube and Twitter and uploads the exported video itself. That needs each service's API with credentials the project registers (YouTube is the practical first, now that MP4 exists); only Twitter's button is live (it fills in the post); the others are dimmed until then.
 
 ## M2 remaining
 

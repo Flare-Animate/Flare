@@ -55,7 +55,12 @@ impl Workspace {
             ui.weak(tr("pubpop-share-hint"));
             ui.horizontal(|ui| {
                 for target in ShareTarget::ALL {
-                    if ui.button(target.label()).clicked() {
+                    // A place with nothing to fill in is a dimmed button until it can be.
+                    let live = target.prefills();
+                    let button = ui.add_enabled(live, egui::Button::new(target.label()));
+                    if !live {
+                        button.on_disabled_hover_text(flare_ui::chrome::NOT_YET);
+                    } else if button.clicked() {
                         request = Some(DialogRequest::Share(target));
                     }
                 }

@@ -96,13 +96,24 @@ fn with_no_format_chosen_publish_does_nothing() {
 }
 
 #[test]
-fn each_share_button_asks_the_shell_to_open_its_page_and_the_popup_stays() {
+fn only_twitter_which_fills_in_the_post_is_live_the_other_places_are_dimmed() {
     for target in ShareTarget::ALL {
         let (ctx, mut ws, mut time) = opened();
         click_text(&mut ws, &ctx, &mut time, target.label());
-        assert_eq!(ws.take_dialog(), Some(DialogRequest::Share(target)));
-        assert!(ws.windows.publish);
+        if target.prefills() {
+            assert_eq!(ws.take_dialog(), Some(DialogRequest::Share(target)));
+        } else {
+            assert_eq!(
+                ws.take_dialog(),
+                None,
+                "{} is not built yet",
+                target.label()
+            );
+        }
+        assert!(ws.windows.publish, "the popup stays");
     }
+    let live: Vec<_> = ShareTarget::ALL.iter().filter(|t| t.prefills()).collect();
+    assert_eq!(live, [&ShareTarget::Twitter]);
 }
 
 #[test]

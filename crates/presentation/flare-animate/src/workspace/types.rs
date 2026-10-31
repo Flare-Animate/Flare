@@ -80,6 +80,13 @@ impl ShareTarget {
         }
     }
 
+    /// Whether the page opens with something already filled in. Twitter's takes the text of the
+    /// post; the others have no address that carries anything, so a button for them would only
+    /// open a site, and they are shown as not built yet.
+    pub fn prefills(self) -> bool {
+        matches!(self, Self::Twitter)
+    }
+
     /// The page the browser is opened at. Always one of these fixed addresses.
     pub fn url(self) -> &'static str {
         match self {
