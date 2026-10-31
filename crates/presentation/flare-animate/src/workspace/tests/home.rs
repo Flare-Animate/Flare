@@ -267,8 +267,9 @@ fn the_publish_button_is_left_of_play_in_the_top_bar() {
 }
 
 /// The tooltip the top bar shows with the pointer at `x`, in a window 1280 wide.
-fn top_bar_hint(x: f32) -> String {
+fn top_bar_hint(x: f32, home: bool) -> String {
     let mut ws = workspace();
+    ws.set_home(home);
     let ctx = egui::Context::default();
     flare_ui::icons::install(&ctx);
     run(&mut ws, &ctx, 0.0);
@@ -299,7 +300,7 @@ fn the_interface_switcher_is_a_dimmed_button_in_the_top_right_corner_beside_the_
     let mut gear = None;
     let mut x = width - 4.0;
     while x > width - 140.0 {
-        let hint = top_bar_hint(x);
+        let hint = top_bar_hint(x, false);
         if hint.contains("Interface switcher (Not available yet)") {
             found.get_or_insert(x);
         }
@@ -316,4 +317,87 @@ fn the_interface_switcher_is_a_dimmed_button_in_the_top_right_corner_beside_the_
         found < gear,
         "it is left of the gear: {found} against {gear}"
     );
+}
+
+#[test]
+fn home_has_no_interface_switcher_the_editor_does() {
+    let mut on_home = false;
+    let mut in_editor = false;
+    let mut x = 1276.0;
+    while x > 1140.0 {
+        on_home |= top_bar_hint(x, true).contains("Interface switcher");
+        in_editor |= top_bar_hint(x, false).contains("Interface switcher");
+        x -= 6.0;
+    }
+    assert!(in_editor, "the editor has it");
+    assert!(!on_home, "Home has no interface to switch");
+}
+
+/// WCAG contrast between two colors.
+fn contrast(a: Color32, b: Color32) -> f32 {
+    let lum = |c: Color32| {
+        let ch = |v: u8| {
+            let v = f32::from(v) / 255.0;
+            if v <= 0.03928 {
+                v / 12.92
+            } else {
+                ((v + 0.055) / 1.055).powf(2.4)
+            }
+        };
+        0.2126 * ch(c.r()) + 0.7152 * ch(c.g()) + 0.0722 * ch(c.b())
+    };
+    let (hi, lo) = (lum(a).max(lum(b)), lum(a).min(lum(b)));
+    (hi + 0.05) / (lo + 0.05)
+}
+
+#[test]
+fn the_home_buttons_can_be_read_on_their_fills_in_both_themes() {
+    for theme in ["dark", "light"] {
+        let (ctx, mut ws) = (egui::Context::default(), workspace());
+        flare_ui::icons::install(&ctx);
+        let mut prefs = ws.preferences();
+        prefs.theme = theme.to_owned();
+        ws.apply_preferences(&prefs);
+        ws.set_home(true);
+        let mut shapes = Vec::new();
+        for step in 0..4 {
+            let mut out = ctx.run_ui(input(f64::from(step) * 0.1, vec![]), |ui| ws.show(ui));
+            out.textures_delta.clear();
+            shapes = out.shapes;
+        }
+        let mut checked = Vec::new();
+        for (i, s) in shapes.iter().enumerate() {
+            let egui::epaint::Shape::Text(t) = &s.shape else {
+                continue;
+            };
+            let label = t.galley.text();
+            if !["New File", "Open…", "Import…", "Home"].contains(&label) {
+                continue;
+            }
+            let ink = t.galley.job.sections[0].format.color;
+            // The fill under the label: the last rectangle drawn before it that holds it.
+            let under = shapes[..i].iter().rev().find_map(|s| match &s.shape {
+                egui::epaint::Shape::Rect(r)
+                    if r.rect.contains(t.pos) && r.fill != Color32::TRANSPARENT =>
+                {
+                    Some(r.fill)
+                }
+                _ => None,
+            });
+            let fill = under.unwrap_or_else(flare_ui::theme::panel);
+            assert!(
+                contrast(ink, fill) >= 3.0,
+                "{theme}: \"{label}\" is {ink:?} on {fill:?}, contrast {}",
+                contrast(ink, fill)
+            );
+            checked.push(label.to_owned());
+        }
+        for wanted in ["New File", "Open…", "Import…"] {
+            assert!(
+                checked.iter().any(|c| c == wanted),
+                "{theme}: {wanted} was looked at: {checked:?}"
+            );
+        }
+        flare_ui::theme::set_mode(flare_ui::theme::Mode::Dark);
+    }
 }

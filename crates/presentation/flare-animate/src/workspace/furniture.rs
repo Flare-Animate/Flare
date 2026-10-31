@@ -335,13 +335,14 @@ impl Workspace {
                     self.windows.preferences = !open;
                 }
                 ui.add_space(rail::CENTER_FROM_EDGE + GEAR_SLOT / 2.0 + 6.0);
-                // Animate's workspace switcher is in this corner too. Ours will switch between
-                // whole interfaces, as it does there; for now it is a place held for it.
-                flare_ui::chrome::mock_icon_button(ui, "interface", 16.0, "Interface switcher");
-                // Undo, play and the document's name belong to a document; Home has none.
+                // Undo, play and the document's name belong to a document; Home has none, and
+                // no interface to switch.
                 if !self.document_controls_shown() {
                     return;
                 }
+                // Animate's workspace switcher is in this corner too. Ours will switch between
+                // whole interfaces, as it does there; for now it is a place held for it.
+                flare_ui::chrome::mock_icon_button(ui, "interface", 16.0, "Interface switcher");
                 ui.add_space(6.0);
                 let can_redo = self.active().can_redo();
                 if flare_ui::chrome::icon_button(ui, "redo", 16.0, false, can_redo, "Redo")

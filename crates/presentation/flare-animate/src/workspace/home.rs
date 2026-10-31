@@ -325,13 +325,20 @@ fn wide_button(ui: &mut Ui, width: f32, icon: &str, label: &str, primary: bool) 
     );
     let icon_rect =
         Rect::from_center_size(pos2(rect.left() + 18.0, rect.center().y), Vec2::splat(16.0));
-    icons::image(icon, 16.0, Color32::WHITE).paint_at(ui, icon_rect);
+    // White on the accent fill; on the plain fill, the palette's own text, which is dark on the
+    // light palette.
+    let ink = if primary {
+        Color32::WHITE
+    } else {
+        theme::text()
+    };
+    icons::image(icon, 16.0, ink).paint_at(ui, icon_rect);
     ui.painter().text(
         pos2(rect.left() + 38.0, rect.center().y),
         Align2::LEFT_CENTER,
         label,
         FontId::proportional(14.0),
-        Color32::WHITE,
+        ink,
     );
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
