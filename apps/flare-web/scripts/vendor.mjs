@@ -1,5 +1,6 @@
-// Copies the two WebAssembly libraries the page needs (SQLite and zstd, from node_modules) into the
-// folder the page is served from, ready to load with no bundler.
+// Copies the WebAssembly libraries the page needs (SQLite and zstd for .flare files, and Ruffle for
+// Test Movie, from node_modules) into the folder the page is served from, ready to load with no
+// bundler.
 //
 //   node scripts/vendor.mjs OUT_DIR        (after `npm ci`)
 //
@@ -78,6 +79,21 @@ function check(dir, root) {
 }
 
 copyTree(join(zstd, "dist", "esm"), zstdOut);
+
+// Ruffle: its script, the chunks it loads beside itself, the WebAssembly, and the licence files
+// (MIT OR Apache-2.0 asks for them to travel with the code). Source maps are left out.
+const ruffle = join(modules, "@ruffle-rs", "ruffle");
+if (!existsSync(ruffle)) {
+  console.error(`${ruffle} is missing: run \`npm ci\` in apps/flare-web first`);
+  process.exit(1);
+}
+mkdirSync(join(out, "ruffle"), { recursive: true });
+for (const name of readdirSync(ruffle)) {
+  if (/\.(js|wasm)$/.test(name) || name.startsWith("LICENSE")) {
+    copyFileSync(join(ruffle, name), join(out, "ruffle", name));
+  }
+}
+if (!existsSync(join(out, "ruffle", "ruffle.js"))) throw new Error("ruffle.js is not in the Ruffle package");
 const files = [];
 (function walk(dir) {
   for (const name of readdirSync(dir)) {

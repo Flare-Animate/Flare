@@ -2186,6 +2186,7 @@ version = "0.1.0"
 dependencies = [
  "eframe",
  "flare-animate",
+ "flare-core",
  "flare-document",
  "flare-export",
  "flare-publish",

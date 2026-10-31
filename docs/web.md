@@ -26,6 +26,12 @@ JavaScript that loads it in `src/lib/`, a static page in `public/`, and a build 
   bundler) and registers them as `globalThis.flareFile` (`src/lib/flare-file.js`); the Rust side
   (`flare_file.rs`) turns them into rows for `flare-storage`'s `to_parts` and `from_parts`, which
   do every check the desktop does. A project opened that way has no path, so Save downloads.
+- **Test Movie** publishes the movie as a SWF and plays it in Ruffle, Ruffle's own WebAssembly build
+  (`@ruffle-rs/ruffle` from npm, exact version, vendored with its licence files by
+  `scripts/vendor.mjs`). `src/lib/flare-ruffle.js` shows it in an overlay (Close or Escape to leave)
+  and fetches Ruffle only on the first play; `ruffle.rs` hands it the bytes and turns a failure into
+  a message. A headless Chrome test loads a movie we published and reads back what Ruffle reports
+  it loaded; sound and how it looks on screen have not been checked by a person.
 - **Preferences** live in local storage instead of `flare-platform`'s files.
 - **`flare-platform`** is the desktop's operating system (directories, the sound card, native
   dialogs), so the web app does not use it.

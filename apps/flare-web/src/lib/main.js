@@ -5,6 +5,10 @@
 // flare-file.js), and registers them as `globalThis.flareFile` for the Rust side. If that fails the
 // editor still starts; opening and saving a .flare then say why they cannot.
 import init from "./pkg/flare_web.js";
+import { createFlareRuffle } from "./flare-ruffle.js";
+
+// Test Movie. Nothing of Ruffle is fetched until a movie is played.
+globalThis.flareRuffle = createFlareRuffle();
 
 async function loadFlareFile() {
   try {

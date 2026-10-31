@@ -30,6 +30,7 @@ web-sys = { workspace = true, features = ["Window", "Document", "Navigator", "Ht
 wgpu = { workspace = true, features = ["webgpu", "webgl"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+flare-core.workspace = true
 wasm-bindgen-test.workspace = true
 
 [lints]

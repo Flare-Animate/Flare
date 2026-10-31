@@ -95,7 +95,7 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: wasm-bindgen@0.2.129
-      - name: SQLite and zstd for the page (from npm, exact versions)
+      - name: SQLite, zstd and Ruffle for the page (from npm, exact versions)
         working-directory: apps/flare-web
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: The page reads and writes .flare files
@@ -103,6 +103,7 @@ jobs:
           cargo build -p flare-cli --locked
           python3 -m unittest discover -s scripts/tests -p 'test_web_flare_file.py' -v
           python3 -m unittest discover -s scripts/tests -p 'test_web_wasm.py' -v
+          python3 -m unittest discover -s scripts/tests -p 'test_web_ruffle.py' -v
 
   audit:
     name: No known vulnerabilities in the dependencies

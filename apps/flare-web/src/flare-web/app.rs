@@ -7,7 +7,7 @@ use std::rc::Rc;
 use eframe::egui;
 use flare_animate::{DialogRequest, Workspace};
 
-use crate::{files, flare_file, preferences};
+use crate::{files, flare_file, preferences, ruffle};
 
 /// A file the person picked, waiting to be handed to the workspace.
 struct Picked {
@@ -24,6 +24,8 @@ fn is_flare(name: &str) -> bool {
 pub struct WebApp {
     workspace: Workspace,
     picked: Rc<RefCell<Vec<Picked>>>,
+    /// What background work (the movie player) wants the person told, delivered on the next frame.
+    messages: Rc<RefCell<Vec<String>>>,
     /// The preferences as last written, so storage is touched only when they change.
     saved_preferences: String,
 }
@@ -34,6 +36,7 @@ impl WebApp {
         Self {
             workspace,
             picked: Rc::default(),
+            messages: Rc::default(),
             saved_preferences,
         }
     }
@@ -155,6 +158,34 @@ impl WebApp {
         }
     }
 
+    /// Plays the document in the page's Ruffle when the workspace asks to.
+    fn handle_test_movie(&mut self, ctx: &egui::Context) {
+        if !self.workspace.take_test_movie_request() {
+            return;
+        }
+        // The main document, so a symbol being edited is included, as on the desktop.
+        let document = self.workspace.main_document().clone();
+        let swf = flare_publish::publish_swf(&document, &flare_publish::PublishOptions::default())
+            .map(|published| published.bytes)
+            .map_err(|e| e.to_string());
+        let (inbox, ctx) = (Rc::clone(&self.messages), ctx.clone());
+        wasm_bindgen_futures::spawn_local(async move {
+            let played = match swf {
+                Ok(bytes) => match ruffle::registered() {
+                    Ok(host) => ruffle::play_in(&host, &bytes).await,
+                    Err(error) => Err(error),
+                },
+                Err(error) => Err(error),
+            };
+            if let Err(error) = played {
+                inbox
+                    .borrow_mut()
+                    .push(format!("Cannot start Test Movie: {error}"));
+                ctx.request_repaint();
+            }
+        });
+    }
+
     fn deliver(&mut self, name: &str, mime: &str, bytes: Result<Vec<u8>, String>) {
         match bytes.and_then(|b| files::download(name, mime, &b)) {
             Ok(()) => {}
@@ -174,8 +205,13 @@ impl eframe::App for WebApp {
                 self.workspace.import_project_bytes(&file.name, file.bytes);
             }
         }
+        let messages: Vec<String> = self.messages.borrow_mut().drain(..).collect();
+        for message in messages {
+            self.workspace.report_message(&message);
+        }
         self.workspace.show(ui);
         self.handle_dialog(&ctx);
+        self.handle_test_movie(&ctx);
         if let Ok(json) = self.workspace.preferences_json()
             && json != self.saved_preferences
         {
