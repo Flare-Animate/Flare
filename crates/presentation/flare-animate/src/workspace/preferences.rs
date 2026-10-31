@@ -273,51 +273,55 @@ impl Workspace {
                 },
             );
             ui.add_space(4.0);
-            flare_ui::chrome::section(ui, "settings", "General");
-            flare_ui::chrome::row(ui, "Autosave every", |ui| {
-                ui.add(
-                    egui::DragValue::new(&mut edited.autosave_seconds)
-                        .range(5.0..=3600.0)
-                        .suffix(" s"),
+            flare_ui::chrome::group(ui, "settings", "General", |ui| {
+                flare_ui::chrome::row(ui, "Autosave every", |ui| {
+                    ui.add(
+                        egui::DragValue::new(&mut edited.autosave_seconds)
+                            .range(5.0..=3600.0)
+                            .suffix(" s"),
+                    );
+                });
+            });
+            flare_ui::chrome::group(ui, "grid", "Stage", |ui| {
+                ui.checkbox(&mut edited.show_rulers, "Show rulers");
+                ui.checkbox(&mut edited.show_grid, "Show grid");
+                ui.checkbox(&mut edited.snap_to_grid, "Snap to grid");
+                flare_ui::chrome::row(ui, "Grid size", |ui| {
+                    ui.add(
+                        egui::DragValue::new(&mut edited.grid_size)
+                            .range(1.0..=500.0)
+                            .suffix(" px"),
+                    );
+                });
+            });
+            flare_ui::chrome::group(ui, "transport-loop", "Timeline and drawing", |ui| {
+                ui.checkbox(&mut edited.loop_playback, "Loop playback");
+                flare_ui::chrome::row(ui, "Line smoothing", |ui| {
+                    ui.add(
+                        egui::DragValue::new(&mut edited.smoothing)
+                            .range(0.0..=20.0)
+                            .speed(0.1),
+                    );
+                });
+            });
+            flare_ui::chrome::group(ui, "file-open", "Recent projects", |ui| {
+                flare_ui::chrome::row(ui, "Remembered", |ui| {
+                    ui.label(edited.recent.len().to_string());
+                });
+                let forget = ui.add_enabled(
+                    !edited.recent.is_empty(),
+                    egui::Button::new("Clear recent projects"),
                 );
+                if forget
+                    .on_hover_text(
+                        "Forgets the list on the Home page and in Open Recent. \
+                         The files stay where they are.",
+                    )
+                    .clicked()
+                {
+                    edited.recent.clear();
+                }
             });
-            flare_ui::chrome::section(ui, "grid", "Stage");
-            ui.checkbox(&mut edited.show_rulers, "Show rulers");
-            ui.checkbox(&mut edited.show_grid, "Show grid");
-            ui.checkbox(&mut edited.snap_to_grid, "Snap to grid");
-            flare_ui::chrome::row(ui, "Grid size", |ui| {
-                ui.add(
-                    egui::DragValue::new(&mut edited.grid_size)
-                        .range(1.0..=500.0)
-                        .suffix(" px"),
-                );
-            });
-            flare_ui::chrome::section(ui, "transport-loop", "Timeline and drawing");
-            ui.checkbox(&mut edited.loop_playback, "Loop playback");
-            flare_ui::chrome::row(ui, "Line smoothing", |ui| {
-                ui.add(
-                    egui::DragValue::new(&mut edited.smoothing)
-                        .range(0.0..=20.0)
-                        .speed(0.1),
-                );
-            });
-            flare_ui::chrome::section(ui, "file-open", "Recent projects");
-            flare_ui::chrome::row(ui, "Remembered", |ui| {
-                ui.label(edited.recent.len().to_string());
-            });
-            let forget = ui.add_enabled(
-                !edited.recent.is_empty(),
-                egui::Button::new("Clear recent projects"),
-            );
-            if forget
-                .on_hover_text(
-                    "Forgets the list on the Home page and in Open Recent. \
-                     The files stay where they are.",
-                )
-                .clicked()
-            {
-                edited.recent.clear();
-            }
             ui.add_space(10.0);
             // Restore defaults is the one thing here that throws work away, so it is red; Close is
             // at the bottom right, where a dialog's way out is.
