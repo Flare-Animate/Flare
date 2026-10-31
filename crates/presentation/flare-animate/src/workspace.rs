@@ -211,6 +211,7 @@ pub struct Workspace {
     window_request: Option<WindowRequest>,
     titlebar_inset: f32,
     top_bar_id: egui::Id,
+    preferences_id: egui::Id,
     /// The Text tool's settings and the text being typed.
     text: groups::TextTool,
     /// How new shapes are painted.
@@ -319,6 +320,7 @@ impl Workspace {
             window_request: None,
             titlebar_inset: 0.0,
             top_bar_id: egui::Id::unique("top-bar"),
+            preferences_id: egui::Id::unique("preferences"),
             text: groups::TextTool::default(),
             paint: groups::Paint::default(),
             display: groups::Display::default(),

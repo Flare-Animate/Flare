@@ -241,13 +241,13 @@ impl Workspace {
         if !self.windows.preferences {
             return;
         }
-        let mut open = true;
         let mut edited = self.preferences();
-        egui::Window::new("Preferences")
-            .open(&mut open)
-            .collapsible(false)
-            .resizable(false)
-            .show(ctx, |ui| {
+        // A dialog in the middle of the window over a dimmed backdrop, as PaintCraft's are:
+        // Escape or a click outside closes it.
+        let response = egui::Modal::new(self.preferences_id).show(ctx, |ui| {
+            ui.set_width(360.0);
+            ui.heading("Preferences");
+            ui.add_space(4.0);
                 flare_ui::chrome::section(ui, "settings", "General");
                 flare_ui::chrome::row(ui, "Autosave every", |ui| {
                     ui.add(
@@ -297,8 +297,12 @@ impl Workspace {
                         ..Preferences::default()
                     };
                 }
-            });
+            ui.add_space(6.0);
+            if ui.button("Done").clicked() {
+                ui.close();
+            }
+        });
         self.apply_preferences(&edited);
-        self.windows.preferences = open;
+        self.windows.preferences = !response.should_close();
     }
 }

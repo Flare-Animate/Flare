@@ -28,6 +28,7 @@ mod menus_like_animate;
 mod open_any;
 mod panels_and_view;
 mod pen_and_selection;
+mod preferences_dialog;
 mod publish_settings;
 mod rail;
 mod release_frame;
