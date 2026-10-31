@@ -13,3 +13,4 @@ pubpop-center = Center stage
 pubpop-responsive = Make responsive
 pubpop-format-gif = Animated GIF (.gif)
 pubpop-format-mp4 = MP4 video (.mp4)
+pubpop-mp4-needs-ffmpeg = Needs ffmpeg: install it, or set FLARE_FFMPEG to where it is.

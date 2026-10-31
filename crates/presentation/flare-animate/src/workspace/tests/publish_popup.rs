@@ -126,3 +126,57 @@ fn the_share_pages_are_fixed_https_addresses_and_twitter_goes_to_x() {
     assert_eq!(labels, ["Twitter", "YouTube", "Newgrounds", "Facebook"]);
     assert!(ShareTarget::Facebook.url().contains("facebook.com"));
 }
+
+#[test]
+fn mp4_is_dimmed_without_an_encoder_and_ticks_and_keeps_with_one() {
+    // No ffmpeg: the box cannot be ticked, and an MP4 chosen earlier does not count.
+    let (ctx, mut ws, mut time) = opened();
+    ws.publish.swf = false;
+    ws.publish.html5 = false;
+    ws.publish.gif = false;
+    ws.publish.mp4 = true; // kept from a computer that had one
+    assert!(
+        !ws.can_publish_something(),
+        "nothing can be written without an encoder"
+    );
+    click_text(&mut ws, &ctx, &mut time, "MP4 video (.mp4)");
+    assert!(ws.publish.mp4, "a dimmed box leaves what was chosen alone");
+    ws.publish.mp4 = false;
+    click_text(&mut ws, &ctx, &mut time, "MP4 video (.mp4)");
+    assert!(!ws.publish.mp4, "a dimmed box does not tick");
+
+    // With one, the box ticks and Publish becomes possible.
+    let (ctx, mut ws, mut time) = opened();
+    ws.set_video_encoder_available(true);
+    ws.publish.swf = false;
+    ws.publish.html5 = false;
+    ws.publish.gif = false;
+    assert!(!ws.can_publish_something());
+    for _ in 0..3 {
+        time += 0.1;
+        find(&mut ws, &ctx, time, "Publish");
+    }
+    click_text(&mut ws, &ctx, &mut time, "MP4 video (.mp4)");
+    assert!(ws.publish.mp4, "ticked");
+    assert!(ws.can_publish_something());
+    let kept = ws.preferences();
+    assert!(kept.publish_mp4);
+    let mut fresh = workspace();
+    fresh.apply_preferences(&kept);
+    assert!(
+        fresh.publish_settings().mp4,
+        "and kept with the preferences"
+    );
+}
+
+#[test]
+fn the_dimmed_mp4_box_says_what_it_needs_in_every_language() {
+    for language in flare_i18n::Language::ALL {
+        let said = flare_i18n::Translator::new(language).text("pubpop-mp4-needs-ffmpeg");
+        assert!(
+            said.contains("ffmpeg") && said.contains("FLARE_FFMPEG"),
+            "{}: {said}",
+            language.code()
+        );
+    }
+}

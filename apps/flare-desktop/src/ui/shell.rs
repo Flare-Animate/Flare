@@ -74,6 +74,7 @@ impl App {
                             ..jobs::Html5Options::default()
                         }),
                         gif: settings.gif,
+                        mp4: settings.mp4.then(jobs::video_encoder).flatten(),
                     };
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::publish(document, path, plan, done) {

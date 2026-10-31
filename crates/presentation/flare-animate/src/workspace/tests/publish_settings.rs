@@ -54,6 +54,7 @@ fn the_choices_are_kept_with_the_other_preferences_and_old_files_still_load() {
         center_stage: false,
         responsive: true,
         gif: true,
+        mp4: true,
     };
     let saved = ws.preferences_json().expect("json");
     let mut fresh = workspace();

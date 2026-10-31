@@ -17,6 +17,8 @@ pub struct PublishSettings {
     pub responsive: bool,
     /// Write an animated GIF (`.gif`).
     pub gif: bool,
+    /// Write an MP4 video (`.mp4`); it needs ffmpeg, which the shell says whether it found.
+    pub mp4: bool,
 }
 
 impl Default for PublishSettings {
@@ -29,6 +31,7 @@ impl Default for PublishSettings {
             center_stage: true,
             responsive: false,
             gif: false,
+            mp4: false,
         }
     }
 }
@@ -36,11 +39,22 @@ impl Default for PublishSettings {
 impl PublishSettings {
     /// Whether anything is switched on to publish.
     pub fn any(&self) -> bool {
-        self.swf || self.html5 || self.gif
+        self.swf || self.html5 || self.gif || self.mp4
     }
 }
 
 impl Workspace {
+    /// Tells the workspace whether an `ffmpeg` was found, which MP4 needs.
+    pub fn set_video_encoder_available(&mut self, found: bool) {
+        self.video_encoder = found;
+    }
+
+    /// Whether a format is ticked that can be written on this computer.
+    pub(super) fn can_publish_something(&self) -> bool {
+        let s = self.publish;
+        s.swf || s.html5 || s.gif || (s.mp4 && self.video_encoder)
+    }
+
     pub fn publish_settings(&self) -> PublishSettings {
         self.publish
     }
@@ -63,13 +77,18 @@ impl Workspace {
             });
         });
         ui.checkbox(&mut self.publish.gif, tr.text("pubpop-format-gif"));
-        // Video needs an encoder Flare does not have yet: shown, dimmed, where it will go.
-        ui.add_enabled(
-            false,
-            egui::Checkbox::new(&mut false, tr.text("pubpop-format-mp4")),
-        )
-        .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
-        if !self.publish.any() {
+        // Video needs an ffmpeg on this computer: without one the box is dimmed and says why.
+        let mut ticked = self.publish.mp4 && self.video_encoder;
+        let video = ui.add_enabled(
+            self.video_encoder,
+            egui::Checkbox::new(&mut ticked, tr.text("pubpop-format-mp4")),
+        );
+        if self.video_encoder {
+            self.publish.mp4 = ticked;
+        } else {
+            video.on_disabled_hover_text(tr.text("pubpop-mp4-needs-ffmpeg"));
+        }
+        if !self.can_publish_something() {
             ui.colored_label(flare_ui::theme::warning(), tr.text("pubpop-nothing-chosen"));
         }
     }

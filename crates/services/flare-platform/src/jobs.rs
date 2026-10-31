@@ -70,6 +70,8 @@ pub struct PublishPlan {
     pub html5: Option<Html5Options>,
     /// Also write an animated GIF.
     pub gif: bool,
+    /// Also write an MP4 video with this ffmpeg.
+    pub mp4: Option<PathBuf>,
 }
 
 /// The name a published file shares with its siblings: `path` without a `.swf` or `.html`
@@ -79,7 +81,7 @@ fn publish_stem(path: &std::path::Path) -> String {
         .file_name()
         .map_or_else(|| "movie".to_owned(), |n| n.to_string_lossy().into_owned());
     let lower = name.to_ascii_lowercase();
-    for ending in [".swf", ".html", ".htm", ".gif"] {
+    for ending in [".swf", ".html", ".htm", ".gif", ".mp4"] {
         if lower.ends_with(ending) {
             return name[..name.len() - ending.len()].to_owned();
         }
@@ -87,7 +89,7 @@ fn publish_stem(path: &std::path::Path) -> String {
     name
 }
 
-/// Publishes the formats in `plan` next to `path` (`<name>.swf`, `<name>.html`, `<name>.gif`) on a thread.
+/// Publishes the formats in `plan` next to `path` (`<name>.swf`, `<name>.html`, `<name>.gif`, `<name>.mp4`) on a thread.
 /// Never overwrites; each file appears only when complete. The first failure is reported, but
 /// the other formats are still tried.
 pub fn publish(
@@ -107,7 +109,7 @@ pub fn publish_now(
     path: &std::path::Path,
     plan: &PublishPlan,
 ) -> Result<(), String> {
-    if plan.swf.is_none() && plan.html5.is_none() && !plan.gif {
+    if plan.swf.is_none() && plan.html5.is_none() && !plan.gif && plan.mp4.is_none() {
         return Err("Choose a format in Publish Settings first".to_owned());
     }
     let stem = publish_stem(path);
@@ -130,6 +132,12 @@ pub fn publish_now(
     if plan.gif {
         let target = at("gif");
         if let Err(error) = write_gif(document, &target) {
+            failures.push(error);
+        }
+    }
+    if let Some(ffmpeg) = &plan.mp4 {
+        let target = at("mp4");
+        if let Err(error) = flare_runtime::write_mp4(document, ffmpeg, &target) {
             failures.push(error);
         }
     }
@@ -162,4 +170,9 @@ pub fn test_movie(
         done(flare_ruffle::launch_test_movie(&document, &player));
     })?;
     Ok(Ok(()))
+}
+
+/// The ffmpeg that MP4 needs, if this computer has one.
+pub fn video_encoder() -> Option<PathBuf> {
+    flare_runtime::find_ffmpeg()
 }

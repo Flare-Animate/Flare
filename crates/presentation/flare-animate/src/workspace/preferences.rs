@@ -42,6 +42,7 @@ pub struct Preferences {
     pub html5_center: bool,
     pub html5_responsive: bool,
     pub publish_gif: bool,
+    pub publish_mp4: bool,
     /// The interface's language: `system`, or a language's tag such as `de` or `pt-BR`.
     pub language: String,
     /// The look of the interface: `dark` or `light`.
@@ -78,6 +79,7 @@ impl Default for Preferences {
             html5_center: true,
             html5_responsive: false,
             publish_gif: false,
+            publish_mp4: false,
             language: "system".to_owned(),
             theme: "dark".to_owned(),
             pinned_tools: Vec::new(),
@@ -110,6 +112,7 @@ impl Workspace {
             html5_center: self.publish.center_stage,
             html5_responsive: self.publish.responsive,
             publish_gif: self.publish.gif,
+            publish_mp4: self.publish.mp4,
             language: self.language_choice.code().to_owned(),
             theme: self.theme_mode.code().to_owned(),
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
@@ -167,6 +170,7 @@ impl Workspace {
             center_stage: preferences.html5_center,
             responsive: preferences.html5_responsive,
             gif: preferences.publish_gif,
+            mp4: preferences.publish_mp4,
         };
         self.recent = preferences
             .recent
