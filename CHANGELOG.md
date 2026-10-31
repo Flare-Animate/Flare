@@ -7,7 +7,8 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Added
-- Ruffle is pinned as a sparse submodule at third_party/ruffle, and `flare-ruffle`'s `render-check` feature has Ruffle's exporter render published SWFs and compares them with Flare's render (solid shapes, a gradient and a mask agree).
+- `scripts/build_ruffle.sh` builds Ruffle's desktop player from the pinned checkout, and Test Movie has been run against it (an ignored test opens a published movie in it and checks it keeps playing).
+- Ruffle is pinned as a submodule at third_party/ruffle, and `flare-ruffle`'s `render-check` feature has Ruffle's exporter render published SWFs and compares them with Flare's render (solid shapes, a gradient and a mask agree).
 - SWF publishing writes linear gradients as gradient fills (matrix placing the first color at the start and the last at the end) and masks of one shape as clip layers; masks of several shapes and masks inside masks are reported and left out.
 - SWF publishing writes sounds: each cued sound is defined once as uncompressed 16-bit audio at the nearest SWF sample rate at or above its own, and started at every cue, with scenes offsetting the frames. The total is bounded.
 

@@ -257,7 +257,13 @@ install it. Nothing here makes a hostile SWF safe: that is the player's job.
 
 This is tested with a stand-in player (a script that records its arguments and the file it
 received), including a path full of shell syntax and a mutation that routes the launch through
-a shell. The launch itself has not been run against a real Ruffle.
+a shell. It has also been run against a real Ruffle: `scripts/build_ruffle.sh` builds Ruffle's desktop
+player from the pinned checkout (about 3 minutes, 1.4 GB, release mode), and an ignored test
+(`cargo test -p flare-ruffle --test real_player -- --ignored`, with `FLARE_RUFFLE` set) has
+Test Movie open a published movie in it and checks the player is still running four seconds
+later and is stopped and cleaned up on request. That shows the movie loads and plays; what it
+sounds and looks like on screen is still for a person to judge. Shipping a player with the app
+is a packaging decision not made yet: today it is found through `FLARE_RUFFLE` or `PATH`.
 
 What Ruffle *draws* for our files is checked separately. Ruffle is pinned as a git submodule at
 `third_party/ruffle` (a shallow checkout; `cargo` loads the whole of Ruffle's workspace, so it is not sparse), and with the
