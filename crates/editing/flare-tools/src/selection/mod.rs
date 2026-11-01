@@ -1,10 +1,10 @@
-//! The Selection, Lasso and Polygon Lasso tools: which spans a click, a loop or a frame picks.
+//! The Selection tool: which span a click on the stage picks, and what Select All selects.
 
 mod hit;
 mod spans;
 
 pub use hit::locate_hit;
-pub use spans::{polygon_contains, spans_at_frame, spans_in_polygon};
+pub use spans::spans_at_frame;
 
 #[cfg(test)]
 mod tests;

@@ -19,6 +19,7 @@ pub mod delete_anchor;
 pub mod eraser;
 pub mod free_transform;
 pub mod grouping;
+pub mod lasso;
 pub mod mirror;
 pub mod ops;
 pub mod paint;

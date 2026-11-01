@@ -247,16 +247,8 @@ impl Workspace {
         let polygon = std::mem::take(&mut self.lasso);
         let Some(scene) = self.scene_id() else { return };
         let found = ops::spans_in_polygon(self.document(), scene, self.frame, &polygon);
-        let mut all = if additive {
-            self.selection_all()
-        } else {
-            Vec::new()
-        };
-        for span in found {
-            if !all.contains(&span) {
-                all.push(span);
-            }
-        }
+        let all =
+            flare_tools::lasso::freehand::selection_after(&self.selection_all(), found, additive);
         self.selected = all.first().copied();
         self.also_selected = all.into_iter().skip(1).collect();
     }

@@ -173,15 +173,7 @@ impl Workspace {
             if let Some(p) = response.interact_pointer_pos()
                 && response.dragged_by(primary)
             {
-                let at = to_doc(p);
-                let step = 2.0 / scale.max(f32::EPSILON);
-                if self
-                    .lasso
-                    .last()
-                    .is_none_or(|last| (*last - at).length() >= step)
-                {
-                    self.lasso.push(at);
-                }
+                flare_tools::lasso::freehand::extend(&mut self.lasso, to_doc(p), scale);
             }
             if response.drag_stopped_by(primary) {
                 self.finish_lasso(ui.input(|i| i.modifiers.shift));
