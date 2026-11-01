@@ -97,13 +97,9 @@ flare-animate = { path = "crates/presentation/flare-animate" }
 # ---- Math and vector geometry ------------------------------------------------
 emath = { version = "0.37.0", default-features = false }
 glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }
-# i_overlay = "9.1.0"       # Prototype: polygon booleans, not full merge drawing.
-# lyon_tessellation = "1"   # Prototype: fill/stroke mesh path.
-# tess2-rust: choose a verified release after the tessellation experiment.
 
 # ---- Binary data and GPU memory layouts --------------------------------------
 bytemuck = { version = "1.25", features = ["derive"] }
-# Do not enable glamx/encase blindly: check its underlying glam's encase version.
 
 # ---- Serialization, identity and typed errors -------------------------------
 serde = { version = "1", features = ["derive"] }
@@ -119,7 +115,6 @@ blake3 = "1"
 tempfile = "3"
 zstd = "0.14"
 ciborium = "0.2"          # CBOR: the binary form of the project file's records.
-# lz4_flex / rkyv: transient/cache candidates only; add after measurement.
 
 # ---- Flash/XML/archive interchange -------------------------------------------
 quick-xml = { version = "0.42.0", default-features = false }
@@ -159,10 +154,7 @@ web-sys = "0.3"
 muda = "0.21.2"          # Native menu bar (macOS); other platforms use the in-window menu.
 # The desktop member must choose native backends/fonts/clipboard/platform features.
 # Do not assume these minimal declarations alone build a desktop application.
-# agg-rust = "1.2.0"        # CPU renderer experiment, not mandatory.
 vello_cpu = { version = "0.3.0", features = ["multithreading"] } # Selected CPU rasterizer; see experiments/renderers/results/REPORT.md. Threads are opt-in per render.
-# vello_gpu = "0.3.0"       # Verify published package and wgpu compatibility first.
-# tiny-skia: reference/control candidate; no second default CPU engine yet.
 
 # ---- CPU workers and asynchronous application services -----------------------
 rayon = "1"                 # Data parallelism inside one background job (GIF frames), on a pool that leaves a core for the window.
@@ -205,16 +197,12 @@ criterion = "0.7"
 # ---- Candidates: not used by any member yet --------------------------------
 # Declared here, uncommented, when a crate first needs them (scripts/tests/test_manifests.py
 # fails on a declared entry that nothing uses).
-# encase = "0.13.0"
-# half = "2"
-# insta = { version = "1", features = ["json"] }
-# kurbo = "0.13.1"
-# tracing = "0.1"
+# i_overlay = "9.1.0"       # Polygon booleans, for Modify > Combine Objects.
+# vello_gpu = "0.3.0"       # A GPU stage renderer, if one is ever built; match vello_cpu's version.
+# tracing = "0.1"           # Spans around render, export and save, with the performance work.
 # tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
-# zerocopy = { version = "0.8.63", features = ["derive"] }
 
 # ---- Deferred functionality: register exact versions when adopted -----------
-# An optional FFmpeg adapter: when needed.
 # Spatial/physics: parry2d-f64, parry3d-f64, rapier2d-f64; 3D physics deferred.
 # Scripting: boa_engine candidate; plugins/Wasm host deferred.
 # Collections/SIMD: smallvec, indexmap, slotmap, hashbrown, bumpalo, wide on evidence.

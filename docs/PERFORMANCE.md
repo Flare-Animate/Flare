@@ -82,15 +82,15 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
   exports resample on their own worker threads. This replaced three hand-written linear
   interpolation loops, which aliased when lowering a rate. Not measured: the resampling time
   of a ten-minute track.
-- **zerocopy, rkyv, encase, half** have no site yet. The project file's records are CBOR,
-  compressed with zstd (see ARCHITECTURE.md); at 10 000 shapes the old JSON opened in 31 ms and
-  the new records are a seventh the size, so reading numbers in place is not justified by
-  measurement. `encase` and GPU-layout types arrive with a GPU renderer.
-- **kurbo, tracing, smallvec, indexmap, slotmap, hashbrown, bumpalo** have no site yet and are
-  listed in the root manifest as candidates. `kurbo` is already in the tree through `vello_cpu`;
-  the code that converts curves for XFL and SWF is hand-written and tested, and is the place to
-  look if a curve routine is ever wrong or slow. `tracing` is what the performance work will want
-  for spans around render, export and save, and goes in with it.
+- **zerocopy, rkyv, lz4_flex, encase, half** are not used and not planned. The project file's
+  records are CBOR, compressed with zstd (see ARCHITECTURE.md); at 10 000 shapes the old JSON
+  opened in 31 ms and the new records are a seventh the size, so reading numbers in place is
+  not justified by measurement. `encase` and GPU-layout types would arrive with a GPU renderer.
+- **kurbo** is already in the tree through `vello_cpu` and is used as `vello_cpu::kurbo`; it is
+  not a direct dependency. The code that converts curves for XFL and SWF is hand-written and
+  tested, and is the place to look if a curve routine is ever wrong or slow. **tracing** is what
+  the performance work will want for spans around render, export and save, and goes in with it.
+  **smallvec, indexmap, slotmap, hashbrown, bumpalo** have no site yet.
 - **winit** is a direct dependency because the desktop app owns the event loop and window. It
   must stay in the same version family as `egui-winit`; the tree has one copy.
 
