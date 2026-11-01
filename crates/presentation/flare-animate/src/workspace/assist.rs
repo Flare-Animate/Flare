@@ -79,7 +79,8 @@ impl Workspace {
         let at = self.pointer_stage?;
         let half = f64::from(self.brush_size) / 2.0;
         Some(
-            self.brush_nib
+            self.brush_shelf
+                .nib()
                 .outline_points(half, 48)
                 .into_iter()
                 .map(|p| Pos2::new(at.x + p.x as f32, at.y + p.y as f32))

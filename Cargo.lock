@@ -2329,6 +2329,7 @@ dependencies = [
  "flare-input",
  "glamx",
  "proptest",
+ "serde",
 ]
 
 [[package]]

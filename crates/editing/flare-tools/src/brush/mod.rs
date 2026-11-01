@@ -10,7 +10,9 @@ use flare_input::{InputSample, PressureCurve};
 use glamx::DVec2;
 
 mod nib;
+mod shelf;
 pub use nib::{Nib, NibShape};
+pub use shelf::{BrushPreset, BrushShelf, MAX_BRUSHES, ShelfFull};
 
 /// Points added between two kept points when smoothing.
 const SUBDIVISIONS: usize = 4;
@@ -196,5 +198,7 @@ fn cap(centre: DVec2, normal: DVec2, radius: f64, nib: Nib) -> Vec<DVec2> {
         .collect()
 }
 
+#[cfg(test)]
+mod shelf_tests;
 #[cfg(test)]
 mod tests;

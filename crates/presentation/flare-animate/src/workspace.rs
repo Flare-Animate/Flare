@@ -76,8 +76,8 @@ use dock::*;
 use helpers::*;
 use types::*;
 pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
-pub use brushes::{BrushPreset, MAX_BRUSHES};
 pub use flare_audio::AudioEvent;
+pub use flare_tools::brush::{BrushPreset, MAX_BRUSHES};
 pub use open_any::{IMPORT_EXTENSIONS, PROJECT_EXTENSIONS, PathKind, classify};
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use publish_settings::PublishSettings;
@@ -166,11 +166,8 @@ pub struct Workspace {
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
     freehand: Vec<InputSample>,
     brush_size: f32,
-    /// The tip the brush paints with.
-    brush_nib: flare_tools::brush::Nib,
-    /// Nibs kept under a name, and which one is in hand.
-    brushes: Vec<brushes::BrushPreset>,
-    brush_selected: Option<usize>,
+    /// The tip the brush paints with, and the nibs kept under a name.
+    brush_shelf: flare_tools::brush::BrushShelf,
     /// How thin a brush stroke gets at the lightest touch, as a fraction of its size.
     brush_light: f32,
     /// How far a smoothed line may stray from the drag, in screen pixels.
@@ -331,9 +328,7 @@ impl Workspace {
             lasso: Vec::new(),
             freehand: Vec::new(),
             brush_size: 12.0,
-            brush_nib: flare_tools::brush::Nib::ROUND,
-            brushes: Vec::new(),
-            brush_selected: None,
+            brush_shelf: flare_tools::brush::BrushShelf::default(),
             brush_light: 0.15,
             smoothing: 2.0,
             frame_range: None,

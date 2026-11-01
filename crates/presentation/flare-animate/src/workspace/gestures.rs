@@ -232,7 +232,7 @@ impl Workspace {
             f64::from(self.brush_size),
             curve,
             tolerance,
-            self.brush_nib,
+            self.brush_shelf.nib(),
         ) else {
             return Ok(None);
         };

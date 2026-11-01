@@ -185,7 +185,7 @@ impl Workspace {
             Tool::Brush => (self.paint.fill, self.brush_size, true),
             _ => (self.paint.stroke_color, self.paint.stroke_width, false),
         };
-        let nib = self.brush_nib;
+        let nib = self.brush_shelf.nib();
         // A flat nib paints thick where the line crosses its long axis, so the preview ribbon
         // takes the same reach from the direction the line is heading.
         let half = |stroke: &[InputSample], i: usize| {

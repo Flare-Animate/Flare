@@ -319,7 +319,7 @@ impl Workspace {
             }
         });
         // Choosing a brush above may have changed the nib: read the controls from it.
-        let nib = self.brush_nib;
+        let nib = self.brush_shelf.nib();
         let (mut shape, mut angle, mut flatness) = (
             nib.shape(),
             nib.angle_degrees() as f32,

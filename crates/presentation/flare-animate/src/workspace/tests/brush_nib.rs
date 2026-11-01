@@ -1,6 +1,6 @@
 use super::*;
 use flare_input::{InputSample, PointerKind};
-use flare_tools::brush::{Nib, NibShape};
+use flare_tools::brush::{BrushShelf, Nib, NibShape};
 
 fn paint(ws: &mut Workspace, from: (f64, f64), to: (f64, f64)) {
     ws.set_tool(Tool::Brush);
@@ -44,7 +44,7 @@ fn a_flat_nib_paints_a_thinner_line_than_a_round_one_along_its_long_axis() {
     paint(&mut round, (10.0, 50.0), (110.0, 50.0));
     let mut flat = workspace();
     flat.brush_size = 20.0;
-    flat.brush_nib = Nib::new(NibShape::Round, 0.0, 10.0);
+    flat.brush_shelf = BrushShelf::default().with_loose_nib(Nib::new(NibShape::Round, 0.0, 10.0));
     paint(&mut flat, (10.0, 50.0), (110.0, 50.0));
     assert!(size_of(&round).1 > 19.0, "{:?}", size_of(&round));
     assert!(size_of(&flat).1 < 4.0, "{:?}", size_of(&flat));
@@ -54,33 +54,33 @@ fn a_flat_nib_paints_a_thinner_line_than_a_round_one_along_its_long_axis() {
 fn the_nib_and_size_are_kept_with_the_preferences_and_junk_is_brought_into_range() {
     let mut ws = workspace();
     ws.brush_size = 33.0;
-    ws.brush_nib = Nib::new(NibShape::Square, 45.0, 30.0);
+    ws.brush_shelf = BrushShelf::default().with_loose_nib(Nib::new(NibShape::Square, 45.0, 30.0));
     let saved = ws.preferences_json().expect("json");
     let mut fresh = workspace();
     fresh.restore_preferences(&saved).expect("restored");
     assert_eq!(fresh.brush_size, 33.0);
-    assert_eq!(fresh.brush_nib.shape(), NibShape::Square);
-    assert!((fresh.brush_nib.angle_degrees() - 45.0).abs() < 1e-4);
-    assert!((fresh.brush_nib.flatness_percent() - 30.0).abs() < 1e-4);
+    assert_eq!(fresh.brush_shelf.nib().shape(), NibShape::Square);
+    assert!((fresh.brush_shelf.nib().angle_degrees() - 45.0).abs() < 1e-4);
+    assert!((fresh.brush_shelf.nib().flatness_percent() - 30.0).abs() < 1e-4);
     let mut odd = workspace();
     odd.restore_preferences(
         r#"{"brush_size": 9000, "brush_nib_angle": -90, "brush_nib_flatness": 0}"#,
     )
     .expect("loads");
     assert_eq!(odd.brush_size, 200.0);
-    assert!((odd.brush_nib.angle_degrees() - 270.0).abs() < 1e-4);
-    assert!((odd.brush_nib.flatness_percent() - 1.0).abs() < 1e-4);
+    assert!((odd.brush_shelf.nib().angle_degrees() - 270.0).abs() < 1e-4);
+    assert!((odd.brush_shelf.nib().flatness_percent() - 1.0).abs() < 1e-4);
     // A file from before the nib has none of it: the plain round brush.
     let mut old = workspace();
     old.restore_preferences(r#"{"smoothing": 3}"#).expect("old");
-    assert_eq!(old.brush_nib, Nib::ROUND);
+    assert_eq!(old.brush_shelf.nib(), Nib::ROUND);
 }
 
 #[test]
 fn the_preview_follows_the_nib_and_the_properties_panel_draws_its_controls() {
     let mut ws = workspace();
     ws.brush_size = 20.0;
-    ws.brush_nib = Nib::new(NibShape::Round, 0.0, 10.0);
+    ws.brush_shelf = BrushShelf::default().with_loose_nib(Nib::new(NibShape::Round, 0.0, 10.0));
     ws.set_tool(Tool::Brush);
     let along: Vec<InputSample> = (0..5)
         .map(|i| InputSample::new(f64::from(i) * 10.0, 5.0, 1.0, PointerKind::Mouse).expect("s"))
@@ -110,9 +110,9 @@ fn custom_brushes_are_made_chosen_edited_and_deleted() {
     assert_eq!(ws.selected_brush(), Some(1));
     // Choosing the first puts its nib in hand; the plain brush is a circle.
     ws.choose_brush(Some(0));
-    assert_eq!(ws.brush_nib.shape(), NibShape::Square);
+    assert_eq!(ws.brush_shelf.nib().shape(), NibShape::Square);
     ws.choose_brush(None);
-    assert_eq!(ws.brush_nib, Nib::ROUND);
+    assert_eq!(ws.brush_shelf.nib(), Nib::ROUND);
     assert_eq!(ws.selected_brush(), None);
     // Changing the nib while one is chosen edits that brush, not the others.
     ws.choose_brush(Some(1));
@@ -130,7 +130,7 @@ fn custom_brushes_are_made_chosen_edited_and_deleted() {
     ws.choose_brush(Some(0));
     ws.delete_custom_brush();
     assert_eq!(ws.custom_brushes().len(), 1);
-    assert_eq!(ws.brush_nib, Nib::ROUND);
+    assert_eq!(ws.brush_shelf.nib(), Nib::ROUND);
     // A place that is not there means the plain brush.
     ws.choose_brush(Some(9));
     assert_eq!(ws.selected_brush(), None);
@@ -178,13 +178,13 @@ fn custom_brushes_and_the_chosen_one_are_kept_with_the_preferences() {
     fresh.restore_preferences(&saved).expect("restored");
     assert_eq!(fresh.custom_brushes(), ws.custom_brushes());
     assert_eq!(fresh.selected_brush(), Some(0));
-    assert_eq!(fresh.brush_nib.shape(), NibShape::Square);
+    assert_eq!(fresh.brush_shelf.nib().shape(), NibShape::Square);
     // A chosen place past the end is the plain brush.
     let mut past = workspace();
     past.restore_preferences(r#"{"brushes": [], "brush_selected": 3}"#)
         .expect("loads");
     assert_eq!(past.selected_brush(), None);
-    assert_eq!(past.brush_nib, Nib::ROUND);
+    assert_eq!(past.brush_shelf.nib(), Nib::ROUND);
 }
 
 #[test]

@@ -100,10 +100,11 @@ impl Workspace {
             loop_playback: self.loop_playback,
             smoothing: self.smoothing,
             brush_size: self.brush_size,
-            brush_nib_square: self.brush_nib.shape() == flare_tools::brush::NibShape::Square,
-            brush_nib_angle: self.brush_nib.angle_degrees() as f32,
-            brush_nib_flatness: self.brush_nib.flatness_percent() as f32,
-            brushes: self.brushes.clone(),
+            brush_nib_square: self.brush_shelf.nib().shape()
+                == flare_tools::brush::NibShape::Square,
+            brush_nib_angle: self.brush_shelf.nib().angle_degrees() as f32,
+            brush_nib_flatness: self.brush_shelf.nib().flatness_percent() as f32,
+            brushes: self.brush_shelf.presets().to_vec(),
             brush_selected: self.selected_brush(),
             publish_compress: self.publish.compress,
             publish_swf: self.publish.swf,
@@ -143,7 +144,7 @@ impl Workspace {
         self.loop_playback = preferences.loop_playback;
         self.smoothing = finite(f64::from(preferences.smoothing), 2.0).clamp(0.0, 20.0) as f32;
         self.brush_size = finite(f64::from(preferences.brush_size), 12.0).clamp(1.0, 200.0) as f32;
-        self.brush_nib = flare_tools::brush::Nib::new(
+        let loose = flare_tools::brush::Nib::new(
             if preferences.brush_nib_square {
                 flare_tools::brush::NibShape::Square
             } else {
@@ -152,16 +153,11 @@ impl Workspace {
             f64::from(preferences.brush_nib_angle),
             f64::from(preferences.brush_nib_flatness),
         );
-        self.brushes = preferences
-            .brushes
-            .iter()
-            .take(MAX_BRUSHES)
-            .map(BrushPreset::sanitized)
-            .collect();
-        // The chosen custom brush wins over the loose nib numbers saved beside it.
-        if preferences.brush_selected.is_some() {
-            self.choose_brush(preferences.brush_selected);
-        }
+        self.brush_shelf = flare_tools::brush::BrushShelf::restore(
+            loose,
+            &preferences.brushes,
+            preferences.brush_selected,
+        );
         self.publish = PublishSettings {
             swf: preferences.publish_swf,
             compress: preferences.publish_compress,
