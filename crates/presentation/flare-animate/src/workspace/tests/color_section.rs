@@ -12,7 +12,7 @@ fn rects(width: f32) -> WellRects {
 }
 
 #[test]
-fn the_squares_and_buttons_fit_the_strip_and_the_buttons_sit_side_by_side_beneath_them() {
+fn the_squares_and_buttons_fit_the_strip_and_the_buttons_sit_side_by_side_above_them() {
     // From a strip one tool wide to a wide one.
     for width in [30.0, 34.0, 38.0, 47.0, 48.0, 72.0, 120.0] {
         let m = Metrics::for_width(width);
@@ -33,13 +33,13 @@ fn the_squares_and_buttons_fit_the_strip_and_the_buttons_sit_side_by_side_beneat
         // The two squares overlap on purpose, the stroke in front, down and to the right.
         assert!(r.stroke.min.x > r.fill.min.x && r.stroke.min.y > r.fill.min.y);
         assert!(r.stroke.intersects(r.fill));
-        // The buttons touch neither square nor each other, and sit side by side beneath the
+        // The buttons touch neither square nor each other, and sit side by side above the
         // squares as in Animate's toolbar: black and white on the left, swap on the right.
         for button in [r.defaults, r.swap] {
             assert!(!button.intersects(r.fill) && !button.intersects(r.stroke));
         }
         assert!(!r.defaults.intersects(r.swap));
-        assert!(r.defaults.min.y >= r.stroke.max.y && r.defaults.min.y >= r.fill.max.y);
+        assert!(r.defaults.max.y <= r.fill.min.y && r.defaults.max.y <= r.stroke.min.y);
         assert!((r.defaults.min.y - r.swap.min.y).abs() < 0.01, "one row");
         assert!(
             r.defaults.max.x <= r.swap.min.x,

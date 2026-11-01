@@ -11,7 +11,7 @@ All notable changes are listed here. The format follows
 - Test Movie in the window showed a blank picture: the texture it showed was one the player had already replaced when it set its size. A test now paints the window off-screen and finds the movie's picture in it.
 
 ### Changed
-- The Publish popup's Publish button is in its bottom right corner, where Close was, with Close beside it. The black-and-white and swap buttons under the color squares sit side by side beneath them, as in Animate.
+- The Publish popup's Publish button is in its bottom right corner, where Close was, with Close beside it. The black-and-white and swap buttons under the color squares sit side by side above them, as in Animate.
 - The zstd library is 0.14 (0.13 has advisories).
 
 ### Added

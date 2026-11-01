@@ -1,5 +1,5 @@
 //! The fill and stroke colors in the tool strip: two overlapping squares, the stroke in front as
-//! a frame around an empty middle, with the black-and-white and swap buttons side by side beneath
+//! a frame around an empty middle, with the black-and-white and swap buttons side by side above
 //! them, as in Animate's toolbar. In a strip one tool wide the same box is drawn smaller. No color
 //! is at the top of each swatch's picker.
 
@@ -63,7 +63,7 @@ impl Metrics {
     }
 
     pub(crate) fn height(self) -> f32 {
-        self.offset + self.square + BUTTON_GAP + self.small
+        self.small + BUTTON_GAP + self.offset + self.square
     }
 }
 
@@ -77,14 +77,16 @@ pub(crate) struct WellRects {
 
 pub(crate) fn rects_with(origin: Pos2, m: Metrics) -> WellRects {
     let at = |x: f32, y: f32, side: f32| Rect::from_min_size(origin + vec2(x, y), vec2(side, side));
-    let below = m.offset + m.square + BUTTON_GAP;
-    // In a row under the squares, black and white on the left and swap on the right, centered.
+    // In a row above the squares, black and white on the left and swap on the right, centered.
     let left = (m.width() - m.buttons()) / 2.0;
-    let defaults = at(left, below, m.small);
-    let swap = at(left + m.small + BUTTON_GAP, below, m.small);
+    let defaults = at(left, 0.0, m.small);
+    let swap = at(left + m.small + BUTTON_GAP, 0.0, m.small);
+    // The squares below them, centered in the same width.
+    let top = m.small + BUTTON_GAP;
+    let x = (m.width() - (m.offset + m.square)) / 2.0;
     WellRects {
-        fill: at(0.0, 0.0, m.square),
-        stroke: at(m.offset, m.offset, m.square),
+        fill: at(x, top, m.square),
+        stroke: at(x + m.offset, top + m.offset, m.square),
         defaults,
         swap,
     }
