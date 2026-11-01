@@ -209,3 +209,37 @@ fn a_press_on_the_stage_outside_the_editor_finishes_the_text_but_a_press_elsewhe
     assert!(ws.text.edit.is_none(), "the text was finished");
     assert_eq!(layer_count(&ws), layers + 1, "and placed");
 }
+
+#[test]
+fn text_is_picked_anywhere_in_its_box_not_only_on_the_ink_of_its_letters() {
+    let mut ws = text_workspace();
+    type_text(&mut ws, Pos2::new(100.0, 50.0), "I I");
+    let layer = ws.document().scenes()[0].timeline().layers()[1].id();
+    let at = SpanRef { layer, start: 0 };
+    ws.selected = Some(at);
+    let bounds = shape_bounds(&ws);
+    ws.selected = None;
+
+    // The middle of "I I" is the space between the letters: no ink there at all.
+    let gap = bounds.center();
+    assert!(ws.glyph_hit(gap).is_none(), "the point is off the ink");
+    assert_eq!(ws.hit(gap), Some(at), "but it is on the text");
+    ws.select_at(gap, false);
+    assert_eq!(
+        ws.selected,
+        Some(at),
+        "the Selection tool picks the text there"
+    );
+
+    // The Text tool edits it instead of starting new text on top of it.
+    ws.selected = None;
+    ws.text_click(gap);
+    let edit = ws.text.edit.as_ref().expect("an editor");
+    assert_eq!(edit.editing, Some(at));
+    assert_eq!(edit.buffer, "I I");
+
+    // Well away from the box is empty stage: new text.
+    ws.text.edit = None;
+    ws.text_click(Pos2::new(bounds.max.x + 40.0, bounds.center().y));
+    assert!(ws.text.edit.as_ref().is_some_and(|e| e.editing.is_none()));
+}

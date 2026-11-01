@@ -16,6 +16,9 @@ use super::*;
 /// The editor's text is drawn no smaller or larger than this on the screen, whatever the zoom.
 const EDITOR_PX: std::ops::RangeInclusive<f32> = 8.0..=600.0;
 
+/// How far around its letters a click still counts as on the text, in stage units.
+const TEXT_BOX_MARGIN: f32 = 4.0;
+
 fn rgba(color: Color32) -> Rgba8 {
     let c = color.to_array();
     Rgba8::new(c[0], c[1], c[2], c[3])
@@ -101,7 +104,11 @@ impl Workspace {
         if self.text.edit.is_some() {
             return;
         }
-        match self.hit(at).filter(|span| self.text_at(*span).is_some()) {
+        // Text under the click wins over whatever is drawn behind it.
+        let text = self
+            .text_box_hit(at)
+            .or_else(|| self.hit(at).filter(|span| self.text_at(*span).is_some()));
+        match text {
             Some(span) => self.open_text_edit(span),
             None => {
                 self.text.edit = Some(PendingText {
@@ -122,6 +129,29 @@ impl Workspace {
         self.set_tool(Tool::Text);
         self.open_text_edit(span);
         true
+    }
+
+    /// The topmost text object whose box (the letters' bounds, with a margin) holds `point`.
+    /// Clicking between letters, or inside one, still means that text.
+    pub(super) fn text_box_hit(&self, point: Pos2) -> Option<SpanRef> {
+        let scene = self.scene_id()?;
+        let layers = self.document().scenes().first()?.timeline().layers();
+        layers.iter().enumerate().find_map(|(index, layer)| {
+            let span = layer.span_at(self.frame)?;
+            let Content::Shape(shape) = span.content() else {
+                return None;
+            };
+            shape.text()?;
+            if !layer.is_visible() || super::selection::locked_in_folders(layers, index) {
+                return None;
+            }
+            let at = SpanRef {
+                layer: layer.id(),
+                start: span.start(),
+            };
+            let bounds = ops::span_bounds(self.document(), scene, at)?;
+            bounds.expand(TEXT_BOX_MARGIN).contains(point).then_some(at)
+        })
     }
 
     /// The text object in the span `at`, and its source.

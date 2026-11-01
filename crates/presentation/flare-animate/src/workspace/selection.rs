@@ -75,6 +75,11 @@ impl Workspace {
     /// The scene-level span of the topmost shape under `point` at the current frame,
     /// looking through locked layers.
     pub(super) fn hit(&self, point: Pos2) -> Option<SpanRef> {
+        // Text is picked anywhere in its box, not only on the ink of its letters.
+        self.glyph_hit(point).or_else(|| self.text_box_hit(point))
+    }
+
+    pub(super) fn glyph_hit(&self, point: Pos2) -> Option<SpanRef> {
         let scene = self.scene_id()?;
         let frame =
             flare_eval::evaluate_frame_without_camera(self.document(), scene, self.frame).ok()?;
@@ -331,7 +336,7 @@ impl Workspace {
 }
 
 /// Whether `layers[index]` is locked, itself or by a locked folder around it.
-fn locked_in_folders(layers: &[Layer], index: usize) -> bool {
+pub(super) fn locked_in_folders(layers: &[Layer], index: usize) -> bool {
     let mut current = Some(index);
     while let Some(i) = current {
         if layers[i].is_locked() {
