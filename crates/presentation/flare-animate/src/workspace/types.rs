@@ -314,6 +314,7 @@ pub(super) struct PendingRender {
     pub(super) onion: OnionSkin,
     pub(super) view: TextureView,
     pub(super) signature: u64,
+    pub(super) text_epoch: u64,
 }
 
 /// How many bytes of rendered frames are kept for reuse, and at most how many frames.
@@ -350,6 +351,8 @@ pub(super) struct StageTexture {
     pub(super) onion: OnionSkin,
     /// (context, session revision, frame) the texture was rendered for.
     pub(super) key: (u64, u64, u32),
+    /// The typed-text state it shows (see `Workspace::text_epoch`).
+    pub(super) text_epoch: u64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

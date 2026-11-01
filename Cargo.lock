@@ -2277,6 +2277,7 @@ dependencies = [
  "flare-storage",
  "flare-text",
  "gif",
+ "glamx",
  "png 0.18.1",
  "proptest",
  "rayon",

@@ -35,6 +35,15 @@ keep them together.
   opens with its stored outlines; only editing it asks this machine's fonts, and a family it lacks
   falls back to the system's default, so edited text can look different from what was stored.
 
+## Editing on the stage
+
+The box where text is typed has a field that takes the typing and draws nothing. The font worker
+sets the words as they are typed (`TextJob::Preview`, newest request wins) and the render worker
+draws that in the place of the text object being edited, or on top of the scene when the text is
+new (`RenderJob::text_preview`), so the stored letters and the new ones are never shown together.
+The caret and the box around the text come from the same answer, so they are in the text's own font
+and not the interface's. The preview stays up until the finished text is on the stage.
+
 ## Not done
 
 Mixed styles in one text object, paragraph settings (alignment, line spacing, letter spacing),

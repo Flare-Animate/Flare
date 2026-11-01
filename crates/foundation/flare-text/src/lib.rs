@@ -19,6 +19,8 @@ use thiserror::Error;
 
 mod source;
 
+pub use source::Caret;
+
 /// Most characters one text object may hold.
 pub const MAX_CHARS: usize = flare_document::MAX_TEXT_CHARS;
 /// Smallest and largest font size, in stage units.
@@ -111,6 +113,28 @@ impl TextEngine {
         if text.trim().is_empty() {
             return Err(TextError::Empty);
         }
+        let (layout, path, glyphs) = self.lay_out(text, style)?;
+        if path.is_empty() {
+            return Err(if glyphs == 0 {
+                TextError::NoGlyphs
+            } else {
+                TextError::Empty
+            });
+        }
+        Ok(TextOutline {
+            path,
+            width: layout.width(),
+            height: layout.height(),
+        })
+    }
+
+    /// The layout of `text`, the outlines of its glyphs, and how many glyphs had one. Empty text
+    /// lays out to nothing; judging that is the caller's.
+    fn lay_out(
+        &mut self,
+        text: &str,
+        style: &TextStyle,
+    ) -> Result<(parley::Layout<()>, Vec<PathSegment>, usize), TextError> {
         if text.chars().count() > MAX_CHARS {
             return Err(TextError::TooLong);
         }
@@ -174,18 +198,7 @@ impl TextEngine {
                 }
             }
         }
-        if path.is_empty() {
-            return Err(if glyphs == 0 {
-                TextError::NoGlyphs
-            } else {
-                TextError::Empty
-            });
-        }
-        Ok(TextOutline {
-            path,
-            width: layout.width(),
-            height: layout.height(),
-        })
+        Ok((layout, path, glyphs))
     }
 }
 

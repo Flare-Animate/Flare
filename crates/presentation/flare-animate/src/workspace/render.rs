@@ -42,23 +42,20 @@ impl Workspace {
         self.install_rendered(ctx);
         let key = (self.context_serial, self.active().revision(), self.frame);
         let onion = self.effective_onion();
+        let text_epoch = self.text_epoch();
         let Some(view) = self.desired_texture_view(ctx.pixels_per_point(), texture_side_limit(ctx))
         else {
             // Nothing of the stage is on screen: keep the last texture, there is nothing to draw.
             return;
         };
-        if self
-            .texture
-            .as_ref()
-            .is_some_and(|t| t.key == key && t.onion == onion && t.view == view)
-        {
+        if self.texture.as_ref().is_some_and(|t| {
+            t.key == key && t.onion == onion && t.view == view && t.text_epoch == text_epoch
+        }) {
             return;
         }
-        if self
-            .pending_render
-            .as_ref()
-            .is_some_and(|p| p.key == key && p.onion == onion && p.view == view)
-        {
+        if self.pending_render.as_ref().is_some_and(|p| {
+            p.key == key && p.onion == onion && p.view == view && p.text_epoch == text_epoch
+        }) {
             return; // already being drawn
         }
         let Some(scene) = self.document().scenes().first().map(|s| s.id()) else {
@@ -96,6 +93,7 @@ impl Workspace {
             // Outlines and faded pictures of the same frames are different images, and so is
             // the view through the camera.
             self.camera_preview.hash(&mut hasher);
+            text_epoch.hash(&mut hasher);
             onion.outlines.hash(&mut hasher);
             self.display.outline_mode.hash(&mut hasher);
             for (frame, opacity) in &ghost_frames {
@@ -123,6 +121,7 @@ impl Workspace {
                 view,
                 key,
                 onion,
+                text_epoch,
             });
             return;
         }
@@ -134,6 +133,7 @@ impl Workspace {
             onion,
             view,
             signature,
+            text_epoch,
         });
         let stage = self.document().stage();
         self.background.submit_render(RenderJob {
@@ -153,6 +153,7 @@ impl Workspace {
             },
             size: view.size,
             background: stage.background(),
+            text_preview: self.text_preview_render(),
         });
         // Inline, the picture is ready already; with workers it arrives on a later pass.
         self.settle_inline();
@@ -192,6 +193,7 @@ impl Workspace {
                 view: pending.view,
                 key: pending.key,
                 onion: pending.onion,
+                text_epoch: pending.text_epoch,
             });
         }
     }

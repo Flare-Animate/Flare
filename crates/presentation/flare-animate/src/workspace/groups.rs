@@ -30,6 +30,15 @@ pub(super) struct TextTool {
     pub(super) family_filter: String,
     /// A size being dragged or typed for the selected text, applied when it is let go.
     pub(super) size_edit: Option<f32>,
+    /// The text as typed so far, shown on the stage in place of the stored letters.
+    pub(super) preview: Option<super::text_preview::TextPreview>,
+    /// What the preview was last asked for, and the request in flight.
+    pub(super) preview_asked: Option<super::text_preview::PreviewAsk>,
+    pub(super) preview_pending: Option<u64>,
+    /// Counts the changes of the preview, so the stage is drawn again for each.
+    pub(super) preview_epoch: u64,
+    /// The identity of the previewed letters of new text.
+    pub(super) preview_shape: flare_core::ShapeId,
 }
 
 impl Default for TextTool {
@@ -46,6 +55,11 @@ impl Default for TextTool {
             families_asked: false,
             family_filter: String::new(),
             size_edit: None,
+            preview: None,
+            preview_asked: None,
+            preview_pending: None,
+            preview_epoch: 0,
+            preview_shape: flare_core::ShapeId::new(),
         }
     }
 }

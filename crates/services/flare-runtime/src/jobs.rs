@@ -24,6 +24,18 @@ pub struct RenderJob {
     pub viewport: flare_render::Viewport,
     pub size: [u32; 2],
     pub background: Rgba8,
+    /// Text being typed, shown in place of the text object it edits (or on top of the scene when
+    /// it is new), so the stage never shows the old letters and the new ones together.
+    pub text_preview: Option<TextPreviewRender>,
+}
+
+/// How the stage is drawn while text is edited.
+#[derive(Clone)]
+pub struct TextPreviewRender {
+    /// The text object being edited: its shape is replaced, in its place in the paint order.
+    pub replaces: Option<flare_core::ShapeId>,
+    /// What to draw there instead; none for text that has no letters yet.
+    pub shape: Option<flare_document::Shape>,
 }
 
 /// Sound work, on a worker of its own because decoding a long file takes a while.
@@ -46,6 +58,17 @@ pub enum TextJob {
     },
     /// List the font families there are to set text in.
     Families,
+    /// What `text` looks like while it is being typed, and where the caret goes with the cursor
+    /// before byte `cursor`. The shape has identity `shape` and the corner `origin`.
+    Preview {
+        id: u64,
+        text: String,
+        style: flare_text::TextStyle,
+        origin: flare_core::DocumentPoint,
+        cursor: usize,
+        shape: flare_core::ShapeId,
+        fill: flare_core::Rgba8,
+    },
 }
 
 pub enum IoJob {
@@ -109,6 +132,11 @@ pub enum Done {
     },
     /// The font families there are, sorted.
     Families(Vec<String>),
+    /// Text being typed: its shape so far (none while it has no letters) and its caret.
+    TextPreview {
+        id: u64,
+        result: Result<(Option<flare_document::Shape>, flare_text::Caret), String>,
+    },
     Rendered {
         id: u64,
         result: Result<Rendered, String>,

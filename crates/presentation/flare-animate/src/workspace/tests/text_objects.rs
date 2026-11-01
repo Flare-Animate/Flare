@@ -277,3 +277,106 @@ fn a_double_click_on_text_with_the_selection_tool_opens_the_text_tool_on_it() {
     assert_eq!(edit.buffer, "I I");
     assert!(edit.editing.is_some());
 }
+
+#[test]
+fn while_text_is_edited_the_stage_shows_the_typed_letters_instead_of_the_stored_ones_with_a_caret()
+{
+    let (ctx, mut ws) = (egui::Context::default(), with_text());
+    flare_ui::icons::install(&ctx);
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    let stored = selected_shape(&ws);
+    let id = stored.id();
+    ws.selected = None;
+    let b = shape_bounds_of(&stored);
+    ws.text_click(Pos2::new(b.center().x, b.center().y));
+    assert!(ws.text.preview.is_none(), "nothing asked for yet");
+    assert!(ws.text_preview_render().is_none());
+    let before = ws.text_epoch();
+    run(&mut ws, &ctx, 0.2);
+    run(&mut ws, &ctx, 0.3);
+
+    // The stage is told to draw the stored letters' place with their preview, which at first are
+    // the same letters, and to show a caret after them.
+    let start = ws
+        .text
+        .preview
+        .as_ref()
+        .expect("a preview of the stored text");
+    let letters = start.shape.as_ref().expect("its letters");
+    let width = shape_bounds_of(letters).width();
+    assert!(
+        (width - b.width()).abs() < 1.0,
+        "the same letters: {width} against {}",
+        b.width()
+    );
+    assert!(
+        start.caret.x >= b.max.x - 2.0,
+        "the caret is at the end: {:?}",
+        start.caret
+    );
+    let render = ws
+        .text_preview_render()
+        .expect("the stage draws the preview");
+    assert_eq!(render.replaces, Some(id), "in the place of the stored text");
+    assert_ne!(ws.text_epoch(), before, "so the stage is drawn again");
+
+    // Typing more makes the letters grow, and still replaces the stored text.
+    ws.text.edit.as_mut().expect("edit").buffer = "Hi there".into();
+    run(&mut ws, &ctx, 0.4);
+    run(&mut ws, &ctx, 0.5);
+    let typed = ws.text.preview.as_ref().expect("preview");
+    assert!(shape_bounds_of(typed.shape.as_ref().expect("letters")).width() > width * 2.0);
+
+    // Deleting every letter shows nothing where the text was, not the old letters.
+    ws.text.edit.as_mut().expect("edit").buffer = String::new();
+    run(&mut ws, &ctx, 0.6);
+    run(&mut ws, &ctx, 0.7);
+    let none = ws.text_preview_render().expect("still previewing");
+    assert!(none.shape.is_none() && none.replaces == Some(id));
+
+    // Finishing puts the real text on the stage and the preview away.
+    ws.text.edit.as_mut().expect("edit").buffer = "Done".into();
+    run(&mut ws, &ctx, 0.8);
+    run(&mut ws, &ctx, 0.9);
+    ws.place_text();
+    assert!(
+        ws.text_preview_render().is_none(),
+        "the stored text is in charge again"
+    );
+    assert!(ws.text.preview.is_none());
+    assert_eq!(selected_shape(&ws).text().map(|t| t.text()), Some("Done"));
+}
+
+#[test]
+fn new_text_is_previewed_on_top_of_the_scene_and_a_failed_preview_keeps_the_last() {
+    let (ctx, mut ws) = (egui::Context::default(), text_workspace());
+    flare_ui::icons::install(&ctx);
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    ws.text_click(Pos2::new(300.0, 300.0));
+    run(&mut ws, &ctx, 0.2);
+    run(&mut ws, &ctx, 0.3);
+    let empty = ws.text.preview.as_ref().expect("a caret before any letter");
+    assert!(empty.shape.is_none() && empty.caret.height > 10.0);
+    assert!(
+        ws.text_preview_render()
+            .is_some_and(|r| r.replaces.is_none() && r.shape.is_none())
+    );
+
+    ws.text.edit.as_mut().expect("edit").buffer = "New".into();
+    run(&mut ws, &ctx, 0.4);
+    run(&mut ws, &ctx, 0.5);
+    let render = ws.text_preview_render().expect("preview");
+    assert!(
+        render.replaces.is_none() && render.shape.is_some(),
+        "on top, not in place of anything"
+    );
+    assert_eq!(layer_count(&ws), 1, "and nothing is in the document yet");
+
+    // A size the engine refuses leaves the last picture up rather than the stage blank.
+    ws.text.size = 99_999.0;
+    run(&mut ws, &ctx, 0.6);
+    run(&mut ws, &ctx, 0.7);
+    assert!(ws.text.preview.as_ref().is_some_and(|p| p.shape.is_some()));
+}

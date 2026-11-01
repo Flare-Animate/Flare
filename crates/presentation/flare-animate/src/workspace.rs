@@ -68,6 +68,7 @@ mod tabs;
 #[cfg(test)]
 mod tests;
 mod text;
+mod text_preview;
 mod timeline;
 mod types;
 

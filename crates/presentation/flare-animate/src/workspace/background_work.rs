@@ -91,8 +91,11 @@ impl Workspace {
                     Ok(shape) => self.text_ready(shape, target),
                     Err(message) => self.report(format!("Cannot place text: {message}")),
                 }
+                // The stored letters are back in charge, or the new ones are.
+                self.clear_text_preview();
             }
             Done::Families(families) => self.text.families = families,
+            Done::TextPreview { id, result } => self.text_preview_arrived(id, result),
             Done::Saved {
                 path,
                 document,

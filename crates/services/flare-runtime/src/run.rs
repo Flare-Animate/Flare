@@ -70,6 +70,22 @@ pub fn run_text(job: &TextJob, fonts: &ExtraFonts) -> Done {
             result: text_shape(source, *shape, *fill, fonts),
         },
         TextJob::Families => Done::Families(font_families(fonts)),
+        TextJob::Preview {
+            id,
+            text,
+            style,
+            origin,
+            cursor,
+            shape,
+            fill,
+        } => Done::TextPreview {
+            id: *id,
+            result: with_engine(fonts, |engine| {
+                engine
+                    .preview(text, style, *origin, *cursor, *shape, *fill)
+                    .map_err(|e| e.to_string())
+            }),
+        },
     }
 }
 
@@ -107,7 +123,10 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
             flare_eval::evaluate_frame_without_camera(&job.document, job.scene, frame)
         }
     };
-    let current = evaluate(job.frame).map_err(|e| e.to_string())?;
+    let mut current = evaluate(job.frame).map_err(|e| e.to_string())?;
+    if let Some(preview) = &job.text_preview {
+        show_text_preview(&mut current, preview);
+    }
     // A ghost that fails to evaluate is simply left out; the current frame matters.
     let evaluated: Vec<(flare_eval::Frame<'_>, f32)> = job
         .ghosts
@@ -216,5 +235,28 @@ pub fn run_io(job: IoJob) -> Done {
             id,
             result: flare_storage::save_recovery(&document, &dir).map_err(|e| e.to_string()),
         },
+    }
+}
+
+/// Puts the text being typed where the text it edits is, or on top of the scene if it is new.
+fn show_text_preview(frame: &mut flare_eval::Frame<'_>, preview: &crate::jobs::TextPreviewRender) {
+    use std::borrow::Cow;
+    let position = preview
+        .replaces
+        .and_then(|id| frame.shapes.iter().position(|d| d.shape.id() == id));
+    match (position, &preview.shape) {
+        (Some(at), Some(shape)) => frame.shapes[at].shape = Cow::Owned(shape.clone()),
+        (Some(at), None) => {
+            frame.shapes.remove(at);
+        }
+        (None, Some(shape)) => frame.shapes.push(flare_eval::DrawnShape {
+            path: Vec::new(),
+            shape: Cow::Owned(shape.clone()),
+            phase: 0,
+            transform: glamx::DAffine2::IDENTITY,
+            clips: Vec::new(),
+            outline: flare_core::Rgba8::TRANSPARENT,
+        }),
+        (None, None) => {}
     }
 }

@@ -5,7 +5,7 @@
 //! of, the font worker sets the words into outlines and the shape appears, or replaces the one
 //! being edited.
 
-use egui::{Color32, Key, Pos2, Rect, Stroke, StrokeKind};
+use egui::{Color32, Key, Pos2, Rect, Stroke};
 use flare_core::{DocumentPoint, Rgba8, ShapeId};
 use flare_document::{Content, Shape, TextSource};
 use flare_runtime::TextJob;
@@ -35,7 +35,6 @@ impl Workspace {
     /// have. A press on the stage outside it, Escape, or Ctrl/Cmd+Enter finishes the text.
     pub(super) fn text_editor(&mut self, ctx: &egui::Context, image_rect: Rect, scale: f32) {
         let id = self.text.editor_id;
-        let ink = self.text_ink();
         let px = (self.text.size * scale).clamp(*EDITOR_PX.start(), *EDITOR_PX.end());
         let Some(edit) = self.text.edit.as_mut() else {
             return;
@@ -43,34 +42,39 @@ impl Workspace {
         let at = image_rect.min + edit.at.to_vec2() * scale;
         let mut finish = false;
         let mut editor = None;
+        let mut cursor = 0;
         egui::Area::new(id)
             .fixed_pos(at)
             .order(egui::Order::Foreground)
             .show(ctx, |ui| {
-                let field = ui.add(
-                    egui::TextEdit::multiline(&mut edit.buffer)
-                        .font(egui::FontId::proportional(px))
-                        .text_color(ink)
-                        .frame(egui::Frame::NONE)
-                        .margin(egui::Margin::ZERO)
-                        .desired_rows(1)
-                        .desired_width(px * 4.0)
-                        .lock_focus(true),
-                );
+                // The field only takes the typing: the letters, the caret and the box are drawn
+                // from the font worker's answer (`draw_text_cursor`), in the text's real font.
+                let visuals = ui.visuals_mut();
+                visuals.text_cursor.stroke = Stroke::NONE;
+                visuals.selection.bg_fill = Color32::TRANSPARENT;
+                let output = egui::TextEdit::multiline(&mut edit.buffer)
+                    .font(egui::FontId::proportional(px))
+                    .text_color(Color32::TRANSPARENT)
+                    .frame(egui::Frame::NONE)
+                    .margin(egui::Margin::ZERO)
+                    .desired_rows(1)
+                    .desired_width(px * 4.0)
+                    .lock_focus(true)
+                    .show(ui);
                 if !edit.focused {
-                    field.request_focus();
+                    output.response.request_focus();
                     edit.focused = true;
                 }
-                editor = Some(field.rect);
+                cursor = output
+                    .cursor_range
+                    .map_or(edit.buffer.chars().count(), |range| {
+                        range.primary.index.into()
+                    });
+                editor = Some(output.response.rect);
             });
         let Some(rect) = editor else { return };
-        ctx.layer_painter(egui::LayerId::new(egui::Order::Foreground, id.with("box")))
-            .rect_stroke(
-                rect.expand(3.0),
-                0.0,
-                Stroke::new(1.0, flare_ui::theme::accent()),
-                StrokeKind::Outside,
-            );
+        self.update_text_preview(cursor);
+        self.draw_text_cursor(ctx, image_rect, scale);
         let pressed_outside = ctx.input(|i| {
             i.pointer.any_pressed()
                 && i.pointer
@@ -87,7 +91,7 @@ impl Workspace {
     }
 
     /// The color the text being typed will be: its object's, or the fill for new text.
-    fn text_ink(&self) -> Color32 {
+    pub(super) fn text_ink(&self) -> Color32 {
         let existing = self
             .text
             .edit
@@ -198,6 +202,7 @@ impl Workspace {
             return;
         };
         if edit.buffer.trim().is_empty() {
+            self.clear_text_preview();
             if let (Some(at), Some(scene)) = (edit.editing, self.scene_id()) {
                 self.run_batch(ops::delete(scene, at), "delete text");
                 self.selected = None;
@@ -206,6 +211,7 @@ impl Workspace {
         }
         let existing = edit.editing.and_then(|at| Some((at, self.text_at(at)?.0)));
         let Ok(origin) = DocumentPoint::new(f64::from(edit.at.x), f64::from(edit.at.y)) else {
+            self.clear_text_preview();
             return self.report("Cannot place text: the position is not a number");
         };
         let source = match TextSource::new(
@@ -217,7 +223,10 @@ impl Workspace {
             origin,
         ) {
             Ok(source) => source,
-            Err(error) => return self.report(format!("Cannot place text: {error}")),
+            Err(error) => {
+                self.clear_text_preview();
+                return self.report(format!("Cannot place text: {error}"));
+            }
         };
         self.submit_text_shape(source, existing);
     }

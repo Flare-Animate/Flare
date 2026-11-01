@@ -34,6 +34,7 @@ fn render_job(runtime: &mut Runtime, document: &Arc<Document>) -> RenderJob {
         viewport: flare_render::Viewport::full(16, 8),
         size: [16, 8],
         background: Rgba8::WHITE,
+        text_preview: None,
     }
 }
 
@@ -148,4 +149,80 @@ fn job_numbers_are_never_reused() {
     let a = runtime.next_id();
     let b = runtime.next_id();
     assert_ne!(a, b);
+}
+
+/// A document with one red 8 by 8 square at the corner, and that square's identity.
+fn with_square() -> (Arc<Document>, flare_core::ShapeId) {
+    use flare_document::{Content, FrameSpan, Shape};
+    let id = flare_core::ShapeId::new();
+    let square = Shape::rect(id, 0.0, 0.0, 8.0, 8.0, Rgba8::opaque(255, 0, 0)).expect("shape");
+    let span = FrameSpan::new(0, std::num::NonZeroU32::MIN, Content::Shape(square));
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![span]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "Scene", Timeline::new(vec![layer]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    (Arc::new(document), id)
+}
+
+fn pixel_of(done: Done, x: usize, y: usize) -> [u8; 4] {
+    let Done::Rendered {
+        result: Ok(rendered),
+        ..
+    } = done
+    else {
+        panic!("a rendered frame");
+    };
+    let (width, bytes) = match &rendered {
+        Rendered::Premultiplied(image) => (image.width() as usize, image.rgba()),
+        Rendered::Straight(image) => (image.width() as usize, image.rgba()),
+    };
+    let at = (y * width + x) * 4;
+    [bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]
+}
+
+#[test]
+fn text_being_typed_takes_the_place_of_the_text_it_edits_or_goes_on_top_if_it_is_new() {
+    use flare_document::Shape;
+    let mut runtime = Runtime::inline();
+    let (document, square) = with_square();
+    let blue = |id| Shape::rect(id, 0.0, 0.0, 8.0, 8.0, Rgba8::opaque(0, 0, 255)).expect("shape");
+    let draw = |runtime: &mut Runtime, preview: Option<TextPreviewRender>| {
+        let mut job = render_job(runtime, &document);
+        job.text_preview = preview;
+        pixel_of(run_render(&job), 2, 2)
+    };
+    assert_eq!(
+        draw(&mut runtime, None),
+        [255, 0, 0, 255],
+        "the document as it is"
+    );
+    // Replaced: only the new letters show, where the old ones were.
+    let replaced = TextPreviewRender {
+        replaces: Some(square),
+        shape: Some(blue(flare_core::ShapeId::new())),
+    };
+    assert_eq!(draw(&mut runtime, Some(replaced)), [0, 0, 255, 255]);
+    // Replaced by nothing (all the letters were deleted): the old ones are gone too.
+    let emptied = TextPreviewRender {
+        replaces: Some(square),
+        shape: None,
+    };
+    assert_eq!(draw(&mut runtime, Some(emptied)), [255, 255, 255, 255]);
+    // New text is drawn over the scene.
+    let fresh = TextPreviewRender {
+        replaces: None,
+        shape: Some(blue(flare_core::ShapeId::new())),
+    };
+    assert_eq!(draw(&mut runtime, Some(fresh)), [0, 0, 255, 255]);
+    // Something that is no longer there to replace changes nothing.
+    let gone = TextPreviewRender {
+        replaces: Some(flare_core::ShapeId::new()),
+        shape: None,
+    };
+    assert_eq!(draw(&mut runtime, Some(gone)), [255, 0, 0, 255]);
 }
