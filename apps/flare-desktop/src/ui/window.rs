@@ -10,6 +10,15 @@ use flare_animate::{WindowRequest, Workspace};
 use winit::event_loop::{ActiveEventLoop, ControlFlow};
 use winit::window::Window;
 
+/// The egui context of the app. It says the app shows more than one operating-system window:
+/// without that, egui draws a child viewport as an egui window inside its parent, and
+/// `show_viewport_deferred` (what keeps the Test Movie's viewport alive) would draw an empty one.
+pub(super) fn new_context() -> egui::Context {
+    let ctx = egui::Context::default();
+    ctx.set_embed_viewports(false);
+    ctx
+}
+
 /// Frees the textures a frame left to free.
 ///
 /// Painting skips a frame it has no surface texture for (a window covered by another, minimized
@@ -98,10 +107,17 @@ impl Gpu {
         &mut self,
         ctx: &egui::Context,
         workspace: &mut Workspace,
+        #[cfg_attr(not(feature = "ruffle"), allow(unused_variables))] movie_open: bool,
         event_loop: &ActiveEventLoop,
     ) {
         let raw = self.state.take_egui_input(&self.window);
-        let mut output = ctx.run_ui(raw, |ui| workspace.show(ui));
+        let mut output = ctx.run_ui(raw, |ui| {
+            workspace.show(ui);
+            #[cfg(feature = "ruffle")]
+            if movie_open {
+                super::movie_window::keep_viewport(ui.ctx());
+            }
+        });
         self.state
             .handle_platform_output(&self.window, output.platform_output.clone());
         self.window.set_title(&workspace.title());

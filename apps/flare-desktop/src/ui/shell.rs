@@ -136,6 +136,11 @@ impl App {
             Err(error) => return dialogs::message("Cannot start Test Movie", &error),
         };
         let Some(gpu) = &mut self.gpu else { return };
+        // One Test Movie window at a time. The old one goes first: the new one would share its
+        // viewport, and with it the old window's surface, and so have nothing to draw on.
+        if let Some(old) = self.movie.take() {
+            old.release(&mut gpu.painter);
+        }
         let scale = gpu.window.scale_factor() as f32;
         match super::movie_window::MovieViewport::open(
             event_loop,

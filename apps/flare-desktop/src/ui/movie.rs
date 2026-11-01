@@ -262,7 +262,7 @@ impl MovieWindow {
         }
         // Sound plays at normal speed only: at any other it would be out of step with the picture.
         let _ = self.movie.set_muted(self.muted || self.speed != 1.0);
-        self.closed = close;
+        self.closed |= close;
     }
 
     /// Lets `elapsed` of movie time pass. Without looping, the movie is paused as it reaches its

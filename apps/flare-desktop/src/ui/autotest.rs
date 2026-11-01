@@ -14,8 +14,10 @@ use super::UserEvent;
 pub(crate) enum Step {
     /// Do what the menu item does.
     Menu(MenuAction),
-    /// Close the Test Movie window as its Close button does.
+    /// Ask the Test Movie window to close, as its close box does.
     CloseMovie,
+    /// End the run. Not the Quit command: with the unsaved change that asks first.
+    Exit,
 }
 
 /// Opens a full-HD project and starts the timers: Test Movie, then its window closes, the editor is
@@ -24,13 +26,18 @@ pub(super) fn start(workspace: &mut Workspace, proxy: EventLoopProxy<UserEvent>)
     // Full HD, so that the Test Movie window is big enough to cover the editor's own: a covered
     // window gets no surface texture, and the editor must go on drawing when it is uncovered.
     workspace.new_project(1920, 1080, 24);
+    // An unsaved change, so that a close request that reached the editor would ask what to do
+    // with it in a native alert, which blocks the run.
+    workspace.perform(MenuAction::NewLayer);
     std::thread::spawn(move || {
         let script = [
             (2, Step::Menu(MenuAction::TestMovie)),
-            (6, Step::CloseMovie),
+            // A second Test Movie while the first is open takes its place.
+            (3, Step::Menu(MenuAction::TestMovie)),
+            (4, Step::CloseMovie),
             (1, Step::Menu(MenuAction::ZoomIn)),
             (1, Step::Menu(MenuAction::ZoomIn)),
-            (1, Step::Menu(MenuAction::Quit)),
+            (1, Step::Exit),
         ];
         for (wait, step) in script {
             std::thread::sleep(Duration::from_secs(wait));

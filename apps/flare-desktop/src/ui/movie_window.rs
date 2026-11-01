@@ -23,6 +23,22 @@ const SCREEN_SHARE: (f64, f64) = (0.94, 0.86);
 /// The room to open in when there is no monitor to ask.
 const FALLBACK_ROOM: egui::Vec2 = egui::vec2(1400.0, 900.0);
 
+/// The Test Movie window's viewport in egui.
+pub(crate) fn viewport_id() -> ViewportId {
+    ViewportId::from_hash_of("flare-test-movie")
+}
+
+/// Says, in the editor's own pass, that the Test Movie viewport is still in use.
+///
+/// At the end of each pass egui removes the child viewports that pass did not declare, with
+/// everything it remembered of them: the rectangles of their widgets from the pass before, which
+/// is what a click is tested against. Without this, every frame of the editor between two frames
+/// of the Test Movie wipes them, and none of its controls can be clicked. The callback is never
+/// run: the window is drawn by `MovieViewport`, not by egui's own viewport machinery.
+pub(crate) fn keep_viewport(ctx: &egui::Context) {
+    ctx.show_viewport_deferred(viewport_id(), egui::ViewportBuilder::default(), |_, _| {});
+}
+
 /// What an event asked of the window.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum Wish {
@@ -71,7 +87,7 @@ impl MovieViewport {
                 .create_window(attributes)
                 .context("create the Test Movie window")?,
         );
-        let id = ViewportId::from_hash_of("flare-test-movie");
+        let id = viewport_id();
         let state = egui_winit::State::new(
             ctx.clone(),
             id,

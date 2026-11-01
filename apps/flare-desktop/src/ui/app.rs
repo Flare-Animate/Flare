@@ -36,7 +36,7 @@ impl App {
             proxy,
             #[cfg(target_os = "macos")]
             menu: None,
-            ctx: egui::Context::default(),
+            ctx: super::window::new_context(),
             workspace,
             gpu: None,
             fatal: None,
@@ -65,7 +65,11 @@ impl App {
 
     fn redraw(&mut self, event_loop: &ActiveEventLoop) {
         let Some(gpu) = &mut self.gpu else { return };
-        gpu.frame(&self.ctx, &mut self.workspace, event_loop);
+        #[cfg(feature = "ruffle")]
+        let movie_open = self.movie.is_some();
+        #[cfg(not(feature = "ruffle"))]
+        let movie_open = false;
+        gpu.frame(&self.ctx, &mut self.workspace, movie_open, event_loop);
         if let Some(player) = &self.player {
             player.apply(self.workspace.take_audio_events());
         } else {
@@ -105,9 +109,11 @@ impl App {
                 }
                 self.after_actions(event_loop);
             }
+            Step::Exit => event_loop.exit(),
             Step::CloseMovie => {
-                if let (Some(movie), Some(gpu)) = (self.movie.take(), &mut self.gpu) {
-                    movie.release(&mut gpu.painter);
+                // The event the window's close box sends, through the same routing.
+                if let Some(id) = self.movie.as_ref().map(|movie| movie.window.id()) {
+                    self.window_event(event_loop, id, WindowEvent::CloseRequested);
                 }
             }
         }
