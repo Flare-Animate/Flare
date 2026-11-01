@@ -81,7 +81,7 @@ The web build is experimental and not released.
 
 ## Building locally
 
-macOS, from a release build (`cargo build --release -p flare-desktop`):
+macOS, from a release build (`cargo build --release -p flare-desktop`). The disk image has a plain background with an arrow from `Flare.app` to Applications, `assets/packaging/macos/dmg-background.png` and its `@2x`, as the other Craft projects have:
 
 ```
 python3 scripts/packaging/package_macos.py --binary target/release/flare-desktop --output target/macos/Flare.app

@@ -135,6 +135,9 @@ def build_disk_image(app, archive):
         "format": "UDZO",
         "files": [str(app)],
         "symlinks": {"Applications": "/Applications"},
+        # A plain background with an arrow from the app to Applications, as the other Craft
+        # projects have; dmgbuild finds the @2x file beside it for Retina screens.
+        "background": str(ROOT / "assets/packaging/macos/dmg-background.png"),
         "window_rect": ((200, 200), (640, 270)),
         "default_view": "icon-view",
         "icon_size": 128,

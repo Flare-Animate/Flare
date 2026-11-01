@@ -11,6 +11,19 @@ class ReleaseContract(unittest.TestCase):
     def test_the_workspace_version_is_valid(self):
         self.assertRegex(release.workspace_version(), r"^\d+\.\d+\.\d+")
 
+    def test_the_dmg_background_is_a_retina_pair_and_the_packager_uses_it(self):
+        # Flare's disk image has the plain background with an arrow that the other Craft
+        # projects have: a 640 x 160 picture and its @2x, which dmgbuild combines.
+        import struct
+
+        folder = Path(__file__).resolve().parents[2] / "assets/packaging/macos"
+        for name, size in (("dmg-background.png", (640, 160)), ("dmg-background@2x.png", (1280, 320))):
+            data = (folder / name).read_bytes()
+            self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n", name)
+            self.assertEqual(struct.unpack(">II", data[16:24]), size, name)
+        source = (Path(__file__).resolve().parents[1] / "packaging/package_macos.py").read_text()
+        self.assertIn("dmg-background.png", source)
+
     def test_a_tag_must_match_the_version(self):
         with self.assertRaises(ValueError):
             release.validate("v9.9.9")
