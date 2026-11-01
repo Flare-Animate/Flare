@@ -60,6 +60,7 @@ Flare empezó como un espacio de pruebas para que aprender animación fuera más
 Lo siguiente, lo más importante primero. Casi todo se muestra atenuado en la interfaz. [docs/ROADMAP.md](../ROADMAP.md) repite esta lista y sigue con todo lo de menor prioridad.
 
 - Dibujo de fusión: las formas de mapa planar de Flash, donde las formas superpuestas se cortan y se fusionan (hoy las formas son objetos separados)
+- Abrir archivos SWF: leer un SWF publicado como proyecto editable (sus formas, símbolos y línea de tiempo), con `.swf` registrado en el sistema operativo
 - Calidad de dibujo: dinámica del pincel y vectorización de un mapa de bits en formas vectoriales
 - SWF que conserva más del documento: botones con sus estados, interpolaciones de forma como morfos, máscaras de varias formas y sonidos dentro de símbolos
 - Un Editor de movimiento: gráficos por propiedad y curvas de suavizado personalizadas para las interpolaciones

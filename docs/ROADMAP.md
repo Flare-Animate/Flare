@@ -13,6 +13,7 @@ maintainer's to reorder.
 ### High priority
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
+- Opening SWF files: reading a published SWF into an editable project (its shapes, symbols and timeline), with `.swf` registered with the operating system
 - Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
 - A Motion Editor: per-property graphs and custom ease curves for tweens
@@ -47,7 +48,7 @@ Interface
 
 Formats
 - Reading the old binary `.fla` (CS4 and before), which is recognised and refused today
-- Opening a SWF as a document, `.sol` shared objects, importing video, and Moho projects
+- `.sol` shared objects, importing video, and Moho projects
 
 Sharing and releases
 - Sharing from the Share menu to YouTube and other services

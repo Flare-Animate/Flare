@@ -60,6 +60,7 @@ Flare begann als Spielwiese, um Animation leichter erlernbar zu machen, wurde sp
 Als Nächstes, das Wichtigste zuerst. Das meiste ist in der Oberfläche abgedunkelt zu sehen. [docs/ROADMAP.md](../ROADMAP.md) wiederholt diese Liste und führt alles mit niedrigerer Priorität auf.
 
 - Zeichnen mit Verschmelzung: Flashs planare Formen, bei denen sich überlappende Formen gegenseitig schneiden und verschmelzen (heute sind Formen getrennte Objekte)
+- SWF-Dateien öffnen: ein veröffentlichtes SWF als bearbeitbares Projekt einlesen (Formen, Symbole und Zeitleiste), mit `.swf` beim Betriebssystem registriert
 - Zeichenqualität: Pinseldynamik und das Nachzeichnen einer Bitmap in Vektorformen
 - SWF, das mehr vom Dokument behält: Schaltflächen mit ihren Zuständen, Formtweens als Morphs, Masken aus mehreren Formen und Töne in Symbolen
 - Ein Motion Editor: Diagramme je Eigenschaft und eigene Ease-Kurven für Tweens

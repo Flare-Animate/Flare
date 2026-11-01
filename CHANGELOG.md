@@ -4,45 +4,29 @@ All notable changes are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.1.0] - not yet released
 
-### Fixed
-- Lines, rectangles and ovals no longer flash when they are let go: they stay on screen from the release until the picture with the new shape arrives, as brush strokes already did.
-- The controls of the Test Movie window could not be clicked: egui forgot the window's widgets each time the editor drew a frame. A second Test Movie now replaces the first instead of sharing its surface.
-- Debug builds panicked ("Dropped TexturesDelta with 8 unapplied deltas") when the Test Movie window covered the editor: a window with no surface texture skips its frame, leaving the textures it had to free, which egui treats as a fault. They are freed by the app now.
-- Test Movie plays in a window of its own, not inside the editor's: the picture fills it, and under it a bar has a clock and frame at the left, one centered box (Restart, Pause or Play, Step one frame, a playback speed drop-down of 0.25x to 2x, a loop switch that holds the last frame when off, a sound switch) and Close at the right.
-- Test Movie in the window showed a blank picture: the texture it showed was one the player had already replaced when it set its size. A test now paints the window off-screen and finds the movie's picture in it.
-
-### Changed
-- The Publish popup's Publish button is in its bottom right corner, where Close was, with Close beside it. The black-and-white and swap buttons under the color squares sit side by side above them, as in Animate.
-- The zstd library is 0.14 (0.13 has advisories).
+The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
 
 ### Added
+- Test Movie plays in a window of its own, with Ruffle running in the same process on the editor's own GPU device, with sound. The picture fills the window, which opens at the movie's own size when the screen has room; under it a bar has a clock and frame at the left, one centered box (Restart, Pause or Play, Step one frame, a playback speed drop-down of 0.25x to 2x, a loop switch that holds the last frame when off, a sound switch) and Close at the right. Control > Test Movie and a right click on the Play button at the top open it. Building without the `ruffle` feature starts an external Ruffle instead.
 - With the Subselection tool, a click on a point of the selected shape chooses it (it is drawn filled), and Delete or Backspace takes it out of the outline (one undo step) instead of deleting the shape.
 - Timeline: a right-click menu on frames (insert frame, keyframe or blank keyframe, clear keyframe, remove frames, create a motion or shape tween, cut, copy, paste, select all, reverse), Edit > Timeline > Cut Frames and Select All Frames (Ctrl+Alt+X, Ctrl+Alt+A), and Modify > Timeline > Reverse Frames: the keyframes of the selected frames in the opposite order, a tween going with the pair it joined and its easing reversed. `flare frame remove-frames` and `reverse-frames` (with `--to`) and the MCP operations `remove_frames` and `reverse_frames` do the same from scripts.
-- Right-clicking the Play button at the top offers Test Movie. The Test Movie window opens at the movie's own size when the screen has room.
 - The Add (`=`), Delete (`-`) and Convert (`C`) Anchor Point tools, in the Pen's cell: click an outline to put a point there (a curve keeps its shape), click a point to take it out (the outline joins across the gap), click a curve point to make it a corner, drag from a corner to pull out smooth handles. Each is one undo step.
-- The status bar shows the stage size and frame rate (a click opens the document settings) where the zoom percentage was, which the bar above the stage already has.
+- The status bar shows the stage size and frame rate; a click on them opens the document settings.
 - The scene can be renamed by double-clicking its name in the bar above the stage (Enter or leaving the box keeps it, Escape drops it), with `flare rename-scene` and the MCP tool `rename_scene`; the name is trimmed, 1 to 256 characters, and one undo step.
-- `flare open [projects...]` starts the desktop app on the given files. The app's program is now `flare-desktop` on Linux (`/usr/bin/flare-desktop`) and Windows, so it no longer shares the name `flare` with the command line on `PATH`.
+- `flare open [projects...]` starts the desktop app on the given files. The app's program is `flare-desktop` on Linux (`/usr/bin/flare-desktop`) and Windows, so it does not share the name `flare` with the command line on `PATH`.
 - A scene can have a camera layer whose keyframes (position, zoom, rotation) and motion tweens change the picture in every render and export; the SWF and HTML5 pages show it too (real Ruffle draws the same picture); `flare camera` and the MCP tool `set_camera` point it; the Camera tool, its Properties and a preview are in the editor; XFL support is still to come (see docs/ROADMAP.md).
 - SWF publishing keeps symbols: each becomes a sprite defined once, each instance a placement of it, with the clock its playback says (a looping Graphic and a Movie Clip loop, a Graphic that plays once ends on `stop()`, a held frame is one frame, a Button shows its Up state, and a new span starts the symbol again). Real Ruffle plays the result on the clocks Flare predicts. Tweens are still baked.
 - French is an interface language (Preferences > General > Language, and followed from a French system), and the README is translated into every interface language, with a test that keeps the two lists together.
-- `flare export --format gif` (the command line is now `flare`; the crate is still `flare-cli`), and MCP tools `export_gif`, `publish_swf`, `publish_html5`, `export_xfl` and `import_project`: they write into the export directory only, never overwrite, and report what the format could not hold. `flare export --format mp4` and the MCP tool `export_mp4` write the video too, so the command line and MCP server have every export the desktop app has.
+- `flare export --format gif`, and MCP tools `export_gif`, `publish_swf`, `publish_html5`, `export_xfl` and `import_project`: they write into the export directory only, never overwrite, and report what the format could not hold. `flare export --format mp4` and the MCP tool `export_mp4` write the video too, so the command line and MCP server have every export the desktop app has.
 - The Polygon lasso (in the Lasso cell): click the corners of a loop, then double-click, press Enter or click the first corner to select what it encloses; Shift adds to the selection and Escape drops the loop.
-- Test Movie plays inside the desktop app: a window in the editor shows the movie with Ruffle running in the same process, on the editor's own GPU device, with sound (Pause/Play and Restart). Building without the `ruffle` feature starts an external Ruffle instead.
 - `flare-ruffle`'s `embedded` feature runs Ruffle inside the process on a wgpu device it is given: a published movie plays over time into a texture, with sound through Ruffle's mixer (tested: frames advance with the time given, pausing holds, the sound we publish is heard).
 - Test Movie works in the browser: the page runs Ruffle's WebAssembly build (`@ruffle-rs/ruffle` 0.7.1, vendored with its licences, fetched on first use) in an overlay over the editor.
 - `scripts/build_ruffle.sh` builds Ruffle's desktop player from the pinned checkout, and Test Movie has been run against it (an ignored test opens a published movie in it and checks it keeps playing).
 - Ruffle is pinned as a submodule at third_party/ruffle, and `flare-ruffle`'s `render-check` feature has Ruffle's exporter render published SWFs and compares them with Flare's render (solid shapes, a gradient and a mask agree).
 - SWF publishing writes linear gradients as gradient fills (matrix placing the first color at the start and the last at the end) and masks of one shape as clip layers; masks of several shapes and masks inside masks are reported and left out.
 - SWF publishing writes sounds: each cued sound is defined once as uncompressed 16-bit audio at the nearest SWF sample rate at or above its own, and started at every cue, with scenes offsetting the frames. The total is bounded.
-
-## [0.1.0] - not yet released
-
-The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
-
-### Added
 - A document model with scenes, layers (including mask, folder and motion guide layers), frame
   spans, shapes with strokes and gradients, symbols, and sounds. Every change is a validated
   command batch and one undo step.
@@ -57,7 +41,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - Symbols have a type (Graphic, Movie Clip or Button), chosen when making one or changed in the Library, saved in the project and exchanged through XFL. A Button shows its Up state in the stage and in every export, instead of looping through its frames, and a Graphic instance has Animate's Looping options (Loop, Play Once, Single Frame, and the first frame) in the Object tab, kept in the project and in XFL.
 - A Home page at launch: new-project sizes, Open, Import and recent projects, each with when the file was last changed and its size, and a search box.
 - The Brush has a nib (Round or Square, with an angle and a flatness) that shapes the stroke; the
-  nib and size are kept between sessions. New, choose and Delete keep named custom brushes, and the Brush shows its nib as an outline at the pointer. A brush stroke drawn with smoothing at 0 no longer crosses itself in slivers, so it no longer jumps when the pointer is released, and a Pencil or Brush stroke no longer blinks out for a frame at release.
+  nib and size are kept between sessions. New, choose and Delete keep named custom brushes, and the Brush shows its nib as an outline at the pointer. A brush stroke drawn with smoothing at 0 does not cross itself in slivers, so it does not jump when the pointer is released. Strokes, lines, rectangles and ovals stay on screen from the moment the pointer is let go until the picture that includes them arrives, so nothing flashes.
 - Pencil and Brush can draw a straight line (option, or hold Shift) and mirror each stroke across
   one or two axes; Modify > Transform > Mirror Copy makes a reflected copy of the selection.
 - Timeline (Control > Go to End, and the comma and period step a frame as in Animate) with frames, keyframes, layers, folders, onion skin, linear motion tweens and motion
@@ -76,5 +60,4 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 - An experimental web build, which opens and saves `.flare` files (SQLite and zstd as WebAssembly) as well as importing Animate files.
 - File > Export > Flash Document writes a `.fla` Animate can open.
 
-[Unreleased]: https://github.com/Flare-Animate/Flare/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Flare-Animate/Flare/releases/tag/v0.1.0

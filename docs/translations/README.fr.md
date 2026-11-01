@@ -60,6 +60,7 @@ Flare a commencé comme un terrain d'essai pour rendre l'animation plus facile �
 Les prochaines étapes, les plus importantes d'abord. La plupart est affiché estompé dans l'interface. [docs/ROADMAP.md](../ROADMAP.md) reprend cette liste et continue avec tout ce qui est de moindre priorité.
 
 - Dessin par fusion : les formes à carte planaire de Flash, où les formes qui se chevauchent se découpent et fusionnent (aujourd'hui les formes sont des objets séparés)
+- Ouvrir les fichiers SWF : lire un SWF publié comme projet modifiable (ses formes, symboles et scénario), avec `.swf` enregistré auprès du système d'exploitation
 - Qualité du dessin : dynamique du pinceau et vectorisation d'une image bitmap en formes vectorielles
 - Un SWF qui garde davantage du document : boutons avec leurs états, interpolations de forme en morphes, masques de plusieurs formes et sons dans les symboles
 - Un éditeur de mouvement : graphiques par propriété et courbes d'accélération personnalisées pour les interpolations
