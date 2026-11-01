@@ -1,7 +1,7 @@
 //! The stage panel.
 
 use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
-use flare_tools::handles::{self, Handle};
+use flare_tools::free_transform::handles::{self, Handle};
 use glamx::DVec2;
 
 use flare_input::{InputSample, PointerKind};
@@ -379,7 +379,13 @@ impl Workspace {
             .drag
             .filter(|d| d.mode == DragMode::Move)
             .map_or(Vec2::ZERO, |d| d.current - d.start);
-        for bounds in self.selection_rects() {
+        // While text is typed the box around it is the editor's, not the stored text's.
+        let boxes = if self.text.edit.is_some() {
+            Vec::new()
+        } else {
+            self.selection_rects()
+        };
+        for bounds in boxes {
             let shown = bounds.translate(moving);
             let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
             painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);

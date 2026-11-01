@@ -380,3 +380,42 @@ fn new_text_is_previewed_on_top_of_the_scene_and_a_failed_preview_keeps_the_last
     run(&mut ws, &ctx, 0.7);
     assert!(ws.text.preview.as_ref().is_some_and(|p| p.shape.is_some()));
 }
+
+/// How many selection boxes (the stage's blue outline around what is selected) a pass draws.
+fn selection_boxes(ws: &mut Workspace, ctx: &egui::Context, time: f64) -> usize {
+    let mut out = ctx.run_ui(input(time, vec![]), |ui| ws.show(ui));
+    out.textures_delta.clear();
+    out.shapes
+        .iter()
+        .filter(|s| {
+            matches!(&s.shape, egui::epaint::Shape::Rect(r)
+                if r.stroke.color == egui::Color32::from_rgb(40, 120, 255))
+        })
+        .count()
+}
+
+#[test]
+fn the_selection_box_of_the_stored_text_is_not_drawn_while_the_text_is_edited() {
+    let (ctx, mut ws) = (egui::Context::default(), with_text());
+    flare_ui::icons::install(&ctx);
+    run(&mut ws, &ctx, 0.0);
+    assert_eq!(
+        selection_boxes(&mut ws, &ctx, 0.1),
+        1,
+        "selected text has its box"
+    );
+    ws.set_tool(Tool::Select);
+    assert!(ws.edit_selected_text());
+    run(&mut ws, &ctx, 0.2);
+    assert_eq!(
+        selection_boxes(&mut ws, &ctx, 0.3),
+        0,
+        "the editor's box is the only one while typing"
+    );
+    ws.place_text();
+    assert_eq!(
+        selection_boxes(&mut ws, &ctx, 0.4),
+        1,
+        "and it is back afterwards"
+    );
+}
