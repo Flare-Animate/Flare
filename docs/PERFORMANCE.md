@@ -25,7 +25,7 @@ goes and what a change bought, not what any other machine will do.
    undo and redo bring back pictures already drawn without drawing them again (the cache holds
    the snapshot, which also keeps its address from being reused). Caches have a byte budget and a size cap, and drop
    entries of document states that can no longer be shown.
-6. **Every unit of work is bounded** (see `engineering.md`) and uses threads only above a
+6. **Every unit of work is bounded** (see `ENGINEERING.md`) and uses threads only above a
    measured size: below it, starting workers costs more than it saves.
 7. **Stale results are dropped, not shown.** Jobs carry ids; only the newest request's result
    is installed. A result for a document that changed must not replace the user's work.
@@ -75,7 +75,7 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
   the window wait. One thing is still on the callback thread: a sound that finishes drops its
   `Arc`, which frees memory only if it was the last owner (the window keeps the decoded sound).
 - **zerocopy, rkyv, encase, half** have no site yet. The project file's records are CBOR,
-  compressed with zstd (see architecture.md); at 10 000 shapes the old JSON opened in 31 ms and
+  compressed with zstd (see ARCHITECTURE.md); at 10 000 shapes the old JSON opened in 31 ms and
   the new records are a seventh the size, so reading numbers in place is not justified by
   measurement. `encase` and GPU-layout types arrive with a GPU renderer.
 - **kurbo, tracing, smallvec, indexmap, slotmap, hashbrown, bumpalo** have no site yet and are

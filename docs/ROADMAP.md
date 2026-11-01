@@ -7,7 +7,7 @@ Status is evidence-based: a milestone item is done only when it has tests.
 The high-priority list is the Roadmap in [README.md](../README.md) and is repeated here word for
 word; the lower-priority list and what is not planned follow it. Priority is how much a person
 animating with Flare misses the thing, not how hard it is. It was drawn up from a review of
-`original/` (see [parity.md](parity.md)) and from Animate's own feature list, and it is the
+`original/` (see [PARITY.md](PARITY.md)) and from Animate's own feature list, and it is the
 maintainer's to reorder.
 
 ### High priority
@@ -60,12 +60,12 @@ Tooling for the project
 - A pre-commit hook that runs the format check before a commit (the old project had one that kept
   its docs in step with the code)
 - [codesight](https://www.npmjs.com/package/codesight) keeps `.codesight/`, an AI-readable map of
-  the code that is not committed: `npx codesight --wiki --watch` (see [engineering.md](engineering.md))
+  the code that is not committed: `npx codesight --wiki --watch` (see [ENGINEERING.md](ENGINEERING.md))
 
 ### Not planned
 
 Android, P2P remote control, a game engine, Adobe/Harman AIR and Flex SDK targets, and OpenToonz's
-raster painting, FX schematic and xsheet. [parity.md](parity.md) says why for each.
+raster painting, FX schematic and xsheet. [PARITY.md](PARITY.md) says why for each.
 
 | Milestone | Scope | Status |
 |---|---|---|
@@ -82,7 +82,7 @@ If drawing, exporting and playing do not all work well, Flare is not released. W
 
 1. **MP4**: done, in pure Rust and desktop only (`flare-video`: `rusty_h264` for the picture, OxideAV's `oxideav-aac` for the sound, `muxide` for the container). Checked against the decoders of `rusty_h264` and `oxideav-aac` and, where one is installed, against ffprobe and ffmpeg. The sound encoder's one-frame delay is cancelled by holding the first picture that long (the container has no edit list), pinned by a test against the encoder itself. `rusty_h264` runs with its SIMD kernels (1.9 times faster than the scalar build on arm64, same bytes out; not measured on x86-64). Shipping H.264 and AAC encoders is accepted, as every media application does. Not measured: how the encoders hold up on long real animation and music.
 2. **Symbols that behave like Animate's.** Today every symbol is evaluated as a Graphic that loops with its parent (`flare-eval`), so a Button plays all of its frames instead of showing its Up state, a Graphic has no Loop, Play Once or Single Frame option with a first frame, and a Movie Clip has no clock of its own beyond that loop. Needs the instance's playback options in the document model, the file format and XFL, Properties controls, and the evaluator.
-3. **Merge drawing**: Flash's planar-map shapes, where overlapping shapes cut and merge each other and strokes and fills are edited separately. The largest gap in [parity.md](parity.md) and a change to the document model, not a feature on top of it.
+3. **Merge drawing**: Flash's planar-map shapes, where overlapping shapes cut and merge each other and strokes and fills are edited separately. The largest gap in [PARITY.md](PARITY.md) and a change to the document model, not a feature on top of it.
 4. **Camera**: done in code: a camera layer and tool whose keyframed position, zoom and rotation drive every export, the SWF and HTML5 pages, and a preview of the stage (real Ruffle draws the same picture as Flare). Still to do: someone using it by hand, XFL import and export of the camera, a camera that follows frames added to the movie, and attaching layers to it.
 5. **Timeline controls** good enough to animate with, and **Ruffle** playback proven against a real player.
 6. **SWF that keeps its symbols**: symbols are published as sprites, each on the clock its playback says, and a real Ruffle plays them as Flare does (done). Still to do: buttons as buttons with their states (`DefineButton2`; today a Button is a sprite showing its Up state), shape tweens as morphs (`DefineMorphShape`; today each step is its own shape), masks of several shapes, and sounds inside symbols. The HTML5 page is still baked.
@@ -127,7 +127,7 @@ merge was resolved by hand and the merged result is tested as a whole.
 
 ## Interface follow-ups
 
-The interface is laid out in full and the planned parts are dimmed (see [ui.md](ui.md)). Each of
+The interface is laid out in full and the planned parts are dimmed (see [UI.md](UI.md)). Each of
 these replaces a mock with the real feature: the missing tools, the editable property fields, the
 Align, Transform and History panels, library management, the color panel's editors, the timeline
 extras, and the remaining menu commands.

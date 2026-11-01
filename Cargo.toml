@@ -1,4 +1,4 @@
-# Flare workspace. See docs/architecture.md and docs/engineering.md.
+# Flare workspace. See docs/ARCHITECTURE.md and docs/ENGINEERING.md.
 # Members are real packages with code and tests; add a crate when it has both.
 [workspace]
 resolver = "3"

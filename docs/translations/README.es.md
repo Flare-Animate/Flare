@@ -24,7 +24,11 @@ Una herramienta de animación libre y de código abierto, en el espíritu de Ado
 - Reproduzca la animación con sonido; Probar película ejecuta el SWF publicado en Ruffle.
 - Abra y guarde proyectos `.flare`. Importe y exporte XFL y `.fla` de Animate.
 - Exporte PNG, GIF y MP4, y publique un SWF o una página HTML5 Canvas.
-- Una línea de comandos (`flare`) para crear, editar, exportar y publicar proyectos desde scripts.
+- Una interfaz de línea de comandos (`flare`) para crear, editar, exportar y publicar proyectos desde scripts.
+
+### Descargas
+
+Habrá descargas para Windows, macOS y Linux, pero todavía no hay ninguna. Las añadiremos aquí cuando el empaquetado esté terminado. Hasta entonces, se compila desde el código fuente (abajo).
 
 ### Compilar y ejecutar
 
@@ -36,8 +40,6 @@ Rust está fijado en `rust-toolchain.toml`. Ruffle es un submódulo de git, así
 
 En Linux instale las bibliotecas indicadas en [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
-Las versiones generan paquetes nativos para macOS, Windows y Linux en x64 y arm64: un DMG, un MSI y un zip portátil, y archivos `.deb`, `.rpm` y AppImage, además de la línea de comandos como archivo aparte. Todavía no se ha publicado ninguna versión, así que por ahora compile desde el código. [docs/release.md](../release.md) describe los paquetes y cómo se hace una versión.
-
 ### Línea de comandos
 
     flare new project.flare --width 1280 --height 720
@@ -47,9 +49,15 @@ Las versiones generan paquetes nativos para macOS, Windows y Linux en x64 y arm6
     flare publish-html5 project.flare page.html
     flare --help
 
+### Por qué existe Flare
+
+Adobe [anunció](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) el fin de vida de Animate y después [dio marcha atrás](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). Aunque rectificó, esto demuestra lo volátil que es la industria de la animación y cuánto la dominan ciertas empresas. Los animadores entraron en pánico con razón. La carrera de las personas no debería depender de que una empresa decida seguir vendiendo un producto.
+
+Flare empezó como un espacio de pruebas para que aprender animación fuera más fácil, más tarde se publicó como código abierto y creció desde ahí.
+
 ### Hoja de ruta
 
-Lo siguiente, lo más importante primero. Casi todo se muestra atenuado en la interfaz. [docs/roadmap.md](../roadmap.md) repite esta lista y sigue con todo lo de menor prioridad.
+Lo siguiente, lo más importante primero. Casi todo se muestra atenuado en la interfaz. [docs/ROADMAP.md](../ROADMAP.md) repite esta lista y sigue con todo lo de menor prioridad.
 
 - Dibujo de fusión: las formas de mapa planar de Flash, donde las formas superpuestas se cortan y se fusionan (hoy las formas son objetos separados)
 - Calidad de dibujo: dinámica del pincel y vectorización de un mapa de bits en formas vectoriales
@@ -70,7 +78,7 @@ Quien quiera contribuir debería ver [CONTRIBUTING.md](../../CONTRIBUTING.md), [
 
 ### Comunidad
 
-[Discord](https://discord.com/invite/JpeScW8Awa) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+[Discord](https://discord.com/invite/JpeScW8Awa) · [Website](https://flare-animate.github.io/website/) · [Discussions](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
 ### Licencia
 

@@ -1,6 +1,6 @@
 // Reading and writing a .flare file in the page.
 //
-// A .flare file is a SQLite database whose records are zstd-compressed CBOR (docs/architecture.md,
+// A .flare file is a SQLite database whose records are zstd-compressed CBOR (docs/ARCHITECTURE.md,
 // "Storage"). A page has neither SQLite nor zstd, so it brings them as WebAssembly
 // (@sqlite.org/sqlite-wasm and @bokuweb/zstd-wasm) and this module is all it needs of them: it opens
 // and builds the database and compresses, and hands the records to Rust as plain rows. Everything

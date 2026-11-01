@@ -40,7 +40,7 @@ the attacker to already control your machine.
 
 ## How the code defends itself
 
-The rules are in [AGENTS.md](AGENTS.md) and [docs/engineering.md](docs/engineering.md):
+The rules are in [AGENTS.md](AGENTS.md) and [docs/ENGINEERING.md](docs/ENGINEERING.md):
 
 - All input is untrusted and everything that grows has a bound (file sizes, archive entries,
   frame counts, image sizes, preferences, recent lists, history).
@@ -50,7 +50,7 @@ The rules are in [AGENTS.md](AGENTS.md) and [docs/engineering.md](docs/engineeri
 - The MCP server only writes inside an export directory chosen at start-up, accepts plain file
   names only, and caps image sizes.
 - Property tests feed random and truncated data to the importers, storage and the editing core;
-  see [docs/testing.md](docs/testing.md).
+  see [docs/TESTING.md](docs/TESTING.md).
 
 ## Dependencies
 

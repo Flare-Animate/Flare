@@ -1,6 +1,6 @@
 # Testing
 
-What is tested, how, and where. The rules are in [engineering.md](engineering.md); this page is
+What is tested, how, and where. The rules are in [ENGINEERING.md](ENGINEERING.md); this page is
 the map.
 
 | Kind | Where | What it covers |
@@ -10,7 +10,7 @@ the map.
 | Property | `crates/*/tests/properties.rs` (proptest) | invariants over random input: input smoothing, simplify/smooth/brush outlines, align and distribute, document commands and undo, evaluation, `.flare` round trips |
 | Fixtures | `crates/io/flare-import/tests/fixtures`, `crates/adapters/flare-flash/tests/fixtures` | real and hand-made FLA/XFL and SWF/FLV files, truncated and stale-trailer variants |
 | Structure | `scripts/tests/test_layers.py` | a crate depends only on its own layer or one below it (checked from `cargo metadata`) |
-| Benchmarks | `crates/*/benches` (criterion) | the responsiveness budgets in [performance.md](performance.md); measured, not run in CI |
+| Benchmarks | `crates/*/benches` (criterion) | the responsiveness budgets in [PERFORMANCE.md](PERFORMANCE.md); measured, not run in CI |
 
 ## Rules of thumb
 
@@ -19,7 +19,7 @@ the map.
 - A failed command batch changes nothing; tests compare the document before and after.
 - Property tests keep their `.proptest-regressions` files in git so a found failure stays a test.
 - The GUI is not driven by hand in tests. Behaviour lives in the workspace and is tested without a
-  window; what is left is a short manual checklist in [release.md](release.md).
+  window; what is left is a short manual checklist in [RELEASE.md](RELEASE.md).
 
 ## CI
 

@@ -1,4 +1,4 @@
-"""docs/surfaces.md lists, for each feature, what each of the four surfaces does, and AGENTS.md points
+"""docs/SURFACES.md lists, for each feature, what each of the four surfaces does, and AGENTS.md points
 to it. Run with `python3 -m unittest discover -s scripts/tests -p 'test_surfaces.py'`.
 """
 import re
@@ -11,7 +11,7 @@ ALLOWED = ("yes", "no", "n/a", "partly")
 
 def rows():
     out = []
-    for line in (ROOT / "docs/surfaces.md").read_text().splitlines():
+    for line in (ROOT / "docs/SURFACES.md").read_text().splitlines():
         if line.startswith("|") and not line.startswith("|---") and not line.startswith("| Feature"):
             out.append([cell.strip() for cell in line.strip().strip("|").split("|")])
     return out
@@ -35,7 +35,7 @@ class Surfaces(unittest.TestCase):
     def test_the_rule_is_in_agents_md_and_points_here(self):
         agents = (ROOT / "AGENTS.md").read_text()
         self.assertIn("## Every surface", agents)
-        self.assertIn("docs/surfaces.md", agents)
+        self.assertIn("docs/SURFACES.md", agents)
 
 
 if __name__ == "__main__":

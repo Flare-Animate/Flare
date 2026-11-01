@@ -24,7 +24,11 @@ A free, open-source animation tool in the spirit of Adobe Animate, written in Ru
 - Play the animation with sound, and Test Movie runs the published SWF in Ruffle.
 - Open and save `.flare` projects. Import and export Animate's XFL and .fla
 - Export PNG, GIF and MP4, and publish a SWF or an HTML5 Canvas page.
-- A command line (`flare`) to create, edit, export and publish projects from scripts.
+- A command line interface (`flare`) to create, edit, export and publish projects from scripts.
+
+### Downloads
+
+There will be downloads for Windows, macOS and Linux, but there are none yet. We will add them here once packaging is done. Until then, build from source (below).
 
 ### Build and run
 
@@ -36,8 +40,6 @@ Rust is pinned in `rust-toolchain.toml`. Ruffle is a git submodule, so clone wit
 
 On Linux install the libraries listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Releases build native packages for macOS, Windows and Linux on x64 and arm64: a DMG, an MSI and a portable zip, and `.deb`, `.rpm` and AppImage files, plus the command line as its own archive. No version has been released yet, so for now build from source. [docs/release.md](docs/release.md) describes the packages and how a release is made.
-
 ### Command line
 
     flare new project.flare --width 1280 --height 720
@@ -47,9 +49,15 @@ Releases build native packages for macOS, Windows and Linux on x64 and arm64: a 
     flare publish-html5 project.flare page.html
     flare --help
 
+### Why Flare exists
+
+Adobe [announced](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) the end of life of Animate and later [reversed course](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). Though they reversed course, this shows just how volatile the animation industry is, and displays how much of a monopoly certain companies have on it. Animators were thrown into legitimate panic. People's careers should not depend on one company's decision to keep selling a product. 
+
+Flare began as a playground for making animation easier to learn, was later open-sourced, and grew from there.
+
 ### Roadmap
 
-The next things, most important first. Most of it is shown dimmed in the interface. [docs/roadmap.md](docs/roadmap.md) repeats this list and goes on to everything of lower priority.
+The next things, most important first. Most of it is shown dimmed in the interface. [docs/ROADMAP.md](docs/ROADMAP.md) repeats this list and goes on to everything of lower priority.
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
 - Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
@@ -70,7 +78,7 @@ Contributors should look at [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGEN
 
 ### Community
 
-[Discord](https://discord.com/invite/JpeScW8Awa) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+[Discord](https://discord.com/invite/JpeScW8Awa) · [Website](https://flare-animate.github.io/website/) · [Discussions](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
 ### License
 

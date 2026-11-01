@@ -15,7 +15,7 @@ cargo run -p flare-cli -- --help
 ```
 
 To get your bearings in the code, `npx codesight --wiki --watch` keeps a generated map in `.codesight/` (not committed; see
-[docs/engineering.md](docs/engineering.md)).
+[docs/ENGINEERING.md](docs/ENGINEERING.md)).
 
 ## Before you commit
 
@@ -28,7 +28,7 @@ cargo test --workspace --locked
 ```
 
 - Every behaviour has a test, including the failure paths. A test must be able to fail; never
-  change an expected output to make a failure go away. See [docs/testing.md](docs/testing.md).
+  change an expected output to make a failure go away. See [docs/TESTING.md](docs/TESTING.md).
 - No Rust file over 500 lines; put code in the crate and layer that owns the responsibility.
 - Safe Rust, typed errors, no panics on user data, bounds on everything that grows.
 - Change the docs in the same commit as the behaviour they describe.

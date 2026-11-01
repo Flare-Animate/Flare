@@ -13,7 +13,7 @@
   all of this: every crate is a member and listed by layer, no member names a version or path,
   every dependency is declared once in the root, and nothing declared is unused.
 - Executables live in `apps/`; reusable libraries live in `crates/<layer>/` where the layer is
-  `foundation`, `editing`, `io`, `adapters`, `services` or `presentation` (see architecture.md).
+  `foundation`, `editing`, `io`, `adapters`, `services` or `presentation` (see ARCHITECTURE.md).
   Do not add a crate until it has code and tests.
 - Rust files stay under 500 lines unless splitting would make them worse. Tests live in their
   own files next to the code (`tests.rs`, or a `tests/` directory split by topic), and a type's
@@ -46,7 +46,7 @@
 
 ## Performance
 
-See [performance.md](performance.md) for the rules (measure first, nothing slow on the UI thread,
+See [PERFORMANCE.md](PERFORMANCE.md) for the rules (measure first, nothing slow on the UI thread,
 share rather than copy, draw only what is visible, bound everything, drop stale results) and
 the measurements behind them. New features follow them.
 

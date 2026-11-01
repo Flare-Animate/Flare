@@ -19,6 +19,7 @@ First audit, from the code, 2026-10-31.
 | Export MP4 | yes | **no** | yes (`flare export --format mp4`) | yes (`export_mp4`) | `flare-video` is native only today; the browser needs the H.264 and AAC encoders on wasm (the thing to check first). |
 | Publish SWF and HTML5 | yes | yes | yes | yes | |
 | Test Movie in Ruffle | yes (in a window of the app) | yes (Ruffle in the page) | yes | **no** | The CLI and desktop start a Ruffle on the machine; the page runs Ruffle's own web build, fetched on first use. An MCP tool needs a Ruffle on the machine, as the CLI does. |
+| Open the desktop app on projects | yes (it is the app) | n/a | yes (`flare open`) | n/a | The command line only finds `flare-desktop` (next to itself, on PATH, or `FLARE_DESKTOP`) and starts it on the files; a browser tab and an MCP server have no window to open. |
 | Sound playback | yes | **no** | n/a | n/a | No browser sound output yet. |
 | Frames, layers, folders, masks, guides | yes | yes | partly | partly | The CLI and MCP cover frames and layers; folders, masks and guides are not exposed. |
 | Symbol kinds and a graphic's looping options | yes | yes | **no** | **no** | The CLI and MCP make Graphic symbols only; they need the kind and the playback settings as options. |

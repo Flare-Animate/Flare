@@ -40,7 +40,7 @@ Executables are in `apps/`. The folders mean:
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, tools, menu actions. No window or GPU code. |
 | apps | `flare-cli` | Headless project editing and export. |
 | apps | `flare-desktop` | The desktop window (winit, egui-wgpu, the native menu), all in `ui/`; everything else it needs is `flare-platform`. |
-| apps | `flare-web` | The same workspace in a browser tab (eframe on a canvas); compiles for `wasm32-unknown-unknown` only, see [web.md](web.md). |
+| apps | `flare-web` | The same workspace in a browser tab (eframe on a canvas); compiles for `wasm32-unknown-unknown` only, see [WEB.md](WEB.md). |
 | apps | `flare-mcp` | An MCP server over stdio for one open project, built on `rmcp`: agent tools over the same edit commands, with permissions and revision checks. |
 
 The CLI and the desktop app edit documents through the same `flare-commands` commands and
@@ -369,7 +369,7 @@ scale, rotation and translation. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). Dragging a span in the timeline moves it, dragging its right edge resizes it; neither may overlap another span. The timeline zooms (buttons, pinch or
 Ctrl/Cmd+scroll) and scrolls sideways. On macOS the menu bar is native (muda); everywhere
-else it is drawn in the window. See [decisions/ui-stack.md](decisions/ui-stack.md).
+else it is drawn in the window. See [decisions/UI-STACK.md](decisions/UI-STACK.md).
 
 ## Known gaps
 

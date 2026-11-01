@@ -1,7 +1,7 @@
 """The crate layers hold: a crate depends only on crates in its own layer or one below it.
 
 Layers, lowest first, are the folders under `crates/` (apps live under `apps/` and are above all
-of them). See docs/architecture.md.
+of them). See docs/ARCHITECTURE.md.
 """
 import json
 import subprocess

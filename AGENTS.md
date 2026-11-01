@@ -6,11 +6,11 @@ are built, and why, is in `docs/` and is kept up to date with the code.
 
 ## Read first
 
-- [docs/architecture.md](docs/architecture.md): the crates, their layers, the document model.
-- [docs/engineering.md](docs/engineering.md): toolchain, conventions, verification, reference code policy.
-- [docs/performance.md](docs/performance.md): the rules every feature follows for responsiveness.
-- [docs/ui.md](docs/ui.md): the interface, icons, type, and how unbuilt features are shown.
-- [docs/roadmap.md](docs/roadmap.md): what is done and what is next.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): the crates, their layers, the document model.
+- [docs/ENGINEERING.md](docs/ENGINEERING.md): toolchain, conventions, verification, reference code policy.
+- [docs/PERFORMANCE.md](docs/PERFORMANCE.md): the rules every feature follows for responsiveness.
+- [docs/UI.md](docs/UI.md): the interface, icons, type, and how unbuilt features are shown.
+- [docs/ROADMAP.md](docs/ROADMAP.md): what is done and what is next.
 - `.codesight/`: a generated, uncommitted map of the code; refresh it with `npx codesight --wiki --watch`. A reading aid only; the code and docs win.
 
 ## Structure
@@ -21,6 +21,9 @@ are built, and why, is in `docs/` and is kept up to date with the code.
   responsibility belongs; add a crate only when it has code and tests.
 - `original/` is an archive of the old code. Never depend on it, link it or copy from it.
 - The root `Cargo.toml` owns versions, paths and lints; members inherit them.
+- Markdown documents are named in capitals (`docs/ROADMAP.md`, `docs/decisions/UI-STACK.md`), as the ones in the
+  root are. Exceptions: `docs/releases/v<version>.md`, which the release workflow looks up by tag, and the README
+  translations, named by language code.
 - Keep every Rust file under 500 lines. Split by responsibility into modules, and keep tests in
   their own files.
 
@@ -31,7 +34,7 @@ are built, and why, is in `docs/` and is kept up to date with the code.
   but it can create, set, export and inspect). The change that adds a feature adds it to each. Where
   one cannot yet, that surface says so: dimmed with the usual hint in the interface, a clear error
   naming the feature in the command line and the MCP server. Record the gap and its reason in
-  [docs/surfaces.md](docs/surfaces.md); every row there is a debt, looked at before a release.
+  [docs/SURFACES.md](docs/SURFACES.md); every row there is a debt, looked at before a release.
 - Behaviour lives in the libraries, never in an app. An app is a window or a protocol over them, so
   parity is a few lines and not a second implementation.
 - A surface is tested: either its own test drives it, or the library's test covers the behaviour and
@@ -44,7 +47,7 @@ are built, and why, is in `docs/` and is kept up to date with the code.
 - All input is untrusted and everything that grows has a bound.
 - Documents change only through validated command batches: a failed batch changes nothing, and
   every change is one undo step.
-- Nothing slow runs on the UI thread. Follow docs/performance.md, measure before optimizing, and
+- Nothing slow runs on the UI thread. Follow docs/PERFORMANCE.md, measure before optimizing, and
   say what was measured.
 - Comments explain why, not what. Match the surrounding style and naming.
 
@@ -68,7 +71,7 @@ cargo test --workspace --locked
 - Icons are original SVGs in `assets/ui/icons`, white only, drawn in the house style. Add the file and
   use its name; the build embeds it. Do not copy another product's artwork.
 - Features that are planned but not built are shown dimmed as mocks and replaced by the real thing
-  later; see docs/ui.md.
+  later; see docs/UI.md.
 - App icons are trimmed when packaging starts, not before.
 
 ## Git

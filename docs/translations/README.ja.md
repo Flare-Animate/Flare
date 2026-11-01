@@ -24,7 +24,11 @@ Adobe Animate の考え方に沿った、Rust 製の無料のオープンソー�
 - アニメーションを音付きで再生できます。ムービープレビューは、公開した SWF を Ruffle で実行します。
 - `.flare` プロジェクトを開いて保存できます。Animate の XFL と `.fla` をインポート/エクスポートできます。
 - PNG、GIF、MP4 を書き出し、SWF または HTML5 Canvas ページを公開できます。
-- スクリプトからプロジェクトを作成、編集、書き出し、公開できるコマンドライン(`flare`)。
+- スクリプトからプロジェクトを作成、編集、書き出し、公開できるコマンドラインインターフェース(`flare`)。
+
+### ダウンロード
+
+Windows、macOS、Linux 向けのダウンロードを用意する予定ですが、現時点ではまだありません。パッケージングが完了しだい、ここに追加します。それまではソースからビルドしてください(下記)。
 
 ### ビルドと実行
 
@@ -36,8 +40,6 @@ Rust は `rust-toolchain.toml` で固定されています。Ruffle は git サ�
 
 Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に挙げたライブラリをインストールしてください。
 
-リリースでは、macOS、Windows、Linux(x64 と arm64)向けのネイティブパッケージを作ります: DMG、MSI、ポータブル zip、`.deb`、`.rpm`、AppImage、そしてコマンドラインの別アーカイブです。まだ公開されたバージョンはないため、今はソースからビルドしてください。パッケージとリリースの手順は [docs/release.md](../release.md) にあります。
-
 ### コマンドライン
 
     flare new project.flare --width 1280 --height 720
@@ -47,9 +49,15 @@ Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に挙げたライブラ�
     flare publish-html5 project.flare page.html
     flare --help
 
+### Flare がある理由
+
+Adobe は Animate の販売終了を[発表](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220)し、のちに[方針を撤回](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459)しました。撤回されたとはいえ、アニメーション業界がいかに不安定で、特定の企業がどれほど市場を支配しているかが浮き彫りになりました。アニメーターたちが不安に陥ったのも当然です。ある企業が製品を売り続けるかどうかに、人々の仕事が左右されるべきではありません。
+
+Flare は、アニメーションを学びやすくするための実験場として始まり、のちにオープンソース化されて、そこから育ってきました。
+
 ### ロードマップ
 
-次に取り組むものを、重要な順に並べています。多くはインターフェースで薄く表示されます。[docs/roadmap.md](../roadmap.md) はこの一覧を繰り返し、優先度の低いものまで続けています。
+次に取り組むものを、重要な順に並べています。多くはインターフェースで薄く表示されます。[docs/ROADMAP.md](../ROADMAP.md) はこの一覧を繰り返し、優先度の低いものまで続けています。
 
 - マージ描画: Flash の平面マップ型シェイプ(重なった図形が互いに切り合って結合する。現在、図形は別々のオブジェクトです)
 - 描画品質: ブラシのダイナミクスと、ビットマップをベクターシェイプにトレースすること
@@ -70,7 +78,7 @@ Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に挙げたライブラ�
 
 ### コミュニティ
 
-[Discord](https://discord.com/invite/JpeScW8Awa) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+[Discord](https://discord.com/invite/JpeScW8Awa) · [Website](https://flare-animate.github.io/website/) · [Discussions](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
 ### ライセンス
 

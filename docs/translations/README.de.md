@@ -24,7 +24,11 @@ Ein freies Open-Source-Animationswerkzeug im Sinne von Adobe Animate, geschriebe
 - Die Animation mit Ton abspielen; Film testen führt das veröffentlichte SWF in Ruffle aus.
 - `.flare`-Projekte öffnen und speichern. XFL und `.fla` von Animate importieren und exportieren.
 - PNG, GIF und MP4 exportieren sowie ein SWF oder eine HTML5-Canvas-Seite veröffentlichen.
-- Eine Kommandozeile (`flare`), um Projekte aus Skripten zu erstellen, zu bearbeiten, zu exportieren und zu veröffentlichen.
+- Eine Kommandozeilenschnittstelle (`flare`), um Projekte aus Skripten zu erstellen, zu bearbeiten, zu exportieren und zu veröffentlichen.
+
+### Downloads
+
+Es wird Downloads für Windows, macOS und Linux geben, aber es gibt noch keine. Wir tragen sie hier ein, sobald das Packaging fertig ist. Bis dahin aus dem Quellcode bauen (siehe unten).
 
 ### Bauen und starten
 
@@ -36,8 +40,6 @@ Rust ist in `rust-toolchain.toml` festgelegt. Ruffle ist ein Git-Submodul, also 
 
 Unter Linux die in [CONTRIBUTING.md](../../CONTRIBUTING.md) aufgeführten Bibliotheken installieren.
 
-Releases erzeugen native Pakete für macOS, Windows und Linux auf x64 und arm64: ein DMG, ein MSI und ein portables Zip sowie `.deb`-, `.rpm`- und AppImage-Dateien, dazu die Kommandozeile als eigenes Archiv. Es wurde noch keine Version veröffentlicht; bauen Sie daher vorerst aus dem Quellcode. [docs/release.md](../release.md) beschreibt die Pakete und wie ein Release entsteht.
-
 ### Kommandozeile
 
     flare new project.flare --width 1280 --height 720
@@ -47,9 +49,15 @@ Releases erzeugen native Pakete für macOS, Windows und Linux auf x64 und arm64:
     flare publish-html5 project.flare page.html
     flare --help
 
+### Warum es Flare gibt
+
+Adobe hat das Ende von Animate [angekündigt](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) und später [zurückgenommen](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). Auch wenn die Entscheidung zurückgenommen wurde, zeigt sie, wie unbeständig die Animationsbranche ist und wie sehr bestimmte Unternehmen sie beherrschen. Animatoren gerieten zu Recht in Panik. Die Laufbahn von Menschen sollte nicht davon abhängen, dass ein Unternehmen ein Produkt weiterverkauft.
+
+Flare begann als Spielwiese, um Animation leichter erlernbar zu machen, wurde später als Open Source veröffentlicht und wuchs von dort aus.
+
 ### Roadmap
 
-Als Nächstes, das Wichtigste zuerst. Das meiste ist in der Oberfläche abgedunkelt zu sehen. [docs/roadmap.md](../roadmap.md) wiederholt diese Liste und führt alles mit niedrigerer Priorität auf.
+Als Nächstes, das Wichtigste zuerst. Das meiste ist in der Oberfläche abgedunkelt zu sehen. [docs/ROADMAP.md](../ROADMAP.md) wiederholt diese Liste und führt alles mit niedrigerer Priorität auf.
 
 - Zeichnen mit Verschmelzung: Flashs planare Formen, bei denen sich überlappende Formen gegenseitig schneiden und verschmelzen (heute sind Formen getrennte Objekte)
 - Zeichenqualität: Pinseldynamik und das Nachzeichnen einer Bitmap in Vektorformen
@@ -70,7 +78,7 @@ Mitwirkende sollten [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../
 
 ### Community
 
-[Discord](https://discord.com/invite/JpeScW8Awa) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+[Discord](https://discord.com/invite/JpeScW8Awa) · [Website](https://flare-animate.github.io/website/) · [Discussions](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
 ### Lizenz
 

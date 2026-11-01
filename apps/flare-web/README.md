@@ -1,7 +1,7 @@
 # flare-web
 
 Flare in a browser tab: the same `flare-animate` workspace as the desktop app, on an eframe canvas.
-See [docs/web.md](../../docs/web.md) for what is shared with the desktop and what is missing.
+See [docs/WEB.md](../../docs/WEB.md) for what is shared with the desktop and what is missing.
 
 ```
 apps/flare-web/

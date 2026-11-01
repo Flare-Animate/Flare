@@ -24,7 +24,11 @@
 - 带声音播放动画;测试影片会在 Ruffle 中运行发布的 SWF。
 - 打开和保存 `.flare` 项目。导入和导出 Animate 的 XFL 和 `.fla`。
 - 导出 PNG、GIF 和 MP4,并发布 SWF 或 HTML5 Canvas 页面。
-- 命令行(`flare`),可在脚本中创建、编辑、导出和发布项目。
+- 命令行界面(`flare`),可在脚本中创建、编辑、导出和发布项目。
+
+### 下载
+
+我们将提供 Windows、macOS 和 Linux 的下载,但目前还没有。打包完成后会在此处添加。在此之前,请从源代码构建(见下文)。
 
 ### 构建与运行
 
@@ -36,8 +40,6 @@ Rust 版本固定在 `rust-toolchain.toml` 中。Ruffle 是 git 子模块,因此
 
 在 Linux 上请安装 [CONTRIBUTING.md](../../CONTRIBUTING.md) 中列出的库。
 
-发布版会为 macOS、Windows 和 Linux(x64 和 arm64)构建原生安装包:DMG、MSI 和便携 zip,以及 `.deb`、`.rpm` 和 AppImage 文件,命令行则是单独的压缩包。目前还没有发布任何版本,所以现在请从源码构建。安装包以及发布流程见 [docs/release.md](../release.md)。
-
 ### 命令行
 
     flare new project.flare --width 1280 --height 720
@@ -47,9 +49,15 @@ Rust 版本固定在 `rust-toolchain.toml` 中。Ruffle 是 git 子模块,因此
     flare publish-html5 project.flare page.html
     flare --help
 
+### Flare 存在的原因
+
+Adobe [宣布](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220)了 Animate 的停止支持,后来又[改变了决定](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459)。尽管改变了决定,这件事仍然表明动画行业有多么不稳定,某些公司对它的垄断又有多严重。动画师们理所当然地陷入了恐慌。人们的职业不应取决于一家公司是否继续销售某个产品。
+
+Flare 最初是一个让动画更容易学习的试验场,后来开源,并由此成长起来。
+
 ### 路线图
 
-接下来要做的事,按重要程度排列。大部分在界面中以变暗形式显示。[docs/roadmap.md](../roadmap.md) 重复这份清单,并继续列出优先级较低的内容。
+接下来要做的事,按重要程度排列。大部分在界面中以变暗形式显示。[docs/ROADMAP.md](../ROADMAP.md) 重复这份清单,并继续列出优先级较低的内容。
 
 - 合并绘图:Flash 的平面图形,重叠的形状会相互切割并合并(目前形状是彼此独立的对象)
 - 绘图质量:画笔动态,以及把位图描摹成矢量形状
@@ -70,7 +78,7 @@ Rust 版本固定在 `rust-toolchain.toml` 中。Ruffle 是 git 子模块,因此
 
 ### 社区
 
-[Discord](https://discord.com/invite/JpeScW8Awa) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+[Discord](https://discord.com/invite/JpeScW8Awa) · [Website](https://flare-animate.github.io/website/) · [Discussions](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
 ### 许可证
 

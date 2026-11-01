@@ -3,18 +3,18 @@
 Flare is an Adobe Animate replacement. The modern Animate workspace comes first; classic
 Flash workspaces and OpenToonz-inspired features follow once the core workflow is solid.
 
-- [architecture.md](architecture.md): crates, the document model, editing, storage, frontends, known gaps
-- [engineering.md](engineering.md): toolchain, conventions, verification, reference code policy
-- [ui.md](ui.md): the interface, its icons, and how planned features are shown before they exist
-- [performance.md](performance.md): how the editor stays responsive, measurements, and the rules new work follows
-- [web.md](web.md): the browser build, what it shares with the desktop and what is missing
-- [testing.md](testing.md): what is tested, how, and in CI
-- [release.md](release.md): release checklist, packaging, the manual smoke test
-- [surfaces.md](surfaces.md): what the desktop app, the browser build, the command line and the MCP server each do, and the gaps
-- [parity.md](parity.md): what the archived C++ project had and what Flare does with it
-- [roadmap.md](roadmap.md): milestones, what is done, and the next independent branches
-- [decisions/renderer.md](decisions/renderer.md): why vello_cpu is the CPU rasterizer
-- [decisions/ui-stack.md](decisions/ui-stack.md): egui, winit, wgpu and the native macOS menu
+- [ARCHITECTURE.md](ARCHITECTURE.md): crates, the document model, editing, storage, frontends, known gaps
+- [ENGINEERING.md](ENGINEERING.md): toolchain, conventions, verification, reference code policy
+- [UI.md](UI.md): the interface, its icons, and how planned features are shown before they exist
+- [PERFORMANCE.md](PERFORMANCE.md): how the editor stays responsive, measurements, and the rules new work follows
+- [WEB.md](WEB.md): the browser build, what it shares with the desktop and what is missing
+- [TESTING.md](TESTING.md): what is tested, how, and in CI
+- [RELEASE.md](RELEASE.md): release checklist, packaging, the manual smoke test
+- [SURFACES.md](SURFACES.md): what the desktop app, the browser build, the command line and the MCP server each do, and the gaps
+- [PARITY.md](PARITY.md): what the archived C++ project had and what Flare does with it
+- [ROADMAP.md](ROADMAP.md): milestones, what is done, and the next independent branches
+- [decisions/RENDERER.md](decisions/RENDERER.md): why vello_cpu is the CPU rasterizer
+- [decisions/UI-STACK.md](decisions/UI-STACK.md): egui, winit, wgpu and the native macOS menu
 
 Docs describe what is true now plus accepted near-term plans. When behaviour changes,
 change the doc in the same commit.
