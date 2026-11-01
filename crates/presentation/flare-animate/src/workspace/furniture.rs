@@ -360,9 +360,11 @@ impl Workspace {
                 } else {
                     ("transport-play", "Play")
                 };
-                if flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, hint).clicked() {
+                let play = flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, hint);
+                if play.clicked() {
                     self.perform(MenuAction::PlayPause);
                 }
+                play.context_menu(|ui| self.transport_menu(ui));
                 // Animate's Publish button is next to Play too.
                 let can_publish = self.is_enabled(MenuAction::Publish);
                 if flare_ui::chrome::icon_button(ui, "publish", 16.0, false, can_publish, "Publish")
@@ -382,5 +384,18 @@ impl Workspace {
                 );
             });
         });
+    }
+
+    /// The menu on a right click of the Play button: where Test Movie is, one click from Play.
+    pub(super) fn transport_menu(&mut self, ui: &mut egui::Ui) {
+        let enabled = self.is_enabled(MenuAction::TestMovie);
+        if ui
+            .add_enabled(enabled, egui::Button::new("Test Movie"))
+            .on_hover_text("Play the published movie in the player")
+            .clicked()
+        {
+            self.perform(MenuAction::TestMovie);
+            ui.close();
+        }
     }
 }

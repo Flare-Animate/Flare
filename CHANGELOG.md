@@ -7,7 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Fixed
-- Test Movie plays in a window of its own, not inside the editor's: the picture fills it, and under it a bar has a clock and frame at the left, one centered box (Restart, Pause or Play, Step one frame, a playback speed drop-down of 0.25x to 2x, a sound switch) and Close at the right.
+- Test Movie plays in a window of its own, not inside the editor's: the picture fills it, and under it a bar has a clock and frame at the left, one centered box (Restart, Pause or Play, Step one frame, a playback speed drop-down of 0.25x to 2x, a loop switch that holds the last frame when off, a sound switch) and Close at the right.
 - Test Movie in the window showed a blank picture: the texture it showed was one the player had already replaced when it set its size. A test now paints the window off-screen and finds the movie's picture in it.
 
 ### Changed
@@ -15,6 +15,7 @@ All notable changes are listed here. The format follows
 - The zstd library is 0.14 (0.13 has advisories).
 
 ### Added
+- Right-clicking the Play button at the top offers Test Movie. The Test Movie window opens at the movie's own size when the screen has room.
 - The Add (`=`), Delete (`-`) and Convert (`C`) Anchor Point tools, in the Pen's cell: click an outline to put a point there (a curve keeps its shape), click a point to take it out (the outline joins across the gap), click a curve point to make it a corner, drag from a corner to pull out smooth handles. Each is one undo step.
 - The status bar shows the stage size and frame rate (a click opens the document settings) where the zoom percentage was, which the bar above the stage already has.
 - The scene can be renamed by double-clicking its name in the bar above the stage (Enter or leaving the box keeps it, Escape drops it), with `flare rename-scene` and the MCP tool `rename_scene`; the name is trimmed, 1 to 256 characters, and one undo step.

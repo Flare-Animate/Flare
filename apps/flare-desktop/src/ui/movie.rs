@@ -34,6 +34,16 @@ fn tool(ui: &mut egui::Ui, icon: &str, tip: &str, enabled: bool, on: bool) -> bo
     ui.add_enabled(enabled, button).on_hover_text(tip).clicked()
 }
 
+/// The size, in points, to open the window at: the picture at its own size with the bar under it,
+/// at least [`MIN_WIDTH`] wide, and no bigger than `room` (most of the screen). A picture bigger
+/// than the room is shrunk to fit when it is drawn.
+pub(crate) fn open_size(picture: egui::Vec2, room: egui::Vec2) -> egui::Vec2 {
+    egui::vec2(
+        picture.x.max(MIN_WIDTH).min(room.x.max(MIN_WIDTH)),
+        (picture.y + BAR_HEIGHT).min(room.y.max(BAR_HEIGHT)),
+    )
+}
+
 /// Movie time as the controls show it: minutes, seconds and tenths.
 pub(crate) fn clock(time: Duration) -> String {
     let tenths = time.as_millis() / 100;
@@ -72,6 +82,8 @@ pub(crate) struct MovieWindow {
     muted: bool,
     /// How fast the movie runs, 1 being normal.
     speed: f32,
+    /// Whether the movie starts over at its end; otherwise it holds its last frame.
+    looping: bool,
     /// How much movie time has passed since it started, as the controls tell it.
     elapsed: Duration,
     /// How wide the box of controls was last time, to put it in the middle.
@@ -106,6 +118,7 @@ impl MovieWindow {
             failure: None,
             muted: false,
             speed: 1.0,
+            looping: true,
             elapsed: Duration::ZERO,
             box_width: 0.0,
             closed: false,
@@ -131,19 +144,11 @@ impl MovieWindow {
         let now = Instant::now();
         let elapsed = scaled(now.duration_since(self.last_tick), self.speed);
         self.last_tick = now;
-        if self.failure.is_none() {
-            match self.movie.tick(elapsed) {
-                Ok(()) => {
-                    if self.movie.is_playing() {
-                        self.elapsed += elapsed;
-                    }
-                }
-                Err(error) => self.failure = Some(error.to_string()),
-            }
-        }
+        self.advance(elapsed);
 
-        let (mut close, mut restart, mut toggle_play, mut step_frame, mut toggle_mute) =
-            (false, false, false, false, false);
+        let (mut close, mut restart, mut toggle_play, mut step_frame) =
+            (false, false, false, false);
+        let (mut toggle_mute, mut toggle_loop) = (false, false);
         let mut speed = self.speed;
         egui::Panel::bottom("movie_controls")
             .exact_size(BAR_HEIGHT)
@@ -190,6 +195,17 @@ impl MovieWindow {
                                     })
                                     .response
                                     .on_hover_text("Playback speed");
+                                toggle_loop = tool(
+                                    ui,
+                                    "transport-loop",
+                                    if self.looping {
+                                        "Looping: the movie starts over at its end"
+                                    } else {
+                                        "Not looping: the movie stops at its last frame"
+                                    },
+                                    true,
+                                    self.looping,
+                                );
                                 let (icon, tip) = if self.muted {
                                     ("sound-mute", "Sound is off; click to turn it on")
                                 } else {
@@ -230,7 +246,10 @@ impl MovieWindow {
             self.restart();
         }
         if toggle_play {
-            let _ = self.movie.set_playing(!self.movie.is_playing());
+            self.toggle_play();
+        }
+        if toggle_loop {
+            self.looping = !self.looping;
         }
         if step_frame && self.movie.step_frame().is_ok() {
             self.elapsed += Duration::from_secs_f64(1.0 / self.movie.frame_rate().max(1.0));
@@ -244,6 +263,41 @@ impl MovieWindow {
         // Sound plays at normal speed only: at any other it would be out of step with the picture.
         let _ = self.movie.set_muted(self.muted || self.speed != 1.0);
         self.closed = close;
+    }
+
+    /// Lets `elapsed` of movie time pass. Without looping, the movie is paused as it reaches its
+    /// last frame, so it stays on it.
+    fn advance(&mut self, elapsed: Duration) {
+        if self.failure.is_some() {
+            return;
+        }
+        match self.movie.tick(elapsed) {
+            Ok(()) => {
+                if self.movie.is_playing() {
+                    self.elapsed += elapsed;
+                    if !self.looping && self.at_end() {
+                        let _ = self.movie.set_playing(false);
+                    }
+                }
+            }
+            Err(error) => self.failure = Some(error.to_string()),
+        }
+    }
+
+    /// Whether the movie is showing its last frame.
+    fn at_end(&self) -> bool {
+        self.movie
+            .current_frame()
+            .is_some_and(|frame| frame >= self.movie.frame_count())
+    }
+
+    /// Pause or play. Play at the end of a movie that does not loop starts it over.
+    fn toggle_play(&mut self) {
+        if !self.movie.is_playing() && !self.looping && self.at_end() {
+            self.restart();
+        } else {
+            let _ = self.movie.set_playing(!self.movie.is_playing());
+        }
     }
 
     fn restart(&mut self) {

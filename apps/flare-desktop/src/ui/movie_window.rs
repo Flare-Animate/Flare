@@ -14,10 +14,14 @@ use winit::event::WindowEvent;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::Window;
 
-use super::movie::{BAR_HEIGHT, MIN_WIDTH, MovieWindow};
+use super::movie::{MIN_WIDTH, MovieWindow, open_size};
 
-/// The largest the window opens, whatever the movie's stage: it can be dragged bigger.
-const MAX_OPEN: LogicalSize<f64> = LogicalSize::new(1400.0, 900.0);
+/// How much of the screen the window may take when it opens: room left for the title bar, the
+/// menu bar and the dock.
+const SCREEN_SHARE: (f64, f64) = (0.94, 0.86);
+
+/// The room to open in when there is no monitor to ask.
+const FALLBACK_ROOM: egui::Vec2 = egui::vec2(1400.0, 900.0);
 
 /// What an event asked of the window.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -45,10 +49,19 @@ impl MovieViewport {
         let render_state = painter.render_state().context("the editor has no GPU")?;
         let player = MovieWindow::open(swf, &render_state, scale).context("start the movie")?;
         let picture = player.picture_points();
-        let size = LogicalSize::new(
-            f64::from(picture.x.max(MIN_WIDTH)).min(MAX_OPEN.width),
-            (f64::from(picture.y) + f64::from(BAR_HEIGHT)).min(MAX_OPEN.height),
-        );
+        // The movie's own size, as long as the screen has room for it.
+        let room = event_loop
+            .primary_monitor()
+            .or_else(|| event_loop.available_monitors().next())
+            .map_or(FALLBACK_ROOM, |monitor| {
+                let screen = monitor.size().to_logical::<f64>(monitor.scale_factor());
+                egui::vec2(
+                    (screen.width * SCREEN_SHARE.0) as f32,
+                    (screen.height * SCREEN_SHARE.1) as f32,
+                )
+            });
+        let open = open_size(picture, room);
+        let size = LogicalSize::new(f64::from(open.x), f64::from(open.y));
         let attributes = Window::default_attributes()
             .with_title("Test Movie")
             .with_inner_size(size)

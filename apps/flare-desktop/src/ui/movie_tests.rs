@@ -40,6 +40,24 @@ fn a_picture_with_no_size_or_a_room_with_none_shows_nothing_and_does_not_divide_
     );
 }
 
+/// A GPU device and egui renderer of the kind the editor has, without a window.
+#[allow(clippy::expect_used)]
+fn render_state() -> egui_wgpu::RenderState {
+    use egui_wgpu::{RenderState, RendererOptions, WgpuConfiguration, WgpuSetup};
+    let config = WgpuConfiguration {
+        wgpu_setup: WgpuSetup::without_display_handle(),
+        ..WgpuConfiguration::default()
+    };
+    let instance = pollster::block_on(config.wgpu_setup.new_instance());
+    pollster::block_on(RenderState::create(
+        &config,
+        &instance,
+        None,
+        RendererOptions::default(),
+    ))
+    .expect("a GPU adapter")
+}
+
 /// The Test Movie window as the editor draws it: egui paints the window into an off-screen
 /// texture on a device of its own, and the picture of the movie is looked for in what came out.
 /// Needs a GPU adapter, so it is ignored in the ordinary run (`scripts/gpu_tests.sh`).
@@ -47,9 +65,7 @@ fn a_picture_with_no_size_or_a_room_with_none_shows_nothing_and_does_not_divide_
 #[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
 #[allow(clippy::expect_used)]
 fn the_window_shows_the_picture_of_the_movie() {
-    use egui_wgpu::{
-        RenderState, RendererOptions, ScreenDescriptor, WgpuConfiguration, WgpuSetup, wgpu,
-    };
+    use egui_wgpu::{ScreenDescriptor, wgpu};
     use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId};
     use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Stage, Timeline};
 
@@ -78,18 +94,7 @@ fn the_window_shows_the_picture_of_the_movie() {
         .expect("publish")
         .bytes;
 
-    let config = WgpuConfiguration {
-        wgpu_setup: WgpuSetup::without_display_handle(),
-        ..WgpuConfiguration::default()
-    };
-    let instance = pollster::block_on(config.wgpu_setup.new_instance());
-    let state = pollster::block_on(RenderState::create(
-        &config,
-        &instance,
-        None,
-        RendererOptions::default(),
-    ))
-    .expect("a GPU adapter");
+    let state = render_state();
     let mut window = MovieWindow::open(swf, &state, 1.0).expect("the movie starts");
 
     let (width, height) = (640_u32, 480_u32);
@@ -263,6 +268,21 @@ fn the_window_shows_the_picture_of_the_movie() {
 }
 
 #[test]
+fn the_window_opens_at_the_movies_own_size_when_the_screen_has_room_and_never_off_the_screen() {
+    let room = egui::vec2(2400.0, 1200.0);
+    // A 1920 x 1080 movie: its own size, and the bar under it.
+    assert_eq!(
+        open_size(egui::vec2(1920.0, 1080.0), room),
+        egui::vec2(1920.0, 1080.0 + BAR_HEIGHT)
+    );
+    // Too big for a small screen: the room, and the picture is shrunk to fit inside it.
+    let small = egui::vec2(1300.0, 780.0);
+    assert_eq!(open_size(egui::vec2(1920.0, 1080.0), small), small);
+    // A tiny movie still gets room for its controls.
+    assert_eq!(open_size(egui::vec2(100.0, 60.0), room).x, MIN_WIDTH);
+}
+
+#[test]
 fn the_clock_reads_minutes_seconds_and_tenths() {
     assert_eq!(clock(Duration::ZERO), "0:00.0");
     assert_eq!(clock(Duration::from_millis(3_450)), "0:03.4");
@@ -284,4 +304,70 @@ fn speed_scales_a_step_but_a_stall_is_still_capped_first() {
     assert_eq!(scaled(Duration::from_secs(30), 2.0), MAX_STEP * 2);
     assert_eq!(scaled(Duration::from_millis(16), -3.0), Duration::ZERO);
     assert_eq!(scaled(Duration::from_millis(100), 1000.0), MAX_STEP * 16);
+}
+
+/// A two-frame movie, red then blue, at 12 frames a second.
+#[allow(clippy::expect_used)]
+fn two_frames() -> Vec<u8> {
+    use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId};
+    use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Stage, Timeline};
+    let frame = |start, color| {
+        let shape = Shape::rect(ShapeId::new(), 0.0, 0.0, 120.0, 90.0, color).expect("rect");
+        FrameSpan::new(start, std::num::NonZeroU32::MIN, Content::Shape(shape))
+    };
+    let layer = Layer::new(
+        LayerId::new(),
+        "L",
+        vec![
+            frame(0, Rgba8::opaque(220, 30, 30)),
+            frame(1, Rgba8::opaque(30, 30, 220)),
+        ],
+    )
+    .expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(12, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document")
+    .with_stage(Stage::new(120, 90, Rgba8::WHITE).expect("stage"));
+    flare_publish::publish_swf(&document, &flare_publish::PublishOptions::default())
+        .expect("publish")
+        .bytes
+}
+
+#[test]
+#[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
+#[allow(clippy::expect_used)]
+fn without_looping_the_movie_holds_its_last_frame_and_with_looping_it_goes_on() {
+    let state = render_state();
+    let run = |looping: bool| {
+        let mut window = MovieWindow::open(two_frames(), &state, 1.0).expect("starts");
+        window.looping = looping;
+        window.movie.set_muted(true).expect("mute");
+        for _ in 0..40 {
+            window.advance(Duration::from_millis(50));
+        }
+        window
+    };
+    let mut held = run(false);
+    assert_eq!(held.movie.frame_count(), 2);
+    assert_eq!(held.movie.current_frame(), Some(2), "on its last frame");
+    assert!(!held.movie.is_playing(), "paused there");
+    let stopped_at = held.elapsed;
+    held.advance(Duration::from_millis(500));
+    assert_eq!(held.elapsed, stopped_at, "the clock does not run on");
+    // Play at the end starts it over.
+    held.toggle_play();
+    assert!(held.movie.is_playing());
+    assert_eq!(held.elapsed, Duration::ZERO, "from the start");
+
+    let going = run(true);
+    assert!(
+        going.movie.is_playing(),
+        "a looping movie goes on past its end"
+    );
+    assert!(going.elapsed >= Duration::from_secs(1));
 }

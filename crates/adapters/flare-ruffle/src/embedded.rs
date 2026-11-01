@@ -73,6 +73,7 @@ pub struct EmbeddedMovie {
     player: Arc<Mutex<Player>>,
     texture: wgpu::Texture,
     size: (u32, u32),
+    frames: u16,
     sound: bool,
     failed: bool,
 }
@@ -107,6 +108,7 @@ impl EmbeddedMovie {
             1.0
         };
         let side = |pixels: f64| (pixels * scale).round().clamp(1.0, f64::from(u32::MAX)) as u32;
+        let frames = movie.num_frames();
         let size = (
             side(movie.width().to_pixels()),
             side(movie.height().to_pixels()),
@@ -152,6 +154,7 @@ impl EmbeddedMovie {
             player,
             texture,
             size,
+            frames,
             sound: has_sound,
             failed: false,
         })
@@ -233,6 +236,11 @@ impl EmbeddedMovie {
                 Err(EmbedError::Failed)
             }
         }
+    }
+
+    /// How many frames the movie's root timeline has.
+    pub fn frame_count(&self) -> u16 {
+        self.frames
     }
 
     /// The movie's own frame rate, in frames a second.

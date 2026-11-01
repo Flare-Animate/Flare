@@ -299,18 +299,18 @@ Ruffle's first tick only loads the movie; the first frame follows once a frame's
 The desktop app uses it by default (its `ruffle` feature, on unless built with
 `--no-default-features`, which falls back to an external Ruffle): Test Movie publishes the SWF on
 a thread (`jobs::publish_movie`), and when the bytes come back `MovieViewport` opens an
-operating-system window of its own, titled "Test Movie", as a second viewport of the editor's egui
+operating-system window of its own, titled "Test Movie", opened at the picture's own size when the screen has room (most of the screen at most), as a second viewport of the editor's egui
 context and wgpu painter. `MovieWindow` starts an `EmbeddedMovie` on the editor's own wgpu
 device, registers its texture with that painter's renderer, and draws it: the picture fills the
 window (shrunk to fit, never enlarged), and under it is a bar with a clock and the frame at the
 left, one box in the middle (Restart, Pause/Play, Step one frame while paused, a playback speed
-drop-down of 0.25x, 0.5x, 1x and 2x, and a sound switch) and Close at the right. Sound plays at
+drop-down of 0.25x, 0.5x, 1x and 2x, a loop switch, and a sound switch) and Close at the right. Sound plays at
 normal speed only, so it is off at the other speeds. The clock is real time, capped at 100 ms a
 frame so a stall does not make the movie race; the texture is freed after the window
 closes; sound goes to the default output device. A test shows Ruffle drawing on a device made
 with wgpu's default limits, as the editor's is. Another paints the window with egui's own renderer into an off-screen texture and counts the movie's pixels in it: every one of a 120 x 90 picture. It failed at first, when the window showed nothing at all: Ruffle replaces its render texture when the player sets its viewport, and the handle taken before that was a picture nothing drew into. The window's contents have been looked at only as that
-off-screen picture: opening the operating-system window and routing its events are not tested, and the movie gets no mouse or keyboard input yet (published movies have no scripting).
-Tests that need a GPU adapter are ignored in the ordinary run and are run by `scripts/gpu_tests.sh`.
+off-screen picture, and opening, closing and the editor drawing on afterwards are exercised by the scripted run (`scripts/gui_tests.sh`), which looks at no pixels; the movie gets no mouse or keyboard input yet (published movies have no scripting).
+Tests that need a GPU adapter are ignored in the ordinary run and are run by `scripts/gpu_tests.sh`; `scripts/gui_tests.sh` runs the real app through opening and closing the window.
 
 Encoding uses the `swf` crate from the Ruffle project (MIT/Apache-2.0). Tests parse the output
 back with that crate's reader, play the display list, rebuild shapes from the decoded records
