@@ -11,7 +11,7 @@ import tomllib
 
 import package_release as release
 
-APP_ID = "io.github.Flare-Animate.Flare"
+APP_ID = "io.github.Flare_Animate.Flare"
 ARCHITECTURES = ("x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu")
 NOTICES = ("FONT_LICENSES.txt",)
 

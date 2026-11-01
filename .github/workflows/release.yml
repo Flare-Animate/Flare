@@ -142,7 +142,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           flatpak install --user -y --noninteractive --bundle dist/*.flatpak
-          flatpak run --command=sh io.github.Flare-Animate.Flare -c 'test -x /app/bin/flare-desktop && test -f /app/share/applications/io.github.Flare-Animate.Flare.desktop && test -f /app/share/mime/packages/io.github.Flare-Animate.Flare.xml'
+          flatpak run --command=sh io.github.Flare_Animate.Flare -c 'test -x /app/bin/flare-desktop && test -f /app/share/applications/io.github.Flare_Animate.Flare.desktop && test -f /app/share/mime/packages/io.github.Flare_Animate.Flare.xml'
       - name: Inspect Linux desktop integration and native packages
         if: runner.os == 'Linux'
         shell: bash

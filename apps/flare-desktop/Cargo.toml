@@ -49,7 +49,7 @@ assets = [
     { source = "target/release/flare-desktop", dest = "/usr/bin/flare-desktop", mode = "755" },
     { source = "packaging/flare.desktop", dest = "/usr/share/applications/flare.desktop", mode = "644" },
     { source = "assets/flare-icon-256.png", dest = "/usr/share/icons/hicolor/256x256/apps/flare.png", mode = "644" },
-    { source = "packaging/flare.metainfo.xml", dest = "/usr/share/metainfo/io.github.Flare-Animate.Flare.metainfo.xml", mode = "644" },
+    { source = "packaging/flare.metainfo.xml", dest = "/usr/share/metainfo/io.github.Flare_Animate.Flare.metainfo.xml", mode = "644" },
     { source = "packaging/flare-mime.xml", dest = "/usr/share/mime/packages/flare.xml", mode = "644" },
     { source = "LICENSE", dest = "/usr/share/licenses/flare/LICENSE", mode = "644", doc = true },
     { source = "packaging/FONT_LICENSES.txt", dest = "/usr/share/licenses/flare/FONT_LICENSES.txt", mode = "644", doc = true },

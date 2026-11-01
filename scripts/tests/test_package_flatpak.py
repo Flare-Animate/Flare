@@ -18,6 +18,18 @@ class Flatpak(unittest.TestCase):
         flatpak.write_stage(stage, binary)
         return stage
 
+    def test_the_app_id_is_a_valid_name_to_flatpak_and_the_other_linux_packages_use_it(self):
+        # flatpak-builder refuses a hyphen anywhere but the last segment; the first release
+        # build failed on io.github.Flare-Animate.Flare.
+        segments = flatpak.APP_ID.split(".")
+        self.assertGreaterEqual(len(segments), 3)
+        for segment in segments[:-1]:
+            self.assertRegex(segment, r"^[A-Za-z_][A-Za-z0-9_]*$")
+        root = Path(__file__).resolve().parents[2]
+        for path in ("packaging/flare.metainfo.xml", "packaging/cargo-packager.json",
+                     "scripts/packaging/package_linux.py", "apps/flare-desktop/Cargo.toml"):
+            self.assertIn(flatpak.APP_ID, (root / path).read_text(), path)
+
     def test_exported_files_are_named_by_the_app_id(self):
         stage = self.staged()
         for name in (f"{flatpak.APP_ID}.desktop", f"{flatpak.APP_ID}.metainfo.xml",

@@ -15,7 +15,7 @@ import tempfile
 
 import package_release as release
 
-APP_ID = "io.github.Flare-Animate.Flare"
+APP_ID = "io.github.Flare_Animate.Flare"
 RUNTIME = "org.freedesktop.Platform"
 SDK = "org.freedesktop.Sdk"
 RUNTIME_VERSION = "24.08"
