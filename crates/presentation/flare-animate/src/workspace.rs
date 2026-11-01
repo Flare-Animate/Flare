@@ -37,7 +37,6 @@ mod helpers;
 mod home;
 mod home_custom;
 mod home_list;
-mod home_recent;
 mod language;
 mod layer_names;
 mod layers;
@@ -111,9 +110,9 @@ pub struct Workspace {
     /// Projects opened or saved lately, newest first.
     recent: Vec<PathBuf>,
     /// What the Home page shows of each recent project's file, and what is typed in its search.
-    recent_info: home_recent::RecentInfo,
+    recent_info: flare_recent::RecentInfo,
     home_search: String,
-    home_sort: home_recent::Sorting,
+    home_sort: flare_recent::Sorting,
     /// The Custom Size window on Home, while it is open.
     custom_size: Option<home_custom::CustomSize>,
     /// Folders shown shut in the timeline, hiding the layers inside.
@@ -292,9 +291,9 @@ impl Workspace {
             position: 0,
             publish: PublishSettings::default(),
             recent: Vec::new(),
-            recent_info: home_recent::RecentInfo::default(),
+            recent_info: flare_recent::RecentInfo::default(),
             home_search: String::new(),
-            home_sort: home_recent::Sorting::default(),
+            home_sort: flare_recent::Sorting::default(),
             custom_size: None,
             collapsed_folders: std::collections::HashSet::new(),
             library_preview: None,

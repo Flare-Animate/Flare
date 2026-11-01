@@ -7,7 +7,6 @@ use flare_document::{Document, Layer, Scene, Stage, Timeline};
 use flare_ui::{chrome, icons, theme};
 use std::path::PathBuf;
 
-use super::home_recent;
 use super::*;
 
 /// The sizes offered for a new project: name, width, height, frames per second.
@@ -219,7 +218,7 @@ impl Workspace {
             .iter()
             .filter(|path| {
                 let (name, folder) = name_and_folder(path);
-                home_recent::matches(&name, &folder, &self.home_search)
+                flare_recent::matches(&name, &folder, &self.home_search)
             })
             .cloned()
             .collect();
@@ -230,7 +229,7 @@ impl Workspace {
             );
             return;
         }
-        home_recent::sort(&mut shown, self.home_sort, &self.recent_info);
+        flare_recent::sort(&mut shown, self.home_sort, &self.recent_info);
         shown.truncate(RECENT_SHOWN);
         if let Some(path) = self.recent_list(ui, &shown) {
             *open = Some(path);

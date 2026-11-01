@@ -6,8 +6,8 @@ use flare_ui::theme;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use super::home_recent::{self, SortBy};
 use super::*;
+use flare_recent::SortBy;
 
 const ROW_HEIGHT: f32 = 30.0;
 const MODIFIED_WIDTH: f32 = 150.0;
@@ -85,15 +85,15 @@ impl Workspace {
                 None => ("Reading…".to_owned(), String::new()),
                 Some(info) => (
                     info.modified
-                        .map_or_else(|| "Not found".to_owned(), |t| home_recent::ago(t, now)),
-                    info.size.map(home_recent::format_size).unwrap_or_default(),
+                        .map_or_else(|| "Not found".to_owned(), |t| flare_recent::ago(t, now)),
+                    info.size.map(flare_recent::format_size).unwrap_or_default(),
                 ),
             };
             let cells = [
                 (name_width, name.as_str(), true),
                 (MODIFIED_WIDTH, modified.as_str(), false),
                 (SIZE_WIDTH, size.as_str(), false),
-                (KIND_WIDTH, home_recent::kind(path), false),
+                (KIND_WIDTH, flare_recent::kind(path), false),
             ];
             let mut x = row.left();
             for (cell_width, text, primary) in cells {

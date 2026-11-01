@@ -1955,6 +1955,7 @@ dependencies = [
  "flare-i18n",
  "flare-input",
  "flare-menubar",
+ "flare-recent",
  "flare-render",
  "flare-runtime",
  "flare-storage",
@@ -2232,6 +2233,13 @@ dependencies = [
  "swf",
  "tempfile",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "flare-recent"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
 ]
 
 [[package]]

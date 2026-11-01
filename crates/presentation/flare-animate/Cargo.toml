@@ -19,6 +19,7 @@ flare-history.workspace = true
 flare-i18n.workspace = true
 flare-input.workspace = true
 flare-menubar.workspace = true
+flare-recent.workspace = true
 flare-render.workspace = true
 flare-runtime.workspace = true
 flare-storage.workspace = true

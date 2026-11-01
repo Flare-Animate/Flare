@@ -1,6 +1,7 @@
-//! What the Home page knows about each recent project besides its name: when the file was last
+//! What a list of recent projects knows about each one besides its name: when the file was last
 //! changed and how big it is, found off the UI thread (a project on a network drive can take
-//! seconds to answer), and the search over the list.
+//! seconds to answer), what kind of file it is, the search over the list, and its sorting.
+#![forbid(unsafe_code)]
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -9,13 +10,13 @@ use std::time::{Duration, SystemTime};
 
 /// What is known of one file. `None` for both is a file that is not there any more.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub(super) struct FileInfo {
-    pub(super) modified: Option<SystemTime>,
-    pub(super) size: Option<u64>,
+pub struct FileInfo {
+    pub modified: Option<SystemTime>,
+    pub size: Option<u64>,
 }
 
 impl FileInfo {
-    pub(super) fn read(path: &Path) -> Self {
+    pub fn read(path: &Path) -> Self {
         match std::fs::metadata(path) {
             Ok(meta) => Self {
                 modified: meta.modified().ok(),
@@ -28,19 +29,19 @@ impl FileInfo {
 
 /// Answers gathered by background threads, shared with the page that asked.
 #[derive(Clone, Default)]
-pub(super) struct RecentInfo {
+pub struct RecentInfo {
     known: Arc<Mutex<HashMap<PathBuf, FileInfo>>>,
     asked: HashSet<PathBuf>,
 }
 
 impl RecentInfo {
-    pub(super) fn get(&self, path: &Path) -> Option<FileInfo> {
+    pub fn get(&self, path: &Path) -> Option<FileInfo> {
         self.known.lock().ok()?.get(path).copied()
     }
 
     /// Reads every path not asked about yet on a thread of its own, and asks `wake` for another
     /// frame when it is done. Returns the thread so a test can wait for it.
-    pub(super) fn ask(
+    pub fn ask(
         &mut self,
         paths: &[PathBuf],
         wake: impl FnOnce() + Send + 'static,
@@ -68,23 +69,22 @@ impl RecentInfo {
             .ok()
     }
 
-    /// Counts `paths` as asked about without reading them, so a test can look at the page while
-    /// nothing is known yet; a real thread might answer before the page is drawn.
-    #[cfg(test)]
-    pub(super) fn pretend_asked(&mut self, paths: &[PathBuf]) {
+    /// Counts `paths` as asked about without reading them, so a front end's test can look at a
+    /// list while nothing is known yet; a real thread might answer before it is drawn.
+    pub fn mark_asked(&mut self, paths: &[PathBuf]) {
         self.asked.extend(paths.iter().cloned());
     }
 
-    /// Sets what is known of `path`, so a test can sort on facts a file system would not give it.
-    #[cfg(test)]
-    pub(super) fn set(&self, path: &Path, info: FileInfo) {
+    /// Records what is known of `path`, as a read would have: for a test, or a file system that
+    /// answers some other way.
+    pub fn record(&self, path: &Path, info: FileInfo) {
         if let Ok(mut known) = self.known.lock() {
             known.insert(path.to_owned(), info);
         }
     }
 
     /// Forgets what was read, so the next look at the list reads it again.
-    pub(super) fn refresh(&mut self) {
+    pub fn refresh(&mut self) {
         self.asked.clear();
         if let Ok(mut known) = self.known.lock() {
             known.clear();
@@ -94,14 +94,14 @@ impl RecentInfo {
 
 /// Whether a project whose file is called `name`, in `folder`, answers `query`: every word of
 /// the query is somewhere in the name or the folder, in any case. An empty query matches all.
-pub(super) fn matches(name: &str, folder: &str, query: &str) -> bool {
+pub fn matches(name: &str, folder: &str, query: &str) -> bool {
     let haystack = format!("{name} {folder}").to_lowercase();
     query
         .split_whitespace()
         .all(|word| haystack.contains(&word.to_lowercase()))
 }
 
-pub(super) fn format_size(bytes: u64) -> String {
+pub fn format_size(bytes: u64) -> String {
     const UNITS: [&str; 4] = ["KB", "MB", "GB", "TB"];
     if bytes < 1024 {
         return format!("{bytes} B");
@@ -122,7 +122,7 @@ pub(super) fn format_size(bytes: u64) -> String {
 /// How long ago `then` was, as "5 minutes ago" and on up through days, months and years. It is
 /// never a date, so no time zone comes into it. A time in the future (a clock that was set back)
 /// reads as just now.
-pub(super) fn ago(then: SystemTime, now: SystemTime) -> String {
+pub fn ago(then: SystemTime, now: SystemTime) -> String {
     const DAY: u64 = 86_400;
     let ago = now.duration_since(then).unwrap_or(Duration::ZERO).as_secs();
     let plural = |n: u64, unit: &str| format!("{n} {unit}{}", if n == 1 { "" } else { "s" });
@@ -140,7 +140,7 @@ pub(super) fn ago(then: SystemTime, now: SystemTime) -> String {
 /// What the recent list is ordered by. `Opened` is the order the projects were last opened or
 /// saved in, which is the order the list is kept in.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub(super) enum SortBy {
+pub enum SortBy {
     #[default]
     Opened,
     Name,
@@ -151,15 +151,15 @@ pub(super) enum SortBy {
 
 /// The order of the recent list: by what, and whether it runs from the largest or the last.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub(super) struct Sorting {
-    pub(super) by: SortBy,
-    pub(super) descending: bool,
+pub struct Sorting {
+    pub by: SortBy,
+    pub descending: bool,
 }
 
 impl Sorting {
     /// What clicking the heading of `column` does: that column ascending, then descending, then
     /// back to the order the projects were opened in.
-    pub(super) fn click(self, column: SortBy) -> Self {
+    pub fn click(self, column: SortBy) -> Self {
         match (self.by == column, self.descending) {
             (false, _) => Self {
                 by: column,
@@ -175,7 +175,7 @@ impl Sorting {
 }
 
 /// What kind of file a recent project is, going by its name.
-pub(super) fn kind(path: &Path) -> &'static str {
+pub fn kind(path: &Path) -> &'static str {
     match path
         .extension()
         .and_then(|e| e.to_str())
@@ -192,7 +192,7 @@ pub(super) fn kind(path: &Path) -> &'static str {
 /// Puts `paths` in the order `sorting` asks for. A file whose size or time is not known (still
 /// being read, or gone) goes last whichever way the column runs, and ties keep the order the
 /// projects were opened in.
-pub(super) fn sort(paths: &mut [PathBuf], sorting: Sorting, info: &RecentInfo) {
+pub fn sort(paths: &mut [PathBuf], sorting: Sorting, info: &RecentInfo) {
     use std::cmp::Ordering;
     let name = |p: &Path| {
         p.file_name()
