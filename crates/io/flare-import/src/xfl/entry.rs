@@ -5,7 +5,6 @@ use flare_core::{DocumentId, Rgba8, SceneId, SymbolId};
 use flare_document::{
     Anchor, Document, MAX_ATTACHMENTS, Placement, Scene, Stage, Symbol, SymbolKind, Timeline,
 };
-use std::collections::HashMap;
 
 use super::*;
 
@@ -34,12 +33,7 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
         )));
     }
 
-    let mut importer = Importer {
-        symbols: HashMap::new(),
-        diagnostics: Vec::new(),
-        suppressed: 0,
-        kept: Vec::new(),
-    };
+    let mut importer = Importer::new();
 
     // Pass 1: read every library item and assign IDs, so symbols can refer to each other.
     let mut items: Vec<(String, SymbolId, Node)> = Vec::new();

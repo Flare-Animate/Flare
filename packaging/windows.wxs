@@ -48,6 +48,8 @@
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKLM" Key="Software\Classes\.xfl\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\.swf\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe"
                          Name="FriendlyAppName" Type="string" Value="Flare" />
           <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
@@ -56,6 +58,8 @@
                          Name=".fla" Type="string" Value="" />
           <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".xfl" Type="string" Value="" />
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".swf" Type="string" Value="" />
           <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe\shell\open\command"
                          Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
           <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities"
@@ -68,6 +72,8 @@
                          Name=".fla" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".xfl" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".swf" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="Flare"
                          Type="string" Value="Software\Flare\Capabilities" />
         </Component>

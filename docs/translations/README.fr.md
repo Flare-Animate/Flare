@@ -22,7 +22,7 @@ Un outil d'animation libre et open source, dans l'esprit d'Adobe Animate, écrit
 - Organisez images et calques sur un scénario, avec dossiers, masques, guides de mouvement, interpolations de mouvement et de forme avec Ease, pelure d'oignon et un calque de caméra.
 - Des symboles (Graphique, Clip et Bouton) dans une bibliothèque, placés comme occurrences sur la scène.
 - Lisez l'animation avec le son ; Tester l'animation exécute le SWF publié dans Ruffle.
-- Ouvrez et enregistrez des projets `.flare`. Importez et exportez le XFL et le `.fla` d'Animate.
+- Ouvrez et enregistrez des projets `.flare`. Importez et exportez le XFL et le `.fla` d'Animate. Ouvrez des animations Flash (`.swf`) comme projets modifiables.
 - Exportez en PNG, GIF et MP4, et publiez un SWF ou une page HTML5 Canvas.
 - Une interface en ligne de commande (`flare`) pour créer, modifier, exporter et publier des projets depuis des scripts.
 
@@ -60,7 +60,6 @@ Flare a commencé comme un terrain d'essai pour rendre l'animation plus facile �
 Les prochaines étapes, les plus importantes d'abord. La plupart est affiché estompé dans l'interface. [docs/ROADMAP.md](../ROADMAP.md) reprend cette liste et continue avec tout ce qui est de moindre priorité.
 
 - Dessin par fusion : les formes à carte planaire de Flash, où les formes qui se chevauchent se découpent et fusionnent (aujourd'hui les formes sont des objets séparés)
-- Ouvrir les fichiers SWF : lire un SWF publié comme projet modifiable (ses formes, symboles et scénario), avec `.swf` enregistré auprès du système d'exploitation
 - Qualité du dessin : dynamique du pinceau et vectorisation d'une image bitmap en formes vectorielles
 - Un SWF qui garde davantage du document : boutons avec leurs états, interpolations de forme en morphes, masques de plusieurs formes et sons dans les symboles
 - Un éditeur de mouvement : graphiques par propriété et courbes d'accélération personnalisées pour les interpolations

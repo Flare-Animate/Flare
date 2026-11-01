@@ -32,6 +32,7 @@ fn paths_are_told_apart_by_extension_in_any_case_and_folders_are_xfl() {
     assert_eq!(kind("a.flare", false), Some(PathKind::Project));
     assert_eq!(kind("A.FLARE", false), Some(PathKind::Project));
     assert_eq!(kind("a.fla", false), Some(PathKind::Import));
+    assert_eq!(kind("a.SWF", false), Some(PathKind::Import));
     assert_eq!(kind("a.XFL", false), Some(PathKind::Import));
     assert_eq!(
         kind("MyProject", true),

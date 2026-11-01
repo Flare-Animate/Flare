@@ -17,4 +17,10 @@
     <sub-class-of type="application/xml" />
     <glob pattern="*.xfl" />
   </mime-type>
+  <!-- Flash movies, which Flare imports. The type is the system's own; declaring it here only
+       lets Flare be offered for it. -->
+  <mime-type type="application/x-shockwave-flash">
+    <comment>Flash Movie</comment>
+    <glob pattern="*.swf" />
+  </mime-type>
 </mime-info>

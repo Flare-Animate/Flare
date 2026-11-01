@@ -22,7 +22,7 @@ Uma ferramenta de animação livre e de código aberto, no espírito do Adobe An
 - Organize quadros e camadas em uma linha do tempo, com pastas, máscaras, guias de movimento, interpolações de movimento e de forma com Ease, papel de cebola e uma camada de câmera.
 - Símbolos (Gráfico, Clipe de filme e Botão) em uma biblioteca, colocados como instâncias no palco.
 - Reproduza a animação com som; Testar filme executa o SWF publicado no Ruffle.
-- Abra e salve projetos `.flare`. Importe e exporte XFL e `.fla` do Animate.
+- Abra e salve projetos `.flare`. Importe e exporte XFL e `.fla` do Animate. Abra filmes Flash (`.swf`) como projetos editáveis.
 - Exporte PNG, GIF e MP4 e publique um SWF ou uma página HTML5 Canvas.
 - Uma interface de linha de comando (`flare`) para criar, editar, exportar e publicar projetos a partir de scripts.
 
@@ -60,7 +60,6 @@ O Flare começou como um campo de testes para tornar a animação mais fácil de
 O que vem a seguir, o mais importante primeiro. Quase tudo aparece esmaecido na interface. [docs/ROADMAP.md](../ROADMAP.md) repete esta lista e segue com tudo de menor prioridade.
 
 - Desenho por mesclagem: as formas de mapa planar do Flash, em que formas sobrepostas se cortam e se mesclam (hoje as formas são objetos separados)
-- Abrir arquivos SWF: ler um SWF publicado como projeto editável (suas formas, símbolos e linha do tempo), com `.swf` registrado no sistema operacional
 - Qualidade do desenho: dinâmica do pincel e vetorização de um bitmap em formas vetoriais
 - SWF que preserva mais do documento: botões com seus estados, interpolações de forma como morphs, máscaras de várias formas e sons dentro de símbolos
 - Um Editor de movimento: gráficos por propriedade e curvas de suavização personalizadas para as interpolações

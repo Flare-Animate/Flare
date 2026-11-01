@@ -179,3 +179,21 @@ async fn export_tools_are_off_without_a_directory_never_overwrite_and_refuse_nam
         "an import cannot reach outside the export directory"
     );
 }
+
+#[tokio::test]
+async fn a_published_movie_imports_back_as_a_project() {
+    let f = drawn().await;
+    f.ok("publish_swf", json!({ "name": "movie.swf" })).await;
+    let imported = f
+        .ok(
+            "import_project",
+            json!({ "source": "movie.swf", "name": "from-movie" }),
+        )
+        .await;
+    assert_eq!(imported["scenes"], 1);
+    assert!(imported["symbols"].as_u64().expect("count") >= 1);
+    let loaded = flare_storage::load(std::path::Path::new(imported["path"].as_str().expect("p")))
+        .expect("the imported project opens");
+    // The fixture's stage is 40 by 20.
+    assert_eq!((loaded.stage().width(), loaded.stage().height()), (40, 20));
+}

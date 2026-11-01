@@ -22,7 +22,7 @@ A free, open-source animation tool in the spirit of Adobe Animate, written in Ru
 - Lay out frames and layers on a timeline, with folders, masks, motion guides, motion and shape tweens with Ease, onion skin and a camera layer.
 - Symbols (Graphic, Movie Clip and Button) in a library, placed as instances on the stage.
 - Play the animation with sound, and Test Movie runs the published SWF in Ruffle.
-- Open and save `.flare` projects. Import and export Animate's XFL and .fla
+- Open and save `.flare` projects. Import and export Animate's XFL and .fla, and open Flash movies (`.swf`) as editable projects
 - Export PNG, GIF and MP4, and publish a SWF or an HTML5 Canvas page.
 - A command line interface (`flare`) to create, edit, export and publish projects from scripts.
 
@@ -60,7 +60,6 @@ Flare began as a playground for making animation easier to learn, was later open
 The next things, most important first. Most of it is shown dimmed in the interface. [docs/ROADMAP.md](docs/ROADMAP.md) repeats this list and goes on to everything of lower priority.
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
-- Opening SWF files: reading a published SWF into an editable project (its shapes, symbols and timeline), with `.swf` registered with the operating system
 - Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
 - A Motion Editor: per-property graphs and custom ease curves for tweens

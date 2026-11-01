@@ -22,17 +22,19 @@ use thiserror::Error;
 mod elements;
 mod entry;
 mod shapes;
+
+pub(crate) use shapes::ShapeParts;
 mod timeline;
 
 pub use entry::import_xfl;
 #[allow(unused_imports)]
 use entry::*;
 
-const MAX_FILE_BYTES: u64 = 64 * 1024 * 1024;
+pub(crate) const MAX_FILE_BYTES: u64 = 64 * 1024 * 1024;
 
-const MAX_SYMBOLS: usize = 10_000;
+pub(crate) const MAX_SYMBOLS: usize = 10_000;
 
-const MAX_DIAGNOSTICS: usize = 1_000;
+pub(crate) const MAX_DIAGNOSTICS: usize = 1_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Severity {
@@ -67,6 +69,8 @@ pub enum ImportError {
     Xml { file: String, error: XmlError },
     #[error("{0} is larger than the {MAX_FILE_BYTES} byte limit")]
     TooLarge(String),
+    #[error("not a Flash movie: {0}")]
+    NotSwf(String),
     #[error("the document has no timelines")]
     NoTimelines,
     #[error("the library has more than {MAX_SYMBOLS} items")]
@@ -164,15 +168,24 @@ struct Spot {
     frame: u32,
 }
 
-struct Importer {
-    symbols: HashMap<String, SymbolId>,
-    diagnostics: Vec<Diagnostic>,
-    suppressed: usize,
+pub(crate) struct Importer {
+    pub(crate) symbols: HashMap<String, SymbolId>,
+    pub(crate) diagnostics: Vec<Diagnostic>,
+    pub(crate) suppressed: usize,
     /// Source text that has no Flare equivalent, kept for export.
-    kept: Vec<Attachment>,
+    pub(crate) kept: Vec<Attachment>,
 }
 
 impl Importer {
+    pub(crate) fn new() -> Self {
+        Self {
+            symbols: HashMap::new(),
+            diagnostics: Vec::new(),
+            suppressed: 0,
+            kept: Vec::new(),
+        }
+    }
+
     /// Keeps `xml` as source data anchored to `anchor`. Too-large items are reported, not kept.
     fn keep(&mut self, anchor: Anchor, placement: Placement, xml: String, place: &str) {
         match Attachment::new("xfl", anchor, placement, xml) {
@@ -185,7 +198,7 @@ impl Importer {
         }
     }
 
-    fn note(&mut self, severity: Severity, location: &str, message: impl Into<String>) {
+    pub(crate) fn note(&mut self, severity: Severity, location: &str, message: impl Into<String>) {
         let diagnostic = Diagnostic {
             severity,
             location: location.to_owned(),

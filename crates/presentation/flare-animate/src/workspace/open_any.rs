@@ -7,14 +7,14 @@ use super::*;
 
 /// The file extensions Flare opens itself, and the ones it imports as a new project.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 2] = ["fla", "xfl"];
+pub const IMPORT_EXTENSIONS: [&str; 3] = ["fla", "xfl", "swf"];
 
 /// What to do with a path.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PathKind {
     /// A Flare project: open it.
     Project,
-    /// An Animate project (`.fla`, `.xfl` or an XFL folder): import it as a new project.
+    /// An Animate project (`.fla`, `.xfl` or an XFL folder) or a Flash movie (`.swf`): import it as a new project.
     Import,
 }
 
@@ -43,7 +43,7 @@ impl Workspace {
             Some(PathKind::Project) => self.open(path),
             Some(PathKind::Import) => self.import_project(path),
             None => self.report(format!(
-                "Flare opens .flare projects and imports .fla and .xfl files, not {}",
+                "Flare opens .flare projects and imports .fla, .xfl and .swf files, not {}",
                 path.file_name().map_or_else(
                     || path.display().to_string(),
                     |name| name.to_string_lossy().into_owned()

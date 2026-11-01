@@ -22,7 +22,7 @@ Ein freies Open-Source-Animationswerkzeug im Sinne von Adobe Animate, geschriebe
 - Bilder und Ebenen auf einer Zeitleiste anordnen, mit Ordnern, Masken, Bewegungsführungen, Bewegungs- und Formtweens mit Ease, Onion Skin und einer Kameraebene.
 - Symbole (Grafik, Movieclip und Schaltfläche) in einer Bibliothek, als Instanzen auf der Bühne platziert.
 - Die Animation mit Ton abspielen; Film testen führt das veröffentlichte SWF in Ruffle aus.
-- `.flare`-Projekte öffnen und speichern. XFL und `.fla` von Animate importieren und exportieren.
+- `.flare`-Projekte öffnen und speichern. XFL und `.fla` von Animate importieren und exportieren. SWF-Filme (`.swf`) als bearbeitbare Projekte öffnen.
 - PNG, GIF und MP4 exportieren sowie ein SWF oder eine HTML5-Canvas-Seite veröffentlichen.
 - Eine Kommandozeilenschnittstelle (`flare`), um Projekte aus Skripten zu erstellen, zu bearbeiten, zu exportieren und zu veröffentlichen.
 
@@ -60,7 +60,6 @@ Flare begann als Spielwiese, um Animation leichter erlernbar zu machen, wurde sp
 Als Nächstes, das Wichtigste zuerst. Das meiste ist in der Oberfläche abgedunkelt zu sehen. [docs/ROADMAP.md](../ROADMAP.md) wiederholt diese Liste und führt alles mit niedrigerer Priorität auf.
 
 - Zeichnen mit Verschmelzung: Flashs planare Formen, bei denen sich überlappende Formen gegenseitig schneiden und verschmelzen (heute sind Formen getrennte Objekte)
-- SWF-Dateien öffnen: ein veröffentlichtes SWF als bearbeitbares Projekt einlesen (Formen, Symbole und Zeitleiste), mit `.swf` beim Betriebssystem registriert
 - Zeichenqualität: Pinseldynamik und das Nachzeichnen einer Bitmap in Vektorformen
 - SWF, das mehr vom Dokument behält: Schaltflächen mit ihren Zuständen, Formtweens als Morphs, Masken aus mehreren Formen und Töne in Symbolen
 - Ein Motion Editor: Diagramme je Eigenschaft und eigene Ease-Kurven für Tweens

@@ -11,6 +11,7 @@ flare-core.workspace = true
 flare-document.workspace = true
 glamx.workspace = true
 quick-xml.workspace = true
+swf.workspace = true
 thiserror.workspace = true
 zip = { workspace = true, features = ["deflate"] }
 

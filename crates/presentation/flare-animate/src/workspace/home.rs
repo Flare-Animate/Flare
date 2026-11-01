@@ -151,7 +151,7 @@ impl Workspace {
         }
         ui.add_space(6.0);
         if wide_button(ui, width, "file-import", "Import…", false)
-            .on_hover_text("An XFL folder or a .fla file")
+            .on_hover_text("An XFL folder, a .fla file or a .swf movie")
             .clicked()
         {
             *dialog = Some(DialogRequest::ImportProject);

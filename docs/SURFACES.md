@@ -12,7 +12,7 @@ First audit, from the code, 2026-10-31.
 | Feature | Desktop | Browser | CLI | MCP | Why a gap, and what closes it |
 |---|---|---|---|---|---|
 | Open and save `.flare` | yes | yes | yes | yes | The browser brings SQLite and zstd as WebAssembly (`@sqlite.org/sqlite-wasm`, `@bokuweb/zstd-wasm`) and `flare-storage`'s own checks run in the page. It is a download and a file picker there, not a path. |
-| Import XFL and `.fla` | yes | yes | yes | yes | The MCP tool reads only from its export directory and writes a new `.flare` beside it; the open project is not replaced. |
+| Import XFL, `.fla` and `.swf` | yes | yes | yes | yes | The MCP tool reads only from its export directory and writes a new `.flare` beside it; the open project is not replaced. |
 | Export XFL and `.fla` | yes (File > Export) | yes (as a download) | yes | yes | What was not carried over is listed by the CLI and the MCP tool and not yet by the two windows. |
 | Export PNG | yes | yes | yes | yes | |
 | Export GIF | yes | yes | yes | yes | |

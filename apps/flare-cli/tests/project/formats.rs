@@ -317,3 +317,51 @@ fn export_format_mp4_writes_a_video_never_overwrites_and_refuses_png_only_option
     );
     assert!(!std::path::Path::new(&other).exists());
 }
+
+#[test]
+fn a_published_movie_imports_back_and_draws_what_was_drawn() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let movie = dir.path().join("m.swf").to_string_lossy().into_owned();
+    let back = dir.path().join("back.flare").to_string_lossy().into_owned();
+    let png = dir.path().join("f.png").to_string_lossy().into_owned();
+    json(&["new", &file, "--width", "30", "--height", "30"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "5",
+        "5",
+        "20",
+        "20",
+        "--color",
+        "FF0000",
+    ]);
+    json(&["publish-swf", &file, &movie, "--no-compress"]);
+
+    let report = json(&["import", &movie, &back]);
+    assert_eq!(report["scenes"], 1);
+    let info = json(&["info", &back]);
+    assert_eq!(
+        (
+            info["stage"]["width"].as_u64(),
+            info["stage"]["height"].as_u64()
+        ),
+        (Some(30), Some(30))
+    );
+    json(&["export", &back, &png]);
+    let image = read_png(&png);
+    assert_eq!(pixel(&image, 15, 15), [255, 0, 0, 255], "the square");
+    assert_eq!(pixel(&image, 2, 2), [255, 255, 255, 255], "the background");
+
+    // A damaged movie is refused and leaves no project behind.
+    let broken = dir.path().join("broken.swf");
+    std::fs::write(&broken, b"FWS\x0a\x10\x00\x00\x00").expect("write");
+    let out = dir.path().join("nope.flare").to_string_lossy().into_owned();
+    assert!(
+        !run(&["import", &broken.to_string_lossy(), &out])
+            .status
+            .success()
+    );
+    assert!(!std::path::Path::new(&out).exists());
+}

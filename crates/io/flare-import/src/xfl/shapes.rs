@@ -9,7 +9,16 @@ use std::collections::{BTreeMap, HashMap};
 use flare_document::{Cap, Join};
 
 /// A stroke as read from a file: width, color, and how its ends and corners look.
-type StrokeSpec = (f64, Rgba8, Cap, Join);
+pub(crate) type StrokeSpec = (f64, Rgba8, Cap, Join);
+
+/// A shape's styles and edges, read from whatever file it came from: fills and strokes by their
+/// index (`None` for a style that cannot be imported), and the edges each style borders.
+pub(crate) struct ShapeParts {
+    pub(crate) fills: HashMap<u32, Option<Rgba8>>,
+    pub(crate) strokes: HashMap<u32, Option<StrokeSpec>>,
+    pub(crate) fill_edges: BTreeMap<u32, Vec<Segment>>,
+    pub(crate) stroke_edges: BTreeMap<u32, Vec<Segment>>,
+}
 
 use super::*;
 
@@ -120,6 +129,26 @@ impl Importer {
             }
         }
 
+        self.shapes_from(
+            ShapeParts {
+                fills,
+                strokes,
+                fill_edges,
+                stroke_edges,
+            },
+            place,
+        )
+    }
+
+    /// The document shapes for `parts`: one per fill, with the stroke that runs along exactly its
+    /// edges as its outline, then one per stroke left over.
+    pub(crate) fn shapes_from(&mut self, parts: ShapeParts, place: &str) -> Vec<Content> {
+        let ShapeParts {
+            fills,
+            strokes,
+            fill_edges,
+            stroke_edges,
+        } = parts;
         let mut out = Vec::new();
         // Strokes that became the outline of a fill, so they are not drawn a second time.
         let mut outlines: std::collections::HashSet<u32> = std::collections::HashSet::new();
@@ -170,7 +199,7 @@ impl Importer {
         out
     }
 
-    pub(super) fn push_shape(
+    pub(crate) fn push_shape(
         &mut self,
         out: &mut Vec<Content>,
         contours: &[Contour],

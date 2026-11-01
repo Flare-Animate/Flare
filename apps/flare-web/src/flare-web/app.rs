@@ -50,8 +50,11 @@ impl WebApp {
             DialogRequest::Open | DialogRequest::ImportProject => {
                 let (inbox, ctx) = (Rc::clone(&self.picked), ctx.clone());
                 wasm_bindgen_futures::spawn_local(async move {
-                    if let Some((name, bytes)) =
-                        files::pick("Flare project or Flash document", &["flare", "fla"]).await
+                    if let Some((name, bytes)) = files::pick(
+                        "Flare project, Flash document or movie",
+                        &["flare", "fla", "swf"],
+                    )
+                    .await
                     {
                         inbox.borrow_mut().push(Picked { name, bytes });
                         ctx.request_repaint();

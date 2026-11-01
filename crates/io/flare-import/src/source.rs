@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{self, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 
+use crate::swf::{import_swf_bytes, looks_like_swf};
 use crate::xfl::{FileSource, ImportError, Imported, import_xfl, read_capped};
 
 /// Whether `name` stays inside the document: relative, `/`-separated, no `..` or empty parts.
@@ -78,6 +79,15 @@ pub fn import_fla_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
     import_xfl(&ZipSource::from_bytes(bytes)?)
 }
 
+/// Imports a file held in memory: a Flash movie if it starts like one, else a `.fla`.
+pub fn import_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
+    if looks_like_swf(&bytes) {
+        import_swf_bytes(&bytes)
+    } else {
+        import_fla_bytes(bytes)
+    }
+}
+
 impl<R: Read + Seek> FileSource for ZipSource<R> {
     fn read(&self, name: &str) -> io::Result<Option<Vec<u8>>> {
         if !is_safe_name(name) {
@@ -105,8 +115,8 @@ impl<R: Read + Seek> FileSource for ZipSource<R> {
 const ZIP_MAGIC: &[u8] = b"PK\x03\x04";
 const CFB_MAGIC: &[u8] = &[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
 
-/// Imports from a path: an XFL directory, a `.xfl` stub file (its folder is used), or a
-/// zipped `.fla`. Legacy binary `.fla` files are recognised and refused with a clear reason.
+/// Imports from a path: an XFL directory, a `.xfl` stub file (its folder is used), a
+/// zipped `.fla` or a Flash movie (`.swf`). Legacy binary `.fla` files are recognised and refused with a clear reason.
 pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
     if path.is_dir() {
         return import_xfl(&DirSource(path.to_owned()));
@@ -114,6 +124,10 @@ pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
     let mut head = [0_u8; 8];
     let read = File::open(path)?.read(&mut head)?;
     let head = &head[..read];
+    if looks_like_swf(head) {
+        let bytes = read_capped(&mut File::open(path)?, "the movie")?;
+        return import_swf_bytes(&bytes);
+    }
     if head.starts_with(ZIP_MAGIC) {
         return import_xfl(&ZipSource::open(path)?);
     }

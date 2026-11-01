@@ -178,7 +178,7 @@ pub fn run_io(job: IoJob) -> Done {
         IoJob::ImportBytes { id, name, bytes } => Done::Imported {
             id,
             path: PathBuf::from(name),
-            result: imported(flare_import::import_fla_bytes(bytes)),
+            result: imported(flare_import::import_bytes(bytes)),
         },
         IoJob::Autosave { id, dir, document } => Done::Autosaved {
             id,

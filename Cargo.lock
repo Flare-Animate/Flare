@@ -2136,6 +2136,7 @@ dependencies = [
  "flare-render",
  "glamx",
  "quick-xml 0.42.0",
+ "swf",
  "tempfile",
  "thiserror 2.0.18",
  "zip",

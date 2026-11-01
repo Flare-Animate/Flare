@@ -15,10 +15,10 @@ pub fn save_project() -> Option<PathBuf> {
     project().save_file()
 }
 
-/// An XFL file or a modern `.fla` to import.
+/// An XFL file, a modern `.fla` or a Flash movie to import.
 pub fn pick_import() -> Option<PathBuf> {
     rfd::FileDialog::new()
-        .add_filter("Flash document", &["fla", "xfl"])
+        .add_filter("Flash document or movie", &["fla", "xfl", "swf"])
         .pick_file()
 }
 

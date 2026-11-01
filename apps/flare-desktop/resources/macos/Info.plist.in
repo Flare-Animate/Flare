@@ -49,6 +49,7 @@
             <array>
                 <string>fla</string>
                 <string>xfl</string>
+                <string>swf</string>
             </array>
             <key>CFBundleTypeIconFile</key>
             <string>flare-icon.icns</string>
