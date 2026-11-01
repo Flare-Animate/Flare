@@ -79,6 +79,20 @@ rejected batch, and undo back to the exact starting document. When adding a new 
 make sure these cover it. Check that a new invariant test can fail: temporarily break the
 code it protects and confirm the test notices.
 
+## Code map for tools and newcomers
+
+[codesight](https://www.npmjs.com/package/codesight) scans the repository and writes `.codesight/`: a
+short map of the crates, the document schema, the libraries and the events, so a person or an AI
+tool can find their way without reading every file. It is generated, never committed (`.codesight`
+is in `.gitignore`) and out of date as soon as the code moves. Keep it current while working with
+
+```
+npx codesight --wiki --watch
+```
+
+which also writes a wiki and rescans when files change. It is a reading aid: the code, the tests and
+these docs are the source of truth, and nothing in the build depends on it.
+
 ## Commits
 
 Small conventional commits: `feat(scope)`, `fix(scope)`, `refactor(scope)`, `test(scope)`,

@@ -2,6 +2,71 @@
 
 Status is evidence-based: a milestone item is done only when it has tests.
 
+## Priorities
+
+The high-priority list is the Roadmap in [README.md](../README.md) and is repeated here word for
+word; the lower-priority list and what is not planned follow it. Priority is how much a person
+animating with Flare misses the thing, not how hard it is. It was drawn up from a review of
+`original/` (see [parity.md](parity.md)) and from Animate's own feature list, and it is the
+maintainer's to reorder.
+
+### High priority
+
+- Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
+- Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
+- SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
+- A Motion Editor: per-property graphs and custom ease curves for tweens
+- Importing artwork from SVG and Photoshop files
+- Bones and inverse kinematics (the Bone and Bind tools)
+- Editing text after it is placed
+- Editable keyboard shortcuts
+
+### Lower priority
+
+Drawing and tools
+- The rest of Animate's tools: 3D Rotation and Translation, Deco, Width, Asset Warp, Gradient Transform and Magic Wand
+- Art and pattern brushes for the Paint Brush, and tablet tilt
+- Layer depth (2.5D with the camera), and, for the camera, layers attached to it, following frames added to the movie and XFL import and export
+- Rich text (mixed styles in one field) and text menu commands
+- Bitmap compression settings; importing Illustrator (`.ai`) files
+
+Timeline, symbols and library
+- Shape hints and more than one scene
+- Find and Replace across text, fonts, colors and symbols
+- Shared and external libraries, and an Assets panel
+- A visual Frame Picker for a Graphic's first frame
+- History panel extras: replaying steps and saving them as a command
+
+Scripting
+- ActionScript and a script editor, Code Snippets, and scripting with the Commands menu (ActionScript in an imported file is kept as data and never run)
+
+Interface
+- A Flash 8 interface skin, and custom themes (a contrast check for them, as `original/` had, so a theme cannot make text unreadable)
+- A fully rearrangeable toolbar (tools can already be pinned from the "…" list)
+- Named workspaces and the Interface switcher at the top right
+
+Formats
+- Reading the old binary `.fla` (CS4 and before), which is recognised and refused today
+- Opening a SWF as a document, `.sol` shared objects, importing video, and Moho projects
+
+Sharing and releases
+- Sharing from the Share menu to YouTube and other services
+- A released web build (it is experimental today), with MP4 export and sound import
+- An auto-update that checks a SHA-256 before it replaces anything
+- Developer-ID signing and notarising on macOS, and a double-click that opens a file there
+- Windows installer extras (a Chocolatey package)
+
+Tooling for the project
+- A pre-commit hook that runs the format check before a commit (the old project had one that kept
+  its docs in step with the code)
+- [codesight](https://www.npmjs.com/package/codesight) keeps `.codesight/`, an AI-readable map of
+  the code that is not committed: `npx codesight --wiki --watch` (see [engineering.md](engineering.md))
+
+### Not planned
+
+Android, P2P remote control, a game engine, Adobe/Harman AIR and Flex SDK targets, and OpenToonz's
+raster painting, FX schematic and xsheet. [parity.md](parity.md) says why for each.
+
 | Milestone | Scope | Status |
 |---|---|---|
 | M0 baseline | Pinned toolchain, centralized dependencies, locked builds, honest tests, renderer decision | Done |

@@ -11,6 +11,7 @@ are built, and why, is in `docs/` and is kept up to date with the code.
 - [docs/performance.md](docs/performance.md): the rules every feature follows for responsiveness.
 - [docs/ui.md](docs/ui.md): the interface, icons, type, and how unbuilt features are shown.
 - [docs/roadmap.md](docs/roadmap.md): what is done and what is next.
+- `.codesight/`: a generated, uncommitted map of the code; refresh it with `npx codesight --wiki --watch`. A reading aid only; the code and docs win.
 
 ## Structure
 

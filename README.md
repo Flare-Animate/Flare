@@ -49,18 +49,18 @@ Releases build native packages for macOS, Windows and Linux on x64 and arm64: a 
 
 ### Roadmap
 
-Planned but not built yet. Most of it is shown dimmed in the interface. [docs/roadmap.md](docs/roadmap.md) has the order and the reasons.
+The next things, most important first. Most of it is shown dimmed in the interface. [docs/roadmap.md](docs/roadmap.md) repeats this list and goes on to everything of lower priority.
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
+- Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
+- SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
+- A Motion Editor: per-property graphs and custom ease curves for tweens
+- Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
-- The rest of Animate's tools: 3D Rotation and Translation, Deco, Width, Asset Warp, Gradient Transform and Magic Wand
-- Shape hints and more than one scene
-- ActionScript and a script editor, and scripting with the Commands menu (ActionScript in an imported file is kept as data and never run)
-- A Flash 8 interface skin, and custom themes
-- A fully rearrangeable toolbar (tools can already be pinned from the "…" list) and editable keyboard shortcuts
 - Editing text after it is placed
-- Sharing from the Share menu to YouTube and other services
-- A released web build (it is experimental today)
+- Editable keyboard shortcuts
+
+Also planned, at lower priority: ActionScript and a script editor (ActionScript in an imported file is kept as data and never run), shape hints and more than one scene, the rest of Animate's tools, custom themes, a fully rearrangeable toolbar and a released web build.
 
 ### Documentation
 

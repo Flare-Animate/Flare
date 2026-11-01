@@ -49,18 +49,18 @@ Releases erzeugen native Pakete für macOS, Windows und Linux auf x64 und arm64:
 
 ### Roadmap
 
-Geplant, aber noch nicht gebaut. Das meiste ist in der Oberfläche abgedunkelt zu sehen. [docs/roadmap.md](../roadmap.md) nennt Reihenfolge und Gründe.
+Als Nächstes, das Wichtigste zuerst. Das meiste ist in der Oberfläche abgedunkelt zu sehen. [docs/roadmap.md](../roadmap.md) wiederholt diese Liste und führt alles mit niedrigerer Priorität auf.
 
 - Zeichnen mit Verschmelzung: Flashs planare Formen, bei denen sich überlappende Formen gegenseitig schneiden und verschmelzen (heute sind Formen getrennte Objekte)
+- Zeichenqualität: Pinseldynamik und das Nachzeichnen einer Bitmap in Vektorformen
+- SWF, das mehr vom Dokument behält: Schaltflächen mit ihren Zuständen, Formtweens als Morphs, Masken aus mehreren Formen und Töne in Symbolen
+- Ein Motion Editor: Diagramme je Eigenschaft und eigene Ease-Kurven für Tweens
+- Grafiken aus SVG- und Photoshop-Dateien importieren
 - Bones und inverse Kinematik (die Werkzeuge Bone und Bind)
-- Die übrigen Werkzeuge von Animate: 3D-Drehung und -Verschiebung, Deco, Breite, Asset Warp, Verlauf transformieren und Zauberstab
-- Formmarken und mehr als eine Szene
-- ActionScript und ein Skripteditor sowie Skripting mit dem Menü Befehle (ActionScript in einer importierten Datei bleibt als Daten erhalten und wird nie ausgeführt)
-- Eine Flash-8-Oberfläche und eigene Designs
-- Eine frei anordenbare Werkzeugleiste (Werkzeuge lassen sich schon aus der „…“-Liste anheften) und bearbeitbare Tastenkürzel
 - Text bearbeiten, nachdem er platziert wurde
-- Teilen aus dem Menü Teilen zu YouTube und anderen Diensten
-- Eine veröffentlichte Web-Version (heute experimentell)
+- Bearbeitbare Tastenkürzel
+
+Ebenfalls geplant, mit niedrigerer Priorität: ActionScript und ein Skripteditor (ActionScript in einer importierten Datei bleibt als Daten erhalten und wird nie ausgeführt), Formmarken und mehrere Szenen, die übrigen Werkzeuge von Animate, eigene Designs, eine frei anordenbare Werkzeugleiste und eine veröffentlichte Web-Version.
 
 ### Dokumentation
 

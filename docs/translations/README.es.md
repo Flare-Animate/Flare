@@ -49,18 +49,18 @@ Las versiones generan paquetes nativos para macOS, Windows y Linux en x64 y arm6
 
 ### Hoja de ruta
 
-Planeado pero todavía no construido. Casi todo se muestra atenuado en la interfaz. [docs/roadmap.md](../roadmap.md) tiene el orden y los motivos.
+Lo siguiente, lo más importante primero. Casi todo se muestra atenuado en la interfaz. [docs/roadmap.md](../roadmap.md) repite esta lista y sigue con todo lo de menor prioridad.
 
 - Dibujo de fusión: las formas de mapa planar de Flash, donde las formas superpuestas se cortan y se fusionan (hoy las formas son objetos separados)
+- Calidad de dibujo: dinámica del pincel y vectorización de un mapa de bits en formas vectoriales
+- SWF que conserva más del documento: botones con sus estados, interpolaciones de forma como morfos, máscaras de varias formas y sonidos dentro de símbolos
+- Un Editor de movimiento: gráficos por propiedad y curvas de suavizado personalizadas para las interpolaciones
+- Importar ilustraciones desde archivos SVG y Photoshop
 - Huesos y cinemática inversa (las herramientas Hueso y Vincular)
-- El resto de las herramientas de Animate: Rotación 3D y Traslación 3D, Deco, Anchura, Asset Warp, Transformación de degradado y Varita mágica
-- Sugerencias de forma y más de una escena
-- ActionScript y un editor de scripts, y los scripts del menú Comandos (el ActionScript de un archivo importado se conserva como datos y nunca se ejecuta)
-- Un aspecto de interfaz como Flash 8 y temas personalizados
-- Una barra de herramientas totalmente reorganizable (ya se pueden fijar herramientas desde la lista «…») y atajos de teclado editables
 - Editar el texto una vez colocado
-- Compartir desde el menú Compartir en YouTube y otros servicios
-- Una versión web publicada (hoy es experimental)
+- Atajos de teclado editables
+
+También planeado, con menor prioridad: ActionScript y un editor de scripts (el ActionScript de un archivo importado se conserva como datos y nunca se ejecuta), pistas de forma y más de una escena, el resto de las herramientas de Animate, temas personalizados, una barra de herramientas reorganizable por completo y una versión web publicada.
 
 ### Documentación
 

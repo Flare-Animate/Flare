@@ -14,6 +14,9 @@ cargo run -p flare-desktop      # the app
 cargo run -p flare-cli -- --help
 ```
 
+To get your bearings in the code, `npx codesight --wiki --watch` keeps a generated map in `.codesight/` (not committed; see
+[docs/engineering.md](docs/engineering.md)).
+
 ## Before you commit
 
 All three pass, and failures are reported as they are:

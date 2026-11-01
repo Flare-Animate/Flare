@@ -17,6 +17,18 @@ first thing taken over and are in the importer and Flash adapter tests.
 | Auto-update with SHA-256 verification | Planned after the first release exists to update from |
 | Windows installer (NSIS), Chocolatey | Planned; see [release.md](release.md) |
 | Android build, P2P remote control, game ECS | Not planned |
+| Adobe/Harman AIR and Flex SDK targets (a Flash-era app toolchain) | Not planned: Flare publishes SWF and HTML5, and ActionScript is not run |
+| OpenToonz's raster painting, FX schematic and xsheet | Not planned: they belong to a different kind of tool than Animate |
+| Trace Bitmap (threshold, minimum area, curve fit, corners; a centerline mode) | Planned, high priority (drawing quality) |
+| Motion Editor: per-property graphs, key drag and retime, per-property eases | Planned, high priority |
+| Import SVG and Photoshop (a bitmap per layer, visibility, opacity); Illustrator later | Planned: SVG and PSD high priority, `.ai` lower |
+| Find and Replace, shared libraries and the Assets panel, History replay and Save as Command | Planned, lower priority |
+| Layer depth (2.5D with the camera) | Planned, lower priority, with the camera follow-ups |
+| Legacy binary `.fla` (CS4 and before, read by carving) | Planned, lower priority; refused with a reason today |
+| Contrast check for themes (`scripts/dev/contrast_check.py`) | Planned with custom themes |
+| Pre-commit hook that kept the atlas of the code honest | Planned as a smaller hook: format check only |
+| `cairn` (a log of sessions and lessons) | Not needed: `.codesight/` maps the code ([engineering.md](engineering.md)) and the git log is the history |
+| Fixture generators and sample `.psd`, `.ai`, `.air` files | Ideas only; Flare writes its own fixtures when a feature needs them |
 | Issue-to-fix map and regression script | Replaced by tests that name the behaviour they protect |
 
 ## Questions people ask
@@ -37,3 +49,10 @@ first thing taken over and are in the importer and Flash adapter tests.
 The outline column's color picker (the chip cycles a palette for now), classic tweens as their own kind (a motion tween on an instance is the nearest), shape hints, tweens of color effects, text menu
 commands, command scripting, keyboard shortcut editor, browser sound and pen input, autosave for
 every tab. These appear as dimmed entries in the menus until built ([ui.md](ui.md)).
+
+## Lessons from the old project's log
+
+- Check `git status --ignored` before a push: an ignore pattern (`build*`) once hid build scripts
+  that were needed, and CI failed with exit 127.
+- A push cancels CI runs in progress, so commits are batched into one push per cycle.
+- A change is read by someone other than its author before it is pushed.

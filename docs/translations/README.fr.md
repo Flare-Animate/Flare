@@ -49,18 +49,18 @@ Les versions produisent des paquets natifs pour macOS, Windows et Linux en x64 e
 
 ### Feuille de route
 
-Prévu mais pas encore construit. La plupart est affiché estompé dans l'interface. [docs/roadmap.md](../roadmap.md) donne l'ordre et les raisons.
+Les prochaines étapes, les plus importantes d'abord. La plupart est affiché estompé dans l'interface. [docs/roadmap.md](../roadmap.md) reprend cette liste et continue avec tout ce qui est de moindre priorité.
 
 - Dessin par fusion : les formes à carte planaire de Flash, où les formes qui se chevauchent se découpent et fusionnent (aujourd'hui les formes sont des objets séparés)
+- Qualité du dessin : dynamique du pinceau et vectorisation d'une image bitmap en formes vectorielles
+- Un SWF qui garde davantage du document : boutons avec leurs états, interpolations de forme en morphes, masques de plusieurs formes et sons dans les symboles
+- Un éditeur de mouvement : graphiques par propriété et courbes d'accélération personnalisées pour les interpolations
+- Importer des illustrations depuis des fichiers SVG et Photoshop
 - Armatures et cinématique inverse (les outils Os et Lier)
-- Le reste des outils d'Animate : Rotation 3D et Translation 3D, Deco, Largeur, Asset Warp, Transformation de dégradé et Baguette magique
-- Repères de forme et plus d'une scène
-- ActionScript et un éditeur de scripts, et les scripts du menu Commandes (l'ActionScript d'un fichier importé est conservé comme données et jamais exécuté)
-- Un habillage d'interface Flash 8 et des thèmes personnalisés
-- Une barre d'outils entièrement réorganisable (on peut déjà épingler des outils depuis la liste « … ») et des raccourcis clavier modifiables
 - La modification du texte une fois placé
-- Le partage depuis le menu Partager vers YouTube et d'autres services
-- Une version web publiée (aujourd'hui expérimentale)
+- Raccourcis clavier modifiables
+
+Également prévu, à moindre priorité : ActionScript et un éditeur de scripts (l'ActionScript d'un fichier importé est conservé comme données et n'est jamais exécuté), les repères de forme et plus d'une scène, le reste des outils d'Animate, des thèmes personnalisés, une barre d'outils entièrement réorganisable et une version web publiée.
 
 ### Documentation
 

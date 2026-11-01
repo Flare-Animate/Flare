@@ -49,18 +49,18 @@ As versões geram pacotes nativos para macOS, Windows e Linux em x64 e arm64: um
 
 ### Roteiro
 
-Planejado, mas ainda não construído. Quase tudo aparece esmaecido na interface. [docs/roadmap.md](../roadmap.md) tem a ordem e os motivos.
+O que vem a seguir, o mais importante primeiro. Quase tudo aparece esmaecido na interface. [docs/roadmap.md](../roadmap.md) repete esta lista e segue com tudo de menor prioridade.
 
 - Desenho por mesclagem: as formas de mapa planar do Flash, em que formas sobrepostas se cortam e se mesclam (hoje as formas são objetos separados)
+- Qualidade do desenho: dinâmica do pincel e vetorização de um bitmap em formas vetoriais
+- SWF que preserva mais do documento: botões com seus estados, interpolações de forma como morphs, máscaras de várias formas e sons dentro de símbolos
+- Um Editor de movimento: gráficos por propriedade e curvas de suavização personalizadas para as interpolações
+- Importar arte de arquivos SVG e Photoshop
 - Ossos e cinemática inversa (as ferramentas Osso e Vincular)
-- O restante das ferramentas do Animate: Rotação 3D e Translação 3D, Deco, Largura, Asset Warp, Transformação de gradiente e Varinha mágica
-- Dicas de forma e mais de uma cena
-- ActionScript e um editor de scripts, e os scripts do menu Comandos (o ActionScript de um arquivo importado é mantido como dados e nunca é executado)
-- Uma aparência de interface do Flash 8 e temas personalizados
-- Uma barra de ferramentas totalmente reorganizável (já dá para fixar ferramentas pela lista "…") e atalhos de teclado editáveis
 - Editar o texto depois de colocado
-- Compartilhar pelo menu Compartilhar no YouTube e em outros serviços
-- Uma versão web publicada (hoje é experimental)
+- Atalhos de teclado editáveis
+
+Também planejado, com menor prioridade: ActionScript e um editor de scripts (o ActionScript de um arquivo importado é mantido como dados e nunca é executado), dicas de forma e mais de uma cena, o restante das ferramentas do Animate, temas personalizados, uma barra de ferramentas totalmente reorganizável e uma versão web publicada.
 
 ### Documentação
 
