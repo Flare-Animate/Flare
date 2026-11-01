@@ -79,8 +79,22 @@ def manifest(stage):
     }
 
 
+# What flatpak-builder runs. `eu-strip` is elfutils', which it calls to split the debug symbols
+# out; without it the build fails late, after the sandbox has been made, with a bare "No such
+# file or directory".
+REQUIRED_TOOLS = ("flatpak", "flatpak-builder", "eu-strip")
+
+
+def require_tools():
+    missing = [tool for tool in REQUIRED_TOOLS if shutil.which(tool) is None]
+    if missing:
+        raise ValueError("Flatpak packaging needs " + ", ".join(missing)
+                         + " installed (apt: flatpak flatpak-builder elfutils)")
+
+
 def package(version, target, binary, output):
     release.validate_package_input(version, target, binary)
+    require_tools()
     if target not in ARCHITECTURES:
         raise ValueError(f"Unsupported Linux target: {target}")
     arch = ARCHITECTURES[target]

@@ -2,6 +2,7 @@
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "packaging"))
@@ -29,6 +30,14 @@ class Flatpak(unittest.TestCase):
         for path in ("packaging/flare.metainfo.xml", "packaging/cargo-packager.json",
                      "scripts/packaging/package_linux.py", "apps/flare-desktop/Cargo.toml"):
             self.assertIn(flatpak.APP_ID, (root / path).read_text(), path)
+
+    def test_a_missing_build_tool_is_named_before_anything_is_built(self):
+        found = {"flatpak": "/usr/bin/flatpak", "flatpak-builder": "/usr/bin/flatpak-builder"}
+        with mock.patch.object(flatpak.shutil, "which", side_effect=found.get):
+            with self.assertRaisesRegex(ValueError, "eu-strip"):
+                flatpak.require_tools()
+        with mock.patch.object(flatpak.shutil, "which", return_value="/usr/bin/tool"):
+            flatpak.require_tools()
 
     def test_exported_files_are_named_by_the_app_id(self):
         stage = self.staged()
