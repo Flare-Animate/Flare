@@ -131,6 +131,18 @@ jobs:
       - name: Package Linux installers
         if: runner.os == 'Linux'
         run: python scripts/packaging/package_linux.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare-desktop --output dist
+      - name: Package Flatpak
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y --no-install-recommends flatpak flatpak-builder
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y --noninteractive flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+          python scripts/packaging/package_flatpak.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare-desktop --output dist
+      - name: Install the Flatpak and check what is inside it
+        if: runner.os == 'Linux'
+        run: |
+          flatpak install --user -y --noninteractive --bundle dist/*.flatpak
+          flatpak run --command=sh io.github.Flare-Animate.Flare -c 'test -x /app/bin/flare-desktop && test -f /app/share/applications/io.github.Flare-Animate.Flare.desktop && test -f /app/share/mime/packages/io.github.Flare-Animate.Flare.xml'
       - name: Inspect Linux desktop integration and native packages
         if: runner.os == 'Linux'
         shell: bash

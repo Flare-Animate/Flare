@@ -41,10 +41,20 @@ class ReleaseContract(unittest.TestCase):
             "flare-1.2.3-windows-x64.msi",
             "flare-1.2.3-linux-x64.deb",
             "flare-1.2.3-linux-arm64.AppImage",
+            "flare-1.2.3-linux-x64.flatpak",
+            "flare-1.2.3-linux-arm64.flatpak",
+            "flare-1.2.3-windows-x64-portable.zip",
             "flare-cli-1.2.3-linux-x64.tar.gz",
             "flare-cli-1.2.3-windows-arm64.zip",
         ):
             self.assertIn(name, assets)
+
+    def test_windows_ships_an_installer_and_a_portable_zip_and_no_bare_exe(self):
+        assets = release.expected_assets("1.2.3")
+        for architecture in ("x64", "arm64"):
+            self.assertIn(f"flare-1.2.3-windows-{architecture}.msi", assets)
+            self.assertIn(f"flare-1.2.3-windows-{architecture}-portable.zip", assets)
+            self.assertNotIn(f"flare-1.2.3-windows-{architecture}.exe", assets)
 
     def test_a_binary_for_the_wrong_platform_is_refused(self):
         with tempfile.TemporaryDirectory() as directory:

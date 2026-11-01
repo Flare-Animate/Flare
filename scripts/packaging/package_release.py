@@ -151,9 +151,6 @@ def package(version, target, binary, output):
             with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as stream:
                 for entry in sorted(payload.iterdir()):
                     stream.write(entry, entry.name)
-            standalone = output / (name + ".exe")
-            shutil.copy2(binary, standalone)
-            write_checksum(standalone)
         else:
             with tarfile.open(archive, "w:gz") as stream:
                 for entry in sorted(payload.iterdir()):
@@ -171,9 +168,9 @@ def expected_assets(version):
         if "apple" in target:
             names.update((name + ".dmg", name + "-update.zip"))
         elif "windows" in target:
-            names.update(name + ext for ext in ("-portable.zip", ".exe", ".msi"))
+            names.update(name + ext for ext in ("-portable.zip", ".msi"))
         elif "linux" in target:
-            names.update(name + ext for ext in (".tar.gz", ".deb", ".rpm", ".AppImage"))
+            names.update(name + ext for ext in (".tar.gz", ".deb", ".rpm", ".AppImage", ".flatpak"))
         else:
             names.add(name + ".tar.gz")
     return names
