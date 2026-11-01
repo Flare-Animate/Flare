@@ -225,7 +225,7 @@ impl Workspace {
         self.stage_settings(ui);
         let rate = self.document().frame_rate();
         chrome::row(ui, "Frame rate", |ui| {
-            let current = f64::from(rate.numerator()) / f64::from(rate.denominator());
+            let current = rate.per_second();
             let mut fps = self.fps_edit.unwrap_or(current);
             let response = ui.add_enabled(
                 !self.in_symbol(),

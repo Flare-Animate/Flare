@@ -48,6 +48,11 @@ impl FrameRate {
         self.denominator
     }
 
+    /// Frames per second, as a number.
+    pub fn per_second(self) -> f64 {
+        f64::from(self.numerator) / f64::from(self.denominator)
+    }
+
     /// Timestamp of a zero-based frame boundary, rounded down to nanoseconds.
     ///
     /// This is a boundary conversion, not the engine's canonical time type.
@@ -81,6 +86,15 @@ const fn gcd(mut left: u32, mut right: u32) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_rate_is_a_number_of_frames_per_second() -> Result<(), RateError> {
+        assert_eq!(FrameRate::new(24, 1)?.per_second(), 24.0);
+        assert_eq!(FrameRate::new(48, 2)?.per_second(), 24.0);
+        assert!((FrameRate::new(30_000, 1_001)?.per_second() - 29.97).abs() < 0.001);
+        Ok(())
+    }
+
     #[test]
     fn rates_are_reduced_without_rounding() -> Result<(), RateError> {
         assert_eq!(FrameRate::new(60, 2)?, FrameRate::new(30, 1)?);

@@ -12,7 +12,7 @@ impl Workspace {
         }
         let Some(last) = last else { return };
         let rate = self.document().frame_rate();
-        let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+        let fps = rate.per_second();
         self.play_remainder += (now - last).max(0.0) * fps;
         let whole = self.play_remainder.floor();
         self.play_remainder -= whole;

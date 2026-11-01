@@ -120,6 +120,6 @@ pub(super) fn frame_rate_text(rate: flare_core::FrameRate) -> String {
         rate.numerator().to_string()
     } else {
         // Three decimals keep NTSC rates (29.970...) recognisable on re-import.
-        num((f64::from(rate.numerator()) / f64::from(rate.denominator()) * 1000.0).round() / 1000.0)
+        num((rate.per_second() * 1000.0).round() / 1000.0)
     }
 }

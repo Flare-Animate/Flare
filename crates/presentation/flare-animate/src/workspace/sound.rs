@@ -116,7 +116,7 @@ impl Workspace {
         let now = (self.playing, self.frame);
         let before = self.audio.synced.replace(now);
         let rate = self.document().frame_rate();
-        let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+        let fps = rate.per_second();
         let (was_playing, was_frame) = before.unwrap_or((false, 0));
         if !self.playing {
             if was_playing {

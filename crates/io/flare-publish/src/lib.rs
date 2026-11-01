@@ -292,8 +292,7 @@ pub fn publish_swf(
         });
     }
 
-    let fps = f64::from(document.frame_rate().numerator())
-        / f64::from(document.frame_rate().denominator());
+    let fps = document.frame_rate().per_second();
     if fps > 255.0 {
         diagnostics.push(Diagnostic {
             severity: Severity::Warning,

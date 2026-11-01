@@ -324,7 +324,7 @@ pub fn publish_html5(
 
     let stage = document.stage();
     let rate = document.frame_rate();
-    let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+    let fps = rate.per_second();
     let data = json!({
         "w": stage.width(),
         "h": stage.height(),

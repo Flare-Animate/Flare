@@ -56,7 +56,7 @@ pub fn gif_bytes_on(document: &Document, workers: usize) -> Result<Vec<u8>, Stri
     let side = |n: u32| u16::try_from(n).map_err(|_| "The movie is too large.".to_owned());
     let (gif_w, gif_h) = (side(width)?, side(height)?);
     let rate = document.frame_rate();
-    let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+    let fps = rate.per_second();
     if !fps.is_finite() || fps <= 0.0 {
         return Err("The frame rate must be above zero to export a movie.".to_owned());
     }

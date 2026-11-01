@@ -87,7 +87,7 @@ impl Workspace {
             self.set_frame(frame);
         }
         let rate = self.document().frame_rate();
-        let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+        let fps = rate.per_second();
         ui.label(RichText::new(format!("{fps:.2} fps")).color(theme::text_dim()));
         ui.separator();
         let mut onion = self.onion.enabled;

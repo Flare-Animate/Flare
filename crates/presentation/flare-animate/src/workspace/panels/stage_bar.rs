@@ -27,7 +27,7 @@ impl Workspace {
                 // and a click opens its settings.
                 let stage = self.document().stage();
                 let rate = self.document().frame_rate();
-                let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+                let fps = rate.per_second();
                 let facts = format!("{} × {} px · {fps:.2} fps", stage.width(), stage.height())
                     .replace(".00 fps", " fps");
                 if ui

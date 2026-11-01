@@ -358,8 +358,7 @@ impl Workspace {
                         let Some(sound) = self.session.document().sound(cue.sound) else {
                             continue;
                         };
-                        let fps = f64::from(self.document().frame_rate().numerator())
-                            / f64::from(self.document().frame_rate().denominator());
+                        let fps = self.document().frame_rate().per_second();
                         let length = (sound.seconds() * fps).ceil().max(1.0) as f32;
                         let x0 = track.min.x + cue.start as f32 * per_frame;
                         let bar = Rect::from_min_max(
