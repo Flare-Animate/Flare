@@ -21,7 +21,7 @@ when every box below is ticked.
 
 **Quality: what has to be true** (checked by machines)
 
-- [ ] CI green on `main` at the commit that is tagged: format, lints, tests on Linux, the browser build, the 500-line rule. (It was green on what had been pushed; the newest commits are local and have not run in CI.)
+- [ ] CI green on `main` at the commit that is tagged: format, lints, tests on Linux, the browser build, the 500-line rule. (It is green on `main` as pushed; the box is ticked when the commit that is tagged has run, so it waits for the tag.)
 - [x] `cargo audit` reports no vulnerabilities.
 - [x] The command line works end to end on real files (`scripts/tests/test_cli_smoke.py`).
 - [x] Hostile and damaged input is refused, not a crash (property tests, fuzz-style tests).
