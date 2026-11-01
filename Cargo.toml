@@ -111,7 +111,7 @@ rusqlite = { version = "0.41.1", default-features = false }
 # flare-storage adds bundled/backup/blob/limits/hooks at its dependency site.
 blake3 = "1"
 tempfile = "3"
-zstd = "0.13"
+zstd = "0.14"
 ciborium = "0.2"          # CBOR: the binary form of the project file's records.
 # lz4_flex / rkyv: transient/cache candidates only; add after measurement.
 

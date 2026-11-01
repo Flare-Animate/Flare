@@ -7,3 +7,4 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 cargo test -p flare-ruffle --features embedded --test embedded -- --ignored
 cargo test -p flare-ruffle --features render-check --test render
+cargo test -p flare-desktop -- --ignored the_window_shows

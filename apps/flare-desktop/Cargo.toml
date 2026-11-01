@@ -13,6 +13,7 @@ egui-wgpu = { workspace = true, features = ["default", "winit"] }
 egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
 flare-animate.workspace = true
 flare-document.workspace = true
+flare-ui.workspace = true
 flare-platform.workspace = true
 flare-ruffle = { workspace = true, features = ["embedded"], optional = true }
 flare-storage.workspace = true
@@ -27,6 +28,10 @@ ruffle = ["dep:flare-ruffle"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
 muda.workspace = true
+
+[dev-dependencies]
+flare-core.workspace = true
+flare-publish.workspace = true
 
 [lints]
 workspace = true

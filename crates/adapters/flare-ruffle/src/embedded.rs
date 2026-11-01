@@ -122,7 +122,6 @@ impl EmbeddedMovie {
         ));
         let target =
             TextureTarget::new(&gpu.device, size).map_err(|e| EmbedError::Gpu(e.to_string()))?;
-        let texture = target.get_texture();
         let renderer = WgpuRenderBackend::new(descriptors, target)
             .map_err(|e| EmbedError::Gpu(e.to_string()))?;
         let mut builder = PlayerBuilder::new()
@@ -137,6 +136,18 @@ impl EmbeddedMovie {
         }
         let player =
             catch_unwind(AssertUnwindSafe(|| builder.build())).map_err(|_| EmbedError::Failed)?;
+        // Ask the renderer for its texture only now: building the player sets the viewport, and
+        // Ruffle answers by replacing the target with a new texture, so one taken before would
+        // be a picture nothing ever draws into.
+        let texture = {
+            let mut player = player.lock().map_err(|_| EmbedError::Failed)?;
+            <dyn std::any::Any>::downcast_mut::<WgpuRenderBackend<TextureTarget>>(
+                player.renderer_mut(),
+            )
+            .ok_or(EmbedError::Failed)?
+            .target()
+            .get_texture()
+        };
         Ok(Self {
             player,
             texture,
@@ -199,6 +210,22 @@ impl EmbeddedMovie {
             self.lock().map(|mut player| player.set_is_playing(playing))
         }))
         .map_err(|_| EmbedError::Failed)?
+    }
+
+    /// Silences the movie, or lets it be heard again. A paused or muted movie keeps its place.
+    pub fn set_muted(&self, muted: bool) -> Result<(), EmbedError> {
+        catch_unwind(AssertUnwindSafe(|| {
+            self.lock()
+                .map(|mut player| player.set_volume(if muted { 0.0 } else { 1.0 }))
+        }))
+        .map_err(|_| EmbedError::Failed)?
+    }
+
+    /// Whether the movie has been silenced.
+    pub fn is_muted(&self) -> bool {
+        self.lock()
+            .map(|player| player.volume() <= 0.0)
+            .unwrap_or(false)
     }
 
     /// The picture as it is now, `size()` RGBA bytes rows, read back from the GPU. For tests and

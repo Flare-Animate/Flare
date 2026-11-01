@@ -101,6 +101,29 @@ fn a_movie_advances_with_the_time_it_is_given() {
     assert_eq!(centre(&movie), [30, 30, 220]);
 }
 
+/// What the Test Movie window does: a still of one frame, ticked in the small steps a window's
+/// frames are, shows its picture (not the stage's white) within a fraction of a second.
+#[test]
+#[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
+fn a_still_of_one_frame_shows_its_picture_when_ticked_in_a_windows_small_steps() {
+    let red = Rgba8::opaque(220, 30, 30);
+    let layer = Layer::new(LayerId::new(), "L", vec![span(0, full(red))]).expect("layer");
+    let swf = publish(&document(vec![layer], vec![]));
+    let gpu = Gpu::headless().expect("a GPU adapter");
+    let mut movie = EmbeddedMovie::start(&swf, &gpu, 1.0, false).expect("start");
+    let mut seen = Vec::new();
+    for _ in 0..30 {
+        movie.tick(Duration::from_millis(16)).expect("tick");
+        seen.push(centre(&movie));
+    }
+    assert_eq!(
+        seen.last(),
+        Some(&[220, 30, 30]),
+        "after half a second: {:?}",
+        &seen[..8]
+    );
+}
+
 #[test]
 #[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
 fn something_that_is_not_a_swf_is_refused_not_a_crash() {
@@ -152,7 +175,7 @@ fn tone_wav() -> Vec<u8> {
 
 /// Plays a one-second movie, with a cue for the tone or without, and returns the loudest sample
 /// Ruffle's mixer produced in the first half second.
-fn loudest(cued: bool) -> f32 {
+fn loudest(cued: bool, muted: bool) -> f32 {
     let id = SoundId::new();
     let sound = Sound::new(id, "Tone", tone_wav(), 22050, 1, 11025).expect("sound");
     let mut layer =
@@ -173,6 +196,8 @@ fn loudest(cued: bool) -> f32 {
         EmbeddedMovie::start_with_audio(&swf, &gpu, 1.0, Some(Box::new(Mixing { mixer })))
             .expect("start");
     assert!(movie.has_sound());
+    movie.set_muted(muted).expect("mute");
+    assert_eq!(movie.is_muted(), muted);
     for ms in [1, 100] {
         movie.tick(Duration::from_millis(ms)).expect("tick");
     }
@@ -184,12 +209,21 @@ fn loudest(cued: bool) -> f32 {
 #[test]
 #[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
 fn the_sound_we_publish_is_played_by_ruffle_and_a_movie_without_a_cue_is_silent() {
-    let heard = loudest(true);
+    let heard = loudest(true, false);
     assert!(
         heard > 0.2,
         "Ruffle mixed a peak of {heard} for the cued tone"
     );
-    assert_eq!(loudest(false), 0.0, "nothing is cued, so nothing sounds");
+    assert_eq!(
+        loudest(false, false),
+        0.0,
+        "nothing is cued, so nothing sounds"
+    );
+    assert_eq!(
+        loudest(true, true),
+        0.0,
+        "muted, the cued tone is not heard"
+    );
     let _ = flare_audio::decode(&tone_wav()).expect("the test tone is a real sound");
 }
 
