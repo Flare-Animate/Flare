@@ -43,8 +43,10 @@ fn find_in(
         candidates.push(dir.join(APP));
     }
     if cfg!(target_os = "macos") {
-        let inside = Path::new("Flare.app/Contents/MacOS").join(APP);
-        candidates.push(applications.join(&inside));
+        // The program inside the app bundle keeps the bundle's own name, whatever the loose
+        // program is called (see `scripts/packaging/package_macos.py`).
+        let inside = Path::new("Flare.app/Contents/MacOS/flare");
+        candidates.push(applications.join(inside));
         if let Some(home) = env("HOME").filter(|h| !h.is_empty()) {
             candidates.push(Path::new(&home).join("Applications").join(inside));
         }

@@ -102,13 +102,13 @@ fn too_many_files_and_a_missing_app_are_refused() {
 
 #[cfg(target_os = "macos")]
 #[test]
-fn the_installed_app_bundle_is_found_by_the_name_of_the_desktop_program() {
+fn the_installed_app_bundle_is_found_by_the_name_of_its_program() {
     let dir = tempfile::tempdir().expect("dir");
     let macos = dir.path().join("Flare.app/Contents/MacOS");
     std::fs::create_dir_all(&macos).expect("dirs");
-    // A bundle that still held the old `flare` program would not be the app.
-    script(&macos, "flare", "exit 0");
+    // A bundle with only a loose-style program name is not how Flare is packaged.
+    script(&macos, APP, "exit 0");
     assert_eq!(find_in(no_env, None, dir.path()), None);
-    let app = script(&macos, APP, "exit 0");
+    let app = script(&macos, "flare", "exit 0");
     assert_eq!(find_in(no_env, None, dir.path()), Some(app));
 }
