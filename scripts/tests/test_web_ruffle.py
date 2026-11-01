@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "apps/flare-web"
 NODE = shutil.which("node") is not None
 PACKAGE = WEB / "node_modules/@ruffle-rs/ruffle"
-CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare-cli"))
+CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare"))
 
 
 def find_chrome():
