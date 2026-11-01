@@ -3,12 +3,12 @@
 
 use super::*;
 use crate::layout::{self, Pane};
-use crate::timeline_view;
 use egui::{Color32, Key, Modifiers, Pos2, Rect, Vec2};
 use egui::{Event, RawInput};
 use flare_commands::Command;
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
 use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Timeline, Tween};
+use flare_editor::timeline_view;
 use flare_menubar::{MENU_LAYOUT, MenuAction, MenuEntry};
 use flare_runtime::Mode;
 use flare_tools::free_transform::handles::{self, Handle};

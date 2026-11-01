@@ -147,7 +147,7 @@ fn the_properties_panel_draws_the_tween_controls_for_a_shape_an_instance_and_not
 
 #[test]
 fn a_tweened_bar_in_the_timeline_has_its_own_color() {
-    use crate::timeline_view::span_color;
+    use flare_editor::timeline_view::span_color;
     let ws = two_keyframes();
     let id = ws.active_layer_id().expect("the layer with the drawing");
     let layers = ws.document().scenes()[0].timeline().layers();

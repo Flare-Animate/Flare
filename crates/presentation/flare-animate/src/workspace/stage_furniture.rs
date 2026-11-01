@@ -1,9 +1,9 @@
 //! The stage's own furniture: its settings popup, grid, rulers and the timeline's zoom.
 
-use crate::timeline_view;
 use egui::{Align2, Color32, FontId, Pos2, Rect, Stroke, Vec2};
 use flare_core::Rgba8;
 use flare_document::MAX_STAGE_SIDE;
+use flare_editor::timeline_view;
 
 use super::*;
 

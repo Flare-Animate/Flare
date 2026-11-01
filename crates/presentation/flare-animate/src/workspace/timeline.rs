@@ -1,8 +1,8 @@
 //! The timeline panel.
 
-use crate::timeline_view;
 use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use flare_document::Layer;
+use flare_editor::timeline_view;
 
 use super::layer_names;
 use super::*;
@@ -329,7 +329,7 @@ impl Workspace {
                         let x0 = track.min.x + span.start() as f32 * per_frame;
                         let x1 = track.min.x + span.end() as f32 * per_frame;
                         let [r, g, b] =
-                            crate::timeline_view::span_color(span.content(), span.tween());
+                            flare_editor::timeline_view::span_color(span.content(), span.tween());
                         let color = Color32::from_rgb(r, g, b);
                         let bar = Rect::from_min_max(
                             Pos2::new(x0, y + 2.0),

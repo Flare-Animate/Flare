@@ -196,16 +196,20 @@ impl Workspace {
             (
                 "zoom-out",
                 "Zoom timeline out",
-                1.0 / crate::timeline_view::STEP,
+                1.0 / flare_editor::timeline_view::STEP,
             ),
-            ("zoom-in", "Zoom timeline in", crate::timeline_view::STEP),
+            (
+                "zoom-in",
+                "Zoom timeline in",
+                flare_editor::timeline_view::STEP,
+            ),
         ] {
             if chrome::icon_button(ui, icon, BAR_ICON, false, true, hint).clicked() {
                 self.zoom_timeline(factor);
             }
         }
         if chrome::icon_button(ui, "zoom-fit", BAR_ICON, false, true, "Fit the scene").clicked() {
-            self.timeline_zoom = crate::timeline_view::MIN_ZOOM;
+            self.timeline_zoom = flare_editor::timeline_view::MIN_ZOOM;
         }
     }
 

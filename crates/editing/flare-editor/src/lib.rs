@@ -5,6 +5,7 @@
 mod camera;
 mod context;
 pub mod frames;
+pub mod timeline_view;
 
 pub use camera::{MAX_CAMERA_FRAME, camera_now, set_camera_key};
 pub use context::symbol_workspace;

@@ -9,7 +9,6 @@
 #[cfg(test)]
 mod icon_names;
 mod layout;
-mod timeline_view;
 mod workspace;
 
 pub use layout::{LayoutError, MAX_LAYOUT_BYTES, Pane};
