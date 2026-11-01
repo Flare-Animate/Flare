@@ -21,7 +21,7 @@ pub(super) struct App {
     pub(super) proxy: EventLoopProxy<UserEvent>,
     #[cfg(target_os = "macos")]
     menu: Option<super::menu::NativeMenu>,
-    ctx: egui::Context,
+    pub(super) ctx: egui::Context,
     pub(super) workspace: Workspace,
     pub(super) gpu: Option<Gpu>,
     fatal: Option<anyhow::Error>,
@@ -63,7 +63,7 @@ impl App {
 
     fn redraw(&mut self, event_loop: &ActiveEventLoop) {
         let Some(gpu) = &mut self.gpu else { return };
-        gpu.frame(&self.ctx, &mut self.workspace, &mut self.movie, event_loop);
+        gpu.frame(&self.ctx, &mut self.workspace, event_loop);
         if let Some(player) = &self.player {
             player.apply(self.workspace.take_audio_events());
         } else {
@@ -136,8 +136,11 @@ impl ApplicationHandler<UserEvent> for App {
         self.ensure_native_menu();
     }
 
-    // `event_loop` is only needed to apply native menu clicks, which exist on macOS.
-    #[cfg_attr(not(target_os = "macos"), allow(unused_variables))]
+    // `event_loop` opens the Test Movie window, and applies native menu clicks on macOS.
+    #[cfg_attr(
+        not(any(target_os = "macos", feature = "ruffle")),
+        allow(unused_variables)
+    )]
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
         match event {
             #[cfg(target_os = "macos")]
@@ -149,7 +152,7 @@ impl ApplicationHandler<UserEvent> for App {
                 self.after_actions(event_loop);
             }
             #[cfg(feature = "ruffle")]
-            UserEvent::MovieBytes(result) => self.open_movie(result),
+            UserEvent::MovieBytes(result) => self.open_movie(event_loop, result),
             #[cfg(not(feature = "ruffle"))]
             UserEvent::MovieStarted(Ok(movie)) => self.movies.push(movie),
             UserEvent::Exported(Ok(())) => {}
@@ -170,7 +173,19 @@ impl ApplicationHandler<UserEvent> for App {
         }
     }
 
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
+    fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
+        // The Test Movie's own window has its own events.
+        #[cfg(feature = "ruffle")]
+        if let (Some(movie), Some(gpu)) = (&mut self.movie, &mut self.gpu)
+            && movie.window.id() == id
+        {
+            if movie.handle(&self.ctx, &mut gpu.painter, &event) == super::movie_window::Wish::Close
+                && let Some(movie) = self.movie.take()
+            {
+                movie.release(&mut gpu.painter);
+            }
+            return;
+        }
         let Some(gpu) = &mut self.gpu else { return };
         let response = gpu.state.on_window_event(&gpu.window, &event);
         if response.repaint {

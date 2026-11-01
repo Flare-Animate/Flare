@@ -7,7 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Fixed
-- The Test Movie window has its controls in one box of small icon buttons under the picture: Restart, Pause or Play, Step one frame, a sound switch, playback speed (0.25x, 0.5x, 1x, 2x) and a clock with the frame; Close is at the right.
+- Test Movie plays in a window of its own, not inside the editor's: the picture fills it, and under it a bar has a clock and frame at the left, one centered box (Restart, Pause or Play, Step one frame, a playback speed drop-down of 0.25x to 2x, a sound switch) and Close at the right.
 - Test Movie in the window showed a blank picture: the texture it showed was one the player had already replaced when it set its size. A test now paints the window off-screen and finds the movie's picture in it.
 
 ### Changed

@@ -1,0 +1,138 @@
+//! The Test Movie's own operating-system window: its surface on the editor's GPU, its input, and
+//! the frames it draws. What it shows and how it plays is `movie.rs`.
+//!
+//! It shares the editor's egui context and renderer, as a second viewport, so the movie's texture
+//! (registered with that renderer) can be drawn here and the fonts are not made twice.
+
+use std::sync::Arc;
+
+use anyhow::{Context, Result};
+use egui::ViewportId;
+use egui_wgpu::winit::Painter;
+use winit::dpi::LogicalSize;
+use winit::event::WindowEvent;
+use winit::event_loop::ActiveEventLoop;
+use winit::window::Window;
+
+use super::movie::{BAR_HEIGHT, MIN_WIDTH, MovieWindow};
+
+/// The largest the window opens, whatever the movie's stage: it can be dragged bigger.
+const MAX_OPEN: LogicalSize<f64> = LogicalSize::new(1400.0, 900.0);
+
+/// What an event asked of the window.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum Wish {
+    Nothing,
+    Close,
+}
+
+pub(crate) struct MovieViewport {
+    pub(crate) window: Arc<Window>,
+    state: egui_winit::State,
+    id: ViewportId,
+    player: MovieWindow,
+}
+
+impl MovieViewport {
+    /// Opens the window, sized to the movie's picture and its controls, and starts the movie.
+    pub(crate) fn open(
+        event_loop: &ActiveEventLoop,
+        ctx: &egui::Context,
+        painter: &mut Painter,
+        swf: Vec<u8>,
+        scale: f32,
+    ) -> Result<Self> {
+        let render_state = painter.render_state().context("the editor has no GPU")?;
+        let player = MovieWindow::open(swf, &render_state, scale).context("start the movie")?;
+        let picture = player.picture_points();
+        let size = LogicalSize::new(
+            f64::from(picture.x.max(MIN_WIDTH)).min(MAX_OPEN.width),
+            (f64::from(picture.y) + f64::from(BAR_HEIGHT)).min(MAX_OPEN.height),
+        );
+        let attributes = Window::default_attributes()
+            .with_title("Test Movie")
+            .with_inner_size(size)
+            .with_min_inner_size(LogicalSize::new(f64::from(MIN_WIDTH), 160.0));
+        let window = Arc::new(
+            event_loop
+                .create_window(attributes)
+                .context("create the Test Movie window")?,
+        );
+        let id = ViewportId::from_hash_of("flare-test-movie");
+        let state = egui_winit::State::new(
+            ctx.clone(),
+            id,
+            &*window,
+            Some(window.scale_factor() as f32),
+            window.theme(),
+            None,
+        );
+        pollster::block_on(painter.set_window(id, Some(window.clone())))
+            .context("initialize the GPU surface")?;
+        window.request_redraw();
+        Ok(Self {
+            window,
+            state,
+            id,
+            player,
+        })
+    }
+
+    /// Takes one event for this window. A close request, or a click on the player's Close
+    /// button, asks the caller to drop it.
+    pub(crate) fn handle(
+        &mut self,
+        ctx: &egui::Context,
+        painter: &mut Painter,
+        event: &WindowEvent,
+    ) -> Wish {
+        let response = self.state.on_window_event(&self.window, event);
+        if response.repaint {
+            self.window.request_redraw();
+        }
+        match event {
+            WindowEvent::CloseRequested => return Wish::Close,
+            WindowEvent::Resized(size) => {
+                if let (Some(w), Some(h)) = (
+                    std::num::NonZeroU32::new(size.width),
+                    std::num::NonZeroU32::new(size.height),
+                ) {
+                    painter.on_window_resized(self.id, w, h);
+                }
+            }
+            WindowEvent::RedrawRequested => return self.redraw(ctx, painter),
+            _ => {}
+        }
+        Wish::Nothing
+    }
+
+    /// One frame: the movie advances, the window is drawn, and the next frame is asked for (a
+    /// movie moves with the clock, so the window keeps drawing while it is open).
+    fn redraw(&mut self, ctx: &egui::Context, painter: &mut Painter) -> Wish {
+        let raw = self.state.take_egui_input(&self.window);
+        let mut output = ctx.run_ui(raw, |ui| self.player.show(ui));
+        self.state
+            .handle_platform_output(&self.window, output.platform_output.clone());
+        let primitives = ctx.tessellate(output.shapes.clone(), output.pixels_per_point);
+        painter.paint_and_update_textures(
+            self.id,
+            output.pixels_per_point,
+            [0.07, 0.07, 0.07, 1.0],
+            &primitives,
+            &mut output.textures_delta,
+            Vec::new(),
+            &self.window,
+        );
+        if self.player.is_closed() {
+            return Wish::Close;
+        }
+        self.window.request_redraw();
+        Wish::Nothing
+    }
+
+    /// Gives the window's surface back. The player's texture goes when `self` is dropped, which
+    /// the caller does after this.
+    pub(crate) fn release(&self, painter: &mut Painter) {
+        let _ = pollster::block_on(painter.set_window(self.id, None));
+    }
+}

@@ -1,9 +1,10 @@
-//! Test Movie inside the window: Ruffle plays the published movie on the same GPU device the
-//! editor draws with, into a texture that egui shows in a window of its own, so nothing is
-//! copied through the CPU and no other program is started.
+//! Test Movie in a window of its own: Ruffle plays the published movie on the same GPU device
+//! the editor draws with, into a texture that egui shows, so nothing is copied through the CPU
+//! and no other program is started.
 //!
 //! What plays and how is `flare-ruffle`'s business (and tested there); this file puts the
-//! player's picture in a window, keeps its clock, and gives its texture back when it closes.
+//! player's picture and controls in a window's contents, keeps its clock, and gives its texture
+//! back when it closes. The window itself is in `movie_window.rs`.
 
 use std::time::{Duration, Instant};
 
@@ -14,14 +15,14 @@ use flare_ruffle::embedded::{EmbedError, EmbeddedMovie, Gpu};
 /// a machine that stalled must not make the movie race to catch up.
 const MAX_STEP: Duration = Duration::from_millis(100);
 
-/// How much of the screen the picture may take of the window around it.
-const MAX_SHARE: f32 = 0.9;
+/// The height of the bar of controls under the picture.
+pub(crate) const BAR_HEIGHT: f32 = 40.0;
 
 /// The playback speeds on offer. Sound plays at normal speed only, so at the others it is off.
 const SPEEDS: [(f32, &str); 4] = [(0.25, "0.25×"), (0.5, "0.5×"), (1.0, "1×"), (2.0, "2×")];
 
-/// The room the controls need beside the picture's own width.
-const MIN_WIDTH: f32 = 330.0;
+/// The narrowest the window may be: the controls and the clock side by side.
+pub(crate) const MIN_WIDTH: f32 = 520.0;
 
 /// One small icon button. The name is its tooltip; a dimmed one is a thing the movie cannot do
 /// now, and a lit one is switched on.
@@ -31,25 +32,6 @@ fn tool(ui: &mut egui::Ui, icon: &str, tip: &str, enabled: bool, on: bool) -> bo
         .min_size(egui::vec2(26.0, 22.0))
         .selected(on);
     ui.add_enabled(enabled, button).on_hover_text(tip).clicked()
-}
-
-/// The Close button, at the right edge. True when it was pressed.
-fn close_row(ui: &mut egui::Ui) -> bool {
-    // One row high: a right-to-left layout on its own takes all the height there is.
-    let row = egui::vec2(ui.available_width(), ui.spacing().interact_size.y);
-    ui.allocate_ui_with_layout(
-        row,
-        egui::Layout::right_to_left(egui::Align::Center),
-        |ui| {
-            let tint = ui.visuals().text_color();
-            ui.add(egui::Button::image_and_text(
-                flare_ui::icons::image("close", 12.0, tint),
-                "Close",
-            ))
-            .clicked()
-        },
-    )
-    .inner
 }
 
 /// Movie time as the controls show it: minutes, seconds and tenths.
@@ -70,13 +52,11 @@ pub(crate) fn step(since: Duration) -> Duration {
 
 /// The size to show a picture of `picture` points in a space of `room` points: as it is when it
 /// fits, shrunk to fit otherwise, never enlarged.
-pub(crate) fn fit(picture: egui::Vec2, room: egui::Vec2) -> egui::Vec2 {
-    let room = room * MAX_SHARE;
-    if picture.x <= 0.0 || picture.y <= 0.0 {
+pub(crate) fn fit_in(picture: egui::Vec2, room: egui::Vec2) -> egui::Vec2 {
+    if picture.x <= 0.0 || picture.y <= 0.0 || room.x <= 0.0 || room.y <= 0.0 {
         return egui::Vec2::ZERO;
     }
-    let scale = (room.x / picture.x).min(room.y / picture.y).min(1.0);
-    picture * scale.max(0.0)
+    picture * (room.x / picture.x).min(room.y / picture.y).min(1.0)
 }
 
 /// An open Test Movie window.
@@ -94,6 +74,8 @@ pub(crate) struct MovieWindow {
     speed: f32,
     /// How much movie time has passed since it started, as the controls tell it.
     elapsed: Duration,
+    /// How wide the box of controls was last time, to put it in the middle.
+    box_width: f32,
     closed: bool,
 }
 
@@ -125,18 +107,27 @@ impl MovieWindow {
             muted: false,
             speed: 1.0,
             elapsed: Duration::ZERO,
+            box_width: 0.0,
             closed: false,
         })
     }
 
-    /// Whether the person has closed the window. It is dropped on the next frame, not this one,
-    /// because this frame's picture may still name its texture.
+    /// Whether the person has closed the player with its Close button. The window drops it on the
+    /// next frame, not this one, because this frame's picture may still name its texture.
     pub(crate) fn is_closed(&self) -> bool {
         self.closed
     }
 
-    /// Draws the window and advances the movie.
-    pub(crate) fn show(&mut self, ctx: &egui::Context) {
+    /// The picture's size in points, for opening a window to fit it.
+    pub(crate) fn picture_points(&self) -> egui::Vec2 {
+        let (width, height) = self.movie.size();
+        egui::vec2(width as f32, height as f32) / self.scale
+    }
+
+    /// Draws the player into the window's contents: the picture, and under it a bar with the clock
+    /// at the left, the controls in one box in the middle and Close at the right. Advances the
+    /// movie first.
+    pub(crate) fn show(&mut self, ui: &mut egui::Ui) {
         let now = Instant::now();
         let elapsed = scaled(now.duration_since(self.last_tick), self.speed);
         self.last_tick = now;
@@ -151,35 +142,26 @@ impl MovieWindow {
             }
         }
 
-        let mut open = true;
         let (mut close, mut restart, mut toggle_play, mut step_frame, mut toggle_mute) =
             (false, false, false, false, false);
-        let room = ctx.content_rect().size();
         let mut speed = self.speed;
-        egui::Window::new("Test Movie")
-            .open(&mut open)
-            .collapsible(false)
-            .resizable(false)
-            .show(ctx, |ui| {
-                if let Some(failure) = &self.failure {
-                    ui.label(failure);
-                    ui.add_space(8.0);
-                    close = close_row(ui);
-                    return;
-                }
-                let (width, height) = self.movie.size();
-                let picture = egui::vec2(width as f32, height as f32) / self.scale;
-                let size = fit(picture, room);
-                ui.set_min_width(size.x.max(MIN_WIDTH));
-                ui.vertical_centered(|ui| {
-                    ui.add(egui::Image::new(egui::load::SizedTexture::new(
-                        self.texture,
-                        size,
-                    )));
-                    ui.add_space(8.0);
-                    // The controls share one box, in the middle under the picture.
-                    egui::Frame::group(ui.style())
-                        .inner_margin(egui::Margin::symmetric(8, 4))
+        egui::Panel::bottom("movie_controls")
+            .exact_size(BAR_HEIGHT)
+            .show(ui, |ui| {
+                let bar = ui.max_rect().width();
+                ui.horizontal_centered(|ui| {
+                    ui.add_space(10.0);
+                    let frame = self.movie.current_frame().unwrap_or(0);
+                    let clock = ui.label(
+                        egui::RichText::new(format!("{} · frame {frame}", clock(self.elapsed)))
+                            .monospace()
+                            .weak(),
+                    );
+                    // The box is centered in the bar, not in what the clock leaves.
+                    let before = 10.0 + clock.rect.width();
+                    ui.add_space(((bar - self.box_width) / 2.0 - before).max(0.0));
+                    let boxed = egui::Frame::group(ui.style())
+                        .inner_margin(egui::Margin::symmetric(6, 2))
                         .show(ui, |ui| {
                             ui.horizontal(|ui| {
                                 ui.spacing_mut().item_spacing.x = 4.0;
@@ -194,10 +176,20 @@ impl MovieWindow {
                                 step_frame =
                                     tool(ui, "transport-next", "Step one frame", !playing, false);
                                 ui.separator();
-                                for (value, label) in SPEEDS {
-                                    ui.selectable_value(&mut speed, value, label);
-                                }
-                                ui.separator();
+                                let current = SPEEDS
+                                    .iter()
+                                    .find(|(value, _)| *value == self.speed)
+                                    .map_or("1×", |(_, label)| *label);
+                                egui::ComboBox::from_id_salt("movie_speed")
+                                    .width(60.0)
+                                    .selected_text(current)
+                                    .show_ui(ui, |ui| {
+                                        for (value, label) in SPEEDS {
+                                            ui.selectable_value(&mut speed, value, label);
+                                        }
+                                    })
+                                    .response
+                                    .on_hover_text("Playback speed");
                                 let (icon, tip) = if self.muted {
                                     ("sound-mute", "Sound is off; click to turn it on")
                                 } else {
@@ -205,21 +197,34 @@ impl MovieWindow {
                                 };
                                 toggle_mute =
                                     tool(ui, icon, tip, self.movie.has_sound(), self.muted);
-                                ui.separator();
-                                let frame = self.movie.current_frame().unwrap_or(0);
-                                ui.label(
-                                    egui::RichText::new(format!(
-                                        "{}  frame {frame}",
-                                        clock(self.elapsed)
-                                    ))
-                                    .monospace(),
-                                );
                             });
                         });
+                    self.box_width = boxed.response.rect.width();
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.add_space(8.0);
+                        let tint = ui.visuals().text_color();
+                        close = ui
+                            .add(egui::Button::image_and_text(
+                                flare_ui::icons::image("close", 12.0, tint),
+                                "Close",
+                            ))
+                            .clicked();
+                    });
                 });
-                ui.add_space(6.0);
-                ui.separator();
-                close = close_row(ui);
+            });
+        egui::CentralPanel::default()
+            .frame(egui::Frame::new().fill(egui::Color32::from_gray(18)))
+            .show(ui, |ui| {
+                if let Some(failure) = &self.failure {
+                    ui.centered_and_justified(|ui| ui.label(failure));
+                    return;
+                }
+                let size = fit_in(self.picture_points(), ui.available_size());
+                let at = egui::Rect::from_center_size(ui.max_rect().center(), size);
+                ui.put(
+                    at,
+                    egui::Image::new(egui::load::SizedTexture::new(self.texture, size)),
+                );
             });
         if restart {
             self.restart();
@@ -238,9 +243,7 @@ impl MovieWindow {
         }
         // Sound plays at normal speed only: at any other it would be out of step with the picture.
         let _ = self.movie.set_muted(self.muted || self.speed != 1.0);
-        self.closed = !open || close;
-        // Movies advance with the clock, so keep drawing while one is on screen.
-        ctx.request_repaint();
+        self.closed = close;
     }
 
     fn restart(&mut self) {

@@ -6,12 +6,14 @@ mod app;
 mod menu;
 #[cfg(feature = "ruffle")]
 mod movie;
+#[cfg(feature = "ruffle")]
+mod movie_window;
 mod shell;
 mod window;
 
 /// The Test Movie window, when this build has the player inside it.
 #[cfg(feature = "ruffle")]
-pub(crate) type Movie = Option<movie::MovieWindow>;
+pub(crate) type Movie = Option<movie_window::MovieViewport>;
 #[cfg(not(feature = "ruffle"))]
 pub(crate) type Movie = ();
 

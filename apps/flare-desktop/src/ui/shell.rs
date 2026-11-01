@@ -124,26 +124,28 @@ impl App {
         }
     }
 
-    /// Opens the Test Movie window on the editor's own GPU device.
+    /// Opens the Test Movie window, a window of its own on the editor's GPU device.
     #[cfg(feature = "ruffle")]
-    pub(super) fn open_movie(&mut self, result: Result<Vec<u8>, String>) {
+    pub(super) fn open_movie(
+        &mut self,
+        event_loop: &winit::event_loop::ActiveEventLoop,
+        result: Result<Vec<u8>, String>,
+    ) {
         let bytes = match result {
             Ok(bytes) => bytes,
             Err(error) => return dialogs::message("Cannot start Test Movie", &error),
         };
-        let Some(gpu) = &self.gpu else { return };
-        let Some(state) = gpu.painter.render_state() else {
-            return dialogs::message(
-                "Cannot start Test Movie",
-                "The window has no GPU to draw on.",
-            );
-        };
-        match super::movie::MovieWindow::open(bytes, &state, gpu.window.scale_factor() as f32) {
-            Ok(window) => {
-                self.movie = Some(window);
-                gpu.window.request_redraw();
-            }
-            Err(error) => dialogs::message("Cannot start Test Movie", &error.to_string()),
+        let Some(gpu) = &mut self.gpu else { return };
+        let scale = gpu.window.scale_factor() as f32;
+        match super::movie_window::MovieViewport::open(
+            event_loop,
+            &self.ctx,
+            &mut gpu.painter,
+            bytes,
+            scale,
+        ) {
+            Ok(window) => self.movie = Some(window),
+            Err(error) => dialogs::message("Cannot start Test Movie", &format!("{error:#}")),
         }
     }
 
