@@ -57,7 +57,18 @@ impl Workspace {
                 let visuals = ui.visuals_mut();
                 visuals.text_cursor.stroke = Stroke::NONE;
                 visuals.selection.bg_fill = Color32::TRANSPARENT;
-                let output = egui::TextEdit::multiline(&mut edit.buffer)
+                let field = id.with("field");
+                let end = egui::text::CCursor::new(edit.buffer.chars().count());
+                let at_end = egui::text::CCursorRange::one(end);
+                if !edit.focused {
+                    // Opened text starts with the caret after its last letter, not before the
+                    // first (or wherever the click that opened it fell on the field).
+                    let mut state = egui::TextEdit::load_state(ctx, field).unwrap_or_default();
+                    state.cursor.set_char_range(Some(at_end));
+                    state.store(ctx, field);
+                }
+                let mut output = egui::TextEdit::multiline(&mut edit.buffer)
+                    .id(field)
                     .font(egui::FontId::proportional(px))
                     .text_color(Color32::TRANSPARENT)
                     .frame(egui::Frame::NONE)
@@ -69,6 +80,9 @@ impl Workspace {
                 if !edit.focused {
                     output.response.request_focus();
                     edit.focused = true;
+                    output.state.cursor.set_char_range(Some(at_end));
+                    output.state.clone().store(ctx, field);
+                    output.cursor_range = Some(at_end);
                 }
                 cursor = output
                     .cursor_range

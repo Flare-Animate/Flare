@@ -179,6 +179,42 @@ fn the_editor_and_the_character_controls_draw() {
 }
 
 #[test]
+fn text_opened_by_a_double_click_has_its_caret_after_the_last_letter() {
+    let (ctx, mut ws) = (egui::Context::default(), text_workspace());
+    flare_ui::icons::install(&ctx);
+    type_text(&mut ws, Pos2::new(930.0, 520.0), "I I");
+    ws.set_tool(Tool::Select);
+    ws.selected = None;
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    let at = ws.stage_panel.center();
+    let button = |pressed: bool| Event::PointerButton {
+        pos: at,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.20, vec![Event::PointerMoved(at), button(true)]),
+    );
+    pass(&mut ws, &ctx, input(0.25, vec![button(false)]));
+    pass(&mut ws, &ctx, input(0.30, vec![button(true)]));
+    pass(&mut ws, &ctx, input(0.35, vec![button(false)]));
+    for step in 0..4 {
+        run(&mut ws, &ctx, 0.4 + f64::from(step) * 0.05);
+    }
+    let field = ws.text.editor_id.with("field");
+    let state = egui::TextEdit::load_state(&ctx, field).expect("the field kept its state");
+    let caret = state
+        .cursor
+        .char_range()
+        .map(|r| usize::from(r.primary.index));
+    assert_eq!(caret, Some(3), "after \"I I\"");
+}
+
+#[test]
 fn a_press_on_the_stage_outside_the_editor_finishes_the_text_but_a_press_elsewhere_does_not() {
     let (ctx, mut ws) = (egui::Context::default(), text_workspace());
     flare_ui::icons::install(&ctx);
