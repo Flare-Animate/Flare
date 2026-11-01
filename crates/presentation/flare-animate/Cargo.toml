@@ -12,6 +12,7 @@ egui_tiles = { workspace = true, features = ["serde"] }
 flare-audio.workspace = true
 flare-commands.workspace = true
 flare-core.workspace = true
+flare-dock.workspace = true
 flare-document.workspace = true
 flare-editor.workspace = true
 flare-eval.workspace = true

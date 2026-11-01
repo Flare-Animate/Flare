@@ -9,7 +9,7 @@ fn all_in_one_stack(ws: &mut Workspace) {
         .collect();
     let root = tiles.insert_tab_tile(panes);
     let tree = egui_tiles::Tree::new(egui::Id::unique("stack"), root, tiles);
-    ws.restore_layout(&layout::to_json(&tree).expect("serialize"))
+    ws.restore_layout(&flare_dock::to_json(&tree).expect("serialize"))
         .expect("a tab group of every panel is valid");
 }
 

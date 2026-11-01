@@ -1,6 +1,6 @@
 //! The dock: draws each panel by calling back into the workspace.
 
-use crate::layout::Pane;
+use flare_dock::Pane;
 
 use super::*;
 

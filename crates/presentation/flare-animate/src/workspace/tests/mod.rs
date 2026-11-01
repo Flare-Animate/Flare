@@ -2,11 +2,11 @@
 #![allow(clippy::expect_used)]
 
 use super::*;
-use crate::layout::{self, Pane};
 use egui::{Color32, Key, Modifiers, Pos2, Rect, Vec2};
 use egui::{Event, RawInput};
 use flare_commands::Command;
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
+use flare_dock::{self, Pane};
 use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Timeline, Tween};
 use flare_editor::timeline_view;
 use flare_menubar::{MENU_LAYOUT, MenuAction, MenuEntry};

@@ -1,6 +1,6 @@
 //! What the desktop shell asks of the workspace.
 
-use crate::layout::{self, LayoutError};
+use flare_dock::{self, LayoutError};
 use flare_document::Document;
 
 use super::*;
@@ -10,19 +10,19 @@ impl Workspace {
 
     /// The current panel arrangement as JSON, for saving between sessions.
     pub fn layout_json(&self) -> Result<String, serde_json::Error> {
-        layout::to_json(&self.layout)
+        flare_dock::to_json(&self.layout)
     }
 
     /// Restores a saved arrangement. An unusable one is refused and the current layout is
     /// kept, so a stale or damaged file can never leave the workspace without a panel.
     pub fn restore_layout(&mut self, json: &str) -> Result<(), LayoutError> {
-        self.layout = layout::from_json(json)?;
+        self.layout = flare_dock::from_json(json)?;
         Ok(())
     }
 
     /// Back to the default arrangement. Never touches the document.
     pub fn reset_layout(&mut self) {
-        self.layout = layout::default_tree();
+        self.layout = flare_dock::default_tree();
     }
 
     // ---- menu actions ----------------------------------------------------------------

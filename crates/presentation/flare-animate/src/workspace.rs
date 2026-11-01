@@ -2,10 +2,10 @@
 //!
 //! The type lives here; what it can do is split by topic into the modules below.
 
-use crate::layout::{self, Pane};
 use egui::{Pos2, Rect};
 use flare_commands::Command;
 use flare_core::{DocumentId, FrameRate, LayerId, SceneId, SymbolId};
+use flare_dock::{self, Pane};
 use flare_document::{Document, Layer, Scene, Timeline};
 use flare_editor::frames;
 use flare_history::EditorSession;
@@ -349,7 +349,7 @@ impl Workspace {
             frame_menu_open: false,
             native_menu: false,
             quit_requested: false,
-            layout: layout::default_tree(),
+            layout: flare_dock::default_tree(),
             onion: OnionSkin {
                 enabled: false,
                 before: 1,

@@ -37,6 +37,7 @@ members = [
     "crates/services/flare-platform",
     # presentation
     "crates/presentation/flare-ui",
+    "crates/presentation/flare-dock",
     "crates/presentation/flare-menubar",
     "crates/presentation/flare-animate",
 ]
@@ -87,6 +88,7 @@ flare-runtime = { path = "crates/services/flare-runtime" }
 flare-video = { path = "crates/services/flare-video" }
 flare-platform = { path = "crates/services/flare-platform" }
 # presentation
+flare-dock = { path = "crates/presentation/flare-dock" }
 flare-menubar = { path = "crates/presentation/flare-menubar" }
 flare-recent = { path = "crates/services/flare-recent" }
 flare-ui = { path = "crates/presentation/flare-ui" }

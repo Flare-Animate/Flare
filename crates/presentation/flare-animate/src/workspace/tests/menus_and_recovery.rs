@@ -243,7 +243,7 @@ fn the_dock_survives_drawing_and_every_panel_stays_present() {
     }
     let json = ws.layout_json().expect("serialize");
     assert!(
-        layout::from_json(&json).is_ok(),
+        flare_dock::from_json(&json).is_ok(),
         "all four panels are still in the layout"
     );
     assert!(
@@ -300,12 +300,12 @@ fn opening_a_project_keeps_the_users_panel_arrangement() {
         .collect();
     let root = tiles.insert_tab_tile(panes);
     let custom_tree = egui_tiles::Tree::new(egui::Id::unique("custom"), root, tiles);
-    let custom = layout::to_json(&custom_tree).expect("serialize");
+    let custom = flare_dock::to_json(&custom_tree).expect("serialize");
     ws.restore_layout(&custom)
         .expect("a tab group of every panel is valid");
 
     let value = |t: &str| serde_json::from_str::<serde_json::Value>(t).expect("json");
-    let default = layout::to_json(&layout::default_tree()).expect("serialize");
+    let default = flare_dock::to_json(&flare_dock::default_tree()).expect("serialize");
     assert_ne!(
         value(&custom),
         value(&default),

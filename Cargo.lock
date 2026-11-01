@@ -1947,6 +1947,7 @@ dependencies = [
  "flare-audio",
  "flare-commands",
  "flare-core",
+ "flare-dock",
  "flare-document",
  "flare-editor",
  "flare-eval",
@@ -2051,6 +2052,17 @@ dependencies = [
  "muda",
  "pollster 0.4.0",
  "winit",
+]
+
+[[package]]
+name = "flare-dock"
+version = "0.1.0"
+dependencies = [
+ "egui",
+ "egui_tiles",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

@@ -85,7 +85,7 @@ jobs:
         run: |
           for crate in flare-core flare-document flare-eval flare-input flare-commands \
             flare-history flare-editor flare-tools flare-render flare-text flare-storage \
-            flare-runtime flare-recent flare-animate flare-publish flare-export flare-import; do
+            flare-runtime flare-recent flare-dock flare-animate flare-publish flare-export flare-import; do
             cargo check -p "$crate" --target wasm32-unknown-unknown --locked
           done
 

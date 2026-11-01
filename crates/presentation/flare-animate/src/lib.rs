@@ -8,10 +8,9 @@
 
 #[cfg(test)]
 mod icon_names;
-mod layout;
 mod workspace;
 
-pub use layout::{LayoutError, MAX_LAYOUT_BYTES, Pane};
+pub use flare_dock::{LayoutError, MAX_LAYOUT_BYTES, Pane};
 pub use workspace::{
     AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES, OnionSkin,
     Preferences, PublishSettings, ShareTarget, Tool, WindowRequest, Workspace, onion_ghosts,
