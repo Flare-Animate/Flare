@@ -1,6 +1,6 @@
 //! Tools that work on layers and frames.
 
-use flare_commands::{Command, LayerChange};
+use flare_commands::layers;
 use flare_editor::frames;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 
@@ -60,59 +60,27 @@ impl FlareServer {
         self.write(args.expected_revision, |state| {
             let scene = first_scene(state)?;
             let layer = target_layer(state, args.layer.as_deref())?;
-            let layers = state
-                .session
-                .document()
-                .scenes()
-                .first()
-                .map(|s| s.timeline().layers())
-                .unwrap_or_default();
-            let position = layers
-                .iter()
-                .position(|l| l.id() == layer)
-                .ok_or("layer disappeared")?;
-            let count = layers.len();
-            let update = |change| Command::UpdateLayer {
-                scene,
-                layer,
-                change,
-            };
-            let command = match args.operation {
+            let document = state.session.document();
+            let commands = match args.operation {
                 LayerOperation::Rename => {
-                    let name = args.name.as_deref().ok_or("name is required")?.trim();
-                    if name.is_empty() {
-                        return Err("a layer needs a name".to_owned());
-                    }
-                    update(LayerChange::Name(name.to_owned()))
+                    let name = args.name.as_deref().ok_or("name is required")?;
+                    layers::rename(scene, layer, name).map_err(|e| e.to_string())?
                 }
-                LayerOperation::Delete if count <= 1 => {
-                    return Err("a scene needs at least one layer".to_owned());
+                LayerOperation::Delete => {
+                    layers::delete(document, scene, layer).map_err(|e| e.to_string())?
                 }
-                LayerOperation::Delete => Command::RemoveLayer { scene, layer },
-                LayerOperation::Hide => update(LayerChange::Visible(false)),
-                LayerOperation::Show => update(LayerChange::Visible(true)),
-                LayerOperation::Lock => update(LayerChange::Locked(true)),
-                LayerOperation::Unlock => update(LayerChange::Locked(false)),
+                LayerOperation::Hide => layers::set_visible(scene, layer, false),
+                LayerOperation::Show => layers::set_visible(scene, layer, true),
+                LayerOperation::Lock => layers::set_locked(scene, layer, true),
+                LayerOperation::Unlock => layers::set_locked(scene, layer, false),
                 LayerOperation::MoveUp => {
-                    let index = position
-                        .checked_sub(1)
-                        .ok_or("the layer is already at the top")?;
-                    Command::MoveLayer {
-                        scene,
-                        layer,
-                        index,
-                    }
+                    layers::move_by(document, scene, layer, -1).map_err(|e| e.to_string())?
                 }
-                LayerOperation::MoveDown if position + 1 >= count => {
-                    return Err("the layer is already at the bottom".to_owned());
+                LayerOperation::MoveDown => {
+                    layers::move_by(document, scene, layer, 1).map_err(|e| e.to_string())?
                 }
-                LayerOperation::MoveDown => Command::MoveLayer {
-                    scene,
-                    layer,
-                    index: position + 1,
-                },
             };
-            apply(state, vec![command])
+            apply(state, commands)
         })
     }
 }

@@ -78,30 +78,6 @@ impl Workspace {
         }
     }
 
-    /// The sounds that only the cues of `layer` play: what deleting the layer would leave unused.
-    pub(super) fn orphaned_sounds(&self, layer: LayerId) -> Vec<flare_core::SoundId> {
-        let document = self.session.document();
-        let timelines = document
-            .scenes()
-            .iter()
-            .map(|s| s.timeline())
-            .chain(document.symbols().iter().map(|s| s.timeline()));
-        let (mut own, mut elsewhere) = (Vec::new(), HashSet::new());
-        for timeline in timelines {
-            for l in timeline.layers() {
-                if l.id() == layer {
-                    own.extend(l.cues().iter().map(|c| c.sound));
-                } else {
-                    elsewhere.extend(l.cues().iter().map(|c| c.sound));
-                }
-            }
-        }
-        own.sort_by_key(|id| *id.as_uuid());
-        own.dedup();
-        own.retain(|id| !elsewhere.contains(id));
-        own
-    }
-
     /// Asks for every sound in the project to be decoded (once), and forgets decodings of
     /// sounds that are gone.
     pub(super) fn ensure_sounds_decoded(&mut self) {

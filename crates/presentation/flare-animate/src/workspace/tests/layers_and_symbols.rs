@@ -144,7 +144,10 @@ fn layer_operations_rename_hide_lock_move_and_delete() {
     ws.move_active_layer(-1);
     assert_eq!(ws.document().scenes()[0].timeline().layers()[0].id(), id);
     ws.move_active_layer(-1);
-    assert!(ws.status().is_some_and(|s| s.contains("edge")));
+    assert!(
+        ws.status()
+            .is_some_and(|s| s.contains("already at the top"))
+    );
     ws.delete_active_layer();
     assert_eq!(layer_count(&ws), 1);
     ws.delete_active_layer();

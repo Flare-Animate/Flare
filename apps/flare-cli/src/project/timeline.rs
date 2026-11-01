@@ -1,7 +1,7 @@
 //! Frame and layer operations.
 
-use anyhow::{Context, Result, bail};
-use flare_commands::{Command, LayerChange};
+use anyhow::{Context, Result};
+use flare_commands::layers;
 use serde_json::{Value, json};
 use std::path::Path;
 use uuid::Uuid;
@@ -134,59 +134,20 @@ pub fn layer_op(
 ) -> Result<Value> {
     let mut session = open(path)?;
     let (scene, layer) = target_layer(&session, layer)?;
-    let layers = session
-        .document()
-        .scenes()
-        .first()
-        .context("document has no scene")?
-        .timeline()
-        .layers();
-    let position = layers
-        .iter()
-        .position(|l| l.id() == layer)
-        .context("layer disappeared")?;
-    let update = |change| Command::UpdateLayer {
-        scene,
-        layer,
-        change,
-    };
-    let command = match op {
+    let document = session.document();
+    let commands = match op {
         LayerOperation::Rename => {
-            let name = name
-                .map(str::trim)
-                .filter(|n| !n.is_empty())
-                .context("rename needs --name")?;
-            update(LayerChange::Name(name.to_owned()))
+            layers::rename(scene, layer, name.context("rename needs --name")?)?
         }
-        LayerOperation::Delete => {
-            if layers.len() <= 1 {
-                bail!("a scene needs at least one layer");
-            }
-            Command::RemoveLayer { scene, layer }
-        }
-        LayerOperation::Hide => update(LayerChange::Visible(false)),
-        LayerOperation::Show => update(LayerChange::Visible(true)),
-        LayerOperation::Lock => update(LayerChange::Locked(true)),
-        LayerOperation::Unlock => update(LayerChange::Locked(false)),
-        LayerOperation::Up | LayerOperation::Down => {
-            let index = if matches!(op, LayerOperation::Up) {
-                position
-                    .checked_sub(1)
-                    .context("the layer is already at the top")?
-            } else {
-                position + 1
-            };
-            if index >= layers.len() {
-                bail!("the layer is already at the bottom");
-            }
-            Command::MoveLayer {
-                scene,
-                layer,
-                index,
-            }
-        }
+        LayerOperation::Delete => layers::delete(document, scene, layer)?,
+        LayerOperation::Hide => layers::set_visible(scene, layer, false),
+        LayerOperation::Show => layers::set_visible(scene, layer, true),
+        LayerOperation::Lock => layers::set_locked(scene, layer, true),
+        LayerOperation::Unlock => layers::set_locked(scene, layer, false),
+        LayerOperation::Up => layers::move_by(document, scene, layer, -1)?,
+        LayerOperation::Down => layers::move_by(document, scene, layer, 1)?,
     };
-    session.apply([command])?;
+    session.apply(commands)?;
     commit(&session, path)?;
     Ok(json!({ "applied": format!("{op:?}"), "layer": layer.as_uuid() }))
 }
