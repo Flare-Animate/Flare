@@ -98,6 +98,10 @@ jobs:
       - name: SQLite, zstd and Ruffle for the page (from npm, exact versions)
         working-directory: apps/flare-web
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: System libraries the command line is built with (the page's test builds it)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libfontconfig1-dev libasound2-dev
       - name: The page reads and writes .flare files
         run: |
           cargo build -p flare-cli --locked
