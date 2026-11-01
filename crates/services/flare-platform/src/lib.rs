@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 pub mod audio;
+mod audio_prepared;
 pub mod browser;
 pub mod dialogs;
 pub mod dirs;

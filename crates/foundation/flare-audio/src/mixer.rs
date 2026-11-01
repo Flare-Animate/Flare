@@ -11,8 +11,9 @@ struct Voice {
     starts_at: u64,
 }
 
-/// Mixes sounds into stereo output at a fixed rate. Sounds of another rate are resampled by
-/// linear interpolation; mono is played in both ears; channels past the second are ignored.
+/// Mixes sounds into stereo output at a fixed rate. Sounds must already be at that rate
+/// (`Audio::resampled`), because resampling is too slow for the thread that mixes; mono is played
+/// in both ears; channels past the second are ignored.
 pub struct Mixer {
     rate: u32,
     /// The next output frame to be produced.
@@ -33,12 +34,17 @@ impl Mixer {
         self.rate
     }
 
-    /// Starts `audio` after `delay` output frames from now.
-    pub fn play(&mut self, audio: Arc<Audio>, delay: u64) {
+    /// Starts `audio` after `delay` output frames from now. False, and nothing starts, if the
+    /// sound is not at the mixer's rate.
+    pub fn play(&mut self, audio: Arc<Audio>, delay: u64) -> bool {
+        if audio.sample_rate() != self.rate {
+            return false;
+        }
         self.voices.push(Voice {
             audio,
             starts_at: self.position.saturating_add(delay),
         });
+        true
     }
 
     pub fn stop_all(&mut self) {
@@ -55,27 +61,14 @@ impl Mixer {
         out.fill(0.0);
         let frames = (out.len() / 2) as u64;
         let end = self.position + frames;
-        let rate = f64::from(self.rate);
         for voice in &self.voices {
-            let step = f64::from(voice.audio.sample_rate()) / rate;
-            let length = voice.audio.frames();
+            let length = voice.audio.frames() as u64;
             let first = voice.starts_at.max(self.position);
-            for frame in first..end.min(voice.starts_at + (length as f64 / step).ceil() as u64) {
-                let t = (frame - voice.starts_at) as f64 * step;
-                let i = t as usize;
-                if i >= length {
-                    break;
-                }
-                let fraction = (t - i as f64) as f32;
-                let j = (i + 1).min(length - 1);
-                let sample = |channel: usize| {
-                    let a = voice.audio.at(i, channel);
-                    let b = voice.audio.at(j, channel);
-                    a + (b - a) * fraction
-                };
-                let left = sample(0);
+            for frame in first..end.min(voice.starts_at + length) {
+                let i = (frame - voice.starts_at) as usize;
+                let left = voice.audio.at(i, 0);
                 let right = if voice.audio.channels() > 1 {
-                    sample(1)
+                    voice.audio.at(i, 1)
                 } else {
                     left
                 };
@@ -88,10 +81,7 @@ impl Mixer {
             *value = value.clamp(-1.0, 1.0);
         }
         self.position = end;
-        self.voices.retain(|voice| {
-            let length =
-                voice.audio.frames() as f64 / (f64::from(voice.audio.sample_rate()) / rate);
-            (voice.starts_at as f64 + length) > self.position as f64
-        });
+        self.voices
+            .retain(|voice| voice.starts_at + voice.audio.frames() as u64 > self.position);
     }
 }

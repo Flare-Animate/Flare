@@ -8,6 +8,8 @@ use thiserror::Error;
 
 use flare_audio::{Audio, AudioEvent, Mixer};
 
+use crate::audio_prepared::Prepared;
+
 #[derive(Debug, Error)]
 pub enum OutputError {
     #[error("there is no sound output device")]
@@ -67,8 +69,16 @@ impl Sender {
 
     /// Starts `audio` after `delay_seconds`. False if the queue was full and the sound dropped.
     pub(crate) fn play(&self, audio: Arc<Audio>, delay_seconds: f64) -> bool {
+        // The mixer takes only sounds at its rate; see `Prepared` for the others.
+        if audio.sample_rate() != self.rate {
+            return false;
+        }
         let delay = (delay_seconds.max(0.0) * f64::from(self.rate)) as u64;
         self.push(Command::Play { audio, delay })
+    }
+
+    pub(crate) fn rate(&self) -> u32 {
+        self.rate
     }
 
     pub(crate) fn stop_all(&self) -> bool {
@@ -82,7 +92,9 @@ impl Engine {
     pub(crate) fn render(&mut self, out: &mut [f32]) {
         while let Ok(command) = self.commands.pop() {
             match command {
-                Command::Play { audio, delay } => self.mixer.play(audio, delay),
+                Command::Play { audio, delay } => {
+                    self.mixer.play(audio, delay);
+                }
                 Command::Stop => self.mixer.stop_all(),
             }
         }
@@ -93,7 +105,7 @@ impl Engine {
 /// Plays sounds on the default output device until dropped. Create it once, on the thread that
 /// owns the window: the stream is not `Send`.
 pub struct Player {
-    sender: Sender,
+    sounds: Prepared,
     _stream: cpal::Stream,
 }
 
@@ -111,6 +123,7 @@ impl Player {
         let rate = config.sample_rate().0;
         let channels = usize::from(config.channels()).max(1);
         let (sender, mut engine) = channel(rate);
+        let sounds = Prepared::new(Arc::new(sender));
         let mut stereo: Vec<f32> = Vec::new();
         let stream = device
             .build_output_stream(
@@ -133,14 +146,14 @@ impl Player {
             .play()
             .map_err(|e| OutputError::Device(e.to_string()))?;
         Ok(Self {
-            sender,
+            sounds,
             _stream: stream,
         })
     }
 
     /// Starts `audio` after `delay_seconds`.
     pub fn play(&self, audio: Arc<Audio>, delay_seconds: f64) {
-        self.sender.play(audio, delay_seconds);
+        self.sounds.play(audio, delay_seconds);
     }
 
     /// Carries out what a front end asked for.
@@ -157,7 +170,7 @@ impl Player {
     }
 
     pub fn stop_all(&self) {
-        self.sender.stop_all();
+        self.sounds.stop_all();
     }
 }
 

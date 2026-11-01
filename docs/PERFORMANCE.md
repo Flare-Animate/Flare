@@ -74,6 +74,14 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
   silent (a dropout). A full queue drops the newest command and returns false rather than make
   the window wait. One thing is still on the callback thread: a sound that finishes drops its
   `Arc`, which frees memory only if it was the last owner (the window keeps the decoded sound).
+- **rubato** resamples a sound whose rate is not the device's (`Audio::resampled`, an FFT
+  resampler over the whole sound). The mixer takes only sounds at its rate, so a sound of
+  another rate is resampled on a worker thread (`flare-platform`) before it is queued, and
+  the copy is kept (64 MiB at most) for the next play; the window thread never resamples. The
+  first play of such a sound starts late by as long as the resampling takes; the SWF and MP4
+  exports resample on their own worker threads. This replaced three hand-written linear
+  interpolation loops, which aliased when lowering a rate. Not measured: the resampling time
+  of a ten-minute track.
 - **zerocopy, rkyv, encase, half** have no site yet. The project file's records are CBOR,
   compressed with zstd (see ARCHITECTURE.md); at 10 000 shapes the old JSON opened in 31 ms and
   the new records are a seventh the size, so reading numbers in place is not justified by

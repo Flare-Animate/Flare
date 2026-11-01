@@ -12,14 +12,64 @@ fn pcm16_keeps_the_rate_and_clamps() {
 
 #[test]
 fn pcm16_resamples_and_cuts_to_two_channels() {
-    let frames = 100;
+    let frames = 400;
     let samples: Vec<f32> = (0..frames * 3).map(|n| (n % 3) as f32 * 0.1).collect();
     let audio = Audio::new(22050, 3, samples).expect("audio");
     let (pcm, channels) = audio.to_pcm16(11025, 1000).expect("pcm");
     assert_eq!(channels, 2);
-    assert_eq!(pcm.len(), 50 * 2);
-    assert_eq!(pcm[0], 0);
-    assert_eq!(pcm[1], 3277);
+    assert_eq!(pcm.len(), 200 * 2);
+    // Constant channels stay constant away from the ends of the sound: 0.0 and 0.1.
+    let middle = &pcm[200..202];
+    assert!(middle[0].abs() < 100, "{middle:?}");
+    assert!((middle[1] - 3277).abs() < 100, "{middle:?}");
+}
+
+/// A sine of `hz` lasting `seconds`, as mono audio at `rate`.
+fn tone(rate: u32, hz: f32, seconds: f32) -> Audio {
+    let frames = (rate as f32 * seconds) as usize;
+    let samples = (0..frames)
+        .map(|n| (std::f32::consts::TAU * hz * n as f32 / rate as f32).sin() * 0.5)
+        .collect();
+    Audio::new(rate, 1, samples).expect("audio")
+}
+
+#[test]
+fn resampling_keeps_the_length_in_seconds_and_the_pitch() {
+    let source = tone(48000, 440.0, 0.5);
+    let out = source.resampled(44100).expect("resampled");
+    assert_eq!(out.sample_rate(), 44100);
+    assert_eq!(out.frames(), 22050);
+    // Compare with the same tone made directly at the new rate, away from the ends.
+    let reference = tone(44100, 440.0, 0.5);
+    for n in 2000..20000 {
+        assert!(
+            (out.at(n, 0) - reference.at(n, 0)).abs() < 0.01,
+            "frame {n}: {} against {}",
+            out.at(n, 0),
+            reference.at(n, 0)
+        );
+    }
+}
+
+#[test]
+fn resampling_to_the_same_rate_changes_nothing_and_cuts_extra_channels() {
+    let source = tone(8000, 100.0, 0.1);
+    assert_eq!(source.resampled(8000).as_ref(), Some(&source));
+    let wide = Audio::new(8000, 3, vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6]).expect("audio");
+    let cut = wide.resampled(8000).expect("cut");
+    assert_eq!((cut.channels(), cut.frames()), (2, 2));
+    assert_eq!(cut.at(1, 1), 0.5);
+}
+
+#[test]
+fn resampling_refuses_a_zero_rate_and_a_result_too_big_to_keep() {
+    let source = tone(8000, 100.0, 0.1);
+    assert!(source.resampled(0).is_none());
+    let long = Audio::new(1, 1, vec![0.0; 1000]).expect("audio");
+    assert!(
+        long.resampled(1_000_000).is_none(),
+        "1000 frames at 1 Hz to a megahertz is a billion samples"
+    );
 }
 
 #[test]
@@ -135,15 +185,11 @@ fn sounds_mix_by_addition_and_clamp_and_pick_up_across_buffers() {
 }
 
 #[test]
-fn a_sound_of_another_rate_is_resampled_to_the_output_rate() {
-    // 50 Hz source in a 100 Hz mixer: each source frame lasts two output frames, and the
-    // in-between frame is the average of its neighbours.
+fn a_sound_of_another_rate_is_refused_not_played_wrong() {
     let mut mixer = Mixer::new(100);
-    mixer.play(sound(50, 1, vec![0.0, 1.0, 0.0]), 0);
-    let mut out = [0.0_f32; 12];
-    mixer.render(&mut out);
-    let left: Vec<f32> = out.iter().step_by(2).copied().collect();
-    assert_eq!(left, vec![0.0, 0.5, 1.0, 0.5, 0.0, 0.0]);
+    assert!(!mixer.play(sound(50, 1, vec![0.0, 1.0, 0.0]), 0));
+    assert!(!mixer.is_playing());
+    assert!(mixer.play(sound(100, 1, vec![0.5]), 0));
 }
 
 #[test]

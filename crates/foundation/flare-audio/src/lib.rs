@@ -46,6 +46,7 @@ pub enum AudioError {
 
 mod audio;
 mod mixer;
+mod resample;
 #[cfg(test)]
 mod tests;
 

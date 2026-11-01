@@ -171,6 +171,7 @@ rtrb = "0.3"                # A lock-free queue from the window thread to the au
 # crossbeam-channel: bounded communication only at justified boundaries.
 
 # ---- Audio ---------------------------------------------------------------------
+rubato = "5"                 # Resampling of sounds to the output rate, off the audio thread.
 symphonia = { version = "0.5", default-features = false, features = ["wav", "mp3", "ogg", "vorbis", "flac", "pcm"] }
 cpal = "0.16"
 base64 = "0.22"
@@ -213,7 +214,7 @@ criterion = "0.7"
 # zerocopy = { version = "0.8.63", features = ["derive"] }
 
 # ---- Deferred functionality: register exact versions when adopted -----------
-# Audio resampling and lock-free queues (rubato, rtrb) and an optional FFmpeg adapter: when needed.
+# An optional FFmpeg adapter: when needed.
 # Spatial/physics: parry2d-f64, parry3d-f64, rapier2d-f64; 3D physics deferred.
 # Scripting: boa_engine candidate; plugins/Wasm host deferred.
 # Collections/SIMD: smallvec, indexmap, slotmap, hashbrown, bumpalo, wide on evidence.

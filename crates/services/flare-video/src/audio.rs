@@ -57,6 +57,9 @@ impl Track {
                 None => {
                     let audio = flare_audio::decode(sound.data())
                         .map_err(|e| format!("Cannot read the sound \"{}\": {e}", sound.name()))?;
+                    let audio = audio.resampled(RATE).ok_or_else(|| {
+                        format!("The sound \"{}\" is too long to prepare", sound.name())
+                    })?;
                     let audio = Arc::new(audio);
                     decoded.insert(cue.sound, audio.clone());
                     audio

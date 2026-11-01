@@ -16,7 +16,7 @@ use crate::{AudioError, MAX_DECODED_SAMPLES, MAX_INPUT_BYTES};
 pub struct Audio {
     sample_rate: u32,
     channels: u16,
-    samples: Vec<f32>,
+    pub(crate) samples: Vec<f32>,
 }
 
 impl Audio {
@@ -45,40 +45,34 @@ impl Audio {
         self.samples.len() / usize::from(self.channels)
     }
 
+    /// How many samples (all channels) the sound holds.
+    pub fn samples_len(&self) -> usize {
+        self.samples.len()
+    }
+
     pub fn seconds(&self) -> f64 {
         self.frames() as f64 / f64::from(self.sample_rate)
     }
 
     /// The sound as 16-bit signed samples at `rate`, interleaved, in one channel if it has one
     /// and in two otherwise (a sound with more is cut to its first two, as the mixer does).
-    /// Resampled by linear interpolation, and clamped to what 16 bits hold. Returns the samples
-    /// and how many channels they have. `None` if `rate` is zero or the result would have more
-    /// than `max_samples` samples.
+    /// Resampled as [`Audio::resampled`] does, and clamped to what 16 bits hold. Returns the
+    /// samples and how many channels they have. `None` if `rate` is zero or the result would
+    /// have more than `max_samples` samples.
     pub fn to_pcm16(&self, rate: u32, max_samples: usize) -> Option<(Vec<i16>, u16)> {
-        if rate == 0 {
-            return None;
-        }
         let channels = usize::from(self.channels.min(2));
-        let frames = self.frames();
-        let out_frames = (frames as u128 * u128::from(rate)).div_ceil(u128::from(self.sample_rate));
-        let out_frames = usize::try_from(out_frames).ok()?;
-        if out_frames.checked_mul(channels)? > max_samples {
+        let out_frames =
+            (self.frames() as u128 * u128::from(rate)).div_ceil(u128::from(self.sample_rate));
+        if usize::try_from(out_frames).ok()?.checked_mul(channels)? > max_samples {
             return None;
         }
-        let step = f64::from(self.sample_rate) / f64::from(rate);
-        let mut out = Vec::with_capacity(out_frames * channels);
-        for n in 0..out_frames {
-            let t = n as f64 * step;
-            let i = (t as usize).min(frames - 1);
-            let j = (i + 1).min(frames - 1);
-            let fraction = (t - i as f64) as f32;
-            for channel in 0..channels {
-                let (a, b) = (self.at(i, channel), self.at(j, channel));
-                let sample = a + (b - a) * fraction;
-                out.push((sample * 32767.0).round().clamp(-32768.0, 32767.0) as i16);
-            }
-        }
-        Some((out, channels as u16))
+        let sound = self.resampled(rate)?;
+        let out = sound
+            .samples
+            .iter()
+            .map(|s| (s * 32767.0).round().clamp(-32768.0, 32767.0) as i16)
+            .collect();
+        Some((out, sound.channels))
     }
 
     pub(crate) fn at(&self, frame: usize, channel: usize) -> f32 {
