@@ -342,7 +342,16 @@ impl Workspace {
     /// The folders the active layer could go into: those above it, other than the one it is in.
     pub(crate) fn folders_for_active_layer(&self) -> Vec<(LayerId, String)> {
         match (self.scene_id(), self.active_layer_id()) {
-            (Some(scene), Some(layer)) => layers::folders_for(self.document(), scene, layer),
+            (Some(scene), Some(layer)) => self
+                .document()
+                .scenes()
+                .iter()
+                .find(|s| s.id() == scene)
+                .map(|s| s.timeline().folders_for(layer))
+                .unwrap_or_default()
+                .into_iter()
+                .map(|l| (l.id(), l.name().to_owned()))
+                .collect(),
             _ => Vec::new(),
         }
     }

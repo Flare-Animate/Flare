@@ -2,9 +2,7 @@
 //! putting them in folders. Each builder looks at the document and returns the commands that do
 //! it, or says why not, so a window and a script ask the same thing and get the same answer.
 
-use std::collections::HashSet;
-
-use flare_core::{LayerId, SceneId, SoundId};
+use flare_core::{LayerId, SceneId};
 use flare_document::{Document, Layer};
 use thiserror::Error;
 
@@ -111,29 +109,6 @@ pub fn rename(scene: SceneId, layer: LayerId, name: &str) -> Result<Vec<Command>
     Ok(update(scene, layer, LayerChange::Name(name.to_owned())))
 }
 
-/// The sounds that only the cues of `layer` play: what deleting the layer would leave unused.
-pub fn orphaned_sounds(document: &Document, layer: LayerId) -> Vec<SoundId> {
-    let timelines = document
-        .scenes()
-        .iter()
-        .map(|s| s.timeline())
-        .chain(document.symbols().iter().map(|s| s.timeline()));
-    let (mut own, mut elsewhere) = (Vec::new(), HashSet::new());
-    for timeline in timelines {
-        for l in timeline.layers() {
-            if l.id() == layer {
-                own.extend(l.cues().iter().map(|c| c.sound));
-            } else {
-                elsewhere.extend(l.cues().iter().map(|c| c.sound));
-            }
-        }
-    }
-    own.sort_by_key(|id| *id.as_uuid());
-    own.dedup();
-    own.retain(|id| !elsewhere.contains(id));
-    own
-}
-
 /// Deletes the layer. What a folder held is let out of it into the folder's own parent first, and
 /// sounds only this layer played go with it, so nothing is left behind. A scene keeps at least
 /// one layer.
@@ -158,7 +133,8 @@ pub fn delete(
         .collect();
     commands.push(Command::RemoveLayer { scene, layer });
     commands.extend(
-        orphaned_sounds(document, layer)
+        document
+            .sounds_only_played_by(layer)
             .into_iter()
             .map(Command::RemoveSound),
     );
@@ -233,20 +209,6 @@ pub fn add_folder(
 /// Puts the layer in `folder` (a folder above it), or takes it out of its folder with `None`.
 pub fn set_folder(scene: SceneId, layer: LayerId, folder: Option<LayerId>) -> Vec<Command> {
     update(scene, layer, LayerChange::Parent(folder))
-}
-
-/// The folders `layer` could go into: those above it, other than the one it is in.
-pub fn folders_for(document: &Document, scene: SceneId, layer: LayerId) -> Vec<(LayerId, String)> {
-    let layers = layers_of(document, scene);
-    let Some(position) = layers.iter().position(|l| l.id() == layer) else {
-        return Vec::new();
-    };
-    let current = layers[position].parent();
-    layers[..position]
-        .iter()
-        .filter(|l| l.is_folder() && Some(l.id()) != current)
-        .map(|l| (l.id(), l.name().to_owned()))
-        .collect()
 }
 
 #[cfg(test)]

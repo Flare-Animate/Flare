@@ -139,7 +139,6 @@ fn deleting_takes_the_sounds_only_that_layer_played_and_leaves_shared_ones() {
             Command::AddSound(shared.clone()),
         ],
     );
-    assert_eq!(orphaned_sounds(&with_sounds, a_id), vec![own.id()]);
     let after = applied(
         &with_sounds,
         delete(&with_sounds, scene, a_id).expect("commands"),
@@ -188,22 +187,15 @@ fn a_folder_goes_above_the_layer_it_holds_and_in_the_folder_that_layer_was_in() 
 }
 
 #[test]
-fn only_folders_above_a_layer_and_not_its_own_are_offered() {
-    let top = Layer::new(LayerId::new(), "Top", vec![])
+fn a_layer_is_put_in_a_folder_and_taken_out_again() {
+    let folder = Layer::new(LayerId::new(), "F", vec![])
         .expect("layer")
         .with_folder(true);
-    let own = Layer::new(LayerId::new(), "Own", vec![])
-        .expect("layer")
-        .with_folder(true);
-    let layer = named("L").with_parent(Some(own.id()));
-    let below = Layer::new(LayerId::new(), "Below", vec![])
-        .expect("layer")
-        .with_folder(true);
-    let (top_id, layer_id) = (top.id(), layer.id());
-    let (document, scene) = build(vec![top, own, layer, below]);
-    let offered = folders_for(&document, scene, layer_id);
-    assert_eq!(offered, vec![(top_id, "Top".to_owned())]);
-    assert!(folders_for(&document, scene, LayerId::new()).is_empty());
-    let moved = applied(&document, set_folder(scene, layer_id, None));
-    assert_eq!(layers(&moved)[2].parent(), None);
+    let layer = named("L");
+    let (folder_id, layer_id) = (folder.id(), layer.id());
+    let (document, scene) = build(vec![folder, layer]);
+    let inside = applied(&document, set_folder(scene, layer_id, Some(folder_id)));
+    assert_eq!(layers(&inside)[1].parent(), Some(folder_id));
+    let outside = applied(&inside, set_folder(scene, layer_id, None));
+    assert_eq!(layers(&outside)[1].parent(), None);
 }

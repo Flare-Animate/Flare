@@ -7,6 +7,7 @@
 
 mod attachment;
 mod camera;
+mod layer_queries;
 mod shape;
 mod sound;
 mod stage;
