@@ -51,6 +51,28 @@ class Flatpak(unittest.TestCase):
         self.assertIn("--arch=aarch64", command)
         self.assertEqual(command[-2:], ["/b", "/m.json"])
 
+    def test_the_build_happens_inside_the_output_folder_where_the_builders_sandbox_can_see_it(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        output = Path(directory.name) / "dist"
+        binary = Path(directory.name) / "flare-desktop"
+        binary.write_bytes(b"program")
+        seen = []
+
+        def record(command, **_):
+            seen.append(command)
+            return mock.Mock(returncode=0)
+
+        with mock.patch.object(flatpak.release, "validate_package_input"), \
+                mock.patch.object(flatpak.release, "write_checksum"), \
+                mock.patch.object(flatpak, "require_tools"), \
+                mock.patch.object(flatpak.subprocess, "run", side_effect=record):
+            flatpak.package("0.1.0", "x86_64-unknown-linux-gnu", binary, output)
+        builder = next(command for command in seen if "org.flatpak.Builder" in command)
+        self.assertTrue(Path(builder[-1]).resolve().is_relative_to(output.resolve()), builder[-1])
+        self.assertFalse(any(path.name.startswith(".flare-flatpak-") for path in output.iterdir()),
+                         "the work folder is removed afterwards")
+
     def test_exported_files_are_named_by_the_app_id(self):
         stage = self.staged()
         for name in (f"{flatpak.APP_ID}.desktop", f"{flatpak.APP_ID}.metainfo.xml",

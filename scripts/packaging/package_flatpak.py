@@ -113,7 +113,9 @@ def package(version, target, binary, output):
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     archive = output / f"flare-{version}-{release.TARGETS[target]}.flatpak"
-    with tempfile.TemporaryDirectory(prefix="flare-flatpak-") as directory:
+    # Not the system temporary folder: the builder is a Flatpak, and its sandbox has a /tmp of its
+    # own, so it cannot see the host's. The output folder is in the workspace, which it can.
+    with tempfile.TemporaryDirectory(prefix=".flare-flatpak-", dir=output) as directory:
         work = Path(directory)
         stage = work / "stage"
         write_stage(stage, binary.resolve())
