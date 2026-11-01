@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use flare_core::{LayerId, SoundId};
 
-use crate::{Document, Layer, Timeline};
+use crate::{Document, Layer, SoundCue, Timeline};
 
 impl Document {
     /// The sounds that only the cues of `layer` play, in any scene or symbol: what removing the
@@ -33,6 +33,13 @@ impl Document {
 }
 
 impl Timeline {
+    /// Every sound cue of every layer, top layer first, each with the layer it is on.
+    pub fn cues(&self) -> impl Iterator<Item = (&Layer, &SoundCue)> {
+        self.layers()
+            .iter()
+            .flat_map(|layer| layer.cues().iter().map(move |cue| (layer, cue)))
+    }
+
     /// The folders `layer` could go into: those above it, other than the one it is in.
     pub fn folders_for(&self, layer: LayerId) -> Vec<&Layer> {
         let layers = self.layers();

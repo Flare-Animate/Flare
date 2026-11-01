@@ -78,10 +78,12 @@ pub(crate) fn define(document: &Document, first: CharacterId, limit: usize) -> S
     let mut offset = 0_u32;
     for scene in document.scenes() {
         let length = u32::try_from(scene.timeline().frame_count().max(1)).unwrap_or(u32::MAX);
-        for layer in scene.timeline().layers() {
-            for cue in layer.cues().iter().filter(|cue| cue.start < length) {
-                cues.push((offset.saturating_add(cue.start), cue.sound));
-            }
+        for (_, cue) in scene
+            .timeline()
+            .cues()
+            .filter(|(_, cue)| cue.start < length)
+        {
+            cues.push((offset.saturating_add(cue.start), cue.sound));
         }
         offset = offset.saturating_add(length);
     }

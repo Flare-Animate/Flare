@@ -251,9 +251,8 @@ pub fn publish_html5(
     for scene in document.scenes() {
         // Cues are in the scene's own frames; the page counts from the first scene's first frame.
         let offset = seq.len() as u64;
-        for layer in scene.timeline().layers() {
-            for cue in layer.cues() {
-                let known = sound_index.entry(cue.sound).or_insert_with(|| {
+        for (_, cue) in scene.timeline().cues() {
+            let known = sound_index.entry(cue.sound).or_insert_with(|| {
                     let sound = document.sound(cue.sound)?;
                     let Some(mime) = audio_mime(sound.data()) else {
                         diagnostics.push(Diagnostic {
@@ -272,9 +271,8 @@ pub fn publish_html5(
                     }));
                     Some(sounds.len() - 1)
                 });
-                if let Some(index) = *known {
-                    cues.push((offset + u64::from(cue.start), index));
-                }
+            if let Some(index) = *known {
+                cues.push((offset + u64::from(cue.start), index));
             }
         }
         let length = u32::try_from(scene.timeline().frame_count().max(1)).unwrap_or(u32::MAX);

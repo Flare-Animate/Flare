@@ -57,3 +57,27 @@ fn only_folders_above_a_layer_and_not_its_own_are_offered() {
     // A layer with no folder above it is offered none.
     assert!(timeline.folders_for(top_id).is_empty());
 }
+
+#[test]
+fn every_cue_of_the_timeline_comes_with_its_layer_top_layer_first() {
+    let (one, two) = (sound(1), sound(2));
+    let cue = |start, sound: &Sound| SoundCue {
+        start,
+        sound: sound.id(),
+    };
+    let top = named("Top")
+        .with_cues(vec![cue(0, &one), cue(8, &two)])
+        .expect("cues");
+    let silent = named("Silent");
+    let bottom = named("Bottom").with_cues(vec![cue(3, &two)]).expect("cues");
+    let timeline = Timeline::new(vec![top, silent, bottom]);
+    let seen: Vec<(String, u32)> = timeline
+        .cues()
+        .map(|(layer, cue)| (layer.name().to_owned(), cue.start))
+        .collect();
+    assert_eq!(
+        seen,
+        vec![("Top".into(), 0), ("Top".into(), 8), ("Bottom".into(), 3)]
+    );
+    assert_eq!(Timeline::default().cues().count(), 0);
+}

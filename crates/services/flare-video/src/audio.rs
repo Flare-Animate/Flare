@@ -48,26 +48,23 @@ impl Track {
         let mut decoded: HashMap<SoundId, Arc<flare_audio::Audio>> = HashMap::new();
         let seconds_per_frame = f64::from(rate.1) / f64::from(rate.0);
         let mut any = false;
-        for layer in scene.timeline().layers() {
-            for cue in layer.cues() {
-                let Some(sound) = document.sound(cue.sound) else {
-                    continue;
-                };
-                let audio = match decoded.get(&cue.sound) {
-                    Some(audio) => audio.clone(),
-                    None => {
-                        let audio = flare_audio::decode(sound.data()).map_err(|e| {
-                            format!("Cannot read the sound \"{}\": {e}", sound.name())
-                        })?;
-                        let audio = Arc::new(audio);
-                        decoded.insert(cue.sound, audio.clone());
-                        audio
-                    }
-                };
-                let delay = (f64::from(cue.start) * seconds_per_frame * f64::from(RATE)) as u64;
-                mixer.play(audio, delay);
-                any = true;
-            }
+        for (_, cue) in scene.timeline().cues() {
+            let Some(sound) = document.sound(cue.sound) else {
+                continue;
+            };
+            let audio = match decoded.get(&cue.sound) {
+                Some(audio) => audio.clone(),
+                None => {
+                    let audio = flare_audio::decode(sound.data())
+                        .map_err(|e| format!("Cannot read the sound \"{}\": {e}", sound.name()))?;
+                    let audio = Arc::new(audio);
+                    decoded.insert(cue.sound, audio.clone());
+                    audio
+                }
+            };
+            let delay = (f64::from(cue.start) * seconds_per_frame * f64::from(RATE)) as u64;
+            mixer.play(audio, delay);
+            any = true;
         }
         if !any {
             return Ok(None);

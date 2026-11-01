@@ -134,18 +134,16 @@ impl Workspace {
         let Some(scene) = self.session.document().scenes().first() else {
             return;
         };
-        for layer in scene.timeline().layers().iter().filter(|l| l.is_visible()) {
-            for cue in layer
-                .cues()
-                .iter()
-                .filter(|c| c.start >= self.frame && !self.muted)
-            {
-                if let Some(audio) = self.audio.decoded.get(&cue.sound) {
-                    self.audio.events.push(AudioEvent::Play {
-                        audio: Arc::clone(audio),
-                        delay_seconds: f64::from(cue.start - self.frame) / fps,
-                    });
-                }
+        let cues = scene
+            .timeline()
+            .cues()
+            .filter(|(layer, cue)| layer.is_visible() && cue.start >= self.frame && !self.muted);
+        for (_, cue) in cues {
+            if let Some(audio) = self.audio.decoded.get(&cue.sound) {
+                self.audio.events.push(AudioEvent::Play {
+                    audio: Arc::clone(audio),
+                    delay_seconds: f64::from(cue.start - self.frame) / fps,
+                });
             }
         }
     }
