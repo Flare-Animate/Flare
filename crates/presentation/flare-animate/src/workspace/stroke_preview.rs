@@ -7,7 +7,7 @@
 //! worker; without that the stroke vanishes for a few frames and then reappears.
 
 use egui::epaint::{Mesh, Vertex, WHITE_UV};
-use egui::{Color32, Pos2, Vec2};
+use egui::{Color32, Pos2, Rect, Vec2};
 use flare_input::{InputSample, PressureCurve};
 
 use super::*;
@@ -30,9 +30,29 @@ pub(super) struct PreviewStroke {
     pub(super) color: Color32,
 }
 
+/// A filled shape the geometry tools just committed, in stage units, with its outline if it has
+/// one.
+#[derive(Clone, Debug, PartialEq)]
+pub(super) enum SettleShape {
+    Rect {
+        rect: Rect,
+        radius: f32,
+        fill: Color32,
+        outline: Option<(f32, Color32)>,
+    },
+    Ellipse {
+        center: Pos2,
+        radius: Vec2,
+        fill: Color32,
+        outline: Option<(f32, Color32)>,
+    },
+}
+
 /// A committed stroke that is shown until the stage picture of the document it is in is up.
 pub(super) struct Settling {
     pub(super) strokes: Vec<PreviewStroke>,
+    /// Shapes the geometry tools committed (the line is a stroke above).
+    pub(super) shapes: Vec<SettleShape>,
     pub(super) context: u64,
     pub(super) revision: u64,
     /// Passes left before it is dropped whatever happens, so a picture that never shows the
@@ -206,6 +226,23 @@ impl Workspace {
         }
         self.paint.settling = Some(Settling {
             strokes,
+            shapes: Vec::new(),
+            context: self.context_serial,
+            revision: self.active().revision(),
+            passes_left: SETTLE_PASSES,
+        });
+    }
+
+    /// Remembers a shape or line the geometry tools just committed, like [`Self::settle`], so
+    /// that it stays on screen from the release until the stage picture shows it.
+    pub(super) fn settle_geometry(
+        &mut self,
+        strokes: Vec<PreviewStroke>,
+        shapes: Vec<SettleShape>,
+    ) {
+        self.paint.settling = Some(Settling {
+            strokes,
+            shapes,
             context: self.context_serial,
             revision: self.active().revision(),
             passes_left: SETTLE_PASSES,

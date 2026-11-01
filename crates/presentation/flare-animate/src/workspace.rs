@@ -128,6 +128,9 @@ pub struct Workspace {
     frames_rendered: u64,
     drag: Option<Drag>,
     anchor_drag: Option<anchors::AnchorDrag>,
+    /// The point of a shape the Subselection tool has chosen, with the revision of the document it
+    /// was chosen in: Delete takes it out, unless the document has changed since.
+    selected_anchor: Option<(SpanRef, usize, u64)>,
     /// Set by Escape so the release that follows a cancelled drag commits nothing.
     drag_cancelled: bool,
     tool: Tool,
@@ -297,6 +300,7 @@ impl Workspace {
             frames_rendered: 0,
             drag: None,
             anchor_drag: None,
+            selected_anchor: None,
             drag_cancelled: false,
             tool: Tool::Rectangle,
             selected: None,

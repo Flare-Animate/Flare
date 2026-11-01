@@ -27,6 +27,48 @@ impl Workspace {
         }
     }
 
+    /// The point of the selected shape nearest `point`, if one is close enough to grab.
+    fn anchor_near(&self, point: Pos2) -> Option<(SpanRef, usize)> {
+        let at = self.selected?;
+        let grab = self.handle_radius.max(f32::EPSILON);
+        self.anchor_points()
+            .into_iter()
+            .map(|(segment, p)| (segment, (p - point).length()))
+            .filter(|(_, distance)| *distance <= grab)
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(segment, _)| (at, segment))
+    }
+
+    /// Chooses the point of the selected shape under `point`, for Delete. False when there is
+    /// none there.
+    pub(super) fn select_anchor_at(&mut self, point: Pos2) -> bool {
+        let found = self.anchor_near(point);
+        if let Some((at, segment)) = found {
+            self.selected_anchor = Some((at, segment, self.active().revision()));
+        }
+        found.is_some()
+    }
+
+    /// Delete with a point chosen: takes it out of the outline, as one undo step. False when
+    /// no point is chosen (the key then does what it always does).
+    pub(super) fn delete_selected_anchor(&mut self) -> bool {
+        let Some((at, segment, revision)) = self.selected_anchor.take() else {
+            return false;
+        };
+        // A point chosen before some other edit may not be there any more.
+        if revision != self.active().revision() || self.selected != Some(at) {
+            return false;
+        }
+        let Some(scene) = self.scene_id() else {
+            return false;
+        };
+        match ops::delete_anchor(self.document(), scene, at, segment) {
+            Some(commands) => self.run_batch(commands, "delete the point"),
+            None => self.report("A shape keeps at least two points, three when it is closed"),
+        }
+        true
+    }
+
     /// Starts dragging the point nearest `point`, if one is close enough to grab.
     pub(super) fn begin_anchor_drag(&mut self, point: Pos2) {
         let Some(at) = self.selected else { return };

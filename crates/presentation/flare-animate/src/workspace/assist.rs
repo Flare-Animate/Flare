@@ -95,6 +95,44 @@ impl Workspace {
         scale: f32,
     ) {
         if let Some(settling) = &self.paint.settling {
+            for shape in &settling.shapes {
+                match shape {
+                    stroke_preview::SettleShape::Rect {
+                        rect,
+                        radius,
+                        fill,
+                        outline,
+                    } => {
+                        let screen = Rect::from_two_pos(to_screen(rect.min), to_screen(rect.max));
+                        painter.rect_filled(screen, *radius * scale, *fill);
+                        if let Some((width, color)) = outline {
+                            painter.rect_stroke(
+                                screen,
+                                *radius * scale,
+                                Stroke::new(*width * scale, *color),
+                                egui::StrokeKind::Middle,
+                            );
+                        }
+                    }
+                    stroke_preview::SettleShape::Ellipse {
+                        center,
+                        radius,
+                        fill,
+                        outline,
+                    } => {
+                        let stroke = outline.map_or(Stroke::NONE, |(width, color)| {
+                            Stroke::new(width * scale, color)
+                        });
+                        painter.add(egui::epaint::EllipseShape {
+                            center: to_screen(*center),
+                            radius: *radius * scale,
+                            angle: 0.0,
+                            fill: *fill,
+                            stroke,
+                        });
+                    }
+                }
+            }
             painter.add(egui::Shape::mesh(stroke_preview::mesh(
                 &settling.strokes,
                 to_screen,
@@ -162,5 +200,41 @@ impl Workspace {
             Color32::from_black_alpha(190),
         );
         painter.galley(at, galley, Color32::WHITE);
+    }
+
+    /// The rubber band of a rectangle, oval or line being dragged out, until the pointer is let go
+    /// (what it becomes is held by [`Self::draw_settling`]).
+    pub(super) fn draw_drag_preview(
+        &self,
+        painter: &Painter,
+        to_screen: impl Fn(Pos2) -> Pos2,
+        scale: f32,
+    ) {
+        if let Some(drag) = self.drag.filter(|d| d.mode == DragMode::Draw) {
+            let (from, to) = (to_screen(drag.start), to_screen(drag.current));
+            let preview = Rect::from_two_pos(from, to);
+            let ink = Stroke::new(1.0, Color32::BLACK);
+            match self.tool {
+                Tool::Line => {
+                    painter.line_segment(
+                        [from, to],
+                        Stroke::new(self.paint.stroke_width * scale, self.paint.stroke_color),
+                    );
+                }
+                Tool::Ellipse => {
+                    let radius = preview.size() / 2.0;
+                    painter.add(egui::epaint::EllipseShape::filled(
+                        preview.center(),
+                        radius,
+                        self.paint.fill.gamma_multiply(0.5),
+                    ));
+                    painter.rect_stroke(preview, 0.0, ink, egui::StrokeKind::Outside);
+                }
+                _ => {
+                    painter.rect_filled(preview, 0.0, self.paint.fill.gamma_multiply(0.5));
+                    painter.rect_stroke(preview, 0.0, ink, egui::StrokeKind::Outside);
+                }
+            }
+        }
     }
 }

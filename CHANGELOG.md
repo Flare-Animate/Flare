@@ -7,6 +7,7 @@ All notable changes are listed here. The format follows
 ## [Unreleased]
 
 ### Fixed
+- Lines, rectangles and ovals no longer flash when they are let go: they stay on screen from the release until the picture with the new shape arrives, as brush strokes already did.
 - The controls of the Test Movie window could not be clicked: egui forgot the window's widgets each time the editor drew a frame. A second Test Movie now replaces the first instead of sharing its surface.
 - Debug builds panicked ("Dropped TexturesDelta with 8 unapplied deltas") when the Test Movie window covered the editor: a window with no surface texture skips its frame, leaving the textures it had to free, which egui treats as a fault. They are freed by the app now.
 - Test Movie plays in a window of its own, not inside the editor's: the picture fills it, and under it a bar has a clock and frame at the left, one centered box (Restart, Pause or Play, Step one frame, a playback speed drop-down of 0.25x to 2x, a loop switch that holds the last frame when off, a sound switch) and Close at the right.
@@ -17,6 +18,7 @@ All notable changes are listed here. The format follows
 - The zstd library is 0.14 (0.13 has advisories).
 
 ### Added
+- With the Subselection tool, a click on a point of the selected shape chooses it (it is drawn filled), and Delete or Backspace takes it out of the outline (one undo step) instead of deleting the shape.
 - Timeline: a right-click menu on frames (insert frame, keyframe or blank keyframe, clear keyframe, remove frames, create a motion or shape tween, cut, copy, paste, select all, reverse), Edit > Timeline > Cut Frames and Select All Frames (Ctrl+Alt+X, Ctrl+Alt+A), and Modify > Timeline > Reverse Frames: the keyframes of the selected frames in the opposite order, a tween going with the pair it joined and its easing reversed. `flare frame remove-frames` and `reverse-frames` (with `--to`) and the MCP operations `remove_frames` and `reverse_frames` do the same from scripts.
 - Right-clicking the Play button at the top offers Test Movie. The Test Movie window opens at the movie's own size when the screen has room.
 - The Add (`=`), Delete (`-`) and Convert (`C`) Anchor Point tools, in the Pen's cell: click an outline to put a point there (a curve keeps its shape), click a point to take it out (the outline joins across the gap), click a curve point to make it a corner, drag from a corner to pull out smooth handles. Each is one undo step.

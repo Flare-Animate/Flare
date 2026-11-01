@@ -189,6 +189,8 @@ impl Workspace {
         if delete && !ctx.text_edit_focused() {
             if self.pen.is_active() {
                 self.pen_remove_last();
+            } else if self.tool == Tool::Subselection && self.delete_selected_anchor() {
+                // The chosen point went; the shape stays.
             } else {
                 self.delete_selection();
             }

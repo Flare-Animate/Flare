@@ -269,6 +269,9 @@ impl Workspace {
         }
         if response.drag_stopped_by(primary) {
             self.end_drag();
+            // What a geometry tool just committed: this frame's overlay is already drawn, and
+            // the drag preview is gone, so it would be missing until the next one.
+            self.draw_settling(&painter, to_screen, scale);
         }
         // A plain click with the select tool also selects (or clears the selection).
         if response.clicked()
@@ -278,7 +281,12 @@ impl Workspace {
             )
             && let Some(p) = response.interact_pointer_pos()
         {
-            self.select_at(to_doc(p), additive);
+            // With the Subselection tool a click on a point of the selected shape chooses that
+            // point instead.
+            if !(self.tool == Tool::Subselection && self.select_anchor_at(to_doc(p))) {
+                self.selected_anchor = None;
+                self.select_at(to_doc(p), additive);
+            }
         }
 
         // Double-click an instance to edit its symbol; double-click empty stage to go back.
@@ -395,7 +403,19 @@ impl Workspace {
                     .map_or(point, |d| d.to);
                 let centre = to_screen(at);
                 let square = Rect::from_center_size(centre, Vec2::splat(8.0));
-                painter.rect_filled(square, 1.0, Color32::WHITE);
+                let chosen = self.tool == Tool::Subselection
+                    && self
+                        .selected_anchor
+                        .is_some_and(|(span, s, _)| s == segment && Some(span) == self.selected);
+                painter.rect_filled(
+                    square,
+                    1.0,
+                    if chosen {
+                        crate::workspace::ANCHOR_INK
+                    } else {
+                        Color32::WHITE
+                    },
+                );
                 painter.rect_stroke(square, 1.0, ink, StrokeKind::Outside);
             }
             // The handles being pulled out of a point: the one going on, and its mirror.
@@ -464,31 +484,6 @@ impl Workspace {
                 painter.rect_stroke(square, 0.0, outline, StrokeKind::Outside);
             }
         }
-        if let Some(drag) = self.drag.filter(|d| d.mode == DragMode::Draw) {
-            let (from, to) = (to_screen(drag.start), to_screen(drag.current));
-            let preview = Rect::from_two_pos(from, to);
-            let ink = Stroke::new(1.0, Color32::BLACK);
-            match self.tool {
-                Tool::Line => {
-                    painter.line_segment(
-                        [from, to],
-                        Stroke::new(self.paint.stroke_width * scale, self.paint.stroke_color),
-                    );
-                }
-                Tool::Ellipse => {
-                    let radius = preview.size() / 2.0;
-                    painter.add(egui::epaint::EllipseShape::filled(
-                        preview.center(),
-                        radius,
-                        self.paint.fill.gamma_multiply(0.5),
-                    ));
-                    painter.rect_stroke(preview, 0.0, ink, StrokeKind::Outside);
-                }
-                _ => {
-                    painter.rect_filled(preview, 0.0, self.paint.fill.gamma_multiply(0.5));
-                    painter.rect_stroke(preview, 0.0, ink, StrokeKind::Outside);
-                }
-            }
-        }
+        self.draw_drag_preview(&painter, to_screen, scale);
     }
 }

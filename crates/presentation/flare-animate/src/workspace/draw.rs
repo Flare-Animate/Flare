@@ -127,6 +127,51 @@ impl Workspace {
             }
         }
         self.insert_shape_layer(shape, name);
+        if self.status.is_none() {
+            self.settle_committed_shape(tool, a, b);
+        }
+    }
+
+    /// Keeps what a geometry tool just committed on screen from the release until the stage
+    /// picture shows it: the drag preview ends with the release, and the picture with the new
+    /// shape comes a frame or more later, which showed as a flash.
+    fn settle_committed_shape(&mut self, tool: Tool, a: Pos2, b: Pos2) {
+        use super::stroke_preview::{PreviewStroke, SettleShape};
+        let outline = (self.paint.stroke_enabled && self.paint.stroke_width > 0.0)
+            .then_some((self.paint.stroke_width, self.paint.stroke_color));
+        let rect = Rect::from_two_pos(a, b);
+        match tool {
+            Tool::Line if self.paint.stroke_color.a() == 255 => {
+                let half = self.paint.stroke_width / 2.0;
+                self.settle_geometry(
+                    vec![PreviewStroke {
+                        points: vec![a, b],
+                        halves: vec![half, half],
+                        color: self.paint.stroke_color,
+                    }],
+                    Vec::new(),
+                );
+            }
+            Tool::Rectangle => self.settle_geometry(
+                Vec::new(),
+                vec![SettleShape::Rect {
+                    rect,
+                    radius: self.rect_radius,
+                    fill: self.paint.fill,
+                    outline,
+                }],
+            ),
+            Tool::Ellipse => self.settle_geometry(
+                Vec::new(),
+                vec![SettleShape::Ellipse {
+                    center: rect.center(),
+                    radius: rect.size() / 2.0,
+                    fill: self.paint.fill,
+                    outline,
+                }],
+            ),
+            _ => {}
+        }
     }
 
     /// Adds `shape` on a new layer spanning the scene (at least 24 frames), as one undo step,

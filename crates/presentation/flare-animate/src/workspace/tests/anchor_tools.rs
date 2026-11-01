@@ -122,3 +122,65 @@ fn a_click_on_another_shape_selects_it_and_the_tools_are_in_the_strip_with_their
         assert!(!ws.tool_hint().is_empty());
     }
 }
+
+#[test]
+fn delete_with_a_point_chosen_by_subselection_takes_out_that_point_and_not_the_shape() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    rect(&mut ws); // 10..110 x 10..60
+    ws.handle_radius = 6.0;
+    ws.set_tool(Tool::Select);
+    ws.select_at(Pos2::new(50.0, 30.0), false);
+    ws.set_tool(Tool::Subselection);
+    assert_eq!(points(&ws), 4);
+    // Away from every point nothing is chosen.
+    assert!(!ws.select_anchor_at(Pos2::new(60.0, 30.0)));
+    assert!(
+        ws.select_anchor_at(Pos2::new(111.0, 61.0)),
+        "the bottom-right corner"
+    );
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.1, vec![key(Key::Delete, Modifiers::NONE)]),
+    );
+    assert_eq!(points(&ws), 3, "the point went");
+    assert!(ws.selected.is_some(), "the shape stayed");
+    ws.undo();
+    assert_eq!(points(&ws), 4, "one undo step");
+    // Backspace does the same.
+    assert!(ws.select_anchor_at(Pos2::new(110.0, 10.0)));
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.2, vec![key(Key::Backspace, Modifiers::NONE)]),
+    );
+    assert_eq!(points(&ws), 3);
+    // With no point chosen, Delete is what it was: the shape goes.
+    ws.undo();
+    ws.selected_anchor = None;
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.3, vec![key(Key::Delete, Modifiers::NONE)]),
+    );
+    assert!(ws.selected.is_none(), "the shape is deleted");
+}
+
+#[test]
+fn a_chosen_point_that_the_shape_no_longer_has_is_not_deleted_blindly() {
+    let mut ws = workspace();
+    rect(&mut ws);
+    ws.handle_radius = 6.0;
+    ws.set_tool(Tool::Select);
+    ws.select_at(Pos2::new(50.0, 30.0), false);
+    ws.set_tool(Tool::Subselection);
+    assert!(ws.select_anchor_at(Pos2::new(111.0, 61.0)));
+    // Another edit comes in between.
+    ws.set_tool(Tool::AddAnchor);
+    ws.anchor_click(Pos2::new(60.0, 11.0));
+    ws.set_tool(Tool::Subselection);
+    assert_eq!(points(&ws), 5);
+    // The point chosen before the edit is not used: nothing is taken out by its old index.
+    assert!(!ws.delete_selected_anchor());
+    assert_eq!(points(&ws), 5);
+}
