@@ -26,6 +26,8 @@ pub(crate) struct State {
     pub session: EditorSession,
     pub path: PathBuf,
     pub permissions: Permissions,
+    /// Fonts the operator gave, known by name to text next to the system's.
+    pub fonts: flare_runtime::ExtraFonts,
 }
 
 /// The open project behind a handle that rmcp can clone into each request.
@@ -47,9 +49,17 @@ impl FlareServer {
                 session: EditorSession::new(document),
                 path,
                 permissions,
+                fonts: flare_runtime::ExtraFonts::default(),
             })),
             tool_router: Self::router(),
         })
+    }
+
+    /// Makes the fonts in `fonts` (the bytes of font files) known to text by their family names.
+    #[must_use]
+    pub fn with_fonts(self, fonts: Vec<Vec<u8>>) -> Self {
+        self.lock().fonts = std::sync::Arc::new(fonts);
+        self
     }
 
     fn lock(&self) -> MutexGuard<'_, State> {

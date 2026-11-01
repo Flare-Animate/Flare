@@ -81,6 +81,7 @@ fn letter_keys_pick_tools_unless_a_modifier_is_held_or_text_is_being_typed() {
         at: Pos2::new(5.0, 5.0),
         buffer: String::new(),
         focused: false,
+        editing: None,
     });
     run(&mut ws, &ctx, 0.5); // the editor takes focus
     pass(

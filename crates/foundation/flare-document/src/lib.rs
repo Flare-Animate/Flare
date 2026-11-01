@@ -10,6 +10,7 @@ mod camera;
 mod shape;
 mod sound;
 mod stage;
+mod text;
 mod timeline;
 mod validate;
 
@@ -26,6 +27,9 @@ pub use sound::{
     SoundError,
 };
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
+pub use text::{
+    MAX_FAMILY_CHARS, MAX_TEXT_CHARS, MAX_TEXT_SIZE, MIN_TEXT_SIZE, TextSource, TextSourceError,
+};
 pub use timeline::{
     Content, FrameSpan, Instance, Layer, MAX_EASE, OUTLINE_PALETTE, PlayMode, Playback, Timeline,
     TimelineError, Tween,

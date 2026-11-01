@@ -83,14 +83,16 @@ impl Workspace {
                 }
             }
             Done::Text { id, result } => {
-                let Some((_, at)) = self.text.pending.take_if(|(pending, _)| *pending == id) else {
+                let Some((_, target)) = self.text.pending.take_if(|(pending, _)| *pending == id)
+                else {
                     return; // asked for again since
                 };
                 match result {
-                    Ok(outline) => self.place_outline(outline, at),
+                    Ok(shape) => self.text_ready(shape, target),
                     Err(message) => self.report(format!("Cannot place text: {message}")),
                 }
             }
+            Done::Families(families) => self.text.families = families,
             Done::Saved {
                 path,
                 document,

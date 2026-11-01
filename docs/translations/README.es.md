@@ -65,7 +65,6 @@ Lo siguiente, lo más importante primero. Casi todo se muestra atenuado en la in
 - Un Editor de movimiento: gráficos por propiedad y curvas de suavizado personalizadas para las interpolaciones
 - Importar ilustraciones desde archivos SVG y Photoshop
 - Huesos y cinemática inversa (las herramientas Hueso y Vincular)
-- Editar el texto una vez colocado
 - Atajos de teclado editables
 
 También planeado, con menor prioridad: ActionScript y un editor de scripts (el ActionScript de un archivo importado se conserva como datos y nunca se ejecuta), pistas de forma y más de una escena, el resto de las herramientas de Animate, temas personalizados, una barra de herramientas reorganizable por completo y una versión web publicada.

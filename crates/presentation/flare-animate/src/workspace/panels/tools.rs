@@ -108,25 +108,8 @@ impl Workspace {
         chrome::section(ui, icon, &format!("{title} tool"));
         match self.tool {
             Tool::Text => {
-                chrome::row(ui, "Family", |ui| {
-                    ui.add(
-                        egui::TextEdit::singleline(&mut self.text.family)
-                            .desired_width(150.0)
-                            .hint_text("Helvetica, sans-serif"),
-                    );
-                });
-                chrome::row(ui, "Size", |ui| {
-                    ui.add(
-                        egui::DragValue::new(&mut self.text.size)
-                            .range(flare_text::MIN_SIZE..=flare_text::MAX_SIZE)
-                            .suffix(" px"),
-                    );
-                });
-                chrome::row(ui, "Style", |ui| {
-                    ui.toggle_value(&mut self.text.bold, "Bold");
-                    ui.toggle_value(&mut self.text.italic, "Italic");
-                });
-                ui.weak("Click the stage, type, then Place (Ctrl+Enter).");
+                self.character_section(ui, None);
+                ui.weak("Click the stage and type. Click text to edit it; click away or press Escape to finish.");
             }
             Tool::Pen => {
                 ui.weak("Click for corners, drag for curves. Click the first point to close; Enter or double-click to finish.");

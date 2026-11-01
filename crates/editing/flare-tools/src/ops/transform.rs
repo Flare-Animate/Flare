@@ -36,6 +36,12 @@ pub(super) fn transform_shape_as(shape: &Shape, id: ShapeId, matrix: DAffine2) -
     // Rebuilding must not drop the stroke or the gradient, and the gradient moves with the
     // artwork.
     let moved = moved.painted_like(shape);
+    // Text stays text through a move and an even scale, where the source can follow; a turn, a
+    // shear or a stretch makes the letters something a font cannot set, so they become outlines.
+    let moved = match text_after(shape, matrix) {
+        Some(source) => moved.with_text(source),
+        None => moved,
+    };
     Some(match shape.gradient() {
         Some(g) => {
             let map = |p: DocumentPoint| {
@@ -47,6 +53,22 @@ pub(super) fn transform_shape_as(shape: &Shape, id: ShapeId, matrix: DAffine2) -
         }
         None => moved,
     })
+}
+
+/// The text source of `shape` after the shape is mapped through `matrix`, if it is still text.
+fn text_after(shape: &Shape, matrix: DAffine2) -> Option<flare_document::TextSource> {
+    let source = shape.text()?;
+    let (x, y) = (matrix.matrix2.x_axis, matrix.matrix2.y_axis);
+    let scale = x.x;
+    let even = x.y.abs() <= 1e-9
+        && y.x.abs() <= 1e-9
+        && scale > 0.0
+        && (scale - y.y).abs() <= 1e-9 * scale.max(1.0);
+    if !even {
+        return None;
+    }
+    let at = matrix.transform_point2(source.origin().as_vec());
+    source.moved_and_scaled(DocumentPoint::new(at.x, at.y).ok()?, scale)
 }
 
 /// Moves a span's content by `delta`, keeping identity, duration and tween.

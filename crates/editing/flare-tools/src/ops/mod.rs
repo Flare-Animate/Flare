@@ -18,6 +18,7 @@ mod grouping;
 mod paint;
 mod playback;
 mod select;
+mod text;
 mod transform;
 
 pub use anchor_edit::{add_anchor, convert_anchor, delete_anchor};
@@ -46,6 +47,9 @@ pub use playback::set_playback;
 #[allow(unused_imports)]
 use select::*;
 pub use select::{polygon_contains, spans_at_frame, spans_in_polygon};
+#[allow(unused_imports)]
+use text::*;
+pub use text::{break_text_apart, replace_shape};
 #[allow(unused_imports)]
 use transform::*;
 pub use transform::{transform, translate};

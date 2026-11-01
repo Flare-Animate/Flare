@@ -34,12 +34,18 @@ pub enum AudioJob {
     Decode { sound: SoundId, data: Arc<[u8]> },
 }
 
-/// Text to turn into outlines. Building the font database takes long enough that this has a
-/// worker of its own, so a first use never holds up a save or a redraw.
-pub struct TextJob {
-    pub id: u64,
-    pub text: String,
-    pub style: flare_text::TextStyle,
+/// Work on text. Building the font database takes long enough that this has a worker of its
+/// own, so a first use never holds up a save or a redraw.
+pub enum TextJob {
+    /// Set `source` as a shape with identity `shape`, filled with `fill`.
+    Set {
+        id: u64,
+        source: flare_document::TextSource,
+        shape: flare_core::ShapeId,
+        fill: flare_core::Rgba8,
+    },
+    /// List the font families there are to set text in.
+    Families,
 }
 
 pub enum IoJob {
@@ -99,8 +105,10 @@ pub enum Done {
     },
     Text {
         id: u64,
-        result: Result<flare_text::TextOutline, String>,
+        result: Result<flare_document::Shape, String>,
     },
+    /// The font families there are, sorted.
+    Families(Vec<String>),
     Rendered {
         id: u64,
         result: Result<Rendered, String>,

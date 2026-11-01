@@ -16,6 +16,11 @@ pub struct Fixture {
 }
 
 pub async fn fixture(write: bool, exports: bool) -> Fixture {
+    fixture_with_fonts(write, exports, vec![]).await
+}
+
+/// Like `fixture`, with fonts (the bytes of font files) the server knows by name.
+pub async fn fixture_with_fonts(write: bool, exports: bool, fonts: Vec<Vec<u8>>) -> Fixture {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("p.flare");
     let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
@@ -27,7 +32,9 @@ pub async fn fixture(write: bool, exports: bool) -> Fixture {
         .with_stage(stage);
     flare_storage::save(&document, &path).expect("save");
     let export_dir = exports.then(|| dir.path().join("exports"));
-    let server = FlareServer::open(path.clone(), Permissions { write, export_dir }).expect("open");
+    let server = FlareServer::open(path.clone(), Permissions { write, export_dir })
+        .expect("open")
+        .with_fonts(fonts);
     let (server_io, client_io) = tokio::io::duplex(64 * 1024);
     tokio::spawn(async move {
         if let Ok(running) = server.serve(server_io).await {

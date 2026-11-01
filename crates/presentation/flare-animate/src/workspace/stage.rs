@@ -117,11 +117,7 @@ impl Workspace {
             && response.clicked()
             && let Some(p) = response.interact_pointer_pos()
         {
-            self.text.edit = Some(PendingText {
-                at: to_doc(p),
-                buffer: String::new(),
-                focused: false,
-            });
+            self.text_click(to_doc(p));
         }
         if self.tool == Tool::Hand && response.dragged_by(egui::PointerButton::Primary) {
             self.stage_view.pan_by(response.drag_delta());
@@ -295,15 +291,14 @@ impl Workspace {
             && let Some(p) = response.interact_pointer_pos()
         {
             self.select_at(to_doc(p), false);
-            match self.selected {
-                Some(_) => {
-                    if let Some(symbol) = self.selected_instance_symbol() {
-                        self.enter_symbol(symbol);
-                    }
+            if self.edit_selected_text() {
+                // Text opens in its editor.
+            } else if self.selected.is_some() {
+                if let Some(symbol) = self.selected_instance_symbol() {
+                    self.enter_symbol(symbol);
                 }
-                None => {
-                    self.exit_symbol();
-                }
+            } else {
+                self.exit_symbol();
             }
         }
 

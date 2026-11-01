@@ -20,7 +20,7 @@ impl Workspace {
         if self.tool != tool {
             self.cancel_drag();
             self.pen.clear();
-            self.text.edit = None;
+            self.finish_text_for_tool_change();
             self.tool = tool;
             if tool == Tool::Camera {
                 self.ensure_camera();

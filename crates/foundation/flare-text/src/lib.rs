@@ -17,11 +17,13 @@ use skrifa::raw::types::F2Dot14;
 use skrifa::{FontRef, GlyphId, MetadataProvider};
 use thiserror::Error;
 
+mod source;
+
 /// Most characters one text object may hold.
-pub const MAX_CHARS: usize = 10_000;
+pub const MAX_CHARS: usize = flare_document::MAX_TEXT_CHARS;
 /// Smallest and largest font size, in stage units.
-pub const MIN_SIZE: f32 = 1.0;
-pub const MAX_SIZE: f32 = 2_048.0;
+pub const MIN_SIZE: f32 = flare_document::MIN_TEXT_SIZE;
+pub const MAX_SIZE: f32 = flare_document::MAX_TEXT_SIZE;
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum TextError {
@@ -35,6 +37,8 @@ pub enum TextError {
     TooComplex,
     #[error("the text has no glyphs in the chosen fonts")]
     NoGlyphs,
+    #[error("the text would leave the drawable range")]
+    OutOfRange,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -57,6 +61,16 @@ pub struct TextOutline {
     pub height: f32,
 }
 
+/// A font that is always there, so text can be set where no fonts are installed (a browser, a
+/// bare container). It is the interface font, under the SIL Open Font License.
+const BUNDLED_FONT: &[u8] = include_bytes!("../../../../assets/ui/fonts/SourceSans3-Regular.ttf");
+
+/// The family name of the bundled font.
+pub const BUNDLED_FAMILY: &str = "Source Sans 3";
+
+/// The font list new text starts with: the system's sans-serif, else the bundled font.
+pub const DEFAULT_FAMILY: &str = "sans-serif, Source Sans 3";
+
 pub struct TextEngine {
     fonts: FontContext,
     layouts: LayoutContext<()>,
@@ -71,10 +85,12 @@ impl Default for TextEngine {
 impl TextEngine {
     /// Builds the font database, discovering the system's fonts. This can take a while.
     pub fn new() -> Self {
-        Self {
+        let mut engine = Self {
             fonts: FontContext::new(),
             layouts: LayoutContext::new(),
-        }
+        };
+        engine.register_font(BUNDLED_FONT.to_vec());
+        engine
     }
 
     /// Makes the fonts in `data` available by their family names, in addition to the system's.

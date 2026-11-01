@@ -18,7 +18,6 @@ maintainer's to reorder.
 - A Motion Editor: per-property graphs and custom ease curves for tweens
 - Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
-- Editing text after it is placed
 - Editable keyboard shortcuts
 
 ### Lower priority
@@ -136,7 +135,7 @@ extras, and the remaining menu commands.
 
 Each of these can be its own branch and PR:
 
-1. Text: editable text objects (the tool converts text to shapes), rich text, text on a path.
+1. Text: rich text (mixed styles in one field), paragraph settings, text on a path, and the text menu's commands. Text objects that are edited again after they are placed are done.
 2. Fills and strokes: radial and multi-stop gradients, editing gradients, gradients and masks in XFL import and SWF, paint bucket and ink bottle behaviour.
 3. Timeline UX: drag-moving frame ranges; sound: start/stop/loop options per cue, volume, mid-sound start when scrubbing, waveform display, sounds in XFL and SWF.
 4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, and check what the importer keeps against files Animate wrote.

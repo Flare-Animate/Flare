@@ -254,3 +254,4 @@ fn hits_resolve_to_the_owning_scene_level_span() {
 mod anchor_edit;
 mod more;
 mod playback;
+mod text;

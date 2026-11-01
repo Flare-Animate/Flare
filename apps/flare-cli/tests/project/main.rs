@@ -10,6 +10,7 @@ mod formats;
 mod layers_and_stage;
 mod open;
 mod rendering;
+mod text;
 
 fn run(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_flare"))

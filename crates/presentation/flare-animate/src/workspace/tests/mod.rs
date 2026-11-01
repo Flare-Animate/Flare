@@ -47,6 +47,7 @@ mod rulers_and_mirror;
 mod scene_name;
 mod spans_and_handles;
 mod status_bar;
+mod text_objects;
 mod tool_pins;
 mod tool_slots;
 mod tool_strip;
@@ -327,6 +328,7 @@ fn type_text(ws: &mut Workspace, at: Pos2, text: &str) {
         at,
         buffer: text.into(),
         focused: true,
+        editing: None,
     });
     ws.place_text();
 }

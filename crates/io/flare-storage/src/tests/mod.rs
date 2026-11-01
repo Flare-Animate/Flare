@@ -24,6 +24,7 @@ mod failures;
 mod records;
 mod roundtrip;
 mod symbol_kinds;
+mod text;
 use records::{
     edit_sound, edit_text, edit_values, json, rows, set_json, set_key, set_raw, strip_key,
 };

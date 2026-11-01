@@ -3,6 +3,8 @@ use std::sync::Arc;
 use flare_core::{DocumentPoint, Rgba8, ShapeId};
 use thiserror::Error;
 
+use crate::text::TextSource;
+
 /// Upper bound on segments per shape; imports and edits cannot exceed it.
 pub const MAX_SEGMENTS: usize = 1_000_000;
 
@@ -171,6 +173,8 @@ pub struct Shape {
     /// When present it is painted instead of the solid `fill`.
     gradient: Option<Gradient>,
     stroke: Option<Stroke>,
+    /// For text: the words and font the path was made from. The path is a copy of them.
+    text: Option<Arc<TextSource>>,
 }
 
 impl Shape {
@@ -202,6 +206,7 @@ impl Shape {
             fill,
             gradient: None,
             stroke: None,
+            text: None,
         })
     }
 
@@ -234,6 +239,32 @@ impl Shape {
         self.stroke = other.stroke;
         self.gradient = other.gradient;
         self
+    }
+
+    /// Marks this shape as the outline of `text`, so it can be edited as text again. The caller
+    /// keeps the path and the source in step.
+    #[must_use]
+    pub fn with_text(mut self, text: TextSource) -> Self {
+        self.text = Some(Arc::new(text));
+        self
+    }
+
+    /// Carries `other`'s text source over to this shape (a copy with the same outline).
+    #[must_use]
+    pub fn text_like(mut self, other: &Shape) -> Self {
+        self.text = other.text.clone();
+        self
+    }
+
+    /// This shape as plain outlines: the letters stay, the words are forgotten.
+    #[must_use]
+    pub fn without_text(mut self) -> Self {
+        self.text = None;
+        self
+    }
+
+    pub fn text(&self) -> Option<&TextSource> {
+        self.text.as_deref()
     }
 
     /// Paints the fill with `gradient`; the solid fill color is kept as the fallback.

@@ -64,20 +64,10 @@ fn placed_text_becomes_a_filled_shape_at_the_clicked_point_in_one_undo_step() {
 }
 
 #[test]
-fn blank_text_and_changing_tools_place_nothing() {
+fn blank_text_places_nothing() {
     let mut ws = text_workspace();
     type_text(&mut ws, Pos2::new(10.0, 10.0), "   \n ");
     assert_eq!(layer_count(&ws), 1);
-    ws.text.edit = Some(PendingText {
-        at: Pos2::new(1.0, 1.0),
-        buffer: "abc".into(),
-        focused: true,
-    });
-    ws.set_tool(Tool::Select);
-    assert!(
-        ws.text.edit.is_none(),
-        "switching tools drops the unfinished text"
-    );
     assert!(!ws.is_dirty());
 }
 

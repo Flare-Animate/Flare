@@ -26,7 +26,7 @@ pub use export::{export_png, png_bytes};
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
 pub use movie::{MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, gif_bytes, gif_bytes_on};
-pub use run::{ExtraFonts, run_audio, run_io, run_render, run_text};
+pub use run::{ExtraFonts, font_families, run_audio, run_io, run_render, run_text, text_shape};
 pub use workers::Wake;
 
 use std::sync::Arc;

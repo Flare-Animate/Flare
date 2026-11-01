@@ -15,6 +15,7 @@ mod history;
 mod info;
 #[cfg(test)]
 pub(super) use info::color_at as info_color_at;
+mod character;
 pub(crate) mod library;
 mod properties;
 mod properties_object;

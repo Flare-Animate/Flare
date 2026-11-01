@@ -23,7 +23,7 @@ fn duplicate(content: &Content) -> Option<Content> {
         ),
         Content::Shape(s) => {
             let copy = Shape::new(ShapeId::new(), s.path().to_vec(), s.fill()).ok()?;
-            Content::Shape(copy.painted_like(s))
+            Content::Shape(copy.painted_like(s).text_like(s))
         }
     })
 }

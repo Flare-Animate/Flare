@@ -9,7 +9,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use super::{AudioEvent, PendingText, guides};
+use super::{AudioEvent, PendingText, TextTarget, guides};
 
 /// The Text tool: how new text is made, and the text being typed or turned into outlines.
 pub(super) struct TextTool {
@@ -20,20 +20,32 @@ pub(super) struct TextTool {
     /// Text being typed on the stage.
     pub(super) edit: Option<PendingText>,
     /// Text handed to the font worker: its job and where it goes.
-    pub(super) pending: Option<(u64, Pos2)>,
+    pub(super) pending: Option<(u64, TextTarget)>,
     pub(super) editor_id: egui::Id,
+    /// The font families there are, once the worker has listed them.
+    pub(super) families: Vec<String>,
+    /// The list was asked for, so it is not asked for again.
+    pub(super) families_asked: bool,
+    /// Typed in the family list's filter box.
+    pub(super) family_filter: String,
+    /// A size being dragged or typed for the selected text, applied when it is let go.
+    pub(super) size_edit: Option<f32>,
 }
 
 impl Default for TextTool {
     fn default() -> Self {
         Self {
-            family: "sans-serif".into(),
+            family: flare_text::DEFAULT_FAMILY.into(),
             size: 48.0,
             bold: false,
             italic: false,
             edit: None,
             pending: None,
             editor_id: egui::Id::unique("flare_text_editor"),
+            families: Vec::new(),
+            families_asked: false,
+            family_filter: String::new(),
+            size_edit: None,
         }
     }
 }

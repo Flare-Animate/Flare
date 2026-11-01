@@ -26,6 +26,8 @@ flare-runtime.workspace = true
 flare-video.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
+flare-text.workspace = true
+flare-tools.workspace = true
 glamx.workspace = true
 rmcp = { workspace = true, features = ["server", "macros", "schemars", "transport-io"] }
 schemars.workspace = true
@@ -36,6 +38,7 @@ tokio = { workspace = true, features = ["rt", "macros", "io-std"] }
 uuid.workspace = true
 
 [dev-dependencies]
+epaint_default_fonts.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
 png.workspace = true

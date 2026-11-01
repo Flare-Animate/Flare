@@ -65,7 +65,6 @@ Les prochaines étapes, les plus importantes d'abord. La plupart est affiché es
 - Un éditeur de mouvement : graphiques par propriété et courbes d'accélération personnalisées pour les interpolations
 - Importer des illustrations depuis des fichiers SVG et Photoshop
 - Armatures et cinématique inverse (les outils Os et Lier)
-- La modification du texte une fois placé
 - Raccourcis clavier modifiables
 
 Également prévu, à moindre priorité : ActionScript et un éditeur de scripts (l'ActionScript d'un fichier importé est conservé comme données et n'est jamais exécuté), les repères de forme et plus d'une scène, le reste des outils d'Animate, des thèmes personnalisés, une barre d'outils entièrement réorganisable et une version web publiée.

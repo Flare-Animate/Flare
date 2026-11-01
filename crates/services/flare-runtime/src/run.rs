@@ -43,20 +43,52 @@ pub fn run_audio(job: AudioJob) -> Done {
     }
 }
 
+/// Runs `work` with this thread's font database, built the first time it is needed.
+fn with_engine<T>(fonts: &ExtraFonts, work: impl FnOnce(&mut flare_text::TextEngine) -> T) -> T {
+    TEXT_ENGINE.with(|slot| {
+        let mut slot = slot.borrow_mut();
+        let engine = slot.get_or_insert_with(|| {
+            let mut engine = flare_text::TextEngine::new();
+            for font in fonts.iter() {
+                engine.register_font(font.clone());
+            }
+            engine
+        });
+        work(engine)
+    })
+}
+
 pub fn run_text(job: &TextJob, fonts: &ExtraFonts) -> Done {
-    let result = TEXT_ENGINE.with(|slot| {
-        slot.borrow_mut()
-            .get_or_insert_with(|| {
-                let mut engine = flare_text::TextEngine::new();
-                for font in fonts.iter() {
-                    engine.register_font(font.clone());
-                }
-                engine
-            })
-            .outline(&job.text, &job.style)
-            .map_err(|e| e.to_string())
-    });
-    Done::Text { id: job.id, result }
+    match job {
+        TextJob::Set {
+            id,
+            source,
+            shape,
+            fill,
+        } => Done::Text {
+            id: *id,
+            result: text_shape(source, *shape, *fill, fonts),
+        },
+        TextJob::Families => Done::Families(font_families(fonts)),
+    }
+}
+
+/// The shape `source` sets, with identity `shape` and `fill`. The first call on a thread builds
+/// the font database, which scans the system's fonts.
+pub fn text_shape(
+    source: &flare_document::TextSource,
+    shape: flare_core::ShapeId,
+    fill: flare_core::Rgba8,
+    fonts: &ExtraFonts,
+) -> Result<flare_document::Shape, String> {
+    with_engine(fonts, |engine| {
+        engine.shape(source, shape, fill).map_err(|e| e.to_string())
+    })
+}
+
+/// The font families there are to set text in, sorted.
+pub fn font_families(fonts: &ExtraFonts) -> Vec<String> {
+    with_engine(fonts, flare_text::TextEngine::families)
 }
 
 /// Draws the frame.

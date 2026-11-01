@@ -5,6 +5,7 @@ mod draw;
 mod export;
 mod history;
 mod read;
+mod text;
 mod timeline;
 
 use rmcp::handler::server::router::tool::ToolRouter;
@@ -17,6 +18,7 @@ impl FlareServer {
         Self::read_tools()
             + Self::export_tools()
             + Self::draw_tools()
+            + Self::text_tools()
             + Self::timeline_tools()
             + Self::history_tools()
     }

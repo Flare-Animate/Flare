@@ -215,3 +215,55 @@ pub struct ImportProject {
     /// File name for the new project; `.flare` is added when missing.
     pub name: String,
 }
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct AddText {
+    /// The words; a newline starts a new line.
+    pub text: String,
+    /// Where the top-left corner of the first line goes.
+    pub x: f64,
+    pub y: f64,
+    /// A font family, or a comma-separated list of them; list_fonts says which there are.
+    /// Defaults to the system's sans-serif, else the bundled Source Sans 3.
+    pub family: Option<String>,
+    /// Font size in stage units; defaults to 24.
+    pub size: Option<f32>,
+    pub bold: Option<bool>,
+    pub italic: Option<bool>,
+    /// RRGGBB or RRGGBBAA hex. Defaults to black.
+    pub color: Option<String>,
+    /// First frame; defaults to 0.
+    pub start: Option<u32>,
+    /// Frames the text lasts; defaults to 1.
+    pub duration: Option<u32>,
+    /// Layer id; defaults to the first layer.
+    pub layer: Option<String>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct SetText {
+    /// The shape id add_text reported.
+    pub shape: String,
+    /// What is not given stays as it was.
+    pub text: Option<String>,
+    pub x: Option<f64>,
+    pub y: Option<f64>,
+    pub family: Option<String>,
+    pub size: Option<f32>,
+    pub bold: Option<bool>,
+    pub italic: Option<bool>,
+    /// RRGGBB or RRGGBBAA hex.
+    pub color: Option<String>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct BreakText {
+    /// The shape id add_text reported.
+    pub shape: String,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}

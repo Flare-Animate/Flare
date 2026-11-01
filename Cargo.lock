@@ -1982,6 +1982,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "epaint_default_fonts",
  "flare-commands",
  "flare-core",
  "flare-document",
@@ -1996,6 +1997,7 @@ dependencies = [
  "flare-ruffle",
  "flare-runtime",
  "flare-storage",
+ "flare-text",
  "flare-tools",
  "flare-video",
  "glamx",
@@ -2155,6 +2157,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "epaint_default_fonts",
  "flare-commands",
  "flare-core",
  "flare-document",
@@ -2167,6 +2170,8 @@ dependencies = [
  "flare-render",
  "flare-runtime",
  "flare-storage",
+ "flare-text",
+ "flare-tools",
  "flare-video",
  "glamx",
  "png 0.18.1",

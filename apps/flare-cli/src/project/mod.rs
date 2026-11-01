@@ -12,6 +12,7 @@ mod camera;
 mod draw;
 mod interchange;
 mod render;
+mod text;
 mod timeline;
 
 #[allow(unused_imports)]
@@ -30,6 +31,9 @@ pub use interchange::{
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};
+#[allow(unused_imports)]
+use text::*;
+pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};
 #[allow(unused_imports)]
 use timeline::*;
 pub use timeline::{FrameOperation, LayerOperation, frame_op, layer_op};

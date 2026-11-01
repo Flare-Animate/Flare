@@ -247,6 +247,15 @@ pub(super) struct PendingText {
     pub(super) buffer: String,
     /// The editor has been shown at least once, so it has been given the keyboard.
     pub(super) focused: bool,
+    /// The text object being edited again, when this is not new text.
+    pub(super) editing: Option<flare_tools::ops::SpanRef>,
+}
+
+/// Where finished text goes: on a layer of its own, or in place of the text object it edits.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum TextTarget {
+    New,
+    Existing(flare_tools::ops::SpanRef),
 }
 
 /// Selection bounds with the (context, revision, selection hash) they were computed for.

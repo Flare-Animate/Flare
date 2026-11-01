@@ -65,7 +65,6 @@ O que vem a seguir, o mais importante primeiro. Quase tudo aparece esmaecido na 
 - Um Editor de movimento: gráficos por propriedade e curvas de suavização personalizadas para as interpolações
 - Importar arte de arquivos SVG e Photoshop
 - Ossos e cinemática inversa (as ferramentas Osso e Vincular)
-- Editar o texto depois de colocado
 - Atalhos de teclado editáveis
 
 Também planejado, com menor prioridade: ActionScript e um editor de scripts (o ActionScript de um arquivo importado é mantido como dados e nunca é executado), dicas de forma e mais de uma cena, o restante das ferramentas do Animate, temas personalizados, uma barra de ferramentas totalmente reorganizável e uma versão web publicada.

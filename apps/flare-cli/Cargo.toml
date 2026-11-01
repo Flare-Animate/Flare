@@ -26,6 +26,7 @@ flare-runtime.workspace = true
 flare-video.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
+flare-text.workspace = true
 flare-tools.workspace = true
 glamx.workspace = true
 uuid.workspace = true
@@ -35,6 +36,7 @@ tempfile.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
+epaint_default_fonts.workspace = true
 png.workspace = true
 swf.workspace = true
 

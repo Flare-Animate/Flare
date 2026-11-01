@@ -6,7 +6,7 @@ use flare_core::{
 };
 use flare_document::{
     Cap, Content, FrameSpan, Gradient, Instance, Join, Layer, PathSegment, Shape, SoundCue, Stroke,
-    Timeline, Tween,
+    TextSource, Timeline, Tween,
 };
 use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
@@ -80,6 +80,46 @@ pub(super) struct GradientWire {
     pub(super) end: [u8; 4],
 }
 
+/// The words of a text object and the font they are set in.
+#[derive(Serialize, Deserialize)]
+pub(super) struct TextWire {
+    text: String,
+    family: String,
+    size: f32,
+    #[serde(default)]
+    bold: bool,
+    #[serde(default)]
+    italic: bool,
+    origin: [f64; 2],
+}
+
+impl TextWire {
+    fn of(source: &TextSource) -> Self {
+        Self {
+            text: source.text().to_owned(),
+            family: source.family().to_owned(),
+            size: source.size(),
+            bold: source.bold(),
+            italic: source.italic(),
+            origin: source.origin().as_vec().to_array(),
+        }
+    }
+
+    fn build(self) -> Result<TextSource, StorageError> {
+        let origin = DocumentPoint::new(self.origin[0], self.origin[1])
+            .map_err(|_| StorageError::Corrupt("non-finite text position".into()))?;
+        TextSource::new(
+            self.text,
+            self.family,
+            self.size,
+            self.bold,
+            self.italic,
+            origin,
+        )
+        .map_err(|error| StorageError::Corrupt(error.to_string()))
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub(super) enum ContentWire {
     Empty,
@@ -93,6 +133,10 @@ pub(super) enum ContentWire {
         /// Absent in files written before gradients existed.
         #[serde(default)]
         gradient: Option<GradientWire>,
+        /// Absent in files written before text could be edited again, and on shapes that are not
+        /// text.
+        #[serde(default)]
+        text: Option<TextWire>,
     },
     Instance {
         id: String,
@@ -216,6 +260,7 @@ impl TimelineWire {
                                     join: (stroke.join() != Join::Round)
                                         .then(|| join_name(stroke.join()).to_owned()),
                                 }),
+                                text: shape.text().map(TextWire::of),
                                 gradient: shape.gradient().map(|g| GradientWire {
                                     from: [g.from().as_vec().x, g.from().as_vec().y],
                                     to: [g.to().as_vec().x, g.to().as_vec().y],
@@ -258,6 +303,7 @@ impl TimelineWire {
                         rgba,
                         stroke,
                         gradient,
+                        text,
                     } => {
                         let path = path
                             .iter()
@@ -294,6 +340,9 @@ impl TimelineWire {
                             )
                             .map_err(|error| StorageError::Corrupt(error.to_string()))?;
                             shape = shape.with_gradient(gradient);
+                        }
+                        if let Some(text) = text {
+                            shape = shape.with_text(text.build()?);
                         }
                         Content::Shape(shape)
                     }

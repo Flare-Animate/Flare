@@ -247,6 +247,15 @@ impl Workspace {
     }
 
     /// Whether any selected span is a symbol instance.
+    /// Whether anything selected can be broken apart: a symbol instance, or text.
+    pub(super) fn selection_can_break_apart(&self) -> bool {
+        self.selection_has_instance()
+            || self
+                .selection_all()
+                .into_iter()
+                .any(|at| self.text_at(at).is_some())
+    }
+
     pub(super) fn selection_has_instance(&self) -> bool {
         let Some(scene) = self.scene_id() else {
             return false;
@@ -285,10 +294,14 @@ impl Workspace {
             if let Some((batch, placed)) = ops::break_apart(self.document(), scene, at) {
                 commands.extend(batch);
                 parts.extend(placed);
+            } else if let Some(batch) = ops::break_text_apart(self.document(), scene, at) {
+                // Text becomes plain outlines in the same place, still selected.
+                commands.extend(batch);
+                parts.push(at);
             }
         }
         if commands.is_empty() {
-            self.report("Select a symbol instance to break apart");
+            self.report("Select a symbol instance or text to break apart");
             return;
         }
         self.run_batch(commands, "break apart");

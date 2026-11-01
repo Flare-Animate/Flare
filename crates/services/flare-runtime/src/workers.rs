@@ -39,12 +39,23 @@ pub(crate) fn text_loop(
     wake: &Wake,
     fonts: &ExtraFonts,
 ) {
-    while let Ok(mut job) = jobs.recv() {
+    while let Ok(first) = jobs.recv() {
+        // Only the newest text matters, but a list of families is a different question and is
+        // answered however many texts came after it.
+        let (mut set, mut families) = (None, false);
+        let mut take = |job: TextJob| match job {
+            TextJob::Families => families = true,
+            job @ TextJob::Set { .. } => set = Some(job),
+        };
+        take(first);
         while let Ok(newer) = jobs.try_recv() {
-            job = newer;
+            take(newer);
         }
-        if done.send(run_text(&job, fonts)).is_err() {
-            return;
+        let answers = families.then_some(TextJob::Families).into_iter().chain(set);
+        for job in answers {
+            if done.send(run_text(&job, fonts)).is_err() {
+                return;
+            }
         }
         wake();
     }

@@ -36,6 +36,7 @@ impl Workspace {
         let count = self.selection_all().len();
         let picked = self.picked_object(count);
         let title = match &picked {
+            Picked::Shape(_, shape) if shape.text().is_some() => "Text".to_owned(),
             Picked::Shape(..) => "Shape".to_owned(),
             Picked::Instance { .. } => "Symbol instance".to_owned(),
             Picked::Other if count == 1 => "Selection".to_owned(),
@@ -50,7 +51,12 @@ impl Workspace {
         }
         self.position_size_section(ui, bounds);
         match &picked {
-            Picked::Shape(at, shape) => self.shape_paint_section(ui, *at, shape),
+            Picked::Shape(at, shape) => {
+                if let Some(source) = shape.text() {
+                    self.character_section(ui, Some(source));
+                }
+                self.shape_paint_section(ui, *at, shape);
+            }
             Picked::Instance { .. } => {
                 self.looping_section(ui);
                 for (icon, title, label) in [

@@ -187,6 +187,19 @@ and fail on a mismatch, so an agent cannot overwrite changes it has not seen. To
 are results with `isError` set, so the agent can read and react; arguments of the wrong shape
 are protocol errors from `rmcp`.
 
+## Text
+
+Text is a shape that carries its source (`flare_document::TextSource`): see
+[decisions/TEXT.md](decisions/TEXT.md) for why and for the rules. `flare-text` sets a source
+into outlines with `parley` and `skrifa` (`TextEngine::shape`) and lists the font families
+(`TextEngine::families`); `flare-runtime` runs both on the text worker (`TextJob::Set` and
+`TextJob::Families`) and exposes them to the command line and the MCP server
+(`text_shape`, `font_families`). `flare-tools` has `replace_shape` and `break_text_apart`. The
+file keeps the source in an optional `text` record on the shape, so files from before text could
+be edited open as plain outlines. `flare add-text`, `set-text`, `break-text` and `fonts`, and the
+MCP tools `add_text`, `set_text`, `break_text` and `list_fonts`, are the same operations; both
+take font files the person brings (`--font-file`) next to the system's.
+
 ## Import (SWF)
 
 `flare import <movie.swf> <out.flare>` (and File > Import, the browser's picker, and the MCP tool `import_project`) reads a Flash movie, found by what the file starts with (`FWS`, `CWS` or `ZWS`) rather than its name, using Ruffle's `swf` crate. The size a movie claims for itself once decompressed is checked before anything is allocated for it, and the counts of symbols, frames and keyframes are capped. Every shape character becomes a Graphic symbol and every sprite a Movie Clip symbol with a timeline of its own; the main timeline becomes one scene with a layer for each depth, the highest on top, and names given by Export Assets name the symbols. A SWF holds the position of each object on each frame, not tweens, so each frame an object changes on is a keyframe. The edges of a shape are turned into shapes by the same code as XFL's (`shapes_from`), so a stroke along a fill's boundary is its outline in both. Imported: stage size, frame rate and background; solid fills and strokes with their caps and joins; placements with their matrices. Reported and left out: gradients (a gradient takes the color of its first stop), picture fills, text, buttons, pictures, video, sound, scripts, color effects, filters, blend modes, masks and frame labels. Verification is the movie `flare-publish` writes, imported back and drawn (`apps/flare-cli/tests/project/formats.rs`), and movies built tag by tag in `crates/io/flare-import/tests/swf.rs`, including every truncation and random damage.
