@@ -76,8 +76,12 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                 "Timeline",
                 &[
                     Action(A::RemoveFrame),
+                    Separator,
+                    Action(A::CutFrames),
                     Action(A::CopyFrames),
                     Action(A::PasteFrames),
+                    Separator,
+                    Action(A::SelectAllFrames),
                 ],
             ),
             Separator,
@@ -152,6 +156,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Separator,
                     Action(A::ClearKeyframe),
                     Action(A::ConvertToKeyframes),
+                    Action(A::ReverseFrames),
                 ],
             ),
             Submenu(

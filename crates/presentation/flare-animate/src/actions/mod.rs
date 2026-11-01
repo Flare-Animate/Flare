@@ -75,6 +75,9 @@ pub enum MenuAction {
     InsertFrame,
     CopyFrames,
     PasteFrames,
+    CutFrames,
+    SelectAllFrames,
+    ReverseFrames,
     RemoveFrame,
     InsertKeyframe,
     InsertBlankKeyframe,
@@ -133,7 +136,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 118] = [
+    pub const ALL: [MenuAction; 121] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -197,6 +200,9 @@ impl MenuAction {
         Self::InsertFrame,
         Self::CopyFrames,
         Self::PasteFrames,
+        Self::CutFrames,
+        Self::SelectAllFrames,
+        Self::ReverseFrames,
         Self::RemoveFrame,
         Self::InsertKeyframe,
         Self::InsertBlankKeyframe,

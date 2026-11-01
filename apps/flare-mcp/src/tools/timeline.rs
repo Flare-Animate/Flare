@@ -24,6 +24,17 @@ impl FlareServer {
                 .ok_or("layer disappeared")?;
             let at = args.at;
             let commands = match args.operation {
+                FrameOperation::RemoveFrames => {
+                    let to = args.to.ok_or("remove_frames needs `to`, the last frame")?;
+                    frames::remove_frames(scene, layer, at, to)
+                }
+                FrameOperation::ReverseFrames => {
+                    let to = args.to.ok_or("reverse_frames needs `to`, the last frame")?;
+                    Some(
+                        frames::reverse_frames(scene, layer, at, to)
+                            .map_err(|refusal| format!("cannot reverse those frames: {refusal}"))?,
+                    )
+                }
                 FrameOperation::InsertFrame => frames::insert_frame(scene, layer, at),
                 FrameOperation::RemoveFrame => frames::remove_frame(scene, layer, at),
                 FrameOperation::InsertKeyframe => frames::insert_keyframe(scene, layer, at),

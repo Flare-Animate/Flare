@@ -290,3 +290,59 @@ fn rename_scene_trims_saves_and_refuses_bad_names_without_writing() {
         "nothing was written"
     );
 }
+
+#[test]
+fn frame_ranges_are_taken_out_and_reversed_and_what_cannot_be_is_refused_without_writing() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let spans = |file: &str| json(&["info", file])["scenes"][0]["layers"][0]["spans"].as_u64();
+    json(&["new", &file, "--width", "20", "--height", "20"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "0",
+        "0",
+        "5",
+        "5",
+        "--duration",
+        "10",
+    ]);
+    json(&["frame", "insert-keyframe", &file, "--at", "4"]);
+    assert_eq!(spans(&file), Some(2));
+    // Frames 0..=3 are all of the first keyframe: it goes, and the second moves to the start.
+    json(&["frame", "remove-frames", &file, "--at", "0", "--to", "3"]);
+    assert_eq!(spans(&file), Some(1));
+    json(&["frame", "insert-keyframe", &file, "--at", "3"]);
+    assert_eq!(spans(&file), Some(2));
+
+    let before = std::fs::read(&file).expect("read");
+    // A range that cuts a keyframe is refused, with its reason, and nothing is written.
+    let cut = run(&["frame", "reverse-frames", &file, "--at", "1", "--to", "4"]);
+    assert!(!cut.status.success());
+    assert!(String::from_utf8_lossy(&cut.stderr).contains("whole keyframes"));
+    // A missing end is refused naming the option, a range with nothing in it is refused.
+    let open = run(&["frame", "reverse-frames", &file, "--at", "0"]);
+    assert!(!open.status.success());
+    assert!(String::from_utf8_lossy(&open.stderr).contains("--to"));
+    let empty = run(&[
+        "frame",
+        "remove-frames",
+        &file,
+        "--at",
+        "100",
+        "--to",
+        "120",
+    ]);
+    assert!(!empty.status.success());
+    assert_eq!(
+        std::fs::read(&file).expect("read"),
+        before,
+        "nothing was written"
+    );
+
+    // Whole keyframes (0..3 and 3..6) reverse, and the file changes.
+    json(&["frame", "reverse-frames", &file, "--at", "0", "--to", "5"]);
+    assert_ne!(std::fs::read(&file).expect("read"), before);
+    assert_eq!(spans(&file), Some(2));
+}

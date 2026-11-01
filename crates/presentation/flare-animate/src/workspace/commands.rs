@@ -69,6 +69,9 @@ impl Workspace {
             MenuAction::GoToEnd => self.frame + 1 < self.scene_frames(),
             MenuAction::StepForward | MenuAction::ActualSize => true,
             MenuAction::CopyFrames => editable_layer || self.frame_range.is_some(),
+            MenuAction::CutFrames => editable_layer,
+            MenuAction::SelectAllFrames => layer.is_some_and(|l| !l.spans().is_empty()),
+            MenuAction::ReverseFrames => editable_layer && self.frame_range.is_some(),
             MenuAction::PasteFrames => {
                 self.frame_clipboard.is_some() && layer.is_some_and(|l| !l.is_locked())
             }
@@ -200,6 +203,9 @@ impl Workspace {
             MenuAction::ActualSize => self.set_stage_percent(100.0),
             MenuAction::CopyFrames => self.copy_frames(),
             MenuAction::PasteFrames => self.paste_frames(),
+            MenuAction::CutFrames => self.cut_frames(),
+            MenuAction::SelectAllFrames => self.select_all_frames(),
+            MenuAction::ReverseFrames => self.reverse_frames(),
             MenuAction::Paste => self.paste(),
             MenuAction::PasteInPlace => self.paste_in_place(),
             MenuAction::FlipHorizontal => {

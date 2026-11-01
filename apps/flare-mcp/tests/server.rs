@@ -298,6 +298,32 @@ async fn frame_layer_and_stage_operations_edit_the_timeline() {
         1
     );
 
+    // Ranges: the first keyframe goes whole; one that cuts a keyframe is refused and says why.
+    f.ok(
+        "frame_operation",
+        json!({ "operation": "insert_keyframe", "at": 4 }),
+    )
+    .await;
+    f.ok(
+        "frame_operation",
+        json!({ "operation": "remove_frames", "at": 0, "to": 3 }),
+    )
+    .await;
+    assert_eq!(
+        f.ok("get_info", json!({})).await["scenes"][0]["layers"][0]["spans"],
+        1
+    );
+    let (is_error, message) = f
+        .tool(
+            "frame_operation",
+            json!({ "operation": "reverse_frames", "at": 0 }),
+        )
+        .await;
+    assert!(
+        is_error && message.as_str().expect("msg").contains("`to`"),
+        "{message}"
+    );
+
     let layer = f.ok("add_layer", json!({ "name": "Back" })).await["layer"]
         .as_str()
         .expect("id")

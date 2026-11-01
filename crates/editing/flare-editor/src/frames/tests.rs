@@ -408,3 +408,6 @@ fn a_tween_cut_off_from_its_target_is_not_copied() {
 
 #[path = "cue_tests.rs"]
 mod cues;
+
+#[path = "range_tests.rs"]
+mod ranges;

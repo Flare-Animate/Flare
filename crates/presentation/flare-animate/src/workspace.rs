@@ -29,6 +29,7 @@ mod core;
 mod dock;
 mod draw;
 mod files;
+mod frame_ranges;
 mod furniture;
 mod gestures;
 mod graphic_playback;
@@ -204,6 +205,8 @@ pub struct Workspace {
     scene_rename_serial: u32,
     /// The layer a right click in the timeline's layer column opened a menu for.
     layer_menu_for: Option<LayerId>,
+    /// Whether the menu a right click of a frame opens is the one for frames, not for a layer.
+    frame_menu_open: bool,
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
     quit_requested: bool,
@@ -339,6 +342,7 @@ impl Workspace {
             scene_renaming: None,
             scene_rename_serial: 0,
             layer_menu_for: None,
+            frame_menu_open: false,
             native_menu: false,
             quit_requested: false,
             layout: layout::default_tree(),

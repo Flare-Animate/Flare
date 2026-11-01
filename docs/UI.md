@@ -61,7 +61,7 @@ Language: the General category of Preferences has a Language list, "System local
 
 A selected Graphic instance has a Looping section in the Object tab, as Animate's Properties does: Options (Loop, Play Once or Single Frame) and the First frame it starts on, counted from 1. Each change is one undo step. A Movie Clip, a Button, artwork or several selected things show no such section, because only a Graphic follows the setting (a Movie Clip loops from where its instance starts; a Button shows its Up state).
 
-In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar.
+In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
 
 ## Documents and tabs
 
@@ -96,9 +96,9 @@ grid is on.
 The menus are Animate's, in its order: File, Edit, View, Insert, Modify, Text, Commands, Control,
 Window, Help (Debug is for ActionScript and is left out). A command sits where Animate keeps it, taken
 from Adobe's Help pages: File > Import and Export, Publish Settings and Publish; Edit > Timeline
-(Remove, Copy and Paste Frames); Insert > Timeline (Layer, Layer Folder, Frame, Keyframe, Blank
+(Remove, Cut, Copy and Paste Frames, Select All Frames); Insert > Timeline (Layer, Layer Folder, Frame, Keyframe, Blank
 Keyframe) with Create Motion Tween and Create Shape Tween beside it; Modify > Timeline (the layer
-commands, Clear Keyframe, Convert to Keyframes) and Modify > Transform (Flip, Rotate, Scale, and Flare's
+commands, Clear Keyframe, Convert to Keyframes, Reverse Frames) and Modify > Transform (Flip, Rotate, Scale, and Flare's
 Mirror Copy); Control > Test. There is no Tools, Layer or Timeline menu, because Animate has none: the
 tools are picked from the tool strip or by their keys (listed in Help > Keyboard Shortcuts), and
 Home is the house in the top bar. Planned commands stay in their Animate places, dimmed. New

@@ -22,6 +22,7 @@ mod basics;
 mod brush_nib;
 mod camera;
 mod color_section;
+mod frame_menu;
 mod frames_text_and_sound;
 mod graphic_playback;
 mod home;

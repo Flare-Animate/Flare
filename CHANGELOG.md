@@ -17,6 +17,7 @@ All notable changes are listed here. The format follows
 - The zstd library is 0.14 (0.13 has advisories).
 
 ### Added
+- Timeline: a right-click menu on frames (insert frame, keyframe or blank keyframe, clear keyframe, remove frames, create a motion or shape tween, cut, copy, paste, select all, reverse), Edit > Timeline > Cut Frames and Select All Frames (Ctrl+Alt+X, Ctrl+Alt+A), and Modify > Timeline > Reverse Frames: the keyframes of the selected frames in the opposite order, a tween going with the pair it joined and its easing reversed. `flare frame remove-frames` and `reverse-frames` (with `--to`) and the MCP operations `remove_frames` and `reverse_frames` do the same from scripts.
 - Right-clicking the Play button at the top offers Test Movie. The Test Movie window opens at the movie's own size when the screen has room.
 - The Add (`=`), Delete (`-`) and Convert (`C`) Anchor Point tools, in the Pen's cell: click an outline to put a point there (a curve keeps its shape), click a point to take it out (the outline joins across the gap), click a curve point to make it a corner, drag from a corner to pull out smooth handles. Each is one undo step.
 - The status bar shows the stage size and frame rate (a click opens the document settings) where the zoom percentage was, which the bar above the stage already has.

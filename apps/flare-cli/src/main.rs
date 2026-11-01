@@ -155,9 +155,12 @@ enum Command {
         #[arg(value_enum)]
         op: project::FrameOperation,
         path: PathBuf,
-        /// Zero-based frame the operation applies at.
+        /// Zero-based frame the operation applies at (the first, for a range).
         #[arg(long)]
         at: u32,
+        /// The last frame of the range, for `remove-frames` and `reverse-frames`.
+        #[arg(long)]
+        to: Option<u32>,
         #[arg(long)]
         layer: Option<uuid::Uuid>,
         /// Easing for `set-ease`, from -100 (starts slowly) to 100 (ends slowly).
@@ -334,9 +337,10 @@ fn main() -> Result<()> {
             op,
             path,
             at,
+            to,
             layer,
             ease,
-        } => project::frame_op(&path, op, at, layer, ease)?,
+        } => project::frame_op(&path, op, at, to, layer, ease)?,
         Command::ExportFrames {
             path,
             directory,

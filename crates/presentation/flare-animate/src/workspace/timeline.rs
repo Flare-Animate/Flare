@@ -138,15 +138,35 @@ impl Workspace {
                     }
                 }
             }
-            // A right click in the layer column opens that layer's menu.
+            // A right click in the layer column opens that layer's menu; one on the frames opens the
+            // menu for frames, after picking the frame it is on unless it is inside the frames
+            // already selected.
             if response.secondary_clicked() {
-                self.layer_menu_for = response
-                    .interact_pointer_pos()
+                let at = response.interact_pointer_pos();
+                self.layer_menu_for = at
                     .filter(|p| p.x < track.min.x)
                     .and_then(|p| self.layer_at(&rows, rect.min.y + row, row, p.y));
+                self.frame_menu_open = false;
+                if self.layer_menu_for.is_none()
+                    && let Some(p) = at.filter(|p| p.x >= track.min.x)
+                    && let Some(id) = self.layer_at(&rows, rect.min.y + row, row, p.y)
+                {
+                    let f = frame_at(p.x).floor().max(0.0) as u32;
+                    let inside = self
+                        .frame_range
+                        .is_some_and(|r| r.layer == id && r.from <= f && f <= r.to);
+                    self.select_layer(id);
+                    if !inside {
+                        self.frame_range = None;
+                        self.set_frame(f);
+                    }
+                    self.frame_menu_open = true;
+                }
             }
             if let Some(layer) = self.layer_menu_for {
                 response.context_menu(|ui| self.layer_menu(ui, layer));
+            } else if self.frame_menu_open {
+                response.context_menu(|ui| self.frame_menu(ui));
             }
             let active = self.active_layer_id();
 

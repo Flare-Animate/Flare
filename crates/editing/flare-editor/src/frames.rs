@@ -422,5 +422,8 @@ pub fn resize_span(
     ])
 }
 
+mod ranges;
+pub use ranges::{ReverseRefusal, remove_frames, reverse_frames};
+
 #[cfg(test)]
 mod tests;

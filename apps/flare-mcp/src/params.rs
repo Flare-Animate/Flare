@@ -93,6 +93,10 @@ pub struct PlaceInstance {
 pub enum FrameOperation {
     InsertFrame,
     RemoveFrame,
+    /// Takes the frames from `at` to `to` out; what follows moves left.
+    RemoveFrames,
+    /// Reverses the keyframes from `at` to `to`, which must lie wholly inside the range.
+    ReverseFrames,
     InsertKeyframe,
     InsertBlankKeyframe,
     ClearKeyframe,
@@ -101,8 +105,10 @@ pub enum FrameOperation {
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct FrameOp {
     pub operation: FrameOperation,
-    /// Frame number, counting from 0.
+    /// Frame number, counting from 0 (the first, for a range).
     pub at: u32,
+    /// The last frame of the range, for `remove_frames` and `reverse_frames`.
+    pub to: Option<u32>,
     /// Layer id; defaults to the first layer.
     pub layer: Option<String>,
     /// Fail unless the project is at this revision (from get_info).

@@ -13,6 +13,11 @@ use super::*;
 pub enum FrameOperation {
     InsertFrame,
     RemoveFrame,
+    /// Take the frames from `--at` to `--to` out, moving what follows left (Cut Frames, without
+    /// the clipboard).
+    RemoveFrames,
+    /// Reverse the keyframes from `--at` to `--to`; they must lie wholly inside it.
+    ReverseFrames,
     InsertKeyframe,
     InsertBlankKeyframe,
     ClearKeyframe,
@@ -30,6 +35,7 @@ pub fn frame_op(
     path: &Path,
     op: FrameOperation,
     at: u32,
+    to: Option<u32>,
     layer: Option<Uuid>,
     ease: Option<i8>,
 ) -> Result<Value> {
@@ -83,6 +89,17 @@ pub fn frame_op(
         .and_then(|s| s.timeline().layers().iter().find(|l| l.id() == layer_id))
         .context("layer disappeared")?;
     let commands = match op {
+        FrameOperation::RemoveFrames => {
+            let to = to.context("remove-frames needs --to, the last frame to take out")?;
+            frames::remove_frames(scene, layer, at, to)
+        }
+        FrameOperation::ReverseFrames => {
+            let to = to.context("reverse-frames needs --to, the last frame of the range")?;
+            Some(
+                frames::reverse_frames(scene, layer, at, to)
+                    .map_err(|refusal| anyhow::anyhow!("cannot reverse those frames: {refusal}"))?,
+            )
+        }
         FrameOperation::InsertFrame => frames::insert_frame(scene, layer, at),
         FrameOperation::RemoveFrame => frames::remove_frame(scene, layer, at),
         FrameOperation::InsertKeyframe => frames::insert_keyframe(scene, layer, at),
