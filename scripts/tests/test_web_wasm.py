@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "apps/flare-web"
-CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare-cli"))
+CLI = Path(os.environ.get("FLARE_CLI", ROOT / "target/debug/flare"))
 
 
 def have_wasm_target():
