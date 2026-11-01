@@ -1,6 +1,5 @@
 //! Rasterizing a frame, whole or in part, with onion-skin ghosts or without.
 
-
 use flare_core::Rgba8;
 use flare_eval::Frame;
 use vello_cpu::kurbo::{Affine, BezPath, Rect};

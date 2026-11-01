@@ -7,6 +7,7 @@ use flare_document::{FrameSpan, Layer, Scene, Symbol};
 use glamx::DVec2;
 
 use super::*;
+use flare_core::SymbolId;
 
 fn at(x: f64) -> Transform2D {
     Transform2D::new(DAffine2::from_translation(DVec2::new(x, 0.0))).expect("finite")
