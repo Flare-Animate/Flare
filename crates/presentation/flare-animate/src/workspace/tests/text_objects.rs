@@ -243,3 +243,37 @@ fn text_is_picked_anywhere_in_its_box_not_only_on_the_ink_of_its_letters() {
     ws.text_click(Pos2::new(bounds.max.x + 40.0, bounds.center().y));
     assert!(ws.text.edit.as_ref().is_some_and(|e| e.editing.is_none()));
 }
+
+#[test]
+fn a_double_click_on_text_with_the_selection_tool_opens_the_text_tool_on_it() {
+    let (ctx, mut ws) = (egui::Context::default(), text_workspace());
+    flare_ui::icons::install(&ctx);
+    // "I I" over the middle of the stage (1920 by 1080), with the Selection tool in hand.
+    type_text(&mut ws, Pos2::new(930.0, 520.0), "I I");
+    ws.set_tool(Tool::Select);
+    ws.selected = None;
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    let at = ws.stage_panel.center();
+    let button = |pressed: bool| Event::PointerButton {
+        pos: at,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    // Two clicks close together in time, as a double click is.
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.20, vec![Event::PointerMoved(at), button(true)]),
+    );
+    pass(&mut ws, &ctx, input(0.25, vec![button(false)]));
+    assert_eq!(ws.tool(), Tool::Select, "one click only selects");
+    assert!(ws.selected.is_some(), "and it picked the text");
+    pass(&mut ws, &ctx, input(0.30, vec![button(true)]));
+    pass(&mut ws, &ctx, input(0.35, vec![button(false)]));
+    assert_eq!(ws.tool(), Tool::Text, "the Text tool took over");
+    let edit = ws.text.edit.as_ref().expect("the text is open to edit");
+    assert_eq!(edit.buffer, "I I");
+    assert!(edit.editing.is_some());
+}

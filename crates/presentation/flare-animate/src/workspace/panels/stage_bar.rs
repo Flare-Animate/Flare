@@ -9,6 +9,9 @@ use flare_ui::theme;
 
 use super::*;
 
+/// Space between one document tab and the next, in points.
+const TAB_GAP: f32 = 2.0;
+
 impl Workspace {
     // ---- status bar --------------------------------------------------------------------
 
@@ -68,6 +71,8 @@ impl Workspace {
         let tabs = self.tabs();
         let (mut switch, mut close, mut add) = (None, None, false);
         ui.horizontal(|ui| {
+            // Tabs sit close together; what is inside each keeps the usual spacing.
+            let inner_gap = std::mem::replace(&mut ui.spacing_mut().item_spacing.x, TAB_GAP);
             for (index, tab) in tabs.iter().enumerate() {
                 let fill = if tab.current {
                     theme::panel()
@@ -85,6 +90,7 @@ impl Workspace {
                     })
                     .inner_margin(egui::Margin::symmetric(8, 3))
                     .show(ui, |ui| {
+                        ui.spacing_mut().item_spacing.x = inner_gap;
                         let color = if tab.current {
                             theme::text()
                         } else {
@@ -112,6 +118,7 @@ impl Workspace {
                         });
                     });
             }
+            ui.add_space(4.0);
             if chrome::icon_button(ui, "plus", 12.0, false, true, "New document").clicked() {
                 add = true;
             }
