@@ -10,6 +10,21 @@ use flare_animate::{WindowRequest, Workspace};
 use winit::event_loop::{ActiveEventLoop, ControlFlow};
 use winit::window::Window;
 
+/// Frees the textures a frame left to free.
+///
+/// Painting skips a frame it has no surface texture for (a window covered by another, minimized
+/// or being resized) and returns before it frees what the frame asked to free. Left there, the
+/// textures would never be freed and egui's debug check, which counts an unhandled delta as a
+/// fault, would panic when the frame's output is dropped.
+pub(super) fn free_left_over(
+    textures: &mut egui::TexturesDelta,
+    mut free: impl FnMut(egui::TextureId),
+) {
+    for id in textures.free.drain() {
+        free(id);
+    }
+}
+
 pub(super) struct Gpu {
     pub(super) window: Arc<Window>,
     pub(super) state: egui_winit::State,
@@ -100,6 +115,11 @@ impl Gpu {
             Vec::new(),
             &self.window,
         );
+        if let Some(state) = self.painter.render_state() {
+            free_left_over(&mut output.textures_delta, |id| {
+                state.renderer.write().free_texture(&id);
+            });
+        }
         let delay = output
             .viewport_output
             .get(&ViewportId::ROOT)
@@ -113,3 +133,7 @@ impl Gpu {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "window_tests.rs"]
+mod tests;

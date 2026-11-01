@@ -136,6 +136,11 @@ impl MovieViewport {
             Vec::new(),
             &self.window,
         );
+        if let Some(state) = painter.render_state() {
+            super::window::free_left_over(&mut output.textures_delta, |id| {
+                state.renderer.write().free_texture(&id);
+            });
+        }
         if self.player.is_closed() {
             return Wish::Close;
         }

@@ -18,10 +18,12 @@ pub(crate) enum Step {
     CloseMovie,
 }
 
-/// Opens a project and starts the timers: Test Movie, then its window closes, the editor is
+/// Opens a full-HD project and starts the timers: Test Movie, then its window closes, the editor is
 /// asked to draw twice more, and the app quits.
 pub(super) fn start(workspace: &mut Workspace, proxy: EventLoopProxy<UserEvent>) {
-    workspace.new_project(400, 300, 24);
+    // Full HD, so that the Test Movie window is big enough to cover the editor's own: a covered
+    // window gets no surface texture, and the editor must go on drawing when it is uncovered.
+    workspace.new_project(1920, 1080, 24);
     std::thread::spawn(move || {
         let script = [
             (2, Step::Menu(MenuAction::TestMovie)),
