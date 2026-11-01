@@ -58,6 +58,8 @@ impl App {
             }
         };
         self.gpu = Some(Gpu::open(event_loop, &self.ctx, &mut self.workspace)?);
+        #[cfg(feature = "autotest")]
+        super::autotest::start(&mut self.workspace, self.proxy.clone());
         Ok(())
     }
 
@@ -88,6 +90,26 @@ impl App {
             self.persist_layout();
             self.persist_preferences();
             event_loop.exit();
+        }
+    }
+
+    /// Does one step of the scripted run.
+    #[cfg(feature = "autotest")]
+    fn autotest_step(&mut self, event_loop: &ActiveEventLoop, step: super::autotest::Step) {
+        use super::autotest::Step;
+        match step {
+            Step::Menu(action) => {
+                self.workspace.perform(action);
+                if let Some(gpu) = &self.gpu {
+                    gpu.window.request_redraw();
+                }
+                self.after_actions(event_loop);
+            }
+            Step::CloseMovie => {
+                if let (Some(movie), Some(gpu)) = (self.movie.take(), &mut self.gpu) {
+                    movie.release(&mut gpu.painter);
+                }
+            }
         }
     }
 
@@ -155,6 +177,8 @@ impl ApplicationHandler<UserEvent> for App {
             UserEvent::MovieBytes(result) => self.open_movie(event_loop, result),
             #[cfg(not(feature = "ruffle"))]
             UserEvent::MovieStarted(Ok(movie)) => self.movies.push(movie),
+            #[cfg(feature = "autotest")]
+            UserEvent::Autotest(step) => self.autotest_step(event_loop, step),
             UserEvent::Exported(Ok(())) => {}
             UserEvent::Exported(Err(message)) => dialogs::message("Export failed", &message),
             #[cfg(not(feature = "ruffle"))]

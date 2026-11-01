@@ -63,7 +63,7 @@ cargo test --workspace --locked
 The tests that need a GPU adapter (Ruffle playing and drawing our movies) are `#[ignore]`d there,
 because a machine without a GPU would fail them, and CI does not run them. Run
 `scripts/gpu_tests.sh` on a machine with a GPU before changing the player, or what we publish
-for it, and report its result.
+for it, and report its result. `scripts/gui_tests.sh` runs the real desktop app on timers (an `autotest` build): Test Movie opens in a window of its own, that window closes, and the editor keeps drawing until it quits; it needs a display and a GPU and must pass before a change to the windows or the player.
 
 Add a regression test before or with a behaviour fix. Test malformed input, save failures,
 cancellation and resource limits. Do not update expected outputs to make a failure disappear.

@@ -25,6 +25,9 @@ winit = { workspace = true, features = ["default"] }
 # starts a Ruffle program found through FLARE_RUFFLE or PATH.
 default = ["ruffle"]
 ruffle = ["dep:flare-ruffle"]
+# A scripted run of the real window (scripts/gui_tests.sh): it opens a project, Test Movie, closes
+# Test Movie, and quits, on timers. Off in every build a person uses.
+autotest = ["ruffle"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
 muda.workspace = true

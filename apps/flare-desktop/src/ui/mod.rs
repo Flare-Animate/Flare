@@ -3,6 +3,8 @@
 //! system provides is `flare-platform`'s; this folder only puts the workspace in a window.
 
 mod app;
+#[cfg(feature = "autotest")]
+mod autotest;
 mod menu;
 #[cfg(feature = "ruffle")]
 mod movie;
@@ -33,6 +35,9 @@ pub(crate) enum UserEvent {
     /// The movie for the in-window player is published (or could not be).
     #[cfg(feature = "ruffle")]
     MovieBytes(Result<Vec<u8>, String>),
+    /// A step of the scripted run (`autotest` builds only).
+    #[cfg(feature = "autotest")]
+    Autotest(autotest::Step),
     /// An export or publish finished on its own thread; an error is worded for the person.
     Exported(Result<(), String>),
 }
