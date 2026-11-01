@@ -187,6 +187,11 @@ impl ApplicationHandler<UserEvent> for App {
             return;
         }
         let Some(gpu) = &mut self.gpu else { return };
+        // A window that is gone (the Test Movie's, closed a moment ago) is not the editor's: its
+        // last events must not close the editor.
+        if gpu.window.id() != id {
+            return;
+        }
         let response = gpu.state.on_window_event(&gpu.window, &event);
         if response.repaint {
             gpu.window.request_redraw();

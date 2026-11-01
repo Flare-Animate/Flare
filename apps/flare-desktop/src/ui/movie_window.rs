@@ -132,7 +132,13 @@ impl MovieViewport {
 
     /// Gives the window's surface back. The player's texture goes when `self` is dropped, which
     /// the caller does after this.
+    ///
+    /// Not `set_window(id, None)`: that clears every surface, the editor's own included, and the
+    /// editor's next frame would have nothing to draw on (and its texture updates would be
+    /// dropped, which egui treats as a fault). Only the editor's surface is kept instead.
     pub(crate) fn release(&self, painter: &mut Painter) {
-        let _ = pollster::block_on(painter.set_window(self.id, None));
+        let mut keep = egui::ViewportIdSet::default();
+        keep.insert(ViewportId::ROOT);
+        painter.gc_viewports(&keep);
     }
 }
