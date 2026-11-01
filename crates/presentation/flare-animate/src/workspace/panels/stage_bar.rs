@@ -10,7 +10,7 @@ use flare_ui::theme;
 use super::*;
 
 /// Space between one document tab and the next, in points.
-const TAB_GAP: f32 = 2.0;
+const TAB_GAP: f32 = 3.0;
 
 impl Workspace {
     // ---- status bar --------------------------------------------------------------------

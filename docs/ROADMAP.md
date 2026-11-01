@@ -22,22 +22,39 @@ maintainer's to reorder.
 
 ### Lower priority
 
+Where Animate already has a feature (mask layers, the Width tool, Asset Warp rigging, lip sync, a camera layer) its version comes first and the improvements below build on it.
+
 Drawing and tools
 - The rest of Animate's tools: 3D Rotation and Translation, Deco, Width, Asset Warp, Gradient Transform and Magic Wand
 - Art and pattern brushes for the Paint Brush, and tablet tilt
 - Layer depth (2.5D with the camera), and, for the camera, layers attached to it, following frames added to the movie and XFL import and export
 - Rich text (mixed styles in one field) and text menu commands
 - Bitmap compression settings; importing Illustrator (`.ai`) files
+- Editable vector brushes: a stroke that keeps its centerline, pressure samples and a width profile, so its taper and curve can be changed after it is drawn, with reusable brush presets and a better width-profile editor
+- Live symmetry: a mirror or radial modifier whose copies follow the source until they are expanded into ordinary shapes (drawing with symmetry already works)
+- Perspective guides: one-, two- and three-point sets with editable vanishing points and a horizon, snapping, and no part of the exported artwork
+- Toon shading and lighting brushes: paint a chosen shadow or highlight level that stays at that level however often it is painted over, kept apart from the artwork so a recolor keeps the shading, with editable tone ramps
+- A reference board dock (images, notes, color picking and pinned views) that is saved with the project and never exported
+- A poseable mannequin for reference (joints, pose presets, adjustable proportions, a captured pose as a picture), not a 3D editor
+- Selecting objects inside a bitmap, as Photoshop's Object Selection does
 
 Timeline, symbols and library
-- Shape hints and more than one scene
+- Shape hints and more than one scene; a scene manager that reorders scenes by dragging and shows thumbnails
+- Several named cameras and a shot track that picks the camera for each stretch of time, with hard cuts first, so a close-up can be framed without keyframes or a copy of the scene
+- Masking beyond mask layers: clipping groups, clip to base, and alpha and luminance masks, each with a defined order and no cycles
+- An ordered, non-destructive effect stack for post-processing objects, groups and the scene's output
 - Find and Replace across text, fonts, colors and symbols
 - Shared and external libraries, and an Assets panel
 - A visual Frame Picker for a Graphic's first frame
 - History panel extras: replaying steps and saving them as a command
 
+Rigging and character animation
+- Rigs of Flare's own, as Spine and DragonBones have them: bones, attachment slots with their own draw order, skins, weighted mesh binding with weight painting, forward kinematics and IK, transform, path and physics constraints that run in a stated order, and a way to see why a bone moves; rig animations can be mixed and sit inside symbols next to the timeline
+- Puppet deformation with pins or a cage that keeps the original artwork and derives the deformed picture from it, so quality is not lost with each pose
+- Lip sync: a manual mouth-shape workflow first (a frame picker, a waveform and named mouth poses), then automatic cues from an optional analysis tool such as Rhubarb Lip Sync, with mappings for any number of mouth drawings and results that stay editable
+
 Scripting
-- ActionScript and a script editor, Code Snippets, and scripting with the Commands menu (ActionScript in an imported file is kept as data and never run)
+- Full ActionScript 3 support: a script editor, authoring AS3 in a document and publishing it, running it in Test Movie and the published SWF, Code Snippets, and scripting with the Commands menu (ActionScript in an imported file is kept as data and never run today)
 
 Interface
 - A Flash 8 interface skin, and custom themes (a contrast check for them, as `original/` had, so a theme cannot make text unreadable)
@@ -47,6 +64,9 @@ Interface
 Formats
 - Reading the old binary `.fla` (CS4 and before), which is recognised and refused today
 - `.sol` shared objects, importing video, and Moho projects
+- Sprite export: sprite sheets and atlases of the stage or of one symbol or animation, with the pixels and the facts a game needs (frame durations, trim offsets, original sizes, pivots, animation names and loops), as PNG with JSON or a similar description
+- Layered PSD and PSB export with a Unity profile that keeps names, groups, bounds and order and bakes what Unity ignores (blend modes, opacity, effects) into the pixels
+- More video containers (MOV, MKV and AVI) where the encoder behind them supports the picture, sound and transparency asked for
 
 Sharing and releases
 - Sharing from the Share menu to YouTube and other services
@@ -60,6 +80,16 @@ Tooling for the project
   its docs in step with the code)
 - [codesight](https://www.npmjs.com/package/codesight) keeps `.codesight/`, an AI-readable map of
   the code that is not committed: `npx codesight --wiki --watch` (see [ENGINEERING.md](ENGINEERING.md))
+
+### References for the larger items
+
+Spine, DragonBones, OpenToonz's Plastic tool, Unity's 2D Animation package and `openrr/k` are for
+studying how a rig is authored and solved. Spine is proprietary and its runtimes are under a
+licence that does not allow copying: its documentation, tutorials and behaviour are reference
+only, and none of its source goes into Flare. Flare's rigging is its own, built on the same
+document model, commands and renderer as the rest. When any of it leaves Flare for another
+format it is preserved exactly, converted so it stays editable, baked with the person's approval,
+or refused with a reason.
 
 ### Not planned
 
