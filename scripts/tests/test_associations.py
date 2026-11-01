@@ -1,6 +1,6 @@
 """The file types Flare registers with each operating system are the ones the app opens.
 
-The list lives in `crates/presentation/flare-animate/src/workspace/open_any.rs`; the macOS
+The list lives in `crates/io/flare-import/src/file_kinds.rs`; the macOS
 bundle, the Linux desktop entry and MIME types and the Windows installer must name exactly
 those extensions, or a file would be offered to Flare that Flare then refuses.
 """
@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-OPEN_ANY = ROOT / "crates/presentation/flare-animate/src/workspace/open_any.rs"
+OPEN_ANY = ROOT / "crates/io/flare-import/src/file_kinds.rs"
 
 
 def rust_extensions(name: str) -> set[str]:

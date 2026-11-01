@@ -3,37 +3,9 @@
 
 use std::path::Path;
 
+use flare_import::{PathKind, classify};
+
 use super::*;
-
-/// The file extensions Flare opens itself, and the ones it imports as a new project.
-pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 3] = ["fla", "xfl", "swf"];
-
-/// What to do with a path.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PathKind {
-    /// A Flare project: open it.
-    Project,
-    /// An Animate project (`.fla`, `.xfl` or an XFL folder) or a Flash movie (`.swf`): import it as a new project.
-    Import,
-}
-
-/// What `path` is, going by its name, or `is_dir` for a folder. `None` for anything else.
-pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
-    let extension = path
-        .extension()
-        .and_then(|e| e.to_str())
-        .map(str::to_ascii_lowercase)
-        .unwrap_or_default();
-    if PROJECT_EXTENSIONS.contains(&extension.as_str()) {
-        Some(PathKind::Project)
-    } else if IMPORT_EXTENSIONS.contains(&extension.as_str()) {
-        Some(PathKind::Import)
-    } else {
-        // An XFL project is a folder, which can have any name.
-        is_dir.then_some(PathKind::Import)
-    }
-}
 
 impl Workspace {
     /// Opens `path` the way its kind says: a project is opened, an Animate project imported.

@@ -13,7 +13,6 @@ mod workspace;
 
 pub use layout::{LayoutError, MAX_LAYOUT_BYTES, Pane};
 pub use workspace::{
-    AudioEvent, DialogRequest, FrameOp, IMPORT_EXTENSIONS, MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES,
-    OnionSkin, PROJECT_EXTENSIONS, PathKind, Preferences, PublishSettings, ShareTarget, Tool,
-    WindowRequest, Workspace, classify, onion_ghosts,
+    AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES, OnionSkin,
+    Preferences, PublishSettings, ShareTarget, Tool, WindowRequest, Workspace, onion_ghosts,
 };

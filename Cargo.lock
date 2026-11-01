@@ -1953,6 +1953,7 @@ dependencies = [
  "flare-export",
  "flare-history",
  "flare-i18n",
+ "flare-import",
  "flare-input",
  "flare-menubar",
  "flare-recent",

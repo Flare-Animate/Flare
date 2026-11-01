@@ -1,5 +1,4 @@
 use super::*;
-use crate::workspace::open_any::{PathKind, classify};
 use std::path::Path;
 
 fn fixture(name: &str) -> PathBuf {
@@ -24,24 +23,6 @@ impl egui::DroppedFile for Dropped {
 
 fn dropped(path: &Path) -> egui::DroppedFileHandle {
     std::sync::Arc::new(Dropped(path.to_owned()))
-}
-
-#[test]
-fn paths_are_told_apart_by_extension_in_any_case_and_folders_are_xfl() {
-    let kind = |name: &str, dir: bool| classify(Path::new(name), dir);
-    assert_eq!(kind("a.flare", false), Some(PathKind::Project));
-    assert_eq!(kind("A.FLARE", false), Some(PathKind::Project));
-    assert_eq!(kind("a.fla", false), Some(PathKind::Import));
-    assert_eq!(kind("a.SWF", false), Some(PathKind::Import));
-    assert_eq!(kind("a.XFL", false), Some(PathKind::Import));
-    assert_eq!(
-        kind("MyProject", true),
-        Some(PathKind::Import),
-        "an XFL folder has any name"
-    );
-    assert_eq!(kind("a.png", false), None);
-    assert_eq!(kind("a", false), None);
-    assert_eq!(kind("a.flare.txt", false), None);
 }
 
 #[test]

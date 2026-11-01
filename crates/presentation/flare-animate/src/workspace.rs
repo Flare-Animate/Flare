@@ -71,7 +71,6 @@ use types::*;
 pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
 pub use flare_audio::AudioEvent;
 pub use flare_tools::brush::BrushPreset;
-pub use open_any::{IMPORT_EXTENSIONS, PROJECT_EXTENSIONS, PathKind, classify};
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use publish_settings::PublishSettings;
 pub use types::{
