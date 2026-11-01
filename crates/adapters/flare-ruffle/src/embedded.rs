@@ -212,6 +212,39 @@ impl EmbeddedMovie {
         .map_err(|_| EmbedError::Failed)?
     }
 
+    /// Runs the movie forward by exactly one frame and draws it, paused or not. This is how a
+    /// paused movie is stepped through.
+    pub fn step_frame(&mut self) -> Result<(), EmbedError> {
+        if self.failed {
+            return Err(EmbedError::Failed);
+        }
+        let ran = catch_unwind(AssertUnwindSafe(|| {
+            let mut player = self.lock()?;
+            player.run_frame();
+            if player.needs_render() {
+                player.render();
+            }
+            Ok(())
+        }));
+        match ran {
+            Ok(result) => result,
+            Err(_) => {
+                self.failed = true;
+                Err(EmbedError::Failed)
+            }
+        }
+    }
+
+    /// The movie's own frame rate, in frames a second.
+    pub fn frame_rate(&self) -> f64 {
+        self.lock().map_or(12.0, |player| player.frame_rate())
+    }
+
+    /// The frame of the root timeline that is showing (counting from 1), once the movie has loaded.
+    pub fn current_frame(&self) -> Option<u16> {
+        self.lock().ok().and_then(|player| player.current_frame())
+    }
+
     /// Silences the movie, or lets it be heard again. A paused or muted movie keeps its place.
     pub fn set_muted(&self, muted: bool) -> Result<(), EmbedError> {
         catch_unwind(AssertUnwindSafe(|| {

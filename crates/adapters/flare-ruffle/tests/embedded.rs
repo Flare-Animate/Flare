@@ -101,6 +101,38 @@ fn a_movie_advances_with_the_time_it_is_given() {
     assert_eq!(centre(&movie), [30, 30, 220]);
 }
 
+/// A paused movie is stepped one frame at a time, and the frame it shows is told.
+#[test]
+#[ignore = "needs a GPU adapter; scripts/gpu_tests.sh"]
+fn a_paused_movie_steps_one_frame_at_a_time() {
+    let red = Rgba8::opaque(220, 30, 30);
+    let blue = Rgba8::opaque(30, 30, 220);
+    let layer = Layer::new(
+        LayerId::new(),
+        "L",
+        vec![span(0, full(red)), span(1, full(blue))],
+    )
+    .expect("layer");
+    let swf = publish(&document(vec![layer], vec![]));
+    let gpu = Gpu::headless().expect("a GPU adapter");
+    let mut movie = EmbeddedMovie::start(&swf, &gpu, 1.0, false).expect("start");
+    movie.tick(Duration::from_millis(1)).expect("load");
+    movie.set_playing(false).expect("pause");
+    let first = movie.current_frame();
+    movie.step_frame().expect("step");
+    movie.step_frame().expect("step");
+    let after_two = movie.current_frame();
+    assert_ne!(first, after_two, "the stepping moved the movie on");
+    assert_eq!(
+        centre(&movie),
+        [30, 30, 220],
+        "two frames in, the second shows"
+    );
+    // Time passing does nothing while it is paused; a step still does.
+    movie.tick(Duration::from_secs(1)).expect("tick");
+    assert_eq!(movie.current_frame(), after_two);
+}
+
 /// What the Test Movie window does: a still of one frame, ticked in the small steps a window's
 /// frames are, shows its picture (not the stage's white) within a fraction of a second.
 #[test]

@@ -300,7 +300,7 @@ The desktop app uses it by default (its `ruffle` feature, on unless built with
 `--no-default-features`, which falls back to an external Ruffle): Test Movie publishes the SWF on
 a thread (`jobs::publish_movie`), and when the bytes come back `MovieWindow` starts an
 `EmbeddedMovie` on the editor's own wgpu device, registers its texture with egui, and shows it in
-a "Test Movie" window with a centered row of Restart, Pause/Play and Mute (each an icon and its name) and a right-aligned Close. The clock is real time, capped at 100 ms a
+a "Test Movie" window with one box of small icon buttons under the picture (Restart, Pause/Play, Step one frame while paused, a sound switch), the speeds 0.25x, 0.5x, 1x and 2x (sound plays at normal speed only, so it is off at the others), and a clock with the frame; Close is at the right below it. The clock is real time, capped at 100 ms a
 frame so a stall does not make the movie race; the texture is freed a frame after the window
 closes; sound goes to the default output device. A test shows Ruffle drawing on a device made
 with wgpu's default limits, as the editor's is. Another paints the window with egui's own renderer into an off-screen texture and counts the movie's pixels in it: every one of a 120 x 90 picture. It failed at first, when the window showed nothing at all: Ruffle replaces its render texture when the player sets its viewport, and the handle taken before that was a picture nothing drew into. The window itself has not been looked at by a

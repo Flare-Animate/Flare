@@ -220,8 +220,8 @@ fn the_window_shows_the_picture_of_the_movie() {
         }
         output.textures_delta.clear();
     }
-    // The controls: a row in the middle, Restart, Pause and Mute in that order, and Close under
-    // them at the right.
+    // The controls share one box under the picture: the speeds in order on one row, a clock with
+    // the frame, and Close under them at the right.
     let at = |name: &str| {
         texts
             .iter()
@@ -229,18 +229,21 @@ fn the_window_shows_the_picture_of_the_movie() {
             .unwrap_or_else(|| panic!("{name} is in the window: {texts:?}"))
             .1
     };
-    let (restart, pause, mute, close) = (at("Restart"), at("Pause"), at("Mute"), at("Close"));
-    assert!(restart.x < pause.x && pause.x < mute.x, "in order");
+    let (quarter, half, normal, double, close) =
+        (at("0.25×"), at("0.5×"), at("1×"), at("2×"), at("Close"));
     assert!(
-        (restart.y - pause.y).abs() < 1.0 && (pause.y - mute.y).abs() < 1.0,
-        "one row"
+        quarter.x < half.x && half.x < normal.x && normal.x < double.x,
+        "in order"
     );
+    assert!((quarter.y - double.y).abs() < 1.0, "one row");
+    let clock = texts
+        .iter()
+        .find(|(text, _)| text.contains("frame"))
+        .expect("the clock and frame are shown");
+    assert!(clock.0.starts_with("0:0"), "{clock:?}");
+    assert!(clock.1.x > double.x, "the clock is last in the box");
     assert!(
-        ((restart.x + mute.x) / 2.0 - pause.x).abs() < 2.0,
-        "the row is centered on its middle control"
-    );
-    assert!(
-        close.y > pause.y && close.x > mute.x,
+        close.y > quarter.y && close.x > double.x,
         "Close is below, at the right"
     );
     // The movie's red (in either channel order) is somewhere in the window.
@@ -256,4 +259,28 @@ fn the_window_shows_the_picture_of_the_movie() {
         120 * 90,
         "the window did not show the movie's picture"
     );
+}
+
+#[test]
+fn the_clock_reads_minutes_seconds_and_tenths() {
+    assert_eq!(clock(Duration::ZERO), "0:00.0");
+    assert_eq!(clock(Duration::from_millis(3_450)), "0:03.4");
+    assert_eq!(clock(Duration::from_secs(61)), "1:01.0");
+    assert_eq!(clock(Duration::from_secs(3_600)), "60:00.0");
+}
+
+#[test]
+fn speed_scales_a_step_but_a_stall_is_still_capped_first() {
+    assert_eq!(
+        scaled(Duration::from_millis(16), 2.0),
+        Duration::from_millis(32)
+    );
+    assert_eq!(
+        scaled(Duration::from_millis(16), 0.5),
+        Duration::from_millis(8)
+    );
+    // A 30 s stall is one capped step before the speed applies, never 60 s of movie.
+    assert_eq!(scaled(Duration::from_secs(30), 2.0), MAX_STEP * 2);
+    assert_eq!(scaled(Duration::from_millis(16), -3.0), Duration::ZERO);
+    assert_eq!(scaled(Duration::from_millis(100), 1000.0), MAX_STEP * 16);
 }

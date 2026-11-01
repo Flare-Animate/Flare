@@ -17,27 +17,50 @@ const MAX_STEP: Duration = Duration::from_millis(100);
 /// How much of the screen the picture may take of the window around it.
 const MAX_SHARE: f32 = 0.9;
 
-/// The size of one control, and the space between two: the row of three is
-/// [`CONTROLS_WIDTH`] wide.
-const CONTROL_SIZE: egui::Vec2 = egui::vec2(104.0, 34.0);
-const CONTROL_GAP: f32 = 8.0;
-const CONTROLS_WIDTH: f32 = CONTROL_SIZE.x * 3.0 + CONTROL_GAP * 2.0;
-const CONTROLS_MARGIN: f32 = 80.0;
+/// The playback speeds on offer. Sound plays at normal speed only, so at the others it is off.
+const SPEEDS: [(f32, &str); 4] = [(0.25, "0.25×"), (0.5, "0.5×"), (1.0, "1×"), (2.0, "2×")];
 
-/// One control: an icon beside its name. A dimmed one is a thing the movie cannot do now.
-fn control(ui: &mut egui::Ui, icon: &str, label: &str, enabled: bool) -> bool {
+/// The room the controls need beside the picture's own width.
+const MIN_WIDTH: f32 = 330.0;
+
+/// One small icon button. The name is its tooltip; a dimmed one is a thing the movie cannot do
+/// now, and a lit one is switched on.
+fn tool(ui: &mut egui::Ui, icon: &str, tip: &str, enabled: bool, on: bool) -> bool {
     let tint = ui.visuals().text_color();
-    let button = egui::Button::image_and_text(flare_ui::icons::image(icon, 18.0, tint), label)
-        .min_size(CONTROL_SIZE);
-    ui.add_enabled(enabled, button).clicked()
+    let button = egui::Button::image(flare_ui::icons::image(icon, 14.0, tint))
+        .min_size(egui::vec2(26.0, 22.0))
+        .selected(on);
+    ui.add_enabled(enabled, button).on_hover_text(tip).clicked()
 }
 
 /// The Close button, at the right edge. True when it was pressed.
 fn close_row(ui: &mut egui::Ui) -> bool {
-    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-        control(ui, "close", "Close", true)
-    })
+    // One row high: a right-to-left layout on its own takes all the height there is.
+    let row = egui::vec2(ui.available_width(), ui.spacing().interact_size.y);
+    ui.allocate_ui_with_layout(
+        row,
+        egui::Layout::right_to_left(egui::Align::Center),
+        |ui| {
+            let tint = ui.visuals().text_color();
+            ui.add(egui::Button::image_and_text(
+                flare_ui::icons::image("close", 12.0, tint),
+                "Close",
+            ))
+            .clicked()
+        },
+    )
     .inner
+}
+
+/// Movie time as the controls show it: minutes, seconds and tenths.
+pub(crate) fn clock(time: Duration) -> String {
+    let tenths = time.as_millis() / 100;
+    format!("{}:{:02}.{}", tenths / 600, tenths / 10 % 60, tenths % 10)
+}
+
+/// Movie time to add for `since` of real time at `speed` times normal.
+pub(crate) fn scaled(since: Duration, speed: f32) -> Duration {
+    step(since).mul_f32(speed.clamp(0.0, 16.0))
 }
 
 /// Movie time to add for `since` of real time.
@@ -67,6 +90,10 @@ pub(crate) struct MovieWindow {
     failure: Option<String>,
     /// The sound is switched off.
     muted: bool,
+    /// How fast the movie runs, 1 being normal.
+    speed: f32,
+    /// How much movie time has passed since it started, as the controls tell it.
+    elapsed: Duration,
     closed: bool,
 }
 
@@ -96,6 +123,8 @@ impl MovieWindow {
             scale,
             failure: None,
             muted: false,
+            speed: 1.0,
+            elapsed: Duration::ZERO,
             closed: false,
         })
     }
@@ -109,18 +138,24 @@ impl MovieWindow {
     /// Draws the window and advances the movie.
     pub(crate) fn show(&mut self, ctx: &egui::Context) {
         let now = Instant::now();
-        let elapsed = step(now.duration_since(self.last_tick));
+        let elapsed = scaled(now.duration_since(self.last_tick), self.speed);
         self.last_tick = now;
-        if self.failure.is_none()
-            && let Err(error) = self.movie.tick(elapsed)
-        {
-            self.failure = Some(error.to_string());
+        if self.failure.is_none() {
+            match self.movie.tick(elapsed) {
+                Ok(()) => {
+                    if self.movie.is_playing() {
+                        self.elapsed += elapsed;
+                    }
+                }
+                Err(error) => self.failure = Some(error.to_string()),
+            }
         }
 
         let mut open = true;
-        let (mut close, mut restart, mut toggle_play, mut toggle_mute) =
-            (false, false, false, false);
+        let (mut close, mut restart, mut toggle_play, mut step_frame, mut toggle_mute) =
+            (false, false, false, false, false);
         let room = ctx.content_rect().size();
+        let mut speed = self.speed;
         egui::Window::new("Test Movie")
             .open(&mut open)
             .collapsible(false)
@@ -135,35 +170,54 @@ impl MovieWindow {
                 let (width, height) = self.movie.size();
                 let picture = egui::vec2(width as f32, height as f32) / self.scale;
                 let size = fit(picture, room);
-                // Room around the row, so it reads as centered and Close sits clear of it.
-                ui.set_min_width(size.x.max(CONTROLS_WIDTH + CONTROLS_MARGIN));
+                ui.set_min_width(size.x.max(MIN_WIDTH));
                 ui.vertical_centered(|ui| {
                     ui.add(egui::Image::new(egui::load::SizedTexture::new(
                         self.texture,
                         size,
                     )));
+                    ui.add_space(8.0);
+                    // The controls share one box, in the middle under the picture.
+                    egui::Frame::group(ui.style())
+                        .inner_margin(egui::Margin::symmetric(8, 4))
+                        .show(ui, |ui| {
+                            ui.horizontal(|ui| {
+                                ui.spacing_mut().item_spacing.x = 4.0;
+                                restart = tool(ui, "transport-first", "Restart", true, false);
+                                let playing = self.movie.is_playing();
+                                let (icon, tip) = if playing {
+                                    ("transport-pause", "Pause")
+                                } else {
+                                    ("transport-play", "Play")
+                                };
+                                toggle_play = tool(ui, icon, tip, true, false);
+                                step_frame =
+                                    tool(ui, "transport-next", "Step one frame", !playing, false);
+                                ui.separator();
+                                for (value, label) in SPEEDS {
+                                    ui.selectable_value(&mut speed, value, label);
+                                }
+                                ui.separator();
+                                let (icon, tip) = if self.muted {
+                                    ("sound-mute", "Sound is off; click to turn it on")
+                                } else {
+                                    ("sound", "Sound is on; click to turn it off")
+                                };
+                                toggle_mute =
+                                    tool(ui, icon, tip, self.movie.has_sound(), self.muted);
+                                ui.separator();
+                                let frame = self.movie.current_frame().unwrap_or(0);
+                                ui.label(
+                                    egui::RichText::new(format!(
+                                        "{}  frame {frame}",
+                                        clock(self.elapsed)
+                                    ))
+                                    .monospace(),
+                                );
+                            });
+                        });
                 });
-                ui.add_space(10.0);
-                // The controls are one row in the middle, whatever the picture's width.
-                ui.horizontal(|ui| {
-                    ui.add_space(((ui.available_width() - CONTROLS_WIDTH) / 2.0).max(0.0));
-                    ui.spacing_mut().item_spacing.x = CONTROL_GAP;
-                    restart = control(ui, "transport-first", "Restart", true);
-                    let playing = self.movie.is_playing();
-                    let (icon, label) = if playing {
-                        ("transport-pause", "Pause")
-                    } else {
-                        ("transport-play", "Play")
-                    };
-                    toggle_play = control(ui, icon, label, true);
-                    let (icon, label) = if self.muted {
-                        ("sound-mute", "Unmute")
-                    } else {
-                        ("sound", "Mute")
-                    };
-                    toggle_mute = control(ui, icon, label, self.movie.has_sound());
-                });
-                ui.add_space(8.0);
+                ui.add_space(6.0);
                 ui.separator();
                 close = close_row(ui);
             });
@@ -173,10 +227,17 @@ impl MovieWindow {
         if toggle_play {
             let _ = self.movie.set_playing(!self.movie.is_playing());
         }
+        if step_frame && self.movie.step_frame().is_ok() {
+            self.elapsed += Duration::from_secs_f64(1.0 / self.movie.frame_rate().max(1.0));
+        }
         if toggle_mute {
             self.muted = !self.muted;
-            let _ = self.movie.set_muted(self.muted);
         }
+        if speed != self.speed {
+            self.speed = speed;
+        }
+        // Sound plays at normal speed only: at any other it would be out of step with the picture.
+        let _ = self.movie.set_muted(self.muted || self.speed != 1.0);
         self.closed = !open || close;
         // Movies advance with the clock, so keep drawing while one is on screen.
         ctx.request_repaint();
@@ -202,8 +263,9 @@ impl MovieWindow {
                         self.texture,
                     );
                 // A new movie starts with its sound on; the person's choice is kept.
-                let _ = movie.set_muted(self.muted);
+                let _ = movie.set_muted(self.muted || self.speed != 1.0);
                 self.movie = movie;
+                self.elapsed = Duration::ZERO;
                 self.last_tick = Instant::now();
             }
             Err(error) => self.failure = Some(error.to_string()),
