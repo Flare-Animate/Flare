@@ -9,6 +9,31 @@ use glamx::DVec2;
 
 use super::*;
 
+/// What the library panel keeps between frames.
+pub(super) struct LibraryState {
+    pub(super) selected: Option<SymbolId>,
+    /// What the next symbol made from a selection, or added to the library, is.
+    pub(super) new_kind: flare_document::SymbolKind,
+    pub(super) search: String,
+    /// The symbol being renamed and the text so far.
+    pub(super) renaming: Option<(SymbolId, String)>,
+    /// The picture of the selected symbol: which symbol, at which revision of the project, and
+    /// the texture.
+    pub(super) preview: Option<(SymbolId, u64, egui::TextureHandle)>,
+}
+
+impl Default for LibraryState {
+    fn default() -> Self {
+        Self {
+            selected: None,
+            new_kind: flare_document::SymbolKind::Graphic,
+            search: String::new(),
+            renaming: None,
+            preview: None,
+        }
+    }
+}
+
 impl Workspace {
     // ---- in-place symbol editing -----------------------------------------------------
 
@@ -158,10 +183,10 @@ impl Workspace {
             .unwrap_or_default();
         let id = SymbolId::new();
         let symbol = flare_document::Symbol::new(id, name, flare_document::Timeline::default())
-            .with_kind(self.new_symbol_kind);
+            .with_kind(self.library.new_kind);
         self.run_batch(vec![Command::AddSymbol(symbol)], "add the symbol");
         if self.status.is_none() {
-            self.selected_symbol = Some(id);
+            self.library.selected = Some(id);
         }
     }
 
@@ -203,13 +228,13 @@ impl Workspace {
             return;
         }
         self.run_batch(vec![Command::RemoveSymbol(id)], "delete the symbol");
-        if self.selected_symbol == Some(id) {
-            self.selected_symbol = None;
+        if self.library.selected == Some(id) {
+            self.library.selected = None;
         }
     }
 
     pub fn place_selected_symbol(&mut self) {
-        let (Some(symbol), Some(scene)) = (self.selected_symbol, self.scene_id()) else {
+        let (Some(symbol), Some(scene)) = (self.library.selected, self.scene_id()) else {
             self.report("Select a symbol in the library first");
             return;
         };

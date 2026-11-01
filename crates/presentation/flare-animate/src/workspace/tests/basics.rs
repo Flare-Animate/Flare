@@ -246,7 +246,7 @@ fn convert_to_symbol_then_place_instances_from_the_library() {
     assert!(ws.can_convert_selection());
     ws.convert_selection_to_symbol();
     assert_eq!(ws.document().symbols().len(), 1);
-    assert!(ws.selected_symbol.is_some());
+    assert!(ws.library.selected.is_some());
     assert!(
         ws.has_selection(),
         "the instance span takes the shape's place"
@@ -261,7 +261,7 @@ fn convert_to_symbol_then_place_instances_from_the_library() {
     ws.undo();
     assert_eq!(ws.document().symbols().len(), 0);
     assert!(
-        ws.selected_symbol.is_none(),
+        ws.library.selected.is_none(),
         "stale library selection is dropped"
     );
 }

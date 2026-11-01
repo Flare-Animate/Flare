@@ -222,7 +222,7 @@ impl Workspace {
     pub fn can_convert_selection(&self) -> bool {
         match (self.selected, self.scene_id()) {
             (Some(selected), Some(scene)) => {
-                ops::convert_to_symbol_as(self.document(), scene, selected, self.new_symbol_kind)
+                ops::convert_to_symbol_as(self.document(), scene, selected, self.library.new_kind)
                     .is_some()
             }
             _ => false,
@@ -235,14 +235,14 @@ impl Workspace {
             return;
         };
         let Some((commands, symbol)) =
-            ops::convert_to_symbol_as(self.document(), scene, selected, self.new_symbol_kind)
+            ops::convert_to_symbol_as(self.document(), scene, selected, self.library.new_kind)
         else {
             self.report("Select a shape to convert to a symbol");
             return;
         };
         self.run_batch(commands, "convert to symbol");
         if self.status.is_none() {
-            self.selected_symbol = Some(symbol);
+            self.library.selected = Some(symbol);
         }
     }
 
@@ -280,7 +280,7 @@ impl Workspace {
         if self.status.is_none() {
             // The group takes the topmost shape's place, so that span stays selected.
             self.also_selected.clear();
-            self.selected_symbol = Some(symbol);
+            self.library.selected = Some(symbol);
         }
     }
 

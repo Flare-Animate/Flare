@@ -56,7 +56,7 @@ fn the_library_makes_renames_and_deletes_symbols_but_refuses_to_delete_one_in_us
         .map(|s| s.name().to_owned())
         .collect();
     assert_eq!(names, ["Symbol 1", "Symbol 2"]);
-    let id = ws.selected_symbol.expect("the new symbol is selected");
+    let id = ws.library.selected.expect("the new symbol is selected");
     ws.rename_symbol(id, "  Hero ");
     assert_eq!(ws.document().symbol(id).expect("symbol").name(), "Hero");
     ws.rename_symbol(id, "   ");
@@ -68,7 +68,7 @@ fn the_library_makes_renames_and_deletes_symbols_but_refuses_to_delete_one_in_us
     ws.undo();
     ws.delete_symbol(id);
     assert!(ws.document().symbol(id).is_none());
-    assert!(ws.selected_symbol.is_none());
+    assert!(ws.library.selected.is_none());
     ws.undo();
     assert!(ws.document().symbol(id).is_some());
 }
@@ -281,20 +281,20 @@ fn the_library_draws_a_preview_of_the_selected_symbol_once_per_change() {
     let mut ws = workspace();
     draw_and_select(&mut ws);
     ws.perform(MenuAction::ConvertToSymbol);
-    let symbol = ws.selected_symbol.expect("the new symbol is selected");
+    let symbol = ws.library.selected.expect("the new symbol is selected");
     let first = ws.symbol_preview(&ctx, symbol).expect("a preview");
     assert!(first.size()[0] > 0 && first.size()[1] > 0);
     // Same project, same texture; an edit makes a new one.
     let again = ws.symbol_preview(&ctx, symbol).expect("a preview");
     assert_eq!(first.id(), again.id());
     ws.new_symbol();
-    let empty = ws.selected_symbol.expect("selected");
+    let empty = ws.library.selected.expect("selected");
     assert!(
         ws.symbol_preview(&ctx, empty).is_none(),
         "an empty symbol has nothing to show"
     );
     // The panel itself draws with a symbol selected.
-    ws.selected_symbol = Some(symbol);
+    ws.library.selected = Some(symbol);
     run(&mut ws, &ctx, 0.0);
 }
 
@@ -303,12 +303,12 @@ fn symbols_can_be_made_and_changed_into_each_kind_with_one_undo_step() {
     use flare_document::SymbolKind;
     let mut ws = workspace();
     for kind in SymbolKind::ALL {
-        ws.new_symbol_kind = kind;
+        ws.library.new_kind = kind;
         ws.new_symbol();
-        let id = ws.selected_symbol.expect("the new symbol is selected");
+        let id = ws.library.selected.expect("the new symbol is selected");
         assert_eq!(ws.document().symbol(id).expect("symbol").kind(), kind);
     }
-    let id = ws.selected_symbol.expect("selected");
+    let id = ws.library.selected.expect("selected");
     ws.set_symbol_kind(id, SymbolKind::Graphic);
     assert_eq!(
         ws.document().symbol(id).expect("symbol").kind(),
@@ -331,9 +331,9 @@ fn converting_a_selection_makes_the_chosen_kind_and_each_kind_has_its_own_icon()
     use flare_document::SymbolKind;
     let mut ws = workspace();
     draw_and_select(&mut ws);
-    ws.new_symbol_kind = SymbolKind::MovieClip;
+    ws.library.new_kind = SymbolKind::MovieClip;
     ws.perform(MenuAction::ConvertToSymbol);
-    let id = ws.selected_symbol.expect("the symbol is selected");
+    let id = ws.library.selected.expect("the symbol is selected");
     assert_eq!(
         ws.document().symbol(id).expect("symbol").kind(),
         SymbolKind::MovieClip

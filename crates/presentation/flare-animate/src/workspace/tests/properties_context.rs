@@ -168,7 +168,7 @@ fn an_outline_the_panel_turns_on_gives_the_shape_a_stroke_and_off_takes_it_away(
 #[test]
 fn a_selected_instance_shows_its_symbol_and_type_with_the_way_to_edit_it() {
     let mut ws = workspace();
-    ws.new_symbol_kind = SymbolKind::MovieClip;
+    ws.library.new_kind = SymbolKind::MovieClip;
     draw_and_select(&mut ws);
     ws.convert_selection_to_symbol();
     let words = texts(&mut ws);

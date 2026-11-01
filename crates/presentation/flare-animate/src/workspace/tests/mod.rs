@@ -144,7 +144,7 @@ fn with_symbol() -> (Workspace, SymbolId) {
     let mut ws = workspace();
     draw_and_select(&mut ws);
     ws.convert_selection_to_symbol();
-    let symbol = ws.selected_symbol.expect("symbol");
+    let symbol = ws.library.selected.expect("symbol");
     (ws, symbol)
 }
 

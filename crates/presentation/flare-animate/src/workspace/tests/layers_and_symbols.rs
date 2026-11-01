@@ -267,7 +267,7 @@ fn symbols_created_inside_a_symbol_join_the_library_when_you_leave() {
     ws.end_drag();
     assert!(ws.can_convert_selection());
     ws.convert_selection_to_symbol();
-    let inner = ws.selected_symbol.expect("inner symbol");
+    let inner = ws.library.selected.expect("inner symbol");
     assert_ne!(inner, outer);
     assert!(ws.exit_symbol());
     assert!(
@@ -304,7 +304,7 @@ fn nested_symbols_can_be_entered_and_left_by_breadcrumb_depth() {
 fn a_symbol_cannot_contain_itself_or_its_own_ancestors() {
     let (mut ws, outer) = with_symbol();
     ws.edit_selected_symbol();
-    ws.selected_symbol = Some(outer);
+    ws.library.selected = Some(outer);
     ws.place_selected_symbol();
     assert!(
         ws.status()
@@ -346,7 +346,7 @@ fn a_rejected_exit_keeps_the_edit_open_with_the_reason() {
     .expect("doc");
     let mut ws = Workspace::new(doc, None);
     assert!(ws.enter_symbol(a));
-    ws.selected_symbol = Some(b);
+    ws.library.selected = Some(b);
     ws.place_selected_symbol(); // allowed inside the scratch: B is not A
     assert_eq!(layer_count(&ws), 1, "a layer with B was added");
     assert!(!ws.exit_symbol(), "A containing B containing A is a loop");

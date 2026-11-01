@@ -31,7 +31,7 @@ impl Workspace {
     ) -> Option<egui::TextureHandle> {
         const BOX: f32 = 96.0;
         let revision = self.session.revision();
-        if let Some((id, at, handle)) = &self.library_preview
+        if let Some((id, at, handle)) = &self.library.preview
             && *id == symbol
             && *at == revision
         {
@@ -64,7 +64,7 @@ impl Workspace {
         let picture =
             egui::ColorImage::from_rgba_unmultiplied([pw as usize, ph as usize], image.rgba());
         let handle = ctx.load_texture("library-preview", picture, egui::TextureOptions::LINEAR);
-        self.library_preview = Some((symbol, revision, handle.clone()));
+        self.library.preview = Some((symbol, revision, handle.clone()));
         Some(handle)
     }
 
@@ -84,7 +84,8 @@ impl Workspace {
         well.show(ui, |ui| {
             ui.set_width(ui.available_width());
             let preview = self
-                .selected_symbol
+                .library
+                .selected
                 .and_then(|id| self.symbol_preview(&ctx, id));
             // The same height with or without a picture, with what there is centered in it.
             chrome::centered_block(ui, PREVIEW_WELL, |ui| {
@@ -97,7 +98,7 @@ impl Workspace {
                     }
                 }
                 ui.weak(
-                    match self.selected_symbol.and_then(|id| {
+                    match self.library.selected.and_then(|id| {
                         entries
                             .iter()
                             .find(|(s, _, _)| *s == id)
@@ -112,19 +113,19 @@ impl Workspace {
         ui.add_space(4.0);
         chrome::row(ui, "New symbols", |ui| {
             egui::ComboBox::from_id_salt("new_symbol_kind")
-                .selected_text(self.new_symbol_kind.label())
+                .selected_text(self.library.new_kind.label())
                 .show_ui(ui, |ui| {
                     for kind in flare_document::SymbolKind::ALL {
-                        ui.selectable_value(&mut self.new_symbol_kind, kind, kind.label());
+                        ui.selectable_value(&mut self.library.new_kind, kind, kind.label());
                     }
                 });
         });
         ui.add(
-            egui::TextEdit::singleline(&mut self.library_search)
+            egui::TextEdit::singleline(&mut self.library.search)
                 .hint_text("Search library")
                 .desired_width(f32::INFINITY),
         );
-        let needle = self.library_search.trim().to_lowercase();
+        let needle = self.library.search.trim().to_lowercase();
         let entries: Vec<(SymbolId, String, flare_document::SymbolKind)> = entries
             .into_iter()
             .filter(|(_, name, _)| needle.is_empty() || name.to_lowercase().contains(&needle))
@@ -142,8 +143,8 @@ impl Workspace {
                     });
                 }
                 for (id, name, kind) in entries {
-                    let chosen = self.selected_symbol == Some(id);
-                    if let Some((target, text)) = &mut self.renaming
+                    let chosen = self.library.selected == Some(id);
+                    if let Some((target, text)) = &mut self.library.renaming
                         && *target == id
                     {
                         let edit =
@@ -153,7 +154,7 @@ impl Workspace {
                         let cancel = ui.input(|i| i.key_pressed(egui::Key::Escape));
                         if done || cancel {
                             let text = std::mem::take(text);
-                            self.renaming = None;
+                            self.library.renaming = None;
                             if !cancel {
                                 self.rename_symbol(id, &text);
                             }
@@ -169,7 +170,7 @@ impl Workspace {
                         .inner;
                     response.context_menu(|ui| {
                         if ui.button("Rename").clicked() {
-                            self.renaming = Some((id, name.clone()));
+                            self.library.renaming = Some((id, name.clone()));
                             ui.close();
                         }
                         ui.menu_button("Type", |ui| {
@@ -189,10 +190,10 @@ impl Workspace {
                         }
                     });
                     if response.clicked() {
-                        self.selected_symbol = Some(id);
+                        self.library.selected = Some(id);
                     }
                     if response.double_clicked() {
-                        self.selected_symbol = Some(id);
+                        self.library.selected = Some(id);
                         self.place_selected_symbol();
                     }
                 }
@@ -204,7 +205,7 @@ impl Workspace {
                 "plus",
                 BAR_ICON,
                 false,
-                self.selected_symbol.is_some(),
+                self.library.selected.is_some(),
                 "Place on stage",
             )
             .clicked()
@@ -214,18 +215,18 @@ impl Workspace {
             let editable = !self.in_symbol();
             if chrome::icon_button(
                 ui,
-                kind_icon(self.new_symbol_kind),
+                kind_icon(self.library.new_kind),
                 BAR_ICON,
                 false,
                 editable,
-                &format!("New {} symbol", self.new_symbol_kind.label()),
+                &format!("New {} symbol", self.library.new_kind.label()),
             )
             .clicked()
             {
                 self.new_symbol();
             }
             chrome::mock_icon_button(ui, "folder", BAR_ICON, "New folder");
-            let selected = self.selected_symbol.filter(|_| editable);
+            let selected = self.library.selected.filter(|_| editable);
             if chrome::icon_button(
                 ui,
                 "settings",
@@ -238,7 +239,7 @@ impl Workspace {
                 && let Some(id) = selected
                 && let Some(symbol) = self.document().symbol(id)
             {
-                self.renaming = Some((id, symbol.name().to_owned()));
+                self.library.renaming = Some((id, symbol.name().to_owned()));
             }
             if chrome::icon_button(
                 ui,

@@ -110,9 +110,8 @@ pub struct Workspace {
     home: home::HomeState,
     /// Folders shown shut in the timeline, hiding the layers inside.
     collapsed_folders: std::collections::HashSet<LayerId>,
-    /// The picture of the selected library symbol: which symbol, at which revision of the
-    /// project, and the texture.
-    library_preview: Option<(SymbolId, u64, egui::TextureHandle)>,
+    /// The library panel's state.
+    library: symbols::LibraryState,
     /// The import being read, if any.
     importing: Option<u64>,
     reverting: Option<u64>,
@@ -183,12 +182,6 @@ pub struct Workspace {
     /// The stage panel's last rectangle, so menu zoom can aim at its center.
     stage_panel: Rect,
     span_drag: Option<SpanDrag>,
-    selected_symbol: Option<SymbolId>,
-    /// What the next symbol made from a selection, or added to the library, is.
-    new_symbol_kind: flare_document::SymbolKind,
-    library_search: String,
-    /// The symbol being renamed in the library and the text so far.
-    renaming: Option<(SymbolId, String)>,
     current_layer: Option<LayerId>,
     /// The layer being renamed in the timeline and the text so far.
     layer_renaming: Option<(LayerId, String)>,
@@ -285,7 +278,7 @@ impl Workspace {
             publish: PublishSettings::default(),
             home: home::HomeState::default(),
             collapsed_folders: std::collections::HashSet::new(),
-            library_preview: None,
+            library: symbols::LibraryState::default(),
             importing: None,
             reverting: None,
             revert_pending: false,
@@ -326,10 +319,6 @@ impl Workspace {
             stage_view: StageView::default(),
             stage_panel: Rect::NOTHING,
             span_drag: None,
-            selected_symbol: None,
-            new_symbol_kind: flare_document::SymbolKind::Graphic,
-            library_search: String::new(),
-            renaming: None,
             current_layer: None,
             layer_renaming: None,
             layer_rename_serial: 0,

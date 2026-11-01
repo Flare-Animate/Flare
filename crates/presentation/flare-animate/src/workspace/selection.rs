@@ -65,10 +65,10 @@ impl Workspace {
             self.selected = None;
             self.also_selected.clear();
         }
-        if let Some(symbol) = self.selected_symbol
+        if let Some(symbol) = self.library.selected
             && self.document().symbol(symbol).is_none()
         {
-            self.selected_symbol = None;
+            self.library.selected = None;
         }
     }
 

@@ -6,7 +6,7 @@ use flare_document::{PlayMode, Playback, SymbolKind};
 /// A rectangle turned into a symbol of `kind`, with the instance selected.
 fn selected_instance(kind: SymbolKind) -> Workspace {
     let mut ws = workspace();
-    ws.new_symbol_kind = kind;
+    ws.library.new_kind = kind;
     draw_and_select(&mut ws);
     ws.convert_selection_to_symbol();
     assert!(ws.selected.is_some(), "the new instance is selected");
