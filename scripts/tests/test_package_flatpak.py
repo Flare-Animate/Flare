@@ -32,12 +32,24 @@ class Flatpak(unittest.TestCase):
             self.assertIn(flatpak.APP_ID, (root / path).read_text(), path)
 
     def test_a_missing_build_tool_is_named_before_anything_is_built(self):
-        found = {"flatpak": "/usr/bin/flatpak", "flatpak-builder": "/usr/bin/flatpak-builder"}
+        found = {"flatpak": "/usr/bin/flatpak"}
         with mock.patch.object(flatpak.shutil, "which", side_effect=found.get):
-            with self.assertRaisesRegex(ValueError, "eu-strip"):
+            with self.assertRaisesRegex(ValueError, "dbus-run-session"):
                 flatpak.require_tools()
         with mock.patch.object(flatpak.shutil, "which", return_value="/usr/bin/tool"):
-            flatpak.require_tools()
+            with mock.patch.object(flatpak.subprocess, "run",
+                                   return_value=mock.Mock(returncode=1)):
+                with self.assertRaisesRegex(ValueError, "org.flatpak.Builder"):
+                    flatpak.require_tools()
+            with mock.patch.object(flatpak.subprocess, "run",
+                                   return_value=mock.Mock(returncode=0)):
+                flatpak.require_tools()
+
+    def test_the_builder_runs_as_a_flatpak_inside_a_d_bus_session_for_the_target_architecture(self):
+        command = flatpak.builder_command("aarch64", "/r", "/b", "/m.json")
+        self.assertEqual(command[:5], ["dbus-run-session", "--", "flatpak", "run", "org.flatpak.Builder"])
+        self.assertIn("--arch=aarch64", command)
+        self.assertEqual(command[-2:], ["/b", "/m.json"])
 
     def test_exported_files_are_named_by_the_app_id(self):
         stage = self.staged()

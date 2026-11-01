@@ -8,6 +8,7 @@ publishing it on Flathub is separate.
 """
 import argparse
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -79,17 +80,28 @@ def manifest(stage):
     }
 
 
-# What flatpak-builder runs. `eu-strip` is elfutils', which it calls to split the debug symbols
-# out; without it the build fails late, after the sandbox has been made, with a bare "No such
-# file or directory".
-REQUIRED_TOOLS = ("flatpak", "flatpak-builder", "eu-strip")
+# The builder is the `org.flatpak.Builder` Flatpak, not the distribution's flatpak-builder: the
+# one in Ubuntu 22.04 is 1.2.2, which runs `appstream-compose` and `eu-strip` inside the SDK, and
+# the 24.08 SDK has neither. The Flatpak brings its own, and reaches the host's runtimes through
+# a D-Bus session.
+BUILDER = "org.flatpak.Builder"
+REQUIRED_TOOLS = ("flatpak", "dbus-run-session")
 
 
 def require_tools():
     missing = [tool for tool in REQUIRED_TOOLS if shutil.which(tool) is None]
     if missing:
-        raise ValueError("Flatpak packaging needs " + ", ".join(missing)
-                         + " installed (apt: flatpak flatpak-builder elfutils)")
+        raise ValueError("Flatpak packaging needs " + ", ".join(missing) + " installed")
+    installed = subprocess.run(["flatpak", "info", "--user", BUILDER],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    if not installed:
+        raise ValueError(f"Flatpak packaging needs {BUILDER}: flatpak install --user flathub {BUILDER}")
+
+
+def builder_command(arch, repo, build, manifest_file):
+    return ["dbus-run-session", "--", "flatpak", "run", BUILDER, "--user", "--force-clean",
+            "--disable-rofiles-fuse", "--disable-cache", f"--arch={arch}", f"--repo={repo}",
+            str(build), str(manifest_file)]
 
 
 def package(version, target, binary, output):
@@ -108,11 +120,12 @@ def package(version, target, binary, output):
         manifest_file = work / f"{APP_ID}.json"
         manifest_file.write_text(json.dumps(manifest(stage), indent=2), encoding="utf-8")
         repo, build = work / "repo", work / "build"
-        subprocess.run(["flatpak-builder", "--user", "--force-clean", "--disable-rofiles-fuse",
-                        "--disable-cache", f"--arch={arch}", f"--repo={repo}", str(build),
-                        str(manifest_file)], check=True)
-        subprocess.run(["flatpak", "build-bundle", f"--arch={arch}", str(repo), str(archive),
-                        APP_ID], check=True)
+        subprocess.run(builder_command(arch, repo, build, manifest_file), check=True,
+                       env=dict(os.environ, GSETTINGS_BACKEND="memory"))
+        # The runtime repository lets `flatpak install` of the bundle fetch the runtime.
+        subprocess.run(["flatpak", "build-bundle", f"--arch={arch}",
+                        "--runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo",
+                        str(repo), str(archive), APP_ID], check=True)
     release.write_checksum(archive)
     print(archive)
 
