@@ -144,9 +144,8 @@ and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a
 when it is taller than its panel.
 Any tool in the dots list can be dragged out of it onto the strip, where it becomes a cell of its own just above the dots (the tools not built too, dimmed); a right click on it offers Remove from toolbar, and it is in the list again. The tools put there are kept with the preferences, and Restore defaults empties them. Escape, or letting go away from the strip, drops the tool being dragged.
 Below them the fill and stroke colors are two overlapping squares, the stroke in front as a frame
-around an empty middle (smaller in a strip one tool wide). Two small buttons keep their old places:
-swap at the top right of the squares and black and white at the bottom left (stacked beneath them in
-a strip one tool wide). An outline shows only while the pointer is over a square. Click either square to choose it and open its color
+around an empty middle (smaller in a strip one tool wide). Two small buttons sit side by side beneath
+the squares, as in Animate's toolbar: black and white on the left and swap on the right. An outline shows only while the pointer is over a square. Click either square to choose it and open its color
 picker, which starts with a No color button (an empty square is drawn white with a red slash): that
 is how a shape is drawn with no stroke or no fill. The strip is one tool wide by default and runs
 the whole height of the window, from the top bar to the bottom, with the timeline beside it, not

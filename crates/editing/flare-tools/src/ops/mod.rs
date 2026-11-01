@@ -9,6 +9,7 @@ use flare_core::{LayerId, SceneId};
 use flare_document::{Content, Document, FrameSpan, Timeline};
 use flare_eval::DrawnShape;
 
+mod anchor_edit;
 mod anchors;
 mod arrange;
 mod bounds;
@@ -19,6 +20,7 @@ mod playback;
 mod select;
 mod transform;
 
+pub use anchor_edit::{add_anchor, convert_anchor, delete_anchor};
 #[allow(unused_imports)]
 use anchors::*;
 pub use anchors::{anchors, move_anchor};

@@ -81,6 +81,9 @@ impl Workspace {
         let (icon, title) = match self.tool {
             Tool::Select => return,
             Tool::Subselection => ("tool-subselection", "Subselection"),
+            Tool::AddAnchor => ("tool-anchor-add", "Add Anchor Point"),
+            Tool::DeleteAnchor => ("tool-anchor-delete", "Delete Anchor Point"),
+            Tool::ConvertAnchor => ("tool-anchor-convert", "Convert Anchor Point"),
             Tool::FreeTransform => ("tool-transform", "Free Transform"),
             Tool::Rectangle => ("tool-rectangle", "Rectangle"),
             Tool::Ellipse => ("tool-oval", "Oval"),
@@ -243,6 +246,17 @@ impl Workspace {
             Tool::Subselection => {
                 ui.weak("Click a shape, then drag its square points to reshape it.");
             }
+            Tool::AddAnchor => {
+                ui.weak(
+                    "Click the outline of a shape to put a point there; the curve keeps its shape.",
+                );
+            }
+            Tool::DeleteAnchor => {
+                ui.weak("Click a square point of a shape to take it out; the outline joins across the gap.");
+            }
+            Tool::ConvertAnchor => {
+                ui.weak("Click a curve point to make it a corner; drag from a corner to make it smooth.");
+            }
             Tool::FreeTransform => {
                 ui.weak("Drag a handle to scale, outside a corner to rotate; Alt on an edge handle skews, Shift keeps proportions.");
             }
@@ -254,6 +268,11 @@ impl Workspace {
         match self.tool {
             Tool::Select => "Selection: click to select, drag to move, Shift-click to add",
             Tool::Subselection => "Subselection: click a shape, drag its points",
+            Tool::AddAnchor => "Add Anchor Point: click an outline to put a point there",
+            Tool::DeleteAnchor => "Delete Anchor Point: click a point to remove it",
+            Tool::ConvertAnchor => {
+                "Convert Anchor Point: click for a corner, drag for a smooth point"
+            }
             Tool::FreeTransform => "Free Transform: drag the handles to scale, rotate or skew",
             Tool::Rectangle => "Rectangle: drag on the stage",
             Tool::Ellipse => "Oval: drag on the stage",

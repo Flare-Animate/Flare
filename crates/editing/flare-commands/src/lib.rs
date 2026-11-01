@@ -29,6 +29,11 @@ pub enum LayerChange {
 pub enum Command {
     AddSymbol(Symbol),
     AddScene(Scene),
+    /// Renames a scene. The name is trimmed and must be 1 to [`MAX_SCENE_NAME_CHARS`] characters.
+    RenameScene {
+        scene: SceneId,
+        name: String,
+    },
     SetSymbolKind {
         symbol: SymbolId,
         kind: SymbolKind,
@@ -95,8 +100,13 @@ pub enum Command {
     },
 }
 
+/// The longest a scene's name may be, so a pasted blob cannot become one.
+pub const MAX_SCENE_NAME_CHARS: usize = 256;
+
 #[derive(Debug, Error, PartialEq)]
 pub enum EditError {
+    #[error("a scene's name must be 1 to {MAX_SCENE_NAME_CHARS} characters")]
+    SceneName,
     #[error("no such scene {0:?}")]
     NoSuchScene(SceneId),
     #[error("no such symbol {0:?}")]
@@ -172,6 +182,17 @@ fn step(
     match command {
         Command::AddSymbol(symbol) => symbols.push(symbol),
         Command::AddScene(scene) => scenes.push(scene),
+        Command::RenameScene { scene, name } => {
+            let name = name.trim();
+            if name.is_empty() || name.chars().count() > MAX_SCENE_NAME_CHARS {
+                return Err(EditError::SceneName);
+            }
+            let slot = scenes
+                .iter_mut()
+                .find(|s| s.id() == scene)
+                .ok_or(EditError::NoSuchScene(scene))?;
+            *slot = slot.clone().with_name(name);
+        }
         Command::RenameSymbol { symbol, name } => {
             let slot = symbols
                 .iter_mut()

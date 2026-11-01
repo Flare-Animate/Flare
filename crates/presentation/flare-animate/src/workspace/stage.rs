@@ -226,6 +226,7 @@ impl Workspace {
         {
             let shift = ui.input(|i| i.modifiers.shift);
             self.click_with_tool(to_doc(p), shift);
+            self.anchor_click(to_doc(p));
         }
         if self.tool == Tool::Pen {
             // A press that turns into a drag starts where the button went down, not where
@@ -380,17 +381,33 @@ impl Workspace {
             let rect = Rect::from_min_max(to_screen(shown.min), to_screen(shown.max));
             painter.rect_stroke(rect, 0.0, outline, StrokeKind::Outside);
         }
-        if self.tool == Tool::Subselection {
+        if matches!(
+            self.tool,
+            Tool::Subselection | Tool::AddAnchor | Tool::DeleteAnchor | Tool::ConvertAnchor
+        ) {
             let ink = Stroke::new(1.5, crate::workspace::ANCHOR_INK);
             for (segment, point) in self.anchor_points() {
+                // Dragging a point with the Subselection tool moves it; with the Convert tool
+                // it pulls a handle out of it, drawn below, and the point stays.
                 let at = self
                     .anchor_drag
-                    .filter(|d| d.segment == segment)
+                    .filter(|d| d.segment == segment && self.tool == Tool::Subselection)
                     .map_or(point, |d| d.to);
                 let centre = to_screen(at);
                 let square = Rect::from_center_size(centre, Vec2::splat(8.0));
                 painter.rect_filled(square, 1.0, Color32::WHITE);
                 painter.rect_stroke(square, 1.0, ink, StrokeKind::Outside);
+            }
+            // The handles being pulled out of a point: the one going on, and its mirror.
+            if self.tool == Tool::ConvertAnchor
+                && let Some(d) = self.anchor_drag
+            {
+                let (from, to) = (to_screen(d.from), to_screen(d.to));
+                let mirror = from + (from - to);
+                painter.line_segment([mirror, to], Stroke::new(1.0, crate::workspace::ANCHOR_INK));
+                for end in [mirror, to] {
+                    painter.circle(end, 3.5, Color32::WHITE, ink);
+                }
             }
         }
         if self.tool == Tool::FreeTransform

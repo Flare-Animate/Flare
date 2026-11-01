@@ -1,7 +1,7 @@
 //! The fill and stroke colors in the tool strip: two overlapping squares, the stroke in front as
-//! a frame around an empty middle, with the swap and black-and-white buttons at the corners. In a
-//! strip one tool wide the same box is drawn smaller, with the buttons stacked beneath it. No
-//! color is at the top of each swatch's picker.
+//! a frame around an empty middle, with the black-and-white and swap buttons side by side beneath
+//! them, as in Animate's toolbar. In a strip one tool wide the same box is drawn smaller. No color
+//! is at the top of each swatch's picker.
 
 use egui::color_picker::{Alpha, color_picker_color32};
 use egui::{Color32, Popup, PopupCloseBehavior, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, vec2};
@@ -20,12 +20,13 @@ pub(crate) struct Metrics {
     frame: f32,
     /// Side of each of the two small buttons.
     small: f32,
-    /// Whether the two buttons are stacked beneath the squares rather than at their corners.
-    stacked: bool,
 }
 
 /// Side of the box the squares sit in, in a strip wide enough for it.
 const BOX: f32 = 50.0;
+
+/// The space between the squares and the buttons, and between the buttons.
+const BUTTON_GAP: f32 = 2.0;
 
 impl Metrics {
     pub(crate) const FULL: Self = Self {
@@ -33,16 +34,14 @@ impl Metrics {
         offset: 18.0,
         frame: 6.0,
         small: 16.0,
-        stacked: false,
     };
     /// For a strip one tool wide (24 px a tool, a little more with its margins): the squares are
-    /// 25 px across and the buttons sit under them one above the other.
+    /// 25 px across and the two buttons sit under them in a row.
     pub(crate) const COMPACT: Self = Self {
         square: 16.0,
         offset: 9.0,
         frame: 4.0,
-        small: 16.0,
-        stacked: true,
+        small: 12.0,
     };
 
     /// The drawing that fits `width`.
@@ -54,20 +53,17 @@ impl Metrics {
         }
     }
 
+    /// The two buttons and the gap between them.
+    fn buttons(self) -> f32 {
+        self.small * 2.0 + BUTTON_GAP
+    }
+
     pub(crate) fn width(self) -> f32 {
-        if self.stacked {
-            self.offset + self.square
-        } else {
-            BOX.min(self.offset + self.square)
-        }
+        BOX.min(self.offset + self.square).max(self.buttons())
     }
 
     pub(crate) fn height(self) -> f32 {
-        if self.stacked {
-            self.offset + self.square + 2.0 + self.small * 2.0 + 2.0
-        } else {
-            BOX
-        }
+        self.offset + self.square + BUTTON_GAP + self.small
     }
 }
 
@@ -81,18 +77,11 @@ pub(crate) struct WellRects {
 
 pub(crate) fn rects_with(origin: Pos2, m: Metrics) -> WellRects {
     let at = |x: f32, y: f32, side: f32| Rect::from_min_size(origin + vec2(x, y), vec2(side, side));
-    let below = m.offset + m.square + 2.0;
-    // Where they have always been, so the hand finds them: swap at the top right of the squares,
-    // black and white at the bottom left.
-    let (swap, defaults) = if m.stacked {
-        let x = (m.width() - m.small) / 2.0;
-        (at(x, below + m.small + 2.0, m.small), at(x, below, m.small))
-    } else {
-        (
-            at(m.square + 2.0, 0.0, m.small),
-            at(0.0, m.square + 2.0, m.small),
-        )
-    };
+    let below = m.offset + m.square + BUTTON_GAP;
+    // In a row under the squares, black and white on the left and swap on the right, centered.
+    let left = (m.width() - m.buttons()) / 2.0;
+    let defaults = at(left, below, m.small);
+    let swap = at(left + m.small + BUTTON_GAP, below, m.small);
     WellRects {
         fill: at(0.0, 0.0, m.square),
         stroke: at(m.offset, m.offset, m.square),

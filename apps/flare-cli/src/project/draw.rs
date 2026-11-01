@@ -146,6 +146,24 @@ pub fn eval(path: &Path, frame: u32, scene: Option<Uuid>) -> Result<Value> {
     Ok(json!({ "frame": frame, "placed": items }))
 }
 
+/// Renames the first scene; a blank or over-long name, or a project with no scene, writes nothing.
+pub fn rename_scene(path: &Path, name: &str) -> Result<Value> {
+    let mut session = open(path)?;
+    let scene = session
+        .document()
+        .scenes()
+        .first()
+        .map(|s| s.id())
+        .context("the project has no scene")?;
+    session.apply([Command::RenameScene {
+        scene,
+        name: name.to_owned(),
+    }])?;
+    commit(&session, path)?;
+    let name = session.document().scenes()[0].name().to_owned();
+    Ok(json!({ "scene": name }))
+}
+
 /// Replaces any of the stage's width, height and background.
 pub fn set_stage(
     path: &Path,

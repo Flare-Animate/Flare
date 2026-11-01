@@ -42,15 +42,6 @@ impl Workspace {
             ui.add_space(4.0);
             flare_ui::chrome::section(ui, "file-publish", &tr("pubpop-formats"));
             self.publish_settings_ui(ui);
-            ui.add_space(6.0);
-            let ready = self.publish.any() && !self.document().scenes().is_empty();
-            if ui
-                .add_enabled(ready, egui::Button::new(tr("pubpop-button")))
-                .on_hover_text(tr("pubpop-button-hint"))
-                .clicked()
-            {
-                request = Some(DialogRequest::Publish);
-            }
             flare_ui::chrome::section(ui, "link", &tr("pubpop-share"));
             ui.weak(tr("pubpop-share-hint"));
             ui.horizontal(|ui| {
@@ -71,6 +62,16 @@ impl Workspace {
                 row,
                 egui::Layout::right_to_left(egui::Align::Center),
                 |ui| {
+                    // Publish is where Close used to be, the corner a dialog's main button is
+                    // in; Close is beside it.
+                    let ready = self.publish.any() && !self.document().scenes().is_empty();
+                    if ui
+                        .add_enabled(ready, egui::Button::new(tr("pubpop-button")))
+                        .on_hover_text(tr("pubpop-button-hint"))
+                        .clicked()
+                    {
+                        request = Some(DialogRequest::Publish);
+                    }
                     if ui.button(tr("close")).clicked() {
                         ui.close();
                     }

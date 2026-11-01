@@ -4,7 +4,7 @@ use super::*;
 use egui::PointerButton;
 
 /// One pass at `time`; returns where the text `wanted` was drawn, if it was.
-fn find(
+pub(super) fn find(
     ws: &mut Workspace,
     ctx: &egui::Context,
     time: f64,
@@ -21,7 +21,7 @@ fn find(
     })
 }
 
-fn press(at: Pos2, button: PointerButton, pressed: bool) -> Event {
+pub(super) fn press(at: Pos2, button: PointerButton, pressed: bool) -> Event {
     Event::PointerButton {
         pos: at,
         button,
@@ -44,7 +44,13 @@ fn settled() -> (egui::Context, Workspace, Pos2, f64) {
     (ctx, ws, at.expect("the layer's name is drawn"), time)
 }
 
-fn click(ws: &mut Workspace, ctx: &egui::Context, time: &mut f64, at: Pos2, button: PointerButton) {
+pub(super) fn click(
+    ws: &mut Workspace,
+    ctx: &egui::Context,
+    time: &mut f64,
+    at: Pos2,
+    button: PointerButton,
+) {
     *time += 0.05;
     pass(ws, ctx, input(*time, vec![Event::PointerMoved(at)]));
     *time += 0.05;
@@ -53,7 +59,7 @@ fn click(ws: &mut Workspace, ctx: &egui::Context, time: &mut f64, at: Pos2, butt
     pass(ws, ctx, input(*time, vec![press(at, button, false)]));
 }
 
-fn settle(ws: &mut Workspace, ctx: &egui::Context, time: &mut f64) {
+pub(super) fn settle(ws: &mut Workspace, ctx: &egui::Context, time: &mut f64) {
     for _ in 0..3 {
         *time += 0.1;
         run(ws, ctx, *time);

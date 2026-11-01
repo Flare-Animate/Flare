@@ -272,6 +272,9 @@ pub(super) enum ColorTarget {
 pub(super) const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::V, Tool::Select),
     (Key::A, Tool::Subselection),
+    (Key::Equals, Tool::AddAnchor),
+    (Key::Minus, Tool::DeleteAnchor),
+    (Key::C, Tool::ConvertAnchor),
     (Key::Q, Tool::FreeTransform),
     (Key::P, Tool::Pen),
     (Key::T, Tool::Text),
@@ -378,6 +381,12 @@ pub enum Tool {
     Camera,
     /// Select a shape, then drag its points to reshape it.
     Subselection,
+    /// Click an outline to put a point there.
+    AddAnchor,
+    /// Click a point to take it out of the outline.
+    DeleteAnchor,
+    /// Click a smooth point to make it a corner; drag from a corner to make it smooth.
+    ConvertAnchor,
     /// Select, then scale, rotate or skew by the handles around the selection.
     FreeTransform,
     /// Drag to draw a smoothed line in the stroke color and width.

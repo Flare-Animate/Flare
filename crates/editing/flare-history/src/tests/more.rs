@@ -262,3 +262,41 @@ fn steps_carry_their_labels_through_undo_redo_and_the_depth_limit() {
     }
     assert_eq!(short.undo_labels().collect::<Vec<_>>(), ["s3", "s4"]);
 }
+
+#[test]
+fn a_scene_is_renamed_trimmed_and_undone_and_bad_names_change_nothing() {
+    let mut f = fixture();
+    let rename = |scene, name: &str| Command::RenameScene {
+        scene,
+        name: name.into(),
+    };
+    f.session
+        .apply([rename(f.scene, "  Intro  ")])
+        .expect("rename");
+    assert_eq!(f.session.document().scenes()[0].name(), "Intro");
+    assert!(f.session.undo());
+    assert_eq!(f.session.document().scenes()[0].name(), "Scene 1");
+
+    for bad in [
+        "",
+        "   ",
+        &"x".repeat(flare_commands::MAX_SCENE_NAME_CHARS + 1),
+    ] {
+        assert_eq!(
+            f.session.apply([rename(f.scene, bad)]),
+            Err(EditError::SceneName)
+        );
+    }
+    let ghost = flare_core::SceneId::new();
+    assert_eq!(
+        f.session.apply([rename(ghost, "Nobody")]),
+        Err(EditError::NoSuchScene(ghost))
+    );
+    // A batch is all or nothing: the good rename goes with the bad one.
+    assert!(
+        f.session
+            .apply([rename(f.scene, "Good"), rename(f.scene, "")])
+            .is_err()
+    );
+    assert_eq!(f.session.document().scenes()[0].name(), "Scene 1");
+}

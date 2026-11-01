@@ -157,6 +157,11 @@ impl Scene {
         &self.name
     }
 
+    pub fn with_name(mut self, name: impl Into<String>) -> Self {
+        self.name = name.into();
+        self
+    }
+
     pub fn timeline(&self) -> &Timeline {
         &self.timeline
     }

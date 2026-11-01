@@ -52,10 +52,12 @@ mod publish_settings;
 mod publish_window;
 mod rail;
 mod render;
+mod scene_name;
 mod selection;
 mod shell;
 mod sound;
 mod stage;
+mod stage_furniture;
 mod stroke_preview;
 mod symbols;
 mod tabs;
@@ -197,6 +199,9 @@ pub struct Workspace {
     /// The layer being renamed in the timeline and the text so far.
     layer_renaming: Option<(LayerId, String)>,
     layer_rename_serial: u32,
+    /// The scene's name while it is being edited in the bar above the stage.
+    scene_renaming: Option<String>,
+    scene_rename_serial: u32,
     /// The layer a right click in the timeline's layer column opened a menu for.
     layer_menu_for: Option<LayerId>,
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
@@ -331,6 +336,8 @@ impl Workspace {
             current_layer: None,
             layer_renaming: None,
             layer_rename_serial: 0,
+            scene_renaming: None,
+            scene_rename_serial: 0,
             layer_menu_for: None,
             native_menu: false,
             quit_requested: false,

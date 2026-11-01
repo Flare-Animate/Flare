@@ -17,6 +17,7 @@ use glamx::{DAffine2, DVec2};
 use std::num::NonZeroU32;
 use std::path::PathBuf;
 
+mod anchor_tools;
 mod basics;
 mod brush_nib;
 mod camera;
@@ -41,7 +42,9 @@ mod rail;
 mod release_frame;
 mod rendering_and_workers;
 mod rulers_and_mirror;
+mod scene_name;
 mod spans_and_handles;
+mod status_bar;
 mod tool_pins;
 mod tool_slots;
 mod tool_strip;

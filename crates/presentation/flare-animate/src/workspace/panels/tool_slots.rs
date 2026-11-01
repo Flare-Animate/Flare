@@ -79,9 +79,19 @@ pub(crate) static SLOT_GROUPS: &[&[Slot]] = &[
     &[
         &[
             real("tool-pen", "Pen", "P", Tool::Pen),
-            mock("tool-anchor-add", "Add Anchor Point"),
-            mock("tool-anchor-delete", "Delete Anchor Point"),
-            mock("tool-anchor-convert", "Convert Anchor Point"),
+            real("tool-anchor-add", "Add Anchor Point", "=", Tool::AddAnchor),
+            real(
+                "tool-anchor-delete",
+                "Delete Anchor Point",
+                "-",
+                Tool::DeleteAnchor,
+            ),
+            real(
+                "tool-anchor-convert",
+                "Convert Anchor Point",
+                "C",
+                Tool::ConvertAnchor,
+            ),
         ],
         &[real("tool-text", "Text", "T", Tool::Text)],
         &[

@@ -169,3 +169,19 @@ fn mp4_is_an_ordinary_format_that_ticks_counts_and_is_kept() {
     click_text(&mut ws, &ctx, &mut time, "Publish");
     assert_eq!(ws.take_dialog(), Some(DialogRequest::Publish));
 }
+
+#[test]
+fn publish_is_the_button_in_the_corner_below_the_share_places_with_close_beside_it() {
+    let (ctx, mut ws, mut time) = opened();
+    let mut at = |wanted: &str| {
+        time += 0.1;
+        find(&mut ws, &ctx, time, wanted).unwrap_or_else(|| panic!("{wanted} is on screen"))
+    };
+    let (publish, close, share) = (at("Publish"), at("Close"), at("Twitter"));
+    assert!(publish.y > share.y, "below the places to share");
+    assert!(
+        (publish.y - close.y).abs() < 2.0,
+        "on the same row as Close"
+    );
+    assert!(publish.x > close.x, "in the corner, Close beside it");
+}

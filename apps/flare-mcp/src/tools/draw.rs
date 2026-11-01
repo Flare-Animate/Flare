@@ -10,7 +10,9 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
 
 use crate::ops::{apply, color_or, duration, first_scene, parse_id, rect_shape, target_layer};
-use crate::params::{AddLayer, AddSymbol, DrawRect, PlaceInstance, SetCamera, SetStage};
+use crate::params::{
+    AddLayer, AddSymbol, DrawRect, PlaceInstance, RenameScene, SetCamera, SetStage,
+};
 use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = draw_tools, vis = "pub(super)")]
@@ -109,6 +111,20 @@ impl FlareServer {
             let background: Rgba8 = color_or(args.background.as_deref(), current.background())?;
             let stage = Stage::new(width, height, background).map_err(|e| e.to_string())?;
             apply(state, vec![Command::SetStage(stage)])
+        })
+    }
+
+    #[tool(description = "Rename the first scene (needs write access).")]
+    fn rename_scene(&self, Parameters(args): Parameters<RenameScene>) -> Outcome {
+        self.write(args.expected_revision, |state| {
+            let scene = first_scene(state)?;
+            apply(
+                state,
+                vec![Command::RenameScene {
+                    scene,
+                    name: args.name,
+                }],
+            )
         })
     }
 

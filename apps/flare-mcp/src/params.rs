@@ -144,6 +144,13 @@ pub struct SetStage {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct RenameScene {
+    pub name: String,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct SetCamera {
     /// Frame number, counting from 0, that the camera is pointed from.
     pub frame: u32,

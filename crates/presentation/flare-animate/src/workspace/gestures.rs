@@ -37,10 +37,12 @@ impl Workspace {
             | Tool::Brush
             | Tool::Ruler
             | Tool::Mirror => None,
-            Tool::Subselection => {
+            Tool::Subselection | Tool::ConvertAnchor => {
                 self.begin_anchor_drag(point);
                 None
             }
+            // These two act on a click; see `anchor_click`.
+            Tool::AddAnchor | Tool::DeleteAnchor => None,
             Tool::Select | Tool::FreeTransform => {
                 // Only the free transform tool shows and grabs the handles.
                 let transforming = self.tool == Tool::FreeTransform;

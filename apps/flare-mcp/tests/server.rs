@@ -29,6 +29,7 @@ async fn the_server_announces_tools_and_every_tool_has_an_object_schema() {
         "import_project",
         "draw_rect",
         "set_camera",
+        "rename_scene",
         "add_layer",
         "add_symbol",
         "place_instance",
@@ -70,6 +71,7 @@ async fn a_read_only_server_refuses_every_change_and_leaves_the_project_untouche
         ),
         ("add_layer", json!({ "name": "x" })),
         ("set_stage", json!({ "width": 10 })),
+        ("rename_scene", json!({ "name": "x" })),
         ("undo", json!({})),
         ("save", json!({})),
     ] {
@@ -209,6 +211,7 @@ async fn invalid_arguments_are_errors_that_change_nothing() {
             "place_instance",
             json!({ "symbol": "00000000-0000-0000-0000-000000000000" }),
         ),
+        ("rename_scene", json!({ "name": "  " })),
         ("set_stage", json!({ "width": 0 })),
         ("set_stage", json!({ "height": 99999 })),
         (
@@ -338,6 +341,13 @@ async fn frame_layer_and_stage_operations_edit_the_timeline() {
         (Some(64), Some(20))
     );
     assert_eq!(stage["background"], json!([16, 32, 48, 255]));
+
+    f.ok("rename_scene", json!({ "name": " Opening " })).await;
+    let info = f.ok("get_info", json!({})).await;
+    assert_eq!(info["scenes"][0]["name"], "Opening", "{info}");
+    f.ok("undo", json!({})).await;
+    let info = f.ok("get_info", json!({})).await;
+    assert_eq!(info["scenes"][0]["name"], "Scene 1", "{info}");
 }
 
 fn read_png(path: &str) -> (Vec<u8>, u32) {

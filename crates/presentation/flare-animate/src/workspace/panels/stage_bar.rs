@@ -20,9 +20,23 @@ impl Workspace {
             };
             ui.label(message);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                let extent = self.stage_extent();
-                let percent = self.stage_view.scale(self.stage_panel, extent).max(0.0) * 100.0;
-                ui.label(RichText::new(format!("{percent:.0}%")).color(theme::text_dim()));
+                // The zoom is in the bar above the stage; here is what the document is made of,
+                // and a click opens its settings.
+                let stage = self.document().stage();
+                let rate = self.document().frame_rate();
+                let fps = f64::from(rate.numerator()) / f64::from(rate.denominator());
+                let facts = format!("{} × {} px · {fps:.2} fps", stage.width(), stage.height())
+                    .replace(".00 fps", " fps");
+                if ui
+                    .add(
+                        egui::Button::new(RichText::new(facts).color(theme::text_dim()))
+                            .frame(false),
+                    )
+                    .on_hover_text("Document settings")
+                    .clicked()
+                {
+                    self.perform(MenuAction::DocumentSettings);
+                }
                 ui.separator();
                 ui.label(
                     RichText::new(format!(
@@ -123,12 +137,19 @@ impl Workspace {
                     ui.add(icons::image("chevron-right", 12.0, theme::text_disabled()));
                 }
                 let last = depth + 1 == crumbs.len();
+                if depth == 0 && self.scene_renaming.is_some() {
+                    self.scene_name_editor(ui);
+                    continue;
+                }
                 let label = if last {
                     RichText::new(name).strong()
                 } else {
                     RichText::new(name).color(theme::text_dim())
                 };
-                if chrome::crumb(ui, label).clicked() && !last {
+                let crumb = chrome::crumb(ui, label);
+                if depth == 0 && crumb.double_clicked() {
+                    self.begin_scene_rename();
+                } else if crumb.clicked() && !last {
                     self.exit_to_depth(depth);
                     break;
                 }

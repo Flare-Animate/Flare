@@ -263,3 +263,30 @@ fn export_frames_writes_a_numbered_animation_sequence() {
             .success()
     );
 }
+
+#[test]
+fn rename_scene_trims_saves_and_refuses_bad_names_without_writing() {
+    let dir = tempfile::tempdir().expect("dir");
+    let p = path(dir.path());
+    json(&["new", &p]);
+    let named = json(&["rename-scene", &p, "  Opening  "]);
+    assert_eq!(named["scene"], "Opening");
+    let info = json(&["info", &p]);
+    assert!(info.to_string().contains("Opening"), "{info}");
+
+    let before = std::fs::read(&p).expect("read");
+    for bad in ["", "   ", &"x".repeat(300)] {
+        let out = run(&["rename-scene", &p, bad]);
+        assert!(!out.status.success(), "{bad:?} must be refused");
+        assert!(
+            String::from_utf8_lossy(&out.stderr).contains("scene's name"),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+    assert_eq!(
+        std::fs::read(&p).expect("read"),
+        before,
+        "nothing was written"
+    );
+}

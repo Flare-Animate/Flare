@@ -10,6 +10,8 @@ use super::*;
 pub(super) struct AnchorDrag {
     pub(super) at: SpanRef,
     pub(super) segment: usize,
+    /// Where the point was when it was grabbed.
+    pub(super) from: Pos2,
     pub(super) to: Pos2,
 }
 
@@ -39,6 +41,7 @@ impl Workspace {
             self.anchor_drag = Some(AnchorDrag {
                 at,
                 segment,
+                from,
                 to: from,
             });
         }
@@ -58,10 +61,109 @@ impl Workspace {
         if cancelled {
             return;
         }
+        if self.tool == Tool::ConvertAnchor {
+            // A drag from a point makes it smooth, along the way it was dragged.
+            let to = DVec2::new(f64::from(drag.to.x), f64::from(drag.to.y));
+            if let Some(commands) =
+                ops::convert_anchor(self.document(), scene, drag.at, drag.segment, Some(to))
+            {
+                self.run_batch(commands, "make the point smooth");
+            }
+            return;
+        }
         let to = DVec2::new(f64::from(drag.to.x), f64::from(drag.to.y));
         if let Some(commands) = ops::move_anchor(self.document(), scene, drag.at, drag.segment, to)
         {
             self.run_batch(commands, "move the point");
+        }
+    }
+}
+
+impl Workspace {
+    /// The shapes a click with an anchor tool may mean: the selected one, then the one under the
+    /// pointer.
+    fn anchor_targets(&self, point: Pos2) -> Vec<SpanRef> {
+        let Some(scene) = self.scene_id() else {
+            return Vec::new();
+        };
+        let is_shape = |at: &SpanRef| {
+            matches!(
+                ops::find_span(self.document(), scene, *at).map(|s| s.content()),
+                Some(Content::Shape(_))
+            )
+        };
+        let mut targets: Vec<SpanRef> = self.selected.into_iter().filter(is_shape).collect();
+        if let Some(hit) = self.hit(point)
+            && !targets.contains(&hit)
+            && is_shape(&hit)
+        {
+            targets.push(hit);
+        }
+        targets
+    }
+
+    /// The point of the shape at `at` that is nearest `point`, if one is close enough to grab.
+    fn nearest_anchor(&self, at: SpanRef, point: Pos2) -> Option<usize> {
+        let scene = self.scene_id()?;
+        let Some(Content::Shape(shape)) =
+            ops::find_span(self.document(), scene, at).map(|s| s.content())
+        else {
+            return None;
+        };
+        let grab = self.handle_radius.max(f32::EPSILON);
+        ops::anchors(shape)
+            .into_iter()
+            .map(|(segment, p)| (segment, (p - point).length()))
+            .filter(|(_, distance)| *distance <= grab)
+            .min_by(|a, b| a.1.total_cmp(&b.1))
+            .map(|(segment, _)| segment)
+    }
+
+    /// A click with the Add, Delete or Convert Anchor Point tool: it edits the outline of the
+    /// selected shape, or of the one under the pointer, as one undo step.
+    pub(super) fn anchor_click(&mut self, point: Pos2) {
+        if !matches!(
+            self.tool,
+            Tool::AddAnchor | Tool::DeleteAnchor | Tool::ConvertAnchor
+        ) {
+            return;
+        }
+        let Some(scene) = self.scene_id() else { return };
+        let here = DVec2::new(f64::from(point.x), f64::from(point.y));
+        let grab = self.handle_radius.max(f32::EPSILON);
+        for at in self.anchor_targets(point) {
+            let near = self.nearest_anchor(at, point);
+            let (commands, what) = match self.tool {
+                Tool::AddAnchor => (
+                    ops::add_anchor(self.document(), scene, at, here, f64::from(grab)),
+                    "add the point",
+                ),
+                Tool::DeleteAnchor => (
+                    near.and_then(|s| ops::delete_anchor(self.document(), scene, at, s)),
+                    "delete the point",
+                ),
+                _ => (
+                    near.and_then(|s| ops::convert_anchor(self.document(), scene, at, s, None)),
+                    "make the point a corner",
+                ),
+            };
+            if let Some(commands) = commands {
+                self.selected = Some(at);
+                self.also_selected.clear();
+                self.run_batch(commands, what);
+                return;
+            }
+            if self.tool == Tool::DeleteAnchor && near.is_some() {
+                self.report("A shape keeps at least two points, three when it is closed");
+                return;
+            }
+        }
+        // Nothing to edit there: another shape under the pointer is selected, so the next click
+        // can edit it. Empty stage leaves the selection as it is.
+        if let Some(hit) = self.hit(point)
+            && self.selected != Some(hit)
+        {
+            self.select_at(point, false);
         }
     }
 }

@@ -62,6 +62,8 @@ enum Command {
         #[arg(long)]
         background: Option<String>,
     },
+    /// Rename the first scene of a project.
+    RenameScene { path: PathBuf, name: String },
     /// Summarize a project.
     Info { path: PathBuf },
     /// Add a Graphic symbol to the library, optionally holding one filled rectangle.
@@ -303,6 +305,7 @@ fn main() -> Result<()> {
                 flare_document::Stage::new(width, height, project::parse_color(&background)?)?;
             project::new(&path, numerator, denominator, stage)?
         }
+        Command::RenameScene { path, name } => project::rename_scene(&path, &name)?,
         Command::SetStage {
             path,
             width,

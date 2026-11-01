@@ -6,7 +6,18 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- The Test Movie window has a centered row of larger controls with icons (Restart, Pause or Play, and a new Mute) and a right-aligned Close button.
+- Test Movie in the window showed a blank picture: the texture it showed was one the player had already replaced when it set its size. A test now paints the window off-screen and finds the movie's picture in it.
+
+### Changed
+- The Publish popup's Publish button is in its bottom right corner, where Close was, with Close beside it. The black-and-white and swap buttons under the color squares sit side by side beneath them, as in Animate.
+- The zstd library is 0.14 (0.13 has advisories).
+
 ### Added
+- The Add (`=`), Delete (`-`) and Convert (`C`) Anchor Point tools, in the Pen's cell: click an outline to put a point there (a curve keeps its shape), click a point to take it out (the outline joins across the gap), click a curve point to make it a corner, drag from a corner to pull out smooth handles. Each is one undo step.
+- The status bar shows the stage size and frame rate (a click opens the document settings) where the zoom percentage was, which the bar above the stage already has.
+- The scene can be renamed by double-clicking its name in the bar above the stage (Enter or leaving the box keeps it, Escape drops it), with `flare rename-scene` and the MCP tool `rename_scene`; the name is trimmed, 1 to 256 characters, and one undo step.
 - `flare open [projects...]` starts the desktop app on the given files. The app's program is now `flare-desktop` on Linux (`/usr/bin/flare-desktop`) and Windows, so it no longer shares the name `flare` with the command line on `PATH`.
 - A scene can have a camera layer whose keyframes (position, zoom, rotation) and motion tweens change the picture in every render and export; the SWF and HTML5 pages show it too (real Ruffle draws the same picture); `flare camera` and the MCP tool `set_camera` point it; the Camera tool, its Properties and a preview are in the editor; XFL support is still to come (see docs/ROADMAP.md).
 - SWF publishing keeps symbols: each becomes a sprite defined once, each instance a placement of it, with the clock its playback says (a looping Graphic and a Movie Clip loop, a Graphic that plays once ends on `stop()`, a held frame is one frame, a Button shows its Up state, and a new span starts the symbol again). Real Ruffle plays the result on the clocks Flare predicts. Tweens are still baked.
