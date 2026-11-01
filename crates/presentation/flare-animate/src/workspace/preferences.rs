@@ -105,7 +105,7 @@ impl Workspace {
             brush_nib_angle: self.brush_shelf.nib().angle_degrees() as f32,
             brush_nib_flatness: self.brush_shelf.nib().flatness_percent() as f32,
             brushes: self.brush_shelf.presets().to_vec(),
-            brush_selected: self.selected_brush(),
+            brush_selected: self.brush_shelf.selected(),
             publish_compress: self.publish.compress,
             publish_swf: self.publish.swf,
             publish_html5: self.publish.html5,

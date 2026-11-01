@@ -10,11 +10,11 @@ use egui::epaint::{Mesh, Vertex, WHITE_UV};
 use egui::{Color32, Pos2, Rect, Vec2};
 use flare_input::{InputSample, PressureCurve};
 
-use super::*;
+use crate::workspace::*;
 
 /// Most samples one stroke keeps. A longer drag stops growing the stroke (it can be finished and
 /// continued), so memory and the work per frame stay bounded.
-pub(super) const MAX_FREEHAND_SAMPLES: usize = 8_000;
+pub(in crate::workspace) const MAX_FREEHAND_SAMPLES: usize = 8_000;
 
 /// A point closer than this to the last one, in screen pixels, adds nothing the eye can see.
 const MIN_STEP_PX: f32 = 0.5;
@@ -24,16 +24,16 @@ const SETTLE_PASSES: u32 = 600;
 
 /// One stroke to show: where it goes and how wide it is at each point, in stage units.
 #[derive(Clone, Debug, PartialEq)]
-pub(super) struct PreviewStroke {
-    pub(super) points: Vec<Pos2>,
-    pub(super) halves: Vec<f32>,
-    pub(super) color: Color32,
+pub(in crate::workspace) struct PreviewStroke {
+    pub(in crate::workspace) points: Vec<Pos2>,
+    pub(in crate::workspace) halves: Vec<f32>,
+    pub(in crate::workspace) color: Color32,
 }
 
 /// A filled shape the geometry tools just committed, in stage units, with its outline if it has
 /// one.
 #[derive(Clone, Debug, PartialEq)]
-pub(super) enum SettleShape {
+pub(in crate::workspace) enum SettleShape {
     Rect {
         rect: Rect,
         radius: f32,
@@ -49,20 +49,20 @@ pub(super) enum SettleShape {
 }
 
 /// A committed stroke that is shown until the stage picture of the document it is in is up.
-pub(super) struct Settling {
-    pub(super) strokes: Vec<PreviewStroke>,
+pub(in crate::workspace) struct Settling {
+    pub(in crate::workspace) strokes: Vec<PreviewStroke>,
     /// Shapes the geometry tools committed (the line is a stroke above).
-    pub(super) shapes: Vec<SettleShape>,
-    pub(super) context: u64,
-    pub(super) revision: u64,
+    pub(in crate::workspace) shapes: Vec<SettleShape>,
+    pub(in crate::workspace) context: u64,
+    pub(in crate::workspace) revision: u64,
     /// Passes left before it is dropped whatever happens, so a picture that never shows the
     /// stroke (a failed render, a playhead beyond it) cannot leave it up for good.
-    pub(super) passes_left: u32,
+    pub(in crate::workspace) passes_left: u32,
 }
 
 /// `strokes` as one mesh in screen space: a quad along each segment and a round end at each
 /// point, widths following `halves`. Nothing is allocated per point beyond the mesh itself.
-pub(super) fn mesh(
+pub(in crate::workspace) fn mesh(
     strokes: &[PreviewStroke],
     to_screen: impl Fn(Pos2) -> Pos2,
     scale: f32,
@@ -143,7 +143,7 @@ fn quad(mesh: &mut Mesh, a: (Pos2, f32), b: (Pos2, f32), color: Color32) {
 impl Workspace {
     /// Adds a sample to the stroke being drawn, unless it is too close to the last one to matter
     /// at this zoom or the stroke is as long as it may get.
-    pub(super) fn push_freehand(&mut self, sample: InputSample, scale: f32) {
+    pub(in crate::workspace) fn push_freehand(&mut self, sample: InputSample, scale: f32) {
         let near = self.freehand.last().is_some_and(|last| {
             let step = Vec2::new((sample.x - last.x) as f32, (sample.y - last.y) as f32);
             step.length() * scale < MIN_STEP_PX
@@ -161,7 +161,10 @@ impl Workspace {
 
     /// `samples` as the strokes that will be committed: straightened if that is asked for, then
     /// with its mirror images. The preview and the commit both start here.
-    pub(super) fn stroke_set(&self, mut samples: Vec<InputSample>) -> Vec<Vec<InputSample>> {
+    pub(in crate::workspace) fn stroke_set(
+        &self,
+        mut samples: Vec<InputSample>,
+    ) -> Vec<Vec<InputSample>> {
         if self.paint.straight_edge || self.paint.straight_held {
             samples = flare_tools::ruler::straighten(&samples);
         }
@@ -179,7 +182,10 @@ impl Workspace {
     }
 
     /// `strokes` at the width and in the color of the tool in hand.
-    pub(super) fn previews_of(&self, strokes: &[Vec<InputSample>]) -> Vec<PreviewStroke> {
+    pub(in crate::workspace) fn previews_of(
+        &self,
+        strokes: &[Vec<InputSample>],
+    ) -> Vec<PreviewStroke> {
         let curve = PressureCurve::new(self.brush_light, 1.0);
         let (color, size, brush) = match self.tool {
             Tool::Brush => (self.paint.fill, self.brush_size, true),
@@ -214,12 +220,12 @@ impl Workspace {
     }
 
     /// The stroke being drawn, as it will look when committed.
-    pub(super) fn freehand_preview(&self) -> Vec<PreviewStroke> {
+    pub(in crate::workspace) fn freehand_preview(&self) -> Vec<PreviewStroke> {
         self.previews_of(&self.stroke_set(self.freehand.clone()))
     }
 
     /// Remembers what was just committed so it stays on screen until the stage shows it.
-    pub(super) fn settle(&mut self, strokes: Vec<PreviewStroke>) {
+    pub(in crate::workspace) fn settle(&mut self, strokes: Vec<PreviewStroke>) {
         // Overlapping parts of a see-through preview would show darker than the stroke does.
         if strokes.iter().any(|s| s.color.a() < 255) {
             return;
@@ -235,7 +241,7 @@ impl Workspace {
 
     /// Remembers a shape or line the geometry tools just committed, like [`Self::settle`], so
     /// that it stays on screen from the release until the stage picture shows it.
-    pub(super) fn settle_geometry(
+    pub(in crate::workspace) fn settle_geometry(
         &mut self,
         strokes: Vec<PreviewStroke>,
         shapes: Vec<SettleShape>,
@@ -251,7 +257,7 @@ impl Workspace {
 
     /// Drops the settling stroke once the stage texture includes it, or once the document has
     /// moved on (an undo, another edit, another tab's context) so it would be wrong to show.
-    pub(super) fn retire_settled(&mut self) {
+    pub(in crate::workspace) fn retire_settled(&mut self) {
         let Some(settling) = &self.paint.settling else {
             return;
         };

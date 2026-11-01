@@ -3,7 +3,7 @@
 //! Export). A menu Animate does not have is not made up.
 
 use super::*;
-use crate::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
+use flare_menubar::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
 
 fn menu(title: &str) -> &'static [MenuEntry] {
     MENU_LAYOUT

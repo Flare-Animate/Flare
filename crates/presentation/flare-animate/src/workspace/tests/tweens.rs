@@ -1,6 +1,6 @@
 use super::*;
-use crate::MenuEntry;
 use flare_document::Tween;
+use flare_menubar::MenuEntry;
 
 /// A rectangle on frames 0 to 9 and another at frame 10 that is 100 units to the right.
 fn two_keyframes() -> Workspace {
@@ -105,7 +105,7 @@ fn a_selection_that_cannot_tween_leaves_the_commands_off() {
 #[test]
 fn the_menus_offer_a_motion_tween_and_a_shape_tween_and_no_dimmed_stand_in() {
     let ws = workspace();
-    let entries = crate::all_entries();
+    let entries = flare_menubar::all_entries();
     let labels: Vec<String> = entries
         .iter()
         .filter_map(|e| match e {

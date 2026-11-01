@@ -11,7 +11,7 @@ use flare_document::{Camera, Content, Layer, Tween};
 use flare_ui::chrome;
 use glamx::{DAffine2, DVec2};
 
-use super::*;
+use crate::workspace::*;
 
 /// Animate's camera orange.
 const CAMERA_INK: Color32 = Color32::from_rgb(235, 150, 60);
@@ -28,7 +28,7 @@ impl Workspace {
             .find(|l| l.is_camera())
     }
 
-    pub(super) fn has_camera(&self) -> bool {
+    pub(in crate::workspace) fn has_camera(&self) -> bool {
         self.camera_layer().is_some()
     }
 
@@ -39,7 +39,7 @@ impl Workspace {
 
     /// Makes the camera `camera` from `frame` on (see `flare_editor::set_camera_key`), as one
     /// undo step.
-    pub(super) fn key_camera(
+    pub(in crate::workspace) fn key_camera(
         &mut self,
         frame: u32,
         camera: Camera,
@@ -65,7 +65,7 @@ impl Workspace {
 
     /// The Camera tool was picked: a scene without a camera gets one, looking at the stage as it
     /// is.
-    pub(super) fn ensure_camera(&mut self) {
+    pub(in crate::workspace) fn ensure_camera(&mut self) {
         if self.has_camera() {
             return;
         }
@@ -74,7 +74,7 @@ impl Workspace {
     }
 
     /// Shows the stage through the camera, or as it is edited. The picture has to be drawn again.
-    pub(super) fn set_camera_preview(&mut self, on: bool) {
+    pub(in crate::workspace) fn set_camera_preview(&mut self, on: bool) {
         if self.camera_preview == on {
             return;
         }
@@ -86,7 +86,7 @@ impl Workspace {
 
     /// Moves the camera so the picture follows a drag of `shift` stage units, keying it at the
     /// current frame.
-    pub(super) fn pan_camera(&mut self, shift: Vec2) {
+    pub(in crate::workspace) fn pan_camera(&mut self, shift: Vec2) {
         let Some(camera) = self.camera_here() else {
             return;
         };
@@ -107,7 +107,7 @@ impl Workspace {
 
     /// What the stage does for the camera: with the Camera tool, mark what the camera sees and
     /// let a drag move it; while previewing, say so and ignore the pointer.
-    pub(super) fn camera_stage(
+    pub(in crate::workspace) fn camera_stage(
         &mut self,
         response: &egui::Response,
         painter: &egui::Painter,
@@ -156,7 +156,7 @@ impl Workspace {
 
     /// The Camera tool's controls in Properties: where the camera looks at this frame, and how
     /// its keyframe moves to the next.
-    pub(super) fn camera_options(&mut self, ui: &mut Ui) {
+    pub(in crate::workspace) fn camera_options(&mut self, ui: &mut Ui) {
         let Some(camera) = self.camera_here() else {
             ui.weak("This document has no scene.");
             return;

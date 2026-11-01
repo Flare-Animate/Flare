@@ -3,21 +3,21 @@
 use flare_document::Content;
 use glamx::DVec2;
 
-use super::*;
+use crate::workspace::*;
 
 /// A point being dragged: which shape, which segment's end, and where it is now.
 #[derive(Clone, Copy, Debug)]
-pub(super) struct AnchorDrag {
-    pub(super) at: SpanRef,
-    pub(super) segment: usize,
+pub(in crate::workspace) struct AnchorDrag {
+    pub(in crate::workspace) at: SpanRef,
+    pub(in crate::workspace) segment: usize,
     /// Where the point was when it was grabbed.
-    pub(super) from: Pos2,
-    pub(super) to: Pos2,
+    pub(in crate::workspace) from: Pos2,
+    pub(in crate::workspace) to: Pos2,
 }
 
 impl Workspace {
     /// The points of the selected shape that can be dragged (none for instances).
-    pub(super) fn anchor_points(&self) -> Vec<(usize, Pos2)> {
+    pub(in crate::workspace) fn anchor_points(&self) -> Vec<(usize, Pos2)> {
         let (Some(at), Some(scene)) = (self.selected, self.scene_id()) else {
             return Vec::new();
         };
@@ -41,7 +41,7 @@ impl Workspace {
 
     /// Chooses the point of the selected shape under `point`, for Delete. False when there is
     /// none there.
-    pub(super) fn select_anchor_at(&mut self, point: Pos2) -> bool {
+    pub(in crate::workspace) fn select_anchor_at(&mut self, point: Pos2) -> bool {
         let found = self.anchor_near(point);
         if let Some((at, segment)) = found {
             self.selected_anchor = Some((at, segment, self.active().revision()));
@@ -51,7 +51,7 @@ impl Workspace {
 
     /// Delete with a point chosen: takes it out of the outline, as one undo step. False when
     /// no point is chosen (the key then does what it always does).
-    pub(super) fn delete_selected_anchor(&mut self) -> bool {
+    pub(in crate::workspace) fn delete_selected_anchor(&mut self) -> bool {
         let Some((at, segment, revision)) = self.selected_anchor.take() else {
             return false;
         };
@@ -70,7 +70,7 @@ impl Workspace {
     }
 
     /// Starts dragging the point nearest `point`, if one is close enough to grab.
-    pub(super) fn begin_anchor_drag(&mut self, point: Pos2) {
+    pub(in crate::workspace) fn begin_anchor_drag(&mut self, point: Pos2) {
         let Some(at) = self.selected else { return };
         let grab = self.handle_radius.max(f32::EPSILON);
         let nearest = self
@@ -89,14 +89,14 @@ impl Workspace {
         }
     }
 
-    pub(super) fn update_anchor_drag(&mut self, point: Pos2) {
+    pub(in crate::workspace) fn update_anchor_drag(&mut self, point: Pos2) {
         if let Some(drag) = &mut self.anchor_drag {
             drag.to = point;
         }
     }
 
     /// Applies the drag as one undo step, unless it was cancelled.
-    pub(super) fn end_anchor_drag(&mut self, cancelled: bool) {
+    pub(in crate::workspace) fn end_anchor_drag(&mut self, cancelled: bool) {
         let (Some(drag), Some(scene)) = (self.anchor_drag.take(), self.scene_id()) else {
             return;
         };
@@ -163,7 +163,7 @@ impl Workspace {
 
     /// A click with the Add, Delete or Convert Anchor Point tool: it edits the outline of the
     /// selected shape, or of the one under the pointer, as one undo step.
-    pub(super) fn anchor_click(&mut self, point: Pos2) {
+    pub(in crate::workspace) fn anchor_click(&mut self, point: Pos2) {
         if !matches!(
             self.tool,
             Tool::AddAnchor | Tool::DeleteAnchor | Tool::ConvertAnchor

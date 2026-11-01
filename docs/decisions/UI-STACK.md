@@ -18,7 +18,7 @@ surface, native dialogs and the native menu.
 Menu behaviour is defined once as `MenuAction` in `flare-animate`: whether an action is enabled,
 its current label, and how to perform it. Every menu surface uses that, so behaviour cannot
 drift. On macOS the menu bar is native (muda) and the in-window menu is hidden; elsewhere
-the in-window menu is used. See `crates/presentation/flare-animate/src/actions/` and
+the in-window menu is used. See `crates/presentation/flare-menubar/` and
 `apps/flare-desktop/src/menu.rs`.
 
 Shortcuts follow the familiar Animate profile: F5 insert frame, Shift+F5 remove frame, F6

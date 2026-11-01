@@ -1,8 +1,8 @@
 //! The History and Output panels.
 
-use crate::actions::MenuAction;
 use crate::workspace::Workspace;
 use egui::{RichText, Ui};
+use flare_menubar::MenuAction;
 use flare_ui::chrome;
 use flare_ui::icons;
 use flare_ui::theme;

@@ -3,7 +3,7 @@
 use flare_editor::frames;
 
 use super::*;
-use crate::actions::MenuAction;
+use flare_menubar::MenuAction;
 
 impl Workspace {
     /// The frames the range commands act on: the selected ones, or with none selected the current

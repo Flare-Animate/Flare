@@ -4,7 +4,8 @@
 
 use std::time::Duration;
 
-use flare_animate::{MenuAction, Workspace};
+use flare_animate::Workspace;
+use flare_menubar::MenuAction;
 use winit::event_loop::EventLoopProxy;
 
 use super::UserEvent;

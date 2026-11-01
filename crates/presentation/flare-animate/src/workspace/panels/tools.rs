@@ -1,8 +1,8 @@
 //! The tool strip and the options of the tool in hand.
 
-use crate::MenuAction;
 use crate::workspace::{Tool, Workspace};
 use egui::{Stroke, Ui};
+use flare_menubar::MenuAction;
 use flare_ui::{chrome, theme};
 
 use super::tool_slots::{SLOT_GROUPS, Slot, is_extra};
@@ -283,15 +283,17 @@ impl Workspace {
     fn nib_controls(&mut self, ui: &mut Ui) {
         use flare_tools::brush::{Nib, NibShape};
         chrome::row(ui, "Brush", |ui| {
-            let chosen = self.selected_brush();
+            let chosen = self.brush_shelf.selected();
             let mut pick = None;
             egui::ComboBox::from_id_salt("brush-list")
-                .selected_text(chosen.map_or("Plain", |i| self.custom_brushes()[i].name.as_str()))
+                .selected_text(
+                    chosen.map_or("Plain", |i| self.brush_shelf.presets()[i].name.as_str()),
+                )
                 .show_ui(ui, |ui| {
                     if ui.selectable_label(chosen.is_none(), "Plain").clicked() {
                         pick = Some(None);
                     }
-                    for (i, brush) in self.custom_brushes().iter().enumerate() {
+                    for (i, brush) in self.brush_shelf.presets().iter().enumerate() {
                         if ui
                             .selectable_label(chosen == Some(i), &brush.name)
                             .clicked()
@@ -301,7 +303,7 @@ impl Workspace {
                     }
                 });
             if let Some(index) = pick {
-                self.choose_brush(index);
+                self.brush_shelf.choose(index);
             }
             if ui
                 .button("New")
@@ -315,7 +317,7 @@ impl Workspace {
                 .on_hover_text("Delete the chosen custom brush")
                 .clicked()
             {
-                self.delete_custom_brush();
+                self.brush_shelf.delete_selected();
             }
         });
         // Choosing a brush above may have changed the nib: read the controls from it.
@@ -352,7 +354,7 @@ impl Workspace {
         });
         let edited = Nib::new(shape, f64::from(angle), f64::from(flatness));
         if edited != nib {
-            self.set_brush_nib(edited);
+            self.brush_shelf.set_nib(edited);
         }
     }
 

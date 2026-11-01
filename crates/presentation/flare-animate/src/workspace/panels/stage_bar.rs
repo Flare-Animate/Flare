@@ -1,8 +1,8 @@
 //! The status bar, document tabs and the bar above the stage.
 
-use crate::actions::MenuAction;
 use crate::workspace::{Mode, Workspace};
 use egui::{Align, Layout, RichText, Ui};
+use flare_menubar::MenuAction;
 use flare_ui::chrome;
 use flare_ui::icons;
 use flare_ui::theme;

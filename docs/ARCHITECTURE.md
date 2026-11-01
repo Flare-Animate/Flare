@@ -37,7 +37,8 @@ Executables are in `apps/`. The folders mean:
 | services | `flare-video` | The movie as an MP4 with its sound, made in pure Rust: H.264 from `rusty_h264`, AAC-LC from OxideAV's `oxideav-aac`, the container from `muxide`. Frames are drawn, encoded and written one at a time, the cued sounds mixed and encoded beside them, and the file appears only when whole and never over another. Desktop only: the web build does not carry it. |
 | services | `flare-platform` | What a desktop needs from the operating system: per-user directories (the `directories` crate), the sound card, native dialogs, recovery prompts, and the threads for publishing, exporting and test movies. No UI types. |
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the stage's pan and zoom math. |
-| presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, tools, menu actions. No window or GPU code. |
+| presentation | `flare-menubar` | The menu bar with no window in it: every command (`MenuAction`), the menus and their order, shortcuts, icons and what each item is called for the state of what it toggles (`LabelState`). Shared by the native macOS menu and the in-window one. |
+| presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, and, in `workspace/tools/`, what the workspace does for each tool (wiring pointer events and settings to what `flare-tools` computes). No window or GPU code. |
 | apps | `flare-cli` | Headless project editing and export. |
 | apps | `flare-desktop` | The desktop window (winit, egui-wgpu, the native menu), all in `ui/`; everything else it needs is `flare-platform`. |
 | apps | `flare-web` | The same workspace in a browser tab (eframe on a canvas); compiles for `wasm32-unknown-unknown` only, see [WEB.md](WEB.md). |

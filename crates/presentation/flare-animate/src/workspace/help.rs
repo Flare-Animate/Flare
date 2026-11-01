@@ -1,7 +1,7 @@
 //! The Help menu's windows: About, and the list of keyboard shortcuts.
 
 use super::Workspace;
-use crate::actions::MenuAction;
+use flare_menubar::MenuAction;
 
 /// Where the project lives and where its people talk.
 pub const GITHUB_URL: &str = "https://github.com/Flare-Animate/Flare";

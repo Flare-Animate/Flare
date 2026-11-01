@@ -12,17 +12,17 @@ use flare_runtime::{TextJob, TextPreviewRender};
 use flare_text::{Caret, TextStyle};
 use flare_tools::ops;
 
-use super::*;
+use crate::workspace::*;
 
 /// The latest answer: the letters so far (none while there are none) and where the caret is.
-pub(super) struct TextPreview {
-    pub(super) shape: Option<Shape>,
-    pub(super) caret: Caret,
+pub(in crate::workspace) struct TextPreview {
+    pub(in crate::workspace) shape: Option<Shape>,
+    pub(in crate::workspace) caret: Caret,
 }
 
 /// What a preview was asked for, so it is asked again only when something changed.
 #[derive(Clone, PartialEq)]
-pub(super) struct PreviewAsk {
+pub(in crate::workspace) struct PreviewAsk {
     text: String,
     cursor: usize,
     family: String,
@@ -36,7 +36,7 @@ pub(super) struct PreviewAsk {
 impl Workspace {
     /// Asks the font worker for the text as typed so far, if it is not what was last asked for.
     /// `cursor` is the editor's cursor, in characters.
-    pub(super) fn update_text_preview(&mut self, cursor: usize) {
+    pub(in crate::workspace) fn update_text_preview(&mut self, cursor: usize) {
         let Some(edit) = self.text.edit.as_ref() else {
             return;
         };
@@ -91,7 +91,7 @@ impl Workspace {
 
     /// Keeps the answer the font worker gave, if it is the one asked for last and the text is
     /// still being typed (or is on its way to the stage).
-    pub(super) fn text_preview_arrived(
+    pub(in crate::workspace) fn text_preview_arrived(
         &mut self,
         id: u64,
         result: Result<(Option<Shape>, Caret), String>,
@@ -111,7 +111,7 @@ impl Workspace {
     }
 
     /// Stops showing the typed text instead of the stored text.
-    pub(super) fn clear_text_preview(&mut self) {
+    pub(in crate::workspace) fn clear_text_preview(&mut self) {
         self.text.preview = None;
         self.text.preview_asked = None;
         self.text.preview_pending = None;
@@ -135,12 +135,12 @@ impl Workspace {
     }
 
     /// A number that changes whenever the stage should be drawn again because of the typed text.
-    pub(super) fn text_epoch(&self) -> u64 {
+    pub(in crate::workspace) fn text_epoch(&self) -> u64 {
         self.text.preview_epoch * 2 + u64::from(self.text_preview_active())
     }
 
     /// What the render worker draws in place of the stored letters.
-    pub(super) fn text_preview_render(&self) -> Option<TextPreviewRender> {
+    pub(in crate::workspace) fn text_preview_render(&self) -> Option<TextPreviewRender> {
         if !self.text_preview_active() {
             return None;
         }
@@ -156,7 +156,12 @@ impl Workspace {
     }
 
     /// The box around the typed text and its caret, over the stage.
-    pub(super) fn draw_text_cursor(&self, ctx: &egui::Context, image_rect: Rect, scale: f32) {
+    pub(in crate::workspace) fn draw_text_cursor(
+        &self,
+        ctx: &egui::Context,
+        image_rect: Rect,
+        scale: f32,
+    ) {
         let Some(preview) = self.text.preview.as_ref() else {
             return;
         };

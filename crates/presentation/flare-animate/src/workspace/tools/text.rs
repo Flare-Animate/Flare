@@ -11,7 +11,7 @@ use flare_document::{Content, Shape, TextSource};
 use flare_runtime::TextJob;
 use flare_tools::ops::{self, SpanRef};
 
-use super::*;
+use crate::workspace::*;
 
 /// The editor's text is drawn no smaller or larger than this on the screen, whatever the zoom.
 const EDITOR_PX: std::ops::RangeInclusive<f32> = 8.0..=600.0;
@@ -33,7 +33,12 @@ impl Workspace {
 
     /// The box where text is typed, at the text's corner on the stage and in the size it will
     /// have. A press on the stage outside it, Escape, or Ctrl/Cmd+Enter finishes the text.
-    pub(super) fn text_editor(&mut self, ctx: &egui::Context, image_rect: Rect, scale: f32) {
+    pub(in crate::workspace) fn text_editor(
+        &mut self,
+        ctx: &egui::Context,
+        image_rect: Rect,
+        scale: f32,
+    ) {
         let id = self.text.editor_id;
         let px = (self.text.size * scale).clamp(*EDITOR_PX.start(), *EDITOR_PX.end());
         let Some(edit) = self.text.edit.as_mut() else {
@@ -91,7 +96,7 @@ impl Workspace {
     }
 
     /// The color the text being typed will be: its object's, or the fill for new text.
-    pub(super) fn text_ink(&self) -> Color32 {
+    pub(in crate::workspace) fn text_ink(&self) -> Color32 {
         let existing = self
             .text
             .edit
@@ -104,7 +109,7 @@ impl Workspace {
     // ---- starting and finishing -------------------------------------------------------
 
     /// A click on the stage with the Text tool: on text, edit it; elsewhere, start new text.
-    pub(super) fn text_click(&mut self, at: Pos2) {
+    pub(in crate::workspace) fn text_click(&mut self, at: Pos2) {
         if self.text.edit.is_some() {
             return;
         }
@@ -126,7 +131,7 @@ impl Workspace {
     }
 
     /// Double-clicking text with the Selection tool edits it. False when the selection is not text.
-    pub(super) fn edit_selected_text(&mut self) -> bool {
+    pub(in crate::workspace) fn edit_selected_text(&mut self) -> bool {
         let Some(span) = self.selected.filter(|span| self.text_at(*span).is_some()) else {
             return false;
         };
@@ -137,7 +142,7 @@ impl Workspace {
 
     /// The topmost text object whose box (the letters' bounds, with a margin) holds `point`.
     /// Clicking between letters, or inside one, still means that text.
-    pub(super) fn text_box_hit(&self, point: Pos2) -> Option<SpanRef> {
+    pub(in crate::workspace) fn text_box_hit(&self, point: Pos2) -> Option<SpanRef> {
         let scene = self.scene_id()?;
         let layers = self.document().scenes().first()?.timeline().layers();
         layers.iter().enumerate().find_map(|(index, layer)| {
@@ -146,7 +151,8 @@ impl Workspace {
                 return None;
             };
             shape.text()?;
-            if !layer.is_visible() || super::selection::locked_in_folders(layers, index) {
+            if !layer.is_visible() || crate::workspace::selection::locked_in_folders(layers, index)
+            {
                 return None;
             }
             let at = SpanRef {
@@ -159,7 +165,7 @@ impl Workspace {
     }
 
     /// The text object in the span `at`, and its source.
-    pub(super) fn text_at(&self, at: SpanRef) -> Option<(Shape, TextSource)> {
+    pub(in crate::workspace) fn text_at(&self, at: SpanRef) -> Option<(Shape, TextSource)> {
         let scene = self.scene_id()?;
         let Content::Shape(shape) = ops::find_span(self.document(), scene, at)?.content() else {
             return None;
@@ -169,7 +175,7 @@ impl Workspace {
     }
 
     /// The text object selected, if one is.
-    pub(super) fn selected_text(&self) -> Option<(SpanRef, Shape, TextSource)> {
+    pub(in crate::workspace) fn selected_text(&self) -> Option<(SpanRef, Shape, TextSource)> {
         let at = self.selected?;
         let (shape, source) = self.text_at(at)?;
         Some((at, shape, source))
@@ -250,14 +256,14 @@ impl Workspace {
     }
 
     /// Sets the selected text object in a new `source` (a different font or size, say).
-    pub(super) fn retext_selected(&mut self, source: TextSource) {
+    pub(in crate::workspace) fn retext_selected(&mut self, source: TextSource) {
         if let Some((at, shape, _)) = self.selected_text() {
             self.submit_text_shape(source, Some((at, shape)));
         }
     }
 
     /// Puts finished text on the stage: on a layer of its own, or in place of the text it edits.
-    pub(super) fn text_ready(&mut self, shape: Shape, target: TextTarget) {
+    pub(in crate::workspace) fn text_ready(&mut self, shape: Shape, target: TextTarget) {
         match target {
             TextTarget::New => self.insert_shape_layer(shape, "Text"),
             TextTarget::Existing(at) => {
@@ -277,7 +283,7 @@ impl Workspace {
     // ---- the fonts there are ----------------------------------------------------------
 
     /// Asks the font worker for the families there are, once.
-    pub(super) fn ask_font_families(&mut self) {
+    pub(in crate::workspace) fn ask_font_families(&mut self) {
         if !self.text.families_asked {
             self.text.families_asked = true;
             self.background.submit_text(TextJob::Families);
@@ -287,7 +293,7 @@ impl Workspace {
 
     /// Finishes the text being typed when something else is chosen, as the other tools finish
     /// what they are drawing.
-    pub(super) fn finish_text_for_tool_change(&mut self) {
+    pub(in crate::workspace) fn finish_text_for_tool_change(&mut self) {
         if self.text.edit.is_some() {
             self.place_text();
         }

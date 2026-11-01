@@ -1,9 +1,9 @@
 //! The Align and Transform panels.
 
-use crate::actions::MenuAction;
 use crate::workspace::TransformEdit;
 use crate::workspace::Workspace;
 use egui::Ui;
+use flare_menubar::MenuAction;
 use flare_ui::chrome;
 
 use super::*;

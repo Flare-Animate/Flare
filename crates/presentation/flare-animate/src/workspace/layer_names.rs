@@ -3,7 +3,7 @@
 use egui::{Pos2, Rect, Ui};
 
 use super::*;
-use crate::actions::MenuAction;
+use flare_menubar::MenuAction;
 
 impl Workspace {
     /// Starts editing the name of `layer` in place.

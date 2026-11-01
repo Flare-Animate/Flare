@@ -4,19 +4,24 @@
 use egui::{Pos2, Stroke};
 use flare_tools::lasso::polygon::{self, Click};
 
-use super::*;
+use crate::workspace::*;
 
 impl Workspace {
     /// A click with the polygon lasso: a corner, or the end of the loop when it lands on the
     /// first corner of one that already encloses an area.
-    pub(super) fn polygon_lasso_click(&mut self, at: Pos2, scale: f32, additive: bool) {
+    pub(in crate::workspace) fn polygon_lasso_click(
+        &mut self,
+        at: Pos2,
+        scale: f32,
+        additive: bool,
+    ) {
         if polygon::click(&mut self.lasso, at, scale) == Click::Close {
             self.finish_lasso(additive);
         }
     }
 
     /// Enter or a double click: closes the loop, if it encloses anything.
-    pub(super) fn polygon_lasso_finish(&mut self, additive: bool) {
+    pub(in crate::workspace) fn polygon_lasso_finish(&mut self, additive: bool) {
         if self.tool != Tool::PolygonLasso || self.lasso.is_empty() {
             return;
         }
@@ -26,7 +31,7 @@ impl Workspace {
     }
 
     /// The corners so far, with a line on to the pointer and back to the first corner.
-    pub(super) fn draw_polygon_lasso(
+    pub(in crate::workspace) fn draw_polygon_lasso(
         &self,
         painter: &egui::Painter,
         to_screen: impl Fn(Pos2) -> Pos2,

@@ -1,7 +1,7 @@
 //! Menu actions: whether they apply, what they are called and doing them.
 
-use crate::MenuAction;
 use flare_document::Tween;
+use flare_menubar::MenuAction;
 use flare_tools::ops::{self};
 use flare_ui::view::{self};
 use glamx::{DAffine2, DVec2};

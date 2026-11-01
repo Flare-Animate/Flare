@@ -1,9 +1,9 @@
-//! Native menu bar. The structure comes from `flare_animate::MENU_LAYOUT` and the behaviour
+//! Native menu bar. The structure comes from `flare_menubar::MENU_LAYOUT` and the behaviour
 //! from `Workspace::{is_enabled, label, perform}`, so this file only adds what is specific
 //! to a native menu: accelerators, the app and Window menus, and syncing item state.
 
 #[cfg(any(target_os = "macos", test))]
-use flare_animate::MenuAction;
+use flare_menubar::MenuAction;
 
 /// The accelerator for an action, in muda's syntax. `None` means no shortcut.
 ///
@@ -23,7 +23,8 @@ mod native {
     use std::str::FromStr;
 
     use anyhow::{Context, Result};
-    use flare_animate::{MENU_LAYOUT, MenuAction, MenuEntry, Workspace};
+    use flare_animate::Workspace;
+    use flare_menubar::{MENU_LAYOUT, MenuAction, MenuEntry};
     use muda::accelerator::Accelerator;
     use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 

@@ -6,14 +6,12 @@
 //! A drag-to-draw gesture is tool state until it is released; Escape cancels it.
 #![forbid(unsafe_code)]
 
-mod actions;
 #[cfg(test)]
 mod icon_names;
 mod layout;
 mod timeline_view;
 mod workspace;
 
-pub use actions::{MENU_LAYOUT, MenuAction, MenuEntry, OFF_MENU, all_entries};
 pub use layout::{LayoutError, MAX_LAYOUT_BYTES, Pane};
 pub use workspace::{
     AudioEvent, DialogRequest, FrameOp, IMPORT_EXTENSIONS, MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES,

@@ -1,7 +1,7 @@
 //! Shortcuts, menus and the stage furniture.
 
-use crate::{MENU_LAYOUT, MenuAction, MenuEntry};
 use egui::{Key, Modifiers, Pos2, Rect, Vec2};
+use flare_menubar::{MENU_LAYOUT, MenuAction, MenuEntry};
 
 use super::*;
 

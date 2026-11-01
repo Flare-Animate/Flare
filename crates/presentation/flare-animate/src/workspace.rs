@@ -17,12 +17,9 @@ use std::path::PathBuf;
 
 use flare_input::InputSample;
 
-mod anchors;
 mod arrange;
 mod assist;
 mod background_work;
-mod brushes;
-mod camera_tool;
 mod command_labels;
 mod commands;
 mod core;
@@ -47,9 +44,7 @@ mod layers;
 mod open_any;
 mod outlines;
 mod panels;
-mod pen_tool;
 mod playback;
-mod polygon_lasso;
 mod preferences;
 mod props_types;
 mod publish_settings;
@@ -62,13 +57,12 @@ mod shell;
 mod sound;
 mod stage;
 mod stage_furniture;
-mod stroke_preview;
 mod symbols;
 mod tabs;
+mod tools;
+use tools::{anchors, stroke_preview, text_preview};
 #[cfg(test)]
 mod tests;
-mod text;
-mod text_preview;
 mod timeline;
 mod types;
 
@@ -77,7 +71,7 @@ use helpers::*;
 use types::*;
 pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
 pub use flare_audio::AudioEvent;
-pub use flare_tools::brush::{BrushPreset, MAX_BRUSHES};
+pub use flare_tools::brush::BrushPreset;
 pub use open_any::{IMPORT_EXTENSIONS, PROJECT_EXTENSIONS, PathKind, classify};
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use publish_settings::PublishSettings;

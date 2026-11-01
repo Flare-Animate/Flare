@@ -27,7 +27,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 /// background work finishes on its own thread).
 pub(crate) enum UserEvent {
     #[cfg(target_os = "macos")]
-    Menu(flare_animate::MenuAction),
+    Menu(flare_menubar::MenuAction),
     /// A test movie finished starting (or failed to) on its own thread, in a Ruffle program of
     /// its own; the in-window player has `MovieBytes` instead.
     #[cfg(not(feature = "ruffle"))]

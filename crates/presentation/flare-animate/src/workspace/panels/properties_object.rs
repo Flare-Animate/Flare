@@ -106,7 +106,7 @@ impl Workspace {
             ui.label(kind.label());
         });
         if ui.button("Edit Symbol").clicked() {
-            self.perform(crate::actions::MenuAction::EditSymbol);
+            self.perform(flare_menubar::MenuAction::EditSymbol);
         }
     }
 

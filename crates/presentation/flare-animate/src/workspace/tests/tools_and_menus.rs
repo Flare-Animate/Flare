@@ -29,7 +29,7 @@ fn the_zoom_percentage_sets_the_stage_scale_and_fit_returns_to_fitting() {
 
 #[test]
 fn menus_hold_planned_commands_dimmed_and_every_real_action_once() {
-    let mocks = crate::all_entries()
+    let mocks = flare_menubar::all_entries()
         .iter()
         .filter(|e| matches!(e, MenuEntry::Mock(_)))
         .count();

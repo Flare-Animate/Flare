@@ -1954,6 +1954,7 @@ dependencies = [
  "flare-history",
  "flare-i18n",
  "flare-input",
+ "flare-menubar",
  "flare-render",
  "flare-runtime",
  "flare-storage",
@@ -2039,6 +2040,7 @@ dependencies = [
  "flare-animate",
  "flare-core",
  "flare-document",
+ "flare-menubar",
  "flare-platform",
  "flare-publish",
  "flare-ruffle",
@@ -2182,6 +2184,13 @@ dependencies = [
  "tempfile",
  "tokio",
  "uuid",
+]
+
+[[package]]
+name = "flare-menubar"
+version = "0.1.0"
+dependencies = [
+ "flare-ui",
 ]
 
 [[package]]

@@ -1,8 +1,8 @@
 //! The timeline toolbar.
 
-use crate::actions::MenuAction;
 use crate::workspace::{Command, Layer, LayerId, MAX_ONION_FRAMES, Workspace};
 use egui::{RichText, Ui};
+use flare_menubar::MenuAction;
 use flare_ui::chrome;
 use flare_ui::theme;
 

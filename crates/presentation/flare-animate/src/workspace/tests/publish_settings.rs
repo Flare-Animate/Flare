@@ -1,10 +1,10 @@
 use super::*;
-use crate::MenuEntry;
+use flare_menubar::MenuEntry;
 
 #[test]
 fn the_file_menu_names_publishing_as_animate_does() {
     let ws = workspace();
-    let labels: Vec<String> = crate::all_entries()
+    let labels: Vec<String> = flare_menubar::all_entries()
         .iter()
         .filter_map(|e| match e {
             MenuEntry::Action(a) => Some(ws.label(*a)),

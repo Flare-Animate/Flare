@@ -4,7 +4,7 @@ use egui::Pos2;
 use flare_core::{Rgba8, ShapeId};
 use flare_tools::pen::{PenStyle, Press, path_shape};
 
-use super::*;
+use crate::workspace::*;
 
 impl Workspace {
     // ---- pen tool --------------------------------------------------------------------
@@ -56,7 +56,7 @@ impl Workspace {
     /// Turns the pen path into a shape on a new layer, as one undo step. A closed path is
     /// filled (and outlined when Outline is on); an open path has no area, so it is drawn with
     /// the stroke settings, like a line.
-    pub(super) fn commit_pen(&mut self, closed: bool) {
+    pub(in crate::workspace) fn commit_pen(&mut self, closed: bool) {
         let Some(path) = self.pen.segments(closed) else {
             self.report(if closed {
                 "A closed path needs at least three points"

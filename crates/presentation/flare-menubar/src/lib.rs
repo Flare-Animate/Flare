@@ -1,12 +1,17 @@
-//! Menu actions shared by every menu surface (the native macOS menu bar, the in-window
-//! menu on other platforms). A surface asks the workspace whether an action is enabled,
+//! The menu bar: every command a person can invoke ([`MenuAction`]), the menus they sit in and in
+//! what order ([`MENU_LAYOUT`]), their shortcuts and their icons. It is shared by every surface
+//! that shows a menu (the native macOS menu bar, the in-window menu on other platforms) and knows
+//! nothing of a window or a document: a surface asks the workspace whether an action is enabled,
 //! what to call it right now, and to perform it, so behaviour cannot drift between them.
+#![forbid(unsafe_code)]
 
+mod labels;
 mod menu;
 mod meta;
 #[cfg(test)]
 mod tests;
 
+pub use labels::LabelState;
 pub use menu::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
 
 /// A user-invokable command. Variants map one-to-one onto menu items.
