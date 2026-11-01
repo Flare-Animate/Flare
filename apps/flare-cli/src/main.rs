@@ -209,6 +209,9 @@ enum Command {
         #[arg(long)]
         ruffle: Option<PathBuf>,
     },
+    /// Open the desktop app, on the given projects if any (the app is found next to this program,
+    /// on PATH, or at $FLARE_DESKTOP).
+    Open { paths: Vec<PathBuf> },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,
@@ -355,6 +358,7 @@ fn main() -> Result<()> {
             responsive,
         } => project::publish_html5(&path, &out, !no_loop, !no_center, responsive)?,
         Command::TestMovie { path, ruffle } => project::test_movie(&path, ruffle)?,
+        Command::Open { paths } => project::open_app(&paths)?,
         Command::Layer {
             op,
             path,

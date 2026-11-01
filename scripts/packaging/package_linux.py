@@ -38,8 +38,9 @@ def configuration(version, target, binary, output, format_name):
 def native_package(version, target, binary, archive, temporary, format_name):
     output = temporary / "output"
     output.mkdir()
-    # cargo-packager names the installed program after the file, so it is staged as `flare`.
-    staged = temporary / "flare"
+    # cargo-packager names the installed program after the file, so it is staged as `flare-desktop`:
+    # `flare` is the command line, and the two must not share a name on PATH.
+    staged = temporary / "flare-desktop"
     shutil.copy2(binary, staged)
     staged.chmod(0o755)
     config = configuration(version, target, staged, output, format_name)
@@ -53,7 +54,7 @@ def native_package(version, target, binary, archive, temporary, format_name):
                               {"path": str(staged), "main": False}]
         desktop = temporary / f"{APP_ID}.desktop"
         desktop.write_text((release.ROOT / "packaging/flare.desktop").read_text()
-                           .replace("Exec=flare", f"Exec={launcher.name}")
+                           .replace("Exec=flare-desktop", f"Exec={launcher.name}")
                            .replace("Icon=flare", f"Icon={APP_ID}"), encoding="utf-8")
         metadata = temporary / f"{APP_ID}.metainfo.xml"
         metadata.write_text((release.ROOT / "packaging/flare.metainfo.xml").read_text()

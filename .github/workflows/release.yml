@@ -11,7 +11,7 @@ on:
       - 'packaging/**'
       - 'assets/flare-icon*'
       - 'apps/flare-desktop/**'
-      - 'docs/release.md'
+      - 'docs/RELEASE.md'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
@@ -148,7 +148,7 @@ jobs:
           inspection=$(mktemp -d)
           cd "$inspection"
           "$appimage" --appimage-extract > /dev/null
-          test -x squashfs-root/usr/bin/flare
+          test -x squashfs-root/usr/bin/flare-desktop
           test -f squashfs-root/usr/share/mime/packages/flare.xml
       - name: Install WiX 5 for both Windows architectures
         if: runner.os == 'Windows'

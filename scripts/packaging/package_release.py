@@ -123,7 +123,7 @@ def write_update_archive(app, archive):
 def portable_tar_entry(info):
     # Windows hosts do not expose Unix executable bits. Set the archive mode
     # explicitly, independent of where the packager is tested.
-    info.mode = 0o755 if info.name in ("flare", "flare-cli", "flare-mcp") else 0o644
+    info.mode = 0o755 if info.name in ("flare", "flare-desktop", "flare-cli", "flare-mcp") else 0o644
     info.uid = info.gid = 0
     info.uname = info.gname = ""
     return info
@@ -141,7 +141,7 @@ def package(version, target, binary, output):
     archive = output / (name + extension)
     with tempfile.TemporaryDirectory(prefix="flare-archive-") as temporary:
         payload = Path(temporary)
-        executable = payload / ("flare.exe" if "windows" in target else "flare")
+        executable = payload / ("flare-desktop.exe" if "windows" in target else "flare-desktop")
         shutil.copy2(binary, executable)
         executable.chmod(0o755)
         shutil.copy2(ROOT / "LICENSE", payload / "LICENSE")

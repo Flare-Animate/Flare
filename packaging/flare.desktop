@@ -2,7 +2,7 @@
 Type=Application
 Name=Flare
 Comment=2D animation
-Exec=flare %F
+Exec=flare-desktop %F
 Icon=flare
 Terminal=false
 Categories=Graphics;2DGraphics;VectorGraphics;

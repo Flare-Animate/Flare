@@ -11,7 +11,7 @@
     <StandardDirectory Id="ProgramFiles6432Folder">
       <Directory Id="INSTALLFOLDER" Name="Flare">
         <Component Id="Application" Guid="*" Bitness="always64">
-          <File Id="FlareExe" Source="$(var.Binary)" Name="flare.exe" KeyPath="yes">
+          <File Id="FlareExe" Source="$(var.Binary)" Name="flare-desktop.exe" KeyPath="yes">
             <Shortcut Id="LaunchFlare" Name="Flare" Directory="ProgramMenuFolder"
                       Advertise="yes" WorkingDirectory="INSTALLFOLDER" Icon="FlareIcon" />
           </File>
@@ -48,15 +48,15 @@
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKLM" Key="Software\Classes\.xfl\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
-          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe"
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe"
                          Name="FriendlyAppName" Type="string" Value="Flare" />
-          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\SupportedTypes"
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".flare" Type="string" Value="" />
-          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\SupportedTypes"
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".fla" Type="string" Value="" />
-          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\SupportedTypes"
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".xfl" Type="string" Value="" />
-          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare.exe\shell\open\command"
+          <RegistryValue Root="HKLM" Key="Software\Classes\Applications\flare-desktop.exe\shell\open\command"
                          Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
           <RegistryValue Root="HKLM" Key="Software\Flare\Capabilities"
                          Name="ApplicationName" Type="string" Value="Flare" />

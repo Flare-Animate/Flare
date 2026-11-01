@@ -37,7 +37,7 @@ license = "BSD-3-Clause"
 summary = "2D animation"
 url = "https://github.com/Flare-Animate/Flare"
 assets = [
-    { source = "target/release/flare-desktop", dest = "/usr/bin/flare", mode = "755" },
+    { source = "target/release/flare-desktop", dest = "/usr/bin/flare-desktop", mode = "755" },
     { source = "packaging/flare.desktop", dest = "/usr/share/applications/flare.desktop", mode = "644" },
     { source = "assets/flare-icon-256.png", dest = "/usr/share/icons/hicolor/256x256/apps/flare.png", mode = "644" },
     { source = "packaging/flare.metainfo.xml", dest = "/usr/share/metainfo/io.github.Flare-Animate.Flare.metainfo.xml", mode = "644" },

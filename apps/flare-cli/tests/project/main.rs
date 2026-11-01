@@ -8,6 +8,7 @@ mod camera;
 mod editing;
 mod formats;
 mod layers_and_stage;
+mod open;
 mod rendering;
 
 fn run(args: &[&str]) -> Output {

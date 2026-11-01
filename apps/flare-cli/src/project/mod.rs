@@ -23,7 +23,7 @@ pub use draw::{PlaceOptions, add_layer, add_symbol, draw_rect, eval, place, set_
 #[allow(unused_imports)]
 use interchange::*;
 pub use interchange::{
-    export_gif, export_mp4, export_xfl, import, publish_html5, publish_swf, test_movie,
+    export_gif, export_mp4, export_xfl, import, open_app, publish_html5, publish_swf, test_movie,
 };
 #[allow(unused_imports)]
 use render::*;

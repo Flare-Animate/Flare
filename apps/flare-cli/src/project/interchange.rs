@@ -170,6 +170,16 @@ pub fn publish_html5(
 }
 
 /// Test Movie: publish the project and play it in an external Ruffle, waiting for it to close.
+/// Starts the desktop app on `paths` and returns without waiting for it.
+pub fn open_app(paths: &[PathBuf]) -> Result<Value> {
+    let app = flare_runtime::find_desktop().context(
+        "the Flare app was not found: put flare-desktop next to this program or on PATH, or set FLARE_DESKTOP",
+    )?;
+    flare_runtime::open_desktop(&app, paths)
+        .with_context(|| format!("cannot start {}", app.display()))?;
+    Ok(json!({ "app": app.to_string_lossy(), "opened": paths.len() }))
+}
+
 pub fn test_movie(path: &Path, ruffle: Option<PathBuf>) -> Result<Value> {
     let session = open(path)?;
     let runner = ruffle.or_else(flare_ruffle::find_ruffle).context(
