@@ -172,10 +172,18 @@ A plain launch opens on the Home page, laid out like Animate's: a sidebar with t
 version, Home (and Learn, dimmed: not built), and the buttons New File, Open and Import; in the main
 area **Create new** (cards for Character Animation 1920 x 1080 at 24 fps, Social 1080 x 1080 at 30,
 Portrait 1080 x 1920 at 30, Web 1280 x 720 at 24, Classic 550 x 400 at 24, each drawn with the
-proportions of its stage), then **Recent** (up to twelve project cards, newest first, each with the
-folder, when the file was last changed and its size, a search box over the names and folders). There is no button on Home to clear the list: it is **Clear recent projects** in Preferences, away from the search box and the cards, because one slip there forgets every project. The time reads as how long ago ("Modified 2 hours ago", then days, months and years), never a date, so it is the same in every time zone; a file that
+proportions of its stage, and **Custom Size**, a plus card that opens a small window for a width,
+height and frame rate (up to the stage's largest side and 240 fps) with Create and Cancel; it goes
+away if a tab is chosen over Home), then **Recent**: a list, as Animate's, of up to twelve projects
+with a Filter box over the names and folders. The columns are Name (with its folder, dimmed), Date
+modified, Size and Kind (Flare project, Animate document or Animate project). A click on a heading
+orders the list by it, up, then down, then back to the order the projects were opened in; a file
+whose size or time is not known yet goes last whichever way the column runs. There is no button on
+Home to clear the list: it is **Clear recent projects** in Preferences, away from the filter and
+the rows, because one slip there forgets every project. The time reads as how long ago ("2 hours
+ago", then days, months and years), never a date, so it is the same in every time zone; a file that
 is gone says "Not found". The files are read on a thread of their own, so a slow drive never
-stalls the page, and a card says "Reading…" until the answer is in. The presets are Flare's own, not Animate's. Choosing a card, New File,
+stalls the page, and a row says "Reading…" until the answer is in. The presets are Flare's own, not Animate's. Choosing a card, New File,
 Open or Import leaves Home; a new project over an untouched document replaces it instead of adding a tab.
 
 The top bar's right end holds, from the left, Publish (an arrow up out of a tray, as Animate has a Publish button there), Play, Undo, Redo and the settings gear (Preferences), which is the rightmost button of the top bar, in the same corner on Home and in the editor. Preferences opens as a dialog in the middle of the window over a dimmed backdrop, like PaintCraft's. It has an X at the top right and Close at the bottom right, and Escape or a click outside closes it; Restore defaults, red, is at the bottom left. Its categories (General, Stage, Timeline and drawing, Recent projects) each have a bold heading with a picture, and the controls sit in a box inset below the dialog's own color, so a category reads as a block; they are not tabs.
@@ -232,3 +240,10 @@ scene's own coordinates whatever the camera does. Removing the camera removes it
 camera keyframe does not follow frames inserted at the end of the movie (the last keyframe runs to the
 end the movie had when it was set), "attach to camera" for a layer that should not move with it, and
 the camera's color effects. Nobody has used it by hand yet.
+
+## The application menu
+
+On macOS the first menu, named Flare, holds About Flare, Preferences (Cmd+,), the system's Services,
+Hide and Quit, as other Mac applications do; About and Preferences are not repeated in Edit and
+Help there. Elsewhere Preferences is in Edit with Ctrl+, and About in Help. About opens Flare's
+window with the version and links to GitHub and Discord.

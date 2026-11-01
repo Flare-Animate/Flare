@@ -30,6 +30,7 @@ impl MenuAction {
             Self::ClearKeyframe => "Shift+F6",
             Self::InsertBlankKeyframe => "F7",
             Self::TestMovie => "CmdOrCtrl+Enter",
+            Self::Preferences => "CmdOrCtrl+,",
             _ => return None,
         })
     }

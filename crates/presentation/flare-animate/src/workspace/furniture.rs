@@ -84,6 +84,7 @@ impl Workspace {
         self.ensure_language_font(&ctx);
         self.file_windows(&ctx);
         self.help_windows(&ctx);
+        self.custom_size_window(&ctx);
         if self.playing {
             ctx.request_repaint();
         }
@@ -121,6 +122,9 @@ impl Workspace {
             }
             if ctx.input_mut(|i| i.consume_key(frames_chord, Key::V)) {
                 self.paste_frames();
+            }
+            if ctx.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::Comma)) {
+                self.perform(MenuAction::Preferences);
             }
             if ctx.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::D))
                 && !ctx.egui_wants_keyboard_input()

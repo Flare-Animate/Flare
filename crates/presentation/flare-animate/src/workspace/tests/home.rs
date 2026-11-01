@@ -401,3 +401,33 @@ fn the_home_buttons_can_be_read_on_their_fills_in_both_themes() {
         flare_ui::theme::set_mode(flare_ui::theme::Mode::Dark);
     }
 }
+
+#[test]
+fn the_custom_size_card_opens_a_window_that_makes_a_project_of_the_chosen_size() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    ws.set_home(true);
+    ws.show_custom_size();
+    assert!(ws.custom_size_shown());
+    ws.custom_size = Some(super::super::home_custom::CustomSize {
+        width: 640,
+        height: 360,
+        fps: 12,
+    });
+    run(&mut ws, &ctx, 0.0);
+    assert!(ws.custom_size_shown(), "it stays until Create or Cancel");
+    // What Create does with the numbers.
+    ws.new_project(640, 360, 12);
+    let stage = ws.document().stage();
+    assert_eq!((stage.width(), stage.height()), (640, 360));
+    assert_eq!(ws.document().frame_rate().numerator(), 12);
+}
+
+#[test]
+fn the_custom_size_window_goes_when_home_does() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    ws.set_home(true);
+    ws.show_custom_size();
+    ws.set_home(false);
+    run(&mut ws, &ctx, 0.0);
+    assert!(!ws.custom_size_shown());
+}

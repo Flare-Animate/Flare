@@ -3,6 +3,10 @@
 use super::Workspace;
 use crate::actions::MenuAction;
 
+/// Where the project lives and where its people talk.
+pub const GITHUB_URL: &str = "https://github.com/Flare-Animate/Flare";
+pub const DISCORD_URL: &str = "https://discord.com/invite/JpeScW8Awa";
+
 impl Workspace {
     /// The About and Keyboard Shortcuts windows, while they are open.
     pub(super) fn help_windows(&mut self, ctx: &egui::Context) {
@@ -17,10 +21,8 @@ impl Workspace {
                     ui.label(format!("Version {}", env!("CARGO_PKG_VERSION")));
                     ui.weak("An animation tool in the spirit of Adobe Animate.");
                     ui.weak("Early alpha: keep backups of your work.");
-                    ui.hyperlink_to(
-                        "github.com/Flare-Animate/Flare",
-                        "https://github.com/Flare-Animate/Flare",
-                    );
+                    ui.hyperlink_to("GitHub", GITHUB_URL);
+                    ui.hyperlink_to("Discord", DISCORD_URL);
                 });
             self.windows.about = open;
         }

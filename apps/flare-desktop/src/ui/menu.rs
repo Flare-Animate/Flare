@@ -25,7 +25,7 @@ mod native {
     use anyhow::{Context, Result};
     use flare_animate::{MENU_LAYOUT, MenuAction, MenuEntry, Workspace};
     use muda::accelerator::Accelerator;
-    use muda::{AboutMetadata, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
+    use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 
     use super::accelerator;
 
@@ -53,8 +53,10 @@ mod native {
     ) -> Result<()> {
         for entry in entries {
             match entry {
-                // Quit lives in the application menu on macOS.
-                MenuEntry::Action(MenuAction::Quit) => {}
+                // These live in the application menu on macOS.
+                MenuEntry::Action(
+                    MenuAction::Quit | MenuAction::Preferences | MenuAction::About,
+                ) => {}
                 MenuEntry::Action(action) => {
                     let it = item(*action, &workspace.label(*action))?;
                     submenu.append(&it)?;
@@ -80,16 +82,19 @@ mod native {
             let menu = Menu::new();
             let mut items: Vec<(MenuAction, MenuItem)> = Vec::new();
 
-            // The application menu (named after the app) holds About, Hide and Quit.
+            // The application menu (named after the app) holds About, Preferences, Hide and Quit.
+            // About is Flare's own window, which has the links; the system's panel has none.
             let app = Submenu::new("Flare", true);
-            let about = AboutMetadata {
-                name: Some("Flare".into()),
-                version: Some(env!("CARGO_PKG_VERSION").into()),
-                ..AboutMetadata::default()
-            };
+            let about = item(MenuAction::About, &workspace.label(MenuAction::About))?;
+            let preferences = item(
+                MenuAction::Preferences,
+                &workspace.label(MenuAction::Preferences),
+            )?;
             let quit = item(MenuAction::Quit, &workspace.label(MenuAction::Quit))?;
             app.append_items(&[
-                &PredefinedMenuItem::about(None, Some(about)),
+                &about,
+                &PredefinedMenuItem::separator(),
+                &preferences,
                 &PredefinedMenuItem::separator(),
                 &PredefinedMenuItem::services(None),
                 &PredefinedMenuItem::separator(),
@@ -99,6 +104,8 @@ mod native {
                 &PredefinedMenuItem::separator(),
                 &quit,
             ])?;
+            items.push((MenuAction::About, about));
+            items.push((MenuAction::Preferences, preferences));
             items.push((MenuAction::Quit, quit));
             menu.append(&app)?;
 

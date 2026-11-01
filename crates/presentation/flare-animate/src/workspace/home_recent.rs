@@ -24,18 +24,6 @@ impl FileInfo {
             Err(_) => Self::default(),
         }
     }
-
-    /// "Modified 2 hours ago · 1.4 MB", or what is missing.
-    pub(super) fn describe(&self, now: SystemTime) -> String {
-        match (self.modified, self.size) {
-            (None, None) => "Not found".to_owned(),
-            (Some(then), Some(size)) => {
-                format!("{} · {}", format_modified(then, now), format_size(size))
-            }
-            (Some(then), None) => format_modified(then, now),
-            (None, Some(size)) => format_size(size),
-        }
-    }
 }
 
 /// Answers gathered by background threads, shared with the page that asked.
@@ -87,6 +75,14 @@ impl RecentInfo {
         self.asked.extend(paths.iter().cloned());
     }
 
+    /// Sets what is known of `path`, so a test can sort on facts a file system would not give it.
+    #[cfg(test)]
+    pub(super) fn set(&self, path: &Path, info: FileInfo) {
+        if let Ok(mut known) = self.known.lock() {
+            known.insert(path.to_owned(), info);
+        }
+    }
+
     /// Forgets what was read, so the next look at the list reads it again.
     pub(super) fn refresh(&mut self) {
         self.asked.clear();
@@ -123,20 +119,120 @@ pub(super) fn format_size(bytes: u64) -> String {
     }
 }
 
-/// How long ago `then` was, as "Modified 5 minutes ago" and on up through days, months and years.
-/// It is never a date, so no time zone comes into it. A time in the future (a clock that was set
-/// back) reads as just now.
-pub(super) fn format_modified(then: SystemTime, now: SystemTime) -> String {
+/// How long ago `then` was, as "5 minutes ago" and on up through days, months and years. It is
+/// never a date, so no time zone comes into it. A time in the future (a clock that was set back)
+/// reads as just now.
+pub(super) fn ago(then: SystemTime, now: SystemTime) -> String {
     const DAY: u64 = 86_400;
     let ago = now.duration_since(then).unwrap_or(Duration::ZERO).as_secs();
     let plural = |n: u64, unit: &str| format!("{n} {unit}{}", if n == 1 { "" } else { "s" });
     let text = match ago {
-        0..=59 => return "Modified just now".to_owned(),
+        0..=59 => return "just now".to_owned(),
         60..=3599 => plural(ago / 60, "minute"),
         3600..=86_399 => plural(ago / 3600, "hour"),
         86_400..=2_591_999 => plural(ago / DAY, "day"),
         2_592_000..=31_535_999 => plural(ago / (30 * DAY), "month"),
         _ => plural(ago / (365 * DAY), "year"),
     };
-    format!("Modified {text} ago")
+    format!("{text} ago")
+}
+
+/// What the recent list is ordered by. `Opened` is the order the projects were last opened or
+/// saved in, which is the order the list is kept in.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(super) enum SortBy {
+    #[default]
+    Opened,
+    Name,
+    Modified,
+    Size,
+    Kind,
+}
+
+/// The order of the recent list: by what, and whether it runs from the largest or the last.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(super) struct Sorting {
+    pub(super) by: SortBy,
+    pub(super) descending: bool,
+}
+
+impl Sorting {
+    /// What clicking the heading of `column` does: that column ascending, then descending, then
+    /// back to the order the projects were opened in.
+    pub(super) fn click(self, column: SortBy) -> Self {
+        match (self.by == column, self.descending) {
+            (false, _) => Self {
+                by: column,
+                descending: false,
+            },
+            (true, false) => Self {
+                by: column,
+                descending: true,
+            },
+            (true, true) => Self::default(),
+        }
+    }
+}
+
+/// What kind of file a recent project is, going by its name.
+pub(super) fn kind(path: &Path) -> &'static str {
+    match path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(str::to_ascii_lowercase)
+        .as_deref()
+    {
+        Some("flare") => "Flare project",
+        Some("fla") => "Animate document",
+        Some("xfl") => "Animate project",
+        _ => "File",
+    }
+}
+
+/// Puts `paths` in the order `sorting` asks for. A file whose size or time is not known (still
+/// being read, or gone) goes last whichever way the column runs, and ties keep the order the
+/// projects were opened in.
+pub(super) fn sort(paths: &mut [PathBuf], sorting: Sorting, info: &RecentInfo) {
+    use std::cmp::Ordering;
+    let name = |p: &Path| {
+        p.file_name()
+            .map(|n| n.to_string_lossy().to_lowercase())
+            .unwrap_or_default()
+    };
+    let order = |ordering: Ordering| {
+        if sorting.descending {
+            ordering.reverse()
+        } else {
+            ordering
+        }
+    };
+    // Unknown values are compared outside the direction, so they never come first.
+    fn known<T: Ord>(a: Option<T>, b: Option<T>, order: impl Fn(Ordering) -> Ordering) -> Ordering {
+        match (a, b) {
+            (Some(a), Some(b)) => order(a.cmp(&b)),
+            (Some(_), None) => Ordering::Less,
+            (None, Some(_)) => Ordering::Greater,
+            (None, None) => Ordering::Equal,
+        }
+    }
+    match sorting.by {
+        SortBy::Opened => {}
+        SortBy::Name => paths.sort_by(|a, b| order(name(a).cmp(&name(b)))),
+        SortBy::Kind => paths
+            .sort_by(|a, b| order(kind(a).cmp(kind(b))).then_with(|| order(name(a).cmp(&name(b))))),
+        SortBy::Modified => paths.sort_by(|a, b| {
+            known(
+                info.get(a).and_then(|i| i.modified),
+                info.get(b).and_then(|i| i.modified),
+                order,
+            )
+        }),
+        SortBy::Size => paths.sort_by(|a, b| {
+            known(
+                info.get(a).and_then(|i| i.size),
+                info.get(b).and_then(|i| i.size),
+                order,
+            )
+        }),
+    }
 }

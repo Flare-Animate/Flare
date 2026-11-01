@@ -352,3 +352,41 @@ fn ghosts_are_chosen_nearest_last_with_falling_opacity_and_stay_inside_the_scene
 }
 
 mod more;
+
+#[test]
+fn command_comma_opens_preferences_unless_a_native_menu_owns_the_shortcut() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    ws.set_native_menu(true);
+    run(&mut ws, &ctx, 0.0);
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.1, vec![key(Key::Comma, Modifiers::COMMAND)]),
+    );
+    assert!(!ws.windows.preferences, "left to the native menu");
+    ws.set_native_menu(false);
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.2, vec![key(Key::Comma, Modifiers::COMMAND)]),
+    );
+    assert!(ws.windows.preferences);
+    assert_eq!(
+        MenuAction::Preferences.shortcut_text().as_deref(),
+        Some(if cfg!(target_os = "macos") {
+            "\u{2318},"
+        } else {
+            "Ctrl+,"
+        })
+    );
+}
+
+#[test]
+fn the_about_window_links_to_github_and_discord() {
+    assert!(super::super::help::GITHUB_URL.starts_with("https://github.com/Flare-Animate/"));
+    assert!(super::super::help::DISCORD_URL.starts_with("https://discord.com/invite/"));
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    ws.perform(MenuAction::About);
+    run(&mut ws, &ctx, 0.0);
+    assert!(ws.windows.about);
+}

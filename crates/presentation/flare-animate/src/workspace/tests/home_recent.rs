@@ -1,7 +1,10 @@
 //! The modified time, size and search on the Home page's recent projects.
 
 use super::*;
-use crate::workspace::home_recent::{FileInfo, RecentInfo, format_modified, format_size, matches};
+use crate::workspace::home_recent::{
+    FileInfo, RecentInfo, SortBy, Sorting, ago, format_size, kind, matches, sort,
+};
+use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 fn at(seconds: u64) -> SystemTime {
@@ -22,26 +25,23 @@ fn sizes_read_in_the_unit_that_fits() {
 #[test]
 fn modified_times_read_as_how_long_ago_up_through_months_and_years() {
     let now = at(1_800_000_000);
-    let ago = |seconds: u64| format_modified(at(1_800_000_000 - seconds), now);
-    assert_eq!(ago(5), "Modified just now");
-    assert_eq!(ago(60), "Modified 1 minute ago");
-    assert_eq!(ago(2 * 3600), "Modified 2 hours ago");
-    assert_eq!(ago(86_400), "Modified 1 day ago");
-    assert_eq!(ago(3 * 86_400), "Modified 3 days ago");
-    assert_eq!(ago(29 * 86_400), "Modified 29 days ago");
-    assert_eq!(ago(30 * 86_400), "Modified 1 month ago");
-    assert_eq!(ago(364 * 86_400), "Modified 12 months ago");
-    assert_eq!(ago(365 * 86_400), "Modified 1 year ago");
-    assert_eq!(ago(3 * 365 * 86_400 + 5), "Modified 3 years ago");
-    assert_eq!(format_modified(at(0), now), "Modified 57 years ago");
+    let since = |seconds: u64| ago(at(1_800_000_000 - seconds), now);
+    assert_eq!(since(5), "just now");
+    assert_eq!(since(60), "1 minute ago");
+    assert_eq!(since(2 * 3600), "2 hours ago");
+    assert_eq!(since(86_400), "1 day ago");
+    assert_eq!(since(3 * 86_400), "3 days ago");
+    assert_eq!(since(29 * 86_400), "29 days ago");
+    assert_eq!(since(30 * 86_400), "1 month ago");
+    assert_eq!(since(364 * 86_400), "12 months ago");
+    assert_eq!(since(365 * 86_400), "1 year ago");
+    assert_eq!(since(3 * 365 * 86_400 + 5), "3 years ago");
+    assert_eq!(ago(at(0), now), "57 years ago");
 }
 
 #[test]
 fn a_time_in_the_future_reads_as_just_now() {
-    assert_eq!(
-        format_modified(at(9_000_000), at(1_000)),
-        "Modified just now"
-    );
+    assert_eq!(ago(at(9_000_000), at(1_000)), "just now");
 }
 
 #[test]
@@ -70,10 +70,8 @@ fn a_file_is_read_for_its_size_and_a_missing_one_says_so() {
     let info = FileInfo::read(&path);
     assert_eq!(info.size, Some(2048));
     assert!(info.modified.is_some());
-    assert!(info.describe(SystemTime::now()).ends_with("2.0 KB"));
     let gone = FileInfo::read(&dir.path().join("none.flare"));
     assert_eq!(gone, FileInfo::default());
-    assert_eq!(gone.describe(SystemTime::now()), "Not found");
 }
 
 #[test]
@@ -111,7 +109,7 @@ fn texts(ws: &mut Workspace, ctx: &egui::Context, time: f64) -> Vec<String> {
 }
 
 #[test]
-fn the_cards_show_when_the_file_changed_and_how_big_it_is() {
+fn the_list_shows_when_the_file_changed_and_how_big_it_is_each_under_its_heading() {
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("Real.flare");
     std::fs::write(&path, vec![0u8; 3000]).expect("write");
@@ -133,12 +131,16 @@ fn the_cards_show_when_the_file_changed_and_how_big_it_is() {
         std::thread::sleep(Duration::from_millis(10));
     }
     let drawn = texts(&mut ws, &ctx, 0.1);
-    assert!(
-        drawn
-            .iter()
-            .any(|t| t.contains("Modified") && t.contains("2.9 KB")),
-        "{drawn:?}"
-    );
+    for wanted in [
+        "just now",
+        "2.9 KB",
+        "Date modified",
+        "Size",
+        "Kind",
+        "Flare project",
+    ] {
+        assert!(drawn.iter().any(|t| t == wanted), "{wanted}: {drawn:?}");
+    }
     assert!(drawn.iter().any(|t| t == "Not found"), "{drawn:?}");
 }
 
@@ -215,4 +217,92 @@ fn a_card_says_reading_until_the_files_have_been_looked_at() {
     let ctx = egui::Context::default();
     let drawn = texts(&mut ws, &ctx, 0.0);
     assert!(drawn.iter().any(|t| t == "Reading…"), "{drawn:?}");
+}
+
+fn listed(names: &[&str]) -> Vec<PathBuf> {
+    names
+        .iter()
+        .map(|n| PathBuf::from(format!("/p/{n}")))
+        .collect()
+}
+
+fn order(paths: &[PathBuf]) -> Vec<String> {
+    paths
+        .iter()
+        .map(|p| p.file_name().expect("name").to_string_lossy().into_owned())
+        .collect()
+}
+
+#[test]
+fn the_list_sorts_by_name_kind_date_and_size_in_both_directions() {
+    let info = RecentInfo::default();
+    let facts = [("b.flare", 20, 300), ("A.fla", 30, 100), ("c.xfl", 10, 200)];
+    for (name, when, size) in facts {
+        info.set(
+            &PathBuf::from(format!("/p/{name}")),
+            FileInfo {
+                modified: Some(at(when)),
+                size: Some(size),
+            },
+        );
+    }
+    let sorted = |by, descending| {
+        let mut paths = listed(&["b.flare", "A.fla", "c.xfl"]);
+        sort(&mut paths, Sorting { by, descending }, &info);
+        order(&paths)
+    };
+    assert_eq!(sorted(SortBy::Opened, true), ["b.flare", "A.fla", "c.xfl"]);
+    assert_eq!(sorted(SortBy::Name, false), ["A.fla", "b.flare", "c.xfl"]);
+    assert_eq!(sorted(SortBy::Name, true), ["c.xfl", "b.flare", "A.fla"]);
+    assert_eq!(
+        sorted(SortBy::Modified, false),
+        ["c.xfl", "b.flare", "A.fla"]
+    );
+    assert_eq!(
+        sorted(SortBy::Modified, true),
+        ["A.fla", "b.flare", "c.xfl"]
+    );
+    assert_eq!(sorted(SortBy::Size, false), ["A.fla", "c.xfl", "b.flare"]);
+    assert_eq!(sorted(SortBy::Kind, false), ["A.fla", "c.xfl", "b.flare"]);
+}
+
+#[test]
+fn what_is_not_known_yet_sorts_last_whichever_way_the_column_runs() {
+    let info = RecentInfo::default();
+    info.set(
+        &PathBuf::from("/p/known.flare"),
+        FileInfo {
+            modified: Some(at(5)),
+            size: Some(9),
+        },
+    );
+    for descending in [false, true] {
+        let mut paths = listed(&["pending.flare", "known.flare"]);
+        let sorting = Sorting {
+            by: SortBy::Size,
+            descending,
+        };
+        sort(&mut paths, sorting, &info);
+        assert_eq!(order(&paths), ["known.flare", "pending.flare"]);
+    }
+}
+
+#[test]
+fn clicking_a_heading_goes_up_then_down_then_back_to_the_order_opened() {
+    let first = Sorting::default().click(SortBy::Size);
+    assert_eq!((first.by, first.descending), (SortBy::Size, false));
+    let second = first.click(SortBy::Size);
+    assert_eq!((second.by, second.descending), (SortBy::Size, true));
+    assert_eq!(second.click(SortBy::Size), Sorting::default());
+    // Another heading starts over from the top.
+    let other = second.click(SortBy::Name);
+    assert_eq!((other.by, other.descending), (SortBy::Name, false));
+}
+
+#[test]
+fn files_are_named_by_kind() {
+    assert_eq!(kind(Path::new("a.FLARE")), "Flare project");
+    assert_eq!(kind(Path::new("a.fla")), "Animate document");
+    assert_eq!(kind(Path::new("a.xfl")), "Animate project");
+    assert_eq!(kind(Path::new("a")), "File");
 }

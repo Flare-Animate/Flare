@@ -184,6 +184,10 @@ impl Workspace {
                     *chosen = Some((w, h, fps));
                 }
             }
+            let custom = tile(ui, "Custom Size", &["Choose a size and rate"], plus_glyph);
+            if custom.clicked() {
+                self.show_custom_size();
+            }
         });
         ui.add_space(PAGE_MARGIN);
         ui.horizontal(|ui| {
@@ -194,7 +198,7 @@ impl Workspace {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.add(
                         egui::TextEdit::singleline(&mut self.home_search)
-                            .hint_text("Search recent projects")
+                            .hint_text("Filter")
                             .desired_width(220.0),
                     );
                 });
@@ -210,15 +214,13 @@ impl Workspace {
         let ctx = ui.ctx().clone();
         self.recent_info
             .ask(&self.recent, move || ctx.request_repaint());
-        let now = std::time::SystemTime::now();
-        let shown: Vec<PathBuf> = self
+        let mut shown: Vec<PathBuf> = self
             .recent
             .iter()
             .filter(|path| {
                 let (name, folder) = name_and_folder(path);
                 home_recent::matches(&name, &folder, &self.home_search)
             })
-            .take(RECENT_SHOWN)
             .cloned()
             .collect();
         if shown.is_empty() {
@@ -228,29 +230,16 @@ impl Workspace {
             );
             return;
         }
-        ui.horizontal_wrapped(|ui| {
-            ui.spacing_mut().item_spacing = vec2(GAP, GAP);
-            for path in &shown {
-                let (name, folder) = name_and_folder(path);
-                // Until the thread has answered, the line says so instead of guessing.
-                let facts = self
-                    .recent_info
-                    .get(path)
-                    .map_or_else(|| "Reading…".to_owned(), |info| info.describe(now));
-                let response = tile(ui, &name, &[&folder, &facts], |painter, rect| {
-                    file_glyph(painter, rect);
-                })
-                .on_hover_text(path.display().to_string());
-                if response.clicked() {
-                    *open = Some(path.clone());
-                }
-            }
-        });
+        home_recent::sort(&mut shown, self.home_sort, &self.recent_info);
+        shown.truncate(RECENT_SHOWN);
+        if let Some(path) = self.recent_list(ui, &shown) {
+            *open = Some(path);
+        }
     }
 }
 
 /// The file's name and the folder it is in, as the cards and the search read them.
-fn name_and_folder(path: &std::path::Path) -> (String, String) {
+pub(super) fn name_and_folder(path: &std::path::Path) -> (String, String) {
     let name = path.file_name().map_or_else(
         || path.display().to_string(),
         |n| n.to_string_lossy().into_owned(),
@@ -419,22 +408,10 @@ fn stage_glyph(painter: &egui::Painter, rect: Rect, width: u32, height: u32) {
     );
 }
 
-/// A page with a folded corner, for a project that has no picture.
-fn file_glyph(painter: &egui::Painter, rect: Rect) {
-    let page = Rect::from_center_size(rect.center(), vec2(46.0, 60.0));
-    painter.rect(
-        page,
-        3.0,
-        theme::panel_raised(),
-        Stroke::new(1.5, theme::text_dim()),
-        StrokeKind::Inside,
-    );
-    for row in 0..3 {
-        let y = page.top() + 24.0 + row as f32 * 9.0;
-        painter.hline(
-            (page.left() + 9.0)..=(page.right() - 9.0),
-            y,
-            Stroke::new(1.5, theme::border()),
-        );
-    }
+/// A plus, for the card that makes a project of a size of the person's choosing.
+fn plus_glyph(painter: &egui::Painter, rect: Rect) {
+    let c = rect.center();
+    let stroke = Stroke::new(2.5, theme::text_dim());
+    painter.hline((c.x - 14.0)..=(c.x + 14.0), c.y, stroke);
+    painter.vline(c.x, (c.y - 14.0)..=(c.y + 14.0), stroke);
 }
