@@ -408,7 +408,7 @@ fn the_custom_size_card_opens_a_window_that_makes_a_project_of_the_chosen_size()
     ws.set_home(true);
     ws.show_custom_size();
     assert!(ws.custom_size_shown());
-    ws.custom_size = Some(super::super::home_custom::CustomSize {
+    ws.home.custom_size = Some(super::super::home_custom::CustomSize {
         width: 640,
         height: 360,
         fps: 12,

@@ -41,7 +41,7 @@ impl Workspace {
             if response.hovered() {
                 ui.painter().rect_filled(cell, 0.0, theme::hover());
             }
-            let active = self.home_sort.by == column;
+            let active = self.home.sort.by == column;
             let ink = if active {
                 theme::text()
             } else {
@@ -59,10 +59,10 @@ impl Workspace {
                     cell.left() + CELL_PAD + label_width(ui, label) + 10.0,
                     cell.center().y,
                 );
-                paint_arrow(ui, arrow, self.home_sort.descending, ink);
+                paint_arrow(ui, arrow, self.home.sort.descending, ink);
             }
             if response.clicked() {
-                self.home_sort = self.home_sort.click(column);
+                self.home.sort = self.home.sort.click(column);
             }
         }
         ui.painter().hline(
@@ -78,7 +78,7 @@ impl Workspace {
             if response.hovered() {
                 ui.painter().rect_filled(row, 3.0, theme::hover());
             }
-            let info = self.recent_info.get(path);
+            let info = self.home.info.get(path);
             let (name, folder) = super::home::name_and_folder(path);
             // Until the thread has answered, the cells say so instead of guessing.
             let (modified, size) = match info {

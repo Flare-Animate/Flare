@@ -36,6 +36,7 @@ impl Workspace {
             theme: self.theme_mode.code().to_owned(),
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
             recent: self
+                .home
                 .recent
                 .iter()
                 .map(|p| p.to_string_lossy().into_owned())
@@ -86,7 +87,7 @@ impl Workspace {
             gif: preferences.publish_gif,
             mp4: preferences.publish_mp4,
         };
-        self.recent = preferences
+        self.home.recent = preferences
             .recent
             .iter()
             .filter(|p| !p.is_empty())
@@ -113,14 +114,14 @@ impl Workspace {
 
     /// Remembers `path` as the most recently used project.
     pub(in crate::workspace) fn note_recent(&mut self, path: &std::path::Path) {
-        self.recent.retain(|p| p != path);
-        self.recent.insert(0, path.to_owned());
-        self.recent.truncate(MAX_RECENT);
+        self.home.recent.retain(|p| p != path);
+        self.home.recent.insert(0, path.to_owned());
+        self.home.recent.truncate(MAX_RECENT);
     }
 
     /// Projects opened or saved lately, newest first.
     pub fn recent_files(&self) -> &[PathBuf] {
-        &self.recent
+        &self.home.recent
     }
 
     /// Whether published SWF files are compressed.

@@ -30,12 +30,23 @@ const PREVIEW_HEIGHT: f32 = 96.0;
 const LABEL_BASE: f32 = 32.0;
 const DETAIL_HEIGHT: f32 = 14.0;
 
+/// What the Home page keeps: the recent projects, what is known of each one's file, how the list is
+/// filtered and sorted, and the Custom Size window while it is open.
+#[derive(Default)]
+pub(super) struct HomeState {
+    pub(super) recent: Vec<PathBuf>,
+    pub(super) info: flare_recent::RecentInfo,
+    pub(super) search: String,
+    pub(super) sort: flare_recent::Sorting,
+    pub(super) custom_size: Option<super::home_custom::CustomSize>,
+}
+
 impl Workspace {
     /// Shows or hides the Home page over the document.
     pub fn set_home(&mut self, shown: bool) {
         if shown && !self.windows.home {
             // Files saved since the last look have a new time and size.
-            self.recent_info.refresh();
+            self.home.info.refresh();
         }
         self.windows.home = shown;
     }
@@ -193,17 +204,17 @@ impl Workspace {
             section_title(ui, "Recent");
             // Clearing the list is in Preferences: here it sat next to the search box, one
             // slip from Enter's neighbour.
-            if !self.recent.is_empty() {
+            if !self.home.recent.is_empty() {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.add(
-                        egui::TextEdit::singleline(&mut self.home_search)
+                        egui::TextEdit::singleline(&mut self.home.search)
                             .hint_text("Filter")
                             .desired_width(220.0),
                     );
                 });
             }
         });
-        if self.recent.is_empty() {
+        if self.home.recent.is_empty() {
             ui.label(
                 egui::RichText::new("Projects you open or save show up here.")
                     .color(theme::text_dim()),
@@ -211,25 +222,27 @@ impl Workspace {
             return;
         }
         let ctx = ui.ctx().clone();
-        self.recent_info
-            .ask(&self.recent, move || ctx.request_repaint());
+        self.home
+            .info
+            .ask(&self.home.recent, move || ctx.request_repaint());
         let mut shown: Vec<PathBuf> = self
+            .home
             .recent
             .iter()
             .filter(|path| {
                 let (name, folder) = name_and_folder(path);
-                flare_recent::matches(&name, &folder, &self.home_search)
+                flare_recent::matches(&name, &folder, &self.home.search)
             })
             .cloned()
             .collect();
         if shown.is_empty() {
             ui.label(
-                egui::RichText::new(format!("No recent project matches “{}”.", self.home_search))
+                egui::RichText::new(format!("No recent project matches “{}”.", self.home.search))
                     .color(theme::text_dim()),
             );
             return;
         }
-        flare_recent::sort(&mut shown, self.home_sort, &self.recent_info);
+        flare_recent::sort(&mut shown, self.home.sort, &self.home.info);
         shown.truncate(RECENT_SHOWN);
         if let Some(path) = self.recent_list(ui, &shown) {
             *open = Some(path);

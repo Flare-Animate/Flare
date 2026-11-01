@@ -30,19 +30,21 @@ impl Default for CustomSize {
 impl Workspace {
     /// Opens the Custom Size window, on the size last chosen if there was one.
     pub fn show_custom_size(&mut self) {
-        self.custom_size.get_or_insert_with(CustomSize::default);
+        self.home
+            .custom_size
+            .get_or_insert_with(CustomSize::default);
     }
 
     pub fn custom_size_shown(&self) -> bool {
-        self.custom_size.is_some()
+        self.home.custom_size.is_some()
     }
 
     pub(super) fn custom_size_window(&mut self, ctx: &Context) {
         // It belongs to the Home page: a tab chosen over it takes it along.
         if !self.windows.home {
-            self.custom_size = None;
+            self.home.custom_size = None;
         }
-        let Some(mut size) = self.custom_size else {
+        let Some(mut size) = self.home.custom_size else {
             return;
         };
         let (mut create, mut cancel) = (false, false);
@@ -84,12 +86,12 @@ impl Workspace {
                     cancel = ui.button("Cancel").clicked();
                 });
             });
-        self.custom_size = Some(size);
+        self.home.custom_size = Some(size);
         if create {
-            self.custom_size = None;
+            self.home.custom_size = None;
             self.new_project(size.width, size.height, size.fps);
         } else if cancel || !open {
-            self.custom_size = None;
+            self.home.custom_size = None;
         }
     }
 }

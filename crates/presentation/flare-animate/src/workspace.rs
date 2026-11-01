@@ -106,14 +106,8 @@ pub struct Workspace {
     /// This document's place among the tabs.
     position: usize,
     publish: PublishSettings,
-    /// Projects opened or saved lately, newest first.
-    recent: Vec<PathBuf>,
-    /// What the Home page shows of each recent project's file, and what is typed in its search.
-    recent_info: flare_recent::RecentInfo,
-    home_search: String,
-    home_sort: flare_recent::Sorting,
-    /// The Custom Size window on Home, while it is open.
-    custom_size: Option<home_custom::CustomSize>,
+    /// The Home page's state: the recent projects and how they are listed.
+    home: home::HomeState,
     /// Folders shown shut in the timeline, hiding the layers inside.
     collapsed_folders: std::collections::HashSet<LayerId>,
     /// The picture of the selected library symbol: which symbol, at which revision of the
@@ -289,11 +283,7 @@ impl Workspace {
             parked: Vec::new(),
             position: 0,
             publish: PublishSettings::default(),
-            recent: Vec::new(),
-            recent_info: flare_recent::RecentInfo::default(),
-            home_search: String::new(),
-            home_sort: flare_recent::Sorting::default(),
-            custom_size: None,
+            home: home::HomeState::default(),
             collapsed_folders: std::collections::HashSet::new(),
             library_preview: None,
             importing: None,

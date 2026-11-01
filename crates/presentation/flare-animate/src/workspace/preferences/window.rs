@@ -13,10 +13,10 @@ impl Workspace {
                 .collapsible(false)
                 .resizable(false)
                 .show(ctx, |ui| {
-                    if self.recent.is_empty() {
+                    if self.home.recent.is_empty() {
                         ui.weak("Nothing opened or saved yet.");
                     }
-                    for path in &self.recent {
+                    for path in &self.home.recent {
                         let name = path.file_name().map_or_else(
                             || path.display().to_string(),
                             |n| n.to_string_lossy().into_owned(),
@@ -29,8 +29,8 @@ impl Workspace {
                             chosen = Some(path.clone());
                         }
                     }
-                    if !self.recent.is_empty() && ui.small_button("Clear the list").clicked() {
-                        self.recent.clear();
+                    if !self.home.recent.is_empty() && ui.small_button("Clear the list").clicked() {
+                        self.home.recent.clear();
                     }
                 });
             self.windows.recent = open && chosen.is_none();

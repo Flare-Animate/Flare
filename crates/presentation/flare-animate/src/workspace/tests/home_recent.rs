@@ -29,11 +29,11 @@ fn the_list_shows_when_the_file_changed_and_how_big_it_is_each_under_its_heading
     run(&mut ws, &ctx, 0.0);
     let recent = ws.recent_files().to_vec();
     assert!(
-        ws.recent_info.ask(&recent, || {}).is_none(),
+        ws.home.info.ask(&recent, || {}).is_none(),
         "the page already asked"
     );
     for _ in 0..200 {
-        if ws.recent_info.get(&path).is_some() {
+        if ws.home.info.get(&path).is_some() {
             break;
         }
         std::thread::sleep(Duration::from_millis(10));
@@ -61,11 +61,11 @@ fn the_search_narrows_the_cards_and_says_when_nothing_matches() {
     let ctx = egui::Context::default();
     let all = texts(&mut ws, &ctx, 0.0);
     assert!(all.iter().any(|t| t == "walk-cycle.flare") && all.iter().any(|t| t == "logo.flare"));
-    ws.home_search = "WALK".to_owned();
+    ws.home.search = "WALK".to_owned();
     let some = texts(&mut ws, &ctx, 0.1);
     assert!(some.iter().any(|t| t == "walk-cycle.flare"));
     assert!(!some.iter().any(|t| t == "logo.flare"));
-    ws.home_search = "zzz".to_owned();
+    ws.home.search = "zzz".to_owned();
     let none = texts(&mut ws, &ctx, 0.2);
     assert!(
         none.iter().any(|t| t.contains("No recent project matches")),
@@ -121,7 +121,7 @@ fn a_card_says_reading_until_the_files_have_been_looked_at() {
     let recent = ws.recent_files().to_vec();
     // Showing Home forgets what was read, so it comes first; then nothing is looked at.
     ws.set_home(true);
-    ws.recent_info.mark_asked(&recent);
+    ws.home.info.mark_asked(&recent);
     let ctx = egui::Context::default();
     let drawn = texts(&mut ws, &ctx, 0.0);
     assert!(drawn.iter().any(|t| t == "Reading…"), "{drawn:?}");

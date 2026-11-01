@@ -53,7 +53,7 @@ impl Workspace {
             MenuAction::ImportProject => !self.in_symbol(),
             MenuAction::New | MenuAction::Close => !self.in_symbol(),
             MenuAction::SaveAll => self.is_dirty(),
-            MenuAction::OpenRecent => !self.recent.is_empty(),
+            MenuAction::OpenRecent => !self.home.recent.is_empty(),
             MenuAction::PublishSettings => true,
             MenuAction::Revert => self.path.is_some() && self.is_dirty(),
             MenuAction::ExportImage | MenuAction::ExportMovie | MenuAction::ExportFla => {
