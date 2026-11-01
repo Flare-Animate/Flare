@@ -4,7 +4,7 @@ use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2}
 use flare_tools::free_transform::handles::{self, Handle};
 use glamx::DVec2;
 
-use flare_input::{InputSample, PointerKind};
+use flare_input::InputSample;
 
 use super::*;
 
@@ -139,16 +139,15 @@ impl Workspace {
             {
                 let at = to_doc(p);
                 // A pen reports how hard it presses; a mouse does not, and counts as full.
-                let (pressure, kind) = ui
-                    .input(|i| {
-                        i.events.iter().rev().find_map(|e| match e {
-                            egui::Event::Touch {
-                                force: Some(force), ..
-                            } => Some((*force, PointerKind::Pen)),
-                            _ => None,
-                        })
+                let touch = ui.input(|i| {
+                    i.events.iter().rev().find_map(|e| match e {
+                        egui::Event::Touch {
+                            force: Some(force), ..
+                        } => Some(*force),
+                        _ => None,
                     })
-                    .unwrap_or((1.0, PointerKind::Mouse));
+                });
+                let (pressure, kind) = self.pointer_reading(touch);
                 if let Some(sample) =
                     InputSample::new(f64::from(at.x), f64::from(at.y), pressure, kind)
                 {

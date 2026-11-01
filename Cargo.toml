@@ -143,6 +143,8 @@ egui_extras = { version = "0.37.0", default-features = false, features = ["svg",
 egui-wgpu = { version = "0.37.0", default-features = false }
 egui-winit = { version = "0.37.0", default-features = false }
 winit = { version = "0.30.13", default-features = false }
+# A pen's pressure from the X server (XInput2), which winit does not pass on; pure Rust, no libxcb.
+x11rb = { version = "0.13.2", default-features = false, features = ["xinput"] }
 rfd = "0.15.4"
 directories = "6"
 pollster = "0.4.0"

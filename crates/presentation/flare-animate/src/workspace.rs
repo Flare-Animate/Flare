@@ -15,7 +15,7 @@ use flare_tools::pen::PenPath;
 use flare_ui::view::StageView;
 use std::path::PathBuf;
 
-use flare_input::InputSample;
+use flare_input::{InputSample, PenFeed};
 
 mod arrange;
 mod assist;
@@ -150,6 +150,8 @@ pub struct Workspace {
     lasso: Vec<Pos2>,
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
     freehand: Vec<InputSample>,
+    /// A pen's pressure from a native source, for windowing that passes the pen as a mouse.
+    pen_feed: PenFeed,
     brush_size: f32,
     /// The tip the brush paints with, and the nibs kept under a name.
     brush_shelf: flare_tools::brush::BrushShelf,
@@ -302,6 +304,7 @@ impl Workspace {
             poly_inner: 0.5,
             lasso: Vec::new(),
             freehand: Vec::new(),
+            pen_feed: PenFeed::default(),
             brush_size: 12.0,
             brush_shelf: flare_tools::brush::BrushShelf::default(),
             brush_light: 0.15,

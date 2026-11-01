@@ -120,6 +120,12 @@ impl Workspace {
         self.titlebar_inset = inset;
     }
 
+    /// The pen pressure shared with a native source, for window systems that pass the pen on as
+    /// a mouse: whoever holds a clone writes to it and the stage reads it.
+    pub fn pen_feed(&self) -> flare_input::PenFeed {
+        self.pen_feed.clone()
+    }
+
     /// Returns (and clears) a window move or zoom the top bar asked for.
     pub fn take_window_request(&mut self) -> Option<WindowRequest> {
         self.window_request.take()

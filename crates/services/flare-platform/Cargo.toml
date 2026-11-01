@@ -7,6 +7,7 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
+flare-input.workspace = true
 rtrb.workspace = true
 sys-locale.workspace = true
 cpal.workspace = true
@@ -22,6 +23,9 @@ flare-storage.workspace = true
 rfd.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+x11rb.workspace = true
 
 [dev-dependencies]
 flare-import.workspace = true

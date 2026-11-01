@@ -7,6 +7,10 @@
 //! do with them is the tools'.
 #![forbid(unsafe_code)]
 
+mod pen;
+
+pub use pen::{PenFeed, PressureAxis};
+
 /// The kind of device a sample came from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum PointerKind {
@@ -96,3 +100,6 @@ impl Default for PressureCurve {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod pen_tests;

@@ -37,7 +37,10 @@ first thing taken over and are in the importer and Flash adapter tests.
   export. Older binary `.fla` files (CS4 and before) are recognised and refused with a reason; open
   them in Animate and save as a modern `.fla` or XFL. Reading the old binary format is not planned for 0.1.
 - **Pen pressure:** the Brush's width follows pressure (the Pencil's does not), for tablets that report force through the
-  window system. It is untested on real hardware.
+  window system. On Linux winit passes a pen on as a mouse, so `flare-platform` reads the pen from the X server
+  (XInput2, the "Abs Pressure" axis) and the window opens through X11 (XWayland under Wayland) when such a pen is
+  plugged in; `FLARE_TABLET=off` keeps the native window system. Not built: Wayland's own tablet protocol, tilt, and
+  the eraser end of a pen. It is untested on real hardware.
 - **Brush nib:** the Brush paints with a Round or Square nib set in Properties to an angle (0 to 359 degrees) and a flatness (1 to 100 percent), as in Animate's Nib Options. Size, nib and angle are remembered between sessions. Custom brushes: **New** keeps the nib in hand under a name (up to 32), choosing one puts its nib in hand, changing the nib while one is chosen edits it, **Delete** removes it, and they are kept with the preferences. "Zoom size with stage" is always on: the brush is in stage units, so it scales with the zoom, and there is no switch to turn it off. Not built yet: renaming brushes and the Nib Options dialog. The Brush shows its nib as an outline at the pointer. Sync settings with Eraser has nothing to sync yet: Flare's Eraser deletes whole shapes and has no size or nib. The live preview while dragging follows the nib's width but not its exact ends; the finished stroke is exact.
 - **Symbols:** Graphic, Movie Clip and Button exist as types (see [ARCHITECTURE.md](ARCHITECTURE.md)).
   Only the type is carried; a movie clip's own clock and a button's states are not run yet.

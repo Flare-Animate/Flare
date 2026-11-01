@@ -32,6 +32,7 @@ mod layer_names;
 mod layers_and_symbols;
 mod menus_and_recovery;
 mod menus_like_animate;
+mod native_pen;
 mod open_any;
 mod panels_and_view;
 mod pen_and_selection;

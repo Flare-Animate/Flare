@@ -11,6 +11,8 @@ mod movie;
 #[cfg(feature = "ruffle")]
 mod movie_window;
 mod shell;
+#[cfg(unix)]
+mod tablet;
 mod window;
 
 /// The Test Movie window, when this build has the player inside it.
@@ -51,6 +53,8 @@ pub fn run(workspace: Workspace) -> Result<()> {
         use winit::platform::macos::EventLoopBuilderExtMacOS;
         builder.with_default_menu(false);
     }
+    #[cfg(target_os = "linux")]
+    tablet::prefer_x11(&mut builder);
     let event_loop = builder.build().context("create event loop")?;
     event_loop.set_control_flow(ControlFlow::Wait);
     let mut app = app::App::new(workspace, event_loop.create_proxy());

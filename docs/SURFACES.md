@@ -29,4 +29,5 @@ First audit, from the code, 2026-10-31.
 | Symbol kinds and a graphic's looping options | yes | yes | **no** | **no** | The CLI and MCP make Graphic symbols only; they need the kind and the playback settings as options. |
 | Camera (a camera layer with keyframes and motion tweens) | yes (Camera tool, Properties, preview) | yes (the same workspace) | yes (`flare camera`) | yes (`set_camera`) | The XFL export leaves the camera out with a warning, and nothing reads it back. The editor part is tested by driving the workspace, not by a person. |
 | Language and theme | yes | yes | n/a | n/a | |
+| Pen pressure on the Brush | yes | **no** | n/a | n/a | The desktop reads it from winit (macOS, Windows) or from the X server (Linux, `flare-platform`'s `tablet`). The browser build does not read `PointerEvent.pressure` yet; a command line and an MCP server have no pen. Native Wayland needs its tablet protocol. |
 | Share from the Publish popup | yes (Twitter only) | **no** | n/a | n/a | The browser's own `window.open` is wired, but the popup is a desktop dialog today. |

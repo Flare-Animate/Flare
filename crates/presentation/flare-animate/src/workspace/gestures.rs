@@ -8,7 +8,7 @@ use flare_tools::free_transform::handles::{self, Handle};
 use flare_tools::ops::{self};
 use glamx::DAffine2;
 
-use flare_input::{InputSample, PressureCurve};
+use flare_input::{InputSample, PointerKind, PressureCurve};
 
 use super::*;
 
@@ -157,6 +157,18 @@ impl Workspace {
         if let Some(commands) = commands {
             self.run_batch(commands, "paint");
         }
+    }
+
+    /// The pressure and kind of the device drawing right now. A native pen source (the only one
+    /// that works where the window system hands the pen over as a mouse) wins over the force the
+    /// window reported for a touch; with neither it is a mouse, which counts as full pressure.
+    pub(super) fn pointer_reading(&self, touch_force: Option<f32>) -> (f32, PointerKind) {
+        self.pen_feed
+            .reading(std::time::Instant::now())
+            .or(touch_force)
+            .map_or((1.0, PointerKind::Mouse), |pressure| {
+                (pressure, PointerKind::Pen)
+            })
     }
 
     /// Commits the pencil or brush stroke as one undo step. The pencil is a smoothed open path in
