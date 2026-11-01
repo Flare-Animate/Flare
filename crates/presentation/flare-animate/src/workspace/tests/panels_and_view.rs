@@ -247,10 +247,10 @@ fn the_subselection_tool_drags_a_point_of_the_selected_shape() {
 }
 
 #[test]
-fn document_settings_opens_the_doc_tab_and_publishing_opens_its_popup() {
+fn document_settings_shows_the_document_and_publishing_opens_its_popup() {
     let mut ws = workspace();
     ws.perform(MenuAction::DocumentSettings);
-    assert_eq!(ws.props_tab, PropsTab::Doc);
+    assert_eq!(ws.props_context(), PropsContext::Document);
     ws.perform(MenuAction::Publish);
     assert!(ws.windows.publish);
     assert_eq!(ws.label(MenuAction::Publish), "Publish");

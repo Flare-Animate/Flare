@@ -43,7 +43,10 @@ fn the_app_next_to_the_running_program_is_found() {
     let dir = tempfile::tempdir().expect("dir");
     let app = script(dir.path(), APP, "exit 0");
     let cli = dir.path().join("flare");
-    assert_eq!(find_desktop_with(no_env, Some(&cli)), Some(app));
+    assert_eq!(
+        find_in(no_env, Some(&cli), Path::new("/nonexistent")),
+        Some(app)
+    );
 }
 
 #[cfg(unix)]
@@ -52,13 +55,17 @@ fn path_is_searched_but_relative_entries_are_not() {
     let dir = tempfile::tempdir().expect("dir");
     let app = script(dir.path(), APP, "exit 0");
     let path = std::env::join_paths([Path::new("relative"), dir.path()]).expect("join");
-    let found = find_desktop_with(|n| (n == "PATH").then(|| path.clone()), None);
+    let found = find_in(
+        |n| (n == "PATH").then(|| path.clone()),
+        None,
+        Path::new("/nonexistent"),
+    );
     assert_eq!(found, Some(app));
 }
 
 #[test]
 fn nothing_found_is_none() {
-    assert_eq!(find_desktop_with(no_env, None), None);
+    assert_eq!(find_in(no_env, None, Path::new("/nonexistent")), None);
 }
 
 #[cfg(unix)]
@@ -91,4 +98,17 @@ fn too_many_files_and_a_missing_app_are_refused() {
     assert_eq!(err.kind(), io::ErrorKind::InvalidInput);
     let err = open_desktop(Path::new("/nonexistent/flare-desktop"), &[]).expect_err("missing");
     assert_eq!(err.kind(), io::ErrorKind::NotFound);
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+fn the_installed_app_bundle_is_found_by_the_name_of_the_desktop_program() {
+    let dir = tempfile::tempdir().expect("dir");
+    let macos = dir.path().join("Flare.app/Contents/MacOS");
+    std::fs::create_dir_all(&macos).expect("dirs");
+    // A bundle that still held the old `flare` program would not be the app.
+    script(&macos, "flare", "exit 0");
+    assert_eq!(find_in(no_env, None, dir.path()), None);
+    let app = script(&macos, APP, "exit 0");
+    assert_eq!(find_in(no_env, None, dir.path()), Some(app));
 }

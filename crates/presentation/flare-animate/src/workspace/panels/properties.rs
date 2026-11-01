@@ -1,8 +1,8 @@
 //! The Properties panel and its tabs.
 
 use crate::actions::MenuAction;
-use crate::workspace::PropsTab;
 use crate::workspace::Workspace;
+use crate::workspace::{PropsContext, PropsKey, Tool};
 use egui::{RichText, Ui};
 use flare_ui::chrome;
 use flare_ui::icons;
@@ -12,26 +12,63 @@ impl Workspace {
     // ---- properties --------------------------------------------------------------------
 
     pub(crate) fn properties_panel(&mut self, ui: &mut Ui) {
-        const TABS: [(PropsTab, &str); 4] = [
-            (PropsTab::Tool, "Tool"),
-            (PropsTab::Object, "Object"),
-            (PropsTab::Frame, "Frame"),
-            (PropsTab::Doc, "Doc"),
-        ];
-        let labels = TABS.map(|(_, label)| label);
-        let current = TABS.iter().position(|(tab, _)| *tab == self.props_tab);
-        if let Some(index) = chrome::segmented(ui, &labels, current.unwrap_or(0)) {
-            self.props_tab = TABS[index].0;
-        }
-        ui.add_space(4.0);
+        let context = self.props_context();
         egui::ScrollArea::vertical()
             .auto_shrink(false)
-            .show(ui, |ui| match self.props_tab {
-                PropsTab::Tool => self.tool_tab(ui),
-                PropsTab::Object => self.object_tab(ui),
-                PropsTab::Frame => self.frame_tab(ui),
-                PropsTab::Doc => self.doc_tab(ui),
+            .show(ui, |ui| match context {
+                PropsContext::Object => self.object_tab(ui),
+                PropsContext::Frame => self.frame_tab(ui),
+                PropsContext::Tool => self.tool_tab(ui),
+                PropsContext::Document => self.doc_tab(ui),
             });
+    }
+
+    /// What the panel is about now: it follows the selection (see [`PropsContext`]).
+    pub(in crate::workspace) fn props_context(&mut self) -> PropsContext {
+        if let Some((context, key)) = self.props_forced {
+            if key == self.props_key() {
+                return context;
+            }
+            self.props_forced = None;
+        }
+        if self.selection_bounds().is_some() {
+            PropsContext::Object
+        } else if self.frame_range.is_some() {
+            PropsContext::Frame
+        } else if matches!(
+            self.tool,
+            Tool::Rectangle
+                | Tool::Ellipse
+                | Tool::Line
+                | Tool::Pen
+                | Tool::Text
+                | Tool::PolyStar
+                | Tool::Pencil
+                | Tool::Brush
+                | Tool::Bucket
+                | Tool::InkBottle
+                | Tool::Camera
+                | Tool::Ruler
+                | Tool::Mirror
+        ) {
+            PropsContext::Tool
+        } else {
+            PropsContext::Document
+        }
+    }
+
+    fn props_key(&self) -> PropsKey {
+        PropsKey {
+            tool: self.tool,
+            selected: self.selected,
+            others: self.also_selected.len(),
+            frames: self.frame_range,
+        }
+    }
+
+    /// Asks the panel for `context` until the selection or the tool changes.
+    pub(in crate::workspace) fn show_props_context(&mut self, context: PropsContext) {
+        self.props_forced = Some((context, self.props_key()));
     }
 
     pub(crate) fn tool_tab(&mut self, ui: &mut Ui) {
@@ -89,56 +126,6 @@ impl Workspace {
                     ui.selectable_value(&mut self.paint.stroke_join, Join::Miter, "Miter");
                 });
         });
-    }
-
-    /// Position and size of the selection, editable.
-    pub(crate) fn object_tab(&mut self, ui: &mut Ui) {
-        let Some(bounds) = self.selection_bounds() else {
-            chrome::empty_state(ui, "tool-selection", "Nothing selected");
-            ui.vertical_centered(|ui| ui.weak("Select something on the stage."));
-            return;
-        };
-        let count = self.selection_all().len();
-        ui.horizontal(|ui| {
-            ui.add(icons::image("tool-selection", 18.0, theme::accent()));
-            ui.label(
-                RichText::new(if count == 1 {
-                    "Selection".to_owned()
-                } else {
-                    format!("Selection ({count})")
-                })
-                .heading(),
-            );
-        });
-        chrome::section(ui, "stage-size", "Position and size");
-        let mut v = self.object_edit.unwrap_or([
-            bounds.min.x,
-            bounds.min.y,
-            bounds.width(),
-            bounds.height(),
-        ]);
-        let mut changed = false;
-        let mut done = false;
-        for (label, a, b) in [("Position", 0, 1), ("Size", 2, 3)] {
-            chrome::row(ui, label, |ui| {
-                for i in [a, b] {
-                    let r = ui.add(egui::DragValue::new(&mut v[i]).speed(0.5).max_decimals(1));
-                    changed |= r.changed();
-                    done |= r.drag_stopped() || r.lost_focus();
-                }
-            });
-        }
-        if changed {
-            self.object_edit = Some(v);
-        }
-        // Applied on release or Enter, so scrubbing a value is a single undo step.
-        if done && let Some(v) = self.object_edit.take() {
-            self.set_selection_bounds(egui::Rect::from_min_size(
-                egui::pos2(v[0], v[1]),
-                egui::vec2(v[2], v[3]),
-            ));
-        }
-        self.looping_section(ui);
     }
 
     /// The current frame and layer.

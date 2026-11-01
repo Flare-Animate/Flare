@@ -231,7 +231,7 @@ impl Workspace {
             MenuAction::Ungroup | MenuAction::BreakApart => self.break_apart_selection(),
             MenuAction::Publish => self.windows.publish = true,
             MenuAction::DocumentSettings => {
-                self.props_tab = PropsTab::Doc;
+                self.show_props_context(PropsContext::Document);
                 self.show_pane(Pane::Properties);
             }
             MenuAction::ToolSubselection => self.set_tool(Tool::Subselection),

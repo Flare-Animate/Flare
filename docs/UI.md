@@ -59,7 +59,7 @@ Theme: the General category also has Theme, Dark (the default) or Light. The pal
 
 Language: the General category of Preferences has a Language list, "System locale (English)" first and selected by default (the name in brackets is the language the system's locale maps to, English when Flare has none), then English, then the languages written in Latin letters alphabetically by their own names (Deutsch, Español, Français, Português (Brasil)), then the others by language tag (日本語, 한국어, 简体中文); each is written in itself. The code keeps the same order (`Language::ALL`, and a test checks it). The words are Fluent files, one per language and section, in `localizations/<language>/<section>.ftl` (`en`, `de`, `es`, `fr`, `pt-BR`, `ja`, `ko`, `zh-CN`), compiled in; a message a language lacks is shown in English. Sections are moved over one at a time: so far Preferences, Publish and the shared Close are translated, and the rest of the interface is English in every language. The translations were written by the maintainers' tooling and want a native reader's review. Japanese, Korean and Chinese need fonts with their characters, so the interface carries Noto Sans CJK cut down to the national character set of each (about 3.5 MB together, `scripts/fonts/subset_cjk.py`) and a test checks every character in a translation is in its font; the language list draws each name in its own font, so it reads right whatever the interface speaks.
 
-A selected Graphic instance has a Looping section in the Object tab, as Animate's Properties does: Options (Loop, Play Once or Single Frame) and the First frame it starts on, counted from 1. Each change is one undo step. A Movie Clip, a Button, artwork or several selected things show no such section, because only a Graphic follows the setting (a Movie Clip loops from where its instance starts; a Button shows its Up state).
+A selected Graphic instance has a Looping section in Properties, as Animate's does: Options (Loop, Play Once or Single Frame) and the First frame it starts on, counted from 1. Each change is one undo step. A Movie Clip, a Button, artwork or several selected things show no such section, because only a Graphic follows the setting (a Movie Clip loops from where its instance starts; a Button shows its Up state).
 
 In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
 
@@ -152,8 +152,19 @@ the whole height of the window, from the top bar to the bottom, with the timelin
 under it; it has two columns only when it is made at least 72 px wide. It is a shade lighter than
 the page around it, with a thin dark line down its right edge. A layout saved with the old
 arrangement opens as the new default.
-The segmented control inside panels (Properties' Tool, Object,
-Frame and Doc) marks the chosen segment by raising it, with no underline.
+The segmented control inside panels (Output's tabs, for one) marks the chosen segment by raising it,
+with no underline.
+
+The Properties panel is one view that follows the selection, as Animate's does, and has no tabs of
+its own. Something selected on the stage: a shape shows Position and size and its Fill and stroke
+(fill color, outline on or off, stroke color, width, cap and join), which are changed on the shape,
+a color when the picker is let go and a number when it is, each one undo step; a symbol instance
+shows its symbol and type, Edit Symbol, Position and size, Looping for a Graphic, and Color Effect,
+Display and Filters dimmed until they exist; several things show their shared Position and size.
+Nothing selected but frames: the frame, with its tween and Ease. Nothing at all selected: the
+settings of the tool in hand if it has any (the drawing tools), else the document (size, frame
+rate, background, Publish Settings). Modify > Document asks for the document until the selection or
+the tool changes.
 
 ## Home
 

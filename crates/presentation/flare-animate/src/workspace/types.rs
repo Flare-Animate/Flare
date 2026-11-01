@@ -125,14 +125,7 @@ pub enum WindowRequest {
 
 pub(super) const MAX_LOG_LINES: usize = 200;
 
-/// The tabs of the Properties panel.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum PropsTab {
-    Tool,
-    Object,
-    Frame,
-    Doc,
-}
+pub(super) use super::props_types::{PropsContext, PropsKey, ShapePaintEdit};
 
 /// The numbers on the Transform panel: scale in percent, rotation and skew in degrees.
 #[derive(Clone, Copy, Debug, PartialEq)]

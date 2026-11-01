@@ -49,6 +49,7 @@ mod pen_tool;
 mod playback;
 mod polygon_lasso;
 mod preferences;
+mod props_types;
 mod publish_settings;
 mod publish_window;
 mod rail;
@@ -227,7 +228,11 @@ pub struct Workspace {
     muted: bool,
     /// Everything `report` has said, oldest first, for the Output panel.
     log: Vec<String>,
-    props_tab: PropsTab,
+    /// A context a command asked the Properties panel for (the document's settings), until the
+    /// selection or the tool changes.
+    props_forced: Option<(PropsContext, PropsKey)>,
+    /// The paint of the selected shape being changed in the Properties panel.
+    shape_paint_edit: Option<ShapePaintEdit>,
     /// Position and size typed into the Object tab: x, y, width, height.
     /// The first frame being typed or dragged in the Looping section, until it is let go.
     playback_first_edit: Option<u32>,
@@ -363,7 +368,8 @@ impl Workspace {
             loop_playback: true,
             muted: false,
             log: Vec::new(),
-            props_tab: PropsTab::Tool,
+            props_forced: None,
+            shape_paint_edit: None,
             object_edit: None,
             playback_first_edit: None,
             status: None,

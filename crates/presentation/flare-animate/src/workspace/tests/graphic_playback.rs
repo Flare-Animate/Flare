@@ -16,7 +16,6 @@ fn selected_instance(kind: SymbolKind) -> Workspace {
 fn drawn(ws: &mut Workspace) -> Vec<String> {
     let ctx = egui::Context::default();
     flare_ui::icons::install(&ctx);
-    ws.props_tab = PropsTab::Object;
     let mut all = Vec::new();
     for step in 0..4 {
         let mut out = ctx.run_ui(input(f64::from(step) * 0.1, vec![]), |ui| ws.show(ui));

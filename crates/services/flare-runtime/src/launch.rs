@@ -24,6 +24,16 @@ pub fn find_desktop_with(
     env: impl Fn(&str) -> Option<OsString>,
     running: Option<&Path>,
 ) -> Option<PathBuf> {
+    find_in(env, running, Path::new("/Applications"))
+}
+
+/// `find_desktop_with`, with the folder the system-wide app bundle lives in named, so a test is not
+/// at the mercy of whatever is installed on the machine it runs on.
+fn find_in(
+    env: impl Fn(&str) -> Option<OsString>,
+    running: Option<&Path>,
+    applications: &Path,
+) -> Option<PathBuf> {
     if let Some(explicit) = env("FLARE_DESKTOP").filter(|v| !v.is_empty()) {
         let path = PathBuf::from(explicit);
         return is_executable_file(&path).then_some(path);
@@ -33,11 +43,10 @@ pub fn find_desktop_with(
         candidates.push(dir.join(APP));
     }
     if cfg!(target_os = "macos") {
-        candidates.push(PathBuf::from(
-            "/Applications/Flare.app/Contents/MacOS/flare",
-        ));
+        let inside = Path::new("Flare.app/Contents/MacOS").join(APP);
+        candidates.push(applications.join(&inside));
         if let Some(home) = env("HOME").filter(|h| !h.is_empty()) {
-            candidates.push(Path::new(&home).join("Applications/Flare.app/Contents/MacOS/flare"));
+            candidates.push(Path::new(&home).join("Applications").join(inside));
         }
     }
     if let Some(path_var) = env("PATH") {

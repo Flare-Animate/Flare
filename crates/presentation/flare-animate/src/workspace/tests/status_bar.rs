@@ -54,7 +54,9 @@ fn the_status_bar_shows_the_stage_size_and_frame_rate_and_a_click_opens_document
         });
     }
     let at = at.expect("the document's size and frame rate are in the status bar");
-    ws.props_tab = PropsTab::Tool;
+    // A drawing tool in hand: the panel is about the tool until something asks for the document.
+    ws.set_tool(Tool::Rectangle);
+    assert_eq!(ws.props_context(), PropsContext::Tool);
     for (time, event) in [
         (1.0, Event::PointerMoved(at)),
         (
@@ -79,8 +81,8 @@ fn the_status_bar_shows_the_stage_size_and_frame_rate_and_a_click_opens_document
         pass(&mut ws, &ctx, input(time, vec![event]));
     }
     assert_eq!(
-        ws.props_tab,
-        PropsTab::Doc,
+        ws.props_context(),
+        PropsContext::Document,
         "a click opens the document settings"
     );
 }

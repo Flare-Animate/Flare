@@ -37,6 +37,7 @@ mod panels_and_view;
 mod pen_and_selection;
 mod polygon_lasso;
 mod preferences_dialog;
+mod properties_context;
 mod publish_popup;
 mod publish_settings;
 mod rail;
