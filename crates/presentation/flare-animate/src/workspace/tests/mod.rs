@@ -11,7 +11,7 @@ use flare_commands::Command;
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
 use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Timeline, Tween};
 use flare_runtime::Mode;
-use flare_tools::handles::{self, Handle};
+use flare_tools::free_transform::handles::{self, Handle};
 use flare_tools::ops::{self, SpanRef};
 use glamx::{DAffine2, DVec2};
 use std::num::NonZeroU32;

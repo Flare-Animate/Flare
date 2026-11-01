@@ -4,7 +4,7 @@ use egui::{Key, Pos2, Rect};
 use flare_core::{LayerId, SymbolId};
 use flare_history::EditorSession;
 use flare_runtime::{Rendered, Runtime};
-use flare_tools::handles::Handle;
+use flare_tools::free_transform::handles::Handle;
 use glamx::{DAffine2, DVec2};
 
 /// How many frames before and after the current one onion skinning can show.

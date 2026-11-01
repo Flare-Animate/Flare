@@ -4,7 +4,7 @@
 use egui::{Color32, Pos2};
 use flare_core::SoundId;
 use flare_document::{Cap, Join};
-use flare_tools::symmetry::Symmetry;
+use flare_tools::mirror::Symmetry;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;

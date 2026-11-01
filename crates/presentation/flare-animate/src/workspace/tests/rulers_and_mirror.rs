@@ -1,6 +1,6 @@
 use super::*;
 use flare_input::{InputSample, PointerKind};
-use flare_tools::symmetry::Symmetry;
+use flare_tools::mirror::Symmetry;
 
 fn stroke(points: &[(f64, f64)]) -> Vec<InputSample> {
     points

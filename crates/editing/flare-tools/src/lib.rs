@@ -1,13 +1,34 @@
-//! What the drawing and selection tools compute, with no window in sight: handle geometry for
-//! scaling, rotating and skewing, the pen's path building, freehand smoothing, and the
-//! selection operations that turn a gesture into commands. Everything here is a pure function
-//! of a document and numbers, so it is tested without a UI.
+//! What the drawing and selection tools compute, with no window in sight. Each tool has a folder
+//! of its own with its code and its tests: the Pen and its path building, the Pencil's smoothing,
+//! the Brush and its nib, the Free Transform handles, the Selection and Lasso picking, the
+//! Subselection, Add, Delete and Convert Anchor Point edits, the Ruler and the Mirror, and the
+//! operations of the Paint Bucket and Ink Bottle, the Eraser, Text, grouping, the clipboard,
+//! alignment, tweens and Graphic playback. What several of them share is in `common`.
+//!
+//! Everything here is a pure function of a document and numbers, so it is tested without a UI.
+//! [`ops`] gathers the operations that turn a gesture into commands under one name.
 #![forbid(unsafe_code)]
 
+pub mod add_anchor;
+pub mod arrange;
 pub mod brush;
-pub mod freehand;
-pub mod handles;
+pub mod clipboard;
+mod common;
+pub mod convert_anchor;
+pub mod delete_anchor;
+pub mod eraser;
+pub mod free_transform;
+pub mod grouping;
+pub mod mirror;
 pub mod ops;
+pub mod paint;
 pub mod pen;
-pub mod rulers;
-pub mod symmetry;
+pub mod pencil;
+pub mod playback;
+pub mod ruler;
+pub mod selection;
+pub mod subselection;
+#[cfg(test)]
+mod test_support;
+pub mod text;
+pub mod tween;

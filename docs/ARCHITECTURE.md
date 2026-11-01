@@ -25,7 +25,7 @@ Executables are in `apps/`. The folders mean:
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
-| editing | `flare-tools` | What the tools compute with no window: handle geometry, the pen's paths, freehand smoothing, pressure-sensitive brush outlines, and selection operations that turn a gesture into commands. |
+| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines, the Free Transform handles, selection and lasso picking, the anchor point tools, the Ruler and the Mirror, and the operations of the Paint Bucket and Ink Bottle, the Eraser, Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
 | io | `flare-storage` | The `.flare` SQLite container with compressed CBOR records: save, load, revalidation, crash recovery files. |
 | io | `flare-import` | Import: XFL directories, zipped modern `.fla` files and Flash movies (`.swf`) into a Flare document, with a diagnostic for everything it cannot carry over. |
 | io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
@@ -186,6 +186,19 @@ only from it. Mutating tools accept `expected_revision` (from `get_info`)
 and fail on a mismatch, so an agent cannot overwrite changes it has not seen. Tool failures
 are results with `isError` set, so the agent can read and react; arguments of the wrong shape
 are protocol errors from `rmcp`.
+
+## The tools (`flare-tools`)
+
+A tool is a folder: `pen/`, `pencil/`, `brush/`, `free_transform/`, `selection/`, `subselection/`,
+`add_anchor/`, `delete_anchor/`, `convert_anchor/`, `ruler/`, `mirror/`, `paint/`, `eraser/`,
+`text/`, `tween/`, `grouping/`, `clipboard/`, `arrange/` and `playback/`, each with its code and
+its tests in files of its own. A tool depends on the shared `common` module (finding a span, bounds,
+copies of what a span holds, path editing) and on nothing in another tool, so one can be read,
+changed or removed alone; their tests may call other tools through `ops`. `ops` gathers the
+operations a UI calls (`ops::translate`, `ops::restyle`, ...) under one name and holds none of
+their code. What a tool computes belongs here; the workspace in `flare-animate` only turns pointer
+events and settings into calls (the pen's `path_shape` builds the shape, `pen_tool.rs` wires the
+mouse).
 
 ## Text
 

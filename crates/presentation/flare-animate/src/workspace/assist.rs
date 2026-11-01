@@ -3,7 +3,7 @@
 
 use egui::{Color32, FontId, Painter, Pos2, Rect, Stroke, Vec2};
 use flare_tools::ops;
-use flare_tools::rulers::Measurement;
+use flare_tools::ruler::Measurement;
 use glamx::DVec2;
 
 use super::*;
@@ -42,7 +42,7 @@ impl Workspace {
     /// selects the copies. `across_vertical` mirrors left to right, across a vertical axis.
     pub fn mirror_copy_selection(&mut self, across_vertical: bool) {
         let Some(scene) = self.scene_id() else { return };
-        let reflection = flare_tools::symmetry::Reflection {
+        let reflection = flare_tools::mirror::Reflection {
             flip_x: across_vertical,
             flip_y: !across_vertical,
         };

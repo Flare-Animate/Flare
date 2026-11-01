@@ -7,7 +7,7 @@ use flare_core::{Rgba8, ShapeId};
 use flare_document::{PathSegment, Shape};
 use flare_input::{InputSample, PointerKind, PressureCurve};
 use flare_tools::ops::{Align, align_deltas, distribute_deltas, polygon_contains};
-use flare_tools::{brush, freehand};
+use flare_tools::{brush, pencil};
 use proptest::prelude::*;
 
 fn coordinate() -> impl Strategy<Value = f32> {
@@ -28,7 +28,7 @@ proptest! {
     fn simplifying_keeps_a_subsequence_that_starts_and_ends_where_the_drag_did(
         points in prop::collection::vec(point(), 2..200), tolerance in 0.0_f32..50.0,
     ) {
-        let kept = freehand::simplify(&points, tolerance);
+        let kept = pencil::simplify(&points, tolerance);
         prop_assert!(kept.len() >= 2 && kept.len() <= points.len());
         prop_assert_eq!(kept.first(), points.first());
         prop_assert_eq!(kept.last(), points.last());
@@ -42,7 +42,7 @@ proptest! {
     fn a_smoothed_line_is_a_valid_shape_through_the_ends(
         points in prop::collection::vec(point(), 2..80),
     ) {
-        let path = freehand::smooth_path(&points).expect("two or more finite points");
+        let path = pencil::smooth_path(&points).expect("two or more finite points");
         let shape = Shape::new(ShapeId::new(), path.clone(), Rgba8::TRANSPARENT);
         prop_assert!(shape.is_ok());
         let PathSegment::MoveTo(first) = path[0] else { panic!("starts with a move") };

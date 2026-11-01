@@ -2,8 +2,7 @@
 
 use egui::Pos2;
 use flare_core::{Rgba8, ShapeId};
-use flare_document::{Shape, Stroke as ShapeStroke};
-use flare_tools::pen::Press;
+use flare_tools::pen::{PenStyle, Press, path_shape};
 
 use super::*;
 
@@ -66,34 +65,21 @@ impl Workspace {
             });
             return;
         };
-        let stroke = {
-            let c = self.paint.stroke_color.to_array();
-            ShapeStroke::new(
-                f64::from(self.paint.stroke_width),
-                Rgba8::new(c[0], c[1], c[2], c[3]),
-            )
-            .map(|stroke| {
-                stroke
-                    .with_cap(self.paint.stroke_cap)
-                    .with_join(self.paint.stroke_join)
-            })
-        };
-        let fill = {
-            let c = self.paint.fill.to_array();
+        let color = |c: egui::Color32| {
+            let c = c.to_array();
             Rgba8::new(c[0], c[1], c[2], c[3])
         };
-        let fill = if closed { fill } else { Rgba8::TRANSPARENT };
-        let shape = match Shape::new(ShapeId::new(), path, fill) {
+        let style = PenStyle {
+            fill: color(self.paint.fill),
+            outline: self.paint.stroke_enabled,
+            stroke_width: f64::from(self.paint.stroke_width),
+            stroke_color: color(self.paint.stroke_color),
+            cap: self.paint.stroke_cap,
+            join: self.paint.stroke_join,
+        };
+        let shape = match path_shape(ShapeId::new(), path, closed, &style) {
             Ok(shape) => shape,
             Err(error) => return self.report(error.to_string()),
-        };
-        let shape = if !closed || self.paint.stroke_enabled {
-            match stroke {
-                Ok(stroke) => shape.with_stroke(stroke),
-                Err(error) => return self.report(error.to_string()),
-            }
-        } else {
-            shape
         };
         self.insert_shape_layer(shape, "Path");
         if self.status.is_none() {

@@ -370,7 +370,7 @@ impl Workspace {
         egui::ComboBox::from_id_salt("symmetry")
             .selected_text(self.paint.symmetry.label())
             .show_ui(ui, |ui| {
-                for mode in flare_tools::symmetry::Symmetry::ALL {
+                for mode in flare_tools::mirror::Symmetry::ALL {
                     ui.selectable_value(&mut self.paint.symmetry, mode, mode.label());
                 }
             });

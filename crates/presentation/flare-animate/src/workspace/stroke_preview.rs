@@ -163,7 +163,7 @@ impl Workspace {
     /// with its mirror images. The preview and the commit both start here.
     pub(super) fn stroke_set(&self, mut samples: Vec<InputSample>) -> Vec<Vec<InputSample>> {
         if self.paint.straight_edge || self.paint.straight_held {
-            samples = flare_tools::rulers::straighten(&samples);
+            samples = flare_tools::ruler::straighten(&samples);
         }
         let about = self.symmetry_center();
         let mirrored: Vec<Vec<InputSample>> = self

@@ -4,7 +4,7 @@ use egui::{Color32, Pos2, Rect};
 use flare_commands::Command;
 use flare_core::{Rgba8, ShapeId};
 use flare_document::{Content, Shape, Stroke as ShapeStroke};
-use flare_tools::handles::{self, Handle};
+use flare_tools::free_transform::handles::{self, Handle};
 use flare_tools::ops::{self};
 use glamx::DAffine2;
 
@@ -204,8 +204,8 @@ impl Workspace {
             .iter()
             .map(|s| Pos2::new(s.x as f32, s.y as f32))
             .collect();
-        let points = flare_tools::freehand::simplify(&points, tolerance);
-        let Some(path) = flare_tools::freehand::smooth_path(&points) else {
+        let points = flare_tools::pencil::simplify(&points, tolerance);
+        let Some(path) = flare_tools::pencil::smooth_path(&points) else {
             return Ok(None);
         };
         let c = self.paint.stroke_color.to_array();
