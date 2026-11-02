@@ -8,6 +8,7 @@
 mod attachment;
 mod camera;
 mod layer_queries;
+mod origin;
 mod shape;
 mod sound;
 mod span_elements;
@@ -20,6 +21,10 @@ pub use attachment::{
     Anchor, Attachment, AttachmentError, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, Placement,
 };
 pub use camera::{Camera, CameraError, MAX_ZOOM, MIN_ZOOM};
+pub use origin::{
+    Baseline, MAX_ORIGIN_BYTES, MAX_ORIGIN_FILES, MAX_ORIGIN_NAME_BYTES, Origin, OriginData,
+    OriginError, OriginFile, OriginKind, SharedOrigin, SymbolBaseline, is_safe_entry_name,
+};
 pub use shape::{
     Cap, Gradient, GradientError, Join, MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape,
     ShapeError, Stroke,
@@ -189,6 +194,7 @@ pub struct Document {
     stage: Stage,
     attachments: Vec<Attachment>,
     sounds: Vec<Sound>,
+    origin: Option<SharedOrigin>,
 }
 
 impl Document {
@@ -207,6 +213,7 @@ impl Document {
             stage: Stage::default(),
             attachments: Vec::new(),
             sounds: Vec::new(),
+            origin: None,
         };
         let diagnostics = validate::validate(&document);
         if diagnostics.is_empty() {
@@ -220,6 +227,19 @@ impl Document {
     #[must_use]
     pub fn with_stage(mut self, stage: Stage) -> Self {
         self.stage = stage;
+        self
+    }
+
+    /// The file this document was imported from, if it was kept.
+    pub fn origin(&self) -> Option<&SharedOrigin> {
+        self.origin.as_ref()
+    }
+
+    /// The same document with the file it came from. Edits carry it through; it is what lets an
+    /// export of an unchanged import be the original.
+    #[must_use]
+    pub fn with_origin(mut self, origin: Option<SharedOrigin>) -> Self {
+        self.origin = origin;
         self
     }
 
@@ -304,5 +324,7 @@ impl Document {
     }
 }
 
+#[cfg(test)]
+mod origin_tests;
 #[cfg(test)]
 mod tests;

@@ -34,13 +34,14 @@ pub fn apply_all(
             command,
         )?;
     }
-    // The stage and source attachments are carried through every edit; attachments whose
+    // The stage, the file the document came from and source attachments are carried through every edit; attachments whose
     // anchor the edit removed (a deleted layer) are dropped with it.
     Ok(Some(
         Document::new(document.id(), rate, scenes, symbols)?
             .with_sounds(sounds)?
             .with_stage(stage)
-            .with_attachments_retained(document.attachments()),
+            .with_attachments_retained(document.attachments())
+            .with_origin(document.origin().cloned()),
     ))
 }
 

@@ -2188,6 +2188,7 @@ dependencies = [
  "flare-document",
  "flare-eval",
  "flare-render",
+ "flare-storage",
  "glamx",
  "quick-xml 0.42.0",
  "swf",
@@ -2273,16 +2274,20 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "flare-audio",
+ "flare-commands",
  "flare-core",
  "flare-document",
  "flare-eval",
  "flare-export",
+ "flare-history",
+ "flare-import",
  "flare-render",
  "glamx",
  "serde_json",
  "swf",
  "tempfile",
  "thiserror 2.0.18",
+ "zip",
 ]
 
 [[package]]

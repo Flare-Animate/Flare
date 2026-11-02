@@ -20,8 +20,12 @@ swf.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+flare-commands.workspace = true
+flare-history.workspace = true
+flare-import.workspace = true
 flare-render.workspace = true
 tempfile.workspace = true
+zip = { workspace = true, features = ["deflate"] }
 
 [lints]
 workspace = true

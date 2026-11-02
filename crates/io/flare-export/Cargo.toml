@@ -9,6 +9,7 @@ license.workspace = true
 [dependencies]
 flare-core.workspace = true
 flare-document.workspace = true
+flare-storage.workspace = true
 quick-xml.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
@@ -20,7 +21,6 @@ flare-history.workspace = true
 flare-eval.workspace = true
 flare-import.workspace = true
 flare-render.workspace = true
-flare-storage.workspace = true
 glamx.workspace = true
 
 [lints]
