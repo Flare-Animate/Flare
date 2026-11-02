@@ -12,15 +12,22 @@ impl Workspace {
     pub(super) fn help_windows(&mut self, ctx: &egui::Context) {
         if self.windows.about {
             let mut open = true;
-            egui::Window::new("About Flare")
+            let title = self.label(MenuAction::About);
+            let version = self.tr_with(
+                "menu-help-version",
+                &[("version", env!("CARGO_PKG_VERSION"))],
+            );
+            let tagline = self.tr("menu-help-tagline");
+            let alpha = self.tr("menu-help-alpha");
+            egui::Window::new(title)
                 .open(&mut open)
                 .collapsible(false)
                 .resizable(false)
                 .show(ctx, |ui| {
                     ui.heading("Flare");
-                    ui.label(format!("Version {}", env!("CARGO_PKG_VERSION")));
-                    ui.weak("An animation tool in the spirit of Adobe Animate.");
-                    ui.weak("Early alpha: keep backups of your work.");
+                    ui.label(version);
+                    ui.weak(tagline);
+                    ui.weak(alpha);
                     ui.hyperlink_to("GitHub", GITHUB_URL);
                     ui.hyperlink_to("Discord", DISCORD_URL);
                 });
@@ -29,7 +36,8 @@ impl Workspace {
         if self.windows.shortcuts {
             let mut open = true;
             let lines = self.shortcut_lines();
-            egui::Window::new("Keyboard Shortcuts")
+            let title = self.label(MenuAction::KeyboardShortcuts);
+            egui::Window::new(title)
                 .open(&mut open)
                 .collapsible(false)
                 .resizable(false)

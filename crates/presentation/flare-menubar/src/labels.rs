@@ -1,6 +1,10 @@
 //! What each menu item is called right now. Most have one name; those that toggle something have
 //! two, and which one shows depends on the state of the thing they toggle.
 
+use std::sync::OnceLock;
+
+use flare_i18n::{Language, Translator};
+
 use crate::MenuAction;
 
 /// The state the labels of the toggling items depend on, as the workspace sees it.
@@ -53,232 +57,269 @@ impl Default for LabelState {
 }
 
 impl MenuAction {
-    /// The menu item's label for `state`.
-    pub fn label(self, state: &LabelState) -> &'static str {
+    /// The key of the menu item's name for `state`, in the interface's message files. A toggling
+    /// item has two keys, `-on` and `-off`, named for the state that picks them.
+    pub fn label_key(self, state: &LabelState) -> &'static str {
         match self {
-            Self::Open => "Open...",
-            Self::ImportSound => "Import Sound...",
-            Self::NewLayer => "Layer",
-            Self::NewLayerFolder => "Layer Folder",
-            Self::ImportProject => "Import XFL or FLA...",
-            Self::New => "New",
-            Self::SaveAll => "Save All",
-            Self::OpenRecent => "Open Recent...",
-            Self::PublishSettings => "Publish Settings...",
-            Self::Close => "Close",
-            Self::Revert => "Revert",
-            Self::ExportImage => "Export Image...",
-            Self::ExportMovie => "Export Animated GIF...",
-            Self::ExportFla => "Export Flash Document (.fla)...",
-            Self::Save => "Save",
-            Self::SaveAs => "Save As...",
-            Self::Quit => "Quit Flare",
-            Self::Undo => "Undo",
-            Self::Redo => "Redo",
-            Self::Delete => "Delete",
-            Self::Duplicate => "Duplicate",
-            Self::Copy => "Copy",
-            Self::Cut => "Cut",
-            Self::SelectAll => "Select All",
-            Self::DeselectAll => "Deselect All",
-            Self::Rewind => "Rewind",
-            Self::GoToEnd => "Go to End",
-            Self::StepForward => "Step Forward",
-            Self::StepBackward => "Step Backward",
-            Self::ActualSize => "Actual Size",
-            Self::CopyFrames => "Copy Frames",
-            Self::PasteFrames => "Paste Frames",
-            Self::CutFrames => "Cut Frames",
-            Self::SelectAllFrames => "Select All Frames",
-            Self::ReverseFrames => "Reverse Frames",
-            Self::Paste => "Paste",
-            Self::PasteInPlace => "Paste in Place",
-            Self::FlipHorizontal => "Flip Horizontal",
-            Self::FlipVertical => "Flip Vertical",
-            Self::RotateClockwise => "Rotate 90\u{b0} Clockwise",
-            Self::RotateCounterclockwise => "Rotate 90\u{b0} Counterclockwise",
-            Self::ScaleUp => "Scale Up",
-            Self::ScaleDown => "Scale Down",
-            Self::ConvertToSymbol => "Convert to Symbol",
-            Self::Group => "Group",
-            Self::Ungroup => "Ungroup",
-            Self::BreakApart => "Break Apart",
-            Self::Publish => "Publish",
-            Self::DocumentSettings => "Document Settings...",
-            Self::Preferences => "Preferences...",
-            Self::ToolSubselection => "Subselection",
-            Self::ToolFreeTransform => "Free Transform",
-            Self::EditSymbol => "Edit Symbol",
-            Self::ExitSymbol => "Exit Symbol",
-            Self::ToolSelect => "Select / Move",
-            Self::ToolRectangle => "Rectangle",
-            Self::ToolEllipse => "Ellipse",
-            Self::ToolLine => "Line",
-            Self::ToolPen => "Pen",
-            Self::ToolText => "Text",
-            Self::ToolHand => "Hand",
-            Self::ToolZoom => "Zoom",
-            Self::ToolEyedropper => "Eyedropper",
-            Self::ToolBucket => "Paint Bucket",
-            Self::ToolInkBottle => "Ink Bottle",
-            Self::ToolEraser => "Eraser",
-            Self::ToolPolyStar => "PolyStar",
-            Self::ToolLasso => "Lasso",
-            Self::ToolPencil => "Pencil",
-            Self::ToolBrush => "Brush",
-            Self::ToolRuler => "Ruler",
-            Self::ToolMirror => "Mirror",
-            Self::MirrorCopyHorizontal => "Mirror Copy Left-Right",
-            Self::MirrorCopyVertical => "Mirror Copy Top-Bottom",
-            Self::ZoomIn => "Zoom In",
-            Self::ZoomOut => "Zoom Out",
-            Self::ZoomFit => "Fit Stage in Window",
-            Self::InsertFrame => "Frame",
-            Self::RemoveFrame => "Remove Frames",
-            Self::InsertKeyframe => "Keyframe",
-            Self::InsertBlankKeyframe => "Blank Keyframe",
-            Self::ClearKeyframe => "Clear Keyframe",
-            Self::ConvertToKeyframes => "Convert to Keyframes",
             Self::ToggleMotionTween => {
                 if state.motion_tween {
-                    "Remove Motion Tween"
+                    "menu-item-toggle-motion-tween-on"
                 } else {
-                    "Create Motion Tween"
+                    "menu-item-toggle-motion-tween-off"
                 }
             }
             Self::ToggleShapeTween => {
                 if state.shape_tween {
-                    "Remove Shape Tween"
+                    "menu-item-toggle-shape-tween-on"
                 } else {
-                    "Create Shape Tween"
+                    "menu-item-toggle-shape-tween-off"
                 }
             }
             Self::PlayPause => {
                 if state.playing {
-                    "Pause"
+                    "menu-item-play-pause-on"
                 } else {
-                    "Play"
+                    "menu-item-play-pause-off"
                 }
             }
             Self::ToggleLayerVisible => {
                 if state.layer_visible {
-                    "Hide Layer"
+                    "menu-item-toggle-layer-visible-on"
                 } else {
-                    "Show Layer"
+                    "menu-item-toggle-layer-visible-off"
                 }
             }
             Self::ToggleLayerLocked => {
                 if state.layer_locked {
-                    "Unlock Layer"
+                    "menu-item-toggle-layer-locked-on"
                 } else {
-                    "Lock Layer"
+                    "menu-item-toggle-layer-locked-off"
                 }
             }
             Self::ToggleLayerMask => {
                 if state.layer_mask {
-                    "Remove Mask"
+                    "menu-item-toggle-layer-mask-on"
                 } else {
-                    "Mask Layer Below"
+                    "menu-item-toggle-layer-mask-off"
                 }
             }
             Self::ToggleLayerGuide => {
                 if state.layer_guide {
-                    "Make Normal Layer"
+                    "menu-item-toggle-layer-guide-on"
                 } else {
-                    "Motion Guide for Layer Below"
+                    "menu-item-toggle-layer-guide-off"
                 }
             }
-            Self::MoveLayerUp => "Move Layer Up",
-            Self::MoveLayerDown => "Move Layer Down",
-            Self::DeleteLayer => "Delete Layer",
-            Self::ResetLayout => "Reset Workspace Layout",
-            Self::NewSymbol => "New Symbol",
             Self::TextBold => {
                 if state.text_bold {
-                    "Not Bold"
+                    "menu-item-text-bold-on"
                 } else {
-                    "Bold"
+                    "menu-item-text-bold-off"
                 }
             }
             Self::TextItalic => {
                 if state.text_italic {
-                    "Not Italic"
+                    "menu-item-text-italic-on"
                 } else {
-                    "Italic"
+                    "menu-item-text-italic-off"
                 }
             }
-            Self::TextLarger => "Larger Text",
-            Self::TextSmaller => "Smaller Text",
             Self::ToggleGuides => {
                 if state.guides_shown {
-                    "Hide Guides"
+                    "menu-item-toggle-guides-on"
                 } else {
-                    "Show Guides"
+                    "menu-item-toggle-guides-off"
                 }
             }
-            Self::ClearGuides => "Clear Guides",
-            Self::About => "About Flare",
-            Self::KeyboardShortcuts => "Keyboard Shortcuts",
-            Self::ShowProperties => "Properties",
-            Self::ShowLibrary => "Library",
-            Self::ShowColor => "Color",
-            Self::ShowAlign => "Align",
-            Self::ShowTransform => "Transform",
-            Self::ShowHistory => "History",
-            Self::ShowTimeline => "Timeline",
-            Self::ShowOutput => "Output",
-            Self::ShowInfo => "Info",
-            Self::ShowHome => "Home",
             Self::ToggleOnionSkin => {
                 if state.onion_on {
-                    "Hide Onion Skin"
+                    "menu-item-toggle-onion-skin-on"
                 } else {
-                    "Show Onion Skin"
+                    "menu-item-toggle-onion-skin-off"
                 }
             }
             Self::ToggleOutlineMode => {
                 if state.outline_mode {
-                    "Show Artwork"
+                    "menu-item-toggle-outline-mode-on"
                 } else {
-                    "Outline Mode"
+                    "menu-item-toggle-outline-mode-off"
                 }
             }
             Self::ToggleRulers => {
                 if state.rulers_shown {
-                    "Hide Rulers"
+                    "menu-item-toggle-rulers-on"
                 } else {
-                    "Show Rulers"
+                    "menu-item-toggle-rulers-off"
                 }
             }
             Self::ToggleGrid => {
                 if state.grid_shown {
-                    "Hide Grid"
+                    "menu-item-toggle-grid-on"
                 } else {
-                    "Show Grid"
+                    "menu-item-toggle-grid-off"
                 }
             }
             Self::ToggleSnap => {
                 if state.snapping {
-                    "Snapping: On"
+                    "menu-item-toggle-snap-on"
                 } else {
-                    "Snapping: Off"
+                    "menu-item-toggle-snap-off"
                 }
             }
             Self::ToggleLoop => {
                 if state.loop_playback {
-                    "Loop Playback: On"
+                    "menu-item-toggle-loop-on"
                 } else {
-                    "Loop Playback: Off"
+                    "menu-item-toggle-loop-off"
                 }
             }
             Self::ToggleMute => {
                 if state.muted {
-                    "Unmute Sounds"
+                    "menu-item-toggle-mute-on"
                 } else {
-                    "Mute Sounds"
+                    "menu-item-toggle-mute-off"
                 }
             }
-            Self::TestMovie => "Test Movie",
+            Self::Open => "menu-item-open",
+            Self::ImportSound => "menu-item-import-sound",
+            Self::NewLayer => "menu-item-new-layer",
+            Self::NewLayerFolder => "menu-item-new-layer-folder",
+            Self::ImportProject => "menu-item-import-project",
+            Self::New => "menu-item-new",
+            Self::SaveAll => "menu-item-save-all",
+            Self::OpenRecent => "menu-item-open-recent",
+            Self::PublishSettings => "menu-item-publish-settings",
+            Self::Close => "menu-item-close",
+            Self::Revert => "menu-item-revert",
+            Self::ExportImage => "menu-item-export-image",
+            Self::ExportMovie => "menu-item-export-movie",
+            Self::ExportFla => "menu-item-export-fla",
+            Self::Save => "menu-item-save",
+            Self::SaveAs => "menu-item-save-as",
+            Self::Quit => "menu-item-quit",
+            Self::Undo => "menu-item-undo",
+            Self::Redo => "menu-item-redo",
+            Self::Delete => "menu-item-delete",
+            Self::Duplicate => "menu-item-duplicate",
+            Self::Copy => "menu-item-copy",
+            Self::Cut => "menu-item-cut",
+            Self::SelectAll => "menu-item-select-all",
+            Self::DeselectAll => "menu-item-deselect-all",
+            Self::Rewind => "menu-item-rewind",
+            Self::GoToEnd => "menu-item-go-to-end",
+            Self::StepForward => "menu-item-step-forward",
+            Self::StepBackward => "menu-item-step-backward",
+            Self::ActualSize => "menu-item-actual-size",
+            Self::CopyFrames => "menu-item-copy-frames",
+            Self::PasteFrames => "menu-item-paste-frames",
+            Self::CutFrames => "menu-item-cut-frames",
+            Self::SelectAllFrames => "menu-item-select-all-frames",
+            Self::ReverseFrames => "menu-item-reverse-frames",
+            Self::Paste => "menu-item-paste",
+            Self::PasteInPlace => "menu-item-paste-in-place",
+            Self::FlipHorizontal => "menu-item-flip-horizontal",
+            Self::FlipVertical => "menu-item-flip-vertical",
+            Self::RotateClockwise => "menu-item-rotate-clockwise",
+            Self::RotateCounterclockwise => "menu-item-rotate-counterclockwise",
+            Self::ScaleUp => "menu-item-scale-up",
+            Self::ScaleDown => "menu-item-scale-down",
+            Self::ConvertToSymbol => "menu-item-convert-to-symbol",
+            Self::Group => "menu-item-group",
+            Self::Ungroup => "menu-item-ungroup",
+            Self::BreakApart => "menu-item-break-apart",
+            Self::Publish => "menu-item-publish",
+            Self::DocumentSettings => "menu-item-document-settings",
+            Self::Preferences => "menu-item-preferences",
+            Self::ToolSubselection => "menu-item-tool-subselection",
+            Self::ToolFreeTransform => "menu-item-tool-free-transform",
+            Self::EditSymbol => "menu-item-edit-symbol",
+            Self::ExitSymbol => "menu-item-exit-symbol",
+            Self::ToolSelect => "menu-item-tool-select",
+            Self::ToolRectangle => "menu-item-tool-rectangle",
+            Self::ToolEllipse => "menu-item-tool-ellipse",
+            Self::ToolLine => "menu-item-tool-line",
+            Self::ToolPen => "menu-item-tool-pen",
+            Self::ToolText => "menu-item-tool-text",
+            Self::ToolHand => "menu-item-tool-hand",
+            Self::ToolZoom => "menu-item-tool-zoom",
+            Self::ToolEyedropper => "menu-item-tool-eyedropper",
+            Self::ToolBucket => "menu-item-tool-bucket",
+            Self::ToolInkBottle => "menu-item-tool-ink-bottle",
+            Self::ToolEraser => "menu-item-tool-eraser",
+            Self::ToolPolyStar => "menu-item-tool-poly-star",
+            Self::ToolLasso => "menu-item-tool-lasso",
+            Self::ToolPencil => "menu-item-tool-pencil",
+            Self::ToolBrush => "menu-item-tool-brush",
+            Self::ToolRuler => "menu-item-tool-ruler",
+            Self::ToolMirror => "menu-item-tool-mirror",
+            Self::MirrorCopyHorizontal => "menu-item-mirror-copy-horizontal",
+            Self::MirrorCopyVertical => "menu-item-mirror-copy-vertical",
+            Self::ZoomIn => "menu-item-zoom-in",
+            Self::ZoomOut => "menu-item-zoom-out",
+            Self::ZoomFit => "menu-item-zoom-fit",
+            Self::InsertFrame => "menu-item-insert-frame",
+            Self::RemoveFrame => "menu-item-remove-frame",
+            Self::InsertKeyframe => "menu-item-insert-keyframe",
+            Self::InsertBlankKeyframe => "menu-item-insert-blank-keyframe",
+            Self::ClearKeyframe => "menu-item-clear-keyframe",
+            Self::ConvertToKeyframes => "menu-item-convert-to-keyframes",
+            Self::MoveLayerUp => "menu-item-move-layer-up",
+            Self::MoveLayerDown => "menu-item-move-layer-down",
+            Self::DeleteLayer => "menu-item-delete-layer",
+            Self::ResetLayout => "menu-item-reset-layout",
+            Self::NewSymbol => "menu-item-new-symbol",
+            Self::TextLarger => "menu-item-text-larger",
+            Self::TextSmaller => "menu-item-text-smaller",
+            Self::ClearGuides => "menu-item-clear-guides",
+            Self::About => "menu-item-about",
+            Self::KeyboardShortcuts => "menu-item-keyboard-shortcuts",
+            Self::ShowProperties => "menu-item-show-properties",
+            Self::ShowLibrary => "menu-item-show-library",
+            Self::ShowColor => "menu-item-show-color",
+            Self::ShowAlign => "menu-item-show-align",
+            Self::ShowTransform => "menu-item-show-transform",
+            Self::ShowHistory => "menu-item-show-history",
+            Self::ShowTimeline => "menu-item-show-timeline",
+            Self::ShowOutput => "menu-item-show-output",
+            Self::ShowInfo => "menu-item-show-info",
+            Self::ShowHome => "menu-item-show-home",
+            Self::TestMovie => "menu-item-test-movie",
         }
     }
+
+    /// The menu item's name in English, for a surface with no translator and for the tests.
+    pub fn label(self, state: &LabelState) -> String {
+        english().text(self.label_key(state))
+    }
+}
+
+/// The key of a menu's title (`File`) in the message files.
+pub fn title_key(title: &str) -> String {
+    slug_key("menu-title-", title)
+}
+
+/// The key of a menu inside a menu (`Import`).
+pub fn submenu_key(title: &str) -> String {
+    slug_key("menu-submenu-", title)
+}
+
+/// The key of a planned command that does not exist yet (`Scene`).
+pub fn mock_key(name: &str) -> String {
+    slug_key("menu-mock-", name)
+}
+
+/// `prefix` and the English name lowercased with its words joined by hyphens, so the layout keeps
+/// its English names (they read well in tests and in code) and the files still have keys.
+fn slug_key(prefix: &str, name: &str) -> String {
+    let words: Vec<String> = name
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .map(str::to_lowercase)
+        .collect();
+    format!("{prefix}{}", words.join("-"))
+}
+
+fn english() -> &'static Translator {
+    static ENGLISH: OnceLock<Translator> = OnceLock::new();
+    ENGLISH.get_or_init(|| Translator::new(Language::English))
 }
