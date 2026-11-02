@@ -13,6 +13,8 @@ pub enum Mode {
     Clay,
     Synthwave,
     Blue,
+    Neutral,
+    Green,
 }
 
 impl Mode {
@@ -24,6 +26,8 @@ impl Mode {
             Self::Clay => "clay",
             Self::Synthwave => "synthwave",
             Self::Blue => "blue",
+            Self::Neutral => "neutral",
+            Self::Green => "green",
         }
     }
 
@@ -34,6 +38,8 @@ impl Mode {
             "clay" => Self::Clay,
             "synthwave" => Self::Synthwave,
             "blue" => Self::Blue,
+            "neutral" => Self::Neutral,
+            "green" => Self::Green,
             _ => Self::Dark,
         }
     }
@@ -166,6 +172,42 @@ const BLUE: Palette = Palette {
     stage_surround: rgb(0x12, 0x18, 0x24),
 };
 
+const NEUTRAL: Palette = Palette {
+    bg: rgb(0x2a, 0x2a, 0x2a),
+    panel: rgb(0x33, 0x33, 0x33),
+    panel_raised: rgb(0x3d, 0x3d, 0x3d),
+    field: rgb(0x22, 0x22, 0x22),
+    faint: rgb(0x38, 0x38, 0x38),
+    border: rgb(0x55, 0x55, 0x55),
+    border_strong: rgb(0x77, 0x77, 0x77),
+    hover: rgb(0x40, 0x40, 0x40),
+    text: rgb(0xd9, 0xd9, 0xd9),
+    text_strong: Color32::WHITE,
+    text_dim: rgb(0x99, 0x99, 0x99),
+    text_disabled: rgb(0x5a, 0x5a, 0x5a),
+    accent: rgb(0x88, 0x88, 0x88),
+    warning: rgb(0xe8, 0xb3, 0x4a),
+    stage_surround: rgb(0x1e, 0x1e, 0x1e),
+};
+
+const GREEN: Palette = Palette {
+    bg: rgb(0x1a, 0x24, 0x1a),
+    panel: rgb(0x20, 0x2e, 0x20),
+    panel_raised: rgb(0x28, 0x38, 0x28),
+    field: rgb(0x14, 0x1e, 0x14),
+    faint: rgb(0x24, 0x32, 0x24),
+    border: rgb(0x3a, 0x5a, 0x3a),
+    border_strong: rgb(0x55, 0x7a, 0x55),
+    hover: rgb(0x2e, 0x42, 0x2e),
+    text: rgb(0xd0, 0xe8, 0xd0),
+    text_strong: Color32::WHITE,
+    text_dim: rgb(0x8a, 0xaa, 0x8a),
+    text_disabled: rgb(0x4a, 0x6a, 0x4a),
+    accent: rgb(0x4a, 0xc8, 0x4a),
+    warning: rgb(0xe8, 0xb3, 0x4a),
+    stage_surround: rgb(0x12, 0x1c, 0x12),
+};
+
 fn palette() -> &'static Palette {
     match mode() {
         Mode::Dark => &DARK,
@@ -173,6 +215,8 @@ fn palette() -> &'static Palette {
         Mode::Clay => &CLAY,
         Mode::Synthwave => &SYNTHWAVE,
         Mode::Blue => &BLUE,
+        Mode::Neutral => &NEUTRAL,
+        Mode::Green => &GREEN,
     }
 }
 
@@ -311,7 +355,7 @@ pub fn apply(ctx: &egui::Context) {
 pub fn apply_palette(ctx: &egui::Context) {
     let mut visuals = match mode() {
         Mode::Light => Visuals::light(),
-        Mode::Dark | Mode::Clay | Mode::Synthwave | Mode::Blue => Visuals::dark(),
+        Mode::Dark | Mode::Clay | Mode::Synthwave | Mode::Blue | Mode::Neutral | Mode::Green => Visuals::dark(),
     };
     visuals.panel_fill = panel();
     visuals.window_fill = panel_raised();
@@ -369,165 +413,7 @@ pub fn apply_palette(ctx: &egui::Context) {
     });
 }
 
+
 #[cfg(test)]
-#[allow(clippy::expect_used)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn spacing_leaves_room_between_and_around_things() {
-        let ctx = egui::Context::default();
-        apply(&ctx);
-        let spacing = ctx.global_style().spacing.clone();
-        assert!(spacing.item_spacing.x >= 6.0 && spacing.item_spacing.y >= 4.0);
-        assert!(spacing.window_margin.left >= 10);
-        assert!(i16::from(PANEL_PADDING.0) > i16::from(GUTTER as i8));
-        assert!(spacing.interact_size.y >= 22.0);
-    }
-
-    fn proportional(code: &str) -> Vec<String> {
-        definitions(code).families[&egui::FontFamily::Proportional].clone()
-    }
-
-    #[test]
-    fn the_interface_font_is_first_and_the_languages_own_cjk_font_leads_the_others() {
-        for (code, own) in [
-            ("ja", "noto-cjk-ja"),
-            ("zh-CN", "noto-cjk-zh"),
-            ("ko", "noto-cjk-ko"),
-        ] {
-            let family = proportional(code);
-            assert_eq!(family[0], "source-sans-3");
-            assert_eq!(family[1], own, "{code}");
-            assert_eq!(
-                family.iter().filter(|f| f.starts_with("noto-cjk")).count(),
-                3,
-                "a name in any CJK language still shows"
-            );
-        }
-        // For a language without one, all three follow, in a fixed order.
-        assert_eq!(
-            proportional("de")[..4],
-            ["source-sans-3", "noto-cjk-zh", "noto-cjk-ja", "noto-cjk-ko"]
-        );
-        assert!(cjk_family("ja").is_some() && cjk_family("de").is_none());
-    }
-
-    #[test]
-    fn egui_loads_each_embedded_font_and_finds_the_languages_own_name_in_it() {
-        let ctx = egui::Context::default();
-        apply(&ctx);
-        set_cjk_priority(&ctx, "ja");
-        // Fonts take a pass to be set up.
-        for step in 0..2 {
-            let input = egui::RawInput {
-                time: Some(f64::from(step)),
-                ..egui::RawInput::default()
-            };
-            ctx.run_ui(input, |_| {}).textures_delta.clear();
-        }
-        for (code, name) in [("ja", "日本語"), ("zh-CN", "简体中文"), ("ko", "한국어")] {
-            let family = cjk_family(code).expect("family");
-            let found = ctx.fonts_mut(|f| f.has_glyphs(&FontId::new(14.0, family), name));
-            assert!(found, "{code}'s font draws {name}");
-        }
-    }
-
-    /// WCAG relative luminance of a color.
-    fn luminance(c: Color32) -> f32 {
-        let channel = |v: u8| {
-            let v = f32::from(v) / 255.0;
-            if v <= 0.03928 {
-                v / 12.92
-            } else {
-                ((v + 0.055) / 1.055).powf(2.4)
-            }
-        };
-        0.2126 * channel(c.r()) + 0.7152 * channel(c.g()) + 0.0722 * channel(c.b())
-    }
-
-    fn contrast(a: Color32, b: Color32) -> f32 {
-        let (hi, lo) = (
-            luminance(a).max(luminance(b)),
-            luminance(a).min(luminance(b)),
-        );
-        (hi + 0.05) / (lo + 0.05)
-    }
-
-    #[test]
-    fn both_palettes_keep_text_readable_on_every_surface_and_the_light_one_is_light() {
-        for mode in [
-            Mode::Dark,
-            Mode::Light,
-            Mode::Clay,
-            Mode::Synthwave,
-            Mode::Blue,
-        ] {
-            set_mode(mode);
-            for surface in [bg(), panel(), panel_raised(), field(), hover()] {
-                assert!(
-                    contrast(text(), surface) >= 7.0,
-                    "{mode:?} text on {surface:?}"
-                );
-                assert!(
-                    contrast(text_dim(), surface) >= 3.5,
-                    "{mode:?} dim text on {surface:?}"
-                );
-                assert!(
-                    contrast(text_strong(), surface) >= contrast(text(), surface),
-                    "{mode:?} lit text is the stronger"
-                );
-            }
-            assert!(
-                contrast(text_disabled(), panel()) >= 1.8,
-                "{mode:?} disabled is still seen"
-            );
-            assert!(contrast(border(), panel()) >= 1.1, "{mode:?} borders show");
-            assert!(contrast(accent(), panel()) >= 3.0, "{mode:?} accent shows");
-        }
-        set_mode(Mode::Dark);
-        let dark_panel = luminance(panel());
-        set_mode(Mode::Light);
-        assert!(luminance(panel()) > 0.7 && dark_panel < 0.05);
-        assert!(
-            luminance(field()) < luminance(panel_raised()),
-            "the inset box is the lower surface"
-        );
-        set_mode(Mode::Dark);
-    }
-
-    #[test]
-    fn the_mode_is_per_thread_kept_by_code_and_unknown_codes_are_dark() {
-        assert_eq!(mode(), Mode::Dark, "dark is the default");
-        set_mode(Mode::Light);
-        let other = std::thread::spawn(mode).join().expect("thread");
-        assert_eq!(other, Mode::Dark, "another thread is not affected");
-        assert_eq!(mode(), Mode::Light);
-        set_mode(Mode::Dark);
-        for m in [
-            Mode::Dark,
-            Mode::Light,
-            Mode::Clay,
-            Mode::Synthwave,
-            Mode::Blue,
-        ] {
-            assert_eq!(Mode::from_code(m.code()), m);
-        }
-        assert_eq!(Mode::from_code("neon"), Mode::Dark);
-        assert_eq!(Mode::from_code(""), Mode::Dark);
-    }
-
-    #[test]
-    fn the_palette_is_applied_to_eguis_own_widgets_in_both_modes() {
-        let ctx = egui::Context::default();
-        set_mode(Mode::Light);
-        apply_palette(&ctx);
-        let light = ctx.global_style().visuals.clone();
-        assert!(!light.dark_mode && light.panel_fill == panel());
-        set_mode(Mode::Dark);
-        apply_palette(&ctx);
-        let dark = ctx.global_style().visuals.clone();
-        assert!(dark.dark_mode && dark.panel_fill == panel());
-        assert_ne!(light.panel_fill, dark.panel_fill);
-    }
-}
+#[path = "theme_tests.rs"]
+mod tests;
