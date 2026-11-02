@@ -73,22 +73,54 @@ impl Workspace {
 
     pub(crate) fn tool_tab(&mut self, ui: &mut Ui) {
         self.tool_options(ui);
-        chrome::section(ui, "fill-color", "Fill and stroke");
-        chrome::row(ui, "Fill", |ui| {
+        let [
+            title,
+            fill,
+            gradient,
+            to,
+            vertical,
+            stroke,
+            outline,
+            width,
+            cap_label,
+            join_label,
+        ] = [
+            "prop-fill-stroke",
+            "prop-fill",
+            "prop-gradient",
+            "prop-to",
+            "prop-vertical",
+            "prop-stroke",
+            "prop-outline",
+            "prop-width",
+            "prop-cap",
+            "prop-join",
+        ]
+        .map(|key| self.tr(key));
+        let [none, round, square, bevel, miter] = [
+            "prop-cap-none",
+            "prop-round",
+            "prop-square",
+            "prop-bevel",
+            "prop-miter",
+        ]
+        .map(|key| self.tr(key));
+        chrome::section(ui, "fill-color", &title);
+        chrome::row(ui, &fill, |ui| {
             ui.color_edit_button_srgba(&mut self.paint.fill);
-            ui.checkbox(&mut self.paint.gradient_enabled, "Gradient");
+            ui.checkbox(&mut self.paint.gradient_enabled, gradient);
         });
         if self.paint.gradient_enabled {
-            chrome::row(ui, "To", |ui| {
+            chrome::row(ui, &to, |ui| {
                 ui.color_edit_button_srgba(&mut self.paint.gradient_end);
-                ui.checkbox(&mut self.paint.gradient_vertical, "Vertical");
+                ui.checkbox(&mut self.paint.gradient_vertical, vertical);
             });
         }
-        chrome::row(ui, "Stroke", |ui| {
+        chrome::row(ui, &stroke, |ui| {
             ui.color_edit_button_srgba(&mut self.paint.stroke_color);
-            ui.checkbox(&mut self.paint.stroke_enabled, "Outline");
+            ui.checkbox(&mut self.paint.stroke_enabled, outline);
         });
-        chrome::row(ui, "Width", |ui| {
+        chrome::row(ui, &width, |ui| {
             ui.add_enabled(
                 self.paint.stroke_enabled,
                 egui::DragValue::new(&mut self.paint.stroke_width)
@@ -96,42 +128,43 @@ impl Workspace {
                     .suffix(" px"),
             );
         });
-        chrome::row(ui, "Cap", |ui| {
+        chrome::row(ui, &cap_label, |ui| {
             use flare_document::Cap;
             egui::ComboBox::from_id_salt("cap_menu")
                 .width(80.0)
                 .selected_text(match self.paint.stroke_cap {
-                    Cap::Butt => "None",
-                    Cap::Round => "Round",
-                    Cap::Square => "Square",
+                    Cap::Butt => none.as_str(),
+                    Cap::Round => round.as_str(),
+                    Cap::Square => square.as_str(),
                 })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Butt, "None");
-                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Round, "Round");
-                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Square, "Square");
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Butt, &none);
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Round, &round);
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Square, &square);
                 });
         });
-        chrome::row(ui, "Join", |ui| {
+        chrome::row(ui, &join_label, |ui| {
             use flare_document::Join;
             egui::ComboBox::from_id_salt("join_menu")
                 .width(80.0)
                 .selected_text(match self.paint.stroke_join {
-                    Join::Round => "Round",
-                    Join::Bevel => "Bevel",
-                    Join::Miter => "Miter",
+                    Join::Round => round.as_str(),
+                    Join::Bevel => bevel.as_str(),
+                    Join::Miter => miter.as_str(),
                 })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut self.paint.stroke_join, Join::Round, "Round");
-                    ui.selectable_value(&mut self.paint.stroke_join, Join::Bevel, "Bevel");
-                    ui.selectable_value(&mut self.paint.stroke_join, Join::Miter, "Miter");
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Round, &round);
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Bevel, &bevel);
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Miter, &miter);
                 });
         });
     }
 
     /// The current frame and layer.
     pub(crate) fn frame_tab(&mut self, ui: &mut Ui) {
-        chrome::section(ui, "playhead", "Frame");
-        chrome::row(ui, "Frame", |ui| {
+        let frame_label = self.tr("prop-frame");
+        chrome::section(ui, "playhead", &frame_label);
+        chrome::row(ui, &frame_label, |ui| {
             ui.label(format!("{} / {}", self.frame + 1, self.scene_frames()));
         });
         let info = self.active_layer().map(|layer| {
@@ -142,23 +175,35 @@ impl Workspace {
         });
         match info {
             Some((name, span)) => {
-                chrome::row(ui, "Layer", |ui| {
+                let (layer_label, exposure) = (self.tr("prop-layer"), self.tr("prop-exposure"));
+                let span_text = span.map_or_else(
+                    || self.tr("prop-empty"),
+                    |(start, len)| {
+                        self.tr_with(
+                            "prop-exposure-span",
+                            &[
+                                ("start", &(start + 1).to_string()),
+                                ("len", &len.to_string()),
+                            ],
+                        )
+                    },
+                );
+                chrome::row(ui, &layer_label, |ui| {
                     ui.label(name);
                 });
-                chrome::row(ui, "Exposure", |ui| match span {
-                    Some((start, len)) => {
-                        ui.label(format!("from frame {} for {len}", start + 1));
-                    }
-                    None => {
-                        ui.weak("empty");
+                chrome::row(ui, &exposure, |ui| {
+                    if span.is_some() {
+                        ui.label(&span_text);
+                    } else {
+                        ui.weak(&span_text);
                     }
                 });
             }
             None => {
-                ui.weak("No layer selected.");
+                ui.weak(self.tr("prop-no-layer"));
             }
         }
-        chrome::section(ui, "frame-tween", "Tween");
+        chrome::section(ui, "frame-tween", &self.tr("prop-tween"));
         self.tween_controls(ui);
     }
 
@@ -170,11 +215,11 @@ impl Workspace {
         } else {
             MenuAction::ToggleMotionTween
         };
-        let name = if action == MenuAction::ToggleShapeTween {
-            "Shape tween"
+        let name = self.tr(if action == MenuAction::ToggleShapeTween {
+            "prop-shape-tween"
         } else {
-            "Motion tween"
-        };
+            "prop-motion-tween"
+        });
         let tweened = matches!(
             self.selection_tween(),
             Some(flare_document::Tween::Linear | flare_document::Tween::Shape)
@@ -189,7 +234,9 @@ impl Workspace {
         }
         let mut ease = self.selection_ease().unwrap_or(0);
         let before = ease;
-        chrome::row(ui, "Ease", |ui| {
+        let ease_label = self.tr("prop-ease");
+        let ease_hint = self.tr("tween-ease-hint");
+        chrome::row(ui, &ease_label, |ui| {
             ui.add_enabled(
                 tweened,
                 egui::Slider::new(
@@ -197,7 +244,7 @@ impl Workspace {
                     -flare_document::MAX_EASE..=flare_document::MAX_EASE,
                 ),
             )
-            .on_hover_text(self.tr("tween-ease-hint"));
+            .on_hover_text(ease_hint);
         });
         if ease != before {
             self.set_selection_ease(ease);

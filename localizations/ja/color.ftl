@@ -1,0 +1,17 @@
+col-edit-fill = 塗りの色を編集
+col-edit-stroke = 線の色を編集
+col-edit-gradient = グラデーションの2番目の色を編集
+col-fill = 塗り
+col-stroke = 線
+col-gradient-end = グラデーションの終了色
+col-hex = 16進
+col-swatches = スウォッチ
+col-gradient-new = 新しい図形をグラデーションで塗る
+col-pick = ステージから色を取得
+col-none = カラーなし
+col-fill-color = 塗りの色
+col-stroke-color = 線の色
+col-no-stroke = 線なし
+col-no-fill = 塗りなし
+col-black-white = 黒と白
+col-swap = 塗りと線を入れ替え

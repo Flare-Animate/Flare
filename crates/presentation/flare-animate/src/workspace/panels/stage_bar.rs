@@ -16,6 +16,15 @@ impl Workspace {
     // ---- status bar --------------------------------------------------------------------
 
     pub(crate) fn status_bar(&mut self, ui: &mut Ui) {
+        let settings_hint = self.tr("sb-settings");
+        let frame_text = self.tr_with(
+            "sb-frame",
+            &[
+                ("n", &(self.frame + 1).to_string()),
+                ("total", &self.scene_frames().to_string()),
+            ],
+        );
+        let working = self.tr("sb-working");
         ui.horizontal(|ui| {
             let message = match &self.status {
                 Some(status) => RichText::new(status.as_str()).color(theme::warning()),
@@ -35,20 +44,13 @@ impl Workspace {
                         egui::Button::new(RichText::new(facts).color(theme::text_dim()))
                             .frame(false),
                     )
-                    .on_hover_text("Document settings")
+                    .on_hover_text(settings_hint)
                     .clicked()
                 {
                     self.perform(MenuAction::DocumentSettings);
                 }
                 ui.separator();
-                ui.label(
-                    RichText::new(format!(
-                        "Frame {} / {}",
-                        self.frame + 1,
-                        self.scene_frames()
-                    ))
-                    .color(theme::text_dim()),
-                );
+                ui.label(RichText::new(frame_text).color(theme::text_dim()));
                 ui.separator();
                 let at = match self.pointer_stage {
                     Some(p) => format!("{:.0}, {:.0}", p.x, p.y),
@@ -58,7 +60,7 @@ impl Workspace {
                 ui.add(icons::image("tool-selection", 12.0, theme::text_disabled()));
                 if self.background.mode() == Mode::Threads && self.has_pending_io() {
                     ui.separator();
-                    ui.label(RichText::new("Working...").color(theme::accent()));
+                    ui.label(RichText::new(working).color(theme::accent()));
                 }
             });
         });

@@ -105,24 +105,33 @@ impl Workspace {
                             .map(|(_, n, _)| n.clone())
                     }) {
                         Some(name) => name,
-                        None => "No symbol selected".to_owned(),
+                        None => self.tr("lib-none-selected"),
                     },
                 );
             });
         });
         ui.add_space(4.0);
-        chrome::row(ui, "New symbols", |ui| {
+        let new_symbols = self.tr("lib-new-symbols");
+        let kind_names = flare_document::SymbolKind::ALL.map(|kind| (kind, self.kind_label(kind)));
+        let kind_name = |kind: flare_document::SymbolKind| {
+            kind_names
+                .iter()
+                .find(|(k, _)| *k == kind)
+                .map_or_else(String::new, |(_, name)| name.clone())
+        };
+        chrome::row(ui, &new_symbols, |ui| {
             egui::ComboBox::from_id_salt("new_symbol_kind")
-                .selected_text(self.library.new_kind.label())
+                .selected_text(kind_name(self.library.new_kind))
                 .show_ui(ui, |ui| {
                     for kind in flare_document::SymbolKind::ALL {
-                        ui.selectable_value(&mut self.library.new_kind, kind, kind.label());
+                        ui.selectable_value(&mut self.library.new_kind, kind, kind_name(kind));
                     }
                 });
         });
+        let search_hint = self.tr("lib-search");
         ui.add(
             egui::TextEdit::singleline(&mut self.library.search)
-                .hint_text("Search library")
+                .hint_text(search_hint)
                 .desired_width(f32::INFINITY),
         );
         let needle = self.library.search.trim().to_lowercase();
@@ -131,15 +140,21 @@ impl Workspace {
             .filter(|(_, name, _)| needle.is_empty() || name.to_lowercase().contains(&needle))
             .collect();
         ui.add_space(4.0);
+        let (empty, empty_hint) = (self.tr("lib-empty"), self.tr("lib-empty-hint"));
+        let (rename, type_label, delete) = (
+            self.tr("lib-rename"),
+            self.tr("lib-type"),
+            self.tr("lib-delete"),
+        );
         let list_height = (ui.available_height() - 34.0).max(40.0);
         egui::ScrollArea::vertical()
             .max_height(list_height)
             .auto_shrink(false)
             .show(ui, |ui| {
                 if entries.is_empty() {
-                    chrome::empty_state(ui, "panel-library", "No symbols yet");
+                    chrome::empty_state(ui, "panel-library", &empty);
                     ui.vertical_centered(|ui| {
-                        ui.weak("Select artwork and press F8 to make one.");
+                        ui.weak(&empty_hint);
                     });
                 }
                 for (id, name, kind) in entries {
@@ -164,19 +179,19 @@ impl Workspace {
                     let response = ui
                         .horizontal(|ui| {
                             ui.add(icons::image(kind_icon(kind), 16.0, theme::text_dim()))
-                                .on_hover_text(kind.label());
+                                .on_hover_text(kind_name(kind));
                             ui.selectable_label(chosen, name.clone())
                         })
                         .inner;
                     response.context_menu(|ui| {
-                        if ui.button("Rename").clicked() {
+                        if ui.button(&rename).clicked() {
                             self.library.renaming = Some((id, name.clone()));
                             ui.close();
                         }
-                        ui.menu_button("Type", |ui| {
+                        ui.menu_button(&type_label, |ui| {
                             for option in flare_document::SymbolKind::ALL {
                                 if ui
-                                    .selectable_label(kind == option, option.label())
+                                    .selectable_label(kind == option, kind_name(option))
                                     .clicked()
                                 {
                                     self.set_symbol_kind(id, option);
@@ -184,7 +199,7 @@ impl Workspace {
                                 }
                             }
                         });
-                        if ui.button("Delete").clicked() {
+                        if ui.button(&delete).clicked() {
                             self.delete_symbol(id);
                             ui.close();
                         }
@@ -199,6 +214,16 @@ impl Workspace {
                 }
             });
         ui.separator();
+        let place = self.tr("lib-place");
+        let new_symbol = self.tr_with(
+            "lib-new-symbol",
+            &[("kind", kind_name(self.library.new_kind).as_str())],
+        );
+        let (new_folder, rename_symbol, delete_symbol) = (
+            self.tr("lib-new-folder"),
+            self.tr("lib-rename-symbol"),
+            self.tr("lib-delete-symbol"),
+        );
         ui.horizontal(|ui| {
             if chrome::icon_button(
                 ui,
@@ -206,7 +231,7 @@ impl Workspace {
                 BAR_ICON,
                 false,
                 self.library.selected.is_some(),
-                "Place on stage",
+                &place,
             )
             .clicked()
             {
@@ -219,13 +244,13 @@ impl Workspace {
                 BAR_ICON,
                 false,
                 editable,
-                &format!("New {} symbol", self.library.new_kind.label()),
+                &new_symbol,
             )
             .clicked()
             {
                 self.new_symbol();
             }
-            chrome::mock_icon_button(ui, "folder", BAR_ICON, "New folder");
+            chrome::mock_icon_button(ui, "folder", BAR_ICON, &new_folder);
             let selected = self.library.selected.filter(|_| editable);
             if chrome::icon_button(
                 ui,
@@ -233,7 +258,7 @@ impl Workspace {
                 BAR_ICON,
                 false,
                 selected.is_some(),
-                "Rename symbol",
+                &rename_symbol,
             )
             .clicked()
                 && let Some(id) = selected
@@ -247,7 +272,7 @@ impl Workspace {
                 BAR_ICON,
                 false,
                 selected.is_some(),
-                "Delete symbol",
+                &delete_symbol,
             )
             .clicked()
                 && let Some(id) = selected

@@ -1,0 +1,17 @@
+col-edit-fill = Editar a cor de preenchimento
+col-edit-stroke = Editar a cor do traço
+col-edit-gradient = Editar a segunda cor do gradiente
+col-fill = Preenchimento
+col-stroke = Traço
+col-gradient-end = Fim do gradiente
+col-hex = Hex
+col-swatches = Amostras
+col-gradient-new = Preencher novas formas com um gradiente
+col-pick = Escolher uma cor do palco
+col-none = Sem cor
+col-fill-color = Cor de preenchimento
+col-stroke-color = Cor do traço
+col-no-stroke = Sem traço
+col-no-fill = Sem preenchimento
+col-black-white = Preto e branco
+col-swap = Trocar preenchimento e traço

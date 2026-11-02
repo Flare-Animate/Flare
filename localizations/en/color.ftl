@@ -1,0 +1,17 @@
+col-edit-fill = Edit the fill color
+col-edit-stroke = Edit the stroke color
+col-edit-gradient = Edit the second color of the gradient
+col-fill = Fill
+col-stroke = Stroke
+col-gradient-end = Gradient end
+col-hex = Hex
+col-swatches = Swatches
+col-gradient-new = Fill new shapes with a gradient
+col-pick = Pick a color from the stage
+col-none = No color
+col-fill-color = Fill color
+col-stroke-color = Stroke color
+col-no-stroke = No stroke
+col-no-fill = No fill
+col-black-white = Black and white
+col-swap = Swap fill and stroke

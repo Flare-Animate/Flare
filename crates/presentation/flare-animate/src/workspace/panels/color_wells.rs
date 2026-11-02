@@ -101,6 +101,13 @@ impl Workspace {
         let origin = Pos2::new(area.center().x - m.width() / 2.0, area.top());
         let rects = rects_with(origin, m);
         let painter = ui.painter().clone();
+        let (fill_hint, stroke_hint) = (self.tr("col-fill-color"), self.tr("col-stroke-color"));
+        let (none_label, no_stroke, no_fill) = (
+            self.tr("col-none"),
+            self.tr("col-no-stroke"),
+            self.tr("col-no-fill"),
+        );
+        let (defaults_hint, swap_hint) = (self.tr("col-black-white"), self.tr("col-swap"));
         // The fill, behind.
         let fill = ui
             .interact(
@@ -108,7 +115,7 @@ impl Workspace {
                 ui.make_persistent_id("fill_swatch"),
                 Sense::click(),
             )
-            .on_hover_text("Fill color");
+            .on_hover_text(fill_hint);
         paint_square(&painter, rects.fill, self.paint.fill);
         // The stroke, in front: a frame around the strip's own color showing through.
         let stroke = ui
@@ -117,7 +124,7 @@ impl Workspace {
                 ui.make_persistent_id("stroke_swatch"),
                 Sense::click(),
             )
-            .on_hover_text("Stroke color");
+            .on_hover_text(stroke_hint);
         paint_square(&painter, rects.stroke, self.paint.stroke_color);
         painter.rect(
             rects.stroke.shrink(m.frame),
@@ -150,11 +157,11 @@ impl Workspace {
                     let none = ui
                         .add(egui::Button::image_and_text(
                             icons::image("no-color", 14.0, theme::text()),
-                            "No color",
+                            &none_label,
                         ))
                         .on_hover_text(match target {
-                            ColorTarget::Stroke => "No stroke",
-                            _ => "No fill",
+                            ColorTarget::Stroke => &no_stroke,
+                            _ => &no_fill,
                         });
                     if none.clicked() {
                         *color = Color32::TRANSPARENT;
@@ -162,10 +169,10 @@ impl Workspace {
                     color_picker_color32(ui, color, Alpha::OnlyBlend);
                 });
         }
-        if tiny_button(ui, rects.defaults, "default-colors", "Black and white") {
+        if tiny_button(ui, rects.defaults, "default-colors", &defaults_hint) {
             self.default_colors();
         }
-        if tiny_button(ui, rects.swap, "swap-colors", "Swap fill and stroke") {
+        if tiny_button(ui, rects.swap, "swap-colors", &swap_hint) {
             self.swap_colors();
         }
     }

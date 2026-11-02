@@ -26,7 +26,7 @@ pub(crate) fn color_at(document: &Document, frame: u32, point: DVec2) -> Option<
 
 impl Workspace {
     pub(crate) fn info_panel(&mut self, ui: &mut Ui) {
-        chrome::section(ui, "panel-properties", "Selection");
+        chrome::section(ui, "panel-properties", &self.tr("inf-selection"));
         let rects = self.selection_rects();
         let bounds = rects.iter().copied().reduce(|a, b| a.union(b));
         let value = |ui: &mut Ui, label: &str, number: Option<f32>| {
@@ -34,11 +34,11 @@ impl Workspace {
                 ui.label(number.map_or_else(|| "-".to_owned(), |n| format!("{n:.1}")));
             });
         };
-        value(ui, "W", bounds.map(|b| b.width()));
-        value(ui, "H", bounds.map(|b| b.height()));
+        value(ui, &self.tr("doc-width"), bounds.map(|b| b.width()));
+        value(ui, &self.tr("doc-height"), bounds.map(|b| b.height()));
         value(ui, "X", bounds.map(|b| b.min.x));
         value(ui, "Y", bounds.map(|b| b.min.y));
-        chrome::section(ui, "tool-eyedropper", "Pointer");
+        chrome::section(ui, "tool-eyedropper", &self.tr("inf-pointer"));
         let pointer = self.pointer_stage;
         value(ui, "X", pointer.map(|p| p.x));
         value(ui, "Y", pointer.map(|p| p.y));
@@ -49,7 +49,7 @@ impl Workspace {
                 DVec2::new(p.x.into(), p.y.into()),
             )
         });
-        chrome::row(ui, "Color", |ui| match under {
+        chrome::row(ui, &self.tr("inf-color"), |ui| match under {
             Some(c) => {
                 let (rect, _) =
                     ui.allocate_exact_size(egui::vec2(16.0, 16.0), egui::Sense::hover());

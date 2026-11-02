@@ -1,0 +1,17 @@
+col-edit-fill = Editar el color de relleno
+col-edit-stroke = Editar el color del trazo
+col-edit-gradient = Editar el segundo color del degradado
+col-fill = Relleno
+col-stroke = Trazo
+col-gradient-end = Final del degradado
+col-hex = Hex
+col-swatches = Muestras
+col-gradient-new = Rellenar las formas nuevas con un degradado
+col-pick = Tomar un color del escenario
+col-none = Sin color
+col-fill-color = Color de relleno
+col-stroke-color = Color del trazo
+col-no-stroke = Sin trazo
+col-no-fill = Sin relleno
+col-black-white = Blanco y negro
+col-swap = Intercambiar relleno y trazo

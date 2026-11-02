@@ -1,0 +1,17 @@
+col-edit-fill = Modifier la couleur de remplissage
+col-edit-stroke = Modifier la couleur du contour
+col-edit-gradient = Modifier la seconde couleur du dégradé
+col-fill = Remplissage
+col-stroke = Contour
+col-gradient-end = Fin du dégradé
+col-hex = Hex
+col-swatches = Échantillons
+col-gradient-new = Remplir les nouvelles formes avec un dégradé
+col-pick = Prélever une couleur sur la scène
+col-none = Aucune couleur
+col-fill-color = Couleur de remplissage
+col-stroke-color = Couleur du contour
+col-no-stroke = Aucun contour
+col-no-fill = Aucun remplissage
+col-black-white = Noir et blanc
+col-swap = Permuter remplissage et contour

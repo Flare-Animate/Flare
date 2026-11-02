@@ -1,0 +1,17 @@
+col-edit-fill = Füllfarbe bearbeiten
+col-edit-stroke = Konturfarbe bearbeiten
+col-edit-gradient = Zweite Farbe des Verlaufs bearbeiten
+col-fill = Füllung
+col-stroke = Kontur
+col-gradient-end = Verlaufsende
+col-hex = Hex
+col-swatches = Farbfelder
+col-gradient-new = Neue Formen mit Verlauf füllen
+col-pick = Farbe von der Bühne aufnehmen
+col-none = Keine Farbe
+col-fill-color = Füllfarbe
+col-stroke-color = Konturfarbe
+col-no-stroke = Keine Kontur
+col-no-fill = Keine Füllung
+col-black-white = Schwarzweiß
+col-swap = Füllung und Kontur tauschen

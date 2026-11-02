@@ -41,15 +41,12 @@ impl Workspace {
     pub(crate) fn color_panel(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             for (target, icon, hint) in [
-                (ColorTarget::Fill, "fill-color", "Edit the fill color"),
-                (ColorTarget::Stroke, "stroke-color", "Edit the stroke color"),
-                (
-                    ColorTarget::GradientEnd,
-                    "gradient",
-                    "Edit the second color of the gradient",
-                ),
+                (ColorTarget::Fill, "fill-color", "col-edit-fill"),
+                (ColorTarget::Stroke, "stroke-color", "col-edit-stroke"),
+                (ColorTarget::GradientEnd, "gradient", "col-edit-gradient"),
             ] {
-                if chrome::icon_button(ui, icon, BAR_ICON, self.color_target == target, true, hint)
+                let hint = self.tr(hint);
+                if chrome::icon_button(ui, icon, BAR_ICON, self.color_target == target, true, &hint)
                     .clicked()
                 {
                     self.color_target = target;
@@ -59,12 +56,13 @@ impl Workspace {
                     }
                 }
             }
-            ui.weak(match self.color_target {
-                ColorTarget::Fill => "Fill",
-                ColorTarget::Stroke => "Stroke",
-                ColorTarget::GradientEnd => "Gradient end",
-            });
+            ui.weak(self.tr(match self.color_target {
+                ColorTarget::Fill => "col-fill",
+                ColorTarget::Stroke => "col-stroke",
+                ColorTarget::GradientEnd => "col-gradient-end",
+            }));
         });
+        let (hex_label, swatches) = (self.tr("col-hex"), self.tr("col-swatches"));
         let target = match self.color_target {
             ColorTarget::Fill => &mut self.paint.fill,
             ColorTarget::Stroke => &mut self.paint.stroke_color,
@@ -72,7 +70,7 @@ impl Workspace {
         };
         egui::color_picker::color_picker_color32(ui, target, egui::color_picker::Alpha::OnlyBlend);
         ui.add_space(4.0);
-        chrome::row(ui, "Hex", |ui| {
+        chrome::row(ui, &hex_label, |ui| {
             let c = *target;
             let current = format!("#{:02X}{:02X}{:02X}", c.r(), c.g(), c.b());
             let mut text = self.hex_buffer.clone().unwrap_or_else(|| current.clone());
@@ -89,7 +87,7 @@ impl Workspace {
             }
         });
         ui.add_space(4.0);
-        ui.weak("Swatches");
+        ui.weak(swatches);
         let chosen = ui
             .horizontal_wrapped(|ui| {
                 let mut chosen = None;
@@ -126,6 +124,11 @@ impl Workspace {
             }
         }
         ui.add_space(6.0);
+        let (gradient_hint, pick_hint, none_hint) = (
+            self.tr("col-gradient-new"),
+            self.tr("col-pick"),
+            self.tr("col-none"),
+        );
         ui.horizontal(|ui| {
             if chrome::icon_button(
                 ui,
@@ -133,7 +136,7 @@ impl Workspace {
                 BAR_ICON,
                 self.paint.gradient_enabled,
                 true,
-                "Fill new shapes with a gradient",
+                &gradient_hint,
             )
             .clicked()
             {
@@ -145,13 +148,13 @@ impl Workspace {
                 BAR_ICON,
                 self.tool == Tool::Eyedropper,
                 true,
-                "Pick a color from the stage",
+                &pick_hint,
             )
             .clicked()
             {
                 self.set_tool(Tool::Eyedropper);
             }
-            if chrome::icon_button(ui, "no-color", BAR_ICON, false, true, "No color").clicked() {
+            if chrome::icon_button(ui, "no-color", BAR_ICON, false, true, &none_hint).clicked() {
                 self.no_color();
             }
         });
