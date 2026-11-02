@@ -1,0 +1,79 @@
+#!/bin/sh
+# Flare's AppImage entry point.
+#
+# An AppImage installs nothing, so on a desktop that finds a window's icon, and puts a program in its
+# menu, by looking for an installed .desktop file (Wayland, GNOME, KDE), Flare would show a generic
+# icon and be nowhere in the menu. On the first run, and again whenever the AppImage is moved, this
+# puts the .desktop entry and the icon in the user's data folder, then starts the program. It never
+# fails the start: every problem in here is dropped. FLARE_NO_DESKTOP_INTEGRATION=1 turns it off.
+#
+# It sets no library path. The AppImage carries none of the system's graphics libraries, because the
+# copies on a build machine are older than the ones a newer system's graphics driver is built
+# against, and a copy found first makes the window fail to open.
+
+set -u
+
+APPDIR="$(dirname "$(readlink -f "$0")")"
+ID=io.github.Flare_Animate.Flare
+
+integrate() {
+  case "${FLARE_NO_DESKTOP_INTEGRATION:-}" in
+    1 | true | yes) return 0 ;;
+  esac
+  # The runtime sets APPIMAGE to the file being run; an extracted AppDir has none, and there is no
+  # path to register.
+  appimage="${APPIMAGE:-}"
+  [ -n "$appimage" ] && [ -f "$appimage" ] || return 0
+  appimage="$(readlink -f "$appimage")" || return 0
+  # The path goes into an Exec= line and through sed: one with a quote, backquote, dollar,
+  # backslash, percent, ampersand, bar or line break would need escaping, so there is no entry.
+  case "$appimage" in
+    *[\"\`\$\\%\&\|]*) return 0 ;;
+    *'
+'*) return 0 ;;
+  esac
+  [ -n "${HOME:-}" ] || return 0
+  data="${XDG_DATA_HOME:-$HOME/.local/share}"
+  source="$APPDIR/usr/share/applications/$ID.desktop"
+  [ -f "$source" ] || return 0
+  apps="$data/applications"
+  mkdir -p "$apps" || return 0
+
+  # Another program (AppImageLauncher, AM) that already made an entry for this file keeps it; a
+  # second one would show the program twice in the menu.
+  external=0
+  for other in "$apps"/*.desktop; do
+    [ -f "$other" ] || continue
+    [ "$other" = "$apps/$ID.desktop" ] && continue
+    if grep '^Exec=' "$other" 2>/dev/null | grep -Fq -- "$appimage"; then
+      external=1
+      break
+    fi
+  done
+  if [ "$external" = 1 ]; then
+    rm -f "${apps:?}/${ID:?}.desktop"
+  else
+    wanted="$(mktemp "$apps/.flare-XXXXXX")" || return 0
+    if ! sed -e "s|^Exec=.*|Exec=\"$appimage\" %F|" "$source" > "$wanted"; then
+      rm -f "${wanted:?}"
+      return 0
+    fi
+    chmod 644 "$wanted"
+    # Only a changed entry is written, so a launch does not touch the menu's files each time.
+    if cmp -s "$wanted" "$apps/$ID.desktop"; then
+      rm -f "${wanted:?}"
+    else
+      mv -f "$wanted" "$apps/$ID.desktop" || rm -f "${wanted:?}"
+    fi
+  fi
+
+  icon="$APPDIR/usr/share/icons/hicolor/256x256/apps/$ID.png"
+  icons="$data/icons/hicolor/256x256/apps"
+  if [ -f "$icon" ] && mkdir -p "$icons"; then
+    cmp -s "$icon" "$icons/$ID.png" || cp -f "$icon" "$icons/$ID.png"
+  fi
+  return 0
+}
+
+integrate 2>/dev/null || true
+exec "$APPDIR/usr/bin/flare-desktop" "$@"

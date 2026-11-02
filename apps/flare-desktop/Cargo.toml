@@ -1,0 +1,76 @@
+[package]
+name = "flare-desktop"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+egui.workspace = true
+egui-wgpu = { workspace = true, features = ["default", "winit"] }
+egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
+flare-animate.workspace = true
+flare-i18n.workspace = true
+flare-menubar.workspace = true
+flare-document.workspace = true
+flare-ui.workspace = true
+flare-platform.workspace = true
+flare-ruffle = { workspace = true, features = ["embedded"], optional = true }
+flare-storage.workspace = true
+pollster.workspace = true
+winit = { workspace = true, features = ["default"] }
+
+[features]
+# Test Movie plays inside the window, with Ruffle running in this process. Without it, Test Movie
+# starts a Ruffle program found through FLARE_RUFFLE or PATH.
+default = ["ruffle"]
+ruffle = ["dep:flare-ruffle"]
+# A scripted run of the real window (scripts/gui_tests.sh): it opens a project, Test Movie, closes
+# Test Movie, and quits, on timers. Off in every build a person uses.
+autotest = ["ruffle"]
+
+[target.'cfg(unix)'.dependencies]
+flare-tablet.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+muda.workspace = true
+
+[dev-dependencies]
+flare-core.workspace = true
+flare-publish.workspace = true
+
+[lints]
+workspace = true
+
+[package.metadata.generate-rpm]
+name = "flare"
+license = "BSD-3-Clause"
+summary = "2D animation"
+url = "https://github.com/Flare-Animate/Flare"
+assets = [
+    { source = "target/release/flare-desktop", dest = "/usr/bin/flare-desktop", mode = "755" },
+    { source = "packaging/flare.desktop", dest = "/usr/share/applications/flare.desktop", mode = "644" },
+    { source = "assets/flare-icon-256.png", dest = "/usr/share/icons/hicolor/256x256/apps/flare.png", mode = "644" },
+    { source = "packaging/flare.metainfo.xml", dest = "/usr/share/metainfo/io.github.Flare_Animate.Flare.metainfo.xml", mode = "644" },
+    { source = "packaging/flare-mime.xml", dest = "/usr/share/mime/packages/flare.xml", mode = "644" },
+    { source = "LICENSE", dest = "/usr/share/licenses/flare/LICENSE", mode = "644", doc = true },
+    { source = "packaging/FONT_LICENSES.txt", dest = "/usr/share/licenses/flare/FONT_LICENSES.txt", mode = "644", doc = true },
+]
+
+[package.metadata.generate-rpm.requires]
+glibc = ">= 2.35"
+libgcc = "*"
+alsa-lib = "*"
+fontconfig = "*"
+libX11 = "*"
+libxcb = "*"
+libxkbcommon = "*"
+wayland-libs = "*"
+"mesa-libEGL" = "*"
+"mesa-libGL" = "*"
+"vulkan-loader" = "*"
+"xdg-desktop-portal" = "*"
+"shared-mime-info" = "*"
+"desktop-file-utils" = "*"

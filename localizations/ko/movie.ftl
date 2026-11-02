@@ -1,0 +1,12 @@
+movie-title = 동영상 테스트
+movie-clock = { $clock } · 프레임 { $frame }
+movie-restart = 처음부터 다시 재생
+movie-pause = 일시 정지
+movie-play = 재생
+movie-step = 한 프레임 앞으로
+movie-speed = 재생 속도
+movie-loop-on = 반복 중: 동영상이 끝나면 처음부터 다시 시작합니다
+movie-loop-off = 반복 안 함: 동영상이 마지막 프레임에서 멈춥니다
+movie-sound-off = 사운드가 꺼져 있습니다. 클릭하면 켭니다
+movie-sound-on = 사운드가 켜져 있습니다. 클릭하면 끕니다
+movie-close = 닫기

@@ -1,0 +1,12 @@
+untitled = 제목 없음
+name-new-scene = 장면 { $n }
+name-new-layer = 레이어 { $n }
+name-new-text-layer = 텍스트
+doc-title = 문서
+doc-publish-settings = 게시 설정
+doc-frame-rate = 프레임 속도
+doc-scenes = 장면
+doc-sounds = 사운드
+doc-width = 너비
+doc-height = 높이
+name-new-camera-layer = 카메라

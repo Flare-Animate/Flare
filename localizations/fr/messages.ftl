@@ -1,0 +1,92 @@
+msg-cannot-import-sound = Impossible d’importer { $path } : { $reason }
+msg-too-much-sound = Trop de sons sont chargés pour tous les lire en même temps
+msg-cannot-play-sound = Impossible de lire un son : { $reason }
+msg-cannot-place-text = Impossible de placer le texte : { $reason }
+msg-saved = { $path } enregistré
+msg-cannot-save = Impossible d’enregistrer : { $reason }
+msg-autosave-failed = Échec de l’enregistrement automatique : { $reason }
+msg-cannot-import = Impossible d’importer { $path } : { $reason }
+msg-imported =
+    { $n ->
+        [one] { $path } importé ; { $n } note sur ce qui n’a pas été repris se trouve dans le panneau Sortie
+       *[other] { $path } importé ; { $n } notes sur ce qui n’a pas été repris se trouvent dans le panneau Sortie
+    }
+msg-cannot-recover = Impossible de récupérer { $path } : { $reason }
+msg-cannot-open = Impossible d’ouvrir { $path } : { $reason }
+msg-project-changed = Votre projet a changé pendant la lecture du travail ; il n’a donc pas été remplacé
+msg-recovered = Travail non enregistré récupéré
+msg-opened = { $name } ouvert
+msg-opening = Ouverture de { $path }...
+msg-save-before-recover = Enregistrez ou annulez vos modifications avant de récupérer un autre travail
+msg-recovery-remove-failed = Impossible de supprimer le fichier de récupération : { $reason }
+msg-graphic-only = Seul un graphique se lit avec le réglage Boucle, Lire une fois ou Image unique
+msg-looping = Boucle
+msg-options = Options
+msg-first = Première
+msg-play-loop = Boucle
+msg-play-once = Lire une fois
+msg-play-single = Image unique
+msg-wait-for-file-work = Attendez la fin du travail sur les fichiers avant de changer de document
+msg-leave-symbol-fps = Quittez la modification du symbole pour changer la cadence
+msg-fps-range = La cadence doit être comprise entre 0,01 et 240 fps
+msg-history-original = Original
+msg-layer-rename = Renommer
+msg-layer-hide = Masquer
+msg-layer-show = Afficher
+msg-layer-unlock = Déverrouiller
+msg-layer-lock = Verrouiller
+msg-layer-mask = Masque
+msg-layer-guide = Guide de mouvement
+msg-layer-move-up = Monter
+msg-layer-move-down = Descendre
+msg-layer-new = Nouveau calque
+msg-layer-new-folder = Nouveau dossier
+msg-layer-delete = Supprimer
+msg-frame-insert = Insérer une image
+msg-frame-insert-keyframe = Insérer une image-clé
+msg-frame-insert-blank = Insérer une image-clé vide
+msg-cannot-cut-locked = Impossible de couper les images : le calque est verrouillé
+msg-nothing-to-cut = Il n’y a rien à couper dans ces images
+msg-no-frames-to-select = Ce calque n’a aucune image à sélectionner
+msg-select-frames-to-reverse = Sélectionnez d’abord les images à inverser : cliquez sur une image, puis Maj-clic sur une autre
+msg-cannot-reverse-locked = Impossible d’inverser les images : le calque est verrouillé
+msg-cannot-reverse = Impossible d’inverser ces images : { $reason }
+msg-op-insert-frame = insérer une image
+msg-op-remove-frame = supprimer une image
+msg-op-insert-keyframe = insérer une image-clé
+msg-op-insert-blank-keyframe = insérer une image-clé vide
+msg-op-clear-keyframe = effacer l’image-clé
+msg-op-convert-keyframes = convertir en images-clés
+msg-cannot-locked = Impossible de { $op } : le calque est verrouillé
+msg-cannot-at-frame = Impossible de { $op } à l’image { $frame } de ce calque
+msg-cannot-move-span = Impossible de déplacer la plage à cet endroit : elle chevaucherait une autre
+msg-cannot-resize-span = Impossible de redimensionner la plage à cet endroit : elle chevaucherait une autre
+msg-nothing-to-copy = Il n’y a rien à copier dans ces images
+msg-cannot-paste-locked = Impossible de coller les images : le calque est verrouillé
+msg-cannot-paste-past-end = Impossible de coller les images à cet endroit : elles dépasseraient la dernière image
+msg-distribute-needs-three = La répartition nécessite au moins trois formes sélectionnées
+msg-select-shape-for-symbol = Sélectionnez une forme à convertir en symbole
+msg-select-shapes-to-group = Sélectionnez au moins deux formes à grouper
+msg-select-to-break-apart = Sélectionnez une occurrence de symbole ou un texte à séparer
+msg-nothing-transformed = Rien n’a pu être transformé (une occurrence dans une interpolation de mouvement ne peut être ni inclinée ni inversée)
+msg-brush-stroke = Trait de pinceau
+msg-pencil-line = Ligne au crayon
+msg-select-to-mirror = Sélectionnez un élément à copier en miroir
+msg-leave-symbol-sound = Quittez la modification du symbole avant d’importer un son
+msg-scene-needs-name = Une séquence a besoin d’un nom
+msg-paste-symbol-missing = Impossible de coller : son symbole n’est pas dans ce document
+msg-tween-needs-target = Une interpolation de mouvement nécessite une occurrence sélectionnée ; une interpolation de forme, une forme
+unsaved-save-changes = Enregistrer les modifications apportées à { $name } ?
+unsaved-save = Enregistrer
+unsaved-dont-save = Ne pas enregistrer
+msg-paste-refused = Impossible de coller dans le calque « { $name } » : { $reason }
+msg-saved-detail-original = original inchangé, réécrit tel quel
+msg-saved-detail-new = { $files } fichiers écrits à partir du projet
+msg-saved-detail-edited = { $rebuilt } fichiers sur { $files } reconstruits, le reste repris tel quel
+msg-saved-with = { $path } enregistré ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] { $path } enregistré ({ $detail }) ; { $n } note sur ce que le format ne peut pas contenir se trouve dans le panneau Sortie
+       *[other] { $path } enregistré ({ $detail }) ; { $n } notes sur ce que le format ne peut pas contenir se trouvent dans le panneau Sortie
+    }
+msg-saved-rebuilt-names = Reconstruits pour { $path } : { $names }

@@ -1,7 +1,3 @@
 {
-    "files.associations": {
-        "chrono": "cpp",
-        "*.def": "cpp",
-        "*.inc": "cpp"
-    }
+	"cmake.sourceDirectory": "/Users/dielpi/Desktop/replicraft/external/Flare/original"
 }

@@ -1,0 +1,60 @@
+vello-cpu light 1920x1080: n=40 first=3.05ms p50=3.56ms p95=4.91ms min=2.46ms
+vello-cpu-mt light 1920x1080: n=40 first=2.59ms p50=2.60ms p95=3.45ms min=2.13ms
+vello-gpu light 1920x1080: n=40 first=42.92ms p50=4.04ms p95=5.06ms min=2.70ms
+  diff cpu vs gpu: mean_abs=0.1880 max=4 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu adjacent 1920x1080: n=40 first=5.76ms p50=6.07ms p95=7.48ms min=5.03ms
+vello-cpu-mt adjacent 1920x1080: n=40 first=3.52ms p50=3.70ms p95=4.21ms min=2.77ms
+vello-gpu adjacent 1920x1080: n=40 first=30.85ms p50=7.63ms p95=11.12ms min=6.50ms
+  diff cpu vs gpu: mean_abs=0.0361 max=2 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu blobs 1920x1080: n=40 first=14.80ms p50=14.18ms p95=15.15ms min=13.34ms
+vello-cpu-mt blobs 1920x1080: n=40 first=5.05ms p50=5.79ms p95=6.86ms min=4.61ms
+vello-gpu blobs 1920x1080: n=40 first=50.73ms p50=16.24ms p95=19.42ms min=13.25ms
+  diff cpu vs gpu: mean_abs=0.7975 max=4 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu blobs4 1920x1080: n=40 first=49.74ms p50=50.18ms p95=53.43ms min=48.94ms
+vello-cpu-mt blobs4 1920x1080: n=40 first=13.65ms p50=14.14ms p95=15.29ms min=12.32ms
+vello-gpu blobs4 1920x1080: n=40 first=79.43ms p50=53.38ms p95=59.40ms min=47.58ms
+  diff cpu vs gpu: mean_abs=0.8405 max=3 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu small 1920x1080: n=40 first=38.36ms p50=38.26ms p95=41.68ms min=35.87ms
+vello-cpu-mt small 1920x1080: n=40 first=11.38ms p50=10.27ms p95=11.38ms min=9.20ms
+vello-gpu small 1920x1080: n=40 first=63.01ms p50=38.12ms p95=41.61ms min=35.91ms
+  diff cpu vs gpu: mean_abs=0.4315 max=5 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu strokes 1920x1080: n=40 first=77.97ms p50=71.37ms p95=74.30ms min=67.69ms
+vello-cpu-mt strokes 1920x1080: n=40 first=19.18ms p50=19.49ms p95=20.63ms min=18.76ms
+vello-gpu strokes 1920x1080: n=40 first=100.98ms p50=67.02ms p95=73.14ms min=62.36ms
+  diff cpu vs gpu: mean_abs=0.0909 max=3 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu light 3840x2160: n=40 first=9.59ms p50=6.92ms p95=8.19ms min=5.79ms
+vello-cpu-mt light 3840x2160: n=40 first=7.60ms p50=4.95ms p95=6.26ms min=4.11ms
+vello-gpu light 3840x2160: n=40 first=43.25ms p50=11.08ms p95=21.39ms min=9.94ms
+  diff cpu vs gpu: mean_abs=0.0234 max=2 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu adjacent 3840x2160: n=40 first=15.35ms p50=13.68ms p95=16.84ms min=11.88ms
+vello-cpu-mt adjacent 3840x2160: n=40 first=9.41ms p50=7.50ms p95=9.65ms min=6.11ms
+vello-gpu adjacent 3840x2160: n=40 first=44.98ms p50=17.27ms p95=21.27ms min=13.87ms
+  diff cpu vs gpu: mean_abs=0.0181 max=2 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu blobs 3840x2160: n=40 first=20.32ms p50=18.19ms p95=19.02ms min=16.24ms
+vello-cpu-mt blobs 3840x2160: n=40 first=10.49ms p50=7.27ms p95=8.70ms min=6.17ms
+vello-gpu blobs 3840x2160: n=40 first=51.55ms p50=22.70ms p95=33.14ms min=17.12ms
+  diff cpu vs gpu: mean_abs=0.3396 max=4 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu blobs4 3840x2160: n=40 first=58.57ms p50=55.06ms p95=57.27ms min=53.70ms
+vello-cpu-mt blobs4 3840x2160: n=40 first=18.36ms p50=16.89ms p95=18.53ms min=15.85ms
+vello-gpu blobs4 3840x2160: n=40 first=97.74ms p50=62.74ms p95=67.93ms min=54.07ms
+  diff cpu vs gpu: mean_abs=0.8023 max=4 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu small 3840x2160: n=40 first=45.95ms p50=42.79ms p95=44.62ms min=40.90ms
+vello-cpu-mt small 3840x2160: n=40 first=14.53ms p50=12.86ms p95=14.63ms min=11.86ms
+vello-gpu small 3840x2160: n=40 first=72.52ms p50=43.72ms p95=53.14ms min=39.57ms
+  diff cpu vs gpu: mean_abs=0.1206 max=4 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-cpu strokes 3840x2160: n=40 first=135.03ms p50=140.02ms p95=152.14ms min=130.59ms
+vello-cpu-mt strokes 3840x2160: n=40 first=83.01ms p50=72.29ms p95=216.25ms min=43.24ms
+vello-gpu strokes 3840x2160: n=40 first=181.68ms p50=132.55ms p95=156.64ms min=118.38ms
+  diff cpu vs gpu: mean_abs=0.0850 max=3 px>8=0 (0.0000%) px>32=0 (0.0000%)
+vello-gpu-noread light 1920x1080: n=40 first=32.85ms p50=2.47ms p95=3.03ms min=1.77ms
+vello-gpu-noread adjacent 1920x1080: n=40 first=32.03ms p50=5.05ms p95=7.00ms min=4.19ms
+vello-gpu-noread blobs 1920x1080: n=40 first=41.66ms p50=13.11ms p95=15.52ms min=11.18ms
+vello-gpu-noread blobs4 1920x1080: n=40 first=82.34ms p50=49.27ms p95=55.73ms min=45.15ms
+vello-gpu-noread small 1920x1080: n=40 first=64.99ms p50=35.99ms p95=39.64ms min=33.90ms
+vello-gpu-noread strokes 1920x1080: n=40 first=93.33ms p50=66.11ms p95=70.14ms min=62.25ms
+vello-gpu-noread light 3840x2160: n=40 first=30.05ms p50=3.09ms p95=4.05ms min=2.61ms
+vello-gpu-noread adjacent 3840x2160: n=40 first=33.75ms p50=10.81ms p95=12.14ms min=8.41ms
+vello-gpu-noread blobs 3840x2160: n=40 first=41.37ms p50=15.53ms p95=18.61ms min=12.31ms
+vello-gpu-noread blobs4 3840x2160: n=40 first=87.58ms p50=51.60ms p95=56.73ms min=46.40ms
+vello-gpu-noread small 3840x2160: n=40 first=61.97ms p50=37.98ms p95=39.58ms min=35.02ms
+vello-gpu-noread strokes 3840x2160: n=40 first=161.29ms p50=121.56ms p95=148.17ms min=113.20ms

@@ -1,0 +1,34 @@
+name: A file does not import or export correctly
+description: An XFL, FLA, SWF or other file that Flare opens wrongly, or something it writes that another program cannot open.
+labels: [bug, formats]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What is wrong?
+      description: What you see in Flare compared with the original program.
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Format
+      options: [XFL folder, .fla (modern, zipped XFL), .fla (older binary), SWF published by Flare, XFL or .fla exported by Flare, PNG or GIF export]
+    validations:
+      required: true
+  - type: input
+    id: producer
+    attributes:
+      label: Which program made the file, and which version?
+      placeholder: Adobe Animate 24.0.3
+  - type: textarea
+    id: notes
+    attributes:
+      label: What did the Output panel or the import notes say?
+      description: Flare lists what it could not carry over. Paste that list here.
+      render: text
+  - type: textarea
+    id: files
+    attributes:
+      label: A small file that shows it
+      description: The smaller the better; remove anything private. Real files from the wild are what the importer most needs.

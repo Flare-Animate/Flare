@@ -1,0 +1,275 @@
+# Flare workspace. See docs/ARCHITECTURE.md and docs/ENGINEERING.md.
+# Members are real packages with code and tests; add a crate when it has both.
+[workspace]
+resolver = "3"
+members = [
+    # apps
+    "apps/flare-cli",
+    "apps/flare-desktop",
+    "apps/flare-mcp",
+    "apps/flare-web",
+    # foundation
+    "crates/foundation/flare-core",
+    "crates/foundation/flare-document",
+    "crates/foundation/flare-eval",
+    "crates/foundation/flare-text",
+    "crates/foundation/flare-audio",
+    "crates/foundation/flare-i18n",
+    "crates/foundation/flare-input",
+    # editing
+    "crates/editing/flare-commands",
+    "crates/editing/flare-history",
+    "crates/editing/flare-editor",
+    "crates/editing/flare-tools",
+    # io
+    "crates/io/flare-storage",
+    "crates/io/flare-import",
+    "crates/io/flare-export",
+    "crates/io/flare-publish",
+    # adapters
+    "crates/adapters/flare-flash",
+    "crates/adapters/flare-ruffle",
+    # services
+    "crates/services/flare-render",
+    "crates/services/flare-runtime",
+    "crates/services/flare-video",
+    "crates/services/flare-recent",
+    "crates/services/flare-platform",
+    "crates/services/flare-tablet",
+    # presentation
+    "crates/presentation/flare-ui",
+    "crates/presentation/flare-dock",
+    "crates/presentation/flare-menubar",
+    "crates/presentation/flare-animate",
+]
+exclude = ["original", "third_party"]
+default-members = ["apps/flare-desktop"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99.1"
+publish = false
+license = "BSD-3-Clause"
+
+[workspace.dependencies]
+# ---- Internal packages: root owns all paths, listed by layer -----------------
+# foundation
+flare-core = { path = "crates/foundation/flare-core" }
+flare-document = { path = "crates/foundation/flare-document" }
+flare-eval = { path = "crates/foundation/flare-eval" }
+flare-text = { path = "crates/foundation/flare-text" }
+flare-audio = { path = "crates/foundation/flare-audio" }
+flare-i18n = { path = "crates/foundation/flare-i18n" }
+flare-input = { path = "crates/foundation/flare-input" }
+# editing
+flare-commands = { path = "crates/editing/flare-commands" }
+flare-history = { path = "crates/editing/flare-history" }
+flare-editor = { path = "crates/editing/flare-editor" }
+flare-tools = { path = "crates/editing/flare-tools" }
+# io
+flare-storage = { path = "crates/io/flare-storage" }
+flare-import = { path = "crates/io/flare-import" }
+flare-export = { path = "crates/io/flare-export" }
+flare-publish = { path = "crates/io/flare-publish" }
+# adapters
+flare-flash = { path = "crates/adapters/flare-flash" }
+flare-ruffle = { path = "crates/adapters/flare-ruffle" }
+# Ruffle's exporter from the pinned submodule; only flare-ruffle's render-check feature uses it.
+exporter = { path = "third_party/ruffle/exporter" }
+# The player itself, for flare-ruffle's `embedded` feature: the core, its wgpu renderer, and the
+# frontend helpers that bring the sound card (unmodified, from the pinned checkout).
+ruffle_core = { path = "third_party/ruffle/core", features = ["default_font"] }
+ruffle_render_wgpu = { path = "third_party/ruffle/render/wgpu" }
+futures-lite = "2.6.1"
+ruffle_frontend_utils = { path = "third_party/ruffle/frontend-utils", default-features = false, features = ["cpal"] }
+# services
+flare-render = { path = "crates/services/flare-render" }
+flare-runtime = { path = "crates/services/flare-runtime" }
+flare-video = { path = "crates/services/flare-video" }
+flare-platform = { path = "crates/services/flare-platform" }
+flare-tablet = { path = "crates/services/flare-tablet" }
+# presentation
+flare-dock = { path = "crates/presentation/flare-dock" }
+flare-menubar = { path = "crates/presentation/flare-menubar" }
+flare-recent = { path = "crates/services/flare-recent" }
+flare-ui = { path = "crates/presentation/flare-ui" }
+flare-animate = { path = "crates/presentation/flare-animate" }
+
+# ---- Math and vector geometry ------------------------------------------------
+emath = { version = "0.37.0", default-features = false }
+glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }
+
+# ---- Binary data and GPU memory layouts --------------------------------------
+bytemuck = { version = "1.25", features = ["derive"] }
+
+# ---- Serialization, identity and typed errors -------------------------------
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+uuid = "1"                 # v7/serde are enabled by the consuming member.
+thiserror = "2"
+anyhow = "1"               # Executable boundaries, not public library errors.
+
+# ---- Persistence, compression and content identity --------------------------
+rusqlite = { version = "0.41.1", default-features = false }
+# flare-storage adds bundled/backup/blob/limits/hooks at its dependency site.
+blake3 = "1"
+tempfile = "3"
+zstd = "0.14"
+ciborium = "0.2"          # CBOR: the binary form of the project file's records.
+
+# ---- Flash/XML/archive interchange -------------------------------------------
+quick-xml = { version = "0.42.0", default-features = false }
+zip = { version = "9.1.3", default-features = false }
+# Ruffle's own swf crate from the pinned submodule, so there is one copy of it in the build.
+swf = { path = "third_party/ruffle/swf" }
+# Enable only reviewed compression features in the format adapter.
+# Ruffle swf/core/render packages are NOT guessed Git dependencies here.
+# Choose and record one tested Ruffle revision during the runtime/format spike.
+
+# ---- Image assets and font/layout adapters -----------------------------------
+image = { version = "0.25.10", default-features = false }
+png = "0.18.1"
+gif = { version = "0.14", default-features = false, features = ["std", "color_quant"] }
+parley = "0.12.0"
+epaint_default_fonts = "0.37"   # egui's own fonts, for tests that need glyphs.
+skrifa = "0.44.0"          # Glyph outlines for the text tool; one copy, shared with the rasterizer.
+# usvg/resvg, lcms2, libmypaint, specialised codecs: add when a feature needs them.
+
+# ---- GPU and desktop presentation: documented version family ----------------
+wgpu = { version = "30.0", default-features = false }
+egui = { version = "0.37.0", default-features = false }
+eframe = { version = "0.37.0", default-features = false }
+egui_tiles = { version = "0.18.0", default-features = false }
+egui_extras = { version = "0.37.0", default-features = false, features = ["svg", "image"] }
+egui-wgpu = { version = "0.37.0", default-features = false }
+egui-winit = { version = "0.37.0", default-features = false }
+winit = { version = "0.30.13", default-features = false }
+# A pen's pressure from the X server (XInput2), which winit does not pass on; pure Rust, no libxcb.
+x11rb = { version = "0.13.2", default-features = false, features = ["xinput"] }
+rfd = "0.15.4"
+directories = "6"
+pollster = "0.4.0"
+js-sys = "0.3"
+wasm-bindgen = "0.2.129"
+wasm-bindgen-test = "0.3"   # Tests of the browser build's bridge, run under node (scripts/tests/test_web_wasm.py).
+wasm-bindgen-futures = "0.4"
+web-sys = "0.3"
+muda = "0.21.2"          # Native menu bar (macOS); other platforms use the in-window menu.
+# The desktop member must choose native backends/fonts/clipboard/platform features.
+# Do not assume these minimal declarations alone build a desktop application.
+vello_cpu = { version = "0.3.0", features = ["multithreading"] } # Selected CPU rasterizer; see experiments/renderers/results/REPORT.md. Threads are opt-in per render.
+
+# ---- CPU workers and asynchronous application services -----------------------
+rayon = "1"                 # Data parallelism inside one background job (GIF frames), on a pool that leaves a core for the window.
+tokio = { version = "1", default-features = false }
+rtrb = "0.3"                # A lock-free queue from the window thread to the audio callback, which must never wait.
+# crossbeam-channel: bounded communication only at justified boundaries.
+
+# ---- Audio ---------------------------------------------------------------------
+rubato = "5"                 # Resampling of sounds to the output rate, off the audio thread.
+symphonia = { version = "0.5", default-features = false, features = ["wav", "mp3", "ogg", "vorbis", "flac", "pcm"] }
+cpal = "0.16"
+base64 = "0.22"
+
+# ---- Video: no encoder for the person to install ------------------------------
+# The picture is H.264 (rusty_h264), the sound AAC-LC (OxideAV) and the MP4 container is
+# muxide. All pure Rust. rusty_h264's default `asm` feature is kept on: its SIMD kernels (NEON
+# here, SSE2 and AVX2 on x86-64) are in a dependency that keeps its `unsafe` to itself, and on
+# 720p drawn content they encode 1.9 times faster than the scalar build (72 against 38 frames a
+# second, arm64, identical output bytes).
+rusty_h264 = "0.17"
+oxideav-aac = "0.1.7"
+muxide = { version = "0.5", default-features = false }
+
+# ---- Localization -------------------------------------------------------------
+fluent-bundle = "0.16"
+fluent-syntax = "0.12"      # Only to read the messages in tests.
+unic-langid = "0.9"
+sys-locale = "0.3"
+
+# ---- CLI, MCP and structured diagnostics -------------------------------------
+clap = { version = "4", features = ["derive"] }
+rmcp = { version = "3.8.0", default-features = false }
+schemars = "1"
+
+# ---- Verification ------------------------------------------------------------
+proptest = "1"
+criterion = "0.7"
+# cargo-fuzz, cargo-deny, cargo-about and Miri are tools, not app dependencies.
+
+# ---- Candidates: not used by any member yet --------------------------------
+# Declared here, uncommented, when a crate first needs them (scripts/tests/test_manifests.py
+# fails on a declared entry that nothing uses).
+# i_overlay = "9.1.0"       # Polygon booleans, for Modify > Combine Objects.
+# vello_gpu = "0.3.0"       # A GPU stage renderer, if one is ever built; match vello_cpu's version.
+# tracing = "0.1"           # Spans around render, export and save, with the performance work.
+# tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# ---- Deferred functionality: register exact versions when adopted -----------
+# Spatial/physics: parry2d-f64, parry3d-f64, rapier2d-f64; 3D physics deferred.
+# Scripting: boa_engine candidate; plugins/Wasm host deferred.
+# Collections/SIMD: smallvec, indexmap, slotmap, hashbrown, bumpalo, wide on evidence.
+# No kiss3d/rend3 production engine dependency; no blanket game engine or ECS.
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+undocumented_unsafe_blocks = "deny"
+unwrap_used = "warn"
+expect_used = "warn"
+
+[workspace.metadata.flare]
+product-focus = "modern-adobe-animate-first"
+reference-archive = "original"
+lockfile-policy = "Cargo.lock is generated by cargo and committed; builds and CI use --locked"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+# Keep unwinding until every FFI/process boundary has an explicit policy.
+# Avoid fast-math, target-cpu=native and global allocator changes by default.
+
+# Full debug information made a debug build over 25 GB; line tables are enough for backtraces.
+[profile.dev]
+debug = "line-tables-only"
+
+# Keep the hot loops responsive in the default `cargo run`/`cargo test` profile: the rasterizer
+# and the code around it are far too slow unoptimized to draw or test large documents. Debug
+# information and overflow checks stay on; only the optimization level changes.
+[profile.dev.package.flare-document]
+opt-level = 2
+[profile.dev.package.flare-commands]
+opt-level = 2
+[profile.dev.package.flare-history]
+opt-level = 2
+[profile.dev.package.flare-editor]
+opt-level = 2
+[profile.dev.package.flare-tools]
+opt-level = 2
+[profile.dev.package.flare-eval]
+opt-level = 2
+[profile.dev.package.flare-render]
+opt-level = 2
+[profile.dev.package.vello_cpu]
+opt-level = 3
+[profile.dev.package.vello_common]
+opt-level = 3
+[profile.dev.package.fearless_simd]
+opt-level = 3
+[profile.dev.package.kurbo]
+opt-level = 3
+[profile.dev.package.png]
+opt-level = 3
+[profile.dev.package.fdeflate]
+opt-level = 3
+[profile.dev.package.miniz_oxide]
+opt-level = 3
+
+# One copy of swf in the whole build: Ruffle's `rascal` asks crates.io for it, and gets the
+# pinned checkout's instead.
+[patch.crates-io]
+swf = { path = "third_party/ruffle/swf" }

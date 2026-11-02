@@ -1,0 +1,92 @@
+msg-cannot-import-sound = { $path } kann nicht importiert werden: { $reason }
+msg-too-much-sound = Es ist zu viel Ton geladen, um alle Töne gleichzeitig abzuspielen
+msg-cannot-play-sound = Ein Ton kann nicht abgespielt werden: { $reason }
+msg-cannot-place-text = Der Text kann nicht platziert werden: { $reason }
+msg-saved = { $path } gespeichert
+msg-cannot-save = Speichern nicht möglich: { $reason }
+msg-autosave-failed = Automatisches Speichern fehlgeschlagen: { $reason }
+msg-cannot-import = { $path } kann nicht importiert werden: { $reason }
+msg-imported =
+    { $n ->
+        [one] { $path } importiert; { $n } Hinweis dazu, was nicht übernommen wurde, steht im Ausgabe-Bedienfeld
+       *[other] { $path } importiert; { $n } Hinweise dazu, was nicht übernommen wurde, stehen im Ausgabe-Bedienfeld
+    }
+msg-cannot-recover = { $path } kann nicht wiederhergestellt werden: { $reason }
+msg-cannot-open = { $path } kann nicht geöffnet werden: { $reason }
+msg-project-changed = Ihr Projekt hat sich beim Lesen der Arbeit geändert und wurde deshalb nicht ersetzt
+msg-recovered = Nicht gespeicherte Arbeit wiederhergestellt
+msg-opened = { $name } geöffnet
+msg-opening = { $path } wird geöffnet...
+msg-save-before-recover = Speichern Sie Ihre Änderungen oder machen Sie sie rückgängig, bevor Sie andere Arbeit wiederherstellen
+msg-recovery-remove-failed = Die Wiederherstellungsdatei konnte nicht entfernt werden: { $reason }
+msg-graphic-only = Nur eine Grafik wird mit der Einstellung „Schleife“, „Einmal abspielen“ oder „Einzelbild“ abgespielt
+msg-looping = Schleife
+msg-options = Optionen
+msg-first = Erstes
+msg-play-loop = Schleife
+msg-play-once = Einmal abspielen
+msg-play-single = Einzelbild
+msg-wait-for-file-work = Warten Sie, bis die laufende Dateiarbeit beendet ist, bevor Sie das Dokument wechseln
+msg-leave-symbol-fps = Beenden Sie die Symbolbearbeitung, um die Bildrate zu ändern
+msg-fps-range = Die Bildrate muss zwischen 0,01 und 240 fps liegen
+msg-history-original = Original
+msg-layer-rename = Umbenennen
+msg-layer-hide = Ausblenden
+msg-layer-show = Einblenden
+msg-layer-unlock = Entsperren
+msg-layer-lock = Sperren
+msg-layer-mask = Maske
+msg-layer-guide = Bewegungsführung
+msg-layer-move-up = Nach oben
+msg-layer-move-down = Nach unten
+msg-layer-new = Neue Ebene
+msg-layer-new-folder = Neuer Ordner
+msg-layer-delete = Löschen
+msg-frame-insert = Bild einfügen
+msg-frame-insert-keyframe = Schlüsselbild einfügen
+msg-frame-insert-blank = Leeres Schlüsselbild einfügen
+msg-cannot-cut-locked = Bilder können nicht ausgeschnitten werden: Die Ebene ist gesperrt
+msg-nothing-to-cut = In diesen Bildern gibt es nichts auszuschneiden
+msg-no-frames-to-select = Diese Ebene hat keine Bilder zum Auswählen
+msg-select-frames-to-reverse = Wählen Sie zuerst die Bilder zum Umkehren aus: eines anklicken, ein anderes mit Umschalt anklicken
+msg-cannot-reverse-locked = Bilder können nicht umgekehrt werden: Die Ebene ist gesperrt
+msg-cannot-reverse = Diese Bilder können nicht umgekehrt werden: { $reason }
+msg-op-insert-frame = ein Bild einfügen
+msg-op-remove-frame = ein Bild entfernen
+msg-op-insert-keyframe = ein Schlüsselbild einfügen
+msg-op-insert-blank-keyframe = ein leeres Schlüsselbild einfügen
+msg-op-clear-keyframe = das Schlüsselbild löschen
+msg-op-convert-keyframes = in Schlüsselbilder umwandeln
+msg-cannot-locked = Nicht möglich (Aktion: { $op }): Die Ebene ist gesperrt
+msg-cannot-at-frame = Nicht möglich (Aktion: { $op }) bei Bild { $frame } dieser Ebene
+msg-cannot-move-span = Der Bereich kann dort nicht verschoben werden: Er würde sich mit einem anderen überlappen
+msg-cannot-resize-span = Die Größe des Bereichs kann dort nicht geändert werden: Er würde sich mit einem anderen überlappen
+msg-nothing-to-copy = In diesen Bildern gibt es nichts zu kopieren
+msg-cannot-paste-locked = Bilder können nicht eingefügt werden: Die Ebene ist gesperrt
+msg-cannot-paste-past-end = Bilder können dort nicht eingefügt werden: Sie würden über das letzte Bild hinausreichen
+msg-distribute-needs-three = Zum Verteilen müssen mindestens drei Formen ausgewählt sein
+msg-select-shape-for-symbol = Wählen Sie eine Form aus, um sie in ein Symbol umzuwandeln
+msg-select-shapes-to-group = Wählen Sie zwei oder mehr Formen zum Gruppieren aus
+msg-select-to-break-apart = Wählen Sie eine Symbolinstanz oder einen Text zum Teilen aus
+msg-nothing-transformed = Es konnte nichts transformiert werden (eine Instanz in einem Bewegungs-Tween kann nicht geneigt oder gespiegelt werden)
+msg-brush-stroke = Pinselstrich
+msg-pencil-line = Bleistiftlinie
+msg-select-to-mirror = Wählen Sie etwas zum Spiegeln aus
+msg-leave-symbol-sound = Beenden Sie die Symbolbearbeitung, bevor Sie einen Sound importieren
+msg-scene-needs-name = Eine Szene braucht einen Namen
+msg-paste-symbol-missing = Einfügen nicht möglich: Das zugehörige Symbol ist nicht in diesem Dokument
+msg-tween-needs-target = Für einen Bewegungs-Tween muss eine Instanz ausgewählt sein, für einen Form-Tween eine Form
+unsaved-save-changes = Änderungen an { $name } speichern?
+unsaved-save = Speichern
+unsaved-dont-save = Nicht speichern
+msg-paste-refused = Einfügen in die Ebene „{ $name }“ nicht möglich: { $reason }
+msg-saved-detail-original = unverändertes Original, so zurückgeschrieben, wie es war
+msg-saved-detail-new = { $files } Dateien aus dem Projekt geschrieben
+msg-saved-detail-edited = { $rebuilt } von { $files } Dateien neu aufgebaut, der Rest unverändert übernommen
+msg-saved-with = { $path } gespeichert ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] { $path } gespeichert ({ $detail }); { $n } Hinweis dazu, was das Format nicht aufnehmen kann, steht im Ausgabe-Bedienfeld
+       *[other] { $path } gespeichert ({ $detail }); { $n } Hinweise dazu, was das Format nicht aufnehmen kann, stehen im Ausgabe-Bedienfeld
+    }
+msg-saved-rebuilt-names = Neu aufgebaut für { $path }: { $names }

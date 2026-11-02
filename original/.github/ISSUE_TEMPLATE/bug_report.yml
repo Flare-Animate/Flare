@@ -1,0 +1,106 @@
+name: Bug report
+description: Help us improve by reporting a bug.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Before you start:**
+        - Check for [existing issues](https://github.com/Flare-Animate/Flare/issues?q=is%3Aopen+is%3Aissue) to avoid duplicates.
+        - (Optional) Also check existing [Flare issues](https://github.com/Flare-Animate/Flare/issues?q=is%3Aopen+is%3Aissue) for related reports.
+        - Try the latest [nightly build](https://github.com/Flare-Animate/Flare-nightlies/releases) — many bugs are fixed there.
+        - Update your GPU and tablet drivers if you're seeing visual or input issues.
+
+        Reports missing key details may be closed if we can't reproduce the problem. Help us help you!
+        
+  - type: textarea
+    attributes:
+      label: What's the bug?
+      placeholder: Briefly describe what went wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: Tell us how to make the bug happen. Numbered steps are ideal!
+      value: |
+        1. 
+        2. 
+        3.
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: What did you expect to happen?
+      placeholder: Describe what you thought should have happened instead.
+
+  - type: textarea
+    attributes:
+      label: Screenshots, Videos or Crash Logs
+      placeholder: Paste links or drag files here.
+
+  - type: markdown
+    attributes:
+      value: |
+        ## System Info
+
+  - type: dropdown
+    attributes:
+      label: Flare Version
+      description: Found in Help > About.
+      multiple: false
+      options:
+        - 1.7
+        - 1.6
+        - Nightly (specify below)
+        - Other (specify below)
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Exact Version Info (optional)
+      placeholder: e.g. built Mar 25 2016, commit hash, etc.
+
+  - type: dropdown
+    attributes:
+      label: Operating System
+      multiple: false
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: GPU Brand
+      description: Check that your graphics drivers are up to date.
+      multiple: false
+      options:
+        - NVIDIA
+        - AMD
+        - Intel
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Graphics Tablet
+      description: If you're reporting a pen/tablet issue, choose your brand.
+      multiple: false
+      options:
+        - Wacom
+        - XP-Pen
+        - Huion
+        - Xencelabs
+        - Ugee
+        - GAOMON
+        - Monoprice
+        - Parblo
+        - Other
+        - Not using one

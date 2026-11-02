@@ -1,0 +1,15 @@
+pubpop-title = 发布
+pubpop-formats = 格式
+pubpop-button = 发布
+pubpop-button-hint = 选择保存位置，并写出所有已勾选的格式
+pubpop-share = 分享
+pubpop-share-hint = 请先发布，然后在打开的页面中添加该文件。
+pubpop-nothing-chosen = 请选择一种格式，否则没有可发布的内容。
+pubpop-format-swf = Flash（.swf）
+pubpop-compress = 压缩影片
+pubpop-format-html5 = HTML5 Canvas（.html）
+pubpop-loop = 循环时间轴
+pubpop-center = 舞台居中
+pubpop-responsive = 自适应窗口大小
+pubpop-format-gif = 动画 GIF（.gif）
+pubpop-format-mp4 = MP4 视频（.mp4）

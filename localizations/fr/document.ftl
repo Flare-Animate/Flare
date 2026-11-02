@@ -1,0 +1,12 @@
+untitled = Sans titre
+name-new-scene = Séquence { $n }
+name-new-layer = Calque { $n }
+name-new-text-layer = Texte
+doc-title = Document
+doc-publish-settings = Paramètres de publication
+doc-frame-rate = Cadence
+doc-scenes = Séquences
+doc-sounds = Sons
+doc-width = L
+doc-height = H
+name-new-camera-layer = Caméra

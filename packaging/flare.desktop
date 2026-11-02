@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Flare
+Comment=2D animation
+Exec=flare-desktop %F
+Icon=flare
+Terminal=false
+Categories=Graphics;2DGraphics;VectorGraphics;
+MimeType=application/x-flare;application/x-flare-fla;application/x-flare-xfl;application/x-shockwave-flash;
+StartupNotify=true

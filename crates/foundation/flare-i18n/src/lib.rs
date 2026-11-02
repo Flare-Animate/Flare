@@ -1,0 +1,288 @@
+//! The words of the interface in each language it speaks.
+//!
+//! Every language has a folder under `localizations/` at the root of the repository with one
+//! Fluent file per section of the interface (`localizations/es/preferences.ftl`). The files are
+//! compiled in. A message missing from a language is shown in English, and one missing from
+//! English is shown as its key, so an unfinished translation never breaks a screen. Sections are
+//! added as the interface is moved over to them.
+
+use fluent_bundle::concurrent::FluentBundle;
+use fluent_bundle::{FluentArgs, FluentResource, FluentValue};
+use unic_langid::LanguageIdentifier;
+
+/// A language the interface is written in, in the order a list shows them: English, then the
+/// languages written in Latin letters alphabetically by their own names, then the others by the
+/// order of their language tags.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Language {
+    English,
+    German,
+    Spanish,
+    French,
+    PortugueseBrazil,
+    Japanese,
+    Korean,
+    ChineseSimplified,
+}
+
+include!(concat!(env!("OUT_DIR"), "/sections.rs"));
+
+/// Whether English has a message called `key`. A `const fn`, so a mistyped key in a `tr!` is an
+/// error when the program is built, not a raw key on a screen.
+pub const fn has_key(key: &str) -> bool {
+    let (mut low, mut high) = (0, KEYS.len());
+    while low < high {
+        let middle = (low + high) / 2;
+        match compare(key.as_bytes(), KEYS[middle].as_bytes()) {
+            0 => return true,
+            -1 => high = middle,
+            _ => low = middle + 1,
+        }
+    }
+    false
+}
+
+/// Byte-wise order of two strings: -1, 0 or 1.
+const fn compare(a: &[u8], b: &[u8]) -> i8 {
+    let mut i = 0;
+    while i < a.len() && i < b.len() {
+        if a[i] < b[i] {
+            return -1;
+        }
+        if a[i] > b[i] {
+            return 1;
+        }
+        i += 1;
+    }
+    if a.len() < b.len() {
+        -1
+    } else if a.len() > b.len() {
+        1
+    } else {
+        0
+    }
+}
+
+impl Language {
+    /// In list order (see the type's description).
+    pub const ALL: [Self; 8] = [
+        Self::English,
+        Self::German,
+        Self::Spanish,
+        Self::French,
+        Self::PortugueseBrazil,
+        Self::Japanese,
+        Self::Korean,
+        Self::ChineseSimplified,
+    ];
+
+    /// The language's tag, which is also the name of its folder.
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::English => "en",
+            Self::German => "de",
+            Self::Spanish => "es",
+            Self::French => "fr",
+            Self::PortugueseBrazil => "pt-BR",
+            Self::Japanese => "ja",
+            Self::Korean => "ko",
+            Self::ChineseSimplified => "zh-CN",
+        }
+    }
+
+    pub fn from_code(code: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|l| l.code() == code)
+    }
+
+    /// The language's name in English.
+    pub fn english_name(self) -> &'static str {
+        match self {
+            Self::English => "English",
+            Self::German => "German",
+            Self::Spanish => "Spanish",
+            Self::French => "French",
+            Self::PortugueseBrazil => "Portuguese (Brazil)",
+            Self::Japanese => "Japanese",
+            Self::Korean => "Korean",
+            Self::ChineseSimplified => "Chinese (Simplified)",
+        }
+    }
+
+    /// The language's name in itself, as a language list shows it.
+    pub fn native_name(self) -> &'static str {
+        match self {
+            Self::English => "English",
+            Self::German => "Deutsch",
+            Self::Spanish => "Español",
+            Self::French => "Français",
+            Self::PortugueseBrazil => "Português (Brasil)",
+            Self::Japanese => "日本語",
+            Self::Korean => "한국어",
+            Self::ChineseSimplified => "简体中文",
+        }
+    }
+
+    /// The language that fits a system locale tag such as `de-AT`, `zh_Hans_CN` or `pt-PT`:
+    /// the nearest one this interface speaks, English when there is none.
+    pub fn from_system(tag: &str) -> Self {
+        let tag = tag.trim().replace('_', "-").to_ascii_lowercase();
+        let mut parts = tag.split(['-', '.', '@']);
+        match parts.next().unwrap_or("") {
+            "de" => Self::German,
+            "es" => Self::Spanish,
+            "fr" => Self::French,
+            "pt" => Self::PortugueseBrazil,
+            "ja" => Self::Japanese,
+            "ko" => Self::Korean,
+            // Traditional Chinese is not here yet, and simplified text is the nearer of the two
+            // for a reader who knows either.
+            "zh" => Self::ChineseSimplified,
+            _ => Self::English,
+        }
+    }
+
+    fn sources(self) -> [&'static str; SECTIONS.len()] {
+        language_sources(self.code())
+    }
+
+    /// The text of section number `index` of [`SECTIONS`].
+    pub fn section_source(self, index: usize) -> Option<&'static str> {
+        self.sources().get(index).copied()
+    }
+}
+
+/// What the person chose in Preferences: follow the system, or one language.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Choice {
+    #[default]
+    System,
+    Language(Language),
+}
+
+impl Choice {
+    /// How it is kept in the preferences file.
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::System => "system",
+            Self::Language(language) => language.code(),
+        }
+    }
+
+    /// A kept value back; anything not understood follows the system.
+    pub fn from_code(code: &str) -> Self {
+        Language::from_code(code).map_or(Self::System, Self::Language)
+    }
+
+    /// The language to speak given the system's locale tag.
+    pub fn resolve(self, system_tag: &str) -> Language {
+        match self {
+            Self::System => Language::from_system(system_tag),
+            Self::Language(language) => language,
+        }
+    }
+}
+
+fn bundle(language: Language) -> FluentBundle<FluentResource> {
+    let id: LanguageIdentifier = language
+        .code()
+        .parse()
+        .unwrap_or_else(|_| LanguageIdentifier::default());
+    let mut bundle = FluentBundle::new_concurrent(vec![id]);
+    // Isolation marks would show up as stray characters in egui text.
+    bundle.set_use_isolating(false);
+    for source in language.sources() {
+        // A file with a broken message keeps the messages that did parse.
+        let resource =
+            FluentResource::try_new(source.to_owned()).unwrap_or_else(|(partial, _)| partial);
+        // A key defined twice keeps its first meaning; it is a mistake the tests look for.
+        let _ = bundle.add_resource(resource);
+    }
+    bundle
+}
+
+/// Looks messages up in one language, falling back to English and then to the key.
+pub struct Translator {
+    language: Language,
+    /// Wraps every message in marks, so a test can tell words from messages from words typed
+    /// into the program.
+    pseudo: bool,
+    bundle: FluentBundle<FluentResource>,
+    english: Option<FluentBundle<FluentResource>>,
+}
+
+impl Translator {
+    pub fn new(language: Language) -> Self {
+        Self {
+            language,
+            pseudo: false,
+            bundle: bundle(language),
+            english: (language != Language::English).then(|| bundle(Language::English)),
+        }
+    }
+
+    pub fn language(&self) -> Language {
+        self.language
+    }
+
+    /// English whose every message comes back between ⟦ and ⟧. A screen drawn with it shows which
+    /// words came from a message file: any word outside the marks was typed into the program.
+    pub fn pseudo() -> Self {
+        Self {
+            pseudo: true,
+            ..Self::new(Language::English)
+        }
+    }
+
+    /// The message called `key`.
+    pub fn text(&self, key: &str) -> String {
+        self.text_with(key, &[])
+    }
+
+    /// The message called `key` with its `{ $name }` placeholders filled from `args`.
+    pub fn text_with(&self, key: &str, args: &[(&str, &str)]) -> String {
+        let mut fluent_args = FluentArgs::new();
+        for (name, value) in args {
+            fluent_args.set(*name, FluentValue::from(*value));
+        }
+        self.format(key, &fluent_args)
+    }
+
+    /// The message called `key` for `count` things, which it names `{ $n }`. The count is a
+    /// number, not text, so a message can pick its form with the language's own plural rules
+    /// (`{ $n -> [one] ... *[other] ... }`: English has two forms, French counts 0 as one, Russian
+    /// has four, Japanese has one).
+    pub fn text_count(&self, key: &str, count: u64, args: &[(&str, &str)]) -> String {
+        let mut fluent_args = FluentArgs::new();
+        for (name, value) in args {
+            fluent_args.set(*name, FluentValue::from(*value));
+        }
+        // A count past what a float holds exactly is no count anyone is shown.
+        fluent_args.set("n", FluentValue::from(count as f64));
+        self.format(key, &fluent_args)
+    }
+
+    fn format(&self, key: &str, fluent_args: &FluentArgs) -> String {
+        for bundle in std::iter::once(&self.bundle).chain(self.english.as_ref()) {
+            if let Some(pattern) = bundle.get_message(key).and_then(|m| m.value()) {
+                let mut errors = Vec::new();
+                let text = bundle
+                    .format_pattern(pattern, Some(fluent_args), &mut errors)
+                    .into_owned();
+                return if self.pseudo {
+                    format!("⟦{text}⟧")
+                } else {
+                    text
+                };
+            }
+        }
+        key.to_owned()
+    }
+
+    /// Whether the language itself, not the English behind it, has `key`.
+    pub fn has(&self, key: &str) -> bool {
+        self.bundle.has_message(key)
+    }
+}
+
+#[cfg(test)]
+mod tests;

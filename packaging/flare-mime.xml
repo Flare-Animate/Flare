@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-flare">
+    <comment>Flare Project</comment>
+    <glob pattern="*.flare" />
+    <icon name="flare" />
+  </mime-type>
+  <!-- Animate's formats, which Flare imports. They are declared so Flare can be offered for
+       them; Flare does not make itself their default. -->
+  <mime-type type="application/x-flare-fla">
+    <comment>Animate Document</comment>
+    <sub-class-of type="application/zip" />
+    <glob pattern="*.fla" />
+  </mime-type>
+  <mime-type type="application/x-flare-xfl">
+    <comment>Animate Document (XFL)</comment>
+    <sub-class-of type="application/xml" />
+    <glob pattern="*.xfl" />
+  </mime-type>
+  <!-- Flash movies, which Flare imports. The type is the system's own; declaring it here only
+       lets Flare be offered for it. -->
+  <mime-type type="application/x-shockwave-flash">
+    <comment>Flash Movie</comment>
+    <glob pattern="*.swf" />
+  </mime-type>
+</mime-info>

@@ -1,0 +1,12 @@
+movie-title = Testar filme
+movie-clock = { $clock } · quadro { $frame }
+movie-restart = Reiniciar
+movie-pause = Pausar
+movie-play = Reproduzir
+movie-step = Avançar um quadro
+movie-speed = Velocidade de reprodução
+movie-loop-on = Em repetição: o filme recomeça ao chegar ao fim
+movie-loop-off = Sem repetição: o filme para no último quadro
+movie-sound-off = O som está desligado; clique para ligá-lo
+movie-sound-on = O som está ligado; clique para desligá-lo
+movie-close = Fechar

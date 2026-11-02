@@ -1,0 +1,16 @@
+[package]
+name = "flare-menubar"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+flare-i18n.workspace = true
+
+[dev-dependencies]
+flare-ui.workspace = true
+
+[lints]
+workspace = true

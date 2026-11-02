@@ -1,0 +1,10 @@
+prop-frame = Quadro
+prop-layer = Camada
+prop-exposure = Duração
+prop-exposure-span = do quadro { $start } por { $len }
+prop-empty = vazio
+prop-no-layer = Nenhuma camada selecionada.
+prop-tween = Interpolação
+prop-shape-tween = Interpolação de forma
+prop-motion-tween = Interpolação de movimento
+prop-ease = Atenuação

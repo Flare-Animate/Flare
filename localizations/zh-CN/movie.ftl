@@ -1,0 +1,12 @@
+movie-title = 测试影片
+movie-clock = { $clock } · 第 { $frame } 帧
+movie-restart = 重新开始
+movie-pause = 暂停
+movie-play = 播放
+movie-step = 前进一帧
+movie-speed = 播放速度
+movie-loop-on = 循环中：影片播放到结尾后会重新开始
+movie-loop-off = 未循环：影片停在最后一帧
+movie-sound-off = 声音已关闭；单击可打开
+movie-sound-on = 声音已打开；单击可关闭
+movie-close = 关闭

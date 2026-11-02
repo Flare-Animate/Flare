@@ -1,63 +1,47 @@
-# How to contribute
+# Contributing to Flare
 
-This document describes some points about the contribution process for Flare.
+Thanks for helping. Start with [docs/README.md](docs/README.md) for how things are built and
+[AGENTS.md](AGENTS.md) for the rules we work by; they apply to people and tools alike.
 
-## Pull-requests
+## Setup
 
-The Flare organization loves any kind of contributions, such as fixing typos and code refactoring.
-If you fixed or added something useful to Flare, please send pull-requests to us.
-We will first review the request, then we will accept it, add comments for rework, or decline it.
+Rust is pinned in `rust-toolchain.toml`; `rustup` installs it on the first build. On Linux you need
+`pkg-config libasound2-dev libfontconfig1-dev libwayland-dev libxkbcommon-dev libx11-dev libxcursor-dev libxi-dev
+libxrandr-dev libxcb1-dev`.
 
-### Workflow
+```
+cargo run -p flare-desktop      # the app
+cargo run -p flare-cli -- --help
+```
 
-0. `fork` Flare to your GitHub account from `Flare-Animate/Flare`.
-  - (use the `fork` button at the https://github.com/Flare-Animate/Flare)
-0. `clone` the repository.
-  - `git clone git@github.com:your-github-account/flare.git`
-  - `git remote add upstream https://github.com/Flare-Animate/Flare.git`, additionally.
-0. modify the codes.
-  - `git checkout -b your-branch-name`
-    - `your-branch-name` is a name of your modifications, for example,
-      `fix/fatal-bugs`, `feature/new-useful-gui` and so on.
-  - fix codes, then test them.
-  - `git commit` them with good commit messages.
-0. `pull` the latest changes form the `Rust-Rewrite` branch of the upstream.
-  - `git pull upstream Rust-Rewrite` or `git pull --rebase upstream Rust-Rewrite`.
-  - apply [clang-format](http://clang.llvm.org/docs/ClangFormat.html) with `flare/sources/.clang-format`.
-    - `cd flare/sources`
-    - `./beautification.sh` or `beautification.bat`.
-  - `git commit` them.
-  - `git push origin your-branch-name`.
-0. make a pull request.
+To get your bearings in the code, `npx codesight --wiki --watch` keeps a generated map in `.codesight/` (not committed; see
+[docs/ENGINEERING.md](docs/ENGINEERING.md)).
 
-## Bugs
+## Before you commit
 
-If you find bugs, please report details about them using [issues](https://github.com/Flare-Animate/Flare/issues).
-Please include information needed to reproduce the bug, including the operating system 
-and information directly relating to the issue. Links to screen captures of what is 
-observed on screen or video of specific steps to produce the problem are very helpful.  
-Then we will try to reproduce the bugs and fix them.
-Unfortunately, bugs can sometimes only be reproduced in your own environment, 
-so we cannot reproduce them. 
-If you believe you can fix the bug, please submit a pull request.
+All three pass, and failures are reported as they are:
 
-## Features
+```
+cargo fmt --all --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+```
 
-If you had an idea about a new feature, please implement it and send a pull request to us.
-If you cannot implement the feature, please open a topic on the [Google Group Page](https://groups.google.com/forum/#!forum/opentoonz_en).
-It enables us to discuss implementations of the feature there.
-Feature requests posted on GitHub without an active developer or funding will be closed 
-to keep the issue tracker from becoming cluttered with unfulfilled feature requests.
+- Every behaviour has a test, including the failure paths. A test must be able to fail; never
+  change an expected output to make a failure go away. See [docs/TESTING.md](docs/TESTING.md).
+- No Rust file over 500 lines; put code in the crate and layer that owns the responsibility.
+- Safe Rust, typed errors, no panics on user data, bounds on everything that grows.
+- Change the docs in the same commit as the behaviour they describe.
+- Do not copy from `original/` (the archived C++ code) and do not copy another product's artwork.
 
-## Translations
+## Workflow
 
-Translation sources (`.ts`) are in `flare/sources/translations`. Contributors can
-edit them with Qt Linguist and submit a PR, or attach the updated files to an
-issue/discussion for a maintainer to integrate. A full application build is not
-required to contribute wording. Share editable sources; compiled `.qm` files are
-optional test artifacts unless a maintainer requests them.
+Work happens on `main`. Small commits with conventional messages
+(`feat(scope): ...`, `fix`, `refactor`, `docs`, `chore`, `test`). Outside contributors open a pull
+request against `main` from a fork; keep it focused on one thing.
 
-See [Contributing and maintaining translations](flare/sources/translations/README.md)
-for the two workflows: sharing translations, and reviewing/merging/updating them.
-The guide includes existing Qt Linguist, shell-script, and CMake/Visual Studio
-processes, validation, runtime paths, and packaging checks.
+## Reporting problems
+
+Use the issue templates. For anything security related follow [SECURITY.md](SECURITY.md) and do not
+open a public issue. Importing a file that comes out wrong? Use the "Import problem" template and
+attach the file if you can.

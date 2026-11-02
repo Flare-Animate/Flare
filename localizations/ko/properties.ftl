@@ -1,0 +1,10 @@
+prop-frame = 프레임
+prop-layer = 레이어
+prop-exposure = 표시 기간
+prop-exposure-span = { $start }프레임부터 { $len }프레임 동안
+prop-empty = 비어 있음
+prop-no-layer = 선택된 레이어가 없습니다.
+prop-tween = 트윈
+prop-shape-tween = 셰이프 트윈
+prop-motion-tween = 모션 트윈
+prop-ease = 이징

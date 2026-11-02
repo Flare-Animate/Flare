@@ -1,0 +1,143 @@
+# Releasing
+
+## What 0.1.0 means
+
+0.1.0 is a **usable early alpha of the core workflow**: a person can draw, animate on a
+timeline, keep several documents open, save and reopen them, trade them with Animate, and export
+the result, on macOS, Windows and Linux. It is not feature parity with Animate. It is released
+when every box below is ticked.
+
+**Scope: what has to work** (all built; each has automated tests unless marked by hand)
+
+- [x] Drawing: the tool set, fills, strokes, gradients, text, undo and redo, copy and paste.
+- [x] Animating: layers, folders, masks, motion guides, keyframes, motion tweens and shape tweens with Ease, onion
+  skin, playback with sound.
+- [x] A library of symbols (Graphic, Movie Clip and Button types) and instances placed on the stage.
+- [x] Projects: save, open, revert, recent files, several documents as tabs, autosave and crash
+  recovery.
+- [x] Animate exchange: import and export XFL and FLA, with what is not carried over reported; `.flare`, `.fla` and `.xfl` files open from the file manager on Windows and Linux, from the command line, and by dropping them on the window.
+- [x] Output: PNG, GIF, SWF and an HTML5 Canvas page.
+- [x] The same documents from a command line (`flare-cli`) and an MCP server (`flare-mcp`).
+
+**Quality: what has to be true** (checked by machines)
+
+- [ ] CI green on `main` at the commit that is tagged: format, lints, tests on Linux, the browser build, the 500-line rule. (It is green on `main` as pushed; the box is ticked when the commit that is tagged has run, so it waits for the tag.)
+- [x] `cargo audit` reports no vulnerabilities.
+- [x] The command line works end to end on real files (`scripts/tests/test_cli_smoke.py`).
+- [x] Hostile and damaged input is refused, not a crash (property tests, fuzz-style tests).
+- [x] A tagged build produces all six platform packages and verified checksums (run once, green).
+
+**Quality: what has to be true** (checked by a person, see the smoke test below)
+
+- [x] The packaged macOS app starts and stays running (launched for eight seconds on Apple
+  Silicon: signature valid, no output, no panic). This is a startup check only, nothing was drawn.
+- [ ] The smoke test passes by hand on macOS.
+- [ ] The app starts and draws on one Windows and one Linux machine.
+- [ ] A page published with File > Publish plays in a browser, with its sound after the click.
+
+**Honesty: what has to be written down**
+
+- [x] Release notes and `CHANGELOG.md` say what 0.1.0 does not do.
+- [x] `SECURITY.md` says how to report a problem and what the dependency audit shows.
+
+**Not in 0.1.0** (shown dimmed in the menus, or listed in the notes): shape hints, more than
+one scene, ActionScript and a script editor, scripting and the Commands menu, editable keyboard shortcuts, editable text after it
+is placed, opening a file by double-clicking it on macOS (Apple events need unsafe code; drop the file on the window or use File > Open), the web build, Developer-ID signing and notarising, an auto-update.
+
+
+Packaging follows the same layout as the other Craft projects: platform files in
+[`packaging/`](../packaging), the build scripts in [`scripts/packaging/`](../scripts/packaging)
+(Python, one per platform), icons in [`assets/`](../assets), and one workflow,
+[`release.yml`](../.github/workflows/release.yml), that builds natively on each platform.
+
+## What a release contains
+
+For each of six targets (Windows, macOS and Linux, x64 and arm64):
+
+| Platform | Desktop | Command line |
+| -------- | ------- | ------------ |
+| macOS | `flare-<v>-macos-<arch>.dmg` and `-update.zip` (the same ad-hoc signed `Flare.app`) | `flare-cli-<v>-macos-<arch>.tar.gz` |
+| Windows | `.msi` (WiX 5; installs for the current user, with no administrator prompt, and registers `.flare` for that user) and `-portable.zip` (the program, its licences and the changelog) | `flare-cli-<v>-windows-<arch>.zip` |
+| Linux | `.deb`, `.rpm`, `.AppImage`, `.flatpak` (install with `flatpak install --user` from a terminal; a software centre cannot fetch the runtime of a bundle) and a `.tar.gz` | `flare-cli-<v>-linux-<arch>.tar.gz` |
+
+The command line archive holds `flare` (the command line) and `flare-mcp`. The desktop app's program is `flare-desktop` on Linux and Windows (inside `Flare.app` on macOS), so the two never share a name on `PATH`; `flare open` starts it. A `SHA256SUMS.txt` covers everything.
+The web build is experimental and not released.
+
+## Checklist for a version
+
+1. `main` is green in CI; fmt, clippy and tests pass locally.
+2. Move the `[Unreleased]` entries of [CHANGELOG.md](../CHANGELOG.md) under the new version and date.
+3. Write `docs/releases/v<version>.md`: a short, user-facing summary. It becomes the release text and
+   must exist before tagging.
+4. Set `version` in the root `Cargo.toml` (`[workspace.package]`), run `cargo build --locked` once to
+   refresh `Cargo.lock`. The version must be plain semver (the MSI limits the numbers).
+5. Run the smoke test below on at least one platform.
+6. With the maintainer's explicit permission (never before), tag `v<version>` on `main` and push the tag. The workflow validates that the tag matches the
+   manifest, builds all six targets, checks the full asset set and checksums, and publishes only if
+   every platform succeeded.
+
+`package_release.py validate --tag v<version>` runs the first checks locally, and
+`python -m unittest discover -s scripts/tests -p 'test_package_*.py'` tests the packaging logic.
+
+## Building locally
+
+macOS, from a release build (`cargo build --release -p flare-desktop`). The disk image has a plain background with an arrow from `Flare.app` to Applications, `assets/packaging/macos/dmg-background.png` and its `@2x`, as the other Craft projects have:
+
+```
+python3 scripts/packaging/package_macos.py --binary target/release/flare-desktop --output target/macos/Flare.app
+python3 scripts/packaging/package_release.py package --version 0.1.0 --target aarch64-apple-darwin \
+    --binary target/release/flare-desktop --output dist     # needs: pip install dmgbuild==1.6.7
+```
+
+`package_macos.py` also takes `--install` and `--register`. The bundle is signed ad hoc so it runs
+on the machine that built it; signing with a Developer ID and notarising are not done yet, so a
+downloaded copy needs a right-click, Open the first time.
+
+Linux needs the libraries in [CONTRIBUTING.md](../CONTRIBUTING.md) plus `cargo-packager` 0.11.8 and
+`cargo-generate-rpm` 0.21.0 (the workflow pins both). Windows needs WiX 5.
+
+What has been run: the macOS bundle, DMG and updater zip were built and verified on Apple Silicon,
+and the full release workflow (all six targets: MSI, `.deb`, `.rpm`, AppImage, DMG, portable
+archives, checksums) ran green on GitHub without publishing. The workflow only runs on a `v*` tag, on
+pull requests that touch packaging, or by hand from the Actions tab (no tag, nothing is published).
+
+## File types
+
+Flare is registered for `.flare` projects (it owns them) and for Animate's `.fla` and `.xfl`
+files and Flash `.swf` movies, which it imports as a new, unsaved project; it is offered for those
+three, never made their default. Opening any of them, from the file manager, "Open with", the command line (several files
+at once) or by dropping them on the window, goes through one place (`open_any.rs`, which asks `flare-import`'s `file_kinds.rs` what a file is), and
+`scripts/tests/test_associations.py` checks that the macOS bundle, the Linux desktop entry and MIME
+types and the Windows installer name exactly the extensions `file_kinds.rs` lists. An XFL folder is opened
+by dropping it on the window or with File > Open; a folder cannot be a registered type. Flare is
+not registered for what it only writes (PNG, GIF, SWF) or imports as sound.
+
+macOS hands a double-clicked file to a running app as an Apple event, which the window library
+(winit 0.30) does not pass on and which cannot be handled in safe Rust. So on macOS the types are
+registered (Open With and Get Info list Flare) but a double-click does not open the file yet; drop it on
+the window or use File > Open instead. Windows and Linux pass the path on the command line.
+
+## Icon
+
+`assets/flare-icon.png` is the 1024 px master: a transparent rounded square with a thin dark edge,
+filling its canvas. Windows (`flare-icon.ico`) and Linux (`flare-icon-256.png`) use it full size.
+macOS icons are expected to sit inside a transparent margin, so `flare-icon.iconset` and
+`flare-icon.icns` hold the same art shrunk to 824 of 1024 px (80 percent) and centered; at full
+size the dock shows it larger than its neighbours.
+
+## Smoke test (by hand)
+
+The GUI is not driven by the automated tests, so before a release someone does this once:
+
+1. Launch; the Home page appears (new-project sizes, Open, Import, recent projects). Start a new
+   project; the window, tool strip, stage, panels and timeline appear, and the panels have room
+   around their content.
+2. Draw with the pencil, the brush, the rectangle and the pen; undo and redo each. Drag a brush
+   stroke and release: it must not blink. With the Mirror tool set to left-right, draw a stroke
+   (both halves appear, one undo removes both); hold Shift with the pencil for a straight line;
+   measure a distance with the Ruler.
+3. Insert keyframes; add a motion tween to an instance and a shape tween to a shape (Insert menu or the Properties panel), set the Ease, scrub and play the timeline. Tweened spans show an arrow and their own color.
+4. Save as `.flare`, close, open it again; the drawing is intact.
+5. Import a `.fla`; export a PNG and an animated GIF; File > Publish with both formats ticked, and open the page in a browser (it must play, loop and fit the window as set).
+6. Open two documents as tabs and switch between them.
+7. Quit with unsaved changes; the app asks first. Relaunch after a forced quit; recovery is offered.

@@ -1,0 +1,44 @@
+[package]
+name = "flare-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "flare"
+path = "src/main.rs"
+
+[dependencies]
+flare-core.workspace = true
+flare-flash.workspace = true
+flare-document.workspace = true
+flare-commands.workspace = true
+flare-editor.workspace = true
+flare-history.workspace = true
+flare-export.workspace = true
+flare-publish.workspace = true
+flare-ruffle.workspace = true
+flare-import.workspace = true
+flare-eval.workspace = true
+flare-runtime.workspace = true
+flare-video.workspace = true
+flare-render.workspace = true
+flare-storage.workspace = true
+flare-text.workspace = true
+flare-tools.workspace = true
+glamx.workspace = true
+uuid.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+epaint_default_fonts.workspace = true
+png.workspace = true
+swf.workspace = true
+
+[lints]
+workspace = true

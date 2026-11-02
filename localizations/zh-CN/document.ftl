@@ -1,0 +1,12 @@
+untitled = 未命名
+name-new-scene = 场景 { $n }
+name-new-layer = 图层 { $n }
+name-new-text-layer = 文本
+doc-title = 文档
+doc-publish-settings = 发布设置
+doc-frame-rate = 帧速率
+doc-scenes = 场景
+doc-sounds = 声音
+doc-width = 宽
+doc-height = 高
+name-new-camera-layer = 摄像机

@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
+# CI - Tests & Lint
+#
+# C++ builds are handled by the platform-specific workflows:
+#   workflow_linux.yml, workflow_macos.yml, workflow_windows.yml
+# This workflow runs lightweight cross-platform checks (Python tests, lint).
+name: CI - Tests & Lint
+
+on:
+  push:
+    branches: [ main, master, Rust-Rewrite, rebrand-to-flare-mass, restore-flash-9e73b8, rename-to-flare-full ]
+  pull_request:
+    branches: [ main, master, Rust-Rewrite, rename-to-flare-full ]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          lfs: false
+          submodules: false
+          fetch-depth: 0
+          persist-credentials: true
+          clean: true
+
+      - name: Prune local tags to avoid non-fast-forward conflicts from rolling nightly tag updates
+        run: |
+          git tag -l | xargs -r git tag -d
+
+      - name: Check HTML5 runtime JS is in sync with its TypeScript source
+        run: scripts/build-html5-runtime.sh --check
+
+      - name: Check JSFL shim JS is in sync with its TypeScript source
+        run: scripts/build-jsfl.sh --check
+
+      - name: Check minnamate HTML5 runtime JS is in sync with its TypeScript source
+        run: scripts/build-mm-html5-runtime.sh --check
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Install Python test deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest esprima
+
+      - name: Run Python tests
+        run: |
+          pytest tools/flash/tests tools/sync/tests -q
+
+      - name: Lint repository scripts
+        run: |
+          python tools/flash/lint_repo_scripts.py
+
+      - name: CMake lists no ported (.rs) sources
+        # A port deletes the .cpp; a stale CMake entry breaks configure on every
+        # platform ("Cannot find source file"). Fail here in seconds instead.
+        run: |
+          python scripts/check_cmake_sources.py
+
+      - name: Headers have no non-inline out-of-class definitions
+        # TRop::f(...) {} defined in trop.h broke gcc (explicit qualification) and
+        # clang/MSVC/ld (duplicate symbols) three times after Rust ports.
+        run: |
+          python scripts/check_header_defs.py
+
+      - name: Layout profiles expose every UI option and stay preserved
+        # Every profile under stuff/profiles/layouts/rooms/ must reach 100 % of the
+        # registered commands/panels from each room's menubar, have valid rooms, and the
+        # preserved profiles must be byte-stable. Pure Python, no Qt.
+        run: |
+          python scripts/check_layout_profiles.py
+          python tests/test_layout_profiles.py
+          python scripts/check_theme_layout_separation.py
+
+      - name: Preference ids are declared and defined
+        # Every id used by Preferences accessors/popups must be in the enum and have a
+        # define(...). An upstream sync once dropped several, breaking all platforms.
+        run: |
+          python scripts/check_preferences_ids.py
+
+      - name: Check the Rust workspace uses one egui generation
+        # Reads flare/sources/Cargo.lock only (no cargo, no network). Guards
+        # UNIFICATION_PLAN step 1: the three UI front ends must not drift back onto
+        # different egui versions, which silently compiles but blocks panel sharing.
+        run: |
+          python scripts/dep_skew_check.py
+
+      - name: Upload script problems
+        uses: actions/upload-artifact@v7
+        with:
+          name: repo-script-problems
+          path: repo_script_problems.json
+          if-no-files-found: ignore

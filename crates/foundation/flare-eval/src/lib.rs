@@ -1,0 +1,439 @@
+//! Pure frame evaluation: document + scene + frame -> placed instances.
+//!
+//! No I/O, rendering or UI state. Instances are identified by their instance *path*, so
+//! two occurrences of one symbol keep separate clocks and transforms. Graphic symbols
+//! are parent-clocked: child frame = frames since the instance span began, looping over
+//! the symbol's length, as a Movie Clip does when it is baked into a movie. A Button shows its
+//! first frame, the Up state, whatever the frame: it has no pointer to bring on the others. Tweens are
+//! evaluated here too: motion tweens move an instance, shape tweens build the in-between shapes
+//! (so a shape can be owned, not borrowed from the document), and both can be eased.
+#![forbid(unsafe_code)]
+
+use std::borrow::Cow;
+
+use flare_core::{InstanceId, Rgba8, SceneId};
+use flare_document::{Content, Document, Instance, Layer, Shape, Timeline, Tween};
+use glamx::{DAffine2, DVec2};
+
+pub(crate) const MAX_DEPTH: usize = 64;
+pub(crate) const MAX_NODES: usize = 100_000;
+
+mod frame;
+
+pub use frame::{ClipShape, DrawnShape, EvalError, Frame, Placed};
+
+/// Whether a folder above `layers[index]` that holds it (directly or through other folders) is
+/// hidden. Parents are always earlier layers, so one pass up the list finds them all.
+fn hidden_by_folder(layers: &[flare_document::Layer], index: usize) -> bool {
+    let mut parent = layers[index].parent();
+    while let Some(id) = parent {
+        let Some(folder) = layers[..index].iter().find(|l| l.id() == id) else {
+            return false;
+        };
+        if !folder.is_visible() {
+            return true;
+        }
+        parent = folder.parent();
+    }
+    false
+}
+
+fn scene_of(document: &Document, scene: SceneId) -> Result<&flare_document::Scene, EvalError> {
+    document
+        .scenes()
+        .iter()
+        .find(|candidate| candidate.id() == scene)
+        .ok_or(EvalError::NoSuchScene(scene))
+}
+
+/// Placed instances at `frame`, parents before children, bottom layer drawn first.
+pub fn evaluate(document: &Document, scene: SceneId, frame: u32) -> Result<Vec<Placed>, EvalError> {
+    Ok(evaluate_frame(document, scene, frame)?.placed)
+}
+
+/// Placed instances and drawn shapes at `frame`, as the camera sees them: the picture every
+/// export and the stage's preview show. A scene without a camera is seen as drawn.
+pub fn evaluate_frame(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+) -> Result<Frame<'_>, EvalError> {
+    let view = camera_view(document, scene_of(document, scene)?.timeline(), frame);
+    evaluate_frame_seen_by(document, scene, frame, view)
+}
+
+/// [`evaluate_frame`] with the camera ignored: the scene in its own coordinates, which is what
+/// is edited, so what is picked and drawn on the stage lines up with what was drawn.
+pub fn evaluate_frame_without_camera(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+) -> Result<Frame<'_>, EvalError> {
+    evaluate_frame_seen_by(document, scene, frame, DAffine2::IDENTITY)
+}
+
+fn evaluate_frame_seen_by(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+    view: DAffine2,
+) -> Result<Frame<'_>, EvalError> {
+    let scene = scene_of(document, scene)?;
+    let mut out = Frame::default();
+    walk(
+        document,
+        scene.timeline(),
+        frame,
+        view,
+        &mut Vec::new(),
+        &[],
+        &mut out,
+    )?;
+    Ok(out)
+}
+
+fn walk<'a>(
+    document: &'a Document,
+    timeline: &'a Timeline,
+    frame: u32,
+    parent: DAffine2,
+    path: &mut Vec<InstanceId>,
+    inherited: &[usize],
+    out: &mut Frame<'a>,
+) -> Result<(), EvalError> {
+    if path.len() >= MAX_DEPTH {
+        return Err(EvalError::TooDeep);
+    }
+    let layers = timeline.layers();
+    // Layers are ordered top to bottom, so draw in reverse.
+    for (index, layer) in layers.iter().enumerate().rev() {
+        // A mask layer is never drawn itself; a hidden one stops masking.
+        if !layer.is_visible()
+            || layer.is_mask()
+            || layer.is_guide()
+            || layer.is_camera()
+            || layer.is_folder()
+            || hidden_by_folder(layers, index)
+        {
+            continue;
+        }
+        let mut clips = inherited.to_vec();
+        if let Some(mask) = index
+            .checked_sub(1)
+            .map(|above| &layers[above])
+            .filter(|above| above.is_mask() && above.is_visible())
+        {
+            let mut scratch = Frame::default();
+            walk_layer(
+                document,
+                mask,
+                frame,
+                parent,
+                path,
+                Steer::default(),
+                &mut scratch,
+            )?;
+            if out.placed.len() + out.shapes.len() + scratch.shapes.len() >= MAX_NODES {
+                return Err(EvalError::TooManyNodes);
+            }
+            clips.push(out.clips.len());
+            out.clips.push(
+                scratch
+                    .shapes
+                    .into_iter()
+                    .map(|drawn| ClipShape {
+                        shape: drawn.shape,
+                        phase: drawn.phase,
+                        transform: drawn.transform,
+                    })
+                    .collect(),
+            );
+        }
+        // A visible motion guide directly above steers this layer's motion tweens.
+        let guide = index
+            .checked_sub(1)
+            .map(|above| &layers[above])
+            .filter(|above| above.is_guide() && above.is_visible())
+            .and_then(|above| above.span_at(frame))
+            .and_then(|span| match span.content() {
+                Content::Shape(shape) => Some(shape),
+                _ => None,
+            });
+        walk_layer(
+            document,
+            layer,
+            frame,
+            parent,
+            path,
+            Steer {
+                clips: &clips,
+                guide,
+                outline: Some(layer.outline_or_default(index)),
+            },
+            out,
+        )?;
+    }
+    Ok(())
+}
+
+/// What shapes how one layer is walked: the mask regions its shapes lie inside, and the motion
+/// guide whose path its tweens follow.
+#[derive(Clone, Copy, Default)]
+struct Steer<'s> {
+    clips: &'s [usize],
+    guide: Option<&'s Shape>,
+    /// The layer's outline color; the first palette color when not known.
+    outline: Option<Rgba8>,
+}
+
+/// One layer's content at `frame`, added to `out` with the given clip regions.
+fn walk_layer<'a>(
+    document: &'a Document,
+    layer: &'a Layer,
+    frame: u32,
+    parent: DAffine2,
+    path: &mut Vec<InstanceId>,
+    steer: Steer<'_>,
+    out: &mut Frame<'a>,
+) -> Result<(), EvalError> {
+    let Steer {
+        clips,
+        guide,
+        outline,
+    } = steer;
+    let Some(span) = layer.span_at(frame) else {
+        return Ok(());
+    };
+    // Every element of the span is drawn, the first at the bottom. A tween is the first element's:
+    // the in-between shape and transform apply to it alone, and the others stay as they are.
+    for (index, element) in span.elements().enumerate() {
+        if out.placed.len() + out.shapes.len() >= MAX_NODES {
+            return Err(EvalError::TooManyNodes);
+        }
+        match element {
+            Content::Empty => {}
+            Content::Shape(shape) => {
+                let (shape, phase) = if index == 0 {
+                    shape_at(layer, span, frame, shape)
+                } else {
+                    (Cow::Borrowed(shape), 0)
+                };
+                out.shapes.push(DrawnShape {
+                    path: path.clone(),
+                    shape,
+                    phase,
+                    transform: parent,
+                    clips: clips.to_vec(),
+                    outline: outline.unwrap_or(flare_document::OUTLINE_PALETTE[0]),
+                });
+            }
+            Content::Instance(instance) => {
+                walk_instance(
+                    document,
+                    layer,
+                    span,
+                    instance,
+                    index == 0,
+                    frame,
+                    parent,
+                    path,
+                    guide,
+                    clips,
+                    out,
+                )?;
+            }
+            // The camera is not drawn: it moves everything else (see `camera_view`).
+            Content::Camera(_) => {}
+        }
+    }
+    Ok(())
+}
+
+/// One instance of a span, placed and followed into its symbol.
+#[allow(clippy::too_many_arguments)]
+fn walk_instance<'a>(
+    document: &'a Document,
+    layer: &'a Layer,
+    span: &'a flare_document::FrameSpan,
+    instance: &'a Instance,
+    tweens: bool,
+    frame: u32,
+    parent: DAffine2,
+    path: &mut Vec<InstanceId>,
+    guide: Option<&Shape>,
+    clips: &[usize],
+    out: &mut Frame<'a>,
+) -> Result<(), EvalError> {
+    // Only the first element of a span takes the span's tween.
+    let local = if tweens {
+        tweened(layer, frame, instance, guide)?
+    } else {
+        instance.transform().as_affine()
+    };
+    let transform = parent * local;
+    path.push(instance.id());
+    out.placed.push(Placed {
+        path: path.clone(),
+        symbol: instance.symbol(),
+        transform,
+    });
+    if let Some(symbol) = document.symbol(instance.symbol()) {
+        let length = symbol.timeline().frame_count();
+        if length > 0 {
+            let elapsed = u64::from(frame - span.start());
+            // `elapsed % length` < length <= u32::MAX * 2; the remainder fits u32 only
+            // when length fits, so fall back to saturation for absurd lengths.
+            let local = child_frame(symbol.kind(), instance.playback(), elapsed, length);
+            walk(
+                document,
+                symbol.timeline(),
+                local,
+                transform,
+                path,
+                clips,
+                out,
+            )?;
+        }
+    }
+    path.pop();
+    Ok(())
+}
+
+/// The frame of its symbol an instance shows `elapsed` frames after its span began. A Button
+/// holds its first frame. A Graphic follows its playback: it starts at its first frame and then
+/// loops, plays to the end and holds the last frame, or holds the first frame. A Movie Clip
+/// loops from its first frame, as it would in a movie.
+fn child_frame(
+    kind: flare_document::SymbolKind,
+    playback: flare_document::Playback,
+    elapsed: u64,
+    length: u64,
+) -> u32 {
+    use flare_document::{PlayMode, SymbolKind};
+    let last = length.saturating_sub(1);
+    let frame = match kind {
+        SymbolKind::Button => 0,
+        SymbolKind::MovieClip => elapsed % length,
+        SymbolKind::Graphic => {
+            let first = u64::from(playback.first_frame).min(last);
+            match playback.mode {
+                PlayMode::SingleFrame => first,
+                PlayMode::PlayOnce => (first + elapsed).min(last),
+                PlayMode::Loop => (first + elapsed) % length,
+            }
+        }
+    };
+    u32::try_from(frame).unwrap_or(u32::MAX)
+}
+
+/// The shape a span shows at `frame`: its own, or a step of its shape tween toward the next
+/// adjacent span's shape. A tween that cannot be built (no shape after it, or two outlines that
+/// cannot be matched) holds the span's own shape.
+fn shape_at<'a>(
+    layer: &'a Layer,
+    span: &'a flare_document::FrameSpan,
+    frame: u32,
+    shape: &'a Shape,
+) -> (Cow<'a, Shape>, u64) {
+    let own = (Cow::Borrowed(shape), 0);
+    if span.tween() != Tween::Shape || frame == span.start() {
+        return own;
+    }
+    let Some(Content::Shape(target)) = layer.span_at_start(span.end()).map(|next| next.content())
+    else {
+        return own;
+    };
+    let t = morph::eased(
+        f64::from(frame - span.start()) / f64::from(span.duration().get()),
+        span.ease(),
+    );
+    match morph::morph(shape, target, t) {
+        // Not zero, so a step is never taken for the shape itself.
+        Some(step) => (Cow::Owned(step), t.to_bits().max(1)),
+        None => own,
+    }
+}
+
+/// Applies a linear motion tween toward the next adjacent span on the same layer.
+///
+/// Interpolates scale, rotation (shortest arc) and translation. Matrices that are not a
+/// pure scale-rotate-translate (shear, reflection) are reported, not approximated.
+fn tweened(
+    layer: &Layer,
+    frame: u32,
+    instance: &Instance,
+    guide: Option<&Shape>,
+) -> Result<DAffine2, EvalError> {
+    let (id, from) = (instance.id(), instance.transform().as_affine());
+    let Some(span) = layer.span_at(frame) else {
+        return Ok(from);
+    };
+    if span.tween() != Tween::Linear {
+        return Ok(from);
+    }
+    let Some(next) = layer.span_at_start(span.end()) else {
+        return Ok(from);
+    };
+    let Content::Instance(target) = next.content() else {
+        return Ok(from);
+    };
+    if target.symbol() != instance.symbol() {
+        return Ok(from);
+    }
+    let to = target.transform().as_affine();
+    let (Some((s0, r0, t0)), Some((s1, r1, t1))) = (decompose(from), decompose(to)) else {
+        return Err(EvalError::UnsupportedTween(id));
+    };
+    let t = morph::eased(
+        f64::from(frame - span.start()) / f64::from(span.duration().get()),
+        span.ease(),
+    );
+    let mut delta = (r1 - r0) % std::f64::consts::TAU;
+    if delta > std::f64::consts::PI {
+        delta -= std::f64::consts::TAU;
+    } else if delta < -std::f64::consts::PI {
+        delta += std::f64::consts::TAU;
+    }
+    // With a guide the registration point rides the guide's path, from its start to its end,
+    // instead of going straight from one position to the other.
+    let position = guide
+        .and_then(|shape| guide::point_along(shape.path(), t))
+        .unwrap_or_else(|| t0.lerp(t1, t));
+    Ok(DAffine2::from_scale_angle_translation(
+        s0.lerp(s1, t),
+        r0 + delta * t,
+        position,
+    ))
+}
+
+/// Whether a motion tween can start or end at `matrix`: only a scale, rotation and translation
+/// can be interpolated, so a matrix with shear or reflection cannot.
+pub fn can_tween(matrix: DAffine2) -> bool {
+    matrix.is_finite() && decompose(matrix).is_some()
+}
+
+/// Scale, angle, translation, or `None` when the matrix is not exactly representable.
+fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
+    let (scale, angle, translation) = matrix.to_scale_angle_translation();
+    let rebuilt = DAffine2::from_scale_angle_translation(scale, angle, translation);
+    let close = rebuilt
+        .to_cols_array()
+        .iter()
+        .zip(matrix.to_cols_array())
+        .all(|(a, b)| (a - b).abs() <= 1e-9 * (1.0 + b.abs()));
+    close.then_some((scale, angle, translation))
+}
+
+mod camera;
+mod guide;
+mod level;
+mod morph;
+
+pub use camera::{camera_at, camera_view};
+pub use level::{Level, LevelContent, LevelItem, evaluate_level, symbol_frame};
+pub use morph::{eased, morph};
+
+pub use guide::{flatten, point_along};
+
+#[cfg(test)]
+mod tests;

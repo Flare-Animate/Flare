@@ -1,0 +1,127 @@
+//! Private on-disk payloads. Rebuilding goes through the validating constructors.
+
+use crate::StorageError;
+use flare_core::{DocumentId, FrameRate, Rgba8, SceneId, SymbolId};
+use flare_document::{Attachment, Document, Scene, Sound, Stage, Symbol, SymbolKind};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+mod attachment;
+mod content;
+mod origin;
+mod settings;
+mod sound;
+mod timeline;
+
+pub(crate) use attachment::AttachmentWire;
+#[allow(unused_imports)]
+use attachment::*;
+use attachment::{hex, unhex};
+pub(crate) use origin::{MAX_ORIGIN_RECORD_BYTES, OriginMeta};
+pub(crate) use settings::Settings;
+#[allow(unused_imports)]
+use settings::*;
+pub(crate) use sound::SoundMeta;
+#[allow(unused_imports)]
+use sound::*;
+#[allow(unused_imports)]
+use timeline::*;
+
+pub(crate) fn uuid(text: &str) -> Result<Uuid, StorageError> {
+    Uuid::parse_str(text).map_err(|_| StorageError::Corrupt(format!("bad id {text}")))
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct SceneWire {
+    name: String,
+    timeline: TimelineWire,
+}
+
+impl SceneWire {
+    pub(crate) fn of(scene: &Scene) -> Self {
+        Self {
+            name: scene.name().to_owned(),
+            timeline: TimelineWire::of(scene.timeline()),
+        }
+    }
+
+    pub(crate) fn build(self, id: &str) -> Result<Scene, StorageError> {
+        Ok(Scene::new(
+            SceneId::from_uuid(uuid(id)?),
+            self.name,
+            self.timeline.build()?,
+        ))
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct SymbolWire {
+    name: String,
+    /// Files from before symbol kinds name none, and mean a graphic.
+    #[serde(default)]
+    kind: String,
+    timeline: TimelineWire,
+}
+
+impl SymbolWire {
+    pub(crate) fn of(symbol: &Symbol) -> Self {
+        Self {
+            name: symbol.name().to_owned(),
+            kind: symbol.kind().name().to_owned(),
+            timeline: TimelineWire::of(symbol.timeline()),
+        }
+    }
+
+    pub(crate) fn build(self, id: &str) -> Result<Symbol, StorageError> {
+        // A name that is not a kind is a damaged file, not something to guess at.
+        let kind = if self.kind.is_empty() {
+            SymbolKind::Graphic
+        } else {
+            SymbolKind::from_name(&self.kind).ok_or_else(|| {
+                StorageError::Corrupt(format!("unknown symbol kind {:?}", self.kind))
+            })?
+        };
+        Ok(Symbol::new(
+            SymbolId::from_uuid(uuid(id)?),
+            self.name,
+            self.timeline.build()?,
+        )
+        .with_kind(kind))
+    }
+}
+
+pub(crate) fn assemble(
+    project_id: &str,
+    settings: &str,
+    scenes: Vec<Scene>,
+    symbols: Vec<Symbol>,
+    attachments: Vec<Attachment>,
+    sounds: Vec<Sound>,
+    origin: Option<flare_document::Origin>,
+) -> Result<Document, StorageError> {
+    let settings: Settings = serde_json::from_str(settings)?;
+    let rate = FrameRate::new(settings.frame_rate.0, settings.frame_rate.1)
+        .map_err(|error| StorageError::Corrupt(error.to_string()))?;
+    let document = Document::new(
+        DocumentId::from_uuid(uuid(project_id)?),
+        rate,
+        scenes,
+        symbols,
+    )
+    .map_err(StorageError::Invalid)?;
+    let document = document
+        .with_attachments(attachments)
+        .map_err(StorageError::Invalid)?
+        .with_sounds(sounds)
+        .map_err(StorageError::Invalid)?;
+    let document = document.with_origin(origin.map(std::sync::Arc::new));
+    match settings.stage {
+        None => Ok(document),
+        Some(wire) => {
+            let [r, g, b, a] = wire.background;
+            let stage = Stage::new(wire.width, wire.height, Rgba8::new(r, g, b, a))
+                .map_err(|error| StorageError::Corrupt(error.to_string()))?;
+            Ok(document.with_stage(stage))
+        }
+    }
+}

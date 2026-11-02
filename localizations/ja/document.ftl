@@ -1,0 +1,12 @@
+untitled = 名称未設定
+name-new-scene = シーン { $n }
+name-new-layer = レイヤー { $n }
+name-new-text-layer = テキスト
+doc-title = ドキュメント
+doc-publish-settings = パブリッシュ設定
+doc-frame-rate = フレームレート
+doc-scenes = シーン
+doc-sounds = サウンド
+doc-width = 幅
+doc-height = 高さ
+name-new-camera-layer = カメラ

@@ -1,0 +1,15 @@
+pubpop-title = パブリッシュ
+pubpop-formats = 形式
+pubpop-button = パブリッシュ
+pubpop-button-hint = 保存先を選び、チェックした形式をすべて書き出します
+pubpop-share = 共有
+pubpop-share-hint = 先にパブリッシュしてから、開いたページでファイルを追加してください。
+pubpop-nothing-chosen = 形式を選んでください。選ばないと書き出すものがありません。
+pubpop-format-swf = Flash（.swf）
+pubpop-compress = ムービーを圧縮
+pubpop-format-html5 = HTML5 Canvas（.html）
+pubpop-loop = タイムラインをループ
+pubpop-center = ステージを中央に配置
+pubpop-responsive = レスポンシブにする
+pubpop-format-gif = アニメーションGIF（.gif）
+pubpop-format-mp4 = MP4ビデオ（.mp4）

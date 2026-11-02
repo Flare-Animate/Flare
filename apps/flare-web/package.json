@@ -1,0 +1,12 @@
+{
+  "name": "flare-web",
+  "private": true,
+  "description": "What the browser build brings that a page does not have: SQLite and zstd as WebAssembly, so it can read and write .flare files, and Ruffle, so Test Movie can play a movie in the page.",
+  "type": "module",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "@bokuweb/zstd-wasm": "0.0.27",
+    "@ruffle-rs/ruffle": "0.7.1",
+    "@sqlite.org/sqlite-wasm": "3.54.1-build1"
+  }
+}

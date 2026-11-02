@@ -1,0 +1,11 @@
+pane-tools = Tools
+pane-stage = Stage
+pane-library = Library
+pane-timeline = Timeline
+pane-properties = Properties
+pane-color = Color
+pane-align = Align
+pane-transform = Transform
+pane-history = History
+pane-info = Info
+pane-output = Output

@@ -1,0 +1,430 @@
+//! The timeline panel.
+
+use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
+use flare_document::Layer;
+use flare_editor::timeline_view;
+
+use super::layer_names;
+use super::*;
+
+/// How far each level of folder indents a name, in points.
+const FOLDER_INDENT: f32 = 12.0;
+
+impl Workspace {
+    pub(super) fn timeline(&mut self, ui: &mut egui::Ui) {
+        self.timeline_toolbar(ui);
+        ui.separator();
+
+        let available = ui.available_width();
+        if ui.rect_contains_pointer(ui.max_rect()) {
+            let zoom = ui.input(|i| i.zoom_delta());
+            if zoom != 1.0 {
+                self.zoom_timeline(zoom);
+            }
+        }
+        egui::ScrollArea::both().auto_shrink(false).show(ui, |ui| {
+            let frames = self.scene_frames();
+            // The rows shown, with how deep each is in folders; a collapsed folder hides its layers.
+            let rows: Vec<(usize, usize)> = self
+                .document()
+                .scenes()
+                .first()
+                .map(|s| {
+                    timeline_view::visible_layers(s.timeline().layers(), &self.collapsed_folders)
+                })
+                .unwrap_or_default();
+            let layer_count = rows.len();
+            let row = 20.0;
+            let label_w = 140.0;
+            let height = row * (layer_count as f32 + 1.0);
+            let track_width = (available - label_w).max(0.0);
+            if std::mem::take(&mut self.timeline_fit) {
+                self.timeline_zoom = timeline_view::fit_zoom(track_width, u64::from(frames));
+            }
+            let per_frame = timeline_view::frame_width(self.timeline_zoom);
+            // Empty cells go on to the panel's edge, as Animate's do, past the scene's last frame.
+            let shown = u32::try_from(timeline_view::shown_frames(
+                track_width,
+                per_frame,
+                u64::from(frames),
+            ))
+            .unwrap_or(u32::MAX);
+            let (rect, response) = ui.allocate_exact_size(
+                Vec2::new(label_w + per_frame * shown as f32, height),
+                Sense::click_and_drag(),
+            );
+            let painter = ui.painter_at(rect);
+            let track = Rect::from_min_max(Pos2::new(rect.min.x + label_w, rect.min.y), rect.max);
+
+            let frame_at = |x: f32| (x - track.min.x) / per_frame;
+            let row_layer = |y: f32| {
+                let index = ((y - rect.min.y) / row).floor() as i64 - 1;
+                usize::try_from(index).ok().and_then(|i| {
+                    let layers = self.document().scenes().first()?.timeline().layers();
+                    rows.get(i)
+                        .and_then(|(layer, _)| layers.get(*layer))
+                        .map(Layer::id)
+                })
+            };
+            if response.drag_started()
+                && let Some(p) = ui.input(|i| i.pointer.press_origin())
+                && p.x >= track.min.x
+                && let Some(id) = row_layer(p.y)
+                && self.begin_span_drag(id, frame_at(p.x), 6.0 / per_frame)
+            {
+                self.select_layer(id);
+            }
+            if self.span_drag.is_some() {
+                if response.dragged()
+                    && let Some(p) = response.interact_pointer_pos()
+                {
+                    self.update_span_drag(frame_at(p.x).floor().max(0.0) as u32);
+                }
+                if response.drag_stopped() {
+                    self.end_span_drag();
+                }
+            } else if (response.clicked() || response.dragged())
+                && let Some(p) = response.interact_pointer_pos()
+            {
+                let in_track = p.x >= track.min.x;
+                let f = ((p.x - track.min.x) / per_frame).floor().max(0.0) as u32;
+                let extend = response.clicked() && in_track && ui.input(|i| i.modifiers.shift);
+                // Clicking a row (below the ruler) makes that layer the active one.
+                let index = ((p.y - rect.min.y) / row).floor() as i64 - 1;
+                let picked_row = usize::try_from(index)
+                    .ok()
+                    .and_then(|i| rows.get(i).copied());
+                let picked = picked_row.and_then(|(layer, _)| {
+                    let layers = self.document().scenes().first()?.timeline().layers();
+                    layers.get(layer).map(Layer::id)
+                });
+                if extend && let Some(id) = picked {
+                    // Shift-click selects the frames between the playhead (or the range's own
+                    // start) and the clicked one, without moving the playhead.
+                    let anchor = self
+                        .frame_range
+                        .filter(|r| r.layer == id)
+                        .map_or(self.frame, |r| r.from);
+                    self.select_frames(id, anchor, f);
+                } else if in_track {
+                    self.set_frame(f);
+                    if response.clicked() {
+                        self.frame_range = None;
+                    }
+                }
+                if let Some(id) = picked {
+                    // The two small toggles at the right edge of the label column.
+                    let eye = p.x >= track.min.x - 54.0 && p.x < track.min.x - 36.0;
+                    let lock = p.x >= track.min.x - 36.0 && p.x < track.min.x - 18.0;
+                    let outline = p.x >= track.min.x - 18.0 && p.x < track.min.x;
+                    // The arrow of a folder, indented to its depth, folds it open or shut.
+                    let depth = picked_row.map_or(0, |(_, depth)| depth);
+                    let arrow_x = rect.min.x + 6.0 + depth as f32 * FOLDER_INDENT;
+                    let on_arrow = p.x >= arrow_x && p.x < arrow_x + 14.0;
+                    let is_folder = self
+                        .document()
+                        .scenes()
+                        .first()
+                        .and_then(|s| s.timeline().layers().iter().find(|l| l.id() == id))
+                        .is_some_and(Layer::is_folder);
+                    if response.clicked() && is_folder && on_arrow {
+                        if !self.collapsed_folders.remove(&id) {
+                            self.collapsed_folders.insert(id);
+                        }
+                        self.select_layer(id);
+                    } else if response.double_clicked() && layer_names::on_name(p.x, track.min.x) {
+                        self.begin_layer_rename(id);
+                    } else if response.clicked() && eye {
+                        self.toggle_layer_visible(id);
+                    } else if response.clicked() && lock {
+                        self.toggle_layer_locked(id);
+                    } else if response.clicked() && outline {
+                        self.cycle_layer_outline(id);
+                    } else {
+                        self.select_layer(id);
+                    }
+                }
+            }
+            // A right click in the layer column opens that layer's menu; one on the frames opens the
+            // menu for frames, after picking the frame it is on unless it is inside the frames
+            // already selected.
+            if response.secondary_clicked() {
+                let at = response.interact_pointer_pos();
+                self.layer_menu_for = at
+                    .filter(|p| p.x < track.min.x)
+                    .and_then(|p| self.layer_at(&rows, rect.min.y + row, row, p.y));
+                self.frame_menu_open = false;
+                if self.layer_menu_for.is_none()
+                    && let Some(p) = at.filter(|p| p.x >= track.min.x)
+                    && let Some(id) = self.layer_at(&rows, rect.min.y + row, row, p.y)
+                {
+                    let f = frame_at(p.x).floor().max(0.0) as u32;
+                    let inside = self
+                        .frame_range
+                        .is_some_and(|r| r.layer == id && r.from <= f && f <= r.to);
+                    self.select_layer(id);
+                    if !inside {
+                        self.frame_range = None;
+                        self.set_frame(f);
+                    }
+                    self.frame_menu_open = true;
+                }
+            }
+            if let Some(layer) = self.layer_menu_for {
+                response.context_menu(|ui| self.layer_menu(ui, layer));
+            } else if self.frame_menu_open {
+                response.context_menu(|ui| self.frame_menu(ui));
+            }
+            let active = self.active_layer_id();
+
+            // The ruler: a band with a tick on every frame and a number every few.
+            let ink = flare_ui::theme::text();
+            let band = Rect::from_min_max(rect.min, Pos2::new(rect.max.x, rect.min.y + row));
+            painter.rect_filled(band, 0.0, flare_ui::theme::panel_raised());
+            painter.hline(
+                rect.x_range(),
+                band.bottom(),
+                Stroke::new(1.0, flare_ui::theme::border()),
+            );
+            let step = ((40.0 / per_frame).ceil() as u32).max(1);
+            for f in 0..shown {
+                let x = track.min.x + f as f32 * per_frame;
+                if x > painter.clip_rect().max.x {
+                    break;
+                }
+                let major = f % step == 0;
+                painter.vline(
+                    x,
+                    (band.bottom() - if major { 7.0 } else { 3.0 })..=band.bottom(),
+                    Stroke::new(1.0, flare_ui::theme::text_disabled()),
+                );
+                if major {
+                    painter.text(
+                        Pos2::new(x + 3.0, band.top() + 2.0),
+                        Align2::LEFT_TOP,
+                        (f + 1).to_string(),
+                        FontId::monospace(10.0),
+                        flare_ui::theme::text_dim(),
+                    );
+                }
+            }
+            if let Some(scene) = self.document().scenes().first() {
+                // Only the rows in view are painted; with thousands of layers drawing all of
+                // them every frame dominated the cost of an idle frame.
+                let (first, count) = visible_rows(rect.min.y, row, painter.clip_rect());
+                let all_layers = scene.timeline().layers();
+                for (i, (layer_index, depth)) in
+                    rows.iter().copied().enumerate().skip(first).take(count)
+                {
+                    let layer = &all_layers[layer_index];
+                    let y = rect.min.y + row * (i as f32 + 1.0);
+                    if i % 2 == 1 {
+                        painter.rect_filled(
+                            Rect::from_min_max(
+                                Pos2::new(rect.min.x, y),
+                                Pos2::new(rect.max.x, y + row),
+                            ),
+                            0.0,
+                            // A tint of the lit text color: white on dark, black on light.
+                            flare_ui::theme::text_strong().gamma_multiply(6.0 / 255.0),
+                        );
+                    }
+                    timeline_cells::grid_lines(&painter, track.min.x, y, row, per_frame, shown);
+                    if Some(layer.id()) == active {
+                        let band = Rect::from_min_max(
+                            Pos2::new(rect.min.x, y),
+                            Pos2::new(rect.max.x, y + row),
+                        );
+                        painter.rect_filled(
+                            band,
+                            0.0,
+                            Color32::from_rgba_unmultiplied(80, 140, 255, 40),
+                        );
+                    }
+                    let dim = flare_ui::theme::text_disabled();
+                    let mut text_x = rect.min.x + 6.0 + depth as f32 * FOLDER_INDENT;
+                    if layer.is_folder() {
+                        let shut = self.collapsed_folders.contains(&layer.id());
+                        flare_ui::icons::image(
+                            if shut {
+                                "chevron-right"
+                            } else {
+                                "chevron-down"
+                            },
+                            12.0,
+                            dim,
+                        )
+                        .paint_at(
+                            ui,
+                            Rect::from_min_size(Pos2::new(text_x, y + 4.0), Vec2::splat(12.0)),
+                        );
+                        flare_ui::icons::image("folder", 14.0, ink).paint_at(
+                            ui,
+                            Rect::from_min_size(
+                                Pos2::new(text_x + 14.0, y + 3.0),
+                                Vec2::splat(14.0),
+                            ),
+                        );
+                        text_x += 32.0;
+                    }
+                    painter.text(
+                        Pos2::new(text_x, y + 4.0),
+                        Align2::LEFT_TOP,
+                        if layer.is_mask() {
+                            format!("Mask: {}", layer.name())
+                        } else if layer.is_guide() {
+                            format!("Guide: {}", layer.name())
+                        } else {
+                            layer.name().to_owned()
+                        },
+                        FontId::proportional(12.0),
+                        if layer.is_visible() { ink } else { dim },
+                    );
+                    // Visibility, lock and outline columns, as icons.
+                    let icon_at = |x: f32, name: &str, tint: Color32| {
+                        flare_ui::icons::image(name, 14.0, tint).paint_at(
+                            ui,
+                            Rect::from_min_size(Pos2::new(x, y + 4.0), Vec2::splat(14.0)),
+                        );
+                    };
+                    icon_at(
+                        track.min.x - 52.0,
+                        if layer.is_visible() { "eye" } else { "eye-off" },
+                        if layer.is_visible() {
+                            flare_ui::theme::text()
+                        } else {
+                            dim
+                        },
+                    );
+                    icon_at(
+                        track.min.x - 34.0,
+                        if layer.is_locked() {
+                            "lock"
+                        } else {
+                            "lock-open"
+                        },
+                        if layer.is_locked() {
+                            flare_ui::theme::text()
+                        } else {
+                            dim
+                        },
+                    );
+                    let chip = layer.outline_or_default(layer_index);
+                    painter.rect_filled(
+                        Rect::from_min_size(
+                            Pos2::new(track.min.x - 14.0, y + row / 2.0 - 5.0),
+                            Vec2::splat(10.0),
+                        ),
+                        2.0,
+                        Color32::from_rgb(chip.r, chip.g, chip.b),
+                    );
+                    for span in layer.spans() {
+                        let x0 = track.min.x + span.start() as f32 * per_frame;
+                        let x1 = track.min.x + span.end() as f32 * per_frame;
+                        let [r, g, b] =
+                            flare_editor::timeline_view::span_color(span.content(), span.tween());
+                        let color = Color32::from_rgb(r, g, b);
+                        let bar = Rect::from_min_max(
+                            Pos2::new(x0, y + 1.0),
+                            Pos2::new(x1.max(x0 + 1.0), y + row - 1.0),
+                        );
+                        let color = if layer.is_visible() {
+                            color
+                        } else {
+                            color.gamma_multiply(0.35)
+                        };
+                        painter.rect_filled(bar, 0.0, color);
+                        timeline_cells::span_marks(&painter, bar, span, per_frame);
+                        // A tween has an arrow along its span, toward the next keyframe.
+                        if span.tween() != flare_document::Tween::None && bar.width() > 12.0 {
+                            let line = Stroke::new(1.5, Color32::WHITE);
+                            let (from, to) = (
+                                bar.left_center() + Vec2::new(4.0, 0.0),
+                                bar.right_center() - Vec2::new(4.0, 0.0),
+                            );
+                            painter.line_segment([from, to], line);
+                            for tip in [Vec2::new(-4.0, -3.0), Vec2::new(-4.0, 3.0)] {
+                                painter.line_segment([to, to + tip], line);
+                            }
+                        }
+                    }
+                    for cue in layer.cues() {
+                        let Some(sound) = self.session.document().sound(cue.sound) else {
+                            continue;
+                        };
+                        let fps = self.document().frame_rate().per_second();
+                        let length = (sound.seconds() * fps).ceil().max(1.0) as f32;
+                        let x0 = track.min.x + cue.start as f32 * per_frame;
+                        let bar = Rect::from_min_max(
+                            Pos2::new(x0, y + 2.0),
+                            Pos2::new(x0 + length * per_frame, y + row - 2.0),
+                        );
+                        painter.rect_filled(bar, 2.0, Color32::from_rgb(214, 140, 60));
+                        painter.text(
+                            bar.left_center() + Vec2::new(3.0, 0.0),
+                            Align2::LEFT_CENTER,
+                            sound.name(),
+                            FontId::proportional(10.0),
+                            Color32::BLACK,
+                        );
+                    }
+                    if let Some(range) = self.frame_range.filter(|r| r.layer == layer.id()) {
+                        let x0 = track.min.x + range.from as f32 * per_frame;
+                        let x1 = track.min.x + (range.to as f32 + 1.0) * per_frame;
+                        let marked = Rect::from_min_max(
+                            Pos2::new(x0, y + 1.0),
+                            Pos2::new(x1, y + row - 1.0),
+                        );
+                        painter.rect_filled(
+                            marked,
+                            2.0,
+                            Color32::from_rgba_unmultiplied(255, 220, 80, 70),
+                        );
+                        painter.rect_stroke(
+                            marked,
+                            2.0,
+                            Stroke::new(1.0, Color32::from_rgb(255, 200, 40)),
+                            StrokeKind::Inside,
+                        );
+                    }
+                    if let Some((dragged, start, duration)) = self.span_drag_preview()
+                        && dragged == layer.id()
+                    {
+                        let x0 = track.min.x + start as f32 * per_frame;
+                        let x1 = x0 + duration as f32 * per_frame;
+                        let ghost = Rect::from_min_max(
+                            Pos2::new(x0, y + 2.0),
+                            Pos2::new(x1, y + row - 2.0),
+                        );
+                        painter.rect_stroke(
+                            ghost,
+                            2.0,
+                            Stroke::new(2.0, Color32::from_rgb(40, 120, 255)),
+                            StrokeKind::Inside,
+                        );
+                    }
+                }
+            }
+            self.layer_name_editor(
+                ui,
+                &rows,
+                rect.min.y + row,
+                row,
+                rect.min.x + 4.0,
+                track.min.x - 56.0,
+            );
+            let head = track.min.x + (self.frame as f32 + 0.5) * per_frame;
+            painter.line_segment(
+                [
+                    Pos2::new(head, rect.min.y + 8.0),
+                    Pos2::new(head, rect.max.y),
+                ],
+                Stroke::new(1.5, Color32::from_rgb(232, 69, 60)),
+            );
+            flare_ui::icons::image("playhead", 16.0, Color32::from_rgb(232, 69, 60)).paint_at(
+                ui,
+                Rect::from_center_size(Pos2::new(head, rect.min.y + 8.0), Vec2::splat(16.0)),
+            );
+        });
+    }
+}

@@ -1,0 +1,8 @@
+date: 2026-10-29T03:55:42Z
+rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)
+hyperfine: hyperfine 2.0.0
+os: Darwin 23.6.0 arm64
+cpu: Apple M1 Pro
+cores: 10
+mem_bytes: 34359738368
+binary_sha256: 33de2ef0df2f86dc22ed1f5e4e8b2e58725fcf24621e60fae8412bf0d269b25b

@@ -1,11 +1,8 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: Manual
-    url: https://flare-animate.readthedocs.io/
-    about: The official, extensive manual used by Flare (hosted on Flare docs)
-  - name: User forum
-    url: https://github.com/Flare-Animate/Flare/discussions/categories/
-    about: You can ask and answer general questions here, and connect with other users
-  - name: ユーザーフォーラム
-    url: https://github.com/Flare-Animate/Flare/discussions/categories/
-    about: このフォーラムは、Flare の利用者同士で情報共有を行うことを目的としています
+  - name: Ask a question or chat
+    url: https://discord.com/invite/JpeScW8Awa
+    about: For questions and discussion, the Discord is the quickest place.
+  - name: Report a security problem privately
+    url: https://github.com/Flare-Animate/Flare/security/advisories/new
+    about: Please do not open a public issue for a vulnerability; see SECURITY.md.

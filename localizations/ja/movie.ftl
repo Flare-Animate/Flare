@@ -1,0 +1,12 @@
+movie-title = ムービープレビュー
+movie-clock = { $clock } · フレーム { $frame }
+movie-restart = 最初から再生
+movie-pause = 一時停止
+movie-play = 再生
+movie-step = 1 フレーム進める
+movie-speed = 再生速度
+movie-loop-on = ループ中: ムービーは最後まで再生されると最初に戻ります
+movie-loop-off = ループなし: ムービーは最後のフレームで停止します
+movie-sound-off = サウンドはオフです。クリックするとオンになります
+movie-sound-on = サウンドはオンです。クリックするとオフになります
+movie-close = 閉じる

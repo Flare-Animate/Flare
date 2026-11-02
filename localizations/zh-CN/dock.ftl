@@ -1,0 +1,11 @@
+pane-tools = 工具
+pane-stage = 舞台
+pane-library = 库
+pane-timeline = 时间轴
+pane-properties = 属性
+pane-color = 颜色
+pane-align = 对齐
+pane-transform = 变形
+pane-history = 历史记录
+pane-info = 信息
+pane-output = 输出

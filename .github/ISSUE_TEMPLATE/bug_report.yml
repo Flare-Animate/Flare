@@ -1,106 +1,60 @@
 name: Bug report
-description: Help us improve by reporting a bug.
+description: Something does not work the way it should.
+labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        ⚠️ **Before you start:**
-        - Check for [existing issues](https://github.com/Flare-Animate/Flare/issues?q=is%3Aopen+is%3Aissue) to avoid duplicates.
-        - (Optional) Also check existing [Flare issues](https://github.com/Flare-Animate/Flare/issues?q=is%3Aopen+is%3Aissue) for related reports.
-        - Try the latest [nightly build](https://github.com/Flare-Animate/Flare-nightlies/releases) — many bugs are fixed there.
-        - Update your GPU and tablet drivers if you're seeing visual or input issues.
-
-        Reports missing key details may be closed if we can't reproduce the problem. Help us help you!
-        
+        Thank you for reporting. A bug we can reproduce is a bug we can fix, so the more exactly
+        you can say what happened the better. A project file that shows the problem is the most
+        useful thing you can attach (remove anything private first).
   - type: textarea
+    id: what
     attributes:
-      label: What's the bug?
-      placeholder: Briefly describe what went wrong.
+      label: What happened?
+      description: What you did, what you expected, and what you saw instead.
     validations:
       required: true
-
   - type: textarea
+    id: steps
     attributes:
-      label: Steps to Reproduce
-      description: Tell us how to make the bug happen. Numbered steps are ideal!
-      value: |
-        1. 
-        2. 
-        3.
+      label: Steps to reproduce
+      placeholder: |
+        1. New document
+        2. Draw a rectangle
+        3. ...
     validations:
-      required: false
-
-  - type: textarea
-    attributes:
-      label: What did you expect to happen?
-      placeholder: Describe what you thought should have happened instead.
-
-  - type: textarea
-    attributes:
-      label: Screenshots, Videos or Crash Logs
-      placeholder: Paste links or drag files here.
-
-  - type: markdown
-    attributes:
-      value: |
-        ## System Info
-
+      required: true
   - type: dropdown
+    id: where
     attributes:
-      label: Flare Version
-      description: Found in Help > About.
-      multiple: false
+      label: Where did it happen?
       options:
-        - 1.7
-        - 1.6
-        - Nightly (specify below)
-        - Other (specify below)
+        - Desktop app
+        - Browser build (flare-web)
+        - Command line (flare-cli)
+        - MCP server (flare-mcp)
+        - Importing or exporting a file (XFL, FLA, SWF, PNG, GIF)
     validations:
       required: true
-
   - type: input
+    id: version
     attributes:
-      label: Exact Version Info (optional)
-      placeholder: e.g. built Mar 25 2016, commit hash, etc.
-
-  - type: dropdown
+      label: Version
+      description: The version, or the commit if you built it yourself.
+  - type: input
+    id: os
     attributes:
-      label: Operating System
-      multiple: false
-      options:
-        - Windows
-        - macOS
-        - Linux
-        - Other
-    validations:
-      required: true
-
-  - type: dropdown
+      label: Operating system and graphics
+      placeholder: macOS 15, Apple M2 / Ubuntu 24.04, NVIDIA / Windows 11, Intel
+  - type: textarea
+    id: output
     attributes:
-      label: GPU Brand
-      description: Check that your graphics drivers are up to date.
-      multiple: false
-      options:
-        - NVIDIA
-        - AMD
-        - Intel
-        - Other
-    validations:
-      required: true
-
-  - type: dropdown
+      label: Output, error messages and the Output panel
+      description: Anything the app, the terminal or the Output panel said.
+      render: text
+  - type: textarea
+    id: files
     attributes:
-      label: Graphics Tablet
-      description: If you're reporting a pen/tablet issue, choose your brand.
-      multiple: false
-      options:
-        - Wacom
-        - XP-Pen
-        - Huion
-        - Xencelabs
-        - Ugee
-        - GAOMON
-        - Monoprice
-        - Parblo
-        - Other
-        - Not using one
+      label: Files
+      description: Drag a project, a screenshot or a short recording here.

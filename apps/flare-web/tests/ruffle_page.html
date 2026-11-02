@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>flare-ruffle.js in a real browser</title>
+<!-- Driven by scripts/tests/test_web_ruffle.py: plays movie.swf through the page's own overlay code
+     and reports what Ruffle itself says it loaded, or why it did not. -->
+<pre id="result">pending</pre>
+<script type="module">
+import { createFlareRuffle } from "./flare-ruffle.js";
+const out = document.getElementById("result");
+try {
+  const bytes = new Uint8Array(await (await fetch("movie.swf")).arrayBuffer());
+  await createFlareRuffle().play(bytes);
+  const player = document.querySelector("ruffle-player");
+  const started = Date.now();
+  let meta = null;
+  while (!meta?.width && Date.now() - started < 8000) {
+    meta = player.ruffle?.().metadata;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  out.textContent = meta?.width
+    ? "ok " + JSON.stringify({ width: meta.width, height: meta.height, frames: meta.numFrames, version: meta.swfVersion })
+    : "FAIL Ruffle never reported the movie";
+} catch (error) {
+  out.textContent = "FAIL " + error;
+}
+</script>

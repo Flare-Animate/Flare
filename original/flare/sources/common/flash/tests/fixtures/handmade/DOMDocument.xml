@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Hand-written test fixture (AnimationCraft, clean-room). -->
+<DOMDocument xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://ns.adobe.com/xfl/2008/" width="320" height="240" frameRate="12" backgroundColor="#336699" xflVersion="2.97">
+  <symbols>
+    <Include href="Ball.xml"/>
+  </symbols>
+  <timelines>
+    <DOMTimeline name="Scene 1">
+      <layers>
+        <DOMLayer name="Ball" color="#FF4FFF">
+          <frames>
+            <DOMFrame index="0" duration="10" tweenType="motion" acceleration="-40" name="start" labelType="name">
+              <Actionscript>
+                <script><![CDATA[this.ready = true;]]></script>
+              </Actionscript>
+              <elements>
+                <DOMSymbolInstance libraryItemName="Ball" symbolType="graphic" loop="loop" name="ball">
+                  <matrix>
+                    <Matrix tx="40" ty="120"/>
+                  </matrix>
+                  <color>
+                    <Color alphaMultiplier="0.5"/>
+                  </color>
+                  <filters>
+                    <DropShadowFilter blurX="4" blurY="4" strength="1" distance="3" color="#000000"/>
+                  </filters>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+            <DOMFrame index="10">
+              <elements>
+                <DOMSymbolInstance libraryItemName="Ball" symbolType="graphic" loop="loop" name="ball">
+                  <matrix>
+                    <Matrix a="2" d="2" tx="260" ty="120"/>
+                  </matrix>
+                </DOMSymbolInstance>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+        <DOMLayer name="Ground" color="#4FFF4F" locked="true">
+          <frames>
+            <DOMFrame index="0" duration="11">
+              <elements>
+                <DOMShape>
+                  <fills>
+                    <FillStyle index="1"><SolidColor color="#228833"/></FillStyle>
+                    <FillStyle index="2"><SolidColor color="#FFCC00" alpha="0.75"/></FillStyle>
+                  </fills>
+                  <strokes>
+                    <StrokeStyle index="1">
+                      <SolidStroke scaleMode="normal" weight="3" caps="square" joints="miter">
+                        <fill><SolidColor color="#000000"/></fill>
+                      </SolidStroke>
+                    </StrokeStyle>
+                  </strokes>
+                  <edges>
+                    <!-- green ground 0,4000 → 6400,4800 twips; its top edge is shared with nothing -->
+                    <Edge fillStyle1="1" strokeStyle="1" edges="!0 4000|6400 4000"/>
+                    <Edge fillStyle1="1" edges="!6400 4000|6400 4800|0 4800|0 4000"/>
+                    <!-- a sun drawn the other way round (fill on the left) -->
+                    <Edge fillStyle0="2" edges="!5000 400[5600 400 5600 1000[5600 1600 5000 1600[4400 1600 4400 1000[4400 400 5000 400"/>
+                  </edges>
+                </DOMShape>
+                <DOMStaticText left="2" width="80" height="20">
+                  <matrix><Matrix tx="10" ty="10"/></matrix>
+                  <textRuns>
+                    <DOMTextRun>
+                      <characters>Hello&#xD;XFL</characters>
+                      <textAttrs><DOMTextAttrs size="14" face="Sans" fillColor="#FFFFFF" alignment="center"/></textAttrs>
+                    </DOMTextRun>
+                  </textRuns>
+                </DOMStaticText>
+              </elements>
+            </DOMFrame>
+          </frames>
+        </DOMLayer>
+      </layers>
+    </DOMTimeline>
+  </timelines>
+</DOMDocument>

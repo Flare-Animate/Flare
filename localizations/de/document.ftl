@@ -1,0 +1,12 @@
+untitled = Unbenannt
+name-new-scene = Szene { $n }
+name-new-layer = Ebene { $n }
+name-new-text-layer = Text
+doc-title = Dokument
+doc-publish-settings = Veröffentlichungseinstellungen
+doc-frame-rate = Bildrate
+doc-scenes = Szenen
+doc-sounds = Sounds
+doc-width = B
+doc-height = H
+name-new-camera-layer = Kamera

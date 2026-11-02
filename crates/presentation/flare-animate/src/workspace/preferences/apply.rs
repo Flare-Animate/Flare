@@ -1,0 +1,131 @@
+//! Reading the settings off the workspace, and applying saved ones to it.
+
+use std::path::PathBuf;
+
+use crate::workspace::*;
+
+use super::settings::MAX_RECENT;
+
+impl Workspace {
+    /// The current settings.
+    pub fn preferences(&self) -> Preferences {
+        Preferences {
+            autosave_seconds: self.recovery.interval,
+            show_rulers: self.display.show_rulers,
+            show_grid: self.display.show_grid,
+            snap_to_grid: self.display.snap_to_grid,
+            grid_size: self.display.grid_size,
+            loop_playback: self.loop_playback,
+            smoothing: self.smoothing,
+            brush_size: self.brush_size,
+            brush_nib_square: self.brush_shelf.nib().shape()
+                == flare_tools::brush::NibShape::Square,
+            brush_nib_angle: self.brush_shelf.nib().angle_degrees() as f32,
+            brush_nib_flatness: self.brush_shelf.nib().flatness_percent() as f32,
+            brushes: self.brush_shelf.presets().to_vec(),
+            brush_selected: self.brush_shelf.selected(),
+            publish_compress: self.publish.compress,
+            publish_swf: self.publish.swf,
+            publish_html5: self.publish.html5,
+            html5_loop: self.publish.loop_timeline,
+            html5_center: self.publish.center_stage,
+            html5_responsive: self.publish.responsive,
+            publish_gif: self.publish.gif,
+            publish_mp4: self.publish.mp4,
+            language: self.language_choice.code().to_owned(),
+            theme: self.theme_mode.code().to_owned(),
+            pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
+            recent: self
+                .home
+                .recent
+                .iter()
+                .map(|p| p.to_string_lossy().into_owned())
+                .collect(),
+        }
+    }
+
+    /// Takes `preferences` as the current settings, keeping each in its sensible range.
+    pub fn apply_preferences(&mut self, preferences: &Preferences) {
+        self.set_language_choice(flare_i18n::Choice::from_code(&preferences.language));
+        self.theme_mode = flare_ui::theme::Mode::from_code(&preferences.theme);
+        // Only names the list has, each once; a file naming anything else changes nothing.
+        self.pinned_tools.clear();
+        for name in &preferences.pinned_tools {
+            self.pin_tool(name);
+        }
+        let finite = |v: f64, fallback: f64| if v.is_finite() { v } else { fallback };
+        self.recovery.interval = finite(preferences.autosave_seconds, 30.0).clamp(5.0, 3600.0);
+        self.display.show_rulers = preferences.show_rulers;
+        self.display.show_grid = preferences.show_grid;
+        self.display.snap_to_grid = preferences.snap_to_grid;
+        self.display.grid_size =
+            finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
+        self.loop_playback = preferences.loop_playback;
+        self.smoothing = finite(f64::from(preferences.smoothing), 2.0).clamp(0.0, 20.0) as f32;
+        self.brush_size = finite(f64::from(preferences.brush_size), 12.0).clamp(1.0, 200.0) as f32;
+        let loose = flare_tools::brush::Nib::new(
+            if preferences.brush_nib_square {
+                flare_tools::brush::NibShape::Square
+            } else {
+                flare_tools::brush::NibShape::Round
+            },
+            f64::from(preferences.brush_nib_angle),
+            f64::from(preferences.brush_nib_flatness),
+        );
+        self.brush_shelf = flare_tools::brush::BrushShelf::restore(
+            loose,
+            &preferences.brushes,
+            preferences.brush_selected,
+        );
+        self.publish = PublishSettings {
+            swf: preferences.publish_swf,
+            compress: preferences.publish_compress,
+            html5: preferences.publish_html5,
+            loop_timeline: preferences.html5_loop,
+            center_stage: preferences.html5_center,
+            responsive: preferences.html5_responsive,
+            gif: preferences.publish_gif,
+            mp4: preferences.publish_mp4,
+        };
+        self.home.recent = preferences
+            .recent
+            .iter()
+            .filter(|p| !p.is_empty())
+            .take(MAX_RECENT)
+            .map(PathBuf::from)
+            .collect();
+    }
+
+    /// The settings as text to keep between sessions.
+    pub fn preferences_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string_pretty(&self.preferences())
+    }
+
+    /// Restores saved settings. Text that is too long or not understood is refused and the
+    /// current settings stay.
+    pub fn restore_preferences(&mut self, json: &str) -> Result<(), String> {
+        if json.len() > MAX_PREFERENCES_BYTES {
+            return Err("the preferences file is too large".to_owned());
+        }
+        let preferences: Preferences = serde_json::from_str(json).map_err(|e| e.to_string())?;
+        self.apply_preferences(&preferences);
+        Ok(())
+    }
+
+    /// Remembers `path` as the most recently used project.
+    pub(in crate::workspace) fn note_recent(&mut self, path: &std::path::Path) {
+        self.home.recent.retain(|p| p != path);
+        self.home.recent.insert(0, path.to_owned());
+        self.home.recent.truncate(MAX_RECENT);
+    }
+
+    /// Projects opened or saved lately, newest first.
+    pub fn recent_files(&self) -> &[PathBuf] {
+        &self.home.recent
+    }
+
+    /// Whether published SWF files are compressed.
+    pub fn publish_compress(&self) -> bool {
+        self.publish.compress
+    }
+}

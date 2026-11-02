@@ -1,0 +1,92 @@
+msg-cannot-import-sound = Cannot import { $path }: { $reason }
+msg-too-much-sound = Too much sound is loaded to play every sound at once
+msg-cannot-play-sound = Cannot play a sound: { $reason }
+msg-cannot-place-text = Cannot place text: { $reason }
+msg-saved = Saved { $path }
+msg-cannot-save = Cannot save: { $reason }
+msg-autosave-failed = Autosave failed: { $reason }
+msg-cannot-import = Cannot import { $path }: { $reason }
+msg-imported =
+    { $n ->
+        [one] Imported { $path }; { $n } note about what was not carried over is in the Output panel
+       *[other] Imported { $path }; { $n } notes about what was not carried over are in the Output panel
+    }
+msg-cannot-recover = Cannot recover { $path }: { $reason }
+msg-cannot-open = Cannot open { $path }: { $reason }
+msg-project-changed = Your project changed while the work was being read, so it was not replaced
+msg-recovered = Recovered unsaved work
+msg-opened = Opened { $name }
+msg-opening = Opening { $path }...
+msg-save-before-recover = Save or undo your changes before recovering other work
+msg-recovery-remove-failed = Could not remove the recovery file: { $reason }
+msg-graphic-only = Only a Graphic plays by a Loop, Play Once or Single Frame setting
+msg-looping = Looping
+msg-options = Options
+msg-first = First
+msg-play-loop = Loop
+msg-play-once = Play Once
+msg-play-single = Single Frame
+msg-wait-for-file-work = Wait for the file work in progress before switching documents
+msg-leave-symbol-fps = Leave symbol editing to change the frame rate
+msg-fps-range = The frame rate must be between 0.01 and 240 fps
+msg-history-original = Original
+msg-layer-rename = Rename
+msg-layer-hide = Hide
+msg-layer-show = Show
+msg-layer-unlock = Unlock
+msg-layer-lock = Lock
+msg-layer-mask = Mask
+msg-layer-guide = Motion guide
+msg-layer-move-up = Move up
+msg-layer-move-down = Move down
+msg-layer-new = New layer
+msg-layer-new-folder = New folder
+msg-layer-delete = Delete
+msg-frame-insert = Insert Frame
+msg-frame-insert-keyframe = Insert Keyframe
+msg-frame-insert-blank = Insert Blank Keyframe
+msg-cannot-cut-locked = Cannot cut frames: the layer is locked
+msg-nothing-to-cut = There is nothing to cut in those frames
+msg-no-frames-to-select = There are no frames on this layer to select
+msg-select-frames-to-reverse = Select the frames to reverse first: click one, Shift-click another
+msg-cannot-reverse-locked = Cannot reverse frames: the layer is locked
+msg-cannot-reverse = Cannot reverse those frames: { $reason }
+msg-op-insert-frame = insert a frame
+msg-op-remove-frame = remove a frame
+msg-op-insert-keyframe = insert a keyframe
+msg-op-insert-blank-keyframe = insert a blank keyframe
+msg-op-clear-keyframe = clear the keyframe
+msg-op-convert-keyframes = convert to keyframes
+msg-cannot-locked = Cannot { $op }: the layer is locked
+msg-cannot-at-frame = Cannot { $op } at frame { $frame } of this layer
+msg-cannot-move-span = Cannot move the span there: it would overlap another one
+msg-cannot-resize-span = Cannot resize the span there: it would overlap another one
+msg-nothing-to-copy = There is nothing to copy in those frames
+msg-cannot-paste-locked = Cannot paste frames: the layer is locked
+msg-cannot-paste-past-end = Cannot paste frames there: they would run past the last frame
+msg-distribute-needs-three = Distributing needs at least three shapes selected
+msg-select-shape-for-symbol = Select a shape to convert to a symbol
+msg-select-shapes-to-group = Select two or more shapes to group
+msg-select-to-break-apart = Select a symbol instance or text to break apart
+msg-nothing-transformed = Nothing could be transformed (an instance in a motion tween cannot be skewed or mirrored)
+msg-brush-stroke = Brush stroke
+msg-pencil-line = Pencil line
+msg-select-to-mirror = Select something to mirror
+msg-leave-symbol-sound = Leave symbol editing before importing a sound
+msg-scene-needs-name = A scene needs a name
+msg-paste-symbol-missing = Cannot paste: its symbol is not in this document
+msg-tween-needs-target = A motion tween needs an instance selected, a shape tween a shape
+unsaved-save-changes = Save changes to { $name }?
+unsaved-save = Save
+unsaved-dont-save = Don't Save
+msg-paste-refused = Cannot paste into the layer "{ $name }": { $reason }
+msg-saved-detail-original = unchanged original, written back as it was
+msg-saved-detail-new = { $files } files written from the project
+msg-saved-detail-edited = { $rebuilt } of { $files } files rebuilt, the rest carried over as they were
+msg-saved-with = Saved { $path } ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] Saved { $path } ({ $detail }); { $n } note about what the format cannot hold is in the Output panel
+       *[other] Saved { $path } ({ $detail }); { $n } notes about what the format cannot hold are in the Output panel
+    }
+msg-saved-rebuilt-names = Rebuilt for { $path }: { $names }
