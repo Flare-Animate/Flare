@@ -100,3 +100,21 @@ into the new crate architecture.
 - bbox, tconvert, tantialias, brush, distancetransform, convolve, fracmove
 - trop_utils (isOpaque, swapRB, gammaCorrect, setChannel, shrink, makeStereo, copyAndSwapRB, copy_same_size)
 - trgbmscale (partial, u8)
+
+## Findings from external projects
+
+### minnamate (clean-room Adobe Animate in Rust)
+- Status: early, vibecoded. Features: shapes, symbols, tweens, masks, guides, layer folders, parenting, filters, blend modes, sound, frame scripts, publishing to SWF/HTML5/GIF/PNG/JPEG/video
+- Not yet: bones, 3D, Asset Warp, input text, multiple documents, custom workspaces
+- Useful for: clean-room reference for Animate feature parity
+
+### Next2Flash (SWF round-trip editor, MIT)
+- AS3/ABC decompiler (crown jewel): abc_parser, method_decompiler, opcodes, swf_reader, swf_patcher
+- swf_to_n2d.py, compile_n2d.py (~400KB SWF<->XML conversion) — still upstream-only
+- bitmap_converter, char_id_allocator, cycle_detector, conversion_service, compilation_pipeline
+- Already integrated in Rust-Rewrite via As3Bridge and ac_swf*.rs
+
+### Flare-RustBase (foundation for Flare's Rust rewrite, Apache-2.0/MIT)
+- This IS the base of the main branch (crates/, apps/, egui)
+- Features already in main: symbols, layers, keyframes, tweens, onion skin, scenes, tools, library, actions, scripting (JS/Python/Node/Ruby), import/export (XFL, SWF, SVG, PSD, XDTS), effects, motion blur, trace bitmap, particles, sound, lip sync, masks/guides, bones, warp, width, camera, 3D, gradients, filters, blend modes, merge shapes, drawing objects, align/info panels, rulers/grid, library profiles
+- Missing from main vs Flare-RustBase: (need diff)
