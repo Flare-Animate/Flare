@@ -93,32 +93,33 @@ fn a_translation_keeps_the_placeholders_the_english_has() {
     }
 }
 
-/// The `$names` a message uses, sorted.
+/// The `$names` a message uses, sorted: all of its lines, which a message with forms spreads
+/// over several.
 fn placeholders_of(source: &str, key: &str) -> Vec<String> {
-    let resource = FluentResource::try_new(source.to_owned())
-        .unwrap_or_else(|(_, errors)| panic!("does not parse: {errors:?}"));
-    let mut names = Vec::new();
-    for entry in resource.entries() {
-        if let fluent_syntax::ast::Entry::Message(m) = entry
-            && m.id.name == key
-        {
-            // The pattern's source text is enough: `$name` can only appear as a placeholder.
-            let line = source
-                .lines()
-                .find(|l| l.starts_with(&format!("{key} =")))
-                .unwrap_or_default();
-            names = line
-                .split('$')
-                .skip(1)
-                .map(|rest| {
-                    rest.chars()
-                        .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
-                        .collect::<String>()
-                })
-                .collect();
+    let mut block = String::new();
+    let mut inside = false;
+    for line in source.lines() {
+        if line.starts_with(&format!("{key} =")) {
+            inside = true;
+        } else if inside && !line.starts_with(' ') && !line.is_empty() {
+            break;
+        }
+        if inside {
+            block.push_str(line);
+            block.push('\n');
         }
     }
+    let mut names: Vec<String> = block
+        .split('$')
+        .skip(1)
+        .map(|rest| {
+            rest.chars()
+                .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
+                .collect::<String>()
+        })
+        .collect();
     names.sort();
+    names.dedup();
     names
 }
 
@@ -257,6 +258,48 @@ fn the_readme_is_translated_into_every_interface_language_and_each_switcher_list
                 "{file}'s language switcher does not list {}",
                 language.native_name()
             );
+        }
+    }
+}
+
+#[test]
+fn a_count_takes_the_form_its_language_gives_it() {
+    let english = Translator::new(Language::English);
+    assert_eq!(english.text_count("start-ago-hour", 1, &[]), "1 hour ago");
+    assert_eq!(english.text_count("start-ago-hour", 3, &[]), "3 hours ago");
+    assert_eq!(english.text_count("start-ago-hour", 0, &[]), "0 hours ago");
+    let french = Translator::new(Language::French);
+    assert_eq!(
+        french.text_count("start-ago-hour", 0, &[]),
+        "il y a 0 heure",
+        "French counts zero as one"
+    );
+    assert_eq!(
+        french.text_count("start-ago-hour", 2, &[]),
+        "il y a 2 heures"
+    );
+    let german = Translator::new(Language::German);
+    assert_eq!(german.text_count("start-ago-day", 1, &[]), "vor 1 Tag");
+    assert_eq!(german.text_count("start-ago-day", 5, &[]), "vor 5 Tagen");
+    // Japanese has one form: the same words for any count.
+    let japanese = Translator::new(Language::Japanese);
+    assert_eq!(japanese.text_count("start-ago-hour", 1, &[]), "1 時間前");
+    assert_eq!(japanese.text_count("start-ago-hour", 9, &[]), "9 時間前");
+}
+
+#[test]
+fn every_language_can_say_how_long_ago_for_any_count() {
+    for language in Language::ALL {
+        let translator = Translator::new(language);
+        for unit in ["minute", "hour", "day", "month", "year"] {
+            for count in [0, 1, 2, 5, 21, 100] {
+                let said = translator.text_count(&format!("start-ago-{unit}"), count, &[]);
+                assert!(
+                    said.contains(&count.to_string()) && !said.contains("start-ago"),
+                    "{} {unit} {count}: {said}",
+                    language.code()
+                );
+            }
         }
     }
 }

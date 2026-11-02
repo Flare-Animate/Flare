@@ -24,16 +24,31 @@ start-col-kind = Tipo
 start-reading = Lendo…
 start-not-found = Não encontrado
 start-just-now = agora mesmo
-start-ago-minute-one = há { $n } minuto
-start-ago-minute-other = há { $n } minutos
-start-ago-hour-one = há { $n } hora
-start-ago-hour-other = há { $n } horas
-start-ago-day-one = há { $n } dia
-start-ago-day-other = há { $n } dias
-start-ago-month-one = há { $n } mês
-start-ago-month-other = há { $n } meses
-start-ago-year-one = há { $n } ano
-start-ago-year-other = há { $n } anos
+start-ago-minute =
+    { $n ->
+        [one] há { $n } minuto
+       *[other] há { $n } minutos
+    }
+start-ago-hour =
+    { $n ->
+        [one] há { $n } hora
+       *[other] há { $n } horas
+    }
+start-ago-day =
+    { $n ->
+        [one] há { $n } dia
+       *[other] há { $n } dias
+    }
+start-ago-month =
+    { $n ->
+        [one] há { $n } mês
+       *[other] há { $n } meses
+    }
+start-ago-year =
+    { $n ->
+        [one] há { $n } ano
+       *[other] há { $n } anos
+    }
 start-kind-flare = Projeto do Flare
 start-kind-animate-document = Documento do Animate
 start-kind-animate-project = Projeto do Animate

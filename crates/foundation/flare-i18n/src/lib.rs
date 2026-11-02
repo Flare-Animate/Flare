@@ -167,6 +167,9 @@ fn bundle(language: Language) -> FluentBundle<FluentResource> {
 /// Looks messages up in one language, falling back to English and then to the key.
 pub struct Translator {
     language: Language,
+    /// Wraps every message in marks, so a test can tell words from messages from words typed
+    /// into the program.
+    pseudo: bool,
     bundle: FluentBundle<FluentResource>,
     english: Option<FluentBundle<FluentResource>>,
 }
@@ -175,6 +178,7 @@ impl Translator {
     pub fn new(language: Language) -> Self {
         Self {
             language,
+            pseudo: false,
             bundle: bundle(language),
             english: (language != Language::English).then(|| bundle(Language::English)),
         }
@@ -182,6 +186,15 @@ impl Translator {
 
     pub fn language(&self) -> Language {
         self.language
+    }
+
+    /// English whose every message comes back between ⟦ and ⟧. A screen drawn with it shows which
+    /// words came from a message file: any word outside the marks was typed into the program.
+    pub fn pseudo() -> Self {
+        Self {
+            pseudo: true,
+            ..Self::new(Language::English)
+        }
     }
 
     /// The message called `key`.
@@ -195,12 +208,35 @@ impl Translator {
         for (name, value) in args {
             fluent_args.set(*name, FluentValue::from(*value));
         }
+        self.format(key, &fluent_args)
+    }
+
+    /// The message called `key` for `count` things, which it names `{ $n }`. The count is a
+    /// number, not text, so a message can pick its form with the language's own plural rules
+    /// (`{ $n -> [one] ... *[other] ... }`: English has two forms, French counts 0 as one, Russian
+    /// has four, Japanese has one).
+    pub fn text_count(&self, key: &str, count: u64, args: &[(&str, &str)]) -> String {
+        let mut fluent_args = FluentArgs::new();
+        for (name, value) in args {
+            fluent_args.set(*name, FluentValue::from(*value));
+        }
+        // A count past what a float holds exactly is no count anyone is shown.
+        fluent_args.set("n", FluentValue::from(count as f64));
+        self.format(key, &fluent_args)
+    }
+
+    fn format(&self, key: &str, fluent_args: &FluentArgs) -> String {
         for bundle in std::iter::once(&self.bundle).chain(self.english.as_ref()) {
             if let Some(pattern) = bundle.get_message(key).and_then(|m| m.value()) {
                 let mut errors = Vec::new();
-                return bundle
-                    .format_pattern(pattern, Some(&fluent_args), &mut errors)
+                let text = bundle
+                    .format_pattern(pattern, Some(fluent_args), &mut errors)
                     .into_owned();
+                return if self.pseudo {
+                    format!("⟦{text}⟧")
+                } else {
+                    text
+                };
             }
         }
         key.to_owned()

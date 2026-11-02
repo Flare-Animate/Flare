@@ -39,6 +39,19 @@ pub fn set_camera_key(
     camera: Camera,
     motion: Option<(Tween, i8)>,
 ) -> Option<Vec<Command>> {
+    set_camera_key_named(document, scene, frame, camera, motion, "Camera")
+}
+
+/// [`set_camera_key`], naming the camera layer `name` if this makes it (a front end that speaks
+/// another language passes the word for it).
+pub fn set_camera_key_named(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+    camera: Camera,
+    motion: Option<(Tween, i8)>,
+    name: &str,
+) -> Option<Vec<Command>> {
     if frame > MAX_CAMERA_FRAME {
         return None;
     }
@@ -60,7 +73,7 @@ pub fn set_camera_key(
     let Some(layer) = timeline.layers().iter().find(|l| l.is_camera()) else {
         let span = with_motion(key(frame, end - frame)?, None);
         let id = LayerId::new();
-        let layer = Layer::new(id, "Camera", vec![span]).ok()?.with_camera(true);
+        let layer = Layer::new(id, name, vec![span]).ok()?.with_camera(true);
         // Above everything, where Animate keeps it.
         return Some(vec![
             Command::AddLayer { scene, layer },

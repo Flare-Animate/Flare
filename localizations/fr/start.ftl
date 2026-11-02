@@ -24,16 +24,27 @@ start-col-kind = Type
 start-reading = Chargement…
 start-not-found = Introuvable
 start-just-now = à l’instant
-start-ago-minute-one = il y a { $n } minute
-start-ago-minute-other = il y a { $n } minutes
-start-ago-hour-one = il y a { $n } heure
-start-ago-hour-other = il y a { $n } heures
-start-ago-day-one = il y a { $n } jour
-start-ago-day-other = il y a { $n } jours
-start-ago-month-one = il y a { $n } mois
-start-ago-month-other = il y a { $n } mois
-start-ago-year-one = il y a { $n } an
-start-ago-year-other = il y a { $n } ans
+start-ago-minute =
+    { $n ->
+        [one] il y a { $n } minute
+       *[other] il y a { $n } minutes
+    }
+start-ago-hour =
+    { $n ->
+        [one] il y a { $n } heure
+       *[other] il y a { $n } heures
+    }
+start-ago-day =
+    { $n ->
+        [one] il y a { $n } jour
+       *[other] il y a { $n } jours
+    }
+start-ago-month = il y a { $n } mois
+start-ago-year =
+    { $n ->
+        [one] il y a { $n } an
+       *[other] il y a { $n } ans
+    }
 start-kind-flare = Projet Flare
 start-kind-animate-document = Document Animate
 start-kind-animate-project = Projet Animate

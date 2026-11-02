@@ -9,3 +9,4 @@ doc-scenes = Escenas
 doc-sounds = Sonidos
 doc-width = An
 doc-height = Al
+name-new-camera-layer = Cámara

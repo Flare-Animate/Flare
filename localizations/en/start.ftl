@@ -24,16 +24,31 @@ start-col-kind = Kind
 start-reading = Reading…
 start-not-found = Not found
 start-just-now = just now
-start-ago-minute-one = { $n } minute ago
-start-ago-minute-other = { $n } minutes ago
-start-ago-hour-one = { $n } hour ago
-start-ago-hour-other = { $n } hours ago
-start-ago-day-one = { $n } day ago
-start-ago-day-other = { $n } days ago
-start-ago-month-one = { $n } month ago
-start-ago-month-other = { $n } months ago
-start-ago-year-one = { $n } year ago
-start-ago-year-other = { $n } years ago
+start-ago-minute =
+    { $n ->
+        [one] { $n } minute ago
+       *[other] { $n } minutes ago
+    }
+start-ago-hour =
+    { $n ->
+        [one] { $n } hour ago
+       *[other] { $n } hours ago
+    }
+start-ago-day =
+    { $n ->
+        [one] { $n } day ago
+       *[other] { $n } days ago
+    }
+start-ago-month =
+    { $n ->
+        [one] { $n } month ago
+       *[other] { $n } months ago
+    }
+start-ago-year =
+    { $n ->
+        [one] { $n } year ago
+       *[other] { $n } years ago
+    }
 start-kind-flare = Flare project
 start-kind-animate-document = Animate document
 start-kind-animate-project = Animate project

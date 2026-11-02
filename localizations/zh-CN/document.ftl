@@ -9,3 +9,4 @@ doc-scenes = 场景
 doc-sounds = 声音
 doc-width = 宽
 doc-height = 高
+name-new-camera-layer = 摄像机

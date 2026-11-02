@@ -9,3 +9,4 @@ doc-scenes = Cenas
 doc-sounds = Sons
 doc-width = L
 doc-height = A
+name-new-camera-layer = Câmera

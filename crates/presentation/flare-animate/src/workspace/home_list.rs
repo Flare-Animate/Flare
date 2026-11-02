@@ -145,11 +145,7 @@ impl Workspace {
             2_592_000..=31_535_999 => ("month", seconds / (30 * DAY)),
             _ => ("year", seconds / (365 * DAY)),
         };
-        let number = if n == 1 { "one" } else { "other" };
-        self.tr_with(
-            &format!("start-ago-{unit}-{number}"),
-            &[("n", &n.to_string())],
-        )
+        self.tr_count(&format!("start-ago-{unit}"), n)
     }
 
     /// What kind of file a recent project is, going by its name.

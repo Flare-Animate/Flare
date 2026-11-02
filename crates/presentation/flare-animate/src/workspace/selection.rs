@@ -251,7 +251,7 @@ impl Workspace {
                     pasted.push(at);
                 }
                 None => {
-                    self.report("Cannot paste: its symbol is not in this document");
+                    self.report(self.tr("msg-paste-symbol-missing"));
                     return;
                 }
             }
@@ -320,7 +320,7 @@ impl Workspace {
         };
         match ops::set_tween(self.document(), scene, selected, tween) {
             Some(commands) => self.run_batch(commands, "change the tween"),
-            None => self.report("A motion tween needs an instance selected, a shape tween a shape"),
+            None => self.report(self.tr("msg-tween-needs-target")),
         }
     }
 

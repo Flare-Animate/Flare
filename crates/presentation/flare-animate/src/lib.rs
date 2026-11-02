@@ -8,6 +8,8 @@
 
 #[cfg(test)]
 mod icon_names;
+#[cfg(test)]
+mod no_literal_text;
 mod workspace;
 
 pub use flare_dock::{LayoutError, MAX_LAYOUT_BYTES, Pane};

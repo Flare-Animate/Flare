@@ -9,3 +9,4 @@ doc-scenes = Séquences
 doc-sounds = Sons
 doc-width = L
 doc-height = H
+name-new-camera-layer = Caméra

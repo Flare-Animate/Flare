@@ -47,6 +47,12 @@ impl Workspace {
         self.translator.text_with(key, args)
     }
 
+    /// The message called `key` for `count` things, named `{ $n }`; the message picks its plural
+    /// form by the language's rules.
+    pub(super) fn tr_count(&self, key: &str, count: u64) -> String {
+        self.translator.text_count(key, count, &[])
+    }
+
     /// The name "System locale" carries in a list: the language it stands for.
     pub(super) fn system_choice_label(&self) -> String {
         let system = Language::from_system(&self.system_locale);

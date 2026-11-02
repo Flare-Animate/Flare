@@ -24,16 +24,31 @@ start-col-kind = Art
 start-reading = Wird gelesen…
 start-not-found = Nicht gefunden
 start-just-now = gerade eben
-start-ago-minute-one = vor { $n } Minute
-start-ago-minute-other = vor { $n } Minuten
-start-ago-hour-one = vor { $n } Stunde
-start-ago-hour-other = vor { $n } Stunden
-start-ago-day-one = vor { $n } Tag
-start-ago-day-other = vor { $n } Tagen
-start-ago-month-one = vor { $n } Monat
-start-ago-month-other = vor { $n } Monaten
-start-ago-year-one = vor { $n } Jahr
-start-ago-year-other = vor { $n } Jahren
+start-ago-minute =
+    { $n ->
+        [one] vor { $n } Minute
+       *[other] vor { $n } Minuten
+    }
+start-ago-hour =
+    { $n ->
+        [one] vor { $n } Stunde
+       *[other] vor { $n } Stunden
+    }
+start-ago-day =
+    { $n ->
+        [one] vor { $n } Tag
+       *[other] vor { $n } Tagen
+    }
+start-ago-month =
+    { $n ->
+        [one] vor { $n } Monat
+       *[other] vor { $n } Monaten
+    }
+start-ago-year =
+    { $n ->
+        [one] vor { $n } Jahr
+       *[other] vor { $n } Jahren
+    }
 start-kind-flare = Flare-Projekt
 start-kind-animate-document = Animate-Dokument
 start-kind-animate-project = Animate-Projekt

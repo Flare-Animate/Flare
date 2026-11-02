@@ -49,9 +49,15 @@ impl Workspace {
         let Some(scene) = self.scene_id() else {
             return;
         };
-        let Some(batch) =
-            flare_editor::set_camera_key(self.document(), scene, frame, camera, motion)
-        else {
+        let name = self.tr("name-new-camera-layer");
+        let Some(batch) = flare_editor::set_camera_key_named(
+            self.document(),
+            scene,
+            frame,
+            camera,
+            motion,
+            &name,
+        ) else {
             let message = self.tr_with(
                 "tools-camera-max-frame",
                 &[("frame", &flare_editor::MAX_CAMERA_FRAME.to_string())],
