@@ -11,7 +11,7 @@ fn disabled() -> bool {
     std::env::var("FLARE_TABLET").is_ok_and(|v| v.eq_ignore_ascii_case("off"))
 }
 
-/// Opens the window through X11 when a pen with pressure is plugged in. Wayland would be chosen
+/// Opens the window through X11 when a pen is plugged in. Wayland would be chosen
 /// otherwise, and winit has no tablet support there; XWayland does, since the compositor feeds it
 /// from its own tablet protocol. Without a pen, or without an X server to ask, nothing changes.
 #[cfg(target_os = "linux")]
@@ -19,27 +19,31 @@ pub(super) fn prefer_x11<T: 'static>(builder: &mut winit::event_loop::EventLoopB
     use winit::platform::x11::EventLoopBuilderExtX11;
     if !disabled()
         && std::env::var_os("DISPLAY").is_some()
-        && flare_platform::tablet::has_pressure_device()
+        && flare_platform::tablet_probe::pen_attached()
     {
         builder.with_x11();
     }
 }
 
-/// The X11 window to listen on, if the window is one.
-fn x11_window(window: &Window) -> Option<u32> {
-    match window.window_handle().ok()?.as_raw() {
-        RawWindowHandle::Xlib(handle) => u32::try_from(handle.window).ok(),
-        RawWindowHandle::Xcb(handle) => Some(handle.window.get()),
-        _ => None,
-    }
+/// Whether the window is an X11 one. On native Wayland `$DISPLAY` is XWayland, which sees none
+/// of this window's input, so the pen reader must not start there.
+fn is_x11(window: &Window) -> bool {
+    window.window_handle().is_ok_and(|handle| {
+        matches!(
+            handle.as_raw(),
+            RawWindowHandle::Xlib(_) | RawWindowHandle::Xcb(_)
+        )
+    })
 }
 
 /// Starts reading the pen's pressure into `feed` when `window` is an X11 window. A window of any
 /// other system (macOS, Windows, native Wayland) reports force through winit, or not at all.
 pub(super) fn watch(window: &Window, feed: flare_animate::PenFeed) {
-    let Some(id) = x11_window(window) else { return };
+    if !is_x11(window) {
+        return;
+    }
     // Said on the terminal so a person whose pen shows no pressure can tell whether it was found.
-    match flare_platform::tablet::watch(id, feed) {
+    match flare_platform::tablet::watch(feed) {
         Ok(pens) if pens.is_empty() => {}
         Ok(pens) => eprintln!("pen pressure from: {}", pens.join(", ")),
         Err(error) => eprintln!("{error}"),

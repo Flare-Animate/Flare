@@ -164,7 +164,7 @@ impl Workspace {
     /// window reported for a touch; with neither it is a mouse, which counts as full pressure.
     pub(super) fn pointer_reading(&self, touch_force: Option<f32>) -> (f32, PointerKind) {
         self.pen_feed
-            .reading(std::time::Instant::now())
+            .reading()
             .or(touch_force)
             .map_or((1.0, PointerKind::Mouse), |pressure| {
                 (pressure, PointerKind::Pen)

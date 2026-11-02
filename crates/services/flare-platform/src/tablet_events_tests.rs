@@ -1,15 +1,12 @@
 #![allow(clippy::expect_used)]
 
-use std::time::{Duration, Instant};
-
-use flare_input::PenFeed;
 use x11rb::protocol::xinput::{
-    ButtonPressEvent, DeviceClass, DeviceClassData, DeviceClassDataValuator, DeviceId, DeviceType,
-    Fp3232, ValuatorMode, XIDeviceInfo,
+    DeviceClass, DeviceClassData, DeviceClassDataValuator, DeviceId, DeviceType, Fp3232,
+    ValuatorMode, XIDeviceInfo,
 };
 use x11rb::protocol::xproto::Atom;
 
-use crate::tablet_events::{Tracker, axis_value, pens};
+use crate::tablet_events::{MAX_DEVICES, State, Update, axis_value, devices};
 
 const PRESSURE: Atom = 77;
 
@@ -60,23 +57,22 @@ fn tablet(id: DeviceId) -> XIDeviceInfo {
     )
 }
 
-fn event(device: DeviceId, detail: u32, mask: u32, values: &[i32]) -> ButtonPressEvent {
-    ButtonPressEvent {
-        deviceid: device,
-        detail,
-        valuator_mask: vec![mask],
-        axisvalues: values.iter().map(|v| fp(*v)).collect(),
-        ..Default::default()
-    }
+fn mouse(id: DeviceId) -> XIDeviceInfo {
+    device(
+        id,
+        DeviceType::SLAVE_POINTER,
+        vec![valuator(0, 3, 0, 0), valuator(1, 4, 0, 0)],
+    )
+}
+
+fn state(infos: &[XIDeviceInfo]) -> State {
+    let mut state = State::default();
+    state.set_devices(devices(infos, PRESSURE));
+    state
 }
 
 #[test]
-fn only_an_enabled_pointer_with_a_pressure_axis_is_a_pen() {
-    let mouse = device(
-        9,
-        DeviceType::SLAVE_POINTER,
-        vec![valuator(0, 1, 0, 100), valuator(1, 2, 0, 100)],
-    );
+fn a_pen_is_a_pointer_with_a_pressure_axis_and_a_mouse_is_a_pointer_without() {
     let master = device(
         2,
         DeviceType::MASTER_POINTER,
@@ -89,10 +85,14 @@ fn only_an_enabled_pointer_with_a_pressure_axis_is_a_pen() {
         DeviceType::SLAVE_POINTER,
         vec![valuator(2, PRESSURE, 0, 0)],
     );
-    let found = pens(&[mouse, master, off, no_range, tablet(6)], PRESSURE);
-    assert_eq!(found.len(), 1);
-    assert_eq!(found[0].device, 6);
-    assert_eq!(found[0].name, "pen");
+    let state = state(&[mouse(9), master, off, no_range, tablet(6)]);
+    assert_eq!(
+        state.pens(),
+        vec!["pen".to_string()],
+        "only device 6 senses pressure"
+    );
+    assert!(state.has_pen());
+    assert!(!State::default().has_pen());
 }
 
 #[test]
@@ -122,61 +122,82 @@ fn fractions_of_a_fixed_point_value_count() {
 }
 
 #[test]
-fn pressing_the_tip_and_pressing_harder_reach_the_feed_as_a_fraction_of_the_range() {
-    let pens = pens(&[tablet(6)], PRESSURE);
-    let (feed, mut tracker, now) = (PenFeed::default(), Tracker::default(), Instant::now());
+fn pressure_is_a_fraction_of_the_devices_own_range_and_is_kept_when_other_axes_move() {
+    let mut state = state(&[tablet(6)]);
     // Axes 0, 1 and 2 present; pressure 1000 of 2000.
-    tracker.button(
-        &event(6, 1, 0b111, &[100, 100, 1000]),
-        true,
-        &pens,
-        &feed,
-        now,
-    );
-    assert_eq!(feed.reading(now), Some(0.5));
-    tracker.moved(&event(6, 0, 0b111, &[110, 100, 2000]), &pens, &feed, now);
     assert_eq!(
-        feed.reading(now + Duration::from_secs(5)),
-        Some(1.0),
-        "down holds"
+        state.handle(6, &[0b111], &[fp(1), fp(1), fp(1000)]),
+        Update::Pen(0.5)
+    );
+    // An event that moved x and y only: the pen is still at its last pressure.
+    assert_eq!(state.handle(6, &[0b011], &[fp(5), fp(5)]), Update::Pen(0.5));
+    assert_eq!(
+        state.handle(6, &[0b111], &[fp(5), fp(5), fp(2000)]),
+        Update::Pen(1.0)
     );
 }
 
 #[test]
-fn a_move_without_pressure_in_it_keeps_the_last_pressure() {
-    let pens = pens(&[tablet(6)], PRESSURE);
-    let (feed, mut tracker, now) = (PenFeed::default(), Tracker::default(), Instant::now());
-    tracker.button(&event(6, 1, 0b111, &[0, 0, 500]), true, &pens, &feed, now);
-    tracker.moved(&event(6, 0, 0b011, &[5, 5]), &pens, &feed, now);
-    assert_eq!(feed.reading(now), Some(0.25));
+fn a_pen_that_has_not_pressed_yet_is_hovering_at_no_pressure() {
+    let mut state = state(&[tablet(6)]);
+    assert_eq!(state.handle(6, &[0b011], &[fp(1), fp(1)]), Update::Pen(0.0));
 }
 
 #[test]
-fn hovering_reads_as_the_pen_and_releasing_the_tip_hands_back_to_the_mouse() {
-    let pens = pens(&[tablet(6)], PRESSURE);
-    let (feed, mut tracker, now) = (PenFeed::default(), Tracker::default(), Instant::now());
-    tracker.moved(&event(6, 0, 0b111, &[1, 1, 0]), &pens, &feed, now);
-    assert_eq!(feed.reading(now), Some(0.0), "in range, no pressure");
-    assert_eq!(
-        feed.reading(now + Duration::from_secs(1)),
-        None,
-        "gone quiet"
-    );
-    tracker.button(&event(6, 1, 0b111, &[1, 1, 900]), true, &pens, &feed, now);
-    tracker.button(&event(6, 1, 0b111, &[1, 1, 0]), false, &pens, &feed, now);
-    assert_eq!(feed.reading(now), None);
+fn another_pointer_moving_means_the_pen_is_not_the_device_in_use() {
+    let mut state = state(&[tablet(6), mouse(9)]);
+    assert_eq!(state.handle(6, &[0b100], &[fp(2000)]), Update::Pen(1.0));
+    assert_eq!(state.handle(9, &[0b011], &[fp(3), fp(3)]), Update::Mouse);
 }
 
 #[test]
-fn other_buttons_and_other_devices_change_nothing() {
-    let pens = pens(&[tablet(6)], PRESSURE);
-    let (feed, mut tracker, now) = (PenFeed::default(), Tracker::default(), Instant::now());
-    tracker.button(&event(6, 2, 0b111, &[0, 0, 900]), true, &pens, &feed, now);
-    tracker.button(&event(11, 1, 0b111, &[0, 0, 900]), true, &pens, &feed, now);
-    tracker.moved(&event(11, 0, 0b111, &[0, 0, 900]), &pens, &feed, now);
+fn a_master_or_unknown_device_changes_nothing() {
+    let mut state = state(&[tablet(6)]);
+    assert_eq!(state.handle(2, &[0b100], &[fp(2000)]), Update::Keep);
+    assert_eq!(state.handle(99, &[0b100], &[fp(2000)]), Update::Keep);
+}
+
+#[test]
+fn a_pen_that_goes_away_forgets_its_pressure_and_one_that_comes_back_starts_over() {
+    let mut state = state(&[tablet(6)]);
+    state.handle(6, &[0b100], &[fp(2000)]);
+    state.set_devices(devices(&[mouse(9)], PRESSURE));
     assert_eq!(
-        feed.reading(now),
-        None,
-        "a barrel button or a mouse is not a stroke"
+        state.handle(6, &[0b100], &[fp(2000)]),
+        Update::Keep,
+        "no longer a device"
     );
+    state.set_devices(devices(&[tablet(6)], PRESSURE));
+    assert_eq!(state.handle(6, &[0b011], &[fp(1), fp(1)]), Update::Pen(0.0));
+}
+
+#[test]
+fn hostile_values_neither_panic_nor_leave_the_range() {
+    let mut state = state(&[tablet(6)]);
+    for value in [i32::MIN, -1, 0, i32::MAX] {
+        let update = state.handle(6, &[u32::MAX; 40], &vec![fp(value); 2000]);
+        assert!(
+            matches!(update, Update::Pen(p) if (0.0..=1.0).contains(&p)),
+            "{value}"
+        );
+    }
+    let huge = Fp3232 {
+        integral: i32::MAX,
+        frac: u32::MAX,
+    };
+    assert!(matches!(
+        state.handle(6, &[0b100], &[huge]),
+        Update::Pen(1.0)
+    ));
+    assert_eq!(
+        state.handle(6, &[], &[]),
+        Update::Pen(1.0),
+        "an empty event keeps the last"
+    );
+}
+
+#[test]
+fn a_server_with_thousands_of_devices_is_cut_short() {
+    let many: Vec<XIDeviceInfo> = (0..5000u16).map(mouse).collect();
+    assert_eq!(devices(&many, PRESSURE).len(), MAX_DEVICES);
 }

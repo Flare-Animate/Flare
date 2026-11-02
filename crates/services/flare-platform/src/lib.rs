@@ -19,3 +19,7 @@ pub mod tablet;
 mod tablet_events;
 #[cfg(all(test, unix))]
 mod tablet_events_tests;
+#[cfg(unix)]
+pub mod tablet_probe;
+#[cfg(all(test, unix))]
+mod tablet_probe_tests;

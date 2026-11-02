@@ -2,11 +2,6 @@
 //! server's XInput2, on Linux) writes it from its thread and the stage reads it each frame.
 
 use std::sync::{Arc, Mutex, PoisonError};
-use std::time::{Duration, Instant};
-
-/// How long a hovering pen still counts as the device in use. A mouse used after the pen must not
-/// inherit the pen's last (near zero) reading, and a pen that stopped reporting has gone.
-const HOVER_FRESH: Duration = Duration::from_millis(300);
 
 /// The range a device reports pressure over, so any tablet's numbers become 0 to 1.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -22,60 +17,35 @@ impl PressureAxis {
         (min.is_finite() && max.is_finite() && max > min).then_some(Self { min, max })
     }
 
-    /// `raw` as a fraction of the range, clamped to 0 to 1.
+    /// `raw` as a fraction of the range, clamped to 0 to 1. Not a number reads as full pressure,
+    /// as it does for a mouse, so a broken reading never thins a line.
     pub fn normalize(&self, raw: f64) -> f32 {
+        if raw.is_nan() {
+            return 1.0;
+        }
         (((raw - self.min) / (self.max - self.min)).clamp(0.0, 1.0)) as f32
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-struct State {
-    pressure: f32,
-    /// The tip is on the surface; the reading holds however long the pen rests there.
-    down: bool,
-    at: Instant,
-}
-
-/// The latest pressure a native tablet source has seen. Cloning shares it; a feed nobody writes
-/// to reads as no pen, so the stage treats the device as a mouse.
+/// The pressure of the pen if it is the device in use, as a native tablet source last saw it.
+/// Cloning shares it; a feed nobody writes to reads as no pen, so the stage treats the device as
+/// a mouse. The source says when the pen is no longer the device in use (another pointer moved),
+/// so there is no timer here to guess it.
 #[derive(Clone, Debug, Default)]
 pub struct PenFeed {
-    state: Arc<Mutex<Option<State>>>,
+    pressure: Arc<Mutex<Option<f32>>>,
 }
 
 impl PenFeed {
-    fn write(&self, state: Option<State>) {
-        // A reader that panicked cannot leave a half-written plain value, so keep going.
-        *self.state.lock().unwrap_or_else(PoisonError::into_inner) = state;
+    /// The pen is the device in use with `pressure` (0 to 1), or, with `None`, it is not.
+    pub fn set(&self, pressure: Option<f32>) {
+        let pressure = pressure.map(|p| if p.is_nan() { 1.0 } else { p.clamp(0.0, 1.0) });
+        // A writer that panicked cannot leave a half-written plain value, so keep going.
+        *self.pressure.lock().unwrap_or_else(PoisonError::into_inner) = pressure;
     }
 
-    /// The pen touches the surface with `pressure` (0 to 1).
-    pub fn press(&self, pressure: f32, now: Instant) {
-        self.write(Some(State {
-            pressure: pressure.clamp(0.0, 1.0),
-            down: true,
-            at: now,
-        }));
-    }
-
-    /// The pen is near the surface and reports `pressure`.
-    pub fn hover(&self, pressure: f32, now: Instant) {
-        self.write(Some(State {
-            pressure: pressure.clamp(0.0, 1.0),
-            down: false,
-            at: now,
-        }));
-    }
-
-    /// The pen left the surface: until it reports again, the device in use is not it.
-    pub fn lift(&self) {
-        self.write(None);
-    }
-
-    /// The pressure of the pen if it is the device in use at `now`.
-    pub fn reading(&self, now: Instant) -> Option<f32> {
-        let state = (*self.state.lock().unwrap_or_else(PoisonError::into_inner))?;
-        (state.down || now.saturating_duration_since(state.at) < HOVER_FRESH)
-            .then_some(state.pressure)
+    /// The pen's pressure, if it is the device in use.
+    pub fn reading(&self) -> Option<f32> {
+        *self.pressure.lock().unwrap_or_else(PoisonError::into_inner)
     }
 }
