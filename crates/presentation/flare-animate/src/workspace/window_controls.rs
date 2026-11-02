@@ -64,7 +64,9 @@ impl Workspace {
                 flare_ui::theme::text()
             };
             let icon_rect = Rect::from_center_size(rect.center(), Vec2::splat(16.0));
-            ui.put(icon_rect, flare_ui::icons::image(icon, 16.0, tint));
+            // Painted, not placed: placing would move the layout's cursor and push the menus
+            // drawn after these buttons out of the bar.
+            flare_ui::icons::image(icon, 16.0, tint).paint_at(ui, icon_rect);
             if response.clicked() {
                 clicked = Some(index);
             }

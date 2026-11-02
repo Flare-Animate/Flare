@@ -203,6 +203,8 @@ pub struct Workspace {
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
     quit_requested: bool,
+    /// Where the new-document button of the tab strip was drawn last.
+    tab_plus: egui::Rect,
     /// The tab a close was asked for while it held unsaved work: the prompt is open for it.
     close_prompt: Option<usize>,
     /// The document on show is closed once the save asked for by the prompt has been written.
@@ -344,6 +346,7 @@ impl Workspace {
             frame_menu_open: false,
             native_menu: false,
             quit_requested: false,
+            tab_plus: egui::Rect::NOTHING,
             close_prompt: None,
             close_after_save: false,
             layout: flare_dock::default_tree(),

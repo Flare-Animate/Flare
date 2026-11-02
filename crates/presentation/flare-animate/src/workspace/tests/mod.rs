@@ -51,6 +51,7 @@ mod scene_name;
 mod spans_and_handles;
 mod stage_menu;
 mod status_bar;
+mod tab_strip;
 mod text_objects;
 mod tool_pins;
 mod tool_slots;

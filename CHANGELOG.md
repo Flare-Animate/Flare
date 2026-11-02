@@ -9,6 +9,7 @@ All notable changes are listed here. The format follows
 The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
 
 ### Added
+- The tab strip scrolls when there are more documents than fit (the wheel turns it, and a new or chosen tab is brought into view), and its new-document button stays in view however many are open.
 - File > Open takes Animate's files as well as Flare projects (`.fla`, `.xfl`, an XFL folder's `DOMDocument.xml` and `.swf`), as Animate's does, so there is no separate import command or Home button. On Linux and Windows the top bar is Animate's: the menus (with a dimmed Debug menu) at the left, Play, Publish and the workspace switcher at the right, then the window buttons; Preferences, undo and redo are in the Edit menu.
 - A legacy binary `.fla` (Flash MX 2004 to CS4) opens from File > Import, `flare import` and `import_project`, in the browser build too, as a skeleton: the stage size, frame rate and background, one empty scene, and the library's symbols as empty graphics, movie clips and buttons, with a warning that drawings, timelines, text and media are not read yet. It was checked against Ruffle's small test files only.
 - An unpacked XFL project opens from File > Import by picking its `.xfl` file, or its `DOMDocument.xml` when the folder has no `.xfl` beside it; dropping the folder on the window or giving it to `flare open` and `flare import` already worked.

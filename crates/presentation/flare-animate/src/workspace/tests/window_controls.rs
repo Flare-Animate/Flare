@@ -108,3 +108,95 @@ fn a_new_document_in_the_window_keeps_the_buttons() {
     );
     assert_eq!(ws.take_window_request(), Some(WindowRequest::Minimize));
 }
+
+/// What the top bar shows with the pointer at `x` in a window with its own buttons.
+fn hint_at(x: f32) -> String {
+    let (ctx, mut ws, _) = with_controls(true);
+    let at = Pos2::new(x, 12.0);
+    let mut text = String::new();
+    for step in 0..10 {
+        let events = if step == 0 {
+            vec![Event::PointerMoved(at)]
+        } else {
+            vec![]
+        };
+        let mut out = ctx.run_ui(input(5.0 + f64::from(step) * 0.2, events), |ui| ws.show(ui));
+        out.textures_delta.clear();
+        for shape in &out.shapes {
+            if let egui::epaint::Shape::Text(t) = &shape.shape {
+                text.push_str(t.galley.text());
+                text.push('|');
+            }
+        }
+    }
+    text
+}
+
+#[test]
+fn the_house_is_at_the_far_left_and_play_publish_and_the_switcher_hug_the_window_buttons() {
+    // The house at the left edge of the bar: pressing it there goes to Home.
+    let (ctx, mut ws, mut time) = with_controls(true);
+    assert!(!ws.home_shown());
+    click(
+        &mut ws,
+        &ctx,
+        &mut time,
+        Pos2::new(18.0, 14.0),
+        egui::PointerButton::Primary,
+    );
+    assert!(ws.home_shown(), "the house is at the far left");
+    // The window buttons take the last 120 px; the three buttons sit right against them.
+    let (mut play, mut publish, mut switcher) = (None, None, None);
+    let mut x = 1156.0;
+    while x > 1040.0 {
+        let hint = hint_at(x);
+        if hint.contains("Interface switcher") {
+            switcher.get_or_insert(x);
+        }
+        if hint.contains("Publish") {
+            publish.get_or_insert(x);
+        }
+        if hint.contains("Play") {
+            play.get_or_insert(x);
+        }
+        x -= 6.0;
+    }
+    let (play, publish, switcher) = (
+        play.expect("play"),
+        publish.expect("publish"),
+        switcher.expect("switcher"),
+    );
+    assert!(
+        play < publish && publish < switcher,
+        "{play} {publish} {switcher}"
+    );
+    assert!(
+        switcher > 1120.0,
+        "the switcher is against the minimize button: {switcher}"
+    );
+}
+
+#[test]
+fn the_menus_sit_inside_the_bar_whether_or_not_the_window_has_its_own_buttons() {
+    // The bar is 28 px high with its own buttons and 38 without; a button placed instead of
+    // painted pushed the menus 20 px below it.
+    for (controls, bar) in [(true, 28.0), (false, 38.0)] {
+        let (ctx, mut ws, _) = with_controls(controls);
+        let mut out = ctx.run_ui(input(9.0, vec![]), |ui| ws.show(ui));
+        out.textures_delta.clear();
+        let file = out
+            .shapes
+            .iter()
+            .find_map(|s| match &s.shape {
+                egui::epaint::Shape::Text(t) if t.galley.text() == "File" => {
+                    Some(t.visual_bounding_rect())
+                }
+                _ => None,
+            })
+            .expect("the File menu is drawn");
+        assert!(
+            file.min.y >= 0.0 && file.max.y <= bar,
+            "controls {controls}: File at {file:?} is not inside a bar {bar} high"
+        );
+    }
+}

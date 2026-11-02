@@ -1,7 +1,7 @@
 //! The status bar, document tabs and the bar above the stage.
 
 use crate::workspace::{Mode, Workspace};
-use egui::{Align, Layout, RichText, Ui};
+use egui::{Align, Layout, Rect, RichText, Ui, vec2};
 use flare_menubar::MenuAction;
 use flare_ui::chrome;
 use flare_ui::icons;
@@ -78,59 +78,106 @@ impl Workspace {
             tr!(self, "bar-new-document"),
         );
         let (mut switch, mut close, mut add) = (None, None, false);
+        let current = tabs.iter().position(|t| t.current);
+        let scroll_key = self.top_bar_id.with("tabs-scrolled-to");
+        let scrolled_to: Option<(usize, usize)> = ui.data(|d| d.get_temp(scroll_key));
+        let at = current.map(|c| (c, tabs.len()));
+        // The current tab is scrolled into view when it, or how many tabs there are, changes, but
+        // not on every frame, which would fight the person scrolling the strip.
+        let reveal = at.is_some() && scrolled_to != at;
+        let mut plus_rect = Rect::NOTHING;
         ui.horizontal(|ui| {
-            // Tabs sit close together; what is inside each keeps the usual spacing.
-            let inner_gap = std::mem::replace(&mut ui.spacing_mut().item_spacing.x, TAB_GAP);
-            for (index, tab) in tabs.iter().enumerate() {
-                let fill = if tab.current {
-                    theme::panel()
-                } else {
-                    theme::bg()
-                };
-                egui::Frame::new()
-                    .fill(fill)
-                    .stroke(egui::Stroke::new(1.0, theme::border()))
-                    .corner_radius(egui::CornerRadius {
-                        nw: 6,
-                        ne: 6,
-                        sw: 0,
-                        se: 0,
-                    })
-                    .inner_margin(egui::Margin::symmetric(8, 3))
-                    .show(ui, |ui| {
-                        ui.spacing_mut().item_spacing.x = inner_gap;
-                        let color = if tab.current {
-                            theme::text()
-                        } else {
-                            theme::text_dim()
-                        };
-                        // One row, with the icon and the name on the same middle.
-                        ui.horizontal(|ui| {
-                            let (_, label) = chrome::icon_and_label(
-                                ui,
-                                "document",
-                                14.0,
-                                RichText::new(&tab.title).color(color),
-                            );
-                            if label.clicked() {
-                                switch = Some(index);
-                            }
-                            if tab.dirty {
-                                ui.label(RichText::new("\u{25cf}").color(theme::accent()).small());
-                            }
-                            if chrome::icon_button(ui, "close", 10.0, false, true, &close_tip)
-                                .clicked()
-                            {
-                                close = Some(index);
-                            }
-                        });
-                    });
+            // The "+" stays where it is, beside the strip, however many tabs there are.
+            let plus_width = 30.0;
+            let strip_width = (ui.available_width() - plus_width).max(60.0);
+            let strip =
+                Rect::from_min_size(ui.cursor().min, vec2(strip_width, ui.available_height()));
+            if ui.rect_contains_pointer(strip) {
+                // A wheel turns the strip, as it does a browser's.
+                ui.input_mut(|i| {
+                    if i.smooth_scroll_delta.x == 0.0 {
+                        i.smooth_scroll_delta.x = i.smooth_scroll_delta.y;
+                        i.smooth_scroll_delta.y = 0.0;
+                    }
+                });
             }
+            egui::ScrollArea::horizontal()
+                .id_salt(scroll_key)
+                .max_width(strip_width)
+                .auto_shrink([true, true])
+                .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
+                .show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        // Tabs sit close together; what is inside each keeps the usual spacing.
+                        let inner_gap =
+                            std::mem::replace(&mut ui.spacing_mut().item_spacing.x, TAB_GAP);
+                        for (index, tab) in tabs.iter().enumerate() {
+                            let fill = if tab.current {
+                                theme::panel()
+                            } else {
+                                theme::bg()
+                            };
+                            let frame = egui::Frame::new()
+                                .fill(fill)
+                                .stroke(egui::Stroke::new(1.0, theme::border()))
+                                .corner_radius(egui::CornerRadius {
+                                    nw: 6,
+                                    ne: 6,
+                                    sw: 0,
+                                    se: 0,
+                                })
+                                .inner_margin(egui::Margin::symmetric(8, 3))
+                                .show(ui, |ui| {
+                                    ui.spacing_mut().item_spacing.x = inner_gap;
+                                    let color = if tab.current {
+                                        theme::text()
+                                    } else {
+                                        theme::text_dim()
+                                    };
+                                    // One row, with the icon and the name on the same middle.
+                                    ui.horizontal(|ui| {
+                                        let (_, label) = chrome::icon_and_label(
+                                            ui,
+                                            "document",
+                                            14.0,
+                                            RichText::new(&tab.title).color(color),
+                                        );
+                                        if label.clicked() {
+                                            switch = Some(index);
+                                        }
+                                        if tab.dirty {
+                                            ui.label(
+                                                RichText::new("\u{25cf}")
+                                                    .color(theme::accent())
+                                                    .small(),
+                                            );
+                                        }
+                                        if chrome::icon_button(
+                                            ui, "close", 10.0, false, true, &close_tip,
+                                        )
+                                        .clicked()
+                                        {
+                                            close = Some(index);
+                                        }
+                                    });
+                                });
+                            if tab.current && reveal {
+                                ui.scroll_to_rect(frame.response.rect, None);
+                            }
+                        }
+                    });
+                });
             ui.add_space(4.0);
-            if chrome::icon_button(ui, "plus", 12.0, false, true, &new_tip).clicked() {
+            let plus = chrome::icon_button(ui, "plus", 12.0, false, true, &new_tip);
+            plus_rect = plus.rect;
+            if plus.clicked() {
                 add = true;
             }
         });
+        self.tab_plus = plus_rect;
+        if reveal {
+            ui.data_mut(|d| d.insert_temp(scroll_key, at));
+        }
         if add {
             self.new_tab();
         } else if let Some(index) = close {
