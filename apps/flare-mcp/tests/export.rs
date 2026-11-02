@@ -4,7 +4,7 @@
 
 mod common;
 
-use common::{Fixture, fixture};
+use common::{Fixture, fixture, fixture_of};
 use serde_json::json;
 
 async fn drawn() -> Fixture {
@@ -196,4 +196,92 @@ async fn a_published_movie_imports_back_as_a_project() {
         .expect("the imported project opens");
     // The fixture's stage is 40 by 20.
     assert_eq!((loaded.stage().width(), loaded.stage().height()), (40, 20));
+}
+
+fn sample_fla() -> Vec<u8> {
+    std::fs::read(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../crates/io/flare-import/tests/fixtures/sample.fla"
+    ))
+    .expect("the fixture")
+}
+
+#[tokio::test]
+async fn an_imported_project_exports_as_the_original_until_it_is_edited() {
+    let original = sample_fla();
+    let imported = flare_import::import_bytes(original.clone())
+        .expect("imports")
+        .document;
+    let f = fixture_of(&imported, true, true, vec![]).await;
+
+    let same = f.ok("export_xfl", json!({ "name": "same.fla" })).await;
+    assert_eq!(same["lossless"]["exact"], true, "{same}");
+    assert_eq!(bytes(&same["path"]), original);
+
+    f.ok("rename_scene", json!({ "name": "Renamed" })).await;
+    let edited = f.ok("export_xfl", json!({ "name": "edited.fla" })).await;
+    assert_eq!(edited["lossless"]["exact"], false);
+    assert!(
+        edited["lossless"]["reason"]
+            .as_str()
+            .expect("r")
+            .contains("edited since"),
+        "{edited}"
+    );
+    assert_ne!(bytes(&edited["path"]), original);
+
+    f.ok("undo", json!({})).await;
+    let back = f.ok("export_xfl", json!({ "name": "back.fla" })).await;
+    assert_eq!(
+        bytes(&back["path"]),
+        original,
+        "undone, it is the original again"
+    );
+}
+
+#[tokio::test]
+async fn a_project_that_was_not_imported_says_its_export_is_rebuilt() {
+    let f = drawn().await;
+    let out = f.ok("export_xfl", json!({ "name": "new.fla" })).await;
+    assert_eq!(out["lossless"]["exact"], false);
+    assert!(
+        out["lossless"]["reason"]
+            .as_str()
+            .expect("r")
+            .contains("not imported from a file")
+    );
+}
+
+#[tokio::test]
+async fn importing_through_the_server_keeps_the_original_and_leaves_the_source_alone() {
+    let f = drawn().await;
+    let exports = f.dir.path().join("exports");
+    std::fs::create_dir_all(&exports).expect("dir");
+    let source = exports.join("src.fla");
+    std::fs::write(&source, sample_fla()).expect("write");
+    let before = std::fs::metadata(&source)
+        .expect("meta")
+        .modified()
+        .expect("time");
+    let imported = f
+        .ok(
+            "import_project",
+            json!({ "source": "src.fla", "name": "imp" }),
+        )
+        .await;
+    assert_eq!(imported["original_kept"], true);
+    assert_eq!(std::fs::read(&source).expect("read"), sample_fla());
+    assert_eq!(
+        std::fs::metadata(&source)
+            .expect("meta")
+            .modified()
+            .expect("time"),
+        before
+    );
+    let loaded = flare_storage::load(std::path::Path::new(imported["path"].as_str().expect("p")))
+        .expect("opens");
+    assert!(
+        loaded.origin().is_some(),
+        "the project file kept the source"
+    );
 }

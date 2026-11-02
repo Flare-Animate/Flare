@@ -87,6 +87,7 @@ impl FlareServer {
                 "path": out.to_string_lossy(),
                 "frames": published.frames,
                 "bytes": published.bytes.len(),
+                "original": published.original,
                 "diagnostics": diagnostics(&published.diagnostics, |d| (
                     format!("{:?}", d.severity).to_lowercase(), d.message.clone())),
             }))
@@ -121,7 +122,7 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Export the project as an XFL folder, or a zipped .fla when the name ends in .fla, in the export directory. Lists what the format could not hold exactly."
+        description = "Export the project as an XFL folder, or a zipped .fla when the name ends in .fla, in the export directory. Lists what the format could not hold exactly. An imported .fla or XFL folder that has not been edited is written back as the original, and `lossless` says whether the output is the original and why."
     )]
     fn export_xfl(&self, Parameters(args): Parameters<ExportXfl>) -> Outcome {
         self.read(|state| {
@@ -140,7 +141,8 @@ impl FlareServer {
             Ok(json!({
                 "path": out.to_string_lossy(),
                 "format": if zipped { "fla" } else { "xfl" },
-                "files": output.files.len(),
+                "files": output.file_count(),
+                "lossless": { "exact": output.lossless.exact, "reason": output.lossless.reason },
                 "diagnostics": diagnostics(&output.diagnostics, |d| (
                     format!("{:?}", d.severity).to_lowercase(),
                     format!("{}: {}", d.location, d.message))),
@@ -165,6 +167,7 @@ impl FlareServer {
                 "path": out.to_string_lossy(),
                 "scenes": imported.document.scenes().len(),
                 "symbols": imported.document.symbols().len(),
+                "original_kept": imported.document.origin().is_some(),
                 "diagnostics": diagnostics(&imported.diagnostics, |d| (
                     format!("{:?}", d.severity).to_lowercase(),
                     format!("{}: {}", d.location, d.message))),

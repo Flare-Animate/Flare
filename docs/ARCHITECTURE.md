@@ -131,7 +131,7 @@ affects exports.
 
 A `.flare` file is a SQLite database (`application_id` "FLAR", `user_version` 1) with a
 `project` row (frame rate, stage) and an `entity` table with one row for each scene, symbol,
-sound and source attachment. A row's payload is the record's fields as CBOR, compressed with zstd
+sound, source attachment and, for an imported file, its source (below). A row's payload is the record's fields as CBOR, compressed with zstd
 (level 3, 256 KiB window, content size and checksum) when that is smaller, beside the record's
 `codec`, its uncompressed `size` and the BLAKE3 `digest` of the stored bytes. A sound is one
 record too: the length of its fields, the fields as CBOR, then the audio file as its own bytes,
@@ -164,6 +164,13 @@ project `flare-cli` made and write one back, and has the desktop's code read tha
   decompressor held to that
   size and to the window the writer uses (so a record cannot be a decompression bomb), CBOR
   nesting limited, and full revalidation through the document's constructors.
+- An imported project can carry one `origin` record: the file it was imported from (a `.fla` or `.swf` as its bytes, an
+  XFL folder as its files), with the fingerprint of the document the import made. It is laid out like a sound (the
+  length of its fields, the fields as CBOR, then the bytes), capped at 256 MiB plus its fields and checked like every
+  record (its size against the limit before anything is allocated, the stored digest, then the source's own digest
+  after it is unframed, every size it states against the bytes that are there, names that stay inside the folder).
+  Projects with no source have no such row and are no bigger than before; files from before the record still open;
+  a build from before it refuses a file that has one. See [decisions/LOSSLESS.md](decisions/LOSSLESS.md).
 - There is one version of the format. Files made before the records were compressed (JSON in
   text columns) are not read.
 
@@ -220,7 +227,7 @@ take font files the person brings (`--font-file`) next to the system's.
 
 ## Import (SWF)
 
-`flare import <movie.swf> <out.flare>` (and File > Open, the browser's picker, and the MCP tool `import_project`) reads a Flash movie, found by what the file starts with (`FWS`, `CWS` or `ZWS`) rather than its name, using Ruffle's `swf` crate. The size a movie claims for itself once decompressed is checked before anything is allocated for it, and the counts of symbols, frames and keyframes are capped. Every shape character becomes a Graphic symbol and every sprite a Movie Clip symbol with a timeline of its own; the main timeline becomes one scene with a layer for each depth, the highest on top, and names given by Export Assets name the symbols. A SWF holds the position of each object on each frame, not tweens, so each frame an object changes on is a keyframe. The edges of a shape are turned into shapes by the same code as XFL's (`shapes_from`), so a stroke along a fill's boundary is its outline in both. Imported: stage size, frame rate and background; solid fills and strokes with their caps and joins; placements with their matrices. Reported and left out: gradients (a gradient takes the color of its first stop), picture fills, text, buttons, pictures, video, sound, scripts, color effects, filters, blend modes, masks and frame labels. Verification is the movie `flare-publish` writes, imported back and drawn (`apps/flare-cli/tests/project/formats.rs`), and movies built tag by tag in `crates/io/flare-import/tests/swf.rs`, including every truncation and random damage.
+`flare import <movie.swf> <out.flare>` (and File > Open, the browser's picker, and the MCP tool `import_project`) reads a Flash movie, found by what the file starts with (`FWS`, `CWS` or `ZWS`) rather than its name, using Ruffle's `swf` crate. The size a movie claims for itself once decompressed is checked before anything is allocated for it, and the counts of symbols, frames and keyframes are capped. Every shape character becomes a Graphic symbol and every sprite a Movie Clip symbol with a timeline of its own; the main timeline becomes one scene with a layer for each depth, the highest on top, and names given by Export Assets name the symbols. A SWF holds the position of each object on each frame, not tweens, so each frame an object changes on is a keyframe. The edges of a shape are turned into shapes by the same code as XFL's (`shapes_from`), so a stroke along a fill's boundary is its outline in both. Imported: stage size, frame rate and background; solid fills and strokes with their caps and joins; placements with their matrices. Reported and left out: gradients (a gradient takes the color of its first stop), picture fills, text, buttons, pictures, video, sound, scripts, color effects, filters, blend modes, masks and frame labels. The movie's bytes are kept with the document: publishing it as a SWF while unchanged writes the original file back byte for byte (`Published::original`), and an edited one is rebuilt. Verification is the movie `flare-publish` writes, imported back and drawn (`apps/flare-cli/tests/project/formats.rs`), and movies built tag by tag in `crates/io/flare-import/tests/swf.rs`, including every truncation and random damage.
 
 ## Import (legacy binary FLA)
 
@@ -266,9 +273,12 @@ the extras on additional layers above, preserving stacking.
 XFL linear gradients of two colors are imported as gradients, laid on the shape by the file's matrix (the matrix is in pixels, unlike the edges, and maps a square 32768 units wide; the numbers of a real file were checked against that) only if that puts a square about the shape's size on it; a radial gradient, one with more stops (the first and last are kept), or one that does not fit its shape is imported as the average of its first and last stop, with a warning. SWF import still takes a gradient's first stop. Reported and not imported: bitmap fills, bitmaps, text, video, sound, frame scripts, filters,
 color effects, blend modes, masks, guides, primitives, and
 symbol runtime behaviour (a movie clip's own clock and a button's states keep their type but are not carried out, with a warning).
-Foreign data is not preserved, so anything not imported is lost on save. This has been
-tested only against fixtures written for these tests, not against files from Animate; real
-corpus evidence is the next step before calling any feature supported.
+What is not imported is kept as source data (see Source preservation) and the file itself is kept
+with the document, so that exporting an unchanged import writes the original back (see Source preservation).
+Importing never touches the source: a file is only opened for reading, a folder is read into memory once and
+imported from there, and nothing is created, renamed or deleted beside or inside it. The feature set has been
+tested against fixtures written for these tests and, for the file-level guarantees, against every zipped `.fla` in
+the vendored Ruffle suite; not against files from Animate.
 
 ## Export (XFL)
 
@@ -287,7 +297,11 @@ escaped and file names are made safe and unique.
 
 Verification is round-trip only: exported files re-import with `flare-import` to the same
 structure, identical pixels for straight edges and close pixels for curves. Whether Adobe
-Animate opens them is untested. Source preservation of unknown data is not implemented.
+Animate opens them is untested. Unknown data is preserved as described in Source preservation.
+
+A project imported from a `.fla` or an XFL folder exports as the original while it is unchanged, and keeps every
+original file it did not touch once it is edited. The output says which (`Output::lossless`, printed by
+`flare export-xfl` and the MCP tool as `lossless: {exact, reason}`).
 
 ## Publishing (SWF)
 
@@ -380,7 +394,33 @@ says what we meant. Ruffle has drawn the frames of the render-check movies (abov
 playback over time and Flash Player have not been checked.
 ## Source preservation
 
-Data Flare cannot edit is kept, not dropped. An `Attachment` is opaque source text (for XFL,
+Data Flare cannot edit is kept, not dropped, at two levels: the whole source file (below), and element by element.
+
+### The source file
+
+An import keeps what it read as the document's `Origin` (`flare-document`): the bytes of a `.fla` or `.swf`, or every
+file and empty folder of an XFL folder (at most 256 MiB and 50,000 files; beyond that the import succeeds without a
+source and says so in a diagnostic, and an export of it says it is rebuilt). With it goes a fingerprint of the
+document the import made (`flare_storage::fingerprint`: a BLAKE3 over the records the project file stores, split into
+"everything but the symbols" and one part for each symbol). The source rides along with every edit, undo step, save
+and reload. It is what exports use:
+
+- Unchanged (the fingerprint is the baseline again; undoing an edit counts): `.fla` to `.fla` is the original file
+  byte for byte; a folder to a folder is every file and empty folder byte for byte; a `.fla` to a folder, or a folder to a
+  `.fla`, has every entry identical but is a new container; a SWF import published as SWF is the original file.
+- Edited: `DOMDocument.xml` is rebuilt unless only symbols changed, each library item is rebuilt unless it was not
+  touched, and every other file in the source (bitmaps, sounds, `bin/`, publish settings, metadata, anything unknown)
+  is written byte for byte, in the original order. Library files of deleted or renamed symbols are not written, and
+  entries that cannot be read back out of the archive are left out, and both are reported.
+- A movie imported from a SWF has no XFL to write back; an XFL export of it is rebuilt and says so. An edited SWF
+  import is published by `flare-publish` as for any document.
+
+Not kept: modification times and permissions of a folder's files; a folder containing a symbolic link (nothing is
+followed out of it) or more than the limits; a legacy binary `.fla` (read as a skeleton).
+
+### Elements
+
+An `Attachment` is opaque source text (for XFL,
 one XML element) tied to a stable entity ID (the document, a scene, a symbol or a layer),
 with a placement saying where it belongs and a BLAKE3 digest of its content. Attachments
 travel with the document: edits carry them through, undo and redo restore them, projects
@@ -403,7 +443,8 @@ The policy is deliberately honest rather than clever:
   element (a gradient in a shape, a filter on an instance) is still lost; kept elements are
   written after Flare's own in their keyframe, so their stacking relative to them can change;
   masks and their relationships to masked layers are kept as layers but not as semantics;
-  binary assets such as bitmaps are not carried, so kept references to them dangle; and kept
+  a bitmap file is carried only through the source file above (so a project with no source, or an export to
+  another format, has references to bitmaps that dangle); and kept
   data has only been checked by round-tripping through our own importer, not by Adobe Animate.
 
 ## Frontends

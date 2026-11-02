@@ -21,8 +21,6 @@ pub async fn fixture(write: bool, exports: bool) -> Fixture {
 
 /// Like `fixture`, with fonts (the bytes of font files) the server knows by name.
 pub async fn fixture_with_fonts(write: bool, exports: bool, fonts: Vec<Vec<u8>>) -> Fixture {
-    let dir = tempfile::tempdir().expect("dir");
-    let path = dir.path().join("p.flare");
     let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
     let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
     let rate = FrameRate::new(24, 1).expect("rate");
@@ -30,7 +28,19 @@ pub async fn fixture_with_fonts(write: bool, exports: bool, fonts: Vec<Vec<u8>>)
     let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
         .expect("doc")
         .with_stage(stage);
-    flare_storage::save(&document, &path).expect("save");
+    fixture_of(&document, write, exports, fonts).await
+}
+
+/// A server for `document`, saved as the project, with fonts the server knows by name.
+pub async fn fixture_of(
+    document: &Document,
+    write: bool,
+    exports: bool,
+    fonts: Vec<Vec<u8>>,
+) -> Fixture {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("p.flare");
+    flare_storage::save(document, &path).expect("save");
     let export_dir = exports.then(|| dir.path().join("exports"));
     let server = FlareServer::open(path.clone(), Permissions { write, export_dir })
         .expect("open")

@@ -8,6 +8,7 @@ mod camera;
 mod editing;
 mod formats;
 mod layers_and_stage;
+mod lossless;
 mod open;
 mod rendering;
 mod text;

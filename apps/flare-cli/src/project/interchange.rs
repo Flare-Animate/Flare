@@ -39,11 +39,26 @@ pub fn import(source: &Path, out: &Path) -> Result<Value> {
         "scenes": imported.document.scenes().len(),
         "symbols": imported.document.symbols().len(),
         "kept_source_data": imported.document.attachments().len(),
+        "original_kept": source_json(&imported.document),
         "info": count(flare_import::Severity::Info),
         "warnings": count(flare_import::Severity::Warning),
         "unsupported": count(flare_import::Severity::Unsupported),
         "diagnostics": diagnostics,
     }))
+}
+
+/// What the project remembers of the file it was imported from: with it, exporting the project
+/// unchanged writes that file back byte for byte.
+fn source_json(document: &flare_document::Document) -> Value {
+    match document.origin() {
+        Some(origin) => json!({
+            "kept": true,
+            "format": origin.kind().name(),
+            "bytes": origin.len(),
+            "digest": origin.digest().iter().map(|b| format!("{b:02x}")).collect::<String>(),
+        }),
+        None => json!({ "kept": false }),
+    }
 }
 
 /// Exports a project as an XFL folder, or as a zipped modern `.fla` when `out` ends in
@@ -81,7 +96,8 @@ pub fn export_xfl(path: &Path, out: &Path) -> Result<Value> {
     Ok(json!({
         "exported": out.to_string_lossy(),
         "format": if zipped { "fla" } else { "xfl" },
-        "files": output.files.len(),
+        "files": output.file_count(),
+        "lossless": { "exact": output.lossless.exact, "reason": output.lossless.reason },
         "info": count(flare_export::Severity::Info),
         "warnings": count(flare_export::Severity::Warning),
         "diagnostics": diagnostics,
@@ -132,6 +148,7 @@ pub fn publish_swf(path: &Path, out: &Path, compress: bool) -> Result<Value> {
         "published": out.to_string_lossy(),
         "frames": published.frames,
         "bytes": published.bytes.len(),
+        "original": published.original,
         "diagnostics": diagnostics,
     }))
 }
