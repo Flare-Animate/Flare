@@ -41,6 +41,10 @@ pub enum MenuAction {
     Duplicate,
     ConvertToSymbol,
     Group,
+    BringToFront,
+    BringForward,
+    SendBackward,
+    SendToBack,
     Ungroup,
     BreakApart,
     Publish,
@@ -142,7 +146,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 120] = [
+    pub const ALL: [MenuAction; 124] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -165,6 +169,10 @@ impl MenuAction {
         Self::Duplicate,
         Self::ConvertToSymbol,
         Self::Group,
+        Self::BringToFront,
+        Self::BringForward,
+        Self::SendBackward,
+        Self::SendToBack,
         Self::Ungroup,
         Self::BreakApart,
         Self::Publish,

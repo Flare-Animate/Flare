@@ -291,3 +291,37 @@ fn the_pen_and_the_text_tool_draw_into_the_layer_too() {
     assert_eq!(layer_count(&ws), 1);
     assert_eq!(elements_at(&ws, 0), vec![2]);
 }
+
+#[test]
+fn modify_arrange_moves_the_picked_element_one_step_or_to_an_end_of_its_keyframe() {
+    let mut ws = workspace();
+    rect(&mut ws); // element 0, x 10..110
+    draw_second(&mut ws); // element 1, x 100..150
+    ws.commit_rectangle(Pos2::new(200.0, 10.0), Pos2::new(250.0, 60.0)); // element 2
+    ws.set_tool(Tool::Select);
+    for action in [
+        MenuAction::BringToFront,
+        MenuAction::BringForward,
+        MenuAction::SendBackward,
+        MenuAction::SendToBack,
+    ] {
+        assert!(!ws.is_enabled(action), "nothing is picked");
+    }
+    ws.select_at(Pos2::new(30.0, 30.0), false);
+    assert_eq!(ws.selected.map(|s| s.element), Some(0));
+    let element_after = |ws: &mut Workspace, action| {
+        ws.perform(action);
+        ws.selected.map(|s| s.element)
+    };
+    assert_eq!(element_after(&mut ws, MenuAction::BringForward), Some(1));
+    assert_eq!(element_after(&mut ws, MenuAction::BringToFront), Some(2));
+    assert_eq!(element_after(&mut ws, MenuAction::SendBackward), Some(1));
+    assert_eq!(element_after(&mut ws, MenuAction::SendToBack), Some(0));
+    assert_eq!(layer_count(&ws), 1, "no layer is touched");
+    let before = ws.document().clone();
+    ws.perform(MenuAction::SendBackward); // already at the bottom: nothing to do
+    assert_eq!(ws.document(), &before);
+    ws.perform(MenuAction::BringToFront);
+    ws.undo();
+    assert_eq!(ws.document(), &before, "one undo step");
+}

@@ -103,6 +103,17 @@ fn commands_sit_where_animate_keeps_them() {
         transform.iter().any(|l| l == "Flip Horizontal"),
         "{transform:?}"
     );
+    let arrange = shown(&ws, submenu(modify, "Arrange"));
+    assert_eq!(
+        arrange,
+        [
+            "Bring to Front",
+            "Bring Forward",
+            "Send Backward",
+            "Send to Back"
+        ],
+        "Modify > Arrange is real now"
+    );
 }
 
 #[test]

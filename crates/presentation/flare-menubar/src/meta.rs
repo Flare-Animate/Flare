@@ -121,6 +121,8 @@ impl MenuAction {
             Self::ToolSubselection => "tool-subselection",
             Self::ToolFreeTransform => "tool-transform",
             Self::Group => "group",
+            Self::BringToFront | Self::BringForward => "bring-front",
+            Self::SendBackward | Self::SendToBack => "send-back",
             Self::Ungroup => "ungroup",
             Self::BreakApart => "break-apart",
             Self::Publish => "publish",

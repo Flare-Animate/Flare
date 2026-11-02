@@ -2,7 +2,7 @@
 
 use flare_document::Tween;
 use flare_menubar::MenuAction;
-use flare_tools::ops::{self};
+use flare_tools::ops::{self, Stack};
 use flare_ui::view::{self};
 use glamx::{DAffine2, DVec2};
 
@@ -87,6 +87,10 @@ impl Workspace {
             | MenuAction::ScaleUp
             | MenuAction::ScaleDown => self.has_selection(),
             MenuAction::ConvertToSymbol => self.can_convert_selection(),
+            MenuAction::BringToFront
+            | MenuAction::BringForward
+            | MenuAction::SendBackward
+            | MenuAction::SendToBack => self.has_selection(),
             MenuAction::Group => self.selection_all().len() >= 2,
             MenuAction::Ungroup => self.selection_has_instance(),
             MenuAction::BreakApart => self.selection_can_break_apart(),
@@ -225,6 +229,10 @@ impl Workspace {
                 self.transform_selection(DAffine2::from_scale(DVec2::splat(1.0 / SCALE_STEP)))
             }
             MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
+            MenuAction::BringToFront => self.stack_selection(Stack::Front),
+            MenuAction::BringForward => self.stack_selection(Stack::Forward),
+            MenuAction::SendBackward => self.stack_selection(Stack::Backward),
+            MenuAction::SendToBack => self.stack_selection(Stack::Back),
             MenuAction::Group => self.group_selection(),
             MenuAction::Ungroup | MenuAction::BreakApart => self.break_apart_selection(),
             MenuAction::Publish => self.windows.publish = true,

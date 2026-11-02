@@ -171,7 +171,15 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Action(A::MirrorCopyVertical),
                 ],
             ),
-            Mock("Arrange"),
+            Submenu(
+                "Arrange",
+                &[
+                    Action(A::BringToFront),
+                    Action(A::BringForward),
+                    Action(A::SendBackward),
+                    Action(A::SendToBack),
+                ],
+            ),
             Mock("Align"),
             Separator,
             Action(A::Group),
