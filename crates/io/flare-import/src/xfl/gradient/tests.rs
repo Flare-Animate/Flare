@@ -11,12 +11,12 @@ fn fill(inner: &str) -> Node {
 const RED: Rgba8 = Rgba8::opaque(0xFF, 0, 0);
 const BLUE: Rgba8 = Rgba8::opaque(0, 0, 0xFF);
 
-/// A gradient square 720 px long running top to bottom over a 1280 by 720 shape, as the SWF
-/// convention puts one: a turn of a quarter, so the matrix scale is on b and c.
+/// A gradient square 720 px long running top to bottom over a 1280 by 720 shape: a turn of a
+/// quarter, so the matrix scale is on b and c, and the matrix is in pixels.
 fn vertical() -> String {
-    let k = 720.0 * 20.0 / 32768.0;
+    let k = 720.0 / 32768.0;
     format!(
-        r##"<LinearGradient><matrix><Matrix a="0" b="{k}" c="{}" d="0" tx="12800" ty="7200"/></matrix>
+        r##"<LinearGradient><matrix><Matrix a="0" b="{k}" c="{}" d="0" tx="640" ty="360"/></matrix>
 <GradientEntry color="#FF0000" ratio="0"/><GradientEntry color="#0000FF" ratio="1"/></LinearGradient>"##,
         -k
     )
@@ -78,15 +78,16 @@ fn a_square_of_the_wrong_size_or_in_the_wrong_place_is_not_laid_on_the_shape() {
         .expect("gradient")
         .linear
         .expect("linear");
-    // The numbers read as pixels instead of twips: a square 64 px long over a shape 1469 across.
+    // The numbers of a file in twips, read as pixels: a square 20 times too long, far too big for
+    // the shape it is on.
     let as_pixels = fill(
-        r##"<LinearGradient><matrix><Matrix a="0.0390625" tx="640" ty="360"/></matrix>
+        r##"<LinearGradient><matrix><Matrix a="0.78125" tx="12800" ty="7200"/></matrix>
 <GradientEntry color="#FF0000" ratio="0"/><GradientEntry color="#0000FF" ratio="1"/></LinearGradient>"##,
     );
     let pixels = read(&as_pixels).expect("gradient").linear.expect("linear");
     assert!(place(&pixels, BOUNDS).is_none());
-    // The right square, but its middle is far from the shape.
-    let far = fill(&vertical().replace(r#"tx="12800""#, r#"tx="1280000""#));
+    // The right size, but its middle is far from the shape.
+    let far = fill(&vertical().replace(r#"tx="640""#, r#"tx="64000""#));
     let far = read(&far).expect("gradient").linear.expect("linear");
     assert!(place(&far, BOUNDS).is_none());
     // And a shape with no size has nothing to be laid on.
@@ -142,11 +143,51 @@ fn nonsense_numbers_in_the_matrix_fall_back_to_the_defaults_and_a_stop_past_the_
         r##"<LinearGradient><matrix><Matrix a="NaN" b="inf" tx="x"/></matrix>
 <GradientEntry color="#FF0000" ratio="0"/><GradientEntry color="#0000FF" ratio="9"/></LinearGradient>"##,
     );
-    let read = read(&nonsense).expect("gradient");
-    // What is not a number is as good as left out, which is the identity matrix: a square 1638
-    // px long along x, which happens to be about the size of this shape. The stop at 9 is the end.
-    let gradient = place(&read.linear.expect("linear"), BOUNDS).expect("placed");
+    let linear = read(&nonsense).expect("gradient").linear.expect("linear");
+    assert_eq!(
+        linear.matrix,
+        [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+        "what is not a number is left out"
+    );
+    assert_eq!(
+        (linear.from, linear.to),
+        (0.0, 1.0),
+        "a stop past the end is the end"
+    );
+    // The identity matrix is a square 32768 px long, which is not a gradient for this shape.
+    assert!(place(&linear, BOUNDS).is_none());
+}
+
+/// The `LinearGradient` of a real file (Stack Overflow question 10280530, which asks how to read
+/// it). Its numbers are exact multiples of 1/32768: `a` is 860 and `d` is 320 of them, and `tx`
+/// is 4369 twentieths of a pixel, so the matrix is in pixels and the square is 860 px wide.
+#[test]
+fn a_gradient_from_a_real_file_runs_across_a_square_860_pixels_wide() {
+    let real = fill(
+        r##"<LinearGradient><matrix><Matrix a="0.0262451171875" d="0.009765625" tx="218.45" ty="83"/></matrix>
+<GradientEntry color="#E63426" ratio="0.00392156862745098"/>
+<GradientEntry color="#CA271E" ratio="0.36078431372549"/>
+<GradientEntry color="#B31D19" ratio="0.749019607843137"/>
+<GradientEntry color="#AB1917" ratio="1"/></LinearGradient>"##,
+    );
+    let read = read(&real).expect("gradient");
+    assert!(
+        read.extra_stops,
+        "four stops, of which the document keeps two"
+    );
+    // A shape of about the size the matrix is made for: its middle is (218.45, 83), and the
+    // square is about twice as wide as it is.
+    let shape = (0.0, 0.0, 436.9, 166.0);
+    let gradient = place(&read.linear.expect("linear"), shape).expect("placed");
     let (from, to) = (gradient.from().as_vec(), gradient.to().as_vec());
-    assert!((to.x - from.x - 1638.4).abs() < 0.01, "{from:?} {to:?}");
-    assert!(from.y.abs() < 1e-9 && to.y.abs() < 1e-9);
+    assert!(
+        (from.x - -208.15).abs() < 0.1 && (from.y - 83.0).abs() < 1e-9,
+        "{from:?}"
+    );
+    assert!(
+        (to.x - 648.45).abs() < 0.01 && (to.y - 83.0).abs() < 1e-9,
+        "{to:?}"
+    );
+    assert_eq!(gradient.start(), Rgba8::opaque(0xE6, 0x34, 0x26));
+    assert_eq!(gradient.end(), Rgba8::opaque(0xAB, 0x19, 0x17));
 }

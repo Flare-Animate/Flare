@@ -3,11 +3,12 @@
 //! average of its first and last stop when it cannot (a radial gradient, or one this file places
 //! somewhere that does not make sense for its shape).
 //!
-//! The gradient's `Matrix` is taken to be in the shape's own space, like the edges: twips, and
-//! mapping a gradient square 32768 units wide (-16384 to 16384, along the matrix's x axis) onto
-//! the shape, as a SWF gradient does. That is checked against the shape rather than trusted: a
-//! gradient whose square is not about the size of what it fills, or is nowhere near it, is not
-//! placed.
+//! The gradient's `Matrix` is in pixels, unlike the edges, which are in twips: a real file has
+//! `tx="218.45"`, a number of pixels to the twentieth, and `a="0.0262451171875"`, which is exactly
+//! 860 over 32768. It maps a gradient square 32768 units wide (-16384 to 16384 along the matrix's
+//! x axis, as in SWF) onto the shape, so that file's square is 860 pixels long. The numbers are
+//! still checked against the shape rather than trusted: a gradient whose square is not about the
+//! size of what it fills, or is nowhere near it, is not placed.
 
 use super::color_from;
 use crate::xml::Node;
@@ -16,8 +17,6 @@ use flare_document::Gradient;
 
 /// Half the width of the square a gradient matrix maps, in gradient units.
 const HALF_SQUARE: f64 = 16384.0;
-/// A twip is a twentieth of a pixel.
-const TWIPS: f64 = 20.0;
 
 /// A linear gradient as the file gives it, before it meets its shape.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -108,12 +107,12 @@ pub(super) fn place(fill: &LinearFill, bounds: (f64, f64, f64, f64)) -> Option<G
         return None;
     }
     // The square's length along the gradient, in pixels, against the shape it is for.
-    let square = a.hypot(b) * 2.0 * HALF_SQUARE / TWIPS;
+    let square = a.hypot(b) * 2.0 * HALF_SQUARE;
     if !(0.2 * diagonal..=5.0 * diagonal).contains(&square) {
         return None;
     }
     // Its middle must be on the shape or close to it.
-    let (centre_x, centre_y) = (tx / TWIPS, ty / TWIPS);
+    let (centre_x, centre_y) = (tx, ty);
     let slack = 0.75 * diagonal;
     if !(min_x - slack..=max_x + slack).contains(&centre_x)
         || !(min_y - slack..=max_y + slack).contains(&centre_y)
@@ -122,7 +121,7 @@ pub(super) fn place(fill: &LinearFill, bounds: (f64, f64, f64, f64)) -> Option<G
     }
     let at = |t: f64| {
         let x = -HALF_SQUARE + 2.0 * HALF_SQUARE * t;
-        DocumentPoint::new((a * x + tx) / TWIPS, (b * x + ty) / TWIPS).ok()
+        DocumentPoint::new(a * x + tx, b * x + ty).ok()
     };
     Gradient::linear(at(fill.from)?, at(fill.to)?, fill.first, fill.last).ok()
 }

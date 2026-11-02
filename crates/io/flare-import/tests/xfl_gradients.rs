@@ -51,10 +51,10 @@ fn messages(imported: &flare_import::Imported, severity: Severity) -> String {
         .join("\n")
 }
 
-/// A gradient square 300 px long, top to bottom, over the whole 300 px height: the matrix scale
-/// is 6000 twips over 32768 units, turned a quarter.
+/// A gradient square 300 px long, top to bottom, over the whole 300 px height: the matrix, in
+/// pixels, scales 32768 units to 300, turned a quarter.
 const VERTICAL: &str = r##"<LinearGradient>
-<matrix><Matrix a="0" b="0.18310546875" c="-0.18310546875" d="0" tx="4000" ty="3000"/></matrix>
+<matrix><Matrix a="0" b="0.0091552734375" c="-0.0091552734375" d="0" tx="200" ty="150"/></matrix>
 <GradientEntry color="#FF0000" ratio="0"/><GradientEntry color="#0000FF" ratio="1"/></LinearGradient>"##;
 
 #[test]
@@ -89,9 +89,10 @@ fn a_gradient_background_is_drawn_as_a_gradient_not_left_out() {
 
 #[test]
 fn a_gradient_that_does_not_sit_on_its_shape_is_one_color_with_a_warning() {
-    // The same gradient with its numbers read in the wrong units: a square 64 px long.
-    let as_pixels = VERTICAL.replace("0.18310546875", "0.0390625");
-    let imported = import_xfl(&stage_with(&as_pixels)).expect("import");
+    // The same gradient with numbers 20 times too big, as if the file were in twips: a square
+    // 6000 px long over a shape 300 high.
+    let in_twips = VERTICAL.replace("0.0091552734375", "0.18310546875");
+    let imported = import_xfl(&stage_with(&in_twips)).expect("import");
     let (top, bottom) = (
         pixel(&imported.document, 200, 4),
         pixel(&imported.document, 200, 295),
