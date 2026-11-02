@@ -74,6 +74,7 @@ violation as a `Diagnostic`:
 - IDs are unique per kind, and instances only reference existing symbols.
 - Symbols cannot contain themselves, directly or indirectly.
 - Spans on a layer never overlap; durations are non-zero; frame arithmetic cannot overflow.
+- A span's `content` is its first element, and `extras` hold more (shapes and instances only, at most `MAX_ELEMENTS`, never with a tween), so a keyframe can hold what Animate's does; the project file writes `extras` only when there are some. Evaluation, selection and the tools still read the first element only; [decisions/ELEMENTS.md](decisions/ELEMENTS.md) lists the stages.
 - Coordinates and matrices are finite; stage and stroke sizes are bounded.
 
 Nothing in the model derives `Deserialize`. Storage rebuilds documents through the same

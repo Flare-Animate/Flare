@@ -10,6 +10,7 @@ mod camera;
 mod layer_queries;
 mod shape;
 mod sound;
+mod span_elements;
 mod stage;
 mod text;
 mod timeline;
@@ -27,6 +28,7 @@ pub use sound::{
     MAX_CUES_PER_LAYER, MAX_SOUND_BYTES, MAX_SOUNDS, MAX_TOTAL_SOUND_BYTES, Sound, SoundCue,
     SoundError,
 };
+pub use span_elements::MAX_ELEMENTS;
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
 pub use text::{
     MAX_FAMILY_CHARS, MAX_TEXT_CHARS, MAX_TEXT_SIZE, MIN_TEXT_SIZE, TextSource, TextSourceError,

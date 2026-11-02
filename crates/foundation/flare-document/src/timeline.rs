@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
 
-use crate::{Camera, MAX_CUES_PER_LAYER, Shape, SoundCue, SoundError};
+use crate::{Camera, MAX_CUES_PER_LAYER, MAX_ELEMENTS, Shape, SoundCue, SoundError};
 use thiserror::Error;
 
 /// How a Graphic instance plays the frames of its symbol, as in Animate's Properties: round and
@@ -123,7 +123,9 @@ pub struct FrameSpan {
     start: u32,
     duration: NonZeroU32,
     content: Content,
-    tween: Tween,
+    /// More elements drawn above `content` in the same frames; see `span_elements`.
+    pub(crate) extras: Vec<Content>,
+    pub(crate) tween: Tween,
     /// Easing of the tween, from `-MAX_EASE` to `MAX_EASE`; 0 is even speed.
     ease: i8,
 }
@@ -134,13 +136,17 @@ impl FrameSpan {
             start,
             duration,
             content,
+            extras: Vec::new(),
             tween: Tween::None,
             ease: 0,
         }
     }
 
+    /// The same span tweening; a span that holds several elements cannot, and stays held.
     pub fn with_tween(mut self, tween: Tween) -> Self {
-        self.tween = tween;
+        if self.extras.is_empty() {
+            self.tween = tween;
+        }
         self
     }
 
@@ -188,6 +194,12 @@ impl FrameSpan {
 pub enum TimelineError {
     #[error("frame spans in a layer overlap at frame {0}")]
     OverlappingSpans(u32),
+    #[error("a frame span may hold at most {MAX_ELEMENTS} elements, this one has {0}")]
+    TooManyElements(usize),
+    #[error("only a shape or a symbol instance can be one of several elements in a frame span")]
+    NotAnElement,
+    #[error("a frame span that holds several elements cannot tween")]
+    ManyElementsTween,
 }
 
 /// The colors layers without one of their own are marked with, by position.

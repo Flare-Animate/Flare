@@ -1,17 +1,14 @@
 //! Layers, spans and the shapes inside them.
 
 use crate::StorageError;
-use flare_core::{
-    DocumentPoint, InstanceId, LayerId, Rgba8, ShapeId, SoundId, SymbolId, Transform2D,
-};
+use flare_core::{DocumentPoint, LayerId, Rgba8, SoundId};
 use flare_document::{
-    Cap, Content, FrameSpan, Gradient, Instance, Join, Layer, PathSegment, Shape, SoundCue, Stroke,
-    TextSource, Timeline, Tween,
+    Cap, FrameSpan, Join, Layer, PathSegment, SoundCue, TextSource, Timeline, Tween,
 };
-use glamx::DAffine2;
 use serde::{Deserialize, Serialize};
 use std::num::NonZeroU32;
 
+use super::content::{build_content, wire_content};
 use super::*;
 
 #[derive(Serialize, Deserialize, Default)]
@@ -94,7 +91,7 @@ pub(super) struct TextWire {
 }
 
 impl TextWire {
-    fn of(source: &TextSource) -> Self {
+    pub(super) fn of(source: &TextSource) -> Self {
         Self {
             text: source.text().to_owned(),
             family: source.family().to_owned(),
@@ -105,7 +102,7 @@ impl TextWire {
         }
     }
 
-    fn build(self) -> Result<TextSource, StorageError> {
+    pub(super) fn build(self) -> Result<TextSource, StorageError> {
         let origin = DocumentPoint::new(self.origin[0], self.origin[1])
             .map_err(|_| StorageError::Corrupt("non-finite text position".into()))?;
         TextSource::new(
@@ -167,6 +164,9 @@ pub(super) struct SpanWire {
     pub(super) start: u32,
     pub(super) duration: u32,
     pub(super) content: ContentWire,
+    /// More elements above `content`; absent in files written before a span could hold several.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub(super) extras: Vec<ContentWire>,
 }
 
 pub(super) fn default_visible() -> bool {
@@ -246,41 +246,8 @@ impl TimelineWire {
                         ease: span.ease(),
                         start: span.start(),
                         duration: span.duration().get(),
-                        content: match span.content() {
-                            Content::Empty => ContentWire::Empty,
-                            Content::Shape(shape) => ContentWire::Shape {
-                                id: shape.id().as_uuid().to_string(),
-                                path: shape.path().iter().map(SegmentWire::of).collect(),
-                                rgba: shape.fill().to_array(),
-                                stroke: shape.stroke().map(|stroke| StrokeWire {
-                                    width: stroke.width(),
-                                    rgba: stroke.color().to_array(),
-                                    cap: (stroke.cap() != Cap::Round)
-                                        .then(|| cap_name(stroke.cap()).to_owned()),
-                                    join: (stroke.join() != Join::Round)
-                                        .then(|| join_name(stroke.join()).to_owned()),
-                                }),
-                                text: shape.text().map(TextWire::of),
-                                gradient: shape.gradient().map(|g| GradientWire {
-                                    from: [g.from().as_vec().x, g.from().as_vec().y],
-                                    to: [g.to().as_vec().x, g.to().as_vec().y],
-                                    start: g.start().to_array(),
-                                    end: g.end().to_array(),
-                                }),
-                            },
-                            Content::Instance(instance) => ContentWire::Instance {
-                                id: instance.id().as_uuid().to_string(),
-                                symbol: instance.symbol().as_uuid().to_string(),
-                                matrix: instance.transform().as_affine().to_cols_array(),
-                                play: Some(instance.playback().mode.name().to_owned()),
-                                first_frame: instance.playback().first_frame,
-                            },
-                            Content::Camera(camera) => ContentWire::Camera {
-                                center: camera.center().as_vec().to_array(),
-                                zoom: camera.zoom(),
-                                rotation: camera.rotation(),
-                            },
-                        },
+                        content: wire_content(span.content()),
+                        extras: span.extras().iter().map(wire_content).collect(),
                     })
                     .collect(),
             })
@@ -295,98 +262,12 @@ impl TimelineWire {
             for span in layer.spans {
                 let duration = NonZeroU32::new(span.duration)
                     .ok_or_else(|| StorageError::Corrupt("zero-length span".into()))?;
-                let content = match span.content {
-                    ContentWire::Empty => Content::Empty,
-                    ContentWire::Shape {
-                        id,
-                        path,
-                        rgba,
-                        stroke,
-                        gradient,
-                        text,
-                    } => {
-                        let path = path
-                            .iter()
-                            .map(SegmentWire::build)
-                            .collect::<Result<_, _>>()?;
-                        let fill = Rgba8::new(rgba[0], rgba[1], rgba[2], rgba[3]);
-                        let corrupt = |error: flare_document::ShapeError| {
-                            StorageError::Corrupt(error.to_string())
-                        };
-                        let mut shape = Shape::new(ShapeId::from_uuid(uuid(&id)?), path, fill)
-                            .map_err(corrupt)?;
-                        if let Some(stroke) = stroke {
-                            let [r, g, b, a] = stroke.rgba;
-                            let cap = cap_from(stroke.cap.as_deref())?;
-                            let join = join_from(stroke.join.as_deref())?;
-                            let stroke = Stroke::new(stroke.width, Rgba8::new(r, g, b, a))
-                                .map_err(corrupt)?
-                                .with_cap(cap)
-                                .with_join(join);
-                            shape = shape.with_stroke(stroke);
-                        }
-                        if let Some(g) = gradient {
-                            let point = |p: [f64; 2]| {
-                                DocumentPoint::new(p[0], p[1]).map_err(|_| {
-                                    StorageError::Corrupt("non-finite gradient".into())
-                                })
-                            };
-                            let color = |c: [u8; 4]| Rgba8::new(c[0], c[1], c[2], c[3]);
-                            let gradient = Gradient::linear(
-                                point(g.from)?,
-                                point(g.to)?,
-                                color(g.start),
-                                color(g.end),
-                            )
-                            .map_err(|error| StorageError::Corrupt(error.to_string()))?;
-                            shape = shape.with_gradient(gradient);
-                        }
-                        if let Some(text) = text {
-                            shape = shape.with_text(text.build()?);
-                        }
-                        Content::Shape(shape)
-                    }
-                    ContentWire::Instance {
-                        id,
-                        symbol,
-                        matrix,
-                        play,
-                        first_frame,
-                    } => {
-                        let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
-                            .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;
-                        // No name means the default, a loop; a name that is not a mode is a damaged
-                        // file, not something to guess at.
-                        let mode = match play.as_deref() {
-                            None => flare_document::PlayMode::default(),
-                            Some(name) => {
-                                flare_document::PlayMode::from_name(name).ok_or_else(|| {
-                                    StorageError::Corrupt(format!("unknown play mode {name:?}"))
-                                })?
-                            }
-                        };
-                        Content::Instance(
-                            Instance::new(
-                                InstanceId::from_uuid(uuid(&id)?),
-                                SymbolId::from_uuid(uuid(&symbol)?),
-                                transform,
-                            )
-                            .with_playback(flare_document::Playback { mode, first_frame }),
-                        )
-                    }
-                    ContentWire::Camera {
-                        center,
-                        zoom,
-                        rotation,
-                    } => {
-                        let center = DocumentPoint::new(center[0], center[1])
-                            .map_err(|_| StorageError::Corrupt("non-finite camera".into()))?;
-                        Content::Camera(
-                            flare_document::Camera::new(center, zoom, rotation)
-                                .map_err(|e| StorageError::Corrupt(e.to_string()))?,
-                        )
-                    }
-                };
+                let content = build_content(span.content)?;
+                let extras = span
+                    .extras
+                    .into_iter()
+                    .map(build_content)
+                    .collect::<Result<Vec<_>, _>>()?;
                 let tween = match span.tween {
                     TweenWire::None => Tween::None,
                     TweenWire::Linear => Tween::Linear,
@@ -394,6 +275,7 @@ impl TimelineWire {
                 };
                 spans.push(
                     FrameSpan::new(span.start, duration, content)
+                        .with_extras(extras)?
                         .with_tween(tween)
                         .with_ease(span.ease),
                 );
@@ -433,7 +315,7 @@ impl TimelineWire {
     }
 }
 
-fn cap_name(cap: Cap) -> &'static str {
+pub(super) fn cap_name(cap: Cap) -> &'static str {
     match cap {
         Cap::Butt => "butt",
         Cap::Round => "round",
@@ -441,7 +323,7 @@ fn cap_name(cap: Cap) -> &'static str {
     }
 }
 
-fn join_name(join: Join) -> &'static str {
+pub(super) fn join_name(join: Join) -> &'static str {
     match join {
         Join::Round => "round",
         Join::Bevel => "bevel",
@@ -449,7 +331,7 @@ fn join_name(join: Join) -> &'static str {
     }
 }
 
-fn cap_from(name: Option<&str>) -> Result<Cap, StorageError> {
+pub(super) fn cap_from(name: Option<&str>) -> Result<Cap, StorageError> {
     match name {
         None | Some("round") => Ok(Cap::Round),
         Some("butt") => Ok(Cap::Butt),
@@ -458,7 +340,7 @@ fn cap_from(name: Option<&str>) -> Result<Cap, StorageError> {
     }
 }
 
-fn join_from(name: Option<&str>) -> Result<Join, StorageError> {
+pub(super) fn join_from(name: Option<&str>) -> Result<Join, StorageError> {
     match name {
         None | Some("round") => Ok(Join::Round),
         Some("bevel") => Ok(Join::Bevel),

@@ -1,6 +1,6 @@
 # Decision: many elements in a keyframe
 
-Status: accepted; stage 1 (the document model) in progress.
+Status: accepted; stage 1 (the document model and the project file) done, stage 2 next.
 
 ## The problem
 

@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 mod attachment;
+mod content;
 mod settings;
 mod sound;
 mod timeline;
