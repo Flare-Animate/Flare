@@ -49,7 +49,7 @@ impl Workspace {
         let Some(scene) = self.scene_id() else {
             return;
         };
-        let name = self.tr("name-new-camera-layer");
+        let name = tr!(self, "name-new-camera-layer");
         let Some(batch) = flare_editor::set_camera_key_named(
             self.document(),
             scene,
@@ -58,7 +58,8 @@ impl Workspace {
             motion,
             &name,
         ) else {
-            let message = self.tr_with(
+            let message = tr!(
+                self,
                 "tools-camera-max-frame",
                 &[("frame", &flare_editor::MAX_CAMERA_FRAME.to_string())],
             );
@@ -67,8 +68,11 @@ impl Workspace {
         match self.active_mut().apply_labeled(batch, label) {
             Ok(()) => self.status = None,
             Err(error) => {
-                let message =
-                    self.tr_with("tools-camera-move-error", &[("error", &error.to_string())]);
+                let message = tr!(
+                    self,
+                    "tools-camera-move-error",
+                    &[("error", &error.to_string())]
+                );
                 self.report(message);
             }
         }
@@ -81,7 +85,7 @@ impl Workspace {
             return;
         }
         let centered = Camera::centered(&self.document().stage());
-        let label = self.tr("tools-camera-add");
+        let label = tr!(self, "tools-camera-add");
         self.key_camera(0, centered, None, &label);
     }
 
@@ -113,11 +117,11 @@ impl Workspace {
             .and_then(|c| Camera::new(c, camera.zoom(), camera.rotation()).ok());
         match moved {
             Some(moved) => {
-                let label = self.tr("tools-camera-move");
+                let label = tr!(self, "tools-camera-move");
                 self.key_camera(self.frame, moved, None, &label);
             }
             None => {
-                let message = self.tr("tools-camera-cannot-go");
+                let message = tr!(self, "tools-camera-cannot-go");
                 self.report(message);
             }
         }
@@ -136,7 +140,7 @@ impl Workspace {
             painter.text(
                 response.rect.left_top() + Vec2::new(10.0, 8.0),
                 egui::Align2::LEFT_TOP,
-                self.tr("tools-camera-previewing"),
+                tr!(self, "tools-camera-previewing"),
                 egui::FontId::proportional(13.0),
                 CAMERA_INK,
             );
@@ -176,7 +180,7 @@ impl Workspace {
     /// its keyframe moves to the next.
     pub(in crate::workspace) fn camera_options(&mut self, ui: &mut Ui) {
         let Some(camera) = self.camera_here() else {
-            ui.weak(self.tr("tools-no-scene-period"));
+            ui.weak(tr!(self, "tools-no-scene-period"));
             return;
         };
         let (mut x, mut y) = (camera.center().as_vec().x, camera.center().as_vec().y);
@@ -209,7 +213,7 @@ impl Workspace {
                 });
             match made {
                 Ok(camera) => {
-                    let label = self.tr("tools-camera-move");
+                    let label = tr!(self, "tools-camera-move");
                     self.key_camera(self.frame, camera, None, &label);
                 }
                 Err(message) => self.report(message),
@@ -226,23 +230,23 @@ impl Workspace {
         if let Some((start, held, tween, ease)) = keyframe {
             let mut moving = tween == Tween::Linear;
             if ui
-                .checkbox(&mut moving, self.tr("tools-camera-moving"))
+                .checkbox(&mut moving, tr!(self, "tools-camera-moving"))
                 .changed()
             {
                 let tween = if moving { Tween::Linear } else { Tween::None };
-                let label = self.tr("tools-camera-motion");
+                let label = tr!(self, "tools-camera-motion");
                 self.key_camera(start, held, Some((tween, ease)), &label);
             }
             if moving {
                 let mut ease = i32::from(ease);
-                let ease_label = self.tr("tools-camera-ease");
+                let ease_label = tr!(self, "tools-camera-ease");
                 chrome::row(ui, &ease_label, |ui| {
                     if ui
                         .add(egui::DragValue::new(&mut ease).range(-100..=100))
                         .changed()
                     {
                         let ease = i8::try_from(ease).unwrap_or(0);
-                        let label = self.tr("tools-camera-ease-label");
+                        let label = tr!(self, "tools-camera-ease-label");
                         self.key_camera(start, held, Some((Tween::Linear, ease)), &label);
                     }
                 });
@@ -250,21 +254,22 @@ impl Workspace {
         }
         let mut preview = self.camera_preview;
         if ui
-            .checkbox(&mut preview, self.tr("bar-camera-preview"))
+            .checkbox(&mut preview, tr!(self, "bar-camera-preview"))
             .changed()
         {
             self.set_camera_preview(preview);
         }
-        if ui.button(self.tr("tools-camera-remove")).clicked()
+        if ui.button(tr!(self, "tools-camera-remove")).clicked()
             && let (Some(scene), Some(layer)) =
                 (self.scene_id(), self.camera_layer().map(Layer::id))
         {
-            let label = self.tr("tools-camera-remove");
+            let label = tr!(self, "tools-camera-remove");
             let removed = self
                 .active_mut()
                 .apply_labeled(vec![Command::RemoveLayer { scene, layer }], &label);
             if let Err(error) = removed {
-                let message = self.tr_with(
+                let message = tr!(
+                    self,
                     "tools-camera-remove-error",
                     &[("error", &error.to_string())],
                 );
@@ -272,6 +277,6 @@ impl Workspace {
             }
             self.set_camera_preview(false);
         }
-        ui.weak(self.tr("tools-camera-help"));
+        ui.weak(tr!(self, "tools-camera-help"));
     }
 }

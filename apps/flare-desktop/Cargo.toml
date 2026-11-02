@@ -12,6 +12,7 @@ egui.workspace = true
 egui-wgpu = { workspace = true, features = ["default", "winit"] }
 egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
 flare-animate.workspace = true
+flare-i18n.workspace = true
 flare-menubar.workspace = true
 flare-document.workspace = true
 flare-ui.workspace = true

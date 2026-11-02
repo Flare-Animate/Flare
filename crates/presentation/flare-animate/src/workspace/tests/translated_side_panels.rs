@@ -281,7 +281,7 @@ fn every_history_step_has_its_name_in_each_language() {
             // A step that is in the list is shown by that name (the first is always the start).
             assert_eq!(ws.history_label(1, label), translated, "{tag}: {label}");
         }
-        assert_eq!(ws.history_label(0, "anything"), ws.tr("hist-original"));
+        assert_eq!(ws.history_label(0, "anything"), tr!(ws, "hist-original"));
     }
 }
 

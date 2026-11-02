@@ -51,7 +51,7 @@ impl Workspace {
             return;
         };
         if spans.len() < 3 {
-            self.report(self.tr("msg-distribute-needs-three"));
+            self.report(tr!(self, "msg-distribute-needs-three"));
             return;
         }
         let deltas = ops::distribute_deltas(&rects, horizontal);
@@ -237,7 +237,7 @@ impl Workspace {
         let Some((commands, symbol)) =
             ops::convert_to_symbol_as(self.document(), scene, selected, self.library.new_kind)
         else {
-            self.report(self.tr("msg-select-shape-for-symbol"));
+            self.report(tr!(self, "msg-select-shape-for-symbol"));
             return;
         };
         self.run_batch(commands, "convert to symbol");
@@ -273,7 +273,7 @@ impl Workspace {
         let Some(scene) = self.scene_id() else { return };
         let selection = self.selection_all();
         let Some((commands, symbol)) = ops::group(self.document(), scene, &selection) else {
-            self.report(self.tr("msg-select-shapes-to-group"));
+            self.report(tr!(self, "msg-select-shapes-to-group"));
             return;
         };
         self.run_batch(commands, "group");
@@ -301,7 +301,7 @@ impl Workspace {
             }
         }
         if commands.is_empty() {
-            self.report(self.tr("msg-select-to-break-apart"));
+            self.report(tr!(self, "msg-select-to-break-apart"));
             return;
         }
         self.run_batch(commands, "break apart");

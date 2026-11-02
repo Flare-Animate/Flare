@@ -105,38 +105,38 @@ impl Workspace {
             Tool::Ruler => "tool-ruler",
             Tool::Mirror => "tool-mirror",
         };
-        let title = self.tr_with("tools-title", &[("name", &self.tr(&name_key(icon)))]);
+        let title = tr!(self, "tools-title", &[("name", &self.tr(&name_key(icon)))]);
         chrome::section(ui, icon, &title);
         match self.tool {
             Tool::Text => {
                 self.character_section(ui, None);
-                ui.weak(self.tr("tools-help-text"));
+                ui.weak(tr!(self, "tools-help-text"));
             }
             Tool::Pen => {
-                ui.weak(self.tr("tools-help-pen"));
+                ui.weak(tr!(self, "tools-help-pen"));
             }
             Tool::Rectangle => {
-                chrome::row(ui, &self.tr("opt-corners"), |ui| {
+                chrome::row(ui, &tr!(self, "opt-corners"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.rect_radius)
                             .range(0.0..=1000.0)
                             .suffix(" px"),
                     );
                 });
-                ui.weak(self.tr("tools-help-drag"));
+                ui.weak(tr!(self, "tools-help-drag"));
             }
             Tool::Ellipse => {
-                ui.weak(self.tr("tools-help-drag"));
+                ui.weak(tr!(self, "tools-help-drag"));
             }
             Tool::PolyStar => {
-                chrome::row(ui, &self.tr("opt-sides"), |ui| {
+                chrome::row(ui, &tr!(self, "opt-sides"), |ui| {
                     ui.add(egui::DragValue::new(&mut self.poly_sides).range(3..=64));
                 });
-                chrome::row(ui, &self.tr("opt-star"), |ui| {
+                chrome::row(ui, &tr!(self, "opt-star"), |ui| {
                     ui.checkbox(&mut self.poly_star, "");
                 });
                 if self.poly_star {
-                    chrome::row(ui, &self.tr("opt-depth"), |ui| {
+                    chrome::row(ui, &tr!(self, "opt-depth"), |ui| {
                         ui.add(
                             egui::DragValue::new(&mut self.poly_inner)
                                 .range(0.05..=0.95)
@@ -144,28 +144,28 @@ impl Workspace {
                         );
                     });
                 }
-                ui.weak(self.tr("tools-help-polystar"));
+                ui.weak(tr!(self, "tools-help-polystar"));
             }
             Tool::Hand => {
-                ui.weak(self.tr("tools-help-hand"));
+                ui.weak(tr!(self, "tools-help-hand"));
             }
             Tool::Zoom => {
-                ui.weak(self.tr("tools-help-zoom"));
+                ui.weak(tr!(self, "tools-help-zoom"));
             }
             Tool::Eyedropper => {
-                ui.weak(self.tr("tools-help-eyedropper"));
+                ui.weak(tr!(self, "tools-help-eyedropper"));
             }
             Tool::Bucket => {
-                ui.weak(self.tr("tools-help-bucket"));
+                ui.weak(tr!(self, "tools-help-bucket"));
             }
             Tool::InkBottle => {
-                ui.weak(self.tr("tools-help-ink"));
+                ui.weak(tr!(self, "tools-help-ink"));
             }
             Tool::Eraser => {
-                ui.weak(self.tr("tools-help-eraser"));
+                ui.weak(tr!(self, "tools-help-eraser"));
             }
             Tool::Pencil => {
-                chrome::row(ui, &self.tr("opt-smoothing"), |ui| {
+                chrome::row(ui, &tr!(self, "opt-smoothing"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.smoothing)
                             .range(0.0..=20.0)
@@ -173,10 +173,10 @@ impl Workspace {
                     );
                 });
                 self.stroke_assists(ui);
-                ui.weak(self.tr("tools-help-pencil"));
+                ui.weak(tr!(self, "tools-help-pencil"));
             }
             Tool::Brush => {
-                chrome::row(ui, &self.tr("opt-size"), |ui| {
+                chrome::row(ui, &tr!(self, "opt-size"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.brush_size)
                             .range(1.0..=200.0)
@@ -184,14 +184,14 @@ impl Workspace {
                     );
                 });
                 self.nib_controls(ui);
-                chrome::row(ui, &self.tr("opt-smoothing"), |ui| {
+                chrome::row(ui, &tr!(self, "opt-smoothing"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.smoothing)
                             .range(0.0..=20.0)
                             .speed(0.1),
                     );
                 });
-                chrome::row(ui, &self.tr("opt-light-touch"), |ui| {
+                chrome::row(ui, &tr!(self, "opt-light-touch"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.brush_light)
                             .range(0.0..=1.0)
@@ -199,13 +199,14 @@ impl Workspace {
                     );
                 });
                 self.stroke_assists(ui);
-                ui.weak(self.tr("tools-help-brush"));
+                ui.weak(tr!(self, "tools-help-brush"));
             }
             Tool::Ruler => {
                 let reading = self.measurement().map_or_else(
-                    || self.tr("opt-drag-on-stage"),
+                    || tr!(self, "opt-drag-on-stage"),
                     |m| {
-                        self.tr_with(
+                        tr!(
+                            self,
                             "opt-ruler-reading",
                             &[
                                 ("distance", &format!("{:.1}", m.distance)),
@@ -216,40 +217,40 @@ impl Workspace {
                         )
                     },
                 );
-                chrome::row(ui, &self.tr("opt-reading"), |ui| {
+                chrome::row(ui, &tr!(self, "opt-reading"), |ui| {
                     ui.label(reading);
                 });
-                ui.weak(self.tr("tools-help-ruler"));
+                ui.weak(tr!(self, "tools-help-ruler"));
             }
             Tool::Mirror => {
                 self.mirror_options(ui);
-                ui.weak(self.tr("tools-help-mirror"));
+                ui.weak(tr!(self, "tools-help-mirror"));
             }
             Tool::Lasso => {
-                ui.weak(self.tr("tools-help-lasso"));
+                ui.weak(tr!(self, "tools-help-lasso"));
             }
             Tool::Camera => self.camera_options(ui),
             Tool::PolygonLasso => {
-                ui.weak(self.tr("tools-help-polygon"));
+                ui.weak(tr!(self, "tools-help-polygon"));
             }
             Tool::Line => {
-                ui.weak(self.tr("tools-help-line"));
+                ui.weak(tr!(self, "tools-help-line"));
             }
             Tool::Select => {}
             Tool::Subselection => {
-                ui.weak(self.tr("tools-help-subselection"));
+                ui.weak(tr!(self, "tools-help-subselection"));
             }
             Tool::AddAnchor => {
-                ui.weak(self.tr("tools-help-add-anchor"));
+                ui.weak(tr!(self, "tools-help-add-anchor"));
             }
             Tool::DeleteAnchor => {
-                ui.weak(self.tr("tools-help-delete-anchor"));
+                ui.weak(tr!(self, "tools-help-delete-anchor"));
             }
             Tool::ConvertAnchor => {
-                ui.weak(self.tr("tools-help-convert-anchor"));
+                ui.weak(tr!(self, "tools-help-convert-anchor"));
             }
             Tool::FreeTransform => {
-                ui.weak(self.tr("tools-help-free-transform"));
+                ui.weak(tr!(self, "tools-help-free-transform"));
             }
         }
     }
@@ -290,16 +291,16 @@ impl Workspace {
     fn nib_controls(&mut self, ui: &mut Ui) {
         use flare_tools::brush::{Nib, NibShape};
         let (plain, new, delete) = (
-            self.tr("opt-brush-plain"),
-            self.tr("opt-new"),
-            self.tr("opt-delete"),
+            tr!(self, "opt-brush-plain"),
+            tr!(self, "opt-new"),
+            tr!(self, "opt-delete"),
         );
         let (new_tip, delete_tip) = (
-            self.tr("opt-new-brush-tip"),
-            self.tr("opt-delete-brush-tip"),
+            tr!(self, "opt-new-brush-tip"),
+            tr!(self, "opt-delete-brush-tip"),
         );
-        let (round, square) = (self.tr("opt-nib-round"), self.tr("opt-nib-square"));
-        chrome::row(ui, &self.tr("opt-brush"), |ui| {
+        let (round, square) = (tr!(self, "opt-nib-round"), tr!(self, "opt-nib-square"));
+        chrome::row(ui, &tr!(self, "opt-brush"), |ui| {
             let chosen = self.brush_shelf.selected();
             let mut pick = None;
             egui::ComboBox::from_id_salt("brush-list")
@@ -340,7 +341,7 @@ impl Workspace {
             nib.angle_degrees() as f32,
             nib.flatness_percent() as f32,
         );
-        chrome::row(ui, &self.tr("opt-nib"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-nib"), |ui| {
             egui::ComboBox::from_id_salt("brush-nib-shape")
                 .selected_text(match shape {
                     NibShape::Round => round.as_str(),
@@ -351,14 +352,14 @@ impl Workspace {
                     ui.selectable_value(&mut shape, NibShape::Square, &square);
                 });
         });
-        chrome::row(ui, &self.tr("opt-angle"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-angle"), |ui| {
             ui.add(
                 egui::DragValue::new(&mut angle)
                     .range(0.0..=359.0)
                     .suffix("\u{b0}"),
             );
         });
-        chrome::row(ui, &self.tr("opt-flatness"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-flatness"), |ui| {
             ui.add(
                 egui::DragValue::new(&mut flatness)
                     .range(1.0..=100.0)
@@ -373,11 +374,11 @@ impl Workspace {
 
     /// The straight edge and symmetry options the Pencil and Brush share.
     fn stroke_assists(&mut self, ui: &mut Ui) {
-        let always = self.tr("opt-straight-always");
-        chrome::row(ui, &self.tr("opt-straight"), |ui| {
+        let always = tr!(self, "opt-straight-always");
+        chrome::row(ui, &tr!(self, "opt-straight"), |ui| {
             ui.checkbox(&mut self.paint.straight_edge, always);
         });
-        chrome::row(ui, &self.tr("opt-symmetry"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-symmetry"), |ui| {
             self.symmetry_picker(ui);
         });
     }
@@ -396,7 +397,7 @@ impl Workspace {
 
     /// The Mirror tool's options: the symmetry mode, the axes, and mirror copies.
     fn mirror_options(&mut self, ui: &mut Ui) {
-        chrome::row(ui, &self.tr("opt-symmetry"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-symmetry"), |ui| {
             self.symmetry_picker(ui);
         });
         let extent = self.stage_extent();
@@ -405,7 +406,7 @@ impl Workspace {
             .symmetry_center
             .unwrap_or_else(|| egui::pos2(extent.x / 2.0, extent.y / 2.0));
         let before = center;
-        chrome::row(ui, &self.tr("opt-axes-at"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-axes-at"), |ui| {
             ui.add(egui::DragValue::new(&mut center.x).prefix("x ").speed(1.0));
             ui.add(egui::DragValue::new(&mut center.y).prefix("y ").speed(1.0));
         });
@@ -414,15 +415,18 @@ impl Workspace {
             center = center.clamp(egui::pos2(-1.0e6, -1.0e6), egui::pos2(1.0e6, 1.0e6));
             self.paint.symmetry_center = Some(center);
         }
-        if ui.small_button(self.tr("opt-center-on-stage")).clicked() {
+        if ui.small_button(tr!(self, "opt-center-on-stage")).clicked() {
             self.paint.symmetry_center = None;
         }
         let selected = self.has_selection();
         let (copy_lr, copy_tb) = (
-            self.tr("opt-copy-left-right"),
-            self.tr("opt-copy-top-bottom"),
+            tr!(self, "opt-copy-left-right"),
+            tr!(self, "opt-copy-top-bottom"),
         );
-        let (flip_h, flip_v) = (self.tr("opt-flip-horizontal"), self.tr("opt-flip-vertical"));
+        let (flip_h, flip_v) = (
+            tr!(self, "opt-flip-horizontal"),
+            tr!(self, "opt-flip-vertical"),
+        );
         ui.add_enabled_ui(selected, |ui| {
             ui.horizontal(|ui| {
                 if ui.button(&copy_lr).clicked() {

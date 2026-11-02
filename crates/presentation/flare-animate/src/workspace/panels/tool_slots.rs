@@ -173,7 +173,7 @@ impl Workspace {
         };
         // A tool not built gets "(Not available yet)" added by the button itself.
         let hint = if extra {
-            self.tr("tools-more")
+            tr!(self, "tools-more")
         } else if shown.key.is_empty() {
             self.tr(&name_key(shown.icon))
         } else {
@@ -196,7 +196,7 @@ impl Workspace {
                 ui.make_persistent_id(("pinned", shown.name)),
                 egui::Sense::click(),
             );
-            let remove = self.tr("tools-remove-pin");
+            let remove = tr!(self, "tools-remove-pin");
             menu.context_menu(|ui| {
                 if ui.button(&remove).clicked() {
                     self.unpin_tool(shown.name);

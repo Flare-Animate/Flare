@@ -65,7 +65,7 @@ impl Workspace {
         match ops::delete_anchor(self.document(), scene, at, segment) {
             Some(commands) => self.run_batch(commands, "delete the point"),
             None => {
-                let message = self.tr("tools-anchor-minimum");
+                let message = tr!(self, "tools-anchor-minimum");
                 self.report(message)
             }
         }
@@ -199,7 +199,7 @@ impl Workspace {
                 return;
             }
             if self.tool == Tool::DeleteAnchor && near.is_some() {
-                let message = self.tr("tools-anchor-minimum");
+                let message = tr!(self, "tools-anchor-minimum");
                 self.report(message);
                 return;
             }

@@ -45,11 +45,11 @@ impl Workspace {
             return; // a click, not a drag
         }
         if self.document().scenes().is_empty() {
-            let message = self.tr("tools-no-scene");
+            let message = tr!(self, "tools-no-scene");
             self.report(message);
             return;
         }
-        let rectangle_name = self.tr("tools-layer-rectangle");
+        let rectangle_name = tr!(self, "tools-layer-rectangle");
         let fill = {
             let c = self.paint.fill.to_array();
             Rgba8::new(c[0], c[1], c[2], c[3])
@@ -91,7 +91,7 @@ impl Workspace {
             }
             Tool::Ellipse => (
                 Shape::ellipse(id, x0 + w / 2.0, y0 + h / 2.0, w / 2.0, h / 2.0, fill),
-                self.tr("tools-layer-ellipse"),
+                tr!(self, "tools-layer-ellipse"),
             ),
             Tool::Line => {
                 let from = (f64::from(a.x), f64::from(a.y));
@@ -99,7 +99,7 @@ impl Workspace {
                 match &stroke {
                     Ok(stroke) => (
                         Shape::line(id, from, to, *stroke),
-                        self.tr("tools-layer-line"),
+                        tr!(self, "tools-layer-line"),
                     ),
                     Err(error) => return self.report(error.to_string()),
                 }
@@ -107,7 +107,7 @@ impl Workspace {
             _ => return,
         };
         let Some(mut shape) = shape else {
-            let message = self.tr("tools-not-finite");
+            let message = tr!(self, "tools-not-finite");
             self.report(message);
             return;
         };
@@ -128,7 +128,7 @@ impl Workspace {
             match gradient {
                 Some(gradient) => shape = shape.with_gradient(gradient),
                 None => {
-                    let message = self.tr("tools-gradient-size");
+                    let message = tr!(self, "tools-gradient-size");
                     return self.report(message);
                 }
             }
@@ -199,7 +199,7 @@ impl Workspace {
             return;
         }
         let Some(scene) = self.document().scenes().first() else {
-            let message = self.tr("tools-no-scene");
+            let message = tr!(self, "tools-no-scene");
             self.report(message);
             return;
         };
@@ -211,7 +211,7 @@ impl Workspace {
         } else {
             name.to_lowercase()
         };
-        let draw_label = self.tr_with("tools-draw-label", &[("name", &noun)]);
+        let draw_label = tr!(self, "tools-draw-label", &[("name", &noun)]);
         let duration = u32::try_from(scene.timeline().frame_count())
             .unwrap_or(u32::MAX)
             .max(24);
@@ -227,7 +227,8 @@ impl Workspace {
             let label = if index == 0 {
                 name.to_owned()
             } else {
-                self.tr_with(
+                tr!(
+                    self,
                     "tools-mirror-layer",
                     &[("name", name), ("n", &index.to_string())],
                 )
@@ -253,7 +254,7 @@ impl Workspace {
                 self.current_layer = first;
             }
             Err(error) => {
-                let message = self.tr_with("tools-draw-error", &[("error", &error.to_string())]);
+                let message = tr!(self, "tools-draw-error", &[("error", &error.to_string())]);
                 self.report(message);
             }
         }

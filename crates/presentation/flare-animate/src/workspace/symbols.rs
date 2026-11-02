@@ -78,7 +78,7 @@ impl Workspace {
     /// Starts editing a symbol's own timeline in place. Returns whether it started.
     pub fn enter_symbol(&mut self, symbol: SymbolId) -> bool {
         let Some((scratch, _)) = flare_editor::symbol_workspace(self.document(), symbol) else {
-            self.report(self.tr("lib-gone"));
+            self.report(tr!(self, "lib-gone"));
             return false;
         };
         let name = self
@@ -113,7 +113,7 @@ impl Workspace {
             Some(symbol) => {
                 self.enter_symbol(symbol);
             }
-            None => self.report(self.tr("lib-select-instance")),
+            None => self.report(tr!(self, "lib-select-instance")),
         }
     }
 
@@ -149,7 +149,11 @@ impl Workspace {
             };
             if let Err(error) = self.active_mut().apply_labeled([merge], "Edit symbol") {
                 self.contexts.push(context);
-                self.report(self.tr_with("lib-cannot-leave", &[("error", &error.to_string())]));
+                self.report(tr!(
+                    self,
+                    "lib-cannot-leave",
+                    &[("error", &error.to_string())]
+                ));
                 return false;
             }
         }
@@ -177,7 +181,7 @@ impl Workspace {
     /// document, so they wait until symbol editing is left.
     pub fn new_symbol(&mut self) {
         if self.in_symbol() {
-            self.report(self.tr("lib-leave-editing"));
+            self.report(tr!(self, "lib-leave-editing"));
             return;
         }
         let taken: std::collections::HashSet<String> = self
@@ -187,7 +191,7 @@ impl Workspace {
             .map(|s| s.name().to_owned())
             .collect();
         let name = (1..)
-            .map(|n| self.tr_with("lib-symbol-name", &[("n", &n.to_string())]))
+            .map(|n| tr!(self, "lib-symbol-name", &[("n", &n.to_string())]))
             .find(|name| !taken.contains(name))
             .unwrap_or_default();
         let id = SymbolId::new();
@@ -202,7 +206,7 @@ impl Workspace {
     /// Makes a library symbol another kind, as one undo step.
     pub fn set_symbol_kind(&mut self, id: SymbolId, kind: flare_document::SymbolKind) {
         if self.in_symbol() {
-            self.report(self.tr("lib-leave-editing"));
+            self.report(tr!(self, "lib-leave-editing"));
             return;
         }
         if self.document().symbol(id).is_none_or(|s| s.kind() == kind) {
@@ -233,7 +237,7 @@ impl Workspace {
     /// Deletes a library symbol; the edit is refused while an instance still uses it.
     pub fn delete_symbol(&mut self, id: SymbolId) {
         if self.in_symbol() {
-            self.report(self.tr("lib-leave-editing"));
+            self.report(tr!(self, "lib-leave-editing"));
             return;
         }
         self.run_batch(vec![Command::RemoveSymbol(id)], "delete the symbol");
@@ -244,11 +248,11 @@ impl Workspace {
 
     pub fn place_selected_symbol(&mut self) {
         let (Some(symbol), Some(scene)) = (self.library.selected, self.scene_id()) else {
-            self.report(self.tr("lib-select-first"));
+            self.report(tr!(self, "lib-select-first"));
             return;
         };
         if self.contexts.iter().any(|c| c.symbol == symbol) {
-            self.report(self.tr("lib-contain-itself"));
+            self.report(tr!(self, "lib-contain-itself"));
             return;
         }
         let stage = self.document().stage();

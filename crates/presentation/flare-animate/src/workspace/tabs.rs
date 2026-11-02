@@ -24,7 +24,7 @@ impl Workspace {
     /// Every tab, in order, with the current one marked.
     pub(crate) fn tabs(&self) -> Vec<TabInfo> {
         // Every tab is named in the language being spoken, not the one a parked workspace was made in.
-        let untitled = self.tr("untitled");
+        let untitled = tr!(self, "untitled");
         let mut parked = self.parked.iter();
         (0..=self.parked.len())
             .map(|index| {
@@ -124,7 +124,7 @@ impl Workspace {
             return;
         }
         if self.has_pending_io() {
-            self.report(self.tr("msg-wait-for-file-work"));
+            self.report(tr!(self, "msg-wait-for-file-work"));
             return;
         }
         let slot = if index < self.position {
@@ -157,7 +157,7 @@ impl Workspace {
                 index - 1
             };
             if self.parked[slot].is_dirty() {
-                self.report(self.tr("msg-save-before-closing-other"));
+                self.report(tr!(self, "msg-save-before-closing-other"));
                 return;
             }
             self.parked.remove(slot);
@@ -167,7 +167,7 @@ impl Workspace {
             return;
         }
         if self.is_dirty() {
-            self.report(self.tr("msg-save-before-closing"));
+            self.report(tr!(self, "msg-save-before-closing"));
             return;
         }
         if self.parked.is_empty() {

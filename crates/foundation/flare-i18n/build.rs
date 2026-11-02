@@ -23,7 +23,30 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect();
     names.sort();
 
+    // Every key English defines, sorted, so a key can be checked for while the program is built.
+    let mut keys: Vec<String> = Vec::new();
+    for name in &names {
+        let text = std::fs::read_to_string(root.join("en").join(format!("{name}.ftl")))?;
+        for line in text.lines() {
+            if let Some((key, _)) = line.split_once(" =")
+                && !key.is_empty()
+                && key
+                    .chars()
+                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+            {
+                keys.push(key.to_owned());
+            }
+        }
+    }
+    keys.sort();
+    keys.dedup();
+
     let mut out = String::new();
+    writeln!(
+        out,
+        "/// Every message key English has, sorted by bytes.\npub const KEYS: [&str; {}] = {keys:?};\n",
+        keys.len()
+    )?;
     writeln!(
         out,
         "/// The sections of the interface that have files, in every language.\npub const SECTIONS: [&str; {}] = {names:?};\n",

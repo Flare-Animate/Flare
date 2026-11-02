@@ -72,7 +72,7 @@ impl Workspace {
     /// was kept.
     pub(crate) fn history_label(&self, index: usize, label: &str) -> String {
         if index == 0 {
-            return self.tr("hist-original");
+            return tr!(self, "hist-original");
         }
         if let Some((_, key)) = Self::HISTORY_LABELS
             .iter()
@@ -82,15 +82,15 @@ impl Workspace {
         }
         // A shape drawn by a tool the table has no entry for: "Draw <what>".
         if let Some(what) = label.strip_prefix("Draw ") {
-            return self.tr_with("hist-draw-other", &[("what", what)]);
+            return tr!(self, "hist-draw-other", &[("what", what)]);
         }
         label.to_owned()
     }
 
     /// Messages from earlier actions, newest at the bottom.
     pub(crate) fn output_panel(&mut self, ui: &mut Ui) {
-        let clear = self.tr("out-clear");
-        let count = self.tr_with("out-count", &[("n", &self.log.len().to_string())]);
+        let clear = tr!(self, "out-clear");
+        let count = tr!(self, "out-count", &[("n", &self.log.len().to_string())]);
         ui.horizontal(|ui| {
             if chrome::icon_button(ui, "delete", BAR_ICON, false, !self.log.is_empty(), &clear)
                 .clicked()
@@ -100,7 +100,7 @@ impl Workspace {
             ui.weak(count);
         });
         ui.separator();
-        let nothing = self.tr("out-nothing");
+        let nothing = tr!(self, "out-nothing");
         egui::ScrollArea::vertical()
             .auto_shrink(false)
             .stick_to_bottom(true)
@@ -121,9 +121,9 @@ impl Workspace {
 
     pub(crate) fn history_panel(&mut self, ui: &mut Ui) {
         let (undo, redo, clear) = (
-            self.tr("hist-undo"),
-            self.tr("hist-redo"),
-            self.tr("hist-clear"),
+            tr!(self, "hist-undo"),
+            tr!(self, "hist-redo"),
+            tr!(self, "hist-clear"),
         );
         ui.horizontal(|ui| {
             if chrome::icon_button(

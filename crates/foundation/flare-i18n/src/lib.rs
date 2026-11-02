@@ -27,6 +27,42 @@ pub enum Language {
 
 include!(concat!(env!("OUT_DIR"), "/sections.rs"));
 
+/// Whether English has a message called `key`. A `const fn`, so a mistyped key in a `tr!` is an
+/// error when the program is built, not a raw key on a screen.
+pub const fn has_key(key: &str) -> bool {
+    let (mut low, mut high) = (0, KEYS.len());
+    while low < high {
+        let middle = (low + high) / 2;
+        match compare(key.as_bytes(), KEYS[middle].as_bytes()) {
+            0 => return true,
+            -1 => high = middle,
+            _ => low = middle + 1,
+        }
+    }
+    false
+}
+
+/// Byte-wise order of two strings: -1, 0 or 1.
+const fn compare(a: &[u8], b: &[u8]) -> i8 {
+    let mut i = 0;
+    while i < a.len() && i < b.len() {
+        if a[i] < b[i] {
+            return -1;
+        }
+        if a[i] > b[i] {
+            return 1;
+        }
+        i += 1;
+    }
+    if a.len() < b.len() {
+        -1
+    } else if a.len() > b.len() {
+        1
+    } else {
+        0
+    }
+}
+
 impl Language {
     /// In list order (see the type's description).
     pub const ALL: [Self; 8] = [

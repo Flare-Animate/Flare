@@ -17,7 +17,7 @@ impl Workspace {
     /// a cue at the current frame on a new layer, as one undo step.
     pub fn import_sound(&mut self, path: &Path) {
         if self.in_symbol() {
-            self.report(self.tr("msg-leave-symbol-sound"));
+            self.report(tr!(self, "msg-leave-symbol-sound"));
             return;
         }
         let id = self.background.next_id();

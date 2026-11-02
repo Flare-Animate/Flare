@@ -293,7 +293,8 @@ impl Workspace {
             bar.bottom() - 0.5,
             egui::Stroke::new(1.0, flare_ui::theme::border()),
         );
-        let (preferences_tip, publish_tip) = (self.tr("bar-preferences"), self.tr("bar-publish"));
+        let (preferences_tip, publish_tip) =
+            (tr!(self, "bar-preferences"), tr!(self, "bar-publish"));
         ui.horizontal_centered(|ui| {
             ui.add_space(self.titlebar_inset.max(10.0));
             let home = ui
@@ -311,7 +312,7 @@ impl Workspace {
                 })
                 .response
                 .interact(egui::Sense::click())
-                .on_hover_text(self.tr("bar-home"));
+                .on_hover_text(tr!(self, "bar-home"));
             if home.clicked() {
                 self.windows.home = !self.windows.home;
             }
@@ -359,7 +360,7 @@ impl Workspace {
                     ui,
                     "interface",
                     16.0,
-                    &self.tr("bar-interface-switcher"),
+                    &tr!(self, "bar-interface-switcher"),
                 );
                 ui.add_space(6.0);
                 let can_redo = self.active().can_redo();
@@ -369,7 +370,7 @@ impl Workspace {
                     16.0,
                     false,
                     can_redo,
-                    &self.tr("bar-redo"),
+                    &tr!(self, "bar-redo"),
                 )
                 .clicked()
                 {
@@ -382,16 +383,16 @@ impl Workspace {
                     16.0,
                     false,
                     can_undo,
-                    &self.tr("bar-undo"),
+                    &tr!(self, "bar-undo"),
                 )
                 .clicked()
                 {
                     self.undo();
                 }
                 let (icon, hint) = if self.is_playing() {
-                    ("transport-pause", self.tr("bar-pause"))
+                    ("transport-pause", tr!(self, "bar-pause"))
                 } else {
-                    ("transport-play", self.tr("bar-play"))
+                    ("transport-play", tr!(self, "bar-play"))
                 };
                 let play = flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, &hint);
                 if play.clicked() {
@@ -430,8 +431,8 @@ impl Workspace {
     pub(super) fn transport_menu(&mut self, ui: &mut egui::Ui) {
         let enabled = self.is_enabled(MenuAction::TestMovie);
         if ui
-            .add_enabled(enabled, egui::Button::new(self.tr("bar-test-movie")))
-            .on_hover_text(self.tr("bar-test-movie-tip"))
+            .add_enabled(enabled, egui::Button::new(tr!(self, "bar-test-movie")))
+            .on_hover_text(tr!(self, "bar-test-movie-tip"))
             .clicked()
         {
             self.perform(MenuAction::TestMovie);

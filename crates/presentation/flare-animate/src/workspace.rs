@@ -394,8 +394,8 @@ impl Workspace {
     pub(super) fn new_blank_document(&self) -> Result<Document, String> {
         let number = [("n", "1")];
         Self::blank_named(
-            &self.tr_with("name-new-scene", &number),
-            &self.tr_with("name-new-layer", &number),
+            &tr!(self, "name-new-scene", &number),
+            &tr!(self, "name-new-layer", &number),
         )
     }
 

@@ -84,10 +84,10 @@ impl Workspace {
             let (name, folder) = super::home::name_and_folder(path);
             // Until the thread has answered, the cells say so instead of guessing.
             let (modified, size) = match info {
-                None => (self.tr("start-reading"), String::new()),
+                None => (tr!(self, "start-reading"), String::new()),
                 Some(info) => (
                     info.modified
-                        .map_or_else(|| self.tr("start-not-found"), |t| self.ago(t, now)),
+                        .map_or_else(|| tr!(self, "start-not-found"), |t| self.ago(t, now)),
                     info.size.map(flare_recent::format_size).unwrap_or_default(),
                 ),
             };
@@ -138,7 +138,7 @@ impl Workspace {
         const DAY: u64 = 86_400;
         let seconds = now.duration_since(then).unwrap_or_default().as_secs();
         let (unit, n) = match seconds {
-            0..=59 => return self.tr("start-just-now"),
+            0..=59 => return tr!(self, "start-just-now"),
             60..=3599 => ("minute", seconds / 60),
             3600..=86_399 => ("hour", seconds / 3600),
             86_400..=2_591_999 => ("day", seconds / DAY),

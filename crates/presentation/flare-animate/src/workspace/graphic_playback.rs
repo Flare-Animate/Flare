@@ -31,7 +31,7 @@ impl Workspace {
         };
         match ops::set_playback(self.document(), scene, selected, playback) {
             Some(commands) => self.run_batch(commands, "change how the graphic plays"),
-            None => self.report(self.tr("msg-graphic-only")),
+            None => self.report(tr!(self, "msg-graphic-only")),
         }
     }
 
@@ -40,7 +40,7 @@ impl Workspace {
         let Some((current, frames)) = self.selected_playback() else {
             return;
         };
-        flare_ui::chrome::section(ui, "transport-loop", &self.tr("msg-looping"));
+        flare_ui::chrome::section(ui, "transport-loop", &tr!(self, "msg-looping"));
         let mut mode = current.mode;
         let label_of = |mode: PlayMode| {
             self.tr(match mode {
@@ -49,7 +49,7 @@ impl Workspace {
                 PlayMode::SingleFrame => "msg-play-single",
             })
         };
-        flare_ui::chrome::row(ui, &self.tr("msg-options"), |ui| {
+        flare_ui::chrome::row(ui, &tr!(self, "msg-options"), |ui| {
             egui::ComboBox::from_id_salt("graphic_play_mode")
                 .selected_text(label_of(mode))
                 .show_ui(ui, |ui| {
@@ -64,7 +64,7 @@ impl Workspace {
         // Counted from 1 on screen, as the timeline counts. Applied on release or Enter, so
         // scrubbing the number is one undo step.
         let mut first = self.playback_first_edit.unwrap_or(current.first_frame) + 1;
-        flare_ui::chrome::row(ui, &self.tr("msg-first"), |ui| {
+        flare_ui::chrome::row(ui, &tr!(self, "msg-first"), |ui| {
             let response = ui.add(egui::DragValue::new(&mut first).range(1..=frames));
             if response.changed() {
                 self.playback_first_edit = Some(first - 1);

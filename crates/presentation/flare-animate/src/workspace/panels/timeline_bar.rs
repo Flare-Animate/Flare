@@ -37,7 +37,7 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            &self.tr("timeline-first"),
+            &tr!(self, "timeline-first"),
         )
         .clicked()
         {
@@ -49,16 +49,16 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            &self.tr("timeline-prev"),
+            &tr!(self, "timeline-prev"),
         )
         .clicked()
         {
             self.set_frame(self.frame.saturating_sub(1));
         }
         let (icon, hint) = if self.playing {
-            ("transport-pause", self.tr("timeline-pause"))
+            ("transport-pause", tr!(self, "timeline-pause"))
         } else {
-            ("transport-play", self.tr("timeline-play"))
+            ("transport-play", tr!(self, "timeline-play"))
         };
         if chrome::icon_button(ui, icon, BAR_ICON, self.playing, true, &hint).clicked() {
             self.playing = !self.playing;
@@ -69,7 +69,7 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            &self.tr("timeline-next"),
+            &tr!(self, "timeline-next"),
         )
         .clicked()
         {
@@ -81,7 +81,7 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            &self.tr("timeline-last"),
+            &tr!(self, "timeline-last"),
         )
         .clicked()
         {
@@ -93,7 +93,7 @@ impl Workspace {
             BAR_ICON,
             self.loop_playback,
             true,
-            &self.tr("timeline-loop"),
+            &tr!(self, "timeline-loop"),
         )
         .clicked()
         {
@@ -104,7 +104,7 @@ impl Workspace {
         ui.add(
             egui::DragValue::new(&mut frame)
                 .range(0..=last)
-                .prefix(format!("{} ", self.tr("timeline-frame"))),
+                .prefix(format!("{} ", tr!(self, "timeline-frame"))),
         );
         if frame != self.frame {
             self.set_frame(frame);
@@ -120,7 +120,7 @@ impl Workspace {
             BAR_ICON,
             onion,
             true,
-            &self.tr("timeline-onion"),
+            &tr!(self, "timeline-onion"),
         )
         .clicked()
         {
@@ -134,7 +134,7 @@ impl Workspace {
                 BAR_ICON,
                 self.onion.outlines,
                 true,
-                &self.tr("timeline-onion-outline"),
+                &tr!(self, "timeline-onion-outline"),
             )
             .clicked()
             {
@@ -162,7 +162,7 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            &self.tr("timeline-new-layer"),
+            &tr!(self, "timeline-new-layer"),
         )
         .clicked()
         {
@@ -174,7 +174,7 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            &self.tr("timeline-new-folder"),
+            &tr!(self, "timeline-new-folder"),
         )
         .clicked()
         {
@@ -183,17 +183,17 @@ impl Workspace {
         let folders = self.folders_for_active_layer();
         let in_folder = self.active_layer().is_some_and(|l| l.parent().is_some());
         ui.add_enabled_ui(!folders.is_empty() || in_folder, |ui| {
-            ui.menu_button(self.tr("timeline-folder"), |ui| {
+            ui.menu_button(tr!(self, "timeline-folder"), |ui| {
                 for (id, name) in &folders {
                     if ui
-                        .button(self.tr_with("timeline-move-into", &[("name", name)]))
+                        .button(tr!(self, "timeline-move-into", &[("name", name)]))
                         .clicked()
                     {
                         self.move_active_layer_to_folder(Some(*id));
                         ui.close();
                     }
                 }
-                if in_folder && ui.button(self.tr("timeline-move-out")).clicked() {
+                if in_folder && ui.button(tr!(self, "timeline-move-out")).clicked() {
                     self.move_active_layer_to_folder(None);
                     ui.close();
                 }
@@ -205,7 +205,7 @@ impl Workspace {
             BAR_ICON,
             self.active_layer().is_some_and(Layer::is_guide),
             self.is_enabled(MenuAction::ToggleLayerGuide),
-            &self.tr("timeline-guide"),
+            &tr!(self, "timeline-guide"),
         )
         .clicked()
         {
@@ -217,7 +217,7 @@ impl Workspace {
             BAR_ICON,
             self.active_layer().is_some_and(Layer::is_mask),
             self.is_enabled(MenuAction::ToggleLayerMask),
-            &self.tr("timeline-mask"),
+            &tr!(self, "timeline-mask"),
         )
         .clicked()
         {
@@ -229,7 +229,7 @@ impl Workspace {
             BAR_ICON,
             false,
             self.is_enabled(MenuAction::DeleteLayer),
-            &self.tr("timeline-delete-layer"),
+            &tr!(self, "timeline-delete-layer"),
         )
         .clicked()
         {
@@ -239,12 +239,12 @@ impl Workspace {
         for (icon, hint, factor) in [
             (
                 "zoom-out",
-                &self.tr("timeline-zoom-out"),
+                &tr!(self, "timeline-zoom-out"),
                 1.0 / flare_editor::timeline_view::STEP,
             ),
             (
                 "zoom-in",
-                &self.tr("timeline-zoom-in"),
+                &tr!(self, "timeline-zoom-in"),
                 flare_editor::timeline_view::STEP,
             ),
         ] {
@@ -258,7 +258,7 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            &self.tr("timeline-fit"),
+            &tr!(self, "timeline-fit"),
         )
         .clicked()
         {
@@ -279,7 +279,7 @@ impl Workspace {
         let id = LayerId::new();
         let layer = match Layer::new(
             id,
-            self.tr_with("name-new-layer", &[("n", &(count + 1).to_string())]),
+            tr!(self, "name-new-layer", &[("n", &(count + 1).to_string())]),
             vec![],
         ) {
             Ok(layer) => layer,

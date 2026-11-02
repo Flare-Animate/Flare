@@ -16,9 +16,10 @@ impl Workspace {
     // ---- status bar --------------------------------------------------------------------
 
     pub(crate) fn status_bar(&mut self, ui: &mut Ui) {
-        let settings_tip = self.tr("bar-document-settings");
-        let working = self.tr("bar-working");
-        let frame_text = self.tr_with(
+        let settings_tip = tr!(self, "bar-document-settings");
+        let working = tr!(self, "bar-working");
+        let frame_text = tr!(
+            self,
             "bar-frame",
             &[
                 ("current", &(self.frame + 1).to_string()),
@@ -72,7 +73,10 @@ impl Workspace {
     /// The strip above the stage with the open document as a tab.
     pub(crate) fn document_tabs(&mut self, ui: &mut Ui) {
         let tabs = self.tabs();
-        let (close_tip, new_tip) = (self.tr("bar-close-document"), self.tr("bar-new-document"));
+        let (close_tip, new_tip) = (
+            tr!(self, "bar-close-document"),
+            tr!(self, "bar-new-document"),
+        );
         let (mut switch, mut close, mut add) = (None, None, false);
         ui.horizontal(|ui| {
             // Tabs sit close together; what is inside each keeps the usual spacing.
@@ -141,13 +145,13 @@ impl Workspace {
     /// The bar above the stage: where you are, and zoom.
     pub(crate) fn stage_bar(&mut self, ui: &mut Ui) {
         let tips = [
-            self.tr("bar-zoom-in"),
-            self.tr("bar-zoom-out"),
-            self.tr("bar-zoom-fit"),
-            self.tr("bar-camera-preview"),
-            self.tr("bar-snap"),
-            self.tr("bar-rulers"),
-            self.tr("bar-grid"),
+            tr!(self, "bar-zoom-in"),
+            tr!(self, "bar-zoom-out"),
+            tr!(self, "bar-zoom-fit"),
+            tr!(self, "bar-camera-preview"),
+            tr!(self, "bar-snap"),
+            tr!(self, "bar-rulers"),
+            tr!(self, "bar-grid"),
         ];
         let [zoom_in, zoom_out, zoom_fit, camera, snap, rulers, grid] = &tips;
         ui.horizontal(|ui| {

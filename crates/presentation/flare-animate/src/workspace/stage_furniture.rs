@@ -14,8 +14,8 @@ impl Workspace {
         let stage = self.document().stage();
         let (mut width, mut height) = self.stage_edit.unwrap_or((stage.width(), stage.height()));
         let (w_prefix, h_prefix) = (
-            format!("{} ", self.tr("doc-width")),
-            format!("{} ", self.tr("doc-height")),
+            format!("{} ", tr!(self, "doc-width")),
+            format!("{} ", tr!(self, "doc-height")),
         );
         let wr = ui.add(
             egui::DragValue::new(&mut width)

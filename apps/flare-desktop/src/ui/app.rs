@@ -9,7 +9,6 @@ use winit::window::WindowId;
 
 use super::UserEvent;
 use super::window::Gpu;
-use flare_platform::dialogs;
 
 pub(super) struct App {
     /// Test movies still playing; dropping one stops its player and removes its files.
@@ -186,10 +185,10 @@ impl ApplicationHandler<UserEvent> for App {
             #[cfg(feature = "autotest")]
             UserEvent::Autotest(step) => self.autotest_step(event_loop, step),
             UserEvent::Exported(Ok(())) => {}
-            UserEvent::Exported(Err(message)) => dialogs::message("Export failed", &message),
+            UserEvent::Exported(Err(message)) => self.say_error("dlg-export-failed", &message),
             #[cfg(not(feature = "ruffle"))]
             UserEvent::MovieStarted(Err(error)) => {
-                dialogs::message("Cannot start Test Movie", &error.to_string());
+                self.say_error("dlg-cannot-start-movie", &error.to_string());
             }
         }
     }

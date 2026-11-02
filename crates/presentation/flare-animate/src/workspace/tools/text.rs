@@ -232,7 +232,7 @@ impl Workspace {
         let existing = edit.editing.and_then(|at| Some((at, self.text_at(at)?.0)));
         let Ok(origin) = DocumentPoint::new(f64::from(edit.at.x), f64::from(edit.at.y)) else {
             self.clear_text_preview();
-            let message = self.tr("tools-text-position");
+            let message = tr!(self, "tools-text-position");
             return self.report(message);
         };
         let source = match TextSource::new(
@@ -246,7 +246,7 @@ impl Workspace {
             Ok(source) => source,
             Err(error) => {
                 self.clear_text_preview();
-                let message = self.tr_with("tools-text-error", &[("error", &error.to_string())]);
+                let message = tr!(self, "tools-text-error", &[("error", &error.to_string())]);
                 return self.report(message);
             }
         };
@@ -281,11 +281,11 @@ impl Workspace {
     /// Puts finished text on the stage: on a layer of its own, or in place of the text it edits.
     pub(in crate::workspace) fn text_ready(&mut self, shape: Shape, target: TextTarget) {
         match target {
-            TextTarget::New => self.insert_shape_layer(shape, &self.tr("name-new-text-layer")),
+            TextTarget::New => self.insert_shape_layer(shape, &tr!(self, "name-new-text-layer")),
             TextTarget::Existing(at) => {
                 let Some(scene) = self.scene_id() else { return };
                 let Some((old, _)) = self.text_at(at) else {
-                    let message = self.tr("tools-text-changed");
+                    let message = tr!(self, "tools-text-changed");
                     return self.report(message);
                 };
                 let shape = shape.painted_like(&old);

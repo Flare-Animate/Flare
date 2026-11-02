@@ -14,7 +14,17 @@ use flare_platform::{dialogs, dirs, recovery};
 fn main() -> Result<()> {
     let result = run();
     if let Err(error) = &result {
-        dialogs::startup_failed(&format!("{error:#}"));
+        // The workspace may not exist yet, so the box speaks the system's language, not the one
+        // chosen in Preferences.
+        let words = flare_i18n::Translator::new(flare_i18n::Language::from_system(
+            &flare_platform::locale::system_tag(),
+        ));
+        let text = dialogs::startup_text_in(
+            &words.text("dlg-startup-intro"),
+            &words.text("dlg-startup-advice"),
+            &format!("{error:#}"),
+        );
+        dialogs::startup_failed_in("Flare", &text);
     }
     result
 }

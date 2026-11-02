@@ -73,33 +73,33 @@ impl Workspace {
 
     pub(crate) fn tool_tab(&mut self, ui: &mut Ui) {
         self.tool_options(ui);
-        chrome::section(ui, "fill-color", &self.tr("opt-fill-stroke"));
+        chrome::section(ui, "fill-color", &tr!(self, "opt-fill-stroke"));
         let (gradient, vertical, outline) = (
-            self.tr("opt-gradient-check"),
-            self.tr("opt-vertical"),
-            self.tr("opt-outline"),
+            tr!(self, "opt-gradient-check"),
+            tr!(self, "opt-vertical"),
+            tr!(self, "opt-outline"),
         );
         let (none, round, square) = (
-            self.tr("opt-cap-none"),
-            self.tr("opt-round"),
-            self.tr("opt-square"),
+            tr!(self, "opt-cap-none"),
+            tr!(self, "opt-round"),
+            tr!(self, "opt-square"),
         );
-        let (bevel, miter) = (self.tr("opt-bevel"), self.tr("opt-miter"));
-        chrome::row(ui, &self.tr("opt-fill"), |ui| {
+        let (bevel, miter) = (tr!(self, "opt-bevel"), tr!(self, "opt-miter"));
+        chrome::row(ui, &tr!(self, "opt-fill"), |ui| {
             ui.color_edit_button_srgba(&mut self.paint.fill);
             ui.checkbox(&mut self.paint.gradient_enabled, &gradient);
         });
         if self.paint.gradient_enabled {
-            chrome::row(ui, &self.tr("opt-to"), |ui| {
+            chrome::row(ui, &tr!(self, "opt-to"), |ui| {
                 ui.color_edit_button_srgba(&mut self.paint.gradient_end);
                 ui.checkbox(&mut self.paint.gradient_vertical, &vertical);
             });
         }
-        chrome::row(ui, &self.tr("opt-stroke"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-stroke"), |ui| {
             ui.color_edit_button_srgba(&mut self.paint.stroke_color);
             ui.checkbox(&mut self.paint.stroke_enabled, &outline);
         });
-        chrome::row(ui, &self.tr("opt-width"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-width"), |ui| {
             ui.add_enabled(
                 self.paint.stroke_enabled,
                 egui::DragValue::new(&mut self.paint.stroke_width)
@@ -107,7 +107,7 @@ impl Workspace {
                     .suffix(" px"),
             );
         });
-        chrome::row(ui, &self.tr("opt-cap"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-cap"), |ui| {
             use flare_document::Cap;
             egui::ComboBox::from_id_salt("cap_menu")
                 .width(80.0)
@@ -122,7 +122,7 @@ impl Workspace {
                     ui.selectable_value(&mut self.paint.stroke_cap, Cap::Square, &square);
                 });
         });
-        chrome::row(ui, &self.tr("opt-join"), |ui| {
+        chrome::row(ui, &tr!(self, "opt-join"), |ui| {
             use flare_document::Join;
             egui::ComboBox::from_id_salt("join_menu")
                 .width(80.0)
@@ -141,7 +141,7 @@ impl Workspace {
 
     /// The current frame and layer.
     pub(crate) fn frame_tab(&mut self, ui: &mut Ui) {
-        let frame_label = self.tr("prop-frame");
+        let frame_label = tr!(self, "prop-frame");
         chrome::section(ui, "playhead", &frame_label);
         chrome::row(ui, &frame_label, |ui| {
             ui.label(format!("{} / {}", self.frame + 1, self.scene_frames()));
@@ -154,11 +154,12 @@ impl Workspace {
         });
         match info {
             Some((name, span)) => {
-                let (layer_label, exposure) = (self.tr("prop-layer"), self.tr("prop-exposure"));
+                let (layer_label, exposure) = (tr!(self, "prop-layer"), tr!(self, "prop-exposure"));
                 let span_text = span.map_or_else(
-                    || self.tr("prop-empty"),
+                    || tr!(self, "prop-empty"),
                     |(start, len)| {
-                        self.tr_with(
+                        tr!(
+                            self,
                             "prop-exposure-span",
                             &[
                                 ("start", &(start + 1).to_string()),
@@ -179,10 +180,10 @@ impl Workspace {
                 });
             }
             None => {
-                ui.weak(self.tr("prop-no-layer"));
+                ui.weak(tr!(self, "prop-no-layer"));
             }
         }
-        chrome::section(ui, "frame-tween", &self.tr("prop-tween"));
+        chrome::section(ui, "frame-tween", &tr!(self, "prop-tween"));
         self.tween_controls(ui);
     }
 
@@ -213,8 +214,8 @@ impl Workspace {
         }
         let mut ease = self.selection_ease().unwrap_or(0);
         let before = ease;
-        let ease_label = self.tr("prop-ease");
-        let ease_hint = self.tr("tween-ease-hint");
+        let ease_label = tr!(self, "prop-ease");
+        let ease_hint = tr!(self, "tween-ease-hint");
         chrome::row(ui, &ease_label, |ui| {
             ui.add_enabled(
                 tweened,
@@ -233,7 +234,7 @@ impl Workspace {
     pub(crate) fn doc_tab(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             ui.add(icons::image("document", 18.0, theme::accent()));
-            ui.label(RichText::new(self.tr("doc-title")).heading());
+            ui.label(RichText::new(tr!(self, "doc-title")).heading());
         });
         self.publish_section(ui);
         self.document_section(ui);
@@ -241,18 +242,18 @@ impl Workspace {
 
     /// The SWF publish choices, with the button for the rest.
     fn publish_section(&mut self, ui: &mut Ui) {
-        let title = self.tr("doc-publish-settings");
+        let title = tr!(self, "doc-publish-settings");
         chrome::section(ui, "file-publish", &title);
         self.publish_settings_ui(ui);
     }
 
     /// Stage size, background and the facts about the document.
     pub(crate) fn document_section(&mut self, ui: &mut Ui) {
-        let title = self.tr("doc-title");
+        let title = tr!(self, "doc-title");
         chrome::section(ui, "document", &title);
         self.stage_settings(ui);
         let rate = self.document().frame_rate();
-        let label = self.tr("doc-frame-rate");
+        let label = tr!(self, "doc-frame-rate");
         chrome::row(ui, &label, |ui| {
             let current = rate.per_second();
             let mut fps = self.fps_edit.unwrap_or(current);
@@ -273,11 +274,11 @@ impl Workspace {
                 self.set_frame_rate(fps);
             }
         });
-        let label = self.tr("doc-scenes");
+        let label = tr!(self, "doc-scenes");
         chrome::row(ui, &label, |ui| {
             ui.label(self.document().scenes().len().to_string());
         });
-        let label = self.tr("doc-sounds");
+        let label = tr!(self, "doc-sounds");
         chrome::row(ui, &label, |ui| {
             ui.label(self.document().sounds().len().to_string());
         });

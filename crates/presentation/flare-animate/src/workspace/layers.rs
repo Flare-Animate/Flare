@@ -128,7 +128,11 @@ impl Workspace {
             return;
         };
         if layer.is_locked() {
-            let text = self.tr_with("msg-cannot-locked", &[("op", &self.frame_op_name(op))]);
+            let text = tr!(
+                self,
+                "msg-cannot-locked",
+                &[("op", &self.frame_op_name(op))]
+            );
             self.report(text);
             return;
         }
@@ -147,7 +151,8 @@ impl Workspace {
                 self.validate_selection();
             }
             None => {
-                let text = self.tr_with(
+                let text = tr!(
+                    self,
                     "msg-cannot-at-frame",
                     &[
                         ("op", &self.frame_op_name(op)),
@@ -299,7 +304,7 @@ impl Workspace {
             .and_then(|l| frames::copy_frames(l, from, to))
         {
             Some(clip) => self.frame_clipboard = Some(clip),
-            None => self.report(self.tr("msg-nothing-to-copy")),
+            None => self.report(tr!(self, "msg-nothing-to-copy")),
         }
     }
 
@@ -314,7 +319,7 @@ impl Workspace {
             return;
         };
         if layer.is_locked() {
-            self.report(self.tr("msg-cannot-paste-locked"));
+            self.report(tr!(self, "msg-cannot-paste-locked"));
             return;
         }
         let id = layer.id();
@@ -331,7 +336,7 @@ impl Workspace {
                     self.validate_selection();
                 }
             }
-            None => self.report(self.tr("msg-cannot-paste-past-end")),
+            None => self.report(tr!(self, "msg-cannot-paste-past-end")),
         }
     }
 

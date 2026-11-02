@@ -87,7 +87,7 @@ impl Workspace {
         let (visible, locked) = self
             .layer(layer)
             .map_or((true, false), |l| (l.is_visible(), l.is_locked()));
-        if ui.button(self.tr("msg-layer-rename")).clicked() {
+        if ui.button(tr!(self, "msg-layer-rename")).clicked() {
             self.begin_layer_rename(layer);
             ui.close();
         }
@@ -136,7 +136,7 @@ impl Workspace {
         if ui
             .add_enabled(
                 self.is_enabled(MenuAction::DeleteLayer),
-                egui::Button::new(self.tr("msg-layer-delete")),
+                egui::Button::new(tr!(self, "msg-layer-delete")),
             )
             .clicked()
         {

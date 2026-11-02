@@ -105,13 +105,13 @@ impl Workspace {
                             .map(|(_, n, _)| n.clone())
                     }) {
                         Some(name) => name,
-                        None => self.tr("lib-none-selected"),
+                        None => tr!(self, "lib-none-selected"),
                     },
                 );
             });
         });
         ui.add_space(4.0);
-        let new_symbols = self.tr("lib-new-symbols");
+        let new_symbols = tr!(self, "lib-new-symbols");
         let kind_names = flare_document::SymbolKind::ALL.map(|kind| (kind, self.kind_label(kind)));
         let kind_name = |kind: flare_document::SymbolKind| {
             kind_names
@@ -128,7 +128,7 @@ impl Workspace {
                     }
                 });
         });
-        let search_hint = self.tr("lib-search");
+        let search_hint = tr!(self, "lib-search");
         ui.add(
             egui::TextEdit::singleline(&mut self.library.search)
                 .hint_text(search_hint)
@@ -140,11 +140,11 @@ impl Workspace {
             .filter(|(_, name, _)| needle.is_empty() || name.to_lowercase().contains(&needle))
             .collect();
         ui.add_space(4.0);
-        let (empty, empty_hint) = (self.tr("lib-empty"), self.tr("lib-empty-hint"));
+        let (empty, empty_hint) = (tr!(self, "lib-empty"), tr!(self, "lib-empty-hint"));
         let (rename, type_label, delete) = (
-            self.tr("lib-rename"),
-            self.tr("lib-type"),
-            self.tr("lib-delete"),
+            tr!(self, "lib-rename"),
+            tr!(self, "lib-type"),
+            tr!(self, "lib-delete"),
         );
         let list_height = (ui.available_height() - 34.0).max(40.0);
         egui::ScrollArea::vertical()
@@ -214,15 +214,16 @@ impl Workspace {
                 }
             });
         ui.separator();
-        let place = self.tr("lib-place");
-        let new_symbol = self.tr_with(
+        let place = tr!(self, "lib-place");
+        let new_symbol = tr!(
+            self,
             "lib-new-symbol",
             &[("kind", kind_name(self.library.new_kind).as_str())],
         );
         let (new_folder, rename_symbol, delete_symbol) = (
-            self.tr("lib-new-folder"),
-            self.tr("lib-rename-symbol"),
-            self.tr("lib-delete-symbol"),
+            tr!(self, "lib-new-folder"),
+            tr!(self, "lib-rename-symbol"),
+            tr!(self, "lib-delete-symbol"),
         );
         ui.horizontal(|ui| {
             if chrome::icon_button(

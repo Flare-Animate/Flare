@@ -58,7 +58,7 @@ impl Workspace {
             }
         }
         if commands.is_empty() {
-            self.report(self.tr("msg-select-to-mirror"));
+            self.report(tr!(self, "msg-select-to-mirror"));
             return;
         }
         self.run_batch(commands, "mirror copy");

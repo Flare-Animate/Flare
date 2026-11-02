@@ -46,11 +46,11 @@ impl Workspace {
     /// Sets the document's frame rate (0.01 to 240 fps) as one undo step.
     pub fn set_frame_rate(&mut self, fps: f64) {
         if self.in_symbol() {
-            self.report(self.tr("msg-leave-symbol-fps"));
+            self.report(tr!(self, "msg-leave-symbol-fps"));
             return;
         }
         if !fps.is_finite() || !(0.01..=240.0).contains(&fps) {
-            self.report(self.tr("msg-fps-range"));
+            self.report(tr!(self, "msg-fps-range"));
             return;
         }
         let milli = (fps * 1000.0).round() as u32;
@@ -106,11 +106,10 @@ impl Workspace {
         if self.windows.home {
             return "Flare".to_owned();
         }
-        let name = self
-            .path
-            .as_deref()
-            .and_then(Path::file_name)
-            .map_or_else(|| self.tr("untitled"), |n| n.to_string_lossy().into_owned());
+        let name = self.path.as_deref().and_then(Path::file_name).map_or_else(
+            || tr!(self, "untitled"),
+            |n| n.to_string_lossy().into_owned(),
+        );
         let dirty = if self.is_dirty() { "*" } else { "" };
         format!("{name}{dirty} - Flare")
     }
@@ -184,7 +183,7 @@ impl Workspace {
         let session = self.active();
         let past: Vec<String> = session.undo_labels().map(str::to_owned).collect();
         let current = past.len() + 1;
-        let entries = std::iter::once(self.tr("msg-history-original"))
+        let entries = std::iter::once(tr!(self, "msg-history-original"))
             .chain(past)
             .chain(session.redo_labels().map(str::to_owned))
             .collect();

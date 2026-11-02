@@ -72,15 +72,11 @@ impl Workspace {
 
     fn blank_document(&self, width: u32, height: u32, fps: u32) -> Result<Document, String> {
         let number = [("n", "1")];
-        let layer = Layer::new(
-            LayerId::new(),
-            self.tr_with("name-new-layer", &number),
-            vec![],
-        )
-        .map_err(|e| e.to_string())?;
+        let layer = Layer::new(LayerId::new(), tr!(self, "name-new-layer", &number), vec![])
+            .map_err(|e| e.to_string())?;
         let scene = Scene::new(
             SceneId::new(),
-            self.tr_with("name-new-scene", &number),
+            tr!(self, "name-new-scene", &number),
             Timeline::new(vec![layer]),
         );
         let rate = FrameRate::new(fps, 1).map_err(|e| e.to_string())?;
@@ -147,33 +143,35 @@ impl Workspace {
             );
         });
         ui.label(
-            egui::RichText::new(
-                self.tr_with("start-version", &[("version", env!("CARGO_PKG_VERSION"))]),
-            )
+            egui::RichText::new(tr!(
+                self,
+                "start-version",
+                &[("version", env!("CARGO_PKG_VERSION"))]
+            ))
             .font(FontId::proportional(11.0))
             .color(theme::text_dim()),
         );
         ui.add_space(18.0);
-        nav_item(ui, "home", &self.tr("start-nav-home"), true);
+        nav_item(ui, "home", &tr!(self, "start-nav-home"), true);
         // Planned, not built: shown dimmed, as the rest of the interface does.
         ui.add_enabled_ui(false, |ui| {
-            nav_item(ui, "panel-library", &self.tr("start-nav-learn"), false);
+            nav_item(ui, "panel-library", &tr!(self, "start-nav-learn"), false);
         })
         .response
         .on_disabled_hover_text(chrome::NOT_YET);
         ui.add_space(18.0);
         let width = ui.available_width();
-        if wide_button(ui, width, "file-new", &self.tr("start-new-file"), true).clicked() {
+        if wide_button(ui, width, "file-new", &tr!(self, "start-new-file"), true).clicked() {
             let (_, w, h, fps) = PRESETS[0];
             *chosen = Some((w, h, fps));
         }
         ui.add_space(6.0);
-        if wide_button(ui, width, "file-open", &self.tr("start-open"), false).clicked() {
+        if wide_button(ui, width, "file-open", &tr!(self, "start-open"), false).clicked() {
             *dialog = Some(DialogRequest::Open);
         }
         ui.add_space(6.0);
-        if wide_button(ui, width, "file-import", &self.tr("start-import"), false)
-            .on_hover_text(self.tr("start-import-hint"))
+        if wide_button(ui, width, "file-import", &tr!(self, "start-import"), false)
+            .on_hover_text(tr!(self, "start-import-hint"))
             .clicked()
         {
             *dialog = Some(DialogRequest::ImportProject);
@@ -190,7 +188,7 @@ impl Workspace {
             ui.label(egui::RichText::new(status.as_str()).color(theme::warning()));
             ui.add_space(8.0);
         }
-        section_title(ui, &self.tr("start-create-new"));
+        section_title(ui, &tr!(self, "start-create-new"));
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing = vec2(GAP, GAP);
             for (name, w, h, fps) in PRESETS {
@@ -208,8 +206,8 @@ impl Workspace {
             }
             let custom = tile(
                 ui,
-                &self.tr("start-custom-size"),
-                &[&self.tr("start-custom-hint")],
+                &tr!(self, "start-custom-size"),
+                &[&tr!(self, "start-custom-hint")],
                 plus_glyph,
             );
             if custom.clicked() {
@@ -218,11 +216,11 @@ impl Workspace {
         });
         ui.add_space(PAGE_MARGIN);
         ui.horizontal(|ui| {
-            section_title(ui, &self.tr("start-recent"));
+            section_title(ui, &tr!(self, "start-recent"));
             // Clearing the list is in Preferences: here it sat next to the search box, one
             // slip from Enter's neighbour.
             if !self.home.recent.is_empty() {
-                let hint = self.tr("start-filter");
+                let hint = tr!(self, "start-filter");
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.add(
                         egui::TextEdit::singleline(&mut self.home.search)
@@ -233,7 +231,7 @@ impl Workspace {
             }
         });
         if self.home.recent.is_empty() {
-            ui.label(egui::RichText::new(self.tr("start-recent-empty")).color(theme::text_dim()));
+            ui.label(egui::RichText::new(tr!(self, "start-recent-empty")).color(theme::text_dim()));
             return;
         }
         let ctx = ui.ctx().clone();
@@ -252,9 +250,11 @@ impl Workspace {
             .collect();
         if shown.is_empty() {
             ui.label(
-                egui::RichText::new(
-                    self.tr_with("start-no-match", &[("search", &self.home.search)]),
-                )
+                egui::RichText::new(tr!(
+                    self,
+                    "start-no-match",
+                    &[("search", &self.home.search)]
+                ))
                 .color(theme::text_dim()),
             );
             return;

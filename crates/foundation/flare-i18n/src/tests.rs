@@ -303,3 +303,26 @@ fn every_language_can_say_how_long_ago_for_any_count() {
         }
     }
 }
+
+// Checked while the tests are built, like a `tr!` is.
+const _: () = assert!(has_key("close"));
+const _: () = assert!(has_key("pane-tools"));
+const _: () = assert!(!has_key("no-such-message"));
+const _: () = assert!(!has_key("clos"), "a prefix of a key is not a key");
+const _: () = assert!(
+    !has_key("close-"),
+    "a key with more on the end is not a key"
+);
+
+#[test]
+fn every_key_english_defines_is_found_and_the_list_is_sorted() {
+    assert!(
+        KEYS.windows(2).all(|pair| pair[0] < pair[1]),
+        "sorted and unique"
+    );
+    for key in KEYS {
+        assert!(has_key(key), "{key}");
+        assert!(Translator::new(Language::English).has(key), "{key}");
+    }
+    assert!(!has_key(""));
+}

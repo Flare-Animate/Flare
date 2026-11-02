@@ -13,12 +13,13 @@ impl Workspace {
         if self.windows.about {
             let mut open = true;
             let title = self.label(MenuAction::About);
-            let version = self.tr_with(
+            let version = tr!(
+                self,
                 "menu-help-version",
                 &[("version", env!("CARGO_PKG_VERSION"))],
             );
-            let tagline = self.tr("menu-help-tagline");
-            let alpha = self.tr("menu-help-alpha");
+            let tagline = tr!(self, "menu-help-tagline");
+            let alpha = tr!(self, "menu-help-alpha");
             egui::Window::new(title)
                 .open(&mut open)
                 .collapsible(false)

@@ -23,13 +23,13 @@ impl Workspace {
         };
         let Some(layer) = self.layer(id) else { return };
         if layer.is_locked() {
-            self.report(self.tr("msg-cannot-cut-locked"));
+            self.report(tr!(self, "msg-cannot-cut-locked"));
             return;
         }
         let cut =
             frames::copy_frames(layer, from, to).zip(frames::remove_frames(scene, layer, from, to));
         let Some((clip, commands)) = cut else {
-            self.report(self.tr("msg-nothing-to-cut"));
+            self.report(tr!(self, "msg-nothing-to-cut"));
             return;
         };
         self.run_batch(commands, "cut frames");
@@ -54,7 +54,7 @@ impl Workspace {
             .and_then(|s| u32::try_from(s.end() - 1).ok());
         match last {
             Some(last) => self.select_frames(id, 0, last),
-            None => self.report(self.tr("msg-no-frames-to-select")),
+            None => self.report(tr!(self, "msg-no-frames-to-select")),
         }
     }
 
@@ -62,7 +62,7 @@ impl Workspace {
     /// step. It needs frames selected, and whole keyframes.
     pub fn reverse_frames(&mut self) {
         let Some(range) = self.frame_range else {
-            self.report(self.tr("msg-select-frames-to-reverse"));
+            self.report(tr!(self, "msg-select-frames-to-reverse"));
             return;
         };
         let Some(scene) = self.scene_id() else { return };
@@ -70,7 +70,7 @@ impl Workspace {
             return;
         };
         if layer.is_locked() {
-            self.report(self.tr("msg-cannot-reverse-locked"));
+            self.report(tr!(self, "msg-cannot-reverse-locked"));
             return;
         }
         match frames::reverse_frames(scene, layer, range.from, range.to) {
@@ -80,7 +80,11 @@ impl Workspace {
                 self.validate_selection();
             }
             Err(refusal) => {
-                let text = self.tr_with("msg-cannot-reverse", &[("reason", &refusal.to_string())]);
+                let text = tr!(
+                    self,
+                    "msg-cannot-reverse",
+                    &[("reason", &refusal.to_string())]
+                );
                 self.report(text);
             }
         }
@@ -113,9 +117,9 @@ impl Workspace {
             for &action in group {
                 // Here the three inserts say what they do; the menu bar has them under Insert.
                 let label = match action {
-                    MenuAction::InsertFrame => self.tr("msg-frame-insert"),
-                    MenuAction::InsertKeyframe => self.tr("msg-frame-insert-keyframe"),
-                    MenuAction::InsertBlankKeyframe => self.tr("msg-frame-insert-blank"),
+                    MenuAction::InsertFrame => tr!(self, "msg-frame-insert"),
+                    MenuAction::InsertKeyframe => tr!(self, "msg-frame-insert-keyframe"),
+                    MenuAction::InsertBlankKeyframe => tr!(self, "msg-frame-insert-blank"),
                     _ => self.label(action),
                 };
                 let button = egui::Button::new(label);

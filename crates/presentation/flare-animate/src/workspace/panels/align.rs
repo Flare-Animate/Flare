@@ -13,7 +13,7 @@ impl Workspace {
 
     pub(crate) fn align_panel(&mut self, ui: &mut Ui) {
         use flare_tools::ops::Align;
-        chrome::section(ui, "panel-align", &self.tr("al-title"));
+        chrome::section(ui, "panel-align", &tr!(self, "al-title"));
         let has = self.has_selection();
         for group in [
             [
@@ -36,7 +36,7 @@ impl Workspace {
                 }
             });
         }
-        chrome::section(ui, "distribute-h", &self.tr("al-distribute"));
+        chrome::section(ui, "distribute-h", &tr!(self, "al-distribute"));
         let three = self.selection_all().len() >= 3;
         ui.horizontal(|ui| {
             if chrome::icon_button(
@@ -45,7 +45,7 @@ impl Workspace {
                 BAR_ICON,
                 false,
                 three,
-                &self.tr("al-distribute-h"),
+                &tr!(self, "al-distribute-h"),
             )
             .clicked()
             {
@@ -57,48 +57,48 @@ impl Workspace {
                 BAR_ICON,
                 false,
                 three,
-                &self.tr("al-distribute-v"),
+                &tr!(self, "al-distribute-v"),
             )
             .clicked()
             {
                 self.distribute_selection(false);
             }
         });
-        chrome::section(ui, "bring-front", &self.tr("al-arrange"));
+        chrome::section(ui, "bring-front", &tr!(self, "al-arrange"));
         ui.horizontal(|ui| {
-            let front = self.tr("al-front");
+            let front = tr!(self, "al-front");
             if chrome::icon_button(ui, "bring-front", BAR_ICON, false, has, &front).clicked() {
                 self.arrange_selection(true);
             }
-            let back = self.tr("al-back");
+            let back = tr!(self, "al-back");
             if chrome::icon_button(ui, "send-back", BAR_ICON, false, has, &back).clicked() {
                 self.arrange_selection(false);
             }
             let can_group = self.is_enabled(MenuAction::Group);
-            let group = self.tr("al-group");
+            let group = tr!(self, "al-group");
             if chrome::icon_button(ui, "group", BAR_ICON, false, can_group, &group).clicked() {
                 self.perform(MenuAction::Group);
             }
             let can_ungroup = self.is_enabled(MenuAction::Ungroup);
-            let ungroup = self.tr("al-ungroup");
+            let ungroup = tr!(self, "al-ungroup");
             if chrome::icon_button(ui, "ungroup", BAR_ICON, false, can_ungroup, &ungroup).clicked()
             {
                 self.perform(MenuAction::Ungroup);
             }
         });
         ui.add_space(6.0);
-        let to_stage = self.tr("al-to-stage");
+        let to_stage = tr!(self, "al-to-stage");
         ui.checkbox(&mut self.align_to_stage, to_stage);
     }
 
     // ---- transform ---------------------------------------------------------------------
 
     pub(crate) fn transform_panel(&mut self, ui: &mut Ui) {
-        chrome::section(ui, "panel-transform", &self.tr("tf-title"));
+        chrome::section(ui, "panel-transform", &tr!(self, "tf-title"));
         let (scale, rotate, skew) = (
-            self.tr("tf-scale"),
-            self.tr("tf-rotate"),
-            self.tr("tf-skew"),
+            tr!(self, "tf-scale"),
+            tr!(self, "tf-rotate"),
+            tr!(self, "tf-skew"),
         );
         let has = self.has_selection();
         let edit = &mut self.transform_edit;
@@ -136,7 +136,7 @@ impl Workspace {
             });
         });
         let changed = self.transform_edit != TransformEdit::default();
-        let (apply, reset) = (self.tr("tf-apply"), self.tr("tf-reset"));
+        let (apply, reset) = (tr!(self, "tf-apply"), tr!(self, "tf-reset"));
         ui.horizontal(|ui| {
             if ui
                 .add_enabled(has && changed, egui::Button::new(apply))
@@ -148,7 +148,7 @@ impl Workspace {
                 self.transform_edit = TransformEdit::default();
             }
         });
-        chrome::section(ui, "rotate-cw", &self.tr("tf-quick"));
+        chrome::section(ui, "rotate-cw", &tr!(self, "tf-quick"));
         let enabled = self.has_selection();
         ui.horizontal(|ui| {
             for (icon, key, action) in [
@@ -172,13 +172,13 @@ impl Workspace {
         ui.add_space(6.0);
         ui.horizontal(|ui| {
             let can_break = self.is_enabled(MenuAction::BreakApart);
-            let apart = self.tr("tf-break-apart");
+            let apart = tr!(self, "tf-break-apart");
             if chrome::icon_button(ui, "break-apart", BAR_ICON, false, can_break, &apart).clicked()
             {
                 self.perform(MenuAction::BreakApart);
             }
             let can = self.is_enabled(MenuAction::ConvertToSymbol);
-            let convert = self.tr("tf-convert");
+            let convert = tr!(self, "tf-convert");
             if chrome::icon_button(ui, "convert-symbol", BAR_ICON, false, can, &convert).clicked() {
                 self.perform(MenuAction::ConvertToSymbol);
             }

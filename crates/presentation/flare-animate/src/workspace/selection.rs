@@ -251,7 +251,7 @@ impl Workspace {
                     pasted.push(at);
                 }
                 None => {
-                    self.report(self.tr("msg-paste-symbol-missing"));
+                    self.report(tr!(self, "msg-paste-symbol-missing"));
                     return;
                 }
             }
@@ -320,7 +320,7 @@ impl Workspace {
         };
         match ops::set_tween(self.document(), scene, selected, tween) {
             Some(commands) => self.run_batch(commands, "change the tween"),
-            None => self.report(self.tr("msg-tween-needs-target")),
+            None => self.report(tr!(self, "msg-tween-needs-target")),
         }
     }
 

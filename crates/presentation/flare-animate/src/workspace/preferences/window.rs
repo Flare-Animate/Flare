@@ -9,9 +9,9 @@ impl Workspace {
             let mut open = true;
             let mut chosen = None;
             let (title, nothing, clear) = (
-                self.tr("start-open-recent"),
-                self.tr("start-nothing-recent"),
-                self.tr("start-clear-list"),
+                tr!(self, "start-open-recent"),
+                tr!(self, "start-nothing-recent"),
+                tr!(self, "start-clear-list"),
             );
             egui::Window::new(title)
                 .open(&mut open)
@@ -46,8 +46,8 @@ impl Workspace {
         if self.windows.publish_settings {
             let mut open = true;
             let (title, hint) = (
-                self.tr("doc-publish-settings"),
-                self.tr("start-publish-hint"),
+                tr!(self, "doc-publish-settings"),
+                tr!(self, "start-publish-hint"),
             );
             egui::Window::new(title)
                 .open(&mut open)

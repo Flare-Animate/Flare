@@ -356,7 +356,7 @@ impl Workspace {
             .collect();
         if commands.is_empty() {
             if about != DAffine2::IDENTITY {
-                self.report(self.tr("msg-nothing-transformed"));
+                self.report(tr!(self, "msg-nothing-transformed"));
             }
         } else {
             self.run_batch(commands, "transform");

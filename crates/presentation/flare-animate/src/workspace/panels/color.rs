@@ -62,7 +62,7 @@ impl Workspace {
                 ColorTarget::GradientEnd => "col-gradient-end",
             }));
         });
-        let (hex_label, swatches) = (self.tr("col-hex"), self.tr("col-swatches"));
+        let (hex_label, swatches) = (tr!(self, "col-hex"), tr!(self, "col-swatches"));
         let target = match self.color_target {
             ColorTarget::Fill => &mut self.paint.fill,
             ColorTarget::Stroke => &mut self.paint.stroke_color,
@@ -125,9 +125,9 @@ impl Workspace {
         }
         ui.add_space(6.0);
         let (gradient_hint, pick_hint, none_hint) = (
-            self.tr("col-gradient-new"),
-            self.tr("col-pick"),
-            self.tr("col-none"),
+            tr!(self, "col-gradient-new"),
+            tr!(self, "col-pick"),
+            tr!(self, "col-none"),
         );
         ui.horizontal(|ui| {
             if chrome::icon_button(

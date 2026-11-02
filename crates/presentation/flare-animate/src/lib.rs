@@ -6,6 +6,8 @@
 //! A drag-to-draw gesture is tool state until it is released; Escape cancels it.
 #![forbid(unsafe_code)]
 
+#[macro_use]
+mod macros;
 #[cfg(test)]
 mod icon_names;
 #[cfg(test)]

@@ -53,7 +53,7 @@ impl Workspace {
     pub fn rename_scene(&mut self, name: &str) {
         let name = name.trim();
         if name.is_empty() {
-            self.report(self.tr("msg-scene-needs-name"));
+            self.report(tr!(self, "msg-scene-needs-name"));
             return;
         }
         let Some(scene) = self.document().scenes().first() else {

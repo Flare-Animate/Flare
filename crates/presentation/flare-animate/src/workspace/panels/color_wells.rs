@@ -101,13 +101,13 @@ impl Workspace {
         let origin = Pos2::new(area.center().x - m.width() / 2.0, area.top());
         let rects = rects_with(origin, m);
         let painter = ui.painter().clone();
-        let (fill_hint, stroke_hint) = (self.tr("col-fill-color"), self.tr("col-stroke-color"));
+        let (fill_hint, stroke_hint) = (tr!(self, "col-fill-color"), tr!(self, "col-stroke-color"));
         let (none_label, no_stroke, no_fill) = (
-            self.tr("col-none"),
-            self.tr("col-no-stroke"),
-            self.tr("col-no-fill"),
+            tr!(self, "col-none"),
+            tr!(self, "col-no-stroke"),
+            tr!(self, "col-no-fill"),
         );
-        let (defaults_hint, swap_hint) = (self.tr("col-black-white"), self.tr("col-swap"));
+        let (defaults_hint, swap_hint) = (tr!(self, "col-black-white"), tr!(self, "col-swap"));
         // The fill, behind.
         let fill = ui
             .interact(

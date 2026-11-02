@@ -2077,6 +2077,7 @@ dependencies = [
  "flare-animate",
  "flare-core",
  "flare-document",
+ "flare-i18n",
  "flare-menubar",
  "flare-platform",
  "flare-publish",
