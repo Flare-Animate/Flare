@@ -22,7 +22,7 @@ impl FileSource for Files {
     }
 }
 
-/// One keyframe's shapes as the layers they import to.
+/// One keyframe's shapes, topmost first (the keyframe keeps its elements bottom to top).
 fn import_shapes(inner: &str) -> Vec<(bool, bool)> {
     let xml = format!(
         r##"<DOMDocument frameRate="24" width="30" height="30"><timelines><DOMTimeline name="S"><layers>
@@ -35,10 +35,14 @@ fn import_shapes(inner: &str) -> Vec<(bool, bool)> {
         .timeline()
         .layers()
         .iter()
-        .filter_map(|l| match l.spans().first()?.content() {
+        .flat_map(|l| l.spans().first().into_iter().flat_map(|s| s.elements()))
+        .filter_map(|c| match c {
             Content::Shape(s) => Some((s.fill().a > 0, s.stroke().is_some())),
             _ => None,
         })
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
         .collect()
 }
 

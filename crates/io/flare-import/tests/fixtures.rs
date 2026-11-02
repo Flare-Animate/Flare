@@ -54,7 +54,8 @@ fn the_handmade_document_brings_its_symbol_tween_and_says_what_it_leaves_behind(
         let outline = layers
             .iter()
             .flat_map(|l| l.spans())
-            .find_map(|span| match span.content() {
+            .flat_map(|span| span.elements())
+            .find_map(|content| match content {
                 flare_document::Content::Shape(shape) => shape.stroke(),
                 _ => None,
             })

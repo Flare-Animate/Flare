@@ -180,6 +180,10 @@ impl Importer {
         }
         let visible = bool_attr(layer, "visible", true);
         let locked = bool_attr(layer, "locked", false);
+        // A layer none of whose frames could be read stays out, as it always did.
+        if spans.is_empty() {
+            return;
+        }
         match Layer::new(first_id, name, spans) {
             Ok(l) => out.push(l.with_visible(visible).with_locked(locked)),
             Err(_) => self.note(
