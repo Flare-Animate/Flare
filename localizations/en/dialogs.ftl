@@ -15,4 +15,5 @@ dlg-player-missing = Ruffle not found
 dlg-unsaved-title = Unsaved changes
 dlg-unsaved-text = Close without saving your changes?
 dlg-startup-intro = Flare could not start.
-dlg-startup-advice = If this is about the graphics device or surface, update your graphics drivers (Vulkan or OpenGL). Running flare-desktop from a terminal prints more.
+dlg-startup-advice = If this is about the graphics device or surface, update your graphics drivers (Vulkan or OpenGL).
+dlg-startup-terminal = Running flare-desktop from a terminal prints more.

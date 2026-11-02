@@ -15,4 +15,5 @@ dlg-player-missing = Ruffle introuvable
 dlg-unsaved-title = Modifications non enregistrées
 dlg-unsaved-text = Fermer sans enregistrer vos modifications ?
 dlg-startup-intro = Flare n’a pas pu démarrer.
-dlg-startup-advice = S’il s’agit du périphérique ou de la surface graphique, mettez à jour vos pilotes graphiques (Vulkan ou OpenGL). Lancer flare-desktop depuis un terminal affiche plus d’informations.
+dlg-startup-advice = S’il s’agit du périphérique ou de la surface graphique, mettez à jour vos pilotes graphiques (Vulkan ou OpenGL).
+dlg-startup-terminal = Lancer flare-desktop depuis un terminal affiche plus d’informations.

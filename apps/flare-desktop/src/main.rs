@@ -1,5 +1,9 @@
 //! `flare-desktop`: the desktop editor. This file only decides what to open; the window is in
 //! `ui/` and everything the operating system provides is in `flare-platform`.
+// A release build on Windows is a program with a window, not a console one: opening it from the
+// Start menu does not open a console beside it. What a failed start has to say is in a box (see
+// `main`), and `--version` and `--help` only show when the output is redirected.
+#![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 #![forbid(unsafe_code)]
 
 mod ui;
@@ -12,6 +16,25 @@ use flare_platform::{dialogs, dirs, recovery};
 
 /// A start that fails is also shown in a box: launched from a menu there is no terminal to read.
 fn main() -> Result<()> {
+    // What a packager asks of a program it has built, answered before anything is opened.
+    match std::env::args_os()
+        .nth(1)
+        .as_deref()
+        .and_then(|a| a.to_str())
+    {
+        Some("--version" | "-V") => {
+            println!("flare-desktop {}", env!("CARGO_PKG_VERSION"));
+            return Ok(());
+        }
+        Some("--help" | "-h") => {
+            println!(
+                "flare-desktop {}\nUsage: flare-desktop [FILE]...\nOpens Flare on the projects named (.flare, .fla, .xfl or .swf).",
+                env!("CARGO_PKG_VERSION")
+            );
+            return Ok(());
+        }
+        _ => {}
+    }
     let result = run();
     if let Err(error) = &result {
         // The workspace may not exist yet, so the box speaks the system's language, not the one
@@ -19,9 +42,14 @@ fn main() -> Result<()> {
         let words = flare_i18n::Translator::new(flare_i18n::Language::from_system(
             &flare_platform::locale::system_tag(),
         ));
+        let mut advice = words.text("dlg-startup-advice");
+        // A Windows build has no console to read more in.
+        if !cfg!(windows) {
+            advice = format!("{advice} {}", words.text("dlg-startup-terminal"));
+        }
         let text = dialogs::startup_text_in(
             &words.text("dlg-startup-intro"),
-            &words.text("dlg-startup-advice"),
+            &advice,
             &format!("{error:#}"),
         );
         dialogs::startup_failed_in("Flare", &text);
