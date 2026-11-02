@@ -120,14 +120,14 @@ pub const MAX_EASE: i8 = 100;
 /// A held exposure: `content` stays for `duration` frames starting at `start`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FrameSpan {
-    start: u32,
-    duration: NonZeroU32,
+    pub(crate) start: u32,
+    pub(crate) duration: NonZeroU32,
     pub(crate) content: Content,
     /// More elements drawn above `content` in the same frames; see `span_elements`.
     pub(crate) extras: Vec<Content>,
     pub(crate) tween: Tween,
     /// Easing of the tween, from `-MAX_EASE` to `MAX_EASE`; 0 is even speed.
-    ease: i8,
+    pub(crate) ease: i8,
 }
 
 impl FrameSpan {
@@ -468,7 +468,8 @@ impl Timeline {
         self.layers
             .iter()
             .flat_map(|layer| layer.spans())
-            .filter_map(|span| match span.content() {
+            .flat_map(FrameSpan::elements)
+            .filter_map(|content| match content {
                 Content::Shape(shape) => Some(shape),
                 Content::Empty | Content::Instance(_) | Content::Camera(_) => None,
             })
@@ -483,7 +484,8 @@ impl Timeline {
         self.layers
             .iter()
             .flat_map(|layer| layer.spans())
-            .filter_map(|span| match span.content() {
+            .flat_map(FrameSpan::elements)
+            .filter_map(|content| match content {
                 Content::Instance(instance) => Some(instance),
                 Content::Empty | Content::Shape(_) | Content::Camera(_) => None,
             })

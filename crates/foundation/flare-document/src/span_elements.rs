@@ -98,6 +98,24 @@ impl FrameSpan {
         self.with_elements(all).ok().flatten()
     }
 
+    /// The same span, every element and its motion kept, over other frames.
+    #[must_use]
+    pub fn retimed(&self, start: u32, duration: std::num::NonZeroU32) -> Self {
+        let mut span = self.clone();
+        span.start = start;
+        span.duration = duration;
+        span
+    }
+
+    /// The same span held: no tween and no easing, as a span cut short loses what it led into.
+    #[must_use]
+    pub fn held(&self) -> Self {
+        let mut span = self.clone();
+        span.tween = Tween::None;
+        span.ease = 0;
+        span
+    }
+
     /// The elements drawn above the first, in order from the bottom.
     pub fn extras(&self) -> &[Content] {
         &self.extras

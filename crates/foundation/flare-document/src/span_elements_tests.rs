@@ -150,3 +150,37 @@ fn a_tweening_span_refuses_another_element_and_stacking_moves_one() {
     assert_eq!(moved.elements().cloned().collect::<Vec<_>>(), vec![b, c, a]);
     assert!(many.with_element_moved(0, 3).is_none());
 }
+
+#[test]
+fn validation_looks_at_every_element_not_only_the_first() {
+    use flare_core::{DocumentId, FrameRate, LayerId, SceneId};
+    let build = |spans: Vec<FrameSpan>, symbols: Vec<crate::Symbol>| {
+        let layer = crate::Layer::new(LayerId::new(), "L", spans).expect("layer");
+        let scene = crate::Scene::new(SceneId::new(), "S", crate::Timeline::new(vec![layer]));
+        crate::Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![scene],
+            symbols,
+        )
+    };
+    // An extra that places a symbol the document lacks.
+    let dangling = span(shape(0.0))
+        .with_extras(vec![instance()])
+        .expect("extras");
+    let errors = build(vec![dangling], vec![]).expect_err("dangling");
+    assert!(matches!(
+        errors[..],
+        [crate::Diagnostic::DanglingSymbol { .. }]
+    ));
+    // An extra that reuses the identity of the first element's shape.
+    let Content::Shape(first) = shape(0.0) else {
+        panic!("shape");
+    };
+    let twin = Content::Shape(first.clone());
+    let doubled = span(Content::Shape(first))
+        .with_extras(vec![twin])
+        .expect("extras");
+    let errors = build(vec![doubled], vec![]).expect_err("duplicate");
+    assert!(matches!(errors[..], [crate::Diagnostic::DuplicateShape(_)]));
+}
