@@ -66,7 +66,13 @@ impl Pane {
             Self::Transform => "panel-transform",
             Self::History => "panel-history",
             Self::Info => "panel-info",
-            Self::Tools | Self::Stage | Self::Timeline | Self::Output | Self::MotionEditor | Self::FindReplace | Self::Assets => return None,
+            Self::Tools
+            | Self::Stage
+            | Self::Timeline
+            | Self::Output
+            | Self::MotionEditor
+            | Self::FindReplace
+            | Self::Assets => return None,
         })
     }
 
@@ -143,8 +149,16 @@ pub fn default_tree() -> Tree<Pane> {
     let find_replace = tiles.insert_pane(Pane::FindReplace);
     let assets = tiles.insert_pane(Pane::Assets);
     let side = tiles.insert_tab_tile(vec![
-        properties, library, color, align, transform, history, info,
-        motion_editor, find_replace, assets,
+        properties,
+        library,
+        color,
+        align,
+        transform,
+        history,
+        info,
+        motion_editor,
+        find_replace,
+        assets,
     ]);
     let bottom = tiles.insert_tab_tile(vec![timeline, output]);
     let top = tiles.insert_horizontal_tile(vec![stage, side]);

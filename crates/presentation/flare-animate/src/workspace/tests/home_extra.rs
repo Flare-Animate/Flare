@@ -1,7 +1,5 @@
 use super::*;
 
-
-
 #[test]
 fn the_top_bar_has_no_settings_gear_and_preferences_stay_in_the_menus() {
     // The bar is Animate's: menus, then Play, Publish and the workspace switcher by the window
