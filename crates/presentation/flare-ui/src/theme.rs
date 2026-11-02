@@ -4,12 +4,15 @@
 
 use egui::{Color32, CornerRadius, FontId, Stroke, TextStyle, Visuals};
 
-/// Which of the two palettes is in use.
+/// Which of the palettes is in use.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Mode {
     #[default]
     Dark,
     Light,
+    Clay,
+    Synthwave,
+    Blue,
 }
 
 impl Mode {
@@ -18,15 +21,20 @@ impl Mode {
         match self {
             Self::Dark => "dark",
             Self::Light => "light",
+            Self::Clay => "clay",
+            Self::Synthwave => "synthwave",
+            Self::Blue => "blue",
         }
     }
 
     /// A kept value back; anything not understood is dark, the default.
     pub fn from_code(code: &str) -> Self {
-        if code == "light" {
-            Self::Light
-        } else {
-            Self::Dark
+        match code {
+            "light" => Self::Light,
+            "clay" => Self::Clay,
+            "synthwave" => Self::Synthwave,
+            "blue" => Self::Blue,
+            _ => Self::Dark,
         }
     }
 }
@@ -104,10 +112,67 @@ const LIGHT: Palette = Palette {
     stage_surround: rgb(0xcd, 0xd1, 0xd8),
 };
 
+const CLAY: Palette = Palette {
+    bg: rgb(0x2a, 0x24, 0x1e),
+    panel: rgb(0x33, 0x2c, 0x24),
+    panel_raised: rgb(0x3d, 0x35, 0x2c),
+    field: rgb(0x22, 0x1d, 0x18),
+    faint: rgb(0x38, 0x30, 0x28),
+    border: rgb(0x5a, 0x4e, 0x40),
+    border_strong: rgb(0x7a, 0x6a, 0x55),
+    hover: rgb(0x45, 0x3b, 0x30),
+    text: rgb(0xe8, 0xdd, 0xcc),
+    text_strong: Color32::WHITE,
+    text_dim: rgb(0xb0, 0xa0, 0x88),
+    text_disabled: rgb(0x6a, 0x5e, 0x50),
+    accent: rgb(0xd4, 0x8a, 0x4a),
+    warning: rgb(0xe8, 0xb3, 0x4a),
+    stage_surround: rgb(0x1e, 0x18, 0x14),
+};
+
+const SYNTHWAVE: Palette = Palette {
+    bg: rgb(0x1a, 0x0a, 0x2e),
+    panel: rgb(0x22, 0x10, 0x38),
+    panel_raised: rgb(0x2a, 0x14, 0x44),
+    field: rgb(0x14, 0x08, 0x24),
+    faint: rgb(0x26, 0x12, 0x3e),
+    border: rgb(0x5a, 0x2a, 0x7a),
+    border_strong: rgb(0x8a, 0x4a, 0xaa),
+    hover: rgb(0x3a, 0x1a, 0x5a),
+    text: rgb(0xe0, 0xd0, 0xff),
+    text_strong: Color32::WHITE,
+    text_dim: rgb(0xa0, 0x80, 0xcc),
+    text_disabled: rgb(0x5a, 0x40, 0x7a),
+    accent: rgb(0xff, 0x4a, 0xc8),
+    warning: rgb(0xff, 0xb3, 0x4a),
+    stage_surround: rgb(0x12, 0x06, 0x20),
+};
+
+const BLUE: Palette = Palette {
+    bg: rgb(0x1a, 0x20, 0x2e),
+    panel: rgb(0x20, 0x28, 0x38),
+    panel_raised: rgb(0x28, 0x32, 0x44),
+    field: rgb(0x14, 0x1a, 0x28),
+    faint: rgb(0x24, 0x2e, 0x40),
+    border: rgb(0x3a, 0x4a, 0x6a),
+    border_strong: rgb(0x55, 0x6a, 0x8a),
+    hover: rgb(0x2e, 0x3a, 0x52),
+    text: rgb(0xd0, 0xdc, 0xf0),
+    text_strong: Color32::WHITE,
+    text_dim: rgb(0x8a, 0x9a, 0xbb),
+    text_disabled: rgb(0x4a, 0x5a, 0x7a),
+    accent: rgb(0x4a, 0x8d, 0xff),
+    warning: rgb(0xe8, 0xb3, 0x4a),
+    stage_surround: rgb(0x12, 0x18, 0x24),
+};
+
 fn palette() -> &'static Palette {
     match mode() {
         Mode::Dark => &DARK,
         Mode::Light => &LIGHT,
+        Mode::Clay => &CLAY,
+        Mode::Synthwave => &SYNTHWAVE,
+        Mode::Blue => &BLUE,
     }
 }
 
@@ -245,8 +310,8 @@ pub fn apply(ctx: &egui::Context) {
 /// again when the person switches between the dark and the light one.
 pub fn apply_palette(ctx: &egui::Context) {
     let mut visuals = match mode() {
-        Mode::Dark => Visuals::dark(),
         Mode::Light => Visuals::light(),
+        Mode::Dark | Mode::Clay | Mode::Synthwave | Mode::Blue => Visuals::dark(),
     };
     visuals.panel_fill = panel();
     visuals.window_fill = panel_raised();
@@ -391,7 +456,7 @@ mod tests {
 
     #[test]
     fn both_palettes_keep_text_readable_on_every_surface_and_the_light_one_is_light() {
-        for mode in [Mode::Dark, Mode::Light] {
+        for mode in [Mode::Dark, Mode::Light, Mode::Clay, Mode::Synthwave, Mode::Blue] {
             set_mode(mode);
             for surface in [bg(), panel(), panel_raised(), field(), hover()] {
                 assert!(
@@ -433,7 +498,7 @@ mod tests {
         assert_eq!(other, Mode::Dark, "another thread is not affected");
         assert_eq!(mode(), Mode::Light);
         set_mode(Mode::Dark);
-        for m in [Mode::Dark, Mode::Light] {
+        for m in [Mode::Dark, Mode::Light, Mode::Clay, Mode::Synthwave, Mode::Blue] {
             assert_eq!(Mode::from_code(m.code()), m);
         }
         assert_eq!(Mode::from_code("neon"), Mode::Dark);
