@@ -6,7 +6,11 @@ msg-saved = { $path } salvo
 msg-cannot-save = Não foi possível salvar: { $reason }
 msg-autosave-failed = Falha no salvamento automático: { $reason }
 msg-cannot-import = Não foi possível importar { $path }: { $reason }
-msg-imported = { $path } importado; o painel Saída tem { $count } nota(s) sobre o que não foi trazido
+msg-imported =
+    { $n ->
+        [one] { $path } importado; o painel Saída tem { $n } nota sobre o que não foi trazido
+       *[other] { $path } importado; o painel Saída tem { $n } notas sobre o que não foi trazido
+    }
 msg-cannot-recover = Não foi possível recuperar { $path }: { $reason }
 msg-cannot-open = Não foi possível abrir { $path }: { $reason }
 msg-project-changed = Seu projeto mudou enquanto o trabalho era lido, então não foi substituído

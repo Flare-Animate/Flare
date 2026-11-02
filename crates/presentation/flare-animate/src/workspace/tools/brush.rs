@@ -10,11 +10,7 @@ impl Workspace {
     /// Keeps the nib in hand as a new custom brush and chooses it. Refuses past the limit, and says so.
     pub(in crate::workspace) fn new_custom_brush(&mut self) {
         if self.brush_shelf.keep_nib().is_err() {
-            let message = tr!(
-                self,
-                "tools-brush-limit",
-                &[("max", &MAX_BRUSHES.to_string())]
-            );
+            let message = tr_n!(self, "tools-brush-limit", MAX_BRUSHES);
             self.report(message);
         }
     }

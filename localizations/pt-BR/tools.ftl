@@ -58,7 +58,11 @@ tools-pen-open-points = Um caminho precisa de pelo menos dois pontos
 tools-text-position = Não é possível posicionar o texto: a posição não é um número
 tools-text-error = Não é possível posicionar o texto: { $error }
 tools-text-changed = O texto mudou enquanto era definido
-tools-brush-limit = Só é possível manter { $max } pincéis personalizados
+tools-brush-limit =
+    { $n ->
+        [one] Só é possível manter { $n } pincel personalizado
+       *[other] Só é possível manter { $n } pincéis personalizados
+    }
 tools-anchor-minimum = Uma forma mantém pelo menos dois pontos, três quando está fechada
 tools-camera-max-frame = A câmera pode receber quadros-chave até o quadro { $frame }
 tools-camera-move-error = Não é possível mover a câmera: { $error }

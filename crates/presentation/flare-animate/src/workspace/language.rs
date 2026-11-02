@@ -53,6 +53,11 @@ impl Workspace {
         self.translator.text_count(key, count, &[])
     }
 
+    /// [`Self::tr_count`] with other `{ $name }` placeholders to fill too.
+    pub(super) fn tr_count_with(&self, key: &str, count: u64, args: &[(&str, &str)]) -> String {
+        self.translator.text_count(key, count, args)
+    }
+
     /// The name "System locale" carries in a list: the language it stands for.
     pub(super) fn system_choice_label(&self) -> String {
         let system = Language::from_system(&self.system_locale);

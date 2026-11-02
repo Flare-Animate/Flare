@@ -58,7 +58,11 @@ tools-pen-open-points = Un tracé nécessite au moins deux points
 tools-text-position = Impossible de placer le texte : la position n’est pas un nombre
 tools-text-error = Impossible de placer le texte : { $error }
 tools-text-changed = Le texte a changé pendant sa mise en place
-tools-brush-limit = Seuls { $max } pinceaux personnalisés peuvent être conservés
+tools-brush-limit =
+    { $n ->
+        [one] Seul { $n } pinceau personnalisé peut être conservé
+       *[other] Seuls { $n } pinceaux personnalisés peuvent être conservés
+    }
 tools-anchor-minimum = Une forme conserve au moins deux points, trois si elle est fermée
 tools-camera-max-frame = La caméra peut recevoir des images-clés jusqu’à l’image { $frame }
 tools-camera-move-error = Impossible de déplacer la caméra : { $error }

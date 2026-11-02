@@ -58,5 +58,9 @@ inf-selection = Selection
 inf-pointer = Pointer
 inf-color = Color
 out-clear = Clear
-out-count = { $n } messages
+out-count =
+    { $n ->
+        [one] { $n } message
+       *[other] { $n } messages
+    }
 out-nothing = Nothing to report

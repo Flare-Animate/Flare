@@ -171,13 +171,11 @@ impl Workspace {
                         for note in notes {
                             self.log.push(note);
                         }
-                        let text = tr!(
+                        let text = tr_n!(
                             self,
                             "msg-imported",
-                            &[
-                                ("path", &path.display().to_string()),
-                                ("count", &skipped.to_string()),
-                            ],
+                            skipped,
+                            &[("path", &path.display().to_string())],
                         );
                         self.report(text);
                     }

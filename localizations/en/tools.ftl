@@ -58,7 +58,11 @@ tools-pen-open-points = A path needs at least two points
 tools-text-position = Cannot place text: the position is not a number
 tools-text-error = Cannot place text: { $error }
 tools-text-changed = The text changed while it was being set
-tools-brush-limit = Only { $max } custom brushes can be kept
+tools-brush-limit =
+    { $n ->
+        [one] Only { $n } custom brush can be kept
+       *[other] Only { $n } custom brushes can be kept
+    }
 tools-anchor-minimum = A shape keeps at least two points, three when it is closed
 tools-camera-max-frame = The camera can be keyed up to frame { $frame }
 tools-camera-move-error = Cannot move the camera: { $error }

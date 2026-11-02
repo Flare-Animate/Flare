@@ -6,7 +6,11 @@ msg-saved = { $path } enregistré
 msg-cannot-save = Impossible d’enregistrer : { $reason }
 msg-autosave-failed = Échec de l’enregistrement automatique : { $reason }
 msg-cannot-import = Impossible d’importer { $path } : { $reason }
-msg-imported = { $path } importé ; { $count } note(s) sur ce qui n’a pas été repris se trouvent dans le panneau Sortie
+msg-imported =
+    { $n ->
+        [one] { $path } importé ; { $n } note sur ce qui n’a pas été repris se trouve dans le panneau Sortie
+       *[other] { $path } importé ; { $n } notes sur ce qui n’a pas été repris se trouvent dans le panneau Sortie
+    }
 msg-cannot-recover = Impossible de récupérer { $path } : { $reason }
 msg-cannot-open = Impossible d’ouvrir { $path } : { $reason }
 msg-project-changed = Votre projet a changé pendant la lecture du travail ; il n’a donc pas été remplacé

@@ -326,3 +326,64 @@ fn every_key_english_defines_is_found_and_the_list_is_sorted() {
     }
     assert!(!has_key(""));
 }
+
+#[test]
+fn counted_messages_say_one_message_and_two_messages() {
+    let english = Translator::new(Language::English);
+    assert_eq!(english.text_count("out-count", 1, &[]), "1 message");
+    assert_eq!(english.text_count("out-count", 2, &[]), "2 messages");
+    assert_eq!(
+        english.text_count("tools-brush-limit", 1, &[]),
+        "Only 1 custom brush can be kept"
+    );
+    assert_eq!(
+        english.text_count("tools-brush-limit", 32, &[]),
+        "Only 32 custom brushes can be kept"
+    );
+    let one = english.text_count("msg-imported", 1, &[("path", "a.fla")]);
+    assert!(
+        one.contains("1 note about") && one.contains("is in the"),
+        "{one}"
+    );
+    let many = english.text_count("msg-imported", 3, &[("path", "a.fla")]);
+    assert!(
+        many.contains("3 notes about") && many.contains("are in the"),
+        "{many}"
+    );
+    let german = Translator::new(Language::German);
+    assert_eq!(german.text_count("out-count", 1, &[]), "1 Meldung");
+    assert_eq!(german.text_count("out-count", 4, &[]), "4 Meldungen");
+    let spanish = Translator::new(Language::Spanish);
+    assert_eq!(spanish.text_count("out-count", 1, &[]), "1 mensaje");
+    assert_eq!(spanish.text_count("out-count", 7, &[]), "7 mensajes");
+}
+
+#[test]
+fn no_message_hides_a_plural_in_brackets() {
+    // "note(s)" says both forms at once and is right in neither: a message with a count has one
+    // form per plural category instead. (Korean's 을(를) is a particle that follows the previous
+    // word, not a plural, so only Latin letters are looked for.)
+    for language in Language::ALL {
+        for (index, section) in SECTIONS.iter().enumerate() {
+            let source = language.section_source(index).expect("section");
+            for line in source.lines() {
+                let chars: Vec<char> = line.chars().collect();
+                for at in 1..chars.len() {
+                    if chars[at] != '(' || !chars[at - 1].is_alphabetic() {
+                        continue;
+                    }
+                    let inside: String =
+                        chars[at + 1..].iter().take_while(|c| **c != ')').collect();
+                    let closed = chars[at + 1..].contains(&')');
+                    assert!(
+                        !(closed
+                            && (1..=2).contains(&inside.chars().count())
+                            && inside.chars().all(|c| c.is_ascii_lowercase())),
+                        "{} {section}: a plural in brackets: {line}",
+                        language.code()
+                    );
+                }
+            }
+        }
+    }
+}

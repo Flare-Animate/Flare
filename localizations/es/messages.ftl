@@ -6,7 +6,11 @@ msg-saved = Guardado { $path }
 msg-cannot-save = No se puede guardar: { $reason }
 msg-autosave-failed = Falló el guardado automático: { $reason }
 msg-cannot-import = No se puede importar { $path }: { $reason }
-msg-imported = Importado { $path }; en el panel Salida hay { $count } nota(s) sobre lo que no se trasladó
+msg-imported =
+    { $n ->
+        [one] Importado { $path }; en el panel Salida hay { $n } nota sobre lo que no se trasladó
+       *[other] Importado { $path }; en el panel Salida hay { $n } notas sobre lo que no se trasladó
+    }
 msg-cannot-recover = No se puede recuperar { $path }: { $reason }
 msg-cannot-open = No se puede abrir { $path }: { $reason }
 msg-project-changed = Tu proyecto cambió mientras se leía el trabajo, así que no se reemplazó

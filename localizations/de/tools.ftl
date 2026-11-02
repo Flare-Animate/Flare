@@ -58,7 +58,11 @@ tools-pen-open-points = Ein Pfad braucht mindestens zwei Punkte
 tools-text-position = Text kann nicht platziert werden: Die Position ist keine Zahl
 tools-text-error = Text kann nicht platziert werden: { $error }
 tools-text-changed = Der Text hat sich während der Eingabe geändert
-tools-brush-limit = Es können nur { $max } eigene Pinsel behalten werden
+tools-brush-limit =
+    { $n ->
+        [one] Es kann nur { $n } eigener Pinsel behalten werden
+       *[other] Es können nur { $n } eigene Pinsel behalten werden
+    }
 tools-anchor-minimum = Eine Form behält mindestens zwei Punkte, drei wenn sie geschlossen ist
 tools-camera-max-frame = Die Kamera kann bis Bild { $frame } Schlüsselbilder erhalten
 tools-camera-move-error = Die Kamera kann nicht bewegt werden: { $error }

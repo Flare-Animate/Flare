@@ -6,7 +6,11 @@ msg-saved = { $path } gespeichert
 msg-cannot-save = Speichern nicht möglich: { $reason }
 msg-autosave-failed = Automatisches Speichern fehlgeschlagen: { $reason }
 msg-cannot-import = { $path } kann nicht importiert werden: { $reason }
-msg-imported = { $path } importiert; { $count } Hinweis(e) dazu, was nicht übernommen wurde, stehen im Ausgabe-Bedienfeld
+msg-imported =
+    { $n ->
+        [one] { $path } importiert; { $n } Hinweis dazu, was nicht übernommen wurde, steht im Ausgabe-Bedienfeld
+       *[other] { $path } importiert; { $n } Hinweise dazu, was nicht übernommen wurde, stehen im Ausgabe-Bedienfeld
+    }
 msg-cannot-recover = { $path } kann nicht wiederhergestellt werden: { $reason }
 msg-cannot-open = { $path } kann nicht geöffnet werden: { $reason }
 msg-project-changed = Ihr Projekt hat sich beim Lesen der Arbeit geändert und wurde deshalb nicht ersetzt

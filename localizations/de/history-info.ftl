@@ -58,5 +58,9 @@ inf-selection = Auswahl
 inf-pointer = Zeiger
 inf-color = Farbe
 out-clear = Leeren
-out-count = { $n } Meldungen
+out-count =
+    { $n ->
+        [one] { $n } Meldung
+       *[other] { $n } Meldungen
+    }
 out-nothing = Nichts zu melden

@@ -90,7 +90,7 @@ impl Workspace {
     /// Messages from earlier actions, newest at the bottom.
     pub(crate) fn output_panel(&mut self, ui: &mut Ui) {
         let clear = tr!(self, "out-clear");
-        let count = tr!(self, "out-count", &[("n", &self.log.len().to_string())]);
+        let count = tr_n!(self, "out-count", self.log.len());
         ui.horizontal(|ui| {
             if chrome::icon_button(ui, "delete", BAR_ICON, false, !self.log.is_empty(), &clear)
                 .clicked()

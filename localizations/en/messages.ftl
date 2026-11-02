@@ -6,7 +6,11 @@ msg-saved = Saved { $path }
 msg-cannot-save = Cannot save: { $reason }
 msg-autosave-failed = Autosave failed: { $reason }
 msg-cannot-import = Cannot import { $path }: { $reason }
-msg-imported = Imported { $path }; { $count } note(s) about what was not carried over are in the Output panel
+msg-imported =
+    { $n ->
+        [one] Imported { $path }; { $n } note about what was not carried over is in the Output panel
+       *[other] Imported { $path }; { $n } notes about what was not carried over are in the Output panel
+    }
 msg-cannot-recover = Cannot recover { $path }: { $reason }
 msg-cannot-open = Cannot open { $path }: { $reason }
 msg-project-changed = Your project changed while the work was being read, so it was not replaced
