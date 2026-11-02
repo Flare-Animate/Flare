@@ -28,6 +28,7 @@ mod frame_menu;
 mod frames_text_and_sound;
 mod graphic_playback;
 mod home;
+mod home_extra;
 mod home_recent;
 mod language;
 mod layer_names;
