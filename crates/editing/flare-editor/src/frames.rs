@@ -33,6 +33,17 @@ fn span(start: u32, duration: u32, content: Content, like: &FrameSpan) -> Option
     Some(FrameSpan::new(start, duration, content).with_motion_of(like))
 }
 
+/// `like` over other frames, with all its elements and its motion.
+fn retime(like: &FrameSpan, start: u32, duration: u32) -> Option<FrameSpan> {
+    Some(like.retimed(start, NonZeroU32::new(duration)?))
+}
+
+/// `like` over other frames with a copy of every element, each with an identity of its own.
+fn fresh(like: &FrameSpan, start: u32, duration: u32) -> Option<FrameSpan> {
+    let copies = like.elements().map(duplicate).collect::<Option<Vec<_>>>()?;
+    retime(like, start, duration)?.with_elements(copies).ok()?
+}
+
 /// Replaces a layer's whole span list. Removals come first, so every step is valid.
 fn replace_spans(scene: SceneId, layer: &Layer, new: Vec<FrameSpan>) -> Vec<Command> {
     let removals = layer.spans().iter().map(|old| Command::RemoveSpan {
@@ -49,7 +60,7 @@ fn replace_spans(scene: SceneId, layer: &Layer, new: Vec<FrameSpan>) -> Vec<Comm
 }
 
 fn shifted(span: &FrameSpan, start: u32) -> Option<FrameSpan> {
-    Some(FrameSpan::new(start, span.duration(), span.content().clone()).with_motion_of(span))
+    Some(span.retimed(start, span.duration()))
 }
 
 /// A run of frames lifted from a layer: its spans, relative to the first frame copied.
@@ -88,16 +99,11 @@ pub fn copy_frames(layer: &Layer, start: u32, end: u32) -> Option<FrameClip> {
             continue;
         }
         let cut_end = s.end() > stop;
-        let piece = FrameSpan::new(
+        let piece = s.retimed(
             u32::try_from(from - u64::from(start)).ok()?,
             NonZeroU32::new(u32::try_from(to - from).ok()?)?,
-            s.content().clone(),
         );
-        spans.push(if cut_end {
-            piece
-        } else {
-            piece.with_motion_of(s)
-        });
+        spans.push(if cut_end { piece.held() } else { piece });
     }
     if spans.is_empty() {
         return None;
@@ -127,23 +133,20 @@ pub fn paste_frames(
             continue;
         }
         if s.start() < at {
-            out.push(span(s.start(), at - s.start(), s.content().clone(), s)?);
+            out.push(retime(s, s.start(), at - s.start())?);
         }
         if s.end() > stop {
             let from = u32::try_from(stop).ok()?;
             let rest = u32::try_from(s.end() - stop).ok()?;
-            out.push(span(from, rest, duplicate(s.content())?, s)?);
+            out.push(fresh(s, from, rest)?);
         }
     }
     for pasted in &clip.spans {
-        out.push(
-            FrameSpan::new(
-                at.checked_add(pasted.start())?,
-                pasted.duration(),
-                duplicate(pasted.content())?,
-            )
-            .with_motion_of(pasted),
-        );
+        out.push(fresh(
+            pasted,
+            at.checked_add(pasted.start())?,
+            pasted.duration().get(),
+        )?);
     }
     out.sort_by_key(FrameSpan::start);
     Some(replace_spans(scene, layer, out))
@@ -191,12 +194,9 @@ pub fn insert_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
         for (i, s) in spans.iter().enumerate() {
             out.push(match i.cmp(&at) {
                 std::cmp::Ordering::Less => s.clone(),
-                std::cmp::Ordering::Equal => span(
-                    s.start(),
-                    s.duration().get().checked_add(1)?,
-                    s.content().clone(),
-                    s,
-                )?,
+                std::cmp::Ordering::Equal => {
+                    retime(s, s.start(), s.duration().get().checked_add(1)?)?
+                }
                 std::cmp::Ordering::Greater => shifted(s, s.start().checked_add(1)?)?,
             });
         }
@@ -207,7 +207,7 @@ pub fn insert_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
         }
         let grown = frame.checked_add(1)?.checked_sub(last.start())?;
         out.extend(spans[..spans.len() - 1].iter().cloned());
-        out.push(span(last.start(), grown, last.content().clone(), last)?);
+        out.push(retime(last, last.start(), grown)?);
     }
     with_cue_shift(layer, frame, 1, scene, replace_spans(scene, layer, out))
 }
@@ -225,12 +225,7 @@ pub fn remove_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
             std::cmp::Ordering::Less => out.push(s.clone()),
             std::cmp::Ordering::Equal => {
                 if s.duration().get() > 1 {
-                    out.push(span(
-                        s.start(),
-                        s.duration().get() - 1,
-                        s.content().clone(),
-                        s,
-                    )?);
+                    out.push(retime(s, s.start(), s.duration().get() - 1)?);
                 }
             }
             std::cmp::Ordering::Greater => out.push(shifted(s, s.start() - 1)?),
@@ -243,11 +238,12 @@ pub fn remove_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
 /// part. Past the end of the layer, the last span is held up to `frame` first.
 fn split_at(scene: SceneId, layer: &Layer, frame: u32, blank: bool) -> Option<Vec<Command>> {
     let spans = layer.spans();
-    let new_content = |from: &Content| {
+    // The new part: nothing for a blank keyframe, else a copy of everything the span holds.
+    let make = |from: &FrameSpan, start: u32, duration: u32| {
         if blank {
-            Some(Content::Empty)
+            span(start, duration, Content::Empty, from)
         } else {
-            duplicate(from)
+            fresh(from, start, duration)
         }
     };
     let mut out = Vec::with_capacity(spans.len() + 1);
@@ -260,14 +256,9 @@ fn split_at(scene: SceneId, layer: &Layer, frame: u32, blank: bool) -> Option<Ve
             return None; // already a keyframe
         }
         out.extend(spans[..at].iter().cloned());
-        out.push(span(
-            target.start(),
-            frame - target.start(),
-            target.content().clone(),
-            target,
-        )?);
+        out.push(retime(target, target.start(), frame - target.start())?);
         let rest = u32::try_from(target.end() - u64::from(frame)).ok()?;
-        out.push(span(frame, rest, new_content(target.content())?, target)?);
+        out.push(make(target, frame, rest)?);
         out.extend(spans[at + 1..].iter().cloned());
     } else {
         let last = spans.last()?;
@@ -275,13 +266,12 @@ fn split_at(scene: SceneId, layer: &Layer, frame: u32, blank: bool) -> Option<Ve
             return None; // inside a gap
         }
         out.extend(spans[..spans.len() - 1].iter().cloned());
-        out.push(span(
+        out.push(retime(
+            last,
             last.start(),
             frame.checked_sub(last.start())?,
-            last.content().clone(),
-            last,
         )?);
-        out.push(span(frame, 1, new_content(last.content())?, last)?);
+        out.push(make(last, frame, 1)?);
     }
     Some(replace_spans(scene, layer, out))
 }
@@ -308,14 +298,9 @@ pub fn convert_to_keyframes(scene: SceneId, layer: &Layer, frame: u32) -> Option
         .filter(|s| s.start() != target.start())
         .cloned()
         .collect();
-    out.push(span(target.start(), 1, target.content().clone(), target)?);
+    out.push(retime(target, target.start(), 1)?);
     for offset in 1..target.duration().get() {
-        out.push(span(
-            target.start().checked_add(offset)?,
-            1,
-            duplicate(target.content())?,
-            target,
-        )?);
+        out.push(fresh(target, target.start().checked_add(offset)?, 1)?);
     }
     out.sort_by_key(FrameSpan::start);
     Some(replace_spans(scene, layer, out))
@@ -335,11 +320,10 @@ pub fn clear_keyframe(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<C
     let target = out.remove(at);
     match at.checked_sub(1).map(|p| &out[p]) {
         Some(prev) if prev.end() == u64::from(target.start()) => {
-            let merged = span(
+            let merged = retime(
+                prev,
                 prev.start(),
                 prev.duration().get().checked_add(target.duration().get())?,
-                prev.content().clone(),
-                prev,
             )?;
             out[at - 1] = merged;
         }
@@ -417,7 +401,7 @@ pub fn resize_span(
         Command::InsertSpan {
             scene,
             layer: layer.id(),
-            span: span(from, duration, old.content().clone(), old)?,
+            span: retime(old, from, duration)?,
         },
     ])
 }
@@ -425,5 +409,7 @@ pub fn resize_span(
 mod ranges;
 pub use ranges::{ReverseRefusal, remove_frames, reverse_frames};
 
+#[cfg(test)]
+mod element_tests;
 #[cfg(test)]
 mod tests;

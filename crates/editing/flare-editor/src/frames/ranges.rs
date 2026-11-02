@@ -52,12 +52,7 @@ pub fn remove_frames(scene: SceneId, layer: &Layer, from: u32, to: u32) -> Optio
             let left = u64::from(s.duration().get()) - overlap;
             let start = s.start().min(from);
             if left > 0 {
-                out.push(span(
-                    start,
-                    u32::try_from(left).ok()?,
-                    s.content().clone(),
-                    s,
-                )?);
+                out.push(retime(s, start, u32::try_from(left).ok()?)?);
             }
         }
     }
@@ -120,7 +115,8 @@ pub fn reverse_frames(
     for (i, s) in touched.iter().enumerate() {
         let start = u32::try_from(u64::from(from) + stop - s.end())
             .map_err(|_| ReverseRefusal::NothingThere)?;
-        let mut mirrored = FrameSpan::new(start, s.duration(), s.content().clone());
+        // Every element stays; only the motion is rebuilt below.
+        let mut mirrored = s.held().retimed(start, s.duration());
         // The tween that led from the span before this one into it now leads out of it.
         if let Some(before) = i.checked_sub(1).map(|b| touched[b])
             && before.end() == u64::from(s.start())
