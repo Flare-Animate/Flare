@@ -248,10 +248,11 @@ pub enum LayoutProfile {
     OpenToonz,
     Flippaclip,
     Moho,
+    StudioGhibli,
 }
 
 impl LayoutProfile {
-    pub const ALL: [LayoutProfile; 12] = [
+    pub const ALL: [LayoutProfile; 13] = [
         Self::Animate,
         Self::Cleanup,
         Self::Compose,
@@ -264,6 +265,7 @@ impl LayoutProfile {
         Self::OpenToonz,
         Self::Flippaclip,
         Self::Moho,
+        Self::StudioGhibli,
     ];
 
     pub fn name(self) -> &'static str {
@@ -280,6 +282,7 @@ impl LayoutProfile {
             Self::OpenToonz => "OpenToonz",
             Self::Flippaclip => "Flippaclip",
             Self::Moho => "Moho",
+            Self::StudioGhibli => "StudioGhibli",
         }
     }
 
@@ -296,7 +299,8 @@ pub fn profile_tree(profile: LayoutProfile) -> Tree<Pane> {
         | LayoutProfile::Default
         | LayoutProfile::OpenToonz
         | LayoutProfile::Flippaclip
-        | LayoutProfile::Moho => default_tree(),
+        | LayoutProfile::Moho
+        | LayoutProfile::StudioGhibli => default_tree(),
         // Stubbed: specialised arrangements to be ported from the Rust-Rewrite
         // profiles (see docs/LAYOUT_PROFILES.md). For now they use the default.
         LayoutProfile::Cleanup
