@@ -306,8 +306,11 @@ impl Workspace {
                 .response
                 .interact(egui::Sense::click())
                 .on_hover_text(tr!(self, "bar-home"));
+            // The house goes to Home and stays there; it is not a switch. Pressing it on Home used
+            // to leave for the untouched document underneath, which looked like a new file. A tab
+            // is how a document is gone back to.
             if home.clicked() {
-                self.windows.home = !self.windows.home;
+                self.windows.home = true;
             }
             ui.add_space(6.0);
             egui::MenuBar::new().ui(ui, |ui| {

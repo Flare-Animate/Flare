@@ -468,3 +468,35 @@ fn the_custom_size_window_goes_when_home_does() {
     run(&mut ws, &ctx, 0.0);
     assert!(!ws.new_document_shown());
 }
+
+/// Presses the top bar's house in a window 1280 wide.
+fn press_the_house(ws: &mut Workspace, ctx: &egui::Context, time: f64) {
+    let at = Pos2::new(18.0, 14.0);
+    let click = |pressed| Event::PointerButton {
+        pos: at,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    pass(ws, ctx, input(time, vec![Event::PointerMoved(at)]));
+    pass(ws, ctx, input(time + 0.1, vec![click(true)]));
+    pass(ws, ctx, input(time + 0.2, vec![click(false)]));
+}
+
+#[test]
+fn the_house_in_the_top_bar_goes_to_home_and_stays_there() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    flare_ui::icons::install(&ctx);
+    run(&mut ws, &ctx, 0.0);
+    run(&mut ws, &ctx, 0.1);
+    assert!(!ws.home_shown());
+    press_the_house(&mut ws, &ctx, 0.2);
+    assert!(ws.home_shown(), "from a document it goes to Home");
+    let tabs = ws.tabs().len();
+    press_the_house(&mut ws, &ctx, 1.0);
+    assert!(ws.home_shown(), "on Home it does nothing");
+    assert_eq!(ws.tabs().len(), tabs, "and makes no document");
+    // A tab is the way back to a document.
+    ws.switch_to_tab(0);
+    assert!(!ws.home_shown());
+}
