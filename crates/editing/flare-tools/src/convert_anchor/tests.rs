@@ -86,7 +86,8 @@ fn converting_needs_a_shape_and_a_point() {
             f.scene,
             SpanRef {
                 layer: f.layer,
-                start: 7
+                start: 7,
+                element: 0
             },
             1,
             Some(DVec2::ONE)

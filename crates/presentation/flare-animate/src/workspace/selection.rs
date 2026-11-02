@@ -47,7 +47,7 @@ impl Workspace {
         }
         if let Some(scene) = self.scene_id() {
             // One pass over the layers answers for every selected span.
-            let editable: std::collections::HashSet<(LayerId, u32)> = self
+            let editable: std::collections::HashMap<(LayerId, u32), usize> = self
                 .document()
                 .scenes()
                 .iter()
@@ -55,10 +55,18 @@ impl Workspace {
                 .into_iter()
                 .flat_map(|s| s.timeline().layers())
                 .filter(|l| l.is_visible() && !l.is_locked())
-                .flat_map(|l| l.spans().iter().map(|span| (l.id(), span.start())))
+                .flat_map(|l| {
+                    l.spans()
+                        .iter()
+                        .map(|span| ((l.id(), span.start()), span.element_count()))
+                })
                 .collect();
             let mut all: Vec<SpanRef> = self.selection_all();
-            all.retain(|span| editable.contains(&(span.layer, span.start)));
+            all.retain(|span| {
+                editable
+                    .get(&(span.layer, span.start))
+                    .is_some_and(|count| span.element < *count)
+            });
             self.selected = all.first().copied();
             self.also_selected = all.into_iter().skip(1).collect();
         } else {
@@ -72,7 +80,7 @@ impl Workspace {
         }
     }
 
-    /// The scene-level span of the topmost shape under `point` at the current frame,
+    /// The scene-level element of the topmost shape under `point` at the current frame,
     /// looking through locked layers.
     pub(super) fn hit(&self, point: Pos2) -> Option<SpanRef> {
         // Text is picked anywhere in its box, not only on the ink of its letters.
@@ -154,6 +162,7 @@ impl Workspace {
         for span in &spans {
             span.layer.hash(&mut hasher);
             span.start.hash(&mut hasher);
+            span.element.hash(&mut hasher);
         }
         let stamp = (
             self.context_serial,
@@ -271,11 +280,7 @@ impl Workspace {
         let Some(scene) = self.scene_id() else {
             return;
         };
-        let commands: Vec<Command> = self
-            .selection_all()
-            .into_iter()
-            .flat_map(|span| ops::delete(scene, span))
-            .collect();
+        let commands = ops::delete_many(self.document(), scene, &self.selection_all());
         if commands.is_empty() {
             return;
         }
@@ -287,7 +292,10 @@ impl Workspace {
     fn selected_tweenable(&self) -> Option<&flare_document::FrameSpan> {
         let (selected, scene) = (self.selected?, self.scene_id()?);
         let span = ops::find_span(self.document(), scene, selected)?;
-        matches!(span.content(), Content::Instance(_) | Content::Shape(_)).then_some(span)
+        // Animate tweens one object: a keyframe of several elements stays held.
+        (span.element_count() == 1
+            && matches!(span.content(), Content::Instance(_) | Content::Shape(_)))
+        .then_some(span)
     }
 
     /// The selected span's tween, when it holds something that can tween.

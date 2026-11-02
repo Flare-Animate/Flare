@@ -2,7 +2,7 @@
 
 use flare_commands::Command;
 use flare_core::{Rgba8, SceneId};
-use flare_document::{Content, Document, FrameSpan, Stroke};
+use flare_document::{Content, Document, Stroke};
 
 use crate::common::*;
 
@@ -17,7 +17,7 @@ pub fn restyle(
     stroke: Option<Option<Stroke>>,
 ) -> Option<Vec<Command>> {
     let span = find_span(document, scene, at)?;
-    let Content::Shape(shape) = span.content() else {
+    let Some(Content::Shape(shape)) = span.element(at.element) else {
         return None;
     };
     let mut painted = shape.clone();
@@ -30,18 +30,5 @@ pub fn restyle(
     if painted == *shape {
         return None;
     }
-    let replacement =
-        FrameSpan::new(span.start(), span.duration(), Content::Shape(painted)).with_motion_of(span);
-    Some(vec![
-        Command::RemoveSpan {
-            scene,
-            layer: at.layer,
-            start: at.start,
-        },
-        Command::InsertSpan {
-            scene,
-            layer: at.layer,
-            span: replacement,
-        },
-    ])
+    replace_element(document, scene, at, Content::Shape(painted))
 }

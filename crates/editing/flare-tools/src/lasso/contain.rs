@@ -26,7 +26,7 @@ pub fn polygon_contains(polygon: &[Pos2], point: Pos2) -> bool {
     inside
 }
 
-/// The spans on unlocked layers at `frame` whose bounds are centered inside `polygon`: what a
+/// The elements on unlocked layers at `frame` whose bounds are centered inside `polygon`: what a
 /// lasso drawn around them selects, topmost layer first.
 pub fn spans_in_polygon(
     document: &Document,
@@ -44,13 +44,19 @@ pub fn spans_in_polygon(
         .layers()
         .iter()
         .filter(|layer| !layer.is_locked())
-        .filter_map(|layer| {
-            let span = layer.span_at(frame)?;
-            let center = content_bounds(document, span.content())?.center();
-            polygon_contains(polygon, center).then_some(SpanRef {
-                layer: layer.id(),
-                start: span.start(),
-            })
+        .filter_map(|layer| Some((layer, layer.span_at(frame)?)))
+        .flat_map(|(layer, span)| {
+            span.elements()
+                .enumerate()
+                .filter_map(|(element, content)| {
+                    let center = content_bounds(document, content)?.center();
+                    polygon_contains(polygon, center).then_some(SpanRef {
+                        layer: layer.id(),
+                        start: span.start(),
+                        element,
+                    })
+                })
+                .collect::<Vec<_>>()
         })
         .collect()
 }

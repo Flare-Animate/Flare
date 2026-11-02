@@ -228,21 +228,23 @@ fn zoom_menu_actions_zoom_the_stage_and_fit_resets_it() {
 }
 
 #[test]
-fn duplicate_copies_the_selection_independently_on_a_new_layer() {
+fn duplicate_copies_the_selection_independently_into_the_same_keyframe() {
     let mut ws = workspace();
     draw_and_select(&mut ws);
     let original = ws.selected.expect("selected");
     ws.perform(MenuAction::Duplicate);
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(
+        layer_count(&ws),
+        2,
+        "the copy joins the keyframe, no layer is made"
+    );
     let copy = ws.selected.expect("the copy is selected");
-    assert_ne!(copy.layer, original.layer);
+    assert_eq!(copy.layer, original.layer);
+    assert_eq!(copy.element, original.element + 1);
     let scene = ws.scene_id().expect("scene");
     let bounds = |at| ops::span_bounds(ws.document(), scene, at).expect("bounds");
     assert_eq!(bounds(copy).min, bounds(original).min + Vec2::splat(12.0));
-    let id_of = |at: SpanRef| match ops::find_span(ws.document(), scene, at)
-        .expect("span")
-        .content()
-    {
+    let id_of = |at: SpanRef| match ops::find_element(ws.document(), scene, at).expect("element") {
         Content::Shape(shape) => shape.id(),
         _ => panic!("a shape expected"),
     };
@@ -260,7 +262,18 @@ fn duplicate_copies_the_selection_independently_on_a_new_layer() {
     assert_eq!(after, before);
     ws.undo();
     ws.undo();
-    assert_eq!(layer_count(&ws), 2, "duplicating is one undo step");
+    let layers = ws.document().scenes()[0].timeline().layers();
+    assert_eq!(
+        layers
+            .iter()
+            .map(|l| l.spans()[..]
+                .iter()
+                .map(|s| s.element_count())
+                .sum::<usize>())
+            .sum::<usize>(),
+        1,
+        "duplicating is one undo step"
+    );
 }
 
 #[test]
@@ -279,12 +292,26 @@ fn duplicate_copies_every_selected_span_and_selects_the_copies() {
     ws.select_at(Pos2::new(120.0, 30.0), true);
     let originals = ws.selection_all();
     ws.perform(MenuAction::Duplicate);
-    assert_eq!(layer_count(&ws), 5);
+    assert_eq!(
+        layer_count(&ws),
+        3,
+        "the copies join the keyframes, no layers are made"
+    );
     let copies = ws.selection_all();
     assert_eq!(copies.len(), 2);
     assert!(copies.iter().all(|c| !originals.contains(c)));
+    let elements = |ws: &Workspace| -> usize {
+        ws.document().scenes()[0]
+            .timeline()
+            .layers()
+            .iter()
+            .flat_map(|l| l.spans())
+            .map(|s| s.element_count())
+            .sum()
+    };
+    assert_eq!(elements(&ws), 4);
     ws.undo();
-    assert_eq!(layer_count(&ws), 3, "one undo step for the whole group");
+    assert_eq!(elements(&ws), 2, "one undo step for the whole group");
 }
 
 #[test]

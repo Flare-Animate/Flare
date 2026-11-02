@@ -161,27 +161,31 @@ impl Workspace {
         let layers = self.document().scenes().first()?.timeline().layers();
         layers.iter().enumerate().find_map(|(index, layer)| {
             let span = layer.span_at(self.frame)?;
-            let Content::Shape(shape) = span.content() else {
-                return None;
-            };
-            shape.text()?;
             if !layer.is_visible() || crate::workspace::selection::locked_in_folders(layers, index)
             {
                 return None;
             }
-            let at = SpanRef {
-                layer: layer.id(),
-                start: span.start(),
-            };
-            let bounds = ops::span_bounds(self.document(), scene, at)?;
-            bounds.expand(TEXT_BOX_MARGIN).contains(point).then_some(at)
+            // The last element is drawn on top, so it is tried first.
+            (0..span.element_count()).rev().find_map(|element| {
+                let Some(Content::Shape(shape)) = span.element(element) else {
+                    return None;
+                };
+                shape.text()?;
+                let at = SpanRef {
+                    layer: layer.id(),
+                    start: span.start(),
+                    element,
+                };
+                let bounds = ops::span_bounds(self.document(), scene, at)?;
+                bounds.expand(TEXT_BOX_MARGIN).contains(point).then_some(at)
+            })
         })
     }
 
-    /// The text object in the span `at`, and its source.
+    /// The text object at `at`, and its source.
     pub(in crate::workspace) fn text_at(&self, at: SpanRef) -> Option<(Shape, TextSource)> {
         let scene = self.scene_id()?;
-        let Content::Shape(shape) = ops::find_span(self.document(), scene, at)?.content() else {
+        let Content::Shape(shape) = ops::find_element(self.document(), scene, at)? else {
             return None;
         };
         let source = shape.text()?.clone();
@@ -224,7 +228,8 @@ impl Workspace {
         if edit.buffer.trim().is_empty() {
             self.clear_text_preview();
             if let (Some(at), Some(scene)) = (edit.editing, self.scene_id()) {
-                self.run_batch(ops::delete(scene, at), "delete text");
+                let commands = ops::delete(self.document(), scene, at);
+                self.run_batch(commands, "delete text");
                 self.selected = None;
             }
             return;

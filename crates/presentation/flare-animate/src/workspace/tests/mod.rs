@@ -241,7 +241,11 @@ fn line_selected() -> Workspace {
     ws.set_tool(Tool::Select);
     // Strokes are not hit-testable on this branch, so select the new layer's span directly.
     let layer = ws.current_layer.expect("the line's layer");
-    ws.selected = Some(SpanRef { layer, start: 0 });
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
     ws
 }
 
@@ -305,7 +309,11 @@ fn wide_rectangle_selected() -> Workspace {
     ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(110.0, 60.0));
     ws.set_tool(Tool::Select);
     let layer = ws.current_layer.expect("layer");
-    ws.selected = Some(SpanRef { layer, start: 0 });
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
     ws
 }
 

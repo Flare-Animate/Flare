@@ -98,7 +98,7 @@ impl Workspace {
     /// The symbol behind the selected instance, if an instance is selected.
     pub(super) fn selected_instance_symbol(&self) -> Option<SymbolId> {
         let (selected, scene) = (self.selected?, self.scene_id()?);
-        match ops::find_span(self.document(), scene, selected)?.content() {
+        match ops::find_element(self.document(), scene, selected)? {
             Content::Instance(instance) => Some(instance.symbol()),
             _ => None,
         }

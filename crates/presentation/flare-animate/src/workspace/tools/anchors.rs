@@ -21,7 +21,7 @@ impl Workspace {
         let (Some(at), Some(scene)) = (self.selected, self.scene_id()) else {
             return Vec::new();
         };
-        match ops::find_span(self.document(), scene, at).map(|s| s.content()) {
+        match ops::find_element(self.document(), scene, at) {
             Some(Content::Shape(shape)) => ops::anchors(shape),
             _ => Vec::new(),
         }
@@ -133,7 +133,7 @@ impl Workspace {
         };
         let is_shape = |at: &SpanRef| {
             matches!(
-                ops::find_span(self.document(), scene, *at).map(|s| s.content()),
+                ops::find_element(self.document(), scene, *at),
                 Some(Content::Shape(_))
             )
         };
@@ -150,9 +150,7 @@ impl Workspace {
     /// The point of the shape at `at` that is nearest `point`, if one is close enough to grab.
     fn nearest_anchor(&self, at: SpanRef, point: Pos2) -> Option<usize> {
         let scene = self.scene_id()?;
-        let Some(Content::Shape(shape)) =
-            ops::find_span(self.document(), scene, at).map(|s| s.content())
-        else {
+        let Some(Content::Shape(shape)) = ops::find_element(self.document(), scene, at) else {
             return None;
         };
         let grab = self.handle_radius.max(f32::EPSILON);

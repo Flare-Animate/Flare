@@ -36,6 +36,7 @@ fn find_text(state: &State, shape: &str) -> Result<(SceneId, SpanRef, Shape), St
                 let at = SpanRef {
                     layer: layer.id(),
                     start: span.start(),
+                    element: 0,
                 };
                 return Ok((scene.id(), at, found.clone()));
             }

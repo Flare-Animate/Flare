@@ -74,13 +74,15 @@ violation as a `Diagnostic`:
 - IDs are unique per kind, and instances only reference existing symbols.
 - Symbols cannot contain themselves, directly or indirectly.
 - Spans on a layer never overlap; durations are non-zero; frame arithmetic cannot overflow.
-- A span's `content` is its first element, and `extras` hold more (shapes and instances only, at most `MAX_ELEMENTS`, never with a tween), so a keyframe can hold what Animate's does; the project file writes `extras` only when there are some. Evaluation, selection and the tools still read the first element only; [decisions/ELEMENTS.md](decisions/ELEMENTS.md) lists the stages.
+- A span's `content` is its first element, and `extras` hold more (shapes and instances only, at most `MAX_ELEMENTS`, never with a tween), so a keyframe can hold what Animate's does; the project file writes `extras` only when there are some. `FrameSpan::with_elements`, `with_element`, `without_element`, `with_appended`, `with_element_moved`, `retimed` and `held` rebuild a span without ever losing an element. Everything reads every element: evaluation draws them bottom to top inside the layer (a tween applies to a single-element span only), `evaluate_level` lists them with their index, the SWF publisher gives each its own depth (a layer reserves one for its mask and one for each element of its fullest span, so depths do not move from frame to frame), the XFL writer puts them all in one `<DOMFrame>`, and the editor's frame operations (insert, remove, copy, paste, reverse, convert to keyframes) carry them all. [decisions/ELEMENTS.md](decisions/ELEMENTS.md) lists the stages.
 - Coordinates and matrices are finite; stage and stroke sizes are bounded.
 
 Nothing in the model derives `Deserialize`. Storage rebuilds documents through the same
 validating constructors, so a file cannot smuggle in an invalid document.
 
 ## Editing
+
+A selection names one element: `SpanRef` is the layer, the start frame of the span and the element's index in `FrameSpan::elements()` (0 for a span of one, so single-element behaviour is unchanged). A hit on the stage, Select All and a lasso each give one `SpanRef` per element, and the operations of `flare-tools` (move, transform, restyle, delete, copy, duplicate, convert to symbol, group, break apart, path edits, arrange) act on the elements named. An edit rebuilds the span the element is in with `Command::RemoveSpan` and `Command::InsertSpan`, so it is one undo step with no new command; for several elements of one span `each_element`, `translate_many`, `transform_many` and `delete_many` edit the span once or one after another on a working copy, never from the same stale span.
 
 `EditorSession` owns the current document. `apply` takes a batch of `Command`s and runs
 them against a working copy; the session only changes if the whole batch succeeds, and a
@@ -267,8 +269,7 @@ layers with name, visibility and lock; keyframes and durations; symbol instances
 matrix; solid fills and solid strokes of drawn shapes, including quadratic curves and
 holes (edges are decoded and chained into contours per fill); the library, each symbol with its
 Graphic, Movie Clip or Button type; layer folders (a layer in a folder points at it by index, and a hidden or locked
-folder hides or locks what it holds); motion tweens between instances and shape tweens between shapes (with the ease, `acceleration` in XFL). A keyframe with several elements puts
-the extras on additional layers above, preserving stacking.
+folder hides or locks what it holds); motion tweens between instances and shape tweens between shapes (with the ease, `acceleration` in XFL). A keyframe with several elements stays one span: the elements are kept together in the layer, in the order the file lists them (a keyframe that also tweens is held, because a span of several elements cannot tween).
 
 XFL linear gradients of two colors are imported as gradients, laid on the shape by the file's matrix (the matrix is in pixels, unlike the edges, and maps a square 32768 units wide; the numbers of a real file were checked against that) only if that puts a square about the shape's size on it; a radial gradient, one with more stops (the first and last are kept), or one that does not fit its shape is imported as the average of its first and last stop, with a warning. SWF import still takes a gradient's first stop. Reported and not imported: bitmap fills, bitmaps, text, video, sound, frame scripts, filters,
 color effects, blend modes, masks, guides, primitives, and
@@ -464,8 +465,7 @@ Ellipse, Line, Pen and Text (click for corners, drag for smooth handles, click t
 press Enter to finish, Backspace to remove a point, Esc to cancel), with fill and outline
 settings. The stage zooms (pinch, Ctrl/Cmd+scroll or the View menu, about the cursor)
 and pans (scroll or middle-drag). A layer can be made a mask for the layer directly below it (Modify > Timeline): the mask is never drawn, and the layer below shows only where the mask has shapes (the union of its shapes at that frame; overlapping shapes of opposite winding cut holes). Masked artwork can only be picked where it shows. XFL export writes real mask layers; XFL import still keeps masks as preserved source data, and SWF publishing reports that masks are not written. Sounds: File > Import Sound reads and decodes a file on a worker, keeps the original file in the project (the document shares it, so snapshots stay cheap), and puts a cue at the playhead on a new layer. A cue plays its sound from its frame while the timeline plays; sounds start with playback, again when the loop wraps or the playhead jumps back, and stop on pause. Cues move with their frames when frames are inserted or removed, and deleting a layer removes sounds nothing else plays. XFL export and SWF publishing report that sounds are not written. The Text tool opens a small editor where you click; Place (Ctrl/Cmd+Enter) turns the text into a filled shape on a new layer, in the chosen font family and size, with the font work done on a worker. Shift-click on timeline cells selects frames of a layer; Copy Frames and Paste Frames (Ctrl/Cmd+Alt+C, V) copy them and paste them from the playhead, replacing what is there. Shift-click builds a multi-selection that moves and deletes together (other
-commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the selection onto
-new layers nudged aside; Copy and Paste (Cmd/Ctrl+C, V) remember the selection and paste it
+commands act on the first selected span). Duplicate (Cmd/Ctrl+D) copies the selection into the same keyframes nudged aside (onto a new layer only where the keyframe tweens); Copy and Paste (Cmd/Ctrl+C, V) remember the selection and paste it
 centered on the stage at the current frame on new layers; Paste in Place (Edit menu) puts it back where it was. An instance whose symbol is missing from the document is refused. The Modify menu flips, rotates by 90 degrees and scales the selection about its
 center. Eight handles on the
 selection's bounds scale it by dragging (Shift keeps proportions); dragging just outside a

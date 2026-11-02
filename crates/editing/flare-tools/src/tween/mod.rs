@@ -17,6 +17,10 @@ pub fn set_tween(
     tween: Tween,
 ) -> Option<Vec<Command>> {
     let span = find_span(document, scene, at)?;
+    // Animate tweens one object: a keyframe of several elements stays held.
+    if span.element_count() > 1 && tween != Tween::None {
+        return None;
+    }
     let fits = matches!(
         (span.content(), tween),
         (_, Tween::None)

@@ -13,6 +13,7 @@ fn span(start: u32) -> SpanRef {
     SpanRef {
         layer: LayerId::new(),
         start,
+        element: 0,
     }
 }
 

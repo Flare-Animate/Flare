@@ -79,7 +79,11 @@ fn gradient_fills_apply_to_new_shapes_across_their_bounds_and_survive_moves() {
     ws.paint.fill = Color32::from_rgb(255, 0, 0);
     ws.commit_rectangle(Pos2::new(10.0, 20.0), Pos2::new(110.0, 60.0));
     let layer = ws.current_layer.expect("layer");
-    ws.selected = Some(SpanRef { layer, start: 0 });
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
     let g = selected_shape(&ws).gradient().expect("a gradient");
     assert_eq!((g.from().as_vec().x, g.from().as_vec().y), (10.0, 20.0));
     assert_eq!(
@@ -104,7 +108,11 @@ fn gradient_fills_apply_to_new_shapes_across_their_bounds_and_survive_moves() {
     ws.paint.gradient_vertical = true;
     ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(50.0, 80.0));
     let layer = ws.current_layer.expect("layer");
-    ws.selected = Some(SpanRef { layer, start: 0 });
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
     let g = selected_shape(&ws).gradient().expect("a gradient");
     assert_eq!(
         (g.to().as_vec().x, g.to().as_vec().y),
@@ -121,12 +129,20 @@ fn gradients_survive_duplicating_and_the_setting_survives_opening_a_project() {
     ws.paint.gradient_enabled = true;
     ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(40.0, 40.0));
     let layer = ws.current_layer.expect("layer");
-    ws.selected = Some(SpanRef { layer, start: 0 });
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
     ws.save_as(&project);
     ws.open(&project);
     assert!(ws.paint.gradient_enabled, "opening keeps the tool settings");
     let layer = ws.document().scenes()[0].timeline().layers()[1].id();
-    ws.selected = Some(SpanRef { layer, start: 0 });
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
     assert!(
         selected_shape(&ws).gradient().is_some(),
         "saved and reloaded"

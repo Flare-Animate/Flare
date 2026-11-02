@@ -16,6 +16,8 @@ pub mod clipboard;
 mod common;
 pub mod convert_anchor;
 pub mod delete_anchor;
+#[cfg(test)]
+mod elements_tests;
 pub mod eraser;
 pub mod free_transform;
 pub mod grouping;
@@ -28,6 +30,7 @@ pub mod pencil;
 pub mod playback;
 pub mod ruler;
 pub mod selection;
+pub mod stacking;
 pub mod subselection;
 #[cfg(test)]
 mod test_support;

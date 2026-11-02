@@ -25,6 +25,7 @@ fn height_of(ws: &Workspace, layer: usize) -> f32 {
         SpanRef {
             layer: layers[layer].id(),
             start: 0,
+            element: 0,
         },
     )
     .expect("bounds")
@@ -120,14 +121,35 @@ fn a_mirror_copy_reflects_the_selection_across_the_axis_and_keeps_the_original()
     ws.perform(MenuAction::SelectAll);
     assert!(ws.is_enabled(MenuAction::MirrorCopyHorizontal));
     ws.perform(MenuAction::MirrorCopyHorizontal);
-    assert_eq!(layer_count(&ws), 5);
+    assert_eq!(
+        layer_count(&ws),
+        3,
+        "the copies join the keyframes, no layers are made"
+    );
     assert_eq!(rect_x(&ws, 1), 10.0, "the original stays");
     // The rectangle that spanned x 10..50 now has a copy spanning 350..390.
-    let copies: Vec<f32> = (3..5).map(|i| rect_x(&ws, i)).collect();
+    let copies: Vec<f32> = ws
+        .selection_all()
+        .iter()
+        .map(|at| {
+            let scene = ws.scene_id().expect("scene");
+            ops::span_bounds(ws.document(), scene, *at)
+                .expect("bounds")
+                .min
+                .x
+        })
+        .collect();
     assert!(copies.contains(&350.0), "{copies:?}");
     assert_eq!(ws.selection_all().len(), 2, "the copies are selected");
     ws.undo();
-    assert_eq!(layer_count(&ws), 3, "one undo step takes the copies away");
+    let kept: usize = ws.document().scenes()[0]
+        .timeline()
+        .layers()
+        .iter()
+        .flat_map(|l| l.spans())
+        .map(|s| s.element_count())
+        .sum();
+    assert_eq!(kept, 2, "one undo step takes the copies away");
 }
 
 #[test]

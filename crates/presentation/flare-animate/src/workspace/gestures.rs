@@ -1,7 +1,6 @@
 //! Pointer gestures on the stage.
 
 use egui::{Color32, Pos2, Rect};
-use flare_commands::Command;
 use flare_core::{Rgba8, ShapeId};
 use flare_document::{Content, Shape, Stroke as ShapeStroke};
 use flare_tools::free_transform::handles::{self, Handle};
@@ -117,7 +116,7 @@ impl Workspace {
             Rgba8::new(c[0], c[1], c[2], c[3])
         };
         let commands = match self.tool {
-            Tool::Eraser => Some(ops::delete(scene, at)),
+            Tool::Eraser => Some(ops::delete(self.document(), scene, at)),
             Tool::Bucket => ops::restyle(
                 self.document(),
                 scene,
@@ -141,7 +140,7 @@ impl Workspace {
             }
             _ => {
                 let Some(Content::Shape(shape)) =
-                    ops::find_span(self.document(), scene, at).map(|s| s.content().clone())
+                    ops::find_element(self.document(), scene, at).cloned()
                 else {
                     return;
                 };
@@ -348,18 +347,13 @@ impl Workspace {
         let Some(scene) = self.scene_id() else {
             return;
         };
-        let spans = self.selection_all();
-        let commands: Vec<Command> = spans
-            .into_iter()
-            .filter_map(|span| ops::transform(self.document(), scene, span, about))
-            .flatten()
-            .collect();
-        if commands.is_empty() {
-            if about != DAffine2::IDENTITY {
-                self.report(tr!(self, "msg-nothing-transformed"));
+        match ops::transform_many(self.document(), scene, &self.selection_all(), about) {
+            None => {
+                if about != DAffine2::IDENTITY {
+                    self.report(tr!(self, "msg-nothing-transformed"));
+                }
             }
-        } else {
-            self.run_batch(commands, "transform");
+            Some(commands) => self.run_batch(commands, "transform"),
         }
     }
 }

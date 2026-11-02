@@ -99,6 +99,7 @@ pub(crate) fn new_layer_with(
     let at = SpanRef {
         layer: layer_id,
         start: span.start(),
+        element: 0,
     };
     Some((
         vec![

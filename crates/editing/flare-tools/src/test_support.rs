@@ -52,6 +52,7 @@ pub(crate) fn at(f: &Fixture, start: u32) -> SpanRef {
     SpanRef {
         layer: f.layer,
         start,
+        element: 0,
     }
 }
 
@@ -78,6 +79,7 @@ pub(crate) fn add_on_new_layer(f: &mut Fixture, span: FrameSpan) -> SpanRef {
     SpanRef {
         layer,
         start: span.start(),
+        element: 0,
     }
 }
 
@@ -116,4 +118,19 @@ pub(crate) fn circle_fixture() -> Fixture {
 
 pub(crate) fn run(f: &mut Fixture, commands: Option<Vec<Command>>) {
     f.session.apply(commands.expect("an edit")).expect("apply");
+}
+
+/// Three rectangles in one keyframe of the fixture's layer, 10 wide each, at x = 0, 40 and 80.
+pub(crate) fn add_three(f: &mut Fixture) {
+    let first = rect_span(0, 6, 0.0, 0.0, 10.0, 10.0);
+    let extras = [40.0, 80.0]
+        .into_iter()
+        .map(|x| rect_span(0, 6, x, 0.0, 10.0, 10.0).content().clone())
+        .collect();
+    add(f, first.with_extras(extras).expect("extras"));
+}
+
+/// The element `index` of the fixture's keyframe at `start`.
+pub(crate) fn element(f: &Fixture, start: u32, index: usize) -> SpanRef {
+    at(f, start).with_element(index)
 }

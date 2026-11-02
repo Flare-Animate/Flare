@@ -10,9 +10,11 @@ use std::num::NonZeroU32;
 
 use crate::common::*;
 
-/// Copies a span onto a new layer above the others, moved by `offset`, with fresh shape and
-/// instance identities so the copy is independent. Returns the commands and where the copy
-/// lands. `None` when the span is missing, empty, or the result is not finite.
+/// Copies an element, moved by `offset`, with a fresh identity so the copy is independent. The
+/// copy is drawn above the others in the same keyframe; where the keyframe cannot hold another
+/// element (a tween, a camera) it goes on a new layer above the others instead. Returns the
+/// commands and where the copy lands. `None` when the element is missing, empty, or the result
+/// is not finite.
 pub fn duplicate(
     document: &Document,
     scene: SceneId,
@@ -29,7 +31,8 @@ pub fn duplicate(
 }
 
 /// [`duplicate`] through any `matrix` (in stage coordinates): a mirror image of a span is a
-/// copy through a reflection. The new layer is named after the source and `suffix`.
+/// copy through a reflection. A new layer, when one is needed, is named after the source and
+/// `suffix`.
 pub fn duplicate_through(
     document: &Document,
     scene: SceneId,
@@ -43,9 +46,44 @@ pub fn duplicate_through(
     let timeline = scene_timeline(document, scene)?;
     let source = timeline.layers().iter().find(|l| l.id() == at.layer)?;
     let span = find_span(document, scene, at)?;
-    let content = fresh_content(span.content(), matrix)?;
+    let content = fresh_content(span.element(at.element)?, matrix)?;
+    if let Some(grown) = span.with_appended(content.clone()) {
+        let copy = at.with_element(grown.element_count() - 1);
+        return Some((replace_span(scene, at, grown), copy));
+    }
     let copy = FrameSpan::new(span.start(), span.duration(), content).with_motion_of(span);
     new_layer_with(scene, &format!("{} {suffix}", source.name()), copy)
+}
+
+/// [`duplicate`] for every element of `refs`, as one list of commands, with where each copy lands.
+/// Copies of elements of one keyframe stack in the order of the originals' indexes, highest
+/// first, as the commands are built one after another.
+pub fn duplicate_many(
+    document: &Document,
+    scene: SceneId,
+    refs: &[SpanRef],
+    offset: DVec2,
+) -> Option<(Vec<Command>, Vec<SpanRef>)> {
+    duplicate_through_many(
+        document,
+        scene,
+        refs,
+        DAffine2::from_translation(offset),
+        "copy",
+    )
+}
+
+/// [`duplicate_through`] for every element of `refs`; see [`duplicate_many`].
+pub fn duplicate_through_many(
+    document: &Document,
+    scene: SceneId,
+    refs: &[SpanRef],
+    matrix: DAffine2,
+    suffix: &str,
+) -> Option<(Vec<Command>, Vec<SpanRef>)> {
+    each_element_with(document, refs, |doc, at| {
+        duplicate_through(doc, scene, at, matrix, suffix)
+    })
 }
 
 /// What Copy remembers about a span, so it can be pasted later or into another document.
@@ -58,12 +96,13 @@ pub struct ClipItem {
     content: Content,
 }
 
-/// Remembers a span for pasting. `None` when it is missing or empty.
+/// Remembers an element for pasting. `None` when it is missing or empty.
 pub fn copy_span(document: &Document, scene: SceneId, at: SpanRef) -> Option<ClipItem> {
     let timeline = scene_timeline(document, scene)?;
     let source = timeline.layers().iter().find(|l| l.id() == at.layer)?;
     let span = find_span(document, scene, at)?;
-    if matches!(span.content(), Content::Empty) {
+    let content = span.element(at.element)?;
+    if matches!(content, Content::Empty) {
         return None;
     }
     Some(ClipItem {
@@ -71,7 +110,7 @@ pub fn copy_span(document: &Document, scene: SceneId, at: SpanRef) -> Option<Cli
         duration: span.duration(),
         tween: span.tween(),
         ease: span.ease(),
-        content: span.content().clone(),
+        content: content.clone(),
     })
 }
 
@@ -113,7 +152,7 @@ pub fn paste_offset(
     new_layer_with(scene, &item.name, span)
 }
 
-/// Turns a shape span into a Graphic symbol plus an identity instance in its place.
+/// Turns a shape element into a Graphic symbol plus an identity instance in its place.
 /// Returns the commands (one atomic batch) and the new symbol's ID.
 pub fn convert_to_symbol(
     document: &Document,
@@ -131,7 +170,7 @@ pub fn convert_to_symbol_as(
     kind: SymbolKind,
 ) -> Option<(Vec<Command>, SymbolId)> {
     let span = find_span(document, scene, at)?;
-    let Content::Shape(shape) = span.content() else {
+    let Content::Shape(shape) = span.element(at.element)? else {
         return None;
     };
     let symbol_id = SymbolId::new();
@@ -140,7 +179,12 @@ pub fn convert_to_symbol_as(
     let name = format!("Symbol {}", document.symbols().len() + 1);
     let symbol = Symbol::new(symbol_id, name, Timeline::new(vec![layer])).with_kind(kind);
     let instance = Instance::new(InstanceId::new(), symbol_id, Transform2D::IDENTITY);
-    let outer = FrameSpan::new(span.start(), span.duration(), Content::Instance(instance));
+    // A keyframe of several elements keeps the others; a single one is replaced as it always was.
+    let outer = if span.element_count() > 1 {
+        span.with_element(at.element, Content::Instance(instance))?
+    } else {
+        FrameSpan::new(span.start(), span.duration(), Content::Instance(instance))
+    };
     Some((
         vec![
             Command::RemoveSpan {

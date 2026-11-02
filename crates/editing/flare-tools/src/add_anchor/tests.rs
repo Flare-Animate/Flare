@@ -70,7 +70,8 @@ fn nothing_is_added_away_from_the_outline_at_a_corner_or_on_something_that_is_no
             f.scene,
             SpanRef {
                 layer: f.layer,
-                start: 99
+                start: 99,
+                element: 0
             },
             DVec2::ZERO,
             2.0

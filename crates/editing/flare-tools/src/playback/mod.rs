@@ -3,7 +3,7 @@
 
 use flare_commands::Command;
 use flare_core::SceneId;
-use flare_document::{Content, Document, FrameSpan, Playback, SymbolKind};
+use flare_document::{Content, Document, Playback, SymbolKind};
 
 use crate::common::*;
 
@@ -18,7 +18,7 @@ pub fn set_playback(
     playback: Playback,
 ) -> Option<Vec<Command>> {
     let span = find_span(document, scene, at)?;
-    let Content::Instance(instance) = span.content() else {
+    let Some(Content::Instance(instance)) = span.element(at.element) else {
         return None;
     };
     let symbol = document.symbol(instance.symbol())?;
@@ -34,20 +34,7 @@ pub fn set_playback(
         return None;
     }
     let changed = instance.clone().with_playback(playback);
-    let replacement = FrameSpan::new(span.start(), span.duration(), Content::Instance(changed))
-        .with_motion_of(span);
-    Some(vec![
-        Command::RemoveSpan {
-            scene,
-            layer: at.layer,
-            start: at.start,
-        },
-        Command::InsertSpan {
-            scene,
-            layer: at.layer,
-            span: replacement,
-        },
-    ])
+    replace_element(document, scene, at, Content::Instance(changed))
 }
 
 #[cfg(test)]

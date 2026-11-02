@@ -114,6 +114,7 @@ fn find_text(
                 let at = SpanRef {
                     layer: layer.id(),
                     start: span.start(),
+                    element: 0,
                 };
                 return Ok((scene.id(), at, found.clone()));
             }

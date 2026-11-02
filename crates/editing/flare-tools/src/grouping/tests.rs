@@ -54,8 +54,12 @@ fn grouping_shapes_makes_one_symbol_instance_and_breaking_it_apart_restores_the_
     assert_eq!(parts.len(), 2);
     f.session.apply(commands).expect("apply");
     let document = f.session.document();
+    // The parts take the instance's place in its keyframe: it holds shapes now.
     assert!(
-        find_span(document, f.scene, first).is_none(),
+        find_span(document, f.scene, first)
+            .expect("keyframe")
+            .elements()
+            .all(|c| matches!(c, Content::Shape(_))),
         "the instance is gone"
     );
     let mut lefts: Vec<f32> = parts

@@ -83,6 +83,7 @@ fn placing_an_instance_centers_the_symbol_on_the_target_point() {
         SpanRef {
             layer: new_layer,
             start: 0,
+            element: 0,
         },
     )
     .expect("bounds");
@@ -91,7 +92,7 @@ fn placing_an_instance_centers_the_symbol_on_the_target_point() {
 }
 
 #[test]
-fn a_mirror_copy_is_a_new_layer_reflected_across_the_axis_and_the_original_stays() {
+fn a_mirror_copy_joins_the_keyframe_reflected_across_the_axis_and_the_original_stays() {
     let mut f = fixture();
     add(&mut f, rect_span(0, 4, 10.0, 0.0, 20.0, 10.0));
     let before = f.session.document().clone();
@@ -115,7 +116,9 @@ fn a_mirror_copy_is_a_new_layer_reflected_across_the_axis_and_the_original_stays
         .iter()
         .map(|l| l.name())
         .collect();
-    assert_eq!(names, ["L", "L mirror"]);
+    // The copy is another element of the same keyframe, not a layer of its own.
+    assert_eq!(names, ["L"]);
+    assert_eq!(copy.element, 1);
     f.session.undo();
     assert_eq!(
         f.session.document(),
@@ -135,8 +138,8 @@ fn a_mirror_copy_has_its_own_identity_and_a_collapsing_matrix_is_refused() {
     f.session.apply(commands).expect("apply");
     let ids: Vec<ShapeId> = [at(&f, 0), copy]
         .into_iter()
-        .filter_map(|s| find_span(f.session.document(), f.scene, s))
-        .filter_map(|s| match s.content() {
+        .filter_map(|s| find_element(f.session.document(), f.scene, s))
+        .filter_map(|c| match c {
             Content::Shape(shape) => Some(shape.id()),
             _ => None,
         })

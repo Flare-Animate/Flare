@@ -38,7 +38,7 @@ impl Workspace {
         }
     }
 
-    /// Copies the selection mirrored across the axis, onto new layers, as one undo step, and
+    /// Copies the selection mirrored across the axis, into the same keyframes, as one undo step, and
     /// selects the copies. `across_vertical` mirrors left to right, across a vertical axis.
     pub fn mirror_copy_selection(&mut self, across_vertical: bool) {
         let Some(scene) = self.scene_id() else { return };
@@ -47,20 +47,16 @@ impl Workspace {
             flip_y: !across_vertical,
         };
         let matrix = reflection.matrix(self.symmetry_center());
-        let mut commands = Vec::new();
-        let mut copies = Vec::new();
-        for span in self.selection_all() {
-            if let Some((batch, copy)) =
-                ops::duplicate_through(self.document(), scene, span, matrix, "mirror")
-            {
-                commands.extend(batch);
-                copies.push(copy);
-            }
-        }
-        if commands.is_empty() {
+        let Some((commands, copies)) = ops::duplicate_through_many(
+            self.document(),
+            scene,
+            &self.selection_all(),
+            matrix,
+            "mirror",
+        ) else {
             self.report(tr!(self, "msg-select-to-mirror"));
             return;
-        }
+        };
         self.run_batch(commands, "mirror copy");
         if self.status.is_none() {
             self.selected = copies.first().copied();

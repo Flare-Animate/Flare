@@ -88,7 +88,7 @@ impl Workspace {
         let (Some(at), Some(scene)) = (self.selected, self.scene_id()) else {
             return Picked::Other;
         };
-        match ops::find_span(self.document(), scene, at).map(|s| s.content()) {
+        match ops::find_element(self.document(), scene, at) {
             Some(Content::Shape(shape)) => Picked::Shape(at, shape.clone()),
             Some(Content::Instance(instance)) => {
                 self.document()

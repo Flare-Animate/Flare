@@ -339,8 +339,16 @@ fn placement_and_rendering_follow_the_document_stage() {
         .last()
         .expect("layer")
         .id();
-    let placed =
-        ops::span_bounds(ws.document(), scene, SpanRef { layer, start: 0 }).expect("bounds");
+    let placed = ops::span_bounds(
+        ws.document(),
+        scene,
+        SpanRef {
+            layer,
+            start: 0,
+            element: 0,
+        },
+    )
+    .expect("bounds");
     assert_eq!(placed.center(), Pos2::new(200.0, 100.0));
     run(&mut ws, &ctx, 0.0);
     assert!(ws.texture.is_some());

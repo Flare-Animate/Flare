@@ -1,6 +1,6 @@
 # Decision: many elements in a keyframe
 
-Status: accepted; stage 1 (the document model and the project file) done, stage 2 next.
+Status: accepted; stages 1 (the document model and the project file) and 2 (reading everywhere) done, stage 3 next.
 
 ## The problem
 
@@ -24,7 +24,7 @@ in order. Everything that reads `span.content()` keeps working on the first elem
 reaches the other ~100 files one behaviour at a time, each with its tests, instead of in one
 rewrite. A span with extras cannot carry a tween (Animate tweens one object).
 
-Selection names an element by its span and its index in `elements()`.
+Selection names an element by its span and its index in `elements()` (`SpanRef::element`, 0 for the first, so a span of one behaves as it always did). An edit rebuilds the span it is in, so it is one undo step with the commands that exist; nothing new was needed in `flare-commands`.
 
 ## Stages
 

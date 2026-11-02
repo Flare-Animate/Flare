@@ -7,7 +7,11 @@ fn with_text() -> Workspace {
     let mut ws = text_workspace();
     type_text(&mut ws, Pos2::new(100.0, 50.0), "Hi");
     let layer = ws.document().scenes()[0].timeline().layers()[1].id();
-    ws.selected = Some(SpanRef { layer, start: 0 });
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
     ws
 }
 
@@ -251,7 +255,11 @@ fn text_is_picked_anywhere_in_its_box_not_only_on_the_ink_of_its_letters() {
     let mut ws = text_workspace();
     type_text(&mut ws, Pos2::new(100.0, 50.0), "I I");
     let layer = ws.document().scenes()[0].timeline().layers()[1].id();
-    let at = SpanRef { layer, start: 0 };
+    let at = SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    };
     ws.selected = Some(at);
     let bounds = shape_bounds(&ws);
     ws.selected = None;

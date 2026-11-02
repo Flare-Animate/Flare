@@ -4,7 +4,7 @@ use egui::{Color32, Pos2, Rect, Vec2};
 use flare_commands::Command;
 use flare_core::{LayerId, SceneId};
 use flare_document::Content;
-use flare_tools::ops::{self, SpanRef};
+use flare_tools::ops::{self, SpanRef, Stack};
 use glamx::{DAffine2, DVec2};
 
 use super::*;
@@ -15,13 +15,9 @@ impl Workspace {
             return;
         };
         let delta = DVec2::new(f64::from(delta.x), f64::from(delta.y));
-        let commands: Vec<Command> = self
-            .selection_all()
-            .into_iter()
-            .filter_map(|span| ops::translate(self.document(), scene, span, delta))
-            .flatten()
-            .collect();
-        if !commands.is_empty() {
+        if let Some(commands) =
+            ops::translate_many(self.document(), scene, &self.selection_all(), delta)
+        {
             self.run_batch(commands, "move");
         }
     }
@@ -70,35 +66,51 @@ impl Workspace {
     }
 
     pub(super) fn move_each(&mut self, scene: SceneId, spans: &[SpanRef], deltas: &[Vec2]) {
-        let commands: Vec<Command> = spans
-            .iter()
-            .zip(deltas)
-            .filter_map(|(at, d)| {
-                ops::translate(
-                    self.document(),
-                    scene,
-                    *at,
-                    DVec2::new(f64::from(d.x), f64::from(d.y)),
-                )
-            })
-            .flatten()
-            .collect();
-        if !commands.is_empty() {
+        let commands = ops::each_element(self.document(), spans, |document, at| {
+            let d = deltas.get(spans.iter().position(|s| *s == at)?)?;
+            ops::translate(
+                document,
+                scene,
+                at,
+                DVec2::new(f64::from(d.x), f64::from(d.y)),
+            )
+        });
+        if let Some(commands) = commands {
             self.run_batch(commands, "align");
         }
     }
 
-    /// Moves the selected shapes' layers to the top (`front`) or the bottom of the stack,
-    /// keeping their order among themselves, as one undo step.
+    /// Brings the selection to the front or sends it to the back: among the other elements of
+    /// its keyframe, and for a keyframe that holds only it, among the layers. One undo step.
     pub fn arrange_selection(&mut self, front: bool) {
+        self.stack_selection(if front { Stack::Front } else { Stack::Back });
+    }
+
+    /// Moves the selected elements up or down the stacking order of their keyframes, and
+    /// selects them where they land. Elements alone in their keyframe take their layer to the
+    /// top or the bottom of the layers for Front and Back, as shapes on layers of their own did.
+    pub fn stack_selection(&mut self, how: Stack) {
         let Some(scene) = self.scene_id() else { return };
         let Some(timeline) = self.document().scenes().first().map(|s| s.timeline()) else {
             return;
         };
         let count = timeline.layers().len();
-        let mut positions: Vec<(usize, LayerId)> = self
-            .selection_all()
+        let (together, alone): (Vec<SpanRef>, Vec<SpanRef>) =
+            self.selection_all().into_iter().partition(|at| {
+                ops::find_span(self.document(), scene, *at).is_some_and(|s| s.element_count() > 1)
+            });
+        let mut commands = Vec::new();
+        let mut landed = alone.clone();
+        if let Some((batch, now)) = ops::arrange_elements(self.document(), scene, &together, how) {
+            commands.extend(batch);
+            landed = now.into_iter().chain(alone.iter().copied()).collect();
+        } else {
+            landed.extend(together.iter().copied());
+        }
+        let front = matches!(how, Stack::Front | Stack::Forward);
+        let mut positions: Vec<(usize, LayerId)> = alone
             .iter()
+            .filter(|_| matches!(how, Stack::Front | Stack::Back))
             .filter_map(|at| {
                 let p = timeline.layers().iter().position(|l| l.id() == at.layer)?;
                 Some((p, at.layer))
@@ -109,16 +121,18 @@ impl Workspace {
         if front {
             positions.reverse();
         }
-        let commands: Vec<Command> = positions
-            .into_iter()
-            .map(|(_, layer)| Command::MoveLayer {
-                scene,
-                layer,
-                index: if front { 0 } else { count.saturating_sub(1) },
-            })
-            .collect();
-        if !commands.is_empty() {
-            self.run_batch(commands, "arrange");
+        commands.extend(positions.into_iter().map(|(_, layer)| Command::MoveLayer {
+            scene,
+            layer,
+            index: if front { 0 } else { count.saturating_sub(1) },
+        }));
+        if commands.is_empty() {
+            return;
+        }
+        self.run_batch(commands, "arrange");
+        if self.status.is_none() {
+            self.selected = landed.first().copied();
+            self.also_selected = landed.into_iter().skip(1).collect();
         }
     }
 
@@ -194,23 +208,17 @@ impl Workspace {
         self.apply_to_selection(about);
     }
 
-    /// Copies the selection onto a new layer, nudged so it can be seen, and selects the copy.
+    /// Copies the selection into the same keyframes, nudged so it can be seen, and selects the copies.
     pub fn duplicate_selection(&mut self) {
         let Some(scene) = self.scene_id() else {
             return;
         };
         let offset = DVec2::new(DUPLICATE_OFFSET, DUPLICATE_OFFSET);
-        let mut commands = Vec::new();
-        let mut copies = Vec::new();
-        for span in self.selection_all() {
-            if let Some((batch, copy)) = ops::duplicate(self.document(), scene, span, offset) {
-                commands.extend(batch);
-                copies.push(copy);
-            }
-        }
-        if commands.is_empty() {
+        let Some((commands, copies)) =
+            ops::duplicate_many(self.document(), scene, &self.selection_all(), offset)
+        else {
             return;
-        }
+        };
         self.run_batch(commands, "duplicate");
         if self.status.is_none() {
             self.selected = copies.first().copied();
@@ -262,7 +270,7 @@ impl Workspace {
         };
         self.selection_all().into_iter().any(|at| {
             matches!(
-                ops::find_span(self.document(), scene, at).map(|s| s.content()),
+                ops::find_element(self.document(), scene, at),
                 Some(Content::Instance(_))
             )
         })
@@ -278,32 +286,45 @@ impl Workspace {
         };
         self.run_batch(commands, "group");
         if self.status.is_none() {
-            // The group takes the topmost shape's place, so that span stays selected.
+            // The group takes the topmost shape's place; select it there.
             self.also_selected.clear();
+            self.selected = self.find_instance_of(scene, symbol).or(self.selected);
             self.library.selected = Some(symbol);
         }
+    }
+
+    /// The element at the current frame that is an instance of `symbol`, topmost layer first.
+    fn find_instance_of(&self, scene: SceneId, symbol: flare_core::SymbolId) -> Option<SpanRef> {
+        let timeline = self
+            .document()
+            .scenes()
+            .iter()
+            .find(|s| s.id() == scene)?
+            .timeline();
+        timeline.layers().iter().find_map(|layer| {
+            let span = layer.span_at(self.frame)?;
+            let element = span
+                .elements()
+                .position(|c| matches!(c, Content::Instance(i) if i.symbol() == symbol))?;
+            Some(SpanRef {
+                layer: layer.id(),
+                start: span.start(),
+                element,
+            })
+        })
     }
 
     /// Replaces each selected instance with the artwork of its symbol, as one undo step, and
     /// selects the parts.
     pub(super) fn break_apart_selection(&mut self) {
         let Some(scene) = self.scene_id() else { return };
-        let mut commands = Vec::new();
-        let mut parts = Vec::new();
-        for at in self.selection_all() {
-            if let Some((batch, placed)) = ops::break_apart(self.document(), scene, at) {
-                commands.extend(batch);
-                parts.extend(placed);
-            } else if let Some(batch) = ops::break_text_apart(self.document(), scene, at) {
-                // Text becomes plain outlines in the same place, still selected.
-                commands.extend(batch);
-                parts.push(at);
-            }
-        }
-        if commands.is_empty() {
+        // Text becomes plain outlines in the same place, still selected.
+        let Some((commands, parts)) =
+            ops::break_apart_many(self.document(), scene, &self.selection_all())
+        else {
             self.report(tr!(self, "msg-select-to-break-apart"));
             return;
-        }
+        };
         self.run_batch(commands, "break apart");
         if self.status.is_none() {
             self.selected = parts.first().copied();

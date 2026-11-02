@@ -47,7 +47,11 @@ fn placed_text_becomes_a_filled_shape_at_the_clicked_point_in_one_undo_step() {
     type_text(&mut ws, Pos2::new(100.0, 50.0), "Hi");
     assert_eq!(layer_count(&ws), 2, "a layer for the text");
     let layer = ws.document().scenes()[0].timeline().layers()[1].id();
-    ws.selected = Some(SpanRef { layer, start: 0 });
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
     let shape = selected_shape(&ws);
     assert_eq!(shape.fill(), Rgba8::opaque(10, 20, 30));
     let b = shape_bounds(&ws);

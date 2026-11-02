@@ -195,16 +195,13 @@ fn group_makes_one_instance_and_ungroup_puts_the_parts_back_in_one_undo_step_eac
     assert!(ws.selection_has_instance());
     assert!(ws.is_enabled(MenuAction::BreakApart));
     ws.perform(MenuAction::Ungroup);
+    // The parts take the instance's place in its keyframe, so they are elements, not layers.
     let shapes = ws.document().scenes()[0]
         .timeline()
         .layers()
         .iter()
-        .filter(|l| {
-            matches!(
-                l.spans().first().map(|s| s.content()),
-                Some(Content::Shape(_))
-            )
-        })
+        .flat_map(|l| l.spans().iter().flat_map(|s| s.elements()))
+        .filter(|c| matches!(c, Content::Shape(_)))
         .count();
     assert_eq!(shapes, 2, "both rectangles are back");
     assert_eq!(ws.selection_all().len(), 2, "the parts are selected");

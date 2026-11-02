@@ -7,7 +7,7 @@ use glamx::{DAffine2, DVec2};
 
 use crate::common::*;
 
-/// Moves a span's content by `delta`, keeping identity, duration and tween.
+/// Moves the element `at` names by `delta`, keeping identity, duration and tween.
 /// `None` when the span is missing, the delta is zero or the result is not finite.
 pub fn translate(
     document: &Document,
@@ -19,6 +19,19 @@ pub fn translate(
         return None;
     }
     transform(document, scene, at, DAffine2::from_translation(delta))
+}
+
+/// [`translate`] for every element of `refs`, as one list of commands.
+pub fn translate_many(
+    document: &Document,
+    scene: SceneId,
+    refs: &[SpanRef],
+    delta: DVec2,
+) -> Option<Vec<Command>> {
+    if delta == DVec2::ZERO {
+        return None;
+    }
+    transform_many(document, scene, refs, DAffine2::from_translation(delta))
 }
 
 /// Whether an instance span may take the transform `moved`. A motion tween interpolates between
@@ -49,13 +62,24 @@ pub(super) fn tween_allows(
     !tweened_into
 }
 
-/// Maps a span's content through `matrix` (in stage coordinates), keeping identity, duration
-/// and tween. `None` when the span is missing or empty, the matrix is the identity or cannot
+/// Maps the element `at` names through `matrix` (in stage coordinates), keeping identity, duration
+/// and tween. `None` when the element is missing or empty, the matrix is the identity or cannot
 /// be inverted (a zero scale would destroy the content), or the result is not finite.
 pub fn transform(
     document: &Document,
     scene: SceneId,
     at: SpanRef,
+    matrix: DAffine2,
+) -> Option<Vec<Command>> {
+    transform_many(document, scene, &[at], matrix)
+}
+
+/// [`transform`] for every element of `refs`, as one list of commands. Elements that cannot take
+/// the matrix are left as they are; `None` when none can.
+pub fn transform_many(
+    document: &Document,
+    scene: SceneId,
+    refs: &[SpanRef],
     matrix: DAffine2,
 ) -> Option<Vec<Command>> {
     if matrix == DAffine2::IDENTITY
@@ -64,8 +88,44 @@ pub fn transform(
     {
         return None;
     }
-    let span = find_span(document, scene, at)?;
-    let content = match span.content() {
+    let mut out = Vec::new();
+    for group in by_span(refs) {
+        let Some(first) = group.first() else {
+            continue;
+        };
+        let Some(span) = find_span(document, scene, *first) else {
+            continue;
+        };
+        let mut elements: Vec<Content> = span.elements().cloned().collect();
+        let mut changed = false;
+        for at in &group {
+            let Some(content) = span.element(at.element) else {
+                continue;
+            };
+            if let Some(moved) = moved_content(document, scene, *at, span, content, matrix) {
+                elements[at.element] = moved;
+                changed = true;
+            }
+        }
+        if !changed {
+            continue;
+        }
+        if let Ok(Some(replacement)) = span.with_elements(elements) {
+            out.extend(replace_span(scene, *first, replacement));
+        }
+    }
+    (!out.is_empty()).then_some(out)
+}
+
+fn moved_content(
+    document: &Document,
+    scene: SceneId,
+    at: SpanRef,
+    span: &FrameSpan,
+    content: &Content,
+    matrix: DAffine2,
+) -> Option<Content> {
+    Some(match content {
         Content::Empty | Content::Camera(_) => return None,
         Content::Shape(shape) => Content::Shape(transform_shape(shape, matrix)?),
         Content::Instance(instance) => {
@@ -79,18 +139,5 @@ pub fn transform(
                     .with_playback(instance.playback()),
             )
         }
-    };
-    let replacement = FrameSpan::new(span.start(), span.duration(), content).with_motion_of(span);
-    Some(vec![
-        Command::RemoveSpan {
-            scene,
-            layer: at.layer,
-            start: at.start,
-        },
-        Command::InsertSpan {
-            scene,
-            layer: at.layer,
-            span: replacement,
-        },
-    ])
+    })
 }

@@ -294,6 +294,7 @@ fn pencil_and_brush_strokes_are_one_undo_step_and_the_brush_follows_pressure() {
             SpanRef {
                 layer: ws.document().scenes()[0].timeline().layers()[layer].id(),
                 start: spans[0].start(),
+                element: 0,
             },
         )
         .expect("bounds")
@@ -372,6 +373,7 @@ fn align_distribute_and_arrange_move_the_selection_in_one_undo_step() {
                 let at = SpanRef {
                     layer: ws.document().scenes()[0].timeline().layers()[l].id(),
                     start: 0,
+                    element: 0,
                 };
                 ops::span_bounds(ws.document(), ws.scene_id().expect("scene"), at)
                     .expect("bounds")

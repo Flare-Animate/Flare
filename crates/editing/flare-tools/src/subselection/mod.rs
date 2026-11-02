@@ -3,7 +3,7 @@
 use emath::Pos2;
 use flare_commands::Command;
 use flare_core::{DocumentPoint, SceneId};
-use flare_document::{Content, Document, FrameSpan, PathSegment, Shape};
+use flare_document::{Content, Document, PathSegment, Shape};
 use glamx::DVec2;
 
 use crate::common::*;
@@ -38,7 +38,7 @@ pub fn move_anchor(
     to: DVec2,
 ) -> Option<Vec<Command>> {
     let span = find_span(document, scene, at)?;
-    let Content::Shape(shape) = span.content() else {
+    let Some(Content::Shape(shape)) = span.element(at.element) else {
         return None;
     };
     let mut path = shape.path().to_vec();
@@ -66,20 +66,7 @@ pub fn move_anchor(
     let moved = Shape::new(shape.id(), path, shape.fill())
         .ok()?
         .painted_like(shape);
-    let replacement =
-        FrameSpan::new(span.start(), span.duration(), Content::Shape(moved)).with_motion_of(span);
-    Some(vec![
-        Command::RemoveSpan {
-            scene,
-            layer: at.layer,
-            start: at.start,
-        },
-        Command::InsertSpan {
-            scene,
-            layer: at.layer,
-            span: replacement,
-        },
-    ])
+    replace_element(document, scene, at, Content::Shape(moved))
 }
 
 #[cfg(test)]

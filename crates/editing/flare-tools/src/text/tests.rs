@@ -138,8 +138,8 @@ fn a_duplicate_of_text_is_text_of_its_own_in_its_own_place() {
     )
     .expect("duplicate");
     f.session.apply(commands).expect("apply");
-    let span = find_span(f.session.document(), f.scene, copy).expect("copy");
-    let Content::Shape(shape) = span.content() else {
+    let Content::Shape(shape) = find_element(f.session.document(), f.scene, copy).expect("copy")
+    else {
         panic!("shape expected")
     };
     assert_ne!(shape.id(), shape_at(&f).id());

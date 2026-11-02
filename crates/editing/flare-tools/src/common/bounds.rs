@@ -28,16 +28,18 @@ pub(crate) fn symbol_bounds_nested(
     let timeline = document.symbol(symbol)?.timeline();
     let mut bounds: Option<Rect> = None;
     for layer in timeline.layers() {
-        let rect = match layer.span_at(0).map(FrameSpan::content) {
-            Some(Content::Shape(shape)) => shape_bounds(shape),
-            Some(Content::Instance(instance)) => {
-                symbol_bounds_nested(document, instance.symbol(), depth + 1)
-                    .map(|inner| transformed(inner, instance.transform().as_affine()))
+        for element in layer.span_at(0).into_iter().flat_map(FrameSpan::elements) {
+            let rect = match element {
+                Content::Shape(shape) => shape_bounds(shape),
+                Content::Instance(instance) => {
+                    symbol_bounds_nested(document, instance.symbol(), depth + 1)
+                        .map(|inner| transformed(inner, instance.transform().as_affine()))
+                }
+                _ => None,
+            };
+            if let Some(rect) = rect {
+                bounds = Some(bounds.map_or(rect, |b| b.union(rect)));
             }
-            _ => None,
-        };
-        if let Some(rect) = rect {
-            bounds = Some(bounds.map_or(rect, |b| b.union(rect)));
         }
     }
     bounds
@@ -88,7 +90,10 @@ pub fn shape_bounds(shape: &Shape) -> Option<Rect> {
 
 /// Stage-space bounds of a selected span, for drawing the selection outline.
 pub fn span_bounds(document: &Document, scene: SceneId, at: SpanRef) -> Option<Rect> {
-    content_bounds(document, find_span(document, scene, at)?.content())
+    content_bounds(
+        document,
+        find_span(document, scene, at)?.element(at.element)?,
+    )
 }
 
 /// Stage-space bounds of each of `spans` that still exists and has something to show. One pass
@@ -108,7 +113,7 @@ pub fn spans_bounds(document: &Document, scene: SceneId, spans: &[SpanRef]) -> V
                 .spans()
                 .iter()
                 .find(|s| s.start() == at.start)?;
-            content_bounds(document, span.content())
+            content_bounds(document, span.element(at.element)?)
         })
         .collect()
 }

@@ -31,6 +31,7 @@ fn size_of(ws: &Workspace) -> (f64, f64) {
         SpanRef {
             layer: layer.id(),
             start: layer.spans()[0].start(),
+            element: 0,
         },
     )
     .expect("bounds");

@@ -121,6 +121,7 @@ fn the_cameras_keyframes_take_a_motion_tween_from_the_timeline() {
     let first = SpanRef {
         layer: layer.id(),
         start: 0,
+        element: 0,
     };
     let commands = ops::set_tween(ws.document(), scene, first, flare_document::Tween::Linear)
         .expect("a camera keyframe tweens");

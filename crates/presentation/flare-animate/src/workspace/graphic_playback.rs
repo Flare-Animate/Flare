@@ -12,8 +12,8 @@ impl Workspace {
             return None;
         }
         let (selected, scene) = (self.selected?, self.scene_id()?);
-        let span = ops::find_span(self.document(), scene, selected)?;
-        let Content::Instance(instance) = span.content() else {
+        let Content::Instance(instance) = ops::find_element(self.document(), scene, selected)?
+        else {
             return None;
         };
         let symbol = self.document().symbol(instance.symbol())?;

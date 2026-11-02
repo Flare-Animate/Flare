@@ -59,6 +59,7 @@ pub fn frame_op(
         let span = SpanRef {
             layer: layer_id,
             start,
+            element: 0,
         };
         let commands = match op {
             FrameOperation::MotionTween => {

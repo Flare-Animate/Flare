@@ -6,7 +6,7 @@ use flare_core::{DocumentPoint, SceneId};
 use flare_document::{Content, Document, FrameSpan, PathSegment, Shape};
 use glamx::DVec2;
 
-use super::span::{SpanRef, find_span};
+use super::span::{SpanRef, find_span, replace_element};
 
 /// Two points this close are the same point (a path that returns to where it began).
 pub(crate) const SAME: f64 = 1e-9;
@@ -70,7 +70,7 @@ pub(crate) fn shape_path(
     at: SpanRef,
 ) -> Option<(&FrameSpan, &Shape, Vec<PathSegment>)> {
     let span = find_span(document, scene, at)?;
-    let Content::Shape(shape) = span.content() else {
+    let Content::Shape(shape) = span.element(at.element)? else {
         return None;
     };
     Some((span, shape, shape.path().to_vec()))
@@ -83,22 +83,9 @@ pub(crate) fn replace(
     at: SpanRef,
     path: Vec<PathSegment>,
 ) -> Option<Vec<Command>> {
-    let (span, shape, _) = shape_path(document, scene, at)?;
+    let (_, shape, _) = shape_path(document, scene, at)?;
     let edited = Shape::new(shape.id(), path, shape.fill())
         .ok()?
         .painted_like(shape);
-    let replacement =
-        FrameSpan::new(span.start(), span.duration(), Content::Shape(edited)).with_motion_of(span);
-    Some(vec![
-        Command::RemoveSpan {
-            scene,
-            layer: at.layer,
-            start: at.start,
-        },
-        Command::InsertSpan {
-            scene,
-            layer: at.layer,
-            span: replacement,
-        },
-    ])
+    replace_element(document, scene, at, Content::Shape(edited))
 }

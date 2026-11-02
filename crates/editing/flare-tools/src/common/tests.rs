@@ -84,11 +84,20 @@ fn many_span_bounds_match_the_one_at_a_time_answers_and_skip_missing_spans() {
     let mut f = fixture();
     add(&mut f, rect_span(0, 5, 0.0, 0.0, 10.0, 10.0));
     let layer = f.layer;
-    let present = SpanRef { layer, start: 0 };
-    let missing = SpanRef { layer, start: 9 };
+    let present = SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    };
+    let missing = SpanRef {
+        layer,
+        start: 9,
+        element: 0,
+    };
     let gone = SpanRef {
         layer: LayerId::new(),
         start: 0,
+        element: 0,
     };
     let many = spans_bounds(f.session.document(), f.scene, &[present, missing, gone]);
     let one = span_bounds(f.session.document(), f.scene, present).expect("bounds");

@@ -19,6 +19,7 @@ use std::num::NonZeroU32;
 fn deleting_removes_the_span() {
     let mut f = fixture();
     add(&mut f, rect_span(0, 5, 0.0, 0.0, 5.0, 5.0));
-    f.session.apply(delete(f.scene, at(&f, 0))).expect("delete");
+    let commands = delete(f.session.document(), f.scene, at(&f, 0));
+    f.session.apply(commands).expect("delete");
     assert!(find_span(f.session.document(), f.scene, at(&f, 0)).is_none());
 }

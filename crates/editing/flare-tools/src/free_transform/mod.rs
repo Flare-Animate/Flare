@@ -3,7 +3,7 @@
 mod apply;
 pub mod handles;
 
-pub use apply::{transform, translate};
+pub use apply::{transform, transform_many, translate, translate_many};
 
 #[cfg(test)]
 mod tests;
