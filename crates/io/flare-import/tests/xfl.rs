@@ -108,9 +108,16 @@ fn imports_stage_scenes_layers_symbols_and_tweens() {
     let names: Vec<&str> = layers.iter().map(|l| l.name()).collect();
     assert_eq!(
         names,
-        vec!["Main", "Art (2)", "Art", "Folder"],
-        "mask layers are skipped, folders are kept; a second shape in a keyframe goes on a layer above"
+        vec!["Main", "Art", "Folder"],
+        "mask layers are skipped, folders are kept; a keyframe's elements stay on its layer"
     );
+    let art = layers.iter().find(|l| l.name() == "Art").expect("Art");
+    assert_eq!(
+        art.spans()[0].element_count(),
+        2,
+        "both shapes of the keyframe are on the one layer, in the file's order"
+    );
+    assert_eq!(art.spans()[0].tween(), Tween::None);
     assert!(layers[0].is_locked() && layers[0].is_visible());
     assert_eq!(layers[0].spans().len(), 2);
     assert_eq!(layers[0].spans()[0].tween(), Tween::Linear);
@@ -171,8 +178,6 @@ fn unsupported_features_are_reported_not_hidden() {
         unsupported.contains("DOMStaticText is not imported"),
         "{unsupported}"
     );
-    let info = messages(&imported, Severity::Info).join("\n");
-    assert!(info.contains("share a keyframe"), "{info}");
     // Dot is a graphic symbol, so nothing about it changes meaning on import.
     assert!(messages(&imported, Severity::Warning).is_empty());
 }

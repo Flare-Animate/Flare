@@ -76,18 +76,21 @@ pub(super) fn write_frame(
     }
     out.open("DOMFrame", attrs);
     out.open("elements", []);
-    match span.content() {
-        Content::Empty => {}
-        Content::Instance(instance) => write_instance(out, instance, ctx.names),
-        // XFL's camera layer is not written (see `write_layer`).
-        Content::Camera(_) => {}
-        Content::Shape(shape) => {
-            let Ctx {
-                notes,
-                approximated,
-                ..
-            } = ctx;
-            write_shape(out, shape, place, notes, approximated);
+    // Animate keeps every element of a keyframe in the one <elements>, bottom to top.
+    for element in span.elements() {
+        match element {
+            Content::Empty => {}
+            Content::Instance(instance) => write_instance(out, instance, ctx.names),
+            // XFL's camera layer is not written (see `write_layer`).
+            Content::Camera(_) => {}
+            Content::Shape(shape) => {
+                let Ctx {
+                    notes,
+                    approximated,
+                    ..
+                } = ctx;
+                write_shape(out, shape, place, notes, approximated);
+            }
         }
     }
     let frame = span.start();

@@ -93,11 +93,11 @@ impl Importer {
         Timeline::new(layers)
     }
 
-    /// Imports one DOMLayer. A keyframe may hold several elements but a span holds one, so
-    /// extra elements go to additional layers right below, named "<name> (2)" and so on.
+    /// Imports one DOMLayer. A keyframe may hold several elements; they stay together in one span,
+    /// drawn in the order the file lists them (bottom to top), as Animate keeps them.
     pub(super) fn layer(&mut self, layer: &Node, name: &str, place: &str, out: &mut Vec<Layer>) {
-        let mut slots: Vec<Vec<FrameSpan>> = Vec::new();
-        // The first layer made for this source layer owns what could not be imported from it.
+        let mut spans: Vec<FrameSpan> = Vec::new();
+        // The layer owns what could not be imported from it.
         let first_id = LayerId::new();
         let frames = layer
             .child("frames")
@@ -147,49 +147,47 @@ impl Importer {
                 contents
             };
             let (tween, ease) = self.tween_for(frame, &contents, &here);
-            for (slot, content) in contents.into_iter().enumerate() {
-                if slots.len() <= slot {
-                    slots.push(Vec::new());
+            let mut contents = contents.into_iter();
+            let Some(first) = contents.next() else {
+                continue;
+            };
+            let extras: Vec<Content> = contents.collect();
+            let mut span = FrameSpan::new(index, duration, first);
+            if extras.is_empty() {
+                span = span.with_tween(tween).with_ease(ease);
+            } else {
+                if tween != Tween::None {
+                    self.note(
+                        Severity::Info,
+                        &here,
+                        "a keyframe of several elements cannot tween; it is held",
+                    );
                 }
-                let mut span = FrameSpan::new(index, duration, content);
-                if slot == 0 {
-                    span = span.with_tween(tween).with_ease(ease);
-                }
-                slots[slot].push(span);
+                let count = extras.len() + 1;
+                span = match span.clone().with_extras(extras) {
+                    Ok(many) => many,
+                    Err(error) => {
+                        self.note(
+                            Severity::Unsupported,
+                            &here,
+                            format!("{count} elements could not share a keyframe ({error}); only the first was imported"),
+                        );
+                        span
+                    }
+                };
             }
-        }
-        if slots.len() > 1 {
-            self.note(
-                Severity::Info,
-                place,
-                format!(
-                    "{} elements share a keyframe; the extras were placed on additional layers above the first, preserving stacking",
-                    slots.len()
-                ),
-            );
+            spans.push(span);
         }
         let visible = bool_attr(layer, "visible", true);
         let locked = bool_attr(layer, "locked", false);
-        // XFL lists a frame's elements bottom to top, so later elements must sit above
-        // earlier ones: the extra layers go above the first, highest slot first.
-        let mut made = Vec::new();
-        for (slot, spans) in slots.into_iter().enumerate() {
-            let layer_name = if slot == 0 {
-                name.to_owned()
-            } else {
-                format!("{name} ({})", slot + 1)
-            };
-            let id = if slot == 0 { first_id } else { LayerId::new() };
-            match Layer::new(id, layer_name, spans) {
-                Ok(l) => made.push(l.with_visible(visible).with_locked(locked)),
-                Err(_) => self.note(
-                    Severity::Unsupported,
-                    place,
-                    "frames overlap; the layer was skipped",
-                ),
-            }
+        match Layer::new(first_id, name, spans) {
+            Ok(l) => out.push(l.with_visible(visible).with_locked(locked)),
+            Err(_) => self.note(
+                Severity::Unsupported,
+                place,
+                "frames overlap; the layer was skipped",
+            ),
         }
-        out.extend(made.into_iter().rev());
     }
 
     pub(super) fn frame_extras(&mut self, frame: &Node, place: &str, spot: Spot) {
