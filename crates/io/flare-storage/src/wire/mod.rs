@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 mod attachment;
 mod content;
+mod origin;
 mod settings;
 mod sound;
 mod timeline;
@@ -15,6 +16,8 @@ mod timeline;
 pub(crate) use attachment::AttachmentWire;
 #[allow(unused_imports)]
 use attachment::*;
+use attachment::{hex, unhex};
+pub(crate) use origin::{MAX_ORIGIN_RECORD_BYTES, OriginMeta};
 pub(crate) use settings::Settings;
 #[allow(unused_imports)]
 use settings::*;
@@ -24,7 +27,7 @@ use sound::*;
 #[allow(unused_imports)]
 use timeline::*;
 
-fn uuid(text: &str) -> Result<Uuid, StorageError> {
+pub(crate) fn uuid(text: &str) -> Result<Uuid, StorageError> {
     Uuid::parse_str(text).map_err(|_| StorageError::Corrupt(format!("bad id {text}")))
 }
 
@@ -94,6 +97,7 @@ pub(crate) fn assemble(
     symbols: Vec<Symbol>,
     attachments: Vec<Attachment>,
     sounds: Vec<Sound>,
+    origin: Option<flare_document::Origin>,
 ) -> Result<Document, StorageError> {
     let settings: Settings = serde_json::from_str(settings)?;
     let rate = FrameRate::new(settings.frame_rate.0, settings.frame_rate.1)
@@ -110,6 +114,7 @@ pub(crate) fn assemble(
         .map_err(StorageError::Invalid)?
         .with_sounds(sounds)
         .map_err(StorageError::Invalid)?;
+    let document = document.with_origin(origin.map(std::sync::Arc::new));
     match settings.stage {
         None => Ok(document),
         Some(wire) => {

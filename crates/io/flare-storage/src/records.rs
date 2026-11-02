@@ -27,7 +27,7 @@ pub const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES + 64 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Record {
     pub id: String,
-    /// `scene`, `symbol`, `attachment` or `sound`.
+    /// `scene`, `symbol`, `attachment`, `sound` or `origin`.
     pub kind: String,
     pub ordinal: i64,
     /// `cbor` or `cbor+zstd`.
@@ -49,10 +49,10 @@ pub struct Parts {
 }
 
 fn limit_of(kind: &str) -> usize {
-    if kind == "sound" {
-        MAX_SOUND_PAYLOAD_BYTES
-    } else {
-        MAX_PAYLOAD_BYTES
+    match kind {
+        "sound" => MAX_SOUND_PAYLOAD_BYTES,
+        "origin" => wire::MAX_ORIGIN_RECORD_BYTES,
+        _ => MAX_PAYLOAD_BYTES,
     }
 }
 
@@ -96,6 +96,10 @@ pub fn to_parts(document: &Document, zstd: &mut dyn Zstd) -> Result<Parts, Stora
         let raw = to_cbor(&wire::SymbolWire::of(symbol))?;
         put(symbol.id().as_uuid().to_string(), "symbol", ordinal, &raw)?;
     }
+    if let Some(origin) = document.origin() {
+        let raw = wire::OriginMeta::frame(origin)?;
+        put("origin".to_owned(), "origin", 0, &raw)?;
+    }
     Ok(Parts {
         project_id: document.id().as_uuid().to_string(),
         settings,
@@ -115,6 +119,7 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
     let mut symbols = Vec::new();
     let mut attachments = Vec::new();
     let mut sounds = Vec::new();
+    let mut origin = None;
     for record in &parts.records {
         let raw = unpack(
             zstd,
@@ -129,6 +134,11 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
             "symbol" => symbols.push(from_cbor::<wire::SymbolWire>(&raw)?.build(&record.id)?),
             "attachment" => attachments.push(from_cbor::<wire::AttachmentWire>(&raw)?.build()?),
             "sound" => sounds.push(wire::SoundMeta::unframe(&record.id, &raw)?),
+            "origin" => {
+                if origin.replace(wire::OriginMeta::unframe(&raw)?).is_some() {
+                    return Err(StorageError::Corrupt("two source records".into()));
+                }
+            }
             other => {
                 return Err(StorageError::Corrupt(format!(
                     "unknown entity kind {other}"
@@ -143,5 +153,6 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
         symbols,
         attachments,
         sounds,
+        origin,
     )
 }

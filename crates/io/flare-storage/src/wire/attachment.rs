@@ -36,11 +36,11 @@ pub(crate) struct AttachmentWire {
     pub(super) digest: String,
 }
 
-pub(super) fn hex(bytes: &[u8; 32]) -> String {
+pub(crate) fn hex(bytes: &[u8; 32]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
-pub(super) fn unhex(text: &str) -> Option<[u8; 32]> {
+pub(crate) fn unhex(text: &str) -> Option<[u8; 32]> {
     if text.len() != 64 {
         return None;
     }

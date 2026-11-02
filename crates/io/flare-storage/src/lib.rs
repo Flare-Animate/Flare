@@ -8,6 +8,7 @@
 #![forbid(unsafe_code)]
 
 mod codec;
+mod fingerprint;
 mod records;
 mod recovery;
 #[cfg(not(target_arch = "wasm32"))]
@@ -22,6 +23,7 @@ use thiserror::Error;
 #[cfg(not(target_arch = "wasm32"))]
 pub use codec::NativeZstd;
 pub use codec::{Codec, Packer, Stored, Zstd, unpack};
+pub use fingerprint::{Fingerprint, baseline, fingerprint};
 pub use records::{
     MAX_ENTITIES, MAX_PAYLOAD_BYTES, MAX_SOUND_PAYLOAD_BYTES, Parts, Record, SCHEMA_VERSION,
     from_parts, to_parts,

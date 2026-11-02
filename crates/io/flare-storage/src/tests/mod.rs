@@ -22,6 +22,7 @@ use std::path::Path;
 mod compression;
 mod failures;
 mod many_elements;
+mod origin;
 mod records;
 mod roundtrip;
 mod symbol_kinds;

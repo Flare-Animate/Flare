@@ -30,7 +30,7 @@ CREATE TABLE project (
 ) STRICT;
 CREATE TABLE entity (
     id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound')),
+    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'origin')),
     ordinal INTEGER NOT NULL,
     payload_version INTEGER NOT NULL CHECK (payload_version > 0),
     codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
