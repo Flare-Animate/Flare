@@ -33,6 +33,7 @@ mod timeline;
 pub use entry::import_xfl;
 #[allow(unused_imports)]
 use entry::*;
+pub(crate) use entry::{SymbolFiles, import_xfl_with_files};
 
 pub(crate) const MAX_FILE_BYTES: u64 = 64 * 1024 * 1024;
 

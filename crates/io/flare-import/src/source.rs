@@ -5,9 +5,16 @@ use std::fs::File;
 use std::io::{self, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 
+use std::collections::HashMap;
+
+use flare_document::{OriginData, OriginFile, OriginKind};
+
+use crate::keep;
 use crate::legacy;
 use crate::swf::{import_swf_bytes, looks_like_swf};
-use crate::xfl::{FileSource, ImportError, Imported, import_xfl, read_capped};
+use crate::xfl::{
+    FileSource, ImportError, Imported, SymbolFiles, import_xfl, import_xfl_with_files, read_capped,
+};
 
 /// Whether `name` stays inside the document: relative, `/`-separated, no `..` or empty parts.
 pub(crate) fn is_safe_name(name: &str) -> bool {
@@ -75,16 +82,94 @@ impl<R: Read + Seek> ZipSource<R> {
     }
 }
 
+/// An XFL folder already read into memory. Importing from it, not from the disk, is what makes
+/// the kept source and the imported document agree even if the folder changes meanwhile.
+struct MemorySource<'a>(HashMap<&'a str, &'a [u8]>);
+
+impl<'a> MemorySource<'a> {
+    fn new(files: &'a [OriginFile]) -> Self {
+        Self(
+            files
+                .iter()
+                .filter(|f| !f.name.ends_with('/'))
+                .map(|f| (f.name.as_str(), f.bytes.as_slice()))
+                .collect(),
+        )
+    }
+}
+
+impl FileSource for MemorySource<'_> {
+    fn read(&self, name: &str) -> io::Result<Option<Vec<u8>>> {
+        if !is_safe_name(name) {
+            return Err(unsafe_name(name));
+        }
+        Ok(self.0.get(name).map(|bytes| bytes.to_vec()))
+    }
+}
+
+/// Imports a zipped `.fla` held in memory and keeps it, byte for byte, as the document's source.
+fn import_fla_kept(bytes: Vec<u8>, name: &str) -> Result<Imported, ImportError> {
+    let source = ZipSource::from_reader(Cursor::new(&bytes[..]))?;
+    let (mut imported, files) = import_xfl_with_files(&source)?;
+    drop(source);
+    imported.document = keep::attach(
+        imported.document,
+        OriginKind::Fla,
+        name,
+        OriginData::Bytes(bytes),
+        &files,
+        &mut imported.diagnostics,
+    );
+    Ok(imported)
+}
+
+/// Imports a Flash movie and keeps its bytes as the document's source.
+fn import_swf_kept(bytes: Vec<u8>, name: &str) -> Result<Imported, ImportError> {
+    let mut imported = import_swf_bytes(&bytes)?;
+    imported.document = keep::attach(
+        imported.document,
+        OriginKind::Swf,
+        name,
+        OriginData::Bytes(bytes),
+        &SymbolFiles::new(),
+        &mut imported.diagnostics,
+    );
+    Ok(imported)
+}
+
+/// Imports an XFL folder, keeping all its files as the document's source when that can be done.
+fn import_folder_kept(root: &Path, name: &str) -> Result<Imported, ImportError> {
+    match keep::read_folder(root) {
+        Ok(files) => {
+            let (mut imported, symbol_files) = import_xfl_with_files(&MemorySource::new(&files))?;
+            imported.document = keep::attach(
+                imported.document,
+                OriginKind::Xfl,
+                name,
+                OriginData::Files(files),
+                &symbol_files,
+                &mut imported.diagnostics,
+            );
+            Ok(imported)
+        }
+        Err(reason) => {
+            let mut imported = import_xfl(&DirSource(root.to_owned()))?;
+            keep::not_kept(&mut imported.diagnostics, &reason);
+            Ok(imported)
+        }
+    }
+}
+
 /// Imports a `.fla` held in memory.
 pub fn import_fla_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
-    import_xfl(&ZipSource::from_bytes(bytes)?)
+    import_fla_kept(bytes, "Document")
 }
 
 /// Imports a file held in memory: a Flash movie if it starts like one, a legacy binary `.fla` if it is a
-/// compound file, else a (zipped) `.fla`.
+/// compound file, else a (zipped) `.fla`. A movie or a `.fla` is kept as the document's source.
 pub fn import_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
     if looks_like_swf(&bytes) {
-        import_swf_bytes(&bytes)
+        import_swf_kept(bytes, "Document")
     } else if bytes.starts_with(&legacy::CFB_MAGIC) {
         legacy::import_legacy_bytes(&bytes)
     } else {
@@ -119,20 +204,38 @@ impl<R: Read + Seek> FileSource for ZipSource<R> {
 const ZIP_MAGIC: &[u8] = b"PK\x03\x04";
 
 /// Imports from a path: an XFL directory, a `.xfl` stub file or the folder's `DOMDocument.xml` (the folder is used), a
-/// zipped `.fla` or a Flash movie (`.swf`). Legacy binary `.fla` files are recognised and refused with a clear reason.
+/// zipped `.fla` or a Flash movie (`.swf`). Legacy binary `.fla` files are read as a skeleton.
+///
+/// The source is opened for reading only; nothing is written, created or deleted beside or inside it. What was read
+/// is kept with the document so an export of the unchanged import is the original (see `flare_document::Origin`).
 pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
     if path.is_dir() {
-        return import_xfl(&DirSource(path.to_owned()));
+        return import_folder_kept(path, &keep::stem(path));
     }
     let mut head = [0_u8; 8];
     let read = File::open(path)?.read(&mut head)?;
     let head = &head[..read];
+    let name = keep::stem(path);
     if looks_like_swf(head) {
         let bytes = read_capped(&mut File::open(path)?, "the movie")?;
-        return import_swf_bytes(&bytes);
+        return import_swf_kept(bytes, &name);
     }
     if head.starts_with(ZIP_MAGIC) {
-        return import_xfl(&ZipSource::open(path)?);
+        let bytes = keep::read_all_capped(File::open(path)?)?;
+        if bytes.len() <= flare_document::MAX_ORIGIN_BYTES {
+            return import_fla_kept(bytes, &name);
+        }
+        // Too big to keep: read it from the disk as before and say the original was not kept.
+        drop(bytes);
+        let mut imported = import_xfl(&ZipSource::open(path)?)?;
+        keep::not_kept(
+            &mut imported.diagnostics,
+            &format!(
+                "it is larger than {} bytes",
+                flare_document::MAX_ORIGIN_BYTES
+            ),
+        );
+        return Ok(imported);
     }
     if head.starts_with(&legacy::CFB_MAGIC) {
         let mut bytes = Vec::new();
@@ -147,7 +250,12 @@ pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
         || crate::is_xfl_document(path))
         && let Some(parent) = path.parent()
     {
-        return import_xfl(&DirSource(parent.to_owned()));
+        let parent = if parent.as_os_str().is_empty() {
+            Path::new(".")
+        } else {
+            parent
+        };
+        return import_folder_kept(parent, &name);
     }
     Err(ImportError::NotXfl(
         "expected an XFL directory, a modern FLA (zip) or an .xfl file".into(),

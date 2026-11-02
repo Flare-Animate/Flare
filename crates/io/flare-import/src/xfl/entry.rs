@@ -10,6 +10,16 @@ use super::*;
 
 /// Imports an XFL document from `source`.
 pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
+    import_xfl_with_files(source).map(|(imported, _)| imported)
+}
+
+/// The library file each imported symbol was read from, like `LIBRARY/Symbol 1.xml`.
+pub(crate) type SymbolFiles = Vec<(SymbolId, String)>;
+
+/// [`import_xfl`], and the file each symbol came from, which the kept source needs.
+pub(crate) fn import_xfl_with_files(
+    source: &dyn FileSource,
+) -> Result<(Imported, SymbolFiles), ImportError> {
     let read = |name: &str| -> Result<Option<Node>, ImportError> {
         let Some(bytes) = source.read(name)? else {
             return Ok(None);
@@ -37,6 +47,7 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
 
     // Pass 1: read every library item and assign IDs, so symbols can refer to each other.
     let mut items: Vec<(String, SymbolId, Node)> = Vec::new();
+    let mut symbol_files: SymbolFiles = Vec::new();
     let includes: Vec<&Node> = root
         .child("symbols")
         .into_iter()
@@ -74,6 +85,7 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
         };
         let id = SymbolId::new();
         importer.symbols.insert(name.clone(), id);
+        symbol_files.push((id, file));
         items.push((name, id, item));
     }
 
@@ -194,8 +206,11 @@ pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
             message,
         });
     }
-    Ok(Imported {
-        document,
-        diagnostics: importer.diagnostics,
-    })
+    Ok((
+        Imported {
+            document,
+            diagnostics: importer.diagnostics,
+        },
+        symbol_files,
+    ))
 }
