@@ -416,5 +416,6 @@ pub fn apply_palette(ctx: &egui::Context) {
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 #[path = "theme_tests.rs"]
 mod tests;
