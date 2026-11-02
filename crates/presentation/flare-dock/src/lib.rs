@@ -30,10 +30,16 @@ pub enum Pane {
     Info,
     /// Messages from the last actions: errors and refusals that the status bar shows once.
     Output,
+    /// Per-property graphs for a tween: the Motion Editor.
+    MotionEditor,
+    /// Find and Replace across text, fonts, colors and symbols.
+    FindReplace,
+    /// Shared and external libraries.
+    Assets,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 11] = [
+    pub const ALL: [Pane; 14] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
@@ -45,6 +51,9 @@ impl Pane {
         Pane::History,
         Pane::Info,
         Pane::Output,
+        Pane::MotionEditor,
+        Pane::FindReplace,
+        Pane::Assets,
     ];
 
     /// The icon of the panel in the side rail, for the panels that have a place there.
@@ -57,7 +66,7 @@ impl Pane {
             Self::Transform => "panel-transform",
             Self::History => "panel-history",
             Self::Info => "panel-info",
-            Self::Tools | Self::Stage | Self::Timeline | Self::Output => return None,
+            Self::Tools | Self::Stage | Self::Timeline | Self::Output | Self::MotionEditor | Self::FindReplace | Self::Assets => return None,
         })
     }
 
@@ -75,6 +84,9 @@ impl Pane {
             Self::History => "pane-history",
             Self::Info => "pane-info",
             Self::Output => "pane-output",
+            Self::MotionEditor => "pane-motion-editor",
+            Self::FindReplace => "pane-find-replace",
+            Self::Assets => "pane-assets",
         }
     }
 
@@ -92,6 +104,9 @@ impl Pane {
             Self::History => "History",
             Self::Info => "Info",
             Self::Output => "Output",
+            Self::MotionEditor => "Motion Editor",
+            Self::FindReplace => "Find and Replace",
+            Self::Assets => "Assets",
         }
     }
 }
@@ -124,8 +139,12 @@ pub fn default_tree() -> Tree<Pane> {
     let transform = tiles.insert_pane(Pane::Transform);
     let history = tiles.insert_pane(Pane::History);
     let info = tiles.insert_pane(Pane::Info);
+    let motion_editor = tiles.insert_pane(Pane::MotionEditor);
+    let find_replace = tiles.insert_pane(Pane::FindReplace);
+    let assets = tiles.insert_pane(Pane::Assets);
     let side = tiles.insert_tab_tile(vec![
         properties, library, color, align, transform, history, info,
+        motion_editor, find_replace, assets,
     ]);
     let bottom = tiles.insert_tab_tile(vec![timeline, output]);
     let top = tiles.insert_horizontal_tile(vec![stage, side]);
