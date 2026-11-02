@@ -456,7 +456,13 @@ mod tests {
 
     #[test]
     fn both_palettes_keep_text_readable_on_every_surface_and_the_light_one_is_light() {
-        for mode in [Mode::Dark, Mode::Light, Mode::Clay, Mode::Synthwave, Mode::Blue] {
+        for mode in [
+            Mode::Dark,
+            Mode::Light,
+            Mode::Clay,
+            Mode::Synthwave,
+            Mode::Blue,
+        ] {
             set_mode(mode);
             for surface in [bg(), panel(), panel_raised(), field(), hover()] {
                 assert!(
@@ -498,7 +504,13 @@ mod tests {
         assert_eq!(other, Mode::Dark, "another thread is not affected");
         assert_eq!(mode(), Mode::Light);
         set_mode(Mode::Dark);
-        for m in [Mode::Dark, Mode::Light, Mode::Clay, Mode::Synthwave, Mode::Blue] {
+        for m in [
+            Mode::Dark,
+            Mode::Light,
+            Mode::Clay,
+            Mode::Synthwave,
+            Mode::Blue,
+        ] {
             assert_eq!(Mode::from_code(m.code()), m);
         }
         assert_eq!(Mode::from_code("neon"), Mode::Dark);

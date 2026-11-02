@@ -4,7 +4,21 @@ use std::path::Path;
 
 /// The file extensions Flare opens itself, and the ones it imports as a new project.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 13] = ["fla", "xfl", "swf", "fcp", "ppm", "kwz", "tnz", "tlv", "pli", "tzu", "moho", "mh", "mohobackup"];
+pub const IMPORT_EXTENSIONS: [&str; 13] = [
+    "fla",
+    "xfl",
+    "swf",
+    "fcp",
+    "ppm",
+    "kwz",
+    "tnz",
+    "tlv",
+    "pli",
+    "tzu",
+    "moho",
+    "mh",
+    "mohobackup",
+];
 
 /// The file inside an XFL folder that is the document. A person who has only the folder, with no
 /// `.xfl` beside it, picks this one.

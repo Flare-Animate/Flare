@@ -292,7 +292,11 @@ impl LayoutProfile {
 /// fall back to the default tree; the specialist layouts land as they are ported.
 pub fn profile_tree(profile: LayoutProfile) -> Tree<Pane> {
     match profile {
-        LayoutProfile::Animate | LayoutProfile::Default | LayoutProfile::OpenToonz | LayoutProfile::Flippaclip | LayoutProfile::Moho => default_tree(),
+        LayoutProfile::Animate
+        | LayoutProfile::Default
+        | LayoutProfile::OpenToonz
+        | LayoutProfile::Flippaclip
+        | LayoutProfile::Moho => default_tree(),
         // Stubbed: specialised arrangements to be ported from the Rust-Rewrite
         // profiles (see docs/LAYOUT_PROFILES.md). For now they use the default.
         LayoutProfile::Cleanup
