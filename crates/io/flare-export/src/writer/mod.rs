@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 mod files;
+mod replace;
 mod shapes;
 mod text;
 mod timeline;
@@ -12,6 +13,7 @@ mod xml;
 #[allow(unused_imports)]
 use files::*;
 pub use files::{fla_bytes, write_directory, write_fla};
+pub use replace::{replace_directory, replace_fla};
 #[allow(unused_imports)]
 use shapes::*;
 #[allow(unused_imports)]
@@ -74,6 +76,10 @@ pub enum ExportError {
     AlreadyExists(PathBuf),
     #[error("i/o error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("{0} is read-only")]
+    ReadOnly(PathBuf),
+    #[error("{0} exists and is not an XFL folder, so it is not replaced")]
+    NotXfl(PathBuf),
     #[error("zip error: {0}")]
     Zip(#[from] zip::result::ZipError),
 }

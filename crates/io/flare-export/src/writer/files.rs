@@ -83,6 +83,17 @@ pub fn write_directory(output: &Output, dir: &Path) -> Result<(), ExportError> {
     }
     let parent = parent_of(dir);
     fs::create_dir_all(parent)?;
+    let staging = stage_directory(output, parent)?;
+    fs::rename(staging.keep(), dir)?;
+    Ok(())
+}
+
+/// Writes the whole XFL folder into a new staging directory in `parent`, which removes itself
+/// unless kept.
+pub(super) fn stage_directory(
+    output: &Output,
+    parent: &Path,
+) -> Result<tempfile::TempDir, ExportError> {
     let staging = tempfile::Builder::new()
         .prefix(".xfl-")
         .tempdir_in(parent)?;
@@ -112,11 +123,10 @@ pub fn write_directory(output: &Output, dir: &Path) -> Result<(), ExportError> {
     if !has_stub && !exact_folder {
         fs::write(staging.path().join(format!("{}.xfl", output.name)), STUB)?;
     }
-    fs::rename(staging.keep(), dir)?;
-    Ok(())
+    Ok(staging)
 }
 
-fn parent_of(path: &Path) -> &Path {
+pub(super) fn parent_of(path: &Path) -> &Path {
     path.parent()
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or(Path::new("."))
@@ -130,7 +140,10 @@ pub fn fla_bytes(output: &Output) -> Result<Vec<u8>, ExportError> {
     Ok(cursor.into_inner())
 }
 
-fn write_zip(sink: &mut (impl Write + std::io::Seek), output: &Output) -> Result<(), ExportError> {
+pub(super) fn write_zip(
+    sink: &mut (impl Write + std::io::Seek),
+    output: &Output,
+) -> Result<(), ExportError> {
     if let Some(origin) = &output.exact
         && let OriginData::Bytes(bytes) = origin.data()
         && origin.kind() == OriginKind::Fla

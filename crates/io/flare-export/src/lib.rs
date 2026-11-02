@@ -11,5 +11,6 @@ pub mod lossless;
 mod writer;
 
 pub use writer::{
-    Diagnostic, ExportError, Output, Severity, export_xfl, fla_bytes, write_directory, write_fla,
+    Diagnostic, ExportError, Output, Severity, export_xfl, fla_bytes, replace_directory,
+    replace_fla, write_directory, write_fla,
 };
