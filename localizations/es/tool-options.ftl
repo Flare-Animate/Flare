@@ -80,3 +80,5 @@ opt-to = Hasta
 opt-vertical = Vertical
 opt-zoom = Zoom
 opt-rotation = Rotación
+opt-object-drawing = Dibujo de objetos (J)
+opt-object-drawing-hint = El dibujo combinado aún no está construido: cada forma que dibujas es un objeto de dibujo independiente, y las formas de una capa no se cortan entre sí.

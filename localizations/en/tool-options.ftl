@@ -80,3 +80,5 @@ opt-to = To
 opt-vertical = Vertical
 opt-zoom = Zoom
 opt-rotation = Rotation
+opt-object-drawing = Object Drawing (J)
+opt-object-drawing-hint = Merge Drawing is not built yet: every shape you draw is a separate drawing object, and shapes on a layer do not cut each other.

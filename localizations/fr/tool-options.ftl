@@ -80,3 +80,5 @@ opt-to = Vers
 opt-vertical = Vertical
 opt-zoom = Zoom
 opt-rotation = Rotation
+opt-object-drawing = Dessin objet (J)
+opt-object-drawing-hint = Le dessin fusionné n’existe pas encore : chaque forme dessinée est un objet de dessin distinct, et les formes d’un calque ne se découpent pas entre elles.

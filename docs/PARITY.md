@@ -10,7 +10,8 @@ first thing taken over and are in the importer and Flash adapter tests.
 | SWF publish | Done: `flare-publish`; sounds are written as uncompressed 16-bit audio at their cues, linear gradients as gradient fills, and masks of one shape as clip layers (masks of several shapes or inside masks are reported and left out) |
 | FLV/F4V/SWF detection | Done: `flare-flash` |
 | `.sol` (shared object) container and AMF0 reading | Planned: belongs in `flare-flash`, with its own fixtures |
-| Merge-drawing model (Flash planar-map shapes: edge bending, boolean cuts) | Planned and the largest gap against Animate's drawing model; today shapes are separate objects |
+| Everything drawn on a layer stays on that layer (many elements in a keyframe) | Done: new shapes join the active layer's keyframe at the playhead, selection and every edit name one element, the exporters and `flare draw-rect` / `draw_rect` follow (docs/decisions/ELEMENTS.md) |
+| Merge-drawing model (Flash planar-map shapes: edge bending, boolean cuts) | Planned and the largest gap against Animate's drawing model; today every shape is a separate drawing object (Object Drawing), shown as a dimmed switch in the tool options |
 | AS3 decompile / ActionScript editing | Not planned for 0.1; ActionScript is preserved as data, never run |
 | Moho projects, rig rendering | Not planned; import is a later milestone after the Animate workflow |
 | FlipaClip layout profile, custom room layouts | Flare has dockable panels and "Reset layout"; switching between whole interfaces (Animate's workspace switcher) is a dimmed button at the top right and a dimmed Window > Interfaces entry |

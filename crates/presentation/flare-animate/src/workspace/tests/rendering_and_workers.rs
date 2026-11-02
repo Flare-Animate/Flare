@@ -141,11 +141,14 @@ fn with_workers_saving_does_not_block_and_edits_made_meanwhile_stay_unsaved() {
     assert_eq!(ws.path(), Some(path.as_path()));
     assert!(ws.is_dirty(), "the second rectangle is not in the file");
     let saved = flare_storage::load(&path).expect("load");
-    assert_eq!(
-        saved.scenes()[0].timeline().layers().len(),
-        2,
-        "only the first rectangle"
-    );
+    let saved_drawings: usize = saved.scenes()[0]
+        .timeline()
+        .layers()
+        .iter()
+        .flat_map(|l| l.spans())
+        .map(|s| s.element_count())
+        .sum();
+    assert_eq!(saved_drawings, 1, "only the first rectangle");
     ws.undo();
     assert!(!ws.is_dirty(), "undoing back to what was written is clean");
 }
@@ -167,7 +170,7 @@ fn with_workers_opening_replaces_the_document_when_the_file_has_been_read() {
         "not replaced until the file has been read"
     );
     wait_until(&mut ws, &ctx, |w| w.path() == Some(path.as_path()));
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
     assert!(!ws.is_dirty());
     assert!(
         ws.background.mode() == Mode::Threads,
@@ -190,9 +193,9 @@ fn a_project_opened_while_the_user_edits_opens_in_a_new_tab_and_leaves_their_wor
     // The file arrives in a tab of its own; the document that was edited is parked, unharmed.
     assert_eq!(ws.tabs().len(), 2);
     assert!(ws.any_dirty(), "the user's edit is still waiting, unsaved");
-    assert_eq!(layer_count(&ws), 1, "the opened file is the one on show");
+    assert_eq!(drawing_count(&ws), 0, "the opened file is the one on show");
     ws.switch_to_tab(0);
-    assert_eq!(layer_count(&ws), 2, "the user's edit was kept");
+    assert_eq!(drawing_count(&ws), 1, "the user's edit was kept");
 }
 
 #[test]
@@ -211,10 +214,10 @@ fn finishing_background_work_applies_pending_saves() {
 
 #[test]
 fn mask_layer_toggles_through_the_menu_and_changes_what_is_pickable() {
-    let mut ws = two_rectangles();
-    // Layers top to bottom: [Layer 1, first rectangle (x 10..50), second (x 100..140)].
+    let mut ws = two_rectangles_on_two_layers();
+    // Layers top to bottom: [first rectangle (x 10..50), second (x 100..140)].
     let layers = ws.document().scenes()[0].timeline().layers();
-    let (mask_id, masked_id) = (layers[1].id(), layers[2].id());
+    let (mask_id, masked_id) = (layers[0].id(), layers[1].id());
     let at_mask = Pos2::new(30.0, 30.0);
     let at_masked = Pos2::new(120.0, 30.0);
     assert_eq!(ws.hit(at_mask).map(|s| s.layer), Some(mask_id));

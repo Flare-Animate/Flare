@@ -80,3 +80,5 @@ opt-to = 끝
 opt-vertical = 세로
 opt-zoom = 확대/축소
 opt-rotation = 회전
+opt-object-drawing = 개체 그리기 (J)
+opt-object-drawing-hint = 병합 그리기는 아직 만들어지지 않았습니다. 그린 도형은 각각 별개의 그리기 개체이며, 한 레이어의 도형끼리 서로 잘라 내지 않습니다.

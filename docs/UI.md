@@ -202,6 +202,8 @@ between panels and around the dock is 4 px (`theme::GUTTER`). Between widgets: 6
 
 ## Ruler and Mirror
 
+Everything drawn goes into the **active layer**, as in Animate: a new shape (Rectangle, Oval, Line, PolyStar, Pencil, Brush, Pen, Text) joins the keyframe of that layer at the playhead as one more element, drawn above the others; on a frame with no keyframe a new one starts there and lasts to the end of the scene (at least 24 frames) or to the layer's next keyframe; a document with no layers gets "Layer 1" first. Locked, hidden, folder, mask, guide and camera layers, and a keyframe that tweens or holds a camera, refuse a drawing and say why in the status line. A click picks one element, Select All and the lasso pick every element, and Move, Delete, Duplicate, Group, Convert to Symbol and the Align panel act on the elements picked. Bring to Front and Send to Back (Align panel) move an element above or below the others of its keyframe, and a keyframe that holds only that element takes its layer to the top or bottom of the layers, as before. Every tool that draws shows **Object Drawing (J)** in its options, ticked and dimmed with the note that Merge Drawing is not built yet: until it is, every shape is a separate drawing object and shapes on a layer do not cut each other.
+
 The **Ruler** tool (M) measures: drag between two points and the stage shows the distance, the
 angle (counter-clockwise from the right, up positive) and the offsets. The reading stays until the
 next drag and is repeated in the tool's options.
@@ -209,7 +211,7 @@ next drag and is repeated in the tool's options.
 The **Mirror** tool (X) holds the symmetry settings. Symmetry is Off, Left-right, Top-bottom or
 Four-way; click the stage, or type x and y, to put the axes (the middle of the stage until set).
 While Pencil, Brush or Mirror is in hand the axes are drawn in pink. With symmetry on, each
-Pencil or Brush stroke is drawn with its reflections, each on its own layer, as one undo step.
+Pencil or Brush stroke is drawn with its reflections, all in the same keyframe of the active layer, as one undo step.
 The same tool offers Copy left-right and Copy top-bottom (also Modify > Transform > Mirror Copy), which put a
 reflected copy of the selection across the axes, and Flip.
 

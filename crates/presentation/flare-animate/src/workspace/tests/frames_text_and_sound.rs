@@ -31,6 +31,8 @@ fn frame_copy_and_paste_refuse_what_cannot_work() {
 fn the_frame_selection_goes_away_with_its_layer() {
     let (ctx, mut ws) = (egui::Context::default(), held_then_changing());
     let layer = ws.current_layer.expect("layer");
+    // The only layer cannot be deleted, so give the document another.
+    ws.add_layer();
     ws.select_frames(layer, 2, 5);
     run(&mut ws, &ctx, 0.0);
     assert!(ws.frame_range.is_some());
@@ -45,13 +47,8 @@ fn placed_text_becomes_a_filled_shape_at_the_clicked_point_in_one_undo_step() {
     let mut ws = text_workspace();
     ws.paint.fill = Color32::from_rgb(10, 20, 30);
     type_text(&mut ws, Pos2::new(100.0, 50.0), "Hi");
-    assert_eq!(layer_count(&ws), 2, "a layer for the text");
-    let layer = ws.document().scenes()[0].timeline().layers()[1].id();
-    ws.selected = Some(SpanRef {
-        layer,
-        start: 0,
-        element: 0,
-    });
+    assert_eq!(drawing_count(&ws), 1, "a layer for the text");
+    ws.selected = Some(drawing_ref(&ws, 1));
     let shape = selected_shape(&ws);
     assert_eq!(shape.fill(), Rgba8::opaque(10, 20, 30));
     let b = shape_bounds(&ws);
@@ -64,7 +61,7 @@ fn placed_text_becomes_a_filled_shape_at_the_clicked_point_in_one_undo_step() {
         "a 40 px capital: {b:?}"
     );
     ws.undo();
-    assert_eq!(layer_count(&ws), 1);
+    assert_eq!(drawing_count(&ws), 0);
 }
 
 #[test]
@@ -99,7 +96,7 @@ fn with_workers_text_is_placed_when_the_font_work_finishes() {
         "not placed until the worker has finished"
     );
     wait_until(&mut ws, &ctx, |w| w.text.pending.is_none());
-    assert_eq!(layer_count(&ws), 2, "{:?}", ws.status());
+    assert_eq!(drawing_count(&ws), 1, "{:?}", ws.status());
 }
 
 #[test]
@@ -141,7 +138,7 @@ fn importing_a_sound_adds_it_and_a_cue_at_the_playhead_in_one_undo_step() {
     rect(&mut ws); // a 24-frame scene, so the playhead can be at frame 6
     ws.set_frame(6);
     ws.import_sound(&path);
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(layer_count(&ws), 2, "the sound has a layer of its own");
     let sounds = ws.document().sounds();
     assert_eq!(sounds.len(), 1);
     assert_eq!(
@@ -152,7 +149,7 @@ fn importing_a_sound_adds_it_and_a_cue_at_the_playhead_in_one_undo_step() {
         ),
         ("Clap", 8000, 8000)
     );
-    let layer = &ws.document().scenes()[0].timeline().layers()[2];
+    let layer = &ws.document().scenes()[0].timeline().layers()[1];
     assert_eq!(layer.name(), "Sound: Clap");
     assert_eq!(
         (layer.cues()[0].start, layer.cues()[0].sound),
@@ -167,7 +164,7 @@ fn importing_a_sound_adds_it_and_a_cue_at_the_playhead_in_one_undo_step() {
         ws.document().sounds().is_empty(),
         "the sound and the layer go together"
     );
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
 }
 
 #[test]

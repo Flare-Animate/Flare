@@ -23,6 +23,7 @@ mod brush_nib;
 mod camera;
 mod close_prompt;
 mod color_section;
+mod drawing_into_layers;
 mod frame_menu;
 mod frames_text_and_sound;
 mod graphic_playback;
@@ -116,10 +117,43 @@ fn rect(ws: &mut Workspace) {
     ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(110.0, 60.0));
 }
 
-fn spans_of(ws: &Workspace, layer: usize) -> usize {
-    ws.document().scenes()[0].timeline().layers()[layer]
-        .spans()
-        .len()
+/// The elements the first layer's keyframe at frame 0 holds, bottom first. Shapes drawn one after
+/// another land there, so "the nth drawing" is the element `n - 1` (index 0 of the old tests'
+/// layers was the empty first layer).
+fn drawings(ws: &Workspace) -> Vec<Content> {
+    ws.document().scenes()[0].timeline().layers()[0]
+        .span_at(0)
+        .map(|s| s.elements().cloned().collect())
+        .unwrap_or_default()
+}
+
+/// How many things are drawn in the document, over every layer and keyframe.
+fn drawing_count(ws: &Workspace) -> usize {
+    ws.document().scenes()[0]
+        .timeline()
+        .layers()
+        .iter()
+        .flat_map(|l| l.spans())
+        .map(|s| s.element_count())
+        .sum()
+}
+
+/// 1 when the `nth` drawing (counting from 1) is still on the first layer, else 0.
+fn spans_of(ws: &Workspace, nth: usize) -> usize {
+    usize::from(
+        drawings(ws)
+            .get(nth - 1)
+            .is_some_and(|c| !matches!(c, Content::Empty)),
+    )
+}
+
+/// The reference to the `nth` drawing (counting from 1) of the first layer's keyframe.
+fn drawing_ref(ws: &Workspace, nth: usize) -> SpanRef {
+    SpanRef {
+        layer: ws.document().scenes()[0].timeline().layers()[0].id(),
+        start: 0,
+        element: nth - 1,
+    }
 }
 
 /// Select the rectangle drawn by `rect()` (it covers 10..110 x 10..60).
@@ -169,6 +203,20 @@ fn symbol_layers(ws: &Workspace, symbol: SymbolId) -> usize {
         .len()
 }
 
+/// How many elements the symbol's first frame holds over all its layers.
+fn symbol_elements(ws: &Workspace, symbol: SymbolId) -> usize {
+    ws.session
+        .document()
+        .symbol(symbol)
+        .expect("symbol")
+        .timeline()
+        .layers()
+        .iter()
+        .filter_map(|l| l.span_at(0))
+        .map(|s| s.element_count())
+        .sum()
+}
+
 fn pen_triangle(ws: &mut Workspace) {
     ws.set_tool(Tool::Pen);
     for at in [(10.0, 10.0), (110.0, 10.0), (110.0, 90.0)] {
@@ -199,19 +247,36 @@ fn two_rectangles() -> Workspace {
     ws
 }
 
+/// Like [`two_rectangles`], but the second goes into a layer of its own below the first.
+fn two_rectangles_on_two_layers() -> Workspace {
+    let mut ws = workspace();
+    for (index, (a, b)) in [((10.0, 10.0), (50.0, 50.0)), ((100.0, 10.0), (140.0, 50.0))]
+        .into_iter()
+        .enumerate()
+    {
+        if index == 1 {
+            ws.add_layer();
+        }
+        ws.set_tool(Tool::Rectangle);
+        ws.begin_drag(Pos2::new(a.0, a.1));
+        ws.update_drag(Pos2::new(b.0, b.1));
+        ws.end_drag();
+    }
+    ws.set_tool(Tool::Select);
+    ws
+}
+
 fn rect_x(ws: &Workspace, layer: usize) -> f32 {
-    let layers = ws.document().scenes()[0].timeline().layers();
-    let Content::Shape(shape) = layers[layer].spans()[0].content() else {
+    let Some(Content::Shape(shape)) = drawings(ws).get(layer - 1).cloned() else {
         panic!("a shape expected")
     };
+    let shape = &shape;
     ops::shape_bounds(shape).expect("bounds").min.x
 }
 
 fn selected_shape(ws: &Workspace) -> Shape {
     let scene = ws.scene_id().expect("scene");
-    match ops::find_span(ws.document(), scene, ws.selected.expect("selected"))
-        .expect("span")
-        .content()
+    match ops::find_element(ws.document(), scene, ws.selected.expect("selected")).expect("element")
     {
         Content::Shape(shape) => shape.clone(),
         _ => panic!("a shape expected"),
@@ -388,8 +453,8 @@ fn drain_audio(ws: &mut Workspace) -> Vec<String> {
 }
 
 fn drawn_shape(ws: &Workspace, layer: usize) -> Shape {
-    match ws.document().scenes()[0].timeline().layers()[layer].spans()[0].content() {
-        Content::Shape(shape) => shape.clone(),
+    match drawings(ws).get(layer - 1) {
+        Some(Content::Shape(shape)) => shape.clone(),
         _ => panic!("shape expected"),
     }
 }

@@ -286,7 +286,7 @@ impl Workspace {
     /// Puts finished text on the stage: on a layer of its own, or in place of the text it edits.
     pub(in crate::workspace) fn text_ready(&mut self, shape: Shape, target: TextTarget) {
         match target {
-            TextTarget::New => self.insert_shape_layer(shape, &tr!(self, "name-new-text-layer")),
+            TextTarget::New => self.draw_shape(shape, &tr!(self, "name-new-text-layer")),
             TextTarget::Existing(at) => {
                 let Some(scene) = self.scene_id() else { return };
                 let Some((old, _)) = self.text_at(at) else {

@@ -107,6 +107,7 @@ impl Workspace {
         };
         let title = tr!(self, "tools-title", &[("name", &self.tr(&name_key(icon)))]);
         chrome::section(ui, icon, &title);
+        self.drawing_mode_mock(ui);
         match self.tool {
             Tool::Text => {
                 self.character_section(ui, None);

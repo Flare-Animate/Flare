@@ -83,7 +83,7 @@ impl Workspace {
             Err(error) => return self.report(error.to_string()),
         };
         let name = tr!(self, "tools-layer-path");
-        self.insert_shape_layer(shape, &name);
+        self.draw_shape(shape, &name);
         if self.status.is_none() {
             self.pen.clear();
         }

@@ -1,10 +1,8 @@
 //! Undo, redo and committing drawn shapes.
 
 use egui::Pos2;
-use flare_commands::Command;
-use flare_core::{LayerId, Rgba8, ShapeId};
-use flare_document::{Content, FrameSpan, Layer, Shape, Stroke as ShapeStroke};
-use std::num::NonZeroU32;
+use flare_core::{Rgba8, ShapeId};
+use flare_document::{Shape, Stroke as ShapeStroke};
 
 use super::*;
 
@@ -25,13 +23,13 @@ impl Workspace {
         }
     }
 
-    /// Commits a rectangle as one undo step: a new layer plus its shape span.
+    /// Commits a rectangle as one undo step: it joins the active layer's keyframe.
     pub fn commit_rectangle(&mut self, a: Pos2, b: Pos2) {
         self.commit_shape(Tool::Rectangle, a, b);
     }
 
-    /// Commits the dragged shape for a drawing tool as one undo step: a new layer plus
-    /// its shape span. Lines need a stroke, so they use the stroke settings even when
+    /// Commits the dragged shape for a drawing tool as one undo step: it joins the keyframe of
+    /// the active layer at the playhead. Lines need a stroke, so they use the stroke settings even when
     /// the Outline checkbox is off.
     pub(super) fn commit_shape(&mut self, tool: Tool, a: Pos2, b: Pos2) {
         let (x0, x1) = (a.x.min(b.x), a.x.max(b.x));
@@ -139,7 +137,7 @@ impl Workspace {
                 Err(error) => return self.report(error.to_string()),
             }
         }
-        self.insert_shape_layer(shape, &name);
+        self.draw_shape(shape, &name);
         if self.status.is_none() {
             self.settle_committed_shape(tool, a, b);
         }
@@ -184,79 +182,6 @@ impl Workspace {
                 }],
             ),
             _ => {}
-        }
-    }
-
-    /// Adds `shape` on a new layer spanning the scene (at least 24 frames), as one undo step,
-    /// and makes that layer active.
-    pub(super) fn insert_shape_layer(&mut self, shape: Shape, name: &str) {
-        self.insert_shape_layers(vec![shape], name);
-    }
-
-    /// Adds each shape on a layer of its own, all as one undo step; the first is made active.
-    pub(super) fn insert_shape_layers(&mut self, shapes: Vec<Shape>, name: &str) {
-        if shapes.is_empty() {
-            return;
-        }
-        let Some(scene) = self.document().scenes().first() else {
-            let message = tr!(self, "tools-no-scene");
-            self.report(message);
-            return;
-        };
-        let scene_id = scene.id();
-        // German nouns keep their capital letter inside a sentence; the other languages that have
-        // capitals write a common noun in lower case.
-        let noun = if self.language() == flare_i18n::Language::German {
-            name.to_owned()
-        } else {
-            name.to_lowercase()
-        };
-        let draw_label = tr!(self, "tools-draw-label", &[("name", &noun)]);
-        let duration = u32::try_from(scene.timeline().frame_count())
-            .unwrap_or(u32::MAX)
-            .max(24);
-        let mut batch = Vec::new();
-        let mut first = None;
-        for (index, shape) in shapes.into_iter().enumerate() {
-            let span = FrameSpan::new(
-                0,
-                NonZeroU32::new(duration).unwrap_or(NonZeroU32::MIN),
-                Content::Shape(shape),
-            );
-            let layer_id = LayerId::new();
-            let label = if index == 0 {
-                name.to_owned()
-            } else {
-                tr!(
-                    self,
-                    "tools-mirror-layer",
-                    &[("name", name), ("n", &index.to_string())],
-                )
-            };
-            let layer = match Layer::new(layer_id, label, vec![]) {
-                Ok(layer) => layer,
-                Err(error) => return self.report(error.to_string()),
-            };
-            first.get_or_insert(layer_id);
-            batch.push(Command::AddLayer {
-                scene: scene_id,
-                layer,
-            });
-            batch.push(Command::InsertSpan {
-                scene: scene_id,
-                layer: layer_id,
-                span,
-            });
-        }
-        match self.active_mut().apply_labeled(batch, &draw_label) {
-            Ok(()) => {
-                self.status = None;
-                self.current_layer = first;
-            }
-            Err(error) => {
-                let message = tr!(self, "tools-draw-error", &[("error", &error.to_string())]);
-                self.report(message);
-            }
         }
     }
 }

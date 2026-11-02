@@ -200,7 +200,7 @@ impl Workspace {
         } else {
             self.previews_of(&strokes)
         };
-        self.insert_shape_layers(shapes, &name);
+        self.draw_shapes(shapes, &name);
         if self.status.is_none() && !preview.is_empty() {
             self.settle(preview);
         }

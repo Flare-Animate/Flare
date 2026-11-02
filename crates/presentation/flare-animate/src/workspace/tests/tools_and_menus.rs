@@ -185,7 +185,7 @@ fn polystar_draws_polygons_and_stars_sized_by_the_drag() {
     );
     // A click is not a drag.
     ws.commit_shape(Tool::PolyStar, Pos2::new(5.0, 5.0), Pos2::new(5.0, 5.0));
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(drawing_count(&ws), 2);
 }
 
 #[test]
@@ -286,16 +286,11 @@ fn pencil_and_brush_strokes_are_one_undo_step_and_the_brush_follows_pressure() {
     let steady = drawn_shape(&ws, 2);
     assert_eq!(steady.stroke(), None);
     assert_eq!(steady.fill(), Rgba8::opaque(9, 9, 9));
-    let height = |ws: &Workspace, layer: usize| {
-        let spans = ws.document().scenes()[0].timeline().layers()[layer].spans();
+    let height = |ws: &Workspace, nth: usize| {
         flare_tools::ops::span_bounds(
             ws.document(),
             ws.scene_id().expect("scene"),
-            SpanRef {
-                layer: ws.document().scenes()[0].timeline().layers()[layer].id(),
-                start: spans[0].start(),
-                element: 0,
-            },
+            drawing_ref(ws, nth),
         )
         .expect("bounds")
         .height()
@@ -307,11 +302,11 @@ fn pencil_and_brush_strokes_are_one_undo_step_and_the_brush_follows_pressure() {
     assert!(light < full - 5.0, "{light} vs {full}");
     ws.undo();
     ws.undo();
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
     // A press without movement draws nothing.
     ws.freehand = vec![InputSample::mouse(5.0, 5.0).expect("sample")];
     ws.finish_freehand(1.0);
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
 }
 
 #[test]
@@ -324,17 +319,16 @@ fn cut_select_all_and_deselect_all_work_on_the_current_frame() {
     assert!(!ws.has_selection());
     assert!(!ws.is_enabled(MenuAction::Cut));
     ws.select_at(Pos2::new(30.0, 30.0), false);
-    let spans_before: usize = (0..layer_count(&ws)).map(|l| spans_of(&ws, l)).sum();
+    let spans_before = drawing_count(&ws);
     ws.perform(MenuAction::Cut);
-    let spans_after: usize = (0..layer_count(&ws)).map(|l| spans_of(&ws, l)).sum();
+    let spans_after = drawing_count(&ws);
     assert_eq!(spans_after + 1, spans_before);
     assert!(
         ws.is_enabled(MenuAction::Paste),
         "what was cut can be pasted"
     );
     ws.undo();
-    let restored: usize = (0..layer_count(&ws)).map(|l| spans_of(&ws, l)).sum();
-    assert_eq!(restored, spans_before);
+    assert_eq!(drawing_count(&ws), spans_before);
 }
 
 #[test]
@@ -369,12 +363,8 @@ fn align_distribute_and_arrange_move_the_selection_in_one_undo_step() {
     ws.align_selection(ops::Align::Left);
     let lefts = |ws: &Workspace| -> Vec<f32> {
         (1..=3)
-            .map(|l| {
-                let at = SpanRef {
-                    layer: ws.document().scenes()[0].timeline().layers()[l].id(),
-                    start: 0,
-                    element: 0,
-                };
+            .map(|nth| {
+                let at = drawing_ref(ws, nth);
                 ops::span_bounds(ws.document(), ws.scene_id().expect("scene"), at)
                     .expect("bounds")
                     .left()
@@ -401,8 +391,8 @@ fn align_distribute_and_arrange_move_the_selection_in_one_undo_step() {
 }
 
 #[test]
-fn bring_to_front_and_send_to_back_reorder_layers_keeping_relative_order() {
-    let mut ws = two_rectangles();
+fn bring_to_front_and_send_to_back_reorder_layers_of_single_shapes_keeping_relative_order() {
+    let mut ws = two_rectangles_on_two_layers();
     let ids = |ws: &Workspace| -> Vec<LayerId> {
         ws.document().scenes()[0]
             .timeline()
@@ -412,7 +402,7 @@ fn bring_to_front_and_send_to_back_reorder_layers_keeping_relative_order() {
             .collect()
     };
     let before = ids(&ws);
-    ws.select_at(Pos2::new(30.0, 30.0), false);
+    ws.select_at(Pos2::new(120.0, 30.0), false);
     let chosen = ws.selected.expect("selected").layer;
     ws.arrange_selection(true);
     assert_eq!(ids(&ws)[0], chosen);

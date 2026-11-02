@@ -80,3 +80,5 @@ opt-to = Bis
 opt-vertical = Vertikal
 opt-zoom = Zoom
 opt-rotation = Drehung
+opt-object-drawing = Objektzeichnung (J)
+opt-object-drawing-hint = Das Zusammenführen von Zeichnungen ist noch nicht gebaut: Jede gezeichnete Form ist ein eigenes Zeichenobjekt, und Formen auf einer Ebene schneiden einander nicht.

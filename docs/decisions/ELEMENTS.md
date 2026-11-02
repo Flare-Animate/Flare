@@ -1,6 +1,6 @@
 # Decision: many elements in a keyframe
 
-Status: accepted; stages 1 (the document model and the project file) and 2 (reading everywhere) done, stage 3 next.
+Status: accepted; stages 1 (the document model and the project file), 2 (reading everywhere) and 3 (drawing into the layer) done; 4 (import and export: the XFL parts are done with stage 2) and 5 (Merge Drawing) next.
 
 ## The problem
 

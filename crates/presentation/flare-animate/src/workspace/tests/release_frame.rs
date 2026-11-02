@@ -36,7 +36,7 @@ fn the_stroke_is_on_screen_in_the_frame_the_pointer_is_released() {
         ws.show(ui)
     });
     released.textures_delta.clear();
-    assert_eq!(layer_count(&ws), 2, "the stroke was committed");
+    assert_eq!(drawing_count(&ws), 1, "the stroke was committed");
     assert!(
         released.shapes.iter().any(|s| is_mesh_of(&s.shape, fill)),
         "something of the stroke is drawn in the frame it is let go, so it does not blink"
@@ -74,7 +74,7 @@ fn released_drag(tool: Tool) -> (Vec<egui::epaint::Shape>, Color32, Color32, usi
         ws.show(ui)
     });
     released.textures_delta.clear();
-    let layers = layer_count(&ws);
+    let layers = drawing_count(&ws);
     (
         released.shapes.iter().map(|s| s.shape.clone()).collect(),
         fill,
@@ -86,7 +86,7 @@ fn released_drag(tool: Tool) -> (Vec<egui::epaint::Shape>, Color32, Color32, usi
 #[test]
 fn a_rectangle_and_an_oval_are_on_screen_in_the_frame_the_pointer_is_released() {
     let (shapes, fill, _, layers) = released_drag(Tool::Rectangle);
-    assert_eq!(layers, 2, "the rectangle was committed");
+    assert_eq!(layers, 1, "the rectangle was committed");
     assert!(
         shapes
             .iter()
@@ -94,7 +94,7 @@ fn a_rectangle_and_an_oval_are_on_screen_in_the_frame_the_pointer_is_released() 
         "the rectangle is drawn in the frame it is let go, in its own color and not as the half-seen preview"
     );
     let (shapes, fill, _, layers) = released_drag(Tool::Ellipse);
-    assert_eq!(layers, 2);
+    assert_eq!(layers, 1);
     assert!(
         shapes
             .iter()
@@ -106,7 +106,7 @@ fn a_rectangle_and_an_oval_are_on_screen_in_the_frame_the_pointer_is_released() 
 #[test]
 fn a_line_is_on_screen_in_the_frame_the_pointer_is_released() {
     let (shapes, _, stroke, layers) = released_drag(Tool::Line);
-    assert_eq!(layers, 2, "the line was committed");
+    assert_eq!(layers, 1, "the line was committed");
     assert!(
         shapes.iter().any(|s| is_mesh_of(s, stroke)),
         "the line is drawn in the frame it is let go, so it does not flash"

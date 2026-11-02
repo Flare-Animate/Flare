@@ -199,16 +199,21 @@ fn the_brush_options_and_the_symmetry_choices_are_in_the_language() {
 }
 
 #[test]
-fn a_drawn_shape_names_its_layer_and_its_undo_step_in_the_language() {
-    for (tag, layer, step) in [
-        ("de-DE", "Rechteck", "Rechteck zeichnen"),
-        ("es-ES", "Rectángulo", "Dibujar rectángulo"),
-        ("zh-CN", "矩形", "绘制矩形"),
-        ("en-US", "Rectangle", "Draw rectangle"),
+fn a_drawn_shape_names_its_undo_step_in_the_language_and_leaves_the_layer_alone() {
+    for (tag, step) in [
+        ("de-DE", "Rechteck zeichnen"),
+        ("es-ES", "Dibujar rectángulo"),
+        ("zh-CN", "绘制矩形"),
+        ("en-US", "Draw rectangle"),
     ] {
         let mut ws = speaking(tag);
+        let first_layer = layer_names(&ws);
         rect(&mut ws);
-        assert_eq!(layer_names(&ws)[1], layer, "{tag}");
+        assert_eq!(
+            layer_names(&ws),
+            first_layer,
+            "{tag}: the shape joins the layer, whose name stays"
+        );
         assert_eq!(ws.history_entries().0[1], step, "{tag}");
     }
 }

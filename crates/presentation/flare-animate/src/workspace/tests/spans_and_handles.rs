@@ -107,12 +107,7 @@ fn gradient_fills_apply_to_new_shapes_across_their_bounds_and_survive_moves() {
 
     ws.paint.gradient_vertical = true;
     ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(50.0, 80.0));
-    let layer = ws.current_layer.expect("layer");
-    ws.selected = Some(SpanRef {
-        layer,
-        start: 0,
-        element: 0,
-    });
+    ws.selected = Some(drawing_ref(&ws, 2));
     let g = selected_shape(&ws).gradient().expect("a gradient");
     assert_eq!(
         (g.to().as_vec().x, g.to().as_vec().y),
@@ -137,12 +132,7 @@ fn gradients_survive_duplicating_and_the_setting_survives_opening_a_project() {
     ws.save_as(&project);
     ws.open(&project);
     assert!(ws.paint.gradient_enabled, "opening keeps the tool settings");
-    let layer = ws.document().scenes()[0].timeline().layers()[1].id();
-    ws.selected = Some(SpanRef {
-        layer,
-        start: 0,
-        element: 0,
-    });
+    ws.selected = Some(drawing_ref(&ws, 1));
     assert!(
         selected_shape(&ws).gradient().is_some(),
         "saved and reloaded"
@@ -159,7 +149,7 @@ fn copy_then_paste_places_independent_copies_in_place_at_the_current_frame() {
     assert!(ws.is_enabled(MenuAction::Paste));
     ws.set_frame(5);
     ws.perform(MenuAction::PasteInPlace);
-    assert_eq!(layer_count(&ws), 5);
+    assert_eq!(drawing_count(&ws), 4);
     let pasted = ws.selection_all();
     assert_eq!(pasted.len(), 2);
     assert!(pasted.iter().all(|s| s.start == 5), "at the current frame");
@@ -180,11 +170,11 @@ fn copy_then_paste_places_independent_copies_in_place_at_the_current_frame() {
     assert_eq!(bounds.min.x, 10.0, "pasted in place, not offset");
     // The clipboard survives the original being deleted, and one undo removes the paste.
     ws.undo();
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(drawing_count(&ws), 2);
     ws.select_at(Pos2::new(30.0, 30.0), false);
     ws.delete_selection();
     ws.perform(MenuAction::PasteInPlace);
-    assert_eq!(layer_count(&ws), 5);
+    assert_eq!(drawing_count(&ws), 3);
 }
 
 #[test]
@@ -216,7 +206,7 @@ fn copy_and_paste_events_act_on_the_selection_unless_a_field_wants_the_keys() {
     pass(&mut ws, &ctx, input(0.0, vec![Event::Copy]));
     assert!(ws.is_enabled(MenuAction::Paste));
     pass(&mut ws, &ctx, input(0.1, vec![Event::Paste(String::new())]));
-    assert_eq!(layer_count(&ws), 4);
+    assert_eq!(drawing_count(&ws), 3);
 }
 
 #[test]
@@ -235,7 +225,11 @@ fn pasting_an_instance_into_a_document_without_its_symbol_is_refused() {
     assert!(!other.is_dirty());
     // Back in the document that has the symbol it works.
     source.perform(MenuAction::Paste);
-    assert_eq!(layer_count(&source), 3);
+    assert_eq!(
+        layer_count(&source),
+        2,
+        "a paste still gets a layer of its own"
+    );
 }
 
 #[test]

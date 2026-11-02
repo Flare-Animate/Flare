@@ -80,3 +80,5 @@ opt-to = Para
 opt-vertical = Vertical
 opt-zoom = Zoom
 opt-rotation = Rotação
+opt-object-drawing = Desenho de objeto (J)
+opt-object-drawing-hint = O desenho mesclado ainda não foi construído: cada forma desenhada é um objeto de desenho separado, e as formas de uma camada não se cortam.

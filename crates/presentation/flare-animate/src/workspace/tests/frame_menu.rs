@@ -111,7 +111,7 @@ fn a_right_click_on_a_frame_opens_the_menu_for_frames_and_choosing_an_item_acts_
     let mut name = None;
     for _ in 0..4 {
         time += 0.1;
-        name = find(&mut ws, &ctx, time, vec![], "Rectangle").or(name);
+        name = find(&mut ws, &ctx, time, vec![], "Layer 1").or(name);
     }
     let name = name.expect("the name of the layer the rectangle is on is drawn");
     // Well to the right of the name: over the frames, a few frames in.

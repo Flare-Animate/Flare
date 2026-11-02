@@ -6,12 +6,7 @@ use super::*;
 fn with_text() -> Workspace {
     let mut ws = text_workspace();
     type_text(&mut ws, Pos2::new(100.0, 50.0), "Hi");
-    let layer = ws.document().scenes()[0].timeline().layers()[1].id();
-    ws.selected = Some(SpanRef {
-        layer,
-        start: 0,
-        element: 0,
-    });
+    ws.selected = Some(drawing_ref(&ws, 1));
     ws
 }
 
@@ -77,12 +72,7 @@ fn emptied_text_is_removed_and_a_click_elsewhere_starts_new_text() {
         .sum();
     assert_eq!(spans, 0, "the text went");
     ws.undo();
-    assert!(
-        ws.document().scenes()[0].timeline().layers()[1]
-            .spans()
-            .len()
-            == 1
-    );
+    assert_eq!(drawing_count(&ws), 1, "undo brings the text back");
 
     ws.text_click(Pos2::new(600.0, 400.0));
     let edit = ws.text.edit.as_ref().expect("new text");
@@ -242,24 +232,19 @@ fn a_press_on_the_stage_outside_the_editor_finishes_the_text_but_a_press_elsewhe
     // Off the stage (the timeline, the panels): the text goes on being typed.
     pass(&mut ws, &ctx, input(0.4, press(Pos2::new(640.0, 790.0))));
     assert!(ws.text.edit.is_some());
-    let layers = layer_count(&ws);
+    let drawn = drawing_count(&ws);
     // On the stage, away from the editor.
     let away = ws.stage_panel.right_bottom() - egui::vec2(20.0, 20.0);
     pass(&mut ws, &ctx, input(0.5, press(away)));
     assert!(ws.text.edit.is_none(), "the text was finished");
-    assert_eq!(layer_count(&ws), layers + 1, "and placed");
+    assert_eq!(drawing_count(&ws), drawn + 1, "and placed");
 }
 
 #[test]
 fn text_is_picked_anywhere_in_its_box_not_only_on_the_ink_of_its_letters() {
     let mut ws = text_workspace();
     type_text(&mut ws, Pos2::new(100.0, 50.0), "I I");
-    let layer = ws.document().scenes()[0].timeline().layers()[1].id();
-    let at = SpanRef {
-        layer,
-        start: 0,
-        element: 0,
-    };
+    let at = drawing_ref(&ws, 1);
     ws.selected = Some(at);
     let bounds = shape_bounds(&ws);
     ws.selected = None;

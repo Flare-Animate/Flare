@@ -35,7 +35,7 @@ fn a_flare_project_given_to_open_any_is_opened() {
     let mut ws = workspace();
     ws.open_any(&path);
     assert_eq!(ws.path(), Some(path.as_path()));
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
 }
 
 #[test]

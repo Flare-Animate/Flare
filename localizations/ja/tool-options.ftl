@@ -80,3 +80,5 @@ opt-to = 終了色
 opt-vertical = 垂直
 opt-zoom = ズーム
 opt-rotation = 回転
+opt-object-drawing = オブジェクト描画 (J)
+opt-object-drawing-hint = 結合描画はまだ作られていません。描いた図形はそれぞれ独立した描画オブジェクトになり、同じレイヤーの図形どうしは切り取り合いません。

@@ -75,7 +75,7 @@ fn the_history_lists_each_edit_and_clicking_one_returns_to_it() {
     assert_eq!(entries, ["Original", "Draw rectangle", "Move"]);
     assert_eq!(current, 2);
     ws.jump_in_history(1);
-    assert_eq!(layer_count(&ws), 2, "the drawing is still there");
+    assert_eq!(drawing_count(&ws), 1, "the drawing is still there");
     assert_eq!(ws.history_entries().1, 1);
     assert_eq!(
         ws.history_entries().0.len(),
@@ -83,14 +83,14 @@ fn the_history_lists_each_edit_and_clicking_one_returns_to_it() {
         "the later step can still be redone"
     );
     ws.jump_in_history(0);
-    assert_eq!(layer_count(&ws), 1);
+    assert_eq!(drawing_count(&ws), 0);
     ws.jump_in_history(2);
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
     ws.jump_in_history(99); // out of range: nothing happens
     assert_eq!(ws.history_entries().1, 2);
     ws.clear_history();
     assert_eq!(ws.history_entries().0, ["Original"]);
-    assert_eq!(layer_count(&ws), 2, "the document stays as it is");
+    assert_eq!(drawing_count(&ws), 1, "the document stays as it is");
 }
 
 #[test]
@@ -108,11 +108,11 @@ fn revert_reloads_the_saved_copy_and_closing_the_last_document_leaves_an_empty_o
     assert!(ws.is_enabled(MenuAction::Revert));
     ws.perform(MenuAction::Revert);
     ws.settle_inline();
-    assert_eq!(layer_count(&ws), 2, "back to the saved copy");
+    assert_eq!(drawing_count(&ws), 1, "back to the saved copy");
     assert!(!ws.is_dirty());
     assert_eq!(ws.tabs().len(), 1, "reverting stays in the same tab");
     ws.perform(MenuAction::Close);
-    assert_eq!(layer_count(&ws), 1, "an empty project");
+    assert_eq!(drawing_count(&ws), 0, "an empty project");
     assert_eq!(ws.path(), None);
     assert_eq!(ws.title(), "Untitled - Flare");
     assert_eq!(ws.tabs().len(), 1);
@@ -125,23 +125,23 @@ fn tabs_hold_several_documents_switch_between_them_and_close_without_losing_work
     ws.perform(MenuAction::New);
     assert_eq!(ws.tabs().len(), 2);
     assert!(ws.tabs()[1].current && !ws.tabs()[0].current);
-    assert_eq!(layer_count(&ws), 1, "the new document is empty");
+    assert_eq!(drawing_count(&ws), 0, "the new document is empty");
     assert!(ws.any_dirty(), "the first tab's unsaved work counts");
     assert!(!ws.is_dirty(), "the one on show is untouched");
     ws.set_tool(Tool::Ellipse);
     ws.commit_shape(Tool::Ellipse, Pos2::new(5.0, 5.0), Pos2::new(60.0, 40.0));
     ws.commit_shape(Tool::Ellipse, Pos2::new(70.0, 5.0), Pos2::new(90.0, 40.0));
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(drawing_count(&ws), 2);
 
     // Switching brings the other document back whole and keeps the person's tool.
     ws.switch_to_tab(0);
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
     assert_eq!(ws.tool(), Tool::Ellipse, "the tool in hand stays in hand");
     assert!(ws.tabs()[0].current);
     ws.switch_to_tab(1);
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(drawing_count(&ws), 2);
     ws.switch_to_tab(7); // no such tab: nothing happens
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(drawing_count(&ws), 2);
 
     // A tab with unsaved work asks before closing, and nothing closes until it is answered.
     ws.perform(MenuAction::Close);
@@ -158,7 +158,7 @@ fn tabs_hold_several_documents_switch_between_them_and_close_without_losing_work
     assert!(!ws.is_dirty());
     ws.perform(MenuAction::Close);
     assert_eq!(ws.tabs().len(), 1);
-    assert_eq!(layer_count(&ws), 2, "the first document is the one left");
+    assert_eq!(drawing_count(&ws), 1, "the first document is the one left");
     // A parked, clean tab closes without being shown.
     ws.perform(MenuAction::New);
     ws.switch_to_tab(0);
@@ -217,7 +217,7 @@ fn importing_an_xfl_folder_makes_a_new_unsaved_project_in_place_of_a_blank_one_a
 
     let mut ws = workspace();
     ws.import_project(&folder);
-    assert_eq!(layer_count(&ws), 2, "the drawing came across");
+    assert_eq!(drawing_count(&ws), 1, "the drawing came across");
     assert_eq!(
         ws.path(),
         None,
@@ -247,7 +247,7 @@ fn a_fla_held_in_memory_imports_like_one_read_from_disk() {
     let bytes = flare_export::fla_bytes(&output).expect("bytes");
     let mut ws = workspace();
     ws.import_project_bytes("art.fla", bytes);
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
     assert_eq!(ws.path(), None);
     assert!(ws.is_dirty());
     let mut other = workspace();

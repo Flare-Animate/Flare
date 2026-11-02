@@ -24,7 +24,7 @@ fn closing_unsaved_work_asks_and_cancel_keeps_everything() {
     assert!(ws.is_dirty());
     ws.apply_close_choice(0, Choice::Keep);
     assert_eq!(ws.close_prompt, None);
-    assert_eq!(layer_count(&ws), 2, "the drawing is still there");
+    assert_eq!(drawing_count(&ws), 1, "the drawing is still there");
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn a_save_that_is_not_made_leaves_the_tab_open() {
         "the wish to close ended with the dialog"
     );
     assert!(ws.is_dirty());
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
 }
 
 #[test]

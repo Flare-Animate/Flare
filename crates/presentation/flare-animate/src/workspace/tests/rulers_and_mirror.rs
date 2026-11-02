@@ -17,16 +17,12 @@ fn first_x(ws: &Workspace, layer: usize) -> f64 {
     }
 }
 
-fn height_of(ws: &Workspace, layer: usize) -> f32 {
-    let layers = ws.document().scenes()[0].timeline().layers();
+/// The height of the `nth` shape drawn (counting from 1).
+fn height_of(ws: &Workspace, nth: usize) -> f32 {
     ops::span_bounds(
         ws.document(),
         ws.scene_id().expect("scene"),
-        SpanRef {
-            layer: layers[layer].id(),
-            start: 0,
-            element: 0,
-        },
+        drawing_ref(ws, nth),
     )
     .expect("bounds")
     .height()
@@ -50,11 +46,11 @@ fn a_left_right_symmetric_stroke_is_drawn_with_its_mirror_image_as_one_undo_step
     ws.paint.symmetry_center = Some(Pos2::new(100.0, 0.0));
     ws.freehand = stroke(&[(10.0, 10.0), (40.0, 30.0), (60.0, 10.0)]);
     ws.finish_freehand(1.0);
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(drawing_count(&ws), 2);
     assert_eq!(first_x(&ws, 1), 10.0);
     assert_eq!(first_x(&ws, 2), 190.0);
     ws.undo();
-    assert_eq!(layer_count(&ws), 1, "both strokes are one step");
+    assert_eq!(drawing_count(&ws), 0, "both strokes are one step");
 }
 
 #[test]
@@ -63,11 +59,11 @@ fn four_way_symmetry_draws_four_strokes_and_off_draws_one() {
     ws.set_tool(Tool::Brush);
     ws.freehand = stroke(&[(10.0, 10.0), (40.0, 30.0), (60.0, 10.0)]);
     ws.finish_freehand(1.0);
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
     ws.paint.symmetry = Symmetry::Both;
     ws.freehand = stroke(&[(10.0, 10.0), (40.0, 30.0), (60.0, 10.0)]);
     ws.finish_freehand(1.0);
-    assert_eq!(layer_count(&ws), 6);
+    assert_eq!(drawing_count(&ws), 5);
 }
 
 #[test]
@@ -111,7 +107,7 @@ fn a_straight_edge_and_symmetry_work_together() {
     ws.paint.symmetry_center = Some(Pos2::new(0.0, 50.0));
     ws.freehand = stroke(&[(10.0, 10.0), (30.0, 40.0), (60.0, 20.0)]);
     ws.finish_freehand(1.0);
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(drawing_count(&ws), 2);
 }
 
 #[test]
@@ -123,8 +119,8 @@ fn a_mirror_copy_reflects_the_selection_across_the_axis_and_keeps_the_original()
     ws.perform(MenuAction::MirrorCopyHorizontal);
     assert_eq!(
         layer_count(&ws),
-        3,
-        "the copies join the keyframes, no layers are made"
+        1,
+        "the copies join the keyframe, no layers are made"
     );
     assert_eq!(rect_x(&ws, 1), 10.0, "the original stays");
     // The rectangle that spanned x 10..50 now has a copy spanning 350..390.
@@ -158,7 +154,7 @@ fn a_mirror_copy_needs_a_selection() {
     ws.perform(MenuAction::DeselectAll);
     assert!(!ws.is_enabled(MenuAction::MirrorCopyVertical));
     ws.mirror_copy_selection(false);
-    assert_eq!(layer_count(&ws), 3);
+    assert_eq!(drawing_count(&ws), 2);
 }
 
 #[test]

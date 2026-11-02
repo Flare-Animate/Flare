@@ -40,7 +40,7 @@ fn function_keys_drive_frame_operations() {
 }
 
 #[test]
-fn ellipse_and_line_tools_commit_shapes_on_their_own_layers() {
+fn ellipse_and_line_tools_commit_shapes_into_the_active_layer() {
     let mut ws = workspace();
     ws.set_tool(Tool::Ellipse);
     ws.begin_drag(Pos2::new(100.0, 100.0));
@@ -50,19 +50,12 @@ fn ellipse_and_line_tools_commit_shapes_on_their_own_layers() {
     ws.begin_drag(Pos2::new(10.0, 10.0));
     ws.update_drag(Pos2::new(90.0, 40.0));
     ws.end_drag();
-    let layers = ws.document().scenes()[0].timeline().layers();
-    assert_eq!(layers.len(), 3);
-    let shape_of = |layer: usize| match layers[layer].spans()[0].content() {
-        Content::Shape(shape) => shape.clone(),
-        _ => panic!("shape expected"),
-    };
-    assert_eq!(layers[1].name(), "Ellipse");
-    let ellipse = shape_of(1);
+    assert_eq!(layer_count(&ws), 1, "both went into the one layer");
+    let ellipse = drawn_shape(&ws, 1);
     let bounds = ops::shape_bounds(&ellipse).expect("bounds");
     assert_eq!(bounds.min, Pos2::new(100.0, 100.0));
     assert_eq!(bounds.max, Pos2::new(160.0, 140.0));
-    assert_eq!(layers[2].name(), "Line");
-    let line = shape_of(2);
+    let line = drawn_shape(&ws, 2);
     assert_eq!(line.path().len(), 2);
     assert!(
         line.stroke().is_some(),
@@ -182,19 +175,20 @@ fn locked_layers_are_not_selectable_and_refuse_frame_edits() {
 fn clicks_select_through_a_locked_layer_to_the_one_below() {
     let mut ws = workspace();
     ws.paint.stroke_enabled = false;
-    ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(100.0, 100.0)); // lower layer
-    ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(100.0, 100.0)); // new layer, on top? (below in order)
+    ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(100.0, 100.0)); // the first layer
+    ws.add_layer(); // a layer below it, which the next drawing goes into
+    ws.commit_rectangle(Pos2::new(0.0, 0.0), Pos2::new(100.0, 100.0));
     let layers: Vec<LayerId> = ws.document().scenes()[0]
         .timeline()
         .layers()
         .iter()
         .map(Layer::id)
         .collect();
-    // Layers are top-to-bottom; the last one is drawn first, so layers[1] paints over layers[2].
-    ws.toggle_layer_locked(layers[1]);
+    // Layers are top-to-bottom; the last one is drawn first, so layers[0] paints over layers[1].
+    ws.toggle_layer_locked(layers[0]);
     ws.set_tool(Tool::Select);
     ws.begin_drag(Pos2::new(50.0, 50.0));
-    assert_eq!(ws.selected.map(|s| s.layer), Some(layers[2]));
+    assert_eq!(ws.selected.map(|s| s.layer), Some(layers[1]));
 }
 
 #[test]
@@ -226,14 +220,19 @@ fn editing_a_symbol_in_place_applies_to_the_parent_as_one_undo_step() {
     ws.commit_rectangle(Pos2::new(300.0, 300.0), Pos2::new(340.0, 330.0));
     assert!(ws.is_dirty());
     assert_eq!(
-        symbol_layers(&ws, symbol),
+        symbol_elements(&ws, symbol),
         1,
         "the parent is untouched until you leave"
     );
 
     assert!(ws.exit_symbol());
     assert!(!ws.in_symbol());
-    assert_eq!(symbol_layers(&ws, symbol), 2);
+    assert_eq!(
+        symbol_layers(&ws, symbol),
+        1,
+        "the drawing joined the layer"
+    );
+    assert_eq!(symbol_elements(&ws, symbol), 2);
     ws.undo();
     assert_eq!(ws.document(), &before, "leaving was a single undo step");
 }
@@ -243,11 +242,11 @@ fn undo_inside_a_symbol_is_local_to_that_symbol() {
     let (mut ws, symbol) = with_symbol();
     ws.edit_selected_symbol();
     ws.commit_rectangle(Pos2::new(300.0, 300.0), Pos2::new(340.0, 330.0));
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 2);
     ws.undo();
-    assert_eq!(layer_count(&ws), 1);
+    assert_eq!(drawing_count(&ws), 1);
     ws.undo(); // nothing left to undo inside; the scene's own history is not touched
-    assert_eq!(layer_count(&ws), 1);
+    assert_eq!(drawing_count(&ws), 1);
     assert!(ws.exit_symbol());
     assert_eq!(
         symbol_layers(&ws, symbol),
@@ -368,7 +367,7 @@ fn saving_inside_a_symbol_applies_pending_edits_first() {
     assert!(!ws.is_dirty());
     let mut reopened = workspace();
     reopened.open(&path);
-    assert_eq!(symbol_layers(&reopened, symbol), 2);
+    assert_eq!(symbol_elements(&reopened, symbol), 2);
 }
 
 #[test]

@@ -138,7 +138,7 @@ fn keys_and_commands_leave_the_hidden_document_alone_while_home_is_up() {
         &ctx,
         input(0.0, vec![key(Key::Delete, Modifiers::NONE)]),
     );
-    assert_eq!(layer_count(&ws), 3, "Delete did not reach the document");
+    assert_eq!(drawing_count(&ws), 2, "Delete did not reach the document");
     assert_eq!(ws.tool(), Tool::Select);
 }
 

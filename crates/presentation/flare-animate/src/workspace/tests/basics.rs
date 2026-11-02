@@ -28,14 +28,14 @@ fn a_rectangle_is_one_undo_step_and_tracks_dirty_state() {
     let mut ws = workspace();
     assert!(!ws.is_dirty());
     rect(&mut ws);
-    assert_eq!(layer_count(&ws), 2, "layer and span are added together");
+    assert_eq!(drawing_count(&ws), 1, "layer and span are added together");
     assert!(ws.is_dirty());
     assert!(ws.title().contains('*'));
     ws.undo();
-    assert_eq!(layer_count(&ws), 1);
+    assert_eq!(drawing_count(&ws), 0);
     assert!(!ws.is_dirty());
     ws.redo();
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
 }
 
 #[test]
@@ -46,12 +46,9 @@ fn rectangles_get_a_stroke_only_when_outline_is_enabled() {
     ws.paint.stroke_color = Color32::from_rgb(1, 2, 3);
     ws.paint.stroke_width = 6.0;
     ws.commit_rectangle(Pos2::new(200.0, 200.0), Pos2::new(260.0, 240.0));
-    let stroke_of = |layer: usize| {
-        let timeline = ws.document().scenes()[0].timeline();
-        match timeline.layers()[layer].spans()[0].content() {
-            Content::Shape(shape) => shape.stroke(),
-            _ => panic!("shape expected"),
-        }
+    let stroke_of = |nth: usize| match drawings(&ws).get(nth - 1) {
+        Some(Content::Shape(shape)) => shape.stroke(),
+        _ => panic!("shape expected"),
     };
     assert_eq!(stroke_of(1), None);
     let stroke = stroke_of(2).expect("outlined rectangle");
@@ -77,10 +74,10 @@ fn keyboard_shortcuts_undo_and_redo() {
     rect(&mut ws);
     let command = Modifiers::COMMAND;
     pass(&mut ws, &ctx, input(0.1, vec![key(Key::Z, command)]));
-    assert_eq!(layer_count(&ws), 1);
+    assert_eq!(drawing_count(&ws), 0);
     let both = Modifiers::COMMAND | Modifiers::SHIFT;
     pass(&mut ws, &ctx, input(0.2, vec![key(Key::Z, both)]));
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
 }
 
 #[test]
@@ -144,14 +141,14 @@ fn save_and_open_round_trip_and_unsaved_work_opens_beside_not_over_it() {
     rect(&mut ws);
     ws.open(&path);
     assert_eq!(ws.tabs().len(), 2, "the file opened in a tab of its own");
-    assert_eq!(layer_count(&ws), 2, "the saved copy is on show");
+    assert_eq!(drawing_count(&ws), 1, "the saved copy is on show");
     ws.switch_to_tab(0);
-    assert_eq!(layer_count(&ws), 3, "dirty work was not replaced");
+    assert_eq!(drawing_count(&ws), 2, "dirty work was not replaced");
 
     ws.save();
     let mut other = workspace();
     other.open(&path);
-    assert_eq!(layer_count(&other), 3);
+    assert_eq!(drawing_count(&other), 2);
     assert_eq!(other.path(), Some(path.as_path()));
 }
 
@@ -356,12 +353,12 @@ fn placement_and_rendering_follow_the_document_stage() {
 }
 
 #[test]
-fn drawing_makes_the_new_layer_active_and_frame_ops_act_on_it() {
+fn drawing_leaves_its_layer_active_and_frame_ops_act_on_it() {
     let mut ws = workspace();
     rect(&mut ws);
     assert_eq!(
         ws.active_layer_id(),
-        Some(ws.document().scenes()[0].timeline().layers()[1].id())
+        Some(ws.document().scenes()[0].timeline().layers()[0].id())
     );
     assert_eq!(active_spans(&ws), vec![(0, 24)]);
     ws.set_frame(10);
@@ -392,14 +389,24 @@ fn drawing_makes_the_new_layer_active_and_frame_ops_act_on_it() {
 fn selecting_a_layer_redirects_frame_operations() {
     let mut ws = workspace();
     rect(&mut ws);
-    let first = ws.document().scenes()[0].timeline().layers()[0].id();
-    ws.select_layer(first);
+    let drawn = ws.active_layer_id().expect("the layer drawn on");
+    ws.add_layer();
+    let empty = ws.active_layer_id().expect("the new layer");
+    assert_ne!(drawn, empty);
+    ws.select_layer(empty);
     ws.frame_edit(FrameOp::InsertFrame);
     assert!(
         ws.status().is_some(),
-        "the first layer is empty, so there is nothing to extend"
+        "the new layer is empty, so there is nothing to extend"
     );
-    assert_eq!(layer_count(&ws), 2);
+    ws.select_layer(drawn);
+    ws.frame_edit(FrameOp::InsertFrame);
+    assert_eq!(
+        active_spans(&ws),
+        vec![(0, 25)],
+        "the layer drawn on is extended"
+    );
+    assert_eq!(drawing_count(&ws), 1);
 }
 
 #[test]

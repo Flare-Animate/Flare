@@ -11,29 +11,24 @@ fn test_movie_is_a_request_for_the_shell_and_includes_pending_symbol_edits() {
     ws.edit_selected_symbol();
     ws.commit_rectangle(Pos2::new(300.0, 300.0), Pos2::new(340.0, 330.0));
     assert!(ws.in_symbol());
-    assert_eq!(
+    let elements = |ws: &Workspace| -> usize {
         ws.main_document()
             .symbol(symbol)
             .expect("symbol")
             .timeline()
             .layers()
-            .len(),
-        1
-    );
+            .iter()
+            .flat_map(|l| l.spans())
+            .map(|s| s.element_count())
+            .sum()
+    };
+    assert_eq!(elements(&ws), 1);
     ws.perform(MenuAction::TestMovie);
     assert!(
         !ws.in_symbol(),
         "the symbol edit was applied before playing"
     );
-    assert_eq!(
-        ws.main_document()
-            .symbol(symbol)
-            .expect("symbol")
-            .timeline()
-            .layers()
-            .len(),
-        2
-    );
+    assert_eq!(elements(&ws), 2);
     assert!(ws.take_test_movie_request());
     assert_eq!(ws.label(MenuAction::TestMovie), "Test Movie");
 }
@@ -68,17 +63,17 @@ fn a_line_can_be_selected_by_clicking_its_stroke_and_moved() {
 }
 
 #[test]
-fn finishing_a_pen_path_is_one_undo_step_on_a_new_layer() {
+fn finishing_a_pen_path_is_one_undo_step_in_the_layer() {
     let mut ws = workspace();
     pen_triangle(&mut ws);
     assert!(ws.pen_is_active());
-    assert_eq!(layer_count(&ws), 1, "nothing is committed while drawing");
+    assert_eq!(drawing_count(&ws), 0, "nothing is committed while drawing");
     ws.pen_finish();
     assert!(!ws.pen_is_active());
-    assert_eq!(layer_count(&ws), 2);
-    assert_eq!(layer_names(&ws)[1], "Path");
+    assert_eq!(drawing_count(&ws), 1);
+    assert_eq!(layer_count(&ws), 1, "the path joined the layer");
     ws.undo();
-    assert_eq!(layer_count(&ws), 1, "one step removes the whole path");
+    assert_eq!(drawing_count(&ws), 0, "one step removes the whole path");
 }
 
 #[test]
@@ -87,10 +82,7 @@ fn an_open_pen_path_is_stroked_even_with_outline_off() {
     ws.paint.stroke_enabled = false;
     pen_triangle(&mut ws);
     ws.pen_finish();
-    let layers = ws.document().scenes()[0].timeline().layers();
-    let Some(Content::Shape(shape)) = layers[1].spans().first().map(|s| s.content().clone()) else {
-        panic!("a shape expected")
-    };
+    let shape = drawn_shape(&ws, 1);
     assert!(
         shape.stroke().is_some(),
         "an open path with no stroke would be invisible"
@@ -108,12 +100,7 @@ fn a_closed_pen_path_strokes_only_when_outline_is_on() {
             !ws.pen_is_active(),
             "clicking the first point closes and commits"
         );
-        let layers = ws.document().scenes()[0].timeline().layers();
-        let Some(Content::Shape(shape)) = layers[1].spans().first().map(|s| s.content().clone())
-        else {
-            panic!("a shape expected")
-        };
-        assert_eq!(shape.stroke().is_some(), outline);
+        assert_eq!(drawn_shape(&ws, 1).stroke().is_some(), outline);
     }
 }
 
@@ -188,25 +175,26 @@ fn delete_removes_every_selected_span_at_once() {
     ws.select_at(Pos2::new(120.0, 30.0), true);
     ws.delete_selection();
     assert!(ws.selection_all().is_empty());
-    let layers = ws.document().scenes()[0].timeline().layers();
-    assert!(layers[1].spans().is_empty() && layers[2].spans().is_empty());
+    assert_eq!(drawing_count(&ws), 0);
+    assert!(
+        ws.document().scenes()[0].timeline().layers()[0]
+            .spans()
+            .is_empty()
+    );
     ws.undo();
-    let layers = ws.document().scenes()[0].timeline().layers();
-    assert!(!layers[1].spans().is_empty() && !layers[2].spans().is_empty());
+    assert_eq!(drawing_count(&ws), 2);
 }
 
 #[test]
 fn locking_a_layer_drops_only_its_span_from_the_selection() {
-    let mut ws = two_rectangles();
+    let mut ws = two_rectangles_on_two_layers();
     ws.select_at(Pos2::new(30.0, 30.0), false);
     ws.select_at(Pos2::new(120.0, 30.0), true);
-    let locked = ws.document().scenes()[0].timeline().layers()[1].id();
+    let layers = ws.document().scenes()[0].timeline().layers();
+    let (locked, kept) = (layers[0].id(), layers[1].id());
     ws.toggle_layer_locked(locked);
     assert_eq!(ws.selection_all().len(), 1);
-    assert_eq!(
-        ws.selection_all()[0].layer,
-        ws.document().scenes()[0].timeline().layers()[2].id()
-    );
+    assert_eq!(ws.selection_all()[0].layer, kept);
 }
 
 #[test]
@@ -235,7 +223,7 @@ fn duplicate_copies_the_selection_independently_into_the_same_keyframe() {
     ws.perform(MenuAction::Duplicate);
     assert_eq!(
         layer_count(&ws),
-        2,
+        1,
         "the copy joins the keyframe, no layer is made"
     );
     let copy = ws.selected.expect("the copy is selected");
@@ -294,8 +282,8 @@ fn duplicate_copies_every_selected_span_and_selects_the_copies() {
     ws.perform(MenuAction::Duplicate);
     assert_eq!(
         layer_count(&ws),
-        3,
-        "the copies join the keyframes, no layers are made"
+        1,
+        "the copies join the keyframe, no layers are made"
     );
     let copies = ws.selection_all();
     assert_eq!(copies.len(), 2);

@@ -80,3 +80,5 @@ opt-to = 至
 opt-vertical = 垂直
 opt-zoom = 缩放
 opt-rotation = 旋转
+opt-object-drawing = 对象绘制 (J)
+opt-object-drawing-hint = 合并绘制尚未实现：绘制的每个形状都是独立的绘制对象，同一图层上的形状不会相互切割。

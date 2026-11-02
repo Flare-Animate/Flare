@@ -44,7 +44,7 @@ mod layers;
 mod open_any;
 mod outlines;
 mod panels;
-
+mod place;
 mod playback;
 mod preferences;
 mod props_types;

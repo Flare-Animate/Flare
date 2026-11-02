@@ -18,6 +18,7 @@ fn menu_actions_report_state_and_perform_through_the_workspace() {
     ws.perform(MenuAction::ToolEllipse);
     assert_eq!(ws.tool(), Tool::Ellipse);
     rect(&mut ws);
+    ws.add_layer(); // a second layer, the bottom one and the active one
     assert!(ws.is_enabled(MenuAction::Undo));
     assert!(ws.is_enabled(MenuAction::DeleteLayer));
     assert!(ws.is_enabled(MenuAction::MoveLayerUp));
@@ -25,10 +26,12 @@ fn menu_actions_report_state_and_perform_through_the_workspace() {
         !ws.is_enabled(MenuAction::MoveLayerDown),
         "already the bottom layer"
     );
-    ws.perform(MenuAction::Undo);
-    assert_eq!(layer_count(&ws), 1);
+    ws.perform(MenuAction::Undo); // the layer
+    assert_eq!(drawing_count(&ws), 1);
+    ws.perform(MenuAction::Undo); // the drawing
+    assert_eq!(drawing_count(&ws), 0);
     ws.perform(MenuAction::Redo);
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
 
     ws.perform(MenuAction::PlayPause);
     assert!(ws.is_playing());
@@ -98,7 +101,7 @@ fn a_native_menu_owns_its_shortcuts_so_they_are_not_applied_twice() {
     run(&mut ws, &ctx, 0.0);
     let command = Modifiers::COMMAND;
     pass(&mut ws, &ctx, input(0.1, vec![key(Key::Z, command)]));
-    assert_eq!(layer_count(&ws), 2, "undo was left to the native menu");
+    assert_eq!(drawing_count(&ws), 1, "undo was left to the native menu");
     pass(
         &mut ws,
         &ctx,
@@ -107,7 +110,7 @@ fn a_native_menu_owns_its_shortcuts_so_they_are_not_applied_twice() {
     assert_eq!(active_spans(&ws), vec![(0, 24)], "so was insert keyframe");
     ws.set_native_menu(false);
     pass(&mut ws, &ctx, input(0.3, vec![key(Key::Z, command)]));
-    assert_eq!(layer_count(&ws), 1);
+    assert_eq!(drawing_count(&ws), 0);
 }
 
 #[test]
@@ -186,7 +189,7 @@ fn recovered_work_is_unsaved_and_keeps_its_file_until_saved() {
     let mut ws = workspace();
     ws.enable_recovery(store.clone());
     ws.recover(&saved);
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
     assert!(
         ws.is_dirty(),
         "recovered work has never been saved to a project"
@@ -204,7 +207,7 @@ fn recovery_refuses_to_replace_unsaved_work_and_reports_bad_files() {
     rect(&mut ws);
     ws.recover(&dir.path().join("nope.flare"));
     assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
-    assert_eq!(layer_count(&ws), 2);
+    assert_eq!(drawing_count(&ws), 1);
     ws.undo();
     ws.recover(&dir.path().join("nope.flare"));
     assert!(ws.status().is_some_and(|s| s.contains("Cannot recover")));
