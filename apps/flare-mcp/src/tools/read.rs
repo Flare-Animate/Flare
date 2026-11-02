@@ -24,9 +24,10 @@ impl FlareServer {
                         .layers()
                         .iter()
                         .map(|l| {
+                            let elements: usize = l.spans().iter().map(|s| s.element_count()).sum();
                             json!({ "id": l.id().as_uuid(), "name": l.name(),
                                     "visible": l.is_visible(), "locked": l.is_locked(),
-                                    "spans": l.spans().len() })
+                                    "spans": l.spans().len(), "elements": elements })
                         })
                         .collect();
                     json!({ "id": scene.id().as_uuid(), "name": scene.name(),

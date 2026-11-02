@@ -75,9 +75,10 @@ pub fn info(path: &Path) -> Result<Value> {
                 .layers()
                 .iter()
                 .map(|layer| {
+                    let elements: usize = layer.spans().iter().map(|s| s.element_count()).sum();
                     json!({ "id": layer.id().as_uuid(), "name": layer.name(),
                             "visible": layer.is_visible(), "locked": layer.is_locked(),
-                            "spans": layer.spans().len() })
+                            "spans": layer.spans().len(), "elements": elements })
                 })
                 .collect();
             json!({ "id": scene.id().as_uuid(), "name": scene.name(), "layers": layers })

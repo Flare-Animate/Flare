@@ -6,6 +6,7 @@ use std::process::{Command, Output};
 
 mod camera;
 mod editing;
+mod elements;
 mod formats;
 mod layers_and_stage;
 mod lossless;

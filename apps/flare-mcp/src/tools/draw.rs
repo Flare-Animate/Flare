@@ -18,20 +18,30 @@ use crate::server::{FlareServer, Outcome};
 #[tool_router(router = draw_tools, vis = "pub(super)")]
 impl FlareServer {
     #[tool(
-        description = "Draw a filled rectangle on a layer of the first scene (needs write access)."
+        description = "Draw a filled rectangle into a layer of the first scene, as the desktop app does: it joins the layer's keyframe at `start` as one more element, or starts a keyframe of `duration` frames there. The layer is the one given, else the topmost that is not a folder or the camera; a project with none gets \"Layer 1\". Locked, hidden, folder, mask, guide and camera layers, and keyframes that tween, are refused (needs write access)."
     )]
     fn draw_rect(&self, Parameters(args): Parameters<DrawRect>) -> Outcome {
         self.write(args.expected_revision, |state| {
-            let (scene, layer) = (
-                first_scene(state)?,
-                target_layer(state, args.layer.as_deref())?,
-            );
-            let span = FrameSpan::new(
+            let scene = first_scene(state)?;
+            let target = match args.layer.as_deref() {
+                Some(text) => flare_tools::ops::Target::Layer(target_layer(state, Some(text))?),
+                None => flare_tools::ops::Target::Default,
+            };
+            let plan = flare_tools::ops::draw_shapes(
+                state.session.document(),
+                scene,
+                target,
                 args.start.unwrap_or(0),
-                duration(args.duration)?,
-                Content::Shape(args.shape()?),
-            );
-            apply(state, vec![Command::InsertSpan { scene, layer, span }])
+                Some(duration(args.duration)?),
+                vec![args.shape()?],
+                "Layer 1",
+            )
+            .map_err(|e| format!("cannot draw: {e}"))?;
+            let element = plan.placed.first().map_or(0, |at| at.element);
+            let mut out = apply(state, plan.commands)?;
+            out["layer"] = json!(plan.layer.as_uuid());
+            out["element"] = json!(element);
+            Ok(out)
         })
     }
 
