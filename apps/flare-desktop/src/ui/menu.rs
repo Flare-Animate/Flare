@@ -35,6 +35,48 @@ mod native {
         menu: Menu,
         window_menu: Submenu,
         items: Vec<(MenuAction, MenuItem)>,
+        /// What the other items say, kept with the English name the layout knows them by so they
+        /// can be said again when the language changes.
+        names: Names,
+    }
+
+    /// Menus, menus inside menus, planned commands and the system's own items: everything whose
+    /// words are not an action's, with the key or English name to translate.
+    #[derive(Default)]
+    struct Names {
+        titles: Vec<(String, Submenu)>,
+        submenus: Vec<(String, Submenu)>,
+        mocks: Vec<(String, MenuItem)>,
+        system: Vec<(&'static str, PredefinedMenuItem)>,
+    }
+
+    impl Names {
+        fn apply(&self, workspace: &Workspace) {
+            for (english, submenu) in &self.titles {
+                set_submenu_text(submenu, workspace.menu_title(english));
+            }
+            for (english, submenu) in &self.submenus {
+                set_submenu_text(submenu, workspace.submenu_title(english));
+            }
+            for (english, item) in &self.mocks {
+                let text = workspace.mock_label(english);
+                if item.text() != text {
+                    item.set_text(text);
+                }
+            }
+            for (name, item) in &self.system {
+                let text = workspace.system_menu_text(name);
+                if item.text() != text {
+                    item.set_text(text);
+                }
+            }
+        }
+    }
+
+    fn set_submenu_text(submenu: &Submenu, text: String) {
+        if submenu.text() != text {
+            submenu.set_text(text);
+        }
     }
 
     fn item(action: MenuAction, label: &str) -> Result<MenuItem> {
@@ -51,6 +93,7 @@ mod native {
         entries: &[MenuEntry],
         workspace: &Workspace,
         items: &mut Vec<(MenuAction, MenuItem)>,
+        names: &mut Names,
     ) -> Result<()> {
         for entry in entries {
             match entry {
@@ -66,12 +109,15 @@ mod native {
                 MenuEntry::Separator => submenu.append(&PredefinedMenuItem::separator())?,
                 // A planned command: present, dimmed, and inert.
                 MenuEntry::Mock(label) => {
-                    submenu.append(&MenuItem::new(*label, false, None))?;
+                    let it = MenuItem::new(workspace.mock_label(label), false, None);
+                    submenu.append(&it)?;
+                    names.mocks.push(((*label).to_owned(), it));
                 }
                 MenuEntry::Submenu(title, inner) => {
-                    let nested = Submenu::new(*title, true);
-                    append_entries(&nested, inner, workspace, items)?;
+                    let nested = Submenu::new(workspace.submenu_title(title), true);
+                    append_entries(&nested, inner, workspace, items, names)?;
                     submenu.append(&nested)?;
+                    names.submenus.push(((*title).to_owned(), nested));
                 }
             }
         }
@@ -82,6 +128,8 @@ mod native {
         pub fn build(workspace: &Workspace) -> Result<Self> {
             let menu = Menu::new();
             let mut items: Vec<(MenuAction, MenuItem)> = Vec::new();
+            let mut names = Names::default();
+            let system = |name: &str| workspace.system_menu_text(name);
 
             // The application menu (named after the app) holds About, Preferences, Hide and Quit.
             // About is Flare's own window, which has the links; the system's panel has none.
@@ -92,19 +140,29 @@ mod native {
                 &workspace.label(MenuAction::Preferences),
             )?;
             let quit = item(MenuAction::Quit, &workspace.label(MenuAction::Quit))?;
+            let services = PredefinedMenuItem::services(Some(&system("services")));
+            let hide = PredefinedMenuItem::hide(Some(&system("hide")));
+            let hide_others = PredefinedMenuItem::hide_others(Some(&system("hide-others")));
+            let show_all = PredefinedMenuItem::show_all(Some(&system("show-all")));
             app.append_items(&[
                 &about,
                 &PredefinedMenuItem::separator(),
                 &preferences,
                 &PredefinedMenuItem::separator(),
-                &PredefinedMenuItem::services(None),
+                &services,
                 &PredefinedMenuItem::separator(),
-                &PredefinedMenuItem::hide(None),
-                &PredefinedMenuItem::hide_others(None),
-                &PredefinedMenuItem::show_all(None),
+                &hide,
+                &hide_others,
+                &show_all,
                 &PredefinedMenuItem::separator(),
                 &quit,
             ])?;
+            names.system.extend([
+                ("services", services),
+                ("hide", hide),
+                ("hide-others", hide_others),
+                ("show-all", show_all),
+            ]);
             items.push((MenuAction::About, about));
             items.push((MenuAction::Preferences, preferences));
             items.push((MenuAction::Quit, quit));
@@ -112,24 +170,33 @@ mod native {
 
             // The system's Window menu (minimize, full screen) also carries Flare's own panel
             // entries, so there is one Window menu, not two.
-            let window_menu = Submenu::new("Window", true);
+            let window_menu = Submenu::new(workspace.menu_title("Window"), true);
             for (title, entries) in MENU_LAYOUT {
                 let is_window = *title == "Window";
                 let submenu = if is_window {
                     window_menu.clone()
                 } else {
-                    Submenu::new(*title, true)
+                    Submenu::new(workspace.menu_title(title), true)
                 };
-                append_entries(&submenu, entries, workspace, &mut items)?;
+                append_entries(&submenu, entries, workspace, &mut items, &mut names)?;
                 if is_window {
+                    let minimize = PredefinedMenuItem::minimize(Some(&system("minimize")));
+                    let fullscreen = PredefinedMenuItem::fullscreen(Some(&system("fullscreen")));
+                    let close = PredefinedMenuItem::close_window(Some(&system("close-window")));
                     window_menu.append_items(&[
                         &PredefinedMenuItem::separator(),
-                        &PredefinedMenuItem::minimize(None),
-                        &PredefinedMenuItem::fullscreen(None),
+                        &minimize,
+                        &fullscreen,
                         &PredefinedMenuItem::separator(),
-                        &PredefinedMenuItem::close_window(None),
+                        &close,
                     ])?;
+                    names.system.extend([
+                        ("minimize", minimize),
+                        ("fullscreen", fullscreen),
+                        ("close-window", close),
+                    ]);
                 }
+                names.titles.push(((*title).to_owned(), submenu.clone()));
                 // Window is placed where the layout puts it, before Help, as in Animate.
                 menu.append(&submenu)?;
             }
@@ -137,6 +204,7 @@ mod native {
                 menu,
                 window_menu,
                 items,
+                names,
             })
         }
 
@@ -168,6 +236,9 @@ mod native {
                     it.set_text(label);
                 }
             }
+            // The titles and the system's items are said again only when they differ, which is
+            // only after the language changed, so the menu is relabelled in place, not rebuilt.
+            self.names.apply(workspace);
         }
     }
 }

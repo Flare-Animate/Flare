@@ -270,11 +270,11 @@ impl Workspace {
                     ui.separator();
                 }
                 MenuEntry::Mock(label) => {
-                    ui.add_enabled(false, egui::Button::new(*label))
+                    ui.add_enabled(false, egui::Button::new(self.mock_label(label)))
                         .on_disabled_hover_text(flare_ui::chrome::NOT_YET);
                 }
                 MenuEntry::Submenu(title, inner) => {
-                    ui.menu_button(*title, |ui| self.menu_entries(ui, inner));
+                    ui.menu_button(self.submenu_title(title), |ui| self.menu_entries(ui, inner));
                 }
             }
         }
@@ -321,7 +321,7 @@ impl Workspace {
                     return;
                 }
                 for (title, entries) in MENU_LAYOUT {
-                    ui.menu_button(*title, |ui| self.menu_entries(ui, entries));
+                    ui.menu_button(self.menu_title(title), |ui| self.menu_entries(ui, entries));
                 }
             });
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {

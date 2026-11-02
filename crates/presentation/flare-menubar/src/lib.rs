@@ -10,8 +10,10 @@ mod menu;
 mod meta;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod translation_tests;
 
-pub use labels::LabelState;
+pub use labels::{LabelState, mock_key, submenu_key, title_key};
 pub use menu::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
 
 /// A user-invokable command. Variants map one-to-one onto menu items.

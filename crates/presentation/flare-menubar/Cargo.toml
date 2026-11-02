@@ -6,6 +6,9 @@ rust-version.workspace = true
 publish.workspace = true
 license.workspace = true
 
+[dependencies]
+flare-i18n.workspace = true
+
 [dev-dependencies]
 flare-ui.workspace = true
 
