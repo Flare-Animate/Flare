@@ -492,3 +492,25 @@ fn playback_options_belong_to_graphics_and_a_movie_clip_or_button_ignores_them()
         assert_eq!(PlayMode::from_name(mode.name()), Some(mode));
     }
 }
+
+#[test]
+fn a_tween_of_a_keyframe_of_several_elements_moves_the_first_and_holds_the_others() {
+    let art = SymbolId::new();
+    let held = Instance::new(InstanceId::new(), art, at(500.0));
+    let first = span(0, 10, art, at(0.0))
+        .with_tween(Tween::Linear)
+        .with_extras(vec![Content::Instance(held)])
+        .expect("several");
+    let scene = timeline(vec![vec![first, span(10, 5, art, at(100.0))]]);
+    let (doc, id) = document(scene, vec![Symbol::new(art, "Art", Timeline::default())]);
+    let x: Vec<f64> = evaluate(&doc, id, 5)
+        .expect("eval")
+        .iter()
+        .map(|p| p.transform.translation.x)
+        .collect();
+    assert_eq!(
+        x,
+        vec![50.0, 500.0],
+        "the first is half way, the other has not moved"
+    );
+}

@@ -204,16 +204,20 @@ fn walk_layer<'a>(
     let Some(span) = layer.span_at(frame) else {
         return Ok(());
     };
-    // Every element of the span is drawn, the first at the bottom; only a single-element span
-    // can tween, so the in-between shape and transform apply to the first element alone.
-    for element in span.elements() {
+    // Every element of the span is drawn, the first at the bottom. A tween is the first element's:
+    // the in-between shape and transform apply to it alone, and the others stay as they are.
+    for (index, element) in span.elements().enumerate() {
         if out.placed.len() + out.shapes.len() >= MAX_NODES {
             return Err(EvalError::TooManyNodes);
         }
         match element {
             Content::Empty => {}
             Content::Shape(shape) => {
-                let (shape, phase) = shape_at(layer, span, frame, shape);
+                let (shape, phase) = if index == 0 {
+                    shape_at(layer, span, frame, shape)
+                } else {
+                    (Cow::Borrowed(shape), 0)
+                };
                 out.shapes.push(DrawnShape {
                     path: path.clone(),
                     shape,
@@ -225,7 +229,17 @@ fn walk_layer<'a>(
             }
             Content::Instance(instance) => {
                 walk_instance(
-                    document, layer, span, instance, frame, parent, path, guide, clips, out,
+                    document,
+                    layer,
+                    span,
+                    instance,
+                    index == 0,
+                    frame,
+                    parent,
+                    path,
+                    guide,
+                    clips,
+                    out,
                 )?;
             }
             // The camera is not drawn: it moves everything else (see `camera_view`).
@@ -242,6 +256,7 @@ fn walk_instance<'a>(
     layer: &'a Layer,
     span: &'a flare_document::FrameSpan,
     instance: &'a Instance,
+    tweens: bool,
     frame: u32,
     parent: DAffine2,
     path: &mut Vec<InstanceId>,
@@ -249,7 +264,12 @@ fn walk_instance<'a>(
     clips: &[usize],
     out: &mut Frame<'a>,
 ) -> Result<(), EvalError> {
-    let local = tweened(layer, frame, instance, guide)?;
+    // Only the first element of a span takes the span's tween.
+    let local = if tweens {
+        tweened(layer, frame, instance, guide)?
+    } else {
+        instance.transform().as_affine()
+    };
     let transform = parent * local;
     path.push(instance.id());
     out.placed.push(Placed {

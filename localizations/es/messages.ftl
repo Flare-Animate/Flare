@@ -79,3 +79,4 @@ msg-tween-needs-target = Una interpolación de movimiento necesita una instancia
 unsaved-save-changes = ¿Quieres guardar los cambios de { $name }?
 unsaved-save = Guardar
 unsaved-dont-save = No guardar
+msg-paste-refused = No se puede pegar en la capa «{ $name }»: { $reason }

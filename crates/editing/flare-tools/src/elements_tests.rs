@@ -205,10 +205,18 @@ fn a_duplicate_joins_the_keyframe_and_a_tweening_keyframe_gets_a_layer() {
 }
 
 #[test]
-fn a_keyframe_of_several_elements_refuses_a_tween_and_copies_one_element() {
+fn a_keyframe_of_several_elements_takes_a_tween_on_its_first_and_copies_one_element() {
     let mut f = fixture();
     add_three(&mut f);
-    assert!(set_tween(f.session.document(), f.scene, at(&f, 0), Tween::Shape).is_none());
+    // The first element is a shape, so a shape tween fits; a motion tween does not.
+    assert!(set_tween(f.session.document(), f.scene, at(&f, 0), Tween::Linear).is_none());
+    let commands = set_tween(f.session.document(), f.scene, at(&f, 0), Tween::Shape)
+        .expect("a shape tween on the first element");
+    f.session.apply(commands).expect("apply");
+    let span = &f.session.document().scenes()[0].timeline().layers()[0].spans()[0];
+    assert_eq!(span.tween(), Tween::Shape);
+    assert_eq!(span.element_count(), 3, "the others are kept, held");
+    f.session.undo();
     let item = copy_span(f.session.document(), f.scene, element(&f, 0, 2)).expect("copy");
     let (commands, pasted) = paste(f.session.document(), f.scene, &item, 10).expect("paste");
     f.session.apply(commands).expect("apply");

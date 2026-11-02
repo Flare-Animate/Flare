@@ -10,6 +10,9 @@ use std::num::NonZeroU32;
 
 use crate::common::*;
 
+mod paste_into;
+pub use paste_into::{PasteRefusal, paste_into};
+
 /// Copies an element, moved by `offset`, with a fresh identity so the copy is independent. The
 /// copy is drawn above the others in the same keyframe; where the keyframe cannot hold another
 /// element (a tween, a camera) it goes on a new layer above the others instead. Returns the

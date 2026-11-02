@@ -142,11 +142,9 @@ impl FrameSpan {
         }
     }
 
-    /// The same span tweening; a span that holds several elements cannot, and stays held.
+    /// The same span tweening: its first element, the others of a keyframe of several are held.
     pub fn with_tween(mut self, tween: Tween) -> Self {
-        if self.extras.is_empty() {
-            self.tween = tween;
-        }
+        self.tween = tween;
         self
     }
 
@@ -198,8 +196,6 @@ pub enum TimelineError {
     TooManyElements(usize),
     #[error("only a shape or a symbol instance can be one of several elements in a frame span")]
     NotAnElement,
-    #[error("a frame span that holds several elements cannot tween")]
-    ManyElementsTween,
 }
 
 /// The colors layers without one of their own are marked with, by position.

@@ -75,3 +75,4 @@ msg-tween-needs-target = モーショントゥイーンにはインスタンス�
 unsaved-save-changes = { $name } への変更内容を保存しますか?
 unsaved-save = 保存
 unsaved-dont-save = 保存しない
+msg-paste-refused = レイヤー「{ $name }」には貼り付けられません: { $reason }

@@ -79,3 +79,4 @@ msg-tween-needs-target = Uma interpolação de movimento precisa de uma instânc
 unsaved-save-changes = Salvar as alterações em { $name }?
 unsaved-save = Salvar
 unsaved-dont-save = Não salvar
+msg-paste-refused = Não é possível colar na camada "{ $name }": { $reason }

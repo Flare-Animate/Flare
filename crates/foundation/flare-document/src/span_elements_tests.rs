@@ -67,17 +67,20 @@ fn only_shapes_and_instances_can_be_several() {
 }
 
 #[test]
-fn a_tweening_span_cannot_take_extras_and_one_with_extras_cannot_tween() {
-    let tweening = span(instance()).with_tween(Tween::Linear);
-    assert_eq!(
-        tweening.with_extras(vec![instance()]),
-        Err(TimelineError::ManyElementsTween)
-    );
+fn a_tween_is_the_first_elements_and_survives_having_others() {
     let many = span(instance())
-        .with_extras(vec![instance()])
-        .expect("several")
-        .with_tween(Tween::Linear);
-    assert_eq!(many.tween(), Tween::None, "the request is ignored");
+        .with_tween(Tween::Linear)
+        .with_extras(vec![shape(0.0), instance()])
+        .expect("several");
+    assert_eq!(many.tween(), Tween::Linear);
+    assert_eq!(many.element_count(), 3);
+    // Taking an element away keeps it while the first is still an instance...
+    let fewer = many.without_element(2).expect("one fewer");
+    assert_eq!(fewer.tween(), Tween::Linear);
+    // ...but not when the first is gone and a shape takes its place.
+    let swapped = many.without_element(0).expect("first gone");
+    assert_eq!(swapped.tween(), Tween::None);
+    assert_eq!(swapped.ease(), 0);
 }
 
 #[test]

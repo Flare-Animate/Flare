@@ -38,6 +38,7 @@ mod native_pen;
 mod nothing_left_in_english;
 mod open_any;
 mod panels_and_view;
+mod paste_into_layer;
 mod pen_and_selection;
 mod polygon_lasso;
 mod preferences_dialog;

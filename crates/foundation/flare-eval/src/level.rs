@@ -122,13 +122,22 @@ pub fn evaluate_level<'a>(
             let content = match content {
                 Content::Empty | Content::Camera(_) => continue,
                 Content::Shape(shape) => {
-                    let (shape, phase) = shape_at(layer, span, frame, shape);
+                    // A tween is the first element's; the others stay as they are.
+                    let (shape, phase) = if element == 0 {
+                        shape_at(layer, span, frame, shape)
+                    } else {
+                        (std::borrow::Cow::Borrowed(shape), 0)
+                    };
                     LevelContent::Shape { shape, phase }
                 }
                 Content::Instance(instance) => LevelContent::Instance {
                     id: instance.id(),
                     symbol: instance.symbol(),
-                    transform: tweened(layer, frame, instance, guide)?,
+                    transform: if element == 0 {
+                        tweened(layer, frame, instance, guide)?
+                    } else {
+                        instance.transform().as_affine()
+                    },
                     span_start: span.start(),
                     playback: instance.playback(),
                 },

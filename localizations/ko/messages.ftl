@@ -75,3 +75,4 @@ msg-tween-needs-target = 모션 트윈에는 인스턴스를, 셰이프 트윈�
 unsaved-save-changes = { $name }의 변경 내용을 저장하시겠습니까?
 unsaved-save = 저장
 unsaved-dont-save = 저장 안 함
+msg-paste-refused = "{ $name }" 레이어에 붙여넣을 수 없습니다: { $reason }

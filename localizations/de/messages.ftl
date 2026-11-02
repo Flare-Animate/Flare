@@ -79,3 +79,4 @@ msg-tween-needs-target = Für einen Bewegungs-Tween muss eine Instanz ausgewähl
 unsaved-save-changes = Änderungen an { $name } speichern?
 unsaved-save = Speichern
 unsaved-dont-save = Nicht speichern
+msg-paste-refused = Einfügen in die Ebene „{ $name }“ nicht möglich: { $reason }

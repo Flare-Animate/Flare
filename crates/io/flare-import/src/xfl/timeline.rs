@@ -152,15 +152,17 @@ impl Importer {
                 continue;
             };
             let extras: Vec<Content> = contents.collect();
-            let mut span = FrameSpan::new(index, duration, first);
-            if extras.is_empty() {
-                span = span.with_tween(tween).with_ease(ease);
-            } else {
+            // A tween of a keyframe of several elements is the first element's; the others are
+            // held.
+            let mut span = FrameSpan::new(index, duration, first)
+                .with_tween(tween)
+                .with_ease(ease);
+            if !extras.is_empty() {
                 if tween != Tween::None {
                     self.note(
                         Severity::Info,
                         &here,
-                        "a keyframe of several elements cannot tween; it is held",
+                        "a tween of a keyframe of several elements moves the first; the others are held",
                     );
                 }
                 let count = extras.len() + 1;

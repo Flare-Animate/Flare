@@ -22,7 +22,7 @@ own. Animate does not: everything drawn on a layer in a frame stays on that laye
 A span keeps its `content` as its first element and gains `extras`: more elements drawn above it,
 in order. Everything that reads `span.content()` keeps working on the first element, so the change
 reaches the other ~100 files one behaviour at a time, each with its tests, instead of in one
-rewrite. A span with extras cannot carry a tween (Animate tweens one object).
+rewrite. A tween on a span with extras is the first element's; the others are held.
 
 Selection names an element by its span and its index in `elements()` (`SpanRef::element`, 0 for the first, so a span of one behaves as it always did). An edit rebuilds the span it is in, so it is one undo step with the commands that exist; nothing new was needed in `flare-commands`.
 

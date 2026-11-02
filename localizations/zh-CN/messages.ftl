@@ -75,3 +75,4 @@ msg-tween-needs-target = 动作补间需要选择实例，形状补间需要选�
 unsaved-save-changes = 是否保存对 { $name } 的更改？
 unsaved-save = 保存
 unsaved-dont-save = 不保存
+msg-paste-refused = 无法粘贴到图层“{ $name }”：{ $reason }

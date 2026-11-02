@@ -2,12 +2,12 @@
 
 use flare_commands::Command;
 use flare_core::SceneId;
-use flare_document::{Content, Document, FrameSpan, Tween};
+use flare_document::{Content, Document, Tween};
 
 use crate::common::*;
 
 /// Sets or clears the tween on a span: a motion tween on an instance or a camera keyframe, a shape
-/// tween on a shape.
+/// tween on a shape. In a keyframe of several elements it is the first element's.
 /// `None` when the span is missing, the tween does not fit what the span holds, or it already
 /// has that setting. The easing is kept.
 pub fn set_tween(
@@ -17,10 +17,7 @@ pub fn set_tween(
     tween: Tween,
 ) -> Option<Vec<Command>> {
     let span = find_span(document, scene, at)?;
-    // Animate tweens one object: a keyframe of several elements stays held.
-    if span.element_count() > 1 && tween != Tween::None {
-        return None;
-    }
+    // A tween is the first element's: a keyframe of several tweens it and holds the others.
     let fits = matches!(
         (span.content(), tween),
         (_, Tween::None)
@@ -30,9 +27,7 @@ pub fn set_tween(
     if !fits || span.tween() == tween {
         return None;
     }
-    let replacement = FrameSpan::new(span.start(), span.duration(), span.content().clone())
-        .with_tween(tween)
-        .with_ease(span.ease());
+    let replacement = span.clone().with_tween(tween).with_ease(span.ease());
     Some(vec![
         Command::RemoveSpan {
             scene,
@@ -56,9 +51,7 @@ pub fn set_ease(
     ease: i8,
 ) -> Option<Vec<Command>> {
     let span = find_span(document, scene, at)?;
-    let replacement = FrameSpan::new(span.start(), span.duration(), span.content().clone())
-        .with_tween(span.tween())
-        .with_ease(ease);
+    let replacement = span.clone().with_ease(ease);
     if replacement.ease() == span.ease() {
         return None;
     }

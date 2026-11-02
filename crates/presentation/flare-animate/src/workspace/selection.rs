@@ -219,7 +219,7 @@ impl Workspace {
         self.also_selected.clear();
     }
 
-    /// Pastes the remembered spans at the current frame, each on its own new layer, together
+    /// Pastes the remembered things at the playhead into the active layer's keyframe, together
     /// centered on the stage, and selects them.
     pub fn paste(&mut self) {
         self.paste_at(true);
@@ -251,28 +251,49 @@ impl Workspace {
         } else {
             glamx::DVec2::ZERO
         };
-        let mut commands = Vec::new();
-        let mut pasted = Vec::new();
-        for item in &self.clipboard {
-            match ops::paste_offset(self.document(), scene, item, self.frame, delta) {
-                Some((batch, at)) => {
-                    commands.extend(batch);
-                    pasted.push(at);
-                }
-                None => {
-                    self.report(tr!(self, "msg-paste-symbol-missing"));
-                    return;
-                }
+        // Into the layer chosen in the timeline, at the playhead, as a drawing goes; with none
+        // chosen (or a deleted one) the topmost that can take art.
+        let target = self
+            .current_layer
+            .filter(|id| self.layer(*id).is_some())
+            .map_or(ops::Target::Default, ops::Target::Layer);
+        let plan = ops::paste_into(
+            self.document(),
+            scene,
+            target,
+            &self.clipboard,
+            self.frame,
+            delta,
+            &tr!(self, "name-new-layer", &[("n", "1")]),
+        );
+        let plan = match plan {
+            Ok(plan) => plan,
+            Err(ops::PasteRefusal::MissingSymbol) => {
+                self.report(tr!(self, "msg-paste-symbol-missing"));
+                return;
             }
-        }
-        if commands.is_empty() {
+            Err(refusal) => {
+                let name = self
+                    .active_layer()
+                    .map(|l| l.name().to_owned())
+                    .unwrap_or_default();
+                let reason = refusal.to_string();
+                self.report(tr!(
+                    self,
+                    "msg-paste-refused",
+                    &[("name", &name), ("reason", &reason)]
+                ));
+                return;
+            }
+        };
+        if plan.commands.is_empty() {
             return;
         }
-        self.run_batch(commands, "paste");
+        self.run_batch(plan.commands, "paste");
         if self.status.is_none() {
-            self.selected = pasted.first().copied();
-            self.also_selected = pasted.iter().skip(1).copied().collect();
-            self.current_layer = self.selected.map(|s| s.layer);
+            self.selected = plan.placed.first().copied();
+            self.also_selected = plan.placed.iter().skip(1).copied().collect();
+            self.current_layer = Some(plan.layer);
         }
     }
 
@@ -292,10 +313,8 @@ impl Workspace {
     fn selected_tweenable(&self) -> Option<&flare_document::FrameSpan> {
         let (selected, scene) = (self.selected?, self.scene_id()?);
         let span = ops::find_span(self.document(), scene, selected)?;
-        // Animate tweens one object: a keyframe of several elements stays held.
-        (span.element_count() == 1
-            && matches!(span.content(), Content::Instance(_) | Content::Shape(_)))
-        .then_some(span)
+        // In a keyframe of several elements the tween is the first element's.
+        matches!(span.content(), Content::Instance(_) | Content::Shape(_)).then_some(span)
     }
 
     /// The selected span's tween, when it holds something that can tween.

@@ -152,8 +152,23 @@ fn copy_then_paste_places_independent_copies_in_place_at_the_current_frame() {
     assert_eq!(drawing_count(&ws), 4);
     let pasted = ws.selection_all();
     assert_eq!(pasted.len(), 2);
-    assert!(pasted.iter().all(|s| s.start == 5), "at the current frame");
+    // At the playhead, into the keyframe that covers it on the active layer: no layer is made.
     let scene = ws.scene_id().expect("scene");
+    let layer = ws.current_layer.expect("layer");
+    let covering = ws.document().scenes()[0]
+        .timeline()
+        .layers()
+        .iter()
+        .find(|l| l.id() == layer)
+        .and_then(|l| l.span_at(5))
+        .map(flare_document::FrameSpan::start)
+        .expect("a keyframe covers frame 5");
+    assert!(
+        pasted
+            .iter()
+            .all(|s| s.layer == layer && s.start == covering),
+        "into the active layer's keyframe at the current frame"
+    );
     let ids: Vec<ShapeId> = ws.document().scenes()[0]
         .timeline()
         .layers()
@@ -225,10 +240,11 @@ fn pasting_an_instance_into_a_document_without_its_symbol_is_refused() {
     assert!(!other.is_dirty());
     // Back in the document that has the symbol it works.
     source.perform(MenuAction::Paste);
+    assert_eq!(layer_count(&source), 1, "a paste makes no layer");
     assert_eq!(
-        layer_count(&source),
+        source.document().scenes()[0].timeline().layers()[0].spans()[0].element_count(),
         2,
-        "a paste still gets a layer of its own"
+        "it joins the keyframe of the layer, as Animate's does"
     );
 }
 

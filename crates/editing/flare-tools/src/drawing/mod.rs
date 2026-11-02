@@ -83,6 +83,23 @@ pub fn draw_shapes(
     shapes: Vec<Shape>,
     new_layer: &str,
 ) -> Result<DrawPlan, DrawRefusal> {
+    let contents = shapes.into_iter().map(Content::Shape).collect();
+    place_contents(
+        document, scene, target, frame, duration, contents, new_layer,
+    )
+}
+
+/// [`draw_shapes`] for anything a keyframe can hold: shapes and symbol instances, as a paste
+/// brings them. The same rules decide where they go and when they are refused.
+pub fn place_contents(
+    document: &Document,
+    scene: SceneId,
+    target: Target,
+    frame: u32,
+    duration: Option<NonZeroU32>,
+    contents: Vec<Content>,
+    new_layer: &str,
+) -> Result<DrawPlan, DrawRefusal> {
     let timeline = scene_timeline(document, scene).ok_or(DrawRefusal::NoSuchScene)?;
     let layers = timeline.layers();
     let found = match target {
@@ -116,7 +133,7 @@ pub fn draw_shapes(
             (id, None)
         }
     };
-    let mut contents = shapes.into_iter().map(Content::Shape);
+    let mut contents = contents.into_iter();
     let Some(first) = contents.next() else {
         return Ok(DrawPlan {
             commands: Vec::new(),

@@ -8,7 +8,7 @@ pub const MAX_ELEMENTS: usize = 10_000;
 impl FrameSpan {
     /// The same span with `extras` drawn above its content, in order. Only a shape or an instance
     /// can be one of several elements, so neither the content nor an extra may be empty or a
-    /// camera, and a span that tweens holds one element.
+    /// camera. A tween is the first element's: the others are held.
     pub fn with_extras(mut self, extras: Vec<Content>) -> Result<Self, TimelineError> {
         if extras.is_empty() {
             self.extras = extras;
@@ -22,16 +22,14 @@ impl FrameSpan {
         if !element(self.content()) || !extras.iter().all(element) {
             return Err(TimelineError::NotAnElement);
         }
-        if self.tween != Tween::None {
-            return Err(TimelineError::ManyElementsTween);
-        }
         self.extras = extras;
         Ok(self)
     }
 
     /// The same span holding exactly `elements`, bottom first, as its content and extras. `None`
     /// for no elements; an error when one is not allowed (see [`Self::with_extras`]). A single
-    /// element keeps the span's motion; a span that gets several is held.
+    /// element keeps the span's motion; a span that gets several keeps it too while its first
+    /// element is still the same kind of thing (a tween is the first element's), else it is held.
     pub fn with_elements(&self, elements: Vec<Content>) -> Result<Option<Self>, TimelineError> {
         let mut elements = elements.into_iter();
         let Some(first) = elements.next() else {
@@ -39,10 +37,14 @@ impl FrameSpan {
         };
         let extras: Vec<Content> = elements.collect();
         let mut span = self.clone();
+        let same_kind = std::mem::discriminant(&span.content) == std::mem::discriminant(&first);
         span.content = first;
         span.extras = Vec::new();
         if !extras.is_empty() {
-            span.tween = Tween::None;
+            if !same_kind {
+                span.tween = Tween::None;
+                span.ease = 0;
+            }
             span = span.with_extras(extras)?;
         }
         Ok(Some(span))

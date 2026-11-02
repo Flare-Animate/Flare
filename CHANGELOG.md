@@ -9,6 +9,7 @@ All notable changes are listed here. The format follows
 The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
 
 ### Added
+- Paste puts what was copied into the active layer's keyframe at the playhead, as Animate does, instead of making a layer for each thing; a locked, hidden or guide layer says why it cannot take it. A tween on a keyframe of several elements moves the first and holds the others, in the editor and in imported XFL.
 - The timeline's frames are small fixed cells, as Animate's are, instead of sharing the panel's width (a short scene's frames filled the whole timeline): empty cells go on to the edge, the zoom changes the cell width, and the Fit button sizes the scene to the panel.
 - The tab strip scrolls when there are more documents than fit (the wheel turns it, and a new or chosen tab is brought into view), and its new-document button stays in view however many are open.
 - File > Open takes Animate's files as well as Flare projects (`.fla`, `.xfl`, an XFL folder's `DOMDocument.xml` and `.swf`), as Animate's does, so there is no separate import command or Home button. On Linux and Windows the top bar is Animate's: the menus (with a dimmed Debug menu) at the left, Play, Publish and the workspace switcher at the right, then the window buttons; Preferences, undo and redo are in the Edit menu.

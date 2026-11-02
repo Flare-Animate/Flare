@@ -79,3 +79,4 @@ msg-tween-needs-target = A motion tween needs an instance selected, a shape twee
 unsaved-save-changes = Save changes to { $name }?
 unsaved-save = Save
 unsaved-dont-save = Don't Save
+msg-paste-refused = Cannot paste into the layer "{ $name }": { $reason }
