@@ -26,7 +26,8 @@ pub use draw::{
 #[allow(unused_imports)]
 use interchange::*;
 pub use interchange::{
-    export_gif, export_mp4, export_xfl, import, open_app, publish_html5, publish_swf, test_movie,
+    convert, export_gif, export_mp4, export_xfl, import, open_app, publish_html5, publish_swf,
+    test_movie,
 };
 #[allow(unused_imports)]
 use render::*;
@@ -38,14 +39,26 @@ pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, se
 use timeline::*;
 pub use timeline::{FrameOperation, LayerOperation, frame_op, layer_op};
 
+/// Opens a project: a `.flare`, or an Animate `.fla`, `.xfl` or XFL folder (a movie is read too,
+/// to inspect or convert, but never written back).
 fn open(path: &Path) -> Result<EditorSession> {
-    let document =
-        flare_storage::load(path).with_context(|| format!("cannot open {}", path.display()))?;
-    Ok(EditorSession::new(document))
+    let loaded =
+        flare_runtime::load(path).with_context(|| format!("cannot open {}", path.display()))?;
+    Ok(EditorSession::new(loaded.document))
 }
 
+/// Writes an edit back to the file it was opened from, in that file's format, replacing it only
+/// once the new one is whole. A file Flare cannot write back whole (a movie, a pre-CS5 `.fla`, an
+/// Animate file too big to keep) is refused; `flare convert` makes a copy of it.
 fn commit(session: &EditorSession, path: &Path) -> Result<()> {
-    flare_storage::save(session.document(), path)
+    if !flare_runtime::saves_in_place(session.document(), path) {
+        bail!(
+            "{} cannot be written back as it is (a movie, a pre-CS5 .fla or a file too big to keep); use `flare convert` to make a project from it",
+            path.display()
+        );
+    }
+    flare_runtime::save(session.document(), path)
+        .map(|_| ())
         .with_context(|| format!("cannot save {}", path.display()))
 }
 
@@ -59,12 +72,18 @@ pub fn new(path: &Path, numerator: u32, denominator: u32, stage: Stage) -> Resul
     let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
         .map_err(|errors| anyhow::anyhow!("{errors:?}"))?
         .with_stage(stage);
-    flare_storage::save(&document, path)?;
+    // The ending picks the format, so `flare new a.fla` makes a document Animate opens.
+    flare_runtime::save(&document, path)?;
     Ok(json!({ "created": path.to_string_lossy(), "id": document.id().as_uuid() }))
 }
 
 pub fn info(path: &Path) -> Result<Value> {
     let session = open(path)?;
+    let format = if path.is_dir() {
+        Some(flare_runtime::FileFormat::Xfl)
+    } else {
+        flare_runtime::FileFormat::of_path(path)
+    };
     let document = session.document();
     let scenes: Vec<Value> = document
         .scenes()
@@ -91,6 +110,7 @@ pub fn info(path: &Path) -> Result<Value> {
         .collect();
     Ok(json!({
         "id": document.id().as_uuid(),
+        "format": format.map_or("flare", flare_runtime::FileFormat::extension),
         "frame_rate": document.frame_rate(),
         "stage": {
             "width": document.stage().width(),

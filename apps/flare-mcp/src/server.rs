@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use flare_history::EditorSession;
-use flare_storage::StorageError;
 use rmcp::{
     ServerHandler,
     handler::server::router::tool::ToolRouter,
@@ -25,6 +24,9 @@ pub struct Permissions {
 pub(crate) struct State {
     pub session: EditorSession,
     pub path: PathBuf,
+    /// The file at `path` was written by this server (save_as), so saving may replace it whatever
+    /// the project was opened from.
+    pub owned: bool,
     pub permissions: Permissions,
     /// Fonts the operator gave, known by name to text next to the system's.
     pub fonts: flare_runtime::ExtraFonts,
@@ -42,12 +44,16 @@ pub struct FlareServer {
 pub(crate) type Outcome = Result<String, String>;
 
 impl FlareServer {
-    pub fn open(path: PathBuf, permissions: Permissions) -> Result<Self, StorageError> {
-        let document = flare_storage::load(&path)?;
+    /// Opens a project: a `.flare`, or an Animate `.fla`, `.xfl` or XFL folder. The save tool
+    /// writes it back to the same file in the same format.
+    pub fn open(path: PathBuf, permissions: Permissions) -> Result<Self, flare_runtime::LoadError> {
+        let loaded = flare_runtime::load(&path)?;
+        let (document, path) = (loaded.document, loaded.path);
         Ok(Self {
             state: Arc::new(Mutex::new(State {
                 session: EditorSession::new(document),
                 path,
+                owned: false,
                 permissions,
                 fonts: flare_runtime::ExtraFonts::default(),
             })),

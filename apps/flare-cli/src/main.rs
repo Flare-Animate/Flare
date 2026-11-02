@@ -114,6 +114,7 @@ fn main() -> Result<()> {
             transparent,
         } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
         Command::Import { source, out } => project::import(&source, &out)?,
+        Command::Convert { source, out, force } => project::convert(&source, &out, force)?,
         Command::ExportXfl { path, out } => project::export_xfl(&path, &out)?,
         Command::PublishSwf {
             path,

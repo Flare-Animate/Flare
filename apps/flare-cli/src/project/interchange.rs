@@ -207,3 +207,38 @@ pub fn test_movie(path: &Path, ruffle: Option<PathBuf>) -> Result<Value> {
     let status = movie.wait().context("waiting for the player")?;
     Ok(json!({ "player": runner.to_string_lossy(), "exit_code": status.code() }))
 }
+
+/// Converts any project (`.flare`, `.fla`, `.xfl` or an XFL folder, or a `.swf` to read) to the
+/// format the ending of `out` says, as Save As does. Refuses an existing `out` unless `force`,
+/// and then replaces it only with a whole new file. An unchanged Animate document comes out as
+/// the original; `lossless` and the diagnostics say what an edited one lost.
+pub fn convert(source: &Path, out: &Path, force: bool) -> Result<Value> {
+    let (target, format) = flare_runtime::resolve_save_path(out);
+    if !force && (target.exists() || flare_runtime::xfl_folder(&target).exists()) {
+        bail!(
+            "{} already exists; pass --force to replace it",
+            target.display()
+        );
+    }
+    let loaded =
+        flare_runtime::load(source).with_context(|| format!("cannot open {}", source.display()))?;
+    let saved = flare_runtime::save(&loaded.document, &target)
+        .with_context(|| format!("cannot write {}", target.display()))?;
+    let mut answer = json!({
+        "converted": saved.path.to_string_lossy(),
+        "format": format.extension(),
+        "from": source.to_string_lossy(),
+        "import_notes": loaded.notes,
+    });
+    if let (Some(summary), Some(map)) = (&saved.summary, answer.as_object_mut()) {
+        map.insert("files".into(), json!(summary.files));
+        map.insert(
+            "lossless".into(),
+            json!({ "exact": summary.exact, "reason": summary.reason }),
+        );
+        map.insert("rebuilt".into(), json!(summary.rebuilt));
+        map.insert("warnings".into(), json!(summary.warnings));
+        map.insert("notes".into(), json!(summary.notes));
+    }
+    Ok(answer)
+}

@@ -12,6 +12,7 @@ mod layers_and_stage;
 mod lossless;
 mod open;
 mod rendering;
+mod save_formats;
 mod text;
 
 fn run(args: &[&str]) -> Output {

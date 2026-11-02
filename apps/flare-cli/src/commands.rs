@@ -226,6 +226,16 @@ pub(crate) enum Command {
     /// Import an XFL directory, .xfl file or modern .fla into a new project, listing what was
     /// not carried over.
     Import { source: PathBuf, out: PathBuf },
+    /// Convert a project to the format OUT's ending says: .fla, .xfl (a folder with the .xfl stub
+    /// inside) or .flare, as Save As does. The source can be any of them (or a .swf to read). An
+    /// Animate document that was not edited is written back as the original.
+    Convert {
+        source: PathBuf,
+        out: PathBuf,
+        /// Replace OUT if it exists (the old file is kept until the new one is whole).
+        #[arg(long)]
+        force: bool,
+    },
     /// Export a project as an XFL folder, or a zipped .fla when OUT ends in .fla.
     ExportXfl { path: PathBuf, out: PathBuf },
     /// Publish a project as a SWF. Symbols are kept as sprites; tweens are baked into per-frame

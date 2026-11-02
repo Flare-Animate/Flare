@@ -41,6 +41,17 @@ pub async fn fixture_of(
     let dir = tempfile::tempdir().expect("dir");
     let path = dir.path().join("p.flare");
     flare_storage::save(document, &path).expect("save");
+    serve(dir, path, write, exports, fonts).await
+}
+
+/// A server for the project file `path` in `dir`, whatever its format.
+pub async fn serve(
+    dir: tempfile::TempDir,
+    path: PathBuf,
+    write: bool,
+    exports: bool,
+    fonts: Vec<Vec<u8>>,
+) -> Fixture {
     let export_dir = exports.then(|| dir.path().join("exports"));
     let server = FlareServer::open(path.clone(), Permissions { write, export_dir })
         .expect("open")
