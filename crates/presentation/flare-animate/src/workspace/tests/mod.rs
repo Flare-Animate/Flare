@@ -53,6 +53,7 @@ mod tool_pins;
 mod tool_slots;
 mod tool_strip;
 mod tools_and_menus;
+mod tools_translated;
 mod translated_chrome;
 mod transport;
 mod tweens;

@@ -16,10 +16,20 @@ impl Workspace {
     // ---- status bar --------------------------------------------------------------------
 
     pub(crate) fn status_bar(&mut self, ui: &mut Ui) {
+        let settings_tip = self.tr("bar-document-settings");
+        let working = self.tr("bar-working");
+        let frame_text = self.tr_with(
+            "bar-frame",
+            &[
+                ("current", &(self.frame + 1).to_string()),
+                ("total", &self.scene_frames().to_string()),
+            ],
+        );
+        let hint = self.tool_hint();
         ui.horizontal(|ui| {
             let message = match &self.status {
                 Some(status) => RichText::new(status.as_str()).color(theme::warning()),
-                None => RichText::new(self.tool_hint()).color(theme::text_dim()),
+                None => RichText::new(hint).color(theme::text_dim()),
             };
             ui.label(message);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -35,20 +45,13 @@ impl Workspace {
                         egui::Button::new(RichText::new(facts).color(theme::text_dim()))
                             .frame(false),
                     )
-                    .on_hover_text("Document settings")
+                    .on_hover_text(settings_tip)
                     .clicked()
                 {
                     self.perform(MenuAction::DocumentSettings);
                 }
                 ui.separator();
-                ui.label(
-                    RichText::new(format!(
-                        "Frame {} / {}",
-                        self.frame + 1,
-                        self.scene_frames()
-                    ))
-                    .color(theme::text_dim()),
-                );
+                ui.label(RichText::new(frame_text).color(theme::text_dim()));
                 ui.separator();
                 let at = match self.pointer_stage {
                     Some(p) => format!("{:.0}, {:.0}", p.x, p.y),
@@ -58,7 +61,7 @@ impl Workspace {
                 ui.add(icons::image("tool-selection", 12.0, theme::text_disabled()));
                 if self.background.mode() == Mode::Threads && self.has_pending_io() {
                     ui.separator();
-                    ui.label(RichText::new("Working...").color(theme::accent()));
+                    ui.label(RichText::new(working).color(theme::accent()));
                 }
             });
         });
@@ -69,6 +72,7 @@ impl Workspace {
     /// The strip above the stage with the open document as a tab.
     pub(crate) fn document_tabs(&mut self, ui: &mut Ui) {
         let tabs = self.tabs();
+        let (close_tip, new_tip) = (self.tr("bar-close-document"), self.tr("bar-new-document"));
         let (mut switch, mut close, mut add) = (None, None, false);
         ui.horizontal(|ui| {
             // Tabs sit close together; what is inside each keeps the usual spacing.
@@ -110,7 +114,7 @@ impl Workspace {
                             if tab.dirty {
                                 ui.label(RichText::new("\u{25cf}").color(theme::accent()).small());
                             }
-                            if chrome::icon_button(ui, "close", 10.0, false, true, "Close document")
+                            if chrome::icon_button(ui, "close", 10.0, false, true, &close_tip)
                                 .clicked()
                             {
                                 close = Some(index);
@@ -119,7 +123,7 @@ impl Workspace {
                     });
             }
             ui.add_space(4.0);
-            if chrome::icon_button(ui, "plus", 12.0, false, true, "New document").clicked() {
+            if chrome::icon_button(ui, "plus", 12.0, false, true, &new_tip).clicked() {
                 add = true;
             }
         });
@@ -136,6 +140,16 @@ impl Workspace {
 
     /// The bar above the stage: where you are, and zoom.
     pub(crate) fn stage_bar(&mut self, ui: &mut Ui) {
+        let tips = [
+            self.tr("bar-zoom-in"),
+            self.tr("bar-zoom-out"),
+            self.tr("bar-zoom-fit"),
+            self.tr("bar-camera-preview"),
+            self.tr("bar-snap"),
+            self.tr("bar-rulers"),
+            self.tr("bar-grid"),
+        ];
+        let [zoom_in, zoom_out, zoom_fit, camera, snap, rulers, grid] = &tips;
         ui.horizontal(|ui| {
             let crumbs = self.breadcrumb();
             ui.add(icons::image("scene", 16.0, theme::text_dim()));
@@ -162,7 +176,7 @@ impl Workspace {
                 }
             }
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if chrome::icon_button(ui, "zoom-in", BAR_ICON, false, true, "Zoom in").clicked() {
+                if chrome::icon_button(ui, "zoom-in", BAR_ICON, false, true, zoom_in).clicked() {
                     self.perform(MenuAction::ZoomIn);
                 }
                 let extent = self.stage_extent();
@@ -178,13 +192,10 @@ impl Workspace {
                 if (percent - before).abs() > f32::EPSILON {
                     self.set_stage_percent(percent);
                 }
-                if chrome::icon_button(ui, "zoom-out", BAR_ICON, false, true, "Zoom out").clicked()
-                {
+                if chrome::icon_button(ui, "zoom-out", BAR_ICON, false, true, zoom_out).clicked() {
                     self.perform(MenuAction::ZoomOut);
                 }
-                if chrome::icon_button(ui, "zoom-fit", BAR_ICON, false, true, "Fit stage in window")
-                    .clicked()
-                {
+                if chrome::icon_button(ui, "zoom-fit", BAR_ICON, false, true, zoom_fit).clicked() {
                     self.perform(MenuAction::ZoomFit);
                 }
                 if self.has_camera()
@@ -194,21 +205,14 @@ impl Workspace {
                         BAR_ICON,
                         self.camera_preview,
                         true,
-                        "Preview through the camera",
+                        camera,
                     )
                     .clicked()
                 {
                     self.set_camera_preview(!self.camera_preview);
                 }
-                if chrome::icon_button(
-                    ui,
-                    "snap",
-                    BAR_ICON,
-                    self.display.snap_to_grid,
-                    true,
-                    "Snap to grid",
-                )
-                .clicked()
+                if chrome::icon_button(ui, "snap", BAR_ICON, self.display.snap_to_grid, true, snap)
+                    .clicked()
                 {
                     self.perform(MenuAction::ToggleSnap);
                 }
@@ -218,13 +222,13 @@ impl Workspace {
                     BAR_ICON,
                     self.display.show_rulers,
                     true,
-                    "Rulers",
+                    rulers,
                 )
                 .clicked()
                 {
                     self.perform(MenuAction::ToggleRulers);
                 }
-                if chrome::icon_button(ui, "grid", BAR_ICON, self.display.show_grid, true, "Grid")
+                if chrome::icon_button(ui, "grid", BAR_ICON, self.display.show_grid, true, grid)
                     .clicked()
                 {
                     self.perform(MenuAction::ToggleGrid);

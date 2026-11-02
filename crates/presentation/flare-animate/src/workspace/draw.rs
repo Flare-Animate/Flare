@@ -45,9 +45,11 @@ impl Workspace {
             return; // a click, not a drag
         }
         if self.document().scenes().is_empty() {
-            self.report("This document has no scene");
+            let message = self.tr("tools-no-scene");
+            self.report(message);
             return;
         }
+        let rectangle_name = self.tr("tools-layer-rectangle");
         let fill = {
             let c = self.paint.fill.to_array();
             Rgba8::new(c[0], c[1], c[2], c[3])
@@ -69,7 +71,7 @@ impl Workspace {
         let (shape, name) = match tool {
             Tool::Rectangle => (
                 Shape::rounded_rect(id, x0, y0, w, h, f64::from(self.rect_radius), fill),
-                "Rectangle",
+                rectangle_name,
             ),
             Tool::PolyStar => {
                 let radius = f64::from((b - a).length());
@@ -77,7 +79,11 @@ impl Workspace {
                 let rotation = f64::from((b.x - a.x).atan2(a.y - b.y));
                 let inner = self.poly_star.then_some(f64::from(self.poly_inner));
                 let center = (f64::from(a.x), f64::from(a.y));
-                let name = if self.poly_star { "Star" } else { "Polygon" };
+                let name = self.tr(if self.poly_star {
+                    "tools-layer-star"
+                } else {
+                    "tools-layer-polygon"
+                });
                 (
                     Shape::polygon(id, center, radius, self.poly_sides, rotation, inner, fill),
                     name,
@@ -85,20 +91,24 @@ impl Workspace {
             }
             Tool::Ellipse => (
                 Shape::ellipse(id, x0 + w / 2.0, y0 + h / 2.0, w / 2.0, h / 2.0, fill),
-                "Ellipse",
+                self.tr("tools-layer-ellipse"),
             ),
             Tool::Line => {
                 let from = (f64::from(a.x), f64::from(a.y));
                 let to = (f64::from(b.x), f64::from(b.y));
                 match &stroke {
-                    Ok(stroke) => (Shape::line(id, from, to, *stroke), "Line"),
+                    Ok(stroke) => (
+                        Shape::line(id, from, to, *stroke),
+                        self.tr("tools-layer-line"),
+                    ),
                     Err(error) => return self.report(error.to_string()),
                 }
             }
             _ => return,
         };
         let Some(mut shape) = shape else {
-            self.report("Shape coordinates must be finite");
+            let message = self.tr("tools-not-finite");
+            self.report(message);
             return;
         };
         if self.paint.gradient_enabled && tool != Tool::Line {
@@ -117,7 +127,10 @@ impl Workspace {
                 .and_then(|(from, to)| flare_document::Gradient::linear(from, to, fill, end).ok());
             match gradient {
                 Some(gradient) => shape = shape.with_gradient(gradient),
-                None => return self.report("The gradient needs a shape with some size"),
+                None => {
+                    let message = self.tr("tools-gradient-size");
+                    return self.report(message);
+                }
             }
         }
         if self.paint.stroke_enabled && tool != Tool::Line {
@@ -126,7 +139,7 @@ impl Workspace {
                 Err(error) => return self.report(error.to_string()),
             }
         }
-        self.insert_shape_layer(shape, name);
+        self.insert_shape_layer(shape, &name);
         if self.status.is_none() {
             self.settle_committed_shape(tool, a, b);
         }
@@ -186,10 +199,19 @@ impl Workspace {
             return;
         }
         let Some(scene) = self.document().scenes().first() else {
-            self.report("This document has no scene");
+            let message = self.tr("tools-no-scene");
+            self.report(message);
             return;
         };
         let scene_id = scene.id();
+        // German nouns keep their capital letter inside a sentence; the other languages that have
+        // capitals write a common noun in lower case.
+        let noun = if self.language() == flare_i18n::Language::German {
+            name.to_owned()
+        } else {
+            name.to_lowercase()
+        };
+        let draw_label = self.tr_with("tools-draw-label", &[("name", &noun)]);
         let duration = u32::try_from(scene.timeline().frame_count())
             .unwrap_or(u32::MAX)
             .max(24);
@@ -205,7 +227,10 @@ impl Workspace {
             let label = if index == 0 {
                 name.to_owned()
             } else {
-                format!("{name} mirror {index}")
+                self.tr_with(
+                    "tools-mirror-layer",
+                    &[("name", name), ("n", &index.to_string())],
+                )
             };
             let layer = match Layer::new(layer_id, label, vec![]) {
                 Ok(layer) => layer,
@@ -222,15 +247,15 @@ impl Workspace {
                 span,
             });
         }
-        match self
-            .active_mut()
-            .apply_labeled(batch, &format!("Draw {}", name.to_lowercase()))
-        {
+        match self.active_mut().apply_labeled(batch, &draw_label) {
             Ok(()) => {
                 self.status = None;
                 self.current_layer = first;
             }
-            Err(error) => self.report(format!("Cannot draw: {error}")),
+            Err(error) => {
+                let message = self.tr_with("tools-draw-error", &[("error", &error.to_string())]);
+                self.report(message);
+            }
         }
     }
 }

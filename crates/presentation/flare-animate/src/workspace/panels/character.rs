@@ -15,7 +15,7 @@ impl Workspace {
     /// The Character section. With `object` it is that text object's own, and a change sets the
     /// text again; without, it is the settings new text is made with, and the text being typed.
     pub(crate) fn character_section(&mut self, ui: &mut Ui, object: Option<&TextSource>) {
-        chrome::section(ui, "tool-text", "Character");
+        chrome::section(ui, "tool-text", &self.tr("opt-character"));
         // While text is being typed the editor takes the settings when it finishes, so the
         // controls are the tool's whichever text it is.
         let object = object.filter(|_| self.text.edit.is_none());
@@ -39,10 +39,10 @@ impl Workspace {
             bold: None,
             italic: None,
         };
-        chrome::row(ui, "Family", |ui| {
+        chrome::row(ui, &self.tr("opt-family"), |ui| {
             change.family = self.family_picker(ui, &family);
         });
-        chrome::row(ui, "Size", |ui| {
+        chrome::row(ui, &self.tr("opt-size"), |ui| {
             let mut shown = self.text.size_edit.unwrap_or(size);
             let response = ui.add(
                 egui::DragValue::new(&mut shown)
@@ -63,10 +63,11 @@ impl Workspace {
                 change.size = Some(done);
             }
         });
-        chrome::row(ui, "Style", |ui| {
+        let (bold_name, italic_name) = (self.tr("opt-bold"), self.tr("opt-italic"));
+        chrome::row(ui, &self.tr("opt-style"), |ui| {
             let (mut now_bold, mut now_italic) = (bold, italic);
-            ui.toggle_value(&mut now_bold, "Bold");
-            ui.toggle_value(&mut now_italic, "Italic");
+            ui.toggle_value(&mut now_bold, &bold_name);
+            ui.toggle_value(&mut now_italic, &italic_name);
             change.bold = (now_bold != bold).then_some(now_bold);
             change.italic = (now_italic != italic).then_some(now_italic);
         });
@@ -103,7 +104,11 @@ impl Workspace {
                 );
                 match made {
                     Ok(next) => self.retext_selected(next),
-                    Err(error) => self.report(format!("Cannot change the text: {error}")),
+                    Err(error) => {
+                        let message =
+                            self.tr_with("opt-text-error", &[("error", &error.to_string())]);
+                        self.report(message);
+                    }
                 }
             }
         }
@@ -115,13 +120,14 @@ impl Workspace {
         let shown = current.split(',').next().unwrap_or("").trim().to_owned();
         let mut filter = std::mem::take(&mut self.text.family_filter);
         let mut chosen = None;
+        let (filter_hint, no_match) = (self.tr("opt-filter"), self.tr("opt-no-font"));
         egui::ComboBox::from_id_salt("text_family")
             .selected_text(shown.clone())
             .width(150.0)
             .show_ui(ui, |ui| {
                 ui.add(
                     egui::TextEdit::singleline(&mut filter)
-                        .hint_text("Filter")
+                        .hint_text(&filter_hint)
                         .desired_width(150.0),
                 );
                 let wanted = filter.to_lowercase();
@@ -133,7 +139,7 @@ impl Workspace {
                     .filter(|name| matches(name))
                     .collect();
                 if names.is_empty() {
-                    ui.weak("No font matches.");
+                    ui.weak(&no_match);
                 }
                 egui::ScrollArea::vertical().max_height(260.0).show_rows(
                     ui,

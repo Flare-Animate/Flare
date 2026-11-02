@@ -73,22 +73,33 @@ impl Workspace {
 
     pub(crate) fn tool_tab(&mut self, ui: &mut Ui) {
         self.tool_options(ui);
-        chrome::section(ui, "fill-color", "Fill and stroke");
-        chrome::row(ui, "Fill", |ui| {
+        chrome::section(ui, "fill-color", &self.tr("opt-fill-stroke"));
+        let (gradient, vertical, outline) = (
+            self.tr("opt-gradient-check"),
+            self.tr("opt-vertical"),
+            self.tr("opt-outline"),
+        );
+        let (none, round, square) = (
+            self.tr("opt-cap-none"),
+            self.tr("opt-round"),
+            self.tr("opt-square"),
+        );
+        let (bevel, miter) = (self.tr("opt-bevel"), self.tr("opt-miter"));
+        chrome::row(ui, &self.tr("opt-fill"), |ui| {
             ui.color_edit_button_srgba(&mut self.paint.fill);
-            ui.checkbox(&mut self.paint.gradient_enabled, "Gradient");
+            ui.checkbox(&mut self.paint.gradient_enabled, &gradient);
         });
         if self.paint.gradient_enabled {
-            chrome::row(ui, "To", |ui| {
+            chrome::row(ui, &self.tr("opt-to"), |ui| {
                 ui.color_edit_button_srgba(&mut self.paint.gradient_end);
-                ui.checkbox(&mut self.paint.gradient_vertical, "Vertical");
+                ui.checkbox(&mut self.paint.gradient_vertical, &vertical);
             });
         }
-        chrome::row(ui, "Stroke", |ui| {
+        chrome::row(ui, &self.tr("opt-stroke"), |ui| {
             ui.color_edit_button_srgba(&mut self.paint.stroke_color);
-            ui.checkbox(&mut self.paint.stroke_enabled, "Outline");
+            ui.checkbox(&mut self.paint.stroke_enabled, &outline);
         });
-        chrome::row(ui, "Width", |ui| {
+        chrome::row(ui, &self.tr("opt-width"), |ui| {
             ui.add_enabled(
                 self.paint.stroke_enabled,
                 egui::DragValue::new(&mut self.paint.stroke_width)
@@ -96,34 +107,34 @@ impl Workspace {
                     .suffix(" px"),
             );
         });
-        chrome::row(ui, "Cap", |ui| {
+        chrome::row(ui, &self.tr("opt-cap"), |ui| {
             use flare_document::Cap;
             egui::ComboBox::from_id_salt("cap_menu")
                 .width(80.0)
                 .selected_text(match self.paint.stroke_cap {
-                    Cap::Butt => "None",
-                    Cap::Round => "Round",
-                    Cap::Square => "Square",
+                    Cap::Butt => none.as_str(),
+                    Cap::Round => round.as_str(),
+                    Cap::Square => square.as_str(),
                 })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Butt, "None");
-                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Round, "Round");
-                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Square, "Square");
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Butt, &none);
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Round, &round);
+                    ui.selectable_value(&mut self.paint.stroke_cap, Cap::Square, &square);
                 });
         });
-        chrome::row(ui, "Join", |ui| {
+        chrome::row(ui, &self.tr("opt-join"), |ui| {
             use flare_document::Join;
             egui::ComboBox::from_id_salt("join_menu")
                 .width(80.0)
                 .selected_text(match self.paint.stroke_join {
-                    Join::Round => "Round",
-                    Join::Bevel => "Bevel",
-                    Join::Miter => "Miter",
+                    Join::Round => round.as_str(),
+                    Join::Bevel => bevel.as_str(),
+                    Join::Miter => miter.as_str(),
                 })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut self.paint.stroke_join, Join::Round, "Round");
-                    ui.selectable_value(&mut self.paint.stroke_join, Join::Bevel, "Bevel");
-                    ui.selectable_value(&mut self.paint.stroke_join, Join::Miter, "Miter");
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Round, &round);
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Bevel, &bevel);
+                    ui.selectable_value(&mut self.paint.stroke_join, Join::Miter, &miter);
                 });
         });
     }

@@ -29,18 +29,22 @@ impl Workspace {
     /// The panel for a selection on the stage.
     pub(crate) fn object_tab(&mut self, ui: &mut Ui) {
         let Some(bounds) = self.selection_bounds() else {
-            chrome::empty_state(ui, "tool-selection", "Nothing selected");
-            ui.vertical_centered(|ui| ui.weak("Select something on the stage."));
+            chrome::empty_state(ui, "tool-selection", &self.tr("opt-nothing-selected"));
+            let hint = self.tr("opt-select-something");
+            ui.vertical_centered(|ui| ui.weak(hint));
             return;
         };
         let count = self.selection_all().len();
         let picked = self.picked_object(count);
         let title = match &picked {
-            Picked::Shape(_, shape) if shape.text().is_some() => "Text".to_owned(),
-            Picked::Shape(..) => "Shape".to_owned(),
-            Picked::Instance { .. } => "Symbol instance".to_owned(),
-            Picked::Other if count == 1 => "Selection".to_owned(),
-            Picked::Other => format!("Selection ({count})"),
+            Picked::Shape(_, shape) if shape.text().is_some() => self.tr("opt-title-text"),
+            Picked::Shape(..) => self.tr("opt-title-shape"),
+            Picked::Instance { .. } => self.tr("opt-title-instance"),
+            Picked::Other if count == 1 => self.tr("opt-title-selection"),
+            Picked::Other => self.tr_with(
+                "opt-title-selection-count",
+                &[("count", &count.to_string())],
+            ),
         };
         ui.horizontal(|ui| {
             ui.add(icons::image("tool-selection", 18.0, theme::accent()));
@@ -59,14 +63,15 @@ impl Workspace {
             }
             Picked::Instance { .. } => {
                 self.looping_section(ui);
+                let none = self.tr("opt-none");
                 for (icon, title, label) in [
-                    ("fill-color", "Color Effect", "Style"),
-                    ("eye", "Display", "Blend"),
-                    ("gradient", "Filters", "Filters"),
+                    ("fill-color", "opt-color-effect", "opt-style"),
+                    ("eye", "opt-display", "opt-blend"),
+                    ("gradient", "opt-filters", "opt-filters"),
                 ] {
-                    chrome::section(ui, icon, title);
-                    chrome::row(ui, label, |ui| {
-                        ui.add_enabled(false, egui::Button::new("None"))
+                    chrome::section(ui, icon, &self.tr(title));
+                    chrome::row(ui, &self.tr(label), |ui| {
+                        ui.add_enabled(false, egui::Button::new(&none))
                             .on_disabled_hover_text(chrome::NOT_YET);
                     });
                 }
@@ -98,21 +103,26 @@ impl Workspace {
 
     /// Which symbol an instance is of, and the way to edit it.
     fn instance_section(&mut self, ui: &mut Ui, name: &str, kind: SymbolKind) {
-        chrome::section(ui, "symbol-movie-clip", "Instance");
-        chrome::row(ui, "Symbol", |ui| {
+        chrome::section(ui, "symbol-movie-clip", &self.tr("opt-instance"));
+        chrome::row(ui, &self.tr("opt-symbol"), |ui| {
             ui.label(name);
         });
-        chrome::row(ui, "Type", |ui| {
-            ui.label(kind.label());
+        let kind_name = self.tr(match kind {
+            SymbolKind::Graphic => "opt-kind-graphic",
+            SymbolKind::MovieClip => "opt-kind-movie-clip",
+            SymbolKind::Button => "opt-kind-button",
         });
-        if ui.button("Edit Symbol").clicked() {
+        chrome::row(ui, &self.tr("opt-type"), |ui| {
+            ui.label(kind_name);
+        });
+        if ui.button(self.tr("opt-edit-symbol")).clicked() {
             self.perform(flare_menubar::MenuAction::EditSymbol);
         }
     }
 
     /// Position and size of the selection, editable.
     fn position_size_section(&mut self, ui: &mut Ui, bounds: egui::Rect) {
-        chrome::section(ui, "stage-size", "Position and size");
+        chrome::section(ui, "stage-size", &self.tr("opt-position-size"));
         let mut v = self.object_edit.unwrap_or([
             bounds.min.x,
             bounds.min.y,
@@ -121,8 +131,8 @@ impl Workspace {
         ]);
         let mut changed = false;
         let mut done = false;
-        for (label, a, b) in [("Position", 0, 1), ("Size", 2, 3)] {
-            chrome::row(ui, label, |ui| {
+        for (label, a, b) in [("opt-position", 0, 1), ("opt-size", 2, 3)] {
+            chrome::row(ui, &self.tr(label), |ui| {
                 for i in [a, b] {
                     let r = ui.add(egui::DragValue::new(&mut v[i]).speed(0.5).max_decimals(1));
                     changed |= r.changed();
@@ -160,29 +170,36 @@ impl Workspace {
             join: stroke.map_or(self.paint.stroke_join, |s| s.join()),
             stroke_changed: false,
         });
-        chrome::section(ui, "fill-color", "Fill and stroke");
+        chrome::section(ui, "fill-color", &self.tr("opt-fill-stroke"));
+        let (gradient_word, outline_word) = (self.tr("opt-gradient"), self.tr("opt-outline"));
+        let (none, round, square) = (
+            self.tr("opt-cap-none"),
+            self.tr("opt-round"),
+            self.tr("opt-square"),
+        );
+        let (bevel, miter) = (self.tr("opt-bevel"), self.tr("opt-miter"));
         let (mut changed, mut immediate, mut typing) = (false, false, false);
-        chrome::row(ui, "Fill", |ui| {
+        chrome::row(ui, &self.tr("opt-fill"), |ui| {
             if ui.color_edit_button_srgba(&mut e.fill).changed() {
                 e.fill_changed = true;
                 changed = true;
             }
             if shape.gradient().is_some() && !e.fill_changed {
-                ui.weak("gradient");
+                ui.weak(&gradient_word);
             }
         });
-        chrome::row(ui, "Stroke", |ui| {
+        chrome::row(ui, &self.tr("opt-stroke"), |ui| {
             if ui.color_edit_button_srgba(&mut e.color).changed() {
                 e.stroke_changed = true;
                 changed = true;
             }
-            if ui.checkbox(&mut e.outline, "Outline").changed() {
+            if ui.checkbox(&mut e.outline, &outline_word).changed() {
                 e.stroke_changed = true;
                 changed = true;
                 immediate = true;
             }
         });
-        chrome::row(ui, "Width", |ui| {
+        chrome::row(ui, &self.tr("opt-width"), |ui| {
             let r = ui.add_enabled(
                 e.outline,
                 egui::DragValue::new(&mut e.width)
@@ -195,19 +212,19 @@ impl Workspace {
             }
             typing |= r.has_focus() || r.dragged();
         });
-        chrome::row(ui, "Cap", |ui| {
+        chrome::row(ui, &self.tr("opt-cap"), |ui| {
             egui::ComboBox::from_id_salt("shape_cap")
                 .width(80.0)
                 .selected_text(match e.cap {
-                    Cap::Butt => "None",
-                    Cap::Round => "Round",
-                    Cap::Square => "Square",
+                    Cap::Butt => none.as_str(),
+                    Cap::Round => round.as_str(),
+                    Cap::Square => square.as_str(),
                 })
                 .show_ui(ui, |ui| {
                     for (value, label) in [
-                        (Cap::Butt, "None"),
-                        (Cap::Round, "Round"),
-                        (Cap::Square, "Square"),
+                        (Cap::Butt, &none),
+                        (Cap::Round, &round),
+                        (Cap::Square, &square),
                     ] {
                         if ui.selectable_value(&mut e.cap, value, label).changed() {
                             e.stroke_changed = true;
@@ -217,19 +234,19 @@ impl Workspace {
                     }
                 });
         });
-        chrome::row(ui, "Join", |ui| {
+        chrome::row(ui, &self.tr("opt-join"), |ui| {
             egui::ComboBox::from_id_salt("shape_join")
                 .width(80.0)
                 .selected_text(match e.join {
-                    Join::Round => "Round",
-                    Join::Bevel => "Bevel",
-                    Join::Miter => "Miter",
+                    Join::Round => round.as_str(),
+                    Join::Bevel => bevel.as_str(),
+                    Join::Miter => miter.as_str(),
                 })
                 .show_ui(ui, |ui| {
                     for (value, label) in [
-                        (Join::Round, "Round"),
-                        (Join::Bevel, "Bevel"),
-                        (Join::Miter, "Miter"),
+                        (Join::Round, &round),
+                        (Join::Bevel, &bevel),
+                        (Join::Miter, &miter),
                     ] {
                         if ui.selectable_value(&mut e.join, value, label).changed() {
                             e.stroke_changed = true;
@@ -268,7 +285,8 @@ impl Workspace {
         };
         let fill = edit.fill_changed.then(|| rgba(edit.fill));
         if let Some(commands) = ops::restyle(self.document(), scene, edit.at, fill, stroke) {
-            self.run_batch(commands, "change the shape's paint");
+            let label = self.tr("opt-change-paint");
+            self.run_batch(commands, &label);
         }
     }
 }

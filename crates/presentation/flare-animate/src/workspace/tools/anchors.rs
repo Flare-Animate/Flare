@@ -64,7 +64,10 @@ impl Workspace {
         };
         match ops::delete_anchor(self.document(), scene, at, segment) {
             Some(commands) => self.run_batch(commands, "delete the point"),
-            None => self.report("A shape keeps at least two points, three when it is closed"),
+            None => {
+                let message = self.tr("tools-anchor-minimum");
+                self.report(message)
+            }
         }
         true
     }
@@ -196,7 +199,8 @@ impl Workspace {
                 return;
             }
             if self.tool == Tool::DeleteAnchor && near.is_some() {
-                self.report("A shape keeps at least two points, three when it is closed");
+                let message = self.tr("tools-anchor-minimum");
+                self.report(message);
                 return;
             }
         }

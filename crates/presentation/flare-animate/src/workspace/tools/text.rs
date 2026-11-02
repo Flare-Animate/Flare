@@ -232,7 +232,8 @@ impl Workspace {
         let existing = edit.editing.and_then(|at| Some((at, self.text_at(at)?.0)));
         let Ok(origin) = DocumentPoint::new(f64::from(edit.at.x), f64::from(edit.at.y)) else {
             self.clear_text_preview();
-            return self.report("Cannot place text: the position is not a number");
+            let message = self.tr("tools-text-position");
+            return self.report(message);
         };
         let source = match TextSource::new(
             edit.buffer,
@@ -245,7 +246,8 @@ impl Workspace {
             Ok(source) => source,
             Err(error) => {
                 self.clear_text_preview();
-                return self.report(format!("Cannot place text: {error}"));
+                let message = self.tr_with("tools-text-error", &[("error", &error.to_string())]);
+                return self.report(message);
             }
         };
         self.submit_text_shape(source, existing);
@@ -283,7 +285,8 @@ impl Workspace {
             TextTarget::Existing(at) => {
                 let Some(scene) = self.scene_id() else { return };
                 let Some((old, _)) = self.text_at(at) else {
-                    return self.report("The text changed while it was being set");
+                    let message = self.tr("tools-text-changed");
+                    return self.report(message);
                 };
                 let shape = shape.painted_like(&old);
                 // When nothing about the text changed there is nothing to do.

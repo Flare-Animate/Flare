@@ -293,6 +293,7 @@ impl Workspace {
             bar.bottom() - 0.5,
             egui::Stroke::new(1.0, flare_ui::theme::border()),
         );
+        let (preferences_tip, publish_tip) = (self.tr("bar-preferences"), self.tr("bar-publish"));
         ui.horizontal_centered(|ui| {
             ui.add_space(self.titlebar_inset.max(10.0));
             let home = ui
@@ -310,7 +311,7 @@ impl Workspace {
                 })
                 .response
                 .interact(egui::Sense::click())
-                .on_hover_text("Home");
+                .on_hover_text(self.tr("bar-home"));
             if home.clicked() {
                 self.windows.home = !self.windows.home;
             }
@@ -333,7 +334,14 @@ impl Workspace {
                 );
                 let gear = ui
                     .scope_builder(egui::UiBuilder::new().max_rect(slot), |ui| {
-                        flare_ui::chrome::icon_button(ui, "gear", 16.0, open, true, "Preferences")
+                        flare_ui::chrome::icon_button(
+                            ui,
+                            "gear",
+                            16.0,
+                            open,
+                            true,
+                            &preferences_tip,
+                        )
                     })
                     .inner;
                 if gear.clicked() {
@@ -347,34 +355,60 @@ impl Workspace {
                 }
                 // Animate's workspace switcher is in this corner too. Ours will switch between
                 // whole interfaces, as it does there; for now it is a place held for it.
-                flare_ui::chrome::mock_icon_button(ui, "interface", 16.0, "Interface switcher");
+                flare_ui::chrome::mock_icon_button(
+                    ui,
+                    "interface",
+                    16.0,
+                    &self.tr("bar-interface-switcher"),
+                );
                 ui.add_space(6.0);
                 let can_redo = self.active().can_redo();
-                if flare_ui::chrome::icon_button(ui, "redo", 16.0, false, can_redo, "Redo")
-                    .clicked()
+                if flare_ui::chrome::icon_button(
+                    ui,
+                    "redo",
+                    16.0,
+                    false,
+                    can_redo,
+                    &self.tr("bar-redo"),
+                )
+                .clicked()
                 {
                     self.redo();
                 }
                 let can_undo = self.active().can_undo();
-                if flare_ui::chrome::icon_button(ui, "undo", 16.0, false, can_undo, "Undo")
-                    .clicked()
+                if flare_ui::chrome::icon_button(
+                    ui,
+                    "undo",
+                    16.0,
+                    false,
+                    can_undo,
+                    &self.tr("bar-undo"),
+                )
+                .clicked()
                 {
                     self.undo();
                 }
                 let (icon, hint) = if self.is_playing() {
-                    ("transport-pause", "Pause")
+                    ("transport-pause", self.tr("bar-pause"))
                 } else {
-                    ("transport-play", "Play")
+                    ("transport-play", self.tr("bar-play"))
                 };
-                let play = flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, hint);
+                let play = flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, &hint);
                 if play.clicked() {
                     self.perform(MenuAction::PlayPause);
                 }
                 play.context_menu(|ui| self.transport_menu(ui));
                 // Animate's Publish button is next to Play too.
                 let can_publish = self.is_enabled(MenuAction::Publish);
-                if flare_ui::chrome::icon_button(ui, "publish", 16.0, false, can_publish, "Publish")
-                    .clicked()
+                if flare_ui::chrome::icon_button(
+                    ui,
+                    "publish",
+                    16.0,
+                    false,
+                    can_publish,
+                    &publish_tip,
+                )
+                .clicked()
                 {
                     self.perform(MenuAction::Publish);
                 }
@@ -396,8 +430,8 @@ impl Workspace {
     pub(super) fn transport_menu(&mut self, ui: &mut egui::Ui) {
         let enabled = self.is_enabled(MenuAction::TestMovie);
         if ui
-            .add_enabled(enabled, egui::Button::new("Test Movie"))
-            .on_hover_text("Play the published movie in the player")
+            .add_enabled(enabled, egui::Button::new(self.tr("bar-test-movie")))
+            .on_hover_text(self.tr("bar-test-movie-tip"))
             .clicked()
         {
             self.perform(MenuAction::TestMovie);

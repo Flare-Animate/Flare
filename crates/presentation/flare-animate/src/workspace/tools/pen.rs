@@ -58,11 +58,12 @@ impl Workspace {
     /// the stroke settings, like a line.
     pub(in crate::workspace) fn commit_pen(&mut self, closed: bool) {
         let Some(path) = self.pen.segments(closed) else {
-            self.report(if closed {
-                "A closed path needs at least three points"
+            let message = self.tr(if closed {
+                "tools-pen-closed-points"
             } else {
-                "A path needs at least two points"
+                "tools-pen-open-points"
             });
+            self.report(message);
             return;
         };
         let color = |c: egui::Color32| {
@@ -81,7 +82,8 @@ impl Workspace {
             Ok(shape) => shape,
             Err(error) => return self.report(error.to_string()),
         };
-        self.insert_shape_layer(shape, "Path");
+        let name = self.tr("tools-layer-path");
+        self.insert_shape_layer(shape, &name);
         if self.status.is_none() {
             self.pen.clear();
         }

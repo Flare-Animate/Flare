@@ -52,14 +52,19 @@ impl Workspace {
         let Some(batch) =
             flare_editor::set_camera_key(self.document(), scene, frame, camera, motion)
         else {
-            return self.report(format!(
-                "The camera can be keyed up to frame {}",
-                flare_editor::MAX_CAMERA_FRAME
-            ));
+            let message = self.tr_with(
+                "tools-camera-max-frame",
+                &[("frame", &flare_editor::MAX_CAMERA_FRAME.to_string())],
+            );
+            return self.report(message);
         };
         match self.active_mut().apply_labeled(batch, label) {
             Ok(()) => self.status = None,
-            Err(error) => self.report(format!("Cannot move the camera: {error}")),
+            Err(error) => {
+                let message =
+                    self.tr_with("tools-camera-move-error", &[("error", &error.to_string())]);
+                self.report(message);
+            }
         }
     }
 
@@ -70,7 +75,8 @@ impl Workspace {
             return;
         }
         let centered = Camera::centered(&self.document().stage());
-        self.key_camera(0, centered, None, "Add camera");
+        let label = self.tr("tools-camera-add");
+        self.key_camera(0, centered, None, &label);
     }
 
     /// Shows the stage through the camera, or as it is edited. The picture has to be drawn again.
@@ -100,8 +106,14 @@ impl Workspace {
             .ok()
             .and_then(|c| Camera::new(c, camera.zoom(), camera.rotation()).ok());
         match moved {
-            Some(moved) => self.key_camera(self.frame, moved, None, "Move camera"),
-            None => self.report("The camera cannot go there"),
+            Some(moved) => {
+                let label = self.tr("tools-camera-move");
+                self.key_camera(self.frame, moved, None, &label);
+            }
+            None => {
+                let message = self.tr("tools-camera-cannot-go");
+                self.report(message);
+            }
         }
     }
 
@@ -118,7 +130,7 @@ impl Workspace {
             painter.text(
                 response.rect.left_top() + Vec2::new(10.0, 8.0),
                 egui::Align2::LEFT_TOP,
-                "Camera preview: turn it off to edit",
+                self.tr("tools-camera-previewing"),
                 egui::FontId::proportional(13.0),
                 CAMERA_INK,
             );
@@ -158,7 +170,7 @@ impl Workspace {
     /// its keyframe moves to the next.
     pub(in crate::workspace) fn camera_options(&mut self, ui: &mut Ui) {
         let Some(camera) = self.camera_here() else {
-            ui.weak("This document has no scene.");
+            ui.weak(self.tr("tools-no-scene-period"));
             return;
         };
         let (mut x, mut y) = (camera.center().as_vec().x, camera.center().as_vec().y);
@@ -168,10 +180,16 @@ impl Workspace {
         for (label, value, speed, suffix) in [
             ("X", &mut x, 1.0, ""),
             ("Y", &mut y, 1.0, ""),
-            ("Zoom", &mut zoom, 1.0, "%"),
-            ("Rotation", &mut turn, 0.5, "°"),
+            ("opt-zoom", &mut zoom, 1.0, "%"),
+            ("opt-rotation", &mut turn, 0.5, "°"),
         ] {
-            chrome::row(ui, label, |ui| {
+            // The axes' letters are not words; the other two are looked up.
+            let label = if label.starts_with("opt-") {
+                self.tr(label)
+            } else {
+                label.to_owned()
+            };
+            chrome::row(ui, &label, |ui| {
                 changed |= ui
                     .add(egui::DragValue::new(value).speed(speed).suffix(suffix))
                     .changed();
@@ -184,7 +202,10 @@ impl Workspace {
                     Camera::new(c, zoom / 100.0, turn.to_radians()).map_err(|e| e.to_string())
                 });
             match made {
-                Ok(camera) => self.key_camera(self.frame, camera, None, "Move camera"),
+                Ok(camera) => {
+                    let label = self.tr("tools-camera-move");
+                    self.key_camera(self.frame, camera, None, &label);
+                }
                 Err(message) => self.report(message),
             }
         }
@@ -199,44 +220,52 @@ impl Workspace {
         if let Some((start, held, tween, ease)) = keyframe {
             let mut moving = tween == Tween::Linear;
             if ui
-                .checkbox(&mut moving, "Move to the next keyframe")
+                .checkbox(&mut moving, self.tr("tools-camera-moving"))
                 .changed()
             {
                 let tween = if moving { Tween::Linear } else { Tween::None };
-                self.key_camera(start, held, Some((tween, ease)), "Camera motion");
+                let label = self.tr("tools-camera-motion");
+                self.key_camera(start, held, Some((tween, ease)), &label);
             }
             if moving {
                 let mut ease = i32::from(ease);
-                chrome::row(ui, "Ease", |ui| {
+                let ease_label = self.tr("tools-camera-ease");
+                chrome::row(ui, &ease_label, |ui| {
                     if ui
                         .add(egui::DragValue::new(&mut ease).range(-100..=100))
                         .changed()
                     {
                         let ease = i8::try_from(ease).unwrap_or(0);
-                        self.key_camera(start, held, Some((Tween::Linear, ease)), "Camera ease");
+                        let label = self.tr("tools-camera-ease-label");
+                        self.key_camera(start, held, Some((Tween::Linear, ease)), &label);
                     }
                 });
             }
         }
         let mut preview = self.camera_preview;
         if ui
-            .checkbox(&mut preview, "Preview through the camera")
+            .checkbox(&mut preview, self.tr("bar-camera-preview"))
             .changed()
         {
             self.set_camera_preview(preview);
         }
-        if ui.button("Remove camera").clicked()
+        if ui.button(self.tr("tools-camera-remove")).clicked()
             && let (Some(scene), Some(layer)) =
                 (self.scene_id(), self.camera_layer().map(Layer::id))
         {
+            let label = self.tr("tools-camera-remove");
             let removed = self
                 .active_mut()
-                .apply_labeled(vec![Command::RemoveLayer { scene, layer }], "Remove camera");
+                .apply_labeled(vec![Command::RemoveLayer { scene, layer }], &label);
             if let Err(error) = removed {
-                self.report(format!("Cannot remove the camera: {error}"));
+                let message = self.tr_with(
+                    "tools-camera-remove-error",
+                    &[("error", &error.to_string())],
+                );
+                self.report(message);
             }
             self.set_camera_preview(false);
         }
-        ui.weak("Drag on the stage to move the camera, or type where it looks. Each change keys the camera at this frame.");
+        ui.weak(self.tr("tools-camera-help"));
     }
 }

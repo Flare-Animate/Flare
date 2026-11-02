@@ -5,7 +5,7 @@ use egui::{Stroke, Ui};
 use flare_menubar::MenuAction;
 use flare_ui::{chrome, theme};
 
-use super::tool_slots::{SLOT_GROUPS, Slot, is_extra};
+use super::tool_slots::{SLOT_GROUPS, Slot, is_extra, name_key};
 use super::*;
 
 /// The strip is one tool wide unless it is made at least this wide: the default width, a few
@@ -78,64 +78,65 @@ impl Workspace {
 
     /// Options of the current tool, if it has any.
     pub(crate) fn tool_options(&mut self, ui: &mut Ui) {
-        let (icon, title) = match self.tool {
+        let icon = match self.tool {
             Tool::Select => return,
-            Tool::Subselection => ("tool-subselection", "Subselection"),
-            Tool::AddAnchor => ("tool-anchor-add", "Add Anchor Point"),
-            Tool::DeleteAnchor => ("tool-anchor-delete", "Delete Anchor Point"),
-            Tool::ConvertAnchor => ("tool-anchor-convert", "Convert Anchor Point"),
-            Tool::FreeTransform => ("tool-transform", "Free Transform"),
-            Tool::Rectangle => ("tool-rectangle", "Rectangle"),
-            Tool::Ellipse => ("tool-oval", "Oval"),
-            Tool::Line => ("tool-line", "Line"),
-            Tool::Pen => ("tool-pen", "Pen"),
-            Tool::Text => ("tool-text", "Text"),
-            Tool::Hand => ("tool-hand", "Hand"),
-            Tool::Zoom => ("tool-zoom", "Zoom"),
-            Tool::Eyedropper => ("tool-eyedropper", "Eyedropper"),
-            Tool::Bucket => ("tool-bucket", "Paint Bucket"),
-            Tool::InkBottle => ("tool-ink-bottle", "Ink Bottle"),
-            Tool::Eraser => ("tool-eraser", "Eraser"),
-            Tool::PolyStar => ("tool-polystar", "PolyStar"),
-            Tool::Lasso => ("tool-lasso", "Lasso"),
-            Tool::PolygonLasso => ("tool-lasso-polygon", "Polygon"),
-            Tool::Camera => ("tool-camera", "Camera"),
-            Tool::Pencil => ("tool-pencil", "Pencil"),
-            Tool::Brush => ("tool-brush", "Brush"),
-            Tool::Ruler => ("tool-ruler", "Ruler"),
-            Tool::Mirror => ("tool-mirror", "Mirror"),
+            Tool::Subselection => "tool-subselection",
+            Tool::AddAnchor => "tool-anchor-add",
+            Tool::DeleteAnchor => "tool-anchor-delete",
+            Tool::ConvertAnchor => "tool-anchor-convert",
+            Tool::FreeTransform => "tool-transform",
+            Tool::Rectangle => "tool-rectangle",
+            Tool::Ellipse => "tool-oval",
+            Tool::Line => "tool-line",
+            Tool::Pen => "tool-pen",
+            Tool::Text => "tool-text",
+            Tool::Hand => "tool-hand",
+            Tool::Zoom => "tool-zoom",
+            Tool::Eyedropper => "tool-eyedropper",
+            Tool::Bucket => "tool-bucket",
+            Tool::InkBottle => "tool-ink-bottle",
+            Tool::Eraser => "tool-eraser",
+            Tool::PolyStar => "tool-polystar",
+            Tool::Lasso => "tool-lasso",
+            Tool::PolygonLasso => "tool-lasso-polygon",
+            Tool::Camera => "tool-camera",
+            Tool::Pencil => "tool-pencil",
+            Tool::Brush => "tool-brush",
+            Tool::Ruler => "tool-ruler",
+            Tool::Mirror => "tool-mirror",
         };
-        chrome::section(ui, icon, &format!("{title} tool"));
+        let title = self.tr_with("tools-title", &[("name", &self.tr(&name_key(icon)))]);
+        chrome::section(ui, icon, &title);
         match self.tool {
             Tool::Text => {
                 self.character_section(ui, None);
-                ui.weak("Click the stage and type. Click text to edit it; click away or press Escape to finish.");
+                ui.weak(self.tr("tools-help-text"));
             }
             Tool::Pen => {
-                ui.weak("Click for corners, drag for curves. Click the first point to close; Enter or double-click to finish.");
+                ui.weak(self.tr("tools-help-pen"));
             }
             Tool::Rectangle => {
-                chrome::row(ui, "Corners", |ui| {
+                chrome::row(ui, &self.tr("opt-corners"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.rect_radius)
                             .range(0.0..=1000.0)
                             .suffix(" px"),
                     );
                 });
-                ui.weak("Drag on the stage.");
+                ui.weak(self.tr("tools-help-drag"));
             }
             Tool::Ellipse => {
-                ui.weak("Drag on the stage.");
+                ui.weak(self.tr("tools-help-drag"));
             }
             Tool::PolyStar => {
-                chrome::row(ui, "Sides", |ui| {
+                chrome::row(ui, &self.tr("opt-sides"), |ui| {
                     ui.add(egui::DragValue::new(&mut self.poly_sides).range(3..=64));
                 });
-                chrome::row(ui, "Star", |ui| {
+                chrome::row(ui, &self.tr("opt-star"), |ui| {
                     ui.checkbox(&mut self.poly_star, "");
                 });
                 if self.poly_star {
-                    chrome::row(ui, "Depth", |ui| {
+                    chrome::row(ui, &self.tr("opt-depth"), |ui| {
                         ui.add(
                             egui::DragValue::new(&mut self.poly_inner)
                                 .range(0.05..=0.95)
@@ -143,28 +144,28 @@ impl Workspace {
                         );
                     });
                 }
-                ui.weak("Drag from the center; the drag sets size and rotation.");
+                ui.weak(self.tr("tools-help-polystar"));
             }
             Tool::Hand => {
-                ui.weak("Drag the stage to pan. Scrolling and middle-drag pan with any tool.");
+                ui.weak(self.tr("tools-help-hand"));
             }
             Tool::Zoom => {
-                ui.weak("Click to zoom in, Alt-click to zoom out.");
+                ui.weak(self.tr("tools-help-zoom"));
             }
             Tool::Eyedropper => {
-                ui.weak("Click a shape to take its fill; Shift-click takes its stroke.");
+                ui.weak(self.tr("tools-help-eyedropper"));
             }
             Tool::Bucket => {
-                ui.weak("Click a shape to fill it with the current fill color.");
+                ui.weak(self.tr("tools-help-bucket"));
             }
             Tool::InkBottle => {
-                ui.weak("Click a shape to outline it with the current stroke.");
+                ui.weak(self.tr("tools-help-ink"));
             }
             Tool::Eraser => {
-                ui.weak("Click a shape to delete it.");
+                ui.weak(self.tr("tools-help-eraser"));
             }
             Tool::Pencil => {
-                chrome::row(ui, "Smoothing", |ui| {
+                chrome::row(ui, &self.tr("opt-smoothing"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.smoothing)
                             .range(0.0..=20.0)
@@ -172,10 +173,10 @@ impl Workspace {
                     );
                 });
                 self.stroke_assists(ui);
-                ui.weak("Drag to draw. The line uses the stroke color and width.");
+                ui.weak(self.tr("tools-help-pencil"));
             }
             Tool::Brush => {
-                chrome::row(ui, "Size", |ui| {
+                chrome::row(ui, &self.tr("opt-size"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.brush_size)
                             .range(1.0..=200.0)
@@ -183,14 +184,14 @@ impl Workspace {
                     );
                 });
                 self.nib_controls(ui);
-                chrome::row(ui, "Smoothing", |ui| {
+                chrome::row(ui, &self.tr("opt-smoothing"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.smoothing)
                             .range(0.0..=20.0)
                             .speed(0.1),
                     );
                 });
-                chrome::row(ui, "Light touch", |ui| {
+                chrome::row(ui, &self.tr("opt-light-touch"), |ui| {
                     ui.add(
                         egui::DragValue::new(&mut self.brush_light)
                             .range(0.0..=1.0)
@@ -198,99 +199,115 @@ impl Workspace {
                     );
                 });
                 self.stroke_assists(ui);
-                ui.weak("Drag to paint with the fill color; a pen presses wider.");
+                ui.weak(self.tr("tools-help-brush"));
             }
             Tool::Ruler => {
-                let reading = self
-                    .measurement()
-                    .map_or_else(|| "Drag on the stage".to_owned(), |m| m.label());
-                chrome::row(ui, "Reading", |ui| {
+                let reading = self.measurement().map_or_else(
+                    || self.tr("opt-drag-on-stage"),
+                    |m| {
+                        self.tr_with(
+                            "opt-ruler-reading",
+                            &[
+                                ("distance", &format!("{:.1}", m.distance)),
+                                ("angle", &format!("{:.1}", m.angle)),
+                                ("dx", &format!("{:.1}", m.dx)),
+                                ("dy", &format!("{:.1}", m.dy)),
+                            ],
+                        )
+                    },
+                );
+                chrome::row(ui, &self.tr("opt-reading"), |ui| {
                     ui.label(reading);
                 });
-                ui.weak("Drag from one point to another. Points snap to guides, and to the grid when snapping is on.");
+                ui.weak(self.tr("tools-help-ruler"));
             }
             Tool::Mirror => {
                 self.mirror_options(ui);
-                ui.weak(
-                    "Click the stage to put the axes there. Pencil and Brush mirror across them.",
-                );
+                ui.weak(self.tr("tools-help-mirror"));
             }
             Tool::Lasso => {
-                ui.weak("Drag a loop around shapes to select them; Shift adds to the selection.");
+                ui.weak(self.tr("tools-help-lasso"));
             }
             Tool::Camera => self.camera_options(ui),
             Tool::PolygonLasso => {
-                ui.weak("Click the corners of a loop around shapes; double-click, Enter or the first corner closes it. Shift adds to the selection.");
+                ui.weak(self.tr("tools-help-polygon"));
             }
             Tool::Line => {
-                ui.weak("Drag on the stage. A line always has a stroke.");
+                ui.weak(self.tr("tools-help-line"));
             }
             Tool::Select => {}
             Tool::Subselection => {
-                ui.weak("Click a shape, then drag its square points to reshape it.");
+                ui.weak(self.tr("tools-help-subselection"));
             }
             Tool::AddAnchor => {
-                ui.weak(
-                    "Click the outline of a shape to put a point there; the curve keeps its shape.",
-                );
+                ui.weak(self.tr("tools-help-add-anchor"));
             }
             Tool::DeleteAnchor => {
-                ui.weak("Click a square point of a shape to take it out; the outline joins across the gap.");
+                ui.weak(self.tr("tools-help-delete-anchor"));
             }
             Tool::ConvertAnchor => {
-                ui.weak("Click a curve point to make it a corner; drag from a corner to make it smooth.");
+                ui.weak(self.tr("tools-help-convert-anchor"));
             }
             Tool::FreeTransform => {
-                ui.weak("Drag a handle to scale, outside a corner to rotate; Alt on an edge handle skews, Shift keeps proportions.");
+                ui.weak(self.tr("tools-help-free-transform"));
             }
         }
     }
 
     /// What the current tool does, shown when there is nothing else to say.
-    pub(crate) fn tool_hint(&self) -> &'static str {
-        match self.tool {
-            Tool::Select => "Selection: click to select, drag to move, Shift-click to add",
-            Tool::Subselection => "Subselection: click a shape, drag its points",
-            Tool::AddAnchor => "Add Anchor Point: click an outline to put a point there",
-            Tool::DeleteAnchor => "Delete Anchor Point: click a point to remove it",
-            Tool::ConvertAnchor => {
-                "Convert Anchor Point: click for a corner, drag for a smooth point"
-            }
-            Tool::FreeTransform => "Free Transform: drag the handles to scale, rotate or skew",
-            Tool::Rectangle => "Rectangle: drag on the stage",
-            Tool::Ellipse => "Oval: drag on the stage",
-            Tool::Line => "Line: drag on the stage",
-            Tool::Pen => "Pen: click for corners, drag for curves, Enter to finish",
-            Tool::Text => "Text: click the stage, type, then Place",
-            Tool::Hand => "Hand: drag to pan the stage",
-            Tool::Zoom => "Zoom: click to zoom in, Alt-click to zoom out",
-            Tool::Eyedropper => "Eyedropper: click a shape to take its color, Shift for the stroke",
-            Tool::Bucket => "Paint Bucket: click a shape to fill it",
-            Tool::InkBottle => "Ink Bottle: click a shape to outline it",
-            Tool::Eraser => "Eraser: click a shape to delete it",
-            Tool::PolyStar => "PolyStar: drag from the center",
-            Tool::Lasso => "Lasso: drag a loop around shapes to select them",
-            Tool::PolygonLasso => "Polygon: click corners, double-click to close and select",
-            Tool::Camera => "Camera: drag to move the camera; its controls are in Properties",
-            Tool::Pencil => "Pencil: drag to draw",
-            Tool::Brush => "Brush: drag to paint",
-            Tool::Ruler => "Ruler: drag to measure; Pencil and Brush draw straight with Shift",
-            Tool::Mirror => "Mirror: click to set the axes that Pencil and Brush mirror across",
-        }
+    pub(crate) fn tool_hint(&self) -> String {
+        let key = match self.tool {
+            Tool::Select => "tools-status-selection",
+            Tool::Subselection => "tools-status-subselection",
+            Tool::AddAnchor => "tools-status-add-anchor",
+            Tool::DeleteAnchor => "tools-status-delete-anchor",
+            Tool::ConvertAnchor => "tools-status-convert-anchor",
+            Tool::FreeTransform => "tools-status-free-transform",
+            Tool::Rectangle => "tools-status-rectangle",
+            Tool::Ellipse => "tools-status-oval",
+            Tool::Line => "tools-status-line",
+            Tool::Pen => "tools-status-pen",
+            Tool::Text => "tools-status-text",
+            Tool::Hand => "tools-status-hand",
+            Tool::Zoom => "tools-status-zoom",
+            Tool::Eyedropper => "tools-status-eyedropper",
+            Tool::Bucket => "tools-status-bucket",
+            Tool::InkBottle => "tools-status-ink",
+            Tool::Eraser => "tools-status-eraser",
+            Tool::PolyStar => "tools-status-polystar",
+            Tool::Lasso => "tools-status-lasso",
+            Tool::PolygonLasso => "tools-status-polygon",
+            Tool::Camera => "tools-status-camera",
+            Tool::Pencil => "tools-status-pencil",
+            Tool::Brush => "tools-status-brush",
+            Tool::Ruler => "tools-status-ruler",
+            Tool::Mirror => "tools-status-mirror",
+        };
+        self.tr(key)
     }
 
     /// The brush's nib: its shape, the angle of its long axis and how flat it is.
     fn nib_controls(&mut self, ui: &mut Ui) {
         use flare_tools::brush::{Nib, NibShape};
-        chrome::row(ui, "Brush", |ui| {
+        let (plain, new, delete) = (
+            self.tr("opt-brush-plain"),
+            self.tr("opt-new"),
+            self.tr("opt-delete"),
+        );
+        let (new_tip, delete_tip) = (
+            self.tr("opt-new-brush-tip"),
+            self.tr("opt-delete-brush-tip"),
+        );
+        let (round, square) = (self.tr("opt-nib-round"), self.tr("opt-nib-square"));
+        chrome::row(ui, &self.tr("opt-brush"), |ui| {
             let chosen = self.brush_shelf.selected();
             let mut pick = None;
             egui::ComboBox::from_id_salt("brush-list")
-                .selected_text(
-                    chosen.map_or("Plain", |i| self.brush_shelf.presets()[i].name.as_str()),
-                )
+                .selected_text(chosen.map_or(plain.as_str(), |i| {
+                    self.brush_shelf.presets()[i].name.as_str()
+                }))
                 .show_ui(ui, |ui| {
-                    if ui.selectable_label(chosen.is_none(), "Plain").clicked() {
+                    if ui.selectable_label(chosen.is_none(), &plain).clicked() {
                         pick = Some(None);
                     }
                     for (i, brush) in self.brush_shelf.presets().iter().enumerate() {
@@ -305,16 +322,12 @@ impl Workspace {
             if let Some(index) = pick {
                 self.brush_shelf.choose(index);
             }
-            if ui
-                .button("New")
-                .on_hover_text("Keep this nib as a custom brush")
-                .clicked()
-            {
+            if ui.button(&new).on_hover_text(&new_tip).clicked() {
                 self.new_custom_brush();
             }
             if ui
-                .add_enabled(chosen.is_some(), egui::Button::new("Delete"))
-                .on_hover_text("Delete the chosen custom brush")
+                .add_enabled(chosen.is_some(), egui::Button::new(&delete))
+                .on_hover_text(&delete_tip)
                 .clicked()
             {
                 self.brush_shelf.delete_selected();
@@ -327,25 +340,25 @@ impl Workspace {
             nib.angle_degrees() as f32,
             nib.flatness_percent() as f32,
         );
-        chrome::row(ui, "Nib", |ui| {
+        chrome::row(ui, &self.tr("opt-nib"), |ui| {
             egui::ComboBox::from_id_salt("brush-nib-shape")
                 .selected_text(match shape {
-                    NibShape::Round => "Round",
-                    NibShape::Square => "Square",
+                    NibShape::Round => round.as_str(),
+                    NibShape::Square => square.as_str(),
                 })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut shape, NibShape::Round, "Round");
-                    ui.selectable_value(&mut shape, NibShape::Square, "Square");
+                    ui.selectable_value(&mut shape, NibShape::Round, &round);
+                    ui.selectable_value(&mut shape, NibShape::Square, &square);
                 });
         });
-        chrome::row(ui, "Angle", |ui| {
+        chrome::row(ui, &self.tr("opt-angle"), |ui| {
             ui.add(
                 egui::DragValue::new(&mut angle)
                     .range(0.0..=359.0)
                     .suffix("\u{b0}"),
             );
         });
-        chrome::row(ui, "Flatness", |ui| {
+        chrome::row(ui, &self.tr("opt-flatness"), |ui| {
             ui.add(
                 egui::DragValue::new(&mut flatness)
                     .range(1.0..=100.0)
@@ -360,27 +373,30 @@ impl Workspace {
 
     /// The straight edge and symmetry options the Pencil and Brush share.
     fn stroke_assists(&mut self, ui: &mut Ui) {
-        chrome::row(ui, "Straight", |ui| {
-            ui.checkbox(&mut self.paint.straight_edge, "Always (or hold Shift)");
+        let always = self.tr("opt-straight-always");
+        chrome::row(ui, &self.tr("opt-straight"), |ui| {
+            ui.checkbox(&mut self.paint.straight_edge, always);
         });
-        chrome::row(ui, "Symmetry", |ui| {
+        chrome::row(ui, &self.tr("opt-symmetry"), |ui| {
             self.symmetry_picker(ui);
         });
     }
 
     fn symmetry_picker(&mut self, ui: &mut Ui) {
+        let names = flare_tools::mirror::Symmetry::ALL.map(|mode| self.tr(symmetry_key(mode)));
+        let shown = self.tr(symmetry_key(self.paint.symmetry));
         egui::ComboBox::from_id_salt("symmetry")
-            .selected_text(self.paint.symmetry.label())
+            .selected_text(shown)
             .show_ui(ui, |ui| {
-                for mode in flare_tools::mirror::Symmetry::ALL {
-                    ui.selectable_value(&mut self.paint.symmetry, mode, mode.label());
+                for (mode, name) in flare_tools::mirror::Symmetry::ALL.into_iter().zip(&names) {
+                    ui.selectable_value(&mut self.paint.symmetry, mode, name);
                 }
             });
     }
 
     /// The Mirror tool's options: the symmetry mode, the axes, and mirror copies.
     fn mirror_options(&mut self, ui: &mut Ui) {
-        chrome::row(ui, "Symmetry", |ui| {
+        chrome::row(ui, &self.tr("opt-symmetry"), |ui| {
             self.symmetry_picker(ui);
         });
         let extent = self.stage_extent();
@@ -389,7 +405,7 @@ impl Workspace {
             .symmetry_center
             .unwrap_or_else(|| egui::pos2(extent.x / 2.0, extent.y / 2.0));
         let before = center;
-        chrome::row(ui, "Axes at", |ui| {
+        chrome::row(ui, &self.tr("opt-axes-at"), |ui| {
             ui.add(egui::DragValue::new(&mut center.x).prefix("x ").speed(1.0));
             ui.add(egui::DragValue::new(&mut center.y).prefix("y ").speed(1.0));
         });
@@ -398,27 +414,43 @@ impl Workspace {
             center = center.clamp(egui::pos2(-1.0e6, -1.0e6), egui::pos2(1.0e6, 1.0e6));
             self.paint.symmetry_center = Some(center);
         }
-        if ui.small_button("Center on stage").clicked() {
+        if ui.small_button(self.tr("opt-center-on-stage")).clicked() {
             self.paint.symmetry_center = None;
         }
         let selected = self.has_selection();
+        let (copy_lr, copy_tb) = (
+            self.tr("opt-copy-left-right"),
+            self.tr("opt-copy-top-bottom"),
+        );
+        let (flip_h, flip_v) = (self.tr("opt-flip-horizontal"), self.tr("opt-flip-vertical"));
         ui.add_enabled_ui(selected, |ui| {
             ui.horizontal(|ui| {
-                if ui.button("Copy left-right").clicked() {
+                if ui.button(&copy_lr).clicked() {
                     self.mirror_copy_selection(true);
                 }
-                if ui.button("Copy top-bottom").clicked() {
+                if ui.button(&copy_tb).clicked() {
                     self.mirror_copy_selection(false);
                 }
             });
             ui.horizontal(|ui| {
-                if ui.button("Flip horizontal").clicked() {
+                if ui.button(&flip_h).clicked() {
                     self.perform(MenuAction::FlipHorizontal);
                 }
-                if ui.button("Flip vertical").clicked() {
+                if ui.button(&flip_v).clicked() {
                     self.perform(MenuAction::FlipVertical);
                 }
             });
         });
+    }
+}
+
+/// The message naming a symmetry mode; the library's own label is English.
+fn symmetry_key(mode: flare_tools::mirror::Symmetry) -> &'static str {
+    use flare_tools::mirror::Symmetry;
+    match mode {
+        Symmetry::Off => "opt-symmetry-off",
+        Symmetry::Vertical => "opt-symmetry-left-right",
+        Symmetry::Horizontal => "opt-symmetry-top-bottom",
+        Symmetry::Both => "opt-symmetry-four-way",
     }
 }

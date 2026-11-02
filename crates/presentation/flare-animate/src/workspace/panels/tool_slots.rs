@@ -18,6 +18,16 @@ pub(crate) struct Variant {
     pub(crate) tool: Option<Tool>,
 }
 
+/// The message that names a tool, whatever language is spoken. The English `name` stays the
+/// tool's identity (what the preferences keep and the lists compare); only the drawn text is
+/// looked up.
+pub(crate) fn name_key(icon: &str) -> String {
+    format!(
+        "tools-name-{}",
+        icon.split_once('-').map_or(icon, |(_, name)| name)
+    )
+}
+
 const fn real(icon: &'static str, name: &'static str, key: &'static str, tool: Tool) -> Variant {
     Variant {
         icon,
@@ -163,11 +173,11 @@ impl Workspace {
         };
         // A tool not built gets "(Not available yet)" added by the button itself.
         let hint = if extra {
-            "More tools".to_owned()
+            self.tr("tools-more")
         } else if shown.key.is_empty() {
-            shown.name.to_owned()
+            self.tr(&name_key(shown.icon))
         } else {
-            format!("{} ({})", shown.name, shown.key)
+            format!("{} ({})", self.tr(&name_key(shown.icon)), shown.key)
         };
         let response = chrome::icon_button_for(
             ui,
@@ -186,8 +196,9 @@ impl Workspace {
                 ui.make_persistent_id(("pinned", shown.name)),
                 egui::Sense::click(),
             );
+            let remove = self.tr("tools-remove-pin");
             menu.context_menu(|ui| {
-                if ui.button("Remove from toolbar").clicked() {
+                if ui.button(&remove).clicked() {
                     self.unpin_tool(shown.name);
                     ui.close();
                 }
@@ -221,7 +232,8 @@ impl Workspace {
                             if extra && self.is_pinned(variant.name) {
                                 continue;
                             }
-                            let (tool, dragged) = variant_row(ui, variant);
+                            let (tool, dragged) =
+                                variant_row(ui, variant, &self.tr(&name_key(variant.icon)));
                             if let Some(tool) = tool {
                                 self.slot_choice.insert(slot[0].name, index);
                                 chosen = Some(tool);
@@ -251,14 +263,14 @@ impl Workspace {
 
 /// A row of a slot's list: the tool's picture, name and key. A tool not built is dimmed and
 /// does nothing when clicked. Returns the tool picked, and whether the row has been dragged.
-fn variant_row(ui: &mut Ui, variant: &Variant) -> (Option<Tool>, bool) {
+fn variant_row(ui: &mut Ui, variant: &Variant, name: &str) -> (Option<Tool>, bool) {
     let built = variant.tool.is_some();
     let ink = if built {
         theme::text()
     } else {
         theme::text_disabled()
     };
-    let mut label = egui::RichText::new(variant.name);
+    let mut label = egui::RichText::new(name);
     if !built {
         label = label.color(theme::text_disabled());
     }
