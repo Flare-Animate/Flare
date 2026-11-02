@@ -1,6 +1,7 @@
 //! Handing work to the runtime and taking its results.
 
 use flare_runtime::{Done, Mode};
+use std::path::Path;
 
 use super::*;
 
@@ -106,20 +107,19 @@ impl Workspace {
             Done::Families(families) => self.text.families = families,
             Done::TextPreview { id, result } => self.text_preview_arrived(id, result),
             Done::Saved {
-                path,
+                path: _,
                 document,
                 result,
             } => match result {
-                Ok(()) => {
+                Ok(saved) => {
                     self.session.mark_snapshot_saved(&document);
                     // Once saved, the recovery file for the work is obsolete.
                     if !self.session.is_dirty() {
                         self.discard_recovery();
                     }
-                    self.note_recent(&path);
-                    self.path = Some(path.clone());
-                    let text = tr!(self, "msg-saved", &[("path", &path.display().to_string())]);
-                    self.report(text);
+                    self.note_recent(&saved.path);
+                    self.report_saved(&saved);
+                    self.path = Some(saved.path);
                 }
                 Err(error) => {
                     let text = tr!(self, "msg-cannot-save", &[("reason", &error.to_string())]);
@@ -211,30 +211,131 @@ impl Workspace {
                     Ok(_) if recovery && self.is_dirty() => {
                         self.report(tr!(self, "msg-project-changed"));
                     }
-                    Ok(document) if recovery => {
-                        self.install_document(document, None);
+                    Ok(loaded) if recovery => {
+                        self.install_document(loaded.document, None);
                         self.session.mark_unsaved();
                         // The file stays until the work is saved or discarded, so a second
                         // crash before saving still leaves it recoverable.
                         self.recovery.written = true;
                         self.report(tr!(self, "msg-recovered"));
                     }
-                    Ok(document) if reverting == Some(id) => {
+                    Ok(loaded) if !loaded.backed => {
+                        // A movie, or an Animate file Flare cannot write back: somebody else's
+                        // file, which counts as unsaved work until it is saved under a name.
+                        if self.is_blank() {
+                            self.discard_recovery();
+                        }
+                        self.show_document(loaded.document, None);
+                        self.session.mark_unsaved();
+                        self.imported_report(&path, loaded.notes);
+                    }
+                    Ok(loaded) if reverting == Some(id) => {
                         // Going back to the saved copy replaces the document in its own tab.
                         self.discard_recovery();
-                        self.note_recent(&path);
-                        self.install_document(document, Some(path));
+                        self.note_recent(&loaded.path);
+                        self.install_document(loaded.document, Some(loaded.path));
+                        self.log_import_notes(loaded.notes);
                     }
-                    Ok(document) => {
+                    Ok(loaded) => {
                         // An untouched new document gives way to it; otherwise it opens beside.
                         if self.is_blank() {
                             self.discard_recovery();
                         }
-                        self.note_recent(&path);
-                        self.show_document(document, Some(path));
+                        self.note_recent(&loaded.path);
+                        self.show_document(loaded.document, Some(loaded.path));
+                        self.log_import_notes(loaded.notes);
                     }
                 }
             }
+        }
+    }
+
+    /// Tells the person an import finished, with what could not be carried over in the Output
+    /// panel.
+    fn imported_report(&mut self, path: &Path, notes: Vec<String>) {
+        let skipped = notes.len();
+        self.log_import_notes(notes);
+        let text = tr_n!(
+            self,
+            "msg-imported",
+            skipped,
+            &[("path", &path.display().to_string())],
+        );
+        self.report(text);
+    }
+
+    fn log_import_notes(&mut self, notes: Vec<String>) {
+        for note in notes {
+            self.log.push(note);
+        }
+    }
+
+    /// Tells the person a save finished: where, and for an Animate format what was written, with
+    /// what the format could not hold in the Output panel. For a front end that wrote the file
+    /// itself, as the browser build does with a download.
+    pub fn report_saved(&mut self, saved: &flare_runtime::Saved) {
+        let text = self.saved_message(saved);
+        if let Some(summary) = &saved.summary {
+            if !summary.exact && !summary.rebuilt.is_empty() {
+                let names = summary.rebuilt.join(", ");
+                let line = tr!(
+                    self,
+                    "msg-saved-rebuilt-names",
+                    &[
+                        ("path", &saved.path.display().to_string()),
+                        ("names", &names)
+                    ],
+                );
+                self.log.push(line);
+            }
+            for note in &summary.notes {
+                self.log.push(note.clone());
+            }
+            if self.log.len() > MAX_LOG_LINES {
+                let excess = self.log.len() - MAX_LOG_LINES;
+                self.log.drain(..excess);
+            }
+        }
+        self.report(text);
+    }
+
+    /// What a finished save says: where it went and, for an Animate format, what was written.
+    pub(super) fn saved_message(&self, saved: &flare_runtime::Saved) -> String {
+        let path = saved.path.display().to_string();
+        let Some(summary) = &saved.summary else {
+            return tr!(self, "msg-saved", &[("path", &path)]);
+        };
+        let detail = if summary.exact {
+            tr!(self, "msg-saved-detail-original")
+        } else if summary.carried == 0 {
+            tr!(
+                self,
+                "msg-saved-detail-new",
+                &[("files", &summary.files.to_string())],
+            )
+        } else {
+            tr!(
+                self,
+                "msg-saved-detail-edited",
+                &[
+                    ("rebuilt", &summary.rebuilt_count.to_string()),
+                    ("files", &summary.files.to_string()),
+                ],
+            )
+        };
+        if summary.warnings == 0 {
+            tr!(
+                self,
+                "msg-saved-with",
+                &[("path", &path), ("detail", &detail)]
+            )
+        } else {
+            tr_n!(
+                self,
+                "msg-saved-with-notes",
+                summary.warnings,
+                &[("path", &path), ("detail", &detail)],
+            )
         }
     }
 }

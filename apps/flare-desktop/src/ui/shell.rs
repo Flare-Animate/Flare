@@ -28,9 +28,14 @@ impl App {
                 }
             }
             DialogRequest::SaveAs => {
-                if let Some(path) =
-                    dialogs::save_project(&self.workspace.interface_text("dlg-filter-project"))
-                {
+                let (folder, name) = self.workspace.save_as_start();
+                if let Some(path) = dialogs::save_document(
+                    &self.workspace.interface_text("dlg-filter-fla"),
+                    &self.workspace.interface_text("dlg-filter-xfl"),
+                    &self.workspace.interface_text("dlg-filter-project"),
+                    &name,
+                    folder.as_deref(),
+                ) {
                     self.workspace.save_as(&path);
                 }
             }

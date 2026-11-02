@@ -80,3 +80,13 @@ unsaved-save-changes = Enregistrer les modifications apportées à { $name } ?
 unsaved-save = Enregistrer
 unsaved-dont-save = Ne pas enregistrer
 msg-paste-refused = Impossible de coller dans le calque « { $name } » : { $reason }
+msg-saved-detail-original = original inchangé, réécrit tel quel
+msg-saved-detail-new = { $files } fichiers écrits à partir du projet
+msg-saved-detail-edited = { $rebuilt } fichiers sur { $files } reconstruits, le reste repris tel quel
+msg-saved-with = { $path } enregistré ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] { $path } enregistré ({ $detail }) ; { $n } note sur ce que le format ne peut pas contenir se trouve dans le panneau Sortie
+       *[other] { $path } enregistré ({ $detail }) ; { $n } notes sur ce que le format ne peut pas contenir se trouvent dans le panneau Sortie
+    }
+msg-saved-rebuilt-names = Reconstruits pour { $path } : { $names }

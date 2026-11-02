@@ -206,7 +206,7 @@ fn imported(
 pub fn run_io(job: IoJob) -> Done {
     match job {
         IoJob::Save { path, document } => {
-            let result = flare_storage::save(&document, &path).map_err(|e| e.to_string());
+            let result = crate::save(&document, &path).map_err(|e| e.to_string());
             Done::Saved {
                 path,
                 document,
@@ -214,7 +214,20 @@ pub fn run_io(job: IoJob) -> Done {
             }
         }
         IoJob::Open { id, path, recovery } => {
-            let result = flare_storage::load(&path).map_err(|e| e.to_string());
+            // A recovery file is a project snapshot whatever its name; a file the person opens
+            // is read as the format its name says.
+            let result = if recovery {
+                flare_storage::load(&path)
+                    .map(|document| crate::Loaded {
+                        document,
+                        path: path.clone(),
+                        backed: false,
+                        notes: Vec::new(),
+                    })
+                    .map_err(|e| e.to_string())
+            } else {
+                crate::load(&path).map_err(|e| e.to_string())
+            };
             Done::Opened {
                 id,
                 path,

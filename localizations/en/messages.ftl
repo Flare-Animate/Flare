@@ -80,3 +80,13 @@ unsaved-save-changes = Save changes to { $name }?
 unsaved-save = Save
 unsaved-dont-save = Don't Save
 msg-paste-refused = Cannot paste into the layer "{ $name }": { $reason }
+msg-saved-detail-original = unchanged original, written back as it was
+msg-saved-detail-new = { $files } files written from the project
+msg-saved-detail-edited = { $rebuilt } of { $files } files rebuilt, the rest carried over as they were
+msg-saved-with = Saved { $path } ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] Saved { $path } ({ $detail }); { $n } note about what the format cannot hold is in the Output panel
+       *[other] Saved { $path } ({ $detail }); { $n } notes about what the format cannot hold are in the Output panel
+    }
+msg-saved-rebuilt-names = Rebuilt for { $path }: { $names }

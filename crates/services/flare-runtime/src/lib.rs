@@ -15,6 +15,7 @@
 //! stay deterministic.
 #![forbid(unsafe_code)]
 
+mod document_file;
 mod export;
 mod jobs;
 mod launch;
@@ -22,6 +23,10 @@ mod movie;
 mod run;
 mod workers;
 
+pub use document_file::{
+    ExportSummary, FileFormat, LoadError, Loaded, MAX_NAMED_FILES, SaveError, Saved, load,
+    resolve_save_path, save, saves_in_place, summarize, xfl_folder,
+};
 pub use export::{export_png, png_bytes};
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};

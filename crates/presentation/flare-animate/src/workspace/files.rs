@@ -210,22 +210,52 @@ impl Workspace {
         self.settle_inline();
     }
 
+    /// Writes the document back to where it lives, in the format of that file: a `.fla` or `.xfl`
+    /// it was opened from (or last saved to) is written as an Animate document, a `.flare` as a
+    /// project. A document with no file yet asks where to save.
     pub fn save(&mut self) {
         match self.path.clone() {
-            Some(path) => self.save_as(&path),
+            Some(path) => self.submit_save(path),
             None => self.dialog = Some(DialogRequest::SaveAs),
         }
     }
 
+    /// Saves to `path`. Its extension decides the format (`.fla`, `.xfl` or `.flare`, in any case);
+    /// a name that says none gets `.fla`, the default, as in Animate.
     pub fn save_as(&mut self, path: &Path) {
+        let (path, _) = flare_runtime::resolve_save_path(path);
+        self.submit_save(path);
+    }
+
+    /// The folder and the file name Save As starts from: the document's own place and name as a
+    /// `.fla`, or the name of a new document in the folder last used (none, for the system to
+    /// choose).
+    pub fn save_as_start(&self) -> (Option<PathBuf>, String) {
+        let name = match self.path.as_deref().and_then(Path::file_stem) {
+            Some(stem) => stem.to_string_lossy().into_owned(),
+            None => tr!(self, "untitled"),
+        };
+        let folder = self
+            .path
+            .as_deref()
+            .and_then(Path::parent)
+            .map(Path::to_owned);
+        (
+            folder,
+            format!("{name}.{}", flare_runtime::FileFormat::DEFAULT.extension()),
+        )
+    }
+
+    fn submit_save(&mut self, path: PathBuf) {
         // Saving writes the whole document, so pending symbol edits are applied first.
         if !self.exit_all_symbols() {
             return;
         }
         // The file is written off the UI thread from a snapshot, so editing carries on while it
-        // is written; whatever changes meanwhile simply stays unsaved.
+        // is written; whatever changes meanwhile simply stays unsaved. A failure leaves the
+        // document unsaved and the old file as it was.
         self.background.submit_io(IoJob::Save {
-            path: path.to_owned(),
+            path,
             document: self.session.snapshot(),
         });
         self.settle_inline();

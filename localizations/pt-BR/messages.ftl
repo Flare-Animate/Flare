@@ -80,3 +80,13 @@ unsaved-save-changes = Salvar as alterações em { $name }?
 unsaved-save = Salvar
 unsaved-dont-save = Não salvar
 msg-paste-refused = Não é possível colar na camada "{ $name }": { $reason }
+msg-saved-detail-original = original sem alterações, gravado como estava
+msg-saved-detail-new = { $files } arquivos gravados a partir do projeto
+msg-saved-detail-edited = { $rebuilt } de { $files } arquivos refeitos; o restante foi mantido como estava
+msg-saved-with = { $path } salvo ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] { $path } salvo ({ $detail }); { $n } nota sobre o que o formato não consegue guardar está no painel Saída
+       *[other] { $path } salvo ({ $detail }); { $n } notas sobre o que o formato não consegue guardar estão no painel Saída
+    }
+msg-saved-rebuilt-names = Refeitos para { $path }: { $names }

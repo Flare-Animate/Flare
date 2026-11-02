@@ -17,3 +17,5 @@ dlg-startup-intro = Flare を起動できませんでした。
 dlg-startup-advice = グラフィックデバイスまたはサーフェスに関する問題の場合は、グラフィックドライバー (Vulkan または OpenGL) を更新してください。
 dlg-startup-terminal = ターミナルから flare-desktop を実行すると、さらに詳しい情報が表示されます。
 dlg-filter-open = Flare プロジェクトまたは Flash ドキュメント
+dlg-filter-xfl = Flash ドキュメント（非圧縮・フォルダー）
+dlg-save-prompt = ダウンロードするファイル名（拡張子は .fla または .flare）

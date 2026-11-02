@@ -11,17 +11,21 @@ flare-audio.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
 flare-eval.workspace = true
+flare-export.workspace = true
 glamx.workspace = true
 gif.workspace = true
 flare-import.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
+thiserror.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 rayon.workspace = true
 
 [dev-dependencies]
+flare-commands.workspace = true
+flare-history.workspace = true
 proptest.workspace = true
 png.workspace = true
 tempfile.workspace = true

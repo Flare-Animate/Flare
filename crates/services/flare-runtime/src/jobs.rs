@@ -144,13 +144,13 @@ pub enum Done {
     Saved {
         path: PathBuf,
         document: Arc<Document>,
-        result: Result<(), String>,
+        result: Result<crate::Saved, String>,
     },
     Opened {
         id: u64,
         path: PathBuf,
         recovery: bool,
-        result: Result<Document, String>,
+        result: Result<crate::Loaded, String>,
     },
     Autosaved {
         id: u64,

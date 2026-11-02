@@ -1990,6 +1990,7 @@ dependencies = [
  "flare-import",
  "flare-input",
  "flare-menubar",
+ "flare-publish",
  "flare-recent",
  "flare-render",
  "flare-runtime",
@@ -2003,6 +2004,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror 2.0.18",
+ "zip",
 ]
 
 [[package]]
@@ -2341,9 +2343,12 @@ name = "flare-runtime"
 version = "0.1.0"
 dependencies = [
  "flare-audio",
+ "flare-commands",
  "flare-core",
  "flare-document",
  "flare-eval",
+ "flare-export",
+ "flare-history",
  "flare-import",
  "flare-render",
  "flare-storage",
@@ -2354,6 +2359,7 @@ dependencies = [
  "proptest",
  "rayon",
  "tempfile",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

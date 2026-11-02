@@ -49,6 +49,7 @@ mod rail;
 mod release_frame;
 mod rendering_and_workers;
 mod rulers_and_mirror;
+mod save_formats;
 mod scene_name;
 mod spans_and_handles;
 mod stage_menu;

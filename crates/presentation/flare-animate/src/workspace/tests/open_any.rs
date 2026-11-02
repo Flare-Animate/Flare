@@ -39,27 +39,61 @@ fn a_flare_project_given_to_open_any_is_opened() {
 }
 
 #[test]
-fn an_animate_file_given_to_open_any_is_imported_as_an_unsaved_project() {
+fn an_animate_file_given_to_open_any_is_opened_as_the_documents_own_file() {
+    let dir = tempfile::tempdir().expect("dir");
+    let fla = dir.path().join("sample.fla");
+    std::fs::copy(fixture("sample.fla"), &fla).expect("copy");
     let mut ws = workspace();
-    ws.open_any(&fixture("sample.fla"));
+    ws.open_any(&fla);
+    assert_eq!(
+        ws.path(),
+        Some(fla.as_path()),
+        "Save writes back to the .fla"
+    );
+    assert!(!ws.is_dirty(), "opening is not a change");
+    assert_eq!(ws.title(), "sample.fla - Flare");
+    // An XFL folder is its stub, whichever of the folder, the stub and the document was given.
+    let folder = dir.path().join("sample_xfl");
+    std::fs::create_dir(&folder).expect("dir");
+    for entry in std::fs::read_dir(fixture("sample_xfl"))
+        .expect("read")
+        .flatten()
+    {
+        std::fs::copy(entry.path(), folder.join(entry.file_name())).expect("copy");
+    }
+    for given in [
+        folder.clone(),
+        folder.join("sample.xfl"),
+        folder.join("DOMDocument.xml"),
+    ] {
+        let mut ws = workspace();
+        ws.open_any(&given);
+        assert_eq!(
+            ws.path(),
+            Some(folder.join("sample.xfl").as_path()),
+            "{given:?}"
+        );
+        assert!(!ws.is_dirty());
+    }
+}
+
+#[test]
+fn a_movie_given_to_open_any_is_imported_as_an_unsaved_project() {
+    let dir = tempfile::tempdir().expect("dir");
+    let movie = dir.path().join("movie.swf");
+    let published =
+        flare_publish::publish_swf(&document(), &flare_publish::PublishOptions::default())
+            .expect("publishes");
+    std::fs::write(&movie, published.bytes).expect("write");
+    let mut ws = workspace();
+    ws.open_any(&movie);
     assert!(
         ws.status().is_some_and(|s| s.starts_with("Imported")),
         "{:?}",
         ws.status()
     );
-    assert!(
-        ws.path().is_none(),
-        "an import is a new project, not the .fla itself"
-    );
+    assert!(ws.path().is_none(), "a movie cannot be written back");
     assert!(ws.is_dirty());
-    let mut folder = workspace();
-    folder.open_any(&fixture("sample_xfl"));
-    assert!(
-        folder.status().is_some_and(|s| s.starts_with("Imported")),
-        "{:?}",
-        folder.status()
-    );
-    assert!(folder.is_dirty());
 }
 
 #[test]

@@ -28,6 +28,8 @@ pub struct WebApp {
     messages: Rc<RefCell<Vec<String>>>,
     /// The preferences as last written, so storage is touched only when they change.
     saved_preferences: String,
+    /// The name of the file last opened or saved, offered again by Save.
+    last_name: String,
 }
 
 impl WebApp {
@@ -38,6 +40,7 @@ impl WebApp {
             picked: Rc::default(),
             messages: Rc::default(),
             saved_preferences,
+            last_name: "project.fla".to_owned(),
         }
     }
 
@@ -61,7 +64,7 @@ impl WebApp {
                     }
                 });
             }
-            DialogRequest::SaveAs => self.save_flare(),
+            DialogRequest::SaveAs => self.save_document(),
             DialogRequest::ExportImage => {
                 let (document, frame) = self.workspace.image_export();
                 self.deliver(
@@ -140,14 +143,67 @@ impl WebApp {
         }
     }
 
-    /// Saving offers the project as a `.flare` download, the same file the desktop app writes: the
-    /// page brings SQLite and zstd as WebAssembly for it (see `flare_file`).
-    fn save_flare(&mut self) {
+    /// Save and Save As are a download: a page has no file to write back to. The person names it,
+    /// and the ending picks the format as on the desktop: `.fla` (the default, as in Animate) is a
+    /// Flash document Animate opens, `.flare` is Flare's own project (the page brings SQLite and
+    /// zstd as WebAssembly for it, see `flare_file`). A folder cannot be downloaded, so `.xfl`
+    /// is saved as a `.fla`, which holds the same files.
+    fn save_document(&mut self) {
+        let Some(window) = web_sys::window() else {
+            return;
+        };
+        let message = self.workspace.interface_text("dlg-save-prompt");
+        let typed = window
+            .prompt_with_message_and_default(&message, &self.last_name)
+            .ok()
+            .flatten()
+            .unwrap_or_default();
+        // A name only: a path typed in is cut to its last part.
+        let Some(name) = std::path::Path::new(typed.trim()).file_name() else {
+            return;
+        };
+        let (named, format) = flare_runtime::resolve_save_path(std::path::Path::new(name));
+        let named = if format == flare_runtime::FileFormat::Xfl {
+            named.with_extension("fla")
+        } else {
+            named
+        };
+        let name = named.to_string_lossy().into_owned();
         let (document, _) = self.workspace.image_export();
-        let bytes = flare_file::FlareFile::registered()
-            .and_then(|library| library.write(&document))
-            .map_err(|e| e.to_string());
-        self.deliver("project.flare", "application/octet-stream", bytes);
+        let saved = if format == flare_runtime::FileFormat::Flare {
+            let bytes = flare_file::FlareFile::registered()
+                .and_then(|library| library.write(&document))
+                .map_err(|e| e.to_string());
+            (bytes, None)
+        } else {
+            match flare_export::export_xfl(&document) {
+                Ok(output) => (
+                    flare_export::fla_bytes(&output).map_err(|e| e.to_string()),
+                    Some(flare_runtime::summarize(&output)),
+                ),
+                Err(error) => (Err(error.to_string()), None),
+            }
+        };
+        let (bytes, summary) = saved;
+        let ok = bytes.is_ok();
+        let mime = if summary.is_some() {
+            "application/zip"
+        } else {
+            "application/octet-stream"
+        };
+        self.deliver(&name, mime, bytes);
+        if ok {
+            self.last_name = name.clone();
+            self.workspace.report_saved(&flare_runtime::Saved {
+                path: named,
+                format: if summary.is_some() {
+                    flare_runtime::FileFormat::Fla
+                } else {
+                    flare_runtime::FileFormat::Flare
+                },
+                summary,
+            });
+        }
     }
 
     /// Opens a `.flare` the person picked, which the page reads itself.
@@ -202,6 +258,7 @@ impl eframe::App for WebApp {
         let ctx = ui.ctx().clone();
         let picked: Vec<Picked> = self.picked.borrow_mut().drain(..).collect();
         for file in picked {
+            self.last_name.clone_from(&file.name);
             if is_flare(&file.name) {
                 self.open_flare(&file.name, &file.bytes);
             } else {

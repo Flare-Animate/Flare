@@ -17,3 +17,5 @@ dlg-startup-intro = Flare konnte nicht gestartet werden.
 dlg-startup-advice = Wenn es um das Grafikgerät oder die Grafikoberfläche geht, aktualisieren Sie Ihre Grafiktreiber (Vulkan oder OpenGL).
 dlg-startup-terminal = Wenn Sie flare-desktop in einem Terminal starten, werden weitere Informationen ausgegeben.
 dlg-filter-open = Flare-Projekt oder Flash-Dokument
+dlg-filter-xfl = Flash-Dokument, unkomprimiert (Ordner)
+dlg-save-prompt = Dateiname für den Download, mit der Endung .fla oder .flare

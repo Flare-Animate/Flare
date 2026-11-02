@@ -17,3 +17,5 @@ dlg-startup-intro = O Flare não pôde ser iniciado.
 dlg-startup-advice = Se o problema for o dispositivo ou a superfície gráfica, atualize os drivers de vídeo (Vulkan ou OpenGL).
 dlg-startup-terminal = Executar o flare-desktop em um terminal mostra mais informações.
 dlg-filter-open = Projeto do Flare ou documento do Flash
+dlg-filter-xfl = Documento do Flash sem compactação (pasta)
+dlg-save-prompt = Nome do arquivo a baixar, com a extensão .fla ou .flare

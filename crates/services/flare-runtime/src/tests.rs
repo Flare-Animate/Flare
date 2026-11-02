@@ -51,7 +51,7 @@ fn inline_jobs_are_queued_like_a_workers_results() {
     });
     assert!(runtime.io_pending(), "reported back only through poll");
     let done = runtime.poll();
-    assert!(matches!(done[0], Done::Saved { result: Ok(()), .. }));
+    assert!(matches!(done[0], Done::Saved { result: Ok(_), .. }));
     assert!(!runtime.io_pending());
     let id = runtime.next_id();
     runtime.submit_io(IoJob::Open {
@@ -66,7 +66,7 @@ fn inline_jobs_are_queued_like_a_workers_results() {
             ..
         } => {
             assert_eq!(got, id);
-            assert_eq!(opened.scenes().len(), 1);
+            assert_eq!(opened.document.scenes().len(), 1);
         }
         _ => panic!("expected an opened document"),
     }

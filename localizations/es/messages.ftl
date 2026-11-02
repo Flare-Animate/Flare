@@ -80,3 +80,13 @@ unsaved-save-changes = ¿Quieres guardar los cambios de { $name }?
 unsaved-save = Guardar
 unsaved-dont-save = No guardar
 msg-paste-refused = No se puede pegar en la capa «{ $name }»: { $reason }
+msg-saved-detail-original = original sin cambios, escrito tal como estaba
+msg-saved-detail-new = { $files } archivos escritos a partir del proyecto
+msg-saved-detail-edited = { $rebuilt } de { $files } archivos reconstruidos; el resto se conservó tal como estaba
+msg-saved-with = Guardado { $path } ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] Guardado { $path } ({ $detail }); en el panel Salida hay { $n } nota sobre lo que el formato no puede contener
+       *[other] Guardado { $path } ({ $detail }); en el panel Salida hay { $n } notas sobre lo que el formato no puede contener
+    }
+msg-saved-rebuilt-names = Reconstruido para { $path }: { $names }

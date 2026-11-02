@@ -8,12 +8,13 @@ use flare_import::{PathKind, classify};
 use super::*;
 
 impl Workspace {
-    /// Opens `path` the way its kind says: a project is opened, an Animate project imported.
+    /// Opens `path`: a project, or an Animate file, which stays the document's file (File > Save writes
+    /// it back); a movie is imported as a new, unsaved project.
     /// Anything else is reported and nothing changes. The reading is done off the UI thread.
     pub fn open_any(&mut self, path: &Path) {
         match classify(path, path.is_dir()) {
-            Some(PathKind::Project) => self.open(path),
-            Some(PathKind::Import) => self.import_project(path),
+            // A project, and an Animate file, which is opened to be saved back as it is.
+            Some(PathKind::Project | PathKind::Import) => self.open(path),
             None => self.report(format!(
                 "Flare opens .flare projects and imports .fla, .xfl and .swf files and XFL folders, not {}",
                 path.file_name().map_or_else(

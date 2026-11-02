@@ -6,10 +6,6 @@
 
 use std::path::PathBuf;
 
-fn project(filter: &str) -> rfd::FileDialog {
-    rfd::FileDialog::new().add_filter(filter, &["flare"])
-}
-
 /// A project, or an Animate file or XFL folder's document (Animate's Open takes those too).
 pub fn pick_open(filter: &str) -> Option<PathBuf> {
     rfd::FileDialog::new()
@@ -19,8 +15,26 @@ pub fn pick_open(filter: &str) -> Option<PathBuf> {
         .pick_file()
 }
 
-pub fn save_project(filter: &str) -> Option<PathBuf> {
-    project(filter).save_file()
+/// Where to save the document, in `name` (with the default ending) and `folder` to start with.
+/// The list offers Flash document (`.fla`, first and so the default, as in Animate), the
+/// uncompressed `.xfl` and Flare's own `.flare`; the ending of the name that comes back decides
+/// the format, and the caller gives one with none the default's (`flare_runtime::resolve_save_path`).
+pub fn save_document(
+    fla: &str,
+    xfl: &str,
+    flare: &str,
+    name: &str,
+    folder: Option<&std::path::Path>,
+) -> Option<PathBuf> {
+    let mut dialog = rfd::FileDialog::new()
+        .add_filter(fla, &["fla"])
+        .add_filter(xfl, &["xfl"])
+        .add_filter(flare, &["flare"])
+        .set_file_name(name);
+    if let Some(folder) = folder.filter(|f| f.is_dir()) {
+        dialog = dialog.set_directory(folder);
+    }
+    dialog.save_file()
 }
 
 pub fn pick_sound(filter: &str) -> Option<PathBuf> {

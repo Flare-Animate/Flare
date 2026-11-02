@@ -80,3 +80,13 @@ unsaved-save-changes = Änderungen an { $name } speichern?
 unsaved-save = Speichern
 unsaved-dont-save = Nicht speichern
 msg-paste-refused = Einfügen in die Ebene „{ $name }“ nicht möglich: { $reason }
+msg-saved-detail-original = unverändertes Original, so zurückgeschrieben, wie es war
+msg-saved-detail-new = { $files } Dateien aus dem Projekt geschrieben
+msg-saved-detail-edited = { $rebuilt } von { $files } Dateien neu aufgebaut, der Rest unverändert übernommen
+msg-saved-with = { $path } gespeichert ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] { $path } gespeichert ({ $detail }); { $n } Hinweis dazu, was das Format nicht aufnehmen kann, steht im Ausgabe-Bedienfeld
+       *[other] { $path } gespeichert ({ $detail }); { $n } Hinweise dazu, was das Format nicht aufnehmen kann, stehen im Ausgabe-Bedienfeld
+    }
+msg-saved-rebuilt-names = Neu aufgebaut für { $path }: { $names }
