@@ -18,5 +18,5 @@ timeline-mask = Masque pour le calque du dessous
 timeline-delete-layer = Supprimer le calque
 timeline-zoom-out = Réduire le scénario
 timeline-zoom-in = Agrandir le scénario
-timeline-fit = Ajuster à la scène
+timeline-fit = Ajuster à la séquence
 tween-ease-hint = Une valeur négative démarre lentement, une valeur positive finit lentement

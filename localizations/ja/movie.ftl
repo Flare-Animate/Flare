@@ -1,4 +1,4 @@
-movie-title = ムービーをテスト
+movie-title = ムービープレビュー
 movie-clock = { $clock } · フレーム { $frame }
 movie-restart = 最初から再生
 movie-pause = 一時停止

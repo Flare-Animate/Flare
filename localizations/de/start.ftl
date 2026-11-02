@@ -1,5 +1,5 @@
 start-version = Version { $version }
-start-nav-home = Start
+start-nav-home = Startseite
 start-nav-learn = Lernen
 start-new-file = Neue Datei
 start-open = Öffnen…
@@ -15,7 +15,7 @@ start-custom-size = Benutzerdefinierte Größe
 start-custom-hint = Größe und Bildrate wählen
 start-recent = Zuletzt verwendet
 start-filter = Filtern
-start-recent-empty = Projekte, die du öffnest oder speicherst, erscheinen hier.
+start-recent-empty = Projekte, die Sie öffnen oder speichern, erscheinen hier.
 start-no-match = Kein zuletzt verwendetes Projekt passt zu „{ $search }“.
 start-col-name = Name
 start-col-modified = Änderungsdatum

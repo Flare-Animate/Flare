@@ -63,7 +63,7 @@ fn the_menu_bar_draws_its_titles_in_the_language() {
 #[test]
 fn toggling_items_are_named_in_both_states_in_the_language() {
     let mut ws = speaking("de-DE");
-    assert_eq!(ws.label(MenuAction::PlayPause), "Abspielen");
+    assert_eq!(ws.label(MenuAction::PlayPause), "Wiedergabe");
     assert_eq!(ws.label(MenuAction::ToggleLayerLocked), "Ebene sperren");
     ws.perform(MenuAction::ToggleLayerLocked);
     assert_eq!(ws.label(MenuAction::ToggleLayerLocked), "Ebene entsperren");

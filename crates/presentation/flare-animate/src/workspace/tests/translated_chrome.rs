@@ -90,7 +90,7 @@ fn a_new_document_names_its_scene_and_layer_in_the_language() {
     for (tag, scene, layer) in [
         ("es-ES", "Escena 1", "Capa 1"),
         ("de-DE", "Szene 1", "Ebene 1"),
-        ("fr-FR", "Scène 1", "Calque 1"),
+        ("fr-FR", "Séquence 1", "Calque 1"),
         ("pt-BR", "Cena 1", "Camada 1"),
         ("ja-JP", "シーン 1", "レイヤー 1"),
         ("ko-KR", "장면 1", "레이어 1"),

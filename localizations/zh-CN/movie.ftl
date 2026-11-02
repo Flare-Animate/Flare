@@ -1,5 +1,5 @@
 movie-title = 测试影片
-movie-clock = { $clock } · 帧 { $frame }
+movie-clock = { $clock } · 第 { $frame } 帧
 movie-restart = 重新开始
 movie-pause = 暂停
 movie-play = 播放

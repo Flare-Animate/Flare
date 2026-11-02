@@ -1,5 +1,5 @@
 pane-tools = 도구
-pane-stage = 무대
+pane-stage = 스테이지
 pane-library = 라이브러리
 pane-timeline = 타임라인
 pane-properties = 속성

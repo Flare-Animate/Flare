@@ -27,5 +27,5 @@ tf-rotate-cw = 90° im Uhrzeigersinn drehen
 tf-rotate-ccw = 90° gegen den Uhrzeigersinn drehen
 tf-scale-up = Vergrößern
 tf-scale-down = Verkleinern
-tf-break-apart = Trennen
+tf-break-apart = Teilen
 tf-convert = In Symbol umwandeln (F8)

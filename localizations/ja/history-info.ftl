@@ -1,4 +1,4 @@
-hist-undo = 元に戻す
+hist-undo = 取り消し
 hist-redo = やり直し
 hist-clear = ヒストリーを消去
 hist-original = オリジナル
@@ -7,7 +7,7 @@ hist-background = 背景を変更
 hist-frame-rate = フレームレートを変更
 hist-cut-frames = フレームをカット
 hist-reverse-frames = フレームを逆順に
-hist-import-sound = サウンドをインポート
+hist-import-sound = サウンドを読み込み
 hist-rename-scene = シーン名を変更
 hist-paste = ペースト
 hist-delete = 削除

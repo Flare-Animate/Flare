@@ -1,6 +1,6 @@
 movie-title = 동영상 테스트
 movie-clock = { $clock } · 프레임 { $frame }
-movie-restart = 처음부터
+movie-restart = 처음부터 다시 재생
 movie-pause = 일시 정지
 movie-play = 재생
 movie-step = 한 프레임 앞으로

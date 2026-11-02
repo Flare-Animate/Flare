@@ -1,4 +1,4 @@
-hist-undo = 撤消
+hist-undo = 撤销
 hist-redo = 重做
 hist-clear = 清除历史记录
 hist-original = 原始
@@ -24,7 +24,7 @@ hist-graphic-plays = 更改图形的播放方式
 hist-move = 移动
 hist-align = 对齐
 hist-arrange = 排列
-hist-duplicate = 复制
+hist-duplicate = 直接复制
 hist-convert-symbol = 转换为元件
 hist-group = 组合
 hist-break-apart = 分离

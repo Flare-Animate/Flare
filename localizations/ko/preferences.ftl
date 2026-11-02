@@ -1,6 +1,6 @@
 prefs-title = 환경설정
 prefs-general = 일반
-prefs-stage = 무대
+prefs-stage = 스테이지
 prefs-timeline = 타임라인 및 그리기
 prefs-recent = 최근 프로젝트
 prefs-language = 언어

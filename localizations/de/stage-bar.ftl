@@ -1,11 +1,11 @@
 bar-document-settings = Dokumenteinstellungen
-bar-working = Wird bearbeitet ...
+bar-working = Wird verarbeitet …
 bar-frame = Bild { $current } / { $total }
 bar-close-document = Dokument schließen
 bar-new-document = Neues Dokument
 bar-zoom-in = Vergrößern
 bar-zoom-out = Verkleinern
-bar-zoom-fit = Bühne an Fenster anpassen
+bar-zoom-fit = Bühne in Fenster einpassen
 bar-camera-preview = Vorschau durch die Kamera
 bar-snap = Am Raster ausrichten
 bar-rulers = Lineale

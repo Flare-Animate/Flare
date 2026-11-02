@@ -7,4 +7,4 @@ prop-no-layer = Ninguna capa seleccionada.
 prop-tween = Interpolación
 prop-shape-tween = Interpolación de forma
 prop-motion-tween = Interpolación de movimiento
-prop-ease = Atenuación
+prop-ease = Aceleración

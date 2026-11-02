@@ -1,12 +1,12 @@
 pubpop-title = Publier
 pubpop-formats = Formats
 pubpop-button = Publier
-pubpop-button-hint = Choisissez où vont les fichiers, et écrit chaque format coché
+pubpop-button-hint = Choisir l’emplacement des fichiers et écrire chaque format coché
 pubpop-share = Partager
-pubpop-share-hint = Publiez d'abord, puis ajoutez le fichier sur la page qui s'ouvre.
-pubpop-nothing-chosen = Choisissez un format, sinon Publier n'a rien à écrire.
+pubpop-share-hint = Publiez d’abord, puis ajoutez le fichier sur la page qui s’ouvre.
+pubpop-nothing-chosen = Choisissez un format, sinon Publier n’a rien à écrire.
 pubpop-format-swf = Flash (.swf)
-pubpop-compress = Compresser l'animation
+pubpop-compress = Compresser l’animation
 pubpop-format-html5 = HTML5 Canvas (.html)
 pubpop-loop = Lire le scénario en boucle
 pubpop-center = Centrer la scène
