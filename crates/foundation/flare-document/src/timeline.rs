@@ -122,7 +122,7 @@ pub const MAX_EASE: i8 = 100;
 pub struct FrameSpan {
     start: u32,
     duration: NonZeroU32,
-    content: Content,
+    pub(crate) content: Content,
     /// More elements drawn above `content` in the same frames; see `span_elements`.
     pub(crate) extras: Vec<Content>,
     pub(crate) tween: Tween,

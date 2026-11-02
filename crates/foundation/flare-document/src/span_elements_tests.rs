@@ -97,3 +97,56 @@ fn no_extras_is_a_plain_span_and_equal_to_one() {
     let cleared = plain.clone().with_extras(Vec::new()).expect("none");
     assert_eq!(plain, cleared);
 }
+
+#[test]
+fn replacing_removing_and_appending_elements_rebuild_the_span() {
+    let (a, b, c) = (shape(0.0), shape(20.0), instance());
+    let many = span(a.clone()).with_extras(vec![b.clone()]).expect("two");
+    let replaced = many.with_element(1, c.clone()).expect("replaced");
+    assert_eq!(
+        replaced.elements().cloned().collect::<Vec<_>>(),
+        vec![a.clone(), c.clone()]
+    );
+    assert!(many.with_element(2, c.clone()).is_none());
+    // A camera cannot be one of several.
+    let camera = Content::Camera(
+        Camera::new(
+            flare_core::DocumentPoint::new(0.0, 0.0).expect("point"),
+            1.0,
+            0.0,
+        )
+        .expect("camera"),
+    );
+    assert!(many.with_element(1, camera).is_none());
+
+    let without_first = many.without_element(0).expect("one left");
+    assert_eq!(without_first.element_count(), 1);
+    assert_eq!(without_first.content(), &b);
+    assert!(without_first.without_element(0).is_none());
+    assert!(many.without_element(5).is_none());
+
+    let appended = span(a.clone()).with_appended(c.clone()).expect("appended");
+    assert_eq!(
+        appended.elements().cloned().collect::<Vec<_>>(),
+        vec![a.clone(), c]
+    );
+    let from_empty = span(Content::Empty)
+        .with_appended(b.clone())
+        .expect("filled");
+    assert_eq!(from_empty.element_count(), 1);
+    assert_eq!(from_empty.content(), &b);
+}
+
+#[test]
+fn a_tweening_span_refuses_another_element_and_stacking_moves_one() {
+    let tweening = span(instance()).with_tween(Tween::Linear);
+    assert!(tweening.with_appended(shape(0.0)).is_none());
+
+    let (a, b, c) = (shape(0.0), shape(20.0), shape(40.0));
+    let many = span(a.clone())
+        .with_extras(vec![b.clone(), c.clone()])
+        .expect("three");
+    let moved = many.with_element_moved(0, 2).expect("moved");
+    assert_eq!(moved.elements().cloned().collect::<Vec<_>>(), vec![b, c, a]);
+    assert!(many.with_element_moved(0, 3).is_none());
+}

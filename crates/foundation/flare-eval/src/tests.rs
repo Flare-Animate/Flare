@@ -393,6 +393,7 @@ fn masked_scene(layers: Vec<Layer>) -> (Document, SceneId) {
     document(Timeline::new(layers), vec![])
 }
 
+mod elements;
 mod more;
 
 #[test]

@@ -1,7 +1,7 @@
 //! One timeline's own content at a frame, without descending into the instances on it.
 //!
 //! [`evaluate_frame`](crate::evaluate_frame) flattens a scene into shapes; this keeps the
-//! structure, which a format with symbols needs: each layer contributes at most one thing (a
+//! structure, which a format with symbols needs: each layer contributes its span's elements, bottom first (each a
 //! shape, or an instance of a symbol with its own transform), and what the symbol shows is that
 //! symbol's own timeline, evaluated the same way.
 
@@ -35,6 +35,8 @@ pub enum LevelContent<'a> {
 pub struct LevelItem<'a> {
     /// The layer's place in the timeline's layers, counting from the top.
     pub layer: usize,
+    /// Which element of the layer's span at the frame this is, counting from the bottom one.
+    pub element: usize,
     pub content: LevelContent<'a>,
     /// The mask region this lies inside, as an index into [`Level::clips`].
     pub clip: Option<usize>,
@@ -116,27 +118,30 @@ pub fn evaluate_level<'a>(
         let Some(span) = layer.span_at(frame) else {
             continue;
         };
-        let content = match span.content() {
-            Content::Empty | Content::Camera(_) => continue,
-            Content::Shape(shape) => {
-                let (shape, phase) = shape_at(layer, span, frame, shape);
-                LevelContent::Shape { shape, phase }
+        for (element, content) in span.elements().enumerate() {
+            let content = match content {
+                Content::Empty | Content::Camera(_) => continue,
+                Content::Shape(shape) => {
+                    let (shape, phase) = shape_at(layer, span, frame, shape);
+                    LevelContent::Shape { shape, phase }
+                }
+                Content::Instance(instance) => LevelContent::Instance {
+                    id: instance.id(),
+                    symbol: instance.symbol(),
+                    transform: tweened(layer, frame, instance, guide)?,
+                    span_start: span.start(),
+                    playback: instance.playback(),
+                },
+            };
+            level.items.push(LevelItem {
+                layer: index,
+                element,
+                content,
+                clip,
+            });
+            if level.items.len() >= super::MAX_NODES {
+                return Err(EvalError::TooManyNodes);
             }
-            Content::Instance(instance) => LevelContent::Instance {
-                id: instance.id(),
-                symbol: instance.symbol(),
-                transform: tweened(layer, frame, instance, guide)?,
-                span_start: span.start(),
-                playback: instance.playback(),
-            },
-        };
-        level.items.push(LevelItem {
-            layer: index,
-            content,
-            clip,
-        });
-        if level.items.len() >= super::MAX_NODES {
-            return Err(EvalError::TooManyNodes);
         }
     }
     Ok(level)

@@ -29,6 +29,75 @@ impl FrameSpan {
         Ok(self)
     }
 
+    /// The same span holding exactly `elements`, bottom first, as its content and extras. `None`
+    /// for no elements; an error when one is not allowed (see [`Self::with_extras`]). A single
+    /// element keeps the span's motion; a span that gets several is held.
+    pub fn with_elements(&self, elements: Vec<Content>) -> Result<Option<Self>, TimelineError> {
+        let mut elements = elements.into_iter();
+        let Some(first) = elements.next() else {
+            return Ok(None);
+        };
+        let extras: Vec<Content> = elements.collect();
+        let mut span = self.clone();
+        span.content = first;
+        span.extras = Vec::new();
+        if !extras.is_empty() {
+            span.tween = Tween::None;
+            span = span.with_extras(extras)?;
+        }
+        Ok(Some(span))
+    }
+
+    /// The same span with the element at `index` replaced. `None` when there is no such element
+    /// or the replacement is not allowed there (a span of several holds only shapes and
+    /// instances).
+    #[must_use]
+    pub fn with_element(&self, index: usize, content: Content) -> Option<Self> {
+        let mut all: Vec<Content> = self.elements().cloned().collect();
+        *all.get_mut(index)? = content;
+        self.with_elements(all).ok().flatten()
+    }
+
+    /// The same span without the element at `index`; `None` when there is no such element or
+    /// it is the only one (remove the span instead).
+    #[must_use]
+    pub fn without_element(&self, index: usize) -> Option<Self> {
+        if self.element_count() < 2 || index >= self.element_count() {
+            return None;
+        }
+        let mut all: Vec<Content> = self.elements().cloned().collect();
+        all.remove(index);
+        self.with_elements(all).ok().flatten()
+    }
+
+    /// The same span with `content` drawn above every element it has. An empty keyframe takes
+    /// it as its content. `None` when the span cannot hold it (a tween, a camera, too many).
+    #[must_use]
+    pub fn with_appended(&self, content: Content) -> Option<Self> {
+        if matches!(self.content, Content::Empty) && self.extras.is_empty() {
+            return self.with_elements(vec![content]).ok().flatten();
+        }
+        // Appending is refused, not silently un-tweened.
+        if self.tween != Tween::None {
+            return None;
+        }
+        let mut all: Vec<Content> = self.elements().cloned().collect();
+        all.push(content);
+        self.with_elements(all).ok().flatten()
+    }
+
+    /// The same span with the element at `from` moved to `to` in the stacking order.
+    #[must_use]
+    pub fn with_element_moved(&self, from: usize, to: usize) -> Option<Self> {
+        let mut all: Vec<Content> = self.elements().cloned().collect();
+        if from >= all.len() || to >= all.len() {
+            return None;
+        }
+        let item = all.remove(from);
+        all.insert(to, item);
+        self.with_elements(all).ok().flatten()
+    }
+
     /// The elements drawn above the first, in order from the bottom.
     pub fn extras(&self) -> &[Content] {
         &self.extras

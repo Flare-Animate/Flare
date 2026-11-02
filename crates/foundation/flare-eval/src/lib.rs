@@ -204,27 +204,51 @@ fn walk_layer<'a>(
     let Some(span) = layer.span_at(frame) else {
         return Ok(());
     };
-    if out.placed.len() + out.shapes.len() >= MAX_NODES {
-        return Err(EvalError::TooManyNodes);
-    }
-    let instance = match span.content() {
-        Content::Empty => return Ok(()),
-        Content::Shape(shape) => {
-            let (shape, phase) = shape_at(layer, span, frame, shape);
-            out.shapes.push(DrawnShape {
-                path: path.clone(),
-                shape,
-                phase,
-                transform: parent,
-                clips: clips.to_vec(),
-                outline: outline.unwrap_or(flare_document::OUTLINE_PALETTE[0]),
-            });
-            return Ok(());
+    // Every element of the span is drawn, the first at the bottom; only a single-element span
+    // can tween, so the in-between shape and transform apply to the first element alone.
+    for element in span.elements() {
+        if out.placed.len() + out.shapes.len() >= MAX_NODES {
+            return Err(EvalError::TooManyNodes);
         }
-        Content::Instance(instance) => instance,
-        // The camera is not drawn: it moves everything else (see `camera_view`).
-        Content::Camera(_) => return Ok(()),
-    };
+        match element {
+            Content::Empty => {}
+            Content::Shape(shape) => {
+                let (shape, phase) = shape_at(layer, span, frame, shape);
+                out.shapes.push(DrawnShape {
+                    path: path.clone(),
+                    shape,
+                    phase,
+                    transform: parent,
+                    clips: clips.to_vec(),
+                    outline: outline.unwrap_or(flare_document::OUTLINE_PALETTE[0]),
+                });
+            }
+            Content::Instance(instance) => {
+                walk_instance(
+                    document, layer, span, instance, frame, parent, path, guide, clips, out,
+                )?;
+            }
+            // The camera is not drawn: it moves everything else (see `camera_view`).
+            Content::Camera(_) => {}
+        }
+    }
+    Ok(())
+}
+
+/// One instance of a span, placed and followed into its symbol.
+#[allow(clippy::too_many_arguments)]
+fn walk_instance<'a>(
+    document: &'a Document,
+    layer: &'a Layer,
+    span: &'a flare_document::FrameSpan,
+    instance: &'a Instance,
+    frame: u32,
+    parent: DAffine2,
+    path: &mut Vec<InstanceId>,
+    guide: Option<&Shape>,
+    clips: &[usize],
+    out: &mut Frame<'a>,
+) -> Result<(), EvalError> {
     let local = tweened(layer, frame, instance, guide)?;
     let transform = parent * local;
     path.push(instance.id());
