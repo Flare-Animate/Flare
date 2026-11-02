@@ -8,13 +8,18 @@ impl Workspace {
         if self.windows.recent {
             let mut open = true;
             let mut chosen = None;
-            egui::Window::new("Open Recent")
+            let (title, nothing, clear) = (
+                self.tr("start-open-recent"),
+                self.tr("start-nothing-recent"),
+                self.tr("start-clear-list"),
+            );
+            egui::Window::new(title)
                 .open(&mut open)
                 .collapsible(false)
                 .resizable(false)
                 .show(ctx, |ui| {
                     if self.home.recent.is_empty() {
-                        ui.weak("Nothing opened or saved yet.");
+                        ui.weak(nothing);
                     }
                     for path in &self.home.recent {
                         let name = path.file_name().map_or_else(
@@ -29,7 +34,7 @@ impl Workspace {
                             chosen = Some(path.clone());
                         }
                     }
-                    if !self.home.recent.is_empty() && ui.small_button("Clear the list").clicked() {
+                    if !self.home.recent.is_empty() && ui.small_button(clear).clicked() {
                         self.home.recent.clear();
                     }
                 });
@@ -40,13 +45,17 @@ impl Workspace {
         }
         if self.windows.publish_settings {
             let mut open = true;
-            egui::Window::new("Publish Settings")
+            let (title, hint) = (
+                self.tr("doc-publish-settings"),
+                self.tr("start-publish-hint"),
+            );
+            egui::Window::new(title)
                 .open(&mut open)
                 .collapsible(false)
                 .resizable(false)
                 .show(ctx, |ui| {
                     self.publish_settings_ui(ui);
-                    ui.weak("File > Publish writes each format that is ticked, side by side.");
+                    ui.weak(hint);
                 });
             self.windows.publish_settings = open;
         }

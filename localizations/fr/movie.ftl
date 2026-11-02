@@ -1,0 +1,12 @@
+movie-title = Tester l’animation
+movie-clock = { $clock } · image { $frame }
+movie-restart = Recommencer
+movie-pause = Pause
+movie-play = Lecture
+movie-step = Avancer d’une image
+movie-speed = Vitesse de lecture
+movie-loop-on = En boucle : l’animation recommence à la fin
+movie-loop-off = Sans boucle : l’animation s’arrête à la dernière image
+movie-sound-off = Le son est coupé ; cliquez pour l’activer
+movie-sound-on = Le son est activé ; cliquez pour le couper
+movie-close = Fermer

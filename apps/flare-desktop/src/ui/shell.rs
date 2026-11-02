@@ -8,6 +8,12 @@ use super::UserEvent;
 use super::app::App;
 
 impl App {
+    /// A message box whose title is the message called `title_key` in the interface's language.
+    /// What `detail` says comes from the library that failed, in English for now.
+    pub(super) fn say_error(&self, title_key: &str, detail: &str) {
+        dialogs::message(&self.workspace.interface_text(title_key), detail);
+    }
+
     /// Shows the dialog the workspace asked for and hands it the answer.
     pub(super) fn handle_dialog(&mut self) {
         let Some(request) = self.workspace.take_dialog() else {
@@ -15,62 +21,81 @@ impl App {
         };
         match request {
             DialogRequest::Open => {
-                if let Some(path) = dialogs::pick_project() {
+                if let Some(path) =
+                    dialogs::pick_project(&self.workspace.interface_text("dlg-filter-project"))
+                {
                     self.workspace.open(&path);
                 }
             }
             DialogRequest::SaveAs => {
-                if let Some(path) = dialogs::save_project() {
+                if let Some(path) =
+                    dialogs::save_project(&self.workspace.interface_text("dlg-filter-project"))
+                {
                     self.workspace.save_as(&path);
                 }
             }
             DialogRequest::ImportProject => {
-                if let Some(path) = dialogs::pick_import() {
+                if let Some(path) =
+                    dialogs::pick_import(&self.workspace.interface_text("dlg-filter-import"))
+                {
                     self.workspace.import_project(&path);
                 }
             }
             DialogRequest::ImportSound => {
-                if let Some(path) = dialogs::pick_sound() {
+                if let Some(path) =
+                    dialogs::pick_sound(&self.workspace.interface_text("dlg-filter-sound"))
+                {
                     self.workspace.import_sound(&path);
                 }
             }
             DialogRequest::ExportImage => {
-                if let Some(path) = dialogs::save_png() {
+                if let Some(path) =
+                    dialogs::save_png(&self.workspace.interface_text("dlg-filter-png"))
+                {
                     let (document, frame) = self.workspace.image_export();
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::export_png(document, frame, path, done) {
-                        dialogs::message("Cannot export", &error.to_string());
+                        self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
             }
             DialogRequest::ExportMovie => {
-                if let Some(path) = dialogs::save_gif() {
+                if let Some(path) =
+                    dialogs::save_gif(&self.workspace.interface_text("dlg-filter-gif"))
+                {
                     let (document, _) = self.workspace.image_export();
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::export_gif(document, path, done) {
-                        dialogs::message("Cannot export", &error.to_string());
+                        self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
             }
             DialogRequest::ExportFla => {
-                if let Some(path) = dialogs::save_fla() {
+                if let Some(path) =
+                    dialogs::save_fla(&self.workspace.interface_text("dlg-filter-fla"))
+                {
                     let (document, _) = self.workspace.image_export();
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::export_fla(document, path, done) {
-                        dialogs::message("Cannot export", &error.to_string());
+                        self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
             }
             DialogRequest::Share(target) => {
                 if let Err(error) = flare_platform::browser::open_url(target.url()) {
-                    dialogs::message("Cannot open the browser", &error.to_string());
+                    self.say_error("dlg-cannot-open-browser", &error.to_string());
                 }
             }
             DialogRequest::Publish => {
                 let settings = self.workspace.publish_settings();
                 if !settings.any() {
-                    dialogs::message("Publish", "Choose a format in Publish Settings first.");
-                } else if let Some(path) = dialogs::save_publish() {
+                    self.say_error(
+                        "dlg-publish",
+                        &self.workspace.interface_text("dlg-choose-format"),
+                    );
+                } else if let Some(path) =
+                    dialogs::save_publish(&self.workspace.interface_text("dlg-publish"))
+                {
                     let (document, _) = self.workspace.image_export();
                     let plan = jobs::PublishPlan {
                         swf: settings.swf.then_some(jobs::PublishOptions {
@@ -87,7 +112,7 @@ impl App {
                     };
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::publish(document, path, plan, done) {
-                        dialogs::message("Cannot publish", &error.to_string());
+                        self.say_error("dlg-cannot-publish", &error.to_string());
                     }
                 }
             }
@@ -120,7 +145,7 @@ impl App {
             let _ = proxy.send_event(UserEvent::MovieBytes(result));
         });
         if let Err(error) = started {
-            dialogs::message("Cannot start Test Movie", &error.to_string());
+            self.say_error("dlg-cannot-start-movie", &error.to_string());
         }
     }
 
@@ -133,8 +158,11 @@ impl App {
     ) {
         let bytes = match result {
             Ok(bytes) => bytes,
-            Err(error) => return dialogs::message("Cannot start Test Movie", &error),
+            Err(error) => return self.say_error("dlg-cannot-start-movie", &error),
         };
+        let movie_words = super::movie::MovieWords::from_lookup(|key, args| {
+            self.workspace.interface_text_with(key, args)
+        });
         let Some(gpu) = &mut self.gpu else { return };
         // One Test Movie window at a time. The old one goes first: the new one would share its
         // viewport, and with it the old window's surface, and so have nothing to draw on.
@@ -148,9 +176,10 @@ impl App {
             &mut gpu.painter,
             bytes,
             scale,
+            movie_words,
         ) {
             Ok(window) => self.movie = Some(window),
-            Err(error) => dialogs::message("Cannot start Test Movie", &format!("{error:#}")),
+            Err(error) => self.say_error("dlg-cannot-start-movie", &format!("{error:#}")),
         }
     }
 
@@ -168,9 +197,9 @@ impl App {
         match started {
             Ok(Ok(())) => {}
             Ok(Err(jobs::TestMovieStart::NoPlayer(text))) => {
-                dialogs::message("Ruffle not found", text);
+                self.say_error("dlg-player-missing", text);
             }
-            Err(error) => dialogs::message("Cannot start Test Movie", &error.to_string()),
+            Err(error) => self.say_error("dlg-cannot-start-movie", &error.to_string()),
         }
     }
 
@@ -203,7 +232,10 @@ impl App {
         if !self.workspace.any_dirty() {
             return true;
         }
-        let discard = dialogs::confirm_discard();
+        let discard = dialogs::confirm_discard(
+            &self.workspace.interface_text("dlg-unsaved-title"),
+            &self.workspace.interface_text("dlg-unsaved-text"),
+        );
         if discard {
             // Closing without saving really discards the work, including its recovery file.
             self.workspace.discard_recovery();

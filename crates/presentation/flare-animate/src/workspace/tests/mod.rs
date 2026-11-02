@@ -54,6 +54,7 @@ mod tool_slots;
 mod tool_strip;
 mod tools_and_menus;
 mod translated_chrome;
+mod translated_start_messages;
 mod transport;
 mod tweens;
 mod undo_pictures;

@@ -191,17 +191,17 @@ impl Workspace {
                 Err(error) => return self.report(error),
             }
         }
-        let name = if self.tool == Tool::Brush {
-            "Brush stroke"
+        let name = self.tr(if self.tool == Tool::Brush {
+            "msg-brush-stroke"
         } else {
-            "Pencil line"
-        };
+            "msg-pencil-line"
+        });
         let preview = if shapes.is_empty() {
             Vec::new()
         } else {
             self.previews_of(&strokes)
         };
-        self.insert_shape_layers(shapes, name);
+        self.insert_shape_layers(shapes, &name);
         if self.status.is_none() && !preview.is_empty() {
             self.settle(preview);
         }
@@ -356,9 +356,7 @@ impl Workspace {
             .collect();
         if commands.is_empty() {
             if about != DAffine2::IDENTITY {
-                self.report(
-                    "Nothing could be transformed (an instance in a motion tween cannot be skewed or mirrored)",
-                );
+                self.report(self.tr("msg-nothing-transformed"));
             }
         } else {
             self.run_batch(commands, "transform");

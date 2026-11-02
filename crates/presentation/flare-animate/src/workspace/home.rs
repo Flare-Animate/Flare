@@ -147,31 +147,33 @@ impl Workspace {
             );
         });
         ui.label(
-            egui::RichText::new(format!("Version {}", env!("CARGO_PKG_VERSION")))
-                .font(FontId::proportional(11.0))
-                .color(theme::text_dim()),
+            egui::RichText::new(
+                self.tr_with("start-version", &[("version", env!("CARGO_PKG_VERSION"))]),
+            )
+            .font(FontId::proportional(11.0))
+            .color(theme::text_dim()),
         );
         ui.add_space(18.0);
-        nav_item(ui, "home", "Home", true);
+        nav_item(ui, "home", &self.tr("start-nav-home"), true);
         // Planned, not built: shown dimmed, as the rest of the interface does.
         ui.add_enabled_ui(false, |ui| {
-            nav_item(ui, "panel-library", "Learn", false);
+            nav_item(ui, "panel-library", &self.tr("start-nav-learn"), false);
         })
         .response
         .on_disabled_hover_text(chrome::NOT_YET);
         ui.add_space(18.0);
         let width = ui.available_width();
-        if wide_button(ui, width, "file-new", "New File", true).clicked() {
+        if wide_button(ui, width, "file-new", &self.tr("start-new-file"), true).clicked() {
             let (_, w, h, fps) = PRESETS[0];
             *chosen = Some((w, h, fps));
         }
         ui.add_space(6.0);
-        if wide_button(ui, width, "file-open", "Open…", false).clicked() {
+        if wide_button(ui, width, "file-open", &self.tr("start-open"), false).clicked() {
             *dialog = Some(DialogRequest::Open);
         }
         ui.add_space(6.0);
-        if wide_button(ui, width, "file-import", "Import…", false)
-            .on_hover_text("An XFL folder, a .fla file or a .swf movie")
+        if wide_button(ui, width, "file-import", &self.tr("start-import"), false)
+            .on_hover_text(self.tr("start-import-hint"))
             .clicked()
         {
             *dialog = Some(DialogRequest::ImportProject);
@@ -188,13 +190,13 @@ impl Workspace {
             ui.label(egui::RichText::new(status.as_str()).color(theme::warning()));
             ui.add_space(8.0);
         }
-        section_title(ui, "Create new");
+        section_title(ui, &self.tr("start-create-new"));
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing = vec2(GAP, GAP);
             for (name, w, h, fps) in PRESETS {
                 let response = tile(
                     ui,
-                    name,
+                    &self.preset_title(name),
                     &[&format!("{w} × {h} · {fps} fps")],
                     |painter, rect| {
                         stage_glyph(painter, rect, w, h);
@@ -204,31 +206,34 @@ impl Workspace {
                     *chosen = Some((w, h, fps));
                 }
             }
-            let custom = tile(ui, "Custom Size", &["Choose a size and rate"], plus_glyph);
+            let custom = tile(
+                ui,
+                &self.tr("start-custom-size"),
+                &[&self.tr("start-custom-hint")],
+                plus_glyph,
+            );
             if custom.clicked() {
                 self.show_custom_size();
             }
         });
         ui.add_space(PAGE_MARGIN);
         ui.horizontal(|ui| {
-            section_title(ui, "Recent");
+            section_title(ui, &self.tr("start-recent"));
             // Clearing the list is in Preferences: here it sat next to the search box, one
             // slip from Enter's neighbour.
             if !self.home.recent.is_empty() {
+                let hint = self.tr("start-filter");
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.add(
                         egui::TextEdit::singleline(&mut self.home.search)
-                            .hint_text("Filter")
+                            .hint_text(hint)
                             .desired_width(220.0),
                     );
                 });
             }
         });
         if self.home.recent.is_empty() {
-            ui.label(
-                egui::RichText::new("Projects you open or save show up here.")
-                    .color(theme::text_dim()),
-            );
+            ui.label(egui::RichText::new(self.tr("start-recent-empty")).color(theme::text_dim()));
             return;
         }
         let ctx = ui.ctx().clone();
@@ -247,8 +252,10 @@ impl Workspace {
             .collect();
         if shown.is_empty() {
             ui.label(
-                egui::RichText::new(format!("No recent project matches “{}”.", self.home.search))
-                    .color(theme::text_dim()),
+                egui::RichText::new(
+                    self.tr_with("start-no-match", &[("search", &self.home.search)]),
+                )
+                .color(theme::text_dim()),
             );
             return;
         }

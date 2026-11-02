@@ -81,7 +81,7 @@ impl Workspace {
             self.discard_recovery();
         }
         self.show_document(document, None);
-        self.report(format!("Opened {name}"));
+        self.report(self.tr_with("msg-opened", &[("name", name)]));
     }
 
     /// Like [`Self::import_project`] for a `.fla` already in memory, named `name`.
@@ -130,7 +130,8 @@ impl Workspace {
             recovery,
         });
         if self.background.mode() == Mode::Threads {
-            self.status = Some(format!("Opening {}...", path.display()));
+            self.status =
+                Some(self.tr_with("msg-opening", &[("path", &path.display().to_string())]));
         }
         self.settle_inline();
     }
@@ -149,7 +150,7 @@ impl Workspace {
     /// Loads a recovery file as unsaved work (it counts as dirty until saved to a project).
     pub fn recover(&mut self, path: &Path) {
         if self.is_dirty() {
-            self.report("Save or undo your changes before recovering other work");
+            self.report(self.tr("msg-save-before-recover"));
             return;
         }
         self.start_open(path, true);
@@ -161,7 +162,10 @@ impl Workspace {
         if let Some(dir) = &self.recovery.dir
             && let Err(error) = flare_storage::discard_recovery(dir, self.session.document().id())
         {
-            self.status = Some(format!("Could not remove the recovery file: {error}"));
+            self.status = Some(self.tr_with(
+                "msg-recovery-remove-failed",
+                &[("reason", &error.to_string())],
+            ));
         }
     }
 

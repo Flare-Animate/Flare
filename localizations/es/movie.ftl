@@ -1,0 +1,12 @@
+movie-title = Probar película
+movie-clock = { $clock } · fotograma { $frame }
+movie-restart = Reiniciar
+movie-pause = Pausar
+movie-play = Reproducir
+movie-step = Avanzar un fotograma
+movie-speed = Velocidad de reproducción
+movie-loop-on = En bucle: la película vuelve a empezar al terminar
+movie-loop-off = Sin bucle: la película se detiene en el último fotograma
+movie-sound-off = El sonido está desactivado; haz clic para activarlo
+movie-sound-on = El sonido está activado; haz clic para desactivarlo
+movie-close = Cerrar

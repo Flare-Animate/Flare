@@ -11,6 +11,10 @@ use std::time::{Duration, Instant};
 use egui_wgpu::RenderState;
 use flare_ruffle::embedded::{EmbedError, EmbeddedMovie, Gpu};
 
+mod words;
+
+pub(crate) use words::MovieWords;
+
 /// The longest stretch of movie time one frame of the window may add. A window that was hidden or
 /// a machine that stalled must not make the movie race to catch up.
 const MAX_STEP: Duration = Duration::from_millis(100);
@@ -89,6 +93,8 @@ pub(crate) struct MovieWindow {
     /// How wide the box of controls was last time, to put it in the middle.
     box_width: f32,
     closed: bool,
+    /// What the controls say, in the interface's language.
+    words: MovieWords,
 }
 
 impl MovieWindow {
@@ -122,7 +128,13 @@ impl MovieWindow {
             elapsed: Duration::ZERO,
             box_width: 0.0,
             closed: false,
+            words: MovieWords::english(),
         })
+    }
+
+    /// Has the window speak with `words`; it starts in English.
+    pub(crate) fn set_words(&mut self, words: MovieWords) {
+        self.words = words;
     }
 
     /// Whether the person has closed the player with its Close button. The window drops it on the
@@ -158,7 +170,7 @@ impl MovieWindow {
                     ui.add_space(10.0);
                     let frame = self.movie.current_frame().unwrap_or(0);
                     let clock = ui.label(
-                        egui::RichText::new(format!("{} · frame {frame}", clock(self.elapsed)))
+                        egui::RichText::new(self.words.clock_line(&clock(self.elapsed), frame))
                             .monospace()
                             .weak(),
                     );
@@ -170,16 +182,17 @@ impl MovieWindow {
                         .show(ui, |ui| {
                             ui.horizontal(|ui| {
                                 ui.spacing_mut().item_spacing.x = 4.0;
-                                restart = tool(ui, "transport-first", "Restart", true, false);
+                                restart =
+                                    tool(ui, "transport-first", &self.words.restart, true, false);
                                 let playing = self.movie.is_playing();
                                 let (icon, tip) = if playing {
-                                    ("transport-pause", "Pause")
+                                    ("transport-pause", &self.words.pause)
                                 } else {
-                                    ("transport-play", "Play")
+                                    ("transport-play", &self.words.play)
                                 };
                                 toggle_play = tool(ui, icon, tip, true, false);
                                 step_frame =
-                                    tool(ui, "transport-next", "Step one frame", !playing, false);
+                                    tool(ui, "transport-next", &self.words.step, !playing, false);
                                 ui.separator();
                                 let current = SPEEDS
                                     .iter()
@@ -194,22 +207,22 @@ impl MovieWindow {
                                         }
                                     })
                                     .response
-                                    .on_hover_text("Playback speed");
+                                    .on_hover_text(&self.words.speed);
                                 toggle_loop = tool(
                                     ui,
                                     "transport-loop",
                                     if self.looping {
-                                        "Looping: the movie starts over at its end"
+                                        &self.words.loop_on
                                     } else {
-                                        "Not looping: the movie stops at its last frame"
+                                        &self.words.loop_off
                                     },
                                     true,
                                     self.looping,
                                 );
                                 let (icon, tip) = if self.muted {
-                                    ("sound-mute", "Sound is off; click to turn it on")
+                                    ("sound-mute", &self.words.sound_off)
                                 } else {
-                                    ("sound", "Sound is on; click to turn it off")
+                                    ("sound", &self.words.sound_on)
                                 };
                                 toggle_mute =
                                     tool(ui, icon, tip, self.movie.has_sound(), self.muted);
@@ -222,7 +235,7 @@ impl MovieWindow {
                         close = ui
                             .add(egui::Button::image_and_text(
                                 flare_ui::icons::image("close", 12.0, tint),
-                                "Close",
+                                &self.words.close,
                             ))
                             .clicked();
                     });

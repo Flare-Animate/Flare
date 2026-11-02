@@ -1,0 +1,12 @@
+movie-title = Film testen
+movie-clock = { $clock } · Bild { $frame }
+movie-restart = Neu starten
+movie-pause = Pause
+movie-play = Wiedergabe
+movie-step = Ein Bild weiter
+movie-speed = Wiedergabegeschwindigkeit
+movie-loop-on = Schleife: Der Film beginnt am Ende von vorn
+movie-loop-off = Keine Schleife: Der Film hält beim letzten Bild an
+movie-sound-off = Ton ist aus; klicken, um ihn einzuschalten
+movie-sound-on = Ton ist an; klicken, um ihn auszuschalten
+movie-close = Schließen

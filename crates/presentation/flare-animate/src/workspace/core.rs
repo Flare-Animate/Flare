@@ -46,11 +46,11 @@ impl Workspace {
     /// Sets the document's frame rate (0.01 to 240 fps) as one undo step.
     pub fn set_frame_rate(&mut self, fps: f64) {
         if self.in_symbol() {
-            self.report("Leave symbol editing to change the frame rate");
+            self.report(self.tr("msg-leave-symbol-fps"));
             return;
         }
         if !fps.is_finite() || !(0.01..=240.0).contains(&fps) {
-            self.report("The frame rate must be between 0.01 and 240 fps");
+            self.report(self.tr("msg-fps-range"));
             return;
         }
         let milli = (fps * 1000.0).round() as u32;
@@ -143,6 +143,17 @@ impl Workspace {
         self.report(message);
     }
 
+    /// The message called `key` in the interface's language, for a shell that shows its own
+    /// windows (native dialogs, the Test Movie window) and has no translator of its own.
+    pub fn interface_text(&self, key: &str) -> String {
+        self.tr(key)
+    }
+
+    /// Like [`Self::interface_text`] with the `{ $name }` placeholders filled from `args`.
+    pub fn interface_text_with(&self, key: &str, args: &[(&str, &str)]) -> String {
+        self.tr_with(key, args)
+    }
+
     pub(super) fn report(&mut self, message: impl Into<String>) {
         let message = message.into();
         if self.log.last() != Some(&message) {
@@ -173,7 +184,7 @@ impl Workspace {
         let session = self.active();
         let past: Vec<String> = session.undo_labels().map(str::to_owned).collect();
         let current = past.len() + 1;
-        let entries = std::iter::once("Original".to_owned())
+        let entries = std::iter::once(self.tr("msg-history-original"))
             .chain(past)
             .chain(session.redo_labels().map(str::to_owned))
             .collect();

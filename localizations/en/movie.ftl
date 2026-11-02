@@ -1,0 +1,12 @@
+movie-title = Test Movie
+movie-clock = { $clock } · frame { $frame }
+movie-restart = Restart
+movie-pause = Pause
+movie-play = Play
+movie-step = Step one frame
+movie-speed = Playback speed
+movie-loop-on = Looping: the movie starts over at its end
+movie-loop-off = Not looping: the movie stops at its last frame
+movie-sound-off = Sound is off; click to turn it on
+movie-sound-on = Sound is on; click to turn it off
+movie-close = Close
