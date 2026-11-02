@@ -36,6 +36,33 @@ struct Slot {
 #[derive(Default)]
 pub(crate) struct Display {
     on_screen: BTreeMap<u16, Slot>,
+    /// Where each layer's depths begin, counting layers from the top; made when first needed.
+    bases: Option<Vec<u32>>,
+}
+
+/// The depth each layer's range begins at, and the end of the last one. A layer owns one depth
+/// for the mask over it and one for each element of its fullest span, so its elements keep the
+/// same depths from frame to frame, in stacking order, and a symbol's clock is not restarted
+/// by another layer gaining an element. Bottom layers get the low depths.
+fn depth_bases(timeline: &Timeline) -> Result<Vec<u32>, PublishError> {
+    let layers = timeline.layers();
+    let mut bases = vec![0; layers.len()];
+    let mut next: u32 = 1;
+    for (index, layer) in layers.iter().enumerate().rev() {
+        bases[index] = next;
+        let slots = layer
+            .spans()
+            .iter()
+            .map(flare_document::FrameSpan::element_count)
+            .max()
+            .unwrap_or(1);
+        let slots = u32::try_from(slots).unwrap_or(u32::MAX);
+        next = next.saturating_add(slots).saturating_add(1);
+    }
+    if next > u32::from(u16::MAX) {
+        return Err(PublishError::TooManyLayers(layers.len()));
+    }
+    Ok(bases)
 }
 
 /// How a sprite plays: the symbol, whether it loops (0), plays once (1) or holds a frame (2),
@@ -84,11 +111,24 @@ impl<'d> Builder<'d> {
                 frame,
                 message: e.to_string(),
             })?;
+        if display.bases.is_none() {
+            display.bases = Some(depth_bases(timeline)?);
+        }
+        let bases = display.bases.clone().unwrap_or_default();
         let mut now: BTreeMap<u16, Slot> = BTreeMap::new();
         for item in &level.items {
-            // Bottom layers get the low depths; `layers - layer` is at least 1, so even the
-            // top layer's mask has a depth to sit at.
-            let depth = u16::try_from(2 * (layers - item.layer)).unwrap_or(u16::MAX);
+            let base = bases.get(item.layer).copied().unwrap_or(1);
+            let slots = timeline.layers()[item.layer]
+                .spans()
+                .iter()
+                .map(flare_document::FrameSpan::element_count)
+                .max()
+                .unwrap_or(1);
+            let slots = u32::try_from(slots).unwrap_or(u32::MAX);
+            let to_depth = |n: u32| u16::try_from(n).unwrap_or(u16::MAX);
+            let depth =
+                to_depth(base + 1 + u32::try_from(item.element).unwrap_or(u32::MAX - base - 1));
+            let last = to_depth(base + slots);
             let (character, matrix, token) = match &item.content {
                 LevelContent::Shape { shape, phase } => (
                     self.characters.define(&mut self.defs, shape, *phase)?,
@@ -130,11 +170,11 @@ impl<'d> Builder<'d> {
                         continue;
                     };
                     now.insert(
-                        depth - 1,
+                        to_depth(base),
                         Slot {
                             character: clip,
                             matrix: crate::matrix(level.view * member.transform),
-                            clip_depth: Some(depth),
+                            clip_depth: Some(last),
                             token: 0,
                         },
                     );

@@ -10,6 +10,7 @@ use flare_publish::{PublishError, PublishOptions, Severity, publish_swf};
 use swf::Tag;
 
 mod camera;
+mod elements;
 mod frames;
 mod shapes;
 mod sounds;
