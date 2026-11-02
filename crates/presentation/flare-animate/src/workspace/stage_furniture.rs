@@ -139,6 +139,11 @@ impl Workspace {
         );
     }
 
+    /// How wide one frame is drawn in the timeline now, in points.
+    pub fn timeline_frame_width(&self) -> f32 {
+        timeline_view::frame_width(self.timeline_zoom)
+    }
+
     pub(super) fn zoom_timeline(&mut self, factor: f32) {
         self.timeline_zoom = timeline_view::zoomed(self.timeline_zoom, factor);
     }

@@ -1,10 +1,11 @@
 //! Timeline zoom: how wide a frame is drawn, and which layers get a row.
 //!
-//! At zoom 1.0 the whole scene fits the panel; zooming in widens each frame and the track
-//! scrolls horizontally.
+//! A frame is a small fixed cell (`BASE_FRAME_WIDTH` points at zoom 1), widened or narrowed by the
+//! zoom; the track scrolls horizontally, and empty cells go on to the panel's edge. Fit sets the
+//! zoom at which the scene just fills the panel.
 
-pub const MIN_ZOOM: f32 = 1.0;
-pub const MAX_ZOOM: f32 = 16.0;
+pub const MIN_ZOOM: f32 = 0.3;
+pub const MAX_ZOOM: f32 = 4.0;
 pub const STEP: f32 = 1.5;
 
 /// The layers that get a row, top to bottom, as (index in the timeline, how deep in folders).
@@ -40,19 +41,36 @@ pub fn zoomed(zoom: f32, factor: f32) -> f32 {
     (zoom * factor).clamp(MIN_ZOOM, MAX_ZOOM)
 }
 
-/// Points per frame when `frames` frames are shown in `available` points at `zoom`.
-/// Never smaller than one point, so a degenerate panel still draws something.
-pub fn frame_width(available: f32, frames: u64, zoom: f32) -> f32 {
-    let frames = frames.max(1) as f32;
-    if !available.is_finite() {
-        return 1.0;
-    }
+/// How wide one frame is at zoom 1, in points: a small cell, as in Animate, so a short scene does
+/// not stretch its frames across the whole panel.
+pub const BASE_FRAME_WIDTH: f32 = 10.0;
+
+/// Points per frame at `zoom`. Never smaller than one point, so a degenerate zoom still draws.
+pub fn frame_width(zoom: f32) -> f32 {
     let zoom = if zoom.is_finite() {
         zoom.clamp(MIN_ZOOM, MAX_ZOOM)
     } else {
-        MIN_ZOOM
+        1.0
     };
-    (available.max(0.0) / frames * zoom).max(1.0)
+    (BASE_FRAME_WIDTH * zoom).max(1.0)
+}
+
+/// The zoom at which `frames` frames just fill `available` points, kept in range.
+pub fn fit_zoom(available: f32, frames: u64) -> f32 {
+    if !available.is_finite() || available <= 0.0 {
+        return 1.0;
+    }
+    (available / frames.max(1) as f32 / BASE_FRAME_WIDTH).clamp(MIN_ZOOM, MAX_ZOOM)
+}
+
+/// How many frames to draw cells for: the scene's, and more until `available` points are filled
+/// (with one to spare), as Animate shows empty cells to the panel's edge.
+pub fn shown_frames(available: f32, per_frame: f32, frames: u64) -> u64 {
+    if !available.is_finite() || !per_frame.is_finite() || per_frame <= 0.0 {
+        return frames.max(1);
+    }
+    let to_fill = (available.max(0.0) / per_frame).ceil() as u64 + 1;
+    frames.max(to_fill).max(1)
 }
 
 /// The color of a span's bar in the timeline: by what it holds, and a tween has its own so it can
@@ -76,14 +94,44 @@ mod tests {
     use super::*;
 
     #[test]
-    fn fit_divides_the_panel_among_the_frames_and_zoom_multiplies_it() {
-        assert_eq!(frame_width(480.0, 24, 1.0), 20.0);
-        assert_eq!(frame_width(480.0, 24, 2.0), 40.0);
+    fn a_frame_is_a_small_fixed_cell_and_zoom_scales_it() {
+        assert_eq!(frame_width(1.0), BASE_FRAME_WIDTH);
+        assert_eq!(frame_width(2.0), BASE_FRAME_WIDTH * 2.0);
+        // It does not depend on how many frames there are or how wide the panel is.
+        assert!(frame_width(1.0) < 20.0);
+    }
+
+    #[test]
+    fn fit_makes_the_frames_just_fill_the_panel_within_the_zoom_range() {
+        assert_eq!(fit_zoom(480.0, 48), 1.0);
+        assert_eq!(fit_zoom(480.0, 24), 2.0);
+        assert_eq!(
+            fit_zoom(480.0, 1),
+            MAX_ZOOM,
+            "one frame is not stretched past the range"
+        );
+        assert_eq!(fit_zoom(480.0, 100_000), MIN_ZOOM);
+        assert_eq!(fit_zoom(0.0, 24), 1.0);
+        assert_eq!(fit_zoom(f32::NAN, 24), 1.0);
+    }
+
+    #[test]
+    fn empty_cells_fill_the_panel_past_the_last_frame() {
+        // 24 frames of 10 points use 240 of 800: cells go on to the edge, and one more.
+        assert_eq!(shown_frames(800.0, 10.0, 24), 81);
+        // A long scene shows all of its frames.
+        assert_eq!(shown_frames(800.0, 10.0, 500), 500);
+        assert_eq!(shown_frames(f32::NAN, 10.0, 24), 24);
+        assert_eq!(shown_frames(800.0, 0.0, 0), 1);
     }
 
     #[test]
     fn zoom_stays_in_range_and_ignores_bad_factors() {
-        assert_eq!(zoomed(1.0, 0.5), MIN_ZOOM, "cannot zoom out past fit");
+        assert_eq!(
+            zoomed(1.0, 0.0001),
+            MIN_ZOOM,
+            "cannot zoom out past the range"
+        );
         assert_eq!(zoomed(10.0, 100.0), MAX_ZOOM);
         for bad in [f32::NAN, f32::INFINITY, 0.0, -1.0] {
             assert_eq!(zoomed(3.0, bad), 3.0);
@@ -92,14 +140,10 @@ mod tests {
 
     #[test]
     fn degenerate_inputs_still_give_a_drawable_width() {
-        assert_eq!(frame_width(0.0, 24, 1.0), 1.0);
-        assert_eq!(frame_width(f32::NAN, 24, 1.0), 1.0);
-        assert_eq!(frame_width(480.0, 0, 1.0), 480.0, "no frames counts as one");
-        assert_eq!(
-            frame_width(480.0, 24, f32::NAN),
-            20.0_f32.max(1.0) * 1.0,
-            "NaN zoom clamps"
-        );
+        assert!(frame_width(f32::NAN) >= 1.0);
+        assert!(frame_width(f32::INFINITY) >= 1.0);
+        assert!(frame_width(-3.0) >= 1.0);
+        assert!(frame_width(0.0) >= 1.0);
     }
 
     fn layer(

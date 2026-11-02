@@ -184,6 +184,8 @@ pub struct Workspace {
     clipboard: Vec<ops::ClipItem>,
     /// Timeline zoom: 1.0 fits the whole scene in the panel.
     timeline_zoom: f32,
+    /// The next timeline draw sets the zoom at which the scene fills the panel (the Fit button).
+    timeline_fit: bool,
     /// Spans selected along with `selected` (Shift-click). Move and Delete act on all of them.
     also_selected: Vec<SpanRef>,
     stage_view: StageView,
@@ -334,6 +336,7 @@ impl Workspace {
             skew_modifier: false,
             clipboard: Vec::new(),
             timeline_zoom: 1.0,
+            timeline_fit: false,
             also_selected: Vec::new(),
             stage_view: StageView::default(),
             stage_panel: Rect::NOTHING,

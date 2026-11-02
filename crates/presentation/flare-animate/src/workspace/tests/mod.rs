@@ -54,6 +54,7 @@ mod stage_menu;
 mod status_bar;
 mod tab_strip;
 mod text_objects;
+mod timeline_frames;
 mod tool_pins;
 mod tool_slots;
 mod tool_strip;

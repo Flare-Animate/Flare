@@ -262,7 +262,7 @@ impl Workspace {
         )
         .clicked()
         {
-            self.timeline_zoom = flare_editor::timeline_view::MIN_ZOOM;
+            self.timeline_fit = true;
         }
     }
 

@@ -37,13 +37,20 @@ impl Workspace {
             let row = 20.0;
             let label_w = 140.0;
             let height = row * (layer_count as f32 + 1.0);
-            let per_frame = timeline_view::frame_width(
-                (available - label_w).max(0.0),
+            let track_width = (available - label_w).max(0.0);
+            if std::mem::take(&mut self.timeline_fit) {
+                self.timeline_zoom = timeline_view::fit_zoom(track_width, u64::from(frames));
+            }
+            let per_frame = timeline_view::frame_width(self.timeline_zoom);
+            // Empty cells go on to the panel's edge, as Animate's do, past the scene's last frame.
+            let shown = u32::try_from(timeline_view::shown_frames(
+                track_width,
+                per_frame,
                 u64::from(frames),
-                self.timeline_zoom,
-            );
+            ))
+            .unwrap_or(u32::MAX);
             let (rect, response) = ui.allocate_exact_size(
-                Vec2::new(label_w + per_frame * frames as f32, height),
+                Vec2::new(label_w + per_frame * shown as f32, height),
                 Sense::click_and_drag(),
             );
             let painter = ui.painter_at(rect);
@@ -180,7 +187,7 @@ impl Workspace {
                 Stroke::new(1.0, flare_ui::theme::border()),
             );
             let step = ((40.0 / per_frame).ceil() as u32).max(1);
-            for f in 0..frames {
+            for f in 0..shown {
                 let x = track.min.x + f as f32 * per_frame;
                 if x > painter.clip_rect().max.x {
                     break;
@@ -222,7 +229,7 @@ impl Workspace {
                             flare_ui::theme::text_strong().gamma_multiply(6.0 / 255.0),
                         );
                     }
-                    timeline_cells::grid_lines(&painter, track.min.x, y, row, per_frame, frames);
+                    timeline_cells::grid_lines(&painter, track.min.x, y, row, per_frame, shown);
                     if Some(layer.id()) == active {
                         let band = Rect::from_min_max(
                             Pos2::new(rect.min.x, y),
