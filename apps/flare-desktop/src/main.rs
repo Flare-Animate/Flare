@@ -8,9 +8,18 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use flare_animate::{MAX_LAYOUT_BYTES, MAX_PREFERENCES_BYTES, Workspace};
-use flare_platform::{dirs, recovery};
+use flare_platform::{dialogs, dirs, recovery};
 
+/// A start that fails is also shown in a box: launched from a menu there is no terminal to read.
 fn main() -> Result<()> {
+    let result = run();
+    if let Err(error) = &result {
+        dialogs::startup_failed(&format!("{error:#}"));
+    }
+    result
+}
+
+fn run() -> Result<()> {
     // Every file the system hands over: a double-click, "Open with" or the command line.
     let named: Vec<PathBuf> = std::env::args_os().skip(1).map(PathBuf::from).collect();
     let mut workspace = Workspace::untitled().map_err(anyhow::Error::msg)?;

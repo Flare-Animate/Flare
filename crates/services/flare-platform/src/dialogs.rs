@@ -66,6 +66,29 @@ pub fn message(title: &str, text: &str) {
         .show();
 }
 
+/// What the box says when the program could not start. From a launcher there is no terminal, so
+/// without it a failure looks like nothing happening. `detail` is cut short: it is whatever the
+/// system said, and the box is not for pages of it.
+pub fn startup_text(detail: &str) -> String {
+    const LONGEST: usize = 1500;
+    let detail: String = detail.chars().take(LONGEST).collect();
+    format!(
+        "Flare could not start.\n\n{detail}\n\nIf this is about the graphics device or surface, \
+         update your graphics drivers (Vulkan or OpenGL). Running flare-desktop from a terminal \
+         prints more."
+    )
+}
+
+/// Tells the person the program could not start.
+pub fn startup_failed(detail: &str) {
+    rfd::MessageDialog::new()
+        .set_level(rfd::MessageLevel::Error)
+        .set_title("Flare")
+        .set_description(startup_text(detail))
+        .set_buttons(rfd::MessageButtons::Ok)
+        .show();
+}
+
 /// Asks whether to close and lose unsaved changes.
 pub fn confirm_discard() -> bool {
     rfd::MessageDialog::new()

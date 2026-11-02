@@ -7,6 +7,8 @@ pub mod audio;
 mod audio_prepared;
 pub mod browser;
 pub mod dialogs;
+#[cfg(test)]
+mod dialogs_tests;
 pub mod dirs;
 pub mod jobs;
 pub mod locale;
