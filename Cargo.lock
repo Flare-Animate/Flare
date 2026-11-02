@@ -2082,6 +2082,7 @@ dependencies = [
  "flare-publish",
  "flare-ruffle",
  "flare-storage",
+ "flare-tablet",
  "flare-ui",
  "muda",
  "pollster 0.4.0",
@@ -2252,7 +2253,6 @@ dependencies = [
  "flare-document",
  "flare-export",
  "flare-import",
- "flare-input",
  "flare-publish",
  "flare-ruffle",
  "flare-runtime",
@@ -2263,7 +2263,6 @@ dependencies = [
  "sys-locale",
  "tempfile",
  "thiserror 2.0.18",
- "x11rb",
 ]
 
 [[package]]
@@ -2368,6 +2367,15 @@ dependencies = [
  "thiserror 2.0.18",
  "uuid",
  "zstd",
+]
+
+[[package]]
+name = "flare-tablet"
+version = "0.1.0"
+dependencies = [
+ "flare-input",
+ "thiserror 2.0.18",
+ "x11rb",
 ]
 
 [[package]]

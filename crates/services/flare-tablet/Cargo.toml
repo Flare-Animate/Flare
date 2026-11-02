@@ -1,0 +1,18 @@
+[package]
+name = "flare-tablet"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+flare-input.workspace = true
+thiserror.workspace = true
+
+# The X server's XInput2, for pen pressure on Linux and the BSDs. Pure Rust, no libxcb.
+[target.'cfg(unix)'.dependencies]
+x11rb.workspace = true
+
+[lints]
+workspace = true

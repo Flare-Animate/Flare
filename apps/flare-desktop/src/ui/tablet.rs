@@ -1,5 +1,5 @@
 //! Pen pressure on Linux. winit passes a tablet pen to the program as a mouse, so the pen is read
-//! from the X server by `flare-platform` and shared with the workspace; this file decides the
+//! from the X server by `flare-tablet` and shared with the workspace; this file decides the
 //! window system and says which window to listen on.
 
 use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
@@ -17,10 +17,7 @@ fn disabled() -> bool {
 #[cfg(target_os = "linux")]
 pub(super) fn prefer_x11<T: 'static>(builder: &mut winit::event_loop::EventLoopBuilder<T>) {
     use winit::platform::x11::EventLoopBuilderExtX11;
-    if !disabled()
-        && std::env::var_os("DISPLAY").is_some()
-        && flare_platform::tablet_probe::pen_attached()
-    {
+    if !disabled() && std::env::var_os("DISPLAY").is_some() && flare_tablet::probe::pen_attached() {
         builder.with_x11();
     }
 }
@@ -43,7 +40,7 @@ pub(super) fn watch(window: &Window, feed: flare_animate::PenFeed) {
         return;
     }
     // Said on the terminal so a person whose pen shows no pressure can tell whether it was found.
-    match flare_platform::tablet::watch(feed) {
+    match flare_tablet::x11::watch(feed) {
         Ok(pens) if pens.is_empty() => {}
         Ok(pens) => eprintln!("pen pressure from: {}", pens.join(", ")),
         Err(error) => eprintln!("{error}"),

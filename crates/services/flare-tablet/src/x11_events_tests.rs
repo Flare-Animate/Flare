@@ -6,7 +6,7 @@ use x11rb::protocol::xinput::{
 };
 use x11rb::protocol::xproto::Atom;
 
-use crate::tablet_events::{MAX_DEVICES, State, Update, axis_value, devices};
+use crate::x11_events::{MAX_DEVICES, State, Update, axis_value, devices};
 
 const PRESSURE: Atom = 77;
 

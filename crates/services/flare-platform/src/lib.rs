@@ -13,13 +13,3 @@ pub mod dirs;
 pub mod jobs;
 pub mod locale;
 pub mod recovery;
-#[cfg(unix)]
-pub mod tablet;
-#[cfg(unix)]
-mod tablet_events;
-#[cfg(all(test, unix))]
-mod tablet_events_tests;
-#[cfg(unix)]
-pub mod tablet_probe;
-#[cfg(all(test, unix))]
-mod tablet_probe_tests;

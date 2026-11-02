@@ -1,4 +1,4 @@
-use crate::tablet_probe::has_pen;
+use crate::probe::has_pen;
 
 /// A device as the kernel lists it: the bitmaps are hexadecimal words of a 64-bit `long`, so
 /// bit 0x140 is bit 0 of word 5, and ABS_X and ABS_Y are bits 0 and 1 of word 0.

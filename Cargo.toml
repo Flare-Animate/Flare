@@ -35,6 +35,7 @@ members = [
     "crates/services/flare-video",
     "crates/services/flare-recent",
     "crates/services/flare-platform",
+    "crates/services/flare-tablet",
     # presentation
     "crates/presentation/flare-ui",
     "crates/presentation/flare-dock",
@@ -87,6 +88,7 @@ flare-render = { path = "crates/services/flare-render" }
 flare-runtime = { path = "crates/services/flare-runtime" }
 flare-video = { path = "crates/services/flare-video" }
 flare-platform = { path = "crates/services/flare-platform" }
+flare-tablet = { path = "crates/services/flare-tablet" }
 # presentation
 flare-dock = { path = "crates/presentation/flare-dock" }
 flare-menubar = { path = "crates/presentation/flare-menubar" }

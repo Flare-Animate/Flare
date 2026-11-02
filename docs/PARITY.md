@@ -37,7 +37,7 @@ first thing taken over and are in the importer and Flash adapter tests.
   export. Older binary `.fla` files (CS4 and before) are recognised and refused with a reason; open
   them in Animate and save as a modern `.fla` or XFL. Reading the old binary format is not planned for 0.1.
 - **Pen pressure:** the Brush's width follows pressure (the Pencil's does not), for tablets that report force through the
-  window system. On Linux winit passes a pen on as a mouse, so `flare-platform` reads the pen from the X server
+  window system (Windows does; on macOS winit drops a tablet's pressure, so a pen paints like a mouse there). On Linux winit passes a pen on as a mouse, so `flare-tablet` reads the pen from the X server
   (XInput2 raw events on the root window, which still arrive while winit holds the pointer during a drag; the "Abs Pressure" axis) and the window opens through X11 (XWayland under Wayland) when such a pen is
   plugged in; `FLARE_TABLET=off` keeps the native window system. Not built: Wayland's own tablet protocol, tilt, and
   the eraser end of a pen. It is untested on real hardware.

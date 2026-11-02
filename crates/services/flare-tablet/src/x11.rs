@@ -6,22 +6,14 @@
 use std::thread;
 
 use flare_input::PenFeed;
-use thiserror::Error;
 use x11rb::connection::Connection;
 use x11rb::protocol::Event;
 use x11rb::protocol::xinput::{self, EventMask, XIEventMask};
 use x11rb::protocol::xproto::{ConnectionExt, Window};
 use x11rb::rust_connection::RustConnection;
 
-use crate::tablet_events::{State, Update, devices};
-
-#[derive(Debug, Error)]
-pub enum TabletError {
-    /// There is no X server to ask, or it cannot do XInput2 (version 2.1 is needed, for raw
-    /// events).
-    #[error("pen pressure is not available: {0}")]
-    Unavailable(String),
-}
+use crate::TabletError;
+use crate::x11_events::{State, Update, devices};
 
 fn unavailable(error: impl std::fmt::Display) -> TabletError {
     TabletError::Unavailable(error.to_string())

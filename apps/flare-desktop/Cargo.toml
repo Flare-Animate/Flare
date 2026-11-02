@@ -30,6 +30,9 @@ ruffle = ["dep:flare-ruffle"]
 # Test Movie, and quits, on timers. Off in every build a person uses.
 autotest = ["ruffle"]
 
+[target.'cfg(unix)'.dependencies]
+flare-tablet.workspace = true
+
 [target.'cfg(target_os = "macos")'.dependencies]
 muda.workspace = true
 
