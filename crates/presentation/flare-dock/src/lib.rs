@@ -232,6 +232,70 @@ fn tool_strip_is_beside_the_stage(tree: &Tree<Pane>) -> bool {
     a == b && in_a_row
 }
 
+/// A named layout profile: a starting arrangement of the panels, the way the
+/// Animate/Toonz profiles give a different workspace for each task.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum LayoutProfile {
+    Animate,
+    Cleanup,
+    Compose,
+    Draw,
+    Library,
+    Rigging,
+    Sound,
+    Timing,
+    Default,
+}
+
+impl LayoutProfile {
+    pub const ALL: [LayoutProfile; 9] = [
+        Self::Animate,
+        Self::Cleanup,
+        Self::Compose,
+        Self::Draw,
+        Self::Library,
+        Self::Rigging,
+        Self::Sound,
+        Self::Timing,
+        Self::Default,
+    ];
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Animate => "Animate",
+            Self::Cleanup => "Cleanup",
+            Self::Compose => "Compose",
+            Self::Draw => "Draw",
+            Self::Library => "Library",
+            Self::Rigging => "Rigging",
+            Self::Sound => "Sound",
+            Self::Timing => "Timing",
+            Self::Default => "Default",
+        }
+    }
+
+    pub fn from_name(name: &str) -> Option<Self> {
+        Self::ALL.iter().copied().find(|p| p.name() == name)
+    }
+}
+
+/// The panel arrangement for a profile. Profiles that are not yet specialised
+/// fall back to the default tree; the specialist layouts land as they are ported.
+pub fn profile_tree(profile: LayoutProfile) -> Tree<Pane> {
+    match profile {
+        LayoutProfile::Animate | LayoutProfile::Default => default_tree(),
+        // Stubbed: specialised arrangements to be ported from the Rust-Rewrite
+        // profiles (see docs/LAYOUT_PROFILES.md). For now they use the default.
+        LayoutProfile::Cleanup
+        | LayoutProfile::Compose
+        | LayoutProfile::Draw
+        | LayoutProfile::Library
+        | LayoutProfile::Rigging
+        | LayoutProfile::Sound
+        | LayoutProfile::Timing => default_tree(),
+    }
+}
+
 /// Parses and validates a saved layout.
 pub fn from_json(json: &str) -> Result<Tree<Pane>, LayoutError> {
     if json.len() > MAX_LAYOUT_BYTES {
