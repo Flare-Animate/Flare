@@ -51,7 +51,7 @@ impl Workspace {
             }
             let front = self.pane_is_front(pane);
             ui.vertical_centered(|ui| {
-                if rail_button(ui, icon, front, pane.title()).clicked() {
+                if rail_button(ui, icon, front, &self.tr(pane.key())).clicked() {
                     chosen = Some(pane);
                 }
             });

@@ -99,9 +99,8 @@ impl Workspace {
     /// Replaces the document in its tab with an empty one. The caller has made sure that loses
     /// nothing.
     pub(super) fn new_document_in_place(&mut self) {
-        match Self::untitled() {
-            Ok(fresh) => {
-                let document = fresh.session.document().clone();
+        match self.new_blank_document() {
+            Ok(document) => {
                 self.discard_recovery();
                 self.install_document(document, None);
             }

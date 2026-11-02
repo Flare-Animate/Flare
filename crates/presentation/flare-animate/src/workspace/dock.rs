@@ -45,7 +45,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
     }
 
     fn tab_title_for_pane(&mut self, pane: &Pane) -> egui::WidgetText {
-        pane.title().into()
+        self.workspace.tr(pane.key()).into()
     }
 
     fn tab_bar_height(&self, _style: &egui::Style) -> f32 {

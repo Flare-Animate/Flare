@@ -1,0 +1,11 @@
+pane-tools = Werkzeuge
+pane-stage = Bühne
+pane-library = Bibliothek
+pane-timeline = Zeitleiste
+pane-properties = Eigenschaften
+pane-color = Farbe
+pane-align = Ausrichten
+pane-transform = Transformieren
+pane-history = Verlauf
+pane-info = Info
+pane-output = Ausgabe

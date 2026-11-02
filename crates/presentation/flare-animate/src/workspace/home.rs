@@ -64,15 +64,25 @@ impl Workspace {
     /// A new project with a stage of `width` by `height` at `fps`: in place of an untouched new
     /// one, else in a new tab. Refuses a size or rate the document cannot have.
     pub fn new_project(&mut self, width: u32, height: u32, fps: u32) {
-        match Self::blank_document(width, height, fps) {
+        match self.blank_document(width, height, fps) {
             Ok(document) => self.show_document(document, None),
             Err(error) => self.report(error),
         }
     }
 
-    fn blank_document(width: u32, height: u32, fps: u32) -> Result<Document, String> {
-        let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).map_err(|e| e.to_string())?;
-        let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
+    fn blank_document(&self, width: u32, height: u32, fps: u32) -> Result<Document, String> {
+        let number = [("n", "1")];
+        let layer = Layer::new(
+            LayerId::new(),
+            self.tr_with("name-new-layer", &number),
+            vec![],
+        )
+        .map_err(|e| e.to_string())?;
+        let scene = Scene::new(
+            SceneId::new(),
+            self.tr_with("name-new-scene", &number),
+            Timeline::new(vec![layer]),
+        );
         let rate = FrameRate::new(fps, 1).map_err(|e| e.to_string())?;
         let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
             .map_err(|diagnostics| format!("{diagnostics:?}"))?;

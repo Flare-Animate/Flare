@@ -1,0 +1,11 @@
+untitled = Sin título
+name-new-scene = Escena { $n }
+name-new-layer = Capa { $n }
+name-new-text-layer = Texto
+doc-title = Documento
+doc-publish-settings = Configuración de publicación
+doc-frame-rate = Velocidad de fotogramas
+doc-scenes = Escenas
+doc-sounds = Sonidos
+doc-width = An
+doc-height = Al

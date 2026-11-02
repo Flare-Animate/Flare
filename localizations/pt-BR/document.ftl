@@ -1,0 +1,11 @@
+untitled = Sem título
+name-new-scene = Cena { $n }
+name-new-layer = Camada { $n }
+name-new-text-layer = Texto
+doc-title = Documento
+doc-publish-settings = Configurações de publicação
+doc-frame-rate = Taxa de quadros
+doc-scenes = Cenas
+doc-sounds = Sons
+doc-width = L
+doc-height = A

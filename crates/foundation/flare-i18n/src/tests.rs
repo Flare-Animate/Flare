@@ -32,6 +32,24 @@ fn every_language_has_every_section_and_each_file_parses() {
 }
 
 #[test]
+fn no_message_is_defined_in_two_files_of_a_language() {
+    // The files of a language are one bundle, so a key in two of them would hide one meaning.
+    for language in Language::ALL {
+        let mut seen = std::collections::HashMap::new();
+        for (index, section) in SECTIONS.iter().enumerate() {
+            for key in keys_of(language.section_source(index).expect("section")) {
+                if let Some(other) = seen.insert(key.clone(), *section) {
+                    panic!(
+                        "{} defines {key} in {other} and in {section}",
+                        language.code()
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn every_language_has_exactly_the_messages_english_has() {
     for (index, section) in SECTIONS.iter().enumerate() {
         let mut english = keys_of(Language::English.section_source(index).expect("en"));
@@ -72,6 +90,54 @@ fn a_translation_keeps_the_placeholders_the_english_has() {
             english.text_with("prefs-language-system", &[("language", "ZZZ")]),
             "System locale (ZZZ)"
         );
+    }
+}
+
+/// The `$names` a message uses, sorted.
+fn placeholders_of(source: &str, key: &str) -> Vec<String> {
+    let resource = FluentResource::try_new(source.to_owned())
+        .unwrap_or_else(|(_, errors)| panic!("does not parse: {errors:?}"));
+    let mut names = Vec::new();
+    for entry in resource.entries() {
+        if let fluent_syntax::ast::Entry::Message(m) = entry
+            && m.id.name == key
+        {
+            // The pattern's source text is enough: `$name` can only appear as a placeholder.
+            let line = source
+                .lines()
+                .find(|l| l.starts_with(&format!("{key} =")))
+                .unwrap_or_default();
+            names = line
+                .split('$')
+                .skip(1)
+                .map(|rest| {
+                    rest.chars()
+                        .take_while(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
+                        .collect::<String>()
+                })
+                .collect();
+        }
+    }
+    names.sort();
+    names
+}
+
+#[test]
+fn every_translation_uses_exactly_the_placeholders_of_its_english_message() {
+    for (index, section) in SECTIONS.iter().enumerate() {
+        let english = Language::English.section_source(index).expect("en");
+        for key in keys_of(english) {
+            let wanted = placeholders_of(english, &key);
+            for language in Language::ALL {
+                let source = language.section_source(index).expect("section");
+                assert_eq!(
+                    placeholders_of(source, &key),
+                    wanted,
+                    "{} {section} {key} does not use the placeholders english does",
+                    language.code()
+                );
+            }
+        }
     }
 }
 

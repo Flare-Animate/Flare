@@ -1,0 +1,11 @@
+pane-tools = 도구
+pane-stage = 무대
+pane-library = 라이브러리
+pane-timeline = 타임라인
+pane-properties = 속성
+pane-color = 색상
+pane-align = 정렬
+pane-transform = 변형
+pane-history = 히스토리
+pane-info = 정보
+pane-output = 출력

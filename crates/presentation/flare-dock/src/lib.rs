@@ -61,6 +61,24 @@ impl Pane {
         })
     }
 
+    /// The key of the panel's name in the interface's language.
+    pub fn key(self) -> &'static str {
+        match self {
+            Self::Tools => "pane-tools",
+            Self::Stage => "pane-stage",
+            Self::Library => "pane-library",
+            Self::Timeline => "pane-timeline",
+            Self::Properties => "pane-properties",
+            Self::Color => "pane-color",
+            Self::Align => "pane-align",
+            Self::Transform => "pane-transform",
+            Self::History => "pane-history",
+            Self::Info => "pane-info",
+            Self::Output => "pane-output",
+        }
+    }
+
+    /// The panel's name in English, for messages that are not in a person's language.
     pub fn title(self) -> &'static str {
         match self {
             Self::Tools => "Tools",

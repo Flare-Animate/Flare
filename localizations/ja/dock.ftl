@@ -1,0 +1,11 @@
+pane-tools = ツール
+pane-stage = ステージ
+pane-library = ライブラリ
+pane-timeline = タイムライン
+pane-properties = プロパティ
+pane-color = カラー
+pane-align = 整列
+pane-transform = 変形
+pane-history = ヒストリー
+pane-info = 情報
+pane-output = 出力

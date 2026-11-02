@@ -197,7 +197,7 @@ impl Workspace {
                     -flare_document::MAX_EASE..=flare_document::MAX_EASE,
                 ),
             )
-            .on_hover_text("Negative starts slowly, positive ends slowly");
+            .on_hover_text(self.tr("tween-ease-hint"));
         });
         if ease != before {
             self.set_selection_ease(ease);
@@ -207,7 +207,7 @@ impl Workspace {
     pub(crate) fn doc_tab(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             ui.add(icons::image("document", 18.0, theme::accent()));
-            ui.label(RichText::new("Document").heading());
+            ui.label(RichText::new(self.tr("doc-title")).heading());
         });
         self.publish_section(ui);
         self.document_section(ui);
@@ -215,16 +215,19 @@ impl Workspace {
 
     /// The SWF publish choices, with the button for the rest.
     fn publish_section(&mut self, ui: &mut Ui) {
-        chrome::section(ui, "file-publish", "Publish Settings");
+        let title = self.tr("doc-publish-settings");
+        chrome::section(ui, "file-publish", &title);
         self.publish_settings_ui(ui);
     }
 
     /// Stage size, background and the facts about the document.
     pub(crate) fn document_section(&mut self, ui: &mut Ui) {
-        chrome::section(ui, "document", "Document");
+        let title = self.tr("doc-title");
+        chrome::section(ui, "document", &title);
         self.stage_settings(ui);
         let rate = self.document().frame_rate();
-        chrome::row(ui, "Frame rate", |ui| {
+        let label = self.tr("doc-frame-rate");
+        chrome::row(ui, &label, |ui| {
             let current = rate.per_second();
             let mut fps = self.fps_edit.unwrap_or(current);
             let response = ui.add_enabled(
@@ -244,10 +247,12 @@ impl Workspace {
                 self.set_frame_rate(fps);
             }
         });
-        chrome::row(ui, "Scenes", |ui| {
+        let label = self.tr("doc-scenes");
+        chrome::row(ui, &label, |ui| {
             ui.label(self.document().scenes().len().to_string());
         });
-        chrome::row(ui, "Sounds", |ui| {
+        let label = self.tr("doc-sounds");
+        chrome::row(ui, &label, |ui| {
             ui.label(self.document().sounds().len().to_string());
         });
     }

@@ -14,29 +14,30 @@ pub(crate) struct TabInfo {
 }
 
 impl Workspace {
-    fn document_title(&self) -> String {
+    fn document_title(&self, untitled: &str) -> String {
         self.path
             .as_deref()
             .and_then(std::path::Path::file_name)
-            .map_or_else(
-                || "Untitled".to_owned(),
-                |n| n.to_string_lossy().into_owned(),
-            )
+            .map_or_else(|| untitled.to_owned(), |n| n.to_string_lossy().into_owned())
     }
 
     /// Every tab, in order, with the current one marked.
     pub(crate) fn tabs(&self) -> Vec<TabInfo> {
+        // Every tab is named in the language being spoken, not the one a parked workspace was made in.
+        let untitled = self.tr("untitled");
         let mut parked = self.parked.iter();
         (0..=self.parked.len())
             .map(|index| {
                 if index == self.position {
                     TabInfo {
-                        title: self.document_title(),
+                        title: self.document_title(&untitled),
                         dirty: self.is_dirty(),
                         current: true,
                     }
                 } else {
-                    let other = parked.next().map(|w| (w.document_title(), w.is_dirty()));
+                    let other = parked
+                        .next()
+                        .map(|w| (w.document_title(&untitled), w.is_dirty()));
                     let (title, dirty) = other.unwrap_or_default();
                     TabInfo {
                         title,
@@ -106,11 +107,8 @@ impl Workspace {
         if self.windows.home && self.is_blank() {
             return self.new_document_in_place();
         }
-        match Self::untitled() {
-            Ok(fresh) => {
-                let document = fresh.session.document().clone();
-                self.open_in_new_tab(document, None);
-            }
+        match self.new_blank_document() {
+            Ok(document) => self.open_in_new_tab(document, None),
             Err(error) => self.report(error),
         }
     }

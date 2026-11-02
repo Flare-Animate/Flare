@@ -1,0 +1,11 @@
+pane-tools = Outils
+pane-stage = Scène
+pane-library = Bibliothèque
+pane-timeline = Scénario
+pane-properties = Propriétés
+pane-color = Couleur
+pane-align = Aligner
+pane-transform = Transformer
+pane-history = Historique
+pane-info = Infos
+pane-output = Sortie

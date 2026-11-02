@@ -25,22 +25,7 @@ pub enum Language {
     ChineseSimplified,
 }
 
-/// The sections of the interface that have files, in every language.
-pub const SECTIONS: [&str; 3] = ["common", "preferences", "publish"];
-
-macro_rules! sections {
-    ($lang:literal) => {
-        [
-            include_str!(concat!("../../../../localizations/", $lang, "/common.ftl")),
-            include_str!(concat!(
-                "../../../../localizations/",
-                $lang,
-                "/preferences.ftl"
-            )),
-            include_str!(concat!("../../../../localizations/", $lang, "/publish.ftl")),
-        ]
-    };
-}
+include!(concat!(env!("OUT_DIR"), "/sections.rs"));
 
 impl Language {
     /// In list order (see the type's description).
@@ -121,16 +106,7 @@ impl Language {
     }
 
     fn sources(self) -> [&'static str; SECTIONS.len()] {
-        match self {
-            Self::English => sections!("en"),
-            Self::German => sections!("de"),
-            Self::Spanish => sections!("es"),
-            Self::French => sections!("fr"),
-            Self::PortugueseBrazil => sections!("pt-BR"),
-            Self::Japanese => sections!("ja"),
-            Self::Korean => sections!("ko"),
-            Self::ChineseSimplified => sections!("zh-CN"),
-        }
+        language_sources(self.code())
     }
 
     /// The text of section number `index` of [`SECTIONS`].

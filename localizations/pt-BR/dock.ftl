@@ -1,0 +1,11 @@
+pane-tools = Ferramentas
+pane-stage = Palco
+pane-library = Biblioteca
+pane-timeline = Linha do tempo
+pane-properties = Propriedades
+pane-color = Cor
+pane-align = Alinhar
+pane-transform = Transformar
+pane-history = Histórico
+pane-info = Informações
+pane-output = Saída

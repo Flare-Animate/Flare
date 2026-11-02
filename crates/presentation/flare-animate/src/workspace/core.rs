@@ -106,10 +106,11 @@ impl Workspace {
         if self.windows.home {
             return "Flare".to_owned();
         }
-        let name = self.path.as_deref().and_then(Path::file_name).map_or_else(
-            || "Untitled".to_owned(),
-            |n| n.to_string_lossy().into_owned(),
-        );
+        let name = self
+            .path
+            .as_deref()
+            .and_then(Path::file_name)
+            .map_or_else(|| self.tr("untitled"), |n| n.to_string_lossy().into_owned());
         let dirty = if self.is_dirty() { "*" } else { "" };
         format!("{name}{dirty} - Flare")
     }

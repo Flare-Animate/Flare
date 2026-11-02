@@ -42,6 +42,11 @@ impl Workspace {
         self.translator.text(key)
     }
 
+    /// The message called `key` with its `{ $name }` placeholders filled in.
+    pub(super) fn tr_with(&self, key: &str, args: &[(&str, &str)]) -> String {
+        self.translator.text_with(key, args)
+    }
+
     /// The name "System locale" carries in a list: the language it stands for.
     pub(super) fn system_choice_label(&self) -> String {
         let system = Language::from_system(&self.system_locale);

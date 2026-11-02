@@ -31,8 +31,15 @@ impl Workspace {
 
     fn timeline_toolbar_row(&mut self, ui: &mut Ui) {
         let last = self.scene_frames() - 1;
-        if chrome::icon_button(ui, "transport-first", BAR_ICON, false, true, "First frame")
-            .clicked()
+        if chrome::icon_button(
+            ui,
+            "transport-first",
+            BAR_ICON,
+            false,
+            true,
+            &self.tr("timeline-first"),
+        )
+        .clicked()
         {
             self.set_frame(0);
         }
@@ -42,25 +49,41 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            "Previous frame",
+            &self.tr("timeline-prev"),
         )
         .clicked()
         {
             self.set_frame(self.frame.saturating_sub(1));
         }
         let (icon, hint) = if self.playing {
-            ("transport-pause", "Pause")
+            ("transport-pause", self.tr("timeline-pause"))
         } else {
-            ("transport-play", "Play")
+            ("transport-play", self.tr("timeline-play"))
         };
-        if chrome::icon_button(ui, icon, BAR_ICON, self.playing, true, hint).clicked() {
+        if chrome::icon_button(ui, icon, BAR_ICON, self.playing, true, &hint).clicked() {
             self.playing = !self.playing;
         }
-        if chrome::icon_button(ui, "transport-next", BAR_ICON, false, true, "Next frame").clicked()
+        if chrome::icon_button(
+            ui,
+            "transport-next",
+            BAR_ICON,
+            false,
+            true,
+            &self.tr("timeline-next"),
+        )
+        .clicked()
         {
             self.set_frame(self.frame.saturating_add(1));
         }
-        if chrome::icon_button(ui, "transport-last", BAR_ICON, false, true, "Last frame").clicked()
+        if chrome::icon_button(
+            ui,
+            "transport-last",
+            BAR_ICON,
+            false,
+            true,
+            &self.tr("timeline-last"),
+        )
+        .clicked()
         {
             self.set_frame(last);
         }
@@ -70,7 +93,7 @@ impl Workspace {
             BAR_ICON,
             self.loop_playback,
             true,
-            "Loop playback",
+            &self.tr("timeline-loop"),
         )
         .clicked()
         {
@@ -81,7 +104,7 @@ impl Workspace {
         ui.add(
             egui::DragValue::new(&mut frame)
                 .range(0..=last)
-                .prefix("Frame "),
+                .prefix(format!("{} ", self.tr("timeline-frame"))),
         );
         if frame != self.frame {
             self.set_frame(frame);
@@ -91,7 +114,16 @@ impl Workspace {
         ui.label(RichText::new(format!("{fps:.2} fps")).color(theme::text_dim()));
         ui.separator();
         let mut onion = self.onion.enabled;
-        if chrome::icon_button(ui, "onion-skin", BAR_ICON, onion, true, "Onion skin").clicked() {
+        if chrome::icon_button(
+            ui,
+            "onion-skin",
+            BAR_ICON,
+            onion,
+            true,
+            &self.tr("timeline-onion"),
+        )
+        .clicked()
+        {
             onion = !onion;
         }
         self.set_onion_skin(onion);
@@ -102,7 +134,7 @@ impl Workspace {
                 BAR_ICON,
                 self.onion.outlines,
                 true,
-                "Show onion skin as outlines",
+                &self.tr("timeline-onion-outline"),
             )
             .clicked()
             {
@@ -124,7 +156,16 @@ impl Workspace {
             self.set_onion_range(before, after);
         });
         ui.separator();
-        if chrome::icon_button(ui, "layer-new", BAR_ICON, false, true, "New layer").clicked() {
+        if chrome::icon_button(
+            ui,
+            "layer-new",
+            BAR_ICON,
+            false,
+            true,
+            &self.tr("timeline-new-layer"),
+        )
+        .clicked()
+        {
             self.add_layer();
         }
         if chrome::icon_button(
@@ -133,7 +174,7 @@ impl Workspace {
             BAR_ICON,
             false,
             true,
-            "New layer folder",
+            &self.tr("timeline-new-folder"),
         )
         .clicked()
         {
@@ -142,14 +183,17 @@ impl Workspace {
         let folders = self.folders_for_active_layer();
         let in_folder = self.active_layer().is_some_and(|l| l.parent().is_some());
         ui.add_enabled_ui(!folders.is_empty() || in_folder, |ui| {
-            ui.menu_button("Folder", |ui| {
+            ui.menu_button(self.tr("timeline-folder"), |ui| {
                 for (id, name) in &folders {
-                    if ui.button(format!("Move into {name}")).clicked() {
+                    if ui
+                        .button(self.tr_with("timeline-move-into", &[("name", name)]))
+                        .clicked()
+                    {
                         self.move_active_layer_to_folder(Some(*id));
                         ui.close();
                     }
                 }
-                if in_folder && ui.button("Move out of its folder").clicked() {
+                if in_folder && ui.button(self.tr("timeline-move-out")).clicked() {
                     self.move_active_layer_to_folder(None);
                     ui.close();
                 }
@@ -161,7 +205,7 @@ impl Workspace {
             BAR_ICON,
             self.active_layer().is_some_and(Layer::is_guide),
             self.is_enabled(MenuAction::ToggleLayerGuide),
-            "Motion guide for the layer below",
+            &self.tr("timeline-guide"),
         )
         .clicked()
         {
@@ -173,7 +217,7 @@ impl Workspace {
             BAR_ICON,
             self.active_layer().is_some_and(Layer::is_mask),
             self.is_enabled(MenuAction::ToggleLayerMask),
-            "Mask the layer below",
+            &self.tr("timeline-mask"),
         )
         .clicked()
         {
@@ -185,7 +229,7 @@ impl Workspace {
             BAR_ICON,
             false,
             self.is_enabled(MenuAction::DeleteLayer),
-            "Delete layer",
+            &self.tr("timeline-delete-layer"),
         )
         .clicked()
         {
@@ -195,12 +239,12 @@ impl Workspace {
         for (icon, hint, factor) in [
             (
                 "zoom-out",
-                "Zoom timeline out",
+                &self.tr("timeline-zoom-out"),
                 1.0 / flare_editor::timeline_view::STEP,
             ),
             (
                 "zoom-in",
-                "Zoom timeline in",
+                &self.tr("timeline-zoom-in"),
                 flare_editor::timeline_view::STEP,
             ),
         ] {
@@ -208,7 +252,16 @@ impl Workspace {
                 self.zoom_timeline(factor);
             }
         }
-        if chrome::icon_button(ui, "zoom-fit", BAR_ICON, false, true, "Fit the scene").clicked() {
+        if chrome::icon_button(
+            ui,
+            "zoom-fit",
+            BAR_ICON,
+            false,
+            true,
+            &self.tr("timeline-fit"),
+        )
+        .clicked()
+        {
             self.timeline_zoom = flare_editor::timeline_view::MIN_ZOOM;
         }
     }
@@ -224,7 +277,11 @@ impl Workspace {
             .first()
             .map_or(0, |s| s.timeline().layers().len());
         let id = LayerId::new();
-        let layer = match Layer::new(id, format!("Layer {}", count + 1), vec![]) {
+        let layer = match Layer::new(
+            id,
+            self.tr_with("name-new-layer", &[("n", &(count + 1).to_string())]),
+            vec![],
+        ) {
             Ok(layer) => layer,
             Err(error) => return self.report(error.to_string()),
         };

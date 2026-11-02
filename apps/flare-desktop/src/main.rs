@@ -37,6 +37,8 @@ fn run() -> Result<()> {
     {
         eprintln!("ignoring the saved preferences: {error}");
     }
+    // The document made above is named before the language is known.
+    workspace.localize_new_document();
     if let Some(dir) = dirs::recovery_dir() {
         workspace.enable_recovery(dir.clone());
         // Only offer recovery on a plain launch, not when a project was named explicitly.
