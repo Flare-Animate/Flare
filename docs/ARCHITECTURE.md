@@ -224,7 +224,7 @@ take font files the person brings (`--font-file`) next to the system's.
 
 ## Import (XFL)
 
-`flare import <source> <out.flare>` reads an XFL directory, an `.xfl` file (its folder is
+`flare import <source> <out.flare>` reads an XFL directory, an `.xfl` file or a folder's `DOMDocument.xml` (the folder is
 used) or a zipped modern `.fla`, and writes a new project. It never overwrites, and the
 result is an ordinary document. Input is untrusted: XML depth, element count and file sizes
 are capped, DTDs are refused, file names cannot escape the document, and symlinks out of an

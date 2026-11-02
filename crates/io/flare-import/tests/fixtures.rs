@@ -112,3 +112,28 @@ fn every_prefix_of_a_fixture_archive_is_refused_or_imported_without_panicking() 
         let _ = flare_import::import_fla_bytes(damaged);
     }
 }
+
+#[test]
+fn the_document_file_inside_an_xfl_folder_imports_that_folder() {
+    let folder = import_path(&fixture("sample_xfl")).expect("folder");
+    let by_file =
+        import_path(&fixture("sample_xfl").join("DOMDocument.xml")).expect("document file");
+    assert_eq!(folder.document.stage(), by_file.document.stage());
+    assert_eq!(
+        folder.document.scenes().len(),
+        by_file.document.scenes().len()
+    );
+}
+
+#[test]
+fn a_folder_that_is_not_xfl_says_so_instead_of_importing_nothing() {
+    let dir = tempfile::tempdir().expect("dir");
+    let error = import_path(dir.path()).expect_err("an empty folder is not a document");
+    assert!(
+        error
+            .to_string()
+            .to_ascii_lowercase()
+            .contains("domdocument"),
+        "{error}"
+    );
+}

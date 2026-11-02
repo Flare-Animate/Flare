@@ -15,7 +15,7 @@ impl Workspace {
             Some(PathKind::Project) => self.open(path),
             Some(PathKind::Import) => self.import_project(path),
             None => self.report(format!(
-                "Flare opens .flare projects and imports .fla, .xfl and .swf files, not {}",
+                "Flare opens .flare projects and imports .fla, .xfl and .swf files and XFL folders, not {}",
                 path.file_name().map_or_else(
                     || path.display().to_string(),
                     |name| name.to_string_lossy().into_owned()

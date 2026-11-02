@@ -115,7 +115,7 @@ impl<R: Read + Seek> FileSource for ZipSource<R> {
 const ZIP_MAGIC: &[u8] = b"PK\x03\x04";
 const CFB_MAGIC: &[u8] = &[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
 
-/// Imports from a path: an XFL directory, a `.xfl` stub file (its folder is used), a
+/// Imports from a path: an XFL directory, a `.xfl` stub file or the folder's `DOMDocument.xml` (the folder is used), a
 /// zipped `.fla` or a Flash movie (`.swf`). Legacy binary `.fla` files are recognised and refused with a clear reason.
 pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
     if path.is_dir() {
@@ -136,9 +136,10 @@ pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
             "this is a legacy binary FLA (pre-CS5); open it in Animate and save as XFL or a modern FLA".into(),
         ));
     }
-    if path
+    if (path
         .extension()
         .is_some_and(|e| e.eq_ignore_ascii_case("xfl"))
+        || crate::is_xfl_document(path))
         && let Some(parent) = path.parent()
     {
         return import_xfl(&DirSource(parent.to_owned()));

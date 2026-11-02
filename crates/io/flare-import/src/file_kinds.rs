@@ -6,6 +6,17 @@ use std::path::Path;
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
 pub const IMPORT_EXTENSIONS: [&str; 3] = ["fla", "xfl", "swf"];
 
+/// The file inside an XFL folder that is the document. A person who has only the folder, with no
+/// `.xfl` beside it, picks this one.
+pub const XFL_DOCUMENT_FILE: &str = "DOMDocument.xml";
+
+/// Whether `path` is an XFL folder's document file.
+pub fn is_xfl_document(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|n| n.to_str())
+        .is_some_and(|n| n.eq_ignore_ascii_case(XFL_DOCUMENT_FILE))
+}
+
 /// What to do with a path.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PathKind {
@@ -24,7 +35,7 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
         .unwrap_or_default();
     if PROJECT_EXTENSIONS.contains(&extension.as_str()) {
         Some(PathKind::Project)
-    } else if IMPORT_EXTENSIONS.contains(&extension.as_str()) {
+    } else if IMPORT_EXTENSIONS.contains(&extension.as_str()) || is_xfl_document(path) {
         Some(PathKind::Import)
     } else {
         // An XFL project is a folder, which can have any name.
@@ -49,6 +60,16 @@ mod tests {
             Some(PathKind::Import),
             "an XFL folder has any name"
         );
+        assert_eq!(
+            kind("MyProject/DOMDocument.xml", false),
+            Some(PathKind::Import),
+            "an XFL folder's document opens that folder"
+        );
+        assert_eq!(
+            kind("MyProject/domdocument.XML", false),
+            Some(PathKind::Import)
+        );
+        assert_eq!(kind("notes.xml", false), None);
         assert_eq!(kind("a.png", false), None);
         assert_eq!(kind("a", false), None);
         assert_eq!(kind("a.flare.txt", false), None);

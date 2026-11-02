@@ -21,7 +21,9 @@ pub fn save_project(filter: &str) -> Option<PathBuf> {
 /// An XFL file, a modern `.fla` or a Flash movie to import.
 pub fn pick_import(filter: &str) -> Option<PathBuf> {
     rfd::FileDialog::new()
-        .add_filter(filter, &["fla", "xfl", "swf"])
+        // `xml` is for the DOMDocument.xml of an XFL folder that has no `.xfl` beside it; any other
+        // XML file is refused when it is opened.
+        .add_filter(filter, &["fla", "xfl", "swf", "xml"])
         .pick_file()
 }
 

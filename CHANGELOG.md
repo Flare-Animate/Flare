@@ -9,6 +9,7 @@ All notable changes are listed here. The format follows
 The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
 
 ### Added
+- An unpacked XFL project opens from File > Import by picking its `.xfl` file, or its `DOMDocument.xml` when the folder has no `.xfl` beside it; dropping the folder on the window or giving it to `flare open` and `flare import` already worked.
 - Closing a document with unsaved work asks "Save changes to ...?" with Save, Don't Save and Cancel, instead of refusing until the work is undone or saved. The timeline draws each frame as a cell, with a keyframe's dot and the box that ends a held keyframe, so frames can be told apart. A right click on the stage opens a menu for what is under the pointer (cut, copy, paste, group, convert to symbol and more).
 - The Linux AppImage puts Flare in the desktop menu, with its icon, the first time it runs and whenever the file is moved (`FLARE_NO_DESKTOP_INTEGRATION=1` turns that off). The Windows installer installs for the current user, so it asks for no administrator rights, and the Windows program opens with no console window beside it. `flare-desktop --version` and `--help` answer without opening a window.
 - A gradient fill in an imported XFL or FLA document is no longer left out: a two-color linear gradient is drawn as a gradient, and a radial one (or one that does not fit its shape) as one color, with a warning in the Output panel.
