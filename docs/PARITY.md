@@ -24,7 +24,7 @@ first thing taken over and are in the importer and Flash adapter tests.
 | Import SVG and Photoshop (a bitmap per layer, visibility, opacity); Illustrator later | Planned: SVG and PSD high priority, `.ai` lower |
 | Find and Replace, shared libraries and the Assets panel, History replay and Save as Command | Planned, lower priority |
 | Layer depth (2.5D with the camera) | Planned, lower priority, with the camera follow-ups |
-| Legacy binary `.fla` (CS4 and before, read by carving) | Planned, lower priority; refused with a reason today |
+| Legacy binary `.fla` (CS4 and before) | Partly built: the stage, frame rate, background and library names and types are read into a skeleton project with a warning; drawings, timelines, text and media are not (checked only on Ruffle's small MX 2004/8-era test files) |
 | Contrast check for themes (`scripts/dev/contrast_check.py`) | Planned with custom themes |
 | Pre-commit hook that kept the atlas of the code honest | Planned as a smaller hook: format check only |
 | `cairn` (a log of sessions and lessons) | Not needed: `.codesight/` maps the code ([ENGINEERING.md](ENGINEERING.md)) and the git log is the history |

@@ -222,13 +222,38 @@ take font files the person brings (`--font-file`) next to the system's.
 
 `flare import <movie.swf> <out.flare>` (and File > Import, the browser's picker, and the MCP tool `import_project`) reads a Flash movie, found by what the file starts with (`FWS`, `CWS` or `ZWS`) rather than its name, using Ruffle's `swf` crate. The size a movie claims for itself once decompressed is checked before anything is allocated for it, and the counts of symbols, frames and keyframes are capped. Every shape character becomes a Graphic symbol and every sprite a Movie Clip symbol with a timeline of its own; the main timeline becomes one scene with a layer for each depth, the highest on top, and names given by Export Assets name the symbols. A SWF holds the position of each object on each frame, not tweens, so each frame an object changes on is a keyframe. The edges of a shape are turned into shapes by the same code as XFL's (`shapes_from`), so a stroke along a fill's boundary is its outline in both. Imported: stage size, frame rate and background; solid fills and strokes with their caps and joins; placements with their matrices. Reported and left out: gradients (a gradient takes the color of its first stop), picture fills, text, buttons, pictures, video, sound, scripts, color effects, filters, blend modes, masks and frame labels. Verification is the movie `flare-publish` writes, imported back and drawn (`apps/flare-cli/tests/project/formats.rs`), and movies built tag by tag in `crates/io/flare-import/tests/swf.rs`, including every truncation and random damage.
 
+## Import (legacy binary FLA)
+
+A `.fla` from Flash MX 2004 to CS4 is not a zip but a Compound File Binary (OLE2) container, found by its
+eight-byte signature. `flare-import`'s `legacy` module reads it; `import_path` and `import_bytes` (so the desktop
+app, the browser build, `flare import` and `import_project`) use it. There is no published specification: what is
+read was worked out from the community notes at github.com/Kreijstal/fla-decoder and then checked against the 159
+genuine legacy files in the vendored Ruffle test suite (format versions 0x129, 0x138, 0x13f and 0x147). They are
+small test movies, not real projects, and none is known to come from CS3 or CS4.
+
+The container reader is our own, bounded and safe: file size, directory entries and stream sizes are capped, a
+sector chain that visits a sector twice is an error, and a stream that claims more than the file holds is refused
+before anything is allocated. Read: the stream names (numbered `Page N`/`Symbol N`/`Media N`, or stamped `P N t`/
+`S N t`/`M N t`) and so the era and the number of scenes, symbols and media; the stage size, frame rate (a 16.16
+fixed-point number) and background color from a fixed record in `Contents`, found by a marker that follows it in
+every file checked; and the library table, the name and type (graphic, movie clip, button) of each symbol and the
+name and class (bitmap, sound, video) of each media item. The import is a skeleton: the stage, one empty scene and
+the symbols as empty Graphic, Movie Clip and Button symbols, with a warning that the rest is not read.
+
+Not read: drawings, timelines and layers, text, tweens, the content of sounds and bitmaps, scripts, fonts, library
+folders and scene names. Checked only on the vendored files: stage sizes 550x400 and 400x400, frame rates 5, 12 and
+24, backgrounds white and black, so the color channel order and fractional frame rates are not confirmed. A
+document whose settings record is not where those files have it is refused with what was found, not guessed.
+`crates/io/flare-import/tests/legacy_corpus.rs` compares every file with a sibling `.swf` compiled from it;
+`legacy_robust.rs` cuts a file at every length, damages it at random and builds cyclic and oversized containers.
+
 ## Import (XFL)
 
 `flare import <source> <out.flare>` reads an XFL directory, an `.xfl` file or a folder's `DOMDocument.xml` (the folder is
 used) or a zipped modern `.fla`, and writes a new project. It never overwrites, and the
 result is an ordinary document. Input is untrusted: XML depth, element count and file sizes
 are capped, DTDs are refused, file names cannot escape the document, and symlinks out of an
-XFL folder are not followed. Legacy binary `.fla` files are recognised and refused.
+XFL folder are not followed. Legacy binary `.fla` files are read as a skeleton (next section).
 
 Imported: stage size, frame rate (NTSC rates stay exact) and background; scenes; normal
 layers with name, visibility and lock; keyframes and durations; symbol instances with their

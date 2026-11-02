@@ -4,6 +4,7 @@
 
 mod edges;
 mod file_kinds;
+pub mod legacy;
 mod source;
 mod swf;
 mod xfl;

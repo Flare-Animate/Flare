@@ -365,3 +365,34 @@ fn a_published_movie_imports_back_and_draws_what_was_drawn() {
     );
     assert!(!std::path::Path::new(&out).exists());
 }
+
+#[test]
+fn a_legacy_binary_fla_imports_as_a_skeleton_with_a_warning() {
+    // The legacy file is one of Ruffle's test files, vendored under third_party.
+    let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../third_party/ruffle/swf/tests/swfs/DefineButton-MX.fla");
+    if !source.exists() {
+        eprintln!("skipped: the vendored Ruffle test files are absent");
+        return;
+    }
+    let dir = tempfile::tempdir().expect("dir");
+    let out = dir
+        .path()
+        .join("legacy.flare")
+        .to_string_lossy()
+        .into_owned();
+    let report = json(&["import", &source.to_string_lossy(), &out]);
+    assert_eq!(report["scenes"], 1);
+    assert!(
+        report["warnings"].as_u64().unwrap_or(0) >= 1,
+        "the report says what was not read: {report}"
+    );
+    let info = json(&["info", &out]);
+    assert_eq!(
+        (
+            info["stage"]["width"].as_u64(),
+            info["stage"]["height"].as_u64()
+        ),
+        (Some(550), Some(400))
+    );
+}

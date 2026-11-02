@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{self, Cursor, Read, Seek};
 use std::path::{Path, PathBuf};
 
+use crate::legacy;
 use crate::swf::{import_swf_bytes, looks_like_swf};
 use crate::xfl::{FileSource, ImportError, Imported, import_xfl, read_capped};
 
@@ -79,10 +80,13 @@ pub fn import_fla_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
     import_xfl(&ZipSource::from_bytes(bytes)?)
 }
 
-/// Imports a file held in memory: a Flash movie if it starts like one, else a `.fla`.
+/// Imports a file held in memory: a Flash movie if it starts like one, a legacy binary `.fla` if it is a
+/// compound file, else a (zipped) `.fla`.
 pub fn import_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
     if looks_like_swf(&bytes) {
         import_swf_bytes(&bytes)
+    } else if bytes.starts_with(&legacy::CFB_MAGIC) {
+        legacy::import_legacy_bytes(&bytes)
     } else {
         import_fla_bytes(bytes)
     }
@@ -113,7 +117,6 @@ impl<R: Read + Seek> FileSource for ZipSource<R> {
 }
 
 const ZIP_MAGIC: &[u8] = b"PK\x03\x04";
-const CFB_MAGIC: &[u8] = &[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
 
 /// Imports from a path: an XFL directory, a `.xfl` stub file or the folder's `DOMDocument.xml` (the folder is used), a
 /// zipped `.fla` or a Flash movie (`.swf`). Legacy binary `.fla` files are recognised and refused with a clear reason.
@@ -131,10 +134,12 @@ pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
     if head.starts_with(ZIP_MAGIC) {
         return import_xfl(&ZipSource::open(path)?);
     }
-    if head.starts_with(CFB_MAGIC) {
-        return Err(ImportError::NotXfl(
-            "this is a legacy binary FLA (pre-CS5); open it in Animate and save as XFL or a modern FLA".into(),
-        ));
+    if head.starts_with(&legacy::CFB_MAGIC) {
+        let mut bytes = Vec::new();
+        File::open(path)?
+            .take(legacy::MAX_LEGACY_FILE_BYTES + 1)
+            .read_to_end(&mut bytes)?;
+        return legacy::import_legacy_bytes(&bytes);
     }
     if (path
         .extension()
