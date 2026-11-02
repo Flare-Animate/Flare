@@ -355,7 +355,9 @@ pub fn apply(ctx: &egui::Context) {
 pub fn apply_palette(ctx: &egui::Context) {
     let mut visuals = match mode() {
         Mode::Light => Visuals::light(),
-        Mode::Dark | Mode::Clay | Mode::Synthwave | Mode::Blue | Mode::Neutral | Mode::Green => Visuals::dark(),
+        Mode::Dark | Mode::Clay | Mode::Synthwave | Mode::Blue | Mode::Neutral | Mode::Green => {
+            Visuals::dark()
+        }
     };
     visuals.panel_fill = panel();
     visuals.window_fill = panel_raised();
@@ -412,7 +414,6 @@ pub fn apply_palette(ctx: &egui::Context) {
             .insert(TextStyle::Heading, FontId::proportional(16.0));
     });
 }
-
 
 #[cfg(test)]
 #[path = "theme_tests.rs"]
