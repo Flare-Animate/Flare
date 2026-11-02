@@ -38,6 +38,8 @@ pub(super) struct Gpu {
     pub(super) window: Arc<Window>,
     pub(super) state: egui_winit::State,
     pub(super) painter: Painter,
+    /// The program draws this window's title bar and resizes it from its edges.
+    pub(super) own_frame: bool,
 }
 
 impl Gpu {
@@ -60,6 +62,10 @@ impl Gpu {
                 .with_title_hidden(true)
                 .with_fullsize_content_view(true)
         };
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
+        let (attributes, own_frame) = super::frame::own_title_bar(attributes, workspace);
+        #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+        let own_frame = false;
         let window = Arc::new(
             event_loop
                 .create_window(attributes)
@@ -88,6 +94,7 @@ impl Gpu {
             window,
             state,
             painter,
+            own_frame,
         })
     }
 
@@ -100,6 +107,7 @@ impl Gpu {
             WindowRequest::ToggleMaximize => {
                 self.window.set_maximized(!self.window.is_maximized());
             }
+            WindowRequest::Minimize => self.window.set_minimized(true),
         }
     }
 
@@ -112,6 +120,7 @@ impl Gpu {
         #[cfg_attr(not(feature = "ruffle"), allow(unused_variables))] movie_open: bool,
         event_loop: &ActiveEventLoop,
     ) {
+        workspace.set_window_maximized(self.window.is_maximized());
         let raw = self.state.take_egui_input(&self.window);
         let mut output = ctx.run_ui(raw, |ui| {
             workspace.show(ui);

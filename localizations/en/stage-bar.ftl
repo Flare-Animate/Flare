@@ -20,3 +20,6 @@ bar-play = Play
 bar-publish = Publish
 bar-test-movie = Test Movie
 bar-test-movie-tip = Play the published movie in the player
+bar-window-minimize = Minimize
+bar-window-maximize = Maximize
+bar-window-restore = Restore

@@ -59,6 +59,7 @@ mod stage_furniture;
 mod symbols;
 mod tabs;
 mod tools;
+mod window_controls;
 use tools::{anchors, stroke_preview, text_preview};
 #[cfg(test)]
 mod tests;
@@ -225,6 +226,10 @@ pub struct Workspace {
     dialog: Option<DialogRequest>,
     window_request: Option<WindowRequest>,
     titlebar_inset: f32,
+    /// The window has no title bar of the system's, so the top bar carries its buttons.
+    window_controls: bool,
+    /// The window is maximized, which the middle button shows.
+    window_maximized: bool,
     top_bar_id: egui::Id,
     preferences_id: egui::Id,
     publish_id: egui::Id,
@@ -353,6 +358,8 @@ impl Workspace {
             dialog: None,
             window_request: None,
             titlebar_inset: 0.0,
+            window_controls: false,
+            window_maximized: false,
             top_bar_id: egui::Id::unique("top-bar"),
             preferences_id: egui::Id::unique("preferences"),
             publish_id: egui::Id::unique("publish"),

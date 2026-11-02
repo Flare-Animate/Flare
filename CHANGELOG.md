@@ -9,6 +9,7 @@ All notable changes are listed here. The format follows
 The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
 
 ### Added
+- On Linux and Windows the window's title bar is Flare's own top bar, so the document's name is no longer written twice: the bar carries minimize, maximize or restore, and close buttons (close asks about unsaved work), the window moves by its empty space, a double click maximizes it, and it is resized from its edges and corners. `FLARE_SYSTEM_TITLEBAR=1` keeps the system's title bar.
 - The whole interface speaks the language chosen in Preferences (English, German, Spanish, French, Brazilian Portuguese, Japanese, Korean and Simplified Chinese): the menus, panels, tools and their hints, dialogs, status messages and the names a new document gives its scene and layer. How long ago a project was opened follows each language's plural rules. The text of errors that come from the libraries is still English.
 - When Flare cannot start (no usable graphics device, for one), a message box says why and points to the graphics drivers, instead of nothing happening when it is opened from a launcher.
 - Pen pressure on Linux: a tablet pen's pressure shapes the Brush's stroke. It is read from the X server's XInput2 pen axis, so when a pen with pressure is plugged in the window opens through X11 (XWayland under Wayland); `FLARE_TABLET=off` keeps the native window system.

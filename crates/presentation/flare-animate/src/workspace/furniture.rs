@@ -45,7 +45,7 @@ impl Workspace {
                 .show(ui, |ui| self.status_bar(ui));
         }
         egui::Panel::top("menu")
-            .exact_size(if self.titlebar_inset > 0.0 {
+            .exact_size(if self.titlebar_inset > 0.0 || self.window_controls {
                 INTEGRATED_TOP_BAR_HEIGHT
             } else {
                 TOP_BAR_HEIGHT
@@ -288,6 +288,7 @@ impl Workspace {
         } else if drag.drag_started() {
             self.window_request = Some(WindowRequest::Drag);
         }
+        self.window_buttons(ui, bar);
         ui.painter().hline(
             bar.x_range(),
             bar.bottom() - 0.5,
@@ -325,12 +326,17 @@ impl Workspace {
                     ui.menu_button(self.menu_title(title), |ui| self.menu_entries(ui, entries));
                 }
             });
+            let controls_width = self.window_controls_width();
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.add_space(controls_width);
                 // Preferences are the app's, not a document's: the gear is in the same corner on
                 // Home and in the editor, centered over the rail's icons below it.
                 let open = self.windows.preferences;
                 let slot = Rect::from_center_size(
-                    Pos2::new(bar.right() - rail::CENTER_FROM_EDGE, bar.center().y),
+                    Pos2::new(
+                        bar.right() - controls_width - rail::CENTER_FROM_EDGE,
+                        bar.center().y,
+                    ),
                     Vec2::splat(GEAR_SLOT),
                 );
                 let gear = ui

@@ -37,11 +37,9 @@ Still planned (everything else in the menus and panels is built):
 
 ## Top bar
 
-The window has no system title bar on macOS: the top bar (38 px) takes its place, with room at the
-left for the window buttons, the app mark, the in-window menus where there is no native menu bar,
-the document name in the middle, and play, undo and redo at the right. Empty space in the bar
-moves the window and a double click zooms it; the workspace asks and the desktop app does it
-(`WindowRequest`), so the UI crate stays free of window code.
+The window has no system title bar, so the document's name is not written twice: the top bar takes its place. It holds the app mark, the in-window menus where there is no native menu bar, the document name in the middle, and play, undo and redo at the right. Empty space in the bar moves the window and a double click zooms it; the workspace asks and the desktop app does it (`WindowRequest`), so the UI crate stays free of window code.
+
+On macOS the bar is 28 px high with room at the left for the window's own buttons. On Linux and Windows the window opens without the system's frame and the same bar carries its own minimize, maximize or restore, and close buttons at the right (close asks about unsaved work like Quit does); the window is resized from its edges and corners by the system's own resize (`drag_resize_window`), and `FLARE_SYSTEM_TITLEBAR=1` brings back the system's title bar for a window manager that does not get on with this. Not done: Windows 11's Snap Layouts flyout over the maximize button, which needs a hit-test hook that Flare's no-`unsafe` rule keeps out for now, and the shadow and rounded corners a compositor gives a framed window. This has been built and its logic tested on macOS only; it has not been run on Linux or Windows.
 
 ## Type
 

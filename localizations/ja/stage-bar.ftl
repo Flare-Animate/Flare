@@ -20,3 +20,6 @@ bar-play = 再生
 bar-publish = パブリッシュ
 bar-test-movie = ムービープレビュー
 bar-test-movie-tip = パブリッシュしたムービーをプレーヤーで再生
+bar-window-minimize = 最小化
+bar-window-maximize = 最大化
+bar-window-restore = 元のサイズに戻す

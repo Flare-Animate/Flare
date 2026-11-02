@@ -21,6 +21,8 @@ pub(super) struct App {
     #[cfg(target_os = "macos")]
     menu: Option<super::menu::NativeMenu>,
     pub(super) ctx: egui::Context,
+    /// Resizing from the edges of a window the program draws the frame of.
+    edges: super::frame::EdgeResize,
     pub(super) workspace: Workspace,
     pub(super) gpu: Option<Gpu>,
     fatal: Option<anyhow::Error>,
@@ -36,6 +38,7 @@ impl App {
             #[cfg(target_os = "macos")]
             menu: None,
             ctx: super::window::new_context(),
+            edges: super::frame::EdgeResize::default(),
             workspace,
             gpu: None,
             fatal: None,
@@ -219,6 +222,9 @@ impl ApplicationHandler<UserEvent> for App {
         // A window that is gone (the Test Movie's, closed a moment ago) is not the editor's: its
         // last events must not close the editor.
         if gpu.window.id() != id {
+            return;
+        }
+        if gpu.own_frame && self.edges.handle(&gpu.window, &event) {
             return;
         }
         let response = gpu.state.on_window_event(&gpu.window, &event);

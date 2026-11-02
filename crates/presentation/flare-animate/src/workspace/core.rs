@@ -126,6 +126,17 @@ impl Workspace {
         self.pen_feed.clone()
     }
 
+    /// Draws the window's own minimize, maximize and close buttons in the top bar, for a window
+    /// the system gives no title bar (Linux and Windows).
+    pub fn set_window_controls(&mut self, shown: bool) {
+        self.window_controls = shown;
+    }
+
+    /// Tells the top bar whether the window is maximized, so its button offers the other thing.
+    pub fn set_window_maximized(&mut self, maximized: bool) {
+        self.window_maximized = maximized;
+    }
+
     /// Returns (and clears) a window move or zoom the top bar asked for.
     pub fn take_window_request(&mut self) -> Option<WindowRequest> {
         self.window_request.take()

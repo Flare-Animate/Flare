@@ -5,6 +5,9 @@
 mod app;
 #[cfg(feature = "autotest")]
 mod autotest;
+mod frame;
+#[cfg(test)]
+mod frame_tests;
 mod menu;
 #[cfg(feature = "ruffle")]
 mod movie;

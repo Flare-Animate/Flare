@@ -62,6 +62,7 @@ mod translated_start_messages;
 mod transport;
 mod tweens;
 mod undo_pictures;
+mod window_controls;
 mod window_menu;
 
 fn document() -> Document {

@@ -121,6 +121,7 @@ pub enum DialogRequest {
 pub enum WindowRequest {
     Drag,
     ToggleMaximize,
+    Minimize,
 }
 
 pub(super) const MAX_LOG_LINES: usize = 200;
