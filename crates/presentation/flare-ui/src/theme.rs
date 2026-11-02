@@ -15,6 +15,7 @@ pub enum Mode {
     Blue,
     Neutral,
     Green,
+    LiquidGlass,
 }
 
 impl Mode {
@@ -28,6 +29,7 @@ impl Mode {
             Self::Blue => "blue",
             Self::Neutral => "neutral",
             Self::Green => "green",
+            Self::LiquidGlass => "liquidglass",
         }
     }
 
@@ -40,6 +42,7 @@ impl Mode {
             "blue" => Self::Blue,
             "neutral" => Self::Neutral,
             "green" => Self::Green,
+            "liquidglass" => Self::LiquidGlass,
             _ => Self::Dark,
         }
     }
@@ -208,6 +211,24 @@ const GREEN: Palette = Palette {
     stage_surround: rgb(0x12, 0x1c, 0x12),
 };
 
+const LIQUID_GLASS: Palette = Palette {
+    bg: rgb(0x17, 0x21, 0x31),
+    panel: rgb(0x1f, 0x2b, 0x3f),
+    panel_raised: rgb(0x22, 0x2f, 0x45),
+    field: rgb(0x0f, 0x16, 0x21),
+    faint: rgb(0x26, 0x32, 0x40),
+    border: rgb(0x4a, 0x5e, 0x80),
+    border_strong: rgb(0x7d, 0x8f, 0xb0),
+    hover: rgb(0x2e, 0x3e, 0x58),
+    text: rgb(0xe6, 0xed, 0xf6),
+    text_strong: Color32::WHITE,
+    text_dim: rgb(0x9f, 0xb0, 0xc8),
+    text_disabled: rgb(0x78, 0x86, 0xa0),
+    accent: rgb(0x5f, 0xb4, 0xf0),
+    warning: rgb(0xe8, 0xb3, 0x4a),
+    stage_surround: rgb(0x0f, 0x16, 0x21),
+};
+
 fn palette() -> &'static Palette {
     match mode() {
         Mode::Dark => &DARK,
@@ -217,6 +238,7 @@ fn palette() -> &'static Palette {
         Mode::Blue => &BLUE,
         Mode::Neutral => &NEUTRAL,
         Mode::Green => &GREEN,
+        Mode::LiquidGlass => &LIQUID_GLASS,
     }
 }
 
@@ -355,9 +377,13 @@ pub fn apply(ctx: &egui::Context) {
 pub fn apply_palette(ctx: &egui::Context) {
     let mut visuals = match mode() {
         Mode::Light => Visuals::light(),
-        Mode::Dark | Mode::Clay | Mode::Synthwave | Mode::Blue | Mode::Neutral | Mode::Green => {
-            Visuals::dark()
-        }
+        Mode::Dark
+        | Mode::Clay
+        | Mode::Synthwave
+        | Mode::Blue
+        | Mode::Neutral
+        | Mode::Green
+        | Mode::LiquidGlass => Visuals::dark(),
     };
     visuals.panel_fill = panel();
     visuals.window_fill = panel_raised();

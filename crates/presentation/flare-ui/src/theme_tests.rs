@@ -90,6 +90,7 @@ fn both_palettes_keep_text_readable_on_every_surface_and_the_light_one_is_light(
         Mode::Blue,
         Mode::Neutral,
         Mode::Green,
+        Mode::LiquidGlass,
     ] {
         set_mode(mode);
         for surface in [bg(), panel(), panel_raised(), field(), hover()] {
@@ -140,6 +141,7 @@ fn the_mode_is_per_thread_kept_by_code_and_unknown_codes_are_dark() {
         Mode::Blue,
         Mode::Neutral,
         Mode::Green,
+        Mode::LiquidGlass,
     ] {
         assert_eq!(Mode::from_code(m.code()), m);
     }
