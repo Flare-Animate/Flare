@@ -1,0 +1,10 @@
+prop-frame = 帧
+prop-layer = 图层
+prop-exposure = 持续时间
+prop-exposure-span = 从第 { $start } 帧起，持续 { $len } 帧
+prop-empty = 空
+prop-no-layer = 未选择图层。
+prop-tween = 补间
+prop-shape-tween = 形状补间
+prop-motion-tween = 动作补间
+prop-ease = 缓动

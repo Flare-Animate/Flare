@@ -141,8 +141,9 @@ impl Workspace {
 
     /// The current frame and layer.
     pub(crate) fn frame_tab(&mut self, ui: &mut Ui) {
-        chrome::section(ui, "playhead", "Frame");
-        chrome::row(ui, "Frame", |ui| {
+        let frame_label = self.tr("prop-frame");
+        chrome::section(ui, "playhead", &frame_label);
+        chrome::row(ui, &frame_label, |ui| {
             ui.label(format!("{} / {}", self.frame + 1, self.scene_frames()));
         });
         let info = self.active_layer().map(|layer| {
@@ -153,23 +154,35 @@ impl Workspace {
         });
         match info {
             Some((name, span)) => {
-                chrome::row(ui, "Layer", |ui| {
+                let (layer_label, exposure) = (self.tr("prop-layer"), self.tr("prop-exposure"));
+                let span_text = span.map_or_else(
+                    || self.tr("prop-empty"),
+                    |(start, len)| {
+                        self.tr_with(
+                            "prop-exposure-span",
+                            &[
+                                ("start", &(start + 1).to_string()),
+                                ("len", &len.to_string()),
+                            ],
+                        )
+                    },
+                );
+                chrome::row(ui, &layer_label, |ui| {
                     ui.label(name);
                 });
-                chrome::row(ui, "Exposure", |ui| match span {
-                    Some((start, len)) => {
-                        ui.label(format!("from frame {} for {len}", start + 1));
-                    }
-                    None => {
-                        ui.weak("empty");
+                chrome::row(ui, &exposure, |ui| {
+                    if span.is_some() {
+                        ui.label(&span_text);
+                    } else {
+                        ui.weak(&span_text);
                     }
                 });
             }
             None => {
-                ui.weak("No layer selected.");
+                ui.weak(self.tr("prop-no-layer"));
             }
         }
-        chrome::section(ui, "frame-tween", "Tween");
+        chrome::section(ui, "frame-tween", &self.tr("prop-tween"));
         self.tween_controls(ui);
     }
 
@@ -181,11 +194,11 @@ impl Workspace {
         } else {
             MenuAction::ToggleMotionTween
         };
-        let name = if action == MenuAction::ToggleShapeTween {
-            "Shape tween"
+        let name = self.tr(if action == MenuAction::ToggleShapeTween {
+            "prop-shape-tween"
         } else {
-            "Motion tween"
-        };
+            "prop-motion-tween"
+        });
         let tweened = matches!(
             self.selection_tween(),
             Some(flare_document::Tween::Linear | flare_document::Tween::Shape)
@@ -200,7 +213,9 @@ impl Workspace {
         }
         let mut ease = self.selection_ease().unwrap_or(0);
         let before = ease;
-        chrome::row(ui, "Ease", |ui| {
+        let ease_label = self.tr("prop-ease");
+        let ease_hint = self.tr("tween-ease-hint");
+        chrome::row(ui, &ease_label, |ui| {
             ui.add_enabled(
                 tweened,
                 egui::Slider::new(
@@ -208,7 +223,7 @@ impl Workspace {
                     -flare_document::MAX_EASE..=flare_document::MAX_EASE,
                 ),
             )
-            .on_hover_text(self.tr("tween-ease-hint"));
+            .on_hover_text(ease_hint);
         });
         if ease != before {
             self.set_selection_ease(ease);

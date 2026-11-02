@@ -56,6 +56,7 @@ mod tools_and_menus;
 mod tools_translated;
 mod translated_chrome;
 mod translated_menu_bar;
+mod translated_side_panels;
 mod translated_start_messages;
 mod transport;
 mod tweens;

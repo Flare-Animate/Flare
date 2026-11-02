@@ -1,0 +1,17 @@
+col-edit-fill = 编辑填充颜色
+col-edit-stroke = 编辑笔触颜色
+col-edit-gradient = 编辑渐变的第二种颜色
+col-fill = 填充
+col-stroke = 笔触
+col-gradient-end = 渐变终点
+col-hex = 十六进制
+col-swatches = 色板
+col-gradient-new = 用渐变填充新形状
+col-pick = 从舞台上拾取颜色
+col-none = 无颜色
+col-fill-color = 填充颜色
+col-stroke-color = 笔触颜色
+col-no-stroke = 无笔触
+col-no-fill = 无填充
+col-black-white = 黑白
+col-swap = 交换填充和笔触

@@ -1,0 +1,10 @@
+prop-frame = Image
+prop-layer = Calque
+prop-exposure = Durée
+prop-exposure-span = à partir de l'image { $start } pendant { $len }
+prop-empty = vide
+prop-no-layer = Aucun calque sélectionné.
+prop-tween = Interpolation
+prop-shape-tween = Interpolation de forme
+prop-motion-tween = Interpolation de mouvement
+prop-ease = Accélération

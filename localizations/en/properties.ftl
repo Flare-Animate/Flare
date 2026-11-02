@@ -1,0 +1,10 @@
+prop-frame = Frame
+prop-layer = Layer
+prop-exposure = Exposure
+prop-exposure-span = from frame { $start } for { $len }
+prop-empty = empty
+prop-no-layer = No layer selected.
+prop-tween = Tween
+prop-shape-tween = Shape tween
+prop-motion-tween = Motion tween
+prop-ease = Ease

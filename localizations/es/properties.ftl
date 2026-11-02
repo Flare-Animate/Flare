@@ -1,0 +1,10 @@
+prop-frame = Fotograma
+prop-layer = Capa
+prop-exposure = Duración
+prop-exposure-span = desde el fotograma { $start } durante { $len }
+prop-empty = vacío
+prop-no-layer = Ninguna capa seleccionada.
+prop-tween = Interpolación
+prop-shape-tween = Interpolación de forma
+prop-motion-tween = Interpolación de movimiento
+prop-ease = Atenuación

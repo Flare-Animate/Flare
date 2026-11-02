@@ -1,0 +1,17 @@
+col-edit-fill = 칠 색상 편집
+col-edit-stroke = 선 색상 편집
+col-edit-gradient = 그레이디언트의 두 번째 색상 편집
+col-fill = 칠
+col-stroke = 선
+col-gradient-end = 그레이디언트 끝
+col-hex = 16진수
+col-swatches = 색상 견본
+col-gradient-new = 새 도형을 그레이디언트로 채우기
+col-pick = 스테이지에서 색상 추출
+col-none = 색상 없음
+col-fill-color = 칠 색상
+col-stroke-color = 선 색상
+col-no-stroke = 선 없음
+col-no-fill = 칠 없음
+col-black-white = 검정과 흰색
+col-swap = 칠과 선 바꾸기

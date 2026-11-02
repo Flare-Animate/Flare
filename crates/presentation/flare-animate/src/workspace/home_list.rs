@@ -91,7 +91,7 @@ impl Workspace {
                     info.size.map(flare_recent::format_size).unwrap_or_default(),
                 ),
             };
-            let kind = self.kind_label(path);
+            let kind = self.file_kind_label(path);
             let cells = [
                 (name_width, name.as_str(), true),
                 (MODIFIED_WIDTH, modified.as_str(), false),
@@ -153,7 +153,7 @@ impl Workspace {
     }
 
     /// What kind of file a recent project is, going by its name.
-    fn kind_label(&self, path: &std::path::Path) -> String {
+    fn file_kind_label(&self, path: &std::path::Path) -> String {
         let key = match flare_recent::kind(path) {
             "Flare project" => "start-kind-flare",
             "Animate document" => "start-kind-animate-document",

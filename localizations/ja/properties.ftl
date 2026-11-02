@@ -1,0 +1,10 @@
+prop-frame = フレーム
+prop-layer = レイヤー
+prop-exposure = 表示期間
+prop-exposure-span = フレーム { $start } から { $len } フレーム
+prop-empty = 空
+prop-no-layer = レイヤーが選択されていません。
+prop-tween = トゥイーン
+prop-shape-tween = シェイプトゥイーン
+prop-motion-tween = モーショントゥイーン
+prop-ease = イーズ

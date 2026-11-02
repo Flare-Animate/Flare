@@ -1,0 +1,10 @@
+prop-frame = Bild
+prop-layer = Ebene
+prop-exposure = Dauer
+prop-exposure-span = ab Bild { $start } für { $len }
+prop-empty = leer
+prop-no-layer = Keine Ebene ausgewählt.
+prop-tween = Tween
+prop-shape-tween = Form-Tween
+prop-motion-tween = Bewegungs-Tween
+prop-ease = Beschleunigung
