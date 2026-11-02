@@ -24,6 +24,11 @@ class PackagerConfig(unittest.TestCase):
         for name in ("libwayland", "libxcb", "libX11", "libxkbcommon", "libffi"):
             self.assertIn(f"-name '{name}*'", workflow)
 
+    def test_the_release_workflow_starts_the_packed_programs_and_asks_their_version(self):
+        workflow = (ROOT / ".github/workflows/release.yml").read_text()
+        self.assertIn("squashfs-root/AppRun --version", workflow)
+        self.assertIn("--command=flare-desktop io.github.Flare_Animate.Flare --version", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

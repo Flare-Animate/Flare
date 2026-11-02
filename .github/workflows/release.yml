@@ -143,6 +143,8 @@ jobs:
         run: |
           flatpak install --user -y --noninteractive --bundle dist/*.flatpak
           flatpak run --command=sh io.github.Flare_Animate.Flare -c 'test -x /app/bin/flare-desktop && test -f /app/share/applications/io.github.Flare_Animate.Flare.desktop && test -f /app/share/mime/packages/io.github.Flare_Animate.Flare.xml'
+          # The program starts inside the sandbox, with the runtime's libraries, and answers.
+          flatpak run --command=flare-desktop io.github.Flare_Animate.Flare --version | grep -q '^flare-desktop '
       - name: Inspect Linux desktop integration and native packages
         if: runner.os == 'Linux'
         shell: bash
@@ -172,6 +174,8 @@ jobs:
             echo "$graphics"
             exit 1
           fi
+          # The packed program starts and answers, through the entry point an AppImage runs.
+          squashfs-root/AppRun --version | grep -q '^flare-desktop '
       - name: Install WiX 5 for both Windows architectures
         if: runner.os == 'Windows'
         run: dotnet tool install --global wix --version 5.0.2 --allow-roll-forward

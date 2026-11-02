@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Build DEB, RPM and AppImage packages on each native Linux architecture."""
+"""Build DEB, RPM and AppImage packages on each native Linux architecture. The AppImage is made by
+`appimage.py`; the DEB by cargo-packager and the RPM by cargo-generate-rpm."""
 import argparse
 import json
 import os
@@ -9,9 +10,10 @@ import subprocess
 import tempfile
 import tomllib
 
+import appimage
 import package_release as release
 
-APP_ID = "io.github.Flare_Animate.Flare"
+APP_ID = appimage.APP_ID
 ARCHITECTURES = ("x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu")
 NOTICES = ("FONT_LICENSES.txt",)
 
@@ -44,36 +46,12 @@ def native_package(version, target, binary, archive, temporary, format_name):
     shutil.copy2(binary, staged)
     staged.chmod(0o755)
     config = configuration(version, target, staged, output, format_name)
-    env = dict(os.environ)
-    if format_name == "appimage":
-        # Keep the dotted desktop ID intact through cargo-packager's file stem.
-        launcher = temporary / f"{APP_ID}.sh"
-        shutil.copy2(release.ROOT / "packaging/appimage-launcher.sh", launcher)
-        launcher.chmod(0o755)
-        config["binaries"] = [{"path": str(launcher), "main": True},
-                              {"path": str(staged), "main": False}]
-        desktop = temporary / f"{APP_ID}.desktop"
-        desktop.write_text((release.ROOT / "packaging/flare.desktop").read_text()
-                           .replace("Exec=flare-desktop", f"Exec={launcher.name}")
-                           .replace("Icon=flare", f"Icon={APP_ID}"), encoding="utf-8")
-        metadata = temporary / f"{APP_ID}.metainfo.xml"
-        metadata.write_text((release.ROOT / "packaging/flare.metainfo.xml").read_text()
-                            .replace("flare.desktop", desktop.name), encoding="utf-8")
-        files = desktop_files()
-        files.pop(str(release.ROOT / "packaging/flare.metainfo.xml"))
-        files[str(metadata)] = f"usr/share/metainfo/{metadata.name}"
-        config["deb"]["desktopTemplate"] = str(desktop)
-        config.setdefault("appimage", {})["files"] = files
-        env["APPIMAGE_EXTRACT_AND_RUN"] = "1"
     subprocess.run(["cargo", "packager", "--config", json.dumps(config)],
-                   cwd=release.ROOT, env=env, check=True)
-    extension = "AppImage" if format_name == "appimage" else "deb"
-    artifacts = list(output.glob(f"*.{extension}"))
+                   cwd=release.ROOT, env=dict(os.environ), check=True)
+    artifacts = list(output.glob("*.deb"))
     if len(artifacts) != 1:
-        raise ValueError(f"Expected exactly one {extension}, found {len(artifacts)}")
+        raise ValueError(f"Expected exactly one deb, found {len(artifacts)}")
     shutil.copy2(artifacts[0], archive)
-    if format_name == "appimage":
-        archive.chmod(0o755)
 
 
 def rpm(target, binary, archive):
@@ -99,6 +77,8 @@ def package(version, target, binary, output, formats):
         with tempfile.TemporaryDirectory(prefix="flare-linux-") as directory:
             if format_name == "rpm":
                 rpm(target, binary, archive)
+            elif format_name == "appimage":
+                appimage.build(version, target, binary, archive, Path(directory))
             else:
                 native_package(version, target, binary, archive, Path(directory), format_name)
         release.write_checksum(archive)

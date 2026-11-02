@@ -28,8 +28,11 @@ class Flatpak(unittest.TestCase):
             self.assertRegex(segment, r"^[A-Za-z_][A-Za-z0-9_]*$")
         root = Path(__file__).resolve().parents[2]
         for path in ("packaging/flare.metainfo.xml", "packaging/cargo-packager.json",
-                     "scripts/packaging/package_linux.py", "apps/flare-desktop/Cargo.toml"):
+                     "scripts/packaging/appimage.py", "apps/flare-desktop/Cargo.toml"):
             self.assertIn(flatpak.APP_ID, (root / path).read_text(), path)
+        # The DEB and the RPM are named by the same id through the AppImage's module.
+        self.assertIn("APP_ID = appimage.APP_ID",
+                      (root / "scripts/packaging/package_linux.py").read_text())
 
     def test_a_missing_build_tool_is_named_before_anything_is_built(self):
         found = {"flatpak": "/usr/bin/flatpak"}
