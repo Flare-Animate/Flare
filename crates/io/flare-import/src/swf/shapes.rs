@@ -100,6 +100,7 @@ impl Movie {
         self.importer.shapes_from(
             ShapeParts {
                 fills: tables.fills,
+                gradients: std::collections::HashMap::new(),
                 strokes: tables.strokes,
                 fill_edges,
                 stroke_edges,

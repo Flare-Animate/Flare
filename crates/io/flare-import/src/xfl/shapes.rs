@@ -15,6 +15,8 @@ pub(crate) type StrokeSpec = (f64, Rgba8, Cap, Join);
 /// index (`None` for a style that cannot be imported), and the edges each style borders.
 pub(crate) struct ShapeParts {
     pub(crate) fills: HashMap<u32, Option<Rgba8>>,
+    /// Fills that are linear gradients, by the same index; their color in `fills` is the flat one.
+    pub(crate) gradients: HashMap<u32, super::gradient::LinearFill>,
     pub(crate) strokes: HashMap<u32, Option<StrokeSpec>>,
     pub(crate) fill_edges: BTreeMap<u32, Vec<Segment>>,
     pub(crate) stroke_edges: BTreeMap<u32, Vec<Segment>>,
@@ -25,6 +27,7 @@ use super::*;
 impl Importer {
     pub(super) fn shape(&mut self, node: &Node, place: &str) -> Vec<Content> {
         let mut fills: HashMap<u32, Option<Rgba8>> = HashMap::new();
+        let mut gradients = HashMap::new();
         for style in node
             .child("fills")
             .into_iter()
@@ -33,14 +36,39 @@ impl Importer {
             let Some(index) = style.attr("index").and_then(|v| v.parse().ok()) else {
                 continue;
             };
-            let color = style
+            let solid = style
                 .child("SolidColor")
                 .and_then(|c| color_from(c.attr("color").unwrap_or("#000000"), c.attr("alpha")));
+            let gradient = if solid.is_none() {
+                super::gradient::read(style)
+            } else {
+                None
+            };
+            if let Some(read) = &gradient {
+                if read.radial {
+                    self.note(
+                        Severity::Warning,
+                        place,
+                        "a radial gradient is imported as one color, the average of its first and last stops",
+                    );
+                }
+                if read.extra_stops {
+                    self.note(
+                        Severity::Warning,
+                        place,
+                        "a gradient with more than two stops keeps its first and last",
+                    );
+                }
+                if let Some(linear) = read.linear {
+                    gradients.insert(index, linear);
+                }
+            }
+            let color = solid.or(gradient.map(|read| read.flat));
             if color.is_none() {
                 self.note(
                     Severity::Unsupported,
                     place,
-                    "gradient and bitmap fills are not imported",
+                    "bitmap fills are not imported",
                 );
             }
             fills.insert(index, color);
@@ -132,6 +160,7 @@ impl Importer {
         self.shapes_from(
             ShapeParts {
                 fills,
+                gradients,
                 strokes,
                 fill_edges,
                 stroke_edges,
@@ -145,6 +174,7 @@ impl Importer {
     pub(crate) fn shapes_from(&mut self, parts: ShapeParts, place: &str) -> Vec<Content> {
         let ShapeParts {
             fills,
+            gradients,
             strokes,
             fill_edges,
             stroke_edges,
@@ -170,6 +200,7 @@ impl Importer {
             if let Some((i, _)) = outline {
                 outlines.insert(i);
             }
+            let before = out.len();
             self.push_shape(
                 &mut out,
                 &contours,
@@ -178,6 +209,21 @@ impl Importer {
                 true,
                 place,
             );
+            if let Some(fill) = gradients.get(&index).filter(|_| out.len() == before + 1) {
+                let placed = shape_bounds(&contours).and_then(|b| super::gradient::place(fill, b));
+                match placed {
+                    Some(gradient) => {
+                        if let Some(Content::Shape(shape)) = out.pop() {
+                            out.push(Content::Shape(shape.with_gradient(gradient)));
+                        }
+                    }
+                    None => self.note(
+                        Severity::Warning,
+                        place,
+                        "a gradient that does not sit on its shape in the file is imported as one color",
+                    ),
+                }
+            }
         }
         for (index, segments) in stroke_edges {
             if outlines.contains(&index) {
@@ -294,4 +340,32 @@ fn same_edges(a: &[Segment], b: &[Segment]) -> bool {
     left.sort_unstable();
     right.sort_unstable();
     left == right
+}
+
+/// The box round a shape's contours, in pixels (edges are in twips).
+fn shape_bounds(contours: &[Contour]) -> Option<(f64, f64, f64, f64)> {
+    let mut bounds: Option<(f64, f64, f64, f64)> = None;
+    let mut add = |(x, y): edges::Point| {
+        let (x, y) = (x / 20.0, y / 20.0);
+        bounds = Some(match bounds {
+            None => (x, y, x, y),
+            Some((a, b, c, d)) => (a.min(x), b.min(y), c.max(x), d.max(y)),
+        });
+    };
+    for contour in contours {
+        for segment in &contour.segments {
+            match *segment {
+                Segment::Line { from, to } => {
+                    add(from);
+                    add(to);
+                }
+                Segment::Quad { from, ctrl, to } => {
+                    add(from);
+                    add(ctrl);
+                    add(to);
+                }
+            }
+        }
+    }
+    bounds
 }

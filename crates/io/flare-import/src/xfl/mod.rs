@@ -6,9 +6,12 @@
 //!
 //! Imported: stage size, frame rate and background; scenes; normal layers with name,
 //! visibility and lock; keyframes and their durations; symbol instances with their matrix;
-//! solid-color fills and solid strokes of drawn shapes (lines and quadratic curves);
+//! solid-color fills and solid strokes of drawn shapes (lines and quadratic curves), and linear
+//! gradient fills of two colors;
 //! the library as Graphic symbols; classic motion tweens between instances.
-//! Reported and skipped: gradients, bitmaps, text, video, sound, scripts, filters, color
+//! Reported and changed: a radial gradient, or one with more than two stops, or one the file places
+//! somewhere that does not fit its shape, is imported as one color (or, with more stops, its first and
+//! last). Reported and skipped: bitmap fills, bitmaps, text, video, sound, scripts, filters, color
 //! effects, masks, guides, primitives, shape tweens, 3D, and symbol runtime
 //! behaviour (movie clips and buttons become Graphic symbols).
 
@@ -21,6 +24,7 @@ use thiserror::Error;
 
 mod elements;
 mod entry;
+mod gradient;
 mod shapes;
 
 pub(crate) use shapes::ShapeParts;

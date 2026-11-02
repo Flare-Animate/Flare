@@ -237,7 +237,7 @@ Graphic, Movie Clip or Button type; layer folders (a layer in a folder points at
 folder hides or locks what it holds); motion tweens between instances and shape tweens between shapes (with the ease, `acceleration` in XFL). A keyframe with several elements puts
 the extras on additional layers above, preserving stacking.
 
-Reported and not imported: gradients, bitmaps, text, video, sound, frame scripts, filters,
+XFL linear gradients of two colors are imported as gradients, laid on the shape by the file's matrix (read as twips, a square 32768 units wide, as a SWF gradient is) only if that puts a square about the shape's size on it; a radial gradient, one with more stops (the first and last are kept), or one that does not fit its shape is imported as the average of its first and last stop, with a warning. SWF import still takes a gradient's first stop. Reported and not imported: bitmap fills, bitmaps, text, video, sound, frame scripts, filters,
 color effects, blend modes, masks, guides, primitives, and
 symbol runtime behaviour (a movie clip's own clock and a button's states keep their type but are not carried out, with a warning).
 Foreign data is not preserved, so anything not imported is lost on save. This has been
