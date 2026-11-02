@@ -14,7 +14,7 @@ use winit::event::WindowEvent;
 use winit::event_loop::ActiveEventLoop;
 use winit::window::Window;
 
-use super::movie::{MIN_WIDTH, MovieWindow, open_size};
+use super::movie::{MIN_WIDTH, MovieWindow, MovieWords, open_size};
 
 /// How much of the screen the window may take when it opens: room left for the title bar, the
 /// menu bar and the dock.
@@ -61,9 +61,12 @@ impl MovieViewport {
         painter: &mut Painter,
         swf: Vec<u8>,
         scale: f32,
+        words: MovieWords,
     ) -> Result<Self> {
         let render_state = painter.render_state().context("the editor has no GPU")?;
-        let player = MovieWindow::open(swf, &render_state, scale).context("start the movie")?;
+        let mut player = MovieWindow::open(swf, &render_state, scale).context("start the movie")?;
+        let title = words.title.clone();
+        player.set_words(words);
         let picture = player.picture_points();
         // The movie's own size, as long as the screen has room for it.
         let room = event_loop
@@ -79,7 +82,7 @@ impl MovieViewport {
         let open = open_size(picture, room);
         let size = LogicalSize::new(f64::from(open.x), f64::from(open.y));
         let attributes = Window::default_attributes()
-            .with_title("Test Movie")
+            .with_title(title)
             .with_inner_size(size)
             .with_min_inner_size(LogicalSize::new(f64::from(MIN_WIDTH), 160.0));
         let window = Arc::new(

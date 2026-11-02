@@ -48,8 +48,18 @@ impl Workspace {
             return;
         };
         let (mut create, mut cancel) = (false, false);
+        let words = [
+            "start-custom-size",
+            "start-width",
+            "start-height",
+            "start-frame-rate",
+            "start-create",
+            "start-cancel",
+        ]
+        .map(|key| self.tr(key));
+        let [title, width, height, rate, create_label, cancel_label] = words;
         let mut open = true;
-        egui::Window::new("Custom Size")
+        egui::Window::new(title)
             .open(&mut open)
             .collapsible(false)
             .resizable(false)
@@ -58,21 +68,21 @@ impl Workspace {
                 egui::Grid::new("custom-size")
                     .num_columns(2)
                     .show(ui, |ui| {
-                        ui.label("Width");
+                        ui.label(width);
                         ui.add(
                             egui::DragValue::new(&mut size.width)
                                 .range(1..=MAX_STAGE_SIDE)
                                 .suffix(" px"),
                         );
                         ui.end_row();
-                        ui.label("Height");
+                        ui.label(height);
                         ui.add(
                             egui::DragValue::new(&mut size.height)
                                 .range(1..=MAX_STAGE_SIDE)
                                 .suffix(" px"),
                         );
                         ui.end_row();
-                        ui.label("Frame rate");
+                        ui.label(rate);
                         ui.add(
                             egui::DragValue::new(&mut size.fps)
                                 .range(1..=MAX_FPS)
@@ -82,8 +92,8 @@ impl Workspace {
                     });
                 ui.add_space(8.0);
                 ui.horizontal(|ui| {
-                    create = ui.button("Create").clicked();
-                    cancel = ui.button("Cancel").clicked();
+                    create = ui.button(create_label).clicked();
+                    cancel = ui.button(cancel_label).clicked();
                 });
             });
         self.home.custom_size = Some(size);

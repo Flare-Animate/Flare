@@ -60,7 +60,11 @@ impl Workspace {
                 match result {
                     Ok((bytes, audio)) => self.add_sound(&path, bytes, audio),
                     Err(message) => {
-                        self.report(format!("Cannot import {}: {message}", path.display()));
+                        let text = self.tr_with(
+                            "msg-cannot-import-sound",
+                            &[("path", &path.display().to_string()), ("reason", &message)],
+                        );
+                        self.report(text);
                     }
                 }
             }
@@ -71,14 +75,15 @@ impl Workspace {
                         let held: usize = self.audio.decoded.values().map(|a| a.frames()).sum();
                         if held + audio.frames() > DECODED_AUDIO_SAMPLES / 2 {
                             self.audio.decode_failed.insert(sound);
-                            self.report("Too much sound is loaded to play every sound at once");
+                            self.report(self.tr("msg-too-much-sound"));
                         } else {
                             self.audio.decoded.insert(sound, audio);
                         }
                     }
                     Err(message) => {
                         self.audio.decode_failed.insert(sound);
-                        self.report(format!("Cannot play a sound: {message}"));
+                        let text = self.tr_with("msg-cannot-play-sound", &[("reason", &message)]);
+                        self.report(text);
                     }
                 }
             }
@@ -89,7 +94,10 @@ impl Workspace {
                 };
                 match result {
                     Ok(shape) => self.text_ready(shape, target),
-                    Err(message) => self.report(format!("Cannot place text: {message}")),
+                    Err(message) => {
+                        let text = self.tr_with("msg-cannot-place-text", &[("reason", &message)]);
+                        self.report(text);
+                    }
                 }
                 // The stored letters are back in charge, or the new ones are.
                 self.clear_text_preview();
@@ -109,9 +117,13 @@ impl Workspace {
                     }
                     self.note_recent(&path);
                     self.path = Some(path.clone());
-                    self.report(format!("Saved {}", path.display()));
+                    let text = self.tr_with("msg-saved", &[("path", &path.display().to_string())]);
+                    self.report(text);
                 }
-                Err(error) => self.report(format!("Cannot save: {error}")),
+                Err(error) => {
+                    let text = self.tr_with("msg-cannot-save", &[("reason", &error.to_string())]);
+                    self.report(text);
+                }
             },
             Done::Autosaved { id, result } => {
                 if self.recovery.in_flight == Some(id) {
@@ -119,7 +131,11 @@ impl Workspace {
                 }
                 match result {
                     Ok(_) => self.recovery.written = true,
-                    Err(error) => self.report(format!("Autosave failed: {error}")),
+                    Err(error) => {
+                        let text =
+                            self.tr_with("msg-autosave-failed", &[("reason", &error.to_string())]);
+                        self.report(text);
+                    }
                 }
             }
             Done::Imported { id, path, result } => {
@@ -128,7 +144,16 @@ impl Workspace {
                 }
                 self.importing = None;
                 match result {
-                    Err(error) => self.report(format!("Cannot import {}: {error}", path.display())),
+                    Err(error) => {
+                        let text = self.tr_with(
+                            "msg-cannot-import",
+                            &[
+                                ("path", &path.display().to_string()),
+                                ("reason", &error.to_string()),
+                            ],
+                        );
+                        self.report(text);
+                    }
                     Ok((document, notes)) => {
                         if self.is_blank() {
                             self.discard_recovery();
@@ -141,10 +166,14 @@ impl Workspace {
                         for note in notes {
                             self.log.push(note);
                         }
-                        self.report(format!(
-                            "Imported {}; {skipped} note(s) about what was not carried over are in the Output panel",
-                            path.display()
-                        ));
+                        let text = self.tr_with(
+                            "msg-imported",
+                            &[
+                                ("path", &path.display().to_string()),
+                                ("count", &skipped.to_string()),
+                            ],
+                        );
+                        self.report(text);
                     }
                 }
             }
@@ -161,11 +190,22 @@ impl Workspace {
                 let reverting = self.reverting.take();
                 match result {
                     Err(error) => {
-                        let what = if recovery { "recover" } else { "open" };
-                        self.report(format!("Cannot {what} {}: {error}", path.display()));
+                        let key = if recovery {
+                            "msg-cannot-recover"
+                        } else {
+                            "msg-cannot-open"
+                        };
+                        let text = self.tr_with(
+                            key,
+                            &[
+                                ("path", &path.display().to_string()),
+                                ("reason", &error.to_string()),
+                            ],
+                        );
+                        self.report(text);
                     }
                     Ok(_) if recovery && self.is_dirty() => {
-                        self.report("Your project changed while the work was being read, so it was not replaced");
+                        self.report(self.tr("msg-project-changed"));
                     }
                     Ok(document) if recovery => {
                         self.install_document(document, None);
@@ -173,7 +213,7 @@ impl Workspace {
                         // The file stays until the work is saved or discarded, so a second
                         // crash before saving still leaves it recoverable.
                         self.recovery.written = true;
-                        self.report("Recovered unsaved work");
+                        self.report(self.tr("msg-recovered"));
                     }
                     Ok(document) if reverting == Some(id) => {
                         // Going back to the saved copy replaces the document in its own tab.

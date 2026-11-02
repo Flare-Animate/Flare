@@ -110,13 +110,26 @@ impl Workspace {
         self.validate_selection();
     }
 
+    /// What a frame operation is called in a message, in the interface's language.
+    fn frame_op_name(&self, op: FrameOp) -> String {
+        self.tr(match op {
+            FrameOp::InsertFrame => "msg-op-insert-frame",
+            FrameOp::RemoveFrame => "msg-op-remove-frame",
+            FrameOp::InsertKeyframe => "msg-op-insert-keyframe",
+            FrameOp::InsertBlankKeyframe => "msg-op-insert-blank-keyframe",
+            FrameOp::ClearKeyframe => "msg-op-clear-keyframe",
+            FrameOp::ConvertToKeyframes => "msg-op-convert-keyframes",
+        })
+    }
+
     /// Runs a frame operation on the active layer at the current frame.
     pub fn frame_edit(&mut self, op: FrameOp) {
         let (Some(scene), Some(layer)) = (self.scene_id(), self.active_layer()) else {
             return;
         };
         if layer.is_locked() {
-            self.report(format!("Cannot {}: the layer is locked", op.label()));
+            let text = self.tr_with("msg-cannot-locked", &[("op", &self.frame_op_name(op))]);
+            self.report(text);
             return;
         }
         let commands = match op {
@@ -133,11 +146,16 @@ impl Workspace {
                 self.set_frame(self.frame);
                 self.validate_selection();
             }
-            None => self.report(format!(
-                "Cannot {} at frame {} of this layer",
-                op.label(),
-                self.frame
-            )),
+            None => {
+                let text = self.tr_with(
+                    "msg-cannot-at-frame",
+                    &[
+                        ("op", &self.frame_op_name(op)),
+                        ("frame", &self.frame.to_string()),
+                    ],
+                );
+                self.report(text);
+            }
         }
     }
 
@@ -243,9 +261,14 @@ impl Workspace {
                 self.set_frame(self.frame);
                 self.validate_selection();
             }
-            None if !unchanged => self.report(format!(
-                "Cannot {what} the span there: it would overlap another one"
-            )),
+            None if !unchanged => {
+                let key = if what == "move" {
+                    "msg-cannot-move-span"
+                } else {
+                    "msg-cannot-resize-span"
+                };
+                self.report(self.tr(key));
+            }
             None => {}
         }
     }
@@ -276,7 +299,7 @@ impl Workspace {
             .and_then(|l| frames::copy_frames(l, from, to))
         {
             Some(clip) => self.frame_clipboard = Some(clip),
-            None => self.report("There is nothing to copy in those frames"),
+            None => self.report(self.tr("msg-nothing-to-copy")),
         }
     }
 
@@ -291,7 +314,7 @@ impl Workspace {
             return;
         };
         if layer.is_locked() {
-            self.report("Cannot paste frames: the layer is locked");
+            self.report(self.tr("msg-cannot-paste-locked"));
             return;
         }
         let id = layer.id();
@@ -308,7 +331,7 @@ impl Workspace {
                     self.validate_selection();
                 }
             }
-            None => self.report("Cannot paste frames there: they would run past the last frame"),
+            None => self.report(self.tr("msg-cannot-paste-past-end")),
         }
     }
 

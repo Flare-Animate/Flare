@@ -21,20 +21,22 @@ impl Workspace {
         let width = ui.available_width();
         let name_width = (width - MODIFIED_WIDTH - SIZE_WIDTH - KIND_WIDTH).max(120.0);
         let columns = [
-            (SortBy::Name, "Name", name_width),
-            (SortBy::Modified, "Date modified", MODIFIED_WIDTH),
-            (SortBy::Size, "Size", SIZE_WIDTH),
-            (SortBy::Kind, "Kind", KIND_WIDTH),
+            (SortBy::Name, "start-col-name", name_width),
+            (SortBy::Modified, "start-col-modified", MODIFIED_WIDTH),
+            (SortBy::Size, "start-col-size", SIZE_WIDTH),
+            (SortBy::Kind, "start-col-kind", KIND_WIDTH),
         ];
         let (head, _) = ui.allocate_exact_size(vec2(width, ROW_HEIGHT), Sense::hover());
         let mut x = head.left();
-        for (column, label, column_width) in columns {
+        for (column, key, column_width) in columns {
+            let label = self.tr(key);
+            let label = label.as_str();
             let cell = Rect::from_min_size(pos2(x, head.top()), vec2(column_width, ROW_HEIGHT));
             x += column_width;
             let response = ui
                 .interact(
                     cell,
-                    ui.make_persistent_id(("recent-heading", label)),
+                    ui.make_persistent_id(("recent-heading", key)),
                     Sense::click(),
                 )
                 .on_hover_cursor(egui::CursorIcon::PointingHand);
@@ -82,18 +84,19 @@ impl Workspace {
             let (name, folder) = super::home::name_and_folder(path);
             // Until the thread has answered, the cells say so instead of guessing.
             let (modified, size) = match info {
-                None => ("Reading…".to_owned(), String::new()),
+                None => (self.tr("start-reading"), String::new()),
                 Some(info) => (
                     info.modified
-                        .map_or_else(|| "Not found".to_owned(), |t| flare_recent::ago(t, now)),
+                        .map_or_else(|| self.tr("start-not-found"), |t| self.ago(t, now)),
                     info.size.map(flare_recent::format_size).unwrap_or_default(),
                 ),
             };
+            let kind = self.kind_label(path);
             let cells = [
                 (name_width, name.as_str(), true),
                 (MODIFIED_WIDTH, modified.as_str(), false),
                 (SIZE_WIDTH, size.as_str(), false),
-                (KIND_WIDTH, flare_recent::kind(path), false),
+                (KIND_WIDTH, kind.as_str(), false),
             ];
             let mut x = row.left();
             for (cell_width, text, primary) in cells {
@@ -126,6 +129,50 @@ impl Workspace {
             }
         }
         open
+    }
+}
+
+impl Workspace {
+    /// How long ago `then` was, in the interface's language: flare-recent only has English.
+    fn ago(&self, then: SystemTime, now: SystemTime) -> String {
+        const DAY: u64 = 86_400;
+        let seconds = now.duration_since(then).unwrap_or_default().as_secs();
+        let (unit, n) = match seconds {
+            0..=59 => return self.tr("start-just-now"),
+            60..=3599 => ("minute", seconds / 60),
+            3600..=86_399 => ("hour", seconds / 3600),
+            86_400..=2_591_999 => ("day", seconds / DAY),
+            2_592_000..=31_535_999 => ("month", seconds / (30 * DAY)),
+            _ => ("year", seconds / (365 * DAY)),
+        };
+        let number = if n == 1 { "one" } else { "other" };
+        self.tr_with(
+            &format!("start-ago-{unit}-{number}"),
+            &[("n", &n.to_string())],
+        )
+    }
+
+    /// What kind of file a recent project is, going by its name.
+    fn kind_label(&self, path: &std::path::Path) -> String {
+        let key = match flare_recent::kind(path) {
+            "Flare project" => "start-kind-flare",
+            "Animate document" => "start-kind-animate-document",
+            "Animate project" => "start-kind-animate-project",
+            _ => "start-kind-file",
+        };
+        self.tr(key)
+    }
+
+    /// The name of a size preset on Home.
+    pub(super) fn preset_title(&self, name: &str) -> String {
+        let key = match name {
+            "Character Animation" => "start-preset-character",
+            "Social" => "start-preset-social",
+            "Portrait" => "start-preset-portrait",
+            "Web" => "start-preset-web",
+            _ => "start-preset-classic",
+        };
+        self.tr(key)
     }
 }
 

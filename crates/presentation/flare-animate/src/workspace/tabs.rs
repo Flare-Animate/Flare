@@ -124,7 +124,7 @@ impl Workspace {
             return;
         }
         if self.has_pending_io() {
-            self.report("Wait for the file work in progress before switching documents");
+            self.report(self.tr("msg-wait-for-file-work"));
             return;
         }
         let slot = if index < self.position {
@@ -157,7 +157,7 @@ impl Workspace {
                 index - 1
             };
             if self.parked[slot].is_dirty() {
-                self.report("Save or undo the changes in that document before closing it");
+                self.report(self.tr("msg-save-before-closing-other"));
                 return;
             }
             self.parked.remove(slot);
@@ -167,7 +167,7 @@ impl Workspace {
             return;
         }
         if self.is_dirty() {
-            self.report("Save or undo your changes before closing the document");
+            self.report(self.tr("msg-save-before-closing"));
             return;
         }
         if self.parked.is_empty() {

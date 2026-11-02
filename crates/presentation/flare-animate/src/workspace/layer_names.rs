@@ -87,30 +87,44 @@ impl Workspace {
         let (visible, locked) = self
             .layer(layer)
             .map_or((true, false), |l| (l.is_visible(), l.is_locked()));
-        if ui.button("Rename").clicked() {
+        if ui.button(self.tr("msg-layer-rename")).clicked() {
             self.begin_layer_rename(layer);
             ui.close();
         }
         ui.separator();
-        if ui.button(if visible { "Hide" } else { "Show" }).clicked() {
+        if ui
+            .button(self.tr(if visible {
+                "msg-layer-hide"
+            } else {
+                "msg-layer-show"
+            }))
+            .clicked()
+        {
             self.toggle_layer_visible(layer);
             ui.close();
         }
-        if ui.button(if locked { "Unlock" } else { "Lock" }).clicked() {
+        if ui
+            .button(self.tr(if locked {
+                "msg-layer-unlock"
+            } else {
+                "msg-layer-lock"
+            }))
+            .clicked()
+        {
             self.toggle_layer_locked(layer);
             ui.close();
         }
         ui.separator();
         for (label, action) in [
-            ("Mask", MenuAction::ToggleLayerMask),
-            ("Motion guide", MenuAction::ToggleLayerGuide),
-            ("Move up", MenuAction::MoveLayerUp),
-            ("Move down", MenuAction::MoveLayerDown),
-            ("New layer", MenuAction::NewLayer),
-            ("New folder", MenuAction::NewLayerFolder),
+            ("msg-layer-mask", MenuAction::ToggleLayerMask),
+            ("msg-layer-guide", MenuAction::ToggleLayerGuide),
+            ("msg-layer-move-up", MenuAction::MoveLayerUp),
+            ("msg-layer-move-down", MenuAction::MoveLayerDown),
+            ("msg-layer-new", MenuAction::NewLayer),
+            ("msg-layer-new-folder", MenuAction::NewLayerFolder),
         ] {
             if ui
-                .add_enabled(self.is_enabled(action), egui::Button::new(label))
+                .add_enabled(self.is_enabled(action), egui::Button::new(self.tr(label)))
                 .clicked()
             {
                 self.select_layer(layer);
@@ -122,7 +136,7 @@ impl Workspace {
         if ui
             .add_enabled(
                 self.is_enabled(MenuAction::DeleteLayer),
-                egui::Button::new("Delete"),
+                egui::Button::new(self.tr("msg-layer-delete")),
             )
             .clicked()
         {
