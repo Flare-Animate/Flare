@@ -393,6 +393,34 @@ and compare renders with the document, and check fill sides against SWF's own de
 style belongs to one side of each edge). That is real evidence the file is well-formed and
 says what we meant. Ruffle has drawn the frames of the render-check movies (above); sound,
 playback over time and Flash Player have not been checked.
+## Saving and opening by format
+
+The format of a document file is decided by its name, in one place: `flare-runtime`'s `document_file` module
+(`FileFormat::of_path`, `resolve_save_path`, `xfl_folder`, `load`, `save`). Every surface calls it, so they agree.
+
+- `FileFormat` is `Fla`, `Xfl` or `Flare` by the last extension in any case (`DOMDocument.xml` names `Xfl`). Save As
+  uses `resolve_save_path`, which keeps a name that says a format and otherwise appends `.fla`. An existing path that
+  is saved again is written by what its ending says; an unknown ending is a project, as before.
+- `load(path)` reads a `.flare` with `flare-storage` and an Animate file or folder with `flare-import`, and says
+  whether the document is `backed` by the file: a project always, a `.fla` or `.xfl` only when the import kept the
+  original of that kind (`saves_in_place`). A movie, a pre-CS5 `.fla` and a file over the cap are not backed, so they
+  open as unsaved imports and a Save asks for a name instead of replacing them with a rebuilt copy. An XFL folder
+  opens as its stub.
+- `save(document, path)` writes `.flare` with `flare_storage::save`, `.fla` with `flare_export::replace_fla` and `.xfl`
+  with `flare_export::replace_directory`. Both replacing writers build the new file or folder beside the target
+  and swap it in (a folder is moved aside and moved back if the swap fails), refuse a read-only file, and replace a
+  folder only when it holds a `DOMDocument.xml`. The result carries the path actually written (for `.xfl`, the stub
+  inside the folder) and an `ExportSummary` made from the export's `Output`: the `lossless` verdict, how many files,
+  which Flare rebuilt, how many were carried, and every diagnostic. A pre-CS5 `.fla` at the target and a `.swf` target
+  are refused.
+- The workspace keeps `path` as the file the document lives in, whatever its format. `IoJob::Open` and `IoJob::Save`
+  go through `load` and `save`, so open, Revert, Save, Save As and the close prompt's Save all follow the format, off
+  the UI thread. A failed save leaves the document unsaved; a finished one clears it, drops the recovery file, records the
+  path in Recent and shows the summary through translated messages (`msg-saved-*`).
+- `flare-cli` and `flare-mcp` open projects with `load` and write edits back with `save`, so every command that
+  takes a project path works on a `.fla` or `.xfl` and an editing command writes back to it; `flare convert` and the MCP
+  `save_as` are Save As. A file that is not backed is refused for in-place edits.
+
 ## Source preservation
 
 Data Flare cannot edit is kept, not dropped, at two levels: the whole source file (below), and element by element.
@@ -415,6 +443,8 @@ and reload. It is what exports use:
   entries that cannot be read back out of the archive are left out, and both are reported.
 - A movie imported from a SWF has no XFL to write back; an XFL export of it is rebuilt and says so. An edited SWF
   import is published by `flare-publish` as for any document.
+
+Saving writes these exports over the file the document lives in (see Saving and opening by format).
 
 Not kept: modification times and permissions of a folder's files; a folder containing a symbolic link (nothing is
 followed out of it) or more than the limits; a legacy binary `.fla` (read as a skeleton).

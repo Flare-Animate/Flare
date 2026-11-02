@@ -74,6 +74,17 @@ exporter rebuilds what the document owns and writes the rest of the original unt
 
 Nothing about XFL is guessed: where Flare does not know what a file means it keeps its bytes.
 
+**How a document is written back.** Save is an export to the file the document lives in, so the
+table above is what Save does: File > Save (and `flare` / `flare-mcp` editing commands) on a document
+opened from `x.fla` writes `x.fla`, the original bytes when nothing changed and otherwise the original with only
+the edited parts rebuilt. The target is replaced atomically (the new file is written whole beside it, with the old
+file's permissions, and moved over it; a folder is moved aside and swapped), a read-only target is refused, and
+a failed save leaves the old file and the document unsaved. Only a document whose original was kept is
+written back to its file (`saves_in_place`): a pre-CS5 binary `.fla`, a movie, or an Animate file over the cap has
+nothing to carry the unknown files, so it opens as an unsaved import and Save asks for a new name; a pre-CS5 `.fla` is
+never overwritten. The file is not re-read before it is replaced, so a change made to it by another program
+after it was opened is lost by the save, as with any editor without file locking.
+
 **The report says what happened.** An export's `Output` carries `lossless`: `exact` and a
 sentence of why ("unchanged since import", "edited: N files rebuilt (...), M written as they
 were", "not imported from a file", "imported from a movie"). `flare export-xfl`, the MCP

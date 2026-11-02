@@ -37,8 +37,11 @@ first thing taken over and are in the importer and Flash adapter tests.
 - **`.fla` files:** modern ones (CS5 and later, which are zipped XFL) and XFL folders import and
   export. Older binary `.fla` files (CS4 and before) are recognised and refused with a reason; open
   them in Animate and save as a modern `.fla` or XFL. Reading the old binary format is not planned for 0.1.
+- **Saving in Animate's formats:** Save As offers `.fla` (the default), `.xfl` and `.flare`, and Save writes a document
+  back to the `.fla` or `.xfl` it was opened from, as Animate does, with no `.flare` made. Not Animate's: no "Save as Copy", no
+  compatibility choice of older Animate versions, and a pre-CS5 `.fla` cannot be written.
 - **Opening and saving a file without changing it:** an imported `.fla`, XFL folder or `.swf` is kept whole with the
-  project, so exporting it while unchanged writes the original back byte for byte, and an edited export keeps every
+  project, so saving or exporting it while unchanged writes the original back byte for byte, and an edited export keeps every
   file the edit did not touch (bitmaps, sounds, settings). Opening never modifies the source. A legacy binary `.fla`
   is only a skeleton and keeps no source. See [decisions/LOSSLESS.md](decisions/LOSSLESS.md).
 - **Pen pressure:** the Brush's width follows pressure (the Pencil's does not), for tablets that report force through the
