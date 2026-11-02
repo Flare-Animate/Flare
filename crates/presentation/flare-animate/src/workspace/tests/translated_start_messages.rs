@@ -102,7 +102,6 @@ fn the_home_page_is_in_the_language() {
             "Home",
             "Learn",
             "Open…",
-            "Import…",
             "Projects you open or save show up here.",
         ] {
             assert!(
@@ -121,21 +120,33 @@ fn the_home_page_is_in_the_language() {
 }
 
 #[test]
-fn the_custom_size_window_is_in_the_language() {
+fn the_new_document_window_is_in_the_language() {
     let mut ws = speaking("es-ES");
     ws.set_home(true);
-    ws.show_custom_size();
+    ws.show_new_document();
     let text = drawn(&mut ws);
     for wanted in [
+        "Nuevo documento",
+        "Ajuste preestablecido",
         "Ancho",
         "Alto",
         "Velocidad de fotogramas",
+        "Color de fondo",
         "Crear",
         "Cancelar",
     ] {
         assert!(has(&text, wanted), "{wanted} missing in {text:?}");
     }
-    for english in ["Width", "Height", "Frame rate", "Create", "Cancel"] {
+    for english in [
+        "New Document",
+        "Preset",
+        "Width",
+        "Height",
+        "Frame rate",
+        "Background color",
+        "Create",
+        "Cancel",
+    ] {
         assert!(!has(&text, english), "{english} is still English: {text:?}");
     }
 }

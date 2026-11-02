@@ -10,21 +10,17 @@ fn project(filter: &str) -> rfd::FileDialog {
     rfd::FileDialog::new().add_filter(filter, &["flare"])
 }
 
-pub fn pick_project(filter: &str) -> Option<PathBuf> {
-    project(filter).pick_file()
+/// A project, or an Animate file or XFL folder's document (Animate's Open takes those too).
+pub fn pick_open(filter: &str) -> Option<PathBuf> {
+    rfd::FileDialog::new()
+        // `xml` is for the DOMDocument.xml of an XFL folder that has no `.xfl` beside it; any other
+        // XML file is refused when it is opened.
+        .add_filter(filter, &["flare", "fla", "xfl", "swf", "xml"])
+        .pick_file()
 }
 
 pub fn save_project(filter: &str) -> Option<PathBuf> {
     project(filter).save_file()
-}
-
-/// An XFL file, a modern `.fla` or a Flash movie to import.
-pub fn pick_import(filter: &str) -> Option<PathBuf> {
-    rfd::FileDialog::new()
-        // `xml` is for the DOMDocument.xml of an XFL folder that has no `.xfl` beside it; any other
-        // XML file is refused when it is opened.
-        .add_filter(filter, &["fla", "xfl", "swf", "xml"])
-        .pick_file()
 }
 
 pub fn pick_sound(filter: &str) -> Option<PathBuf> {

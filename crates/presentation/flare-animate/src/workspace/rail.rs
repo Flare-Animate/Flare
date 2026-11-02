@@ -20,10 +20,6 @@ pub(crate) const RAIL: [Pane; 7] = [
 /// Width of the rail.
 pub(super) const RAIL_WIDTH: f32 = 34.0;
 
-/// How far the middle of the rail's icons is from the window's right edge: the rail is
-/// `RAIL_WIDTH` wide with a one pixel separator on its inner side.
-pub(super) const CENTER_FROM_EDGE: f32 = (RAIL_WIDTH - 1.0) / 2.0;
-
 const BUTTON: f32 = 28.0;
 const ICON: f32 = 18.0;
 

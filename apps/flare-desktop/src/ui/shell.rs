@@ -22,9 +22,9 @@ impl App {
         match request {
             DialogRequest::Open => {
                 if let Some(path) =
-                    dialogs::pick_project(&self.workspace.interface_text("dlg-filter-project"))
+                    dialogs::pick_open(&self.workspace.interface_text("dlg-filter-open"))
                 {
-                    self.workspace.open(&path);
+                    self.workspace.open_any(&path);
                 }
             }
             DialogRequest::SaveAs => {
@@ -32,13 +32,6 @@ impl App {
                     dialogs::save_project(&self.workspace.interface_text("dlg-filter-project"))
                 {
                     self.workspace.save_as(&path);
-                }
-            }
-            DialogRequest::ImportProject => {
-                if let Some(path) =
-                    dialogs::pick_import(&self.workspace.interface_text("dlg-filter-import"))
-                {
-                    self.workspace.import_project(&path);
                 }
             }
             DialogRequest::ImportSound => {

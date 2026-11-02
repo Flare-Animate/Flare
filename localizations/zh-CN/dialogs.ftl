@@ -1,5 +1,4 @@
 dlg-filter-project = Flare 项目
-dlg-filter-import = Flash 文档或影片
 dlg-filter-sound = 声音
 dlg-filter-png = PNG 图像
 dlg-filter-gif = GIF 动画
@@ -17,3 +16,4 @@ dlg-unsaved-text = 不保存更改就关闭吗？
 dlg-startup-intro = Flare 无法启动。
 dlg-startup-advice = 如果问题与图形设备或图形表面有关，请更新显卡驱动程序（Vulkan 或 OpenGL）。
 dlg-startup-terminal = 在终端中运行 flare-desktop 会输出更多信息。
+dlg-filter-open = Flare 项目或 Flash 文档

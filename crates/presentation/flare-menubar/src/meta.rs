@@ -99,7 +99,6 @@ impl MenuAction {
         Some(match self {
             Self::Open => "file-open",
             Self::ImportSound => "sound",
-            Self::ImportProject => "file-import",
             Self::New => "file-new",
             Self::Close => "close",
             Self::Revert => "rotate-ccw",

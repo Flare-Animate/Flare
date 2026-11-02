@@ -234,12 +234,9 @@ fn importing_an_xfl_folder_makes_a_new_unsaved_project_in_place_of_a_blank_one_a
     other.import_project(&dir.path().join("missing"));
     assert!(other.status().is_some_and(|s| s.contains("Cannot import")));
     assert_eq!(layer_count(&other), 1);
-    assert_eq!(
-        other.label(MenuAction::ImportProject),
-        "Import XFL or FLA..."
-    );
-    other.perform(MenuAction::ImportProject);
-    assert_eq!(other.take_dialog(), Some(DialogRequest::ImportProject));
+    // Open takes the Animate files too, so there is no separate import command.
+    other.perform(MenuAction::Open);
+    assert_eq!(other.take_dialog(), Some(DialogRequest::Open));
 }
 
 #[test]

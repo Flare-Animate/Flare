@@ -1,5 +1,4 @@
 dlg-filter-project = Flare project
-dlg-filter-import = Flash document or movie
 dlg-filter-sound = Sound
 dlg-filter-png = PNG image
 dlg-filter-gif = GIF animation
@@ -17,3 +16,4 @@ dlg-unsaved-text = Close without saving your changes?
 dlg-startup-intro = Flare could not start.
 dlg-startup-advice = If this is about the graphics device or surface, update your graphics drivers (Vulkan or OpenGL).
 dlg-startup-terminal = Running flare-desktop from a terminal prints more.
+dlg-filter-open = Flare project or Flash document

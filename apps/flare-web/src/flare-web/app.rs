@@ -47,7 +47,7 @@ impl WebApp {
             return;
         };
         match request {
-            DialogRequest::Open | DialogRequest::ImportProject => {
+            DialogRequest::Open => {
                 let (inbox, ctx) = (Rc::clone(&self.picked), ctx.clone());
                 wasm_bindgen_futures::spawn_local(async move {
                     if let Some((name, bytes)) = files::pick(

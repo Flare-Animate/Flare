@@ -1,12 +1,9 @@
 //! Shortcuts, menus and the stage furniture.
 
-use egui::{Key, Modifiers, Pos2, Rect, Vec2};
+use egui::{Key, Modifiers};
 use flare_menubar::{MENU_LAYOUT, MenuAction, MenuEntry};
 
 use super::*;
-
-/// The gear button's square: its 16 px icon with the padding `icon_button` adds.
-const GEAR_SLOT: f32 = 22.0;
 
 impl Workspace {
     // ---- UI --------------------------------------------------------------------------
@@ -85,7 +82,7 @@ impl Workspace {
         self.file_windows(&ctx);
         self.close_prompt_window(&ctx);
         self.help_windows(&ctx);
-        self.custom_size_window(&ctx);
+        self.new_document_window(&ctx);
         if self.playing {
             ctx.request_repaint();
         }
@@ -295,8 +292,7 @@ impl Workspace {
             bar.bottom() - 0.5,
             egui::Stroke::new(1.0, flare_ui::theme::border()),
         );
-        let (preferences_tip, publish_tip) =
-            (tr!(self, "bar-preferences"), tr!(self, "bar-publish"));
+        let publish_tip = tr!(self, "bar-publish");
         ui.horizontal_centered(|ui| {
             ui.add_space(self.titlebar_inset.max(10.0));
             let home = ui
@@ -306,11 +302,6 @@ impl Workspace {
                         16.0,
                         flare_ui::theme::text(),
                     ));
-                    ui.label(
-                        egui::RichText::new("Flare")
-                            .strong()
-                            .color(flare_ui::theme::text()),
-                    );
                 })
                 .response
                 .interact(egui::Sense::click())
@@ -330,34 +321,8 @@ impl Workspace {
             let controls_width = self.window_controls_width();
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.add_space(controls_width);
-                // Preferences are the app's, not a document's: the gear is in the same corner on
-                // Home and in the editor, centered over the rail's icons below it.
-                let open = self.windows.preferences;
-                let slot = Rect::from_center_size(
-                    Pos2::new(
-                        bar.right() - controls_width - rail::CENTER_FROM_EDGE,
-                        bar.center().y,
-                    ),
-                    Vec2::splat(GEAR_SLOT),
-                );
-                let gear = ui
-                    .scope_builder(egui::UiBuilder::new().max_rect(slot), |ui| {
-                        flare_ui::chrome::icon_button(
-                            ui,
-                            "gear",
-                            16.0,
-                            open,
-                            true,
-                            &preferences_tip,
-                        )
-                    })
-                    .inner;
-                if gear.clicked() {
-                    self.windows.preferences = !open;
-                }
-                ui.add_space(rail::CENTER_FROM_EDGE + GEAR_SLOT / 2.0 + 6.0);
-                // Undo, play and the document's name belong to a document; Home has none, and
-                // no interface to switch.
+                // Play, Publish and the workspace switcher belong to a document; Home has none,
+                // and no interface to switch.
                 if !self.document_controls_shown() {
                     return;
                 }
@@ -370,42 +335,6 @@ impl Workspace {
                     &tr!(self, "bar-interface-switcher"),
                 );
                 ui.add_space(6.0);
-                let can_redo = self.active().can_redo();
-                if flare_ui::chrome::icon_button(
-                    ui,
-                    "redo",
-                    16.0,
-                    false,
-                    can_redo,
-                    &tr!(self, "bar-redo"),
-                )
-                .clicked()
-                {
-                    self.redo();
-                }
-                let can_undo = self.active().can_undo();
-                if flare_ui::chrome::icon_button(
-                    ui,
-                    "undo",
-                    16.0,
-                    false,
-                    can_undo,
-                    &tr!(self, "bar-undo"),
-                )
-                .clicked()
-                {
-                    self.undo();
-                }
-                let (icon, hint) = if self.is_playing() {
-                    ("transport-pause", tr!(self, "bar-pause"))
-                } else {
-                    ("transport-play", tr!(self, "bar-play"))
-                };
-                let play = flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, &hint);
-                if play.clicked() {
-                    self.perform(MenuAction::PlayPause);
-                }
-                play.context_menu(|ui| self.transport_menu(ui));
                 // Animate's Publish button is next to Play too.
                 let can_publish = self.is_enabled(MenuAction::Publish);
                 if flare_ui::chrome::icon_button(
@@ -420,16 +349,16 @@ impl Workspace {
                 {
                     self.perform(MenuAction::Publish);
                 }
-                // The name sits in the middle of what is left, whatever the window width.
-                let title = egui::RichText::new(self.title()).color(flare_ui::theme::text_dim());
-                let rect = ui.available_rect_before_wrap();
-                ui.painter().text(
-                    egui::pos2(bar.center().x, rect.center().y),
-                    egui::Align2::CENTER_CENTER,
-                    title.text(),
-                    egui::FontId::proportional(13.0),
-                    flare_ui::theme::text_dim(),
-                );
+                let (icon, hint) = if self.is_playing() {
+                    ("transport-pause", tr!(self, "bar-pause"))
+                } else {
+                    ("transport-play", tr!(self, "bar-play"))
+                };
+                let play = flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, &hint);
+                if play.clicked() {
+                    self.perform(MenuAction::PlayPause);
+                }
+                play.context_menu(|ui| self.transport_menu(ui));
             });
         });
     }

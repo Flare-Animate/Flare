@@ -186,35 +186,32 @@ fn the_home_page_draws_with_and_without_recent_projects_at_small_and_large_sizes
 }
 
 #[test]
-fn the_settings_gear_is_centered_over_the_rail_on_home_and_in_the_editor() {
-    // The rail's icons are centered 16.5 px in from the right edge of a 1280 wide window (the
-    // rail draws them there); the gear is a 22 px button, so it takes a click 10 px either side of
-    // that line and not 12.
-    let center = 1280.0 - crate::workspace::rail::CENTER_FROM_EDGE;
-    let opened = |home: bool, x: f32| {
+fn the_top_bar_has_no_settings_gear_and_preferences_stay_in_the_menus() {
+    // The bar is Animate's: menus, then Play, Publish and the workspace switcher by the window
+    // buttons. Preferences are in the Edit menu, on Home too, so the corner the gear sat in does
+    // nothing.
+    for home in [false, true] {
+        for x in [1250.0, 1263.0, 1274.0] {
+            let mut ws = workspace();
+            ws.set_home(home);
+            let ctx = egui::Context::default();
+            run(&mut ws, &ctx, 0.0);
+            run(&mut ws, &ctx, 0.1);
+            let at = Pos2::new(x, 14.0);
+            let click = |pressed| Event::PointerButton {
+                pos: at,
+                button: egui::PointerButton::Primary,
+                pressed,
+                modifiers: Modifiers::NONE,
+            };
+            pass(&mut ws, &ctx, input(0.2, vec![Event::PointerMoved(at)]));
+            pass(&mut ws, &ctx, input(0.3, vec![click(true)]));
+            pass(&mut ws, &ctx, input(0.4, vec![click(false)]));
+            assert!(!ws.windows.preferences, "home = {home}, x = {x}");
+        }
         let mut ws = workspace();
         ws.set_home(home);
-        let ctx = egui::Context::default();
-        run(&mut ws, &ctx, 0.0);
-        run(&mut ws, &ctx, 0.1);
-        let at = Pos2::new(x, 14.0);
-        let click = |pressed| Event::PointerButton {
-            pos: at,
-            button: egui::PointerButton::Primary,
-            pressed,
-            modifiers: Modifiers::NONE,
-        };
-        pass(&mut ws, &ctx, input(0.2, vec![Event::PointerMoved(at)]));
-        pass(&mut ws, &ctx, input(0.3, vec![click(true)]));
-        pass(&mut ws, &ctx, input(0.4, vec![click(false)]));
-        ws.windows.preferences
-    };
-    for home in [false, true] {
-        assert!(opened(home, center), "the middle, home = {home}");
-        assert!(opened(home, center - 10.0), "left edge, home = {home}");
-        assert!(opened(home, center + 10.0), "right edge, home = {home}");
-        assert!(!opened(home, center - 12.0), "beyond the left edge");
-        assert!(!opened(home, center + 12.0), "beyond the right edge");
+        assert!(ws.is_enabled(MenuAction::Preferences), "home = {home}");
     }
 }
 
@@ -238,14 +235,14 @@ fn press_top_bar(x: f32) -> (bool, bool, bool) {
 }
 
 #[test]
-fn the_publish_button_is_left_of_play_in_the_top_bar() {
-    // Walking left from the undo button, play comes, then publish.
+fn the_play_button_is_left_of_publish_in_the_top_bar() {
+    // Walking left from the window buttons, the workspace switcher comes, then publish, then play.
     let mut play = None;
     let mut publish = None;
-    // The interface switcher beside the gear moved the others left; the scan starts at the undo
-    // button and goes on past publish.
-    let mut x = 1180.0;
-    while x > 1040.0 {
+    // In these tests the window has no buttons of its own (the system draws them), so the three
+    // top-right buttons take the corner of the 1280 wide window; the scan goes on past play.
+    let mut x = 1276.0;
+    while x > 1120.0 {
         let (published, playing, _) = press_top_bar(x);
         if playing && play.is_none() {
             play = Some(x);
@@ -259,10 +256,10 @@ fn the_publish_button_is_left_of_play_in_the_top_bar() {
         play.expect("play is in the bar"),
         publish.expect("publish is in the bar"),
     );
-    assert!(publish < play, "publish at {publish}, play at {play}");
+    assert!(play < publish, "publish at {publish}, play at {play}");
     assert!(
-        play - publish < 40.0,
-        "they are neighbours: {publish} and {play}"
+        publish - play < 40.0,
+        "they are neighbours: {play} and {publish}"
     );
 }
 
@@ -294,28 +291,22 @@ fn top_bar_hint(x: f32, home: bool) -> String {
 }
 
 #[test]
-fn the_interface_switcher_is_a_dimmed_button_in_the_top_right_corner_beside_the_gear() {
+fn the_interface_switcher_is_a_dimmed_button_in_the_top_right_corner() {
     let width = 1280.0;
     let mut found = None;
-    let mut gear = None;
-    let mut x = width - 4.0;
+    let mut x = width - 2.0;
     while x > width - 140.0 {
         let hint = top_bar_hint(x, false);
+        assert!(!hint.contains("Preferences"), "there is no gear at {x}");
         if hint.contains("Interface switcher (Not available yet)") {
             found.get_or_insert(x);
         }
-        if hint.contains("Preferences") {
-            gear.get_or_insert(x);
-        }
         x -= 6.0;
     }
-    let (found, gear) = (
-        found.expect("the switcher is there"),
-        gear.expect("the gear"),
-    );
+    let found = found.expect("the switcher is there");
     assert!(
-        found < gear,
-        "it is left of the gear: {found} against {gear}"
+        found > width - 40.0,
+        "it is the nearest to the corner, where the window buttons are: {found}"
     );
 }
 
@@ -371,7 +362,7 @@ fn the_home_buttons_can_be_read_on_their_fills_in_both_themes() {
                 continue;
             };
             let label = t.galley.text();
-            if !["New File", "Open…", "Import…", "Home"].contains(&label) {
+            if !["New File", "Open…", "Home"].contains(&label) {
                 continue;
             }
             let ink = t.galley.job.sections[0].format.color;
@@ -392,7 +383,7 @@ fn the_home_buttons_can_be_read_on_their_fills_in_both_themes() {
             );
             checked.push(label.to_owned());
         }
-        for wanted in ["New File", "Open…", "Import…"] {
+        for wanted in ["New File", "Open…"] {
             assert!(
                 checked.iter().any(|c| c == wanted),
                 "{theme}: {wanted} was looked at: {checked:?}"
@@ -403,23 +394,69 @@ fn the_home_buttons_can_be_read_on_their_fills_in_both_themes() {
 }
 
 #[test]
-fn the_custom_size_card_opens_a_window_that_makes_a_project_of_the_chosen_size() {
+fn the_new_file_button_and_the_custom_size_card_open_the_new_document_window() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     ws.set_home(true);
+    assert!(!ws.new_document_shown());
+    ws.show_new_document();
+    assert!(ws.new_document_shown());
+    // The first preset, the sizes Flare has always started with.
+    let first = super::super::home_custom::NewDocument::preset(0);
+    assert_eq!(ws.home.new_document, Some(first));
+    assert_eq!((first.width, first.height, first.fps), (1920, 1080, 24));
+    assert_eq!(first.matching_preset(), Some(0));
+    // The Custom Size card starts on a size that is none of them.
+    ws.home.new_document = None;
     ws.show_custom_size();
-    assert!(ws.custom_size_shown());
-    ws.home.custom_size = Some(super::super::home_custom::CustomSize {
+    let custom = super::super::home_custom::NewDocument::custom();
+    assert_eq!(ws.home.new_document, Some(custom));
+    assert_eq!(custom.matching_preset(), None);
+    ws.home.new_document = Some(super::super::home_custom::NewDocument {
         width: 640,
         height: 360,
         fps: 12,
+        ..custom
     });
     run(&mut ws, &ctx, 0.0);
-    assert!(ws.custom_size_shown(), "it stays until Create or Cancel");
-    // What Create does with the numbers.
-    ws.new_project(640, 360, 12);
+    assert!(ws.new_document_shown(), "it stays until Create or Cancel");
+}
+
+#[test]
+fn create_makes_a_project_of_the_chosen_size_rate_and_background() {
+    let mut ws = workspace();
+    ws.new_project_with(640, 360, 12, flare_core::Rgba8::new(10, 20, 30, 255));
     let stage = ws.document().stage();
     assert_eq!((stage.width(), stage.height()), (640, 360));
+    assert_eq!(stage.background(), flare_core::Rgba8::new(10, 20, 30, 255));
     assert_eq!(ws.document().frame_rate().numerator(), 12);
+    // The old call is a white stage.
+    ws.new_project(800, 600, 24);
+    assert_eq!(ws.document().stage().background(), flare_core::Rgba8::WHITE);
+}
+
+#[test]
+fn choosing_a_preset_fills_the_numbers_and_editing_them_leaves_the_preset() {
+    use super::super::home_custom::NewDocument;
+    let social = NewDocument::preset(1);
+    assert_eq!((social.width, social.height, social.fps), (1080, 1080, 30));
+    assert_eq!(social.matching_preset(), Some(1));
+    let edited = NewDocument {
+        width: 1081,
+        ..social
+    };
+    assert_eq!(
+        edited.matching_preset(),
+        None,
+        "no longer the preset's numbers"
+    );
+    // A background color is not part of a preset.
+    let colored = NewDocument {
+        background: flare_core::Rgba8::new(1, 2, 3, 255),
+        ..social
+    };
+    assert_eq!(colored.matching_preset(), Some(1));
+    // A preset number out of range is the first, never a panic.
+    assert_eq!(NewDocument::preset(999), NewDocument::preset(0));
 }
 
 #[test]
@@ -429,5 +466,5 @@ fn the_custom_size_window_goes_when_home_does() {
     ws.show_custom_size();
     ws.set_home(false);
     run(&mut ws, &ctx, 0.0);
-    assert!(!ws.custom_size_shown());
+    assert!(!ws.new_document_shown());
 }

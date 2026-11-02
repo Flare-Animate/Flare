@@ -109,7 +109,7 @@ three, never made their default. Opening any of them, from the file manager, "Op
 at once) or by dropping them on the window, goes through one place (`open_any.rs`, which asks `flare-import`'s `file_kinds.rs` what a file is), and
 `scripts/tests/test_associations.py` checks that the macOS bundle, the Linux desktop entry and MIME
 types and the Windows installer name exactly the extensions `file_kinds.rs` lists. An XFL folder is opened
-by dropping it on the window or with File > Import; a folder cannot be a registered type. Flare is
+by dropping it on the window or with File > Open; a folder cannot be a registered type. Flare is
 not registered for what it only writes (PNG, GIF, SWF) or imports as sound.
 
 macOS hands a double-clicked file to a running app as an Apple event, which the window library

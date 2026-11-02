@@ -37,10 +37,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::SaveAll),
             Action(A::Revert),
             Separator,
-            Submenu(
-                "Import",
-                &[Action(A::ImportSound), Action(A::ImportProject)],
-            ),
+            Submenu("Import", &[Action(A::ImportSound)]),
             Submenu(
                 "Export",
                 &[
@@ -216,6 +213,21 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Separator,
             Action(A::ToggleLoop),
             Action(A::ToggleMute),
+        ],
+    ),
+    (
+        "Debug",
+        &[
+            Mock("Debug Movie"),
+            Separator,
+            Mock("Continue"),
+            Mock("End Debug Session"),
+            Separator,
+            Mock("Step Over"),
+            Mock("Step In"),
+            Mock("Step Out"),
+            Separator,
+            Mock("Remove All Breakpoints"),
         ],
     ),
     (

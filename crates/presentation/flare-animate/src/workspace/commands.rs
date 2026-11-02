@@ -33,7 +33,6 @@ impl Workspace {
                 action,
                 MenuAction::Open
                     | MenuAction::New
-                    | MenuAction::ImportProject
                     | MenuAction::OpenRecent
                     | MenuAction::Quit
                     | MenuAction::ShowHome
@@ -50,7 +49,6 @@ impl Workspace {
             MenuAction::NewLayer | MenuAction::NewLayerFolder => {
                 !self.document().scenes().is_empty()
             }
-            MenuAction::ImportProject => !self.in_symbol(),
             MenuAction::New | MenuAction::Close => !self.in_symbol(),
             MenuAction::SaveAll => self.is_dirty(),
             MenuAction::OpenRecent => !self.home.recent.is_empty(),
@@ -174,7 +172,6 @@ impl Workspace {
         match action {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
-            MenuAction::ImportProject => self.dialog = Some(DialogRequest::ImportProject),
             MenuAction::New => self.new_tab(),
             MenuAction::Close => self.close_tab(self.position),
             MenuAction::NewLayer => self.add_layer(),

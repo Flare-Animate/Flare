@@ -184,7 +184,6 @@ impl MenuAction {
             Self::ImportSound => "menu-item-import-sound",
             Self::NewLayer => "menu-item-new-layer",
             Self::NewLayerFolder => "menu-item-new-layer-folder",
-            Self::ImportProject => "menu-item-import-project",
             Self::New => "menu-item-new",
             Self::SaveAll => "menu-item-save-all",
             Self::OpenRecent => "menu-item-open-recent",

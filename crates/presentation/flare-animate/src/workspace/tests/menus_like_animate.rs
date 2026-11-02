@@ -39,12 +39,13 @@ fn submenu(entries: &[MenuEntry], name: &str) -> &'static [MenuEntry] {
 #[test]
 fn the_menu_bar_has_animates_menus_in_animates_order_and_no_others() {
     let titles: Vec<&str> = MENU_LAYOUT.iter().map(|(t, _)| *t).collect();
-    // Animate's bar, without Debug, which is for ActionScript.
+    // Animate's bar. Debug is for ActionScript, which Flare has none of, so its commands are
+    // dimmed; it is there because the bar is Animate's.
     assert_eq!(
         titles,
         [
-            "File", "Edit", "View", "Insert", "Modify", "Text", "Commands", "Control", "Window",
-            "Help"
+            "File", "Edit", "View", "Insert", "Modify", "Text", "Commands", "Control", "Debug",
+            "Window", "Help"
         ]
     );
 }
@@ -53,10 +54,7 @@ fn the_menu_bar_has_animates_menus_in_animates_order_and_no_others() {
 fn commands_sit_where_animate_keeps_them() {
     let ws = workspace();
     let file = menu("File");
-    assert_eq!(
-        shown(&ws, submenu(file, "Import")),
-        ["Import Sound...", "Import XFL or FLA..."]
-    );
+    assert_eq!(shown(&ws, submenu(file, "Import")), ["Import Sound..."]);
     assert_eq!(
         shown(&ws, submenu(file, "Export")),
         [

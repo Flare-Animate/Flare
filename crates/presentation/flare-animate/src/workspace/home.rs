@@ -2,7 +2,7 @@
 //! main area the presets to create a project from, then the recent projects as cards.
 
 use egui::{Align2, Color32, FontId, Rect, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
-use flare_core::{DocumentId, FrameRate, LayerId, SceneId};
+use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId};
 use flare_document::{Document, Layer, Scene, Stage, Timeline};
 use flare_ui::{chrome, icons, theme};
 use std::path::PathBuf;
@@ -38,7 +38,7 @@ pub(super) struct HomeState {
     pub(super) info: flare_recent::RecentInfo,
     pub(super) search: String,
     pub(super) sort: flare_recent::Sorting,
-    pub(super) custom_size: Option<super::home_custom::CustomSize>,
+    pub(super) new_document: Option<super::home_custom::NewDocument>,
 }
 
 impl Workspace {
@@ -64,13 +64,24 @@ impl Workspace {
     /// A new project with a stage of `width` by `height` at `fps`: in place of an untouched new
     /// one, else in a new tab. Refuses a size or rate the document cannot have.
     pub fn new_project(&mut self, width: u32, height: u32, fps: u32) {
-        match self.blank_document(width, height, fps) {
+        self.new_project_with(width, height, fps, Rgba8::WHITE);
+    }
+
+    /// A new project of the given stage size, frame rate and background color.
+    pub fn new_project_with(&mut self, width: u32, height: u32, fps: u32, background: Rgba8) {
+        match self.blank_document(width, height, fps, background) {
             Ok(document) => self.show_document(document, None),
             Err(error) => self.report(error),
         }
     }
 
-    fn blank_document(&self, width: u32, height: u32, fps: u32) -> Result<Document, String> {
+    fn blank_document(
+        &self,
+        width: u32,
+        height: u32,
+        fps: u32,
+        background: Rgba8,
+    ) -> Result<Document, String> {
         let number = [("n", "1")];
         let layer = Layer::new(LayerId::new(), tr!(self, "name-new-layer", &number), vec![])
             .map_err(|e| e.to_string())?;
@@ -82,8 +93,7 @@ impl Workspace {
         let rate = FrameRate::new(fps, 1).map_err(|e| e.to_string())?;
         let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
             .map_err(|diagnostics| format!("{diagnostics:?}"))?;
-        let stage =
-            Stage::new(width, height, document.stage().background()).map_err(|e| e.to_string())?;
+        let stage = Stage::new(width, height, background).map_err(|e| e.to_string())?;
         Ok(document.with_stage(stage))
     }
 
@@ -102,7 +112,7 @@ impl Workspace {
             Stroke::new(1.0, theme::border()),
         );
         ui.scope_builder(egui::UiBuilder::new().max_rect(side.shrink(14.0)), |ui| {
-            self.home_sidebar(ui, &mut chosen, &mut dialog);
+            self.home_sidebar(ui, &mut dialog);
         });
         ui.scope_builder(
             egui::UiBuilder::new().max_rect(main.shrink2(vec2(PAGE_MARGIN, 0.0))),
@@ -127,12 +137,7 @@ impl Workspace {
         }
     }
 
-    fn home_sidebar(
-        &mut self,
-        ui: &mut Ui,
-        chosen: &mut Option<(u32, u32, u32)>,
-        dialog: &mut Option<DialogRequest>,
-    ) {
+    fn home_sidebar(&mut self, ui: &mut Ui, dialog: &mut Option<DialogRequest>) {
         ui.horizontal(|ui| {
             ui.add(icons::flame(32.0));
             ui.label(
@@ -162,19 +167,11 @@ impl Workspace {
         ui.add_space(18.0);
         let width = ui.available_width();
         if wide_button(ui, width, "file-new", &tr!(self, "start-new-file"), true).clicked() {
-            let (_, w, h, fps) = PRESETS[0];
-            *chosen = Some((w, h, fps));
+            self.show_new_document();
         }
         ui.add_space(6.0);
         if wide_button(ui, width, "file-open", &tr!(self, "start-open"), false).clicked() {
             *dialog = Some(DialogRequest::Open);
-        }
-        ui.add_space(6.0);
-        if wide_button(ui, width, "file-import", &tr!(self, "start-import"), false)
-            .on_hover_text(tr!(self, "start-import-hint"))
-            .clicked()
-        {
-            *dialog = Some(DialogRequest::ImportProject);
         }
     }
 
