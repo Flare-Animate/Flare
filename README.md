@@ -82,3 +82,15 @@ Contributors should look at [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGEN
 ### License
 
 BSD 3-Clause. See [LICENSE](LICENSE).
+
+## What is Flare?
+
+Flare is a (Work In Progress) Animation Suite, designed to make the transition from software like Adobe Animate, Adobe/Macromedia Flash and Moho easier for Artists and Animators. We implement support for all formats used by those tools, and redesign the UI to have a more simplistic and familiar layout.
+
+It is being rewritten in Rust, based predominantly on OpenToonz and Tahoma2D, with many features merged in from AnimationCraft and Next2Flash.
+
+### Format support
+
+- Flash/Animate: .fla, .xfl, .swf, .swc, .flv/.f4v, .as, legacy binary .fla, AIR/ZXP/MXP packages
+- Moho project reading: structure, rig and asset manifest (no rendering yet)
+- OpenToonz formats: .tnz, .tlv, .pli, .tzu (planned)
