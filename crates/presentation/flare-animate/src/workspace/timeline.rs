@@ -222,21 +222,7 @@ impl Workspace {
                             flare_ui::theme::text_strong().gamma_multiply(6.0 / 255.0),
                         );
                     }
-                    // A line every five frames makes the cells easy to count.
-                    for f in (0..frames).step_by(5) {
-                        let x = track.min.x + f as f32 * per_frame;
-                        if x > painter.clip_rect().max.x {
-                            break;
-                        }
-                        painter.vline(
-                            x,
-                            y..=y + row,
-                            Stroke::new(
-                                1.0,
-                                flare_ui::theme::text_strong().gamma_multiply(14.0 / 255.0),
-                            ),
-                        );
-                    }
+                    timeline_cells::grid_lines(&painter, track.min.x, y, row, per_frame, frames);
                     if Some(layer.id()) == active {
                         let band = Rect::from_min_max(
                             Pos2::new(rect.min.x, y),
@@ -332,15 +318,16 @@ impl Workspace {
                             flare_editor::timeline_view::span_color(span.content(), span.tween());
                         let color = Color32::from_rgb(r, g, b);
                         let bar = Rect::from_min_max(
-                            Pos2::new(x0, y + 2.0),
-                            Pos2::new(x1.max(x0 + 1.0), y + row - 2.0),
+                            Pos2::new(x0, y + 1.0),
+                            Pos2::new(x1.max(x0 + 1.0), y + row - 1.0),
                         );
                         let color = if layer.is_visible() {
                             color
                         } else {
                             color.gamma_multiply(0.35)
                         };
-                        painter.rect_filled(bar, 2.0, color);
+                        painter.rect_filled(bar, 0.0, color);
+                        timeline_cells::span_marks(&painter, bar, span, per_frame);
                         // A tween has an arrow along its span, toward the next keyframe.
                         if span.tween() != flare_document::Tween::None && bar.width() > 12.0 {
                             let line = Stroke::new(1.5, Color32::WHITE);

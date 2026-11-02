@@ -83,6 +83,7 @@ impl Workspace {
         self.publish_window(&ctx);
         self.ensure_language_font(&ctx);
         self.file_windows(&ctx);
+        self.close_prompt_window(&ctx);
         self.help_windows(&ctx);
         self.custom_size_window(&ctx);
         if self.playing {

@@ -110,6 +110,12 @@ impl Workspace {
         };
         self.pointer_stage = response.hover_pos().map(to_doc);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
+        if response.secondary_clicked()
+            && let Some(p) = response.interact_pointer_pos()
+        {
+            self.pick_for_stage_menu(to_doc(p));
+        }
+        response.context_menu(|ui| self.stage_menu(ui));
         if self.camera_stage(&response, &painter, scale, &to_screen) {
             return;
         }

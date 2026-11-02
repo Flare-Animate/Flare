@@ -143,12 +143,15 @@ fn tabs_hold_several_documents_switch_between_them_and_close_without_losing_work
     ws.switch_to_tab(7); // no such tab: nothing happens
     assert_eq!(layer_count(&ws), 3);
 
-    // Dirty tabs are not closed from under their work.
+    // A tab with unsaved work asks before closing, and nothing closes until it is answered.
     ws.perform(MenuAction::Close);
-    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+    assert_eq!(ws.close_prompt, Some(1));
     assert_eq!(ws.tabs().len(), 2);
+    ws.apply_close_choice(1, crate::workspace::close_prompt::Choice::Keep);
     ws.close_tab(0);
-    assert!(ws.status().is_some_and(|s| s.contains("Save or undo")));
+    assert_eq!(ws.close_prompt, Some(0));
+    assert_eq!(ws.tabs().len(), 2);
+    ws.apply_close_choice(0, crate::workspace::close_prompt::Choice::Keep);
     // Undoing back to clean allows it; the neighbour takes over.
     ws.undo();
     ws.undo();

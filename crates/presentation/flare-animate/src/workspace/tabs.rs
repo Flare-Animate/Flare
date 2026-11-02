@@ -144,9 +144,52 @@ impl Workspace {
         self.validate_selection();
     }
 
-    /// Closes tab `index`, refusing while it has unsaved work. The last tab is replaced by an
-    /// empty one rather than leaving the window with nothing.
+    /// Whether tab `index` holds unsaved work.
+    pub(super) fn tab_is_dirty(&self, index: usize) -> bool {
+        if index == self.position {
+            self.is_dirty()
+        } else {
+            let slot = if index < self.position {
+                index
+            } else {
+                index - 1
+            };
+            self.parked.get(slot).is_some_and(Workspace::is_dirty)
+        }
+    }
+
+    /// Closes tab `index`. A tab with unsaved work asks first (Save, Don't Save or Cancel) instead
+    /// of closing. The last tab is replaced by an empty one rather than leaving the window with
+    /// nothing.
     pub fn close_tab(&mut self, index: usize) {
+        if index > self.parked.len() {
+            return;
+        }
+        if self.tab_is_dirty(index) {
+            self.close_prompt = Some(index);
+            return;
+        }
+        self.remove_tab(index);
+    }
+
+    /// Closes tab `index` giving up whatever it holds, recovery copy included.
+    pub(super) fn discard_tab(&mut self, index: usize) {
+        if index == self.position {
+            self.discard_recovery();
+        } else {
+            let slot = if index < self.position {
+                index
+            } else {
+                index - 1
+            };
+            if let Some(other) = self.parked.get_mut(slot) {
+                other.discard_recovery();
+            }
+        }
+        self.remove_tab(index);
+    }
+
+    pub(super) fn remove_tab(&mut self, index: usize) {
         if index > self.parked.len() {
             return;
         }
@@ -156,18 +199,10 @@ impl Workspace {
             } else {
                 index - 1
             };
-            if self.parked[slot].is_dirty() {
-                self.report(tr!(self, "msg-save-before-closing-other"));
-                return;
-            }
             self.parked.remove(slot);
             if slot < self.position {
                 self.position -= 1;
             }
-            return;
-        }
-        if self.is_dirty() {
-            self.report(tr!(self, "msg-save-before-closing"));
             return;
         }
         if self.parked.is_empty() {

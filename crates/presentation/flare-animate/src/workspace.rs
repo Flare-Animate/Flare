@@ -20,6 +20,7 @@ use flare_input::{InputSample, PenFeed};
 mod arrange;
 mod assist;
 mod background_work;
+mod close_prompt;
 mod command_labels;
 mod commands;
 mod core;
@@ -56,6 +57,7 @@ mod shell;
 mod sound;
 mod stage;
 mod stage_furniture;
+mod stage_menu;
 mod symbols;
 mod tabs;
 mod tools;
@@ -64,6 +66,7 @@ use tools::{anchors, stroke_preview, text_preview};
 #[cfg(test)]
 mod tests;
 mod timeline;
+mod timeline_cells;
 mod types;
 
 use dock::*;
@@ -199,6 +202,10 @@ pub struct Workspace {
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
     quit_requested: bool,
+    /// The tab a close was asked for while it held unsaved work: the prompt is open for it.
+    close_prompt: Option<usize>,
+    /// The document on show is closed once the save asked for by the prompt has been written.
+    close_after_save: bool,
     /// The dockable panel arrangement.
     layout: egui_tiles::Tree<Pane>,
     onion: OnionSkin,
@@ -336,6 +343,8 @@ impl Workspace {
             frame_menu_open: false,
             native_menu: false,
             quit_requested: false,
+            close_prompt: None,
+            close_after_save: false,
             layout: flare_dock::default_tree(),
             onion: OnionSkin {
                 enabled: false,
