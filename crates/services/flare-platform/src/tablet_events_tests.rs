@@ -92,6 +92,7 @@ fn only_an_enabled_pointer_with_a_pressure_axis_is_a_pen() {
     let found = pens(&[mouse, master, off, no_range, tablet(6)], PRESSURE);
     assert_eq!(found.len(), 1);
     assert_eq!(found[0].device, 6);
+    assert_eq!(found[0].name, "pen");
 }
 
 #[test]

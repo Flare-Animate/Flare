@@ -38,7 +38,10 @@ fn x11_window(window: &Window) -> Option<u32> {
 /// other system (macOS, Windows, native Wayland) reports force through winit, or not at all.
 pub(super) fn watch(window: &Window, feed: flare_animate::PenFeed) {
     let Some(id) = x11_window(window) else { return };
-    if let Err(error) = flare_platform::tablet::watch(id, feed) {
-        eprintln!("{error}");
+    // Said on the terminal so a person whose pen shows no pressure can tell whether it was found.
+    match flare_platform::tablet::watch(id, feed) {
+        Ok(pens) if pens.is_empty() => {}
+        Ok(pens) => eprintln!("pen pressure from: {}", pens.join(", ")),
+        Err(error) => eprintln!("{error}"),
     }
 }

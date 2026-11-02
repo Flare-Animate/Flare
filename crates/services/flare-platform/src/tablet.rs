@@ -85,12 +85,14 @@ fn select(conn: &RustConnection, window: Window, found: &[Pen]) -> Result<(), Ta
 }
 
 /// Starts feeding `feed` with the pen's pressure over the X window `window`, from a thread of
-/// its own that ends with the process. Pens plugged in later are picked up.
-pub fn watch(window: u32, feed: PenFeed) -> Result<(), TabletError> {
+/// its own that ends with the process, and returns the names of the pens found now. Pens plugged
+/// in later are picked up.
+pub fn watch(window: u32, feed: PenFeed) -> Result<Vec<String>, TabletError> {
     let (conn, screen) = connect()?;
     let root = conn.setup().roots[screen].root;
     let mut found = find_pens(&conn)?;
     select(&conn, window, &found)?;
+    let names = found.iter().map(|pen| pen.name.clone()).collect();
     // Devices appearing or going are announced on the root window.
     xinput::xi_select_events(
         &conn,
@@ -125,5 +127,5 @@ pub fn watch(window: u32, feed: PenFeed) -> Result<(), TabletError> {
             }
         })
         .map_err(unavailable)?;
-    Ok(())
+    Ok(names)
 }

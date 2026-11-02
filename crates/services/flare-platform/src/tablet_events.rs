@@ -11,9 +11,11 @@ use x11rb::protocol::xinput::{
 use x11rb::protocol::xproto::Atom;
 
 /// A device that reports pressure, and where.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Pen {
     pub(crate) device: DeviceId,
+    /// The name the server gives the device, for telling a person what was found.
+    pub(crate) name: String,
     /// Which valuator of the device's events carries pressure.
     axis: u16,
     range: PressureAxis,
@@ -30,6 +32,7 @@ pub(crate) fn pens(devices: &[XIDeviceInfo], label: Atom) -> Vec<Pen> {
                 DeviceClassData::Valuator(v) if v.label == label => {
                     PressureAxis::new(fixed(&v.min), fixed(&v.max)).map(|range| Pen {
                         device: d.deviceid,
+                        name: String::from_utf8_lossy(&d.name).into_owned(),
                         axis: v.number,
                         range,
                     })
