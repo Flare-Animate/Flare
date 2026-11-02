@@ -14,6 +14,7 @@ Flash workspaces and OpenToonz-inspired features follow once the core workflow i
 - [PARITY.md](PARITY.md): what the archived C++ project had and what Flare does with it
 - [ROADMAP.md](ROADMAP.md): milestones, what is done, and the next independent branches
 - [decisions/RENDERER.md](decisions/RENDERER.md): why vello_cpu is the CPU rasterizer
+- [decisions/LOSSLESS.md](decisions/LOSSLESS.md): why an opened file is kept whole and how an unchanged export is the original
 - [decisions/UI-STACK.md](decisions/UI-STACK.md): egui, winit, wgpu and the native macOS menu
 
 Docs describe what is true now plus accepted near-term plans. When behaviour changes,
