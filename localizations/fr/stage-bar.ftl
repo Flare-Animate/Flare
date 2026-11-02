@@ -20,3 +20,6 @@ bar-test-movie-tip = Lire l’animation publiée dans le lecteur
 bar-window-minimize = Réduire
 bar-window-maximize = Agrandir
 bar-window-restore = Restaurer
+bar-preferences = Préférences
+bar-redo = Rétablir
+bar-undo = Annuler

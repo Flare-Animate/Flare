@@ -20,3 +20,6 @@ bar-test-movie-tip = 在播放器中播放已发布的影片
 bar-window-minimize = 最小化
 bar-window-maximize = 最大化
 bar-window-restore = 还原
+bar-preferences = 首选项
+bar-redo = 重做
+bar-undo = 撤销

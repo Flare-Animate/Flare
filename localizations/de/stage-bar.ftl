@@ -20,3 +20,6 @@ bar-test-movie-tip = Den veröffentlichten Film im Player abspielen
 bar-window-minimize = Minimieren
 bar-window-maximize = Maximieren
 bar-window-restore = Wiederherstellen
+bar-preferences = Einstellungen
+bar-redo = Wiederholen
+bar-undo = Rückgängig

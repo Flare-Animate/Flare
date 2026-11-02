@@ -302,6 +302,15 @@ impl Workspace {
                         16.0,
                         flare_ui::theme::text(),
                     ));
+                    // With the system's menu bar the bar keeps its name beside the house; with
+                    // the in-window menus the menus take that place, as in Animate.
+                    if self.native_menu {
+                        ui.label(
+                            egui::RichText::new("Flare")
+                                .strong()
+                                .color(flare_ui::theme::text()),
+                        );
+                    }
                 })
                 .response
                 .interact(egui::Sense::click())
@@ -324,6 +333,10 @@ impl Workspace {
             let controls_width = self.window_controls_width();
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.add_space(controls_width);
+                if self.native_menu {
+                    self.classic_bar_right(ui, bar, controls_width);
+                    return;
+                }
                 // Play, Publish and the workspace switcher belong to a document; Home has none,
                 // and no interface to switch.
                 if !self.document_controls_shown() {

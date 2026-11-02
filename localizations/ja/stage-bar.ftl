@@ -20,3 +20,6 @@ bar-test-movie-tip = パブリッシュしたムービーをプレーヤーで�
 bar-window-minimize = 最小化
 bar-window-maximize = 最大化
 bar-window-restore = 元のサイズに戻す
+bar-preferences = 環境設定
+bar-redo = やり直し
+bar-undo = 取り消し

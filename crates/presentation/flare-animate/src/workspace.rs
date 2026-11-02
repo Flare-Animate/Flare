@@ -67,6 +67,7 @@ use tools::{anchors, stroke_preview, text_preview};
 mod tests;
 mod timeline;
 mod timeline_cells;
+mod top_bar_classic;
 mod types;
 
 use dock::*;

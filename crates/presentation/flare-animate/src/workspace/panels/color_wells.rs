@@ -25,8 +25,11 @@ pub(crate) struct Metrics {
 /// Side of the box the squares sit in, in a strip wide enough for it.
 const BOX: f32 = 50.0;
 
-/// The space between the squares and the buttons, and between the buttons.
+/// The space between the two buttons.
 const BUTTON_GAP: f32 = 2.0;
+
+/// The space between the row of buttons and the squares under it.
+const WELL_GAP: f32 = 6.0;
 
 impl Metrics {
     pub(crate) const FULL: Self = Self {
@@ -63,7 +66,7 @@ impl Metrics {
     }
 
     pub(crate) fn height(self) -> f32 {
-        self.small + BUTTON_GAP + self.offset + self.square
+        self.small + WELL_GAP + self.offset + self.square
     }
 }
 
@@ -82,7 +85,7 @@ pub(crate) fn rects_with(origin: Pos2, m: Metrics) -> WellRects {
     let defaults = at(left, 0.0, m.small);
     let swap = at(left + m.small + BUTTON_GAP, 0.0, m.small);
     // The squares below them, centered in the same width.
-    let top = m.small + BUTTON_GAP;
+    let top = m.small + WELL_GAP;
     let x = (m.width() - (m.offset + m.square)) / 2.0;
     WellRects {
         fill: at(x, top, m.square),

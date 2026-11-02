@@ -216,8 +216,9 @@ fn the_top_bar_has_no_settings_gear_and_preferences_stay_in_the_menus() {
 }
 
 /// Clicks the top bar at `x` in a fresh editor and says what that did.
-fn press_top_bar(x: f32) -> (bool, bool, bool) {
+fn press_top_bar(x: f32, native: bool) -> (bool, bool, bool) {
     let mut ws = workspace();
+    ws.set_native_menu(native);
     let ctx = egui::Context::default();
     run(&mut ws, &ctx, 0.0);
     run(&mut ws, &ctx, 0.1);
@@ -243,7 +244,7 @@ fn the_play_button_is_left_of_publish_in_the_top_bar() {
     // top-right buttons take the corner of the 1280 wide window; the scan goes on past play.
     let mut x = 1276.0;
     while x > 1120.0 {
-        let (published, playing, _) = press_top_bar(x);
+        let (published, playing, _) = press_top_bar(x, false);
         if playing && play.is_none() {
             play = Some(x);
         }
@@ -264,8 +265,9 @@ fn the_play_button_is_left_of_publish_in_the_top_bar() {
 }
 
 /// The tooltip the top bar shows with the pointer at `x`, in a window 1280 wide.
-fn top_bar_hint(x: f32, home: bool) -> String {
+fn top_bar_hint(x: f32, home: bool, native: bool) -> String {
     let mut ws = workspace();
+    ws.set_native_menu(native);
     ws.set_home(home);
     let ctx = egui::Context::default();
     flare_ui::icons::install(&ctx);
@@ -296,7 +298,7 @@ fn the_interface_switcher_is_a_dimmed_button_in_the_top_right_corner() {
     let mut found = None;
     let mut x = width - 2.0;
     while x > width - 140.0 {
-        let hint = top_bar_hint(x, false);
+        let hint = top_bar_hint(x, false, false);
         assert!(!hint.contains("Preferences"), "there is no gear at {x}");
         if hint.contains("Interface switcher (Not available yet)") {
             found.get_or_insert(x);
@@ -316,8 +318,8 @@ fn home_has_no_interface_switcher_the_editor_does() {
     let mut in_editor = false;
     let mut x = 1276.0;
     while x > 1140.0 {
-        on_home |= top_bar_hint(x, true).contains("Interface switcher");
-        in_editor |= top_bar_hint(x, false).contains("Interface switcher");
+        on_home |= top_bar_hint(x, true, false).contains("Interface switcher");
+        in_editor |= top_bar_hint(x, false, false).contains("Interface switcher");
         x -= 6.0;
     }
     assert!(in_editor, "the editor has it");
@@ -499,4 +501,70 @@ fn the_house_in_the_top_bar_goes_to_home_and_stays_there() {
     // A tab is the way back to a document.
     ws.switch_to_tab(0);
     assert!(!ws.home_shown());
+}
+
+// ---- the bar where the menus are the system's (macOS) ------------------------------------------
+
+#[test]
+fn with_a_native_menu_the_top_bar_keeps_its_gear_name_undo_redo_play_and_publish() {
+    // The settings gear is centered over the rail's icons, 16.5 px in from the right edge of a
+    // 1280 wide window; it is a 22 px button, so a click 10 px either side opens Preferences.
+    let center = 1280.0 - crate::workspace::rail::CENTER_FROM_EDGE;
+    let opened = |home: bool, x: f32| {
+        let mut ws = workspace();
+        ws.set_native_menu(true);
+        ws.set_home(home);
+        let ctx = egui::Context::default();
+        run(&mut ws, &ctx, 0.0);
+        run(&mut ws, &ctx, 0.1);
+        let at = Pos2::new(x, 14.0);
+        let click = |pressed| Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: Modifiers::NONE,
+        };
+        pass(&mut ws, &ctx, input(0.2, vec![Event::PointerMoved(at)]));
+        pass(&mut ws, &ctx, input(0.3, vec![click(true)]));
+        pass(&mut ws, &ctx, input(0.4, vec![click(false)]));
+        ws.windows.preferences
+    };
+    for home in [false, true] {
+        assert!(opened(home, center), "the middle, home = {home}");
+        assert!(opened(home, center - 10.0), "left edge, home = {home}");
+        assert!(opened(home, center + 10.0), "right edge, home = {home}");
+        assert!(!opened(home, center - 12.0), "beyond the left edge");
+        assert!(!opened(home, center + 12.0), "beyond the right edge");
+    }
+}
+
+#[test]
+fn with_a_native_menu_publish_is_left_of_play_and_the_bar_has_undo_redo_and_the_switcher() {
+    // Walking left from the undo button, play comes, then publish.
+    let (mut play, mut publish) = (None, None);
+    let mut x = 1180.0;
+    while x > 1040.0 {
+        let (published, playing, _) = press_top_bar(x, true);
+        if playing && play.is_none() {
+            play = Some(x);
+        }
+        if published && publish.is_none() {
+            publish = Some(x);
+        }
+        x -= 8.0;
+    }
+    let (play, publish) = (
+        play.expect("play is in the bar"),
+        publish.expect("publish is in the bar"),
+    );
+    assert!(publish < play, "publish at {publish}, play at {play}");
+    let mut hints = String::new();
+    let mut x = 1276.0;
+    while x > 1060.0 {
+        hints.push_str(&top_bar_hint(x, false, true));
+        x -= 6.0;
+    }
+    for wanted in ["Undo", "Redo", "Preferences", "Interface switcher"] {
+        assert!(hints.contains(wanted), "{wanted} is in the bar: {hints:?}");
+    }
 }

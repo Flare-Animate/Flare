@@ -20,3 +20,6 @@ bar-test-movie-tip = 게시된 동영상을 플레이어에서 재생
 bar-window-minimize = 최소화
 bar-window-maximize = 최대화
 bar-window-restore = 이전 크기로
+bar-preferences = 환경설정
+bar-redo = 다시 실행
+bar-undo = 실행 취소

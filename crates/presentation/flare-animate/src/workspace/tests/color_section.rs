@@ -178,3 +178,16 @@ fn a_shape_drawn_with_no_stroke_has_a_stroke_nobody_can_see() {
         shape.stroke()
     );
 }
+
+#[test]
+fn the_buttons_sit_a_little_clear_of_the_color_squares_in_both_sizes() {
+    for m in [Metrics::FULL, Metrics::COMPACT] {
+        let r = rects_with(Pos2::ZERO, m);
+        let gap = r.fill.top() - r.defaults.bottom();
+        assert!(gap >= 5.0, "{gap} px under the buttons");
+        assert!(
+            gap > r.swap.left() - r.defaults.right(),
+            "more room under them than between them"
+        );
+    }
+}
