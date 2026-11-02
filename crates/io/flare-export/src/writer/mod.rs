@@ -44,11 +44,27 @@ pub struct Diagnostic {
 }
 
 /// The files of an exported document, by path relative to its root.
+///
+/// `files` are the ones Flare wrote from the document. A document imported from a file also
+/// brings `kept`, original files written back as they were read, and `exact`, set when the
+/// document is still what the import made so that the whole original is written back (see
+/// [`crate::lossless`]); `files` is then empty.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Output {
     /// Name used for the `.xfl` stub and, with `.fla`, the archive.
     pub name: String,
     pub files: Vec<(String, String)>,
+    /// Original files carried over untouched: library bitmaps and sounds, publish settings and
+    /// every other file Flare does not rebuild. A name here is not in `files`.
+    pub kept: Vec<(String, Vec<u8>)>,
+    /// The names of the original files in their original order; the archive follows it.
+    pub order: Vec<String>,
+    /// The unchanged import to write back byte for byte.
+    pub exact: Option<flare_document::SharedOrigin>,
+    /// The original was an unpacked folder, whose `.xfl` stub is a file of it, not of an archive.
+    pub from_folder: bool,
+    /// Whether what is written is the original, and if not, how it differs.
+    pub lossless: crate::lossless::Lossless,
     pub diagnostics: Vec<Diagnostic>,
 }
 
@@ -62,8 +78,36 @@ pub enum ExportError {
     Zip(#[from] zip::result::ZipError),
 }
 
+impl Output {
+    /// How many files (and empty folders) the output holds.
+    pub fn file_count(&self) -> usize {
+        match &self.exact {
+            Some(origin) => match origin.data() {
+                flare_document::OriginData::Files(files) => files.len(),
+                flare_document::OriginData::Bytes(_) => {
+                    crate::lossless::entries::entries_of(origin).files.len()
+                }
+            },
+            None => self.files.len() + self.kept.len(),
+        }
+    }
+}
+
 /// Builds the files of an XFL document. Nothing is written to disk.
+///
+/// A document imported from a `.fla` or an XFL folder that is still as the import made it comes
+/// out as the original, byte for byte; an edited one keeps every original file Flare does not
+/// rebuild. [`Output::lossless`] says which.
 pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
+    crate::lossless::export(document)
+}
+
+/// Builds the files of an XFL document from the document alone, naming the library files
+/// `reuse` gives (by symbol) as they were. Nothing is written to disk.
+pub(crate) fn build_xfl(
+    document: &Document,
+    reuse: &std::collections::HashMap<flare_core::SymbolId, String>,
+) -> Result<Output, ExportError> {
     let mut notes: Vec<Diagnostic> = Vec::new();
     if !document.sounds().is_empty() {
         notes.push(Diagnostic {
@@ -80,6 +124,10 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
     let mut used_names: HashSet<String> = HashSet::new();
     let mut used_files: HashSet<String> = HashSet::new();
     let mut library = Vec::new();
+    // Files an import named come first, so a generated name never takes one of them.
+    for name in reuse.values() {
+        used_files.insert(name.to_lowercase());
+    }
     for symbol in document.symbols() {
         let base = if symbol.name().is_empty() {
             "Symbol"
@@ -101,13 +149,18 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
                 ),
             });
         }
-        let stem = safe_stem(&name);
-        let mut file = format!("{stem}.xml");
-        let mut k = 2;
-        while !used_files.insert(file.to_lowercase()) {
-            file = format!("{stem} {k}.xml");
-            k += 1;
-        }
+        let file = if let Some(file) = reuse.get(&symbol.id()) {
+            file.clone()
+        } else {
+            let stem = safe_stem(&name);
+            let mut file = format!("{stem}.xml");
+            let mut k = 2;
+            while !used_files.insert(file.to_lowercase()) {
+                file = format!("{stem} {k}.xml");
+                k += 1;
+            }
+            file
+        };
         library.push((symbol.id(), name, file));
     }
     let kinds = document
@@ -231,6 +284,11 @@ pub fn export_xfl(document: &Document) -> Result<Output, ExportError> {
     Ok(Output {
         name,
         files,
+        kept: Vec::new(),
+        order: Vec::new(),
+        exact: None,
+        from_folder: false,
+        lossless: crate::lossless::Lossless::rebuilt("this project was not imported from a file"),
         diagnostics: notes,
     })
 }

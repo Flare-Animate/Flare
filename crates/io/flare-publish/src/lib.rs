@@ -86,6 +86,8 @@ impl Default for PublishOptions {
 pub struct Published {
     pub bytes: Vec<u8>,
     pub frames: u32,
+    /// The bytes are the movie the project was imported from, unchanged, not a rebuilt one.
+    pub original: bool,
     pub diagnostics: Vec<Diagnostic>,
 }
 
@@ -184,10 +186,29 @@ pub(crate) fn place(
 }
 
 /// Publishes `document`, scene after scene, as a SWF.
+///
+/// A document imported from a SWF that has not been edited since is published as that very
+/// movie, byte for byte (`compress` does not apply to it); anything else is built from the
+/// document.
 pub fn publish_swf(
     document: &Document,
     options: &PublishOptions,
 ) -> Result<Published, PublishError> {
+    if let Some(origin) = flare_export::lossless::unchanged_movie(document)
+        && let flare_document::OriginData::Bytes(bytes) = origin.data()
+    {
+        let frames =
+            swf::decompress_swf(&bytes[..]).map_or(0, |movie| u32::from(movie.header.num_frames()));
+        return Ok(Published {
+            bytes: bytes.clone(),
+            frames,
+            original: true,
+            diagnostics: vec![Diagnostic {
+                severity: Severity::Info,
+                message: "unchanged since it was imported, so the original movie is written back byte for byte".into(),
+            }],
+        });
+    }
     let mut diagnostics = Vec::new();
     let stage = document.stage();
     if stage.width() > MAX_STAGE_PX || stage.height() > MAX_STAGE_PX {
@@ -318,6 +339,7 @@ pub fn publish_swf(
     let mut bytes = Vec::new();
     swf::write_swf(&header, &tags, &mut bytes).map_err(|e| PublishError::Write(e.to_string()))?;
     Ok(Published {
+        original: false,
         bytes,
         frames,
         diagnostics,

@@ -7,6 +7,7 @@
 #![forbid(unsafe_code)]
 
 pub mod curves;
+pub mod lossless;
 mod writer;
 
 pub use writer::{
