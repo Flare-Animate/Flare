@@ -31,16 +31,5 @@
       "libxrandr2",
       "libxkbcommon-x11-0"
     ]
-  },
-  "appimage": {
-    "libs": [
-      "libX11*.so.*",
-      "libXcursor.so.*",
-      "libXi.so.*",
-      "libXrandr.so.*",
-      "libxkbcommon*.so.*",
-      "libwayland*.so.*",
-      "libxcb*.so.*"
-    ]
   }
 }

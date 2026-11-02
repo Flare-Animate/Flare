@@ -58,7 +58,7 @@ For each of six targets (Windows, macOS and Linux, x64 and arm64):
 | -------- | ------- | ------------ |
 | macOS | `flare-<v>-macos-<arch>.dmg` and `-update.zip` (the same ad-hoc signed `Flare.app`) | `flare-cli-<v>-macos-<arch>.tar.gz` |
 | Windows | `.msi` (WiX 5, registers `.flare`) and `-portable.zip` (the program, its licences and the changelog) | `flare-cli-<v>-windows-<arch>.zip` |
-| Linux | `.deb`, `.rpm`, `.AppImage`, `.flatpak` (install with `flatpak install --user`) and a `.tar.gz` | `flare-cli-<v>-linux-<arch>.tar.gz` |
+| Linux | `.deb`, `.rpm`, `.AppImage`, `.flatpak` (install with `flatpak install --user` from a terminal; a software centre cannot fetch the runtime of a bundle) and a `.tar.gz` | `flare-cli-<v>-linux-<arch>.tar.gz` |
 
 The command line archive holds `flare` (the command line) and `flare-mcp`. The desktop app's program is `flare-desktop` on Linux and Windows (inside `Flare.app` on macOS), so the two never share a name on `PATH`; `flare open` starts it. A `SHA256SUMS.txt` covers everything.
 The web build is experimental and not released.

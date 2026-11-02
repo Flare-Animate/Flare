@@ -162,6 +162,16 @@ jobs:
           "$appimage" --appimage-extract > /dev/null
           test -x squashfs-root/usr/bin/flare-desktop
           test -f squashfs-root/usr/share/mime/packages/flare.xml
+          # The AppImage must not carry the system's graphics stack. Its copies come from the build
+          # machine, older than the ones a newer system's graphics driver is built against, and
+          # they come first on the library path: the window then fails with "Failed to create
+          # surface for any enabled backend: {}", and xkbcommon cannot read newer key names.
+          graphics=$(find squashfs-root/usr/lib \( -name 'libwayland*' -o -name 'libxcb*' -o -name 'libX11*' -o -name 'libxkbcommon*' -o -name 'libffi*' -o -name 'libEGL*' -o -name 'libGL*' -o -name 'libvulkan*' -o -name 'libdrm*' \) 2>/dev/null)
+          if [ -n "$graphics" ]; then
+            echo "the AppImage bundles libraries of the system's graphics stack:"
+            echo "$graphics"
+            exit 1
+          fi
       - name: Install WiX 5 for both Windows architectures
         if: runner.os == 'Windows'
         run: dotnet tool install --global wix --version 5.0.2 --allow-roll-forward
