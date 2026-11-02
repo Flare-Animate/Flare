@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow
+name: FreeBSD Build
+
+on:
+  push:
+    branches: [main, Rust-Rewrite]
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_freebsd.yml'
+  pull_request:
+    branches: [main, Rust-Rewrite]
+    paths:
+      - '**/*'
+      - '!appveyor.yml'
+      - '!README.md'
+      - '!doc/**'
+      - '!**/.github/**'
+      - '.github/workflows/workflow_freebsd.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  FreeBSD:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: false
+          fetch-depth: 0
+
+      - name: Build in FreeBSD VM
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y cmake ninja git python3 py311-pip \
+              qt5 qt5-wayland boost-libs png jpeg-turbo tiff \
+              freetype2 glew freeglut opencv json-c \
+              superlu lz4 lzo2 minizip zip libusb
+          run: |
+            cd $GITHUB_WORKSPACE
+            mkdir -p build && cd build
+            cmake ../flare/sources -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DWITH_TRANSLATION=OFF \
+              -DWITH_SYSTEM_LZO=ON
+            ninja -j2
+
+      - name: Run Rust tests
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          run: |
+            cd $GITHUB_WORKSPACE/flare/sources
+            cargo test --lib
