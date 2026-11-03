@@ -76,5 +76,4 @@ impl Workspace {
     pub(crate) fn assets_panel(&mut self, ui: &mut Ui) {
         ui.label("Assets (not yet implemented)");
     }
-
 }

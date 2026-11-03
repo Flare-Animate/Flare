@@ -40,8 +40,16 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
             Pane::History => inset.show(ui, |ui| self.workspace.history_panel(ui)).inner,
             Pane::Info => inset.show(ui, |ui| self.workspace.info_panel(ui)).inner,
             Pane::Output => inset.show(ui, |ui| self.workspace.output_panel(ui)).inner,
-            Pane::MotionEditor => inset.show(ui, |ui| self.workspace.motion_editor_panel(ui)).inner,
-            Pane::FindReplace => inset.show(ui, |ui| self.workspace.find_replace_panel(ui)).inner,
+            Pane::MotionEditor => {
+                inset
+                    .show(ui, |ui| self.workspace.motion_editor_panel(ui))
+                    .inner
+            }
+            Pane::FindReplace => {
+                inset
+                    .show(ui, |ui| self.workspace.find_replace_panel(ui))
+                    .inner
+            }
             Pane::Assets => inset.show(ui, |ui| self.workspace.assets_panel(ui)).inner,
         }
         egui_tiles::UiResponse::None
