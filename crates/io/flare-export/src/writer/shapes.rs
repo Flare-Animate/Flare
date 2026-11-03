@@ -131,7 +131,7 @@ pub(super) fn write_shape(
             "SolidColor",
             [
                 a("color", hex(stroke.color())),
-                a("alpha", alpha(stroke.color())),
+                a("alpha", num(f64::from(stroke.color().a) / 255.0 * stroke.opacity())),
             ],
         );
         out.close("fill");

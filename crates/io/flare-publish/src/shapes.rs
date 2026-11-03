@@ -188,6 +188,15 @@ fn color(c: flare_core::Rgba8) -> Color {
     }
 }
 
+fn color_with_opacity(c: flare_core::Rgba8, opacity: f64) -> Color {
+    Color {
+        r: c.r,
+        g: c.g,
+        b: c.b,
+        a: (f64::from(c.a) * opacity).round() as u8,
+    }
+}
+
 /// A SWF gradient fills a square whose x axis runs from -16384 to 16384 twips; the matrix
 /// carries that axis onto the line from the gradient's start to its end, so the first color is at
 /// the start and the last at the end, and the colors beyond are held (`Pad`).
@@ -253,7 +262,7 @@ pub fn define_shape(id: CharacterId, shape: &Shape, approximated: &mut bool) -> 
         styles.line_styles.push(
             LineStyle::new()
                 .with_width(width)
-                .with_color(color(stroke.color()))
+                .with_color(color_with_opacity(stroke.color(), stroke.opacity()))
                 .with_start_cap(cap_style(stroke.cap()))
                 .with_end_cap(cap_style(stroke.cap()))
                 .with_join_style(join_style(stroke.join())),

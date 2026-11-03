@@ -55,22 +55,38 @@ pub enum Join {
 }
 
 /// An outline drawn along a shape's path. Round caps and joins unless it says otherwise.
+///
+/// `opacity` is a multiplier in `[0, 1]` applied on top of `color`'s alpha, so a stroke
+/// can be faded without touching its color. It exists so Pencil/Line strokes can carry
+/// per-stroke opacity (issue #25) the way Clip Studio Paint's vector brushes do: the
+/// stroke keeps its identity and its width/opacity can be edited after the fact instead
+/// of being baked into the color.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Stroke {
     width: f64,
     color: Rgba8,
+    opacity: f64,
     cap: Cap,
     join: Join,
 }
 
 impl Stroke {
     pub fn new(width: f64, color: Rgba8) -> Result<Self, ShapeError> {
+        Self::new_with_opacity(width, color, 1.0)
+    }
+
+    /// Like [`new`](Self::new), but with an explicit opacity in `[0, 1]`.
+    pub fn new_with_opacity(width: f64, color: Rgba8, opacity: f64) -> Result<Self, ShapeError> {
         if !(width.is_finite() && width > 0.0 && width <= MAX_STROKE_WIDTH) {
+            return Err(ShapeError::InvalidStrokeWidth);
+        }
+        if !(opacity.is_finite() && (0.0..=1.0).contains(&opacity)) {
             return Err(ShapeError::InvalidStrokeWidth);
         }
         Ok(Self {
             width,
             color,
+            opacity,
             cap: Cap::Round,
             join: Join::Round,
         })
@@ -88,6 +104,19 @@ impl Stroke {
     pub fn with_join(mut self, join: Join) -> Self {
         self.join = join;
         self
+    }
+
+    /// The same stroke with a different opacity in `[0, 1]`.
+    #[must_use]
+    pub fn with_opacity(mut self, opacity: f64) -> Self {
+        if opacity.is_finite() && (0.0..=1.0).contains(&opacity) {
+            self.opacity = opacity;
+        }
+        self
+    }
+
+    pub fn opacity(&self) -> f64 {
+        self.opacity
     }
 
     pub fn cap(&self) -> Cap {
