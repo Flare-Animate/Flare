@@ -70,10 +70,13 @@ class DVAPI TFilePathListData final : public TData {
 public:
   TFilePathListData(const std::vector<TFilePath> &filePaths)
       : m_filePaths(filePaths) {}
-  TDataP clone() const override;
+  TDataP clone() const override { return new TFilePathListData(m_filePaths); }
 
   int getFilePathCount() const { return m_filePaths.size(); }
-  TFilePath getFilePath(int i) const;
+  TFilePath getFilePath(int i) const {
+    assert(0 <= i && i < (int)m_filePaths.size());
+    return m_filePaths[i];
+  }
 };
 
 #ifdef _MSC_VER
