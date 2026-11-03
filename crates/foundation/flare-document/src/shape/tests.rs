@@ -69,6 +69,34 @@ fn strokes_validate_their_width() {
 }
 
 #[test]
+fn strokes_carry_opacity() {
+    let stroke = Stroke::new(2.0, Rgba8::WHITE).expect("stroke");
+    assert_eq!(stroke.opacity(), 1.0, "default opacity is fully opaque");
+
+    let faded = stroke.with_opacity(0.5);
+    assert_eq!(faded.opacity(), 0.5);
+    assert_eq!(faded.width(), stroke.width());
+    assert_eq!(faded.color(), stroke.color());
+
+    // out-of-range opacity is ignored, not an error
+    assert_eq!(stroke.with_opacity(2.0).opacity(), 1.0);
+    assert_eq!(stroke.with_opacity(-1.0).opacity(), 1.0);
+
+    // new_with_opacity validates the range
+    assert!(Stroke::new_with_opacity(2.0, Rgba8::WHITE, 0.5).is_ok());
+    assert_eq!(
+        Stroke::new_with_opacity(2.0, Rgba8::WHITE, 1.5),
+        Err(ShapeError::InvalidStrokeWidth)
+    );
+
+    // opacity participates in equality so two strokes that differ only in opacity
+    // are distinct (issue #25: stroke identity is retained, not merged)
+    let a = Stroke::new(2.0, Rgba8::WHITE).expect("a");
+    let b = a.with_opacity(0.3);
+    assert_ne!(a, b);
+}
+
+#[test]
 fn malformed_paths_are_rejected() {
     assert_eq!(shape(vec![]), Err(ShapeError::Empty));
     assert_eq!(
