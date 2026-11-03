@@ -23,7 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive
+
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
 
       - name: Install the pinned Rust toolchain
         run: rustup toolchain install
@@ -45,4 +48,3 @@ jobs:
 
       - name: Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
-
