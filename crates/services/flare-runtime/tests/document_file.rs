@@ -153,6 +153,7 @@ fn a_read_only_fla_is_refused_and_stays_as_it_was() {
     assert_eq!(std::fs::read(&path).expect("read"), FLA);
 }
 
+#[cfg(unix)]
 #[test]
 fn a_fla_in_a_folder_that_cannot_be_written_fails_and_keeps_the_old_file() {
     use std::os::unix::fs::PermissionsExt;
