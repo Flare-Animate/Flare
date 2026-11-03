@@ -1,7 +1,7 @@
 **English** | [Deutsch](docs/translations/README.de.md) | [Español](docs/translations/README.es.md) | [Français](docs/translations/README.fr.md) | [Português (Brasil)](docs/translations/README.pt-BR.md) | [日本語](docs/translations/README.ja.md) | [한국어](docs/translations/README.ko.md) | [简体中文](docs/translations/README.zh-CN.md)
 
 <p align="center">
-  <img src="assets/flare-icon-256.png" width="128" height="128" alt="The Flare flame">
+  <img src="assets/BannerNew.png" width="128" height="128" alt="The Flare Banner">
 </p>
 
 # Flare
