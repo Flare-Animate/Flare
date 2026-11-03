@@ -19,8 +19,8 @@
 // platform-native std::wstring. Returns a heap-allocated, NUL-terminated buffer that
 // the caller copies into m_msg and frees with flare_to_wstring_free.
 extern "C" {
-DVAPI wchar_t *flare_to_wstring(const char *s);
-DVAPI void flare_to_wstring_free(wchar_t *p);
+wchar_t *flare_to_wstring(const char *s);
+void flare_to_wstring_free(wchar_t *p);
 }
 
 class DVAPI TException {
