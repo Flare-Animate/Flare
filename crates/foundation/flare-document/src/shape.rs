@@ -54,18 +54,33 @@ pub enum Join {
     Miter,
 }
 
+/// The kind of brush a stroke was drawn with. Stored on the stroke so the brush can be
+/// swapped or edited after the fact (issue #25) instead of being baked into the path.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum BrushType {
+    /// A uniform-width stroke (the default, matches classic Flash/Animate).
+    #[default]
+    Uniform,
+    /// A stroke whose width follows pen pressure; the per-point pressure is stored
+    /// alongside the path.
+    Pressure,
+    /// A stroke whose width is fixed but tapered at the ends (calligraphy-like).
+    Tapered,
+}
+
 /// An outline drawn along a shape's path. Round caps and joins unless it says otherwise.
 ///
 /// `opacity` is a multiplier in `[0, 1]` applied on top of `color`'s alpha, so a stroke
-/// can be faded without touching its color. It exists so Pencil/Line strokes can carry
-/// per-stroke opacity (issue #25) the way Clip Studio Paint's vector brushes do: the
-/// stroke keeps its identity and its width/opacity can be edited after the fact instead
-/// of being baked into the color.
+/// can be faded without touching its color. `brush` records which brush produced the
+/// stroke so it can be swapped or edited after drawing (issue #25) the way Clip Studio
+/// Paint's vector brushes do: the stroke keeps its identity and its width/opacity/brush
+/// can be edited after the fact instead of being baked into the path.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Stroke {
     width: f64,
     color: Rgba8,
     opacity: f64,
+    brush: BrushType,
     cap: Cap,
     join: Join,
 }
@@ -87,6 +102,7 @@ impl Stroke {
             width,
             color,
             opacity,
+            brush: BrushType::Uniform,
             cap: Cap::Round,
             join: Join::Round,
         })
@@ -117,6 +133,17 @@ impl Stroke {
 
     pub fn opacity(&self) -> f64 {
         self.opacity
+    }
+
+    /// The same stroke with a different brush type.
+    #[must_use]
+    pub fn with_brush(mut self, brush: BrushType) -> Self {
+        self.brush = brush;
+        self
+    }
+
+    pub fn brush(&self) -> BrushType {
+        self.brush
     }
 
     pub fn cap(&self) -> Cap {

@@ -94,6 +94,12 @@ fn strokes_carry_opacity() {
     let a = Stroke::new(2.0, Rgba8::WHITE).expect("a");
     let b = a.with_opacity(0.3);
     assert_ne!(a, b);
+
+    // brush type defaults to Uniform and can be swapped after drawing
+    assert_eq!(a.brush(), BrushType::Uniform);
+    let c = a.with_brush(BrushType::Pressure);
+    assert_eq!(c.brush(), BrushType::Pressure);
+    assert_ne!(a, c);
 }
 
 #[test]
