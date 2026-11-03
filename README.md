@@ -4,7 +4,7 @@
   <img src="assets/flare-icon-256.png" width="128" height="128" alt="The Flare flame">
 </p>
 
-# Flare Animate
+# Flare
 
 [![CI](https://img.shields.io/github/actions/workflow/status/Flare-Animate/Flare/ci.yml?branch=main&label=CI)](https://github.com/Flare-Animate/Flare/actions/workflows/ci.yml)
 [![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue)](LICENSE)
