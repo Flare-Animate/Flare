@@ -9,3 +9,6 @@ pane-transform = 変形
 pane-history = ヒストリー
 pane-info = 情報
 pane-output = 出力
+pane-motion-editor = モーションエディタ
+pane-find-replace = 検索と置換
+pane-assets = アセット

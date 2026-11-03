@@ -9,3 +9,6 @@ pane-transform = 변형
 pane-history = 히스토리
 pane-info = 정보
 pane-output = 출력
+pane-motion-editor = 모션 에디터
+pane-find-replace = 찾기 및 바꾸기
+pane-assets = 에셋

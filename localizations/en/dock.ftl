@@ -9,3 +9,6 @@ pane-transform = Transform
 pane-history = History
 pane-info = Info
 pane-output = Output
+pane-motion-editor = Motion Editor
+pane-find-replace = Find and Replace
+pane-assets = Assets

@@ -65,15 +65,9 @@ impl Workspace {
             }
         });
     }
-    pub(crate) fn motion_editor_panel(&mut self, ui: &mut Ui) {
-        ui.label("Motion Editor (not yet implemented)");
-    }
+    pub(crate) fn motion_editor_panel(&mut self, _ui: &mut Ui) {}
 
-    pub(crate) fn find_replace_panel(&mut self, ui: &mut Ui) {
-        ui.label("Find and Replace (not yet implemented)");
-    }
+    pub(crate) fn find_replace_panel(&mut self, _ui: &mut Ui) {}
 
-    pub(crate) fn assets_panel(&mut self, ui: &mut Ui) {
-        ui.label("Assets (not yet implemented)");
-    }
+    pub(crate) fn assets_panel(&mut self, _ui: &mut Ui) {}
 }

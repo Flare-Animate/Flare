@@ -9,3 +9,6 @@ pane-transform = 变形
 pane-history = 历史记录
 pane-info = 信息
 pane-output = 输出
+pane-motion-editor = 运动编辑器
+pane-find-replace = 查找和替换
+pane-assets = 资源
