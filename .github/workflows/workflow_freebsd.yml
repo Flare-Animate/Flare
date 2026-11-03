@@ -3,44 +3,25 @@ name: FreeBSD Build
 
 on:
   push:
-    branches: [main, Rust-Rewrite]
-    paths:
-      - '**/*'
-      - '!appveyor.yml'
-      - '!README.md'
-      - '!doc/**'
-      - '!**/.github/**'
-      - '.github/workflows/workflow_freebsd.yml'
+    branches: [main]
   pull_request:
-    branches: [main, Rust-Rewrite]
-    paths:
-      - '**/*'
-      - '!appveyor.yml'
-      - '!README.md'
-      - '!doc/**'
-      - '!**/.github/**'
-      - '.github/workflows/workflow_freebsd.yml'
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  FreeBSD:
+  build:
+    name: Build and test (FreeBSD)
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          lfs: false
-          submodules: false
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
       - name: Build and test Rust on FreeBSD
         uses: vmactions/freebsd-vm@v1
@@ -49,5 +30,6 @@ jobs:
           prepare: |
             pkg install -y rust
           run: |
-            cd $GITHUB_WORKSPACE/flare/sources
-            cargo test --lib 2>&1 || true
+            cd $GITHUB_WORKSPACE
+            cargo build --workspace --locked
+            cargo test --workspace --locked
