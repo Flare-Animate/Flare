@@ -7,6 +7,7 @@
 pub mod color;
 pub mod geometry;
 pub mod id;
+pub mod image_ops;
 pub mod time;
 
 pub use color::Rgba8;

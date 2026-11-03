@@ -10,6 +10,7 @@
 #![forbid(unsafe_code)]
 
 pub mod add_anchor;
+pub mod not_yet;
 pub mod arrange;
 pub mod brush;
 pub mod clipboard;

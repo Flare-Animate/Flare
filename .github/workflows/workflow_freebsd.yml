@@ -30,7 +30,7 @@ jobs:
         with:
           usesh: true
           prepare: |
-            pkg install -y rust
+            pkg install -y rust git
           run: |
             cd $GITHUB_WORKSPACE
             git submodule update --init --recursive

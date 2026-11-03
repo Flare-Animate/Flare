@@ -38,13 +38,13 @@ into the new crate architecture.
 - [ ] Plastic tool
 
 ## Missing image processing (Main vs Rust ports)
-- [ ] Erode/dilate (ported to Rust in Rust-Rewrite: terodilate)
+- [x] Erode/dilate (ported to Rust in Rust-Rewrite: terodilate)
 - [ ] Antialias (ported: tantialias)
-- [ ] Blur (tblur)
+- [x] Blur (tblur)
 - [ ] Despeckle (tdespeckle)
 - [ ] Distance transform (ported: tdistancetransform)
 - [ ] Convolution (ported: tconvolve)
-- [ ] Color correction (gamma, levels, curves)
+- [x] Color correction (gamma, levels done; curves open) -- crates/foundation/flare-core/src/image_ops.rs
 - [ ] Resample (tresample)
 
 ## Missing OpenToonz features
@@ -118,3 +118,12 @@ into the new crate architecture.
 - This IS the base of the main branch (crates/, apps/, egui)
 - Features already in main: symbols, layers, keyframes, tweens, onion skin, scenes, tools, library, actions, scripting (JS/Python/Node/Ruby), import/export (XFL, SWF, SVG, PSD, XDTS), effects, motion blur, trace bitmap, particles, sound, lip sync, masks/guides, bones, warp, width, camera, 3D, gradients, filters, blend modes, merge shapes, drawing objects, align/info panels, rulers/grid, library profiles
 - Missing from main vs Flare-RustBase: (need diff)
+
+## Stubbed re-additions (return NotYetImplemented; crates/editing/flare-tools/src/not_yet.rs)
+- Tracker tool: original/flare/sources/tnztools/trackertool.cpp
+- Plastic tool: original/flare/sources/tnztools/plastictool.cpp
+- Hook tool: original/flare/sources/tnztools/hooktool.cpp
+- Cutter tool: original/flare/sources/tnztools/cuttertool.cpp
+- Stop motion: original/flare/sources/stopmotion/stopmotion.cpp
+- Scan cleanup: original/flare/sources/tcleanupper/tcleanupper.cpp
+- Render farm: original/flare/sources/flarefarm/tfarm/tfarmtask.cpp
