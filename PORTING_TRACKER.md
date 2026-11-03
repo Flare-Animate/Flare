@@ -110,7 +110,7 @@ into the new crate architecture.
 
 ### Next2Flash (SWF round-trip editor, MIT)
 - AS3/ABC decompiler (crown jewel): abc_parser, method_decompiler, opcodes, swf_reader, swf_patcher
-- swf_to_n2d.py, compile_n2d.py (~400KB SWF<->XML conversion) — still upstream-only
+- swf_to_n2d.py, compile_n2d.py (~400KB SWF<->XML conversion) â€” still upstream-only
 - bitmap_converter, char_id_allocator, cycle_detector, conversion_service, compilation_pipeline
 - Already integrated in Rust-Rewrite via As3Bridge and ac_swf*.rs
 

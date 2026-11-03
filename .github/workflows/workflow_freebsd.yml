@@ -47,7 +47,7 @@ jobs:
         with:
           usesh: true
           prepare: |
-            pkg install -y rust cargo
+            pkg install -y rust
           run: |
             cd $GITHUB_WORKSPACE/flare/sources
             cargo test --lib 2>&1 || true

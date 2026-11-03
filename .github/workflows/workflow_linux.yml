@@ -105,7 +105,12 @@ jobs:
           libturbojpeg0-dev libomp-dev libfuse2 libzip-dev libminizip-dev
 
     - name: Configure bundled libtiff headers (tiffiop.h, tif_config.h)
-      run: cd thirdparty/tiff-4.0.3 && chmod +x configure && ./configure --disable-lzma
+      run: |
+        if [ -d thirdparty/tiff-4.0.3 ]; then
+          cd thirdparty/tiff-4.0.3 && chmod +x configure && ./configure --disable-lzma
+        else
+          echo 'Bundled tiff-4.0.3 not present; using system libtiff-dev'
+        fi
 
     - name: Set up ccache
       uses: hendrikmuhs/ccache-action@v1.2
