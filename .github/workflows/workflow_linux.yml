@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Install the pinned Rust toolchain
         run: rustup toolchain install
@@ -43,3 +45,4 @@ jobs:
 
       - name: Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
+

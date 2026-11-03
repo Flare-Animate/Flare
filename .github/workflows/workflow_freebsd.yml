@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Build and test Rust on FreeBSD
         uses: vmactions/freebsd-vm@v1
@@ -31,5 +33,6 @@ jobs:
             pkg install -y rust
           run: |
             cd $GITHUB_WORKSPACE
+            git submodule update --init --recursive
             cargo build --workspace --locked
             cargo test --workspace --locked
