@@ -41,7 +41,7 @@ fn sources(dir: &Path, out: &mut Vec<(String, String)>) {
         let path = entry.path();
         let name = path.display().to_string();
         if path.is_dir() {
-            if !name.contains("/tests") {
+            if !name.contains("/tests") && !name.contains("\\tests") {
                 sources(&path, out);
             }
         } else if name.ends_with(".rs")

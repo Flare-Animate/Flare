@@ -29,6 +29,10 @@ const KEPT: &[&str] = &[
     "Discord",
     "sans",
     "serif",
+    // Keyboard modifiers and shortcut glyphs are not translatable.
+    "Ctrl",
+    "Shift",
+    "Alt",
 ];
 
 fn is_english(shown: &str) -> bool {
