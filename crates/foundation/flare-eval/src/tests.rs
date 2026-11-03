@@ -1,18 +1,13 @@
 #![allow(clippy::expect_used)]
-
 use std::num::NonZeroU32;
-
 use flare_core::{DocumentId, FrameRate, LayerId, Transform2D};
 use flare_document::{FrameSpan, Layer, Scene, Symbol};
 use glamx::DVec2;
-
 use super::*;
 use flare_core::SymbolId;
-
 fn at(x: f64) -> Transform2D {
     Transform2D::new(DAffine2::from_translation(DVec2::new(x, 0.0))).expect("finite")
 }
-
 fn span(start: u32, duration: u32, symbol: SymbolId, transform: Transform2D) -> FrameSpan {
     let instance = Instance::new(InstanceId::new(), symbol, transform);
     FrameSpan::new(
@@ -21,7 +16,6 @@ fn span(start: u32, duration: u32, symbol: SymbolId, transform: Transform2D) -> 
         Content::Instance(instance),
     )
 }
-
 fn timeline(layers: Vec<Vec<FrameSpan>>) -> Timeline {
     Timeline::new(
         layers
@@ -30,7 +24,6 @@ fn timeline(layers: Vec<Vec<FrameSpan>>) -> Timeline {
             .collect(),
     )
 }
-
 fn document(scene: Timeline, symbols: Vec<Symbol>) -> (Document, SceneId) {
     let id = SceneId::new();
     let rate = FrameRate::new(24, 1).expect("rate");
@@ -40,7 +33,6 @@ fn document(scene: Timeline, symbols: Vec<Symbol>) -> (Document, SceneId) {
         id,
     )
 }
-
 #[test]
 fn two_instances_of_one_symbol_keep_separate_paths_and_transforms() {
     let art = SymbolId::new();
@@ -56,7 +48,6 @@ fn two_instances_of_one_symbol_keep_separate_paths_and_transforms() {
     assert_eq!(placed[0].transform.translation.x, 5.0);
     assert_eq!(placed[1].transform.translation.x, 100.0);
 }
-
 #[test]
 fn nested_symbols_compose_transforms_and_loop() {
     let (leaf, inner, outer) = (SymbolId::new(), SymbolId::new(), SymbolId::new());
@@ -73,7 +64,6 @@ fn nested_symbols_compose_transforms_and_loop() {
     ];
     let scene = timeline(vec![vec![span(5, 20, outer, at(100.0))]]);
     let (doc, id) = document(scene, symbols);
-
     let leaf_x = |frame| {
         let placed = evaluate(&doc, id, frame).expect("eval");
         assert_eq!(placed.len(), 3);
@@ -84,7 +74,6 @@ fn nested_symbols_compose_transforms_and_loop() {
     assert_eq!(leaf_x(8), 112.0); // inner frame 3
     assert_eq!(leaf_x(10), 111.0); // inner frame 5 loops to 1
 }
-
 /// Three states of a symbol: the leaf sits at x = 1, then 2, then 3, a frame each.
 fn three_states(kind: flare_document::SymbolKind) -> (Document, SceneId) {
     let (leaf, states) = (SymbolId::new(), SymbolId::new());
@@ -99,7 +88,6 @@ fn three_states(kind: flare_document::SymbolKind) -> (Document, SceneId) {
     ];
     document(timeline(vec![vec![span(0, 9, states, at(100.0))]]), symbols)
 }
-
 #[test]
 fn a_button_shows_its_up_state_at_every_frame_where_a_movie_clip_and_a_graphic_play_on() {
     use flare_document::SymbolKind;
@@ -123,7 +111,6 @@ fn a_button_shows_its_up_state_at_every_frame_where_a_movie_clip_and_a_graphic_p
         );
     }
 }
-
 #[test]
 fn frames_outside_spans_and_empty_spans_place_nothing() {
     let art = SymbolId::new();
@@ -137,18 +124,15 @@ fn frames_outside_spans_and_empty_spans_place_nothing() {
     assert!(evaluate(&doc, id, 4).expect("eval").is_empty());
     assert!(evaluate(&doc, id, 99).expect("eval").is_empty());
 }
-
 fn tween_scene(from: Transform2D, to: Transform2D) -> (Document, SceneId) {
     let art = SymbolId::new();
     let first = span(0, 10, art, from).with_tween(Tween::Linear);
     let scene = timeline(vec![vec![first, span(10, 5, art, to)]]);
     document(scene, vec![Symbol::new(art, "Art", Timeline::default())])
 }
-
 fn rotation(angle: f64) -> Transform2D {
     Transform2D::new(DAffine2::from_angle(angle)).expect("finite")
 }
-
 #[test]
 fn linear_tween_interpolates_translation_and_holds_at_the_end() {
     let (doc, id) = tween_scene(at(0.0), at(100.0));
@@ -163,7 +147,6 @@ fn linear_tween_interpolates_translation_and_holds_at_the_end() {
     assert_eq!(x(10), 100.0);
     assert_eq!(x(12), 100.0, "last span has no tween and holds");
 }
-
 #[test]
 fn rotation_tween_takes_the_shortest_arc() {
     use std::f64::consts::PI;
@@ -173,7 +156,6 @@ fn rotation_tween_takes_the_shortest_arc() {
     let (_, angle, _) = mid.to_scale_angle_translation();
     assert!((angle.abs() - PI).abs() < 1e-9, "angle {angle}");
 }
-
 #[test]
 fn tweening_a_sheared_matrix_is_an_error_not_an_approximation() {
     let shear = Transform2D::new(DAffine2::from_cols_array(&[1.0, 0.0, 0.5, 1.0, 0.0, 0.0]))
@@ -186,7 +168,6 @@ fn tweening_a_sheared_matrix_is_an_error_not_an_approximation() {
     // Frames of a span without a tween never decompose.
     assert!(evaluate(&doc, id, 11).is_ok());
 }
-
 #[test]
 fn tween_needs_an_adjacent_span_with_the_same_symbol() {
     let (a, b) = (SymbolId::new(), SymbolId::new());
@@ -213,7 +194,6 @@ fn tween_needs_an_adjacent_span_with_the_same_symbol() {
         );
     }
 }
-
 #[test]
 fn shapes_are_emitted_in_paint_order_with_composed_transforms() {
     use flare_core::{Rgba8, ShapeId};
@@ -241,7 +221,6 @@ fn shapes_are_emitted_in_paint_order_with_composed_transforms() {
     assert!(frame.shapes[1].path.is_empty());
     assert_eq!(frame.placed.len(), 1);
 }
-
 #[test]
 fn hidden_layers_place_and_draw_nothing_including_inside_symbols() {
     use flare_core::{Rgba8, ShapeId};

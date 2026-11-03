@@ -126,6 +126,7 @@ fn an_edited_fla_is_saved_back_with_the_edit_and_every_untouched_file_as_it_was(
     );
 }
 
+#[cfg(unix)]
 #[test]
 fn a_save_that_fails_keeps_the_old_file_and_the_unsaved_work() {
     use std::os::unix::fs::PermissionsExt;
