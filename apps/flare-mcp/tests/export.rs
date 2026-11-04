@@ -30,21 +30,13 @@ async fn each_export_tool_writes_its_format_into_the_export_directory() {
     assert!(bytes(&gif["path"]).starts_with(b"GIF89a"));
 
     let mp4 = f.ok("export_mp4", json!({ "name": "video" })).await;
-    assert!(
-        mp4["path"]
-            .as_str()
-            .expect("p")
-            .ends_with("exports/video.mp4")
-    );
+    // Compared by path components: Windows separates them with a backslash.
+    assert!(std::path::Path::new(mp4["path"].as_str().expect("p")).ends_with("exports/video.mp4"));
     assert_eq!(&bytes(&mp4["path"])[4..8], b"ftyp");
 
     let swf = f.ok("publish_swf", json!({ "name": "movie" })).await;
-    assert!(
-        swf["path"]
-            .as_str()
-            .expect("p")
-            .ends_with("exports/movie.swf")
-    );
+    // Compared by path components: Windows separates them with a backslash.
+    assert!(std::path::Path::new(swf["path"].as_str().expect("p")).ends_with("exports/movie.swf"));
     assert!(matches!(&bytes(&swf["path"])[..3], b"CWS" | b"ZWS"));
     assert_eq!(swf["frames"], 1);
     let plain = f
