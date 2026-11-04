@@ -71,7 +71,7 @@ impl Gpu {
                 .create_window(attributes)
                 .context("create window")?,
         );
-        #[cfg(unix)]
+        #[cfg(all(unix, not(target_os = "ios")))]
         super::tablet::watch(&window, workspace.pen_feed());
         let state = egui_winit::State::new(
             ctx.clone(),

@@ -90,7 +90,7 @@ hand (`workflow_dispatch`), cancels a superseded run of the same branch or pull 
 | --- | --- | --- |
 | `ci.yml` | fmt (Linux only), clippy and tests on Linux, Windows and macOS; scripts tests, wasm checks, `cargo audit`, file-length and docs rules | Linux, Windows, macOS, Web |
 | `android.yml` | universal, arm64-v8a and x86_64 APKs with `cargo apk` (ChromeOS runs the x86_64 or arm64 one; the manifest makes touch, keyboard, mouse and camera optional and the window resizable) | Android |
-| `ios.yml` | compiles `flare-shell` and the desktop binary for `aarch64-apple-ios`, wraps the binary in an experimental unsigned `.ipa`. Not an app yet and non-blocking until it is green; see SURFACES.md | iOS (not yet an app) |
+| `ios.yml` | compiles `flare-shell` and the desktop binary for `aarch64-apple-ios` (window-system and clipboard crates are gated off iOS in `flare-shell`'s Cargo.toml, so the build fails only on C SDK tooling, not on Wayland or X11), wraps the binary in an experimental unsigned `.ipa`. Not an app yet and non-blocking until it is green; see SURFACES.md | iOS (not yet an app) |
 | `pages.yml` | builds the page with `apps/flare-web/scripts/build.sh`; a push to `main` deploys it to GitHub Pages | Web |
 | `release.yml` | on a `v*` tag: portable archives, MSI, DMG, AppImage, deb, rpm and Flatpak for Windows, macOS and Linux (x86_64 and arm64), checksums, GitHub release | Windows, macOS, Linux |
 

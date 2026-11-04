@@ -14,7 +14,7 @@ mod movie;
 #[cfg(feature = "ruffle")]
 mod movie_window;
 mod shell;
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "ios")))]
 mod tablet;
 mod window;
 

@@ -10,8 +10,9 @@ license.workspace = true
 flare-input.workspace = true
 thiserror.workspace = true
 
-# The X server's XInput2, for pen pressure on Linux and the BSDs. Pure Rust, no libxcb.
-[target.'cfg(unix)'.dependencies]
+# The X server's XInput2, for pen pressure on Linux and the BSDs. Pure Rust, no libxcb. iOS is
+# unix too but has no X server.
+[target.'cfg(all(unix, not(target_os = "ios")))'.dependencies]
 x11rb.workspace = true
 
 [lints]
