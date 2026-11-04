@@ -13,6 +13,8 @@ mod easing;
 mod sequence;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_more;
 
 pub use curve::{Curve, Extrapolation, Handle, HandleKind, Key, MAX_KEYS};
 pub use easing::{
