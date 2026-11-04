@@ -97,7 +97,7 @@ stub!(/** Toonz raster brush tool. Source: `original/flare/sources/tnztools/toon
 stub!(/** Toonz vector brush tool. Source: `original/flare/sources/tnztools/toonzvectorbrushtool.cpp`. */
     toonz_vector_brush_tool, TOONZ_VECTOR_BRUSH, "Toonz vector brush tool", "original/flare/sources/tnztools/toonzvectorbrushtool.cpp");
 stub!(/** MyPaint Toonz brush tool. Source: `original/flare/sources/tnztools/mypainttoonzbrush.cpp`. */
-    mypaint_toonz_brush_tool, MYPaint_TOONZ_BRUSH, "MyPaint Toonz brush tool", "original/flare/sources/tnztools/mypainttoonzbrush.cpp");
+    mypaint_toonz_brush_tool, MYPAINT_TOONZ_BRUSH, "MyPaint Toonz brush tool", "original/flare/sources/tnztools/mypainttoonzbrush.cpp");
 stub!(/** Blured brush tool. Source: `original/flare/sources/tnztools/bluredbrush.cpp`. */
     blured_brush_tool, BLURED_BRUSH, "Blured brush tool", "original/flare/sources/tnztools/bluredbrush.cpp");
 stub!(/** Paint brush tool. Source: `original/flare/sources/tnztools/paintbrushtool.cpp`. */
@@ -167,7 +167,7 @@ pub const ALL: [LegacyFeature; 52] = [
     IRON,
     MAGNET,
     MORPH,
-    MYPaint_TOONZ_BRUSH,
+    MYPAINT_TOONZ_BRUSH,
     PAINT_BRUSH,
     PINCH,
     PLASTIC,
