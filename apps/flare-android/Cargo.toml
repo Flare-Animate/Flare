@@ -18,7 +18,7 @@ flare-animate.workspace = true
 flare-platform.workspace = true
 # The desktop shell without the Test Movie player (which is a whole Ruffle): the phone's first
 # version draws in the editor and plays the timeline itself.
-flare-desktop = { path = "../flare-desktop", default-features = false }
+flare-desktop = { workspace = true, default-features = false }
 
 [target.'cfg(target_os = "android")'.dependencies]
 winit = { workspace = true, features = ["android-native-activity"] }

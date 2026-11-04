@@ -83,6 +83,8 @@ flare-export = { path = "crates/io/flare-export" }
 flare-publish = { path = "crates/io/flare-publish" }
 flare-toonz = { path = "crates/io/flare-toonz" }
 flare-moho = { path = "crates/io/flare-moho" }
+# apps
+flare-desktop = { path = "apps/flare-desktop" }
 # adapters
 flare-flash = { path = "crates/adapters/flare-flash" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }
