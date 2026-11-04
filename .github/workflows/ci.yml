@@ -9,10 +9,11 @@ on:
 permissions:
   contents: read
 
-# A newer push to the same ref makes an older run pointless.
+# A newer push to the same branch or pull request makes an older run pointless; runs on main
+# are never cancelled, so every commit on main gets a verdict.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   CARGO_TERM_COLOR: always

@@ -83,7 +83,7 @@ code it protects and confirm the test notices.
 
 Workflows are in `.github/workflows/`; the toolchain, cache and Linux libraries are set up once
 in `.github/actions/setup-rust`. Every workflow runs on pushes to `main`, on pull requests and by
-hand (`workflow_dispatch`), cancels a superseded run of the same ref, and has read-only
+hand (`workflow_dispatch`), cancels a superseded run of the same branch or pull request (never on `main`), and has read-only
 `contents` permission unless a job says otherwise.
 
 | Workflow | What it does | Target |
