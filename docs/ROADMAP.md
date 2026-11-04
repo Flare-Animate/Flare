@@ -214,3 +214,37 @@ appear, docs/UI.md); the profiles place them, but the interface does not read pr
 | Plastic (mesh deformation) | Plastic | Planned panel; stub in `flare-tools` `not_yet` | P3 |
 | Tasks (batch render) | Tasks, BatchServers | Planned panel | P3 |
 | Script console | ScriptConsole | Flare has no scripts; the Debug menu stays dimmed | Not planned |
+Licence and reference: the old C++ code in `original/flare/sources/stopmotion` is the reference
+for behaviour. The `brick-a-brack/eagle-animation` project was looked at as a possible reference,
+but its licence could not be read in this session (the GitHub API refused the session and the raw
+file was not found), so no code, art or structure is taken from it. If it is read later and its
+licence allows, its use is recorded here with the source, licence and changes.
+
+## Toonz import (`flare-toonz`, io layer)
+
+Reads OpenToonz-lineage (Toonz Harlequin) files. Today: a typed reader and header sniffing, tested
+with synthetic fixtures only. Not on any surface yet (see docs/SURFACES.md).
+
+- [x] Phase 1, scene XML (`.tnz`): bounded XML tree, frame rate of the main output, camera count,
+  level declarations, level and palette columns with cell runs (row, count, level, frame, step),
+  sound columns, unknown columns kept by tag, reference and row-order checks, limits.
+- [x] Phase 2, palette XML (`.tpl`, `.plt`): version, style count, style pages and their indices.
+  Colours are not decoded.
+- [x] Phase 3, sniffing: `.pli` (magic `PLIM`, or `MILP` from the big-endian writer) and `.tlv`
+  (`TLV10`, `TLV11`, `TLV12`). Decoding returns NotYetImplemented.
+- [ ] Phase 3b, vector `.pli` decoding: strokes, regions, styles.
+- [ ] Phase 4, raster `.tlv` decoding: pixel data per format version.
+- [ ] Phase 5, fx schematics: fx nodes and their ports in the scene.
+- [ ] Phase 6, conversion into the Flare document through validated command batches. Not started;
+  it returns NotYetImplemented until levels can be decoded.
+- [ ] Phase 7, write-back and export to `.tnz`.
+- [ ] Surfaces: `flare import-toonz` and an MCP tool that return the parse summary.
+
+Gaps to close before the field names are trusted: the scene reader assumes level declarations carry
+an `id`, a `name`, a `type` and a `path` child, and that cells name levels by that id. Camera
+resolution is not read yet. Both were taken from the old Flare C++ (`original/flare/sources/flarelib`:
+`txshlevelcolumn.cpp`, `levelset.cpp`, `txsheet.cpp`, `txshsoundcolumn.cpp`, `sceneproperties.cpp`;
+`common/tvrender/tpalette.cpp`; `image/pli/pli_io.cpp`; `image/tzl/tiio_tzl.cpp`). The upstream
+OpenToonz source was not consulted (its repository was not reachable from this session), so no
+upstream code is ported and no upstream licence applies yet. A real `.tnz` from a user is the test
+that these names are right.
