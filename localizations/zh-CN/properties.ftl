@@ -8,3 +8,7 @@ prop-tween = 补间
 prop-shape-tween = 形状补间
 prop-motion-tween = 动作补间
 prop-ease = 缓动
+prop-interpolation = 插值
+prop-interpolation-hint = 此补间的插值类型与缓动；关闭时使用缓动滑块
+prop-interpolation-off = 缓动滑块
+prop-easing = 缓动

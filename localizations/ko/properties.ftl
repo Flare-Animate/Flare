@@ -8,3 +8,7 @@ prop-tween = 트윈
 prop-shape-tween = 셰이프 트윈
 prop-motion-tween = 모션 트윈
 prop-ease = 이징
+prop-interpolation = 보간
+prop-interpolation-hint = 이 트윈의 보간 방식과 이징. 꺼져 있는 동안에는 이즈 슬라이더를 사용합니다
+prop-interpolation-off = 이즈 슬라이더
+prop-easing = 이징
