@@ -188,3 +188,29 @@ Next, in order:
   handles through the command.
 - Making the renderer use `flare-tween` for motion tweens in place of the Animate Ease in `flare-eval`,
   once the document stores keys (today a span holds one ease value).
+## OpenToonz feature areas
+
+Reference: the feature areas of OpenToonz (its rooms in `original/stuff/profiles/layouts/rooms`
+and its panels). Phase: **Built** exists; **P1** next; **P2** after P1; **P3** later; **Not planned**
+has no place in Flare. The panel rows are the planned panels of `flare-profile` (dimmed where they
+appear, docs/UI.md); the profiles place them, but the interface does not read profiles yet.
+
+| Area | OpenToonz panels | Flare status | Phase |
+|---|---|---|---|
+| Timeline | Timeline | Built (frames, layers, tweens) | Built |
+| Xsheet | Xsheet | Planned panel; the timeline does the job today | P1 |
+| Tool strip and options | ToolBar, ToolOptions | Built; More tools lists the unbuilt ones dimmed | Built |
+| Workspace profiles | rooms, `layouts.txt` | Data model, loader and four built-in profiles in `flare-profile`; the interface does not read them yet | P1 |
+| Shortcut sets | `shortcuts/*.ini` | Set ids named by profiles (`flare`, `opentoonz`, `animate`); key maps not built | P1 |
+| Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Eight palettes in `flare-ui` `theme.rs`, text at least 7:1 on every surface (tested) | Built |
+| Preferences | Preferences | Built in part (General, Stage, Timeline, Recent) | Built |
+| FX schematic and FX settings | Schematic, FxBrowser, FxSettings | Planned panels | P2 |
+| Function editor | FunctionEditor | Planned panel | P2 |
+| Level strip and palettes | LevelStrip, LevelPalette, StyleEditor | Planned panels | P2 |
+| Scene cast and browser | SceneCast, Browser | Planned panels | P2 |
+| Motion paths | MotionPath | Planned panel | P2 |
+| Cleanup | Cleanup, CleanupSettings | Planned panels | P3 |
+| Scan | Scan | Planned panel | P3 |
+| Plastic (mesh deformation) | Plastic | Planned panel; stub in `flare-tools` `not_yet` | P3 |
+| Tasks (batch render) | Tasks, BatchServers | Planned panel | P3 |
+| Script console | ScriptConsole | Flare has no scripts; the Debug menu stays dimmed | Not planned |
