@@ -77,7 +77,7 @@ mod playback {
 
     fn with_instance() -> (Document, SceneId, LayerId) {
         let symbol = Symbol::new(SymbolId::new(), "S", Timeline::default());
-        let instance = Instance::new(InstanceId::new(), symbol.id(), Transform2D::default());
+        let instance = Instance::new(InstanceId::new(), symbol.id(), Transform2D::IDENTITY);
         let span = FrameSpan::new(
             2,
             NonZeroU32::new(5).expect("nonzero"),

@@ -54,8 +54,12 @@ pub fn solve_two_bone(
     }
     let side = if bend < 0.0 { -1.0 } else { 1.0 };
     // Law of cosines; the clamps keep acos inside its domain.
-    let a1 = ((d * d + l1 * l1 - l2 * l2) / (2.0 * d * l1)).clamp(-1.0, 1.0).acos();
-    let a2 = ((l1 * l1 + l2 * l2 - d * d) / (2.0 * l1 * l2)).clamp(-1.0, 1.0).acos();
+    let a1 = ((d * d + l1 * l1 - l2 * l2) / (2.0 * d * l1))
+        .clamp(-1.0, 1.0)
+        .acos();
+    let a2 = ((l1 * l1 + l2 * l2 - d * d) / (2.0 * l1 * l2))
+        .clamp(-1.0, 1.0)
+        .acos();
     let world1 = dy.atan2(dx) - side * a1;
     chain[0].angle = chain[0].clamp(wrap(world1 - base_angle));
     chain[1].angle = chain[1].clamp(wrap(side * (std::f64::consts::PI - a2)));

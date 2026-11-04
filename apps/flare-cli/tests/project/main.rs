@@ -13,6 +13,7 @@ mod lossless;
 mod open;
 mod rendering;
 mod save_formats;
+mod symbols;
 mod text;
 mod tween;
 

@@ -2,8 +2,8 @@
 
 use flare_core::{FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
-use flare_document::{Playback, 
-    FrameSpan, Layer, Scene, Sound, SoundCue, SpanInterp, Stage, Symbol, SymbolKind,
+use flare_document::{
+    FrameSpan, Layer, Playback, Scene, Sound, SoundCue, SpanInterp, Stage, Symbol, SymbolKind,
 };
 
 /// A property change on a layer.

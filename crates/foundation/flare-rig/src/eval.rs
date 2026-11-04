@@ -40,17 +40,21 @@ fn blend(a: &Pose, b: &Pose, t: f64) -> Pose {
         );
         rotations.insert(*bone, lerp(x, y, t));
     }
-    let ik = a
-        .ik
-        .iter()
-        .map(|g| match b.ik.iter().find(|h| h.tip == g.tip && h.chain == g.chain) {
-            Some(h) => IkGoal {
-                target: [lerp(g.target[0], h.target[0], t), lerp(g.target[1], h.target[1], t)],
-                ..*g
-            },
-            None => *g,
-        })
-        .collect();
+    let ik =
+        a.ik.iter()
+            .map(
+                |g| match b.ik.iter().find(|h| h.tip == g.tip && h.chain == g.chain) {
+                    Some(h) => IkGoal {
+                        target: [
+                            lerp(g.target[0], h.target[0], t),
+                            lerp(g.target[1], h.target[1], t),
+                        ],
+                        ..*g
+                    },
+                    None => *g,
+                },
+            )
+            .collect();
     Pose {
         rotations,
         ik,
@@ -131,7 +135,10 @@ fn solve_goal(rig: &Rig, local: &mut [f64], pose: &Pose, goal: &IkGoal) {
     let world = forward(rig, local, pose.root);
     let (base, base_angle) = match at.and_then(|p| world.get(p)) {
         Some(p) => (
-            [p.origin[0] + p.length * p.angle.cos(), p.origin[1] + p.length * p.angle.sin()],
+            [
+                p.origin[0] + p.length * p.angle.cos(),
+                p.origin[1] + p.length * p.angle.sin(),
+            ],
             p.angle,
         ),
         None => (pose.root, 0.0),
@@ -144,7 +151,9 @@ fn solve_goal(rig: &Rig, local: &mut [f64], pose: &Pose, goal: &IkGoal) {
                 length: b.length,
                 angle: local[i],
                 // The limit is on the pose rotation, so offset it by the rest angle.
-                limit: b.limit.map(|l| (b.rest_angle + l.min, b.rest_angle + l.max)),
+                limit: b
+                    .limit
+                    .map(|l| (b.rest_angle + l.min, b.rest_angle + l.max)),
             }
         })
         .collect();

@@ -103,13 +103,17 @@ impl Rig {
                     rig.bones.push(bone.clone());
                 }
                 RigCommand::SetBoneAngleLimit { bone, limit } => {
-                    let limit = limit
-                        .map(|l| AngleLimit::new(l.min, l.max))
-                        .transpose()?;
-                    rig.bones.get_mut(*bone).ok_or(RigError::NoSuchBone(*bone))?.limit = limit;
+                    let limit = limit.map(|l| AngleLimit::new(l.min, l.max)).transpose()?;
+                    rig.bones
+                        .get_mut(*bone)
+                        .ok_or(RigError::NoSuchBone(*bone))?
+                        .limit = limit;
                 }
                 RigCommand::SetBoneTarget { bone, target } => {
-                    rig.bones.get_mut(*bone).ok_or(RigError::NoSuchBone(*bone))?.target = *target;
+                    rig.bones
+                        .get_mut(*bone)
+                        .ok_or(RigError::NoSuchBone(*bone))?
+                        .target = *target;
                 }
                 RigCommand::SetRigPose { frame, key } => {
                     check_pose(&key.pose, rig.bones.len())?;

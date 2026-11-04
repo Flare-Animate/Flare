@@ -2045,6 +2045,7 @@ dependencies = [
  "flare-import",
  "flare-publish",
  "flare-render",
+ "flare-rig",
  "flare-ruffle",
  "flare-runtime",
  "flare-stopmotion",
@@ -2339,6 +2340,20 @@ dependencies = [
  "png 0.18.1",
  "thiserror 2.0.18",
  "vello_cpu 0.3.0",
+]
+
+[[package]]
+name = "flare-rig"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "flare-document",
+ "flare-eval",
+ "flare-tween",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

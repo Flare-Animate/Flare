@@ -4,6 +4,7 @@
 mod commands;
 mod project;
 mod stopmotion;
+mod symbol;
 mod tween;
 
 use std::fs::File;
@@ -98,6 +99,8 @@ fn main() -> Result<()> {
             ease,
         } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
         Command::Tween { op } => tween::run(op)?,
+        Command::Symbol { op } => symbol::run_symbol(op)?,
+        Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
         Command::Frame {
             op,

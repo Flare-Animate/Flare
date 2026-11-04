@@ -264,6 +264,16 @@ pub(crate) enum Command {
     },
     /// Export a project as an XFL folder, or a zipped .fla when OUT ends in .fla.
     ExportXfl { path: PathBuf, out: PathBuf },
+    /// A symbol's kind and how an instance plays it.
+    Symbol {
+        #[command(subcommand)]
+        op: crate::symbol::SymbolCommand,
+    },
+    /// Skeleton rigs for symbols: bones, keyed poses, IK, evaluation.
+    Rig {
+        #[command(subcommand)]
+        op: crate::symbol::RigCmd,
+    },
     /// Publish a project as a SWF. Symbols are kept as sprites; tweens are baked into per-frame
     /// positions and shapes.
     PublishSwf {
