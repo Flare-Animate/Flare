@@ -121,6 +121,7 @@ pub fn box_blur(buf: &[u8], w: usize, h: usize, r: usize) -> Result<Vec<u8>, Bad
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
 
