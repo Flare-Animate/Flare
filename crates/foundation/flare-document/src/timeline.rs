@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
 
-use crate::{Camera, MAX_CUES_PER_LAYER, MAX_ELEMENTS, Shape, SoundCue, SoundError};
+use crate::{Camera, MAX_CUES_PER_LAYER, MAX_ELEMENTS, Shape, SoundCue, SoundError, SpanInterp};
 use thiserror::Error;
 
 /// How a Graphic instance plays the frames of its symbol, as in Animate's Properties: round and
@@ -128,6 +128,8 @@ pub struct FrameSpan {
     pub(crate) tween: Tween,
     /// Easing of the tween, from `-MAX_EASE` to `MAX_EASE`; 0 is even speed.
     pub(crate) ease: i8,
+    /// An interpolation family and handles chosen with flare-tween; when set it replaces `ease`.
+    pub(crate) interp: Option<SpanInterp>,
 }
 
 impl FrameSpan {
@@ -139,6 +141,7 @@ impl FrameSpan {
             extras: Vec::new(),
             tween: Tween::None,
             ease: 0,
+            interp: None,
         }
     }
 
@@ -159,7 +162,20 @@ impl FrameSpan {
     /// content or a new time range.
     #[must_use]
     pub fn with_motion_of(self, other: &FrameSpan) -> Self {
-        self.with_tween(other.tween).with_ease(other.ease)
+        self.with_tween(other.tween)
+            .with_ease(other.ease)
+            .with_interp(other.interp)
+    }
+
+    /// The same span with its interpolation set (`None` goes back to the plain `ease`).
+    #[must_use]
+    pub fn with_interp(mut self, interp: Option<SpanInterp>) -> Self {
+        self.interp = interp;
+        self
+    }
+
+    pub fn interp(&self) -> Option<SpanInterp> {
+        self.interp
     }
 
     pub fn ease(&self) -> i8 {

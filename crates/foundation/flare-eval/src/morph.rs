@@ -35,6 +35,16 @@ pub fn eased(t: f64, ease: i8) -> f64 {
     }
 }
 
+/// The fraction of the change a span's tween has made at `t` of its time: the keyframe's
+/// flare-tween interpolation when it has one, otherwise its `ease` slider. Files and tweens that
+/// never chose an interpolation therefore evaluate exactly as before.
+pub fn span_fraction(span: &flare_document::FrameSpan, t: f64) -> f64 {
+    match span.interp() {
+        Some(interp) => interp.fraction(t),
+        None => eased(t, span.ease()),
+    }
+}
+
 #[derive(Clone)]
 struct Contour {
     start: DVec2,

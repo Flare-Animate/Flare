@@ -96,6 +96,7 @@ pub struct ClipItem {
     duration: NonZeroU32,
     tween: Tween,
     ease: i8,
+    interp: Option<flare_document::SpanInterp>,
     content: Content,
 }
 
@@ -113,6 +114,7 @@ pub fn copy_span(document: &Document, scene: SceneId, at: SpanRef) -> Option<Cli
         duration: span.duration(),
         tween: span.tween(),
         ease: span.ease(),
+        interp: span.interp(),
         content: content.clone(),
     })
 }
@@ -151,7 +153,8 @@ pub fn paste_offset(
     let content = fresh_content(&item.content, DAffine2::from_translation(delta))?;
     let span = FrameSpan::new(frame, item.duration, content)
         .with_tween(item.tween)
-        .with_ease(item.ease);
+        .with_ease(item.ease)
+        .with_interp(item.interp);
     new_layer_with(scene, &item.name, span)
 }
 

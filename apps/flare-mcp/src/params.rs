@@ -268,3 +268,44 @@ pub struct BreakText {
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct EvalCurve {
+    /// Interpolation family, as `list_easings` names them (for example "quad", "bounce", "bezier").
+    pub family: String,
+    /// "in", "out", "in-out" or "auto" (the default).
+    pub easing: Option<String>,
+    /// Handle type: "auto", "auto-clamped" (the default), "vector", "aligned" or "free".
+    pub handle: Option<String>,
+    /// Bezier handles [right.dt, right.dv, left.dt, left.dv] in the unit square.
+    pub handles: Option<[f64; 4]>,
+    /// The time, from 0 to 1.
+    pub t: f64,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct SetInterpolation {
+    /// Frame the keyframe starts at.
+    pub at: u32,
+    /// Layer id; defaults to the first layer that is not the camera.
+    pub layer: Option<String>,
+    /// Family to set; omit to clear the keyframe's interpolation back to its plain ease.
+    pub family: Option<String>,
+    pub easing: Option<String>,
+    pub handle: Option<String>,
+    pub handles: Option<[f64; 4]>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct Inbetween {
+    /// Frame the keyframe starts at; it is split to make room.
+    pub at: u32,
+    /// How many in-between keyframes to make, 1 to 1000; the keyframe must last more frames.
+    pub count: u32,
+    /// Layer id; defaults to the first layer that is not the camera.
+    pub layer: Option<String>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}

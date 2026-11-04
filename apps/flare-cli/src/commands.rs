@@ -213,6 +213,12 @@ pub(crate) enum Command {
         #[arg(long, allow_hyphen_values = true)]
         ease: Option<i8>,
     },
+    /// Keyframe interpolation: list the easings, evaluate a curve, set a keyframe's
+    /// interpolation, make in-betweens.
+    Tween {
+        #[command(subcommand)]
+        op: crate::tween::TweenCommand,
+    },
     /// Add an empty layer below the existing ones in the first scene.
     AddLayer { path: PathBuf, name: String },
     /// Insert or remove frames and keyframes on a layer (default: the first layer).

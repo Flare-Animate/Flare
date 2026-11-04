@@ -343,9 +343,9 @@ fn shape_at<'a>(
     else {
         return own;
     };
-    let t = morph::eased(
+    let t = morph::span_fraction(
+        span,
         f64::from(frame - span.start()) / f64::from(span.duration().get()),
-        span.ease(),
     );
     match morph::morph(shape, target, t) {
         // Not zero, so a step is never taken for the shape itself.
@@ -384,9 +384,9 @@ fn tweened(
     let (Some((s0, r0, t0)), Some((s1, r1, t1))) = (decompose(from), decompose(to)) else {
         return Err(EvalError::UnsupportedTween(id));
     };
-    let t = morph::eased(
+    let t = morph::span_fraction(
+        span,
         f64::from(frame - span.start()) / f64::from(span.duration().get()),
-        span.ease(),
     );
     let mut delta = (r1 - r0) % std::f64::consts::TAU;
     if delta > std::f64::consts::PI {
@@ -413,7 +413,7 @@ pub fn can_tween(matrix: DAffine2) -> bool {
 }
 
 /// Scale, angle, translation, or `None` when the matrix is not exactly representable.
-fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
+pub(crate) fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
     let (scale, angle, translation) = matrix.to_scale_angle_translation();
     let rebuilt = DAffine2::from_scale_angle_translation(scale, angle, translation);
     let close = rebuilt
@@ -426,14 +426,16 @@ fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
 
 mod camera;
 mod guide;
+mod inbetween;
 mod level;
 mod morph;
 
 pub use camera::{camera_at, camera_view};
 pub use level::{Level, LevelContent, LevelItem, evaluate_level, symbol_frame};
-pub use morph::{eased, morph};
+pub use morph::{eased, morph, span_fraction};
 
 pub use guide::{flatten, point_along};
+pub use inbetween::inbetween_content;
 
 #[cfg(test)]
 mod tests;

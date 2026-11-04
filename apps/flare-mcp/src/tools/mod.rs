@@ -10,6 +10,7 @@ mod stopmotion;
 mod stopmotion_tests;
 mod text;
 mod timeline;
+mod tween;
 
 use rmcp::handler::server::router::tool::ToolRouter;
 
@@ -25,5 +26,6 @@ impl FlareServer {
             + Self::timeline_tools()
             + Self::history_tools()
             + Self::stopmotion_tools()
+            + Self::tween_tools()
     }
 }

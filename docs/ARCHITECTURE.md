@@ -116,7 +116,7 @@ shown. Saving applies pending symbol edits first.
 
 `evaluate_frame` is pure: no I/O, rendering or UI state. Instances are identified by their
 instance path, so two uses of one symbol keep separate clocks and transforms. Hidden layers
-are skipped. Linear tweens interpolate scale, rotation (shortest arc) and translation, and
+are skipped. A span may also carry a `SpanInterp` (`flare-document`: a `flare-tween` family, easing and handles, optional in the project file so old files load unchanged). `flare_eval::span_fraction` uses it in place of the Ease slider, `inbetween_content` makes in-between keys (strokes through `interpolate_sequence`, other shapes through the contour morph, instances and cameras by their transform), and `flare_tools::tween` sets it and creates in-betweens as command batches. Linear tweens interpolate scale, rotation (shortest arc) and translation, and
 return an error for shear or reflection rather than approximating. Depth (64) and node
 count (100,000) are bounded.
 

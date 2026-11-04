@@ -9,6 +9,7 @@ license.workspace = true
 [dependencies]
 flare-core.workspace = true
 flare-document.workspace = true
+flare-tween.workspace = true
 glamx.workspace = true
 thiserror.workspace = true
 

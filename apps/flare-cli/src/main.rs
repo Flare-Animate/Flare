@@ -4,6 +4,7 @@
 mod commands;
 mod project;
 mod stopmotion;
+mod tween;
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -96,6 +97,7 @@ fn main() -> Result<()> {
             motion,
             ease,
         } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
+        Command::Tween { op } => tween::run(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
         Command::Frame {
             op,

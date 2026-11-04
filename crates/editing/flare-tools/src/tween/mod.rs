@@ -6,6 +6,10 @@ use flare_document::{Content, Document, Tween};
 
 use crate::common::*;
 
+mod inbetween;
+pub mod spec;
+pub use inbetween::{InbetweenError, MAX_INBETWEENS, create_inbetweens, set_interpolation};
+
 /// Sets or clears the tween on a span: a motion tween on an instance or a camera keyframe, a shape
 /// tween on a shape. In a keyframe of several elements it is the first element's.
 /// `None` when the span is missing, the tween does not fit what the span holds, or it already

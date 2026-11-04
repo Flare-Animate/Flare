@@ -11,10 +11,12 @@ emath.workspace = true
 flare-commands.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
+flare-tween.workspace = true
 flare-eval.workspace = true
 flare-input.workspace = true
 glamx.workspace = true
 serde.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true

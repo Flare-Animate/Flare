@@ -229,6 +229,7 @@ impl Workspace {
         if ease != before {
             self.set_selection_ease(ease);
         }
+        self.interpolation_picker(ui, tweened);
     }
 
     pub(crate) fn doc_tab(&mut self, ui: &mut Ui) {

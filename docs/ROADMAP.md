@@ -15,7 +15,7 @@ maintainer's to reorder.
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)
 - Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
-- A Motion Editor: per-property graphs and custom ease curves for tweens
+- A Motion Editor: per-property graphs and editable curve handles for tweens (curve families, easings and in-betweens are in)
 - Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
 - Editable keyboard shortcuts

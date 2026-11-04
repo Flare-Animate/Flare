@@ -2110,6 +2110,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "flare-core",
+ "flare-tween",
  "glamx",
  "proptest",
  "thiserror 2.0.18",
@@ -2133,6 +2134,7 @@ version = "0.1.0"
 dependencies = [
  "flare-core",
  "flare-document",
+ "flare-tween",
  "glamx",
  "proptest",
  "thiserror 2.0.18",
@@ -2423,6 +2425,7 @@ dependencies = [
  "criterion",
  "flare-core",
  "flare-document",
+ "flare-tween",
  "glamx",
  "proptest",
  "rusqlite",
@@ -2466,9 +2469,11 @@ dependencies = [
  "flare-eval",
  "flare-history",
  "flare-input",
+ "flare-tween",
  "glamx",
  "proptest",
  "serde",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

@@ -14,6 +14,7 @@ mod open;
 mod rendering;
 mod save_formats;
 mod text;
+mod tween;
 
 fn run(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_flare"))

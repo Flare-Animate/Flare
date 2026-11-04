@@ -176,3 +176,22 @@ pub fn rect_style(color: &str, stroke: Option<&str>, stroke_width: f64) -> Resul
             .transpose()?,
     })
 }
+
+/// For the `tween` command: open a project.
+pub fn open_session(path: &Path) -> Result<EditorSession> {
+    open(path)
+}
+
+/// For the `tween` command: write an edit back.
+pub fn commit_session(session: &EditorSession, path: &Path) -> Result<()> {
+    commit(session, path)
+}
+
+/// For the `tween` command: the first scene and the layer given, else the first that is not the
+/// camera.
+pub fn first_scene_layer(
+    session: &EditorSession,
+    layer: Option<uuid::Uuid>,
+) -> Result<(flare_core::SceneId, flare_core::LayerId)> {
+    draw::target_layer(session, layer)
+}

@@ -23,6 +23,33 @@ pub enum HandleKind {
     Free,
 }
 
+impl HandleKind {
+    pub const ALL: [Self; 5] = [
+        Self::Auto,
+        Self::AutoClamped,
+        Self::Vector,
+        Self::Aligned,
+        Self::Free,
+    ];
+
+    /// The name the command line, the MCP server and saved files use.
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Auto => "auto",
+            Self::AutoClamped => "auto-clamped",
+            Self::Vector => "vector",
+            Self::Aligned => "aligned",
+            Self::Free => "free",
+        }
+    }
+
+    #[must_use]
+    pub fn parse(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|k| k.name() == name)
+    }
+}
+
 /// A handle, as an offset from its key: `dt` in time, `dv` in value. The left handle has `dt <= 0`
 /// and the right one `dt >= 0`; `solve` clamps them so the time stays inside the segment.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]

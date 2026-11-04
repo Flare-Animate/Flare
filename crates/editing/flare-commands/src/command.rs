@@ -2,7 +2,9 @@
 
 use flare_core::{FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
-use flare_document::{FrameSpan, Layer, Scene, Sound, SoundCue, Stage, Symbol, SymbolKind};
+use flare_document::{
+    FrameSpan, Layer, Scene, Sound, SoundCue, SpanInterp, Stage, Symbol, SymbolKind,
+};
 
 /// A property change on a layer.
 #[derive(Debug, Clone, PartialEq)]
@@ -91,5 +93,13 @@ pub enum Command {
         scene: SceneId,
         layer: LayerId,
         start: u32,
+    },
+    /// Sets the interpolation (family, easing, handle type) of the tween that starts at the
+    /// keyframe at `start`; `None` goes back to its plain ease. Refused when no span starts there.
+    SetKeyframeInterpolation {
+        scene: SceneId,
+        layer: LayerId,
+        start: u32,
+        interp: Option<SpanInterp>,
     },
 }

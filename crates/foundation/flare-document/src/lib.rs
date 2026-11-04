@@ -7,6 +7,7 @@
 
 mod attachment;
 mod camera;
+mod interp;
 mod layer_queries;
 mod origin;
 mod shape;
@@ -21,6 +22,7 @@ pub use attachment::{
     Anchor, Attachment, AttachmentError, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, Placement,
 };
 pub use camera::{Camera, CameraError, MAX_ZOOM, MIN_ZOOM};
+pub use interp::{SpanInterp, SpanInterpError};
 pub use origin::{
     Baseline, MAX_ORIGIN_BYTES, MAX_ORIGIN_FILES, MAX_ORIGIN_NAME_BYTES, Origin, OriginData,
     OriginError, OriginFile, OriginKind, SharedOrigin, SymbolBaseline, is_safe_entry_name,

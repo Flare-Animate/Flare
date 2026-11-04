@@ -19,6 +19,7 @@ pub(super) use info::color_at as info_color_at;
 mod character;
 pub(crate) mod library;
 mod properties;
+mod properties_interp;
 mod properties_object;
 mod stage_bar;
 #[cfg(test)]

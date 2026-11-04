@@ -31,4 +31,6 @@ pub use crate::selection::{locate_hit, spans_at_frame};
 pub use crate::stacking::{Stack, arrange_elements};
 pub use crate::subselection::{anchors, move_anchor};
 pub use crate::text::{break_text_apart, replace_shape};
-pub use crate::tween::{set_ease, set_tween};
+pub use crate::tween::{
+    InbetweenError, MAX_INBETWEENS, create_inbetweens, set_ease, set_interpolation, set_tween,
+};

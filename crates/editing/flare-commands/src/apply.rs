@@ -195,6 +195,19 @@ fn step(
                 }
             })?;
         }
+        Command::SetKeyframeInterpolation {
+            scene,
+            layer,
+            start,
+            interp,
+        } => edit_layer(scenes, scene, layer, |spans| {
+            let slot = spans
+                .iter_mut()
+                .find(|span| span.start() == start)
+                .ok_or(EditError::NoSuchSpan(start))?;
+            *slot = slot.clone().with_interp(interp);
+            Ok(())
+        })?,
     }
     Ok(())
 }
