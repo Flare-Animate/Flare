@@ -93,5 +93,5 @@ fn run() -> Result<()> {
     for path in &named {
         workspace.open_any(path);
     }
-    flare_desktop::ui::run(workspace)
+    flare_shell::ui::run(workspace)
 }

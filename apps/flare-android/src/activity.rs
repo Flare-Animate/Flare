@@ -36,5 +36,5 @@ fn start(app: AndroidApp) -> anyhow::Result<()> {
     let preferences = saved("preferences.json");
     // One workspace, like a plain desktop launch: the project named by the launcher (there is
     // none) and the work recovered from the last run (the shell offers it, not this start).
-    flare_desktop::ui::run_on_activity(crate::open::start(layout, preferences)?, app)
+    flare_shell::ui::run_on_activity(crate::open::start(layout, preferences)?, app)
 }

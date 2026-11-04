@@ -1976,8 +1976,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "flare-animate",
- "flare-desktop",
  "flare-platform",
+ "flare-shell",
  "winit",
 ]
 
@@ -2086,23 +2086,11 @@ name = "flare-desktop"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "egui",
- "egui-wgpu",
- "egui-winit",
  "flare-animate",
- "flare-core",
- "flare-document",
  "flare-i18n",
- "flare-menubar",
  "flare-platform",
- "flare-publish",
- "flare-ruffle",
+ "flare-shell",
  "flare-storage",
- "flare-tablet",
- "flare-ui",
- "muda",
- "pollster 0.4.0",
- "winit",
 ]
 
 [[package]]
@@ -2393,6 +2381,30 @@ dependencies = [
  "rayon",
  "tempfile",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "flare-shell"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "egui",
+ "egui-wgpu",
+ "egui-winit",
+ "flare-animate",
+ "flare-core",
+ "flare-document",
+ "flare-i18n",
+ "flare-menubar",
+ "flare-platform",
+ "flare-publish",
+ "flare-ruffle",
+ "flare-storage",
+ "flare-tablet",
+ "flare-ui",
+ "muda",
+ "pollster 0.4.0",
+ "winit",
 ]
 
 [[package]]

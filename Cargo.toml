@@ -47,6 +47,7 @@ members = [
     "crates/presentation/flare-dock",
     "crates/presentation/flare-menubar",
     "crates/presentation/flare-animate",
+    "crates/presentation/flare-shell",
 ]
 exclude = ["original", "third_party"]
 default-members = ["apps/flare-desktop"]
@@ -64,12 +65,10 @@ license = "BSD-3-Clause"
 flare-core = { path = "crates/foundation/flare-core" }
 flare-document = { path = "crates/foundation/flare-document" }
 flare-eval = { path = "crates/foundation/flare-eval" }
-flare-tween = { path = "crates/foundation/flare-tween" }
 flare-text = { path = "crates/foundation/flare-text" }
 flare-audio = { path = "crates/foundation/flare-audio" }
 flare-i18n = { path = "crates/foundation/flare-i18n" }
 flare-input = { path = "crates/foundation/flare-input" }
-flare-profile = { path = "crates/foundation/flare-profile" }
 # editing
 flare-commands = { path = "crates/editing/flare-commands" }
 flare-history = { path = "crates/editing/flare-history" }
@@ -81,10 +80,9 @@ flare-storage = { path = "crates/io/flare-storage" }
 flare-import = { path = "crates/io/flare-import" }
 flare-export = { path = "crates/io/flare-export" }
 flare-publish = { path = "crates/io/flare-publish" }
-flare-toonz = { path = "crates/io/flare-toonz" }
 flare-moho = { path = "crates/io/flare-moho" }
 # apps
-flare-desktop = { path = "apps/flare-desktop" }
+flare-shell = { path = "crates/presentation/flare-shell" }
 # adapters
 flare-flash = { path = "crates/adapters/flare-flash" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }

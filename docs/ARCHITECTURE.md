@@ -42,9 +42,10 @@ Executables are in `apps/`. The folders mean:
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the stage's pan and zoom math. |
 | presentation | `flare-dock` | The dockable panel layout: which panels exist (`Pane`), how they are arranged by default, and reading and writing a saved arrangement as untrusted input (size-capped, every panel exactly once, else the default). |
 | presentation | `flare-menubar` | The menu bar with no window in it: every command (`MenuAction`), the menus and their order, shortcuts, icons and what each item is called for the state of what it toggles (`LabelState`). Shared by the native macOS menu and the in-window one. |
+| presentation | `flare-shell` | The window shell as a library: one winit event loop, egui-winit input, egui-wgpu painting and the native menu, in `ui/`. `flare-desktop` runs it on a desktop and `flare-android` on a phone's activity, so neither app depends on the other. |
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, and, in `workspace/tools/`, what the workspace does for each tool (wiring pointer events and settings to what `flare-tools` computes). No window or GPU code. |
 | apps | `flare-cli` | Headless project editing and export. |
-| apps | `flare-desktop` | The desktop window (winit, egui-wgpu, the native menu), all in `ui/`; everything else it needs is `flare-platform`. |
+| apps | `flare-desktop` | The desktop program: starts `flare-shell`'s window with the workspace (arguments, recovery, locale). The window itself is `flare-shell`'s. |
 | apps | `flare-web` | The same workspace in a browser tab (eframe on a canvas); compiles for `wasm32-unknown-unknown` only, see [WEB.md](WEB.md). |
 | apps | `flare-mcp` | An MCP server over stdio for one open project, built on `rmcp`: agent tools over the same edit commands, with permissions and revision checks. |
 
