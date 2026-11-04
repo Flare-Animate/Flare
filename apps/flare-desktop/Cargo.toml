@@ -37,6 +37,11 @@ flare-tablet.workspace = true
 [target.'cfg(target_os = "macos")'.dependencies]
 muda.workspace = true
 
+[target.'cfg(target_os = "android")'.dependencies]
+# On a phone the event loop is the app's activity (see apps/flare-android); the feature makes
+# winit build its android backend, which no desktop target needs.
+winit = { workspace = true, features = ["android-native-activity"] }
+
 [dev-dependencies]
 flare-core.workspace = true
 flare-publish.workspace = true

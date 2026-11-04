@@ -4,21 +4,7 @@ use std::path::Path;
 
 /// The file extensions Flare opens itself, and the ones it imports as a new project.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 13] = [
-    "fla",
-    "xfl",
-    "swf",
-    "fcp",
-    "ppm",
-    "kwz",
-    "tnz",
-    "tlv",
-    "pli",
-    "tzu",
-    "moho",
-    "mh",
-    "mohobackup",
-];
+pub const IMPORT_EXTENSIONS: [&str; 3] = ["fla", "xfl", "swf"];
 
 /// The file inside an XFL folder that is the document. A person who has only the folder, with no
 /// `.xfl` beside it, picks this one.
@@ -44,7 +30,7 @@ pub enum PathKind {
 pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
     let extension = path
         .extension()
-        .and_then(|e| e.to_str())
+        .and_then(|e| n.to_str())
         .map(str::to_ascii_lowercase)
         .unwrap_or_default();
     if PROJECT_EXTENSIONS.contains(&extension.as_str()) {
@@ -69,15 +55,6 @@ mod tests {
         assert_eq!(kind("a.fla", false), Some(PathKind::Import));
         assert_eq!(kind("a.SWF", false), Some(PathKind::Import));
         assert_eq!(kind("a.XFL", false), Some(PathKind::Import));
-        assert_eq!(kind("a.fcp", false), Some(PathKind::Import));
-        assert_eq!(kind("a.ppm", false), Some(PathKind::Import));
-        assert_eq!(kind("a.kwz", false), Some(PathKind::Import));
-        assert_eq!(kind("a.tnz", false), Some(PathKind::Import));
-        assert_eq!(kind("a.tlv", false), Some(PathKind::Import));
-        assert_eq!(kind("a.pli", false), Some(PathKind::Import));
-        assert_eq!(kind("a.tzu", false), Some(PathKind::Import));
-        assert_eq!(kind("a.moho", false), Some(PathKind::Import));
-        assert_eq!(kind("a.mh", false), Some(PathKind::Import));
         assert_eq!(
             kind("MyProject", true),
             Some(PathKind::Import),

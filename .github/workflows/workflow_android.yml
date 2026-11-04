@@ -17,24 +17,43 @@ concurrency:
 
 jobs:
   android:
-    runs-on: ubuntu-latest
+    # The phone app's first flight: this job has not completed on a runner yet, so a failure
+    # here is not allowed to hold the branch back while it is still being proven. Remove this
+    # line once it is green on its own.
     continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: false
           submodules: false
 
-      - name: Install Rust toolchain
-        run: |
-          rustup toolchain install
-          rustup target add aarch64-linux-android
-
-      - name: Install Android NDK
-        uses: nttld/setup-ndk@v1
+      - name: Install the Rust toolchain with the Android target
+        uses: dtolnay/rust-toolchain@stable
         with:
-          ndk-version: r26c
+          targets: aarch64-linux-android
 
-      - name: Build Rust core (no NDK-dependent crates)
+      - name: Install the Android NDK
+        uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r27b
+
+      - name: Build the app (`libflare_android.so`)
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: |
-          cargo build -p flare-core --target aarch64-linux-android 2>&1 || echo "Android build not yet supported"
+          BIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          # The floor of the app (apps/flare-android/AndroidManifest.xml is minSdk 28) names the
+          # clang wrapper, and cc-style dependencies (blake3 among them) read CC and AR.
+          export CC_aarch64_linux_android="$BIN/aarch64-linux-android28-clang"
+          export AR_aarch64_linux_android="$BIN/llvm-ar"
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$BIN/aarch64-linux-android28-clang"
+          cargo build -p flare-android --target aarch64-linux-android --release --locked
+
+      - name: Upload the library
+        uses: actions/upload-artifact@v4
+        with:
+          name: libflare_android-aarch64
+          path: target/aarch64-linux-android/release/libflare_android.so

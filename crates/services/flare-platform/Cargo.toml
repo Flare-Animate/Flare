@@ -19,9 +19,14 @@ flare-publish.workspace = true
 flare-ruffle.workspace = true
 flare-runtime.workspace = true
 flare-storage.workspace = true
-rfd.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
+
+# The pickers and message boxes: rfd's own backends cover the desktop and the browser's wasm
+# side; on Android it would not compile at all (it has no backend and no empty one), so the
+# dialogs' code answers itself there (see dialogs.rs).
+[target.'cfg(not(target_os = "android"))'.dependencies]
+rfd.workspace = true
 
 [dev-dependencies]
 flare-import.workspace = true

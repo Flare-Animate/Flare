@@ -5,6 +5,7 @@ resolver = "3"
 members = [
     # apps
     "apps/flare-cli",
+    "apps/flare-android",
     "apps/flare-desktop",
     "apps/flare-mcp",
     "apps/flare-web",

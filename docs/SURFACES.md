@@ -1,9 +1,10 @@
 # Surfaces: what each front end can do
 
-Flare reaches people four ways: the **desktop** app (`flare-desktop`), the **browser** build
-(`flare-web`), the **command line** (`flare`) and the **MCP** server for agents (`flare-mcp`).
-[AGENTS.md](../AGENTS.md) says a feature belongs on all four, as far as each can have it, and that
-a gap is written down here with its reason. Every row below marked **no** is a debt.
+Flare reaches people five ways: the **desktop** app (`flare-desktop`), the **browser** build
+(`flare-web`), the **command line** (`flare`) and the **MCP** server for agents (`flare-mcp`),
+and as an **Android** app (`flare-android`).
+[AGENTS.md](../AGENTS.md) says a feature belongs on all of them, as far as each can have it, and
+that a gap is written down here with its reason. Every row below marked **no** is a debt.
 
 `yes` works and is tested. `no` is not built on that surface. `n/a` the surface cannot have it.
 
@@ -34,3 +35,25 @@ First audit, from the code, 2026-10-31.
 | Language and theme | yes | yes | n/a | n/a | |
 | Pen pressure on the Brush | partly | **no** | n/a | n/a | The desktop works on Linux and Windows and not on macOS. It reads it from winit (Windows) or from the X server (Linux, `flare-tablet`). winit drops a tablet's pressure on macOS, so a pen paints like a mouse there until `flare-tablet` has an AppKit module. The browser build does not read `PointerEvent.pressure` yet; a command line and an MCP server have no pen. Native Wayland needs its tablet protocol. |
 | Share from the Publish popup | yes (Twitter only) | **no** | n/a | n/a | The browser's own `window.open` is wired, but the popup is a desktop dialog today. |
+
+## Android
+
+The first build (2026-11-04) is [`flare-android`](../apps/flare-android/README.md): one
+`NativeActivity` around the desktop's own shell (`flare-desktop`'s library, through
+`run_on_activity`), so the workspace there is exactly the one the desktop's tests exercise —
+
+- **What works:** the whole editor workspace (drawing, tools, layers, frames, symbols, camera,
+    scene naming, themes and languages), the dock layout, and the saved layout, preferences and
+    recovery files, under the app's own data directory (see `flare-platform`'s `set_app_root`).
+- **What does not, and why:** a phone's storage is reachable only through the system's picker,
+    which is not wired (see `flare-platform`'s `dialogs.rs` phone backend, where a picker
+    answers as cancelled) — so every row above that opens, saves or exports a file to or from a
+    place is **no** here; sound is not demonstrated on a device yet; Test Movie is off (the
+    desktop feature that runs Ruffle inside the process); a pen's touch pressure is not wired to
+    the Brush. The library is built by the Android workflow (the `.so` alone proves the tree
+    compiles for the target); an APK comes from `apps/flare-android`'s manifest through
+    `cargo apk`.
+
+Each of those gaps is a debt: the next step for the phone is the Storage Access Framework
+picker, which turns most of the table's **no** into what the rest of the table already has.
+

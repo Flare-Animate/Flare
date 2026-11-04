@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Android app around `libflare_android.so`: one activity, Android's own NativeActivity,
+  which loads the named library and hands it the screen, so the app needs no Java of its own
+  and no designer's assets. hand-written and small (see apps/flare-android/README.md); the
+  package and the SDK floors are those of the app this one replaces.
+
+  Read by `cargo apk` (from the `android-activity` crate's tooling) to package the library
+  the CI builds; nothing else in the repository reads it.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.flareanimate.flare"
+    android:versionCode="1"
+    android:versionName="0.1.0">
+
+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="34" />
+
+    <application
+        android:allowBackup="true"
+        android:label="Flare"
+        android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
+
+        <activity
+            android:name="android.app.NativeActivity"
+            android:exported="true"
+            android:label="Flare"
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|smallestScreenSize|uiMode">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="flare_android" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

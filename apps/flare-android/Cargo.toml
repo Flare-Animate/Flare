@@ -1,0 +1,27 @@
+[package]
+name = "flare-android"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+# The Android app is a library the system loads: `NativeActivity` finds `libflare_android.so`
+# by the name in the manifest, and hands it the screen and the lifecycle.
+[lib]
+name = "flare_android"
+crate-type = ["cdylib"]
+
+[dependencies]
+anyhow.workspace = true
+flare-animate.workspace = true
+flare-platform.workspace = true
+# The desktop shell without the Test Movie player (which is a whole Ruffle): the phone's first
+# version draws in the editor and plays the timeline itself.
+flare-desktop = { path = "../flare-desktop", default-features = false }
+
+[target.'cfg(target_os = "android")'.dependencies]
+winit = { workspace = true, features = ["android-native-activity"] }
+
+[lints]
+workspace = true

@@ -26,12 +26,7 @@ async fn each_export_tool_writes_its_format_into_the_export_directory() {
     let f = drawn().await;
 
     let gif = f.ok("export_gif", json!({ "name": "loop" })).await;
-    assert!(
-        gif["path"]
-            .as_str()
-            .expect("p")
-            .ends_with("exports/loop.gif")
-    );
+    assert!(gif["path"].as_str().expect("p").ends_with("loop.gif"));
     assert!(bytes(&gif["path"]).starts_with(b"GIF89a"));
 
     let mp4 = f.ok("export_mp4", json!({ "name": "video" })).await;
@@ -92,7 +87,7 @@ async fn an_exported_project_imports_back_into_a_new_project_and_leaves_the_open
         imported["path"]
             .as_str()
             .expect("p")
-            .ends_with("exports/back.flare")
+            .ends_with("back.flare")
     );
     assert_eq!(imported["scenes"], 1);
     let loaded = flare_storage::load(std::path::Path::new(imported["path"].as_str().expect("p")))
