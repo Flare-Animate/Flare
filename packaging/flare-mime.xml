@@ -23,4 +23,47 @@
     <comment>Flash Movie</comment>
     <glob pattern="*.swf" />
   </mime-type>
+  <!-- The other projects Flare imports, none of which the systems name, so each is declared
+       here; Flare does not make itself their default either. The import of them is a report,
+       not a promise (docs/ARCHITECTURE.md). -->
+  <mime-type type="application/x-flare-fcp">
+    <comment>FlipaClip Project</comment>
+    <glob pattern="*.fcp" />
+  </mime-type>
+  <mime-type type="application/x-flare-ppm">
+    <comment>Flipnote Studio Animation</comment>
+    <glob pattern="*.ppm" />
+  </mime-type>
+  <mime-type type="application/x-flare-kwz">
+    <comment>Flipnote Studio 3D Animation</comment>
+    <glob pattern="*.kwz" />
+  </mime-type>
+  <mime-type type="application/x-flare-tnz">
+    <comment>OpenToonz Scene</comment>
+    <glob pattern="*.tnz" />
+  </mime-type>
+  <mime-type type="application/x-flare-tlv">
+    <comment>OpenToonz Level</comment>
+    <glob pattern="*.tlv" />
+  </mime-type>
+  <mime-type type="application/x-flare-pli">
+    <comment>OpenToonz Data</comment>
+    <glob pattern="*.pli" />
+  </mime-type>
+  <mime-type type="application/x-flare-tzu">
+    <comment>OpenToonz Data</comment>
+    <glob pattern="*.tzu" />
+  </mime-type>
+  <mime-type type="application/x-flare-moho">
+    <comment>Moho Project</comment>
+    <glob pattern="*.moho" />
+  </mime-type>
+  <mime-type type="application/x-flare-mh">
+    <comment>Moho Document</comment>
+    <glob pattern="*.mh" />
+  </mime-type>
+  <mime-type type="application/x-flare-mohobackup">
+    <comment>Moho Project Backup</comment>
+    <glob pattern="*.mohobackup" />
+  </mime-type>
 </mime-info>
