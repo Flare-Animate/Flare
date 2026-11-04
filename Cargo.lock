@@ -2228,6 +2228,7 @@ dependencies = [
  "flare-import",
  "flare-publish",
  "flare-render",
+ "flare-rig",
  "flare-runtime",
  "flare-stopmotion",
  "flare-storage",

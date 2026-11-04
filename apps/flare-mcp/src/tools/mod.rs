@@ -8,6 +8,7 @@ mod read;
 mod stopmotion;
 #[cfg(test)]
 mod stopmotion_tests;
+mod symbols;
 mod text;
 mod timeline;
 mod tween;
@@ -27,5 +28,6 @@ impl FlareServer {
             + Self::history_tools()
             + Self::stopmotion_tools()
             + Self::tween_tools()
+            + Self::symbol_tools()
     }
 }
