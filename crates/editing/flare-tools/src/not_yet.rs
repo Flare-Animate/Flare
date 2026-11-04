@@ -17,7 +17,11 @@ pub struct NotYetImplemented(pub LegacyFeature);
 
 impl fmt::Display for NotYetImplemented {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} is not yet re-implemented (see {})", self.0.name, self.0.original)
+        write!(
+            f,
+            "{} is not yet re-implemented (see {})",
+            self.0.name, self.0.original
+        )
     }
 }
 
@@ -50,7 +54,15 @@ stub!(/** Render farm task. Source: `original/flare/sources/flarefarm/tfarm/tfar
     render_farm, RENDER_FARM, "Render farm", "original/flare/sources/flarefarm/tfarm/tfarmtask.cpp");
 
 /// All stubbed features.
-pub const ALL: [LegacyFeature; 7] = [TRACKER, PLASTIC, HOOK, CUTTER, STOP_MOTION, CLEANUP, RENDER_FARM];
+pub const ALL: [LegacyFeature; 7] = [
+    TRACKER,
+    PLASTIC,
+    HOOK,
+    CUTTER,
+    STOP_MOTION,
+    CLEANUP,
+    RENDER_FARM,
+];
 
 #[cfg(test)]
 mod tests {
@@ -62,7 +74,11 @@ mod tests {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         for f in ALL {
             assert!(root.join(f.original).exists(), "{}", f.original);
-            assert!(NotYetImplemented(f).to_string().contains("not yet re-implemented"));
+            assert!(
+                NotYetImplemented(f)
+                    .to_string()
+                    .contains("not yet re-implemented")
+            );
         }
     }
 }

@@ -6,7 +6,11 @@
 pub struct BadBuffer;
 
 fn check(buf: &[u8], w: usize, h: usize) -> Result<(), BadBuffer> {
-    if buf.len() == w.checked_mul(h).and_then(|n| n.checked_mul(4)).ok_or(BadBuffer)? {
+    if buf.len()
+        == w.checked_mul(h)
+            .and_then(|n| n.checked_mul(4))
+            .ok_or(BadBuffer)?
+    {
         Ok(())
     } else {
         Err(BadBuffer)
@@ -17,7 +21,11 @@ fn check(buf: &[u8], w: usize, h: usize) -> Result<(), BadBuffer> {
 pub fn gamma_correct(buf: &mut [u8], gamma: f32) {
     let inv = 1.0 / gamma.max(f32::EPSILON);
     let lut: Vec<u8> = (0..256)
-        .map(|i| ((i as f32 / 255.0).powf(inv) * 255.0).round().clamp(0.0, 255.0) as u8)
+        .map(|i| {
+            ((i as f32 / 255.0).powf(inv) * 255.0)
+                .round()
+                .clamp(0.0, 255.0) as u8
+        })
         .collect();
     for px in buf.chunks_exact_mut(4) {
         for c in &mut px[..3] {
@@ -31,7 +39,9 @@ pub fn levels(buf: &mut [u8], black: u8, white: u8) {
     let (b, w) = (black as f32, (white.max(black.saturating_add(1))) as f32);
     for px in buf.chunks_exact_mut(4) {
         for c in &mut px[..3] {
-            *c = (((*c as f32 - b) / (w - b)) * 255.0).round().clamp(0.0, 255.0) as u8;
+            *c = (((*c as f32 - b) / (w - b)) * 255.0)
+                .round()
+                .clamp(0.0, 255.0) as u8;
         }
     }
 }
