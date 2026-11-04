@@ -70,7 +70,24 @@ pub struct Layer {
     pub texture_path: Option<String>,
     /// Present on switch layers: which child is shown over time.
     pub switch: Option<SwitchCells>,
+    /// The drawing of a vector layer, when the document held one.
+    pub mesh: Option<Mesh>,
     pub children: Vec<Layer>,
+}
+
+/// The art of a vector layer: points, and curves that join them. Handles and fills are not read.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Mesh {
+    /// Rest position of each point, in Moho units.
+    pub points: Vec<[f64; 2]>,
+    pub curves: Vec<MeshCurve>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct MeshCurve {
+    pub closed: bool,
+    /// Indices into [`Mesh::points`], in order along the curve.
+    pub points: Vec<usize>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

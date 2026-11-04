@@ -249,7 +249,7 @@ pub(crate) enum Command {
         #[arg(long)]
         name: Option<String>,
     },
-    /// Import an XFL directory, .xfl file or modern .fla into a new project, listing what was
+    /// Import an XFL directory, .xfl, .fla, .swf, Moho, BVH or Toonz file into a new project, listing what was
     /// not carried over.
     Import { source: PathBuf, out: PathBuf },
     /// Convert a project to the format OUT's ending says: .fla, .xfl (a folder with the .xfl stub

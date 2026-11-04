@@ -49,7 +49,10 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
         .unwrap_or_default();
     if PROJECT_EXTENSIONS.contains(&extension.as_str()) {
         Some(PathKind::Project)
-    } else if IMPORT_EXTENSIONS.contains(&extension.as_str()) || is_xfl_document(path) {
+    } else if IMPORT_EXTENSIONS.contains(&extension.as_str())
+        || is_xfl_document(path)
+        || crate::foreign_kind(path).is_some()
+    {
         Some(PathKind::Import)
     } else {
         // An XFL project is a folder, which can have any name.

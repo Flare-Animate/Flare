@@ -151,7 +151,7 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Import an XFL folder, .xfl or .fla from the export directory into a new .flare project beside it. The open project is not changed. Lists what was not carried over."
+        description = "Import an XFL folder, .xfl, .fla, .swf, Moho (.moho, .anime, .mohoproj, .animeproj), BVH (.bvh) or Toonz (.tnz, .pli, .tlv, .tpl) file from the export directory into a new .flare project beside it. The open project is not changed. Lists what was not carried over."
     )]
     fn import_project(&self, Parameters(args): Parameters<ImportProject>) -> Outcome {
         self.read(|state| {
@@ -159,11 +159,6 @@ impl FlareServer {
             let source = dir.join(safe_name(&args.source)?);
             if !source.exists() {
                 return Err(format!("{} is not in the export directory", args.source));
-            }
-            if flare_moho::is_moho_path(&source) {
-                // Parsing works; the conversion to a document is a named gap until it is built.
-                let project = flare_moho::read_file(&source).map_err(|e| e.to_string())?;
-                flare_moho::to_flare_document(&project).map_err(|e| e.to_string())?;
             }
             let out = fresh(&dir, &safe_file_name_with(&args.name, "flare")?)?;
             let imported = flare_import::import_path(&source).map_err(|e| e.to_string())?;

@@ -2043,7 +2043,6 @@ dependencies = [
  "flare-flash",
  "flare-history",
  "flare-import",
- "flare-moho",
  "flare-publish",
  "flare-render",
  "flare-ruffle",
@@ -2192,8 +2191,10 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-eval",
+ "flare-moho",
  "flare-render",
  "flare-storage",
+ "flare-toonz",
  "glamx",
  "quick-xml 0.42.0",
  "swf",
@@ -2224,7 +2225,6 @@ dependencies = [
  "flare-export",
  "flare-history",
  "flare-import",
- "flare-moho",
  "flare-publish",
  "flare-render",
  "flare-runtime",
@@ -2256,6 +2256,10 @@ dependencies = [
 name = "flare-moho"
 version = "0.1.0"
 dependencies = [
+ "flare-commands",
+ "flare-core",
+ "flare-document",
+ "glamx",
  "serde_json",
  "thiserror 2.0.18",
  "zip",

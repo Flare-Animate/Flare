@@ -54,8 +54,22 @@ impl WebApp {
                 let (inbox, ctx) = (Rc::clone(&self.picked), ctx.clone());
                 wasm_bindgen_futures::spawn_local(async move {
                     if let Some((name, bytes)) = files::pick(
-                        "Flare project, Flash document or movie",
-                        &["flare", "fla", "swf"],
+                        "Flare project, Flash, Moho, Toonz or BVH file",
+                        &[
+                            "flare",
+                            "fla",
+                            "swf",
+                            "moho",
+                            "anime",
+                            "mohoproj",
+                            "animeproj",
+                            "bvh",
+                            "tnz",
+                            "tpl",
+                            "plt",
+                            "pli",
+                            "tlv",
+                        ],
                     )
                     .await
                     {

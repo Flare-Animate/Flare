@@ -7,7 +7,6 @@ use std::io::{Cursor, Write};
 use flare_moho::limits::{MAX_DOCUMENT_BYTES, MAX_FILE_BYTES, MAX_LAYER_DEPTH};
 use flare_moho::{
     Binding, Census, Container, KeyValue, LayerKind, MohoError, detect, is_moho_path, parse_bytes,
-    to_flare_document,
 };
 
 const TINY: &str = include_str!("fixtures/tiny.mohoproj.json");
@@ -237,15 +236,6 @@ fn every_truncation_of_the_fixture_fails_cleanly_or_parses() {
     for end in 0..bytes.len() {
         let _ = parse_bytes(&bytes[..end], "cut.mohoproj");
     }
-}
-
-#[test]
-fn conversion_to_a_flare_document_is_a_named_gap() {
-    let project = parse_bytes(TINY.as_bytes(), "tiny.mohoproj").expect("parse");
-    assert!(matches!(
-        to_flare_document(&project),
-        Err(MohoError::NotYetImplemented { .. })
-    ));
 }
 
 #[test]

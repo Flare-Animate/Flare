@@ -30,6 +30,6 @@ pub enum MohoError {
     BadBoneParent { index: usize, parent: i64 },
     #[error("cannot read the project: {0}")]
     Io(#[from] std::io::Error),
-    #[error("{feature} is not implemented yet")]
-    NotYetImplemented { feature: &'static str },
+    #[error("the project cannot become a Flare document: {0}")]
+    Document(String),
 }

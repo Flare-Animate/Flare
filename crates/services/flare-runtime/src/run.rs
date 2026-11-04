@@ -241,8 +241,14 @@ pub fn run_io(job: IoJob) -> Done {
         }
         IoJob::ImportBytes { id, name, bytes } => Done::Imported {
             id,
-            path: PathBuf::from(name),
-            result: imported(flare_import::import_bytes(bytes)),
+            path: PathBuf::from(&name),
+            result: imported(
+                if flare_import::foreign_kind(std::path::Path::new(&name)).is_some() {
+                    flare_import::import_foreign_bytes(std::path::Path::new(&name), bytes)
+                } else {
+                    flare_import::import_bytes(bytes)
+                },
+            ),
         },
         IoJob::Autosave { id, dir, document } => Done::Autosaved {
             id,

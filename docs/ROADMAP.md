@@ -274,18 +274,21 @@ that these names are right.
 ## Moho projects (`flare-moho`)
 
 Reads Moho (Lost Marble) `.moho`/`.anime` ZIP and `.mohoproj`/`.animeproj` JSON projects, and BVH
-motion files. The format notes come from `original/flare/sources/common/moho` (read as reference,
-no code copied). Upstream licences of SimplSam/moho-bvh-bones and jpdurigan/godot_moho_importer were
-not checked (no GitHub access in that session), so nothing was borrowed from them.
+motion files, and converts both to Flare documents. The format notes come from
+`original/flare/sources/common/moho` (read as reference, no code copied). Licences checked:
+jpdurigan/godot_moho_importer is MIT, so its mesh layout (`mesh.points`/`mesh.curves`) and the
+`anim_pos`/`anim_angle`/`anim_scale` track names are used with attribution here;
+SimplSam/moho-bvh-bones is CC BY-NC-SA 4.0, so nothing was taken from it (behaviour only).
 
 - Phase 1, parse (done): container detection; typed model of layers, bones, switch cells, keyframe
-  tracks, image and audio references; every size, depth and count bounded; golden tests on a
-  synthetic fixture.
-- Phase 2, bones (partly done): BVH reader and writer for the hierarchy and motion channels. Not
-  yet: baking Moho's bone poses and keyframes into BVH frames.
-- Phase 3, switch layers: resolve which child shows at each frame, and show it on every surface.
-- Phase 4, art conversion: vector (mesh) and image layers into Flare shapes and bitmaps through
-  validated command batches. Starts when `flare_moho::to_flare_document` can return a document.
+  tracks, mesh points and curves, image and audio references; every size, depth and count bounded.
+- Phase 2, bones (done): BVH reader and writer, and `bvh::to_document` (a pose per frame per joint).
+- Phase 3, switch layers (done): switch keys become one instance span per key.
+- Phase 4, conversion (done, with gaps): `to_flare_document` builds one validated command batch:
+  groups as folders, vector layers as shape symbols (polylines; handles and fill colours are not
+  read) placed by translation, rotation and scale tracks, bones as folders with pose layers.
+  Image and audio layers are named as unsupported (a document has no bitmap content; a Moho
+  container's media is not read). Moho units are assumed two per stage height.
 - Phase 5, round trip: write a Moho project back, or export to BVH and XFL, and read it again unchanged.
 - Gaps: pre-11 `.anme` is refused by name; audio reference keys are unverified against real projects;
   rendering is out of scope.

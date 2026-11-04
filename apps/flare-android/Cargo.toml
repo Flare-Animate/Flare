@@ -26,7 +26,6 @@ winit = { workspace = true, features = ["android-native-activity"] }
 [lints]
 workspace = true
 
-# (Version name and code come from the workspace version; cargo-apk refuses them here.)
 # Read by `cargo apk` (CI: .github/workflows/android.yml), which writes the packaged manifest from
 # this table; apps/flare-android/AndroidManifest.xml is the same thing for a person reading it.
 # ChromeOS (x86_64 or arm64) and other Android variants run the same APK: the window is
@@ -36,6 +35,8 @@ workspace = true
 package = "org.flareanimate.flare"
 apk_name = "Flare"
 build_targets = ["aarch64-linux-android", "x86_64-linux-android"]
+version_code = 1
+version_name = "0.1.0"
 
 [package.metadata.android.sdk]
 min_sdk_version = 28

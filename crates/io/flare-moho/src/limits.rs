@@ -20,3 +20,8 @@ pub const MAX_KEYFRAMES: usize = 2_000_000;
 pub const MAX_KEY_VECTOR: usize = 16;
 /// Distinct image paths, and distinct audio paths, kept.
 pub const MAX_REFERENCES: usize = 100_000;
+/// Points kept from all the meshes of a project, and curves kept.
+pub const MAX_MESH_POINTS: usize = 1_000_000;
+pub const MAX_MESH_CURVES: usize = 200_000;
+/// Highest frame a converted track may place a keyframe on.
+pub const MAX_FRAME: i64 = 1_000_000;

@@ -5,7 +5,26 @@ pub fn pick_open(filter: &str) -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
         // `xml` is for the DOMDocument.xml of an XFL folder that has no `.xfl` beside it; any other
         // XML file is refused when it is opened.
-        .add_filter(filter, &["flare", "fla", "xfl", "swf", "xml"])
+        .add_filter(
+            filter,
+            &[
+                "flare",
+                "fla",
+                "xfl",
+                "swf",
+                "xml",
+                "moho",
+                "anime",
+                "mohoproj",
+                "animeproj",
+                "bvh",
+                "tnz",
+                "tpl",
+                "plt",
+                "pli",
+                "tlv",
+            ],
+        )
         .pick_file()
 }
 

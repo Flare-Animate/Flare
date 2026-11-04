@@ -31,7 +31,8 @@ pub(crate) fn parse_document(bytes: &[u8], entry: String) -> Result<Project, Moh
         .unwrap_or(&empty);
 
     let mut layer_count = 0;
-    let layers = read_layers(root.get("layers"), 0, &mut layer_count)?;
+    let mut mesh_budget = (0, 0);
+    let layers = read_layers(root.get("layers"), 0, &mut layer_count, &mut mesh_budget)?;
     let bones = read_bones(root)?;
     let harvest = tree::harvest(&value)?;
     Ok(Project {
@@ -55,6 +56,7 @@ fn read_layers(
     value: Option<&Value>,
     depth: usize,
     count: &mut usize,
+    mesh_budget: &mut (usize, usize),
 ) -> Result<Vec<Layer>, MohoError> {
     let Some(items) = value.and_then(Value::as_array) else {
         return Ok(Vec::new());
@@ -81,6 +83,7 @@ fn read_layers(
             });
         }
         let kind = LayerKind::from_moho(&text(o, "type"));
+        let kind_is_vector = kind == LayerKind::Vector;
         let switch = (kind == LayerKind::Switch).then(|| switch_cells(o));
         layers.push(Layer {
             name: text(o, "name"),
@@ -94,7 +97,12 @@ fn read_layers(
             texture_path: opt_text(o, "fill_texture_path")
                 .or_else(|| opt_text(o, "line_texture_path")),
             switch,
-            children: read_layers(o.get("layers"), depth + 1, count)?,
+            mesh: if kind_is_vector {
+                crate::mesh::read(o.get("mesh"), mesh_budget)?
+            } else {
+                None
+            },
+            children: read_layers(o.get("layers"), depth + 1, count, mesh_budget)?,
         });
     }
     Ok(layers)

@@ -5,9 +5,11 @@
 //! Supported: ROOT and JOINT with OFFSET and CHANNELS, End Site, MOTION with Frames and Frame
 //! Time. Any other keyword is refused rather than skipped, so nothing is dropped silently.
 
+mod import;
 mod read;
 mod write;
 
+pub use import::{MAX_POSES, to_document};
 pub use read::parse;
 pub use write::to_text;
 
