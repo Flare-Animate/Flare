@@ -68,3 +68,67 @@ fn replacing_a_symbols_timeline_keeps_its_kind() {
     .expect("changed");
     assert_eq!(after.symbol(id).expect("symbol").kind(), SymbolKind::Button);
 }
+
+mod playback {
+    use super::*;
+    use flare_core::{InstanceId, Transform2D};
+    use flare_document::{Content, FrameSpan, Instance, PlayMode, Playback, Tween};
+    use std::num::NonZeroU32;
+
+    fn with_instance() -> (Document, SceneId, LayerId) {
+        let symbol = Symbol::new(SymbolId::new(), "S", Timeline::default());
+        let instance = Instance::new(InstanceId::new(), symbol.id(), Transform2D::default());
+        let span = FrameSpan::new(
+            2,
+            NonZeroU32::new(5).expect("nonzero"),
+            Content::Instance(instance),
+        )
+        .with_tween(Tween::Linear)
+        .with_ease(30);
+        let layer = Layer::new(LayerId::new(), "L", vec![span]).expect("layer");
+        let (layer_id, scene_id) = (layer.id(), SceneId::new());
+        let scene = Scene::new(scene_id, "S", Timeline::new(vec![layer]));
+        let document = Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![scene],
+            vec![symbol],
+        )
+        .expect("document");
+        (document, scene_id, layer_id)
+    }
+
+    fn set(scene: SceneId, layer: LayerId, start: u32) -> Command {
+        Command::SetInstancePlayback {
+            scene,
+            layer,
+            start,
+            playback: Playback {
+                mode: PlayMode::PlayOnce,
+                first_frame: 3,
+            },
+        }
+    }
+
+    #[test]
+    fn sets_playback_and_keeps_timing_and_motion() {
+        let (before, scene, layer) = with_instance();
+        let after = apply_all(&before, [set(scene, layer, 2)])
+            .expect("applied")
+            .expect("changed");
+        let span = &after.scenes()[0].timeline().layers()[0].spans()[0];
+        let Content::Instance(instance) = span.content() else {
+            unreachable!("the span held an instance")
+        };
+        assert_eq!(instance.playback().mode, PlayMode::PlayOnce);
+        assert_eq!(instance.playback().first_frame, 3);
+        assert_eq!((span.start(), span.duration().get()), (2, 5));
+        assert_eq!((span.tween(), span.ease()), (Tween::Linear, 30));
+    }
+
+    #[test]
+    fn a_missing_span_fails_and_changes_nothing() {
+        let (before, scene, layer) = with_instance();
+        assert!(apply_all(&before, [set(scene, layer, 9)]).is_err());
+    }
+}

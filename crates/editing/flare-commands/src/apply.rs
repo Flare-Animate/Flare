@@ -1,7 +1,7 @@
 //! Applying a batch of commands to a document.
 
 use flare_core::{FrameRate, LayerId, SceneId};
-use flare_document::{Document, FrameSpan, Layer, Scene, Sound, Stage, Symbol};
+use flare_document::{Content, Document, FrameSpan, Layer, Scene, Sound, Stage, Symbol};
 
 use crate::{Command, EditError, LayerChange, MAX_SCENE_NAME_CHARS};
 
@@ -193,6 +193,25 @@ fn step(
                 } else {
                     Ok(())
                 }
+            })?;
+        }
+        Command::SetInstancePlayback {
+            scene,
+            layer,
+            start,
+            playback,
+        } => {
+            edit_layer(scenes, scene, layer, |spans| {
+                let slot = spans
+                    .iter_mut()
+                    .find(|span| span.start() == start)
+                    .ok_or(EditError::NoSuchSpan(start))?;
+                let Content::Instance(instance) = slot.content() else {
+                    return Err(EditError::NotAnInstance(start));
+                };
+                let content = Content::Instance(instance.clone().with_playback(playback));
+                *slot = FrameSpan::new(slot.start(), slot.duration(), content).with_motion_of(slot);
+                Ok(())
             })?;
         }
         Command::SetKeyframeInterpolation {

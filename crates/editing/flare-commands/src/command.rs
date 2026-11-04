@@ -2,7 +2,7 @@
 
 use flare_core::{FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
-use flare_document::{
+use flare_document::{Playback, 
     FrameSpan, Layer, Scene, Sound, SoundCue, SpanInterp, Stage, Symbol, SymbolKind,
 };
 
@@ -93,6 +93,15 @@ pub enum Command {
         scene: SceneId,
         layer: LayerId,
         start: u32,
+    },
+    /// Sets how the instance held by the span starting at `start` plays its symbol (Loop, Play
+    /// Once or Single Frame and its first frame). The span's timing and tween are kept; a span
+    /// that holds no instance is refused.
+    SetInstancePlayback {
+        scene: SceneId,
+        layer: LayerId,
+        start: u32,
+        playback: Playback,
     },
     /// Sets the interpolation (family, easing, handle type) of the tween that starts at the
     /// keyframe at `start`; `None` goes back to its plain ease. Refused when no span starts there.

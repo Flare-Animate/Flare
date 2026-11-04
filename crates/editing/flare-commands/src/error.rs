@@ -19,6 +19,8 @@ pub enum EditError {
     NoSuchLayer(LayerId),
     #[error("no span starts at frame {0}")]
     NoSuchSpan(u32),
+    #[error("the span at frame {0} holds no symbol instance")]
+    NotAnInstance(u32),
     #[error(transparent)]
     Timeline(#[from] TimelineError),
     #[error(transparent)]

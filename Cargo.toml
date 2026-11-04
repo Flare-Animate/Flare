@@ -14,6 +14,7 @@ members = [
     "crates/foundation/flare-document",
     "crates/foundation/flare-eval",
     "crates/foundation/flare-tween",
+    "crates/foundation/flare-rig",
     "crates/foundation/flare-text",
     "crates/foundation/flare-audio",
     "crates/foundation/flare-i18n",
@@ -66,6 +67,7 @@ flare-core = { path = "crates/foundation/flare-core" }
 flare-document = { path = "crates/foundation/flare-document" }
 flare-tween = { path = "crates/foundation/flare-tween" }
 flare-eval = { path = "crates/foundation/flare-eval" }
+flare-rig = { path = "crates/foundation/flare-rig" }
 flare-text = { path = "crates/foundation/flare-text" }
 flare-audio = { path = "crates/foundation/flare-audio" }
 flare-i18n = { path = "crates/foundation/flare-i18n" }

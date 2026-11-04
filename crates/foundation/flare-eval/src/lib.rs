@@ -310,7 +310,11 @@ fn child_frame(
     length: u64,
 ) -> u32 {
     use flare_document::{PlayMode, SymbolKind};
-    let last = length.saturating_sub(1);
+    // A symbol with no frames has nothing to show; frame 0 keeps the modulo below defined.
+    if length == 0 {
+        return 0;
+    }
+    let last = length - 1;
     let frame = match kind {
         SymbolKind::Button => 0,
         SymbolKind::MovieClip => elapsed % length,
