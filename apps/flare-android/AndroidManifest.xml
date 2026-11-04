@@ -5,8 +5,8 @@
   and no designer's assets. hand-written and small (see apps/flare-android/README.md); the
   package and the SDK floors are those of the app this one replaces.
 
-  Read by `cargo apk` (from the `android-activity` crate's tooling) to package the library
-  the CI builds; nothing else in the repository reads it.
+  The table `[package.metadata.android]` in Cargo.toml is what `cargo apk` packages; keep the two
+  in step.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.flareanimate.flare"
@@ -14,6 +14,16 @@
     android:versionName="0.1.0">
 
     <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="34" />
+
+    <!-- Nothing here is required: a Chromebook has no touch screen or a camera on some models, a
+         tablet has no keyboard, a phone no mouse. Resizable, so ChromeOS can window it. -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.faketouch" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.keyboard" android:required="false" />
+    <uses-feature android:name="android.hardware.type.pc" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -23,8 +33,9 @@
         <activity
             android:name="android.app.NativeActivity"
             android:exported="true"
+            android:resizeableActivity="true"
             android:label="Flare"
-            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|smallestScreenSize|uiMode">
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout|smallestScreenSize|uiMode|density|keyboard|navigation">
             <meta-data
                 android:name="android.app.lib_name"
                 android:value="flare_android" />

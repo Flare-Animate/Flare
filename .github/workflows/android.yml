@@ -1,0 +1,64 @@
+name: Android
+
+# Universal, arm64-v8a and x86_64 APKs (x86_64 and arm64 are what ChromeOS runs), built with
+# cargo-apk from the table in apps/flare-android/Cargo.toml. The Play bundle (AAB) is not built
+# here: Play needs an upload key only the owner has (see docs/RELEASE.md and docs/SURFACES.md).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  apk:
+    name: APKs (universal, arm64-v8a, x86_64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: aarch64-linux-android x86_64-linux-android
+          linux-libs: 'false'
+          cache-key: android
+      - uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r27b
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-apk@0.10.0
+      - name: Build the three APKs
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: ${{ steps.ndk.outputs.ndk-path }}
+          ANDROID_HOME: /usr/local/lib/android/sdk
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          # Both ABIs in one package: the universal APK.
+          cargo apk build -p flare-android --release --locked
+          cp target/release/apk/Flare.apk dist/flare-android-universal.apk
+          for triple in aarch64-linux-android:arm64-v8a x86_64-linux-android:x86_64; do
+            cargo apk build -p flare-android --release --locked --target "${triple%%:*}"
+            cp target/release/apk/Flare.apk "dist/flare-android-${triple##*:}.apk"
+          done
+          ls -l dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flare-android-apks
+          path: dist/*.apk
+          if-no-files-found: error

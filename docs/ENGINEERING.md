@@ -79,6 +79,28 @@ rejected batch, and undo back to the exact starting document. When adding a new 
 make sure these cover it. Check that a new invariant test can fail: temporarily break the
 code it protects and confirm the test notices.
 
+## Continuous integration
+
+Workflows are in `.github/workflows/`; the toolchain, cache and Linux libraries are set up once
+in `.github/actions/setup-rust`. Every workflow runs on pushes to `main`, on pull requests and by
+hand (`workflow_dispatch`), cancels a superseded run of the same ref, and has read-only
+`contents` permission unless a job says otherwise.
+
+| Workflow | What it does | Target |
+| --- | --- | --- |
+| `ci.yml` | fmt (Linux only), clippy and tests on Linux, Windows and macOS; scripts tests, wasm checks, `cargo audit`, file-length and docs rules | Linux, Windows, macOS, Web |
+| `android.yml` | universal, arm64-v8a and x86_64 APKs with `cargo apk` (ChromeOS runs the x86_64 or arm64 one; the manifest makes touch, keyboard, mouse and camera optional and the window resizable) | Android |
+| `ios.yml` | compiles `flare-shell` and the desktop binary for `aarch64-apple-ios`, wraps the binary in an experimental unsigned `.ipa`. Not an app yet and non-blocking until it is green; see SURFACES.md | iOS (not yet an app) |
+| `pages.yml` | builds the page with `apps/flare-web/scripts/build.sh`; a push to `main` deploys it to GitHub Pages | Web |
+| `release.yml` | on a `v*` tag: portable archives, MSI, DMG, AppImage, deb, rpm and Flatpak for Windows, macOS and Linux (x86_64 and arm64), checksums, GitHub release | Windows, macOS, Linux |
+
+FreeBSD is not built: its workflow built a path that no longer exists and always reported success.
+Add it back as a non-blocking job when a maintainer wants it.
+
+Owner-only settings and secrets (no workflow can set these): Settings > Pages > Source "GitHub
+Actions"; a Play upload keystore, Apple signing identity and Windows code-signing certificate
+as repository secrets when signed builds are wanted.
+
 ## Code map for tools and newcomers
 
 [codesight](https://www.npmjs.com/package/codesight) scans the repository and writes `.codesight/`: a

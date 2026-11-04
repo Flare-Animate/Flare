@@ -79,6 +79,13 @@ The web build is experimental and not released.
 `package_release.py validate --tag v<version>` runs the first checks locally, and
 `python -m unittest discover -s scripts/tests -p 'test_package_*.py'` tests the packaging logic.
 
+## What CI builds besides a release
+
+`android.yml` uploads `flare-android-universal.apk`, `-arm64-v8a.apk` and `-x86_64.apk` (debug-signed)
+and `ios.yml` an experimental unsigned `flare-ios-unsigned` archive (not an app yet) on every push to `main`; `pages.yml` deploys the
+browser build. They are not attached to a GitHub release yet; download them from the run. See
+[ENGINEERING.md](ENGINEERING.md#continuous-integration).
+
 ## Building locally
 
 macOS, from a release build (`cargo build --release -p flare-desktop`). The disk image has a plain background with an arrow from `Flare.app` to Applications, `assets/packaging/macos/dmg-background.png` and its `@2x`, as the other Craft projects have:

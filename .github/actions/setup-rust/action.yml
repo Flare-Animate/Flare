@@ -1,0 +1,32 @@
+name: Set up Rust for Flare
+description: The pinned toolchain (rust-toolchain.toml), optional extra targets, the build cache and, on Linux, the system libraries the window, the sound card and the GPU need.
+inputs:
+  targets:
+    description: Space separated extra rustup targets
+    default: ''
+  linux-libs:
+    description: Install the Linux system libraries (true or false)
+    default: 'true'
+  cache-key:
+    description: Extra cache key, so jobs with different targets do not share a cache
+    default: ''
+runs:
+  using: composite
+  steps:
+    # The toolchain is pinned in rust-toolchain.toml; this installs exactly that.
+    - name: Install the pinned Rust toolchain
+      shell: bash
+      run: |
+        rustup toolchain install
+        if [ -n "${{ inputs.targets }}" ]; then rustup target add ${{ inputs.targets }}; fi
+    - name: System libraries
+      if: runner.os == 'Linux' && inputs.linux-libs == 'true'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          pkg-config libasound2-dev libfontconfig1-dev libwayland-dev libxkbcommon-dev \
+          libx11-dev libxcursor-dev libxi-dev libxrandr-dev libxcb1-dev
+    - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ inputs.cache-key }}
