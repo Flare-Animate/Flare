@@ -27,7 +27,7 @@ pub fn gamma_correct(buf: &mut [u8], gamma: f32) {
                 .clamp(0.0, 255.0) as u8
         })
         .collect();
-    for px in buf.chunks_exact_mut(4) {
+    for px in buf.as_chunks_mut::<4>().0 {
         for c in &mut px[..3] {
             *c = lut[*c as usize];
         }
@@ -37,7 +37,7 @@ pub fn gamma_correct(buf: &mut [u8], gamma: f32) {
 /// Levels: map `[black, white]` to `[0, 255]` on RGB in place (alpha untouched).
 pub fn levels(buf: &mut [u8], black: u8, white: u8) {
     let (b, w) = (black as f32, (white.max(black.saturating_add(1))) as f32);
-    for px in buf.chunks_exact_mut(4) {
+    for px in buf.as_chunks_mut::<4>().0 {
         for c in &mut px[..3] {
             *c = (((*c as f32 - b) / (w - b)) * 255.0)
                 .round()
