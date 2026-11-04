@@ -214,6 +214,28 @@ appear, docs/UI.md); the profiles place them, but the interface does not read pr
 | Plastic (mesh deformation) | Plastic | Planned panel; stub in `flare-tools` `not_yet` | P3 |
 | Tasks (batch render) | Tasks, BatchServers | Planned panel | P3 |
 | Script console | ScriptConsole | Flare has no scripts; the Debug menu stays dimmed | Not planned |
+## Stop motion
+
+Stop motion is a capture session that a camera fills frame by frame, with an onion skin for
+drawing against the previous frames. The domain is `flare-stopmotion` (`crates/editing`): the
+frame rate, the hold each frame gets, the onion skin, the ghost frames while drawing, and the
+export of the frames to a timeline as slots. It holds numbers, not pixels; the camera and the
+captured images are the caller's. The session is not saved in a project yet.
+
+Done: the session, frame list and holds with their bounds, onion skin with the ghost choice,
+timeline export, the `CameraSource` trait with `NoCamera`, which answers capture and live view
+with the named `NotYetImplemented` error, and the CLI and MCP commands that check settings and
+name that error. Tested in the crate, with the failure paths.
+
+Next, phased:
+1. Capture backends: a `CameraSource` for a webcam and one for a DSLR over its SDK, each in its
+   own adapter, with the encoded captures checked by `accept_capture`.
+2. Live view: a preview of the camera in the stage, with the onion skin drawn over it.
+3. Onion skin in the workspace: the ghost frames drawn in the editor, not only as numbers.
+4. Audio cues: the sound a frame capture plays, and a cue for the next frame, both optional.
+5. Export: the slots placed as keyframes on a layer, through the editing commands, and the
+   captured images stored in the document.
+
 Licence and reference: the old C++ code in `original/flare/sources/stopmotion` is the reference
 for behaviour. The `brick-a-brack/eagle-animation` project was looked at as a possible reference,
 but its licence could not be read in this session (the GitHub API refused the session and the raw
