@@ -36,4 +36,5 @@ pub fn start(layout: Option<String>, preferences: Option<String>) -> Result<Work
 }
 
 #[cfg(test)]
+#[path = "open_tests.rs"]
 mod open_tests;

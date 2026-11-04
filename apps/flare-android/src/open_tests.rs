@@ -7,7 +7,7 @@ use super::start;
 fn a_start_with_nothing_saved_still_opens_a_document() {
     let workspace = start(None, None).expect("a first run starts");
     assert!(
-        workspace.document().scenes().len() >= 1,
+        !workspace.document().scenes().is_empty(),
         "there is a document to show"
     );
 }
