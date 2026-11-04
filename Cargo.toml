@@ -65,6 +65,7 @@ license = "BSD-3-Clause"
 flare-core = { path = "crates/foundation/flare-core" }
 flare-document = { path = "crates/foundation/flare-document" }
 flare-eval = { path = "crates/foundation/flare-eval" }
+flare-tween = { path = "crates/foundation/flare-tween" }
 flare-text = { path = "crates/foundation/flare-text" }
 flare-audio = { path = "crates/foundation/flare-audio" }
 flare-i18n = { path = "crates/foundation/flare-i18n" }
