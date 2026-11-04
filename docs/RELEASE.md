@@ -86,6 +86,20 @@ and `ios.yml` an experimental unsigned `flare-ios-unsigned` archive (not an app 
 browser build. They are not attached to a GitHub release yet; download them from the run. See
 [ENGINEERING.md](ENGINEERING.md#continuous-integration).
 
+## Android signing secrets
+
+`android.yml` builds debug-signed APKs on every push and pull request (cargo-apk refuses `--release`
+without a keystore). Signed release APKs come from the `apk-release` job, run by hand or called from
+a release, and only when all four repository secrets exist; otherwise it skips with a notice.
+
+- `ANDROID_KEYSTORE_BASE64`: the keystore file, base64 encoded (`base64 -w0 release.jks`).
+- `ANDROID_KEYSTORE_PASSWORD`: the keystore password.
+- `ANDROID_KEY_ALIAS`: the key alias.
+- `ANDROID_KEY_PASSWORD`: the key password.
+
+cargo-apk reads the keystore path and password from the environment; the alias and key password are
+checked for presence so a half-configured set fails visibly rather than signing with the wrong key.
+
 ## Building locally
 
 macOS, from a release build (`cargo build --release -p flare-desktop`). The disk image has a plain background with an arrow from `Flare.app` to Applications, `assets/packaging/macos/dmg-background.png` and its `@2x`, as the other Craft projects have:
