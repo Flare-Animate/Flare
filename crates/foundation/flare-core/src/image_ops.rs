@@ -6,7 +6,11 @@
 pub struct BadBuffer;
 
 fn check(buf: &[u8], w: usize, h: usize) -> Result<(), BadBuffer> {
-    if buf.len() == w.checked_mul(h).and_then(|n| n.checked_mul(4)).ok_or(BadBuffer)? {
+    if buf.len()
+        == w.checked_mul(h)
+            .and_then(|n| n.checked_mul(4))
+            .ok_or(BadBuffer)?
+    {
         Ok(())
     } else {
         Err(BadBuffer)
@@ -17,9 +21,13 @@ fn check(buf: &[u8], w: usize, h: usize) -> Result<(), BadBuffer> {
 pub fn gamma_correct(buf: &mut [u8], gamma: f32) {
     let inv = 1.0 / gamma.max(f32::EPSILON);
     let lut: Vec<u8> = (0..256)
-        .map(|i| ((i as f32 / 255.0).powf(inv) * 255.0).round().clamp(0.0, 255.0) as u8)
+        .map(|i| {
+            ((i as f32 / 255.0).powf(inv) * 255.0)
+                .round()
+                .clamp(0.0, 255.0) as u8
+        })
         .collect();
-    for px in buf.chunks_exact_mut(4) {
+    for px in buf.as_chunks_mut::<4>().0 {
         for c in &mut px[..3] {
             *c = lut[*c as usize];
         }
@@ -29,9 +37,11 @@ pub fn gamma_correct(buf: &mut [u8], gamma: f32) {
 /// Levels: map `[black, white]` to `[0, 255]` on RGB in place (alpha untouched).
 pub fn levels(buf: &mut [u8], black: u8, white: u8) {
     let (b, w) = (black as f32, (white.max(black.saturating_add(1))) as f32);
-    for px in buf.chunks_exact_mut(4) {
+    for px in buf.as_chunks_mut::<4>().0 {
         for c in &mut px[..3] {
-            *c = (((*c as f32 - b) / (w - b)) * 255.0).round().clamp(0.0, 255.0) as u8;
+            *c = (((*c as f32 - b) / (w - b)) * 255.0)
+                .round()
+                .clamp(0.0, 255.0) as u8;
         }
     }
 }
@@ -93,6 +103,7 @@ pub fn box_blur(buf: &[u8], w: usize, h: usize, r: usize) -> Result<Vec<u8>, Bad
 }
 
 #[cfg(test)]
+#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -120,16 +131,16 @@ mod tests {
 
     #[test]
     fn dilate_then_erode() {
-        let d = dilate(&dot(), 5, 5, 1).unwrap();
+        let d = dilate(&dot(), 5, 5, 1).expect("dilate");
         let on = d.chunks(4).filter(|p| p[3] == 255).count();
         assert_eq!(on, 9);
-        let e = erode(&d, 5, 5, 1).unwrap();
+        let e = erode(&d, 5, 5, 1).expect("erode");
         assert_eq!(e.chunks(4).filter(|p| p[3] == 255).count(), 1);
     }
 
     #[test]
     fn blur_spreads_and_rejects_bad_len() {
-        let b = box_blur(&dot(), 5, 5, 1).unwrap();
+        let b = box_blur(&dot(), 5, 5, 1).expect("blur");
         assert_eq!(b[(2 * 5 + 1) * 4 + 3], 28);
         assert_eq!(box_blur(&[0; 3], 5, 5, 1), Err(BadBuffer));
     }

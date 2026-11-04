@@ -89,8 +89,10 @@ fn convert_goes_between_every_format_and_back() {
     assert_eq!(xfl["format"], "xfl");
     let stub = xfl["converted"].as_str().expect("path").to_owned();
     assert!(
-        stub.ends_with("c/sample.xfl") || stub.ends_with("c/c.xfl")
-            || stub.ends_with("c\\sample.xfl") || stub.ends_with("c\\c.xfl"),
+        stub.ends_with("c/sample.xfl")
+            || stub.ends_with("c/c.xfl")
+            || stub.ends_with("c\\sample.xfl")
+            || stub.ends_with("c\\c.xfl"),
         "{stub}"
     );
     let fla = json(&["convert", &stub, &at("d.fla")]);
