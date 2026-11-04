@@ -120,7 +120,10 @@ mod tests {
         assert_eq!(layout.parent(), prefs.parent(), "settings sit together");
         assert!(layout.ends_with("layout.json") && prefs.ends_with("preferences.json"));
         assert!(recovery.ends_with("recovery"));
-        let text = layout.to_string_lossy().to_lowercase();
+        // The platform's own convention, asked directly: the app-root test names a root for the
+        // whole process, so the files above may sit under that instead.
+        let Some(dirs) = project() else { return };
+        let text = dirs.config_dir().to_string_lossy().to_lowercase();
         assert!(text.contains("flare"), "{text}");
     }
 
