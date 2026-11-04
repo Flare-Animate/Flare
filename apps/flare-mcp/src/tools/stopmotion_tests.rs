@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use super::stopmotion::{StartStopMotion, capture_refusal, session_settings};
 
 fn args(fps: u32, hold: u32, before: u8, after: u8, opacity: u8) -> StartStopMotion {

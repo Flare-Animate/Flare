@@ -2048,6 +2048,7 @@ dependencies = [
  "flare-render",
  "flare-ruffle",
  "flare-runtime",
+ "flare-stopmotion",
  "flare-storage",
  "flare-text",
  "flare-tools",
@@ -2237,6 +2238,7 @@ dependencies = [
  "flare-publish",
  "flare-render",
  "flare-runtime",
+ "flare-stopmotion",
  "flare-storage",
  "flare-text",
  "flare-tools",
@@ -2394,6 +2396,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "flare-stopmotion"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "flare-storage"
 version = "0.1.0"
 dependencies = [
@@ -2448,6 +2457,14 @@ dependencies = [
  "glamx",
  "proptest",
  "serde",
+]
+
+[[package]]
+name = "flare-toonz"
+version = "0.1.0"
+dependencies = [
+ "quick-xml 0.42.0",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
