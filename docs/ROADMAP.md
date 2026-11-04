@@ -171,3 +171,20 @@ Each of these can be its own branch and PR:
 4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, and check what the importer keeps against files Animate wrote.
 5. Input and accessibility: pen, IME and screen-reader results.
 6. Packaging: app bundles and installers, once the icons are trimmed.
+
+## Tweening (`flare-tween`)
+
+Built, tested in the library: interpolation families and easing with their parameters, Bezier
+keyframe handles (Auto, AutoClamped, Vector, Aligned, Free) with solving, cubic-bezier evaluation by
+bisection, the extrapolation modes, a `Curve` over sorted keys with validation, and grease-pencil
+style in-betweens of stroke points (`interpolate_sequence`). Clean-room: see ARCHITECTURE.md.
+
+Next, in order:
+- A validated command (`SetKeyframeInterpolation`, which sets a key's segment shape, easing and
+  handle kind, one undo step each) and a `CreateInbetweens` command over two keyframes' strokes.
+- A `flare tween` command (`list` for the easings, `eval` for a curve) and a `flare-mcp` tool with
+  the same two calls, so the surfaces in SURFACES.md get their rows to yes.
+- The Motion Editor (the high-priority item above) draws each property's curve from `Curve` and edits
+  handles through the command.
+- Making the renderer use `flare-tween` for motion tweens in place of the Animate Ease in `flare-eval`,
+  once the document stores keys (today a span holds one ease value).

@@ -518,3 +518,23 @@ else it is drawn in the window. See [decisions/UI-STACK.md](decisions/UI-STACK.m
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
   menu have been built and launched but not exercised by hand; the menu's enabled-state and
   labelling logic is covered by tests, the AppKit integration is not.
+
+## Tweening (`flare-tween`)
+
+`flare-tween` (foundation) is the interpolation library: the interpolation families and easing
+(`Interpolation` x `Easing`, with `Params` for Back's overshoot and Elastic's amplitude and period),
+cubic-bezier keyframe handles (`HandleKind`: Auto, AutoClamped, Vector, Aligned, Free) solved by
+`Curve::new` and evaluated by bisection on the bezier's time coordinate, the extrapolation modes
+(`Extrapolation`: Constant, Linear, Cyclic, CyclicOffset), and `interpolate_sequence`, which makes the
+in-between of two stroke point lists (equal counts lerp; different counts are resampled by arc length
+to the larger count; `flip` reverses the second stroke). Every input is bounded (`MAX_KEYS`,
+`MAX_POINTS`, parameter limits) and refused with a typed `TweenError` rather than producing NaN or
+infinity.
+
+Provenance: clean-room. The code follows the feature descriptions and standard easing formulas. No
+Blender source was opened or copied. The behaviour the names promise is tested directly (exact
+endpoints, monotone families, handle continuity, extrapolation values, refusal of bad input).
+
+Not wired yet: no document command sets a key's interpolation or handles, and the CLI and MCP do
+not expose the library. The editor still uses the existing Animate-style Ease in `flare-eval`
+(`eased`). See the rows in [SURFACES.md](SURFACES.md) and the plan in [ROADMAP.md](ROADMAP.md).

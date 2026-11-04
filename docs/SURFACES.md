@@ -57,3 +57,4 @@ The first build (2026-11-04) is [`flare-android`](../apps/flare-android/README.m
 Each of those gaps is a debt: the next step for the phone is the Storage Access Framework
 picker, which turns most of the table's **no** into what the rest of the table already has.
 
+| Tween curves, easing and in-betweens of stroke points (`flare-tween`) | **no** | **no** | **no** | **no** | The library is built and tested (`crates/foundation/flare-tween`). Not yet reached from any surface: no command sets a key's interpolation or handles, no Motion Editor draws a curve, and the command line and MCP server do not evaluate a curve or list the easings. Each would call `flare_tween::{ease, Curve, interpolate_sequence}`. |
