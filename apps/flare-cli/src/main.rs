@@ -3,6 +3,7 @@
 
 mod commands;
 mod project;
+mod stopmotion;
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -225,6 +226,14 @@ fn main() -> Result<()> {
             },
         )?,
         Command::BreakText { path, shape } => project::break_text(&path, shape)?,
+        Command::StopMotionNew {
+            fps,
+            hold,
+            onion_before,
+            onion_after,
+            onion_opacity,
+        } => stopmotion::new_session(fps, hold, onion_before, onion_after, onion_opacity)?,
+        Command::StopMotionCapture => stopmotion::capture()?,
         Command::Fonts { font_files } => project::font_families(&font_files)?,
         Command::Export {
             path,

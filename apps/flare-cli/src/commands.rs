@@ -17,6 +17,26 @@ pub(crate) enum Command {
         #[arg(long, default_value_t = 0)]
         frame: u64,
     },
+    /// Validate a stop-motion session's rate, hold and onion skin and print its settings. Sessions
+    /// are not saved in a project yet, so this writes no file.
+    StopMotionNew {
+        #[arg(long, default_value_t = 12)]
+        fps: u32,
+        /// Timeline frames each captured frame is held for.
+        #[arg(long, default_value_t = 1)]
+        hold: u32,
+        /// Earlier frames shown as ghosts, 0 to 5.
+        #[arg(long, default_value_t = 0)]
+        onion_before: u8,
+        /// Later frames shown as ghosts, 0 to 5.
+        #[arg(long, default_value_t = 0)]
+        onion_after: u8,
+        /// Ghost opacity in percent, 0 to 100.
+        #[arg(long, default_value_t = 50)]
+        onion_opacity: u8,
+    },
+    /// Capture a frame from a camera. Not built yet: fails with the named error.
+    StopMotionCapture,
     /// Create an empty project with one scene and one layer.
     New {
         path: PathBuf,

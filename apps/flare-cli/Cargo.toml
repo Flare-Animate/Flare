@@ -29,6 +29,7 @@ flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
 flare-tools.workspace = true
+flare-stopmotion.workspace = true
 glamx.workspace = true
 uuid.workspace = true
 clap.workspace = true

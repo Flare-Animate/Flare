@@ -5,6 +5,9 @@ mod draw;
 mod export;
 mod history;
 mod read;
+mod stopmotion;
+#[cfg(test)]
+mod stopmotion_tests;
 mod text;
 mod timeline;
 
@@ -21,5 +24,6 @@ impl FlareServer {
             + Self::text_tools()
             + Self::timeline_tools()
             + Self::history_tools()
+            + Self::stopmotion_tools()
     }
 }
