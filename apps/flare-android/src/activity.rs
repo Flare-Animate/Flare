@@ -29,13 +29,12 @@ fn start(app: AndroidApp) -> anyhow::Result<()> {
     if let Some(data) = app.internal_data_path() {
         dirs::set_app_root(PathBuf::from(data));
     }
-    let saved = |name: &str| {
+    let saved = |name: &str, limit: usize| {
         app.internal_data_path()
-            .map(|root| PathBuf::from(root).join(name))
-            .and_then(|path| dirs::read_layout(&path, MAX_LAYOUT_BYTES))
+            .and_then(|root| dirs::read_saved(&PathBuf::from(root), name, limit))
     };
-    let layout = saved("layout.json");
-    let preferences = saved("preferences.json");
+    let layout = saved("layout.json", MAX_LAYOUT_BYTES);
+    let preferences = saved("preferences.json", MAX_PREFERENCES_BYTES);
     // One workspace, like a plain desktop launch: the project named by the launcher (there is
     // none) and the work recovered from the last run (the shell offers it, not this start).
     flare_shell::ui::run_on_activity(crate::open::start(layout, preferences)?, app)

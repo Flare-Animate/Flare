@@ -75,6 +75,13 @@ pub fn read_layout(path: &Path, max_bytes: usize) -> Option<String> {
     Some(text)
 }
 
+/// Reads the saved file `name` under `root` with that file's own limit: the layout and the
+/// preferences have different ones, and a caller passing the wrong one lets a file through the
+/// read that its owner then refuses (or cuts one short).
+pub fn read_saved(root: &Path, name: &str, max_bytes: usize) -> Option<String> {
+    read_layout(&root.join(name), max_bytes)
+}
+
 /// Writes the layout through a temporary file and a rename, so a crash mid-write cannot
 /// leave a truncated layout behind.
 pub fn write_layout(path: &Path, json: &str) -> std::io::Result<()> {
@@ -103,6 +110,22 @@ mod tests {
     // The app root is a process-wide setting: these tests take this lock and so never see a
     // half-set world from each other.
     static GUARD: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn each_saved_file_is_read_to_its_own_limit() {
+        let dir = tempfile::tempdir().expect("dir");
+        std::fs::write(dir.path().join("preferences.json"), "x".repeat(100)).expect("write");
+        // One byte past the limit is what lets the owner of the limit see it is too long.
+        assert_eq!(
+            read_saved(dir.path(), "preferences.json", 10).map(|t| t.len()),
+            Some(11)
+        );
+        assert_eq!(
+            read_saved(dir.path(), "preferences.json", 1000).map(|t| t.len()),
+            Some(100)
+        );
+        assert_eq!(read_saved(dir.path(), "missing.json", 10), None);
+    }
 
     #[test]
     fn settings_and_recovery_files_have_places_of_their_own_under_flare() {
