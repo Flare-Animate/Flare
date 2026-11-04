@@ -50,6 +50,16 @@
                 <string>fla</string>
                 <string>xfl</string>
                 <string>swf</string>
+                <string>fcp</string>
+                <string>ppm</string>
+                <string>kwz</string>
+                <string>tnz</string>
+                <string>tlv</string>
+                <string>pli</string>
+                <string>tzu</string>
+                <string>moho</string>
+                <string>mh</string>
+                <string>mohobackup</string>
             </array>
             <key>CFBundleTypeIconFile</key>
             <string>flare-icon.icns</string>
