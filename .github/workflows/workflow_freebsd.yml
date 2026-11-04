@@ -40,14 +40,15 @@ jobs:
         with:
           lfs: false
           submodules: false
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Build Rust on FreeBSD
-        uses: vmactions/freebsd-vm@v1
+        uses: vmactions/freebsd-vm@v1.1.1
         with:
           usesh: true
           prepare: |
-            pkg install -y rust cargo
+            pkg update -f
+            pkg install -y rust
           run: |
             cd $GITHUB_WORKSPACE
             cargo build --manifest-path flare/sources/Cargo.toml 2>&1 || echo "Build attempted"
