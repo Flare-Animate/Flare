@@ -78,6 +78,24 @@ pub fn erode(buf: &[u8], w: usize, h: usize, r: usize) -> Result<Vec<u8>, BadBuf
     morph(buf, w, h, r, false)
 }
 
+/// Morphological antialias (ported from OpenToonz tantialias). Stub: returns a copy.
+pub fn antialias(buf: &[u8], w: usize, h: usize) -> Result<Vec<u8>, BadBuffer> {
+    check(buf, w, h)?;
+    Ok(buf.to_vec())
+}
+
+/// Despeckle (ported from OpenToonz tdespeckle). Stub: returns a copy.
+pub fn despeckle(buf: &[u8], w: usize, h: usize) -> Result<Vec<u8>, BadBuffer> {
+    check(buf, w, h)?;
+    Ok(buf.to_vec())
+}
+
+/// Distance transform (ported from OpenToonz tdistancetransform). Stub: returns a copy.
+pub fn distance_transform(buf: &[u8], w: usize, h: usize) -> Result<Vec<u8>, BadBuffer> {
+    check(buf, w, h)?;
+    Ok(buf.to_vec())
+}
+
 /// Box blur with radius `r` (edge pixels clamp to the in-bounds window).
 pub fn box_blur(buf: &[u8], w: usize, h: usize, r: usize) -> Result<Vec<u8>, BadBuffer> {
     check(buf, w, h)?;
