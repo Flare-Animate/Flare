@@ -28,7 +28,21 @@ struct Arguments {
     command: Command,
 }
 
+/// Windows gives the main thread 1 MiB (Linux 8 MiB); the command tree and the
+/// export paths overflow it, so the work runs on a thread with a known stack.
+const STACK_BYTES: usize = 16 * 1024 * 1024;
+
 fn main() -> Result<()> {
+    std::thread::Builder::new()
+        .name("flare-cli".into())
+        .stack_size(STACK_BYTES)
+        .spawn(run)
+        .context("cannot start the worker thread")?
+        .join()
+        .map_err(|_| anyhow::anyhow!("the command panicked"))?
+}
+
+fn run() -> Result<()> {
     let arguments = Arguments::parse();
     let output = match arguments.command {
         Command::Inspect { path } => {
