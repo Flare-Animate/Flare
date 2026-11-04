@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "id": "opentoonz-classic",
+  "title": "OpenToonz Classic",
+  "shortcut_set": "opentoonz",
+  "theme": "dark",
+  "toolbars": [
+    {
+      "id": "tools",
+      "visible": true
+    },
+    {
+      "id": "top-bar",
+      "visible": true
+    },
+    {
+      "id": "playback",
+      "visible": true
+    }
+  ],
+  "rooms": [
+    {
+      "id": "xsheet",
+      "title": "Xsheet",
+      "layout": {
+        "kind": "split",
+        "axis": "vertical",
+        "first_fraction": 0.5,
+        "first": {
+          "kind": "split",
+          "axis": "horizontal",
+          "first_fraction": 0.5,
+          "first": {
+            "kind": "stack",
+            "panels": [
+              "tools"
+            ],
+            "active": 0
+          },
+          "second": {
+            "kind": "stack",
+            "panels": [
+              "tool_options"
+            ],
+            "active": 0
+          }
+        },
+        "second": {
+          "kind": "split",
+          "axis": "horizontal",
+          "first_fraction": 0.25,
+          "first": {
+            "kind": "stack",
+            "panels": [
+              "xsheet"
+            ],
+            "active": 0
+          },
+          "second": {
+            "kind": "split",
+            "axis": "horizontal",
+            "first_fraction": 0.3333,
+            "first": {
+              "kind": "stack",
+              "panels": [
+                "timeline"
+              ],
+              "active": 0
+            },
+            "second": {
+              "kind": "split",
+              "axis": "horizontal",
+              "first_fraction": 0.5,
+              "first": {
+                "kind": "stack",
+                "panels": [
+                  "level_strip",
+                  "scene_cast",
+                  "browser"
+                ],
+                "active": 0
+              },
+              "second": {
+                "kind": "stack",
+                "panels": [
+                  "output"
+                ],
+                "active": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "drawing",
+      "title": "Drawing",
+      "layout": {
+        "kind": "split",
+        "axis": "horizontal",
+        "first_fraction": 0.3333,
+        "first": {
+          "kind": "stack",
+          "panels": [
+            "tools"
+          ],
+          "active": 0
+        },
+        "second": {
+          "kind": "split",
+          "axis": "horizontal",
+          "first_fraction": 0.5,
+          "first": {
+            "kind": "stack",
+            "panels": [
+              "level_palette",
+              "style_editor"
+            ],
+            "active": 0
+          },
+          "second": {
+            "kind": "stack",
+            "panels": [
+              "color",
+              "properties",
+              "library"
+            ],
+            "active": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "effects",
+      "title": "Effects",
+      "layout": {
+        "kind": "split",
+        "axis": "horizontal",
+        "first_fraction": 0.3333,
+        "first": {
+          "kind": "stack",
+          "panels": [
+            "schematic",
+            "function_editor"
+          ],
+          "active": 0
+        },
+        "second": {
+          "kind": "split",
+          "axis": "horizontal",
+          "first_fraction": 0.5,
+          "first": {
+            "kind": "stack",
+            "panels": [
+              "fx_browser",
+              "fx_settings",
+              "motion_path"
+            ],
+            "active": 0
+          },
+          "second": {
+            "kind": "stack",
+            "panels": [
+              "align",
+              "transform",
+              "history",
+              "info",
+              "library",
+              "properties"
+            ],
+            "active": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "cleanup",
+      "title": "Cleanup",
+      "layout": {
+        "kind": "split",
+        "axis": "horizontal",
+        "first_fraction": 0.3333,
+        "first": {
+          "kind": "stack",
+          "panels": [
+            "cleanup",
+            "cleanup_settings"
+          ],
+          "active": 0
+        },
+        "second": {
+          "kind": "split",
+          "axis": "horizontal",
+          "first_fraction": 0.5,
+          "first": {
+            "kind": "stack",
+            "panels": [
+              "scan",
+              "plastic"
+            ],
+            "active": 0
+          },
+          "second": {
+            "kind": "stack",
+            "panels": [
+              "script_console",
+              "tasks",
+              "output"
+            ],
+            "active": 0
+          }
+        }
+      }
+    }
+  ],
+  "default_room": 0
+}
