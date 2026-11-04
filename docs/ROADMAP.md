@@ -289,3 +289,21 @@ not checked (no GitHub access in that session), so nothing was borrowed from the
 - Phase 5, round trip: write a Moho project back, or export to BVH and XFL, and read it again unchanged.
 - Gaps: pre-11 `.anme` is refused by name; audio reference keys are unverified against real projects;
   rendering is out of scope.
+
+## Reference backlog
+
+What the absorbed and upstream projects have that `main` lacks, checked against `origin/main` on
+2026-11-04. The evidence, licences and work packages are in [BACKLOG.md](BACKLOG.md); this is the
+summary. Nothing here is scheduled. The maintainer orders it.
+
+- Small: editable keyboard shortcuts and shortcut sets (WP-1).
+- Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3),
+  exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers and stroke styles
+  (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).
+- Large: SVG, Photoshop and image import (WP-4), filters and effects (WP-8; the EffectCraft
+  dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check).
+- Extra-large, decision first: bones and inverse kinematics (WP-9), scripting (WP-12).
+- Licences decide what can be ported: AnimationCraft and ArtCraft are MIT or Apache-2.0; OpenToonz
+  and Tahoma2D are BSD-3-Clause; nflare and the FFDec worker in Next2Flash are GPLv3 (behaviour
+  only); minnamate has no licence file (behaviour only).
+- Replicraft was not found. The maintainer gives the URL.
