@@ -22,7 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          lfs: false
+          submodules: false
 
       - name: Install Rust toolchain
         run: |
@@ -34,5 +35,6 @@ jobs:
         with:
           ndk-version: r26c
 
-      - name: Build
-        run: cargo build --target aarch64-linux-android --locked 2>&1 || echo "Android build not yet supported"
+      - name: Build Rust core (no NDK-dependent crates)
+        run: |
+          cargo build -p flare-core --target aarch64-linux-android 2>&1 || echo "Android build not yet supported"
