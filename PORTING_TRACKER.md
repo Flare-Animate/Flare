@@ -127,3 +127,9 @@ into the new crate architecture.
 - Stop motion: original/flare/sources/stopmotion/stopmotion.cpp
 - Scan cleanup: original/flare/sources/tcleanupper/tcleanupper.cpp
 - Render farm: original/flare/sources/flarefarm/tfarm/tfarmtask.cpp
+
+## Android (from original/flare/android)
+- Original uses Qt for Android (Gradle + Qt activity)
+- New approach: Rust Android with winit/egui (like flare-web but for mobile)
+- Needs: NDK, touch input, mobile UI adaptations
+- Status: NOT STARTED - workflow_android.yml exists (experimental)
