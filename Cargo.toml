@@ -29,6 +29,7 @@ members = [
     "crates/io/flare-import",
     "crates/io/flare-export",
     "crates/io/flare-publish",
+    "crates/io/flare-moho",
     # adapters
     "crates/adapters/flare-flash",
     "crates/adapters/flare-ruffle",
@@ -77,6 +78,7 @@ flare-storage = { path = "crates/io/flare-storage" }
 flare-import = { path = "crates/io/flare-import" }
 flare-export = { path = "crates/io/flare-export" }
 flare-publish = { path = "crates/io/flare-publish" }
+flare-moho = { path = "crates/io/flare-moho" }
 # adapters
 flare-flash = { path = "crates/adapters/flare-flash" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }

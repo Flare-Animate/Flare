@@ -21,6 +21,7 @@ flare-export.workspace = true
 flare-publish.workspace = true
 flare-ruffle.workspace = true
 flare-import.workspace = true
+flare-moho.workspace = true
 flare-eval.workspace = true
 flare-runtime.workspace = true
 flare-video.workspace = true

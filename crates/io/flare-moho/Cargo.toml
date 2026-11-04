@@ -1,0 +1,15 @@
+[package]
+name = "flare-moho"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+serde_json.workspace = true
+thiserror.workspace = true
+zip = { workspace = true, features = ["deflate"] }
+
+[lints]
+workspace = true

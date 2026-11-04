@@ -9,6 +9,15 @@ use super::*;
 /// Imports an XFL directory, `.xfl` file or zipped `.fla` into a new project file and
 /// reports everything that could not be carried over.
 pub fn import(source: &Path, out: &Path) -> Result<Value> {
+    if flare_moho::is_moho_path(source) {
+        // The Moho reader parses the project; turning it into a document is not built yet, so the
+        // error names that gap rather than pretending the file was imported.
+        let project = flare_moho::read_file(source)
+            .with_context(|| format!("cannot read {}", source.display()))?;
+        flare_moho::to_flare_document(&project)
+            .with_context(|| format!("cannot import {}", source.display()))?;
+        bail!("{} was read but no document was made", source.display());
+    }
     if out.exists() {
         bail!("{} already exists", out.display());
     }

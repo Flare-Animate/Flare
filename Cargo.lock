@@ -2043,6 +2043,7 @@ dependencies = [
  "flare-flash",
  "flare-history",
  "flare-import",
+ "flare-moho",
  "flare-publish",
  "flare-render",
  "flare-ruffle",
@@ -2232,6 +2233,7 @@ dependencies = [
  "flare-export",
  "flare-history",
  "flare-import",
+ "flare-moho",
  "flare-publish",
  "flare-render",
  "flare-runtime",
@@ -2256,6 +2258,15 @@ version = "0.1.0"
 dependencies = [
  "flare-i18n",
  "flare-ui",
+]
+
+[[package]]
+name = "flare-moho"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "thiserror 2.0.18",
+ "zip",
 ]
 
 [[package]]
@@ -2437,6 +2448,14 @@ dependencies = [
  "glamx",
  "proptest",
  "serde",
+]
+
+[[package]]
+name = "flare-tween"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
