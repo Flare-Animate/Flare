@@ -244,32 +244,29 @@ licence allows, its use is recorded here with the source, licence and changes.
 
 ## Toonz import (`flare-toonz`, io layer)
 
-Reads OpenToonz-lineage (Toonz Harlequin) files. Today: a typed reader and header sniffing, tested
-with synthetic fixtures only. Not on any surface yet (see docs/SURFACES.md).
+Reads OpenToonz-lineage (Toonz Harlequin) files and converts scenes and vector levels to Flare
+documents. Tested with synthetic fixtures built byte by byte in the tests; no real `.tnz`, `.pli`
+or `.tlv` was available, so field names are taken from the OpenToonz source (BSD-3-Clause,
+attribution in docs/ENGINEERING.md) and not yet checked against user files.
 
-- [x] Phase 1, scene XML (`.tnz`): bounded XML tree, frame rate of the main output, camera count,
-  level declarations, level and palette columns with cell runs (row, count, level, frame, step),
-  sound columns, unknown columns kept by tag, reference and row-order checks, limits.
-- [x] Phase 2, palette XML (`.tpl`, `.plt`): version, style count, style pages and their indices.
-  Colours are not decoded.
-- [x] Phase 3, sniffing: `.pli` (magic `PLIM`, or `MILP` from the big-endian writer) and `.tlv`
-  (`TLV10`, `TLV11`, `TLV12`). Decoding returns NotYetImplemented.
-- [ ] Phase 3b, vector `.pli` decoding: strokes, regions, styles.
-- [ ] Phase 4, raster `.tlv` decoding: pixel data per format version.
+- [x] Phase 1, scene XML (`.tnz`): bounded XML tree, frame rate, camera count, camera resolution
+  and size, level declarations, level, palette and sound columns with cell runs, limits.
+- [x] Phase 2, palette XML (`.tpl`, `.plt`): styles in file order with real colours (solid colour
+  styles, tag id 3; other style kinds keep their id and no colour), pages and indices.
+- [x] Phase 3, sniffing: `.pli` (`PLIM`/`MILP`) and `.tlv` (`TLV10`..`TLV12`).
+- [x] Phase 3b, vector `.pli` decoding (version 5.7 and later): thick quadratic chains, groups,
+  colour tags, precision scale, palette style tags. Filled regions are counted, not decoded.
+- [ ] Phase 4, raster `.tlv` decoding (LZO-compressed tiles and the icon and frame tables).
+  Returns NotYetImplemented; a scene with raster levels converts with empty cells and a named note.
 - [ ] Phase 5, fx schematics: fx nodes and their ports in the scene.
-- [ ] Phase 6, conversion into the Flare document through validated command batches. Not started;
-  it returns NotYetImplemented until levels can be decoded.
+- [x] Phase 6, conversion: frame rate, camera resolution as the stage, a layer per level column
+  (last column on top), a symbol per drawing with strokes grouped by style, drawn as cubic paths at
+  the mean thickness. Sound columns and raster levels are named as unsupported. Level files are
+  found beside the scene (`+drawings/X` in the scene's folder or its parent); paths that climb out
+  are never read. One stage inch is taken as 53.33 level units.
 - [ ] Phase 7, write-back and export to `.tnz`.
-- [ ] Surfaces: `flare import-toonz` and an MCP tool that return the parse summary.
-
-Gaps to close before the field names are trusted: the scene reader assumes level declarations carry
-an `id`, a `name`, a `type` and a `path` child, and that cells name levels by that id. Camera
-resolution is not read yet. Both were taken from the old Flare C++ (`original/flare/sources/flarelib`:
-`txshlevelcolumn.cpp`, `levelset.cpp`, `txsheet.cpp`, `txshsoundcolumn.cpp`, `sceneproperties.cpp`;
-`common/tvrender/tpalette.cpp`; `image/pli/pli_io.cpp`; `image/tzl/tiio_tzl.cpp`). The upstream
-OpenToonz source was not consulted (its repository was not reachable from this session), so no
-upstream code is ported and no upstream licence applies yet. A real `.tnz` from a user is the test
-that these names are right.
+- [x] Surfaces: `flare import` and MCP `import_project` take `.tnz` and `.pli`; the desktop and
+  browser open them.
 
 ## Moho projects (`flare-moho`)
 

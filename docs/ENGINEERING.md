@@ -121,3 +121,18 @@ Small conventional commits: `feat(scope)`, `fix(scope)`, `refactor(scope)`, `tes
 `docs(scope)`, `build(scope)`, `perf(scope)`, `chore(scope)`. One coherent concern per
 commit, with compatibility or provenance notes in the body when relevant. Never commit
 credentials or proprietary reference projects.
+
+## Third-party format references used
+
+- OpenToonz (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. and contributors; LICENSE.txt in
+  https://github.com/opentoonz/opentoonz): the PLI tag layout, dynamic-width integers, thick
+  quadratic chain decoding and the style/colour tags in `crates/io/flare-toonz/src/pli.rs` are
+  ported from `toonz/sources/image/pli/pli_io.cpp` and `tiio_pli.cpp`; the palette style text of
+  `.tpl` files follows `common/tvrender/tcolorstyles.cpp`. The BSD notice is: redistributions of
+  source keep the copyright notice, the conditions and the disclaimer; the names of the
+  contributors are not used to endorse derived products. Tahoma2D carries the same licence and
+  was only compared.
+- jpdurigan/godot_moho_importer (MIT, Copyright (c) 2022 Joao Pedro Durigan): the Moho mesh
+  layout (`mesh.points`, `mesh.curves`) and the `anim_pos`, `anim_angle`, `anim_scale` track names
+  used by `crates/io/flare-moho`.
+- SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.

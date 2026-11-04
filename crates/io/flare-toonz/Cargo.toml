@@ -7,6 +7,9 @@ publish.workspace = true
 license.workspace = true
 
 [dependencies]
+flare-commands.workspace = true
+flare-core.workspace = true
+flare-document.workspace = true
 quick-xml.workspace = true
 thiserror.workspace = true
 

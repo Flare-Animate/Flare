@@ -19,6 +19,9 @@ pub enum ToonzError {
         format: &'static str,
         what: &'static str,
     },
+    /// The converted scene would not make a valid Flare document.
+    #[error("the scene cannot become a Flare document: {0}")]
+    Document(String),
     /// The XML itself is broken (unbalanced tags, bad syntax).
     #[error("invalid XML: {0}")]
     Xml(#[from] quick_xml::Error),

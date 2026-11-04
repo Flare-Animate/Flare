@@ -25,3 +25,5 @@ pub const MAX_FRAME_NUMBER: u32 = 1_000_000;
 pub const MAX_PALETTE_ITEMS: usize = 1_000_000;
 /// Highest frame rate accepted.
 pub const MAX_FPS: f64 = 1000.0;
+/// Most tags read from one PLI file.
+pub const MAX_PLI_TAGS: usize = 4_000_000;

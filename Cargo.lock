@@ -2484,6 +2484,9 @@ dependencies = [
 name = "flare-toonz"
 version = "0.1.0"
 dependencies = [
+ "flare-commands",
+ "flare-core",
+ "flare-document",
  "quick-xml 0.42.0",
  "thiserror 2.0.18",
 ]

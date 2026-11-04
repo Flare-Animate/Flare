@@ -48,3 +48,54 @@ fn broken_files_are_refused_by_name() {
     let err = import_foreign_bytes(Path::new("x.bvh"), vec![0xff, 0xfe]).expect_err("refused");
     assert!(matches!(err, ImportError::Foreign(_)));
 }
+
+/// A version 6.6 level with no frames: the header and the end tag.
+fn empty_pli() -> Vec<u8> {
+    let mut f = b"PLIM".to_vec();
+    f.extend([6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0]);
+    f
+}
+
+const TNZ: &str = r#"<tnz version="71.0"><properties><outputs><output name="main"><fps>24</fps></output></outputs></properties>
+<levelSet><levels><level id="1" name="A" type="vector"><path>+drawings/A.pli</path></level>
+<level id="2" name="Evil" type="vector"><path>+../../secret.pli</path></level></levels></levelSet>
+<xsheet><columns><levelColumn><cells><cell>0 1 1 1 0</cell></cells></levelColumn>
+<levelColumn><cells><cell>0 1 2 1 0</cell></cells></levelColumn></columns></xsheet></tnz>"#;
+
+#[test]
+fn a_scene_finds_its_levels_beside_it_and_never_outside() {
+    let dir = tempfile::tempdir().expect("dir");
+    std::fs::create_dir(dir.path().join("drawings")).expect("mkdir");
+    std::fs::write(dir.path().join("drawings/A.pli"), empty_pli()).expect("write");
+    std::fs::write(dir.path().join("secret.pli"), empty_pli()).expect("write");
+    let scene = dir.path().join("s.tnz");
+    std::fs::write(&scene, TNZ).expect("write");
+    let out = import_path(&scene).expect("imports");
+    assert_eq!(out.document.scenes()[0].timeline().layers().len(), 2);
+    assert!(
+        out.diagnostics.iter().all(|d| d.location != "A"),
+        "{:?}",
+        out.diagnostics
+    );
+    assert!(
+        out.diagnostics
+            .iter()
+            .any(|d| d.location == "Evil" && d.message.contains("not found"))
+    );
+}
+
+#[test]
+fn a_bare_level_palette_and_raster_are_handled_by_name() {
+    let out = import_foreign_bytes(Path::new("x.pli"), empty_pli()).expect("imports");
+    assert_eq!(out.document.scenes().len(), 1);
+    let err = import_foreign_bytes(Path::new("x.tpl"), b"<palette><styles/></palette>".to_vec())
+        .expect_err("refused");
+    assert!(
+        err.to_string().contains("palette is not a project"),
+        "{err}"
+    );
+    let err =
+        import_foreign_bytes(Path::new("x.tlv"), b"TLV12\0\0\0".to_vec()).expect_err("refused");
+    assert!(err.to_string().contains("tlv"), "{err}");
+    assert!(import_foreign_bytes(Path::new("x.tnz"), b"<nope/>".to_vec()).is_err());
+}

@@ -26,6 +26,8 @@ pub fn parse_scene(input: &str) -> Result<Scene, ToonzError> {
         generator: root.child("generator").map(|n| n.text.clone()),
         frame_rate: None,
         camera_count: 0,
+        camera_res: None,
+        camera_size: None,
         levels: Vec::new(),
         columns: Vec::new(),
     };
@@ -34,6 +36,24 @@ pub fn parse_scene(input: &str) -> Result<Scene, ToonzError> {
         scene.camera_count = properties
             .child("cameras")
             .map_or(0, |cameras| cameras.children_named("camera").count());
+        scene.camera_res = properties
+            .child("cameras")
+            .and_then(|c| c.children_named("camera").next())
+            .and_then(|c| c.child("cameraRes"))
+            .and_then(|r| {
+                let mut parts = r.text.split_whitespace().map(|v| v.parse::<u32>().ok());
+                Some((parts.next()??, parts.next()??))
+            })
+            .filter(|(w, h)| *w > 0 && *h > 0);
+        scene.camera_size = properties
+            .child("cameras")
+            .and_then(|c| c.children_named("camera").next())
+            .and_then(|c| c.child("cameraSize"))
+            .and_then(|r| {
+                let mut parts = r.text.split_whitespace().map(|v| v.parse::<f64>().ok());
+                Some((parts.next()??, parts.next()??))
+            })
+            .filter(|(w, h)| w.is_finite() && h.is_finite() && *w > 0.0 && *h > 0.0);
     }
     if let Some(level_set) = root.child("levelSet") {
         collect_levels(level_set, &mut scene.levels)?;

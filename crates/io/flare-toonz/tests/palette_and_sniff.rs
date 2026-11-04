@@ -74,10 +74,10 @@ fn sniffs_tlv_versions() {
 }
 
 #[test]
-fn pli_and_tlv_decoding_is_not_yet_implemented_but_refuses_other_files() {
+fn tlv_decoding_is_not_yet_implemented_and_pli_refuses_a_truncated_file() {
     assert!(matches!(
-        decode_pli(b"PLIM\x00"),
-        Err(ToonzError::NotYetImplemented { format: "pli", .. })
+        decode_pli(b"PLIM\x06"),
+        Err(ToonzError::Malformed { file: "pli", .. })
     ));
     assert!(matches!(
         decode_tlv(b"TLV12\0"),

@@ -7,6 +7,10 @@ pub struct Scene {
     /// Frame rate of the main output (`properties/outputs/output/fps`).
     pub frame_rate: Option<f64>,
     pub camera_count: usize,
+    /// Pixel size of the first camera (`cameraRes`), when the scene has one.
+    pub camera_res: Option<(u32, u32)>,
+    /// Size of the first camera in inches (`cameraSize`).
+    pub camera_size: Option<(f64, f64)>,
     /// Every level declared in the level set, in file order.
     pub levels: Vec<LevelDecl>,
     /// Xsheet columns, in file order.
