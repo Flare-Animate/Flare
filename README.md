@@ -40,6 +40,8 @@ Rust is pinned in `rust-toolchain.toml`. Ruffle is a git submodule, so clone wit
 
 On Linux install the libraries listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+[docs/BUILDING.md](docs/BUILDING.md) has the steps for each platform: Linux, Windows, macOS, the browser build and Android.
+
 ### Command line
 
     flare new project.flare --width 1280 --height 720

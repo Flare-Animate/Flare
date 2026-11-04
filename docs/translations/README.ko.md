@@ -40,6 +40,8 @@ Rust는 `rust-toolchain.toml`에 고정되어 있습니다. Ruffle은 git 서브
 
 Linux에서는 [CONTRIBUTING.md](../../CONTRIBUTING.md)에 나열된 라이브러리를 설치하세요.
 
+[docs/BUILDING.md](../BUILDING.md)에 Linux, Windows, macOS, 브라우저 빌드, Android별 빌드 방법이 있습니다.
+
 ### 명령줄
 
     flare new project.flare --width 1280 --height 720

@@ -40,6 +40,8 @@ Rust ist in `rust-toolchain.toml` festgelegt. Ruffle ist ein Git-Submodul, also 
 
 Unter Linux die in [CONTRIBUTING.md](../../CONTRIBUTING.md) aufgeführten Bibliotheken installieren.
 
+[docs/BUILDING.md](../BUILDING.md) beschreibt die Schritte für jede Plattform: Linux, Windows, macOS, den Browser-Build und Android.
+
 ### Kommandozeile
 
     flare new project.flare --width 1280 --height 720

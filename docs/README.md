@@ -7,6 +7,7 @@ Flash workspaces and OpenToonz-inspired features follow once the core workflow i
 - [ENGINEERING.md](ENGINEERING.md): toolchain, conventions, verification, reference code policy
 - [UI.md](UI.md): the interface, its icons, and how planned features are shown before they exist
 - [PERFORMANCE.md](PERFORMANCE.md): how the editor stays responsive, measurements, and the rules new work follows
+- [BUILDING.md](BUILDING.md): how to build and run on each platform, with the toolchain and submodule
 - [WEB.md](WEB.md): the browser build, what it shares with the desktop and what is missing
 - [TESTING.md](TESTING.md): what is tested, how, and in CI
 - [RELEASE.md](RELEASE.md): release checklist, packaging, the manual smoke test

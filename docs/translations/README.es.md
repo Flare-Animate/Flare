@@ -40,6 +40,8 @@ Rust está fijado en `rust-toolchain.toml`. Ruffle es un submódulo de git, así
 
 En Linux instale las bibliotecas indicadas en [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
+[docs/BUILDING.md](../BUILDING.md) explica los pasos para cada plataforma: Linux, Windows, macOS, la versión para navegador y Android.
+
 ### Línea de comandos
 
     flare new project.flare --width 1280 --height 720
