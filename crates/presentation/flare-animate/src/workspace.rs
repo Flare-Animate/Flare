@@ -126,6 +126,10 @@ pub struct Workspace {
     frames_rendered: u64,
     drag: Option<Drag>,
     anchor_drag: Option<anchors::AnchorDrag>,
+    /// A bone being drawn, or an armature being posed.
+    bone_drag: Option<tools::bone::BoneDrag>,
+    /// The joint the Bone or Selection tool last touched, which Properties edits.
+    bone_joint: Option<flare_tools::bones::JointRef>,
     /// The point of a shape the Subselection tool has chosen, with the revision of the document it
     /// was chosen in: Delete takes it out, unless the document has changed since.
     selected_anchor: Option<(SpanRef, usize, u64)>,
@@ -305,6 +309,8 @@ impl Workspace {
             frames_rendered: 0,
             drag: None,
             anchor_drag: None,
+            bone_drag: None,
+            bone_joint: None,
             selected_anchor: None,
             drag_cancelled: false,
             tool: Tool::Rectangle,

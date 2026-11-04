@@ -53,7 +53,7 @@ fn depth_bases(timeline: &Timeline) -> Result<Vec<u32>, PublishError> {
         let slots = layer
             .spans()
             .iter()
-            .map(flare_document::FrameSpan::element_count)
+            .map(flare_document::FrameSpan::item_count)
             .max()
             .unwrap_or(1);
         let slots = u32::try_from(slots).unwrap_or(u32::MAX);
@@ -121,7 +121,7 @@ impl<'d> Builder<'d> {
             let slots = timeline.layers()[item.layer]
                 .spans()
                 .iter()
-                .map(flare_document::FrameSpan::element_count)
+                .map(flare_document::FrameSpan::item_count)
                 .max()
                 .unwrap_or(1);
             let slots = u32::try_from(slots).unwrap_or(u32::MAX);

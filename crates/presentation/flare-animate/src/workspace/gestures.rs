@@ -32,6 +32,7 @@ impl Workspace {
             | Tool::Lasso
             | Tool::PolygonLasso
             | Tool::Camera
+            | Tool::Bone
             | Tool::Pencil
             | Tool::Brush
             | Tool::Ruler
@@ -301,6 +302,7 @@ impl Workspace {
     /// Escape, tool switches and focus loss cancel a gesture without committing it.
     pub(super) fn cancel_drag(&mut self) {
         self.span_drag = None;
+        self.bone_drag = None;
         self.lasso.clear();
         self.freehand.clear();
         if self.anchor_drag.take().is_some() {

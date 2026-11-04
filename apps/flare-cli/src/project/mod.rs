@@ -8,6 +8,7 @@ use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
 
+mod bones;
 mod camera;
 mod draw;
 mod interchange;
@@ -15,6 +16,7 @@ mod render;
 mod text;
 mod timeline;
 
+pub use bones::{BoneAction, bone, bones_list};
 #[allow(unused_imports)]
 use camera::*;
 pub use camera::{CameraMotion, camera};
@@ -95,9 +97,11 @@ pub fn info(path: &Path) -> Result<Value> {
                 .iter()
                 .map(|layer| {
                     let elements: usize = layer.spans().iter().map(|s| s.element_count()).sum();
+                    let armature = flare_tools::bones::is_armature_layer(layer);
                     json!({ "id": layer.id().as_uuid(), "name": layer.name(),
                             "visible": layer.is_visible(), "locked": layer.is_locked(),
-                            "spans": layer.spans().len(), "elements": elements })
+                            "spans": layer.spans().len(), "elements": elements,
+                            "armature": armature })
                 })
                 .collect();
             json!({ "id": scene.id().as_uuid(), "name": scene.name(), "layers": layers })

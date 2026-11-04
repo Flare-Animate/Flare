@@ -85,6 +85,8 @@ pub fn span_color(content: &flare_document::Content, tween: flare_document::Twee
         (Content::Instance(_), _) => [120, 170, 90],
         // The camera's keyframes, in Animate's camera orange.
         (Content::Camera(_), _) => [220, 150, 70],
+        // An armature's poses, in a green of their own.
+        (Content::Armature(_), _) => [150, 185, 80],
     }
 }
 

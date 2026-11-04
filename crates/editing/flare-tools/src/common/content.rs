@@ -75,7 +75,7 @@ fn text_after(shape: &Shape, matrix: DAffine2) -> Option<flare_document::TextSou
 /// is independent of the original. `None` for empty content or a non-finite result.
 pub(crate) fn fresh_content(content: &Content, matrix: DAffine2) -> Option<Content> {
     Some(match content {
-        Content::Empty | Content::Camera(_) => return None,
+        Content::Empty | Content::Camera(_) | Content::Armature(_) => return None,
         Content::Shape(shape) => Content::Shape(transform_shape_as(shape, ShapeId::new(), matrix)?),
         Content::Instance(instance) => {
             let moved = matrix * instance.transform().as_affine();

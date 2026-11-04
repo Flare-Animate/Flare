@@ -95,6 +95,8 @@ fn main() -> Result<()> {
             motion,
             ease,
         } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
+        Command::Bone { action } => project::bone(action)?,
+        Command::Bones { path, frame } => project::bones_list(&path, frame)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
         Command::Frame {
             op,

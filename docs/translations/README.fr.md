@@ -64,7 +64,7 @@ Les prochaines étapes, les plus importantes d'abord. La plupart est affiché es
 - Un SWF qui garde davantage du document : boutons avec leurs états, interpolations de forme en morphes, masques de plusieurs formes et sons dans les symboles
 - Un éditeur de mouvement : graphiques par propriété et courbes d'accélération personnalisées pour les interpolations
 - Importer des illustrations depuis des fichiers SVG et Photoshop
-- Armatures et cinématique inverse (les outils Os et Lier)
+- Os dans les formes et l’outil Lier (les os qui relient des occurrences de symboles, posés par cinématique inverse avec l’outil Os, sont faits)
 - Raccourcis clavier modifiables
 
 Également prévu, à moindre priorité : ActionScript et un éditeur de scripts (l'ActionScript d'un fichier importé est conservé comme données et n'est jamais exécuté), les repères de forme et plus d'une scène, le reste des outils d'Animate, des thèmes personnalisés, une barre d'outils entièrement réorganisable et une version web publiée.

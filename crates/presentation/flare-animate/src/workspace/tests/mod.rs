@@ -19,6 +19,7 @@ use std::path::PathBuf;
 
 mod anchor_tools;
 mod basics;
+mod bone;
 mod brush_nib;
 mod camera;
 mod close_prompt;

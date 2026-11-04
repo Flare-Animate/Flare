@@ -268,3 +268,64 @@ pub struct BreakText {
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct AddBone {
+    /// The instance the bone starts from (an id from evaluate_frame's paths). If an armature
+    /// carries it, the bone grows from its joint.
+    pub from: String,
+    /// The instance the bone ends at. It must be on a plain layer; it joins the armature.
+    pub to: String,
+    /// Frame number, counting from 0, both instances are shown at. Defaults to 0.
+    pub frame: Option<u32>,
+    /// Where on `from` the joint goes; its registration point when omitted.
+    pub from_x: Option<f64>,
+    pub from_y: Option<f64>,
+    /// Where on `to` the joint goes; its registration point when omitted.
+    pub to_x: Option<f64>,
+    pub to_y: Option<f64>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct PoseBone {
+    /// The armature layer; the first scene's only one when omitted.
+    pub layer: Option<String>,
+    /// The joint, counting from 0 (list_bones gives them).
+    pub joint: usize,
+    /// Frame number, counting from 0. Defaults to 0.
+    pub frame: Option<u32>,
+    /// Pull the joint toward this point (inverse kinematics; a root moves the whole armature).
+    pub to_x: Option<f64>,
+    pub to_y: Option<f64>,
+    /// Or turn the joint to this many degrees from rest, clockwise.
+    pub turn: Option<f64>,
+    /// Or move a root joint, and the armature with it, by this much.
+    pub by_x: Option<f64>,
+    pub by_y: Option<f64>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct BoneJoint {
+    /// The armature layer; the first scene's only one when omitted.
+    pub layer: Option<String>,
+    /// The joint, counting from 0.
+    pub joint: usize,
+    /// For limit_joint: the least and the most turn from rest, in degrees. Both, or neither to
+    /// let the joint turn freely.
+    pub min: Option<f64>,
+    pub max: Option<f64>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ArmatureLayer {
+    /// The armature layer; the first scene's only one when omitted.
+    pub layer: Option<String>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}

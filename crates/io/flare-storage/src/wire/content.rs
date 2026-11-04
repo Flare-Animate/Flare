@@ -44,6 +44,9 @@ pub(super) fn wire_content(content: &Content) -> ContentWire {
             zoom: camera.zoom(),
             rotation: camera.rotation(),
         },
+        Content::Armature(armature) => ContentWire::Armature {
+            joints: super::armature::wire_joints(armature),
+        },
     }
 }
 
@@ -99,25 +102,13 @@ pub(super) fn build_content(content: ContentWire) -> Result<Content, StorageErro
             matrix,
             play,
             first_frame,
-        } => {
-            let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
-                .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;
-            // No name means the default, a loop; a name that is not a mode is a damaged
-            // file, not something to guess at.
-            let mode = match play.as_deref() {
-                None => flare_document::PlayMode::default(),
-                Some(name) => flare_document::PlayMode::from_name(name)
-                    .ok_or_else(|| StorageError::Corrupt(format!("unknown play mode {name:?}")))?,
-            };
-            Content::Instance(
-                Instance::new(
-                    InstanceId::from_uuid(uuid(&id)?),
-                    SymbolId::from_uuid(uuid(&symbol)?),
-                    transform,
-                )
-                .with_playback(flare_document::Playback { mode, first_frame }),
-            )
-        }
+        } => Content::Instance(build_instance(
+            &id,
+            &symbol,
+            matrix,
+            play.as_deref(),
+            first_frame,
+        )?),
         ContentWire::Camera {
             center,
             zoom,
@@ -130,6 +121,34 @@ pub(super) fn build_content(content: ContentWire) -> Result<Content, StorageErro
                     .map_err(|e| StorageError::Corrupt(e.to_string()))?,
             )
         }
+        ContentWire::Armature { joints } => {
+            Content::Armature(super::armature::build_armature(joints)?)
+        }
     };
     Ok(content)
+}
+
+/// An instance from its stored fields; a play mode that is not one is a damaged file.
+pub(super) fn build_instance(
+    id: &str,
+    symbol: &str,
+    matrix: [f64; 6],
+    play: Option<&str>,
+    first_frame: u32,
+) -> Result<Instance, StorageError> {
+    let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
+        .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;
+    // No name means the default, a loop; a name that is not a mode is a damaged file, not
+    // something to guess at.
+    let mode = match play {
+        None => flare_document::PlayMode::default(),
+        Some(name) => flare_document::PlayMode::from_name(name)
+            .ok_or_else(|| StorageError::Corrupt(format!("unknown play mode {name:?}")))?,
+    };
+    Ok(Instance::new(
+        InstanceId::from_uuid(uuid(id)?),
+        SymbolId::from_uuid(uuid(symbol)?),
+        transform,
+    )
+    .with_playback(flare_document::Playback { mode, first_frame }))
 }

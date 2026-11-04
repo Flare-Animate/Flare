@@ -1,14 +1,29 @@
 //! A frame span holding several elements: what Animate keeps in one keyframe of one layer.
 
-use crate::{Content, FrameSpan, TimelineError, Tween};
+use crate::{Content, FrameSpan, Instance, Joint, TimelineError, Tween};
 
 /// The most elements one frame span may hold, the first included.
 pub const MAX_ELEMENTS: usize = 10_000;
 
+impl Content {
+    /// The instances this holds: its own, or the ones an armature's joints carry.
+    pub fn instances(&self) -> impl Iterator<Item = &Instance> {
+        let own = match self {
+            Content::Instance(instance) => Some(instance),
+            _ => None,
+        };
+        let carried: &[Joint] = match self {
+            Content::Armature(armature) => armature.joints(),
+            _ => &[],
+        };
+        own.into_iter().chain(carried.iter().map(Joint::instance))
+    }
+}
+
 impl FrameSpan {
     /// The same span with `extras` drawn above its content, in order. Only a shape or an instance
     /// can be one of several elements, so neither the content nor an extra may be empty or a
-    /// camera. A tween is the first element's: the others are held.
+    /// camera or an armature. A tween is the first element's: the others are held.
     pub fn with_extras(mut self, extras: Vec<Content>) -> Result<Self, TimelineError> {
         if extras.is_empty() {
             self.extras = extras;
@@ -126,6 +141,15 @@ impl FrameSpan {
     /// How many elements the span holds.
     pub fn element_count(&self) -> usize {
         1 + self.extras.len()
+    }
+
+    /// How many things the span puts on the stage: its elements, or the instances its armature
+    /// carries (one per joint).
+    pub fn item_count(&self) -> usize {
+        match &self.content {
+            Content::Armature(armature) => armature.joints().len(),
+            _ => self.element_count(),
+        }
     }
 
     /// Every element, the first and then the extras, from the bottom up.

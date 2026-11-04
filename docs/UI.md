@@ -119,6 +119,23 @@ slowly) to 100 (ends slowly); the curve is a blend of a straight line and a quad
 ends and at both extremes but not checked against Animate's. A tweened span is drawn blue (motion)
 or green (shape) with an arrow in the timeline.
 
+## Bones
+
+The Bone tool (in the "…" list) links symbol instances as Animate's does: drag from one instance to
+another and a bone joins them, both leaving their layer for a new armature layer just above it
+("Armature_1"), whose frames are poses and are drawn green in the timeline. A drag from an instance
+already in an armature adds a bone below it; letting go over nothing says so. The joints go in the
+middle of each instance. The bones of every visible, unlocked armature are drawn over the stage as
+pale wedges with a circle at each joint, the one last touched in the accent color. The Selection
+tool poses: a press on a joint, on an instance the armature carries, or on a bone (which is pulled
+by its tip) drags it, the bones following the pointer as it moves, and letting go keys the pose at
+the playhead. A joint is pulled by inverse kinematics, the joints above it turning within their
+limits; a root moves the whole armature. Between two poses the drag makes a pose of its own, which
+the one before tweens into. With the Bone tool, Properties shows the joint last touched: its Turn,
+Limit rotation with Min and Max, Remove bone (that bone and the ones below it go, the instances
+stay where they are) and Release armature (plain instances again, where the pose put them). Each
+change is one undo step.
+
 ## Panel rail
 
 A narrow bar at the right edge, like Animate's collapsed panel strip, has an icon for each panel
@@ -138,8 +155,8 @@ Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
 shows, and keys that pick a tool (A for Subselection, O for Oval) change what its cell shows too.
 The "…" button (More tools) opens a list of the tools that are not in the strip:
-Flare's own Mirror and Ruler, the Camera, and 3D Rotation, 3D Translation, Deco, Bone, Bind and Width, which
-are not built (the Camera is). Tools that are not built are dimmed with a note, like the menu's planned commands,
+Flare's own Mirror and Ruler, the Camera and the Bone tool, and 3D Rotation, 3D Translation, Deco, Bind and
+Width, which are not built. Tools that are not built are dimmed with a note, like the menu's planned commands,
 and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a list. The strip scrolls
 when it is taller than its panel.
 Any tool in the dots list can be dragged out of it onto the strip, where it becomes a cell of its own just above the dots (the tools not built too, dimmed); a right click on it offers Remove from toolbar, and it is in the list again. The tools put there are kept with the preferences, and Restore defaults empties them. Escape, or letting go away from the strip, drops the tool being dragged.

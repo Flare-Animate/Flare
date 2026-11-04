@@ -2,6 +2,7 @@
 //! computes in `flare-tools`. The folders there and the files here go by the same names.
 
 pub(super) mod anchors;
+pub(super) mod bone;
 pub(super) mod brush;
 pub(super) mod camera;
 pub(super) mod lasso;

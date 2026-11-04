@@ -100,6 +100,7 @@ impl Workspace {
             Tool::Lasso => "tool-lasso",
             Tool::PolygonLasso => "tool-lasso-polygon",
             Tool::Camera => "tool-camera",
+            Tool::Bone => "tool-bone",
             Tool::Pencil => "tool-pencil",
             Tool::Brush => "tool-brush",
             Tool::Ruler => "tool-ruler",
@@ -231,6 +232,7 @@ impl Workspace {
                 ui.weak(tr!(self, "tools-help-lasso"));
             }
             Tool::Camera => self.camera_options(ui),
+            Tool::Bone => self.bone_options(ui),
             Tool::PolygonLasso => {
                 ui.weak(tr!(self, "tools-help-polygon"));
             }
@@ -280,6 +282,7 @@ impl Workspace {
             Tool::Lasso => "tools-status-lasso",
             Tool::PolygonLasso => "tools-status-polygon",
             Tool::Camera => "tools-status-camera",
+            Tool::Bone => "tools-status-bone",
             Tool::Pencil => "tools-status-pencil",
             Tool::Brush => "tools-status-brush",
             Tool::Ruler => "tools-status-ruler",

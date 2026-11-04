@@ -10,3 +10,4 @@ doc-sounds = Sounds
 doc-width = W
 doc-height = H
 name-new-camera-layer = Camera
+name-new-armature-layer = Armature_{ $number }

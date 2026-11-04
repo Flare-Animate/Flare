@@ -193,6 +193,18 @@ pub(crate) enum Command {
         #[arg(long, allow_hyphen_values = true)]
         ease: Option<i8>,
     },
+    /// Link instances with bones and pose the armature, as Animate's Bone tool and posing do.
+    Bone {
+        #[command(subcommand)]
+        action: project::BoneAction,
+    },
+    /// List the armatures of the first scene at a frame: each joint, where it is posed, how far it
+    /// is turned and the instance it carries.
+    Bones {
+        path: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        frame: u32,
+    },
     /// Add an empty layer below the existing ones in the first scene.
     AddLayer { path: PathBuf, name: String },
     /// Insert or remove frames and keyframes on a layer (default: the first layer).

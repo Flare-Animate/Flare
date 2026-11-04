@@ -384,6 +384,8 @@ pub enum Tool {
     PolygonLasso,
     /// Drag to move the scene's camera; its controls are in Properties.
     Camera,
+    /// Drag from one symbol instance to another to link them with a bone.
+    Bone,
     /// Select a shape, then drag its points to reshape it.
     Subselection,
     /// Click an outline to put a point there.

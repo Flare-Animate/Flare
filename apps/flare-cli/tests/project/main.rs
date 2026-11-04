@@ -4,6 +4,7 @@ use serde_json::Value;
 use std::path::Path;
 use std::process::{Command, Output};
 
+mod bones;
 mod camera;
 mod editing;
 mod elements;

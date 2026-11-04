@@ -228,49 +228,64 @@ fn walk_layer<'a>(
                 });
             }
             Content::Instance(instance) => {
+                // Only the first element of a span takes the span's tween.
+                let local = if index == 0 {
+                    tweened(layer, frame, instance, guide)?
+                } else {
+                    instance.transform().as_affine()
+                };
                 walk_instance(
                     document,
-                    layer,
-                    span,
                     instance,
-                    index == 0,
+                    parent * local,
+                    span.start(),
                     frame,
-                    parent,
                     path,
-                    guide,
                     clips,
                     out,
                 )?;
             }
             // The camera is not drawn: it moves everything else (see `camera_view`).
             Content::Camera(_) => {}
+            Content::Armature(_) => {
+                let Some(posed) = armature::armature_at(layer, span, frame) else {
+                    continue;
+                };
+                let started = armature::run_start(layer, span);
+                for (joint, placed) in posed.joints().iter().zip(posed.placements()) {
+                    if out.placed.len() + out.shapes.len() >= MAX_NODES {
+                        return Err(EvalError::TooManyNodes);
+                    }
+                    walk_instance(
+                        document,
+                        joint.instance(),
+                        parent * placed,
+                        started,
+                        frame,
+                        path,
+                        clips,
+                        out,
+                    )?;
+                }
+            }
         }
     }
     Ok(())
 }
 
-/// One instance of a span, placed and followed into its symbol.
+/// One instance placed by `transform` (into scene space) and followed into its symbol, whose
+/// clock started at frame `started`.
 #[allow(clippy::too_many_arguments)]
 fn walk_instance<'a>(
     document: &'a Document,
-    layer: &'a Layer,
-    span: &'a flare_document::FrameSpan,
-    instance: &'a Instance,
-    tweens: bool,
+    instance: &Instance,
+    transform: DAffine2,
+    started: u32,
     frame: u32,
-    parent: DAffine2,
     path: &mut Vec<InstanceId>,
-    guide: Option<&Shape>,
     clips: &[usize],
     out: &mut Frame<'a>,
 ) -> Result<(), EvalError> {
-    // Only the first element of a span takes the span's tween.
-    let local = if tweens {
-        tweened(layer, frame, instance, guide)?
-    } else {
-        instance.transform().as_affine()
-    };
-    let transform = parent * local;
     path.push(instance.id());
     out.placed.push(Placed {
         path: path.clone(),
@@ -280,9 +295,7 @@ fn walk_instance<'a>(
     if let Some(symbol) = document.symbol(instance.symbol()) {
         let length = symbol.timeline().frame_count();
         if length > 0 {
-            let elapsed = u64::from(frame - span.start());
-            // `elapsed % length` < length <= u32::MAX * 2; the remainder fits u32 only
-            // when length fits, so fall back to saturation for absurd lengths.
+            let elapsed = u64::from(frame.saturating_sub(started));
             let local = child_frame(symbol.kind(), instance.playback(), elapsed, length);
             walk(
                 document,
@@ -424,11 +437,13 @@ fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
     close.then_some((scale, angle, translation))
 }
 
+mod armature;
 mod camera;
 mod guide;
 mod level;
 mod morph;
 
+pub use armature::armature_at;
 pub use camera::{camera_at, camera_view};
 pub use level::{Level, LevelContent, LevelItem, evaluate_level, symbol_frame};
 pub use morph::{eased, morph};

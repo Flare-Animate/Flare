@@ -10,8 +10,8 @@
 #![forbid(unsafe_code)]
 
 pub mod add_anchor;
-pub mod not_yet;
 pub mod arrange;
+pub mod bones;
 pub mod brush;
 pub mod clipboard;
 mod common;
@@ -25,6 +25,7 @@ pub mod free_transform;
 pub mod grouping;
 pub mod lasso;
 pub mod mirror;
+pub mod not_yet;
 pub mod ops;
 pub mod paint;
 pub mod pen;

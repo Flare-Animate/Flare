@@ -118,9 +118,38 @@ pub fn evaluate_level<'a>(
         let Some(span) = layer.span_at(frame) else {
             continue;
         };
+        if let Content::Armature(_) = span.content() {
+            let Some(posed) = super::armature::armature_at(layer, span, frame) else {
+                continue;
+            };
+            let started = super::armature::run_start(layer, span);
+            // One item per joint, as if each instance were an element of the span: the joint's
+            // index is its place in the stacking order.
+            for (element, (joint, placed)) in
+                posed.joints().iter().zip(posed.placements()).enumerate()
+            {
+                let instance = joint.instance();
+                level.items.push(LevelItem {
+                    layer: index,
+                    element,
+                    content: LevelContent::Instance {
+                        id: instance.id(),
+                        symbol: instance.symbol(),
+                        transform: placed,
+                        span_start: started,
+                        playback: instance.playback(),
+                    },
+                    clip,
+                });
+                if level.items.len() >= super::MAX_NODES {
+                    return Err(EvalError::TooManyNodes);
+                }
+            }
+            continue;
+        }
         for (element, content) in span.elements().enumerate() {
             let content = match content {
-                Content::Empty | Content::Camera(_) => continue,
+                Content::Empty | Content::Camera(_) | Content::Armature(_) => continue,
                 Content::Shape(shape) => {
                     // A tween is the first element's; the others stay as they are.
                     let (shape, phase) = if element == 0 {

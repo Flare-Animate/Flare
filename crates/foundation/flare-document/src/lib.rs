@@ -5,6 +5,7 @@
 //! Editing goes through transactions in a later crate, not through public fields.
 #![forbid(unsafe_code)]
 
+mod armature;
 mod attachment;
 mod camera;
 mod layer_queries;
@@ -17,6 +18,7 @@ mod text;
 mod timeline;
 mod validate;
 
+pub use armature::{Armature, ArmatureError, Joint, JointPose, MAX_JOINTS, RigEdit};
 pub use attachment::{
     Anchor, Attachment, AttachmentError, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, Placement,
 };

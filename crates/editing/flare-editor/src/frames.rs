@@ -18,6 +18,8 @@ fn duplicate(content: &Content) -> Option<Content> {
     Some(match content {
         Content::Empty => Content::Empty,
         Content::Camera(c) => Content::Camera(*c),
+        // A new pose of the same rig: the joints carry the same instances in every keyframe.
+        Content::Armature(a) => Content::Armature(a.clone()),
         Content::Instance(i) => Content::Instance(
             Instance::new(InstanceId::new(), i.symbol(), i.transform()).with_playback(i.playback()),
         ),

@@ -6,6 +6,7 @@ use flare_document::{Attachment, Document, Scene, Sound, Stage, Symbol, SymbolKi
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+mod armature;
 mod attachment;
 mod content;
 mod origin;

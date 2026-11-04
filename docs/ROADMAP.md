@@ -17,7 +17,7 @@ maintainer's to reorder.
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
 - A Motion Editor: per-property graphs and custom ease curves for tweens
 - Importing artwork from SVG and Photoshop files
-- Bones and inverse kinematics (the Bone and Bind tools)
+- Bones inside shapes and the Bind tool (bones that link symbol instances, posed by inverse kinematics with the Bone tool, are built)
 - Editable keyboard shortcuts
 
 ### Lower priority
@@ -113,9 +113,10 @@ If drawing, exporting and playing do not all work well, Flare is not released. W
 2. **Symbols that behave like Animate's.** Today every symbol is evaluated as a Graphic that loops with its parent (`flare-eval`), so a Button plays all of its frames instead of showing its Up state, a Graphic has no Loop, Play Once or Single Frame option with a first frame, and a Movie Clip has no clock of its own beyond that loop. Needs the instance's playback options in the document model, the file format and XFL, Properties controls, and the evaluator.
 3. **Merge drawing**, after **many elements in a keyframe** (done through stage 3 of [decisions/ELEMENTS.md](decisions/ELEMENTS.md): drawing no longer makes a layer per shape; stage 4, keeping a whole FLA's elements through save and open, and stage 5 remain): Flash's planar-map shapes, where overlapping shapes cut and merge each other and strokes and fills are edited separately. The largest gap in [PARITY.md](PARITY.md) and a change to the document model, not a feature on top of it.
 4. **Camera**: done in code: a camera layer and tool whose keyframed position, zoom and rotation drive every export, the SWF and HTML5 pages, and a preview of the stage (real Ruffle draws the same picture as Flare). Still to do: someone using it by hand, XFL import and export of the camera, a camera that follows frames added to the movie, and attaching layers to it.
-5. **Timeline controls** good enough to animate with, and **Ruffle** playback proven against a real player.
-6. **SWF that keeps its symbols**: symbols are published as sprites, each on the clock its playback says, and a real Ruffle plays them as Flare does (done). Still to do: buttons as buttons with their states (`DefineButton2`; today a Button is a sprite showing its Up state), shape tweens as morphs (`DefineMorphShape`; today each step is its own shape), masks of several shapes, and sounds inside symbols. The HTML5 page is still baked.
-7. **Sharing the way Animate does it**: its Share menu logs in to YouTube and Twitter and uploads the exported video itself. That needs each service's API with credentials the project registers (YouTube is the practical first, now that MP4 exists); only Twitter's button is live (it fills in the post); the others are dimmed until then.
+5. **Bones**: done in code: the Bone tool links symbol instances into an armature layer, the Selection tool poses it by inverse kinematics (joint limits, roots that move the whole armature), poses are keyframes that tween, and every export, SWF and HTML5 shows them; the command line and the MCP server do the same. Still to do: someone using it by hand, bones inside a shape and the Bind tool, XFL import and export of the armature itself (Animate's IK format), and pinning a joint while the rest is dragged.
+6. **Timeline controls** good enough to animate with, and **Ruffle** playback proven against a real player.
+7. **SWF that keeps its symbols**: symbols are published as sprites, each on the clock its playback says, and a real Ruffle plays them as Flare does (done). Still to do: buttons as buttons with their states (`DefineButton2`; today a Button is a sprite showing its Up state), shape tweens as morphs (`DefineMorphShape`; today each step is its own shape), masks of several shapes, and sounds inside symbols. The HTML5 page is still baked.
+8. **Sharing the way Animate does it**: its Share menu logs in to YouTube and Twitter and uploads the exported video itself. That needs each service's API with credentials the project registers (YouTube is the practical first, now that MP4 exists); only Twitter's button is live (it fills in the post); the others are dimmed until then.
 
 ## M2 remaining
 

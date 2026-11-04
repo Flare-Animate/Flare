@@ -10,3 +10,4 @@ doc-sounds = Sons
 doc-width = L
 doc-height = H
 name-new-camera-layer = Caméra
+name-new-armature-layer = Squelette_{ $number }

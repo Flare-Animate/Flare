@@ -48,6 +48,7 @@ impl Workspace {
                 | Tool::Bucket
                 | Tool::InkBottle
                 | Tool::Camera
+                | Tool::Bone
                 | Tool::Ruler
                 | Tool::Mirror
         ) {

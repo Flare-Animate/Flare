@@ -126,7 +126,7 @@ fn moved_content(
     matrix: DAffine2,
 ) -> Option<Content> {
     Some(match content {
-        Content::Empty | Content::Camera(_) => return None,
+        Content::Empty | Content::Camera(_) | Content::Armature(_) => return None,
         Content::Shape(shape) => Content::Shape(transform_shape(shape, matrix)?),
         Content::Instance(instance) => {
             let moved = matrix * instance.transform().as_affine();
