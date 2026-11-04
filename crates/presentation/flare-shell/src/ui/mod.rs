@@ -18,11 +18,9 @@ mod shell;
 mod tablet;
 mod window;
 
-/// The Test Movie window, when this build has the player inside it.
+/// The Test Movie window; only builds with the player inside have one.
 #[cfg(feature = "ruffle")]
 pub(crate) type Movie = Option<movie_window::MovieViewport>;
-#[cfg(not(feature = "ruffle"))]
-pub(crate) type Movie = ();
 
 use anyhow::{Context, Result};
 use flare_animate::Workspace;

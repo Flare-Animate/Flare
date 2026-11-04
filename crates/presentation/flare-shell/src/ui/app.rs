@@ -14,6 +14,7 @@ pub(super) struct App {
     /// Test movies still playing; dropping one stops its player and removes its files.
     pub(super) movies: Vec<flare_platform::jobs::TestMovie>,
     /// The Test Movie window, when the player runs inside this one.
+    #[cfg(feature = "ruffle")]
     pub(super) movie: super::Movie,
     /// The sound card, if there is one. Sounds are silent without it; nothing else changes.
     player: Option<flare_platform::audio::Player>,
@@ -32,6 +33,7 @@ impl App {
     pub(super) fn new(workspace: Workspace, proxy: EventLoopProxy<UserEvent>) -> Self {
         Self {
             movies: Vec::new(),
+            #[cfg(feature = "ruffle")]
             movie: Default::default(),
             player: None,
             proxy,
