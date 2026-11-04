@@ -50,10 +50,10 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           # Both ABIs in one package: the universal APK.
-          cargo apk build -p flare-android --release --locked
+          cargo apk build -p flare-android --release
           cp target/release/apk/Flare.apk dist/flare-android-universal.apk
           for triple in aarch64-linux-android:arm64-v8a x86_64-linux-android:x86_64; do
-            cargo apk build -p flare-android --release --locked --target "${triple%%:*}"
+            cargo apk build -p flare-android --release --target "${triple%%:*}"
             cp target/release/apk/Flare.apk "dist/flare-android-${triple##*:}.apk"
           done
           ls -l dist
