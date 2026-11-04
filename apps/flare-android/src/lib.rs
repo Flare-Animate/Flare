@@ -9,7 +9,9 @@
 //! itself is `flare-desktop`'s; what cannot be exercised off a device is `activity`, which
 //! needs the loader (see docs/SURFACES.md).
 
-#![forbid(unsafe_code)]
+// Denied, not forbidden: the one `unsafe` item is the loader's entry point, which the platform
+// requires to be `#[unsafe(no_mangle)]`; `forbid` would refuse that allow.
+#![deny(unsafe_code)]
 
 /// What the app does before the window opens; the tests drive it on any machine.
 pub mod open;

@@ -13,6 +13,8 @@ use winit::platform::android::activity::AndroidApp;
 /// The system loads the app here. A start that goes wrong is announced in the log (the
 /// loader names this process's streams in the log of a debug build); there is no window to
 /// show a box in.
+// The loader finds the entry point by name, so it must not be mangled: the only `unsafe` here.
+#[allow(unsafe_code)]
 #[unsafe(no_mangle)]
 pub fn android_main(app: AndroidApp) {
     if let Err(error) = start(app) {
