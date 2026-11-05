@@ -1,5 +1,6 @@
 //! Flipnote Studio files through the MCP server: `import_project` reads a `.ppm` and a `.kwz`
 //! from the export directory into new projects, and the open project is not changed.
+#![allow(clippy::expect_used)]
 
 mod common;
 
