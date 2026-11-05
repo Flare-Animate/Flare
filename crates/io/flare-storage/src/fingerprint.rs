@@ -63,6 +63,10 @@ pub fn fingerprint(document: &Document) -> Result<Fingerprint, StorageError> {
         framed(&mut main, b'i', sound.id().as_uuid().as_bytes());
         framed(&mut main, b'u', &wire::SoundMeta::frame(sound)?);
     }
+    for bitmap in document.bitmaps() {
+        framed(&mut main, b'i', bitmap.id().as_uuid().as_bytes());
+        framed(&mut main, b'h', bitmap.content_hash());
+    }
     for symbol in document.symbols() {
         framed(&mut main, b'i', symbol.id().as_uuid().as_bytes());
         framed(&mut main, b'n', symbol.name().as_bytes());

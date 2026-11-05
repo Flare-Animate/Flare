@@ -1,7 +1,7 @@
 //! Applying a batch of commands to a document.
 
 use flare_core::{FrameRate, LayerId, SceneId};
-use flare_document::{Content, Document, FrameSpan, Layer, Scene, Sound, Stage, Symbol};
+use flare_document::{Bitmap, Content, Document, FrameSpan, Layer, Scene, Sound, Stage, Symbol};
 
 use crate::{Command, EditError, LayerChange, MAX_SCENE_NAME_CHARS};
 
@@ -22,6 +22,7 @@ pub fn apply_all(
     let mut scenes = document.scenes().to_vec();
     let mut symbols = document.symbols().to_vec();
     let mut sounds = document.sounds().to_vec();
+    let mut bitmaps = document.bitmaps().to_vec();
     let mut stage = document.stage();
     let mut rate = document.frame_rate();
     for command in commands {
@@ -29,6 +30,7 @@ pub fn apply_all(
             &mut scenes,
             &mut symbols,
             &mut sounds,
+            &mut bitmaps,
             &mut stage,
             &mut rate,
             command,
@@ -39,6 +41,7 @@ pub fn apply_all(
     Ok(Some(
         Document::new(document.id(), rate, scenes, symbols)?
             .with_sounds(sounds)?
+            .with_bitmaps(bitmaps)?
             .with_stage(stage)
             .with_attachments_retained(document.attachments())
             .with_origin(document.origin().cloned()),
@@ -50,6 +53,7 @@ fn step(
     scenes: &mut Vec<Scene>,
     symbols: &mut Vec<Symbol>,
     sounds: &mut Vec<Sound>,
+    bitmaps: &mut Vec<Bitmap>,
     stage: &mut Stage,
     rate: &mut FrameRate,
     command: Command,
@@ -110,6 +114,22 @@ fn step(
         }
         Command::SetStage(new_stage) => *stage = new_stage,
         Command::SetFrameRate(new_rate) => *rate = new_rate,
+        Command::AddBitmap(bitmap) => {
+            if let Some(same) = bitmaps
+                .iter()
+                .find(|b| b.content_hash() == bitmap.content_hash())
+            {
+                return Err(EditError::DuplicateBitmap(same.id()));
+            }
+            bitmaps.push(bitmap);
+        }
+        Command::RemoveBitmap(id) => {
+            let before = bitmaps.len();
+            bitmaps.retain(|b| b.id() != id);
+            if bitmaps.len() == before {
+                return Err(EditError::NoSuchBitmap(id));
+            }
+        }
         Command::AddSound(sound) => sounds.push(sound),
         Command::RemoveSound(id) => {
             let before = sounds.len();

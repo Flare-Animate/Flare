@@ -218,6 +218,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
         &flare_eval::Frame {
             placed: vec![],
             shapes: vec![],
+            bitmaps: vec![],
             clips: vec![],
         },
         20,
@@ -235,6 +236,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
         &flare_eval::Frame {
             placed: vec![],
             shapes: vec![],
+            bitmaps: vec![],
             clips: vec![],
         },
         20,
@@ -252,6 +254,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
         &flare_eval::Frame {
             placed: vec![],
             shapes: vec![],
+            bitmaps: vec![],
             clips: vec![],
         },
         4,

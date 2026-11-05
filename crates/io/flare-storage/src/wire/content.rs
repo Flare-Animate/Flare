@@ -41,6 +41,12 @@ pub(super) fn wire_content(content: &Content) -> ContentWire {
             play: Some(instance.playback().mode.name().to_owned()),
             first_frame: instance.playback().first_frame,
         },
+        Content::Bitmap(bitmap) => ContentWire::Bitmap {
+            id: bitmap.id().as_uuid().to_string(),
+            bitmap: bitmap.bitmap().as_uuid().to_string(),
+            matrix: bitmap.transform().as_affine().to_cols_array(),
+            opacity: bitmap.opacity(),
+        },
         Content::Camera(camera) => ContentWire::Camera {
             center: camera.center().as_vec().to_array(),
             zoom: camera.zoom(),
@@ -125,6 +131,23 @@ pub(super) fn build_content(content: ContentWire) -> Result<Content, StorageErro
                     transform,
                 )
                 .with_playback(flare_document::Playback { mode, first_frame }),
+            )
+        }
+        ContentWire::Bitmap {
+            id,
+            bitmap,
+            matrix,
+            opacity,
+        } => {
+            let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
+                .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;
+            Content::Bitmap(
+                flare_document::BitmapInstance::new(
+                    InstanceId::from_uuid(uuid(&id)?),
+                    flare_core::BitmapId::from_uuid(uuid(&bitmap)?),
+                    transform,
+                )
+                .with_opacity(opacity),
             )
         }
         ContentWire::Camera {

@@ -1,9 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
-use flare_core::{InstanceId, LayerId, SceneId, ShapeId, SoundId, SymbolId};
+use flare_core::{BitmapId, InstanceId, LayerId, SceneId, ShapeId, SoundId, SymbolId};
 use thiserror::Error;
 
-use crate::{Anchor, Document, MAX_ATTACHMENTS, MAX_SOUNDS, MAX_TOTAL_SOUND_BYTES, Timeline};
+use crate::{
+    Anchor, Content, Document, MAX_ATTACHMENTS, MAX_BITMAPS, MAX_SOUNDS, MAX_TOTAL_BITMAP_BYTES,
+    MAX_TOTAL_SOUND_BYTES, Timeline,
+};
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum Diagnostic {
@@ -52,6 +55,14 @@ pub enum Diagnostic {
     TooManyCameras(SceneId),
     #[error("a cue on layer {layer:?} plays sound {sound:?}, which is not in the document")]
     DanglingSound { layer: LayerId, sound: SoundId },
+    #[error("duplicate bitmap id {0:?}")]
+    DuplicateBitmap(BitmapId),
+    #[error("a document holds at most {MAX_BITMAPS} bitmaps")]
+    TooManyBitmaps,
+    #[error("a document holds at most {MAX_TOTAL_BITMAP_BYTES} bytes of bitmaps")]
+    BitmapsTooLarge,
+    #[error("layer {layer:?} shows bitmap {bitmap:?}, which is not in the document")]
+    DanglingBitmap { layer: LayerId, bitmap: BitmapId },
 }
 
 /// Every entity an attachment can hang off.
@@ -74,6 +85,40 @@ pub(crate) fn validate_attachments(document: &Document) -> Vec<Diagnostic> {
     for attachment in &document.attachments {
         if !live.contains(&attachment.anchor()) {
             out.push(Diagnostic::DanglingAttachment(attachment.anchor()));
+        }
+    }
+    out
+}
+
+pub(crate) fn validate_bitmaps(document: &Document) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    if document.bitmaps.len() > MAX_BITMAPS {
+        out.push(Diagnostic::TooManyBitmaps);
+    }
+    let total: u64 = document.bitmaps.iter().map(|b| b.byte_len()).sum();
+    if total > MAX_TOTAL_BITMAP_BYTES {
+        out.push(Diagnostic::BitmapsTooLarge);
+    }
+    let mut ids = HashSet::with_capacity(document.bitmaps.len());
+    for bitmap in &document.bitmaps {
+        if !ids.insert(bitmap.id()) {
+            out.push(Diagnostic::DuplicateBitmap(bitmap.id()));
+        }
+    }
+    for timeline in timelines(document) {
+        for layer in timeline.layers() {
+            for span in layer.spans() {
+                for content in span.elements() {
+                    if let Content::Bitmap(instance) = content
+                        && !ids.contains(&instance.bitmap())
+                    {
+                        out.push(Diagnostic::DanglingBitmap {
+                            layer: layer.id(),
+                            bitmap: instance.bitmap(),
+                        });
+                    }
+                }
+            }
         }
     }
     out

@@ -6,6 +6,7 @@
 #![forbid(unsafe_code)]
 
 mod attachment;
+mod bitmap;
 mod camera;
 mod interp;
 mod layer_queries;
@@ -22,6 +23,10 @@ mod validate;
 
 pub use attachment::{
     Anchor, Attachment, AttachmentError, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, Placement,
+};
+pub use bitmap::{
+    Bitmap, BitmapError, BitmapInstance, MAX_BITMAP_PIXELS, MAX_BITMAP_SIDE, MAX_BITMAPS,
+    MAX_TOTAL_BITMAP_BYTES,
 };
 pub use camera::{Camera, CameraError, MAX_ZOOM, MIN_ZOOM};
 pub use interp::{SpanInterp, SpanInterpError};
@@ -214,6 +219,7 @@ pub struct Document {
     stage: Stage,
     attachments: Vec<Attachment>,
     sounds: Vec<Sound>,
+    bitmaps: Vec<Bitmap>,
     origin: Option<SharedOrigin>,
 }
 
@@ -233,6 +239,7 @@ impl Document {
             stage: Stage::default(),
             attachments: Vec::new(),
             sounds: Vec::new(),
+            bitmaps: Vec::new(),
             origin: None,
         };
         let diagnostics = validate::validate(&document);
@@ -311,6 +318,26 @@ impl Document {
         }
     }
 
+    /// Attaches the bitmap library, validating limits and that every bitmap instance names one in
+    /// it. Replaces any bitmaps already present.
+    pub fn with_bitmaps(mut self, bitmaps: Vec<Bitmap>) -> Result<Self, Vec<Diagnostic>> {
+        self.bitmaps = bitmaps;
+        let diagnostics = validate::validate_bitmaps(&self);
+        if diagnostics.is_empty() {
+            Ok(self)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
+    pub fn bitmaps(&self) -> &[Bitmap] {
+        &self.bitmaps
+    }
+
+    pub fn bitmap(&self, id: flare_core::BitmapId) -> Option<&Bitmap> {
+        self.bitmaps.iter().find(|b| b.id() == id)
+    }
+
     pub fn sounds(&self) -> &[Sound] {
         &self.sounds
     }
@@ -344,6 +371,8 @@ impl Document {
     }
 }
 
+#[cfg(test)]
+mod bitmap_tests;
 #[cfg(test)]
 mod origin_tests;
 #[cfg(test)]

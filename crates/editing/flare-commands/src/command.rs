@@ -1,9 +1,10 @@
 //! The vocabulary of document edits.
 
-use flare_core::{FrameRate, LayerId, SceneId, SoundId, SymbolId};
+use flare_core::{BitmapId, FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
 use flare_document::{
-    FrameSpan, Layer, Playback, Scene, Sound, SoundCue, SpanInterp, Stage, Symbol, SymbolKind,
+    Bitmap, FrameSpan, Layer, Playback, Scene, Sound, SoundCue, SpanInterp, Stage, Symbol,
+    SymbolKind,
 };
 
 /// A property change on a layer.
@@ -55,6 +56,11 @@ pub enum Command {
     },
     SetStage(Stage),
     SetFrameRate(FrameRate),
+    /// Adds a bitmap to the library. Refused when an identical image (same content hash) is
+    /// already there: place that one instead, so repeated frames are stored once.
+    AddBitmap(Bitmap),
+    /// Removes a bitmap from the library. Fails while a frame still shows it.
+    RemoveBitmap(BitmapId),
     /// Adds a sound to the library.
     AddSound(Sound),
     /// Removes a sound from the library. Fails if a cue still plays it.

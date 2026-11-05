@@ -20,7 +20,7 @@ pub(crate) const MAX_NODES: usize = 100_000;
 
 mod frame;
 
-pub use frame::{ClipShape, DrawnShape, EvalError, Frame, Placed};
+pub use frame::{ClipShape, DrawnBitmap, DrawnShape, EvalError, Frame, Placed};
 
 /// Whether a folder above `layers[index]` that holds it (directly or through other folders) is
 /// hidden. Parents are always earlier layers, so one pass up the list finds them all.
@@ -207,7 +207,7 @@ fn walk_layer<'a>(
     // Every element of the span is drawn, the first at the bottom. A tween is the first element's:
     // the in-between shape and transform apply to it alone, and the others stay as they are.
     for (index, element) in span.elements().enumerate() {
-        if out.placed.len() + out.shapes.len() >= MAX_NODES {
+        if out.placed.len() + out.shapes.len() + out.bitmaps.len() >= MAX_NODES {
             return Err(EvalError::TooManyNodes);
         }
         match element {
@@ -241,6 +241,18 @@ fn walk_layer<'a>(
                     clips,
                     out,
                 )?;
+            }
+            Content::Bitmap(placed) => {
+                if let Some(bitmap) = document.bitmap(placed.bitmap()) {
+                    out.bitmaps.push(DrawnBitmap {
+                        path: path.clone(),
+                        bitmap,
+                        transform: parent * placed.transform().as_affine(),
+                        opacity: placed.opacity(),
+                        after_shapes: out.shapes.len(),
+                        clips: clips.to_vec(),
+                    });
+                }
             }
             // The camera is not drawn: it moves everything else (see `camera_view`).
             Content::Camera(_) => {}

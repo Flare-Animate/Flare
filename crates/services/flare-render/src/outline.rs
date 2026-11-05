@@ -62,6 +62,8 @@ pub fn render_onion_outlines_viewport(
 fn as_lines<'a>(frame: &Frame<'a>, shapes: &'a [Shape], clips: bool) -> Frame<'a> {
     Frame {
         placed: Vec::new(),
+        // Outline view shows only paths: a picture has none.
+        bitmaps: Vec::new(),
         shapes: frame
             .shapes
             .iter()

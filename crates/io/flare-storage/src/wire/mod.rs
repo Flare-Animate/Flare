@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 mod attachment;
+mod bitmap;
 mod content;
 mod origin;
 mod settings;
@@ -17,6 +18,7 @@ pub(crate) use attachment::AttachmentWire;
 #[allow(unused_imports)]
 use attachment::*;
 use attachment::{hex, unhex};
+pub(crate) use bitmap::{BitmapMeta, MAX_BITMAP_RECORD_BYTES};
 pub(crate) use origin::{MAX_ORIGIN_RECORD_BYTES, OriginMeta};
 pub(crate) use settings::Settings;
 #[allow(unused_imports)]
@@ -97,6 +99,7 @@ pub(crate) fn assemble(
     symbols: Vec<Symbol>,
     attachments: Vec<Attachment>,
     sounds: Vec<Sound>,
+    bitmaps: Vec<flare_document::Bitmap>,
     origin: Option<flare_document::Origin>,
 ) -> Result<Document, StorageError> {
     let settings: Settings = serde_json::from_str(settings)?;
@@ -113,6 +116,8 @@ pub(crate) fn assemble(
         .with_attachments(attachments)
         .map_err(StorageError::Invalid)?
         .with_sounds(sounds)
+        .map_err(StorageError::Invalid)?
+        .with_bitmaps(bitmaps)
         .map_err(StorageError::Invalid)?;
     let document = document.with_origin(origin.map(std::sync::Arc::new));
     match settings.stage {

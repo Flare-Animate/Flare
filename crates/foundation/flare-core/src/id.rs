@@ -44,6 +44,7 @@ define_id! {
     LayerId,
     ShapeId,
     SoundId,
+    BitmapId,
 }
 
 #[cfg(test)]

@@ -18,7 +18,12 @@ impl FrameSpan {
         if count > MAX_ELEMENTS {
             return Err(TimelineError::TooManyElements(count));
         }
-        let element = |c: &Content| matches!(c, Content::Shape(_) | Content::Instance(_));
+        let element = |c: &Content| {
+            matches!(
+                c,
+                Content::Shape(_) | Content::Instance(_) | Content::Bitmap(_)
+            )
+        };
         if !element(self.content()) || !extras.iter().all(element) {
             return Err(TimelineError::NotAnElement);
         }

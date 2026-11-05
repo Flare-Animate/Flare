@@ -3,7 +3,10 @@ use std::sync::Arc;
 
 use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
 
-use crate::{Camera, MAX_CUES_PER_LAYER, MAX_ELEMENTS, Shape, SoundCue, SoundError, SpanInterp};
+use crate::{
+    BitmapInstance, Camera, MAX_CUES_PER_LAYER, MAX_ELEMENTS, Shape, SoundCue, SoundError,
+    SpanInterp,
+};
 use thiserror::Error;
 
 mod layer;
@@ -105,6 +108,8 @@ pub enum Content {
     Empty,
     Instance(Instance),
     Shape(Shape),
+    /// A raster image from the document's bitmap library.
+    Bitmap(BitmapInstance),
     /// Where the camera looks; only on a camera layer.
     Camera(Camera),
 }
@@ -298,7 +303,9 @@ impl Timeline {
             .flat_map(FrameSpan::elements)
             .filter_map(|content| match content {
                 Content::Shape(shape) => Some(shape),
-                Content::Empty | Content::Instance(_) | Content::Camera(_) => None,
+                Content::Empty | Content::Instance(_) | Content::Bitmap(_) | Content::Camera(_) => {
+                    None
+                }
             })
     }
 
@@ -314,7 +321,9 @@ impl Timeline {
             .flat_map(FrameSpan::elements)
             .filter_map(|content| match content {
                 Content::Instance(instance) => Some(instance),
-                Content::Empty | Content::Shape(_) | Content::Camera(_) => None,
+                Content::Empty | Content::Shape(_) | Content::Bitmap(_) | Content::Camera(_) => {
+                    None
+                }
             })
     }
 }

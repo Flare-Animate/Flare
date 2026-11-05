@@ -49,6 +49,7 @@ fn flatten(
             LevelContent::Shape { shape, phase } => {
                 out.push((shape.id(), parent.to_cols_array(), phase));
             }
+            LevelContent::Bitmap { .. } => {}
             LevelContent::Instance {
                 symbol,
                 transform,

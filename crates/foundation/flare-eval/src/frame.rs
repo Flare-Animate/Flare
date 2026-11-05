@@ -3,7 +3,7 @@
 use std::borrow::Cow;
 
 use flare_core::{InstanceId, Rgba8, SceneId, SymbolId};
-use flare_document::Shape;
+use flare_document::{Bitmap, Shape};
 use glamx::DAffine2;
 use thiserror::Error;
 
@@ -37,6 +37,8 @@ pub struct Frame<'a> {
     pub placed: Vec<Placed>,
     /// Shapes in paint order: later entries draw on top.
     pub shapes: Vec<DrawnShape<'a>>,
+    /// Raster images, each knowing how many shapes were drawn before it.
+    pub bitmaps: Vec<DrawnBitmap<'a>>,
     /// The mask regions that `DrawnShape::clips` refer to.
     pub clips: Vec<Vec<ClipShape<'a>>>,
 }
@@ -60,6 +62,15 @@ impl Frame<'_> {
         use std::hash::{Hash, Hasher};
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         self.shapes.len().hash(&mut hasher);
+        for bitmap in &self.bitmaps {
+            bitmap.bitmap.id().hash(&mut hasher);
+            bitmap.after_shapes.hash(&mut hasher);
+            bitmap.opacity.to_bits().hash(&mut hasher);
+            bitmap.clips.hash(&mut hasher);
+            for value in bitmap.transform.to_cols_array() {
+                value.to_bits().hash(&mut hasher);
+            }
+        }
         for drawn in &self.shapes {
             drawn.shape.id().hash(&mut hasher);
             drawn.phase.hash(&mut hasher);
@@ -100,4 +111,17 @@ pub struct DrawnShape<'a> {
     pub clips: Vec<usize>,
     /// The color of the layer the shape is on, which outline mode draws it in.
     pub outline: Rgba8,
+}
+
+/// A bitmap placed on the stage.
+#[derive(Debug, Clone, PartialEq)]
+pub struct DrawnBitmap<'a> {
+    pub path: Vec<InstanceId>,
+    pub bitmap: &'a Bitmap,
+    /// Maps the bitmap's pixel space (top-left origin) into scene space.
+    pub transform: DAffine2,
+    pub opacity: f32,
+    /// How many of `Frame::shapes` come before this bitmap in draw order.
+    pub after_shapes: usize,
+    pub clips: Vec<usize>,
 }

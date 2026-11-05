@@ -149,6 +149,13 @@ pub(super) enum ContentWire {
         #[serde(default)]
         first_frame: u32,
     },
+    /// Absent in files written before bitmaps existed.
+    Bitmap {
+        id: String,
+        bitmap: String,
+        matrix: [f64; 6],
+        opacity: f32,
+    },
     /// Absent in files written before cameras existed. The angle is in radians.
     Camera {
         center: [f64; 2],

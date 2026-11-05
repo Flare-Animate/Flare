@@ -10,6 +10,7 @@ use flare_document::{
 use glamx::{DAffine2, DVec2};
 use std::num::NonZeroU32;
 
+mod bitmaps;
 mod camera;
 mod masks;
 mod shapes;
