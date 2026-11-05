@@ -2421,6 +2421,7 @@ dependencies = [
  "flare-document",
  "flare-eval",
  "flare-export",
+ "flare-game",
  "flare-history",
  "flare-import",
  "flare-render",
@@ -2431,6 +2432,7 @@ dependencies = [
  "png 0.18.1",
  "proptest",
  "rayon",
+ "serde_json",
  "tempfile",
  "thiserror 2.0.18",
 ]
@@ -2518,12 +2520,14 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-eval",
+ "flare-game",
  "flare-history",
  "flare-input",
  "flare-tween",
  "glamx",
  "proptest",
  "serde",
+ "serde_json",
  "thiserror 2.0.18",
 ]
 

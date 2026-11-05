@@ -10,6 +10,7 @@
 mod component;
 mod digest;
 mod error;
+mod fields;
 mod ids;
 mod input;
 mod limits;
@@ -23,6 +24,7 @@ pub use component::{
     Script, Sprite, Transform, Ui, UiKind,
 };
 pub use error::GameError;
+pub use fields::parse_fields;
 pub use ids::EntityId;
 
 pub use input::{Input, parse_script};

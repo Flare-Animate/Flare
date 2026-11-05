@@ -22,6 +22,7 @@ pub mod drawing;
 mod elements_tests;
 pub mod eraser;
 pub mod free_transform;
+pub mod game;
 pub mod grouping;
 pub mod lasso;
 pub mod mirror;

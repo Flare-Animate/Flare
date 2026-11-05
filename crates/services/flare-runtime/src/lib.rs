@@ -17,6 +17,7 @@
 
 mod document_file;
 mod export;
+mod export_game;
 mod jobs;
 mod launch;
 mod movie;
@@ -29,6 +30,7 @@ pub use document_file::{
     resolve_save_path, save, saves_in_place, summarize, xfl_folder,
 };
 pub use export::{export_png, png_bytes, rgba_png};
+pub use export_game::{GAME_FORMAT, GAME_FORMAT_VERSION, GameExport, export_game};
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
 pub use movie::{MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, gif_bytes, gif_bytes_on};

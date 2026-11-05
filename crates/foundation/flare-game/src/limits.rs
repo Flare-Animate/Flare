@@ -29,3 +29,4 @@ pub const MAX_EVENTS_PER_STEP: usize = 4096;
 pub const MAX_RUN_EVENTS: usize = 100_000;
 /// Most keys or actions named in one frame of input.
 pub const MAX_INPUT_TOKENS: usize = 16;
+pub const MAX_FIELDS: usize = 32;
