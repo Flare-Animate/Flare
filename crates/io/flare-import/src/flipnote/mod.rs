@@ -5,13 +5,13 @@
 
 mod convert;
 pub mod error;
+pub mod kwz;
 pub mod ppm;
 pub(crate) mod reader;
 #[cfg(test)]
 mod tests;
 
 use crate::xfl::{ImportError, Imported};
-use error::FlipnoteError;
 
 /// Whether `bytes` start with the PPM magic, `PARA`.
 pub fn looks_like_ppm(bytes: &[u8]) -> bool {
@@ -26,13 +26,11 @@ pub fn looks_like_kwz(bytes: &[u8]) -> bool {
 
 /// Imports a Flipnote file held in memory. `name` is used for the document and the messages.
 pub(crate) fn import(name: &str, bytes: &[u8]) -> Result<Imported, ImportError> {
+    let fail = |e: &dyn std::fmt::Display| ImportError::Foreign(format!("{name}: {e}"));
     if looks_like_kwz(bytes) {
-        return Err(ImportError::Foreign(format!(
-            "{name}: {}",
-            FlipnoteError::KwzNotSupported
-        )));
+        let parsed = kwz::Kwz::parse(bytes).map_err(|e| fail(&e))?;
+        return kwz::convert::convert(&parsed, name);
     }
-    let parsed =
-        ppm::Ppm::parse(bytes).map_err(|e| ImportError::Foreign(format!("{name}: {e}")))?;
+    let parsed = ppm::Ppm::parse(bytes).map_err(|e| fail(&e))?;
     convert::convert(&parsed, name)
 }

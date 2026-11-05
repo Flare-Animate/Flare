@@ -425,3 +425,60 @@ fn adpcm_stays_in_range_over_a_long_run() {
             .all(|&s| (-32768..=32767).contains(&i32::from(s)))
     );
 }
+
+/// FNV-1a over the layer bytes: a fingerprint of a whole picture.
+fn fnv(bytes: &[u8]) -> u64 {
+    bytes.iter().fold(0xcbf2_9ce4_8422_2325_u64, |h, &b| {
+        (h ^ u64::from(b)).wrapping_mul(0x0100_0000_01b3)
+    })
+}
+
+/// Hand-worked pictures: a 4 by 4 square of layer 1 at (10, 20), one pixel of layer 2 at (0, 0),
+/// and a delta frame that turns the square's top-left pixel off. The expected pixels are listed
+/// by coordinate here, not computed by the decoder, so the fingerprints pin the decoder to them.
+#[test]
+fn golden_fingerprints_of_hand_worked_frames() {
+    let square: Vec<(usize, usize)> = (20..24)
+        .flat_map(|y| (10..14).map(move |x| (x, y)))
+        .collect();
+    let first = [dots(&square), dots(&[(0, 0)])];
+    let second = [
+        dots(
+            &square
+                .iter()
+                .copied()
+                .filter(|&p| p != (10, 20))
+                .collect::<Vec<_>>(),
+        ),
+        dots(&[(0, 0)]),
+    ];
+    let file = wrap(
+        &[
+            encode(&key(first.clone()), &[blank(), blank()], None),
+            encode(
+                &SynthFrame {
+                    keyframe: false,
+                    inverted: false,
+                    pens: [1, 2],
+                    shift: None,
+                    layers: second.clone(),
+                },
+                &first,
+                None,
+            ),
+        ],
+        &[0, 0],
+        2,
+        &[],
+        0,
+    );
+    let decoded = decode_all(&file).expect("decodes");
+    assert_eq!(decoded[0], first);
+    assert_eq!(decoded[1], second);
+    // The fingerprints of the hand-worked pictures above, layer 1 of each frame.
+    assert_eq!(fnv(&decoded[0][0]), GOLDEN_FIRST_LAYER_1);
+    assert_eq!(fnv(&decoded[1][0]), GOLDEN_SECOND_LAYER_1);
+}
+
+const GOLDEN_FIRST_LAYER_1: u64 = 1_320_323_482_132_060_213;
+const GOLDEN_SECOND_LAYER_1: u64 = 18_302_876_238_536_576_540;

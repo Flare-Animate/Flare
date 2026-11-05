@@ -5,6 +5,7 @@
 
 use std::path::PathBuf;
 
+use flare_import::flipnote::kwz::{Kwz, KwzState};
 use flare_import::flipnote::ppm::{FrameDecoder, Ppm};
 
 fn sample_dir() -> Option<PathBuf> {
@@ -58,17 +59,41 @@ fn every_real_ppm_decodes_every_frame() {
 }
 
 #[test]
-fn every_real_kwz_is_refused_by_name() {
+fn every_real_kwz_and_kwc_decodes_every_frame() {
     let Some(dir) = sample_dir() else {
         return;
     };
+    let mut seen = 0;
     for entry in std::fs::read_dir(&dir).expect("sample dir") {
         let path = entry.expect("entry").path();
-        if path.extension().and_then(|e| e.to_str()) != Some("kwz") {
+        let ext = path.extension().and_then(|e| e.to_str());
+        if !matches!(ext, Some("kwz") | Some("kwc")) {
             continue;
         }
+        seen += 1;
         let bytes = std::fs::read(&path).expect("read");
-        let err = flare_import::import_bytes(bytes).expect_err("refused");
-        assert!(err.to_string().contains("KWZ"), "{}: {err}", path.display());
+        let kwz = Kwz::parse(&bytes).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+        let mut state = KwzState::new();
+        for i in 0..kwz.frame_count() {
+            let info = kwz
+                .decode_frame(&mut state, i)
+                .unwrap_or_else(|e| panic!("{} frame {i}: {e}", path.display()));
+            // Each changed layer's bits must be read to within two bytes of the layer's size:
+            // a misread tile shows up as a short or long read here.
+            let frame = kwz.frame(i).expect("frame");
+            for (k, &size) in frame.sizes.iter().enumerate() {
+                if size == 38 {
+                    continue;
+                }
+                let used = info.consumed[k];
+                assert!(
+                    used <= size && size - used <= 2,
+                    "{} frame {i} layer {k}: read {used} of {size}",
+                    path.display()
+                );
+            }
+        }
+        flare_import::import_path(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
     }
+    assert!(seen > 0, "no .kwz files in {}", dir.display());
 }

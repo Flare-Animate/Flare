@@ -76,10 +76,12 @@ fn a_hidden_layer_imports_hidden() {
 }
 
 #[test]
-fn a_kwz_is_refused_by_name() {
+fn a_short_kwz_is_refused_with_its_name() {
+    // Too short to hold any section: the error names the file and the missing section.
     let err = crate::import_bytes(b"KFH\x14 and more".to_vec()).expect_err("refused");
     let message = err.to_string();
-    assert!(message.contains("KWZ"), "{message}");
+    assert!(message.starts_with("Flipnote.kwz:"), "{message}");
+    assert!(message.contains("KFH"), "{message}");
 }
 
 #[test]

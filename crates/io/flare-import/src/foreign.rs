@@ -20,7 +20,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "png" => Some("png"),
         "gif" => Some("gif"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
-        "ppm" | "kwz" => Some("flipnote"),
+        "ppm" | "kwz" | "kwc" => Some("flipnote"),
         "fc" => Some("flipaclip"),
         _ => None,
     }

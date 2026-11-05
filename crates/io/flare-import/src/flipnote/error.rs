@@ -7,8 +7,6 @@ use thiserror::Error;
 pub enum FlipnoteError {
     #[error("not a Flipnote Studio PPM file (the magic is not PARA)")]
     NotPpm,
-    #[error("Flipnote Studio 3D (KWZ) files are not imported yet")]
-    KwzNotSupported,
     #[error("the file is truncated: {what} needs {need} bytes at {at}, the file has {len}")]
     Truncated {
         what: &'static str,
@@ -28,8 +26,12 @@ pub enum FlipnoteError {
         offset: usize,
         len: usize,
     },
-    #[error("the frame speed byte {0} is not one of the 0 to 8 speeds")]
+    #[error("the frame speed {0} is not one of the speeds the format has")]
     BadSpeed(u8),
+    #[error("the file has no {0} section")]
+    MissingSection(&'static str),
+    #[error("the file has {0} section bytes but its sections need {1}")]
+    SectionsShort(usize, usize),
     #[error("the {what} at {at} with {len} bytes lies outside the {file_len} byte file")]
     SectionOutside {
         what: &'static str,
@@ -37,6 +39,8 @@ pub enum FlipnoteError {
         len: usize,
         file_len: usize,
     },
+    #[error("a KWZ line code {0} is outside the table")]
+    BadLineCode(u32),
     #[error("the frames decode to more than {0} bytes of pictures")]
     TooLarge(u64),
 }

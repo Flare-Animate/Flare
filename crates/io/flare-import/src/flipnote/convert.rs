@@ -1,6 +1,7 @@
-//! A PPM as a Flare project: the two Flipnote layers and a paper layer under them, one frame for
-//! each Flipnote frame. A frame's pixels are a bitmap in the document's library; identical
-//! pictures share one bitmap, and a run of one bitmap is one span.
+//! Flipnote files as Flare projects: each Flipnote layer and, where the format has one, the paper
+//! colour as a layer under them, one frame for each Flipnote frame. A frame's pixels are a bitmap
+//! in the document's library; identical pictures share one bitmap, and a run of one bitmap is one
+//! span. The PPM and KWZ readers both build their layers through `assemble`.
 
 use std::collections::HashMap;
 
@@ -17,9 +18,8 @@ use crate::xfl::{Diagnostic, ImportError, Imported, Severity};
 
 /// Most bytes of distinct pictures one import may hold; the same limit the image importers use.
 const MAX_DECODED_BYTES: u64 = 512 * 1024 * 1024;
-const PICTURE_BYTES: u64 = (WIDTH * HEIGHT * 4) as u64;
 
-fn foreign(file: &str, e: impl std::fmt::Display) -> ImportError {
+pub(crate) fn foreign(file: &str, e: impl std::fmt::Display) -> ImportError {
     ImportError::Foreign(format!("{file}: {e}"))
 }
 
@@ -37,32 +37,46 @@ fn pen_picture(bits: &[u8], pen: [u8; 4]) -> Vec<u8> {
         .collect()
 }
 
-fn paper_picture(paper: [u8; 4]) -> Vec<u8> {
-    paper.repeat(WIDTH * HEIGHT)
+fn paper_picture(paper: [u8; 4], pixels: usize) -> Vec<u8> {
+    paper.repeat(pixels)
 }
 
 /// The document's bitmap library, with identical pictures stored once.
-struct Library {
+pub(crate) struct Library {
     file: String,
+    width: usize,
+    height: usize,
     bitmaps: Vec<Bitmap>,
     seen: HashMap<[u8; 32], BitmapId>,
     bytes: u64,
 }
 
 impl Library {
-    fn intern(&mut self, rgba: Vec<u8>) -> Result<BitmapId, ImportError> {
+    pub(crate) fn new(file: &str, width: usize, height: usize) -> Self {
+        Self {
+            file: file.to_owned(),
+            width,
+            height,
+            bitmaps: Vec::new(),
+            seen: HashMap::new(),
+            bytes: 0,
+        }
+    }
+
+    /// Stores `rgba` (a picture of the library's size) unless an identical one is held.
+    pub(crate) fn intern(&mut self, rgba: Vec<u8>) -> Result<BitmapId, ImportError> {
         let bitmap = Bitmap::new(
             BitmapId::new(),
             format!("{} frame", self.file),
-            WIDTH as u32,
-            HEIGHT as u32,
+            self.width as u32,
+            self.height as u32,
             rgba,
         )
         .map_err(|e| foreign(&self.file, e))?;
         if let Some(id) = self.seen.get(bitmap.content_hash()) {
             return Ok(*id);
         }
-        self.bytes += PICTURE_BYTES;
+        self.bytes += (self.width * self.height * 4) as u64;
         if self.bytes > MAX_DECODED_BYTES {
             return Err(foreign(
                 &self.file,
@@ -77,7 +91,7 @@ impl Library {
 }
 
 /// Runs of one bitmap, as spans; a frame is one unit of the timeline.
-fn spans(ids: &[BitmapId], file: &str) -> Result<Vec<FrameSpan>, ImportError> {
+pub(crate) fn spans(ids: &[BitmapId], file: &str) -> Result<Vec<FrameSpan>, ImportError> {
     let mut out = Vec::new();
     let mut start = 0_u32;
     for run in ids.chunk_by(|a, b| a == b) {
@@ -99,15 +113,56 @@ fn spans(ids: &[BitmapId], file: &str) -> Result<Vec<FrameSpan>, ImportError> {
     Ok(out)
 }
 
+/// One layer for `assemble`: its name, whether it is shown, and its bitmap for each frame.
+pub(crate) struct LayerFrames {
+    pub(crate) name: &'static str,
+    pub(crate) visible: bool,
+    pub(crate) bitmaps: Vec<BitmapId>,
+}
+
+/// Builds the document: the layers top to bottom, on a stage of `width` by `height`.
+pub(crate) fn assemble(
+    file: &str,
+    rate: FrameRate,
+    (width, height): (usize, usize),
+    library: Library,
+    layers: Vec<LayerFrames>,
+    diagnostics: Vec<Diagnostic>,
+) -> Result<Imported, ImportError> {
+    let mut built = Vec::new();
+    for layer in layers {
+        let spans = spans(&layer.bitmaps, file)?;
+        let layer = Layer::new(LayerId::new(), layer.name, spans)
+            .map_err(|e| foreign(file, e))?
+            .with_visible(layer.visible);
+        built.push(layer);
+    }
+    let scene = Scene::new(SceneId::new(), file, Timeline::new(built));
+    let stage =
+        Stage::new(width as u32, height as u32, Rgba8::WHITE).map_err(|e| foreign(file, e))?;
+    let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
+        .map_err(ImportError::Invalid)?
+        .with_stage(stage)
+        .with_bitmaps(library.bitmaps)
+        .map_err(ImportError::Invalid)?;
+    Ok(Imported {
+        document,
+        diagnostics,
+    })
+}
+
+pub(crate) fn note(severity: Severity, file: &str, message: String) -> Diagnostic {
+    Diagnostic {
+        severity,
+        location: file.to_owned(),
+        message,
+    }
+}
+
 pub(crate) fn convert(ppm: &Ppm<'_>, file: &str) -> Result<Imported, ImportError> {
     let (num, den) = ppm.frame_rate();
     let rate = FrameRate::new(num, den).map_err(|e| foreign(file, e))?;
-    let mut library = Library {
-        file: file.to_owned(),
-        bitmaps: Vec::new(),
-        seen: HashMap::new(),
-        bytes: 0,
-    };
+    let mut library = Library::new(file, WIDTH, HEIGHT);
     // Per frame: layer 1, layer 2, paper. Layer 1 is the top one.
     let mut per_layer: [Vec<BitmapId>; 3] = [Vec::new(), Vec::new(), Vec::new()];
     let mut dec = FrameDecoder::new();
@@ -119,43 +174,61 @@ pub(crate) fn convert(ppm: &Ppm<'_>, file: &str) -> Result<Imported, ImportError
         let layers = dec.layers();
         let first = library.intern(pen_picture(&layers[0], pen1))?;
         let second = library.intern(pen_picture(&layers[1], pen2))?;
-        let under = library.intern(paper_picture(paper))?;
+        let under = library.intern(paper_picture(paper, WIDTH * HEIGHT))?;
         per_layer[0].push(first);
         per_layer[1].push(second);
         per_layer[2].push(under);
     }
-
     let visible = ppm.meta().map_or([true, true], |m| m.layer_visible);
-    let mut layers = Vec::new();
-    for (k, name) in ["Layer 1", "Layer 2", "Paper"].into_iter().enumerate() {
-        let ids = per_layer.get(k).map(Vec::as_slice).unwrap_or_default();
-        let shown = visible.get(k).copied().unwrap_or(true);
-        let layer = Layer::new(LayerId::new(), name, spans(ids, file)?)
-            .map_err(|e| foreign(file, e))?
-            .with_visible(shown);
-        layers.push(layer);
-    }
-    let scene = Scene::new(SceneId::new(), file, Timeline::new(layers));
-    let stage =
-        Stage::new(WIDTH as u32, HEIGHT as u32, Rgba8::WHITE).map_err(|e| foreign(file, e))?;
-    let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
-        .map_err(ImportError::Invalid)?
-        .with_stage(stage)
-        .with_bitmaps(library.bitmaps)
-        .map_err(ImportError::Invalid)?;
-
-    Ok(Imported {
-        document,
-        diagnostics: diagnostics(ppm, file),
-    })
+    let [l1, l2, paper] = per_layer;
+    let layers = vec![
+        LayerFrames {
+            name: "Layer 1",
+            visible: visible[0],
+            bitmaps: l1,
+        },
+        LayerFrames {
+            name: "Layer 2",
+            visible: visible[1],
+            bitmaps: l2,
+        },
+        LayerFrames {
+            name: "Paper",
+            visible: true,
+            bitmaps: paper,
+        },
+    ];
+    assemble(
+        file,
+        rate,
+        (WIDTH, HEIGHT),
+        library,
+        layers,
+        diagnostics(ppm, file),
+    )
 }
 
-fn note(severity: Severity, file: &str, message: String) -> Diagnostic {
-    Diagnostic {
-        severity,
-        location: file.to_owned(),
-        message,
-    }
+/// Builds the bitmap of one KWZ layer picture from its pixel values and the frame's pens.
+pub(crate) fn kwz_picture(values: &[u8], pens: [[u8; 4]; 2]) -> Vec<u8> {
+    values
+        .iter()
+        .flat_map(|&v| match v {
+            1 => pens[0],
+            2 => pens[1],
+            _ => [0, 0, 0, 0],
+        })
+        .collect()
+}
+
+pub(crate) fn kwz_paper(colour: [u8; 4], pixels: usize) -> Vec<u8> {
+    paper_picture(colour, pixels)
+}
+
+pub(crate) fn kwz_pen(index: u8) -> [u8; 4] {
+    super::kwz::PALETTE
+        .get(usize::from(index))
+        .copied()
+        .unwrap_or([0, 0, 0, 0])
 }
 
 fn diagnostics(ppm: &Ppm<'_>, file: &str) -> Vec<Diagnostic> {
