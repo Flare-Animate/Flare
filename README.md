@@ -55,7 +55,7 @@ It is being rewritten in **Rust**. It is based predominantly on *OpenToonz* and 
 
 | Target | State | Notes |
 |---|---|---|
-| Windows (desktop) | Builds from source | MSVC toolchain and `flare-desktop`. No downloads yet. |
+| Windows (desktop) | Builds from source | MSVC toolchain and `flare-desktop`. |
 | Linux (desktop) | Builds from source | Needs the libraries in [CONTRIBUTING.md](CONTRIBUTING.md). Test Movie needs Ruffle built from the submodule. |
 | macOS (desktop) | Builds from source | Native menu. Pen pressure does not reach the Brush on macOS yet. |
 | Web (browser) | Live, early | The [web version](https://flare-animate.github.io/Flare/) is deployed from `main`. No MP4 export, no sound, and Test Movie runs in the page. |
@@ -63,7 +63,9 @@ It is being rewritten in **Rust**. It is based predominantly on *OpenToonz* and 
 | ChromeOS | Untested | The Android build makes x86_64 and arm64 APKs that should run there. Nothing has been tested on ChromeOS. |
 | iOS | Not built | There is no iOS app. The iOS CI job only tries to compile and does not block. |
 
-No release has been published yet, so there are no downloads. Build from source (below).
+### Downloads
+
+There is no stable release yet. Each night a build of `main` is published as a pre-release, the [nightly](https://github.com/Flare-Animate/Flare/releases/tag/nightly): Windows installers and portable zips, macOS disk images, Linux `.deb`, `.rpm`, `.AppImage`, `.flatpak` and `.tar.gz` packages, the command line archives, the Android APKs and the browser build. The nightly is rebuilt only when `main` has new commits, and keeps only the latest build. Its packages are not signed for distribution; see [docs/RELEASE.md](docs/RELEASE.md). Build from source (below) for anything else.
 
 ## Build and run
 

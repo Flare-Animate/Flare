@@ -48,7 +48,9 @@ is placed, opening a file by double-clicking it on macOS (Apple events need unsa
 Packaging follows the same layout as the other Craft projects: platform files in
 [`packaging/`](../packaging), the build scripts in [`scripts/packaging/`](../scripts/packaging)
 (Python, one per platform), icons in [`assets/`](../assets), and one workflow,
-[`release.yml`](../.github/workflows/release.yml), that builds natively on each platform.
+[`release.yml`](../.github/workflows/release.yml), that builds natively on each platform. The platform builds are
+in [`platforms.yml`](../.github/workflows/platforms.yml), which `release.yml` and the nightly build both call, so a nightly
+is built by the same steps as a release.
 
 ## What a release contains
 
@@ -62,6 +64,25 @@ For each of six targets (Windows, macOS and Linux, x64 and arm64):
 
 The command line archive holds `flare` (the command line) and `flare-mcp`. The desktop app's program is `flare-desktop` on Linux and Windows (inside `Flare.app` on macOS), so the two never share a name on `PATH`; `flare open` starts it. A `SHA256SUMS.txt` covers everything.
 The web build is experimental and not released.
+
+## Nightly builds
+
+[`nightly.yml`](../.github/workflows/nightly.yml) runs every day at 03:17 UTC and by hand. When `main` has no commits
+since the last nightly it does nothing. Otherwise it builds the packages of a release (through `platforms.yml`), the
+Android debug APKs (`android.yml`) and the browser build, and publishes them to one pre-release:
+
+- Version: `<workspace version>-nightly.<YYYYMMDD>.<short commit>`, for example `0.1.0-nightly.20261105.1c42933`. The
+  workspace version is still the one in `Cargo.toml`, and a release still has to be plain semver.
+- Tag and release: the `nightly` tag is moved to the built commit by a force update of that one ref. It is not a
+  `v*` tag, so `release.yml` never runs for it. The release is marked as a pre-release, its assets are replaced on every
+  run (only the latest nightly is kept), and its text lists the commits since the previous nightly.
+- Not signed for distribution, not sent to a store, and no version is tagged `v*`. A failed build publishes nothing
+  and leaves the tag where it was, so the next run tries again.
+
+Known limits: the RPM takes its version from `apps/flare-desktop/Cargo.toml` (cargo-generate-rpm reads it there), so
+its file name carries the nightly version while its metadata carries the workspace version. The Windows installer
+carries the workspace version, because MSI versions are numeric, so a nightly and a release of the same workspace
+version share it. The nightly workflow has not run yet; its first run is the first test of it.
 
 ## Checklist for a version
 
@@ -83,7 +104,7 @@ The web build is experimental and not released.
 
 `android.yml` uploads `flare-android-universal.apk`, `-arm64-v8a.apk` and `-x86_64.apk` (debug-signed)
 and `ios.yml` an experimental unsigned `flare-ios-unsigned` archive (not an app yet) on every push to `main`; `pages.yml` deploys the
-browser build. They are not attached to a GitHub release yet; download them from the run. See
+browser build. The nightly release attaches the APKs and the browser build (see [Nightly builds](#nightly-builds)). See
 [ENGINEERING.md](ENGINEERING.md#continuous-integration).
 
 ## Android signing secrets

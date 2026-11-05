@@ -1,0 +1,214 @@
+name: Nightly
+
+# A rolling pre-release of `main`, built every day when there are new commits. It is published to one
+# release tagged `nightly`, which each run rebuilds and which keeps only the latest build. The tag is
+# not a `v*` tag, so release.yml never runs for it; nothing here signs, notarises or goes to a store.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A run that is still publishing finishes; the next one waits for it instead of racing over the release.
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Plan the nightly
+    runs-on: ubuntu-22.04
+    outputs:
+      build: ${{ steps.plan.outputs.build }}
+      version: ${{ steps.plan.outputs.version }}
+      sha: ${{ steps.plan.outputs.sha }}
+      previous: ${{ steps.plan.outputs.previous }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          # The nightly tag names the commit the last nightly was built from. No tag yet means no previous build.
+          previous=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/nightly" --jq '.object.sha' 2>/dev/null || true)
+          if [ -n "$previous" ]; then
+            kind=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/nightly" --jq '.object.type')
+            if [ "$kind" != commit ]; then
+              echo "::error::The nightly tag must be a lightweight tag on a commit, not a $kind object."
+              exit 1
+            fi
+          fi
+          {
+            echo "sha=$sha"
+            echo "previous=$previous"
+          } >> "$GITHUB_OUTPUT"
+          if [ "$previous" = "$sha" ]; then
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=No new commits::The nightly already holds $sha; nothing to build."
+            exit 0
+          fi
+          # validate would also write version= to GITHUB_OUTPUT, so that output is left unset here.
+          base=$(GITHUB_OUTPUT= python scripts/packaging/package_release.py validate)
+          echo "version=${base}-nightly.$(date -u +%Y%m%d).${sha:0:7}" >> "$GITHUB_OUTPUT"
+          echo "build=true" >> "$GITHUB_OUTPUT"
+
+  platforms:
+    name: Platform packages
+    needs: plan
+    if: needs.plan.outputs.build == 'true'
+    uses: ./.github/workflows/platforms.yml
+    with:
+      version: ${{ needs.plan.outputs.version }}
+
+  # Called without secrets, so its signed-release job skips and only the debug-signed APKs are built.
+  android:
+    name: Android APKs
+    needs: plan
+    if: needs.plan.outputs.build == 'true'
+    uses: ./.github/workflows/android.yml
+
+  web:
+    name: Browser build
+    needs: plan
+    if: needs.plan.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+    steps:
+      # The same build and smoke test as pages.yml, so a nightly page is one that deploys.
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: wasm32-unknown-unknown
+          linux-libs: 'false'
+          cache-key: nightly-web
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@0.2.129
+      - name: Build apps/flare-web/dist
+        run: sh apps/flare-web/scripts/build.sh
+      - name: Smoke test the built site
+        run: |
+          mkdir -p /tmp/serve && ln -sfn "$PWD/apps/flare-web/dist" /tmp/serve/Flare
+          (cd /tmp/serve && python3 -m http.server 8099 >/dev/null 2>&1 &)
+          sleep 1
+          npm install --no-save --no-audit --no-fund playwright@1.49.1
+          npx playwright install chromium --with-deps
+          node apps/flare-web/tests/web_smoke.mjs http://localhost:8099/Flare/ web-smoke.png
+      - name: Pack the page
+        run: |
+          set -euo pipefail
+          mkdir -p web-out
+          cp -r apps/flare-web/dist web-out/flare-web
+          tar -C web-out -czf "web-out/flare-${VERSION}-web.tar.gz" flare-web
+          rm -r web-out/flare-web
+      - uses: actions/upload-artifact@v7
+        with:
+          name: flare-web
+          path: web-out/*
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish the nightly release
+    needs: [plan, platforms, android, web]
+    if: ${{ !cancelled() && needs.plan.outputs.build == 'true' && needs.platforms.result == 'success' && needs.android.result == 'success' && needs.web.result == 'success' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      SHA: ${{ needs.plan.outputs.sha }}
+      PREVIOUS: ${{ needs.plan.outputs.previous }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: flare-${{ env.VERSION }}-*
+          path: dist
+          merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: flare-android-apks
+          path: extras/android
+      - uses: actions/download-artifact@v8
+        with:
+          name: flare-web
+          path: extras/web
+      - name: Require every platform and checksum the packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/packaging/package_release.py finalize --version "$VERSION" --output dist
+          mv extras/android/*.apk extras/web/*.tar.gz dist/
+          (cd dist && sha256sum flare-android-*.apk "flare-${VERSION}-web.tar.gz" >> SHA256SUMS.txt)
+          (cd dist && sha256sum --check SHA256SUMS.txt)
+      - name: Write the release text with the commit range
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="https://github.com/$GITHUB_REPOSITORY"
+          {
+            echo "Nightly build of \`main\` at [\`${SHA:0:7}\`]($repo/commit/$SHA), made $(date -u '+%Y-%m-%d %H:%M UTC')."
+            echo
+            echo "This is a daily build, not a release: it is rebuilt from \`main\` when there are new commits, and only the latest one is kept. It is not signed for distribution. On macOS, open the app with right-click, Open the first time. Stable releases are the \`v*\` tags."
+            echo
+            if [ -n "$PREVIOUS" ]; then
+              echo "Commits since the previous nightly ([\`${PREVIOUS:0:7}\`...\`${SHA:0:7}\`]($repo/compare/$PREVIOUS...$SHA)):"
+              echo
+              git log --no-merges --max-count=200 --format='- %h %s (%an)' "$PREVIOUS..$SHA"
+            else
+              echo "The first nightly. The latest commits:"
+              echo
+              git log --no-merges --max-count=30 --format='- %h %s (%an)' "$SHA"
+            fi
+          } > release-body.md
+      - name: Replace the assets of the nightly release, then move its tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="Nightly $VERSION"
+          if ! gh release view nightly > /dev/null 2>&1; then
+            gh release create nightly --target "$SHA" --prerelease --title "$title" --notes-file release-body.md
+          fi
+          gh release view nightly --json assets --jq '.assets[].name' > old-assets.txt
+          while IFS= read -r name; do
+            [ -n "$name" ] && gh release delete-asset nightly "$name" --yes
+          done < old-assets.txt
+          gh release edit nightly --prerelease --draft=false --title "$title" --notes-file release-body.md
+          gh release upload nightly dist/* --clobber
+          # The tag moves last, so a run that fails above is built again by the next run.
+          git push --force origin "$SHA:refs/tags/nightly"
+      - name: Check the release holds exactly the built files
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view nightly --json assets --jq '.assets[].name' | sort > uploaded.txt
+          find dist -maxdepth 1 -type f -printf '%f\n' | sort > expected.txt
+          diff -u expected.txt uploaded.txt
+          gh release view nightly --json isPrerelease,isDraft --jq 'select(.isPrerelease and (.isDraft | not))' | grep -q .

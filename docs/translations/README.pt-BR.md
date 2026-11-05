@@ -55,7 +55,7 @@ O [docs/SURFACES.md](../SURFACES.md) lista, recurso por recurso, o que cada um d
 
 | Destino | Situação | Observações |
 |---|---|---|
-| Windows (desktop) | Compila a partir do código-fonte | Toolchain MSVC e `flare-desktop`. Ainda sem downloads. |
+| Windows (desktop) | Compila a partir do código-fonte | Toolchain MSVC e `flare-desktop`. |
 | Linux (desktop) | Compila a partir do código-fonte | Precisa das bibliotecas listadas em [CONTRIBUTING.md](../../CONTRIBUTING.md). Testar Filme precisa do Ruffle compilado a partir do submódulo. |
 | macOS (desktop) | Compila a partir do código-fonte | Menu nativo. A pressão da caneta ainda não chega ao Pincel no macOS. |
 | Web (navegador) | No ar, inicial | A [versão web](https://flare-animate.github.io/Flare/) é publicada a partir de `main`. Sem exportação MP4, sem som, e Testar Filme roda na própria página. |
@@ -63,7 +63,9 @@ O [docs/SURFACES.md](../SURFACES.md) lista, recurso por recurso, o que cada um d
 | ChromeOS | Não testado | A versão Android gera APKs para x86_64 e arm64 que deveriam rodar ali. Nada foi testado no ChromeOS. |
 | iOS | Não construído | Não há aplicativo para iOS. A tarefa de CI do iOS só tenta compilar e não bloqueia. |
 
-Nenhuma versão foi publicada ainda, então não há downloads. Compile a partir do código-fonte (abaixo).
+### Downloads
+
+Ainda não há uma versão estável. Todas as noites, uma compilação de `main` é publicada como pré-lançamento, a [nightly](https://github.com/Flare-Animate/Flare/releases/tag/nightly): instaladores e ZIPs portáteis para Windows, imagens de disco para macOS, pacotes Linux `.deb`, `.rpm`, `.AppImage`, `.flatpak` e `.tar.gz`, os arquivos da linha de comando, os APKs do Android e a versão para navegador. A nightly só é recompilada quando `main` tem commits novos e mantém apenas a compilação mais recente. Os pacotes não são assinados para distribuição; veja [docs/RELEASE.md](../RELEASE.md). Para o resto, compile a partir do código-fonte (abaixo).
 
 ## Compilar e executar
 

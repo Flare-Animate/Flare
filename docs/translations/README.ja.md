@@ -55,7 +55,7 @@ Flare は **Rust** で書き直している最中です。主に *OpenToonz* と
 
 | 対象 | 状態 | 備考 |
 |---|---|---|
-| Windows (デスクトップ) | ソースからビルド可能 | MSVC ツールチェーンと `flare-desktop`。ダウンロードはまだありません。 |
+| Windows (デスクトップ) | ソースからビルド可能 | MSVC ツールチェーンと `flare-desktop`。 |
 | Linux (デスクトップ) | ソースからビルド可能 | [CONTRIBUTING.md](../../CONTRIBUTING.md) のライブラリが必要です。ムービーのテストには、サブモジュールからビルドした Ruffle が必要です。 |
 | macOS (デスクトップ) | ソースからビルド可能 | ネイティブメニュー。macOS では、ペンの筆圧はまだブラシに届きません。 |
 | Web (ブラウザ) | 公開中、初期段階 | [Web版](https://flare-animate.github.io/Flare/) は `main` から公開されています。MP4 のエクスポートとサウンドはなく、ムービーのテストはページ内で動きます。 |
@@ -63,7 +63,9 @@ Flare は **Rust** で書き直している最中です。主に *OpenToonz* と
 | ChromeOS | 未検証 | Android 版は x86_64 と arm64 の APK を作り、そこでも動くはずです。ChromeOS での検証はしていません。 |
 | iOS | 未実装 | iOS アプリはありません。iOS の CI ジョブはコンパイルを試みるだけで、失敗しても止まりません。 |
 
-まだリリースは公開されていないため、ダウンロードはありません。ソースからビルドしてください (下記)。
+### ダウンロード
+
+安定版のリリースはまだありません。毎晩 `main` のビルドがプレリリースとして公開されます（[nightly リリース](https://github.com/Flare-Animate/Flare/releases/tag/nightly）。Windows のインストーラーとポータブルZIP、macOS のディスクイメージ、Linux の `.deb`、`.rpm`、`.AppImage`、`.flatpak`、`.tar.gz` パッケージ、コマンドラインのアーカイブ、Android の APK、ブラウザ版が含まれます。nightly は `main` に新しいコミットがあるときだけ再ビルドされ、最新のビルドのみを保持します。配布用には署名されていません（[docs/RELEASE.md](../RELEASE.md) を参照）。それ以外はソースからビルドしてください（下記）。
 
 ## ビルドと実行
 

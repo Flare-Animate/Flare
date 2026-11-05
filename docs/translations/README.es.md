@@ -55,7 +55,7 @@ Flare se está reescribiendo en **Rust**. Se basa sobre todo en *OpenToonz* y *T
 
 | Destino | Estado | Notas |
 |---|---|---|
-| Windows (escritorio) | Se compila desde el código | Cadena de herramientas MSVC y `flare-desktop`. Todavía sin descargas. |
+| Windows (escritorio) | Se compila desde el código | Cadena de herramientas MSVC y `flare-desktop`. |
 | Linux (escritorio) | Se compila desde el código | Necesita las bibliotecas de [CONTRIBUTING.md](../../CONTRIBUTING.md). Probar película necesita Ruffle compilado desde el submódulo. |
 | macOS (escritorio) | Se compila desde el código | Menú nativo. La presión del lápiz todavía no llega al pincel en macOS. |
 | Web (navegador) | En vivo, temprana | La [versión web](https://flare-animate.github.io/Flare/) se publica desde `main`. Sin exportación MP4, sin sonido, y Probar película se ejecuta en la página. |
@@ -63,7 +63,9 @@ Flare se está reescribiendo en **Rust**. Se basa sobre todo en *OpenToonz* y *T
 | ChromeOS | Sin probar | La versión Android genera APK para x86_64 y arm64 que deberían funcionar allí. No se ha probado nada en ChromeOS. |
 | iOS | No construido | No hay aplicación para iOS. El trabajo de CI para iOS solo intenta compilar y no bloquea. |
 
-Todavía no se ha publicado ninguna versión, así que no hay descargas. Compile desde el código (abajo).
+### Descargas
+
+Todavía no hay una versión estable. Cada noche se publica una compilación de `main` como prerelease, la [versión nightly](https://github.com/Flare-Animate/Flare/releases/tag/nightly): instaladores de Windows y ZIP portátiles, imágenes de disco de macOS, paquetes de Linux `.deb`, `.rpm`, `.AppImage`, `.flatpak` y `.tar.gz`, los archivos de la línea de comandos, los APK de Android y la versión para navegador. La versión nightly solo se recompila cuando `main` tiene commits nuevos y conserva únicamente la última compilación. Sus paquetes no están firmados para su distribución; consulte [docs/RELEASE.md](../RELEASE.md). Para todo lo demás, compile desde el código (abajo).
 
 ## Compilar y ejecutar
 

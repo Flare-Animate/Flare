@@ -55,7 +55,7 @@ Flare wird in **Rust** neu geschrieben. Die Basis bilden überwiegend *OpenToonz
 
 | Ziel | Stand | Hinweise |
 |---|---|---|
-| Windows (Desktop) | Aus dem Quellcode baubar | MSVC-Toolchain und `flare-desktop`. Noch keine Downloads. |
+| Windows (Desktop) | Aus dem Quellcode baubar | MSVC-Toolchain und `flare-desktop`. |
 | Linux (Desktop) | Aus dem Quellcode baubar | Braucht die Bibliotheken aus [CONTRIBUTING.md](../../CONTRIBUTING.md). Film testen braucht Ruffle aus dem Submodul. |
 | macOS (Desktop) | Aus dem Quellcode baubar | Natives Menü. Der Stiftdruck erreicht den Pinsel unter macOS noch nicht. |
 | Web (Browser) | Live, früh | Die [Webversion](https://flare-animate.github.io/Flare/) wird aus `main` veröffentlicht. Kein MP4-Export, kein Ton, und Film testen läuft in der Seite. |
@@ -63,7 +63,9 @@ Flare wird in **Rust** neu geschrieben. Die Basis bilden überwiegend *OpenToonz
 | ChromeOS | Ungetestet | Der Android-Build erzeugt APKs für x86_64 und arm64, die dort laufen sollten. Auf ChromeOS wurde nichts getestet. |
 | iOS | Nicht gebaut | Es gibt keine iOS-App. Der iOS-CI-Job versucht nur das Kompilieren und blockiert nicht. |
 
-Es ist noch kein Release veröffentlicht, daher gibt es keine Downloads. Bauen Sie aus dem Quellcode (unten).
+### Downloads
+
+Es gibt noch kein stabiles Release. Jede Nacht wird ein Build von `main` als Vorabversion veröffentlicht, das [Nightly-Release](https://github.com/Flare-Animate/Flare/releases/tag/nightly): Windows-Installer und portable ZIPs, macOS-Disk-Images, Linux-Pakete `.deb`, `.rpm`, `.AppImage`, `.flatpak` und `.tar.gz`, die Kommandozeilen-Archive, die Android-APKs und der Browser-Build. Das Nightly wird nur neu gebaut, wenn `main` neue Commits hat, und es behält nur den neuesten Build. Seine Pakete sind nicht für die Verteilung signiert; siehe [docs/RELEASE.md](../RELEASE.md). Für alles andere bauen Sie aus dem Quellcode (unten).
 
 ## Bauen und starten
 

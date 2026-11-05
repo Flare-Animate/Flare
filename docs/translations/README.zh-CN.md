@@ -55,7 +55,7 @@ Flare 正在用 **Rust** 重写。它主要基于 *OpenToonz* 和 *Tahoma2D*，�
 
 | 目标 | 状态 | 说明 |
 |---|---|---|
-| Windows（桌面） | 可从源码构建 | MSVC 工具链和 `flare-desktop`。尚无下载。 |
+| Windows（桌面） | 可从源码构建 | MSVC 工具链和 `flare-desktop`。 |
 | Linux（桌面） | 可从源码构建 | 需要 [CONTRIBUTING.md](../../CONTRIBUTING.md) 中列出的库。测试影片需要从子模块构建的 Ruffle。 |
 | macOS（桌面） | 可从源码构建 | 原生菜单。在 macOS 上，触控笔压感尚未传递到画笔。 |
 | Web（浏览器） | 已上线，早期 | [网页版](https://flare-animate.github.io/Flare/) 从 `main` 分支发布。没有 MP4 导出，没有声音，“测试影片”在页面内运行。 |
@@ -63,7 +63,9 @@ Flare 正在用 **Rust** 重写。它主要基于 *OpenToonz* 和 *Tahoma2D*，�
 | ChromeOS | 未经测试 | Android 版本会生成 x86_64 和 arm64 的 APK，理论上可在其上运行。尚未在 ChromeOS 上测试。 |
 | iOS | 未构建 | 没有 iOS 应用。iOS 的 CI 任务只尝试编译，失败也不会阻塞。 |
 
-目前尚未发布任何版本，因此没有下载。请从源码构建（见下文）。
+### 下载
+
+目前还没有稳定版本。每晚都会把 `main` 的构建发布为预发布版本，即 [nightly 版本](https://github.com/Flare-Animate/Flare/releases/tag/nightly)：包括 Windows 安装程序和便携 ZIP、macOS 磁盘映像、Linux 的 `.deb`、`.rpm`、`.AppImage`、`.flatpak` 和 `.tar.gz` 包、命令行压缩包、Android APK 以及浏览器版本。只有 `main` 有新提交时才会重新构建 nightly，并且只保留最新的一次构建。这些包没有为分发签名，请先阅读 [docs/RELEASE.md](../RELEASE.md)。其他情况请从源码构建（见下文）。
 
 ## 构建与运行
 

@@ -55,7 +55,7 @@ Flare est en cours de réécriture en **Rust**. Il s'appuie surtout sur *OpenToo
 
 | Cible | État | Remarques |
 |---|---|---|
-| Windows (bureau) | Se compile depuis les sources | Chaîne MSVC et `flare-desktop`. Pas encore de téléchargements. |
+| Windows (bureau) | Se compile depuis les sources | Chaîne MSVC et `flare-desktop`. |
 | Linux (bureau) | Se compile depuis les sources | Nécessite les bibliothèques de [CONTRIBUTING.md](../../CONTRIBUTING.md). Tester le film nécessite Ruffle compilé depuis le sous-module. |
 | macOS (bureau) | Se compile depuis les sources | Menu natif. La pression du stylet n'atteint pas encore le pinceau sous macOS. |
 | Web (navigateur) | En ligne, précoce | La [version web](https://flare-animate.github.io/Flare/) est publiée depuis `main`. Pas d'export MP4, pas de son, et Tester le film s'exécute dans la page. |
@@ -63,7 +63,9 @@ Flare est en cours de réécriture en **Rust**. Il s'appuie surtout sur *OpenToo
 | ChromeOS | Non testé | La version Android produit des APK x86_64 et arm64 qui devraient y fonctionner. Rien n'a été testé sur ChromeOS. |
 | iOS | Non construit | Il n'existe pas d'application iOS. La tâche CI iOS tente seulement de compiler et ne bloque pas. |
 
-Aucune version n'a encore été publiée, il n'y a donc pas de téléchargements. Compilez depuis les sources (ci-dessous).
+### Téléchargements
+
+Il n'existe pas encore de version stable. Chaque nuit, une compilation de `main` est publiée en préversion, la [version nightly](https://github.com/Flare-Animate/Flare/releases/tag/nightly) : installeurs Windows et archives ZIP portables, images disque macOS, paquets Linux `.deb`, `.rpm`, `.AppImage`, `.flatpak` et `.tar.gz`, archives de la ligne de commande, APK Android et version navigateur. La version nightly n'est recompilée que lorsque `main` a de nouveaux commits, et ne conserve que la dernière compilation. Ses paquets ne sont pas signés pour la distribution ; voir [docs/RELEASE.md](../RELEASE.md). Pour le reste, compilez depuis les sources (ci-dessous).
 
 ## Compiler et lancer
 

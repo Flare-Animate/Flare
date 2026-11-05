@@ -82,7 +82,7 @@ code it protects and confirm the test notices.
 ## Continuous integration
 
 Workflows are in `.github/workflows/`; the toolchain, cache and Linux libraries are set up once
-in `.github/actions/setup-rust`. Every workflow runs on pushes to `main`, on pull requests and by
+in `.github/actions/setup-rust`. Every workflow except `nightly.yml` (a daily schedule, and by hand) and `platforms.yml` (called by `release.yml` and `nightly.yml`) runs on pushes to `main`, on pull requests and by
 hand (`workflow_dispatch`), cancels a superseded run of the same branch or pull request (never on `main`), and has read-only
 `contents` permission unless a job says otherwise.
 
@@ -93,6 +93,8 @@ hand (`workflow_dispatch`), cancels a superseded run of the same branch or pull 
 | `ios.yml` | compiles `flare-shell` and the desktop binary for `aarch64-apple-ios` (window-system and clipboard crates are gated off iOS in `flare-shell`'s Cargo.toml, and rfd is gated off iOS in `flare-platform`'s), then wraps the binary in an experimental unsigned `.ipa`. This is a build check, not an iOS app; see SURFACES.md | iOS (not yet an app) |
 | `pages.yml` | builds the page with `apps/flare-web/scripts/build.sh`; a push to `main` deploys it to GitHub Pages | Web |
 | `release.yml` | on a `v*` tag: portable archives, MSI, DMG, AppImage, deb, rpm and Flatpak for Windows, macOS and Linux (x86_64 and arm64), checksums, GitHub release | Windows, macOS, Linux |
+| `platforms.yml` | reusable (called, no triggers of its own): the desktop, command line and MCP packages for every target, each built natively; used by `release.yml` and `nightly.yml` | Windows, macOS, Linux |
+| `nightly.yml` | a daily build of `main` when it has new commits, and by hand: the platform packages, Android APKs and browser build, published to the rolling `nightly` pre-release (never a `v*` tag, so `release.yml` does not run) | Windows, macOS, Linux, Android, Web |
 
 FreeBSD is not built: its workflow built a path that no longer exists and always reported success.
 Add it back as a non-blocking job when a maintainer wants it.
