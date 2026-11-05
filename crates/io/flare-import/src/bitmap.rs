@@ -45,7 +45,7 @@ fn check_size(file: &str, width: u32, height: u32) -> Result<(), ImportError> {
     Ok(())
 }
 
-pub(crate) fn decode_png(file: &str, bytes: &[u8]) -> Result<Picture, ImportError> {
+fn decode_png(file: &str, bytes: &[u8]) -> Result<Picture, ImportError> {
     let mut decoder = png::Decoder::new(std::io::Cursor::new(bytes));
     decoder.set_transformations(png::Transformations::normalize_to_color8());
     let mut reader = decoder.read_info().map_err(|e| bad(file, e))?;
@@ -272,7 +272,7 @@ fn natural_cmp(a: &str, b: &str) -> std::cmp::Ordering {
             (None, _) => return std::cmp::Ordering::Less,
             (_, None) => return std::cmp::Ordering::Greater,
             (Some(x), Some(y)) if x.is_ascii_digit() && y.is_ascii_digit() => {
-                let mut run = |it: &mut std::iter::Peekable<std::str::Chars<'_>>| {
+                let run = |it: &mut std::iter::Peekable<std::str::Chars<'_>>| {
                     let mut digits = String::new();
                     while let Some(c) = it.next_if(char::is_ascii_digit) {
                         digits.push(c);
