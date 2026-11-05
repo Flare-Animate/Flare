@@ -88,11 +88,14 @@ fn convert_goes_between_every_format_and_back() {
     let xfl = json(&["convert", &at("b.flare"), &at("c.xfl")]);
     assert_eq!(xfl["format"], "xfl");
     let stub = xfl["converted"].as_str().expect("path").to_owned();
+    // Compared by path components: Windows separates them with a backslash.
+    let stub_path = std::path::Path::new(&stub);
     assert!(
-        stub.ends_with("c/sample.xfl")
-            || stub.ends_with("c/c.xfl")
-            || stub.ends_with("c\\sample.xfl")
-            || stub.ends_with("c\\c.xfl"),
+        stub_path.parent().and_then(|p| p.file_name()) == Some(std::ffi::OsStr::new("c"))
+            && matches!(
+                stub_path.file_name().and_then(|n| n.to_str()),
+                Some("sample.xfl" | "c.xfl")
+            ),
         "{stub}"
     );
     let fla = json(&["convert", &stub, &at("d.fla")]);

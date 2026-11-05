@@ -408,7 +408,8 @@ async fn exports_are_disabled_without_a_directory_and_confined_to_it_with_one() 
         .ok("export_png", json!({ "frame": 0, "name": "shot" }))
         .await;
     let path = out["path"].as_str().expect("path").to_owned();
-    assert!(path.ends_with("exports/shot.png"));
+    // Compared by path components: Windows separates them with a backslash.
+    assert!(std::path::Path::new(&path).ends_with("exports/shot.png"));
     let (pixels, width) = read_png(&path);
     assert_eq!(width, 40, "defaults to the stage size");
     assert_eq!(
