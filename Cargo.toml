@@ -176,7 +176,7 @@ web-sys = "0.3"
 muda = "0.21.2"          # Native menu bar (macOS); other platforms use the in-window menu.
 # The desktop member must choose native backends/fonts/clipboard/platform features.
 # Do not assume these minimal declarations alone build a desktop application.
-vello_cpu = { version = "0.3.0", features = ["multithreading"] } # Selected CPU rasterizer; see experiments/renderers/results/REPORT.md. Threads are opt-in per render.
+vello_cpu = "0.3.0" # Selected CPU rasterizer; see experiments/renderers/results/REPORT.md. Threads are opt-in per render, and only off the web: see flare-render/Cargo.toml.
 
 # ---- CPU workers and asynchronous application services -----------------------
 rayon = "1"                 # Data parallelism inside one background job (GIF frames), on a pool that leaves a core for the window.

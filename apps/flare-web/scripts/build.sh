@@ -13,7 +13,7 @@ cargo build -p flare-web --target wasm32-unknown-unknown $flags
 rm -rf "$here/dist"
 mkdir -p "$here/dist/pkg"
 wasm-bindgen --target web --out-dir "$here/dist/pkg" \
-  "$root/target/wasm32-unknown-unknown/$profile/flare_web.wasm"
+  "${CARGO_TARGET_DIR:-$root/target}/wasm32-unknown-unknown/$profile/flare_web.wasm"
 (cd "$here" && npm ci --ignore-scripts --no-audit --no-fund)
 node "$here/scripts/vendor.mjs" "$here/dist/vendor"
 cp "$here/public/index.html" "$here/dist/index.html"

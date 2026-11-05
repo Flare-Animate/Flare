@@ -16,6 +16,11 @@ png.workspace = true
 thiserror.workspace = true
 vello_cpu.workspace = true
 
+# Threads are native only: with the feature on, vello_cpu's default settings call
+# available_parallelism().unwrap(), which panics on wasm32 and kept the web build from starting.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+vello_cpu = { workspace = true, features = ["multithreading"] }
+
 [lints]
 workspace = true
 
