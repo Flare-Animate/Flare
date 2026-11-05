@@ -242,7 +242,7 @@ fn draw_bitmap(
     for (out, rgba) in pixmap
         .data_mut()
         .iter_mut()
-        .zip(bitmap.pixels().chunks_exact(4))
+        .zip(bitmap.pixels().as_chunks::<4>().0)
     {
         let a = u16::from(rgba[3]);
         let mul = |c: u8| ((u16::from(c) * a + 127) / 255) as u8;

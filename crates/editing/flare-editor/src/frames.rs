@@ -8,7 +8,7 @@
 use std::num::NonZeroU32;
 
 use flare_core::{InstanceId, SceneId, ShapeId};
-use flare_document::{Content, FrameSpan, Instance, Layer, Shape, SoundCue};
+use flare_document::{BitmapInstance, Content, FrameSpan, Instance, Layer, Shape, SoundCue};
 
 use flare_commands::Command;
 
@@ -18,6 +18,10 @@ fn duplicate(content: &Content) -> Option<Content> {
     Some(match content {
         Content::Empty => Content::Empty,
         Content::Camera(c) => Content::Camera(*c),
+        Content::Bitmap(b) => Content::Bitmap(
+            BitmapInstance::new(InstanceId::new(), b.bitmap(), b.transform())
+                .with_opacity(b.opacity()),
+        ),
         Content::Instance(i) => Content::Instance(
             Instance::new(InstanceId::new(), i.symbol(), i.transform()).with_playback(i.playback()),
         ),

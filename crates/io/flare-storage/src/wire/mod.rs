@@ -92,6 +92,7 @@ impl SymbolWire {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn assemble(
     project_id: &str,
     settings: &str,

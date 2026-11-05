@@ -135,6 +135,9 @@ impl<'d> Builder<'d> {
                     matrix(level.view),
                     0,
                 ),
+                LevelContent::Bitmap { .. } => {
+                    return Err(PublishError::BitmapsUnsupported { frame });
+                }
                 LevelContent::Instance {
                     id,
                     symbol,

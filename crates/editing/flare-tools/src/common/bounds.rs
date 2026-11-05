@@ -168,6 +168,14 @@ pub(crate) fn content_bounds(document: &Document, content: &Content) -> Option<R
         // The camera is not art: it has no outline to select or move.
         Content::Empty | Content::Camera(_) => None,
         Content::Shape(shape) => shape_bounds(shape),
+        Content::Bitmap(placed) => {
+            let bitmap = document.bitmap(placed.bitmap())?;
+            let local = Rect::from_min_max(
+                Pos2::ZERO,
+                Pos2::new(bitmap.width() as f32, bitmap.height() as f32),
+            );
+            Some(transformed(local, placed.transform().as_affine()))
+        }
         Content::Instance(instance) => {
             let local = symbol_bounds(document, instance.symbol())?;
             Some(transformed(local, instance.transform().as_affine()))

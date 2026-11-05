@@ -81,6 +81,13 @@ pub(super) fn write_frame(
         match element {
             Content::Empty => {}
             Content::Instance(instance) => write_instance(out, instance, ctx.names),
+            // XFL names a bitmap by a library item and an embedded image file, which the
+            // document does not carry in that form yet.
+            Content::Bitmap(_) => ctx.notes.push(Diagnostic {
+                severity: Severity::Warning,
+                location: format!("frame {}", span.start()),
+                message: "a bitmap was not written: XFL export of bitmaps is not built yet".into(),
+            }),
             // XFL's camera layer is not written (see `write_layer`).
             Content::Camera(_) => {}
             Content::Shape(shape) => {
