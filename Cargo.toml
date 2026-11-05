@@ -66,6 +66,7 @@ license = "BSD-3-Clause"
 # foundation
 flare-core = { path = "crates/foundation/flare-core" }
 flare-document = { path = "crates/foundation/flare-document" }
+flare-game = { path = "crates/foundation/flare-game" }
 flare-tween = { path = "crates/foundation/flare-tween" }
 flare-eval = { path = "crates/foundation/flare-eval" }
 flare-rig = { path = "crates/foundation/flare-rig" }
