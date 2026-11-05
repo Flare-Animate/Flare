@@ -26,7 +26,7 @@ pub enum EvalError {
     TooDeep,
     #[error("more than {MAX_NODES} placed instances")]
     TooManyNodes,
-    #[error("instance {0:?} cannot be tweened: its matrix has shear or reflection")]
+    #[error("instance {0:?} cannot be tweened: its matrix is not finite")]
     UnsupportedTween(InstanceId),
 }
 
@@ -41,6 +41,9 @@ pub struct Frame<'a> {
     pub bitmaps: Vec<DrawnBitmap<'a>>,
     /// The mask regions that `DrawnShape::clips` refer to.
     pub clips: Vec<Vec<ClipShape<'a>>>,
+    /// Things that went wrong but did not stop the frame, such as a tween that fell back to the
+    /// span's own keyframe.
+    pub warnings: Vec<String>,
 }
 
 /// One shape of a mask: the mask's region is the union of these.

@@ -220,6 +220,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
             shapes: vec![],
             bitmaps: vec![],
             clips: vec![],
+            warnings: vec![],
         },
         20,
         20,

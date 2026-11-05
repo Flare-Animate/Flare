@@ -8,6 +8,9 @@ All notable changes are listed here. The format follows
 
 The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
 
+### Fixed
+- Playing or rendering an imported `.fla` no longer fails with "cannot be tweened: its matrix has shear or reflection": motion tweens interpolate any 2D matrix (rotation, skew, signed scales, translation), and a tween that cannot be computed holds its keyframe and records a warning instead of blanking the frame.
+
 ### Added
 - The Bone tool, as in Animate: a drag from one symbol instance to another links them with a bone, and both move to a new armature layer ("Armature_1") whose keyframes are poses; a drag from an instance already in an armature adds a bone below it. The Selection tool poses an armature: a joint, the instance it carries or a bone (by its tip) is pulled toward the pointer by inverse kinematics, turning the joints above it, and a root moves the whole armature. A pose made between two keyframes is a keyframe of its own that the one before tweens into, and the instances keep playing their symbols through the poses. Properties edits the joint last touched: its turn, its rotation limits, Remove bone and Release armature (back to plain instances, posed). Exports, the preview, SWF and HTML5 show the poses; XFL export writes each pose as its instances, with a warning. `flare bone` and `flare bones`, and the MCP tools `add_bone`, `pose_bone`, `limit_joint`, `detach_bone`, `release_armature` and `list_bones`, do the same.
 - Paste puts what was copied into the active layer's keyframe at the playhead, as Animate does, instead of making a layer for each thing; a locked, hidden or guide layer says why it cannot take it. A tween on a keyframe of several elements moves the first and holds the others, in the editor and in imported XFL.

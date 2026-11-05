@@ -8,7 +8,6 @@
 use flare_core::{DocumentPoint, InstanceId, ShapeId, Transform2D};
 use flare_document::{Content, Instance, PathSegment, Shape};
 use flare_tween::{Easing, Interpolation, MAX_POINTS, Params, SequenceOptions, StrokePoint};
-use glamx::DAffine2;
 
 /// The polyline's points, if the path is exactly one open `MoveTo` then `LineTo`s.
 fn polyline(path: &[PathSegment]) -> Option<Vec<StrokePoint>> {
@@ -74,16 +73,12 @@ pub fn inbetween_content(a: &Content, b: &Content, t: f64) -> Option<Content> {
     match (a, b) {
         (Content::Shape(x), Content::Shape(y)) => shape_between(x, y, t).map(Content::Shape),
         (Content::Instance(x), Content::Instance(y)) if x.symbol() == y.symbol() => {
-            let (s0, r0, t0) = crate::decompose(x.transform().as_affine())?;
-            let (s1, r1, t1) = crate::decompose(y.transform().as_affine())?;
-            let mut d = (r1 - r0) % std::f64::consts::TAU;
-            if d > std::f64::consts::PI {
-                d -= std::f64::consts::TAU;
-            } else if d < -std::f64::consts::PI {
-                d += std::f64::consts::TAU;
-            }
-            let m =
-                DAffine2::from_scale_angle_translation(s0.lerp(s1, t), r0 + d * t, t0.lerp(t1, t));
+            let m = crate::affine::interpolate(
+                x.transform().as_affine(),
+                y.transform().as_affine(),
+                t,
+                None,
+            )?;
             let transform = Transform2D::new(m).ok()?;
             Some(Content::Instance(
                 Instance::new(InstanceId::new(), x.symbol(), transform).with_playback(x.playback()),

@@ -35,8 +35,7 @@ pub fn translate_many(
 }
 
 /// Whether an instance span may take the transform `moved`. A motion tween interpolates between
-/// two exposures, which only works for a scale, rotation and translation, so shearing or
-/// mirroring an exposure that starts or ends a tween would make the frame impossible to draw.
+/// two exposures, which works for any finite matrix, so only a non-finite one is refused.
 pub(super) fn tween_allows(
     document: &Document,
     scene: SceneId,

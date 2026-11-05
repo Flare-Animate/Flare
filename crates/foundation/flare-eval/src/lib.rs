@@ -13,7 +13,7 @@ use std::borrow::Cow;
 
 use flare_core::{InstanceId, Rgba8, SceneId};
 use flare_document::{Content, Document, Instance, Layer, Shape, Timeline, Tween};
-use glamx::{DAffine2, DVec2};
+use glamx::DAffine2;
 
 pub(crate) const MAX_DEPTH: usize = 64;
 pub(crate) const MAX_NODES: usize = 100_000;
@@ -230,7 +230,11 @@ fn walk_layer<'a>(
             Content::Instance(instance) => {
                 // Only the first element of a span takes the span's tween.
                 let local = if index == 0 {
-                    tweened(layer, frame, instance, guide)?
+                    // One bad tween must not blank the frame: hold the keyframe and say so.
+                    tweened(layer, frame, instance, guide).unwrap_or_else(|error| {
+                        out.warnings.push(error.to_string());
+                        instance.transform().as_affine()
+                    })
                 } else {
                     instance.transform().as_affine()
                 };
@@ -385,8 +389,8 @@ fn shape_at<'a>(
 
 /// Applies a linear motion tween toward the next adjacent span on the same layer.
 ///
-/// Interpolates scale, rotation (shortest arc) and translation. Matrices that are not a
-/// pure scale-rotate-translate (shear, reflection) are reported, not approximated.
+/// Interpolates rotation (shortest arc), signed scales, skew and translation, so shear and
+/// reflection tween like any other matrix; only a non-finite matrix is an error.
 fn tweened(
     layer: &Layer,
     frame: u32,
@@ -410,49 +414,23 @@ fn tweened(
         return Ok(from);
     }
     let to = target.transform().as_affine();
-    let (Some((s0, r0, t0)), Some((s1, r1, t1))) = (decompose(from), decompose(to)) else {
-        return Err(EvalError::UnsupportedTween(id));
-    };
     let t = morph::span_fraction(
         span,
         f64::from(frame - span.start()) / f64::from(span.duration().get()),
     );
-    let mut delta = (r1 - r0) % std::f64::consts::TAU;
-    if delta > std::f64::consts::PI {
-        delta -= std::f64::consts::TAU;
-    } else if delta < -std::f64::consts::PI {
-        delta += std::f64::consts::TAU;
-    }
     // With a guide the registration point rides the guide's path, from its start to its end,
     // instead of going straight from one position to the other.
-    let position = guide
-        .and_then(|shape| guide::point_along(shape.path(), t))
-        .unwrap_or_else(|| t0.lerp(t1, t));
-    Ok(DAffine2::from_scale_angle_translation(
-        s0.lerp(s1, t),
-        r0 + delta * t,
-        position,
-    ))
+    let position = guide.and_then(|shape| guide::point_along(shape.path(), t));
+    affine::interpolate(from, to, t, position).ok_or(EvalError::UnsupportedTween(id))
 }
 
-/// Whether a motion tween can start or end at `matrix`: only a scale, rotation and translation
-/// can be interpolated, so a matrix with shear or reflection cannot.
+/// Whether a motion tween can start or end at `matrix`: any finite 2D affine matrix can,
+/// shear and reflection included.
 pub fn can_tween(matrix: DAffine2) -> bool {
-    matrix.is_finite() && decompose(matrix).is_some()
+    matrix.is_finite()
 }
 
-/// Scale, angle, translation, or `None` when the matrix is not exactly representable.
-pub(crate) fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
-    let (scale, angle, translation) = matrix.to_scale_angle_translation();
-    let rebuilt = DAffine2::from_scale_angle_translation(scale, angle, translation);
-    let close = rebuilt
-        .to_cols_array()
-        .iter()
-        .zip(matrix.to_cols_array())
-        .all(|(a, b)| (a - b).abs() <= 1e-9 * (1.0 + b.abs()));
-    close.then_some((scale, angle, translation))
-}
-
+mod affine;
 mod armature;
 mod camera;
 mod guide;

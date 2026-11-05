@@ -157,18 +157,6 @@ fn rotation_tween_takes_the_shortest_arc() {
     assert!((angle.abs() - PI).abs() < 1e-9, "angle {angle}");
 }
 #[test]
-fn tweening_a_sheared_matrix_is_an_error_not_an_approximation() {
-    let shear = Transform2D::new(DAffine2::from_cols_array(&[1.0, 0.0, 0.5, 1.0, 0.0, 0.0]))
-        .expect("finite");
-    let (doc, id) = tween_scene(shear, at(0.0));
-    assert!(matches!(
-        evaluate(&doc, id, 3),
-        Err(EvalError::UnsupportedTween(_))
-    ));
-    // Frames of a span without a tween never decompose.
-    assert!(evaluate(&doc, id, 11).is_ok());
-}
-#[test]
 fn tween_needs_an_adjacent_span_with_the_same_symbol() {
     let (a, b) = (SymbolId::new(), SymbolId::new());
     let gap = timeline(vec![vec![
