@@ -90,6 +90,10 @@ fn run() -> Result<()> {
     if named.is_empty() && !workspace.is_dirty() {
         workspace.set_home(true);
     }
+    // The splash is for a plain launch; a double-clicked project goes straight to its work.
+    if named.is_empty() {
+        workspace.show_splash();
+    }
     for path in &named {
         workspace.open_any(path);
     }

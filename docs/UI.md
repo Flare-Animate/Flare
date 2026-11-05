@@ -23,6 +23,10 @@ To add an icon, put an SVG in that folder. `build.rs` embeds every file, named a
 the tests check that each one parses, draws something, is 24 x 24 and uses only white. A name used
 in the code that has no file panics in debug builds and fails the tests.
 
+## Splash
+
+On a plain launch (desktop with no file named, and the browser build) a splash covers the window for 2.5 seconds or until a click or key: an original backdrop (`assets/ui/splash.svg`, no text, drawn by `flare-ui`'s `splash.rs`) with the flame, the name, the tagline and the version set over it by `workspace/splash.rs`, so the words are translated like the rest. The old program's splash artwork is not reused.
+
 ## Planned features are visible
 
 Controls for features that do not exist yet are drawn at full fidelity but dimmed, and say so on

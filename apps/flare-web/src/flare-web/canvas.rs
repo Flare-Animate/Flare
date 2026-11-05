@@ -29,6 +29,7 @@ pub fn start() {
         {
             web_sys::console::warn_1(&format!("ignoring the saved preferences: {error}").into());
         }
+        workspace.show_splash();
         let runner = eframe::WebRunner::new();
         let started = runner
             .start(

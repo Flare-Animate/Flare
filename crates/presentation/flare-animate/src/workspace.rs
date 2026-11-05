@@ -58,6 +58,7 @@ mod selection;
 mod shell;
 mod shortcut_editor;
 mod sound;
+mod splash;
 mod stage;
 mod stage_furniture;
 mod stage_menu;

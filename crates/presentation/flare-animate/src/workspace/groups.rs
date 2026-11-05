@@ -157,6 +157,8 @@ pub(super) struct OpenWindows {
     pub(super) publish: bool,
     /// The Home page covers the dock.
     pub(super) home: bool,
+    /// The start-up splash: the egui time it appeared (`None` until its first frame) while shown.
+    pub(super) splash: Option<Option<f64>>,
 }
 
 /// Autosave and crash recovery of the document on show.

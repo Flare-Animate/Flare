@@ -4,5 +4,6 @@
 
 pub mod chrome;
 pub mod icons;
+pub mod splash;
 pub mod theme;
 pub mod view;

@@ -57,6 +57,7 @@ mod save_formats;
 mod scene_name;
 mod shortcut_editor;
 mod spans_and_handles;
+mod splash;
 mod stage_menu;
 mod status_bar;
 mod tab_strip;

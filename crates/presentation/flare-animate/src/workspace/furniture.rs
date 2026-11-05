@@ -83,6 +83,7 @@ impl Workspace {
         self.close_prompt_window(&ctx);
         self.help_windows(&ctx);
         self.new_document_window(&ctx);
+        self.splash_window(&ctx);
         if self.playing {
             ctx.request_repaint();
         }
