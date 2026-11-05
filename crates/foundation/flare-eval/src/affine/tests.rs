@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used)]
 use super::*;
+use crate::{EvalError, can_tween, hold_on_error};
 use proptest::prelude::*;
 
 fn close(a: DAffine2, b: DAffine2, eps: f64) -> bool {
@@ -79,4 +80,29 @@ fn degenerate_matrices_decompose() {
         assert!(close(p.matrix(), m, 1e-9), "{m:?}");
     }
     assert!(decompose(DAffine2::from_translation(DVec2::new(f64::NAN, 0.0))).is_none());
+}
+
+#[test]
+fn a_non_finite_matrix_is_refused() {
+    let good = DAffine2::from_scale(glamx::DVec2::new(2.0, 3.0));
+    for bad in [f64::NAN, f64::INFINITY] {
+        let broken = DAffine2::from_cols_array(&[bad, 0.0, 0.0, 1.0, 0.0, 0.0]);
+        assert!(interpolate(good, broken, 0.5, None).is_none());
+        assert!(interpolate(broken, good, 0.5, None).is_none());
+        assert!(!can_tween(broken));
+    }
+    assert!(can_tween(good));
+}
+
+#[test]
+fn a_failed_tween_holds_the_keyframe_and_warns() {
+    let keyframe = DAffine2::from_translation(glamx::DVec2::new(5.0, 7.0));
+    let mut warnings = Vec::new();
+    let failed = Err(EvalError::UnsupportedTween(flare_core::InstanceId::new()));
+    assert_eq!(hold_on_error(failed, keyframe, &mut warnings), keyframe);
+    assert_eq!(warnings.len(), 1);
+    assert!(warnings[0].contains("not finite"));
+    let other = DAffine2::IDENTITY;
+    assert_eq!(hold_on_error(Ok(other), keyframe, &mut warnings), other);
+    assert_eq!(warnings.len(), 1);
 }

@@ -231,10 +231,11 @@ fn walk_layer<'a>(
                 // Only the first element of a span takes the span's tween.
                 let local = if index == 0 {
                     // One bad tween must not blank the frame: hold the keyframe and say so.
-                    tweened(layer, frame, instance, guide).unwrap_or_else(|error| {
-                        out.warnings.push(error.to_string());
-                        instance.transform().as_affine()
-                    })
+                    hold_on_error(
+                        tweened(layer, frame, instance, guide),
+                        instance.transform().as_affine(),
+                        &mut out.warnings,
+                    )
                 } else {
                     instance.transform().as_affine()
                 };
@@ -422,6 +423,18 @@ fn tweened(
     // instead of going straight from one position to the other.
     let position = guide.and_then(|shape| guide::point_along(shape.path(), t));
     affine::interpolate(from, to, t, position).ok_or(EvalError::UnsupportedTween(id))
+}
+
+/// A failed tween holds the keyframe's own matrix and records why.
+fn hold_on_error(
+    result: Result<DAffine2, EvalError>,
+    keyframe: DAffine2,
+    warnings: &mut Vec<String>,
+) -> DAffine2 {
+    result.unwrap_or_else(|error| {
+        warnings.push(error.to_string());
+        keyframe
+    })
 }
 
 /// Whether a motion tween can start or end at `matrix`: any finite 2D affine matrix can,

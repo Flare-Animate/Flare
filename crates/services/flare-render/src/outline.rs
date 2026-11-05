@@ -87,6 +87,7 @@ fn as_lines<'a>(frame: &Frame<'a>, shapes: &'a [Shape], clips: bool) -> Frame<'a
         } else {
             Vec::new()
         },
+        warnings: frame.warnings.clone(),
     }
 }
 
