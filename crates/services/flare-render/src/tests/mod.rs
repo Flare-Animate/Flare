@@ -14,6 +14,7 @@ mod bitmaps;
 mod camera;
 mod masks;
 mod shapes;
+mod stroke_patterns;
 mod viewport;
 
 const RED: Rgba8 = Rgba8::opaque(255, 0, 0);

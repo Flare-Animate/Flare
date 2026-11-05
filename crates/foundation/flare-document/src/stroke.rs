@@ -95,7 +95,7 @@ impl Stroke {
         self
     }
 
-    /// The same stroke drawn solid, dashed, dotted or stippled.
+    /// The same stroke drawn in another style (see `StrokeStyle`).
     #[must_use]
     pub fn with_style(mut self, style: StrokeStyle) -> Self {
         self.style = style;

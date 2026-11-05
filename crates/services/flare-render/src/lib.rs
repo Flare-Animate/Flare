@@ -10,6 +10,7 @@ mod image;
 mod limits;
 mod outline;
 mod paint;
+mod pattern;
 mod render;
 mod viewport;
 

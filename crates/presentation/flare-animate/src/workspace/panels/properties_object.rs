@@ -324,6 +324,11 @@ impl Workspace {
             StrokeStyle::Dashed => tr!(self, "opt-dashed"),
             StrokeStyle::Dotted => tr!(self, "opt-dotted"),
             StrokeStyle::Stipple => tr!(self, "opt-stipple"),
+            StrokeStyle::Hatched => tr!(self, "opt-hatched"),
+            StrokeStyle::Ragged => tr!(self, "opt-ragged"),
+            StrokeStyle::Herringbone => tr!(self, "opt-herringbone"),
+            StrokeStyle::Rope => tr!(self, "opt-rope"),
+            StrokeStyle::Zigzag => tr!(self, "opt-zigzag"),
         }
     }
 

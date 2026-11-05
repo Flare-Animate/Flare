@@ -11,6 +11,7 @@ use vello_cpu::{ImageSource, Pixmap, RenderContext, Resources};
 use crate::image::unpremultiply_in_place;
 #[allow(unused_imports)]
 use crate::paint::{bez_path, clip_path, color, linear_gradient, stroke_style};
+use crate::pattern::pattern;
 #[allow(unused_imports)]
 use crate::{Image, MAX_DIMENSION, MAX_PIXELS, PremultipliedImage, RenderError, Viewport};
 
@@ -207,7 +208,11 @@ pub(crate) fn rasterize(
         if let Some(stroke) = drawn.shape.stroke() {
             ctx.set_stroke(stroke_style(stroke.width(), stroke));
             ctx.set_paint(color(stroke.color()));
-            ctx.stroke_path(&path);
+            // A geometric style is drawn as the path it builds from the line, not the line.
+            match pattern(&path, stroke.width(), stroke.style()) {
+                Some(built) => ctx.stroke_path(&built),
+                None => ctx.stroke_path(&path),
+            }
         }
         for _ in 0..pushed {
             ctx.pop_layer();

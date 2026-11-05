@@ -67,7 +67,7 @@ pub(super) struct StrokeWire {
     /// "round", "bevel" or "miter"; absent in older files, which meant round.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) join: Option<String>,
-    /// "dashed", "dotted" or "stipple"; absent means solid.
+    /// "dashed", "dotted", "stipple", or a geometric name such as "zigzag"; absent means solid.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) style: Option<String>,
 }

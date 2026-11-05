@@ -1,4 +1,5 @@
-//! How a stroke's line is broken up: solid, or a repeating pattern of dashes and dots.
+//! How a stroke's line is drawn: solid, a repeating pattern of dashes and dots, or a
+//! geometric pattern (hatching, a rough edge, ribs, a rope, a zigzag) built along the line.
 
 use std::fmt;
 
@@ -14,10 +15,30 @@ pub enum StrokeStyle {
     Dotted,
     /// Fine, tightly spaced specks.
     Stipple,
+    /// Short diagonal strokes across the line, about a width apart, over the line itself.
+    Hatched,
+    /// The line with its position wobbling irregularly across its width.
+    Ragged,
+    /// The line with short ribs slanting back from it on alternate sides, like a fishbone.
+    Herringbone,
+    /// Two strands twisted around the line.
+    Rope,
+    /// The line replaced by a zigzag across its width.
+    Zigzag,
 }
 
 impl StrokeStyle {
-    pub const ALL: [Self; 4] = [Self::Solid, Self::Dashed, Self::Dotted, Self::Stipple];
+    pub const ALL: [Self; 9] = [
+        Self::Solid,
+        Self::Dashed,
+        Self::Dotted,
+        Self::Stipple,
+        Self::Hatched,
+        Self::Ragged,
+        Self::Herringbone,
+        Self::Rope,
+        Self::Zigzag,
+    ];
 
     /// The lowercase name used in files, on the command line and by the MCP server.
     pub fn name(self) -> &'static str {
@@ -26,7 +47,26 @@ impl StrokeStyle {
             Self::Dashed => "dashed",
             Self::Dotted => "dotted",
             Self::Stipple => "stipple",
+            Self::Hatched => "hatched",
+            Self::Ragged => "ragged",
+            Self::Herringbone => "herringbone",
+            Self::Rope => "rope",
+            Self::Zigzag => "zigzag",
         }
+    }
+
+    /// Whether the style is built from the line's geometry (see `flare-render`) rather than a
+    /// dash pattern on it.
+    pub fn is_geometric(self) -> bool {
+        matches!(
+            self,
+            Self::Hatched | Self::Ragged | Self::Herringbone | Self::Rope | Self::Zigzag
+        )
+    }
+
+    /// Every name, comma separated, for an error message that says what was expected.
+    pub fn name_list() -> String {
+        Self::ALL.map(Self::name).join(", ")
     }
 
     /// Reads a name, ignoring case and surrounding space.
@@ -37,8 +77,8 @@ impl StrokeStyle {
             .find(|s| s.name().eq_ignore_ascii_case(text))
     }
 
-    /// Alternating on and off lengths for a line `width` wide, or `None` for a solid line.
-    /// Every length is positive and finite for a positive finite width.
+    /// Alternating on and off lengths for a line `width` wide, or `None` for a solid line and
+    /// for the geometric styles. Every length is positive and finite for a positive finite width.
     pub fn dashes(self, width: f64) -> Option<[f64; 2]> {
         // A hairline would give invisible, huge-count dashes; keep the pattern readable.
         let w = if width.is_finite() {
@@ -48,6 +88,7 @@ impl StrokeStyle {
         };
         match self {
             Self::Solid => None,
+            Self::Hatched | Self::Ragged | Self::Herringbone | Self::Rope | Self::Zigzag => None,
             Self::Dashed => Some([4.0 * w, 3.0 * w]),
             // Zero-length dashes become dots when the cap is round, and nothing when it is butt,
             // so the on length is a small positive one.
@@ -78,13 +119,21 @@ mod tests {
             );
         }
         assert_eq!(StrokeStyle::parse("wavy"), None);
+        assert_eq!(StrokeStyle::parse("zig zag"), None);
         assert_eq!(StrokeStyle::parse(""), None);
     }
 
     #[test]
-    fn only_solid_has_no_pattern_and_patterns_scale_with_width() {
+    fn only_the_dash_styles_have_a_pattern_and_patterns_scale_with_width() {
         assert_eq!(StrokeStyle::Solid.dashes(4.0), None);
-        for s in &StrokeStyle::ALL[1..] {
+        for s in StrokeStyle::ALL.into_iter().filter(|s| s.is_geometric()) {
+            assert_eq!(s.dashes(4.0), None, "{s} is drawn from its geometry");
+        }
+        for s in [
+            StrokeStyle::Dashed,
+            StrokeStyle::Dotted,
+            StrokeStyle::Stipple,
+        ] {
             let thin = s.dashes(2.0).expect("pattern");
             let thick = s.dashes(8.0).expect("pattern");
             assert!(thin.iter().all(|v| *v > 0.0 && v.is_finite()));
@@ -93,5 +142,25 @@ mod tests {
             assert!(s.dashes(f64::NAN).expect("pattern")[1] > 0.0);
             assert!(s.dashes(0.0).expect("pattern")[1] > 0.0);
         }
+    }
+
+    #[test]
+    fn the_geometric_styles_are_exactly_the_new_ones() {
+        let geometric: Vec<_> = StrokeStyle::ALL
+            .into_iter()
+            .filter(|s| s.is_geometric())
+            .collect();
+        assert_eq!(
+            geometric,
+            [
+                StrokeStyle::Hatched,
+                StrokeStyle::Ragged,
+                StrokeStyle::Herringbone,
+                StrokeStyle::Rope,
+                StrokeStyle::Zigzag,
+            ]
+        );
+        assert!(!StrokeStyle::Solid.is_geometric());
+        assert!(!StrokeStyle::Stipple.is_geometric());
     }
 }
