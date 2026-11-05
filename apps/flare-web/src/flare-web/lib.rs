@@ -16,6 +16,8 @@ mod files;
 #[cfg(target_arch = "wasm32")]
 pub mod flare_file;
 #[cfg(target_arch = "wasm32")]
+mod pen;
+#[cfg(target_arch = "wasm32")]
 mod preferences;
 #[cfg(target_arch = "wasm32")]
 pub mod ruffle;

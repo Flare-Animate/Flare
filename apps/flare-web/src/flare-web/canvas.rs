@@ -5,7 +5,7 @@ use flare_animate::Workspace;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::app::WebApp;
-use crate::preferences;
+use crate::{pen, preferences};
 
 /// The page element the workspace is drawn on.
 const CANVAS_ID: &str = "flare-canvas";
@@ -21,6 +21,7 @@ pub fn start() {
         let (Some(canvas), Ok(mut workspace)) = (canvas, Workspace::untitled()) else {
             return;
         };
+        pen::install(workspace.pen_feed());
         if let Some(language) = web_sys::window().and_then(|w| w.navigator().language()) {
             workspace.set_system_locale(&language);
         }

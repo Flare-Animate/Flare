@@ -2580,6 +2580,7 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-export",
+ "flare-input",
  "flare-publish",
  "flare-runtime",
  "flare-storage",

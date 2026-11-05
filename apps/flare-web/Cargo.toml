@@ -18,6 +18,7 @@ flare-animate.workspace = true
 eframe = { workspace = true, features = ["default_fonts", "wgpu"] }
 flare-document.workspace = true
 flare-export.workspace = true
+flare-input.workspace = true
 flare-publish.workspace = true
 flare-runtime.workspace = true
 flare-storage.workspace = true

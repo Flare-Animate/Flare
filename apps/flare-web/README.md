@@ -24,6 +24,9 @@ WebAssembly (from npm, see `package.json` and `scripts/vendor.mjs`) and the chec
 contains are `flare-storage`'s own. File > Export > Flash Document downloads a `.fla`. Export Image
 and Publish download their files. Preferences are kept in local storage.
 
+A pen's pressure comes from the page's pointer events (`src/lib/pen-pressure.js`, which `main.js`
+installs after the module starts). `node scripts/test_pen_pressure.mjs` checks the shim with a stand-in canvas.
+
 ## Smoke test
 
 `node tests/web_smoke.mjs <url> [shot.png]` loads a built site in headless Chromium (Playwright) and fails on a page error, a Rust panic, a failed request, the "Flare could not start" panel, or a blank stage. `.github/workflows/pages.yml` runs it against `dist` before anything deploys.

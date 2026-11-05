@@ -4,8 +4,9 @@
 // First it loads what a page lacks for .flare files, SQLite and zstd as WebAssembly (see
 // flare-file.js), and registers them as `globalThis.flareFile` for the Rust side. If that fails the
 // editor still starts; opening and saving a .flare then say why they cannot.
-import init from "./pkg/flare_web.js";
+import init, { flarePenReport } from "./pkg/flare_web.js";
 import { createFlareRuffle } from "./flare-ruffle.js";
+import { installPenPressure } from "./pen-pressure.js";
 
 // Test Movie. Nothing of Ruffle is fetched until a movie is played.
 globalThis.flareRuffle = createFlareRuffle();
@@ -59,6 +60,8 @@ console.error = (...args) => {
 loadFlareFile()
   .then(() => init())
   .then(() => {
+    // A pen's pressure reaches the Brush through the canvas's pointer events (pen-pressure.js).
+    installPenPressure(document.getElementById("flare-canvas"), flarePenReport);
     document.documentElement.dataset.flare = "started";
   })
   .catch(showError);

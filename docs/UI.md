@@ -241,6 +241,18 @@ reflected copy of the selection across the axes, and Flip.
 Pencil and Brush also have **Straight**: with it on, or while Shift is held, a stroke is the
 straight line between where the drag began and where it ended.
 
+**Pen pressure** sets how wide a Brush stroke is. Size is the width at full pressure, and **Light
+touch** (0 to 1, 0.15 by default, a tool option) is the fraction of it a stroke thins to at the
+lightest touch; in between the width follows the pressure in a straight line. A mouse, a finger,
+or a device that reports no pressure draws at full pressure. Pressure reaches the Brush from a pen
+in the browser build (the page's pointer events on the canvas), from the window system on
+Windows, and from the X server on Linux when a pen is plugged in when Flare starts
+(`FLARE_TABLET=off` turns that off). macOS and native Wayland do not pass pressure yet. A Brush
+stroke is saved as the outline it painted, so the width a pen gave is kept in the drawing and
+playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
+after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is
+not kept in Preferences, so each session starts at 0.15.
+
 ## Info panel
 
 Size and position of the selection, and under Pointer the stage position and the color of the
