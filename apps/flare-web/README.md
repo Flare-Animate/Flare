@@ -23,3 +23,7 @@ the project as a `.flare`, the file the desktop app writes: the page loads SQLit
 WebAssembly (from npm, see `package.json` and `scripts/vendor.mjs`) and the checks on what a file
 contains are `flare-storage`'s own. File > Export > Flash Document downloads a `.fla`. Export Image
 and Publish download their files. Preferences are kept in local storage.
+
+## Smoke test
+
+`node tests/web_smoke.mjs <url> [shot.png]` loads a built site in headless Chromium (Playwright) and fails on a page error, a Rust panic, a failed request, the "Flare could not start" panel, or a blank stage. `.github/workflows/pages.yml` runs it against `dist` before anything deploys.

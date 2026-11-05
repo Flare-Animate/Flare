@@ -41,6 +41,16 @@ jobs:
           tool: wasm-bindgen@0.2.129
       - name: Build apps/flare-web/dist
         run: sh apps/flare-web/scripts/build.sh
+      # A site that builds but does not start (a panic at load, a blank canvas) must never deploy:
+      # serve the artifact under /Flare/, as Pages does, and load it in headless Chromium.
+      - name: Smoke test the built site
+        run: |
+          mkdir -p /tmp/serve && ln -sfn "$PWD/apps/flare-web/dist" /tmp/serve/Flare
+          (cd /tmp/serve && python3 -m http.server 8099 >/dev/null 2>&1 &)
+          sleep 1
+          npm install --no-save --no-audit --no-fund playwright@1.49.1
+          npx playwright install chromium --with-deps
+          node apps/flare-web/tests/web_smoke.mjs http://localhost:8099/Flare/ web-smoke.png
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/flare-web/dist

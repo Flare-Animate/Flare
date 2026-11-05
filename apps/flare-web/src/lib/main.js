@@ -25,8 +25,40 @@ async function loadFlareFile() {
   }
 }
 
+// A blank canvas tells a person nothing, so any startup failure (a thrown error, a rejected
+// promise, or a Rust panic, which only reaches the console) is shown as text over the page.
+let shown = false;
+function showError(reason) {
+  if (shown) return;
+  shown = true;
+  const text = reason instanceof Error ? reason.message : String(reason);
+  const panel = document.createElement("div");
+  panel.id = "flare-error";
+  panel.setAttribute("role", "alert");
+  panel.style.cssText =
+    "position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;justify-content:center;" +
+    "padding:32px;box-sizing:border-box;background:#1d2025;color:#e8eaed;font:15px/1.5 system-ui,sans-serif;";
+  const title = document.createElement("h1");
+  title.style.cssText = "font-size:20px;margin:0 0 12px";
+  title.textContent = `Flare could not start: ${text.split("\n")[0].slice(0, 300)}`;
+  const need = document.createElement("p");
+  need.textContent =
+    "Flare needs a current Chrome, Edge, Firefox or Safari with WebAssembly and WebGL 2 or WebGPU " +
+    "turned on (check that hardware acceleration is enabled), and JavaScript allowed for this site.";
+  panel.append(title, need);
+  document.body.append(panel);
+}
+window.addEventListener("error", (e) => showError(e.error ?? e.message));
+window.addEventListener("unhandledrejection", (e) => showError(e.reason));
+const consoleError = console.error;
+console.error = (...args) => {
+  consoleError.apply(console, args);
+  if (typeof args[0] === "string" && args[0].startsWith("panicked at")) showError(args[0]);
+};
+
 loadFlareFile()
   .then(() => init())
-  .catch((error) => {
-    document.body.textContent = `Flare could not start: ${error}`;
-  });
+  .then(() => {
+    document.documentElement.dataset.flare = "started";
+  })
+  .catch(showError);
