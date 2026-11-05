@@ -99,3 +99,13 @@ fn a_bare_level_palette_and_raster_are_handled_by_name() {
     assert!(err.to_string().contains("tlv"), "{err}");
     assert!(import_foreign_bytes(Path::new("x.tnz"), b"<nope/>".to_vec()).is_err());
 }
+
+#[test]
+fn an_svg_goes_through_the_foreign_entry_point() {
+    assert_eq!(foreign_kind(Path::new("a.SVG")), Some("svg"));
+    let svg = r#"<svg xmlns="http://www.w3.org/2000/svg" width="8" height="6"><rect width="4" height="4"/></svg>"#;
+    let out = import_foreign_bytes(Path::new("a.svg"), svg.as_bytes().to_vec()).expect("imports");
+    assert_eq!(out.document.stage().width(), 8);
+    let err = import_foreign_bytes(Path::new("a.svg"), b"<svg".to_vec()).expect_err("refused");
+    assert!(matches!(err, ImportError::Foreign(_)));
+}

@@ -145,6 +145,8 @@ swf = { path = "third_party/ruffle/swf" }
 # ---- Image assets and font/layout adapters -----------------------------------
 image = { version = "0.25.10", default-features = false }
 png = "0.18.1"
+# No text feature: no font database is loaded for an imported drawing.
+usvg = { version = "0.45.1", default-features = false }
 gif = { version = "0.14", default-features = false, features = ["std", "color_quant"] }
 parley = "0.12.0"
 epaint_default_fonts = "0.37"   # egui's own fonts, for tests that need glyphs.

@@ -8,6 +8,7 @@ mod foreign;
 mod keep;
 pub mod legacy;
 mod source;
+mod svg;
 mod swf;
 mod toonz;
 mod xfl;

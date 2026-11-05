@@ -54,7 +54,7 @@ impl WebApp {
                 let (inbox, ctx) = (Rc::clone(&self.picked), ctx.clone());
                 wasm_bindgen_futures::spawn_local(async move {
                     if let Some((name, bytes)) = files::pick(
-                        "Flare project, Flash, Moho, Toonz or BVH file",
+                        "Flare project, Flash, Moho, Toonz, BVH or SVG file",
                         &[
                             "flare",
                             "fla",
@@ -64,6 +64,7 @@ impl WebApp {
                             "mohoproj",
                             "animeproj",
                             "bvh",
+                            "svg",
                             "tnz",
                             "tpl",
                             "plt",

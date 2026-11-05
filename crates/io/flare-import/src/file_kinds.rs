@@ -4,9 +4,10 @@ use std::path::Path;
 
 /// The file extensions Flare opens itself, and the ones it imports as a new project.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 13] = [
+pub const IMPORT_EXTENSIONS: [&str; 14] = [
     "fla",
     "xfl",
+    "svg",
     "swf",
     "fcp",
     "ppm",

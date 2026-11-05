@@ -135,4 +135,5 @@ credentials or proprietary reference projects.
 - jpdurigan/godot_moho_importer (MIT, Copyright (c) 2022 Joao Pedro Durigan): the Moho mesh
   layout (`mesh.points`, `mesh.curves`) and the `anim_pos`, `anim_angle`, `anim_scale` track names
   used by `crates/io/flare-moho`.
+- usvg and its parser crates (MIT/Apache-2.0, linked as a dependency, no code copied): the SVG reader of `crates/io/flare-import/src/svg.rs`, with its text feature off.
 - SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.

@@ -18,6 +18,7 @@ pub fn pick_open(filter: &str) -> Option<std::path::PathBuf> {
                 "mohoproj",
                 "animeproj",
                 "bvh",
+                "svg",
                 "tnz",
                 "tpl",
                 "plt",

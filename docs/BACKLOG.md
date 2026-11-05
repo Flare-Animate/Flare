@@ -225,6 +225,9 @@ approach" names the library tests (with failure paths) and the wiring tests the 
 
 ### WP-4 Import SVG, Photoshop and more image formats (L, high)
 
+- **Status:** SVG done (`flare-import` `svg.rs`, usvg 0.45 without its text feature; MIT/Apache). Left: PSD, bitmap
+  sequences and animated GIF, all blocked on a bitmap layer content kind in `flare-document`.
+
 - **Goal:** SVG as editable shapes, PSD as one bitmap layer per Photoshop layer (in place),
   WebP, TIFF, TGA and OpenEXR bitmaps, animated GIF as frames, XDTS timing sheets.
 - **Read in reference:** AnimationCraft `ac-core/src/xdts.rs`, `ac-render/src/formats.rs`, its

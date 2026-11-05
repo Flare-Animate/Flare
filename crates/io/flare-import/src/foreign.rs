@@ -16,6 +16,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
     let ext = path.extension()?.to_str()?.to_ascii_lowercase();
     match ext.as_str() {
         "bvh" => Some("bvh"),
+        "svg" => Some("svg"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
         _ => None,
     }
@@ -53,6 +54,7 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
             let out = flare_moho::bvh::to_document(&parsed).map_err(|e| foreign(&e))?;
             Ok(from_moho(out))
         }
+        Some("svg") => crate::svg::import(&bytes).map_err(|e| foreign(&e)),
         Some("toonz") => crate::toonz::import(name, &bytes).map_err(|e| foreign(&e)),
         _ => Err(ImportError::NotXfl("unknown file type".into())),
     }

@@ -16,6 +16,7 @@ glamx.workspace = true
 quick-xml.workspace = true
 swf.workspace = true
 thiserror.workspace = true
+usvg.workspace = true
 zip = { workspace = true, features = ["deflate"] }
 
 [dev-dependencies]
