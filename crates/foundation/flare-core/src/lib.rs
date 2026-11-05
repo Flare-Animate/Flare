@@ -10,6 +10,7 @@ pub mod curves;
 pub mod geometry;
 pub mod id;
 pub mod image_ops;
+pub mod resample;
 pub mod time;
 
 pub use color::Rgba8;
