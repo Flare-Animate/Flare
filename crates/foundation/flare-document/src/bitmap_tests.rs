@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use flare_core::{BitmapId, InstanceId, Transform2D};
 
 use crate::{Bitmap, BitmapError, BitmapInstance, MAX_BITMAP_SIDE};

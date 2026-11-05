@@ -63,11 +63,15 @@ fn decode_png(file: &str, bytes: &[u8]) -> Result<Picture, ImportError> {
     let rgba = match info.color_type {
         png::ColorType::Rgba => data.to_vec(),
         png::ColorType::Rgb => data
-            .chunks_exact(3)
+            .as_chunks::<3>()
+            .0
+            .iter()
             .flat_map(|p| [p[0], p[1], p[2], 255])
             .collect(),
         png::ColorType::GrayscaleAlpha => data
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .flat_map(|p| [p[0], p[0], p[0], p[1]])
             .collect(),
         png::ColorType::Grayscale => data.iter().flat_map(|&g| [g, g, g, 255]).collect(),
