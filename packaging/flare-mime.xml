@@ -45,6 +45,7 @@
   <mime-type type="application/x-flare-fcp">
     <comment>FlipaClip Project</comment>
     <glob pattern="*.fcp" />
+    <glob pattern="*.fc" />
   </mime-type>
   <mime-type type="application/x-flare-ppm">
     <comment>Flipnote Studio Animation</comment>

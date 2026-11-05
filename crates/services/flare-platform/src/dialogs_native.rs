@@ -24,6 +24,7 @@ pub fn pick_open(filter: &str) -> Option<std::path::PathBuf> {
                 "plt",
                 "pli",
                 "tlv",
+                "fc",
             ],
         )
         .pick_file()

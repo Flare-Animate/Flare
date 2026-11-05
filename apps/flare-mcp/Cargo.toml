@@ -47,6 +47,7 @@ flare-core.workspace = true
 flare-document.workspace = true
 png.workspace = true
 rmcp = { workspace = true, features = ["client"] }
+zip.workspace = true
 tokio = { workspace = true, features = ["rt", "macros", "io-util", "io-std", "process"] }
 
 [lints]

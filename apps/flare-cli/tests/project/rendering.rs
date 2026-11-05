@@ -321,3 +321,32 @@ fn draw_rect_takes_a_stroke_style_and_a_wrong_one_is_refused() {
         "{stderr}"
     );
 }
+
+/// A FlipaClip project with its `meta` alone: two layers and no pictures. Its layers stay empty;
+/// the test is that the command reads the `.fc` file by its extension.
+fn flipaclip_meta_only() -> Vec<u8> {
+    let meta = serde_json::json!({
+        "format": 1, "canvasWidth": 8, "canvasHeight": 6, "fps": 12, "frameCount": 2,
+        "name": "Sample", "version": 4,
+        "layersState": "[{\"id\":1,\"name\":\"Capa 1\"},{\"id\":2,\"name\":\"Capa 2\"}]",
+    })
+    .to_string();
+    let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+    let stored = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Stored);
+    zip.start_file("meta", stored).expect("starts");
+    std::io::Write::write_all(&mut zip, meta.as_bytes()).expect("writes");
+    zip.finish().expect("finishes").into_inner()
+}
+
+#[test]
+fn import_reads_a_flipaclip_project_by_its_extension() {
+    let dir = tempfile::tempdir().expect("dir");
+    let source = dir.path().join("sample.fc");
+    std::fs::write(&source, flipaclip_meta_only()).expect("write");
+    let out = dir.path().join("out.flare").to_string_lossy().into_owned();
+    let report = json(&["import", &source.to_string_lossy(), &out]);
+    assert_eq!(report["scenes"].as_u64(), Some(1));
+    assert_eq!(report["unsupported"], 0, "a meta-only project names nothing as skipped");
+    assert!(std::path::Path::new(&out).exists());
+}

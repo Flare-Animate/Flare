@@ -279,3 +279,31 @@ async fn importing_through_the_server_keeps_the_original_and_leaves_the_source_a
         "the project file kept the source"
     );
 }
+
+#[tokio::test]
+async fn a_flipaclip_project_in_the_export_directory_imports_by_its_extension() {
+    let f = drawn().await;
+    let gif = f.ok("export_gif", json!({ "name": "loop" })).await;
+    let export_dir = std::path::Path::new(gif["path"].as_str().expect("p"))
+        .parent()
+        .expect("the export directory")
+        .to_path_buf();
+    let meta = serde_json::json!({
+        "format": 1, "canvasWidth": 8, "canvasHeight": 6, "fps": 12, "frameCount": 2,
+        "name": "Sample", "version": 4,
+        "layersState": "[{\"id\":1,\"name\":\"Capa 1\"}]",
+    })
+    .to_string();
+    let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+    let stored = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Stored);
+    zip.start_file("meta", stored).expect("starts");
+    std::io::Write::write_all(&mut zip, meta.as_bytes()).expect("writes");
+    let bytes = zip.finish().expect("finishes").into_inner();
+    std::fs::write(export_dir.join("sample.fc"), bytes).expect("writes the project");
+    let imported = f
+        .ok("import_project", json!({ "source": "sample.fc", "name": "fc" }))
+        .await;
+    assert_eq!(imported["scenes"], 1);
+    assert!(imported["path"].as_str().expect("p").ends_with("fc.flare"));
+}

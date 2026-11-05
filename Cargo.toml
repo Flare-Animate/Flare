@@ -262,6 +262,12 @@ debug = "line-tables-only"
 # information and overflow checks stay on; only the optimization level changes.
 [profile.dev.package.flare-document]
 opt-level = 2
+# The FlipaClip reader decodes and crops every picture of a project: 17 seconds for a 136-frame
+# 1080p sample unoptimized, under a second with these two (zstd-sys is the C decoder under it).
+[profile.dev.package.flare-import]
+opt-level = 2
+[profile.dev.package.zstd-sys]
+opt-level = 2
 [profile.dev.package.flare-commands]
 opt-level = 2
 [profile.dev.package.flare-history]

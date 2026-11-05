@@ -2062,6 +2062,7 @@ dependencies = [
  "swf",
  "tempfile",
  "uuid",
+ "zip",
 ]
 
 [[package]]
@@ -2213,11 +2214,13 @@ dependencies = [
  "glamx",
  "png 0.18.1",
  "quick-xml 0.42.0",
+ "serde_json",
  "swf",
  "tempfile",
  "thiserror 2.0.18",
  "usvg",
  "zip",
+ "zstd",
 ]
 
 [[package]]
@@ -2262,6 +2265,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "uuid",
+ "zip",
 ]
 
 [[package]]

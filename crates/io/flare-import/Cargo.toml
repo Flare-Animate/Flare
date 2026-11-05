@@ -20,6 +20,8 @@ swf.workspace = true
 thiserror.workspace = true
 usvg.workspace = true
 zip = { workspace = true, features = ["deflate"] }
+serde_json.workspace = true
+zstd.workspace = true
 
 [dev-dependencies]
 flare-eval.workspace = true

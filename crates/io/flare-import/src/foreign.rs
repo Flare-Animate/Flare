@@ -1,4 +1,4 @@
-//! Import of other animation tools' files: Moho projects, BVH motion and Toonz scenes and levels.
+//! Import of other animation tools' files: Moho projects, FlipaClip projects, BVH motion and Toonz scenes and levels.
 //! The readers and converters live in `flare-moho` and `flare-toonz`; this only picks one by the
 //! file's name (a Moho container and a `.fla` are both zip files, so the bytes cannot tell) and
 //! turns their notes into the importer's diagnostics.
@@ -21,6 +21,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "gif" => Some("gif"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
         "ppm" | "kwz" => Some("flipnote"),
+        "fc" => Some("flipaclip"),
         _ => None,
     }
 }
@@ -57,6 +58,7 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
             let out = flare_moho::bvh::to_document(&parsed).map_err(|e| foreign(&e))?;
             Ok(from_moho(out))
         }
+        Some("flipaclip") => crate::flipaclip::import(file, &bytes),
         Some("png") => crate::bitmap::import_png(file, &bytes),
         Some("gif") => crate::bitmap::import_gif(file, &bytes),
         Some("svg") => crate::svg::import(&bytes).map_err(|e| foreign(&e)),

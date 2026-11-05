@@ -43,6 +43,7 @@ anyhow.workspace = true
 epaint_default_fonts.workspace = true
 png.workspace = true
 swf.workspace = true
+zip.workspace = true
 
 [lints]
 workspace = true
