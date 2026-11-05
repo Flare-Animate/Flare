@@ -99,7 +99,8 @@ mod tests {
             Some(PathKind::Import)
         );
         assert_eq!(kind("notes.xml", false), None);
-        assert_eq!(kind("a.png", false), None);
+        assert_eq!(kind("a.png", false), Some(PathKind::Import));
+        assert_eq!(kind("a.jpg", false), None);
         assert_eq!(kind("a", false), None);
         assert_eq!(kind("a.flare.txt", false), None);
     }
