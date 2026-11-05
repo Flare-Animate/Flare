@@ -437,3 +437,28 @@ fn kinds_have_names_that_read_back_and_other_names_are_not_kinds() {
     assert_eq!(SymbolKind::from_name("sprite"), None);
     assert_eq!(SymbolKind::from_name(""), None);
 }
+
+#[test]
+fn typed_kind_and_mode_names_ignore_case_and_the_separator() {
+    use crate::PlayMode;
+    for text in [
+        "Movie Clip",
+        "movie-clip",
+        "MOVIE_CLIP",
+        "  movie   clip ",
+        "movie clip",
+    ] {
+        assert_eq!(
+            SymbolKind::parse(text),
+            Some(SymbolKind::MovieClip),
+            "{text:?}"
+        );
+    }
+    for text in ["Play Once", "play-once", "play_once", "PLAY ONCE"] {
+        assert_eq!(PlayMode::parse(text), Some(PlayMode::PlayOnce), "{text:?}");
+    }
+    assert_eq!(PlayMode::parse("Single-Frame"), Some(PlayMode::SingleFrame));
+    assert_eq!(SymbolKind::parse("sprite"), None);
+    assert_eq!(SymbolKind::parse("movieclip"), None);
+    assert_eq!(PlayMode::parse(""), None);
+}

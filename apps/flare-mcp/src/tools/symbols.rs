@@ -77,10 +77,7 @@ pub struct RigEval {
 }
 
 fn kind(name: &str) -> Result<SymbolKind, String> {
-    SymbolKind::ALL
-        .into_iter()
-        .find(|k| k.name() == name)
-        .ok_or_else(|| format!("unknown kind {name:?}"))
+    SymbolKind::parse(name).ok_or_else(|| format!("unknown kind {name:?}"))
 }
 
 fn rig_in(value: Value) -> Result<Rig, String> {
@@ -110,7 +107,7 @@ impl FlareServer {
     fn set_instance_loop(&self, Parameters(a): Parameters<SetInstanceLoop>) -> Outcome {
         self.write(a.expected_revision, |state| {
             let mode =
-                PlayMode::from_name(&a.mode).ok_or_else(|| format!("unknown mode {:?}", a.mode))?;
+                PlayMode::parse(&a.mode).ok_or_else(|| format!("unknown mode {:?}", a.mode))?;
             let scene = first_scene(state)?;
             let layer = target_layer(state, a.layer.as_deref())?;
             let playback = Playback {

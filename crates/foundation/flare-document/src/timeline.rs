@@ -41,6 +41,12 @@ impl PlayMode {
     pub fn from_name(name: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|m| m.name() == name)
     }
+
+    /// A mode from what a person or an agent typed: `Play Once`, `play-once` and `play_once` are
+    /// one name. The command line and the MCP server both parse with this.
+    pub fn parse(text: &str) -> Option<Self> {
+        Self::from_name(&crate::normalize_name(text))
+    }
 }
 
 /// Where a Graphic instance starts in its symbol and how it goes on from there.

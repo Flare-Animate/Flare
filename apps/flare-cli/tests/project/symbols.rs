@@ -24,6 +24,24 @@ fn set_kind_and_loop_change_the_project() {
         "3",
     ]);
     assert_eq!(set["mode"], "play once");
+    // Every spelling the MCP server takes works here too.
+    let spaced = json(&["symbol", "set-kind", &file, &symbol, "--kind", "Movie Clip"]);
+    assert_eq!(spaced["kind"], "movie clip");
+    let underscored = json(&[
+        "symbol",
+        "set-loop",
+        &file,
+        "--at",
+        "2",
+        "--mode",
+        "Play_Once",
+    ]);
+    assert_eq!(underscored["mode"], "play once");
+    assert!(
+        !run(&["symbol", "set-kind", &file, &symbol, "--kind", "sprite"])
+            .status
+            .success()
+    );
     // No keyframe at frame 9: refused, nothing changes.
     let bad = run(&["symbol", "set-loop", &file, "--at", "9", "--mode", "loop"]);
     assert!(!bad.status.success());

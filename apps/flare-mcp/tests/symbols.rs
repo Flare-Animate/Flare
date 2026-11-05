@@ -30,6 +30,19 @@ async fn kind_loop_and_rig() {
     )
     .await;
     assert_eq!(f.revision().await, before + 2);
+    // The command line's spellings are taken too.
+    f.ok(
+        "set_symbol_kind",
+        json!({ "symbol": sym, "kind": "Graphic" }),
+    )
+    .await;
+    f.ok(
+        "set_symbol_kind",
+        json!({ "symbol": sym, "kind": "movie-clip" }),
+    )
+    .await;
+    f.ok("set_instance_loop", json!({ "at": 1, "mode": "play-once" }))
+        .await;
     let rev = f.revision().await;
     let (bad, _) = f
         .tool("set_instance_loop", json!({ "at": 9, "mode": "loop" }))

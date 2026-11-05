@@ -60,6 +60,15 @@ pub enum SymbolKind {
     Button,
 }
 
+/// Lower case, with runs of spaces, hyphens and underscores read as one space.
+pub(crate) fn normalize_name(text: &str) -> String {
+    text.split(|c: char| c.is_whitespace() || c == '-' || c == '_')
+        .filter(|word| !word.is_empty())
+        .map(str::to_lowercase)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 impl SymbolKind {
     pub const ALL: [Self; 3] = [Self::Graphic, Self::MovieClip, Self::Button];
 
@@ -78,6 +87,12 @@ impl SymbolKind {
             Self::MovieClip => "movie clip",
             Self::Button => "button",
         }
+    }
+
+    /// A kind from what a person or an agent typed: `Movie Clip`, `movie-clip`, `movie_clip` and
+    /// `movie clip` are one name. The command line and the MCP server both parse with this.
+    pub fn parse(text: &str) -> Option<Self> {
+        Self::from_name(&normalize_name(text))
     }
 
     /// The kind a name stands for, or `None` for a name that is not one of the three.

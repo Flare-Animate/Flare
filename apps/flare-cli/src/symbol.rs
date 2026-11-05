@@ -5,7 +5,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
-use clap::{Subcommand, ValueEnum};
+use clap::Subcommand;
 use flare_commands::Command;
 use flare_core::SymbolId;
 use flare_document::{PlayMode, Playback, SymbolKind};
@@ -13,18 +13,15 @@ use flare_rig::{AngleLimit, Bone, IkGoal, Interp, PoseKey, Rig, RigCommand, eval
 use serde_json::{Value, json};
 use uuid::Uuid;
 
-#[derive(Clone, Copy, ValueEnum)]
-pub enum KindArg {
-    Graphic,
-    MovieClip,
-    Button,
+/// `--kind` and `--mode` take the spellings every surface accepts (`movie-clip`, `movie clip`).
+fn kind_arg(text: &str) -> Result<SymbolKind, String> {
+    SymbolKind::parse(text)
+        .ok_or_else(|| format!("unknown kind {text:?}: graphic, movie clip or button"))
 }
 
-#[derive(Clone, Copy, ValueEnum)]
-pub enum ModeArg {
-    Loop,
-    PlayOnce,
-    SingleFrame,
+fn mode_arg(text: &str) -> Result<PlayMode, String> {
+    PlayMode::parse(text)
+        .ok_or_else(|| format!("unknown mode {text:?}: loop, play once or single frame"))
 }
 
 #[derive(Subcommand)]
@@ -33,16 +30,16 @@ pub enum SymbolCommand {
     SetKind {
         path: PathBuf,
         symbol: Uuid,
-        #[arg(long, value_enum)]
-        kind: KindArg,
+        #[arg(long, value_parser = kind_arg)]
+        kind: SymbolKind,
     },
     /// Set how the instance whose keyframe starts at `--at` plays its symbol.
     SetLoop {
         path: PathBuf,
         #[arg(long)]
         at: u32,
-        #[arg(long, value_enum)]
-        mode: ModeArg,
+        #[arg(long, value_parser = mode_arg)]
+        mode: PlayMode,
         #[arg(long, default_value_t = 0)]
         first_frame: u32,
         #[arg(long)]
@@ -57,8 +54,8 @@ pub enum RigCmd {
         rig: PathBuf,
         #[arg(long)]
         symbol: Uuid,
-        #[arg(long, value_enum, default_value = "graphic")]
-        kind: KindArg,
+        #[arg(long, value_parser = kind_arg, default_value = "graphic")]
+        kind: SymbolKind,
     },
     /// Add a bone. `--parent` is an earlier bone's index.
     AddBone {
@@ -101,11 +98,6 @@ pub enum RigCmd {
 pub fn run_symbol(op: SymbolCommand) -> Result<Value> {
     match op {
         SymbolCommand::SetKind { path, symbol, kind } => {
-            let kind = match kind {
-                KindArg::Graphic => SymbolKind::Graphic,
-                KindArg::MovieClip => SymbolKind::MovieClip,
-                KindArg::Button => SymbolKind::Button,
-            };
             let mut session = crate::project::open_session(&path)?;
             session.apply([Command::SetSymbolKind {
                 symbol: SymbolId::from_uuid(symbol),
@@ -121,11 +113,6 @@ pub fn run_symbol(op: SymbolCommand) -> Result<Value> {
             first_frame,
             layer,
         } => {
-            let mode = match mode {
-                ModeArg::Loop => PlayMode::Loop,
-                ModeArg::PlayOnce => PlayMode::PlayOnce,
-                ModeArg::SingleFrame => PlayMode::SingleFrame,
-            };
             let mut session = crate::project::open_session(&path)?;
             let (scene, layer) = crate::project::first_scene_layer(&session, layer)?;
             session.apply([Command::SetInstancePlayback {
@@ -200,11 +187,6 @@ pub fn run_rig(op: RigCmd) -> Result<Value> {
             if rig.exists() {
                 bail!("{} already exists", rig.display());
             }
-            let kind = match kind {
-                KindArg::Graphic => SymbolKind::Graphic,
-                KindArg::MovieClip => SymbolKind::MovieClip,
-                KindArg::Button => SymbolKind::Button,
-            };
             write(&rig, &Rig::new(SymbolId::from_uuid(symbol), kind))?;
             Ok(json!({ "created": rig.to_string_lossy() }))
         }
