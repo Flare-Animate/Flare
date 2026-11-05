@@ -32,11 +32,11 @@ pub fn convolve(
     {
         return Err(Error::BadBuffer);
     }
-    if kw == 0 || kw % 2 == 0 || kernel.len() % kw != 0 {
+    if kw == 0 || kw.is_multiple_of(2) || !kernel.len().is_multiple_of(kw) {
         return Err(Error::BadKernel);
     }
     let kh = kernel.len() / kw;
-    if kh == 0 || kh % 2 == 0 {
+    if kh == 0 || kh.is_multiple_of(2) {
         // An empty kernel cannot happen past the length divisibility above (a zero-length
         // one would divide), but the even check still needs the length to be there.
         return Err(Error::BadKernel);
@@ -88,6 +88,7 @@ fn unpremultiply(premultiplied: f32, alpha: f32) -> u8 {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -112,7 +113,7 @@ mod tests {
 
     #[test]
     fn a_kernel_that_sums_to_one_keeps_a_constant_sheet() {
-        let sheet = vec![10u8, 20, 30, 200].repeat(9 * 7);
+        let sheet = [10u8, 20, 30, 200].repeat(9 * 7);
         let blur: Vec<f32> = vec![1.0 / 9.0; 9];
         assert_eq!(convolve(&sheet, 9, 7, &blur, 3).unwrap(), sheet);
         // A sharpening kernel with negatives: -4C + 5C is still C with clamped borders.
@@ -124,7 +125,7 @@ mod tests {
     fn a_half_covered_pixel_spreads_as_itself() {
         // A red pixel at half coverage among transparent black, under a 1/3-each kernel: the
         // colour stays pure red everywhere and the coverage is the pixel share.
-        let mut buf = vec![0u8; 5 * 1 * 4];
+        let mut buf = vec![0u8; 5 * 4];
         buf[0] = 255;
         buf[3] = 128;
         let out = convolve(&buf, 5, 1, &[1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0], 3).unwrap();

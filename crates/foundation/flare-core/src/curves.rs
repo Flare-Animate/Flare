@@ -104,6 +104,7 @@ fn h11(t: f64) -> f64 {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -118,13 +119,13 @@ mod tests {
     #[test]
     fn two_points_are_a_straight_line() {
         let lut = lut_through(&[(0, 0), (255, 255)]).unwrap();
-        for i in 0..=255 {
-            assert_eq!(lut[i], i as u8, "identical curve leaves {i} alone");
+        for (i, &v) in lut.iter().enumerate() {
+            assert_eq!(v, i as u8, "identical curve leaves {i} alone");
         }
         // A dimmer line, still straight: every output is the exact 40% rounded.
         let lut = lut_through(&[(0, 0), (255, 102)]).unwrap();
-        for i in 0..=255 {
-            assert_eq!(lut[i], ((i * 102 + 127) / 255) as u8, "at {i}");
+        for (i, &v) in lut.iter().enumerate() {
+            assert_eq!(v, ((i * 102 + 127) / 255) as u8, "at {i}");
         }
     }
 

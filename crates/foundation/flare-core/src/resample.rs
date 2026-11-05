@@ -51,9 +51,8 @@ pub fn resample(buf: &[u8], w: u32, h: u32, into_w: u32, into_h: u32) -> Result<
         .enumerate()
     {
         let sy = (f64::from(into_y as u32) + 0.5) * scale(into_h, h) - 0.5;
-        for into_x in 0..row.len() {
+        for (into_x, pixel) in row.iter_mut().enumerate() {
             let sx = (f64::from(into_x as u32) + 0.5) * scale(into_w, w) - 0.5;
-            let left = sx.floor() as i64;
             let (mut acc_r, mut acc_g, mut acc_b, mut acc_a) = (0f64, 0f64, 0f64, 0f64);
             // The two source columns and rows that straddle the sample, corner weights
             // outside [0, 1) kept out by the clamps.
@@ -72,7 +71,7 @@ pub fn resample(buf: &[u8], w: u32, h: u32, into_w: u32, into_h: u32) -> Result<
                 }
             }
             let alpha = clamped_alpha(acc_a).round() as u8;
-            row[into_x] = [
+            *pixel = [
                 unpremultiply(acc_r, acc_a),
                 unpremultiply(acc_g, acc_a),
                 unpremultiply(acc_b, acc_a),
@@ -114,6 +113,7 @@ fn unpremultiply(premultiplied: f64, alpha: f64) -> u8 {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
     use super::*;
 
@@ -124,13 +124,13 @@ mod tests {
 
     #[test]
     fn the_same_size_is_a_copy() {
-        let sheet = vec![10u8, 20, 30, 200].repeat(7 * 5);
+        let sheet = [10u8, 20, 30, 200].repeat(7 * 5);
         assert_eq!(resample(&sheet, 7, 5, 7, 5).unwrap(), sheet);
     }
 
     #[test]
     fn a_constant_sheet_stays_constant_under_any_size() {
-        let sheet = vec![10u8, 20, 30, 255].repeat(11 * 13);
+        let sheet = [10u8, 20, 30, 255].repeat(11 * 13);
         let out = resample(&sheet, 11, 13, 23, 3).unwrap();
         let mut all: Vec<u8> = Vec::new();
         for chunk in out.as_chunks::<4>().0 {
