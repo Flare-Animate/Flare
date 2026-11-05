@@ -180,7 +180,10 @@ pub fn rect_style(
     let stroke_style = match stroke_style {
         None => StrokeStyle::Solid,
         Some(name) => StrokeStyle::parse(name).with_context(|| {
-            format!("unknown stroke style {name:?}, expected solid, dashed, dotted or stipple")
+            format!(
+                "unknown stroke style {name:?}, expected one of {}",
+                StrokeStyle::name_list()
+            )
         })?,
     };
     Ok(RectStyle {

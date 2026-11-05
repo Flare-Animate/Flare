@@ -305,7 +305,19 @@ fn draw_rect_takes_a_stroke_style_and_a_wrong_one_is_refused() {
         ])
     };
     assert!(rect("dashed").status.success());
+    for style in ["hatched", "ragged", "herringbone", "rope", "zigzag"] {
+        let out = rect(style);
+        assert!(
+            out.status.success(),
+            "{style} is accepted: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
     let refused = rect("wavy");
     assert!(!refused.status.success());
-    assert!(String::from_utf8_lossy(&refused.stderr).contains("wavy"));
+    let stderr = String::from_utf8_lossy(&refused.stderr);
+    assert!(
+        stderr.contains("wavy") && stderr.contains("zigzag"),
+        "{stderr}"
+    );
 }

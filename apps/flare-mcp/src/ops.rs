@@ -99,7 +99,10 @@ impl DrawRect {
             return Ok(shape);
         };
         let style = StrokeStyle::parse(name).ok_or_else(|| {
-            format!("unknown stroke style {name:?}, expected solid, dashed, dotted or stipple")
+            format!(
+                "unknown stroke style {name:?}, expected one of {}",
+                StrokeStyle::name_list()
+            )
         })?;
         match shape.stroke() {
             Some(stroke) => Ok(shape.with_stroke(stroke.with_style(style))),

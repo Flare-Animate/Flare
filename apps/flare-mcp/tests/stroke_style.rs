@@ -18,12 +18,20 @@ async fn draw_rect_takes_a_stroke_style_and_refuses_what_it_cannot_use() {
     };
     f.ok("draw_rect", rect(json!({ "stroke_style": "Dashed" })))
         .await;
+    for style in ["hatched", "Ragged", "herringbone", "ROPE", "zigzag"] {
+        f.ok("draw_rect", rect(json!({ "stroke_style": style })))
+            .await;
+    }
 
     let before = f.revision().await;
     let (bad, message) = f
         .tool("draw_rect", rect(json!({ "stroke_style": "wavy" })))
         .await;
     assert!(bad && message.to_string().contains("wavy"), "{message}");
+    assert!(
+        message.to_string().contains("zigzag"),
+        "the error lists the names: {message}"
+    );
     let (bad, message) = f
         .tool(
             "draw_rect",
