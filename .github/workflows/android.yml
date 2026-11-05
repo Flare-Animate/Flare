@@ -51,13 +51,22 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           # Both ABIs in one package: the universal APK.
-          cargo apk build -p flare-android
+          cargo apk build -p flare-android 2>&1 | tee /tmp/flare_android.log
           cp target/debug/apk/Flare.apk dist/flare-android-universal.apk
           for triple in aarch64-linux-android:arm64-v8a x86_64-linux-android:x86_64; do
-            cargo apk build -p flare-android --target "${triple%%:*}"
+            cargo apk build -p flare-android --target "${triple%%:*}" 2>&1 | tee -a /tmp/flare_android.log
             cp target/debug/apk/Flare.apk "dist/flare-android-${triple##*:}.apk"
           done
           ls -l dist
+      # The runner log is unreadable without signing in; the build's tail is put into
+      # annotations, which the public API serves, so the port's errors can be worked on.
+      - name: Show the failure tail (annotations)
+        if: failure()
+        run: |
+          tail -n 30 /tmp/flare_android.log | tr -d '\r' | cut -c1-500 | sed 's/%/%25/g' | while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            echo "::error::${line}"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: flare-android-apks

@@ -39,9 +39,13 @@ jobs:
           cache-key: ios
       # Without Ruffle in the process: the in-window Test Movie player is not built for a phone.
       - name: Build the shared window shell for iOS
-        run: cargo build -p flare-shell --no-default-features --target aarch64-apple-ios --release --locked
+        run: |
+          set -o pipefail
+          cargo build -p flare-shell --no-default-features --target aarch64-apple-ios --release --locked 2>&1 | tee /tmp/flare_ios.log
       - name: Build the desktop binary for iOS
-        run: cargo build -p flare-desktop --no-default-features --target aarch64-apple-ios --release --locked
+        run: |
+          set -o pipefail
+          cargo build -p flare-desktop --no-default-features --target aarch64-apple-ios --release --locked 2>&1 | tee -a /tmp/flare_ios.log
       - name: Wrap the binary in an unsigned, experimental .ipa (not a supported app)
         run: |
           set -euo pipefail
@@ -50,6 +54,15 @@ jobs:
           cp target/aarch64-apple-ios/release/flare-desktop "$app/Flare"
           cp packaging/ios/Info.plist "$app/Info.plist"
           (cd build && zip -qry ../Flare-unsigned.ipa Payload)
+      # The runner log is unreadable without signing in; the build's tail is put into
+      # annotations, which the public API serves, so the port's errors can be worked on.
+      - name: Show the failure tail (annotations)
+        if: failure()
+        run: |
+          tail -n 30 /tmp/flare_ios.log | tr -d '\r' | cut -c1-500 | sed 's/%/%25/g' | while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            echo "::error::${line}"
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: flare-ios-unsigned
