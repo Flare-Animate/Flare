@@ -116,3 +116,41 @@ fn the_ease_of_a_motion_tween_between_instances_is_kept() {
         warnings(&imported)
     );
 }
+
+#[test]
+fn a_motion_object_between_instances_is_a_linear_tween_and_its_curves_are_reported() {
+    let main = r#"<DOMDocument frameRate="24" width="100" height="100"><symbols><Include href="Dot.xml"/></symbols>
+      <timelines><DOMTimeline name="S"><layers><DOMLayer name="L"><frames>
+      <DOMFrame index="0" duration="4" tweenType="motion object" acceleration="25"><elements>
+        <DOMSymbolInstance libraryItemName="Dot"><matrix><Matrix tx="0" ty="0"/></matrix></DOMSymbolInstance></elements>
+        <motionObjectXML><MotionObject/></motionObjectXML></DOMFrame>
+      <DOMFrame index="4" duration="1"><elements>
+        <DOMSymbolInstance libraryItemName="Dot"><matrix><Matrix tx="100" ty="0"/></matrix></DOMSymbolInstance></elements></DOMFrame>
+      </frames></DOMLayer></layers></DOMTimeline></timelines></DOMDocument>"#;
+    let dot = format!(
+        r#"<DOMSymbolItem name="Dot" symbolType="graphic"><timeline><DOMTimeline name="Dot"><layers><DOMLayer name="L"><frames>
+        <DOMFrame index="0"><elements>{SQUARE}</elements></DOMFrame></frames></DOMLayer></layers></DOMTimeline></timeline></DOMSymbolItem>"#
+    );
+    let mut files = Files::default();
+    files
+        .0
+        .insert("DOMDocument.xml".to_owned(), main.to_owned());
+    files.0.insert("LIBRARY/Dot.xml".to_owned(), dot);
+    let imported = import_xfl(&files).expect("import");
+    assert_eq!(spans(&imported), [(Tween::Linear, 25), (Tween::None, 0)]);
+    assert!(
+        warnings(&imported).contains("motion object curves are not imported"),
+        "{}",
+        warnings(&imported)
+    );
+    assert!(!warnings(&imported).contains("motion object tweens are not imported"));
+}
+
+#[test]
+fn a_motion_object_on_a_drawn_shape_is_still_refused_with_a_reason() {
+    let imported = import(&format!(
+        r#"<DOMFrame index="0" duration="2" tweenType="motion object"><elements>{SQUARE}</elements></DOMFrame>"#
+    ));
+    assert_eq!(spans(&imported)[0].0, Tween::None);
+    assert!(warnings(&imported).contains("only instance transforms can be tweened"));
+}

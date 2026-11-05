@@ -202,9 +202,13 @@ impl Importer {
                 "elements" => continue,
                 "Actionscript" => (Severity::Unsupported, "frame scripts are not imported"),
                 "sound" | "DOMSound" => (Severity::Unsupported, "frame sounds are not imported"),
-                "tweens" | "Motion" | "motionObjectXML" => (
+                "tweens" => (
                     Severity::Unsupported,
                     "motion-tween property editors are not imported",
+                ),
+                "Motion" | "motionObjectXML" => (
+                    Severity::Unsupported,
+                    "motion object curves are not imported; the tween moves the instance with its ease",
                 ),
                 other => {
                     self.note(
@@ -248,8 +252,9 @@ impl Importer {
             .map_or(0, |a| a.round().clamp(-100.0, 100.0) as i8);
         match (frame.attr("tweenType"), contents.first()) {
             (None | Some("none"), _) => (Tween::None, 0),
-            (Some("motion"), Some(Content::Instance(_))) => (Tween::Linear, ease),
-            (Some("motion"), _) => {
+            // A motion object is the same linear transform tween with its curves in the file.
+            (Some("motion" | "motion object"), Some(Content::Instance(_))) => (Tween::Linear, ease),
+            (Some("motion" | "motion object"), _) => {
                 self.note(
                     Severity::Unsupported,
                     place,
