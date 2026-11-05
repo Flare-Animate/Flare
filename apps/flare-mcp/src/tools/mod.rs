@@ -4,6 +4,7 @@
 mod bones;
 mod draw;
 mod export;
+mod game;
 mod history;
 mod read;
 mod shortcuts;
@@ -33,5 +34,6 @@ impl FlareServer {
             + Self::tween_tools()
             + Self::shortcut_tools()
             + Self::symbol_tools()
+            + Self::game_tools()
     }
 }

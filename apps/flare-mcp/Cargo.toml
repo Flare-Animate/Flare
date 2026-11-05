@@ -14,6 +14,7 @@ path = "src/main.rs"
 anyhow.workspace = true
 clap.workspace = true
 flare-core.workspace = true
+flare-game.workspace = true
 flare-document.workspace = true
 flare-commands.workspace = true
 flare-editor.workspace = true
