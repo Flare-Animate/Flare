@@ -20,6 +20,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "png" => Some("png"),
         "gif" => Some("gif"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
+        "ppm" | "kwz" => Some("flipnote"),
         _ => None,
     }
 }
@@ -59,6 +60,7 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
         Some("png") => crate::bitmap::import_png(file, &bytes),
         Some("gif") => crate::bitmap::import_gif(file, &bytes),
         Some("svg") => crate::svg::import(&bytes).map_err(|e| foreign(&e)),
+        Some("flipnote") => crate::flipnote::import(file, &bytes),
         Some("toonz") => crate::toonz::import(name, &bytes).map_err(|e| foreign(&e)),
         _ => Err(ImportError::NotXfl("unknown file type".into())),
     }

@@ -170,6 +170,10 @@ pub fn import_fla_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
 pub fn import_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
     if looks_like_swf(&bytes) {
         import_swf_kept(bytes, "Document")
+    } else if crate::looks_like_ppm(&bytes) {
+        crate::flipnote::import("Flipnote.ppm", &bytes)
+    } else if crate::looks_like_kwz(&bytes) {
+        crate::flipnote::import("Flipnote.kwz", &bytes)
     } else if bytes.starts_with(&legacy::CFB_MAGIC) {
         legacy::import_legacy_bytes(&bytes)
     } else {
