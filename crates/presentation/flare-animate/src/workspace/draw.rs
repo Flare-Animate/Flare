@@ -62,6 +62,7 @@ impl Workspace {
                 stroke
                     .with_cap(self.paint.stroke_cap)
                     .with_join(self.paint.stroke_join)
+                    .with_style(self.paint.stroke_style)
             })
         };
         let id = ShapeId::new();

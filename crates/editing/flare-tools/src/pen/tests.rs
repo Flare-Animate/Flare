@@ -220,6 +220,7 @@ mod shapes {
             stroke_color: Rgba8::opaque(200, 0, 0),
             cap: Cap::Square,
             join: Join::Miter,
+            style: flare_document::StrokeStyle::Dotted,
         }
     }
 

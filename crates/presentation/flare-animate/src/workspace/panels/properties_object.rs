@@ -5,7 +5,7 @@
 use crate::workspace::{ShapePaintEdit, Workspace};
 use egui::{Color32, RichText, Ui};
 use flare_core::Rgba8;
-use flare_document::{Cap, Content, Join, Shape, Stroke as ShapeStroke, SymbolKind};
+use flare_document::{Cap, Content, Join, Shape, Stroke as ShapeStroke, StrokeStyle, SymbolKind};
 use flare_tools::ops::{self, SpanRef};
 use flare_ui::{chrome, icons, theme};
 
@@ -202,6 +202,7 @@ impl Workspace {
             width: stroke.map_or(self.paint.stroke_width, |s| s.width() as f32),
             cap: stroke.map_or(self.paint.stroke_cap, |s| s.cap()),
             join: stroke.map_or(self.paint.stroke_join, |s| s.join()),
+            style: stroke.map_or(self.paint.stroke_style, |s| s.style()),
             stroke_changed: false,
         });
         chrome::section(ui, "fill-color", &tr!(self, "opt-fill-stroke"));
@@ -290,6 +291,21 @@ impl Workspace {
                     }
                 });
         });
+        chrome::row(ui, &tr!(self, "opt-stroke-style"), |ui| {
+            egui::ComboBox::from_id_salt("shape_stroke_style")
+                .width(80.0)
+                .selected_text(self.style_label(e.style))
+                .show_ui(ui, |ui| {
+                    for value in StrokeStyle::ALL {
+                        let label = self.style_label(value);
+                        if ui.selectable_value(&mut e.style, value, label).changed() {
+                            e.stroke_changed = true;
+                            changed = true;
+                            immediate = true;
+                        }
+                    }
+                });
+        });
         if changed {
             self.shape_paint_edit = Some(e);
         }
@@ -302,13 +318,27 @@ impl Workspace {
         }
     }
 
+    pub(super) fn style_label(&self, style: StrokeStyle) -> String {
+        match style {
+            StrokeStyle::Solid => tr!(self, "opt-solid"),
+            StrokeStyle::Dashed => tr!(self, "opt-dashed"),
+            StrokeStyle::Dotted => tr!(self, "opt-dotted"),
+            StrokeStyle::Stipple => tr!(self, "opt-stipple"),
+        }
+    }
+
     /// Gives the shape the paint that was chosen in the panel: one undo step.
     fn apply_shape_paint(&mut self, edit: ShapePaintEdit) {
         let Some(scene) = self.scene_id() else { return };
         let stroke = if edit.stroke_changed {
             if edit.outline {
                 match ShapeStroke::new(f64::from(edit.width), rgba(edit.color)) {
-                    Ok(stroke) => Some(Some(stroke.with_cap(edit.cap).with_join(edit.join))),
+                    Ok(stroke) => Some(Some(
+                        stroke
+                            .with_cap(edit.cap)
+                            .with_join(edit.join)
+                            .with_style(edit.style),
+                    )),
                     Err(error) => return self.report(error.to_string()),
                 }
             } else {

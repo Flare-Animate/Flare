@@ -2,7 +2,9 @@
 
 use anyhow::{Context, Result, bail};
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId};
-use flare_document::{Content, Document, FrameSpan, Layer, Scene, Shape, Stage, Stroke, Timeline};
+use flare_document::{
+    Content, Document, FrameSpan, Layer, Scene, Shape, Stage, Stroke, StrokeStyle, Timeline,
+};
 use flare_history::EditorSession;
 use serde_json::{Value, json};
 use std::num::NonZeroU32;
@@ -143,6 +145,7 @@ pub fn parse_color(text: &str) -> Result<Rgba8> {
 pub struct RectStyle {
     pub fill: Rgba8,
     pub stroke: Option<(f64, Rgba8)>,
+    pub stroke_style: StrokeStyle,
 }
 
 fn rect_content(rect: [f64; 4], style: RectStyle) -> Result<Content> {
@@ -153,7 +156,7 @@ fn rect_content(rect: [f64; 4], style: RectStyle) -> Result<Content> {
     let mut shape = Shape::rect(ShapeId::new(), x, y, w, h, style.fill)
         .context("rectangle coordinates must be finite")?;
     if let Some((width, color)) = style.stroke {
-        shape = shape.with_stroke(Stroke::new(width, color)?);
+        shape = shape.with_stroke(Stroke::new(width, color)?.with_style(style.stroke_style));
     }
     Ok(Content::Shape(shape))
 }
@@ -168,8 +171,20 @@ fn one_frame_timeline(content: Content) -> Result<Timeline> {
 }
 
 /// Builds a rectangle style from the command-line color strings.
-pub fn rect_style(color: &str, stroke: Option<&str>, stroke_width: f64) -> Result<RectStyle> {
+pub fn rect_style(
+    color: &str,
+    stroke: Option<&str>,
+    stroke_width: f64,
+    stroke_style: Option<&str>,
+) -> Result<RectStyle> {
+    let stroke_style = match stroke_style {
+        None => StrokeStyle::Solid,
+        Some(name) => StrokeStyle::parse(name).with_context(|| {
+            format!("unknown stroke style {name:?}, expected solid, dashed, dotted or stipple")
+        })?,
+    };
     Ok(RectStyle {
+        stroke_style,
         fill: parse_color(color)?,
         stroke: stroke
             .map(|c| Ok::<_, anyhow::Error>((stroke_width, parse_color(c)?)))

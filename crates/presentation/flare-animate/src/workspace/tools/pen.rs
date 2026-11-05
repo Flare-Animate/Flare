@@ -76,6 +76,7 @@ impl Workspace {
             stroke_width: f64::from(self.paint.stroke_width),
             stroke_color: color(self.paint.stroke_color),
             cap: self.paint.stroke_cap,
+            style: self.paint.stroke_style,
             join: self.paint.stroke_join,
         };
         let shape = match path_shape(ShapeId::new(), path, closed, &style) {

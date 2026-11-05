@@ -283,3 +283,29 @@ fn export_sprites_writes_a_sheet_and_an_atlas_and_refuses_overwrites_and_bad_ran
             .success()
     );
 }
+
+#[test]
+fn draw_rect_takes_a_stroke_style_and_a_wrong_one_is_refused() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file]);
+    let rect = |style: &str| {
+        run(&[
+            "draw-rect",
+            &file,
+            "--rect",
+            "2",
+            "2",
+            "20",
+            "10",
+            "--stroke",
+            "FF0000",
+            "--stroke-style",
+            style,
+        ])
+    };
+    assert!(rect("dashed").status.success());
+    let refused = rect("wavy");
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("wavy"));
+}

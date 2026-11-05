@@ -137,6 +137,19 @@ impl Workspace {
                     ui.selectable_value(&mut self.paint.stroke_join, Join::Miter, &miter);
                 });
         });
+        chrome::row(ui, &tr!(self, "opt-stroke-style"), |ui| {
+            use flare_document::StrokeStyle;
+            let current = self.style_label(self.paint.stroke_style);
+            egui::ComboBox::from_id_salt("stroke_style_menu")
+                .width(80.0)
+                .selected_text(current)
+                .show_ui(ui, |ui| {
+                    for value in StrokeStyle::ALL {
+                        let label = self.style_label(value);
+                        ui.selectable_value(&mut self.paint.stroke_style, value, label);
+                    }
+                });
+        });
     }
 
     /// The current frame and layer.

@@ -98,6 +98,9 @@ pub(crate) enum Command {
         /// Outline width in document units.
         #[arg(long, default_value_t = 2.0)]
         stroke_width: f64,
+        /// Outline pattern: solid, dashed, dotted or stipple.
+        #[arg(long)]
+        stroke_style: Option<String>,
         #[arg(long, default_value_t = 0)]
         start: u32,
         #[arg(long, default_value_t = 1)]

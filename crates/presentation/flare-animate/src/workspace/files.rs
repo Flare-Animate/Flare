@@ -27,6 +27,7 @@ impl Workspace {
         self.paint.stroke_width = from.paint.stroke_width;
         self.paint.stroke_cap = from.paint.stroke_cap;
         self.paint.stroke_join = from.paint.stroke_join;
+        self.paint.stroke_style = from.paint.stroke_style;
         self.paint.symmetry = from.paint.symmetry;
         self.paint.straight_edge = from.paint.straight_edge;
         self.library.new_kind = from.library.new_kind;

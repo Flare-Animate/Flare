@@ -40,6 +40,8 @@ pub struct DrawRect {
     pub stroke: Option<String>,
     /// Outline width; defaults to 2.
     pub stroke_width: Option<f64>,
+    /// Outline pattern: solid (default), dashed, dotted or stipple.
+    pub stroke_style: Option<String>,
     /// First frame; defaults to 0.
     pub start: Option<u32>,
     /// Frames the rectangle lasts; defaults to 1.

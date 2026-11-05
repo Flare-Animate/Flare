@@ -14,6 +14,8 @@ mod shape;
 mod sound;
 mod span_elements;
 mod stage;
+mod stroke;
+mod stroke_style;
 mod text;
 mod timeline;
 mod validate;
@@ -37,6 +39,7 @@ pub use sound::{
 };
 pub use span_elements::MAX_ELEMENTS;
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
+pub use stroke_style::StrokeStyle;
 pub use text::{
     MAX_FAMILY_CHARS, MAX_TEXT_CHARS, MAX_TEXT_SIZE, MIN_TEXT_SIZE, TextSource, TextSourceError,
 };

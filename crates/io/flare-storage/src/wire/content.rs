@@ -2,7 +2,7 @@
 
 use crate::StorageError;
 use flare_core::{DocumentPoint, InstanceId, Rgba8, ShapeId, SymbolId, Transform2D};
-use flare_document::{Cap, Content, Gradient, Instance, Join, Shape, Stroke};
+use flare_document::{Cap, Content, Gradient, Instance, Join, Shape, Stroke, StrokeStyle};
 use glamx::DAffine2;
 
 use super::timeline::{
@@ -23,6 +23,8 @@ pub(super) fn wire_content(content: &Content) -> ContentWire {
                 rgba: stroke.color().to_array(),
                 cap: (stroke.cap() != Cap::Round).then(|| cap_name(stroke.cap()).to_owned()),
                 join: (stroke.join() != Join::Round).then(|| join_name(stroke.join()).to_owned()),
+                style: (stroke.style() != StrokeStyle::Solid)
+                    .then(|| stroke.style().name().to_owned()),
             }),
             text: shape.text().map(TextWire::of),
             gradient: shape.gradient().map(|g| GradientWire {
@@ -71,10 +73,17 @@ pub(super) fn build_content(content: ContentWire) -> Result<Content, StorageErro
                 let [r, g, b, a] = stroke.rgba;
                 let cap = cap_from(stroke.cap.as_deref())?;
                 let join = join_from(stroke.join.as_deref())?;
+                let style = match stroke.style.as_deref() {
+                    None => StrokeStyle::Solid,
+                    Some(name) => StrokeStyle::parse(name).ok_or_else(|| {
+                        StorageError::Corrupt(format!("unknown stroke style {name:?}"))
+                    })?,
+                };
                 let stroke = Stroke::new(stroke.width, Rgba8::new(r, g, b, a))
                     .map_err(corrupt)?
                     .with_cap(cap)
-                    .with_join(join);
+                    .with_join(join)
+                    .with_style(style);
                 shape = shape.with_stroke(stroke);
             }
             if let Some(g) = gradient {

@@ -1,6 +1,7 @@
 #![allow(clippy::expect_used)]
 
 use super::*;
+use crate::stroke::BrushType;
 
 fn p(x: f64, y: f64) -> DocumentPoint {
     DocumentPoint::new(x, y).expect("finite")

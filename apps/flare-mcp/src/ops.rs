@@ -4,7 +4,7 @@ use std::num::NonZeroU32;
 
 use flare_commands::Command;
 use flare_core::{LayerId, Rgba8, SceneId, ShapeId};
-use flare_document::{Shape, Stroke};
+use flare_document::{Shape, Stroke, StrokeStyle};
 use serde_json::{Value, json};
 use uuid::Uuid;
 
@@ -90,10 +90,20 @@ impl DrawRect {
             .stroke
             .as_deref()
             .map(|s| (s, self.stroke_width.unwrap_or(2.0)));
-        rect_shape(
+        let shape = rect_shape(
             (self.x, self.y, self.width, self.height),
             self.color.as_deref(),
             outline,
-        )
+        )?;
+        let Some(name) = self.stroke_style.as_deref() else {
+            return Ok(shape);
+        };
+        let style = StrokeStyle::parse(name).ok_or_else(|| {
+            format!("unknown stroke style {name:?}, expected solid, dashed, dotted or stipple")
+        })?;
+        match shape.stroke() {
+            Some(stroke) => Ok(shape.with_stroke(stroke.with_style(style))),
+            None => Err("stroke_style needs a stroke color".to_owned()),
+        }
     }
 }

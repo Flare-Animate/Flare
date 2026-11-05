@@ -174,7 +174,7 @@ fn run() -> Result<()> {
             stroke,
             stroke_width,
         } => {
-            let style = project::rect_style(&color, stroke.as_deref(), stroke_width)?;
+            let style = project::rect_style(&color, stroke.as_deref(), stroke_width, None)?;
             let rect = rect.map(|r| ([r[0], r[1], r[2], r[3]], style));
             project::add_symbol(&path, &name, rect)?
         }
@@ -184,13 +184,19 @@ fn run() -> Result<()> {
             color,
             stroke,
             stroke_width,
+            stroke_style,
             start,
             duration,
             layer,
         } => project::draw_rect(
             &path,
             [rect[0], rect[1], rect[2], rect[3]],
-            project::rect_style(&color, stroke.as_deref(), stroke_width)?,
+            project::rect_style(
+                &color,
+                stroke.as_deref(),
+                stroke_width,
+                stroke_style.as_deref(),
+            )?,
             start,
             duration,
             layer,

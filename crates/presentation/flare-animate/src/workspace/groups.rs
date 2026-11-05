@@ -75,6 +75,7 @@ pub(super) struct Paint {
     pub(super) stroke_width: f32,
     pub(super) stroke_cap: Cap,
     pub(super) stroke_join: Join,
+    pub(super) stroke_style: flare_document::StrokeStyle,
     /// Pencil and brush strokes are mirrored across these axes.
     pub(super) symmetry: Symmetry,
     /// Where the axes cross; the middle of the stage until one is set.
@@ -99,6 +100,7 @@ impl Default for Paint {
             stroke_width: 4.0,
             stroke_cap: Cap::Round,
             stroke_join: Join::Round,
+            stroke_style: flare_document::StrokeStyle::Solid,
             symmetry: Symmetry::Off,
             symmetry_center: None,
             straight_edge: false,
