@@ -2126,6 +2126,7 @@ dependencies = [
  "flare-document",
  "flare-eval",
  "flare-history",
+ "flare-tween",
 ]
 
 [[package]]

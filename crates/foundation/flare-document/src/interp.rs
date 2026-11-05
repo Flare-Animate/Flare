@@ -82,6 +82,22 @@ impl SpanInterp {
         Curve::new(vec![a, b], Extrapolation::Constant, self.params)
     }
 
+    /// The same motion played backwards: `f'(t) = 1 - f(1 - t)`. In and Out swap, and a Bezier's
+    /// handles swap ends and point the other way, so a reversed tween retraces the same path.
+    pub fn mirrored(&self) -> Self {
+        let easing = match self.easing {
+            Easing::In => Easing::Out,
+            Easing::Out => Easing::In,
+            other => other,
+        };
+        let [rdt, rdv, ldt, ldv] = self.handles;
+        Self {
+            easing,
+            handles: [-ldt, -ldv, -rdt, -rdv],
+            ..*self
+        }
+    }
+
     /// How far along the change is when `t` (0 to 1) of the time has passed. Never fails for
     /// a value made by `new`: a non-finite `t` is the start.
     pub fn fraction(&self, t: f64) -> f64 {
@@ -115,6 +131,50 @@ impl Default for SpanInterp {
 mod tests {
     #![allow(clippy::expect_used)]
     use super::*;
+
+    #[test]
+    fn a_mirrored_curve_is_the_original_played_backwards() {
+        for (family, easing) in [
+            (Interpolation::Quad, Easing::In),
+            (Interpolation::Cubic, Easing::Out),
+            (Interpolation::Quad, Easing::InOut),
+        ] {
+            let i = SpanInterp::new(
+                family,
+                easing,
+                HandleKind::AutoClamped,
+                [0.0; 4],
+                Params::default(),
+            )
+            .expect("valid");
+            let m = i.mirrored();
+            for k in 0..=10 {
+                let t = f64::from(k) / 10.0;
+                assert!(
+                    (m.fraction(t) - (1.0 - i.fraction(1.0 - t))).abs() < 1e-9,
+                    "{family:?} {easing:?} {t}"
+                );
+            }
+        }
+        let b = SpanInterp::new(
+            Interpolation::Bezier,
+            Easing::Auto,
+            HandleKind::Free,
+            [0.2, 0.0, -0.5, -0.3],
+            Params::default(),
+        )
+        .expect("valid");
+        let m = b.mirrored();
+        assert_eq!(m.handles(), [0.5, 0.3, -0.2, -0.0]);
+        for k in 0..=10 {
+            let t = f64::from(k) / 10.0;
+            assert!(
+                (m.fraction(t) - (1.0 - b.fraction(1.0 - t))).abs() < 1e-6,
+                "{t}"
+            );
+        }
+        assert_eq!(b.mirrored().mirrored(), b);
+    }
 
     #[test]
     fn families_keep_their_ends_and_differ_inside() {
