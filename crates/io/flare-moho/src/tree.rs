@@ -124,7 +124,10 @@ impl Harvest {
 
 fn relative_path<'a>(o: &'a Map<String, Value>, key: &str) -> Option<&'a str> {
     let path = o.get(key)?.as_str()?;
-    let relative = !path.is_empty() && !path.contains("://") && !Path::new(path).is_absolute();
+    // A leading slash is rooted on every platform; Windows' `is_absolute` needs a drive too.
+    let rooted = path.starts_with(['/', '\\']);
+    let relative =
+        !path.is_empty() && !path.contains("://") && !rooted && !Path::new(path).is_absolute();
     relative.then_some(path)
 }
 
