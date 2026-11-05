@@ -27,6 +27,12 @@ code only if its licence allows it to be copied into a BSD-3 project with its no
 | ArtCraft's `Replicraft` | Not found (see below) | Unknown | Not used |
 | bitmapflow (`Bauxitedev/bitmapflow`) | **No LICENSE file** in the repository; its README says MIT, which is not relied on | Unknown | Behaviour and ideas only, no code (ENGINEERING.md) |
 | eisai-anime-interpolator (`ShuhongChen/eisai-anime-interpolator`) | `AGPL-3.0` (`license.txt`) | No: copyleft, not permissive | Behaviour and ideas only, no code; its neural weights are not used (ENGINEERING.md) |
+| flipnote.js (`jaames/flipnote.js`, Flipnote Studio parsers, test samples) | `MIT` (`LICENSE`, Copyright (c) 2018 James Daniel) | Yes, with the notice kept | Port allowed with attribution: the PPM parser was followed in `crates/io/flare-import/src/flipnote/` (ENGINEERING.md). Its KWZ parser is not used yet |
+| Flipnote Collective `flipnote-studio-docs` (wiki, Flipnote Studio PPM) | `GPL-2.0` (`LICENSE` text fetched from the repository page) | No: GPL | Facts only; no text or code copied |
+| Flipnote Collective `flipnote-studio-3d-docs` (KWZ format wiki) | `CC BY-SA 4.0` (`LICENSE`) | No: share-alike does not fit a BSD-3 code base | Facts only; no text copied |
+| Hatenatools (`pbsds/Hatenatools`, Flipnote Hatena and Studio tools) | `AGPL-3.0` (README) | No: copyleft | Not read for code; nothing used |
+| Ugomemo.NET (`purifetchi/Ugomemo.NET`, a different format, Ugomemo) | `MIT` (repository licence) | Yes | Not used: not a Flipnote format |
+| sudomemo-utils (`Sudomemo/sudomemo-utils`) and flipnote-id (`pummelator/flipnote-id`) | `MIT` (repository licence) | Yes | Not read for code; listed as leads for the KWZ and FSID work |
 
 Policy the work packages follow. [ARCHITECTURE.md](ARCHITECTURE.md) already marks `flare-tween`
 as clean-room ("the code follows the feature descriptions and standard easing formulas"), and
@@ -124,6 +130,21 @@ a FlipaClip layout profile; the Next2Flash sidecar (AS3 decompile, constant-stri
 compile through the Flex SDK); a game-creation scaffold (`common/tgame`, an ECS with 7 systems);
 a Rust backend behind a C ABI; an Android scaffold; an NSIS installer. `original/docs/FLASH_CC_GAPS.md`
 and `original/docs/animatecraft/FUNCTION-SOURCES.md` list more. Read only.
+
+### 9. Flipnote Studio formats (PPM, KWZ)
+
+The reference list for `docs/FLIPNOTE.md`. Each source's licence is in the table above.
+
+- flipnote.js (MIT): `src/parsers/PpmParser.ts` and `KwzParser.ts`. The PPM reader is ported with
+  attribution. The seven real `.ppm` and eight `.kwz` files in its `test/samples/` were used as
+  verification data outside the repository (`FLARE_FLIPNOTE_SAMPLES`); they are not committed.
+- Flipnote Collective `flipnote-studio-docs` (GPL-2.0): the PPM wiki, read for layout facts.
+- Flipnote Collective `flipnote-studio-3d-docs` (CC BY-SA 4.0): the KWZ wiki, read for layout facts.
+- Hatenatools (AGPL-3.0) and Ugomemo.NET (MIT): the second is a different format and not used.
+- No `.fpbm` format was found in the search. `.kwc` files are KFH sections like KWZ; the sample
+  `comment.kwc` is refused with the KWZ message.
+- Open work: the KWZ reader (sections, tile frames, three layers, sound), the PPM sound and
+  thumbnail, and an oracle comparison of decoded pixels with flipnote.js (refused in this run).
 
 ### Replicraft: not found
 
