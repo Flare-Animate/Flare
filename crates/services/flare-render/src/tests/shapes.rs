@@ -235,6 +235,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
     // Over a transparent canvas the ghost keeps its own color and alpha.
     let mut clear = render(
         &flare_eval::Frame {
+            warnings: vec![],
             placed: vec![],
             shapes: vec![],
             bitmaps: vec![],
@@ -253,6 +254,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
     assert_eq!(canvas, before);
     let small = render(
         &flare_eval::Frame {
+            warnings: vec![],
             placed: vec![],
             shapes: vec![],
             bitmaps: vec![],
