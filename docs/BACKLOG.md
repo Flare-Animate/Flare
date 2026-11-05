@@ -137,16 +137,17 @@ and `original/docs/animatecraft/FUNCTION-SOURCES.md` list more. Read only.
 
 The reference list for `docs/FLIPNOTE.md`. Each source's licence is in the table above.
 
-- flipnote.js (MIT): `src/parsers/PpmParser.ts` and `KwzParser.ts`. The PPM reader is ported with
-  attribution. The seven real `.ppm` and eight `.kwz` files in its `test/samples/` were used as
+- flipnote.js (MIT): `src/parsers/PpmParser.ts` and `KwzParser.ts`. The PPM and KWZ readers are
+  ported with attribution. The seven real `.ppm` and eight `.kwz` files in its `test/samples/` were used as
   verification data outside the repository (`FLARE_FLIPNOTE_SAMPLES`); they are not committed.
 - Flipnote Collective `flipnote-studio-docs` (GPL-2.0): the PPM wiki, read for layout facts.
 - Flipnote Collective `flipnote-studio-3d-docs` (CC BY-SA 4.0): the KWZ wiki, read for layout facts.
 - Hatenatools (AGPL-3.0) and Ugomemo.NET (MIT): the second is a different format and not used.
 - No `.fpbm` format was found in the search. `.kwc` files are KFH sections like KWZ; the sample
   `comment.kwc` is refused with the KWZ message.
-- Open work: the KWZ reader (sections, tile frames, three layers, sound), the PPM sound and
-  thumbnail, and an oracle comparison of decoded pixels with flipnote.js (refused in this run).
+- Open work: the KWZ and PPM sound (ADPCM decodes exist, no document layer), the thumbnails, the
+  KWZ layer depths and draw order, and an oracle comparison of decoded pixels with flipnote.js
+  (refused in this run).
 
 ### 10. Moho and Anime Studio (`flare-moho`)
 

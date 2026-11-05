@@ -10,8 +10,8 @@ the files hold, and how far each part was checked.
 | Format | Magic | Platform | Size | Status |
 |---|---|---|---|---|
 | PPM (`.ppm`) | `PARA` | DSi Flipnote Studio (the Hatena and Sudomemo archives of the same files should match; not checked) | 256 by 192, two 1-bit layers | Imported (frames, layers, paper, frame rate; sound and thumbnail not yet) |
-| KWZ (`.kwz`) | `KFH` (the fourth byte varies: 0x14 in the samples) | 3DS Flipnote Studio 3D | 320 by 240, three layers, sound tracks | Recognised by magic and refused by name; the reader is not written |
-| KWC (`.kwc`) | `KFH` | 3DS comment files | section layout as KWZ | Refused by name with the KWZ message |
+| KWZ (`.kwz`) | `KFH` (the fourth byte varies: 0x14 in the samples) | 3DS Flipnote Studio 3D | 320 by 240, three layers, sound tracks | Imported: frames, three layers with their pens, paper colour, frame rate. Sound, layer depths and per-frame draw order are not imported yet |
+| KWC (`.kwc`) | `KFH` | 3DS comment files | a KWZ without the `KSN` section | Imported as a one-note comment (its frames and layers, as a KWZ) |
 | KIC (folder icon) | `KIC` | 3DS folder icons | as KWZ | Not recognised (not an animation) |
 
 Flipnote Studio saved every file with an RSA-2048 signature. The reader does not verify it. A
@@ -74,19 +74,44 @@ translation moves it from; pixels the translation does not reach keep their deco
 The frame pointers, not the decoded length, bound a frame. Real files leave up to 12 bytes
 after some frames that no line refers to (see Verification).
 
-## KWZ layout (not implemented)
+## KWZ layout
 
-From the flipnote.js reader (MIT, read but not ported) and the 3DS documentation (facts only):
-a KWZ is a sequence of sections, each starting with a magic (`KFH`, `KTN`, `KMC`, `KMI`, `KSN`)
-and a length; `KFH` holds the frame count, frame rate and flags; the frames are tile-based with
-line and run types for three layers, two colours each and a paper colour; the sound tracks are
-ADPCM; and the file ends in a 256-byte signature. Flare does not read any of it yet.
+A KWZ is a run of sections, each `magic` (`KFH`, `KTN`, `KMC`, `KMI`, `KSN`; the fourth byte is
+not part of the magic), a u32 length, then the data. The sections end where the 256-byte RSA
+signature starts (not checked). Offsets below are from the start of a section, its magic included.
+
+| Section | Use |
+|---|---|
+| `KFH` | Header. Creation and modified times (u32 at 12 and 16, Nintendo epoch), root, parent and current FSIDs (10 bytes each, at 24, 34, 44), author names (11 UTF-16 units at 54, 76, 98), filenames (28 bytes at 120, 148, 176). At 204: frame count (u16), thumbnail index, flags (lock bit 0, loop bit 1), frame speed (u8, an index into the table below), layer flags (u8: layer 1 hidden by bit 0, layer 2 by bit 1; layer 3 is shown only when both bits are clear, as flipnote.js reads it) |
+| `KTN` | Thumbnail (not read) |
+| `KMI` | One 28-byte record per frame: palette word (u32 at 0: paper, then two pens per layer, four bits each at bits 0, 8, 12, 16, 20, 24, 28), layer sizes (three u16 at 4, 6, 8), layer depths (three bytes at 0x14) |
+| `KMC` | The layer bits: four bytes, then each frame's three layers in order, each as the size its `KMI` record gives |
+| `KSN` | Sound: BGM speed (u32), five track lengths (u32 each, BGM then four effects), then the tracks after 4 bytes of padding. Absent in comments |
+
+Frame speeds in frames a second: 1/5, 1/2, 1, 2, 4, 6, 8, 12, 20, 24, 30.
+
+A layer's bits are 16-bit little-endian words read least significant bit first. The layer is
+320 by 240 in 128-pixel tiles of 8 by 8 blocks, read tile by tile (a tile's rows top to bottom).
+Each block starts with a 3-bit type:
+
+- 0: one common line (5 bits), all eight rows. 1: one full line (13 bits), all eight rows.
+- 2 and 3: a line (5 or 13 bits), alternate rows its line and its shifted line.
+- 4: eight bits, one per row: a set bit takes a common line (5 bits), a clear bit a full line (13 bits).
+- 5: skip the next N blocks (5 bits), which keep their pixels from the layer before.
+- 7: a 2-bit pattern and a flag: two lines (5 bits each for common, or 13 each), in one of four row
+  orders. Type 6 is not used and leaves the block as it was.
+
+A line is eight pixels of value 0 to 2, coded as a base-3 number (3^8 = 6561 full lines); the
+32 common lines are listed in flipnote.js. A layer the frame does not change is 38 bytes long and
+keeps its pixels. A pixel of 0 is transparent; 1 and 2 are the layer's two pens.
 
 ## What the importer makes
 
 A PPM becomes one Flare document at 256 by 192 with three layers, top to bottom: Layer 1, Layer 2
 (each a transparent RGBA bitmap per frame, the pen colour where the bit is set) and Paper (a solid
-bitmap of the paper colour). Identical pictures share one bitmap in the library. A run of the same
+bitmap of the paper colour). A KWZ is the same with Layer 3 and 320 by 240; its layers stack 1 over
+2 over 3 over the paper, and the per-frame draw order and the layer depths (stereo offsets) are not
+imported. Identical pictures share one bitmap in the library. A run of the same
 bitmap is one span. Hidden layers import hidden. The frame rate is the speed's. The limits:
 4096 frames, and 512 MiB of distinct pictures (about 2700 distinct frames at 256 by 192).
 
@@ -103,7 +128,9 @@ Checked against real files:
   12 unread bytes after any frame. Those bytes look like leftovers in Flipnote's own buffer: the
   decoder reads the frame's line data completely, and the frames that follow decode as coherent
   drawings (rendered as ASCII for a few frames of `knight.ppm`, including a keyframe).
-- The eight KWZ files and the one KWC comment in the same corpus are refused by name.
+- The eight KWZ files and the one KWC comment in the same corpus decode every frame. For each
+  changed layer, the bits read end within two bytes of the layer's declared size, which a misread
+  tile would break. Their pixels were not compared with a reference decoder.
 
 Not checked against real files, or only as a spec:
 
@@ -113,7 +140,8 @@ Not checked against real files, or only as a spec:
   audible result.
 - The thumbnail and the metadata strings were read from the layout only; the metadata test uses
   a synthetic file.
-- KWZ: nothing is decoded.
+- KWZ pixels: not compared with a reference decoder (the same refused oracle run as for PPM).
+- KWZ FSIDs are the raw hex of the ten bytes, not flipnote.js's region-formatted ids; the layer 3 visibility follows flipnote.js.
 - Signatures are not verified (by design).
 
 Tests: `crates/io/flare-import/src/flipnote/` (unit tests on synthetic files written by a test-only
