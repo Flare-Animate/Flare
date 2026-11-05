@@ -3,10 +3,13 @@
 use crate::xml::{self, Node};
 use flare_core::{DocumentId, Rgba8, SceneId, SymbolId};
 use flare_document::{
-    Anchor, Document, MAX_ATTACHMENTS, Placement, Scene, Stage, Symbol, SymbolKind, Timeline,
+    Anchor, Bitmap, Document, MAX_ATTACHMENTS, MAX_BITMAPS, Placement, Scene, Stage, Symbol,
+    SymbolKind, Timeline,
 };
 
 use super::*;
+
+const PNG_SIGNATURE: &[u8] = b"\x89PNG\r\n\x1a\n";
 
 /// Imports an XFL document from `source`.
 pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
@@ -118,6 +121,70 @@ pub(crate) fn import_xfl_with_files(
         symbols.push(Symbol::new(*id, name.clone(), timeline).with_kind(kind));
     }
 
+    // Library bitmaps: the media list names each image and its file, which sits in LIBRARY/.
+    // Only PNG is decoded so far; other formats are reported and their instances kept as source.
+    let mut bitmaps = Vec::new();
+    for item in root
+        .child("media")
+        .into_iter()
+        .flat_map(|m| m.children_named("DOMBitmapItem"))
+    {
+        let Some(name) = item.attr("name").map(str::to_owned) else {
+            continue;
+        };
+        let place = format!("bitmap \"{name}\"");
+        if bitmaps.len() >= MAX_BITMAPS {
+            importer.note(
+                Severity::Unsupported,
+                &place,
+                "the limit of bitmaps was reached",
+            );
+            break;
+        }
+        let file = format!("LIBRARY/{}", item.attr("href").unwrap_or_default());
+        let Some(bytes) = source.read(&file)? else {
+            importer.note(Severity::Unsupported, &place, "image file not found");
+            continue;
+        };
+        if bytes.len() as u64 > MAX_FILE_BYTES {
+            importer.note(Severity::Unsupported, &place, "image file is too large");
+            continue;
+        }
+        if !bytes.starts_with(PNG_SIGNATURE) {
+            importer.note(
+                Severity::Unsupported,
+                &place,
+                "only PNG bitmaps are imported; this image was kept as source data",
+            );
+            continue;
+        }
+        let picture = match crate::bitmap::decode_png(&file, &bytes) {
+            Ok(picture) => picture,
+            Err(error) => {
+                importer.note(
+                    Severity::Unsupported,
+                    &place,
+                    format!("could not be read: {error}"),
+                );
+                continue;
+            }
+        };
+        let id = flare_core::BitmapId::new();
+        match Bitmap::new(
+            id,
+            name.clone(),
+            picture.width,
+            picture.height,
+            picture.rgba,
+        ) {
+            Ok(bitmap) => {
+                importer.bitmaps.insert(name, id);
+                bitmaps.push(bitmap);
+            }
+            Err(error) => importer.note(Severity::Unsupported, &place, format!("{error}")),
+        }
+    }
+
     let mut scenes = Vec::new();
     for node in root
         .child("timelines")
@@ -166,6 +233,13 @@ pub(crate) fn import_xfl_with_files(
     let document = Document::new(DocumentId::new(), rate, scenes, symbols)
         .map_err(ImportError::Invalid)?
         .with_stage(stage);
+    let document = if bitmaps.is_empty() {
+        document
+    } else {
+        document
+            .with_bitmaps(bitmaps)
+            .map_err(ImportError::Invalid)?
+    };
 
     // Keep only what still hangs off something that was imported (a layer skipped for
     // overlapping frames takes its source data with it), and stay within the limits.

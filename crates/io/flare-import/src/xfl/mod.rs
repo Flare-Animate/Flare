@@ -8,15 +8,16 @@
 //! visibility and lock; keyframes and their durations; symbol instances with their matrix;
 //! solid-color fills and solid strokes of drawn shapes (lines and quadratic curves), and linear
 //! gradient fills of two colors;
-//! the library as Graphic symbols; classic motion tweens between instances.
+//! the library as Graphic symbols; classic motion tweens between instances; PNG library bitmaps and
+//! the bitmap instances that show them (JPEG and other formats are kept as source data).
 //! Reported and changed: a radial gradient, or one with more than two stops, or one the file places
 //! somewhere that does not fit its shape, is imported as one color (or, with more stops, its first and
-//! last). Reported and skipped: bitmap fills, bitmaps, text, video, sound, scripts, filters, color
+//! last). Reported and skipped: bitmap fills, text, video, sound, scripts, filters, color
 //! effects, masks, guides, primitives, shape tweens, 3D, and symbol runtime
 //! behaviour (movie clips and buttons become Graphic symbols).
 
 use crate::xml::{Node, XmlError};
-use flare_core::{FrameRate, LayerId, Rgba8, SymbolId};
+use flare_core::{BitmapId, FrameRate, LayerId, Rgba8, SymbolId};
 use flare_document::{Anchor, Attachment, Document, Placement};
 use std::collections::HashMap;
 use std::io::{self, Read};
@@ -178,6 +179,8 @@ struct Spot {
 
 pub(crate) struct Importer {
     pub(crate) symbols: HashMap<String, SymbolId>,
+    /// Library bitmaps imported so far, by item name.
+    pub(crate) bitmaps: HashMap<String, BitmapId>,
     pub(crate) diagnostics: Vec<Diagnostic>,
     pub(crate) suppressed: usize,
     /// Source text that has no Flare equivalent, kept for export.
@@ -188,6 +191,7 @@ impl Importer {
     pub(crate) fn new() -> Self {
         Self {
             symbols: HashMap::new(),
+            bitmaps: HashMap::new(),
             diagnostics: Vec::new(),
             suppressed: 0,
             kept: Vec::new(),
