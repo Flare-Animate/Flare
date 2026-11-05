@@ -82,6 +82,9 @@ pub enum ImportError {
     TooManySymbols,
     #[error("invalid {what}: {message}")]
     BadAttribute { what: String, message: String },
+    /// A Moho, Toonz or BVH file that could not be read or converted.
+    #[error("{0}")]
+    Foreign(String),
     #[error("the imported document is invalid: {0:?}")]
     Invalid(Vec<flare_document::Diagnostic>),
 }

@@ -17,6 +17,26 @@ pub(crate) enum Command {
         #[arg(long, default_value_t = 0)]
         frame: u64,
     },
+    /// Validate a stop-motion session's rate, hold and onion skin and print its settings. Sessions
+    /// are not saved in a project yet, so this writes no file.
+    StopMotionNew {
+        #[arg(long, default_value_t = 12)]
+        fps: u32,
+        /// Timeline frames each captured frame is held for.
+        #[arg(long, default_value_t = 1)]
+        hold: u32,
+        /// Earlier frames shown as ghosts, 0 to 5.
+        #[arg(long, default_value_t = 0)]
+        onion_before: u8,
+        /// Later frames shown as ghosts, 0 to 5.
+        #[arg(long, default_value_t = 0)]
+        onion_after: u8,
+        /// Ghost opacity in percent, 0 to 100.
+        #[arg(long, default_value_t = 50)]
+        onion_opacity: u8,
+    },
+    /// Capture a frame from a camera. Not built yet: fails with the named error.
+    StopMotionCapture,
     /// Create an empty project with one scene and one layer.
     New {
         path: PathBuf,
@@ -78,6 +98,9 @@ pub(crate) enum Command {
         /// Outline width in document units.
         #[arg(long, default_value_t = 2.0)]
         stroke_width: f64,
+        /// Outline pattern: solid, dashed, dotted or stipple.
+        #[arg(long)]
+        stroke_style: Option<String>,
         #[arg(long, default_value_t = 0)]
         start: u32,
         #[arg(long, default_value_t = 1)]
@@ -204,6 +227,16 @@ pub(crate) enum Command {
         path: PathBuf,
         #[arg(long, default_value_t = 0)]
         frame: u32,
+    /// Keyframe interpolation: list the easings, evaluate a curve, set a keyframe's
+    /// interpolation, make in-betweens.
+    Tween {
+        #[command(subcommand)]
+        op: crate::tween::TweenCommand,
+    },
+    /// Keyboard shortcuts: list a set, export one as a file, check and import a file.
+    Shortcuts {
+        #[command(subcommand)]
+        op: crate::shortcuts::ShortcutsCommand,
     },
     /// Add an empty layer below the existing ones in the first scene.
     AddLayer { path: PathBuf, name: String },
@@ -235,7 +268,7 @@ pub(crate) enum Command {
         #[arg(long)]
         name: Option<String>,
     },
-    /// Import an XFL directory, .xfl file or modern .fla into a new project, listing what was
+    /// Import an XFL directory, .xfl, .fla, .swf, Moho, BVH or Toonz file into a new project, listing what was
     /// not carried over.
     Import { source: PathBuf, out: PathBuf },
     /// Convert a project to the format OUT's ending says: .fla, .xfl (a folder with the .xfl stub
@@ -250,6 +283,16 @@ pub(crate) enum Command {
     },
     /// Export a project as an XFL folder, or a zipped .fla when OUT ends in .fla.
     ExportXfl { path: PathBuf, out: PathBuf },
+    /// A symbol's kind and how an instance plays it.
+    Symbol {
+        #[command(subcommand)]
+        op: crate::symbol::SymbolCommand,
+    },
+    /// Skeleton rigs for symbols: bones, keyed poses, IK, evaluation.
+    Rig {
+        #[command(subcommand)]
+        op: crate::symbol::RigCmd,
+    },
     /// Publish a project as a SWF. Symbols are kept as sprites; tweens are baked into per-frame
     /// positions and shapes.
     PublishSwf {
@@ -307,6 +350,20 @@ pub(crate) enum Command {
         height: Option<u32>,
         #[arg(long)]
         transparent: bool,
+    },
+    /// Lay a frame range out as a transparent PNG sprite sheet with a JSON atlas beside it.
+    ExportSprites {
+        path: PathBuf,
+        /// The sheet (`.png`); the atlas is written next to it as `.json`.
+        out: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        start: u32,
+        /// Last frame, inclusive.
+        #[arg(long)]
+        end: Option<u32>,
+        /// Frames per row (default: about square).
+        #[arg(long)]
+        columns: Option<u32>,
     },
     /// Place a symbol instance on the first layer of the first scene.
     Place {

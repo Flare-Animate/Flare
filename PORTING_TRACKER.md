@@ -39,12 +39,15 @@ into the new crate architecture.
 
 ## Missing image processing (Main vs Rust ports)
 - [x] Erode/dilate (ported to Rust in Rust-Rewrite: terodilate)
-- [ ] Antialias (ported: tantialias)
+- [x] Antialias - our own morphological step antialias in flare-core (`image_ops::antialias`),
+  not the OpenToonz tantialias kernel; a faithful tantialias port is still open
 - [x] Blur (tblur)
-- [ ] Despeckle (tdespeckle)
-- [ ] Distance transform (ported: tdistancetransform)
-- [ ] Convolution (ported: tconvolve)
-- [x] Color correction (gamma, levels done; curves open) -- crates/foundation/flare-core/src/image_ops.rs
+- [x] Despeckle - connected-component removal up to a max area, our own (`image_ops::despeckle`)
+- [x] Distance transform - exact Euclidean (Felzenszwalb) into the alpha channel, our own
+  (`image_ops::distance_transform`)
+- [x] Convolution - arbitrary kernels on RGBA8 with premultiplied colour sums and edge
+  clamping, ours (`convolve` in flare-core; not the OpenToonz tconvolve kernel)
+- [x] Color correction (gamma, levels, curves as our own monotone tone curve) -- crates/foundation/flare-core/src/image_ops.rs and curves.rs
 - [ ] Resample (tresample)
 
 ## Missing OpenToonz features
@@ -127,3 +130,23 @@ into the new crate architecture.
 - Stop motion: original/flare/sources/stopmotion/stopmotion.cpp
 - Scan cleanup: original/flare/sources/tcleanupper/tcleanupper.cpp
 - Render farm: original/flare/sources/flarefarm/tfarm/tfarmtask.cpp
+
+## Android (from original/flare/android) — done, first version (2026-11-04)
+- The old app was Qt for Android (a Gradle project loading Qt libraries). Its replacement is not
+  a port of Qt: `apps/flare-android` is a `NativeActivity` cdylib (`org.flareanimate.flare`,
+  minSdk 28 / targetSdk 34) around the NEW desktop shell itself — `flare-desktop`'s `ui` module
+  (now a library) runs on the activity's event loop through `run_on_activity`. One
+  implementation, not a mobile rewrite.
+- Start/open logic (`apps/flare-android/src/open.rs`) is platform-independent and tested.
+- Saved layout, preferences and recovery files work through the app's data directory
+  (`flare-platform::dirs::set_app_root`), where the phone has no platform convention.
+- Dialogs that need a native box (pickers, message boxes) answer as cancelled on Android:
+  `flare-platform`'s dialogs are split into a native backend and a phone backend; rfd (no
+  Android backend) is dependency-gated off the target.
+- CI (`.github/workflows/workflow_android.yml`) builds `libflare_android.so` for
+  aarch64-linux-android with the NDK (CC/AR/linker env set, which unblocked blake3);
+  `continue-on-error` until its first green run. An APK: `cargo apk` on the crate's
+  `AndroidManifest.xml`.
+- Still dimmed on Android (recorded in docs/SURFACES.md): opening/saving from phone storage
+  (SAF picker is the next step), Test Movie in Ruffle, sound on a device, touch pressure.
+

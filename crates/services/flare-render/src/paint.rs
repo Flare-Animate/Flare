@@ -65,8 +65,12 @@ pub(crate) fn stroke_style(width: f64, stroke: flare_document::Stroke) -> Stroke
         DocJoin::Miter => Join::Miter,
     };
     // A miter that would stick out more than four widths is cut off, as other renderers do.
-    Stroke::new(width)
+    let line = Stroke::new(width)
         .with_caps(caps)
         .with_join(join)
-        .with_miter_limit(4.0)
+        .with_miter_limit(4.0);
+    match stroke.style().dashes(width) {
+        Some(pattern) => line.with_dashes(0.0, pattern),
+        None => line,
+    }
 }

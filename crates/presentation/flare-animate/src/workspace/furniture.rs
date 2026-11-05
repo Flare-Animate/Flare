@@ -1,6 +1,6 @@
 //! Shortcuts, menus and the stage furniture.
 
-use egui::{Key, Modifiers};
+use egui::Key;
 use flare_menubar::{MENU_LAYOUT, MenuAction, MenuEntry};
 
 use super::*;
@@ -89,58 +89,23 @@ impl Workspace {
     }
 
     pub(super) fn handle_shortcuts(&mut self, ctx: &egui::Context) {
-        let (redo, undo, save, toggle, left, right, escape, delete, convert) = ctx.input_mut(|i| {
-            // Redo must be consumed first: egui lets Cmd+Shift+Z also match plain Cmd+Z.
+        let (toggle, left, right, escape, delete) = ctx.input(|i| {
             (
-                i.consume_key(Modifiers::COMMAND | Modifiers::SHIFT, Key::Z),
-                i.consume_key(Modifiers::COMMAND, Key::Z),
-                i.consume_key(Modifiers::COMMAND, Key::S),
                 !i.modifiers.any() && i.key_pressed(Key::Space),
                 !i.modifiers.any() && i.key_pressed(Key::ArrowLeft),
                 !i.modifiers.any() && i.key_pressed(Key::ArrowRight),
                 i.key_pressed(Key::Escape),
                 !i.modifiers.any() && (i.key_pressed(Key::Delete) || i.key_pressed(Key::Backspace)),
-                !i.modifiers.any() && i.key_pressed(Key::F8),
             )
         });
-        // With a native menu bar the menu owns these shortcuts; handling them here too
-        // would apply them twice.
-        if !self.native_menu {
-            if redo {
-                self.redo();
-            } else if undo {
-                self.undo();
-            }
-            if save {
-                self.save();
-            }
-            let frames_chord = Modifiers::COMMAND | Modifiers::ALT;
-            if ctx.input_mut(|i| i.consume_key(frames_chord, Key::C)) {
-                self.copy_frames();
-            }
-            if ctx.input_mut(|i| i.consume_key(frames_chord, Key::V)) {
-                self.paste_frames();
-            }
-            if ctx.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::Comma)) {
-                self.perform(MenuAction::Preferences);
-            }
-            if ctx.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::D))
-                && !ctx.egui_wants_keyboard_input()
-            {
-                self.duplicate_selection();
-            }
-        }
+        // Ctrl, Alt and F-key commands come from the shortcut map, so a rebinding moves them. With
+        // a native menu bar the menu owns them and nothing runs here (applying twice).
+        self.press_command_chords(ctx);
         let typing = ctx.egui_wants_keyboard_input();
         // Letters pick tools, but only when nothing is being typed and no modifier is held, so
         // they never fight a text field or a shortcut.
         if !typing {
-            let picked = TOOL_KEYS
-                .iter()
-                .find(|(key, _)| key_press(ctx, *key).is_some_and(|m| !m.any()))
-                .map(|(_, tool)| *tool);
-            if let Some(tool) = picked {
-                self.set_tool(tool);
-            }
+            self.press_tool_keys(ctx);
         }
         // Cmd/Ctrl+C and V arrive as Copy and Paste events. They are not menu accelerators, so
         // text fields keep them; when no field wants the keyboard they act on the selection.
@@ -168,9 +133,6 @@ impl Workspace {
                 self.pen_finish();
                 let additive = ctx.input(|i| i.modifiers.shift);
                 self.polygon_lasso_finish(additive);
-            }
-            if convert && !self.native_menu {
-                self.convert_selection_to_symbol();
             }
             // Animate steps with the comma and the period as well as the arrow keys.
             let (comma, period) = ctx.input(|i| {
@@ -201,30 +163,6 @@ impl Workspace {
             self.cancel_drag();
             self.pen_cancel();
         }
-        if !typing && !self.native_menu {
-            // Modifiers come from the key event itself, which is what the platform reported
-            // for that press.
-            let f5 = key_press(ctx, Key::F5);
-            let f6 = key_press(ctx, Key::F6);
-            let f7 = key_press(ctx, Key::F7);
-            if let Some(m) = f5 {
-                self.frame_edit(if m.shift {
-                    FrameOp::RemoveFrame
-                } else {
-                    FrameOp::InsertFrame
-                });
-            }
-            if let Some(m) = f6 {
-                self.frame_edit(if m.shift {
-                    FrameOp::ClearKeyframe
-                } else {
-                    FrameOp::InsertKeyframe
-                });
-            }
-            if f7.is_some() {
-                self.frame_edit(FrameOp::InsertBlankKeyframe);
-            }
-        }
     }
 
     /// One menu item for `action`: greyed out when it cannot run, runs it when clicked.
@@ -243,10 +181,7 @@ impl Workspace {
             None => egui::Button::new(label),
         };
         // The shortcut, or for a tool the key that picks it, right-aligned in the item.
-        if let Some(text) = action
-            .shortcut_text()
-            .or_else(|| action.tool_key().map(str::to_owned))
-        {
+        if let Some(text) = self.shortcut_label(action) {
             button = button.shortcut_text(text);
         }
         let clicked = ui.add_enabled(enabled, button).clicked();

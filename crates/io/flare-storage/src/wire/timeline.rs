@@ -67,6 +67,9 @@ pub(super) struct StrokeWire {
     /// "round", "bevel" or "miter"; absent in older files, which meant round.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) join: Option<String>,
+    /// "dashed", "dotted" or "stipple"; absent means solid.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) style: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -146,6 +149,13 @@ pub(super) enum ContentWire {
         #[serde(default)]
         first_frame: u32,
     },
+    /// Absent in files written before bitmaps existed.
+    Bitmap {
+        id: String,
+        bitmap: String,
+        matrix: [f64; 6],
+        opacity: f32,
+    },
     /// Absent in files written before cameras existed. The angle is in radians.
     Camera {
         center: [f64; 2],
@@ -159,8 +169,51 @@ pub(super) enum ContentWire {
     },
 }
 
+/// A keyframe's flare-tween interpolation. Absent in files written before it existed, which load
+/// with their plain `ease`.
+#[derive(Serialize, Deserialize)]
+pub(super) struct InterpWire {
+    pub(super) interpolation: String,
+    pub(super) easing: String,
+    pub(super) handle_kind: String,
+    pub(super) handles: [f64; 4],
+    pub(super) params: [f64; 3],
+}
+
+impl InterpWire {
+    fn from_interp(i: &flare_document::SpanInterp) -> Self {
+        let p = i.params();
+        Self {
+            interpolation: i.interpolation().name().into(),
+            easing: i.easing().name().into(),
+            handle_kind: i.handle_kind().name().into(),
+            handles: i.handles(),
+            params: [p.back_overshoot, p.elastic_amplitude, p.elastic_period],
+        }
+    }
+
+    fn build(&self) -> Result<flare_document::SpanInterp, StorageError> {
+        let bad = |what: &str| StorageError::Corrupt(format!("unknown {what} in a tween"));
+        let params = flare_tween::Params {
+            back_overshoot: self.params[0],
+            elastic_amplitude: self.params[1],
+            elastic_period: self.params[2],
+        };
+        flare_document::SpanInterp::new(
+            flare_tween::Interpolation::parse(&self.interpolation).ok_or_else(|| bad("family"))?,
+            flare_tween::Easing::parse(&self.easing).ok_or_else(|| bad("easing"))?,
+            flare_tween::HandleKind::parse(&self.handle_kind).ok_or_else(|| bad("handle kind"))?,
+            self.handles,
+            params,
+        )
+        .map_err(|e| StorageError::Corrupt(e.to_string()))
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub(super) struct SpanWire {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) interp: Option<InterpWire>,
     #[serde(default)]
     pub(super) tween: TweenWire,
     /// Easing of the tween; spans saved before it have none.
@@ -249,6 +302,7 @@ impl TimelineWire {
                             Tween::Shape => TweenWire::Shape,
                         },
                         ease: span.ease(),
+                        interp: span.interp().as_ref().map(InterpWire::from_interp),
                         start: span.start(),
                         duration: span.duration().get(),
                         content: wire_content(span.content()),
@@ -282,7 +336,8 @@ impl TimelineWire {
                     FrameSpan::new(span.start, duration, content)
                         .with_extras(extras)?
                         .with_tween(tween)
-                        .with_ease(span.ease),
+                        .with_ease(span.ease)
+                        .with_interp(span.interp.as_ref().map(InterpWire::build).transpose()?),
                 );
             }
             let cues = layer
@@ -353,5 +408,31 @@ pub(super) fn join_from(name: Option<&str>) -> Result<Join, StorageError> {
         Some(other) => Err(StorageError::Corrupt(format!(
             "unknown line join {other:?}"
         ))),
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_span_saved_before_interpolation_loads_with_its_ease_and_none() {
+        let old = r#"{"tween":"Linear","ease":-40,"start":0,"duration":3,"content":"Empty"}"#;
+        let wire: SpanWire = serde_json::from_str(old).expect("old span");
+        assert!(wire.interp.is_none());
+        assert_eq!(wire.ease, -40);
+    }
+
+    #[test]
+    fn an_unknown_family_is_corrupt_not_a_panic() {
+        let wire = InterpWire {
+            interpolation: "wobble".into(),
+            easing: "in".into(),
+            handle_kind: "auto".into(),
+            handles: [0.0; 4],
+            params: [1.0, 1.0, 0.3],
+        };
+        assert!(matches!(wire.build(), Err(StorageError::Corrupt(_))));
     }
 }

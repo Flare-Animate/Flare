@@ -20,7 +20,7 @@ pub(crate) const MAX_NODES: usize = 100_000;
 
 mod frame;
 
-pub use frame::{ClipShape, DrawnShape, EvalError, Frame, Placed};
+pub use frame::{ClipShape, DrawnBitmap, DrawnShape, EvalError, Frame, Placed};
 
 /// Whether a folder above `layers[index]` that holds it (directly or through other folders) is
 /// hidden. Parents are always earlier layers, so one pass up the list finds them all.
@@ -207,7 +207,7 @@ fn walk_layer<'a>(
     // Every element of the span is drawn, the first at the bottom. A tween is the first element's:
     // the in-between shape and transform apply to it alone, and the others stay as they are.
     for (index, element) in span.elements().enumerate() {
-        if out.placed.len() + out.shapes.len() >= MAX_NODES {
+        if out.placed.len() + out.shapes.len() + out.bitmaps.len() >= MAX_NODES {
             return Err(EvalError::TooManyNodes);
         }
         match element {
@@ -244,6 +244,18 @@ fn walk_layer<'a>(
                     clips,
                     out,
                 )?;
+            }
+            Content::Bitmap(placed) => {
+                if let Some(bitmap) = document.bitmap(placed.bitmap()) {
+                    out.bitmaps.push(DrawnBitmap {
+                        path: path.clone(),
+                        bitmap,
+                        transform: parent * placed.transform().as_affine(),
+                        opacity: placed.opacity(),
+                        after_shapes: out.shapes.len(),
+                        clips: clips.to_vec(),
+                    });
+                }
             }
             // The camera is not drawn: it moves everything else (see `camera_view`).
             Content::Camera(_) => {}
@@ -323,7 +335,11 @@ fn child_frame(
     length: u64,
 ) -> u32 {
     use flare_document::{PlayMode, SymbolKind};
-    let last = length.saturating_sub(1);
+    // A symbol with no frames has nothing to show; frame 0 keeps the modulo below defined.
+    if length == 0 {
+        return 0;
+    }
+    let last = length - 1;
     let frame = match kind {
         SymbolKind::Button => 0,
         SymbolKind::MovieClip => elapsed % length,
@@ -356,9 +372,9 @@ fn shape_at<'a>(
     else {
         return own;
     };
-    let t = morph::eased(
+    let t = morph::span_fraction(
+        span,
         f64::from(frame - span.start()) / f64::from(span.duration().get()),
-        span.ease(),
     );
     match morph::morph(shape, target, t) {
         // Not zero, so a step is never taken for the shape itself.
@@ -397,9 +413,9 @@ fn tweened(
     let (Some((s0, r0, t0)), Some((s1, r1, t1))) = (decompose(from), decompose(to)) else {
         return Err(EvalError::UnsupportedTween(id));
     };
-    let t = morph::eased(
+    let t = morph::span_fraction(
+        span,
         f64::from(frame - span.start()) / f64::from(span.duration().get()),
-        span.ease(),
     );
     let mut delta = (r1 - r0) % std::f64::consts::TAU;
     if delta > std::f64::consts::PI {
@@ -426,7 +442,7 @@ pub fn can_tween(matrix: DAffine2) -> bool {
 }
 
 /// Scale, angle, translation, or `None` when the matrix is not exactly representable.
-fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
+pub(crate) fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
     let (scale, angle, translation) = matrix.to_scale_angle_translation();
     let rebuilt = DAffine2::from_scale_angle_translation(scale, angle, translation);
     let close = rebuilt
@@ -440,15 +456,17 @@ fn decompose(matrix: DAffine2) -> Option<(DVec2, f64, DVec2)> {
 mod armature;
 mod camera;
 mod guide;
+mod inbetween;
 mod level;
 mod morph;
 
 pub use armature::armature_at;
 pub use camera::{camera_at, camera_view};
 pub use level::{Level, LevelContent, LevelItem, evaluate_level, symbol_frame};
-pub use morph::{eased, morph};
+pub use morph::{eased, morph, span_fraction};
 
 pub use guide::{flatten, point_along};
+pub use inbetween::inbetween_content;
 
 #[cfg(test)]
 mod tests;

@@ -129,3 +129,28 @@ fn a_tween_goes_with_the_pair_it_joined_with_its_easing_reversed() {
         vec![(Tween::Shape, 50), (Tween::Shape, -30), (Tween::None, 0),]
     );
 }
+
+#[test]
+fn a_tween_keeps_its_curve_mirrored_when_reversed() {
+    use flare_document::SpanInterp;
+    use flare_tween::{Easing, HandleKind, Interpolation, Params};
+    let curve = SpanInterp::new(
+        Interpolation::Quad,
+        Easing::In,
+        HandleKind::AutoClamped,
+        [0.0; 4],
+        Params::default(),
+    )
+    .expect("valid");
+    let a = shape_span(0, 2)
+        .with_tween(Tween::Shape)
+        .with_interp(Some(curve));
+    let b = shape_span(2, 2);
+    let mut f = fixture(vec![a, b]);
+    let commands = reverse_frames(f.scene, layer(&f), 0, 3).expect("reverses");
+    f.session.apply(commands).expect("applies");
+    let spans = layer(&f).spans();
+    assert_eq!(spans[0].interp(), Some(curve.mirrored()));
+    assert_eq!(spans[0].interp().map(|i| i.easing()), Some(Easing::Out));
+    assert_eq!(spans[1].interp(), None);
+}

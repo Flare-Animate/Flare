@@ -8,7 +8,7 @@ pub(crate) mod path_edit;
 mod span;
 
 pub(crate) use bounds::content_bounds;
-pub use bounds::{shape_bounds, span_bounds, spans_bounds, symbol_bounds};
+pub use bounds::{shape_bounds, span_bounds, spans_bounds, spans_bounds_at, symbol_bounds};
 pub(crate) use content::{fresh_content, new_layer_with, transform_shape};
 pub(crate) use many::by_span;
 pub use many::{each_element, each_element_with};

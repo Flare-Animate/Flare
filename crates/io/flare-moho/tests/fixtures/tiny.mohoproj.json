@@ -1,0 +1,27 @@
+{
+  "mime_type": "application/x-moho",
+  "version": 1045,
+  "major_version": 13,
+  "project_data": {"width": 640, "height": 480, "fps": 24.0, "start_frame": 0, "end_frame": 48},
+  "skeleton": {"bones": [
+    {"name": "root", "parent": -1, "length": 0.0, "strength": 0.0, "bone_dynamics": false},
+    {"name": "arm", "parent": 0, "length": 2.5, "strength": 0.5, "bone_dynamics": true}
+  ]},
+  "layers": [
+    {"name": "Body", "type": "GroupLayer", "uuid": "g1", "visible": true, "layers": [
+      {"name": "Shape", "type": "MeshLayer", "uuid": "m1", "visible": true, "parent_bone": 1,
+       "fill_texture_path": "images/shape.png",
+       "transforms": {"translation": {"when": [0, 24], "val": [{"x": 0, "y": 0}, {"x": 10, "y": 5}],
+                      "interp": ["Smooth", "Linear"], "type": "Vec2", "mute": false}}}
+    ]},
+    {"name": "Photo", "type": "ImageLayer", "uuid": "i1", "visible": false,
+     "image_path": "images/photo.jpg", "parent_bone": -1},
+    {"name": "Eyes", "type": "SwitchLayer", "uuid": "s1", "visible": true,
+     "switch_keys": {"when": [0, 24], "val": ["open", "closed"], "type": "String"},
+     "layers": [
+       {"name": "open", "type": "ImageLayer", "uuid": "o1", "image_path": "images/open.png"},
+       {"name": "closed", "type": "ImageLayer", "uuid": "c1", "image_path": "/abs/closed.png"}
+     ]},
+    {"name": "Voice", "type": "AudioLayer", "uuid": "a1", "audio_path": "audio/line.wav"}
+  ]
+}

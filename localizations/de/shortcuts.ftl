@@ -1,0 +1,12 @@
+shortcuts-set = Tastenkürzel-Satz
+shortcuts-set-flare = Flare
+shortcuts-set-opentoonz = OpenToonz
+shortcuts-set-animate = Animate
+shortcuts-set-tahoma = Tahoma2D
+shortcuts-change = Ändern
+shortcuts-press = Neue Tasten drücken (Esc bricht ab)
+shortcuts-clear = Löschen
+shortcuts-reset = Auf Satz zurücksetzen
+shortcuts-conflict = { $keys } führt bereits { $action } aus.
+shortcuts-bad = Diese Tasten sind hier nicht möglich.
+shortcuts-hint = Werkzeugbuchstaben gelten, wenn nichts getippt wird.

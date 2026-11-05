@@ -20,12 +20,14 @@ use std::num::NonZeroU32;
 use std::path::Path;
 
 mod armature;
+mod bitmaps;
 mod compression;
 mod failures;
 mod many_elements;
 mod origin;
 mod records;
 mod roundtrip;
+mod stroke_style;
 mod symbol_kinds;
 mod text;
 use records::{

@@ -21,6 +21,7 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
 | foundation | `flare-audio` | Sound: decoding with `symphonia` (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer, and the events a front end sends to the sound card. |
 | foundation | `flare-i18n` | The words of the interface: Fluent files per language and section under `localizations/`, compiled in, with English as the fallback; a build script finds the files, and `has_key` lets a `tr!` check its key while the program is built. |
+| foundation | `flare-profile` | Workspace profiles as data: rooms, dock trees, toolbars and defaults, read through checks (size, depth, ranges, every panel placed). Four built in, as JSON in `data/`. |
 | foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, and the pressure-to-width curve. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
@@ -41,9 +42,10 @@ Executables are in `apps/`. The folders mean:
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the stage's pan and zoom math. |
 | presentation | `flare-dock` | The dockable panel layout: which panels exist (`Pane`), how they are arranged by default, and reading and writing a saved arrangement as untrusted input (size-capped, every panel exactly once, else the default). |
 | presentation | `flare-menubar` | The menu bar with no window in it: every command (`MenuAction`), the menus and their order, shortcuts, icons and what each item is called for the state of what it toggles (`LabelState`). Shared by the native macOS menu and the in-window one. |
+| presentation | `flare-shell` | The window shell as a library: one winit event loop, egui-winit input, egui-wgpu painting and the native menu, in `ui/`. `flare-desktop` runs it on a desktop and `flare-android` on a phone's activity, so neither app depends on the other. |
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, and, in `workspace/tools/`, what the workspace does for each tool (wiring pointer events and settings to what `flare-tools` computes). No window or GPU code. |
 | apps | `flare-cli` | Headless project editing and export. |
-| apps | `flare-desktop` | The desktop window (winit, egui-wgpu, the native menu), all in `ui/`; everything else it needs is `flare-platform`. |
+| apps | `flare-desktop` | The desktop program: starts `flare-shell`'s window with the workspace (arguments, recovery, locale). The window itself is `flare-shell`'s. |
 | apps | `flare-web` | The same workspace in a browser tab (eframe on a canvas); compiles for `wasm32-unknown-unknown` only, see [WEB.md](WEB.md). |
 | apps | `flare-mcp` | An MCP server over stdio for one open project, built on `rmcp`: agent tools over the same edit commands, with permissions and revision checks. |
 
@@ -114,7 +116,7 @@ shown. Saving applies pending symbol edits first.
 
 `evaluate_frame` is pure: no I/O, rendering or UI state. Instances are identified by their
 instance path, so two uses of one symbol keep separate clocks and transforms. Hidden layers
-are skipped. Linear tweens interpolate scale, rotation (shortest arc) and translation, and
+are skipped. A span may also carry a `SpanInterp` (`flare-document`: a `flare-tween` family, easing and handles, optional in the project file so old files load unchanged). `flare_eval::span_fraction` uses it in place of the Ease slider, `inbetween_content` makes in-between keys (strokes through `interpolate_sequence`, other shapes through the contour morph, instances and cameras by their transform), and `flare_tools::tween` sets it and creates in-betweens as command batches. Linear tweens interpolate scale, rotation (shortest arc) and translation, and
 return an error for shear or reflection rather than approximating. Depth (64) and node
 count (100,000) are bounded.
 
@@ -518,3 +520,33 @@ else it is drawn in the window. See [decisions/UI-STACK.md](decisions/UI-STACK.m
 - Pen pressure, IME and accessibility are untested. The desktop window and the native macOS
   menu have been built and launched but not exercised by hand; the menu's enabled-state and
   labelling logic is covered by tests, the AppKit integration is not.
+
+## Tweening (`flare-tween`)
+
+`flare-tween` (foundation) is the interpolation library: the interpolation families and easing
+(`Interpolation` x `Easing`, with `Params` for Back's overshoot and Elastic's amplitude and period),
+cubic-bezier keyframe handles (`HandleKind`: Auto, AutoClamped, Vector, Aligned, Free) solved by
+`Curve::new` and evaluated by bisection on the bezier's time coordinate, the extrapolation modes
+(`Extrapolation`: Constant, Linear, Cyclic, CyclicOffset), and `interpolate_sequence`, which makes the
+in-between of two stroke point lists (equal counts lerp; different counts are resampled by arc length
+to the larger count; `flip` reverses the second stroke). Every input is bounded (`MAX_KEYS`,
+`MAX_POINTS`, parameter limits) and refused with a typed `TweenError` rather than producing NaN or
+infinity.
+
+Provenance: clean-room. The code follows the feature descriptions and standard easing formulas. No
+Blender source was opened or copied. The behaviour the names promise is tested directly (exact
+endpoints, monotone families, handle continuity, extrapolation values, refusal of bad input).
+
+Not wired yet: no document command sets a key's interpolation or handles, and the CLI and MCP do
+not expose the library. The editor still uses the existing Animate-style Ease in `flare-eval`
+(`eased`). See the rows in [SURFACES.md](SURFACES.md) and the plan in [ROADMAP.md](ROADMAP.md).
+
+## Symbols and rigging
+
+**Symbol kinds.** A symbol is a Graphic, a Movie Clip or a Button (`SymbolKind`). The frame an instance shows is one pure function, `flare_eval::symbol_frame(kind, playback, elapsed, length)`: a Graphic is slaved to the parent playhead and follows the instance's `Playback` (Loop, Play Once, Single Frame, plus a first frame that is clamped into the symbol); a Movie Clip runs its own clock whatever the parent does; a Button holds its Up frame. The result is always below `length` (0 for an empty symbol) and nothing loops unbounded. `Command::SetInstancePlayback` changes an instance's playback and keeps the span's timing and tween. Per-instance filters, blend mode, cache-as-bitmap, instance names and 9-slice grids are not in the model yet (ROADMAP).
+
+**Rigs (`flare-rig`, foundation).** A `Rig` belongs to one symbol: bones in parent-before-child order (acyclic by construction, at most 256), a rest angle, an optional angle limit and an optional target instance each; pose keys on the parent timeline (at most 4096) hold rotations, IK goals and a root offset, eased by `flare-tween` (`Interp`). `evaluate_rig(rig, frame)` is pure: blend the keys, clamp each rotation to its limit, run each IK goal, then forward kinematics to bone transforms. IK is a closed-form two-bone solve followed by cyclic coordinate descent (at most 64 sweeps), joint limits holding after every step, so an unreachable target clamps to the straight chain toward it. A Movie Clip rig has a free clock (`rig_symbol_frame` keeps its own frame) while the pose drives its children; a Graphic rig is frame-locked. Edits are `RigCommand`s applied to a copy by `Rig::apply`: a failing batch changes nothing and the old value is the undo step. The JSON form carries a `version` and defaults every later field, so older files load and newer ones are refused.
+
+**Licences and sources.** OpenToonz (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. and contributors) was read for how its Plastic tool is organised (`toonz/sources/tnzext/plasticdeformer.cpp`, `plasticskeletondeformation.cpp`, `tnztools/plastictool*.cpp`, `toonzlib/skeleton.cpp`, `ikskeleton.cpp`). No OpenToonz code is ported; the solver here is Flare's own from textbook two-bone and CCD formulas. When mesh deformation is ported from `plasticdeformer.cpp`, its notice goes in the file and in docs/ENGINEERING.md's reference list.
+
+**Not built yet** (each is a ROADMAP item): FABRIK, mesh-based deformation with skinning weights (the Plastic deformer), a weight-painting panel, an IK solver panel, motion paths, pegbar hooks, document-level rig storage and commands, and importing Moho or OpenToonz `.plastic` skeletons.

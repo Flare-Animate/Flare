@@ -45,7 +45,12 @@ impl Workspace {
             return;
         };
         let at = image_rect.min + edit.at.to_vec2() * scale;
-        let mut finish = false;
+        // Read before the field is drawn: a multi-line field takes every Enter, Ctrl+Enter too, so
+        // afterwards the key would be gone.
+        let finish = ctx.input_mut(|i| {
+            i.consume_key(egui::Modifiers::COMMAND, Key::Enter)
+                | i.consume_key(egui::Modifiers::NONE, Key::Escape)
+        });
         let mut editor = None;
         let mut cursor = 0;
         egui::Area::new(id)
@@ -99,10 +104,6 @@ impl Workspace {
                 && i.pointer
                     .interact_pos()
                     .is_some_and(|p| self.stage_panel.contains(p) && !rect.expand(6.0).contains(p))
-        });
-        ctx.input(|i| {
-            finish |= i.key_pressed(Key::Escape);
-            finish |= i.modifiers.command && i.key_pressed(Key::Enter);
         });
         if finish || pressed_outside {
             self.place_text();

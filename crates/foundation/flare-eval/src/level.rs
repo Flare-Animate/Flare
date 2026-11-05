@@ -18,6 +18,12 @@ use super::{ClipShape, EvalError, Frame, Steer, hidden_by_folder, shape_at, twee
 pub enum LevelContent<'a> {
     /// A shape, or a step of a shape tween (see [`DrawnShape::phase`](crate::DrawnShape::phase)).
     Shape { shape: Cow<'a, Shape>, phase: u64 },
+    /// A bitmap from the document's library.
+    Bitmap {
+        bitmap: flare_core::BitmapId,
+        transform: DAffine2,
+        opacity: f32,
+    },
     /// An instance of a symbol, placed by `transform` in this timeline's space.
     Instance {
         id: InstanceId,
@@ -159,6 +165,11 @@ pub fn evaluate_level<'a>(
                     };
                     LevelContent::Shape { shape, phase }
                 }
+                Content::Bitmap(placed) => LevelContent::Bitmap {
+                    bitmap: placed.bitmap(),
+                    transform: placed.transform().as_affine(),
+                    opacity: placed.opacity(),
+                },
                 Content::Instance(instance) => LevelContent::Instance {
                     id: instance.id(),
                     symbol: instance.symbol(),

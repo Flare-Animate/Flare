@@ -8,3 +8,7 @@ prop-tween = トゥイーン
 prop-shape-tween = シェイプトゥイーン
 prop-motion-tween = モーショントゥイーン
 prop-ease = イーズ
+prop-interpolation = 補間
+prop-interpolation-hint = このトゥイーンの補間方式とイージング。オフの間はイーズスライダーを使います
+prop-interpolation-off = イーズスライダー
+prop-easing = イージング

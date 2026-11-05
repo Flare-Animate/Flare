@@ -209,6 +209,9 @@ const ZIP_MAGIC: &[u8] = b"PK\x03\x04";
 /// The source is opened for reading only; nothing is written, created or deleted beside or inside it. What was read
 /// is kept with the document so an export of the unchanged import is the original (see `flare_document::Origin`).
 pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
+    if crate::foreign_kind(path).is_some() {
+        return crate::import_foreign_path(path);
+    }
     if path.is_dir() {
         return import_folder_kept(path, &keep::stem(path));
     }

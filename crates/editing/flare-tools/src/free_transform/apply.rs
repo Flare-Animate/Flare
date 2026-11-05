@@ -2,7 +2,7 @@
 
 use flare_commands::Command;
 use flare_core::{SceneId, Transform2D};
-use flare_document::{Content, Document, FrameSpan, Instance, Tween};
+use flare_document::{BitmapInstance, Content, Document, FrameSpan, Instance, Tween};
 use glamx::{DAffine2, DVec2};
 
 use crate::common::*;
@@ -128,6 +128,13 @@ fn moved_content(
     Some(match content {
         Content::Empty | Content::Camera(_) | Content::Armature(_) => return None,
         Content::Shape(shape) => Content::Shape(transform_shape(shape, matrix)?),
+        Content::Bitmap(placed) => {
+            let transform = Transform2D::new(matrix * placed.transform().as_affine()).ok()?;
+            Content::Bitmap(
+                BitmapInstance::new(placed.id(), placed.bitmap(), transform)
+                    .with_opacity(placed.opacity()),
+            )
+        }
         Content::Instance(instance) => {
             let moved = matrix * instance.transform().as_affine();
             if !tween_allows(document, scene, at, span, moved) {

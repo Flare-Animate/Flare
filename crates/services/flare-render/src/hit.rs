@@ -46,7 +46,10 @@ pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
             drawn.shape.stroke().is_some_and(|stroke| {
                 // Flatten finely relative to how big a local unit is on screen.
                 let tolerance = 0.1 / determinant.abs().sqrt().max(1e-6);
-                let style = stroke_style(stroke.width(), stroke);
+                let style = stroke_style(
+                    stroke.width(),
+                    stroke.with_style(flare_document::StrokeStyle::Solid),
+                );
                 let outline = vello_cpu::kurbo::stroke(
                     path.elements().iter().copied(),
                     &style,

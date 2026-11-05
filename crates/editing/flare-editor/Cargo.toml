@@ -18,6 +18,7 @@ workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+flare-tween.workspace = true
 
 [[bench]]
 name = "edit"

@@ -26,30 +26,24 @@ async fn each_export_tool_writes_its_format_into_the_export_directory() {
     let f = drawn().await;
 
     let gif = f.ok("export_gif", json!({ "name": "loop" })).await;
-    assert!(
-        gif["path"]
-            .as_str()
-            .expect("p")
-            .ends_with("exports/loop.gif")
-    );
+    assert!(gif["path"].as_str().expect("p").ends_with("loop.gif"));
     assert!(bytes(&gif["path"]).starts_with(b"GIF89a"));
 
+    let sheet = f
+        .ok("export_sprite_sheet", json!({ "name": "sheet" }))
+        .await;
+    assert!(bytes(&sheet["path"]).starts_with(b"\x89PNG"));
+    let atlas = String::from_utf8(bytes(&sheet["atlas"])).expect("utf8");
+    assert!(atlas.contains("\"frame_00000\"") && atlas.contains("sheet.png"));
+
     let mp4 = f.ok("export_mp4", json!({ "name": "video" })).await;
-    assert!(
-        mp4["path"]
-            .as_str()
-            .expect("p")
-            .ends_with("exports/video.mp4")
-    );
+    // Compared by path components: Windows separates them with a backslash.
+    assert!(std::path::Path::new(mp4["path"].as_str().expect("p")).ends_with("exports/video.mp4"));
     assert_eq!(&bytes(&mp4["path"])[4..8], b"ftyp");
 
     let swf = f.ok("publish_swf", json!({ "name": "movie" })).await;
-    assert!(
-        swf["path"]
-            .as_str()
-            .expect("p")
-            .ends_with("exports/movie.swf")
-    );
+    // Compared by path components: Windows separates them with a backslash.
+    assert!(std::path::Path::new(swf["path"].as_str().expect("p")).ends_with("exports/movie.swf"));
     assert!(matches!(&bytes(&swf["path"])[..3], b"CWS" | b"ZWS"));
     assert_eq!(swf["frames"], 1);
     let plain = f
@@ -92,7 +86,7 @@ async fn an_exported_project_imports_back_into_a_new_project_and_leaves_the_open
         imported["path"]
             .as_str()
             .expect("p")
-            .ends_with("exports/back.flare")
+            .ends_with("back.flare")
     );
     assert_eq!(imported["scenes"], 1);
     let loaded = flare_storage::load(std::path::Path::new(imported["path"].as_str().expect("p")))

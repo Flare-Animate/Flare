@@ -133,7 +133,8 @@ impl Workspace {
                     Ok(stroke) => {
                         let stroke = stroke
                             .with_cap(self.paint.stroke_cap)
-                            .with_join(self.paint.stroke_join);
+                            .with_join(self.paint.stroke_join)
+                            .with_style(self.paint.stroke_style);
                         ops::restyle(self.document(), scene, at, None, Some(Some(stroke)))
                     }
                     Err(error) => return self.report(error.to_string()),
@@ -227,7 +228,8 @@ impl Workspace {
         )
         .map_err(|e| e.to_string())?
         .with_cap(self.paint.stroke_cap)
-        .with_join(self.paint.stroke_join);
+        .with_join(self.paint.stroke_join)
+        .with_style(self.paint.stroke_style);
         Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT)
             .map(|shape| Some(shape.with_stroke(stroke)))
             .map_err(|e| e.to_string())

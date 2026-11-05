@@ -29,7 +29,13 @@ IMPORT = rust_extensions("IMPORT_EXTENSIONS")
 class Associations(unittest.TestCase):
     def test_the_app_knows_the_formats_this_file_checks(self):
         self.assertEqual(PROJECT, {"flare"})
-        self.assertEqual(IMPORT, {"fla", "xfl", "swf"})
+        self.assertEqual(
+            IMPORT,
+            {
+                "fla", "xfl", "svg", "png", "gif", "swf", "fcp", "ppm", "kwz", "tnz", "tlv",
+                "pli", "tzu", "moho", "mh", "mohobackup",
+            },
+        )
 
     def test_the_macos_bundle_declares_each_format(self):
         template = (ROOT / "apps/flare-desktop/resources/macos/Info.plist.in").read_text()

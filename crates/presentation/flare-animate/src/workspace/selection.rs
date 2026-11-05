@@ -164,6 +164,8 @@ impl Workspace {
             span.start.hash(&mut hasher);
             span.element.hash(&mut hasher);
         }
+        // Mid-tween the box follows the playhead.
+        self.frame.hash(&mut hasher);
         let stamp = (
             self.context_serial,
             self.active().revision(),
@@ -176,7 +178,7 @@ impl Workspace {
         }
         let rects = self
             .scene_id()
-            .map(|scene| ops::spans_bounds(self.document(), scene, &spans))
+            .map(|scene| ops::spans_bounds_at(self.document(), scene, &spans, self.frame))
             .unwrap_or_default();
         *self.selection_rects_cache.borrow_mut() = Some((stamp, rects.clone()));
         rects
@@ -325,6 +327,21 @@ impl Workspace {
     /// The easing of the selected span's tween, when it holds something that can tween.
     pub fn selection_ease(&self) -> Option<i8> {
         self.selected_tweenable().map(|span| span.ease())
+    }
+
+    /// The flare-tween interpolation of the selected span's tween, if it has chosen one.
+    pub fn selection_interp(&self) -> Option<flare_document::SpanInterp> {
+        self.selected_tweenable().and_then(|span| span.interp())
+    }
+
+    /// Sets (or with `None` clears) the selected span's interpolation, as one undo step.
+    pub fn set_selection_interp(&mut self, interp: Option<flare_document::SpanInterp>) {
+        let (Some(selected), Some(scene)) = (self.selected, self.scene_id()) else {
+            return;
+        };
+        if let Some(commands) = ops::set_interpolation(self.document(), scene, selected, interp) {
+            self.run_batch(commands, "change the tween's interpolation");
+        }
     }
 
     /// The selected span is an instance, which a motion tween moves.

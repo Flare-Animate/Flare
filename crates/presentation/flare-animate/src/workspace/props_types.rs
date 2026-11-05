@@ -35,5 +35,6 @@ pub(super) struct ShapePaintEdit {
     pub(super) width: f32,
     pub(super) cap: flare_document::Cap,
     pub(super) join: flare_document::Join,
+    pub(super) style: flare_document::StrokeStyle,
     pub(super) stroke_changed: bool,
 }

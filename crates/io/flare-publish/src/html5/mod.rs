@@ -284,6 +284,9 @@ pub fn publish_html5(
                         message: e.to_string(),
                     }
                 })?;
+            if !evaluated.bitmaps.is_empty() {
+                return Err(PublishError::BitmapsUnsupported { frame });
+            }
             let mut drawn: Vec<Value> = Vec::new();
             for item in &evaluated.shapes {
                 let Some(index) = index_of(&item.shape, item.phase, &mut shapes) else {

@@ -13,6 +13,7 @@ pub struct PenStyle {
     pub stroke_color: Rgba8,
     pub cap: Cap,
     pub join: Join,
+    pub style: flare_document::StrokeStyle,
 }
 
 /// The shape `path` makes under `style`: a closed path is filled (and outlined when asked), an open
@@ -34,6 +35,7 @@ pub fn path_shape(
     }
     let stroke = Stroke::new(style.stroke_width, style.stroke_color)?
         .with_cap(style.cap)
-        .with_join(style.join);
+        .with_join(style.join)
+        .with_style(style.style);
     Ok(shape.with_stroke(stroke))
 }

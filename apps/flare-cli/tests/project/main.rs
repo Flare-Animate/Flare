@@ -14,7 +14,10 @@ mod lossless;
 mod open;
 mod rendering;
 mod save_formats;
+mod shortcuts;
+mod symbols;
 mod text;
+mod tween;
 
 fn run(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_flare"))

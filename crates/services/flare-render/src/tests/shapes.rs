@@ -218,6 +218,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
         &flare_eval::Frame {
             placed: vec![],
             shapes: vec![],
+            bitmaps: vec![],
             clips: vec![],
         },
         20,
@@ -235,6 +236,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
         &flare_eval::Frame {
             placed: vec![],
             shapes: vec![],
+            bitmaps: vec![],
             clips: vec![],
         },
         20,
@@ -252,6 +254,7 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
         &flare_eval::Frame {
             placed: vec![],
             shapes: vec![],
+            bitmaps: vec![],
             clips: vec![],
         },
         4,
@@ -394,4 +397,30 @@ fn line_ends_follow_the_stroke_cap() {
         Some(RED),
         "and the corner of a square end is not"
     );
+}
+
+#[test]
+fn a_dashed_line_has_gaps_and_a_solid_one_has_none() {
+    let line = |style: flare_document::StrokeStyle| {
+        let stroke = flare_document::Stroke::new(4.0, RED)
+            .expect("stroke")
+            .with_cap(flare_document::Cap::Butt)
+            .with_style(style);
+        let shape = Shape::line(ShapeId::new(), (2.0, 20.0), (98.0, 20.0), stroke).expect("line");
+        let (doc, scene) = scene_with(vec![span(Content::Shape(shape))], vec![]);
+        draw_sized(&doc, scene, Rgba8::WHITE, 100, 40)
+    };
+    let covered =
+        |image: &crate::Image| (2..98).filter(|x| image.pixel(*x, 20) == Some(RED)).count();
+    let solid = line(flare_document::StrokeStyle::Solid);
+    let dashed = line(flare_document::StrokeStyle::Dashed);
+    let dotted = line(flare_document::StrokeStyle::Dotted);
+    assert!(covered(&solid) >= 94, "solid covers the line");
+    // 16 on, 12 off per 28: about 4/7 of the line, with white gaps in it.
+    let d = covered(&dashed);
+    assert!((45..65).contains(&d), "dashed covers part of it: {d}");
+    assert!(
+        dashed.pixel(20, 20) == Some(Rgba8::WHITE) || dashed.pixel(24, 20) == Some(Rgba8::WHITE)
+    );
+    assert!(covered(&dotted) < d, "dots cover less than dashes");
 }

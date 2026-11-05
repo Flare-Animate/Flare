@@ -8,8 +8,12 @@ license.workspace = true
 
 [dependencies]
 flare-i18n.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
+flare-profile.workspace = true
 flare-ui.workspace = true
 
 [lints]

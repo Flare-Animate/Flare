@@ -27,6 +27,7 @@ flare-runtime.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
 flare-tools.workspace = true
+flare-tween.workspace = true
 flare-ui.workspace = true
 glamx.workspace = true
 serde.workspace = true

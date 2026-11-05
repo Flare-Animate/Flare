@@ -134,11 +134,11 @@ fn newer_schema_versions_are_refused() {
     save(&sample(), &path).expect("save");
     Connection::open(&path)
         .expect("open")
-        .pragma_update(None, "user_version", 2)
+        .pragma_update(None, "user_version", 3)
         .expect("set");
     assert!(matches!(
         load(&path),
-        Err(StorageError::UnsupportedVersion(2))
+        Err(StorageError::UnsupportedVersion(3))
     ));
 }
 
@@ -438,4 +438,46 @@ fn a_camera_layer_and_its_keyframes_survive_to_the_last_bit() {
         document.scenes()[0].timeline()
     );
     assert!(loaded.scenes()[0].timeline().layers()[0].is_camera());
+}
+
+#[test]
+fn a_keyframe_interpolation_survives_and_a_plain_tween_stays_plain() {
+    use flare_document::SpanInterp;
+    use flare_tween::{Easing, HandleKind, Interpolation, Params};
+    let interp = SpanInterp::new(
+        Interpolation::Elastic,
+        Easing::Out,
+        HandleKind::Free,
+        [0.25, 0.1, -0.25, 0.0],
+        Params::default(),
+    )
+    .expect("interp");
+    let span = |start: u32, interp: Option<SpanInterp>| {
+        FrameSpan::new(start, NonZeroU32::new(2).expect("nonzero"), Content::Empty)
+            .with_tween(Tween::Linear)
+            .with_ease(30)
+            .with_interp(interp)
+    };
+    let layer = Layer::new(
+        LayerId::new(),
+        "L",
+        vec![span(0, Some(interp)), span(2, None)],
+    )
+    .expect("layer");
+    let document = Document::new(
+        DocumentId::new(),
+        FrameRate::new(24, 1).expect("rate"),
+        vec![Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]))],
+        vec![],
+    )
+    .expect("document");
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("interp.flare");
+    save(&document, &path).expect("save");
+    let loaded = load(&path).expect("load");
+    let spans = loaded.scenes()[0].timeline().layers()[0].spans().to_vec();
+    assert_eq!(spans[0].interp(), Some(interp));
+    assert_eq!(spans[1].interp(), None);
+    assert_eq!(spans[1].ease(), 30);
+    assert_eq!(loaded, document);
 }

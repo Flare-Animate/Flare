@@ -40,6 +40,8 @@ pub struct DrawRect {
     pub stroke: Option<String>,
     /// Outline width; defaults to 2.
     pub stroke_width: Option<f64>,
+    /// Outline pattern: solid (default), dashed, dotted or stipple.
+    pub stroke_style: Option<String>,
     /// First frame; defaults to 0.
     pub start: Option<u32>,
     /// Frames the rectangle lasts; defaults to 1.
@@ -184,6 +186,19 @@ pub struct ExportName {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct ExportSpriteSheet {
+    /// File name only: letters, digits, '.', '_' or '-'. `.png` is added when missing; the atlas
+    /// is written beside it with the same name and `.json`.
+    pub name: String,
+    /// First frame (0-based). Default 0.
+    pub start: Option<u32>,
+    /// Last frame, inclusive. Default: the end of the scene.
+    pub end: Option<u32>,
+    /// Frames per row. Default: about square.
+    pub columns: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct PublishSwf {
     /// File name only; `.swf` is added when missing.
     pub name: String,
@@ -304,6 +319,30 @@ pub struct PoseBone {
     /// Or move a root joint, and the armature with it, by this much.
     pub by_x: Option<f64>,
     pub by_y: Option<f64>,
+pub struct EvalCurve {
+    /// Interpolation family, as `list_easings` names them (for example "quad", "bounce", "bezier").
+    pub family: String,
+    /// "in", "out", "in-out" or "auto" (the default).
+    pub easing: Option<String>,
+    /// Handle type: "auto", "auto-clamped" (the default), "vector", "aligned" or "free".
+    pub handle: Option<String>,
+    /// Bezier handles [right.dt, right.dv, left.dt, left.dv] in the unit square.
+    pub handles: Option<[f64; 4]>,
+    /// The time, from 0 to 1.
+    pub t: f64,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct SetInterpolation {
+    /// Frame the keyframe starts at.
+    pub at: u32,
+    /// Layer id; defaults to the first layer that is not the camera.
+    pub layer: Option<String>,
+    /// Family to set; omit to clear the keyframe's interpolation back to its plain ease.
+    pub family: Option<String>,
+    pub easing: Option<String>,
+    pub handle: Option<String>,
+    pub handles: Option<[f64; 4]>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
@@ -318,6 +357,13 @@ pub struct BoneJoint {
     /// let the joint turn freely.
     pub min: Option<f64>,
     pub max: Option<f64>,
+pub struct Inbetween {
+    /// Frame the keyframe starts at; it is split to make room.
+    pub at: u32,
+    /// How many in-between keyframes to make, 1 to 1000; the keyframe must last more frames.
+    pub count: u32,
+    /// Layer id; defaults to the first layer that is not the camera.
+    pub layer: Option<String>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
@@ -328,4 +374,11 @@ pub struct ArmatureLayer {
     pub layer: Option<String>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
+pub struct ShortcutsParams {
+    /// A set: "flare" (the default), "opentoonz", "animate" or "tahoma".
+    pub set: Option<String>,
+    /// The text of a shortcut file (as `export` returns it); used instead of `set`.
+    pub file: Option<String>,
+    /// Also return the checked file.
+    pub export: Option<bool>,
 }

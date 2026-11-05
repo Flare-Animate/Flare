@@ -62,6 +62,10 @@ pub enum PublishError {
     TooManyLayers(usize),
     #[error("symbols hold symbols more than 32 deep")]
     SymbolsTooDeep,
+    #[error(
+        "bitmaps cannot be published as SWF or HTML5 yet: the document shows a bitmap on frame {frame}"
+    )]
+    BitmapsUnsupported { frame: u32 },
     #[error("evaluating frame {frame}: {message}")]
     Evaluate { frame: u32, message: String },
     #[error("writing the SWF: {0}")]

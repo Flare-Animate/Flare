@@ -19,6 +19,7 @@ flare-commands.workspace = true
 flare-editor.workspace = true
 flare-history.workspace = true
 flare-eval.workspace = true
+flare-rig.workspace = true
 flare-export.workspace = true
 flare-import.workspace = true
 flare-publish.workspace = true
@@ -27,7 +28,9 @@ flare-video.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
+flare-menubar.workspace = true
 flare-tools.workspace = true
+flare-stopmotion.workspace = true
 glamx.workspace = true
 rmcp = { workspace = true, features = ["server", "macros", "schemars", "transport-io"] }
 schemars.workspace = true

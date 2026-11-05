@@ -1,8 +1,11 @@
 //! The vocabulary of document edits.
 
-use flare_core::{FrameRate, LayerId, SceneId, SoundId, SymbolId};
+use flare_core::{BitmapId, FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
-use flare_document::{FrameSpan, Layer, Scene, Sound, SoundCue, Stage, Symbol, SymbolKind};
+use flare_document::{
+    Bitmap, FrameSpan, Layer, Playback, Scene, Sound, SoundCue, SpanInterp, Stage, Symbol,
+    SymbolKind,
+};
 
 /// A property change on a layer.
 #[derive(Debug, Clone, PartialEq)]
@@ -53,6 +56,11 @@ pub enum Command {
     },
     SetStage(Stage),
     SetFrameRate(FrameRate),
+    /// Adds a bitmap to the library. Refused when an identical image (same content hash) is
+    /// already there: place that one instead, so repeated frames are stored once.
+    AddBitmap(Bitmap),
+    /// Removes a bitmap from the library. Fails while a frame still shows it.
+    RemoveBitmap(BitmapId),
     /// Adds a sound to the library.
     AddSound(Sound),
     /// Removes a sound from the library. Fails if a cue still plays it.
@@ -91,5 +99,22 @@ pub enum Command {
         scene: SceneId,
         layer: LayerId,
         start: u32,
+    },
+    /// Sets how the instance held by the span starting at `start` plays its symbol (Loop, Play
+    /// Once or Single Frame and its first frame). The span's timing and tween are kept; a span
+    /// that holds no instance is refused.
+    SetInstancePlayback {
+        scene: SceneId,
+        layer: LayerId,
+        start: u32,
+        playback: Playback,
+    },
+    /// Sets the interpolation (family, easing, handle type) of the tween that starts at the
+    /// keyframe at `start`; `None` goes back to its plain ease. Refused when no span starts there.
+    SetKeyframeInterpolation {
+        scene: SceneId,
+        layer: LayerId,
+        start: u32,
+        interp: Option<SpanInterp>,
     },
 }

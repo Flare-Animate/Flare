@@ -2,7 +2,7 @@
 
 use crate::StorageError;
 use flare_core::{DocumentPoint, InstanceId, Rgba8, ShapeId, SymbolId, Transform2D};
-use flare_document::{Cap, Content, Gradient, Instance, Join, Shape, Stroke};
+use flare_document::{Cap, Content, Gradient, Instance, Join, Shape, Stroke, StrokeStyle};
 use glamx::DAffine2;
 
 use super::timeline::{
@@ -23,6 +23,8 @@ pub(super) fn wire_content(content: &Content) -> ContentWire {
                 rgba: stroke.color().to_array(),
                 cap: (stroke.cap() != Cap::Round).then(|| cap_name(stroke.cap()).to_owned()),
                 join: (stroke.join() != Join::Round).then(|| join_name(stroke.join()).to_owned()),
+                style: (stroke.style() != StrokeStyle::Solid)
+                    .then(|| stroke.style().name().to_owned()),
             }),
             text: shape.text().map(TextWire::of),
             gradient: shape.gradient().map(|g| GradientWire {
@@ -38,6 +40,12 @@ pub(super) fn wire_content(content: &Content) -> ContentWire {
             matrix: instance.transform().as_affine().to_cols_array(),
             play: Some(instance.playback().mode.name().to_owned()),
             first_frame: instance.playback().first_frame,
+        },
+        Content::Bitmap(bitmap) => ContentWire::Bitmap {
+            id: bitmap.id().as_uuid().to_string(),
+            bitmap: bitmap.bitmap().as_uuid().to_string(),
+            matrix: bitmap.transform().as_affine().to_cols_array(),
+            opacity: bitmap.opacity(),
         },
         Content::Camera(camera) => ContentWire::Camera {
             center: camera.center().as_vec().to_array(),
@@ -74,10 +82,17 @@ pub(super) fn build_content(content: ContentWire) -> Result<Content, StorageErro
                 let [r, g, b, a] = stroke.rgba;
                 let cap = cap_from(stroke.cap.as_deref())?;
                 let join = join_from(stroke.join.as_deref())?;
+                let style = match stroke.style.as_deref() {
+                    None => StrokeStyle::Solid,
+                    Some(name) => StrokeStyle::parse(name).ok_or_else(|| {
+                        StorageError::Corrupt(format!("unknown stroke style {name:?}"))
+                    })?,
+                };
                 let stroke = Stroke::new(stroke.width, Rgba8::new(r, g, b, a))
                     .map_err(corrupt)?
                     .with_cap(cap)
-                    .with_join(join);
+                    .with_join(join)
+                    .with_style(style);
                 shape = shape.with_stroke(stroke);
             }
             if let Some(g) = gradient {
@@ -109,6 +124,42 @@ pub(super) fn build_content(content: ContentWire) -> Result<Content, StorageErro
             play.as_deref(),
             first_frame,
         )?),
+        } => {
+            let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
+                .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;
+            // No name means the default, a loop; a name that is not a mode is a damaged
+            // file, not something to guess at.
+            let mode = match play.as_deref() {
+                None => flare_document::PlayMode::default(),
+                Some(name) => flare_document::PlayMode::from_name(name)
+                    .ok_or_else(|| StorageError::Corrupt(format!("unknown play mode {name:?}")))?,
+            };
+            Content::Instance(
+                Instance::new(
+                    InstanceId::from_uuid(uuid(&id)?),
+                    SymbolId::from_uuid(uuid(&symbol)?),
+                    transform,
+                )
+                .with_playback(flare_document::Playback { mode, first_frame }),
+            )
+        }
+        ContentWire::Bitmap {
+            id,
+            bitmap,
+            matrix,
+            opacity,
+        } => {
+            let transform = Transform2D::new(DAffine2::from_cols_array(&matrix))
+                .map_err(|_| StorageError::Corrupt("non-finite transform".into()))?;
+            Content::Bitmap(
+                flare_document::BitmapInstance::new(
+                    InstanceId::from_uuid(uuid(&id)?),
+                    flare_core::BitmapId::from_uuid(uuid(&bitmap)?),
+                    transform,
+                )
+                .with_opacity(opacity),
+            )
+        }
         ContentWire::Camera {
             center,
             zoom,

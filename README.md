@@ -40,6 +40,8 @@ Rust is pinned in `rust-toolchain.toml`. Ruffle is a git submodule, so clone wit
 
 On Linux install the libraries listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+[docs/BUILDING.md](docs/BUILDING.md) has the steps for each platform: Linux, Windows, macOS, the browser build and Android.
+
 ### Command line
 
     flare new project.flare --width 1280 --height 720
@@ -92,5 +94,5 @@ It is being rewritten in Rust, based predominantly on OpenToonz and Tahoma2D, wi
 ### Format support
 
 - Flash/Animate: .fla, .xfl, .swf, .swc, .flv/.f4v, .as, legacy binary .fla, AIR/ZXP/MXP packages
-- Moho project reading: structure, rig and asset manifest (no rendering yet)
-- OpenToonz formats: .tnz, .tlv, .pli, .tzu (planned)
+- Moho projects (.moho, .anime, .mohoproj, .animeproj) and BVH motion: layers, bones, keyframes, switch cells and vector art import as editable projects (images and sound are listed, not placed)
+- OpenToonz formats: .tnz scenes and .pli vector levels import (frame rate, camera, xsheet columns, strokes, palette colours); .tlv raster levels and .tzu are planned

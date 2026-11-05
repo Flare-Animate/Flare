@@ -6,8 +6,6 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 #![forbid(unsafe_code)]
 
-mod ui;
-
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -95,5 +93,5 @@ fn run() -> Result<()> {
     for path in &named {
         workspace.open_any(path);
     }
-    ui::run(workspace)
+    flare_shell::ui::run(workspace)
 }

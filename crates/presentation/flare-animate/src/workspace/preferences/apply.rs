@@ -35,6 +35,11 @@ impl Workspace {
             language: self.language_choice.code().to_owned(),
             theme: self.theme_mode.code().to_owned(),
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
+            shortcuts: if self.shortcuts == flare_menubar::ShortcutMap::default() {
+                String::new()
+            } else {
+                self.shortcuts.to_json()
+            },
             recent: self
                 .home
                 .recent
@@ -53,6 +58,12 @@ impl Workspace {
         for name in &preferences.pinned_tools {
             self.pin_tool(name);
         }
+        // A file that cannot be used gives the default set, so a person is never left keyless.
+        self.shortcuts = if preferences.shortcuts.is_empty() {
+            flare_menubar::ShortcutMap::default()
+        } else {
+            flare_menubar::ShortcutMap::from_json_or_default(&preferences.shortcuts).0
+        };
         let finite = |v: f64, fallback: f64| if v.is_finite() { v } else { fallback };
         self.recovery.interval = finite(preferences.autosave_seconds, 30.0).clamp(5.0, 3600.0);
         self.display.show_rulers = preferences.show_rulers;

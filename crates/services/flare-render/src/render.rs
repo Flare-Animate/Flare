@@ -4,7 +4,8 @@ use flare_core::Rgba8;
 use flare_eval::Frame;
 use vello_cpu::kurbo::{Affine, BezPath, Rect};
 use vello_cpu::peniko::ImageAlphaType;
-use vello_cpu::{Pixmap, RenderContext, Resources};
+use vello_cpu::peniko::{Extend, ImageBrush, ImageQuality, ImageSampler};
+use vello_cpu::{ImageSource, Pixmap, RenderContext, Resources};
 
 #[allow(unused_imports)]
 use crate::image::unpremultiply_in_place;
@@ -180,7 +181,11 @@ pub(crate) fn rasterize(
         f64::from(height) / viewport.height,
     ) * Affine::translate((-viewport.x, -viewport.y));
     let clip_paths: Vec<BezPath> = frame.clips.iter().map(|clip| clip_path(clip)).collect();
-    for drawn in &frame.shapes {
+    let mut bitmaps = frame.bitmaps.iter().peekable();
+    for (index, drawn) in frame.shapes.iter().enumerate() {
+        while let Some(bitmap) = bitmaps.next_if(|b| b.after_shapes <= index) {
+            draw_bitmap(&mut ctx, base, &clip_paths, bitmap);
+        }
         // Masks live in scene space, so they are pushed with the view transform alone, before
         // the shape's own.
         ctx.set_transform(base);
@@ -208,8 +213,65 @@ pub(crate) fn rasterize(
             ctx.pop_layer();
         }
     }
+    for bitmap in bitmaps {
+        draw_bitmap(&mut ctx, base, &clip_paths, bitmap);
+    }
     ctx.flush();
     let mut pixmap = Pixmap::new(w16, h16);
     ctx.render(&mut pixmap, &mut Resources::new());
     Ok(pixmap)
+}
+
+/// One bitmap, its top-left corner at the origin of its transform. Pixels are premultiplied for
+/// the rasterizer here, one pass over the image; the document keeps them straight.
+fn draw_bitmap(
+    ctx: &mut RenderContext,
+    base: Affine,
+    clip_paths: &[BezPath],
+    drawn: &flare_eval::DrawnBitmap<'_>,
+) {
+    let bitmap = drawn.bitmap;
+    // Both fit u16 because a bitmap's side is at most 8192.
+    let (Ok(w), Ok(h)) = (
+        u16::try_from(bitmap.width()),
+        u16::try_from(bitmap.height()),
+    ) else {
+        return;
+    };
+    let mut pixmap = Pixmap::new(w, h);
+    for (out, rgba) in pixmap
+        .data_mut()
+        .iter_mut()
+        .zip(bitmap.pixels().as_chunks::<4>().0)
+    {
+        let a = u16::from(rgba[3]);
+        let mul = |c: u8| ((u16::from(c) * a + 127) / 255) as u8;
+        out.r = mul(rgba[0]);
+        out.g = mul(rgba[1]);
+        out.b = mul(rgba[2]);
+        out.a = rgba[3];
+    }
+    ctx.set_transform(base);
+    let mut pushed = 0;
+    for index in &drawn.clips {
+        if let Some(region) = clip_paths.get(*index) {
+            ctx.push_clip_layer(region);
+            pushed += 1;
+        }
+    }
+    let [a, b, c, d, e, f] = drawn.transform.to_cols_array();
+    ctx.set_transform(base * Affine::new([a, b, c, d, e, f]));
+    ctx.set_paint(ImageBrush {
+        image: ImageSource::Pixmap(std::sync::Arc::new(pixmap)),
+        sampler: ImageSampler {
+            x_extend: Extend::Pad,
+            y_extend: Extend::Pad,
+            quality: ImageQuality::Low,
+            alpha: drawn.opacity,
+        },
+    });
+    ctx.fill_rect(&Rect::new(0.0, 0.0, f64::from(w), f64::from(h)));
+    for _ in 0..pushed {
+        ctx.pop_layer();
+    }
 }

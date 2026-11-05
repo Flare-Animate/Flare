@@ -40,6 +40,8 @@ Rust は `rust-toolchain.toml` で固定されています。Ruffle は git サ�
 
 Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に挙げたライブラリをインストールしてください。
 
+[docs/BUILDING.md](../BUILDING.md) に、Linux、Windows、macOS、ブラウザ版、Android それぞれのビルド手順があります。
+
 ### コマンドライン
 
     flare new project.flare --width 1280 --height 720

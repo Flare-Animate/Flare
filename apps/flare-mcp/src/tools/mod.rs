@@ -6,8 +6,14 @@ mod draw;
 mod export;
 mod history;
 mod read;
+mod shortcuts;
+mod stopmotion;
+#[cfg(test)]
+mod stopmotion_tests;
+mod symbols;
 mod text;
 mod timeline;
+mod tween;
 
 use rmcp::handler::server::router::tool::ToolRouter;
 
@@ -23,5 +29,9 @@ impl FlareServer {
             + Self::timeline_tools()
             + Self::history_tools()
             + Self::bone_tools()
+            + Self::stopmotion_tools()
+            + Self::tween_tools()
+            + Self::shortcut_tools()
+            + Self::symbol_tools()
     }
 }

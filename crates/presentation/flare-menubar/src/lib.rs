@@ -8,6 +8,7 @@
 mod labels;
 mod menu;
 mod meta;
+mod shortcuts;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
@@ -15,6 +16,10 @@ mod translation_tests;
 
 pub use labels::{LabelState, mock_key, submenu_key, title_key};
 pub use menu::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
+pub use shortcuts::{
+    Accelerator, Conflict, DEFAULT_SET, MAX_SHORTCUT_FILE_BYTES, SHORTCUT_SET_IDS, ShortcutError,
+    ShortcutMap, set_bindings,
+};
 
 /// A user-invokable command. Variants map one-to-one onto menu items.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

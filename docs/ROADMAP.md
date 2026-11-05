@@ -15,10 +15,10 @@ maintainer's to reorder.
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)
 - Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
-- A Motion Editor: per-property graphs and custom ease curves for tweens
+- Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files
-- Bones inside shapes and the Bind tool (bones that link symbol instances, posed by inverse kinematics with the Bone tool, are built)
-- Editable keyboard shortcuts
+- Bones and inverse kinematics (the Bone and Bind tools)
+- Editable keyboard shortcuts: done in part (registry, four sets, editor, CLI and MCP; chords other than tool letters are still dispatched by fixed code, see SURFACES)
 
 ### Lower priority
 
@@ -110,7 +110,7 @@ raster painting, FX schematic and xsheet. [PARITY.md](PARITY.md) says why for ea
 If drawing, exporting and playing do not all work well, Flare is not released. What is known to be missing against that bar, in the order it is meant to be tackled:
 
 1. **MP4**: done, in pure Rust and desktop only (`flare-video`: `rusty_h264` for the picture, OxideAV's `oxideav-aac` for the sound, `muxide` for the container). Checked against the decoders of `rusty_h264` and `oxideav-aac` and, where one is installed, against ffprobe and ffmpeg. The sound encoder's one-frame delay is cancelled by holding the first picture that long (the container has no edit list), pinned by a test against the encoder itself. `rusty_h264` runs with its SIMD kernels (1.9 times faster than the scalar build on arm64, same bytes out; not measured on x86-64). Shipping H.264 and AAC encoders is accepted, as every media application does. Not measured: how the encoders hold up on long real animation and music.
-2. **Symbols that behave like Animate's.** Today every symbol is evaluated as a Graphic that loops with its parent (`flare-eval`), so a Button plays all of its frames instead of showing its Up state, a Graphic has no Loop, Play Once or Single Frame option with a first frame, and a Movie Clip has no clock of its own beyond that loop. Needs the instance's playback options in the document model, the file format and XFL, Properties controls, and the evaluator.
+2. **Symbols that behave like Animate's**: done in the model, the file, XFL, `flare-eval` and the Properties panel: a symbol is a Graphic, a Movie Clip (its own clock) or a Button (shows Up), a Graphic instance has Loop, Play Once and Single Frame with a first frame (`symbol_frame`, property-tested), and `SetInstancePlayback` sets it as one undo step from every surface. Still to do: Button states beyond Up, a Movie Clip's instance name for scripts, filters, blend modes, cache-as-bitmap and 9-slice scaling grids.
 3. **Merge drawing**, after **many elements in a keyframe** (done through stage 3 of [decisions/ELEMENTS.md](decisions/ELEMENTS.md): drawing no longer makes a layer per shape; stage 4, keeping a whole FLA's elements through save and open, and stage 5 remain): Flash's planar-map shapes, where overlapping shapes cut and merge each other and strokes and fills are edited separately. The largest gap in [PARITY.md](PARITY.md) and a change to the document model, not a feature on top of it.
 4. **Camera**: done in code: a camera layer and tool whose keyframed position, zoom and rotation drive every export, the SWF and HTML5 pages, and a preview of the stage (real Ruffle draws the same picture as Flare). Still to do: someone using it by hand, XFL import and export of the camera, a camera that follows frames added to the movie, and attaching layers to it.
 5. **Bones**: done in code: the Bone tool links symbol instances into an armature layer, the Selection tool poses it by inverse kinematics (joint limits, roots that move the whole armature), poses are keyframes that tween, and every export, SWF and HTML5 shows them; the command line and the MCP server do the same. Still to do: someone using it by hand, bones inside a shape and the Bind tool, XFL import and export of the armature itself (Animate's IK format), and pinning a joint while the rest is dragged.
@@ -172,3 +172,144 @@ Each of these can be its own branch and PR:
 4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, and check what the importer keeps against files Animate wrote.
 5. Input and accessibility: pen, IME and screen-reader results.
 6. Packaging: app bundles and installers, once the icons are trimmed.
+
+## Tweening (`flare-tween`)
+
+Built, tested in the library: interpolation families and easing with their parameters, Bezier
+keyframe handles (Auto, AutoClamped, Vector, Aligned, Free) with solving, cubic-bezier evaluation by
+bisection, the extrapolation modes, a `Curve` over sorted keys with validation, and grease-pencil
+style in-betweens of stroke points (`interpolate_sequence`). Clean-room: see ARCHITECTURE.md.
+
+Next, in order:
+- A validated command (`SetKeyframeInterpolation`, which sets a key's segment shape, easing and
+  handle kind, one undo step each) and a `CreateInbetweens` command over two keyframes' strokes.
+- A `flare tween` command (`list` for the easings, `eval` for a curve) and a `flare-mcp` tool with
+  the same two calls, so the surfaces in SURFACES.md get their rows to yes.
+- The Motion Editor edits a span's curve (`flare_tween::edit`: hit test, handle drag rules, view) through
+  `SetKeyframeInterpolation`; per-property graphs over a whole `Curve` are the part left.
+- Making the renderer use `flare-tween` for motion tweens in place of the Animate Ease in `flare-eval`,
+  once the document stores keys (today a span holds one ease value).
+## OpenToonz feature areas
+
+Reference: the feature areas of OpenToonz (its rooms in `original/stuff/profiles/layouts/rooms`
+and its panels). Phase: **Built** exists; **P1** next; **P2** after P1; **P3** later; **Not planned**
+has no place in Flare. The panel rows are the planned panels of `flare-profile` (dimmed where they
+appear, docs/UI.md); the profiles place them, but the interface does not read profiles yet.
+
+| Area | OpenToonz panels | Flare status | Phase |
+|---|---|---|---|
+| Timeline | Timeline | Built (frames, layers, tweens) | Built |
+| Xsheet | Xsheet | Planned panel; the timeline does the job today | P1 |
+| Tool strip and options | ToolBar, ToolOptions | Built; More tools lists the unbuilt ones dimmed | Built |
+| Workspace profiles | rooms, `layouts.txt` | Data model, loader and four built-in profiles in `flare-profile`; the interface does not read them yet | P1 |
+| Shortcut sets | `shortcuts/*.ini` | Four sets as data (`flare`, `opentoonz`, `animate`, `tahoma`) in `flare-menubar`'s `ShortcutMap`; edited, saved in Preferences, listed by `flare shortcuts` | P1 |
+| Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Eight palettes in `flare-ui` `theme.rs`, text at least 7:1 on every surface (tested) | Built |
+| Preferences | Preferences | Built in part (General, Stage, Timeline, Recent) | Built |
+| FX schematic and FX settings | Schematic, FxBrowser, FxSettings | Planned panels | P2 |
+| Function editor | FunctionEditor | Built as the Motion Editor (one span's curve); per-property graphs are left | P2 |
+| Level strip and palettes | LevelStrip, LevelPalette, StyleEditor | Planned panels | P2 |
+| Scene cast and browser | SceneCast, Browser | Planned panels | P2 |
+| Motion paths | MotionPath | Planned panel | P2 |
+| Cleanup | Cleanup, CleanupSettings | Planned panels | P3 |
+| Scan | Scan | Planned panel | P3 |
+| Plastic (mesh deformation) | Plastic | Planned panel; stub in `flare-tools` `not_yet` | P3 |
+| Tasks (batch render) | Tasks, BatchServers | Planned panel | P3 |
+| Script console | ScriptConsole | Flare has no scripts; the Debug menu stays dimmed | Not planned |
+## Stop motion
+
+Stop motion is a capture session that a camera fills frame by frame, with an onion skin for
+drawing against the previous frames. The domain is `flare-stopmotion` (`crates/editing`): the
+frame rate, the hold each frame gets, the onion skin, the ghost frames while drawing, and the
+export of the frames to a timeline as slots. It holds numbers, not pixels; the camera and the
+captured images are the caller's. The session is not saved in a project yet.
+
+Done: the session, frame list and holds with their bounds, onion skin with the ghost choice,
+timeline export, the `CameraSource` trait with `NoCamera`, which answers capture and live view
+with the named `NotYetImplemented` error, and the CLI and MCP commands that check settings and
+name that error. Tested in the crate, with the failure paths.
+
+Next, phased:
+1. Capture backends: a `CameraSource` for a webcam and one for a DSLR over its SDK, each in its
+   own adapter, with the encoded captures checked by `accept_capture`.
+2. Live view: a preview of the camera in the stage, with the onion skin drawn over it.
+3. Onion skin in the workspace: the ghost frames drawn in the editor, not only as numbers.
+4. Audio cues: the sound a frame capture plays, and a cue for the next frame, both optional.
+5. Export: the slots placed as keyframes on a layer, through the editing commands, and the
+   captured images stored in the document.
+
+Licence and reference: the old C++ code in `original/flare/sources/stopmotion` is the reference
+for behaviour. The `brick-a-brack/eagle-animation` project was looked at as a possible reference,
+but its licence could not be read in this session (the GitHub API refused the session and the raw
+file was not found), so no code, art or structure is taken from it. If it is read later and its
+licence allows, its use is recorded here with the source, licence and changes.
+
+## Toonz import (`flare-toonz`, io layer)
+
+Reads OpenToonz-lineage (Toonz Harlequin) files and converts scenes and vector levels to Flare
+documents. Tested with synthetic fixtures built byte by byte in the tests; no real `.tnz`, `.pli`
+or `.tlv` was available, so field names are taken from the OpenToonz source (BSD-3-Clause,
+attribution in docs/ENGINEERING.md) and not yet checked against user files.
+
+- [x] Phase 1, scene XML (`.tnz`): bounded XML tree, frame rate, camera count, camera resolution
+  and size, level declarations, level, palette and sound columns with cell runs, limits.
+- [x] Phase 2, palette XML (`.tpl`, `.plt`): styles in file order with real colours (solid colour
+  styles, tag id 3; other style kinds keep their id and no colour), pages and indices.
+- [x] Phase 3, sniffing: `.pli` (`PLIM`/`MILP`) and `.tlv` (`TLV10`..`TLV12`).
+- [x] Phase 3b, vector `.pli` decoding (version 5.7 and later): thick quadratic chains, groups,
+  colour tags, precision scale, palette style tags. Filled regions are counted, not decoded.
+- [ ] Phase 4, raster `.tlv` decoding (LZO-compressed tiles and the icon and frame tables).
+  Returns NotYetImplemented; a scene with raster levels converts with empty cells and a named note.
+- [ ] Phase 5, fx schematics: fx nodes and their ports in the scene.
+- [x] Phase 6, conversion: frame rate, camera resolution as the stage, a layer per level column
+  (last column on top), a symbol per drawing with strokes grouped by style, drawn as cubic paths at
+  the mean thickness. Sound columns and raster levels are named as unsupported. Level files are
+  found beside the scene (`+drawings/X` in the scene's folder or its parent); paths that climb out
+  are never read. One stage inch is taken as 53.33 level units.
+- [ ] Phase 7, write-back and export to `.tnz`.
+- [x] Surfaces: `flare import` and MCP `import_project` take `.tnz` and `.pli`; the desktop and
+  browser open them.
+
+## Moho projects (`flare-moho`)
+
+Reads Moho (Lost Marble) `.moho`/`.anime` ZIP and `.mohoproj`/`.animeproj` JSON projects, and BVH
+motion files, and converts both to Flare documents. The format notes come from
+`original/flare/sources/common/moho` (read as reference, no code copied). Licences checked:
+jpdurigan/godot_moho_importer is MIT, so its mesh layout (`mesh.points`/`mesh.curves`) and the
+`anim_pos`/`anim_angle`/`anim_scale` track names are used with attribution here;
+SimplSam/moho-bvh-bones is CC BY-NC-SA 4.0, so nothing was taken from it (behaviour only).
+
+- Phase 1, parse (done): container detection; typed model of layers, bones, switch cells, keyframe
+  tracks, mesh points and curves, image and audio references; every size, depth and count bounded.
+- Phase 2, bones (done): BVH reader and writer, and `bvh::to_document` (a pose per frame per joint).
+- Phase 3, switch layers (done): switch keys become one instance span per key.
+- Phase 4, conversion (done, with gaps): `to_flare_document` builds one validated command batch:
+  groups as folders, vector layers as shape symbols (polylines; handles and fill colours are not
+  read) placed by translation, rotation and scale tracks, bones as folders with pose layers.
+  Image and audio layers are named as unsupported (a document has no bitmap content; a Moho
+  container's media is not read). Moho units are assumed two per stage height.
+- Phase 5, round trip: write a Moho project back, or export to BVH and XFL, and read it again unchanged.
+- Gaps: pre-11 `.anme` is refused by name; audio reference keys are unverified against real projects;
+  rendering is out of scope.
+
+## Reference backlog
+
+What the absorbed and upstream projects have that `main` lacks, checked against `origin/main` on
+2026-11-04. The evidence, licences and work packages are in [BACKLOG.md](BACKLOG.md); this is the
+summary. Nothing here is scheduled. The maintainer orders it.
+
+- Small: editable keyboard shortcuts and shortcut sets (WP-1, built except the chord dispatch).
+- Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3),
+  exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers and stroke styles
+  (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).
+- Large: Photoshop and image import (WP-4; SVG import is done, it needs a bitmap layer in the model first), filters and effects (WP-8; the EffectCraft
+  dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check).
+- Extra-large, decision first: bones and inverse kinematics (WP-9), scripting (WP-12).
+- Licences decide what can be ported: AnimationCraft and ArtCraft are MIT or Apache-2.0; OpenToonz
+  and Tahoma2D are BSD-3-Clause; nflare and the FFDec worker in Next2Flash are GPLv3 (behaviour
+  only); minnamate has no licence file (behaviour only).
+- Replicraft was not found. The maintainer gives the URL.
+
+### Symbols and rigging
+
+Done: symbol kinds and Graphic playback (above); `flare-rig` with bones, angle limits, keyed poses eased by `flare-tween`, FK, two-bone and CCD IK, bounded and property-tested; `flare symbol` / `flare rig` and the matching MCP tools on a rig JSON file.
+Next, in order: store rigs in the document and its file (a `rigs` field with versioned defaults) with `CreateSymbolRig`, `AddBone`, `SetBoneAngleLimit` and `SetRigPose` as commands and undo steps; make bones drive their target instances in `flare-eval`; XFL and FLA symbol options already import, rig import does not; mesh deformation with skinning weights (after OpenToonz's Plastic deformer, BSD-3, attributed); weight-painting UI; IK solver UI with FABRIK; motion paths; skeletons from Moho and OpenToonz `.plastic`; a Rig panel in the desktop app and browser.

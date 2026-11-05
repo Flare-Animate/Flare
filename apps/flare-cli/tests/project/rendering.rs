@@ -249,3 +249,63 @@ fn export_xfl_round_trips_through_the_cli_as_a_folder_and_as_a_fla() {
     );
     assert!(!run(&["export-xfl", &file, &fla]).status.success());
 }
+
+#[test]
+fn export_sprites_writes_a_sheet_and_an_atlas_and_refuses_overwrites_and_bad_ranges() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let sheet = dir.path().join("s.png").to_string_lossy().into_owned();
+    json(&["new", &file, "--width", "10", "--height", "10"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "0",
+        "0",
+        "10",
+        "10",
+        "--color",
+        "FF0000",
+    ]);
+    let out = json(&["export-sprites", &file, &sheet, "--columns", "1"]);
+    assert_eq!(
+        (out["width"].as_u64(), out["frames"].as_u64()),
+        (Some(10), Some(1))
+    );
+    let atlas = std::fs::read_to_string(dir.path().join("s.json")).expect("atlas");
+    assert!(atlas.contains("\"frame_00000\"") && atlas.contains("\"image\": \"s.png\""));
+    assert_eq!(read_png(&sheet).1, 10);
+    assert!(!run(&["export-sprites", &file, &sheet]).status.success());
+    let other = dir.path().join("t.png").to_string_lossy().into_owned();
+    assert!(
+        !run(&["export-sprites", &file, &other, "--start", "3"])
+            .status
+            .success()
+    );
+}
+
+#[test]
+fn draw_rect_takes_a_stroke_style_and_a_wrong_one_is_refused() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file]);
+    let rect = |style: &str| {
+        run(&[
+            "draw-rect",
+            &file,
+            "--rect",
+            "2",
+            "2",
+            "20",
+            "10",
+            "--stroke",
+            "FF0000",
+            "--stroke-style",
+            style,
+        ])
+    };
+    assert!(rect("dashed").status.success());
+    let refused = rect("wavy");
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("wavy"));
+}

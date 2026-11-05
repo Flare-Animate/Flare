@@ -5,12 +5,15 @@
 #![forbid(unsafe_code)]
 
 pub mod color;
+pub mod convolve;
+pub mod curves;
 pub mod geometry;
 pub mod id;
 pub mod image_ops;
+pub mod resample;
 pub mod time;
 
 pub use color::Rgba8;
 pub use geometry::{DocumentPoint, NonFiniteCoordinate, Transform2D};
-pub use id::{DocumentId, InstanceId, LayerId, SceneId, ShapeId, SoundId, SymbolId};
+pub use id::{BitmapId, DocumentId, InstanceId, LayerId, SceneId, ShapeId, SoundId, SymbolId};
 pub use time::{FrameRate, RateError};

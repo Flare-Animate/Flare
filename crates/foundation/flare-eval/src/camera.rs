@@ -16,9 +16,9 @@ pub fn camera_at(layer: &Layer, frame: u32) -> Option<Camera> {
     if span.tween() == Tween::Linear
         && let Some(Content::Camera(next)) = layer.span_at_start(span.end()).map(|n| n.content())
     {
-        let t = morph::eased(
+        let t = morph::span_fraction(
+            span,
             f64::from(frame - span.start()) / f64::from(span.duration().get()),
-            span.ease(),
         );
         return Some(camera.lerp(next, t));
     }

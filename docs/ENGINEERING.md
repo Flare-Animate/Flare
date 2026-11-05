@@ -79,6 +79,28 @@ rejected batch, and undo back to the exact starting document. When adding a new 
 make sure these cover it. Check that a new invariant test can fail: temporarily break the
 code it protects and confirm the test notices.
 
+## Continuous integration
+
+Workflows are in `.github/workflows/`; the toolchain, cache and Linux libraries are set up once
+in `.github/actions/setup-rust`. Every workflow runs on pushes to `main`, on pull requests and by
+hand (`workflow_dispatch`), cancels a superseded run of the same branch or pull request (never on `main`), and has read-only
+`contents` permission unless a job says otherwise.
+
+| Workflow | What it does | Target |
+| --- | --- | --- |
+| `ci.yml` | fmt (Linux only), clippy and tests on Linux, Windows and macOS; scripts tests, wasm checks, `cargo audit`, file-length and docs rules | Linux, Windows, macOS, Web |
+| `android.yml` | universal, arm64-v8a and x86_64 APKs with `cargo apk` (ChromeOS runs the x86_64 or arm64 one; the manifest makes touch, keyboard, mouse and camera optional and the window resizable) | Android |
+| `ios.yml` | compiles `flare-shell` and the desktop binary for `aarch64-apple-ios` (window-system and clipboard crates are gated off iOS in `flare-shell`'s Cargo.toml, so the build fails only on C SDK tooling, not on Wayland or X11), wraps the binary in an experimental unsigned `.ipa`. Not an app yet and non-blocking until it is green; see SURFACES.md | iOS (not yet an app) |
+| `pages.yml` | builds the page with `apps/flare-web/scripts/build.sh`; a push to `main` deploys it to GitHub Pages | Web |
+| `release.yml` | on a `v*` tag: portable archives, MSI, DMG, AppImage, deb, rpm and Flatpak for Windows, macOS and Linux (x86_64 and arm64), checksums, GitHub release | Windows, macOS, Linux |
+
+FreeBSD is not built: its workflow built a path that no longer exists and always reported success.
+Add it back as a non-blocking job when a maintainer wants it.
+
+Owner-only settings and secrets (no workflow can set these): Settings > Pages > Source "GitHub
+Actions"; a Play upload keystore, Apple signing identity and Windows code-signing certificate
+as repository secrets when signed builds are wanted.
+
 ## Code map for tools and newcomers
 
 [codesight](https://www.npmjs.com/package/codesight) scans the repository and writes `.codesight/`: a
@@ -99,3 +121,19 @@ Small conventional commits: `feat(scope)`, `fix(scope)`, `refactor(scope)`, `tes
 `docs(scope)`, `build(scope)`, `perf(scope)`, `chore(scope)`. One coherent concern per
 commit, with compatibility or provenance notes in the body when relevant. Never commit
 credentials or proprietary reference projects.
+
+## Third-party format references used
+
+- OpenToonz (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. and contributors; LICENSE.txt in
+  https://github.com/opentoonz/opentoonz): the PLI tag layout, dynamic-width integers, thick
+  quadratic chain decoding and the style/colour tags in `crates/io/flare-toonz/src/pli.rs` are
+  ported from `toonz/sources/image/pli/pli_io.cpp` and `tiio_pli.cpp`; the palette style text of
+  `.tpl` files follows `common/tvrender/tcolorstyles.cpp`. The BSD notice is: redistributions of
+  source keep the copyright notice, the conditions and the disclaimer; the names of the
+  contributors are not used to endorse derived products. Tahoma2D carries the same licence and
+  was only compared.
+- jpdurigan/godot_moho_importer (MIT, Copyright (c) 2022 Joao Pedro Durigan): the Moho mesh
+  layout (`mesh.points`, `mesh.curves`) and the `anim_pos`, `anim_angle`, `anim_scale` track names
+  used by `crates/io/flare-moho`.
+- usvg and its parser crates (MIT/Apache-2.0, linked as a dependency, no code copied): the SVG reader of `crates/io/flare-import/src/svg.rs`, with its text feature off.
+- SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.

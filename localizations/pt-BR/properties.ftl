@@ -8,3 +8,7 @@ prop-tween = Interpolação
 prop-shape-tween = Interpolação de forma
 prop-motion-tween = Interpolação de movimento
 prop-ease = Atenuação
+prop-interpolation = Interpolação
+prop-interpolation-hint = Família de interpolação e suavização deste tween; enquanto ela estiver desligada, usa-se o controle de suavização
+prop-interpolation-off = Controle de suavização
+prop-easing = Suavização

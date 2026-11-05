@@ -40,6 +40,8 @@ Rust 版本固定在 `rust-toolchain.toml` 中。Ruffle 是 git 子模块,因此
 
 在 Linux 上请安装 [CONTRIBUTING.md](../../CONTRIBUTING.md) 中列出的库。
 
+[docs/BUILDING.md](../BUILDING.md) 列出了各平台的构建步骤:Linux、Windows、macOS、浏览器版和 Android。
+
 ### 命令行
 
     flare new project.flare --width 1280 --height 720

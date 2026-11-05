@@ -1,11 +1,43 @@
 //! Where per-user files live, and reading and writing the remembered dock layout.
 //!
 //! The places themselves are the `directories` crate's: each platform's own convention, found
-//! the way that platform finds them, rather than guessed from environment variables.
+//! the way that platform finds them, rather than guessed from environment variables. An
+//! exception is an app the platform has no home for (an Android app is handed a data directory
+//! by the system, found nowhere): the app says where its files are with [`set_app_root`] before
+//! anything asks, and then everything is under it.
 
 use directories::ProjectDirs;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
+
+/// The per-user root an app named, when the platform's own convention has nothing to say.
+static APP_ROOT: OnceLock<PathBuf> = OnceLock::new();
+
+/// Names where the app's per-user files are, in place of the platform's convention. Once,
+/// before any file is asked for and in one process: an Android app the system does not hand a
+/// home to names the data directory the system gave it. Leaving it unset keeps every platform
+/// where it already is.
+pub fn set_app_root(root: PathBuf) {
+    let _ = APP_ROOT.set(root);
+}
+
+/// Where settings are kept: the dock layout and the preferences.
+fn settings_dir() -> Option<PathBuf> {
+    if let Some(root) = APP_ROOT.get() {
+        return Some(root.join("config"));
+    }
+    project().map(|dirs| dirs.config_dir().to_owned())
+}
+
+/// Where data is kept: unsaved work written in case of a crash, and anything else the app
+/// keeps between sessions.
+fn application_dir() -> Option<PathBuf> {
+    if let Some(root) = APP_ROOT.get() {
+        return Some(root.join("data"));
+    }
+    project().map(|dirs| dirs.data_local_dir().to_owned())
+}
 
 fn project() -> Option<ProjectDirs> {
     ProjectDirs::from("io.github", "Flare-Animate", "Flare")
@@ -14,12 +46,12 @@ fn project() -> Option<ProjectDirs> {
 /// Where settings are kept: the dock layout and the preferences. `None` when the platform
 /// cannot say where the person's home is, rather than a relative path.
 pub fn config_dir() -> Option<PathBuf> {
-    project().map(|dirs| dirs.config_dir().to_owned())
+    settings_dir()
 }
 
 /// The per-user recovery directory: unsaved work written in case of a crash.
 pub fn recovery_dir() -> Option<PathBuf> {
-    project().map(|dirs| dirs.data_local_dir().join("recovery"))
+    application_dir().map(|dir| dir.join("recovery"))
 }
 
 /// Where the dock layout is remembered between sessions.
@@ -41,6 +73,13 @@ pub fn read_layout(path: &Path, max_bytes: usize) -> Option<String> {
         .read_to_string(&mut text)
         .ok()?;
     Some(text)
+}
+
+/// Reads the saved file `name` under `root` with that file's own limit: the layout and the
+/// preferences have different ones, and a caller passing the wrong one lets a file through the
+/// read that its owner then refuses (or cuts one short).
+pub fn read_saved(root: &Path, name: &str, max_bytes: usize) -> Option<String> {
+    read_layout(&root.join(name), max_bytes)
 }
 
 /// Writes the layout through a temporary file and a rename, so a crash mid-write cannot
@@ -66,9 +105,31 @@ pub fn write_file(path: &Path, text: &str) -> std::io::Result<()> {
 #[allow(clippy::expect_used)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
+
+    // The app root is a process-wide setting: these tests take this lock and so never see a
+    // half-set world from each other.
+    static GUARD: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn each_saved_file_is_read_to_its_own_limit() {
+        let dir = tempfile::tempdir().expect("dir");
+        std::fs::write(dir.path().join("preferences.json"), "x".repeat(100)).expect("write");
+        // One byte past the limit is what lets the owner of the limit see it is too long.
+        assert_eq!(
+            read_saved(dir.path(), "preferences.json", 10).map(|t| t.len()),
+            Some(11)
+        );
+        assert_eq!(
+            read_saved(dir.path(), "preferences.json", 1000).map(|t| t.len()),
+            Some(100)
+        );
+        assert_eq!(read_saved(dir.path(), "missing.json", 10), None);
+    }
 
     #[test]
     fn settings_and_recovery_files_have_places_of_their_own_under_flare() {
+        let _guard = GUARD.lock().expect("guard");
         // The platform may have no home (a bare CI container); then there is no place, not a
         // relative one.
         let (Some(layout), Some(prefs), Some(recovery)) =
@@ -82,8 +143,27 @@ mod tests {
         assert_eq!(layout.parent(), prefs.parent(), "settings sit together");
         assert!(layout.ends_with("layout.json") && prefs.ends_with("preferences.json"));
         assert!(recovery.ends_with("recovery"));
-        let text = layout.to_string_lossy().to_lowercase();
+        // The platform's own convention, asked directly: the app-root test names a root for the
+        // whole process, so the files above may sit under that instead.
+        let Some(dirs) = project() else { return };
+        let text = dirs.config_dir().to_string_lossy().to_lowercase();
         assert!(text.contains("flare"), "{text}");
+    }
+
+    #[test]
+    fn an_app_that_names_where_its_files_are_gets_all_of_them_there() {
+        let _guard = GUARD.lock().expect("guard");
+        let dir = tempfile::tempdir().expect("dir");
+        set_app_root(dir.path().to_owned());
+        let layout = layout_file().expect("layout");
+        let prefs = preferences_file().expect("preferences");
+        let recovery = recovery_dir().expect("recovery");
+        assert!(layout.starts_with(dir.path()), "{layout:?}");
+        assert!(prefs.starts_with(dir.path()), "{prefs:?}");
+        assert!(recovery.starts_with(dir.path()), "{recovery:?}");
+        assert!(layout.ends_with("layout.json"));
+        assert!(prefs.ends_with("preferences.json"));
+        assert!(recovery.ends_with("recovery"));
     }
 
     #[test]

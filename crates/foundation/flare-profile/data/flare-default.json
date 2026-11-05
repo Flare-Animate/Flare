@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "id": "flare-default",
+  "title": "Flare Default",
+  "shortcut_set": "flare",
+  "theme": "dark",
+  "toolbars": [
+    {
+      "id": "tools",
+      "visible": true
+    },
+    {
+      "id": "top-bar",
+      "visible": true
+    },
+    {
+      "id": "playback",
+      "visible": true
+    }
+  ],
+  "rooms": [
+    {
+      "id": "animate",
+      "title": "Animate",
+      "layout": {
+        "kind": "split",
+        "axis": "vertical",
+        "first_fraction": 0.5,
+        "first": {
+          "kind": "split",
+          "axis": "horizontal",
+          "first_fraction": 0.3333,
+          "first": {
+            "kind": "stack",
+            "panels": [
+              "tools"
+            ],
+            "active": 0
+          },
+          "second": {
+            "kind": "split",
+            "axis": "horizontal",
+            "first_fraction": 0.5,
+            "first": {
+              "kind": "stack",
+              "panels": [
+                "tool_options"
+              ],
+              "active": 0
+            },
+            "second": {
+              "kind": "stack",
+              "panels": [
+                "properties",
+                "library",
+                "color",
+                "align",
+                "transform",
+                "history",
+                "info"
+              ],
+              "active": 0
+            }
+          }
+        },
+        "second": {
+          "kind": "stack",
+          "panels": [
+            "timeline",
+            "output"
+          ],
+          "active": 0
+        }
+      }
+    },
+    {
+      "id": "planned-a",
+      "title": "Planned: scene and drawing",
+      "layout": {
+        "kind": "split",
+        "axis": "horizontal",
+        "first_fraction": 0.3333,
+        "first": {
+          "kind": "stack",
+          "panels": [
+            "xsheet",
+            "schematic",
+            "function_editor"
+          ],
+          "active": 0
+        },
+        "second": {
+          "kind": "split",
+          "axis": "horizontal",
+          "first_fraction": 0.5,
+          "first": {
+            "kind": "stack",
+            "panels": [
+              "level_strip",
+              "level_palette",
+              "style_editor"
+            ],
+            "active": 0
+          },
+          "second": {
+            "kind": "stack",
+            "panels": [
+              "cleanup",
+              "cleanup_settings",
+              "browser"
+            ],
+            "active": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "planned-b",
+      "title": "Planned: effects and tools",
+      "layout": {
+        "kind": "split",
+        "axis": "horizontal",
+        "first_fraction": 0.3333,
+        "first": {
+          "kind": "stack",
+          "panels": [
+            "scene_cast",
+            "fx_browser",
+            "fx_settings"
+          ],
+          "active": 0
+        },
+        "second": {
+          "kind": "split",
+          "axis": "horizontal",
+          "first_fraction": 0.5,
+          "first": {
+            "kind": "stack",
+            "panels": [
+              "motion_path",
+              "plastic",
+              "script_console"
+            ],
+            "active": 0
+          },
+          "second": {
+            "kind": "stack",
+            "panels": [
+              "scan",
+              "tasks"
+            ],
+            "active": 0
+          }
+        }
+      }
+    }
+  ],
+  "default_room": 0
+}

@@ -1971,6 +1971,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 
 [[package]]
+name = "flare-android"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "flare-animate",
+ "flare-platform",
+ "flare-shell",
+ "winit",
+]
+
+[[package]]
 name = "flare-animate"
 version = "0.1.0"
 dependencies = [
@@ -1997,6 +2008,7 @@ dependencies = [
  "flare-storage",
  "flare-text",
  "flare-tools",
+ "flare-tween",
  "flare-ui",
  "glamx",
  "png 0.18.1",
@@ -2032,10 +2044,13 @@ dependencies = [
  "flare-flash",
  "flare-history",
  "flare-import",
+ "flare-menubar",
  "flare-publish",
  "flare-render",
+ "flare-rig",
  "flare-ruffle",
  "flare-runtime",
+ "flare-stopmotion",
  "flare-storage",
  "flare-text",
  "flare-tools",
@@ -2073,23 +2088,11 @@ name = "flare-desktop"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "egui",
- "egui-wgpu",
- "egui-winit",
  "flare-animate",
- "flare-core",
- "flare-document",
  "flare-i18n",
- "flare-menubar",
  "flare-platform",
- "flare-publish",
- "flare-ruffle",
+ "flare-shell",
  "flare-storage",
- "flare-tablet",
- "flare-ui",
- "muda",
- "pollster 0.4.0",
- "winit",
 ]
 
 [[package]]
@@ -2109,6 +2112,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "flare-core",
+ "flare-tween",
  "glamx",
  "proptest",
  "thiserror 2.0.18",
@@ -2124,6 +2128,7 @@ dependencies = [
  "flare-document",
  "flare-eval",
  "flare-history",
+ "flare-tween",
 ]
 
 [[package]]
@@ -2132,6 +2137,7 @@ version = "0.1.0"
 dependencies = [
  "flare-core",
  "flare-document",
+ "flare-tween",
  "glamx",
  "proptest",
  "thiserror 2.0.18",
@@ -2189,13 +2195,18 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-eval",
+ "flare-moho",
  "flare-render",
  "flare-storage",
+ "flare-toonz",
+ "gif",
  "glamx",
+ "png 0.18.1",
  "quick-xml 0.42.0",
  "swf",
  "tempfile",
  "thiserror 2.0.18",
+ "usvg",
  "zip",
 ]
 
@@ -2221,9 +2232,12 @@ dependencies = [
  "flare-export",
  "flare-history",
  "flare-import",
+ "flare-menubar",
  "flare-publish",
  "flare-render",
+ "flare-rig",
  "flare-runtime",
+ "flare-stopmotion",
  "flare-storage",
  "flare-text",
  "flare-tools",
@@ -2244,7 +2258,24 @@ name = "flare-menubar"
 version = "0.1.0"
 dependencies = [
  "flare-i18n",
+ "flare-profile",
  "flare-ui",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "flare-moho"
+version = "0.1.0"
+dependencies = [
+ "flare-commands",
+ "flare-core",
+ "flare-document",
+ "glamx",
+ "serde_json",
+ "thiserror 2.0.18",
+ "zip",
 ]
 
 [[package]]
@@ -2267,6 +2298,15 @@ dependencies = [
  "rtrb",
  "sys-locale",
  "tempfile",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "flare-profile"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
  "thiserror 2.0.18",
 ]
 
@@ -2312,6 +2352,20 @@ dependencies = [
  "png 0.18.1",
  "thiserror 2.0.18",
  "vello_cpu 0.3.0",
+]
+
+[[package]]
+name = "flare-rig"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "flare-document",
+ "flare-eval",
+ "flare-tween",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -2363,6 +2417,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "flare-shell"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "egui",
+ "egui-wgpu",
+ "egui-winit",
+ "flare-animate",
+ "flare-core",
+ "flare-document",
+ "flare-i18n",
+ "flare-menubar",
+ "flare-platform",
+ "flare-publish",
+ "flare-ruffle",
+ "flare-storage",
+ "flare-tablet",
+ "flare-ui",
+ "muda",
+ "pollster 0.4.0",
+ "winit",
+]
+
+[[package]]
+name = "flare-stopmotion"
+version = "0.1.0"
+dependencies = [
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "flare-storage"
 version = "0.1.0"
 dependencies = [
@@ -2371,6 +2456,7 @@ dependencies = [
  "criterion",
  "flare-core",
  "flare-document",
+ "flare-tween",
  "glamx",
  "proptest",
  "rusqlite",
@@ -2414,9 +2500,30 @@ dependencies = [
  "flare-eval",
  "flare-history",
  "flare-input",
+ "flare-tween",
  "glamx",
  "proptest",
  "serde",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "flare-toonz"
+version = "0.1.0"
+dependencies = [
+ "flare-commands",
+ "flare-core",
+ "flare-document",
+ "quick-xml 0.42.0",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "flare-tween"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

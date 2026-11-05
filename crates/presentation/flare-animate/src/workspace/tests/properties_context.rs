@@ -112,6 +112,7 @@ fn a_selected_shape_shows_its_paint_and_a_new_fill_is_one_undo_step() {
         width: 1.0,
         cap: flare_document::Cap::Round,
         join: flare_document::Join::Round,
+        style: flare_document::StrokeStyle::Solid,
         stroke_changed: false,
     });
     texts(&mut ws);
@@ -147,6 +148,7 @@ fn an_outline_the_panel_turns_on_gives_the_shape_a_stroke_and_off_takes_it_away(
         width: 6.0,
         cap: flare_document::Cap::Square,
         join: flare_document::Join::Miter,
+        style: flare_document::StrokeStyle::Dashed,
         stroke_changed: true,
     };
     ws.shape_paint_edit = Some(edit(true));

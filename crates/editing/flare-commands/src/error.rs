@@ -1,6 +1,6 @@
 //! Why an edit was refused.
 
-use flare_core::{LayerId, SceneId, SoundId, SymbolId};
+use flare_core::{BitmapId, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::{Diagnostic, SoundError, TimelineError};
 use thiserror::Error;
 
@@ -19,12 +19,18 @@ pub enum EditError {
     NoSuchLayer(LayerId),
     #[error("no span starts at frame {0}")]
     NoSuchSpan(u32),
+    #[error("the span at frame {0} holds no symbol instance")]
+    NotAnInstance(u32),
     #[error(transparent)]
     Timeline(#[from] TimelineError),
     #[error(transparent)]
     Sound(#[from] SoundError),
     #[error("no such sound {0:?}")]
     NoSuchSound(SoundId),
+    #[error("no such bitmap {0:?}")]
+    NoSuchBitmap(BitmapId),
+    #[error("an identical bitmap is already in the library as {0:?}")]
+    DuplicateBitmap(BitmapId),
     #[error("edit would make the document invalid: {0:?}")]
     Invalid(Vec<Diagnostic>),
 }

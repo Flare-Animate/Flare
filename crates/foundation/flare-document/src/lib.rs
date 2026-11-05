@@ -7,13 +7,17 @@
 
 mod armature;
 mod attachment;
+mod bitmap;
 mod camera;
+mod interp;
 mod layer_queries;
 mod origin;
 mod shape;
 mod sound;
 mod span_elements;
 mod stage;
+mod stroke;
+mod stroke_style;
 mod text;
 mod timeline;
 mod validate;
@@ -22,7 +26,12 @@ pub use armature::{Armature, ArmatureError, Joint, JointPose, MAX_JOINTS, RigEdi
 pub use attachment::{
     Anchor, Attachment, AttachmentError, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS, Placement,
 };
+pub use bitmap::{
+    Bitmap, BitmapError, BitmapInstance, MAX_BITMAP_PIXELS, MAX_BITMAP_SIDE, MAX_BITMAPS,
+    MAX_TOTAL_BITMAP_BYTES,
+};
 pub use camera::{Camera, CameraError, MAX_ZOOM, MIN_ZOOM};
+pub use interp::{SpanInterp, SpanInterpError};
 pub use origin::{
     Baseline, MAX_ORIGIN_BYTES, MAX_ORIGIN_FILES, MAX_ORIGIN_NAME_BYTES, Origin, OriginData,
     OriginError, OriginFile, OriginKind, SharedOrigin, SymbolBaseline, is_safe_entry_name,
@@ -37,6 +46,7 @@ pub use sound::{
 };
 pub use span_elements::MAX_ELEMENTS;
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
+pub use stroke_style::StrokeStyle;
 pub use text::{
     MAX_FAMILY_CHARS, MAX_TEXT_CHARS, MAX_TEXT_SIZE, MIN_TEXT_SIZE, TextSource, TextSourceError,
 };
@@ -60,6 +70,15 @@ pub enum SymbolKind {
     Button,
 }
 
+/// Lower case, with runs of spaces, hyphens and underscores read as one space.
+pub(crate) fn normalize_name(text: &str) -> String {
+    text.split(|c: char| c.is_whitespace() || c == '-' || c == '_')
+        .filter(|word| !word.is_empty())
+        .map(str::to_lowercase)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 impl SymbolKind {
     pub const ALL: [Self; 3] = [Self::Graphic, Self::MovieClip, Self::Button];
 
@@ -78,6 +97,12 @@ impl SymbolKind {
             Self::MovieClip => "movie clip",
             Self::Button => "button",
         }
+    }
+
+    /// A kind from what a person or an agent typed: `Movie Clip`, `movie-clip`, `movie_clip` and
+    /// `movie clip` are one name. The command line and the MCP server both parse with this.
+    pub fn parse(text: &str) -> Option<Self> {
+        Self::from_name(&normalize_name(text))
     }
 
     /// The kind a name stands for, or `None` for a name that is not one of the three.
@@ -196,6 +221,7 @@ pub struct Document {
     stage: Stage,
     attachments: Vec<Attachment>,
     sounds: Vec<Sound>,
+    bitmaps: Vec<Bitmap>,
     origin: Option<SharedOrigin>,
 }
 
@@ -215,6 +241,7 @@ impl Document {
             stage: Stage::default(),
             attachments: Vec::new(),
             sounds: Vec::new(),
+            bitmaps: Vec::new(),
             origin: None,
         };
         let diagnostics = validate::validate(&document);
@@ -293,6 +320,26 @@ impl Document {
         }
     }
 
+    /// Attaches the bitmap library, validating limits and that every bitmap instance names one in
+    /// it. Replaces any bitmaps already present.
+    pub fn with_bitmaps(mut self, bitmaps: Vec<Bitmap>) -> Result<Self, Vec<Diagnostic>> {
+        self.bitmaps = bitmaps;
+        let diagnostics = validate::validate_bitmaps(&self);
+        if diagnostics.is_empty() {
+            Ok(self)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
+    pub fn bitmaps(&self) -> &[Bitmap] {
+        &self.bitmaps
+    }
+
+    pub fn bitmap(&self, id: flare_core::BitmapId) -> Option<&Bitmap> {
+        self.bitmaps.iter().find(|b| b.id() == id)
+    }
+
     pub fn sounds(&self) -> &[Sound] {
         &self.sounds
     }
@@ -326,6 +373,8 @@ impl Document {
     }
 }
 
+#[cfg(test)]
+mod bitmap_tests;
 #[cfg(test)]
 mod origin_tests;
 #[cfg(test)]

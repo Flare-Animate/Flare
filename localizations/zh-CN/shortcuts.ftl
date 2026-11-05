@@ -1,0 +1,12 @@
+shortcuts-set = 快捷键方案
+shortcuts-set-flare = Flare
+shortcuts-set-opentoonz = OpenToonz
+shortcuts-set-animate = Animate
+shortcuts-set-tahoma = Tahoma2D
+shortcuts-change = 更改
+shortcuts-press = 请按新的按键（Esc 取消）
+shortcuts-clear = 清除
+shortcuts-reset = 恢复为方案默认
+shortcuts-conflict = { $keys } 已用于 { $action }。
+shortcuts-bad = 此处无法使用这些按键。
+shortcuts-hint = 没有输入文字时，工具字母键才起作用。

@@ -138,6 +138,19 @@ impl Workspace {
                     ui.selectable_value(&mut self.paint.stroke_join, Join::Miter, &miter);
                 });
         });
+        chrome::row(ui, &tr!(self, "opt-stroke-style"), |ui| {
+            use flare_document::StrokeStyle;
+            let current = self.style_label(self.paint.stroke_style);
+            egui::ComboBox::from_id_salt("stroke_style_menu")
+                .width(80.0)
+                .selected_text(current)
+                .show_ui(ui, |ui| {
+                    for value in StrokeStyle::ALL {
+                        let label = self.style_label(value);
+                        ui.selectable_value(&mut self.paint.stroke_style, value, label);
+                    }
+                });
+        });
     }
 
     /// The current frame and layer.
@@ -190,7 +203,7 @@ impl Workspace {
 
     /// Whether the selected span is tweened and by how much it eases, with the controls to change
     /// both. A motion tween moves an instance; a shape tween changes a shape.
-    fn tween_controls(&mut self, ui: &mut Ui) {
+    pub(super) fn tween_controls(&mut self, ui: &mut Ui) {
         let action = if self.selection_holds_shape() {
             MenuAction::ToggleShapeTween
         } else {
@@ -230,6 +243,7 @@ impl Workspace {
         if ease != before {
             self.set_selection_ease(ease);
         }
+        self.interpolation_picker(ui, tweened);
     }
 
     pub(crate) fn doc_tab(&mut self, ui: &mut Ui) {

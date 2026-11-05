@@ -2,7 +2,9 @@
 
 use flare_commands::Command;
 use flare_core::{DocumentPoint, InstanceId, LayerId, SceneId, ShapeId, Transform2D};
-use flare_document::{Content, FrameSpan, Gradient, Instance, Layer, PathSegment, Shape};
+use flare_document::{
+    BitmapInstance, Content, FrameSpan, Gradient, Instance, Layer, PathSegment, Shape,
+};
 use glamx::DAffine2;
 
 use super::span::SpanRef;
@@ -77,6 +79,13 @@ pub(crate) fn fresh_content(content: &Content, matrix: DAffine2) -> Option<Conte
     Some(match content {
         Content::Empty | Content::Camera(_) | Content::Armature(_) => return None,
         Content::Shape(shape) => Content::Shape(transform_shape_as(shape, ShapeId::new(), matrix)?),
+        Content::Bitmap(placed) => {
+            let transform = Transform2D::new(matrix * placed.transform().as_affine()).ok()?;
+            Content::Bitmap(
+                BitmapInstance::new(InstanceId::new(), placed.bitmap(), transform)
+                    .with_opacity(placed.opacity()),
+            )
+        }
         Content::Instance(instance) => {
             let moved = matrix * instance.transform().as_affine();
             let transform = Transform2D::new(moved).ok()?;

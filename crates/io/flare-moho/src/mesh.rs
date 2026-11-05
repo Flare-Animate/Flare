@@ -1,0 +1,81 @@
+//! Reads the drawing of a vector layer: `mesh.points` (each with a `position`) and `mesh.curves`
+//! (each a list of point indices and whether it closes). The layout follows the MIT-licensed
+//! godot_moho_importer (jpdurigan), which reads the same files. Bezier handles and fills are not
+//! read, so a curve comes out as a polyline.
+
+use serde_json::Value;
+
+use crate::error::MohoError;
+use crate::limits::{MAX_MESH_CURVES, MAX_MESH_POINTS};
+use crate::model::{Mesh, MeshCurve};
+
+/// `budget` counts the points and curves kept so far across the project.
+pub(crate) fn read(
+    value: Option<&Value>,
+    budget: &mut (usize, usize),
+) -> Result<Option<Mesh>, MohoError> {
+    let Some(mesh) = value.and_then(Value::as_object) else {
+        return Ok(None);
+    };
+    let mut out = Mesh::default();
+    for point in mesh
+        .get("points")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        budget.0 += 1;
+        if budget.0 > MAX_MESH_POINTS {
+            return Err(MohoError::Limit {
+                what: "mesh points",
+                limit: MAX_MESH_POINTS,
+            });
+        }
+        out.points.push(position(point.get("position")));
+    }
+    for curve in mesh
+        .get("curves")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        budget.1 += 1;
+        if budget.1 > MAX_MESH_CURVES {
+            return Err(MohoError::Limit {
+                what: "mesh curves",
+                limit: MAX_MESH_CURVES,
+            });
+        }
+        let mut indexed: Vec<usize> = curve
+            .get("points")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(|p| p.get("point").and_then(Value::as_u64))
+            .filter_map(|i| usize::try_from(i).ok())
+            .filter(|i| *i < out.points.len())
+            .collect();
+        indexed.truncate(MAX_MESH_POINTS);
+        out.curves.push(MeshCurve {
+            closed: curve
+                .get("closed")
+                .and_then(Value::as_bool)
+                .unwrap_or(false),
+            points: indexed,
+        });
+    }
+    Ok(Some(out))
+}
+
+/// A position is `{x, y}`, or an animated channel whose first value is `{x, y}`.
+fn position(value: Option<&Value>) -> [f64; 2] {
+    let Some(value) = value else {
+        return [0.0, 0.0];
+    };
+    let direct =
+        |v: &Value| -> Option<[f64; 2]> { Some([v.get("x")?.as_f64()?, v.get("y")?.as_f64()?]) };
+    direct(value)
+        .or_else(|| value.get("val")?.as_array()?.first().and_then(direct))
+        .filter(|p| p[0].is_finite() && p[1].is_finite())
+        .unwrap_or([0.0, 0.0])
+}

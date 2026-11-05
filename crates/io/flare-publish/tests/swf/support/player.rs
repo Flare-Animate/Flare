@@ -316,6 +316,7 @@ pub fn render_swf_frame(parsed: &Parsed, index: usize, background: Rgba8) -> fla
     let frame = flare_eval::Frame {
         placed: Vec::new(),
         shapes: drawn,
+        bitmaps: Vec::new(),
         clips,
     };
     flare_render::render(

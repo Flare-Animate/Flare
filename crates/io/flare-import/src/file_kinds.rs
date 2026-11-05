@@ -8,7 +8,24 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tlv`, `.pli`, `.tzu`), Moho (`.moho`, `.mh`, `.mohobackup`) and the
 /// `.fcp`, `.ppm` and `.kwz` files come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 3] = ["fla", "xfl", "swf"];
+pub const IMPORT_EXTENSIONS: [&str; 16] = [
+    "fla",
+    "xfl",
+    "svg",
+    "png",
+    "gif",
+    "swf",
+    "fcp",
+    "ppm",
+    "kwz",
+    "tnz",
+    "tlv",
+    "pli",
+    "tzu",
+    "moho",
+    "mh",
+    "mohobackup",
+];
 
 /// The file inside an XFL folder that is the document. A person who has only the folder, with no
 /// `.xfl` beside it, picks this one.
@@ -39,7 +56,10 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
         .unwrap_or_default();
     if PROJECT_EXTENSIONS.contains(&extension.as_str()) {
         Some(PathKind::Project)
-    } else if IMPORT_EXTENSIONS.contains(&extension.as_str()) || is_xfl_document(path) {
+    } else if IMPORT_EXTENSIONS.contains(&extension.as_str())
+        || is_xfl_document(path)
+        || crate::foreign_kind(path).is_some()
+    {
         Some(PathKind::Import)
     } else {
         // An XFL project is a folder, which can have any name.
@@ -80,7 +100,8 @@ mod tests {
             Some(PathKind::Import)
         );
         assert_eq!(kind("notes.xml", false), None);
-        assert_eq!(kind("a.png", false), None);
+        assert_eq!(kind("a.png", false), Some(PathKind::Import));
+        assert_eq!(kind("a.jpg", false), None);
         assert_eq!(kind("a", false), None);
         assert_eq!(kind("a.flare.txt", false), None);
     }

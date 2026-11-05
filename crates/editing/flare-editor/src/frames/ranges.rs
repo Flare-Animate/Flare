@@ -82,7 +82,7 @@ pub fn remove_frames(scene: SceneId, layer: &Layer, from: u32, to: u32) -> Optio
 
 /// Reverses the keyframes in frames `from..=to` of `layer`: the last becomes the first, with the
 /// gaps mirrored too. Every keyframe that touches the range must lie wholly inside it. A tween
-/// goes with the pair of keyframes it joined, now the other way round, so its easing is reversed;
+/// goes with the pair of keyframes it joined, now the other way round, so its easing is reversed (a `SpanInterp` is mirrored: In and Out swap, Bezier handles flip);
 /// the tween of the last keyframe of the range led out of it and is dropped. Sound cues stay where
 /// they are: a sound cannot play backwards.
 pub fn reverse_frames(
@@ -116,14 +116,15 @@ pub fn reverse_frames(
         let start = u32::try_from(u64::from(from) + stop - s.end())
             .map_err(|_| ReverseRefusal::NothingThere)?;
         // Every element stays; only the motion is rebuilt below.
-        let mut mirrored = s.held().retimed(start, s.duration());
+        let mut mirrored = s.held().retimed(start, s.duration()).with_interp(None);
         // The tween that led from the span before this one into it now leads out of it.
         if let Some(before) = i.checked_sub(1).map(|b| touched[b])
             && before.end() == u64::from(s.start())
         {
             mirrored = mirrored
                 .with_tween(before.tween())
-                .with_ease(before.ease().saturating_neg());
+                .with_ease(before.ease().saturating_neg())
+                .with_interp(before.interp().map(|i| i.mirrored()));
         }
         out.push(mirrored);
     }

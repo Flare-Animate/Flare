@@ -8,3 +8,7 @@ prop-tween = Tween
 prop-shape-tween = Shape tween
 prop-motion-tween = Motion tween
 prop-ease = Ease
+prop-interpolation = Curve
+prop-interpolation-hint = Interpolation family and easing for this tween; the ease slider is used while it is off
+prop-interpolation-off = Ease slider
+prop-easing = Easing

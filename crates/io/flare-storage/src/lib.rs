@@ -53,7 +53,9 @@ pub enum StorageError {
     Json(#[from] serde_json::Error),
     #[error("not a Flare project file")]
     NotFlareFile,
-    #[error("project schema version {0} is not supported by this build")]
+    #[error(
+        "project schema version {0} is not supported by this build; it was made by a newer Flare"
+    )]
     UnsupportedVersion(i64),
     #[error("project exceeds a safety limit: {0}")]
     Limit(&'static str),

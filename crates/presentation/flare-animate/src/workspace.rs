@@ -20,6 +20,7 @@ use flare_input::{InputSample, PenFeed};
 mod arrange;
 mod assist;
 mod background_work;
+mod chords;
 mod close_prompt;
 mod command_labels;
 mod commands;
@@ -55,6 +56,7 @@ mod render;
 mod scene_name;
 mod selection;
 mod shell;
+mod shortcut_editor;
 mod sound;
 mod stage;
 mod stage_furniture;
@@ -125,6 +127,8 @@ pub struct Workspace {
     /// How many frames have been rendered (as opposed to taken from the cache).
     frames_rendered: u64,
     drag: Option<Drag>,
+    /// The Motion Editor panel's state.
+    motion: panels::MotionEditor,
     anchor_drag: Option<anchors::AnchorDrag>,
     /// A bone being drawn, or an armature being posed.
     bone_drag: Option<tools::bone::BoneDrag>,
@@ -265,6 +269,9 @@ pub struct Workspace {
     slot_open: Option<&'static str>,
     /// Tools from the "…" list put in the strip, and the one being dragged there now.
     pinned_tools: Vec<&'static str>,
+    /// The keyboard shortcuts in force, and the editor's state.
+    shortcuts: flare_menubar::ShortcutMap,
+    shortcut_editor: shortcut_editor::ShortcutEditor,
     slot_drag: Option<&'static str>,
     /// The Text tool's settings and the text being typed.
     text: groups::TextTool,
@@ -308,6 +315,7 @@ impl Workspace {
             revert_pending: false,
             frames_rendered: 0,
             drag: None,
+            motion: panels::MotionEditor::default(),
             anchor_drag: None,
             bone_drag: None,
             bone_joint: None,
@@ -395,6 +403,8 @@ impl Workspace {
             slot_choice: std::collections::HashMap::new(),
             slot_open: None,
             pinned_tools: Vec::new(),
+            shortcuts: flare_menubar::ShortcutMap::default(),
+            shortcut_editor: shortcut_editor::ShortcutEditor::default(),
             slot_drag: None,
             text: groups::TextTool::default(),
             paint: groups::Paint::default(),

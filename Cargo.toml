@@ -5,6 +5,7 @@ resolver = "3"
 members = [
     # apps
     "apps/flare-cli",
+    "apps/flare-android",
     "apps/flare-desktop",
     "apps/flare-mcp",
     "apps/flare-web",
@@ -12,20 +13,26 @@ members = [
     "crates/foundation/flare-core",
     "crates/foundation/flare-document",
     "crates/foundation/flare-eval",
+    "crates/foundation/flare-tween",
+    "crates/foundation/flare-rig",
     "crates/foundation/flare-text",
     "crates/foundation/flare-audio",
     "crates/foundation/flare-i18n",
     "crates/foundation/flare-input",
+    "crates/foundation/flare-profile",
     # editing
     "crates/editing/flare-commands",
     "crates/editing/flare-history",
     "crates/editing/flare-editor",
     "crates/editing/flare-tools",
+    "crates/editing/flare-stopmotion",
     # io
     "crates/io/flare-storage",
     "crates/io/flare-import",
     "crates/io/flare-export",
     "crates/io/flare-publish",
+    "crates/io/flare-toonz",
+    "crates/io/flare-moho",
     # adapters
     "crates/adapters/flare-flash",
     "crates/adapters/flare-ruffle",
@@ -41,6 +48,7 @@ members = [
     "crates/presentation/flare-dock",
     "crates/presentation/flare-menubar",
     "crates/presentation/flare-animate",
+    "crates/presentation/flare-shell",
 ]
 exclude = ["original", "third_party"]
 default-members = ["apps/flare-desktop"]
@@ -57,7 +65,9 @@ license = "BSD-3-Clause"
 # foundation
 flare-core = { path = "crates/foundation/flare-core" }
 flare-document = { path = "crates/foundation/flare-document" }
+flare-tween = { path = "crates/foundation/flare-tween" }
 flare-eval = { path = "crates/foundation/flare-eval" }
+flare-rig = { path = "crates/foundation/flare-rig" }
 flare-text = { path = "crates/foundation/flare-text" }
 flare-audio = { path = "crates/foundation/flare-audio" }
 flare-i18n = { path = "crates/foundation/flare-i18n" }
@@ -67,11 +77,16 @@ flare-commands = { path = "crates/editing/flare-commands" }
 flare-history = { path = "crates/editing/flare-history" }
 flare-editor = { path = "crates/editing/flare-editor" }
 flare-tools = { path = "crates/editing/flare-tools" }
+flare-stopmotion = { path = "crates/editing/flare-stopmotion" }
 # io
+flare-toonz = { path = "crates/io/flare-toonz" }
 flare-storage = { path = "crates/io/flare-storage" }
 flare-import = { path = "crates/io/flare-import" }
 flare-export = { path = "crates/io/flare-export" }
 flare-publish = { path = "crates/io/flare-publish" }
+flare-moho = { path = "crates/io/flare-moho" }
+# apps
+flare-shell = { path = "crates/presentation/flare-shell" }
 # adapters
 flare-flash = { path = "crates/adapters/flare-flash" }
 flare-ruffle = { path = "crates/adapters/flare-ruffle" }
@@ -92,6 +107,7 @@ flare-tablet = { path = "crates/services/flare-tablet" }
 # presentation
 flare-dock = { path = "crates/presentation/flare-dock" }
 flare-menubar = { path = "crates/presentation/flare-menubar" }
+flare-profile = { path = "crates/foundation/flare-profile" }
 flare-recent = { path = "crates/services/flare-recent" }
 flare-ui = { path = "crates/presentation/flare-ui" }
 flare-animate = { path = "crates/presentation/flare-animate" }
@@ -130,6 +146,8 @@ swf = { path = "third_party/ruffle/swf" }
 # ---- Image assets and font/layout adapters -----------------------------------
 image = { version = "0.25.10", default-features = false }
 png = "0.18.1"
+# No text feature: no font database is loaded for an imported drawing.
+usvg = { version = "0.45.1", default-features = false }
 gif = { version = "0.14", default-features = false, features = ["std", "color_quant"] }
 parley = "0.12.0"
 epaint_default_fonts = "0.37"   # egui's own fonts, for tests that need glyphs.

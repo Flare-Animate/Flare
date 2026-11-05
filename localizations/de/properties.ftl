@@ -8,3 +8,7 @@ prop-tween = Tween
 prop-shape-tween = Form-Tween
 prop-motion-tween = Bewegungs-Tween
 prop-ease = Beschleunigung
+prop-interpolation = Interpolationsart
+prop-interpolation-hint = Interpolationsfamilie und Easing für diesen Tween; solange sie aus ist, wird der Ease-Regler verwendet
+prop-interpolation-off = Ease-Regler
+prop-easing = Easing

@@ -15,16 +15,16 @@
 
 use thiserror::Error;
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "ios")))]
 pub mod probe;
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "ios")))]
 pub mod x11;
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "ios")))]
 mod x11_events;
 
-#[cfg(all(test, unix))]
+#[cfg(all(test, unix, not(target_os = "ios")))]
 mod probe_tests;
-#[cfg(all(test, unix))]
+#[cfg(all(test, unix, not(target_os = "ios")))]
 mod x11_events_tests;
 
 #[derive(Debug, Error)]

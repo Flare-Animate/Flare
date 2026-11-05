@@ -15,6 +15,7 @@ fn item(x: f64) -> ClipItem {
         duration: NonZeroU32::new(4).expect("nz"),
         tween: flare_document::Tween::None,
         ease: 0,
+        interp: None,
         content: Content::Shape(
             Shape::rect(ShapeId::new(), x, 0.0, 10.0, 10.0, RED).expect("rect"),
         ),

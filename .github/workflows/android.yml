@@ -1,0 +1,141 @@
+name: Android
+
+# Universal, arm64-v8a and x86_64 APKs (x86_64 and arm64 are what ChromeOS runs), built with
+# cargo-apk from the table in apps/flare-android/Cargo.toml. The Play bundle (AAB) is not built
+# here: Play needs an upload key only the owner has (see docs/RELEASE.md and docs/SURFACES.md).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  apk:
+    name: APKs (universal, arm64-v8a, x86_64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: ./.github/actions/setup-rust
+        with:
+          targets: aarch64-linux-android x86_64-linux-android
+          linux-libs: 'false'
+          cache-key: android
+      - uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r27b
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-apk@0.10.0
+      - name: Build the three APKs
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: ${{ steps.ndk.outputs.ndk-path }}
+          ANDROID_HOME: /usr/local/lib/android/sdk
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          # Both ABIs in one package: the universal APK.
+          cargo apk build -p flare-android 2>&1 | tee /tmp/flare_android.log
+          cp target/debug/apk/Flare.apk dist/flare-android-universal.apk
+          for triple in aarch64-linux-android:arm64-v8a x86_64-linux-android:x86_64; do
+            cargo apk build -p flare-android --target "${triple%%:*}" 2>&1 | tee -a /tmp/flare_android.log
+            cp target/debug/apk/Flare.apk "dist/flare-android-${triple##*:}.apk"
+          done
+          ls -l dist
+      # The runner log is unreadable without signing in; the build's tail is put into
+      # annotations, which the public API serves, so the port's errors can be worked on.
+      - name: Show the failure tail (annotations)
+        if: failure()
+        run: |
+          tail -n 30 /tmp/flare_android.log | tr -d '\r' | cut -c1-500 | sed 's/%/%25/g' | while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            echo "::error::${line}"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flare-android-apks
+          path: dist/*.apk
+          if-no-files-found: error
+
+  # cargo-apk refuses --release without a keystore, so signed release APKs are built only when
+  # the owner has added the four secrets (docs/RELEASE.md); without them this job skips cleanly.
+  apk-release:
+    name: Signed release APKs
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - name: Check the signing secrets
+        id: gate
+        run: |
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Android release signing skipped::Add ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD as repository secrets to build signed release APKs."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.signed == 'true'
+        with:
+          submodules: true
+      - uses: ./.github/actions/setup-rust
+        if: steps.gate.outputs.signed == 'true'
+        with:
+          targets: aarch64-linux-android x86_64-linux-android
+          linux-libs: 'false'
+          cache-key: android-release
+      - uses: nttld/setup-ndk@v1
+        if: steps.gate.outputs.signed == 'true'
+        id: ndk
+        with:
+          ndk-version: r27b
+      - uses: taiki-e/install-action@v2
+        if: steps.gate.outputs.signed == 'true'
+        with:
+          tool: cargo-apk@0.10.0
+      - name: Build the signed release APKs
+        if: steps.gate.outputs.signed == 'true'
+        env:
+          ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: ${{ steps.ndk.outputs.ndk-path }}
+          ANDROID_HOME: /usr/local/lib/android/sdk
+        run: |
+          set -euo pipefail
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          export CARGO_APK_RELEASE_KEYSTORE="$RUNNER_TEMP/release.jks"
+          export CARGO_APK_RELEASE_KEYSTORE_PASSWORD="$KEYSTORE_PASSWORD"
+          mkdir -p dist
+          cargo apk build -p flare-android --release
+          cp target/release/apk/Flare.apk dist/flare-android-universal.apk
+          for triple in aarch64-linux-android:arm64-v8a x86_64-linux-android:x86_64; do
+            cargo apk build -p flare-android --release --target "${triple%%:*}"
+            cp target/release/apk/Flare.apk "dist/flare-android-${triple##*:}.apk"
+          done
+          rm -f "$RUNNER_TEMP/release.jks"
+      - uses: actions/upload-artifact@v4
+        if: steps.gate.outputs.signed == 'true'
+        with:
+          name: flare-android-release-apks
+          path: dist/*.apk
+          if-no-files-found: error

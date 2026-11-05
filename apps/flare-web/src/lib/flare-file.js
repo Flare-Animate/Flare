@@ -12,6 +12,8 @@
 
 const APPLICATION_ID = 0x464c4152; // "FLAR"
 const SCHEMA_VERSION = 1;
+// Written by files that hold bitmaps; older builds refuse them by version.
+const BITMAP_SCHEMA_VERSION = 2;
 const PAGE_SIZE = 1024;
 const ZSTD_LEVEL = 3;
 
@@ -25,7 +27,7 @@ CREATE TABLE project (
 ) STRICT;
 CREATE TABLE entity (
     id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'origin')),
+    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'origin')),
     ordinal INTEGER NOT NULL,
     payload_version INTEGER NOT NULL CHECK (payload_version > 0),
     codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
@@ -84,8 +86,8 @@ export function createFlareFile({ sqlite3, zstd }) {
           throw new Error("not a Flare project file");
         }
         const version = one(db, "PRAGMA user_version");
-        if (version !== SCHEMA_VERSION) {
-          throw new Error(`project schema version ${version} is not supported by this build`);
+        if (version !== SCHEMA_VERSION && version !== BITMAP_SCHEMA_VERSION) {
+          throw new Error(`project schema version ${version} is not supported by this build; it was made by a newer Flare`);
         }
         const project = db.selectObject(
           "SELECT project_id, settings_json FROM project WHERE singleton = 1",
@@ -117,16 +119,19 @@ export function createFlareFile({ sqlite3, zstd }) {
     // The bytes of a .flare file holding these rows ({ projectId, settings, records }).
     write(parts) {
       const db = new oo1.DB(":memory:", "c");
+      const version = parts.records.some((r) => r.kind === "bitmap")
+        ? BITMAP_SCHEMA_VERSION
+        : SCHEMA_VERSION;
       try {
         // The page size can only be chosen before the first table exists.
         db.exec(`PRAGMA page_size = ${PAGE_SIZE}`);
         db.exec(`PRAGMA application_id = ${APPLICATION_ID}`);
-        db.exec(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+        db.exec(`PRAGMA user_version = ${version}`);
         db.transaction(() => {
           db.exec(SCHEMA);
           db.exec({
             sql: "INSERT INTO project VALUES (1, ?, ?, ?)",
-            bind: [parts.projectId, SCHEMA_VERSION, parts.settings],
+            bind: [parts.projectId, version, parts.settings],
           });
           const insert = db.prepare("INSERT INTO entity VALUES (?, ?, ?, 1, ?, ?, ?, ?)");
           try {

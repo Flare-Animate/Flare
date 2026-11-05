@@ -8,38 +8,18 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-egui.workspace = true
-egui-wgpu = { workspace = true, features = ["default", "winit"] }
-egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
 flare-animate.workspace = true
 flare-i18n.workspace = true
-flare-menubar.workspace = true
-flare-document.workspace = true
-flare-ui.workspace = true
 flare-platform.workspace = true
-flare-ruffle = { workspace = true, features = ["embedded"], optional = true }
+flare-shell = { workspace = true, default-features = false }
 flare-storage.workspace = true
-pollster.workspace = true
-winit = { workspace = true, features = ["default"] }
 
 [features]
-# Test Movie plays inside the window, with Ruffle running in this process. Without it, Test Movie
-# starts a Ruffle program found through FLARE_RUFFLE or PATH.
+# Test Movie plays inside the window, with Ruffle running in this process (see flare-shell).
 default = ["ruffle"]
-ruffle = ["dep:flare-ruffle"]
-# A scripted run of the real window (scripts/gui_tests.sh): it opens a project, Test Movie, closes
-# Test Movie, and quits, on timers. Off in every build a person uses.
-autotest = ["ruffle"]
-
-[target.'cfg(unix)'.dependencies]
-flare-tablet.workspace = true
-
-[target.'cfg(target_os = "macos")'.dependencies]
-muda.workspace = true
-
-[dev-dependencies]
-flare-core.workspace = true
-flare-publish.workspace = true
+ruffle = ["flare-shell/ruffle"]
+# A scripted run of the real window (scripts/gui_tests.sh). Off in every build a person uses.
+autotest = ["flare-shell/autotest"]
 
 [lints]
 workspace = true

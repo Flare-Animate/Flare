@@ -25,6 +25,11 @@ impl Workspace {
         self.layout = flare_dock::default_tree();
     }
 
+    /// Switch to a named layout profile. Never touches the document.
+    pub fn set_layout_profile(&mut self, profile: flare_dock::LayoutProfile) {
+        self.layout = flare_dock::profile_tree(profile);
+    }
+
     // ---- menu actions ----------------------------------------------------------------
 
     /// Tells the workspace a native menu bar is present, so it does not draw its own menu

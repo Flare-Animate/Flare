@@ -18,6 +18,7 @@ flare-import.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
+png.workspace = true
 thiserror.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -27,7 +28,6 @@ rayon.workspace = true
 flare-commands.workspace = true
 flare-history.workspace = true
 proptest.workspace = true
-png.workspace = true
 tempfile.workspace = true
 
 [lints]
