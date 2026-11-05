@@ -5,6 +5,7 @@
 #![forbid(unsafe_code)]
 
 pub mod color;
+pub mod convolve;
 pub mod curves;
 pub mod geometry;
 pub mod id;

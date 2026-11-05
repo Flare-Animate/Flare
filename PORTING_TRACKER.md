@@ -45,8 +45,9 @@ into the new crate architecture.
 - [x] Despeckle - connected-component removal up to a max area, our own (`image_ops::despeckle`)
 - [x] Distance transform - exact Euclidean (Felzenszwalb) into the alpha channel, our own
   (`image_ops::distance_transform`)
-- [ ] Convolution (ported: tconvolve)
-- [x] Color correction (gamma, levels done; curves open) -- crates/foundation/flare-core/src/image_ops.rs
+- [x] Convolution - arbitrary kernels on RGBA8 with premultiplied colour sums and edge
+  clamping, ours (`convolve` in flare-core; not the OpenToonz tconvolve kernel)
+- [x] Color correction (gamma, levels, curves as our own monotone tone curve) -- crates/foundation/flare-core/src/image_ops.rs and curves.rs
 - [ ] Resample (tresample)
 
 ## Missing OpenToonz features
