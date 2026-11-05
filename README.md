@@ -30,7 +30,7 @@ It is being rewritten in **Rust**. It is based predominantly on *OpenToonz* and 
 
 ## Features
 
-- Drawing with pen, brush and shape tools, with a selection tool for moving, grouping and editing shapes, and stroke styles (solid, dashed, dotted, stipple).
+- Drawing with pen, brush and shape tools, with a selection tool for moving, grouping and editing shapes, and stroke styles (solid, dashed, dotted, stipple, hatched, ragged, herringbone, rope, zigzag).
 - A timeline with frames, layers, folders, masks, motion guides, onion skin and a camera layer.
 - Motion and shape tweens with easing, and a Motion Editor for the segment curves.
 - Symbols (Graphic, Movie Clip and Button) in a library, placed as instances on the stage.

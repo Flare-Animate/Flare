@@ -298,8 +298,7 @@ summary. Nothing here is scheduled. The maintainer orders it.
 
 - Small: editable keyboard shortcuts and shortcut sets (WP-1, built except the chord dispatch).
 - Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3),
-  exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers and stroke styles
-  (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).
+  exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).
 - Large: Photoshop and image import (WP-4; SVG import is done, it needs a bitmap layer in the model first), filters and effects (WP-8; the EffectCraft
   dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check).
 - Extra-large, decision first: bones and inverse kinematics (WP-9), scripting (WP-12).

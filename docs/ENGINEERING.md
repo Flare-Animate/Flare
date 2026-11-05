@@ -132,6 +132,10 @@ credentials or proprietary reference projects.
   source keep the copyright notice, the conditions and the disclaimer; the names of the
   contributors are not used to endorse derived products. Tahoma2D carries the same licence and
   was only compared.
+- OpenToonz stroke styles (BSD-3-Clause, as above): the names and the idea of Herringbone, Rope and
+  Zigzag come from its stroke style sources (`flare/sources/colorfx/strokestyles.cpp`,
+  `zigzagstyles.cpp`). No code was copied: the geometry is written fresh in
+  `crates/services/flare-render/src/pattern.rs`, and Hatched and Ragged are Flare's own.
 - jpdurigan/godot_moho_importer (MIT, Copyright (c) 2022 Joao Pedro Durigan): the Moho mesh
   layout (`mesh.points`, `mesh.curves`) and the `anim_pos`, `anim_angle`, `anim_scale` track names
   used by `crates/io/flare-moho`.

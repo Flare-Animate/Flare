@@ -30,7 +30,7 @@ Flare wird in **Rust** neu geschrieben. Die Basis bilden überwiegend *OpenToonz
 
 ## Funktionen
 
-- Zeichnen mit Stift-, Pinsel- und Formwerkzeugen, mit einem Auswahlwerkzeug zum Verschieben, Gruppieren und Bearbeiten von Formen und mit Strichstilen (durchgezogen, gestrichelt, gepunktet, Stipple).
+- Zeichnen mit Stift-, Pinsel- und Formwerkzeugen, mit einem Auswahlwerkzeug zum Verschieben, Gruppieren und Bearbeiten von Formen und mit Strichstilen (durchgezogen, gestrichelt, gepunktet, Stipple, schraffiert, zerfranst, Fischgrät, Seil, Zickzack).
 - Eine Zeitleiste mit Bildern, Ebenen, Ordnern, Masken, Bewegungsführungen, Onion Skin und einer Kameraebene.
 - Bewegungs- und Formtweens mit Ease, und ein Motion Editor für die Segmentkurven.
 - Symbole (Grafik, Movieclip und Schaltfläche) in einer Bibliothek, als Instanzen auf der Bühne platziert.

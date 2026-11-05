@@ -30,7 +30,7 @@ O Flare está sendo reescrito em **Rust**. Ele se baseia principalmente em *Open
 
 ## Recursos
 
-- Desenho com as ferramentas de caneta, pincel e formas, com uma ferramenta de seleção para mover, agrupar e editar formas, e estilos de traço (sólido, tracejado, pontilhado, stipple).
+- Desenho com as ferramentas de caneta, pincel e formas, com uma ferramenta de seleção para mover, agrupar e editar formas, e estilos de traço (sólido, tracejado, pontilhado, stipple, hachurado, irregular, espinha de peixe, corda, ziguezague).
 - Uma linha do tempo com quadros, camadas, pastas, máscaras, guias de movimento, papel cebola e uma camada de câmera.
 - Interpolações de movimento e de forma com easing, e um Motion Editor para as curvas dos segmentos.
 - Símbolos (Gráfico, Clipe de Filme e Botão) em uma biblioteca, colocados como instâncias no palco.

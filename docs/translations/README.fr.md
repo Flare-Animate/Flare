@@ -30,7 +30,7 @@ Flare est en cours de réécriture en **Rust**. Il s'appuie surtout sur *OpenToo
 
 ## Fonctions
 
-- Dessin avec les outils stylo, pinceau et formes, avec un outil de sélection pour déplacer, grouper et modifier les formes, et des styles de trait (plein, tireté, pointillé, stipple).
+- Dessin avec les outils stylo, pinceau et formes, avec un outil de sélection pour déplacer, grouper et modifier les formes, et des styles de trait (plein, tireté, pointillé, stipple, hachuré, irrégulier, chevrons, corde, zigzag).
 - Une chronologie avec images, calques, dossiers, masques, guides de mouvement, pelure d'oignon et un calque caméra.
 - Interpolations de mouvement et de forme avec easing, et un Motion Editor pour les courbes de segments.
 - Symboles (Graphique, Clip animé et Bouton) dans une bibliothèque, placés en instances sur la scène.

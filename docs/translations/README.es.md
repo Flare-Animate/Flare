@@ -30,7 +30,7 @@ Flare se está reescribiendo en **Rust**. Se basa sobre todo en *OpenToonz* y *T
 
 ## Funciones
 
-- Dibujo con herramientas de lápiz, pincel y formas, con una herramienta de selección para mover, agrupar y editar formas, y estilos de trazo (sólido, discontinuo, punteado, stipple).
+- Dibujo con herramientas de lápiz, pincel y formas, con una herramienta de selección para mover, agrupar y editar formas, y estilos de trazo (sólido, discontinuo, punteado, stipple, rayado, irregular, espina de pescado, cuerda, zigzag).
 - Una línea de tiempo con fotogramas, capas, carpetas, máscaras, guías de movimiento, papel cebolla y una capa de cámara.
 - Interpolaciones de movimiento y de forma con easing, y un Motion Editor para las curvas de los segmentos.
 - Símbolos (Gráfico, Clip de película y Botón) en una biblioteca, colocados como instancias en el escenario.
