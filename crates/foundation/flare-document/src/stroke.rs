@@ -32,8 +32,8 @@ pub enum BrushType {
     /// A uniform-width stroke (the default, matches classic Flash/Animate).
     #[default]
     Uniform,
-    /// A stroke whose width follows pen pressure; the per-point pressure is stored
-    /// alongside the path.
+    /// A stroke whose width follows pen pressure. The brush does not set this: it stores the
+    /// outline it painted, with the pressure already in it, and keeps no per-point pressure.
     Pressure,
     /// A stroke whose width is fixed but tapered at the ends (calligraphy-like).
     Tapered,
