@@ -61,7 +61,6 @@ pub fn render_onion_outlines_viewport(
 /// `frame`'s shapes replaced by `shapes`, same placement. Masks are kept only when `clips` is set.
 fn as_lines<'a>(frame: &Frame<'a>, shapes: &'a [Shape], clips: bool) -> Frame<'a> {
     Frame {
-        warnings: Vec::new(),
         placed: Vec::new(),
         // Outline view shows only paths: a picture has none.
         bitmaps: Vec::new(),
