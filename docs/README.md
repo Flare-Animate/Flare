@@ -20,6 +20,7 @@ Flash workspaces and OpenToonz-inspired features follow once the core workflow i
 - [ROADMAP.md](ROADMAP.md): milestones, what is done, and the next independent branches
 - [BACKLOG.md](BACKLOG.md): the reference backlog: what the absorbed and upstream projects have, the licences, and the work packages
 - [ORIGINAL-GAPS.md](ORIGINAL-GAPS.md): what the archived C++ tree in `original/` has beyond Flare: content, tools, effects, export formats, with size, value, licence and surface
+- [FLASH-FORMATS.md](FLASH-FORMATS.md): the legacy Flash family (SWF, FLA in both forms, XFL): what is read, the sample runs and their results, and the gaps
 - [decisions/RENDERER.md](decisions/RENDERER.md): why vello_cpu is the CPU rasterizer
 - [decisions/LOSSLESS.md](decisions/LOSSLESS.md): why an opened file is kept whole and how an unchanged export is the original
 - [decisions/UI-STACK.md](decisions/UI-STACK.md): egui, winit, wgpu and the native macOS menu

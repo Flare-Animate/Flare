@@ -20,6 +20,7 @@ use flare_core::{DocumentId, Rgba8, SceneId, SymbolId};
 use flare_document::{Document, MAX_STAGE_SIDE, Scene, Stage, Symbol};
 use std::collections::HashMap;
 
+mod repair;
 mod shapes;
 mod timeline;
 
@@ -63,7 +64,10 @@ pub fn import_swf_bytes(bytes: &[u8]) -> Result<Imported, ImportError> {
     if claimed > MAX_UNCOMPRESSED_BYTES {
         return Err(ImportError::TooLarge("the movie once decompressed".into()));
     }
-    let buf = swf::decompress_swf(bytes).map_err(|e| ImportError::NotSwf(e.to_string()))?;
+    let mut buf = swf::decompress_swf(bytes).map_err(|e| ImportError::NotSwf(e.to_string()))?;
+    let repaired = repair::repair(&buf.data, MAX_UNCOMPRESSED_BYTES as usize)
+        .map_err(|e| ImportError::NotSwf(e.to_string()))?;
+    buf.data = repaired.data;
     let movie = swf::parse_swf(&buf).map_err(|e| ImportError::NotSwf(e.to_string()))?;
     let version = movie.header.version();
     let mut importer = Movie {
@@ -74,6 +78,16 @@ pub fn import_swf_bytes(bytes: &[u8]) -> Result<Imported, ImportError> {
         symbols: Vec::new(),
         spans: 0,
     };
+    if repaired.ends_added > 0 {
+        importer.note(
+            Severity::Info,
+            "movie",
+            format!(
+                "{} tag block(s) had no End record; Flash Player reads them, so Flare did too",
+                repaired.ends_added
+            ),
+        );
+    }
     importer.collect_names(&movie.tags);
     let timeline = importer.timeline(&movie.tags, u32::from(movie.header.num_frames()), "movie")?;
 

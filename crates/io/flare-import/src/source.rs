@@ -251,6 +251,15 @@ pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
             .read_to_end(&mut bytes)?;
         return legacy::import_legacy_bytes(&bytes);
     }
+    // A file named .swf that does not start like a movie is not an XFL either: say what it is.
+    if path
+        .extension()
+        .is_some_and(|e| e.eq_ignore_ascii_case("swf"))
+    {
+        return Err(ImportError::NotSwf(
+            "it does not start like a Flash movie".into(),
+        ));
+    }
     if (path
         .extension()
         .is_some_and(|e| e.eq_ignore_ascii_case("xfl"))
