@@ -311,6 +311,10 @@ summary. Nothing here is scheduled. The maintainer orders it.
   only); minnamate has no licence file (behaviour only).
 - Replicraft was not found. The maintainer gives the URL.
 
+### ViewSpace Keys (experimental)
+
+`flare_core::experimental::viewspace` (unstable, not in the document): multi-view 2D interpolation between sparse keyframes registered to a base mesh and semantic features, with confidence, expressions, clothing states and corrective keyframes. Phases 0 to 2 of the CPU reference path are built and tested; GPU, strokes, imports, exports, rig integration, auto depth and the tab are stubs. The spec, status and every stub id are in [experimental/VIEWSPACE.md](experimental/VIEWSPACE.md).
+
 ### Symbols and rigging
 
 Done: symbol kinds and Graphic playback (above); `flare-rig` with bones, angle limits, keyed poses eased by `flare-tween`, FK, two-bone and CCD IK, bounded and property-tested; `flare symbol` / `flare rig` and the matching MCP tools on a rig JSON file.
