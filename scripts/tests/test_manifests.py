@@ -37,7 +37,7 @@ class Manifests(unittest.TestCase):
         root, _ = member_manifests()
         listed = set(root["workspace"]["members"])
         on_disk = {
-            str(p.parent.relative_to(ROOT))
+            p.parent.relative_to(ROOT).as_posix()
             for pattern in ("apps/*/Cargo.toml", "crates/*/*/Cargo.toml")
             for p in ROOT.glob(pattern)
         }
