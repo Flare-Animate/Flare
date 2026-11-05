@@ -25,6 +25,7 @@ mod many_elements;
 mod origin;
 mod records;
 mod roundtrip;
+mod stroke_style;
 mod symbol_kinds;
 mod text;
 use records::{
