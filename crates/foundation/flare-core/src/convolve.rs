@@ -98,7 +98,14 @@ mod tests {
 
     #[test]
     fn the_one_by_one_identity_kernel_changes_nothing() {
-        let dot = |c: u8| [c, 2u8.saturating_mul(c), 3u8.saturating_mul(c), 4u8.saturating_mul(c)];
+        let dot = |c: u8| {
+            [
+                c,
+                2u8.saturating_mul(c),
+                3u8.saturating_mul(c),
+                4u8.saturating_mul(c),
+            ]
+        };
         let buf: Vec<u8> = (0..u8::MAX).flat_map(dot).collect();
         assert_eq!(convolve(&buf, 255, 1, &[1.0], 1).unwrap(), buf);
     }
