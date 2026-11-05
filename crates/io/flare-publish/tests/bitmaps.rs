@@ -7,10 +7,9 @@ use flare_core::{BitmapId, DocumentId, FrameRate, InstanceId, LayerId, SceneId, 
 use flare_document::{
     Bitmap, BitmapInstance, Content, Document, FrameSpan, Layer, Scene, Timeline,
 };
-use flare_publish::{PublishError, PublishOptions, publish_swf};
+use flare_publish::{Html5Options, PublishError, PublishOptions, publish_html5, publish_swf};
 
-#[test]
-fn swf_publish_names_the_missing_bitmap_support() {
+fn document() -> Document {
     let bitmap = Bitmap::new(BitmapId::new(), "b", 1, 1, vec![0; 4]).expect("bitmap");
     let content = Content::Bitmap(BitmapInstance::new(
         InstanceId::new(),
@@ -19,7 +18,7 @@ fn swf_publish_names_the_missing_bitmap_support() {
     ));
     let span = FrameSpan::new(0, NonZeroU32::new(1).expect("nz"), content);
     let layer = Layer::new(LayerId::new(), "L", vec![span]).expect("layer");
-    let document = Document::new(
+    Document::new(
         DocumentId::new(),
         FrameRate::new(24, 1).expect("rate"),
         vec![Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]))],
@@ -27,8 +26,21 @@ fn swf_publish_names_the_missing_bitmap_support() {
     )
     .expect("document")
     .with_bitmaps(vec![bitmap])
-    .expect("bitmaps");
-    let error = publish_swf(&document, &PublishOptions { compress: false }).expect_err("refused");
+    .expect("bitmaps")
+}
+
+#[test]
+fn swf_publish_names_the_missing_bitmap_support() {
+    let error = publish_swf(&document(), &PublishOptions { compress: false }).expect_err("refused");
+    assert!(matches!(
+        error,
+        PublishError::BitmapsUnsupported { frame: 0 }
+    ));
+}
+
+#[test]
+fn html5_publish_refuses_bitmaps_too() {
+    let error = publish_html5(&document(), &Html5Options::default()).expect_err("refused");
     assert!(matches!(
         error,
         PublishError::BitmapsUnsupported { frame: 0 }

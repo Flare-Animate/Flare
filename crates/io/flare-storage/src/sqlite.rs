@@ -14,7 +14,9 @@ use rusqlite::{Connection, OpenFlags, config::DbConfig, params};
 
 use crate::StorageError;
 use crate::codec::NativeZstd;
-use crate::records::{MAX_ENTITIES, Parts, Record, SCHEMA_VERSION, from_parts, to_parts};
+use crate::records::{
+    BITMAP_SCHEMA_VERSION, MAX_ENTITIES, Parts, Record, SCHEMA_VERSION, from_parts, to_parts,
+};
 
 /// ASCII "FLAR".
 pub(crate) const APPLICATION_ID: i64 = 0x464C_4152;
@@ -53,13 +55,14 @@ pub fn save(document: &Document, path: &Path) -> Result<(), StorageError> {
         conn.pragma_update(None, "page_size", PAGE_SIZE)?;
         conn.pragma_update(None, "journal_mode", "DELETE")?;
         conn.pragma_update(None, "application_id", APPLICATION_ID)?;
-        conn.pragma_update(None, "user_version", SCHEMA_VERSION)?;
+        let parts = to_parts(document, &mut NativeZstd::new()?)?;
+        let version = parts.schema_version();
+        conn.pragma_update(None, "user_version", version)?;
         let tx = conn.transaction()?;
         tx.execute_batch(SCHEMA)?;
-        let parts = to_parts(document, &mut NativeZstd::new()?)?;
         tx.execute(
             "INSERT INTO project VALUES (1, ?1, ?2, ?3)",
-            params![parts.project_id, SCHEMA_VERSION, parts.settings],
+            params![parts.project_id, version, parts.settings],
         )?;
         let mut insert = tx.prepare("INSERT INTO entity VALUES (?1, ?2, ?3, 1, ?4, ?5, ?6, ?7)")?;
         for record in &parts.records {
@@ -98,7 +101,7 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
         return Err(StorageError::NotFlareFile);
     }
     let version: i64 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    if version != SCHEMA_VERSION {
+    if version != SCHEMA_VERSION && version != BITMAP_SCHEMA_VERSION {
         return Err(StorageError::UnsupportedVersion(version));
     }
 

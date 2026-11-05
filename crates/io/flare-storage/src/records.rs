@@ -14,6 +14,21 @@ use crate::wire;
 
 /// The one version of the format.
 pub const SCHEMA_VERSION: i64 = 1;
+/// Written instead of [`SCHEMA_VERSION`] by a file that holds bitmaps, so a build that does not
+/// know them refuses the file by name rather than calling it corrupt. Files without bitmaps stay
+/// at version 1 and open in older builds.
+pub const BITMAP_SCHEMA_VERSION: i64 = 2;
+
+impl Parts {
+    /// The schema version these rows need to be read.
+    pub fn schema_version(&self) -> i64 {
+        if self.records.iter().any(|r| r.kind == "bitmap") {
+            BITMAP_SCHEMA_VERSION
+        } else {
+            SCHEMA_VERSION
+        }
+    }
+}
 /// Most records a project may have.
 pub const MAX_ENTITIES: usize = 1_000_000;
 /// The most one record (a whole scene, at most) may be once decompressed: 256 MiB, which is

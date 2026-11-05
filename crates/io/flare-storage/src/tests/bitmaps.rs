@@ -37,6 +37,37 @@ fn bitmaps_and_their_instances_round_trip() {
 }
 
 #[test]
+fn only_files_with_bitmaps_need_the_newer_schema() {
+    let dir = tempfile::tempdir().expect("dir");
+    let (with, _) = with_bitmap();
+    for (document, expected) in [(with, 2_i64), (sample(), 1)] {
+        let path = dir.path().join(format!("v{expected}.flare"));
+        save(&document, &path).expect("save");
+        let conn = Connection::open(&path).expect("open");
+        let version: i64 = conn
+            .pragma_query_value(None, "user_version", |row| row.get(0))
+            .expect("version");
+        assert_eq!(version, expected);
+        assert_eq!(load(&path).expect("load"), document);
+    }
+}
+
+#[test]
+fn a_build_that_knows_only_version_one_would_name_the_version() {
+    // The refusal an older build gives is the same error this build gives for a later version.
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("n.flare");
+    let (document, _) = with_bitmap();
+    save(&document, &path).expect("save");
+    Connection::open(&path)
+        .expect("open")
+        .pragma_update(None, "user_version", 9)
+        .expect("set");
+    let error = load(&path).expect_err("refused");
+    assert!(error.to_string().contains("newer Flare"), "{error}");
+}
+
+#[test]
 fn a_bitmap_record_whose_pixels_do_not_match_its_size_is_refused() {
     let (document, id) = with_bitmap();
     let mut raw =

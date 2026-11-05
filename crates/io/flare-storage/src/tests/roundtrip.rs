@@ -134,11 +134,11 @@ fn newer_schema_versions_are_refused() {
     save(&sample(), &path).expect("save");
     Connection::open(&path)
         .expect("open")
-        .pragma_update(None, "user_version", 2)
+        .pragma_update(None, "user_version", 3)
         .expect("set");
     assert!(matches!(
         load(&path),
-        Err(StorageError::UnsupportedVersion(2))
+        Err(StorageError::UnsupportedVersion(3))
     ));
 }
 
