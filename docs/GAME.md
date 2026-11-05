@@ -9,9 +9,9 @@ point; this page says what was ported, what it does now, and what is still open.
 
 ## Status
 
-Built: the world, the seven systems, scripted runs, the description's commands and storage.
-Not yet: the game export, the `flare game` commands, the MCP tools and the desktop and browser
-panel (each is a gap recorded in [SURFACES.md](SURFACES.md)).
+Built: the world, the seven systems, scripted runs, the description's commands and storage, the
+`flare game` commands, the MCP tools and the game export. Not yet: the desktop and browser panel
+(a gap recorded in [SURFACES.md](SURFACES.md)).
 
 ## The model
 
@@ -110,3 +110,26 @@ A project with a game is stored with a `game` record and schema version 3, which
 games refuses by version. A project without one keeps the version it had, so it opens in older
 builds. The record is the description as CBOR; reading it goes through the same checks as an edit,
 so a damaged file is refused rather than run.
+
+## Surfaces and export
+
+The command line (`flare game`) and the MCP server (`get_game`, `add_game_entity`,
+`set_game_component`, `remove_game_component`, `remove_game_entity`, `set_game_gravity`,
+`run_game`, `export_game`) are thin layers over `flare_tools::game`, which builds the command
+batches and runs the world, and over `flare_runtime::export_game`, which writes the files. Each
+edit is one batch, so one undo step, and a refused edit changes nothing.
+
+- **Runs** take a script of frames separated by `;`, with keys separated by `,` in a frame, and an
+  empty frame written as a bare `;`: `right;right,space;` is two frames of input and an empty one.
+  A script longer than the run is refused. A run reports its frame count, the digest of the final
+  state as 16 hex digits (a 64-bit number is not exact in every JSON reader), and each event with
+  the frame it happened on. Runs never change the project, and the same inputs always give the same
+  digest.
+- **Export** writes three files into one directory, named by a base name (default `game`), and
+  overwrites nothing:
+  - `<name>.json`: the format name (`flare-game`), its version, the document's frame rate, the
+    sheet (`image`, `atlas`, `first_frame`, `frames`), and the description under `game`.
+  - `<name>.png` and `<name>.sheet.json`: the scene's frames from `start` to `end` (the whole scene
+    by default) as a sprite sheet and its atlas, as `flare_runtime::sprite_sheet` writes them.
+  A sprite's frame `n` is sheet frame `first_frame + n`, so the description and the picture always
+  name the same frames. The description round-trips: reading it back gives the same game.
