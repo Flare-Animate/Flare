@@ -23,9 +23,9 @@ tempfile.workspace = true
 thiserror.workspace = true
 
 # The pickers and message boxes: rfd's own backends cover the desktop and the browser's wasm
-# side; on Android it would not compile at all (it has no backend and no empty one), so the
-# dialogs' code answers itself there (see dialogs.rs).
-[target.'cfg(not(target_os = "android"))'.dependencies]
+# side. Android and iOS have no rfd backend (rfd fails to compile there, with no empty one to
+# fall back on), so on those the dialogs' code answers itself (see dialogs.rs).
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 rfd.workspace = true
 
 [dev-dependencies]

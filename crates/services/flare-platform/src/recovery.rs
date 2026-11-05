@@ -27,14 +27,14 @@ pub fn describe_age(modified: SystemTime, now: SystemTime) -> String {
 
 /// Offers the newest recovery file. Only one document is open at a time, so older files wait
 /// their turn. Choosing to discard deletes the file here.
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 pub fn offer(_newest: &RecoveryEntry) -> Choice {
     // A phone has no box for the question yet: the file waits, and the next start decides.
     // The gap is recorded in docs/SURFACES.md.
     Choice::Later
 }
 
-#[cfg(not(target_os = "android"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub fn offer(newest: &RecoveryEntry) -> Choice {
     let answer = rfd::MessageDialog::new()
         .set_title("Recover unsaved work?")

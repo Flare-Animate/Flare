@@ -5,20 +5,20 @@
 //! passed in by the caller, who speaks the interface's language.
 //!
 //! The rows come from the platform's own box (see [`native`]); on a platform there is no box for
-//! (a phone: the app has no file picker of its own yet), [`phone`] answers as a cancelled dialog
+//! (a phone, Android or iOS: the app has no file picker of its own yet), [`phone`] answers as a cancelled dialog
 //! and prints a word instead of showing one, so the app compiles and opens the same way.
 
 use std::path::PathBuf;
 
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 #[path = "dialogs_phone.rs"]
 mod phone;
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 use phone as backend;
-#[cfg(not(target_os = "android"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[path = "dialogs_native.rs"]
 mod native;
-#[cfg(not(target_os = "android"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use native as backend;
 
 /// A project, or an Animate file or XFL folder's document (Animate's Open takes those too).
