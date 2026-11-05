@@ -59,8 +59,20 @@ def release_notes(version):
             "(https://github.com/Flare-Animate/Flare/blob/main/CHANGELOG.md)\n")
 
 
+# A nightly build is named after the workspace version it was cut from: `<version>-nightly.<YYYYMMDD>.<sha7>`.
+# Only the nightly workflow makes one, and only from the manifest's own version; a release stays strict.
+NIGHTLY = re.compile(r"(?P<base>[0-9.]+)-nightly\.[0-9]{8}\.[0-9a-f]{7,40}")
+
+
+def accepted_version(version):
+    if version == workspace_version():
+        return True
+    match = NIGHTLY.fullmatch(version)
+    return match is not None and match.group("base") == workspace_version()
+
+
 def validate_package_input(version, target, binary):
-    if version != workspace_version() or target not in TARGETS:
+    if not accepted_version(version) or target not in TARGETS:
         raise ValueError("Package version or target does not match the release contract")
     validate_binary(target, binary)
 
@@ -177,7 +189,7 @@ def expected_assets(version):
 
 
 def verify_assets(version, output, finalize=False):
-    if version != workspace_version():
+    if not accepted_version(version):
         raise ValueError("Asset version must match the workspace manifest")
     assets = expected_assets(version)
     manifest = output / "SHA256SUMS.txt"

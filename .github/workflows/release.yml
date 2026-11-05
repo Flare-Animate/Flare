@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/release.yml'
+      - '.github/workflows/platforms.yml'
       - '.github/actions/release-tools/**'
       - 'scripts/packaging/**'
       - 'scripts/tests/**'
@@ -62,138 +63,12 @@ jobs:
       - run: python -m unittest discover -s scripts/tests -p 'test_package_*.py'
 
   build:
-    name: Build ${{ matrix.target }}
+    name: Build platforms
     if: inputs.artifacts-run == ''
     needs: version
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-2022
-            target: x86_64-pc-windows-msvc
-            executable: flare-desktop.exe
-          - os: windows-11-arm
-            target: aarch64-pc-windows-msvc
-            executable: flare-desktop.exe
-          - os: macos-15
-            target: aarch64-apple-darwin
-            executable: flare-desktop
-          - os: macos-15-intel
-            target: x86_64-apple-darwin
-            executable: flare-desktop
-          - os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-            executable: flare-desktop
-          - os: ubuntu-22.04-arm
-            target: aarch64-unknown-linux-gnu
-            executable: flare-desktop
-    env:
-      CARGO_INCREMENTAL: '0'
-      MACOSX_DEPLOYMENT_TARGET: '13.0'
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: true
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: '1.99.0'
-          targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v2
-        env:
-          CACHE_ON_FAILURE: 'true'
-        with:
-          key: release-gpu-${{ matrix.target }}
-      - uses: actions/setup-python@v7
-        with:
-          python-version: '3.13'
-      - name: Install Linux build and packaging libraries
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libasound2-dev libfontconfig1-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-dev libxcursor-dev libxi-dev libxrandr-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libegl1-mesa-dev libvulkan-dev desktop-file-utils shared-mime-info appstream patchelf file rpm libfuse2
-      - name: Make Windows portable builds independent of the VC runtime installer
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: '"RUSTFLAGS=-C target-feature=+crt-static" >> $env:GITHUB_ENV'
-      - name: Build release
-        run: cargo build --locked --release -p flare-desktop -p flare-cli -p flare-mcp --target ${{ matrix.target }}
-      - name: Install macOS DMG layout tool
-        if: runner.os == 'macOS'
-        run: python -m pip install dmgbuild==1.6.7
-      - name: Package portable archives and macOS images
-        run: python scripts/packaging/package_release.py package --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/${{ matrix.executable }} --output dist
-      - name: Package headless CLI
-        run: python scripts/packaging/package_cli.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare${{ runner.os == 'Windows' && '.exe' || '' }} --mcp-binary target/${{ matrix.target }}/release/flare-mcp${{ runner.os == 'Windows' && '.exe' || '' }} --output dist
-      - uses: ./.github/actions/release-tools
-        if: runner.os == 'Linux'
-      - name: Package Linux installers
-        if: runner.os == 'Linux'
-        run: python scripts/packaging/package_linux.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare-desktop --output dist
-      - name: Package Flatpak
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get install -y --no-install-recommends flatpak dbus-daemon
-          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y --noninteractive flathub org.flatpak.Builder org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
-          python scripts/packaging/package_flatpak.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/flare-desktop --output dist
-      - name: Install the Flatpak and check what is inside it
-        if: runner.os == 'Linux'
-        run: |
-          flatpak install --user -y --noninteractive --bundle dist/*.flatpak
-          flatpak run --command=sh io.github.Flare_Animate.Flare -c 'test -x /app/bin/flare-desktop && test -f /app/share/applications/io.github.Flare_Animate.Flare.desktop && test -f /app/share/mime/packages/io.github.Flare_Animate.Flare.xml'
-          # The program starts inside the sandbox, with the runtime's libraries, and answers.
-          flatpak run --command=flare-desktop io.github.Flare_Animate.Flare --version | grep -q '^flare-desktop '
-      - name: Inspect Linux desktop integration and native packages
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-          desktop-file-validate packaging/flare.desktop
-          appstreamcli validate --no-net packaging/flare.metainfo.xml
-          dpkg-deb --info dist/*.deb
-          dpkg-deb --contents dist/*.deb
-          rpm -qip dist/*.rpm
-          rpm -qlp dist/*.rpm
-          ldd target/${{ matrix.target }}/release/flare-desktop | tee dependencies.txt
-          if grep -q 'not found' dependencies.txt; then exit 1; fi
-          appimage=$(realpath dist/*.AppImage)
-          inspection=$(mktemp -d)
-          cd "$inspection"
-          "$appimage" --appimage-extract > /dev/null
-          test -x squashfs-root/usr/bin/flare-desktop
-          test -f squashfs-root/usr/share/mime/packages/flare.xml
-          # The AppImage must not carry the system's graphics stack. Its copies come from the build
-          # machine, older than the ones a newer system's graphics driver is built against, and
-          # they come first on the library path: the window then fails with "Failed to create
-          # surface for any enabled backend: {}", and xkbcommon cannot read newer key names.
-          graphics=$(find squashfs-root/usr/lib \( -name 'libwayland*' -o -name 'libxcb*' -o -name 'libX11*' -o -name 'libxkbcommon*' -o -name 'libffi*' -o -name 'libEGL*' -o -name 'libGL*' -o -name 'libvulkan*' -o -name 'libdrm*' \) 2>/dev/null)
-          if [ -n "$graphics" ]; then
-            echo "the AppImage bundles libraries of the system's graphics stack:"
-            echo "$graphics"
-            exit 1
-          fi
-          # The packed program starts and answers, through the entry point an AppImage runs.
-          squashfs-root/AppRun --version | grep -q '^flare-desktop '
-      - name: Install WiX 5 for both Windows architectures
-        if: runner.os == 'Windows'
-        run: dotnet tool install --global wix --version 5.0.2 --allow-roll-forward
-      - name: Package Windows MSI
-        if: runner.os == 'Windows'
-        run: python scripts/packaging/package_windows.py --version ${{ needs.version.outputs.version }} --target ${{ matrix.target }} --binary target/${{ matrix.target }}/release/${{ matrix.executable }} --output dist
-      - uses: actions/upload-artifact@v7
-        with:
-          name: flare-${{ needs.version.outputs.version }}-${{ matrix.target }}
-          path: dist/*
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 7
-      - uses: actions/upload-artifact@v7
-        if: failure() && runner.os == 'Windows'
-        with:
-          name: windows-installer-logs-${{ matrix.target }}
-          path: msi-*.log
+    uses: ./.github/workflows/platforms.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
 
   assemble:
     name: Verify complete release and checksums

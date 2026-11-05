@@ -24,6 +24,28 @@ class ReleaseContract(unittest.TestCase):
         source = (Path(__file__).resolve().parents[1] / "packaging/package_macos.py").read_text()
         self.assertIn("dmg-background.png", source)
 
+    def test_a_nightly_is_accepted_only_for_the_manifest_version(self):
+        version = release.workspace_version()
+        self.assertTrue(release.accepted_version(version))
+        self.assertTrue(release.accepted_version(f"{version}-nightly.20261105.abc1234"))
+        self.assertTrue(release.accepted_version(f"{version}-nightly.20261105.{'a' * 40}"))
+        for bad in (
+            f"9.9.9-nightly.20261105.abc1234",
+            f"{version}-nightly.2026110.abc1234",
+            f"{version}-nightly.20261105.ABC1234",
+            f"{version}-nightly.20261105.abc12",
+            f"{version}-nightly.20261105.abc1234-extra",
+            f"{version}-beta.1",
+        ):
+            self.assertFalse(release.accepted_version(bad), bad)
+
+    def test_a_release_still_needs_the_plain_version(self):
+        version = release.workspace_version()
+        with tempfile.TemporaryDirectory() as directory:
+            binary = Path(directory) / "flare-desktop"
+            with self.assertRaises(ValueError):
+                release.validate_package_input(f"{version}-beta.1", "x86_64-unknown-linux-gnu", binary)
+
     def test_a_tag_must_match_the_version(self):
         with self.assertRaises(ValueError):
             release.validate("v9.9.9")
