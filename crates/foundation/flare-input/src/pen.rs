@@ -49,3 +49,20 @@ impl PenFeed {
         *self.pressure.lock().unwrap_or_else(PoisonError::into_inner)
     }
 }
+
+/// The pen's pressure from a browser pointer event, as the page reports it: `pointer_type` is the
+/// event's `pointerType` ("pen", "mouse", "touch", or anything else), and `pressure` its
+/// `pressure` (0 to 1; not a number when the browser does not say). Only a pen reports pressure;
+/// any other device gives `None` and draws at full width like a mouse. A pen that says nothing
+/// about its pressure counts as full, as [`PressureAxis::normalize`] does, so a broken reading
+/// never thins a line.
+pub fn pen_pressure(pointer_type: &str, pressure: f64) -> Option<f32> {
+    if pointer_type != "pen" {
+        return None;
+    }
+    Some(if pressure.is_nan() {
+        1.0
+    } else {
+        pressure.clamp(0.0, 1.0) as f32
+    })
+}

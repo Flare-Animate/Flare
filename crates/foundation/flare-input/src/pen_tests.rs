@@ -55,3 +55,26 @@ fn the_pressure_set_is_read_back_clamped_until_the_pen_stops_being_the_device() 
     feed.set(None);
     assert_eq!(reader.reading(), None);
 }
+
+#[test]
+fn only_a_pen_reports_pressure_and_every_other_device_is_no_pen() {
+    assert_eq!(pen_pressure("mouse", 0.2), None);
+    assert_eq!(pen_pressure("touch", 0.7), None);
+    assert_eq!(pen_pressure("", 0.5), None, "an event with no pointer type");
+    assert_eq!(
+        pen_pressure("PEN", 0.5),
+        None,
+        "pointerType values are lowercase"
+    );
+    assert_eq!(pen_pressure("pen", 0.25), Some(0.25));
+}
+
+#[test]
+fn a_pen_pressure_that_is_out_of_range_or_missing_is_clamped_not_trusted() {
+    assert_eq!(pen_pressure("pen", 3.0), Some(1.0));
+    assert_eq!(pen_pressure("pen", -0.5), Some(0.0));
+    assert_eq!(pen_pressure("pen", f64::INFINITY), Some(1.0));
+    assert_eq!(pen_pressure("pen", f64::NEG_INFINITY), Some(0.0));
+    assert_eq!(pen_pressure("pen", f64::NAN), Some(1.0));
+    assert_eq!(pen_pressure("pen", 0.0), Some(0.0), "a hovering pen");
+}

@@ -9,7 +9,7 @@
 
 mod pen;
 
-pub use pen::{PenFeed, PressureAxis};
+pub use pen::{PenFeed, PressureAxis, pen_pressure};
 
 /// The kind of device a sample came from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
