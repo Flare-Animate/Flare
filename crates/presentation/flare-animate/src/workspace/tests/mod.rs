@@ -70,6 +70,7 @@ mod translated_menu_bar;
 mod translated_side_panels;
 mod translated_start_messages;
 mod transport;
+mod tween_inspector;
 mod tweens;
 mod undo_pictures;
 mod window_controls;

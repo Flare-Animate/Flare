@@ -189,7 +189,7 @@ impl Workspace {
 
     /// Whether the selected span is tweened and by how much it eases, with the controls to change
     /// both. A motion tween moves an instance; a shape tween changes a shape.
-    fn tween_controls(&mut self, ui: &mut Ui) {
+    pub(super) fn tween_controls(&mut self, ui: &mut Ui) {
         let action = if self.selection_holds_shape() {
             MenuAction::ToggleShapeTween
         } else {

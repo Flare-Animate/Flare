@@ -164,6 +164,8 @@ impl Workspace {
             span.start.hash(&mut hasher);
             span.element.hash(&mut hasher);
         }
+        // Mid-tween the box follows the playhead.
+        self.frame.hash(&mut hasher);
         let stamp = (
             self.context_serial,
             self.active().revision(),
@@ -176,7 +178,7 @@ impl Workspace {
         }
         let rects = self
             .scene_id()
-            .map(|scene| ops::spans_bounds(self.document(), scene, &spans))
+            .map(|scene| ops::spans_bounds_at(self.document(), scene, &spans, self.frame))
             .unwrap_or_default();
         *self.selection_rects_cache.borrow_mut() = Some((stamp, rects.clone()));
         rects

@@ -12,7 +12,11 @@ use flare_ui::{chrome, icons, theme};
 /// What the selection is, when it is one thing.
 enum Picked {
     Shape(SpanRef, Shape),
-    Instance { name: String, kind: SymbolKind },
+    Instance {
+        id: flare_core::SymbolId,
+        name: String,
+        kind: SymbolKind,
+    },
     Other,
 }
 
@@ -51,10 +55,16 @@ impl Workspace {
             ui.add(icons::image("tool-selection", 18.0, theme::accent()));
             ui.label(RichText::new(title).heading());
         });
-        if let Picked::Instance { name, kind } = &picked {
-            self.instance_section(ui, name, *kind);
+        if let Picked::Instance { id, name, kind } = &picked {
+            self.instance_section(ui, *id, name, *kind);
         }
         self.position_size_section(ui, bounds);
+        // The tween the selected object's span carries is reached from the object, not only from
+        // a frame selection, so the picker and curve preview are where the person already is.
+        if count == 1 && self.selection_tween().is_some() {
+            chrome::section(ui, "frame-tween", &tr!(self, "prop-tween"));
+            self.tween_controls(ui);
+        }
         match &picked {
             Picked::Shape(at, shape) => {
                 if let Some(source) = shape.text() {
@@ -94,6 +104,7 @@ impl Workspace {
                 self.document()
                     .symbol(instance.symbol())
                     .map_or(Picked::Other, |symbol| Picked::Instance {
+                        id: symbol.id(),
                         name: symbol.name().to_owned(),
                         kind: symbol.kind(),
                     })
@@ -103,19 +114,41 @@ impl Workspace {
     }
 
     /// Which symbol an instance is of, and the way to edit it.
-    fn instance_section(&mut self, ui: &mut Ui, name: &str, kind: SymbolKind) {
+    fn instance_section(
+        &mut self,
+        ui: &mut Ui,
+        id: flare_core::SymbolId,
+        name: &str,
+        kind: SymbolKind,
+    ) {
         chrome::section(ui, "symbol-movie-clip", &tr!(self, "opt-instance"));
         chrome::row(ui, &tr!(self, "opt-symbol"), |ui| {
             ui.label(name);
         });
-        let kind_name = self.tr(match kind {
-            SymbolKind::Graphic => "opt-kind-graphic",
-            SymbolKind::MovieClip => "opt-kind-movie-clip",
-            SymbolKind::Button => "opt-kind-button",
-        });
+        let label_of = |ws: &Self, kind: SymbolKind| {
+            ws.tr(match kind {
+                SymbolKind::Graphic => "opt-kind-graphic",
+                SymbolKind::MovieClip => "opt-kind-movie-clip",
+                SymbolKind::Button => "opt-kind-button",
+            })
+        };
+        let mut chosen = kind;
         chrome::row(ui, &tr!(self, "opt-type"), |ui| {
-            ui.label(kind_name);
+            egui::ComboBox::from_id_salt("instance_kind")
+                .selected_text(label_of(self, kind))
+                .show_ui(ui, |ui| {
+                    for option in [
+                        SymbolKind::Graphic,
+                        SymbolKind::MovieClip,
+                        SymbolKind::Button,
+                    ] {
+                        ui.selectable_value(&mut chosen, option, label_of(self, option));
+                    }
+                });
         });
+        if chosen != kind {
+            self.set_symbol_kind(id, chosen);
+        }
         if ui.button(tr!(self, "opt-edit-symbol")).clicked() {
             self.perform(flare_menubar::MenuAction::EditSymbol);
         }

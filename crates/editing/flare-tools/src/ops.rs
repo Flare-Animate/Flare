@@ -14,7 +14,7 @@ pub use crate::clipboard::{
 };
 pub use crate::common::{
     SpanRef, each_element, each_element_with, find_element, find_span, shape_bounds, span_bounds,
-    spans_bounds, symbol_bounds,
+    spans_bounds, spans_bounds_at, symbol_bounds,
 };
 pub use crate::convert_anchor::convert_anchor;
 pub use crate::delete_anchor::delete_anchor;

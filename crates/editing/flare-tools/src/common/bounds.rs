@@ -118,6 +118,51 @@ pub fn spans_bounds(document: &Document, scene: SceneId, spans: &[SpanRef]) -> V
         .collect()
 }
 
+/// Like [`spans_bounds`], but where a motion tween has carried an instance by `frame`: inside a
+/// tweened span the box follows the in-between placement, not the keyframe's stored one.
+pub fn spans_bounds_at(
+    document: &Document,
+    scene: SceneId,
+    spans: &[SpanRef],
+    frame: u32,
+) -> Vec<Rect> {
+    let Some(timeline) = scene_timeline(document, scene) else {
+        return Vec::new();
+    };
+    // Evaluated at most once, and only when a selected span is really mid-tween.
+    let mut evaluated = None;
+    spans
+        .iter()
+        .filter_map(|at| {
+            let span = timeline
+                .layers()
+                .iter()
+                .find(|l| l.id() == at.layer)?
+                .spans()
+                .iter()
+                .find(|s| s.start() == at.start)?;
+            let element = span.element(at.element)?;
+            let inside = frame > span.start()
+                && u64::from(frame) < u64::from(span.start()) + u64::from(span.duration().get());
+            if let (Content::Instance(instance), true, true) =
+                (element, inside, span.tween() != flare_document::Tween::None)
+            {
+                let frame_state = evaluated.get_or_insert_with(|| {
+                    flare_eval::evaluate_frame_without_camera(document, scene, frame).ok()
+                });
+                let placed = frame_state
+                    .as_ref()?
+                    .placed
+                    .iter()
+                    .find(|p| p.path == [instance.id()])?;
+                let local = symbol_bounds(document, instance.symbol())?;
+                return Some(transformed(local, placed.transform));
+            }
+            content_bounds(document, element)
+        })
+        .collect()
+}
+
 pub(crate) fn content_bounds(document: &Document, content: &Content) -> Option<Rect> {
     match content {
         // The camera is not art: it has no outline to select or move.
