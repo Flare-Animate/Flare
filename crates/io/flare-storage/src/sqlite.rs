@@ -15,7 +15,8 @@ use rusqlite::{Connection, OpenFlags, config::DbConfig, params};
 use crate::StorageError;
 use crate::codec::NativeZstd;
 use crate::records::{
-    BITMAP_SCHEMA_VERSION, MAX_ENTITIES, Parts, Record, SCHEMA_VERSION, from_parts, to_parts,
+    BITMAP_SCHEMA_VERSION, GAME_SCHEMA_VERSION, MAX_ENTITIES, Parts, Record, SCHEMA_VERSION,
+    from_parts, to_parts,
 };
 
 /// ASCII "FLAR".
@@ -32,7 +33,7 @@ CREATE TABLE project (
 ) STRICT;
 CREATE TABLE entity (
     id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'origin')),
+    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'origin', 'game')),
     ordinal INTEGER NOT NULL,
     payload_version INTEGER NOT NULL CHECK (payload_version > 0),
     codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
@@ -101,7 +102,10 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
         return Err(StorageError::NotFlareFile);
     }
     let version: i64 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    if version != SCHEMA_VERSION && version != BITMAP_SCHEMA_VERSION {
+    if !matches!(
+        version,
+        SCHEMA_VERSION | BITMAP_SCHEMA_VERSION | GAME_SCHEMA_VERSION
+    ) {
         return Err(StorageError::UnsupportedVersion(version));
     }
 

@@ -122,6 +122,14 @@ Small conventional commits: `feat(scope)`, `fix(scope)`, `refactor(scope)`, `tes
 commit, with compatibility or provenance notes in the body when relevant. Never commit
 credentials or proprietary reference projects.
 
+## Game references
+
+The game world (`flare-game`) was ported from Flare's own archived C++ scaffold (`original/`). Two
+references were read for architecture only, and no code was copied from either: Citrus Engine
+(https://github.com/DaVikingCode/Citrus-Engine, MIT) and Adobe Flash Simple Game Engine
+(https://github.com/benjamin-stern/Adobe-Flash--Simple-Game-Engine). The second repository's licence
+could not be read from this environment, so nothing from it may be ported until it is checked.
+
 ## Third-party format references used
 
 - OpenToonz (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. and contributors; LICENSE.txt in

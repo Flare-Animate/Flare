@@ -23,6 +23,7 @@ mod armature;
 mod bitmaps;
 mod compression;
 mod failures;
+mod game;
 mod many_elements;
 mod origin;
 mod records;

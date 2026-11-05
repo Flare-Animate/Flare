@@ -9,6 +9,7 @@ license.workspace = true
 [dependencies]
 blake3.workspace = true
 flare-core.workspace = true
+flare-game.workspace = true
 flare-tween.workspace = true
 glamx.workspace = true
 thiserror.workspace = true

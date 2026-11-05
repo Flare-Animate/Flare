@@ -9,6 +9,7 @@ mod armature;
 mod attachment;
 mod bitmap;
 mod camera;
+mod game;
 mod interp;
 mod layer_queries;
 mod origin;
@@ -223,6 +224,7 @@ pub struct Document {
     sounds: Vec<Sound>,
     bitmaps: Vec<Bitmap>,
     origin: Option<SharedOrigin>,
+    game: Option<flare_game::GameSpec>,
 }
 
 impl Document {
@@ -243,6 +245,7 @@ impl Document {
             sounds: Vec::new(),
             bitmaps: Vec::new(),
             origin: None,
+            game: None,
         };
         let diagnostics = validate::validate(&document);
         if diagnostics.is_empty() {
@@ -325,6 +328,28 @@ impl Document {
     pub fn with_bitmaps(mut self, bitmaps: Vec<Bitmap>) -> Result<Self, Vec<Diagnostic>> {
         self.bitmaps = bitmaps;
         let diagnostics = validate::validate_bitmaps(&self);
+        if diagnostics.is_empty() {
+            Ok(self)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
+    /// The game description, if the project has one. A project with no game has none, and is
+    /// saved without the game record.
+    pub fn game(&self) -> Option<&flare_game::GameSpec> {
+        self.game.as_ref()
+    }
+
+    /// Attaches a game description, checking it and its references into this document's library:
+    /// every entity's symbol and every audio component's sound must exist. Replaces any game
+    /// already present; `None` removes it.
+    pub fn with_game(
+        mut self,
+        game: Option<flare_game::GameSpec>,
+    ) -> Result<Self, Vec<Diagnostic>> {
+        self.game = game;
+        let diagnostics = game::validate_game(&self);
         if diagnostics.is_empty() {
             Ok(self)
         } else {

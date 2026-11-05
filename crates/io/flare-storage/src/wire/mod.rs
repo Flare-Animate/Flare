@@ -10,6 +10,7 @@ mod armature;
 mod attachment;
 mod bitmap;
 mod content;
+pub(crate) mod game;
 mod origin;
 mod settings;
 mod sound;
@@ -20,6 +21,7 @@ pub(crate) use attachment::AttachmentWire;
 use attachment::*;
 use attachment::{hex, unhex};
 pub(crate) use bitmap::{BitmapMeta, MAX_BITMAP_RECORD_BYTES};
+pub(crate) use game::MAX_GAME_RECORD_BYTES;
 pub(crate) use origin::{MAX_ORIGIN_RECORD_BYTES, OriginMeta};
 pub(crate) use settings::Settings;
 #[allow(unused_imports)]
@@ -103,6 +105,7 @@ pub(crate) fn assemble(
     sounds: Vec<Sound>,
     bitmaps: Vec<flare_document::Bitmap>,
     origin: Option<flare_document::Origin>,
+    game: Option<flare_game::GameSpec>,
 ) -> Result<Document, StorageError> {
     let settings: Settings = serde_json::from_str(settings)?;
     let rate = FrameRate::new(settings.frame_rate.0, settings.frame_rate.1)
@@ -120,6 +123,8 @@ pub(crate) fn assemble(
         .with_sounds(sounds)
         .map_err(StorageError::Invalid)?
         .with_bitmaps(bitmaps)
+        .map_err(StorageError::Invalid)?
+        .with_game(game)
         .map_err(StorageError::Invalid)?;
     let document = document.with_origin(origin.map(std::sync::Arc::new));
     match settings.stage {

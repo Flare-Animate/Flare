@@ -61,6 +61,8 @@ pub enum Diagnostic {
     ArmatureRigsDiffer(LayerId),
     #[error("a cue on layer {layer:?} plays sound {sound:?}, which is not in the document")]
     DanglingSound { layer: LayerId, sound: SoundId },
+    #[error("the game description: {0}")]
+    Game(#[from] flare_game::GameError),
     #[error("duplicate bitmap id {0:?}")]
     DuplicateBitmap(BitmapId),
     #[error("a document holds at most {MAX_BITMAPS} bitmaps")]

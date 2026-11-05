@@ -117,4 +117,24 @@ pub enum Command {
         start: u32,
         interp: Option<SpanInterp>,
     },
+    /// Adds an entity to the game description. The ID is the caller's (see
+    /// `GameSpec::next_id`), so a batch names exactly the entity it creates.
+    AddGameEntity(flare_game::EntitySpec),
+    /// Removes an entity from the game. Refused while a camera follows it.
+    RemoveGameEntity(flare_game::EntityId),
+    /// Sets one component of an entity, replacing one of its kind.
+    SetGameComponent {
+        entity: flare_game::EntityId,
+        component: flare_game::Component,
+    },
+    /// Removes an entity's component of `kind`. Refused while another component needs it.
+    RemoveGameComponent {
+        entity: flare_game::EntityId,
+        kind: flare_game::ComponentKind,
+    },
+    /// Sets the world's gravity, in pixels per second squared.
+    SetGameGravity {
+        x: f64,
+        y: f64,
+    },
 }

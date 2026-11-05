@@ -134,11 +134,15 @@ fn newer_schema_versions_are_refused() {
     save(&sample(), &path).expect("save");
     Connection::open(&path)
         .expect("open")
-        .pragma_update(None, "user_version", 3)
+        .pragma_update(
+            None,
+            "user_version",
+            crate::records::GAME_SCHEMA_VERSION + 1,
+        )
         .expect("set");
     assert!(matches!(
         load(&path),
-        Err(StorageError::UnsupportedVersion(3))
+        Err(StorageError::UnsupportedVersion(version)) if version == crate::records::GAME_SCHEMA_VERSION + 1
     ));
 }
 

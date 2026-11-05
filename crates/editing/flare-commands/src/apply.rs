@@ -2,6 +2,7 @@
 
 use flare_core::{FrameRate, LayerId, SceneId};
 use flare_document::{Bitmap, Content, Document, FrameSpan, Layer, Scene, Sound, Stage, Symbol};
+use flare_game::GameSpec;
 
 use crate::{Command, EditError, LayerChange, MAX_SCENE_NAME_CHARS};
 
@@ -25,6 +26,7 @@ pub fn apply_all(
     let mut bitmaps = document.bitmaps().to_vec();
     let mut stage = document.stage();
     let mut rate = document.frame_rate();
+    let mut game = document.game().cloned();
     for command in commands {
         step(
             &mut scenes,
@@ -33,6 +35,7 @@ pub fn apply_all(
             &mut bitmaps,
             &mut stage,
             &mut rate,
+            &mut game,
             command,
         )?;
     }
@@ -43,12 +46,14 @@ pub fn apply_all(
             .with_sounds(sounds)?
             .with_bitmaps(bitmaps)?
             .with_stage(stage)
+            .with_game(game)?
             .with_attachments_retained(document.attachments())
             .with_origin(document.origin().cloned()),
     ))
 }
 
 /// One command's effect on the working copy. Does not validate the whole document.
+#[allow(clippy::too_many_arguments)]
 fn step(
     scenes: &mut Vec<Scene>,
     symbols: &mut Vec<Symbol>,
@@ -56,9 +61,15 @@ fn step(
     bitmaps: &mut Vec<Bitmap>,
     stage: &mut Stage,
     rate: &mut FrameRate,
+    game: &mut Option<GameSpec>,
     command: Command,
 ) -> Result<(), EditError> {
     match command {
+        Command::AddGameEntity(_)
+        | Command::RemoveGameEntity(_)
+        | Command::SetGameComponent { .. }
+        | Command::RemoveGameComponent { .. }
+        | Command::SetGameGravity { .. } => crate::game::step(game, command)?,
         Command::AddSymbol(symbol) => symbols.push(symbol),
         Command::AddScene(scene) => scenes.push(scene),
         Command::RenameScene { scene, name } => {

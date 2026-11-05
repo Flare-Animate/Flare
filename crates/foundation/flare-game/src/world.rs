@@ -71,7 +71,7 @@ impl World {
     pub fn from_spec(spec: &GameSpec, frames_per_second: f64) -> Result<Self, GameError> {
         if !frames_per_second.is_finite() || frames_per_second <= 0.0 || frames_per_second > MAX_FPS
         {
-            return Err(GameError::BadFrameRate(MAX_FPS));
+            return Err(GameError::BadFrameRate);
         }
         spec.validate()?;
         let entities = spec

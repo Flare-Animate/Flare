@@ -17,7 +17,8 @@ first thing taken over and are in the importer and Flash adapter tests.
 | FlipaClip layout profile, custom room layouts | Flare has dockable panels and "Reset layout"; switching between whole interfaces (Animate's workspace switcher) is a dimmed button at the top right and a dimmed Window > Interfaces entry |
 | Auto-update with SHA-256 verification | Planned after the first release exists to update from |
 | Windows installer (NSIS), Chocolatey | Planned; see [RELEASE.md](RELEASE.md) |
-| Android build, P2P remote control, game ECS | Not planned |
+| Android build, P2P remote control | Not planned |
+| Game ECS and game creation | Reversed: planned and in progress as `flare-game`; see [GAME.md](GAME.md). The C++ scaffold's systems were mostly empty, so the port defines their small behaviour and lists what is still open. Scripts stay unrun |
 | Adobe/Harman AIR and Flex SDK targets (a Flash-era app toolchain) | Not planned: Flare publishes SWF and HTML5, and ActionScript is not run |
 | OpenToonz's raster painting, FX schematic and xsheet | Not planned: they belong to a different kind of tool than Animate |
 | Trace Bitmap (threshold, minimum area, curve fit, corners; a centerline mode) | Planned, high priority (drawing quality) |

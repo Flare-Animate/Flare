@@ -18,11 +18,17 @@ pub const SCHEMA_VERSION: i64 = 1;
 /// know them refuses the file by name rather than calling it corrupt. Files without bitmaps stay
 /// at version 1 and open in older builds.
 pub const BITMAP_SCHEMA_VERSION: i64 = 2;
+/// Written by a file that holds a game description, for the same reason as
+/// [`BITMAP_SCHEMA_VERSION`]: a build without games refuses it by name. Files without one keep the
+/// older version.
+pub const GAME_SCHEMA_VERSION: i64 = 3;
 
 impl Parts {
     /// The schema version these rows need to be read.
     pub fn schema_version(&self) -> i64 {
-        if self.records.iter().any(|r| r.kind == "bitmap") {
+        if self.records.iter().any(|r| r.kind == "game") {
+            GAME_SCHEMA_VERSION
+        } else if self.records.iter().any(|r| r.kind == "bitmap") {
             BITMAP_SCHEMA_VERSION
         } else {
             SCHEMA_VERSION
@@ -42,7 +48,7 @@ pub const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES + 64 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Record {
     pub id: String,
-    /// `scene`, `symbol`, `attachment`, `sound`, `bitmap` or `origin`.
+    /// `scene`, `symbol`, `attachment`, `sound`, `bitmap`, `origin` or `game`.
     pub kind: String,
     pub ordinal: i64,
     /// `cbor` or `cbor+zstd`.
@@ -68,6 +74,7 @@ fn limit_of(kind: &str) -> usize {
         "sound" => MAX_SOUND_PAYLOAD_BYTES,
         "bitmap" => wire::MAX_BITMAP_RECORD_BYTES,
         "origin" => wire::MAX_ORIGIN_RECORD_BYTES,
+        "game" => wire::MAX_GAME_RECORD_BYTES,
         _ => MAX_PAYLOAD_BYTES,
     }
 }
@@ -120,6 +127,10 @@ pub fn to_parts(document: &Document, zstd: &mut dyn Zstd) -> Result<Parts, Stora
         let raw = wire::OriginMeta::frame(origin)?;
         put("origin".to_owned(), "origin", 0, &raw)?;
     }
+    if let Some(game) = document.game() {
+        let raw = wire::game::frame(game)?;
+        put("game".to_owned(), "game", 0, &raw)?;
+    }
     Ok(Parts {
         project_id: document.id().as_uuid().to_string(),
         settings,
@@ -141,6 +152,7 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
     let mut sounds = Vec::new();
     let mut bitmaps = Vec::new();
     let mut origin = None;
+    let mut game = None;
     for record in &parts.records {
         let raw = unpack(
             zstd,
@@ -161,6 +173,11 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
                     return Err(StorageError::Corrupt("two source records".into()));
                 }
             }
+            "game" => {
+                if game.replace(wire::game::unframe(&raw)?).is_some() {
+                    return Err(StorageError::Corrupt("two game records".into()));
+                }
+            }
             other => {
                 return Err(StorageError::Corrupt(format!(
                     "unknown entity kind {other}"
@@ -177,5 +194,6 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
         sounds,
         bitmaps,
         origin,
+        game,
     )
 }

@@ -7,6 +7,12 @@ under a scripted input, and exported as a game description with a sprite sheet. 
 access. The archived C++ `tgame` scaffold (`original/flare/sources/common/tgame`) was the starting
 point; this page says what was ported, what it does now, and what is still open.
 
+## Status
+
+Built: the world, the seven systems, scripted runs, the description's commands and storage.
+Not yet: the game export, the `flare game` commands, the MCP tools and the desktop and browser
+panel (each is a gap recorded in [SURFACES.md](SURFACES.md)).
+
 ## The model
 
 - **Entity**: an ID (a positive integer, handed out in order and never reused in a game), a name
@@ -81,3 +87,26 @@ differs there on purpose.
   the particles it is told about; the input comes from a script or a surface.
 - No asset loading in the world: a symbol or sound is named by ID; the game export and the
   surfaces resolve it.
+
+## In the project
+
+A `Document` has an optional game (`Document::game`, `None` for a project with no game). It is
+changed only through command batches in `flare-commands`:
+
+| Command | Effect |
+|---|---|
+| `AddGameEntity(EntitySpec)` | Adds an entity; its ID is the caller's, from `GameSpec::next_id` |
+| `RemoveGameEntity(id)` | Removes it; refused while a camera follows it |
+| `SetGameComponent { entity, component }` | Sets one component, replacing one of its kind |
+| `RemoveGameComponent { entity, kind }` | Removes one; refused while another component needs it |
+| `SetGameGravity { x, y }` | Sets the world's gravity |
+
+A batch is validated once, as a whole, like every other batch: a refused command fails the batch and
+changes nothing, and the batch is one undo step. The document checks what the description names:
+an entity's symbol must be in the library, and an audio component's sound must be in the sound
+library. So removing a symbol or a sound that the game uses is refused by the same rule.
+
+A project with a game is stored with a `game` record and schema version 3, which a build without
+games refuses by version. A project without one keeps the version it had, so it opens in older
+builds. The record is the description as CBOR; reading it goes through the same checks as an edit,
+so a damaged file is refused rather than run.

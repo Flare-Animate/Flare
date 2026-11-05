@@ -1,11 +1,14 @@
 //! The component data. Components hold values only; the systems in `system/` do the work.
 
+use serde::{Deserialize, Serialize};
+
 use flare_core::SoundId;
 
 use crate::EntityId;
 
 /// Where an entity is, how it is turned and scaled. Every other component needs one.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Transform {
     pub x: f64,
     pub y: f64,
@@ -34,7 +37,8 @@ impl Default for Transform {
 
 /// A picture that changes over time: `frames` frames at `fps` frames per second, starting on
 /// `frame`. An `fps` of zero holds the frame.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Sprite {
     pub frames: u32,
     pub fps: f64,
@@ -60,7 +64,7 @@ impl Default for Sprite {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BodyKind {
     /// Never moves.
     Static,
@@ -73,7 +77,8 @@ pub enum BodyKind {
 /// An axis-aligned box whose top-left corner is the entity's position. Two bodies whose
 /// categories and masks let them meet are reported as colliding while they overlap; nothing
 /// pushes them apart.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Body {
     pub kind: BodyKind,
     pub width: f64,
@@ -99,7 +104,7 @@ impl Default for Body {
 }
 
 /// The keys a game reads. A small fixed set: the surfaces send these names.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Key {
     Left,
     Right,
@@ -137,7 +142,8 @@ impl Key {
 
 /// Moves a body with the arrow keys (or whichever keys are bound): the velocity is the held
 /// direction times `speed`. Needs a body.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Control {
     pub left: Key,
     pub right: Key,
@@ -159,7 +165,7 @@ impl Default for Control {
 }
 
 /// A rectangle in world pixels.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Bounds {
     pub x: f64,
     pub y: f64,
@@ -168,7 +174,8 @@ pub struct Bounds {
 }
 
 /// The view onto the world. Its own entity's transform is where the camera looks.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Camera {
     pub width: f64,
     pub height: f64,
@@ -194,7 +201,7 @@ impl Default for Camera {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum UiKind {
     Button,
     Text,
@@ -234,7 +241,8 @@ impl UiKind {
 }
 
 /// A rectangle at the entity's position that reports clicks inside it while `interactive`.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Ui {
     pub kind: UiKind,
     pub width: f64,
@@ -256,7 +264,8 @@ impl Default for Ui {
 }
 
 /// A sound to play. The step reports the cue; playing it is the surface's job.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Audio {
     pub sound: Option<SoundId>,
     pub looping: bool,
@@ -276,7 +285,8 @@ impl Default for Audio {
 }
 
 /// A particle emitter: how many particles it produces per second.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Particle {
     pub rate: f64,
     /// Seconds a particle lives. Carried for the surfaces; the port does not simulate particles.
@@ -297,7 +307,7 @@ impl Default for Particle {
 }
 
 /// A script's name. Scripts are preserved as data and never run (see `docs/PARITY.md`).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Script {
     pub name: String,
 }

@@ -6,6 +6,7 @@
 mod apply;
 mod command;
 mod error;
+mod game;
 pub mod layers;
 
 pub use apply::apply_all;

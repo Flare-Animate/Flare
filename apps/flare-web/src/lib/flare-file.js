@@ -14,6 +14,8 @@ const APPLICATION_ID = 0x464c4152; // "FLAR"
 const SCHEMA_VERSION = 1;
 // Written by files that hold bitmaps; older builds refuse them by version.
 const BITMAP_SCHEMA_VERSION = 2;
+// Written by files that hold a game description (`flare-game`), for the same reason.
+const GAME_SCHEMA_VERSION = 3;
 const PAGE_SIZE = 1024;
 const ZSTD_LEVEL = 3;
 
@@ -27,7 +29,7 @@ CREATE TABLE project (
 ) STRICT;
 CREATE TABLE entity (
     id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'origin')),
+    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'origin', 'game')),
     ordinal INTEGER NOT NULL,
     payload_version INTEGER NOT NULL CHECK (payload_version > 0),
     codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
@@ -86,7 +88,7 @@ export function createFlareFile({ sqlite3, zstd }) {
           throw new Error("not a Flare project file");
         }
         const version = one(db, "PRAGMA user_version");
-        if (version !== SCHEMA_VERSION && version !== BITMAP_SCHEMA_VERSION) {
+        if (version !== SCHEMA_VERSION && version !== BITMAP_SCHEMA_VERSION && version !== GAME_SCHEMA_VERSION) {
           throw new Error(`project schema version ${version} is not supported by this build; it was made by a newer Flare`);
         }
         const project = db.selectObject(
@@ -119,9 +121,11 @@ export function createFlareFile({ sqlite3, zstd }) {
     // The bytes of a .flare file holding these rows ({ projectId, settings, records }).
     write(parts) {
       const db = new oo1.DB(":memory:", "c");
-      const version = parts.records.some((r) => r.kind === "bitmap")
-        ? BITMAP_SCHEMA_VERSION
-        : SCHEMA_VERSION;
+      const version = parts.records.some((r) => r.kind === "game")
+        ? GAME_SCHEMA_VERSION
+        : parts.records.some((r) => r.kind === "bitmap")
+          ? BITMAP_SCHEMA_VERSION
+          : SCHEMA_VERSION;
       try {
         // The page size can only be chosen before the first table exists.
         db.exec(`PRAGMA page_size = ${PAGE_SIZE}`);

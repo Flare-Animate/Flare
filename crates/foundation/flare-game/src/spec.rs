@@ -2,6 +2,8 @@
 //! gravity. It is plain data; the document stores it and validates the references into its own
 //! library (symbols and sounds) on top of what is checked here.
 
+use serde::{Deserialize, Serialize};
+
 use std::collections::BTreeMap;
 
 use flare_core::SymbolId;
@@ -11,7 +13,8 @@ use crate::{Component, ComponentKind, EntityId, GameError};
 
 /// One entity: an ID, a name (its tag), the library symbol it draws if any, and at most one
 /// component of each kind.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "EntityWire")]
 pub struct EntitySpec {
     id: EntityId,
     name: String,
@@ -114,8 +117,60 @@ impl EntitySpec {
     }
 }
 
+/// An entity as stored. Converting it goes through the checks a command makes, so a file cannot
+/// hold a component the editor would refuse.
+#[derive(Deserialize)]
+struct EntityWire {
+    id: EntityId,
+    name: String,
+    symbol: Option<SymbolId>,
+    components: BTreeMap<ComponentKind, Component>,
+}
+
+impl TryFrom<EntityWire> for EntitySpec {
+    type Error = GameError;
+
+    fn try_from(wire: EntityWire) -> Result<Self, GameError> {
+        let mut entity = EntitySpec::new(wire.id, wire.name)?.with_symbol(wire.symbol);
+        for (kind, component) in wire.components {
+            if component.kind() != kind {
+                return Err(GameError::BadInput(format!(
+                    "a {kind} is stored under the wrong kind"
+                )));
+            }
+            entity = entity.with_component(component)?;
+        }
+        Ok(entity)
+    }
+}
+
+/// A game as stored: its gravity and its entities by ID.
+#[derive(Deserialize)]
+struct GameWire {
+    gravity: (f64, f64),
+    entities: BTreeMap<EntityId, EntitySpec>,
+}
+
+impl TryFrom<GameWire> for GameSpec {
+    type Error = GameError;
+
+    fn try_from(wire: GameWire) -> Result<Self, GameError> {
+        let mut spec = GameSpec::new().with_gravity(wire.gravity.0, wire.gravity.1)?;
+        for (id, entity) in wire.entities {
+            if entity.id() != id {
+                return Err(GameError::BadInput(format!(
+                    "entity {id} is stored under another ID"
+                )));
+            }
+            spec.add_entity(entity)?;
+        }
+        Ok(spec)
+    }
+}
+
 /// The game: its entities, in ID order, and the world's gravity in pixels per second squared.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "GameWire")]
 pub struct GameSpec {
     gravity: (f64, f64),
     entities: BTreeMap<EntityId, EntitySpec>,

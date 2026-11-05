@@ -12,6 +12,7 @@ First audit, from the code, 2026-10-31.
 
 | Feature | Desktop | Browser | CLI | MCP | Why a gap, and what closes it |
 |---|---|---|---|---|---|
+| Game description: entities, components, gravity, runs under scripted input | no | no | no | no | Library and project support are built (`flare-game`, `flare-commands`, storage). The desktop and browser panel, the `flare game` commands, the MCP tools and the game export are not built yet; each is a debt until it is. See [GAME.md](GAME.md). |
 | Open and save `.flare` | yes | yes | yes | yes | The browser brings SQLite and zstd as WebAssembly (`@sqlite.org/sqlite-wasm`, `@bokuweb/zstd-wasm`) and `flare-storage`'s own checks run in the page. It is a download and a file picker there, not a path. |
 | Text objects: add, edit, restyle, break apart, list fonts | yes (typed on the stage; Properties has Character) | yes | yes (`add-text`, `set-text`, `break-text`, `fonts`) | yes (`add_text`, `set_text`, `break_text`, `list_fonts`) | A browser has no installed fonts, so there text is set in the one font built into Flare (Source Sans 3), which every surface has. |
 | Open XFL, `.fla` (modern and legacy binary) and `.swf` (File > Open; `flare import` and `import_project` make a project from them) | yes | yes | yes | yes | The MCP tool reads only from its export directory and writes a new `.flare` beside it; the open project is not replaced. A legacy binary `.fla` imports as a skeleton (docs/ARCHITECTURE.md), the same on every surface because they share `import_path`/`import_bytes`. |

@@ -2071,6 +2071,7 @@ version = "0.1.0"
 dependencies = [
  "flare-core",
  "flare-document",
+ "flare-game",
  "thiserror 2.0.18",
 ]
 
@@ -2114,6 +2115,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "flare-core",
+ "flare-game",
  "flare-tween",
  "glamx",
  "proptest",
@@ -2177,6 +2179,8 @@ name = "flare-game"
 version = "0.1.0"
 dependencies = [
  "flare-core",
+ "serde",
+ "serde_json",
  "thiserror 2.0.18",
  "uuid",
 ]
@@ -2471,6 +2475,7 @@ dependencies = [
  "criterion",
  "flare-core",
  "flare-document",
+ "flare-game",
  "flare-tween",
  "glamx",
  "proptest",

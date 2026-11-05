@@ -3,10 +3,10 @@
 use flare_core::{SoundId, SymbolId};
 use thiserror::Error;
 
-use crate::limits::{MAX_COORD, MAX_EVENTS_PER_STEP, MAX_NAME_CHARS, MAX_RUN_FRAMES};
+use crate::limits::{MAX_COORD, MAX_EVENTS_PER_STEP, MAX_FPS, MAX_NAME_CHARS, MAX_RUN_FRAMES};
 use crate::{ComponentKind, EntityId};
 
-#[derive(Debug, Clone, PartialEq, Error)]
+#[derive(Debug, Clone, PartialEq, Eq, Error)]
 pub enum GameError {
     #[error("a game holds at most {limit} entities")]
     TooManyEntities { limit: usize },
@@ -61,6 +61,6 @@ pub enum GameError {
     TooManyFrames,
     #[error("a step produced more than {MAX_EVENTS_PER_STEP} events")]
     TooManyEvents,
-    #[error("the frame rate must be above 0 and at most {0} frames per second")]
-    BadFrameRate(f64),
+    #[error("the frame rate must be above 0 and at most {MAX_FPS} frames per second")]
+    BadFrameRate,
 }

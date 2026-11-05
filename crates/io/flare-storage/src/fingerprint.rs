@@ -67,6 +67,9 @@ pub fn fingerprint(document: &Document) -> Result<Fingerprint, StorageError> {
         framed(&mut main, b'i', bitmap.id().as_uuid().as_bytes());
         framed(&mut main, b'h', bitmap.content_hash());
     }
+    if let Some(game) = document.game() {
+        framed(&mut main, b'g', &crate::codec::to_cbor(game)?);
+    }
     for symbol in document.symbols() {
         framed(&mut main, b'i', symbol.id().as_uuid().as_bytes());
         framed(&mut main, b'n', symbol.name().as_bytes());

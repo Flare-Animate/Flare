@@ -1,6 +1,8 @@
 //! Components: the data an entity holds, how each kind is checked, and how a description
 //! names them.
 
+use serde::{Deserialize, Serialize};
+
 mod parse;
 mod types;
 mod validate;
@@ -16,7 +18,7 @@ use crate::GameError;
 
 /// One kind of component. The C++ scaffold numbered its built-in types 1 to 8 with a bitmask;
 /// the order here is the same idea, and the derived ordering keeps component maps deterministic.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum ComponentKind {
     Transform,
     Sprite,
@@ -79,7 +81,7 @@ impl fmt::Display for ComponentKind {
 }
 
 /// A component's data, one variant per kind.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Component {
     Transform(Transform),
     Sprite(Sprite),
