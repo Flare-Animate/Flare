@@ -29,8 +29,9 @@ pub use document_file::{
     ExportSummary, FileFormat, LoadError, Loaded, MAX_NAMED_FILES, SaveError, Saved, load,
     resolve_save_path, save, saves_in_place, summarize, xfl_folder,
 };
-pub use export::{export_png, png_bytes, rgba_png};
+pub use export::{export_png, export_still, png_bytes, rgba_png, still_bytes};
 pub use export_game::{GAME_FORMAT, GAME_FORMAT_VERSION, GameExport, export_game};
+pub use flare_render::StillFormat;
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
 pub use movie::{MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, gif_bytes, gif_bytes_on};

@@ -15,4 +15,10 @@ pub enum RenderError {
     InvalidSize(u32, u32),
     #[error("png encoding failed: {0}")]
     Png(#[from] png::EncodingError),
+    #[error("JPEG quality {0} is outside 1 to 100")]
+    InvalidQuality(u8),
+    #[error("a JPEG cannot hold transparency, and the image has pixels that are not opaque")]
+    NotOpaque,
+    #[error("image encoding failed: {0}")]
+    Encode(#[from] ::image::ImageError),
 }

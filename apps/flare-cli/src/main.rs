@@ -281,14 +281,21 @@ fn run() -> Result<()> {
             width,
             height,
             transparent,
-        } => match format {
-            project::ExportFormat::Png => {
-                project::export(&path, &out, frame.unwrap_or(0), width, height, transparent)?
-            }
-            project::ExportFormat::Gif | project::ExportFormat::Mp4 => {
+            quality,
+        } => match format.still(quality)? {
+            Some(still) => project::export(
+                &path,
+                &out,
+                frame.unwrap_or(0),
+                width,
+                height,
+                transparent,
+                still,
+            )?,
+            None => {
                 if frame.is_some() || width.is_some() || height.is_some() || transparent {
                     bail!(
-                        "a GIF or a video holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG"
+                        "a GIF or a video holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG and the other still formats"
                     );
                 }
                 if matches!(format, project::ExportFormat::Gif) {

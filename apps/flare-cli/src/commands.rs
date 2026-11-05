@@ -171,14 +171,14 @@ pub(crate) enum Command {
         #[arg(long = "font-file")]
         font_files: Vec<PathBuf>,
     },
-    /// Render the first scene: one frame as a PNG (the default), every frame as a looping GIF, or a
-    /// video with its sound as an MP4.
+    /// Render the first scene: one frame as a PNG (the default), a JPEG, a BMP or a TGA, every frame
+    /// as a looping GIF, or a video with its sound as an MP4.
     Export {
         path: PathBuf,
         out: PathBuf,
         #[arg(long, value_enum, default_value_t = project::ExportFormat::Png)]
         format: project::ExportFormat,
-        /// The frame to render (PNG only; default 0).
+        /// The frame to render (a still image only; default 0).
         #[arg(long)]
         frame: Option<u32>,
         /// Defaults to the stage width.
@@ -187,9 +187,12 @@ pub(crate) enum Command {
         /// Defaults to the stage height.
         #[arg(long)]
         height: Option<u32>,
-        /// Keep the background transparent instead of white.
+        /// Keep the background transparent instead of white (not for JPEG).
         #[arg(long)]
         transparent: bool,
+        /// JPEG quality from 1 to 100 (JPEG only; default 90).
+        #[arg(long, value_name = "1-100")]
+        quality: Option<u8>,
     },
     /// Point the first scene's camera from a frame on (the camera layer is made when there is
     /// none). What is not given stays what the camera has at that frame.

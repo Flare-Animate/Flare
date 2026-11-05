@@ -1,19 +1,45 @@
-//! Writing frames as PNG files.
+//! Writing frames as still images (PNG, JPEG, BMP, TGA).
 
 use anyhow::{Context, Result, bail};
 use flare_core::Rgba8;
 use flare_document::Document;
+use flare_render::StillFormat;
 use serde_json::{Value, json};
 use std::path::Path;
 
 use super::*;
 
+/// The quality a JPEG gets when `--quality` is not given.
+pub(super) const DEFAULT_JPEG_QUALITY: u8 = 90;
+
 /// What `export` writes.
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 pub enum ExportFormat {
     Png,
+    Jpeg,
+    Bmp,
+    Tga,
     Gif,
     Mp4,
+}
+
+impl ExportFormat {
+    /// The still format this is, or `None` for GIF and MP4, which hold every frame. A quality
+    /// is only for JPEG, and a quality given for anything else is refused rather than ignored.
+    pub fn still(self, quality: Option<u8>) -> Result<Option<StillFormat>> {
+        if quality.is_some() && !matches!(self, Self::Jpeg) {
+            bail!("--quality is for JPEG only");
+        }
+        Ok(match self {
+            Self::Png => Some(StillFormat::Png),
+            Self::Jpeg => Some(StillFormat::Jpeg {
+                quality: quality.unwrap_or(DEFAULT_JPEG_QUALITY),
+            }),
+            Self::Bmp => Some(StillFormat::Bmp),
+            Self::Tga => Some(StillFormat::Tga),
+            Self::Gif | Self::Mp4 => None,
+        })
+    }
 }
 
 pub(super) struct RenderTarget {
@@ -42,12 +68,13 @@ pub(super) fn render_target(
 }
 
 /// Renders one frame and writes it atomically (temp file, then rename), so a failed
-/// export never leaves a partial PNG.
+/// export never leaves a partial image.
 pub(super) fn write_frame(
     document: &Document,
     frame: u32,
     target: &RenderTarget,
     out: &Path,
+    format: StillFormat,
 ) -> Result<()> {
     let scene = document
         .scenes()
@@ -61,12 +88,13 @@ pub(super) fn write_frame(
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or(Path::new("."));
     let mut staged = tempfile::NamedTempFile::new_in(directory)?;
-    image.write_png(std::io::BufWriter::new(&mut staged))?;
+    image.write_still(std::io::BufWriter::new(&mut staged), format)?;
     staged.persist(out).map_err(|error| error.error)?;
     Ok(())
 }
 
-/// Renders one frame to a PNG file.
+/// Renders one frame to a still image in `format`. A JPEG has no transparency, so a
+/// transparent background is refused here with the reason, not left to the encoder.
 pub fn export(
     path: &Path,
     out: &Path,
@@ -74,10 +102,14 @@ pub fn export(
     width: Option<u32>,
     height: Option<u32>,
     transparent: bool,
+    format: StillFormat,
 ) -> Result<Value> {
+    if transparent && matches!(format, StillFormat::Jpeg { .. }) {
+        bail!("a JPEG has no transparency: drop --transparent, or export a PNG");
+    }
     let session = open(path)?;
     let target = render_target(session.document(), width, height, transparent);
-    write_frame(session.document(), frame, &target, out)?;
+    write_frame(session.document(), frame, &target, out, format)?;
     Ok(json!({ "exported": out.to_string_lossy(), "width": target.width, "height": target.height }))
 }
 
@@ -120,6 +152,7 @@ pub fn export_frames(
             frame,
             &target,
             &directory.join(format!("frame_{frame:05}.png")),
+            StillFormat::Png,
         )?;
     }
     Ok(

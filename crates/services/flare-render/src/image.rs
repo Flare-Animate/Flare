@@ -2,6 +2,7 @@
 
 use std::io::Write;
 
+use ::image::ImageEncoder;
 use flare_core::Rgba8;
 
 #[allow(unused_imports)]
@@ -110,6 +111,71 @@ impl Image {
         encoder.write_header()?.write_image_data(&self.rgba)?;
         Ok(())
     }
+
+    /// Writes the image in `format`. The formats that keep transparency take the pixels as they
+    /// are; a JPEG is refused unless every pixel is opaque, because flattening it silently would
+    /// hide a background the person did not choose.
+    pub fn write_still(
+        &self,
+        mut writer: impl Write,
+        format: StillFormat,
+    ) -> Result<(), RenderError> {
+        match format {
+            StillFormat::Png => self.write_png(writer),
+            StillFormat::Jpeg { quality } => self.write_jpeg(writer, quality),
+            StillFormat::Bmp => {
+                ::image::codecs::bmp::BmpEncoder::new(&mut writer).write_image(
+                    &self.rgba,
+                    self.width,
+                    self.height,
+                    ::image::ExtendedColorType::Rgba8,
+                )?;
+                Ok(())
+            }
+            StillFormat::Tga => {
+                ::image::codecs::tga::TgaEncoder::new(writer).write_image(
+                    &self.rgba,
+                    self.width,
+                    self.height,
+                    ::image::ExtendedColorType::Rgba8,
+                )?;
+                Ok(())
+            }
+        }
+    }
+
+    /// Writes a baseline JPEG at `quality` (1 to 100). The alpha channel is dropped, so every
+    /// pixel must already be opaque.
+    fn write_jpeg(&self, writer: impl Write, quality: u8) -> Result<(), RenderError> {
+        if !(1..=100).contains(&quality) {
+            return Err(RenderError::InvalidQuality(quality));
+        }
+        let (pixels, _) = self.rgba.as_chunks::<4>();
+        if pixels.iter().any(|px| px[3] != 255) {
+            return Err(RenderError::NotOpaque);
+        }
+        let rgb: Vec<u8> = pixels.iter().flat_map(|px| [px[0], px[1], px[2]]).collect();
+        ::image::codecs::jpeg::JpegEncoder::new_with_quality(writer, quality).write_image(
+            &rgb,
+            self.width,
+            self.height,
+            ::image::ExtendedColorType::Rgb8,
+        )?;
+        Ok(())
+    }
+}
+
+/// A still-image format a frame can be written in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StillFormat {
+    /// Lossless, keeps transparency.
+    Png,
+    /// Lossy and opaque. `quality` runs from 1 (smallest file) to 100 (best).
+    Jpeg { quality: u8 },
+    /// Uncompressed, keeps transparency.
+    Bmp,
+    /// Uncompressed, keeps transparency.
+    Tga,
 }
 
 /// Converts premultiplied RGBA8 to straight alpha with rounding, in place. Opaque and fully

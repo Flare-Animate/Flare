@@ -19,6 +19,7 @@ mod open;
 mod rendering;
 mod save_formats;
 mod shortcuts;
+mod still_images;
 mod symbols;
 mod text;
 mod tween;

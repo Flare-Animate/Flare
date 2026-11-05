@@ -355,3 +355,44 @@ async fn a_moho_project_imports_with_its_pictures_read_from_the_export_folder() 
         .expect("the imported project opens");
     assert_eq!(loaded.bitmaps().len(), 1, "the picture inside the folder");
 }
+
+#[tokio::test]
+async fn export_still_writes_each_format_and_refuses_a_quality_for_the_others() {
+    let f = drawn().await;
+
+    let png = f.ok("export_still", json!({ "name": "frame" })).await;
+    assert!(png["path"].as_str().expect("p").ends_with("frame.png"));
+    assert!(bytes(&png["path"]).starts_with(b"\x89PNG"));
+
+    let jpeg = f
+        .ok(
+            "export_still",
+            json!({ "name": "photo", "format": "jpeg", "quality": 80 }),
+        )
+        .await;
+    assert!(jpeg["path"].as_str().expect("p").ends_with("photo.jpg"));
+    assert!(bytes(&jpeg["path"]).starts_with(&[0xFF, 0xD8, 0xFF]));
+
+    let bmp = f
+        .ok("export_still", json!({ "name": "pic", "format": "bmp" }))
+        .await;
+    assert!(bytes(&bmp["path"]).starts_with(b"BM"));
+
+    let (is_error, message) = f
+        .tool(
+            "export_still",
+            json!({ "name": "png_q", "format": "png", "quality": 50 }),
+        )
+        .await;
+    assert!(is_error, "a quality is refused for PNG");
+    assert!(message.as_str().expect("m").contains("JPEG only"));
+
+    let (is_error, message) = f
+        .tool(
+            "export_still",
+            json!({ "name": "bad_q", "format": "jpeg", "quality": 0 }),
+        )
+        .await;
+    assert!(is_error, "quality 0 is outside 1 to 100");
+    assert!(message.as_str().expect("m").contains("JPEG quality 0"));
+}

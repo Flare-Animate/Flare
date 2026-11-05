@@ -8,9 +8,11 @@ use serde_json::{Value, json};
 
 use crate::color::{safe_file_name_with, safe_name};
 use crate::params::{
-    ExportName, ExportSpriteSheet, ExportXfl, ImportProject, PublishHtml5, PublishSwf,
+    ExportName, ExportSpriteSheet, ExportStill, ExportXfl, ImportProject, PublishHtml5, PublishSwf,
+    StillKind,
 };
 use crate::server::{FlareServer, Outcome, State};
+use flare_runtime::StillFormat;
 
 /// The export directory, created if needed, or the reason exports are off.
 pub(super) fn export_dir(state: &State) -> Result<PathBuf, String> {
@@ -46,6 +48,38 @@ fn diagnostics<'a, D: 'a>(
 
 #[tool_router(router = export_tools, vis = "pub(super)")]
 impl FlareServer {
+    #[tool(
+        description = "Render one frame of the first scene as a PNG, JPEG, BMP or TGA image in the export directory (disabled when no export directory is configured). The background is the stage's. A quality (1 to 100, JPEG only) is refused for other formats."
+    )]
+    fn export_still(&self, Parameters(args): Parameters<ExportStill>) -> Outcome {
+        self.read(|state| {
+            let kind = args.format.unwrap_or(StillKind::Png);
+            if args.quality.is_some() && !matches!(kind, StillKind::Jpeg) {
+                return Err("quality is for JPEG only".to_owned());
+            }
+            let (format, extension) = match kind {
+                StillKind::Png => (StillFormat::Png, "png"),
+                StillKind::Jpeg => (
+                    StillFormat::Jpeg {
+                        quality: args.quality.unwrap_or(90),
+                    },
+                    "jpg",
+                ),
+                StillKind::Bmp => (StillFormat::Bmp, "bmp"),
+                StillKind::Tga => (StillFormat::Tga, "tga"),
+            };
+            let dir = export_dir(state)?;
+            let out = fresh(&dir, &safe_file_name_with(&args.name, extension)?)?;
+            let bytes = flare_runtime::still_bytes(
+                state.session.document(),
+                args.frame.unwrap_or(0),
+                format,
+            )?;
+            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
+        })
+    }
+
     #[tool(
         description = "Render the first scene as an endlessly looping GIF in the export directory (disabled when no export directory is configured)."
     )]

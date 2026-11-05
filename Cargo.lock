@@ -2370,6 +2370,7 @@ dependencies = [
  "flare-document",
  "flare-eval",
  "glamx",
+ "image",
  "png 0.18.1",
  "thiserror 2.0.18",
  "vello_cpu 0.3.0",
@@ -3732,6 +3733,8 @@ dependencies = [
  "num-traits",
  "png 0.18.1",
  "tiff",
+ "zune-core",
+ "zune-jpeg",
 ]
 
 [[package]]

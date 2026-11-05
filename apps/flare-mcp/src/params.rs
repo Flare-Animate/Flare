@@ -185,6 +185,29 @@ pub struct ExportName {
     pub name: String,
 }
 
+/// The still-image formats `export_still` writes.
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum StillKind {
+    Png,
+    Jpeg,
+    Bmp,
+    Tga,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ExportStill {
+    /// File name only: letters, digits, '.', '_' or '-'. The extension for the format is added
+    /// when missing.
+    pub name: String,
+    /// The frame of the first scene to draw (0-based). Default 0.
+    pub frame: Option<u32>,
+    /// png (the default), jpeg, bmp or tga. A JPEG has no transparency and is always opaque.
+    pub format: Option<StillKind>,
+    /// JPEG quality from 1 to 100. Default 90. Only for jpeg.
+    pub quality: Option<u8>,
+}
+
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ExportSpriteSheet {
     /// File name only: letters, digits, '.', '_' or '-'. `.png` is added when missing; the atlas

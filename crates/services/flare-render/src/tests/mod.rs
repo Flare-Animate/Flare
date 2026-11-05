@@ -14,6 +14,7 @@ mod bitmaps;
 mod camera;
 mod masks;
 mod shapes;
+mod still;
 mod stroke_patterns;
 mod viewport;
 

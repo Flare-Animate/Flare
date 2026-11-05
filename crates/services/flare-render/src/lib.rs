@@ -15,7 +15,7 @@ mod render;
 mod viewport;
 
 pub use hit::{hit_test, hit_test_all};
-pub use image::{Image, PremultipliedImage};
+pub use image::{Image, PremultipliedImage, StillFormat};
 pub use limits::{MAX_DIMENSION, MAX_PIXELS, RenderError};
 pub use outline::{render_onion_outlines_viewport, render_outline_mode_viewport};
 pub use render::{

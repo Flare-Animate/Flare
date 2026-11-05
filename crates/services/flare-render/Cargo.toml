@@ -11,6 +11,7 @@ flare-core.workspace = true
 flare-document.workspace = true
 bytemuck.workspace = true
 flare-eval.workspace = true
+image = { workspace = true, features = ["bmp", "jpeg", "tga"] }
 glamx.workspace = true
 png.workspace = true
 thiserror.workspace = true

@@ -6,10 +6,15 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use flare_document::Document;
+use flare_render::StillFormat;
 
-/// Renders `frame` of the first scene at the stage's size over its background as PNG bytes.
-/// Errors are worded for the person who asked for the export.
-pub fn png_bytes(document: &Document, frame: u32) -> Result<Vec<u8>, String> {
+/// Renders `frame` of the first scene at the stage's size over its background, encoded as
+/// `format`. Errors are worded for the person who asked for the export.
+pub fn still_bytes(
+    document: &Document,
+    frame: u32,
+    format: StillFormat,
+) -> Result<Vec<u8>, String> {
     let scene = document
         .scenes()
         .first()
@@ -21,9 +26,14 @@ pub fn png_bytes(document: &Document, frame: u32) -> Result<Vec<u8>, String> {
         .map_err(|error| format!("Cannot render the frame: {error}"))?;
     let mut bytes = Vec::new();
     image
-        .write_png(&mut bytes)
-        .map_err(|error| format!("Cannot write the PNG: {error}"))?;
+        .write_still(&mut bytes, format)
+        .map_err(|error| format!("Cannot write the image: {error}"))?;
     Ok(bytes)
+}
+
+/// Renders `frame` as PNG bytes (see [`still_bytes`]).
+pub fn png_bytes(document: &Document, frame: u32) -> Result<Vec<u8>, String> {
+    still_bytes(document, frame, StillFormat::Png)
 }
 
 /// Encodes straight-alpha RGBA pixels as PNG bytes. `rgba` must hold `width * height` pixels.
@@ -46,12 +56,23 @@ pub fn rgba_png(width: u32, height: u32, rgba: &[u8]) -> Result<Vec<u8>, String>
 
 /// Writes `frame` to `path` as a PNG (see [`png_bytes`]).
 pub fn export_png(document: &Document, frame: u32, path: &Path) -> Result<(), String> {
-    let bytes = png_bytes(document, frame)?;
+    export_still(document, frame, path, StillFormat::Png)
+}
+
+/// Writes `frame` to `path` in `format` (see [`still_bytes`]). The file is created only after
+/// the frame is rendered and encoded, so a refused format leaves no empty file behind.
+pub fn export_still(
+    document: &Document,
+    frame: u32,
+    path: &Path,
+    format: StillFormat,
+) -> Result<(), String> {
+    let bytes = still_bytes(document, frame, format)?;
     let file =
         File::create(path).map_err(|error| format!("Cannot create {}: {error}", path.display()))?;
     BufWriter::new(file)
         .write_all(&bytes)
-        .map_err(|error| format!("Cannot write the PNG: {error}"))
+        .map_err(|error| format!("Cannot write the image: {error}"))
 }
 
 #[cfg(test)]
@@ -86,6 +107,26 @@ mod tests {
             vec![],
         )
         .expect("document")
+    }
+
+    #[test]
+    fn a_jpeg_is_written_and_a_refused_quality_leaves_no_file() {
+        let document = document_with_a_red_square();
+        let dir = tempfile::tempdir().expect("dir");
+        let path = dir.path().join("frame.jpg");
+        export_still(&document, 0, &path, StillFormat::Jpeg { quality: 90 }).expect("export");
+        let bytes = std::fs::read(&path).expect("read");
+        assert_eq!(
+            &bytes[..3],
+            &[0xFF, 0xD8, 0xFF],
+            "JPEG start-of-image marker"
+        );
+
+        let refused = dir.path().join("refused.jpg");
+        let error = export_still(&document, 0, &refused, StillFormat::Jpeg { quality: 0 })
+            .expect_err("quality 0 is outside 1 to 100");
+        assert!(error.contains("JPEG quality 0"), "{error}");
+        assert!(!refused.exists(), "a refused export leaves no file behind");
     }
 
     #[test]
