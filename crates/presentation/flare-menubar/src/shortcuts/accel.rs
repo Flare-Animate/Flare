@@ -119,6 +119,22 @@ impl Accelerator {
         !self.cmd && !self.alt && !self.shift
     }
 
+    /// The chord in muda's syntax (`CmdOrCtrl+Shift+Z`), which the native menu registers.
+    pub fn muda_text(&self) -> String {
+        let mut out = String::new();
+        if self.cmd {
+            out.push_str("CmdOrCtrl+");
+        }
+        if self.alt {
+            out.push_str("Alt+");
+        }
+        if self.shift {
+            out.push_str("Shift+");
+        }
+        out.push_str(&self.key);
+        out
+    }
+
     /// As a person reads it: `Ctrl+O`, or with symbols on macOS.
     pub fn display(&self) -> String {
         let mac = cfg!(target_os = "macos");

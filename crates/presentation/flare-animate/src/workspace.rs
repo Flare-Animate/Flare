@@ -20,6 +20,7 @@ use flare_input::{InputSample, PenFeed};
 mod arrange;
 mod assist;
 mod background_work;
+mod chords;
 mod close_prompt;
 mod command_labels;
 mod commands;

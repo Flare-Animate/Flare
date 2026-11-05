@@ -135,3 +135,18 @@ fn bad_files_are_refused_and_fall_back() {
         Err(ShortcutError::TooLarge(_))
     ));
 }
+
+#[test]
+fn the_muda_text_of_every_default_shortcut_is_the_table_the_native_menu_registers() {
+    let map = ShortcutMap::default();
+    for action in MenuAction::ALL {
+        if action.tool_key().is_some() {
+            continue;
+        }
+        assert_eq!(
+            map.get(action).map(Accelerator::muda_text).as_deref(),
+            action.shortcut(),
+            "{action:?}"
+        );
+    }
+}

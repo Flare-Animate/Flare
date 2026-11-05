@@ -21,6 +21,7 @@ mod anchor_tools;
 mod basics;
 mod brush_nib;
 mod camera;
+mod chord_dispatch;
 mod close_prompt;
 mod color_section;
 mod drawing_into_layers;

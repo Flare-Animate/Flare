@@ -15,6 +15,22 @@ pub fn accelerator(action: MenuAction) -> Option<&'static str> {
     action.shortcut()
 }
 
+/// The accelerator in force for an action, from the workspace's shortcut map. Tools are left out:
+/// their bare letters are handled by the workspace, never by the native menu.
+#[cfg(any(target_os = "macos", test))]
+pub fn bound_accelerator(
+    workspace: &flare_animate::Workspace,
+    action: MenuAction,
+) -> Option<String> {
+    if action.tool_key().is_some() {
+        return None;
+    }
+    workspace
+        .shortcuts()
+        .get(action)
+        .map(flare_menubar::Accelerator::muda_text)
+}
+
 #[cfg(target_os = "macos")]
 pub use native::NativeMenu;
 
@@ -28,13 +44,16 @@ mod native {
     use muda::accelerator::Accelerator;
     use muda::{Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 
-    use super::accelerator;
+    use super::{accelerator, bound_accelerator};
 
     /// The macOS menu bar and the items whose state follows the workspace.
     pub struct NativeMenu {
         menu: Menu,
         window_menu: Submenu,
         items: Vec<(MenuAction, MenuItem)>,
+        /// The accelerator each item shows now, in step with `items`, so a rebinding is applied
+        /// once and an idle pass sets nothing.
+        accelerators: std::cell::RefCell<Vec<Option<String>>>,
         /// What the other items say, kept with the English name the layout knows them by so they
         /// can be said again when the language changes.
         names: Names,
@@ -203,6 +222,12 @@ mod native {
             Ok(Self {
                 menu,
                 window_menu,
+                accelerators: std::cell::RefCell::new(
+                    items
+                        .iter()
+                        .map(|(a, _)| accelerator(*a).map(str::to_owned))
+                        .collect(),
+                ),
                 items,
                 names,
             })
@@ -226,7 +251,19 @@ mod native {
 
         /// Makes enabled state and labels match the workspace. Cheap; call after each pass.
         pub fn sync(&self, workspace: &Workspace) {
-            for (action, it) in &self.items {
+            let mut shown = self.accelerators.borrow_mut();
+            for (index, (action, it)) in self.items.iter().enumerate() {
+                // A rebinding in Help > Keyboard Shortcuts moves the chord the menu owns.
+                let wanted = bound_accelerator(workspace, *action);
+                if shown.get(index) != Some(&wanted) {
+                    let parsed = wanted.as_deref().map(Accelerator::from_str).transpose();
+                    if let Ok(parsed) = parsed
+                        && it.set_accelerator(parsed).is_ok()
+                        && let Some(slot) = shown.get_mut(index)
+                    {
+                        *slot = wanted;
+                    }
+                }
                 let enabled = workspace.is_enabled(*action);
                 if it.is_enabled() != enabled {
                     it.set_enabled(enabled);
@@ -283,5 +320,30 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    #[allow(clippy::expect_used)]
+    fn the_native_menu_registers_what_the_shortcut_map_says() {
+        let mut workspace = flare_animate::Workspace::untitled().expect("a new workspace");
+        // The built-in set is the table the menu was always built from.
+        for action in MenuAction::ALL {
+            assert_eq!(
+                bound_accelerator(&workspace, action).as_deref(),
+                accelerator(action),
+                "{action:?}"
+            );
+        }
+        workspace
+            .set_shortcut(MenuAction::Undo, "CmdOrCtrl+U")
+            .expect("a free chord");
+        assert_eq!(
+            bound_accelerator(&workspace, MenuAction::Undo).as_deref(),
+            Some("CmdOrCtrl+U")
+        );
+        workspace.clear_shortcut(MenuAction::Save);
+        assert_eq!(bound_accelerator(&workspace, MenuAction::Save), None);
+        // A tool key is never given to the native menu.
+        assert_eq!(bound_accelerator(&workspace, MenuAction::ToolSelect), None);
     }
 }
