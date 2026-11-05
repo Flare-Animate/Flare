@@ -10,6 +10,9 @@ use crate::paint::{bez_path, clip_path, color, linear_gradient, stroke_style};
 #[allow(unused_imports)]
 use crate::{Image, PremultipliedImage, RenderError, Viewport};
 
+/// The least width, in stage units, a stroke is picked by.
+const MIN_STROKE_PICK: f64 = 4.0;
+
 /// Indices into `frame.shapes` of every shape whose fill or stroke contains `point` (scene
 /// coordinates), topmost first. Fills use the same non-zero rule as rendering; a stroke counts
 /// where it is drawn (round caps and joins, width scaled by the shape's transform), so a line
@@ -46,10 +49,12 @@ pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
             drawn.shape.stroke().is_some_and(|stroke| {
                 // Flatten finely relative to how big a local unit is on screen.
                 let tolerance = 0.1 / determinant.abs().sqrt().max(1e-6);
-                let style = stroke_style(
-                    stroke.width(),
-                    stroke.with_style(flare_document::StrokeStyle::Solid),
-                );
+                // A hairline pencil stroke is a target of at least a few units, as in Animate.
+                let width = stroke
+                    .width()
+                    .max(MIN_STROKE_PICK / determinant.abs().sqrt());
+                let style =
+                    stroke_style(width, stroke.with_style(flare_document::StrokeStyle::Solid));
                 let outline = vello_cpu::kurbo::stroke(
                     path.elements().iter().copied(),
                     &style,

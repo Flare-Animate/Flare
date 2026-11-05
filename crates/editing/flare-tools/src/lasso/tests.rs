@@ -97,3 +97,45 @@ fn a_point_is_inside_a_loop_by_the_even_odd_rule() {
     assert!(!polygon_contains(&square, p(15.0, 5.0)));
     assert!(!polygon_contains(&[], p(0.0, 0.0)));
 }
+
+#[test]
+fn a_loop_takes_a_stroke_it_touches_though_the_center_of_its_bounds_is_outside() {
+    use crate::test_support::*;
+    use flare_core::{DocumentPoint, ShapeId};
+    use flare_document::{Content, FrameSpan, PathSegment, Shape, Stroke};
+    use std::num::NonZeroU32;
+    let pt = |x: f64, y: f64| DocumentPoint::new(x, y).expect("point");
+    // A pencil "L": its bounds center (50, 50) is empty space.
+    let path = vec![
+        PathSegment::MoveTo(pt(0.0, 0.0)),
+        PathSegment::LineTo(pt(0.0, 100.0)),
+        PathSegment::LineTo(pt(100.0, 100.0)),
+    ];
+    let shape = Shape::new(ShapeId::new(), path, flare_core::Rgba8::TRANSPARENT)
+        .expect("shape")
+        .with_stroke(Stroke::new(2.0, RED).expect("stroke"));
+    let mut f = fixture();
+    let span = FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(shape));
+    add(&mut f, span);
+    let around = |x0: f32, y0: f32, x1: f32, y1: f32| [p(x0, y0), p(x1, y0), p(x1, y1), p(x0, y1)];
+    let hit = spans_in_polygon(
+        f.session.document(),
+        f.scene,
+        0,
+        &around(-5.0, -5.0, 10.0, 30.0),
+    );
+    assert_eq!(hit, vec![at(&f, 0)]);
+    let miss = spans_in_polygon(
+        f.session.document(),
+        f.scene,
+        0,
+        &around(30.0, 30.0, 70.0, 70.0),
+    );
+    assert!(miss.is_empty(), "a loop in the empty middle takes nothing");
+    let bounds = bounds(&f, 0);
+    assert_eq!(
+        (bounds.min.x, bounds.max.y),
+        (-1.0, 101.0),
+        "includes half the width"
+    );
+}

@@ -427,3 +427,25 @@ fn a_dashed_line_has_gaps_and_a_solid_one_has_none() {
     );
     assert!(covered(&dotted) < d, "dots cover less than dashes");
 }
+
+#[test]
+fn a_hairline_stroke_is_picked_within_a_few_units_and_not_beyond() {
+    use flare_document::Stroke as DocStroke;
+    let line = Shape::line(
+        ShapeId::new(),
+        (0.0, 50.0),
+        (100.0, 50.0),
+        DocStroke::new(1.0, RED).expect("stroke"),
+    )
+    .expect("line");
+    let (doc, id) = scene_with(vec![span(Content::Shape(line))], vec![]);
+    let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+    assert_eq!(hit_test(&frame, DVec2::new(50.0, 50.0)), Some(0));
+    assert_eq!(hit_test(&frame, DVec2::new(50.0, 51.5)), Some(0), "near");
+    assert_eq!(hit_test(&frame, DVec2::new(50.0, 56.0)), None, "far");
+    assert_eq!(
+        hit_test(&frame, DVec2::new(150.0, 50.0)),
+        None,
+        "past the end"
+    );
+}
