@@ -2172,6 +2172,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "flare-game"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
 name = "flare-history"
 version = "0.1.0"
 dependencies = [

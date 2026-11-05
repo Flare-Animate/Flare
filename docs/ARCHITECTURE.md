@@ -16,6 +16,7 @@ Executables are in `apps/`. The folders mean:
 | Layer | Crate | Responsibility |
 |---|---|---|
 | foundation | `flare-core` | Typed IDs (UUIDv7), `FrameRate`, `DocumentPoint`, `Transform2D`, `Rgba8`, effect parameter sets with a scale (`fx_params`). No I/O. `flare_core::experimental` holds unstable work that is not wired into documents, commands or any front end; it has ViewSpace Keys (`experimental::viewspace`, see [experimental/VIEWSPACE.md](experimental/VIEWSPACE.md)). |
+| foundation | `flare-game` | The game description and its world: entities with typed components, the seven systems (physics, camera, sprites, particles, audio, UI and the script placeholder) in a fixed order, a fixed-timestep step, scripted input and deterministic runs. No window, sound or file access. See [GAME.md](GAME.md). |
 | foundation | `flare-document` | The document model and its validation. No GUI, GPU, database or async code. |
 | foundation | `flare-eval` | Pure frame evaluation: document + scene + frame to placed instances and drawn shapes. |
 | foundation | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
