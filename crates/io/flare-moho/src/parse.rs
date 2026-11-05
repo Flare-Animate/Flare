@@ -1,5 +1,9 @@
 //! Reads the project document's JSON into the model. Every field is read with a default, so a
 //! document that lacks a field from another format generation still parses.
+//!
+//! Bones live in two places: a Moho 11 and 12 document has one root `skeleton`, while Moho 13
+//! keeps a skeleton inside each bone layer (`layers[i].skeleton`). Both are read, and each bone
+//! records the path of its keyframe tracks.
 
 use serde_json::{Map, Value};
 
@@ -11,6 +15,14 @@ use crate::limits::{
 };
 use crate::model::{Binding, Bone, Layer, LayerKind, Project, SwitchCells};
 use crate::tree;
+
+/// Counters shared by the whole walk, so each limit holds for the project as a whole.
+#[derive(Default)]
+struct Walk {
+    layers: usize,
+    mesh_budget: (usize, usize),
+    bones: Vec<Bone>,
+}
 
 pub(crate) fn parse_document(bytes: &[u8], entry: String) -> Result<Project, MohoError> {
     let size = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
@@ -30,10 +42,9 @@ pub(crate) fn parse_document(bytes: &[u8], entry: String) -> Result<Project, Moh
         .and_then(Value::as_object)
         .unwrap_or(&empty);
 
-    let mut layer_count = 0;
-    let mut mesh_budget = (0, 0);
-    let layers = read_layers(root.get("layers"), 0, &mut layer_count, &mut mesh_budget)?;
-    let bones = read_bones(root)?;
+    let mut walk = Walk::default();
+    read_skeleton(root.get("skeleton"), "skeleton", &mut walk)?;
+    let layers = read_layers(root.get("layers"), "layers", 0, &mut walk)?;
     let harvest = tree::harvest(&value)?;
     Ok(Project {
         entry,
@@ -45,18 +56,20 @@ pub(crate) fn parse_document(bytes: &[u8], entry: String) -> Result<Project, Moh
         start_frame: int(project_data, "start_frame", 0),
         end_frame: int(project_data, "end_frame", 0),
         layers,
-        bones,
+        bones: walk.bones,
         tracks: harvest.tracks,
         images: harvest.images.into_iter().collect(),
         audio: harvest.audio.into_iter().collect(),
     })
 }
 
+/// `path` is the document path of the layer list the entries sit in (`layers` at the top, then
+/// `layers[0].layers`, and so on); each entry's path is that plus its index.
 fn read_layers(
     value: Option<&Value>,
+    path: &str,
     depth: usize,
-    count: &mut usize,
-    mesh_budget: &mut (usize, usize),
+    walk: &mut Walk,
 ) -> Result<Vec<Layer>, MohoError> {
     let Some(items) = value.and_then(Value::as_array) else {
         return Ok(Vec::new());
@@ -71,20 +84,24 @@ fn read_layers(
         });
     }
     let mut layers = Vec::with_capacity(items.len().min(MAX_LAYERS));
-    for item in items {
+    for (index, item) in items.iter().enumerate() {
         let Some(o) = item.as_object() else {
             continue;
         };
-        *count += 1;
-        if *count > MAX_LAYERS {
+        walk.layers += 1;
+        if walk.layers > MAX_LAYERS {
             return Err(MohoError::Limit {
                 what: "layers",
                 limit: MAX_LAYERS,
             });
         }
+        let here = format!("{path}[{index}]");
         let kind = LayerKind::from_moho(&text(o, "type"));
         let kind_is_vector = kind == LayerKind::Vector;
         let switch = (kind == LayerKind::Switch).then(|| switch_cells(o));
+        if kind == LayerKind::Bone {
+            read_skeleton(o.get("skeleton"), &format!("{here}.skeleton"), walk)?;
+        }
         layers.push(Layer {
             name: text(o, "name"),
             kind,
@@ -98,11 +115,11 @@ fn read_layers(
                 .or_else(|| opt_text(o, "line_texture_path")),
             switch,
             mesh: if kind_is_vector {
-                crate::mesh::read(o.get("mesh"), mesh_budget)?
+                crate::mesh::read(o.get("mesh"), &mut walk.mesh_budget)?
             } else {
                 None
             },
-            children: read_layers(o.get("layers"), depth + 1, count, mesh_budget)?,
+            children: read_layers(o.get("layers"), &format!("{here}.layers"), depth + 1, walk)?,
         });
     }
     Ok(layers)
@@ -140,41 +157,64 @@ fn switch_cells(o: &Map<String, Value>) -> SwitchCells {
     }
 }
 
-fn read_bones(root: &Map<String, Value>) -> Result<Vec<Bone>, MohoError> {
-    let empty = Map::new();
-    let skeleton = root
-        .get("skeleton")
+/// Appends the bones of one skeleton. A parent index is local to its skeleton; it is stored as
+/// an index into the whole project's bones, and one that names no bone of the skeleton makes a
+/// root instead of failing the file.
+fn read_skeleton(value: Option<&Value>, path: &str, walk: &mut Walk) -> Result<(), MohoError> {
+    let Some(list) = value
         .and_then(Value::as_object)
-        .unwrap_or(&empty);
-    let Some(list) = skeleton.get("bones").and_then(Value::as_array) else {
-        return Ok(Vec::new());
+        .and_then(|s| s.get("bones"))
+        .and_then(Value::as_array)
+    else {
+        return Ok(());
     };
-    if list.len() > MAX_BONES {
+    if walk.bones.len() + list.len() > MAX_BONES {
         return Err(MohoError::Limit {
             what: "bones",
             limit: MAX_BONES,
         });
     }
-    let mut bones = Vec::with_capacity(list.len());
+    let base = walk.bones.len();
+    let empty = Map::new();
+    let mut local: Vec<Option<usize>> = list
+        .iter()
+        .map(|item| {
+            let raw = int(item.as_object().unwrap_or(&empty), "parent", -1);
+            usize::try_from(raw).ok().filter(|p| *p < list.len())
+        })
+        .collect();
+    break_cycles(&mut local);
     for (index, item) in list.iter().enumerate() {
-        let empty = Map::new();
         let o = item.as_object().unwrap_or(&empty);
-        // A parent must be an earlier bone, so the hierarchy is a forest with no cycles.
-        let raw = int(o, "parent", -1);
-        let parent = match usize::try_from(raw) {
-            Ok(p) if p < index => Some(p),
-            Ok(_) => return Err(MohoError::BadBoneParent { index, parent: raw }),
-            Err(_) => None,
-        };
-        bones.push(Bone {
+        walk.bones.push(Bone {
             name: text(o, "name"),
-            parent,
+            parent: local[index].map(|p| base + p),
             length: float(o, "length", 0.0),
             strength: float(o, "strength", 0.0),
             dynamic: flag(o, "bone_dynamics", false),
+            path: format!("{path}.bones[{index}]"),
         });
     }
-    Ok(bones)
+    Ok(())
+}
+
+/// Clears the parent of every bone that is on a loop of parents, so each chain ends at a root.
+/// Quadratic in the bones of one skeleton, which [`MAX_BONES`] bounds.
+fn break_cycles(parents: &mut [Option<usize>]) {
+    let n = parents.len();
+    for start in 0..n {
+        let mut cur = start;
+        for _ in 0..n {
+            match parents[cur] {
+                Some(p) => cur = p,
+                None => break,
+            }
+            if cur == start {
+                parents[start] = None;
+                break;
+            }
+        }
+    }
 }
 
 fn int(o: &Map<String, Value>, key: &str, default: i64) -> i64 {

@@ -21,11 +21,11 @@ pub const MAX_IMAGE_FRAMES: usize = 2_000;
 const MAX_DECODED_BYTES: u64 = 512 * 1024 * 1024;
 
 /// A decoded picture: RGBA8 straight alpha, and the time it shows (GIF only), in hundredths.
-struct Picture {
-    width: u32,
-    height: u32,
-    rgba: Vec<u8>,
-    delay_cs: u32,
+pub(crate) struct Picture {
+    pub(crate) width: u32,
+    pub(crate) height: u32,
+    pub(crate) rgba: Vec<u8>,
+    pub(crate) delay_cs: u32,
 }
 
 fn bad(file: &str, why: impl std::fmt::Display) -> ImportError {
@@ -45,7 +45,7 @@ fn check_size(file: &str, width: u32, height: u32) -> Result<(), ImportError> {
     Ok(())
 }
 
-fn decode_png(file: &str, bytes: &[u8]) -> Result<Picture, ImportError> {
+pub(crate) fn decode_png(file: &str, bytes: &[u8]) -> Result<Picture, ImportError> {
     let mut decoder = png::Decoder::new(std::io::Cursor::new(bytes));
     decoder.set_transformations(png::Transformations::normalize_to_color8());
     let mut reader = decoder.read_info().map_err(|e| bad(file, e))?;

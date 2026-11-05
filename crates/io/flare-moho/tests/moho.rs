@@ -180,19 +180,6 @@ fn invalid_json_and_non_object_are_refused() {
 }
 
 #[test]
-fn bone_parent_must_be_an_earlier_bone() {
-    let doc = r#"{"skeleton": {"bones": [
-        {"name": "a", "parent": 1}, {"name": "b", "parent": -1}]}}"#;
-    assert!(matches!(
-        parse_bytes(doc.as_bytes(), "p.mohoproj"),
-        Err(MohoError::BadBoneParent {
-            index: 0,
-            parent: 1
-        })
-    ));
-}
-
-#[test]
 fn layer_nesting_is_bounded() {
     let mut doc = String::from("{\"layers\": [");
     for _ in 0..=MAX_LAYER_DEPTH {

@@ -33,6 +33,14 @@ pub fn import_foreign_path(path: &Path) -> Result<Imported, ImportError> {
     std::fs::File::open(path)?
         .take(MAX_BYTES + 1)
         .read_to_end(&mut bytes)?;
+    if foreign_kind(path) == Some("moho") {
+        // A Moho project's pictures are read from its own folder, and nowhere else.
+        let folder = match path.parent() {
+            Some(dir) if !dir.as_os_str().is_empty() => dir,
+            _ => Path::new("."),
+        };
+        return import_moho(path, bytes, Some(folder));
+    }
     import_foreign_bytes(path, bytes)
 }
 
@@ -47,11 +55,7 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
         .unwrap_or("project");
     let foreign = |e: &dyn std::fmt::Display| ImportError::Foreign(format!("{file}: {e}"));
     match foreign_kind(name) {
-        Some("moho") => {
-            let project = flare_moho::parse_bytes(&bytes, file).map_err(|e| foreign(&e))?;
-            let out = flare_moho::to_flare_document(&project).map_err(|e| foreign(&e))?;
-            Ok(from_moho(out))
-        }
+        Some("moho") => import_moho(name, bytes, None),
         Some("bvh") => {
             let text = String::from_utf8(bytes).map_err(|_| foreign(&"not UTF-8 text"))?;
             let parsed = flare_moho::bvh::parse(&text).map_err(|e| foreign(&e))?;
@@ -66,6 +70,30 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
         Some("toonz") => crate::toonz::import(name, &bytes).map_err(|e| foreign(&e)),
         _ => Err(ImportError::NotXfl("unknown file type".into())),
     }
+}
+
+/// A Moho project; with `folder`, its image layers' pictures are read from that folder.
+fn import_moho(
+    name: &Path,
+    bytes: Vec<u8>,
+    folder: Option<&Path>,
+) -> Result<Imported, ImportError> {
+    let file = name
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("project");
+    let foreign = |e: &dyn std::fmt::Display| ImportError::Foreign(format!("{file}: {e}"));
+    let project = flare_moho::parse_bytes(&bytes, file).map_err(|e| foreign(&e))?;
+    let out = match folder {
+        Some(dir) => {
+            let mut pictures =
+                crate::moho_images::ProjectFolder::new(dir).map_err(|e| foreign(&e))?;
+            flare_moho::to_flare_document_with(&project, &mut pictures)
+        }
+        None => flare_moho::to_flare_document(&project),
+    }
+    .map_err(|e| foreign(&e))?;
+    Ok(from_moho(out))
 }
 
 fn from_moho(out: flare_moho::Converted) -> Imported {

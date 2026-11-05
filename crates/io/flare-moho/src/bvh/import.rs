@@ -11,6 +11,7 @@ use super::{Axis, Bvh, Motion};
 use crate::convert::{Builder, Converted, Severity, finish, frame_rate};
 use crate::convert_anim::{Rig, place};
 use crate::error::MohoError;
+use crate::images::NoImages;
 use crate::model::{Channel, ChannelKind, Key, KeyValue};
 use flare_core::{LayerId, SceneId};
 
@@ -37,6 +38,7 @@ pub fn to_document(bvh: &Bvh) -> Result<Converted, MohoError> {
     }
     bvh.validate()
         .map_err(|e| MohoError::Document(e.to_string()))?;
+    let mut no_images = NoImages;
     let mut b = Builder {
         scene: SceneId::new(),
         commands: Vec::new(),
@@ -46,6 +48,8 @@ pub fn to_document(bvh: &Bvh) -> Result<Converted, MohoError> {
         end_frame: i64::try_from(bvh.frame_count)
             .unwrap_or(0)
             .saturating_sub(1),
+        images: &mut no_images,
+        bitmaps: std::collections::HashMap::new(),
     };
     let rate = frame_rate(bvh.frame_time.recip())
         .ok_or_else(|| MohoError::Document("the BVH frame time is not usable".into()))?;

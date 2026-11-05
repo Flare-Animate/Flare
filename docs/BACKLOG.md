@@ -26,6 +26,8 @@ code only if its licence allows it to be copied into a BSD-3 project with its no
 | nflare (`Flare-Animate/nflare`) | `GPLv3` (full text in `LICENSE`); a fork of nanofl | No: BSD-3 Flare cannot take GPLv3 code without relicensing | Behaviour only, no code |
 | ArtCraft's `Replicraft` | Not found (see below) | Unknown | Not used |
 | bitmapflow (`Bauxitedev/bitmapflow`) | **No LICENSE file** in the repository; its README says MIT, which is not relied on | Unknown | Behaviour and ideas only, no code (ENGINEERING.md) |
+| godot_moho_importer (`jpdurigan/godot_moho_importer`) | `MIT` (`LICENSE`) | Yes, with attribution | Format facts used with attribution (see Sources 9) |
+| moho-file-analyzer (`sinahojati/moho-file-analyzer`) | No LICENSE file | No (no permission to copy) | Behaviour only, no code |
 | eisai-anime-interpolator (`ShuhongChen/eisai-anime-interpolator`) | `AGPL-3.0` (`license.txt`) | No: copyleft, not permissive | Behaviour and ideas only, no code; its neural weights are not used (ENGINEERING.md) |
 | flipnote.js (`jaames/flipnote.js`, Flipnote Studio parsers, test samples) | `MIT` (`LICENSE`, Copyright (c) 2018 James Daniel) | Yes, with the notice kept | Port allowed with attribution: the PPM parser was followed in `crates/io/flare-import/src/flipnote/` (ENGINEERING.md). Its KWZ parser is not used yet |
 | Flipnote Collective `flipnote-studio-docs` (wiki, Flipnote Studio PPM) | `GPL-2.0` (`LICENSE` text fetched from the repository page) | No: GPL | Facts only; no text or code copied |
@@ -146,6 +148,18 @@ The reference list for `docs/FLIPNOTE.md`. Each source's licence is in the table
 - Open work: the KWZ reader (sections, tile frames, three layers, sound), the PPM sound and
   thumbnail, and an oracle comparison of decoded pixels with flipnote.js (refused in this run).
 
+### 10. Moho and Anime Studio (`flare-moho`)
+
+| Source | Licence (file read) | Use |
+|---|---|---|
+| jpdurigan/godot_moho_importer (`godot_moho_importer`) | `MIT` (`LICENSE`, 2022 João Pedro Durigan) | Format facts (layer type names, mesh and bone key names, track names) with attribution in ROADMAP; its `CharWalk.moho` and `CharWalk.mohoproj` used as real samples, outside the repo (not committed) |
+| sinahojati/moho-file-analyzer | **No LICENSE file** (README and `.ps1` only) | Behaviour only, no code; not a source of format facts that are copied |
+| SimplSam/moho-bvh-bones | `CC BY-NC-SA 4.0` | Behaviour only (ENGINEERING.md); no code |
+| Web search (`Moho Lost Marble Project.mohoproj`) | Not applicable: only file-extension directories and a forum thread; no open-source parser or JSON schema found | Nothing taken |
+
+The real Moho 13 files and their layout are recorded in [MOHO.md](MOHO.md). Samples are not
+committed; the tests use synthetic files written to match the layout.
+
 ### Replicraft: not found
 
 Tried: `gh search repos replicraft` (HTTP 502 from the GitHub search API, same for `nflare`
@@ -188,7 +202,7 @@ found), **Not planned** (ROADMAP or PARITY says so).
 | Find and Replace | AnimationCraft (not checked), ROADMAP lower priority | Gap | dock pane `Pane::FindReplace` (`flare-dock/src/lib.rs`) and an empty `find_replace_panel` stub (`flare-animate/src/workspace/panels/info.rs`); no behaviour |
 | Stop motion camera capture | OpenToonz `stopmotion`, `flare-stopmotion` | Partial | `NoCamera` refuses by name (SURFACES) |
 | Toonz import (`.tnz`, `.pli`, `.tlv`) | OpenToonz | Partial | `flare-toonz` reads headers; levels not decoded (ROADMAP) |
-| Moho import | `original/`, Flare `flare-moho` | Partial | parse done; conversion not (ROADMAP) |
+| Moho import | `original/`, Flare `flare-moho` | Partial | parse and conversion done, image layers included; bone-bound layers keep their own placement, actions not converted ([MOHO.md](MOHO.md)) |
 | Xsheet, FX schematic, Plastic, cleanup, render farm | OpenToonz, Tahoma2D | Not planned or P2/P3 | ROADMAP OpenToonz feature areas |
 | Camera, VCam, layer parenting, masks, onion skin, buttons | AnimationCraft, minnamate | Built (buttons: Up state only, ROADMAP item 2) | ROADMAP, SURFACES |
 | 3D rotation and translation, glTF | AnimationCraft, nflare | Not planned | out of scope in ROADMAP for now |

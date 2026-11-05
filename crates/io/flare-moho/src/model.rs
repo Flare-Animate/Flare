@@ -75,12 +75,17 @@ pub struct Layer {
     pub children: Vec<Layer>,
 }
 
-/// The art of a vector layer: points, and curves that join them. Handles and fills are not read.
+/// The art of a vector layer: points, and curves that join them. Bezier handles are not read.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Mesh {
     /// Rest position of each point, in Moho units.
     pub points: Vec<[f64; 2]>,
     pub curves: Vec<MeshCurve>,
+    /// Fill colour of the drawing (r, g, b, a in 0..=1): the first filled shape's. Moho fills
+    /// regions, not whole drawings, so a drawing with several fills keeps only this one.
+    pub fill: Option<[f64; 4]>,
+    /// Distinct fill colours among the filled shapes.
+    pub fills: usize,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -147,12 +152,16 @@ impl Binding {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bone {
     pub name: String,
-    /// Index of the parent in [`Project::bones`]; `None` for a root.
+    /// Index of the parent in [`Project::bones`]; `None` for a root. A parent may come later in
+    /// the list, and no chain of parents loops.
     pub parent: Option<usize>,
     pub length: f64,
     pub strength: f64,
     /// Whether the bone has spring and damping dynamics at playback.
     pub dynamic: bool,
+    /// The bone's path in the document, the prefix of its keyframe tracks' paths (for example
+    /// `layers[0].skeleton.bones[3]`).
+    pub path: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -26,8 +26,6 @@ pub enum MohoError {
     NotObject,
     #[error("the project exceeds the limit of {limit} for {what}")]
     Limit { what: &'static str, limit: usize },
-    #[error("bone {index} names parent {parent}, which is not an earlier bone")]
-    BadBoneParent { index: usize, parent: i64 },
     #[error("cannot read the project: {0}")]
     Io(#[from] std::io::Error),
     #[error("the project cannot become a Flare document: {0}")]

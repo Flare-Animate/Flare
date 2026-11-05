@@ -310,3 +310,48 @@ async fn a_flipaclip_project_in_the_export_directory_imports_by_its_extension() 
     assert_eq!(imported["scenes"], 1);
     assert!(imported["path"].as_str().expect("p").ends_with("fc.flare"));
 }
+
+#[tokio::test]
+async fn a_moho_project_imports_with_its_pictures_read_from_the_export_folder() {
+    let f = fixture(true, true).await;
+    let exports = f.dir.path().join("exports");
+    std::fs::create_dir_all(exports.join("art")).expect("art folder");
+    let mut png = Vec::new();
+    {
+        let mut encoder = png::Encoder::new(&mut png, 1, 1);
+        encoder.set_color(png::ColorType::Rgba);
+        encoder.set_depth(png::BitDepth::Eight);
+        let mut writer = encoder.write_header().expect("header");
+        writer
+            .write_image_data(&[255, 255, 255, 255])
+            .expect("data");
+        writer.finish().expect("finish");
+    }
+    std::fs::write(exports.join("art/photo.png"), &png).expect("picture");
+    std::fs::write(
+        exports.join("scene.mohoproj"),
+        r#"{"version": 1038, "major_version": 13,
+          "project_data": {"width": 40, "height": 20, "fps": 24.0, "end_frame": 1},
+          "layers": [
+            {"name": "Photo", "type": "ImageLayer", "visible": true, "parent_bone": -2, "image_path": "art/photo.png"},
+            {"name": "Escape", "type": "ImageLayer", "visible": true, "parent_bone": -2, "image_path": "../../secret.png"}
+          ]}"#,
+    )
+    .expect("project");
+    let imported = f
+        .ok(
+            "import_project",
+            json!({ "source": "scene.mohoproj", "name": "from-moho" }),
+        )
+        .await;
+    let diagnostics = imported["diagnostics"].as_array().expect("diagnostics");
+    assert!(
+        diagnostics
+            .iter()
+            .any(|d| d.to_string().contains("leaves the project folder")),
+        "{diagnostics:?}"
+    );
+    let loaded = flare_storage::load(std::path::Path::new(imported["path"].as_str().expect("p")))
+        .expect("the imported project opens");
+    assert_eq!(loaded.bitmaps().len(), 1, "the picture inside the folder");
+}

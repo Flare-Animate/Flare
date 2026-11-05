@@ -285,14 +285,16 @@ SimplSam/moho-bvh-bones is CC BY-NC-SA 4.0, so nothing was taken from it (behavi
   tracks, mesh points and curves, image and audio references; every size, depth and count bounded.
 - Phase 2, bones (done): BVH reader and writer, and `bvh::to_document` (a pose per frame per joint).
 - Phase 3, switch layers (done): switch keys become one instance span per key.
-- Phase 4, conversion (done, with gaps): `to_flare_document` builds one validated command batch:
-  groups as folders, vector layers as shape symbols (polylines; handles and fill colours are not
-  read) placed by translation, rotation and scale tracks, bones as folders with pose layers.
-  Image and audio layers are named as unsupported (a document has no bitmap content; a Moho
-  container's media is not read). Moho units are assumed two per stage height.
+- Phase 4, conversion (done, with gaps): `to_flare_document_with` builds one validated command batch:
+  groups as folders, vector layers as shape symbols (polylines, with the first filled shape's colour)
+  placed by translation, rotation and scale tracks, bones as folders with pose layers (Moho 13 keeps
+  each skeleton in its bone layer; forward parents are resolved), switch layers as one symbol per
+  alternative, and image layers as bitmaps from the project's folder (PNG only, see MOHO.md).
+  Audio layers are named as unsupported. Moho units are assumed two per stage height.
 - Phase 5, round trip: write a Moho project back, or export to BVH and XFL, and read it again unchanged.
-- Gaps: pre-11 `.anme` is refused by name; audio reference keys are unverified against real projects;
-  rendering is out of scope.
+- Gaps: bone-bound layers keep their own placement (the bone pose is not applied); actions and
+  interpolation other than linear and hold; Bezier handles; audio; pre-11 `.anme` is refused by name;
+  the audio key names are unverified. The verified and spec-only split is in [MOHO.md](MOHO.md).
 
 ## Reference backlog
 

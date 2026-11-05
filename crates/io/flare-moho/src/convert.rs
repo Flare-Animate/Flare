@@ -5,14 +5,19 @@
 //! Mapping: a group is a folder layer; a vector layer is a Graphic symbol holding its mesh as one
 //! shape, placed by an instance whose spans follow the layer's translation, rotation and scale
 //! tracks; each bone is a folder with an art layer drawing the bone, posed by its tracks; a
-//! switch layer is one symbol per alternative and an instance span per switch key. Image and
-//! audio layers have no document counterpart (a document has no bitmap content, and sound needs
-//! the decoded file, which a Moho container is not read for) and are reported by name.
+//! switch layer is one symbol per alternative and an instance span per switch key. An image layer
+//! is a symbol holding its picture from the document's bitmap library, centred on the layer's
+//! origin at its pixel size; the picture comes from an [`ImageSource`]. Audio layers have no
+//! document counterpart (sound needs the decoded file, which a Moho container is not read for)
+//! and are reported by name.
 
+use std::collections::HashMap;
 use std::num::NonZeroU32;
 
 use flare_commands::{Command, apply_all};
-use flare_core::{DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
+use flare_core::{
+    BitmapId, DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId,
+};
 use flare_core::{DocumentPoint, Transform2D};
 use flare_document::{
     Content, Document, FrameSpan, Instance, Layer, PathSegment, Scene, Shape, Stage, Symbol,
@@ -20,8 +25,10 @@ use flare_document::{
 };
 
 use crate::convert_anim::{Placement, Rig, place};
+use crate::convert_image::image_out;
 use crate::convert_vector::shape;
 use crate::error::MohoError;
+use crate::images::{ImageSource, NoImages};
 use crate::model::{Binding, Channel, Layer as MohoLayer, LayerKind, Project};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -51,16 +58,20 @@ pub struct Converted {
 pub(crate) const MAX_NOTES: usize = 1_000;
 const DEFAULT_SIDE: (u32, u32) = (1920, 1080);
 
-pub(crate) struct Builder {
+pub(crate) struct Builder<'a> {
     pub scene: SceneId,
     pub commands: Vec<Command>,
     pub notes: Vec<Note>,
     pub origin: [f64; 2],
     pub units_to_px: f64,
     pub end_frame: i64,
+    pub images: &'a mut dyn ImageSource,
+    /// Each picture path loaded so far: its bitmap and pixel size, or why it failed. A path is
+    /// asked for once, however many layers name it.
+    pub bitmaps: HashMap<String, Result<(BitmapId, u32, u32), String>>,
 }
 
-impl Builder {
+impl Builder<'_> {
     pub fn note(&mut self, severity: Severity, location: &str, message: impl Into<String>) {
         if self.notes.len() < MAX_NOTES {
             self.notes.push(Note {
@@ -73,9 +84,14 @@ impl Builder {
 
     /// Adds a Graphic symbol whose only art is `shape` (or nothing).
     pub fn symbol(&mut self, name: &str, shape: Option<Shape>) -> SymbolId {
+        self.symbol_content(name, shape.map(Content::Shape))
+    }
+
+    /// Adds a Graphic symbol whose only art is `content` (or nothing).
+    pub fn symbol_content(&mut self, name: &str, content: Option<Content>) -> SymbolId {
         let id = SymbolId::new();
-        let spans = shape
-            .map(|s| vec![FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(s))])
+        let spans = content
+            .map(|c| vec![FrameSpan::new(0, NonZeroU32::MIN, c)])
             .unwrap_or_default();
         let layer = Layer::new(LayerId::new(), "Art", spans);
         let layers = layer.into_iter().collect();
@@ -138,7 +154,11 @@ pub(crate) fn frame_rate(fps: f64) -> Option<FrameRate> {
 }
 
 /// Builds the document from `commands`: the project's frame rate and stage first.
-pub(crate) fn finish(b: Builder, rate: FrameRate, stage: Stage) -> Result<Converted, MohoError> {
+pub(crate) fn finish(
+    b: Builder<'_>,
+    rate: FrameRate,
+    stage: Stage,
+) -> Result<Converted, MohoError> {
     let scene = Scene::new(b.scene, "Scene 1", Timeline::new(Vec::new()));
     let base = Document::new(DocumentId::new(), rate, vec![scene], Vec::new())
         .map_err(|d| MohoError::Document(format!("{d:?}")))?
@@ -157,6 +177,14 @@ pub(crate) fn finish(b: Builder, rate: FrameRate, stage: Stage) -> Result<Conver
 /// Turns a read project into a Flare document, with notes on everything that could not be carried
 /// over.
 pub fn to_flare_document(project: &Project) -> Result<Converted, MohoError> {
+    to_flare_document_with(project, &mut NoImages)
+}
+
+/// As [`to_flare_document`], with image layers' pictures taken from `images`.
+pub fn to_flare_document_with(
+    project: &Project,
+    images: &mut dyn ImageSource,
+) -> Result<Converted, MohoError> {
     let (width, height) = if project.width >= 1
         && project.height >= 1
         && project.width <= flare_document::MAX_STAGE_SIDE
@@ -176,6 +204,8 @@ pub fn to_flare_document(project: &Project) -> Result<Converted, MohoError> {
         // Assumption, not read from the file: Moho's default stage is two units tall.
         units_to_px: f64::from(height) / 2.0,
         end_frame: project.end_frame,
+        images,
+        bitmaps: HashMap::new(),
     };
     if (width, height) != (project.width, project.height) {
         b.note(
@@ -204,11 +234,13 @@ pub fn to_flare_document(project: &Project) -> Result<Converted, MohoError> {
         layer_out(project, layer, &format!("layers[{i}]"), None, &mut b);
     }
     for path in &project.images {
-        b.note(
-            Severity::Unsupported,
-            path,
-            "image file: a Flare document has no bitmap content, so it is not placed",
-        );
+        if !b.bitmaps.contains_key(path) {
+            b.note(
+                Severity::Unsupported,
+                path,
+                "image file: not an image layer's picture, so it is not placed",
+            );
+        }
     }
     for path in &project.audio {
         b.note(
@@ -220,11 +252,12 @@ pub fn to_flare_document(project: &Project) -> Result<Converted, MohoError> {
     finish(b, rate, stage)
 }
 
-fn track<'a>(project: &'a Project, prefix: &str, name: &str) -> Option<&'a Channel> {
+/// The track at exactly `path`, such as `layers[0].transforms.translation`.
+fn track<'a>(project: &'a Project, path: &str) -> Option<&'a Channel> {
     project
         .tracks
         .iter()
-        .find(|t| t.path.starts_with(prefix) && t.path.ends_with(name))
+        .find(|t| t.path == path)
         .map(|t| &t.channel)
 }
 
@@ -245,24 +278,22 @@ fn line(length: f64, px: f64) -> Option<Shape> {
 
 /// Each bone is a folder (its children nest in it) with one art layer: the bone drawn as a line
 /// of its length, posed by its `anim_pos`, `anim_angle` and `anim_scale` tracks.
-fn skeleton(project: &Project, b: &mut Builder) {
+fn skeleton(project: &Project, b: &mut Builder<'_>) {
     if project.bones.is_empty() {
         return;
     }
     let root = b.folder("Skeleton", None, true);
-    let mut folders: Vec<LayerId> = Vec::with_capacity(project.bones.len());
-    for (i, bone) in project.bones.iter().enumerate() {
-        let parent = bone
-            .parent
-            .and_then(|p| folders.get(p).copied())
-            .unwrap_or(root);
+    let mut folders: Vec<Option<LayerId>> = vec![None; project.bones.len()];
+    // A parent may follow its child in the file, so bones are made from the roots down.
+    for i in bone_order(project) {
+        let bone = &project.bones[i];
+        let parent = bone.parent.and_then(|p| folders[p]).unwrap_or(root);
         let folder = b.folder(&bone.name, Some(parent), true);
-        folders.push(folder);
-        let prefix = format!("skeleton.bones[{i}].");
+        folders[i] = Some(folder);
         let rig = Rig {
-            translation: track(project, &prefix, "anim_pos"),
-            rotation: track(project, &prefix, "anim_angle"),
-            scale: track(project, &prefix, "anim_scale"),
+            translation: track(project, &format!("{}.anim_pos", bone.path)),
+            rotation: track(project, &format!("{}.anim_angle", bone.path)),
+            scale: track(project, &format!("{}.anim_scale", bone.path)),
         };
         let placement = place(rig, b.end_frame, b.origin, b.units_to_px, true);
         let symbol = b.symbol(&bone.name, line(bone.length, b.units_to_px));
@@ -290,12 +321,32 @@ fn skeleton(project: &Project, b: &mut Builder) {
     }
 }
 
+/// Bone indices with every parent before its children. Parents form no loops (the reader breaks
+/// any), so every bone is reached from a root.
+fn bone_order(project: &Project) -> Vec<usize> {
+    let mut children: Vec<Vec<usize>> = vec![Vec::new(); project.bones.len()];
+    let mut order = Vec::with_capacity(project.bones.len());
+    for (i, bone) in project.bones.iter().enumerate() {
+        match bone.parent {
+            Some(p) => children[p].push(i),
+            None => order.push(i),
+        }
+    }
+    let mut next = 0;
+    while next < order.len() {
+        let parent = order[next];
+        order.extend(children[parent].iter().copied());
+        next += 1;
+    }
+    order
+}
+
 fn layer_out(
     project: &Project,
     layer: &MohoLayer,
     path: &str,
     parent: Option<LayerId>,
-    b: &mut Builder,
+    b: &mut Builder<'_>,
 ) {
     let place_name = format!("{} ({path})", layer.name);
     if layer.binding != Binding::None {
@@ -340,22 +391,28 @@ fn layer_out(
                     "smooth or eased interpolation became linear",
                 );
             }
+            let fill_note = match layer.mesh.as_ref() {
+                Some(mesh) if mesh.fills > 1 => {
+                    Some((Severity::Warning, "several fill colours; the first is used"))
+                }
+                Some(mesh) if mesh.fill.is_some() => None,
+                _ => Some((
+                    Severity::Info,
+                    "fill colour not read; closed curves are grey",
+                )),
+            };
+            if let Some((severity, message)) = fill_note {
+                b.note(severity, &place_name, message);
+            }
             b.note(
                 Severity::Info,
                 &place_name,
-                "curve handles and fill colours are not read; drawn as a polyline",
+                "curve handles are not read; drawn as a polyline",
             );
             b.posed_layer(&layer.name, symbol, placement, parent, layer.visible);
         }
         LayerKind::Switch => switch_out(project, layer, &place_name, parent, b),
-        LayerKind::Image => {
-            let what = layer.image_path.as_deref().unwrap_or("no path");
-            b.note(
-                Severity::Unsupported,
-                &place_name,
-                format!("image layer ({what}): a document has no bitmap content"),
-            );
-        }
+        LayerKind::Image => image_out(project, layer, path, &place_name, parent, b),
         LayerKind::Other(raw) => {
             b.note(
                 Severity::Unsupported,
@@ -366,12 +423,11 @@ fn layer_out(
     }
 }
 
-fn rig_for<'a>(project: &'a Project, path: &str) -> Rig<'a> {
-    let prefix = format!("{path}.transforms.");
+pub(crate) fn rig_for<'a>(project: &'a Project, path: &str) -> Rig<'a> {
     Rig {
-        translation: track(project, &prefix, "translation"),
-        rotation: track(project, &prefix, "rotation_z"),
-        scale: track(project, &prefix, "scale"),
+        translation: track(project, &format!("{path}.transforms.translation")),
+        rotation: track(project, &format!("{path}.transforms.rotation_z")),
+        scale: track(project, &format!("{path}.transforms.scale")),
     }
 }
 
@@ -381,7 +437,7 @@ fn switch_out(
     layer: &MohoLayer,
     place_name: &str,
     parent: Option<LayerId>,
-    b: &mut Builder,
+    b: &mut Builder<'_>,
 ) {
     let Some(cells) = &layer.switch else { return };
     let mut symbols = std::collections::HashMap::new();

@@ -11,6 +11,7 @@ mod elements;
 mod formats;
 mod layers_and_stage;
 mod lossless;
+mod moho;
 mod open;
 mod rendering;
 mod save_formats;

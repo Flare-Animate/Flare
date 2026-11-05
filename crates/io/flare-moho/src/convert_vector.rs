@@ -1,5 +1,6 @@
 //! A Moho vector layer's mesh as one Flare shape: every curve is a subpath of straight segments
-//! (handles are not read, so a smooth curve becomes a polyline through its points).
+//! (handles are not read, so a smooth curve becomes a polyline through its points). The fill is
+//! the mesh's fill colour when the file has one.
 
 use flare_core::{DocumentPoint, Rgba8, ShapeId};
 use flare_document::{PathSegment, Shape, Stroke};
@@ -34,9 +35,18 @@ pub(crate) fn shape(mesh: &Mesh, units_to_px: f64, origin: [f64; 2]) -> Option<S
             path.push(PathSegment::Close);
         }
     }
-    let fill = if any_closed { FILL } else { Rgba8::TRANSPARENT };
+    let fill = match mesh.fill {
+        Some([r, g, b, a]) => Rgba8::new(byte(r), byte(g), byte(b), byte(a)),
+        None if any_closed => FILL,
+        None => Rgba8::TRANSPARENT,
+    };
     let stroke = Stroke::new(2.0, LINE).ok()?;
     Shape::new(ShapeId::new(), path, fill)
         .ok()
         .map(|s| s.with_stroke(stroke))
+}
+
+/// A channel in 0..=1 as a byte; the reader has already clamped it.
+fn byte(channel: f64) -> u8 {
+    (channel * 255.0).round() as u8
 }
