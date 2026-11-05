@@ -39,6 +39,8 @@ First audit, from the code, 2026-10-31.
 | Pen pressure on the Brush | partly | **no** | n/a | n/a | The desktop works on Linux and Windows and not on macOS. It reads it from winit (Windows) or from the X server (Linux, `flare-tablet`). winit drops a tablet's pressure on macOS, so a pen paints like a mouse there until `flare-tablet` has an AppKit module. The browser build does not read `PointerEvent.pressure` yet; a command line and an MCP server have no pen. Native Wayland needs its tablet protocol. |
 | Share from the Publish popup | yes (Twitter only) | **no** | n/a | n/a | The browser's own `window.open` is wired, but the popup is a desktop dialog today. |
 
+| Keyboard shortcut sets and editing (`flare-menubar` `ShortcutMap`) | partly (Help > Keyboard Shortcuts edits and saves in Preferences; tool letters follow the map) | partly (the same workspace) | yes (`flare shortcuts list\|export\|import`) | yes (`list_shortcuts`) | Command chords (Ctrl/Alt/F-keys) are still fixed key handling in `furniture.rs` and the macOS native menu table, so rebinding them changes only the label; wire them through the map to close it. |
+
 ## Android
 
 The first build (2026-11-04) is [`flare-android`](../apps/flare-android/README.md): one

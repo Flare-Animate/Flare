@@ -53,6 +53,7 @@ mod rulers_and_mirror;
 mod save_flare;
 mod save_formats;
 mod scene_name;
+mod shortcut_editor;
 mod spans_and_handles;
 mod stage_menu;
 mod status_bar;

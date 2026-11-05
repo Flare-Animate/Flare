@@ -107,6 +107,7 @@ flare-tablet = { path = "crates/services/flare-tablet" }
 # presentation
 flare-dock = { path = "crates/presentation/flare-dock" }
 flare-menubar = { path = "crates/presentation/flare-menubar" }
+flare-profile = { path = "crates/foundation/flare-profile" }
 flare-recent = { path = "crates/services/flare-recent" }
 flare-ui = { path = "crates/presentation/flare-ui" }
 flare-animate = { path = "crates/presentation/flare-animate" }

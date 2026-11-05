@@ -156,7 +156,7 @@ found), **Not planned** (ROADMAP or PARITY says so).
 | XDTS timing sheet import and export | AnimationCraft (`xdts.rs`) | Gap | no match |
 | Sprite sheets (JSON hash, array, Starling XML) | AnimationCraft | Gap | no match; ROADMAP lower priority (sprite export) |
 | Animated SVG (SMIL) and Lottie JSON | AnimationCraft | Gap | no match |
-| Editable keyboard shortcuts and shortcut sets | AnimationCraft (keyboard section), OpenToonz `shortcuts/*.ini` | Gap | `crates/presentation/flare-menubar/src/meta.rs` is the one fixed shortcut table; ROADMAP high priority |
+| Editable keyboard shortcuts and shortcut sets | AnimationCraft (keyboard section), OpenToonz `shortcuts/*.ini` | Partial | `ShortcutMap` (`flare-menubar/src/shortcuts/`) holds four sets, conflict checks and a validated file; the Keyboard Shortcuts window edits it, tool letters follow it; Ctrl/Alt chords are still fixed key handling in `furniture.rs` and the macOS native menu |
 | Scripting: sandboxed frame scripts, Script Console, JSFL | AnimationCraft (`ac-script`), minnamate frame-script subset | Gap | not built; ROADMAP lists ActionScript 3 as lower priority |
 | Lip sync (mouth-shape workflow) | AnimationCraft | Gap | no match; ROADMAP lower priority |
 | Shape hints | AnimationCraft | Partial | `flare-eval/src/morph.rs` mentions shape hints; ROADMAP says not done |

@@ -3,6 +3,7 @@
 
 mod commands;
 mod project;
+mod shortcuts;
 mod stopmotion;
 mod symbol;
 mod tween;
@@ -113,6 +114,7 @@ fn run() -> Result<()> {
             ease,
         } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
         Command::Tween { op } => tween::run(op)?,
+        Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,

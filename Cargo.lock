@@ -2043,6 +2043,7 @@ dependencies = [
  "flare-flash",
  "flare-history",
  "flare-import",
+ "flare-menubar",
  "flare-publish",
  "flare-render",
  "flare-rig",
@@ -2228,6 +2229,7 @@ dependencies = [
  "flare-export",
  "flare-history",
  "flare-import",
+ "flare-menubar",
  "flare-publish",
  "flare-render",
  "flare-rig",
@@ -2253,7 +2255,11 @@ name = "flare-menubar"
 version = "0.1.0"
 dependencies = [
  "flare-i18n",
+ "flare-profile",
  "flare-ui",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

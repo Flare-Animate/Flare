@@ -134,13 +134,7 @@ impl Workspace {
         // Letters pick tools, but only when nothing is being typed and no modifier is held, so
         // they never fight a text field or a shortcut.
         if !typing {
-            let picked = TOOL_KEYS
-                .iter()
-                .find(|(key, _)| key_press(ctx, *key).is_some_and(|m| !m.any()))
-                .map(|(_, tool)| *tool);
-            if let Some(tool) = picked {
-                self.set_tool(tool);
-            }
+            self.press_tool_keys(ctx);
         }
         // Cmd/Ctrl+C and V arrive as Copy and Paste events. They are not menu accelerators, so
         // text fields keep them; when no field wants the keyboard they act on the selection.
@@ -243,10 +237,7 @@ impl Workspace {
             None => egui::Button::new(label),
         };
         // The shortcut, or for a tool the key that picks it, right-aligned in the item.
-        if let Some(text) = action
-            .shortcut_text()
-            .or_else(|| action.tool_key().map(str::to_owned))
-        {
+        if let Some(text) = self.shortcut_label(action) {
             button = button.shortcut_text(text);
         }
         let clicked = ui.add_enabled(enabled, button).clicked();

@@ -1,0 +1,12 @@
+shortcuts-set = Jeu de raccourcis
+shortcuts-set-flare = Flare
+shortcuts-set-opentoonz = OpenToonz
+shortcuts-set-animate = Animate
+shortcuts-set-tahoma = Tahoma2D
+shortcuts-change = Modifier
+shortcuts-press = Appuyez sur les nouvelles touches (Échap annule)
+shortcuts-clear = Effacer
+shortcuts-reset = Revenir au jeu
+shortcuts-conflict = { $keys } lance déjà { $action }.
+shortcuts-bad = Ces touches ne sont pas utilisables ici.
+shortcuts-hint = Les lettres d’outil fonctionnent quand rien n’est saisi.

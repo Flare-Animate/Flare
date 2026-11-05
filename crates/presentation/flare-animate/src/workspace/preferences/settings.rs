@@ -47,6 +47,8 @@ pub struct Preferences {
     pub theme: String,
     /// Tools from the "…" list kept in the tool strip.
     pub pinned_tools: Vec<String>,
+    /// The keyboard shortcuts as a `flare_menubar` shortcut file; empty is the Flare set.
+    pub shortcuts: String,
     /// Projects opened or saved lately, newest first.
     pub recent: Vec<String>,
 }
@@ -81,6 +83,7 @@ impl Default for Preferences {
             language: "system".to_owned(),
             theme: "dark".to_owned(),
             pinned_tools: Vec::new(),
+            shortcuts: String::new(),
             recent: Vec::new(),
         }
     }

@@ -1,0 +1,12 @@
+shortcuts-set = ショートカットセット
+shortcuts-set-flare = Flare
+shortcuts-set-opentoonz = OpenToonz
+shortcuts-set-animate = Animate
+shortcuts-set-tahoma = Tahoma2D
+shortcuts-change = 変更
+shortcuts-press = 新しいキーを押してください（Escで取消）
+shortcuts-clear = 削除
+shortcuts-reset = セットに戻す
+shortcuts-conflict = { $keys } は既に { $action } に割り当てられています。
+shortcuts-bad = このキーは使用できません。
+shortcuts-hint = ツールの文字キーは入力中でないときに働きます。

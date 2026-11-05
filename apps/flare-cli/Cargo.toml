@@ -28,6 +28,7 @@ flare-video.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
+flare-menubar.workspace = true
 flare-tools.workspace = true
 flare-stopmotion.workspace = true
 glamx.workspace = true

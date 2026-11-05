@@ -11,7 +11,7 @@ pub mod model;
 #[cfg(test)]
 mod tests;
 
-pub use load::{parse, validate};
+pub use load::{SHORTCUT_SETS, parse, validate};
 pub use model::{Axis, DockNode, PanelId, Profile, Room, Toolbar};
 
 /// Why a profile was refused. A refused profile is never used in part.

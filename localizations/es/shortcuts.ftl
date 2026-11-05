@@ -1,0 +1,12 @@
+shortcuts-set = Conjunto de atajos
+shortcuts-set-flare = Flare
+shortcuts-set-opentoonz = OpenToonz
+shortcuts-set-animate = Animate
+shortcuts-set-tahoma = Tahoma2D
+shortcuts-change = Cambiar
+shortcuts-press = Pulsa las teclas nuevas (Esc cancela)
+shortcuts-clear = Borrar
+shortcuts-reset = Restablecer al conjunto
+shortcuts-conflict = { $keys } ya ejecuta { $action }.
+shortcuts-bad = Esas teclas no se pueden usar aquí.
+shortcuts-hint = Las letras de herramienta funcionan cuando no se escribe nada.

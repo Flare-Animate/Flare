@@ -5,6 +5,7 @@ mod draw;
 mod export;
 mod history;
 mod read;
+mod shortcuts;
 mod stopmotion;
 #[cfg(test)]
 mod stopmotion_tests;
@@ -28,6 +29,7 @@ impl FlareServer {
             + Self::history_tools()
             + Self::stopmotion_tools()
             + Self::tween_tools()
+            + Self::shortcut_tools()
             + Self::symbol_tools()
     }
 }

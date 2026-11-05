@@ -219,6 +219,11 @@ pub(crate) enum Command {
         #[command(subcommand)]
         op: crate::tween::TweenCommand,
     },
+    /// Keyboard shortcuts: list a set, export one as a file, check and import a file.
+    Shortcuts {
+        #[command(subcommand)]
+        op: crate::shortcuts::ShortcutsCommand,
+    },
     /// Add an empty layer below the existing ones in the first scene.
     AddLayer { path: PathBuf, name: String },
     /// Insert or remove frames and keyframes on a layer (default: the first layer).

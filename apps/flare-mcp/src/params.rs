@@ -322,3 +322,13 @@ pub struct Inbetween {
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ShortcutsParams {
+    /// A set: "flare" (the default), "opentoonz", "animate" or "tahoma".
+    pub set: Option<String>,
+    /// The text of a shortcut file (as `export` returns it); used instead of `set`.
+    pub file: Option<String>,
+    /// Also return the checked file.
+    pub export: Option<bool>,
+}

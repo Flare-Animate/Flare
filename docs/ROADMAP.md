@@ -18,7 +18,7 @@ maintainer's to reorder.
 - A Motion Editor: per-property graphs and editable curve handles for tweens (curve families, easings and in-betweens are in)
 - Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
-- Editable keyboard shortcuts
+- Editable keyboard shortcuts: done in part (registry, four sets, editor, CLI and MCP; chords other than tool letters are still dispatched by fixed code, see SURFACES)
 
 ### Lower priority
 
@@ -201,7 +201,7 @@ appear, docs/UI.md); the profiles place them, but the interface does not read pr
 | Xsheet | Xsheet | Planned panel; the timeline does the job today | P1 |
 | Tool strip and options | ToolBar, ToolOptions | Built; More tools lists the unbuilt ones dimmed | Built |
 | Workspace profiles | rooms, `layouts.txt` | Data model, loader and four built-in profiles in `flare-profile`; the interface does not read them yet | P1 |
-| Shortcut sets | `shortcuts/*.ini` | Set ids named by profiles (`flare`, `opentoonz`, `animate`); key maps not built | P1 |
+| Shortcut sets | `shortcuts/*.ini` | Four sets as data (`flare`, `opentoonz`, `animate`, `tahoma`) in `flare-menubar`'s `ShortcutMap`; edited, saved in Preferences, listed by `flare shortcuts` | P1 |
 | Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Eight palettes in `flare-ui` `theme.rs`, text at least 7:1 on every surface (tested) | Built |
 | Preferences | Preferences | Built in part (General, Stage, Timeline, Recent) | Built |
 | FX schematic and FX settings | Schematic, FxBrowser, FxSettings | Planned panels | P2 |
@@ -296,7 +296,7 @@ What the absorbed and upstream projects have that `main` lacks, checked against 
 2026-11-04. The evidence, licences and work packages are in [BACKLOG.md](BACKLOG.md); this is the
 summary. Nothing here is scheduled. The maintainer orders it.
 
-- Small: editable keyboard shortcuts and shortcut sets (WP-1).
+- Small: editable keyboard shortcuts and shortcut sets (WP-1, built except the chord dispatch).
 - Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3),
   exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers and stroke styles
   (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).

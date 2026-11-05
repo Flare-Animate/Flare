@@ -55,6 +55,7 @@ mod render;
 mod scene_name;
 mod selection;
 mod shell;
+mod shortcut_editor;
 mod sound;
 mod stage;
 mod stage_furniture;
@@ -261,6 +262,9 @@ pub struct Workspace {
     slot_open: Option<&'static str>,
     /// Tools from the "…" list put in the strip, and the one being dragged there now.
     pinned_tools: Vec<&'static str>,
+    /// The keyboard shortcuts in force, and the editor's state.
+    shortcuts: flare_menubar::ShortcutMap,
+    shortcut_editor: shortcut_editor::ShortcutEditor,
     slot_drag: Option<&'static str>,
     /// The Text tool's settings and the text being typed.
     text: groups::TextTool,
@@ -389,6 +393,8 @@ impl Workspace {
             slot_choice: std::collections::HashMap::new(),
             slot_open: None,
             pinned_tools: Vec::new(),
+            shortcuts: flare_menubar::ShortcutMap::default(),
+            shortcut_editor: shortcut_editor::ShortcutEditor::default(),
             slot_drag: None,
             text: groups::TextTool::default(),
             paint: groups::Paint::default(),
