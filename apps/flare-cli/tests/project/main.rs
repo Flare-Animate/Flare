@@ -10,6 +10,7 @@ mod camera;
 mod editing;
 mod elements;
 mod formats;
+mod game;
 mod layers_and_stage;
 mod lossless;
 mod moho;

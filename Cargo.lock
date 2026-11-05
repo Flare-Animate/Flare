@@ -2042,6 +2042,7 @@ dependencies = [
  "flare-eval",
  "flare-export",
  "flare-flash",
+ "flare-game",
  "flare-history",
  "flare-import",
  "flare-menubar",

@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 
 mod commands;
+mod game;
 mod project;
 mod shortcuts;
 mod stopmotion;
@@ -116,6 +117,7 @@ fn run() -> Result<()> {
         Command::Bone { action } => project::bone(action)?,
         Command::Bones { path, frame } => project::bones_list(&path, frame)?,
         Command::Tween { op } => tween::run(op)?,
+        Command::Game { op } => game::run(op)?,
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,

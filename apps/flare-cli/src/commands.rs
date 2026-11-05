@@ -234,6 +234,11 @@ pub(crate) enum Command {
         #[command(subcommand)]
         op: crate::tween::TweenCommand,
     },
+    /// The game description: entities and components, gravity, runs under scripted input, export.
+    Game {
+        #[command(subcommand)]
+        op: crate::game::GameCommand,
+    },
     /// Keyboard shortcuts: list a set, export one as a file, check and import a file.
     Shortcuts {
         #[command(subcommand)]

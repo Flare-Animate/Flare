@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 flare-core.workspace = true
+flare-game.workspace = true
 flare-flash.workspace = true
 flare-document.workspace = true
 flare-commands.workspace = true
