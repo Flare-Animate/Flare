@@ -318,6 +318,7 @@ pub fn render_swf_frame(parsed: &Parsed, index: usize, background: Rgba8) -> fla
         shapes: drawn,
         bitmaps: Vec::new(),
         clips,
+        warnings: Vec::new(),
     };
     flare_render::render(
         &frame,
