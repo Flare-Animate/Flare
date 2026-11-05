@@ -10,6 +10,7 @@ use flare_document::{
 use super::*;
 
 const PNG_SIGNATURE: &[u8] = b"\x89PNG\r\n\x1a\n";
+const JPEG_SIGNATURE: &[u8] = &[0xFF, 0xD8, 0xFF];
 
 /// Imports an XFL document from `source`.
 pub fn import_xfl(source: &dyn FileSource) -> Result<Imported, ImportError> {
@@ -122,7 +123,7 @@ pub(crate) fn import_xfl_with_files(
     }
 
     // Library bitmaps: the media list names each image and its file, which sits in LIBRARY/.
-    // Only PNG is decoded so far; other formats are reported and their instances kept as source.
+    // PNG and JPEG are decoded; other formats are reported and their instances kept as source data.
     let mut bitmaps = Vec::new();
     for item in root
         .child("media")
@@ -150,15 +151,19 @@ pub(crate) fn import_xfl_with_files(
             importer.note(Severity::Unsupported, &place, "image file is too large");
             continue;
         }
-        if !bytes.starts_with(PNG_SIGNATURE) {
+        let decoded = if bytes.starts_with(PNG_SIGNATURE) {
+            crate::bitmap::decode_png(&file, &bytes)
+        } else if bytes.starts_with(JPEG_SIGNATURE) {
+            crate::bitmap::decode_jpeg(&file, &bytes)
+        } else {
             importer.note(
                 Severity::Unsupported,
                 &place,
-                "only PNG bitmaps are imported; this image was kept as source data",
+                "only PNG and JPEG bitmaps are imported; this image was kept as source data",
             );
             continue;
-        }
-        let picture = match crate::bitmap::decode_png(&file, &bytes) {
+        };
+        let picture = match decoded {
             Ok(picture) => picture,
             Err(error) => {
                 importer.note(

@@ -85,6 +85,46 @@ pub(crate) fn decode_png(file: &str, bytes: &[u8]) -> Result<Picture, ImportErro
     })
 }
 
+/// A baseline or progressive JPEG as RGBA. The size is checked from the header before any pixel
+/// is decoded, so a hostile header cannot make the decoder allocate for it.
+pub(crate) fn decode_jpeg(file: &str, bytes: &[u8]) -> Result<Picture, ImportError> {
+    use jpeg_decoder::PixelFormat;
+    let mut decoder = jpeg_decoder::Decoder::new(std::io::Cursor::new(bytes));
+    decoder.read_info().map_err(|e| bad(file, e))?;
+    let info = decoder.info().ok_or_else(|| bad(file, "no image header"))?;
+    let (w, h) = (u32::from(info.width), u32::from(info.height));
+    check_size(file, w, h)?;
+    let data = decoder.decode().map_err(|e| bad(file, e))?;
+    let rgba: Vec<u8> = match info.pixel_format {
+        PixelFormat::RGB24 => data
+            .as_chunks::<3>()
+            .0
+            .iter()
+            .flat_map(|p| [p[0], p[1], p[2], 255])
+            .collect(),
+        PixelFormat::L8 => data.iter().flat_map(|&g| [g, g, g, 255]).collect(),
+        PixelFormat::L16 => data
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .flat_map(|p| {
+                let g = p[0];
+                [g, g, g, 255]
+            })
+            .collect(),
+        PixelFormat::CMYK32 => return Err(bad(file, "CMYK JPEGs are not imported")),
+    };
+    if rgba.len() as u64 != u64::from(w) * u64::from(h) * 4 {
+        return Err(bad(file, "the pixel data does not match the header"));
+    }
+    Ok(Picture {
+        width: w,
+        height: h,
+        rgba,
+        delay_cs: 0,
+    })
+}
+
 /// GIF frames composed onto the logical screen, honouring each frame's disposal.
 fn decode_gif(file: &str, bytes: &[u8]) -> Result<Vec<Picture>, ImportError> {
     let mut options = gif::DecodeOptions::new();

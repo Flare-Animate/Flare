@@ -82,12 +82,33 @@ fn a_png_library_bitmap_is_shown_where_its_instance_puts_it() {
 }
 
 #[test]
-fn a_jpeg_library_bitmap_is_kept_as_source_data_and_reported() {
-    let jpeg = vec![0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10];
+fn a_jpeg_library_bitmap_is_decoded_and_shown() {
+    let jpeg = include_bytes!("fixtures/tiny-4x4.jpg").to_vec();
+    let files = document_with(
+        r#"<DOMBitmapItem name="pic.jpg" href="pic.jpg"/>"#,
+        r#"<DOMBitmapInstance libraryItemName="pic.jpg"><matrix><Matrix a="1" b="0" c="0" d="1" tx="20" ty="10"/></matrix></DOMBitmapInstance>"#,
+        vec![("pic.jpg", jpeg)],
+    );
+    let imported = import_xfl(&files).expect("import");
+    let document = &imported.document;
+    assert_eq!(document.bitmaps().len(), 1);
+    // A flat colour: the JPEG's pixels are close to (200, 30, 60) after lossy coding.
+    let inside = pixel(document, 21, 11);
+    assert!(
+        inside.r > 180 && inside.g < 60 && inside.b > 40,
+        "{inside:?}"
+    );
+    assert_eq!(pixel(document, 5, 5), Rgba8::WHITE);
+}
+
+#[test]
+fn a_jpeg_that_cannot_be_read_is_reported_and_kept() {
+    let mut broken = include_bytes!("fixtures/tiny-4x4.jpg").to_vec();
+    broken.truncate(120);
     let files = document_with(
         r#"<DOMBitmapItem name="pic.jpg" href="pic.jpg"/>"#,
         r#"<DOMBitmapInstance libraryItemName="pic.jpg"/>"#,
-        vec![("pic.jpg", jpeg)],
+        vec![("pic.jpg", broken)],
     );
     let imported = import_xfl(&files).expect("import");
     assert!(imported.document.bitmaps().is_empty());
@@ -98,8 +119,27 @@ fn a_jpeg_library_bitmap_is_kept_as_source_data_and_reported() {
         .map(|d| d.message.clone())
         .collect::<Vec<_>>()
         .join("\n");
-    assert!(messages.contains("only PNG bitmaps"), "{messages}");
+    assert!(messages.contains("could not be read"), "{messages}");
     assert!(messages.contains("not imported"), "{messages}");
+}
+
+#[test]
+fn an_unknown_image_format_is_kept_as_source_data_and_reported() {
+    let files = document_with(
+        r#"<DOMBitmapItem name="pic.bmp" href="pic.bmp"/>"#,
+        r#"<DOMBitmapInstance libraryItemName="pic.bmp"/>"#,
+        vec![("pic.bmp", b"BM not really".to_vec())],
+    );
+    let imported = import_xfl(&files).expect("import");
+    assert!(imported.document.bitmaps().is_empty());
+    assert!(
+        imported
+            .diagnostics
+            .iter()
+            .any(|d| d.message.contains("only PNG and JPEG")),
+        "{:?}",
+        imported.diagnostics
+    );
 }
 
 #[test]

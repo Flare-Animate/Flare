@@ -8,8 +8,8 @@
 //! visibility and lock; keyframes and their durations; symbol instances with their matrix;
 //! solid-color fills and solid strokes of drawn shapes (lines and quadratic curves), and linear
 //! gradient fills of two colors;
-//! the library as Graphic symbols; classic motion tweens between instances; PNG library bitmaps and
-//! the bitmap instances that show them (JPEG and other formats are kept as source data).
+//! the library as Graphic symbols; classic motion tweens between instances; PNG and JPEG library bitmaps
+//! and the bitmap instances that show them (other formats are kept as source data).
 //! Reported and changed: a radial gradient, or one with more than two stops, or one the file places
 //! somewhere that does not fit its shape, is imported as one color (or, with more stops, its first and
 //! last). Reported and skipped: bitmap fills, text, video, sound, scripts, filters, color
