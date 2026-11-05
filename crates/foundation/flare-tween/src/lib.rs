@@ -53,3 +53,5 @@ pub enum TweenError {
     #[error("the interpolated value is not finite")]
     NonFiniteResult,
 }
+
+pub mod raster;

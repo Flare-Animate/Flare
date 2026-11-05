@@ -26,6 +26,24 @@ pub fn png_bytes(document: &Document, frame: u32) -> Result<Vec<u8>, String> {
     Ok(bytes)
 }
 
+/// Encodes straight-alpha RGBA pixels as PNG bytes. `rgba` must hold `width * height` pixels.
+pub fn rgba_png(width: u32, height: u32, rgba: &[u8]) -> Result<Vec<u8>, String> {
+    let mut bytes = Vec::new();
+    let mut encoder = png::Encoder::new(&mut bytes, width, height);
+    encoder.set_color(png::ColorType::Rgba);
+    encoder.set_depth(png::BitDepth::Eight);
+    let mut writer = encoder
+        .write_header()
+        .map_err(|error| format!("Cannot write the PNG: {error}"))?;
+    writer
+        .write_image_data(rgba)
+        .map_err(|error| format!("Cannot write the PNG: {error}"))?;
+    writer
+        .finish()
+        .map_err(|error| format!("Cannot write the PNG: {error}"))?;
+    Ok(bytes)
+}
+
 /// Writes `frame` to `path` as a PNG (see [`png_bytes`]).
 pub fn export_png(document: &Document, frame: u32, path: &Path) -> Result<(), String> {
     let bytes = png_bytes(document, frame)?;

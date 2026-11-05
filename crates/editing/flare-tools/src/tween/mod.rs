@@ -6,8 +6,10 @@ use flare_document::{Content, Document, Tween};
 
 use crate::common::*;
 
+mod bitmap;
 mod inbetween;
 pub mod spec;
+pub use bitmap::{BitmapFrames, BitmapInbetweenError, MAX_BITMAP_INBETWEENS, bitmap_inbetweens};
 pub use inbetween::{InbetweenError, MAX_INBETWEENS, create_inbetweens, set_interpolation};
 
 /// Sets or clears the tween on a span: a motion tween on an instance or a camera keyframe, a shape
@@ -73,5 +75,8 @@ pub fn set_ease(
     ])
 }
 
+#[cfg(test)]
+#[cfg(test)]
+mod bitmap_tests;
 #[cfg(test)]
 mod tests;

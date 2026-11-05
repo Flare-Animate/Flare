@@ -141,3 +141,14 @@ credentials or proprietary reference projects.
   used by `crates/io/flare-moho`.
 - usvg and its parser crates (MIT/Apache-2.0, linked as a dependency, no code copied): the SVG reader of `crates/io/flare-import/src/svg.rs`, with its text feature off.
 - SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.
+- Bauxitedev/bitmapflow (optical-flow frame interpolation for pixel art): the repository has no
+  LICENSE file. Its README says "MIT", but no licence text ships with the code, so that statement
+  is not relied on. Behaviour and ideas only: a coarse-to-fine flow, warping and blending for
+  in-betweens. Only the README and the licence were read; no code, tables or test data were copied.
+  `flare_tween::raster` follows the published methods (Lucas-Kanade, bilinear warping, forward-backward
+  consistency). Revisit if the author adds a LICENSE file.
+- ShuhongChen/eisai-anime-interpolator (anime inbetweening, SoftSplat forward warping, distance
+  transform features): AGPL-3.0 (`license.txt`), not a permissive licence, so behaviour and ideas
+  only. The neural weights are not shipped by Flare and are not used. Only the README and the licence
+  were read; the classical methods used (forward splatting, occlusion from matching) are published
+  ones, and no code was copied.

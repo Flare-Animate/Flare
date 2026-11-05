@@ -326,6 +326,27 @@ pub struct Inbetween {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct BitmapInbetweens {
+    /// Frame of the first bitmap keyframe.
+    pub from: u32,
+    /// Frame of the second bitmap keyframe; both must hold bitmaps of the same size.
+    pub to: u32,
+    /// How many pictures to make between them, 1 to 64.
+    pub count: u32,
+    /// File name prefix, no directory: letters, digits, '.', '_' or '-'. The files are
+    /// `<name>-001.png` and so on in the export directory.
+    pub name: String,
+    /// Layer id; defaults to the first layer that is not the camera.
+    pub layer: Option<String>,
+    /// Pyramid levels for the flow estimate, 1 to 6 (default 4).
+    pub levels: Option<u32>,
+    /// Gauss-Newton steps per level, 1 to 16 (default 4).
+    pub iterations: Option<u32>,
+    /// Half-width of the solve window, 1 to 8 (default 3).
+    pub window: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct ShortcutsParams {
     /// A set: "flare" (the default), "opentoonz", "animate" or "tahoma".
     pub set: Option<String>,

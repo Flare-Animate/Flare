@@ -13,7 +13,7 @@ use crate::params::{
 use crate::server::{FlareServer, Outcome, State};
 
 /// The export directory, created if needed, or the reason exports are off.
-fn export_dir(state: &State) -> Result<PathBuf, String> {
+pub(super) fn export_dir(state: &State) -> Result<PathBuf, String> {
     let dir = state
         .permissions
         .export_dir
@@ -24,7 +24,7 @@ fn export_dir(state: &State) -> Result<PathBuf, String> {
 }
 
 /// `dir/name`, refused when something is already there.
-fn fresh(dir: &std::path::Path, name: &str) -> Result<PathBuf, String> {
+pub(super) fn fresh(dir: &std::path::Path, name: &str) -> Result<PathBuf, String> {
     let out = dir.join(name);
     if out.exists() {
         return Err(format!("{name} already exists in the export directory"));

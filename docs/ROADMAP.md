@@ -188,6 +188,10 @@ Next, in order:
   `SetKeyframeInterpolation`; per-property graphs over a whole `Curve` are the part left.
 - Making the renderer use `flare-tween` for motion tweens in place of the Animate Ease in `flare-eval`,
   once the document stores keys (today a span holds one ease value).
+- Done: classical raster inbetweening (`flare_tween::raster`, optical flow and warp, bounded and tested),
+  wired as `flare tween bitmap-inbetweens` and the MCP tool `bitmap_inbetweens`, which write PNG frames
+  between two bitmap keyframes. Next: a command that places those frames as keyframes, and the
+  desktop control for it (SURFACES.md).
 ## OpenToonz feature areas
 
 Reference: the feature areas of OpenToonz (its rooms in `original/stuff/profiles/layouts/rooms`

@@ -533,6 +533,17 @@ to the larger count; `flip` reverses the second stroke). Every input is bounded 
 `MAX_POINTS`, parameter limits) and refused with a typed `TweenError` rather than producing NaN or
 infinity.
 
+The same crate holds the classical raster inbetweener (`flare_tween::raster`): two RGBA rasters
+(straight alpha, byte slices, no document types) become the pictures between them. Each direction's
+flow is a coarse-to-fine Lucas-Kanade estimate on premultiplied luminance (`levels`, `iterations` and
+`window`, all bounded); a pixel is visible only when its forward and backward offsets agree and its
+colour matches its partner's, so a vanishing shape does not ghost; a frame is both pictures warped
+along the flow, splatted with premultiplied colour and weighted `1 - t` and `t`, then unpremultiplied.
+`Inbetweener::new` estimates once and `frame(t)` costs one warp, with `frame(0)` and `frame(1)` the
+two pictures exactly. Sizes are bounded (`MAX_SIDE`, `MAX_PIXELS`). `flare_tools::tween::bitmap_inbetweens`
+picks the two bitmap keyframes of a document; the CLI and MCP write the frames as PNG files. There is no
+learned model in it.
+
 Provenance: clean-room. The code follows the feature descriptions and standard easing formulas. No
 Blender source was opened or copied. The behaviour the names promise is tested directly (exact
 endpoints, monotone families, handle continuity, extrapolation values, refusal of bad input).

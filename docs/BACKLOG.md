@@ -25,6 +25,8 @@ code only if its licence allows it to be copied into a BSD-3 project with its no
 | minnamate (`mirvoxtm/minnamate`) | No licence file in the repo (root listing, `README.md`, `Cargo.toml`, `CLAUDE.md` checked). Its `CLAUDE.md` says it is clean-room and that MIT/Apache inputs may be reused, which is about its inputs, not its own licence | Unknown: with no licence, all rights are reserved | Behaviour only until the maintainer licenses it |
 | nflare (`Flare-Animate/nflare`) | `GPLv3` (full text in `LICENSE`); a fork of nanofl | No: BSD-3 Flare cannot take GPLv3 code without relicensing | Behaviour only, no code |
 | ArtCraft's `Replicraft` | Not found (see below) | Unknown | Not used |
+| bitmapflow (`Bauxitedev/bitmapflow`) | **No LICENSE file** in the repository; its README says MIT, which is not relied on | Unknown | Behaviour and ideas only, no code (ENGINEERING.md) |
+| eisai-anime-interpolator (`ShuhongChen/eisai-anime-interpolator`) | `AGPL-3.0` (`license.txt`) | No: copyleft, not permissive | Behaviour and ideas only, no code; its neural weights are not used (ENGINEERING.md) |
 
 Policy the work packages follow. [ARCHITECTURE.md](ARCHITECTURE.md) already marks `flare-tween`
 as clean-room ("the code follows the feature descriptions and standard easing formulas"), and
