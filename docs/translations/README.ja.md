@@ -1,48 +1,83 @@
 [English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | [Français](README.fr.md) | [Português (Brasil)](README.pt-BR.md) | **日本語** | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
-<p align="center">
-  <img src="../../assets/flare-icon-256.png" width="128" height="128" alt="Flare">
-</p>
+<div align="center">
 
-# Flare Animate
+# Flare
+
+<img src="../../assets/BannerNew.png" width="969" height="261" alt="Flare のバナー">
+
+**Adobe Animate と Flash のユーザーのための、継続性を重視した無料のオープンソースアニメーションスイート。**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/Flare-Animate/Flare/ci.yml?branch=main&label=CI)](https://github.com/Flare-Animate/Flare/actions/workflows/ci.yml)
 [![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue)](../../LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/JpeScW8Awa)
+[![Issues](https://img.shields.io/github/issues/Flare-Animate/Flare)](https://github.com/Flare-Animate/Flare/issues)
+![Status](https://img.shields.io/badge/status-early%20alpha-red)
 
-Adobe Animate の考え方に沿った、Rust 製の無料のオープンソース・アニメーションツールです。Windows、macOS、Linux 向けです。
+[公式サイト](https://flare-animate.github.io/website/) · [Web版](https://flare-animate.github.io/Flare/) · [Discord](https://discord.com/invite/JpeScW8Awa) · [ビルド](../BUILDING.md) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
-> **初期アルファ版です。** 不具合や、Flash/Animate のインポートが不完全なことを想定してください。作業のバックアップを取ってください。
+</div>
 
-<!-- ここにエディターのスクリーンショットを置きます: assets/repository/flare-app.png -->
+> **アーリーアルファ版です。** バグや、Flash/Animate からのインポートの不完全さがあることを前提にしてください。作業データはバックアップしてください。
 
-### 機能
+## Flare とは
 
-- Animate にあるツールで描画できるほか、定規(距離と角度を測る)やミラーなど、拡張されたツールライブラリがあります。
-- タイムライン上でフレームとレイヤーを配置できます。フォルダー、マスク、モーションガイド、Ease 付きのモーショントゥイーンとシェイプトゥイーン、オニオンスキン、カメラレイヤーに対応します。
-- シンボル(グラフィック、ムービークリップ、ボタン)をライブラリに置き、インスタンスとしてステージに配置できます。
-- アニメーションを音付きで再生できます。ムービープレビューは、公開した SWF を Ruffle で実行します。
-- `.flare` プロジェクトを開いて保存できます。Animate の XFL と `.fla` をインポート/エクスポートできます。 Flash ムービー(`.swf`)を編集可能なプロジェクトとして開けます。
-- PNG、GIF、MP4 を書き出し、SWF または HTML5 Canvas ページを公開できます。
-- スクリプトからプロジェクトを作成、編集、書き出し、公開できるコマンドラインインターフェース(`flare`)。
+Flare は *FlareCraft* とも呼ばれる、(開発途中の) アニメーションスイートです。*Adobe Animate*、*Adobe/Macromedia Flash*、*Moho* などのソフトウェアから、アーティストやアニメーターが無理なく移行できるように設計されています。
 
-### ダウンロード
+これらのツールが使う形式に対応し、既存のプロジェクトファイルをそのまま開いて作業を続けられるようにすること、そして、より単純で馴染みのあるレイアウトで、好みに合わせて変更できる UI を提供することを目指しています。
 
-Windows、macOS、Linux 向けのダウンロードを用意する予定ですが、現時点ではまだありません。パッケージングが完了しだい、ここに追加します。それまではソースからビルドしてください(下記)。
+Flare は **Rust** で書き直している最中です。主に *OpenToonz* と *Tahoma2D* を基にしており、*AnimationCraft* と *Next2Flash* から機能を取り込んで、Flare に統合しています。旧 C++ コードは [`original/`](../../original/README.md) にアーカイブとして残しています。
 
-### ビルドと実行
+## 機能
 
-Rust は `rust-toolchain.toml` で固定されています。Ruffle は git サブモジュールなので、サブモジュールごとクローンしてください:
+- ペン、ブラシ、図形ツールによる描画。図形の移動、グループ化、編集のための選択ツールと、ストロークスタイル (実線、破線、点線、スティップル) があります。
+- フレーム、レイヤー、フォルダー、マスク、モーションガイド、オニオンスキン、カメラレイヤーを備えたタイムライン。
+- イージング付きのモーショントゥイーンとシェイプトゥイーン、およびセグメントのカーブを編集する Motion Editor。
+- ライブラリに置かれ、ステージ上にインスタンスとして配置されるシンボル (グラフィック、ムービークリップ、ボタン)。
+- ストップモーションのセッション設定。カメラでの取り込みはまだ実装されていません。
+- デスクトップでのサウンド再生、および公開された SWF を Ruffle で実行する「ムービーをテスト」。
+- `.flare` プロジェクトの開く・保存。Animate の XFL と `.fla` のインポート・エクスポート、Flash ムービー (`.swf`) を編集可能なプロジェクトとして開くこと。
+- Moho プロジェクトと BVH モーション、OpenToonz の `.tnz` シーンと `.pli` レベル、SVG と PNG・アニメーション GIF の素材を、編集可能なプロジェクトとしてインポート。
+- PNG、GIF、MP4 のエクスポート、SWF または HTML5 Canvas ページのパブリッシュ。
+- スクリプトからプロジェクトを作成・編集・エクスポート・パブリッシュするためのコマンドライン (`flare`) と、エージェント向けの MCP サーバー (`flare-mcp`)。
+- 同じエディターのブラウザ版。違いは [docs/WEB.md](../WEB.md) を参照してください。
+
+[docs/SURFACES.md](../SURFACES.md) には、デスクトップアプリ、ブラウザ版、コマンドライン、MCP サーバーのそれぞれができることを機能ごとに一覧し、不足している点を示しています。
+
+### 形式
+
+- Flash/Animate: `.fla`、`.xfl`、`.swf`、旧形式のバイナリ `.fla` (骨組みとしてインポート)。`.fla`、`.xfl`、`.flare` への保存とエクスポート。
+- Moho: `.moho`、`.anime`、`.mohoproj`、`.animeproj`、BVH モーション。レイヤー、ボーン、キーフレーム、ベクター素材は編集可能なプロジェクトとしてインポートされます。画像とサウンドは一覧表示のみで配置されません。
+- OpenToonz: `.tnz` シーンと `.pli` ベクターレベルをインポート (フレームレート、カメラ、xsheet の列、ストローク、パレットの色)。`.tlv` ラスターレベルは拒否され、`.tzu` は計画中です。
+- 素材: SVG (1 フレーム)、PNG (1 フレーム)、アニメーション GIF はビットマップレイヤーとしてインポートされます。JPEG、WebP、PSD は未実装です。
+
+### プラットフォーム
+
+| 対象 | 状態 | 備考 |
+|---|---|---|
+| Windows (デスクトップ) | ソースからビルド可能 | MSVC ツールチェーンと `flare-desktop`。ダウンロードはまだありません。 |
+| Linux (デスクトップ) | ソースからビルド可能 | [CONTRIBUTING.md](../../CONTRIBUTING.md) のライブラリが必要です。ムービーのテストには、サブモジュールからビルドした Ruffle が必要です。 |
+| macOS (デスクトップ) | ソースからビルド可能 | ネイティブメニュー。macOS では、ペンの筆圧はまだブラシに届きません。 |
+| Web (ブラウザ) | 公開中、初期段階 | [Web版](https://flare-animate.github.io/Flare/) は `main` から公開されています。MP4 のエクスポートとサウンドはなく、ムービーのテストはページ内で動きます。 |
+| Android | 実験的 | `flare-android` の最初のビルドで、ネイティブアクティビティ内でデスクトップのワークスペースを動かします。電話のファイルピッカーからの開く・保存はまだできず、ムービーのテストは無効です。 |
+| ChromeOS | 未検証 | Android 版は x86_64 と arm64 の APK を作り、そこでも動くはずです。ChromeOS での検証はしていません。 |
+| iOS | 未実装 | iOS アプリはありません。iOS の CI ジョブはコンパイルを試みるだけで、失敗しても止まりません。 |
+
+まだリリースは公開されていないため、ダウンロードはありません。ソースからビルドしてください (下記)。
+
+## ビルドと実行
+
+Rust は `rust-toolchain.toml` で固定されています。Ruffle は git のサブモジュールなので、サブモジュールごとクローンしてください:
 
     git clone --recurse-submodules https://github.com/Flare-Animate/Flare.git
     cd Flare
     cargo run --release -p flare-desktop
 
-Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に挙げたライブラリをインストールしてください。
+Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に記載のライブラリをインストールしてください。
 
-[docs/BUILDING.md](../BUILDING.md) に、Linux、Windows、macOS、ブラウザ版、Android それぞれのビルド手順があります。
+各プラットフォーム (Linux、Windows、macOS、ブラウザ版、Android) の手順は [docs/BUILDING.md](../BUILDING.md) にあります。
 
-### コマンドライン
+## コマンドライン
 
     flare new project.flare --width 1280 --height 720
     flare draw-rect project.flare --rect 100 100 300 200 --color FF6600
@@ -51,40 +86,54 @@ Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に挙げたライブラ�
     flare publish-html5 project.flare page.html
     flare --help
 
-### Flare がある理由
+## Flare が存在する理由
 
-Adobe は Animate の販売終了を[発表](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220)し、のちに[方針を撤回](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459)しました。撤回されたとはいえ、アニメーション業界がいかに不安定で、特定の企業がどれほど市場を支配しているかが浮き彫りになりました。アニメーターたちが不安に陥ったのも当然です。ある企業が製品を売り続けるかどうかに、人々の仕事が左右されるべきではありません。
+Adobe は Animate の提供終了を[発表し](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220)、その後[方針を撤回しました](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459)。撤回があっても、アニメーション業界がいかに不安定で、一社がどれほどの支配力を持っているかは変わりません。アニメーターたちは正当にパニックに陥りました。一つの製品を販売し続けるかどうかという一社の判断に、人のキャリアが左右されるべきではありません。
 
-Flare は、アニメーションを学びやすくするための実験場として始まり、のちにオープンソース化されて、そこから育ってきました。
+Flare は、アニメーションを学びやすくするための遊び場として始まりました。その後オープンソースとして公開され、そこから成長してきました。
 
-### ロードマップ
+## ロードマップ
 
-次に取り組むものを、重要な順に並べています。多くはインターフェースで薄く表示されます。[docs/ROADMAP.md](../ROADMAP.md) はこの一覧を繰り返し、優先度の低いものまで続けています。
+次に取り組むことを、重要度の高い順に示します。その多くはインターフェースで淡色表示されています。[docs/ROADMAP.md](../ROADMAP.md) ではこの一覧を繰り返し、優先度の低い項目まで載せています。
 
-- マージ描画: Flash の平面マップ型シェイプ(重なった図形が互いに切り合って結合する。現在、図形は別々のオブジェクトです)
-- 描画品質: ブラシのダイナミクスと、ビットマップをベクターシェイプにトレースすること
-- ドキュメントをより多く保持する SWF: 状態を持つボタン、モーフとしてのシェイプトゥイーン、複数のシェイプによるマスク、シンボル内のサウンド
-- モーションエディター: プロパティごとのグラフと、トゥイーン用のカスタムイーズカーブ
-- SVG と Photoshop ファイルからのアートワークの読み込み
-- ボーンと逆運動学(ボーンツールとバインドツール)
+- 描画の統合: 重なった図形が互いに切り抜かれて結合される Flash のプラナーマップ方式の図形 (現在、図形は別々のオブジェクトです)
+- 描画品質: ブラシのダイナミクスと、ビットマップのベクター図形へのトレース
+- ボタンの各状態、シェイプトゥイーンのモーフ化、複数図形のマスク、シンボル内のサウンドなど、ドキュメントをより多く保持する SWF
+- Motion Editor: プロパティごとのグラフと、トゥイーンのカスタムイーズカーブ
+- SVG や Photoshop ファイルからの素材のインポート
+- ボーンと逆運動学 (Bone ツールと Bind ツール)
 - 編集可能なキーボードショートカット
 
-優先度は低めですが、次も予定しています: ActionScript とスクリプトエディター(読み込んだファイル内の ActionScript はデータとして保持され、実行されません)、シェイプヒントと複数シーン、Animate の残りのツール、カスタムテーマ、完全に並べ替えられるツールバー、公開されたウェブ版。
+優先度の低いものとして、ActionScript とスクリプトエディター (インポートされたファイル内の ActionScript はデータとして保持され、実行されません)、シェイプヒントと複数シーン、Animate の残りのツール、カスタムテーマ、完全に並べ替え可能なツールバー、公開されたウェブ版も計画されています。
 
-### ドキュメント
+## ドキュメント
 
-[docs/README.md](../README.md) は Flare の作りを説明しています。
+[docs/README.md](../README.md) では、Flare がどのように構築されているか、各ドキュメントが何を扱うかを説明しています。
 
-コントリビューターは [CONTRIBUTING.md](../../CONTRIBUTING.md)、[AGENTS.md](../../AGENTS.md)、[SECURITY.md](../../SECURITY.md)、[CHANGELOG.md](../../CHANGELOG.md) を参照してください。これらは英語です。
+コントリビューターは [CONTRIBUTING.md](../../CONTRIBUTING.md)、[AGENTS.md](../../AGENTS.md)、[SECURITY.md](../../SECURITY.md)、[CHANGELOG.md](../../CHANGELOG.md) を参照してください。
 
-### コミュニティ
+## 元のコードベース
 
-[Discord](https://discord.com/invite/JpeScW8Awa) · [Website](https://flare-animate.github.io/website/) · [Discussions](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+[`original/`](../../original/README.md) は、OpenToonz と Tahoma2D に基づくアーカイブされた C++ コードベースです。参考資料としてのみ残しています。Flare は何にも依存せず、リンクもコピーもしていません。
 
-### ライセンス
+## クレジット
 
-BSD 3-Clause。[LICENSE](../../LICENSE) を参照してください。
+Flare は次のプロジェクトの上に成り立っています。コードを移植・利用した箇所では、それぞれのライセンス表示を残しています。
 
----
+- **OpenToonz** (BSD-3-Clause、Copyright (c) DWANGO Co., Ltd. および貢献者): 元のコードベースの基礎です。`crates/io/flare-toonz` の PLI リーダーはこれから移植しています。
+- **Tahoma2D** (BSD-3-Clause): OpenToonz のフォークで、元のコードベースのもう一つの基礎です。ライセンスと README を読み、ツールのソースは比較のみに使いました。
+- **AnimationCraft** (`MIT OR Apache-2.0`): Flare が取り込んだ Rust のオーサリングモデルです。
+- **Next2Flash**: その MIT の部分は移植できます。FFDec ワーカーは GPLv3 のため、その動作のみを使用します。
+- **jpdurigan/godot_moho_importer** (MIT、Copyright (c) 2022 Joao Pedro Durigan): `crates/io/flare-moho` が使う Moho のメッシュ構造です。
+- **usvg** (MIT/Apache-2.0): SVG リーダーで、依存関係として使用しています。
+- **Ruffle** (`third_party/ruffle`、改変せず独自のライセンスの下で使用するサブモジュール): ムービーのテストのための Flash 再生と、SWF パブリッシュのための `swf` クレート。
+- **ArtCraft** (`MIT OR Apache-2.0`) と **minnamate** (ライセンスファイルなし、動作のみ): 調査した情報源です。ライセンスは [docs/BACKLOG.md](../BACKLOG.md) に記載しています。
+- **nflare** と **FFDec** (GPLv3): 動作のみで、コードは使用しません。**SimplSam/moho-bvh-bones** (CC BY-NC-SA 4.0): 使用していません。
 
-*この翻訳は[英語版 README](../../README.md)より遅れることがあります。英語版が正です。*
+## コミュニティ
+
+[Discord](https://discord.com/invite/JpeScW8Awa) · [公式サイト](https://flare-animate.github.io/website/) · [ディスカッション](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+
+## ライセンス
+
+BSD 3-Clause。[LICENSE](../../LICENSE) を参照してください。サードパーティのコンポーネントは、それぞれのライセンスを保持します。

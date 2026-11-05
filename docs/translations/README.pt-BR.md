@@ -1,36 +1,71 @@
 [English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | [Français](README.fr.md) | **Português (Brasil)** | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
-<p align="center">
-  <img src="../../assets/flare-icon-256.png" width="128" height="128" alt="Flare">
-</p>
+<div align="center">
 
-# Flare Animate
+# Flare
+
+<img src="../../assets/BannerNew.png" width="969" height="261" alt="O banner do Flare">
+
+**Suíte de animação gratuita e de código aberto, com continuidade para usuários do Adobe Animate e do Flash.**
 
 [![CI](https://img.shields.io/github/actions/workflow/status/Flare-Animate/Flare/ci.yml?branch=main&label=CI)](https://github.com/Flare-Animate/Flare/actions/workflows/ci.yml)
 [![License: BSD 3-Clause](https://img.shields.io/badge/license-BSD%203--Clause-blue)](../../LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/JpeScW8Awa)
+[![Issues](https://img.shields.io/github/issues/Flare-Animate/Flare)](https://github.com/Flare-Animate/Flare/issues)
+![Status](https://img.shields.io/badge/status-early%20alpha-red)
 
-Uma ferramenta de animação livre e de código aberto, no espírito do Adobe Animate, escrita em Rust. Feita para Windows, macOS e Linux.
+[Site](https://flare-animate.github.io/website/) · [Versão web](https://flare-animate.github.io/Flare/) · [Discord](https://discord.com/invite/JpeScW8Awa) · [Compilar](../BUILDING.md) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
-> **Alfa inicial.** Espere erros e uma importação de Flash/Animate incompleta. Faça backup do seu trabalho.
+</div>
 
-<!-- Aqui entrará uma captura de tela do editor: assets/repository/flare-app.png -->
+> **Alpha inicial.** Espere erros e uma importação incompleta de Flash/Animate. Faça backup do seu trabalho.
 
-### Recursos
+## O que é o Flare?
 
-- Desenhe com as ferramentas que o Animate tem, mais uma biblioteca ampliada de ferramentas, como a Régua (mede distância e ângulo) e o Espelho.
-- Organize quadros e camadas em uma linha do tempo, com pastas, máscaras, guias de movimento, interpolações de movimento e de forma com Ease, papel de cebola e uma camada de câmera.
-- Símbolos (Gráfico, Clipe de filme e Botão) em uma biblioteca, colocados como instâncias no palco.
-- Reproduza a animação com som; Testar filme executa o SWF publicado no Ruffle.
-- Abra e salve projetos `.flare`. Importe e exporte XFL e `.fla` do Animate. Abra filmes Flash (`.swf`) como projetos editáveis.
-- Exporte PNG, GIF e MP4 e publique um SWF ou uma página HTML5 Canvas.
-- Uma interface de linha de comando (`flare`) para criar, editar, exportar e publicar projetos a partir de scripts.
+O Flare, também chamado de *FlareCraft*, é uma suíte de animação (em desenvolvimento) feita para facilitar a transição de programas como *Adobe Animate*, *Adobe/Macromedia Flash* e *Moho* para artistas e animadores.
 
-### Downloads
+A proposta é oferecer suporte aos formatos dessas ferramentas, para que as pessoas possam abrir e continuar trabalhando nos arquivos de projeto que já têm, e apresentar uma interface mais simples e familiar, que pode ser personalizada.
 
-Haverá downloads para Windows, macOS e Linux, mas ainda não há nenhum. Vamos adicioná-los aqui quando o empacotamento estiver concluído. Até lá, compile a partir do código-fonte (abaixo).
+O Flare está sendo reescrito em **Rust**. Ele se baseia principalmente em *OpenToonz* e *Tahoma2D*, com recursos incorporados de *AnimationCraft* e *Next2Flash*, que foram absorvidos pelo Flare. O código C++ antigo fica guardado como arquivo em [`original/`](../../original/README.md).
 
-### Compilar e executar
+## Recursos
+
+- Desenho com as ferramentas de caneta, pincel e formas, com uma ferramenta de seleção para mover, agrupar e editar formas, e estilos de traço (sólido, tracejado, pontilhado, stipple).
+- Uma linha do tempo com quadros, camadas, pastas, máscaras, guias de movimento, papel cebola e uma camada de câmera.
+- Interpolações de movimento e de forma com easing, e um Motion Editor para as curvas dos segmentos.
+- Símbolos (Gráfico, Clipe de Filme e Botão) em uma biblioteca, colocados como instâncias no palco.
+- Configurações de sessões de stop motion. A captura por câmera ainda não foi construída.
+- Reprodução de som no desktop, e Testar Filme, que executa o SWF publicado no Ruffle.
+- Abrir e salvar projetos `.flare`. Importar e exportar XFL e `.fla` do Animate, e abrir filmes Flash (`.swf`) como projetos editáveis.
+- Importar projetos Moho e movimentos BVH, cenas `.tnz` e níveis `.pli` do OpenToonz, e arte em SVG, PNG ou GIF animado, como projetos editáveis.
+- Exportar PNG, GIF e MP4, e publicar um SWF ou uma página HTML5 Canvas.
+- Uma linha de comando (`flare`) e um servidor MCP (`flare-mcp`) para agentes, para criar, editar, exportar e publicar projetos a partir de scripts.
+- Uma versão para navegador do mesmo editor. Veja [docs/WEB.md](../WEB.md) para saber o que ela faz de forma diferente.
+
+O [docs/SURFACES.md](../SURFACES.md) lista, recurso por recurso, o que cada um do aplicativo de desktop, da versão para navegador, da linha de comando e do servidor MCP consegue fazer, e as lacunas.
+
+### Formatos
+
+- Flash/Animate: `.fla`, `.xfl`, `.swf` e `.fla` binário legado (importado como esqueleto). Salvar e exportar em `.fla`, `.xfl` e `.flare`.
+- Moho: `.moho`, `.anime`, `.mohoproj`, `.animeproj` e movimento BVH. Camadas, ossos, quadros-chave e arte vetorial são importados como projetos editáveis; imagens e som são listados, não colocados.
+- OpenToonz: cenas `.tnz` e níveis vetoriais `.pli` são importados (taxa de quadros, câmera, colunas do xsheet, traços, cores de paleta). Níveis raster `.tlv` são recusados, e `.tzu` está previsto.
+- Arte: SVG (um quadro), PNG (um quadro) e GIF animado são importados como camadas de bitmap. JPEG, WebP e PSD não foram construídos.
+
+### Plataformas
+
+| Destino | Situação | Observações |
+|---|---|---|
+| Windows (desktop) | Compila a partir do código-fonte | Toolchain MSVC e `flare-desktop`. Ainda sem downloads. |
+| Linux (desktop) | Compila a partir do código-fonte | Precisa das bibliotecas listadas em [CONTRIBUTING.md](../../CONTRIBUTING.md). Testar Filme precisa do Ruffle compilado a partir do submódulo. |
+| macOS (desktop) | Compila a partir do código-fonte | Menu nativo. A pressão da caneta ainda não chega ao Pincel no macOS. |
+| Web (navegador) | No ar, inicial | A [versão web](https://flare-animate.github.io/Flare/) é publicada a partir de `main`. Sem exportação MP4, sem som, e Testar Filme roda na própria página. |
+| Android | Experimental | Primeira versão do `flare-android`, o espaço de trabalho do desktop em uma atividade nativa. Ainda não é possível abrir nem salvar arquivos pelo seletor do telefone, e Testar Filme está desligado. |
+| ChromeOS | Não testado | A versão Android gera APKs para x86_64 e arm64 que deveriam rodar ali. Nada foi testado no ChromeOS. |
+| iOS | Não construído | Não há aplicativo para iOS. A tarefa de CI do iOS só tenta compilar e não bloqueia. |
+
+Nenhuma versão foi publicada ainda, então não há downloads. Compile a partir do código-fonte (abaixo).
+
+## Compilar e executar
 
 O Rust está fixado em `rust-toolchain.toml`. O Ruffle é um submódulo do git, então clone com os submódulos:
 
@@ -40,9 +75,9 @@ O Rust está fixado em `rust-toolchain.toml`. O Ruffle é um submódulo do git, 
 
 No Linux, instale as bibliotecas listadas em [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
-[docs/BUILDING.md](../BUILDING.md) traz os passos para cada plataforma: Linux, Windows, macOS, a versão para navegador e Android.
+Em [docs/BUILDING.md](../BUILDING.md) estão os passos de cada plataforma: Linux, Windows, macOS, a versão para navegador e Android.
 
-### Linha de comando
+## Linha de comando
 
     flare new project.flare --width 1280 --height 720
     flare draw-rect project.flare --rect 100 100 300 200 --color FF6600
@@ -51,40 +86,54 @@ No Linux, instale as bibliotecas listadas em [CONTRIBUTING.md](../../CONTRIBUTIN
     flare publish-html5 project.flare page.html
     flare --help
 
-### Por que o Flare existe
+## Por que o Flare existe
 
-A Adobe [anunciou](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) o fim da vida do Animate e depois [voltou atrás](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). Mesmo tendo voltado atrás, isso mostra como a indústria da animação é instável e o quanto certas empresas a dominam. Os animadores entraram em pânico, com razão. A carreira das pessoas não deveria depender da decisão de uma empresa de continuar vendendo um produto.
+A Adobe [anunciou](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) o fim de vida do Animate e depois [voltou atrás](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). A mudança de rumo não altera o quanto a indústria da animação é instável nem o quanto uma única empresa a controla. Animadores entraram em pânico, com razão, e a carreira de ninguém deveria depender de uma empresa continuar vendendo um produto.
 
-O Flare começou como um campo de testes para tornar a animação mais fácil de aprender, foi aberto ao público mais tarde e cresceu a partir daí.
+O Flare começou como um espaço de experimentação para tornar a animação mais fácil de aprender, depois foi aberto como código aberto e cresceu a partir daí.
 
-### Roteiro
+## Roteiro
 
-O que vem a seguir, o mais importante primeiro. Quase tudo aparece esmaecido na interface. [docs/ROADMAP.md](../ROADMAP.md) repete esta lista e segue com tudo de menor prioridade.
+Os próximos itens, do mais importante para o menos. A maior parte aparece esmaecida na interface. O [docs/ROADMAP.md](../ROADMAP.md) repete esta lista e segue com tudo o que tem prioridade menor.
 
-- Desenho por mesclagem: as formas de mapa planar do Flash, em que formas sobrepostas se cortam e se mesclam (hoje as formas são objetos separados)
-- Qualidade do desenho: dinâmica do pincel e vetorização de um bitmap em formas vetoriais
-- SWF que preserva mais do documento: botões com seus estados, interpolações de forma como morphs, máscaras de várias formas e sons dentro de símbolos
-- Um Editor de movimento: gráficos por propriedade e curvas de suavização personalizadas para as interpolações
-- Importar arte de arquivos SVG e Photoshop
-- Ossos e cinemática inversa (as ferramentas Osso e Vincular)
+- Mesclagem de desenho: formas de mapa planar do Flash, em que formas sobrepostas se cortam e se mesclam (hoje as formas são objetos separados)
+- Qualidade de desenho: dinâmica de pincel, e converter um bitmap em formas vetoriais
+- SWF que mantenha mais do documento: botões com seus estados, interpolações de forma como morphs, máscaras de várias formas e sons dentro de símbolos
+- Um Motion Editor: gráficos por propriedade e curvas de easing personalizadas para as interpolações
+- Importar arte de arquivos SVG e do Photoshop
+- Ossos e cinemática inversa (as ferramentas Bone e Bind)
 - Atalhos de teclado editáveis
 
-Também planejado, com menor prioridade: ActionScript e um editor de scripts (o ActionScript de um arquivo importado é mantido como dados e nunca é executado), dicas de forma e mais de uma cena, o restante das ferramentas do Animate, temas personalizados, uma barra de ferramentas totalmente reorganizável e uma versão web publicada.
+Também previsto, com prioridade menor: ActionScript e um editor de scripts (o ActionScript de um arquivo importado é mantido como dado e nunca é executado), formas de referência e mais de uma cena, o restante das ferramentas do Animate, temas personalizados, uma barra de ferramentas totalmente reorganizável e uma versão web lançada.
 
-### Documentação
+## Documentação
 
-[docs/README.md](../README.md) explica como o Flare é construído.
+O [docs/README.md](../README.md) explica como o Flare é construído e diz o que cada documento cobre.
 
-Quem for contribuir deve ver [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md), [SECURITY.md](../../SECURITY.md) e [CHANGELOG.md](../../CHANGELOG.md). Esses documentos estão em inglês.
+Quem contribui deve ler [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../AGENTS.md), [SECURITY.md](../../SECURITY.md) e [CHANGELOG.md](../../CHANGELOG.md).
 
-### Comunidade
+## O código original
 
-[Discord](https://discord.com/invite/JpeScW8Awa) · [Website](https://flare-animate.github.io/website/) · [Discussions](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+O [`original/`](../../original/README.md) é o código C++ arquivado, baseado em OpenToonz e Tahoma2D. Ele serve apenas como referência. Nada no Flare depende dele, o liga ou copia dele.
 
-### Licença
+## Créditos
 
-BSD de 3 cláusulas. Veja [LICENSE](../../LICENSE).
+O Flare se apoia nestes projetos. Os avisos de licença são mantidos onde código foi portado ou usado.
 
----
+- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. e colaboradores): a base do código original. O leitor PLI de `crates/io/flare-toonz` foi portado a partir dele.
+- **Tahoma2D** (BSD-3-Clause): um fork do OpenToonz e a outra base do código original. Foram lidos a licença e o README; as fontes das ferramentas foram apenas comparadas.
+- **AnimationCraft** (`MIT OR Apache-2.0`): o modelo de autoria em Rust que o Flare absorveu.
+- **Next2Flash**: suas partes MIT podem ser portadas. Seu worker FFDec é GPLv3, então só o comportamento é usado.
+- **jpdurigan/godot_moho_importer** (MIT, Copyright (c) 2022 Joao Pedro Durigan): o layout de malha do Moho usado por `crates/io/flare-moho`.
+- **usvg** (MIT/Apache-2.0): o leitor SVG, usado como dependência.
+- **Ruffle** (`third_party/ruffle`, um submódulo usado sem alterações sob a própria licença): reprodução Flash para Testar Filme, e o crate `swf` para publicar SWF.
+- **ArtCraft** (`MIT OR Apache-2.0`) e **minnamate** (sem arquivo de licença, só comportamento) são fontes estudadas. As licenças estão listadas em [docs/BACKLOG.md](../BACKLOG.md).
+- **nflare** e **FFDec** (GPLv3): só comportamento, sem código. **SimplSam/moho-bvh-bones** (CC BY-NC-SA 4.0): não usado.
 
-*Esta tradução pode estar atrás do [README em inglês](../../README.md), que é a versão de referência.*
+## Comunidade
+
+[Discord](https://discord.com/invite/JpeScW8Awa) · [Site](https://flare-animate.github.io/website/) · [Discussões](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
+
+## Licença
+
+BSD 3-Clause. Veja [LICENSE](../../LICENSE). Componentes de terceiros mantêm suas próprias licenças.
