@@ -332,6 +332,20 @@ pub(crate) enum Command {
         #[arg(long)]
         transparent: bool,
     },
+    /// Lay a frame range out as a transparent PNG sprite sheet with a JSON atlas beside it.
+    ExportSprites {
+        path: PathBuf,
+        /// The sheet (`.png`); the atlas is written next to it as `.json`.
+        out: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        start: u32,
+        /// Last frame, inclusive.
+        #[arg(long)]
+        end: Option<u32>,
+        /// Frames per row (default: about square).
+        #[arg(long)]
+        columns: Option<u32>,
+    },
     /// Place a symbol instance on the first layer of the first scene.
     Place {
         path: PathBuf,

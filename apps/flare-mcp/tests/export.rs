@@ -29,6 +29,13 @@ async fn each_export_tool_writes_its_format_into_the_export_directory() {
     assert!(gif["path"].as_str().expect("p").ends_with("loop.gif"));
     assert!(bytes(&gif["path"]).starts_with(b"GIF89a"));
 
+    let sheet = f
+        .ok("export_sprite_sheet", json!({ "name": "sheet" }))
+        .await;
+    assert!(bytes(&sheet["path"]).starts_with(b"\x89PNG"));
+    let atlas = String::from_utf8(bytes(&sheet["atlas"])).expect("utf8");
+    assert!(atlas.contains("\"frame_00000\"") && atlas.contains("sheet.png"));
+
     let mp4 = f.ok("export_mp4", json!({ "name": "video" })).await;
     // Compared by path components: Windows separates them with a backslash.
     assert!(std::path::Path::new(mp4["path"].as_str().expect("p")).ends_with("exports/video.mp4"));

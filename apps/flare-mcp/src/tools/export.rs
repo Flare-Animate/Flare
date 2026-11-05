@@ -7,7 +7,9 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
 use crate::color::{safe_file_name_with, safe_name};
-use crate::params::{ExportName, ExportXfl, ImportProject, PublishHtml5, PublishSwf};
+use crate::params::{
+    ExportName, ExportSpriteSheet, ExportXfl, ImportProject, PublishHtml5, PublishSwf,
+};
 use crate::server::{FlareServer, Outcome, State};
 
 /// The export directory, created if needed, or the reason exports are off.
@@ -54,6 +56,34 @@ impl FlareServer {
             let bytes = flare_runtime::gif_bytes(state.session.document())?;
             std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
+        })
+    }
+
+    #[tool(
+        description = "Lay the frames of the first scene out in a grid as a transparent PNG sprite sheet, with a JSON atlas (frame rectangles, source sizes, durations, frame rate) beside it, in the export directory (disabled when no export directory is configured)."
+    )]
+    fn export_sprite_sheet(&self, Parameters(args): Parameters<ExportSpriteSheet>) -> Outcome {
+        self.read(|state| {
+            let dir = export_dir(state)?;
+            let png_name = safe_file_name_with(&args.name, "png")?;
+            let json_name = format!("{}.json", png_name.trim_end_matches(".png"));
+            let (png_out, json_out) = (fresh(&dir, &png_name)?, fresh(&dir, &json_name)?);
+            let sheet = flare_runtime::sprite_sheet(
+                state.session.document(),
+                args.start.unwrap_or(0),
+                args.end,
+                args.columns,
+                &png_name,
+            )?;
+            std::fs::write(&png_out, &sheet.png).map_err(|e| e.to_string())?;
+            std::fs::write(&json_out, &sheet.json).map_err(|e| e.to_string())?;
+            Ok(json!({
+                "path": png_out.to_string_lossy(),
+                "atlas": json_out.to_string_lossy(),
+                "width": sheet.width,
+                "height": sheet.height,
+                "frames": sheet.frames,
+            }))
         })
     }
 

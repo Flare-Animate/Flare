@@ -133,6 +133,13 @@ fn run() -> Result<()> {
             height,
             transparent,
         } => project::export_frames(&path, &directory, start, end, width, height, transparent)?,
+        Command::ExportSprites {
+            path,
+            out,
+            start,
+            end,
+            columns,
+        } => project::export_sprites(&path, &out, start, end, columns)?,
         Command::Import { source, out } => project::import(&source, &out)?,
         Command::Convert { source, out, force } => project::convert(&source, &out, force)?,
         Command::ExportXfl { path, out } => project::export_xfl(&path, &out)?,

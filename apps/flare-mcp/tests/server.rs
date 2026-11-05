@@ -22,6 +22,7 @@ async fn the_server_announces_tools_and_every_tool_has_an_object_schema() {
         "evaluate_frame",
         "export_png",
         "export_gif",
+        "export_sprite_sheet",
         "export_mp4",
         "publish_swf",
         "publish_html5",

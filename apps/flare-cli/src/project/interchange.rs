@@ -242,3 +242,46 @@ pub fn convert(source: &Path, out: &Path, force: bool) -> Result<Value> {
     }
     Ok(answer)
 }
+
+/// Writes the sprite sheet PNG to `out` and its JSON atlas beside it (the same name, `.json`).
+/// Never overwrites either; each appears only when whole.
+pub fn export_sprites(
+    path: &Path,
+    out: &Path,
+    start: u32,
+    end: Option<u32>,
+    columns: Option<u32>,
+) -> Result<Value> {
+    let atlas = out.with_extension("json");
+    for file in [out, atlas.as_path()] {
+        if file.exists() {
+            bail!("{} already exists", file.display());
+        }
+    }
+    let session = open(path)?;
+    let name = out
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("sheet.png");
+    let sheet = flare_runtime::sprite_sheet(session.document(), start, end, columns, name)
+        .map_err(anyhow::Error::msg)?;
+    let directory = out
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    for (file, bytes) in [
+        (out, sheet.png.as_slice()),
+        (atlas.as_path(), sheet.json.as_bytes()),
+    ] {
+        let mut staged = tempfile::NamedTempFile::new_in(directory)?;
+        std::io::Write::write_all(&mut staged, bytes)?;
+        staged.persist(file).map_err(|error| error.error)?;
+    }
+    Ok(json!({
+        "exported": out.to_string_lossy(),
+        "atlas": atlas.to_string_lossy(),
+        "width": sheet.width,
+        "height": sheet.height,
+        "frames": sheet.frames,
+    }))
+}

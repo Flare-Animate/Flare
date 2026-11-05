@@ -242,6 +242,9 @@ approach" names the library tests (with failure paths) and the wiring tests the 
 
 ### WP-5 Export: sprite sheets, animated SVG, Lottie, XDTS (M, medium)
 
+- **Status:** sprite sheet (PNG grid plus JSON hash atlas) done in `flare-runtime` `sprites.rs`, CLI and MCP;
+  left: desktop and browser entries, trimming and duplicate sharing, animated SVG, Lottie, XDTS.
+
 - **Goal:** the game and web outputs of the references: sprite sheets (PNG plus JSON hash, JSON
   array or Starling XML, trimmed, duplicates shared), animated SVG with SMIL, Lottie JSON, XDTS out.
 - **Read in reference:** AnimationCraft export section and `ac-render/src/formats.rs`; nflare's

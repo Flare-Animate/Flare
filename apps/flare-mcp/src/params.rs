@@ -184,6 +184,19 @@ pub struct ExportName {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct ExportSpriteSheet {
+    /// File name only: letters, digits, '.', '_' or '-'. `.png` is added when missing; the atlas
+    /// is written beside it with the same name and `.json`.
+    pub name: String,
+    /// First frame (0-based). Default 0.
+    pub start: Option<u32>,
+    /// Last frame, inclusive. Default: the end of the scene.
+    pub end: Option<u32>,
+    /// Frames per row. Default: about square.
+    pub columns: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct PublishSwf {
     /// File name only; `.swf` is added when missing.
     pub name: String,
