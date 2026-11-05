@@ -153,3 +153,131 @@ proptest! {
         if outside { prop_assert!(!answer); }
     }
 }
+
+mod bones {
+    use std::num::NonZeroU32;
+
+    use flare_core::{
+        DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, ShapeId, SymbolId, Transform2D,
+    };
+    use flare_document::{
+        Content, Document, FrameSpan, Instance, Layer, Scene, Shape, Symbol, Timeline,
+    };
+    use flare_history::EditorSession;
+    use flare_tools::bones::{self, Bond};
+    use glamx::{DAffine2, DVec2};
+    use proptest::prelude::*;
+
+    /// A chain of `count` instances, 10 apart, linked by bones one after another.
+    fn chain(count: usize) -> (EditorSession, SceneId, LayerId) {
+        let shape = Shape::rect(ShapeId::new(), 0.0, 0.0, 2.0, 2.0, Rgba8::WHITE).expect("rect");
+        let art = Layer::new(
+            LayerId::new(),
+            "L",
+            vec![FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(shape))],
+        )
+        .expect("layer");
+        let symbol = Symbol::new(SymbolId::new(), "Part", Timeline::new(vec![art]));
+        let parts: Vec<Instance> = (0..count)
+            .map(|i| {
+                let at = DAffine2::from_translation(DVec2::new(10.0 * i as f64, 0.0));
+                Instance::new(
+                    InstanceId::new(),
+                    symbol.id(),
+                    Transform2D::new(at).expect("finite"),
+                )
+            })
+            .collect();
+        let ids: Vec<InstanceId> = parts.iter().map(Instance::id).collect();
+        let mut elements = parts.into_iter().map(Content::Instance);
+        let first = elements.next().expect("one");
+        let span = FrameSpan::new(0, NonZeroU32::new(30).expect("30"), first)
+            .with_extras(elements.collect())
+            .expect("elements");
+        let scene = SceneId::new();
+        let layer = Layer::new(LayerId::new(), "Parts", vec![span]).expect("layer");
+        let document = Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![Scene::new(scene, "S", Timeline::new(vec![layer]))],
+            vec![symbol],
+        )
+        .expect("document");
+        let mut session = EditorSession::new(document);
+        for pair in ids.windows(2) {
+            let bond = |instance| Bond { instance, at: None };
+            let commands = bones::connect(
+                session.document(),
+                scene,
+                0,
+                bond(pair[0]),
+                bond(pair[1]),
+                "A",
+            )
+            .expect("connect");
+            session.apply(commands).expect("valid");
+        }
+        let armature = session.document().scenes()[0].timeline().layers()[0].id();
+        session.clear_history();
+        (session, scene, armature)
+    }
+
+    #[derive(Debug, Clone)]
+    enum Op {
+        Pull(usize, u32, f64, f64),
+        Turn(usize, u32, f64),
+        Limit(usize, f64, f64),
+        Detach(usize),
+    }
+
+    fn op() -> impl Strategy<Value = Op> {
+        prop_oneof![
+            (0usize..8, 0u32..32, -200.0..200.0, -200.0..200.0)
+                .prop_map(|(j, f, x, y)| Op::Pull(j, f, x, y)),
+            (0usize..8, 0u32..32, -10.0..10.0).prop_map(|(j, f, t)| Op::Turn(j, f, t)),
+            (0usize..8, -7.0..7.0, -7.0..7.0).prop_map(|(j, a, b)| Op::Limit(j, a, b)),
+            (0usize..8).prop_map(Op::Detach),
+        ]
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(64))]
+
+        #[test]
+        fn posing_never_breaks_the_document_and_undoes_to_the_start(
+            count in 2usize..7, ops in prop::collection::vec(op(), 1..24),
+        ) {
+            let (mut session, scene, layer) = chain(count);
+            let start = session.document().clone();
+            let mut steps = 0;
+            for op in ops {
+                let doc = session.document();
+                let made = match op {
+                    Op::Pull(j, f, x, y) => bones::pose_joint(doc, scene, layer, f, j, DVec2::new(x, y)),
+                    Op::Turn(j, f, t) => bones::turn_joint(doc, scene, layer, f, j, t),
+                    Op::Limit(j, a, b) => bones::set_limit(doc, scene, layer, j, Some((a.min(b), a.max(b)))),
+                    Op::Detach(j) => bones::detach(doc, scene, layer, j),
+                };
+                let Ok(commands) = made else { continue };
+                let before = session.document().clone();
+                match session.apply(commands) {
+                    Ok(()) => steps += 1,
+                    // A refused batch changes nothing.
+                    Err(_) => prop_assert_eq!(session.document(), &before),
+                }
+                // Every pose keeps every joint inside its limits.
+                for span in session.document().scenes()[0].timeline().layers()[0].spans() {
+                    if let Content::Armature(a) = span.content() {
+                        for (joint, posed) in a.joints().iter().zip(a.pose()) {
+                            prop_assert!((joint.limited(posed.turn) - posed.turn).abs() < 1e-9);
+                        }
+                    }
+                }
+            }
+            for _ in 0..steps {
+                prop_assert!(session.undo());
+            }
+            prop_assert_eq!(session.document(), &start);
+        }
+    }
+}

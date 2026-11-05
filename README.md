@@ -101,7 +101,7 @@ The next things, most important first. Most of it is shown dimmed in the interfa
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
 - A Motion Editor: per-property graphs and custom ease curves for tweens
 - Importing artwork from SVG and Photoshop files
-- Bones and inverse kinematics (the Bone and Bind tools)
+- Bones inside shapes and the Bind tool (bones that link symbol instances, posed by inverse kinematics with the Bone tool, are built)
 - Editable keyboard shortcuts
 
 Also planned, at lower priority: ActionScript and a script editor (ActionScript in an imported file is kept as data and never run), shape hints and more than one scene, the rest of Animate's tools, custom themes, a fully rearrangeable toolbar and a released web build.

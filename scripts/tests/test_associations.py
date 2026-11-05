@@ -32,8 +32,8 @@ class Associations(unittest.TestCase):
         self.assertEqual(
             IMPORT,
             {
-                "fla", "xfl", "svg", "png", "gif", "swf", "fcp", "ppm", "kwz", "tnz", "tlv",
-                "pli", "tzu", "moho", "mh", "mohobackup",
+                "fla", "xfl", "svg", "png", "gif", "swf", "bvh", "fc", "ppm", "kwz", "tnz",
+                "tpl", "plt", "tlv", "pli", "moho", "anime", "mohoproj", "animeproj", "anme",
             },
         )
 

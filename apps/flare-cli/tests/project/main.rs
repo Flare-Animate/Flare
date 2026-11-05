@@ -5,6 +5,7 @@ use std::path::Path;
 use std::process::{Command, Output};
 
 mod bitmap_tween;
+mod bones;
 mod camera;
 mod editing;
 mod elements;

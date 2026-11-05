@@ -90,6 +90,24 @@ pub(super) fn write_frame(
             }),
             // XFL's camera layer is not written (see `write_layer`).
             Content::Camera(_) => {}
+            // The bones are not written: each pose becomes its instances where it puts them.
+            Content::Armature(armature) => {
+                for (joint, placed) in armature.joints().iter().zip(armature.placements()) {
+                    let instance = joint.instance();
+                    match flare_core::Transform2D::new(placed) {
+                        Ok(transform) => {
+                            let posed = flare_document::Instance::new(
+                                instance.id(),
+                                instance.symbol(),
+                                transform,
+                            )
+                            .with_playback(instance.playback());
+                            write_instance(out, &posed, ctx.names);
+                        }
+                        Err(_) => write_instance(out, instance, ctx.names),
+                    }
+                }
+            }
             Content::Shape(shape) => {
                 let Ctx {
                     notes,
@@ -129,6 +147,19 @@ pub(super) fn write_layer(
             severity: Severity::Warning,
             location: format!("{place} / layer \"{}\"", layer.name()),
             message: "the camera layer is not written to XFL; its keyframes were left out".into(),
+        });
+    }
+    if layer
+        .spans()
+        .iter()
+        .any(|s| matches!(s.content(), Content::Armature(_)))
+    {
+        ctx.notes.push(Diagnostic {
+            severity: Severity::Warning,
+            location: format!("{place} / layer \"{}\"", layer.name()),
+            message: "the bones are not written to XFL; each pose was written as its instances \
+                      where the pose puts them, held until the next"
+                .into(),
         });
     }
     if layer.is_folder() {

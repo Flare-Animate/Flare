@@ -53,6 +53,12 @@ pub enum Diagnostic {
     CameraInSymbol(LayerId),
     #[error("scene {0:?} has more than one camera layer")]
     TooManyCameras(SceneId),
+    #[error("layer {0:?} holds an armature but is a mask or a guide")]
+    ArmatureOnSpecialLayer(LayerId),
+    #[error("layer {0:?} holds an armature and other things; an armature layer holds only poses")]
+    ArmatureLayerMixed(LayerId),
+    #[error("the keyframes of armature layer {0:?} are not all one rig")]
+    ArmatureRigsDiffer(LayerId),
     #[error("a cue on layer {layer:?} plays sound {sound:?}, which is not in the document")]
     DanglingSound { layer: LayerId, sound: SoundId },
     #[error("duplicate bitmap id {0:?}")]
@@ -214,20 +220,34 @@ pub(crate) fn validate(document: &Document) -> Vec<Diagnostic> {
                 out.push(Diagnostic::DuplicateShape(shape.id()));
             }
         }
-        for instance in timeline.instances() {
-            if !instances.insert(instance.id()) {
-                out.push(Diagnostic::DuplicateInstance(instance.id()));
-            }
-            if !symbols.contains(&instance.symbol()) {
-                out.push(Diagnostic::DanglingSymbol {
-                    instance: instance.id(),
-                    symbol: instance.symbol(),
-                });
+        for layer in timeline.layers() {
+            // Every keyframe of an armature layer carries the same instances (it is one rig in
+            // several poses), so they are counted once, from the first.
+            let mut rig_counted = false;
+            for element in layer.spans().iter().flat_map(crate::FrameSpan::elements) {
+                if matches!(element, crate::Content::Armature(_)) {
+                    if rig_counted {
+                        continue;
+                    }
+                    rig_counted = true;
+                }
+                for instance in element.instances() {
+                    if !instances.insert(instance.id()) {
+                        out.push(Diagnostic::DuplicateInstance(instance.id()));
+                    }
+                    if !symbols.contains(&instance.symbol()) {
+                        out.push(Diagnostic::DanglingSymbol {
+                            instance: instance.id(),
+                            symbol: instance.symbol(),
+                        });
+                    }
+                }
             }
         }
     }
 
     validate_cameras(document, &mut out);
+    validate_armatures(document, &mut out);
     out.extend(find_cycles(document));
     out
 }
@@ -271,6 +291,41 @@ fn validate_cameras(document: &Document, out: &mut Vec<Diagnostic>) {
     }
     for symbol in &document.symbols {
         check(&symbol.timeline, false, out);
+    }
+}
+
+/// An armature layer holds poses of one rig and nothing else, and is drawn: not a mask or a
+/// guide (a camera layer holds only cameras, which is checked with the camera).
+fn validate_armatures(document: &Document, out: &mut Vec<Diagnostic>) {
+    use crate::Content;
+    for timeline in timelines(document) {
+        for layer in timeline.layers() {
+            let mut rig: Option<&crate::Armature> = None;
+            let mut other = false;
+            for span in layer.spans() {
+                match span.content() {
+                    Content::Armature(armature) => match rig {
+                        None => rig = Some(armature),
+                        Some(first) if !first.same_rig(armature) => {
+                            out.push(Diagnostic::ArmatureRigsDiffer(layer.id()));
+                            break;
+                        }
+                        Some(_) => {}
+                    },
+                    Content::Empty => {}
+                    _ => other = true,
+                }
+            }
+            if rig.is_none() || layer.is_camera() {
+                continue;
+            }
+            if layer.is_mask() || layer.is_guide() {
+                out.push(Diagnostic::ArmatureOnSpecialLayer(layer.id()));
+            }
+            if other {
+                out.push(Diagnostic::ArmatureLayerMixed(layer.id()));
+            }
+        }
     }
 }
 

@@ -326,16 +326,16 @@ mod tests {
 
     #[test]
     fn dilate_then_erode() {
-        let d = dilate(&dot(), 5, 5, 1).unwrap();
+        let d = dilate(&dot(), 5, 5, 1).expect("dilate");
         let on = d.chunks(4).filter(|p| p[3] == 255).count();
         assert_eq!(on, 9);
-        let e = erode(&d, 5, 5, 1).unwrap();
+        let e = erode(&d, 5, 5, 1).expect("erode");
         assert_eq!(e.chunks(4).filter(|p| p[3] == 255).count(), 1);
     }
 
     #[test]
     fn blur_spreads_and_rejects_bad_len() {
-        let b = box_blur(&dot(), 5, 5, 1).unwrap();
+        let b = box_blur(&dot(), 5, 5, 1).expect("blur");
         assert_eq!(b[(2 * 5 + 1) * 4 + 3], 28);
         assert_eq!(box_blur(&[0; 3], 5, 5, 1), Err(BadBuffer));
     }

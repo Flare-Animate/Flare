@@ -69,7 +69,9 @@
                          Name="Flare.Image" Type="string" Value="" />
           <!-- The other projects Flare imports are offered the same way, never made the default.
                There is no default key for them here on purpose; only .flare's is a default. -->
-          <RegistryValue Root="HKMU" Key="Software\Classes\.fcp\OpenWithProgids"
+          <RegistryValue Root="HKMU" Key="Software\Classes\.bvh\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.fc\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.ppm\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
@@ -77,17 +79,23 @@
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.tnz\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.tpl\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.plt\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.tlv\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.pli\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
-          <RegistryValue Root="HKMU" Key="Software\Classes\.tzu\OpenWithProgids"
-                         Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.moho\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
-          <RegistryValue Root="HKMU" Key="Software\Classes\.mh\OpenWithProgids"
+          <RegistryValue Root="HKMU" Key="Software\Classes\.anime\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
-          <RegistryValue Root="HKMU" Key="Software\Classes\.mohobackup\OpenWithProgids"
+          <RegistryValue Root="HKMU" Key="Software\Classes\.mohoproj\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.animeproj\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.anme\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe"
                          Name="FriendlyAppName" Type="string" Value="Flare" />
@@ -106,7 +114,9 @@
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".svg" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
-                         Name=".fcp" Type="string" Value="" />
+                         Name=".bvh" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".fc" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".ppm" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
@@ -114,17 +124,23 @@
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".tnz" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".tpl" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".plt" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".tlv" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".pli" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
-                         Name=".tzu" Type="string" Value="" />
-          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".moho" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
-                         Name=".mh" Type="string" Value="" />
+                         Name=".anime" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
-                         Name=".mohobackup" Type="string" Value="" />
+                         Name=".mohoproj" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".animeproj" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".anme" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\shell\open\command"
                          Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities"
@@ -146,7 +162,9 @@
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".svg" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
-                         Name=".fcp" Type="string" Value="Flare.Animate" />
+                         Name=".bvh" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".fc" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".ppm" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
@@ -154,17 +172,23 @@
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".tnz" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".tpl" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".plt" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".tlv" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".pli" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
-                         Name=".tzu" Type="string" Value="Flare.Animate" />
-          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".moho" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
-                         Name=".mh" Type="string" Value="Flare.Animate" />
+                         Name=".anime" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
-                         Name=".mohobackup" Type="string" Value="Flare.Animate" />
+                         Name=".mohoproj" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".animeproj" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".anme" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\RegisteredApplications" Name="Flare"
                          Type="string" Value="Software\Flare\Capabilities" />
         </Component>

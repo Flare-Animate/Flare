@@ -131,7 +131,7 @@ pub(crate) static EXTRA: Slot = &[
     mock("tool-3d-rotation", "3D Rotation"),
     mock("tool-3d-translation", "3D Translation"),
     mock("tool-deco", "Deco"),
-    mock("tool-bone", "Bone"),
+    real("tool-bone", "Bone", "", Tool::Bone),
     mock("tool-bind", "Bind"),
     mock("tool-width", "Width"),
     real("tool-camera", "Camera", "", Tool::Camera),

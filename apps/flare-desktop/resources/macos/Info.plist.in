@@ -66,16 +66,20 @@
                 <string>fla</string>
                 <string>xfl</string>
                 <string>swf</string>
-                <string>fcp</string>
+                <string>bvh</string>
+                <string>fc</string>
                 <string>ppm</string>
                 <string>kwz</string>
                 <string>tnz</string>
+                <string>tpl</string>
+                <string>plt</string>
                 <string>tlv</string>
                 <string>pli</string>
-                <string>tzu</string>
                 <string>moho</string>
-                <string>mh</string>
-                <string>mohobackup</string>
+                <string>anime</string>
+                <string>mohoproj</string>
+                <string>animeproj</string>
+                <string>anme</string>
             </array>
             <key>CFBundleTypeIconFile</key>
             <string>flare-icon.icns</string>

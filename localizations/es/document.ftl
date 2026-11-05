@@ -10,3 +10,4 @@ doc-sounds = Sonidos
 doc-width = An
 doc-height = Al
 name-new-camera-layer = Cámara
+name-new-armature-layer = Esqueleto_{ $number }

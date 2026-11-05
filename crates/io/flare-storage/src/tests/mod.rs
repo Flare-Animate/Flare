@@ -19,6 +19,7 @@ use std::fs;
 use std::num::NonZeroU32;
 use std::path::Path;
 
+mod armature;
 mod bitmaps;
 mod compression;
 mod failures;

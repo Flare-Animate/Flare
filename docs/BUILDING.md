@@ -91,5 +91,7 @@ Test Movie is not offered on Android yet. The app's README lists what else diffe
 
 ## iOS
 
-There is no iOS app. The iOS CI workflow only tries to compile `flare-desktop` for
-`aarch64-apple-ios`, and it does not fail when that does not compile. Do not treat it as a build path.
+There is no iOS app. The iOS CI workflow builds `flare-shell` and `flare-desktop` for
+`aarch64-apple-ios`, then wraps the binary in an experimental unsigned `.ipa`. This checks the
+Rust target only; the archive has no UIKit lifecycle, signing, or usable file picker and is not an
+installable app.

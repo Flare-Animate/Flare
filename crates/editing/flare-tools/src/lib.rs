@@ -11,6 +11,7 @@
 
 pub mod add_anchor;
 pub mod arrange;
+pub mod bones;
 pub mod brush;
 pub mod clipboard;
 mod common;

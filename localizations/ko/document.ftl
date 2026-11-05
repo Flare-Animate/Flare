@@ -10,3 +10,4 @@ doc-sounds = 사운드
 doc-width = 너비
 doc-height = 높이
 name-new-camera-layer = 카메라
+name-new-armature-layer = 아마추어_{ $number }

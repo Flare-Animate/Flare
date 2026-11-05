@@ -101,7 +101,7 @@ Os próximos itens, do mais importante para o menos. A maior parte aparece esmae
 - SWF que mantenha mais do documento: botões com seus estados, interpolações de forma como morphs, máscaras de várias formas e sons dentro de símbolos
 - Um Motion Editor: gráficos por propriedade e curvas de easing personalizadas para as interpolações
 - Importar arte de arquivos SVG e do Photoshop
-- Ossos e cinemática inversa (as ferramentas Bone e Bind)
+- Ossos dentro de formas e a ferramenta Vincular (os ossos que ligam instâncias de símbolos, posados por cinemática inversa com a ferramenta Osso, já estão prontos)
 - Atalhos de teclado editáveis
 
 Também previsto, com prioridade menor: ActionScript e um editor de scripts (o ActionScript de um arquivo importado é mantido como dado e nunca é executado), formas de referência e mais de uma cena, o restante das ferramentas do Animate, temas personalizados, uma barra de ferramentas totalmente reorganizável e uma versão web lançada.

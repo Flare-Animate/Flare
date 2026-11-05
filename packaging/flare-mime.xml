@@ -23,6 +23,10 @@
     <comment>Flash Movie</comment>
     <glob pattern="*.swf" />
   </mime-type>
+  <mime-type type="application/x-flare-bvh">
+    <comment>BVH Motion</comment>
+    <glob pattern="*.bvh" />
+  </mime-type>
   <!-- The image files Flare imports as bitmap layers (docs/ARCHITECTURE.md). PNG, GIF and SVG
        are the systems' own types; declaring them here only lets Flare be offered for them, and
        Flare does not make itself their default either. -->
@@ -44,7 +48,6 @@
        not a promise (docs/ARCHITECTURE.md). -->
   <mime-type type="application/x-flare-fcp">
     <comment>FlipaClip Project</comment>
-    <glob pattern="*.fcp" />
     <glob pattern="*.fc" />
   </mime-type>
   <mime-type type="application/x-flare-ppm">
@@ -58,6 +61,8 @@
   <mime-type type="application/x-flare-tnz">
     <comment>OpenToonz Scene</comment>
     <glob pattern="*.tnz" />
+    <glob pattern="*.tpl" />
+    <glob pattern="*.plt" />
   </mime-type>
   <mime-type type="application/x-flare-tlv">
     <comment>OpenToonz Level</comment>
@@ -67,20 +72,12 @@
     <comment>OpenToonz Data</comment>
     <glob pattern="*.pli" />
   </mime-type>
-  <mime-type type="application/x-flare-tzu">
-    <comment>OpenToonz Data</comment>
-    <glob pattern="*.tzu" />
-  </mime-type>
   <mime-type type="application/x-flare-moho">
     <comment>Moho Project</comment>
     <glob pattern="*.moho" />
-  </mime-type>
-  <mime-type type="application/x-flare-mh">
-    <comment>Moho Document</comment>
-    <glob pattern="*.mh" />
-  </mime-type>
-  <mime-type type="application/x-flare-mohobackup">
-    <comment>Moho Project Backup</comment>
-    <glob pattern="*.mohobackup" />
+    <glob pattern="*.anime" />
+    <glob pattern="*.mohoproj" />
+    <glob pattern="*.animeproj" />
+    <glob pattern="*.anme" />
   </mime-type>
 </mime-info>

@@ -2,25 +2,33 @@
 
 use std::path::Path;
 
-/// The file extensions Flare opens itself, and the ones it imports as a new project.
+/// The file extensions Flare opens itself, and the ones it imports as a new project. Only formats
+/// an importer reads belong here: the operating system offers Flare every file of these kinds
+/// (`scripts/tests/test_associations.py` checks the bundle, desktop entry and installer agree).
+/// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
+/// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 16] = [
+pub const IMPORT_EXTENSIONS: [&str; 20] = [
     "fla",
     "xfl",
     "svg",
     "png",
     "gif",
     "swf",
-    "fcp",
+    "bvh",
+    "fc",
     "ppm",
     "kwz",
     "tnz",
+    "tpl",
+    "plt",
     "tlv",
     "pli",
-    "tzu",
     "moho",
-    "mh",
-    "mohobackup",
+    "anime",
+    "mohoproj",
+    "animeproj",
+    "anme",
 ];
 
 /// The file inside an XFL folder that is the document. A person who has only the folder, with no
@@ -75,15 +83,28 @@ mod tests {
         assert_eq!(kind("a.fla", false), Some(PathKind::Import));
         assert_eq!(kind("a.SWF", false), Some(PathKind::Import));
         assert_eq!(kind("a.XFL", false), Some(PathKind::Import));
-        assert_eq!(kind("a.fcp", false), Some(PathKind::Import));
-        assert_eq!(kind("a.ppm", false), Some(PathKind::Import));
-        assert_eq!(kind("a.kwz", false), Some(PathKind::Import));
-        assert_eq!(kind("a.tnz", false), Some(PathKind::Import));
-        assert_eq!(kind("a.tlv", false), Some(PathKind::Import));
-        assert_eq!(kind("a.pli", false), Some(PathKind::Import));
-        assert_eq!(kind("a.tzu", false), Some(PathKind::Import));
-        assert_eq!(kind("a.moho", false), Some(PathKind::Import));
-        assert_eq!(kind("a.mh", false), Some(PathKind::Import));
+        // Formats no importer reads are not claimed, so the system never offers them to Flare.
+        for name in ["a.fcp", "a.tzu", "a.mh", "a.mohobackup"] {
+            assert_eq!(kind(name, false), None, "{name}");
+        }
+        for name in [
+            "a.bvh",
+            "a.fc",
+            "a.ppm",
+            "a.kwz",
+            "a.tnz",
+            "a.tpl",
+            "a.plt",
+            "a.tlv",
+            "a.pli",
+            "a.moho",
+            "a.anime",
+            "a.mohoproj",
+            "a.animeproj",
+            "a.anme",
+        ] {
+            assert_eq!(kind(name, false), Some(PathKind::Import), "{name}");
+        }
         assert_eq!(
             kind("MyProject", true),
             Some(PathKind::Import),

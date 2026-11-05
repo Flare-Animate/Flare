@@ -101,7 +101,7 @@ Les prochaines étapes, par ordre d'importance. La plupart apparaissent en gris�
 - SWF qui conserve davantage du document : boutons avec leurs états, interpolations de forme en morphing, masques de plusieurs formes et sons dans les symboles
 - Un Motion Editor : graphiques par propriété et courbes d'easing personnalisées pour les interpolations
 - Import d'images depuis des fichiers SVG et Photoshop
-- Os et cinématique inverse (les outils Bone et Bind)
+- Os dans les formes et outil Lier (les os qui relient des occurrences de symboles, posés par cinématique inverse avec l’outil Os, sont faits)
 - Raccourcis clavier modifiables
 
 Également prévu, en priorité moindre : ActionScript et un éditeur de scripts (l'ActionScript d'un fichier importé est conservé comme donnée et jamais exécuté), des indices de forme et plusieurs scènes, le reste des outils d'Animate, des thèmes personnalisés, une barre d'outils entièrement réorganisable et une version web publiée.

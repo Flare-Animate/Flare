@@ -165,8 +165,9 @@ pub fn spans_bounds_at(
 
 pub(crate) fn content_bounds(document: &Document, content: &Content) -> Option<Rect> {
     match content {
-        // The camera is not art: it has no outline to select or move.
-        Content::Empty | Content::Camera(_) => None,
+        // The camera is not art: it has no outline to select or move. An armature is posed by its
+        // bones (see `bones`), not selected and moved as one thing.
+        Content::Empty | Content::Camera(_) | Content::Armature(_) => None,
         Content::Shape(shape) => shape_bounds(shape),
         Content::Bitmap(placed) => {
             let bitmap = document.bitmap(placed.bitmap())?;

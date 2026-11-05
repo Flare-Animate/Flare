@@ -1,6 +1,7 @@
 //! The tools an agent can call, grouped by what they touch. Each is a thin layer over the same
 //! edit commands, frame operations and renderer that the CLI and desktop app use.
 
+mod bones;
 mod draw;
 mod export;
 mod history;
@@ -27,6 +28,7 @@ impl FlareServer {
             + Self::text_tools()
             + Self::timeline_tools()
             + Self::history_tools()
+            + Self::bone_tools()
             + Self::stopmotion_tools()
             + Self::tween_tools()
             + Self::shortcut_tools()

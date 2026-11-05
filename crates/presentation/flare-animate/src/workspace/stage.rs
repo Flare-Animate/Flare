@@ -119,6 +119,9 @@ impl Workspace {
         if self.camera_stage(&response, &painter, scale, &to_screen) {
             return;
         }
+        if self.bone_stage(&response, &painter, &to_screen, &to_doc) {
+            return;
+        }
         if self.tool == Tool::Text
             && response.clicked()
             && let Some(p) = response.interact_pointer_pos()

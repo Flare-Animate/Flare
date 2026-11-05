@@ -162,6 +162,11 @@ pub(super) enum ContentWire {
         zoom: f64,
         rotation: f64,
     },
+    /// Absent in files written before bones existed. Each keyframe of an armature layer holds
+    /// the whole rig with its own pose.
+    Armature {
+        joints: Vec<super::armature::JointWire>,
+    },
 }
 
 /// A keyframe's flare-tween interpolation. Absent in files written before it existed, which load

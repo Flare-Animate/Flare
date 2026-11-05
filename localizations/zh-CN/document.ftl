@@ -10,3 +10,4 @@ doc-sounds = 声音
 doc-width = 宽
 doc-height = 高
 name-new-camera-layer = 摄像机
+name-new-armature-layer = 骨架_{ $number }

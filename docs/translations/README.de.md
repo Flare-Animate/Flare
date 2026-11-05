@@ -101,7 +101,7 @@ Die nächsten Punkte, das Wichtigste zuerst. Vieles davon ist in der Oberfläche
 - SWF, das mehr vom Dokument erhält: Schaltflächen mit ihren Zuständen, Formtweens als Morphs, Masken aus mehreren Formen und Töne in Symbolen
 - Ein Motion Editor: Graphen je Eigenschaft und eigene Ease-Kurven für Tweens
 - Import von Grafiken aus SVG- und Photoshop-Dateien
-- Knochen und inverse Kinematik (die Werkzeuge Bone und Bind)
+- Bones in Formen und das Werkzeug Bind (Bones, die Symbolinstanzen verbinden und mit dem Werkzeug Bone über inverse Kinematik posiert werden, sind gebaut)
 - Bearbeitbare Tastaturkürzel
 
 Außerdem, mit geringerer Priorität geplant: ActionScript und ein Skripteditor (ActionScript in einer importierten Datei wird als Daten behalten und nie ausgeführt), Formhinweise und mehr als eine Szene, der Rest der Werkzeuge von Animate, eigene Designs, eine vollständig frei anordenbare Werkzeugleiste und eine veröffentlichte Webversion.

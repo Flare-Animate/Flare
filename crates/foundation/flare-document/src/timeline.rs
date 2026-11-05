@@ -4,8 +4,8 @@ use std::sync::Arc;
 use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
 
 use crate::{
-    BitmapInstance, Camera, MAX_CUES_PER_LAYER, MAX_ELEMENTS, Shape, SoundCue, SoundError,
-    SpanInterp,
+    Armature, BitmapInstance, Camera, MAX_CUES_PER_LAYER, MAX_ELEMENTS, Shape, SoundCue,
+    SoundError, SpanInterp,
 };
 use thiserror::Error;
 
@@ -112,6 +112,9 @@ pub enum Content {
     Bitmap(BitmapInstance),
     /// Where the camera looks; only on a camera layer.
     Camera(Camera),
+    /// Bones and the instances they carry, in one pose: a keyframe of an armature layer, which
+    /// holds nothing else.
+    Armature(Armature),
 }
 
 /// How a span's transform moves toward the next span on the same layer.
@@ -303,9 +306,11 @@ impl Timeline {
             .flat_map(FrameSpan::elements)
             .filter_map(|content| match content {
                 Content::Shape(shape) => Some(shape),
-                Content::Empty | Content::Instance(_) | Content::Bitmap(_) | Content::Camera(_) => {
-                    None
-                }
+                Content::Empty
+                | Content::Instance(_)
+                | Content::Bitmap(_)
+                | Content::Camera(_)
+                | Content::Armature(_) => None,
             })
     }
 
@@ -314,16 +319,13 @@ impl Timeline {
         self.instances().map(Instance::symbol)
     }
 
+    /// Every instance, those an armature carries included. An armature's instances are in
+    /// each of its keyframes, so they repeat from one pose to the next.
     pub(crate) fn instances(&self) -> impl Iterator<Item = &Instance> {
         self.layers
             .iter()
             .flat_map(|layer| layer.spans())
             .flat_map(FrameSpan::elements)
-            .filter_map(|content| match content {
-                Content::Instance(instance) => Some(instance),
-                Content::Empty | Content::Shape(_) | Content::Bitmap(_) | Content::Camera(_) => {
-                    None
-                }
-            })
+            .flat_map(Content::instances)
     }
 }

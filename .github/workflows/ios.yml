@@ -2,8 +2,8 @@ name: iOS
 
 # There is no iOS app yet (no Xcode project, no UIKit lifecycle, no iOS file picker or storage
 # in flare-platform). This job builds what exists: the shared window shell for aarch64-apple-ios,
-# then wraps the desktop binary in an unsigned, experimental .ipa. A red job here is real
-# information about the port, which is why it does not hold the branch back yet (docs/SURFACES.md).
+# then wraps the desktop binary in an unsigned, experimental .ipa. This is a build check, not an
+# iOS app.
 on:
   push:
     branches: [main]
@@ -20,15 +20,13 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
+  IPHONEOS_DEPLOYMENT_TARGET: "10.0"
 
 jobs:
   ipa:
     name: Shell for iOS and experimental unsigned IPA
     runs-on: macos-latest
     timeout-minutes: 90
-    # First flight: the iOS target has not completed on a runner yet. Remove this line once it
-    # is green on its own, so it holds the branch back like the other platforms.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:

@@ -113,6 +113,8 @@ fn run() -> Result<()> {
             motion,
             ease,
         } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
+        Command::Bone { action } => project::bone(action)?,
+        Command::Bones { path, frame } => project::bones_list(&path, frame)?,
         Command::Tween { op } => tween::run(op)?,
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,

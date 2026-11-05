@@ -27,7 +27,8 @@ impl FlareServer {
                             let elements: usize = l.spans().iter().map(|s| s.element_count()).sum();
                             json!({ "id": l.id().as_uuid(), "name": l.name(),
                                     "visible": l.is_visible(), "locked": l.is_locked(),
-                                    "spans": l.spans().len(), "elements": elements })
+                                    "spans": l.spans().len(), "elements": elements,
+                                    "armature": flare_tools::bones::is_armature_layer(l) })
                         })
                         .collect();
                     json!({ "id": scene.id().as_uuid(), "name": scene.name(),

@@ -31,7 +31,7 @@ into the new crate architecture.
 - [ ] OpenToonz-style xsheet view
 - [ ] Onion skin
 - [ ] Camera tool / camera layer
-- [ ] Bone/rigging tools
+- [ ] Bone/rigging tools (the Bone tool, armatures of symbol instances and IK posing are built; bones inside shapes and the Bind tool are not)
 - [ ] Paint bucket / ink bottle (advanced)
 - [ ] Gadget tools
 - [ ] Tracker

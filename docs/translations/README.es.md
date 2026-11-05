@@ -101,8 +101,7 @@ Lo siguiente, por orden de importancia. La mayor parte aparece atenuada en la in
 - SWF que conserve más del documento: botones con sus estados, interpolaciones de forma como morphs, máscaras de varias formas y sonidos dentro de símbolos
 - Un Motion Editor: gráficos por propiedad y curvas de easing personalizadas para las interpolaciones
 - Importar arte desde archivos SVG y de Photoshop
-- Huesos y cinemática inversa (las herramientas Bone y Bind)
-- Atajos de teclado editables
+- Huesos dentro de formas y la herramienta Vincular (los huesos que unen instancias de símbolos, posados con cinemática inversa con la herramienta Hueso, ya están hechos)
 
 Además, con menor prioridad: ActionScript y un editor de scripts (el ActionScript de un archivo importado se conserva como datos y nunca se ejecuta), puntos de forma y más de una escena, el resto de herramientas de Animate, temas personalizados, una barra de herramientas totalmente reordenable y una versión web publicada.
 
