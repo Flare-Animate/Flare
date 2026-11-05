@@ -9,6 +9,7 @@ mod bones;
 mod camera;
 mod editing;
 mod elements;
+mod flipnote;
 mod formats;
 mod game;
 mod layers_and_stage;
