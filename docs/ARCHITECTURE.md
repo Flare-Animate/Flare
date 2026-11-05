@@ -15,7 +15,7 @@ Executables are in `apps/`. The folders mean:
 
 | Layer | Crate | Responsibility |
 |---|---|---|
-| foundation | `flare-core` | Typed IDs (UUIDv7), `FrameRate`, `DocumentPoint`, `Transform2D`, `Rgba8`. No I/O. |
+| foundation | `flare-core` | Typed IDs (UUIDv7), `FrameRate`, `DocumentPoint`, `Transform2D`, `Rgba8`, effect parameter sets with a scale (`fx_params`). No I/O. |
 | foundation | `flare-document` | The document model and its validation. No GUI, GPU, database or async code. |
 | foundation | `flare-eval` | Pure frame evaluation: document + scene + frame to placed instances and drawn shapes. |
 | foundation | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |

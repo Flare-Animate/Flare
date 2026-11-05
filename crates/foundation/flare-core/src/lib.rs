@@ -7,6 +7,7 @@
 pub mod color;
 pub mod convolve;
 pub mod curves;
+pub mod fx_params;
 pub mod geometry;
 pub mod id;
 pub mod image_ops;
