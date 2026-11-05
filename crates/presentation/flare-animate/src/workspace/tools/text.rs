@@ -47,7 +47,7 @@ impl Workspace {
         let at = image_rect.min + edit.at.to_vec2() * scale;
         // Read before the field is drawn: a multi-line field takes every Enter, Ctrl+Enter too, so
         // afterwards the key would be gone.
-        let mut finish = ctx.input_mut(|i| {
+        let finish = ctx.input_mut(|i| {
             i.consume_key(egui::Modifiers::COMMAND, Key::Enter)
                 | i.consume_key(egui::Modifiers::NONE, Key::Escape)
         });
