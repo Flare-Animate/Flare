@@ -126,6 +126,8 @@ pub struct Workspace {
     /// How many frames have been rendered (as opposed to taken from the cache).
     frames_rendered: u64,
     drag: Option<Drag>,
+    /// The Motion Editor panel's state.
+    motion: panels::MotionEditor,
     anchor_drag: Option<anchors::AnchorDrag>,
     /// The point of a shape the Subselection tool has chosen, with the revision of the document it
     /// was chosen in: Delete takes it out, unless the document has changed since.
@@ -308,6 +310,7 @@ impl Workspace {
             revert_pending: false,
             frames_rendered: 0,
             drag: None,
+            motion: panels::MotionEditor::default(),
             anchor_drag: None,
             selected_anchor: None,
             drag_cancelled: false,

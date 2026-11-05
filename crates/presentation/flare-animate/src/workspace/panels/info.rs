@@ -65,8 +65,6 @@ impl Workspace {
             }
         });
     }
-    pub(crate) fn motion_editor_panel(&mut self, _ui: &mut Ui) {}
-
     pub(crate) fn find_replace_panel(&mut self, _ui: &mut Ui) {}
 
     pub(crate) fn assets_panel(&mut self, _ui: &mut Ui) {}

@@ -2008,6 +2008,7 @@ dependencies = [
  "flare-storage",
  "flare-text",
  "flare-tools",
+ "flare-tween",
  "flare-ui",
  "glamx",
  "png 0.18.1",

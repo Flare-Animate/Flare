@@ -35,6 +35,7 @@ mod layer_names;
 mod layers_and_symbols;
 mod menus_and_recovery;
 mod menus_like_animate;
+mod motion_editor;
 mod native_pen;
 mod nothing_left_in_english;
 mod open_any;

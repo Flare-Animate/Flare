@@ -6,7 +6,7 @@ use flare_document::SymbolKind;
 
 /// An instance on frames 0 to 9 and another at frame 10, 100 units to the right, joined by a
 /// motion tween. The instance at frame 0 is selected, the playhead on `frame`.
-fn tweened_instance(frame: u32) -> Workspace {
+pub(super) fn tweened_instance(frame: u32) -> Workspace {
     let mut ws = workspace();
     ws.library.new_kind = SymbolKind::MovieClip;
     draw_and_select(&mut ws);

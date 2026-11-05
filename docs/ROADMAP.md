@@ -15,7 +15,7 @@ maintainer's to reorder.
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)
 - Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
-- A Motion Editor: per-property graphs and editable curve handles for tweens (curve families, easings and in-betweens are in)
+- Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
 - Editable keyboard shortcuts: done in part (registry, four sets, editor, CLI and MCP; chords other than tool letters are still dispatched by fixed code, see SURFACES)
@@ -184,8 +184,8 @@ Next, in order:
   handle kind, one undo step each) and a `CreateInbetweens` command over two keyframes' strokes.
 - A `flare tween` command (`list` for the easings, `eval` for a curve) and a `flare-mcp` tool with
   the same two calls, so the surfaces in SURFACES.md get their rows to yes.
-- The Motion Editor (the high-priority item above) draws each property's curve from `Curve` and edits
-  handles through the command.
+- The Motion Editor edits a span's curve (`flare_tween::edit`: hit test, handle drag rules, view) through
+  `SetKeyframeInterpolation`; per-property graphs over a whole `Curve` are the part left.
 - Making the renderer use `flare-tween` for motion tweens in place of the Animate Ease in `flare-eval`,
   once the document stores keys (today a span holds one ease value).
 ## OpenToonz feature areas
@@ -205,7 +205,7 @@ appear, docs/UI.md); the profiles place them, but the interface does not read pr
 | Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Eight palettes in `flare-ui` `theme.rs`, text at least 7:1 on every surface (tested) | Built |
 | Preferences | Preferences | Built in part (General, Stage, Timeline, Recent) | Built |
 | FX schematic and FX settings | Schematic, FxBrowser, FxSettings | Planned panels | P2 |
-| Function editor | FunctionEditor | Planned panel | P2 |
+| Function editor | FunctionEditor | Built as the Motion Editor (one span's curve); per-property graphs are left | P2 |
 | Level strip and palettes | LevelStrip, LevelPalette, StyleEditor | Planned panels | P2 |
 | Scene cast and browser | SceneCast, Browser | Planned panels | P2 |
 | Motion paths | MotionPath | Planned panel | P2 |

@@ -86,6 +86,7 @@ impl PanelId {
                 | Self::Info
                 | Self::Timeline
                 | Self::Output
+                | Self::FunctionEditor
         )
     }
 }

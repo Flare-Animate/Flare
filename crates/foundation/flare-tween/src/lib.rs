@@ -10,18 +10,27 @@
 mod bezier;
 mod curve;
 mod easing;
+mod edit;
 mod sequence;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]
+mod tests_edit;
+#[cfg(test)]
 mod tests_more;
+mod view;
 
 pub use curve::{Curve, Extrapolation, Handle, HandleKind, Key, MAX_KEYS};
 pub use easing::{
     Easing, Interpolation, MAX_BACK_OVERSHOOT, MAX_ELASTIC_AMPLITUDE, MAX_ELASTIC_PERIOD,
     MIN_ELASTIC_PERIOD, Params, ease,
 };
+pub use edit::{
+    DragOptions, Dragged, Grab, MAX_HANDLE_VALUE, MAX_SAMPLES, drag_handle, effective_handles,
+    hit_test, points, sample_into,
+};
 pub use sequence::{MAX_POINTS, SequenceOptions, StrokePoint, interpolate_sequence};
+pub use view::{MAX_SCALE, MIN_SCALE, View};
 
 /// Why a value, curve or sequence was refused. A refused input changes nothing.
 #[derive(Debug, Clone, Copy, PartialEq, thiserror::Error)]

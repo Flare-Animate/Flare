@@ -139,7 +139,7 @@ found), **Not planned** (ROADMAP or PARITY says so).
 | Feature | Found in | Status on main | Evidence |
 |---|---|---|---|
 | Merge drawing (planar map, shapes cut and merge) | AnimationCraft | Gap | ROADMAP high priority; only a drawing-mode switch in `flare-animate` `panels/drawing_mode.rs` |
-| Motion Editor and custom eases | AnimationCraft (`motion.rs`, `tween_edit.rs`), minnamate motion tweens | Partial | `flare-tween` built, no command or editor (ROADMAP, SURFACES) |
+| Motion Editor and custom eases | AnimationCraft (`motion.rs`, `tween_edit.rs`), minnamate motion tweens | Partial | Segment editor built (`flare_tween::edit`, Motion Editor panel); per-property graphs left (ROADMAP, SURFACES) |
 | Bones and inverse kinematics | AnimationCraft (`rig.rs`, `ik.rs`), OpenToonz skeleton | Gap | `bone` appears only in tool slots, `flare-moho`'s model and a test; no IK |
 | Trace Bitmap, centerline | AnimationCraft (`trace.rs`, `centerline.rs`) | Gap | only a stub in `flare-tools/src/not_yet.rs` |
 | Shift and Trace | AnimationCraft, OpenToonz `shifttracetool.cpp` | Gap | listed in `not_yet.rs`, not implemented |

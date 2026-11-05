@@ -13,7 +13,10 @@ mod color;
 pub(crate) mod color_wells;
 mod drawing_mode;
 mod history;
+pub(crate) use motion_editor::MotionEditor;
 mod info;
+mod motion_editor;
+mod motion_editor_ui;
 #[cfg(test)]
 pub(super) use info::color_at as info_color_at;
 mod character;

@@ -110,8 +110,9 @@ fn every_built_in_profile_exposes_every_panel() {
 fn the_panel_list_has_each_panel_once_and_marks_the_unbuilt_ones() {
     let unique: BTreeSet<PanelId> = PanelId::ALL.iter().copied().collect();
     assert_eq!(unique.len(), PanelId::ALL.len());
-    assert_eq!(PanelId::ALL.iter().filter(|p| p.is_built()).count(), 11);
+    assert_eq!(PanelId::ALL.iter().filter(|p| p.is_built()).count(), 12);
     assert!(PanelId::Timeline.is_built());
+    assert!(PanelId::FunctionEditor.is_built());
     assert!(!PanelId::Xsheet.is_built());
     assert!(!PanelId::ScriptConsole.is_built());
 }
