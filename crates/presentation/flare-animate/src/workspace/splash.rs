@@ -49,7 +49,7 @@ impl Workspace {
         );
         let tagline = tr!(self, "menu-help-tagline");
         let screen = ctx.content_rect();
-        egui::Area::new(egui::Id::new("flare-splash"))
+        egui::Area::new(egui::Id::NULL.with("flare-splash"))
             .order(egui::Order::Foreground)
             .fixed_pos(screen.min)
             .show(ctx, |ui| {
