@@ -53,6 +53,20 @@
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.swf\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
+          <!-- The image files Flare imports as bitmap layers are offered the same way, never
+               made the default. -->
+          <RegistryValue Root="HKMU" Key="Software\Classes\Flare.Image" Type="string"
+                         Value="Image File" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Flare.Image\DefaultIcon"
+                         Type="string" Value="&quot;[#FlareExe]&quot;,0" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Flare.Image\shell\open\command"
+                         Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.png\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.gif\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.svg\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
           <!-- The other projects Flare imports are offered the same way, never made the default.
                There is no default key for them here on purpose; only .flare's is a default. -->
           <RegistryValue Root="HKMU" Key="Software\Classes\.fcp\OpenWithProgids"
@@ -85,6 +99,12 @@
                          Name=".xfl" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".swf" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".png" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".gif" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".svg" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".fcp" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
@@ -119,6 +139,12 @@
                          Name=".xfl" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".swf" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".png" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".gif" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".svg" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".fcp" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"

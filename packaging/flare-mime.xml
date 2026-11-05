@@ -23,6 +23,22 @@
     <comment>Flash Movie</comment>
     <glob pattern="*.swf" />
   </mime-type>
+  <!-- The image files Flare imports as bitmap layers (docs/ARCHITECTURE.md). PNG, GIF and SVG
+       are the systems' own types; declaring them here only lets Flare be offered for them, and
+       Flare does not make itself their default either. -->
+  <mime-type type="image/png">
+    <comment>PNG Image</comment>
+    <glob pattern="*.png" />
+  </mime-type>
+  <mime-type type="image/gif">
+    <comment>GIF Image</comment>
+    <glob pattern="*.gif" />
+  </mime-type>
+  <mime-type type="image/svg+xml">
+    <comment>SVG Image</comment>
+    <sub-class-of type="application/xml" />
+    <glob pattern="*.svg" />
+  </mime-type>
   <!-- The other projects Flare imports, none of which the systems name, so each is declared
        here; Flare does not make itself their default either. The import of them is a report,
        not a promise (docs/ARCHITECTURE.md). -->

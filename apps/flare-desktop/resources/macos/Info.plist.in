@@ -40,6 +40,22 @@
         </dict>
         <dict>
             <key>CFBundleTypeName</key>
+            <string>Image File (import)</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>png</string>
+                <string>gif</string>
+                <string>svg</string>
+            </array>
+            <key>CFBundleTypeIconFile</key>
+            <string>flare-icon.icns</string>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
             <string>Animate Document</string>
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
