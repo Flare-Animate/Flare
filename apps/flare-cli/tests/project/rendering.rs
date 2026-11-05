@@ -332,8 +332,8 @@ fn flipaclip_meta_only() -> Vec<u8> {
     })
     .to_string();
     let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
-    let stored = zip::write::SimpleFileOptions::default()
-        .compression_method(zip::CompressionMethod::Stored);
+    let stored =
+        zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
     zip.start_file("meta", stored).expect("starts");
     std::io::Write::write_all(&mut zip, meta.as_bytes()).expect("writes");
     zip.finish().expect("finishes").into_inner()
@@ -347,6 +347,9 @@ fn import_reads_a_flipaclip_project_by_its_extension() {
     let out = dir.path().join("out.flare").to_string_lossy().into_owned();
     let report = json(&["import", &source.to_string_lossy(), &out]);
     assert_eq!(report["scenes"].as_u64(), Some(1));
-    assert_eq!(report["unsupported"], 0, "a meta-only project names nothing as skipped");
+    assert_eq!(
+        report["unsupported"], 0,
+        "a meta-only project names nothing as skipped"
+    );
     assert!(std::path::Path::new(&out).exists());
 }

@@ -5,8 +5,8 @@
 mod bitmap;
 mod edges;
 mod file_kinds;
-pub mod flipnote;
 mod flipaclip;
+pub mod flipnote;
 mod foreign;
 mod keep;
 pub mod legacy;

@@ -295,14 +295,17 @@ async fn a_flipaclip_project_in_the_export_directory_imports_by_its_extension() 
     })
     .to_string();
     let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
-    let stored = zip::write::SimpleFileOptions::default()
-        .compression_method(zip::CompressionMethod::Stored);
+    let stored =
+        zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
     zip.start_file("meta", stored).expect("starts");
     std::io::Write::write_all(&mut zip, meta.as_bytes()).expect("writes");
     let bytes = zip.finish().expect("finishes").into_inner();
     std::fs::write(export_dir.join("sample.fc"), bytes).expect("writes the project");
     let imported = f
-        .ok("import_project", json!({ "source": "sample.fc", "name": "fc" }))
+        .ok(
+            "import_project",
+            json!({ "source": "sample.fc", "name": "fc" }),
+        )
         .await;
     assert_eq!(imported["scenes"], 1);
     assert!(imported["path"].as_str().expect("p").ends_with("fc.flare"));
