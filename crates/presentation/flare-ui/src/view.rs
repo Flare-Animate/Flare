@@ -5,8 +5,9 @@
 
 use egui::{Pos2, Rect, Vec2};
 
-pub const MIN_ZOOM: f32 = 0.1;
-pub const MAX_ZOOM: f32 = 32.0;
+/// Adobe Animate's zoom range (issue #213): 4% to 2000% of the fit-to-panel scale.
+pub const MIN_ZOOM: f32 = 0.04;
+pub const MAX_ZOOM: f32 = 20.0;
 /// One menu or key step of zoom.
 pub const STEP: f32 = 1.25;
 /// Smallest on-screen scale, so a degenerate panel never produces an empty rectangle.

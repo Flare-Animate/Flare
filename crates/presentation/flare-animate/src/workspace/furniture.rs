@@ -135,18 +135,41 @@ impl Workspace {
                 let additive = ctx.input(|i| i.modifiers.shift);
                 self.polygon_lasso_finish(additive);
             }
-            // Animate steps with the comma and the period as well as the arrow keys.
+            // Animate steps frames with the comma and the period, and the arrow keys nudge the
+            // selection by screen pixels instead (issue #213): one press moves one screen
+            // pixel, Shift makes it ten, whatever the zoom. With nothing selected the left
+            // and right arrows step frames as they did before the nudge, so transport
+            // always has a way in.
             let (comma, period) = ctx.input(|i| {
                 (
                     !i.modifiers.any() && i.key_pressed(Key::Comma),
                     !i.modifiers.any() && i.key_pressed(Key::Period),
                 )
             });
-            if left || comma {
-                self.set_frame(self.frame.saturating_sub(1));
-            }
-            if right || period {
-                self.set_frame(self.frame.saturating_add(1));
+            let (nudge_left, nudge_right, nudge_up, nudge_down, coarse) = ctx.input(|i| {
+                (
+                    i.key_pressed(Key::ArrowLeft),
+                    i.key_pressed(Key::ArrowRight),
+                    i.key_pressed(Key::ArrowUp),
+                    i.key_pressed(Key::ArrowDown),
+                    i.modifiers.shift_only(),
+                )
+            });
+            if !(nudge_left || nudge_right || nudge_up || nudge_down)
+                || self.selection_all().is_empty()
+            {
+                if left || comma {
+                    self.set_frame(self.frame.saturating_sub(1));
+                }
+                if right || period {
+                    self.set_frame(self.frame.saturating_add(1));
+                }
+            } else {
+                self.nudge_selection(
+                    nudge_right as i32 - nudge_left as i32,
+                    nudge_down as i32 - nudge_up as i32,
+                    coarse,
+                );
             }
         }
         // Delete only gives way to a text field being edited: a button that kept the focus after a

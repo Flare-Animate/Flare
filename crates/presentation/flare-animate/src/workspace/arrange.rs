@@ -22,6 +22,24 @@ impl Workspace {
         }
     }
 
+    /// The arrow keys nudge the selection one screen pixel per press, Shift makes it ten,
+    /// and the distance on the stage follows the zoom, as issue #213 spells out: at 200%
+    /// zoom one press moves half a stage unit, Shift half of ten times that.
+    pub(super) fn nudge_selection(&mut self, dx: i32, dy: i32, coarse: bool) {
+        if dx == 0 && dy == 0 {
+            return;
+        }
+        let steps = if coarse { 10.0 } else { 1.0 };
+        let scale = self.stage_scale();
+        if !scale.is_finite() || scale <= 0.0 {
+            return;
+        }
+        self.move_selection(Vec2::new(
+            steps * (dx as f32) / scale,
+            steps * (dy as f32) / scale,
+        ));
+    }
+
     /// Moves the selection so its shapes line up on one another's extent, or on the stage when
     /// "Align to stage" is on, as one undo step.
     pub fn align_selection(&mut self, how: ops::Align) {

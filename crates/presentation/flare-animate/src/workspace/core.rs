@@ -22,6 +22,12 @@ impl Workspace {
         Vec2::new(stage.width() as f32, stage.height() as f32)
     }
 
+    /// Screen points per stage unit, for distances a user measures on screen: an arrow-key
+    /// nudge moves one screen pixel however far in that means on the stage (issue #213).
+    pub(super) fn stage_scale(&self) -> f32 {
+        self.stage_view.scale(self.stage_panel, self.stage_extent())
+    }
+
     /// Changes the stage size as one undo step, keeping the background.
     pub fn set_stage_size(&mut self, width: u32, height: u32) {
         let current = self.document().stage();

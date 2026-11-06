@@ -325,3 +325,40 @@ fn modify_arrange_moves_the_picked_element_one_step_or_to_an_end_of_its_keyframe
     ws.undo();
     assert_eq!(ws.document(), &before, "one undo step");
 }
+
+#[test]
+fn the_arrow_keys_nudge_the_selection_one_screen_pixel_at_a_time() {
+    let mut ws = workspace();
+    rect(&mut ws); // x 10..110, y 10..60
+    ws.set_tool(Tool::Select);
+    ws.select_at(Pos2::new(30.0, 30.0), false);
+    assert!(ws.selected.is_some(), "a rect is picked");
+    // A 550x400 stage in a 550x400 panel: one screen pixel is one stage unit at 100%.
+    ws.set_stage_size(550, 400);
+    ws.stage_panel = Rect::from_min_size(Pos2::ZERO, Vec2::new(550.0, 400.0));
+
+    ws.nudge_selection(1, -1, false);
+    let scene = ws.scene_id().expect("scene");
+    let at = ws.selected.expect("the nudge keeps the pick");
+    let bounds = ops::span_bounds(ws.document(), scene, at).expect("bounds");
+    assert_eq!(
+        bounds.min,
+        Pos2::new(11.0, 9.0),
+        "one pixel is one unit at 100%"
+    );
+
+    ws.nudge_selection(0, 1, true);
+    let bounds = ops::span_bounds(ws.document(), scene, at).expect("bounds");
+    assert_eq!(bounds.min, Pos2::new(11.0, 19.0), "shift moves ten pixels");
+
+    ws.undo();
+    let bounds = ops::span_bounds(ws.document(), scene, at).expect("bounds");
+    assert_eq!(
+        bounds.min,
+        Pos2::new(11.0, 9.0),
+        "each nudge is one undo step"
+    );
+    ws.undo();
+    let bounds = ops::span_bounds(ws.document(), scene, at).expect("bounds");
+    assert_eq!(bounds.min, Pos2::new(10.0, 10.0), "back where it was drawn");
+}
