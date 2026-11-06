@@ -142,8 +142,21 @@ pub(crate) fn import_xfl_with_files(
             );
             break;
         }
-        let file = format!("LIBRARY/{}", item.attr("href").unwrap_or_default());
-        let Some(bytes) = source.read(&file)? else {
+        // Animate keeps a bitmap's pixels in `bin/` under `bitmapDataHRef`; `href` names the
+        // library entry, and an image file written by hand may sit under `LIBRARY/`.
+        let data_href = item.attr("bitmapDataHRef").map(|h| format!("bin/{h}"));
+        let file = match &data_href {
+            Some(path) => path.clone(),
+            None => format!("LIBRARY/{}", item.attr("href").unwrap_or_default()),
+        };
+        let found = match source.read(&file)? {
+            Some(bytes) => Some(bytes),
+            None => match item.attr("href") {
+                Some(href) if data_href.is_some() => source.read(&format!("LIBRARY/{href}"))?,
+                _ => None,
+            },
+        };
+        let Some(bytes) = found else {
             importer.note(Severity::Unsupported, &place, "image file not found");
             continue;
         };
@@ -155,6 +168,13 @@ pub(crate) fn import_xfl_with_files(
             crate::bitmap::decode_png(&file, &bytes)
         } else if bytes.starts_with(JPEG_SIGNATURE) {
             crate::bitmap::decode_jpeg(&file, &bytes)
+        } else if data_href.is_some() {
+            importer.note(
+                Severity::Unsupported,
+                &place,
+                "Animate's own bitmap data format is not imported yet; the bitmap was kept as source data",
+            );
+            continue;
         } else {
             importer.note(
                 Severity::Unsupported,

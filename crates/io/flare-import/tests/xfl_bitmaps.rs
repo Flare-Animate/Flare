@@ -40,7 +40,13 @@ fn document_with(media: &str, element: &str, files: Vec<(&str, Vec<u8>)>) -> Fil
     );
     let mut map = HashMap::from([("DOMDocument.xml".to_owned(), xml.into_bytes())]);
     for (name, bytes) in files {
-        map.insert(format!("LIBRARY/{name}"), bytes);
+        // A name with a slash is a path from the document root (`bin/...`); otherwise LIBRARY/.
+        let key = if name.contains('/') {
+            name.to_owned()
+        } else {
+            format!("LIBRARY/{name}")
+        };
+        map.insert(key, bytes);
     }
     Files(map)
 }
@@ -168,6 +174,38 @@ fn a_missing_image_file_is_reported() {
             .diagnostics
             .iter()
             .any(|d| d.message == "image file not found"),
+        "{:?}",
+        imported.diagnostics
+    );
+}
+
+#[test]
+fn a_bitmap_whose_pixels_are_in_bin_is_read_from_there() {
+    let item = r#"<DOMBitmapItem name="pic.png" href="pic.png" bitmapDataHRef="M 1 1.dat"/>"#;
+    let files = document_with(
+        item,
+        PLACED,
+        vec![("bin/M 1 1.dat", png(4, 4, [0, 0, 200]))],
+    );
+    let imported = import_xfl(&files).expect("import");
+    assert_eq!(imported.document.bitmaps().len(), 1);
+}
+
+#[test]
+fn animates_own_binary_bitmap_data_is_reported_not_guessed_at() {
+    // The header of a payload Animate writes: 0x0305, the width and height, then its own coding.
+    let payload = vec![
+        0x03, 0x05, 0xA0, 0x0A, 0xA8, 0x02, 0x90, 0x01, 0, 0, 0, 0, 0x20, 0x35,
+    ];
+    let item = r#"<DOMBitmapItem name="pic.png" href="pic.png" bitmapDataHRef="M 2 2.dat"/>"#;
+    let files = document_with(item, PLACED, vec![("bin/M 2 2.dat", payload)]);
+    let imported = import_xfl(&files).expect("import");
+    assert!(imported.document.bitmaps().is_empty());
+    assert!(
+        imported
+            .diagnostics
+            .iter()
+            .any(|d| d.message.contains("Animate's own bitmap data format")),
         "{:?}",
         imported.diagnostics
     );
