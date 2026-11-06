@@ -144,15 +144,15 @@ The legacy reader gives a skeleton for any legacy file, so a BFDI file would imp
 
 ## Real files found on the web (2026-11-06)
 
-Found by GitHub code search for XFL markers, and raw public URLs. Licences checked; each sample
-is read in place from `/home/user/ref/flash-samples/web/` and never committed.
+The XFL projects were found by hand and fetched from raw public URLs. Licences are as stated in each
+project's LICENSE file (the header was read); each sample is read in place and never committed.
 
 | Source | Licence (checked) | Files | `flare import` result |
 |---|---|---|---|
-| Ruffle test corpus (`third_party/ruffle`) | MIT OR Apache-2.0 | 6,462: 5,046 SWF, 1,415 FLA, 1 SPL | 6,443 ok, 19 refused (as above). All 1,416 FLA/SPL import |
+| Ruffle test corpus (`third_party/ruffle`) | see `docs/BACKLOG.md` | 6,462: 5,046 SWF, 1,415 FLA, 1 SPL | 6,443 ok, 19 refused (as above). All 1,416 FLA/SPL import |
 | Flashbang (`cure53/Flashbang`, `shumway/` examples and tests) | MPL-2.0 (`LICENSE`) | 77 FLA (zipped CS-era files), 160 SWF, 6 XFL folders | 77 FLA ok, 159 SWF ok, 1 refused (`shumway/examples/clipping/mask.swf`: frame rate "-125" out of range), 6 XFL ok |
-| OStimNG `flash/OstimBar` (`VersuchDrei/OStimNG`) | GPL-3.0 | 1 XFL project (`DOMDocument.xml` and 1 library file) | ok after the `/` fix. Before it, 2 edges were skipped with "bad number" |
-| CrazyFlashNight `scripts/WarlordDogHost` (`FlashNightModReborn/CrazyFlashNight`) | GPL-3.0 | 1 partial XFL project | ok. One instance refers to a symbol in a library file this project does not include ("missing symbol", accurate) |
+| OStimNG `flash/OstimBar` (`VersuchDrei/OStimNG`) | GNU GPL (LICENSE header) | 1 XFL project (`DOMDocument.xml` and 1 library file) | ok after the `/` fix. Before it, 2 edges were skipped with "bad number" |
+| CrazyFlashNight `scripts/WarlordDogHost` (`FlashNightModReborn/CrazyFlashNight`) | GNU GPL (LICENSE header) | 1 partial XFL project | ok. One instance refers to a symbol in a library file this project does not include ("missing symbol", accurate) |
 
 GPL samples are test inputs only; nothing from them is committed.
 
@@ -169,7 +169,7 @@ Still missing, from the same files:
 
 - **Animate's binary bitmap format (`bin/M *.dat`)**: the payload begins `03 05`, then width and
   height as u16 (they match the item's frame size, e.g. 680x400), then data that is not zlib at
-  the offsets tried. This is the likely background of the user's AngryMatt.fla. Decoding it needs
+  the offsets tried. Decoding it needs
   the format; no public spec was used.
 - **Frame scripts** (178 FLAs carry them), **movie clip clocks**, **frame labels**, **text**
   (`DOMStaticText`, `DOMDynamicText`), **radial and multi-stop gradients**, **instance colour
