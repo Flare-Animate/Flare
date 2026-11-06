@@ -2215,6 +2215,7 @@ dependencies = [
  "flare-render",
  "flare-storage",
  "flare-toonz",
+ "flate2",
  "gif",
  "glamx",
  "jpeg-decoder",

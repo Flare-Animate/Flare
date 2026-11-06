@@ -173,13 +173,10 @@ pub(crate) fn import_xfl_with_files(
             crate::bitmap::decode_png(&file, &bytes)
         } else if bytes.starts_with(JPEG_SIGNATURE) {
             crate::bitmap::decode_jpeg(&file, &bytes)
-        } else if data_href.is_some() {
-            importer.note(
-                Severity::Unsupported,
-                &place,
-                "Animate's own bitmap data format is not imported yet; the bitmap was kept as source data",
-            );
-            continue;
+        } else if bytes.starts_with(&crate::flash_bitmap::SIGNATURE) {
+            // Animate's own lossless payload from `bin/`.
+            crate::flash_bitmap::decode(&bytes)
+                .map_err(|e| ImportError::Foreign(format!("{file}: {e}")))
         } else {
             importer.note(
                 Severity::Unsupported,

@@ -21,7 +21,7 @@ format is known from notes but no real file was checked by hand. "Not built" mea
 | Modern FLA (a ZIP of XFL parts, CS5 and later) | `flare-import` `xfl/`, `source.rs` | Verified: every zipped `.fla` in the corpus is read without a crash; many report unsupported items | 1,256 zipped `.fla` files |
 | XFL folder and `.xfl` stub | `flare-import` `xfl/` | Verified by the existing `xfl*` tests | the XFL test suite (not the corpus) |
 | XFL motion tweens on instances, classic (`motion`) and motion object (`motion object`) | `flare-import` `xfl/timeline.rs` | Verified on synthetic fixtures (`tests/xfl_tweens.rs`). Both are linear transform tweens with the frame's `acceleration`; motion object curves and property editors are reported, not imported | none of the corpus FLA zips has instance tweens checked |
-| XFL library bitmaps (PNG and baseline JPEG) and `DOMBitmapInstance`, read from `bin/` through `bitmapDataHRef` | `flare-import` `xfl/entry.rs`, `xfl/elements.rs`, `bitmap.rs` | Verified on synthetic fixtures (`tests/xfl_bitmaps.rs`) and on Flashbang's real FLAs (below). Animate's own binary bitmap payload (`bin/M *.dat`, starts `03 05`) is **not decoded**: 49 bitmaps in the Flashbang FLAs stay as source data. CMYK JPEG and other formats too | none of the Ruffle corpus FLA zips has bitmap items |
+| XFL library bitmaps (PNG and baseline JPEG) and `DOMBitmapInstance`, read from `bin/` through `bitmapDataHRef` | `flare-import` `xfl/entry.rs`, `xfl/elements.rs`, `bitmap.rs` | Verified on synthetic fixtures (`tests/xfl_bitmaps.rs`) and on Flashbang's real FLAs (below). Animate's own lossless payload (`bin/M *.dat`, starts `03 05`) is decoded (`flash_bitmap.rs`; layout below). 8-bit palette payloads and CMYK JPEG are not imported | none of the Ruffle corpus FLA zips has bitmap items |
 | Legacy binary FLA (Flash 5 to CS4, a compound file with a `Contents` stream) | `flare-import` `legacy/` | Partly verified: stage, frame rate, background, library names and types are read; drawings, timelines, text, media, scripts are not. Imported as a skeleton with a warning | 159 compound files in the corpus; `btnstrob.fla` (a real MX 2004 file, from the lifeart reference's fixtures) |
 | FLA `Contents` layouts other than the ones in `legacy/layout.rs` | none | Refused with the stream names and the format number | 5 synthetic fixtures from the lifeart reference (see below) |
 | SOL (AMF0 local shared object) | none | Not built | 7 `.sol` files in the corpus, not run |
@@ -158,19 +158,30 @@ GPL samples are test inputs only; nothing from them is committed.
 
 What the real files exposed, and what was fixed:
 
+- **Animate's lossless bitmap payload (`bin/M *.dat`)**, worked out from real files (no licensed
+  code used). Little-endian throughout: `03 05`; row length in bytes, width, height (u16 each);
+  frame in twips, left, right, top, bottom (i32 each, 20 twips a pixel); at offset 24 a has-alpha
+  byte, at 25 a compressed byte; the data from offset 26. Compressed, the data is one zlib stream
+  (`78 01` header and Adler-32 included) cut into chunks that each start with their u16 length,
+  ended by a chunk of length 0; inflated it is exactly `row length * height` bytes. Pixels are
+  premultiplied **ARGB** bytes (alpha first); with the alpha byte 0 the pixels are opaque. Checked
+  on 67 `.dat` payloads from the Flashbang FLAs: all 53 with the signature are 32-bit rows and
+  inflate to exactly the header size (49 with alpha, 4 without), and several decode to sensible
+  pictures (a photo, a Firefox logo with soft shadow, button skins). The rest are not bitmaps in
+  this format (empty files, JPEG, headerless audio). Not verified: an uncompressed payload (the
+  compressed byte 0) was never seen, and is read as raw rows after offset 26; a payload whose
+  row length is not 4 * width (presumably 8-bit palette) was never seen and is reported as not
+  imported.
+
 - **Bitmap pixels live in `bin/`**: Animate writes `bitmapDataHRef="M 1 ....dat"`, with the file
   at `bin/M 1 ....dat`, not `LIBRARY/<href>`. Those reported "image file not found" (47 items).
-  Now read from `bin/`; PNG and JPEG decode; Animate's own payload is reported (49 items, below).
+  Now read from `bin/`; PNG, JPEG and Animate's own payload (below) decode.
 - **Edges with `/` as a line**: `!209 -235/-33 -1` (OStimNG) was a bad number. `/` is a line now.
 - **Motion object tweens**: `tweenType="motion object"` on instances is imported as a linear
   tween (3 FLAs have them; the curves are reported as not imported).
 
 Still missing, from the same files:
 
-- **Animate's binary bitmap format (`bin/M *.dat`)**: the payload begins `03 05`, then width and
-  height as u16 (they match the item's frame size, e.g. 680x400), then data that is not zlib at
-  the offsets tried. Decoding it needs
-  the format; no public spec was used.
 - **Frame scripts** (178 FLAs carry them), **movie clip clocks**, **frame labels**, **text**
   (`DOMStaticText`, `DOMDynamicText`), **radial and multi-stop gradients**, **instance colour
   effects** (`instance color effects are ignored`, 10 FLAs), **filters**, **blend modes**, **sound**.

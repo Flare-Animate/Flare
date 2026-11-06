@@ -5,6 +5,7 @@
 mod bitmap;
 mod edges;
 mod file_kinds;
+mod flash_bitmap;
 mod flipaclip;
 pub mod flipnote;
 mod foreign;

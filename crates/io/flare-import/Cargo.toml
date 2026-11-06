@@ -12,6 +12,7 @@ flare-document.workspace = true
 flare-moho.workspace = true
 flare-toonz.workspace = true
 flare-storage.workspace = true
+flate2.workspace = true
 gif.workspace = true
 jpeg-decoder.workspace = true
 glamx.workspace = true

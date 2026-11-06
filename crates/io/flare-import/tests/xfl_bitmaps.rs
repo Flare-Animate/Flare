@@ -205,21 +205,61 @@ fn a_bitmap_whose_pixels_are_in_bin_is_read_from_there() {
     assert_eq!(imported.document.bitmaps().len(), 1);
 }
 
+/// A 2x1 payload as Animate writes it: premultiplied ARGB in one zlib stream, cut in chunks.
+fn animate_payload(compressed_pixels: &[u8]) -> Vec<u8> {
+    let mut out = vec![0x03, 0x05, 8, 0, 2, 0, 1, 0];
+    for v in [0i32, 40, 0, 20] {
+        out.extend_from_slice(&v.to_le_bytes());
+    }
+    out.extend_from_slice(&[1, 1]);
+    for piece in compressed_pixels.chunks(7) {
+        out.extend_from_slice(&(piece.len() as u16).to_le_bytes());
+        out.extend_from_slice(piece);
+    }
+    out.extend_from_slice(&[0, 0]);
+    out
+}
+
+const BIN_ITEM: &str =
+    r#"<DOMBitmapItem name="pic.png" href="pic.png" bitmapDataHRef="M 2 2.dat"/>"#;
+
 #[test]
-fn animates_own_binary_bitmap_data_is_reported_not_guessed_at() {
-    // The header of a payload Animate writes: 0x0305, the width and height, then its own coding.
-    let payload = vec![
-        0x03, 0x05, 0xA0, 0x0A, 0xA8, 0x02, 0x90, 0x01, 0, 0, 0, 0, 0x20, 0x35,
-    ];
-    let item = r#"<DOMBitmapItem name="pic.png" href="pic.png" bitmapDataHRef="M 2 2.dat"/>"#;
-    let files = document_with(item, PLACED, vec![("bin/M 2 2.dat", payload)]);
+fn animates_own_binary_bitmap_data_becomes_a_library_bitmap() {
+    use std::io::Write;
+    let mut z = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
+    z.write_all(&[128, 128, 0, 0, 255, 0, 255, 0])
+        .expect("write");
+    let payload = animate_payload(&z.finish().expect("finish"));
+    let files = document_with(BIN_ITEM, PLACED, vec![("bin/M 2 2.dat", payload)]);
+    let imported = import_xfl(&files).expect("import");
+    let bitmaps = imported.document.bitmaps();
+    assert_eq!(bitmaps.len(), 1);
+    assert_eq!((bitmaps[0].width(), bitmaps[0].height()), (2, 1));
+    assert_eq!(bitmaps[0].pixels(), [255, 0, 0, 128, 0, 255, 0, 255]);
+    assert!(
+        imported
+            .diagnostics
+            .iter()
+            .all(|d| !d.message.contains("not imported yet")),
+        "{:?}",
+        imported.diagnostics
+    );
+}
+
+#[test]
+fn damaged_animate_bitmap_data_is_reported_and_skipped() {
+    let files = document_with(
+        BIN_ITEM,
+        PLACED,
+        vec![("bin/M 2 2.dat", animate_payload(&[1, 2, 3]))],
+    );
     let imported = import_xfl(&files).expect("import");
     assert!(imported.document.bitmaps().is_empty());
     assert!(
         imported
             .diagnostics
             .iter()
-            .any(|d| d.message.contains("Animate's own bitmap data format")),
+            .any(|d| d.message.contains("could not be read")),
         "{:?}",
         imported.diagnostics
     );
