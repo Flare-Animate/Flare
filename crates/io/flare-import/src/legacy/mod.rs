@@ -2,21 +2,23 @@
 //! `Contents` stream (document settings and the library table) and one stream per scene, symbol
 //! and media item.
 //!
-//! There is no published specification. What is read here was worked out from the community
-//! notes at <https://github.com/Kreijstal/fla-decoder> and then checked against the genuine
+//! There is no official specification. What is read here was worked out from the format notes at
+//! <https://github.com/eddiemoore/fla-decoder> and then checked against the genuine
 //! legacy files in the vendored Ruffle test suite (format versions 0x129, 0x138, 0x13f and 0x147;
 //! all small test movies, none a real project, none made by CS3 or CS4 as far as is known).
 //!
-//! Read: the container, the stream names (and from them the style of the file and how many
-//! scenes, symbols and media it has), the stage size, frame rate and background colour, and the
-//! library table (name and type of each symbol, name and class of each media item).
+//! Read: the container, stream names, stage properties, library table and recoverable layer
+//! names and visibility/lock state.
 //!
-//! Not read: drawings, timelines, layers, text, tweens, sounds and bitmaps themselves, scripts,
-//! fonts, library folders, and the names of scenes. [`import_legacy_bytes`] therefore makes a
-//! skeleton: the stage, one empty scene and empty symbols of the right types.
+//! Not read: drawings, keyframe contents, text, tweens, sounds and bitmaps themselves, scripts,
+//! fonts, library folders, and the names of scenes. Imported scenes and symbols retain their
+//! recovered layer stacks, but no artwork or animation is fabricated.
 
 mod cfb;
 mod contents;
+#[cfg(test)]
+mod import_tests;
+mod layers;
 mod layout;
 #[cfg(test)]
 mod layout_tests;
@@ -25,10 +27,11 @@ use thiserror::Error;
 
 use crate::xfl::{ImportError, Imported, Severity, frame_rate};
 use flare_core::{DocumentId, Rgba8, SceneId, SymbolId};
-use flare_document::{Document, MAX_STAGE_SIDE, Scene, Stage, Symbol, SymbolKind, Timeline};
+use flare_document::{Document, Layer, MAX_STAGE_SIDE, Scene, Stage, Symbol, SymbolKind, Timeline};
 
 pub use cfb::{CfbError, StreamInfo};
 pub use contents::{DocumentProps, ItemKind, LibraryItem, PropsError};
+pub use layers::{LayerError, LayerKind, LegacyLayer};
 pub use layout::{Era, LegacyInfo};
 
 /// The first eight bytes of every compound file.
@@ -39,6 +42,9 @@ pub const MAX_LEGACY_FILE_BYTES: u64 = cfb::MAX_FILE_BYTES;
 
 /// The most `Contents` bytes read.
 const MAX_CONTENTS_BYTES: u64 = 64 * 1024 * 1024;
+/// Total bytes read from page and symbol streams to recover layer metadata.
+const MAX_LAYER_STREAM_BYTES: u64 = 128 * 1024 * 1024;
+const MAX_LAYER_STREAMS: usize = 4096;
 
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 pub enum LegacyError {
@@ -57,6 +63,10 @@ pub struct Legacy {
     /// The document settings, or why they could not be read.
     pub properties: Result<DocumentProps, PropsError>,
     pub library: Vec<LibraryItem>,
+    /// Recoverable layer lists by source stream name.
+    pub layers: Vec<(String, Vec<LegacyLayer>)>,
+    /// Streams skipped because their size or count exceeded the import budget, or they were malformed.
+    pub layer_warnings: Vec<(String, String)>,
 }
 
 /// Reads what can be read of a legacy `.fla` held in memory.
@@ -81,10 +91,48 @@ pub fn read(bytes: &[u8]) -> Result<Legacy, LegacyError> {
         .map(u16::from_le_bytes);
     let properties = contents::properties(&contents, MAX_STAGE_SIDE);
     let library = contents::library(&contents, &names);
+    let mut layers = Vec::new();
+    let mut layer_warnings = Vec::new();
+    let mut layer_bytes = 0_u64;
+    for stream in container.streams().iter().filter(|stream| {
+        matches!(
+            layout::classify(&stream.name).map(|(kind, _)| kind),
+            Some(layout::StreamKind::Page | layout::StreamKind::Symbol)
+        )
+    }) {
+        if layers.len() + layer_warnings.len() >= MAX_LAYER_STREAMS {
+            layer_warnings.push((
+                stream.name.clone(),
+                format!("layer metadata skipped after the {MAX_LAYER_STREAMS} stream limit"),
+            ));
+            break;
+        }
+        let Some(total) = layer_bytes.checked_add(stream.size) else {
+            layer_warnings.push((stream.name.clone(), "layer stream size overflow".to_owned()));
+            continue;
+        };
+        if stream.size > cfb::MAX_STREAM_BYTES || total > MAX_LAYER_STREAM_BYTES {
+            layer_warnings.push((
+                stream.name.clone(),
+                format!("layer metadata skipped at the {MAX_LAYER_STREAM_BYTES} byte budget"),
+            ));
+            continue;
+        }
+        layer_bytes = total;
+        match container.read(&stream.name) {
+            Ok(bytes) => match layers::read(&bytes) {
+                Ok(found) => layers.push((stream.name.clone(), found)),
+                Err(error) => layer_warnings.push((stream.name.clone(), error.to_string())),
+            },
+            Err(error) => layer_warnings.push((stream.name.clone(), error.to_string())),
+        }
+    }
     Ok(Legacy {
         info,
         properties,
         library,
+        layers,
+        layer_warnings,
     })
 }
 
@@ -93,14 +141,15 @@ pub fn inspect(bytes: &[u8]) -> Result<LegacyInfo, LegacyError> {
     read(bytes).map(|legacy| legacy.info)
 }
 
-/// Imports a legacy `.fla` as a skeleton: stage, frame rate, background, one empty scene and the
-/// library's symbols as empty symbols of the right types.
+/// Imports a legacy `.fla`'s stage, frame rate, background, library and recoverable layer stacks.
 pub fn import_legacy_bytes(bytes: &[u8]) -> Result<Imported, ImportError> {
     let legacy = read(bytes).map_err(|e| ImportError::NotXfl(e.to_string()))?;
     let Legacy {
         info,
         properties,
         library,
+        layers,
+        layer_warnings,
     } = legacy;
     let props = properties.map_err(|why| {
         let why = match why {
@@ -113,6 +162,34 @@ pub fn import_legacy_bytes(bytes: &[u8]) -> Result<Imported, ImportError> {
     })?;
 
     let mut importer = crate::xfl::Importer::new();
+    for (stream, warning) in layer_warnings {
+        importer.note(Severity::Warning, &stream, warning);
+    }
+    let timeline_for = |stream: &str| -> Result<Timeline, ImportError> {
+        let items: Vec<Layer> = layers
+            .iter()
+            .find(|(name, _)| name == stream)
+            .map(|(_, layers)| layers.as_slice())
+            .unwrap_or_default()
+            .iter()
+            .map(|source| {
+                let layer = Layer::new(flare_core::LayerId::new(), source.name.clone(), Vec::new())
+                    .map_err(|error| {
+                        ImportError::NotXfl(format!(
+                            "invalid layer in legacy stream {stream:?}: {error}"
+                        ))
+                    })?;
+                Ok(match source.kind {
+                    LayerKind::Normal => layer,
+                    LayerKind::Guide => layer.with_guide(true),
+                    LayerKind::Folder => layer.with_folder(true),
+                }
+                .with_locked(source.locked)
+                .with_visible(source.visible))
+            })
+            .collect::<Result<_, ImportError>>()?;
+        Ok(Timeline::new(items))
+    };
     let mut symbols = Vec::new();
     for item in &library {
         let place = format!("{} \"{}\"", item.kind.label(), item.name);
@@ -137,15 +214,55 @@ pub fn import_legacy_bytes(bytes: &[u8]) -> Result<Imported, ImportError> {
             return Err(ImportError::TooManySymbols);
         }
         symbols.push(
-            Symbol::new(SymbolId::new(), item.name.clone(), Timeline::default()).with_kind(kind),
+            Symbol::new(
+                SymbolId::new(),
+                item.name.clone(),
+                timeline_for(&item.stream)?,
+            )
+            .with_kind(kind),
         );
     }
-    if info.pages > 1 {
+    let mut page_layers: Vec<_> = layers
+        .iter()
+        .filter(|(stream, _)| {
+            matches!(
+                layout::classify(stream).map(|(kind, _)| kind),
+                Some(layout::StreamKind::Page)
+            )
+        })
+        .collect();
+    page_layers.sort_by_key(|(stream, _)| {
+        stream
+            .split(' ')
+            .nth(1)
+            .and_then(|number| number.parse::<u32>().ok())
+            .unwrap_or(u32::MAX)
+    });
+    let mut scenes: Vec<_> = page_layers
+        .iter()
+        .map(|(stream, _)| {
+            let scene_number = stream
+                .split(' ')
+                .nth(1)
+                .and_then(|number| number.parse::<u32>().ok())
+                .unwrap_or(1);
+            Ok(Scene::new(
+                SceneId::new(),
+                format!("Scene {scene_number}"),
+                timeline_for(stream)?,
+            ))
+        })
+        .collect::<Result<_, ImportError>>()?;
+    if scenes.is_empty() {
+        scenes.push(Scene::new(SceneId::new(), "Scene 1", Timeline::default()));
+    }
+    if scenes.len() < info.pages {
         importer.note(
             Severity::Warning,
             "import",
             format!(
-                "the file has {} scenes; only one empty scene was made",
+                "layer metadata was recovered for {} of {} scene streams",
+                scenes.len(),
                 info.pages
             ),
         );
@@ -153,8 +270,8 @@ pub fn import_legacy_bytes(bytes: &[u8]) -> Result<Imported, ImportError> {
     importer.note(
         Severity::Warning,
         "import",
-        "this is a legacy binary FLA: only the stage, frame rate, background and the library's \
-         symbol names and types were read; drawings, timelines, text, media and scripts are not read yet",
+        "this is a legacy binary FLA: layer names and basic state were recovered, but artwork, keyframe contents, \
+         text, media and scripts are not read yet",
     );
 
     let rate = frame_rate(&format!("{}", props.frame_rate)).map_err(|message| {
@@ -170,8 +287,7 @@ pub fn import_legacy_bytes(bytes: &[u8]) -> Result<Imported, ImportError> {
             message: e.to_string(),
         }
     })?;
-    let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::default());
-    let document = Document::new(DocumentId::new(), rate, vec![scene], symbols)
+    let document = Document::new(DocumentId::new(), rate, scenes, symbols)
         .map_err(ImportError::Invalid)?
         .with_stage(stage);
     if importer.suppressed > 0 {

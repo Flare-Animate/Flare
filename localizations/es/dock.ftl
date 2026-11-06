@@ -1,6 +1,8 @@
 pane-tools = Herramientas
 pane-stage = Escenario
 pane-library = Biblioteca
+pane-layers = Capas
+layers-empty = No hay capas en esta escena.
 pane-timeline = Línea de tiempo
 pane-properties = Propiedades
 pane-color = Color

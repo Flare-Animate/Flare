@@ -293,12 +293,8 @@ impl Workspace {
 
     /// The brush's nib: its shape, the angle of its long axis and how flat it is.
     fn nib_controls(&mut self, ui: &mut Ui) {
-        use flare_tools::brush::{Nib, NibShape};
-        let (plain, new, delete) = (
-            tr!(self, "opt-brush-plain"),
-            tr!(self, "opt-new"),
-            tr!(self, "opt-delete"),
-        );
+        use flare_tools::brush::{BuiltinBrushProfile, Nib, NibShape};
+        let (new, delete) = (tr!(self, "opt-new"), tr!(self, "opt-delete"));
         let (new_tip, delete_tip) = (
             tr!(self, "opt-new-brush-tip"),
             tr!(self, "opt-delete-brush-tip"),
@@ -306,26 +302,48 @@ impl Workspace {
         let (round, square) = (tr!(self, "opt-nib-round"), tr!(self, "opt-nib-square"));
         chrome::row(ui, &tr!(self, "opt-brush"), |ui| {
             let chosen = self.brush_shelf.selected();
-            let mut pick = None;
+            let mut custom_pick = None;
+            let mut builtin_pick = None;
+            let builtin_name = |profile| self.tr(builtin_profile_key(profile));
+            let current_name = chosen.map_or_else(
+                || {
+                    self.brush_shelf
+                        .builtin()
+                        .map_or_else(|| tr!(self, "opt-profile-custom"), builtin_name)
+                },
+                |i| self.brush_shelf.presets()[i].name.clone(),
+            );
             egui::ComboBox::from_id_salt("brush-list")
-                .selected_text(chosen.map_or(plain.as_str(), |i| {
-                    self.brush_shelf.presets()[i].name.as_str()
-                }))
+                .selected_text(current_name)
                 .show_ui(ui, |ui| {
-                    if ui.selectable_label(chosen.is_none(), &plain).clicked() {
-                        pick = Some(None);
+                    for profile in BuiltinBrushProfile::ALL {
+                        if ui
+                            .selectable_label(
+                                chosen.is_none() && self.brush_shelf.builtin() == Some(profile),
+                                builtin_name(profile),
+                            )
+                            .clicked()
+                        {
+                            builtin_pick = Some(profile);
+                        }
                     }
                     for (i, brush) in self.brush_shelf.presets().iter().enumerate() {
                         if ui
                             .selectable_label(chosen == Some(i), &brush.name)
                             .clicked()
                         {
-                            pick = Some(Some(i));
+                            custom_pick = Some(i);
                         }
                     }
                 });
-            if let Some(index) = pick {
-                self.brush_shelf.choose(index);
+            if let Some(profile) = builtin_pick {
+                self.brush_shelf.choose_builtin(profile);
+            } else if let Some(index) = custom_pick {
+                self.brush_shelf.choose(Some(index));
+            }
+            if builtin_pick.is_some() || custom_pick.is_some() {
+                self.brush_light = self.brush_shelf.pressure_min();
+                self.brush_pressure_gamma = self.brush_shelf.pressure_gamma();
             }
             if ui.button(&new).on_hover_text(&new_tip).clicked() {
                 self.new_custom_brush();
@@ -374,6 +392,15 @@ impl Workspace {
         if edited != nib {
             self.brush_shelf.set_nib(edited);
         }
+        chrome::row(ui, &tr!(self, "opt-pressure-response"), |ui| {
+            ui.add(
+                egui::DragValue::new(&mut self.brush_pressure_gamma)
+                    .range(0.1..=4.0)
+                    .speed(0.05),
+            );
+        });
+        self.brush_shelf
+            .set_pressure_curve(self.brush_light, self.brush_pressure_gamma);
     }
 
     /// The straight edge and symmetry options the Pencil and Brush share.
@@ -449,6 +476,19 @@ impl Workspace {
                 }
             });
         });
+    }
+}
+
+fn builtin_profile_key(profile: flare_tools::brush::BuiltinBrushProfile) -> &'static str {
+    use flare_tools::brush::BuiltinBrushProfile;
+    match profile {
+        BuiltinBrushProfile::Plain => "opt-profile-plain",
+        BuiltinBrushProfile::Pencil => "opt-profile-pencil",
+        BuiltinBrushProfile::Ink => "opt-profile-krita",
+        BuiltinBrushProfile::GreasePencil => "opt-profile-grease-pencil",
+        BuiltinBrushProfile::Calligraphy => "opt-profile-calligraphy",
+        BuiltinBrushProfile::Vector => "opt-profile-opentoonz",
+        BuiltinBrushProfile::Animate => "opt-profile-animate",
     }
 }
 

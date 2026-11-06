@@ -186,7 +186,7 @@ impl Workspace {
         &self,
         strokes: &[Vec<InputSample>],
     ) -> Vec<PreviewStroke> {
-        let curve = PressureCurve::new(self.brush_light, 1.0);
+        let curve = PressureCurve::new(self.brush_light, self.brush_pressure_gamma);
         let (color, size, brush) = match self.tool {
             Tool::Brush => (self.paint.fill, self.brush_size, true),
             _ => (self.paint.stroke_color, self.paint.stroke_width, false),

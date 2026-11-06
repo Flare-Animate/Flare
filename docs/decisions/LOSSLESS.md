@@ -94,7 +94,7 @@ were", "not imported from a file", "imported from a movie"). `flare export-xfl`,
 still succeeds, without a source, and says in a diagnostic that exporting it again will rebuild
 it rather than copy it; the export's `lossless.reason` says the same. A folder with a symbolic
 link, an unreadable file or a name that is not text is treated the same way. A legacy binary
-`.fla` (read as a skeleton) keeps no source: Flare cannot write that format.
+`.fla` (read with partial stage, library and layer metadata) keeps no source: Flare cannot write that format.
 
 **It survives Save.** The project file gets an optional `origin` record: the fields as CBOR,
 then the bytes (as sounds are), size-limited before anything is allocated, digest-checked on

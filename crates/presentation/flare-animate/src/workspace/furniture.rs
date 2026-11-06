@@ -78,6 +78,7 @@ impl Workspace {
 
         self.preferences_window(&ctx);
         self.publish_window(&ctx);
+        self.increment_instances_window(&ctx);
         self.ensure_language_font(&ctx);
         self.file_windows(&ctx);
         self.close_prompt_window(&ctx);

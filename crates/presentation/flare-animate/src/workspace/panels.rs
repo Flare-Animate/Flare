@@ -13,6 +13,7 @@ mod color;
 pub(crate) mod color_wells;
 mod drawing_mode;
 mod history;
+mod layers_panel;
 pub(crate) use motion_editor::MotionEditor;
 mod info;
 mod motion_editor;

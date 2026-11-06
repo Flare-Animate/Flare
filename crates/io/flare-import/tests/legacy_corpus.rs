@@ -238,7 +238,7 @@ fn a_known_file_reads_exactly() {
 }
 
 #[test]
-fn import_path_opens_a_legacy_file_as_a_skeleton() {
+fn import_path_opens_a_legacy_file_with_its_recoverable_layers() {
     let Some(_) = corpus() else { return };
     let path = corpus_root().join("swf/tests/swfs/DefineButton-MX.fla");
     let imported = import_path(&path).expect("imports");

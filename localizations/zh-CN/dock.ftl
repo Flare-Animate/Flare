@@ -1,6 +1,8 @@
 pane-tools = 工具
 pane-stage = 舞台
 pane-library = 库
+pane-layers = 图层
+layers-empty = 此场景中没有图层。
 pane-timeline = 时间轴
 pane-properties = 属性
 pane-color = 颜色

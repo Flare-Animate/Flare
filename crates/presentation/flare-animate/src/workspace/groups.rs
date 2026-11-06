@@ -2,8 +2,9 @@
 //! holds a handful of concerns instead of every setting as a field of its own.
 
 use egui::{Color32, Pos2};
-use flare_core::SoundId;
+use flare_core::{SoundId, SymbolId};
 use flare_document::{Cap, Join};
+use flare_menubar::MenuAction;
 use flare_tools::mirror::Symmetry;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
@@ -171,6 +172,91 @@ pub(super) struct IncrementInstances {
     pub(super) from: u32,
     /// How far they move; may be negative.
     pub(super) by: i32,
+}
+
+impl super::Workspace {
+    pub(super) fn show_increment_instances(&mut self) {
+        let Some(symbol) = self.selected_instance_symbol() else {
+            return;
+        };
+        self.windows.increment_instances = Some(IncrementInstances {
+            symbol,
+            from: 0,
+            by: 1,
+        });
+    }
+
+    pub(super) fn increment_instances_window(&mut self, ctx: &egui::Context) {
+        let Some(mut form) = self.windows.increment_instances.take() else {
+            return;
+        };
+        let (from, by, apply, close) = (
+            self.tr("inc-from"),
+            self.tr("inc-by"),
+            self.tr("inc-run"),
+            self.tr("close"),
+        );
+        let mut run = false;
+        let response = egui::Modal::new(egui::Id::unique("increment_instances")).show(ctx, |ui| {
+            ui.set_width(300.0);
+            ui.heading(self.label(MenuAction::IncrementInstances));
+            ui.add_space(6.0);
+            ui.horizontal(|ui| {
+                ui.label(&from);
+                ui.add(egui::DragValue::new(&mut form.from).range(0..=u32::MAX));
+            });
+            ui.horizontal(|ui| {
+                ui.label(&by);
+                ui.add(egui::DragValue::new(&mut form.by).range(i32::MIN..=i32::MAX));
+            });
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                if ui.button(&apply).clicked() {
+                    run = true;
+                    ui.close();
+                }
+                if ui.button(&close).clicked() {
+                    ui.close();
+                }
+            });
+        });
+        if run {
+            match flare_tools::library::increment_instances(
+                self.document(),
+                form.symbol,
+                form.from,
+                i64::from(form.by),
+            ) {
+                Ok(commands) => self.run_batch(commands, "increment instances"),
+                Err(error) => self.report(error.to_string()),
+            }
+        } else if !response.should_close() {
+            self.windows.increment_instances = Some(form);
+        }
+    }
+
+    pub(super) fn add_selection_to_symbol(&mut self) {
+        let (Some(symbol), Some(scene), Some(at)) =
+            (self.library.selected, self.scene_id(), self.selected)
+        else {
+            self.report(tr!(self, "lib-select-first"));
+            return;
+        };
+        match flare_tools::library::add_instance_to_symbol(self.document(), symbol, scene, at) {
+            Ok(commands) => self.run_batch(commands, "add instance to symbol"),
+            Err(error) => self.report(error.to_string()),
+        }
+    }
+
+    pub(super) fn bake_selection_transform(&mut self) {
+        let (Some(scene), Some(at)) = (self.scene_id(), self.selected) else {
+            return;
+        };
+        match flare_tools::library::bake_transform(self.document(), scene, at) {
+            Ok(commands) => self.run_batch(commands, "bake transform"),
+            Err(error) => self.report(error.to_string()),
+        }
+    }
 }
 
 /// Autosave and crash recovery of the document on show.

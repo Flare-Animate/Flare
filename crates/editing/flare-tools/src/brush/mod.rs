@@ -12,7 +12,10 @@ use glamx::DVec2;
 mod nib;
 mod shelf;
 pub use nib::{Nib, NibShape};
-pub use shelf::{BrushPreset, BrushShelf, MAX_BRUSHES, ShelfFull};
+pub use shelf::{
+    BrushPreset, BrushProfileFile, BrushShelf, BuiltinBrushProfile, MAX_BRUSH_PROFILE_BYTES,
+    MAX_BRUSHES, ShelfFull,
+};
 
 /// Points added between two kept points when smoothing.
 const SUBDIVISIONS: usize = 4;

@@ -1,6 +1,8 @@
 pane-tools = Nástroje
 pane-stage = Fáze
 pane-library = Knihovna
+pane-layers = Vrstvy
+layers-empty = Tato scéna neobsahuje žádné vrstvy.
 pane-timeline = Časová osa
 pane-properties = Vlastnosti
 pane-color = Barva

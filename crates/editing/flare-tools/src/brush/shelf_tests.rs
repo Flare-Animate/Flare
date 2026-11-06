@@ -62,6 +62,7 @@ fn restoring_cleans_up_odd_names_limits_the_count_and_lets_the_chosen_brush_win(
         square: true,
         angle: -90.0,
         flatness: 0.0,
+        ..BrushPreset::default()
     };
     let blank = BrushPreset {
         name: "   ".into(),
@@ -89,4 +90,33 @@ fn restoring_cleans_up_odd_names_limits_the_count_and_lets_the_chosen_brush_win(
         Nib::ROUND,
         "choosing nothing means the plain brush"
     );
+}
+
+#[test]
+fn built_in_profiles_set_both_the_nib_and_pressure_response() {
+    let mut shelf = BrushShelf::default();
+    shelf.choose_builtin(BuiltinBrushProfile::Calligraphy);
+    assert_eq!(shelf.builtin(), Some(BuiltinBrushProfile::Calligraphy));
+    assert_eq!(shelf.nib().shape(), NibShape::Square);
+    assert_eq!(shelf.pressure_min(), 0.08);
+    assert_eq!(shelf.pressure_gamma(), 1.0);
+    shelf.set_pressure_curve(0.2, 2.0);
+    assert_eq!(shelf.builtin(), None, "editing a preset makes it custom");
+    assert_eq!(shelf.pressure_curve().width_factor(0.5), 0.4);
+}
+
+#[test]
+fn custom_profiles_round_trip_as_bounded_versioned_json() {
+    let preset = BrushPreset {
+        pressure_min: 0.12,
+        pressure_gamma: 1.7,
+        ..BrushPreset::from_nib("Ink".to_owned(), square(25.0))
+    };
+    let encoded = BrushProfileFile::encode(std::slice::from_ref(&preset)).expect("encode");
+    assert_eq!(
+        BrushProfileFile::decode(&encoded).expect("decode"),
+        [preset]
+    );
+    assert!(BrushProfileFile::decode(r#"{"version":2,"profiles":[]}"#).is_err());
+    assert!(BrushProfileFile::decode(&" ".repeat(MAX_BRUSH_PROFILE_BYTES + 1)).is_err());
 }

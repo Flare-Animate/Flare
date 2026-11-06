@@ -7,9 +7,10 @@ use flare_ui::{icons, theme};
 use super::*;
 
 /// The panels in the rail, top to bottom.
-pub(crate) const RAIL: [Pane; 7] = [
+pub(crate) const RAIL: [Pane; 8] = [
     Pane::Properties,
     Pane::Library,
+    Pane::Layers,
     Pane::Color,
     Pane::Align,
     Pane::Transform,
@@ -46,7 +47,7 @@ impl Workspace {
                 continue;
             };
             // A little space between the groups of related panels.
-            if index == 3 || index == 5 {
+            if index == 3 || index == 6 {
                 ui.add_space(4.0);
             }
             let front = self.pane_is_front(pane);
