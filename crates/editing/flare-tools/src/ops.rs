@@ -18,9 +18,7 @@ pub use crate::common::{
 };
 pub use crate::convert_anchor::convert_anchor;
 pub use crate::delete_anchor::delete_anchor;
-pub use crate::drawing::{
-    DrawPlan, DrawRefusal, MIN_DRAWN_FRAMES, Target, draw_shapes, place_contents,
-};
+pub use crate::drawing::{DrawPlan, DrawRefusal, Target, draw_shapes, place_contents};
 pub use crate::eraser::{delete, delete_many};
 pub use crate::free_transform::{transform, transform_many, translate, translate_many};
 pub use crate::grouping::{break_apart, break_apart_many, group};

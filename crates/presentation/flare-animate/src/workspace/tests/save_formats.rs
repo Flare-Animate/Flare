@@ -39,7 +39,7 @@ fn shapes(ws: &Workspace) -> usize {
 }
 
 fn opened(path: &Path) -> Workspace {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     ws.open_any(path);
     assert_eq!(ws.path(), Some(path), "{:?}", ws.status());
     ws

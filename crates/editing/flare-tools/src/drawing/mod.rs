@@ -10,9 +10,6 @@ use flare_document::{Content, Document, FrameSpan, Layer, Shape};
 
 use crate::common::{SpanRef, scene_timeline};
 
-/// How many frames a keyframe made by drawing lasts at least, when it has no explicit length.
-pub const MIN_DRAWN_FRAMES: u32 = 24;
-
 /// Which layer a drawing goes to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Target {
@@ -70,7 +67,7 @@ pub struct DrawPlan {
 ///
 /// With a span of the layer at `frame` the shapes join it as more elements. With none, a keyframe
 /// of their own starts at `frame` and lasts `duration` frames, or by default to the end of the
-/// scene (at least [`MIN_DRAWN_FRAMES`]) but not into the layer's next keyframe. With no layer
+/// scene (one frame on a layer with nothing else) but not into the layer's next keyframe. With no layer
 /// to draw on at all, a layer named `new_layer` is made first. A layer that is locked (itself or
 /// by a folder), hidden, a folder, mask, guide or camera, and a keyframe that cannot hold several
 /// elements, is refused.
@@ -176,8 +173,7 @@ pub fn place_contents(
         None => {
             let to_end = u32::try_from(timeline.frame_count())
                 .unwrap_or(u32::MAX)
-                .saturating_sub(frame)
-                .max(MIN_DRAWN_FRAMES);
+                .saturating_sub(frame);
             let room = existing
                 .and_then(|l| l.spans().iter().map(FrameSpan::start).find(|s| *s > frame))
                 .map_or(u32::MAX, |next| next - frame);

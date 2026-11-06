@@ -118,9 +118,10 @@ fn playback_advances_at_the_document_frame_rate_and_loops() {
 
 #[test]
 fn frames_are_clamped_to_the_scene() {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     ws.set_frame(10_000);
     assert_eq!(ws.frame(), 0, "an empty scene has a single frame");
+    let mut ws = workspace();
     rect(&mut ws);
     ws.set_frame(10_000);
     assert_eq!(ws.frame(), 23);
@@ -411,10 +412,10 @@ fn selecting_a_layer_redirects_frame_operations() {
 
 #[test]
 fn a_project_read_by_the_front_end_opens_clean_in_place_of_a_blank_one_and_beside_a_used_one() {
-    let mut source = workspace();
+    let mut source = blank_workspace();
     rect(&mut source);
     let document = source.document().clone();
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     assert!(ws.is_blank());
     ws.open_loaded("film.flare", document.clone());
     assert_eq!(ws.document(), &document, "it replaced the blank one");
@@ -422,7 +423,7 @@ fn a_project_read_by_the_front_end_opens_clean_in_place_of_a_blank_one_and_besid
     assert_eq!(ws.tabs().len(), 1);
     assert!(ws.status().is_some_and(|s| s.contains("film.flare")));
     // The next one does not replace work.
-    let mut other = workspace();
+    let mut other = blank_workspace();
     rect(&mut other);
     other.set_stage_size(300, 300);
     let second = other.document().clone();

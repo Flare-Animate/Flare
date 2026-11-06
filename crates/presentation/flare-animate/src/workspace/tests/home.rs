@@ -14,7 +14,7 @@ fn every_preset_is_a_stage_the_document_accepts() {
 
 #[test]
 fn a_new_project_replaces_an_untouched_document_and_otherwise_opens_a_tab() {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     ws.new_project(1280, 720, 24);
     assert_eq!(ws.tabs().len(), 1, "the blank document is replaced");
     rect(&mut ws);
@@ -47,7 +47,7 @@ fn the_home_page_shows_over_the_document_and_goes_away_when_a_project_starts() {
 
 #[test]
 fn the_menu_and_the_new_command_treat_home_as_a_view_not_a_document() {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     ws.perform(MenuAction::ShowHome);
     assert!(ws.home_shown());
     ws.perform(MenuAction::ShowHome);

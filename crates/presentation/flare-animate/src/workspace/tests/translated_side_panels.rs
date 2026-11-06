@@ -22,7 +22,7 @@ const SHARED: [&str; 8] = [
 ];
 
 fn speaking(tag: &str) -> Workspace {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     ws.set_system_locale(tag);
     ws
 }

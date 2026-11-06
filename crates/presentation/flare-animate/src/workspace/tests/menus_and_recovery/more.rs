@@ -208,14 +208,14 @@ fn preferences_round_trip_stay_in_range_and_refuse_junk() {
 #[test]
 fn importing_an_xfl_folder_makes_a_new_unsaved_project_in_place_of_a_blank_one_and_beside_other_work()
  {
-    let mut source = workspace();
+    let mut source = blank_workspace();
     rect(&mut source);
     let output = flare_export::export_xfl(source.document()).expect("export");
     let dir = tempfile::tempdir().expect("dir");
     let folder = dir.path().join("art");
     flare_export::write_directory(&output, &folder).expect("write");
 
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     ws.import_project(&folder);
     assert_eq!(drawing_count(&ws), 1, "the drawing came across");
     assert_eq!(
@@ -230,7 +230,7 @@ fn importing_an_xfl_folder_makes_a_new_unsaved_project_in_place_of_a_blank_one_a
     assert_eq!(ws.tabs().len(), 2);
     assert!(ws.any_dirty());
     // Something that is not an XFL says why.
-    let mut other = workspace();
+    let mut other = blank_workspace();
     other.import_project(&dir.path().join("missing"));
     assert!(other.status().is_some_and(|s| s.contains("Cannot import")));
     assert_eq!(layer_count(&other), 1);

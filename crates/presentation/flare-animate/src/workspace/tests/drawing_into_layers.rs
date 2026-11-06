@@ -43,7 +43,7 @@ fn shapes_drawn_one_after_another_share_the_layer_and_its_keyframe() {
 
 #[test]
 fn each_drawn_shape_is_one_undo_step_with_the_drawing_label() {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     rect(&mut ws);
     draw_second(&mut ws);
     ws.undo();
@@ -84,7 +84,7 @@ fn drawing_on_a_frame_with_no_keyframe_starts_one_there() {
 
 #[test]
 fn a_chosen_layer_takes_the_drawing_and_the_others_do_not() {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     let original = layers(&ws)[0].id();
     ws.add_layer();
     assert_eq!(layer_count(&ws), 2);
@@ -167,7 +167,7 @@ fn a_keyframe_that_tweens_refuses_a_second_drawing() {
 
 #[test]
 fn symmetry_puts_every_reflection_on_the_same_layer() {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     ws.set_tool(Tool::Pencil);
     ws.paint.symmetry = flare_tools::mirror::Symmetry::Both;
     ws.paint.symmetry_center = Some(Pos2::new(100.0, 100.0));

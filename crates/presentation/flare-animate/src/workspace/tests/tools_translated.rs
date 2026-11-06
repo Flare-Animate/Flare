@@ -34,7 +34,7 @@ fn has(texts: &[String], wanted: &str) -> bool {
 }
 
 fn speaking(tag: &str) -> Workspace {
-    let mut ws = workspace();
+    let mut ws = blank_workspace();
     ws.set_system_locale(tag);
     ws
 }

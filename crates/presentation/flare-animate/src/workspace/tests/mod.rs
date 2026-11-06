@@ -82,10 +82,22 @@ mod window_controls;
 mod window_menu;
 
 fn document() -> Document {
-    let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
+    // A blank 24-frame keyframe, so a drawing joins a span of the length the old drawing default
+    // gave and the frame tests keep their room.
+    let blank = FrameSpan::new(0, NonZeroU32::new(24).expect("24"), Content::Empty);
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![blank]).expect("layer");
     let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
     let rate = FrameRate::new(24, 1).expect("rate");
     Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("document")
+}
+
+/// A new document with nothing in it: no keyframe at all, as the blank and dirty checks need.
+fn blank_workspace() -> Workspace {
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let document = Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("document");
+    Workspace::new(document, None)
 }
 
 fn workspace() -> Workspace {
@@ -146,8 +158,9 @@ fn drawing_count(ws: &Workspace) -> usize {
         .layers()
         .iter()
         .flat_map(|l| l.spans())
-        .map(|s| s.element_count())
-        .sum()
+        .flat_map(|s| s.elements())
+        .filter(|c| !matches!(c, Content::Empty))
+        .count()
 }
 
 /// 1 when the `nth` drawing (counting from 1) is still on the first layer, else 0.

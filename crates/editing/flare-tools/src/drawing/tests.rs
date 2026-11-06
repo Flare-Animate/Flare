@@ -46,13 +46,14 @@ fn a_shape_on_a_frame_without_a_keyframe_starts_one_and_the_next_joins_it() {
     let target = Target::Layer(f.layer);
     let plan = draw(&mut f, target, 0, vec![shape(0.0)]).expect("first");
     assert_eq!(plan.placed, vec![at(&f, 0)]);
+    // Drawing on an empty layer makes a one-frame keyframe, as Animate does; it is not stretched.
     let span = &layer(&f, f.layer).spans()[0];
     assert_eq!(
         (span.start(), span.duration().get(), span.element_count()),
-        (0, 24, 1)
+        (0, 1, 1)
     );
 
-    let plan = draw(&mut f, target, 3, vec![shape(20.0), shape(40.0)]).expect("more");
+    let plan = draw(&mut f, target, 0, vec![shape(20.0), shape(40.0)]).expect("more");
     assert_eq!(plan.placed, vec![element(&f, 0, 1), element(&f, 0, 2)]);
     assert_eq!(
         layer(&f, f.layer).spans().len(),
