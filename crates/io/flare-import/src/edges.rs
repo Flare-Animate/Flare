@@ -100,7 +100,7 @@ pub fn parse_number(token: &str) -> Result<f64, EdgeError> {
         .ok_or_else(bad)
 }
 
-/// Decodes an `edges` attribute: `!` move, `|` line, `[` and `]` quadratic (control then
+/// Decodes an `edges` attribute: `!` move, `|` or `/` line, `[` and `]` quadratic (control then
 /// anchor). Selection markers (`S` and digits) are skipped.
 pub fn decode_edges(text: &str) -> Result<Vec<Segment>, EdgeError> {
     // Split into (command, argument text) chunks.
@@ -108,7 +108,8 @@ pub fn decode_edges(text: &str) -> Result<Vec<Segment>, EdgeError> {
     let mut chars = text.chars().peekable();
     while let Some(c) = chars.next() {
         match c {
-            '!' | '|' | '[' | ']' => chunks.push((c, String::new())),
+            // `/` is a line too: Animate writes `!209 -235/-33 -1` with no space before it.
+            '!' | '|' | '/' | '[' | ']' => chunks.push((c, String::new())),
             'S' => {
                 while chars.peek().is_some_and(char::is_ascii_digit) {
                     chars.next();
@@ -149,7 +150,7 @@ pub fn decode_edges(text: &str) -> Result<Vec<Segment>, EdgeError> {
                 }
                 current = Some((numbers[0], numbers[1]));
             }
-            '|' => {
+            '|' | '/' => {
                 for pair in numbers.as_chunks::<2>().0 {
                     let from = current.ok_or(EdgeError::NoStart)?;
                     let to = (pair[0], pair[1]);
