@@ -180,6 +180,20 @@ fn a_missing_image_file_is_reported() {
 }
 
 #[test]
+fn a_media_entry_naming_no_file_is_reported_and_does_not_fail_the_import() {
+    let files = document_with(r#"<DOMBitmapItem name="pic"/>"#, "", vec![]);
+    let imported = import_xfl(&files).expect("import");
+    assert!(
+        imported
+            .diagnostics
+            .iter()
+            .any(|d| d.message == "image file not found"),
+        "{:?}",
+        imported.diagnostics
+    );
+}
+
+#[test]
 fn a_bitmap_whose_pixels_are_in_bin_is_read_from_there() {
     let item = r#"<DOMBitmapItem name="pic.png" href="pic.png" bitmapDataHRef="M 1 1.dat"/>"#;
     let files = document_with(

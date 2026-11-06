@@ -145,9 +145,14 @@ pub(crate) fn import_xfl_with_files(
         // Animate keeps a bitmap's pixels in `bin/` under `bitmapDataHRef`; `href` names the
         // library entry, and an image file written by hand may sit under `LIBRARY/`.
         let data_href = item.attr("bitmapDataHRef").map(|h| format!("bin/{h}"));
-        let file = match &data_href {
-            Some(path) => path.clone(),
-            None => format!("LIBRARY/{}", item.attr("href").unwrap_or_default()),
+        let file = match (&data_href, item.attr("href")) {
+            (Some(path), _) => path.clone(),
+            (None, Some(href)) => format!("LIBRARY/{href}"),
+            // A media entry naming no file at all is kept as source data, not a failed import.
+            (None, None) => {
+                importer.note(Severity::Unsupported, &place, "image file not found");
+                continue;
+            }
         };
         let found = match source.read(&file)? {
             Some(bytes) => Some(bytes),
