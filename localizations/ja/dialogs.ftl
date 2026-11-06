@@ -19,3 +19,6 @@ dlg-startup-terminal = ターミナルから flare-desktop を実行すると、
 dlg-filter-open = Flare プロジェクトまたは Flash ドキュメント
 dlg-filter-xfl = Flash ドキュメント（非圧縮・フォルダー）
 dlg-save-prompt = ダウンロードするファイル名（拡張子は .fla または .flare）
+dlg-increment-from = この先頭フレームから
+dlg-increment-by = 移動するフレーム数
+dlg-increment-apply = 増分

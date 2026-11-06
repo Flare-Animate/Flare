@@ -94,6 +94,9 @@ impl Workspace {
             MenuAction::Group => self.selection_all().len() >= 2,
             MenuAction::Ungroup => self.selection_has_instance(),
             MenuAction::BreakApart => self.selection_can_break_apart(),
+            MenuAction::IncrementInstances => self.selected_instance_symbol().is_some(),
+            MenuAction::AddInstanceToSymbol => self.in_symbol() && self.has_selection(),
+            MenuAction::BakeTransform => self.selection_has_instance(),
             MenuAction::Publish => !self.document().scenes().is_empty(),
             MenuAction::DocumentSettings | MenuAction::Preferences => true,
             MenuAction::EditSymbol => self.can_edit_selected_symbol(),
@@ -235,6 +238,9 @@ impl Workspace {
             MenuAction::SendToBack => self.stack_selection(Stack::Back),
             MenuAction::Group => self.group_selection(),
             MenuAction::Ungroup | MenuAction::BreakApart => self.break_apart_selection(),
+            MenuAction::IncrementInstances => self.show_increment_instances(),
+            MenuAction::AddInstanceToSymbol => self.add_selection_to_symbol(),
+            MenuAction::BakeTransform => self.bake_selection_transform(),
             MenuAction::Publish => self.windows.publish = true,
             MenuAction::DocumentSettings => {
                 self.show_props_context(PropsContext::Document);

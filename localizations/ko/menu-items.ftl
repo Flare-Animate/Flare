@@ -139,3 +139,6 @@ menu-item-show-output = 출력
 menu-item-show-info = 정보
 menu-item-show-home = 홈
 menu-item-test-movie = 동영상 테스트
+menu-item-increment-instances = 인스턴스 증분
+menu-item-add-instance-to-symbol = 심볼에 인스턴스 추가
+menu-item-bake-transform = 변형 베이크

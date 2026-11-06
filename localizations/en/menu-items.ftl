@@ -139,3 +139,6 @@ menu-item-show-output = Output
 menu-item-show-info = Info
 menu-item-show-home = Home
 menu-item-test-movie = Test Movie
+menu-item-increment-instances = Increment Instances
+menu-item-add-instance-to-symbol = Add Instance to Symbol
+menu-item-bake-transform = Bake Transform

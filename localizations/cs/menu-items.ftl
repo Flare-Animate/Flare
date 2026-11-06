@@ -139,3 +139,6 @@ menu-item-show-output = Výstup
 menu-item-show-info = Informace
 menu-item-show-home = Úvod
 menu-item-test-movie = Testovací film
+menu-item-increment-instances = Zvýšit instance
+menu-item-add-instance-to-symbol = Přidat instanci do symbolu
+menu-item-bake-transform = Vpálit transformaci

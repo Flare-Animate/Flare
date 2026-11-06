@@ -19,3 +19,6 @@ dlg-startup-terminal = Spuštění flare-desktop z terminálu vypíše podrobně
 dlg-filter-open = Projekt Flare nebo dokument Flash
 dlg-filter-xfl = Dokument Flash bez komprese (složka)
 dlg-save-prompt = Název souboru ke stažení, končí na .fla nebo .flare
+dlg-increment-from = Od tohoto snímku
+dlg-increment-by = Posunout o snímky
+dlg-increment-apply = Zvýšit

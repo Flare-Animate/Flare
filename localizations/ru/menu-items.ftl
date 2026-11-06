@@ -139,3 +139,6 @@ menu-item-show-output = Вывод
 menu-item-show-info = Информация
 menu-item-show-home = Начальная страница
 menu-item-test-movie = Тестовый ролик
+menu-item-increment-instances = Увеличить экземпляры
+menu-item-add-instance-to-symbol = Добавить экземпляр в символ
+menu-item-bake-transform = Внедрить преобразование

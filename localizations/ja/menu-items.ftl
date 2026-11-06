@@ -139,3 +139,6 @@ menu-item-show-output = 出力
 menu-item-show-info = 情報
 menu-item-show-home = ホーム
 menu-item-test-movie = ムービープレビュー
+menu-item-increment-instances = インスタンスを増分
+menu-item-add-instance-to-symbol = インスタンスをシンボルに追加
+menu-item-bake-transform = 変形をベイク

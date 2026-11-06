@@ -19,3 +19,6 @@ dlg-startup-terminal = 在终端中运行 flare-desktop 会输出更多信息。
 dlg-filter-open = Flare 项目或 Flash 文档
 dlg-filter-xfl = Flash 文档，未压缩（文件夹）
 dlg-save-prompt = 要下载的文件名（扩展名为 .fla 或 .flare）
+dlg-increment-from = 从此起始帧
+dlg-increment-by = 移动帧数
+dlg-increment-apply = 递增

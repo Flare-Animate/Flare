@@ -148,10 +148,14 @@ pub enum MenuAction {
     TextItalic,
     TextLarger,
     TextSmaller,
+    /// The three library commands of Animate's own toolbar scripts (issue #11).
+    IncrementInstances,
+    AddInstanceToSymbol,
+    BakeTransform,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 124] = [
+    pub const ALL: [MenuAction; 127] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -276,6 +280,9 @@ impl MenuAction {
         Self::TextItalic,
         Self::TextLarger,
         Self::TextSmaller,
+        Self::IncrementInstances,
+        Self::AddInstanceToSymbol,
+        Self::BakeTransform,
     ];
 
     /// A stable identifier for native menu items (the variant name).

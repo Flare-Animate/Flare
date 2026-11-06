@@ -19,3 +19,6 @@ dlg-startup-terminal = 터미널에서 flare-desktop을 실행하면 더 자세�
 dlg-filter-open = Flare 프로젝트 또는 Flash 문서
 dlg-filter-xfl = Flash 문서, 압축 안 함(폴더)
 dlg-save-prompt = 내려받을 파일 이름 (확장자 .fla 또는 .flare)
+dlg-increment-from = 이 시작 프레임부터
+dlg-increment-by = 이동할 프레임 수
+dlg-increment-apply = 증분

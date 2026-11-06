@@ -139,3 +139,6 @@ menu-item-show-output = Saída
 menu-item-show-info = Informações
 menu-item-show-home = Início
 menu-item-test-movie = Testar filme
+menu-item-increment-instances = Incrementar instâncias
+menu-item-add-instance-to-symbol = Adicionar instância ao símbolo
+menu-item-bake-transform = Aplicar a transformação

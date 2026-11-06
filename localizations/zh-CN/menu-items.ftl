@@ -139,3 +139,6 @@ menu-item-show-output = 输出
 menu-item-show-info = 信息
 menu-item-show-home = 主页
 menu-item-test-movie = 测试影片
+menu-item-increment-instances = 递增实例
+menu-item-add-instance-to-symbol = 将实例添加到元件
+menu-item-bake-transform = 烘焙变形

@@ -19,3 +19,6 @@ dlg-startup-terminal = Lancer flare-desktop depuis un terminal affiche plus d’
 dlg-filter-open = Projet Flare ou document Flash
 dlg-filter-xfl = Document Flash non compressé (dossier)
 dlg-save-prompt = Nom du fichier à télécharger, avec l’extension .fla ou .flare
+dlg-increment-from = À partir de cette image
+dlg-increment-by = Décaler d’images
+dlg-increment-apply = Incrémenter

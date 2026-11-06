@@ -157,8 +157,20 @@ pub(super) struct OpenWindows {
     pub(super) publish: bool,
     /// The Home page covers the dock.
     pub(super) home: bool,
+    /// The Increment Instances popup: the symbol to act on, and the two numbers.
+    pub(super) increment_instances: Option<IncrementInstances>,
     /// The start-up splash: the egui time it appeared (`None` until its first frame) while shown.
     pub(super) splash: Option<Option<f64>>,
+}
+
+/// The work of the Increment Instances popup (issue #11).
+pub(super) struct IncrementInstances {
+    /// The symbol whose playing instances are moved.
+    pub(super) symbol: SymbolId,
+    /// Instances whose playback begins here or later are the ones that move.
+    pub(super) from: u32,
+    /// How far they move; may be negative.
+    pub(super) by: i32,
 }
 
 /// Autosave and crash recovery of the document on show.

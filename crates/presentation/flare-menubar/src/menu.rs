@@ -206,6 +206,11 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Mock("Run Command..."),
             Mock("Manage Saved Commands..."),
             Mock("Get More Commands..."),
+            Separator,
+            // The library commands of Animate's own toolbar scripts (issue #11).
+            Action(A::IncrementInstances),
+            Action(A::AddInstanceToSymbol),
+            Action(A::BakeTransform),
         ],
     ),
     (
