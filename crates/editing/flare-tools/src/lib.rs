@@ -25,6 +25,7 @@ pub mod free_transform;
 pub mod game;
 pub mod grouping;
 pub mod lasso;
+pub mod library;
 pub mod mirror;
 pub mod not_yet;
 pub mod ops;
