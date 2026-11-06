@@ -78,6 +78,17 @@ fn tga_keeps_transparency_and_pixels() {
 }
 
 #[test]
+fn tga_is_uncompressed_truecolour_so_strict_readers_accept_it() {
+    // Type 2 is uncompressed truecolour. The RLE type (10) can put a packet across two
+    // scanlines, which Pillow reads as a buffer overrun.
+    let image = mixed_alpha();
+    let bytes = encode(&image, StillFormat::Tga);
+    assert_eq!(bytes[2], 2, "image type");
+    assert_eq!(bytes[16], 32, "bits per pixel");
+    assert!(bytes.len() >= 18 + 2 * 2 * 4, "pixel data is all there");
+}
+
+#[test]
 fn bmp_writes_the_opaque_colours_of_the_frame() {
     let image = opaque_flat(3, 2, [200, 100, 50]);
     let decoded = ::image::load_from_memory_with_format(

@@ -133,12 +133,16 @@ impl Image {
                 Ok(())
             }
             StillFormat::Tga => {
-                ::image::codecs::tga::TgaEncoder::new(writer).write_image(
-                    &self.rgba,
-                    self.width,
-                    self.height,
-                    ::image::ExtendedColorType::Rgba8,
-                )?;
+                // Uncompressed on purpose: the encoder's RLE packets can run across a
+                // scanline, which strict TGA readers (Pillow) refuse as a buffer overrun.
+                ::image::codecs::tga::TgaEncoder::new(writer)
+                    .disable_rle()
+                    .write_image(
+                        &self.rgba,
+                        self.width,
+                        self.height,
+                        ::image::ExtendedColorType::Rgba8,
+                    )?;
                 Ok(())
             }
         }
