@@ -5,6 +5,7 @@ use egui::{Stroke, Ui};
 use flare_menubar::MenuAction;
 use flare_ui::{chrome, theme};
 
+use super::tool_options_labels::{builtin_profile_key, symmetry_key};
 use super::tool_slots::{SLOT_GROUPS, Slot, is_extra, name_key};
 use super::*;
 
@@ -476,29 +477,5 @@ impl Workspace {
                 }
             });
         });
-    }
-}
-
-fn builtin_profile_key(profile: flare_tools::brush::BuiltinBrushProfile) -> &'static str {
-    use flare_tools::brush::BuiltinBrushProfile;
-    match profile {
-        BuiltinBrushProfile::Plain => "opt-profile-plain",
-        BuiltinBrushProfile::Pencil => "opt-profile-pencil",
-        BuiltinBrushProfile::Ink => "opt-profile-krita",
-        BuiltinBrushProfile::GreasePencil => "opt-profile-grease-pencil",
-        BuiltinBrushProfile::Calligraphy => "opt-profile-calligraphy",
-        BuiltinBrushProfile::Vector => "opt-profile-opentoonz",
-        BuiltinBrushProfile::Animate => "opt-profile-animate",
-    }
-}
-
-/// The message naming a symmetry mode; the library's own label is English.
-fn symmetry_key(mode: flare_tools::mirror::Symmetry) -> &'static str {
-    use flare_tools::mirror::Symmetry;
-    match mode {
-        Symmetry::Off => "opt-symmetry-off",
-        Symmetry::Vertical => "opt-symmetry-left-right",
-        Symmetry::Horizontal => "opt-symmetry-top-bottom",
-        Symmetry::Both => "opt-symmetry-four-way",
     }
 }

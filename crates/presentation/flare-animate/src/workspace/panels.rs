@@ -29,6 +29,7 @@ mod stage_bar;
 #[cfg(test)]
 mod tests;
 mod timeline_bar;
+pub(super) mod tool_options_labels;
 pub(crate) mod tool_pins;
 pub(crate) mod tool_slots;
 pub(crate) mod tools;
