@@ -1,4 +1,4 @@
-[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | **Français** | [Português (Brasil)](README.pt-BR.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
+[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | **Français** | [Italiano](README.it.md) | [Português (Brasil)](README.pt-BR.md) | [Čeština](README.cs.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md)
 
 <div align="center">
 
@@ -116,13 +116,13 @@ Les contributeurs doivent consulter [CONTRIBUTING.md](../../CONTRIBUTING.md), [A
 
 ## Le code d'origine
 
-[`original/`](../../original/README.md) est le code C++ archivé, basé sur OpenToonz et Tahoma2D. Il ne sert que de référence. Rien dans Flare n'en dépend, ne le lie ni n'en copie quoi que ce soit.
+[`original/`](../../original/README.md) est le code C++ archivé, basé sur OpenToonz et Tahoma2D. Il ne sert que de référence. Rien dans Flare n'en dépend ni ne le lie. Les données et textes qui en sont tirés sont convertis dans les formats de Flare et crédités dans [docs/ENGINEERING.md](../ENGINEERING.md).
 
 ## Crédits
 
 Flare repose sur ces projets. Leurs mentions de licence sont conservées là où du code a été porté ou utilisé.
 
-- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. et contributeurs) : la base du code d'origine. Le lecteur PLI de `crates/io/flare-toonz` en est porté.
+- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. et contributeurs) : la base du code d'origine. Le lecteur PLI de `crates/io/flare-toonz` en est porté. Ses fichiers de traduction servent de point de départ aux interfaces russe, tchèque et italienne.
 - **Tahoma2D** (BSD-3-Clause) : un fork d'OpenToonz et la seconde base du code d'origine. Sa licence et son README ont été lus ; ses sources d'outils n'ont été que comparées.
 - **AnimationCraft** (`MIT OR Apache-2.0`) : le modèle d'écriture en Rust que Flare a absorbé.
 - **Next2Flash** : ses parties MIT peuvent être portées. Son worker FFDec est en GPLv3, seul son comportement est donc utilisé.

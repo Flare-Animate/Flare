@@ -1,0 +1,17 @@
+col-edit-fill = Modifica il colore di riempimento
+col-edit-stroke = Modifica il colore del tratto
+col-edit-gradient = Modifica il secondo colore della sfumatura
+col-fill = Riempi
+col-stroke = Tratto
+col-gradient-end = Fine sfumatura
+col-hex = Esadecimale
+col-swatches = Campioni
+col-gradient-new = Riempi le nuove forme con una sfumatura
+col-pick = Prendi un colore dalla scena
+col-none = Nessun colore
+col-fill-color = Colore di riempimento
+col-stroke-color = Colore del tratto
+col-no-stroke = Nessun tratto
+col-no-fill = Nessun riempimento
+col-black-white = Bianco e nero
+col-swap = Scambia riempimento e tratto

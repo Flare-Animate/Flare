@@ -1,0 +1,14 @@
+prop-frame = Кадр
+prop-layer = Слой
+prop-exposure = Экспозиция
+prop-exposure-span = с кадра { $start } на { $len }
+prop-empty = пусто
+prop-no-layer = Слой не выбран.
+prop-tween = Промежуточные кадры
+prop-shape-tween = Анимация формы
+prop-motion-tween = Анимация движения
+prop-ease = Замедление
+prop-interpolation = Кривая
+prop-interpolation-hint = Семейство интерполяции и сглаживание для этой анимации; когда кривая выключена, используется ползунок сглаживания
+prop-interpolation-off = Ползунок сглаживания
+prop-easing = Сглаживание

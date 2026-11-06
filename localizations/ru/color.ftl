@@ -1,0 +1,17 @@
+col-edit-fill = Изменить цвет заливки
+col-edit-stroke = Изменить цвет обводки
+col-edit-gradient = Изменить второй цвет градиента
+col-fill = Заливка
+col-stroke = Обводка
+col-gradient-end = Конец градиента
+col-hex = Шестиугольный
+col-swatches = Образцы
+col-gradient-new = Заливать новые фигуры градиентом
+col-pick = Взять цвет со сцены
+col-none = Без цвета
+col-fill-color = Цвет заливки
+col-stroke-color = Цвет обводки
+col-no-stroke = Без обводки
+col-no-fill = Без заливки
+col-black-white = Чёрный и белый
+col-swap = Поменять местами заливку и обводку

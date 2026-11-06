@@ -1,0 +1,14 @@
+prop-frame = Snímek
+prop-layer = Vrstva
+prop-exposure = Expozice
+prop-exposure-span = od snímku { $start } na { $len }
+prop-empty = prázdné
+prop-no-layer = Není vybrána žádná vrstva.
+prop-tween = Mezisnímek
+prop-shape-tween = Animace tvaru
+prop-motion-tween = Animace pohybu
+prop-ease = Zpomalení
+prop-interpolation = Křivka
+prop-interpolation-hint = Rodina interpolace a zpomalení pro tuto animaci; když je vypnutá, používá se posuvník zpomalení
+prop-interpolation-off = Posuvník zpomalení
+prop-easing = Zpomalení

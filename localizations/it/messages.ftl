@@ -1,0 +1,92 @@
+msg-cannot-import-sound = Impossibile importare { $path }: { $reason }
+msg-too-much-sound = Sono caricati troppi audio per riprodurli tutti insieme
+msg-cannot-play-sound = Impossibile riprodurre l'audio: { $reason }
+msg-cannot-place-text = Impossibile posizionare il testo: { $reason }
+msg-saved = Salvato { $path }
+msg-cannot-save = Impossibile salvare: { $reason }
+msg-autosave-failed = Salvataggio automatico non riuscito: { $reason }
+msg-cannot-import = Impossibile importare { $path }: { $reason }
+msg-imported =
+    { $n ->
+        [one] Importato { $path }; { $n } nota su ciò che non è stato trasferito è nel pannello Output
+       *[other] Importato { $path }; { $n } note su ciò che non è stato trasferito sono nel pannello Output
+    }
+msg-cannot-recover = Impossibile recuperare { $path }: { $reason }
+msg-cannot-open = Impossibile aprire { $path }: { $reason }
+msg-project-changed = Il progetto è cambiato durante la lettura, quindi non è stato sostituito
+msg-recovered = Lavoro non salvato recuperato
+msg-opened = Aperto { $name }
+msg-opening = Apertura di { $path }...
+msg-save-before-recover = Salva o annulla le modifiche prima di recuperare altro lavoro
+msg-recovery-remove-failed = Impossibile rimuovere il file di recupero: { $reason }
+msg-graphic-only = Solo una Grafica può essere riprodotta con le impostazioni Ciclo, Riproduci una volta o Singolo fotogramma
+msg-looping = Ciclo
+msg-options = Opzioni
+msg-first = Primo
+msg-play-loop = Ciclo Continuo
+msg-play-once = Riproduci una volta
+msg-play-single = Singolo fotogramma
+msg-wait-for-file-work = Attendi il completamento delle operazioni sui file prima di cambiare documento
+msg-leave-symbol-fps = Esci dalla modifica del simbolo per cambiare la frequenza fotogrammi
+msg-fps-range = La frequenza fotogrammi deve essere compresa tra 0,01 e 240 fps
+msg-history-original = Originale
+msg-layer-rename = Rinomina
+msg-layer-hide = Nascondi
+msg-layer-show = Mostra
+msg-layer-unlock = Sblocca
+msg-layer-lock = Blocca
+msg-layer-mask = Maschera
+msg-layer-guide = Guida di movimento
+msg-layer-move-up = Sposta in alto
+msg-layer-move-down = Sposta in basso
+msg-layer-new = Nuovo livello
+msg-layer-new-folder = Nuova cartella
+msg-layer-delete = Elimina
+msg-frame-insert = Inserisci un Fotogramma
+msg-frame-insert-keyframe = Inserisci fotogramma chiave
+msg-frame-insert-blank = Inserisci fotogramma chiave vuoto
+msg-cannot-cut-locked = Impossibile tagliare i fotogrammi: il livello è bloccato
+msg-nothing-to-cut = In quei fotogrammi non c'è nulla da tagliare
+msg-no-frames-to-select = Su questo livello non ci sono fotogrammi da selezionare
+msg-select-frames-to-reverse = Seleziona prima i fotogrammi da invertire: clicca su uno, poi Maiusc-clic su un altro
+msg-cannot-reverse-locked = Impossibile invertire i fotogrammi: il livello è bloccato
+msg-cannot-reverse = Impossibile invertire quei fotogrammi: { $reason }
+msg-op-insert-frame = inserire un fotogramma
+msg-op-remove-frame = rimuovere un fotogramma
+msg-op-insert-keyframe = inserire un fotogramma chiave
+msg-op-insert-blank-keyframe = inserire un fotogramma chiave vuoto
+msg-op-clear-keyframe = cancellare il fotogramma chiave
+msg-op-convert-keyframes = convertire in fotogrammi chiave
+msg-cannot-locked = Impossibile { $op }: il livello è bloccato
+msg-cannot-at-frame = Impossibile { $op } al fotogramma { $frame } di questo livello
+msg-cannot-move-span = Impossibile spostare lì l'intervallo: si sovrapporrebbe a un altro
+msg-cannot-resize-span = Impossibile ridimensionare l'intervallo: si sovrapporrebbe a un altro
+msg-nothing-to-copy = In quei fotogrammi non c'è nulla da copiare
+msg-cannot-paste-locked = Impossibile incollare i fotogrammi: il livello è bloccato
+msg-cannot-paste-past-end = Impossibile incollare i fotogrammi lì: supererebbero l'ultimo fotogramma
+msg-distribute-needs-three = Per distribuire servono almeno tre forme selezionate
+msg-select-shape-for-symbol = Seleziona una forma da convertire in simbolo
+msg-select-shapes-to-group = Seleziona due o più forme da raggruppare
+msg-select-to-break-apart = Seleziona un'istanza di simbolo o un testo da separare
+msg-nothing-transformed = Non è stato possibile trasformare nulla (un'istanza in un'interpolazione di movimento non può essere inclinata o specchiata)
+msg-brush-stroke = Tratto di pennello
+msg-pencil-line = Linea a matita
+msg-select-to-mirror = Seleziona qualcosa da specchiare
+msg-leave-symbol-sound = Esci dalla modifica del simbolo prima di importare un audio
+msg-scene-needs-name = Una scena deve avere un nome
+msg-paste-symbol-missing = Impossibile incollare: il suo simbolo non è in questo documento
+msg-tween-needs-target = Un'interpolazione di movimento richiede un'istanza selezionata, una di forma una forma
+unsaved-save-changes = Salvare le modifiche a { $name }?
+unsaved-save = Salva
+unsaved-dont-save = Non salvare
+msg-paste-refused = Impossibile incollare nel livello "{ $name }": { $reason }
+msg-saved-detail-original = originale non modificato, riscritto com'era
+msg-saved-detail-new = { $files } file scritti dal progetto
+msg-saved-detail-edited = { $rebuilt } file ricostruiti su { $files }, il resto è stato mantenuto così com'era
+msg-saved-with = Salvato { $path } ({ $detail })
+msg-saved-with-notes =
+    { $n ->
+        [one] Salvato { $path } ({ $detail }); { $n } nota su ciò che il formato non può contenere è nel pannello Output
+       *[other] Salvato { $path } ({ $detail }); { $n } note su ciò che il formato non può contenere sono nel pannello Output
+    }
+msg-saved-rebuilt-names = Ricostruito per { $path }: { $names }

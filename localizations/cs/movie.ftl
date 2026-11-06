@@ -1,0 +1,12 @@
+movie-title = Testovací film
+movie-clock = { $clock } · snímek { $frame }
+movie-restart = Spustit znovu
+movie-pause = Pozastavit
+movie-play = Přehrát
+movie-step = Přehrát jeden snímek
+movie-speed = Rychlost přehrávání
+movie-loop-on = Smyčka: film na konci začíná znovu od začátku
+movie-loop-off = Bez smyčky: film se zastaví na posledním snímku
+movie-sound-off = Zvuk je vypnutý; klikněte pro zapnutí
+movie-sound-on = Zvuk je zapnutý; klikněte pro vypnutí
+movie-close = Zavřít

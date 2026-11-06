@@ -19,9 +19,12 @@ pub enum Language {
     German,
     Spanish,
     French,
+    Italian,
     PortugueseBrazil,
+    Czech,
     Japanese,
     Korean,
+    Russian,
     ChineseSimplified,
 }
 
@@ -65,14 +68,17 @@ const fn compare(a: &[u8], b: &[u8]) -> i8 {
 
 impl Language {
     /// In list order (see the type's description).
-    pub const ALL: [Self; 8] = [
+    pub const ALL: [Self; 11] = [
         Self::English,
         Self::German,
         Self::Spanish,
         Self::French,
+        Self::Italian,
         Self::PortugueseBrazil,
+        Self::Czech,
         Self::Japanese,
         Self::Korean,
+        Self::Russian,
         Self::ChineseSimplified,
     ];
 
@@ -83,9 +89,12 @@ impl Language {
             Self::German => "de",
             Self::Spanish => "es",
             Self::French => "fr",
+            Self::Italian => "it",
             Self::PortugueseBrazil => "pt-BR",
+            Self::Czech => "cs",
             Self::Japanese => "ja",
             Self::Korean => "ko",
+            Self::Russian => "ru",
             Self::ChineseSimplified => "zh-CN",
         }
     }
@@ -101,9 +110,12 @@ impl Language {
             Self::German => "German",
             Self::Spanish => "Spanish",
             Self::French => "French",
+            Self::Italian => "Italian",
             Self::PortugueseBrazil => "Portuguese (Brazil)",
+            Self::Czech => "Czech",
             Self::Japanese => "Japanese",
             Self::Korean => "Korean",
+            Self::Russian => "Russian",
             Self::ChineseSimplified => "Chinese (Simplified)",
         }
     }
@@ -115,9 +127,12 @@ impl Language {
             Self::German => "Deutsch",
             Self::Spanish => "Español",
             Self::French => "Français",
+            Self::Italian => "Italiano",
             Self::PortugueseBrazil => "Português (Brasil)",
+            Self::Czech => "Čeština",
             Self::Japanese => "日本語",
             Self::Korean => "한국어",
+            Self::Russian => "Русский",
             Self::ChineseSimplified => "简体中文",
         }
     }
@@ -131,9 +146,12 @@ impl Language {
             "de" => Self::German,
             "es" => Self::Spanish,
             "fr" => Self::French,
+            "it" => Self::Italian,
             "pt" => Self::PortugueseBrazil,
+            "cs" => Self::Czech,
             "ja" => Self::Japanese,
             "ko" => Self::Korean,
+            "ru" => Self::Russian,
             // Traditional Chinese is not here yet, and simplified text is the nearer of the two
             // for a reader who knows either.
             "zh" => Self::ChineseSimplified,

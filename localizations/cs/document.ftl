@@ -1,0 +1,13 @@
+untitled = Bez názvu
+name-new-scene = Scéna { $n }
+name-new-layer = Vrstva { $n }
+name-new-text-layer = Textová vrstva
+doc-title = Dokument
+doc-publish-settings = Nastavení publikování
+doc-frame-rate = Snímková frekvence
+doc-scenes = Scény
+doc-sounds = Zvuky
+doc-width = Š
+doc-height = O
+name-new-camera-layer = Kamera
+name-new-armature-layer = Kostra_{ $number }

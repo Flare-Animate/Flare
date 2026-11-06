@@ -1,0 +1,15 @@
+pubpop-title = Pubblica
+pubpop-formats = Formati
+pubpop-button = Pubblica
+pubpop-button-hint = Scegli dove salvare i file e scrivi ogni formato selezionato
+pubpop-share = Condividi
+pubpop-share-hint = Pubblica prima, poi aggiungi il file nella pagina che si apre.
+pubpop-nothing-chosen = Scegli un formato, altrimenti la pubblicazione non scrive nulla.
+pubpop-format-swf = Flash (.swf)
+pubpop-compress = Comprimi filmato
+pubpop-format-html5 = HTML5 Canvas (.html)
+pubpop-loop = Linea del tempo in ciclo
+pubpop-center = Centra la scena
+pubpop-responsive = Rendi adattivo
+pubpop-format-gif = GIF animata (.gif)
+pubpop-format-mp4 = Video MP4 (.mp4)

@@ -1,0 +1,12 @@
+shortcuts-set = Набор сочетаний клавиш
+shortcuts-set-flare = Flare
+shortcuts-set-opentoonz = OpenToonz
+shortcuts-set-animate = Анимировать
+shortcuts-set-tahoma = Tahoma2D
+shortcuts-change = Изменить
+shortcuts-press = Нажмите новые клавиши (Esc отменяет)
+shortcuts-clear = Очистить
+shortcuts-reset = Сбросить набор
+shortcuts-conflict = { $keys } уже запускает «{ $action }».
+shortcuts-bad = Эти клавиши здесь использовать нельзя.
+shortcuts-hint = Буквенные инструменты работают, когда ничего не печатается.

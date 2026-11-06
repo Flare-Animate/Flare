@@ -1,4 +1,4 @@
-**English** | [Deutsch](docs/translations/README.de.md) | [Español](docs/translations/README.es.md) | [Français](docs/translations/README.fr.md) | [Português (Brasil)](docs/translations/README.pt-BR.md) | [日本語](docs/translations/README.ja.md) | [한국어](docs/translations/README.ko.md) | [简体中文](docs/translations/README.zh-CN.md)
+**English** | [Deutsch](docs/translations/README.de.md) | [Español](docs/translations/README.es.md) | [Français](docs/translations/README.fr.md) | [Italiano](docs/translations/README.it.md) | [Português (Brasil)](docs/translations/README.pt-BR.md) | [Čeština](docs/translations/README.cs.md) | [日本語](docs/translations/README.ja.md) | [한국어](docs/translations/README.ko.md) | [Русский](docs/translations/README.ru.md) | [简体中文](docs/translations/README.zh-CN.md)
 
 <div align="center">
 
@@ -116,13 +116,13 @@ Contributors should look at [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGEN
 
 ## The original codebase
 
-[`original/`](original/README.md) is the archived C++ codebase, based on OpenToonz and Tahoma2D. It is kept as a reference only. Nothing in Flare depends on it, links to it or copies from it.
+[`original/`](original/README.md) is the archived C++ codebase, based on OpenToonz and Tahoma2D. It is kept as a reference only. Nothing in Flare depends on it or links to it. Data and text taken from it are converted into Flare's own formats and credited in [docs/ENGINEERING.md](docs/ENGINEERING.md).
 
 ## Credits
 
 Flare stands on these projects. Their licence notices are kept where code was ported or used.
 
-- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. and contributors): the base of the original codebase. The PLI reader in `crates/io/flare-toonz` is ported from it.
+- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. and contributors): the base of the original codebase. The PLI reader in `crates/io/flare-toonz` is ported from it. Its translation files are the starting point for the Russian, Czech and Italian interfaces.
 - **Tahoma2D** (BSD-3-Clause): an OpenToonz fork and the other base of the original codebase. Its licence and README were read; its tool sources were only compared.
 - **AnimationCraft** (`MIT OR Apache-2.0`): the Rust authoring model Flare absorbed.
 - **Next2Flash**: its MIT parts may be ported. Its FFDec worker is GPLv3, so only its behaviour is used.

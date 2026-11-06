@@ -1,0 +1,12 @@
+shortcuts-set = Sada zkratek
+shortcuts-set-flare = Flare
+shortcuts-set-opentoonz = OpenToonz
+shortcuts-set-animate = Animovat
+shortcuts-set-tahoma = Tahoma2D
+shortcuts-change = Změnit
+shortcuts-press = Stiskněte nové klávesy (Esc zruší)
+shortcuts-clear = Vyprázdnit
+shortcuts-reset = Obnovit sadu
+shortcuts-conflict = { $keys } už spouští { $action }.
+shortcuts-bad = Tyto klávesy zde nelze použít.
+shortcuts-hint = Písmenové nástroje fungují, když se nic nepíše.

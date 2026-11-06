@@ -1,0 +1,13 @@
+untitled = Senza Titolo
+name-new-scene = Scena { $n }
+name-new-layer = Livello { $n }
+name-new-text-layer = Testo
+doc-title = Documento
+doc-publish-settings = Impostazioni di pubblicazione
+doc-frame-rate = Frequenza fotogrammi
+doc-scenes = Scene
+doc-sounds = Audio
+doc-width = L
+doc-height = A
+name-new-camera-layer = Livello camera
+name-new-armature-layer = Armatura_{ $number }

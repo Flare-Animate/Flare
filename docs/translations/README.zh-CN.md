@@ -1,4 +1,4 @@
-[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | [Français](README.fr.md) | [Português (Brasil)](README.pt-BR.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | **简体中文**
+[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | [Français](README.fr.md) | [Italiano](README.it.md) | [Português (Brasil)](README.pt-BR.md) | [Čeština](README.cs.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md) | **简体中文**
 
 <div align="center">
 
@@ -116,13 +116,13 @@ Flare 最初是一个让动画更易于学习的试验场，后来开源，并�
 
 ## 原始代码库
 
-[`original/`](../../original/README.md) 是已归档的 C++ 代码库，基于 OpenToonz 和 Tahoma2D。它仅作为参考保留。Flare 不依赖它、不链接它，也不从中复制任何内容。
+[`original/`](../../original/README.md) 是已归档的 C++ 代码库，基于 OpenToonz 和 Tahoma2D。它仅作为参考保留。Flare 不依赖它，也不链接它。从中取用的数据和文本会转换为 Flare 的格式，并在 [docs/ENGINEERING.md](../ENGINEERING.md) 中注明出处。
 
 ## 致谢
 
 Flare 建立在以下项目之上。凡是移植或使用了代码的地方，都保留了其许可声明。
 
-- **OpenToonz**（BSD-3-Clause，Copyright (c) DWANGO Co., Ltd. 及贡献者）：原始代码库的基础。`crates/io/flare-toonz` 中的 PLI 读取器即移植自它。
+- **OpenToonz**（BSD-3-Clause，Copyright (c) DWANGO Co., Ltd. 及贡献者）：原始代码库的基础。`crates/io/flare-toonz` 中的 PLI 读取器即移植自它。 其翻译文件是俄语、捷克语和意大利语界面的起点。
 - **Tahoma2D**（BSD-3-Clause）：OpenToonz 的分支，也是原始代码库的另一个基础。我们阅读了其许可证和 README；其工具源码仅作比较。
 - **AnimationCraft**（`MIT OR Apache-2.0`）：Flare 吸收的 Rust 创作模型。
 - **Next2Flash**：其中的 MIT 部分可以移植。其 FFDec 工作器采用 GPLv3，因此仅使用其行为。

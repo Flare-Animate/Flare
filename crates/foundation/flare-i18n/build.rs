@@ -7,7 +7,9 @@ use std::fmt::Write as _;
 use std::path::PathBuf;
 
 /// The folders of the languages, which are also their tags (`Language::code`).
-const LANGUAGES: [&str; 8] = ["en", "de", "es", "fr", "pt-BR", "ja", "ko", "zh-CN"];
+const LANGUAGES: [&str; 11] = [
+    "en", "de", "es", "fr", "it", "pt-BR", "cs", "ja", "ko", "ru", "zh-CN",
+];
 
 fn main() -> Result<(), Box<dyn Error>> {
     let root = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR")?)

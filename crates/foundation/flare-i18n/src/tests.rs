@@ -185,7 +185,11 @@ fn a_system_locale_finds_the_nearest_language_and_english_when_there_is_none() {
         ("pt-PT", Language::PortugueseBrazil),
         ("fr-FR", Language::French),
         ("fr_CA.UTF-8", Language::French),
-        ("it-IT", Language::English),
+        ("it-IT", Language::Italian),
+        ("cs-CZ", Language::Czech),
+        ("ru-RU", Language::Russian),
+        ("ru_RU.UTF-8", Language::Russian),
+        ("nl-NL", Language::English),
         ("", Language::English),
         ("???", Language::English),
     ] {

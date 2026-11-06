@@ -1,0 +1,14 @@
+pane-tools = Strumenti
+pane-stage = Scena
+pane-library = Libreria
+pane-timeline = Linea del tempo
+pane-properties = Proprietà
+pane-color = A Colori
+pane-align = Allinea
+pane-transform = Trasforma
+pane-history = Cronologia
+pane-info = Informazioni
+pane-output = Uscita
+pane-motion-editor = Editor del movimento
+pane-find-replace = Trova e sostituisci
+pane-assets = Risorse

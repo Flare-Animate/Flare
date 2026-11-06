@@ -1,0 +1,17 @@
+col-edit-fill = Upravit barvu výplně
+col-edit-stroke = Upravit barvu tahu
+col-edit-gradient = Upravit druhou barvu přechodu
+col-fill = Vyplnit plochy
+col-stroke = Tah
+col-gradient-end = Konec přechodu
+col-hex = Hex
+col-swatches = Vzorky
+col-gradient-new = Vyplňovat nové tvary přechodem
+col-pick = Vybrat barvu ze scény
+col-none = Bez barvy
+col-fill-color = Barva výplně
+col-stroke-color = Barva tahu
+col-no-stroke = Bez tahu
+col-no-fill = Bez výplně
+col-black-white = Černobíle
+col-swap = Prohodit výplň a tah

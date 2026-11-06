@@ -1,0 +1,67 @@
+hist-undo = Zpět
+hist-redo = Znovu
+hist-clear = Vymazat historii
+hist-original = Původní
+hist-resize-stage = Změnit velikost scény
+hist-background = Změnit pozadí
+hist-frame-rate = Změnit snímkovou frekvenci
+hist-cut-frames = Vyjmout snímky
+hist-reverse-frames = Obrátit snímky
+hist-import-sound = Importovat zvuk
+hist-rename-scene = Přejmenovat scénu
+hist-paste = Vložit
+hist-delete = Smazat
+hist-tween = Změnit mezisnímky
+hist-ease = Změnit zpomalení mezisnímků
+hist-mirror = Zrcadlová kopie
+hist-rename-layer = Přejmenovat vrstvu
+hist-delete-layer = Smazat vrstvu
+hist-move-layer = Přesunout vrstvu
+hist-paste-frames = Vložit snímky
+hist-add-folder = Přidat složku
+hist-layer-into-folder = Přesunout vrstvu do složky
+hist-graphic-plays = Změnit přehrávání grafiky
+hist-move = Přesunout
+hist-align = Zarovnání
+hist-arrange = Uspořádat
+hist-duplicate = Zdvojit
+hist-convert-symbol = Převést na symbol
+hist-group = Seskupit
+hist-break-apart = Rozdělit
+hist-paint = Malba
+hist-transform = Transformace
+hist-edit-symbol = Upravit symbol
+hist-add-symbol = Přidat symbol
+hist-symbol-type = Změnit typ symbolu
+hist-rename-symbol = Přejmenovat symbol
+hist-delete-symbol = Smazat symbol
+hist-place-instance = Umístit instanci
+hist-delete-point = Smazat bod
+hist-smooth-point = Vyhladit bod
+hist-move-point = Přesunout bod
+hist-delete-text = Smazat text
+hist-edit-text = Upravit text
+hist-remove-camera = Odstranit kameru
+hist-shape-paint = Změnit výplň tvaru
+hist-add-layer = Přidat vrstvu
+hist-edit = Upravit
+hist-draw-rectangle = Nakreslit obdélník
+hist-draw-ellipse = Nakreslit elipsu
+hist-draw-line = Nakreslit čáru
+hist-draw-star = Nakreslit hvězdu
+hist-draw-polygon = Nakreslit mnohoúhelník
+hist-draw-path = Nakreslit cestu
+hist-draw-brush = Nakreslit tah štětcem
+hist-draw-pencil = Nakreslit čáru tužkou
+hist-draw-other = Nakreslit { $what }
+inf-selection = Výběr
+inf-pointer = Ukazatel
+inf-color = Barva
+out-clear = Vyprázdnit
+out-count =
+    { $n ->
+        [one] { $n } zpráva
+        [few] { $n } zprávy
+       *[other] { $n } zpráv
+    }
+out-nothing = Není co hlásit

@@ -1,0 +1,15 @@
+pubpop-title = Публикация
+pubpop-formats = Форматы
+pubpop-button = Опубликовать
+pubpop-button-hint = Выберите, куда записывать файлы, и запишите каждый отмеченный формат
+pubpop-share = Поделиться
+pubpop-share-hint = Сначала опубликуйте, затем добавьте файл на открывшейся странице.
+pubpop-nothing-chosen = Выберите формат, иначе публикация ничего не запишет.
+pubpop-format-swf = Flash (.swf)
+pubpop-compress = Сжать ролик
+pubpop-format-html5 = HTML5 Canvas (.html)
+pubpop-loop = Повторять временную шкалу
+pubpop-center = Центрировать сцену
+pubpop-responsive = Адаптивный размер
+pubpop-format-gif = Анимированный GIF (.gif)
+pubpop-format-mp4 = Видео MP4 (.mp4)

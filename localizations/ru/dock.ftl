@@ -1,0 +1,14 @@
+pane-tools = Инструменты
+pane-stage = Сцена
+pane-library = Библиотека
+pane-timeline = Таймлайн
+pane-properties = Свойства
+pane-color = Цвет
+pane-align = Выравнивание
+pane-transform = Трансформация
+pane-history = История
+pane-info = Информация
+pane-output = Вывод
+pane-motion-editor = Редактор движения
+pane-find-replace = Поиск и замена
+pane-assets = Ресурсы

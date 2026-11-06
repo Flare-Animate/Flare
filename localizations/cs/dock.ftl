@@ -1,0 +1,14 @@
+pane-tools = Nástroje
+pane-stage = Fáze
+pane-library = Knihovna
+pane-timeline = Časová osa
+pane-properties = Vlastnosti
+pane-color = Barva
+pane-align = Zarovnání
+pane-transform = Transformace
+pane-history = Historie
+pane-info = Informace
+pane-output = Výstup
+pane-motion-editor = Editor pohybu
+pane-find-replace = Najít a nahradit
+pane-assets = Prostředky

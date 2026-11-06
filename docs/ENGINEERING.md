@@ -21,7 +21,9 @@
 - `original/` is a read-only archive of the pre-rewrite code. It is excluded from the
   workspace and must never become a build dependency, symlink, `include!` or copied tree.
   Code adapted from it needs recorded provenance (source path, license, changes, tests).
-  Do not claim clean-room provenance for translated code.
+  Do not claim clean-room provenance for translated code. By the maintainer's decision, text and
+  data tables from it (translations, shortcut tables) may be converted into Flare's formats, with
+  the provenance recorded under "Third-party format references used" below. No C++ code is pasted.
 - `third_party/` holds pinned submodules (today `ruffle`), also excluded from the workspace. Their
   source is used unmodified under their licences and only through a path dependency behind a
   feature that is off by default (`flare-ruffle`'s `render-check`); CI and release checkouts fetch
@@ -142,6 +144,15 @@ could not be read from this environment, so nothing from it may be ported until 
   source keep the copyright notice, the conditions and the disclaimer; the names of the
   contributors are not used to endorse derived products. Tahoma2D carries the same licence and
   was only compared.
+- OpenToonz interface translations (BSD-3-Clause, as above), converted into `localizations/ru`,
+  `localizations/cs` and `localizations/it`. Each message whose English source text is also a
+  source in `original/flare/sources/translations/{russian,czech,italian}/*.ts` with a finished
+  translation takes that translation as it is (Russian 178 messages, Czech 170, Italian 114). Its
+  text was not re-checked for Flare's context, so a word can fit OpenToonz better than Flare; for
+  example the Czech Stage reads "Fáze". Every other message (Russian 679, Czech 687, Italian 743) was
+  written from Flare's English and is a machine translation by Claude. None of them has yet been
+  reviewed by a native speaker; that review is open. The three READMEs in `docs/translations/` are
+  machine translations too. Only the matched messages were copied out of the `.ts` files; the files themselves are not copied.
 - OpenToonz stroke styles (BSD-3-Clause, as above): the names and the idea of Herringbone, Rope and
   Zigzag come from its stroke style sources (`flare/sources/colorfx/strokestyles.cpp`,
   `zigzagstyles.cpp`). No code was copied: the geometry is written fresh in

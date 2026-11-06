@@ -1,4 +1,4 @@
-[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | [Français](README.fr.md) | [Português (Brasil)](README.pt-BR.md) | [日本語](README.ja.md) | **한국어** | [简体中文](README.zh-CN.md)
+[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | [Français](README.fr.md) | [Italiano](README.it.md) | [Português (Brasil)](README.pt-BR.md) | [Čeština](README.cs.md) | [日本語](README.ja.md) | **한국어** | [Русский](README.ru.md) | [简体中文](README.zh-CN.md)
 
 <div align="center">
 
@@ -116,13 +116,13 @@ Flare는 애니메이션을 더 쉽게 배울 수 있도록 하는 놀이터로 
 
 ## 원본 코드베이스
 
-[`original/`](../../original/README.md)은 OpenToonz와 Tahoma2D를 기반으로 한, 보관된 C++ 코드베이스입니다. 참고용으로만 보관되어 있습니다. Flare는 이것에 의존하거나, 링크하거나, 복사하지 않습니다.
+[`original/`](../../original/README.md)은 OpenToonz와 Tahoma2D를 기반으로 한, 보관된 C++ 코드베이스입니다. 참고용으로만 보관되어 있습니다. Flare는 이것에 의존하거나 링크하지 않습니다. 여기서 가져온 데이터와 텍스트는 Flare 형식으로 변환되며 [docs/ENGINEERING.md](../ENGINEERING.md)에 출처가 기재되어 있습니다.
 
 ## 크레딧
 
 Flare는 다음 프로젝트들 위에 서 있습니다. 코드를 이식하거나 사용한 곳에서는 각 라이선스 고지를 유지합니다.
 
-- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. 및 기여자): 원본 코드베이스의 기반입니다. `crates/io/flare-toonz`의 PLI 리더는 여기서 이식되었습니다.
+- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. 및 기여자): 원본 코드베이스의 기반입니다. `crates/io/flare-toonz`의 PLI 리더는 여기서 이식되었습니다. 번역 파일은 러시아어, 체코어, 이탈리아어 인터페이스의 출발점이 되었습니다.
 - **Tahoma2D** (BSD-3-Clause): OpenToonz의 포크이며, 원본 코드베이스의 또 다른 기반입니다. 라이선스와 README를 읽었고, 도구 소스는 비교만 했습니다.
 - **AnimationCraft** (`MIT OR Apache-2.0`): Flare가 흡수한 Rust 저작 모델입니다.
 - **Next2Flash**: 그 MIT 부분은 이식할 수 있습니다. FFDec 워커는 GPLv3이므로 동작만 사용합니다.

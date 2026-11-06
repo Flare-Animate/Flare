@@ -1,4 +1,4 @@
-[English](../../README.md) | [Deutsch](README.de.md) | **Español** | [Français](README.fr.md) | [Português (Brasil)](README.pt-BR.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
+[English](../../README.md) | [Deutsch](README.de.md) | **Español** | [Français](README.fr.md) | [Italiano](README.it.md) | [Português (Brasil)](README.pt-BR.md) | [Čeština](README.cs.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md)
 
 <div align="center">
 
@@ -115,13 +115,13 @@ Quienes contribuyan deben leer [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS
 
 ## El código original
 
-[`original/`](../../original/README.md) es el código C++ archivado, basado en OpenToonz y Tahoma2D. Se conserva solo como referencia. Nada de Flare depende de él, lo enlaza o copia de él.
+[`original/`](../../original/README.md) es el código C++ archivado, basado en OpenToonz y Tahoma2D. Se conserva solo como referencia. Nada de Flare depende de él ni lo enlaza. Los datos y textos tomados de él se convierten a los formatos de Flare y se acreditan en [docs/ENGINEERING.md](../ENGINEERING.md).
 
 ## Créditos
 
 Flare se apoya en estos proyectos. Sus avisos de licencia se conservan donde se portó o usó código.
 
-- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. y colaboradores): la base del código original. El lector PLI de `crates/io/flare-toonz` está portado desde él.
+- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. y colaboradores): la base del código original. El lector PLI de `crates/io/flare-toonz` está portado desde él. Sus archivos de traducción son el punto de partida de las interfaces ruso, checo e italiano.
 - **Tahoma2D** (BSD-3-Clause): una bifurcación de OpenToonz y la otra base del código original. Se leyeron su licencia y su README; sus fuentes de herramientas solo se compararon.
 - **AnimationCraft** (`MIT OR Apache-2.0`): el modelo de autoría en Rust que Flare absorbió.
 - **Next2Flash**: sus partes MIT pueden portarse. Su worker FFDec es GPLv3, así que solo se usa su comportamiento.

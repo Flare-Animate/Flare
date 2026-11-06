@@ -1,0 +1,14 @@
+prop-frame = Fotogramma
+prop-layer = Livello
+prop-exposure = Esposizione
+prop-exposure-span = dal fotogramma { $start } per { $len }
+prop-empty = vuoto
+prop-no-layer = Nessun livello selezionato.
+prop-tween = Interpolazione
+prop-shape-tween = Interpolazione di forma
+prop-motion-tween = Interpolazione di movimento
+prop-ease = Accelerazione
+prop-interpolation = Curva
+prop-interpolation-hint = Famiglia di interpolazione e accelerazione per questa interpolazione; quando è disattivata si usa il cursore di accelerazione
+prop-interpolation-off = Cursore di accelerazione
+prop-easing = Accelerazione

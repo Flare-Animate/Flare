@@ -1,0 +1,13 @@
+untitled = Безымянный
+name-new-scene = Сцена { $n }
+name-new-layer = Слой { $n }
+name-new-text-layer = Текст
+doc-title = Документ
+doc-publish-settings = Настройки публикации
+doc-frame-rate = Частота кадров
+doc-scenes = Сцены
+doc-sounds = Звуки
+doc-width = Ш
+doc-height = В
+name-new-camera-layer = Камера
+name-new-armature-layer = Скелет_{ $number }

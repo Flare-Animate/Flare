@@ -1,4 +1,4 @@
-[English](../../README.md) | **Deutsch** | [Español](README.es.md) | [Français](README.fr.md) | [Português (Brasil)](README.pt-BR.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
+[English](../../README.md) | **Deutsch** | [Español](README.es.md) | [Français](README.fr.md) | [Italiano](README.it.md) | [Português (Brasil)](README.pt-BR.md) | [Čeština](README.cs.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md)
 
 <div align="center">
 
@@ -116,13 +116,13 @@ Mitwirkende sollten [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](../../
 
 ## Das ursprüngliche Projekt
 
-[`original/`](../../original/README.md) ist der archivierte C++-Code, basierend auf OpenToonz und Tahoma2D. Er dient nur als Referenz. Nichts in Flare hängt davon ab, verlinkt darauf oder kopiert daraus.
+[`original/`](../../original/README.md) ist der archivierte C++-Code, basierend auf OpenToonz und Tahoma2D. Er dient nur als Referenz. Nichts in Flare hängt davon ab oder verlinkt darauf. Daten und Texte daraus werden in Flares eigene Formate überführt und in [docs/ENGINEERING.md](../ENGINEERING.md) genannt.
 
 ## Danksagung
 
 Flare steht auf den Schultern dieser Projekte. Ihre Lizenzhinweise bleiben dort erhalten, wo Code übernommen oder portiert wurde.
 
-- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. und Mitwirkende): die Basis des ursprünglichen Projekts. Der PLI-Leser in `crates/io/flare-toonz` ist daraus portiert.
+- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. und Mitwirkende): die Basis des ursprünglichen Projekts. Der PLI-Leser in `crates/io/flare-toonz` ist daraus portiert. Seine Übersetzungsdateien bilden den Ausgangspunkt für die russische, tschechische und italienische Oberfläche.
 - **Tahoma2D** (BSD-3-Clause): ein Fork von OpenToonz und die zweite Basis des ursprünglichen Projekts. Lizenz und README wurden gelesen; die Werkzeugquellen wurden nur verglichen.
 - **AnimationCraft** (`MIT OR Apache-2.0`): das Rust-Autorenmodell, das Flare aufgenommen hat.
 - **Next2Flash**: seine MIT-Teile dürfen portiert werden. Sein FFDec-Worker steht unter GPLv3, daher wird nur sein Verhalten übernommen.

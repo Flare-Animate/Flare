@@ -1,4 +1,4 @@
-[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | [Français](README.fr.md) | **Português (Brasil)** | [日本語](README.ja.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
+[English](../../README.md) | [Deutsch](README.de.md) | [Español](README.es.md) | [Français](README.fr.md) | [Italiano](README.it.md) | **Português (Brasil)** | [Čeština](README.cs.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md) | [简体中文](README.zh-CN.md)
 
 <div align="center">
 
@@ -116,13 +116,13 @@ Quem contribui deve ler [CONTRIBUTING.md](../../CONTRIBUTING.md), [AGENTS.md](..
 
 ## O código original
 
-O [`original/`](../../original/README.md) é o código C++ arquivado, baseado em OpenToonz e Tahoma2D. Ele serve apenas como referência. Nada no Flare depende dele, o liga ou copia dele.
+O [`original/`](../../original/README.md) é o código C++ arquivado, baseado em OpenToonz e Tahoma2D. Ele serve apenas como referência. Nada no Flare depende dele nem o liga. Dados e textos retirados dele são convertidos para os formatos do Flare e creditados em [docs/ENGINEERING.md](../ENGINEERING.md).
 
 ## Créditos
 
 O Flare se apoia nestes projetos. Os avisos de licença são mantidos onde código foi portado ou usado.
 
-- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. e colaboradores): a base do código original. O leitor PLI de `crates/io/flare-toonz` foi portado a partir dele.
+- **OpenToonz** (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. e colaboradores): a base do código original. O leitor PLI de `crates/io/flare-toonz` foi portado a partir dele. Os arquivos de tradução dele são o ponto de partida das interfaces russa, tcheca e italiana.
 - **Tahoma2D** (BSD-3-Clause): um fork do OpenToonz e a outra base do código original. Foram lidos a licença e o README; as fontes das ferramentas foram apenas comparadas.
 - **AnimationCraft** (`MIT OR Apache-2.0`): o modelo de autoria em Rust que o Flare absorveu.
 - **Next2Flash**: suas partes MIT podem ser portadas. Seu worker FFDec é GPLv3, então só o comportamento é usado.

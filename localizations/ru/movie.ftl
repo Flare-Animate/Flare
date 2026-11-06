@@ -1,0 +1,12 @@
+movie-title = Тестовый ролик
+movie-clock = { $clock } · кадр { $frame }
+movie-restart = Перезапуск
+movie-pause = Пауза
+movie-play = Воспроизведение
+movie-step = Переместить на один кадр
+movie-speed = Скорость воспроизведения
+movie-loop-on = Повтор: ролик начинается сначала по окончании
+movie-loop-off = Без повтора: ролик останавливается на последнем кадре
+movie-sound-off = Звук выключен; щёлкните, чтобы включить
+movie-sound-on = Звук включён; щёлкните, чтобы выключить
+movie-close = Закрывать

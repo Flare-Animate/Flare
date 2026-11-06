@@ -1,0 +1,67 @@
+hist-undo = Отменить
+hist-redo = Повторить
+hist-clear = Очистить историю
+hist-original = Оригинал
+hist-resize-stage = Изменить размер сцены
+hist-background = Изменить фон
+hist-frame-rate = Изменить частоту кадров
+hist-cut-frames = Вырезать кадры
+hist-reverse-frames = Обратить порядок кадров
+hist-import-sound = Импорт звука
+hist-rename-scene = Переименовать сцену
+hist-paste = Вставить
+hist-delete = Удалить
+hist-tween = Изменить промежуточные кадры
+hist-ease = Изменить сглаживание промежуточных кадров
+hist-mirror = Зеркальная копия
+hist-rename-layer = Переименовать слой
+hist-delete-layer = Удалить слой
+hist-move-layer = Переместить слой
+hist-paste-frames = Вставить кадры
+hist-add-folder = Добавить папку
+hist-layer-into-folder = Переместить слой в папку
+hist-graphic-plays = Изменить воспроизведение графики
+hist-move = Переместить
+hist-align = Выравнивание
+hist-arrange = Расположить
+hist-duplicate = Дублировать
+hist-convert-symbol = Преобразовать в символ
+hist-group = Группа
+hist-break-apart = Разбить
+hist-paint = Заливка
+hist-transform = Трансформация
+hist-edit-symbol = Редактировать символ
+hist-add-symbol = Добавить символ
+hist-symbol-type = Изменить тип символа
+hist-rename-symbol = Переименовать символ
+hist-delete-symbol = Удалить символ
+hist-place-instance = Разместить экземпляр
+hist-delete-point = Удалить точку
+hist-smooth-point = Сгладить точку
+hist-move-point = Переместить точку
+hist-delete-text = Удалить текст
+hist-edit-text = Изменить текст
+hist-remove-camera = Удалить камеру
+hist-shape-paint = Изменить заливку фигуры
+hist-add-layer = Добавить слой
+hist-edit = Редактировать
+hist-draw-rectangle = Нарисовать прямоугольник
+hist-draw-ellipse = Нарисовать эллипс
+hist-draw-line = Нарисовать линию
+hist-draw-star = Нарисовать звезду
+hist-draw-polygon = Нарисовать многоугольник
+hist-draw-path = Нарисовать контур
+hist-draw-brush = Нарисовать мазок кистью
+hist-draw-pencil = Нарисовать линию карандашом
+hist-draw-other = Нарисовать { $what }
+inf-selection = Выделение
+inf-pointer = Указатель
+inf-color = Цвет
+out-clear = Очистить
+out-count =
+    { $n ->
+        [one] { $n } сообщение
+        [few] { $n } сообщения
+       *[many] { $n } сообщений
+    }
+out-nothing = Нечего сообщить

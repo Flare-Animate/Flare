@@ -1,0 +1,15 @@
+pubpop-title = Publikovat
+pubpop-formats = Formáty
+pubpop-button = Publikovat
+pubpop-button-hint = Vyberte, kam se mají soubory uložit, a zapište každý zaškrtnutý formát
+pubpop-share = Sdílet
+pubpop-share-hint = Nejprve publikujte, pak přidejte soubor na stránku, která se otevře.
+pubpop-nothing-chosen = Vyberte formát, jinak publikování nic nezapíše.
+pubpop-format-swf = Flash (.swf)
+pubpop-compress = Komprimovat film
+pubpop-format-html5 = HTML5 Canvas (.html)
+pubpop-loop = Opakovat časovou osu
+pubpop-center = Vystředit scénu
+pubpop-responsive = Responzivní velikost
+pubpop-format-gif = Animovaný GIF (.gif)
+pubpop-format-mp4 = Video MP4 (.mp4)
