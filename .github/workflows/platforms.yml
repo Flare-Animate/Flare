@@ -110,13 +110,15 @@ jobs:
           rpm -qip dist/*.rpm
           rpm -qlp dist/*.rpm
           ldd target/${{ matrix.target }}/release/flare-desktop | tee dependencies.txt
-          if grep -q 'not found' dependencies.txt; then exit 1; fi
-          appimage=$(realpath dist/*.AppImage)
+          if grep 'not found' dependencies.txt; then exit 1; fi
+          appimage=$(realpath dist/*.AppImage) || { ls -la dist; exit 1; }
           inspection=$(mktemp -d)
           cd "$inspection"
           "$appimage" --appimage-extract > /dev/null
-          test -x squashfs-root/usr/bin/flare-desktop
-          test -f squashfs-root/usr/share/mime/packages/flare.xml
+          test -x squashfs-root/usr/bin/flare-desktop \
+            || { echo 'the extracted AppImage has no usr/bin/flare-desktop'; find squashfs-root -maxdepth 3; exit 1; }
+          test -f squashfs-root/usr/share/mime/packages/flare.xml \
+            || { echo 'the extracted AppImage has no usr/share/mime/packages/flare.xml'; find squashfs-root/usr/share -type f | sort; exit 1; }
           # The AppImage must not carry the system's graphics stack. Its copies come from the build
           # machine, older than the ones a newer system's graphics driver is built against, and
           # they come first on the library path: the window then fails with "Failed to create
@@ -128,7 +130,8 @@ jobs:
             exit 1
           fi
           # The packed program starts and answers, through the entry point an AppImage runs.
-          squashfs-root/AppRun --version | grep -q '^flare-desktop '
+          squashfs-root/AppRun --version || { echo 'the packed program did not answer'; exit 1; }
+          squashfs-root/AppRun --version | grep '^flare-desktop ' || { echo 'the packed program version line is not "flare-desktop"; see the line above'; exit 1; }
       - name: Install WiX 5 for both Windows architectures
         if: runner.os == 'Windows'
         run: dotnet tool install --global wix --version 5.0.2 --allow-roll-forward
