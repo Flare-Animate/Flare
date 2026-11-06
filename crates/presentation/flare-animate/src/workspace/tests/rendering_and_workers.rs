@@ -365,7 +365,7 @@ fn alt_makes_an_edge_handle_skew_and_corners_still_scale() {
 }
 
 #[test]
-fn a_tweened_instance_can_be_rotated_but_not_skewed() {
+fn a_tweened_instance_can_be_rotated_and_skewed() {
     let mut ws = workspace();
     draw_and_select(&mut ws);
     ws.convert_selection_to_symbol();
@@ -382,14 +382,11 @@ fn a_tweened_instance_can_be_rotated_but_not_skewed() {
     let before = transform(&ws);
     let bounds = ws.selection_bounds().expect("bounds");
     ws.apply_to_selection(handles::skew_matrix(bounds, Handle::Top, 0.5));
-    assert_eq!(transform(&ws), before, "refused");
-    assert!(
-        ws.status().is_some_and(|m| m.contains("cannot be skewed")),
-        "{:?}",
-        ws.status()
-    );
+    // The evaluator tweens any 2D affine matrix, so a shear is kept, not refused.
+    let skewed = transform(&ws);
+    assert_ne!(skewed, before, "a skew is fine in a tween");
     ws.apply_to_selection(handles::rotation_matrix(bounds.center(), 0.3));
-    assert_ne!(transform(&ws), before, "a rotation is fine in a tween");
+    assert_ne!(transform(&ws), skewed, "a rotation is fine in a tween");
 }
 
 #[test]
