@@ -102,36 +102,40 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          set -euo pipefail
-          desktop-file-validate packaging/flare.desktop
-          appstreamcli validate --no-net packaging/flare.metainfo.xml
-          dpkg-deb --info dist/*.deb
-          dpkg-deb --contents dist/*.deb
-          rpm -qip dist/*.rpm
-          rpm -qlp dist/*.rpm
-          ldd target/${{ matrix.target }}/release/flare-desktop | tee dependencies.txt
-          if grep 'not found' dependencies.txt; then exit 1; fi
-          appimage=$(realpath dist/*.AppImage) || { ls -la dist; exit 1; }
+          set -uo pipefail
+          fail() { echo "inspect: $1"; exit 1; }
+          desktop-file-validate packaging/flare.desktop || fail 'desktop-file-validate refuses the .desktop file'
+          appstreamcli validate --no-net packaging/flare.metainfo.xml || fail 'appstreamcli refuses the metainfo file'
+          dpkg-deb --info dist/*.deb || fail 'dpkg-deb refuses the .deb'
+          dpkg-deb --contents dist/*.deb || fail 'dpkg-deb cannot list the .deb'
+          rpm -qip dist/*.rpm || fail 'rpm refuses the .rpm'
+          rpm -qlp dist/*.rpm || fail 'rpm cannot list the .rpm'
+          # The file takes stderr as well, so an ldd that cannot read the program explains itself.
+          ldd target/${{ matrix.target }}/release/flare-desktop > dependencies.txt 2>&1 || true
+          cat dependencies.txt
+          if grep -F 'not found' dependencies.txt; then
+            fail 'the desktop program has unresolved libraries: the lines above say which'
+          fi
+          appimage=$(realpath dist/*.AppImage) || fail 'there is no AppImage in dist to look into'
           inspection=$(mktemp -d)
           cd "$inspection"
-          "$appimage" --appimage-extract > /dev/null
-          test -x squashfs-root/usr/bin/flare-desktop \
-            || { echo 'the extracted AppImage has no usr/bin/flare-desktop'; find squashfs-root -maxdepth 3; exit 1; }
-          test -f squashfs-root/usr/share/mime/packages/flare.xml \
-            || { echo 'the extracted AppImage has no usr/share/mime/packages/flare.xml'; find squashfs-root/usr/share -type f | sort; exit 1; }
-          # The AppImage must not carry the system's graphics stack. Its copies come from the build
-          # machine, older than the ones a newer system's graphics driver is built against, and
-          # they come first on the library path: the window then fails with "Failed to create
-          # surface for any enabled backend: {}", and xkbcommon cannot read newer key names.
-          graphics=$(find squashfs-root/usr/lib \( -name 'libwayland*' -o -name 'libxcb*' -o -name 'libX11*' -o -name 'libxkbcommon*' -o -name 'libffi*' -o -name 'libEGL*' -o -name 'libGL*' -o -name 'libvulkan*' -o -name 'libdrm*' \) 2>/dev/null)
+          "$appimage" --appimage-extract > /dev/null || fail 'the AppImage would not extract'
+          test -x squashfs-root/usr/bin/flare-desktop || fail 'the extracted AppImage has no usr/bin/flare-desktop'
+          test -f squashfs-root/usr/share/mime/packages/flare.xml || fail 'the extracted AppImage has no usr/share/mime/packages/flare.xml'
+          # The AppImage must not carry the system's graphics stack: its copies on the build
+          # machine are older than the ones a newer system's graphics driver is built against,
+          # and a copy found first makes the window fail to open. The packaging puts no system
+          # library in the AppDir at all (scripts/packaging/appimage.py), so this looks at the
+          # whole extracted program and `|| true` keeps a missing directory from ending the step.
+          graphics=$(find squashfs-root/usr \( -name 'libwayland*' -o -name 'libxcb*' -o -name 'libX11*' -o -name 'libxkbcommon*' -o -name 'libffi*' -o -name 'libEGL*' -o -name 'libGL*' -o -name 'libvulkan*' -o -name 'libdrm*' \) 2>/dev/null || true)
           if [ -n "$graphics" ]; then
             echo "the AppImage bundles libraries of the system's graphics stack:"
             echo "$graphics"
-            exit 1
+            fail 'the AppImage may not bundle the system graphics stack'
           fi
           # The packed program starts and answers, through the entry point an AppImage runs.
-          squashfs-root/AppRun --version || { echo 'the packed program did not answer'; exit 1; }
-          squashfs-root/AppRun --version | grep '^flare-desktop ' || { echo 'the packed program version line is not "flare-desktop"; see the line above'; exit 1; }
+          squashfs-root/AppRun --version || fail 'the AppImage entry point did not answer'
+          squashfs-root/AppRun --version | grep '^flare-desktop ' || fail 'the version line is not "flare-desktop ...": what the entry point answered is above'
       - name: Install WiX 5 for both Windows architectures
         if: runner.os == 'Windows'
         run: dotnet tool install --global wix --version 5.0.2 --allow-roll-forward
