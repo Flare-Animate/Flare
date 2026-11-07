@@ -61,7 +61,7 @@ jobs:
             [ -z "$line" ] && continue
             echo "::error::${line}"
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: flare-ios-unsigned
           path: Flare-unsigned.ipa

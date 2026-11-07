@@ -67,7 +67,7 @@ jobs:
             [ -z "$line" ] && continue
             echo "::error::${line}"
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: flare-android-apks
           path: dist/*.apk
@@ -133,7 +133,7 @@ jobs:
             cp target/release/apk/Flare.apk "dist/flare-android-${triple##*:}.apk"
           done
           rm -f "$RUNNER_TEMP/release.jks"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: steps.gate.outputs.signed == 'true'
         with:
           name: flare-android-release-apks
