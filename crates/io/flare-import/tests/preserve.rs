@@ -34,7 +34,7 @@ pub const MAIN: &str = r##"<DOMDocument frameRate="24" width="100" height="50">
       <elements>
         <DOMShape><fills><FillStyle index="1"><SolidColor color="#FF0000"/></FillStyle></fills>
           <edges><Edge fillStyle1="1" edges="!0 0|200 0|200 200|0 200|0 0"/></edges></DOMShape>
-        <DOMStaticText left="5"><textRuns><DOMTextRun><characters>Hello &amp; &lt;world&gt;</characters></DOMTextRun></textRuns></DOMStaticText>
+        <DOMVideoInstance name="Hello &amp; &lt;world&gt;"/>
       </elements>
     </DOMFrame>
     <DOMFrame index="3" duration="2"><elements><DOMBitmapInstance libraryItemName="pic"/></elements></DOMFrame>
@@ -92,8 +92,8 @@ fn unsupported_elements_are_attached_to_the_layer_and_keyframe_they_came_from() 
     assert_eq!(text.len(), 1);
     assert_eq!(
         text[0].content(),
-        "<DOMStaticText left=\"5\"><textRuns><DOMTextRun><characters>Hello &amp; &lt;world&gt;</characters></DOMTextRun></textRuns></DOMStaticText>",
-        "text content survives exactly, escaped"
+        "<DOMVideoInstance name=\"Hello &amp; &lt;world&gt;\"/>",
+        "unsupported content survives exactly, escaped"
     );
     let bitmap = find(
         doc,

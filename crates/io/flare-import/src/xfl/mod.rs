@@ -30,6 +30,7 @@ mod motion;
 mod shapes;
 
 pub(crate) use shapes::ShapeParts;
+mod text;
 mod timeline;
 
 pub use entry::import_xfl;
@@ -186,6 +187,8 @@ pub(crate) struct Importer {
     pub(crate) suppressed: usize,
     /// The document's frame rate, which motion object curves are sampled at.
     pub(crate) frame_rate: f64,
+    /// The font set text fields are drawn with, made when the first text field is read.
+    pub(crate) text: Option<flare_text::TextEngine>,
     /// Source text that has no Flare equivalent, kept for export.
     pub(crate) kept: Vec<Attachment>,
 }
@@ -198,6 +201,7 @@ impl Importer {
             diagnostics: Vec::new(),
             suppressed: 0,
             frame_rate: 24.0,
+            text: None,
             kept: Vec::new(),
         }
     }

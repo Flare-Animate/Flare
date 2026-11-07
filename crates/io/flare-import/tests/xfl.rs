@@ -174,9 +174,19 @@ fn unsupported_features_are_reported_not_hidden() {
         !unsupported.contains("folder"),
         "folders are imported now, so they are not reported: {unsupported}"
     );
+    // Static text is imported now; the empty one in the sample is not, and is kept as source.
+    let info = messages(&imported, Severity::Info).join("\n");
     assert!(
-        unsupported.contains("DOMStaticText is not imported"),
-        "{unsupported}"
+        info.contains("an empty text field was not imported"),
+        "{info}"
+    );
+    assert!(
+        imported
+            .document
+            .attachments()
+            .iter()
+            .any(|a| a.content() == "<DOMStaticText/>"),
+        "the empty text field is kept as source data"
     );
     // Dot is a graphic symbol, so nothing about it changes meaning on import.
     assert!(messages(&imported, Severity::Warning).is_empty());

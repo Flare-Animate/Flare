@@ -2214,6 +2214,7 @@ dependencies = [
  "flare-moho",
  "flare-render",
  "flare-storage",
+ "flare-text",
  "flare-toonz",
  "flare-tween",
  "flate2",
