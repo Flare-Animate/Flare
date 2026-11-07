@@ -273,6 +273,10 @@ pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
         };
         return import_folder_kept(parent, &name);
     }
+    if let Some(reason) = crate::file_kinds::unsupported_reason(path) {
+        let file = path.file_name().and_then(|n| n.to_str()).unwrap_or("file");
+        return Err(ImportError::Foreign(format!("{file}: {reason}")));
+    }
     Err(ImportError::NotXfl(
         "expected an XFL directory, a modern FLA (zip) or an .xfl file".into(),
     ))
