@@ -110,15 +110,16 @@ fn source_data_survives_import_save_reopen_and_export_through_the_cli() {
     .expect("write");
     let project = dir.path().join("p.flare").to_string_lossy().into_owned();
     let report = json(&["import", &source.to_string_lossy(), &project]);
+    // The text is a text object now; the media list and the mask layer are kept as source.
     assert_eq!(
-        report["kept_source_data"], 3,
-        "the media list, the text object and the mask layer"
+        report["kept_source_data"], 2,
+        "the media list and the mask layer"
     );
 
     // Editing does not lose it: change the stage and add a layer, then look again.
     json(&["set-stage", &project, "--width", "30"]);
     json(&["add-layer", &project, "Extra"]);
-    assert_eq!(json(&["info", &project])["attachments"], 3);
+    assert_eq!(json(&["info", &project])["attachments"], 2);
 
     let out = dir.path().join("out").to_string_lossy().into_owned();
     json(&["export-xfl", &project, &out]);

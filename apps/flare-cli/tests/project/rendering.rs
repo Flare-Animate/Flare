@@ -90,10 +90,8 @@ fn import_turns_an_xfl_folder_into_a_project_and_lists_what_was_skipped() {
         (report["scenes"].as_u64(), report["symbols"].as_u64()),
         (Some(1), Some(0))
     );
-    assert_eq!(
-        report["unsupported"], 2,
-        "the text object and the mask layer"
-    );
+    // The empty text field is only noted (Info); the mask layer is the unsupported loss.
+    assert_eq!(report["unsupported"], 1, "the mask layer");
     let messages: Vec<&str> = report["diagnostics"]
         .as_array()
         .expect("list")
