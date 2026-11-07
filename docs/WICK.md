@@ -143,7 +143,7 @@ name, and a refused file changes nothing.
 - The object layout above was checked against the samples: every class, field and encoding named here
   appears in them, and the samples contain no other class.
 - Synthetic projects in the same layout, with each refusal and each diagnostic, are unit tests in
-  `src/wick/tests.rs`. The CLI and MCP tests import `tests/fixtures/wick/synthetic.wick`.
+  `src/wick/tests.rs` and `src/wick/refusals.rs`. The CLI and MCP tests import `tests/fixtures/wick/synthetic.wick`.
 
 ## Real samples
 

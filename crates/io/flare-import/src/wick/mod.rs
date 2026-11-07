@@ -15,6 +15,8 @@ mod library;
 mod limits;
 mod paths;
 #[cfg(test)]
+mod refusals;
+#[cfg(test)]
 mod tests;
 mod timeline;
 

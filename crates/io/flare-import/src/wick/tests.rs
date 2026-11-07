@@ -5,7 +5,6 @@
 
 use std::io::{Cursor, Write};
 
-use flare_core::Transform2D;
 use flare_document::{Content, Document, Tween};
 use glamx::DAffine2;
 use serde_json::{Value, json};
@@ -15,7 +14,7 @@ use super::import;
 use crate::xfl::{Imported, Severity};
 
 /// A zip archive with the named entries, in order.
-fn zip_of(entries: &[(&str, Vec<u8>)]) -> Vec<u8> {
+pub(super) fn zip_of(entries: &[(&str, Vec<u8>)]) -> Vec<u8> {
     let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
     let options = SimpleFileOptions::default();
     for (name, data) in entries {
@@ -26,7 +25,7 @@ fn zip_of(entries: &[(&str, Vec<u8>)]) -> Vec<u8> {
 }
 
 /// A 4 by 2 PNG.
-fn png_4x2() -> Vec<u8> {
+pub(super) fn png_4x2() -> Vec<u8> {
     let mut out = Vec::new();
     {
         let mut encoder = png::Encoder::new(&mut out, 4, 2);
@@ -40,7 +39,7 @@ fn png_4x2() -> Vec<u8> {
 
 /// A Wick project file from its object table, with the root clip `root` and the project's frame
 /// rate and size.
-fn project_zip(objects: Value, root: &str, extra: &[(&str, Vec<u8>)]) -> Vec<u8> {
+pub(super) fn project_zip(objects: Value, root: &str, extra: &[(&str, Vec<u8>)]) -> Vec<u8> {
     let project = json!({
         "classname": "Project", "identifier": null, "name": "Demo", "uuid": "p",
         "children": [root], "width": 64, "height": 48,
@@ -54,7 +53,7 @@ fn project_zip(objects: Value, root: &str, extra: &[(&str, Vec<u8>)]) -> Vec<u8>
 }
 
 /// The clip `root` with one timeline holding the given layers.
-fn clip(id: &str, timeline: &str) -> Value {
+pub(super) fn clip(id: &str, timeline: &str) -> Value {
     json!({
         "classname": "Clip", "identifier": "Project", "uuid": id,
         "children": [timeline], "scripts": [], "cursor": "default",
@@ -62,24 +61,24 @@ fn clip(id: &str, timeline: &str) -> Value {
     })
 }
 
-fn timeline(id: &str, layers: &[&str]) -> Value {
+pub(super) fn timeline(id: &str, layers: &[&str]) -> Value {
     json!({ "classname": "Timeline", "identifier": null, "uuid": id,
         "children": layers, "playheadPosition": 1, "activeLayerIndex": 0 })
 }
 
-fn layer(id: &str, name: &str, frames: &[&str]) -> Value {
+pub(super) fn layer(id: &str, name: &str, frames: &[&str]) -> Value {
     json!({ "classname": "Layer", "identifier": null, "uuid": id, "name": name,
         "children": frames, "locked": false, "hidden": false })
 }
 
-fn frame(id: &str, start: u64, end: u64, children: &[&str]) -> Value {
+pub(super) fn frame(id: &str, start: u64, end: u64, children: &[&str]) -> Value {
     json!({ "classname": "Frame", "identifier": null, "uuid": id, "children": children,
         "scripts": [], "cursor": "default", "start": start, "end": end,
         "soundVolume": 1, "soundLoop": false, "originalLayerIndex": 0 })
 }
 
 /// A closed red square from (0,0) to (10,10), with the Paper.js encoding Wick writes.
-fn square(id: &str) -> Value {
+pub(super) fn square(id: &str) -> Value {
     json!({ "classname": "Path", "identifier": null, "uuid": id, "children": [],
         "json": ["Path", {"applyMatrix": true,
             "segments": [[0, 0], [10, 0], [10, 10], [0, 10]],
@@ -87,22 +86,22 @@ fn square(id: &str) -> Value {
         "fontStyle": "normal", "fontWeight": 400 })
 }
 
-fn tween(id: &str, at: u64, x: f64, easing: &str) -> Value {
+pub(super) fn tween(id: &str, at: u64, x: f64, easing: &str) -> Value {
     json!({ "classname": "Tween", "identifier": null, "uuid": id, "children": [],
         "playheadPosition": at,
         "transformation": {"x": x, "y": 0, "scaleX": 1, "scaleY": 1, "rotation": 0, "opacity": 1},
         "fullRotations": 0, "easingType": easing })
 }
 
-fn run(bytes: Vec<u8>) -> Result<Imported, String> {
+pub(super) fn run(bytes: Vec<u8>) -> Result<Imported, String> {
     import("demo.wick", &bytes).map_err(|e| e.to_string())
 }
 
-fn document(bytes: Vec<u8>) -> Document {
+pub(super) fn document(bytes: Vec<u8>) -> Document {
     run(bytes).expect("imports").document
 }
 
-fn spans_of(document: &Document, layer: usize) -> Vec<(u32, u32, Tween)> {
+pub(super) fn spans_of(document: &Document, layer: usize) -> Vec<(u32, u32, Tween)> {
     document.scenes()[0].timeline().layers()[layer]
         .spans()
         .iter()
@@ -111,7 +110,7 @@ fn spans_of(document: &Document, layer: usize) -> Vec<(u32, u32, Tween)> {
 }
 
 /// A layer "Ink" with one frame holding a square over frames 1 and 2, and an empty frame 3.
-fn ink_project() -> Vec<u8> {
+pub(super) fn ink_project() -> Vec<u8> {
     let objects = json!({
         "p": {"classname": "Project"},
         "root": clip("root", "tl"),
@@ -169,7 +168,7 @@ fn frame_scripts_are_kept_as_text_and_named_as_not_run() {
     );
 }
 
-fn ink_project_objects() -> Value {
+pub(super) fn ink_project_objects() -> Value {
     json!({
         "p": {"classname": "Project"},
         "root": clip("root", "tl"),
@@ -183,7 +182,7 @@ fn ink_project_objects() -> Value {
 
 /// A root clip whose layer has a clip `box` placed over frames 1 to 10, tweened from x 0 at frame 1
 /// (ease in-out) to x 100 at frame 6.
-fn tweened_project(easing: &str) -> Vec<u8> {
+pub(super) fn tweened_project(easing: &str) -> Vec<u8> {
     let objects = json!({
         "p": {"classname": "Project"},
         "root": clip("root", "tl"),
@@ -203,7 +202,7 @@ fn tweened_project(easing: &str) -> Vec<u8> {
     project_zip(objects, "root", &[])
 }
 
-fn translation(content: &Content) -> (f64, f64) {
+pub(super) fn translation(content: &Content) -> (f64, f64) {
     let Content::Instance(instance) = content else {
         panic!("an instance")
     };
@@ -389,214 +388,6 @@ fn sounds_and_text_are_reported_as_not_imported() {
         messages
             .iter()
             .any(|m| m.starts_with("text is not imported")),
-        "{messages:?}"
-    );
-}
-
-#[test]
-fn a_gzip_file_and_a_plain_json_project_are_named_and_refused() {
-    let gzip = run(vec![0x1f, 0x8b, 8, 0, 0]).expect_err("refused");
-    assert!(gzip.contains("gzip"), "{gzip}");
-    let legacy = run(br#"  {"children": []}"#.to_vec()).expect_err("refused");
-    assert!(legacy.contains("plain JSON"), "{legacy}");
-}
-
-#[test]
-fn a_file_that_is_not_a_zip_or_has_no_project_is_refused() {
-    assert!(
-        run(b"not a zip archive at all".to_vec())
-            .expect_err("refused")
-            .contains("not a zip")
-    );
-    let empty = zip_of(&[("readme.txt", b"x".to_vec())]);
-    assert!(run(empty).expect_err("refused").contains("no project.json"));
-    let not_json = zip_of(&[("project.json", b"{oops".to_vec())]);
-    assert!(
-        run(not_json)
-            .expect_err("refused")
-            .contains("not valid JSON")
-    );
-    let no_project = zip_of(&[("project.json", br#"{"objects": {}}"#.to_vec())]);
-    assert!(
-        run(no_project)
-            .expect_err("refused")
-            .contains("no project object")
-    );
-}
-
-#[test]
-fn an_entry_name_that_would_leave_the_project_is_refused() {
-    for name in ["../evil.png", "assets/../../x", "/abs", "a\\b", "assets//x"] {
-        let bytes = zip_of(&[("project.json", b"{}".to_vec()), (name, b"x".to_vec())]);
-        let error = run(bytes).expect_err("refused");
-        assert!(error.contains("would leave the project"), "{name}: {error}");
-    }
-}
-
-#[test]
-fn a_repeated_entry_is_refused() {
-    let mut bytes = zip_of(&[("project.json", b"{}".to_vec()), ("zz", b"x".to_vec())]);
-    replace_all(
-        &mut bytes,
-        b"zz",
-        b"project.json".get(..2).map_or(b"zz", |_| b"pr"),
-    );
-    let _ = bytes;
-}
-
-fn replace_all(bytes: &mut [u8], from: &[u8], to: &[u8]) -> usize {
-    let mut count = 0;
-    let mut i = 0;
-    while i + from.len() <= bytes.len() {
-        if &bytes[i..i + from.len()] == from && to.len() == from.len() {
-            bytes[i..i + to.len()].copy_from_slice(to);
-            count += 1;
-            i += from.len();
-        } else {
-            i += 1;
-        }
-    }
-    count
-}
-
-#[test]
-fn a_bad_frame_range_is_refused_by_field() {
-    let mut objects = ink_project_objects();
-    objects["f1"]["end"] = json!(0);
-    let error = run(project_zip(objects, "root", &[])).expect_err("refused");
-    assert!(error.contains("start") || error.contains("end"), "{error}");
-}
-
-#[test]
-fn overlapping_frames_in_a_layer_are_refused() {
-    let mut objects = ink_project_objects();
-    objects["f2"]["start"] = json!(2);
-    objects["f2"]["end"] = json!(2);
-    let error = run(project_zip(objects, "root", &[])).expect_err("refused");
-    assert!(error.contains("overlap"), "{error}");
-}
-
-#[test]
-fn an_unknown_animation_type_is_refused() {
-    let mut objects = ink_project_objects();
-    objects["f1"]["children"] = json!(["box"]);
-    objects["box"] = clip("box", "btl");
-    objects["box"]["animationType"] = json!("bounce");
-    objects["btl"] = timeline("btl", &[]);
-    let error = run(project_zip(objects, "root", &[])).expect_err("refused");
-    assert!(error.contains("animationType"), "{error}");
-}
-
-#[test]
-fn a_clip_that_contains_itself_is_refused() {
-    let objects = json!({
-        "p": {"classname": "Project"},
-        "root": clip("root", "tl"),
-        "tl": timeline("tl", &["main"]),
-        "main": layer("main", "Main", &["f1"]),
-        "f1": frame("f1", 1, 1, &["box"]),
-        "box": clip("box", "btl"),
-        "btl": timeline("btl", &["bl"]),
-        "bl": layer("bl", "Inner", &["bf"]),
-        "bf": frame("bf", 1, 1, &["box"]),
-    });
-    let error = run(project_zip(objects, "root", &[])).expect_err("refused");
-    assert!(error.contains("contains itself"), "{error}");
-}
-
-#[test]
-fn a_path_segment_that_is_not_a_point_is_refused() {
-    let mut objects = ink_project_objects();
-    objects["sq"]["json"] = json!(["Path", {"applyMatrix": true, "closed": false,
-        "segments": [[1, 2, 3]], "fillColor": [1, 1, 1, 1]}]);
-    let error = run(project_zip(objects, "root", &[])).expect_err("refused");
-    assert!(error.contains("point"), "{error}");
-}
-
-#[test]
-fn a_project_without_a_clip_to_start_from_is_refused() {
-    let mut objects = ink_project_objects();
-    objects["root"]["classname"] = json!("Path");
-    let error = run(project_zip(objects, "root", &[])).expect_err("refused");
-    assert!(
-        error.contains("root clip") || error.contains("Path"),
-        "{error}"
-    );
-}
-
-#[test]
-fn a_zero_width_stage_is_refused_by_field() {
-    let mut zip_bytes = ink_project();
-    // A project written with width 0 is refused by name, not by a panic.
-    let text = String::from_utf8_lossy(&zip_bytes).into_owned();
-    assert!(text.is_empty() || !text.contains("zz"));
-    let doc = json!({"project": {"classname": "Project", "name": "x", "children": ["root"],
-        "width": 0, "height": 4, "framerate": 12, "focus": "root"},
-        "objects": {"root": clip("root", "tl")}});
-    zip_bytes = zip_of(&[("project.json", doc.to_string().into_bytes())]);
-    let error = run(zip_bytes).expect_err("refused");
-    assert!(error.contains("width"), "{error}");
-}
-
-#[test]
-fn a_frame_rate_outside_the_bounds_is_refused_by_field() {
-    let mut objects = ink_project_objects();
-    objects["p"] = json!({"classname": "Project"});
-    let doc = json!({"project": {"classname": "Project", "name": "x", "children": ["root"],
-        "width": 8, "height": 8, "framerate": 500, "focus": "root"}, "objects": objects});
-    let error =
-        run(zip_of(&[("project.json", doc.to_string().into_bytes())])).expect_err("refused");
-    assert!(error.contains("framerate"), "{error}");
-}
-
-#[test]
-fn the_transform_helper_round_trips() {
-    let t =
-        Transform2D::new(DAffine2::from_translation(glamx::DVec2::new(1.0, 2.0))).expect("finite");
-    assert_eq!(t.as_affine().translation.y, 2.0);
-}
-
-#[test]
-fn names_and_magic_pick_the_wick_reader() {
-    use std::path::Path;
-    assert_eq!(crate::foreign_kind(Path::new("a.wick")), Some("wick"));
-    assert_eq!(crate::foreign_kind(Path::new("A.WICK")), Some("wick"));
-    assert_eq!(
-        crate::classify(Path::new("a.wick"), false),
-        Some(crate::PathKind::Import)
-    );
-    assert!(crate::looks_like_wick(&ink_project()));
-    assert!(!crate::looks_like_wick(&zip_of(&[(
-        "DOMDocument.xml",
-        b"<x/>".to_vec()
-    )])));
-    assert!(!crate::looks_like_wick(b"plain"));
-    let through_bytes = crate::import_bytes(ink_project()).expect("imports by magic");
-    assert_eq!(through_bytes.document.scenes()[0].name(), "Demo");
-}
-
-#[test]
-fn opacity_and_fill_rules_are_reported_not_dropped() {
-    let mut objects = ink_project_objects();
-    objects["root"]["children"] = json!(["tl"]);
-    objects["f1"]["children"] = json!(["sq", "box"]);
-    objects["box"] = clip("box", "btl");
-    objects["box"]["transformation"]["opacity"] = json!(0.5);
-    objects["btl"] = timeline("btl", &[]);
-    let imported = run(project_zip(objects, "root", &[])).expect("imports");
-    let messages: Vec<&str> = imported
-        .diagnostics
-        .iter()
-        .map(|d| d.message.as_str())
-        .collect();
-    assert!(
-        messages.iter().any(|m| m.starts_with("opacity of clips")),
-        "{messages:?}"
-    );
-    assert!(
-        messages
-            .iter()
-            .any(|m| m.starts_with("fill rules are not carried")),
         "{messages:?}"
     );
 }
