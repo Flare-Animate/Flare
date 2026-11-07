@@ -169,7 +169,7 @@ egui-winit = { version = "0.37.0", default-features = false }
 winit = { version = "0.30.13", default-features = false }
 # A pen's pressure from the X server (XInput2), which winit does not pass on; pure Rust, no libxcb.
 x11rb = { version = "0.13.2", default-features = false, features = ["xinput"] }
-rfd = "0.15.4"
+rfd = "0.17.2"
 directories = "6"
 pollster = "1.0.1"
 js-sys = "0.3"
