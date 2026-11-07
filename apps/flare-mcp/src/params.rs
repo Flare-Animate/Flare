@@ -294,6 +294,16 @@ pub struct ImportProject {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct ImportSound {
+    /// WAV, MP3, Ogg Vorbis or FLAC file name inside the configured export directory.
+    pub source: String,
+    /// Frame at which playback starts; defaults to 0.
+    pub start: Option<u32>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddText {
     /// The words; a newline starts a new line.
     pub text: String,

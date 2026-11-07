@@ -50,6 +50,11 @@ impl Audio {
         self.samples.len()
     }
 
+    /// Interleaved float samples, one value per channel per frame.
+    pub fn samples(&self) -> &[f32] {
+        &self.samples
+    }
+
     pub fn seconds(&self) -> f64 {
         self.frames() as f64 / f64::from(self.sample_rate)
     }

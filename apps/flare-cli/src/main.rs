@@ -91,6 +91,7 @@ fn run() -> Result<()> {
             project::new(&path, numerator, denominator, stage)?
         }
         Command::RenameScene { path, name } => project::rename_scene(&path, &name)?,
+        Command::SoundImport { path, sound, at } => project::sound_import(&path, &sound, at)?,
         Command::SetStage {
             path,
             width,

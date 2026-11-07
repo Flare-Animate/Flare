@@ -104,15 +104,12 @@ per movie that needed it.
 
 ## Known open issue: #117 (Windows crash importing FLA and SWF)
 
-Issue #117 reports a crash about 1% into an import of a small FLA, on Windows 10, and says a
-Flare project file crashes the same way. The recursion the import has is bounded now (above), but
-that does not explain the report: a project file does not go through the Flash reader. The
-desktop app loads a file on its UI thread (`flare-runtime` `document_file/load.rs`, called from
-`flare-animate` `open_any`), whose main thread has 1 MiB on Windows, while the command line runs
-its work on a 16 MiB thread (`apps/flare-cli/src/main.rs`). Not done here: moving the desktop load
-onto a worker thread. It needs a result to be polled by the UI, and it could not be checked on
-Windows from this environment. The next step is to build the desktop app on Windows with a
-debug stack trace, or to move the load off the UI thread and test that.
+Issue #117 reports a crash about 1% into a small FLA import on Windows 10 and says a Flare
+project crashes the same way. Desktop opens and imports now go through `IoJob::Open` and
+`IoJob::Import` on the runtime's I/O worker; the UI polls their results. The project-file crash
+does not pass through the Flash reader, and this report has not been reproduced on Windows, so
+the cause remains unknown. The next useful evidence is a current build's Windows crash dump and
+the affected files (or a minimal reproducer).
 
 ## Issue #47 (BFDI `.fla`)
 

@@ -15,6 +15,7 @@ mod camera;
 mod draw;
 mod interchange;
 mod render;
+mod sound;
 mod text;
 mod timeline;
 
@@ -37,6 +38,7 @@ pub use interchange::{
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};
+pub use sound::sound_import;
 #[allow(unused_imports)]
 use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};

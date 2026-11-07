@@ -6,6 +6,8 @@ use std::rc::Rc;
 
 use eframe::egui;
 use flare_animate::{DialogRequest, Workspace};
+use wasm_bindgen::JsCast;
+use web_sys::{AudioBufferSourceNode, AudioContext};
 
 use crate::{files, flare_file, preferences, ruffle};
 
@@ -24,12 +26,16 @@ fn is_flare(name: &str) -> bool {
 pub struct WebApp {
     workspace: Workspace,
     picked: Rc<RefCell<Vec<Picked>>>,
+    picked_sounds: Rc<RefCell<Vec<Picked>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// The preferences as last written, so storage is touched only when they change.
     saved_preferences: String,
     /// The name of the file last opened or saved, offered again by Save.
     last_name: String,
+    /// Browser audio output; playback is driven by the same events as the desktop player.
+    audio_context: Option<AudioContext>,
+    playing_sounds: Vec<AudioBufferSourceNode>,
 }
 
 impl WebApp {
@@ -38,9 +44,12 @@ impl WebApp {
         Self {
             workspace,
             picked: Rc::default(),
+            picked_sounds: Rc::default(),
             messages: Rc::default(),
             saved_preferences,
             last_name: "project.fla".to_owned(),
+            audio_context: None,
+            playing_sounds: Vec::new(),
         }
     }
 
@@ -179,8 +188,32 @@ impl WebApp {
                 }
             }
             DialogRequest::ImportSound => {
-                self.workspace
-                    .report_message("Importing sounds is not available in the browser yet");
+                let (inbox, messages, ctx) = (
+                    Rc::clone(&self.picked_sounds),
+                    Rc::clone(&self.messages),
+                    ctx.clone(),
+                );
+                wasm_bindgen_futures::spawn_local(async move {
+                    match files::pick_bounded(
+                        "WAV, MP3, Ogg Vorbis or FLAC sound",
+                        &["wav", "mp3", "ogg", "flac"],
+                        flare_runtime::MAX_AUDIO_INPUT_BYTES,
+                    )
+                    .await
+                    {
+                        Ok(Some((name, bytes))) => {
+                            inbox.borrow_mut().push(Picked { name, bytes });
+                            ctx.request_repaint();
+                        }
+                        Ok(None) => {}
+                        Err(error) => {
+                            messages
+                                .borrow_mut()
+                                .push(format!("Cannot import sound: {error}"));
+                            ctx.request_repaint();
+                        }
+                    }
+                });
             }
         }
     }
@@ -293,6 +326,74 @@ impl WebApp {
             Err(error) => self.workspace.report_message(&error),
         }
     }
+
+    fn handle_audio(&mut self) {
+        let events = self.workspace.take_audio_events();
+        if events.is_empty() {
+            return;
+        }
+        if self.audio_context.is_none() {
+            match AudioContext::new() {
+                Ok(context) => self.audio_context = Some(context),
+                Err(error) => {
+                    self.workspace
+                        .report_message(&format!("Cannot start browser audio: {error:?}"));
+                    return;
+                }
+            }
+        }
+        let Some(context) = self.audio_context.as_ref() else {
+            return;
+        };
+        let _ = context.resume();
+        for event in events {
+            match event {
+                flare_runtime::AudioEvent::Stop => {
+                    for source in self.playing_sounds.drain(..) {
+                        if let Some(scheduled) =
+                            source.dyn_ref::<web_sys::AudioScheduledSourceNode>()
+                        {
+                            let _ = scheduled.stop_with_when(context.current_time());
+                        }
+                    }
+                }
+                flare_runtime::AudioEvent::Play {
+                    audio,
+                    delay_seconds,
+                } => {
+                    let result = (|| {
+                        let channels = audio.channels().min(2);
+                        let buffer = context.create_buffer(
+                            u32::from(channels),
+                            audio.frames() as u32,
+                            audio.sample_rate() as f32,
+                        )?;
+                        for channel in 0..channels {
+                            let samples: Vec<f32> = audio
+                                .samples()
+                                .chunks_exact(usize::from(audio.channels()))
+                                .map(|frame| frame[usize::from(channel)])
+                                .collect();
+                            buffer.copy_to_channel_with_f32_array(
+                                &js_sys::Float32Array::from(samples.as_slice()),
+                                i32::from(channel),
+                            )?;
+                        }
+                        let source = context.create_buffer_source()?;
+                        source.set_buffer(Some(&buffer));
+                        source.connect_with_audio_node(&context.destination())?;
+                        source.start_with_when(context.current_time() + delay_seconds)?;
+                        self.playing_sounds.push(source);
+                        Ok::<(), wasm_bindgen::JsValue>(())
+                    })();
+                    if let Err(error) = result {
+                        self.workspace
+                            .report_message(&format!("Cannot play sound in browser: {error:?}"));
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl eframe::App for WebApp {
@@ -307,11 +408,16 @@ impl eframe::App for WebApp {
                 self.workspace.import_project_bytes(&file.name, file.bytes);
             }
         }
+        let sounds: Vec<Picked> = self.picked_sounds.borrow_mut().drain(..).collect();
+        for sound in sounds {
+            self.workspace.import_sound_bytes(&sound.name, sound.bytes);
+        }
         let messages: Vec<String> = self.messages.borrow_mut().drain(..).collect();
         for message in messages {
             self.workspace.report_message(&message);
         }
         self.workspace.show(ui);
+        self.handle_audio();
         self.handle_dialog(&ctx);
         self.handle_test_movie(&ctx);
         if let Ok(json) = self.workspace.preferences_json()

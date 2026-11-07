@@ -32,6 +32,25 @@ impl Workspace {
         self.settle_inline();
     }
 
+    /// Imports an audio file already held in memory, as by a browser file picker.
+    pub fn import_sound_bytes(&mut self, name: &str, bytes: Vec<u8>) {
+        if self.in_symbol() {
+            self.report(tr!(self, "msg-leave-symbol-sound"));
+            return;
+        }
+        let id = self.background.next_id();
+        self.audio.importing = Some(id);
+        self.background.submit_audio(AudioJob::ImportBytes {
+            id,
+            name: name.to_owned(),
+            bytes,
+        });
+        if self.background.mode() == Mode::Threads {
+            self.status = Some(format!("Importing {name}..."));
+        }
+        self.settle_inline();
+    }
+
     pub(super) fn add_sound(
         &mut self,
         path: &Path,
