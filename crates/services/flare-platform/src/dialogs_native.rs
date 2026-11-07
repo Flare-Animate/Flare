@@ -23,6 +23,7 @@ pub fn pick_open(filter: &str) -> Option<std::path::PathBuf> {
                 "jpeg",
                 "bmp",
                 "tga",
+                "psd",
                 "tif",
                 "tiff",
                 "webp",

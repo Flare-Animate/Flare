@@ -43,6 +43,7 @@ tokio = { workspace = true, features = ["rt", "macros", "io-std"] }
 uuid.workspace = true
 
 [dev-dependencies]
+psd.workspace = true
 epaint_default_fonts.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true

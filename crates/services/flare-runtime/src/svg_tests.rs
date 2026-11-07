@@ -12,7 +12,7 @@ use flare_document::{
 };
 
 /// A stage of 40 by 30 with one layer per shape, each shape visible at frame 0.
-fn document(shapes: Vec<Shape>) -> Document {
+pub(crate) fn document(shapes: Vec<Shape>) -> Document {
     let layers = shapes
         .into_iter()
         .map(|shape| {

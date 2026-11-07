@@ -69,6 +69,7 @@ impl WebApp {
                             "jpeg",
                             "bmp",
                             "tga",
+                            "psd",
                             "tif",
                             "tiff",
                             "webp",

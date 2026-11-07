@@ -429,3 +429,13 @@ async fn export_svg_writes_a_vector_picture_and_its_notes() {
     assert!(text.starts_with("<svg"), "{text}");
     assert!(out["notes"].is_array(), "the notes are reported");
 }
+
+#[tokio::test]
+async fn export_psd_writes_a_photoshop_file() {
+    let f = drawn().await;
+    let out = f.ok("export_psd", json!({ "name": "flat" })).await;
+    assert!(out["path"].as_str().expect("p").ends_with("flat.psd"));
+    let data = bytes(&out["path"]);
+    assert!(data.starts_with(b"8BPS"), "a Photoshop file");
+    psd::Psd::from_bytes(&data).expect("the PSD reader accepts it");
+}

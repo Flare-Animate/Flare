@@ -32,7 +32,7 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 | OpenEXR | yes | yes (32-bit float, alpha) | `image` `exr` (exr crate) | round trip within one level | done |
 | DDS | yes (read) | **gap** | `image` `dds` decodes only | recorded in SURFACES.md | done (import); gap (export) |
 | SVG | yes (`usvg`) | yes (one frame; notes list what SVG cannot carry) | import in `flare-import/svg.rs`; export in `flare-export/svg.rs` | round trip tested | done |
-| PSD | no | no | psd crate (read) | layered export needs own writer | 4 |
+| PSD | yes (layers at their offsets; flattened when there are none) | yes (flattened, with alpha); layered **gap** | `psd` crate (MIT/Apache, read); own flattened writer in `flare-export/psd.rs` | layered import tested with hand-built layer sections | done (import, flattened export); gap (layered export) |
 | HEIC | no | no | no permissive pure-Rust decoder found | recorded as a gap if none is found | 4 |
 
 | Video | Import | Export | Carried by | Notes | Slice |

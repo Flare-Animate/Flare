@@ -8,7 +8,7 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
 /// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 37] = [
+pub const IMPORT_EXTENSIONS: [&str; 38] = [
     "fla",
     "xfl",
     "svg",
@@ -29,6 +29,7 @@ pub const IMPORT_EXTENSIONS: [&str; 37] = [
     "hdr",
     "exr",
     "dds",
+    "psd",
     "gif",
     "swf",
     "bvh",
@@ -205,7 +206,7 @@ mod tests {
         assert_eq!(kind("a.TGA", false), Some(PathKind::Import));
         for name in [
             "a.tif", "a.TIFF", "a.webp", "a.ico", "a.qoi", "a.pnm", "a.pam", "a.hdr", "a.exr",
-            "a.dds",
+            "a.dds", "a.psd",
         ] {
             assert_eq!(kind(name, false), Some(PathKind::Import), "{name}");
         }

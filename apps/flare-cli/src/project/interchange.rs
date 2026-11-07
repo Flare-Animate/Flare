@@ -145,6 +145,17 @@ fn write_new(out: &Path, bytes: &[u8]) -> Result<Value> {
     Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes.len() }))
 }
 
+/// Renders one frame of the first scene as a flattened Photoshop (PSD) file at the stage's size.
+/// Never overwrites.
+pub fn export_psd(path: &Path, out: &Path, frame: u32) -> Result<Value> {
+    if out.exists() {
+        bail!("{} already exists", out.display());
+    }
+    let session = open(path)?;
+    let bytes = flare_runtime::psd_export(session.document(), frame).map_err(anyhow::Error::msg)?;
+    write_new(out, &bytes)
+}
+
 /// Renders one frame of the first scene as an SVG picture (vector: at the stage size). Never
 /// overwrites. The notes say what SVG could not carry, and they are reported with the file.
 pub fn export_svg(path: &Path, out: &Path, frame: u32) -> Result<Value> {

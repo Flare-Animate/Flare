@@ -127,6 +127,20 @@ impl FlareServer {
     }
 
     #[tool(
+        description = "Render one frame of the first scene as a flattened Photoshop (PSD) file in the export directory (disabled when no export directory is configured). Its layers are not written: the picture is one layer, with its alpha."
+    )]
+    fn export_psd(&self, Parameters(args): Parameters<ExportSvg>) -> Outcome {
+        self.read(|state| {
+            let dir = export_dir(state)?;
+            let out = fresh(&dir, &safe_file_name_with(&args.name, "psd")?)?;
+            let bytes =
+                flare_runtime::psd_export(state.session.document(), args.frame.unwrap_or(0))?;
+            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
+        })
+    }
+
+    #[tool(
         description = "Lay the frames of the first scene out in a grid as a transparent PNG sprite sheet, with a JSON atlas (frame rectangles, source sizes, durations, frame rate) beside it, in the export directory (disabled when no export directory is configured)."
     )]
     fn export_sprite_sheet(&self, Parameters(args): Parameters<ExportSpriteSheet>) -> Outcome {

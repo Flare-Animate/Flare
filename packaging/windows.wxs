@@ -67,6 +67,8 @@
                          Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.jpeg\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.psd\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.tif\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.tiff\OpenWithProgids"
@@ -147,6 +149,8 @@
                          Name=".jpg" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".jpeg" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".psd" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".tif" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
@@ -229,6 +233,8 @@
                          Name=".jpg" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".jpeg" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".psd" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".tif" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"

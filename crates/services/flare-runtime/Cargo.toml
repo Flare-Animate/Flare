@@ -27,6 +27,7 @@ thiserror.workspace = true
 rayon.workspace = true
 
 [dev-dependencies]
+psd.workspace = true
 flare-commands.workspace = true
 flare-history.workspace = true
 proptest.workspace = true

@@ -8,6 +8,7 @@
 
 pub mod curves;
 pub mod lossless;
+pub mod psd;
 pub mod svg;
 mod writer;
 

@@ -1900,6 +1900,7 @@ dependencies = [
  "flare-video",
  "glamx",
  "png 0.18.1",
+ "psd",
  "serde_json",
  "swf",
  "tempfile",
@@ -2067,6 +2068,7 @@ dependencies = [
  "image-webp",
  "jpeg-decoder",
  "png 0.18.1",
+ "psd",
  "quick-xml 0.42.0",
  "serde_json",
  "swf",
@@ -2113,6 +2115,7 @@ dependencies = [
  "flare-video",
  "glamx",
  "png 0.18.1",
+ "psd",
  "rmcp",
  "schemars",
  "serde",
@@ -2283,6 +2286,7 @@ dependencies = [
  "glamx",
  "png 0.18.1",
  "proptest",
+ "psd",
  "rayon",
  "serde_json",
  "tempfile",
@@ -5249,6 +5253,15 @@ dependencies = [
  "rusty-fork",
  "tempfile",
  "unarray",
+]
+
+[[package]]
+name = "psd"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a25f9b8cfffd65d911baf31a033239f7a0facb755faa2481575b70db5dc9195"
+dependencies = [
+ "thiserror 1.0.69",
 ]
 
 [[package]]

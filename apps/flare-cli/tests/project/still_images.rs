@@ -206,3 +206,16 @@ fn export_svg_writes_the_frame_and_reports_its_notes() {
     let refused = run(&["export", &file, &out, "--format", "svg", "--width", "5"]);
     assert!(!refused.status.success());
 }
+
+#[test]
+fn export_psd_writes_a_photoshop_file_of_the_stage_size() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = red_square(dir.path());
+    let out = dir.path().join("flat.psd").to_string_lossy().into_owned();
+    let info = json(&["export", &file, &out, "--format", "psd"]);
+    assert!(info["bytes"].as_u64().is_some_and(|n| n > 0));
+    let bytes = std::fs::read(&out).expect("psd");
+    assert!(bytes.starts_with(b"8BPS"), "a Photoshop file");
+    let parsed = psd::Psd::from_bytes(&bytes).expect("the PSD reader accepts it");
+    assert_eq!((parsed.width(), parsed.height()), (10, 10));
+}

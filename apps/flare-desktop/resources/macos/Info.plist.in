@@ -52,6 +52,7 @@
                 <string>jpeg</string>
                 <string>bmp</string>
                 <string>tga</string>
+                <string>psd</string>
                 <string>tif</string>
                 <string>tiff</string>
                 <string>webp</string>

@@ -149,6 +149,7 @@ swf = { path = "third_party/ruffle/swf" }
 # ---- Image assets and font/layout adapters -----------------------------------
 image = { version = "0.25.10", default-features = false }
 image-webp = "0.2.4"
+psd = "0.3.5"
 png = "0.18.1"
 jpeg-decoder = { version = "0.3.2", default-features = false }
 # No text feature: no font database is loaded for an imported drawing.

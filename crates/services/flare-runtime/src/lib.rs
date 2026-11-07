@@ -29,7 +29,9 @@ pub use document_file::{
     ExportSummary, FileFormat, LoadError, Loaded, MAX_NAMED_FILES, SaveError, Saved, load,
     resolve_save_path, save, saves_in_place, summarize, xfl_folder,
 };
-pub use export::{export_png, export_still, png_bytes, rgba_png, still_bytes, svg_export};
+pub use export::{
+    export_png, export_still, png_bytes, psd_export, rgba_png, still_bytes, svg_export,
+};
 pub use export_game::{GAME_FORMAT, GAME_FORMAT_VERSION, GameExport, export_game};
 pub use flare_render::StillFormat;
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
@@ -262,6 +264,8 @@ impl Drop for Runtime {
     }
 }
 
+#[cfg(test)]
+mod psd_tests;
 #[cfg(test)]
 mod svg_tests;
 #[cfg(test)]

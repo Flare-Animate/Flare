@@ -41,6 +41,7 @@ tempfile.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
+psd.workspace = true
 epaint_default_fonts.workspace = true
 png.workspace = true
 swf.workspace = true

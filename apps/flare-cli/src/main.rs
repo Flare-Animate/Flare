@@ -301,6 +301,14 @@ fn run() -> Result<()> {
                     }
                     project::export_svg(&path, &out, frame.unwrap_or(0))?
                 }
+                project::ExportFormat::Psd => {
+                    if width.is_some() || height.is_some() || transparent {
+                        bail!(
+                            "a PSD is one picture at the stage size: --width, --height and --transparent do not apply"
+                        );
+                    }
+                    project::export_psd(&path, &out, frame.unwrap_or(0))?
+                }
                 project::ExportFormat::Gif
                 | project::ExportFormat::Apng
                 | project::ExportFormat::Mp4 => {

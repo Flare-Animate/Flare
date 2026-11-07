@@ -13,6 +13,7 @@ mod foreign;
 mod keep;
 pub mod legacy;
 mod moho_images;
+mod psd;
 mod source;
 mod svg;
 mod swf;

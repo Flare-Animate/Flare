@@ -92,6 +92,10 @@
     <comment>image/x-qoi image</comment>
     <glob pattern="*.qoi" />
   </mime-type>
+  <mime-type type="image/vnd.adobe.photoshop">
+    <comment>Photoshop Image</comment>
+    <glob pattern="*.psd" />
+  </mime-type>
   <mime-type type="image/gif">
     <comment>GIF Image</comment>
     <glob pattern="*.gif" />
