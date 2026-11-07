@@ -50,6 +50,10 @@
     <comment>FlipaClip Project</comment>
     <glob pattern="*.fc" />
   </mime-type>
+  <mime-type type="application/x-flare-wick">
+    <comment>Wick Editor Project</comment>
+    <glob pattern="*.wick" />
+  </mime-type>
   <mime-type type="application/x-flare-ppm">
     <comment>Flipnote Studio Animation</comment>
     <glob pattern="*.ppm" />
