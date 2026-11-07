@@ -33,7 +33,7 @@ jobs:
           - { name: Windows, os: windows-latest }
           - { name: macOS, os: macos-latest }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
       - uses: ./.github/actions/setup-rust
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
       - uses: ./.github/actions/setup-rust
@@ -122,7 +122,7 @@ jobs:
     name: No known vulnerabilities in the dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-audit
@@ -133,7 +133,7 @@ jobs:
     name: No file over 500 lines, no stray reference to scratch notes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Rust files stay under 500 lines
         run: |
           long=$(find crates apps -name '*.rs' -not -path '*/target/*' -print0 \

@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
       - uses: ./.github/actions/setup-rust
@@ -95,7 +95,7 @@ jobs:
             echo "signed=false" >> "$GITHUB_OUTPUT"
             echo "::notice title=Android release signing skipped::Add ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD as repository secrets to build signed release APKs."
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.gate.outputs.signed == 'true'
         with:
           submodules: true

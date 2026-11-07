@@ -88,7 +88,7 @@ jobs:
       VERSION: ${{ needs.plan.outputs.version }}
     steps:
       # The same build and smoke test as pages.yml, so a nightly page is one that deploys.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
       - uses: ./.github/actions/setup-rust
