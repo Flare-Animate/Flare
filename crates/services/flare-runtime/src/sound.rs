@@ -49,6 +49,8 @@ pub fn sound_layer(name: &str, bytes: Vec<u8>, start: u32) -> Result<SoundLayer,
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
+
     use super::*;
 
     fn wav(frames: u32) -> Vec<u8> {
