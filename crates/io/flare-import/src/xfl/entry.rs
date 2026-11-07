@@ -48,6 +48,11 @@ pub(crate) fn import_xfl_with_files(
     }
 
     let mut importer = Importer::new();
+    importer.frame_rate = root
+        .attr("frameRate")
+        .and_then(|r| r.trim().parse::<f64>().ok())
+        .filter(|r| r.is_finite() && *r > 0.0 && *r <= 1000.0)
+        .unwrap_or(24.0);
 
     // Pass 1: read every library item and assign IDs, so symbols can refer to each other.
     let mut items: Vec<(String, SymbolId, Node)> = Vec::new();

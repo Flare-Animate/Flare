@@ -26,6 +26,7 @@ use thiserror::Error;
 mod elements;
 mod entry;
 mod gradient;
+mod motion;
 mod shapes;
 
 pub(crate) use shapes::ShapeParts;
@@ -183,6 +184,8 @@ pub(crate) struct Importer {
     pub(crate) bitmaps: HashMap<String, BitmapId>,
     pub(crate) diagnostics: Vec<Diagnostic>,
     pub(crate) suppressed: usize,
+    /// The document's frame rate, which motion object curves are sampled at.
+    pub(crate) frame_rate: f64,
     /// Source text that has no Flare equivalent, kept for export.
     pub(crate) kept: Vec<Attachment>,
 }
@@ -194,6 +197,7 @@ impl Importer {
             bitmaps: HashMap::new(),
             diagnostics: Vec::new(),
             suppressed: 0,
+            frame_rate: 24.0,
             kept: Vec::new(),
         }
     }

@@ -118,7 +118,7 @@ fn the_ease_of_a_motion_tween_between_instances_is_kept() {
 }
 
 #[test]
-fn a_motion_object_between_instances_is_a_linear_tween_and_its_curves_are_reported() {
+fn a_motion_object_without_curves_is_a_linear_tween_and_says_so() {
     let main = r#"<DOMDocument frameRate="24" width="100" height="100"><symbols><Include href="Dot.xml"/></symbols>
       <timelines><DOMTimeline name="S"><layers><DOMLayer name="L"><frames>
       <DOMFrame index="0" duration="4" tweenType="motion object" acceleration="25"><elements>
@@ -139,7 +139,7 @@ fn a_motion_object_between_instances_is_a_linear_tween_and_its_curves_are_report
     let imported = import_xfl(&files).expect("import");
     assert_eq!(spans(&imported), [(Tween::Linear, 25), (Tween::None, 0)]);
     assert!(
-        warnings(&imported).contains("motion object curves are not imported"),
+        warnings(&imported).contains("motion object without curves"),
         "{}",
         warnings(&imported)
     );

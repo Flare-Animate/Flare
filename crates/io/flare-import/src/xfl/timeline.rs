@@ -146,6 +146,16 @@ impl Importer {
             } else {
                 contents
             };
+            // A motion object on one instance is sampled into a keyframe per frame; when that is
+            // not possible the linear tween below is kept, and the reason is noted there.
+            if let ("motion object", [Content::Instance(instance)]) = (
+                frame.attr("tweenType").unwrap_or_default(),
+                contents.as_slice(),
+            ) && let Some(sampled) = self.motion_spans(frame, instance, index, duration, &here)
+            {
+                spans.extend(sampled);
+                continue;
+            }
             let (tween, ease) = self.tween_for(frame, &contents, &here);
             let mut contents = contents.into_iter();
             let Some(first) = contents.next() else {
@@ -206,10 +216,16 @@ impl Importer {
                     Severity::Unsupported,
                     "motion-tween property editors are not imported",
                 ),
-                "Motion" | "motionObjectXML" => (
-                    Severity::Unsupported,
-                    "motion object curves are not imported; the tween moves the instance with its ease",
-                ),
+                // The curves are sampled by motion_spans; the element stays as source data.
+                "Motion" | "motionObjectXML" => {
+                    self.keep(
+                        Anchor::Layer(spot.layer),
+                        Placement::FrameExtra { frame: spot.frame },
+                        child.to_xml(),
+                        place,
+                    );
+                    continue;
+                }
                 other => {
                     self.note(
                         Severity::Info,
