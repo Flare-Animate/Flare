@@ -19,7 +19,7 @@ are built, and why, is in `docs/` and is kept up to date with the code.
   binaries live in `apps/`. Adapters integrate the Flash ecosystem (Ruffle, Flash file detection); file formats are io; text and sound are foundation; the operating
   system is `flare-platform`, so an app is only its window or its protocol. A crate depends only on layers above it. Put new code where its
   responsibility belongs; add a crate only when it has code and tests.
-- `original/` is an archive of the old code. Never depend on it, link it or copy from it.
+- `original/` is an archive of the old code. Read it and re-implement from it freely (the maintainer wants its features and content carried over, in new Rust written in the new structure, with attribution where a licence asks for it), but never connect the new code to it: no path or crate dependency, no `include`, no build step, link or symlink into it, and no pasted files or C++ transliterated line by line. Content such as presets, palettes, translations and data tables is converted into the new formats, not referenced in place.
 - The root `Cargo.toml` owns versions, paths and lints; members inherit them.
 - Markdown documents are named in capitals (`docs/ROADMAP.md`, `docs/decisions/UI-STACK.md`), as the ones in the
   root are. Exceptions: `docs/releases/v<version>.md`, which the release workflow looks up by tag, and the README
