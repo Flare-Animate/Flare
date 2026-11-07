@@ -156,8 +156,84 @@ fn a_failing_writer_is_reported_for_every_format() {
         StillFormat::Jpeg { quality: 80 },
         StillFormat::Bmp,
         StillFormat::Tga,
+        StillFormat::Tiff,
+        StillFormat::WebpLossless,
+        StillFormat::Qoi,
+        StillFormat::Pnm,
+        StillFormat::Ico,
+        StillFormat::Exr,
+        StillFormat::Hdr,
     ] {
         let result = image.write_still(Refuses, format);
         assert!(result.is_err(), "{format:?} must report the failed write");
     }
+}
+
+/// Decodes `bytes` with the `image` crate's own reader for `format`, as 8-bit RGBA.
+fn decode_rgba(bytes: &[u8], format: ::image::ImageFormat) -> ::image::RgbaImage {
+    ::image::load_from_memory_with_format(bytes, format)
+        .expect("decode")
+        .to_rgba8()
+}
+
+#[test]
+fn lossless_formats_keep_every_pixel_and_its_alpha() {
+    let image = mixed_alpha();
+    let cases = [
+        (StillFormat::Tiff, ::image::ImageFormat::Tiff),
+        (StillFormat::WebpLossless, ::image::ImageFormat::WebP),
+        (StillFormat::Qoi, ::image::ImageFormat::Qoi),
+        (StillFormat::Pnm, ::image::ImageFormat::Pnm),
+        (StillFormat::Ico, ::image::ImageFormat::Ico),
+        (StillFormat::Exr, ::image::ImageFormat::OpenExr),
+    ];
+    for (format, decoder) in cases {
+        let decoded = decode_rgba(&encode(&image, format), decoder);
+        assert_eq!(decoded.dimensions(), (2, 2), "{format:?}");
+        // EXR goes through float, which may round a channel by one level.
+        for (got, want) in decoded.as_raw().iter().zip(&image.rgba) {
+            assert!(got.abs_diff(*want) <= 1, "{format:?}: {got} vs {want}");
+        }
+    }
+}
+
+#[test]
+fn hdr_is_an_opaque_picture_within_its_shared_exponent_rounding() {
+    let image = opaque_flat(3, 2, [200, 100, 7]);
+    let decoded = ::image::load_from_memory_with_format(
+        &encode(&image, StillFormat::Hdr),
+        ::image::ImageFormat::Hdr,
+    )
+    .expect("decode hdr")
+    .to_rgb32f();
+    assert_eq!(decoded.dimensions(), (3, 2));
+    for pixel in decoded.pixels() {
+        for (got, want) in pixel.0.iter().zip([200u8, 100, 7]) {
+            let level = (got * 255.0).round() as i32;
+            assert!((level - i32::from(want)).abs() <= 2, "{level} vs {want}");
+        }
+    }
+}
+
+#[test]
+fn hdr_refuses_transparency_and_writes_nothing() {
+    let mut bytes = Vec::new();
+    let error = mixed_alpha()
+        .write_still(&mut bytes, StillFormat::Hdr)
+        .expect_err("alpha below 255");
+    assert!(matches!(error, RenderError::NotOpaque));
+    assert!(bytes.is_empty());
+}
+
+#[test]
+fn ico_refuses_a_picture_past_256_pixels_and_writes_nothing() {
+    let image = opaque_flat(257, 1, [0, 0, 0]);
+    let mut bytes = Vec::new();
+    let error = image
+        .write_still(&mut bytes, StillFormat::Ico)
+        .expect_err("too wide for ICO");
+    assert!(matches!(error, RenderError::TooLargeFor { side: 256, .. }));
+    assert!(bytes.is_empty());
+    let fits = opaque_flat(256, 1, [0, 0, 0]);
+    encode(&fits, StillFormat::Ico);
 }

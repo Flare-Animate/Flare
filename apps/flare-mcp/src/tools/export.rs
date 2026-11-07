@@ -49,7 +49,7 @@ fn diagnostics<'a, D: 'a>(
 #[tool_router(router = export_tools, vis = "pub(super)")]
 impl FlareServer {
     #[tool(
-        description = "Render one frame of the first scene as a PNG, JPEG, BMP or TGA image in the export directory (disabled when no export directory is configured). The background is the stage's. A quality (1 to 100, JPEG only) is refused for other formats."
+        description = "Render one frame of the first scene as a PNG, JPEG, BMP, TGA, TIFF, WebP (lossless), QOI, PNM (PAM), ICO (at most 256 pixels a side), OpenEXR or Radiance HDR image in the export directory (disabled when no export directory is configured). The background is the stage's. A quality (1 to 100, JPEG only) is refused for other formats."
     )]
     fn export_still(&self, Parameters(args): Parameters<ExportStill>) -> Outcome {
         self.read(|state| {
@@ -67,6 +67,13 @@ impl FlareServer {
                 ),
                 StillKind::Bmp => (StillFormat::Bmp, "bmp"),
                 StillKind::Tga => (StillFormat::Tga, "tga"),
+                StillKind::Tiff => (StillFormat::Tiff, "tif"),
+                StillKind::Webp => (StillFormat::WebpLossless, "webp"),
+                StillKind::Qoi => (StillFormat::Qoi, "qoi"),
+                StillKind::Pnm => (StillFormat::Pnm, "pnm"),
+                StillKind::Ico => (StillFormat::Ico, "ico"),
+                StillKind::Exr => (StillFormat::Exr, "exr"),
+                StillKind::Hdr => (StillFormat::Hdr, "hdr"),
             };
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, extension)?)?;

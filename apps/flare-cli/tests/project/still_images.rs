@@ -112,3 +112,62 @@ fn quality_is_only_for_jpeg() {
     assert!(!output.status.success(), "--quality with PNG is refused");
     assert!(!Path::new(&out).exists());
 }
+
+/// Each new still format is written at the stage size, with the file's own signature.
+#[test]
+fn export_writes_the_new_still_formats_with_their_signatures() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = red_square(dir.path());
+    type Signature = fn(&[u8]) -> bool;
+    let cases: [(&str, &str, Signature); 7] = [
+        ("tiff", "frame.tif", |b| b.starts_with(b"II*\0")),
+        ("webp", "frame.webp", |b| {
+            b.starts_with(b"RIFF") && b.get(8..12) == Some(b"WEBP")
+        }),
+        ("qoi", "frame.qoi", |b| b.starts_with(b"qoif")),
+        ("pnm", "frame.pnm", |b| b.starts_with(b"P7")),
+        ("ico", "frame.ico", |b| b.starts_with(&[0, 0, 1, 0])),
+        ("exr", "frame.exr", |b| {
+            b.starts_with(&[0x76, 0x2f, 0x31, 0x01])
+        }),
+        ("hdr", "frame.hdr", |b| b.starts_with(b"#?RADIANCE")),
+    ];
+    for (format, name, signature) in cases {
+        let out = dir.path().join(name).to_string_lossy().into_owned();
+        let info = json(&["export", &file, &out, "--format", format]);
+        assert_eq!(
+            (info["width"].as_u64(), info["height"].as_u64()),
+            (Some(10), Some(10)),
+            "{format}"
+        );
+        let bytes = std::fs::read(&out).expect(format);
+        assert!(signature(&bytes), "{format}: wrong file signature");
+    }
+}
+
+#[test]
+fn hdr_refuses_transparency_and_ico_refuses_more_than_256_pixels_and_write_nothing() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = red_square(dir.path());
+    let hdr = dir.path().join("t.hdr").to_string_lossy().into_owned();
+    let refused = run(&["export", &file, &hdr, "--format", "hdr", "--transparent"]);
+    assert!(
+        !refused.status.success(),
+        "HDR with --transparent is refused"
+    );
+    assert!(
+        !std::path::Path::new(&hdr).exists(),
+        "a refused export writes nothing"
+    );
+
+    let big = dir.path().join("big.flare").to_string_lossy().into_owned();
+    json(&["new", &big, "--width", "300", "--height", "300"]);
+    let ico = dir.path().join("big.ico").to_string_lossy().into_owned();
+    let refused = run(&["export", &big, &ico, "--format", "ico"]);
+    assert!(!refused.status.success(), "a 300 pixel ICO is refused");
+    assert!(!std::path::Path::new(&ico).exists());
+    let small = dir.path().join("small.ico").to_string_lossy().into_owned();
+    json(&[
+        "export", &big, &small, "--format", "ico", "--width", "64", "--height", "64",
+    ]);
+}

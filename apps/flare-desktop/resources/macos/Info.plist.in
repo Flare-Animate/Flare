@@ -52,6 +52,30 @@
                 <string>jpeg</string>
                 <string>bmp</string>
                 <string>tga</string>
+                <string>tif</string>
+                <string>tiff</string>
+                <string>webp</string>
+                <string>ico</string>
+                <string>qoi</string>
+                <string>pnm</string>
+                <string>pbm</string>
+                <string>pgm</string>
+                <string>pam</string>
+                <string>hdr</string>
+                <string>exr</string>
+                <string>dds</string>
+                <string>tif</string>
+                <string>tiff</string>
+                <string>webp</string>
+                <string>ico</string>
+                <string>qoi</string>
+                <string>pnm</string>
+                <string>pbm</string>
+                <string>pgm</string>
+                <string>pam</string>
+                <string>hdr</string>
+                <string>exr</string>
+                <string>dds</string>
                 <string>gif</string>
                 <string>svg</string>
             </array>

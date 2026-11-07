@@ -5,6 +5,8 @@ use std::io::Write;
 use ::image::ImageEncoder;
 use flare_core::Rgba8;
 
+use crate::limits::{MAX_DIMENSION, MAX_PIXELS};
+
 #[allow(unused_imports)]
 use crate::RenderError;
 #[allow(unused_imports)]
@@ -42,6 +44,23 @@ pub struct Image {
 }
 
 impl Image {
+    /// An image from straight-alpha RGBA8 pixels, row-major from the top-left. The size must be
+    /// within the render limits and `rgba` must hold exactly `width * height` pixels.
+    pub fn from_rgba(width: u32, height: u32, rgba: Vec<u8>) -> Result<Image, RenderError> {
+        let pixels = u64::from(width) * u64::from(height);
+        let fits = (1..=MAX_DIMENSION).contains(&width)
+            && (1..=MAX_DIMENSION).contains(&height)
+            && pixels <= MAX_PIXELS;
+        if !fits || rgba.len() as u64 != pixels * 4 {
+            return Err(RenderError::InvalidSize(width, height));
+        }
+        Ok(Image {
+            width,
+            height,
+            rgba,
+        })
+    }
+
     pub fn width(&self) -> u32 {
         self.width
     }
@@ -132,6 +151,13 @@ impl Image {
                 )?;
                 Ok(())
             }
+            StillFormat::Tiff => crate::image_formats::write_tiff(self, writer),
+            StillFormat::WebpLossless => crate::image_formats::write_webp(self, writer),
+            StillFormat::Qoi => crate::image_formats::write_qoi(self, writer),
+            StillFormat::Pnm => crate::image_formats::write_pnm(self, writer),
+            StillFormat::Ico => crate::image_formats::write_ico(self, writer),
+            StillFormat::Exr => crate::image_formats::write_exr(self, writer),
+            StillFormat::Hdr => crate::image_formats::write_hdr(self, writer),
             StillFormat::Tga => {
                 // Uncompressed on purpose: the encoder's RLE packets can run across a
                 // scanline, which strict TGA readers (Pillow) refuse as a buffer overrun.
@@ -180,6 +206,20 @@ pub enum StillFormat {
     Bmp,
     /// Uncompressed, keeps transparency.
     Tga,
+    /// Lossless, keeps transparency.
+    Tiff,
+    /// Lossless WebP, keeps transparency.
+    WebpLossless,
+    /// Lossless, keeps transparency.
+    Qoi,
+    /// Netpbm arbitrary map (PAM, `P7`), keeps transparency.
+    Pnm,
+    /// An ICO file of one picture; at most 256 pixels a side. Keeps transparency.
+    Ico,
+    /// OpenEXR with 32-bit float channels, keeps transparency.
+    Exr,
+    /// Radiance HDR. Opaque only.
+    Hdr,
 }
 
 /// Converts premultiplied RGBA8 to straight alpha with rounding, in place. Opaque and fully

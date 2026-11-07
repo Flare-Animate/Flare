@@ -193,6 +193,13 @@ pub enum StillKind {
     Jpeg,
     Bmp,
     Tga,
+    Tiff,
+    Webp,
+    Qoi,
+    Pnm,
+    Ico,
+    Exr,
+    Hdr,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]

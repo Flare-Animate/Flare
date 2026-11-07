@@ -8,7 +8,7 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
 /// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 25] = [
+pub const IMPORT_EXTENSIONS: [&str; 37] = [
     "fla",
     "xfl",
     "svg",
@@ -17,6 +17,18 @@ pub const IMPORT_EXTENSIONS: [&str; 25] = [
     "jpeg",
     "bmp",
     "tga",
+    "tif",
+    "tiff",
+    "webp",
+    "ico",
+    "qoi",
+    "pnm",
+    "pbm",
+    "pgm",
+    "pam",
+    "hdr",
+    "exr",
+    "dds",
     "gif",
     "swf",
     "bvh",
@@ -78,7 +90,7 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
 
 /// Formats people meet beside Flash and Toonz files, which Flare does not import, with the reason
 /// the refusal names. Anything else gets the generic message.
-const UNSUPPORTED: [(&str, &str); 10] = [
+const UNSUPPORTED: [(&str, &str); 8] = [
     (
         "as",
         "an ActionScript source file (.as) holds code, not an animation; open the .fla or .swf it belongs to",
@@ -108,14 +120,6 @@ const UNSUPPORTED: [(&str, &str); 10] = [
         "a component library (.swc) has no timeline of its own; the .swf that uses it is what opens",
     ),
     (
-        "tif",
-        "a single TIFF is not imported; Toonz scenes (.tnz) bring their own image sequences",
-    ),
-    (
-        "tiff",
-        "a single TIFF is not imported; Toonz scenes (.tnz) bring their own image sequences",
-    ),
-    (
         "tnx",
         "the OpenToonz .tnx format is not read; open the .tnz scene instead",
     ),
@@ -138,7 +142,7 @@ mod tests {
     #[test]
     fn each_unsupported_kind_names_its_reason_and_others_do_not() {
         for name in [
-            "a.as", "a.AS2", "a.as3", "a.jsfl", "a.sol", "a.flv", "a.swc", "a.tif", "a.tnx",
+            "a.as", "a.AS2", "a.as3", "a.jsfl", "a.sol", "a.flv", "a.swc", "a.tnx",
         ] {
             let reason = unsupported_reason(Path::new(name));
             assert!(reason.is_some_and(|r| !r.is_empty()), "{name}");
@@ -199,6 +203,12 @@ mod tests {
         assert_eq!(kind("a.JPEG", false), Some(PathKind::Import));
         assert_eq!(kind("a.bmp", false), Some(PathKind::Import));
         assert_eq!(kind("a.TGA", false), Some(PathKind::Import));
+        for name in [
+            "a.tif", "a.TIFF", "a.webp", "a.ico", "a.qoi", "a.pnm", "a.pam", "a.hdr", "a.exr",
+            "a.dds",
+        ] {
+            assert_eq!(kind(name, false), Some(PathKind::Import), "{name}");
+        }
         assert_eq!(kind("a", false), None);
         assert_eq!(kind("a.flare.txt", false), None);
     }

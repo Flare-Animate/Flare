@@ -79,6 +79,18 @@ TYPES: list[tuple[str, tuple[str, ...], str, str]] = [
     ("jpg", ("jpg", "jpeg"), "open", ""),
     ("bmp", ("bmp",), "open", ""),
     ("tga", ("tga",), "open", ""),
+    ("tif", ("tif",), "open", ""),
+    ("tiff", ("tiff",), "open", ""),
+    ("webp", ("webp",), "open", ""),
+    ("ico", ("ico",), "open", ""),
+    ("qoi", ("qoi",), "open", ""),
+    ("pnm", ("pnm",), "open", ""),
+    ("pbm", ("pbm",), "open", ""),
+    ("pgm", ("pgm",), "open", ""),
+    ("pam", ("pam",), "open", ""),
+    ("hdr", ("hdr",), "open", ""),
+    ("exr", ("exr",), "open", ""),
+    ("dds", ("dds",), "open", ""),
     ("svg", ("svg",), "open", ""),
 ]
 

@@ -396,3 +396,26 @@ async fn export_still_writes_each_format_and_refuses_a_quality_for_the_others() 
     assert!(is_error, "quality 0 is outside 1 to 100");
     assert!(message.as_str().expect("m").contains("JPEG quality 0"));
 }
+
+#[tokio::test]
+async fn export_still_writes_the_new_formats_with_their_signatures() {
+    let f = drawn().await;
+    type Signature = fn(&[u8]) -> bool;
+    let cases: [(&str, &str, Signature); 7] = [
+        ("tiff", "t", |b| b.starts_with(b"II*\0")),
+        ("webp", "w", |b| {
+            b.starts_with(b"RIFF") && b.get(8..12) == Some(b"WEBP")
+        }),
+        ("qoi", "q", |b| b.starts_with(b"qoif")),
+        ("pnm", "n", |b| b.starts_with(b"P7")),
+        ("exr", "e", |b| b.starts_with(&[0x76, 0x2f, 0x31, 0x01])),
+        ("hdr", "h", |b| b.starts_with(b"#?RADIANCE")),
+        ("ico", "i", |b| b.starts_with(&[0, 0, 1, 0])),
+    ];
+    for (format, name, signature) in cases {
+        let out = f
+            .ok("export_still", json!({ "name": name, "format": format }))
+            .await;
+        assert!(signature(&bytes(&out["path"])), "{format}: wrong signature");
+    }
+}

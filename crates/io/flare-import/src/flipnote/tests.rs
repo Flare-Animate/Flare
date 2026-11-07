@@ -133,8 +133,14 @@ fn a_ppm_file_imports_by_path_by_its_extension() {
     std::fs::write(&path, two_frame_file()).expect("write");
     let imported = crate::import_path(&path).expect("imports");
     assert_eq!(imported.document.scenes()[0].timeline().frame_count(), 2);
-    let not_ppm = dir.path().join("plain.ppm");
-    std::fs::write(&not_ppm, b"P6\n1 1\n255\n\0\0\0").expect("write");
-    let err = crate::import_path(&not_ppm).expect_err("a netpbm image is not a Flipnote");
+    // A plain Netpbm picture (`P6`) is a picture now, not a damaged Flipnote: it imports as one frame.
+    let netpbm = dir.path().join("plain.ppm");
+    std::fs::write(&netpbm, b"P6\n1 1\n255\n\0\0\0").expect("write");
+    let picture = crate::import_path(&netpbm).expect("a netpbm picture imports");
+    assert_eq!(picture.document.scenes()[0].timeline().frame_count(), 1);
+    // Anything else under `.ppm` is still read as a Flipnote, and refused as one.
+    let not_ppm = dir.path().join("junk.ppm");
+    std::fs::write(&not_ppm, b"not an image or a Flipnote").expect("write");
+    let err = crate::import_path(&not_ppm).expect_err("neither a Flipnote nor a netpbm picture");
     assert!(err.to_string().contains("PARA"), "{err}");
 }

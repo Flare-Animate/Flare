@@ -6,5 +6,5 @@ Exec=flare-desktop %F
 Icon=flare
 Terminal=false
 Categories=Graphics;2DGraphics;VectorGraphics;
-MimeType=application/x-flare;application/x-flare-fla;application/x-flare-xfl;application/x-shockwave-flash;application/x-flare-bvh;image/png;image/jpeg;image/bmp;image/x-tga;image/gif;image/svg+xml;application/x-flare-fcp;application/x-flare-ppm;application/x-flare-kwz;application/x-flare-tnz;application/x-flare-tlv;application/x-flare-pli;application/x-flare-moho;application/x-flare-wick;
+MimeType=application/x-flare;application/x-flare-fla;application/x-flare-xfl;application/x-shockwave-flash;application/x-flare-bvh;image/png;image/jpeg;image/bmp;image/x-tga;image/tiff;image/vnd.microsoft.icon;image/vnd.ms-dds;image/vnd.radiance;image/webp;image/x-exr;image/x-portable-anymap;image/x-portable-arbitrarymap;image/x-portable-bitmap;image/x-portable-graymap;image/x-qoi;image/gif;image/svg+xml;application/x-flare-fcp;application/x-flare-ppm;application/x-flare-kwz;application/x-flare-tnz;application/x-flare-tlv;application/x-flare-pli;application/x-flare-moho;application/x-flare-wick;
 StartupNotify=true

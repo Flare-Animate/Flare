@@ -47,6 +47,51 @@
     <comment>TGA Image</comment>
     <glob pattern="*.tga" />
   </mime-type>
+  <mime-type type="image/tiff">
+    <comment>image/tiff image</comment>
+    <glob pattern="*.tif" />
+    <glob pattern="*.tiff" />
+  </mime-type>
+  <mime-type type="image/vnd.microsoft.icon">
+    <comment>image/vnd.microsoft.icon image</comment>
+    <glob pattern="*.ico" />
+  </mime-type>
+  <mime-type type="image/vnd.ms-dds">
+    <comment>image/vnd.ms-dds image</comment>
+    <glob pattern="*.dds" />
+  </mime-type>
+  <mime-type type="image/vnd.radiance">
+    <comment>image/vnd.radiance image</comment>
+    <glob pattern="*.hdr" />
+  </mime-type>
+  <mime-type type="image/webp">
+    <comment>image/webp image</comment>
+    <glob pattern="*.webp" />
+  </mime-type>
+  <mime-type type="image/x-exr">
+    <comment>image/x-exr image</comment>
+    <glob pattern="*.exr" />
+  </mime-type>
+  <mime-type type="image/x-portable-anymap">
+    <comment>image/x-portable-anymap image</comment>
+    <glob pattern="*.pnm" />
+  </mime-type>
+  <mime-type type="image/x-portable-arbitrarymap">
+    <comment>image/x-portable-arbitrarymap image</comment>
+    <glob pattern="*.pam" />
+  </mime-type>
+  <mime-type type="image/x-portable-bitmap">
+    <comment>image/x-portable-bitmap image</comment>
+    <glob pattern="*.pbm" />
+  </mime-type>
+  <mime-type type="image/x-portable-graymap">
+    <comment>image/x-portable-graymap image</comment>
+    <glob pattern="*.pgm" />
+  </mime-type>
+  <mime-type type="image/x-qoi">
+    <comment>image/x-qoi image</comment>
+    <glob pattern="*.qoi" />
+  </mime-type>
   <mime-type type="image/gif">
     <comment>GIF Image</comment>
     <glob pattern="*.gif" />

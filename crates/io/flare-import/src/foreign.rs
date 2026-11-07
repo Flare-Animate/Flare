@@ -21,6 +21,14 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "jpg" | "jpeg" => Some("jpeg"),
         "bmp" => Some("bmp"),
         "tga" => Some("tga"),
+        "tif" | "tiff" => Some("tiff"),
+        "webp" => Some("webp"),
+        "ico" => Some("ico"),
+        "qoi" => Some("qoi"),
+        "pnm" | "pbm" | "pgm" | "pam" => Some("pnm"),
+        "hdr" => Some("hdr"),
+        "exr" => Some("exr"),
+        "dds" => Some("dds"),
         "gif" => Some("gif"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
         "ppm" | "kwz" | "kwc" => Some("flipnote"),
@@ -31,6 +39,15 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
 }
 
 const MAX_BYTES: u64 = 64 * 1024 * 1024;
+
+/// A `.ppm` that is a plain Netpbm picture (`P1` to `P7`) rather than a Flipnote animation.
+fn is_plain_netpbm(name: &Path, bytes: &[u8]) -> bool {
+    let ppm = name
+        .extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|e| e.eq_ignore_ascii_case("ppm"));
+    ppm && !crate::flipnote::looks_like_ppm(bytes) && matches!(bytes, [b'P', b'1'..=b'7', ..])
+}
 
 pub fn import_foreign_path(path: &Path) -> Result<Imported, ImportError> {
     let mut bytes = Vec::new();
@@ -71,9 +88,20 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
         Some("png") => crate::bitmap::import_png(file, &bytes),
         Some("jpeg") => crate::bitmap::import_jpeg(file, &bytes),
         Some("bmp") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Bmp),
+        Some("tiff") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Tiff),
+        Some("webp") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::WebP),
+        Some("ico") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Ico),
+        Some("qoi") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Qoi),
+        Some("pnm") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Pnm),
+        Some("hdr") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Hdr),
+        Some("exr") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::OpenExr),
+        Some("dds") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Dds),
         Some("tga") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Tga),
         Some("gif") => crate::bitmap::import_gif(file, &bytes),
         Some("svg") => crate::svg::import(&bytes).map_err(|e| foreign(&e)),
+        Some("flipnote") if is_plain_netpbm(name, &bytes) => {
+            crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Pnm)
+        }
         Some("flipnote") => crate::flipnote::import(file, &bytes),
         Some("toonz") => crate::toonz::import(name, &bytes).map_err(|e| foreign(&e)),
         _ => Err(ImportError::NotXfl("unknown file type".into())),

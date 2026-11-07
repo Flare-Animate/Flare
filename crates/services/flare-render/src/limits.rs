@@ -19,6 +19,10 @@ pub enum RenderError {
     InvalidQuality(u8),
     #[error("a JPEG cannot hold transparency, and the image has pixels that are not opaque")]
     NotOpaque,
+    #[error("{format} holds at most {side} pixels a side")]
+    TooLargeFor { format: &'static str, side: u32 },
+    #[error("writing the image failed: {0}")]
+    Io(#[from] std::io::Error),
     #[error("image encoding failed: {0}")]
     Encode(#[from] ::image::ImageError),
 }

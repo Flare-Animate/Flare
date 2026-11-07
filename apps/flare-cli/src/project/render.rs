@@ -19,6 +19,17 @@ pub enum ExportFormat {
     Jpeg,
     Bmp,
     Tga,
+    Tiff,
+    /// Lossless WebP (lossy WebP is not written: no pure-Rust encoder).
+    Webp,
+    Qoi,
+    /// Netpbm arbitrary map (PAM), which keeps transparency.
+    Pnm,
+    /// ICO, at most 256 pixels a side.
+    Ico,
+    Exr,
+    /// Radiance HDR. Opaque only.
+    Hdr,
     Gif,
     Mp4,
 }
@@ -37,6 +48,13 @@ impl ExportFormat {
             }),
             Self::Bmp => Some(StillFormat::Bmp),
             Self::Tga => Some(StillFormat::Tga),
+            Self::Tiff => Some(StillFormat::Tiff),
+            Self::Webp => Some(StillFormat::WebpLossless),
+            Self::Qoi => Some(StillFormat::Qoi),
+            Self::Pnm => Some(StillFormat::Pnm),
+            Self::Ico => Some(StillFormat::Ico),
+            Self::Exr => Some(StillFormat::Exr),
+            Self::Hdr => Some(StillFormat::Hdr),
             Self::Gif | Self::Mp4 => None,
         })
     }
@@ -104,8 +122,8 @@ pub fn export(
     transparent: bool,
     format: StillFormat,
 ) -> Result<Value> {
-    if transparent && matches!(format, StillFormat::Jpeg { .. }) {
-        bail!("a JPEG has no transparency: drop --transparent, or export a PNG");
+    if transparent && matches!(format, StillFormat::Jpeg { .. } | StillFormat::Hdr) {
+        bail!("this format has no transparency: drop --transparent, or export a PNG");
     }
     let session = open(path)?;
     let target = render_target(session.document(), width, height, transparent);

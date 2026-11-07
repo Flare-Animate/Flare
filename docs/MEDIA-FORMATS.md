@@ -20,17 +20,17 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 | GIF animated | yes (delays become frame rate and holds) | yes (`flare-runtime` movie) | `gif` crate | | done |
 | BMP | yes (one-frame project) | yes | `image` (bmp); import bounded by the `image` limits | round trip tested in `flare-import` | done (import) |
 | TGA | yes (one-frame project) | yes | `image` (tga), written uncompressed on purpose | round trip tested | done (import) |
-| TIFF | no | no | none | refused as `.tif`/`.tiff` in `file_kinds.rs` | 2 |
-| WebP lossless | no | no | `image` `webp` feature (pure-Rust lossless) | | 2 |
-| WebP lossy | no | no | to check: image-webp decodes lossy VP8 | encode may be lossless only | 2 |
+| TIFF | yes (one-frame project) | yes | `image` `tiff` (lossless, alpha) | round trip tested | done |
+| WebP lossless | yes | yes | `image` `webp` (image-webp) | round trip tested | done |
+| WebP lossy | yes (decode, one frame) | **gap** | image-webp decodes lossy VP8; no pure-Rust lossy encoder | recorded in SURFACES.md | done (import); gap (export) |
 | WebP animated | no | no | image-webp decode | | 5 (video slice) |
-| AVIF | no | no | rav1e (BSD-2) for encode; decode needs a permissive AV1 decoder | heavy; checked before adding | 2 (if licence and size allow) |
-| ICO | no | no | `image` `ico` feature | | 2 |
-| PNM (PBM/PGM/PPM) | no | no | `image` `pnm` feature | `.ppm` is already claimed as Flipnote's PPM animation, so generic PNM needs a decision | 2 |
-| QOI | no | no | `image` `qoi` feature | | 2 |
-| HDR (Radiance) | no | no | `image` `hdr` feature | | 2 |
-| OpenEXR | no | no | `image` `exr` feature (exr crate, pure Rust) | | 2 |
-| DDS | no | no | `image` `dds` (decode only) | write only if cheap | 2 |
+| AVIF | **gap** | **gap** | decode needs native dav1d; encode is ravif/rav1e (large) | recorded in SURFACES.md | gap |
+| ICO | yes | yes (at most 256 px a side) | `image` `ico` | round trip tested | done |
+| PNM (PBM/PGM/PPM/PAM) | yes; a plain `P1`-`P7` `.ppm` is a picture, other `.ppm` stays Flipnote | yes (PAM, keeps alpha) | `image` `pnm` | round trip tested | done |
+| QOI | yes | yes | `image` `qoi` | round trip tested | done |
+| HDR (Radiance) | yes | yes (opaque only) | `image` `hdr` | round trip within RGBE rounding | done |
+| OpenEXR | yes | yes (32-bit float, alpha) | `image` `exr` (exr crate) | round trip within one level | done |
+| DDS | yes (read) | **gap** | `image` `dds` decodes only | recorded in SURFACES.md | done (import); gap (export) |
 | SVG | yes (`usvg`) | **no** | import in `flare-import/svg.rs` | export from the vector stage | 3 |
 | PSD | no | no | psd crate (read) | layered export needs own writer | 4 |
 | HEIC | no | no | no permissive pure-Rust decoder found | recorded as a gap if none is found | 4 |

@@ -7,6 +7,7 @@
 
 mod hit;
 mod image;
+mod image_formats;
 mod limits;
 mod outline;
 mod paint;
@@ -16,6 +17,7 @@ mod viewport;
 
 pub use hit::{hit_test, hit_test_all};
 pub use image::{Image, PremultipliedImage, StillFormat};
+pub use image_formats::MAX_ICO_SIDE;
 pub use limits::{MAX_DIMENSION, MAX_PIXELS, RenderError};
 pub use outline::{render_onion_outlines_viewport, render_outline_mode_viewport};
 pub use render::{
