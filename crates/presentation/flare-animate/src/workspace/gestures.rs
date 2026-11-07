@@ -240,7 +240,7 @@ impl Workspace {
         samples: &[InputSample],
         tolerance: f64,
     ) -> Result<Option<Shape>, String> {
-        let curve = PressureCurve::new(self.brush_light, 1.0);
+        let curve = PressureCurve::new(self.brush_light, self.brush_pressure_gamma);
         let Some(path) = flare_tools::brush::outline_with(
             samples,
             f64::from(self.brush_size),

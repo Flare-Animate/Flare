@@ -1,6 +1,8 @@
 pane-tools = ツール
 pane-stage = ステージ
 pane-library = ライブラリ
+pane-layers = レイヤー
+layers-empty = このシーンにレイヤーはありません。
 pane-timeline = タイムライン
 pane-properties = プロパティ
 pane-color = カラー

@@ -1,6 +1,6 @@
 use super::*;
 use flare_input::{InputSample, PointerKind};
-use flare_tools::brush::{BrushShelf, MAX_BRUSHES, Nib, NibShape};
+use flare_tools::brush::{BrushShelf, BuiltinBrushProfile, MAX_BRUSHES, Nib, NibShape};
 
 fn paint(ws: &mut Workspace, from: (f64, f64), to: (f64, f64)) {
     ws.set_tool(Tool::Brush);
@@ -75,6 +75,34 @@ fn the_nib_and_size_are_kept_with_the_preferences_and_junk_is_brought_into_range
     let mut old = workspace();
     old.restore_preferences(r#"{"smoothing": 3}"#).expect("old");
     assert_eq!(old.brush_shelf.nib(), Nib::ROUND);
+}
+
+#[test]
+fn built_in_brush_profiles_and_pressure_response_round_trip_in_preferences() {
+    let mut ws = workspace();
+    ws.brush_shelf
+        .choose_builtin(BuiltinBrushProfile::GreasePencil);
+    let saved = ws.preferences_json().expect("json");
+    let mut fresh = workspace();
+    fresh.restore_preferences(&saved).expect("restored");
+    assert_eq!(
+        fresh.brush_shelf.builtin(),
+        Some(BuiltinBrushProfile::GreasePencil)
+    );
+    assert_eq!(
+        fresh.brush_shelf.pressure_min(),
+        BuiltinBrushProfile::GreasePencil.preset().pressure_min()
+    );
+
+    fresh.brush_shelf.set_pressure_curve(0.23, 1.65);
+    fresh.brush_light = 0.23;
+    fresh.brush_pressure_gamma = 1.65;
+    let edited = fresh.preferences_json().expect("json");
+    let mut restored = workspace();
+    restored.restore_preferences(&edited).expect("restored");
+    assert_eq!(restored.brush_shelf.builtin(), None);
+    assert!((restored.brush_shelf.pressure_min() - 0.23).abs() < 1e-4);
+    assert!((restored.brush_shelf.pressure_gamma() - 1.65).abs() < 1e-4);
 }
 
 #[test]

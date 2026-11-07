@@ -20,9 +20,9 @@ format is known from notes but no real file was checked by hand. "Not built" mea
 | SPL (a SWF with a splash extension) | the SWF reader (the bytes decide) | Verified on one file | 1 `.spl` file |
 | Modern FLA (a ZIP of XFL parts, CS5 and later) | `flare-import` `xfl/`, `source.rs` | Verified: every zipped `.fla` in the corpus is read without a crash; many report unsupported items | 1,256 zipped `.fla` files |
 | XFL folder and `.xfl` stub | `flare-import` `xfl/` | Verified by the existing `xfl*` tests | the XFL test suite (not the corpus) |
-| XFL motion tweens on instances, classic (`motion`) and motion object (`motion object`) | `flare-import` `xfl/timeline.rs`, `xfl/motion/` | Classic: a linear transform tween with the frame's `acceleration`. Motion object: the `AnimationCore` curves of X, Y, rotation, skew X and scale are sampled into one keyframe per frame (`tests/xfl_motion.rs`), so the motion follows the file's handles. Time maps, skew Y, colour and filter curves are reported, and a tween over 4096 frames stays linear | one real sample, Flashbang's `audio/sound2.fla` (see the motion section below) |
+| XFL motion tweens on instances, classic (`motion`) and motion object (`motion object`) | `flare-import` `xfl/timeline.rs`, `xfl/motion/` | Classic: a linear transform tween with the frame's `acceleration`. Motion object: the `AnimationCore` curves of X, Y, rotation, skew X and scale are sampled into one keyframe per frame (`tests/xfl_motion.rs`), so the motion follows the file's handles. Unsupported time maps, skew Y, colour and filter curves are reported, and a tween over 4096 frames stays linear | one real sample, Flashbang's `audio/sound2.fla` (see the motion section below) |
 | XFL library bitmaps (PNG and baseline JPEG) and `DOMBitmapInstance`, read from `bin/` through `bitmapDataHRef` | `flare-import` `xfl/entry.rs`, `xfl/elements.rs`, `bitmap.rs` | Verified on synthetic fixtures (`tests/xfl_bitmaps.rs`) and on Flashbang's real FLAs (below). Animate's own lossless payload (`bin/M *.dat`, starts `03 05`) is decoded (`flash_bitmap.rs`; layout below). 8-bit palette payloads and CMYK JPEG are not imported | none of the Ruffle corpus FLA zips has bitmap items |
-| Legacy binary FLA (Flash 5 to CS4, a compound file with a `Contents` stream) | `flare-import` `legacy/` | Partly verified: stage, frame rate, background, library names and types are read; drawings, timelines, text, media, scripts are not. Imported as a skeleton with a warning | 159 compound files in the corpus; `btnstrob.fla` (a real MX 2004 file, from the lifeart reference's fixtures) |
+| Legacy binary FLA (Flash 5 to CS4, a compound file with a `Contents` stream) | `flare-import` `legacy/` | Stage, frame rate, background, library names/types and layer names/visibility/lock state are read. Layer scanning has synthetic tests; artwork and keyframe contents are not read. Import has a warning | 159 compound files in the corpus; `btnstrob.fla` (a real MX 2004 file, from the lifeart reference's fixtures) |
 | FLA `Contents` layouts other than the ones in `legacy/layout.rs` | none | Refused with the stream names and the format number | 5 synthetic fixtures from the lifeart reference (see below) |
 | SOL (AMF0 local shared object) | none | Not built | 7 `.sol` files in the corpus, not run |
 | `.as`, `.asc` (ActionScript text) | none | Not built; they are plain text and would be kept as source data | 4,728 `.as` files in the corpus, not run |
@@ -100,7 +100,7 @@ per movie that needed it.
 | Gradients: first stop taken; radial as the average of the ends | 120 and 38 |
 | Masks: the mask left out (27); mask layers skipped (27); blend modes (50); filters (105 instance, 36 other); colour effects (102 not imported, 182 instance effects ignored) | see left |
 | Shape morphs not imported | 17 |
-| Legacy binary FLA: skeleton only | 159 |
+| Legacy binary FLA: layer stacks but no artwork or keyframe contents | 159 |
 
 ## Known open issue: #117 (Windows crash importing FLA and SWF)
 
@@ -117,12 +117,13 @@ debug stack trace, or to move the load off the UI thread and test that.
 ## Issue #47 (BFDI `.fla`)
 
 Not checked: no BFDI file is in this environment, and the reference samples do not include one.
-The legacy reader gives a skeleton for any legacy file, so a BFDI file would import as a skeleton.
+The legacy reader only recovers stage, library and some layer metadata, so a BFDI file would not
+show its artwork or keyframe contents.
 
 ## Reference sources
 
 - [fla-decoder](https://github.com/eddiemoore/fla-decoder) (MIT): its `docs/FORMAT.md` is the
-  binary FLA notes. Read for facts. No code is ported yet.
+  binary FLA notes. Format facts inform the bounded Flare reader; no decoder code is ported.
 - [fla-viewer](https://github.com/lifeart/fla-viewer) (ISC per `package.json`, no licence file):
   facts only. Its `src/__tests__/fixtures` has six FLA files. `btnstrob.fla` is a real MX 2004
   file, according to its `docs/binary-fla-fixes.md`. The others are generated by its `scripts/`
@@ -136,7 +137,7 @@ The legacy reader gives a skeleton for any legacy file, so a BFDI file would imp
 
 ## Next steps, in order
 
-1. Legacy binary FLA: read the timeline and drawings of the MX and CS4 layout, starting with
+1. Legacy binary FLA: read keyframe contents and drawings of the MX and CS4 layout, starting with
    `btnstrob.fla`, which is the one real file. Add more real files before writing more code.
 2. The stage and frame-rate gaps above: decide the fallback with the maintainer, then test it.
 3. Desktop load on a worker thread for #117.

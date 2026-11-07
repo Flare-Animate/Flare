@@ -40,9 +40,9 @@ fn clicking_a_rail_icon_brings_that_panel_forward() {
     let ctx = egui::Context::default();
     run(&mut ws, &ctx, 0.0);
     run(&mut ws, &ctx, 0.1);
-    // Press the third icon: the rail is at the right edge of the 1280 x 800 window.
+    // Press the fourth icon (Color): the rail is at the right edge of the 1280 x 800 window.
     let x = 1280.0 - crate::workspace::rail::RAIL_WIDTH / 2.0;
-    let y = 4.0 + 38.0 + 4.0 + 28.0 * 2.0 + 4.0 * 2.0 + 14.0 + 3.0;
+    let y = 4.0 + 38.0 + 4.0 + 28.0 * 3.0 + 4.0 * 2.0 + 14.0 + 3.0;
     let at = Pos2::new(x, y);
     let click = |pressed| Event::PointerButton {
         pos: at,

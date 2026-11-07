@@ -1,6 +1,8 @@
 pane-tools = Tools
 pane-stage = Stage
 pane-library = Library
+pane-layers = Layers
+layers-empty = No layers in this scene.
 pane-timeline = Timeline
 pane-properties = Properties
 pane-color = Color

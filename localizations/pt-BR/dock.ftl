@@ -1,6 +1,8 @@
 pane-tools = Ferramentas
 pane-stage = Palco
 pane-library = Biblioteca
+pane-layers = Camadas
+layers-empty = Não há camadas nesta cena.
 pane-timeline = Linha do tempo
 pane-properties = Propriedades
 pane-color = Cor

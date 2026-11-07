@@ -1,6 +1,8 @@
 pane-tools = Werkzeuge
 pane-stage = Bühne
 pane-library = Bibliothek
+pane-layers = Ebenen
+layers-empty = Keine Ebenen in dieser Szene.
 pane-timeline = Zeitleiste
 pane-properties = Eigenschaften
 pane-color = Farbe

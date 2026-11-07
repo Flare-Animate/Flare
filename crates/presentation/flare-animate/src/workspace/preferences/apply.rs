@@ -22,6 +22,9 @@ impl Workspace {
                 == flare_tools::brush::NibShape::Square,
             brush_nib_angle: self.brush_shelf.nib().angle_degrees() as f32,
             brush_nib_flatness: self.brush_shelf.nib().flatness_percent() as f32,
+            brush_pressure_min: self.brush_light,
+            brush_pressure_gamma: self.brush_pressure_gamma,
+            brush_builtin_profile: self.brush_shelf.builtin(),
             brushes: self.brush_shelf.presets().to_vec(),
             brush_selected: self.brush_shelf.selected(),
             publish_compress: self.publish.compress,
@@ -88,6 +91,17 @@ impl Workspace {
             &preferences.brushes,
             preferences.brush_selected,
         );
+        self.brush_shelf.set_pressure_curve(
+            finite(f64::from(preferences.brush_pressure_min), 0.15) as f32,
+            finite(f64::from(preferences.brush_pressure_gamma), 1.0) as f32,
+        );
+        if preferences.brush_selected.is_none()
+            && let Some(profile) = preferences.brush_builtin_profile
+        {
+            self.brush_shelf.choose_builtin(profile);
+        }
+        self.brush_light = self.brush_shelf.pressure_min();
+        self.brush_pressure_gamma = self.brush_shelf.pressure_gamma();
         self.publish = PublishSettings {
             swf: preferences.publish_swf,
             compress: preferences.publish_compress,

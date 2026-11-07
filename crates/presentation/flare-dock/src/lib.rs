@@ -20,6 +20,7 @@ pub enum Pane {
     Tools,
     Stage,
     Library,
+    Layers,
     Timeline,
     Properties,
     Color,
@@ -39,10 +40,11 @@ pub enum Pane {
 }
 
 impl Pane {
-    pub const ALL: [Pane; 14] = [
+    pub const ALL: [Pane; 15] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
+        Pane::Layers,
         Pane::Timeline,
         Pane::Properties,
         Pane::Color,
@@ -61,6 +63,7 @@ impl Pane {
         Some(match self {
             Self::Properties => "panel-properties",
             Self::Library => "panel-library",
+            Self::Layers => "panel-layers",
             Self::Color => "panel-color",
             Self::Align => "panel-align",
             Self::Transform => "panel-transform",
@@ -82,6 +85,7 @@ impl Pane {
             Self::Tools => "pane-tools",
             Self::Stage => "pane-stage",
             Self::Library => "pane-library",
+            Self::Layers => "pane-layers",
             Self::Timeline => "pane-timeline",
             Self::Properties => "pane-properties",
             Self::Color => "pane-color",
@@ -102,6 +106,7 @@ impl Pane {
             Self::Tools => "Tools",
             Self::Stage => "Stage",
             Self::Library => "Library",
+            Self::Layers => "Layers",
             Self::Timeline => "Timeline",
             Self::Properties => "Properties",
             Self::Color => "Color",
@@ -140,6 +145,7 @@ pub fn default_tree() -> Tree<Pane> {
     let output = tiles.insert_pane(Pane::Output);
     let properties = tiles.insert_pane(Pane::Properties);
     let library = tiles.insert_pane(Pane::Library);
+    let layers = tiles.insert_pane(Pane::Layers);
     let color = tiles.insert_pane(Pane::Color);
     let align = tiles.insert_pane(Pane::Align);
     let transform = tiles.insert_pane(Pane::Transform);
@@ -151,6 +157,7 @@ pub fn default_tree() -> Tree<Pane> {
     let side = tiles.insert_tab_tile(vec![
         properties,
         library,
+        layers,
         color,
         align,
         transform,

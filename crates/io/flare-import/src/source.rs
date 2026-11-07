@@ -210,7 +210,8 @@ impl<R: Read + Seek> FileSource for ZipSource<R> {
 const ZIP_MAGIC: &[u8] = b"PK\x03\x04";
 
 /// Imports from a path: an XFL directory, a `.xfl` stub file or the folder's `DOMDocument.xml` (the folder is used), a
-/// zipped `.fla` or a Flash movie (`.swf`). Legacy binary `.fla` files are read as a skeleton.
+/// zipped `.fla` or a Flash movie (`.swf`). Legacy binary `.fla` files import stage, library and
+/// recoverable layer metadata; artwork and keyframe contents are not read.
 ///
 /// The source is opened for reading only; nothing is written, created or deleted beside or inside it. What was read
 /// is kept with the document so an export of the unchanged import is the original (see `flare_document::Origin`).

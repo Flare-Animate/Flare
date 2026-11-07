@@ -1,6 +1,8 @@
 pane-tools = 도구
 pane-stage = 스테이지
 pane-library = 라이브러리
+pane-layers = 레이어
+layers-empty = 이 장면에 레이어가 없습니다.
 pane-timeline = 타임라인
 pane-properties = 속성
 pane-color = 색상

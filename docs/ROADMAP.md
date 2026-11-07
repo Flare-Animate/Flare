@@ -13,7 +13,7 @@ maintainer's to reorder.
 ### High priority
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)
-- Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
+- Drawing quality: brush dynamics (custom nib and nonlinear pressure profiles are in; native Krita, Adobe and OpenToonz preset containers remain unsupported), and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
 - Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files
@@ -31,6 +31,7 @@ Drawing and tools
 - Rich text (mixed styles in one field) and text menu commands
 - Bitmap compression settings; importing Illustrator (`.ai`) files
 - Editable vector brushes: a stroke that keeps its centerline, pressure samples and a width profile, so its taper and curve can be changed after it is drawn, with reusable brush presets and a better width-profile editor
+- Blender-style sculpt deformation for vector artwork
 - Live symmetry: a mirror or radial modifier whose copies follow the source until they are expanded into ordinary shapes (drawing with symmetry already works)
 - Perspective guides: one-, two- and three-point sets with editable vanishing points and a horizon, snapping, and no part of the exported artwork
 - Toon shading and lighting brushes: paint a chosen shadow or highlight level that stays at that level however often it is painted over, kept apart from the artwork so a recolor keeps the shading, with editable tone ramps

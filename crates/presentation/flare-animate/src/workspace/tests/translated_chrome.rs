@@ -39,10 +39,13 @@ fn the_panels_the_document_and_the_timeline_are_named_in_the_language() {
     let mut ws = speaking("es-ES");
     // With the Selection tool and nothing selected, Properties shows the document.
     ws.set_tool(Tool::Select);
-    let text = drawn(&mut ws);
+    let mut text = drawn(&mut ws);
+    ws.show_pane(Pane::Transform);
+    text.extend(drawn(&mut ws));
     for wanted in [
         "Propiedades",
         "Biblioteca",
+        "Capas",
         "Alinear",
         "Transformar",
         "Línea de tiempo",
@@ -58,6 +61,7 @@ fn the_panels_the_document_and_the_timeline_are_named_in_the_language() {
     for english in [
         "Properties",
         "Library",
+        "Layers",
         "Align",
         "Transform",
         "Timeline",

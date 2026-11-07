@@ -1,6 +1,8 @@
 pane-tools = Strumenti
 pane-stage = Scena
 pane-library = Libreria
+pane-layers = Livelli
+layers-empty = Questa scena non contiene livelli.
 pane-timeline = Linea del tempo
 pane-properties = Proprietà
 pane-color = A Colori

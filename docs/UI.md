@@ -2,7 +2,7 @@
 
 The workspace follows the familiar animation-tool layout: a tool strip on the left, the stage in
 the middle with a bar above it (scene, zoom, view toggles) and rulers along its edges, panels on
-the right (Properties and Library; Color, Align, Transform and History), the timeline below, and a
+the right (Properties, Library and Layers; Color, Align, Transform and History), the timeline below, and a
 status bar. Panels dock, tab, resize and can be rearranged; `View > Reset Workspace Layout`
 restores the default.
 
@@ -143,9 +143,23 @@ change is one undo step.
 ## Panel rail
 
 A narrow bar at the right edge, like Animate's collapsed panel strip, has an icon for each panel
-of the right-hand stack: Properties, Library, Color, Align, Transform, History and Info. Clicking one
+of the right-hand stack: Properties, Library, Layers, Color, Align, Transform, History and Info. Clicking one
 brings that panel to the front of its stack; the one showing is highlighted. It is a shortcut to what
 the tabs and Window menu already do, so no panel moves or closes. It is not shown on Home.
+
+The Layers panel is a compact stack for the active scene: click a row to choose its layer, double
+click its name to rename it, and use the eye and lock controls to change visibility and editing.
+Its toolbar adds layers and folders, reorders the active layer and deletes it; the context menu
+offers the same layer operations as the timeline. These changes use the same validated commands
+and undo history as the timeline controls.
+
+The Brush options include built-in Plain, Pencil, Krita-style Ink, Blender Grease Pencil,
+Calligraphy, OpenToonz-style Vector and Adobe Animate-style profiles. Nib shape, angle, flatness,
+minimum pressure width and pressure response can be edited; New keeps the settings as a custom
+profile in preferences. Custom profile collections also have a bounded, versioned JSON format.
+This does not read or write native `.kpp`, `.abr` or other application-specific preset
+containers: those formats can contain engine-specific textures and settings that Flare's vector
+brush model cannot preserve. A Blender-style sculpt/deformation tool is not implemented yet.
 
 ## Tool strip
 

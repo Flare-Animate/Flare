@@ -1,6 +1,8 @@
 pane-tools = Outils
 pane-stage = Scène
 pane-library = Bibliothèque
+pane-layers = Calques
+layers-empty = Aucun calque dans cette scène.
 pane-timeline = Scénario
 pane-properties = Propriétés
 pane-color = Couleur

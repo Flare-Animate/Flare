@@ -172,6 +172,8 @@ pub struct Workspace {
     brush_shelf: flare_tools::brush::BrushShelf,
     /// How thin a brush stroke gets at the lightest touch, as a fraction of its size.
     brush_light: f32,
+    /// How quickly brush width grows with pressure.
+    brush_pressure_gamma: f32,
     /// How far a smoothed line may stray from the drag, in screen pixels.
     smoothing: f32,
     /// The frames selected in the timeline (Shift-click), if any.
@@ -341,6 +343,7 @@ impl Workspace {
             brush_size: 12.0,
             brush_shelf: flare_tools::brush::BrushShelf::default(),
             brush_light: 0.15,
+            brush_pressure_gamma: 1.0,
             smoothing: 2.0,
             frame_range: None,
             frame_clipboard: None,

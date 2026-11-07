@@ -24,6 +24,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
             Pane::Stage => self.workspace.stage(ui),
             Pane::Timeline => self.workspace.timeline(ui),
             Pane::Library => inset.show(ui, |ui| self.workspace.library_panel(ui)).inner,
+            Pane::Layers => inset.show(ui, |ui| self.workspace.layers_panel(ui)).inner,
             Pane::Tools => self.workspace.tools_panel(ui),
             Pane::Properties => {
                 inset

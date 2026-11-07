@@ -13,6 +13,7 @@ mod color;
 pub(crate) mod color_wells;
 mod drawing_mode;
 mod history;
+mod layers_panel;
 pub(crate) use motion_editor::MotionEditor;
 mod info;
 mod motion_editor;
@@ -28,6 +29,7 @@ mod stage_bar;
 #[cfg(test)]
 mod tests;
 mod timeline_bar;
+pub(super) mod tool_options_labels;
 pub(crate) mod tool_pins;
 pub(crate) mod tool_slots;
 pub(crate) mod tools;

@@ -1,6 +1,8 @@
 pane-tools = Инструменты
 pane-stage = Сцена
 pane-library = Библиотека
+pane-layers = Слои
+layers-empty = В этой сцене нет слоёв.
 pane-timeline = Таймлайн
 pane-properties = Свойства
 pane-color = Цвет
