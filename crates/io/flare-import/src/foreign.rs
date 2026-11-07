@@ -22,6 +22,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
         "ppm" | "kwz" | "kwc" => Some("flipnote"),
         "fc" => Some("flipaclip"),
+        "wick" => Some("wick"),
         _ => None,
     }
 }
@@ -63,6 +64,7 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
             Ok(from_moho(out))
         }
         Some("flipaclip") => crate::flipaclip::import(file, &bytes),
+        Some("wick") => crate::wick::import(file, &bytes),
         Some("png") => crate::bitmap::import_png(file, &bytes),
         Some("gif") => crate::bitmap::import_gif(file, &bytes),
         Some("svg") => crate::svg::import(&bytes).map_err(|e| foreign(&e)),

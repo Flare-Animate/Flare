@@ -8,7 +8,7 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
 /// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 20] = [
+pub const IMPORT_EXTENSIONS: [&str; 21] = [
     "fla",
     "xfl",
     "svg",
@@ -29,6 +29,7 @@ pub const IMPORT_EXTENSIONS: [&str; 20] = [
     "mohoproj",
     "animeproj",
     "anme",
+    "wick",
 ];
 
 /// The file inside an XFL folder that is the document. A person who has only the folder, with no
@@ -175,6 +176,7 @@ mod tests {
             "a.mohoproj",
             "a.animeproj",
             "a.anme",
+            "a.wick",
         ] {
             assert_eq!(kind(name, false), Some(PathKind::Import), "{name}");
         }

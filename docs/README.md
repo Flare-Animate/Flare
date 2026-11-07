@@ -16,6 +16,7 @@ Flash workspaces and OpenToonz-inspired features follow once the core workflow i
 - [experimental/VIEWSPACE.md](experimental/VIEWSPACE.md): ViewSpace Keys, multi-view 2D interpolation: the full spec, what is built, every stub id (experimental, unstable, not in the document)
 
 - [MOHO.md](MOHO.md): Moho and Anime Studio projects and BVH: what is read, verified, and still a gap
+- [WICK.md](WICK.md): Wick Editor projects (`.wick`): the zip layout, what is imported, what is reported, and what is spec-only
 - [PARITY.md](PARITY.md): what the archived C++ project had and what Flare does with it
 - [ROADMAP.md](ROADMAP.md): milestones, what is done, and the next independent branches
 - [BACKLOG.md](BACKLOG.md): the reference backlog: what the absorbed and upstream projects have, the licences, and the work packages

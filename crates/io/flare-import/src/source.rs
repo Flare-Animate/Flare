@@ -176,6 +176,8 @@ pub fn import_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
         crate::flipnote::import("Flipnote.kwz", &bytes)
     } else if bytes.starts_with(&legacy::CFB_MAGIC) {
         legacy::import_legacy_bytes(&bytes)
+    } else if crate::looks_like_wick(&bytes) {
+        crate::wick::import("Project.wick", &bytes)
     } else {
         import_fla_bytes(bytes)
     }
