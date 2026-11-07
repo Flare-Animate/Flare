@@ -1,6 +1,6 @@
 # Working on Flare
 
-Flare is an Adobe Animate replacement written in Rust. Start with [docs/README.md](docs/README.md): it
+Flare is a familiar, free animation suite written in Rust. Start with [docs/README.md](docs/README.md): it
 says what each document covers. This file is only the rules for how to work here. How things
 are built, and why, is in `docs/` and is kept up to date with the code.
 

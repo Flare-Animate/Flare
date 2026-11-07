@@ -1,6 +1,6 @@
 # Flare docs
 
-Flare is an Adobe Animate replacement. The modern Animate workspace comes first; classic
+Flare is a free animation suite that feels familiar to Adobe Animate and Flash users. The modern Animate workspace comes first; classic
 Flash workspaces and OpenToonz-inspired features follow once the core workflow is solid.
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): crates, the document model, editing, storage, frontends, known gaps
