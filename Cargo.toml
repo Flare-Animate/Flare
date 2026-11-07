@@ -192,7 +192,7 @@ rtrb = "0.3"                # A lock-free queue from the window thread to the au
 rubato = "5"                 # Resampling of sounds to the output rate, off the audio thread.
 symphonia = { version = "0.5", default-features = false, features = ["wav", "mp3", "ogg", "vorbis", "flac", "pcm"] }
 cpal = "0.16"
-base64 = "0.22"
+base64 = "0.23"
 
 # ---- Video: no encoder for the person to install ------------------------------
 # The picture is H.264 (rusty_h264), the sound AAC-LC (OxideAV) and the MP4 container is
