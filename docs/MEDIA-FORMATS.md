@@ -31,7 +31,7 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 | HDR (Radiance) | yes | yes (opaque only) | `image` `hdr` | round trip within RGBE rounding | done |
 | OpenEXR | yes | yes (32-bit float, alpha) | `image` `exr` (exr crate) | round trip within one level | done |
 | DDS | yes (read) | **gap** | `image` `dds` decodes only | recorded in SURFACES.md | done (import); gap (export) |
-| SVG | yes (`usvg`) | **no** | import in `flare-import/svg.rs` | export from the vector stage | 3 |
+| SVG | yes (`usvg`) | yes (one frame; notes list what SVG cannot carry) | import in `flare-import/svg.rs`; export in `flare-export/svg.rs` | round trip tested | done |
 | PSD | no | no | psd crate (read) | layered export needs own writer | 4 |
 | HEIC | no | no | no permissive pure-Rust decoder found | recorded as a gap if none is found | 4 |
 

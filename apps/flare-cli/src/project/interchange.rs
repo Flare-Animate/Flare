@@ -127,14 +127,35 @@ fn export_animation(
     }
     let session = open(path)?;
     let bytes = encode(session.document()).map_err(anyhow::Error::msg)?;
+    write_new(out, &bytes)
+}
+
+/// Writes `bytes` to `out`, which must not exist: the file appears only when it is whole.
+fn write_new(out: &Path, bytes: &[u8]) -> Result<Value> {
+    if out.exists() {
+        bail!("{} already exists", out.display());
+    }
     let directory = out
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or(Path::new("."));
     let mut staged = tempfile::NamedTempFile::new_in(directory)?;
-    std::io::Write::write_all(&mut staged, &bytes)?;
+    std::io::Write::write_all(&mut staged, bytes)?;
     staged.persist(out).map_err(|error| error.error)?;
     Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes.len() }))
+}
+
+/// Renders one frame of the first scene as an SVG picture (vector: at the stage size). Never
+/// overwrites. The notes say what SVG could not carry, and they are reported with the file.
+pub fn export_svg(path: &Path, out: &Path, frame: u32) -> Result<Value> {
+    if out.exists() {
+        bail!("{} already exists", out.display());
+    }
+    let session = open(path)?;
+    let svg = flare_runtime::svg_export(session.document(), frame).map_err(anyhow::Error::msg)?;
+    let mut value = write_new(out, svg.text.as_bytes())?;
+    value["notes"] = json!(svg.notes);
+    Ok(value)
 }
 
 /// Renders the first scene as an H.264 and AAC video, with its sound. Never overwrites; the file

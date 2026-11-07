@@ -8,8 +8,8 @@ use serde_json::{Value, json};
 
 use crate::color::{safe_file_name_with, safe_name};
 use crate::params::{
-    ExportName, ExportSpriteSheet, ExportStill, ExportXfl, ImportProject, PublishHtml5, PublishSwf,
-    StillKind,
+    ExportName, ExportSpriteSheet, ExportStill, ExportSvg, ExportXfl, ImportProject, PublishHtml5,
+    PublishSwf, StillKind,
 };
 use crate::server::{FlareServer, Outcome, State};
 use flare_runtime::StillFormat;
@@ -110,6 +110,19 @@ impl FlareServer {
             let bytes = flare_runtime::apng_bytes(state.session.document())?;
             std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
+        })
+    }
+
+    #[tool(
+        description = "Render one frame of the first scene as an SVG picture in the export directory (disabled when no export directory is configured): shapes as paths with their fills, gradients, strokes and masks, pictures embedded as PNG. The reply's notes list what SVG cannot carry, such as a dashed stroke that is drawn solid."
+    )]
+    fn export_svg(&self, Parameters(args): Parameters<ExportSvg>) -> Outcome {
+        self.read(|state| {
+            let dir = export_dir(state)?;
+            let out = fresh(&dir, &safe_file_name_with(&args.name, "svg")?)?;
+            let svg = flare_runtime::svg_export(state.session.document(), args.frame.unwrap_or(0))?;
+            std::fs::write(&out, svg.text.as_bytes()).map_err(|e| e.to_string())?;
+            Ok(json!({ "path": out.to_string_lossy(), "bytes": svg.text.len(), "notes": svg.notes }))
         })
     }
 

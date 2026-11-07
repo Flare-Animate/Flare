@@ -33,6 +33,8 @@ pub enum ExportFormat {
     Gif,
     /// An animated PNG: every frame, with full colour and alpha.
     Apng,
+    /// One frame as an SVG picture: the shapes as paths, the pictures embedded.
+    Svg,
     Mp4,
 }
 
@@ -57,7 +59,7 @@ impl ExportFormat {
             Self::Ico => Some(StillFormat::Ico),
             Self::Exr => Some(StillFormat::Exr),
             Self::Hdr => Some(StillFormat::Hdr),
-            Self::Gif | Self::Apng | Self::Mp4 => None,
+            Self::Gif | Self::Apng | Self::Svg | Self::Mp4 => None,
         })
     }
 }

@@ -8,6 +8,7 @@
 
 pub mod curves;
 pub mod lossless;
+pub mod svg;
 mod writer;
 
 pub use writer::{

@@ -31,6 +31,20 @@ pub fn still_bytes(
     Ok(bytes)
 }
 
+/// Renders `frame` of the first scene as an SVG picture at the stage's size: the shapes as paths,
+/// the pictures embedded, and the notes for what SVG cannot carry (see `flare_export::svg`).
+pub fn svg_export(document: &Document, frame: u32) -> Result<flare_export::svg::Svg, String> {
+    let scene = document
+        .scenes()
+        .first()
+        .ok_or("The document has no scene to export.")?;
+    let drawn = flare_eval::evaluate_frame(document, scene.id(), frame)
+        .map_err(|error| format!("Cannot draw frame {}: {error}", frame + 1))?;
+    let stage = document.stage();
+    flare_export::svg::frame_svg(&drawn, stage.width(), stage.height(), stage.background())
+        .map_err(|error| format!("Cannot write the SVG: {error}"))
+}
+
 /// Renders `frame` as PNG bytes (see [`still_bytes`]).
 pub fn png_bytes(document: &Document, frame: u32) -> Result<Vec<u8>, String> {
     still_bytes(document, frame, StillFormat::Png)

@@ -419,3 +419,13 @@ async fn export_still_writes_the_new_formats_with_their_signatures() {
         assert!(signature(&bytes(&out["path"])), "{format}: wrong signature");
     }
 }
+
+#[tokio::test]
+async fn export_svg_writes_a_vector_picture_and_its_notes() {
+    let f = drawn().await;
+    let out = f.ok("export_svg", json!({ "name": "vec" })).await;
+    assert!(out["path"].as_str().expect("p").ends_with("vec.svg"));
+    let text = String::from_utf8(bytes(&out["path"])).expect("utf-8");
+    assert!(text.starts_with("<svg"), "{text}");
+    assert!(out["notes"].is_array(), "the notes are reported");
+}

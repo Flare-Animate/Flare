@@ -292,18 +292,31 @@ fn run() -> Result<()> {
                 transparent,
                 still,
             )?,
-            None => {
-                if frame.is_some() || width.is_some() || height.is_some() || transparent {
-                    bail!(
-                        "a GIF or a video holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG and the other still formats"
-                    );
+            None => match format {
+                project::ExportFormat::Svg => {
+                    if width.is_some() || height.is_some() || transparent {
+                        bail!(
+                            "SVG is a vector picture at the stage size: --width, --height and --transparent do not apply"
+                        );
+                    }
+                    project::export_svg(&path, &out, frame.unwrap_or(0))?
                 }
-                match format {
-                    project::ExportFormat::Gif => project::export_gif(&path, &out)?,
-                    project::ExportFormat::Apng => project::export_apng(&path, &out)?,
-                    _ => project::export_mp4(&path, &out)?,
+                project::ExportFormat::Gif
+                | project::ExportFormat::Apng
+                | project::ExportFormat::Mp4 => {
+                    if frame.is_some() || width.is_some() || height.is_some() || transparent {
+                        bail!(
+                            "a GIF or a video holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG and the other still formats"
+                        );
+                    }
+                    match format {
+                        project::ExportFormat::Gif => project::export_gif(&path, &out)?,
+                        project::ExportFormat::Apng => project::export_apng(&path, &out)?,
+                        _ => project::export_mp4(&path, &out)?,
+                    }
                 }
-            }
+                _ => bail!("unreachable: this format is a still image"),
+            },
         },
         Command::Place {
             path,

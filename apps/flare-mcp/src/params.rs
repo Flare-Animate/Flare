@@ -185,6 +185,15 @@ pub struct ExportName {
     pub name: String,
 }
 
+/// The SVG export: a name and the frame to draw.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ExportSvg {
+    /// File name only: letters, digits, '.', '_' or '-'. The extension is added when missing.
+    pub name: String,
+    /// The frame to draw, from 0. Defaults to the first.
+    pub frame: Option<u32>,
+}
+
 /// The still-image formats `export_still` writes.
 #[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]

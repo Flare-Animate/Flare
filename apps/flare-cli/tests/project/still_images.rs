@@ -185,3 +185,24 @@ fn export_apng_writes_an_animated_png() {
         "an animation control chunk, so it is an APNG"
     );
 }
+
+#[test]
+fn export_svg_writes_the_frame_and_reports_its_notes() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = red_square(dir.path());
+    let out = dir.path().join("frame.svg").to_string_lossy().into_owned();
+    let info = json(&["export", &file, &out, "--format", "svg"]);
+    assert!(
+        info["notes"].is_array(),
+        "the notes come back with the file"
+    );
+    let text = std::fs::read_to_string(&out).expect("svg");
+    assert!(text.starts_with("<svg"), "{text}");
+    assert!(
+        text.contains("fill=\"#ff0000\""),
+        "the red square is a red fill"
+    );
+    // A vector picture has no size of its own to choose: the flags that set one are refused.
+    let refused = run(&["export", &file, &out, "--format", "svg", "--width", "5"]);
+    assert!(!refused.status.success());
+}

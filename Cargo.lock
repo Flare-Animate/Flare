@@ -1993,6 +1993,7 @@ dependencies = [
 name = "flare-export"
 version = "0.1.0"
 dependencies = [
+ "base64 0.23.1",
  "flare-commands",
  "flare-core",
  "flare-document",
@@ -2002,6 +2003,7 @@ dependencies = [
  "flare-render",
  "flare-storage",
  "glamx",
+ "png 0.18.1",
  "quick-xml 0.42.0",
  "tempfile",
  "thiserror 2.0.18",
