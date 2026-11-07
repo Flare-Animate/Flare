@@ -30,8 +30,9 @@ pub use draw::{
 #[allow(unused_imports)]
 use interchange::*;
 pub use interchange::{
-    convert, export_apng, export_gif, export_mp4, export_psd, export_sprites, export_svg,
-    export_xfl, import, open_app, publish_html5, publish_swf, test_movie,
+    convert, export_animated_webp, export_apng, export_gif, export_movie, export_mp4, export_psd,
+    export_sprites, export_svg, export_xfl, import, open_app, publish_html5, publish_swf,
+    test_movie,
 };
 #[allow(unused_imports)]
 use render::*;

@@ -23,7 +23,7 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 | TIFF | yes (one-frame project) | yes | `image` `tiff` (lossless, alpha) | round trip tested | done |
 | WebP lossless | yes | yes | `image` `webp` (image-webp) | round trip tested | done |
 | WebP lossy | yes (decode, one frame) | **gap** | image-webp decodes lossy VP8; no pure-Rust lossy encoder | recorded in SURFACES.md | done (import); gap (export) |
-| WebP animated | yes (animation; frames composed by image-webp) | **gap** | image-webp 0.2 decodes only; no pure-Rust animated encoder | export via ffmpeg bridge (slice 5) | done (import); pending (export) |
+| WebP animated | yes (animation; frames composed by image-webp) | yes (lossless, every frame, pure Rust) | image-webp decodes; `flare-export/animated_webp.rs` writes | round trip tested | done |
 | AVIF | **gap** | **gap** | decode needs native dav1d; encode is ravif/rav1e (large) | recorded in SURFACES.md | gap |
 | ICO | yes | yes (at most 256 px a side) | `image` `ico` | round trip tested | done |
 | PNM (PBM/PGM/PPM/PAM) | yes; a plain `P1`-`P7` `.ppm` is a picture, other `.ppm` stays Flipnote | yes (PAM, keeps alpha) | `image` `pnm` | round trip tested | done |
@@ -37,16 +37,16 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 
 | Video | Import | Export | Carried by | Notes | Slice |
 |---|---|---|---|---|---|
-| MP4 (H.264 + AAC) | no | yes, with sound | `rusty_h264`, `oxideav-aac`, `muxide` (all pure Rust), `flare-video` | the only video export that exists today | done (export) |
+| MP4 (H.264 + AAC) | yes (through ffmpeg; one frame per picture, no sound) | yes, with sound (native) | `rusty_h264`, `oxideav-aac`, `muxide` (all pure Rust), `flare-video` | the only video export that exists today | done (export) |
 | GIF video | yes | yes | see GIF above | | done |
 | APNG video | yes (as the animation above) | yes (`export --format apng`) | `png` crate | | done (animation) |
 | animated WebP video | no | no | image-webp | | 5 |
-| WebM (VP8/VP9/AV1) | no | no | pure Rust AV1 encode (rav1e) + WebM mux if permissive and small; else ffmpeg | | 5 |
-| MOV | no | no | ffmpeg bridge | | 5 |
-| AVI | no | no | ffmpeg bridge | | 5 |
-| MKV | no | no | ffmpeg bridge | | 5 |
-| MPEG | no | no | ffmpeg bridge | | 5 |
-| FLV | no | no | ffmpeg bridge; refused today as `.flv` (the Flash video is not an animation) | | 5 |
+| WebM (VP8/VP9/AV1) | yes (ffmpeg) | yes (VP9 with Opus, through ffmpeg) | ffmpeg | | done |
+| MOV | yes (ffmpeg) | yes (H.264 with AAC, ffmpeg) | ffmpeg | | done |
+| AVI | yes (ffmpeg) | yes (MPEG-4 with PCM, ffmpeg) | ffmpeg | | done |
+| MKV | yes (ffmpeg) | yes (H.264 with AAC, ffmpeg) | ffmpeg | | done |
+| MPEG | yes (ffmpeg) | yes (MPEG-2 with MP2, ffmpeg) | ffmpeg | | done |
+| FLV | yes (ffmpeg) | yes (FLV1 with AAC, ffmpeg) | ffmpeg | | done |
 
 ## Policy
 

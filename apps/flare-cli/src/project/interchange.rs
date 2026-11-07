@@ -110,6 +110,12 @@ pub fn export_gif(path: &Path, out: &Path) -> Result<Value> {
     export_animation(path, out, flare_runtime::gif_bytes)
 }
 
+/// Renders every frame of the first scene as an endlessly repeating animated WebP (lossless). Never
+/// overwrites; the file appears only when complete.
+pub fn export_animated_webp(path: &Path, out: &Path) -> Result<Value> {
+    export_animation(path, out, flare_runtime::animated_webp_bytes)
+}
+
 /// Renders every frame of the first scene as an endlessly looping APNG (animated PNG). Never
 /// overwrites; the file appears only when complete.
 pub fn export_apng(path: &Path, out: &Path) -> Result<Value> {
@@ -143,6 +149,21 @@ fn write_new(out: &Path, bytes: &[u8]) -> Result<Value> {
     std::io::Write::write_all(&mut staged, bytes)?;
     staged.persist(out).map_err(|error| error.error)?;
     Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes.len() }))
+}
+
+/// Writes the first scene as a movie made by ffmpeg, in the container `id` (see `flare_ffmpeg`).
+/// Never overwrites; the file appears only when whole.
+pub fn export_movie(path: &Path, out: &Path, id: &str) -> Result<Value> {
+    if out.exists() {
+        bail!("{} already exists", out.display());
+    }
+    let container =
+        flare_ffmpeg::container(id).with_context(|| format!("no movie format called {id}"))?;
+    let session = open(path)?;
+    flare_video::write_with_ffmpeg(session.document(), out, container)
+        .map_err(anyhow::Error::msg)?;
+    let bytes = std::fs::metadata(out)?.len();
+    Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes }))
 }
 
 /// Renders one frame of the first scene as a flattened Photoshop (PSD) file at the stage's size.

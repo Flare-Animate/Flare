@@ -19,6 +19,7 @@ gif.workspace = true
 image = { workspace = true, features = ["bmp", "tga", "tiff", "webp", "qoi", "pnm", "ico", "exr", "hdr", "dds"] }
 image-webp.workspace = true
 psd.workspace = true
+flare-ffmpeg.workspace = true
 jpeg-decoder.workspace = true
 glamx.workspace = true
 png.workspace = true
@@ -31,6 +32,7 @@ serde_json.workspace = true
 zstd.workspace = true
 
 [dev-dependencies]
+flare-video.workspace = true
 flare-eval.workspace = true
 flare-render.workspace = true
 tempfile.workspace = true

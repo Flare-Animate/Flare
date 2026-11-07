@@ -34,6 +34,7 @@ members = [
     "crates/io/flare-publish",
     "crates/io/flare-toonz",
     "crates/io/flare-moho",
+    "crates/io/flare-ffmpeg",
     # adapters
     "crates/adapters/flare-flash",
     "crates/adapters/flare-ruffle",
@@ -87,6 +88,7 @@ flare-import = { path = "crates/io/flare-import" }
 flare-export = { path = "crates/io/flare-export" }
 flare-publish = { path = "crates/io/flare-publish" }
 flare-moho = { path = "crates/io/flare-moho" }
+flare-ffmpeg = { path = "crates/io/flare-ffmpeg" }
 # apps
 flare-shell = { path = "crates/presentation/flare-shell" }
 # adapters

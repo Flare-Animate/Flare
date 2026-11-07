@@ -94,15 +94,20 @@ impl Track {
 
     /// Mixes and encodes the next frame.
     pub(crate) fn next_frame(&mut self) -> Result<Vec<u8>, String> {
-        let mut mixed = vec![0.0f32; FRAME_SAMPLES * 2];
-        self.mixer.render(&mut mixed);
-        let pcm: Vec<i16> = mixed
-            .iter()
-            .map(|s| (s * 32767.0).round().clamp(-32768.0, 32767.0) as i16)
-            .collect();
-        self.index += 1;
+        let pcm = self.next_pcm();
         self.encoder
             .encode_frame(&pcm)
             .map_err(|e| format!("Cannot encode the sound: {e}"))
+    }
+
+    /// Mixes the next frame's worth of sound as interleaved 16-bit stereo, without encoding it.
+    pub(crate) fn next_pcm(&mut self) -> Vec<i16> {
+        let mut mixed = vec![0.0f32; FRAME_SAMPLES * 2];
+        self.mixer.render(&mut mixed);
+        self.index += 1;
+        mixed
+            .iter()
+            .map(|s| (s * 32767.0).round().clamp(-32768.0, 32767.0) as i16)
+            .collect()
     }
 }

@@ -185,6 +185,28 @@ pub struct ExportName {
     pub name: String,
 }
 
+/// The movie formats `export_movie` writes through ffmpeg.
+#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum MovieKind {
+    Mov,
+    Avi,
+    Mkv,
+    Webm,
+    Mpeg,
+    Flv,
+}
+
+/// The movie export: a name and the container.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ExportMovie {
+    /// File name only: letters, digits, '.', '_' or '-'. The extension for the format is added
+    /// when missing.
+    pub name: String,
+    /// The container: mov, avi, mkv, webm, mpeg or flv. Needs ffmpeg on the computer.
+    pub format: MovieKind,
+}
+
 /// The SVG export: a name and the frame to draw.
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ExportSvg {

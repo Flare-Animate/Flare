@@ -8,8 +8,8 @@ use serde_json::{Value, json};
 
 use crate::color::{safe_file_name_with, safe_name};
 use crate::params::{
-    ExportName, ExportSpriteSheet, ExportStill, ExportSvg, ExportXfl, ImportProject, PublishHtml5,
-    PublishSwf, StillKind,
+    ExportMovie, ExportName, ExportSpriteSheet, ExportStill, ExportSvg, ExportXfl, ImportProject,
+    MovieKind, PublishHtml5, PublishSwf, StillKind,
 };
 use crate::server::{FlareServer, Outcome, State};
 use flare_runtime::StillFormat;
@@ -137,6 +137,41 @@ impl FlareServer {
                 flare_runtime::psd_export(state.session.document(), args.frame.unwrap_or(0))?;
             std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
+        })
+    }
+
+    #[tool(
+        description = "Render the first scene as an endlessly repeating animated WebP (lossless, every frame) in the export directory (disabled when no export directory is configured)."
+    )]
+    fn export_animated_webp(&self, Parameters(args): Parameters<ExportName>) -> Outcome {
+        self.read(|state| {
+            let dir = export_dir(state)?;
+            let out = fresh(&dir, &safe_file_name_with(&args.name, "webp")?)?;
+            let bytes = flare_runtime::animated_webp_bytes(state.session.document())?;
+            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
+        })
+    }
+
+    #[tool(
+        description = "Write the first scene as a movie through ffmpeg in the export directory: mov, avi, mkv, webm, mpeg or flv (disabled when no export directory is configured). Needs ffmpeg on the computer; without it the reply says so."
+    )]
+    fn export_movie(&self, Parameters(args): Parameters<ExportMovie>) -> Outcome {
+        self.read(|state| {
+            let id = match args.format {
+                MovieKind::Mov => "mov",
+                MovieKind::Avi => "avi",
+                MovieKind::Mkv => "mkv",
+                MovieKind::Webm => "webm",
+                MovieKind::Mpeg => "mpeg",
+                MovieKind::Flv => "flv",
+            };
+            let container = flare_ffmpeg::container(id).ok_or("unknown movie format")?;
+            let dir = export_dir(state)?;
+            let out = fresh(&dir, &safe_file_name_with(&args.name, container.extension)?)?;
+            flare_video::write_with_ffmpeg(state.session.document(), &out, container)?;
+            let bytes = std::fs::metadata(&out).map_err(|e| e.to_string())?.len();
+            Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes }))
         })
     }
 

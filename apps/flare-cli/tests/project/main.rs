@@ -15,6 +15,7 @@ mod game;
 mod layers_and_stage;
 mod lossless;
 mod moho;
+mod movies;
 mod open;
 mod rendering;
 mod save_formats;

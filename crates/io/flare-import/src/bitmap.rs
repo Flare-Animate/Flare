@@ -208,7 +208,7 @@ fn gcd(a: u32, b: u32) -> u32 {
 
 /// Builds the project: one layer, one keyframe per picture held for `holds[i]` frames. Identical
 /// pictures share one bitmap.
-fn build(
+pub(crate) fn build(
     name: &str,
     pictures: Vec<Picture>,
     holds: &[u32],

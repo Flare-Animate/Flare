@@ -6,6 +6,7 @@
 //! Adobe Animate, so treat compatibility with Animate as unverified.
 #![forbid(unsafe_code)]
 
+pub mod animated_webp;
 pub mod curves;
 pub mod lossless;
 pub mod psd;

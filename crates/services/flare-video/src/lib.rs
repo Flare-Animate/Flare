@@ -10,6 +10,7 @@
 
 mod audio;
 mod color;
+mod ffmpeg_movie;
 
 use std::io::Write;
 use std::path::Path;
@@ -17,6 +18,8 @@ use std::path::Path;
 use flare_document::Document;
 use muxide::api::{AacProfile, AudioCodec, MuxerBuilder, VideoCodec};
 use rusty_h264::{Encoder, EncoderConfig};
+
+pub use ffmpeg_movie::write_with_ffmpeg;
 
 /// Longest side of the video in pixels; bigger stages are scaled down to it.
 pub const MAX_VIDEO_SIDE: u32 = 1920;

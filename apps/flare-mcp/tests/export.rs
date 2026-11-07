@@ -439,3 +439,27 @@ async fn export_psd_writes_a_photoshop_file() {
     assert!(data.starts_with(b"8BPS"), "a Photoshop file");
     psd::Psd::from_bytes(&data).expect("the PSD reader accepts it");
 }
+
+#[tokio::test]
+async fn export_animated_webp_writes_a_webp_and_export_movie_needs_ffmpeg_or_writes_one() {
+    let f = drawn().await;
+    let webp = f
+        .ok("export_animated_webp", json!({ "name": "anim" }))
+        .await;
+    let data = bytes(&webp["path"]);
+    assert!(data.starts_with(b"RIFF") && data.get(8..12) == Some(b"WEBP"));
+
+    let (is_error, message) = f
+        .tool("export_movie", json!({ "name": "clip", "format": "mkv" }))
+        .await;
+    if flare_ffmpeg::locate().is_ok() {
+        assert!(!is_error, "{message}");
+        assert!(
+            f.dir.path().join("exports").join("clip.mkv").is_file(),
+            "the movie is in the export directory"
+        );
+    } else {
+        assert!(is_error, "without ffmpeg the movie is refused");
+        assert!(message.as_str().expect("m").contains("ffmpeg"));
+    }
+}

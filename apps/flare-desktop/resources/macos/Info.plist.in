@@ -53,6 +53,14 @@
                 <string>bmp</string>
                 <string>tga</string>
                 <string>psd</string>
+                <string>mp4</string>
+                <string>mov</string>
+                <string>avi</string>
+                <string>mkv</string>
+                <string>webm</string>
+                <string>mpeg</string>
+                <string>mpg</string>
+                <string>flv</string>
                 <string>tif</string>
                 <string>tiff</string>
                 <string>webp</string>

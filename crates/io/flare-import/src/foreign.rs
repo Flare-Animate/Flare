@@ -30,6 +30,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "exr" => Some("exr"),
         "dds" => Some("dds"),
         "psd" => Some("psd"),
+        "mp4" | "mov" | "avi" | "mkv" | "webm" | "mpeg" | "mpg" | "flv" => Some("video"),
         "gif" => Some("gif"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
         "ppm" | "kwz" | "kwc" => Some("flipnote"),
@@ -51,6 +52,10 @@ fn is_plain_netpbm(name: &Path, bytes: &[u8]) -> bool {
 }
 
 pub fn import_foreign_path(path: &Path) -> Result<Imported, ImportError> {
+    // A movie is far bigger than the bytes read below, and ffmpeg reads the file itself.
+    if foreign_kind(path) == Some("video") {
+        return crate::video::import_path(path);
+    }
     let mut bytes = Vec::new();
     std::fs::File::open(path)?
         .take(MAX_BYTES + 1)
@@ -98,6 +103,7 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
         Some("exr") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::OpenExr),
         Some("dds") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Dds),
         Some("psd") => crate::psd::import(file, &bytes),
+        Some("video") => Err(foreign(&"a movie is read from its file on disk")),
         Some("tga") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Tga),
         Some("gif") => crate::bitmap::import_gif(file, &bytes),
         Some("svg") => crate::svg::import(&bytes).map_err(|e| foreign(&e)),

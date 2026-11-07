@@ -33,6 +33,15 @@ pub enum ExportFormat {
     Gif,
     /// An animated PNG: every frame, with full colour and alpha.
     Apng,
+    /// An animated WebP, lossless, every frame.
+    AnimatedWebp,
+    /// A movie made by ffmpeg, for the containers Flare writes no other way.
+    Mov,
+    Avi,
+    Mkv,
+    Webm,
+    Mpeg,
+    Flv,
     /// One frame as an SVG picture: the shapes as paths, the pictures embedded.
     Svg,
     /// One frame as a flattened Photoshop file (one picture layer, with its alpha).
@@ -61,7 +70,18 @@ impl ExportFormat {
             Self::Ico => Some(StillFormat::Ico),
             Self::Exr => Some(StillFormat::Exr),
             Self::Hdr => Some(StillFormat::Hdr),
-            Self::Gif | Self::Apng | Self::Svg | Self::Psd | Self::Mp4 => None,
+            Self::Gif
+            | Self::Apng
+            | Self::AnimatedWebp
+            | Self::Mov
+            | Self::Avi
+            | Self::Mkv
+            | Self::Webm
+            | Self::Mpeg
+            | Self::Flv
+            | Self::Svg
+            | Self::Psd
+            | Self::Mp4 => None,
         })
     }
 }

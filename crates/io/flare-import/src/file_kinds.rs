@@ -8,7 +8,7 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
 /// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 38] = [
+pub const IMPORT_EXTENSIONS: [&str; 46] = [
     "fla",
     "xfl",
     "svg",
@@ -30,6 +30,14 @@ pub const IMPORT_EXTENSIONS: [&str; 38] = [
     "exr",
     "dds",
     "psd",
+    "mp4",
+    "mov",
+    "avi",
+    "mkv",
+    "webm",
+    "mpeg",
+    "mpg",
+    "flv",
     "gif",
     "swf",
     "bvh",
@@ -91,7 +99,7 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
 
 /// Formats people meet beside Flash and Toonz files, which Flare does not import, with the reason
 /// the refusal names. Anything else gets the generic message.
-const UNSUPPORTED: [(&str, &str); 8] = [
+const UNSUPPORTED: [(&str, &str); 7] = [
     (
         "as",
         "an ActionScript source file (.as) holds code, not an animation; open the .fla or .swf it belongs to",
@@ -111,10 +119,6 @@ const UNSUPPORTED: [(&str, &str); 8] = [
     (
         "sol",
         "a Flash shared object (.sol) holds saved data, not an animation",
-    ),
-    (
-        "flv",
-        "a Flash video (.flv) is not imported; Flare opens animations and still images",
     ),
     (
         "swc",
@@ -143,7 +147,7 @@ mod tests {
     #[test]
     fn each_unsupported_kind_names_its_reason_and_others_do_not() {
         for name in [
-            "a.as", "a.AS2", "a.as3", "a.jsfl", "a.sol", "a.flv", "a.swc", "a.tnx",
+            "a.as", "a.AS2", "a.as3", "a.jsfl", "a.sol", "a.swc", "a.tnx",
         ] {
             let reason = unsupported_reason(Path::new(name));
             assert!(reason.is_some_and(|r| !r.is_empty()), "{name}");
@@ -206,7 +210,8 @@ mod tests {
         assert_eq!(kind("a.TGA", false), Some(PathKind::Import));
         for name in [
             "a.tif", "a.TIFF", "a.webp", "a.ico", "a.qoi", "a.pnm", "a.pam", "a.hdr", "a.exr",
-            "a.dds", "a.psd",
+            "a.dds", "a.psd", "a.mp4", "a.MOV", "a.avi", "a.mkv", "a.webm", "a.mpeg", "a.mpg",
+            "a.flv",
         ] {
             assert_eq!(kind(name, false), Some(PathKind::Import), "{name}");
         }

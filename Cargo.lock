@@ -1882,6 +1882,7 @@ dependencies = [
  "flare-editor",
  "flare-eval",
  "flare-export",
+ "flare-ffmpeg",
  "flare-flash",
  "flare-game",
  "flare-history",
@@ -2004,11 +2005,20 @@ dependencies = [
  "flare-render",
  "flare-storage",
  "glamx",
+ "image-webp",
  "png 0.18.1",
  "quick-xml 0.42.0",
  "tempfile",
  "thiserror 2.0.18",
  "zip",
+]
+
+[[package]]
+name = "flare-ffmpeg"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -2055,12 +2065,14 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-eval",
+ "flare-ffmpeg",
  "flare-moho",
  "flare-render",
  "flare-storage",
  "flare-text",
  "flare-toonz",
  "flare-tween",
+ "flare-video",
  "flate2",
  "gif",
  "glamx",
@@ -2099,6 +2111,7 @@ dependencies = [
  "flare-editor",
  "flare-eval",
  "flare-export",
+ "flare-ffmpeg",
  "flare-game",
  "flare-history",
  "flare-import",
@@ -2424,6 +2437,7 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-eval",
+ "flare-ffmpeg",
  "flare-render",
  "muxide",
  "oxideav-aac",

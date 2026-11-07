@@ -150,6 +150,23 @@ fn draw(document: &Document, plan: &Plan, frame: u32) -> Result<flare_render::Im
     .map_err(|e| format!("Cannot render frame {}: {e}", frame + 1))
 }
 
+/// Renders every frame of the first scene as an endlessly repeating animated WebP, lossless (the
+/// colours come back exactly), at the document's frame rate.
+pub fn animated_webp_bytes(document: &Document) -> Result<Vec<u8>, String> {
+    let plan = plan(document)?;
+    check_frames(&plan, "animated WebP")?;
+    let delay_ms = ((1000.0 / plan.fps).round() as u32).max(1);
+    let mut animation = flare_export::animated_webp::AnimatedWebp::new(plan.width, plan.height)
+        .map_err(|e| format!("Cannot start the animated WebP: {e}"))?;
+    for frame in 0..plan.frames as u32 {
+        let image = draw(document, &plan, frame)?;
+        animation
+            .push_frame(image.rgba(), delay_ms)
+            .map_err(|e| format!("Cannot write frame {}: {e}", frame + 1))?;
+    }
+    Ok(animation.finish())
+}
+
 /// Renders every frame of the first scene and encodes them as an endlessly looping APNG (animated
 /// PNG) at the document's frame rate. A PNG frame holds milliseconds, so the rate rounds to those.
 pub fn apng_bytes(document: &Document) -> Result<Vec<u8>, String> {

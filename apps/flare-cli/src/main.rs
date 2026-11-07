@@ -311,6 +311,13 @@ fn run() -> Result<()> {
                 }
                 project::ExportFormat::Gif
                 | project::ExportFormat::Apng
+                | project::ExportFormat::AnimatedWebp
+                | project::ExportFormat::Mov
+                | project::ExportFormat::Avi
+                | project::ExportFormat::Mkv
+                | project::ExportFormat::Webm
+                | project::ExportFormat::Mpeg
+                | project::ExportFormat::Flv
                 | project::ExportFormat::Mp4 => {
                     if frame.is_some() || width.is_some() || height.is_some() || transparent {
                         bail!(
@@ -320,6 +327,15 @@ fn run() -> Result<()> {
                     match format {
                         project::ExportFormat::Gif => project::export_gif(&path, &out)?,
                         project::ExportFormat::Apng => project::export_apng(&path, &out)?,
+                        project::ExportFormat::AnimatedWebp => {
+                            project::export_animated_webp(&path, &out)?
+                        }
+                        project::ExportFormat::Mov => project::export_movie(&path, &out, "mov")?,
+                        project::ExportFormat::Avi => project::export_movie(&path, &out, "avi")?,
+                        project::ExportFormat::Mkv => project::export_movie(&path, &out, "mkv")?,
+                        project::ExportFormat::Webm => project::export_movie(&path, &out, "webm")?,
+                        project::ExportFormat::Mpeg => project::export_movie(&path, &out, "mpeg")?,
+                        project::ExportFormat::Flv => project::export_movie(&path, &out, "flv")?,
                         _ => project::export_mp4(&path, &out)?,
                     }
                 }

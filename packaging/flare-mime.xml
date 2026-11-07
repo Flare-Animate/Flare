@@ -96,6 +96,35 @@
     <comment>Photoshop Image</comment>
     <glob pattern="*.psd" />
   </mime-type>
+  <mime-type type="video/mp4">
+    <comment>video/mp4 movie</comment>
+    <glob pattern="*.mp4" />
+  </mime-type>
+  <mime-type type="video/mpeg">
+    <comment>video/mpeg movie</comment>
+    <glob pattern="*.mpeg" />
+    <glob pattern="*.mpg" />
+  </mime-type>
+  <mime-type type="video/quicktime">
+    <comment>video/quicktime movie</comment>
+    <glob pattern="*.mov" />
+  </mime-type>
+  <mime-type type="video/webm">
+    <comment>video/webm movie</comment>
+    <glob pattern="*.webm" />
+  </mime-type>
+  <mime-type type="video/x-flv">
+    <comment>video/x-flv movie</comment>
+    <glob pattern="*.flv" />
+  </mime-type>
+  <mime-type type="video/x-matroska">
+    <comment>video/x-matroska movie</comment>
+    <glob pattern="*.mkv" />
+  </mime-type>
+  <mime-type type="video/x-msvideo">
+    <comment>video/x-msvideo movie</comment>
+    <glob pattern="*.avi" />
+  </mime-type>
   <mime-type type="image/gif">
     <comment>GIF Image</comment>
     <glob pattern="*.gif" />

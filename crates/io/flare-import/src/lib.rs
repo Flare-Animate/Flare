@@ -18,6 +18,7 @@ mod source;
 mod svg;
 mod swf;
 mod toonz;
+mod video;
 mod webp;
 mod wick;
 mod xfl;

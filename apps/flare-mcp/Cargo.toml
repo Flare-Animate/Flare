@@ -27,6 +27,7 @@ flare-publish.workspace = true
 flare-runtime.workspace = true
 flare-tween.workspace = true
 flare-video.workspace = true
+flare-ffmpeg.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
