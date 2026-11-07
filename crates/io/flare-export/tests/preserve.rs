@@ -31,6 +31,7 @@ const MAIN: &str = r##"<DOMDocument frameRate="24" width="100" height="50">
         <DOMShape><fills><FillStyle index="1"><SolidColor color="#FF0000"/></FillStyle></fills>
           <edges><Edge fillStyle1="1" edges="!0 0|200 0|200 200|0 200|0 0"/></edges></DOMShape>
         <DOMStaticText left="5"><textRuns><DOMTextRun><characters>  Hello &amp; &lt;world&gt;  </characters></DOMTextRun></textRuns></DOMStaticText>
+        <DOMVideoInstance name="kept as source"/>
       </elements>
     </DOMFrame>
     <DOMFrame index="3" duration="2"><elements><DOMBitmapInstance libraryItemName="pic"/></elements></DOMFrame>

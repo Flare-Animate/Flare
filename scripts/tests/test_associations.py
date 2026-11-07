@@ -33,7 +33,7 @@ class Associations(unittest.TestCase):
             IMPORT,
             {
                 "fla", "xfl", "svg", "png", "gif", "swf", "bvh", "fc", "ppm", "kwz", "tnz",
-                "tpl", "plt", "tlv", "pli", "moho", "anime", "mohoproj", "animeproj", "anme",
+                "tpl", "plt", "tlv", "pli", "moho", "anime", "mohoproj", "animeproj", "anme", "wick",
             },
         )
 

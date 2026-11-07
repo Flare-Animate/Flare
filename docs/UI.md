@@ -80,7 +80,7 @@ draws every shape as a one-pixel line in its layer's color with no fills and ign
 everything can be found; the evaluated frame carries each shape's layer color for this
 (`DrawnShape::outline`). A mask layer itself is not drawn, so it has no outline yet.
 
-## Still to match from Animate 2024 (Linux reference)
+## Still to make familiar from Animate 2024 (Linux reference)
 
 a Color panel with a fill-type dropdown, hex
 field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown

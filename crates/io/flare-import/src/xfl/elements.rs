@@ -23,6 +23,17 @@ impl Importer {
                         place,
                     ),
                 },
+                "DOMStaticText" | "DOMDynamicText" | "DOMInputText" => {
+                    match self.text_field(element, place) {
+                        Some(content) => out.push(content),
+                        None => self.keep(
+                            Anchor::Layer(spot.layer),
+                            Placement::FrameElement { frame: spot.frame },
+                            element.to_xml(),
+                            place,
+                        ),
+                    }
+                }
                 "DOMGroup" => {
                     self.note(
                         Severity::Info,
@@ -132,7 +143,7 @@ impl Importer {
 
     /// The element's `matrix/Matrix` as a transform; a missing value is the identity's, and a
     /// matrix that is not finite or not invertible is noted and gives `None`.
-    fn matrix(&mut self, node: &Node, place: &str) -> Option<Transform2D> {
+    pub(super) fn matrix(&mut self, node: &Node, place: &str) -> Option<Transform2D> {
         let matrix = node.child("matrix").and_then(|m| m.child("Matrix"));
         let get = |key: &str, default: f64| {
             matrix.and_then(|m| m.attr(key)).map_or(Some(default), |v| {
@@ -156,7 +167,7 @@ impl Importer {
             self.note(
                 Severity::Unsupported,
                 place,
-                "an instance with an invalid matrix was skipped",
+                "an element with an invalid matrix was skipped",
             );
             return None;
         };

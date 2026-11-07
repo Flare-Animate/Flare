@@ -1,7 +1,7 @@
 # Reference backlog
 
 What the absorbed and upstream projects have, what Flare on `main` lacks, and the work packages
-that close the gaps that matter most for an Adobe Animate replacement. The summary is in
+that close the gaps that matter most for Animate users moving to Flare. The summary is in
 [ROADMAP.md](ROADMAP.md) (Reference backlog). This file is the evidence behind it.
 
 Checked on 2026-11-04 against `origin/main` (commit 5026a07). Gaps were confirmed by grepping

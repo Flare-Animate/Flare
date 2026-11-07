@@ -176,6 +176,8 @@ pub fn import_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
         crate::flipnote::import("Flipnote.kwz", &bytes)
     } else if bytes.starts_with(&legacy::CFB_MAGIC) {
         legacy::import_legacy_bytes(&bytes)
+    } else if crate::looks_like_wick(&bytes) {
+        crate::wick::import("Project.wick", &bytes)
     } else {
         import_fla_bytes(bytes)
     }
@@ -273,6 +275,10 @@ pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
             parent
         };
         return import_folder_kept(parent, &name);
+    }
+    if let Some(reason) = crate::file_kinds::unsupported_reason(path) {
+        let file = path.file_name().and_then(|n| n.to_str()).unwrap_or("file");
+        return Err(ImportError::Foreign(format!("{file}: {reason}")));
     }
     Err(ImportError::NotXfl(
         "expected an XFL directory, a modern FLA (zip) or an .xfl file".into(),

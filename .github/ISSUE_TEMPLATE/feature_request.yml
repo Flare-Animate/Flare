@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Flare aims to be a modern replacement for Adobe Animate, so the clearest requests say what
+        Flare aims to be a modern, familiar animation suite for people who know Adobe Animate, so the clearest requests say what
         you do in Animate (or elsewhere) that Flare cannot yet. Requests with someone ready to
         build them move fastest.
   - type: textarea

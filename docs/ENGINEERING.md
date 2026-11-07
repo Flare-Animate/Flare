@@ -166,6 +166,11 @@ could not be read from this environment, so nothing from it may be ported until 
   translation rule, the palette bits, the frame rate table and the IMA ADPCM decoder. The Rust is
   written from that reading, not copied line by line; the notice above applies to the ported logic.
   The KWZ parser was read but nothing from it is used yet. See docs/FLIPNOTE.md.
+- lifeart/fla-viewer (`lifeart/fla-viewer`, ISC per `package.json`; no LICENSE file): its
+  `src/motion-object.ts` was read for the meaning of the motion object fields (ticks, anchor and
+  handle pairs, which channels are offsets and which are absolute). Behaviour reference only, no
+  code taken. `crates/io/flare-import/src/xfl/motion/` is written from that description and from
+  Flare's own tests (`tests/xfl_motion.rs`).
 - usvg and its parser crates (MIT/Apache-2.0, linked as a dependency, no code copied): the SVG reader of `crates/io/flare-import/src/svg.rs`, with its text feature off.
 - SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.
 - Bauxitedev/bitmapflow (optical-flow frame interpolation for pixel art): the repository has no
@@ -179,3 +184,4 @@ could not be read from this environment, so nothing from it may be ported until 
   only. The neural weights are not shipped by Flare and are not used. Only the README and the licence
   were read; the classical methods used (forward splatting, occlusion from matching) are published
   ones, and no code was copied.
+- Wick Editor (GPL-3.0, Copyright (c) Wicklets LLC; LICENSE in https://github.com/Wicklets/wick-editor): the layout of `.wick` files (the zip with `project.json` and `assets/`, the object tree, the Paper.js path encoding, frame numbering, tween easing and interpolation, the clip transform's centre) was read from the serialisation and view code in `engine/src/` (`export/wick/WickFile.js`, `base/*.js`, `view/View.Clip.js`, `view/View.Timeline.js`). Facts and behaviour only: no code was copied, and the importer in `crates/io/flare-import/src/wick/` is written from those facts. The layout and its verification are in docs/WICK.md. The samples were not committed.

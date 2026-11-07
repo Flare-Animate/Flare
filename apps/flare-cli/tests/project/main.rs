@@ -24,6 +24,7 @@ mod swf_import;
 mod symbols;
 mod text;
 mod tween;
+mod wick;
 
 fn run(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_flare"))

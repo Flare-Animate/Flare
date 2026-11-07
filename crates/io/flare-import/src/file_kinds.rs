@@ -8,7 +8,7 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
 /// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 20] = [
+pub const IMPORT_EXTENSIONS: [&str; 21] = [
     "fla",
     "xfl",
     "svg",
@@ -29,6 +29,7 @@ pub const IMPORT_EXTENSIONS: [&str; 20] = [
     "mohoproj",
     "animeproj",
     "anme",
+    "wick",
 ];
 
 /// The file inside an XFL folder that is the document. A person who has only the folder, with no
@@ -71,9 +72,82 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
     }
 }
 
+/// Formats people meet beside Flash and Toonz files, which Flare does not import, with the reason
+/// the refusal names. Anything else gets the generic message.
+const UNSUPPORTED: [(&str, &str); 11] = [
+    (
+        "as",
+        "an ActionScript source file (.as) holds code, not an animation; open the .fla or .swf it belongs to",
+    ),
+    (
+        "as2",
+        "an ActionScript 2 source file (.as2) holds code, not an animation; open the .fla or .swf it belongs to",
+    ),
+    (
+        "as3",
+        "an ActionScript 3 source file (.as3) holds code, not an animation; open the .fla or .swf it belongs to",
+    ),
+    (
+        "jsfl",
+        "a JSFL script (.jsfl) runs inside Animate and is not an animation",
+    ),
+    (
+        "sol",
+        "a Flash shared object (.sol) holds saved data, not an animation",
+    ),
+    (
+        "flv",
+        "a Flash video (.flv) is not imported; Flare opens animations and still images",
+    ),
+    (
+        "swc",
+        "a component library (.swc) has no timeline of its own; the .swf that uses it is what opens",
+    ),
+    (
+        "tif",
+        "a single TIFF is not imported; Toonz scenes (.tnz) bring their own image sequences",
+    ),
+    (
+        "tiff",
+        "a single TIFF is not imported; Toonz scenes (.tnz) bring their own image sequences",
+    ),
+    (
+        "tnx",
+        "the OpenToonz .tnx format is not read; open the .tnz scene instead",
+    ),
+    (
+        "jpg",
+        "JPEG is not imported; Flare reads PNG, GIF and SVG still images",
+    ),
+];
+
+/// Why `path` is not imported, for a name Flare knows and does not read. `None` when the name
+/// is not one of those (the caller then says the file is not a kind it opens).
+pub fn unsupported_reason(path: &Path) -> Option<&'static str> {
+    let extension = path.extension()?.to_str()?.to_ascii_lowercase();
+    UNSUPPORTED
+        .iter()
+        .find(|(ext, _)| *ext == extension)
+        .map(|(_, reason)| *reason)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn each_unsupported_kind_names_its_reason_and_others_do_not() {
+        for name in [
+            "a.as", "a.AS2", "a.as3", "a.jsfl", "a.sol", "a.flv", "a.swc", "a.tif", "a.tnx",
+            "a.jpg",
+        ] {
+            let reason = unsupported_reason(Path::new(name));
+            assert!(reason.is_some_and(|r| !r.is_empty()), "{name}");
+        }
+        assert_eq!(unsupported_reason(Path::new("a.fla")), None);
+        assert_eq!(unsupported_reason(Path::new("a.txt")), None);
+        assert_eq!(unsupported_reason(Path::new("a")), None);
+    }
 
     #[test]
     fn paths_are_told_apart_by_extension_in_any_case_and_folders_are_xfl() {
@@ -102,6 +176,7 @@ mod tests {
             "a.mohoproj",
             "a.animeproj",
             "a.anme",
+            "a.wick",
         ] {
             assert_eq!(kind(name, false), Some(PathKind::Import), "{name}");
         }

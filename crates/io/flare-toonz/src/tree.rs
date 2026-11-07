@@ -40,8 +40,11 @@ pub fn parse(input: &str) -> Result<Node, ToonzError> {
             max: MAX_INPUT_BYTES,
         });
     }
-    let mut reader = Reader::from_str(input);
-    reader.config_mut().trim_text(true);
+    let escaped = escape_bare_ampersands(input);
+    let mut reader = Reader::from_str(&escaped);
+    // Text is trimmed when its element closes, not per fragment: an entity splits the text
+    // around it into several events, and "Tom " must keep its space before "&amp;".
+    reader.config_mut().trim_text(false);
     // Index 0 is a synthetic document node that holds the root element.
     let mut stack = vec![Node::default()];
     let mut count = 0usize;
@@ -55,8 +58,17 @@ pub fn parse(input: &str) -> Result<Node, ToonzError> {
             Event::End(_) => close(&mut stack)?,
             Event::Text(text) => {
                 let raw: &str = &text;
-                let value = quick_xml::escape::unescape(raw).map_err(malformed)?;
-                append_text(&mut stack, &value)?;
+                // Indentation between child elements is not kept: it would fill the node limit of
+                // a large sheet. Whitespace inside text that already has text is kept.
+                let layout =
+                    raw.trim().is_empty() && stack.last().is_none_or(|n| n.text.is_empty());
+                if !layout {
+                    append_text(&mut stack, raw)?;
+                }
+            }
+            Event::GeneralRef(name) => {
+                let reference = format!("&{};", name.as_ref());
+                append_text(&mut stack, &unescape_lenient(&reference))?;
             }
             Event::CData(data) => {
                 let value: &str = &data;
@@ -91,10 +103,7 @@ fn start_node(start: &BytesStart<'_>) -> Result<Node, ToonzError> {
         let attr = attr.map_err(malformed)?;
         let key = attr.key.as_ref().to_owned();
         let raw: &str = &attr.value;
-        let value = quick_xml::escape::unescape(raw)
-            .map_err(malformed)?
-            .into_owned();
-        attrs.push((key, value));
+        attrs.push((key, unescape_lenient(raw)));
     }
     Ok(Node {
         name,
@@ -102,6 +111,69 @@ fn start_node(start: &BytesStart<'_>) -> Result<Node, ToonzError> {
         text: String::new(),
         children: Vec::new(),
     })
+}
+
+/// The longest entity reference looked at (`&#x10FFFF;` is 10 bytes). Bounds the scan of a `&`.
+const MAX_ENTITY_BYTES: usize = 32;
+
+/// Unescapes text or an attribute value. A `&` that does not begin a valid entity reference is
+/// kept as a literal ampersand: OpenToonz writes names such as `Lempel-Ziv & Welch encoding`
+/// this way and reads them back itself. Other malformations are still refused by the reader.
+fn unescape_lenient(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    let mut rest = raw;
+    while let Some(at) = rest.find('&') {
+        out.push_str(&rest[..at]);
+        let tail = &rest[at..];
+        let entity = tail
+            .find(';')
+            .filter(|&end| end < MAX_ENTITY_BYTES)
+            .and_then(|end| {
+                quick_xml::escape::unescape(&tail[..=end])
+                    .ok()
+                    .map(|v| (end, v))
+            });
+        match entity {
+            Some((end, value)) => {
+                out.push_str(&value);
+                rest = &tail[end + 1..];
+            }
+            None => {
+                out.push('&');
+                rest = &tail[1..];
+            }
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// Writes each `&` that begins no valid entity reference as `&amp;`, outside CDATA sections, so
+/// the reader is given well-formed references only. The reader refuses a bare `&` outright.
+fn escape_bare_ampersands(input: &str) -> String {
+    let mut out = String::with_capacity(input.len() + 16);
+    let mut rest = input;
+    while let Some(at) = rest.find(['&', '<']) {
+        out.push_str(&rest[..at]);
+        let tail = &rest[at..];
+        if tail.starts_with("<![CDATA[") {
+            let end = tail.find("]]>").map_or(tail.len(), |e| e + 3);
+            out.push_str(&tail[..end]);
+            rest = &tail[end..];
+        } else if let Some(after) = tail.strip_prefix('<') {
+            out.push('<');
+            rest = after;
+        } else {
+            let valid = tail
+                .find(';')
+                .filter(|&end| end < MAX_ENTITY_BYTES)
+                .is_some_and(|end| quick_xml::escape::unescape(&tail[..=end]).is_ok());
+            out.push_str(if valid { "&" } else { "&amp;" });
+            rest = &tail[1..];
+        }
+    }
+    out.push_str(rest);
+    out
 }
 
 fn open(stack: &mut Vec<Node>, count: &mut usize, node: Node) -> Result<(), ToonzError> {
@@ -126,9 +198,10 @@ fn close(stack: &mut Vec<Node>) -> Result<(), ToonzError> {
     if stack.len() < 2 {
         return Err(ToonzError::malformed("xml", "end tag without a start tag"));
     }
-    let Some(node) = stack.pop() else {
+    let Some(mut node) = stack.pop() else {
         return Err(ToonzError::malformed("xml", "end tag without a start tag"));
     };
+    node.text = node.text.trim().to_string();
     if let Some(parent) = stack.last_mut() {
         parent.children.push(node);
     }

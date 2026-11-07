@@ -95,6 +95,10 @@ fn main_frame_rate(properties: &Node) -> Result<Option<f64>, ToonzError> {
 fn collect_levels(node: &Node, out: &mut Vec<LevelDecl>) -> Result<(), ToonzError> {
     for child in &node.children {
         if child.name == "level" {
+            // A cast folder lists levels by id alone: a reference to a declaration elsewhere.
+            if child.attrs.len() == 1 && child.children.is_empty() && child.attr("id").is_some() {
+                continue;
+            }
             if out.len() >= MAX_LEVELS {
                 return Err(ToonzError::Limit {
                     what: "level count",

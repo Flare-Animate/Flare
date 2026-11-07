@@ -20,8 +20,8 @@ format is known from notes but no real file was checked by hand. "Not built" mea
 | SPL (a SWF with a splash extension) | the SWF reader (the bytes decide) | Verified on one file | 1 `.spl` file |
 | Modern FLA (a ZIP of XFL parts, CS5 and later) | `flare-import` `xfl/`, `source.rs` | Verified: every zipped `.fla` in the corpus is read without a crash; many report unsupported items | 1,256 zipped `.fla` files |
 | XFL folder and `.xfl` stub | `flare-import` `xfl/` | Verified by the existing `xfl*` tests | the XFL test suite (not the corpus) |
-| XFL motion tweens on instances, classic (`motion`) and motion object (`motion object`) | `flare-import` `xfl/timeline.rs` | Verified on synthetic fixtures (`tests/xfl_tweens.rs`). Both are linear transform tweens with the frame's `acceleration`; motion object curves and property editors are reported, not imported | none of the corpus FLA zips has instance tweens checked |
-| XFL library bitmaps (PNG and baseline JPEG) and `DOMBitmapInstance`, read from `bin/` through `bitmapDataHRef` | `flare-import` `xfl/entry.rs`, `xfl/elements.rs`, `bitmap.rs` | Verified on synthetic fixtures (`tests/xfl_bitmaps.rs`) and on Flashbang's real FLAs (below). Animate's own binary bitmap payload (`bin/M *.dat`, starts `03 05`) is **not decoded**: 49 bitmaps in the Flashbang FLAs stay as source data. CMYK JPEG and other formats too | none of the Ruffle corpus FLA zips has bitmap items |
+| XFL motion tweens on instances, classic (`motion`) and motion object (`motion object`) | `flare-import` `xfl/timeline.rs`, `xfl/motion/` | Classic: a linear transform tween with the frame's `acceleration`. Motion object: the `AnimationCore` curves of X, Y, rotation, skew X and scale are sampled into one keyframe per frame (`tests/xfl_motion.rs`), so the motion follows the file's handles. Unsupported time maps, skew Y, colour and filter curves are reported, and a tween over 4096 frames stays linear | one real sample, Flashbang's `audio/sound2.fla` (see the motion section below) |
+| XFL library bitmaps (PNG and baseline JPEG) and `DOMBitmapInstance`, read from `bin/` through `bitmapDataHRef` | `flare-import` `xfl/entry.rs`, `xfl/elements.rs`, `bitmap.rs` | Verified on synthetic fixtures (`tests/xfl_bitmaps.rs`) and on Flashbang's real FLAs (below). Animate's own lossless payload (`bin/M *.dat`, starts `03 05`) is decoded (`flash_bitmap.rs`; layout below). 8-bit palette payloads and CMYK JPEG are not imported | none of the Ruffle corpus FLA zips has bitmap items |
 | Legacy binary FLA (Flash 5 to CS4, a compound file with a `Contents` stream) | `flare-import` `legacy/` | Stage, frame rate, background, library names/types and layer names/visibility/lock state are read. Layer scanning has synthetic tests; artwork and keyframe contents are not read. Import has a warning | 159 compound files in the corpus; `btnstrob.fla` (a real MX 2004 file, from the lifeart reference's fixtures) |
 | FLA `Contents` layouts other than the ones in `legacy/layout.rs` | none | Refused with the stream names and the format number | 5 synthetic fixtures from the lifeart reference (see below) |
 | SOL (AMF0 local shared object) | none | Not built | 7 `.sol` files in the corpus, not run |
@@ -159,19 +159,77 @@ GPL samples are test inputs only; nothing from them is committed.
 
 What the real files exposed, and what was fixed:
 
+- **Animate's lossless bitmap payload (`bin/M *.dat`)**, worked out from real files (no licensed
+  code used). Little-endian throughout: `03 05`; row length in bytes, width, height (u16 each);
+  frame in twips, left, right, top, bottom (i32 each, 20 twips a pixel); at offset 24 a has-alpha
+  byte, at 25 a compressed byte; the data from offset 26. Compressed, the data is one zlib stream
+  (`78 01` header and Adler-32 included) cut into chunks that each start with their u16 length,
+  ended by a chunk of length 0; inflated it is exactly `row length * height` bytes. Pixels are
+  premultiplied **ARGB** bytes (alpha first); with the alpha byte 0 the pixels are opaque. Checked
+  on 67 `.dat` payloads from the Flashbang FLAs: all 53 with the signature are 32-bit rows and
+  inflate to exactly the header size (49 with alpha, 4 without), and several decode to sensible
+  pictures (a photo, a Firefox logo with soft shadow, button skins). The rest are not bitmaps in
+  this format (empty files, JPEG, headerless audio). Not verified: an uncompressed payload (the
+  compressed byte 0) was never seen, and is read as raw rows after offset 26; a payload whose
+  row length is not 4 * width (presumably 8-bit palette) was never seen and is reported as not
+  imported.
+
 - **Bitmap pixels live in `bin/`**: Animate writes `bitmapDataHRef="M 1 ....dat"`, with the file
   at `bin/M 1 ....dat`, not `LIBRARY/<href>`. Those reported "image file not found" (47 items).
-  Now read from `bin/`; PNG and JPEG decode; Animate's own payload is reported (49 items, below).
+  Now read from `bin/`; PNG, JPEG and Animate's own payload (below) decode.
 - **Edges with `/` as a line**: `!209 -235/-33 -1` (OStimNG) was a bad number. `/` is a line now.
-- **Motion object tweens**: `tweenType="motion object"` on instances is imported as a linear
-  tween (3 FLAs have them; the curves are reported as not imported).
+- **Motion object tweens** (sampled per frame since 2026-11-07, see below): `tweenType="motion object"` on instances was imported as a linear
+  tween (the curves were reported as not imported; one real file has them, see below).
 
 Still missing, from the same files:
 
-- **Animate's binary bitmap format (`bin/M *.dat`)**: the payload begins `03 05`, then width and
-  height as u16 (they match the item's frame size, e.g. 680x400), then data that is not zlib at
-  the offsets tried. Decoding it needs
-  the format; no public spec was used.
 - **Frame scripts** (178 FLAs carry them), **movie clip clocks**, **frame labels**, **text**
   (`DOMStaticText`, `DOMDynamicText`), **radial and multi-stop gradients**, **instance colour
   effects** (`instance color effects are ignored`, 10 FLAs), **filters**, **blend modes**, **sound**.
+
+## Motion object curves (2026-11-07)
+
+Read from the `AnimationCore` of a `motionObjectXML` (CS4 and later). Behaviour was checked
+against the file layout described in the reference listed under "Reference sources"; the code
+is Flare's own. What is done:
+
+- Each frame of the tween becomes one keyframe, at the matrix the curves give there. The value
+  of a channel at frame `n` is `n * TimeScale / frame rate` ticks into its keys, so the
+  file's own Bezier handles (in ticks) shape the motion; a key with no handle is a straight line.
+- Channels: `Motion_X` and `Motion_Y` (offsets, in pixels), `Rotation_Z` (degrees), `Skew_X`
+  (degrees, leaning the second axis), `Scale_X` and `Scale_Y` (percent). Each is relative to its
+  value at the first tick, so frame 0 is the instance as it was placed.
+- Not imported, each named in the diagnostics: a non-zero time map (the keys keep their own
+  timing); `Skew_Y`; colour curves (`Colors`, waiting for instance colour effects); filter
+  curves. A key with a value that is not a number is skipped; two keys at the same time make the
+  curve unreadable and it is reported.
+- A tween over 4096 frames stays linear and says so. The `motionObjectXML` is kept as source
+  data, so an export still carries it beside the sampled frames.
+
+- A whole-curve time map (`<TimeMap type strength>`, the Motion Editor's ease) of the Quadratic,
+  Cubic, Quartic or Quintic family is applied to the motion's timing. Its direction and blend
+  follow the sign and value of the strength (checked against no Animate playback). Other types
+  are reported and the curves keep their own timing.
+- The rotation and scale turn about the instance's `transformationPoint`, and the offsets move
+  that point; with no transformation point the origin is used.
+
+Checked by `tests/xfl_motion.rs` (12 tests, failure paths included). The one real motion object
+found is `web/flashbang/shumway/examples/audio/sound2.fla` (Flashbang, MPL-2.0, read in place):
+its tween has `Motion_X`, `Motion_Y` and `Rotation_Z` keys in ticks (TimeScale 24000, 79 frames),
+a `Quadratic` time map of strength 10 on each property, and a transformation point of (51.7, 51.7).
+That file is a zip with a damaged central directory, which Flare reads through its own path;
+the `Skew_Y` curve is reported as not imported. No other sample has a motion object.
+
+## Import before and after (2026-11-07)
+
+`flare import` on 83 sample files: the Flashbang `.fla` and `.xfl` files, the OStimNG and
+CrazyFlashNight projects, and the Ruffle corpus's `.fla` files under `third_party/ruffle` (read in
+place; the list and counts are in the run log of this session). Before: the build without the
+motion code. After: the build with it. Each file's diagnostics were counted by the importer's own
+note text.
+
+- 82 files give the same diagnostics as before.
+- `sound2.fla` changes: "motion object curves are not imported" is replaced by the sampled tween
+  (79 frames, one keyframe each), and the diagnostics name the curves that are still not
+  imported (`Skew_Y`). Its other notes are unchanged.
+- Refusals: none before or after.

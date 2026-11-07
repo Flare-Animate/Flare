@@ -71,6 +71,7 @@ impl WebApp {
                             "pli",
                             "tlv",
                             "fc",
+                            "wick",
                         ],
                     )
                     .await

@@ -87,6 +87,11 @@ pub(super) fn write_shape(
     approximated: &mut bool,
 ) {
     let fill = shape.flat_fill();
+    if let Some(source) = shape.text() {
+        // A text object goes back as the text field it came from, so its words stay editable.
+        write_text(out, source, fill);
+        return;
+    }
     let has_fill = fill.a > 0;
     if shape.gradient().is_some() {
         notes.push(Diagnostic {
@@ -156,6 +161,40 @@ pub(super) fn write_shape(
     }
     out.close("edges");
     out.close("DOMShape");
+}
+
+/// A text object as a static text field: its words, font and corner. The outline is not written,
+/// since Animate draws the text from the field.
+fn write_text(out: &mut Xml, source: &flare_document::TextSource, fill: flare_core::Rgba8) {
+    let origin = source.origin().as_vec();
+    out.open(
+        "DOMStaticText",
+        [a("left", num(origin.x)), a("top", num(origin.y))],
+    );
+    out.open("textRuns", []);
+    out.open("DOMTextRun", []);
+    out.open("textAttrs", []);
+    out.empty(
+        "DOMTextAttrs",
+        [
+            a("face", source.family()),
+            a("size", num(f64::from(source.size()))),
+            a("bold", source.bold()),
+            a("italic", source.italic()),
+            a("fillColor", hex(fill)),
+            a("alpha", alpha(fill)),
+        ],
+    );
+    out.close("textAttrs");
+    // Animate writes a paragraph break as a carriage return.
+    let words = source.text().replace('\n', "\r");
+    out.raw(&format!(
+        "<characters>{}</characters>",
+        quick_xml::escape::escape(&words)
+    ));
+    out.close("DOMTextRun");
+    out.close("textRuns");
+    out.close("DOMStaticText");
 }
 
 // ---- timelines ------------------------------------------------------------------------
