@@ -151,7 +151,7 @@ image = { version = "0.25.10", default-features = false }
 png = "0.18.1"
 jpeg-decoder = { version = "0.3.2", default-features = false }
 # No text feature: no font database is loaded for an imported drawing.
-usvg = { version = "0.45.1", default-features = false }
+usvg = { version = "0.49.0", default-features = false }
 gif = { version = "0.14", default-features = false, features = ["std", "color_quant"] }
 parley = "0.12.0"
 epaint_default_fonts = "0.37"   # egui's own fonts, for tests that need glyphs.
