@@ -23,7 +23,7 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 | TIFF | yes (one-frame project) | yes | `image` `tiff` (lossless, alpha) | round trip tested | done |
 | WebP lossless | yes | yes | `image` `webp` (image-webp) | round trip tested | done |
 | WebP lossy | yes (decode, one frame) | **gap** | image-webp decodes lossy VP8; no pure-Rust lossy encoder | recorded in SURFACES.md | done (import); gap (export) |
-| WebP animated | no | no | image-webp decode | | 5 (video slice) |
+| WebP animated | yes (animation; frames composed by image-webp) | **gap** | image-webp 0.2 decodes only; no pure-Rust animated encoder | export via ffmpeg bridge (slice 5) | done (import); pending (export) |
 | AVIF | **gap** | **gap** | decode needs native dav1d; encode is ravif/rav1e (large) | recorded in SURFACES.md | gap |
 | ICO | yes | yes (at most 256 px a side) | `image` `ico` | round trip tested | done |
 | PNM (PBM/PGM/PPM/PAM) | yes; a plain `P1`-`P7` `.ppm` is a picture, other `.ppm` stays Flipnote | yes (PAM, keeps alpha) | `image` `pnm` | round trip tested | done |

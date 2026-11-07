@@ -2062,6 +2062,7 @@ dependencies = [
  "gif",
  "glamx",
  "image",
+ "image-webp",
  "jpeg-decoder",
  "png 0.18.1",
  "quick-xml 0.42.0",

@@ -89,7 +89,7 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
         Some("jpeg") => crate::bitmap::import_jpeg(file, &bytes),
         Some("bmp") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Bmp),
         Some("tiff") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Tiff),
-        Some("webp") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::WebP),
+        Some("webp") => crate::webp::import(file, &bytes),
         Some("ico") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Ico),
         Some("qoi") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Qoi),
         Some("pnm") => crate::bitmap::import_raster(file, &bytes, image::ImageFormat::Pnm),

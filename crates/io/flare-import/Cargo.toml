@@ -17,6 +17,7 @@ flare-storage.workspace = true
 flate2.workspace = true
 gif.workspace = true
 image = { workspace = true, features = ["bmp", "tga", "tiff", "webp", "qoi", "pnm", "ico", "exr", "hdr", "dds"] }
+image-webp.workspace = true
 jpeg-decoder.workspace = true
 glamx.workspace = true
 png.workspace = true
