@@ -51,7 +51,7 @@ jobs:
           npm install --no-save --no-audit --no-fund playwright@1.49.1
           npx playwright install chromium --with-deps
           node apps/flare-web/tests/web_smoke.mjs http://localhost:8099/Flare/ web-smoke.png
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/flare-web/dist
 
