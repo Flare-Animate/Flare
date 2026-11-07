@@ -76,7 +76,7 @@ TYPES: list[tuple[str, tuple[str, ...], str, str]] = [
     ("flipnote", ("ppm", "kwz", "kwc"), "open", ""),
     ("png", ("png",), "open", ""),
     ("gif", ("gif",), "open", ""),
-    ("jpg", ("jpg", "jpeg"), "refuse", ""),
+    ("jpg", ("jpg", "jpeg"), "open", ""),
     ("svg", ("svg",), "open", ""),
 ]
 

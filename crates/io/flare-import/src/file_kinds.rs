@@ -8,11 +8,13 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
 /// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 21] = [
+pub const IMPORT_EXTENSIONS: [&str; 23] = [
     "fla",
     "xfl",
     "svg",
     "png",
+    "jpg",
+    "jpeg",
     "gif",
     "swf",
     "bvh",
@@ -74,7 +76,7 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
 
 /// Formats people meet beside Flash and Toonz files, which Flare does not import, with the reason
 /// the refusal names. Anything else gets the generic message.
-const UNSUPPORTED: [(&str, &str); 11] = [
+const UNSUPPORTED: [(&str, &str); 10] = [
     (
         "as",
         "an ActionScript source file (.as) holds code, not an animation; open the .fla or .swf it belongs to",
@@ -115,10 +117,6 @@ const UNSUPPORTED: [(&str, &str); 11] = [
         "tnx",
         "the OpenToonz .tnx format is not read; open the .tnz scene instead",
     ),
-    (
-        "jpg",
-        "JPEG is not imported; Flare reads PNG, GIF and SVG still images",
-    ),
 ];
 
 /// Why `path` is not imported, for a name Flare knows and does not read. `None` when the name
@@ -139,7 +137,6 @@ mod tests {
     fn each_unsupported_kind_names_its_reason_and_others_do_not() {
         for name in [
             "a.as", "a.AS2", "a.as3", "a.jsfl", "a.sol", "a.flv", "a.swc", "a.tif", "a.tnx",
-            "a.jpg",
         ] {
             let reason = unsupported_reason(Path::new(name));
             assert!(reason.is_some_and(|r| !r.is_empty()), "{name}");
@@ -196,7 +193,8 @@ mod tests {
         );
         assert_eq!(kind("notes.xml", false), None);
         assert_eq!(kind("a.png", false), Some(PathKind::Import));
-        assert_eq!(kind("a.jpg", false), None);
+        assert_eq!(kind("a.jpg", false), Some(PathKind::Import));
+        assert_eq!(kind("a.JPEG", false), Some(PathKind::Import));
         assert_eq!(kind("a", false), None);
         assert_eq!(kind("a.flare.txt", false), None);
     }

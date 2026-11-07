@@ -73,10 +73,10 @@ Each entry names the module and a minimal repro. Items in another agent's module
 6. **Flipnote sound.** `keke.ppm` and `memoC.kwz` import, but their sound is not imported ("1 audio
    tracks have no Flare sound layer yet"). Owner: flare-import `flipnote/`, a known gap in
    docs/FLIPNOTE.md.
-7. **`.jpg` is not a claimed format.** Flare's file kinds do not claim `.jpg` (a test asserts it), so
-   a JPEG is refused with its reason, "JPEG is not imported; Flare reads PNG, GIF and SVG still
-   images". Open question for the maintainer: should JPEG be claimed and imported? The claim list is
-   not changed here.
+7. **`.jpg` was not a claimed format; it now is.** Until the JPEG slice in docs/MEDIA-FORMATS.md
+   (slice 1), Flare refused a JPEG with its reason. The rows below for `jpg` record that earlier
+   refusal; they were not re-run after the claim changed, so the corpus has not yet been re-checked
+   for JPEG import.
 8. **Samples missing.** No `.as2`, `.as3`, `.anme`, `.anime` or `.tnx` sample was found on disk or from
    a web search. A Renderosity product zip with a `.anme` exists, but its licence is unclear, so it is
    not used.
@@ -358,26 +358,26 @@ counts above add up.
 | gif | titlebar.gif | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | ok | info and still export ok |
 | gif | tab_r.gif | opentoonz-lib: OpenToonz repo (GPL-3), library samples | ok | info and still export ok |
 | gif | cramps.gif | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | ok | info and still export ok |
-| jpg | tree.jpg | flash-samples: mixed GitHub samples, see each repo | refused | tree.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | testing_pr_3.JPG | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused | testing_pr_3.JPG: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | image_height.jpeg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused | not an XFL document: expected an XFL directory, a modern FLA (zip) or an .xfl file |
-| jpg | testing_pr_3.JPG | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | refused | testing_pr_3.JPG: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | missing.jpg | wick-examples: Wick Editor examples, see the repo | refused | missing.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | galaxies.jpg | flash-samples: mixed GitHub samples, see each repo | refused | galaxies.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | jello.jpg | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused | jello.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | cube5.jpg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused | cube5.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | testing_pr_2.JPG | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | refused | testing_pr_2.JPG: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | alf.jpg | flash-samples: mixed GitHub samples, see each repo | refused | alf.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | ogl_sm.jpg | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused | ogl_sm.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | test.jpg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused | test.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | quad.jpg | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | refused | quad.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | class.jpg | flash-samples: mixed GitHub samples, see each repo | refused | class.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | testorig.jpg | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused | testorig.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | image_width.jpeg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused | not an XFL document: expected an XFL directory, a modern FLA (zip) or an .xfl file |
-| jpg | cover.jpg | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | refused | cover.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | high-level.jpg | flash-samples: mixed GitHub samples, see each repo | refused | high-level.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | bali.jpg | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused | bali.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
-| jpg | cube2.jpg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused | cube2.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | tree.jpg | flash-samples: mixed GitHub samples, see each repo | refused (before the JPEG claim) | tree.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | testing_pr_3.JPG | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused (before the JPEG claim) | testing_pr_3.JPG: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | image_height.jpeg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused (before the JPEG claim) | not an XFL document: expected an XFL directory, a modern FLA (zip) or an .xfl file |
+| jpg | testing_pr_3.JPG | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | refused (before the JPEG claim) | testing_pr_3.JPG: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | missing.jpg | wick-examples: Wick Editor examples, see the repo | refused (before the JPEG claim) | missing.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | galaxies.jpg | flash-samples: mixed GitHub samples, see each repo | refused (before the JPEG claim) | galaxies.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | jello.jpg | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused (before the JPEG claim) | jello.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | cube5.jpg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused (before the JPEG claim) | cube5.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | testing_pr_2.JPG | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | refused (before the JPEG claim) | testing_pr_2.JPG: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | alf.jpg | flash-samples: mixed GitHub samples, see each repo | refused (before the JPEG claim) | alf.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | ogl_sm.jpg | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused (before the JPEG claim) | ogl_sm.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | test.jpg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused (before the JPEG claim) | test.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | quad.jpg | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | refused (before the JPEG claim) | quad.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | class.jpg | flash-samples: mixed GitHub samples, see each repo | refused (before the JPEG claim) | class.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | testorig.jpg | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused (before the JPEG claim) | testorig.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | image_width.jpeg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused (before the JPEG claim) | not an XFL document: expected an XFL directory, a modern FLA (zip) or an .xfl file |
+| jpg | cover.jpg | tahoma2d-lib: Tahoma2D repo (GPL-3), library samples | refused (before the JPEG claim) | cover.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | high-level.jpg | flash-samples: mixed GitHub samples, see each repo | refused (before the JPEG claim) | high-level.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | bali.jpg | opentoonz-lib: OpenToonz repo (GPL-3), library samples | refused (before the JPEG claim) | bali.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
+| jpg | cube2.jpg | ruffle-tests: Ruffle test corpus, MIT OR Apache-2.0 | refused (before the JPEG claim) | cube2.jpg: JPEG is not imported; Flare reads PNG, GIF and SVG still images |
 | svg | fontawesome-webfont.svg | flash-samples: mixed GitHub samples, see each repo | ok | info and still export ok |
 | svg | prevFrame.svg | flipnote.js: flipnote.js test samples, see the repo | ok | info and still export ok |
 | svg | icon_smart_bone.svg | godot-moho: godot_moho_importer example, MIT | ok | info and still export ok |

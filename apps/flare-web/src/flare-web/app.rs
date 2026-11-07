@@ -65,6 +65,8 @@ impl WebApp {
                             "animeproj",
                             "bvh",
                             "svg",
+                            "jpg",
+                            "jpeg",
                             "tnz",
                             "tpl",
                             "plt",

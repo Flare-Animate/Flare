@@ -265,6 +265,12 @@ pub(crate) fn import_png(name: &str, bytes: &[u8]) -> Result<Imported, ImportErr
     build(name, vec![picture], &[1], default_rate()?)
 }
 
+/// A JPEG as a one-frame project. JPEG has no transparency, so every pixel comes in opaque.
+pub(crate) fn import_jpeg(name: &str, bytes: &[u8]) -> Result<Imported, ImportError> {
+    let picture = decode_jpeg(name, bytes)?;
+    build(name, vec![picture], &[1], default_rate()?)
+}
+
 /// An animated (or still) GIF: the frame rate is the finest the delays need, up to 100 a second.
 pub(crate) fn import_gif(name: &str, bytes: &[u8]) -> Result<Imported, ImportError> {
     let pictures = decode_gif(name, bytes)?;

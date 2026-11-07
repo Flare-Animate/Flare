@@ -27,12 +27,17 @@
     <comment>BVH Motion</comment>
     <glob pattern="*.bvh" />
   </mime-type>
-  <!-- The image files Flare imports as bitmap layers (docs/ARCHITECTURE.md). PNG, GIF and SVG
+  <!-- The image files Flare imports as bitmap layers (docs/ARCHITECTURE.md). PNG, JPEG, GIF and SVG
        are the systems' own types; declaring them here only lets Flare be offered for them, and
        Flare does not make itself their default either. -->
   <mime-type type="image/png">
     <comment>PNG Image</comment>
     <glob pattern="*.png" />
+  </mime-type>
+  <mime-type type="image/jpeg">
+    <comment>JPEG Image</comment>
+    <glob pattern="*.jpg" />
+    <glob pattern="*.jpeg" />
   </mime-type>
   <mime-type type="image/gif">
     <comment>GIF Image</comment>

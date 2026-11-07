@@ -101,3 +101,27 @@ fn a_gif_delays_become_the_frame_rate_and_hold_counts() {
     assert_eq!(spans(&imported), vec![(0, 1), (1, 2), (3, 1)]);
     assert!(import_foreign_bytes(Path::new("a.gif"), b"GIF89a".to_vec()).is_err());
 }
+
+#[test]
+fn a_jpeg_becomes_a_one_frame_project_of_the_picture_size() {
+    let bytes = include_bytes!("fixtures/tiny-4x4.jpg").to_vec();
+    for name in ["a.jpg", "a.JPEG"] {
+        let imported = import_foreign_bytes(Path::new(name), bytes.clone()).expect("import");
+        let doc = &imported.document;
+        assert_eq!(
+            (doc.stage().width(), doc.stage().height()),
+            (4, 4),
+            "{name}"
+        );
+        assert_eq!(spans(&imported), vec![(0, 1)], "{name}");
+    }
+}
+
+#[test]
+fn a_damaged_jpeg_is_refused_with_its_name() {
+    let error = import_foreign_bytes(Path::new("a.jpg"), b"\xFF\xD8\xFF not a jpeg".to_vec())
+        .expect_err("refused");
+    assert!(error.to_string().contains("a.jpg"), "{error}");
+    let good = include_bytes!("fixtures/tiny-4x4.jpg");
+    assert!(import_foreign_bytes(Path::new("a.jpg"), good[..good.len() / 2].to_vec()).is_err());
+}

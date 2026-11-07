@@ -63,6 +63,10 @@
                          Type="string" Value="&quot;[#FlareExe]&quot; &quot;%1&quot;" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.png\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.jpg\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.jpeg\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.gif\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.svg\OpenWithProgids"
@@ -73,7 +77,7 @@
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.fc\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
-          <RegistryValue Root="HKMU" <RegistryValue Root="HKMU" Key="Software\Classes\.wick\OpenWithProgids"
+          <RegistryValue Root="HKMU" Key="Software\Classes\.wick\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.ppm\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
@@ -112,6 +116,10 @@
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".png" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".jpg" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".jpeg" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".gif" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".svg" Type="string" Value="" />
@@ -119,7 +127,7 @@
                          Name=".bvh" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".fc" Type="string" Value="" />
-          <RegistryValue Root="HKMU" <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".wick" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".ppm" Type="string" Value="" />
@@ -161,6 +169,10 @@
                          Name=".swf" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".png" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".jpg" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".jpeg" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".gif" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
