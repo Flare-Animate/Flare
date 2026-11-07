@@ -31,6 +31,8 @@ pub enum ExportFormat {
     /// Radiance HDR. Opaque only.
     Hdr,
     Gif,
+    /// An animated PNG: every frame, with full colour and alpha.
+    Apng,
     Mp4,
 }
 
@@ -55,7 +57,7 @@ impl ExportFormat {
             Self::Ico => Some(StillFormat::Ico),
             Self::Exr => Some(StillFormat::Exr),
             Self::Hdr => Some(StillFormat::Hdr),
-            Self::Gif | Self::Mp4 => None,
+            Self::Gif | Self::Apng | Self::Mp4 => None,
         })
     }
 }

@@ -167,3 +167,30 @@ fn several_threads_are_not_slower_than_one_on_a_busy_movie() {
         );
     }
 }
+
+#[test]
+fn an_apng_has_a_frame_per_frame_loops_and_imports_back_with_the_same_frames() {
+    let document = animation(6, (40, 20), (25, 1));
+    let bytes = crate::apng_bytes(&document).expect("apng");
+    let reader = png::Decoder::new(std::io::Cursor::new(&bytes))
+        .read_info()
+        .expect("info");
+    let control = reader.info().animation_control().expect("animated");
+    assert_eq!(control.num_frames, 6);
+    assert_eq!(control.num_plays, 0, "loops forever");
+    assert_eq!((reader.info().width, reader.info().height), (40, 20));
+    let imported = flare_import::import_foreign_bytes(std::path::Path::new("a.png"), bytes)
+        .expect("the export imports back");
+    assert_eq!(
+        imported.document.scenes()[0].timeline().frame_count(),
+        6,
+        "the same six frames at the same rate"
+    );
+}
+
+#[test]
+fn an_apng_refuses_more_frames_than_a_movie_holds_in_words() {
+    let document = animation(MAX_MOVIE_FRAMES as u32 + 1, (4, 4), (24, 1));
+    let error = crate::apng_bytes(&document).expect_err("too many frames");
+    assert!(error.contains("APNG is limited"), "{error}");
+}

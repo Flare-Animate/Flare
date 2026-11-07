@@ -171,3 +171,17 @@ fn hdr_refuses_transparency_and_ico_refuses_more_than_256_pixels_and_write_nothi
         "export", &big, &small, "--format", "ico", "--width", "64", "--height", "64",
     ]);
 }
+
+#[test]
+fn export_apng_writes_an_animated_png() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = red_square(dir.path());
+    let out = dir.path().join("anim.png").to_string_lossy().into_owned();
+    json(&["export", &file, &out, "--format", "apng"]);
+    let bytes = std::fs::read(&out).expect("apng");
+    assert!(bytes.starts_with(b"\x89PNG"), "a PNG file");
+    assert!(
+        bytes.windows(4).any(|w| w == b"acTL"),
+        "an animation control chunk, so it is an APNG"
+    );
+}

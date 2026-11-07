@@ -18,7 +18,7 @@ use crate::xfl::{Diagnostic, ImportError, Imported, Severity};
 /// Most frames an animated GIF or a sequence may hold.
 pub const MAX_IMAGE_FRAMES: usize = 2_000;
 /// Most decoded pixel bytes one import may hold, across every frame, before duplicates merge.
-const MAX_DECODED_BYTES: u64 = 512 * 1024 * 1024;
+pub(crate) const MAX_DECODED_BYTES: u64 = 512 * 1024 * 1024;
 
 /// A decoded picture: RGBA8 straight alpha, and the time it shows (GIF only), in hundredths.
 pub(crate) struct Picture {
@@ -28,11 +28,11 @@ pub(crate) struct Picture {
     pub(crate) delay_cs: u32,
 }
 
-fn bad(file: &str, why: impl std::fmt::Display) -> ImportError {
+pub(crate) fn bad(file: &str, why: impl std::fmt::Display) -> ImportError {
     ImportError::Foreign(format!("{file}: {why}"))
 }
 
-fn check_size(file: &str, width: u32, height: u32) -> Result<(), ImportError> {
+pub(crate) fn check_size(file: &str, width: u32, height: u32) -> Result<(), ImportError> {
     if width == 0 || height == 0 || width > MAX_BITMAP_SIDE || height > MAX_BITMAP_SIDE {
         return Err(bad(
             file,
@@ -59,8 +59,22 @@ pub(crate) fn decode_png(file: &str, bytes: &[u8]) -> Result<Picture, ImportErro
             .ok_or_else(|| bad(file, "too large"))?
     ];
     let info = reader.next_frame(&mut buffer).map_err(|e| bad(file, e))?;
-    let data = &buffer[..info.buffer_size()];
-    let rgba = match info.color_type {
+    let rgba = to_rgba(file, info.color_type, &buffer[..info.buffer_size()])?;
+    Ok(Picture {
+        width: w,
+        height: h,
+        rgba,
+        delay_cs: 0,
+    })
+}
+
+/// PNG pixels of any color type as 8-bit RGBA; the transformations already expanded palettes.
+pub(crate) fn to_rgba(
+    file: &str,
+    color: png::ColorType,
+    data: &[u8],
+) -> Result<Vec<u8>, ImportError> {
+    Ok(match color {
         png::ColorType::Rgba => data.to_vec(),
         png::ColorType::Rgb => data
             .as_chunks::<3>()
@@ -76,12 +90,6 @@ pub(crate) fn decode_png(file: &str, bytes: &[u8]) -> Result<Picture, ImportErro
             .collect(),
         png::ColorType::Grayscale => data.iter().flat_map(|&g| [g, g, g, 255]).collect(),
         png::ColorType::Indexed => return Err(bad(file, "palette was not expanded")),
-    };
-    Ok(Picture {
-        width: w,
-        height: h,
-        rgba,
-        delay_cs: 0,
     })
 }
 
@@ -261,6 +269,9 @@ fn default_rate() -> Result<FrameRate, ImportError> {
 
 /// A PNG as a one-frame project.
 pub(crate) fn import_png(name: &str, bytes: &[u8]) -> Result<Imported, ImportError> {
+    if crate::apng::is_animated(bytes) {
+        return import_animation(name, crate::apng::decode(name, bytes)?);
+    }
     let picture = decode_png(name, bytes)?;
     build(name, vec![picture], &[1], default_rate()?)
 }
@@ -307,7 +318,15 @@ fn decode_raster(
 
 /// An animated (or still) GIF: the frame rate is the finest the delays need, up to 100 a second.
 pub(crate) fn import_gif(name: &str, bytes: &[u8]) -> Result<Imported, ImportError> {
-    let pictures = decode_gif(name, bytes)?;
+    import_animation(name, decode_gif(name, bytes)?)
+}
+
+/// Pictures with their own times (hundredths of a second) as one animation: the frame rate is the
+/// finest the delays need, up to 100 a second, and each picture is held for its delay.
+pub(crate) fn import_animation(
+    name: &str,
+    pictures: Vec<Picture>,
+) -> Result<Imported, ImportError> {
     // A delay of 0 or 1 hundredth is shown by browsers as 10: do the same.
     let delays: Vec<u32> = pictures
         .iter()

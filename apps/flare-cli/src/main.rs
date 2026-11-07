@@ -298,10 +298,10 @@ fn run() -> Result<()> {
                         "a GIF or a video holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG and the other still formats"
                     );
                 }
-                if matches!(format, project::ExportFormat::Gif) {
-                    project::export_gif(&path, &out)?
-                } else {
-                    project::export_mp4(&path, &out)?
+                match format {
+                    project::ExportFormat::Gif => project::export_gif(&path, &out)?,
+                    project::ExportFormat::Apng => project::export_apng(&path, &out)?,
+                    _ => project::export_mp4(&path, &out)?,
                 }
             }
         },

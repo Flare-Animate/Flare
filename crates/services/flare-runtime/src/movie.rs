@@ -5,7 +5,9 @@
 //! at a time, on threads of their own that leave one core free for the window, and written in
 //! order. The result is the same bytes whatever the number of threads.
 
+use flare_core::{Rgba8, SceneId};
 use flare_document::Document;
+use flare_render::Viewport;
 
 /// Longest side of the movie in pixels; bigger stages are scaled down to it.
 pub const MAX_MOVIE_SIDE: u32 = 640;
@@ -36,48 +38,14 @@ pub fn gif_bytes(document: &Document) -> Result<Vec<u8>, String> {
 
 /// [`gif_bytes`] with frames made `workers` at a time.
 pub fn gif_bytes_on(document: &Document, workers: usize) -> Result<Vec<u8>, String> {
-    let scene = document
-        .scenes()
-        .first()
-        .ok_or("The document has no scene to export.")?;
-    let frames = scene.timeline().frame_count().max(1);
-    if frames > MAX_MOVIE_FRAMES {
-        return Err(format!(
-            "The movie has {frames} frames; a GIF is limited to {MAX_MOVIE_FRAMES}."
-        ));
-    }
-    let stage = document.stage();
-    let (stage_w, stage_h) = (f64::from(stage.width()), f64::from(stage.height()));
-    let scale = (f64::from(MAX_MOVIE_SIDE) / stage_w.max(stage_h)).min(1.0);
-    let (width, height) = (
-        ((stage_w * scale).round() as u32).max(1),
-        ((stage_h * scale).round() as u32).max(1),
-    );
+    let plan = plan(document)?;
+    check_frames(&plan, "GIF")?;
     let side = |n: u32| u16::try_from(n).map_err(|_| "The movie is too large.".to_owned());
-    let (gif_w, gif_h) = (side(width)?, side(height)?);
-    let rate = document.frame_rate();
-    let fps = rate.per_second();
-    if !fps.is_finite() || fps <= 0.0 {
-        return Err("The frame rate must be above zero to export a movie.".to_owned());
-    }
-    let delay = ((100.0 / fps).round() as u16).max(2);
-    let viewport = flare_render::Viewport {
-        x: 0.0,
-        y: 0.0,
-        width: stage_w,
-        height: stage_h,
-    };
-    // A GIF has no partial transparency, so frames are drawn over the stage color.
-    let background = {
-        let c = stage.background();
-        flare_core::Rgba8::opaque(c.r, c.g, c.b)
-    };
-    let scene_id = scene.id();
+    let (gif_w, gif_h) = (side(plan.width)?, side(plan.height)?);
+    let delay = ((100.0 / plan.fps).round() as u16).max(2);
+    let frames = plan.frames;
     let picture = |frame: u32| -> Result<gif::Frame<'static>, String> {
-        let drawn = flare_eval::evaluate_frame(document, scene_id, frame)
-            .map_err(|e| format!("Cannot draw frame {}: {e}", frame + 1))?;
-        let image = flare_render::render_viewport(&drawn, &viewport, width, height, background)
-            .map_err(|e| format!("Cannot render frame {}: {e}", frame + 1))?;
+        let image = draw(document, &plan, frame)?;
         let mut rgba = image.rgba().to_vec();
         let mut picture = gif::Frame::from_rgba_speed(gif_w, gif_h, &mut rgba, 10);
         picture.delay = delay;
@@ -105,6 +73,110 @@ pub fn gif_bytes_on(document: &Document, workers: usize) -> Result<Vec<u8>, Stri
             start = end;
         }
     }
+    Ok(bytes)
+}
+
+/// What an animation export draws: every frame of the first scene at one size, over the stage
+/// colour (the animation formats here have no partial transparency).
+struct Plan {
+    scene: SceneId,
+    frames: u64,
+    width: u32,
+    height: u32,
+    fps: f64,
+    viewport: Viewport,
+    background: Rgba8,
+}
+
+fn plan(document: &Document) -> Result<Plan, String> {
+    let scene = document
+        .scenes()
+        .first()
+        .ok_or("The document has no scene to export.")?;
+    let frames = scene.timeline().frame_count().max(1);
+    let stage = document.stage();
+    let (stage_w, stage_h) = (f64::from(stage.width()), f64::from(stage.height()));
+    let scale = (f64::from(MAX_MOVIE_SIDE) / stage_w.max(stage_h)).min(1.0);
+    let (width, height) = (
+        ((stage_w * scale).round() as u32).max(1),
+        ((stage_h * scale).round() as u32).max(1),
+    );
+    let fps = document.frame_rate().per_second();
+    if !fps.is_finite() || fps <= 0.0 {
+        return Err("The frame rate must be above zero to export a movie.".to_owned());
+    }
+    let viewport = Viewport {
+        x: 0.0,
+        y: 0.0,
+        width: stage_w,
+        height: stage_h,
+    };
+    let background = {
+        let c = stage.background();
+        Rgba8::opaque(c.r, c.g, c.b)
+    };
+    Ok(Plan {
+        scene: scene.id(),
+        frames,
+        width,
+        height,
+        fps,
+        viewport,
+        background,
+    })
+}
+
+fn check_frames(plan: &Plan, format: &str) -> Result<(), String> {
+    if plan.frames > MAX_MOVIE_FRAMES {
+        return Err(format!(
+            "The movie has {} frames; {format} is limited to {MAX_MOVIE_FRAMES}.",
+            plan.frames
+        ));
+    }
+    Ok(())
+}
+
+/// Frame `frame` of the plan, straight alpha, at the plan's size.
+fn draw(document: &Document, plan: &Plan, frame: u32) -> Result<flare_render::Image, String> {
+    let drawn = flare_eval::evaluate_frame(document, plan.scene, frame)
+        .map_err(|e| format!("Cannot draw frame {}: {e}", frame + 1))?;
+    flare_render::render_viewport(
+        &drawn,
+        &plan.viewport,
+        plan.width,
+        plan.height,
+        plan.background,
+    )
+    .map_err(|e| format!("Cannot render frame {}: {e}", frame + 1))
+}
+
+/// Renders every frame of the first scene and encodes them as an endlessly looping APNG (animated
+/// PNG) at the document's frame rate. A PNG frame holds milliseconds, so the rate rounds to those.
+pub fn apng_bytes(document: &Document) -> Result<Vec<u8>, String> {
+    let plan = plan(document)?;
+    check_frames(&plan, "APNG")?;
+    let start = |e: &dyn std::fmt::Display| format!("Cannot start the APNG: {e}");
+    let delay_ms = ((1000.0 / plan.fps).round() as u16).max(1);
+    let mut bytes = Vec::new();
+    let mut encoder = png::Encoder::new(&mut bytes, plan.width, plan.height);
+    encoder.set_color(png::ColorType::Rgba);
+    encoder.set_depth(png::BitDepth::Eight);
+    encoder
+        .set_animated(plan.frames as u32, 0)
+        .map_err(|e| start(&e))?;
+    let mut writer = encoder.write_header().map_err(|e| start(&e))?;
+    for frame in 0..plan.frames as u32 {
+        writer
+            .set_frame_delay(delay_ms, 1000)
+            .map_err(|e| start(&e))?;
+        let image = draw(document, &plan, frame)?;
+        writer
+            .write_image_data(image.rgba())
+            .map_err(|e| format!("Cannot write frame {}: {e}", frame + 1))?;
+    }
+    writer
+        .finish()
+        .map_err(|e| format!("Cannot finish the APNG: {e}"))?;
     Ok(bytes)
 }
 

@@ -34,7 +34,7 @@ pub use export_game::{GAME_FORMAT, GAME_FORMAT_VERSION, GameExport, export_game}
 pub use flare_render::StillFormat;
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
-pub use movie::{MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, gif_bytes, gif_bytes_on};
+pub use movie::{MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, apng_bytes, gif_bytes, gif_bytes_on};
 pub use run::{ExtraFonts, font_families, run_audio, run_io, run_render, run_text, text_shape};
 pub use sprites::{MAX_SHEET_FRAMES, MAX_SHEET_SIDE, SpriteSheet, sprite_sheet};
 pub use workers::Wake;

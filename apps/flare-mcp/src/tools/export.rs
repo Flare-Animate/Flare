@@ -101,6 +101,19 @@ impl FlareServer {
     }
 
     #[tool(
+        description = "Render the first scene as an endlessly looping APNG (animated PNG, full colour and alpha) in the export directory (disabled when no export directory is configured)."
+    )]
+    fn export_apng(&self, Parameters(args): Parameters<ExportName>) -> Outcome {
+        self.read(|state| {
+            let dir = export_dir(state)?;
+            let out = fresh(&dir, &safe_file_name_with(&args.name, "png")?)?;
+            let bytes = flare_runtime::apng_bytes(state.session.document())?;
+            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
+        })
+    }
+
+    #[tool(
         description = "Lay the frames of the first scene out in a grid as a transparent PNG sprite sheet, with a JSON atlas (frame rectangles, source sizes, durations, frame rate) beside it, in the export directory (disabled when no export directory is configured)."
     )]
     fn export_sprite_sheet(&self, Parameters(args): Parameters<ExportSpriteSheet>) -> Outcome {

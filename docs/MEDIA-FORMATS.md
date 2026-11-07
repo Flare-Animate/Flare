@@ -14,7 +14,7 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 | Format | Import | Export | Carried by | Notes | Slice |
 |---|---|---|---|---|---|
 | PNG still | yes | yes | `png` crate (`flare-import/bitmap.rs`, `flare-render/image.rs`) | one-frame project on import | done |
-| APNG (animated PNG) | no | no | `png` 0.18 supports it | decode and encode both available in the crate already in use | 2 |
+| APNG (animated PNG) | yes (animation, composited per the APNG blend and dispose) | yes (every frame at the movie size) | `png` 0.18 | round trip tested | done |
 | JPEG | yes (one-frame project) | yes (opaque only) | `jpeg_decoder` (`flare-import/bitmap.rs`); `image` encodes | claimed in `file_kinds.rs`; desktop, web and OS filters list it | done (import) |
 | GIF still | yes | yes | `gif` crate; export via the movie path | | done |
 | GIF animated | yes (delays become frame rate and holds) | yes (`flare-runtime` movie) | `gif` crate | | done |
@@ -39,7 +39,7 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 |---|---|---|---|---|---|
 | MP4 (H.264 + AAC) | no | yes, with sound | `rusty_h264`, `oxideav-aac`, `muxide` (all pure Rust), `flare-video` | the only video export that exists today | done (export) |
 | GIF video | yes | yes | see GIF above | | done |
-| APNG video | no | no | `png` crate | | 5 |
+| APNG video | yes (as the animation above) | yes (`export --format apng`) | `png` crate | | done (animation) |
 | animated WebP video | no | no | image-webp | | 5 |
 | WebM (VP8/VP9/AV1) | no | no | pure Rust AV1 encode (rav1e) + WebM mux if permissive and small; else ffmpeg | | 5 |
 | MOV | no | no | ffmpeg bridge | | 5 |

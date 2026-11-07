@@ -2,6 +2,7 @@
 //! archives of XFL. See [`xfl`] for exactly what is and is not imported.
 #![forbid(unsafe_code)]
 
+mod apng;
 mod bitmap;
 mod edges;
 mod file_kinds;

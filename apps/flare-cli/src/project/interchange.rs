@@ -107,11 +107,26 @@ pub fn export_xfl(path: &Path, out: &Path) -> Result<Value> {
 /// Renders every frame of the first scene as an endlessly looping GIF. Never overwrites; the
 /// file appears only when complete.
 pub fn export_gif(path: &Path, out: &Path) -> Result<Value> {
+    export_animation(path, out, flare_runtime::gif_bytes)
+}
+
+/// Renders every frame of the first scene as an endlessly looping APNG (animated PNG). Never
+/// overwrites; the file appears only when complete.
+pub fn export_apng(path: &Path, out: &Path) -> Result<Value> {
+    export_animation(path, out, flare_runtime::apng_bytes)
+}
+
+/// Writes an animation of the document made by `encode`, as a whole file or not at all.
+fn export_animation(
+    path: &Path,
+    out: &Path,
+    encode: fn(&flare_document::Document) -> Result<Vec<u8>, String>,
+) -> Result<Value> {
     if out.exists() {
         bail!("{} already exists", out.display());
     }
     let session = open(path)?;
-    let bytes = flare_runtime::gif_bytes(session.document()).map_err(anyhow::Error::msg)?;
+    let bytes = encode(session.document()).map_err(anyhow::Error::msg)?;
     let directory = out
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
