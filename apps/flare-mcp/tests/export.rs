@@ -463,3 +463,37 @@ async fn export_animated_webp_writes_a_webp_and_export_movie_needs_ffmpeg_or_wri
         assert!(message.as_str().expect("m").contains("ffmpeg"));
     }
 }
+
+#[tokio::test]
+async fn a_new_raster_format_in_the_export_directory_imports_and_apng_exports() {
+    let f = drawn().await;
+    let apng = f.ok("export_apng", json!({ "name": "anim" })).await;
+    assert!(
+        bytes(&apng["path"]).windows(4).any(|w| w == b"acTL"),
+        "an APNG"
+    );
+    let export_dir = std::path::Path::new(apng["path"].as_str().expect("p"))
+        .parent()
+        .expect("the export directory")
+        .to_path_buf();
+    // A TIFF written by the still exporter, imported by its extension through the server.
+    let tiff = f
+        .ok("export_still", json!({ "name": "pic", "format": "tiff" }))
+        .await;
+    let tiff_path = std::path::Path::new(tiff["path"].as_str().expect("p")).to_path_buf();
+    let renamed = export_dir.join("picture.tif");
+    std::fs::rename(&tiff_path, &renamed).expect("rename");
+    let imported = f
+        .ok(
+            "import_project",
+            json!({ "source": "picture.tif", "name": "fromtiff" }),
+        )
+        .await;
+    assert_eq!(imported["scenes"], 1);
+    assert!(
+        imported["path"]
+            .as_str()
+            .expect("p")
+            .ends_with("fromtiff.flare")
+    );
+}
