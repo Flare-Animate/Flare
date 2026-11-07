@@ -22,6 +22,7 @@ mod jobs;
 mod launch;
 mod movie;
 mod run;
+mod sound;
 mod sprites;
 mod workers;
 
@@ -40,6 +41,7 @@ pub use movie::{
     MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, animated_webp_bytes, apng_bytes, gif_bytes, gif_bytes_on,
 };
 pub use run::{ExtraFonts, font_families, run_audio, run_io, run_render, run_text, text_shape};
+pub use sound::{SoundImportError, SoundLayer, sound_layer};
 pub use sprites::{MAX_SHEET_FRAMES, MAX_SHEET_SIDE, SpriteSheet, sprite_sheet};
 pub use workers::Wake;
 
