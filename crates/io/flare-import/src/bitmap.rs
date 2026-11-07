@@ -271,6 +271,40 @@ pub(crate) fn import_jpeg(name: &str, bytes: &[u8]) -> Result<Imported, ImportEr
     build(name, vec![picture], &[1], default_rate()?)
 }
 
+/// A BMP or TGA picture as a one-frame project. The `image` crate reads both, with its limits set
+/// so a header that claims a huge picture is refused before any pixel is allocated.
+pub(crate) fn import_raster(
+    name: &str,
+    bytes: &[u8],
+    format: image::ImageFormat,
+) -> Result<Imported, ImportError> {
+    let picture = decode_raster(name, bytes, format)?;
+    build(name, vec![picture], &[1], default_rate()?)
+}
+
+fn decode_raster(
+    file: &str,
+    bytes: &[u8],
+    format: image::ImageFormat,
+) -> Result<Picture, ImportError> {
+    let mut limits = image::Limits::default();
+    limits.max_image_width = Some(MAX_BITMAP_SIDE);
+    limits.max_image_height = Some(MAX_BITMAP_SIDE);
+    limits.max_alloc = Some(MAX_DECODED_BYTES);
+    let mut reader = image::ImageReader::with_format(std::io::Cursor::new(bytes), format);
+    reader.limits(limits);
+    let decoded = reader.decode().map_err(|e| bad(file, e))?;
+    let (w, h) = (decoded.width(), decoded.height());
+    check_size(file, w, h)?;
+    let rgba = decoded.into_rgba8().into_raw();
+    Ok(Picture {
+        width: w,
+        height: h,
+        rgba,
+        delay_cs: 0,
+    })
+}
+
 /// An animated (or still) GIF: the frame rate is the finest the delays need, up to 100 a second.
 pub(crate) fn import_gif(name: &str, bytes: &[u8]) -> Result<Imported, ImportError> {
     let pictures = decode_gif(name, bytes)?;

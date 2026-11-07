@@ -18,8 +18,8 @@ done), **gap** (no permissive way to do it yet; the reason is given).
 | JPEG | yes (one-frame project) | yes (opaque only) | `jpeg_decoder` (`flare-import/bitmap.rs`); `image` encodes | claimed in `file_kinds.rs`; desktop, web and OS filters list it | done (import) |
 | GIF still | yes | yes | `gif` crate; export via the movie path | | done |
 | GIF animated | yes (delays become frame rate and holds) | yes (`flare-runtime` movie) | `gif` crate | | done |
-| BMP | no | yes | `image` (bmp) | | 2 (import) |
-| TGA | no | yes | `image` (tga), uncompressed on purpose | | 2 (import) |
+| BMP | yes (one-frame project) | yes | `image` (bmp); import bounded by the `image` limits | round trip tested in `flare-import` | done (import) |
+| TGA | yes (one-frame project) | yes | `image` (tga), written uncompressed on purpose | round trip tested | done (import) |
 | TIFF | no | no | none | refused as `.tif`/`.tiff` in `file_kinds.rs` | 2 |
 | WebP lossless | no | no | `image` `webp` feature (pure-Rust lossless) | | 2 |
 | WebP lossy | no | no | to check: image-webp decodes lossy VP8 | encode may be lossless only | 2 |

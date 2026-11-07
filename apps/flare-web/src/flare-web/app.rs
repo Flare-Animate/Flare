@@ -67,6 +67,8 @@ impl WebApp {
                             "svg",
                             "jpg",
                             "jpeg",
+                            "bmp",
+                            "tga",
                             "tnz",
                             "tpl",
                             "plt",

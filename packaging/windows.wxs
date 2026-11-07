@@ -67,6 +67,10 @@
                          Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.jpeg\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.bmp\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.tga\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.gif\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.svg\OpenWithProgids"
@@ -119,6 +123,10 @@
                          Name=".jpg" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".jpeg" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".bmp" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".tga" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".gif" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
@@ -173,6 +181,10 @@
                          Name=".jpg" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".jpeg" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".bmp" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".tga" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".gif" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"

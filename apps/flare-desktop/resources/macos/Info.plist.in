@@ -50,6 +50,8 @@
                 <string>png</string>
                 <string>jpg</string>
                 <string>jpeg</string>
+                <string>bmp</string>
+                <string>tga</string>
                 <string>gif</string>
                 <string>svg</string>
             </array>

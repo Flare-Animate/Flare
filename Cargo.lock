@@ -2220,6 +2220,7 @@ dependencies = [
  "flate2",
  "gif",
  "glamx",
+ "image",
  "jpeg-decoder",
  "png 0.18.1",
  "quick-xml 0.42.0",

@@ -125,3 +125,56 @@ fn a_damaged_jpeg_is_refused_with_its_name() {
     let good = include_bytes!("fixtures/tiny-4x4.jpg");
     assert!(import_foreign_bytes(Path::new("a.jpg"), good[..good.len() / 2].to_vec()).is_err());
 }
+
+/// A 3 by 2 picture with varied colors and alpha, as the exporter writes it.
+fn raster_pixels() -> Vec<u8> {
+    (0..6u8)
+        .flat_map(|i| [i * 40, 255 - i * 30, i * 7, 60 + i * 30])
+        .collect()
+}
+
+#[test]
+fn a_bmp_or_tga_export_imports_back_to_the_same_pixels() {
+    use image::{
+        ExtendedColorType, ImageEncoder, codecs::bmp::BmpEncoder, codecs::tga::TgaEncoder,
+    };
+    let pixels = raster_pixels();
+    let mut bmp = Vec::new();
+    BmpEncoder::new(&mut bmp)
+        .write_image(&pixels, 3, 2, ExtendedColorType::Rgba8)
+        .expect("bmp");
+    let mut tga = Vec::new();
+    TgaEncoder::new(&mut tga)
+        .disable_rle()
+        .write_image(&pixels, 3, 2, ExtendedColorType::Rgba8)
+        .expect("tga");
+    for (name, bytes) in [("a.bmp", bmp), ("a.tga", tga)] {
+        let imported = import_foreign_bytes(Path::new(name), bytes).expect(name);
+        let doc = &imported.document;
+        assert_eq!(
+            (doc.stage().width(), doc.stage().height()),
+            (3, 2),
+            "{name}"
+        );
+        assert_eq!(doc.bitmaps()[0].pixels(), pixels, "{name}");
+        assert_eq!(spans(&imported), vec![(0, 1)], "{name}");
+    }
+}
+
+#[test]
+fn a_damaged_or_truncated_bmp_or_tga_is_refused_with_its_name() {
+    for name in ["a.bmp", "a.tga"] {
+        let error = import_foreign_bytes(Path::new(name), b"not a picture at all".to_vec())
+            .expect_err(name);
+        assert!(error.to_string().contains(name), "{name}: {error}");
+    }
+    let bmp = {
+        use image::ImageEncoder;
+        let mut out = Vec::new();
+        image::codecs::bmp::BmpEncoder::new(&mut out)
+            .write_image(&raster_pixels(), 3, 2, image::ExtendedColorType::Rgba8)
+            .expect("bmp");
+        out
+    };
+    assert!(import_foreign_bytes(Path::new("a.bmp"), bmp[..bmp.len() / 2].to_vec()).is_err());
+}

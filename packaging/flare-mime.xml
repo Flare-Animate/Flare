@@ -39,6 +39,14 @@
     <glob pattern="*.jpg" />
     <glob pattern="*.jpeg" />
   </mime-type>
+  <mime-type type="image/bmp">
+    <comment>Bitmap Image</comment>
+    <glob pattern="*.bmp" />
+  </mime-type>
+  <mime-type type="image/x-tga">
+    <comment>TGA Image</comment>
+    <glob pattern="*.tga" />
+  </mime-type>
   <mime-type type="image/gif">
     <comment>GIF Image</comment>
     <glob pattern="*.gif" />

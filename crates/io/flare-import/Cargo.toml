@@ -16,6 +16,7 @@ flare-tween.workspace = true
 flare-storage.workspace = true
 flate2.workspace = true
 gif.workspace = true
+image = { workspace = true, features = ["bmp", "tga"] }
 jpeg-decoder.workspace = true
 glamx.workspace = true
 png.workspace = true
