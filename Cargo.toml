@@ -217,7 +217,7 @@ schemars = "1"
 
 # ---- Verification ------------------------------------------------------------
 proptest = "1"
-criterion = "0.7"
+criterion = "0.8"
 # cargo-fuzz, cargo-deny, cargo-about and Miri are tools, not app dependencies.
 
 # ---- Candidates: not used by any member yet --------------------------------
