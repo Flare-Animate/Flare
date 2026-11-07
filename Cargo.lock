@@ -2409,7 +2409,7 @@ dependencies = [
  "futures-lite",
  "glamx",
  "png 0.18.1",
- "pollster 0.4.0",
+ "pollster 1.0.1",
  "ruffle_core",
  "ruffle_frontend_utils",
  "ruffle_render_wgpu",
@@ -2464,7 +2464,7 @@ dependencies = [
  "flare-tablet",
  "flare-ui",
  "muda",
- "pollster 0.4.0",
+ "pollster 1.0.1",
  "winit",
 ]
 

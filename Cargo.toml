@@ -171,7 +171,7 @@ winit = { version = "0.30.13", default-features = false }
 x11rb = { version = "0.13.2", default-features = false, features = ["xinput"] }
 rfd = "0.15.4"
 directories = "6"
-pollster = "0.4.0"
+pollster = "1.0.1"
 js-sys = "0.3"
 wasm-bindgen = "0.2.129"
 wasm-bindgen-test = "0.3"   # Tests of the browser build's bridge, run under node (scripts/tests/test_web_wasm.py).
