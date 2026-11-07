@@ -37,8 +37,8 @@ Flare est en cours de réécriture en **Rust**. Il s'appuie surtout sur *OpenToo
 - Réglages des sessions de stop motion. La capture par caméra n'est pas encore construite.
 - Lecture du son sur le bureau, et Tester le film, qui exécute le SWF publié dans Ruffle.
 - Ouverture et enregistrement de projets `.flare`. Import et export des XFL et `.fla` d'Animate, et ouverture de films Flash (`.swf`) comme projets modifiables.
-- Import de projets Moho et de mouvements BVH, de scènes `.tnz` et de niveaux `.pli` d'OpenToonz, et d'images SVG, PNG ou GIF animé, comme projets modifiables.
-- Export en PNG, GIF et MP4, et publication d'un SWF ou d'une page HTML5 Canvas.
+- Import de projets Moho et de mouvements BVH, de scènes `.tnz` et de niveaux `.pli` d'OpenToonz, et d'images et de films (SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV), comme projets modifiables.
+- Export en PNG, JPEG, GIF, APNG, WebP animé, SVG, PSD et MP4, d'autres formats de film via ffmpeg, et publication d'un SWF ou d'une page HTML5 Canvas.
 - Une ligne de commande (`flare`) et un serveur MCP (`flare-mcp`) pour les agents, pour créer, modifier, exporter et publier des projets depuis des scripts.
 - Une version navigateur du même éditeur. Voir [docs/WEB.md](../WEB.md) pour ce qu'elle fait différemment.
 
@@ -49,7 +49,7 @@ Flare est en cours de réécriture en **Rust**. Il s'appuie surtout sur *OpenToo
 - Flash/Animate : `.fla`, `.xfl`, `.swf` et `.fla` binaire ancien (importé comme squelette). Enregistrement et export en `.fla`, `.xfl` et `.flare`.
 - Moho : `.moho`, `.anime`, `.mohoproj`, `.animeproj` et mouvement BVH. Calques, os, images clés et dessins vectoriels s'importent comme projets modifiables ; les images et le son sont listés, non placés.
 - OpenToonz : les scènes `.tnz` et les niveaux vectoriels `.pli` s'importent (cadence, caméra, colonnes du xsheet, traits, couleurs de palette). Les niveaux raster `.tlv` sont refusés, et `.tzu` est prévu.
-- Images : SVG (une image), PNG (une image) et GIF animé s'importent comme calques bitmap. JPEG, WebP et PSD ne sont pas construits.
+- Images : SVG, PNG, APNG, JPEG, GIF, WebP, TIFF, BMP, TGA, ICO, QOI, PNM, HDR, OpenEXR, DDS et PSD s'importent comme calques bitmap (GIF animé, APNG et WebP comme animations) ; SVG et PSD s'exportent. AVIF et HEIC ne sont pas construits.
 
 ### Plateformes
 

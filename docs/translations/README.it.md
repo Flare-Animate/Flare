@@ -37,8 +37,8 @@ Flare è riscritto in **Rust**. Si basa principalmente su *OpenToonz* e *Tahoma2
 - Impostazioni per le sessioni di stop motion. La cattura con la camera non è ancora pronta.
 - Riproduzione audio su desktop e Filmato di prova, che esegue l'SWF pubblicato in Ruffle.
 - Apertura e salvataggio di progetti `.flare`. Importazione ed esportazione di XFL e `.fla` di Animate, e apertura di filmati Flash (`.swf`) come progetti modificabili.
-- Importazione di progetti Moho e movimenti BVH, scene `.tnz` e livelli `.pli` di OpenToonz, e opere SVG, PNG o GIF animate come progetti modificabili.
-- Esportazione in PNG, GIF e MP4, e pubblicazione di un SWF o di una pagina HTML5 Canvas.
+- Importazione di progetti Moho e movimenti BVH, scene `.tnz` e livelli `.pli` di OpenToonz, e opere e filmati (SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV) come progetti modificabili.
+- Esportazione in PNG, JPEG, GIF, APNG, WebP animato, SVG, PSD e MP4, altri formati video tramite ffmpeg, e pubblicazione di un SWF o di una pagina HTML5 Canvas.
 - Una riga di comando (`flare`) e un server MCP (`flare-mcp`) per gli agenti, per creare, modificare, esportare e pubblicare progetti da script.
 - Una versione per browser dello stesso editor. Vedi [docs/WEB.md](../WEB.md) per ciò che fa diversamente.
 
@@ -49,7 +49,7 @@ Flare è riscritto in **Rust**. Si basa principalmente su *OpenToonz* e *Tahoma2
 - Flash/Animate: `.fla`, `.xfl`, `.swf` e `.fla` binario legacy (importato come scheletro). Salvataggio ed esportazione in `.fla`, `.xfl` e `.flare`.
 - Moho: `.moho`, `.anime`, `.mohoproj`, `.animeproj` e movimenti BVH. Livelli, ossa, fotogrammi chiave e arte vettoriale si importano come progetti modificabili; immagini e suoni sono elencati, non posizionati.
 - OpenToonz: si importano scene `.tnz` e livelli vettoriali `.pli` (frequenza fotogrammi, camera, colonne xsheet, tratti, colori della tavolozza). I livelli raster `.tlv` vengono rifiutati, e `.tzu` è previsto.
-- Opere: SVG (un fotogramma), PNG (un fotogramma) e GIF animata si importano come livelli bitmap. JPEG, WebP e PSD non sono ancora supportati.
+- Opere: SVG, PNG, APNG, JPEG, GIF, WebP, TIFF, BMP, TGA, ICO, QOI, PNM, HDR, OpenEXR, DDS e PSD si importano come livelli bitmap (GIF animata, APNG e WebP come animazioni); si esportano SVG e PSD. AVIF e HEIC non sono ancora supportati.
 
 ### Piattaforme
 

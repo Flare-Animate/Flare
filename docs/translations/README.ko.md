@@ -37,8 +37,8 @@ Flare는 **Rust**로 다시 작성되고 있습니다. 주로 *OpenToonz*와 *Ta
 - 스톱모션 세션 설정. 카메라 촬영은 아직 구현되지 않았습니다.
 - 데스크톱에서의 사운드 재생, 그리고 게시된 SWF를 Ruffle로 실행하는 "영화 테스트".
 - `.flare` 프로젝트 열기와 저장. Animate의 XFL과 `.fla` 가져오기·내보내기, Flash 영화(`.swf`)를 편집 가능한 프로젝트로 열기.
-- Moho 프로젝트와 BVH 모션, OpenToonz `.tnz` 장면과 `.pli` 레벨, SVG와 PNG·애니메이션 GIF 이미지를 편집 가능한 프로젝트로 가져오기.
-- PNG, GIF, MP4 내보내기, 그리고 SWF 또는 HTML5 Canvas 페이지 게시.
+- Moho 프로젝트와 BVH 모션, OpenToonz `.tnz` 장면과 `.pli` 레벨, 그리고 이미지와 영상(SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV)을 편집 가능한 프로젝트로 가져오기.
+- PNG, JPEG, GIF, APNG, 애니메이션 WebP, SVG, PSD, MP4 내보내기(그 밖의 영상 형식은 ffmpeg 사용), 그리고 SWF 또는 HTML5 Canvas 페이지 게시.
 - 스크립트에서 프로젝트를 만들고, 편집하고, 내보내고, 게시하는 명령줄(`flare`)과 에이전트용 MCP 서버(`flare-mcp`).
 - 같은 편집기의 브라우저 버전. 차이점은 [docs/WEB.md](../WEB.md)를 보세요.
 
@@ -49,7 +49,7 @@ Flare는 **Rust**로 다시 작성되고 있습니다. 주로 *OpenToonz*와 *Ta
 - Flash/Animate: `.fla`, `.xfl`, `.swf`, 구버전 바이너리 `.fla`(골격으로 가져옴). `.fla`, `.xfl`, `.flare`로 저장과 내보내기.
 - Moho: `.moho`, `.anime`, `.mohoproj`, `.animeproj`, BVH 모션. 레이어, 뼈대, 키프레임, 벡터 아트는 편집 가능한 프로젝트로 가져옵니다. 이미지와 사운드는 목록으로만 표시되고 배치되지 않습니다.
 - OpenToonz: `.tnz` 장면과 `.pli` 벡터 레벨 가져오기(프레임 속도, 카메라, xsheet 열, 스트로크, 팔레트 색). `.tlv` 래스터 레벨은 거부되며, `.tzu`는 계획되어 있습니다.
-- 이미지: SVG(한 프레임), PNG(한 프레임), 애니메이션 GIF는 비트맵 레이어로 가져옵니다. JPEG, WebP, PSD는 구현되지 않았습니다.
+- 이미지: SVG, PNG, APNG, JPEG, GIF, WebP, TIFF, BMP, TGA, ICO, QOI, PNM, HDR, OpenEXR, DDS, PSD를 비트맵 레이어로 가져옵니다(애니메이션 GIF, APNG, WebP는 애니메이션). SVG와 PSD는 내보낼 수 있습니다. AVIF와 HEIC는 구현되지 않았습니다.
 
 ### 플랫폼
 

@@ -37,8 +37,8 @@ Flare wird in **Rust** neu geschrieben. Die Basis bilden überwiegend *OpenToonz
 - Einstellungen für Stop-Motion-Sitzungen. Die Kameraaufnahme ist noch nicht gebaut.
 - Tonwiedergabe auf dem Desktop und Film testen, das das veröffentlichte SWF in Ruffle ausführt.
 - `.flare`-Projekte öffnen und speichern. XFL und `.fla` von Animate importieren und exportieren, und Flash-Filme (`.swf`) als bearbeitbare Projekte öffnen.
-- Moho-Projekte und BVH-Bewegungen, OpenToonz-Szenen `.tnz` und -Level `.pli` sowie SVG- und PNG- oder animierte GIF-Grafiken als bearbeitbare Projekte importieren.
-- PNG, GIF und MP4 exportieren, sowie ein SWF oder eine HTML5-Canvas-Seite veröffentlichen.
+- Moho-Projekte und BVH-Bewegungen, OpenToonz-Szenen `.tnz` und -Level `.pli` sowie Grafiken und Filme (SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV) als bearbeitbare Projekte importieren.
+- PNG, JPEG, GIF, APNG, animiertes WebP, SVG, PSD und MP4 exportieren, weitere Filmformate über ffmpeg, sowie ein SWF oder eine HTML5-Canvas-Seite veröffentlichen.
 - Eine Kommandozeile (`flare`) und ein MCP-Server (`flare-mcp`) für Agenten, um Projekte aus Skripten zu erstellen, zu bearbeiten, zu exportieren und zu veröffentlichen.
 - Eine Browserversion desselben Editors. Was sie anders macht, steht in [docs/WEB.md](../WEB.md).
 
@@ -49,7 +49,7 @@ Flare wird in **Rust** neu geschrieben. Die Basis bilden überwiegend *OpenToonz
 - Flash/Animate: `.fla`, `.xfl`, `.swf` und das binäre `.fla` der alten Version (als Gerüst importiert). Speichern und Exportieren als `.fla`, `.xfl` und `.flare`.
 - Moho: `.moho`, `.anime`, `.mohoproj`, `.animeproj` und BVH-Bewegung. Ebenen, Knochen, Keyframes und Vektorgrafik werden als bearbeitbare Projekte importiert; Bilder und Ton werden aufgelistet, nicht platziert.
 - OpenToonz: `.tnz`-Szenen und `.pli`-Vektorlevel werden importiert (Bildrate, Kamera, Xsheet-Spalten, Striche, Palettenfarben). `.tlv`-Rasterlevel werden abgelehnt, `.tzu` ist geplant.
-- Grafiken: SVG (ein Bild), PNG (ein Bild) und animiertes GIF werden als Pixelebenen importiert. JPEG, WebP und PSD sind nicht gebaut.
+- Grafiken: SVG, PNG, APNG, JPEG, GIF, WebP, TIFF, BMP, TGA, ICO, QOI, PNM, HDR, OpenEXR, DDS und PSD werden als Pixelebenen importiert (animiertes GIF, APNG und WebP als Animationen); SVG und PSD werden exportiert. AVIF und HEIC sind nicht gebaut.
 
 ### Plattformen
 

@@ -37,8 +37,8 @@ Flare 正在用 **Rust** 重写。它主要基于 *OpenToonz* 和 *Tahoma2D*，�
 - 定格动画的会话设置。摄像头采集尚未实现。
 - 桌面端的声音播放，以及在 Ruffle 中运行已发布 SWF 的“测试影片”。
 - 打开和保存 `.flare` 项目。导入和导出 Animate 的 XFL 与 `.fla`，并可将 Flash 影片（`.swf`）作为可编辑项目打开。
-- 将 Moho 项目和 BVH 动作、OpenToonz 的 `.tnz` 场景与 `.pli` 矢量级别、SVG 以及 PNG 或动画 GIF 素材，作为可编辑项目导入。
-- 导出 PNG、GIF 和 MP4，并发布 SWF 或 HTML5 Canvas 页面。
+- 导入 Moho 项目和 BVH 动作、OpenToonz 的 `.tnz` 场景和 `.pli` 关卡，以及图像和影片（SVG、PNG、JPEG、GIF、WebP、PSD、MP4、MOV、AVI、MKV、WebM、MPEG、FLV），作为可编辑的项目。
+- 导出 PNG、JPEG、GIF、APNG、动画 WebP、SVG、PSD 和 MP4，其他影片格式通过 ffmpeg 导出，并发布 SWF 或 HTML5 Canvas 页面。
 - 面向脚本的命令行（`flare`）和面向智能体的 MCP 服务器（`flare-mcp`），可通过脚本创建、编辑、导出和发布项目。
 - 同一编辑器的浏览器版本。差异请参阅 [docs/WEB.md](../WEB.md)。
 
@@ -49,7 +49,7 @@ Flare 正在用 **Rust** 重写。它主要基于 *OpenToonz* 和 *Tahoma2D*，�
 - Flash/Animate：`.fla`、`.xfl`、`.swf`，以及旧版二进制 `.fla`（以骨架形式导入）。可保存和导出为 `.fla`、`.xfl` 和 `.flare`。
 - Moho：`.moho`、`.anime`、`.mohoproj`、`.animeproj` 以及 BVH 动作。图层、骨骼、关键帧和矢量美术会作为可编辑项目导入；图像和声音仅列出，不会放置。
 - OpenToonz：导入 `.tnz` 场景和 `.pli` 矢量级别（帧率、摄像机、xsheet 列、线条、调色板颜色）。`.tlv` 位图级别会被拒绝，`.tzu` 已列入计划。
-- 素材：SVG（一帧）、PNG（一帧）和动画 GIF 会作为位图图层导入。JPEG、WebP 和 PSD 尚未实现。
+- 素材：SVG、PNG、APNG、JPEG、GIF、WebP、TIFF、BMP、TGA、ICO、QOI、PNM、HDR、OpenEXR、DDS 和 PSD 会作为位图图层导入（动画 GIF、APNG 和 WebP 作为动画）；SVG 和 PSD 可以导出。AVIF 和 HEIC 尚未实现。
 
 ### 平台
 

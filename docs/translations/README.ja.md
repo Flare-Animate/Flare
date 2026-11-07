@@ -37,8 +37,8 @@ Flare は **Rust** で書き直している最中です。主に *OpenToonz* と
 - ストップモーションのセッション設定。カメラでの取り込みはまだ実装されていません。
 - デスクトップでのサウンド再生、および公開された SWF を Ruffle で実行する「ムービーをテスト」。
 - `.flare` プロジェクトの開く・保存。Animate の XFL と `.fla` のインポート・エクスポート、Flash ムービー (`.swf`) を編集可能なプロジェクトとして開くこと。
-- Moho プロジェクトと BVH モーション、OpenToonz の `.tnz` シーンと `.pli` レベル、SVG と PNG・アニメーション GIF の素材を、編集可能なプロジェクトとしてインポート。
-- PNG、GIF、MP4 のエクスポート、SWF または HTML5 Canvas ページのパブリッシュ。
+- Moho プロジェクトと BVH モーション、OpenToonz の `.tnz` シーンと `.pli` レベル、そして素材と動画（SVG、PNG、JPEG、GIF、WebP、PSD、MP4、MOV、AVI、MKV、WebM、MPEG、FLV）を、編集可能なプロジェクトとしてインポート。
+- PNG、JPEG、GIF、APNG、アニメーション WebP、SVG、PSD、MP4 のエクスポート（その他の動画形式は ffmpeg 経由）、SWF または HTML5 Canvas ページのパブリッシュ。
 - スクリプトからプロジェクトを作成・編集・エクスポート・パブリッシュするためのコマンドライン (`flare`) と、エージェント向けの MCP サーバー (`flare-mcp`)。
 - 同じエディターのブラウザ版。違いは [docs/WEB.md](../WEB.md) を参照してください。
 
@@ -49,7 +49,7 @@ Flare は **Rust** で書き直している最中です。主に *OpenToonz* と
 - Flash/Animate: `.fla`、`.xfl`、`.swf`、旧形式のバイナリ `.fla` (骨組みとしてインポート)。`.fla`、`.xfl`、`.flare` への保存とエクスポート。
 - Moho: `.moho`、`.anime`、`.mohoproj`、`.animeproj`、BVH モーション。レイヤー、ボーン、キーフレーム、ベクター素材は編集可能なプロジェクトとしてインポートされます。画像とサウンドは一覧表示のみで配置されません。
 - OpenToonz: `.tnz` シーンと `.pli` ベクターレベルをインポート (フレームレート、カメラ、xsheet の列、ストローク、パレットの色)。`.tlv` ラスターレベルは拒否され、`.tzu` は計画中です。
-- 素材: SVG (1 フレーム)、PNG (1 フレーム)、アニメーション GIF はビットマップレイヤーとしてインポートされます。JPEG、WebP、PSD は未実装です。
+- 素材: SVG、PNG、APNG、JPEG、GIF、WebP、TIFF、BMP、TGA、ICO、QOI、PNM、HDR、OpenEXR、DDS、PSD はビットマップレイヤーとしてインポートされます（アニメーション GIF、APNG、WebP はアニメーション）。SVG と PSD はエクスポートできます。AVIF と HEIC は未実装です。
 
 ### プラットフォーム
 

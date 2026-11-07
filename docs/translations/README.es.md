@@ -37,8 +37,8 @@ Flare se está reescribiendo en **Rust**. Se basa sobre todo en *OpenToonz* y *T
 - Ajustes de sesiones de stop motion. La captura con cámara todavía no está construida.
 - Reproducción de sonido en el escritorio, y Probar película, que ejecuta el SWF publicado en Ruffle.
 - Abrir y guardar proyectos `.flare`. Importar y exportar XFL y `.fla` de Animate, y abrir películas Flash (`.swf`) como proyectos editables.
-- Importar proyectos de Moho y movimiento BVH, escenas `.tnz` y niveles `.pli` de OpenToonz, y obras en SVG, PNG o GIF animado, como proyectos editables.
-- Exportar PNG, GIF y MP4, y publicar un SWF o una página HTML5 Canvas.
+- Importar proyectos de Moho y movimiento BVH, escenas `.tnz` y niveles `.pli` de OpenToonz, y obras y películas (SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV) como proyectos editables.
+- Exportar PNG, JPEG, GIF, APNG, WebP animado, SVG, PSD y MP4, otros formatos de película mediante ffmpeg, y publicar un SWF o una página HTML5 Canvas.
 - Una línea de comandos (`flare`) y un servidor MCP (`flare-mcp`) para agentes, para crear, editar, exportar y publicar proyectos desde scripts.
 - Una versión para navegador del mismo editor. Vea [docs/WEB.md](../WEB.md) para lo que hace distinto.
 
@@ -49,7 +49,7 @@ Flare se está reescribiendo en **Rust**. Se basa sobre todo en *OpenToonz* y *T
 - Flash/Animate: `.fla`, `.xfl`, `.swf` y `.fla` binario heredado (importado como esqueleto). Guardar y exportar a `.fla`, `.xfl` y `.flare`.
 - Moho: `.moho`, `.anime`, `.mohoproj`, `.animeproj` y movimiento BVH. Capas, huesos, fotogramas clave y arte vectorial se importan como proyectos editables; las imágenes y el sonido se listan, no se colocan.
 - OpenToonz: se importan escenas `.tnz` y niveles vectoriales `.pli` (velocidad de fotogramas, cámara, columnas de xsheet, trazos, colores de paleta). Los niveles raster `.tlv` se rechazan, y `.tzu` está previsto.
-- Obras: SVG (un fotograma), PNG (un fotograma) y GIF animado se importan como capas de mapa de bits. JPEG, WebP y PSD no están construidos.
+- Obras: SVG, PNG, APNG, JPEG, GIF, WebP, TIFF, BMP, TGA, ICO, QOI, PNM, HDR, OpenEXR, DDS y PSD se importan como capas de mapa de bits (GIF animado, APNG y WebP como animaciones); se exportan SVG y PSD. AVIF y HEIC no están construidos.
 
 ### Plataformas
 

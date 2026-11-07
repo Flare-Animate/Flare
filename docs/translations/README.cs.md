@@ -37,8 +37,8 @@ Flare se přepisuje v jazyce **Rust**. Vychází především z *OpenToonzu* a *
 - Nastavení relace stop motion. Zachycení kamerou zatím není hotové.
 - Přehrávání zvuku na počítači a Testovací film, který spouští publikovaný SWF v Ruffle.
 - Otevírání a ukládání projektů `.flare`. Import a export XFL a `.fla` z Animate a otevírání filmů Flash (`.swf`) jako upravitelných projektů.
-- Import projektů Moho a pohybu BVH, scén OpenToonzu `.tnz` a úrovní `.pli`, a také grafiky SVG, PNG a animovaného GIFu jako upravitelných projektů.
-- Export PNG, GIF a MP4 a publikování SWF nebo stránky HTML5 Canvas.
+- Import projektů Moho a pohybu BVH, scén OpenToonzu `.tnz` a úrovní `.pli` a také grafiky a filmů (SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV) jako upravitelných projektů.
+- Export PNG, JPEG, GIF, APNG, animovaného WebP, SVG, PSD a MP4, ostatních formátů filmů přes ffmpeg, a publikování SWF nebo stránky HTML5 Canvas.
 - Příkazový řádek (`flare`) a server MCP (`flare-mcp`) pro agenty, které umožňují vytvářet, upravovat, exportovat a publikovat projekty ze skriptů.
 - Webová verze stejného editoru. Co dělá jinak, popisuje [docs/WEB.md](../WEB.md).
 
@@ -49,7 +49,7 @@ Flare se přepisuje v jazyce **Rust**. Vychází především z *OpenToonzu* a *
 - Flash/Animate: `.fla`, `.xfl`, `.swf` a starší binární `.fla` (importuje se jako kostra). Ukládání a export do `.fla`, `.xfl` a `.flare`.
 - Moho: `.moho`, `.anime`, `.mohoproj`, `.animeproj` a pohyb BVH. Vrstvy, kosti, klíčové snímky a vektorová grafika se importují jako upravitelné projekty; obrázky a zvuk se pouze vypisují, neumisťují se.
 - OpenToonz: import scén `.tnz` a vektorových úrovní `.pli` (snímková frekvence, kamera, sloupce xsheetu, tahy, barvy palety). Rastrové úrovně `.tlv` se odmítají, `.tzu` je v plánu.
-- Grafika: SVG (jeden snímek), PNG (jeden snímek) a animovaný GIF se importují jako bitmapové vrstvy. JPEG, WebP a PSD zatím nejsou hotové.
+- Grafika: SVG, PNG, APNG, JPEG, GIF, WebP, TIFF, BMP, TGA, ICO, QOI, PNM, HDR, OpenEXR, DDS a PSD se importují jako bitmapové vrstvy (animované GIF, APNG a WebP jako animace); exportují se SVG a PSD. AVIF a HEIC zatím nejsou hotové.
 
 ### Platformy
 
