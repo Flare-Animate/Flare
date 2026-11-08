@@ -115,6 +115,29 @@ fn failures_come_back_as_text_not_panics() {
 }
 
 #[test]
+fn importing_audio_bytes_rejects_non_audio_files() {
+    let mut runtime = Runtime::inline();
+    let id = runtime.next_id();
+    runtime.submit_audio(AudioJob::ImportBytes {
+        id,
+        name: "notes.wav".to_owned(),
+        bytes: b"not audio".to_vec(),
+    });
+    match runtime.poll().remove(0) {
+        Done::SoundImported {
+            id: got,
+            path,
+            result: Err(message),
+        } => {
+            assert_eq!(got, id);
+            assert_eq!(path, std::path::PathBuf::from("notes.wav"));
+            assert!(message.contains("sound"));
+        }
+        _ => panic!("expected an import error"),
+    }
+}
+
+#[test]
 fn workers_do_the_jobs_wake_the_front_end_and_finish_saves_before_exit() {
     let woken = Arc::new(AtomicUsize::new(0));
     let mut runtime = Runtime::inline();

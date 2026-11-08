@@ -168,6 +168,23 @@ fn importing_a_sound_adds_it_and_a_cue_at_the_playhead_in_one_undo_step() {
 }
 
 #[test]
+fn importing_sound_bytes_from_a_picker_adds_a_playable_cue() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = wav_file(dir.path(), "Picker.wav");
+    let bytes = std::fs::read(path).expect("wav bytes");
+    let mut ws = workspace();
+    ws.set_frame(3);
+    ws.import_sound_bytes("Picker.wav", bytes);
+    assert_eq!(ws.document().sounds().len(), 1);
+    let layer = &ws.document().scenes()[0].timeline().layers()[1];
+    assert_eq!(layer.name(), "Sound: Picker");
+    assert_eq!(layer.cues()[0].start, 3);
+    assert!(ws.audio.decoded.contains_key(&layer.cues()[0].sound));
+    ws.undo();
+    assert!(ws.document().sounds().is_empty());
+}
+
+#[test]
 fn sounds_that_cannot_be_imported_are_reported_and_change_nothing() {
     let dir = tempfile::tempdir().expect("dir");
     let text = dir.path().join("notes.wav");

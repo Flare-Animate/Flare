@@ -34,6 +34,17 @@ pub fn run_audio(job: AudioJob) -> Done {
                 });
             Done::SoundImported { id, path, result }
         }
+        AudioJob::ImportBytes { id, name, bytes } => {
+            let path = std::path::PathBuf::from(name);
+            let result = if bytes.len() > flare_audio::MAX_INPUT_BYTES {
+                Err(flare_audio::AudioError::InputTooLarge.to_string())
+            } else {
+                flare_audio::decode(&bytes)
+                    .map(|audio| (bytes, Arc::new(audio)))
+                    .map_err(|error| error.to_string())
+            };
+            Done::SoundImported { id, path, result }
+        }
         AudioJob::Decode { sound, data } => Done::SoundDecoded {
             sound,
             result: flare_audio::decode(&data)

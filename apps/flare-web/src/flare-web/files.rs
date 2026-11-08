@@ -43,3 +43,22 @@ pub async fn pick(label: &str, extensions: &[&str]) -> Option<(String, Vec<u8>)>
         .await?;
     Some((handle.file_name(), handle.read().await))
 }
+
+/// Like [`pick`], but refuses an oversized file before reading it into memory.
+pub async fn pick_bounded(
+    label: &str,
+    extensions: &[&str],
+    max_bytes: usize,
+) -> Result<Option<(String, Vec<u8>)>, String> {
+    let Some(handle) = rfd::AsyncFileDialog::new()
+        .add_filter(label, extensions)
+        .pick_file()
+        .await
+    else {
+        return Ok(None);
+    };
+    if handle.inner().size() > max_bytes as f64 {
+        return Err(format!("file is larger than {max_bytes} bytes"));
+    }
+    Ok(Some((handle.file_name(), handle.read().await)))
+}

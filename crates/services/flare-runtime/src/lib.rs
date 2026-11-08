@@ -22,6 +22,7 @@ mod jobs;
 mod launch;
 mod movie;
 mod run;
+mod sound;
 mod sprites;
 mod workers;
 
@@ -33,6 +34,8 @@ pub use export::{
     export_png, export_still, png_bytes, psd_export, rgba_png, still_bytes, svg_export,
 };
 pub use export_game::{GAME_FORMAT, GAME_FORMAT_VERSION, GameExport, export_game};
+pub use flare_audio::MAX_INPUT_BYTES as MAX_AUDIO_INPUT_BYTES;
+pub use flare_audio::{Audio, AudioEvent};
 pub use flare_render::StillFormat;
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
@@ -40,6 +43,7 @@ pub use movie::{
     MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, animated_webp_bytes, apng_bytes, gif_bytes, gif_bytes_on,
 };
 pub use run::{ExtraFonts, font_families, run_audio, run_io, run_render, run_text, text_shape};
+pub use sound::{SoundImportError, SoundLayer, sound_layer};
 pub use sprites::{MAX_SHEET_FRAMES, MAX_SHEET_SIDE, SpriteSheet, sprite_sheet};
 pub use workers::Wake;
 

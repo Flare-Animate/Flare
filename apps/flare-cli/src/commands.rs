@@ -66,6 +66,14 @@ pub(crate) enum Command {
     },
     /// Rename the first scene of a project.
     RenameScene { path: PathBuf, name: String },
+    /// Add a sound file (WAV, MP3, Ogg Vorbis or FLAC) on a new layer.
+    SoundImport {
+        path: PathBuf,
+        sound: PathBuf,
+        /// Frame at which playback starts (zero based).
+        #[arg(long, default_value_t = 0)]
+        at: u32,
+    },
     /// Summarize a project.
     Info { path: PathBuf },
     /// Add a Graphic symbol to the library, optionally holding one filled rectangle.

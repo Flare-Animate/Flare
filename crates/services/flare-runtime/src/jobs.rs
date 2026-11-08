@@ -42,6 +42,12 @@ pub struct TextPreviewRender {
 pub enum AudioJob {
     /// Read a file, decode it to learn its length and to be ready to play.
     Import { id: u64, path: PathBuf },
+    /// Decode an audio file already held in memory (for a browser file picker).
+    ImportBytes {
+        id: u64,
+        name: String,
+        bytes: Vec<u8>,
+    },
     /// Decode a sound already in the document.
     Decode { sound: SoundId, data: Arc<[u8]> },
 }

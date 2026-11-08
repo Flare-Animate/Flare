@@ -8,6 +8,7 @@ mod game;
 mod history;
 mod read;
 mod shortcuts;
+mod sound;
 mod stopmotion;
 #[cfg(test)]
 mod stopmotion_tests;
@@ -31,6 +32,7 @@ impl FlareServer {
             + Self::history_tools()
             + Self::bone_tools()
             + Self::stopmotion_tools()
+            + Self::sound_tools()
             + Self::tween_tools()
             + Self::shortcut_tools()
             + Self::symbol_tools()
