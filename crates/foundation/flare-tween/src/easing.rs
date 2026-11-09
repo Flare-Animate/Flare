@@ -192,6 +192,21 @@ pub fn ease(
     Ok(ease_valid(interpolation, easing, t.clamp(0.0, 1.0), params))
 }
 
+/// The f32 form of `ease`: the same formulas, run once at f64 precision and rounded to f32.
+/// Rounding once keeps the two in agreement to f32 precision, so a caller that stores f32 gets
+/// every family without a second implementation to drift from this one.
+///
+/// # Errors
+/// As `ease`: `t` is not finite, or `params` is outside its limits.
+pub fn ease32(
+    interpolation: Interpolation,
+    easing: Easing,
+    t: f32,
+    params: &Params,
+) -> Result<f32, TweenError> {
+    ease(interpolation, easing, f64::from(t), params).map(|value| value as f32)
+}
+
 /// `ease` for input that is already known to be finite, in 0..=1, with valid parameters.
 pub(crate) fn ease_valid(
     interpolation: Interpolation,
