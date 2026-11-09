@@ -23,6 +23,9 @@ the map.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on Ubuntu for every push and pull request: `cargo fmt --check`,
-clippy with `-D warnings`, `cargo test --workspace --locked`, a lockfile check, a wasm32 check of
-the crates the web build uses, and the doc rules (500-line limit, no references to the scratch directory).
+`.github/workflows/ci.yml` runs on every push and pull request. On Linux, Windows and macOS: clippy
+with `-D warnings` and `cargo test --workspace --locked`. On Linux only: `cargo fmt --check`, the
+tests in `scripts/tests` for the command line, file associations, crate layers, manifests and the
+surfaces table, and a lockfile check. Separate jobs run a wasm32 check of the crates the web build
+uses and the page's tests, `cargo audit`, and the doc rules (500-line limit, no references to the
+scratch directory).
