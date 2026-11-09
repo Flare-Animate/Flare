@@ -1,19 +1,41 @@
 use super::*;
 use crate::workspace::splash::SPLASH_SECONDS;
 
+/// On the very first frame the window shows, an opaque sheet covers all of it and nothing but the
+/// splash's own words is drawn after that sheet, so no part of the app can be seen.
 #[test]
-fn the_splash_is_painted_on_the_very_first_frame() {
+fn the_splash_hides_the_app_from_the_very_first_frame() {
+    use egui::epaint::Shape;
     let (mut ws, ctx) = (workspace(), egui::Context::default());
+    flare_ui::icons::install(&ctx);
+    ws.set_home(true);
     ws.show_splash();
     let mut out = ctx.run_ui(input(0.0, vec![]), |ui| ws.show(ui));
     out.textures_delta.clear();
-    let dim = egui::Color32::from_black_alpha(150);
-    assert!(
-        out.shapes.iter().any(|clipped| matches!(
-            &clipped.shape,
-            egui::epaint::Shape::Rect(rect) if rect.fill == dim
-        )),
-        "the first frame the window shows must already have the splash on it"
+    let screen = ctx.content_rect();
+    let cover = out
+        .shapes
+        .iter()
+        .rposition(|clipped| {
+            matches!(&clipped.shape, Shape::Rect(r) if r.rect == screen && r.fill.a() == 255)
+        })
+        .expect("an opaque sheet over the whole window");
+    let words: Vec<String> = out.shapes[cover..]
+        .iter()
+        .filter_map(|clipped| match &clipped.shape {
+            Shape::Text(text) => Some(text.galley.text().to_owned()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        words.first().map(String::as_str),
+        Some("Flare"),
+        "{words:?}"
+    );
+    assert_eq!(
+        words.len(),
+        3,
+        "the name, the tagline and the version: {words:?}"
     );
 }
 

@@ -66,10 +66,11 @@ impl Workspace {
             .fixed_pos(screen.min)
             .fade_in(false)
             .show(ctx, |ui| {
-                // Dims and catches the window behind it, so nothing is clicked through.
+                // Covers the window, so the app is not seen until the splash has gone, and catches
+                // the pointer, so nothing is clicked through.
                 ui.allocate_rect(screen, Sense::click_and_drag());
-                ui.painter()
-                    .rect_filled(screen, 0.0, Color32::from_black_alpha(150));
+                let sheet = ui.ctx().global_style().visuals.panel_fill;
+                ui.painter().rect_filled(screen, 0.0, sheet.to_opaque());
                 let size = flare_ui::splash::SIZE.min(screen.size() - vec2(32.0, 32.0));
                 let size = size.max(vec2(1.0, 1.0));
                 let rect = Rect::from_center_size(screen.center(), size);
