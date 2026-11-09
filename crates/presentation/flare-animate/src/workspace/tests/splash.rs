@@ -2,6 +2,22 @@ use super::*;
 use crate::workspace::splash::SPLASH_SECONDS;
 
 #[test]
+fn the_splash_is_painted_on_the_very_first_frame() {
+    let (mut ws, ctx) = (workspace(), egui::Context::default());
+    ws.show_splash();
+    let mut out = ctx.run_ui(input(0.0, vec![]), |ui| ws.show(ui));
+    out.textures_delta.clear();
+    let dim = egui::Color32::from_black_alpha(150);
+    assert!(
+        out.shapes.iter().any(|clipped| matches!(
+            &clipped.shape,
+            egui::epaint::Shape::Rect(rect) if rect.fill == dim
+        )),
+        "the first frame the window shows must already have the splash on it"
+    );
+}
+
+#[test]
 fn the_splash_is_off_until_asked_and_goes_by_itself() {
     let mut ws = workspace();
     let ctx = egui::Context::default();
