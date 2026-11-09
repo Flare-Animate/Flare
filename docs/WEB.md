@@ -32,6 +32,10 @@ JavaScript that loads it in `src/lib/`, a static page in `public/`, and a build 
   and fetches Ruffle only on the first play; `ruffle.rs` hands it the bytes and turns a failure into
   a message. A headless Chrome test loads a movie we published and reads back what Ruffle reports
   it loaded; sound and how it looks on screen have not been checked by a person.
+- **Sound** plays through Web Audio, and File > Import Sound uses the browser's file picker. A
+  browser may want a click on the page before it makes a sound.
+- **Pen pressure** comes from pointer events (`src/lib/pen-pressure.js`) and reaches the workspace
+  through `flare-input`'s `PenFeed`. A node test checks it; a real pen has not.
 - **Preferences** live in local storage instead of `flare-platform`'s files.
 - **`flare-platform`** is the desktop's operating system (directories, the sound card, native
   dialogs), so the web app does not use it.
@@ -42,8 +46,6 @@ JavaScript that loads it in `src/lib/`, a static page in `public/`, and a build 
   download, and autosave and crash recovery (which need a folder) are not there.
 - **Threads.** The runtime stays in its inline mode, which runs jobs on the calling thread. Work
   that is slow on a desktop is slow on the page's one thread until a web worker is added.
-- **Sound** has no output yet (events are dropped) and sounds cannot be imported.
-- **Pen input.** `flare-input` defines the samples; the page needs to feed them from pointer
-  events (pressure is available there).
-- The page has not been run in a browser from here; it is checked by compiling for
-  `wasm32-unknown-unknown`.
+- The page is checked by compiling for `wasm32-unknown-unknown`, by tests of its JavaScript under
+  node and by the headless Chrome test of Test Movie above. The rest of the interface has not
+  been exercised in a browser from here.

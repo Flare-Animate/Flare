@@ -24,15 +24,20 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-i18n` | The words of the interface: Fluent files per language and section under `localizations/`, compiled in, with English as the fallback; a build script finds the files, and `has_key` lets a `tr!` check its key while the program is built. |
 | foundation | `flare-profile` | Workspace profiles as data: rooms, dock trees, toolbars and defaults, read through checks (size, depth, ranges, every panel placed). Four built in, as JSON in `data/`. |
 | foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, and the pressure-to-width curve. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
+| foundation | `flare-tween` | Interpolation and easing, cubic-bezier keyframe handles, extrapolation, in-betweens of strokes and of rasters. See Tweening below. |
+| foundation | `flare-rig` | Skeletal rigs for symbols: bones, keyed poses, forward kinematics and bounded IK, as pure data and functions. See Symbols and rigging below. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
 | editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines, nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, the anchor point tools, the Ruler and the Mirror, and the operations of the Paint Bucket and Ink Bottle, the Eraser, Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
+| editing | `flare-stopmotion` | The stop-motion domain as data: a capture session, its frames, onion skin and the timeline it exports to. No camera is opened here (`NoCamera` answers with a named error). |
 | io | `flare-storage` | The `.flare` SQLite container with compressed CBOR records: save, load, revalidation, crash recovery files. |
 | io | `flare-import` | Import: XFL directories, zipped modern `.fla` files and Flash movies (`.swf`) into a Flare document, with a diagnostic for everything it cannot carry over. |
 | io | `flare-ffmpeg` | Video through the system's ffmpeg: the containers Flare writes no other way (MOV, AVI, Matroska, WebM, MPEG, Flash video) and the movies it reads (MP4 and the same set). A program run with a list of arguments and a time limit, never linked or bundled; without it, a typed error names ffmpeg. |
 | io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | io | `flare-publish` | SWF publishing: a document as a SWF with its symbols kept as sprites and its tweens baked, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
+| io | `flare-moho` | Moho and Anime Studio projects and BVH files, read into a typed model with every size and depth bounded. See [MOHO.md](MOHO.md). |
+| io | `flare-toonz` | Toonz (OpenToonz lineage) files: scenes, palettes and levels. [SURFACES.md](SURFACES.md) says what is imported. |
 | adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing. |
@@ -50,6 +55,7 @@ Executables are in `apps/`. The folders mean:
 | apps | `flare-desktop` | The desktop program: starts `flare-shell`'s window with the workspace (arguments, recovery, locale). The window itself is `flare-shell`'s. |
 | apps | `flare-web` | The same workspace in a browser tab (eframe on a canvas); compiles for `wasm32-unknown-unknown` only, see [WEB.md](WEB.md). |
 | apps | `flare-mcp` | An MCP server over stdio for one open project, built on `rmcp`: agent tools over the same edit commands, with permissions and revision checks. |
+| apps | `flare-android` | The same window shell on an Android activity, with the app's own data directory in place of the desktop's paths. See [SURFACES.md](SURFACES.md). |
 
 The CLI and the desktop app edit documents through the same `flare-commands` commands and
 render through the same `flare-eval` and `flare-render`. That is deliberate: there is one
@@ -554,9 +560,11 @@ Provenance: clean-room. The code follows the feature descriptions and standard e
 Blender source was opened or copied. The behaviour the names promise is tested directly (exact
 endpoints, monotone families, handle continuity, extrapolation values, refusal of bad input).
 
-Not wired yet: no document command sets a key's interpolation or handles, and the CLI and MCP do
-not expose the library. The editor still uses the existing Animate-style Ease in `flare-eval`
-(`eased`). See the rows in [SURFACES.md](SURFACES.md) and the plan in [ROADMAP.md](ROADMAP.md).
+A span's `SpanInterp` (see Evaluation and rendering) is set from Properties and the Motion Editor
+on the desktop and in the browser, `flare tween` and the MCP tools; a span without one keeps the
+Animate-style Ease in `flare-eval` (`eased`). Not wired yet: per-property graphs over a whole
+`Curve`, which has no document model. See the rows in [SURFACES.md](SURFACES.md) and the plan in
+[ROADMAP.md](ROADMAP.md).
 
 ## Symbols and rigging
 
