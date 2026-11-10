@@ -113,6 +113,8 @@ impl Workspace {
         let fps = rate.per_second();
         ui.label(RichText::new(format!("{fps:.2} fps")).color(theme::text_dim()));
         ui.separator();
+        self.timeline_frame_buttons(ui);
+        ui.separator();
         let mut onion = self.onion.enabled;
         if chrome::icon_button(
             ui,
