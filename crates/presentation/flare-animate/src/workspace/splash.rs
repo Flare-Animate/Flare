@@ -49,14 +49,28 @@ impl Workspace {
         );
         let tagline = tr!(self, "menu-help-tagline");
         let screen = ctx.content_rect();
-        egui::Area::new(egui::Id::NULL.with("flare-splash"))
+        let area = egui::Id::NULL.with("flare-splash");
+        // egui measures a new Area on an invisible first frame, which put the bare window on
+        // screen before the splash. Its size is the window's, so egui is told instead.
+        if egui::AreaState::load(ctx, area).is_none() {
+            let layer = egui::LayerId::new(egui::Order::Foreground, area);
+            let state = egui::AreaState {
+                pivot_pos: Some(screen.min),
+                size: Some(screen.size()),
+                ..Default::default()
+            };
+            ctx.memory_mut(|memory| memory.areas_mut().set_state(layer, state));
+        }
+        egui::Area::new(area)
             .order(egui::Order::Foreground)
             .fixed_pos(screen.min)
+            .fade_in(false)
             .show(ctx, |ui| {
-                // Dims and catches the window behind it, so nothing is clicked through.
+                // Covers the window, so the app is not seen until the splash has gone, and catches
+                // the pointer, so nothing is clicked through.
                 ui.allocate_rect(screen, Sense::click_and_drag());
-                ui.painter()
-                    .rect_filled(screen, 0.0, Color32::from_black_alpha(150));
+                let sheet = ui.ctx().global_style().visuals.panel_fill;
+                ui.painter().rect_filled(screen, 0.0, sheet.to_opaque());
                 let size = flare_ui::splash::SIZE.min(screen.size() - vec2(32.0, 32.0));
                 let size = size.max(vec2(1.0, 1.0));
                 let rect = Rect::from_center_size(screen.center(), size);

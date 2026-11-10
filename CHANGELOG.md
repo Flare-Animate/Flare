@@ -9,6 +9,7 @@ All notable changes are listed here. The format follows
 The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.md for what it does not do yet.
 
 ### Fixed
+- The start-up splash covers the whole window from the first frame it shows, so the app is not seen before or behind it.
 - Playing or rendering an imported `.fla` no longer fails with "cannot be tweened: its matrix has shear or reflection": motion tweens interpolate any 2D matrix (rotation, skew, signed scales, translation), and a tween that cannot be computed holds its keyframe and records a warning instead of blanking the frame.
 
 ### Added

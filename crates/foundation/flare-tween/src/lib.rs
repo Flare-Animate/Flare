@@ -23,7 +23,7 @@ mod view;
 pub use curve::{Curve, Extrapolation, Handle, HandleKind, Key, MAX_KEYS};
 pub use easing::{
     Easing, Interpolation, MAX_BACK_OVERSHOOT, MAX_ELASTIC_AMPLITUDE, MAX_ELASTIC_PERIOD,
-    MIN_ELASTIC_PERIOD, Params, ease,
+    MIN_ELASTIC_PERIOD, Params, ease, ease32,
 };
 pub use edit::{
     DragOptions, Dragged, Grab, MAX_HANDLE_VALUE, MAX_SAMPLES, drag_handle, effective_handles,
