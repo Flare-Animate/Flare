@@ -121,7 +121,14 @@ fn horizontal_extent_near(path: &[PathSegment], y: f64) -> f64 {
 fn a_round_full_nib_paints_the_same_as_the_plain_brush() {
     let samples = run((0.0, 0.0), (100.0, 40.0));
     let plain = outline(&samples, 12.0, PressureCurve::default(), 0.5);
-    let nibbed = outline_with(&samples, 12.0, PressureCurve::default(), 0.5, Nib::ROUND);
+    let nibbed = outline_with(
+        &samples,
+        12.0,
+        PressureCurve::default(),
+        0.5,
+        Nib::ROUND,
+        0.0,
+    );
     assert_eq!(plain, nibbed);
     assert!(plain.is_some());
 }
@@ -130,10 +137,24 @@ fn a_round_full_nib_paints_the_same_as_the_plain_brush() {
 fn a_flat_nib_is_thick_across_its_long_axis_and_thin_along_it() {
     let flat = Nib::new(NibShape::Round, 0.0, 10.0);
     let curve = PressureCurve::default();
-    let across = outline_with(&run((50.0, 0.0), (50.0, 100.0)), 20.0, curve, 0.5, flat)
-        .expect("vertical stroke");
-    let along = outline_with(&run((0.0, 50.0), (100.0, 50.0)), 20.0, curve, 0.5, flat)
-        .expect("horizontal stroke");
+    let across = outline_with(
+        &run((50.0, 0.0), (50.0, 100.0)),
+        20.0,
+        curve.clone(),
+        0.5,
+        flat,
+        0.0,
+    )
+    .expect("vertical stroke");
+    let along = outline_with(
+        &run((0.0, 50.0), (100.0, 50.0)),
+        20.0,
+        curve.clone(),
+        0.5,
+        flat,
+        0.0,
+    )
+    .expect("horizontal stroke");
     // Its long axis is horizontal: a vertical stroke is as wide as the nib, a horizontal one is
     // a tenth of that.
     assert!((horizontal_extent_near(&across, 50.0) - 20.0).abs() < 0.5);
@@ -144,18 +165,106 @@ fn a_flat_nib_is_thick_across_its_long_axis_and_thin_along_it() {
 fn turning_the_nib_turns_the_stroke() {
     let curve = PressureCurve::default();
     let flat_up = Nib::new(NibShape::Round, 90.0, 10.0);
-    let horizontal =
-        outline_with(&run((0.0, 50.0), (100.0, 50.0)), 20.0, curve, 0.5, flat_up).expect("stroke");
+    let horizontal = outline_with(
+        &run((0.0, 50.0), (100.0, 50.0)),
+        20.0,
+        curve,
+        0.5,
+        flat_up,
+        0.0,
+    )
+    .expect("stroke");
     // The long axis now points up, so a horizontal stroke is as thick as the nib is long.
     assert!((thickness_at(&horizontal, 50.0) - 20.0).abs() < 0.5);
+}
+
+#[test]
+fn velocity_thins_a_fast_stroke_toward_the_curve_minimum_and_keeps_a_slow_one() {
+    // Three samples a frame apart on a slight curve (kept through simplification): the middle
+    // step of 48 px is twice what counts as "at speed", so its width is the curve's minimum.
+    let fast = [
+        sample(0.0, 0.0, 1.0),
+        sample(48.0, -6.0, 1.0),
+        sample(96.0, 0.0, 1.0),
+    ];
+    let dense: Vec<_> = (0..=1000)
+        .map(|i| {
+            let t = f64::from(i) / 1000.0;
+            sample(t * 96.0, (t * core::f64::consts::PI).sin() * -6.0, 1.0)
+        })
+        .collect();
+    let curve = PressureCurve::new(0.25, 1.0);
+    let at_speed = |samples: &[InputSample]| {
+        outline_with(samples, 20.0, curve.clone(), 0.5, Nib::ROUND, 1.0).expect("stroke")
+    };
+    let fast_stroke = at_speed(&fast);
+    let slow_stroke = at_speed(&dense);
+    // A fast hand thins toward a quarter of the width, a slow one stays at it.
+    assert!(
+        (thickness_at(&fast_stroke, 48.0) - 20.0 * 0.25).abs() < 1.0,
+        "fast: {}",
+        thickness_at(&fast_stroke, 48.0)
+    );
+    assert!((thickness_at(&slow_stroke, 48.0) - 20.0).abs() < 0.2);
+    // Marked-ness: the fast stroke is never the wider of the two.
+    assert!(thickness_at(&fast_stroke, 48.0) < thickness_at(&slow_stroke, 48.0));
+}
+
+#[test]
+fn velocity_zero_paints_exactly_as_before_and_bad_values_clamp() {
+    let samples = run((0.0, 0.0), (100.0, 40.0));
+    let without = outline(&samples, 12.0, PressureCurve::default(), 0.5);
+    let turned_off = outline_with(
+        &samples,
+        12.0,
+        PressureCurve::default(),
+        0.5,
+        Nib::ROUND,
+        0.0,
+    );
+    assert_eq!(without, turned_off);
+    // NaN and out-of-range behave as off and full respectively: NaN never thins a line.
+    let nan = outline_with(
+        &samples,
+        12.0,
+        PressureCurve::default(),
+        0.5,
+        Nib::ROUND,
+        f32::NAN,
+    );
+    assert_eq!(turned_off, nan);
+    let over = outline_with(
+        &samples,
+        12.0,
+        PressureCurve::default(),
+        0.5,
+        Nib::ROUND,
+        5.0,
+    );
+    let full = outline_with(
+        &samples,
+        12.0,
+        PressureCurve::default(),
+        0.5,
+        Nib::ROUND,
+        1.0,
+    );
+    assert_eq!(full, over);
 }
 
 #[test]
 fn a_square_nib_has_flat_ends_and_corner_reach_when_turned() {
     let curve = PressureCurve::default();
     let square = Nib::new(NibShape::Square, 0.0, 100.0);
-    let path =
-        outline_with(&run((10.0, 10.0), (60.0, 10.0)), 10.0, curve, 0.5, square).expect("stroke");
+    let path = outline_with(
+        &run((10.0, 10.0), (60.0, 10.0)),
+        10.0,
+        curve.clone(),
+        0.5,
+        square,
+        0.0,
+    )
+    .expect("stroke");
     let xs: Vec<f64> = points(&path).iter().map(|p| p.x).collect();
     let lo = xs.iter().copied().fold(f64::MAX, f64::min);
     let hi = xs.iter().copied().fold(f64::MIN, f64::max);
@@ -166,8 +275,15 @@ fn a_square_nib_has_flat_ends_and_corner_reach_when_turned() {
     assert!((height(&path) - 10.0).abs() < 0.01);
     // Turned a quarter-eighth, the corner points straight up: half a side times the root of two.
     let diamond = Nib::new(NibShape::Square, 45.0, 100.0);
-    let path =
-        outline_with(&run((10.0, 10.0), (60.0, 10.0)), 10.0, curve, 0.5, diamond).expect("stroke");
+    let path = outline_with(
+        &run((10.0, 10.0), (60.0, 10.0)),
+        10.0,
+        curve.clone(),
+        0.5,
+        diamond,
+        0.0,
+    )
+    .expect("stroke");
     assert!((height(&path) - 10.0 * 2f64.sqrt()).abs() < 0.01);
 }
 
@@ -199,8 +315,15 @@ fn a_nib_never_makes_a_stroke_that_is_not_a_valid_closed_path() {
     for shape in [NibShape::Round, NibShape::Square] {
         for angle in [0.0, 30.0, 90.0, 200.0] {
             for flat in [1.0, 25.0, 100.0] {
-                let path = outline_with(&samples, 14.0, curve, 0.5, Nib::new(shape, angle, flat))
-                    .expect("outline");
+                let path = outline_with(
+                    &samples,
+                    14.0,
+                    curve.clone(),
+                    0.5,
+                    Nib::new(shape, angle, flat),
+                    0.0,
+                )
+                .expect("outline");
                 assert!(matches!(path.first(), Some(PathSegment::MoveTo(_))));
                 assert!(matches!(path.last(), Some(PathSegment::Close)));
             }

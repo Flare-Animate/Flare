@@ -8,7 +8,7 @@
 
 use egui::epaint::{Mesh, Vertex, WHITE_UV};
 use egui::{Color32, Pos2, Rect, Vec2};
-use flare_input::{InputSample, PressureCurve};
+use flare_input::InputSample;
 
 use crate::workspace::*;
 
@@ -186,15 +186,27 @@ impl Workspace {
         &self,
         strokes: &[Vec<InputSample>],
     ) -> Vec<PreviewStroke> {
-        let curve = PressureCurve::new(self.brush_light, self.brush_pressure_gamma);
-        let (color, size, brush) = match self.tool {
+        let curve = self.brush_shelf.pressure_curve();
+        let (fill, size, brush) = match self.tool {
             Tool::Brush => (self.paint.fill, self.brush_size, true),
             _ => (self.paint.stroke_color, self.paint.stroke_width, false),
         };
         let nib = self.brush_shelf.nib();
+        let velocity = self.brush_shelf.velocity();
+        // Flow is how opaque the paint is at the first touch; the commit stamps the same alpha
+        // into the shape.
+        let mut color = fill;
+        if brush {
+            color = Color32::from_rgba_unmultiplied(
+                fill.r(),
+                fill.g(),
+                fill.b(),
+                (f32::from(fill.a()) * self.brush_shelf.flow()) as u8,
+            );
+        }
         // A flat nib paints thick where the line crosses its long axis, so the preview ribbon
         // takes the same reach from the direction the line is heading.
-        let half = |stroke: &[InputSample], i: usize| {
+        let half = |stroke: &[InputSample], i: usize| -> f32 {
             let s = &stroke[i];
             if !brush {
                 return size / 2.0;
@@ -204,7 +216,17 @@ impl Workspace {
                 &stroke[(i + 1).min(stroke.len() - 1)],
             );
             let reach = nib.reach_across(glamx::DVec2::new(b.x - a.x, b.y - a.y)) as f32;
-            size / 2.0 * curve.width_factor(s.pressure) * reach
+            let pressure = curve.width_factor(s.pressure);
+            if velocity <= 0.0 {
+                return size / 2.0 * pressure * reach;
+            }
+            // The same width the stroke will keep: speed against pressure, as far as the brush
+            // asks, over half the step to each side.
+            let speed = (b.x - a.x).hypot(b.y - a.y) / 2.0 / flare_tools::brush::SPEED_REACH;
+            let speed_factor = 1.0 - (1.0 - f64::from(curve.min())) * speed.clamp(0.0, 1.0);
+            let factor =
+                f64::from(pressure) + (speed_factor - f64::from(pressure)) * f64::from(velocity);
+            size / 2.0 * factor as f32 * reach
         };
         strokes
             .iter()

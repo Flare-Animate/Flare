@@ -329,7 +329,7 @@ mod stroke_preview {
         let mut ws = workspace();
         ws.set_tool(Tool::Brush);
         ws.brush_size = 20.0;
-        ws.brush_light = 0.0;
+        ws.brush_shelf.set_pressure_curve(0.0, 1.0);
         let light = InputSample::new(0.0, 0.0, 0.0, PointerKind::Pen).expect("sample");
         let full = InputSample::new(30.0, 0.0, 1.0, PointerKind::Pen).expect("sample");
         ws.freehand = vec![light, full];

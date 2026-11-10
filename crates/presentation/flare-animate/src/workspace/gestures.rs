@@ -7,7 +7,7 @@ use flare_tools::free_transform::handles::{self, Handle};
 use flare_tools::ops::{self};
 use glamx::DAffine2;
 
-use flare_input::{InputSample, PointerKind, PressureCurve};
+use flare_input::{InputSample, PointerKind};
 
 use super::*;
 
@@ -240,18 +240,21 @@ impl Workspace {
         samples: &[InputSample],
         tolerance: f64,
     ) -> Result<Option<Shape>, String> {
-        let curve = PressureCurve::new(self.brush_light, self.brush_pressure_gamma);
         let Some(path) = flare_tools::brush::outline_with(
             samples,
             f64::from(self.brush_size),
-            curve,
+            self.brush_shelf.pressure_curve(),
             tolerance,
             self.brush_shelf.nib(),
+            self.brush_shelf.velocity(),
         ) else {
             return Ok(None);
         };
         let c = self.paint.fill.to_array();
-        Shape::new(ShapeId::new(), path, Rgba8::new(c[0], c[1], c[2], c[3]))
+        // Flow is how opaque the paint is at the first touch, so a low flow commits the stroke
+        // partly see-through.
+        let alpha = (f32::from(c[3]) * self.brush_shelf.flow()) as u8;
+        Shape::new(ShapeId::new(), path, Rgba8::new(c[0], c[1], c[2], alpha))
             .map(Some)
             .map_err(|e| e.to_string())
     }

@@ -21,6 +21,10 @@ pub use shelf::{
 const SUBDIVISIONS: usize = 4;
 /// Points in each round end.
 const CAP_STEPS: usize = 8;
+/// The step between two samples, in pixels, that counts as drawing "at speed". Samples arrive one
+/// frame apart, so half of the step from the sample before to the one after a point is that
+/// point's speed. Surfaces preview the stroke with the same reach, so it is public.
+pub const SPEED_REACH: f64 = 24.0;
 
 /// A point of the centre line and how far the stroke reaches to each side of it.
 #[derive(Clone, Copy)]
@@ -93,23 +97,34 @@ pub fn outline(
     curve: PressureCurve,
     tolerance: f64,
 ) -> Option<Vec<PathSegment>> {
-    outline_with(samples, width, curve, tolerance, Nib::ROUND)
+    outline_with(samples, width, curve, tolerance, Nib::ROUND, 0.0)
 }
 
 /// Like [`outline`], painted with `nib`. The sides follow the farthest point of the nib in each
 /// direction of travel and the ends are the nib's own half outline, so a flat nib draws thick
 /// where the line crosses it and thin where it runs along it. A square nib turns in steps at its
 /// corners, which the straight joins between points smooth over.
+///
+/// `velocity`, from 0 to 1, decides how much the width answers speed instead of pressure. The
+/// samples are one frame apart, so a long step between them is a fast move; at full `velocity` a
+/// fast move thins the line down to the curve's minimum and a slow one keeps it at its full
+/// width, which is how a Grease Pencil or an ink pen seems to behave without a tablet.
 pub fn outline_with(
     samples: &[InputSample],
     width: f64,
     curve: PressureCurve,
     tolerance: f64,
     nib: Nib,
+    velocity: f32,
 ) -> Option<Vec<PathSegment>> {
     if !(width.is_finite() && width > 0.0) {
         return None;
     }
+    let velocity = if velocity.is_finite() {
+        velocity.clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
     let mut raw: Vec<(DVec2, f32)> = Vec::with_capacity(samples.len());
     for s in samples {
         let at = DVec2::new(s.x, s.y);
@@ -120,12 +135,24 @@ pub fn outline_with(
     if raw.len() < 2 {
         return None;
     }
+    let width_at = |i: usize| {
+        let pressure_factor = curve.width_factor(raw[i].1);
+        if velocity <= 0.0 {
+            return f64::from(pressure_factor);
+        }
+        // The step to the neighbours, as a fraction of the step that counts as "at speed".
+        let prev = raw[i.saturating_sub(1)].0;
+        let next = raw[(i + 1).min(raw.len() - 1)].0;
+        let at_speed = (next - prev).length() / 2.0 / SPEED_REACH;
+        let speed_factor = 1.0 - (1.0 - f64::from(curve.min())) * at_speed.clamp(0.0, 1.0);
+        pressure_factor as f64 + (speed_factor - f64::from(pressure_factor)) * f64::from(velocity)
+    };
     let positions: Vec<DVec2> = raw.iter().map(|(p, _)| *p).collect();
     let spine: Vec<Spine> = simplify(&positions, tolerance.max(0.0))
         .into_iter()
         .map(|i| Spine {
             at: raw[i].0,
-            half: width / 2.0 * f64::from(curve.width_factor(raw[i].1)),
+            half: width / 2.0 * width_at(i),
         })
         .collect();
     // Keep the outline well inside the segment limit however long the drag was.

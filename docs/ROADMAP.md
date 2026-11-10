@@ -13,7 +13,7 @@ maintainer's to reorder.
 ### High priority
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)
-- Drawing quality: brush dynamics (custom nib and nonlinear pressure profiles are in; native Krita, Adobe and OpenToonz preset containers remain unsupported), and tracing a bitmap into vector shapes
+- Drawing quality: brush dynamics (custom nib, drawn pressure curves, and velocity and flow responses are in; native Krita, Adobe and OpenToonz preset containers remain unsupported), and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
 - Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files

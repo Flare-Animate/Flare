@@ -12,7 +12,11 @@ const MAX_NAME_CHARS: usize = 40;
 /// Saved brush shelves are deliberately small and bounded.
 pub const MAX_BRUSH_PROFILE_BYTES: usize = 64 * 1024;
 
-/// A named nib, as kept in the preferences.
+fn default_flow() -> f32 {
+    1.0
+}
+
+/// A named nib and its pen response, as kept in the preferences.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct BrushPreset {
@@ -22,6 +26,15 @@ pub struct BrushPreset {
     pub flatness: f32,
     pub pressure_min: f32,
     pub pressure_gamma: f32,
+    /// The pressure-to-width curve drawn point by point (`0..=1`, `0..=1` each), as an imported
+    /// Krita or Photoshop preset carries it. `None` (or too few points) keeps the
+    /// `pressure_gamma` shape.
+    pub pressure_points: Option<Vec<(f32, f32)>>,
+    /// How much the width answers speed rather than pressure, 0 to 1.
+    pub velocity: f32,
+    /// How opaque the paint is at the first touch, 0 to 1.
+    #[serde(default = "default_flow")]
+    pub flow: f32,
 }
 
 impl Default for BrushPreset {
@@ -33,6 +46,9 @@ impl Default for BrushPreset {
             flatness: 100.0,
             pressure_min: 0.15,
             pressure_gamma: 1.0,
+            pressure_points: None,
+            velocity: 0.0,
+            flow: 1.0,
         }
     }
 }
@@ -50,7 +66,27 @@ impl BrushPreset {
             flatness: nib.flatness_percent() as f32,
             pressure_min,
             pressure_gamma,
+            ..Self::default()
         }
+    }
+
+    /// The preset with its drawn pressure curve set (`None` restores the gamma shape).
+    #[must_use]
+    pub fn with_pressure_points(mut self, points: Option<Vec<(f32, f32)>>) -> Self {
+        self.pressure_points = points;
+        self
+    }
+
+    #[must_use]
+    pub fn with_velocity(mut self, velocity: f32) -> Self {
+        self.velocity = velocity;
+        self
+    }
+
+    #[must_use]
+    pub fn with_flow(mut self, flow: f32) -> Self {
+        self.flow = flow;
+        self
     }
 
     pub fn nib(&self) -> Nib {
@@ -70,6 +106,35 @@ impl BrushPreset {
         finite_range(self.pressure_gamma, 1.0, 0.1, 4.0)
     }
 
+    /// The drawn pressure points, cleaned up, or `None` when the gamma shape is kept.
+    pub fn pressure_points(&self) -> Option<Vec<(f32, f32)>> {
+        self.pressure_points
+            .as_ref()
+            .filter(|points| points.len() >= 2)
+            .map(|points| {
+                flare_input::PressureCurve::from_points(self.pressure_min(), points)
+                    .points()
+                    .to_vec()
+            })
+            .filter(|points| !points.is_empty())
+    }
+
+    pub fn velocity(&self) -> f32 {
+        finite_range(self.velocity, 0.0, 0.0, 1.0)
+    }
+
+    pub fn flow(&self) -> f32 {
+        finite_range(self.flow, 1.0, 0.0, 1.0)
+    }
+
+    /// The width response the preset asks for.
+    pub fn pressure_curve(&self) -> flare_input::PressureCurve {
+        match self.pressure_points() {
+            Some(points) => flare_input::PressureCurve::from_points(self.pressure_min(), &points),
+            None => flare_input::PressureCurve::new(self.pressure_min(), self.pressure_gamma()),
+        }
+    }
+
     /// The preset with a usable name and its numbers in range.
     pub fn sanitized(&self) -> Self {
         let name: String = self
@@ -83,7 +148,19 @@ impl BrushPreset {
         } else {
             name
         };
-        Self::from_settings(name, self.nib(), self.pressure_min(), self.pressure_gamma())
+        // The nib turns angle into 0..360 and flatness into 1..100, keeping bad numbers out.
+        let nib = self.nib();
+        Self {
+            name,
+            square: nib.shape() == NibShape::Square,
+            angle: nib.angle_degrees() as f32,
+            flatness: nib.flatness_percent() as f32,
+            pressure_min: self.pressure_min(),
+            pressure_gamma: self.pressure_gamma(),
+            pressure_points: self.pressure_points(),
+            velocity: self.velocity(),
+            flow: self.flow(),
+        }
     }
 }
 
@@ -133,13 +210,22 @@ impl BuiltinBrushProfile {
             Self::Vector => (false, 0.0, 100.0, 0.15, 0.9),
             Self::Animate => (false, 0.0, 100.0, 0.1, 1.0),
         };
-        BrushPreset {
+        let base = BrushPreset {
             name: self.name().to_owned(),
             square,
             angle,
             flatness,
             pressure_min,
             pressure_gamma,
+            ..BrushPreset::default()
+        };
+        // What the workflows these presets are shaped around draw like: graphite answers speed a
+        // little and does not cover in one pass, and a Grease Pencil stroke thins when the hand
+        // is quick.
+        match self {
+            Self::Pencil => base.with_velocity(0.2).with_flow(0.9),
+            Self::GreasePencil => base.with_velocity(0.35),
+            Self::Plain | Self::Ink | Self::Calligraphy | Self::Vector | Self::Animate => base,
         }
     }
 }
@@ -211,6 +297,10 @@ pub struct BrushShelf {
     builtin: Option<BuiltinBrushProfile>,
     pressure_min: f32,
     pressure_gamma: f32,
+    /// The drawn pressure curve in hand, when the brush asks for one.
+    pressure_points: Option<Vec<(f32, f32)>>,
+    velocity: f32,
+    flow: f32,
 }
 
 impl Default for BrushShelf {
@@ -222,6 +312,9 @@ impl Default for BrushShelf {
             builtin: Some(BuiltinBrushProfile::Plain),
             pressure_min: 0.15,
             pressure_gamma: 1.0,
+            pressure_points: None,
+            velocity: 0.0,
+            flow: 1.0,
         }
     }
 }
@@ -241,6 +334,9 @@ impl BrushShelf {
             builtin: Some(BuiltinBrushProfile::Plain),
             pressure_min: 0.15,
             pressure_gamma: 1.0,
+            pressure_points: None,
+            velocity: 0.0,
+            flow: 1.0,
         };
         if selected.is_some() {
             shelf.choose(selected);
@@ -265,6 +361,9 @@ impl BrushShelf {
             builtin: None,
             pressure_min: current.pressure_min(),
             pressure_gamma: current.pressure_gamma(),
+            pressure_points: current.pressure_points(),
+            velocity: current.velocity(),
+            flow: current.flow(),
         };
         if selected.is_some() {
             shelf.choose(selected);
@@ -299,17 +398,43 @@ impl BrushShelf {
         self.pressure_gamma
     }
 
+    /// The drawn pressure curve in hand, when the brush asks for one.
+    pub fn pressure_points(&self) -> Option<&[(f32, f32)]> {
+        self.pressure_points.as_deref()
+    }
+
+    /// How much the width in hand answers speed.
+    pub fn velocity(&self) -> f32 {
+        self.velocity
+    }
+
+    /// How opaque the paint in hand is.
+    pub fn flow(&self) -> f32 {
+        self.flow
+    }
+
     pub fn pressure_curve(&self) -> flare_input::PressureCurve {
-        flare_input::PressureCurve::new(self.pressure_min, self.pressure_gamma)
+        match self.pressure_points.as_deref() {
+            Some(points) => flare_input::PressureCurve::from_points(self.pressure_min, points),
+            None => flare_input::PressureCurve::new(self.pressure_min, self.pressure_gamma),
+        }
     }
 
     pub fn choose_builtin(&mut self, profile: BuiltinBrushProfile) {
-        let preset = profile.preset();
+        self.take_holding(BuiltinBrushProfile::Plain.preset());
         self.selected = None;
         self.builtin = Some(profile);
+        self.take_holding(profile.preset());
+    }
+
+    /// What the shelf holds for `preset`'s sake.
+    fn take_holding(&mut self, preset: BrushPreset) {
         self.nib = preset.nib();
         self.pressure_min = preset.pressure_min();
         self.pressure_gamma = preset.pressure_gamma();
+        self.pressure_points = preset.pressure_points();
+        self.velocity = preset.velocity();
+        self.flow = preset.flow();
     }
 
     /// Keeps the nib in hand as a new custom brush and chooses it. Refused past the limit.
@@ -321,31 +446,64 @@ impl BrushShelf {
             .map(|n| format!("Custom brush {n}"))
             .find(|name| self.presets.iter().all(|b| &b.name != name))
             .unwrap_or_else(|| "Custom brush".to_owned());
-        self.presets.push(BrushPreset::from_settings(
+        let preset = BrushPreset::default()
+            .with_velocity(self.velocity)
+            .with_flow(self.flow)
+            .with_pressure_points(self.pressure_points.clone());
+        let preset = BrushPreset {
             name,
-            self.nib,
-            self.pressure_min,
-            self.pressure_gamma,
-        ));
+            square: self.nib.shape() == NibShape::Square,
+            angle: self.nib.angle_degrees() as f32,
+            flatness: self.nib.flatness_percent() as f32,
+            pressure_min: self.pressure_min,
+            pressure_gamma: self.pressure_gamma,
+            ..preset
+        }
+        .sanitized();
+        self.presets.push(preset);
         self.selected = Some(self.presets.len() - 1);
         self.builtin = None;
         Ok(())
     }
 
+    /// Keeps `presets` as new custom brushes after what is on the shelf, names and all, and
+    /// chooses the first of them that landed. Refuses the whole batch with [`ShelfFull`] when
+    /// the shelf does not have the room: an import changes nothing a refusal undoes.
+    pub fn keep_presets(&mut self, presets: Vec<BrushPreset>) -> Result<(), ShelfFull> {
+        if self.presets.len() + presets.len() > MAX_BRUSHES {
+            return Err(ShelfFull);
+        }
+        for preset in &presets {
+            let mut named = preset.sanitized();
+            // The same name twice on one shelf would tie two brushes to one entry, so an
+            // imported brush that runs onto a kept one gains a suffix.
+            if self.presets.iter().any(|kept| kept.name == named.name) {
+                let n = self.presets.len() + 1;
+                named.name = format!("{} {n}", named.name);
+            }
+            self.presets.push(named);
+        }
+        if !presets.is_empty() {
+            let i = self.presets.len() - presets.len();
+            self.selected = Some(i);
+            self.builtin = None;
+            self.take_holding(self.presets[i].clone());
+        }
+        Ok(())
+    }
+
     /// Chooses a custom brush, or the plain round brush for `None` or a place that is not there.
     pub fn choose(&mut self, index: Option<usize>) {
-        match index.and_then(|i| self.presets.get(i).map(|b| (i, b.nib()))) {
-            Some((i, nib)) => {
-                self.selected = Some(i);
-                self.builtin = None;
-                self.nib = nib;
-                self.pressure_min = self.presets[i].pressure_min();
-                self.pressure_gamma = self.presets[i].pressure_gamma();
+        if let Some(i) = index.filter(|i| self.presets.get(*i).is_some()) {
+            self.selected = Some(i);
+            self.builtin = None;
+            // Unwrap-free: `get` above already proved the place is there.
+            if let Some(preset) = self.presets.get(i).cloned() {
+                self.take_holding(preset);
             }
-            None => {
-                self.selected = None;
-                self.choose_builtin(BuiltinBrushProfile::Plain);
-            }
+        } else {
+            self.selected = None;
+            self.choose_builtin(BuiltinBrushProfile::Plain);
         }
     }
 
@@ -363,23 +521,61 @@ impl BrushShelf {
         self.builtin = None;
         if let Some(i) = self.selected() {
             let name = std::mem::take(&mut self.presets[i].name);
-            self.presets[i] =
-                BrushPreset::from_settings(name, nib, self.pressure_min, self.pressure_gamma);
+            self.presets[i] = BrushPreset {
+                name,
+                square: nib.shape() == NibShape::Square,
+                angle: nib.angle_degrees() as f32,
+                flatness: nib.flatness_percent() as f32,
+                ..self.presets[i].clone()
+            }
+            .sanitized();
         }
     }
 
     pub fn set_pressure_curve(&mut self, min: f32, gamma: f32) {
         let min = finite_range(min, 0.15, 0.0, 1.0);
         let gamma = finite_range(gamma, 1.0, 0.1, 4.0);
-        if self.pressure_min == min && self.pressure_gamma == gamma {
+        if self.pressure_min == min
+            && self.pressure_gamma == gamma
+            && self.pressure_points.is_none()
+        {
             return;
         }
         self.pressure_min = min;
         self.pressure_gamma = gamma;
+        self.pressure_points = None;
         self.builtin = None;
         if let Some(i) = self.selected() {
             self.presets[i].pressure_min = self.pressure_min;
             self.presets[i].pressure_gamma = self.pressure_gamma;
+            self.presets[i].pressure_points = None;
+        }
+    }
+
+    /// How much the width answers speed, 0 to 1. Editing any response puts the brush off
+    /// the built-in list, as its setting is no longer quite the list's.
+    pub fn set_velocity(&mut self, velocity: f32) {
+        let velocity = finite_range(velocity, 0.0, 0.0, 1.0);
+        if self.velocity == velocity {
+            return;
+        }
+        self.velocity = velocity;
+        self.builtin = None;
+        if let Some(i) = self.selected() {
+            self.presets[i].velocity = self.velocity;
+        }
+    }
+
+    /// How opaque the paint is at the first touch, 0 to 1.
+    pub fn set_flow(&mut self, flow: f32) {
+        let flow = finite_range(flow, 1.0, 0.0, 1.0);
+        if self.flow == flow {
+            return;
+        }
+        self.flow = flow;
+        self.builtin = None;
+        if let Some(i) = self.selected() {
+            self.presets[i].flow = self.flow;
         }
     }
 

@@ -37,3 +37,54 @@ fn the_curve_runs_from_its_minimum_to_full_width_and_bends_with_gamma() {
     assert_eq!(odd.width_factor(0.7), 0.7);
     assert_eq!(linear.width_factor(9.0), 1.0, "pressure is clamped");
 }
+
+#[test]
+fn a_drawn_curve_makes_the_width_follow_its_points() {
+    let curve = PressureCurve::from_points(0.1, &[(0.0, 0.3), (0.5, 0.4), (1.0, 0.9)]);
+    assert_eq!(curve.width_factor(0.0), 0.1, "the floor is the curve's own");
+    assert_eq!(
+        curve.width_factor(1.0),
+        1.0,
+        "full pressure keeps full width"
+    );
+    // Halfway along the line from the floor at no pressure to the drawn point at 0.5.
+    assert!((curve.width_factor(0.25) - (0.1 + 0.4) / 2.0).abs() < 1e-6);
+    // Between two drawn points the line joins them; the drawn top is the full width.
+    assert!((curve.width_factor(0.75) - (0.4 + 1.0) / 2.0).abs() < 1e-6);
+    assert_eq!(curve.points().len(), 3);
+}
+
+#[test]
+fn a_drawn_curve_is_sanitized_into_order_and_ends() {
+    let curve = PressureCurve::from_points(
+        0.2,
+        &[
+            (0.5, f32::NAN),      // dropped: not a width
+            (1.5, 0.4),           // dropped: no such pressure
+            (0.75, 0.2),          // kept, after
+            (0.25, 0.6),          // kept, before
+            (f32::INFINITY, 0.5), // dropped
+            (0.5, 0.5),           // kept; a later point wins the same pressure
+        ],
+    );
+    let (first, last) = (curve.points()[0], curve.points()[curve.points().len() - 1]);
+    assert_eq!(first, (0.0, 0.2), "the floor the curve starts at");
+    assert_eq!(last, (1.0, 1.0), "the curve ends at full width");
+    assert!(curve.points().windows(2).all(|w| w[0].0 < w[1].0));
+
+    // Fewer usable than two points is the plain shape.
+    let empty = PressureCurve::from_points(0.4, &[]);
+    assert!(empty.points().is_empty());
+    assert_eq!(
+        empty.width_factor(0.5),
+        PressureCurve::new(0.4, 1.0).width_factor(0.5)
+    );
+}
+
+#[test]
+fn a_drawn_curve_keeps_a_bound_on_how_many_points_it_takes() {
+    let many: Vec<(f32, f32)> = (0..64).map(|i| (i as f32 / 64.0, 0.5)).collect();
+    let curve = PressureCurve::from_points(0.1, &many);
+    assert!(curve.points().len() <= MAX_CURVE_POINTS);
+    assert!(curve.points().windows(2).all(|w| w[0].0 < w[1].0));
+}
