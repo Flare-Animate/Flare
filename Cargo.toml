@@ -216,7 +216,7 @@ sys-locale = "0.3"
 
 # ---- CLI, MCP and structured diagnostics -------------------------------------
 clap = { version = "4", features = ["derive"] }
-rmcp = { version = "3.8.0", default-features = false }
+rmcp = { version = "3.9.0", default-features = false }
 schemars = "1"
 
 # ---- Verification ------------------------------------------------------------
