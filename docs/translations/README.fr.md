@@ -57,7 +57,7 @@ Flare est en cours de réécriture en **Rust**. Il s'appuie surtout sur *OpenToo
 |---|---|---|
 | Windows (bureau) | Se compile depuis les sources | Chaîne MSVC et `flare-desktop`. |
 | Linux (bureau) | Se compile depuis les sources | Nécessite les bibliothèques de [CONTRIBUTING.md](../../CONTRIBUTING.md). Tester le film nécessite Ruffle compilé depuis le sous-module. |
-| macOS (bureau) | Se compile depuis les sources | Menu natif. La pression du stylet n'atteint pas encore le pinceau sous macOS. |
+| macOS (bureau) | Se compile depuis les sources | Menu natif. La pression du stylet atteint le pinceau. |
 | Web (navigateur) | En ligne, précoce | La [version web](https://flare-animate.github.io/Flare/) est publiée depuis `main`. Pas d'export MP4, pas de son, et Tester le film s'exécute dans la page. |
 | Android | Expérimental | Première version de `flare-android`, l'espace de travail du bureau dans une activité native. Les fichiers ne peuvent pas encore être ouverts ni enregistrés via le sélecteur du téléphone, et Tester le film est désactivé. |
 | ChromeOS | Non testé | La version Android produit des APK x86_64 et arm64 qui devraient y fonctionner. Rien n'a été testé sur ChromeOS. |

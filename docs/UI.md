@@ -265,8 +265,13 @@ touch** (0 to 1, 0.15 by default, a tool option) is the fraction of it a stroke 
 lightest touch; in between the width follows the pressure in a straight line. A mouse, a finger,
 or a device that reports no pressure draws at full pressure. Pressure reaches the Brush from a pen
 in the browser build (the page's pointer events on the canvas), from the window system on
-Windows, and from the X server on Linux when a pen is plugged in when Flare starts
-(`FLARE_TABLET=off` turns that off). macOS and native Wayland do not pass pressure yet. A Brush
+Windows, from the X server on Linux when a pen is plugged in when Flare starts, and from AppKit's
+events on macOS (`FLARE_TABLET=off` turns the last two off; started from a terminal, Flare says
+`pen pressure from:` there once it has seen a pen, so a tablet whose driver does not mark its
+events as a pen's can be told from one that does; on macOS `FLARE_TABLET=log` writes every
+pointer event there, and a plain mouse event within a quarter of a second of the pen's own is
+taken as the pen's motion, for drivers that send pressure and motion apart). Native Wayland does not pass pressure
+yet. A Brush
 stroke is saved as the outline it painted, so the width a pen gave is kept in the drawing and
 playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
 after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is

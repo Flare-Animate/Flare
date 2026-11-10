@@ -57,7 +57,7 @@ Flare 正在用 **Rust** 重写。它主要基于 *OpenToonz* 和 *Tahoma2D*，�
 |---|---|---|
 | Windows（桌面） | 可从源码构建 | MSVC 工具链和 `flare-desktop`。 |
 | Linux（桌面） | 可从源码构建 | 需要 [CONTRIBUTING.md](../../CONTRIBUTING.md) 中列出的库。测试影片需要从子模块构建的 Ruffle。 |
-| macOS（桌面） | 可从源码构建 | 原生菜单。在 macOS 上，触控笔压感尚未传递到画笔。 |
+| macOS（桌面） | 可从源码构建 | 原生菜单。触控笔压感可传递到画笔。 |
 | Web（浏览器） | 已上线，早期 | [网页版](https://flare-animate.github.io/Flare/) 从 `main` 分支发布。没有 MP4 导出，没有声音，“测试影片”在页面内运行。 |
 | Android | 实验性 | `flare-android` 的首个版本，在原生 Activity 中运行桌面工作区。目前还无法通过手机的文件选择器打开或保存文件，“测试影片”已关闭。 |
 | ChromeOS | 未经测试 | Android 版本会生成 x86_64 和 arm64 的 APK，理论上可在其上运行。尚未在 ChromeOS 上测试。 |

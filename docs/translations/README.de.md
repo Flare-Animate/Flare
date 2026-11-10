@@ -57,7 +57,7 @@ Flare wird in **Rust** neu geschrieben. Die Basis bilden überwiegend *OpenToonz
 |---|---|---|
 | Windows (Desktop) | Aus dem Quellcode baubar | MSVC-Toolchain und `flare-desktop`. |
 | Linux (Desktop) | Aus dem Quellcode baubar | Braucht die Bibliotheken aus [CONTRIBUTING.md](../../CONTRIBUTING.md). Film testen braucht Ruffle aus dem Submodul. |
-| macOS (Desktop) | Aus dem Quellcode baubar | Natives Menü. Der Stiftdruck erreicht den Pinsel unter macOS noch nicht. |
+| macOS (Desktop) | Aus dem Quellcode baubar | Natives Menü. Der Stiftdruck erreicht den Pinsel. |
 | Web (Browser) | Live, früh | Die [Webversion](https://flare-animate.github.io/Flare/) wird aus `main` veröffentlicht. Kein MP4-Export, kein Ton, und Film testen läuft in der Seite. |
 | Android | Experimentell | Erster Build von `flare-android`, der Desktop-Arbeitsbereich in einer nativen Activity. Dateien lassen sich über den Dateiwähler des Telefons noch nicht öffnen oder speichern, und Film testen ist aus. |
 | ChromeOS | Ungetestet | Der Android-Build erzeugt APKs für x86_64 und arm64, die dort laufen sollten. Auf ChromeOS wurde nichts getestet. |

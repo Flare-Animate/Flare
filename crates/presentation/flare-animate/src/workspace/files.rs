@@ -33,6 +33,9 @@ impl Workspace {
         self.library.new_kind = from.library.new_kind;
         self.native_menu = from.native_menu;
         self.titlebar_inset = from.titlebar_inset;
+        // The window's pen source writes to the feed it was given when the window opened, so
+        // every document shown in that window must read the same one.
+        self.pen_feed = from.pen_feed.clone();
         self.window_controls = from.window_controls;
         self.window_maximized = from.window_maximized;
         self.recovery.dir = from.recovery.dir.take();

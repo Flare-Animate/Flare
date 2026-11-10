@@ -15,5 +15,21 @@ thiserror.workspace = true
 [target.'cfg(all(unix, not(target_os = "ios")))'.dependencies]
 x11rb.workspace = true
 
+# AppKit's events, for pen pressure on macOS.
+[target.'cfg(target_os = "macos")'.dependencies]
+block2.workspace = true
+objc2-app-kit = { workspace = true, features = ["std", "NSEvent", "block2"] }
+
+[[test]]
+name = "appkit_monitor"
+harness = false
+
+[target.'cfg(target_os = "macos")'.dev-dependencies]
+objc2 = { workspace = true, features = ["std"] }
+objc2-foundation = { workspace = true, features = ["std", "NSDate", "NSRunLoop", "NSString", "NSThread"] }
+objc2-app-kit = { workspace = true, features = ["objc2-core-graphics", "NSApplication", "NSResponder"] }
+objc2-core-graphics = { workspace = true, features = ["std", "CGEvent", "CGEventTypes"] }
+objc2-core-foundation = { workspace = true, features = ["std", "CFCGTypes"] }
+
 [lints]
 workspace = true

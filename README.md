@@ -57,7 +57,7 @@ It is being rewritten in **Rust**. It is based predominantly on *OpenToonz* and 
 |---|---|---|
 | Windows (desktop) | Builds from source | MSVC toolchain and `flare-desktop`. |
 | Linux (desktop) | Builds from source | Needs the libraries in [CONTRIBUTING.md](CONTRIBUTING.md). Test Movie needs Ruffle built from the submodule. |
-| macOS (desktop) | Builds from source | Native menu. Pen pressure does not reach the Brush on macOS yet. |
+| macOS (desktop) | Builds from source | Native menu. Pen pressure reaches the Brush. |
 | Web (browser) | Live, early | The [web version](https://flare-animate.github.io/Flare/) is deployed from `main`. No MP4 export, no sound, and Test Movie runs in the page. |
 | Android | Experimental | First build of `flare-android`, the desktop workspace in a native activity. Files cannot yet be opened or saved through the phone's picker, and Test Movie is off. |
 | ChromeOS | Untested | The Android build makes x86_64 and arm64 APKs that should run there. Nothing has been tested on ChromeOS. |
