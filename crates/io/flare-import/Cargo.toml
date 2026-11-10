@@ -11,6 +11,7 @@ flare-core.workspace = true
 flare-document.workspace = true
 flare-moho.workspace = true
 flare-toonz.workspace = true
+flare-tools.workspace = true
 flare-text.workspace = true
 flare-tween.workspace = true
 flare-storage.workspace = true
