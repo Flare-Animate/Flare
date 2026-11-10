@@ -187,7 +187,8 @@ pub struct Workspace {
     selection_rects_cache: std::cell::RefCell<Option<SelectionRects>>,
     /// How close, in stage units, a press must be to a scale handle to grab it.
     handle_radius: f32,
-    /// Shift is held: corner scaling keeps the proportions.
+    /// Shift is held: corner scaling keeps the proportions, rotation goes in steps, and a line
+    /// keeps to the nearest 45 degrees.
     uniform_scale: bool,
     /// Alt is held: an edge handle skews instead of scaling.
     skew_modifier: bool,

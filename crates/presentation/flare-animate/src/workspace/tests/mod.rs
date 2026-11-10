@@ -35,6 +35,7 @@ mod home_recent;
 mod language;
 mod layer_names;
 mod layers_and_symbols;
+mod line_shift;
 mod menus_and_recovery;
 mod menus_like_animate;
 mod motion_editor;

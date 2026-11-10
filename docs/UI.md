@@ -252,6 +252,11 @@ Pencil or Brush stroke is drawn with its reflections, all in the same keyframe o
 The same tool offers Copy left-right and Copy top-bottom (also Modify > Transform > Mirror Copy), which put a
 reflected copy of the selection across the axes, and Flip.
 
+The **Line** tool (N) draws a straight line from where the drag began to where it ended, in any
+direction. While Shift is held the line keeps to the nearest of eight directions, 45 degrees apart
+(level, upright and the diagonals), and its end is the point of that direction closest to the
+pointer; Shift can be pressed or let go during the drag, and the preview shows what will be drawn.
+
 Pencil and Brush also have **Straight**: with it on, or while Shift is held, a stroke is the
 straight line between where the drag began and where it ended.
 
