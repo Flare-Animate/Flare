@@ -63,7 +63,7 @@ Interface
 - Named workspaces and the Interface switcher at the top right
 
 Formats
-- Reading the old binary `.fla` (CS4 and before), which is recognised and refused today
+- Reading the artwork and keyframes of the old binary `.fla` (CS4 and before); today its stage, library and layer metadata are read
 - `.sol` shared objects, importing video, and Moho projects
 - Sprite export: sprite sheets and atlases of the stage or of one symbol or animation, with the pixels and the facts a game needs (frame durations, trim offsets, original sizes, pivots, animation names and loops), as PNG with JSON or a similar description
 - Layered PSD and PSB export with a Unity profile that keeps names, groups, bounds and order and bakes what Unity ignores (blend modes, opacity, effects) into the pixels
