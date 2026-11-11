@@ -46,6 +46,7 @@ goes and what a change bought, not what any other machine will do.
 | Render 1280x720, 20 000 shapes | 23 ms | 8.6 ms | same |
 | Undo then redo, 5 000-layer document (`cargo bench -p flare-editor`) | 6.6 ns | unchanged | a pointer swap of shared snapshots; what undo costs on screen is the redraw, which the picture cache now skips for states shown before |
 | Open / save 10 000 shapes | 31 ms / 61 ms | unchanged | measured; not worth a new format yet |
+| Brush outline rebuilt for the live preview each frame (`BrushStroke::sides`, release build): 2 000 samples / the 8 000 cap, shaky line, Smoothing 0 | n/a | 0.6 ms / 3.0 ms | the preview draws the committed outline instead of a ribbon of the raw points; a spiral at the cap is the worst seen, 4.2 ms, and Smoothing 2 roughly halves each |
 
 Seven threads were no better than four (20 000 shapes: 9.2 ms against 8.6 ms) and slower on
 small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the threshold 800.

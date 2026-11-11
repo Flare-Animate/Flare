@@ -7,6 +7,7 @@ pub(super) mod brush;
 pub(super) mod camera;
 pub(super) mod lasso;
 pub(super) mod pen;
+pub(super) mod preview_mesh;
 pub(super) mod stroke_preview;
 pub(super) mod text;
 pub(super) mod text_preview;

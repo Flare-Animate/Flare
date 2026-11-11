@@ -201,6 +201,7 @@ impl Workspace {
                             .speed(0.01),
                     );
                 });
+                self.brush_stroke_options(ui);
                 self.stroke_assists(ui);
                 ui.weak(tr!(self, "tools-help-brush"));
             }

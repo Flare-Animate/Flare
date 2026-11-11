@@ -133,7 +133,7 @@ impl Workspace {
             painter.add(egui::Shape::mesh(stroke_preview::mesh(
                 &settling.strokes,
                 to_screen,
-                scale,
+                1.0 / painter.pixels_per_point(),
             )));
         }
     }

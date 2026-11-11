@@ -21,6 +21,7 @@ mod anchor_tools;
 mod basics;
 mod bone;
 mod brush_nib;
+mod brush_stroke;
 mod camera;
 mod chord_dispatch;
 mod close_prompt;

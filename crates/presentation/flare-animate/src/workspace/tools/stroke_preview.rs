@@ -6,8 +6,9 @@
 //! preview stays up until the stage texture that includes the stroke has arrived from the render
 //! worker; without that the stroke vanishes for a few frames and then reappears.
 
-use egui::epaint::{Mesh, Vertex, WHITE_UV};
 use egui::{Color32, Pos2, Rect, Vec2};
+
+pub(in crate::workspace) use super::preview_mesh::mesh;
 use flare_input::InputSample;
 
 use crate::workspace::*;
@@ -22,12 +23,43 @@ const MIN_STEP_PX: f32 = 0.5;
 /// Passes a committed stroke may stay up for.
 const SETTLE_PASSES: u32 = 600;
 
-/// One stroke to show: where it goes and how wide it is at each point, in stage units.
+/// One stroke to show: where it goes and how wide it is at each point, in stage units. A Brush
+/// stroke also has the sides of the outline it will commit, which are drawn instead of the
+/// ribbon, so the shape on screen while dragging is the shape that is kept.
 #[derive(Clone, Debug, PartialEq)]
 pub(in crate::workspace) struct PreviewStroke {
     pub(in crate::workspace) points: Vec<Pos2>,
     pub(in crate::workspace) halves: Vec<f32>,
     pub(in crate::workspace) color: Color32,
+    pub(in crate::workspace) sides: Option<PreviewSides>,
+}
+
+/// [`flare_tools::brush::StrokeSides`] in stage units for drawing.
+#[derive(Clone, Debug, PartialEq)]
+pub(in crate::workspace) struct PreviewSides {
+    pub(in crate::workspace) centre: Vec<Pos2>,
+    pub(in crate::workspace) left: Vec<Pos2>,
+    pub(in crate::workspace) right: Vec<Pos2>,
+    pub(in crate::workspace) end_cap: Vec<Pos2>,
+    pub(in crate::workspace) start_cap: Vec<Pos2>,
+}
+
+impl PreviewSides {
+    pub(in crate::workspace) fn of(sides: &flare_tools::brush::StrokeSides) -> Self {
+        let pos = |points: &[glamx::DVec2]| -> Vec<Pos2> {
+            points
+                .iter()
+                .map(|p| Pos2::new(p.x as f32, p.y as f32))
+                .collect()
+        };
+        Self {
+            centre: pos(&sides.centre),
+            left: pos(&sides.left),
+            right: pos(&sides.right),
+            end_cap: pos(&sides.end_cap),
+            start_cap: pos(&sides.start_cap),
+        }
+    }
 }
 
 /// A filled shape the geometry tools just committed, in stage units, with its outline if it has
@@ -60,86 +92,6 @@ pub(in crate::workspace) struct Settling {
     pub(in crate::workspace) passes_left: u32,
 }
 
-/// `strokes` as one mesh in screen space: a quad along each segment and a round end at each
-/// point, widths following `halves`. Nothing is allocated per point beyond the mesh itself.
-pub(in crate::workspace) fn mesh(
-    strokes: &[PreviewStroke],
-    to_screen: impl Fn(Pos2) -> Pos2,
-    scale: f32,
-) -> Mesh {
-    let mut mesh = Mesh::default();
-    for stroke in strokes {
-        let points: Vec<Pos2> = stroke.points.iter().map(|p| to_screen(*p)).collect();
-        for (i, (&at, &half)) in points.iter().zip(&stroke.halves).enumerate() {
-            let radius = (half * scale).max(0.0);
-            disc(&mut mesh, at, radius, stroke.color);
-            if let (Some(&next), Some(&next_half)) = (points.get(i + 1), stroke.halves.get(i + 1)) {
-                quad(
-                    &mut mesh,
-                    (at, radius),
-                    (next, (next_half * scale).max(0.0)),
-                    stroke.color,
-                );
-            }
-        }
-    }
-    mesh
-}
-
-fn vertex(pos: Pos2, color: Color32) -> Vertex {
-    Vertex {
-        pos,
-        uv: WHITE_UV,
-        color,
-    }
-}
-
-/// Corners of the polygon that stands for a round end or joint: a thin line needs few.
-fn corners(radius: f32) -> usize {
-    match radius {
-        r if r < 2.0 => 6,
-        r if r < 8.0 => 10,
-        _ => 14,
-    }
-}
-
-fn disc(mesh: &mut Mesh, at: Pos2, radius: f32, color: Color32) {
-    if !(radius.is_finite() && at.is_finite()) {
-        return;
-    }
-    let round = corners(radius);
-    let first = mesh.vertices.len() as u32;
-    mesh.vertices.push(vertex(at, color));
-    for k in 0..round {
-        let angle = std::f32::consts::TAU * k as f32 / round as f32;
-        mesh.vertices
-            .push(vertex(at + Vec2::angled(angle) * radius, color));
-    }
-    for k in 0..round as u32 {
-        mesh.indices
-            .extend([first, first + 1 + k, first + 1 + (k + 1) % round as u32]);
-    }
-}
-
-fn quad(mesh: &mut Mesh, a: (Pos2, f32), b: (Pos2, f32), color: Color32) {
-    let along = b.0 - a.0;
-    if !(a.0.is_finite() && b.0.is_finite()) || along.length() < f32::EPSILON {
-        return;
-    }
-    let normal = Vec2::new(-along.y, along.x).normalized();
-    let first = mesh.vertices.len() as u32;
-    for (p, r, sign) in [
-        (a.0, a.1, 1.0),
-        (a.0, a.1, -1.0),
-        (b.0, b.1, -1.0),
-        (b.0, b.1, 1.0),
-    ] {
-        mesh.vertices.push(vertex(p + normal * r * sign, color));
-    }
-    mesh.indices
-        .extend([first, first + 1, first + 2, first, first + 2, first + 3]);
-}
-
 impl Workspace {
     /// Adds a sample to the stroke being drawn, unless it is too close to the last one to matter
     /// at this zoom or the stroke is as long as it may get.
@@ -156,6 +108,35 @@ impl Workspace {
             }
         } else if !near && !full {
             self.freehand.push(sample);
+        }
+    }
+
+    /// `sample` steadied by the Brush's stabilizer, which starts afresh with each stroke. Other
+    /// tools, and a brush with the stabilizer off, take the sample as it is.
+    pub(in crate::workspace) fn steady_freehand(
+        &mut self,
+        sample: InputSample,
+        scale: f32,
+    ) -> InputSample {
+        let level = self.brush_shelf.stabilizer();
+        if self.tool != Tool::Brush || level == 0 {
+            self.stabilizer = None;
+            return sample;
+        }
+        if self.freehand.is_empty() {
+            self.stabilizer = None;
+        }
+        self.stabilizer
+            .get_or_insert_with(|| flare_input::Stabilizer::new(level, true, f64::from(scale)))
+            .push(sample)
+    }
+
+    /// Brings a steadied stroke, which trails the pointer, to where the pointer was let go.
+    pub(in crate::workspace) fn catch_up_freehand(&mut self, scale: f32) {
+        if let Some(mut stabilizer) = self.stabilizer.take() {
+            for sample in stabilizer.finish() {
+                self.push_freehand(sample, scale);
+            }
         }
     }
 
@@ -182,68 +163,74 @@ impl Workspace {
     }
 
     /// `strokes` at the width and in the color of the tool in hand.
+    ///
+    /// `scale` is the stage's zoom, which the Smoothing is judged at, as it is on release.
     pub(in crate::workspace) fn previews_of(
         &self,
         strokes: &[Vec<InputSample>],
+        scale: f32,
     ) -> Vec<PreviewStroke> {
-        let curve = self.brush_shelf.pressure_curve();
-        let (fill, size, brush) = match self.tool {
-            Tool::Brush => (self.paint.fill, self.brush_size, true),
-            _ => (self.paint.stroke_color, self.paint.stroke_width, false),
+        let tolerance = self.smoothing / scale.max(f32::EPSILON);
+        let to_points = |stroke: &[InputSample]| -> Vec<Pos2> {
+            stroke
+                .iter()
+                .map(|p| Pos2::new(p.x as f32, p.y as f32))
+                .collect()
         };
-        let nib = self.brush_shelf.nib();
-        let velocity = self.brush_shelf.velocity();
+        if self.tool != Tool::Brush {
+            // The curve the Pencil commits, not the points the pointer passed through.
+            let half = self.paint.stroke_width / 2.0;
+            return strokes
+                .iter()
+                .map(|stroke| {
+                    let points =
+                        flare_tools::pencil::smoothed_points(&to_points(stroke), tolerance);
+                    PreviewStroke {
+                        halves: vec![half; points.len()],
+                        points,
+                        color: self.paint.stroke_color,
+                        sides: None,
+                    }
+                })
+                .collect();
+        }
         // Flow is how opaque the paint is at the first touch; the commit stamps the same alpha
         // into the shape.
-        let mut color = fill;
-        if brush {
-            color = Color32::from_rgba_unmultiplied(
-                fill.r(),
-                fill.g(),
-                fill.b(),
-                (f32::from(fill.a()) * self.brush_shelf.flow()) as u8,
-            );
-        }
-        // A flat nib paints thick where the line crosses its long axis, so the preview ribbon
-        // takes the same reach from the direction the line is heading.
-        let half = |stroke: &[InputSample], i: usize| -> f32 {
-            let s = &stroke[i];
-            if !brush {
-                return size / 2.0;
-            }
-            let (a, b) = (
-                &stroke[i.saturating_sub(1)],
-                &stroke[(i + 1).min(stroke.len() - 1)],
-            );
-            let reach = nib.reach_across(glamx::DVec2::new(b.x - a.x, b.y - a.y)) as f32;
-            let pressure = curve.width_factor(s.pressure);
-            if velocity <= 0.0 {
-                return size / 2.0 * pressure * reach;
-            }
-            // The same width the stroke will keep: speed against pressure, as far as the brush
-            // asks, over half the step to each side.
-            let speed = (b.x - a.x).hypot(b.y - a.y) / 2.0 / flare_tools::brush::SPEED_REACH;
-            let speed_factor = 1.0 - (1.0 - f64::from(curve.min())) * speed.clamp(0.0, 1.0);
-            let factor =
-                f64::from(pressure) + (speed_factor - f64::from(pressure)) * f64::from(velocity);
-            size / 2.0 * factor as f32 * reach
-        };
+        let fill = self.paint.fill;
+        let color = Color32::from_rgba_unmultiplied(
+            fill.r(),
+            fill.g(),
+            fill.b(),
+            (f32::from(fill.a()) * self.brush_shelf.flow()) as u8,
+        );
+        // The widths come from the brush library, as the committed outline's do: pressure,
+        // speed, tapers and the reach of the nib across the line.
+        let brush = self.brush_shelf.stroke(f64::from(self.brush_size));
         strokes
             .iter()
-            .map(|stroke| PreviewStroke {
-                points: stroke
-                    .iter()
-                    .map(|p| Pos2::new(p.x as f32, p.y as f32))
-                    .collect(),
-                halves: (0..stroke.len()).map(|i| half(stroke, i)).collect(),
-                color,
+            .map(|stroke| {
+                let spine = flare_tools::brush::BrushStroke::spine(stroke);
+                PreviewStroke {
+                    points: to_points(&spine),
+                    halves: brush
+                        .half_widths(&spine)
+                        .into_iter()
+                        .map(|h| h as f32)
+                        .collect(),
+                    color,
+                    // The very outline the release commits: smoothed, shaped by the nib, tapered.
+                    sides: brush
+                        .sides(stroke, f64::from(tolerance))
+                        .as_ref()
+                        .map(PreviewSides::of),
+                }
             })
             .collect()
     }
 
     /// The stroke being drawn, as it will look when committed.
-    pub(in crate::workspace) fn freehand_preview(&self) -> Vec<PreviewStroke> {
-        self.previews_of(&self.stroke_set(self.freehand.clone()))
+    pub(in crate::workspace) fn freehand_preview(&self, scale: f32) -> Vec<PreviewStroke> {
+        self.previews_of(&self.stroke_set(self.freehand.clone()), scale)
     }
 
     /// Remembers what was just committed so it stays on screen until the stage shows it.
@@ -299,56 +286,5 @@ impl Workspace {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
-mod tests {
-    use super::*;
-
-    fn stroke(points: &[(f32, f32)], half: f32) -> PreviewStroke {
-        PreviewStroke {
-            points: points.iter().map(|&(x, y)| Pos2::new(x, y)).collect(),
-            halves: vec![half; points.len()],
-            color: Color32::RED,
-        }
-    }
-
-    #[test]
-    fn the_mesh_covers_the_stroke_end_to_end_and_its_width() {
-        let m = mesh(&[stroke(&[(0.0, 0.0), (100.0, 0.0)], 5.0)], |p| p, 1.0);
-        let bounds = m.calc_bounds();
-        assert!((bounds.min.x - -5.0).abs() < 0.01 && (bounds.max.x - 105.0).abs() < 0.01);
-        assert!((bounds.min.y - -5.0).abs() < 0.01 && (bounds.max.y - 5.0).abs() < 0.01);
-    }
-
-    #[test]
-    fn zoom_scales_the_width_and_the_mesh_indexes_only_vertices_it_has() {
-        let m = mesh(
-            &[stroke(&[(0.0, 0.0), (10.0, 10.0), (20.0, 0.0)], 2.0)],
-            |p| p,
-            3.0,
-        );
-        assert!(m.calc_bounds().height() > 6.0 * 3.0 - 0.5 - 1.0);
-        let top = m.vertices.len() as u32;
-        assert!(m.indices.iter().all(|i| *i < top));
-        assert_eq!(m.indices.len() % 3, 0);
-    }
-
-    #[test]
-    fn non_finite_points_make_no_geometry_and_an_empty_stroke_makes_none() {
-        let m = mesh(&[stroke(&[(f32::NAN, 0.0), (1.0, 1.0)], 2.0)], |p| p, 1.0);
-        assert!(
-            m.vertices
-                .iter()
-                .all(|v| v.pos.is_finite() || v.pos.x.is_nan())
-        );
-        assert!(m.indices.iter().all(|i| (*i as usize) < m.vertices.len()));
-        assert!(mesh(&[stroke(&[], 2.0)], |p| p, 1.0).is_empty());
-    }
-
-    #[test]
-    fn wider_points_make_a_wider_stroke_so_pressure_shows() {
-        let mut s = stroke(&[(0.0, 0.0), (50.0, 0.0)], 1.0);
-        s.halves[1] = 9.0;
-        let m = mesh(&[s], |p| p, 1.0);
-        assert!((m.calc_bounds().max.y - 9.0).abs() < 0.01);
-    }
-}
+#[path = "stroke_preview_tests.rs"]
+mod tests;

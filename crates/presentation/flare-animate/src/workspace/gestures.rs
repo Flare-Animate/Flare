@@ -177,6 +177,7 @@ impl Workspace {
     /// follows the pressure of the pen. A straight edge reduces the stroke to a line, and
     /// symmetry adds its mirror images, all in the same step.
     pub(super) fn finish_freehand(&mut self, scale: f32) {
+        self.catch_up_freehand(scale);
         let samples = std::mem::take(&mut self.freehand);
         let strokes = self.stroke_set(samples);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
@@ -200,7 +201,7 @@ impl Workspace {
         let preview = if shapes.is_empty() {
             Vec::new()
         } else {
-            self.previews_of(&strokes)
+            self.previews_of(&strokes, scale)
         };
         self.draw_shapes(shapes, &name);
         if self.status.is_none() && !preview.is_empty() {
@@ -240,14 +241,11 @@ impl Workspace {
         samples: &[InputSample],
         tolerance: f64,
     ) -> Result<Option<Shape>, String> {
-        let Some(path) = flare_tools::brush::outline_with(
-            samples,
-            f64::from(self.brush_size),
-            self.brush_shelf.pressure_curve(),
-            tolerance,
-            self.brush_shelf.nib(),
-            self.brush_shelf.velocity(),
-        ) else {
+        let Some(path) = self
+            .brush_shelf
+            .stroke(f64::from(self.brush_size))
+            .outline(samples, tolerance)
+        else {
             return Ok(None);
         };
         let c = self.paint.fill.to_array();
@@ -321,6 +319,7 @@ impl Workspace {
         self.bone_drag = None;
         self.lasso.clear();
         self.freehand.clear();
+        self.stabilizer = None;
         if self.anchor_drag.take().is_some() {
             self.drag_cancelled = true;
         }

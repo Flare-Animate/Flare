@@ -160,7 +160,24 @@ Calligraphy, OpenToonz-style Vector and Adobe Animate-style profiles, and four i
 hand is quick). The inking pens thin to nothing at no pressure, each has its own drawn pressure
 curve, and all but the Brush pen taper both ends by 20 px. Nib shape, angle, flatness,
 minimum pressure width and pressure response can be edited; New keeps the settings as a custom
-profile in preferences. Custom profile collections also have a bounded, versioned JSON format.
+profile in preferences.
+
+**Stabilization** (0 to 40, a Brush option) steadies the hand: each pen position, and its
+pressure, is the average of the last that many positions, so wobble and pressure flicker are
+smoothed away and the line trails the pen by about half that many samples. When the pen moves far
+between two samples the window shortens (at full rate) and then grows back (at half rate), so a
+quick, deliberate move lags less than a slow, careful one; the speed is judged on the screen, so
+it is the same at every zoom. When the pen is let go the line catches up with where it was. The
+G-pen steadies 6 samples, the Mapping pen 10, the Turnip pen 2 and the Brush pen 15; the other
+profiles do not steady. **Taper start** and **Taper end** (0 to 500 px) thin the two ends of a
+stroke: over that length of the line the pressure eases in from none, and out to none, along a
+quarter sine, so the tip is as thin as the lightest touch. A stroke shorter than the two lengths
+together tapers over all of itself. A mouse, which presses fully, gets tapered ends too. Both
+settings belong to the brush in hand: choosing a profile or a custom brush sets them, editing them
+edits the custom brush chosen, and they are kept with the preferences. What is drawn while dragging is
+the stroke that will be kept: every frame the preview builds the committed outline itself, with the
+Smoothing, the curve through the points, the nib's shape and the tapers, so nothing changes when
+the pen is let go. The Pencil's preview likewise follows the smoothed curve it commits. Custom profile collections also have a bounded, versioned JSON format.
 This does not read or write native `.kpp`, `.abr` or other application-specific preset
 containers: those formats can contain engine-specific textures and settings that Flare's vector
 brush model cannot preserve. A Blender-style sculpt/deformation tool is not implemented yet.

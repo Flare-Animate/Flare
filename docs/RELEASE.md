@@ -175,7 +175,9 @@ The GUI is not driven by the automated tests, so before a release someone does t
    project; the window, tool strip, stage, panels and timeline appear, and the panels have room
    around their content.
 2. Draw with the pencil, the brush, the rectangle and the pen; undo and redo each. Drag a brush
-   stroke and release: it must not blink. With the Mirror tool set to left-right, draw a stroke
+   stroke and release: it must not blink. Choose the G-pen and draw a quick wavy line with a pen
+   or a mouse: it is steadier than with Plain, both ends taper to a point, and on release the line
+   reaches where the pointer was let go. With the Mirror tool set to left-right, draw a stroke
    (both halves appear, one undo removes both); hold Shift with the pencil for a straight line;
    measure a distance with the Ruler.
 3. Insert keyframes; add a motion tween to an instance and a shape tween to a shape (Insert menu or the Properties panel), set the Ease, scrub and play the timeline. Tweened spans show an arrow and their own color.

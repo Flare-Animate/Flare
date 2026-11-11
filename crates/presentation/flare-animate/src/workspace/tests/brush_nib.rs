@@ -117,7 +117,7 @@ fn the_preview_follows_the_nib_and_the_properties_panel_draws_its_controls() {
     let across: Vec<InputSample> = (0..5)
         .map(|i| InputSample::new(5.0, f64::from(i) * 10.0, 1.0, PointerKind::Mouse).expect("s"))
         .collect();
-    let previews = ws.previews_of(&[along, across]);
+    let previews = ws.previews_of(&[along, across], 1.0);
     assert!(previews[0].halves.iter().all(|h| *h < 2.0));
     assert!(previews[1].halves.iter().all(|h| *h > 9.0));
     let ctx = egui::Context::default();

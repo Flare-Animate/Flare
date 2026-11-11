@@ -160,6 +160,7 @@ impl Workspace {
                         points: vec![a, b],
                         halves: vec![half, half],
                         color: self.paint.stroke_color,
+                        sides: None,
                     }],
                     Vec::new(),
                 );

@@ -160,6 +160,7 @@ impl Workspace {
                 if let Some(sample) =
                     InputSample::new(f64::from(at.x), f64::from(at.y), pressure, kind)
                 {
+                    let sample = self.steady_freehand(sample, scale);
                     self.push_freehand(sample, scale);
                 }
             }
@@ -170,9 +171,10 @@ impl Workspace {
                 self.draw_settling(&painter, to_screen, scale);
             }
             if self.freehand.len() > 1 {
-                let strokes = self.freehand_preview();
+                let strokes = self.freehand_preview(scale);
+                let pixel = 1.0 / painter.pixels_per_point();
                 painter.add(egui::Shape::mesh(stroke_preview::mesh(
-                    &strokes, to_screen, scale,
+                    &strokes, to_screen, pixel,
                 )));
             }
         }
