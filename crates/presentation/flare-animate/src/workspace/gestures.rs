@@ -3,6 +3,7 @@
 use egui::{Color32, Pos2, Rect};
 use flare_core::{Rgba8, ShapeId};
 use flare_document::{Content, Shape, Stroke as ShapeStroke};
+use flare_tools::free_transform::Grab;
 use flare_tools::free_transform::handles::{self, Handle};
 use flare_tools::ops::{self};
 use glamx::DAffine2;
@@ -44,21 +45,20 @@ impl Workspace {
             // These two act on a click; see `anchor_click`.
             Tool::AddAnchor | Tool::DeleteAnchor => None,
             Tool::Select | Tool::FreeTransform => {
-                // Only the free transform tool shows and grabs the handles.
-                let transforming = self.tool == Tool::FreeTransform;
-                let grabbed = if additive || !transforming {
+                // Only the free transform tool has a frame to grab; the hover pointer asks the
+                // same question, so it always shows what a press here does.
+                let grabbed = if additive {
                     None
                 } else {
-                    self.selection_bounds()
-                        .and_then(|b| handles::pick(b, point, self.handle_radius).map(|h| (h, b)))
+                    self.transform_grab(point)
                 };
-                if let Some((handle, bounds)) = grabbed {
-                    // Alt turns an edge handle from scaling into skewing.
-                    let mode = if self.skew_modifier && handle.is_edge() {
-                        DragMode::Skew(handle)
-                    } else {
-                        DragMode::Scale(handle)
-                    };
+                let mode = match grabbed {
+                    Some((Grab::Scale(handle), _)) => Some(DragMode::Scale(handle)),
+                    Some((Grab::Skew(handle), _)) => Some(DragMode::Skew(handle)),
+                    Some((Grab::Rotate, _)) => Some(DragMode::Rotate),
+                    Some((Grab::Move, _)) | None => None,
+                };
+                if let (Some(mode), Some((_, bounds))) = (mode, grabbed) {
                     self.drag = Some(Drag {
                         bounds,
                         mode,
@@ -67,24 +67,15 @@ impl Workspace {
                     });
                     return;
                 }
-                if !additive
-                    && transforming
-                    && let Some(bounds) = self.selection_bounds()
-                    && handles::in_rotate_zone(bounds, point, self.handle_radius)
-                {
-                    self.drag = Some(Drag {
-                        bounds,
-                        mode: DragMode::Rotate,
-                        start: point,
-                        current: point,
-                    });
-                    return;
-                }
-                // Pressing on something already selected drags the whole selection.
+                // Pressing on something already selected drags the whole selection; with Free
+                // Transform so does pressing anywhere inside its frame, unless the press is on
+                // another shape, which is picked instead.
+                let inside_frame = matches!(grabbed, Some((Grab::Move, _)));
                 let on_selection = !additive
-                    && self
-                        .hit(point)
-                        .is_some_and(|hit| self.selection_all().contains(&hit));
+                    && match self.hit(point) {
+                        Some(hit) => self.selection_all().contains(&hit),
+                        None => inside_frame,
+                    };
                 if !on_selection {
                     self.select_at(point, additive);
                 }

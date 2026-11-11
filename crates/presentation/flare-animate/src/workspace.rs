@@ -65,6 +65,7 @@ mod stage_menu;
 mod symbols;
 mod tabs;
 mod tools;
+mod transform_cursor;
 mod window_controls;
 use tools::{anchors, stroke_preview, text_preview};
 #[cfg(test)]

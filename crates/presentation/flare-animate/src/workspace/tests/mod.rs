@@ -73,6 +73,7 @@ mod tool_slots;
 mod tool_strip;
 mod tools_and_menus;
 mod tools_translated;
+mod transform_pointer;
 mod translated_chrome;
 mod translated_menu_bar;
 mod translated_side_panels;

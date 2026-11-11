@@ -488,5 +488,6 @@ impl Workspace {
             }
         }
         self.draw_drag_preview(&painter, to_screen, scale);
+        self.transform_pointer(ui, &response);
     }
 }

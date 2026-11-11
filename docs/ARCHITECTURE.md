@@ -514,7 +514,12 @@ centered on the stage at the current frame on new layers; Paste in Place (Edit m
 center. Eight handles on the
 selection's bounds scale it by dragging (Shift keeps proportions); dragging just outside a
 corner rotates it about its center (Shift snaps to 15 degrees); Alt-dragging an edge handle skews
-it. A motion-tweened instance cannot be skewed or mirrored, because a tween only interpolates
+it. A press anywhere inside the frame moves the selection, as in Animate, so a thin line need not
+be hit on its ink (a press on another shape picks that one instead). The pointer shows what a
+press would do and keeps it for the drag: a diagonal resize at the corners, a horizontal or
+vertical one at the edges (along the edge with Alt, for a skew), a move inside, and a turning
+mark beside the arrow where it rotates; `flare_tools::free_transform::grab_at` answers both the
+pointer and the press, so they cannot disagree. A motion-tweened instance cannot be skewed or mirrored, because a tween only interpolates
 scale, rotation and translation. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). Dragging a span in the timeline moves it, dragging its right edge resizes it; neither may overlap another span. The timeline zooms (buttons, pinch or
