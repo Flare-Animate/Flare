@@ -105,7 +105,13 @@ through explicitly (stage, layer flags, tweens). Tests exist for each of these b
 dropping them silently was a real hazard.
 
 Gestures (drawing, moving) are tool state until released and commit as one undo step.
-Escape, a tool switch or losing the gesture cancels without touching the document.
+Escape, a tool switch or losing the gesture cancels without touching the document. While a
+move, scale, rotation or skew is held, the stage is drawn from a copy made by applying the
+batch the release would commit (`flare_commands::apply_all`, outside the history), so the
+artwork follows the pointer and what is let go is what was shown. The copy is redone only
+when the drag moves, its pictures stay out of the frame cache, and only one is drawn at a time:
+the render worker keeps just the newest request, so asking on every pointer move could leave a
+fast drag with no picture at all.
 
 Frame operations (insert/remove frame, insert/clear keyframe, blank keyframe) are pure
 functions in `flare_editor::frames` from a layer and frame to a command batch. Copies get
@@ -519,7 +525,8 @@ be hit on its ink (a press on another shape picks that one instead). The pointer
 press would do and keeps it for the drag: a diagonal resize at the corners, a horizontal or
 vertical one at the edges (along the edge with Alt, for a skew), a move inside, and a turning
 mark beside the arrow where it rotates; `flare_tools::free_transform::grab_at` answers both the
-pointer and the press, so they cannot disagree. A motion-tweened instance cannot be skewed or mirrored, because a tween only interpolates
+pointer and the press, so they cannot disagree. The selection moves, scales, turns and shears
+on the stage while the drag is held, and the release makes it one undo step. A motion-tweened instance cannot be skewed or mirrored, because a tween only interpolates
 scale, rotation and translation. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). Dragging a span in the timeline moves it, dragging its right edge resizes it; neither may overlap another span. The timeline zooms (buttons, pinch or

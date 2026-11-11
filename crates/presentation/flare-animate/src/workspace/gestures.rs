@@ -3,8 +3,7 @@
 use egui::{Color32, Pos2, Rect};
 use flare_core::{Rgba8, ShapeId};
 use flare_document::{Content, Shape, Stroke as ShapeStroke};
-use flare_tools::free_transform::Grab;
-use flare_tools::free_transform::handles::{self, Handle};
+use flare_tools::free_transform::{Grab, handles};
 use flare_tools::ops::{self};
 use glamx::DAffine2;
 
@@ -272,25 +271,14 @@ impl Workspace {
         if let Some(drag) = self.drag.take()
             && !cancelled
         {
-            match drag.mode {
-                DragMode::Draw => self.commit_shape(self.tool, drag.start, self.draw_end(&drag)),
-                DragMode::Move => {
-                    let mut delta = drag.current - drag.start;
-                    if self.display.snap_to_grid {
-                        delta = snap_point(delta.to_pos2(), self.display.grid_size).to_vec2();
-                    }
-                    self.move_selection(delta);
-                }
-                DragMode::Scale(handle) => {
-                    self.scale_selection(handle, drag.bounds, drag.current);
-                }
-                DragMode::Rotate | DragMode::Skew(_) => {
-                    if let Some(matrix) = self.drag_matrix(&drag) {
-                        self.apply_to_selection(matrix);
-                    }
-                }
+            if drag.mode == DragMode::Draw {
+                self.commit_shape(self.tool, drag.start, self.draw_end(&drag));
+            } else if let Some(edit) = self.drag_edit(&drag) {
+                // The same edit the stage was drawn with while the drag was held.
+                self.commit_drag_edit(edit);
             }
         }
+        self.drag_preview = None;
     }
 
     /// Where the shape being dragged out ends: at the pointer, except that Shift holds a line to
@@ -337,16 +325,6 @@ impl Workspace {
                 (k != 0.0).then(|| handles::skew_matrix(drag.bounds, handle, k))
             }
             DragMode::Draw | DragMode::Move | DragMode::Scale(_) => None,
-        }
-    }
-
-    /// Scales the selection so `handle` of `bounds` moves to `pointer`, as one undo step.
-    pub(super) fn scale_selection(&mut self, handle: Handle, bounds: Rect, pointer: Pos2) {
-        if let Some(scale) = handles::scale_for(bounds, handle, pointer, self.uniform_scale) {
-            if scale == (1.0, 1.0) {
-                return;
-            }
-            self.apply_to_selection(handles::matrix(bounds, handle, scale));
         }
     }
 

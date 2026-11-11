@@ -26,6 +26,7 @@ mod command_labels;
 mod commands;
 mod core;
 mod dock;
+mod drag_preview;
 mod draw;
 mod files;
 mod frame_ranges;
@@ -129,6 +130,8 @@ pub struct Workspace {
     /// How many frames have been rendered (as opposed to taken from the cache).
     frames_rendered: u64,
     drag: Option<Drag>,
+    /// What the stage is drawn from while a move or transform drag is held.
+    drag_preview: Option<drag_preview::DragPreview>,
     /// The Motion Editor panel's state.
     motion: panels::MotionEditor,
     anchor_drag: Option<anchors::AnchorDrag>,
@@ -322,6 +325,7 @@ impl Workspace {
             revert_pending: false,
             frames_rendered: 0,
             drag: None,
+            drag_preview: None,
             motion: panels::MotionEditor::default(),
             anchor_drag: None,
             bone_drag: None,

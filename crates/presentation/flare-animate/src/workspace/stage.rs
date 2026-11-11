@@ -264,6 +264,11 @@ impl Workspace {
             && let Some(p) = response.interact_pointer_pos()
         {
             self.update_drag(to_doc(p));
+            // The stage picture for where the pointer is now is asked for on the next pass,
+            // which must come even if the pointer stops here.
+            if self.drag.is_some_and(|d| d.mode != DragMode::Draw) {
+                ui.ctx().request_repaint();
+            }
         }
         if response.drag_stopped_by(primary) {
             self.end_drag();
@@ -377,10 +382,11 @@ impl Workspace {
         }
 
         let outline = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));
-        let moving = self
-            .drag
-            .filter(|d| d.mode == DragMode::Move)
-            .map_or(Vec2::ZERO, |d| d.current - d.start);
+        // The boxes move as the artwork does, snapped to the grid if it is.
+        let moving = match self.drag.and_then(|d| self.drag_edit(&d)) {
+            Some(drag_preview::DragEdit::Move(delta)) => delta,
+            _ => Vec2::ZERO,
+        };
         // While text is typed the box around it is the editor's, not the stored text's.
         let boxes = if self.text.edit.is_some() {
             Vec::new()
