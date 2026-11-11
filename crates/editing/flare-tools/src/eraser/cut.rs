@@ -94,6 +94,9 @@ fn path_of(contours: &[Contour], closed: bool) -> Option<Vec<PathSegment>> {
 
 /// Whether the boxes round `a` and `b` overlap.
 fn boxes_meet(a: &[Contour], b: &[Contour]) -> bool {
+    if a.is_empty() || b.is_empty() {
+        return false;
+    }
     let bounds = |contours: &[Contour]| {
         contours.iter().flatten().fold(
             ([f64::MAX, f64::MAX], [f64::MIN, f64::MIN]),
