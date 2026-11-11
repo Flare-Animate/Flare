@@ -70,6 +70,7 @@ mod text_keys;
 mod text_objects;
 mod timeline_frame_buttons;
 mod timeline_frames;
+mod timeline_scrub;
 mod tool_pins;
 mod tool_slots;
 mod tool_strip;

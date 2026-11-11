@@ -196,3 +196,9 @@ could not be read from this environment, so nothing from it may be ported until 
   were read; the classical methods used (forward splatting, occlusion from matching) are published
   ones, and no code was copied.
 - Wick Editor (GPL-3.0, Copyright (c) Wicklets LLC; LICENSE in https://github.com/Wicklets/wick-editor): the layout of `.wick` files (the zip with `project.json` and `assets/`, the object tree, the Paper.js path encoding, frame numbering, tween easing and interpolation, the clip transform's centre) was read from the serialisation and view code in `engine/src/` (`export/wick/WickFile.js`, `base/*.js`, `view/View.Clip.js`, `view/View.Timeline.js`). Facts and behaviour only: no code was copied, and the importer in `crates/io/flare-import/src/wick/` is written from those facts. The layout and its verification are in docs/WICK.md. The samples were not committed.
+- Flare3D/engine (https://github.com/Flare3D/engine, no licence in the repository): read for the
+  package layout only — the engine's own sources sit under `flare/core`, `flare/materials`,
+  `flare/gui` and `flsl` — which backs the `flare.*` package recognition in
+  `crates/io/flare-import/src/swf/engine.rs`. Nothing is ported from it and no code was copied;
+  the Alternativa3D, Away3D and Papervision3D package names in the same table are those engines'
+  own published namespaces. Revisit if the Flare3D authors add a licence.

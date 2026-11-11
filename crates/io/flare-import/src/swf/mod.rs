@@ -20,6 +20,7 @@ use flare_core::{DocumentId, Rgba8, SceneId, SymbolId};
 use flare_document::{Document, MAX_STAGE_SIDE, Scene, Stage, Symbol};
 use std::collections::HashMap;
 
+mod engine;
 mod repair;
 mod shapes;
 mod timeline;
@@ -89,6 +90,7 @@ pub fn import_swf_bytes(bytes: &[u8]) -> Result<Imported, ImportError> {
         );
     }
     importer.collect_names(&movie.tags);
+    importer.detect_engines(&movie.tags);
     let timeline = importer.timeline(&movie.tags, u32::from(movie.header.num_frames()), "movie")?;
 
     let fps = movie.header.frame_rate().to_f64();

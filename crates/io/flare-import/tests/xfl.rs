@@ -1,12 +1,13 @@
 #![allow(clippy::expect_used)]
 
 use std::collections::HashMap;
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 use flare_core::Rgba8;
 use flare_document::{Content, Document, Tween};
 use flare_import::{
-    DirSource, FileSource, ImportError, Severity, ZipSource, frame_rate, import_path, import_xfl,
+    DirSource, FileSource, ImportError, Severity, ZipSource, frame_rate, import_bytes, import_path,
+    import_xfl,
 };
 
 /// An in-memory XFL document.
@@ -386,6 +387,16 @@ fn shape_of(doc: &Document) -> (usize, Vec<usize>) {
     )
 }
 
+fn zip_files(files: &[(&str, &[u8])]) -> Vec<u8> {
+    let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    let options = zip::write::SimpleFileOptions::default();
+    for (name, body) in files {
+        zip.start_file(*name, options).expect("entry");
+        zip.write_all(body).expect("body");
+    }
+    zip.finish().expect("finish").into_inner()
+}
+
 #[test]
 fn directories_zip_files_and_xfl_stubs_import_the_same_document() {
     let dir = tempfile::tempdir().expect("dir");
@@ -413,6 +424,36 @@ fn directories_zip_files_and_xfl_stubs_import_the_same_document() {
         from_zip.document.id(),
         "every import is a new document"
     );
+}
+
+#[test]
+fn zip_wrappers_import_their_single_fla_without_keeping_the_wrapper() {
+    let inner = zip_files(&[
+        ("DOMDocument.xml", MAIN.as_bytes()),
+        ("LIBRARY/Dot.xml", DOT.as_bytes()),
+    ]);
+    let wrapper = zip_files(&[("nested/project.fla", &inner)]);
+    let from_bytes = import_bytes(wrapper.clone()).expect("in-memory wrapper");
+    assert_eq!(shape_of(&from_bytes.document), (1, vec![2, 1, 0]));
+    assert!(from_bytes.document.origin().is_none());
+
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("wrapped.zip");
+    std::fs::write(&path, wrapper).expect("write");
+    let from_path = import_path(&path).expect("path wrapper");
+    assert_eq!(
+        shape_of(&from_path.document),
+        shape_of(&from_bytes.document)
+    );
+    assert!(from_path.document.origin().is_none());
+}
+
+#[test]
+fn zip_wrappers_with_multiple_flas_are_refused() {
+    let inner = zip_files(&[("DOMDocument.xml", MAIN.as_bytes())]);
+    let wrapper = zip_files(&[("one.fla", &inner), ("two.FLA", &inner)]);
+    let error = import_bytes(wrapper).expect_err("ambiguous wrapper");
+    assert!(error.to_string().contains("more than one .fla"), "{error}");
 }
 
 #[test]

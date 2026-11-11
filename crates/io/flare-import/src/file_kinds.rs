@@ -73,7 +73,8 @@ pub fn is_xfl_document(path: &Path) -> bool {
 pub enum PathKind {
     /// A Flare project: open it.
     Project,
-    /// An Animate project (`.fla`, `.xfl` or an XFL folder) or a Flash movie (`.swf`): import it as a new project.
+    /// An Animate project (`.fla`, `.xfl` or an XFL folder), a Flash movie (`.swf`) or a ZIP wrapper
+    /// containing one `.fla`: import it as a new project.
     Import,
 }
 
@@ -87,6 +88,8 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
     if PROJECT_EXTENSIONS.contains(&extension.as_str()) {
         Some(PathKind::Project)
     } else if IMPORT_EXTENSIONS.contains(&extension.as_str())
+        // Accept ZIP wrappers without advertising all ZIP archives as Flare-associated files.
+        || extension == "zip"
         || is_xfl_document(path)
         || crate::foreign_kind(path).is_some()
     {
@@ -165,6 +168,7 @@ mod tests {
         assert_eq!(kind("a.fla", false), Some(PathKind::Import));
         assert_eq!(kind("a.SWF", false), Some(PathKind::Import));
         assert_eq!(kind("a.XFL", false), Some(PathKind::Import));
+        assert_eq!(kind("wrapper.zip", false), Some(PathKind::Import));
         // Formats no importer reads are not claimed, so the system never offers them to Flare.
         for name in ["a.fcp", "a.tzu", "a.mh", "a.mohobackup"] {
             assert_eq!(kind(name, false), None, "{name}");
