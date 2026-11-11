@@ -8,8 +8,10 @@
 #![forbid(unsafe_code)]
 
 mod pen;
+mod stabilizer;
 
 pub use pen::{PenFeed, PressureAxis, pen_pressure};
+pub use stabilizer::{MAX_STABILIZER_LEVEL, Stabilizer};
 
 /// The kind of device a sample came from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -183,3 +185,6 @@ mod tests;
 
 #[cfg(test)]
 mod pen_tests;
+
+#[cfg(test)]
+mod stabilizer_tests;

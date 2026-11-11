@@ -23,7 +23,7 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-audio` | Sound: decoding with `symphonia` (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer, and the events a front end sends to the sound card. |
 | foundation | `flare-i18n` | The words of the interface: Fluent files per language and section under `localizations/`, compiled in, with English as the fallback; a build script finds the files, and `has_key` lets a `tr!` check its key while the program is built. |
 | foundation | `flare-profile` | Workspace profiles as data: rooms, dock trees, toolbars and defaults, read through checks (size, depth, ranges, every panel placed). Four built in, as JSON in `data/`. |
-| foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, and the pressure-to-width curve. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
+| foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, the pressure-to-width curve, and the stabilizer that averages a hand's last samples. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
 | foundation | `flare-tween` | Interpolation and easing, cubic-bezier keyframe handles, extrapolation, in-betweens of strokes and of rasters. See Tweening below. |
 | foundation | `flare-rig` | Skeletal rigs for symbols: bones, keyed poses, forward kinematics and bounded IK, as pure data and functions. See Symbols and rigging below. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
