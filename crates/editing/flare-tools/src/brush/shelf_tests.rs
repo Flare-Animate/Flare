@@ -269,3 +269,84 @@ fn a_pressed_keeps_the_drawn_curve_of_its_preset_in_hand() {
     assert_eq!(shelf.presets()[0].pressure_points, None);
     assert_eq!(shelf.pressure_curve().width_factor(0.5), 0.4);
 }
+
+#[test]
+fn the_inking_pens_steady_the_hand_taper_and_have_curves_of_their_own() {
+    let mut shelf = BrushShelf::default();
+    shelf.choose_builtin(BuiltinBrushProfile::GPen);
+    assert_eq!(shelf.stabilizer(), 6);
+    assert_eq!(shelf.taper(), Taper::new(20.0, 20.0));
+    assert_eq!(shelf.pressure_min(), 0.0);
+    let linear = shelf.pressure_curve().width_factor(0.5);
+    shelf.choose_builtin(BuiltinBrushProfile::MappingPen);
+    let mapping = shelf.pressure_curve().width_factor(0.5);
+    shelf.choose_builtin(BuiltinBrushProfile::TurnipPen);
+    let turnip = shelf.pressure_curve().width_factor(0.5);
+    assert!(
+        mapping < linear && linear < turnip,
+        "{mapping} {linear} {turnip}"
+    );
+    shelf.choose_builtin(BuiltinBrushProfile::BrushPen);
+    assert_eq!(shelf.stabilizer(), 15);
+    assert_eq!(
+        shelf.pressure_curve().width_factor(0.1),
+        0.0,
+        "a hairline at a light touch"
+    );
+    assert!(shelf.velocity() > 0.0);
+    // The other profiles draw as they always did.
+    shelf.choose_builtin(BuiltinBrushProfile::Plain);
+    assert_eq!((shelf.stabilizer(), shelf.taper()), (0, Taper::NONE));
+    for profile in BuiltinBrushProfile::ALL {
+        assert_eq!(
+            profile.preset(),
+            profile.preset().sanitized(),
+            "{profile:?}"
+        );
+    }
+}
+
+#[test]
+fn stabilizer_and_taper_are_edited_kept_and_carried_into_the_stroke() {
+    let mut shelf = BrushShelf::default();
+    shelf.keep_nib().expect("room");
+    shelf.set_stabilizer(250);
+    shelf.set_taper(15.0, f64::NAN);
+    assert_eq!(shelf.stabilizer(), flare_input::MAX_STABILIZER_LEVEL);
+    assert_eq!(shelf.taper(), Taper::new(15.0, 0.0));
+    assert_eq!(
+        shelf.presets()[0].stabilizer,
+        flare_input::MAX_STABILIZER_LEVEL
+    );
+    assert_eq!(shelf.presets()[0].taper_start, 15.0);
+    assert_eq!(shelf.stroke(8.0).taper, Taper::new(15.0, 0.0));
+    assert_eq!(shelf.stroke(8.0).width, 8.0);
+    // A new brush made from what is in hand keeps them, and choosing it puts them back.
+    shelf.keep_nib().expect("room");
+    shelf.choose(None);
+    assert_eq!(shelf.stabilizer(), 0);
+    shelf.choose(Some(1));
+    assert_eq!((shelf.stabilizer(), shelf.taper().start()), (40, 15.0));
+    // Editing a built-in puts it off the list.
+    shelf.choose_builtin(BuiltinBrushProfile::GPen);
+    shelf.set_stabilizer(3);
+    assert_eq!(shelf.builtin(), None);
+}
+
+#[test]
+fn a_profile_file_from_before_stabilizers_opens_with_them_off() {
+    let json = r#"{"version":1,"profiles":[{"name":"Old","square":false,"angle":0,
+        "flatness":100,"pressure_min":0.2,"pressure_gamma":1.0}]}"#;
+    let presets = BrushProfileFile::decode(json).expect("decodes");
+    assert_eq!(presets[0].stabilizer, 0);
+    assert_eq!(presets[0].taper(), Taper::NONE);
+    let wild = BrushPreset {
+        stabilizer: 99,
+        taper_start: f32::NAN,
+        taper_end: 1.0e9,
+        ..BrushPreset::default()
+    }
+    .sanitized();
+    assert_eq!(wild.stabilizer, flare_input::MAX_STABILIZER_LEVEL);
+    assert_eq!((wild.taper_start, wild.taper_end), (0.0, MAX_TAPER as f32));
+}

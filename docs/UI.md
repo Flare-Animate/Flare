@@ -154,7 +154,11 @@ offers the same layer operations as the timeline. These changes use the same val
 and undo history as the timeline controls.
 
 The Brush options include built-in Plain, Pencil, Krita-style Ink, Blender Grease Pencil,
-Calligraphy, OpenToonz-style Vector and Adobe Animate-style profiles. Nib shape, angle, flatness,
+Calligraphy, OpenToonz-style Vector and Adobe Animate-style profiles, and four inking pens: G-pen
+(width follows pressure evenly), Mapping pen (fine, widens only under a firm press), Turnip pen
+(widens early) and Brush pen (a hairline under a light touch that comes in late and thins when the
+hand is quick). The inking pens thin to nothing at no pressure, each has its own drawn pressure
+curve, and all but the Brush pen taper both ends by 20 px. Nib shape, angle, flatness,
 minimum pressure width and pressure response can be edited; New keeps the settings as a custom
 profile in preferences. Custom profile collections also have a bounded, versioned JSON format.
 This does not read or write native `.kpp`, `.abr` or other application-specific preset
@@ -272,7 +276,9 @@ events as a pen's can be told from one that does; on macOS `FLARE_TABLET=log` wr
 pointer event there, and a plain mouse event within a quarter of a second of the pen's own is
 taken as the pen's motion, for drivers that send pressure and motion apart). Native Wayland does not pass pressure
 yet. A Brush
-stroke is saved as the outline it painted, so the width a pen gave is kept in the drawing and
+stroke is saved as the outline it painted; its centre line is simplified only where neither the
+line nor its width changes by more than the Smoothing allows, so a press or a taper along a
+straight stroke is kept, so the width a pen gave is kept in the drawing and
 playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
 after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is
 not kept in Preferences, so each session starts at 0.15.

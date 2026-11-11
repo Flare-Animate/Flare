@@ -171,6 +171,16 @@ could not be read from this environment, so nothing from it may be ported until 
   handle pairs, which channels are offsets and which are absolute). Behaviour reference only, no
   code taken. `crates/io/flare-import/src/xfl/motion/` is written from that description and from
   Flare's own tests (`tests/xfl_motion.rs`).
+- Clip Studio Paint brush behaviour (Celsys; proprietary, no licence for its code): a written report
+  of a static analysis of version 1.11.8's default tool database and of two older, unprotected Celsys
+  libraries shipped with it, given to the project by the maintainer. Ideas and a few numbers only:
+  the stabilizer as an average of the last N samples whose window shortens on fast moves
+  (`crates/foundation/flare-input/src/stabilizer.rs`), the taper as a quarter-sine ease of pressure
+  (`crates/editing/flare-tools/src/brush/stroke.rs`), and the pressure curve points and stabilizer
+  levels of four inking pens as starting values for Flare's G-pen, Mapping pen, Turnip pen and Brush
+  pen profiles. No code, tip images, textures or database files were copied, and the Rust is written
+  fresh. The report's raster dab engine (stroke coverage buffer, anti-aliased and Gaussian dabs,
+  paper texture, colour mixing) is not used: Flare has no raster brush yet (BACKLOG WP-11).
 - usvg and its parser crates (MIT/Apache-2.0, linked as a dependency, no code copied): the SVG reader of `crates/io/flare-import/src/svg.rs`, with its text feature off.
 - SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.
 - Bauxitedev/bitmapflow (optical-flow frame interpolation for pixel art): the repository has no

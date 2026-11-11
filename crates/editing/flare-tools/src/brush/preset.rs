@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::{Nib, NibShape};
+use super::{MAX_TAPER, Nib, NibShape, Taper};
 
 /// Most custom brushes kept.
 pub const MAX_BRUSHES: usize = 32;
@@ -35,6 +35,13 @@ pub struct BrushPreset {
     /// How opaque the paint is at the first touch, 0 to 1.
     #[serde(default = "default_flow")]
     pub flow: f32,
+    /// How many pen samples are averaged to steady the hand, 0 (off) to
+    /// [`flare_input::MAX_STABILIZER_LEVEL`]; fewer are averaged when the pen moves fast.
+    pub stabilizer: u8,
+    /// How long the start of a stroke tapers in, in stage units (0 for none).
+    pub taper_start: f32,
+    /// How long the end of a stroke tapers out, in stage units (0 for none).
+    pub taper_end: f32,
 }
 
 impl Default for BrushPreset {
@@ -49,6 +56,9 @@ impl Default for BrushPreset {
             pressure_points: None,
             velocity: 0.0,
             flow: 1.0,
+            stabilizer: 0,
+            taper_start: 0.0,
+            taper_end: 0.0,
         }
     }
 }
@@ -86,6 +96,19 @@ impl BrushPreset {
     #[must_use]
     pub fn with_flow(mut self, flow: f32) -> Self {
         self.flow = flow;
+        self
+    }
+
+    #[must_use]
+    pub fn with_stabilizer(mut self, level: u8) -> Self {
+        self.stabilizer = level;
+        self
+    }
+
+    #[must_use]
+    pub fn with_taper(mut self, start: f32, end: f32) -> Self {
+        self.taper_start = start;
+        self.taper_end = end;
         self
     }
 
@@ -127,6 +150,19 @@ impl BrushPreset {
         finite_range(self.flow, 1.0, 0.0, 1.0)
     }
 
+    pub fn stabilizer(&self) -> u8 {
+        self.stabilizer.min(flare_input::MAX_STABILIZER_LEVEL)
+    }
+
+    /// The tapers at the two ends, in range.
+    pub fn taper(&self) -> Taper {
+        let max = MAX_TAPER as f32;
+        Taper::new(
+            f64::from(finite_range(self.taper_start, 0.0, 0.0, max)),
+            f64::from(finite_range(self.taper_end, 0.0, 0.0, max)),
+        )
+    }
+
     /// The width response the preset asks for.
     pub fn pressure_curve(&self) -> flare_input::PressureCurve {
         match self.pressure_points() {
@@ -160,6 +196,9 @@ impl BrushPreset {
             pressure_points: self.pressure_points(),
             velocity: self.velocity(),
             flow: self.flow(),
+            stabilizer: self.stabilizer(),
+            taper_start: self.taper().start() as f32,
+            taper_end: self.taper().end() as f32,
         }
     }
 }
@@ -175,10 +214,14 @@ pub enum BuiltinBrushProfile {
     Calligraphy,
     Vector,
     Animate,
+    GPen,
+    MappingPen,
+    TurnipPen,
+    BrushPen,
 }
 
 impl BuiltinBrushProfile {
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 11] = [
         Self::Plain,
         Self::Pencil,
         Self::Ink,
@@ -186,6 +229,10 @@ impl BuiltinBrushProfile {
         Self::Calligraphy,
         Self::Vector,
         Self::Animate,
+        Self::GPen,
+        Self::MappingPen,
+        Self::TurnipPen,
+        Self::BrushPen,
     ];
 
     pub fn name(self) -> &'static str {
@@ -197,6 +244,10 @@ impl BuiltinBrushProfile {
             Self::Calligraphy => "Calligraphy",
             Self::Vector => "OpenToonz-style Vector",
             Self::Animate => "Adobe Animate-style",
+            Self::GPen => "G-pen",
+            Self::MappingPen => "Mapping pen",
+            Self::TurnipPen => "Turnip pen",
+            Self::BrushPen => "Brush pen",
         }
     }
 
@@ -209,6 +260,11 @@ impl BuiltinBrushProfile {
             Self::Calligraphy => (true, 20.0, 24.0, 0.08, 1.0),
             Self::Vector => (false, 0.0, 100.0, 0.15, 0.9),
             Self::Animate => (false, 0.0, 100.0, 0.1, 1.0),
+            // Manga inking nibs: hard and opaque, thinning to nothing at no pressure, each
+            // with its own drawn curve below.
+            Self::GPen | Self::MappingPen | Self::TurnipPen | Self::BrushPen => {
+                (false, 0.0, 100.0, 0.0, 1.0)
+            }
         };
         let base = BrushPreset {
             name: self.name().to_owned(),
@@ -222,9 +278,42 @@ impl BuiltinBrushProfile {
         // What the workflows these presets are shaped around draw like: graphite answers speed a
         // little and does not cover in one pass, and a Grease Pencil stroke thins when the hand
         // is quick.
+        //
+        // The inking pens steady the hand and taper both ends, as a dipped nib lifts in and out
+        // of a line. A G-pen widens evenly with pressure; a mapping pen is fine and needs a firm
+        // press to widen; a turnip pen widens early; a brush pen stays a hairline under a light
+        // touch, comes in late, and thins when the hand is quick.
         match self {
             Self::Pencil => base.with_velocity(0.2).with_flow(0.9),
             Self::GreasePencil => base.with_velocity(0.35),
+            Self::GPen => base.with_stabilizer(6).with_taper(20.0, 20.0),
+            Self::MappingPen => base
+                .with_pressure_points(Some(vec![
+                    (0.0, 0.0),
+                    (0.5, 0.245),
+                    (0.927, 0.709),
+                    (1.0, 1.0),
+                ]))
+                .with_stabilizer(10)
+                .with_taper(20.0, 20.0),
+            Self::TurnipPen => base
+                .with_pressure_points(Some(vec![
+                    (0.0, 0.0),
+                    (0.182, 0.4),
+                    (0.7, 0.964),
+                    (1.0, 1.0),
+                ]))
+                .with_stabilizer(2)
+                .with_taper(20.0, 20.0),
+            Self::BrushPen => base
+                .with_pressure_points(Some(vec![
+                    (0.0, 0.0),
+                    (0.145, 0.0),
+                    (0.3, 0.073),
+                    (1.0, 1.0),
+                ]))
+                .with_velocity(0.3)
+                .with_stabilizer(15),
             Self::Plain | Self::Ink | Self::Calligraphy | Self::Vector | Self::Animate => base,
         }
     }
