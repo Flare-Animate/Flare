@@ -18,7 +18,7 @@ format is known from notes but no real file was checked by hand. "Not built" mea
 |---|---|---|---|
 | SWF, uncompressed (`FWS`), zlib (`CWS`), LZMA (`ZWS`), any version | `flare-import` `swf/` | Verified for shapes, sprites, placements, names, stage, rate, background. Missing End records repaired (below). Other tags reported, not imported. A Flash 3D engine's scripts are recognised and named (below) | 5,046 `.swf` files; see results |
 | SPL (a SWF with a splash extension) | the SWF reader (the bytes decide) | Verified on one file | 1 `.spl` file |
-| Modern FLA (a ZIP of XFL parts, CS5 and later) | `flare-import` `xfl/`, `source.rs` | Verified: every zipped `.fla` in the corpus is read without a crash; many report unsupported items | 1,256 zipped `.fla` files |
+| Modern FLA (a ZIP of XFL parts, CS5 and later) | `flare-import` `xfl/`, `source.rs` | Verified: every zipped `.fla` in the corpus is read without a crash; a ZIP wrapper containing exactly one nested `.fla` is also imported (synthetic tests); many report unsupported items | 1,256 zipped `.fla` files; synthetic wrapper tests |
 | XFL folder and `.xfl` stub | `flare-import` `xfl/` | Verified by the existing `xfl*` tests | the XFL test suite (not the corpus) |
 | XFL motion tweens on instances, classic (`motion`) and motion object (`motion object`) | `flare-import` `xfl/timeline.rs`, `xfl/motion/` | Classic: a linear transform tween with the frame's `acceleration`. Motion object: the `AnimationCore` curves of X, Y, rotation, skew X and scale are sampled into one keyframe per frame (`tests/xfl_motion.rs`), so the motion follows the file's handles. Unsupported time maps, skew Y, colour and filter curves are reported, and a tween over 4096 frames stays linear | one real sample, Flashbang's `audio/sound2.fla` (see the motion section below) |
 | XFL library bitmaps (PNG and baseline JPEG) and `DOMBitmapInstance`, read from `bin/` through `bitmapDataHRef` | `flare-import` `xfl/entry.rs`, `xfl/elements.rs`, `bitmap.rs` | Verified on synthetic fixtures (`tests/xfl_bitmaps.rs`) and on Flashbang's real FLAs (below). Animate's own lossless payload (`bin/M *.dat`, starts `03 05`) is decoded (`flash_bitmap.rs`; layout below). 8-bit palette payloads and CMYK JPEG are not imported | none of the Ruffle corpus FLA zips has bitmap items |
@@ -129,7 +129,8 @@ the affected files (or a minimal reproducer).
 
 Not checked: no BFDI file is in this environment, and the reference samples do not include one.
 The legacy reader only recovers stage, library and some layer metadata, so a BFDI file would not
-show its artwork or keyframe contents.
+show its artwork or keyframe contents. A `.zip` wrapper with exactly one nested `.fla` is accepted;
+the inner file is imported and the wrapper is not kept as the editable source.
 
 ## Reference sources
 

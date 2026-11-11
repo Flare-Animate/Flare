@@ -119,7 +119,7 @@ impl Movie {
             self.note(
                 Severity::Info,
                 "scripts",
-                format!("{skipped} further script block(s) were not scanned"),
+                format!("{skipped} further script blocks were not scanned"),
             );
         }
     }
@@ -165,7 +165,11 @@ fn engines_of(packages: &BTreeSet<String>) -> BTreeMap<&'static str, Vec<String>
 
 /// The package names for one message: the first few, then how many more.
 fn names_message(names: &[String]) -> String {
-    let shown = names.iter().take(MAX_NAMES_IN_MESSAGE).cloned().collect::<Vec<_>>();
+    let shown = names
+        .iter()
+        .take(MAX_NAMES_IN_MESSAGE)
+        .cloned()
+        .collect::<Vec<_>>();
     let listed = shown.join(", ");
     let rest = names.len() - shown.len();
     if rest > 0 {
