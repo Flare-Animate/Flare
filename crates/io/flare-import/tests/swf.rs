@@ -4,12 +4,12 @@
 
 use flare_document::{Content, SymbolKind};
 use flare_import::{ImportError, Severity, import_swf_bytes};
+use swf::avm2::types::{AbcFile, ConstantPool};
 use swf::{
     CharacterId, Color, DefineBinaryData, DoAbc2, DoAbc2Flag, FillStyle, Fixed8, Header, Matrix,
     PlaceObject, PlaceObjectAction, Point, PointDelta, Rectangle, RemoveObject, Shape, ShapeFlag,
     ShapeRecord, ShapeStyles, StyleChangeData, SwfStr, Tag, Twips,
 };
-use swf::avm2::types::{AbcFile, ConstantPool};
 
 fn px(v: f64) -> Twips {
     Twips::from_pixels(v)
@@ -427,7 +427,9 @@ fn abc(strings: &[&str]) -> Vec<u8> {
         method_bodies: vec![],
     };
     let mut out = Vec::new();
-    swf::avm2::write::Writer::new(&mut out).write(file).expect("write abc");
+    swf::avm2::write::Writer::new(&mut out)
+        .write(file)
+        .expect("write abc");
     out
 }
 
@@ -553,7 +555,10 @@ fn only_the_first_script_blocks_are_scanned_and_the_rest_are_counted() {
 fn a_movie_without_3d_scripts_gains_no_engine_report() {
     let imported = import_swf_bytes(&moving_square()).expect("import");
     assert!(
-        imported.diagnostics.iter().all(|d| !d.message.contains("engine")),
+        imported
+            .diagnostics
+            .iter()
+            .all(|d| !d.message.contains("engine")),
         "{:?}",
         imported.diagnostics
     );

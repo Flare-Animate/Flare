@@ -10,6 +10,28 @@ animating with Flare misses the thing, not how hard it is. It was drawn up from 
 `original/` (see [PARITY.md](PARITY.md)) and from Animate's own feature list, and it is the
 maintainer's to reorder.
 
+### Open GitHub issue triage (2026-11-11)
+
+This checks the nine linked issues against the Rust workspace. Sizes are relative estimates;
+priority is estimated against the roadmap above. Rows are ordered by priority, then size
+(smallest first). Partial work does not close an issue.
+
+| Issue | Priority | Size | Already built | Main gap |
+|---|---|---:|---|---|
+| [#11](https://github.com/Flare-Animate/Flare/issues/11) Custom toolbar | Medium | L | Built-in tools can be pinned, removed and saved in preferences | User-defined script actions, including the three JSFL workflows in the issue |
+| [#25](https://github.com/Flare-Animate/Flare/issues/25) Editable vector brush | Medium | XL | Brush pressure profiles, nib settings and custom presets | Pencil strokes do not retain editable centerlines, pressure samples or width profiles |
+| [#47](https://github.com/Flare-Animate/Flare/issues/47) FLA opening and workspace | Medium | XL | Modern FLA/XFL import, ZIP wrappers containing one `.fla`, and the shared open path; legacy binary FLA settings, library and layer metadata | Legacy artwork and timeline reconstruction; the reported BFDI sample is not verified |
+| [#49](https://github.com/Flare-Animate/Flare/issues/49) Rigging | Medium | XL | Bones, keyed poses, forward kinematics and bounded inverse kinematics | Weighted mesh deformation, node constraints, master controllers and auto-patching |
+| [#207](https://github.com/Flare-Animate/Flare/issues/207) ArtCraft UI modules | Low | M | Flare has its own tested egui/egui_tiles presentation stack | ArtCraft module reuse is unimplemented; the issue gives no reproducible UI defect |
+| [#52](https://github.com/Flare-Animate/Flare/issues/52) JSFL and extensions | Low | XL | No JSFL or plugin integration | JSFL compatibility and safe ZXP/MXP plugin loading |
+| [#53](https://github.com/Flare-Animate/Flare/issues/53) Studio pipeline | Low | XL | Dockable panels and four workspace profile definitions | A workspace switcher, node compositing, shared asset linking and collaboration |
+| [#123](https://github.com/Flare-Animate/Flare/issues/123) Interactive projects | Low | XL | Imported scripts are preserved as data; SWF playback is delegated to Ruffle | Authoring or running ActionScript 2/3 or JavaScript in Flare |
+| [#230](https://github.com/Flare-Animate/Flare/issues/230) Flash 3D engines | Low | XL | SWF import identifies known engines and reports embedded binary blocks | Reconstructing 3D scenes or producing working source code from compiled SWFs |
+
+The largest risks are model/format changes or untrusted code execution; those need separate
+designs, fixtures and surface-specific tests. The issue links are cross-references, not a claim
+that this documentation change resolves them.
+
 ### High priority
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)

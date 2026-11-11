@@ -80,6 +80,56 @@ impl<R: Read + Seek> ZipSource<R> {
             .map_err(|e| ImportError::NotXfl(format!("not a readable zip archive: {e}")))?;
         Ok(Self(RefCell::new(archive)))
     }
+
+    fn wrapped_fla(&self) -> Result<Option<Vec<u8>>, ImportError> {
+        let mut archive = self.0.borrow_mut();
+        if archive.len() > 4_096 {
+            return Err(ImportError::NotXfl(
+                "the archive has more than 4096 entries".into(),
+            ));
+        }
+
+        let mut fla = None;
+        for index in 0..archive.len() {
+            let mut entry = archive
+                .by_index(index)
+                .map_err(|error| ImportError::NotXfl(format!("cannot read zip entry: {error}")))?;
+            let name = entry.name().map_err(|error| {
+                ImportError::NotXfl(format!("cannot read zip entry name: {error}"))
+            })?;
+            if entry.is_dir()
+                || !name
+                    .rsplit('/')
+                    .next()
+                    .is_some_and(|part| part.to_ascii_lowercase().ends_with(".fla"))
+            {
+                continue;
+            }
+            if fla.is_some() {
+                return Err(ImportError::NotXfl(
+                    "the archive contains more than one .fla file".into(),
+                ));
+            }
+            if entry.size() > flare_document::MAX_ORIGIN_BYTES as u64 {
+                return Err(ImportError::NotXfl(format!(
+                    "the .fla inside the archive exceeds the {} byte limit",
+                    flare_document::MAX_ORIGIN_BYTES
+                )));
+            }
+            let mut bytes = Vec::new();
+            (&mut entry)
+                .take(flare_document::MAX_ORIGIN_BYTES as u64 + 1)
+                .read_to_end(&mut bytes)?;
+            if bytes.len() > flare_document::MAX_ORIGIN_BYTES {
+                return Err(ImportError::NotXfl(format!(
+                    "the .fla inside the archive exceeds the {} byte limit",
+                    flare_document::MAX_ORIGIN_BYTES
+                )));
+            }
+            fla = Some(bytes);
+        }
+        Ok(fla)
+    }
 }
 
 /// An XFL folder already read into memory. Importing from it, not from the disk, is what makes
@@ -107,9 +157,14 @@ impl FileSource for MemorySource<'_> {
     }
 }
 
-/// Imports a zipped `.fla` held in memory and keeps it, byte for byte, as the document's source.
+/// Imports a zipped `.fla` held in memory and keeps direct XFL archives byte for byte as the source.
 fn import_fla_kept(bytes: Vec<u8>, name: &str) -> Result<Imported, ImportError> {
     let source = ZipSource::from_reader(Cursor::new(&bytes[..]))?;
+    if source.read("DOMDocument.xml")?.is_none()
+        && let Some(fla) = source.wrapped_fla()?
+    {
+        return import_wrapped_fla(&fla);
+    }
     let (mut imported, files) = import_xfl_with_files(&source)?;
     drop(source);
     imported.document = keep::attach(
@@ -120,6 +175,25 @@ fn import_fla_kept(bytes: Vec<u8>, name: &str) -> Result<Imported, ImportError> 
         &files,
         &mut imported.diagnostics,
     );
+    Ok(imported)
+}
+
+/// Imports the one FLA inside a ZIP wrapper as a new document, never as the wrapper's source.
+fn import_wrapped_fla(bytes: &[u8]) -> Result<Imported, ImportError> {
+    if bytes.starts_with(&legacy::CFB_MAGIC) {
+        return legacy::import_legacy_bytes(bytes);
+    }
+    if looks_like_swf(bytes) {
+        return import_swf_bytes(bytes);
+    }
+
+    let source = ZipSource::from_reader(Cursor::new(bytes))?;
+    if source.read("DOMDocument.xml")?.is_none() {
+        return Err(ImportError::NotXfl(
+            "the .fla inside the archive is not an XFL document".into(),
+        ));
+    }
+    let (imported, _) = import_xfl_with_files(&source)?;
     Ok(imported)
 }
 
@@ -166,7 +240,7 @@ pub fn import_fla_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
 }
 
 /// Imports a file held in memory: a Flash movie if it starts like one, a legacy binary `.fla` if it is a
-/// compound file, else a (zipped) `.fla`. A movie or a `.fla` is kept as the document's source.
+/// compound file, else a (zipped) `.fla`. Direct movies and `.fla` files are kept as the source.
 pub fn import_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
     if looks_like_swf(&bytes) {
         import_swf_kept(bytes, "Document")
@@ -210,8 +284,8 @@ impl<R: Read + Seek> FileSource for ZipSource<R> {
 const ZIP_MAGIC: &[u8] = b"PK\x03\x04";
 
 /// Imports from a path: an XFL directory, a `.xfl` stub file or the folder's `DOMDocument.xml` (the folder is used), a
-/// zipped `.fla` or a Flash movie (`.swf`). Legacy binary `.fla` files import stage, library and
-/// recoverable layer metadata; artwork and keyframe contents are not read.
+/// zipped `.fla`, a ZIP wrapper containing one `.fla`, or a Flash movie (`.swf`). Legacy binary
+/// `.fla` files import stage, library and recoverable layer metadata; artwork and keyframe contents are not read.
 ///
 /// The source is opened for reading only; nothing is written, created or deleted beside or inside it. What was read
 /// is kept with the document so an export of the unchanged import is the original (see `flare_document::Origin`).
@@ -237,7 +311,13 @@ pub fn import_path(path: &Path) -> Result<Imported, ImportError> {
         }
         // Too big to keep: read it from the disk as before and say the original was not kept.
         drop(bytes);
-        let mut imported = import_xfl(&ZipSource::open(path)?)?;
+        let source = ZipSource::open(path)?;
+        if source.read("DOMDocument.xml")?.is_none()
+            && let Some(fla) = source.wrapped_fla()?
+        {
+            return import_wrapped_fla(&fla);
+        }
+        let mut imported = import_xfl(&source)?;
         keep::not_kept(
             &mut imported.diagnostics,
             &format!(
