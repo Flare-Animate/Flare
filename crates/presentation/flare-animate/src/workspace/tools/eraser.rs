@@ -48,32 +48,40 @@ impl Workspace {
             }
             self.live_erase = Some(LiveErase::default());
         }
+        let samples = std::mem::take(&mut self.freehand);
+        self.erase_new(&samples);
+        self.freehand = samples;
+    }
+
+    /// Rubs out the part of the drag through `samples` that has not been rubbed out yet.
+    fn erase_new(&mut self, samples: &[InputSample]) {
         let Some(mut live) = self.live_erase else {
             return;
         };
-        let Some(&last) = self.freehand.last() else {
+        let Some(&last) = samples.last() else {
             return;
         };
         if live.reached == Some(last) {
             return;
         }
-        let from = live.done.min(self.freehand.len() - 1);
+        let from = live.done.min(samples.len() - 1);
         let stretch: Vec<InputSample> = live
             .reached
             .into_iter()
-            .chain(self.freehand[from..].iter().copied())
+            .chain(samples[from..].iter().copied())
             .collect();
-        live.done = self.freehand.len();
+        live.done = samples.len();
         live.reached = Some(last);
         live.step = self.erase_joining(stretch, live.step);
         self.live_erase = Some(live);
     }
 
     /// Ends a drag that rubs out as it goes, rubbing out what is left of it; a drag that waited
-    /// for release rubs out all of `samples` now.
+    /// for release rubs out all of `samples` now. The stroke has already been taken off the
+    /// workspace by then, so what is left is found in `samples`.
     pub(in crate::workspace) fn finish_erase(&mut self, samples: Vec<InputSample>) {
         if self.live_erase.is_some() {
-            self.erase_as_dragged();
+            self.erase_new(&samples);
             self.live_erase = None;
             return;
         }
@@ -86,7 +94,7 @@ impl Workspace {
         let Some(live) = self.live_erase.take() else {
             return;
         };
-        if live.step.is_some() && live.step == Some(self.active().revision()) {
+        if live.step == Some(self.active().revision()) {
             self.active_mut().undo();
         }
     }

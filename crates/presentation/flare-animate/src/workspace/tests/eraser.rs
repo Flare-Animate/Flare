@@ -116,6 +116,24 @@ fn cancelling_an_eraser_drag_takes_back_what_it_rubbed_out() {
 }
 
 #[test]
+fn letting_go_rubs_out_the_last_stretch_the_frames_had_not_reached() {
+    let mut ws = workspace();
+    ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(110.0, 60.0));
+    ws.set_tool(Tool::Eraser);
+    let steps = ws.active().undo_labels().count();
+    let at = |x: f64, y: f64| flare_input::InputSample::mouse(x, y).expect("sample");
+    // The drag starts above the bar and is rubbing out as it goes...
+    ws.freehand = vec![at(60.0, -30.0)];
+    ws.erase_as_dragged();
+    assert_eq!(moves_of_first_drawing(&ws), 1, "nothing touched yet");
+    // ...and the pointer crosses the bar in the same pass it is let go.
+    ws.freehand.push(at(60.0, 90.0));
+    ws.finish_freehand(1.0);
+    assert_eq!(moves_of_first_drawing(&ws), 2, "the bar is cut on release");
+    assert_eq!(ws.active().undo_labels().count(), steps + 1, "in one step");
+}
+
+#[test]
 fn a_straightened_eraser_drag_shows_its_line_and_rubs_it_out_on_release() {
     let mut ws = workspace();
     let ctx = egui::Context::default();
