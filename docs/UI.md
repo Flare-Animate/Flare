@@ -260,10 +260,12 @@ between panels and around the dock is 4 px (`theme::GUTTER`). Between widgets: 6
 
 ## Eraser
 
-The **Eraser** (E) rubs out what it is dragged over: fills lose the area it covered and lines lose
-the stretches it crossed, on every shown, unlocked layer at the current frame, in one undo step. A
-click rubs out a dot. **Size** (1 to 400 px) is how wide it rubs; a round outline of that size
-follows the pointer, and while dragging the area it will rub out is shown see-through. Pen pressure
+The **Eraser** (E) rubs out what it is dragged over as it goes: fills lose the area it covered and
+lines lose the stretches it crossed, on every shown, unlocked layer at the current frame, while the
+pointer moves, and the whole drag is one undo step. Escape (or anything else that cancels the drag)
+puts back what it rubbed out. A click rubs out a dot. **Size** (1 to 400 px) is how wide it rubs;
+a round outline of that size follows the pointer. A straightened drag (Straight, or Shift held when
+it starts) shows the area it will rub out see-through and rubs it out on release. Pen pressure
 does not change it. With **Faucet** on, a click deletes the whole shape under it instead, which is
 what the Eraser did before it could rub. Symmetry and Straight (Shift) apply as they do to the
 Brush. Symbols, bitmaps and text are left whole.

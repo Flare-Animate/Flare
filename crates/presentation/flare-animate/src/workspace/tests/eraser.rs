@@ -11,15 +11,9 @@ fn button(at: Pos2, pressed: bool) -> Event {
     }
 }
 
-/// Drags the tool in hand from `from` to `to`, in window points, through pointer events,
-/// starting at `time` seconds; gives the time it ended at.
-fn drag_with_pointer(
-    ws: &mut Workspace,
-    ctx: &egui::Context,
-    time: f64,
-    from: Pos2,
-    to: Pos2,
-) -> f64 {
+/// Presses the tool in hand at `from` and moves it to `to` in ten steps, in window points,
+/// through pointer events, starting at `time` seconds; gives the time it ended at, still pressed.
+fn press_and_move(ws: &mut Workspace, ctx: &egui::Context, time: f64, from: Pos2, to: Pos2) -> f64 {
     let mut time = time;
     pass(ws, ctx, input(time, vec![Event::PointerMoved(from)]));
     time += 0.1;
@@ -29,9 +23,38 @@ fn drag_with_pointer(
         let at = from + (to - from) * (step as f32 / 10.0);
         pass(ws, ctx, input(time, vec![Event::PointerMoved(at)]));
     }
-    time += 0.02;
+    time
+}
+
+/// Drags the tool in hand from `from` to `to`, as [`press_and_move`], and lets go.
+fn drag_with_pointer(
+    ws: &mut Workspace,
+    ctx: &egui::Context,
+    time: f64,
+    from: Pos2,
+    to: Pos2,
+) -> f64 {
+    let time = press_and_move(ws, ctx, time, from, to) + 0.02;
     pass(ws, ctx, input(time, vec![button(to, false)]));
     time + 0.1
+}
+
+/// A wide bar across the middle of the stage, drawn with the Rectangle as a person would, with
+/// the Eraser then in hand; gives the time the drawing ended at.
+fn bar_then_eraser(ws: &mut Workspace, ctx: &egui::Context) -> f64 {
+    run(ws, ctx, 0.0);
+    run(ws, ctx, 0.1);
+    ws.set_tool(Tool::Rectangle);
+    let time = drag_with_pointer(
+        ws,
+        ctx,
+        0.2,
+        Pos2::new(450.0, 330.0),
+        Pos2::new(750.0, 370.0),
+    );
+    assert_eq!(drawings(ws).len(), 1, "the bar was drawn");
+    ws.set_tool(Tool::Eraser);
+    time
 }
 
 fn moves_of_first_drawing(ws: &Workspace) -> usize {
@@ -46,34 +69,68 @@ fn moves_of_first_drawing(ws: &Workspace) -> usize {
 }
 
 #[test]
-fn dragging_the_eraser_across_a_shape_rubs_a_gap_through_it_as_one_undo_step() {
+fn dragging_the_eraser_rubs_out_as_it_goes_and_undoes_in_one_step() {
     let mut ws = workspace();
     let ctx = egui::Context::default();
-    run(&mut ws, &ctx, 0.0);
-    run(&mut ws, &ctx, 0.1);
-    // A wide bar across the middle of the stage, drawn with the Rectangle as a person would.
-    ws.set_tool(Tool::Rectangle);
-    let time = drag_with_pointer(
-        &mut ws,
-        &ctx,
-        0.2,
-        Pos2::new(450.0, 330.0),
-        Pos2::new(750.0, 370.0),
-    );
-    assert_eq!(drawings(&ws).len(), 1, "the bar was drawn");
+    let time = bar_then_eraser(&mut ws, &ctx);
     let before = ws.document().clone();
-    ws.set_tool(Tool::Eraser);
-    drag_with_pointer(
+    let steps = ws.active().undo_labels().count();
+    let (top, bottom) = (Pos2::new(600.0, 300.0), Pos2::new(602.0, 400.0));
+    let time = press_and_move(&mut ws, &ctx, time, top, bottom);
+    assert_eq!(drawings(&ws).len(), 1);
+    assert_eq!(
+        moves_of_first_drawing(&ws),
+        2,
+        "the bar is cut in two before the eraser is let go"
+    );
+    assert!(
+        ws.freehand_preview(1.0).is_empty(),
+        "nothing is drawn over what is already rubbed out"
+    );
+    pass(
         &mut ws,
         &ctx,
-        time,
-        Pos2::new(600.0, 300.0),
-        Pos2::new(602.0, 400.0),
+        input(time + 0.02, vec![button(bottom, false)]),
     );
-    assert_eq!(drawings(&ws).len(), 1);
-    assert_eq!(moves_of_first_drawing(&ws), 2, "the bar is cut in two");
+    assert_eq!(moves_of_first_drawing(&ws), 2);
+    assert_eq!(
+        ws.active().undo_labels().count(),
+        steps + 1,
+        "the whole drag is one undo step"
+    );
     ws.undo();
     assert_eq!(ws.document(), &before, "one undo puts it back");
+}
+
+#[test]
+fn cancelling_an_eraser_drag_takes_back_what_it_rubbed_out() {
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    let time = bar_then_eraser(&mut ws, &ctx);
+    let before = ws.document().clone();
+    let (top, bottom) = (Pos2::new(600.0, 300.0), Pos2::new(602.0, 400.0));
+    press_and_move(&mut ws, &ctx, time, top, bottom);
+    assert_eq!(moves_of_first_drawing(&ws), 2, "rubbed out while dragging");
+    ws.cancel_drag();
+    assert_eq!(ws.document(), &before, "the cancelled drag leaves nothing");
+}
+
+#[test]
+fn a_straightened_eraser_drag_shows_its_line_and_rubs_it_out_on_release() {
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    let time = bar_then_eraser(&mut ws, &ctx);
+    ws.paint.straight_edge = true;
+    let (top, bottom) = (Pos2::new(600.0, 300.0), Pos2::new(602.0, 400.0));
+    let time = press_and_move(&mut ws, &ctx, time, top, bottom);
+    assert_eq!(moves_of_first_drawing(&ws), 1, "nothing is rubbed out yet");
+    assert!(!ws.freehand_preview(1.0).is_empty(), "the line is shown");
+    pass(
+        &mut ws,
+        &ctx,
+        input(time + 0.02, vec![button(bottom, false)]),
+    );
+    assert_eq!(moves_of_first_drawing(&ws), 2, "and rubbed out on release");
 }
 
 #[test]

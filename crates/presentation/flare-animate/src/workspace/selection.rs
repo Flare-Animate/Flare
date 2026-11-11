@@ -137,12 +137,7 @@ impl Workspace {
     }
 
     pub(super) fn run_batch(&mut self, commands: Vec<Command>, what: &str) {
-        // The history list names the step after what was asked, with a capital.
-        let mut label = what.to_owned();
-        if let Some(first) = label.get_mut(0..1) {
-            first.make_ascii_uppercase();
-        }
-        match self.active_mut().apply_labeled(commands, &label) {
+        match self.active_mut().apply_labeled(commands, &step_label(what)) {
             Ok(()) => self.status = None,
             Err(error) => self.report(format!("Cannot {what}: {error}")),
         }
@@ -391,4 +386,13 @@ pub(super) fn locked_in_folders(layers: &[Layer], index: usize) -> bool {
             .and_then(|parent| layers[..i].iter().position(|l| l.id() == parent));
     }
     false
+}
+
+/// The name the history list gives a step: what was asked, with a capital.
+pub(super) fn step_label(what: &str) -> String {
+    let mut label = what.to_owned();
+    if let Some(first) = label.get_mut(0..1) {
+        first.make_ascii_uppercase();
+    }
+    label
 }

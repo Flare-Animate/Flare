@@ -178,6 +178,7 @@ impl Workspace {
             if self.eraser_rubs() && !samples.is_empty() {
                 self.finish_erase(samples);
             }
+            self.live_erase = None;
             return;
         }
         let strokes = self.stroke_set(samples);
@@ -310,6 +311,7 @@ impl Workspace {
         self.lasso.clear();
         self.freehand.clear();
         self.stabilizer = None;
+        self.cancel_erase();
         if self.anchor_drag.take().is_some() {
             self.drag_cancelled = true;
         }

@@ -1,10 +1,9 @@
 //! The stage panel.
 
 use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
+use flare_input::InputSample;
 use flare_tools::free_transform::handles::{self, Handle};
 use glamx::DVec2;
-
-use flare_input::InputSample;
 
 use super::*;
 
@@ -162,6 +161,7 @@ impl Workspace {
                 {
                     let sample = self.steady_freehand(sample, scale);
                     self.push_freehand(sample, scale);
+                    self.erase_as_dragged();
                 }
             }
             if response.drag_stopped_by(primary) {

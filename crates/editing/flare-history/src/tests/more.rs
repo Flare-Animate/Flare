@@ -300,3 +300,67 @@ fn a_scene_is_renamed_trimmed_and_undone_and_bad_names_change_nothing() {
     );
     assert_eq!(f.session.document().scenes()[0].name(), "Scene 1");
 }
+
+#[test]
+fn a_gesture_joins_its_own_step_and_undoes_in_one_go() {
+    let mut f = fixture();
+    let before = f.session.document().clone();
+    let first = f
+        .session
+        .apply_joining([add_symbol(&f)], "Erase", None)
+        .expect("apply")
+        .expect("a change");
+    let second = f
+        .session
+        .apply_joining([insert(&f, 0)], "Erase", Some(first))
+        .expect("apply")
+        .expect("a change");
+    assert_eq!(f.session.undo_labels().count(), 1, "one step for both");
+    assert_eq!(f.session.revision(), second);
+    f.session.undo();
+    assert_eq!(f.session.document(), &before);
+}
+
+#[test]
+fn a_gesture_does_not_join_a_step_that_is_not_its_own_any_more() {
+    let mut f = fixture();
+    let first = f
+        .session
+        .apply_joining([add_symbol(&f)], "Erase", None)
+        .expect("apply");
+    // Something else changes the document between two parts of the gesture.
+    f.session.apply([insert(&f, 0)]).expect("apply");
+    f.session
+        .apply_joining([insert(&f, 10)], "Erase", first)
+        .expect("apply");
+    assert_eq!(
+        f.session.undo_labels().count(),
+        3,
+        "the late part is a step of its own"
+    );
+    // And an empty batch changes nothing and names no revision to join.
+    let revision = f.session.revision();
+    assert_eq!(
+        f.session.apply_joining([], "Erase", Some(revision)),
+        Ok(None)
+    );
+    assert_eq!(f.session.revision(), revision);
+}
+
+#[test]
+fn a_failed_joined_batch_changes_nothing() {
+    let mut f = fixture();
+    let first = f
+        .session
+        .apply_joining([add_symbol(&f)], "Erase", None)
+        .expect("apply");
+    let after = f.session.document().clone();
+    // Adding the same symbol again fails validation.
+    assert!(
+        f.session
+            .apply_joining([add_symbol(&f)], "Erase", first)
+            .is_err()
+    );
+    assert_eq!(f.session.document(), &after);
+    assert_eq!(f.session.revision(), first.expect("a revision"));
+}

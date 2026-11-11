@@ -55,9 +55,12 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
 
 - **i_overlay** (polygon booleans, no default features, so no threads of its own) is used by the
   Eraser (`flare-tools/src/eraser/cut.rs`): a fill loses the area the eraser covered (a difference
-  of polygons) and a line loses the stretches inside it (clipping lines by a polygon). It runs once,
-  when the eraser is let go, on the shapes whose bounds the eraser's outline meets; the drag itself
-  only previews the outline. Modify > Combine Objects is the next place it fits.
+  of polygons) and a line loses the stretches inside it (clipping lines by a polygon). It runs on every
+  frame of a drag, on the stretch the pointer moved since the last frame only, and only on the
+  shapes whose bounds that stretch meets, so the cost does not grow with the length of the drag.
+  Measured (release build, a 20 px eraser crossing a closed filled shape, 60 frames): 0.12 ms a
+  frame on a 500-point shape, 0.54 ms on 2 000 points and 2.1 ms (worst 3.2 ms) on 8 000, the
+  brush's sample cap, so it stays on the UI thread. A straightened drag is cut once, on release. Modify > Combine Objects is the next place it fits.
 
 - **bytemuck** is used for pixel buffers (`flare-render`): reinterpreting RGBA bytes as pixels
   without copying. It is the right tool wherever a buffer changes shape without changing
