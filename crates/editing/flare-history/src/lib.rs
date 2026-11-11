@@ -86,6 +86,36 @@ impl EditorSession {
         Ok(())
     }
 
+    /// Applies the batch as part of the newest undo step rather than as a new one, so a gesture
+    /// that edits as it goes (the Eraser rubbing out while it is dragged) still undoes in one go.
+    ///
+    /// `joining` is the [`Self::revision`] the gesture's own last change left the session at. When
+    /// it is `None`, or anything has changed the session since (another edit, an undo), the batch
+    /// becomes a step of its own named `label`, as [`Self::apply_labeled`] makes it. Gives the
+    /// revision to join next time, or `None` when the batch changed nothing.
+    pub fn apply_joining(
+        &mut self,
+        commands: impl IntoIterator<Item = Command>,
+        label: &str,
+        joining: Option<u64>,
+    ) -> Result<Option<u64>, EditError> {
+        let joins = joining == Some(self.revision) && !self.undo.is_empty();
+        if !joins {
+            let before = self.revision;
+            self.apply_labeled(commands, label)?;
+            return Ok((self.revision != before).then_some(self.revision));
+        }
+        let Some(working) = apply_all(&self.current, commands)? else {
+            return Ok(None);
+        };
+        // The step's "before" stays the document from before the gesture began.
+        self.current = Arc::new(working);
+        self.redo.clear();
+        self.redo_labels.clear();
+        self.revision += 1;
+        Ok(Some(self.revision))
+    }
+
     /// What each step that can be undone did, oldest first.
     pub fn undo_labels(&self) -> impl ExactSizeIterator<Item = &str> {
         self.undo_labels.iter().map(String::as_str)

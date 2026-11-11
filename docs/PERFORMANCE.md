@@ -46,11 +46,21 @@ goes and what a change bought, not what any other machine will do.
 | Render 1280x720, 20 000 shapes | 23 ms | 8.6 ms | same |
 | Undo then redo, 5 000-layer document (`cargo bench -p flare-editor`) | 6.6 ns | unchanged | a pointer swap of shared snapshots; what undo costs on screen is the redraw, which the picture cache now skips for states shown before |
 | Open / save 10 000 shapes | 31 ms / 61 ms | unchanged | measured; not worth a new format yet |
+| Brush outline rebuilt for the live preview each frame (`BrushStroke::sides`, release build): 2 000 samples / the 8 000 cap, shaky line, Smoothing 0 | n/a | 0.6 ms / 3.0 ms | the preview draws the committed outline instead of a ribbon of the raw points; a spiral at the cap is the worst seen, 4.2 ms, and Smoothing 2 roughly halves each |
 
 Seven threads were no better than four (20 000 shapes: 9.2 ms against 8.6 ms) and slower on
 small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the threshold 800.
 
 ## Libraries: where they are used, and why not elsewhere
+
+- **i_overlay** (polygon booleans, no default features, so no threads of its own) is used by the
+  Eraser (`flare-tools/src/eraser/cut.rs`): a fill loses the area the eraser covered (a difference
+  of polygons) and a line loses the stretches inside it (clipping lines by a polygon). It runs on every
+  frame of a drag, on the stretch the pointer moved since the last frame only, and only on the
+  shapes whose bounds that stretch meets, so the cost does not grow with the length of the drag.
+  Measured (release build, a 20 px eraser crossing a closed filled shape, 60 frames): 0.12 ms a
+  frame on a 500-point shape, 0.54 ms on 2 000 points and 2.1 ms (worst 3.2 ms) on 8 000, the
+  brush's sample cap, so it stays on the UI thread. A straightened drag is cut once, on release. Modify > Combine Objects is the next place it fits.
 
 - **bytemuck** is used for pixel buffers (`flare-render`): reinterpreting RGBA bytes as pixels
   without copying. It is the right tool wherever a buffer changes shape without changing

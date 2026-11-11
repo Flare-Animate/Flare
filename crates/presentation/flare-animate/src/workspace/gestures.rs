@@ -3,7 +3,7 @@
 use egui::{Color32, Pos2, Rect};
 use flare_core::{Rgba8, ShapeId};
 use flare_document::{Content, Shape, Stroke as ShapeStroke};
-use flare_tools::free_transform::handles::{self, Handle};
+use flare_tools::free_transform::{Grab, handles};
 use flare_tools::ops::{self};
 use glamx::DAffine2;
 
@@ -44,21 +44,20 @@ impl Workspace {
             // These two act on a click; see `anchor_click`.
             Tool::AddAnchor | Tool::DeleteAnchor => None,
             Tool::Select | Tool::FreeTransform => {
-                // Only the free transform tool shows and grabs the handles.
-                let transforming = self.tool == Tool::FreeTransform;
-                let grabbed = if additive || !transforming {
+                // Only the free transform tool has a frame to grab; the hover pointer asks the
+                // same question, so it always shows what a press here does.
+                let grabbed = if additive {
                     None
                 } else {
-                    self.selection_bounds()
-                        .and_then(|b| handles::pick(b, point, self.handle_radius).map(|h| (h, b)))
+                    self.transform_grab(point)
                 };
-                if let Some((handle, bounds)) = grabbed {
-                    // Alt turns an edge handle from scaling into skewing.
-                    let mode = if self.skew_modifier && handle.is_edge() {
-                        DragMode::Skew(handle)
-                    } else {
-                        DragMode::Scale(handle)
-                    };
+                let mode = match grabbed {
+                    Some((Grab::Scale(handle), _)) => Some(DragMode::Scale(handle)),
+                    Some((Grab::Skew(handle), _)) => Some(DragMode::Skew(handle)),
+                    Some((Grab::Rotate, _)) => Some(DragMode::Rotate),
+                    Some((Grab::Move, _)) | None => None,
+                };
+                if let (Some(mode), Some((_, bounds))) = (mode, grabbed) {
                     self.drag = Some(Drag {
                         bounds,
                         mode,
@@ -67,24 +66,15 @@ impl Workspace {
                     });
                     return;
                 }
-                if !additive
-                    && transforming
-                    && let Some(bounds) = self.selection_bounds()
-                    && handles::in_rotate_zone(bounds, point, self.handle_radius)
-                {
-                    self.drag = Some(Drag {
-                        bounds,
-                        mode: DragMode::Rotate,
-                        start: point,
-                        current: point,
-                    });
-                    return;
-                }
-                // Pressing on something already selected drags the whole selection.
+                // Pressing on something already selected drags the whole selection; with Free
+                // Transform so does pressing anywhere inside its frame, unless the press is on
+                // another shape, which is picked instead.
+                let inside_frame = matches!(grabbed, Some((Grab::Move, _)));
                 let on_selection = !additive
-                    && self
-                        .hit(point)
-                        .is_some_and(|hit| self.selection_all().contains(&hit));
+                    && match self.hit(point) {
+                        Some(hit) => self.selection_all().contains(&hit),
+                        None => inside_frame,
+                    };
                 if !on_selection {
                     self.select_at(point, additive);
                 }
@@ -103,6 +93,11 @@ impl Workspace {
     /// A click with one of the tools that act on a single shape: it changes that shape's paint,
     /// takes its color, or deletes it, as one undo step.
     pub(super) fn click_with_tool(&mut self, point: Pos2, shift: bool) {
+        // A rubbing eraser rubs out a dot wherever it is clicked, over a shape or not.
+        if self.eraser_rubs() {
+            self.erase_dot(point);
+            return;
+        }
         if !matches!(
             self.tool,
             Tool::Eyedropper | Tool::Bucket | Tool::InkBottle | Tool::Eraser
@@ -177,7 +172,15 @@ impl Workspace {
     /// follows the pressure of the pen. A straight edge reduces the stroke to a line, and
     /// symmetry adds its mirror images, all in the same step.
     pub(super) fn finish_freehand(&mut self, scale: f32) {
+        self.catch_up_freehand(scale);
         let samples = std::mem::take(&mut self.freehand);
+        if self.tool == Tool::Eraser {
+            if self.eraser_rubs() && !samples.is_empty() {
+                self.finish_erase(samples);
+            }
+            self.live_erase = None;
+            return;
+        }
         let strokes = self.stroke_set(samples);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
         let mut shapes = Vec::new();
@@ -200,7 +203,7 @@ impl Workspace {
         let preview = if shapes.is_empty() {
             Vec::new()
         } else {
-            self.previews_of(&strokes)
+            self.previews_of(&strokes, scale)
         };
         self.draw_shapes(shapes, &name);
         if self.status.is_none() && !preview.is_empty() {
@@ -240,14 +243,11 @@ impl Workspace {
         samples: &[InputSample],
         tolerance: f64,
     ) -> Result<Option<Shape>, String> {
-        let Some(path) = flare_tools::brush::outline_with(
-            samples,
-            f64::from(self.brush_size),
-            self.brush_shelf.pressure_curve(),
-            tolerance,
-            self.brush_shelf.nib(),
-            self.brush_shelf.velocity(),
-        ) else {
+        let Some(path) = self
+            .brush_shelf
+            .stroke(f64::from(self.brush_size))
+            .outline(samples, tolerance)
+        else {
             return Ok(None);
         };
         let c = self.paint.fill.to_array();
@@ -283,25 +283,14 @@ impl Workspace {
         if let Some(drag) = self.drag.take()
             && !cancelled
         {
-            match drag.mode {
-                DragMode::Draw => self.commit_shape(self.tool, drag.start, self.draw_end(&drag)),
-                DragMode::Move => {
-                    let mut delta = drag.current - drag.start;
-                    if self.display.snap_to_grid {
-                        delta = snap_point(delta.to_pos2(), self.display.grid_size).to_vec2();
-                    }
-                    self.move_selection(delta);
-                }
-                DragMode::Scale(handle) => {
-                    self.scale_selection(handle, drag.bounds, drag.current);
-                }
-                DragMode::Rotate | DragMode::Skew(_) => {
-                    if let Some(matrix) = self.drag_matrix(&drag) {
-                        self.apply_to_selection(matrix);
-                    }
-                }
+            if drag.mode == DragMode::Draw {
+                self.commit_shape(self.tool, drag.start, self.draw_end(&drag));
+            } else if let Some(edit) = self.drag_edit(&drag) {
+                // The same edit the stage was drawn with while the drag was held.
+                self.commit_drag_edit(edit);
             }
         }
+        self.drag_preview = None;
     }
 
     /// Where the shape being dragged out ends: at the pointer, except that Shift holds a line to
@@ -321,6 +310,8 @@ impl Workspace {
         self.bone_drag = None;
         self.lasso.clear();
         self.freehand.clear();
+        self.stabilizer = None;
+        self.cancel_erase();
         if self.anchor_drag.take().is_some() {
             self.drag_cancelled = true;
         }
@@ -347,16 +338,6 @@ impl Workspace {
                 (k != 0.0).then(|| handles::skew_matrix(drag.bounds, handle, k))
             }
             DragMode::Draw | DragMode::Move | DragMode::Scale(_) => None,
-        }
-    }
-
-    /// Scales the selection so `handle` of `bounds` moves to `pointer`, as one undo step.
-    pub(super) fn scale_selection(&mut self, handle: Handle, bounds: Rect, pointer: Pos2) {
-        if let Some(scale) = handles::scale_for(bounds, handle, pointer, self.uniform_scale) {
-            if scale == (1.0, 1.0) {
-                return;
-            }
-            self.apply_to_selection(handles::matrix(bounds, handle, scale));
         }
     }
 

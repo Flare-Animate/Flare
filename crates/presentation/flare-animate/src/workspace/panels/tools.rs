@@ -164,9 +164,7 @@ impl Workspace {
             Tool::InkBottle => {
                 ui.weak(tr!(self, "tools-help-ink"));
             }
-            Tool::Eraser => {
-                ui.weak(tr!(self, "tools-help-eraser"));
-            }
+            Tool::Eraser => self.eraser_options(ui),
             Tool::Pencil => {
                 chrome::row(ui, &tr!(self, "opt-smoothing"), |ui| {
                     ui.add(
@@ -201,6 +199,7 @@ impl Workspace {
                             .speed(0.01),
                     );
                 });
+                self.brush_stroke_options(ui);
                 self.stroke_assists(ui);
                 ui.weak(tr!(self, "tools-help-brush"));
             }

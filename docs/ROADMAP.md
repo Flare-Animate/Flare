@@ -35,7 +35,7 @@ that this documentation change resolves them.
 ### High priority
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)
-- Drawing quality: brush dynamics (custom nib, drawn pressure curves, and velocity and flow responses are in; native Krita, Adobe and OpenToonz preset containers remain unsupported), and tracing a bitmap into vector shapes
+- Drawing quality: brush dynamics (custom nib, drawn pressure curves, velocity and flow responses, a speed-aware stabilizer, quarter-sine tapers and inking-pen profiles are in; native Krita, Adobe and OpenToonz preset containers remain unsupported), and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols. Flash 3D engine recognition on import is in (issue #230: the import names the engine a movie's scripts are written against, and counts its embedded binary blocks; running the movie stays Ruffle's job, and reading a script's code back out is not started)
 - Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files

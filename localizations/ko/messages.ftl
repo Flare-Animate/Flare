@@ -66,6 +66,7 @@ msg-select-shapes-to-group = 그룹으로 묶을 모양을 두 개 이상 선택
 msg-select-to-break-apart = 분리할 심볼 인스턴스나 텍스트를 선택하세요
 msg-nothing-transformed = 변형할 수 있는 것이 없습니다(모션 트윈의 인스턴스는 기울이거나 대칭 이동할 수 없습니다)
 msg-brush-stroke = 브러시 획
+msg-erase = 지우기
 msg-pencil-line = 연필 선
 msg-select-to-mirror = 미러 복사할 항목을 선택하세요
 msg-leave-symbol-sound = 사운드를 가져오기 전에 심볼 편집을 끝내세요

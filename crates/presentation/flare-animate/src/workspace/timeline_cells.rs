@@ -83,6 +83,20 @@ pub(super) fn span_marks(painter: &Painter, bar: Rect, span: &FrameSpan, per_fra
     }
 }
 
+/// A layer's name laid out on one line no wider than `max_width`, ending in an ellipsis when it is
+/// cut, so a long name (a sound layer's file name) stops before the toggles beside it.
+pub(super) fn layer_name(
+    fonts: &mut egui::epaint::text::FontsView<'_>,
+    name: String,
+    max_width: f32,
+    color: Color32,
+) -> std::sync::Arc<egui::Galley> {
+    let mut job =
+        egui::text::LayoutJob::simple_singleline(name, egui::FontId::proportional(12.0), color);
+    job.wrap = egui::text::TextWrapping::truncate_at_width(max_width.max(0.0));
+    fonts.layout_job(job)
+}
+
 #[cfg(test)]
 #[path = "timeline_cells_tests.rs"]
 mod tests;

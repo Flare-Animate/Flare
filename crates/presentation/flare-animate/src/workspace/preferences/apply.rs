@@ -24,6 +24,9 @@ impl Workspace {
             brush_nib_flatness: self.brush_shelf.nib().flatness_percent() as f32,
             brush_pressure_min: self.brush_light,
             brush_pressure_gamma: self.brush_pressure_gamma,
+            brush_stabilizer: self.brush_shelf.stabilizer(),
+            brush_taper_start: self.brush_shelf.taper().start() as f32,
+            brush_taper_end: self.brush_shelf.taper().end() as f32,
             brush_builtin_profile: self.brush_shelf.builtin(),
             brushes: self.brush_shelf.presets().to_vec(),
             brush_selected: self.brush_shelf.selected(),
@@ -94,6 +97,13 @@ impl Workspace {
         self.brush_shelf.set_pressure_curve(
             finite(f64::from(preferences.brush_pressure_min), 0.15) as f32,
             finite(f64::from(preferences.brush_pressure_gamma), 1.0) as f32,
+        );
+        // The shelf keeps both in range, so a file with odd numbers cannot break the brush.
+        self.brush_shelf
+            .set_stabilizer(preferences.brush_stabilizer);
+        self.brush_shelf.set_taper(
+            f64::from(preferences.brush_taper_start),
+            f64::from(preferences.brush_taper_end),
         );
         if preferences.brush_selected.is_none()
             && let Some(profile) = preferences.brush_builtin_profile

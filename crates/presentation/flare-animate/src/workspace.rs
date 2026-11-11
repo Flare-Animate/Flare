@@ -26,6 +26,7 @@ mod command_labels;
 mod commands;
 mod core;
 mod dock;
+mod drag_preview;
 mod draw;
 mod files;
 mod frame_ranges;
@@ -65,6 +66,7 @@ mod stage_menu;
 mod symbols;
 mod tabs;
 mod tools;
+mod transform_cursor;
 mod window_controls;
 use tools::{anchors, stroke_preview, text_preview};
 #[cfg(test)]
@@ -128,6 +130,8 @@ pub struct Workspace {
     /// How many frames have been rendered (as opposed to taken from the cache).
     frames_rendered: u64,
     drag: Option<Drag>,
+    /// What the stage is drawn from while a move or transform drag is held.
+    drag_preview: Option<drag_preview::DragPreview>,
     /// The Motion Editor panel's state.
     motion: panels::MotionEditor,
     anchor_drag: Option<anchors::AnchorDrag>,
@@ -165,9 +169,16 @@ pub struct Workspace {
     lasso: Vec<Pos2>,
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
     freehand: Vec<InputSample>,
+    /// The Brush's stabilizer for the stroke being drawn, if it has one.
+    stabilizer: Option<flare_input::Stabilizer>,
     /// A pen's pressure from a native source, for windowing that passes the pen as a mouse.
     pen_feed: PenFeed,
     brush_size: f32,
+    /// How wide the Eraser rubs, in stage units, and whether it deletes whole shapes instead.
+    eraser_size: f32,
+    eraser_faucet: bool,
+    /// How far the Eraser has rubbed out along the drag in progress, when it rubs as it goes.
+    live_erase: Option<tools::eraser::LiveErase>,
     /// The tip the brush paints with, and the nibs kept under a name.
     brush_shelf: flare_tools::brush::BrushShelf,
     /// How thin a brush stroke gets at the lightest touch, as a fraction of its size.
@@ -319,6 +330,7 @@ impl Workspace {
             revert_pending: false,
             frames_rendered: 0,
             drag: None,
+            drag_preview: None,
             motion: panels::MotionEditor::default(),
             anchor_drag: None,
             bone_drag: None,
@@ -340,8 +352,12 @@ impl Workspace {
             poly_inner: 0.5,
             lasso: Vec::new(),
             freehand: Vec::new(),
+            stabilizer: None,
             pen_feed: PenFeed::default(),
             brush_size: 12.0,
+            eraser_size: 20.0,
+            eraser_faucet: false,
+            live_erase: None,
             brush_shelf: flare_tools::brush::BrushShelf::default(),
             brush_light: 0.15,
             brush_pressure_gamma: 1.0,

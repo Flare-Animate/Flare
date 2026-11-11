@@ -41,6 +41,9 @@ impl Workspace {
         }
         self.install_rendered(ctx);
         let key = (self.context_serial, self.active().revision(), self.frame);
+        // While a move or transform is held the stage shows where it would leave the selection.
+        let preview = self.previewed_document();
+        let preview_stamp = preview.as_ref().map(|(stamp, _)| *stamp);
         let onion = self.effective_onion();
         let text_epoch = self.text_epoch();
         let Some(view) = self.desired_texture_view(ctx.pixels_per_point(), texture_side_limit(ctx))
@@ -49,14 +52,34 @@ impl Workspace {
             return;
         };
         if self.texture.as_ref().is_some_and(|t| {
-            t.key == key && t.onion == onion && t.view == view && t.text_epoch == text_epoch
+            t.key == key
+                && t.onion == onion
+                && t.view == view
+                && t.text_epoch == text_epoch
+                && t.preview == preview_stamp
         }) {
             return;
         }
         if self.pending_render.as_ref().is_some_and(|p| {
-            p.key == key && p.onion == onion && p.view == view && p.text_epoch == text_epoch
+            p.key == key
+                && p.onion == onion
+                && p.view == view
+                && p.text_epoch == text_epoch
+                && p.preview == preview_stamp
         }) {
             return; // already being drawn
+        }
+        // One held-drag picture at a time. The worker draws only the newest request, so if every
+        // pointer move asked for another, a drag faster than a frame takes to draw would drop
+        // every picture as out of date and the artwork would not move until the button came up.
+        // The finished picture wakes the window, which then asks for wherever the drag is by then.
+        if preview_stamp.is_some()
+            && self
+                .pending_render
+                .as_ref()
+                .is_some_and(|p| p.key.0 == key.0 && p.preview.is_some())
+        {
+            return;
         }
         let Some(scene) = self.document().scenes().first().map(|s| s.id()) else {
             self.texture = None;
@@ -68,12 +91,12 @@ impl Workspace {
             Vec::new()
         };
         let context = key.0;
-        let snapshot = self.active().snapshot();
+        let snapshot = preview.map_or_else(|| self.active().snapshot(), |(_, document)| document);
         // What the frame draws, to see whether the same picture is already around. Evaluating a
         // frame is cheap next to drawing it.
         let signature = {
             use std::hash::{Hash, Hasher};
-            let document = self.document();
+            let document: &flare_document::Document = &snapshot;
             let evaluate = |frame: u32| {
                 if self.camera_preview {
                     flare_eval::evaluate_frame(document, scene, frame)
@@ -122,6 +145,7 @@ impl Workspace {
                 key,
                 onion,
                 text_epoch,
+                preview: preview_stamp,
             });
             return;
         }
@@ -134,6 +158,7 @@ impl Workspace {
             view,
             signature,
             text_epoch,
+            preview: preview_stamp,
         });
         let stage = self.document().stage();
         self.background.submit_render(RenderJob {
@@ -180,20 +205,25 @@ impl Workspace {
             // Pictures of other tabs can never be shown again; those of earlier states of this
             // one can, by undo, so they stay until the cache's limits push them out.
             self.frame_cache.retain(|c| c.context == context);
-            self.frame_cache.push(CachedFrame {
-                context,
-                document: pending.document,
-                signature: pending.signature,
-                view: pending.view,
-                handle: handle.clone(),
-            });
-            self.trim_frame_cache();
+            // A picture of a held drag is never shown again once the pointer moves on; caching
+            // it would only push out pictures that undo can bring back.
+            if pending.preview.is_none() {
+                self.frame_cache.push(CachedFrame {
+                    context,
+                    document: pending.document,
+                    signature: pending.signature,
+                    view: pending.view,
+                    handle: handle.clone(),
+                });
+                self.trim_frame_cache();
+            }
             self.texture = Some(StageTexture {
                 handle,
                 view: pending.view,
                 key: pending.key,
                 onion: pending.onion,
                 text_epoch: pending.text_epoch,
+                preview: pending.preview,
             });
         }
     }

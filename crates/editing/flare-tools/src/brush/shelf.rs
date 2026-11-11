@@ -2,7 +2,7 @@
 //! from the nib in hand, changing the nib while one is chosen edits it, and Delete removes it.
 
 use super::preset::{BrushPreset, BuiltinBrushProfile, MAX_BRUSHES, finite_range};
-use super::{Nib, NibShape};
+use super::{BrushStroke, Nib, NibShape, Taper};
 
 /// There are already [`MAX_BRUSHES`] custom brushes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,6 +21,8 @@ pub struct BrushShelf {
     pressure_points: Option<Vec<(f32, f32)>>,
     velocity: f32,
     flow: f32,
+    stabilizer: u8,
+    taper: Taper,
 }
 
 impl Default for BrushShelf {
@@ -35,6 +37,8 @@ impl Default for BrushShelf {
             pressure_points: None,
             velocity: 0.0,
             flow: 1.0,
+            stabilizer: 0,
+            taper: Taper::NONE,
         }
     }
 }
@@ -57,6 +61,8 @@ impl BrushShelf {
             pressure_points: None,
             velocity: 0.0,
             flow: 1.0,
+            stabilizer: 0,
+            taper: Taper::NONE,
         };
         if selected.is_some() {
             shelf.choose(selected);
@@ -84,6 +90,8 @@ impl BrushShelf {
             pressure_points: current.pressure_points(),
             velocity: current.velocity(),
             flow: current.flow(),
+            stabilizer: current.stabilizer(),
+            taper: current.taper(),
         };
         if selected.is_some() {
             shelf.choose(selected);
@@ -133,6 +141,27 @@ impl BrushShelf {
         self.flow
     }
 
+    /// How many pen samples the brush in hand averages to steady the hand (0 is off).
+    pub fn stabilizer(&self) -> u8 {
+        self.stabilizer
+    }
+
+    /// The tapers of the brush in hand.
+    pub fn taper(&self) -> Taper {
+        self.taper
+    }
+
+    /// The shape a stroke `width` wide takes with the brush in hand.
+    pub fn stroke(&self, width: f64) -> BrushStroke {
+        BrushStroke {
+            width,
+            curve: self.pressure_curve(),
+            nib: self.nib,
+            velocity: self.velocity,
+            taper: self.taper,
+        }
+    }
+
     pub fn pressure_curve(&self) -> flare_input::PressureCurve {
         match self.pressure_points.as_deref() {
             Some(points) => flare_input::PressureCurve::from_points(self.pressure_min, points),
@@ -155,6 +184,8 @@ impl BrushShelf {
         self.pressure_points = preset.pressure_points();
         self.velocity = preset.velocity();
         self.flow = preset.flow();
+        self.stabilizer = preset.stabilizer();
+        self.taper = preset.taper();
     }
 
     /// Keeps the nib in hand as a new custom brush and chooses it. Refused past the limit.
@@ -169,7 +200,9 @@ impl BrushShelf {
         let preset = BrushPreset::default()
             .with_velocity(self.velocity)
             .with_flow(self.flow)
-            .with_pressure_points(self.pressure_points.clone());
+            .with_pressure_points(self.pressure_points.clone())
+            .with_stabilizer(self.stabilizer)
+            .with_taper(self.taper.start() as f32, self.taper.end() as f32);
         let preset = BrushPreset {
             name,
             square: self.nib.shape() == NibShape::Square,
@@ -296,6 +329,34 @@ impl BrushShelf {
         self.builtin = None;
         if let Some(i) = self.selected() {
             self.presets[i].flow = self.flow;
+        }
+    }
+
+    /// How many pen samples are averaged to steady the hand, 0 (off) to
+    /// [`flare_input::MAX_STABILIZER_LEVEL`].
+    pub fn set_stabilizer(&mut self, level: u8) {
+        let level = level.min(flare_input::MAX_STABILIZER_LEVEL);
+        if self.stabilizer == level {
+            return;
+        }
+        self.stabilizer = level;
+        self.builtin = None;
+        if let Some(i) = self.selected() {
+            self.presets[i].stabilizer = level;
+        }
+    }
+
+    /// How long the start and the end of a stroke taper, in stage units.
+    pub fn set_taper(&mut self, start: f64, end: f64) {
+        let taper = Taper::new(start, end);
+        if self.taper == taper {
+            return;
+        }
+        self.taper = taper;
+        self.builtin = None;
+        if let Some(i) = self.selected() {
+            self.presets[i].taper_start = taper.start() as f32;
+            self.presets[i].taper_end = taper.end() as f32;
         }
     }
 

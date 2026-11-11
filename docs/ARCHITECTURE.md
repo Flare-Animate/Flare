@@ -23,13 +23,13 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-audio` | Sound: decoding with `symphonia` (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer, and the events a front end sends to the sound card. |
 | foundation | `flare-i18n` | The words of the interface: Fluent files per language and section under `localizations/`, compiled in, with English as the fallback; a build script finds the files, and `has_key` lets a `tr!` check its key while the program is built. |
 | foundation | `flare-profile` | Workspace profiles as data: rooms, dock trees, toolbars and defaults, read through checks (size, depth, ranges, every panel placed). Four built in, as JSON in `data/`. |
-| foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, and the pressure-to-width curve. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
+| foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, the pressure-to-width curve, and the stabilizer that averages a hand's last samples. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
 | foundation | `flare-tween` | Interpolation and easing, cubic-bezier keyframe handles, extrapolation, in-betweens of strokes and of rasters. See Tweening below. |
 | foundation | `flare-rig` | Skeletal rigs for symbols: bones, keyed poses, forward kinematics and bounded IK, as pure data and functions. See Symbols and rigging below. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
-| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines, nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, the anchor point tools, the Ruler and the Mirror, and the operations of the Paint Bucket and Ink Bottle, the Eraser, Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
+| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines (one width function for the outline and the live preview, with speed and tapers), nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, the anchor point tools, the Ruler and the Mirror, and the operations of the Paint Bucket and Ink Bottle, the Eraser (cutting fills and lines along its path with `i_overlay`, or deleting whole elements), Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
 | editing | `flare-stopmotion` | The stop-motion domain as data: a capture session, its frames, onion skin and the timeline it exports to. No camera is opened here (`NoCamera` answers with a named error). |
 | io | `flare-storage` | The `.flare` SQLite container with compressed CBOR records: save, load, revalidation, crash recovery files. |
 | io | `flare-import` | Import: XFL directories, zipped modern `.fla` files and Flash movies (`.swf`) into a Flare document, with a diagnostic for everything it cannot carry over. |
@@ -105,7 +105,13 @@ through explicitly (stage, layer flags, tweens). Tests exist for each of these b
 dropping them silently was a real hazard.
 
 Gestures (drawing, moving) are tool state until released and commit as one undo step.
-Escape, a tool switch or losing the gesture cancels without touching the document.
+Escape, a tool switch or losing the gesture cancels without touching the document. While a
+move, scale, rotation or skew is held, the stage is drawn from a copy made by applying the
+batch the release would commit (`flare_commands::apply_all`, outside the history), so the
+artwork follows the pointer and what is let go is what was shown. The copy is redone only
+when the drag moves, its pictures stay out of the frame cache, and only one is drawn at a time:
+the render worker keeps just the newest request, so asking on every pointer move could leave a
+fast drag with no picture at all.
 
 Frame operations (insert/remove frame, insert/clear keyframe, blank keyframe) are pure
 functions in `flare_editor::frames` from a layer and frame to a command batch. Copies get
@@ -514,7 +520,13 @@ centered on the stage at the current frame on new layers; Paste in Place (Edit m
 center. Eight handles on the
 selection's bounds scale it by dragging (Shift keeps proportions); dragging just outside a
 corner rotates it about its center (Shift snaps to 15 degrees); Alt-dragging an edge handle skews
-it. A motion-tweened instance cannot be skewed or mirrored, because a tween only interpolates
+it. A press anywhere inside the frame moves the selection, as in Animate, so a thin line need not
+be hit on its ink (a press on another shape picks that one instead). The pointer shows what a
+press would do and keeps it for the drag: a diagonal resize at the corners, a horizontal or
+vertical one at the edges (along the edge with Alt, for a skew), a move inside, and a turning
+mark beside the arrow where it rotates; `flare_tools::free_transform::grab_at` answers both the
+pointer and the press, so they cannot disagree. The selection moves, scales, turns and shears
+on the stage while the drag is held, and the release makes it one undo step. A motion-tweened instance cannot be skewed or mirrored, because a tween only interpolates
 scale, rotation and translation. It supports undo/redo, Delete, Convert to
 Symbol, editing symbols in place, motion tweens, layer management and the frame shortcuts
 F5/F6/F7 (with Shift for the inverse). Dragging a span in the timeline moves it, dragging its right edge resizes it; neither may overlap another span. The timeline zooms (buttons, pinch or

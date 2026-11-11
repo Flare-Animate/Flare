@@ -154,9 +154,30 @@ offers the same layer operations as the timeline. These changes use the same val
 and undo history as the timeline controls.
 
 The Brush options include built-in Plain, Pencil, Krita-style Ink, Blender Grease Pencil,
-Calligraphy, OpenToonz-style Vector and Adobe Animate-style profiles. Nib shape, angle, flatness,
+Calligraphy, OpenToonz-style Vector and Adobe Animate-style profiles, and four inking pens: G-pen
+(width follows pressure evenly), Mapping pen (fine, widens only under a firm press), Turnip pen
+(widens early) and Brush pen (a hairline under a light touch that comes in late and thins when the
+hand is quick). The inking pens thin to nothing at no pressure, each has its own drawn pressure
+curve, and all but the Brush pen taper both ends by 20 px. Nib shape, angle, flatness,
 minimum pressure width and pressure response can be edited; New keeps the settings as a custom
-profile in preferences. Custom profile collections also have a bounded, versioned JSON format.
+profile in preferences.
+
+**Stabilization** (0 to 40, a Brush option) steadies the hand: each pen position, and its
+pressure, is the average of the last that many positions, so wobble and pressure flicker are
+smoothed away and the line trails the pen by about half that many samples. When the pen moves far
+between two samples the window shortens (at full rate) and then grows back (at half rate), so a
+quick, deliberate move lags less than a slow, careful one; the speed is judged on the screen, so
+it is the same at every zoom. When the pen is let go the line catches up with where it was. The
+G-pen steadies 6 samples, the Mapping pen 10, the Turnip pen 2 and the Brush pen 15; the other
+profiles do not steady. **Taper start** and **Taper end** (0 to 500 px) thin the two ends of a
+stroke: over that length of the line the pressure eases in from none, and out to none, along a
+quarter sine, so the tip is as thin as the lightest touch. A stroke shorter than the two lengths
+together tapers over all of itself. A mouse, which presses fully, gets tapered ends too. Both
+settings belong to the brush in hand: choosing a profile or a custom brush sets them, editing them
+edits the custom brush chosen, and they are kept with the preferences. What is drawn while dragging is
+the stroke that will be kept: every frame the preview builds the committed outline itself, with the
+Smoothing, the curve through the points, the nib's shape and the tapers, so nothing changes when
+the pen is let go. The Pencil's preview likewise follows the smoothed curve it commits. Custom profile collections also have a bounded, versioned JSON format.
 This does not read or write native `.kpp`, `.abr` or other application-specific preset
 containers: those formats can contain engine-specific textures and settings that Flare's vector
 brush model cannot preserve. A Blender-style sculpt/deformation tool is not implemented yet.
@@ -237,6 +258,18 @@ content 10 px from the sides and 8 px from the top and bottom (`theme::PANEL_PAD
 between panels and around the dock is 4 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
 8 by 3 px of padding inside buttons and 22 px rows. These are set in one place, `theme::apply`.
 
+## Eraser
+
+The **Eraser** (E) rubs out what it is dragged over as it goes: fills lose the area it covered and
+lines lose the stretches it crossed, on every shown, unlocked layer at the current frame, while the
+pointer moves, and the whole drag is one undo step. Escape (or anything else that cancels the drag)
+puts back what it rubbed out. A click rubs out a dot. **Size** (1 to 400 px) is how wide it rubs;
+a round outline of that size follows the pointer. A straightened drag (Straight, or Shift held when
+it starts) shows the area it will rub out see-through and rubs it out on release. Pen pressure
+does not change it. With **Faucet** on, a click deletes the whole shape under it instead, which is
+what the Eraser did before it could rub. Symmetry and Straight (Shift) apply as they do to the
+Brush. Symbols, bitmaps and text are left whole.
+
 ## Ruler and Mirror
 
 Everything drawn goes into the **active layer**, as in Animate: a new shape (Rectangle, Oval, Line, PolyStar, Pencil, Brush, Pen, Text) joins the keyframe of that layer at the playhead as one more element, drawn above the others; on a frame with no keyframe a new one starts there and lasts to the end of the scene (one frame when the layer is alone and the scene is empty) or to the layer's next keyframe; a document with no layers gets "Layer 1" first. Locked, hidden, folder, mask, guide and camera layers, and a keyframe that tweens or holds a camera, refuse a drawing and say why in the status line. A click picks one element (a stroke is picked within a few units of its path, so a hairline pencil or line is not missed), Select All and the lasso pick every element (the lasso takes a stroke when any part of its path is inside the loop), and Move, Delete, Duplicate, Group, Convert to Symbol and the Align panel act on the elements picked. Modify > Arrange (Bring to Front, Bring Forward, Send Backward, Send to Back) and the Align panel's Bring to Front and Send to Back move an element up or down among the others of its keyframe, and a keyframe that holds only that element takes its layer to the top or bottom of the layers, as before. Every tool that draws shows **Object Drawing (J)** in its options, ticked and dimmed with the note that Merge Drawing is not built yet: until it is, every shape is a separate drawing object and shapes on a layer do not cut each other.
@@ -272,7 +305,9 @@ events as a pen's can be told from one that does; on macOS `FLARE_TABLET=log` wr
 pointer event there, and a plain mouse event within a quarter of a second of the pen's own is
 taken as the pen's motion, for drivers that send pressure and motion apart). Native Wayland does not pass pressure
 yet. A Brush
-stroke is saved as the outline it painted, so the width a pen gave is kept in the drawing and
+stroke is saved as the outline it painted; its centre line is simplified only where neither the
+line nor its width changes by more than the Smoothing allows, so a press or a taper along a
+straight stroke is kept, so the width a pen gave is kept in the drawing and
 playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
 after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is
 not kept in Preferences, so each session starts at 0.15.

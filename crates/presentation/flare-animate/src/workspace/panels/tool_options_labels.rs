@@ -10,6 +10,10 @@ pub(super) fn builtin_profile_key(
         BuiltinBrushProfile::Calligraphy => "opt-profile-calligraphy",
         BuiltinBrushProfile::Vector => "opt-profile-opentoonz",
         BuiltinBrushProfile::Animate => "opt-profile-animate",
+        BuiltinBrushProfile::GPen => "opt-profile-g-pen",
+        BuiltinBrushProfile::MappingPen => "opt-profile-mapping-pen",
+        BuiltinBrushProfile::TurnipPen => "opt-profile-turnip-pen",
+        BuiltinBrushProfile::BrushPen => "opt-profile-brush-pen",
     }
 }
 

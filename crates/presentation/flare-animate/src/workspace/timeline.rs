@@ -267,19 +267,24 @@ impl Workspace {
                         );
                         text_x += 32.0;
                     }
-                    painter.text(
-                        Pos2::new(text_x, y + 4.0),
-                        Align2::LEFT_TOP,
-                        if layer.is_mask() {
-                            format!("Mask: {}", layer.name())
-                        } else if layer.is_guide() {
-                            format!("Guide: {}", layer.name())
-                        } else {
-                            layer.name().to_owned()
-                        },
-                        FontId::proportional(12.0),
-                        if layer.is_visible() { ink } else { dim },
-                    );
+                    let name = if layer.is_mask() {
+                        format!("Mask: {}", layer.name())
+                    } else if layer.is_guide() {
+                        format!("Guide: {}", layer.name())
+                    } else {
+                        layer.name().to_owned()
+                    };
+                    // The name stops short of the eye, lock and outline toggles.
+                    let name_right = track.min.x - 58.0;
+                    let galley = ui.fonts_mut(|f| {
+                        timeline_cells::layer_name(
+                            f,
+                            name,
+                            name_right - text_x,
+                            if layer.is_visible() { ink } else { dim },
+                        )
+                    });
+                    painter.galley(Pos2::new(text_x, y + 4.0), galley, ink);
                     // Visibility, lock and outline columns, as icons.
                     let icon_at = |x: f32, name: &str, tint: Color32| {
                         flare_ui::icons::image(name, 14.0, tint).paint_at(

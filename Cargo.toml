@@ -119,6 +119,7 @@ flare-animate = { path = "crates/presentation/flare-animate" }
 # ---- Math and vector geometry ------------------------------------------------
 emath = { version = "0.37.0", default-features = false }
 glamx = { version = "0.3.1", default-features = false, features = ["std", "f64"] }
+i_overlay = { version = "9.1.0", default-features = false } # Polygon booleans: the Eraser cuts fills and lines.
 
 # ---- Binary data and GPU memory layouts --------------------------------------
 bytemuck = { version = "1.25", features = ["derive"] }
@@ -236,7 +237,6 @@ criterion = "0.8"
 # ---- Candidates: not used by any member yet --------------------------------
 # Declared here, uncommented, when a crate first needs them (scripts/tests/test_manifests.py
 # fails on a declared entry that nothing uses).
-# i_overlay = "9.1.0"       # Polygon booleans, for Modify > Combine Objects.
 # vello_gpu = "0.3.0"       # A GPU stage renderer, if one is ever built; match vello_cpu's version.
 # tracing = "0.1"           # Spans around render, export and save, with the performance work.
 # tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }

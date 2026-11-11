@@ -71,6 +71,7 @@ msg-select-shapes-to-group = Vyberte dva nebo více tvarů ke seskupení
 msg-select-to-break-apart = Vyberte instanci symbolu nebo text, který chcete rozdělit
 msg-nothing-transformed = Nic nelze transformovat (instanci v animaci pohybu nelze zkosit ani zrcadlit)
 msg-brush-stroke = Tah štětcem
+msg-erase = Gumovat
 msg-pencil-line = Čára tužkou
 msg-select-to-mirror = Vyberte něco k zrcadlení
 msg-leave-symbol-sound = Před importem zvuku ukončete úpravy symbolu

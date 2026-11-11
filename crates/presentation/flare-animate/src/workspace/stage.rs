@@ -1,10 +1,9 @@
 //! The stage panel.
 
 use egui::{Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
+use flare_input::InputSample;
 use flare_tools::free_transform::handles::{self, Handle};
 use glamx::DVec2;
-
-use flare_input::InputSample;
 
 use super::*;
 
@@ -140,7 +139,7 @@ impl Workspace {
                 self.assist_drag(origin.map_or_else(|| to_doc(p), to_doc), to_doc(p));
             }
         }
-        if matches!(self.tool, Tool::Pencil | Tool::Brush) {
+        if matches!(self.tool, Tool::Pencil | Tool::Brush) || self.eraser_rubs() {
             let primary = egui::PointerButton::Primary;
             self.paint.straight_held = ui.input(|i| i.modifiers.shift);
             if let Some(p) = response.interact_pointer_pos()
@@ -160,7 +159,9 @@ impl Workspace {
                 if let Some(sample) =
                     InputSample::new(f64::from(at.x), f64::from(at.y), pressure, kind)
                 {
+                    let sample = self.steady_freehand(sample, scale);
                     self.push_freehand(sample, scale);
+                    self.erase_as_dragged();
                 }
             }
             if response.drag_stopped_by(primary) {
@@ -170,9 +171,10 @@ impl Workspace {
                 self.draw_settling(&painter, to_screen, scale);
             }
             if self.freehand.len() > 1 {
-                let strokes = self.freehand_preview();
+                let strokes = self.freehand_preview(scale);
+                let pixel = 1.0 / painter.pixels_per_point();
                 painter.add(egui::Shape::mesh(stroke_preview::mesh(
-                    &strokes, to_screen, scale,
+                    &strokes, to_screen, pixel,
                 )));
             }
         }
@@ -262,6 +264,11 @@ impl Workspace {
             && let Some(p) = response.interact_pointer_pos()
         {
             self.update_drag(to_doc(p));
+            // The stage picture for where the pointer is now is asked for on the next pass,
+            // which must come even if the pointer stops here.
+            if self.drag.is_some_and(|d| d.mode != DragMode::Draw) {
+                ui.ctx().request_repaint();
+            }
         }
         if response.drag_stopped_by(primary) {
             self.end_drag();
@@ -375,10 +382,11 @@ impl Workspace {
         }
 
         let outline = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));
-        let moving = self
-            .drag
-            .filter(|d| d.mode == DragMode::Move)
-            .map_or(Vec2::ZERO, |d| d.current - d.start);
+        // The boxes move as the artwork does, snapped to the grid if it is.
+        let moving = match self.drag.and_then(|d| self.drag_edit(&d)) {
+            Some(drag_preview::DragEdit::Move(delta)) => delta,
+            _ => Vec2::ZERO,
+        };
         // While text is typed the box around it is the editor's, not the stored text's.
         let boxes = if self.text.edit.is_some() {
             Vec::new()
@@ -486,5 +494,6 @@ impl Workspace {
             }
         }
         self.draw_drag_preview(&painter, to_screen, scale);
+        self.transform_pointer(ui, &response);
     }
 }

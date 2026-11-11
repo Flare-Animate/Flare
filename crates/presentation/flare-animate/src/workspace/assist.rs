@@ -69,15 +69,18 @@ impl Workspace {
     /// at, so the cursor shows what a click would leave. `None` unless the Brush is in hand over
     /// the stage.
     pub(super) fn brush_cursor(&self) -> Option<Vec<Pos2>> {
-        if self.tool != Tool::Brush {
-            return None;
-        }
+        // The Eraser shows the circle it rubs with, the Brush its nib.
+        let (nib, size) = match self.tool {
+            Tool::Brush => (self.brush_shelf.nib(), self.brush_size),
+            Tool::Eraser if self.eraser_rubs() => {
+                (flare_tools::brush::Nib::ROUND, self.eraser_size)
+            }
+            _ => return None,
+        };
         let at = self.pointer_stage?;
-        let half = f64::from(self.brush_size) / 2.0;
+        let half = f64::from(size) / 2.0;
         Some(
-            self.brush_shelf
-                .nib()
-                .outline_points(half, 48)
+            nib.outline_points(half, 48)
                 .into_iter()
                 .map(|p| Pos2::new(at.x + p.x as f32, at.y + p.y as f32))
                 .collect(),
@@ -133,7 +136,7 @@ impl Workspace {
             painter.add(egui::Shape::mesh(stroke_preview::mesh(
                 &settling.strokes,
                 to_screen,
-                scale,
+                1.0 / painter.pixels_per_point(),
             )));
         }
     }
@@ -161,7 +164,8 @@ impl Workspace {
                 Stroke::new(1.0, Color32::WHITE),
             ));
         }
-        let drawing = matches!(self.tool, Tool::Pencil | Tool::Brush | Tool::Mirror);
+        let drawing =
+            matches!(self.tool, Tool::Pencil | Tool::Brush | Tool::Mirror) || self.eraser_rubs();
         let (vertical, horizontal) = self.paint.symmetry.axes();
         if drawing && (vertical || horizontal) {
             let center = self.symmetry_center();

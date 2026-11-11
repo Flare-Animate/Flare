@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used)]
+
 use super::*;
 
 #[test]
@@ -23,4 +25,43 @@ fn nonsense_widths_visit_nothing() {
         assert_eq!(visible_frames(0.0, 100.0, 0.0, width, 24), 0..0, "{width}");
     }
     assert_eq!(visible_frames(f32::NAN, 100.0, 0.0, 10.0, 24), 0..0);
+}
+
+fn laid_out(name: &str, width: f32) -> std::sync::Arc<egui::Galley> {
+    // Laid out inside a frame, so the font atlas it grows is handed out with that frame.
+    let ctx = egui::Context::default();
+    let mut galley = None;
+    let mut output = ctx.run_ui(egui::RawInput::default(), |ui| {
+        galley = Some(ui.fonts_mut(|f| layer_name(f, name.to_owned(), width, Color32::WHITE)));
+    });
+    output.textures_delta.clear();
+    galley.expect("the frame ran")
+}
+
+/// What the galley shows, which after a cut is not the text it was given.
+fn shown(galley: &egui::Galley) -> String {
+    galley.rows.iter().map(|r| r.text()).collect()
+}
+
+#[test]
+fn a_long_layer_name_is_cut_with_an_ellipsis_inside_its_column() {
+    let galley = laid_out("Sound: A very long file name that runs on and on.mp3", 80.0);
+    assert!(galley.size().x <= 80.0, "{} wider than 80", galley.size().x);
+    assert!(galley.elided);
+    assert!(shown(&galley).ends_with('…'), "{:?}", shown(&galley));
+    assert_eq!(galley.rows.len(), 1);
+}
+
+#[test]
+fn a_short_layer_name_is_left_whole() {
+    let galley = laid_out("Layer 1", 80.0);
+    assert!(!galley.elided);
+    assert_eq!(shown(&galley), "Layer 1");
+}
+
+#[test]
+fn no_room_shows_no_more_than_an_ellipsis() {
+    let galley = laid_out("Layer 1", -5.0);
+    assert!(galley.size().x <= 12.0, "{} wide", galley.size().x);
+    assert!(shown(&galley).chars().count() <= 1, "{:?}", shown(&galley));
 }

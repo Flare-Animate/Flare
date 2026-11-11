@@ -70,6 +70,7 @@ msg-select-shapes-to-group = Select two or more shapes to group
 msg-select-to-break-apart = Select a symbol instance or text to break apart
 msg-nothing-transformed = Nothing could be transformed (an instance in a motion tween cannot be skewed or mirrored)
 msg-brush-stroke = Brush stroke
+msg-erase = Erase
 msg-pencil-line = Pencil line
 msg-select-to-mirror = Select something to mirror
 msg-leave-symbol-sound = Leave symbol editing before importing a sound

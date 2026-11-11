@@ -29,8 +29,8 @@ fn a_keyframe_at_a_scrubbed_playhead_holds_the_layer_out_to_it() {
     ws.frame_edit(FrameOp::InsertKeyframe);
     assert_eq!(
         active_spans(&ws),
-        vec![(0, 30), (30, 31)],
-        "inserting at the playhead extends the layer to the playhead"
+        vec![(0, 30), (30, 1)],
+        "the layer is held out to the playhead and the new keyframe is one frame long"
     );
     assert_eq!(ws.scene_frames(), 31, "the scene grew to hold the keyframe");
 }

@@ -17,14 +17,23 @@ fn points(path: &[PathSegment]) -> Vec<DVec2> {
         .collect()
 }
 
-/// The vertical extent of the outline near `x`.
+/// The vertical extent of the outline at `x`: how far apart the outermost places are where its
+/// edges cross the upright line through `x`. (Read off the edges, not off the corners near `x`,
+/// since a straight stretch of stroke has no corners in its middle.)
 fn thickness_at(path: &[PathSegment], x: f64) -> f64 {
-    let near: Vec<f64> = points(path)
-        .into_iter()
-        .filter(|p| (p.x - x).abs() < 2.5)
-        .map(|p| p.y)
+    let corners = points(path);
+    let crossings: Vec<f64> = (0..corners.len())
+        .filter_map(|i| {
+            let (a, b) = (corners[i], corners[(i + 1) % corners.len()]);
+            let (low, high) = if a.x <= b.x { (a, b) } else { (b, a) };
+            if x < low.x || x > high.x || high.x - low.x <= f64::EPSILON {
+                return None;
+            }
+            Some(low.y + (high.y - low.y) * (x - low.x) / (high.x - low.x))
+        })
         .collect();
-    near.iter().copied().fold(f64::MIN, f64::max) - near.iter().copied().fold(f64::MAX, f64::min)
+    crossings.iter().copied().fold(f64::MIN, f64::max)
+        - crossings.iter().copied().fold(f64::MAX, f64::min)
 }
 
 #[test]
@@ -410,4 +419,27 @@ fn a_tight_turn_is_still_followed_and_a_dot_of_movement_still_draws() {
     assert!(y_lo <= -2.9 && y_hi >= 32.9, "{y_lo}..{y_hi}");
     let tiny = [sample(5.0, 5.0, 1.0), sample(5.3, 5.0, 1.0)];
     assert!(outline(&tiny, 8.0, PressureCurve::default(), 0.0).is_some());
+}
+
+#[test]
+fn a_straight_stroke_keeps_the_width_changes_along_it_when_smoothed() {
+    // Pressing harder along a ruler-straight line: simplifying by position alone kept only the
+    // two ends, so the middle took the blend of their widths whatever the pen did there.
+    let samples: Vec<_> = (0..=40)
+        .map(|i| {
+            let swell = 1.0 - (f64::from(i) - 20.0).abs() / 20.0;
+            sample(f64::from(i) * 2.5, 0.0, swell as f32)
+        })
+        .collect();
+    let path = outline(&samples, 20.0, PressureCurve::new(0.0, 1.0), 2.0).expect("outline");
+    assert!(
+        thickness_at(&path, 50.0) > 18.0,
+        "{}",
+        thickness_at(&path, 50.0)
+    );
+    assert!(
+        thickness_at(&path, 10.0) < 6.0,
+        "{}",
+        thickness_at(&path, 10.0)
+    );
 }

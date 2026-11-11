@@ -333,13 +333,13 @@ mod stroke_preview {
         let light = InputSample::new(0.0, 0.0, 0.0, PointerKind::Pen).expect("sample");
         let full = InputSample::new(30.0, 0.0, 1.0, PointerKind::Pen).expect("sample");
         ws.freehand = vec![light, full];
-        let preview = ws.freehand_preview();
+        let preview = ws.freehand_preview(1.0);
         assert_eq!(preview.len(), 1);
         assert_eq!(preview[0].halves, [0.0, 10.0]);
         ws.set_tool(Tool::Pencil);
         ws.freehand = vec![light, full];
         ws.paint.stroke_width = 6.0;
-        assert_eq!(ws.freehand_preview()[0].halves, [3.0, 3.0]);
+        assert_eq!(ws.freehand_preview(1.0)[0].halves, [3.0, 3.0]);
     }
 
     #[test]
@@ -348,6 +348,6 @@ mod stroke_preview {
         ws.set_tool(Tool::Pencil);
         ws.paint.symmetry = Symmetry::Both;
         ws.freehand = stroke(&[(1.0, 1.0), (5.0, 9.0)]);
-        assert_eq!(ws.freehand_preview().len(), 4);
+        assert_eq!(ws.freehand_preview(1.0).len(), 4);
     }
 }

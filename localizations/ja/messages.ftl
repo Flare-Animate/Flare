@@ -66,6 +66,7 @@ msg-select-shapes-to-group = グループ化するシェイプを 2 つ以上選
 msg-select-to-break-apart = 分割するシンボルのインスタンスまたはテキストを選択してください
 msg-nothing-transformed = 何も変形できませんでした (モーショントゥイーン内のインスタンスは傾斜や反転ができません)
 msg-brush-stroke = ブラシストローク
+msg-erase = 消去
 msg-pencil-line = 鉛筆の線
 msg-select-to-mirror = ミラーコピーするものを選択してください
 msg-leave-symbol-sound = サウンドを読み込む前に、シンボルの編集を終了してください

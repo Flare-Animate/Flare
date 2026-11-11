@@ -30,6 +30,10 @@ pub struct Preferences {
     pub brush_nib_flatness: f32,
     pub brush_pressure_min: f32,
     pub brush_pressure_gamma: f32,
+    /// The stabilizer level and taper lengths in hand.
+    pub brush_stabilizer: u8,
+    pub brush_taper_start: f32,
+    pub brush_taper_end: f32,
     pub brush_builtin_profile: Option<flare_tools::brush::BuiltinBrushProfile>,
     /// Custom brushes, and the one in hand.
     pub brushes: Vec<BrushPreset>,
@@ -75,6 +79,9 @@ impl Default for Preferences {
             brush_nib_flatness: 100.0,
             brush_pressure_min: 0.15,
             brush_pressure_gamma: 1.0,
+            brush_stabilizer: 0,
+            brush_taper_start: 0.0,
+            brush_taper_end: 0.0,
             brush_builtin_profile: None,
             brushes: Vec::new(),
             brush_selected: None,

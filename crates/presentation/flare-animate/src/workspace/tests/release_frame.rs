@@ -2,9 +2,10 @@
 
 use super::*;
 
-/// Whether `shape` is a mesh in `color`, as the preview and the held stroke are.
+/// Whether `shape` is a mesh painted in `color`, as the preview and the held stroke are (its
+/// edges fade out to clear, so only the inside is in the color itself).
 fn is_mesh_of(shape: &egui::epaint::Shape, color: Color32) -> bool {
-    matches!(shape, egui::epaint::Shape::Mesh(m) if m.vertices.first().is_some_and(|v| v.color == color))
+    matches!(shape, egui::epaint::Shape::Mesh(m) if m.vertices.iter().any(|v| v.color == color))
 }
 
 #[test]

@@ -59,17 +59,51 @@ pub fn smooth_path(points: &[Pos2]) -> Option<Vec<PathSegment>> {
         return Some(out);
     }
     for i in 0..points.len() - 1 {
-        let before = points[i.saturating_sub(1)];
-        let (a, b) = (points[i], points[i + 1]);
-        let after = points[(i + 2).min(points.len() - 1)];
-        let handle = |from: Pos2, to: Pos2| -> Vec2 { (to - from) / 6.0 };
+        let (c1, c2) = handles(points, i);
         out.push(PathSegment::CubicTo(
-            point(a + handle(before, b))?,
-            point(b - handle(a, after))?,
-            point(b)?,
+            point(c1)?,
+            point(c2)?,
+            point(points[i + 1])?,
         ));
     }
     Some(out)
+}
+
+/// The two control points of the cubic from `points[i]` to `points[i + 1]` in [`smooth_path`].
+fn handles(points: &[Pos2], i: usize) -> (Pos2, Pos2) {
+    let before = points[i.saturating_sub(1)];
+    let (a, b) = (points[i], points[i + 1]);
+    let after = points[(i + 2).min(points.len() - 1)];
+    let handle = |from: Pos2, to: Pos2| -> Vec2 { (to - from) / 6.0 };
+    (a + handle(before, b), b - handle(a, after))
+}
+
+/// Points along each cubic of a flattened line.
+const FLATTEN_STEPS: usize = 6;
+
+/// The line the Pencil commits for a drag through `points` (simplified to within `tolerance`,
+/// then smoothed as [`smooth_path`] does), as points close enough together to draw as straight
+/// pieces. A live preview draws these, so it shows the curve that will be kept.
+pub fn smoothed_points(points: &[Pos2], tolerance: f32) -> Vec<Pos2> {
+    let kept = simplify(points, tolerance);
+    if kept.len() < 3 {
+        return kept;
+    }
+    let mut out = Vec::with_capacity((kept.len() - 1) * FLATTEN_STEPS + 1);
+    out.push(kept[0]);
+    for i in 0..kept.len() - 1 {
+        let (a, (c1, c2), b) = (kept[i], handles(&kept, i), kept[i + 1]);
+        for s in 1..=FLATTEN_STEPS {
+            let t = s as f32 / FLATTEN_STEPS as f32;
+            let u = 1.0 - t;
+            let at = a.to_vec2() * (u * u * u)
+                + c1.to_vec2() * (3.0 * t * u * u)
+                + c2.to_vec2() * (3.0 * t * t * u)
+                + b.to_vec2() * (t * t * t);
+            out.push(at.to_pos2());
+        }
+    }
+    out
 }
 
 #[cfg(test)]
@@ -107,6 +141,49 @@ mod tests {
         let simple = simplify(&wave, 1.0);
         assert!(simple.len() < wave.len() / 10);
         assert_eq!(simple[0], wave[0]);
+    }
+
+    #[test]
+    fn the_smoothed_points_follow_the_committed_curve_through_the_kept_points() {
+        let drag = [p(0.0, 0.0), p(10.0, 8.0), p(20.0, 0.0), p(30.0, 8.0)];
+        let flat = smoothed_points(&drag, 0.1);
+        assert_eq!(flat.len(), 3 * FLATTEN_STEPS + 1);
+        for (k, kept) in drag.iter().enumerate() {
+            assert!(
+                (flat[k * FLATTEN_STEPS] - *kept).length() < 1e-4,
+                "passes through {k}"
+            );
+        }
+        // Between two kept points it lies on the cubic the commit keeps, not on a straight line.
+        let path = smooth_path(&drag).expect("path");
+        let mut from = drag[0];
+        for (segment, piece) in path[1..].iter().enumerate() {
+            let PathSegment::CubicTo(c1, c2, to) = piece else {
+                panic!("a cubic")
+            };
+            let (c1, c2, to) = (c1.as_vec(), c2.as_vec(), to.as_vec());
+            for s in 1..=FLATTEN_STEPS {
+                let t = s as f64 / FLATTEN_STEPS as f64;
+                let u = 1.0 - t;
+                let x = u * u * u * f64::from(from.x)
+                    + 3.0 * t * u * u * c1.x
+                    + 3.0 * t * t * u * c2.x
+                    + t * t * t * to.x;
+                let y = u * u * u * f64::from(from.y)
+                    + 3.0 * t * u * u * c1.y
+                    + 3.0 * t * t * u * c2.y
+                    + t * t * t * to.y;
+                let got = flat[segment * FLATTEN_STEPS + s];
+                assert!((f64::from(got.x) - x).abs() < 1e-3 && (f64::from(got.y) - y).abs() < 1e-3);
+            }
+            from = Pos2::new(to.x as f32, to.y as f32);
+        }
+        let quarter = flat[FLATTEN_STEPS / 2];
+        assert!(
+            (quarter - Pos2::new(5.0, 4.0)).length() > 0.3,
+            "bent: {quarter:?}"
+        );
+        assert_eq!(smoothed_points(&[p(0.0, 0.0), p(5.0, 5.0)], 1.0).len(), 2);
     }
 
     #[test]
