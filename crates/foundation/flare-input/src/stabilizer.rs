@@ -107,7 +107,10 @@ impl Stabilizer {
         let whole = self.window.floor();
         let fraction = self.window - whole;
         let count = whole as usize + usize::from(fraction > 0.0);
-        let oldest = self.recent.len() - 1;
+        // push always adds a sample first, but an empty window must not underflow.
+        let Some(oldest) = self.recent.len().checked_sub(1) else {
+            return newest;
+        };
         let (mut x, mut y, mut pressure, mut total) = (0.0, 0.0, 0.0, 0.0);
         for age in 0..count {
             let weight = if (age as f64) < whole { 1.0 } else { fraction };
