@@ -11,7 +11,11 @@ fn scrubbing_rests_in_empty_cells_while_set_frame_clamps_to_the_scene() {
     ws.set_frame_in_view(5, 20);
     assert_eq!(ws.frame(), 5, "the playhead rests in the shown empty cells");
     ws.set_frame_in_view(50, 20);
-    assert_eq!(ws.frame(), 19, "a scrub is clamped to the cells the panel draws");
+    assert_eq!(
+        ws.frame(),
+        19,
+        "a scrub is clamped to the cells the panel draws"
+    );
     ws.set_frame(9);
     assert_eq!(ws.frame(), 0, "set_frame still clamps to the scene itself");
 }
