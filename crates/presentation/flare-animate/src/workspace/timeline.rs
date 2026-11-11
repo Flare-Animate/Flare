@@ -107,7 +107,7 @@ impl Workspace {
                         .map_or(self.frame, |r| r.from);
                     self.select_frames(id, anchor, f);
                 } else if in_track {
-                    self.set_frame(f);
+                    self.set_frame_in_view(f, shown);
                     if response.clicked() {
                         self.frame_range = None;
                     }
@@ -165,7 +165,7 @@ impl Workspace {
                     self.select_layer(id);
                     if !inside {
                         self.frame_range = None;
-                        self.set_frame(f);
+                        self.set_frame_in_view(f, shown);
                     }
                     self.frame_menu_open = true;
                 }

@@ -194,6 +194,14 @@ impl Workspace {
         self.frame = frame.min(self.scene_frames() - 1);
     }
 
+    /// Scrubbing in the timeline: the playhead may rest in the empty cells past the scene's
+    /// end, as Animate's does, so a first keyframe can be placed there before anything is
+    /// drawn. `shown` is how many cells the panel draws; playback still stops at the scene.
+    pub(super) fn set_frame_in_view(&mut self, frame: u32, shown: u32) {
+        let max = shown.max(self.scene_frames()).saturating_sub(1);
+        self.frame = frame.min(max);
+    }
+
     /// The steps of the history for a list: "Original" first, then each step in order, and
     /// which one the document is at now.
     pub(crate) fn history_entries(&self) -> (Vec<String>, usize) {

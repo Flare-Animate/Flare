@@ -66,6 +66,7 @@ mod tab_strip;
 mod text_keys;
 mod text_objects;
 mod timeline_frame_buttons;
+mod timeline_scrub;
 mod timeline_frames;
 mod tool_pins;
 mod tool_slots;
