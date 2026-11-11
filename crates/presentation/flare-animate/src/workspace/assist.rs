@@ -208,7 +208,7 @@ impl Workspace {
         scale: f32,
     ) {
         if let Some(drag) = self.drag.filter(|d| d.mode == DragMode::Draw) {
-            let (from, to) = (to_screen(drag.start), to_screen(drag.current));
+            let (from, to) = (to_screen(drag.start), to_screen(self.draw_end(&drag)));
             let preview = Rect::from_two_pos(from, to);
             let ink = Stroke::new(1.0, Color32::BLACK);
             match self.tool {

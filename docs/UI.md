@@ -63,7 +63,7 @@ Language: the General category of Preferences has a Language list, "System local
 
 A selected Graphic instance has a Looping section in Properties, as Animate's does: Options (Loop, Play Once or Single Frame) and the First frame it starts on, counted from 1. Each change is one undo step. A Movie Clip, a Button, artwork or several selected things show no such section, because only a Graphic follows the setting (a Movie Clip loops from where its instance starts; a Button shows its Up state).
 
-The Timeline's frames are small fixed cells (10 points at the normal zoom), not the panel's width shared among them: the scene's frames are followed by empty cells to the panel's edge, the zoom (Ctrl/Cmd and the wheel, or the buttons) widens or narrows them from 3 to 40 points, and Fit sets the zoom at which the scene fills the panel. In the Timeline each frame is a cell: a line between frames (a stronger one every fifth, so they can be counted), a dot on the first frame of a keyframe (hollow when the keyframe holds nothing) and a box on the last frame of a held keyframe, as Animate draws them. A right click on the stage picks the shape under the pointer (unless it is already selected) and opens a menu with Cut, Copy, Paste, Paste in Place, Duplicate, Delete, Group, Ungroup, Break Apart, Convert to Symbol, Select All, Deselect All, Undo, Redo and the zoom commands; on empty stage it clears the selection first. In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
+The Timeline's frames are small fixed cells (10 points at the normal zoom), not the panel's width shared among them: the scene's frames are followed by empty cells to the panel's edge, the zoom (Ctrl/Cmd and the wheel, or the buttons) widens or narrows them from 3 to 40 points, and Fit sets the zoom at which the scene fills the panel. The timeline's toolbar has the frame commands used most, after the frame number and rate: Insert Keyframe (F6), Insert Blank Keyframe (F7), Insert Frame (F5) and Remove Frames (Shift+F5). They are the commands of the Insert menu and of the frames' own menu, act on the active layer at the playhead, say their name and keys when pointed at, and are dimmed on a locked layer. In the Timeline each frame is a cell: a line between frames (a stronger one every fifth, so they can be counted), a dot on the first frame of a keyframe (hollow when the keyframe holds nothing) and a box on the last frame of a held keyframe, as Animate draws them. A right click on the stage picks the shape under the pointer (unless it is already selected) and opens a menu with Cut, Copy, Paste, Paste in Place, Duplicate, Delete, Group, Ungroup, Break Apart, Convert to Symbol, Select All, Deselect All, Undo, Redo and the zoom commands; on empty stage it clears the selection first. In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
 
 ## Documents and tabs
 
@@ -252,6 +252,11 @@ Pencil or Brush stroke is drawn with its reflections, all in the same keyframe o
 The same tool offers Copy left-right and Copy top-bottom (also Modify > Transform > Mirror Copy), which put a
 reflected copy of the selection across the axes, and Flip.
 
+The **Line** tool (N) draws a straight line from where the drag began to where it ended, in any
+direction. While Shift is held the line keeps to the nearest of eight directions, 45 degrees apart
+(level, upright and the diagonals), and its end is the point of that direction closest to the
+pointer; Shift can be pressed or let go during the drag, and the preview shows what will be drawn.
+
 Pencil and Brush also have **Straight**: with it on, or while Shift is held, a stroke is the
 straight line between where the drag began and where it ended.
 
@@ -260,8 +265,13 @@ touch** (0 to 1, 0.15 by default, a tool option) is the fraction of it a stroke 
 lightest touch; in between the width follows the pressure in a straight line. A mouse, a finger,
 or a device that reports no pressure draws at full pressure. Pressure reaches the Brush from a pen
 in the browser build (the page's pointer events on the canvas), from the window system on
-Windows, and from the X server on Linux when a pen is plugged in when Flare starts
-(`FLARE_TABLET=off` turns that off). macOS and native Wayland do not pass pressure yet. A Brush
+Windows, from the X server on Linux when a pen is plugged in when Flare starts, and from AppKit's
+events on macOS (`FLARE_TABLET=off` turns the last two off; started from a terminal, Flare says
+`pen pressure from:` there once it has seen a pen, so a tablet whose driver does not mark its
+events as a pen's can be told from one that does; on macOS `FLARE_TABLET=log` writes every
+pointer event there, and a plain mouse event within a quarter of a second of the pen's own is
+taken as the pen's motion, for drivers that send pressure and motion apart). Native Wayland does not pass pressure
+yet. A Brush
 stroke is saved as the outline it painted, so the width a pen gave is kept in the drawing and
 playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
 after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is

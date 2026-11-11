@@ -57,7 +57,7 @@ Flare è riscritto in **Rust**. Si basa principalmente su *OpenToonz* e *Tahoma2
 |---|---|---|
 | Windows (desktop) | Si compila dai sorgenti | Toolchain MSVC e `flare-desktop`. |
 | Linux (desktop) | Si compila dai sorgenti | Servono le librerie elencate in [CONTRIBUTING.md](../../CONTRIBUTING.md). Il Filmato di prova richiede Ruffle compilato dal sottomodulo. |
-| macOS (desktop) | Si compila dai sorgenti | Menu nativo. La pressione della penna non arriva ancora al Pennello su macOS. |
+| macOS (desktop) | Si compila dai sorgenti | Menu nativo. La pressione della penna arriva al Pennello. |
 | Web (browser) | Attivo, in fase iniziale | La [versione web](https://flare-animate.github.io/Flare/) è distribuita da `main`. Niente esportazione MP4, niente audio, e il Filmato di prova gira nella pagina. |
 | Android | Sperimentale | Prima build di `flare-android`, lo spazio di lavoro desktop in una activity nativa. I file non si possono ancora aprire o salvare tramite il selettore del telefono, e il Filmato di prova è disattivato. |
 | ChromeOS | Non testato | La build Android produce APK per x86_64 e arm64 che dovrebbero funzionare lì. Su ChromeOS non è stato testato nulla. |

@@ -57,7 +57,7 @@ Flare se přepisuje v jazyce **Rust**. Vychází především z *OpenToonzu* a *
 |---|---|---|
 | Windows (desktop) | Sestavuje se ze zdrojových kódů | Toolchain MSVC a `flare-desktop`. |
 | Linux (desktop) | Sestavuje se ze zdrojových kódů | Potřebuje knihovny uvedené v [CONTRIBUTING.md](../../CONTRIBUTING.md). Testovací film potřebuje Ruffle sestavený z podmodulu. |
-| macOS (desktop) | Sestavuje se ze zdrojových kódů | Nativní nabídka. Tlak pera se zatím na macOS do štětce nedostane. |
+| macOS (desktop) | Sestavuje se ze zdrojových kódů | Nativní nabídka. Tlak pera se dostane do štětce. |
 | Web (prohlížeč) | Živé, včasná verze | [Webová verze](https://flare-animate.github.io/Flare/) se nasazuje z `main`. Bez exportu MP4, bez zvuku a Testovací film běží na stránce. |
 | Android | Experimentální | První sestavení `flare-android`, desktopového pracovního prostoru v nativní aktivitě. Soubory zatím nelze otevřít ani uložit přes výběr souborů telefonu a Testovací film je vypnutý. |
 | ChromeOS | Netestováno | Sestavení pro Android vytváří APK pro x86_64 a arm64, které by tam měly fungovat. Na ChromeOS se nic netestovalo. |

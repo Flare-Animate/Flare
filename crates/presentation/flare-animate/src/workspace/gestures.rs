@@ -284,7 +284,7 @@ impl Workspace {
             && !cancelled
         {
             match drag.mode {
-                DragMode::Draw => self.commit_shape(self.tool, drag.start, drag.current),
+                DragMode::Draw => self.commit_shape(self.tool, drag.start, self.draw_end(&drag)),
                 DragMode::Move => {
                     let mut delta = drag.current - drag.start;
                     if self.display.snap_to_grid {
@@ -301,6 +301,17 @@ impl Workspace {
                     }
                 }
             }
+        }
+    }
+
+    /// Where the shape being dragged out ends: at the pointer, except that Shift holds a line to
+    /// the nearest of the eight directions 45 degrees apart. The preview and the commit both ask
+    /// here, so what is let go is what was shown.
+    pub(super) fn draw_end(&self, drag: &Drag) -> Pos2 {
+        if self.tool == Tool::Line && self.uniform_scale {
+            flare_tools::line::constrain(drag.start, drag.current)
+        } else {
+            drag.current
         }
     }
 

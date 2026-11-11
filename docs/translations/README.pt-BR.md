@@ -57,7 +57,7 @@ O [docs/SURFACES.md](../SURFACES.md) lista, recurso por recurso, o que cada um d
 |---|---|---|
 | Windows (desktop) | Compila a partir do código-fonte | Toolchain MSVC e `flare-desktop`. |
 | Linux (desktop) | Compila a partir do código-fonte | Precisa das bibliotecas listadas em [CONTRIBUTING.md](../../CONTRIBUTING.md). Testar Filme precisa do Ruffle compilado a partir do submódulo. |
-| macOS (desktop) | Compila a partir do código-fonte | Menu nativo. A pressão da caneta ainda não chega ao Pincel no macOS. |
+| macOS (desktop) | Compila a partir do código-fonte | Menu nativo. A pressão da caneta chega ao Pincel. |
 | Web (navegador) | No ar, inicial | A [versão web](https://flare-animate.github.io/Flare/) é publicada a partir de `main`. Sem exportação MP4, sem som, e Testar Filme roda na própria página. |
 | Android | Experimental | Primeira versão do `flare-android`, o espaço de trabalho do desktop em uma atividade nativa. Ainda não é possível abrir nem salvar arquivos pelo seletor do telefone, e Testar Filme está desligado. |
 | ChromeOS | Não testado | A versão Android gera APKs para x86_64 e arm64 que deveriam rodar ali. Nada foi testado no ChromeOS. |

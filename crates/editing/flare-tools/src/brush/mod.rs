@@ -10,12 +10,13 @@ use flare_input::{InputSample, PressureCurve};
 use glamx::DVec2;
 
 mod nib;
+mod preset;
 mod shelf;
 pub use nib::{Nib, NibShape};
-pub use shelf::{
-    BrushPreset, BrushProfileFile, BrushShelf, BuiltinBrushProfile, MAX_BRUSH_PROFILE_BYTES,
-    MAX_BRUSHES, ShelfFull,
+pub use preset::{
+    BrushPreset, BrushProfileFile, BuiltinBrushProfile, MAX_BRUSH_PROFILE_BYTES, MAX_BRUSHES,
 };
+pub use shelf::{BrushShelf, ShelfFull};
 
 /// Points added between two kept points when smoothing.
 const SUBDIVISIONS: usize = 4;

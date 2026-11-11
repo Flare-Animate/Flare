@@ -2105,6 +2105,7 @@ dependencies = [
  "flare-render",
  "flare-storage",
  "flare-text",
+ "flare-tools",
  "flare-toonz",
  "flare-tween",
  "flare-video",
@@ -2398,7 +2399,13 @@ dependencies = [
 name = "flare-tablet"
 version = "0.1.0"
 dependencies = [
+ "block2 0.6.2",
  "flare-input",
+ "objc2 0.6.5",
+ "objc2-app-kit 0.3.2",
+ "objc2-core-foundation",
+ "objc2-core-graphics",
+ "objc2-foundation 0.3.2",
  "thiserror 2.0.18",
  "x11rb",
 ]

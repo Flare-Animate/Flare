@@ -57,7 +57,7 @@ Flare se está reescribiendo en **Rust**. Se basa sobre todo en *OpenToonz* y *T
 |---|---|---|
 | Windows (escritorio) | Se compila desde el código | Cadena de herramientas MSVC y `flare-desktop`. |
 | Linux (escritorio) | Se compila desde el código | Necesita las bibliotecas de [CONTRIBUTING.md](../../CONTRIBUTING.md). Probar película necesita Ruffle compilado desde el submódulo. |
-| macOS (escritorio) | Se compila desde el código | Menú nativo. La presión del lápiz todavía no llega al pincel en macOS. |
+| macOS (escritorio) | Se compila desde el código | Menú nativo. La presión del lápiz llega al pincel. |
 | Web (navegador) | En vivo, temprana | La [versión web](https://flare-animate.github.io/Flare/) se publica desde `main`. Sin exportación MP4, sin sonido, y Probar película se ejecuta en la página. |
 | Android | Experimental | Primera versión de `flare-android`, el espacio de trabajo de escritorio dentro de una actividad nativa. Todavía no se pueden abrir ni guardar archivos con el selector del teléfono, y Probar película está desactivado. |
 | ChromeOS | Sin probar | La versión Android genera APK para x86_64 y arm64 que deberían funcionar allí. No se ha probado nada en ChromeOS. |
