@@ -143,10 +143,11 @@ fn the_eyedropper_takes_the_fill_or_with_shift_the_stroke() {
 }
 
 #[test]
-fn the_eraser_deletes_the_clicked_shape_and_undo_brings_it_back() {
+fn the_eraser_with_faucet_deletes_the_clicked_shape_and_undo_brings_it_back() {
     let mut ws = workspace();
     rect(&mut ws);
     ws.set_tool(Tool::Eraser);
+    ws.eraser_faucet = true;
     ws.click_with_tool(Pos2::new(700.0, 400.0), false);
     assert_eq!(spans_of(&ws, 1), 1, "empty stage: nothing erased");
     ws.click_with_tool(Pos2::new(50.0, 30.0), false);

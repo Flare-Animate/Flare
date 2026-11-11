@@ -53,6 +53,12 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
 
 ## Libraries: where they are used, and why not elsewhere
 
+- **i_overlay** (polygon booleans, no default features, so no threads of its own) is used by the
+  Eraser (`flare-tools/src/eraser/cut.rs`): a fill loses the area the eraser covered (a difference
+  of polygons) and a line loses the stretches inside it (clipping lines by a polygon). It runs once,
+  when the eraser is let go, on the shapes whose bounds the eraser's outline meets; the drag itself
+  only previews the outline. Modify > Combine Objects is the next place it fits.
+
 - **bytemuck** is used for pixel buffers (`flare-render`): reinterpreting RGBA bytes as pixels
   without copying. It is the right tool wherever a buffer changes shape without changing
   content.

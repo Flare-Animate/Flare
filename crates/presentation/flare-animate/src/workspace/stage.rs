@@ -140,7 +140,7 @@ impl Workspace {
                 self.assist_drag(origin.map_or_else(|| to_doc(p), to_doc), to_doc(p));
             }
         }
-        if matches!(self.tool, Tool::Pencil | Tool::Brush) {
+        if matches!(self.tool, Tool::Pencil | Tool::Brush) || self.eraser_rubs() {
             let primary = egui::PointerButton::Primary;
             self.paint.straight_held = ui.input(|i| i.modifiers.shift);
             if let Some(p) = response.interact_pointer_pos()

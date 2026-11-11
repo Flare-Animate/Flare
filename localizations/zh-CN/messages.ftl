@@ -66,6 +66,7 @@ msg-select-shapes-to-group = 请选择两个或更多形状进行组合
 msg-select-to-break-apart = 请选择要分离的元件实例或文本
 msg-nothing-transformed = 没有可变形的内容（运动补间中的实例不能倾斜或翻转）
 msg-brush-stroke = 画笔笔触
+msg-erase = 擦除
 msg-pencil-line = 铅笔线条
 msg-select-to-mirror = 请选择要镜像的内容
 msg-leave-symbol-sound = 导入声音之前，请先退出元件编辑

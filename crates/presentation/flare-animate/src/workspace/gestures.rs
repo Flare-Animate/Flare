@@ -93,6 +93,11 @@ impl Workspace {
     /// A click with one of the tools that act on a single shape: it changes that shape's paint,
     /// takes its color, or deletes it, as one undo step.
     pub(super) fn click_with_tool(&mut self, point: Pos2, shift: bool) {
+        // A rubbing eraser rubs out a dot wherever it is clicked, over a shape or not.
+        if self.eraser_rubs() {
+            self.erase_dot(point);
+            return;
+        }
         if !matches!(
             self.tool,
             Tool::Eyedropper | Tool::Bucket | Tool::InkBottle | Tool::Eraser
@@ -169,6 +174,12 @@ impl Workspace {
     pub(super) fn finish_freehand(&mut self, scale: f32) {
         self.catch_up_freehand(scale);
         let samples = std::mem::take(&mut self.freehand);
+        if self.tool == Tool::Eraser {
+            if self.eraser_rubs() && !samples.is_empty() {
+                self.finish_erase(samples);
+            }
+            return;
+        }
         let strokes = self.stroke_set(samples);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
         let mut shapes = Vec::new();

@@ -170,6 +170,9 @@ impl Workspace {
         strokes: &[Vec<InputSample>],
         scale: f32,
     ) -> Vec<PreviewStroke> {
+        if self.tool == Tool::Eraser {
+            return self.eraser_previews(strokes);
+        }
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
         let to_points = |stroke: &[InputSample]| -> Vec<Pos2> {
             stroke

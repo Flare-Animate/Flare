@@ -181,6 +181,7 @@ could not be read from this environment, so nothing from it may be ported until 
   pen profiles. No code, tip images, textures or database files were copied, and the Rust is written
   fresh. The report's raster dab engine (stroke coverage buffer, anti-aliased and Gaussian dabs,
   paper texture, colour mixing) is not used: Flare has no raster brush yet (BACKLOG WP-11).
+- i_overlay and its `i_float`, `i_shape`, `i_tree`, `i_key_sort` crates (MIT OR Apache-2.0, linked as a dependency, no code copied): the polygon booleans the Eraser cuts with.
 - usvg and its parser crates (MIT/Apache-2.0, linked as a dependency, no code copied): the SVG reader of `crates/io/flare-import/src/svg.rs`, with its text feature off.
 - SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.
 - Bauxitedev/bitmapflow (optical-flow frame interpolation for pixel art): the repository has no

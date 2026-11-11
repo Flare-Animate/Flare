@@ -70,6 +70,7 @@ msg-select-shapes-to-group = Wählen Sie zwei oder mehr Formen zum Gruppieren au
 msg-select-to-break-apart = Wählen Sie eine Symbolinstanz oder einen Text zum Teilen aus
 msg-nothing-transformed = Es konnte nichts transformiert werden (eine Instanz in einem Bewegungs-Tween kann nicht geneigt oder gespiegelt werden)
 msg-brush-stroke = Pinselstrich
+msg-erase = Radieren
 msg-pencil-line = Bleistiftlinie
 msg-select-to-mirror = Wählen Sie etwas zum Spiegeln aus
 msg-leave-symbol-sound = Beenden Sie die Symbolbearbeitung, bevor Sie einen Sound importieren

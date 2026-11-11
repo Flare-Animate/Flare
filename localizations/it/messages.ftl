@@ -70,6 +70,7 @@ msg-select-shapes-to-group = Seleziona due o più forme da raggruppare
 msg-select-to-break-apart = Seleziona un'istanza di simbolo o un testo da separare
 msg-nothing-transformed = Non è stato possibile trasformare nulla (un'istanza in un'interpolazione di movimento non può essere inclinata o specchiata)
 msg-brush-stroke = Tratto di pennello
+msg-erase = Cancella
 msg-pencil-line = Linea a matita
 msg-select-to-mirror = Seleziona qualcosa da specchiare
 msg-leave-symbol-sound = Esci dalla modifica del simbolo prima di importare un audio

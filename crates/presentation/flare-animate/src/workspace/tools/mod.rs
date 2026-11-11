@@ -5,6 +5,7 @@ pub(super) mod anchors;
 pub(super) mod bone;
 pub(super) mod brush;
 pub(super) mod camera;
+pub(super) mod eraser;
 pub(super) mod lasso;
 pub(super) mod pen;
 pub(super) mod preview_mesh;

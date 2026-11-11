@@ -27,6 +27,7 @@ mod chord_dispatch;
 mod close_prompt;
 mod color_section;
 mod drawing_into_layers;
+mod eraser;
 mod frame_menu;
 mod frames_text_and_sound;
 mod graphic_playback;

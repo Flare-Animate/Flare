@@ -258,6 +258,16 @@ content 10 px from the sides and 8 px from the top and bottom (`theme::PANEL_PAD
 between panels and around the dock is 4 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
 8 by 3 px of padding inside buttons and 22 px rows. These are set in one place, `theme::apply`.
 
+## Eraser
+
+The **Eraser** (E) rubs out what it is dragged over: fills lose the area it covered and lines lose
+the stretches it crossed, on every shown, unlocked layer at the current frame, in one undo step. A
+click rubs out a dot. **Size** (1 to 400 px) is how wide it rubs; a round outline of that size
+follows the pointer, and while dragging the area it will rub out is shown see-through. Pen pressure
+does not change it. With **Faucet** on, a click deletes the whole shape under it instead, which is
+what the Eraser did before it could rub. Symmetry and Straight (Shift) apply as they do to the
+Brush. Symbols, bitmaps and text are left whole.
+
 ## Ruler and Mirror
 
 Everything drawn goes into the **active layer**, as in Animate: a new shape (Rectangle, Oval, Line, PolyStar, Pencil, Brush, Pen, Text) joins the keyframe of that layer at the playhead as one more element, drawn above the others; on a frame with no keyframe a new one starts there and lasts to the end of the scene (one frame when the layer is alone and the scene is empty) or to the layer's next keyframe; a document with no layers gets "Layer 1" first. Locked, hidden, folder, mask, guide and camera layers, and a keyframe that tweens or holds a camera, refuse a drawing and say why in the status line. A click picks one element (a stroke is picked within a few units of its path, so a hairline pencil or line is not missed), Select All and the lasso pick every element (the lasso takes a stroke when any part of its path is inside the loop), and Move, Delete, Duplicate, Group, Convert to Symbol and the Align panel act on the elements picked. Modify > Arrange (Bring to Front, Bring Forward, Send Backward, Send to Back) and the Align panel's Bring to Front and Send to Back move an element up or down among the others of its keyframe, and a keyframe that holds only that element takes its layer to the top or bottom of the layers, as before. Every tool that draws shows **Object Drawing (J)** in its options, ticked and dimmed with the note that Merge Drawing is not built yet: until it is, every shape is a separate drawing object and shapes on a layer do not cut each other.

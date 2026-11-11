@@ -174,6 +174,9 @@ pub struct Workspace {
     /// A pen's pressure from a native source, for windowing that passes the pen as a mouse.
     pen_feed: PenFeed,
     brush_size: f32,
+    /// How wide the Eraser rubs, in stage units, and whether it deletes whole shapes instead.
+    eraser_size: f32,
+    eraser_faucet: bool,
     /// The tip the brush paints with, and the nibs kept under a name.
     brush_shelf: flare_tools::brush::BrushShelf,
     /// How thin a brush stroke gets at the lightest touch, as a fraction of its size.
@@ -350,6 +353,8 @@ impl Workspace {
             stabilizer: None,
             pen_feed: PenFeed::default(),
             brush_size: 12.0,
+            eraser_size: 20.0,
+            eraser_faucet: false,
             brush_shelf: flare_tools::brush::BrushShelf::default(),
             brush_light: 0.15,
             brush_pressure_gamma: 1.0,
