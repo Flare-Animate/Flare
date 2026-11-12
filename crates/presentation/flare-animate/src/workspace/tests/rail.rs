@@ -159,3 +159,27 @@ fn home_has_no_rail_to_show() {
     ws.set_home(true);
     assert!(!ws.document_controls_shown());
 }
+
+#[test]
+fn a_screen_reader_finds_the_strip_icons_and_the_workspace_switcher_by_name() {
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    flare_ui::icons::install(&ctx);
+    ctx.enable_accesskit();
+    let mut labels = Vec::new();
+    for step in 0..3 {
+        let mut out = ctx.run_ui(input(f64::from(step) * 0.1, vec![]), |ui| ws.show(ui));
+        out.textures_delta.clear();
+        if let Some(update) = out.platform_output.accesskit_update {
+            labels = update
+                .nodes
+                .iter()
+                .filter(|(_, n)| n.role() == egui::accesskit::Role::Button)
+                .filter_map(|(_, n)| n.label().map(str::to_owned))
+                .collect();
+        }
+    }
+    for wanted in ["Color", "Swatches", "History", "Workspaces: Essentials"] {
+        assert!(labels.iter().any(|l| l == wanted), "{wanted}: {labels:?}");
+    }
+}

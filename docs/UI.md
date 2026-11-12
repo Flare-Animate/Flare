@@ -84,6 +84,20 @@ The window has no system title bar, so the document's name is not written twice:
 
 On macOS the bar is 28 px high with room at the left for the window's own buttons. On Linux and Windows the window opens without the system's frame and the same bar carries its own minimize, maximize or restore, and close buttons at the right (close asks about unsaved work like Quit does); the window is resized from its edges and corners by the system's own resize (`drag_resize_window`), and `FLARE_SYSTEM_TITLEBAR=1` brings back the system's title bar for a window manager that does not get on with this. Not done: Windows 11's Snap Layouts flyout over the maximize button, which needs a hit-test hook that Flare's no-`unsafe` rule keeps out for now, and the shadow and rounded corners a compositor gives a framed window. This has been built and its logic tested on macOS only; it has not been run on Linux or Windows.
 
+## Screen readers
+
+On macOS, Windows and Linux the desktop app gives screen readers (VoiceOver, Narrator, Orca) the
+interface through AccessKit, which egui builds into its widgets; Animate's interface gives them
+nothing. The tree is made only while a reader asks for it (`flare-shell` turns it on when the
+reader's first request arrives and off when it lets go), so nobody else pays for it. The window
+opens hidden for the moment it takes to attach AccessKit, which must exist before the window is
+shown. Flare's own drawn widgets say what they are: an icon button (`chrome::icon_button`, which
+the tool strip, the top bar and the panel toolbars use) is a button named by its hint, read as
+pressed when it is on and unavailable when it is dimmed; the strip's icons are buttons named for
+their panels; a swatch is a button named by its hex value. Not yet named: the stage and the
+timeline's frame grid, which are drawn as one surface each. The tree is tested; it has not been
+tried with a real screen reader yet.
+
 ## Type
 
 Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font License, licence text beside it), embedded in the program and placed ahead of egui's built-in fonts, which still cover the glyphs it lacks. On macOS the top bar is 28 px tall, the height of the title bar it replaces, so the window buttons the system draws sit centred in it.

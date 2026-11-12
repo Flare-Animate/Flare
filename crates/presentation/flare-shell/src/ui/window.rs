@@ -48,8 +48,11 @@ impl Gpu {
         event_loop: &ActiveEventLoop,
         ctx: &egui::Context,
         workspace: &mut Workspace,
+        proxy: winit::event_loop::EventLoopProxy<super::UserEvent>,
     ) -> Result<Self> {
+        // Hidden until AccessKit is attached: its adapter must exist before the window is shown.
         let attributes = Window::default_attributes()
+            .with_visible(false)
             .with_title(workspace.title())
             .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0))
             .with_window_icon(super::window_icon::app_icon());
@@ -76,7 +79,11 @@ impl Gpu {
         flare_platform::app_icon::show_in_dock(flare_ui::icons::APP_ICON_PNG);
         #[cfg(all(unix, not(target_os = "ios")))]
         super::tablet::watch(&window, workspace.pen_feed());
-        let state = egui_winit::State::new(
+        #[cfg_attr(
+            not(any(target_os = "macos", target_os = "windows", target_os = "linux")),
+            allow(unused_mut)
+        )]
+        let mut state = egui_winit::State::new(
             ctx.clone(),
             ViewportId::ROOT,
             &*window,
@@ -84,6 +91,11 @@ impl Gpu {
             window.theme(),
             None,
         );
+        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+        state.init_accesskit(event_loop, &window, proxy);
+        #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+        drop(proxy);
+        window.set_visible(true);
         let mut painter = pollster::block_on(Painter::new(
             ctx.clone(),
             WgpuConfiguration::default(),

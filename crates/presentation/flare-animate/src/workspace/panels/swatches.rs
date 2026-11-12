@@ -122,6 +122,7 @@ fn grid(ui: &mut Ui, salt: &str, colors: &[Rgba8], remove: Option<&str>) -> Opti
             );
         }
         let hex = format!("#{:02X}{:02X}{:02X}", color.r, color.g, color.b);
+        response.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, &hex));
         let response = response.on_hover_text(hex);
         if response.clicked() {
             pick = Some(Pick::Choose(*color));

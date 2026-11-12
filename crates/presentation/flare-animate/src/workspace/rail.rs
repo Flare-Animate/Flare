@@ -237,5 +237,6 @@ fn rail_button(ui: &mut Ui, icon: &str, open: bool, hint: &str) -> egui::Respons
     };
     let at = Rect::from_center_size(rect.center(), vec2(ICON, ICON));
     icons::image(icon, ICON, tint).paint_at(ui, at);
+    response.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, open, hint));
     response.on_hover_text(hint)
 }

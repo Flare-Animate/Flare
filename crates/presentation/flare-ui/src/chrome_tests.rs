@@ -330,3 +330,48 @@ fn a_dimmed_segment_ignores_a_click() {
         assert_eq!(chosen, expected, "after a click at {x}");
     }
 }
+
+#[test]
+fn icon_buttons_reach_a_screen_reader_with_their_names_and_state() {
+    let ctx = egui::Context::default();
+    crate::icons::install(&ctx);
+    ctx.enable_accesskit();
+    let mut update = None;
+    for step in 0..2 {
+        let input = egui::RawInput {
+            time: Some(f64::from(step)),
+            ..egui::RawInput::default()
+        };
+        let mut out = ctx.run_ui(input, |ui| {
+            icon_button(ui, "undo", 16.0, false, true, "Undo");
+            icon_button(ui, "onion-skin", 16.0, true, true, "Onion Skin");
+            mock_icon_button(ui, "interface", 16.0, "Later");
+        });
+        out.textures_delta.clear();
+        update = out.platform_output.accesskit_update;
+    }
+    let update = update.expect("a tree while a reader listens");
+    let named = |label: &str| {
+        update
+            .nodes
+            .iter()
+            .map(|(_, node)| node)
+            .find(|node| node.label() == Some(label))
+            .unwrap_or_else(|| panic!("{label} is in the tree"))
+            .clone()
+    };
+    let undo = named("Undo");
+    assert_eq!(undo.role(), egui::accesskit::Role::Button);
+    assert!(!undo.is_disabled());
+    let onion = named("Onion Skin");
+    assert_eq!(
+        onion.toggled(),
+        Some(egui::accesskit::Toggled::True),
+        "it is on"
+    );
+    let later = named(&format!("Later ({NOT_YET})"));
+    assert!(
+        later.is_disabled(),
+        "a feature not built is read as unavailable"
+    );
+}
