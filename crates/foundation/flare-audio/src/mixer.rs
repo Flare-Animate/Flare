@@ -2,13 +2,38 @@
 
 use std::sync::Arc;
 
-use crate::Audio;
+use crate::{Audio, Excerpt};
+
+/// Frames over which an excerpt that cuts into a sound fades in and out, so the cut does not
+/// click: about a millisecond and a half at 44.1 kHz.
+const EDGE_FADE: usize = 64;
 
 /// A sound playing in a [`Mixer`].
 struct Voice {
     audio: Arc<Audio>,
-    /// The output frame at which the sound's first sample plays.
+    /// The output frame at which the frame `from` of the sound plays.
     starts_at: u64,
+    /// The frames of the sound that play.
+    from: usize,
+    until: usize,
+}
+
+impl Voice {
+    fn length(&self) -> u64 {
+        (self.until - self.from) as u64
+    }
+
+    /// The gain of the sound's frame `i`: full, except near an end that cuts into the sound.
+    fn gain(&self, i: usize) -> f32 {
+        let mut gain = 1.0_f32;
+        if self.from > 0 {
+            gain = gain.min((i - self.from + 1) as f32 / EDGE_FADE as f32);
+        }
+        if self.until < self.audio.frames() {
+            gain = gain.min((self.until - i) as f32 / EDGE_FADE as f32);
+        }
+        gain.min(1.0)
+    }
 }
 
 /// Mixes sounds into stereo output at a fixed rate. Sounds must already be at that rate
@@ -37,12 +62,25 @@ impl Mixer {
     /// Starts `audio` after `delay` output frames from now. False, and nothing starts, if the
     /// sound is not at the mixer's rate.
     pub fn play(&mut self, audio: Arc<Audio>, delay: u64) -> bool {
+        self.play_excerpt(audio, delay, Excerpt::WHOLE)
+    }
+
+    /// Starts the `excerpt` of `audio` after `delay` output frames from now. False, and nothing
+    /// starts, if the sound is not at the mixer's rate; an excerpt past the sound's end is
+    /// accepted and plays nothing.
+    pub fn play_excerpt(&mut self, audio: Arc<Audio>, delay: u64, excerpt: Excerpt) -> bool {
         if audio.sample_rate() != self.rate {
             return false;
+        }
+        let range = excerpt.frames(self.rate, audio.frames());
+        if range.is_empty() {
+            return true;
         }
         self.voices.push(Voice {
             audio,
             starts_at: self.position.saturating_add(delay),
+            from: range.start,
+            until: range.end,
         });
         true
     }
@@ -62,13 +100,13 @@ impl Mixer {
         let frames = (out.len() / 2) as u64;
         let end = self.position + frames;
         for voice in &self.voices {
-            let length = voice.audio.frames() as u64;
             let first = voice.starts_at.max(self.position);
-            for frame in first..end.min(voice.starts_at + length) {
-                let i = (frame - voice.starts_at) as usize;
-                let left = voice.audio.at(i, 0);
+            for frame in first..end.min(voice.starts_at + voice.length()) {
+                let i = voice.from + (frame - voice.starts_at) as usize;
+                let gain = voice.gain(i);
+                let left = voice.audio.at(i, 0) * gain;
                 let right = if voice.audio.channels() > 1 {
-                    voice.audio.at(i, 1)
+                    voice.audio.at(i, 1) * gain
                 } else {
                     left
                 };
@@ -82,6 +120,6 @@ impl Mixer {
         }
         self.position = end;
         self.voices
-            .retain(|voice| voice.starts_at + voice.audio.frames() as u64 > self.position);
+            .retain(|voice| voice.starts_at + voice.length() > self.position);
     }
 }

@@ -85,8 +85,20 @@ fn insert_frame_past_the_end_extends_and_gaps_are_left_alone() {
     let cmds = insert_frame(f.scene, layer(&f), 9);
     run(&mut f, cmds);
     assert_eq!(shape_of(&f), vec![(0, 3, 'S'), (6, 4, 'S')]);
-    let empty = fixture(vec![]);
-    assert!(insert_frame(empty.scene, layer(&empty), 0).is_none());
+}
+
+#[test]
+fn insert_frame_on_a_layer_with_no_frames_makes_blank_frames_to_the_playhead() {
+    let mut f = fixture(vec![]);
+    let cmds = insert_frame(f.scene, layer(&f), 9);
+    run(&mut f, cmds);
+    assert_eq!(shape_of(&f), vec![(0, 10, 'E')], "blank frames to frame 9");
+    // Keyframes still need frames to split: a layer with none refuses them.
+    let none = fixture(vec![]);
+    assert!(insert_keyframe(none.scene, layer(&none), 6).is_none());
+    assert!(insert_blank_keyframe(none.scene, layer(&none), 6).is_none());
+    let huge = fixture(vec![]);
+    assert!(insert_frame(huge.scene, layer(&huge), u32::MAX).is_none());
 }
 
 #[test]

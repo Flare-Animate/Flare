@@ -39,6 +39,17 @@ fn a_delay_is_counted_in_samples_from_the_buffer_it_arrives_in() {
 }
 
 #[test]
+fn an_excerpt_reaches_the_mixer_as_the_frames_it_names() {
+    let (sender, mut engine) = channel(1000);
+    // 50 ms from 0.1 s into a one-second sound: 50 frames, then silence.
+    assert!(sender.play_excerpt(steady(), 0.0, Excerpt::slice(0.1, 0.05)));
+    let out = buffer(&mut engine, 80);
+    let heard = out.chunks(2).filter(|pair| pair[0] > 0.0).count();
+    assert_eq!(heard, 50);
+    assert!(out[100..].iter().all(|s| *s == 0.0), "and nothing after it");
+}
+
+#[test]
 fn commands_are_carried_out_in_the_order_they_were_given() {
     let (sender, mut engine) = channel(1000);
     sender.play(steady(), 0.0);

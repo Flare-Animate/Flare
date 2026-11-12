@@ -39,6 +39,15 @@ fn span(start: u32, duration: u32, content: Content, like: &FrameSpan) -> Option
     Some(FrameSpan::new(start, duration, content).with_motion_of(like))
 }
 
+/// Empty frames, with no motion.
+fn empty_frames(start: u32, duration: u32) -> Option<FrameSpan> {
+    Some(FrameSpan::new(
+        start,
+        NonZeroU32::new(duration)?,
+        Content::Empty,
+    ))
+}
+
 /// `like` over other frames, with all its elements and its motion.
 fn retime(like: &FrameSpan, start: u32, duration: u32) -> Option<FrameSpan> {
     Some(like.retimed(start, NonZeroU32::new(duration)?))
@@ -207,7 +216,16 @@ pub fn insert_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
             });
         }
     } else {
-        let last = spans.last()?;
+        let Some(last) = spans.last() else {
+            // A layer with no frames yet (a new layer, or one that holds only a sound) gets
+            // blank frames from the first to `frame`, as Animate's empty layer does. Its sounds
+            // stay where they are: nothing was inserted before them.
+            return Some(replace_spans(
+                scene,
+                layer,
+                vec![empty_frames(0, frame.checked_add(1)?)?],
+            ));
+        };
         if u64::from(frame) < last.end() {
             return None; // inside a gap between spans
         }

@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use thiserror::Error;
 
-use flare_audio::{Audio, AudioEvent, Mixer};
+use flare_audio::{Audio, AudioEvent, Excerpt, Mixer};
 
 use crate::audio_prepared::Prepared;
 
@@ -22,7 +22,11 @@ pub enum OutputError {
 
 /// What the window asks of the sound card, queued without a lock.
 enum Command {
-    Play { audio: Arc<Audio>, delay: u64 },
+    Play {
+        audio: Arc<Audio>,
+        delay: u64,
+        excerpt: Excerpt,
+    },
     Stop,
 }
 
@@ -68,13 +72,28 @@ impl Sender {
     }
 
     /// Starts `audio` after `delay_seconds`. False if the queue was full and the sound dropped.
+    #[cfg(test)]
     pub(crate) fn play(&self, audio: Arc<Audio>, delay_seconds: f64) -> bool {
+        self.play_excerpt(audio, delay_seconds, Excerpt::WHOLE)
+    }
+
+    /// Starts the `excerpt` of `audio` after `delay_seconds`. False if the queue was full.
+    pub(crate) fn play_excerpt(
+        &self,
+        audio: Arc<Audio>,
+        delay_seconds: f64,
+        excerpt: Excerpt,
+    ) -> bool {
         // The mixer takes only sounds at its rate; see `Prepared` for the others.
         if audio.sample_rate() != self.rate {
             return false;
         }
         let delay = (delay_seconds.max(0.0) * f64::from(self.rate)) as u64;
-        self.push(Command::Play { audio, delay })
+        self.push(Command::Play {
+            audio,
+            delay,
+            excerpt,
+        })
     }
 
     pub(crate) fn rate(&self) -> u32 {
@@ -92,8 +111,12 @@ impl Engine {
     pub(crate) fn render(&mut self, out: &mut [f32]) {
         while let Ok(command) = self.commands.pop() {
             match command {
-                Command::Play { audio, delay } => {
-                    self.mixer.play(audio, delay);
+                Command::Play {
+                    audio,
+                    delay,
+                    excerpt,
+                } => {
+                    self.mixer.play_excerpt(audio, delay, excerpt);
                 }
                 Command::Stop => self.mixer.stop_all(),
             }
@@ -153,7 +176,7 @@ impl Player {
 
     /// Starts `audio` after `delay_seconds`.
     pub fn play(&self, audio: Arc<Audio>, delay_seconds: f64) {
-        self.sounds.play(audio, delay_seconds);
+        self.sounds.play(audio, delay_seconds, Excerpt::WHOLE);
     }
 
     /// Carries out what a front end asked for.
@@ -164,7 +187,8 @@ impl Player {
                 AudioEvent::Play {
                     audio,
                     delay_seconds,
-                } => self.play(audio, delay_seconds),
+                    excerpt,
+                } => self.sounds.play(audio, delay_seconds, excerpt),
             }
         }
     }

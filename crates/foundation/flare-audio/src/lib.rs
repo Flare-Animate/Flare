@@ -16,10 +16,11 @@ use thiserror::Error;
 pub enum AudioEvent {
     /// Silence everything that is playing.
     Stop,
-    /// Start a sound after a delay.
+    /// Start a sound, or the excerpt of it, after a delay.
     Play {
         audio: Arc<Audio>,
         delay_seconds: f64,
+        excerpt: Excerpt,
     },
 }
 
@@ -45,10 +46,16 @@ pub enum AudioError {
 }
 
 mod audio;
+mod excerpt;
 mod mixer;
+mod peaks;
 mod resample;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_waveform;
 
 pub use audio::{Audio, decode};
+pub use excerpt::Excerpt;
 pub use mixer::Mixer;
+pub use peaks::{Decoded, PEAKS_PER_SECOND, Peaks};
