@@ -156,10 +156,16 @@ pub enum MenuAction {
     IncrementInstances,
     AddInstanceToSymbol,
     BakeTransform,
+    /// Window > Workspaces: switch to a built-in workspace (Animate's names).
+    WorkspaceEssentials,
+    WorkspaceAnimator,
+    WorkspaceDesigner,
+    WorkspaceClassic,
+    WorkspaceSmallScreen,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 129] = [
+    pub const ALL: [MenuAction; 134] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -289,6 +295,11 @@ impl MenuAction {
         Self::IncrementInstances,
         Self::AddInstanceToSymbol,
         Self::BakeTransform,
+        Self::WorkspaceEssentials,
+        Self::WorkspaceAnimator,
+        Self::WorkspaceDesigner,
+        Self::WorkspaceClassic,
+        Self::WorkspaceSmallScreen,
     ];
 
     /// A stable identifier for native menu items (the variant name).

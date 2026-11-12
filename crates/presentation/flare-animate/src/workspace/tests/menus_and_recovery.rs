@@ -246,7 +246,7 @@ fn the_dock_survives_drawing_and_every_panel_stays_present() {
     }
     let json = ws.layout_json().expect("serialize");
     assert!(
-        flare_dock::from_json(&json).is_ok(),
+        flare_dock::workspaces_from_json(&json).is_ok(),
         "all four panels are still in the layout"
     );
     assert!(
@@ -319,13 +319,12 @@ fn opening_a_project_keeps_the_users_panel_arrangement() {
         "the test needs a non-default layout"
     );
 
+    // The arrangement on screen, without the workspaces kept beside it.
+    let shown = |ws: &Workspace| value(&flare_dock::to_json(&ws.panels.layout).expect("json"));
     ws.open(&project);
-    assert_eq!(value(&ws.layout_json().expect("serialize")), value(&custom));
+    assert_eq!(shown(&ws), value(&custom));
     ws.reset_layout();
-    assert_eq!(
-        value(&ws.layout_json().expect("serialize")),
-        value(&default)
-    );
+    assert_eq!(shown(&ws), value(&default));
 }
 
 #[test]

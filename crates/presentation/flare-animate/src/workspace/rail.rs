@@ -32,6 +32,10 @@ pub(crate) struct Panels {
     pub(crate) flyout: Option<Pane>,
     pub(crate) change: Option<PanelChange>,
     pub(crate) icons: Vec<(Pane, Rect)>,
+    /// Every workspace but the arrangement on screen, which is `layout`.
+    pub(crate) workspaces: flare_dock::Workspaces,
+    /// The name being typed to save the arrangement as a workspace.
+    pub(crate) new_workspace: String,
 }
 
 impl Default for Panels {
@@ -41,6 +45,8 @@ impl Default for Panels {
             flyout: None,
             change: None,
             icons: Vec::new(),
+            workspaces: flare_dock::Workspaces::default(),
+            new_workspace: String::new(),
         }
     }
 }

@@ -12,11 +12,14 @@ use thiserror::Error;
 mod arrange;
 mod layout;
 mod migrate;
-mod profiles;
+mod workspaces;
 
-pub use arrange::{DEFAULT_SIDE, DEFAULT_STRIP, arrangement};
+pub use arrange::{DEFAULT_SIDE, DEFAULT_STRIP, Plan, arrange, arrangement};
 pub use layout::{Layout, check, default_layout, from_json, to_json};
-pub use profiles::{LayoutProfile, profile_tree};
+pub use workspaces::{
+    Custom, MAX_CUSTOM, MAX_NAME_CHARS, MAX_WORKSPACES_BYTES, Preset, WorkspaceId, Workspaces,
+    workspaces_from_json, workspaces_to_json,
+};
 
 /// Largest layout file accepted.
 pub const MAX_LAYOUT_BYTES: usize = 256 * 1024;

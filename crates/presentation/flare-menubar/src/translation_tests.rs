@@ -32,10 +32,11 @@ const SAME_AS_ENGLISH: &[(&str, &str)] = &[
     ("fr", "menu-item-play-pause-on"),
     ("es", "menu-item-tool-zoom"),
     ("es", "menu-title-control"),
-    ("es", "menu-mock-interfaces"),
-    ("fr", "menu-mock-interfaces"),
     ("pt-BR", "menu-item-tool-zoom"),
-    ("pt-BR", "menu-mock-interfaces"),
+    ("de", "menu-item-workspace-animator"),
+    ("de", "menu-item-workspace-designer"),
+    ("it", "menu-item-workspace-designer"),
+    ("pt-BR", "menu-item-workspace-designer"),
 ];
 
 fn allowed(tag: &str, key: &str) -> bool {

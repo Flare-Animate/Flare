@@ -126,6 +126,11 @@ impl MenuAction {
             Self::AddInstanceToSymbol => "duplicate",
             Self::IncrementInstances => "frame-insert",
             Self::BakeTransform => "tool-transform",
+            Self::WorkspaceEssentials
+            | Self::WorkspaceAnimator
+            | Self::WorkspaceDesigner
+            | Self::WorkspaceClassic
+            | Self::WorkspaceSmallScreen => "interface",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",

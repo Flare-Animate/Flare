@@ -69,6 +69,7 @@ mod tabs;
 mod tools;
 mod transform_cursor;
 mod window_controls;
+mod workspaces;
 use tools::{anchors, stroke_preview, text_preview};
 mod new_document;
 mod new_document_presets;

@@ -24,7 +24,7 @@ priority is estimated against the roadmap above. Rows are ordered by priority, t
 | [#49](https://github.com/Flare-Animate/Flare/issues/49) Rigging | Medium | XL | Bones, keyed poses, forward kinematics and bounded inverse kinematics | Weighted mesh deformation, node constraints, master controllers and auto-patching |
 | [#207](https://github.com/Flare-Animate/Flare/issues/207) ArtCraft UI modules | Low | M | Flare has its own tested egui/egui_tiles presentation stack | ArtCraft module reuse is unimplemented; the issue gives no reproducible UI defect |
 | [#52](https://github.com/Flare-Animate/Flare/issues/52) JSFL and extensions | Low | XL | No JSFL or plugin integration | JSFL compatibility and safe ZXP/MXP plugin loading |
-| [#53](https://github.com/Flare-Animate/Flare/issues/53) Studio pipeline | Low | XL | Dockable panels and four workspace profile definitions | A workspace switcher, node compositing, shared asset linking and collaboration |
+| [#53](https://github.com/Flare-Animate/Flare/issues/53) Studio pipeline | Low | XL | Dockable panels, the icon strip, named workspaces with a switcher, and four workspace profile definitions | Node compositing, shared asset linking and collaboration |
 | [#123](https://github.com/Flare-Animate/Flare/issues/123) Interactive projects | Low | XL | Imported scripts are preserved as data; SWF playback is delegated to Ruffle | Authoring or running ActionScript 2/3 or JavaScript in Flare |
 | [#230](https://github.com/Flare-Animate/Flare/issues/230) Flash 3D engines | Low | XL | SWF import identifies known engines and reports embedded binary blocks | Reconstructing 3D scenes or producing working source code from compiled SWFs |
 
@@ -82,7 +82,6 @@ Scripting
 Interface
 - A Flash 8 interface skin, and custom themes (a contrast check for them, as `original/` had, so a theme cannot make text unreadable)
 - A fully rearrangeable toolbar (tools can already be pinned from the "…" list)
-- Named workspaces and the Interface switcher at the top right
 
 Formats
 - Reading the artwork and keyframes of the old binary `.fla` (CS4 and before); today its stage, library and layer metadata are read

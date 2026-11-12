@@ -8,28 +8,26 @@ use super::*;
 impl Workspace {
     // ---- dock layout -----------------------------------------------------------------
 
-    /// The current panel arrangement as JSON, for saving between sessions.
+    /// The workspaces, with the arrangement on screen as the active one's, as JSON, for saving
+    /// between sessions.
     pub fn layout_json(&self) -> Result<String, serde_json::Error> {
-        flare_dock::to_json(&self.panels.layout)
+        flare_dock::workspaces_to_json(&self.panels.workspaces, &self.panels.layout)
     }
 
-    /// Restores a saved arrangement. An unusable one is refused and the current layout is
-    /// kept, so a stale or damaged file can never leave the workspace without a panel.
+    /// Restores saved workspaces (or a layout saved before there were any). An unusable file is
+    /// refused and the current arrangement is kept, so a stale or damaged file can never leave the
+    /// workspace without a panel.
     pub fn restore_layout(&mut self, json: &str) -> Result<(), LayoutError> {
-        self.panels.layout = flare_dock::from_json(json)?;
+        let (workspaces, layout) = flare_dock::workspaces_from_json(json)?;
+        self.panels.workspaces = workspaces;
+        self.panels.layout = layout;
         self.panels.flyout = None;
         Ok(())
     }
 
-    /// Back to the default arrangement. Never touches the document.
+    /// The workspace in use back as it was built in or saved. Never touches the document.
     pub fn reset_layout(&mut self) {
-        self.panels.layout = flare_dock::default_layout();
-        self.panels.flyout = None;
-    }
-
-    /// Switch to a named layout profile. Never touches the document.
-    pub fn set_layout_profile(&mut self, profile: flare_dock::LayoutProfile) {
-        self.panels.layout = flare_dock::profile_tree(profile);
+        self.panels.layout = self.panels.workspaces.reset();
         self.panels.flyout = None;
     }
 

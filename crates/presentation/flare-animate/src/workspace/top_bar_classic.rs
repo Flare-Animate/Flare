@@ -40,14 +40,8 @@ impl Workspace {
         if !self.document_controls_shown() {
             return;
         }
-        // Animate's workspace switcher is in this corner too. Ours will switch between
-        // whole interfaces, as it does there; for now it is a place held for it.
-        flare_ui::chrome::mock_icon_button(
-            ui,
-            "interface",
-            16.0,
-            &tr!(self, "bar-interface-switcher"),
-        );
+        // Animate's workspace switcher is in this corner too.
+        self.workspace_switcher(ui);
         ui.add_space(6.0);
         let can_redo = self.active().can_redo();
         if flare_ui::chrome::icon_button(ui, "redo", 16.0, false, can_redo, &tr!(self, "bar-redo"))

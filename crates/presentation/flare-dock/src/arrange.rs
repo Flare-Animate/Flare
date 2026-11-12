@@ -21,38 +21,101 @@ pub const DEFAULT_STRIP: [Pane; 8] = [
     Pane::FindReplace,
 ];
 
+/// Where the docked panels go: stacks in a column left of the stage, the timeline above or below
+/// the stage, and stacks in a column on the right running the window's height. The tool strip is
+/// always down the left edge.
+#[derive(Clone, Copy, Debug)]
+pub struct Plan<'a> {
+    pub timeline_on_top: bool,
+    pub left: &'a [&'a [Pane]],
+    pub right: &'a [&'a [Pane]],
+}
+
 /// The tool strip down the whole left edge, then the stage with the timeline and output as tabs
 /// under it, then one stack holding `side` running the window's height, as Animate's panels on
 /// the right do, so a long Properties panel is not cut short by the timeline. Panels in neither
 /// place are left out, for the strip to hold.
 pub fn arrangement(side: &[Pane]) -> Tree<Pane> {
+    arrange(&Plan {
+        timeline_on_top: false,
+        left: &[],
+        right: &[side],
+    })
+}
+
+/// The tree `plan` describes. Panels it does not name are left out, for the strip to hold; a
+/// panel that cannot be kept in the strip (the frame of the workspace) is never taken from its
+/// place, and a panel named twice is placed once.
+pub fn arrange(plan: &Plan<'_>) -> Tree<Pane> {
     let mut tiles = Tiles::default();
+    let mut placed = Vec::new();
     let tools = tiles.insert_pane(Pane::Tools);
     let stage = tiles.insert_pane(Pane::Stage);
     let timeline = tiles.insert_pane(Pane::Timeline);
     let output = tiles.insert_pane(Pane::Output);
-    let bottom = tiles.insert_tab_tile(vec![timeline, output]);
-    let middle = tiles.insert_vertical_tile(vec![stage, bottom]);
-    set_share(&mut tiles, middle, stage, 0.68);
-    set_share(&mut tiles, middle, bottom, 0.32);
-    let side: Vec<TileId> = side
-        .iter()
-        .filter(|p| p.can_collapse())
-        .map(|p| tiles.insert_pane(*p))
-        .collect();
-    let work = if side.is_empty() {
+    let timeline_stack = tiles.insert_tab_tile(vec![timeline, output]);
+    let middle = if plan.timeline_on_top {
+        let middle = tiles.insert_vertical_tile(vec![timeline_stack, stage]);
+        set_share(&mut tiles, middle, timeline_stack, 0.3);
+        set_share(&mut tiles, middle, stage, 0.7);
         middle
     } else {
-        let side = tiles.insert_tab_tile(side);
-        let work = tiles.insert_horizontal_tile(vec![middle, side]);
-        set_share(&mut tiles, work, middle, 0.77);
-        set_share(&mut tiles, work, side, 0.23);
+        let middle = tiles.insert_vertical_tile(vec![stage, timeline_stack]);
+        set_share(&mut tiles, middle, stage, 0.68);
+        set_share(&mut tiles, middle, timeline_stack, 0.32);
+        middle
+    };
+    let left = column(&mut tiles, plan.left, &mut placed);
+    let right = column(&mut tiles, plan.right, &mut placed);
+    let mut row = Vec::new();
+    let mut shares = Vec::new();
+    if let Some(left) = left {
+        row.push(left);
+        shares.push(0.2);
+    }
+    row.push(middle);
+    shares.push(1.0);
+    if let Some(right) = right {
+        row.push(right);
+        shares.push(0.23);
+    }
+    let work = if row.len() == 1 {
+        middle
+    } else {
+        let others: f32 = shares.iter().sum::<f32>() - 1.0;
+        let work = tiles.insert_horizontal_tile(row.clone());
+        for (child, share) in row.into_iter().zip(shares) {
+            let share = if child == middle { 1.0 - others } else { share };
+            set_share(&mut tiles, work, child, share);
+        }
         work
     };
     let root = tiles.insert_horizontal_tile(vec![tools, work]);
     set_share(&mut tiles, root, tools, TOOLS_SHARE);
     set_share(&mut tiles, root, work, 1.0 - TOOLS_SHARE);
     Tree::new(egui::Id::unique(TREE_ID), root, tiles)
+}
+
+/// A column of stacks, top to bottom, sharing its height equally; none when it holds nothing.
+fn column(tiles: &mut Tiles<Pane>, stacks: &[&[Pane]], placed: &mut Vec<Pane>) -> Option<TileId> {
+    let mut column = Vec::new();
+    for stack in stacks {
+        let mut panes = Vec::new();
+        for pane in stack.iter().copied() {
+            if pane.can_collapse() && !placed.contains(&pane) {
+                placed.push(pane);
+                panes.push(tiles.insert_pane(pane));
+            }
+        }
+        if !panes.is_empty() {
+            column.push(tiles.insert_tab_tile(panes));
+        }
+    }
+    match column.len() {
+        0 => None,
+        1 => column.first().copied(),
+        _ => Some(tiles.insert_vertical_tile(column)),
+    }
 }
 
 /// The tool strip's share of the window's width: 38 px of 1280, one tool wide.

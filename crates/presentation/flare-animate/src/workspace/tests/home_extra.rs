@@ -108,14 +108,15 @@ fn top_bar_hint(x: f32, home: bool, native: bool) -> String {
 }
 
 #[test]
-fn the_interface_switcher_is_a_dimmed_button_in_the_top_right_corner() {
+fn the_workspace_switcher_is_a_live_button_in_the_top_right_corner_naming_the_one_in_use() {
     let width = 1280.0;
     let mut found = None;
     let mut x = width - 2.0;
     while x > width - 140.0 {
         let hint = top_bar_hint(x, false, false);
         assert!(!hint.contains("Preferences"), "there is no gear at {x}");
-        if hint.contains("Interface switcher (Not available yet)") {
+        assert!(!hint.contains("Not available yet"), "{hint}");
+        if hint.contains("Workspaces: Essentials") {
             found.get_or_insert(x);
         }
         x -= 6.0;
@@ -128,13 +129,13 @@ fn the_interface_switcher_is_a_dimmed_button_in_the_top_right_corner() {
 }
 
 #[test]
-fn home_has_no_interface_switcher_the_editor_does() {
+fn home_has_no_workspace_switcher_the_editor_does() {
     let mut on_home = false;
     let mut in_editor = false;
     let mut x = 1276.0;
     while x > 1140.0 {
-        on_home |= top_bar_hint(x, true, false).contains("Interface switcher");
-        in_editor |= top_bar_hint(x, false, false).contains("Interface switcher");
+        on_home |= top_bar_hint(x, true, false).contains("Workspaces");
+        in_editor |= top_bar_hint(x, false, false).contains("Workspaces");
         x -= 6.0;
     }
     assert!(in_editor, "the editor has it");
@@ -379,7 +380,7 @@ fn with_a_native_menu_publish_is_left_of_play_and_the_bar_has_undo_redo_and_the_
         hints.push_str(&top_bar_hint(x, false, true));
         x -= 6.0;
     }
-    for wanted in ["Undo", "Redo", "Preferences", "Interface switcher"] {
+    for wanted in ["Undo", "Redo", "Preferences", "Workspaces"] {
         assert!(hints.contains(wanted), "{wanted} is in the bar: {hints:?}");
     }
 }

@@ -257,7 +257,16 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ShowInfo),
             Action(A::ShowOutput),
             Separator,
-            Mock("Interfaces"),
+            Submenu(
+                "Workspaces",
+                &[
+                    Action(A::WorkspaceEssentials),
+                    Action(A::WorkspaceAnimator),
+                    Action(A::WorkspaceDesigner),
+                    Action(A::WorkspaceClassic),
+                    Action(A::WorkspaceSmallScreen),
+                ],
+            ),
         ],
     ),
     (

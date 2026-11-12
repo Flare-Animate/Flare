@@ -1,5 +1,6 @@
 //! Menu actions: whether they apply, what they are called and doing them.
 
+use flare_dock::Preset;
 use flare_document::Tween;
 use flare_menubar::MenuAction;
 use flare_tools::ops::{self, Stack};
@@ -143,7 +144,12 @@ impl Workspace {
             MenuAction::MoveLayerUp => position.is_some_and(|p| p > 0),
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
-            MenuAction::ResetLayout => true,
+            MenuAction::ResetLayout
+            | MenuAction::WorkspaceEssentials
+            | MenuAction::WorkspaceAnimator
+            | MenuAction::WorkspaceDesigner
+            | MenuAction::WorkspaceClassic
+            | MenuAction::WorkspaceSmallScreen => true,
             MenuAction::TextBold
             | MenuAction::TextItalic
             | MenuAction::TextLarger
@@ -336,6 +342,11 @@ impl Workspace {
             MenuAction::MoveLayerDown => self.move_active_layer(1),
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
+            MenuAction::WorkspaceEssentials => self.switch_preset(Preset::Essentials),
+            MenuAction::WorkspaceAnimator => self.switch_preset(Preset::Animator),
+            MenuAction::WorkspaceDesigner => self.switch_preset(Preset::Designer),
+            MenuAction::WorkspaceClassic => self.switch_preset(Preset::Classic),
+            MenuAction::WorkspaceSmallScreen => self.switch_preset(Preset::SmallScreen),
             MenuAction::NewSymbol => self.new_symbol(),
             MenuAction::TextBold => self.text.bold = !self.text.bold,
             MenuAction::TextItalic => self.text.italic = !self.text.italic,

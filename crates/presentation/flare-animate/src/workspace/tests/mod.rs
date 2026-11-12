@@ -102,6 +102,7 @@ mod tweens;
 mod undo_pictures;
 mod window_controls;
 mod window_menu;
+mod workspaces;
 
 fn document() -> Document {
     // A blank 24-frame keyframe, so a drawing joins a span of the length the old drawing default
