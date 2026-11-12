@@ -115,10 +115,10 @@ impl Workspace {
             self.pick_for_stage_menu(to_doc(p));
         }
         response.context_menu(|ui| self.stage_menu(ui));
-        if self.camera_stage(&response, &painter, scale, &to_screen) {
-            return;
-        }
-        if self.bone_stage(&response, &painter, &to_screen, &to_doc) {
+        if self.camera_stage(&response, &painter, scale, &to_screen)
+            || self.bone_stage(&response, &painter, &to_screen, &to_doc)
+        {
+            self.tool_pointer(ui, &response);
             return;
         }
         if self.tool == Tool::Text
@@ -484,6 +484,6 @@ impl Workspace {
         }
         self.draw_drag_preview(&painter, to_screen, scale);
         self.transform_pointer(ui, &response);
-        self.paint_tool_pointer(ui, &response);
+        self.tool_pointer(ui, &response);
     }
 }

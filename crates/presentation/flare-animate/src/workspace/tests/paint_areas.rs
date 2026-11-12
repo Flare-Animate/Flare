@@ -1,5 +1,4 @@
-//! The Paint Bucket fills the area lines close off, whatever drew them, and the paint tools are
-//! the pointer over the stage.
+//! The Paint Bucket fills the area lines close off, whatever drew them.
 
 use super::*;
 use flare_core::DocumentPoint;
@@ -160,34 +159,4 @@ fn the_eyedropper_takes_the_color_shown_where_no_shape_has_paint() {
         ws.paint.fill, BLUE,
         "off the stage there is nothing to take"
     );
-}
-
-#[test]
-fn the_paint_tools_are_the_pointer_over_the_stage() {
-    let mut ws = workspace();
-    let ctx = egui::Context::default();
-    run(&mut ws, &ctx, 0.0);
-    run(&mut ws, &ctx, 0.1);
-    let over_stage = Pos2::new(600.0, 360.0);
-    let cursor_at = |ws: &mut Workspace, time: f64| {
-        let mut output = ctx.run_ui(input(time, vec![Event::PointerMoved(over_stage)]), |ui| {
-            ws.show(ui)
-        });
-        output.textures_delta.clear();
-        output.platform_output.cursor_icon
-    };
-    for (n, tool) in [Tool::Bucket, Tool::Eyedropper, Tool::InkBottle]
-        .into_iter()
-        .enumerate()
-    {
-        ws.set_tool(tool);
-        let time = 0.2 + n as f64 * 0.1;
-        assert_eq!(
-            cursor_at(&mut ws, time),
-            egui::CursorIcon::None,
-            "{tool:?} draws its own picture"
-        );
-    }
-    ws.set_tool(Tool::Rectangle);
-    assert_ne!(cursor_at(&mut ws, 1.0), egui::CursorIcon::None);
 }

@@ -12,6 +12,7 @@ pub(super) mod paint;
 pub(super) mod paint_pointer;
 pub(super) mod pen;
 pub(super) mod preview_mesh;
+pub(super) mod stage_pointer;
 pub(super) mod stroke_preview;
 pub(super) mod text;
 pub(super) mod text_preview;

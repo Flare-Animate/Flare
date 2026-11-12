@@ -11,6 +11,9 @@ use super::*;
 /// The color of the symmetry axes on the stage.
 const AXIS_INK: Color32 = Color32::from_rgb(255, 120, 200);
 
+/// The smallest a tip is shown across on screen, in points, however small it paints.
+const MIN_TIP: f32 = 5.0;
+
 impl Workspace {
     /// Where the symmetry axes cross, in stage units: the middle of the stage until set.
     pub(super) fn symmetry_center(&self) -> DVec2 {
@@ -65,13 +68,15 @@ impl Workspace {
         }
     }
 
-    /// The outline of the brush at the pointer, in stage units: the nib at the size it will paint
-    /// at, so the cursor shows what a click would leave. `None` unless the Brush is in hand over
-    /// the stage.
+    /// The outline of the tip at the pointer, in stage units, at the size it will mark at, so the
+    /// pointer shows what a click would leave. `None` unless the Brush, the Pencil or the rubbing
+    /// Eraser is in hand over the stage.
     pub(super) fn brush_cursor(&self) -> Option<Vec<Pos2>> {
-        // The Eraser shows the circle it rubs with, the Brush its nib.
+        // The Brush shows its nib, the Pencil the round end of its line, the Eraser the circle it
+        // rubs with.
         let (nib, size) = match self.tool {
             Tool::Brush => (self.brush_shelf.nib(), self.brush_size),
+            Tool::Pencil => (flare_tools::brush::Nib::ROUND, self.paint.stroke_width),
             Tool::Eraser if self.eraser_rubs() => {
                 (flare_tools::brush::Nib::ROUND, self.eraser_size)
             }
@@ -159,6 +164,20 @@ impl Workspace {
                 points.clone(),
                 Stroke::new(2.0, Color32::from_black_alpha(160)),
             ));
+            // A tip too small to see on screen still shows where it is.
+            let screen = Rect::from_points(&points);
+            if screen.width().max(screen.height()) < MIN_TIP {
+                painter.circle_stroke(
+                    screen.center(),
+                    MIN_TIP / 2.0,
+                    Stroke::new(2.0, Color32::from_black_alpha(160)),
+                );
+                painter.circle_stroke(
+                    screen.center(),
+                    MIN_TIP / 2.0,
+                    Stroke::new(1.0, Color32::WHITE),
+                );
+            }
             painter.add(egui::Shape::closed_line(
                 points,
                 Stroke::new(1.0, Color32::WHITE),

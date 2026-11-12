@@ -147,6 +147,15 @@ tools are picked from the tool strip or by their keys (listed in Help > Keyboard
 Home is the house in the top bar. Planned commands stay in their Animate places, dimmed. New
 commands are put where Adobe puts the nearest one, not in a menu of Flare's own.
 
+Over the stage the pointer is the tool in hand (`workspace/tools/stage_pointer.rs`). The Brush, the
+Pencil and the rubbing Eraser show only their tip: the outline of what they lay down, at its size,
+never smaller than a few screen points. A tool whose icon has a point where it acts (Paint Bucket, Ink
+Bottle, Eyedropper, Pen, Subselection, Hand, Zoom) is drawn as the pointer with that point on the
+spot. Every other tool shows a fine cross on the spot with its icon beside it, so the icon never
+covers where a click lands. The Selection tool keeps the system arrow, which is its icon. A pointer
+the stage chose for what a press would do (a guide's grip, a Free Transform handle) wins over the
+tool's.
+
 ## Tweens
 
 Insert > Create Motion Tween works on a selected instance, which moves, scales and turns toward the

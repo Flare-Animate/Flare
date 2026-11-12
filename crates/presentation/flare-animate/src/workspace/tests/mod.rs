@@ -74,6 +74,7 @@ mod sound_scrub;
 mod spans_and_handles;
 mod splash;
 mod stage_menu;
+mod stage_pointer;
 mod status_bar;
 mod tab_strip;
 mod text_keys;

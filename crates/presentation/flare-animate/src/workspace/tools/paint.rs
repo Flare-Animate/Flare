@@ -243,14 +243,17 @@ impl Workspace {
         }
     }
 
-    /// The color the stage shows at `at`, over one screen pixel; `None` off the stage.
+    /// The color shown at `at`, over one screen pixel: on the stage, the artwork over the stage
+    /// color; on the pasteboard, only artwork, so `None` where nothing is drawn there.
     fn color_shown(&self, frame: &Frame<'_>, at: DVec2) -> Option<Rgba8> {
         let stage = self.document().stage();
         let on_stage = (0.0..f64::from(stage.width())).contains(&at.x)
             && (0.0..f64::from(stage.height())).contains(&at.y);
-        if !on_stage {
-            return None;
-        }
+        let under = if on_stage {
+            stage.background()
+        } else {
+            Rgba8::TRANSPARENT
+        };
         let shown = f64::from(self.stage_scale());
         let side = 1.0 / if shown.is_finite() { shown } else { 1.0 }.max(0.01);
         let view = Viewport {
@@ -259,8 +262,8 @@ impl Workspace {
             width: side,
             height: side,
         };
-        let image = flare_render::render_viewport(frame, &view, 1, 1, stage.background()).ok()?;
-        image.pixel(0, 0)
+        let image = flare_render::render_viewport(frame, &view, 1, 1, under).ok()?;
+        image.pixel(0, 0).filter(|shown| on_stage || shown.a > 0)
     }
 
     /// The gap, in stage units, the Paint Bucket closes at the current zoom.
