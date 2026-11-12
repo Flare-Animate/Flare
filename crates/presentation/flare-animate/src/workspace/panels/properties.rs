@@ -12,6 +12,8 @@ impl Workspace {
     // ---- properties --------------------------------------------------------------------
 
     pub(crate) fn properties_panel(&mut self, ui: &mut Ui) {
+        self.props_tabs(ui);
+        ui.add_space(4.0);
         let context = self.props_context();
         egui::ScrollArea::vertical()
             .auto_shrink(false)
@@ -21,6 +23,33 @@ impl Workspace {
                 PropsContext::Tool => self.tool_tab(ui),
                 PropsContext::Document => self.doc_tab(ui),
             });
+    }
+
+    /// Animate's tabs over the panel: Tool, Object, Frame and Doc. The panel follows the
+    /// selection on its own, and the tab it chose is the one raised; a click on another shows
+    /// that one until the selection or the tool changes. Object is dimmed with nothing selected.
+    fn props_tabs(&mut self, ui: &mut Ui) {
+        const ORDER: [PropsContext; 4] = [
+            PropsContext::Tool,
+            PropsContext::Object,
+            PropsContext::Frame,
+            PropsContext::Document,
+        ];
+        let labels = [
+            tr!(self, "prop-tab-tool"),
+            tr!(self, "prop-tab-object"),
+            tr!(self, "prop-tab-frame"),
+            tr!(self, "prop-tab-doc"),
+        ];
+        let labels: Vec<&str> = labels.iter().map(String::as_str).collect();
+        let current = self.props_context();
+        let selected = ORDER.iter().position(|c| *c == current).unwrap_or(0);
+        let enabled = [true, self.selection_bounds().is_some(), true, true];
+        if let Some(index) = chrome::segmented_some(ui, &labels, selected, &enabled)
+            && let Some(context) = ORDER.get(index)
+        {
+            self.show_props_context(*context);
+        }
     }
 
     /// What the panel is about now: it follows the selection (see [`PropsContext`]).
@@ -100,12 +129,15 @@ impl Workspace {
             ui.color_edit_button_srgba(&mut self.paint.stroke_color);
             ui.checkbox(&mut self.paint.stroke_enabled, &outline);
         });
-        chrome::row(ui, &tr!(self, "opt-width"), |ui| {
-            ui.add_enabled(
-                self.paint.stroke_enabled,
-                egui::DragValue::new(&mut self.paint.stroke_width)
-                    .range(0.5..=200.0)
-                    .suffix(" px"),
+        let label = tr!(self, "opt-width");
+        ui.add_enabled_ui(self.paint.stroke_enabled, |ui| {
+            chrome::slider(
+                ui,
+                &label,
+                &mut self.paint.stroke_width,
+                0.5..=200.0,
+                " px",
+                true,
             );
         });
         chrome::row(ui, &tr!(self, "opt-cap"), |ui| {

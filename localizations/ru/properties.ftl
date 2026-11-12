@@ -12,3 +12,7 @@ prop-interpolation = Кривая
 prop-interpolation-hint = Семейство интерполяции и сглаживание для этой анимации; когда кривая выключена, используется ползунок сглаживания
 prop-interpolation-off = Ползунок сглаживания
 prop-easing = Сглаживание
+prop-tab-tool = Инструмент
+prop-tab-object = Объект
+prop-tab-frame = Кадр
+prop-tab-doc = Документ

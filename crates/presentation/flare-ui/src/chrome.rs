@@ -138,6 +138,67 @@ pub fn row(ui: &mut Ui, label: &str, add: impl FnOnce(&mut Ui)) {
     });
 }
 
+/// Animate's slider row: the name at the left and the value at the right on one line, and a
+/// slider the panel's width below it. The value is a number field as well, so it can be typed or
+/// dragged for an exact amount. `logarithmic` suits a range that spans orders of magnitude (a
+/// size of 1 to 200), giving the small sizes most of the track. The value is kept in `range`.
+pub fn slider<N: egui::emath::Numeric>(
+    ui: &mut Ui,
+    label: &str,
+    value: &mut N,
+    range: std::ops::RangeInclusive<N>,
+    suffix: &str,
+    logarithmic: bool,
+) -> Response {
+    let decimals = if N::INTEGRAL { 0 } else { 2 };
+    // Tight, as Animate's rows are: the name sits just over its track, and a few rows of a tool's
+    // amounts fit without scrolling.
+    ui.scope(|ui| {
+        ui.spacing_mut().item_spacing.y = 0.0;
+        ui.spacing_mut().interact_size.y = 16.0;
+        slider_lines(ui, label, value, range, suffix, logarithmic, decimals)
+    })
+    .inner
+}
+
+fn slider_lines<N: egui::emath::Numeric>(
+    ui: &mut Ui,
+    label: &str,
+    value: &mut N,
+    range: std::ops::RangeInclusive<N>,
+    suffix: &str,
+    logarithmic: bool,
+    decimals: usize,
+) -> Response {
+    let number = ui
+        .horizontal(|ui| {
+            ui.label(egui::RichText::new(label).color(theme::text_dim()));
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.add(
+                    egui::DragValue::new(value)
+                        .range(range.clone())
+                        .max_decimals(decimals)
+                        .suffix(suffix),
+                )
+            })
+            .inner
+        })
+        .inner;
+    let track = ui
+        .scope(|ui| {
+            ui.spacing_mut().slider_width = ui.available_width();
+            ui.add(
+                egui::Slider::new(value, range)
+                    .show_value(false)
+                    .logarithmic(logarithmic),
+            )
+        })
+        .inner
+        .on_hover_text(label);
+    ui.add_space(4.0);
+    number.union(track)
+}
+
 /// A numeric field that cannot be edited yet.
 pub fn mock_number(ui: &mut Ui, value: &str, suffix: &str) {
     let mut text = format!("{value}{suffix}");
@@ -234,6 +295,18 @@ pub const CRUMB_UNDERLINE_DROP: f32 = 1.0;
 /// It is not a row of tabs: it switches what one panel shows, so it looks unlike the dock's tab
 /// bar. Returns the index clicked, if any.
 pub fn segmented(ui: &mut Ui, labels: &[&str], selected: usize) -> Option<usize> {
+    segmented_some(ui, labels, selected, &[])
+}
+
+/// A segmented control whose choices may be dimmed: `enabled[i]` false (a missing entry is true)
+/// draws that choice dimmed, and a click on it does nothing, as Animate dims the Object tab of its
+/// Properties with nothing selected.
+pub fn segmented_some(
+    ui: &mut Ui,
+    labels: &[&str],
+    selected: usize,
+    enabled: &[bool],
+) -> Option<usize> {
     let height = 24.0;
     let width = ui.available_width();
     let (track, _) = ui.allocate_exact_size(egui::vec2(width, height), Sense::hover());
@@ -259,9 +332,10 @@ pub fn segmented(ui: &mut Ui, labels: &[&str], selected: usize) -> Option<usize>
             Sense::click(),
         );
         let chosen = index == selected;
+        let usable = enabled.get(index).copied().unwrap_or(true);
         if chosen {
             painter.rect_filled(rect, 4.0, theme::panel_raised());
-        } else if response.hovered() {
+        } else if usable && response.hovered() {
             painter.rect_filled(rect, 4.0, theme::hover().gamma_multiply(0.6));
         }
         painter.text(
@@ -271,11 +345,13 @@ pub fn segmented(ui: &mut Ui, labels: &[&str], selected: usize) -> Option<usize>
             egui::FontId::proportional(13.0),
             if chosen {
                 theme::text()
-            } else {
+            } else if usable {
                 theme::text_dim()
+            } else {
+                theme::text_disabled()
             },
         );
-        if response.clicked() {
+        if usable && response.clicked() {
             clicked = Some(index);
         }
     }

@@ -12,3 +12,7 @@ prop-interpolation = 補間
 prop-interpolation-hint = このトゥイーンの補間方式とイージング。オフの間はイーズスライダーを使います
 prop-interpolation-off = イーズスライダー
 prop-easing = イージング
+prop-tab-tool = ツール
+prop-tab-object = オブジェクト
+prop-tab-frame = フレーム
+prop-tab-doc = ドキュメント

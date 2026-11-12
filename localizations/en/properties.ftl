@@ -12,3 +12,7 @@ prop-interpolation = Curve
 prop-interpolation-hint = Interpolation family and easing for this tween; the ease slider is used while it is off
 prop-interpolation-off = Ease slider
 prop-easing = Easing
+prop-tab-tool = Tool
+prop-tab-object = Object
+prop-tab-frame = Frame
+prop-tab-doc = Doc

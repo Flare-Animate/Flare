@@ -12,3 +12,7 @@ prop-interpolation = Curva
 prop-interpolation-hint = Famiglia di interpolazione e accelerazione per questa interpolazione; quando è disattivata si usa il cursore di accelerazione
 prop-interpolation-off = Cursore di accelerazione
 prop-easing = Accelerazione
+prop-tab-tool = Strumento
+prop-tab-object = Oggetto
+prop-tab-frame = Fotogramma
+prop-tab-doc = Documento
