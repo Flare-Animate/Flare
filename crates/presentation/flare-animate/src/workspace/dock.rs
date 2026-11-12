@@ -4,6 +4,10 @@ use flare_dock::Pane;
 
 use super::*;
 
+/// Height of a stack's row of tabs, and the size of the names in it.
+pub(super) const TAB_BAR_HEIGHT: f32 = 22.0;
+const TAB_TEXT_SIZE: f32 = 12.0;
+
 /// Draws each dock panel by calling back into the workspace.
 pub(super) struct Dock<'a> {
     pub(super) workspace: &'a mut Workspace,
@@ -56,12 +60,15 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         egui_tiles::UiResponse::None
     }
 
+    // Panel tabs are labels, smaller than the panel's own text, so the panel reads first.
     fn tab_title_for_pane(&mut self, pane: &Pane) -> egui::WidgetText {
-        self.workspace.tr(pane.key()).into()
+        egui::RichText::new(self.workspace.tr(pane.key()))
+            .size(TAB_TEXT_SIZE)
+            .into()
     }
 
     fn tab_bar_height(&self, _style: &egui::Style) -> f32 {
-        26.0
+        TAB_BAR_HEIGHT
     }
 
     fn gap_width(&self, _style: &egui::Style) -> f32 {

@@ -86,23 +86,25 @@ const fn rgb(r: u8, g: u8, b: u8) -> Color32 {
 }
 
 // Flat greys with no tint, as animation tools are, so the colors on the stage are judged against
-// nothing colored; the blue-tinted dark is the Blue mode.
+// nothing colored; the blue-tinted dark is the Blue mode. The proportions are Animate's: mid-grey
+// panels on a darker ground, the pasteboard as dark as the gaps between panels, labels a quiet
+// grey and values near white.
 const DARK: Palette = Palette {
-    bg: rgb(0x1e, 0x1e, 0x1e),
-    panel: rgb(0x27, 0x27, 0x27),
-    panel_raised: rgb(0x32, 0x32, 0x32),
-    field: rgb(0x1a, 0x1a, 0x1a),
-    faint: rgb(0x2b, 0x2b, 0x2b),
-    border: rgb(0x3b, 0x3b, 0x3b),
-    border_strong: rgb(0x58, 0x58, 0x58),
-    hover: rgb(0x3a, 0x3a, 0x3a),
-    text: rgb(0xdb, 0xdb, 0xdb),
+    bg: rgb(0x25, 0x25, 0x25),
+    panel: rgb(0x32, 0x32, 0x32),
+    panel_raised: rgb(0x39, 0x39, 0x39),
+    field: rgb(0x26, 0x26, 0x26),
+    faint: rgb(0x2e, 0x2e, 0x2e),
+    border: rgb(0x46, 0x46, 0x46),
+    border_strong: rgb(0x60, 0x60, 0x60),
+    hover: rgb(0x3e, 0x3e, 0x3e),
+    text: rgb(0xe3, 0xe3, 0xe3),
     text_strong: Color32::WHITE,
-    text_dim: rgb(0x9e, 0x9e, 0x9e),
-    text_disabled: rgb(0x60, 0x60, 0x60),
+    text_dim: rgb(0x9a, 0x9a, 0x9a),
+    text_disabled: rgb(0x66, 0x66, 0x66),
     accent: rgb(0x4c, 0x8d, 0xff),
     warning: rgb(0xe8, 0xb3, 0x4a),
-    stage_surround: rgb(0x18, 0x18, 0x18),
+    stage_surround: rgb(0x25, 0x25, 0x25),
 };
 
 const LIGHT: Palette = Palette {
@@ -363,7 +365,7 @@ pub fn set_cjk_priority(ctx: &egui::Context, code: &str) {
 }
 
 /// The gutter between docked panels and around the dock.
-pub const GUTTER: f32 = 4.0;
+pub const GUTTER: f32 = 3.0;
 
 /// Space between a docked panel's edge and its content (horizontal, vertical).
 pub const PANEL_PADDING: (i8, i8) = (10, 8);
@@ -430,16 +432,16 @@ pub fn apply_palette(ctx: &egui::Context) {
         style.spacing.indent = 14.0;
         style
             .text_styles
-            .insert(TextStyle::Body, FontId::proportional(14.0));
+            .insert(TextStyle::Body, FontId::proportional(13.0));
         style
             .text_styles
-            .insert(TextStyle::Button, FontId::proportional(14.0));
+            .insert(TextStyle::Button, FontId::proportional(13.0));
         style
             .text_styles
-            .insert(TextStyle::Small, FontId::proportional(12.0));
+            .insert(TextStyle::Small, FontId::proportional(11.0));
         style
             .text_styles
-            .insert(TextStyle::Heading, FontId::proportional(16.0));
+            .insert(TextStyle::Heading, FontId::proportional(14.0));
     });
 }
 

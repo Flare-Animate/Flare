@@ -168,15 +168,17 @@ pub fn default_tree() -> Tree<Pane> {
         assets,
     ]);
     let bottom = tiles.insert_tab_tile(vec![timeline, output]);
-    let top = tiles.insert_horizontal_tile(vec![stage, side]);
-    let work = tiles.insert_vertical_tile(vec![top, bottom]);
+    // As in Animate, the panels on the right run the window's whole height and the timeline sits
+    // under the stage alone, so a long Properties panel is not cut short by the timeline.
+    let middle = tiles.insert_vertical_tile(vec![stage, bottom]);
+    let work = tiles.insert_horizontal_tile(vec![middle, side]);
     let root = tiles.insert_horizontal_tile(vec![tools, work]);
     set_share(&mut tiles, root, tools, TOOLS_SHARE);
     set_share(&mut tiles, root, work, 1.0 - TOOLS_SHARE);
-    set_share(&mut tiles, top, stage, 0.715);
-    set_share(&mut tiles, top, side, 0.285);
-    set_share(&mut tiles, work, top, 0.68);
-    set_share(&mut tiles, work, bottom, 0.32);
+    set_share(&mut tiles, work, middle, 0.77);
+    set_share(&mut tiles, work, side, 0.23);
+    set_share(&mut tiles, middle, stage, 0.68);
+    set_share(&mut tiles, middle, bottom, 0.32);
     Tree::new(egui::Id::unique(TREE_ID), root, tiles)
 }
 
@@ -272,6 +274,43 @@ fn tool_strip_is_beside_the_stage(tree: &Tree<Pane>) -> bool {
     a == b && in_a_row
 }
 
+/// The default before the right-hand panels ran the window's height: the stage shared a row with
+/// them and the timeline ran under both. A saved layout like that opens as the new default.
+fn timeline_runs_under_the_side_panels(tree: &Tree<Pane>) -> bool {
+    let find = |wanted: Pane| {
+        tree.tiles.iter().find_map(|(id, tile)| match tile {
+            Tile::Pane(pane) if *pane == wanted => Some(*id),
+            _ => None,
+        })
+    };
+    let (Some(stage), Some(timeline), Some(properties)) = (
+        find(Pane::Stage),
+        find(Pane::Timeline),
+        find(Pane::Properties),
+    ) else {
+        return false;
+    };
+    let parent = |id| tree.tiles.parent_of(id);
+    let is_linear = |id, dir| {
+        matches!(
+            tree.tiles.get(id),
+            Some(Tile::Container(Container::Linear(linear))) if linear.dir == dir
+        )
+    };
+    let (Some(row), Some(timeline_stack), Some(side)) =
+        (parent(stage), parent(timeline), parent(properties))
+    else {
+        return false;
+    };
+    let (Some(column), Some(side_row)) = (parent(row), parent(side)) else {
+        return false;
+    };
+    is_linear(row, egui_tiles::LinearDir::Horizontal)
+        && side_row == row
+        && is_linear(column, egui_tiles::LinearDir::Vertical)
+        && parent(timeline_stack) == Some(column)
+}
+
 /// A named layout profile: a starting arrangement of the panels, the way the
 /// Animate/Toonz profiles give a different workspace for each task.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -361,7 +400,7 @@ pub fn from_json(json: &str) -> Result<Tree<Pane>, LayoutError> {
     let mut tree: Tree<Pane> = serde_json::from_str(json)?;
     add_panels_older_layouts_lack(&mut tree);
     check(&tree)?;
-    if tool_strip_is_beside_the_stage(&tree) {
+    if tool_strip_is_beside_the_stage(&tree) || timeline_runs_under_the_side_panels(&tree) {
         // The earlier default: it opens as the new one, with nothing to report.
         return Ok(default_tree());
     }

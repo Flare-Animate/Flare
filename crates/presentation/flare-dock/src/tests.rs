@@ -181,3 +181,64 @@ fn a_layout_saved_before_the_info_panel_still_opens_with_it_beside_history() {
         opened.tiles.parent_of(history)
     );
 }
+
+#[test]
+fn the_side_panels_run_the_full_height_and_the_timeline_sits_under_the_stage_alone() {
+    let tree = default_tree();
+    let find = |wanted: Pane| {
+        tree.tiles
+            .iter()
+            .find_map(|(id, t)| matches!(t, Tile::Pane(p) if *p == wanted).then_some(*id))
+            .expect("pane")
+    };
+    let stage = find(Pane::Stage);
+    let timeline_stack = tree.tiles.parent_of(find(Pane::Timeline)).expect("stack");
+    let column = tree.tiles.parent_of(stage).expect("column");
+    assert!(matches!(
+        tree.tiles.get(column),
+        Some(Tile::Container(Container::Linear(l))) if l.dir == egui_tiles::LinearDir::Vertical
+    ));
+    assert_eq!(tree.tiles.parent_of(timeline_stack), Some(column));
+    let side = tree.tiles.parent_of(find(Pane::Properties)).expect("side");
+    assert_eq!(tree.tiles.parent_of(side), tree.tiles.parent_of(column));
+    assert_ne!(
+        tree.tiles.parent_of(side),
+        Some(column),
+        "not under the stage"
+    );
+}
+
+#[test]
+fn a_layout_with_the_timeline_under_the_side_panels_opens_as_the_new_default() {
+    // The previous default: the stage and the side stack in one row, over the bottom tabs.
+    let mut tiles = Tiles::default();
+    let tools = tiles.insert_pane(Pane::Tools);
+    let stage = tiles.insert_pane(Pane::Stage);
+    let timeline = tiles.insert_pane(Pane::Timeline);
+    let output = tiles.insert_pane(Pane::Output);
+    let rest: Vec<_> = Pane::ALL
+        .into_iter()
+        .filter(|p| !matches!(p, Pane::Tools | Pane::Stage | Pane::Timeline | Pane::Output))
+        .map(|p| tiles.insert_pane(p))
+        .collect();
+    let side = tiles.insert_tab_tile(rest);
+    let bottom = tiles.insert_tab_tile(vec![timeline, output]);
+    let top = tiles.insert_horizontal_tile(vec![stage, side]);
+    let work = tiles.insert_vertical_tile(vec![top, bottom]);
+    let root = tiles.insert_horizontal_tile(vec![tools, work]);
+    let old = Tree::new(egui::Id::unique(TREE_ID), root, tiles);
+    check(&old).expect("complete");
+    assert!(timeline_runs_under_the_side_panels(&old));
+    assert!(!timeline_runs_under_the_side_panels(&default_tree()));
+    let opened = from_json(&to_json(&old).expect("json")).expect("opens");
+    let value = |tree: &Tree<Pane>| {
+        serde_json::from_str::<serde_json::Value>(&to_json(tree).expect("json")).expect("json")
+    };
+    let mut fresh = value(&default_tree());
+    let mut got = value(&opened);
+    // Each tree has its own id; the arrangement is what must match.
+    for v in [&mut fresh, &mut got] {
+        v.as_object_mut().expect("object").remove("id");
+    }
+    assert_eq!(got, fresh);
+}

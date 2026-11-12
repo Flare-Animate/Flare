@@ -11,7 +11,11 @@ restores the default.
 `flare-ui/src/theme.rs` (shared widgets and the icon set are in `flare-ui`, the workspace in `flare-animate`) holds the palettes, spacing, rounding and type sizes; colours are
 named there and used by name. The default dark palette is flat greys with no tint, as animation
 tools use, so the colors on the stage are judged against nothing colored; the blue-tinted dark it
-replaced is the Blue theme. `chrome.rs` holds the shared widgets (icon buttons, section headers,
+replaced is the Blue theme. Its proportions are Animate's, measured from Animate 2023's screen:
+panels `#323232` on a ground of `#252525` (the gaps between panels, the tab rows and the
+pasteboard), fields a shade darker than the panel, labels a quiet grey (`#9a9a9a`) and values near
+white (`#e3e3e3`). Text is 13 px (11 px small, 14 px headings), and a stack's tabs are 12 px in a
+22 px row, so a panel's own content reads before its name. `chrome.rs` holds the shared widgets (icon buttons, section headers,
 label/control rows) so every panel looks alike.
 
 ## Brand
@@ -86,7 +90,7 @@ Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font Licens
 
 ## Default layout
 
-Left to right: the tool strip, the stage, and one stack of tabs (Properties, Library, Color, Align, Transform, History, Info). Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
+Left to right: the tool strip, the stage with the Timeline and Output tabs under it, and one stack of tabs (Properties, Library, Color, Align, Transform, History, Info). As in Animate, that stack runs the window's whole height and the timeline sits under the stage alone, so a long Properties panel is not cut short. A layout saved with the timeline running under the stack opens as this default. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
 
 An Interface switcher sits at the top right, left of the gear, where Animate has its workspace switcher. It will switch between whole interfaces; for now it is a dimmed button, and Window > Interfaces is a dimmed entry.
 
@@ -138,7 +142,7 @@ everything can be found; the evaluated frame carries each shape's layer color fo
 
 a Color panel with a fill-type dropdown, hex
 field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown
-and a close button on the document tab. The default arrangement stays as it is.
+and a close button on the document tab.
 
 ## Guides
 
@@ -359,7 +363,7 @@ project named on the command line or recovered after a crash opens straight to i
 
 Docked panels (everything but the stage and the timeline, which use their whole area) keep their
 content 10 px from the sides and 8 px from the top and bottom (`theme::PANEL_PADDING`); the gutter
-between panels and around the dock is 4 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
+between panels and around the dock is 3 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
 8 by 3 px of padding inside buttons and 22 px rows. These are set in one place, `theme::apply`.
 
 ## Eraser
