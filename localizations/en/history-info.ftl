@@ -64,3 +64,4 @@ out-count =
        *[other] { $n } messages
     }
 out-nothing = Nothing to report
+hist-magic-wand = Clear pixels

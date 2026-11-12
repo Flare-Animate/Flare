@@ -14,6 +14,9 @@ impl Workspace {
         if !self.chrome_ready {
             flare_ui::theme::apply(&ctx);
             flare_ui::icons::install(&ctx);
+            // Cmd/Ctrl with + and - zooms the stage (the Zoom In and Zoom Out shortcuts), never
+            // the whole window, as egui would by default.
+            ctx.options_mut(|o| o.zoom_with_keyboard = false);
             self.chrome_ready = true;
             self.styled_for = Some(self.theme_mode);
         }
@@ -103,6 +106,7 @@ impl Workspace {
         // Ctrl, Alt and F-key commands come from the shortcut map, so a rebinding moves them. With
         // a native menu bar the menu owns them and nothing runs here (applying twice).
         self.press_command_chords(ctx);
+        self.press_zoom_plus(ctx);
         let typing = ctx.egui_wants_keyboard_input();
         // Letters pick tools, but only when nothing is being typed and no modifier is held, so
         // they never fight a text field or a shortcut.
@@ -178,6 +182,8 @@ impl Workspace {
         if delete && !ctx.text_edit_focused() {
             if self.pen.is_active() {
                 self.pen_remove_last();
+            } else if self.wand_clear() {
+                // The picked pixels went; the bitmap stays.
             } else if self.tool == Tool::Subselection && self.delete_selected_anchor() {
                 // The chosen point went; the shape stays.
             } else {
@@ -187,6 +193,7 @@ impl Workspace {
         if escape {
             self.cancel_drag();
             self.pen_cancel();
+            self.wand_drop();
         }
     }
 

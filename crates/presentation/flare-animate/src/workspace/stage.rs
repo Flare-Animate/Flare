@@ -208,6 +208,15 @@ impl Workspace {
             }
             self.draw_polygon_lasso(&painter, to_screen);
         }
+        if self.tool == Tool::MagicWand {
+            if response.clicked()
+                && let Some(p) = response.interact_pointer_pos()
+            {
+                let (shift, alt) = ui.input(|i| (i.modifiers.shift, i.modifiers.alt));
+                self.wand_click(to_doc(p), shift, alt);
+            }
+            self.draw_wand(&painter, to_screen);
+        }
         if self.tool == Tool::Zoom
             && response.clicked()
             && let Some(p) = response.interact_pointer_pos()
@@ -219,7 +228,9 @@ impl Workspace {
             };
             self.stage_view.zoom_about(p, factor, response.rect, extent);
         }
-        if response.clicked()
+        if tool_acts_on_press(self.tool) {
+            self.paint_tool_press(ui, &response, &to_doc);
+        } else if response.clicked()
             && let Some(p) = response.interact_pointer_pos()
         {
             let shift = ui.input(|i| i.modifiers.shift);
@@ -309,29 +320,7 @@ impl Workspace {
             }
         }
 
-        // Motion guides are never drawn into the animation, but their paths show on the stage
-        // so the path a layer follows can be seen and edited.
-        if let Some(scene) = self.document().scenes().first() {
-            let ink = Stroke::new(1.5, Color32::from_rgb(230, 80, 200));
-            for layer in scene
-                .timeline()
-                .layers()
-                .iter()
-                .filter(|l| l.is_guide() && l.is_visible())
-            {
-                if let Some(span) = layer.span_at(self.frame)
-                    && let flare_document::Content::Shape(shape) = span.content()
-                {
-                    for line in flare_eval::flatten(shape.path()) {
-                        let points: Vec<Pos2> = line
-                            .iter()
-                            .map(|p| to_screen(Pos2::new(p.x as f32, p.y as f32)))
-                            .collect();
-                        painter.add(egui::Shape::line(points, ink));
-                    }
-                }
-            }
-        }
+        self.stage_motion_guides(&painter, to_screen);
         // The pen path being built: the curve so far, its points, and the dragged handles.
         if self.pen.is_active() {
             let ink = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));
@@ -495,5 +484,6 @@ impl Workspace {
         }
         self.draw_drag_preview(&painter, to_screen, scale);
         self.transform_pointer(ui, &response);
+        self.paint_tool_pointer(ui, &response);
     }
 }

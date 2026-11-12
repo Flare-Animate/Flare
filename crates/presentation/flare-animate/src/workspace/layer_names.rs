@@ -67,21 +67,6 @@ impl Workspace {
         }
     }
 
-    /// The layer drawn at height `y` in the timeline, if one is, given where the rows start.
-    pub(super) fn layer_at(
-        &self,
-        rows: &[(usize, usize)],
-        first_row_top: f32,
-        row: f32,
-        y: f32,
-    ) -> Option<LayerId> {
-        let at = usize::try_from(((y - first_row_top) / row).floor() as i64).ok()?;
-        let layers = self.document().scenes().first()?.timeline().layers();
-        rows.get(at)
-            .and_then(|(i, _)| layers.get(*i))
-            .map(|l| l.id())
-    }
-
     /// The menu for the layer under a right click.
     pub(super) fn layer_menu(&mut self, ui: &mut Ui, layer: LayerId) {
         let (visible, locked) = self

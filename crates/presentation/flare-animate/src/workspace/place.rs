@@ -16,6 +16,17 @@ impl Workspace {
     /// A layer that is locked, hidden, a folder, mask, guide or camera, and a keyframe that
     /// cannot hold several elements, is refused with a message saying why.
     pub(super) fn draw_shapes(&mut self, shapes: Vec<Shape>, name: &str) {
+        self.place_drawn(shapes, name, false);
+    }
+
+    /// Adds an area the Paint Bucket filled to the active layer's keyframe at the playhead, under
+    /// everything there so the lines around it still show whole, as one undo step.
+    pub(super) fn draw_shape_under(&mut self, shape: Shape) {
+        let name = self.tr("tools-layer-fill");
+        self.place_drawn(vec![shape], &name, true);
+    }
+
+    fn place_drawn(&mut self, shapes: Vec<Shape>, name: &str, under: bool) {
         if shapes.is_empty() {
             return;
         }
@@ -38,15 +49,26 @@ impl Workspace {
             .current_layer
             .filter(|id| self.layer(*id).is_some())
             .map_or(Target::Default, Target::Layer);
-        let plan = ops::draw_shapes(
-            self.document(),
-            scene,
-            target,
-            self.frame,
-            None,
-            shapes,
-            &tr!(self, "name-new-layer", &[("n", "1")]),
-        );
+        let new_layer = tr!(self, "name-new-layer", &[("n", "1")]);
+        let plan = match (under, shapes.as_slice()) {
+            (true, [shape]) => flare_tools::paint::pour_under(
+                self.document(),
+                scene,
+                target,
+                self.frame,
+                shape.clone(),
+                &new_layer,
+            ),
+            _ => ops::draw_shapes(
+                self.document(),
+                scene,
+                target,
+                self.frame,
+                None,
+                shapes,
+                &new_layer,
+            ),
+        };
         let plan = match plan {
             Ok(plan) => plan,
             Err(refusal) => {

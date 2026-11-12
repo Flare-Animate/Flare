@@ -39,18 +39,24 @@ mod layer_names;
 mod layers_and_symbols;
 mod line_shift;
 mod live_transform;
+mod magic_wand;
 mod menus_and_recovery;
 mod menus_like_animate;
 mod motion_editor;
 mod native_pen;
+mod new_document_dialog;
 mod nothing_left_in_english;
+mod onion_settings;
 mod open_any;
+mod paint_areas;
+mod paint_tools;
 mod panels_and_view;
 mod paste_into_layer;
 mod pen_and_selection;
 mod polygon_lasso;
 mod preferences_dialog;
 mod properties_context;
+mod properties_tabs;
 mod publish_popup;
 mod publish_settings;
 mod rail;
@@ -61,6 +67,7 @@ mod save_flare;
 mod save_formats;
 mod scene_name;
 mod shortcut_editor;
+mod sound_scrub;
 mod spans_and_handles;
 mod splash;
 mod stage_menu;
@@ -68,6 +75,8 @@ mod status_bar;
 mod tab_strip;
 mod text_keys;
 mod text_objects;
+mod timeline_animating;
+mod timeline_clicks;
 mod timeline_frame_buttons;
 mod timeline_frames;
 mod timeline_scrub;
@@ -118,7 +127,8 @@ fn layer_count(ws: &Workspace) -> usize {
 fn input(time: f64, events: Vec<Event>) -> RawInput {
     RawInput {
         time: Some(time),
-        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(1280.0, 800.0))),
+        // As tall as a common laptop screen at 2x, so Properties shows its longer sections whole.
+        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(1280.0, 900.0))),
         events,
         ..RawInput::default()
     }
@@ -479,7 +489,7 @@ fn drain_audio(ws: &mut Workspace) -> Vec<String> {
         .into_iter()
         .map(|e| match e {
             AudioEvent::Stop => "stop".to_owned(),
-            AudioEvent::Play { delay_seconds, .. } => format!("play@{:.3}", delay_seconds),
+            AudioEvent::Play { delay_seconds, .. } => format!("play@{delay_seconds:.3}"),
         })
         .collect()
 }

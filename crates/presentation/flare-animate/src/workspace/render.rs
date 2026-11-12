@@ -118,6 +118,8 @@ impl Workspace {
             self.camera_preview.hash(&mut hasher);
             text_epoch.hash(&mut hasher);
             onion.outlines.hash(&mut hasher);
+            // Tinted ghosts, and ghosts of other colors, are other pictures.
+            onion.tints().hash(&mut hasher);
             self.display.outline_mode.hash(&mut hasher);
             for (frame, opacity) in &ghost_frames {
                 if let Ok(ghost) = evaluate(*frame) {
@@ -167,6 +169,7 @@ impl Workspace {
             scene,
             frame: self.frame,
             outlines: onion.outlines,
+            tints: onion.tints(),
             outline_mode: self.display.outline_mode,
             through_camera: self.camera_preview,
             ghosts: ghost_frames,

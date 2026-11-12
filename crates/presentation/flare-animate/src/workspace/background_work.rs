@@ -74,8 +74,9 @@ impl Workspace {
                 self.audio.decoding.remove(&sound);
                 match result {
                     Ok(audio) => {
-                        let held: usize = self.audio.decoded.values().map(|a| a.frames()).sum();
-                        if held + audio.frames() > DECODED_AUDIO_SAMPLES / 2 {
+                        let held: usize =
+                            self.audio.decoded.values().map(|d| d.audio.frames()).sum();
+                        if held + audio.audio.frames() > DECODED_AUDIO_SAMPLES / 2 {
                             self.audio.decode_failed.insert(sound);
                             self.report(tr!(self, "msg-too-much-sound"));
                         } else {
@@ -105,6 +106,12 @@ impl Workspace {
                 self.clear_text_preview();
             }
             Done::Families(families) => self.text.families = families,
+            Done::WandPicked { id, result } => self.wand_picked_arrived(id, result),
+            Done::WandCleared {
+                id,
+                document,
+                result,
+            } => self.wand_cleared_arrived(id, document, result),
             Done::TextPreview { id, result } => self.text_preview_arrived(id, result),
             Done::Saved {
                 path: _,

@@ -19,6 +19,7 @@ fn every_tool_is_in_exactly_one_slot_and_the_strip_has_categories() {
         Tool::PolyStar,
         Tool::Lasso,
         Tool::PolygonLasso,
+        Tool::MagicWand,
         Tool::Camera,
         Tool::Bone,
         Tool::Subselection,

@@ -8,7 +8,7 @@ use flare_menubar::MenuAction;
 
 /// The commands a chord runs in the window. The rest of the menu is reached from the menu
 /// itself; Copy, Cut and Paste arrive as events, which text fields keep.
-const CHORD_ACTIONS: [MenuAction; 13] = [
+const CHORD_ACTIONS: [MenuAction; 15] = [
     MenuAction::Undo,
     MenuAction::Redo,
     MenuAction::Save,
@@ -22,6 +22,8 @@ const CHORD_ACTIONS: [MenuAction; 13] = [
     MenuAction::InsertKeyframe,
     MenuAction::ClearKeyframe,
     MenuAction::InsertBlankKeyframe,
+    MenuAction::ZoomIn,
+    MenuAction::ZoomOut,
 ];
 
 /// Whether a text field being edited keeps the chord for itself. Undo, Redo, Save and the like
@@ -77,6 +79,23 @@ impl Workspace {
             if ctx.input_mut(|i| i.consume_key(mods, key)) {
                 self.perform(action);
             }
+        }
+    }
+
+    /// Cmd and the plus key (Shift and `=` on most layouts) zooms the stage in as Cmd+`=` does.
+    /// No menu registers it, so it is read here even with a native menu bar, unless Zoom In has
+    /// been bound to something else on purpose.
+    pub(super) fn press_zoom_plus(&mut self, ctx: &egui::Context) {
+        let default_in = self
+            .shortcuts
+            .get(MenuAction::ZoomIn)
+            .map(ToString::to_string)
+            == MenuAction::ZoomIn.shortcut().map(str::to_owned);
+        if !default_in || ctx.egui_wants_keyboard_input() {
+            return;
+        }
+        if ctx.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::Plus)) {
+            self.perform(MenuAction::ZoomIn);
         }
     }
 }

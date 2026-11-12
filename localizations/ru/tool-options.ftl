@@ -111,3 +111,19 @@ opt-ragged = Неровная
 opt-herringbone = Елочка
 opt-rope = Канат
 opt-zigzag = Зигзаг
+opt-threshold = Порог
+opt-contiguous = Смежные
+opt-contiguous-tip = Только пиксели, соединённые с выбранным; если выключено, все пиксели похожего цвета на изображении
+opt-smoothing-pixels = Пиксели
+opt-smoothing-rough = Грубо
+opt-smoothing-normal = Обычно
+opt-smoothing-smooth = Гладко
+opt-picked = Выбрано
+opt-picked-pixels =
+    { $n ->
+        [one] { $n } пиксель
+        [few] { $n } пикселя
+       *[many] { $n } пикселей
+    }
+opt-wand-invert = Обратить
+opt-wand-clear = Стереть пиксели

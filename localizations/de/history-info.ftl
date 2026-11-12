@@ -64,3 +64,4 @@ out-count =
        *[other] { $n } Meldungen
     }
 out-nothing = Nichts zu melden
+hist-magic-wand = Pixel löschen

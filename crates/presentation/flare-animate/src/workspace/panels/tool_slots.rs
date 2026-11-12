@@ -67,7 +67,7 @@ pub(crate) static SLOT_GROUPS: &[&[Slot]] = &[
         &[
             real("tool-lasso", "Lasso", "L", Tool::Lasso),
             real("tool-lasso-polygon", "Polygon", "", Tool::PolygonLasso),
-            mock("tool-magic-wand", "Magic Wand"),
+            real("tool-magic-wand", "Magic Wand", "", Tool::MagicWand),
         ],
     ],
     &[

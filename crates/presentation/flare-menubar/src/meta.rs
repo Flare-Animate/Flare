@@ -30,6 +30,10 @@ impl MenuAction {
             Self::ClearKeyframe => "Shift+F6",
             Self::InsertBlankKeyframe => "F7",
             Self::TestMovie => "CmdOrCtrl+Enter",
+            // The stage's zoom, as in Animate. The window's own zoom is off in the workspace, so
+            // these keys never scale the whole interface.
+            Self::ZoomIn => "CmdOrCtrl+=",
+            Self::ZoomOut => "CmdOrCtrl+-",
             Self::Preferences => "CmdOrCtrl+,",
             _ => return None,
         })

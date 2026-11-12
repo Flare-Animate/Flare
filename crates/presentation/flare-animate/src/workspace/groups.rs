@@ -8,7 +8,6 @@ use flare_menubar::MenuAction;
 use flare_tools::mirror::Symmetry;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use super::{AudioEvent, PendingText, TextTarget, guides};
 
@@ -287,10 +286,13 @@ impl Default for Recovery {
 /// Sounds: what has been decoded and what is being worked on, and what the sound card is owed.
 #[derive(Default)]
 pub(super) struct AudioState {
-    pub(super) decoded: HashMap<SoundId, Arc<flare_audio::Audio>>,
+    /// Each decoded sound with its waveform, by the project's sound.
+    pub(super) decoded: HashMap<SoundId, flare_audio::Decoded>,
     pub(super) decoding: HashSet<SoundId>,
     pub(super) decode_failed: HashSet<SoundId>,
     pub(super) events: Vec<AudioEvent>,
     pub(super) importing: Option<u64>,
     pub(super) synced: Option<(bool, u32)>,
+    /// Whether a scrub slice may still be sounding, so the next move of the playhead stops it.
+    pub(super) scrubbing: bool,
 }

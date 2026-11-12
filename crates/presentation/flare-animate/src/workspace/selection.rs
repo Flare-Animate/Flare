@@ -21,6 +21,7 @@ impl Workspace {
             self.cancel_drag();
             self.pen.clear();
             self.finish_text_for_tool_change();
+            self.wand_drop();
             self.tool = tool;
             if tool == Tool::Camera {
                 self.ensure_camera();
@@ -92,19 +93,25 @@ impl Workspace {
         let frame =
             flare_eval::evaluate_frame_without_camera(self.document(), scene, self.frame).ok()?;
         let at = DVec2::new(f64::from(point.x), f64::from(point.y));
-        let timeline = self.document().scenes().first()?.timeline();
         flare_render::hit_test_all(&frame, at)
             .into_iter()
             .filter_map(|index| {
                 ops::locate_hit(self.document(), scene, self.frame, &frame.shapes[index])
             })
-            .find(|span| {
-                let layers = timeline.layers();
-                layers
-                    .iter()
-                    .position(|l| l.id() == span.layer)
-                    .is_some_and(|index| !locked_in_folders(layers, index))
-            })
+            .find(|span| self.on_unlocked_layer(*span))
+    }
+
+    /// Whether `span` is on a layer that can be changed: neither it nor a folder it is in is
+    /// locked.
+    pub(super) fn on_unlocked_layer(&self, span: SpanRef) -> bool {
+        let Some(scene) = self.document().scenes().first() else {
+            return false;
+        };
+        let layers = scene.timeline().layers();
+        layers
+            .iter()
+            .position(|l| l.id() == span.layer)
+            .is_some_and(|index| !locked_in_folders(layers, index))
     }
 
     /// Every selected span, the primary one first.

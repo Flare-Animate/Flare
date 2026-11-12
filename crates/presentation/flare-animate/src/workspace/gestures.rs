@@ -1,8 +1,8 @@
 //! Pointer gestures on the stage.
 
-use egui::{Color32, Pos2, Rect};
+use egui::{Pos2, Rect};
 use flare_core::{Rgba8, ShapeId};
-use flare_document::{Content, Shape, Stroke as ShapeStroke};
+use flare_document::{Shape, Stroke as ShapeStroke};
 use flare_tools::free_transform::{Grab, handles};
 use flare_tools::ops::{self};
 use glamx::DAffine2;
@@ -31,6 +31,7 @@ impl Workspace {
             | Tool::Eraser
             | Tool::Lasso
             | Tool::PolygonLasso
+            | Tool::MagicWand
             | Tool::Camera
             | Tool::Bone
             | Tool::Pencil
@@ -98,60 +99,16 @@ impl Workspace {
             self.erase_dot(point);
             return;
         }
-        if !matches!(
-            self.tool,
-            Tool::Eyedropper | Tool::Bucket | Tool::InkBottle | Tool::Eraser
-        ) {
-            return;
-        }
-        let (Some(scene), Some(at)) = (self.scene_id(), self.hit(point)) else {
-            return;
-        };
-        let to_rgba = |c: Color32| {
-            let c = c.to_array();
-            Rgba8::new(c[0], c[1], c[2], c[3])
-        };
-        let commands = match self.tool {
-            Tool::Eraser => Some(ops::delete(self.document(), scene, at)),
-            Tool::Bucket => ops::restyle(
-                self.document(),
-                scene,
-                at,
-                Some(to_rgba(self.paint.fill)),
-                None,
-            ),
-            Tool::InkBottle => {
-                match ShapeStroke::new(
-                    f64::from(self.paint.stroke_width),
-                    to_rgba(self.paint.stroke_color),
-                ) {
-                    Ok(stroke) => {
-                        let stroke = stroke
-                            .with_cap(self.paint.stroke_cap)
-                            .with_join(self.paint.stroke_join)
-                            .with_style(self.paint.stroke_style);
-                        ops::restyle(self.document(), scene, at, None, Some(Some(stroke)))
-                    }
-                    Err(error) => return self.report(error.to_string()),
+        match self.tool {
+            Tool::Bucket | Tool::InkBottle => self.pour_paint(point),
+            Tool::Eyedropper => self.take_paint(point, shift),
+            Tool::Eraser => {
+                if let (Some(scene), Some(at)) = (self.scene_id(), self.hit(point)) {
+                    let commands = ops::delete(self.document(), scene, at);
+                    self.run_batch(commands, "paint");
                 }
             }
-            _ => {
-                let Some(Content::Shape(shape)) =
-                    ops::find_element(self.document(), scene, at).cloned()
-                else {
-                    return;
-                };
-                let from = |c: Rgba8| Color32::from_rgba_unmultiplied(c.r, c.g, c.b, c.a);
-                match (shift, shape.stroke()) {
-                    (true, Some(stroke)) => self.paint.stroke_color = from(stroke.color()),
-                    (true, None) => {}
-                    (false, _) => self.paint.fill = from(shape.flat_fill()),
-                }
-                None
-            }
-        };
-        if let Some(commands) = commands {
-            self.run_batch(commands, "paint");
+            _ => {}
         }
     }
 

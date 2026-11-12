@@ -396,9 +396,11 @@ fn selecting_a_layer_redirects_frame_operations() {
     assert_ne!(drawn, empty);
     ws.select_layer(empty);
     ws.frame_edit(FrameOp::InsertFrame);
-    assert!(
-        ws.status().is_some(),
-        "the new layer is empty, so there is nothing to extend"
+    assert_eq!(ws.status(), None);
+    assert_eq!(
+        active_spans(&ws),
+        vec![(0, 1)],
+        "the new layer had no frames: it gets a blank one at the playhead, as in Animate"
     );
     ws.select_layer(drawn);
     ws.frame_edit(FrameOp::InsertFrame);

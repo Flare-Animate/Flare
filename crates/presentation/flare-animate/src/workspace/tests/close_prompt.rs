@@ -10,7 +10,7 @@ fn drawn() -> Workspace {
 #[test]
 fn closing_a_clean_tab_asks_nothing() {
     let mut ws = workspace();
-    ws.perform(MenuAction::New);
+    ws.new_tab();
     ws.close_tab(1);
     assert_eq!(ws.close_prompt, None);
     assert_eq!(ws.tabs().len(), 1);
@@ -30,7 +30,7 @@ fn closing_unsaved_work_asks_and_cancel_keeps_everything() {
 #[test]
 fn dont_save_closes_the_tab_and_gives_the_work_up() {
     let mut ws = drawn();
-    ws.perform(MenuAction::New);
+    ws.new_tab();
     ws.close_tab(0);
     assert_eq!(
         ws.close_prompt,
@@ -60,7 +60,7 @@ fn save_writes_the_file_and_then_closes_the_tab() {
     let path = dir.path().join("kept.flare");
     let mut ws = Workspace::new(document(), Some(path.clone()));
     rect(&mut ws);
-    ws.perform(MenuAction::New);
+    ws.new_tab();
     ws.close_tab(0);
     ws.apply_close_choice(0, Choice::Save);
     assert_eq!(ws.position, 0, "the tab is brought forward to be saved");

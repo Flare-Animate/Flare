@@ -111,3 +111,18 @@ opt-ragged = Zerfranst
 opt-herringbone = Fischgrät
 opt-rope = Seil
 opt-zigzag = Zickzack
+opt-threshold = Schwellenwert
+opt-contiguous = Benachbart
+opt-contiguous-tip = Nur Pixel, die mit dem angeklickten verbunden sind; ausgeschaltet jedes Pixel ähnlicher Farbe im Bild
+opt-smoothing-pixels = Pixel
+opt-smoothing-rough = Grob
+opt-smoothing-normal = Normal
+opt-smoothing-smooth = Glatt
+opt-picked = Ausgewählt
+opt-picked-pixels =
+    { $n ->
+        [one] { $n } Pixel
+       *[other] { $n } Pixel
+    }
+opt-wand-invert = Umkehren
+opt-wand-clear = Pixel löschen

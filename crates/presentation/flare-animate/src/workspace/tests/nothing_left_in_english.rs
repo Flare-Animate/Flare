@@ -113,6 +113,7 @@ fn every_tool_and_every_window_draws_only_messages() {
         Tool::PolyStar,
         Tool::Lasso,
         Tool::PolygonLasso,
+        Tool::MagicWand,
         Tool::Camera,
         Tool::Subselection,
         Tool::AddAnchor,

@@ -64,3 +64,4 @@ out-count =
        *[other] { $n } messages
     }
 out-nothing = Rien à signaler
+hist-magic-wand = Effacer les pixels

@@ -55,7 +55,7 @@ fn onion_range_is_clamped_and_survives_opening_a_project() {
             enabled: true,
             before: MAX_ONION_FRAMES,
             after: 3,
-            outlines: false
+            ..ws.onion_skin()
         }
     );
 }
@@ -122,7 +122,7 @@ fn revert_reloads_the_saved_copy_and_closing_the_last_document_leaves_an_empty_o
 fn tabs_hold_several_documents_switch_between_them_and_close_without_losing_work() {
     let mut ws = workspace();
     rect(&mut ws); // tab 0: a drawing, unsaved
-    ws.perform(MenuAction::New);
+    ws.new_tab();
     assert_eq!(ws.tabs().len(), 2);
     assert!(ws.tabs()[1].current && !ws.tabs()[0].current);
     assert_eq!(drawing_count(&ws), 0, "the new document is empty");
@@ -160,7 +160,7 @@ fn tabs_hold_several_documents_switch_between_them_and_close_without_losing_work
     assert_eq!(ws.tabs().len(), 1);
     assert_eq!(drawing_count(&ws), 1, "the first document is the one left");
     // A parked, clean tab closes without being shown.
-    ws.perform(MenuAction::New);
+    ws.new_tab();
     ws.switch_to_tab(0);
     ws.undo();
     ws.undo();

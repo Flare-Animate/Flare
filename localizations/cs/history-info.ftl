@@ -65,3 +65,4 @@ out-count =
        *[other] { $n } zpráv
     }
 out-nothing = Není co hlásit
+hist-magic-wand = Vymazat pixely
