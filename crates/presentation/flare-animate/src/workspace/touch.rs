@@ -30,7 +30,7 @@ pub(super) fn tab_bar(touch: bool) -> f32 {
 /// The spacing and sizes egui's own widgets use with fingers, laid over the palette's base
 /// style. Larger everywhere a press lands: buttons, menu items, icons and the gaps between.
 pub(super) fn apply_touch_style(ctx: &egui::Context) {
-    ctx.style_mut(|style| {
+    ctx.global_style_mut(|style| {
         let spacing = &mut style.spacing;
         spacing.interact_size.y = 40.0;
         spacing.button_padding = egui::vec2(12.0, 10.0);

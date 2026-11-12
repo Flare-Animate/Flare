@@ -7,6 +7,8 @@
 
 use flare_menubar::MenuAction;
 
+use super::*;
+
 /// The palette's state while it is shut: what was last typed, and which row was chosen.
 #[derive(Default)]
 pub(super) struct Palette {
@@ -25,7 +27,7 @@ struct Row {
 /// Whether the letters of `query` appear in `label` in order, ignoring case. An empty query
 /// matches everything, which is how the palette opens on the whole list.
 fn matches(query: &str, label: &str) -> bool {
-    let mut wanted: Vec<char> = query.chars().flat_map(char::to_lowercase).collect();
+    let wanted: Vec<char> = query.chars().flat_map(char::to_lowercase).collect();
     if wanted.is_empty() {
         return true;
     }
@@ -74,7 +76,7 @@ impl Workspace {
         );
         let mut chosen_action = None;
         let mut close = false;
-        let response = egui::Modal::new(egui::Id::new("command-palette")).show(ctx, |ui| {
+        let response = egui::Modal::new(egui::Id::unique("command-palette")).show(ctx, |ui| {
             let (enter, up, down, escape) = ui.input(|i| {
                 (
                     i.key_pressed(egui::Key::Enter),
