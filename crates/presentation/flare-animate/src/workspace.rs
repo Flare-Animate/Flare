@@ -68,6 +68,7 @@ mod stage_menu;
 mod symbols;
 mod tabs;
 mod tools;
+mod touch;
 mod transform_cursor;
 mod window_controls;
 use tools::{anchors, stroke_preview, text_preview};
@@ -316,6 +317,10 @@ pub struct Workspace {
     recovery: groups::Recovery,
     /// Sounds being decoded, imported and played.
     audio: groups::AudioState,
+    /// The interface is driven with fingers: bigger targets everywhere (see `touch.rs`).
+    touch: bool,
+    /// Whether the touch style has been applied, and for which choice.
+    styled_touch: Option<bool>,
     /// The command palette's state.
     palette: palette::Palette,
 }
@@ -458,6 +463,8 @@ impl Workspace {
             windows: groups::OpenWindows::default(),
             recovery: groups::Recovery::default(),
             audio: groups::AudioState::default(),
+            touch: false,
+            styled_touch: None,
             palette: palette::Palette::default(),
         }
     }

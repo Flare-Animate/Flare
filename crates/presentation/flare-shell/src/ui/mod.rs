@@ -74,6 +74,9 @@ pub fn run_on_activity(
     android_app: winit::platform::android::activity::AndroidApp,
 ) -> Result<()> {
     use winit::platform::android::EventLoopBuilderExtAndroid;
+    // A phone drives the interface with fingers, so it gets the touch sizes from the start.
+    let mut workspace = workspace;
+    workspace.set_touch(true);
     let event_loop = EventLoop::<UserEvent>::with_user_event()
         .with_android_app(android_app)
         .build()

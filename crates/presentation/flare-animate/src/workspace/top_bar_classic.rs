@@ -21,7 +21,7 @@ impl Workspace {
         let open = self.windows.preferences;
         let slot = Rect::from_center_size(
             Pos2::new(
-                bar.right() - controls_width - rail::CENTER_FROM_EDGE,
+                bar.right() - controls_width - rail::center_from_edge(self.touch),
                 bar.center().y,
             ),
             Vec2::splat(GEAR_SLOT),
@@ -34,7 +34,7 @@ impl Workspace {
         if gear.clicked() {
             self.windows.preferences = !open;
         }
-        ui.add_space(rail::CENTER_FROM_EDGE + GEAR_SLOT / 2.0 + 6.0);
+        ui.add_space(rail::center_from_edge(self.touch) + GEAR_SLOT / 2.0 + 6.0);
         // Undo, play and the document's name belong to a document; Home has none, and
         // no interface to switch.
         if !self.document_controls_shown() {

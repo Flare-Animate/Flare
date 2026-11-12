@@ -38,6 +38,12 @@ JavaScript that loads it in `src/lib/`, a static page in `public/`, and a build 
   kept for the next play, up to 16 million samples in all.
 - **Pen pressure** comes from pointer events (`src/lib/pen-pressure.js`) and reaches the workspace
   through `flare-input`'s `PenFeed`. A node test checks it; a real pen has not.
+- **Mobile.** `src/lib/main.js` detects a phone or tablet (a coarse pointer, a small screen and
+  touch support; `?ui=mobile` and `?ui=desktop` force the choice) and says so through
+  `globalThis.flareMobile`, which `canvas.rs` reads to call `Workspace::set_touch`. The workspace
+  then draws finger-sized: the panel rail, the dock's tab bar and egui's own widgets grow
+  (`flare-animate`'s `workspace/touch.rs`), and the page stops the browser zooming under the
+  fingers. Pinch-zoom of the stage is not wired yet.
 - **Preferences** live in local storage instead of `flare-platform`'s files.
 - **`flare-platform`** is the desktop's operating system (directories, the sound card, native
   dialogs), so the web app does not use it.

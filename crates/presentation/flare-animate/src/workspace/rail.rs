@@ -18,15 +18,16 @@ pub(crate) const RAIL: [Pane; 8] = [
     Pane::Info,
 ];
 
-/// Width of the rail.
-pub(super) const RAIL_WIDTH: f32 = 34.0;
+/// Width of the rail panel, in the touch sizes when the interface is driven with fingers.
+pub(super) fn rail_width(touch: bool) -> f32 {
+    touch::rail_width(touch)
+}
 
 /// How far the middle of the rail's icons is from the window's right edge: the rail is
-/// `RAIL_WIDTH` wide with a one pixel separator on its inner side.
-pub(super) const CENTER_FROM_EDGE: f32 = (RAIL_WIDTH - 1.0) / 2.0;
-
-const BUTTON: f32 = 28.0;
-const ICON: f32 = 18.0;
+/// `rail_width` wide with a one pixel separator on its inner side.
+pub(super) fn center_from_edge(touch: bool) -> f32 {
+    (rail_width(touch) - 1.0) / 2.0
+}
 
 impl Workspace {
     /// Whether `pane` is the one showing in its stack.
@@ -39,11 +40,13 @@ impl Workspace {
 
     /// The rail's contents.
     pub(super) fn panel_rail(&mut self, ui: &mut Ui) {
-        ui.spacing_mut().item_spacing = vec2(0.0, 4.0);
+        let touch = self.touch;
+        let (button, icon) = (touch::rail_button(touch), touch::rail_icon(touch));
+        ui.spacing_mut().item_spacing = vec2(0.0, if touch { 8.0 } else { 4.0 });
         ui.add_space(4.0);
         let mut chosen = None;
         for (index, pane) in RAIL.into_iter().enumerate() {
-            let Some(icon) = pane.rail_icon() else {
+            let Some(icon_name) = pane.rail_icon() else {
                 continue;
             };
             // A little space between the groups of related panels.
@@ -52,7 +55,7 @@ impl Workspace {
             }
             let front = self.pane_is_front(pane);
             ui.vertical_centered(|ui| {
-                if rail_button(ui, icon, front, &self.tr(pane.key())).clicked() {
+                if rail_button(ui, icon_name, front, &self.tr(pane.key()), button, icon).clicked() {
                     chosen = Some(pane);
                 }
             });
@@ -63,8 +66,15 @@ impl Workspace {
     }
 }
 
-fn rail_button(ui: &mut Ui, icon: &str, front: bool, hint: &str) -> egui::Response {
-    let (rect, response) = ui.allocate_exact_size(vec2(BUTTON, BUTTON), Sense::click());
+fn rail_button(
+    ui: &mut Ui,
+    icon_name: &str,
+    front: bool,
+    hint: &str,
+    button: f32,
+    icon: f32,
+) -> egui::Response {
+    let (rect, response) = ui.allocate_exact_size(vec2(button, button), Sense::click());
     if front {
         ui.painter().rect_filled(rect, 5.0, theme::panel_raised());
     } else if response.hovered() {
@@ -76,7 +86,7 @@ fn rail_button(ui: &mut Ui, icon: &str, front: bool, hint: &str) -> egui::Respon
     } else {
         theme::text_dim()
     };
-    let at = Rect::from_center_size(rect.center(), vec2(ICON, ICON));
-    icons::image(icon, ICON, tint).paint_at(ui, at);
+    let at = Rect::from_center_size(rect.center(), vec2(icon, icon));
+    icons::image(icon_name, icon, tint).paint_at(ui, at);
     response.on_hover_text(hint)
 }

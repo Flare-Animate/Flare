@@ -143,6 +143,17 @@ impl Workspace {
         self.window_maximized = maximized;
     }
 
+    /// Whether the interface is driven with fingers: the rail, the dock's tabs and egui's own
+    /// widgets grow to sizes a thumb can land on. The surface decides (the web build detects a
+    /// phone; the Android shell always says yes), and says so before the first frame.
+    pub fn set_touch(&mut self, touch: bool) {
+        self.touch = touch;
+    }
+
+    pub fn touch(&self) -> bool {
+        self.touch
+    }
+
     /// Returns (and clears) a window move or zoom the top bar asked for.
     pub fn take_window_request(&mut self) -> Option<WindowRequest> {
         self.window_request.take()

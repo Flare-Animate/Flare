@@ -74,7 +74,10 @@ impl Workspace {
         if self.styled_for != Some(self.theme_mode) {
             self.styled_for = Some(self.theme_mode);
             flare_ui::theme::apply_palette(ctx);
+            // The palette restyle reset the spacing, so the touch sizes go on again after it.
+            self.styled_touch = None;
         }
+        self.ensure_touch_style(ctx);
     }
 
     /// Puts the font of the interface's language first among the CJK ones the interface carries,
