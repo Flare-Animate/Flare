@@ -8,8 +8,10 @@ restores the default.
 
 ## Look
 
-`flare-ui/src/theme.rs` (shared widgets and the icon set are in `flare-ui`, the workspace in `flare-animate`) holds the one dark palette, spacing, rounding and type sizes; colours are
-named there and used by name. `chrome.rs` holds the shared widgets (icon buttons, section headers,
+`flare-ui/src/theme.rs` (shared widgets and the icon set are in `flare-ui`, the workspace in `flare-animate`) holds the palettes, spacing, rounding and type sizes; colours are
+named there and used by name. The default dark palette is flat greys with no tint, as animation
+tools use, so the colors on the stage are judged against nothing colored; the blue-tinted dark it
+replaced is the Blue theme. `chrome.rs` holds the shared widgets (icon buttons, section headers,
 label/control rows) so every panel looks alike.
 
 ## Icons
