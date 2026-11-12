@@ -47,12 +47,25 @@ goes and what a change bought, not what any other machine will do.
 | Undo then redo, 5 000-layer document (`cargo bench -p flare-editor`) | 6.6 ns | unchanged | a pointer swap of shared snapshots; what undo costs on screen is the redraw, which the picture cache now skips for states shown before |
 | Open / save 10 000 shapes | 31 ms / 61 ms | unchanged | measured; not worth a new format yet |
 | Brush outline rebuilt for the live preview each frame (`BrushStroke::sides`, release build): 2 000 samples / the 8 000 cap, shaky line, Smoothing 0 | n/a | 0.6 ms / 3.0 ms | the preview draws the committed outline instead of a ribbon of the raw points; a spiral at the cap is the worst seen, 4.2 ms, and Smoothing 2 roughly halves each |
+| Onion skin on a 1280x720 stage of 100 shapes (`cargo bench -p flare-render -- onion`, release build): 8 / 16 / 24 ghosts | 25.6 / 48.8 / 73.0 ms | 15.9 / 29.9 / 43.5 ms | each ghost is tinted and faded in place instead of being copied twice, and the tint skips empty pixels; with the frame alone at 0.7 ms, drawing a ghost's shapes is a small part of its cost. This is what let the limit go from 8 frames a side to 12: 24 ghosts now cost less than the old 16. The drawing is on the render worker, and the result is cached |
+| The Magic Wand (`cargo bench -p flare-tools --bench magic_wand`, release build), a disc on a plain ground picked from the ground: 1920x1080 / 4096x4096 (the largest bitmap a document holds), picking through neighbours, picking across the picture, the soft edge of a clear | n/a | 12.8 / 85.8 ms, 6.0 / 45.7 ms, 22.6 / 183 ms | at the largest size a clear (soft edge, rebuilding the pixels and hashing them) is about a quarter of a second, so picking and clearing are jobs on the runtime's pixels worker, not calls in the click handler; the stripes drawn over the stage come back with the pick at most 1024 pixels a side, so the window never turns a 16-megapixel mask into a texture. The soft edge is a two-pass chamfer distance, the same cost whatever shape the area is |
+| A sound's waveform (`cargo bench -p flare-audio`, release build), the longest sound kept (ten minutes of 48 kHz stereo): summarised once / one 1 600-column timeline row at the default zoom / the same row with all ten minutes across it | n/a | 283 ms / 5 us / 0.46 ms | the summary is made on the decoding worker, beside the decode, never while drawing; a row reads only the columns in view from it |
 
 Seven threads were no better than four (20 000 shapes: 9.2 ms against 8.6 ms) and slower on
 small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the threshold 800.
 
 ## Libraries: where they are used, and why not elsewhere
 
+- **The Paint Bucket's area search** runs on the UI thread, on the click, because it is one
+  short piece of work and the next frame should show the fill. It draws the lines that could
+  close the area into a mask at the stage's on-screen detail (at least one pixel per stage unit,
+  at most four, at most 2 097 152 pixels), floods it a run of a row at a time, and grows the
+  lines and the area back with a sliding count along rows and columns rather than a distance
+  transform. Measured (release build, `click_with_tool` on a 1920 x 1080 stage): a ring nearly
+  the size of the stage, 18 ms at 100%, 200% and 400% (the pixel cap holds it there; it was
+  65 to 140 ms with a chamfer distance transform, a pixel-at-a-time flood and a 4 194 304-pixel
+  cap); a 300-unit ring as in a sketch, 1.0 ms at 100%, 3.4 ms at 200% and 12 ms at 400%.
+  Drawing the mask is 0.1 to 2.6 ms of that. If it ever has to search more, it becomes a job.
 - **i_overlay** (polygon booleans, no default features, so no threads of its own) is used by the
   Eraser (`flare-tools/src/eraser/cut.rs`): a fill loses the area the eraser covered (a difference
   of polygons) and a line loses the stretches inside it (clipping lines by a polygon). It runs on every

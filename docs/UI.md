@@ -23,9 +23,29 @@ To add an icon, put an SVG in that folder. `build.rs` embeds every file, named a
 the tests check that each one parses, draws something, is 24 x 24 and uses only white. A name used
 in the code that has no file panics in debug builds and fails the tests.
 
+## Magic Wand
+
+The Magic Wand works on bitmaps. A click on one picks the pixels whose color is within the
+Threshold (0 to 200, 20 to start, as in Animate) of the one clicked: each of red, green, blue and
+alpha may differ by that much, compared premultiplied, so every clear pixel counts as the same
+color. With Contiguous on (the default, as Animate's wand) only pixels joined to the clicked one
+are picked; off, every like pixel in the picture. Shift-click adds to what is picked and Alt-click
+takes away; a plain click on another bitmap starts again there. The picked pixels are striped in
+the accent color over the bitmap, and the tool's options say how many there are. Delete (the key, Edit >
+Delete, or Clear pixels in the options) makes them transparent as one undo step, which is how a
+background is taken off a picture; Invert picks the others instead, to keep only what was
+picked. Smoothing sets how soft the edge left behind is: Pixels keeps it exact, and Rough, Normal
+and Smooth fade the kept pixels next to it over one, two and three pixels. Escape, Deselect All,
+another tool, or an edit that takes the bitmap off the stage lets go of what is picked. A bitmap
+in a group or a symbol is reached by editing it in place. Animate's wand works on a bitmap broken
+apart into a fill; Flare's works on the bitmap itself, and a clear gives that one element a new
+bitmap (the old one stays in the library while anything else shows it), so other frames showing
+the same picture keep it whole. Picking and clearing run on the pixels worker
+([PERFORMANCE.md](PERFORMANCE.md)); while one is out, further clicks wait for it.
+
 ## Splash
 
-On a plain launch (desktop with no file named, and the browser build) a splash covers the window for 2.5 seconds or until a click or key: an original backdrop (`assets/ui/splash.svg`, no text, drawn by `flare-ui`'s `splash.rs`) with the flame, the name, the tagline and the version set over it by `workspace/splash.rs`, so the words are translated like the rest. The old program's splash artwork is not reused.
+On a plain launch (desktop with no file named, and the browser build) a splash shows for 2.5 seconds or until a click or key. It is laid out as Animate's: a card with rounded corners and a soft shadow in the middle of the window (which a plain sheet hides meanwhile), light on the left with the mark (the flame on a dark tile), the name beside it, the version, the tagline and a line on who makes Flare, and "Loading…" at the bottom; on the right, set in with a white margin and its own rounded corners, Flare's own picture: a campfire at night under a moon and stars, between pines, with embers rising (`assets/ui/splash.svg`, no text in it); the fire on its logs is the app's mark, painted there by `flare-ui`'s `splash::paint`. The words are set by `workspace/splash.rs`, so they are translated like the rest. In a small window the card scales down to fit. Neither Animate's nor the old program's artwork is used.
 
 ## Planned features are visible
 
@@ -63,7 +83,11 @@ Language: the General category of Preferences has a Language list, "System local
 
 A selected Graphic instance has a Looping section in Properties, as Animate's does: Options (Loop, Play Once or Single Frame) and the First frame it starts on, counted from 1. Each change is one undo step. A Movie Clip, a Button, artwork or several selected things show no such section, because only a Graphic follows the setting (a Movie Clip loops from where its instance starts; a Button shows its Up state).
 
-The Timeline's frames are small fixed cells (10 points at the normal zoom), not the panel's width shared among them: the scene's frames are followed by empty cells to the panel's edge, the zoom (Ctrl/Cmd and the wheel, or the buttons) widens or narrows them from 3 to 40 points, and Fit sets the zoom at which the scene fills the panel. The timeline's toolbar has the frame commands used most, after the frame number and rate: Insert Keyframe (F6), Insert Blank Keyframe (F7), Insert Frame (F5) and Remove Frames (Shift+F5). They are the commands of the Insert menu and of the frames' own menu, act on the active layer at the playhead, say their name and keys when pointed at, and are dimmed on a locked layer. In the Timeline each frame is a cell: a line between frames (a stronger one every fifth, so they can be counted), a dot on the first frame of a keyframe (hollow when the keyframe holds nothing) and a box on the last frame of a held keyframe, as Animate draws them. A right click on the stage picks the shape under the pointer (unless it is already selected) and opens a menu with Cut, Copy, Paste, Paste in Place, Duplicate, Delete, Group, Ungroup, Break Apart, Convert to Symbol, Select All, Deselect All, Undo, Redo and the zoom commands; on empty stage it clears the selection first. In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
+The Timeline's frames are small fixed cells (10 points at the normal zoom), not the panel's width shared among them: the scene's frames are followed by empty cells to the panel's edge, and on to the end of the longest sound, so a sound longer than the scene can be scrolled to whole and its frames clicked. The layer names stay at the left while the frames scroll sideways, and the ruler stays at the top while the layers scroll down. A sound's bar shows its waveform, and moving the paused playhead plays the stretch of sound under it. The zoom (Ctrl/Cmd and the wheel, or the buttons) widens or narrows them from 3 to 40 points, and Fit sets the zoom at which the scene fills the panel. Onion skin is the first of the two onion buttons in the timeline's toolbar; the second shows the ghosts as outlines, the two fields beside them are how many frames before and after are shown (up to 12 each), and the arrow after them opens its settings: Frames before and Frames after as sliders, Outlines, Tinted, the colors of earlier and later frames, and Reset colors. Tinted, as Animate's onion skin is by default, draws earlier frames in blue and later ones in green (lines in the color, fills in a pale shade of it, so the drawing still reads); off, each ghost is a faded copy in its own colors. While onion skin is on, the ruler shows its range as a band from the earliest ghost to the latest with a handle at each end in that side's color, and dragging a handle sets that side's range without moving the playhead. The range, outlines, tint and colors are kept with the preferences; whether onion skin is on is not, so a session starts with it off. Onion skin is a view of the stage and is never exported.
+
+A click on any cell, an empty one past the layer's end too, makes its layer the active one, puts
+the playhead on it and shows it selected in Animate's blue (as are frames selected with Shift); the
+frame field in the toolbar follows the playhead there rather than pulling it back into the scene. The timeline's toolbar has the frame commands used most, after the frame number and rate: Insert Keyframe (F6), Insert Blank Keyframe (F7), Insert Frame (F5) and Remove Frames (Shift+F5). They are the commands of the Insert menu and of the frames' own menu, act on the active layer at the playhead (Insert Frame at an empty cell past a layer's end holds its last keyframe out to it; on a layer with no frames yet, such as a sound's, it makes blank frames up to the playhead, as Animate does), say their name and keys when pointed at, and are dimmed on a locked layer. In the Timeline each frame is a cell: a line between frames (a stronger one every fifth, so they can be counted), a dot on the first frame of a keyframe (hollow when the keyframe holds nothing) and a box on the last frame of a held keyframe, as Animate draws them. A right click on the stage picks the shape under the pointer (unless it is already selected) and opens a menu with Cut, Copy, Paste, Paste in Place, Duplicate, Delete, Group, Ungroup, Break Apart, Convert to Symbol, Select All, Deselect All, Undo, Redo and the zoom commands; on empty stage it clears the selection first. In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
 
 ## Documents and tabs
 
@@ -188,7 +212,7 @@ The tools are in two columns, in the order Animate's toolbar has them, divided b
 categories: Selection, Free Transform, Lasso; Pencil, Brush, Eraser, Rectangle, Line; Pen, Text,
 Paint Bucket, Eyedropper, Asset Warp; Hand, Zoom and the "…" button. As in Animate a cell is a slot
 that holds related tools and shows the one in use, with a small triangle in its corner: Selection
-holds Subselection, Free Transform holds Gradient Transform, Lasso holds Polygon (click the corners of a loop; a double click, Enter or a click on the first corner closes it and selects what it encloses) and Magic Wand,
+holds Subselection, Free Transform holds Gradient Transform, Lasso holds Polygon (click the corners of a loop; a double click, Enter or a click on the first corner closes it and selects what it encloses) and Magic Wand (see Magic Wand above),
 Rectangle holds Oval, Rectangle Primitive, Oval Primitive and PolyStar, Pen holds Add, Delete and
 Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, and Hand holds Rotation and Time scrub. Press and hold a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
@@ -211,8 +235,13 @@ arrangement opens as the new default.
 The segmented control inside panels (Output's tabs, for one) marks the chosen segment by raising it,
 with no underline.
 
-The Properties panel is one view that follows the selection, as Animate's does, and has no tabs of
-its own. Something selected on the stage: a shape shows Position and size and its Fill and stroke
+The Properties panel follows the selection, as Animate's does, and has Animate's four tabs over it:
+Tool, Object, Frame and Doc. The tab it chose is raised; a click on another shows that one until the
+selection or the tool changes, and Object is dimmed with nothing selected. A tool's amounts (brush
+size, smoothing, stabilization, tapers, angle, flatness, pressure response, light touch, stroke
+width, corner radius, sides and depth) are Animate's slider rows: the name at the left and the value
+at the right on one line, a slider the panel's width below it; the value is also a number field to
+type or drag, and sizes slide on a logarithmic track so the small ones get most of it. Something selected on the stage: a shape shows Position and size and its Fill and stroke
 (fill color, outline on or off, stroke color, width, cap and join), which are changed on the shape,
 a color when the picker is let go and a number when it is, each one undo step; a symbol instance
 shows its symbol and type, Edit Symbol, Position and size, Looping for a Graphic, and Color Effect,
@@ -222,15 +251,28 @@ settings of the tool in hand if it has any (the drawing tools), else the documen
 rate, background, Publish Settings). Modify > Document asks for the document until the selection or
 the tool changes.
 
+## New Document
+
+File > New (Cmd/Ctrl+N) and Home's New File open the New Document dialog, laid out as Animate's: the
+kinds of project as tabs across the top, each an icon over its name (Character Animation, Social,
+Game, Education, Ads, Web and Advanced), the chosen kind's sizes as cards on the left under
+"Presets (n)", each drawn with its stage's proportions and its size and rate, and Details on the
+right: Width, Height, Units (pixels, the only unit a stage has, so the list is dimmed), Frame rate
+(up to 240) and Background color, then Create, which makes the project (in a tab of its own when the
+open document has work in it), and Cancel. It is drawn as Flare's other dialogs are (Preferences,
+Publish): in the middle of the window over a dimmed backdrop, with its title and an X at the top, and
+the sizes are Home's own cards under Home's headings. Escape, the X and a click outside cancel too. Choosing a card fills
+the details; editing them leaves the card. The sizes are the usual ones of each medium, Flare's own
+list. The + by the tabs still makes a blank tab at once.
+
 ## Home
 
 A plain launch opens on the Home page, laid out like Animate's: a sidebar with the app name and
 version, Home (and Learn, dimmed: not built), and the buttons New File, Open and Import; in the main
 area **Create new** (cards for Character Animation 1920 x 1080 at 24 fps, Social 1080 x 1080 at 30,
 Portrait 1080 x 1920 at 30, Web 1280 x 720 at 24, Classic 550 x 400 at 24, each drawn with the
-proportions of its stage, and **Custom Size**, a plus card that opens a small window for a width,
-height and frame rate (up to the stage's largest side and 240 fps) with Create and Cancel; it goes
-away if a tab is chosen over Home), then **Recent**: a list, as Animate's, of up to twelve projects
+proportions of its stage, and **Custom Size**, a plus card that opens the New Document dialog on
+Advanced with a size of the person's own; it goes away if a tab is chosen over Home), then **Recent**: a list, as Animate's, of up to twelve projects
 with a Filter box over the names and folders. The columns are Name (with its folder, dimmed), Date
 modified, Size and Kind (Flare project, Animate document or Animate project). A click on a heading
 orders the list by it, up, then down, then back to the order the projects were opened in; a file
