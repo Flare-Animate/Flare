@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use flare_document::{Document, OriginKind};
 
-use flare_import::{ImportError, XFL_DOCUMENT_FILE};
+use flare_import::{ImportError, PathKind, XFL_DOCUMENT_FILE};
 use flare_storage::StorageError;
 use thiserror::Error;
 
@@ -35,18 +35,17 @@ pub struct Loaded {
     pub notes: Vec<String>,
 }
 
-/// Reads `path`: a `.flare` project, or an Animate `.fla`, `.xfl` or XFL folder (or a `.swf`),
-/// which is imported. A name that says nothing is a project, as it always was.
+/// Reads `path`: a `.flare` project, or an Animate `.fla`, `.xfl` or XFL folder, or anything else
+/// the importer reads (a movie, a picture, a video, another program's project), which is
+/// imported. The importer's own list decides, so File > Open takes every kind it offers. A name
+/// that says nothing is a project, as it always was.
 pub fn load(path: &Path) -> Result<Loaded, LoadError> {
     let format = if path.is_dir() {
         Some(FileFormat::Xfl)
     } else {
         FileFormat::of_path(path)
     };
-    let is_movie = path
-        .extension()
-        .is_some_and(|e| e.eq_ignore_ascii_case("swf"));
-    if format.is_none() && !is_movie || format == Some(FileFormat::Flare) {
+    if format.is_none() && !only_imported(path) || format == Some(FileFormat::Flare) {
         return Ok(Loaded {
             document: flare_storage::load(path)?,
             path: path.to_owned(),
@@ -101,10 +100,20 @@ fn xfl_document_path(path: &Path) -> PathBuf {
         .unwrap_or_else(|| folder.join(XFL_DOCUMENT_FILE))
 }
 
+/// Whether `path` names a file Flare reads only by importing it and never writes: a movie, a
+/// picture, a video or another program's project (anything the importer takes that is not an
+/// Animate document).
+pub(crate) fn only_imported(path: &Path) -> bool {
+    FileFormat::of_path(path).is_none()
+        && !path.is_dir()
+        && flare_import::classify(path, false) == Some(PathKind::Import)
+}
+
 /// Whether saving `document` to `path` writes back the file it was read from rather than
 /// replacing something Flare did not keep: a project always, an Animate document when the
-/// import kept the original of that kind (so unknown files survive), never a movie or a file Flare
-/// could not keep whole (a pre-CS5 `.fla`, one beyond the size bound).
+/// import kept the original of that kind (so unknown files survive), never a movie, a picture or
+/// anything else only imported, or a file Flare could not keep whole (a pre-CS5 `.fla`, one
+/// beyond the size bound).
 pub fn saves_in_place(document: &Document, path: &Path) -> bool {
     let format = if path.is_dir() {
         Some(FileFormat::Xfl)
@@ -116,8 +125,6 @@ pub fn saves_in_place(document: &Document, path: &Path) -> bool {
         Some(FileFormat::Flare) => true,
         Some(FileFormat::Fla) => kind == Some(OriginKind::Fla),
         Some(FileFormat::Xfl) => kind == Some(OriginKind::Xfl),
-        None => !path
-            .extension()
-            .is_some_and(|e| e.eq_ignore_ascii_case("swf")),
+        None => !only_imported(path),
     }
 }

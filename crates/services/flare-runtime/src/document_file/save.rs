@@ -28,6 +28,9 @@ pub enum SaveError {
     /// A movie is published, not saved.
     #[error("{0} is a movie; save as .fla, .xfl or .flare, or publish it")]
     Movie(PathBuf),
+    /// A picture, a video or another program's file is imported, never written over.
+    #[error("{0} was imported and is not overwritten; save as .fla, .xfl or .flare")]
+    Imported(PathBuf),
 }
 
 /// What a save to an Animate format wrote, from the export's report.
@@ -113,6 +116,9 @@ pub fn save(document: &Document, path: &Path) -> Result<Saved, SaveError> {
         .is_some_and(|e| e.eq_ignore_ascii_case("swf"))
     {
         return Err(SaveError::Movie(path.to_owned()));
+    }
+    if super::load::only_imported(path) {
+        return Err(SaveError::Imported(path.to_owned()));
     }
     let export = |source| SaveError::Export {
         path: path.to_owned(),

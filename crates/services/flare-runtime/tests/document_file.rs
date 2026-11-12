@@ -289,3 +289,60 @@ fn only_a_document_with_its_original_of_the_right_kind_is_saved_in_place() {
     ));
     assert!(!saves_in_place(&kept, Path::new("a.swf")));
 }
+
+/// A 2x1 PNG: one red pixel and one clear one.
+fn tiny_png() -> Vec<u8> {
+    let mut bytes = Vec::new();
+    let mut encoder = png::Encoder::new(&mut bytes, 2, 1);
+    encoder.set_color(png::ColorType::Rgba);
+    encoder.set_depth(png::BitDepth::Eight);
+    let mut writer = encoder.write_header().expect("header");
+    writer
+        .write_image_data(&[255, 0, 0, 255, 0, 0, 0, 0])
+        .expect("pixels");
+    writer.finish().expect("finish");
+    bytes
+}
+
+#[test]
+fn a_picture_or_a_drawing_opens_as_a_new_project_not_as_a_flare_file() {
+    let dir = tempfile::tempdir().expect("dir");
+    let png = dir.path().join("photo.PNG");
+    std::fs::write(&png, tiny_png()).expect("png");
+    let loaded = load(&png).expect("a picture opens");
+    assert_eq!(loaded.document.bitmaps().len(), 1);
+    assert!(
+        !loaded.backed,
+        "saving asks for a name rather than overwriting the picture"
+    );
+    let svg = dir.path().join("drawing.svg");
+    std::fs::write(
+        &svg,
+        r#"<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="5" height="5" fill="red"/></svg>"#,
+    )
+    .expect("svg");
+    assert!(load(&svg).is_ok(), "a drawing opens");
+    // Save never writes a project over the picture it came from.
+    let before = std::fs::read(&png).expect("read");
+    assert!(matches!(
+        save(&loaded.document, &png),
+        Err(SaveError::Imported(_))
+    ));
+    assert_eq!(std::fs::read(&png).expect("read"), before);
+    assert!(save(&loaded.document, &dir.path().join("photo.flare")).is_ok());
+}
+
+#[test]
+fn a_file_whose_name_says_nothing_is_still_read_as_a_project() {
+    let dir = tempfile::tempdir().expect("dir");
+    let plain = dir.path().join("notes");
+    std::fs::write(&plain, b"not a project").expect("write");
+    let error = load(&plain).expect_err("not a project").to_string();
+    assert!(error.contains("not a Flare project"), "{error}");
+    let picture_named_oddly = dir.path().join("photo.png.bak");
+    std::fs::write(&picture_named_oddly, tiny_png()).expect("write");
+    assert!(
+        load(&picture_named_oddly).is_err(),
+        "the name decides, not the bytes"
+    );
+}
