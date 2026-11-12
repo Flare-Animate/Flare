@@ -14,6 +14,19 @@ tools use, so the colors on the stage are judged against nothing colored; the bl
 replaced is the Blue theme. `chrome.rs` holds the shared widgets (icon buttons, section headers,
 label/control rows) so every panel looks alike.
 
+## Brand
+
+The app icon is the flame on a rounded warm tile (`assets/flare-icon*.png`, `.icns`, `.ico`). The
+interface shows it where it names the program: beside the name and version at the top of the Home
+sidebar and in Help > About (`flare_ui::icons::app_icon`). The splash and its campfire use the
+flame cut out of it (`icons::flame`). The desktop window carries it for the task bar and window
+switcher on Linux and Windows (`flare-shell`'s `window_icon.rs`). A packaged macOS app takes its
+name and icon from its bundle; a program run as built (`cargo run`) has neither, so it gives the
+Dock the icon at start when it is not inside a bundle (`flare_platform::app_icon`), and the
+desktop binary carries a small Info.plist of its own (`apps/flare-desktop/build.rs`, a
+`__TEXT,__info_plist` section with `CFBundleName` Flare and no bundle identifier) so the menu bar
+says Flare rather than the file's name.
+
 ## Icons
 
 Icons are SVGs in [`assets/ui/icons`](../assets/ui/icons), drawn on a 24 x 24 grid with a 1.6 px
@@ -269,11 +282,11 @@ list. The + by the tabs still makes a blank tab at once.
 
 ## Home
 
-A plain launch opens on the Home page, laid out like Animate's: a sidebar with the app name and
+A plain launch opens on the Home page, laid out like Animate's: a sidebar with the app icon, name and
 version, Home (and Learn, dimmed: not built), and the buttons New File, Open and Import; in the main
 area **Create new** (cards for Character Animation 1920 x 1080 at 24 fps, Social 1080 x 1080 at 30,
-Portrait 1080 x 1920 at 30, Web 1280 x 720 at 24, Classic 550 x 400 at 24, each drawn with the
-proportions of its stage, and **Custom Size**, a plus card that opens the New Document dialog on
+Portrait 1080 x 1920 at 30, Web 1280 x 720 at 24, Classic 550 x 400 at 24, each drawn as a grey frame with the
+proportions of its stage (the New Document dialog draws its presets the same way), and **Custom Size**, a plus card that opens the New Document dialog on
 Advanced with a size of the person's own; it goes away if a tab is chosen over Home), then **Recent**: a list, as Animate's, of up to twelve projects
 with a Filter box over the names and folders. The columns are Name (with its folder, dimmed), Date
 modified, Size and Kind (Flare project, Animate document or Animate project). A click on a heading

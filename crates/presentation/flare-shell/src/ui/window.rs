@@ -51,7 +51,8 @@ impl Gpu {
     ) -> Result<Self> {
         let attributes = Window::default_attributes()
             .with_title(workspace.title())
-            .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0));
+            .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0))
+            .with_window_icon(super::window_icon::app_icon());
         // The top bar replaces the title bar on macOS; the traffic lights float over its left end.
         #[cfg(target_os = "macos")]
         let attributes = {
@@ -71,6 +72,8 @@ impl Gpu {
                 .create_window(attributes)
                 .context("create window")?,
         );
+        // The application exists now; outside an app bundle the Dock has no icon for it.
+        flare_platform::app_icon::show_in_dock(flare_ui::icons::APP_ICON_PNG);
         #[cfg(all(unix, not(target_os = "ios")))]
         super::tablet::watch(&window, workspace.pen_feed());
         let state = egui_winit::State::new(

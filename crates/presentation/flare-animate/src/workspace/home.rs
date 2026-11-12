@@ -142,24 +142,29 @@ impl Workspace {
     }
 
     fn home_sidebar(&mut self, ui: &mut Ui, dialog: &mut Option<DialogRequest>) {
-        ui.horizontal(|ui| {
-            ui.add(icons::flame(32.0));
-            ui.label(
-                egui::RichText::new("Flare")
-                    .font(FontId::proportional(20.0))
-                    .strong()
-                    .color(theme::text()),
-            );
-        });
-        ui.label(
-            egui::RichText::new(tr!(
-                self,
-                "start-version",
-                &[("version", env!("CARGO_PKG_VERSION"))]
-            ))
-            .font(FontId::proportional(11.0))
-            .color(theme::text_dim()),
+        // The program's own icon beside its name and version, as the About box and the dock show it.
+        let version = tr!(
+            self,
+            "start-version",
+            &[("version", env!("CARGO_PKG_VERSION"))]
         );
+        ui.horizontal(|ui| {
+            ui.add(icons::app_icon(40.0));
+            ui.add_space(4.0);
+            ui.vertical(|ui| {
+                ui.spacing_mut().item_spacing.y = 0.0;
+                ui.label(
+                    egui::RichText::new("Flare")
+                        .font(FontId::proportional(20.0))
+                        .color(theme::text_strong()),
+                );
+                ui.label(
+                    egui::RichText::new(version)
+                        .font(FontId::proportional(11.0))
+                        .color(theme::text_dim()),
+                );
+            });
+        });
         ui.add_space(18.0);
         nav_item(ui, "home", &tr!(self, "start-nav-home"), true);
         // Planned, not built: shown dimmed, as the rest of the interface does.
@@ -431,17 +436,18 @@ pub(super) fn chosen_tile(
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
-/// A rectangle with the proportions of a stage, centered in `rect`.
+/// A frame with the proportions of a stage, centered in `rect`: drawn in the interface's own
+/// greys, not as a white sheet, so a row of them reads as shapes to pick between and not as glare.
 pub(super) fn stage_glyph(painter: &egui::Painter, rect: Rect, width: u32, height: u32) {
-    let room = rect.shrink2(vec2(30.0, 16.0));
+    let room = rect.shrink2(vec2(36.0, 20.0));
     let scale = (room.width() / width as f32).min(room.height() / height as f32);
     let size = vec2(width as f32 * scale, height as f32 * scale);
     let glyph = Rect::from_center_size(rect.center(), size);
     painter.rect(
         glyph,
-        2.0,
-        Color32::WHITE,
-        Stroke::new(1.0, theme::border()),
+        3.0,
+        theme::panel_raised(),
+        Stroke::new(1.5, theme::text_dim()),
         StrokeKind::Inside,
     );
 }
