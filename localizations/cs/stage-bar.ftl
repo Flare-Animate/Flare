@@ -12,6 +12,7 @@ bar-rulers = Pravítka
 bar-grid = Mřížka
 bar-home = Úvod
 bar-interface-switcher = Přepínač rozhraní
+bar-commands = Příkazy
 bar-pause = Pozastavit
 bar-play = Přehrát
 bar-publish = Publikovat
@@ -23,3 +24,4 @@ bar-window-restore = Obnovit
 bar-preferences = Nastavení
 bar-redo = Znovu
 bar-undo = Zpět
+

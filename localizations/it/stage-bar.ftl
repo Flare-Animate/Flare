@@ -12,6 +12,7 @@ bar-rulers = Righelli
 bar-grid = Griglia
 bar-home = Pagina iniziale
 bar-interface-switcher = Selettore dell'interfaccia
+bar-commands = Comandi
 bar-pause = Pausa
 bar-play = Riproduci
 bar-publish = Pubblica
@@ -23,3 +24,4 @@ bar-window-restore = Ripristina
 bar-preferences = Preferenze
 bar-redo = Ripristina
 bar-undo = Annulla
+

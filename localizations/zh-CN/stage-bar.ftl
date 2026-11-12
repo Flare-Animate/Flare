@@ -12,6 +12,7 @@ bar-rulers = 标尺
 bar-grid = 网格
 bar-home = 主页
 bar-interface-switcher = 界面切换器
+bar-commands = 命令
 bar-pause = 暂停
 bar-play = 播放
 bar-publish = 发布
@@ -23,3 +24,4 @@ bar-window-restore = 还原
 bar-preferences = 首选项
 bar-redo = 重做
 bar-undo = 撤销
+

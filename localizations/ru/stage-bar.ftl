@@ -12,6 +12,7 @@ bar-rulers = Линейки
 bar-grid = Сетка
 bar-home = Начальная страница
 bar-interface-switcher = Переключатель интерфейса
+bar-commands = Команды
 bar-pause = Пауза
 bar-play = Воспроизведение
 bar-publish = Опубликовать
@@ -23,3 +24,4 @@ bar-window-restore = Восстановить
 bar-preferences = Настройки программы
 bar-redo = Повторить
 bar-undo = Отменить
+

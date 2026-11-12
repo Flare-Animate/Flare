@@ -165,6 +165,8 @@ pub(super) struct OpenWindows {
     pub(super) increment_instances: Option<IncrementInstances>,
     /// The start-up splash: the egui time it appeared (`None` until its first frame) while shown.
     pub(super) splash: Option<Option<f64>>,
+    /// The command palette (Ctrl+K).
+    pub(super) palette: bool,
 }
 
 /// The work of the Increment Instances popup (issue #11).

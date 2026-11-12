@@ -12,6 +12,7 @@ bar-rulers = Réguas
 bar-grid = Grade
 bar-home = Início
 bar-interface-switcher = Alternador de interface
+bar-commands = Comandos
 bar-pause = Pausar
 bar-play = Reproduzir
 bar-publish = Publicar
@@ -23,3 +24,4 @@ bar-window-restore = Restaurar
 bar-preferences = Preferências
 bar-redo = Refazer
 bar-undo = Desfazer
+

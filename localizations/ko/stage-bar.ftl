@@ -12,6 +12,7 @@ bar-rulers = 눈금자
 bar-grid = 격자
 bar-home = 홈
 bar-interface-switcher = 인터페이스 전환
+bar-commands = 명령
 bar-pause = 일시 정지
 bar-play = 재생
 bar-publish = 게시
@@ -23,3 +24,4 @@ bar-window-restore = 이전 크기로
 bar-preferences = 환경설정
 bar-redo = 다시 실행
 bar-undo = 실행 취소
+

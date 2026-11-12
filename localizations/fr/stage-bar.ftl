@@ -12,6 +12,7 @@ bar-rulers = Règles
 bar-grid = Grille
 bar-home = Accueil
 bar-interface-switcher = Sélecteur d’interface
+bar-commands = Commandes
 bar-pause = Pause
 bar-play = Lecture
 bar-publish = Publier
@@ -23,3 +24,4 @@ bar-window-restore = Restaurer
 bar-preferences = Préférences
 bar-redo = Rétablir
 bar-undo = Annuler
+

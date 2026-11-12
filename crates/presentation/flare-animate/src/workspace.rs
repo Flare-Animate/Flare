@@ -45,6 +45,7 @@ mod layer_names;
 mod layers;
 mod open_any;
 mod outlines;
+mod palette;
 mod panels;
 mod pen_overlay;
 mod place;
@@ -315,6 +316,8 @@ pub struct Workspace {
     recovery: groups::Recovery,
     /// Sounds being decoded, imported and played.
     audio: groups::AudioState,
+    /// The command palette's state.
+    palette: palette::Palette,
 }
 
 impl Workspace {
@@ -455,6 +458,7 @@ impl Workspace {
             windows: groups::OpenWindows::default(),
             recovery: groups::Recovery::default(),
             audio: groups::AudioState::default(),
+            palette: palette::Palette::default(),
         }
     }
 

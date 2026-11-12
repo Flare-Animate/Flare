@@ -12,6 +12,7 @@ bar-rulers = Lineale
 bar-grid = Raster
 bar-home = Startseite
 bar-interface-switcher = Oberflächenumschalter
+bar-commands = Befehle
 bar-pause = Pause
 bar-play = Wiedergabe
 bar-publish = Veröffentlichen
@@ -23,3 +24,4 @@ bar-window-restore = Wiederherstellen
 bar-preferences = Einstellungen
 bar-redo = Wiederholen
 bar-undo = Rückgängig
+

@@ -12,6 +12,7 @@ bar-rulers = Rulers
 bar-grid = Grid
 bar-home = Home
 bar-interface-switcher = Interface switcher
+bar-commands = Commands
 bar-pause = Pause
 bar-play = Play
 bar-publish = Publish
