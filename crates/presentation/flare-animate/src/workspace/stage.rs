@@ -142,12 +142,15 @@ impl Workspace {
         };
         self.pointer_stage = response.hover_pos().map(to_doc);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
-        if response.secondary_clicked()
-            && let Some(p) = response.interact_pointer_pos()
-        {
-            self.pick_for_stage_menu(to_doc(p));
+        // A second button tapped while a gesture is held is not a request for the menu.
+        if self.drag.is_none() && self.anchor_drag.is_none() {
+            if response.secondary_clicked()
+                && let Some(p) = response.interact_pointer_pos()
+            {
+                self.pick_for_stage_menu(to_doc(p));
+            }
+            response.context_menu(|ui| self.stage_menu(ui));
         }
-        response.context_menu(|ui| self.stage_menu(ui));
         if self.camera_stage(&response, painter, scale, &to_screen)
             || self.bone_stage(&response, painter, &to_screen, &to_doc)
         {
@@ -304,8 +307,16 @@ impl Workspace {
         {
             self.begin_drag_with(to_doc(p), additive);
         }
-        if response.dragged_by(primary)
-            && let Some(p) = response.interact_pointer_pos()
+        // egui ends a drag when any button comes up, so a second button pressed and let go
+        // mid-gesture (a two-finger tap on a trackpad) would strand the gesture: frozen where
+        // it was, and never committed. A held gesture follows the primary button instead.
+        let (primary_down, primary_up, pointer) = ui.input(|i| {
+            let p = &i.pointer;
+            (p.primary_down(), p.primary_released(), p.interact_pos())
+        });
+        let held = self.drag.is_some() || self.anchor_drag.is_some();
+        if (response.dragged_by(primary) || (held && primary_down))
+            && let Some(p) = response.interact_pointer_pos().or(pointer)
         {
             self.update_drag(to_doc(p));
             // The stage picture for where the pointer is now is asked for on the next pass,
@@ -314,7 +325,7 @@ impl Workspace {
                 ui.ctx().request_repaint();
             }
         }
-        if response.drag_stopped_by(primary) {
+        if response.drag_stopped_by(primary) || (held && primary_up) {
             self.end_drag();
             // What a geometry tool just committed: this frame's overlay is already drawn, and
             // the drag preview is gone, so it would be missing until the next one.
