@@ -18,3 +18,5 @@ shortcuts-import-animate = Importer depuis Animate…
 shortcuts-imported = Raccourcis repris d’Animate : { $applied }. Ignorés : { $skipped }, listés dans Sortie.
 shortcuts-import-skipped = Ignoré dans les raccourcis d’Animate : { $line }
 shortcuts-import-refused = Le fichier de raccourcis d’Animate n’a pas été lu : { $reason }
+palette-hint = Une commande, son identifiant ou ses touches
+palette-none = Aucune commande ne correspond.

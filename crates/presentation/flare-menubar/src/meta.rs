@@ -37,6 +37,7 @@ impl MenuAction {
             // Animate's key for View > Pasteboard.
             Self::TogglePasteboard => "CmdOrCtrl+Shift+W",
             Self::Preferences => "CmdOrCtrl+,",
+            Self::CommandPalette => "CmdOrCtrl+Shift+P",
             _ => return None,
         })
     }
@@ -131,6 +132,7 @@ impl MenuAction {
             | Self::WorkspaceDesigner
             | Self::WorkspaceClassic
             | Self::WorkspaceSmallScreen => "interface",
+            Self::CommandPalette => "search",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",

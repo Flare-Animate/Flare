@@ -18,3 +18,5 @@ shortcuts-import-animate = Animate から読み込む…
 shortcuts-imported = Animate から取り込んだショートカット: { $applied }。スキップ: { $skipped }（出力に一覧）。
 shortcuts-import-skipped = Animate のショートカットからスキップ: { $line }
 shortcuts-import-refused = Animate のショートカットファイルを読み込めませんでした: { $reason }
+palette-hint = コマンド名、ID、またはキー
+palette-none = 一致するコマンドはありません。

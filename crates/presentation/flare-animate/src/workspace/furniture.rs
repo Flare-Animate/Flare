@@ -90,6 +90,7 @@ impl Workspace {
         self.file_windows(&ctx);
         self.close_prompt_window(&ctx);
         self.help_windows(&ctx);
+        self.command_palette_window(&ctx);
         self.new_document_window(&ctx);
         self.splash_window(&ctx);
         if self.playing {

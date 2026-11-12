@@ -150,3 +150,4 @@ menu-item-workspace-animator = Аниматор
 menu-item-workspace-designer = Дизайнер
 menu-item-workspace-classic = Классический
 menu-item-workspace-small-screen = Маленький экран
+menu-item-command-palette = Найти команду…

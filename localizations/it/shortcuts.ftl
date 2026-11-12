@@ -18,3 +18,5 @@ shortcuts-import-animate = Importa da Animate…
 shortcuts-imported = Scelte rapide prese da Animate: { $applied }. Saltate: { $skipped }, elencate in Output.
 shortcuts-import-skipped = Saltata dalle scelte rapide di Animate: { $line }
 shortcuts-import-refused = Il file delle scelte rapide di Animate non è stato letto: { $reason }
+palette-hint = Un comando, il suo id o i suoi tasti
+palette-none = Nessun comando corrisponde.

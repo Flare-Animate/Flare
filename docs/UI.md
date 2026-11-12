@@ -192,6 +192,13 @@ which the command line and MCP server use too. Keys another command already has 
 Change (or Reset, for the set's own keys) takes them from that command, which is left with no
 shortcut until it is given one, and the editor says which command lost them
 (`ShortcutMap::bind_taking`, `reset_taking`). So the map still never holds two commands on one key.
+Help > Find a Command (Cmd/Ctrl+Shift+P, a key Animate leaves free) is a command palette, which
+Animate does not have: a field near the top of the window that finds any menu command, with keys
+or without, by its name in the interface's language, its id or its keys, as the shortcut list's
+search does (`ShortcutMap::find_commands`). Up to 12 are listed with their keys; the arrows choose
+one and Enter or a click runs it. A command that cannot run now is listed dimmed and does nothing.
+Escape or a click outside closes it. It only reaches commands the menus have.
+
 Import from Animate… reads Animate's own shortcut file (`Shortcuts/<set>.xml` in Animate's
 settings folder, at most 512 KiB) onto Animate's set: each binding of a command Flare has is
 taken over, taking the keys from any command that had them, and the rest (a command Flare does

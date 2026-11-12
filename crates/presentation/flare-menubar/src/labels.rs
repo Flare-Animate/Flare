@@ -294,6 +294,7 @@ impl MenuAction {
             Self::WorkspaceDesigner => "menu-item-workspace-designer",
             Self::WorkspaceClassic => "menu-item-workspace-classic",
             Self::WorkspaceSmallScreen => "menu-item-workspace-small-screen",
+            Self::CommandPalette => "menu-item-command-palette",
             Self::ClearGuides => "menu-item-clear-guides",
             Self::About => "menu-item-about",
             Self::KeyboardShortcuts => "menu-item-keyboard-shortcuts",

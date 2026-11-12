@@ -18,3 +18,5 @@ shortcuts-import-animate = Importar de Animate…
 shortcuts-imported = Métodos abreviados tomados de Animate: { $applied }. Omitidos: { $skipped }, listados en Salida.
 shortcuts-import-skipped = Omitido de los métodos abreviados de Animate: { $line }
 shortcuts-import-refused = No se leyó el archivo de métodos abreviados de Animate: { $reason }
+palette-hint = Un comando, su id o sus teclas
+palette-none = Ningún comando coincide.

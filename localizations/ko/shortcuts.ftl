@@ -18,3 +18,5 @@ shortcuts-import-animate = Animate에서 가져오기…
 shortcuts-imported = Animate에서 가져온 바로 가기: { $applied }. 건너뜀: { $skipped }(출력에 표시).
 shortcuts-import-skipped = Animate 바로 가기에서 건너뜀: { $line }
 shortcuts-import-refused = Animate 바로 가기 파일을 읽지 못했습니다: { $reason }
+palette-hint = 명령, ID 또는 키
+palette-none = 일치하는 명령이 없습니다.

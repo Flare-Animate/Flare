@@ -23,6 +23,7 @@ mod background_work;
 mod chords;
 mod close_prompt;
 mod command_labels;
+mod command_palette;
 mod commands;
 mod core;
 mod dock;
@@ -303,6 +304,7 @@ pub struct Workspace {
     /// The keyboard shortcuts in force, and the editor's state.
     shortcuts: flare_menubar::ShortcutMap,
     shortcut_editor: shortcut_editor::ShortcutEditor,
+    palette: command_palette::Palette,
     slot_drag: Option<&'static str>,
     /// The Text tool's settings and the text being typed.
     text: groups::TextTool,
@@ -449,6 +451,7 @@ impl Workspace {
             pinned_tools: Vec::new(),
             shortcuts: flare_menubar::ShortcutMap::default(),
             shortcut_editor: shortcut_editor::ShortcutEditor::default(),
+            palette: command_palette::Palette::default(),
             slot_drag: None,
             text: groups::TextTool::default(),
             paint: groups::Paint::default(),

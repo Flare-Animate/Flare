@@ -126,6 +126,20 @@ fn key_word(accel: &Accelerator, word: &str) -> bool {
 }
 
 impl ShortcutMap {
+    /// Every command that answers `query`, whether it has keys or not, in the menu's order: what
+    /// the command palette lists. `name` gives each one's name in the person's language.
+    pub fn find_commands(
+        &self,
+        query: &str,
+        name: impl Fn(MenuAction) -> String,
+    ) -> Vec<MenuAction> {
+        let query = ShortcutQuery::parse(query);
+        MenuAction::ALL
+            .into_iter()
+            .filter(|action| query.matches(&name(*action), &action.id(), self.get(*action)))
+            .collect()
+    }
+
     /// The commands the shortcut list shows (those with keys now, or keys of their own in a set,
     /// or a tool letter) that answer `query`, with `name` giving each one's name in the
     /// person's language, in the menu's order.

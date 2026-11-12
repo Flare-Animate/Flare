@@ -18,3 +18,5 @@ shortcuts-import-animate = Импорт из Animate…
 shortcuts-imported = Сочетания клавиш из Animate: { $applied }. Пропущено: { $skipped }, список в «Выводе».
 shortcuts-import-skipped = Пропущено из сочетаний Animate: { $line }
 shortcuts-import-refused = Файл сочетаний клавиш Animate не прочитан: { $reason }
+palette-hint = Команда, её id или клавиши
+palette-none = Нет подходящих команд.

@@ -18,3 +18,5 @@ shortcuts-import-animate = 从 Animate 导入…
 shortcuts-imported = 从 Animate 采用的快捷键：{ $applied }。已跳过：{ $skipped }，列在“输出”中。
 shortcuts-import-skipped = 从 Animate 快捷键中跳过：{ $line }
 shortcuts-import-refused = 未读取 Animate 的快捷键文件：{ $reason }
+palette-hint = 命令、ID 或按键
+palette-none = 没有匹配的命令。

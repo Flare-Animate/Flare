@@ -18,3 +18,5 @@ shortcuts-import-animate = Aus Animate importieren…
 shortcuts-imported = Aus Animate übernommene Tastaturbefehle: { $applied }. Übersprungen: { $skipped }, aufgeführt in der Ausgabe.
 shortcuts-import-skipped = Aus den Animate-Tastaturbefehlen übersprungen: { $line }
 shortcuts-import-refused = Die Tastaturbefehl-Datei von Animate wurde nicht gelesen: { $reason }
+palette-hint = Ein Befehl, seine ID oder seine Tasten
+palette-none = Kein Befehl passt.

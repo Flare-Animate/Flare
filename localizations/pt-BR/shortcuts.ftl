@@ -18,3 +18,5 @@ shortcuts-import-animate = Importar do Animate…
 shortcuts-imported = Atalhos trazidos do Animate: { $applied }. Ignorados: { $skipped }, listados em Saída.
 shortcuts-import-skipped = Ignorado dos atalhos do Animate: { $line }
 shortcuts-import-refused = O arquivo de atalhos do Animate não foi lido: { $reason }
+palette-hint = Um comando, seu id ou suas teclas
+palette-none = Nenhum comando corresponde.

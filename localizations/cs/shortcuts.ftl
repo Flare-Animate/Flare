@@ -18,3 +18,5 @@ shortcuts-import-animate = Importovat z Animate…
 shortcuts-imported = Zkratky převzaté z Animate: { $applied }. Přeskočeno: { $skipped }, vypsáno ve Výstupu.
 shortcuts-import-skipped = Přeskočeno ze zkratek Animate: { $line }
 shortcuts-import-refused = Soubor zkratek Animate nebyl načten: { $reason }
+palette-hint = Příkaz, jeho id nebo klávesy
+palette-none = Žádný příkaz neodpovídá.
