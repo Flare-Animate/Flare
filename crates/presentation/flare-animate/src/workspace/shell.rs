@@ -10,24 +10,27 @@ impl Workspace {
 
     /// The current panel arrangement as JSON, for saving between sessions.
     pub fn layout_json(&self) -> Result<String, serde_json::Error> {
-        flare_dock::to_json(&self.layout)
+        flare_dock::to_json(&self.panels.layout)
     }
 
     /// Restores a saved arrangement. An unusable one is refused and the current layout is
     /// kept, so a stale or damaged file can never leave the workspace without a panel.
     pub fn restore_layout(&mut self, json: &str) -> Result<(), LayoutError> {
-        self.layout = flare_dock::from_json(json)?;
+        self.panels.layout = flare_dock::from_json(json)?;
+        self.panels.flyout = None;
         Ok(())
     }
 
     /// Back to the default arrangement. Never touches the document.
     pub fn reset_layout(&mut self) {
-        self.layout = flare_dock::default_tree();
+        self.panels.layout = flare_dock::default_layout();
+        self.panels.flyout = None;
     }
 
     /// Switch to a named layout profile. Never touches the document.
     pub fn set_layout_profile(&mut self, profile: flare_dock::LayoutProfile) {
-        self.layout = flare_dock::profile_tree(profile);
+        self.panels.layout = flare_dock::profile_tree(profile);
+        self.panels.flyout = None;
     }
 
     // ---- menu actions ----------------------------------------------------------------
@@ -59,9 +62,16 @@ impl Workspace {
         self.session.document()
     }
 
-    /// Brings a panel's tab to the front of its stack.
+    /// Brings a panel's tab to the front of its stack, or opens it beside the strip when it is
+    /// kept there.
     pub(super) fn show_pane(&mut self, pane: Pane) {
-        self.layout
+        if self.panels.layout.in_strip(pane) {
+            self.panels.flyout = Some(pane);
+            return;
+        }
+        self.panels
+            .layout
+            .tree
             .make_active(|_, tile| matches!(tile, egui_tiles::Tile::Pane(p) if *p == pane));
     }
 }

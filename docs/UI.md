@@ -90,7 +90,7 @@ Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font Licens
 
 ## Default layout
 
-Left to right: the tool strip, the stage with the Timeline and Output tabs under it, and one stack of tabs (Properties, Library, Color, Align, Transform, History, Info). As in Animate, that stack runs the window's whole height and the timeline sits under the stage alone, so a long Properties panel is not cut short. A layout saved with the timeline running under the stack opens as this default. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
+Left to right: the tool strip, the stage with the Timeline and Output tabs under it, one stack of tabs (Properties, Library and Assets, as Animate's Essentials has them), and the icon strip at the right edge. As in Animate, the stack runs the window's whole height and the timeline sits under the stage alone, so a long Properties panel is not cut short. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front, or opens it beside the strip when it is kept there. Any docked panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement. A layout saved with the timeline running under the stack opens as this default; one saved before the strip existed opens with every panel docked where it was.
 
 An Interface switcher sits at the top right, left of the gear, where Animate has its workspace switcher. It will switch between whole interfaces; for now it is a dimmed button, and Window > Interfaces is a dimmed entry.
 
@@ -230,12 +230,20 @@ Limit rotation with Min and Max, Remove bone (that bone and the ones below it go
 stay where they are) and Release armature (plain instances again, where the pose put them). Each
 change is one undo step.
 
-## Panel rail
+## Icon strip
 
-A narrow bar at the right edge, like Animate's collapsed panel strip, has an icon for each panel
-of the right-hand stack: Properties, Library, Layers, Color, Align, Transform, History and Info. Clicking one
-brings that panel to the front of its stack; the one showing is highlighted. It is a shortcut to what
-the tabs and Window menu already do, so no panel moves or closes. It is not shown on Home.
+The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
+kept there, by default Layers, Color, Align, Transform, Info, History, Motion Editor and Find and
+Replace. A click opens that panel beside the strip, 300 px wide and level with its icon, over the
+stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
+a press on the stage or another panel puts it away (a list or picker the panel opened does not).
+Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
+collapse it. A docked panel goes the other way from the collapse button at the right of its
+stack's tabs, or Collapse to icon on its tab's right-click menu; it is added at the end of the
+strip. The tool strip, the stage, the timeline and Output always stay docked. Where each panel is
+(docked or in the strip, and the strip's order) is saved with the layout (`flare_dock::Layout`),
+and a layout file that has a panel twice, none at all, or the stage in the strip is refused. The
+strip is not shown on Home.
 
 The Layers panel is a compact stack for the active scene: click a row to choose its layer, double
 click its name to rename it, and use the eye and lock controls to change visibility and editing.

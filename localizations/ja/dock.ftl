@@ -14,3 +14,5 @@ pane-output = 出力
 pane-motion-editor = モーションエディタ
 pane-find-replace = 検索と置換
 pane-assets = アセット
+strip-collapse-to-icon = アイコンに折りたたむ
+strip-dock = パネルにドッキング

@@ -14,3 +14,5 @@ pane-output = 输出
 pane-motion-editor = 运动编辑器
 pane-find-replace = 查找和替换
 pane-assets = 资源
+strip-collapse-to-icon = 折叠为图标
+strip-dock = 停靠到面板

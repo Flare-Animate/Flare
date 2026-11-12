@@ -14,3 +14,5 @@ pane-output = Ausgabe
 pane-motion-editor = Bewegungseditor
 pane-find-replace = Suchen und Ersetzen
 pane-assets = Ressourcen
+strip-collapse-to-icon = Zu Symbol minimieren
+strip-dock = Bei den Bedienfeldern andocken

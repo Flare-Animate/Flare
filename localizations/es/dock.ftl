@@ -14,3 +14,5 @@ pane-output = Salida
 pane-motion-editor = Editor de movimiento
 pane-find-replace = Buscar y reemplazar
 pane-assets = Recursos
+strip-collapse-to-icon = Contraer a icono
+strip-dock = Acoplar con los paneles

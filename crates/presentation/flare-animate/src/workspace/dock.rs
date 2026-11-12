@@ -2,6 +2,8 @@
 
 use flare_dock::Pane;
 
+use super::rail::PanelChange;
+
 use super::*;
 
 /// Height of a stack's row of tabs, and the size of the names in it.
@@ -20,44 +22,53 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         _tile: egui_tiles::TileId,
         pane: &mut Pane,
     ) -> egui_tiles::UiResponse {
-        // The stage and the timeline use their whole area; every other panel keeps its content
-        // off the edge.
-        let (horizontal, vertical) = flare_ui::theme::PANEL_PADDING;
-        let inset = egui::Frame::new().inner_margin(egui::Margin::symmetric(horizontal, vertical));
-        match pane {
-            Pane::Stage => self.workspace.stage(ui),
-            Pane::Timeline => self.workspace.timeline(ui),
-            Pane::Library => inset.show(ui, |ui| self.workspace.library_panel(ui)).inner,
-            Pane::Layers => inset.show(ui, |ui| self.workspace.layers_panel(ui)).inner,
-            Pane::Tools => self.workspace.tools_panel(ui),
-            Pane::Properties => {
-                inset
-                    .show(ui, |ui| self.workspace.properties_panel(ui))
-                    .inner
-            }
-            Pane::Color => inset.show(ui, |ui| self.workspace.color_panel(ui)).inner,
-            Pane::Align => inset.show(ui, |ui| self.workspace.align_panel(ui)).inner,
-            Pane::Transform => {
-                inset
-                    .show(ui, |ui| self.workspace.transform_panel(ui))
-                    .inner
-            }
-            Pane::History => inset.show(ui, |ui| self.workspace.history_panel(ui)).inner,
-            Pane::Info => inset.show(ui, |ui| self.workspace.info_panel(ui)).inner,
-            Pane::Output => inset.show(ui, |ui| self.workspace.output_panel(ui)).inner,
-            Pane::MotionEditor => {
-                inset
-                    .show(ui, |ui| self.workspace.motion_editor_panel(ui))
-                    .inner
-            }
-            Pane::FindReplace => {
-                inset
-                    .show(ui, |ui| self.workspace.find_replace_panel(ui))
-                    .inner
-            }
-            Pane::Assets => inset.show(ui, |ui| self.workspace.assets_panel(ui)).inner,
-        }
+        self.workspace.pane_contents(ui, *pane);
         egui_tiles::UiResponse::None
+    }
+
+    /// A right click on the tab of a panel that can be kept in the strip offers to put it there.
+    fn on_tab_button(
+        &mut self,
+        tiles: &mut egui_tiles::Tiles<Pane>,
+        tile_id: egui_tiles::TileId,
+        button_response: egui::Response,
+    ) -> egui::Response {
+        let Some(egui_tiles::Tile::Pane(pane)) = tiles.get(tile_id) else {
+            return button_response;
+        };
+        let pane = *pane;
+        if pane.can_collapse() {
+            let label = self.workspace.tr("strip-collapse-to-icon");
+            button_response.context_menu(|ui| {
+                if ui.button(label).clicked() {
+                    self.workspace.panels.change = Some(PanelChange::Collapse(pane));
+                    ui.close();
+                }
+            });
+        }
+        button_response
+    }
+
+    /// At the right of a stack's tabs, as Animate's panel groups have it: put the panel in front
+    /// into the strip.
+    fn top_bar_right_ui(
+        &mut self,
+        tiles: &egui_tiles::Tiles<Pane>,
+        ui: &mut egui::Ui,
+        _tile_id: egui_tiles::TileId,
+        tabs: &egui_tiles::Tabs,
+        _scroll_offset: &mut f32,
+    ) {
+        let Some(egui_tiles::Tile::Pane(pane)) = tabs.active.and_then(|a| tiles.get(a)) else {
+            return;
+        };
+        if !pane.can_collapse() {
+            return;
+        }
+        let hint = self.workspace.tr("strip-collapse-to-icon");
+        if flare_ui::chrome::icon_button(ui, "panel-collapse", 14.0, false, true, &hint).clicked() {
+            self.workspace.panels.change = Some(PanelChange::Collapse(*pane));
+        }
     }
 
     // Panel tabs are labels, smaller than the panel's own text, so the panel reads first.
@@ -117,6 +128,32 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
             flare_ui::theme::text()
         } else {
             flare_ui::theme::text_dim()
+        }
+    }
+}
+
+impl Workspace {
+    /// What a panel shows, docked or open beside the strip. The stage and the timeline use their
+    /// whole area; every other panel keeps its content off the edge.
+    pub(super) fn pane_contents(&mut self, ui: &mut egui::Ui, pane: Pane) {
+        let (horizontal, vertical) = flare_ui::theme::PANEL_PADDING;
+        let inset = egui::Frame::new().inner_margin(egui::Margin::symmetric(horizontal, vertical));
+        match pane {
+            Pane::Stage => self.stage(ui),
+            Pane::Timeline => self.timeline(ui),
+            Pane::Tools => self.tools_panel(ui),
+            Pane::Library => inset.show(ui, |ui| self.library_panel(ui)).inner,
+            Pane::Layers => inset.show(ui, |ui| self.layers_panel(ui)).inner,
+            Pane::Properties => inset.show(ui, |ui| self.properties_panel(ui)).inner,
+            Pane::Color => inset.show(ui, |ui| self.color_panel(ui)).inner,
+            Pane::Align => inset.show(ui, |ui| self.align_panel(ui)).inner,
+            Pane::Transform => inset.show(ui, |ui| self.transform_panel(ui)).inner,
+            Pane::History => inset.show(ui, |ui| self.history_panel(ui)).inner,
+            Pane::Info => inset.show(ui, |ui| self.info_panel(ui)).inner,
+            Pane::Output => inset.show(ui, |ui| self.output_panel(ui)).inner,
+            Pane::MotionEditor => inset.show(ui, |ui| self.motion_editor_panel(ui)).inner,
+            Pane::FindReplace => inset.show(ui, |ui| self.find_replace_panel(ui)).inner,
+            Pane::Assets => inset.show(ui, |ui| self.assets_panel(ui)).inner,
         }
     }
 }

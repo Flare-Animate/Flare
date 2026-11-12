@@ -14,3 +14,5 @@ pane-output = Вывод
 pane-motion-editor = Редактор движения
 pane-find-replace = Поиск и замена
 pane-assets = Ресурсы
+strip-collapse-to-icon = Свернуть в значок
+strip-dock = Закрепить на панели

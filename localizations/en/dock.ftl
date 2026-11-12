@@ -14,3 +14,5 @@ pane-output = Output
 pane-motion-editor = Motion Editor
 pane-find-replace = Find and Replace
 pane-assets = Assets
+strip-collapse-to-icon = Collapse to icon
+strip-dock = Dock with the panels

@@ -40,10 +40,7 @@ impl Workspace {
         self.window_maximized = from.window_maximized;
         self.recovery.dir = from.recovery.dir.take();
         self.apply_preferences(&from.preferences());
-        self.layout = std::mem::replace(
-            &mut from.layout,
-            egui_tiles::Tree::empty(egui::Id::unique("taken")),
-        );
+        self.panels = std::mem::take(&mut from.panels);
         self.onion = from.onion;
         // Whatever was playing belonged to the old project.
         self.audio.events = std::mem::take(&mut from.audio.events);

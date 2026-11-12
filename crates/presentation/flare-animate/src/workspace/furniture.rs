@@ -71,14 +71,18 @@ impl Workspace {
                     return;
                 }
                 // The dock needs `&mut self` to draw panel contents, so take it out while it runs.
-                let mut layout = std::mem::replace(
-                    &mut self.layout,
+                let mut tree = std::mem::replace(
+                    &mut self.panels.layout.tree,
                     egui_tiles::Tree::empty(egui::Id::unique("taken")),
                 );
-                layout.ui(&mut Dock { workspace: self }, ui);
-                self.layout = layout;
+                tree.ui(&mut Dock { workspace: self }, ui);
+                self.panels.layout.tree = tree;
+                self.apply_panel_change();
             });
 
+        if self.document_controls_shown() {
+            self.panel_flyout(&ctx);
+        }
         self.preferences_window(&ctx);
         self.publish_window(&ctx);
         self.increment_instances_window(&ctx);

@@ -14,3 +14,5 @@ pane-output = Uscita
 pane-motion-editor = Editor del movimento
 pane-find-replace = Trova e sostituisci
 pane-assets = Risorse
+strip-collapse-to-icon = Comprimi in icona
+strip-dock = Ancora ai pannelli

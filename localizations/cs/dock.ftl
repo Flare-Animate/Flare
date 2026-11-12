@@ -14,3 +14,5 @@ pane-output = Výstup
 pane-motion-editor = Editor pohybu
 pane-find-replace = Najít a nahradit
 pane-assets = Prostředky
+strip-collapse-to-icon = Sbalit na ikonu
+strip-dock = Ukotvit k panelům

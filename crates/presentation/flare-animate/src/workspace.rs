@@ -250,8 +250,8 @@ pub struct Workspace {
     close_prompt: Option<usize>,
     /// The document on show is closed once the save asked for by the prompt has been written.
     close_after_save: bool,
-    /// The dockable panel arrangement.
-    layout: egui_tiles::Tree<Pane>,
+    /// The panel arrangement, the panel open beside the strip, and changes asked for while drawn.
+    panels: rail::Panels,
     onion: OnionSkin,
     test_movie_requested: bool,
     /// The pen tool's path while it is being drawn.
@@ -407,7 +407,7 @@ impl Workspace {
             tab_plus: egui::Rect::NOTHING,
             close_prompt: None,
             close_after_save: false,
-            layout: flare_dock::default_tree(),
+            panels: rail::Panels::default(),
             onion: OnionSkin {
                 enabled: false,
                 before: 1,

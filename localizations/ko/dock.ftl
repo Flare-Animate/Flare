@@ -14,3 +14,5 @@ pane-output = 출력
 pane-motion-editor = 모션 에디터
 pane-find-replace = 찾기 및 바꾸기
 pane-assets = 에셋
+strip-collapse-to-icon = 아이콘으로 축소
+strip-dock = 패널에 도킹
