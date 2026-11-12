@@ -98,6 +98,7 @@ menu-item-tool-line = 线条
 menu-item-tool-pen = 钢笔
 menu-item-tool-text = 文本
 menu-item-tool-hand = 手形
+menu-item-tool-rotate-view = 旋转
 menu-item-tool-zoom = 缩放
 menu-item-tool-eyedropper = 滴管
 menu-item-tool-bucket = 颜料桶

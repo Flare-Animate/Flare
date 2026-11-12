@@ -11,6 +11,7 @@ fn every_tool_is_in_exactly_one_slot_and_the_strip_has_categories() {
         Tool::Pen,
         Tool::Text,
         Tool::Hand,
+        Tool::RotateView,
         Tool::Zoom,
         Tool::Eyedropper,
         Tool::Bucket,
@@ -186,18 +187,16 @@ fn subselection_is_in_the_selection_slot_and_the_strip_has_animates_other_tools(
     ] {
         assert!(names.contains(&name), "{name} is in the strip's lists");
     }
+    // The Rotation tool sits under the Hand, as in Animate, and is built.
+    let hand = slots
+        .iter()
+        .find(|slot| slot[0].tool == Some(Tool::Hand))
+        .expect("the Hand's slot");
+    assert_eq!(hand[1].tool, Some(Tool::RotateView));
     // Those not built are marked so, never selectable.
     for slot in &slots {
         for v in slot.iter() {
-            if [
-                "Asset Warp",
-                "Rotation",
-                "Time scrub",
-                "Paint Brush",
-                "Width",
-            ]
-            .contains(&v.name)
-            {
+            if ["Asset Warp", "Time scrub", "Paint Brush", "Width"].contains(&v.name) {
                 assert!(v.tool.is_none(), "{} is not built", v.name);
             }
         }

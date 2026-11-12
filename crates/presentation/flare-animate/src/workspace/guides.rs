@@ -75,11 +75,15 @@ impl Workspace {
     }
 
     /// Draws the guides and handles pulling them out of, moving them along and returning them
-    /// to the rulers. `image` is the stage's rectangle on screen.
+    /// to the rulers. `image` is the stage's rectangle on screen. While the view is turned the
+    /// guides turn with the stage and still snap, but are not dragged: the rulers run along the
+    /// screen and no longer along them.
     pub(super) fn stage_guides(&mut self, ui: &mut egui::Ui, panel: Rect, image: Rect, scale: f32) {
         let top = Rect::from_min_size(panel.min, Vec2::new(panel.width(), RULER));
         let left = Rect::from_min_size(panel.min, Vec2::new(RULER, panel.height()));
-        if self.display.show_rulers {
+        let turned = self.stage_view.is_turned();
+        let reach = self.stage_view.upright_reach(panel);
+        if self.display.show_rulers && !turned {
             let ids = (
                 ui.make_persistent_id("guide-top"),
                 ui.make_persistent_id("guide-left"),
@@ -125,9 +129,12 @@ impl Workspace {
                 )
             };
             if guide.vertical {
-                painter.vline(screen, panel.y_range(), ink);
+                painter.vline(screen, reach.y_range(), ink);
             } else {
-                painter.hline(panel.x_range(), screen, ink);
+                painter.hline(reach.x_range(), screen, ink);
+            }
+            if turned {
+                continue;
             }
             let grip = ui.interact(band, ui.make_persistent_id(("guide", index)), Sense::drag());
             if grip.hovered() || grip.dragged() {

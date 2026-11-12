@@ -169,10 +169,9 @@ impl Workspace {
         let caret = preview.caret;
         let top = to_screen(Pos2::new(caret.x, caret.y));
         let stroke = Stroke::new(1.0, flare_ui::theme::accent());
-        let painter = ctx.layer_painter(egui::LayerId::new(
-            egui::Order::Foreground,
-            self.text.editor_id.with("cursor"),
-        ));
+        let layer = egui::LayerId::new(egui::Order::Foreground, self.text.editor_id.with("cursor"));
+        let painter = ctx.layer_painter(layer);
+        let turned_from = flare_ui::view::turn::painted_so_far(ctx, layer);
         // The box is the letters' bounds; with none yet it is a small one at the caret.
         let letters = preview.shape.as_ref().and_then(ops::shape_bounds);
         let around = letters.map_or_else(
@@ -194,5 +193,9 @@ impl Workspace {
                 Stroke::new(1.5, flare_ui::theme::accent()),
             );
         }
+        // Drawn upright like the stage under it, and turned with it.
+        let panel = self.stage_panel;
+        let angle = self.stage_view.rotation();
+        flare_ui::view::turn::turn_painted(ctx, layer, turned_from, panel.center(), angle);
     }
 }

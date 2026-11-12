@@ -106,6 +106,7 @@ impl Workspace {
         // Ctrl, Alt and F-key commands come from the shortcut map, so a rebinding moves them. With
         // a native menu bar the menu owns them and nothing runs here (applying twice).
         self.press_command_chords(ctx);
+        self.watch_rotation_tap(ctx);
         self.press_zoom_plus(ctx);
         let typing = ctx.egui_wants_keyboard_input();
         // Letters pick tools, but only when nothing is being typed and no modifier is held, so

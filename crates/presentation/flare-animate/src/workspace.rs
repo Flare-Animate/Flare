@@ -46,6 +46,7 @@ mod layers;
 mod open_any;
 mod outlines;
 mod panels;
+mod pen_overlay;
 mod place;
 mod playback;
 mod preferences;
@@ -175,6 +176,8 @@ pub struct Workspace {
     lasso: Vec<Pos2>,
     /// The Magic Wand's settings and the pixels it has picked.
     wand: tools::magic_wand::WandTool,
+    /// The Rotation tool's drag, its dial and the Alt tap that opens it.
+    rotate: tools::rotate_view::RotateView,
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
     freehand: Vec<InputSample>,
     /// The Brush's stabilizer for the stroke being drawn, if it has one.
@@ -364,6 +367,7 @@ impl Workspace {
             poly_inner: 0.5,
             lasso: Vec::new(),
             wand: Default::default(),
+            rotate: Default::default(),
             freehand: Vec::new(),
             stabilizer: None,
             pen_feed: PenFeed::default(),

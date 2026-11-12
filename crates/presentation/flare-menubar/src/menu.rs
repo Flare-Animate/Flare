@@ -283,6 +283,7 @@ pub const OFF_MENU: &[MenuAction] = &[
     A::ToolPen,
     A::ToolText,
     A::ToolHand,
+    A::ToolRotateView,
     A::ToolZoom,
     A::ToolEyedropper,
     A::ToolBucket,

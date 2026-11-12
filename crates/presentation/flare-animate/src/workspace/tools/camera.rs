@@ -171,7 +171,8 @@ impl Workspace {
                 response.interact_pointer_pos(),
             )
         {
-            self.pan_camera((to - from) / scale.max(f32::EPSILON));
+            let moved = self.stage_view.unturn_vec(to - from);
+            self.pan_camera(moved / scale.max(f32::EPSILON));
         }
         false
     }

@@ -23,6 +23,7 @@ impl Workspace {
             self.finish_text_for_tool_change();
             self.wand_drop();
             self.tool = tool;
+            self.rotate_view_tool_changed(tool);
             if tool == Tool::Camera {
                 self.ensure_camera();
             }

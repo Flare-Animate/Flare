@@ -98,6 +98,7 @@ menu-item-tool-line = Линия
 menu-item-tool-pen = Перо
 menu-item-tool-text = Текст
 menu-item-tool-hand = Рука
+menu-item-tool-rotate-view = Вращение
 menu-item-tool-zoom = Масштаб
 menu-item-tool-eyedropper = Пипетка
 menu-item-tool-bucket = Заливка

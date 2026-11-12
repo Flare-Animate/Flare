@@ -17,6 +17,7 @@ use glamx::{DAffine2, DVec2};
 use std::num::NonZeroU32;
 use std::path::PathBuf;
 
+mod rotate_view;
 mod sound_helpers;
 use sound_helpers::{drain_audio, wav_file};
 

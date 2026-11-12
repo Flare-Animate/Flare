@@ -122,6 +122,12 @@ impl Workspace {
         let fill = flare_ui::theme::panel_raised().gamma_multiply(0.92);
         painter.rect_filled(top, 0.0, fill);
         painter.rect_filled(left, 0.0, fill);
+        let corner = Rect::from_min_size(panel.min, Vec2::splat(THICKNESS));
+        // Turned, the stage's axes no longer run along the rulers, so numbers would mislead.
+        if self.stage_view.is_turned() {
+            painter.rect_filled(corner, 0.0, flare_ui::theme::panel_raised());
+            return;
+        }
         let tick = Stroke::new(1.0, flare_ui::theme::text_disabled());
         let font = FontId::monospace(9.0);
         for t in flare_ui::view::ruler_ticks(
@@ -162,11 +168,7 @@ impl Workspace {
                 );
             }
         }
-        painter.rect_filled(
-            Rect::from_min_size(panel.min, Vec2::splat(THICKNESS)),
-            0.0,
-            flare_ui::theme::panel_raised(),
-        );
+        painter.rect_filled(corner, 0.0, flare_ui::theme::panel_raised());
     }
 
     /// How wide one frame is drawn in the timeline now, in points.

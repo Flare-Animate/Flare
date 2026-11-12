@@ -112,6 +112,7 @@ impl Workspace {
             | MenuAction::ToolPen
             | MenuAction::ToolText
             | MenuAction::ToolHand
+            | MenuAction::ToolRotateView
             | MenuAction::ToolZoom
             | MenuAction::ToolEyedropper
             | MenuAction::ToolBucket
@@ -271,6 +272,7 @@ impl Workspace {
             MenuAction::ToolPen => self.set_tool(Tool::Pen),
             MenuAction::ToolText => self.set_tool(Tool::Text),
             MenuAction::ToolHand => self.set_tool(Tool::Hand),
+            MenuAction::ToolRotateView => self.set_tool(Tool::RotateView),
             MenuAction::ToolZoom => self.set_tool(Tool::Zoom),
             MenuAction::ToolEyedropper => self.set_tool(Tool::Eyedropper),
             MenuAction::ToolBucket => self.set_tool(Tool::Bucket),

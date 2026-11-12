@@ -66,6 +66,8 @@ pub enum MenuAction {
     ToolPen,
     ToolText,
     ToolHand,
+    /// Turn the stage view; a tap of Alt (Option) alone picks it and shows its dial.
+    ToolRotateView,
     ToolZoom,
     ToolEyedropper,
     ToolBucket,
@@ -157,7 +159,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 128] = [
+    pub const ALL: [MenuAction; 129] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -200,6 +202,7 @@ impl MenuAction {
         Self::ToolPen,
         Self::ToolText,
         Self::ToolHand,
+        Self::ToolRotateView,
         Self::ToolZoom,
         Self::ToolEyedropper,
         Self::ToolBucket,

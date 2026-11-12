@@ -44,7 +44,11 @@ impl Workspace {
         let Some(edit) = self.text.edit.as_mut() else {
             return;
         };
-        let at = image_rect.min + edit.at.to_vec2() * scale;
+        // The field only takes the typing, so on a turned stage it sits where the text's corner
+        // shows and stays upright.
+        let at = self
+            .stage_view
+            .turn_point(self.stage_panel, image_rect.min + edit.at.to_vec2() * scale);
         // Read before the field is drawn: a multi-line field takes every Enter, Ctrl+Enter too, so
         // afterwards the key would be gone.
         let finish = ctx.input_mut(|i| {

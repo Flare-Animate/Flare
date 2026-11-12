@@ -98,6 +98,7 @@ menu-item-tool-line = Linie
 menu-item-tool-pen = Zeichenstift
 menu-item-tool-text = Text
 menu-item-tool-hand = Hand
+menu-item-tool-rotate-view = Drehen
 menu-item-tool-zoom = Zoom
 menu-item-tool-eyedropper = Pipette
 menu-item-tool-bucket = Farbeimer

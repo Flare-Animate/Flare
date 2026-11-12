@@ -11,6 +11,8 @@ pub enum Tool {
     Text,
     /// Drag to pan the stage.
     Hand,
+    /// Drag to turn the view of the stage; the document does not change.
+    RotateView,
     /// Click to zoom in, Alt-click to zoom out.
     Zoom,
     /// Click a shape to take its fill (Shift: its stroke) as the current color.

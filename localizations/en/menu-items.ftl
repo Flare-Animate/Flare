@@ -98,6 +98,7 @@ menu-item-tool-line = Line
 menu-item-tool-pen = Pen
 menu-item-tool-text = Text
 menu-item-tool-hand = Hand
+menu-item-tool-rotate-view = Rotation
 menu-item-tool-zoom = Zoom
 menu-item-tool-eyedropper = Eyedropper
 menu-item-tool-bucket = Paint Bucket

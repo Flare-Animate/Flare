@@ -22,6 +22,7 @@ const SAME_AS_ENGLISH: &[(&str, &str)] = &[
     ("de", "menu-item-play-pause-on"),
     ("fr", "menu-item-tool-ellipse"),
     ("fr", "menu-item-tool-zoom"),
+    ("fr", "menu-item-tool-rotate-view"),
     ("fr", "menu-item-tool-lasso"),
     ("fr", "menu-help-version"),
     ("fr", "menu-item-tool-rectangle"),

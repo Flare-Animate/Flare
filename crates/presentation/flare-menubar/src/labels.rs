@@ -256,6 +256,7 @@ impl MenuAction {
             Self::ToolPen => "menu-item-tool-pen",
             Self::ToolText => "menu-item-tool-text",
             Self::ToolHand => "menu-item-tool-hand",
+            Self::ToolRotateView => "menu-item-tool-rotate-view",
             Self::ToolZoom => "menu-item-tool-zoom",
             Self::ToolEyedropper => "menu-item-tool-eyedropper",
             Self::ToolBucket => "menu-item-tool-bucket",

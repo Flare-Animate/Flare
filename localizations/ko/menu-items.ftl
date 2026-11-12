@@ -98,6 +98,7 @@ menu-item-tool-line = 선
 menu-item-tool-pen = 펜
 menu-item-tool-text = 텍스트
 menu-item-tool-hand = 손
+menu-item-tool-rotate-view = 회전
 menu-item-tool-zoom = 확대/축소
 menu-item-tool-eyedropper = 스포이드
 menu-item-tool-bucket = 페인트 통

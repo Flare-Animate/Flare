@@ -98,6 +98,7 @@ menu-item-tool-line = Linha
 menu-item-tool-pen = Caneta
 menu-item-tool-text = Texto
 menu-item-tool-hand = Mão
+menu-item-tool-rotate-view = Rotação
 menu-item-tool-zoom = Zoom
 menu-item-tool-eyedropper = Conta-gotas
 menu-item-tool-bucket = Balde de tinta

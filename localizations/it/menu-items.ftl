@@ -98,6 +98,7 @@ menu-item-tool-line = Linea
 menu-item-tool-pen = Penna
 menu-item-tool-text = Testo
 menu-item-tool-hand = Mano
+menu-item-tool-rotate-view = Angolo
 menu-item-tool-zoom = Ingrandimento
 menu-item-tool-eyedropper = Contagocce
 menu-item-tool-bucket = Secchiello

@@ -98,6 +98,7 @@ menu-item-tool-line = Čára
 menu-item-tool-pen = Pero
 menu-item-tool-text = Textový nástroj
 menu-item-tool-hand = Ruka
+menu-item-tool-rotate-view = Otočení
 menu-item-tool-zoom = Lupa
 menu-item-tool-eyedropper = Kapátko
 menu-item-tool-bucket = Výplň

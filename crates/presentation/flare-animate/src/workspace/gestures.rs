@@ -24,6 +24,7 @@ impl Workspace {
             // The pen builds a path point by point; see `pen_press`.
             Tool::Pen | Tool::Text => None,
             Tool::Hand
+            | Tool::RotateView
             | Tool::Zoom
             | Tool::Eyedropper
             | Tool::Bucket

@@ -82,6 +82,7 @@ impl MenuAction {
             Self::ToolPen => "P",
             Self::ToolText => "T",
             Self::ToolHand => "H",
+            Self::ToolRotateView => "D",
             Self::ToolZoom => "Z",
             Self::ToolEyedropper => "I",
             Self::ToolBucket => "K",
@@ -147,6 +148,7 @@ impl MenuAction {
             | Self::TextLarger
             | Self::TextSmaller => "tool-text",
             Self::ToolHand => "tool-hand",
+            Self::ToolRotateView => "tool-rotate-view",
             Self::ToolZoom => "tool-zoom",
             Self::ToolEyedropper => "tool-eyedropper",
             Self::ToolBucket => "tool-bucket",

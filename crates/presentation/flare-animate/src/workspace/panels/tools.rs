@@ -92,6 +92,7 @@ impl Workspace {
             Tool::Pen => "tool-pen",
             Tool::Text => "tool-text",
             Tool::Hand => "tool-hand",
+            Tool::RotateView => "tool-rotate-view",
             Tool::Zoom => "tool-zoom",
             Tool::Eyedropper => "tool-eyedropper",
             Tool::Bucket => "tool-bucket",
@@ -142,6 +143,7 @@ impl Workspace {
             Tool::Hand => {
                 ui.weak(tr!(self, "tools-help-hand"));
             }
+            Tool::RotateView => self.rotate_view_options(ui),
             Tool::Zoom => {
                 ui.weak(tr!(self, "tools-help-zoom"));
             }
@@ -244,6 +246,7 @@ impl Workspace {
             Tool::Pen => "tools-status-pen",
             Tool::Text => "tools-status-text",
             Tool::Hand => "tools-status-hand",
+            Tool::RotateView => "tools-status-rotate-view",
             Tool::Zoom => "tools-status-zoom",
             Tool::Eyedropper => "tools-status-eyedropper",
             Tool::Bucket => "tools-status-bucket",

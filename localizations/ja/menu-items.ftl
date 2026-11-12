@@ -98,6 +98,7 @@ menu-item-tool-line = 線
 menu-item-tool-pen = ペン
 menu-item-tool-text = テキスト
 menu-item-tool-hand = 手のひら
+menu-item-tool-rotate-view = 回転
 menu-item-tool-zoom = ズーム
 menu-item-tool-eyedropper = スポイト
 menu-item-tool-bucket = ペイントバケット

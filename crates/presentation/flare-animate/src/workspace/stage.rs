@@ -34,6 +34,39 @@ impl Workspace {
         if response.dragged_by(egui::PointerButton::Middle) {
             self.stage_view.pan_by(response.drag_delta());
         }
+        // The stage is painted upright and turned afterwards, all of it at once; the rulers and
+        // the pointer stay as the screen has them.
+        let layer = painter.layer_id();
+        let turned_from = flare_ui::view::turn::painted_so_far(ui.ctx(), layer);
+        self.stage_body(ui, &response, &painter, extent);
+        flare_ui::view::turn::turn_painted(
+            ui.ctx(),
+            layer,
+            turned_from,
+            response.rect.center(),
+            self.stage_view.rotation(),
+        );
+        if self.display.show_rulers {
+            let scale = self.stage_view.scale(response.rect, extent);
+            let image_rect = self.stage_view.image_rect(response.rect, extent);
+            self.stage_rulers(&painter, response.rect, image_rect, scale);
+        }
+        self.rotation_dial(ui, &response);
+        self.transform_pointer(ui, &response);
+        self.tool_pointer(ui, &response);
+    }
+
+    /// Everything on the stage that turns with it: the picture, the furniture over it, and what
+    /// the tools do and draw. Points come in from the screen through the view, so a tool never
+    /// sees the turn.
+    fn stage_body(
+        &mut self,
+        ui: &mut egui::Ui,
+        response: &egui::Response,
+        painter: &egui::Painter,
+        extent: Vec2,
+    ) {
+        let response = response.clone();
         let scale = self.stage_view.scale(response.rect, extent);
         let image_rect = self.stage_view.image_rect(response.rect, extent);
         if let Some(texture) = &self.texture {
@@ -78,13 +111,12 @@ impl Workspace {
         );
 
         if self.display.show_grid {
-            self.stage_grid(&painter, response.rect, image_rect, extent, scale);
-        }
-        if self.display.show_rulers {
-            self.stage_rulers(&painter, response.rect, image_rect, scale);
+            let reach = self.stage_view.upright_reach(response.rect);
+            self.stage_grid(painter, reach, image_rect, extent, scale);
         }
         self.stage_guides(ui, response.rect, image_rect, scale);
-        self.assist_overlay(&painter, response.rect, image_rect, scale);
+        let reach = self.stage_view.upright_reach(response.rect);
+        self.assist_overlay(painter, reach, image_rect, scale);
         self.text_editor(ui.ctx(), image_rect, scale);
         self.handle_radius = 8.0 / scale.max(f32::EPSILON);
         self.uniform_scale = ui.input(|i| i.modifiers.shift);
@@ -103,8 +135,9 @@ impl Workspace {
             Vec::new()
         };
         // Guides pull points to them whether or not the grid does.
+        let (view, panel) = (self.stage_view, response.rect);
         let to_doc = |p: Pos2| {
-            let at = screen_to_stage(p, image_rect, extent);
+            let at = screen_to_stage(&view, panel, extent, p);
             guides::snap_for_drawing(at, snap, &guides, 6.0 / scale.max(f32::EPSILON))
         };
         self.pointer_stage = response.hover_pos().map(to_doc);
@@ -115,10 +148,9 @@ impl Workspace {
             self.pick_for_stage_menu(to_doc(p));
         }
         response.context_menu(|ui| self.stage_menu(ui));
-        if self.camera_stage(&response, &painter, scale, &to_screen)
-            || self.bone_stage(&response, &painter, &to_screen, &to_doc)
+        if self.camera_stage(&response, painter, scale, &to_screen)
+            || self.bone_stage(&response, painter, &to_screen, &to_doc)
         {
-            self.tool_pointer(ui, &response);
             return;
         }
         if self.tool == Tool::Text
@@ -127,6 +159,7 @@ impl Workspace {
         {
             self.text_click(to_doc(p));
         }
+        self.rotate_view_stage(ui, &response);
         if self.tool == Tool::Hand && response.dragged_by(egui::PointerButton::Primary) {
             self.stage_view.pan_by(response.drag_delta());
         }
@@ -168,7 +201,7 @@ impl Workspace {
                 self.finish_freehand(scale);
                 // The overlay above has already been drawn this frame, so the stroke that was just
                 // committed would be missing until the next one: a blink on release.
-                self.draw_settling(&painter, to_screen, scale);
+                self.draw_settling(painter, to_screen, scale);
             }
             if self.freehand.len() > 1 {
                 let strokes = self.freehand_preview(scale);
@@ -206,7 +239,7 @@ impl Workspace {
             {
                 self.polygon_lasso_click(to_doc(p), scale, additive);
             }
-            self.draw_polygon_lasso(&painter, to_screen);
+            self.draw_polygon_lasso(painter, to_screen);
         }
         if self.tool == Tool::MagicWand {
             if response.clicked()
@@ -215,7 +248,7 @@ impl Workspace {
                 let (shift, alt) = ui.input(|i| (i.modifiers.shift, i.modifiers.alt));
                 self.wand_click(to_doc(p), shift, alt);
             }
-            self.draw_wand(&painter, to_screen);
+            self.draw_wand(painter, to_screen);
         }
         if self.tool == Tool::Zoom
             && response.clicked()
@@ -285,7 +318,7 @@ impl Workspace {
             self.end_drag();
             // What a geometry tool just committed: this frame's overlay is already drawn, and
             // the drag preview is gone, so it would be missing until the next one.
-            self.draw_settling(&painter, to_screen, scale);
+            self.draw_settling(painter, to_screen, scale);
         }
         // A plain click with the select tool also selects (or clears the selection).
         if response.clicked()
@@ -320,55 +353,8 @@ impl Workspace {
             }
         }
 
-        self.stage_motion_guides(&painter, to_screen);
-        // The pen path being built: the curve so far, its points, and the dragged handles.
-        if self.pen.is_active() {
-            let ink = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));
-            let handle = Stroke::new(1.0, Color32::from_rgb(120, 120, 120));
-            let points = self.pen.points();
-            for pair in points.windows(2) {
-                let (a, b) = (pair[0], pair[1]);
-                let c1 = a.out.unwrap_or(a.anchor);
-                let c2 = b.out.map_or(b.anchor, |o| b.anchor + (b.anchor - o));
-                let steps = 20;
-                let sample = |t: f32| {
-                    let u = 1.0 - t;
-                    to_screen(Pos2::new(
-                        u * u * u * a.anchor.x
-                            + 3.0 * u * u * t * c1.x
-                            + 3.0 * u * t * t * c2.x
-                            + t * t * t * b.anchor.x,
-                        u * u * u * a.anchor.y
-                            + 3.0 * u * u * t * c1.y
-                            + 3.0 * u * t * t * c2.y
-                            + t * t * t * b.anchor.y,
-                    ))
-                };
-                let line: Vec<Pos2> = (0..=steps)
-                    .map(|i| sample(i as f32 / steps as f32))
-                    .collect();
-                painter.add(egui::Shape::line(line, ink));
-            }
-            for point in points {
-                if let Some(out) = point.out {
-                    let mirror = point.anchor + (point.anchor - out);
-                    painter.line_segment([to_screen(mirror), to_screen(out)], handle);
-                    painter.circle_filled(to_screen(out), 3.0, Color32::from_rgb(120, 120, 120));
-                }
-                let at = to_screen(point.anchor);
-                painter.rect_filled(
-                    Rect::from_center_size(at, Vec2::splat(7.0)),
-                    0.0,
-                    Color32::WHITE,
-                );
-                painter.rect_stroke(
-                    Rect::from_center_size(at, Vec2::splat(7.0)),
-                    0.0,
-                    ink,
-                    StrokeKind::Outside,
-                );
-            }
-        }
+        self.stage_motion_guides(painter, to_screen);
+        self.draw_pen_path(painter, &to_screen);
 
         let outline = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));
         // The boxes move as the artwork does, snapped to the grid if it is.
@@ -482,8 +468,6 @@ impl Workspace {
                 painter.rect_stroke(square, 0.0, outline, StrokeKind::Outside);
             }
         }
-        self.draw_drag_preview(&painter, to_screen, scale);
-        self.transform_pointer(ui, &response);
-        self.tool_pointer(ui, &response);
+        self.draw_drag_preview(painter, to_screen, scale);
     }
 }

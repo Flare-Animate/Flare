@@ -317,6 +317,7 @@ pub(super) const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::I, Tool::Eyedropper),
     (Key::E, Tool::Eraser),
     (Key::H, Tool::Hand),
+    (Key::D, Tool::RotateView),
     (Key::Z, Tool::Zoom),
     (Key::L, Tool::Lasso),
     (Key::Y, Tool::Pencil),

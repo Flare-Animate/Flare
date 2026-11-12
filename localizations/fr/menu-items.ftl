@@ -98,6 +98,7 @@ menu-item-tool-line = Ligne
 menu-item-tool-pen = Plume
 menu-item-tool-text = Texte
 menu-item-tool-hand = Main
+menu-item-tool-rotate-view = Rotation
 menu-item-tool-zoom = Zoom
 menu-item-tool-eyedropper = Pipette
 menu-item-tool-bucket = Pot de peinture

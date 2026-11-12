@@ -162,6 +162,18 @@ tools are picked from the tool strip or by their keys (listed in Help > Keyboard
 Home is the house in the top bar. Planned commands stay in their Animate places, dimmed. New
 commands are put where Adobe puts the nearest one, not in a menu of Flare's own.
 
+The Rotation tool (under the Hand, as in Animate; key D) turns the view of the stage, never the
+document: drag on the stage to turn it about the panel's center (Shift: in steps of 15 degrees),
+double-click to set it upright. Tapping Alt alone (Option on a Mac) picks it and shows its dial at
+the foot of the stage: drag the needle to point where the top of the stage should be, step 15
+degrees either way, type an angle, or set it upright; a second tap, Escape or another tool puts
+the dial away and the tool held before back in hand. A tap is a press and release within half a
+second with nothing else pressed (`flare_ui::tap::ModifierTap`), so Alt-click, Alt-drag and Alt
+chords keep their meaning. While the view is turned the stage bar shows the angle (a click sets it
+upright), the grid and guides turn with the stage, the rulers stay along the screen without
+numbers that would no longer line up, and guides are not dragged out of or along them; the text
+being typed turns with the stage while its invisible field stays upright.
+
 Over the stage the pointer is the tool in hand (`workspace/tools/stage_pointer.rs`). The Brush, the
 Pencil and the rubbing Eraser show only their tip: the outline of what they lay down, at its size,
 never smaller than a few screen points. A tool whose icon has a point where it acts (Paint Bucket, Ink

@@ -251,6 +251,7 @@ impl Workspace {
                 if chrome::icon_button(ui, "zoom-fit", BAR_ICON, false, true, zoom_fit).clicked() {
                     self.perform(MenuAction::ZoomFit);
                 }
+                self.rotation_readout(ui);
                 if self.has_camera()
                     && chrome::icon_button(
                         ui,

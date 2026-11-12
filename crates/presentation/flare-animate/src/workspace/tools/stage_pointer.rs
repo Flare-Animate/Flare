@@ -57,6 +57,8 @@ pub(in crate::workspace) fn stage_pointer(tool: Tool, rubs: bool) -> StagePointe
         Tool::Pen => picture("tool-pen", 12.0, 3.0),
         Tool::Subselection => picture("tool-subselection", 6.5, 3.8),
         Tool::Hand => picture("tool-hand", 12.4, 12.0),
+        // The middle of the turning arrows.
+        Tool::RotateView => picture("tool-rotate-view", 12.0, 12.0),
         Tool::Zoom => picture("tool-zoom", 10.5, 10.5),
         Tool::Rectangle => marked("tool-rectangle"),
         Tool::Ellipse => marked("tool-oval"),
