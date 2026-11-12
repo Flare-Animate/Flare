@@ -86,6 +86,8 @@ pub(super) struct Paint {
     pub(super) straight_held: bool,
     /// The stroke just committed, shown until the stage picture that has it arrives.
     pub(super) settling: Option<super::stroke_preview::Settling>,
+    /// The person's own swatches, kept with the preferences.
+    pub(super) swatches: flare_core::swatches::CustomSwatches,
 }
 
 impl Default for Paint {
@@ -106,6 +108,7 @@ impl Default for Paint {
             straight_edge: false,
             straight_held: false,
             settling: None,
+            swatches: flare_core::swatches::CustomSwatches::default(),
         }
     }
 }

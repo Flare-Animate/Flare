@@ -71,7 +71,7 @@ impl Preset {
                 left: &[],
                 right: &[
                     &[P::Properties, P::Library, P::Assets],
-                    &[P::Color, P::Align, P::Transform, P::Info],
+                    &[P::Color, P::Swatches, P::Align, P::Transform, P::Info],
                 ],
             }),
             Self::Designer => arrange::arrange(&Plan {
@@ -80,7 +80,7 @@ impl Preset {
                 right: &[
                     &[P::Library, P::Assets],
                     &[P::Align, P::Info, P::Transform],
-                    &[P::Color],
+                    &[P::Color, P::Swatches],
                 ],
             }),
             Self::Classic => arrange::arrange(&Plan {
@@ -97,6 +97,7 @@ impl Preset {
                     P::Assets,
                     P::Layers,
                     P::Color,
+                    P::Swatches,
                     P::Align,
                     P::Transform,
                     P::Info,
@@ -341,6 +342,14 @@ pub fn workspaces_from_json(json: &str) -> Result<(Workspaces, Layout), LayoutEr
         return Ok((Workspaces::default(), layout));
     }
     let mut workspaces: Workspaces = serde_json::from_value(value)?;
+    for layout in workspaces
+        .live
+        .iter_mut()
+        .map(|(_, layout)| layout)
+        .chain(workspaces.custom.iter_mut().map(|c| &mut c.layout))
+    {
+        layout.add_missing_to_strip();
+    }
     workspaces.check()?;
     let active = workspaces.active.clone();
     let current = match workspaces.live.iter().position(|(id, _)| *id == active) {

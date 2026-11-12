@@ -151,3 +151,4 @@ menu-item-workspace-designer = Дизайнер
 menu-item-workspace-classic = Классический
 menu-item-workspace-small-screen = Маленький экран
 menu-item-command-palette = Найти команду…
+menu-item-show-swatches = Образцы

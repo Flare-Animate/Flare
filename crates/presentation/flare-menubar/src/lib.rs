@@ -165,10 +165,12 @@ pub enum MenuAction {
     WorkspaceSmallScreen,
     /// Help > Find a Command: a field that finds any command by its name, id or keys, and runs it.
     CommandPalette,
+    /// Window > Swatches.
+    ShowSwatches,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 135] = [
+    pub const ALL: [MenuAction; 136] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -304,6 +306,7 @@ impl MenuAction {
         Self::WorkspaceClassic,
         Self::WorkspaceSmallScreen,
         Self::CommandPalette,
+        Self::ShowSwatches,
     ];
 
     /// A stable identifier for native menu items (the variant name).

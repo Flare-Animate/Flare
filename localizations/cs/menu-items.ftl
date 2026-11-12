@@ -151,3 +151,4 @@ menu-item-workspace-designer = Návrhář
 menu-item-workspace-classic = Klasický
 menu-item-workspace-small-screen = Malá obrazovka
 menu-item-command-palette = Najít příkaz…
+menu-item-show-swatches = Vzorník

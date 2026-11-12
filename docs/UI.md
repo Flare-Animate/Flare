@@ -94,7 +94,7 @@ Left to right: the tool strip, the stage with the Timeline and Output tabs under
 
 ## Workspaces
 
-The workspace switcher sits at the top right, left of the gear, where Animate has its own, and Window > Workspaces lists the built-in ones. They are modelled on Animate's: **Essentials** (the default above), **Animator** (the timeline above the stage, Properties, Library and Assets in one stack on the right and Color, Align, Transform and Info in a second under it), **Designer** (the timeline on top, Properties left of the stage, and Library and Assets, Align, Info and Transform, and Color in three stacks on the right), **Classic** (the timeline on top, Properties and Assets on the right, everything else in the strip) and **Small Screen** (every panel in one stack on the right and nothing in the strip). Panels a workspace does not dock are in its icon strip.
+The workspace switcher sits at the top right, left of the gear, where Animate has its own, and Window > Workspaces lists the built-in ones. They are modelled on Animate's: **Essentials** (the default above), **Animator** (the timeline above the stage, Properties, Library and Assets in one stack on the right and Color, Swatches, Align, Transform and Info in a second under it), **Designer** (the timeline on top, Properties left of the stage, and Library and Assets, Align, Info and Transform, and Color and Swatches in three stacks on the right), **Classic** (the timeline on top, Properties and Assets on the right, everything else in the strip) and **Small Screen** (every panel in one stack on the right and nothing in the strip). Panels a workspace does not dock are in its icon strip.
 
 Each workspace keeps the changes made to it while it was in use, as Animate's do: switching away and back finds it as it was left. View > Reset Layout, or the arrow beside the one in use in the switcher, takes it back to how it was built in or saved. The switcher's New workspace field saves the arrangement on screen under a name (up to 40 characters, at most 20 of them; the same name in any case replaces the one saved) and makes it the one in use; the cross beside one of the person's own forgets it, and Essentials comes back when it was in use. A refusal says why in the status line. The workspaces are kept between sessions in the layout file with the arrangement on screen (`flare_dock::Workspaces`, at most 1 MiB); a file from before workspaces opens as Essentials arranged as it says, and a damaged one is refused and changes nothing. The panels and their arrangement belong to the window: the document is never touched.
 
@@ -250,7 +250,7 @@ change is one undo step.
 ## Icon strip
 
 The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
-kept there, by default Layers, Color, Align, Transform, Info, History, Motion Editor and Find and
+kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor and Find and
 Replace. A click opens that panel beside the strip, 300 px wide and level with its icon, over the
 stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
 a press on the stage or another panel puts it away (a list or picker the panel opened does not).
@@ -259,7 +259,9 @@ collapse it. A docked panel goes the other way from the collapse button at the r
 stack's tabs, or Collapse to icon on its tab's right-click menu; it is added at the end of the
 strip. The tool strip, the stage, the timeline and Output always stay docked. Where each panel is
 (docked or in the strip, and the strip's order) is saved with the layout (`flare_dock::Layout`),
-and a layout file that has a panel twice, none at all, or the stage in the strip is refused. The
+and a layout file that has a panel twice, the stage in the strip, or no stage, timeline, output or
+tool strip is refused; a panel added to Flare after the file was saved is put at the end of its
+strip. The
 strip is not shown on Home.
 
 The Layers panel is a compact stack for the active scene: click a row to choose its layer, double
@@ -444,6 +446,17 @@ straight stroke is kept, so the width a pen gave is kept in the drawing and
 playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
 after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is
 not kept in Preferences, so each session starts at 0.15.
+
+## Swatches
+
+The Swatches panel (Window > Swatches, in the icon strip by default) is Animate's: a row of
+twelve greys from black to white, the 216 web-safe colors in the classic twelve columns (the red
+steps in pairs side by side, green down the rows, blue across; `flare_core::swatches`), and Your
+swatches. A click on a cell makes it the color the Color panel is setting (fill, stroke or the
+gradient's end), and pointing at one shows its hex value. The + keeps the color being set as one
+of the person's own (each color once, at most 120; a full list says so), and a right click on one
+of them deletes it. They are kept with the preferences, not in the document. The web-safe colors
+are the web's standard palette, not Animate's artwork.
 
 ## Info panel
 

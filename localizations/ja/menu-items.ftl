@@ -151,3 +151,4 @@ menu-item-workspace-designer = デザイナー
 menu-item-workspace-classic = クラシック
 menu-item-workspace-small-screen = 小さい画面
 menu-item-command-palette = コマンドを検索…
+menu-item-show-swatches = スウォッチ

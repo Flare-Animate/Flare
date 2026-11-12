@@ -28,6 +28,7 @@ mod properties;
 mod properties_interp;
 mod properties_object;
 mod stage_bar;
+mod swatches;
 #[cfg(test)]
 mod tests;
 mod timeline_bar;

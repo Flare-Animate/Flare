@@ -66,6 +66,13 @@ impl Workspace {
                 .iter()
                 .map(|p| p.to_string_lossy().into_owned())
                 .collect(),
+            swatches: self
+                .paint
+                .swatches
+                .colors()
+                .iter()
+                .map(|c| [c.r, c.g, c.b, c.a])
+                .collect(),
         }
     }
 
@@ -74,6 +81,12 @@ impl Workspace {
         self.set_language_choice(flare_i18n::Choice::from_code(&preferences.language));
         self.theme_mode = flare_ui::theme::Mode::from_code(&preferences.theme);
         // Only names the list has, each once; a file naming anything else changes nothing.
+        self.paint.swatches = flare_core::swatches::CustomSwatches::from_colors(
+            preferences
+                .swatches
+                .iter()
+                .map(|[r, g, b, a]| flare_core::Rgba8::new(*r, *g, *b, *a)),
+        );
         self.pinned_tools.clear();
         for name in &preferences.pinned_tools {
             self.pin_tool(name);

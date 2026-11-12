@@ -67,6 +67,8 @@ pub struct Preferences {
     pub shortcuts: String,
     /// Projects opened or saved lately, newest first.
     pub recent: Vec<String>,
+    /// The person's own swatches, as `[r, g, b, a]`.
+    pub swatches: Vec<[u8; 4]>,
 }
 
 fn rgb(color: flare_core::Rgba8) -> [u8; 3] {
@@ -117,6 +119,7 @@ impl Default for Preferences {
             pinned_tools: Vec::new(),
             shortcuts: String::new(),
             recent: Vec::new(),
+            swatches: Vec::new(),
         }
     }
 }

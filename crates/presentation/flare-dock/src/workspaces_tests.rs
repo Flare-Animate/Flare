@@ -159,10 +159,16 @@ fn workspaces_round_trip_and_older_files_open_as_essentials() {
     let (opened, shown) = workspaces_from_json(&bare).expect("opens");
     assert_eq!(opened.active, essentials());
     assert!(shown.strip.is_empty());
+    // A tree missing side panels opens with them in the strip; one missing the stage is refused.
     let partial = serde_json::to_string(&mine.tree).expect("json");
+    let (_, shown) = workspaces_from_json(&partial).expect("opens");
+    assert!(shown.in_strip(Pane::Color));
+    let mut no_stage = mine.tree.clone();
+    assert!(crate::arrange::remove(&mut no_stage, Pane::Stage));
+    let no_stage = serde_json::to_string(&no_stage).expect("json");
     assert!(
-        workspaces_from_json(&partial).is_err(),
-        "a tree missing panels"
+        workspaces_from_json(&no_stage).is_err(),
+        "the stage is missing"
     );
 }
 
@@ -193,4 +199,17 @@ fn damaged_workspace_files_are_refused() {
     let first = value["custom"][0].clone();
     value["custom"].as_array_mut().expect("array").push(first);
     assert!(workspaces_from_json(&value.to_string()).is_err());
+}
+
+#[test]
+fn saved_workspaces_from_before_a_panel_existed_open_with_it_in_the_strip() {
+    let mut workspaces = Workspaces::default();
+    let mut old = Preset::Classic.layout();
+    old.strip.retain(|p| *p != Pane::Swatches);
+    workspaces.save_as("Old", old.clone()).expect("saved");
+    let json = workspaces_to_json(&workspaces, &old).expect("json");
+    let (opened, shown) = workspaces_from_json(&json).expect("opens");
+    assert!(shown.in_strip(Pane::Swatches));
+    let mut opened = opened;
+    assert!(opened.reset().in_strip(Pane::Swatches), "the saved one too");
 }

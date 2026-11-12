@@ -79,6 +79,7 @@ mod splash;
 mod stage_menu;
 mod stage_pointer;
 mod status_bar;
+mod swatches;
 mod tab_strip;
 mod text_keys;
 mod text_objects;

@@ -46,10 +46,12 @@ pub enum Pane {
     FindReplace,
     /// Shared and external libraries.
     Assets,
+    /// The web-safe colors, greys and the person's own swatches.
+    Swatches,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 15] = [
+    pub const ALL: [Pane; 16] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
@@ -65,6 +67,7 @@ impl Pane {
         Pane::MotionEditor,
         Pane::FindReplace,
         Pane::Assets,
+        Pane::Swatches,
     ];
 
     /// The icon of the panel in the strip at the right edge, for the panels that can be kept
@@ -82,6 +85,7 @@ impl Pane {
             Self::MotionEditor => "panel-motion-editor",
             Self::FindReplace => "panel-find",
             Self::Assets => "panel-assets",
+            Self::Swatches => "panel-swatches",
             Self::Tools | Self::Stage | Self::Timeline | Self::Output => return None,
         })
     }
@@ -110,6 +114,7 @@ impl Pane {
             Self::MotionEditor => "pane-motion-editor",
             Self::FindReplace => "pane-find-replace",
             Self::Assets => "pane-assets",
+            Self::Swatches => "pane-swatches",
         }
     }
 
@@ -131,6 +136,7 @@ impl Pane {
             Self::MotionEditor => "Motion Editor",
             Self::FindReplace => "Find and Replace",
             Self::Assets => "Assets",
+            Self::Swatches => "Swatches",
         }
     }
 }

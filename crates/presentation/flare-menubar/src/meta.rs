@@ -133,6 +133,7 @@ impl MenuAction {
             | Self::WorkspaceClassic
             | Self::WorkspaceSmallScreen => "interface",
             Self::CommandPalette => "search",
+            Self::ShowSwatches => "panel-swatches",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",

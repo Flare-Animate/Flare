@@ -306,3 +306,17 @@ fn a_new_layout_with_info_in_the_strip_is_not_given_a_second_info() {
     let opened = from_json(&to_json(&layout).expect("json")).expect("opens");
     assert!(find(&opened.tree, Pane::Info).is_none());
 }
+
+#[test]
+fn a_layout_saved_before_a_panel_existed_opens_with_it_at_the_end_of_the_strip() {
+    let mut layout = default_layout();
+    layout.strip.retain(|p| *p != Pane::Swatches);
+    assert!(check(&layout).is_err(), "it lacks the panel");
+    let opened = from_json(&to_json(&layout).expect("json")).expect("opens");
+    assert_eq!(opened.strip.last(), Some(&Pane::Swatches));
+    check(&opened).expect("complete");
+    // A panel that cannot be in the strip is still required.
+    let mut no_stage = default_layout();
+    arrange::remove(&mut no_stage.tree, Pane::Stage);
+    assert!(from_json(&to_json(&no_stage).expect("json")).is_err());
+}

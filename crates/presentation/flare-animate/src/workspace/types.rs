@@ -293,7 +293,7 @@ pub(super) type SelectionRects = ((u64, u64, u64), Vec<Rect>);
 
 /// Which color the color panel edits.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum ColorTarget {
+pub(crate) enum ColorTarget {
     Fill,
     Stroke,
     /// The second color of a gradient fill.

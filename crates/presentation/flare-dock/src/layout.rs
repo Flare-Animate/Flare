@@ -27,6 +27,20 @@ pub fn default_layout() -> Layout {
 }
 
 impl Layout {
+    /// Puts every panel that can be kept in the strip and is neither docked nor there at the end
+    /// of the strip: a layout saved before a panel existed opens with it there, as Animate adds a
+    /// new panel to its icons.
+    pub fn add_missing_to_strip(&mut self) {
+        for pane in Pane::ALL {
+            if pane.can_collapse()
+                && !self.in_strip(pane)
+                && arrange::find(&self.tree, pane).is_none()
+            {
+                self.strip.push(pane);
+            }
+        }
+    }
+
     /// Whether `pane` is in the strip rather than docked.
     pub fn in_strip(&self, pane: Pane) -> bool {
         self.strip.contains(&pane)
@@ -124,6 +138,7 @@ pub fn from_json(json: &str) -> Result<Layout, LayoutError> {
     if !is_layout {
         migrate::add_panels_older_layouts_lack(&mut layout.tree);
     }
+    layout.add_missing_to_strip();
     check(&layout)?;
     if !is_layout
         && (migrate::tool_strip_is_beside_the_stage(&layout.tree)

@@ -251,6 +251,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ShowProperties),
             Action(A::ShowLibrary),
             Action(A::ShowColor),
+            Action(A::ShowSwatches),
             Action(A::ShowAlign),
             Action(A::ShowTransform),
             Action(A::ShowHistory),
