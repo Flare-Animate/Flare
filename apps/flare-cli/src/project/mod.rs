@@ -14,6 +14,7 @@ mod bones;
 mod camera;
 mod draw;
 mod interchange;
+mod magic_wand;
 mod render;
 mod sound;
 mod text;
@@ -35,10 +36,11 @@ pub use interchange::{
     export_sprites, export_svg, export_xfl, import, open_app, publish_html5, publish_swf,
     test_movie,
 };
+pub use magic_wand::{WandRequest, magic_wand};
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};
-pub use sound::sound_import;
+pub use sound::{sound_import, sound_waveform};
 #[allow(unused_imports)]
 use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};

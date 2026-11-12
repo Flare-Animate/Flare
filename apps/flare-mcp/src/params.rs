@@ -304,6 +304,12 @@ pub struct ImportSound {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct SoundWaveform {
+    /// Only this sound, by name or id; every sound when left out.
+    pub sound: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddText {
     /// The words; a newline starts a new line.
     pub text: String,

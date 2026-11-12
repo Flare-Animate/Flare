@@ -74,6 +74,13 @@ pub(crate) enum Command {
         #[arg(long, default_value_t = 0)]
         at: u32,
     },
+    /// How loud each sound is on every frame from its cue (`[low, high]` samples), to animate to.
+    SoundWaveform {
+        path: PathBuf,
+        /// Only this sound, by name or id.
+        #[arg(long)]
+        sound: Option<String>,
+    },
     /// Summarize a project.
     Info { path: PathBuf },
     /// Add a Graphic symbol to the library, optionally holding one filled rectangle.
@@ -115,6 +122,31 @@ pub(crate) enum Command {
         duration: u32,
         #[arg(long)]
         layer: Option<uuid::Uuid>,
+    },
+    /// Magic Wand: pick the pixels of a bitmap whose color is like the one at each point (stage
+    /// coordinates, in the first scene) and clear them, or with --keep clear all the others.
+    MagicWand {
+        path: PathBuf,
+        /// A point on the bitmap; repeat to add the pixels picked from more points.
+        #[arg(long, num_args = 2, value_names = ["X", "Y"], allow_negative_numbers = true, required = true, action = clap::ArgAction::Append)]
+        at: Vec<f64>,
+        #[arg(long, default_value_t = 0)]
+        frame: u32,
+        /// How far a color may be from the clicked one, 0 to 200.
+        #[arg(long, default_value_t = magic_wand_default_threshold(), value_parser = clap::value_parser!(u8).range(0..=200))]
+        threshold: u8,
+        /// Pick every pixel of a like color in the picture, not only those joined to the point.
+        #[arg(long)]
+        global: bool,
+        /// How soft the edge left behind is: pixels, rough, normal or smooth.
+        #[arg(long, default_value = "normal")]
+        smoothing: String,
+        /// Clear every pixel except the picked ones.
+        #[arg(long)]
+        keep: bool,
+        /// Say how many pixels would be picked and change nothing.
+        #[arg(long)]
+        dry_run: bool,
     },
     /// Add editable text to a layer of the first scene.
     AddText {
@@ -401,4 +433,8 @@ pub(crate) enum Command {
         #[arg(long)]
         layer: Option<uuid::Uuid>,
     },
+}
+
+const fn magic_wand_default_threshold() -> u8 {
+    flare_tools::magic_wand::DEFAULT_THRESHOLD
 }

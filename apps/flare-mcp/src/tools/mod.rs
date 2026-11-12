@@ -6,6 +6,7 @@ mod draw;
 mod export;
 mod game;
 mod history;
+mod pixels;
 mod read;
 mod shortcuts;
 mod sound;
@@ -37,5 +38,6 @@ impl FlareServer {
             + Self::shortcut_tools()
             + Self::symbol_tools()
             + Self::game_tools()
+            + Self::pixel_tools()
     }
 }

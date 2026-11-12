@@ -92,6 +92,7 @@ fn run() -> Result<()> {
         }
         Command::RenameScene { path, name } => project::rename_scene(&path, &name)?,
         Command::SoundImport { path, sound, at } => project::sound_import(&path, &sound, at)?,
+        Command::SoundWaveform { path, sound } => project::sound_waveform(&path, sound.as_deref())?,
         Command::SetStage {
             path,
             width,
@@ -205,6 +206,32 @@ fn run() -> Result<()> {
             start,
             duration,
             layer,
+        )?,
+        Command::MagicWand {
+            path,
+            at,
+            frame,
+            threshold,
+            global,
+            smoothing,
+            keep,
+            dry_run,
+        } => project::magic_wand(
+            &path,
+            &project::WandRequest {
+                points: at
+                    .as_chunks::<2>()
+                    .0
+                    .iter()
+                    .map(|[x, y]| (*x, *y))
+                    .collect(),
+                frame,
+                threshold,
+                contiguous: !global,
+                smoothing,
+                keep,
+                dry_run,
+            },
         )?,
         Command::AddText {
             path,
