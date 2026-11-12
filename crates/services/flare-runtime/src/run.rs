@@ -30,7 +30,7 @@ pub fn run_audio(job: AudioJob) -> Done {
                 })
                 .and_then(|bytes| {
                     let audio = flare_audio::decode(&bytes).map_err(|e| e.to_string())?;
-                    Ok((bytes, Arc::new(audio)))
+                    Ok((bytes, flare_audio::Decoded::new(audio)))
                 });
             Done::SoundImported { id, path, result }
         }
@@ -40,7 +40,7 @@ pub fn run_audio(job: AudioJob) -> Done {
                 Err(flare_audio::AudioError::InputTooLarge.to_string())
             } else {
                 flare_audio::decode(&bytes)
-                    .map(|audio| (bytes, Arc::new(audio)))
+                    .map(|audio| (bytes, flare_audio::Decoded::new(audio)))
                     .map_err(|error| error.to_string())
             };
             Done::SoundImported { id, path, result }
@@ -48,7 +48,7 @@ pub fn run_audio(job: AudioJob) -> Done {
         AudioJob::Decode { sound, data } => Done::SoundDecoded {
             sound,
             result: flare_audio::decode(&data)
-                .map(Arc::new)
+                .map(flare_audio::Decoded::new)
                 .map_err(|e| e.to_string()),
         },
     }
@@ -139,13 +139,17 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
         show_text_preview(&mut current, preview);
     }
     // A ghost that fails to evaluate is simply left out; the current frame matters.
-    let evaluated: Vec<(flare_eval::Frame<'_>, f32)> = job
+    let tint = |frame: u32| {
+        job.tints
+            .map(|[before, after]| if frame < job.frame { before } else { after })
+    };
+    let evaluated: Vec<(flare_eval::Frame<'_>, f32, Option<flare_core::Rgba8>)> = job
         .ghosts
         .iter()
-        .filter_map(|(frame, opacity)| evaluate(*frame).ok().map(|e| (e, *opacity)))
+        .filter_map(|(frame, opacity)| evaluate(*frame).ok().map(|e| (e, *opacity, tint(*frame))))
         .collect();
-    let ghosts: Vec<(&flare_eval::Frame<'_>, f32)> =
-        evaluated.iter().map(|(e, o)| (e, *o)).collect();
+    let ghosts: Vec<(&flare_eval::Frame<'_>, f32, Option<flare_core::Rgba8>)> =
+        evaluated.iter().map(|(e, o, t)| (e, *o, *t)).collect();
     let [width, height] = job.size;
     if job.outline_mode {
         // One pixel of the picture, in stage units, so lines stay thin however far in you are.

@@ -8,7 +8,8 @@
 //! - the **render worker** keeps only the newest request;
 //! - the **I/O worker** runs saves, opens and autosaves in the order they were asked for;
 //! - the **audio** and **text** workers decode and shape, each on a thread of its own because
-//!   the first use of either takes a while.
+//!   the first use of either takes a while;
+//! - the **pixels** worker does the Magic Wand's work on bitmaps, in order.
 //!
 //! In [`Mode::Inline`] a job runs on the calling thread and its result is queued exactly as a
 //! worker's would be, so everything above this crate follows one code path and headless tests
@@ -21,9 +22,11 @@ mod export_game;
 mod jobs;
 mod launch;
 mod movie;
+mod pixels;
 mod run;
 mod sound;
 mod sprites;
+mod waveform;
 mod workers;
 
 pub use document_file::{
@@ -35,16 +38,18 @@ pub use export::{
 };
 pub use export_game::{GAME_FORMAT, GAME_FORMAT_VERSION, GameExport, export_game};
 pub use flare_audio::MAX_INPUT_BYTES as MAX_AUDIO_INPUT_BYTES;
-pub use flare_audio::{Audio, AudioEvent};
+pub use flare_audio::{Audio, AudioEvent, Decoded, Excerpt, Peaks};
 pub use flare_render::StillFormat;
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
 pub use movie::{
     MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, animated_webp_bytes, apng_bytes, gif_bytes, gif_bytes_on,
 };
+pub use pixels::{PixelJob, WAND_PREVIEW_SIDE, WandPicked, run_pixels};
 pub use run::{ExtraFonts, font_families, run_audio, run_io, run_render, run_text, text_shape};
 pub use sound::{SoundImportError, SoundLayer, sound_layer};
 pub use sprites::{MAX_SHEET_FRAMES, MAX_SHEET_SIDE, SpriteSheet, sprite_sheet};
+pub use waveform::{WaveformError, frame_peaks, sound_waveforms};
 pub use workers::Wake;
 
 use std::sync::Arc;
@@ -75,6 +80,7 @@ struct Workers {
     io_tx: Option<Sender<IoJob>>,
     text_tx: Option<Sender<TextJob>>,
     audio_tx: Option<Sender<AudioJob>>,
+    pixels_tx: Option<Sender<PixelJob>>,
     handles: Vec<JoinHandle<()>>,
 }
 
@@ -112,6 +118,7 @@ impl Runtime {
         let (io_tx, io_rx) = channel::<IoJob>();
         let (text_tx, text_rx) = channel::<TextJob>();
         let (audio_tx, audio_rx) = channel::<AudioJob>();
+        let (pixels_tx, pixels_rx) = channel::<PixelJob>();
         let spawn = |name: &str, body: Box<dyn FnOnce() + Send>| {
             std::thread::Builder::new().name(name.into()).spawn(body)
         };
@@ -136,6 +143,13 @@ impl Runtime {
                 Box::new(move || workers::audio_loop(&audio_rx, &done, &wake)),
             )
         };
+        let pixels = {
+            let (done, wake) = (self.done_tx.clone(), Arc::clone(&wake));
+            spawn(
+                "flare-pixels",
+                Box::new(move || workers::pixels_loop(&pixels_rx, &done, &wake)),
+            )
+        };
         let text = {
             let (done, fonts) = (self.done_tx.clone(), Arc::clone(&self.fonts));
             spawn(
@@ -144,7 +158,9 @@ impl Runtime {
             )
         };
         // If a thread cannot be started, stay inline rather than lose the work.
-        let (Ok(render), Ok(io), Ok(text), Ok(audio)) = (render, io, text, audio) else {
+        let (Ok(render), Ok(io), Ok(text), Ok(audio), Ok(pixels)) =
+            (render, io, text, audio, pixels)
+        else {
             return;
         };
         self.workers = Some(Workers {
@@ -152,7 +168,8 @@ impl Runtime {
             io_tx: Some(io_tx),
             text_tx: Some(text_tx),
             audio_tx: Some(audio_tx),
-            handles: vec![render, io, text, audio],
+            pixels_tx: Some(pixels_tx),
+            handles: vec![render, io, text, audio, pixels],
         });
         self.mode = Mode::Threads;
     }
@@ -201,6 +218,19 @@ impl Runtime {
             }
             None => {
                 let _ = self.done_tx.send(run_text(&job, &self.fonts));
+            }
+        }
+    }
+
+    pub fn submit_pixels(&self, job: PixelJob) {
+        match self.workers.as_ref().and_then(|w| w.pixels_tx.as_ref()) {
+            Some(tx) => {
+                if let Err(failed) = tx.send(job) {
+                    let _ = self.done_tx.send(run_pixels(failed.0));
+                }
+            }
+            None => {
+                let _ = self.done_tx.send(run_pixels(job));
             }
         }
     }
@@ -263,6 +293,7 @@ impl Drop for Runtime {
             workers.io_tx = None;
             workers.text_tx = None;
             workers.audio_tx = None;
+            workers.pixels_tx = None;
             for handle in workers.handles.drain(..) {
                 let _ = handle.join();
             }
@@ -270,6 +301,8 @@ impl Drop for Runtime {
     }
 }
 
+#[cfg(test)]
+mod pixels_tests;
 #[cfg(test)]
 mod psd_tests;
 #[cfg(test)]

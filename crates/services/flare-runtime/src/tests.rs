@@ -29,6 +29,7 @@ fn render_job(runtime: &mut Runtime, document: &Arc<Document>) -> RenderJob {
         frame: 0,
         ghosts: Vec::new(),
         outlines: false,
+        tints: None,
         outline_mode: false,
         through_camera: false,
         viewport: flare_render::Viewport::full(16, 8),
@@ -248,4 +249,53 @@ fn text_being_typed_takes_the_place_of_the_text_it_edits_or_goes_on_top_if_it_is
         shape: None,
     };
     assert_eq!(draw(&mut runtime, Some(gone)), [255, 0, 0, 255]);
+}
+
+#[test]
+fn tinted_ghosts_take_the_before_color_behind_the_frame_and_the_after_color_ahead() {
+    use flare_document::{Content, FrameSpan, Shape};
+    // A red square on frame 2 only; frames 0 and 4 are empty, so only the ghost shows there.
+    let square = Shape::rect(
+        flare_core::ShapeId::new(),
+        0.0,
+        0.0,
+        8.0,
+        8.0,
+        Rgba8::opaque(255, 0, 0),
+    )
+    .expect("square");
+    let span = FrameSpan::new(2, std::num::NonZeroU32::MIN, Content::Shape(square));
+    let layer = Layer::new(LayerId::new(), "L", vec![span]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let document = Arc::new(
+        Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![scene],
+            vec![],
+        )
+        .expect("document"),
+    );
+    let (before, after) = (Rgba8::opaque(0, 0, 255), Rgba8::opaque(0, 160, 0));
+    let mut runtime = Runtime::inline();
+    let mut draw = |frame: u32, tints: Option<[Rgba8; 2]>| {
+        let mut job = render_job(&mut runtime, &document);
+        job.frame = frame;
+        job.ghosts = vec![(2, 1.0)];
+        job.tints = tints;
+        pixel_of(run_render(&job), 2, 2)
+    };
+    // Red is about a fifth as light as white, so the tint is lightened by that much
+    // (`Image::tinted`): mostly the tint, with the drawing's light and dark still showing.
+    assert_eq!(
+        draw(4, Some([before, after])),
+        [38, 38, 255, 255],
+        "behind: before"
+    );
+    assert_eq!(
+        draw(0, Some([before, after])),
+        [38, 174, 38, 255],
+        "ahead: after"
+    );
+    assert_eq!(draw(0, None), [255, 0, 0, 255], "untinted: its own red");
 }

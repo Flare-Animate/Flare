@@ -1899,6 +1899,7 @@ dependencies = [
 name = "flare-audio"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "rubato",
  "symphonia",
  "thiserror 2.0.18",
@@ -2319,6 +2320,7 @@ dependencies = [
 name = "flare-runtime"
 version = "0.1.0"
 dependencies = [
+ "emath",
  "flare-audio",
  "flare-commands",
  "flare-core",
@@ -2331,6 +2333,7 @@ dependencies = [
  "flare-render",
  "flare-storage",
  "flare-text",
+ "flare-tools",
  "gif",
  "glamx",
  "png 0.18.1",
@@ -2426,6 +2429,7 @@ dependencies = [
 name = "flare-tools"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "emath",
  "flare-commands",
  "flare-core",

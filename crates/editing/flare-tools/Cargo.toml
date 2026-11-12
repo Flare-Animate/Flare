@@ -24,6 +24,11 @@ thiserror.workspace = true
 [dev-dependencies]
 proptest.workspace = true
 flare-history.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "magic_wand"
+harness = false
 
 [lints]
 workspace = true

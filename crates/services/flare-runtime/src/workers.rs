@@ -4,6 +4,7 @@ use std::sync::Arc;
 use std::sync::mpsc::{Receiver, Sender};
 
 use crate::jobs::{AudioJob, Done, IoJob, RenderJob, TextJob};
+use crate::pixels::{PixelJob, run_pixels};
 use crate::run::{ExtraFonts, run_audio, run_io, run_render, run_text};
 
 /// Called after each result is queued, so the front end can wake up to show it.
@@ -70,6 +71,16 @@ pub(crate) fn text_loop(
 pub(crate) fn io_loop(jobs: &Receiver<IoJob>, done: &Sender<Done>, wake: &Wake) {
     while let Ok(job) = jobs.recv() {
         if done.send(run_io(job)).is_err() {
+            return;
+        }
+        wake();
+    }
+}
+
+/// Pixel work, in the order it was asked for: a wand click builds on the one before it.
+pub(crate) fn pixels_loop(jobs: &Receiver<PixelJob>, done: &Sender<Done>, wake: &Wake) {
+    while let Ok(job) = jobs.recv() {
+        if done.send(run_pixels(job)).is_err() {
             return;
         }
         wake();
