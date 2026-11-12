@@ -139,6 +139,8 @@ pub enum MenuAction {
     About,
     KeyboardShortcuts,
     ToggleOutlineMode,
+    /// Show or hide artwork off the stage (Animate's View > Pasteboard).
+    TogglePasteboard,
     NewSymbol,
     PasteInPlace,
     ToggleGuides,
@@ -155,7 +157,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 127] = [
+    pub const ALL: [MenuAction; 128] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -271,6 +273,7 @@ impl MenuAction {
         Self::About,
         Self::KeyboardShortcuts,
         Self::ToggleOutlineMode,
+        Self::TogglePasteboard,
         Self::NewSymbol,
         Self::PasteInPlace,
         Self::ToggleGuides,

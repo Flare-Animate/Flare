@@ -163,6 +163,7 @@ impl Workspace {
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleOutlineMode
+            | MenuAction::TogglePasteboard
             | MenuAction::ToggleRulers
             | MenuAction::ToggleGrid
             | MenuAction::ToggleSnap
@@ -361,6 +362,9 @@ impl Workspace {
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleOutlineMode => self.display.outline_mode = !self.display.outline_mode,
+            MenuAction::TogglePasteboard => {
+                self.display.show_pasteboard = !self.display.show_pasteboard;
+            }
             MenuAction::ToggleRulers => self.display.show_rulers = !self.display.show_rulers,
             MenuAction::ToggleGrid => self.display.show_grid = !self.display.show_grid,
             MenuAction::ToggleSnap => self.display.snap_to_grid = !self.display.snap_to_grid,

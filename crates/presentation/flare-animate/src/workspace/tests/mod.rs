@@ -55,6 +55,7 @@ mod paint_areas;
 mod paint_tools;
 mod panels_and_view;
 mod paste_into_layer;
+mod pasteboard;
 mod pen_and_selection;
 mod polygon_lasso;
 mod preferences_dialog;

@@ -49,6 +49,7 @@ impl Workspace {
             guides_shown: self.display.show_guides,
             onion_on: self.onion.enabled,
             outline_mode: self.display.outline_mode,
+            pasteboard_shown: self.display.show_pasteboard,
             rulers_shown: self.display.show_rulers,
             grid_shown: self.display.show_grid,
             snapping: self.display.snap_to_grid,

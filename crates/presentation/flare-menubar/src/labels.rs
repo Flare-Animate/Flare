@@ -24,6 +24,8 @@ pub struct LabelState {
     pub guides_shown: bool,
     pub onion_on: bool,
     pub outline_mode: bool,
+    /// Artwork off the stage shows.
+    pub pasteboard_shown: bool,
     pub rulers_shown: bool,
     pub grid_shown: bool,
     pub snapping: bool,
@@ -32,7 +34,8 @@ pub struct LabelState {
 }
 
 impl Default for LabelState {
-    /// Nothing is on, except that a layer with nothing to ask is taken to be shown.
+    /// Nothing is on, except that a layer with nothing to ask is taken to be shown and the
+    /// pasteboard shows.
     fn default() -> Self {
         Self {
             motion_tween: false,
@@ -47,6 +50,8 @@ impl Default for LabelState {
             guides_shown: false,
             onion_on: false,
             outline_mode: false,
+            // The workspace shows the pasteboard until it is hidden, as Animate does.
+            pasteboard_shown: true,
             rulers_shown: false,
             grid_shown: false,
             snapping: false,
@@ -143,6 +148,13 @@ impl MenuAction {
                     "menu-item-toggle-outline-mode-on"
                 } else {
                     "menu-item-toggle-outline-mode-off"
+                }
+            }
+            Self::TogglePasteboard => {
+                if state.pasteboard_shown {
+                    "menu-item-toggle-pasteboard-on"
+                } else {
+                    "menu-item-toggle-pasteboard-off"
                 }
             }
             Self::ToggleRulers => {

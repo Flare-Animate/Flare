@@ -56,6 +56,8 @@ fn keys() -> Vec<String> {
         guides_shown: true,
         onion_on: true,
         outline_mode: true,
+        // Shown is the default, so hidden is the other state.
+        pasteboard_shown: false,
         rulers_shown: true,
         grid_shown: true,
         snapping: true,

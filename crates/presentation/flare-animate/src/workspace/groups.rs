@@ -125,6 +125,9 @@ pub(super) struct Display {
     pub(super) guide_drag: Option<usize>,
     /// The stage draws outlines in layer colors instead of the artwork.
     pub(super) outline_mode: bool,
+    /// Artwork off the stage shows on the pasteboard around it, as Animate's View > Pasteboard;
+    /// off, the view is cut to the stage, as the published movie is.
+    pub(super) show_pasteboard: bool,
     /// What the Ruler tool last measured: from one stage point to another.
     pub(super) measure: Option<(Pos2, Pos2)>,
 }
@@ -140,6 +143,7 @@ impl Default for Display {
             show_guides: true,
             guide_drag: None,
             outline_mode: false,
+            show_pasteboard: true,
             measure: None,
         }
     }

@@ -18,7 +18,8 @@ goes and what a change bought, not what any other machine will do.
    shapes, spans, names, layer lists). An edit copies the part it changes. Take a snapshot
    with `EditorSession::snapshot` to give work to another thread.
 4. **Draw what is visible, at the resolution shown.** The stage texture is the visible part of
-   the stage at screen resolution, never the whole stage at one pixel per unit. Anything new
+   the stage and its pasteboard at screen resolution, never the whole stage at one pixel per unit,
+   so it is never more pixels than the stage panel has. Anything new
    that draws takes a `Viewport`.
 5. **Reuse identical work.** A frame is keyed by what it draws (`Frame::signature`) and by the
    very document snapshot it was drawn from, so held exposures and loops are rendered once and

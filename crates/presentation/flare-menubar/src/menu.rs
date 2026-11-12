@@ -105,6 +105,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Separator,
             Action(A::ToggleOnionSkin),
             Action(A::ToggleOutlineMode),
+            Action(A::TogglePasteboard),
             Separator,
             Action(A::ResetLayout),
         ],

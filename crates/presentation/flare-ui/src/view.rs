@@ -30,6 +30,20 @@ impl Default for StageView {
     }
 }
 
+/// How far the pasteboard reaches past each edge of the stage, in lengths of the stage's longer
+/// side. Artwork can be drawn and kept anywhere on it; publishing shows only the stage.
+pub const PASTEBOARD_REACH: f32 = 2.0;
+
+/// The pasteboard in stage units: the stage and the room around it where artwork may be.
+/// For a stage with no usable size it is that stage's rectangle, which is empty.
+pub fn pasteboard(extent: Vec2) -> Rect {
+    let stage = Rect::from_min_size(Pos2::ZERO, extent);
+    if !usable(extent) {
+        return stage;
+    }
+    stage.expand(extent.x.max(extent.y) * PASTEBOARD_REACH)
+}
+
 fn usable(extent: Vec2) -> bool {
     extent.x.is_finite() && extent.y.is_finite() && extent.x > 0.0 && extent.y > 0.0
 }
@@ -69,21 +83,25 @@ impl StageView {
 
     /// The part of the stage that is on screen, in stage units, or `None` when none of it is.
     pub fn visible_region(&self, panel: Rect, extent: Vec2) -> Option<Rect> {
+        self.visible_within(panel, extent, Rect::from_min_size(Pos2::ZERO, extent))
+    }
+
+    /// The part of the stage and the pasteboard around it that is on screen, in stage units, or
+    /// `None` when none of it is: what the editor draws when artwork off the stage shows.
+    pub fn visible_pasteboard(&self, panel: Rect, extent: Vec2) -> Option<Rect> {
+        self.visible_within(panel, extent, pasteboard(extent))
+    }
+
+    /// The part of `bounds` (in stage units) that is on screen, in stage units.
+    fn visible_within(&self, panel: Rect, extent: Vec2, bounds: Rect) -> Option<Rect> {
         if !usable(extent) || !panel.min.is_finite() || !panel.max.is_finite() {
             return None;
         }
         let image = self.image_rect(panel, extent);
         let scale = self.scale(panel, extent);
-        let seen = image.intersect(panel);
-        if !(seen.width() > 0.0 && seen.height() > 0.0) {
-            return None;
-        }
-        let to_stage = |p: Pos2| {
-            let v = (p - image.min) / scale;
-            Pos2::new(v.x.clamp(0.0, extent.x), v.y.clamp(0.0, extent.y))
-        };
-        let region = Rect::from_min_max(to_stage(seen.min), to_stage(seen.max));
-        (region.width() > 0.0 && region.height() > 0.0).then_some(region)
+        let to_stage = |p: Pos2| ((p - image.min) / scale).to_pos2();
+        let seen = Rect::from_min_max(to_stage(panel.min), to_stage(panel.max)).intersect(bounds);
+        (seen.width() > 0.0 && seen.height() > 0.0).then_some(seen)
     }
 
     pub fn pan_by(&mut self, delta: Vec2) {
@@ -245,6 +263,47 @@ mod tests {
         assert!(!view.is_fit());
         view.reset();
         assert_eq!(view.image_rect(panel(), EXTENT), home);
+    }
+
+    #[test]
+    fn the_pasteboard_reaches_twice_the_longer_side_past_every_edge() {
+        let board = pasteboard(EXTENT);
+        let reach = EXTENT.x.max(EXTENT.y) * 2.0;
+        assert_eq!(board.min, Pos2::new(-reach, -reach));
+        assert_eq!(board.max, Pos2::new(EXTENT.x + reach, EXTENT.y + reach));
+        assert_eq!(
+            pasteboard(Vec2::new(0.0, 10.0)).area(),
+            0.0,
+            "a stage with no size has no pasteboard"
+        );
+    }
+
+    #[test]
+    fn the_visible_pasteboard_is_the_whole_panel_in_stage_units_within_the_pasteboard() {
+        // A panel wider than the stage: fitted, there is pasteboard to its left and right.
+        let wide = Rect::from_min_size(Pos2::new(100.0, 50.0), Vec2::new(800.0, 200.0));
+        let view = StageView::default();
+        let stage = view.visible_region(wide, EXTENT).expect("stage");
+        let board = view.visible_pasteboard(wide, EXTENT).expect("pasteboard");
+        assert_eq!(stage, Rect::from_min_size(Pos2::ZERO, EXTENT));
+        // Fitted at scale 1, the 400 unit stage sits in the middle of the 800 point panel, so
+        // the panel reaches 200 units past each side of it.
+        assert!(near(board.min, Pos2::new(-200.0, 0.0)), "{board:?}");
+        assert!(near(board.max, Pos2::new(600.0, 200.0)), "{board:?}");
+        // Zoomed all the way out, the panel shows more than the pasteboard: it stops there.
+        let mut far = StageView::default();
+        for _ in 0..40 {
+            far.zoom_about(panel().center(), 1.0 / STEP, panel(), EXTENT);
+        }
+        assert_eq!(
+            far.visible_pasteboard(panel(), EXTENT),
+            Some(pasteboard(EXTENT))
+        );
+        assert!(
+            StageView::default()
+                .visible_pasteboard(panel(), Vec2::ZERO)
+                .is_none()
+        );
     }
 
     #[test]

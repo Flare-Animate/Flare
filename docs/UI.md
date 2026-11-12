@@ -110,6 +110,21 @@ A window holds several documents as tabs above the stage; when there are more th
 
 Save formats, as in Animate: an animator can work without ever making a `.flare` and send the file to somebody who uses Animate. **File > Save As** offers Flash Document (`.fla`, first and the default), uncompressed Flash Document (`.xfl`) and Flare project (`.flare`); the ending of the name decides the format, in any case, and only the last ending counts (`a.flare.fla` is a `.fla`). A name with no ending, or an ending that is none of the three (`drawing.v2`, `movie.swf`), gets `.fla` added. The dialog starts from the document's own folder and name, or `Untitled.fla`. An `.xfl` is a folder, as in Animate: saving `dir/a.xfl` writes the folder `dir/a/` holding `DOMDocument.xml`, `LIBRARY/` and the stub `a.xfl`, and the document is then `dir/a/a.xfl` (a folder that came with another stub name keeps it); a folder that is already an XFL document is replaced in place, and any other existing folder of that name is refused. **File > Save** writes the document back to the file it lives in: a document opened from `x.fla`, `x.xfl` (or its folder, or its `DOMDocument.xml`, which all name the same stub) is saved back to it with no `.flare` made; one opened from `x.flare` stays a project; a new document asks Save As. Opening a `.fla` or `.xfl` does not make the document unsaved; the window title and tab show the file's real name and ending (`x.fla`), with `*` when unsaved, and the Recent list holds `.fla` and `.xfl` paths, which reopen through the normal Open. The file is replaced only by a whole new one written beside it (a read-only file, a full disk or a folder that cannot be written leaves the old file as it was, says why in the status line and keeps the document unsaved), and the work is done off the UI thread. A movie (`.swf`) or an Animate file Flare could not keep whole (a pre-CS5 binary `.fla`, one over the size cap) opens as an unsaved project and asks Save As; a pre-CS5 `.fla` is never overwritten. Autosave writes the same recovery snapshot (a `.flare`-format file in the recovery folder) for any document, and a recovered document is unsaved work with no file until it is saved. After a save to `.fla` or `.xfl` the status line says what was written, and the Output panel lists it: `Saved x.fla (unchanged original)`, or `Saved x.fla (3 of 14 files rebuilt, the rest carried over as they were)` with the names of the rebuilt files, plus, when the format cannot hold something Flare has (cubic curves approximated, sounds not written, a translucent background written opaque), the count of such notes and each one. In the browser build Save and Save As are a download with a name prompt (the last name offered again); `.fla` is the default, `.flare` is a choice, and `.xfl` is saved as a `.fla`, which holds the same files.
 
+## Pasteboard
+
+As in Animate, the stage is only the part of the scene that is published. Around it is the
+pasteboard, where artwork can be drawn, moved, selected and picked from like any other: a shape
+that crosses the stage edge shows whole, and one wholly off the stage stays in the scene. The
+editor renders everything on screen over nothing, and paints the stage color under that picture
+on the stage alone, so the pasteboard keeps the panel's own grey (`workspace/render.rs`). The
+pasteboard reaches twice the stage's longer side past each edge (`flare_ui::view::pasteboard`);
+the pointer stops there, so nothing is drawn where it could never be seen. Publishing, export,
+Test Movie and thumbnails still show the stage only. View > Hide Pasteboard (Animate's View >
+Pasteboard, Cmd/Ctrl+Shift+W, and the dashed-frame button in the stage bar) cuts the view to the
+stage to show what will publish; looking through the camera does the same, since the camera sees
+only its frame. The Eyedropper takes the stage color only on the stage; on bare pasteboard it takes
+nothing.
+
 ## Outline colors and Outline Mode
 
 Every layer has a color chip at the right edge of its label (the outline column): its own color if

@@ -163,19 +163,26 @@ fn failed_open_reports_and_keeps_the_current_document() {
 }
 
 #[test]
-fn screen_positions_map_to_clamped_stage_coordinates() {
+fn screen_positions_map_to_stage_coordinates_kept_on_the_pasteboard() {
     let rect = Rect::from_min_size(Pos2::new(100.0, 50.0), Vec2::new(400.0, 225.0)); // half scale
+    let extent = Vec2::new(800.0, 450.0);
     assert_eq!(
-        screen_to_stage(Pos2::new(100.0, 50.0), rect, Vec2::new(800.0, 450.0)),
+        screen_to_stage(Pos2::new(100.0, 50.0), rect, extent),
         Pos2::ZERO
     );
     assert_eq!(
-        screen_to_stage(Pos2::new(300.0, 162.5), rect, Vec2::new(800.0, 450.0)),
+        screen_to_stage(Pos2::new(300.0, 162.5), rect, extent),
         Pos2::new(400.0, 225.0)
     );
+    // Off the stage is the pasteboard: a point there is where it is, not pulled to the edge.
     assert_eq!(
-        screen_to_stage(Pos2::new(-999.0, 9999.0), rect, Vec2::new(800.0, 450.0)),
-        Pos2::new(0.0, 450.0)
+        screen_to_stage(Pos2::new(50.0, 25.0), rect, extent),
+        Pos2::new(-100.0, -50.0)
+    );
+    // Past the pasteboard (twice the longer side, 1600, beyond each edge), it stops.
+    assert_eq!(
+        screen_to_stage(Pos2::new(-9999.0, 9999.0), rect, extent),
+        Pos2::new(-1600.0, 2050.0)
     );
 }
 

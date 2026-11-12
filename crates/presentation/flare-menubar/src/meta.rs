@@ -34,6 +34,8 @@ impl MenuAction {
             // these keys never scale the whole interface.
             Self::ZoomIn => "CmdOrCtrl+=",
             Self::ZoomOut => "CmdOrCtrl+-",
+            // Animate's key for View > Pasteboard.
+            Self::TogglePasteboard => "CmdOrCtrl+Shift+W",
             Self::Preferences => "CmdOrCtrl+,",
             _ => return None,
         })
@@ -185,6 +187,7 @@ impl MenuAction {
             Self::ZoomFit => "zoom-fit",
             Self::ToggleOnionSkin => "onion-skin",
             Self::ToggleOutlineMode => "outline-square",
+            Self::TogglePasteboard => "pasteboard",
             Self::ToggleRulers => "ruler",
             Self::ToggleGuides | Self::ClearGuides => "ruler",
             Self::ToggleGrid => "grid",

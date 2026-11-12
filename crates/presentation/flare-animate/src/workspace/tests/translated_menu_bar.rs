@@ -93,6 +93,8 @@ fn every_action_menu_title_and_planned_command_is_translated_in_every_language()
         guides_shown: true,
         onion_on: true,
         outline_mode: true,
+        // Shown is the default, so hidden is the other state.
+        pasteboard_shown: false,
         rulers_shown: true,
         grid_shown: true,
         snapping: true,
