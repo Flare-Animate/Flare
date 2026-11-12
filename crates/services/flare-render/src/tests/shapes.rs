@@ -291,7 +291,8 @@ fn onion_frames_sit_beneath_the_current_frame() {
     let ghost = flare_eval::evaluate_frame(&doc, id, 0).expect("ghost");
     let current = flare_eval::evaluate_frame(&doc, id, 1).expect("current");
 
-    let image = render_onion(&[(&ghost, 0.5)], &current, 20, 20, Rgba8::WHITE).expect("onion");
+    let image =
+        render_onion(&[(&ghost, 0.5, None)], &current, 20, 20, Rgba8::WHITE).expect("onion");
     // Ghost only (x 0..5): faint red. Overlap (x 5..10): the current frame's solid blue.
     let faint = image.pixel(2, 5).expect("pixel");
     assert!(faint.r == 255 && faint.g.abs_diff(127) <= 1, "{faint:?}");
@@ -334,7 +335,7 @@ fn onion_outlines_draw_the_ghost_as_a_line_and_leave_its_inside_empty() {
     let ghost = flare_eval::evaluate_frame(&doc, id, 0).expect("ghost");
     let current = flare_eval::evaluate_frame(&doc, id, 1).expect("current");
     let image = render_onion_outlines_viewport(
-        &[(&ghost, 0.5)],
+        &[(&ghost, 0.5, None)],
         &current,
         &Viewport::full(80, 80),
         80,

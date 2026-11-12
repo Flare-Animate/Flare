@@ -15,10 +15,11 @@ use crate::pattern::pattern;
 #[allow(unused_imports)]
 use crate::{Image, MAX_DIMENSION, MAX_PIXELS, PremultipliedImage, RenderError, Viewport};
 
-/// Renders `current` with translucent `ghosts` (frame, opacity) beneath it, as onion
-/// skinning does. Ghosts are drawn in the order given, then the current frame on top.
+/// Renders `current` with translucent `ghosts` (frame, opacity, tint) beneath it, as onion
+/// skinning does. Ghosts are drawn in the order given, then the current frame on top; a ghost
+/// with a tint is colored with it ([`Image::tinted`]), as Animate's tinted onion skin is.
 pub fn render_onion(
-    ghosts: &[(&Frame<'_>, f32)],
+    ghosts: &[(&Frame<'_>, f32, Option<Rgba8>)],
     current: &Frame<'_>,
     width: u32,
     height: u32,
@@ -36,7 +37,7 @@ pub fn render_onion(
 
 /// [`render_onion`] for a part of the stage; see [`render_viewport`].
 pub fn render_onion_viewport(
-    ghosts: &[(&Frame<'_>, f32)],
+    ghosts: &[(&Frame<'_>, f32, Option<Rgba8>)],
     current: &Frame<'_>,
     viewport: &Viewport,
     width: u32,
@@ -48,9 +49,14 @@ pub fn render_onion_viewport(
     }
     let empty = Frame::default();
     let mut image = render_viewport(&empty, viewport, width, height, background)?;
-    for (frame, opacity) in ghosts {
-        let ghost = render_viewport(frame, viewport, width, height, Rgba8::TRANSPARENT)?;
-        image.composite(&ghost.faded(*opacity))?;
+    for (frame, opacity, tint) in ghosts {
+        // The ghost is drawn only to be colored and faded, so both are done on it in place.
+        let mut ghost = render_viewport(frame, viewport, width, height, Rgba8::TRANSPARENT)?;
+        if let Some(color) = tint {
+            ghost.tint_in_place(*color);
+        }
+        ghost.fade_in_place(*opacity);
+        image.composite(&ghost)?;
     }
     image.composite(&render_viewport(
         current,

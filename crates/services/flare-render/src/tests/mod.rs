@@ -13,6 +13,7 @@ use std::num::NonZeroU32;
 mod bitmaps;
 mod camera;
 mod masks;
+mod paint_hits;
 mod shapes;
 mod still;
 mod stroke_patterns;
