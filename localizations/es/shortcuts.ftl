@@ -10,3 +10,6 @@ shortcuts-reset = Restablecer al conjunto
 shortcuts-conflict = { $keys } ya ejecuta { $action }.
 shortcuts-bad = Esas teclas no se pueden usar aquí.
 shortcuts-hint = Las letras de herramienta funcionan cuando no se escribe nada.
+shortcuts-search = Buscar atajos
+shortcuts-none = Ningún comando coincide con «{ $query }».
+shortcuts-rotate-tap = Pulsa solo { $key } para girar el escenario con la herramienta Rotación.

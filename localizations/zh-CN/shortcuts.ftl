@@ -10,3 +10,6 @@ shortcuts-reset = 恢复为方案默认
 shortcuts-conflict = { $keys } 已用于 { $action }。
 shortcuts-bad = 此处无法使用这些按键。
 shortcuts-hint = 没有输入文字时，工具字母键才起作用。
+shortcuts-search = 搜索快捷键
+shortcuts-none = 没有与“{ $query }”匹配的命令。
+shortcuts-rotate-tap = 单独轻按 { $key } 即可用旋转工具旋转舞台。

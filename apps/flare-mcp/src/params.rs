@@ -492,4 +492,7 @@ pub struct ShortcutsParams {
     pub file: Option<String>,
     /// Also return the checked file.
     pub export: Option<bool>,
+    /// Only the commands this finds: words of their English name or id ("save as"), or keys
+    /// ("cmd+s", "shift+f5", "option"). Each row then carries the command's name too.
+    pub search: Option<String>,
 }

@@ -10,3 +10,6 @@ shortcuts-reset = Revenir au jeu
 shortcuts-conflict = { $keys } lance déjà { $action }.
 shortcuts-bad = Ces touches ne sont pas utilisables ici.
 shortcuts-hint = Les lettres d’outil fonctionnent quand rien n’est saisi.
+shortcuts-search = Rechercher un raccourci
+shortcuts-none = Aucune commande ne correspond à « { $query } ».
+shortcuts-rotate-tap = Appuyez seulement sur { $key } pour faire pivoter la scène avec l’outil Rotation.

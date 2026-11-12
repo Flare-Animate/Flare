@@ -10,3 +10,6 @@ shortcuts-reset = Obnovit sadu
 shortcuts-conflict = { $keys } už spouští { $action }.
 shortcuts-bad = Tyto klávesy zde nelze použít.
 shortcuts-hint = Písmenové nástroje fungují, když se nic nepíše.
+shortcuts-search = Hledat zkratky
+shortcuts-none = Žádný příkaz neodpovídá „{ $query }“.
+shortcuts-rotate-tap = Samotným klepnutím na { $key } otočíte plochu nástrojem Otočení.

@@ -174,6 +174,11 @@ upright), the grid and guides turn with the stage, the rulers stay along the scr
 numbers that would no longer line up, and guides are not dragged out of or along them; the text
 being typed turns with the stage while its invisible field stays upright.
 
+Help > Keyboard Shortcuts has a search field over the list: words find commands by their name in
+the interface language or their id (`save as`), and keys find what they run (`cmd+s`, `⌘⇧S`,
+`shift+f5`, or a modifier's name such as `option`). The matching is `flare_menubar::ShortcutQuery`,
+which the command line and MCP server use too.
+
 Over the stage the pointer is the tool in hand (`workspace/tools/stage_pointer.rs`). The Brush, the
 Pencil and the rubbing Eraser show only their tip: the outline of what they lay down, at its size,
 never smaller than a few screen points. A tool whose icon has a point where it acts (Paint Bucket, Ink

@@ -10,3 +10,6 @@ shortcuts-reset = Auf Satz zurücksetzen
 shortcuts-conflict = { $keys } führt bereits { $action } aus.
 shortcuts-bad = Diese Tasten sind hier nicht möglich.
 shortcuts-hint = Werkzeugbuchstaben gelten, wenn nichts getippt wird.
+shortcuts-search = Tastaturbefehle suchen
+shortcuts-none = Kein Befehl passt zu „{ $query }“.
+shortcuts-rotate-tap = Tippen Sie nur { $key }, um die Bühne mit dem Werkzeug Drehen zu drehen.

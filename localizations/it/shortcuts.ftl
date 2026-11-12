@@ -10,3 +10,6 @@ shortcuts-reset = Ripristina il set
 shortcuts-conflict = { $keys } esegue già { $action }.
 shortcuts-bad = Questi tasti non possono essere usati qui.
 shortcuts-hint = Le lettere degli strumenti funzionano quando non si sta scrivendo.
+shortcuts-search = Cerca scorciatoie
+shortcuts-none = Nessun comando corrisponde a «{ $query }».
+shortcuts-rotate-tap = Premi solo { $key } per ruotare lo stage con lo strumento Angolo.
