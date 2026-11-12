@@ -4,6 +4,7 @@
 //! edits produce. Nothing here knows a window, so every surface reads the same rules.
 
 mod accel;
+mod animate_xml;
 mod file;
 mod search;
 mod sets;
@@ -13,6 +14,7 @@ mod tests;
 use std::collections::BTreeMap;
 
 pub use accel::{Accelerator, ShortcutError};
+pub use animate_xml::{AnimateImport, MAX_ANIMATE_SHORTCUT_BYTES, Skipped};
 pub use file::MAX_SHORTCUT_FILE_BYTES;
 pub use search::{MAX_SEARCH_CHARS, ShortcutQuery};
 pub use sets::{DEFAULT_SET, SHORTCUT_SET_IDS, set_bindings};

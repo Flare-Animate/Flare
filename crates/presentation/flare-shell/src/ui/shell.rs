@@ -46,6 +46,28 @@ impl App {
                     self.workspace.import_sound(&path);
                 }
             }
+            DialogRequest::ImportAnimateShortcuts => {
+                if let Some(path) = dialogs::pick_shortcut_xml(
+                    &self
+                        .workspace
+                        .interface_text("dlg-filter-animate-shortcuts"),
+                ) {
+                    // A shortcut file is small; one larger than any Animate writes is not read.
+                    let too_large = std::fs::metadata(&path)
+                        .is_ok_and(|m| m.len() > flare_menubar::MAX_ANIMATE_SHORTCUT_BYTES as u64);
+                    match std::fs::read(&path) {
+                        Ok(bytes) if !too_large => self.workspace.import_animate_shortcuts(&bytes),
+                        Ok(_) => self.say_error(
+                            "dlg-cannot-read",
+                            &flare_menubar::ShortcutError::TooLarge(
+                                flare_menubar::MAX_ANIMATE_SHORTCUT_BYTES,
+                            )
+                            .to_string(),
+                        ),
+                        Err(error) => self.say_error("dlg-cannot-read", &error.to_string()),
+                    }
+                }
+            }
             DialogRequest::ExportImage => {
                 if let Some(path) =
                     dialogs::save_png(&self.workspace.interface_text("dlg-filter-png"))

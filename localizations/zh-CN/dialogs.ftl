@@ -22,3 +22,5 @@ dlg-save-prompt = 要下载的文件名（扩展名为 .fla 或 .flare）
 dlg-increment-from = 从此起始帧
 dlg-increment-by = 移动帧数
 dlg-increment-apply = 递增
+dlg-filter-animate-shortcuts = Animate 快捷键
+dlg-cannot-read = 无法读取文件

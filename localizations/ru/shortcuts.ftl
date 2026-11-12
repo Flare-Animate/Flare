@@ -14,3 +14,7 @@ shortcuts-hint = Буквенные инструменты работают, к�
 shortcuts-search = Поиск сочетаний клавиш
 shortcuts-none = Ни одна команда не подходит к «{ $query }».
 shortcuts-rotate-tap = Нажмите только { $key }, чтобы поворачивать сцену инструментом «Вращение».
+shortcuts-import-animate = Импорт из Animate…
+shortcuts-imported = Сочетания клавиш из Animate: { $applied }. Пропущено: { $skipped }, список в «Выводе».
+shortcuts-import-skipped = Пропущено из сочетаний Animate: { $line }
+shortcuts-import-refused = Файл сочетаний клавиш Animate не прочитан: { $reason }

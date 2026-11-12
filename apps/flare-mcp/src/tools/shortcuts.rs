@@ -4,7 +4,7 @@
 use flare_menubar::ShortcutMap;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 
-use crate::params::ShortcutsParams;
+use crate::params::{AnimateShortcutsParams, ShortcutsParams};
 use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = shortcut_tools, vis = "pub(super)")]
@@ -26,5 +26,16 @@ impl FlareServer {
             out["file"] = map.file_value();
         }
         Ok(out.to_string())
+    }
+
+    #[tool(
+        description = "Read Animate's own keyboard shortcut file (the XML text of `Shortcuts/<set>.xml`) onto the animate set. Returns `applied` (each command and its keys), `skipped` (each binding not taken over and why: a command Flare does not have, a key code not known yet, a modifier not understood) and `file`, the Flare shortcut file to keep. A file that is not XML, too large or too deeply nested is refused."
+    )]
+    fn import_animate_shortcuts(
+        &self,
+        Parameters(a): Parameters<AnimateShortcutsParams>,
+    ) -> Outcome {
+        let import = ShortcutMap::from_animate_xml(&a.xml).map_err(|e| e.to_string())?;
+        Ok(import.to_json().to_string())
     }
 }

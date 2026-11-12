@@ -22,3 +22,5 @@ dlg-save-prompt = Nome do arquivo a baixar, com a extensão .fla ou .flare
 dlg-increment-from = Deste quadro
 dlg-increment-by = Mover quadros
 dlg-increment-apply = Incrementar
+dlg-filter-animate-shortcuts = Atalhos do Animate
+dlg-cannot-read = Não é possível ler o arquivo

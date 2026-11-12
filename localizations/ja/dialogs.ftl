@@ -22,3 +22,5 @@ dlg-save-prompt = ダウンロードするファイル名（拡張子は .fla �
 dlg-increment-from = この先頭フレームから
 dlg-increment-by = 移動するフレーム数
 dlg-increment-apply = 増分
+dlg-filter-animate-shortcuts = Animate のショートカット
+dlg-cannot-read = ファイルを読み込めません

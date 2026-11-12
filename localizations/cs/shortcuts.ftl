@@ -14,3 +14,7 @@ shortcuts-hint = Písmenové nástroje fungují, když se nic nepíše.
 shortcuts-search = Hledat zkratky
 shortcuts-none = Žádný příkaz neodpovídá „{ $query }“.
 shortcuts-rotate-tap = Samotným klepnutím na { $key } otočíte plochu nástrojem Otočení.
+shortcuts-import-animate = Importovat z Animate…
+shortcuts-imported = Zkratky převzaté z Animate: { $applied }. Přeskočeno: { $skipped }, vypsáno ve Výstupu.
+shortcuts-import-skipped = Přeskočeno ze zkratek Animate: { $line }
+shortcuts-import-refused = Soubor zkratek Animate nebyl načten: { $reason }

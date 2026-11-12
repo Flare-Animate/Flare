@@ -8,6 +8,7 @@ license.workspace = true
 
 [dependencies]
 flare-i18n.workspace = true
+quick-xml.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

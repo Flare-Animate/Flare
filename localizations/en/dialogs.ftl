@@ -22,3 +22,5 @@ dlg-save-prompt = File name to download, ending in .fla or .flare
 dlg-increment-from = From this first frame
 dlg-increment-by = Move by frames
 dlg-increment-apply = Increment
+dlg-filter-animate-shortcuts = Animate shortcut file
+dlg-cannot-read = Cannot read the file

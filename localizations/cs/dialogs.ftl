@@ -22,3 +22,5 @@ dlg-save-prompt = Název souboru ke stažení, končí na .fla nebo .flare
 dlg-increment-from = Od tohoto snímku
 dlg-increment-by = Posunout o snímky
 dlg-increment-apply = Zvýšit
+dlg-filter-animate-shortcuts = Zkratky Animate
+dlg-cannot-read = Soubor nelze přečíst

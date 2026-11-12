@@ -22,3 +22,5 @@ dlg-save-prompt = Dateiname für den Download, mit der Endung .fla oder .flare
 dlg-increment-from = Ab diesem Bild
 dlg-increment-by = Verschieben um Bilder
 dlg-increment-apply = Inkrementieren
+dlg-filter-animate-shortcuts = Animate-Tastaturbefehle
+dlg-cannot-read = Die Datei kann nicht gelesen werden

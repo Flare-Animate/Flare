@@ -22,6 +22,10 @@ pub fn pick_sound(_filter: &str) -> Option<std::path::PathBuf> {
     None
 }
 
+pub fn pick_shortcut_xml(_filter: &str) -> Option<std::path::PathBuf> {
+    None
+}
+
 pub fn save_png(_filter: &str) -> Option<std::path::PathBuf> {
     None
 }

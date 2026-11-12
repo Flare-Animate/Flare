@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow};
 use clap::Subcommand;
-use flare_menubar::{MAX_SHORTCUT_FILE_BYTES, ShortcutMap};
+use flare_menubar::{MAX_ANIMATE_SHORTCUT_BYTES, MAX_SHORTCUT_FILE_BYTES, ShortcutMap};
 use serde_json::{Value, json};
 
 #[derive(Subcommand)]
@@ -37,6 +37,15 @@ pub enum ShortcutsCommand {
     /// command, a bad key or two commands on one key is refused and nothing is written.
     Import {
         file: PathBuf,
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Read Animate's own shortcut file (`Shortcuts/<set>.xml` in Animate's settings folder) onto
+    /// the animate set and write it as a Flare shortcut file. Prints what was taken over and what
+    /// was skipped, with the reason (a command Flare does not have, a key it cannot read).
+    ImportAnimate {
+        file: PathBuf,
+        /// Where to write the Flare shortcut file; without it only the report is printed.
         #[arg(long)]
         out: Option<PathBuf>,
     },
@@ -79,6 +88,26 @@ pub fn run(op: ShortcutsCommand) -> Result<Value> {
         ShortcutsCommand::Import { file, out } => {
             let map = read_file(&file)?;
             write_or_print(&map, out.as_deref())
+        }
+        ShortcutsCommand::ImportAnimate { file, out } => {
+            let meta = std::fs::metadata(&file)
+                .with_context(|| format!("cannot read {}", file.display()))?;
+            if meta.len() > MAX_ANIMATE_SHORTCUT_BYTES as u64 {
+                return Err(anyhow!(
+                    "{} is too large for a shortcut file",
+                    file.display()
+                ));
+            }
+            let text = std::fs::read_to_string(&file)
+                .with_context(|| format!("cannot read {}", file.display()))?;
+            let import = ShortcutMap::from_animate_xml(&text).map_err(|e| anyhow!(e))?;
+            let mut report = import.to_json();
+            if let Some(path) = out {
+                std::fs::write(&path, import.map.to_json())
+                    .with_context(|| format!("cannot write {}", path.display()))?;
+                report["written"] = Value::String(path.display().to_string());
+            }
+            Ok(report)
         }
     }
 }

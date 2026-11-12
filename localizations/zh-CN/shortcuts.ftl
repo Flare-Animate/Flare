@@ -14,3 +14,7 @@ shortcuts-hint = 没有输入文字时，工具字母键才起作用。
 shortcuts-search = 搜索快捷键
 shortcuts-none = 没有与“{ $query }”匹配的命令。
 shortcuts-rotate-tap = 单独轻按 { $key } 即可用旋转工具旋转舞台。
+shortcuts-import-animate = 从 Animate 导入…
+shortcuts-imported = 从 Animate 采用的快捷键：{ $applied }。已跳过：{ $skipped }，列在“输出”中。
+shortcuts-import-skipped = 从 Animate 快捷键中跳过：{ $line }
+shortcuts-import-refused = 未读取 Animate 的快捷键文件：{ $reason }

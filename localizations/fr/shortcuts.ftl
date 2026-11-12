@@ -14,3 +14,7 @@ shortcuts-hint = Les lettres d’outil fonctionnent quand rien n’est saisi.
 shortcuts-search = Rechercher un raccourci
 shortcuts-none = Aucune commande ne correspond à « { $query } ».
 shortcuts-rotate-tap = Appuyez seulement sur { $key } pour faire pivoter la scène avec l’outil Rotation.
+shortcuts-import-animate = Importer depuis Animate…
+shortcuts-imported = Raccourcis repris d’Animate : { $applied }. Ignorés : { $skipped }, listés dans Sortie.
+shortcuts-import-skipped = Ignoré dans les raccourcis d’Animate : { $line }
+shortcuts-import-refused = Le fichier de raccourcis d’Animate n’a pas été lu : { $reason }

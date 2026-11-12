@@ -14,3 +14,7 @@ shortcuts-hint = ツールの文字キーは入力中でないときに働きま
 shortcuts-search = ショートカットを検索
 shortcuts-none = 「{ $query }」に一致するコマンドはありません。
 shortcuts-rotate-tap = { $key } だけを押すと、回転ツールでステージを回転できます。
+shortcuts-import-animate = Animate から読み込む…
+shortcuts-imported = Animate から取り込んだショートカット: { $applied }。スキップ: { $skipped }（出力に一覧）。
+shortcuts-import-skipped = Animate のショートカットからスキップ: { $line }
+shortcuts-import-refused = Animate のショートカットファイルを読み込めませんでした: { $reason }

@@ -92,6 +92,41 @@ impl Workspace {
         self.shortcut_result(action, result)
     }
 
+    /// Puts the keys of Animate's shortcut file (its bytes, as picked) on Animate's set and makes
+    /// that the map in force. What was skipped is listed in Output, each with its reason; a file
+    /// that cannot be read changes nothing and says why.
+    pub fn import_animate_shortcuts(&mut self, bytes: &[u8]) {
+        let text = String::from_utf8_lossy(bytes);
+        match ShortcutMap::from_animate_xml(&text) {
+            Ok(import) => {
+                for skipped in &import.skipped {
+                    let line =
+                        format!("{} ({}): {}", skipped.command, skipped.keys, skipped.reason);
+                    self.report(tr!(self, "shortcuts-import-skipped", &[("line", &line)]));
+                }
+                let (applied, skipped) = (
+                    import.applied.len().to_string(),
+                    import.skipped.len().to_string(),
+                );
+                self.shortcuts = import.map;
+                let summary = tr!(
+                    self,
+                    "shortcuts-imported",
+                    &[("applied", &applied), ("skipped", &skipped)]
+                );
+                self.shortcut_editor.error = None;
+                self.shortcut_editor.notice = Some(summary.clone());
+                self.report(summary);
+            }
+            Err(error) => {
+                let reason = error.to_string();
+                let message = tr!(self, "shortcuts-import-refused", &[("reason", &reason)]);
+                self.shortcut_editor.error = Some(message.clone());
+                self.report(message);
+            }
+        }
+    }
+
     /// Free a command's keys.
     pub fn clear_shortcut(&mut self, action: MenuAction) {
         self.shortcuts.unbind(action);
@@ -220,6 +255,9 @@ impl Workspace {
         if let Some(id) = chosen {
             // The ids come from the registry's own list, so this cannot fail.
             let _ = self.choose_shortcut_set(id);
+        }
+        if ui.button(tr!(self, "shortcuts-import-animate")).clicked() {
+            self.dialog = Some(DialogRequest::ImportAnimateShortcuts);
         }
         // While a command waits for keys, the next key press (not Escape) is its new shortcut.
         if let Some(action) = self.shortcut_editor.capturing {

@@ -46,6 +46,11 @@ pub fn pick_sound(filter: &str) -> Option<PathBuf> {
     backend::pick_sound(filter)
 }
 
+/// Animate's keyboard shortcut file (`Shortcuts/<set>.xml` in its settings folder).
+pub fn pick_shortcut_xml(filter: &str) -> Option<PathBuf> {
+    backend::pick_shortcut_xml(filter)
+}
+
 pub fn save_png(filter: &str) -> Option<PathBuf> {
     backend::save_png(filter)
 }

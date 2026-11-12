@@ -25,6 +25,8 @@ pub struct WebApp {
     workspace: Workspace,
     picked: Rc<RefCell<Vec<Picked>>>,
     picked_sounds: Rc<RefCell<Vec<Picked>>>,
+    /// Animate shortcut files picked, read on the next frame.
+    picked_shortcuts: Rc<RefCell<Vec<Picked>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// The preferences as last written, so storage is touched only when they change.
@@ -42,6 +44,7 @@ impl WebApp {
             workspace,
             picked: Rc::default(),
             picked_sounds: Rc::default(),
+            picked_shortcuts: Rc::default(),
             messages: Rc::default(),
             saved_preferences,
             last_name: "project.fla".to_owned(),
@@ -182,6 +185,35 @@ impl WebApp {
                         .map_err(|e| e.to_string());
                     self.deliver("movie.html", "text/html", result);
                 }
+            }
+            DialogRequest::ImportAnimateShortcuts => {
+                let (inbox, messages, ctx) = (
+                    Rc::clone(&self.picked_shortcuts),
+                    Rc::clone(&self.messages),
+                    ctx.clone(),
+                );
+                let filter = self
+                    .workspace
+                    .interface_text("dlg-filter-animate-shortcuts");
+                wasm_bindgen_futures::spawn_local(async move {
+                    match files::pick_bounded(
+                        &filter,
+                        &["xml"],
+                        flare_menubar::MAX_ANIMATE_SHORTCUT_BYTES,
+                    )
+                    .await
+                    {
+                        Ok(Some((name, bytes))) => {
+                            inbox.borrow_mut().push(Picked { name, bytes });
+                            ctx.request_repaint();
+                        }
+                        Ok(None) => {}
+                        Err(error) => {
+                            messages.borrow_mut().push(error.to_string());
+                            ctx.request_repaint();
+                        }
+                    }
+                });
             }
             DialogRequest::ImportSound => {
                 let (inbox, messages, ctx) = (
@@ -346,6 +378,10 @@ impl eframe::App for WebApp {
         let sounds: Vec<Picked> = self.picked_sounds.borrow_mut().drain(..).collect();
         for sound in sounds {
             self.workspace.import_sound_bytes(&sound.name, sound.bytes);
+        }
+        let shortcuts: Vec<Picked> = self.picked_shortcuts.borrow_mut().drain(..).collect();
+        for file in shortcuts {
+            self.workspace.import_animate_shortcuts(&file.bytes);
         }
         let messages: Vec<String> = self.messages.borrow_mut().drain(..).collect();
         for message in messages {

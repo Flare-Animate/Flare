@@ -14,3 +14,7 @@ shortcuts-hint = Werkzeugbuchstaben gelten, wenn nichts getippt wird.
 shortcuts-search = Tastaturbefehle suchen
 shortcuts-none = Kein Befehl passt zu „{ $query }“.
 shortcuts-rotate-tap = Tippen Sie nur { $key }, um die Bühne mit dem Werkzeug Drehen zu drehen.
+shortcuts-import-animate = Aus Animate importieren…
+shortcuts-imported = Aus Animate übernommene Tastaturbefehle: { $applied }. Übersprungen: { $skipped }, aufgeführt in der Ausgabe.
+shortcuts-import-skipped = Aus den Animate-Tastaturbefehlen übersprungen: { $line }
+shortcuts-import-refused = Die Tastaturbefehl-Datei von Animate wurde nicht gelesen: { $reason }

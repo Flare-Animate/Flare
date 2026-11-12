@@ -22,3 +22,5 @@ dlg-save-prompt = Nombre del archivo que se descargará, con la extensión .fla 
 dlg-increment-from = Desde este fotograma
 dlg-increment-by = Mover fotogramas
 dlg-increment-apply = Incrementar
+dlg-filter-animate-shortcuts = Métodos abreviados de Animate
+dlg-cannot-read = No se puede leer el archivo

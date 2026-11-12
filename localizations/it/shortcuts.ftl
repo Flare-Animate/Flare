@@ -14,3 +14,7 @@ shortcuts-hint = Le lettere degli strumenti funzionano quando non si sta scriven
 shortcuts-search = Cerca scorciatoie
 shortcuts-none = Nessun comando corrisponde a «{ $query }».
 shortcuts-rotate-tap = Premi solo { $key } per ruotare lo stage con lo strumento Angolo.
+shortcuts-import-animate = Importa da Animate…
+shortcuts-imported = Scelte rapide prese da Animate: { $applied }. Saltate: { $skipped }, elencate in Output.
+shortcuts-import-skipped = Saltata dalle scelte rapide di Animate: { $line }
+shortcuts-import-refused = Il file delle scelte rapide di Animate non è stato letto: { $reason }

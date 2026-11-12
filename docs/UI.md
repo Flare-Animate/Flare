@@ -192,6 +192,12 @@ which the command line and MCP server use too. Keys another command already has 
 Change (or Reset, for the set's own keys) takes them from that command, which is left with no
 shortcut until it is given one, and the editor says which command lost them
 (`ShortcutMap::bind_taking`, `reset_taking`). So the map still never holds two commands on one key.
+Import from Animate… reads Animate's own shortcut file (`Shortcuts/<set>.xml` in Animate's
+settings folder, at most 512 KiB) onto Animate's set: each binding of a command Flare has is
+taken over, taking the keys from any command that had them, and the rest (a command Flare does
+not have, a second key for one command, a key code not yet matched against Animate's menus, a
+modifier not understood) is listed in Output with the reason. A file that is not XML, declares a
+document type, nests too deeply or holds more than 4096 bindings changes nothing.
 
 Over the stage the pointer is the tool in hand (`workspace/tools/stage_pointer.rs`). The Brush, the
 Pencil and the rubbing Eraser show only their tip: the outline of what they lay down, at its size,

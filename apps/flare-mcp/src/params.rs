@@ -485,6 +485,12 @@ pub struct ArmatureLayer {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct AnimateShortcutsParams {
+    /// The text of Animate's shortcut file (`Shortcuts/<set>.xml` in its settings folder).
+    pub xml: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct ShortcutsParams {
     /// A set: "flare" (the default), "opentoonz", "animate" or "tahoma".
     pub set: Option<String>,

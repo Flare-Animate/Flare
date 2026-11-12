@@ -84,6 +84,12 @@ pub fn pick_sound(filter: &str) -> Option<std::path::PathBuf> {
         .pick_file()
 }
 
+pub fn pick_shortcut_xml(filter: &str) -> Option<std::path::PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter(filter, &["xml"])
+        .pick_file()
+}
+
 pub fn save_png(filter: &str) -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
         .add_filter(filter, &["png"])

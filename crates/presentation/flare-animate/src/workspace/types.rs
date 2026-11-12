@@ -129,6 +129,8 @@ pub enum DialogRequest {
     Open,
     SaveAs,
     ImportSound,
+    /// Read Animate's keyboard shortcut file onto the shortcuts in force.
+    ImportAnimateShortcuts,
     ExportImage,
     ExportMovie,
     /// Write the project as a `.fla` Animate can open.

@@ -22,3 +22,5 @@ dlg-save-prompt = Имя файла для загрузки, с расширен
 dlg-increment-from = Начиная с этого кадра
 dlg-increment-by = Сдвинуть на кадры
 dlg-increment-apply = Увеличить
+dlg-filter-animate-shortcuts = Сочетания клавиш Animate
+dlg-cannot-read = Не удаётся прочитать файл
