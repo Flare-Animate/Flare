@@ -169,6 +169,11 @@ fn dragging_with_the_rotation_tool_turns_the_view_and_shift_snaps() {
     assert_eq!(drawing_count(&ws), 1, "the document did not change");
     // With Shift a drag lands on a step of 15 degrees.
     ws.reset_stage_rotation();
+    // Letting go gave back the tool held before; pick the Rotation tool again.
+    time += 0.02;
+    pass(&mut ws, &ctx, input(time, vec![]));
+    assert_eq!(ws.tool(), Tool::Select);
+    ws.set_tool(Tool::RotateView);
     let near = center + egui::emath::Rot2::from_angle(0.4) * Vec2::new(150.0, 0.0);
     let shifted = |time, events| with_mods(time, Modifiers::SHIFT, events);
     time += 0.1;
@@ -291,4 +296,78 @@ fn a_turned_stage_is_painted_turned_and_the_rulers_are_not() {
     let mut upright = ctx.run_ui(input(1.1, vec![]), |ui| ws.show(ui));
     upright.textures_delta.clear();
     assert!(numbers(&upright) > 0, "upright, the ruler is numbered");
+}
+
+/// A turning drag on the stage from `from` sweeping `radians` about the panel's center.
+fn turn_drag(ws: &mut Workspace, ctx: &egui::Context, time: &mut f64, radians: f32) {
+    let center = ws.stage_panel.center();
+    let arm = Vec2::new(150.0, 0.0);
+    let from = center + arm;
+    for event in [
+        Event::PointerMoved(from),
+        press(from, true, Modifiers::NONE),
+    ] {
+        *time += 0.02;
+        pass(ws, ctx, input(*time, vec![event]));
+    }
+    let mut at = from;
+    for step in 1..=8 {
+        *time += 0.02;
+        at = center + egui::emath::Rot2::from_angle(radians * step as f32 / 8.0) * arm;
+        pass(ws, ctx, input(*time, vec![Event::PointerMoved(at)]));
+    }
+    *time += 0.02;
+    pass(
+        ws,
+        ctx,
+        input(*time, vec![press(at, false, Modifiers::NONE)]),
+    );
+}
+
+#[test]
+fn letting_go_of_a_turn_gives_back_the_tool_held_before() {
+    let (mut ws, ctx) = laid_out();
+    ws.set_tool(Tool::Brush);
+    ws.set_tool(Tool::RotateView);
+    let mut time = 1.0;
+    turn_drag(&mut ws, &ctx, &mut time, 0.6);
+    assert!(ws.stage_rotation_degrees() > 20.0, "the view turned");
+    time += 0.02;
+    pass(&mut ws, &ctx, input(time, vec![]));
+    assert_eq!(ws.tool(), Tool::Brush, "back to the Brush");
+    assert_eq!(
+        drawing_count(&ws),
+        1,
+        "the Brush drew nothing on the way back"
+    );
+    // A click without a drag is not a turn: the tool stays in hand.
+    ws.set_tool(Tool::RotateView);
+    let at = ws.stage_panel.center() + Vec2::new(80.0, 40.0);
+    click(&mut ws, &ctx, &mut time, at);
+    pass(&mut ws, &ctx, input(time + 0.02, vec![]));
+    assert_eq!(ws.tool(), Tool::RotateView);
+    // Picked with the Alt tap, a turn closes the dial and gives back the tool too.
+    ws.set_tool(Tool::Pen);
+    ws.toggle_rotation_dial();
+    time += 1.0;
+    turn_drag(&mut ws, &ctx, &mut time, -0.6);
+    time += 0.02;
+    pass(&mut ws, &ctx, input(time, vec![]));
+    assert_eq!(ws.tool(), Tool::Pen);
+    assert!(!ws.rotation_dial_open());
+}
+
+#[test]
+fn setting_the_view_upright_with_a_double_click_gives_back_the_tool_too() {
+    let (mut ws, ctx) = laid_out();
+    ws.set_tool(Tool::Line);
+    ws.set_tool(Tool::RotateView);
+    ws.set_stage_rotation_degrees(40.0);
+    let at = ws.stage_panel.center() + Vec2::new(80.0, 40.0);
+    let mut time = 1.0;
+    click(&mut ws, &ctx, &mut time, at);
+    click(&mut ws, &ctx, &mut time, at);
+    assert_eq!(ws.stage_rotation_degrees(), 0.0);
+    pass(&mut ws, &ctx, input(time + 0.02, vec![]));
+    assert_eq!(ws.tool(), Tool::Line);
 }

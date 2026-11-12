@@ -167,7 +167,10 @@ document: drag on the stage to turn it about the panel's center (Shift: in steps
 double-click to set it upright. Tapping Alt alone (Option on a Mac) picks it and shows its dial at
 the foot of the stage: drag the needle to point where the top of the stage should be, step 15
 degrees either way, type an angle, or set it upright; a second tap, Escape or another tool puts
-the dial away and the tool held before back in hand. A tap is a press and release within half a
+the dial away and the tool held before back in hand. A turn is a quick look, as with Animate's
+spring-loaded tools: once a drag on the stage is let go, or a double-click has set it upright, the
+tool held before the Rotation tool is back in hand (the dial closes with it); a click that turns
+nothing leaves the Rotation tool in hand. A tap is a press and release within half a
 second with nothing else pressed (`flare_ui::tap::ModifierTap`), so Alt-click, Alt-drag and Alt
 chords keep their meaning. While the view is turned the stage bar shows the angle (a click sets it
 upright), the grid and guides turn with the stage, the rulers stay along the screen without

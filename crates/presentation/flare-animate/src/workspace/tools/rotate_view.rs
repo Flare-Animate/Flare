@@ -18,6 +18,11 @@ pub(in crate::workspace) struct RotateView {
     drag: Option<(Pos2, f32)>,
     /// The dial is showing, with the tool in hand before it, to go back to.
     dial: Option<Tool>,
+    /// The tool in hand before this one was picked, which a finished turn gives back.
+    before: Option<Tool>,
+    /// A turn has just finished: the next pass puts `before` back in hand. It waits for that pass
+    /// so the tool given back never sees the end of the Rotation tool's drag as one of its own.
+    going_back: bool,
     tap: ModifierTap,
 }
 
@@ -70,11 +75,24 @@ impl Workspace {
         }
     }
 
-    /// Called by [`Self::set_tool`]: a tool other than this one closes the dial.
-    pub(in crate::workspace) fn rotate_view_tool_changed(&mut self, tool: Tool) {
+    /// Called by [`Self::set_tool`] with the tool that was in hand: picking this one remembers
+    /// it, to go back to once the turn is done, and a tool other than this one closes the dial.
+    pub(in crate::workspace) fn rotate_view_tool_changed(&mut self, before: Tool, tool: Tool) {
         self.rotate.drag = None;
-        if tool != Tool::RotateView {
+        self.rotate.going_back = false;
+        if tool == Tool::RotateView {
+            self.rotate.before = Some(before);
+        } else {
             self.rotate.dial = None;
+            self.rotate.before = None;
+        }
+    }
+
+    /// A turn is done: on the next pass the tool held before the Rotation tool is back in hand.
+    fn finish_turn(&mut self, ctx: &egui::Context) {
+        if self.rotate.before.is_some() {
+            self.rotate.going_back = true;
+            ctx.request_repaint();
         }
     }
 
@@ -106,8 +124,16 @@ impl Workspace {
 
     /// The Rotation tool's drag on the stage: the view turns by the angle the pointer sweeps
     /// about the panel's center, in 15 degree steps with Shift. A double-click sets it upright.
+    /// When the drag is let go, or the double-click has set it upright, the tool held before is
+    /// given back, as Animate's spring-loaded tools do.
     pub(in crate::workspace) fn rotate_view_stage(&mut self, ui: &Ui, response: &Response) {
         if self.tool != Tool::RotateView {
+            return;
+        }
+        if self.rotate.going_back {
+            if let Some(before) = self.rotate.before.take() {
+                self.set_tool(before);
+            }
             return;
         }
         let primary = egui::PointerButton::Primary;
@@ -115,6 +141,7 @@ impl Workspace {
         if response.double_clicked() {
             self.rotate.drag = None;
             self.stage_view.reset_rotation();
+            self.finish_turn(ui.ctx());
             return;
         }
         if response.drag_started_by(primary)
@@ -130,8 +157,8 @@ impl Workspace {
             let snap = ui.input(|i| i.modifiers.shift);
             self.turn_view_to(start + swept, snap);
         }
-        if response.drag_stopped_by(primary) {
-            self.rotate.drag = None;
+        if response.drag_stopped_by(primary) && self.rotate.drag.take().is_some() {
+            self.finish_turn(ui.ctx());
         }
     }
 
