@@ -12,7 +12,7 @@ use crate::server::{FlareServer, Outcome, State};
 #[tool_router(router = pixel_tools, vis = "pub(super)")]
 impl FlareServer {
     #[tool(
-        description = "Magic Wand: pick the pixels of a bitmap whose color is like the one at each point and clear them (make them transparent), or with `keep` clear all the others, as one undo step: how a background is taken off a picture. The old picture leaves the library when nothing else shows it. `dry_run` only counts the pixels (needs write access otherwise)."
+        description = "Magic Wand: pick the pixels of a bitmap whose color is like the one at each point and clear them (make them transparent), or with `keep` clear all the others, as one undo step: how a background is taken off a picture. The old picture leaves the library when nothing else shows it. `dry_run` only counts the pixels and needs no write access; clearing does."
     )]
     fn magic_wand(&self, Parameters(args): Parameters<MagicWand>) -> Outcome {
         if args.dry_run.unwrap_or(false) {
