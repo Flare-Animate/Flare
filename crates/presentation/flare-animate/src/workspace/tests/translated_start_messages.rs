@@ -127,9 +127,14 @@ fn the_new_document_window_is_in_the_language() {
     let text = drawn(&mut ws);
     for wanted in [
         "Nuevo documento",
-        "Ajuste preestablecido",
+        "Juego",
+        "Anuncios",
+        "Ajustes preestablecidos (4)",
+        "Detalles",
         "Ancho",
         "Alto",
+        "Unidades",
+        "Píxeles",
         "Velocidad de fotogramas",
         "Color de fondo",
         "Crear",
@@ -139,7 +144,12 @@ fn the_new_document_window_is_in_the_language() {
     }
     for english in [
         "New Document",
-        "Preset",
+        "Game",
+        "Ads",
+        "Presets (4)",
+        "Details",
+        "Units",
+        "Pixels",
         "Width",
         "Height",
         "Frame rate",
@@ -235,6 +245,11 @@ fn keys(source: &str) -> Vec<&str> {
         .collect()
 }
 
+/// Every interface language's code but English's.
+const ALL_BUT_ENGLISH: [&str; 10] = [
+    "de", "es", "fr", "it", "pt-BR", "cs", "ja", "ko", "ru", "zh-CN",
+];
+
 #[test]
 fn nothing_in_these_sections_is_left_in_english() {
     // Words that are the same in a language as in English, not a missing translation.
@@ -247,6 +262,21 @@ fn nothing_in_these_sections_is_left_in_english() {
         ("msg-history-original", &["de", "es", "fr", "pt-BR"][..]),
         ("movie-pause", &["de", "fr"][..]),
         ("start-version", &["de", "fr"][..]),
+        // Names of video formats and of the standard ad sizes, used as they are everywhere.
+        ("start-size-hd", &ALL_BUT_ENGLISH[..]),
+        ("start-size-4k", &ALL_BUT_ENGLISH[..]),
+        (
+            "start-size-full-hd",
+            &["de", "es", "fr", "it", "pt-BR", "cs", "ru"][..],
+        ),
+        (
+            "start-size-leaderboard",
+            &["de", "es", "it", "pt-BR", "cs"][..],
+        ),
+        ("start-size-skyscraper", &["de"][..]),
+        ("start-size-standard", &["de", "fr", "it"][..]),
+        ("start-details", &["de"][..]),
+        ("start-pixels", &["fr", "pt-BR"][..]),
     ];
     let english = Translator::new(Language::English);
     let mut english_left = Vec::new();

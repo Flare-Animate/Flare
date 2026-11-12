@@ -39,6 +39,10 @@ pub(super) struct HomeState {
     pub(super) search: String,
     pub(super) sort: flare_recent::Sorting,
     pub(super) new_document: Option<super::home_custom::NewDocument>,
+    /// The kind of project the New Document dialog shows the sizes of.
+    pub(super) new_document_kind: usize,
+    /// Whether the dialog was opened from Home, so leaving Home closes it.
+    pub(super) new_document_from_home: bool,
 }
 
 impl Workspace {
@@ -277,7 +281,7 @@ pub(super) fn name_and_folder(path: &std::path::Path) -> (String, String) {
     (name, folder)
 }
 
-fn section_title(ui: &mut Ui, text: &str) {
+pub(super) fn section_title(ui: &mut Ui, text: &str) {
     ui.label(
         egui::RichText::new(text)
             .font(FontId::proportional(16.0))
@@ -365,6 +369,18 @@ fn tile(
     details: &[&str],
     preview: impl FnOnce(&egui::Painter, Rect),
 ) -> egui::Response {
+    chosen_tile(ui, title, details, false, preview)
+}
+
+/// A card as [`tile`] draws it, outlined in the accent color when `chosen`, as the New Document
+/// dialog marks the size it will make.
+pub(super) fn chosen_tile(
+    ui: &mut Ui,
+    title: &str,
+    details: &[&str],
+    chosen: bool,
+    preview: impl FnOnce(&egui::Painter, Rect),
+) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(
         vec2(
             TILE_WIDTH,
@@ -374,18 +390,14 @@ fn tile(
     );
     if ui.is_rect_visible(rect) {
         let painter = ui.painter();
-        let border = if response.hovered() {
-            theme::accent()
+        let border = if chosen {
+            Stroke::new(2.0, theme::accent())
+        } else if response.hovered() {
+            Stroke::new(1.0, theme::accent())
         } else {
-            theme::border()
+            Stroke::new(1.0, theme::border())
         };
-        painter.rect(
-            rect,
-            6.0,
-            theme::panel(),
-            Stroke::new(1.0, border),
-            StrokeKind::Inside,
-        );
+        painter.rect(rect, 6.0, theme::panel(), border, StrokeKind::Inside);
         let top = Rect::from_min_size(
             rect.min + Vec2::splat(1.0),
             vec2(rect.width() - 2.0, PREVIEW_HEIGHT),
@@ -420,7 +432,7 @@ fn tile(
 }
 
 /// A rectangle with the proportions of a stage, centered in `rect`.
-fn stage_glyph(painter: &egui::Painter, rect: Rect, width: u32, height: u32) {
+pub(super) fn stage_glyph(painter: &egui::Painter, rect: Rect, width: u32, height: u32) {
     let room = rect.shrink2(vec2(30.0, 16.0));
     let scale = (room.width() / width as f32).min(room.height() / height as f32);
     let size = vec2(width as f32 * scale, height as f32 * scale);

@@ -54,13 +54,13 @@ fn the_menu_and_the_new_command_treat_home_as_a_view_not_a_document() {
     assert!(!ws.home_shown());
     // New with Home up on an untouched document starts in place instead of stacking tabs.
     ws.set_home(true);
-    ws.perform(MenuAction::New);
+    ws.new_tab();
     assert_eq!(ws.tabs().len(), 1);
     assert!(!ws.home_shown());
     // On a document with work, Home is left behind in the old tab.
     rect(&mut ws);
     ws.set_home(true);
-    ws.perform(MenuAction::New);
+    ws.new_tab();
     assert_eq!(ws.tabs().len(), 2);
     assert!(!ws.home_shown());
 }
