@@ -8,6 +8,7 @@ shortcuts-press = Neue Tasten drücken (Esc bricht ab)
 shortcuts-clear = Löschen
 shortcuts-reset = Auf Satz zurücksetzen
 shortcuts-conflict = { $keys } führt bereits { $action } aus.
+shortcuts-taken = { $keys } wurde { $previous } weggenommen; dieser Befehl hat jetzt kein Tastenkürzel.
 shortcuts-bad = Diese Tasten sind hier nicht möglich.
 shortcuts-hint = Werkzeugbuchstaben gelten, wenn nichts getippt wird.
 shortcuts-search = Tastaturbefehle suchen

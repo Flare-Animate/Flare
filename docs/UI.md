@@ -177,7 +177,10 @@ being typed turns with the stage while its invisible field stays upright.
 Help > Keyboard Shortcuts has a search field over the list: words find commands by their name in
 the interface language or their id (`save as`), and keys find what they run (`cmd+s`, `⌘⇧S`,
 `shift+f5`, or a modifier's name such as `option`). The matching is `flare_menubar::ShortcutQuery`,
-which the command line and MCP server use too.
+which the command line and MCP server use too. Keys another command already has are not refused:
+Change (or Reset, for the set's own keys) takes them from that command, which is left with no
+shortcut until it is given one, and the editor says which command lost them
+(`ShortcutMap::bind_taking`, `reset_taking`). So the map still never holds two commands on one key.
 
 Over the stage the pointer is the tool in hand (`workspace/tools/stage_pointer.rs`). The Brush, the
 Pencil and the rubbing Eraser show only their tip: the outline of what they lay down, at its size,

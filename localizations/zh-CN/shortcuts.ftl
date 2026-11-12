@@ -8,6 +8,7 @@ shortcuts-press = 请按新的按键（Esc 取消）
 shortcuts-clear = 清除
 shortcuts-reset = 恢复为方案默认
 shortcuts-conflict = { $keys } 已用于 { $action }。
+shortcuts-taken = 已将 { $keys } 从 { $previous } 移走，{ $previous } 现在没有快捷键。
 shortcuts-bad = 此处无法使用这些按键。
 shortcuts-hint = 没有输入文字时，工具字母键才起作用。
 shortcuts-search = 搜索快捷键

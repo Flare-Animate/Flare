@@ -8,6 +8,7 @@ shortcuts-press = Press the new keys (Esc cancels)
 shortcuts-clear = Clear
 shortcuts-reset = Reset to set
 shortcuts-conflict = { $keys } already runs { $action }.
+shortcuts-taken = { $keys } was taken from { $previous }, which now has no shortcut.
 shortcuts-bad = Those keys cannot be used here.
 shortcuts-hint = Tool letters work when nothing is being typed.
 shortcuts-search = Search shortcuts

@@ -8,6 +8,7 @@ shortcuts-press = Нажмите новые клавиши (Esc отменяет
 shortcuts-clear = Очистить
 shortcuts-reset = Сбросить набор
 shortcuts-conflict = { $keys } уже запускает «{ $action }».
+shortcuts-taken = { $keys } больше не запускает «{ $previous }»: у этой команды теперь нет сочетания клавиш.
 shortcuts-bad = Эти клавиши здесь использовать нельзя.
 shortcuts-hint = Буквенные инструменты работают, когда ничего не печатается.
 shortcuts-search = Поиск сочетаний клавиш

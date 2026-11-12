@@ -8,6 +8,7 @@ shortcuts-press = Pulsa las teclas nuevas (Esc cancela)
 shortcuts-clear = Borrar
 shortcuts-reset = Restablecer al conjunto
 shortcuts-conflict = { $keys } ya ejecuta { $action }.
+shortcuts-taken = { $keys } se quitó a { $previous }, que ahora no tiene atajo.
 shortcuts-bad = Esas teclas no se pueden usar aquí.
 shortcuts-hint = Las letras de herramienta funcionan cuando no se escribe nada.
 shortcuts-search = Buscar atajos

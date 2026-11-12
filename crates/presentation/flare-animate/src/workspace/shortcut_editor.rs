@@ -1,6 +1,7 @@
-//! The keyboard shortcut editor: pick a set, find a command, change or clear its keys. The rules
-//! (what a shortcut may be, conflicts, what a search finds) live in `flare_menubar::ShortcutMap`;
-//! this only reads keys and shows the result.
+//! The keyboard shortcut editor: pick a set, find a command, change or clear its keys. Keys that
+//! another command holds are taken from it, and the editor says which command lost them. The rules
+//! (what a shortcut may be, what a search finds) live in `flare_menubar::ShortcutMap`; this only
+//! reads keys and shows the result.
 
 use crate::workspace::*;
 use egui::{Key, Modifiers};
@@ -43,6 +44,8 @@ pub(super) struct ShortcutEditor {
     pub(super) capturing: Option<MenuAction>,
     /// Why the last change was refused, already in the person's language.
     pub(super) error: Option<String>,
+    /// Which command the last change took its keys from, already in the person's language.
+    pub(super) notice: Option<String>,
     /// What is typed in the search field: the list shows only the commands it finds.
     pub(super) query: String,
 }
@@ -73,29 +76,51 @@ impl Workspace {
     pub fn choose_shortcut_set(&mut self, id: &str) -> Result<(), ShortcutError> {
         self.shortcuts = ShortcutMap::from_set(id)?;
         self.shortcut_editor.error = None;
+        self.shortcut_editor.notice = None;
         Ok(())
     }
 
-    /// Give a command new keys. A refusal leaves every shortcut as it was and is returned in the
-    /// person's language.
-    pub fn set_shortcut(&mut self, action: MenuAction, keys: &str) -> Result<(), String> {
-        let result = self.shortcuts.bind(action, keys);
-        self.shortcut_result(result)
+    /// Give a command new keys. Keys another command holds are taken from it, and that command is
+    /// returned, left with none. A refusal (keys that are not a shortcut) leaves every shortcut as
+    /// it was and is returned in the person's language.
+    pub fn set_shortcut(
+        &mut self,
+        action: MenuAction,
+        keys: &str,
+    ) -> Result<Option<MenuAction>, String> {
+        let result = self.shortcuts.bind_taking(action, keys);
+        self.shortcut_result(action, result)
     }
 
     /// Free a command's keys.
     pub fn clear_shortcut(&mut self, action: MenuAction) {
         self.shortcuts.unbind(action);
         self.shortcut_editor.error = None;
+        self.shortcut_editor.notice = None;
     }
 
-    /// Put a command back on its set's keys.
-    pub fn reset_shortcut(&mut self, action: MenuAction) -> Result<(), String> {
-        let result = self.shortcuts.reset(action);
-        self.shortcut_result(result)
+    /// Put a command back on its set's keys, taking them from any command that holds them now.
+    pub fn reset_shortcut(&mut self, action: MenuAction) -> Result<Option<MenuAction>, String> {
+        let result = self.shortcuts.reset_taking(action);
+        self.shortcut_result(action, result)
     }
 
-    fn shortcut_result(&mut self, result: Result<(), ShortcutError>) -> Result<(), String> {
+    fn shortcut_result(
+        &mut self,
+        action: MenuAction,
+        result: Result<Option<MenuAction>, ShortcutError>,
+    ) -> Result<Option<MenuAction>, String> {
+        let taken = result.as_ref().ok().copied().flatten();
+        self.shortcut_editor.notice = taken.map(|previous| {
+            let keys = self.shortcuts.text(action).unwrap_or_default();
+            let previous = self.label(previous);
+            tr!(
+                self,
+                "shortcuts-taken",
+                &[("keys", keys.as_str()), ("previous", previous.as_str())]
+            )
+        });
+        let result = result.map(|_| ());
         let message = result.err().map(|error| match error {
             ShortcutError::Conflict { accelerator, with } => {
                 let action = MenuAction::from_id(&with).map_or(with, |a| self.label(a));
@@ -108,7 +133,7 @@ impl Workspace {
             _ => tr!(self, "shortcuts-bad"),
         });
         self.shortcut_editor.error = message.clone();
-        message.map_or(Ok(()), Err)
+        message.map_or(Ok(taken), Err)
     }
 
     /// Runs a tool whose letter was pressed, from the map in force. Only when nothing is typed.
@@ -229,6 +254,9 @@ impl Workspace {
         if let Some(error) = &self.shortcut_editor.error {
             ui.colored_label(ui.visuals().warn_fg_color, error);
         }
+        if let Some(notice) = &self.shortcut_editor.notice {
+            ui.weak(notice);
+        }
         let rows = self.search_shortcuts(&self.shortcut_editor.query);
         if rows.is_empty() {
             let query = self.shortcut_editor.query.as_str();
@@ -250,6 +278,7 @@ impl Workspace {
                         if ui.small_button(&change).clicked() {
                             self.shortcut_editor.capturing = Some(action);
                             self.shortcut_editor.error = None;
+                            self.shortcut_editor.notice = None;
                         }
                         ui.horizontal(|ui| {
                             if ui.small_button(&clear).clicked() {

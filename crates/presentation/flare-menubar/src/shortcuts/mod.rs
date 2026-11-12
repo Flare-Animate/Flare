@@ -120,6 +120,48 @@ impl ShortcutMap {
         Ok(())
     }
 
+    /// Bind an action, taking the keys from whichever action holds them: that action is left with
+    /// no shortcut, freed as [`unbind`](Self::unbind) frees one, and is returned. Refused, with the
+    /// map unchanged, only when the text is not an accelerator or a bare letter is bound to
+    /// something that is not a tool, so the map still never holds a conflict.
+    pub fn bind_taking(
+        &mut self,
+        action: MenuAction,
+        text: &str,
+    ) -> Result<Option<MenuAction>, ShortcutError> {
+        let accel = Accelerator::parse(text, action)?;
+        let taken = self.owner(&accel).filter(|other| *other != action);
+        if let Some(other) = taken {
+            self.unbind(other);
+        }
+        self.unbound.retain(|id| *id != action.id());
+        self.bindings.insert(action.id(), accel);
+        Ok(taken)
+    }
+
+    /// Put the set's own key back on an action, taking it from whichever action holds it now, as
+    /// [`bind_taking`](Self::bind_taking) does; that action is returned.
+    pub fn reset_taking(
+        &mut self,
+        action: MenuAction,
+    ) -> Result<Option<MenuAction>, ShortcutError> {
+        match self.own_key(action) {
+            Some(text) => self.bind_taking(action, text),
+            None => {
+                self.reset(action)?;
+                Ok(None)
+            }
+        }
+    }
+
+    /// The key the set itself gives an action.
+    fn own_key(&self, action: MenuAction) -> Option<&'static str> {
+        set_bindings(self.set)
+            .into_iter()
+            .find(|(a, _)| *a == action)
+            .map(|(_, text)| text)
+    }
+
     /// Free an action's shortcut.
     pub fn unbind(&mut self, action: MenuAction) {
         if self.bindings.remove(&action.id()).is_some() {
@@ -129,11 +171,7 @@ impl ShortcutMap {
 
     /// Put the set's own key back on an action; refused if another action holds that key now.
     pub fn reset(&mut self, action: MenuAction) -> Result<(), ShortcutError> {
-        let own = set_bindings(self.set)
-            .into_iter()
-            .find(|(a, _)| *a == action)
-            .map(|(_, text)| text);
-        match own {
+        match self.own_key(action) {
             Some(text) => self.bind(action, text),
             None => {
                 self.unbind(action);

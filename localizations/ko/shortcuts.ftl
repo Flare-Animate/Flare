@@ -8,6 +8,7 @@ shortcuts-press = 새 키를 누르세요 (Esc로 취소)
 shortcuts-clear = 지우기
 shortcuts-reset = 세트로 되돌리기
 shortcuts-conflict = { $keys }은(는) 이미 { $action }에 사용 중입니다.
+shortcuts-taken = { $keys }을(를) { $previous }에서 가져왔습니다. 이제 { $previous }에는 단축키가 없습니다.
 shortcuts-bad = 이 키는 사용할 수 없습니다.
 shortcuts-hint = 도구 문자 키는 입력 중이 아닐 때 작동합니다.
 shortcuts-search = 단축키 검색

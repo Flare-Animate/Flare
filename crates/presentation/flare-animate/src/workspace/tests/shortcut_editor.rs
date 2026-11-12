@@ -18,21 +18,61 @@ fn the_default_set_shows_the_builtin_keys() {
 }
 
 #[test]
-fn a_conflict_is_refused_and_changes_nothing() {
+fn keys_another_command_holds_are_taken_from_it_and_bad_keys_change_nothing() {
     let mut ws = workspace();
     let before = ws.shortcuts().clone();
-    let message = ws
-        .set_shortcut(MenuAction::Redo, "CmdOrCtrl+Z")
-        .expect_err("Undo has it");
-    assert!(message.contains("Ctrl") || message.contains("CmdOrCtrl"));
-    assert_eq!(ws.shortcuts(), &before);
     assert!(ws.set_shortcut(MenuAction::Redo, "not keys").is_err());
     assert_eq!(ws.shortcuts(), &before);
-    assert!(ws.set_shortcut(MenuAction::Redo, "CmdOrCtrl+Alt+K").is_ok());
+    let taken = ws
+        .set_shortcut(MenuAction::Redo, "CmdOrCtrl+Z")
+        .expect("Undo's keys are taken");
+    assert_eq!(taken, Some(MenuAction::Undo));
     assert_eq!(
         shortcut(&ws, MenuAction::Redo).as_deref(),
-        Some("CmdOrCtrl+Alt+K")
+        Some("CmdOrCtrl+Z")
     );
+    assert_eq!(shortcut(&ws, MenuAction::Undo), None);
+    let notice = ws
+        .shortcut_editor
+        .notice
+        .clone()
+        .expect("the editor says so");
+    assert!(notice.contains(&ws.label(MenuAction::Undo)), "{notice}");
+    // Reset gives Undo its keys back, from Redo.
+    assert_eq!(
+        ws.reset_shortcut(MenuAction::Undo).expect("reset"),
+        Some(MenuAction::Redo)
+    );
+    assert_eq!(
+        shortcut(&ws, MenuAction::Undo).as_deref(),
+        Some("CmdOrCtrl+Z")
+    );
+    assert_eq!(shortcut(&ws, MenuAction::Redo), None);
+    assert!(ws.shortcuts().conflicts().is_empty());
+    // Free keys take nothing and say nothing.
+    assert_eq!(
+        ws.set_shortcut(MenuAction::Redo, "CmdOrCtrl+Alt+K"),
+        Ok(None)
+    );
+    assert!(ws.shortcut_editor.notice.is_none());
+}
+
+#[test]
+fn a_taken_tool_letter_picks_the_new_tool() {
+    let mut ws = workspace();
+    // B is the Brush's: given to the Pen, it picks the Pen and the Brush has no letter.
+    assert_eq!(
+        ws.set_shortcut(MenuAction::ToolPen, "B"),
+        Ok(Some(MenuAction::ToolBrush))
+    );
+    let ctx = egui::Context::default();
+    run(&mut ws, &ctx, 0.0);
+    ws.set_tool(Tool::Select);
+    let mut out = ctx.run_ui(input(0.1, vec![key(Key::B, Modifiers::NONE)]), |ui| {
+        ws.show(ui)
+    });
+    out.textures_delta.clear();
+    assert_eq!(ws.tool(), Tool::Pen);
 }
 
 #[test]

@@ -8,6 +8,7 @@ shortcuts-press = Appuyez sur les nouvelles touches (Échap annule)
 shortcuts-clear = Effacer
 shortcuts-reset = Revenir au jeu
 shortcuts-conflict = { $keys } lance déjà { $action }.
+shortcuts-taken = { $keys } a été retiré à { $previous }, qui n'a plus de raccourci.
 shortcuts-bad = Ces touches ne sont pas utilisables ici.
 shortcuts-hint = Les lettres d’outil fonctionnent quand rien n’est saisi.
 shortcuts-search = Rechercher un raccourci

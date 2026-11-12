@@ -8,6 +8,7 @@ shortcuts-press = 新しいキーを押してください（Escで取消）
 shortcuts-clear = 削除
 shortcuts-reset = セットに戻す
 shortcuts-conflict = { $keys } は既に { $action } に割り当てられています。
+shortcuts-taken = { $keys } を { $previous } から外しました。{ $previous } にはショートカットがありません。
 shortcuts-bad = このキーは使用できません。
 shortcuts-hint = ツールの文字キーは入力中でないときに働きます。
 shortcuts-search = ショートカットを検索
