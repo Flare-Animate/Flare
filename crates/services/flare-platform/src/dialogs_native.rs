@@ -106,6 +106,14 @@ pub fn save_fla(filter: &str) -> Option<std::path::PathBuf> {
         .save_file()
 }
 
+/// Where to write the frame on show as an SVG picture.
+pub fn save_svg(filter: &str) -> Option<std::path::PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter(filter, &["svg"])
+        .set_file_name("frame.svg")
+        .save_file()
+}
+
 /// Asks where to publish. The name is shared by every format written, each with its own ending.
 pub fn save_publish(title: &str) -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()

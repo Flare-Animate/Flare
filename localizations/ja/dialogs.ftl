@@ -3,6 +3,7 @@ dlg-filter-sound = サウンド
 dlg-filter-png = PNG 画像
 dlg-filter-gif = GIF アニメーション
 dlg-filter-fla = Flash ドキュメント
+dlg-filter-svg = SVG 画像
 dlg-publish = パブリッシュ
 dlg-cannot-export = 書き出せません
 dlg-export-failed = 書き出しに失敗しました
@@ -22,3 +23,4 @@ dlg-save-prompt = ダウンロードするファイル名（拡張子は .fla �
 dlg-increment-from = この先頭フレームから
 dlg-increment-by = 移動するフレーム数
 dlg-increment-apply = 増分
+

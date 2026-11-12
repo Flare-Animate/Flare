@@ -133,6 +133,8 @@ pub enum DialogRequest {
     ExportMovie,
     /// Write the project as a `.fla` Animate can open.
     ExportFla,
+    /// Write the frame on show as an SVG picture.
+    ExportSvg,
     Publish,
 }
 

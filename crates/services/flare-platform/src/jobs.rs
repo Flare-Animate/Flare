@@ -83,6 +83,20 @@ pub fn export_fla(
     })
 }
 
+/// Writes the frame on show as an SVG picture, on a thread. Never overwrites.
+pub fn export_svg(
+    document: Document,
+    frame: u32,
+    path: PathBuf,
+    done: impl FnOnce(Result<(), String>) + Send + 'static,
+) -> io::Result<()> {
+    spawn("flare-export-svg", move || {
+        let result = flare_runtime::svg_export(&document, frame)
+            .and_then(|svg| write_new(&path, svg.text.as_bytes()));
+        done(result);
+    })
+}
+
 /// What to publish: each format that is present is written, beside the others.
 #[derive(Clone, Debug)]
 pub struct PublishPlan {

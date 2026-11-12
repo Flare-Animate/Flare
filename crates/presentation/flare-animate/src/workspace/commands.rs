@@ -54,9 +54,10 @@ impl Workspace {
             MenuAction::OpenRecent => !self.home.recent.is_empty(),
             MenuAction::PublishSettings => true,
             MenuAction::Revert => self.path.is_some() && self.is_dirty(),
-            MenuAction::ExportImage | MenuAction::ExportMovie | MenuAction::ExportFla => {
-                !self.document().scenes().is_empty()
-            }
+            MenuAction::ExportImage
+            | MenuAction::ExportMovie
+            | MenuAction::ExportFla
+            | MenuAction::ExportSvg => !self.document().scenes().is_empty(),
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
             MenuAction::Paste | MenuAction::PasteInPlace => !self.clipboard.is_empty(),
@@ -195,6 +196,7 @@ impl Workspace {
             MenuAction::ExportImage => self.dialog = Some(DialogRequest::ExportImage),
             MenuAction::ExportMovie => self.dialog = Some(DialogRequest::ExportMovie),
             MenuAction::ExportFla => self.dialog = Some(DialogRequest::ExportFla),
+            MenuAction::ExportSvg => self.dialog = Some(DialogRequest::ExportSvg),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
             MenuAction::Quit => self.quit_requested = true,

@@ -79,6 +79,17 @@ impl App {
                     }
                 }
             }
+            DialogRequest::ExportSvg => {
+                if let Some(path) =
+                    dialogs::save_svg(&self.workspace.interface_text("dlg-filter-svg"))
+                {
+                    let (document, frame) = self.workspace.image_export();
+                    let done = exported(&self.proxy);
+                    if let Err(error) = jobs::export_svg(document, frame, path, done) {
+                        self.say_error("dlg-cannot-export", &error.to_string());
+                    }
+                }
+            }
             DialogRequest::Share(target) => {
                 if let Err(error) = flare_platform::browser::open_url(target.url()) {
                     self.say_error("dlg-cannot-open-browser", &error.to_string());

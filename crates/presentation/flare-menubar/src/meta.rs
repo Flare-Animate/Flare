@@ -115,6 +115,7 @@ impl MenuAction {
             Self::ExportImage => "file-export",
             Self::ExportMovie => "test-movie",
             Self::ExportFla => "file-export",
+            Self::ExportSvg => "file-export",
             Self::Save | Self::SaveAs => "file-save",
             Self::Undo => "undo",
             Self::Redo => "redo",

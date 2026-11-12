@@ -108,3 +108,49 @@ fn export_flash_document_is_in_the_export_menu_and_asks_the_shell_for_a_place() 
     ws.perform(MenuAction::ExportFla);
     assert_eq!(ws.take_dialog(), Some(DialogRequest::ExportFla));
 }
+
+#[test]
+fn export_svg_is_in_the_export_menu_and_asks_the_shell_for_a_place() {
+    let mut ws = workspace();
+    assert!(ws.is_enabled(MenuAction::ExportSvg));
+    assert_eq!(ws.label(MenuAction::ExportSvg), "Export SVG...");
+    let export = MENU_LAYOUT
+        .iter()
+        .find(|(title, _)| *title == "File")
+        .and_then(|(_, entries)| {
+            entries.iter().find_map(|e| match e {
+                MenuEntry::Submenu("Export", inner) => Some(*inner),
+                _ => None,
+            })
+        })
+        .expect("File > Export");
+    assert!(
+        export
+            .iter()
+            .any(|e| matches!(e, MenuEntry::Action(MenuAction::ExportSvg))),
+        "it is in File > Export"
+    );
+    ws.perform(MenuAction::ExportSvg);
+    assert_eq!(ws.take_dialog(), Some(DialogRequest::ExportSvg));
+}
+
+#[test]
+fn the_palette_opens_and_performs_the_chosen_command() {
+    let mut ws = workspace();
+    assert!(!ws.windows.palette, "the palette starts shut");
+    ws.toggle_palette();
+    assert!(ws.windows.palette);
+    // Ctrl+K through the shortcuts the way the window reads them.
+    let ctx = egui::Context::default();
+    ctx.input_mut(|i| {
+        i.events.push(egui::Event::Key {
+            key: egui::Key::K,
+            physical_key: None,
+            pressed: true,
+            repeat: false,
+            modifiers: egui::Modifiers::COMMAND,
+        })
+    });
+    ws.handle_shortcuts(&ctx);
+    assert!(!ws.windows.palette, "Ctrl+K closed it again");
+}

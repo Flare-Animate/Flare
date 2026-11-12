@@ -3,6 +3,7 @@ dlg-filter-sound = 声音
 dlg-filter-png = PNG 图像
 dlg-filter-gif = GIF 动画
 dlg-filter-fla = Flash 文档
+dlg-filter-svg = SVG 图像
 dlg-publish = 发布
 dlg-cannot-export = 无法导出
 dlg-export-failed = 导出失败
@@ -22,3 +23,4 @@ dlg-save-prompt = 要下载的文件名（扩展名为 .fla 或 .flare）
 dlg-increment-from = 从此起始帧
 dlg-increment-by = 移动帧数
 dlg-increment-apply = 递增
+

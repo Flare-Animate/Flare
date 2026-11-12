@@ -3,6 +3,7 @@ dlg-filter-sound = Som
 dlg-filter-png = Imagem PNG
 dlg-filter-gif = Animação GIF
 dlg-filter-fla = Documento do Flash
+dlg-filter-svg = Imagem SVG
 dlg-publish = Publicar
 dlg-cannot-export = Não foi possível exportar
 dlg-export-failed = Falha na exportação
@@ -22,3 +23,4 @@ dlg-save-prompt = Nome do arquivo a baixar, com a extensão .fla ou .flare
 dlg-increment-from = Deste quadro
 dlg-increment-by = Mover quadros
 dlg-increment-apply = Incrementar
+

@@ -205,6 +205,7 @@ impl MenuAction {
             Self::ExportImage => "menu-item-export-image",
             Self::ExportMovie => "menu-item-export-movie",
             Self::ExportFla => "menu-item-export-fla",
+            Self::ExportSvg => "menu-item-export-svg",
             Self::Save => "menu-item-save",
             Self::SaveAs => "menu-item-save-as",
             Self::Quit => "menu-item-quit",

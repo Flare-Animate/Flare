@@ -135,6 +135,12 @@ impl WebApp {
                     .map_err(|e| e.to_string());
                 self.deliver("project.fla", "application/zip", bytes);
             }
+            DialogRequest::ExportSvg => {
+                let (document, frame) = self.workspace.image_export();
+                let bytes: Result<Vec<u8>, String> =
+                    flare_runtime::svg_export(&document, frame).map(|svg| svg.text.into_bytes());
+                self.deliver("frame.svg", "image/svg+xml", bytes);
+            }
             DialogRequest::Share(target) => {
                 let opened = web_sys::window()
                     .and_then(|w| w.open_with_url_and_target(target.url(), "_blank").ok());

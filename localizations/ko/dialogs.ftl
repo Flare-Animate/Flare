@@ -3,6 +3,7 @@ dlg-filter-sound = 사운드
 dlg-filter-png = PNG 이미지
 dlg-filter-gif = GIF 애니메이션
 dlg-filter-fla = Flash 문서
+dlg-filter-svg = SVG 이미지
 dlg-publish = 게시
 dlg-cannot-export = 내보낼 수 없습니다
 dlg-export-failed = 내보내기에 실패했습니다
@@ -22,3 +23,4 @@ dlg-save-prompt = 내려받을 파일 이름 (확장자 .fla 또는 .flare)
 dlg-increment-from = 이 시작 프레임부터
 dlg-increment-by = 이동할 프레임 수
 dlg-increment-apply = 증분
+
