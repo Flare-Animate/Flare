@@ -8,7 +8,13 @@ use std::collections::HashSet;
 use std::path::Path;
 use std::sync::Arc;
 
+use flare_audio::Excerpt;
+
 use super::*;
+
+/// The shortest slice a scrub plays. One frame at 24 fps is about 42 ms, which is heard; at 60
+/// fps a frame is a click, so a slice is never shorter than this.
+const MIN_SCRUB_SECONDS: f64 = 0.05;
 
 impl Workspace {
     // ---- sound ------------------------------------------------------------------------
@@ -51,12 +57,7 @@ impl Workspace {
         self.settle_inline();
     }
 
-    pub(super) fn add_sound(
-        &mut self,
-        path: &Path,
-        bytes: Vec<u8>,
-        audio: Arc<flare_audio::Audio>,
-    ) {
+    pub(super) fn add_sound(&mut self, path: &Path, bytes: Vec<u8>, audio: flare_audio::Decoded) {
         let Some(scene) = self.scene_id() else {
             return;
         };
@@ -68,9 +69,9 @@ impl Workspace {
             id,
             name.clone(),
             bytes,
-            audio.sample_rate(),
-            audio.channels(),
-            audio.frames() as u64,
+            audio.audio.sample_rate(),
+            audio.audio.channels(),
+            audio.audio.frames() as u64,
         ) {
             Ok(sound) => sound,
             Err(error) => return self.report(format!("Cannot import {name}: {error}")),
@@ -92,8 +93,9 @@ impl Workspace {
             "import the sound",
         );
         if self.status.is_none() {
+            // The layer being drawn on stays the active one, so frames added after the import
+            // (F5 at a frame ahead) lengthen the drawing, not the sound's own layer.
             self.audio.decoded.insert(id, audio);
-            self.current_layer = Some(layer_id);
         }
     }
 
@@ -140,9 +142,13 @@ impl Workspace {
         if !self.playing {
             if was_playing {
                 self.audio.events.push(AudioEvent::Stop);
+                self.audio.scrubbing = false;
+            } else if before.is_some_and(|(_, frame)| frame != self.frame) {
+                self.scrub_audio(fps);
             }
             return;
         }
+        self.audio.scrubbing = false;
         // A jump back (the loop wrapping, or a scrub) or a jump of over a second forward starts
         // the sounds over from where the playhead is; ordinary playback does not.
         let jumped = self.frame < was_frame || f64::from(self.frame - was_frame) > fps;
@@ -158,13 +164,59 @@ impl Workspace {
             .cues()
             .filter(|(layer, cue)| layer.is_visible() && cue.start >= self.frame && !self.muted);
         for (_, cue) in cues {
-            if let Some(audio) = self.audio.decoded.get(&cue.sound) {
+            if let Some(decoded) = self.audio.decoded.get(&cue.sound) {
                 self.audio.events.push(AudioEvent::Play {
-                    audio: Arc::clone(audio),
+                    audio: Arc::clone(&decoded.audio),
                     delay_seconds: f64::from(cue.start - self.frame) / fps,
+                    excerpt: Excerpt::WHOLE,
                 });
             }
         }
+    }
+
+    /// The paused playhead moved (dragged along the timeline, or stepped): what was sounding
+    /// from the last move stops, and each sound under the playhead plays the stretch of it that
+    /// this frame covers, so a person can find a word by ear as in Animate.
+    fn scrub_audio(&mut self, fps: f64) {
+        let slices = self.scrub_slices(fps);
+        if self.audio.scrubbing || !slices.is_empty() {
+            self.audio.events.push(AudioEvent::Stop);
+        }
+        self.audio.scrubbing = !slices.is_empty();
+        for (audio, excerpt) in slices {
+            self.audio.events.push(AudioEvent::Play {
+                audio,
+                delay_seconds: 0.0,
+                excerpt,
+            });
+        }
+    }
+
+    /// The sounds a scrub at the playhead plays, each with the slice of it under the playhead.
+    fn scrub_slices(&self, fps: f64) -> Vec<(Arc<flare_audio::Audio>, Excerpt)> {
+        let Some(scene) = self.session.document().scenes().first() else {
+            return Vec::new();
+        };
+        if self.muted || self.in_symbol() {
+            return Vec::new();
+        }
+        let length = (1.0 / fps).max(MIN_SCRUB_SECONDS);
+        scene
+            .timeline()
+            .cues()
+            .filter(|(layer, cue)| layer.is_visible() && cue.start <= self.frame)
+            .filter_map(|(_, cue)| {
+                let decoded = self.audio.decoded.get(&cue.sound)?;
+                let offset = f64::from(self.frame - cue.start) / fps;
+                (offset < decoded.audio.seconds())
+                    .then(|| (Arc::clone(&decoded.audio), Excerpt::slice(offset, length)))
+            })
+            .collect()
+    }
+
+    /// The waveform of a sound in the project, once it has been decoded.
+    pub(super) fn sound_peaks(&self, sound: flare_core::SoundId) -> Option<&flare_audio::Peaks> {
+        self.audio.decoded.get(&sound).map(|d| d.peaks.as_ref())
     }
 
     /// What to do with the sound card since the last call.
