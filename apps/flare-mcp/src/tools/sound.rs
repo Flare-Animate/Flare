@@ -1,4 +1,5 @@
-//! Adding audio files from the configured export directory to the open project.
+//! Adding audio files from the configured export directory to the open project, and reading
+//! how loud each sound is frame by frame.
 
 use flare_commands::Command;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
@@ -6,7 +7,7 @@ use serde_json::json;
 
 use crate::color::safe_name;
 use crate::ops::{apply, first_scene};
-use crate::params::ImportSound;
+use crate::params::{ImportSound, SoundWaveform};
 use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = sound_tools, vis = "pub(super)")]
@@ -71,6 +72,16 @@ impl FlareServer {
             result["start"] = json!(args.start.unwrap_or(0));
             result["seconds"] = json!(made.seconds);
             Ok(result)
+        })
+    }
+
+    #[tool(
+        description = "How loud each sound of the project is on every frame from its cue: for each sound its cues (layer and start frame) and a [low, high] sample pair per frame, in -1..1, at the project's frame rate. Use it to time mouth shapes and beats to the audio."
+    )]
+    fn sound_waveform(&self, Parameters(args): Parameters<SoundWaveform>) -> Outcome {
+        self.read(|state| {
+            flare_runtime::sound_waveforms(state.session.document(), args.sound.as_deref())
+                .map_err(|error| error.to_string())
         })
     }
 }

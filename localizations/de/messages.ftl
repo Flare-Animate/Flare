@@ -69,6 +69,7 @@ msg-select-shape-for-symbol = Wählen Sie eine Form aus, um sie in ein Symbol um
 msg-select-shapes-to-group = Wählen Sie zwei oder mehr Formen zum Gruppieren aus
 msg-select-to-break-apart = Wählen Sie eine Symbolinstanz oder einen Text zum Teilen aus
 msg-nothing-transformed = Es konnte nichts transformiert werden (eine Instanz in einem Bewegungs-Tween kann nicht geneigt oder gespiegelt werden)
+msg-paint-inside-symbol = Das liegt in einer Gruppe oder einem Symbol: Doppelklicken Sie mit dem Auswahlwerkzeug darauf, um es zu bearbeiten, und malen Sie dann
 msg-brush-stroke = Pinselstrich
 msg-erase = Radieren
 msg-pencil-line = Bleistiftlinie
@@ -91,3 +92,5 @@ msg-saved-with-notes =
        *[other] { $path } gespeichert ({ $detail }); { $n } Hinweise dazu, was das Format nicht aufnehmen kann, stehen im Ausgabe-Bedienfeld
     }
 msg-saved-rebuilt-names = Neu aufgebaut für { $path }: { $names }
+msg-magic-wand = Zauberstab: { $reason }
+msg-magic-wand-changed = Das Dokument hat sich geändert, während die Pixel gelöscht wurden; es wurde nichts gelöscht

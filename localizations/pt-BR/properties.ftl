@@ -12,3 +12,7 @@ prop-interpolation = Interpolação
 prop-interpolation-hint = Família de interpolação e suavização deste tween; enquanto ela estiver desligada, usa-se o controle de suavização
 prop-interpolation-off = Controle de suavização
 prop-easing = Suavização
+prop-tab-tool = Ferramenta
+prop-tab-object = Objeto
+prop-tab-frame = Quadro
+prop-tab-doc = Documento

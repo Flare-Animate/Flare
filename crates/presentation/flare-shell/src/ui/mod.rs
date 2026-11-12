@@ -17,6 +17,10 @@ mod shell;
 #[cfg(all(unix, not(target_os = "ios")))]
 mod tablet;
 mod window;
+mod window_icon;
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod window_icon_tests;
 
 /// The Test Movie window; only builds with the player inside have one.
 #[cfg(feature = "ruffle")]

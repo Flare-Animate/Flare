@@ -65,3 +65,4 @@ out-count =
        *[many] { $n } сообщений
     }
 out-nothing = Нечего сообщить
+hist-magic-wand = Стереть пиксели

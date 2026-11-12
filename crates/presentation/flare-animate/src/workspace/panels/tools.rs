@@ -92,6 +92,7 @@ impl Workspace {
             Tool::Pen => "tool-pen",
             Tool::Text => "tool-text",
             Tool::Hand => "tool-hand",
+            Tool::RotateView => "tool-rotate-view",
             Tool::Zoom => "tool-zoom",
             Tool::Eyedropper => "tool-eyedropper",
             Tool::Bucket => "tool-bucket",
@@ -100,6 +101,7 @@ impl Workspace {
             Tool::PolyStar => "tool-polystar",
             Tool::Lasso => "tool-lasso",
             Tool::PolygonLasso => "tool-lasso-polygon",
+            Tool::MagicWand => "tool-magic-wand",
             Tool::Camera => "tool-camera",
             Tool::Bone => "tool-bone",
             Tool::Pencil => "tool-pencil",
@@ -119,39 +121,29 @@ impl Workspace {
                 ui.weak(tr!(self, "tools-help-pen"));
             }
             Tool::Rectangle => {
-                chrome::row(ui, &tr!(self, "opt-corners"), |ui| {
-                    ui.add(
-                        egui::DragValue::new(&mut self.rect_radius)
-                            .range(0.0..=1000.0)
-                            .suffix(" px"),
-                    );
-                });
+                let label = tr!(self, "opt-corners");
+                chrome::slider(ui, &label, &mut self.rect_radius, 0.0..=1000.0, " px", true);
                 ui.weak(tr!(self, "tools-help-drag"));
             }
             Tool::Ellipse => {
                 ui.weak(tr!(self, "tools-help-drag"));
             }
             Tool::PolyStar => {
-                chrome::row(ui, &tr!(self, "opt-sides"), |ui| {
-                    ui.add(egui::DragValue::new(&mut self.poly_sides).range(3..=64));
-                });
+                let label = tr!(self, "opt-sides");
+                chrome::slider(ui, &label, &mut self.poly_sides, 3..=64, "", false);
                 chrome::row(ui, &tr!(self, "opt-star"), |ui| {
                     ui.checkbox(&mut self.poly_star, "");
                 });
                 if self.poly_star {
-                    chrome::row(ui, &tr!(self, "opt-depth"), |ui| {
-                        ui.add(
-                            egui::DragValue::new(&mut self.poly_inner)
-                                .range(0.05..=0.95)
-                                .speed(0.01),
-                        );
-                    });
+                    let label = tr!(self, "opt-depth");
+                    chrome::slider(ui, &label, &mut self.poly_inner, 0.05..=0.95, "", false);
                 }
                 ui.weak(tr!(self, "tools-help-polystar"));
             }
             Tool::Hand => {
                 ui.weak(tr!(self, "tools-help-hand"));
             }
+            Tool::RotateView => self.rotate_view_options(ui),
             Tool::Zoom => {
                 ui.weak(tr!(self, "tools-help-zoom"));
             }
@@ -166,39 +158,19 @@ impl Workspace {
             }
             Tool::Eraser => self.eraser_options(ui),
             Tool::Pencil => {
-                chrome::row(ui, &tr!(self, "opt-smoothing"), |ui| {
-                    ui.add(
-                        egui::DragValue::new(&mut self.smoothing)
-                            .range(0.0..=20.0)
-                            .speed(0.1),
-                    );
-                });
+                let label = tr!(self, "opt-smoothing");
+                chrome::slider(ui, &label, &mut self.smoothing, 0.0..=20.0, "", false);
                 self.stroke_assists(ui);
                 ui.weak(tr!(self, "tools-help-pencil"));
             }
             Tool::Brush => {
-                chrome::row(ui, &tr!(self, "opt-size"), |ui| {
-                    ui.add(
-                        egui::DragValue::new(&mut self.brush_size)
-                            .range(1.0..=200.0)
-                            .suffix(" px"),
-                    );
-                });
+                let label = tr!(self, "opt-size");
+                chrome::slider(ui, &label, &mut self.brush_size, 1.0..=200.0, " px", true);
                 self.nib_controls(ui);
-                chrome::row(ui, &tr!(self, "opt-smoothing"), |ui| {
-                    ui.add(
-                        egui::DragValue::new(&mut self.smoothing)
-                            .range(0.0..=20.0)
-                            .speed(0.1),
-                    );
-                });
-                chrome::row(ui, &tr!(self, "opt-light-touch"), |ui| {
-                    ui.add(
-                        egui::DragValue::new(&mut self.brush_light)
-                            .range(0.0..=1.0)
-                            .speed(0.01),
-                    );
-                });
+                let label = tr!(self, "opt-smoothing");
+                chrome::slider(ui, &label, &mut self.smoothing, 0.0..=20.0, "", false);
+                let label = tr!(self, "opt-light-touch");
+                chrome::slider(ui, &label, &mut self.brush_light, 0.0..=1.0, "", false);
                 self.brush_stroke_options(ui);
                 self.stroke_assists(ui);
                 ui.weak(tr!(self, "tools-help-brush"));
@@ -236,6 +208,7 @@ impl Workspace {
             Tool::PolygonLasso => {
                 ui.weak(tr!(self, "tools-help-polygon"));
             }
+            Tool::MagicWand => self.wand_options(ui),
             Tool::Line => {
                 ui.weak(tr!(self, "tools-help-line"));
             }
@@ -273,6 +246,7 @@ impl Workspace {
             Tool::Pen => "tools-status-pen",
             Tool::Text => "tools-status-text",
             Tool::Hand => "tools-status-hand",
+            Tool::RotateView => "tools-status-rotate-view",
             Tool::Zoom => "tools-status-zoom",
             Tool::Eyedropper => "tools-status-eyedropper",
             Tool::Bucket => "tools-status-bucket",
@@ -281,6 +255,7 @@ impl Workspace {
             Tool::PolyStar => "tools-status-polystar",
             Tool::Lasso => "tools-status-lasso",
             Tool::PolygonLasso => "tools-status-polygon",
+            Tool::MagicWand => "tools-status-magic-wand",
             Tool::Camera => "tools-status-camera",
             Tool::Bone => "tools-status-bone",
             Tool::Pencil => "tools-status-pencil",
@@ -374,31 +349,23 @@ impl Workspace {
                     ui.selectable_value(&mut shape, NibShape::Square, &square);
                 });
         });
-        chrome::row(ui, &tr!(self, "opt-angle"), |ui| {
-            ui.add(
-                egui::DragValue::new(&mut angle)
-                    .range(0.0..=359.0)
-                    .suffix("\u{b0}"),
-            );
-        });
-        chrome::row(ui, &tr!(self, "opt-flatness"), |ui| {
-            ui.add(
-                egui::DragValue::new(&mut flatness)
-                    .range(1.0..=100.0)
-                    .suffix(" %"),
-            );
-        });
+        let label = tr!(self, "opt-angle");
+        chrome::slider(ui, &label, &mut angle, 0.0..=359.0, "\u{b0}", false);
+        let label = tr!(self, "opt-flatness");
+        chrome::slider(ui, &label, &mut flatness, 1.0..=100.0, " %", false);
         let edited = Nib::new(shape, f64::from(angle), f64::from(flatness));
         if edited != nib {
             self.brush_shelf.set_nib(edited);
         }
-        chrome::row(ui, &tr!(self, "opt-pressure-response"), |ui| {
-            ui.add(
-                egui::DragValue::new(&mut self.brush_pressure_gamma)
-                    .range(0.1..=4.0)
-                    .speed(0.05),
-            );
-        });
+        let label = tr!(self, "opt-pressure-response");
+        chrome::slider(
+            ui,
+            &label,
+            &mut self.brush_pressure_gamma,
+            0.1..=4.0,
+            "",
+            false,
+        );
         self.brush_shelf
             .set_pressure_curve(self.brush_light, self.brush_pressure_gamma);
     }

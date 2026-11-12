@@ -58,9 +58,14 @@ pub(super) const DUPLICATE_OFFSET: f64 = 12.0;
 /// Scale Up / Scale Down factor.
 pub(super) const SCALE_STEP: f64 = 1.25;
 
-/// Screen position to stage (document) coordinates, clamped to the stage.
-pub(super) fn screen_to_stage(p: Pos2, image_rect: Rect, extent: Vec2) -> Pos2 {
-    let u = (p.x - image_rect.min.x) / image_rect.width().max(f32::EPSILON);
-    let v = (p.y - image_rect.min.y) / image_rect.height().max(f32::EPSILON);
-    Pos2::new(u.clamp(0.0, 1.0) * extent.x, v.clamp(0.0, 1.0) * extent.y)
+/// Screen position to stage (document) coordinates through the view (its zoom, pan and turn),
+/// kept on the pasteboard.
+pub(super) fn screen_to_stage(view: &StageView, panel: Rect, extent: Vec2, p: Pos2) -> Pos2 {
+    let at = view.to_stage(panel, extent, p);
+    // Off the stage is the pasteboard, where artwork may be drawn too; past it, nothing.
+    let board = flare_ui::view::pasteboard(extent);
+    Pos2::new(
+        at.x.clamp(board.min.x, board.max.x),
+        at.y.clamp(board.min.y, board.max.y),
+    )
 }

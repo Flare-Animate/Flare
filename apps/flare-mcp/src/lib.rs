@@ -14,6 +14,7 @@ mod color;
 mod ops;
 mod params;
 mod params_game;
+mod params_pixels;
 mod server;
 mod tools;
 

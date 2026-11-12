@@ -1,4 +1,4 @@
-//! Adding a decoded audio file to an existing project.
+//! Adding a decoded audio file to an existing project, and reading a sound's waveform.
 
 use anyhow::{Context, Result, bail};
 use flare_commands::Command;
@@ -51,4 +51,10 @@ pub fn sound_import(path: &Path, sound_path: &Path, at: u32) -> Result<Value> {
         "start": at,
         "seconds": made.seconds,
     }))
+}
+
+/// Each sound's `[low, high]` on every frame from its cue, or only the one `sound` names.
+pub fn sound_waveform(path: &Path, sound: Option<&str>) -> Result<Value> {
+    let session = open(path)?;
+    Ok(flare_runtime::sound_waveforms(session.document(), sound)?)
 }

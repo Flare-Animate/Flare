@@ -163,19 +163,35 @@ fn failed_open_reports_and_keeps_the_current_document() {
 }
 
 #[test]
-fn screen_positions_map_to_clamped_stage_coordinates() {
+fn screen_positions_map_to_stage_coordinates_kept_on_the_pasteboard() {
     let rect = Rect::from_min_size(Pos2::new(100.0, 50.0), Vec2::new(400.0, 225.0)); // half scale
+    let extent = Vec2::new(800.0, 450.0);
+    // Fitted, the stage fills the panel exactly.
+    let mut view = StageView::default();
     assert_eq!(
-        screen_to_stage(Pos2::new(100.0, 50.0), rect, Vec2::new(800.0, 450.0)),
+        screen_to_stage(&view, rect, extent, Pos2::new(100.0, 50.0)),
         Pos2::ZERO
     );
     assert_eq!(
-        screen_to_stage(Pos2::new(300.0, 162.5), rect, Vec2::new(800.0, 450.0)),
+        screen_to_stage(&view, rect, extent, Pos2::new(300.0, 162.5)),
         Pos2::new(400.0, 225.0)
     );
+    // Off the stage is the pasteboard: a point there is where it is, not pulled to the edge.
     assert_eq!(
-        screen_to_stage(Pos2::new(-999.0, 9999.0), rect, Vec2::new(800.0, 450.0)),
-        Pos2::new(0.0, 450.0)
+        screen_to_stage(&view, rect, extent, Pos2::new(50.0, 25.0)),
+        Pos2::new(-100.0, -50.0)
+    );
+    // Past the pasteboard (twice the longer side, 1600, beyond each edge), it stops.
+    assert_eq!(
+        screen_to_stage(&view, rect, extent, Pos2::new(-9999.0, 9999.0)),
+        Pos2::new(-1600.0, 2050.0)
+    );
+    // Turned half way round, the panel's top left corner is over the stage's bottom right.
+    view.set_rotation_degrees(180.0);
+    let corner = screen_to_stage(&view, rect, extent, rect.min);
+    assert!(
+        (corner - Pos2::new(800.0, 450.0)).length() < 0.01,
+        "{corner:?}"
     );
 }
 
@@ -396,9 +412,11 @@ fn selecting_a_layer_redirects_frame_operations() {
     assert_ne!(drawn, empty);
     ws.select_layer(empty);
     ws.frame_edit(FrameOp::InsertFrame);
-    assert!(
-        ws.status().is_some(),
-        "the new layer is empty, so there is nothing to extend"
+    assert_eq!(ws.status(), None);
+    assert_eq!(
+        active_spans(&ws),
+        vec![(0, 1)],
+        "the new layer had no frames: it gets a blank one at the playhead, as in Animate"
     );
     ws.select_layer(drawn);
     ws.frame_edit(FrameOp::InsertFrame);

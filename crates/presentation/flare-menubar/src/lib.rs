@@ -17,8 +17,8 @@ mod translation_tests;
 pub use labels::{LabelState, mock_key, submenu_key, title_key};
 pub use menu::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
 pub use shortcuts::{
-    Accelerator, Conflict, DEFAULT_SET, MAX_SHORTCUT_FILE_BYTES, SHORTCUT_SET_IDS, ShortcutError,
-    ShortcutMap, set_bindings,
+    Accelerator, Conflict, DEFAULT_SET, MAX_SEARCH_CHARS, MAX_SHORTCUT_FILE_BYTES,
+    SHORTCUT_SET_IDS, ShortcutError, ShortcutMap, ShortcutQuery, set_bindings,
 };
 
 /// A user-invokable command. Variants map one-to-one onto menu items.
@@ -66,6 +66,8 @@ pub enum MenuAction {
     ToolPen,
     ToolText,
     ToolHand,
+    /// Turn the stage view; a tap of Alt (Option) alone picks it and shows its dial.
+    ToolRotateView,
     ToolZoom,
     ToolEyedropper,
     ToolBucket,
@@ -139,6 +141,8 @@ pub enum MenuAction {
     About,
     KeyboardShortcuts,
     ToggleOutlineMode,
+    /// Show or hide artwork off the stage (Animate's View > Pasteboard).
+    TogglePasteboard,
     NewSymbol,
     PasteInPlace,
     ToggleGuides,
@@ -155,7 +159,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 127] = [
+    pub const ALL: [MenuAction; 129] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -198,6 +202,7 @@ impl MenuAction {
         Self::ToolPen,
         Self::ToolText,
         Self::ToolHand,
+        Self::ToolRotateView,
         Self::ToolZoom,
         Self::ToolEyedropper,
         Self::ToolBucket,
@@ -271,6 +276,7 @@ impl MenuAction {
         Self::About,
         Self::KeyboardShortcuts,
         Self::ToggleOutlineMode,
+        Self::TogglePasteboard,
         Self::NewSymbol,
         Self::PasteInPlace,
         Self::ToggleGuides,

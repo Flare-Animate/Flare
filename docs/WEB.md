@@ -33,7 +33,9 @@ JavaScript that loads it in `src/lib/`, a static page in `public/`, and a build 
   a message. A headless Chrome test loads a movie we published and reads back what Ruffle reports
   it loaded; sound and how it looks on screen have not been checked by a person.
 - **Sound** plays through Web Audio, and File > Import Sound uses the browser's file picker. A
-  browser may want a click on the page before it makes a sound.
+  browser may want a click on the page before it makes a sound. Dragging the playhead plays the
+  stretch of sound under it, as on the desktop; each sound is copied into the browser once and
+  kept for the next play, up to 16 million samples in all.
 - **Pen pressure** comes from pointer events (`src/lib/pen-pressure.js`) and reaches the workspace
   through `flare-input`'s `PenFeed`. A node test checks it; a real pen has not.
 - **Preferences** live in local storage instead of `flare-platform`'s files.

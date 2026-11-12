@@ -47,7 +47,7 @@ that this documentation change resolves them.
 Where Animate already has a feature (mask layers, the Width tool, Asset Warp rigging, lip sync, a camera layer) its version comes first and the improvements below build on it.
 
 Drawing and tools
-- The rest of Animate's tools: 3D Rotation and Translation, Deco, Width, Asset Warp, Gradient Transform and Magic Wand
+- The rest of Animate's tools: 3D Rotation and Translation, Deco, Width, Asset Warp and Gradient Transform
 - Art and pattern brushes for the Paint Brush, and tablet tilt
 - Layer depth (2.5D with the camera), and, for the camera, layers attached to it, following frames added to the movie and XFL import and export
 - Rich text (mixed styles in one field) and text menu commands
@@ -191,8 +191,8 @@ extras, and the remaining menu commands.
 Each of these can be its own branch and PR:
 
 1. Text: rich text (mixed styles in one field), paragraph settings, text on a path, and the text menu's commands. Text objects that are edited again after they are placed are done.
-2. Fills and strokes: radial and multi-stop gradients, editing gradients, gradients and masks in XFL import and SWF, paint bucket and ink bottle behaviour.
-3. Timeline UX: drag-moving frame ranges; sound: start/stop/loop options per cue, volume, mid-sound start when scrubbing, waveform display, sounds in XFL and SWF.
+2. Fills and strokes: radial and multi-stop gradients, editing gradients, gradients and masks in XFL import and SWF, and the rest of the Paint Bucket: a choice of gap size, and Lock Fill. It fills a shape, the inside of an outline whose ends meet or come within ten screen points, or any area lines close off, whatever drew them and however many shapes they are (a new shape under the lines), with the fill color or gradient; the Eyedropper takes a line's whole stroke or a fill's color or gradient, through empty insides and inside groups, and otherwise the color shown there. All three act on the press and are their own pointer over the stage.
+3. Timeline UX: drag-moving frame ranges; sound: start/stop/loop options per cue, volume, playback that starts mid-sound (Animate's Stream sync), sounds in XFL and SWF. The waveform on a sound's bar, hearing a scrub, cells to the end of the longest sound, layer names and ruler that stay in view, and F5 on a layer with no frames are done.
 4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, and check what the importer keeps against files Animate wrote.
 5. Input and accessibility: pen, IME and screen-reader results.
 6. Packaging: app bundles and installers, once the icons are trimmed.

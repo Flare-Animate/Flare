@@ -1,8 +1,8 @@
 //! What the drawing and selection tools compute, with no window in sight. Each tool has a folder
 //! of its own with its code and its tests: the Pen and its path building, the Pencil's smoothing,
 //! the Brush and its nib, the Free Transform handles, the Selection and Lasso picking, the
-//! Subselection, Add, Delete and Convert Anchor Point edits, the Ruler and the Mirror, and the
-//! operations of the Paint Bucket and Ink Bottle, the Eraser, Text, grouping, the clipboard,
+//! Subselection, Add, Delete and Convert Anchor Point edits, the Ruler and the Mirror, the Magic
+//! Wand's picking and clearing of bitmap pixels, and the operations of the Paint Bucket and Ink Bottle, the Eraser, Text, grouping, the clipboard,
 //! alignment, tweens and Graphic playback. What several of them share is in `common`.
 //!
 //! Everything here is a pure function of a document and numbers, so it is tested without a UI.
@@ -27,6 +27,7 @@ pub mod grouping;
 pub mod lasso;
 pub mod library;
 pub mod line;
+pub mod magic_wand;
 pub mod mirror;
 pub mod not_yet;
 pub mod ops;

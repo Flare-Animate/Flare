@@ -70,6 +70,7 @@ msg-select-shape-for-symbol = Vyberte tvar, který chcete převést na symbol
 msg-select-shapes-to-group = Vyberte dva nebo více tvarů ke seskupení
 msg-select-to-break-apart = Vyberte instanci symbolu nebo text, který chcete rozdělit
 msg-nothing-transformed = Nic nelze transformovat (instanci v animaci pohybu nelze zkosit ani zrcadlit)
+msg-paint-inside-symbol = Toto je uvnitř skupiny nebo symbolu: otevřete ji k úpravám poklepáním nástrojem Výběr a pak ji vybarvěte
 msg-brush-stroke = Tah štětcem
 msg-erase = Gumovat
 msg-pencil-line = Čára tužkou
@@ -93,3 +94,5 @@ msg-saved-with-notes =
        *[other] Uloženo: { $path } ({ $detail }); { $n } poznámek o tom, co formát neumí uložit, je na panelu Výstup
     }
 msg-saved-rebuilt-names = Přestavěno pro { $path }: { $names }
+msg-magic-wand = Kouzelná hůlka: { $reason }
+msg-magic-wand-changed = Dokument se během mazání pixelů změnil, proto se nic nevymazalo

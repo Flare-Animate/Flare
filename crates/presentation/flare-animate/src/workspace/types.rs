@@ -1,14 +1,22 @@
 //! The small types the workspace is made of.
 
 use egui::{Key, Pos2, Rect};
-use flare_core::{LayerId, SymbolId};
+use flare_core::{LayerId, Rgba8, SymbolId};
 use flare_history::EditorSession;
 use flare_runtime::{Rendered, Runtime};
 use flare_tools::free_transform::handles::Handle;
 use glamx::{DAffine2, DVec2};
 
-/// How many frames before and after the current one onion skinning can show.
-pub const MAX_ONION_FRAMES: u32 = 8;
+/// How many frames before and after the current one onion skinning can show. Each ghost is drawn
+/// in full on the render worker; 12 a side (24 ghosts) draws a 1280x720 stage of 100 shapes in
+/// about 43 ms, less than the 16 ghosts of the old limit of 8 did before ghosts were tinted and
+/// faded in place (see docs/PERFORMANCE.md).
+pub const MAX_ONION_FRAMES: u32 = 12;
+
+/// The color ghosts of earlier frames take when onion skin is tinted, as Animate's are: blue.
+pub const ONION_BEFORE_COLOR: Rgba8 = Rgba8::opaque(40, 110, 255);
+/// The color ghosts of later frames take: green.
+pub const ONION_AFTER_COLOR: Rgba8 = Rgba8::opaque(40, 170, 70);
 
 pub(super) const ONION_OPACITY: f32 = 0.4;
 
@@ -20,6 +28,11 @@ pub struct OnionSkin {
     pub after: u32,
     /// Earlier and later frames show as outlines rather than faded pictures.
     pub outlines: bool,
+    /// Earlier frames show in `before_color` and later ones in `after_color`, rather than in
+    /// their own colors.
+    pub tinted: bool,
+    pub before_color: Rgba8,
+    pub after_color: Rgba8,
 }
 
 impl OnionSkin {
@@ -28,7 +41,15 @@ impl OnionSkin {
         before: 0,
         after: 0,
         outlines: false,
+        tinted: false,
+        before_color: ONION_BEFORE_COLOR,
+        after_color: ONION_AFTER_COLOR,
     };
+
+    /// The colors the ghosts are drawn in, before and after, when tinted.
+    pub(super) fn tints(&self) -> Option<[Rgba8; 2]> {
+        self.tinted.then_some([self.before_color, self.after_color])
+    }
 }
 
 /// The frames to show as ghosts around `frame` in a scene of `frames` frames, as
@@ -188,6 +209,13 @@ pub(super) fn tool_places_points(tool: Tool) -> bool {
     )
 }
 
+/// The tools that act the moment the button goes down, as Animate's do. Waiting for a click
+/// would lose every press held a little long or moved a few points, as a pen or a trackpad
+/// often is: the window system counts those as drags.
+pub(super) fn tool_acts_on_press(tool: Tool) -> bool {
+    matches!(tool, Tool::Bucket | Tool::InkBottle | Tool::Eyedropper)
+}
+
 /// `point` rounded to the nearest multiple of `grid` on each axis.
 pub(super) fn snap_point(point: Pos2, grid: f32) -> Pos2 {
     let grid = grid.max(f32::EPSILON);
@@ -289,6 +317,7 @@ pub(super) const TOOL_KEYS: &[(Key, Tool)] = &[
     (Key::I, Tool::Eyedropper),
     (Key::E, Tool::Eraser),
     (Key::H, Tool::Hand),
+    (Key::D, Tool::RotateView),
     (Key::Z, Tool::Zoom),
     (Key::L, Tool::Lasso),
     (Key::Y, Tool::Pencil),
@@ -359,56 +388,7 @@ pub(super) struct StageTexture {
     pub(super) preview: Option<u64>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Tool {
-    Select,
-    Rectangle,
-    Ellipse,
-    Line,
-    Pen,
-    /// Click the stage, type, and place: the text becomes ordinary shapes.
-    Text,
-    /// Drag to pan the stage.
-    Hand,
-    /// Click to zoom in, Alt-click to zoom out.
-    Zoom,
-    /// Click a shape to take its fill (Shift: its stroke) as the current color.
-    Eyedropper,
-    /// Click a shape to give it the current fill.
-    Bucket,
-    /// Click a shape to give it the current stroke.
-    InkBottle,
-    /// Click a shape to delete it.
-    Eraser,
-    /// Drag from the center out: a regular polygon, or a star.
-    PolyStar,
-    /// Drag a freehand loop around shapes to select them.
-    Lasso,
-    /// Click the corners of a loop around shapes to select them.
-    PolygonLasso,
-    /// Drag to move the scene's camera; its controls are in Properties.
-    Camera,
-    /// Drag from one symbol instance to another to link them with a bone.
-    Bone,
-    /// Select a shape, then drag its points to reshape it.
-    Subselection,
-    /// Click an outline to put a point there.
-    AddAnchor,
-    /// Click a point to take it out of the outline.
-    DeleteAnchor,
-    /// Click a smooth point to make it a corner; drag from a corner to make it smooth.
-    ConvertAnchor,
-    /// Select, then scale, rotate or skew by the handles around the selection.
-    FreeTransform,
-    /// Drag to draw a smoothed line in the stroke color and width.
-    Pencil,
-    /// Drag to paint a thick round stroke in the fill color.
-    Brush,
-    /// Drag to read the distance and angle between two points.
-    Ruler,
-    /// Click to set the axis that symmetric drawing and mirror copies use.
-    Mirror,
-}
+pub use super::tool_kind::Tool;
 
 /// Timeline frame operations on the active layer at the current frame.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

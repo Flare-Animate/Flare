@@ -12,3 +12,7 @@ prop-interpolation = Interpolationsart
 prop-interpolation-hint = Interpolationsfamilie und Easing für diesen Tween; solange sie aus ist, wird der Ease-Regler verwendet
 prop-interpolation-off = Ease-Regler
 prop-easing = Easing
+prop-tab-tool = Werkzeug
+prop-tab-object = Objekt
+prop-tab-frame = Bild
+prop-tab-doc = Dokument

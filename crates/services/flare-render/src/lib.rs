@@ -8,6 +8,7 @@
 mod hit;
 mod image;
 mod image_formats;
+mod ink;
 mod limits;
 mod outline;
 mod paint;
@@ -15,9 +16,10 @@ mod pattern;
 mod render;
 mod viewport;
 
-pub use hit::{hit_test, hit_test_all};
+pub use hit::{PaintHit, hit_test, hit_test_all, paint_hits};
 pub use image::{Image, PremultipliedImage, StillFormat};
 pub use image_formats::MAX_ICO_SIDE;
+pub use ink::{ink_bounds, ink_mask};
 pub use limits::{MAX_DIMENSION, MAX_PIXELS, RenderError};
 pub use outline::{render_onion_outlines_viewport, render_outline_mode_viewport};
 pub use render::{

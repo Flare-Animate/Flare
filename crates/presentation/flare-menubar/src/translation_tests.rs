@@ -22,6 +22,7 @@ const SAME_AS_ENGLISH: &[(&str, &str)] = &[
     ("de", "menu-item-play-pause-on"),
     ("fr", "menu-item-tool-ellipse"),
     ("fr", "menu-item-tool-zoom"),
+    ("fr", "menu-item-tool-rotate-view"),
     ("fr", "menu-item-tool-lasso"),
     ("fr", "menu-help-version"),
     ("fr", "menu-item-tool-rectangle"),
@@ -56,6 +57,8 @@ fn keys() -> Vec<String> {
         guides_shown: true,
         onion_on: true,
         outline_mode: true,
+        // Shown is the default, so hidden is the other state.
+        pasteboard_shown: false,
         rulers_shown: true,
         grid_shown: true,
         snapping: true,

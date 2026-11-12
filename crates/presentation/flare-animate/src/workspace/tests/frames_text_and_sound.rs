@@ -238,7 +238,7 @@ fn looping_restarts_the_sounds_and_hidden_layers_and_past_cues_are_silent() {
     rect(&mut ws);
     ws.set_frame(3);
     ws.import_sound(&path); // cue at 3
-    let sound_layer = ws.current_layer.expect("layer");
+    let sound_layer = super::sound_scrub::sound_layer(&ws);
     ws.set_frame(10); // the playhead is already past the cue
     ws.playing = true;
     run(&mut ws, &ctx, 0.0);
@@ -270,7 +270,7 @@ fn deleting_a_sound_layer_removes_sounds_nothing_else_plays_and_undo_brings_them
     let path = wav_file(dir.path(), "a.wav");
     let mut ws = workspace();
     ws.import_sound(&path);
-    let layer = ws.current_layer.expect("layer");
+    let layer = super::sound_scrub::sound_layer(&ws);
     // A second layer plays the same sound, so deleting the first must keep it.
     let scene = ws.scene_id().expect("scene");
     let sound = ws.document().sounds()[0].id();

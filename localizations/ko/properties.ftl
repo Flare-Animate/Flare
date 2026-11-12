@@ -12,3 +12,7 @@ prop-interpolation = 보간
 prop-interpolation-hint = 이 트윈의 보간 방식과 이징. 꺼져 있는 동안에는 이즈 슬라이더를 사용합니다
 prop-interpolation-off = 이즈 슬라이더
 prop-easing = 이징
+prop-tab-tool = 도구
+prop-tab-object = 개체
+prop-tab-frame = 프레임
+prop-tab-doc = 문서

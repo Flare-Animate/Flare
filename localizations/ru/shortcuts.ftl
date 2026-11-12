@@ -10,3 +10,6 @@ shortcuts-reset = Сбросить набор
 shortcuts-conflict = { $keys } уже запускает «{ $action }».
 shortcuts-bad = Эти клавиши здесь использовать нельзя.
 shortcuts-hint = Буквенные инструменты работают, когда ничего не печатается.
+shortcuts-search = Поиск сочетаний клавиш
+shortcuts-none = Ни одна команда не подходит к «{ $query }».
+shortcuts-rotate-tap = Нажмите только { $key }, чтобы поворачивать сцену инструментом «Вращение».

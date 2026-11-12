@@ -57,7 +57,8 @@ fn the_pointer_shows_which_way_each_handle_drags_and_moving_inside() {
         ((950.0, 500.0), C::ResizeVertical),
         ((950.0, 600.0), C::ResizeVertical),
         ((950.0, 550.0), C::Move),
-        ((1500.0, 900.0), C::Default),
+        // Off the frame the tool draws its own pointer.
+        ((1500.0, 900.0), C::None),
     ];
     for (step, ((x, y), icon)) in cases.into_iter().enumerate() {
         let shown = pointer_at(&mut ws, &ctx, Pos2::new(x, y), 1.0 + step as f64 * 0.01);

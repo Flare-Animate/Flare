@@ -40,6 +40,27 @@ fn sound_cues_after_an_inserted_or_removed_frame_move_with_the_spans() {
 }
 
 #[test]
+fn frames_added_to_a_sound_layer_leave_its_cues_where_they_are() {
+    let mut f = fixture(vec![]);
+    let sound = flare_core::SoundId::new();
+    let data = flare_document::Sound::new(sound, "s", vec![1], 8000, 1, 8).expect("sound");
+    f.session.apply([Command::AddSound(data)]).expect("sound");
+    let cues = vec![SoundCue { start: 2, sound }, SoundCue { start: 30, sound }];
+    f.session
+        .apply([Command::SetCues {
+            scene: f.scene,
+            layer: layer(&f).id(),
+            cues,
+        }])
+        .expect("cues");
+    let cmds = insert_frame(f.scene, layer(&f), 24);
+    run(&mut f, cmds);
+    assert_eq!(shape_of(&f), vec![(0, 25, 'E')]);
+    let starts: Vec<u32> = layer(&f).cues().iter().map(|c| c.start).collect();
+    assert_eq!(starts, vec![2, 30], "nothing was inserted before them");
+}
+
+#[test]
 fn cues_need_a_sound_and_sounds_in_use_cannot_be_removed() {
     let mut f = fixture(vec![shape_span(0, 5)]);
     let missing = flare_core::SoundId::new();

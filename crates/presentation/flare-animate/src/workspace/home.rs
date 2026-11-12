@@ -39,6 +39,10 @@ pub(super) struct HomeState {
     pub(super) search: String,
     pub(super) sort: flare_recent::Sorting,
     pub(super) new_document: Option<super::home_custom::NewDocument>,
+    /// The kind of project the New Document dialog shows the sizes of.
+    pub(super) new_document_kind: usize,
+    /// Whether the dialog was opened from Home, so leaving Home closes it.
+    pub(super) new_document_from_home: bool,
 }
 
 impl Workspace {
@@ -138,24 +142,29 @@ impl Workspace {
     }
 
     fn home_sidebar(&mut self, ui: &mut Ui, dialog: &mut Option<DialogRequest>) {
-        ui.horizontal(|ui| {
-            ui.add(icons::flame(32.0));
-            ui.label(
-                egui::RichText::new("Flare")
-                    .font(FontId::proportional(20.0))
-                    .strong()
-                    .color(theme::text()),
-            );
-        });
-        ui.label(
-            egui::RichText::new(tr!(
-                self,
-                "start-version",
-                &[("version", env!("CARGO_PKG_VERSION"))]
-            ))
-            .font(FontId::proportional(11.0))
-            .color(theme::text_dim()),
+        // The program's own icon beside its name and version, as the About box and the dock show it.
+        let version = tr!(
+            self,
+            "start-version",
+            &[("version", env!("CARGO_PKG_VERSION"))]
         );
+        ui.horizontal(|ui| {
+            ui.add(icons::app_icon(40.0));
+            ui.add_space(4.0);
+            ui.vertical(|ui| {
+                ui.spacing_mut().item_spacing.y = 0.0;
+                ui.label(
+                    egui::RichText::new("Flare")
+                        .font(FontId::proportional(20.0))
+                        .color(theme::text_strong()),
+                );
+                ui.label(
+                    egui::RichText::new(version)
+                        .font(FontId::proportional(11.0))
+                        .color(theme::text_dim()),
+                );
+            });
+        });
         ui.add_space(18.0);
         nav_item(ui, "home", &tr!(self, "start-nav-home"), true);
         // Planned, not built: shown dimmed, as the rest of the interface does.
@@ -277,7 +286,7 @@ pub(super) fn name_and_folder(path: &std::path::Path) -> (String, String) {
     (name, folder)
 }
 
-fn section_title(ui: &mut Ui, text: &str) {
+pub(super) fn section_title(ui: &mut Ui, text: &str) {
     ui.label(
         egui::RichText::new(text)
             .font(FontId::proportional(16.0))
@@ -365,6 +374,18 @@ fn tile(
     details: &[&str],
     preview: impl FnOnce(&egui::Painter, Rect),
 ) -> egui::Response {
+    chosen_tile(ui, title, details, false, preview)
+}
+
+/// A card as [`tile`] draws it, outlined in the accent color when `chosen`, as the New Document
+/// dialog marks the size it will make.
+pub(super) fn chosen_tile(
+    ui: &mut Ui,
+    title: &str,
+    details: &[&str],
+    chosen: bool,
+    preview: impl FnOnce(&egui::Painter, Rect),
+) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(
         vec2(
             TILE_WIDTH,
@@ -374,18 +395,14 @@ fn tile(
     );
     if ui.is_rect_visible(rect) {
         let painter = ui.painter();
-        let border = if response.hovered() {
-            theme::accent()
+        let border = if chosen {
+            Stroke::new(2.0, theme::accent())
+        } else if response.hovered() {
+            Stroke::new(1.0, theme::accent())
         } else {
-            theme::border()
+            Stroke::new(1.0, theme::border())
         };
-        painter.rect(
-            rect,
-            6.0,
-            theme::panel(),
-            Stroke::new(1.0, border),
-            StrokeKind::Inside,
-        );
+        painter.rect(rect, 6.0, theme::panel(), border, StrokeKind::Inside);
         let top = Rect::from_min_size(
             rect.min + Vec2::splat(1.0),
             vec2(rect.width() - 2.0, PREVIEW_HEIGHT),
@@ -419,17 +436,18 @@ fn tile(
     response.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
-/// A rectangle with the proportions of a stage, centered in `rect`.
-fn stage_glyph(painter: &egui::Painter, rect: Rect, width: u32, height: u32) {
-    let room = rect.shrink2(vec2(30.0, 16.0));
+/// A frame with the proportions of a stage, centered in `rect`: drawn in the interface's own
+/// greys, not as a white sheet, so a row of them reads as shapes to pick between and not as glare.
+pub(super) fn stage_glyph(painter: &egui::Painter, rect: Rect, width: u32, height: u32) {
+    let room = rect.shrink2(vec2(36.0, 20.0));
     let scale = (room.width() / width as f32).min(room.height() / height as f32);
     let size = vec2(width as f32 * scale, height as f32 * scale);
     let glyph = Rect::from_center_size(rect.center(), size);
     painter.rect(
         glyph,
-        2.0,
-        Color32::WHITE,
-        Stroke::new(1.0, theme::border()),
+        3.0,
+        theme::panel_raised(),
+        Stroke::new(1.5, theme::text_dim()),
         StrokeKind::Inside,
     );
 }

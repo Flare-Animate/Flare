@@ -10,3 +10,6 @@ shortcuts-reset = Reset to set
 shortcuts-conflict = { $keys } already runs { $action }.
 shortcuts-bad = Those keys cannot be used here.
 shortcuts-hint = Tool letters work when nothing is being typed.
+shortcuts-search = Search shortcuts
+shortcuts-none = No command matches “{ $query }”.
+shortcuts-rotate-tap = Tap { $key } alone to turn the stage with the Rotation tool.

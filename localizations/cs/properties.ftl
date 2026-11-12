@@ -12,3 +12,7 @@ prop-interpolation = Křivka
 prop-interpolation-hint = Rodina interpolace a zpomalení pro tuto animaci; když je vypnutá, používá se posuvník zpomalení
 prop-interpolation-off = Posuvník zpomalení
 prop-easing = Zpomalení
+prop-tab-tool = Nástroj
+prop-tab-object = Objekt
+prop-tab-frame = Snímek
+prop-tab-doc = Dokument

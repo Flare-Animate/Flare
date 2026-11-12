@@ -85,12 +85,42 @@ impl Image {
     /// A copy with every pixel's alpha multiplied by `opacity` (clamped to 0..=1). Colors are
     /// unchanged because the pixels are straight alpha.
     pub fn faded(&self, opacity: f32) -> Image {
-        let opacity = opacity.clamp(0.0, 1.0);
         let mut out = self.clone();
-        for px in bytemuck::cast_slice_mut::<u8, [u8; 4]>(&mut out.rgba) {
+        out.fade_in_place(opacity);
+        out
+    }
+
+    /// [`Image::faded`] without a copy, for a ghost that is drawn only to be faded.
+    pub(crate) fn fade_in_place(&mut self, opacity: f32) {
+        let opacity = opacity.clamp(0.0, 1.0);
+        for px in bytemuck::cast_slice_mut::<u8, [u8; 4]>(&mut self.rgba) {
             px[3] = (f32::from(px[3]) * opacity).round() as u8;
         }
+    }
+
+    /// A copy colored `tint` as onion-skin ghosts are when tinted: dark pixels (lines) become the
+    /// tint and light ones (fills) a pale shade of it, so the drawing still reads; alpha is kept.
+    pub fn tinted(&self, tint: Rgba8) -> Image {
+        let mut out = self.clone();
+        out.tint_in_place(tint);
         out
+    }
+
+    /// [`Image::tinted`] without a copy.
+    pub(crate) fn tint_in_place(&mut self, tint: Rgba8) {
+        let target = [tint.r, tint.g, tint.b].map(f32::from);
+        for px in bytemuck::cast_slice_mut::<u8, [u8; 4]>(&mut self.rgba) {
+            // Nothing drawn here: leave it, and save the arithmetic on the empty most of a ghost.
+            if px[3] == 0 {
+                continue;
+            }
+            let light =
+                (0.2126 * f32::from(px[0]) + 0.7152 * f32::from(px[1]) + 0.0722 * f32::from(px[2]))
+                    / 255.0;
+            for (channel, to) in px.iter_mut().take(3).zip(target) {
+                *channel = (to + (255.0 - to) * light * 0.7).round().clamp(0.0, 255.0) as u8;
+            }
+        }
     }
 
     /// Draws `top` over this image (source-over, straight alpha). Sizes must match.
@@ -235,3 +265,7 @@ pub(crate) fn unpremultiply_in_place(rgba: &mut [u8]) {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "image_tint_tests.rs"]
+mod tint_tests;

@@ -80,5 +80,27 @@ fn render_full(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, evaluate, render_full);
+/// Onion skinning draws every ghost in full before the frame itself, so its cost grows with the
+/// range; this is what bounds `MAX_ONION_FRAMES` in the editor.
+fn render_onion_range(c: &mut Criterion) {
+    let mut group = c.benchmark_group("onion_1280x720_100_shapes");
+    group.sample_size(10);
+    let (doc, scene) = document(100, false);
+    let frame = flare_eval::evaluate_frame(&doc, scene, 3).expect("frame");
+    for ghosts in [0_usize, 8, 16, 24] {
+        let tint = Some(Rgba8::opaque(40, 110, 255));
+        let list: Vec<_> = (0..ghosts).map(|_| (&frame, 0.3_f32, tint)).collect();
+        group.bench_function(BenchmarkId::from_parameter(ghosts), |b| {
+            b.iter(|| {
+                black_box(
+                    flare_render::render_onion(&list, &frame, 1280, 720, Rgba8::WHITE)
+                        .expect("render"),
+                )
+            });
+        });
+    }
+    group.finish();
+}
+
+criterion_group!(benches, evaluate, render_full, render_onion_range);
 criterion_main!(benches);

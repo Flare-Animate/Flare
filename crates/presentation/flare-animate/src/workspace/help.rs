@@ -25,8 +25,13 @@ impl Workspace {
                 .collapsible(false)
                 .resizable(false)
                 .show(ctx, |ui| {
-                    ui.heading("Flare");
-                    ui.label(version);
+                    ui.horizontal(|ui| {
+                        ui.add(flare_ui::icons::app_icon(56.0));
+                        ui.vertical(|ui| {
+                            ui.heading("Flare");
+                            ui.label(version);
+                        });
+                    });
                     ui.weak(tagline);
                     ui.weak(alpha);
                     ui.hyperlink_to("GitHub", GITHUB_URL);

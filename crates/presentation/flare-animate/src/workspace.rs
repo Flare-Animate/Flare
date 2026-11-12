@@ -46,6 +46,7 @@ mod layers;
 mod open_any;
 mod outlines;
 mod panels;
+mod pen_overlay;
 mod place;
 mod playback;
 mod preferences;
@@ -69,10 +70,16 @@ mod tools;
 mod transform_cursor;
 mod window_controls;
 use tools::{anchors, stroke_preview, text_preview};
+mod new_document;
+mod new_document_presets;
 #[cfg(test)]
 mod tests;
 mod timeline;
 mod timeline_cells;
+mod timeline_labels;
+mod timeline_rows;
+mod timeline_sound;
+mod tool_kind;
 mod top_bar_classic;
 mod types;
 
@@ -167,6 +174,10 @@ pub struct Workspace {
     poly_inner: f32,
     /// The loop being drawn with the lasso, in stage coordinates.
     lasso: Vec<Pos2>,
+    /// The Magic Wand's settings and the pixels it has picked.
+    wand: tools::magic_wand::WandTool,
+    /// The Rotation tool's drag, its dial and the Alt tap that opens it.
+    rotate: tools::rotate_view::RotateView,
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
     freehand: Vec<InputSample>,
     /// The Brush's stabilizer for the stroke being drawn, if it has one.
@@ -207,6 +218,10 @@ pub struct Workspace {
     clipboard: Vec<ops::ClipItem>,
     /// Timeline zoom: 1.0 fits the whole scene in the panel.
     timeline_zoom: f32,
+    /// Where the timeline's parts were drawn on the last pass, for pointing at a frame.
+    timeline_layout: Option<timeline::Layout>,
+    /// The end of the onion-skin range being dragged on the ruler, if one is.
+    onion_drag: Option<timeline::OnionEnd>,
     /// The next timeline draw sets the zoom at which the scene fills the panel (the Fit button).
     timeline_fit: bool,
     /// Spans selected along with `selected` (Shift-click). Move and Delete act on all of them.
@@ -351,6 +366,8 @@ impl Workspace {
             poly_star: false,
             poly_inner: 0.5,
             lasso: Vec::new(),
+            wand: Default::default(),
+            rotate: Default::default(),
             freehand: Vec::new(),
             stabilizer: None,
             pen_feed: PenFeed::default(),
@@ -371,6 +388,8 @@ impl Workspace {
             skew_modifier: false,
             clipboard: Vec::new(),
             timeline_zoom: 1.0,
+            timeline_layout: None,
+            onion_drag: None,
             timeline_fit: false,
             also_selected: Vec::new(),
             stage_view: StageView::default(),
@@ -394,6 +413,9 @@ impl Workspace {
                 before: 1,
                 after: 1,
                 outlines: false,
+                tinted: true,
+                before_color: types::ONION_BEFORE_COLOR,
+                after_color: types::ONION_AFTER_COLOR,
             },
             test_movie_requested: false,
             pen: PenPath::default(),

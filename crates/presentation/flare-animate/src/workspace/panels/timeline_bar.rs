@@ -100,13 +100,18 @@ impl Workspace {
             self.perform(MenuAction::ToggleLoop);
         }
         ui.separator();
+        // The playhead may rest on an empty cell past the scene's end (a click there, to give
+        // the layer frames up to it), so the field's range reaches it: a range that stopped at the
+        // scene clamped the playhead back to it on the next repaint.
         let mut frame = self.frame;
-        ui.add(
-            egui::DragValue::new(&mut frame)
-                .range(0..=last)
-                .prefix(format!("{} ", tr!(self, "timeline-frame"))),
-        );
-        if frame != self.frame {
+        let changed = ui
+            .add(
+                egui::DragValue::new(&mut frame)
+                    .range(0..=last.max(self.frame))
+                    .prefix(format!("{} ", tr!(self, "timeline-frame"))),
+            )
+            .changed();
+        if changed && frame != self.frame {
             self.set_frame(frame);
         }
         let rate = self.document().frame_rate();
@@ -157,6 +162,7 @@ impl Workspace {
             );
             self.set_onion_range(before, after);
         });
+        self.onion_settings_button(ui, BAR_ICON);
         ui.separator();
         if chrome::icon_button(
             ui,

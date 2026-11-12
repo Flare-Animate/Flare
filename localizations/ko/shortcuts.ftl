@@ -10,3 +10,6 @@ shortcuts-reset = 세트로 되돌리기
 shortcuts-conflict = { $keys }은(는) 이미 { $action }에 사용 중입니다.
 shortcuts-bad = 이 키는 사용할 수 없습니다.
 shortcuts-hint = 도구 문자 키는 입력 중이 아닐 때 작동합니다.
+shortcuts-search = 단축키 검색
+shortcuts-none = “{ $query }”와 일치하는 명령이 없습니다.
+shortcuts-rotate-tap = { $key }만 누르면 회전 도구로 스테이지를 돌릴 수 있습니다.

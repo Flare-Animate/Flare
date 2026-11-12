@@ -44,3 +44,15 @@ fn a_bad_set_or_file_is_refused_and_writes_nothing() {
     assert!(String::from_utf8_lossy(&result.stderr).contains("already runs"));
     assert!(!out.exists());
 }
+
+#[test]
+fn a_search_lists_only_what_it_finds() {
+    let found = json(&["shortcuts", "list", "--search", "save as"]);
+    let rows = found["shortcuts"].as_array().expect("rows");
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0]["shortcut"], "CmdOrCtrl+Shift+S");
+    let keys = json(&["shortcuts", "list", "--set", "opentoonz", "--search", "j"]);
+    assert_eq!(keys["shortcuts"][0]["name"], "Pencil");
+    let none = json(&["shortcuts", "list", "--search", "zzzz"]);
+    assert_eq!(none["shortcuts"], serde_json::json!([]));
+}

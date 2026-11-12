@@ -4,12 +4,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::sound::BrowserSound;
+use crate::{files, flare_file, preferences, ruffle};
 use eframe::egui;
 use flare_animate::{DialogRequest, Workspace};
-use wasm_bindgen::JsCast;
-use web_sys::{AudioBufferSourceNode, AudioContext};
-
-use crate::{files, flare_file, preferences, ruffle};
 
 /// A file the person picked, waiting to be handed to the workspace.
 struct Picked {
@@ -34,8 +32,7 @@ pub struct WebApp {
     /// The name of the file last opened or saved, offered again by Save.
     last_name: String,
     /// Browser audio output; playback is driven by the same events as the desktop player.
-    audio_context: Option<AudioContext>,
-    playing_sounds: Vec<AudioBufferSourceNode>,
+    sound: BrowserSound,
 }
 
 impl WebApp {
@@ -48,8 +45,7 @@ impl WebApp {
             messages: Rc::default(),
             saved_preferences,
             last_name: "project.fla".to_owned(),
-            audio_context: None,
-            playing_sounds: Vec::new(),
+            sound: BrowserSound::default(),
         }
     }
 
@@ -329,69 +325,8 @@ impl WebApp {
 
     fn handle_audio(&mut self) {
         let events = self.workspace.take_audio_events();
-        if events.is_empty() {
-            return;
-        }
-        if self.audio_context.is_none() {
-            match AudioContext::new() {
-                Ok(context) => self.audio_context = Some(context),
-                Err(error) => {
-                    self.workspace
-                        .report_message(&format!("Cannot start browser audio: {error:?}"));
-                    return;
-                }
-            }
-        }
-        let Some(context) = self.audio_context.as_ref() else {
-            return;
-        };
-        let _ = context.resume();
-        for event in events {
-            match event {
-                flare_runtime::AudioEvent::Stop => {
-                    for source in self.playing_sounds.drain(..) {
-                        if let Some(scheduled) =
-                            source.dyn_ref::<web_sys::AudioScheduledSourceNode>()
-                        {
-                            let _ = scheduled.stop_with_when(context.current_time());
-                        }
-                    }
-                }
-                flare_runtime::AudioEvent::Play {
-                    audio,
-                    delay_seconds,
-                } => {
-                    let result = (|| {
-                        let channels = audio.channels().min(2);
-                        let buffer = context.create_buffer(
-                            u32::from(channels),
-                            audio.frames() as u32,
-                            audio.sample_rate() as f32,
-                        )?;
-                        for channel in 0..channels {
-                            let samples: Vec<f32> = audio
-                                .samples()
-                                .chunks_exact(usize::from(audio.channels()))
-                                .map(|frame| frame[usize::from(channel)])
-                                .collect();
-                            buffer.copy_to_channel_with_f32_array(
-                                &js_sys::Float32Array::from(samples.as_slice()),
-                                i32::from(channel),
-                            )?;
-                        }
-                        let source = context.create_buffer_source()?;
-                        source.set_buffer(Some(&buffer));
-                        source.connect_with_audio_node(&context.destination())?;
-                        source.start_with_when(context.current_time() + delay_seconds)?;
-                        self.playing_sounds.push(source);
-                        Ok::<(), wasm_bindgen::JsValue>(())
-                    })();
-                    if let Err(error) = result {
-                        self.workspace
-                            .report_message(&format!("Cannot play sound in browser: {error:?}"));
-                    }
-                }
-            }
+        if let Err(message) = self.sound.apply(events) {
+            self.workspace.report_message(&message);
         }
     }
 }

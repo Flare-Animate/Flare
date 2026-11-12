@@ -7,7 +7,7 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Duration, Instant};
 
-use flare_audio::Audio;
+use flare_audio::{Audio, Excerpt};
 
 use crate::audio::Sender;
 
@@ -24,8 +24,8 @@ struct Kept {
 #[derive(Default)]
 struct State {
     kept: VecDeque<Kept>,
-    /// Sounds being resampled, and when each request for them wants to start.
-    waiting: HashMap<usize, Vec<Instant>>,
+    /// Sounds being resampled, and when and what of them each request for them wants to play.
+    waiting: HashMap<usize, Vec<(Instant, Excerpt)>>,
 }
 
 impl State {
@@ -64,10 +64,11 @@ impl Prepared {
         }
     }
 
-    /// Starts `audio` after `delay_seconds`, once it is ready for the device.
-    pub(crate) fn play(&self, audio: Arc<Audio>, delay_seconds: f64) {
+    /// Starts the `excerpt` of `audio` after `delay_seconds`, once it is ready for the device.
+    /// The excerpt is in seconds, so it means the same part of the resampled copy.
+    pub(crate) fn play(&self, audio: Arc<Audio>, delay_seconds: f64, excerpt: Excerpt) {
         if audio.sample_rate() == self.sender.rate() {
-            self.sender.play(audio, delay_seconds);
+            self.sender.play_excerpt(audio, delay_seconds, excerpt);
             return;
         }
         let due = Instant::now() + Duration::from_secs_f64(delay_seconds.clamp(0.0, 3600.0));
@@ -76,14 +77,14 @@ impl Prepared {
         if let Some(kept) = state.kept.iter().find(|k| key == self::key(&k.original)) {
             let ready = kept.ready.clone();
             drop(state);
-            self.sender.play(ready, remaining(due));
+            self.sender.play_excerpt(ready, remaining(due), excerpt);
             return;
         }
         if let Some(requests) = state.waiting.get_mut(&key) {
-            requests.push(due);
+            requests.push((due, excerpt));
             return;
         }
-        state.waiting.insert(key, vec![due]);
+        state.waiting.insert(key, vec![(due, excerpt)]);
         drop(state);
         let (sender, shared) = (self.sender.clone(), self.state.clone());
         let started = std::thread::Builder::new()
@@ -95,8 +96,8 @@ impl Prepared {
                 let Some(ready) = ready else { return };
                 state.remember(audio, ready.clone());
                 drop(state);
-                for due in requests {
-                    sender.play(ready.clone(), remaining(due));
+                for (due, excerpt) in requests {
+                    sender.play_excerpt(ready.clone(), remaining(due), excerpt);
                 }
             });
         if started.is_err() {

@@ -18,6 +18,10 @@ pub enum ShortcutsCommand {
         /// A shortcut file made by `export`.
         #[arg(long)]
         file: Option<PathBuf>,
+        /// Only the commands this finds: words of their English name or id (`save as`), or keys
+        /// (`cmd+s`, `shift+f5`, `option`). Each row then carries the command's name too.
+        #[arg(long)]
+        search: Option<String>,
     },
     /// Write a set (or what a file makes of it) as a shortcut file.
     Export {
@@ -61,7 +65,13 @@ fn pick(set: &str, file: Option<&Path>) -> Result<ShortcutMap> {
 
 pub fn run(op: ShortcutsCommand) -> Result<Value> {
     match op {
-        ShortcutsCommand::List { set, file } => Ok(pick(&set, file.as_deref())?.list_json()),
+        ShortcutsCommand::List { set, file, search } => {
+            let map = pick(&set, file.as_deref())?;
+            Ok(match search {
+                Some(query) => map.search_json(&query),
+                None => map.list_json(),
+            })
+        }
         ShortcutsCommand::Export { set, file, out } => {
             let map = pick(&set, file.as_deref())?;
             write_or_print(&map, out.as_deref())

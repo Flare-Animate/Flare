@@ -21,3 +21,5 @@ mod pen;
 mod preferences;
 #[cfg(target_arch = "wasm32")]
 pub mod ruffle;
+#[cfg(target_arch = "wasm32")]
+mod sound;

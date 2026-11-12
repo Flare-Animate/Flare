@@ -30,6 +30,12 @@ impl MenuAction {
             Self::ClearKeyframe => "Shift+F6",
             Self::InsertBlankKeyframe => "F7",
             Self::TestMovie => "CmdOrCtrl+Enter",
+            // The stage's zoom, as in Animate. The window's own zoom is off in the workspace, so
+            // these keys never scale the whole interface.
+            Self::ZoomIn => "CmdOrCtrl+=",
+            Self::ZoomOut => "CmdOrCtrl+-",
+            // Animate's key for View > Pasteboard.
+            Self::TogglePasteboard => "CmdOrCtrl+Shift+W",
             Self::Preferences => "CmdOrCtrl+,",
             _ => return None,
         })
@@ -76,6 +82,7 @@ impl MenuAction {
             Self::ToolPen => "P",
             Self::ToolText => "T",
             Self::ToolHand => "H",
+            Self::ToolRotateView => "D",
             Self::ToolZoom => "Z",
             Self::ToolEyedropper => "I",
             Self::ToolBucket => "K",
@@ -141,6 +148,7 @@ impl MenuAction {
             | Self::TextLarger
             | Self::TextSmaller => "tool-text",
             Self::ToolHand => "tool-hand",
+            Self::ToolRotateView => "tool-rotate-view",
             Self::ToolZoom => "tool-zoom",
             Self::ToolEyedropper => "tool-eyedropper",
             Self::ToolBucket => "tool-bucket",
@@ -181,6 +189,7 @@ impl MenuAction {
             Self::ZoomFit => "zoom-fit",
             Self::ToggleOnionSkin => "onion-skin",
             Self::ToggleOutlineMode => "outline-square",
+            Self::TogglePasteboard => "pasteboard",
             Self::ToggleRulers => "ruler",
             Self::ToggleGuides | Self::ClearGuides => "ruler",
             Self::ToggleGrid => "grid",

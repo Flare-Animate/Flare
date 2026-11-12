@@ -21,6 +21,15 @@ pub struct Preferences {
     /// Grid spacing in stage units.
     pub grid_size: f32,
     pub loop_playback: bool,
+    /// Onion skin: how many frames before and after it shows, as outlines or pictures, and
+    /// whether they are tinted, in which colors (red, green, blue). Whether it is on is not kept:
+    /// a session starts with it off, as Animate's does.
+    pub onion_before: u32,
+    pub onion_after: u32,
+    pub onion_outlines: bool,
+    pub onion_tinted: bool,
+    pub onion_before_color: [u8; 3],
+    pub onion_after_color: [u8; 3],
     /// How far a smoothed pencil or brush line may stray, in screen pixels.
     pub smoothing: f32,
     /// The brush: its size and nib, so a session starts as the last one ended.
@@ -60,6 +69,10 @@ pub struct Preferences {
     pub recent: Vec<String>,
 }
 
+fn rgb(color: flare_core::Rgba8) -> [u8; 3] {
+    [color.r, color.g, color.b]
+}
+
 /// How many recent projects are remembered.
 pub const MAX_RECENT: usize = 10;
 
@@ -72,6 +85,12 @@ impl Default for Preferences {
             snap_to_grid: false,
             grid_size: 20.0,
             loop_playback: true,
+            onion_before: 1,
+            onion_after: 1,
+            onion_outlines: false,
+            onion_tinted: true,
+            onion_before_color: rgb(ONION_BEFORE_COLOR),
+            onion_after_color: rgb(ONION_AFTER_COLOR),
             smoothing: 2.0,
             brush_size: 12.0,
             brush_nib_square: false,

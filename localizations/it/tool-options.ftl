@@ -111,3 +111,18 @@ opt-ragged = Irregolare
 opt-herringbone = Spina di Pesce
 opt-rope = Corda
 opt-zigzag = A zigzag
+opt-threshold = Soglia
+opt-contiguous = Contigui
+opt-contiguous-tip = Solo i pixel uniti a quello cliccato; disattivato, ogni pixel di un colore simile nell’immagine
+opt-smoothing-pixels = Pixel
+opt-smoothing-rough = Grezzo
+opt-smoothing-normal = Normale
+opt-smoothing-smooth = Morbido
+opt-picked = Scelti
+opt-picked-pixels =
+    { $n ->
+        [one] { $n } pixel
+       *[other] { $n } pixel
+    }
+opt-wand-invert = Inverti
+opt-wand-clear = Cancella pixel

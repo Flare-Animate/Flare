@@ -12,3 +12,7 @@ prop-interpolation = 插值
 prop-interpolation-hint = 此补间的插值类型与缓动；关闭时使用缓动滑块
 prop-interpolation-off = 缓动滑块
 prop-easing = 缓动
+prop-tab-tool = 工具
+prop-tab-object = 对象
+prop-tab-frame = 帧
+prop-tab-doc = 文档

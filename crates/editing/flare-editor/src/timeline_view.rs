@@ -33,6 +33,32 @@ pub fn visible_layers(
     rows
 }
 
+/// How many frames a sound `seconds` long covers at `per_second` frames a second: at least one,
+/// so even a click of a sound has a cell to show.
+pub fn sound_frames(seconds: f64, per_second: f64) -> u64 {
+    let frames = (seconds * per_second).ceil();
+    if frames.is_finite() && frames >= 1.0 {
+        frames as u64
+    } else {
+        1
+    }
+}
+
+/// The frame after the last one on which a sound cued in `timeline` still plays, or 0 when it
+/// cues none. The timeline scrolls at least this far, so a sound longer than the scene is never
+/// cut off at the panel's edge.
+pub fn sounds_end(document: &flare_document::Document, timeline: &flare_document::Timeline) -> u64 {
+    let per_second = document.frame_rate().per_second();
+    timeline
+        .cues()
+        .filter_map(|(_, cue)| {
+            let sound = document.sound(cue.sound)?;
+            Some(u64::from(cue.start).saturating_add(sound_frames(sound.seconds(), per_second)))
+        })
+        .max()
+        .unwrap_or(0)
+}
+
 /// `zoom` multiplied by `factor`, kept in range; unusable factors leave it alone.
 pub fn zoomed(zoom: f32, factor: f32) -> f32 {
     if !factor.is_finite() || factor <= 0.0 {
@@ -182,3 +208,7 @@ mod tests {
         assert_eq!(visible_layers(&layers, &outer_closed), [(0, 0), (3, 0)]);
     }
 }
+
+#[cfg(test)]
+#[path = "timeline_view_sound_tests.rs"]
+mod sound_tests;

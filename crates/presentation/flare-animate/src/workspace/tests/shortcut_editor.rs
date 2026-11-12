@@ -130,3 +130,50 @@ fn edited_shortcuts_are_kept_with_the_preferences_and_a_corrupt_file_falls_back(
     fresh.apply_preferences(&corrupt);
     assert_eq!(fresh.shortcuts(), &flare_menubar::ShortcutMap::default());
 }
+
+/// Every piece of text the Keyboard Shortcuts window paints in one pass.
+fn editor_text(ws: &mut Workspace, time: f64) -> Vec<String> {
+    ws.windows.shortcuts = true;
+    let ctx = egui::Context::default();
+    // A window is measured on its first pass and drawn on the next.
+    run(ws, &ctx, time);
+    let mut out = ctx.run_ui(input(time + 0.01, vec![]), |ui| ws.show(ui));
+    out.textures_delta.clear();
+    out.shapes
+        .iter()
+        .filter_map(|s| match &s.shape {
+            egui::epaint::Shape::Text(t) => Some(t.galley.job.text.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn the_search_narrows_the_list_by_name_in_the_persons_language_or_by_keys() {
+    let mut ws = workspace();
+    ws.set_system_locale("de-DE");
+    let found = ws.search_shortcuts("speichern unter");
+    assert_eq!(found, [MenuAction::SaveAs]);
+    // Keys are found the same way in every language.
+    assert_eq!(ws.search_shortcuts("cmd+o"), [MenuAction::Open]);
+    // The window lists only what the search finds.
+    ws.set_shortcut_search("speichern unter");
+    let text = editor_text(&mut ws, 0.0);
+    assert!(
+        text.iter().any(|t| t.starts_with("Speichern unter")),
+        "{text:?}"
+    );
+    assert!(!text.iter().any(|t| t.starts_with("Öffnen")), "{text:?}");
+    // Nothing found says so, with what was typed.
+    ws.set_shortcut_search("zzzz");
+    let text = editor_text(&mut ws, 0.1);
+    assert!(text.iter().any(|t| t.contains("zzzz")), "{text:?}");
+    // An empty search lists everything again, a long one is cut.
+    ws.set_shortcut_search(&"x".repeat(10_000));
+    assert_eq!(
+        ws.shortcut_editor.query.chars().count(),
+        flare_menubar::MAX_SEARCH_CHARS
+    );
+    ws.set_shortcut_search("");
+    assert!(ws.search_shortcuts("").len() > 40);
+}

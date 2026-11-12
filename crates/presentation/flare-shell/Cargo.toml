@@ -19,6 +19,8 @@ flare-platform.workspace = true
 flare-ruffle = { workspace = true, features = ["embedded"], optional = true }
 flare-storage.workspace = true
 pollster.workspace = true
+# Decodes the app icon for the window (window_icon.rs).
+png.workspace = true
 [features]
 # Test Movie plays inside the window, with Ruffle running in this process. Without it, Test Movie
 # starts a Ruffle program found through FLARE_RUFFLE or PATH.

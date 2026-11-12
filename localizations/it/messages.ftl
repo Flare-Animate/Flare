@@ -69,6 +69,7 @@ msg-select-shape-for-symbol = Seleziona una forma da convertire in simbolo
 msg-select-shapes-to-group = Seleziona due o più forme da raggruppare
 msg-select-to-break-apart = Seleziona un'istanza di simbolo o un testo da separare
 msg-nothing-transformed = Non è stato possibile trasformare nulla (un'istanza in un'interpolazione di movimento non può essere inclinata o specchiata)
+msg-paint-inside-symbol = Si trova in un gruppo o in un simbolo: fai doppio clic su di esso con lo strumento Selezione per modificarlo, poi dipingilo
 msg-brush-stroke = Tratto di pennello
 msg-erase = Cancella
 msg-pencil-line = Linea a matita
@@ -91,3 +92,5 @@ msg-saved-with-notes =
        *[other] Salvato { $path } ({ $detail }); { $n } note su ciò che il formato non può contenere sono nel pannello Output
     }
 msg-saved-rebuilt-names = Ricostruito per { $path }: { $names }
+msg-magic-wand = Bacchetta magica: { $reason }
+msg-magic-wand-changed = Il documento è cambiato mentre si cancellavano i pixel, quindi non è stato cancellato nulla

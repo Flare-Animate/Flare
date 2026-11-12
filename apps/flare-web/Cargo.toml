@@ -26,7 +26,7 @@ js-sys.workspace = true
 rfd = { workspace = true, features = ["file-handle-inner"] }
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-sys = { workspace = true, features = ["Window", "Document", "Navigator", "HtmlCanvasElement", "HtmlAnchorElement", "Element", "Storage", "Blob", "BlobPropertyBag", "Url", "console", "File", "AudioContext", "AudioBuffer", "AudioBufferSourceNode", "AudioScheduledSourceNode", "AudioNode", "AudioDestinationNode"] }
+web-sys = { workspace = true, features = ["Window", "Document", "Navigator", "HtmlCanvasElement", "HtmlAnchorElement", "Element", "Storage", "Blob", "BlobPropertyBag", "Url", "console", "File", "AudioContext", "AudioBuffer", "AudioBufferSourceNode", "AudioScheduledSourceNode", "AudioNode", "AudioDestinationNode", "GainNode", "AudioParam"] }
 # Explicit browser backends: prefer WebGPU, retain WebGL where available.
 wgpu = { workspace = true, features = ["webgpu", "webgl"] }
 

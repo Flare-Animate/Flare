@@ -374,10 +374,12 @@ fn the_texture_covers_what_is_on_screen_at_screen_resolution() {
     run(&mut ws, &ctx, 0.0);
     run(&mut ws, &ctx, 0.1); // the second pass knows the panel
     let fitted = ws.texture.as_ref().expect("texture").view;
-    assert_eq!(
-        fitted.region.size(),
-        Vec2::new(2000.0, 1000.0),
-        "all of it is visible"
+    assert!(
+        fitted
+            .region
+            .contains_rect(Rect::from_min_size(Pos2::ZERO, Vec2::new(2000.0, 1000.0))),
+        "all of it is visible, with the pasteboard around it: {:?}",
+        fitted.region
     );
     assert!(
         fitted.size[0] < 1400 && fitted.size[1] < 800,

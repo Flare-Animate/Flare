@@ -10,3 +10,6 @@ shortcuts-reset = セットに戻す
 shortcuts-conflict = { $keys } は既に { $action } に割り当てられています。
 shortcuts-bad = このキーは使用できません。
 shortcuts-hint = ツールの文字キーは入力中でないときに働きます。
+shortcuts-search = ショートカットを検索
+shortcuts-none = 「{ $query }」に一致するコマンドはありません。
+shortcuts-rotate-tap = { $key } だけを押すと、回転ツールでステージを回転できます。

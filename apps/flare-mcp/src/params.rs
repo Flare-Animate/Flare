@@ -304,6 +304,12 @@ pub struct ImportSound {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct SoundWaveform {
+    /// Only this sound, by name or id; every sound when left out.
+    pub sound: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddText {
     /// The words; a newline starts a new line.
     pub text: String,
@@ -486,4 +492,7 @@ pub struct ShortcutsParams {
     pub file: Option<String>,
     /// Also return the checked file.
     pub export: Option<bool>,
+    /// Only the commands this finds: words of their English name or id ("save as"), or keys
+    /// ("cmd+s", "shift+f5", "option"). Each row then carries the command's name too.
+    pub search: Option<String>,
 }

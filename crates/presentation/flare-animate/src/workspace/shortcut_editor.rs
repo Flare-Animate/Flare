@@ -1,10 +1,10 @@
-//! The keyboard shortcut editor: pick a set, change or clear a command's keys. The rules (what a
-//! shortcut may be, conflicts) live in `flare_menubar::ShortcutMap`; this only reads keys and
-//! shows the result.
+//! The keyboard shortcut editor: pick a set, find a command, change or clear its keys. The rules
+//! (what a shortcut may be, conflicts, what a search finds) live in `flare_menubar::ShortcutMap`;
+//! this only reads keys and shows the result.
 
 use crate::workspace::*;
 use egui::{Key, Modifiers};
-use flare_menubar::{MenuAction, SHORTCUT_SET_IDS, ShortcutError, ShortcutMap};
+use flare_menubar::{MAX_SEARCH_CHARS, MenuAction, SHORTCUT_SET_IDS, ShortcutError, ShortcutMap};
 
 /// A key press as the text a shortcut is written in; `None` for a key nothing can bind.
 pub(super) fn chord_text(key: Key, mods: Modifiers) -> String {
@@ -43,6 +43,8 @@ pub(super) struct ShortcutEditor {
     pub(super) capturing: Option<MenuAction>,
     /// Why the last change was refused, already in the person's language.
     pub(super) error: Option<String>,
+    /// What is typed in the search field: the list shows only the commands it finds.
+    pub(super) query: String,
 }
 
 impl Workspace {
@@ -54,6 +56,17 @@ impl Workspace {
     /// A command's shortcut as a person reads it, from the map in force.
     pub(super) fn shortcut_label(&self, action: MenuAction) -> Option<String> {
         self.shortcuts.text(action)
+    }
+
+    /// The commands the shortcut list shows for `query`, found by their names in the person's
+    /// language, their ids or their keys (`Cmd+S`, `F5`, `option`).
+    pub fn search_shortcuts(&self, query: &str) -> Vec<MenuAction> {
+        self.shortcuts.search(query, |action| self.label(action))
+    }
+
+    /// Narrows the shortcut list to what `query` finds; empty shows every command.
+    pub fn set_shortcut_search(&mut self, query: &str) {
+        self.shortcut_editor.query = query.chars().take(MAX_SEARCH_CHARS).collect();
     }
 
     /// Start from another set; edits made so far are dropped.
@@ -146,14 +159,17 @@ impl Workspace {
 
     /// The body of the Keyboard Shortcuts window.
     pub(super) fn shortcut_editor_ui(&mut self, ui: &mut egui::Ui) {
-        let (set_title, change, press, clear, reset, hint) = (
+        let (set_title, change, press, clear, reset, hint, search) = (
             tr!(self, "shortcuts-set"),
             tr!(self, "shortcuts-change"),
             tr!(self, "shortcuts-press"),
             tr!(self, "shortcuts-clear"),
             tr!(self, "shortcuts-reset"),
             tr!(self, "shortcuts-hint"),
+            tr!(self, "shortcuts-search"),
         );
+        let tap_key = super::tools::rotate_view::tap_key(ui.ctx());
+        let tap = tr!(self, "shortcuts-rotate-tap", &[("key", tap_key)]);
         let set_name = |ws: &Self, id: &str| match id {
             "opentoonz" => tr!(ws, "shortcuts-set-opentoonz"),
             "animate" => tr!(ws, "shortcuts-set-animate"),
@@ -200,21 +216,31 @@ impl Workspace {
                 }
             }
         }
+        let mut query = self.shortcut_editor.query.clone();
+        let field = ui.add(
+            egui::TextEdit::singleline(&mut query)
+                .hint_text(search)
+                .char_limit(MAX_SEARCH_CHARS)
+                .desired_width(f32::INFINITY),
+        );
+        if field.changed() {
+            self.set_shortcut_search(&query);
+        }
         if let Some(error) = &self.shortcut_editor.error {
             ui.colored_label(ui.visuals().warn_fg_color, error);
+        }
+        let rows = self.search_shortcuts(&self.shortcut_editor.query);
+        if rows.is_empty() {
+            let query = self.shortcut_editor.query.as_str();
+            ui.weak(tr!(self, "shortcuts-none", &[("query", query)]));
         }
         let mut todo: Option<(MenuAction, bool)> = None;
         egui::ScrollArea::vertical()
             .max_height(360.0)
             .show(ui, |ui| {
                 egui::Grid::new("shortcuts").num_columns(4).show(ui, |ui| {
-                    for action in MenuAction::ALL {
+                    for action in rows {
                         let keys = self.shortcuts.text(action);
-                        let (own, tool) =
-                            (action.shortcut().is_some(), action.tool_key().is_some());
-                        if keys.is_none() && !own && !tool {
-                            continue;
-                        }
                         ui.label(self.label(action));
                         if self.shortcut_editor.capturing == Some(action) {
                             ui.weak(&press);
@@ -245,5 +271,6 @@ impl Workspace {
             None => {}
         }
         ui.weak(hint);
+        ui.weak(tap);
     }
 }

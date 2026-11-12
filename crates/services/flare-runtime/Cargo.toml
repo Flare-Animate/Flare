@@ -20,6 +20,10 @@ flare-import.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
+# The Magic Wand's picking and clearing run on the pixels worker.
+flare-tools.workspace = true
+flare-commands.workspace = true
+emath.workspace = true
 png.workspace = true
 thiserror.workspace = true
 
@@ -28,7 +32,6 @@ rayon.workspace = true
 
 [dev-dependencies]
 psd.workspace = true
-flare-commands.workspace = true
 flare-history.workspace = true
 proptest.workspace = true
 tempfile.workspace = true

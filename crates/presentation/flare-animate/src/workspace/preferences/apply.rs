@@ -16,6 +16,20 @@ impl Workspace {
             snap_to_grid: self.display.snap_to_grid,
             grid_size: self.display.grid_size,
             loop_playback: self.loop_playback,
+            onion_before: self.onion.before,
+            onion_after: self.onion.after,
+            onion_outlines: self.onion.outlines,
+            onion_tinted: self.onion.tinted,
+            onion_before_color: [
+                self.onion.before_color.r,
+                self.onion.before_color.g,
+                self.onion.before_color.b,
+            ],
+            onion_after_color: [
+                self.onion.after_color.r,
+                self.onion.after_color.g,
+                self.onion.after_color.b,
+            ],
             smoothing: self.smoothing,
             brush_size: self.brush_size,
             brush_nib_square: self.brush_shelf.nib().shape()
@@ -78,6 +92,15 @@ impl Workspace {
         self.display.grid_size =
             finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
         self.loop_playback = preferences.loop_playback;
+        self.set_onion_range(preferences.onion_before, preferences.onion_after);
+        self.set_onion_outlines(preferences.onion_outlines);
+        self.set_onion_tinted(preferences.onion_tinted);
+        let [r, g, b] = preferences.onion_before_color;
+        let [r2, g2, b2] = preferences.onion_after_color;
+        self.set_onion_colors(
+            flare_core::Rgba8::opaque(r, g, b),
+            flare_core::Rgba8::opaque(r2, g2, b2),
+        );
         self.smoothing = finite(f64::from(preferences.smoothing), 2.0).clamp(0.0, 20.0) as f32;
         self.brush_size = finite(f64::from(preferences.brush_size), 12.0).clamp(1.0, 200.0) as f32;
         let loose = flare_tools::brush::Nib::new(

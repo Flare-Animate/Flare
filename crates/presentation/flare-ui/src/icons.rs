@@ -47,6 +47,19 @@ pub fn flame(size: f32) -> Image<'static> {
         .fit_to_exact_size(Vec2::splat(size))
 }
 
+/// The app icon (the flame on its rounded tile) as a picture: the 256-pixel PNG, which the Home
+/// page shows and the desktop gives the window and the dock.
+pub const APP_ICON_PNG: &[u8] = include_bytes!("../../../../assets/flare-icon-256.png");
+
+/// The app icon as an image of the given size, where the interface names the program.
+pub fn app_icon(size: f32) -> Image<'static> {
+    Image::new(ImageSource::Bytes {
+        uri: "bytes://flare-app-icon.png".into(),
+        bytes: egui::load::Bytes::Static(APP_ICON_PNG),
+    })
+    .fit_to_exact_size(Vec2::splat(size))
+}
+
 /// Every icon's name, sorted.
 pub fn names() -> impl Iterator<Item = &'static str> {
     TABLE.iter().map(|(name, _)| *name)

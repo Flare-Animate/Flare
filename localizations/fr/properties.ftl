@@ -12,3 +12,7 @@ prop-interpolation = Interpolation
 prop-interpolation-hint = Famille d'interpolation et accélération de ce tween ; tant qu'elle est désactivée, le curseur d'accélération sert
 prop-interpolation-off = Curseur d'accélération
 prop-easing = Accélération
+prop-tab-tool = Outil
+prop-tab-object = Objet
+prop-tab-frame = Image
+prop-tab-doc = Document

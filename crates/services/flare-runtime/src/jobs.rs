@@ -17,6 +17,9 @@ pub struct RenderJob {
     pub ghosts: Vec<(u32, f32)>,
     /// Draw the ghosts as thin outlines rather than faded pictures.
     pub outlines: bool,
+    /// Colors for the ghosts before and after `frame`, as Animate's tinted onion skin has them;
+    /// `None` draws them in their own colors.
+    pub tints: Option<[Rgba8; 2]>,
     /// Outline Mode: every shape as a line in its layer's color, no ghosts.
     pub outline_mode: bool,
     /// Draw what the scene's camera sees rather than the scene as it is edited.
@@ -125,12 +128,12 @@ pub enum Done {
     SoundImported {
         id: u64,
         path: PathBuf,
-        /// The file's bytes and what decoding them gave.
-        result: Result<(Vec<u8>, Arc<flare_audio::Audio>), String>,
+        /// The file's bytes and what decoding them gave, with its waveform.
+        result: Result<(Vec<u8>, flare_audio::Decoded), String>,
     },
     SoundDecoded {
         sound: SoundId,
-        result: Result<Arc<flare_audio::Audio>, String>,
+        result: Result<flare_audio::Decoded, String>,
     },
     Text {
         id: u64,
@@ -167,6 +170,18 @@ pub enum Done {
         path: PathBuf,
         /// The document and what could not be carried over, one line each.
         result: Result<(Document, Vec<String>), String>,
+    },
+    /// What a wand click picked; `None` when it took every pixel away.
+    WandPicked {
+        id: u64,
+        result: Result<Option<crate::WandPicked>, String>,
+    },
+    /// The commands that clear the picked pixels, made from `document`: they apply to that
+    /// document only.
+    WandCleared {
+        id: u64,
+        document: Arc<Document>,
+        result: Result<Vec<flare_commands::Command>, String>,
     },
 }
 

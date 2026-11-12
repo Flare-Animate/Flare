@@ -28,6 +28,12 @@ thiserror.workspace = true
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 rfd.workspace = true
 
+# The Dock icon of a program run outside an app bundle (see app_icon_macos.rs).
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = { workspace = true, features = ["std"] }
+objc2-foundation = { workspace = true, features = ["std", "NSData"] }
+objc2-app-kit = { workspace = true, features = ["std", "NSApplication", "NSResponder", "NSImage"] }
+
 [dev-dependencies]
 flare-import.workspace = true
 flare-core.workspace = true

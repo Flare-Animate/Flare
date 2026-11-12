@@ -51,6 +51,19 @@ impl Workspace {
         self.onion.outlines = outlines;
     }
 
+    /// Draws earlier frames in one color and later ones in another (true), as Animate's tinted
+    /// onion skin does, or each in its own colors (false).
+    pub fn set_onion_tinted(&mut self, tinted: bool) {
+        self.onion.tinted = tinted;
+    }
+
+    /// The colors of the ghosts before and after the current frame when tinted. Opaque: a
+    /// ghost's own fading is what makes it faint.
+    pub fn set_onion_colors(&mut self, before: flare_core::Rgba8, after: flare_core::Rgba8) {
+        self.onion.before_color = flare_core::Rgba8::opaque(before.r, before.g, before.b);
+        self.onion.after_color = flare_core::Rgba8::opaque(after.r, after.g, after.b);
+    }
+
     pub fn set_onion_range(&mut self, before: u32, after: u32) {
         self.onion.before = before.min(MAX_ONION_FRAMES);
         self.onion.after = after.min(MAX_ONION_FRAMES);

@@ -6,15 +6,27 @@ use flare_runtime::RenderJob;
 use super::*;
 
 impl Workspace {
-    /// The part of the stage to render and at what size: what is on screen, at the resolution it
-    /// is shown, as of the last layout. Before any layout it is the whole stage.
+    /// Whether artwork off the stage is drawn: with the pasteboard shown, and not while looking
+    /// through the camera, which sees only its frame.
+    pub(super) fn pasteboard_shown(&self) -> bool {
+        self.display.show_pasteboard && !self.camera_preview
+    }
+
+    /// The part of the stage, and of the pasteboard when it shows, to render and at what size:
+    /// what is on screen, at the resolution it is shown, as of the last layout. Before any layout
+    /// it is the whole stage.
     pub(super) fn desired_texture_view(
         &self,
         pixels_per_point: f32,
         max_side: u32,
     ) -> Option<TextureView> {
         let extent = self.stage_extent();
-        let (region, density) = match self.stage_view.visible_region(self.stage_panel, extent) {
+        let visible = if self.pasteboard_shown() {
+            self.stage_view.visible_pasteboard(self.stage_panel, extent)
+        } else {
+            self.stage_view.visible_region(self.stage_panel, extent)
+        };
+        let (region, density) = match visible {
             Some(region) => {
                 let scale = self.stage_view.scale(self.stage_panel, extent);
                 (region, (scale * pixels_per_point).max(f32::EPSILON))
@@ -118,6 +130,8 @@ impl Workspace {
             self.camera_preview.hash(&mut hasher);
             text_epoch.hash(&mut hasher);
             onion.outlines.hash(&mut hasher);
+            // Tinted ghosts, and ghosts of other colors, are other pictures.
+            onion.tints().hash(&mut hasher);
             self.display.outline_mode.hash(&mut hasher);
             for (frame, opacity) in &ghost_frames {
                 if let Ok(ghost) = evaluate(*frame) {
@@ -160,13 +174,13 @@ impl Workspace {
             text_epoch,
             preview: preview_stamp,
         });
-        let stage = self.document().stage();
         self.background.submit_render(RenderJob {
             id,
             document: snapshot,
             scene,
             frame: self.frame,
             outlines: onion.outlines,
+            tints: onion.tints(),
             outline_mode: self.display.outline_mode,
             through_camera: self.camera_preview,
             ghosts: ghost_frames,
@@ -177,7 +191,9 @@ impl Workspace {
                 height: f64::from(view.region.height()),
             },
             size: view.size,
-            background: stage.background(),
+            // Drawn over nothing: the stage color is painted under the picture on the stage only,
+            // so artwork off the stage lies on the pasteboard.
+            background: flare_core::Rgba8::TRANSPARENT,
             text_preview: self.text_preview_render(),
         });
         // Inline, the picture is ready already; with workers it arrives on a later pass.

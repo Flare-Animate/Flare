@@ -32,7 +32,7 @@ fn outlined(frame: &Frame<'_>, line_width: f64, color: Option<Rgba8>) -> Vec<Sha
 /// `line_width` stage units wide, so earlier and later frames show as guide lines over the
 /// current one.
 pub fn render_onion_outlines_viewport(
-    ghosts: &[(&Frame<'_>, f32)],
+    ghosts: &[(&Frame<'_>, f32, Option<Rgba8>)],
     current: &Frame<'_>,
     viewport: &Viewport,
     width: u32,
@@ -42,8 +42,10 @@ pub fn render_onion_outlines_viewport(
 ) -> Result<Image, RenderError> {
     let empty = Frame::default();
     let mut image = render_viewport(&empty, viewport, width, height, background)?;
-    for (frame, opacity) in ghosts {
-        let shapes = outlined(frame, line_width, Some(Rgba8::opaque(70, 150, 255)));
+    for (frame, opacity, tint) in ghosts {
+        // Untinted outlines are the blue they always were.
+        let color = tint.unwrap_or(Rgba8::opaque(70, 150, 255));
+        let shapes = outlined(frame, line_width, Some(color));
         let lines = as_lines(frame, &shapes, true);
         let ghost = render_viewport(&lines, viewport, width, height, Rgba8::TRANSPARENT)?;
         image.composite(&ghost.faded(opacity.max(0.35)))?;

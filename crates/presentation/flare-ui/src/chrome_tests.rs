@@ -231,3 +231,102 @@ fn an_empty_or_out_of_range_selection_still_draws() {
     pass(&ctx, 0.0, vec![], &mut chosen);
     assert_eq!(chosen, 9, "nothing clicked, nothing changed");
 }
+
+/// One pass of a 300-point-wide panel holding one slider row for `value`; returns its rect.
+fn slider_pass(
+    ctx: &egui::Context,
+    time: f64,
+    events: Vec<egui::Event>,
+    value: &mut f32,
+) -> egui::Rect {
+    let input = egui::RawInput {
+        time: Some(time),
+        screen_rect: Some(egui::Rect::from_min_size(
+            egui::Pos2::ZERO,
+            egui::vec2(300.0, 200.0),
+        )),
+        events,
+        ..egui::RawInput::default()
+    };
+    let mut rect = egui::Rect::NOTHING;
+    let mut output = ctx.run_ui(input, |ui| {
+        rect = slider(ui, "Size", value, 1.0..=200.0, " px", false).rect;
+    });
+    output.textures_delta.clear();
+    rect
+}
+
+#[test]
+fn a_slider_row_spans_the_panel_and_keeps_its_value_in_range() {
+    let ctx = egui::Context::default();
+    let mut value = 500.0;
+    let rect = slider_pass(&ctx, 0.0, vec![], &mut value);
+    assert!(
+        rect.width() > 250.0,
+        "the slider takes the panel's width: {rect:?}"
+    );
+    assert!(
+        rect.height() > 30.0,
+        "the value's line over the track: {rect:?}"
+    );
+    slider_pass(&ctx, 0.1, vec![], &mut value);
+    assert_eq!(value, 200.0, "a value past the range is brought into it");
+}
+
+#[test]
+fn a_press_at_the_end_of_the_track_sets_the_top_of_the_range() {
+    let ctx = egui::Context::default();
+    let mut value = 10.0;
+    let rect = slider_pass(&ctx, 0.0, vec![], &mut value);
+    let end = egui::pos2(rect.right() - 1.0, rect.bottom() - 6.0);
+    let press = |pressed| egui::Event::PointerButton {
+        pos: end,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: egui::Modifiers::NONE,
+    };
+    slider_pass(&ctx, 0.1, vec![egui::Event::PointerMoved(end)], &mut value);
+    slider_pass(&ctx, 0.2, vec![press(true)], &mut value);
+    slider_pass(&ctx, 0.3, vec![press(false)], &mut value);
+    assert_eq!(value, 200.0);
+}
+
+#[test]
+fn a_dimmed_segment_ignores_a_click() {
+    let ctx = egui::Context::default();
+    let mut chosen = 0;
+    let run = |time: f64, events: Vec<egui::Event>, chosen: &mut usize| {
+        let input = egui::RawInput {
+            time: Some(time),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(400.0, 200.0),
+            )),
+            events,
+            ..egui::RawInput::default()
+        };
+        let mut output = ctx.run_ui(input, |ui| {
+            if let Some(index) =
+                segmented_some(ui, &["One", "Two", "Three"], *chosen, &[true, false, true])
+            {
+                *chosen = index;
+            }
+        });
+        output.textures_delta.clear();
+    };
+    // The second of three segments across a 400-point track is near x = 200.
+    for (n, (x, expected)) in [(200.0, 0), (330.0, 2)].into_iter().enumerate() {
+        let t = n as f64;
+        let at = egui::pos2(x, 18.0);
+        let press = |pressed| egui::Event::PointerButton {
+            pos: at,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        run(t, vec![egui::Event::PointerMoved(at)], &mut chosen);
+        run(t + 0.1, vec![press(true)], &mut chosen);
+        run(t + 0.2, vec![press(false)], &mut chosen);
+        assert_eq!(chosen, expected, "after a click at {x}");
+    }
+}

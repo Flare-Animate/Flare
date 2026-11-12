@@ -17,6 +17,10 @@ use glamx::{DAffine2, DVec2};
 use std::num::NonZeroU32;
 use std::path::PathBuf;
 
+mod rotate_view;
+mod sound_helpers;
+use sound_helpers::{drain_audio, wav_file};
+
 mod anchor_tools;
 mod basics;
 mod bone;
@@ -39,18 +43,25 @@ mod layer_names;
 mod layers_and_symbols;
 mod line_shift;
 mod live_transform;
+mod magic_wand;
 mod menus_and_recovery;
 mod menus_like_animate;
 mod motion_editor;
 mod native_pen;
+mod new_document_dialog;
 mod nothing_left_in_english;
+mod onion_settings;
 mod open_any;
+mod paint_areas;
+mod paint_tools;
 mod panels_and_view;
 mod paste_into_layer;
+mod pasteboard;
 mod pen_and_selection;
 mod polygon_lasso;
 mod preferences_dialog;
 mod properties_context;
+mod properties_tabs;
 mod publish_popup;
 mod publish_settings;
 mod rail;
@@ -61,13 +72,17 @@ mod save_flare;
 mod save_formats;
 mod scene_name;
 mod shortcut_editor;
+mod sound_scrub;
 mod spans_and_handles;
 mod splash;
 mod stage_menu;
+mod stage_pointer;
 mod status_bar;
 mod tab_strip;
 mod text_keys;
 mod text_objects;
+mod timeline_animating;
+mod timeline_clicks;
 mod timeline_frame_buttons;
 mod timeline_frames;
 mod timeline_scrub;
@@ -118,7 +133,8 @@ fn layer_count(ws: &Workspace) -> usize {
 fn input(time: f64, events: Vec<Event>) -> RawInput {
     RawInput {
         time: Some(time),
-        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(1280.0, 800.0))),
+        // As tall as a common laptop screen at 2x, so Properties shows its longer sections whole.
+        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, Vec2::new(1280.0, 900.0))),
         events,
         ..RawInput::default()
     }
@@ -447,41 +463,6 @@ fn type_text(ws: &mut Workspace, at: Pos2, text: &str) {
         editing: None,
     });
     ws.place_text();
-}
-
-/// A one-second mono 16-bit WAV file at 8 kHz, written to `dir`.
-fn wav_file(dir: &std::path::Path, name: &str) -> PathBuf {
-    let samples: Vec<i16> = (0..8000).map(|i| ((i % 100) as i16 - 50) * 300).collect();
-    let data_len = (samples.len() * 2) as u32;
-    let mut out = Vec::new();
-    out.extend_from_slice(b"RIFF");
-    out.extend_from_slice(&(36 + data_len).to_le_bytes());
-    out.extend_from_slice(b"WAVEfmt ");
-    out.extend_from_slice(&16_u32.to_le_bytes());
-    out.extend_from_slice(&1_u16.to_le_bytes());
-    out.extend_from_slice(&1_u16.to_le_bytes());
-    out.extend_from_slice(&8000_u32.to_le_bytes());
-    out.extend_from_slice(&16_000_u32.to_le_bytes());
-    out.extend_from_slice(&2_u16.to_le_bytes());
-    out.extend_from_slice(&16_u16.to_le_bytes());
-    out.extend_from_slice(b"data");
-    out.extend_from_slice(&data_len.to_le_bytes());
-    for sample in samples {
-        out.extend_from_slice(&sample.to_le_bytes());
-    }
-    let path = dir.join(name);
-    std::fs::write(&path, out).expect("write wav");
-    path
-}
-
-fn drain_audio(ws: &mut Workspace) -> Vec<String> {
-    ws.take_audio_events()
-        .into_iter()
-        .map(|e| match e {
-            AudioEvent::Stop => "stop".to_owned(),
-            AudioEvent::Play { delay_seconds, .. } => format!("play@{:.3}", delay_seconds),
-        })
-        .collect()
 }
 
 fn drawn_shape(ws: &Workspace, layer: usize) -> Shape {

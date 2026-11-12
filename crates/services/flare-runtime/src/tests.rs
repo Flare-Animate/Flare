@@ -29,6 +29,7 @@ fn render_job(runtime: &mut Runtime, document: &Arc<Document>) -> RenderJob {
         frame: 0,
         ghosts: Vec::new(),
         outlines: false,
+        tints: None,
         outline_mode: false,
         through_camera: false,
         viewport: flare_render::Viewport::full(16, 8),
@@ -248,4 +249,96 @@ fn text_being_typed_takes_the_place_of_the_text_it_edits_or_goes_on_top_if_it_is
         shape: None,
     };
     assert_eq!(draw(&mut runtime, Some(gone)), [255, 0, 0, 255]);
+}
+
+#[test]
+fn tinted_ghosts_take_the_before_color_behind_the_frame_and_the_after_color_ahead() {
+    use flare_document::{Content, FrameSpan, Shape};
+    // A red square on frame 2 only; frames 0 and 4 are empty, so only the ghost shows there.
+    let square = Shape::rect(
+        flare_core::ShapeId::new(),
+        0.0,
+        0.0,
+        8.0,
+        8.0,
+        Rgba8::opaque(255, 0, 0),
+    )
+    .expect("square");
+    let span = FrameSpan::new(2, std::num::NonZeroU32::MIN, Content::Shape(square));
+    let layer = Layer::new(LayerId::new(), "L", vec![span]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let document = Arc::new(
+        Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![scene],
+            vec![],
+        )
+        .expect("document"),
+    );
+    let (before, after) = (Rgba8::opaque(0, 0, 255), Rgba8::opaque(0, 160, 0));
+    let mut runtime = Runtime::inline();
+    let mut draw = |frame: u32, tints: Option<[Rgba8; 2]>| {
+        let mut job = render_job(&mut runtime, &document);
+        job.frame = frame;
+        job.ghosts = vec![(2, 1.0)];
+        job.tints = tints;
+        pixel_of(run_render(&job), 2, 2)
+    };
+    // Red is about a fifth as light as white, so the tint is lightened by that much
+    // (`Image::tinted`): mostly the tint, with the drawing's light and dark still showing.
+    assert_eq!(
+        draw(4, Some([before, after])),
+        [38, 38, 255, 255],
+        "behind: before"
+    );
+    assert_eq!(
+        draw(0, Some([before, after])),
+        [38, 174, 38, 255],
+        "ahead: after"
+    );
+    assert_eq!(draw(0, None), [255, 0, 0, 255], "untinted: its own red");
+}
+
+#[test]
+fn a_view_reaching_past_the_stage_draws_the_artwork_there_over_nothing() {
+    use flare_document::{Content, FrameSpan, Shape};
+    // A red square wholly off the stage, to its left, as the editor's pasteboard shows it.
+    let off = Shape::rect(
+        flare_core::ShapeId::new(),
+        -8.0,
+        0.0,
+        8.0,
+        8.0,
+        Rgba8::opaque(255, 0, 0),
+    )
+    .expect("shape");
+    let span = FrameSpan::new(0, std::num::NonZeroU32::MIN, Content::Shape(off));
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![span]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "Scene", Timeline::new(vec![layer]));
+    let document = Arc::new(
+        Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![scene],
+            vec![],
+        )
+        .expect("document"),
+    );
+    let mut runtime = Runtime::inline();
+    let mut job = render_job(&mut runtime, &document);
+    // Stage units -8 to 8 across: the left half is pasteboard, the right half stage.
+    job.viewport = flare_render::Viewport {
+        x: -8.0,
+        y: 0.0,
+        width: 16.0,
+        height: 8.0,
+    };
+    job.background = Rgba8::TRANSPARENT;
+    assert_eq!(pixel_of(run_render(&job), 3, 4), [255, 0, 0, 255], "drawn");
+    assert_eq!(
+        pixel_of(run_render(&job), 12, 4)[3],
+        0,
+        "the stage color is the editor's to paint under the picture"
+    );
 }

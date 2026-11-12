@@ -201,6 +201,8 @@ impl Workspace {
             tr!(self, "bar-grid"),
         ];
         let [zoom_in, zoom_out, zoom_fit, camera, snap, rulers, grid] = &tips;
+        // The menu's own words, which say what a click does now.
+        let pasteboard = self.label(MenuAction::TogglePasteboard);
         ui.horizontal(|ui| {
             let crumbs = self.breadcrumb();
             ui.add(icons::image("scene", 16.0, theme::text_dim()));
@@ -249,6 +251,7 @@ impl Workspace {
                 if chrome::icon_button(ui, "zoom-fit", BAR_ICON, false, true, zoom_fit).clicked() {
                     self.perform(MenuAction::ZoomFit);
                 }
+                self.rotation_readout(ui);
                 if self.has_camera()
                     && chrome::icon_button(
                         ui,
@@ -283,6 +286,18 @@ impl Workspace {
                     .clicked()
                 {
                     self.perform(MenuAction::ToggleGrid);
+                }
+                if chrome::icon_button(
+                    ui,
+                    "pasteboard",
+                    BAR_ICON,
+                    self.display.show_pasteboard,
+                    true,
+                    &pasteboard,
+                )
+                .clicked()
+                {
+                    self.perform(MenuAction::TogglePasteboard);
                 }
             });
         });

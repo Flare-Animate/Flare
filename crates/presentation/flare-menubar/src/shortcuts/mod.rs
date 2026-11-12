@@ -5,6 +5,7 @@
 
 mod accel;
 mod file;
+mod search;
 mod sets;
 #[cfg(test)]
 mod tests;
@@ -13,6 +14,7 @@ use std::collections::BTreeMap;
 
 pub use accel::{Accelerator, ShortcutError};
 pub use file::MAX_SHORTCUT_FILE_BYTES;
+pub use search::{MAX_SEARCH_CHARS, ShortcutQuery};
 pub use sets::{DEFAULT_SET, SHORTCUT_SET_IDS, set_bindings};
 
 use crate::MenuAction;

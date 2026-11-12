@@ -111,3 +111,19 @@ opt-ragged = Roztřepený
 opt-herringbone = Steh rybí kostry
 opt-rope = Lano
 opt-zigzag = Klikatá čára
+opt-threshold = Práh
+opt-contiguous = Souvislé
+opt-contiguous-tip = Jen pixely spojené s tím, na který jste klepli; vypnuto, každý pixel podobné barvy v obrázku
+opt-smoothing-pixels = Pixely
+opt-smoothing-rough = Hrubé
+opt-smoothing-normal = Normální
+opt-smoothing-smooth = Hladké
+opt-picked = Vybráno
+opt-picked-pixels =
+    { $n ->
+        [one] { $n } pixel
+        [few] { $n } pixely
+       *[other] { $n } pixelů
+    }
+opt-wand-invert = Obrátit
+opt-wand-clear = Vymazat pixely

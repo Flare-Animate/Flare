@@ -29,6 +29,40 @@ fn drawn_text(ws: &mut Workspace) -> Vec<String> {
     all
 }
 
+/// The text drawn before and after the wheel scrolls Properties down from over `over`: a tool
+/// with many amounts runs past the panel's bottom, as Animate's does, and is scrolled to.
+fn drawn_text_scrolled(ws: &mut Workspace, over: &str) -> Vec<String> {
+    let ctx = egui::Context::default();
+    flare_ui::icons::install(&ctx);
+    let mut all = Vec::new();
+    let mut at = None;
+    for step in 0..12 {
+        let events = match (step, at) {
+            (5, Some(p)) => vec![Event::PointerMoved(p)],
+            (6..=9, Some(_)) => vec![Event::MouseWheel {
+                unit: egui::MouseWheelUnit::Point,
+                delta: Vec2::new(0.0, -300.0),
+                phase: egui::TouchPhase::Move,
+                source: egui::MouseWheelSource::Wheel,
+                modifiers: Modifiers::NONE,
+            }],
+            _ => vec![],
+        };
+        let mut out = ctx.run_ui(input(f64::from(step) * 0.1, events), |ui| ws.show(ui));
+        out.textures_delta.clear();
+        for s in &out.shapes {
+            if let egui::epaint::Shape::Text(t) = &s.shape {
+                let text = t.galley.text().to_owned();
+                if text == over {
+                    at = Some(t.visual_bounding_rect().center() + Vec2::new(0.0, 40.0));
+                }
+                all.push(text);
+            }
+        }
+    }
+    all
+}
+
 fn has(texts: &[String], wanted: &str) -> bool {
     texts.iter().any(|t| t == wanted)
 }
@@ -39,7 +73,7 @@ fn speaking(tag: &str) -> Workspace {
     ws
 }
 
-const ALL_TOOLS: [Tool; 25] = [
+const ALL_TOOLS: [Tool; 26] = [
     Tool::Select,
     Tool::Subselection,
     Tool::AddAnchor,
@@ -60,6 +94,7 @@ const ALL_TOOLS: [Tool; 25] = [
     Tool::PolyStar,
     Tool::Lasso,
     Tool::PolygonLasso,
+    Tool::MagicWand,
     Tool::Camera,
     Tool::Pencil,
     Tool::Brush,
@@ -183,7 +218,7 @@ fn the_properties_of_a_selected_shape_are_in_the_language() {
 fn the_brush_options_and_the_symmetry_choices_are_in_the_language() {
     let mut ws = speaking("fr-FR");
     ws.set_tool(Tool::Brush);
-    let text = drawn_text(&mut ws);
+    let text = drawn_text_scrolled(&mut ws, "Outil Pinceau");
     for wanted in [
         "Outil Pinceau",
         "Lissage",

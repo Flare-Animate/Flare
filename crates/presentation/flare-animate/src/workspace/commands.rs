@@ -73,11 +73,13 @@ impl Workspace {
             MenuAction::PasteFrames => {
                 self.frame_clipboard.is_some() && layer.is_some_and(|l| !l.is_locked())
             }
-            MenuAction::Delete
-            | MenuAction::Duplicate
+            // The Magic Wand's picked pixels are a selection too.
+            MenuAction::Delete | MenuAction::DeselectAll => {
+                self.has_selection() || self.wand_has_pixels()
+            }
+            MenuAction::Duplicate
             | MenuAction::Copy
             | MenuAction::Cut
-            | MenuAction::DeselectAll
             | MenuAction::FlipHorizontal
             | MenuAction::FlipVertical
             | MenuAction::MirrorCopyHorizontal
@@ -110,6 +112,7 @@ impl Workspace {
             | MenuAction::ToolPen
             | MenuAction::ToolText
             | MenuAction::ToolHand
+            | MenuAction::ToolRotateView
             | MenuAction::ToolZoom
             | MenuAction::ToolEyedropper
             | MenuAction::ToolBucket
@@ -161,6 +164,7 @@ impl Workspace {
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleOutlineMode
+            | MenuAction::TogglePasteboard
             | MenuAction::ToggleRulers
             | MenuAction::ToggleGrid
             | MenuAction::ToggleSnap
@@ -179,7 +183,8 @@ impl Workspace {
         match action {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
-            MenuAction::New => self.new_tab(),
+            // As in Animate, File > New asks what kind of project, in the New Document dialog.
+            MenuAction::New => self.show_new_document(),
             MenuAction::Close => self.close_tab(self.position),
             MenuAction::NewLayer => self.add_layer(),
             MenuAction::NewLayerFolder => self.add_layer_folder(),
@@ -195,12 +200,19 @@ impl Workspace {
             MenuAction::Quit => self.quit_requested = true,
             MenuAction::Undo => self.undo(),
             MenuAction::Redo => self.redo(),
-            MenuAction::Delete => self.delete_selection(),
+            MenuAction::Delete => {
+                if !self.wand_clear() {
+                    self.delete_selection();
+                }
+            }
             MenuAction::Duplicate => self.duplicate_selection(),
             MenuAction::Copy => self.copy_selection(),
             MenuAction::Cut => self.cut_selection(),
             MenuAction::SelectAll => self.select_all(),
-            MenuAction::DeselectAll => self.clear_selection(),
+            MenuAction::DeselectAll => {
+                self.clear_selection();
+                self.wand_drop();
+            }
             MenuAction::Rewind => self.set_frame(0),
             MenuAction::GoToEnd => self.set_frame(self.scene_frames() - 1),
             MenuAction::StepForward => self.set_frame(self.frame.saturating_add(1)),
@@ -260,6 +272,7 @@ impl Workspace {
             MenuAction::ToolPen => self.set_tool(Tool::Pen),
             MenuAction::ToolText => self.set_tool(Tool::Text),
             MenuAction::ToolHand => self.set_tool(Tool::Hand),
+            MenuAction::ToolRotateView => self.set_tool(Tool::RotateView),
             MenuAction::ToolZoom => self.set_tool(Tool::Zoom),
             MenuAction::ToolEyedropper => self.set_tool(Tool::Eyedropper),
             MenuAction::ToolBucket => self.set_tool(Tool::Bucket),
@@ -351,6 +364,9 @@ impl Workspace {
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleOutlineMode => self.display.outline_mode = !self.display.outline_mode,
+            MenuAction::TogglePasteboard => {
+                self.display.show_pasteboard = !self.display.show_pasteboard;
+            }
             MenuAction::ToggleRulers => self.display.show_rulers = !self.display.show_rulers,
             MenuAction::ToggleGrid => self.display.show_grid = !self.display.show_grid,
             MenuAction::ToggleSnap => self.display.snap_to_grid = !self.display.snap_to_grid,
