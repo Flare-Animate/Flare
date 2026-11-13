@@ -3,6 +3,7 @@
 //! however far the layers are scrolled.
 
 use egui::{Align2, Color32, FontId, Painter, Pos2, Rect, Stroke, Vec2};
+use flare_editor::timeline_view;
 
 use super::timeline::{FOLDER_INDENT, Layout, ROW};
 use super::timeline_cells;
@@ -132,7 +133,9 @@ impl Workspace {
             Stroke::new(1.0, flare_ui::theme::border()),
         );
         self.onion_markers(painter, l, band);
-        let step = ((40.0 / l.per_frame).ceil() as u32).max(1);
+        // Frame 1, then every fifth (or further apart when the frames are narrow), as Animate
+        // numbers them; each fifth frame has a taller tick so it can be counted to.
+        let step = timeline_view::ruler_step(l.per_frame);
         let first = l.frame_at(l.label_edge).floor().max(0.0) as u32;
         for f in first..shown {
             let x = l.frame_x(f as f32);
@@ -142,11 +145,18 @@ impl Workspace {
             if x < l.label_edge {
                 continue;
             }
-            let major = f % step == 0;
+            let major = timeline_view::is_numbered(f, step);
+            let (tick, color) = if major {
+                (7.0, flare_ui::theme::text_dim())
+            } else if timeline_view::is_fifth(f) {
+                (5.0, flare_ui::theme::text_dim())
+            } else {
+                (3.0, flare_ui::theme::text_disabled())
+            };
             painter.vline(
                 x,
-                (band.bottom() - if major { 7.0 } else { 3.0 })..=band.bottom(),
-                Stroke::new(1.0, flare_ui::theme::text_disabled()),
+                (band.bottom() - tick)..=band.bottom(),
+                Stroke::new(1.0, color),
             );
             if major {
                 painter.text(

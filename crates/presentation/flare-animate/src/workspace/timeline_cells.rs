@@ -1,8 +1,10 @@
-//! The frame cells of the timeline: a line between frames, a dot where a keyframe starts and a box
-//! on the last frame a held keyframe covers, as Animate draws them, so frames can be told apart.
+//! The frame cells of the timeline: a line between frames, every fifth frame shaded, a dot where a
+//! keyframe starts and a box on the last frame a held keyframe covers, as Animate draws them, so
+//! frames can be told apart and counted.
 
 use egui::{Color32, Painter, Pos2, Rect, Stroke, StrokeKind, Vec2};
 use flare_document::{Content, FrameSpan};
+use flare_editor::timeline_view;
 
 /// Narrower than this, a frame has no room for lines between frames.
 const MIN_CELL: f32 = 5.0;
@@ -25,8 +27,9 @@ pub(super) fn visible_frames(
     (first as u32).min(frames)..(last as u32).min(frames)
 }
 
-/// The lines between the frames of one row of empty cells; every fifth is stronger so they can be
-/// counted.
+/// The cells of one row of empty frames: a line between frames, and every fifth frame (5, 10,
+/// 15, counting from one) shaded a tone apart so frames can be counted at a glance, as Animate
+/// shades them. The shade is the lit text color, faintly, so it shows on a dark theme and a light.
 pub(super) fn grid_lines(
     painter: &Painter,
     track_x: f32,
@@ -37,27 +40,38 @@ pub(super) fn grid_lines(
 ) {
     let clip = painter.clip_rect();
     let ink = flare_ui::theme::text_strong();
+    let (line, fifth_fill) = (
+        ink.gamma_multiply(16.0 / 255.0),
+        ink.gamma_multiply(14.0 / 255.0),
+    );
     for f in visible_frames(clip.min.x, clip.max.x, track_x, per_frame, frames) {
-        let fifth = f % 5 == 0;
-        if !fifth && per_frame < MIN_CELL {
-            continue;
-        }
         let x = track_x + f as f32 * per_frame;
-        let alpha = if fifth { 30.0 } else { 14.0 } / 255.0;
-        painter.vline(x, y..=y + row, Stroke::new(1.0, ink.gamma_multiply(alpha)));
+        if timeline_view::is_fifth(f) {
+            let cell = Rect::from_min_size(Pos2::new(x, y), Vec2::new(per_frame, row));
+            painter.rect_filled(cell, 0.0, fifth_fill);
+        }
+        if per_frame >= MIN_CELL {
+            painter.vline(x, y..=y + row, Stroke::new(1.0, line));
+        }
     }
 }
 
 /// The marks on a span's bar: a line between its frames, a dot on its first frame (hollow when the
 /// keyframe holds nothing) and a box on its last when it holds more than one.
 pub(super) fn span_marks(painter: &Painter, bar: Rect, span: &FrameSpan, per_frame: f32) {
-    let line = Color32::from_black_alpha(80);
+    let line = Color32::from_black_alpha(60);
     let frames = span.duration().get();
-    if per_frame >= MIN_CELL {
-        let clip = painter.clip_rect();
-        let shown = visible_frames(clip.min.x, clip.max.x, bar.min.x, per_frame, frames);
-        for f in shown.filter(|f| *f > 0) {
-            let x = bar.min.x + f as f32 * per_frame;
+    let clip = painter.clip_rect();
+    let shown = visible_frames(clip.min.x, clip.max.x, bar.min.x, per_frame, frames);
+    for f in shown {
+        let x = bar.min.x + f as f32 * per_frame;
+        // The fifth frames are a shade darker here too, so counting carries on across a span.
+        if timeline_view::is_fifth(span.start().saturating_add(f)) {
+            let cell =
+                Rect::from_min_max(Pos2::new(x, bar.min.y), Pos2::new(x + per_frame, bar.max.y));
+            painter.rect_filled(cell, 0.0, Color32::from_black_alpha(26));
+        }
+        if f > 0 && per_frame >= MIN_CELL {
             painter.vline(x, bar.y_range(), Stroke::new(1.0, line));
         }
     }
