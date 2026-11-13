@@ -8,7 +8,7 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
 /// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 46] = [
+pub const IMPORT_EXTENSIONS: [&str; 52] = [
     "fla",
     "xfl",
     "svg",
@@ -38,8 +38,14 @@ pub const IMPORT_EXTENSIONS: [&str; 46] = [
     "mpeg",
     "mpg",
     "flv",
+    "f4v",
+    "f4p",
     "gif",
     "swf",
+    "spl",
+    "swt",
+    "swc",
+    "flp",
     "bvh",
     "fc",
     "ppm",
@@ -102,7 +108,7 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
 
 /// Formats people meet beside Flash and Toonz files, which Flare does not import, with the reason
 /// the refusal names. Anything else gets the generic message.
-const UNSUPPORTED: [(&str, &str); 7] = [
+const UNSUPPORTED: [(&str, &str); 15] = [
     (
         "as",
         "an ActionScript source file (.as) holds code, not an animation; open the .fla or .swf it belongs to",
@@ -116,6 +122,26 @@ const UNSUPPORTED: [(&str, &str); 7] = [
         "an ActionScript 3 source file (.as3) holds code, not an animation; open the .fla or .swf it belongs to",
     ),
     (
+        "abc",
+        "an ActionScript bytecode file (.abc) is code for the Flash virtual machines, which Flare keeps as data and does not run; open the .swf it was compiled from",
+    ),
+    (
+        "asc",
+        "a Server-Side ActionScript file (.asc) runs on Flash Media Server, not in a movie or an animation",
+    ),
+    (
+        "aso",
+        "an .aso file is the Flash IDE's cache of compiled ActionScript, rebuilt from the .as sources it was made from",
+    ),
+    (
+        "swd",
+        "a .swd file is a Flash debugging file made beside a .swf; open the .swf",
+    ),
+    (
+        "amf",
+        "AMF (.amf) carries ActionScript messages between Flash Player and a server, not an animation",
+    ),
+    (
         "jsfl",
         "a JSFL script (.jsfl) runs inside Animate and is not an animation",
     ),
@@ -124,8 +150,20 @@ const UNSUPPORTED: [(&str, &str); 7] = [
         "a Flash shared object (.sol) holds saved data, not an animation",
     ),
     (
-        "swc",
-        "a component library (.swc) has no timeline of its own; the .swf that uses it is what opens",
+        "f4a",
+        "an .f4a file is audio-only Flash media with no frames to import as a movie; a sound comes in through sound import (WAV, MP3, Ogg, FLAC)",
+    ),
+    (
+        "f4b",
+        "an .f4b file is audio-only Flash media with no frames to import as a movie; a sound comes in through sound import (WAV, MP3, Ogg, FLAC)",
+    ),
+    (
+        "f4f",
+        "an .f4f file is one fragment of an Adobe HTTP Dynamic Stream, not a whole movie",
+    ),
+    (
+        "f4m",
+        "an .f4m file is a Flash HTTP Dynamic Stream manifest, not a movie",
     ),
     (
         "tnx",
@@ -150,7 +188,8 @@ mod tests {
     #[test]
     fn each_unsupported_kind_names_its_reason_and_others_do_not() {
         for name in [
-            "a.as", "a.AS2", "a.as3", "a.jsfl", "a.sol", "a.swc", "a.tnx",
+            "a.as", "a.AS2", "a.as3", "a.abc", "a.asc", "a.aso", "a.swd", "a.amf", "a.jsfl",
+            "a.sol", "a.f4a", "a.f4b", "a.f4f", "a.f4m", "a.tnx",
         ] {
             let reason = unsupported_reason(Path::new(name));
             assert!(reason.is_some_and(|r| !r.is_empty()), "{name}");
@@ -170,10 +209,18 @@ mod tests {
         assert_eq!(kind("a.XFL", false), Some(PathKind::Import));
         assert_eq!(kind("wrapper.zip", false), Some(PathKind::Import));
         // Formats no importer reads are not claimed, so the system never offers them to Flare.
-        for name in ["a.fcp", "a.tzu", "a.mh", "a.mohobackup"] {
+        for name in ["a.fcp", "a.tzu", "a.mh", "a.mohobackup", "a.ani"] {
             assert_eq!(kind(name, false), None, "{name}");
         }
         for name in [
+            "a.fla",
+            "a.swf",
+            "a.SPL",
+            "a.swt",
+            "a.swc",
+            "a.flp",
+            "a.f4v",
+            "a.F4P",
             "a.bvh",
             "a.fc",
             "a.ppm",

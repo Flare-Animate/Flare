@@ -31,6 +31,9 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "dds" => Some("dds"),
         "psd" => Some("psd"),
         "mp4" | "mov" | "avi" | "mkv" | "webm" | "mpeg" | "mpg" | "flv" => Some("video"),
+        // Adobe's own MP4 profiles: video (F4V) and protected-video media (F4P). The audio-only
+        // F4A and F4B, the fragment F4F and the manifest F4M are refused in `file_kinds`.
+        "f4v" | "f4p" => Some("video"),
         "gif" => Some("gif"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
         "ppm" | "kwz" | "kwc" => Some("flipnote"),
@@ -156,5 +159,22 @@ fn from_moho(out: flare_moho::Converted) -> Imported {
                 message: n.message,
             })
             .collect(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn adobes_video_mp4_profiles_are_movies_and_the_others_are_not() {
+        let kind = |name: &str| foreign_kind(Path::new(name));
+        assert_eq!(kind("a.f4v"), Some("video"));
+        assert_eq!(kind("a.F4P"), Some("video"));
+        // Audio-only, fragment and manifest files are named refusals, not movies.
+        assert_eq!(kind("a.f4a"), None);
+        assert_eq!(kind("a.f4b"), None);
+        assert_eq!(kind("a.f4f"), None);
+        assert_eq!(kind("a.f4m"), None);
     }
 }
