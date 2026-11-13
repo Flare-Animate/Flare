@@ -287,8 +287,8 @@ impl BlendStroke {
             along += self.next;
         }
         self.since = match last_dab {
-            Some(at) => length - at,
-            None => self.since + (length - enter * length),
+            Some(at) => end - at,
+            None => self.since + (end - enter * length),
         };
     }
 
