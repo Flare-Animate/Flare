@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut out = String::new();
     writeln!(
         out,
-        "/// Every message key English has, sorted by bytes.\npub const KEYS: [&str; {}] = {keys:?};\n",
+        "/// Every message key English has, sorted by bytes. A `const`, large as it is, because the\n/// `const fn` [`has_key`] reads it to check every `tr!` key while the program is built.\n#[allow(clippy::large_const_arrays)]\npub const KEYS: [&str; {}] = {keys:?};\n",
         keys.len()
     )?;
     writeln!(
