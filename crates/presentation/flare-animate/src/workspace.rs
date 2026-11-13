@@ -79,6 +79,7 @@ mod tests;
 mod timeline;
 mod timeline_cells;
 mod timeline_labels;
+mod timeline_names_edge;
 mod timeline_rows;
 mod timeline_sound;
 mod tool_kind;

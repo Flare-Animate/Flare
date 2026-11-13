@@ -16,6 +16,7 @@ impl Workspace {
             snap_to_grid: self.display.snap_to_grid,
             grid_size: self.display.grid_size,
             loop_playback: self.loop_playback,
+            timeline_names_width: self.display.timeline_names,
             onion_before: self.onion.before,
             onion_after: self.onion.after,
             onion_outlines: self.onion.outlines,
@@ -105,6 +106,8 @@ impl Workspace {
         self.display.grid_size =
             finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
         self.loop_playback = preferences.loop_playback;
+        self.display.timeline_names =
+            super::super::timeline_names_edge::names_width(preferences.timeline_names_width);
         self.set_onion_range(preferences.onion_before, preferences.onion_after);
         self.set_onion_outlines(preferences.onion_outlines);
         self.set_onion_tinted(preferences.onion_tinted);

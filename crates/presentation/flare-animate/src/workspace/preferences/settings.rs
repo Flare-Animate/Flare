@@ -21,6 +21,8 @@ pub struct Preferences {
     /// Grid spacing in stage units.
     pub grid_size: f32,
     pub loop_playback: bool,
+    /// How wide the timeline's column of layer names is, in points.
+    pub timeline_names_width: f32,
     /// Onion skin: how many frames before and after it shows, as outlines or pictures, and
     /// whether they are tinted, in which colors (red, green, blue). Whether it is on is not kept:
     /// a session starts with it off, as Animate's does.
@@ -87,6 +89,7 @@ impl Default for Preferences {
             snap_to_grid: false,
             grid_size: 20.0,
             loop_playback: true,
+            timeline_names_width: crate::workspace::timeline::LABEL_W,
             onion_before: 1,
             onion_after: 1,
             onion_outlines: false,

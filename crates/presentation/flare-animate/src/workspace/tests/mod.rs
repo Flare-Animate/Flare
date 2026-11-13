@@ -87,6 +87,7 @@ mod timeline_animating;
 mod timeline_clicks;
 mod timeline_frame_buttons;
 mod timeline_frames;
+mod timeline_names_column;
 mod timeline_scrub;
 mod tool_pins;
 mod tool_slots;

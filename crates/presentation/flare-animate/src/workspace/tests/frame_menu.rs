@@ -114,8 +114,9 @@ fn a_right_click_on_a_frame_opens_the_menu_for_frames_and_choosing_an_item_acts_
         name = find(&mut ws, &ctx, time, vec![], "Layer 1").or(name);
     }
     let name = name.expect("the name of the layer the rectangle is on is drawn");
-    // Well to the right of the name: over the frames, a few frames in.
-    let at = egui::pos2(name.x + 190.0, name.y);
+    // On the name's row, over the frames, a few frames in.
+    let l = ws.timeline_layout.expect("drawn");
+    let at = egui::pos2(l.frame_x(4.5), name.y);
     for events in [
         vec![Event::PointerMoved(at)],
         vec![press(at, PointerButton::Secondary, true)],

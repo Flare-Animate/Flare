@@ -29,7 +29,8 @@ fn zoom_widens_and_narrows_the_frames_and_fit_fills_the_panel_with_the_scene() {
     assert!(!ws.timeline_fit, "it is done once");
     assert!(ws.timeline_zoom > normal / timeline_view::BASE_FRAME_WIDTH);
     let layout = ws.timeline_layout.expect("drawn");
-    let cells = (layout.rect.width() - timeline::LABEL_W) / layout.per_frame;
+    // A whole number of cells, measured in floating point.
+    let cells = ((layout.rect.width() - ws.display.timeline_names) / layout.per_frame).round();
     let frames = ws.scene_frames() as f32;
     assert!(
         ws.timeline_zoom == timeline_view::MAX_ZOOM || cells <= frames + 2.0,

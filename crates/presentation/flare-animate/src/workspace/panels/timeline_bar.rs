@@ -11,14 +11,17 @@ use super::*;
 /// Height of the row of controls above the timeline.
 const TOOLBAR_ROW: f32 = 24.0;
 
+/// The space at the toolbar's left, the same on every side.
+const TOOLBAR_MARGIN: f32 = 8.0;
+
 impl Workspace {
     // ---- timeline toolbar --------------------------------------------------------------
 
-    /// Transport, onion skin, zoom and layer buttons above the timeline.
+    /// Layer buttons, transport, frame buttons, onion skin and zoom above the timeline.
     pub(crate) fn timeline_toolbar(&mut self, ui: &mut Ui) {
         // The same space on every side, and one row height with everything centred in it, so the
         // buttons, number fields and text box do not sit at different heights.
-        let margin = egui::Margin::symmetric(8, 6);
+        let margin = egui::Margin::symmetric(TOOLBAR_MARGIN as i8, 6);
         egui::Frame::new().inner_margin(margin).show(ui, |ui| {
             let size = egui::vec2(ui.available_width(), TOOLBAR_ROW);
             ui.allocate_ui_with_layout(
@@ -30,6 +33,16 @@ impl Workspace {
     }
 
     fn timeline_toolbar_row(&mut self, ui: &mut Ui) {
+        // The layer buttons sit over the column of layer names, as in Animate, and the rest
+        // starts over the frames; a column narrower than the buttons pushes the rest along.
+        let row_left = ui.cursor().min.x;
+        self.timeline_layer_buttons(ui);
+        let frames_left = row_left - TOOLBAR_MARGIN + self.display.timeline_names;
+        let gap = frames_left - ui.cursor().min.x - ui.spacing().item_spacing.x;
+        if gap > 0.0 {
+            ui.add_space(gap);
+        }
+        ui.separator();
         let last = self.scene_frames() - 1;
         if chrome::icon_button(
             ui,
@@ -164,6 +177,39 @@ impl Workspace {
         });
         self.onion_settings_button(ui, BAR_ICON);
         ui.separator();
+        for (icon, hint, factor) in [
+            (
+                "zoom-out",
+                &tr!(self, "timeline-zoom-out"),
+                1.0 / flare_editor::timeline_view::STEP,
+            ),
+            (
+                "zoom-in",
+                &tr!(self, "timeline-zoom-in"),
+                flare_editor::timeline_view::STEP,
+            ),
+        ] {
+            if chrome::icon_button(ui, icon, BAR_ICON, false, true, hint).clicked() {
+                self.zoom_timeline(factor);
+            }
+        }
+        if chrome::icon_button(
+            ui,
+            "zoom-fit",
+            BAR_ICON,
+            false,
+            true,
+            &tr!(self, "timeline-fit"),
+        )
+        .clicked()
+        {
+            self.timeline_fit = true;
+        }
+    }
+
+    /// New layer, new folder, the Folder menu, motion guide, mask and delete: what is done to
+    /// layers, at the left of the toolbar over their names.
+    fn timeline_layer_buttons(&mut self, ui: &mut Ui) {
         if chrome::icon_button(
             ui,
             "layer-new",
@@ -242,35 +288,6 @@ impl Workspace {
         .clicked()
         {
             self.perform(MenuAction::DeleteLayer);
-        }
-        ui.separator();
-        for (icon, hint, factor) in [
-            (
-                "zoom-out",
-                &tr!(self, "timeline-zoom-out"),
-                1.0 / flare_editor::timeline_view::STEP,
-            ),
-            (
-                "zoom-in",
-                &tr!(self, "timeline-zoom-in"),
-                flare_editor::timeline_view::STEP,
-            ),
-        ] {
-            if chrome::icon_button(ui, icon, BAR_ICON, false, true, hint).clicked() {
-                self.zoom_timeline(factor);
-            }
-        }
-        if chrome::icon_button(
-            ui,
-            "zoom-fit",
-            BAR_ICON,
-            false,
-            true,
-            &tr!(self, "timeline-fit"),
-        )
-        .clicked()
-        {
-            self.timeline_fit = true;
         }
     }
 

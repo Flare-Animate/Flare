@@ -13,8 +13,9 @@ use super::*;
 pub(super) const FOLDER_INDENT: f32 = 12.0;
 /// The height of a layer's row, and of the ruler.
 pub(super) const ROW: f32 = 20.0;
-/// The width of the column of layer names and toggles.
-pub(super) const LABEL_W: f32 = 140.0;
+/// The width of the column of layer names and toggles as it starts: wide enough for the layer
+/// buttons above it. Dragging its edge makes it narrower or wider (`timeline_names_edge.rs`).
+pub(super) const LABEL_W: f32 = 230.0;
 
 /// Where the parts of the timeline are, in the coordinates of the scrolled content. The name
 /// column and the ruler stay in view while the frames scroll under them, as Animate's do, so a
@@ -36,14 +37,15 @@ pub(super) struct Layout {
 }
 
 impl Layout {
-    /// The layout of `rect` scrolled so that `view` is what shows of it.
-    pub(super) fn new(rect: Rect, view: Rect, per_frame: f32) -> Self {
+    /// The layout of `rect` scrolled so that `view` is what shows of it, with a name column
+    /// `label_w` points wide.
+    pub(super) fn new(rect: Rect, view: Rect, per_frame: f32, label_w: f32) -> Self {
         let labels_left = rect.min.x + (view.min.x - rect.min.x).max(0.0);
         Self {
             rect,
-            track_left: rect.min.x + LABEL_W,
+            track_left: rect.min.x + label_w,
             labels_left,
-            label_edge: labels_left + LABEL_W,
+            label_edge: labels_left + label_w,
             ruler_top: rect.min.y + (view.min.y - rect.min.y).max(0.0),
             per_frame,
         }
@@ -164,19 +166,21 @@ impl Workspace {
                 })
                 .unwrap_or_default();
             let height = ROW * (rows.len() as f32 + 1.0);
-            let track_width = (available - LABEL_W).max(0.0);
+            let label_w = self.display.timeline_names;
+            let track_width = (available - label_w).max(0.0);
             if std::mem::take(&mut self.timeline_fit) {
                 self.timeline_zoom = timeline_view::fit_zoom(track_width, u64::from(frames));
             }
             let per_frame = timeline_view::frame_width(self.timeline_zoom);
             let shown = self.timeline_shown(track_width, per_frame);
             let (rect, response) = ui.allocate_exact_size(
-                Vec2::new(LABEL_W + per_frame * shown as f32, height),
+                Vec2::new(label_w + per_frame * shown as f32, height),
                 Sense::click_and_drag(),
             );
             let painter = ui.painter_at(rect);
-            let layout = Layout::new(rect, painter.clip_rect(), per_frame);
+            let layout = Layout::new(rect, painter.clip_rect(), per_frame, label_w);
             self.timeline_layout = Some(layout);
+            self.names_edge(ui, &layout);
             self.timeline_input(ui, &response, &layout, &rows, shown);
             // The frames first; the names and the ruler go over what has scrolled under them.
             self.timeline_rows(&painter, &layout, &rows, shown);

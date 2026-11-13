@@ -133,6 +133,8 @@ pub(super) struct Display {
     pub(super) show_pasteboard: bool,
     /// What the Ruler tool last measured: from one stage point to another.
     pub(super) measure: Option<(Pos2, Pos2)>,
+    /// How wide the timeline's column of layer names is, in points.
+    pub(super) timeline_names: f32,
 }
 
 impl Default for Display {
@@ -148,6 +150,7 @@ impl Default for Display {
             outline_mode: false,
             show_pasteboard: true,
             measure: None,
+            timeline_names: super::timeline::LABEL_W,
         }
     }
 }
