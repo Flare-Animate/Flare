@@ -7,7 +7,6 @@ dlg-filter-svg = SVG 画像
 dlg-publish = パブリッシュ
 dlg-cannot-export = 書き出せません
 dlg-export-failed = 書き出しに失敗しました
-dlg-cannot-open-browser = ブラウザーを開けません
 dlg-choose-format = 先にパブリッシュ設定で形式を選択してください。
 dlg-cannot-publish = パブリッシュできません
 dlg-cannot-start-movie = 「ムービープレビュー」を開始できません

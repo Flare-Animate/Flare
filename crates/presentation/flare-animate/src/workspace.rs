@@ -99,8 +99,7 @@ pub use flare_tools::brush::BrushPreset;
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use publish_settings::PublishSettings;
 pub use types::{
-    DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, ShareTarget, Tool, WindowRequest,
-    onion_ghosts,
+    DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest, onion_ghosts,
 };
 
 pub struct Workspace {

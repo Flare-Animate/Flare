@@ -7,7 +7,6 @@ dlg-filter-svg = Immagine SVG
 dlg-publish = Pubblica
 dlg-cannot-export = Impossibile esportare
 dlg-export-failed = Esportazione non riuscita
-dlg-cannot-open-browser = Impossibile aprire il browser
 dlg-choose-format = Scegli prima un formato nelle impostazioni di pubblicazione.
 dlg-cannot-publish = Impossibile pubblicare
 dlg-cannot-start-movie = Impossibile avviare il filmato di prova

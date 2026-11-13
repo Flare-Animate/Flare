@@ -7,7 +7,6 @@ dlg-filter-svg = SVG-Bild
 dlg-publish = Veröffentlichen
 dlg-cannot-export = Export nicht möglich
 dlg-export-failed = Export fehlgeschlagen
-dlg-cannot-open-browser = Der Browser kann nicht geöffnet werden
 dlg-choose-format = Wählen Sie zuerst in den Veröffentlichungseinstellungen ein Format aus.
 dlg-cannot-publish = Veröffentlichen nicht möglich
 dlg-cannot-start-movie = „Film testen“ kann nicht gestartet werden

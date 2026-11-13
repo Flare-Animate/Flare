@@ -145,14 +145,6 @@ impl WebApp {
                     flare_runtime::svg_export(&document, frame).map(|svg| svg.text.into_bytes());
                 self.deliver("frame.svg", "image/svg+xml", bytes);
             }
-            DialogRequest::Share(target) => {
-                let opened = web_sys::window()
-                    .and_then(|w| w.open_with_url_and_target(target.url(), "_blank").ok());
-                if opened.is_none() {
-                    self.workspace
-                        .report_message("The browser blocked the new tab");
-                }
-            }
             DialogRequest::Publish => {
                 let (document, _) = self.workspace.image_export();
                 let name = self.publish_name();

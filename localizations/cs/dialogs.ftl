@@ -7,7 +7,6 @@ dlg-filter-svg = Obrázek SVG
 dlg-publish = Publikovat
 dlg-cannot-export = Export nelze provést
 dlg-export-failed = Export selhal
-dlg-cannot-open-browser = Prohlížeč nelze otevřít
 dlg-choose-format = Nejprve vyberte formát v nastavení publikování.
 dlg-cannot-publish = Publikování nelze provést
 dlg-cannot-start-movie = Testovací film nelze spustit

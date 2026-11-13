@@ -7,7 +7,6 @@ dlg-filter-svg = SVG 이미지
 dlg-publish = 게시
 dlg-cannot-export = 내보낼 수 없습니다
 dlg-export-failed = 내보내기에 실패했습니다
-dlg-cannot-open-browser = 브라우저를 열 수 없습니다
 dlg-choose-format = 먼저 게시 설정에서 형식을 선택하세요.
 dlg-cannot-publish = 게시할 수 없습니다
 dlg-cannot-start-movie = 동영상 테스트를 시작할 수 없습니다

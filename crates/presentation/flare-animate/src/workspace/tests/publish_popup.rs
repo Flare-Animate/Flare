@@ -1,4 +1,4 @@
-//! The Publish popup: formats, the Publish button and the places to share.
+//! The Publish popup: the formats and the Publish button.
 
 use super::*;
 use egui::PointerButton;
@@ -48,26 +48,23 @@ fn click_text(ws: &mut Workspace, ctx: &egui::Context, time: &mut f64, wanted: &
 }
 
 #[test]
-fn the_popup_offers_every_format_and_the_three_places_to_share() {
+fn the_popup_offers_every_format_and_no_places_to_share_until_sharing_uploads() {
     let (ctx, mut ws, mut time) = opened();
     for wanted in [
         "Flash (.swf)",
         "HTML5 Canvas (.html)",
         "Animated GIF (.gif)",
         "MP4 video (.mp4)",
-        "Twitter",
-        "YouTube",
-        "Newgrounds",
-        "Facebook",
     ] {
         time += 0.1;
         assert!(find(&mut ws, &ctx, time, wanted).is_some(), "{wanted}");
     }
-    time += 0.1;
-    assert!(
-        find(&mut ws, &ctx, time, "X").is_none(),
-        "it is called Twitter in the interface"
-    );
+    // A row of buttons that only opened a site, with the file still to be added by hand, was
+    // taken out; sharing comes back when it can upload (see the roadmap).
+    for gone in ["Share", "Twitter", "YouTube", "Newgrounds", "Facebook"] {
+        time += 0.1;
+        assert!(find(&mut ws, &ctx, time, gone).is_none(), "{gone}");
+    }
 }
 
 #[test]
@@ -96,46 +93,11 @@ fn with_no_format_chosen_publish_does_nothing() {
 }
 
 #[test]
-fn only_twitter_which_fills_in_the_post_is_live_the_other_places_are_dimmed() {
-    for target in ShareTarget::ALL {
-        let (ctx, mut ws, mut time) = opened();
-        click_text(&mut ws, &ctx, &mut time, target.label());
-        if target.prefills() {
-            assert_eq!(ws.take_dialog(), Some(DialogRequest::Share(target)));
-        } else {
-            assert_eq!(
-                ws.take_dialog(),
-                None,
-                "{} is not built yet",
-                target.label()
-            );
-        }
-        assert!(ws.windows.publish, "the popup stays");
-    }
-    let live: Vec<_> = ShareTarget::ALL.iter().filter(|t| t.prefills()).collect();
-    assert_eq!(live, [&ShareTarget::Twitter]);
-}
-
-#[test]
 fn close_shuts_the_popup_without_asking_for_anything() {
     let (ctx, mut ws, mut time) = opened();
     click_text(&mut ws, &ctx, &mut time, "Close");
     assert!(!ws.windows.publish);
     assert_eq!(ws.take_dialog(), None);
-}
-
-#[test]
-fn the_share_pages_are_fixed_https_addresses_and_twitter_goes_to_x() {
-    for target in ShareTarget::ALL {
-        assert!(target.url().starts_with("https://"), "{}", target.label());
-        assert!(!target.url().contains(' '));
-    }
-    assert!(ShareTarget::Twitter.url().starts_with("https://x.com/"));
-    assert!(ShareTarget::YouTube.url().contains("youtube.com"));
-    assert!(ShareTarget::Newgrounds.url().contains("newgrounds.com"));
-    let labels: Vec<_> = ShareTarget::ALL.iter().map(|t| t.label()).collect();
-    assert_eq!(labels, ["Twitter", "YouTube", "Newgrounds", "Facebook"]);
-    assert!(ShareTarget::Facebook.url().contains("facebook.com"));
 }
 
 #[test]

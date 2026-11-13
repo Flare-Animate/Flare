@@ -83,59 +83,9 @@ pub fn onion_ghosts(frame: u32, frames: u32, before: u32, after: u32) -> Vec<(u3
     out.into_iter().map(|(f, o, _)| (f, o)).collect()
 }
 
-/// Where the Publish popup sends a person to share what they made. Each opens the site's own page
-/// for adding it: Flare holds no account on any of them and sends nothing itself.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ShareTarget {
-    Twitter,
-    YouTube,
-    Newgrounds,
-    Facebook,
-}
-
-impl ShareTarget {
-    pub const ALL: [Self; 4] = [
-        Self::Twitter,
-        Self::YouTube,
-        Self::Newgrounds,
-        Self::Facebook,
-    ];
-
-    /// The name artists know it by (Twitter's page is on x.com now, but nobody here calls it that).
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Twitter => "Twitter",
-            Self::YouTube => "YouTube",
-            Self::Newgrounds => "Newgrounds",
-            Self::Facebook => "Facebook",
-        }
-    }
-
-    /// Whether the page opens with something already filled in. Twitter's takes the text of the
-    /// post; the others have no address that carries anything, so a button for them would only
-    /// open a site, and they are shown as not built yet.
-    pub fn prefills(self) -> bool {
-        matches!(self, Self::Twitter)
-    }
-
-    /// The page the browser is opened at. Always one of these fixed addresses.
-    pub fn url(self) -> &'static str {
-        match self {
-            Self::Twitter => "https://x.com/intent/post?text=Made%20with%20Flare",
-            Self::YouTube => "https://www.youtube.com/upload",
-            Self::Newgrounds => "https://www.newgrounds.com/projects/movies/new",
-            // Facebook's own share page needs an address to share; there is none for a file on
-            // this computer, so it opens Facebook, where the post is made.
-            Self::Facebook => "https://www.facebook.com/",
-        }
-    }
-}
-
 /// A file dialog the shell should show on the workspace's behalf.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DialogRequest {
-    /// Open this site's page in the browser.
-    Share(ShareTarget),
     Open,
     SaveAs,
     ImportSound,

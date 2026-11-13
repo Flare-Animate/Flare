@@ -112,11 +112,6 @@ impl App {
                     }
                 }
             }
-            DialogRequest::Share(target) => {
-                if let Err(error) = flare_platform::browser::open_url(target.url()) {
-                    self.say_error("dlg-cannot-open-browser", &error.to_string());
-                }
-            }
             DialogRequest::Publish => {
                 let settings = self.workspace.publish_settings();
                 if !settings.any() {

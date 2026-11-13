@@ -7,7 +7,6 @@ dlg-filter-svg = SVG 图像
 dlg-publish = 发布
 dlg-cannot-export = 无法导出
 dlg-export-failed = 导出失败
-dlg-cannot-open-browser = 无法打开浏览器
 dlg-choose-format = 请先在发布设置中选择一种格式。
 dlg-cannot-publish = 无法发布
 dlg-cannot-start-movie = 无法启动“测试影片”
