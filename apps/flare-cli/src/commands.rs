@@ -86,10 +86,14 @@ pub(crate) enum Command {
     },
     /// Summarize a project.
     Info { path: PathBuf },
-    /// Add a Graphic symbol to the library, optionally holding one filled rectangle.
+    /// Add a symbol to the library, optionally holding one filled rectangle. A name the library
+    /// already has is refused.
     AddSymbol {
         path: PathBuf,
         name: String,
+        /// graphic, movie clip or button.
+        #[arg(long, value_parser = crate::symbol::kind_arg, default_value = "graphic")]
+        kind: flare_document::SymbolKind,
         /// Rectangle as X Y WIDTH HEIGHT in document units.
         #[arg(long, num_args = 4, value_names = ["X", "Y", "W", "H"], allow_negative_numbers = true)]
         rect: Option<Vec<f64>>,

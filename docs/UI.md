@@ -372,6 +372,17 @@ question a close of unsaved work asks says what is lost ("Your changes will be l
 save them."), with Don't Save at the left and Cancel and Save at the right; Return saves, Escape
 cancels.
 
+**Insert > New Symbol** (Ctrl+F8), the Library's New Symbol button, **Modify > Convert to Symbol**
+(F8) and the stage menu's Convert to Symbol ask first, in Animate's Create New Symbol / Convert to
+Symbol dialog: Name (the first free "Symbol n", selected so typing replaces it), Type as three
+cards with their icons (Movie Clip, Button, Graphic, in Animate's order), Folder (Library root,
+dimmed until the library has folders) and, when converting, Registration, Animate's grid of nine
+points: the symbol's own origin goes on that point of the artwork's box and the instance stands
+there, so nothing moves on the stage. A name that is blank, too long or already in the library is
+explained under the field and dims OK. OK or Return makes the symbol as one undo step; a new symbol
+then opens for drawing in it, as in Animate, and a converted one stays selected on the stage. The
+next dialog starts on the type and registration chosen last; a dialog given up keeps nothing.
+
 ## New Document
 
 File > New (Cmd/Ctrl+N) and Home's New File open the New Document dialog, laid out as Animate's: the

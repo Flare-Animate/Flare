@@ -65,6 +65,7 @@ mod splash;
 mod stage;
 mod stage_furniture;
 mod stage_menu;
+mod symbol_dialog;
 mod symbols;
 mod tabs;
 mod tools;

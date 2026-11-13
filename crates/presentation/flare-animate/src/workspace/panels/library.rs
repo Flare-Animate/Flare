@@ -249,7 +249,7 @@ impl Workspace {
             )
             .clicked()
             {
-                self.new_symbol();
+                self.open_new_symbol_dialog();
             }
             chrome::mock_icon_button(ui, "folder", BAR_ICON, &new_folder);
             let selected = self.library.selected.filter(|_| editable);

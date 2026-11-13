@@ -62,7 +62,10 @@ pub struct AddLayer {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddSymbol {
+    /// A name the library already has is refused.
     pub name: String,
+    /// "graphic" (the default), "movie clip" or "button".
+    pub kind: Option<String>,
     /// Give the symbol one rectangle: its left edge.
     pub x: Option<f64>,
     pub y: Option<f64>,

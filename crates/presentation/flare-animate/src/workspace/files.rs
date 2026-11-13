@@ -31,6 +31,7 @@ impl Workspace {
         self.paint.symmetry = from.paint.symmetry;
         self.paint.straight_edge = from.paint.straight_edge;
         self.library.new_kind = from.library.new_kind;
+        self.library.registration = from.library.registration;
         self.native_menu = from.native_menu;
         self.titlebar_inset = from.titlebar_inset;
         // The window's pen source writes to the feed it was given when the window opened, so

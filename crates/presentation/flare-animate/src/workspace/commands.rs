@@ -251,7 +251,7 @@ impl Workspace {
             MenuAction::ScaleDown => {
                 self.transform_selection(DAffine2::from_scale(DVec2::splat(1.0 / SCALE_STEP)))
             }
-            MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
+            MenuAction::ConvertToSymbol => self.open_convert_symbol_dialog(),
             MenuAction::BringToFront => self.stack_selection(Stack::Front),
             MenuAction::BringForward => self.stack_selection(Stack::Forward),
             MenuAction::SendBackward => self.stack_selection(Stack::Backward),
@@ -349,7 +349,7 @@ impl Workspace {
             MenuAction::WorkspaceDesigner => self.switch_preset(Preset::Designer),
             MenuAction::WorkspaceClassic => self.switch_preset(Preset::Classic),
             MenuAction::WorkspaceSmallScreen => self.switch_preset(Preset::SmallScreen),
-            MenuAction::NewSymbol => self.new_symbol(),
+            MenuAction::NewSymbol => self.open_new_symbol_dialog(),
             MenuAction::TextBold => self.text.bold = !self.text.bold,
             MenuAction::TextItalic => self.text.italic = !self.text.italic,
             MenuAction::TextLarger => {

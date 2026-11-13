@@ -1,5 +1,5 @@
-//! Symbol kind and playback, and skeleton rigs: the same behaviour as `flare symbol` and
-//! `flare rig`, from `flare_commands` and `flare_rig`. A rig is passed in and returned as JSON
+//! Converting artwork to a symbol, symbol kind and playback, and skeleton rigs: the same behaviour
+//! as `flare symbol` and `flare rig`, from `flare_tools`, `flare_commands` and `flare_rig`. A rig is passed in and returned as JSON
 //! because the project does not hold rigs yet (docs/SURFACES.md).
 
 use flare_commands::Command;
@@ -11,6 +11,9 @@ use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::{Value, json};
 
+use flare_tools::library::{self, Registration};
+use flare_tools::ops::SpanRef;
+
 use crate::ops::{apply, first_scene, parse_id, target_layer};
 use crate::server::{FlareServer, Outcome};
 
@@ -19,6 +22,24 @@ pub struct SetSymbolKind {
     pub symbol: String,
     /// "graphic", "movie clip" or "button".
     pub kind: String,
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ConvertToSymbol {
+    /// Frame the shape's keyframe starts at.
+    pub at: u32,
+    pub layer: Option<String>,
+    /// Which of the keyframe's elements, counted from 0 at the bottom.
+    #[serde(default)]
+    pub element: usize,
+    /// The symbol's name; the first free "Symbol N" when left out. A taken name is refused.
+    pub name: Option<String>,
+    /// "graphic" (the default), "movie clip" or "button".
+    pub kind: Option<String>,
+    /// Where on the shape's box the symbol's origin goes: "top-left" (the default), "top",
+    /// "top-right", "left", "center", "right", "bottom-left", "bottom" or "bottom-right".
+    pub registration: Option<String>,
     pub expected_revision: Option<u64>,
 }
 
@@ -92,6 +113,44 @@ fn rig_out(rig: &Rig) -> Outcome {
 
 #[tool_router(router = symbol_tools, vis = "pub(super)")]
 impl FlareServer {
+    #[tool(
+        description = "Convert to Symbol: the shape in the keyframe starting at `at` becomes a symbol of the given name and kind, and an instance of it takes its place without moving; the symbol's origin is put at `registration` on the shape's box (needs write access)."
+    )]
+    fn convert_to_symbol(&self, Parameters(a): Parameters<ConvertToSymbol>) -> Outcome {
+        self.write(a.expected_revision, |state| {
+            let kind = match a.kind.as_deref() {
+                Some(name) => kind(name)?,
+                None => SymbolKind::Graphic,
+            };
+            let registration = match a.registration.as_deref() {
+                Some(text) => Registration::parse(text)
+                    .ok_or_else(|| format!("unknown registration {text:?}"))?,
+                None => Registration::default(),
+            };
+            let scene = first_scene(state)?;
+            let layer = target_layer(state, a.layer.as_deref())?;
+            let document = state.session.document();
+            let name = a
+                .name
+                .clone()
+                .unwrap_or_else(|| library::free_symbol_name(document, |n| format!("Symbol {n}")));
+            let at = SpanRef {
+                layer,
+                start: a.at,
+                element: a.element,
+            };
+            let (commands, id) =
+                library::convert_to_symbol(document, scene, at, &name, kind, registration)
+                    .map_err(|e| e.to_string())?;
+            let mut out = apply(state, commands)?;
+            out["symbol"] = json!(id.as_uuid());
+            out["name"] = json!(name.trim());
+            out["kind"] = json!(kind.name());
+            out["registration"] = json!(registration.name());
+            Ok(out)
+        })
+    }
+
     #[tool(description = "Make a symbol a Graphic, a Movie Clip or a Button (needs write access).")]
     fn set_symbol_kind(&self, Parameters(a): Parameters<SetSymbolKind>) -> Outcome {
         self.write(a.expected_revision, |state| {

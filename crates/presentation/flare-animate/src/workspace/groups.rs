@@ -172,6 +172,8 @@ pub(super) struct OpenWindows {
     pub(super) home: bool,
     /// The Increment Instances popup: the symbol to act on, and the two numbers.
     pub(super) increment_instances: Option<IncrementInstances>,
+    /// The Create New Symbol or Convert to Symbol dialog.
+    pub(super) symbol: Option<super::symbol_dialog::SymbolDialog>,
     /// The start-up splash: the egui time it appeared (`None` until its first frame) while shown.
     pub(super) splash: Option<Option<f64>>,
 }

@@ -4,7 +4,7 @@ use std::num::NonZeroU32;
 
 use flare_commands::Command;
 use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
-use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Symbol, Timeline, Tween};
+use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Timeline, Tween};
 use glamx::{DAffine2, DVec2};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
@@ -58,11 +58,15 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Add a Graphic symbol, optionally holding one rectangle (needs write access)."
+        description = "Add a symbol (a Graphic unless `kind` says otherwise), optionally holding one rectangle; a name the library already has is refused (needs write access)."
     )]
     fn add_symbol(&self, Parameters(args): Parameters<AddSymbol>) -> Outcome {
         self.write(args.expected_revision, |state| {
-            let id = SymbolId::new();
+            let kind = match args.kind.as_deref() {
+                Some(text) => flare_document::SymbolKind::parse(text)
+                    .ok_or_else(|| format!("unknown kind {text:?}"))?,
+                None => flare_document::SymbolKind::Graphic,
+            };
             let timeline = match args.width {
                 Some(width) => {
                     let rect = (
@@ -79,8 +83,14 @@ impl FlareServer {
                 }
                 None => Timeline::default(),
             };
-            let symbol = Symbol::new(id, &args.name, timeline);
-            let mut out = apply(state, vec![Command::AddSymbol(symbol)])?;
+            let (commands, id) = flare_tools::library::create_symbol_with(
+                state.session.document(),
+                &args.name,
+                kind,
+                timeline,
+            )
+            .map_err(|e| e.to_string())?;
+            let mut out = apply(state, commands)?;
             out["symbol"] = json!(id.as_uuid());
             Ok(out)
         })

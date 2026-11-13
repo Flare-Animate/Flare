@@ -114,6 +114,8 @@ fn insert_new_symbol_adds_an_empty_one_and_is_off_while_editing_inside_one() {
     assert!(ws.is_enabled(MenuAction::NewSymbol));
     let before = ws.document().symbols().len();
     ws.perform(MenuAction::NewSymbol);
+    ws.confirm_symbol_dialog();
+    assert!(ws.exit_symbol(), "the new symbol was opened for drawing");
     assert_eq!(ws.document().symbols().len(), before + 1);
     ws.undo();
     assert_eq!(ws.document().symbols().len(), before);

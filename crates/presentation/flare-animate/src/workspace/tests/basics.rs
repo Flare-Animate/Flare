@@ -298,6 +298,15 @@ fn delete_and_f8_shortcuts_act_on_the_selection() {
         &ctx,
         input(0.1, vec![key(Key::F8, Modifiers::NONE)]),
     );
+    assert!(ws.document().symbols().is_empty(), "F8 asks first");
+    assert!(ws.symbol_dialog().is_some());
+    // Return answers the Convert to Symbol dialog with OK.
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.15, vec![key(Key::Enter, Modifiers::NONE)]),
+    );
+    assert!(ws.symbol_dialog().is_none());
     assert_eq!(ws.document().symbols().len(), 1);
     pass(
         &mut ws,

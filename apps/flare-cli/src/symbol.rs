@@ -10,13 +10,21 @@ use flare_commands::Command;
 use flare_core::SymbolId;
 use flare_document::{PlayMode, Playback, SymbolKind};
 use flare_rig::{AngleLimit, Bone, IkGoal, Interp, PoseKey, Rig, RigCommand, evaluate_rig};
+use flare_tools::library::{self, Registration};
+use flare_tools::ops::SpanRef;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
 /// `--kind` and `--mode` take the spellings every surface accepts (`movie-clip`, `movie clip`).
-fn kind_arg(text: &str) -> Result<SymbolKind, String> {
+pub(crate) fn kind_arg(text: &str) -> Result<SymbolKind, String> {
     SymbolKind::parse(text)
         .ok_or_else(|| format!("unknown kind {text:?}: graphic, movie clip or button"))
+}
+
+fn registration_arg(text: &str) -> Result<Registration, String> {
+    Registration::parse(text).ok_or_else(|| {
+        format!("unknown registration {text:?}: top-left, top, top-right, left, center, right, bottom-left, bottom or bottom-right")
+    })
 }
 
 fn mode_arg(text: &str) -> Result<PlayMode, String> {
@@ -26,6 +34,28 @@ fn mode_arg(text: &str) -> Result<PlayMode, String> {
 
 #[derive(Subcommand)]
 pub enum SymbolCommand {
+    /// Convert to Symbol: the shape in the keyframe that starts at `--at` becomes a symbol, and an
+    /// instance of it takes its place without moving on the stage.
+    Convert {
+        path: PathBuf,
+        #[arg(long)]
+        at: u32,
+        #[arg(long)]
+        layer: Option<Uuid>,
+        /// Which of the keyframe's elements, counted from 0 at the bottom.
+        #[arg(long, default_value_t = 0)]
+        element: usize,
+        /// The symbol's name; the first free "Symbol N" when left out. A name the library already
+        /// has is refused.
+        #[arg(long)]
+        name: Option<String>,
+        #[arg(long, value_parser = kind_arg, default_value = "graphic")]
+        kind: SymbolKind,
+        /// Where on the shape's box the symbol's own origin goes: top-left, top, top-right, left,
+        /// center, right, bottom-left, bottom or bottom-right.
+        #[arg(long, value_parser = registration_arg, default_value = "top-left")]
+        registration: Registration,
+    },
     /// Make a symbol a Graphic, a Movie Clip or a Button.
     SetKind {
         path: PathBuf,
@@ -97,6 +127,37 @@ pub enum RigCmd {
 
 pub fn run_symbol(op: SymbolCommand) -> Result<Value> {
     match op {
+        SymbolCommand::Convert {
+            path,
+            at,
+            layer,
+            element,
+            name,
+            kind,
+            registration,
+        } => {
+            let mut session = crate::project::open_session(&path)?;
+            let (scene, layer) = crate::project::first_scene_layer(&session, layer)?;
+            let document = session.document();
+            let name = name
+                .unwrap_or_else(|| library::free_symbol_name(document, |n| format!("Symbol {n}")));
+            let at = SpanRef {
+                layer,
+                start: at,
+                element,
+            };
+            let (commands, id) =
+                library::convert_to_symbol(document, scene, at, &name, kind, registration)?;
+            session.apply(commands)?;
+            crate::project::commit_session(&session, &path)?;
+            let name = name.trim();
+            Ok(json!({
+                "symbol": id.as_uuid(),
+                "name": name,
+                "kind": kind.name(),
+                "registration": registration.name(),
+            }))
+        }
         SymbolCommand::SetKind { path, symbol, kind } => {
             let mut session = crate::project::open_session(&path)?;
             session.apply([Command::SetSymbolKind {

@@ -1,7 +1,8 @@
 //! The library workflow commands of Animate's own toolbar scripts (issue #11, discussion #8):
 //! Increment Instances, Add Instance to Symbol and Bake Transform. Each looks at the document
 //! and returns the commands to run as one undo step, or says why it would do nothing, so the
-//! window and the command line ask the same thing and get the same answer.
+//! window and the command line ask the same thing and get the same answer. Create New Symbol and
+//! Convert to Symbol, with the name and type Animate's dialog asks for, are in `symbols`.
 
 use flare_commands::Command;
 use flare_core::{SceneId, SymbolId, Transform2D};
@@ -13,6 +14,12 @@ use std::num::NonZeroU32;
 use thiserror::Error;
 
 use crate::common::*;
+
+mod symbols;
+pub use symbols::{
+    MAX_SYMBOL_NAME_CHARS, Registration, SymbolError, check_symbol_name, convert_to_symbol,
+    create_symbol, create_symbol_with, free_symbol_name,
+};
 
 /// Why a library operation was refused.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]

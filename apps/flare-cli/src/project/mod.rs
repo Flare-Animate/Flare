@@ -119,7 +119,9 @@ pub fn info(path: &Path) -> Result<Value> {
     let symbols: Vec<Value> = document
         .symbols()
         .iter()
-        .map(|symbol| json!({ "id": symbol.id().as_uuid(), "name": symbol.name() }))
+        .map(|symbol| {
+            json!({ "id": symbol.id().as_uuid(), "name": symbol.name(), "kind": symbol.kind().name() })
+        })
         .collect();
     Ok(json!({
         "id": document.id().as_uuid(),

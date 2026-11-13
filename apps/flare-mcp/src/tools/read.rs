@@ -38,7 +38,7 @@ impl FlareServer {
             let symbols: Vec<Value> = document
                 .symbols()
                 .iter()
-                .map(|s| json!({ "id": s.id().as_uuid(), "name": s.name() }))
+                .map(|s| json!({ "id": s.id().as_uuid(), "name": s.name(), "kind": s.kind().name() }))
                 .collect();
             let (rate, stage) = (document.frame_rate(), document.stage());
             Ok(json!({

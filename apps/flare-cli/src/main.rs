@@ -197,6 +197,7 @@ fn run() -> Result<()> {
         Command::AddSymbol {
             path,
             name,
+            kind,
             rect,
             color,
             stroke,
@@ -204,7 +205,7 @@ fn run() -> Result<()> {
         } => {
             let style = project::rect_style(&color, stroke.as_deref(), stroke_width, None)?;
             let rect = rect.map(|r| ([r[0], r[1], r[2], r[3]], style));
-            project::add_symbol(&path, &name, rect)?
+            project::add_symbol(&path, &name, kind, rect)?
         }
         Command::DrawRect {
             path,

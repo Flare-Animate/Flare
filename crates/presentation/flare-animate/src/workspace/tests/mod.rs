@@ -83,6 +83,7 @@ mod stage_menu;
 mod stage_pointer;
 mod status_bar;
 mod swatches;
+mod symbol_dialog;
 mod tab_strip;
 mod text_keys;
 mod text_objects;
