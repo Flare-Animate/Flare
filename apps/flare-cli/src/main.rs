@@ -153,7 +153,8 @@ fn run() -> Result<()> {
             to,
             layer,
             ease,
-        } => project::frame_op(&path, op, at, to, layer, ease)?,
+            onto,
+        } => project::frame_op(&path, op, at, to, layer, ease, onto)?,
         Command::ExportFrames {
             path,
             directory,
@@ -192,7 +193,16 @@ fn run() -> Result<()> {
             path,
             layer,
             name,
-        } => project::layer_op(&path, op, layer, name.as_deref())?,
+            before,
+            folder,
+            ..
+        } => project::layer_op(
+            &path,
+            op,
+            layer,
+            name.as_deref(),
+            project::LayerPlace { before, folder },
+        )?,
         Command::Info { path } => project::info(&path)?,
         Command::AddSymbol {
             path,

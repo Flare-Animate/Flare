@@ -29,6 +29,9 @@ pub enum FrameOperation {
     RemoveTween,
     /// Set the easing (`--ease`, -100 to 100) of the span's tween.
     SetEase,
+    /// Move the keyframe holding `--at` so it starts at `--to`, on `--onto` (default: the same
+    /// layer), replacing the frames it lands on and leaving its old frames empty.
+    MoveKeyframe,
 }
 
 pub fn frame_op(
@@ -38,11 +41,36 @@ pub fn frame_op(
     to: Option<u32>,
     layer: Option<Uuid>,
     ease: Option<i8>,
+    onto: Option<Uuid>,
 ) -> Result<Value> {
     use flare_editor::frames;
     use flare_tools::ops::{self, SpanRef};
     let mut session = open(path)?;
     let (scene, layer_id) = target_layer(&session, layer)?;
+    if let FrameOperation::MoveKeyframe = op {
+        let to = to.context("move-keyframe needs --to, the frame the keyframe goes to")?;
+        let onto_id = match onto {
+            Some(id) => target_layer(&session, Some(id))?.1,
+            None => layer_id,
+        };
+        let layers = session
+            .document()
+            .scenes()
+            .first()
+            .map(|s| s.timeline().layers())
+            .unwrap_or_default();
+        let find = |id| layers.iter().find(|l| l.id() == id);
+        let from = find(layer_id).context("layer disappeared")?;
+        let start = from
+            .span_at(at)
+            .map(flare_document::FrameSpan::start)
+            .with_context(|| format!("there is no keyframe at frame {at} of this layer"))?;
+        let commands = frames::drop_span(scene, from, start, find(onto_id).context("layer disappeared")?, to)
+            .context("the keyframe cannot go there: it is there already, the layer is a folder, or it would run past the last frame")?;
+        session.apply(commands)?;
+        commit(&session, path)?;
+        return Ok(json!({ "applied": format!("{op:?}"), "frame": to }));
+    }
     if let FrameOperation::MotionTween
     | FrameOperation::ShapeTween
     | FrameOperation::RemoveTween
@@ -124,6 +152,9 @@ pub enum LayerOperation {
     Unlock,
     Up,
     Down,
+    /// Move the layer (a folder with everything in it) to just above `--before`, or to the
+    /// bottom without it, into the folder `--folder` or out of any folder without it.
+    Move,
 }
 
 /// Layer management on the first scene. `layer` defaults to the first layer.
@@ -132,9 +163,15 @@ pub fn layer_op(
     op: LayerOperation,
     layer: Option<Uuid>,
     name: Option<&str>,
+    place: LayerPlace,
 ) -> Result<Value> {
     let mut session = open(path)?;
     let (scene, layer) = target_layer(&session, layer)?;
+    let named = |id: Option<Uuid>| -> Result<Option<flare_core::LayerId>> {
+        id.map(|id| target_layer(&session, Some(id)).map(|(_, l)| l))
+            .transpose()
+    };
+    let (before, folder) = (named(place.before)?, named(place.folder)?);
     let document = session.document();
     let commands = match op {
         LayerOperation::Rename => {
@@ -147,6 +184,13 @@ pub fn layer_op(
         LayerOperation::Unlock => layers::set_locked(scene, layer, false),
         LayerOperation::Up => layers::move_by(document, scene, layer, -1)?,
         LayerOperation::Down => layers::move_by(document, scene, layer, 1)?,
+        LayerOperation::Move => {
+            let commands = layers::move_to(document, scene, layer, before, folder)?;
+            if commands.is_empty() {
+                anyhow::bail!("the layer is already there");
+            }
+            commands
+        }
     };
     session.apply(commands)?;
     commit(&session, path)?;

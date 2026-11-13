@@ -348,6 +348,108 @@ fn frame_ranges_are_taken_out_and_reversed_and_what_cannot_be_is_refused_without
 }
 
 #[test]
+fn a_layer_moves_above_any_other_or_to_the_bottom() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file, "--width", "10", "--height", "10"]);
+    let add = |name: &str| {
+        json(&["add-layer", &file, name])["layer"]
+            .as_str()
+            .expect("id")
+            .to_owned()
+    };
+    let (b, c) = (add("B"), add("C"));
+    let names = || {
+        json(&["info", &file])["scenes"][0]["layers"]
+            .as_array()
+            .expect("layers")
+            .iter()
+            .map(|l| l["name"].as_str().expect("name").to_owned())
+            .collect::<Vec<_>>()
+    };
+    let first = names()[0].clone();
+    json(&["layer", "move", &file, "--layer", &c, "--before", &b]);
+    assert_eq!(names(), [first.as_str(), "C", "B"]);
+    json(&["layer", "move", &file, "--layer", &c]);
+    assert_eq!(names(), [first.as_str(), "B", "C"], "to the bottom");
+
+    let before = std::fs::read(&file).expect("read");
+    assert!(
+        !run(&["layer", "move", &file, "--layer", &c])
+            .status
+            .success(),
+        "already there"
+    );
+    assert!(
+        !run(&["layer", "move", &file, "--layer", &c, "--folder", &b])
+            .status
+            .success(),
+        "a plain layer is no folder"
+    );
+    assert_eq!(std::fs::read(&file).expect("read"), before);
+}
+
+#[test]
+fn move_keyframe_replaces_the_frames_it_lands_on_and_can_go_to_another_layer() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    let out = dir.path().join("f.png").to_string_lossy().into_owned();
+    let spans =
+        |layer: usize| json(&["info", &file])["scenes"][0]["layers"][layer]["spans"].as_u64();
+    json(&["new", &file, "--width", "20", "--height", "20"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "0",
+        "0",
+        "5",
+        "5",
+        "--duration",
+        "10",
+    ]);
+    json(&["frame", "insert-blank-keyframe", &file, "--at", "4"]);
+
+    // The drawing (frames 0 to 3) dropped over the blank frames from 6.
+    json(&["frame", "move-keyframe", &file, "--at", "1", "--to", "6"]);
+    assert_eq!(spans(0), Some(2), "blank 4-5, then the drawing");
+    json(&["export", &file, &out, "--frame", "8"]);
+    assert_eq!(pixel(&read_png(&out), 2, 2), [0, 0, 0, 255]);
+    json(&["export", &file, &out, "--frame", "2"]);
+    assert_eq!(
+        pixel(&read_png(&out), 2, 2),
+        [255, 255, 255, 255],
+        "left empty"
+    );
+
+    let second = json(&["add-layer", &file, "Second"])["layer"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    json(&[
+        "frame",
+        "move-keyframe",
+        &file,
+        "--at",
+        "6",
+        "--to",
+        "0",
+        "--onto",
+        &second,
+    ]);
+    assert_eq!((spans(0), spans(1)), (Some(1), Some(1)));
+
+    let before = std::fs::read(&file).expect("read");
+    for refused in [
+        vec!["frame", "move-keyframe", &file, "--at", "0"],
+        vec!["frame", "move-keyframe", &file, "--at", "30", "--to", "2"],
+    ] {
+        assert!(!run(&refused).status.success(), "{refused:?}");
+    }
+    assert_eq!(std::fs::read(&file).expect("read"), before);
+}
+
+#[test]
 fn set_stage_changes_the_frame_rate_of_an_existing_project() {
     let dir = tempfile::tempdir().expect("dir");
     let file = path(dir.path());

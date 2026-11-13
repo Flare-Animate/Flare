@@ -324,7 +324,8 @@ pub(crate) enum Command {
         /// Zero-based frame the operation applies at (the first, for a range).
         #[arg(long)]
         at: u32,
-        /// The last frame of the range, for `remove-frames` and `reverse-frames`.
+        /// The last frame of the range, for `remove-frames` and `reverse-frames`; for
+        /// `move-keyframe`, the frame the keyframe goes to.
         #[arg(long)]
         to: Option<u32>,
         #[arg(long)]
@@ -332,6 +333,9 @@ pub(crate) enum Command {
         /// Easing for `set-ease`, from -100 (starts slowly) to 100 (ends slowly).
         #[arg(long, allow_hyphen_values = true)]
         ease: Option<i8>,
+        /// For `move-keyframe`: the layer it goes to (default: its own).
+        #[arg(long)]
+        onto: Option<uuid::Uuid>,
     },
     /// Rename, hide/show, lock/unlock, reorder or delete a layer.
     Layer {
@@ -343,6 +347,13 @@ pub(crate) enum Command {
         /// New name, for `rename`.
         #[arg(long)]
         name: Option<String>,
+        /// For `move`: the layer to go just above; without it, the layer goes to the bottom.
+        #[arg(long)]
+        before: Option<uuid::Uuid>,
+        /// For `move`: the folder to go into (a folder above the new place); without it, the
+        /// layer is taken out of any folder.
+        #[arg(long)]
+        folder: Option<uuid::Uuid>,
     },
     /// Import an XFL directory, .xfl, .fla, .swf, Moho, BVH or Toonz file into a new project, listing what was
     /// not carried over.

@@ -273,7 +273,7 @@ impl Workspace {
 
     /// Escape, tool switches and focus loss cancel a gesture without committing it.
     pub(super) fn cancel_drag(&mut self) {
-        self.span_drag = None;
+        self.timeline_grab = None;
         self.bone_drag = None;
         self.lasso.clear();
         self.freehand.clear();

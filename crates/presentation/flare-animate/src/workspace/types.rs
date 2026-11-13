@@ -466,6 +466,8 @@ pub(super) struct SpanDrag {
     pub(super) grab: SpanGrab,
     /// The frame under the pointer now.
     pub(super) frame: u32,
+    /// The layer whose row the pointer is over, where a moved span lands.
+    pub(super) onto: LayerId,
 }
 
 /// One level of in-place symbol editing: a scratch document whose scene is the symbol's

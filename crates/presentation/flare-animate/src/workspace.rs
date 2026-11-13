@@ -80,6 +80,7 @@ mod tests;
 mod timeline;
 mod timeline_cells;
 mod timeline_labels;
+mod timeline_layer_drag;
 mod timeline_names_edge;
 mod timeline_rows;
 mod timeline_sound;
@@ -224,8 +225,8 @@ pub struct Workspace {
     timeline_zoom: f32,
     /// Where the timeline's parts were drawn on the last pass, for pointing at a frame.
     timeline_layout: Option<timeline::Layout>,
-    /// The end of the onion-skin range being dragged on the ruler, if one is.
-    onion_drag: Option<timeline::OnionEnd>,
+    /// What a press on the timeline holds: a span, an onion-skin marker or a layer's row.
+    timeline_grab: Option<timeline_layer_drag::Grab>,
     /// The next timeline draw sets the zoom at which the scene fills the panel (the Fit button).
     timeline_fit: bool,
     /// Spans selected along with `selected` (Shift-click). Move and Delete act on all of them.
@@ -233,7 +234,6 @@ pub struct Workspace {
     stage_view: StageView,
     /// The stage panel's last rectangle, so menu zoom can aim at its center.
     stage_panel: Rect,
-    span_drag: Option<SpanDrag>,
     current_layer: Option<LayerId>,
     /// The layer being renamed in the timeline and the text so far.
     layer_renaming: Option<(LayerId, String)>,
@@ -394,12 +394,11 @@ impl Workspace {
             clipboard: Vec::new(),
             timeline_zoom: 1.0,
             timeline_layout: None,
-            onion_drag: None,
+            timeline_grab: None,
             timeline_fit: false,
             also_selected: Vec::new(),
             stage_view: StageView::default(),
             stage_panel: Rect::NOTHING,
-            span_drag: None,
             current_layer: None,
             layer_renaming: None,
             layer_rename_serial: 0,

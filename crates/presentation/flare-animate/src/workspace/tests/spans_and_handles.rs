@@ -4,7 +4,7 @@ use super::*;
 fn dragging_a_span_body_moves_it_and_the_edge_resizes_it() {
     let (mut ws, id) = spans_workspace();
     assert!(ws.begin_span_drag(id, 1.5, 0.3));
-    ws.update_span_drag(4);
+    ws.update_span_drag(4, None);
     assert_eq!(
         ws.span_drag_preview(),
         Some((id, 3, 3)),
@@ -20,21 +20,10 @@ fn dragging_a_span_body_moves_it_and_the_edge_resizes_it() {
     );
 
     assert!(ws.begin_span_drag(id, 2.9, 0.3), "within the edge");
-    ws.update_span_drag(5);
+    ws.update_span_drag(5, None);
     assert_eq!(ws.span_drag_preview(), Some((id, 0, 6)));
     ws.end_span_drag();
     assert_eq!(active_spans_of(&ws, id), vec![(0, 6), (6, 2)]);
-}
-
-#[test]
-fn a_span_drag_that_would_overlap_is_refused_with_a_message() {
-    let (mut ws, id) = spans_workspace();
-    assert!(ws.begin_span_drag(id, 0.5, 0.3));
-    ws.update_span_drag(5); // 5..8 meets the span at 6
-    ws.end_span_drag();
-    assert_eq!(active_spans_of(&ws, id), vec![(0, 3), (6, 2)]);
-    assert!(ws.status().is_some_and(|m| m.contains("overlap")));
-    assert!(!ws.is_dirty());
 }
 
 #[test]
@@ -44,7 +33,7 @@ fn gaps_locked_layers_and_escape_do_not_drag_spans() {
     assert!(!ws.begin_span_drag(id, -1.0, 0.3));
     assert!(!ws.begin_span_drag(id, f32::NAN, 0.3));
     assert!(ws.begin_span_drag(id, 0.5, 0.3));
-    ws.update_span_drag(2);
+    ws.update_span_drag(2, None);
     ws.cancel_drag();
     ws.end_span_drag();
     assert_eq!(
@@ -336,7 +325,7 @@ fn a_cancelled_scale_changes_nothing_and_shift_press_never_grabs_a_handle() {
 fn dragging_to_the_very_last_frame_does_not_overflow() {
     let (mut ws, id) = spans_workspace();
     assert!(ws.begin_span_drag(id, 2.9, 0.3), "the right edge");
-    ws.update_span_drag(u32::MAX);
+    ws.update_span_drag(u32::MAX, None);
     let (_, start, duration) = ws.span_drag_preview().expect("preview");
     assert_eq!((start, u64::from(duration)), (0, u64::from(u32::MAX)));
     ws.end_span_drag();

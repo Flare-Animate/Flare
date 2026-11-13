@@ -7,6 +7,7 @@ use flare_document::Layer;
 use flare_editor::timeline_view;
 
 use super::layer_names;
+use super::timeline_layer_drag::Grab;
 use super::*;
 
 /// How far each level of folder indents a name, in points.
@@ -185,6 +186,7 @@ impl Workspace {
             // The frames first; the names and the ruler go over what has scrolled under them.
             self.timeline_rows(&painter, &layout, &rows, shown);
             self.timeline_labels(ui, &painter, &layout, &rows);
+            self.layer_drop_line(&painter, &layout, &rows);
             self.timeline_ruler(&painter, &layout, shown);
             self.layer_name_editor(
                 ui,
@@ -224,7 +226,7 @@ impl Workspace {
     }
 
     /// The layer on the `i`th row shown.
-    fn row_layer(&self, rows: &[(usize, usize)], i: usize) -> Option<LayerId> {
+    pub(super) fn row_layer(&self, rows: &[(usize, usize)], i: usize) -> Option<LayerId> {
         let layers = self.document().scenes().first()?.timeline().layers();
         rows.get(i)
             .and_then(|(layer, _)| layers.get(*layer))
@@ -245,6 +247,7 @@ impl Workspace {
         if self.loop_bar_input(ui, response, l)
             || self.multi_bar_input(ui, response, l)
             || self.onion_marker_drag(ui, response, l)
+            || self.layer_row_drag(ui, response, l, rows)
         {
             return;
         }
@@ -256,11 +259,12 @@ impl Workspace {
         {
             self.select_layer(id);
         }
-        if self.span_drag.is_some() {
+        if matches!(self.timeline_grab, Some(Grab::Span(_))) {
             if response.dragged()
                 && let Some(p) = response.interact_pointer_pos()
             {
-                self.update_span_drag(l.frame_at(p.x).floor().max(0.0) as u32);
+                let onto = l.row_at(p).and_then(|i| self.row_layer(rows, i));
+                self.update_span_drag(l.frame_at(p.x).floor().max(0.0) as u32, onto);
             }
             if response.drag_stopped() {
                 self.end_span_drag();
@@ -325,11 +329,15 @@ impl Workspace {
         let onion = self.onion;
         if response.drag_started()
             && onion.enabled
+            && self.timeline_grab.is_none()
+            && !self.editing_multiple_frames()
             && let Some(p) = ui.input(|i| i.pointer.press_origin())
         {
-            self.onion_drag = l.onion_marker_at(p, self.frame, onion.before, onion.after);
+            self.timeline_grab = l
+                .onion_marker_at(p, self.frame, onion.before, onion.after)
+                .map(Grab::Onion);
         }
-        let Some(end) = self.onion_drag else {
+        let Some(Grab::Onion(end)) = self.timeline_grab else {
             return false;
         };
         if let Some(p) = response.interact_pointer_pos() {
@@ -338,7 +346,7 @@ impl Workspace {
             self.set_onion_range(before, after);
         }
         if response.drag_stopped() || !response.dragged() {
-            self.onion_drag = None;
+            self.timeline_grab = None;
         }
         true
     }
