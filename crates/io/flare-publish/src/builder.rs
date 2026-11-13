@@ -251,7 +251,7 @@ impl<'d> Builder<'d> {
             _ => vec![first],
         };
         // Playing once ends on a stop, or the sprite would start over.
-        let stops = (mode == 1 || mode == 4) && frames.len() > 1;
+        let stops = (mode == 1 && frames.len() > 1) || mode == 4;
         let mut display = Display::default();
         let mut inner: Vec<Tag<'static>> = Vec::new();
         self.depth += 1;
