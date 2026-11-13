@@ -115,7 +115,7 @@ impl Workspace {
                             let fill = if tab.current {
                                 theme::panel()
                             } else {
-                                theme::bg()
+                                theme::chrome()
                             };
                             let frame = egui::Frame::new()
                                 .fill(fill)

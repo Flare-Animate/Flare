@@ -11,10 +11,13 @@ restores the default.
 `flare-ui/src/theme.rs` (shared widgets and the icon set are in `flare-ui`, the workspace in `flare-animate`) holds the palettes, spacing, rounding and type sizes; colours are
 named there and used by name. The default dark palette is flat greys with no tint, as animation
 tools use, so the colors on the stage are judged against nothing colored; the blue-tinted dark it
-replaced is the Blue theme. Its proportions are Animate's, measured from Animate 2023's screen:
-panels `#323232` on a ground of `#252525` (the gaps between panels, the tab rows and the
-pasteboard), fields a shade darker than the panel, labels a quiet grey (`#9a9a9a`) and values near
-white (`#e3e3e3`). Text is 13 px (11 px small, 14 px headings), and a stack's tabs are 12 px in a
+replaced is the Blue theme. Every palette has three tones of ground, so neighbouring areas never
+merge into one: the gaps between panels and the pasteboard darkest (`#1d1d1d` in Dark), the bars a
+step up (`theme::chrome()`, `#282828`: the menu bar, the dock's tab rows and unchosen tabs, the
+document tabs, the panel rail and the status bar), and the panels themselves lightest (`#323232`,
+which the chosen tab shares so it reads as part of its panel). A test keeps each step at least
+1.08:1 in every palette. Fields are a shade darker than the panel, labels a quiet grey (`#9a9a9a`)
+and values near white (`#e3e3e3`). Text is 13 px (11 px small, 14 px headings), and a stack's tabs are 12 px in a
 22 px row, so a panel's own content reads before its name. `chrome.rs` holds the shared widgets (icon buttons, section headers,
 label/control rows) so every panel looks alike.
 

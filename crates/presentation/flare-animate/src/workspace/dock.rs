@@ -87,7 +87,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
     }
 
     fn tab_bar_color(&self, _visuals: &egui::Visuals) -> egui::Color32 {
-        flare_ui::theme::bg()
+        flare_ui::theme::chrome()
     }
 
     fn tab_bg_color(
@@ -100,7 +100,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         if state.active {
             flare_ui::theme::panel()
         } else {
-            flare_ui::theme::bg()
+            flare_ui::theme::chrome()
         }
     }
 

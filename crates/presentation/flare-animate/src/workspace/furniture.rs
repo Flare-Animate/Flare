@@ -42,6 +42,11 @@ impl Workspace {
         if self.document_controls_shown() {
             egui::Panel::bottom("status")
                 .exact_size(24.0)
+                .frame(
+                    egui::Frame::new()
+                        .fill(flare_ui::theme::chrome())
+                        .inner_margin(egui::Margin::symmetric(8, 2)),
+                )
                 .show(ui, |ui| self.status_bar(ui));
         }
         egui::Panel::top("menu")
@@ -50,12 +55,12 @@ impl Workspace {
             } else {
                 TOP_BAR_HEIGHT
             })
-            .frame(egui::Frame::new().fill(flare_ui::theme::bg()))
+            .frame(egui::Frame::new().fill(flare_ui::theme::chrome()))
             .show(ui, |ui| self.menu_bar(ui));
         if self.document_controls_shown() {
             egui::Panel::right("panel_rail")
                 .exact_size(rail::RAIL_WIDTH)
-                .frame(egui::Frame::new().fill(flare_ui::theme::bg()))
+                .frame(egui::Frame::new().fill(flare_ui::theme::chrome()))
                 .show(ui, |ui| self.panel_rail(ui));
         }
         let gutter = flare_ui::theme::GUTTER as i8;

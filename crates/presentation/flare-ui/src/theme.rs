@@ -65,6 +65,7 @@ pub fn mode() -> Mode {
 
 struct Palette {
     bg: Color32,
+    chrome: Color32,
     panel: Color32,
     panel_raised: Color32,
     field: Color32,
@@ -86,11 +87,13 @@ const fn rgb(r: u8, g: u8, b: u8) -> Color32 {
 }
 
 // Flat greys with no tint, as animation tools are, so the colors on the stage are judged against
-// nothing colored; the blue-tinted dark is the Blue mode. The proportions are Animate's: mid-grey
-// panels on a darker ground, the pasteboard as dark as the gaps between panels, labels a quiet
-// grey and values near white.
+// nothing colored; the blue-tinted dark is the Blue mode. Every palette has three steps of ground:
+// the gaps between panels and the pasteboard darkest, the bars (menu, tab rows, rail, status) a
+// step up, and the panels themselves lightest, so neighbouring areas never merge. Labels are a
+// quiet grey and values near white.
 const DARK: Palette = Palette {
-    bg: rgb(0x25, 0x25, 0x25),
+    bg: rgb(0x1d, 0x1d, 0x1d),
+    chrome: rgb(0x28, 0x28, 0x28),
     panel: rgb(0x32, 0x32, 0x32),
     panel_raised: rgb(0x39, 0x39, 0x39),
     field: rgb(0x26, 0x26, 0x26),
@@ -104,11 +107,12 @@ const DARK: Palette = Palette {
     text_disabled: rgb(0x66, 0x66, 0x66),
     accent: rgb(0x4c, 0x8d, 0xff),
     warning: rgb(0xe8, 0xb3, 0x4a),
-    stage_surround: rgb(0x25, 0x25, 0x25),
+    stage_surround: rgb(0x1d, 0x1d, 0x1d),
 };
 
 const LIGHT: Palette = Palette {
-    bg: rgb(0xe3, 0xe6, 0xeb),
+    bg: rgb(0xd3, 0xd7, 0xde),
+    chrome: rgb(0xe3, 0xe6, 0xeb),
     panel: rgb(0xf1, 0xf3, 0xf6),
     panel_raised: rgb(0xfb, 0xfc, 0xfd),
     field: rgb(0xe4, 0xe7, 0xec),
@@ -126,7 +130,8 @@ const LIGHT: Palette = Palette {
 };
 
 const CLAY: Palette = Palette {
-    bg: rgb(0x2a, 0x24, 0x1e),
+    bg: rgb(0x20, 0x1b, 0x16),
+    chrome: rgb(0x2a, 0x24, 0x1e),
     panel: rgb(0x33, 0x2c, 0x24),
     panel_raised: rgb(0x3d, 0x35, 0x2c),
     field: rgb(0x22, 0x1d, 0x18),
@@ -144,8 +149,9 @@ const CLAY: Palette = Palette {
 };
 
 const SYNTHWAVE: Palette = Palette {
-    bg: rgb(0x1a, 0x0a, 0x2e),
-    panel: rgb(0x22, 0x10, 0x38),
+    bg: rgb(0x0a, 0x03, 0x16),
+    chrome: rgb(0x1a, 0x0a, 0x2e),
+    panel: rgb(0x26, 0x12, 0x3e),
     panel_raised: rgb(0x2a, 0x14, 0x44),
     field: rgb(0x14, 0x08, 0x24),
     faint: rgb(0x26, 0x12, 0x3e),
@@ -162,7 +168,8 @@ const SYNTHWAVE: Palette = Palette {
 };
 
 const BLUE: Palette = Palette {
-    bg: rgb(0x1a, 0x20, 0x2e),
+    bg: rgb(0x12, 0x17, 0x22),
+    chrome: rgb(0x1a, 0x20, 0x2e),
     panel: rgb(0x20, 0x28, 0x38),
     panel_raised: rgb(0x28, 0x32, 0x44),
     field: rgb(0x14, 0x1a, 0x28),
@@ -180,7 +187,8 @@ const BLUE: Palette = Palette {
 };
 
 const NEUTRAL: Palette = Palette {
-    bg: rgb(0x2a, 0x2a, 0x2a),
+    bg: rgb(0x20, 0x20, 0x20),
+    chrome: rgb(0x2a, 0x2a, 0x2a),
     panel: rgb(0x33, 0x33, 0x33),
     panel_raised: rgb(0x3d, 0x3d, 0x3d),
     field: rgb(0x22, 0x22, 0x22),
@@ -198,7 +206,8 @@ const NEUTRAL: Palette = Palette {
 };
 
 const GREEN: Palette = Palette {
-    bg: rgb(0x1a, 0x24, 0x1a),
+    bg: rgb(0x12, 0x1a, 0x12),
+    chrome: rgb(0x1a, 0x24, 0x1a),
     panel: rgb(0x20, 0x2e, 0x20),
     panel_raised: rgb(0x28, 0x38, 0x28),
     field: rgb(0x14, 0x1e, 0x14),
@@ -216,7 +225,8 @@ const GREEN: Palette = Palette {
 };
 
 const LIQUID_GLASS: Palette = Palette {
-    bg: rgb(0x17, 0x21, 0x31),
+    bg: rgb(0x10, 0x18, 0x25),
+    chrome: rgb(0x17, 0x21, 0x31),
     panel: rgb(0x1f, 0x2b, 0x3f),
     panel_raised: rgb(0x22, 0x2f, 0x45),
     field: rgb(0x0f, 0x16, 0x21),
@@ -248,6 +258,12 @@ fn palette() -> &'static Palette {
 
 pub fn bg() -> Color32 {
     palette().bg
+}
+/// Bars around and between panels: the menu bar, tab rows, the panel rail and the status bar.
+/// A step between the ground and the panels, so a bar never runs into the gap beside it or the
+/// panel under it.
+pub fn chrome() -> Color32 {
+    palette().chrome
 }
 pub fn panel() -> Color32 {
     palette().panel

@@ -154,7 +154,7 @@ impl Workspace {
                         ui.set_width(FLYOUT_WIDTH);
                         ui.set_max_height(max_height);
                         egui::Frame::new()
-                            .fill(theme::bg())
+                            .fill(theme::chrome())
                             .inner_margin(egui::Margin::symmetric(8, 3))
                             .show(ui, |ui| {
                                 ui.horizontal(|ui| {

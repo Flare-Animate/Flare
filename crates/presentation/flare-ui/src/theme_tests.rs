@@ -93,7 +93,7 @@ fn both_palettes_keep_text_readable_on_every_surface_and_the_light_one_is_light(
         Mode::LiquidGlass,
     ] {
         set_mode(mode);
-        for surface in [bg(), panel(), panel_raised(), field(), hover()] {
+        for surface in [bg(), chrome(), panel(), panel_raised(), field(), hover()] {
             assert!(
                 contrast(text(), surface) >= 7.0,
                 "{mode:?} text on {surface:?}"
@@ -122,6 +122,37 @@ fn both_palettes_keep_text_readable_on_every_surface_and_the_light_one_is_light(
         luminance(field()) < luminance(panel_raised()),
         "the inset box is the lower surface"
     );
+    set_mode(Mode::Dark);
+}
+
+#[test]
+fn ground_bars_and_panels_are_three_tones_apart_in_every_palette() {
+    for mode in [
+        Mode::Dark,
+        Mode::Light,
+        Mode::Clay,
+        Mode::Synthwave,
+        Mode::Blue,
+        Mode::Neutral,
+        Mode::Green,
+        Mode::LiquidGlass,
+    ] {
+        set_mode(mode);
+        let (ground, bars, panels) = (luminance(bg()), luminance(chrome()), luminance(panel()));
+        assert!(
+            ground < bars && bars < panels,
+            "{mode:?}: ground, then bars, then panels, from dark to light"
+        );
+        // Below about 1.08:1 neighbouring greys read as one surface on most screens.
+        assert!(
+            contrast(bg(), chrome()) >= 1.08,
+            "{mode:?}: a bar stands apart from the gap beside it"
+        );
+        assert!(
+            contrast(chrome(), panel()) >= 1.08,
+            "{mode:?}: a panel stands apart from its tab row"
+        );
+    }
     set_mode(Mode::Dark);
 }
 
