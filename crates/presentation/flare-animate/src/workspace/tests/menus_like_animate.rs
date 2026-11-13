@@ -59,7 +59,7 @@ fn commands_sit_where_animate_keeps_them() {
         shown(&ws, submenu(file, "Export")),
         [
             "Export Image...",
-            "Export Animated GIF...",
+            "Export Movie...",
             "Export Flash Document (.fla)...",
             "Export SVG..."
         ]

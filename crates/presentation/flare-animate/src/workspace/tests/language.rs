@@ -127,6 +127,7 @@ fn the_publish_popup_and_its_format_names_follow_the_language() {
         "Publicar",
         "Formatos",
         "GIF animado (.gif)",
+        "Película QuickTime (.mov)",
         "Cerrar",
     ] {
         assert!(has(&all, wanted), "{wanted}: {all:?}");

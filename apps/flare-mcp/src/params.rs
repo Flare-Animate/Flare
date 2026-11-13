@@ -139,7 +139,8 @@ pub struct ExportName {
     pub name: String,
 }
 
-/// The movie formats `export_movie` writes through ffmpeg.
+/// The movie formats `export_movie` writes: a QuickTime movie made by Flare itself, the others
+/// through ffmpeg.
 #[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum MovieKind {
@@ -157,7 +158,8 @@ pub struct ExportMovie {
     /// File name only: letters, digits, '.', '_' or '-'. The extension for the format is added
     /// when missing.
     pub name: String,
-    /// The container: mov, avi, mkv, webm, mpeg or flv. Needs ffmpeg on the computer.
+    /// The container: mov, avi, mkv, webm, mpeg or flv. Every one but mov needs ffmpeg on the
+    /// computer.
     pub format: MovieKind,
 }
 

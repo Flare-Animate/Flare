@@ -27,16 +27,34 @@ pub fn export_png(
     })
 }
 
-/// Renders the whole animation as a GIF and writes it. Never overwrites; the file appears only
-/// when complete.
-pub fn export_gif(
+/// Writes the whole animation as the movie `path` names by its ending: an animated GIF (`.gif`),
+/// an MP4 video (`.mp4`) or a QuickTime movie (`.mov`), the last two with the sound. A name with
+/// no ending is a GIF, as Export Movie wrote before it had a choice. Never overwrites; the file
+/// appears only when complete.
+pub fn export_movie(
     document: Document,
     path: PathBuf,
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-export-movie", move || {
-        done(write_gif(&document, &path));
+        done(write_movie(&document, &path));
     })
+}
+
+/// [`export_movie`] on the calling thread.
+pub fn write_movie(document: &Document, path: &std::path::Path) -> Result<(), String> {
+    let ending = path
+        .extension()
+        .map(|e| e.to_string_lossy().to_ascii_lowercase());
+    match ending.as_deref() {
+        None => write_gif(document, &path.with_extension("gif")),
+        Some("gif") => write_gif(document, path),
+        Some("mp4") => flare_video::write_mp4(document, path),
+        Some("mov") => flare_video::write_mov(document, path),
+        Some(other) => Err(format!(
+            "A movie is written as .gif, .mp4 or .mov, not .{other}"
+        )),
+    }
 }
 
 /// Renders `document` as a GIF into `path`. Never overwrites; the file appears only when it is
@@ -106,6 +124,8 @@ pub struct PublishPlan {
     pub gif: bool,
     /// Also write an MP4 video.
     pub mp4: bool,
+    /// Also write a QuickTime movie.
+    pub mov: bool,
 }
 
 /// The name a published file shares with its siblings: `path` without a `.swf` or `.html`
@@ -115,7 +135,7 @@ fn publish_stem(path: &std::path::Path) -> String {
         .file_name()
         .map_or_else(|| "movie".to_owned(), |n| n.to_string_lossy().into_owned());
     let lower = name.to_ascii_lowercase();
-    for ending in [".swf", ".html", ".htm", ".gif", ".mp4"] {
+    for ending in [".swf", ".html", ".htm", ".gif", ".mp4", ".mov"] {
         if lower.ends_with(ending) {
             return name[..name.len() - ending.len()].to_owned();
         }
@@ -123,7 +143,8 @@ fn publish_stem(path: &std::path::Path) -> String {
     name
 }
 
-/// Publishes the formats in `plan` next to `path` (`<name>.swf`, `<name>.html`, `<name>.gif`, `<name>.mp4`) on a thread.
+/// Publishes the formats in `plan` next to `path` (`<name>.swf`, `<name>.html`, `<name>.gif`,
+/// `<name>.mp4`, `<name>.mov`) on a thread.
 /// Never overwrites; each file appears only when complete. The first failure is reported, but
 /// the other formats are still tried.
 pub fn publish(
@@ -143,7 +164,7 @@ pub fn publish_now(
     path: &std::path::Path,
     plan: &PublishPlan,
 ) -> Result<(), String> {
-    if plan.swf.is_none() && plan.html5.is_none() && !plan.gif && !plan.mp4 {
+    if plan.swf.is_none() && plan.html5.is_none() && !plan.gif && !plan.mp4 && !plan.mov {
         return Err("Choose a format in Publish Settings first".to_owned());
     }
     let stem = publish_stem(path);
@@ -172,6 +193,12 @@ pub fn publish_now(
     if plan.mp4 {
         let target = at("mp4");
         if let Err(error) = flare_video::write_mp4(document, &target) {
+            failures.push(error);
+        }
+    }
+    if plan.mov {
+        let target = at("mov");
+        if let Err(error) = flare_video::write_mov(document, &target) {
             failures.push(error);
         }
     }

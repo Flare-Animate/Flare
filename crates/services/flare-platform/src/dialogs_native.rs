@@ -97,9 +97,11 @@ pub fn save_png(filter: &str) -> Option<std::path::PathBuf> {
         .save_file()
 }
 
-pub fn save_gif(filter: &str) -> Option<std::path::PathBuf> {
+pub fn save_movie([gif, mp4, mov]: [&str; 3]) -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
-        .add_filter(filter, &["gif"])
+        .add_filter(gif, &["gif"])
+        .add_filter(mp4, &["mp4"])
+        .add_filter(mov, &["mov"])
         .set_file_name("movie.gif")
         .save_file()
 }

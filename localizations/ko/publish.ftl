@@ -11,3 +11,4 @@ pubpop-center = 스테이지를 가운데에 배치
 pubpop-responsive = 반응형으로 만들기
 pubpop-format-gif = 애니메이션 GIF (.gif)
 pubpop-format-mp4 = MP4 동영상 (.mp4)
+pubpop-format-mov = QuickTime 동영상 (.mov)

@@ -154,7 +154,7 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Write the first scene as a movie through ffmpeg in the export directory: mov, avi, mkv, webm, mpeg or flv (disabled when no export directory is configured). Needs ffmpeg on the computer; without it the reply says so."
+        description = "Write the first scene as a movie, with its sound, in the export directory: mov (a QuickTime movie Flare writes itself), or avi, mkv, webm, mpeg or flv through ffmpeg (disabled when no export directory is configured). The ffmpeg formats need ffmpeg on the computer; without it the reply says so."
     )]
     fn export_movie(&self, Parameters(args): Parameters<ExportMovie>) -> Outcome {
         self.read(|state| {
@@ -169,7 +169,11 @@ impl FlareServer {
             let container = flare_ffmpeg::container(id).ok_or("unknown movie format")?;
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, container.extension)?)?;
-            flare_video::write_with_ffmpeg(state.session.document(), &out, container)?;
+            if matches!(args.format, MovieKind::Mov) {
+                flare_video::write_mov(state.session.document(), &out)?;
+            } else {
+                flare_video::write_with_ffmpeg(state.session.document(), &out, container)?;
+            }
             let bytes = std::fs::metadata(&out).map_err(|e| e.to_string())?.len();
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes }))
         })

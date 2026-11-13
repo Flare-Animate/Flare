@@ -11,3 +11,4 @@ pubpop-center = Vystředit scénu
 pubpop-responsive = Responzivní velikost
 pubpop-format-gif = Animovaný GIF (.gif)
 pubpop-format-mp4 = Video MP4 (.mp4)
+pubpop-format-mov = Film QuickTime (.mov)

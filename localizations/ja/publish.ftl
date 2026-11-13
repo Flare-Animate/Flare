@@ -11,3 +11,4 @@ pubpop-center = ステージを中央に配置
 pubpop-responsive = レスポンシブにする
 pubpop-format-gif = アニメーションGIF（.gif）
 pubpop-format-mp4 = MP4ビデオ（.mp4）
+pubpop-format-mov = QuickTimeムービー（.mov）

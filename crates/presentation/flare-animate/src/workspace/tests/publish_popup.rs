@@ -55,6 +55,7 @@ fn the_popup_offers_every_format_and_no_places_to_share_until_sharing_uploads() 
         "HTML5 Canvas (.html)",
         "Animated GIF (.gif)",
         "MP4 video (.mp4)",
+        "QuickTime movie (.mov)",
     ] {
         time += 0.1;
         assert!(find(&mut ws, &ctx, time, wanted).is_some(), "{wanted}");
@@ -133,17 +134,44 @@ fn mp4_is_an_ordinary_format_that_ticks_counts_and_is_kept() {
 }
 
 #[test]
-fn publish_is_the_button_in_the_corner_below_the_share_places_with_close_beside_it() {
+fn publish_is_the_button_in_the_corner_below_the_formats_with_close_beside_it() {
     let (ctx, mut ws, mut time) = opened();
     let mut at = |wanted: &str| {
         time += 0.1;
         find(&mut ws, &ctx, time, wanted).unwrap_or_else(|| panic!("{wanted} is on screen"))
     };
-    let (publish, close, share) = (at("Publish"), at("Close"), at("Twitter"));
-    assert!(publish.y > share.y, "below the places to share");
+    let (publish, close, last) = (at("Publish"), at("Close"), at("QuickTime movie (.mov)"));
+    assert!(publish.y > last.y, "below the formats");
     assert!(
         (publish.y - close.y).abs() < 2.0,
         "on the same row as Close"
     );
     assert!(publish.x > close.x, "in the corner, Close beside it");
+}
+
+#[test]
+fn mov_is_an_ordinary_format_that_ticks_counts_and_is_kept() {
+    let (ctx, mut ws, mut time) = opened();
+    ws.publish.swf = false;
+    ws.publish.html5 = false;
+    ws.publish.gif = false;
+    assert!(!ws.publish_settings().any(), "nothing ticked");
+    for _ in 0..3 {
+        time += 0.1;
+        find(&mut ws, &ctx, time, "Publish");
+    }
+    click_text(&mut ws, &ctx, &mut time, "QuickTime movie (.mov)");
+    assert!(
+        ws.publish.mov && !ws.publish.mp4,
+        "only the movie is ticked"
+    );
+    assert!(ws.publish_settings().any(), "one format is enough");
+    let kept = ws.preferences();
+    assert!(kept.publish_mov);
+    let mut fresh = workspace();
+    fresh.apply_preferences(&kept);
+    assert!(
+        fresh.publish_settings().mov,
+        "and kept with the preferences"
+    );
 }

@@ -80,12 +80,12 @@ impl App {
                 }
             }
             DialogRequest::ExportMovie => {
-                if let Some(path) =
-                    dialogs::save_gif(&self.workspace.interface_text("dlg-filter-gif"))
-                {
+                let filters = ["dlg-filter-gif", "dlg-filter-mp4", "dlg-filter-mov"]
+                    .map(|key| self.workspace.interface_text(key));
+                if let Some(path) = dialogs::save_movie(filters.each_ref().map(String::as_str)) {
                     let (document, _) = self.workspace.image_export();
                     let done = exported(&self.proxy);
-                    if let Err(error) = jobs::export_gif(document, path, done) {
+                    if let Err(error) = jobs::export_movie(document, path, done) {
                         self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
@@ -140,6 +140,7 @@ impl App {
                         }),
                         gif: settings.gif,
                         mp4: settings.mp4,
+                        mov: settings.mov,
                     };
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::publish(document, path, plan, done) {

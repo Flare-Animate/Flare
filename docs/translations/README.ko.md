@@ -50,7 +50,7 @@ Flare는 **Rust**로 다시 작성되고 있습니다. 주로 *OpenToonz*와 *Ta
 - 데스크톱에서의 사운드 재생, 그리고 게시된 SWF를 Ruffle로 실행하는 "영화 테스트".
 - `.flare` 프로젝트 열기와 저장. Animate의 XFL과 `.fla` 가져오기·내보내기, Flash 영화(`.swf`)를 편집 가능한 프로젝트로 열기.
 - Moho 프로젝트와 BVH 모션, OpenToonz `.tnz` 장면과 `.pli` 레벨, 그리고 이미지와 영상(SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV)을 편집 가능한 프로젝트로 가져오기.
-- PNG, JPEG, GIF, APNG, 애니메이션 WebP, SVG, PSD, MP4 내보내기(그 밖의 영상 형식은 ffmpeg 사용), 그리고 SWF 또는 HTML5 Canvas 페이지 게시.
+- PNG, JPEG, GIF, APNG, 애니메이션 WebP, SVG, PSD, MP4, MOV 내보내기(그 밖의 영상 형식은 ffmpeg 사용), 그리고 SWF 또는 HTML5 Canvas 페이지 게시.
 - 스크립트에서 프로젝트를 만들고, 편집하고, 내보내고, 게시하는 명령줄(`flare`)과 에이전트용 MCP 서버(`flare-mcp`).
 - 같은 편집기의 브라우저 버전. 차이점은 [docs/WEB.md](../WEB.md)를 보세요.
 

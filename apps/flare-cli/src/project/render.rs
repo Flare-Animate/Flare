@@ -35,8 +35,10 @@ pub enum ExportFormat {
     Apng,
     /// An animated WebP, lossless, every frame.
     AnimatedWebp,
-    /// A movie made by ffmpeg, for the containers Flare writes no other way.
+    /// A QuickTime movie with its sound, the MP4's picture and sound branded for QuickTime,
+    /// written by Flare itself.
     Mov,
+    /// The movies made by ffmpeg, for the containers Flare writes no other way.
     Avi,
     Mkv,
     Webm,

@@ -95,7 +95,7 @@ Formats
 - `.sol` shared objects, importing video, and Moho projects
 - Sprite export: sprite sheets and atlases of the stage or of one symbol or animation, with the pixels and the facts a game needs (frame durations, trim offsets, original sizes, pivots, animation names and loops), as PNG with JSON or a similar description
 - Layered PSD and PSB export with a Unity profile that keeps names, groups, bounds and order and bakes what Unity ignores (blend modes, opacity, effects) into the pixels
-- More video containers (MOV, MKV and AVI) where the encoder behind them supports the picture, sound and transparency asked for
+- More video containers (MKV and AVI; MOV is done, as the MP4 branded for QuickTime) made by Flare itself where the encoder behind them supports the picture, sound and transparency asked for
 
 Sharing and releases
 - Sharing from the Share menu to YouTube and other services

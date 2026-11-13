@@ -199,6 +199,15 @@ pub fn export_mp4(path: &Path, out: &Path) -> Result<Value> {
     Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes }))
 }
 
+/// Renders the first scene as a QuickTime movie with its sound, as [`export_mp4`] does, with no
+/// ffmpeg needed.
+pub fn export_mov(path: &Path, out: &Path) -> Result<Value> {
+    let session = open(path)?;
+    flare_video::write_mov(session.document(), out).map_err(anyhow::Error::msg)?;
+    let bytes = std::fs::metadata(out)?.len();
+    Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes }))
+}
+
 /// Publishes a project as a SWF file. Never overwrites; the file appears only when complete.
 pub fn publish_swf(path: &Path, out: &Path, compress: bool) -> Result<Value> {
     let session = open(path)?;

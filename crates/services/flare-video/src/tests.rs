@@ -432,3 +432,6 @@ fn a_movie_that_cannot_be_made_says_why_and_leaves_nothing_behind() {
 
 #[path = "delay_tests.rs"]
 mod delay;
+
+#[path = "mov_tests.rs"]
+mod mov;

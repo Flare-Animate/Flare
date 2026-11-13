@@ -402,7 +402,7 @@ fn run() -> Result<()> {
                         project::ExportFormat::AnimatedWebp => {
                             project::export_animated_webp(&path, &out)?
                         }
-                        project::ExportFormat::Mov => project::export_movie(&path, &out, "mov")?,
+                        project::ExportFormat::Mov => project::export_mov(&path, &out)?,
                         project::ExportFormat::Avi => project::export_movie(&path, &out, "avi")?,
                         project::ExportFormat::Mkv => project::export_movie(&path, &out, "mkv")?,
                         project::ExportFormat::Webm => project::export_movie(&path, &out, "webm")?,

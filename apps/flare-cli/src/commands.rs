@@ -223,7 +223,7 @@ pub(crate) enum Command {
         font_files: Vec<PathBuf>,
     },
     /// Render the first scene: one frame as a PNG (the default), a JPEG, a BMP or a TGA, every frame
-    /// as a looping GIF, or a video with its sound as an MP4.
+    /// as a looping GIF, or a video with its sound as an MP4 or a QuickTime movie (`mov`).
     Export {
         path: PathBuf,
         out: PathBuf,

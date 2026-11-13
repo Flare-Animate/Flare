@@ -59,6 +59,7 @@ pub struct Preferences {
     pub html5_responsive: bool,
     pub publish_gif: bool,
     pub publish_mp4: bool,
+    pub publish_mov: bool,
     /// The interface's language: `system`, or a language's tag such as `de` or `pt-BR`.
     pub language: String,
     /// The look of the interface: `dark` or `light`.
@@ -117,6 +118,7 @@ impl Default for Preferences {
             html5_responsive: false,
             publish_gif: false,
             publish_mp4: false,
+            publish_mov: false,
             language: "system".to_owned(),
             theme: "dark".to_owned(),
             pinned_tools: Vec::new(),

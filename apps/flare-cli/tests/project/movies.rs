@@ -1,6 +1,6 @@
 //! Movies the command line writes: the ffmpeg containers (checked against ffmpeg itself where it is
 //! installed, and checked for the "not installed" message where its directory is taken off PATH),
-//! and the animated WebP that Flare writes itself.
+//! and the QuickTime movie and animated WebP that Flare writes itself.
 use super::*;
 
 /// A 10 by 10 stage with a red square, made by the command line itself.
@@ -30,7 +30,6 @@ fn export_writes_each_ffmpeg_container_and_it_reads_back() {
     let dir = tempfile::tempdir().expect("dir");
     let file = square(dir.path());
     for (format, extension) in [
-        ("mov", "mov"),
         ("avi", "avi"),
         ("mkv", "mkv"),
         ("webm", "webm"),
@@ -64,6 +63,29 @@ fn a_movie_without_ffmpeg_on_the_path_says_it_is_not_installed() {
     let err = String::from_utf8_lossy(&output.stderr);
     assert!(err.contains("ffmpeg"), "{err}");
     assert!(!Path::new(&out).exists(), "nothing is left behind");
+}
+
+#[test]
+fn a_quicktime_movie_needs_no_ffmpeg() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = square(dir.path());
+    let out = dir.path().join("movie.mov").to_string_lossy().into_owned();
+    let output = Command::new(env!("CARGO_BIN_EXE_flare"))
+        .env("PATH", "")
+        .args(["export", &file, &out, "--format", "mov"])
+        .output()
+        .expect("run cli");
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let bytes = std::fs::read(&out).expect("mov");
+    assert_eq!(
+        bytes.get(4..12),
+        Some(b"ftypqt  ".as_slice()),
+        "QuickTime's brand"
+    );
 }
 
 #[test]

@@ -50,7 +50,7 @@ Pořízeno v prohlížečové verzi, která spouští stejný editor jako deskto
 - Přehrávání zvuku na počítači a Testovací film, který spouští publikovaný SWF v Ruffle.
 - Otevírání a ukládání projektů `.flare`. Import a export XFL a `.fla` z Animate a otevírání filmů Flash (`.swf`) jako upravitelných projektů.
 - Import projektů Moho a pohybu BVH, scén OpenToonzu `.tnz` a úrovní `.pli` a také grafiky a filmů (SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV) jako upravitelných projektů.
-- Export PNG, JPEG, GIF, APNG, animovaného WebP, SVG, PSD a MP4, ostatních formátů filmů přes ffmpeg, a publikování SWF nebo stránky HTML5 Canvas.
+- Export PNG, JPEG, GIF, APNG, animovaného WebP, SVG, PSD, MP4 a MOV, ostatních formátů filmů přes ffmpeg, a publikování SWF nebo stránky HTML5 Canvas.
 - Příkazový řádek (`flare`) a server MCP (`flare-mcp`) pro agenty, které umožňují vytvářet, upravovat, exportovat a publikovat projekty ze skriptů.
 - Webová verze stejného editoru. Co dělá jinak, popisuje [docs/WEB.md](../WEB.md).
 

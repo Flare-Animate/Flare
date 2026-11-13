@@ -55,8 +55,11 @@ pub fn save_png(filter: &str) -> Option<PathBuf> {
     backend::save_png(filter)
 }
 
-pub fn save_gif(filter: &str) -> Option<PathBuf> {
-    backend::save_gif(filter)
+/// Where to write the movie: the list offers an animated GIF (first, the default), an MP4 video
+/// and a QuickTime movie, each named by its words in `filters`; the ending of the name that comes
+/// back decides which is written (`flare_platform::jobs::write_movie`).
+pub fn save_movie(filters: [&str; 3]) -> Option<PathBuf> {
+    backend::save_movie(filters)
 }
 
 /// Where to write a project as a Flash document.

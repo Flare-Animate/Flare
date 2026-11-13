@@ -53,6 +53,7 @@ impl Workspace {
             html5_responsive: self.publish.responsive,
             publish_gif: self.publish.gif,
             publish_mp4: self.publish.mp4,
+            publish_mov: self.publish.mov,
             language: self.language_choice.code().to_owned(),
             theme: self.theme_mode.code().to_owned(),
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
@@ -160,6 +161,7 @@ impl Workspace {
             responsive: preferences.html5_responsive,
             gif: preferences.publish_gif,
             mp4: preferences.publish_mp4,
+            mov: preferences.publish_mov,
         };
         self.home.recent = preferences
             .recent

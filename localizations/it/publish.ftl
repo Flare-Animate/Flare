@@ -11,3 +11,4 @@ pubpop-center = Centra la scena
 pubpop-responsive = Rendi adattivo
 pubpop-format-gif = GIF animata (.gif)
 pubpop-format-mp4 = Video MP4 (.mp4)
+pubpop-format-mov = Filmato QuickTime (.mov)

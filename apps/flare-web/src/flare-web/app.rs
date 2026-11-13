@@ -170,6 +170,10 @@ impl WebApp {
                     self.workspace
                         .report_message("MP4 is not available in the browser yet");
                 }
+                if settings.mov {
+                    self.workspace
+                        .report_message("MOV is not available in the browser yet");
+                }
                 if settings.gif {
                     self.deliver(
                         &format!("{name}.gif"),

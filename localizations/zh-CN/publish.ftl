@@ -11,3 +11,4 @@ pubpop-center = 舞台居中
 pubpop-responsive = 自适应窗口大小
 pubpop-format-gif = 动画 GIF（.gif）
 pubpop-format-mp4 = MP4 视频（.mp4）
+pubpop-format-mov = QuickTime 影片（.mov）
