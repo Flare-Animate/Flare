@@ -28,6 +28,18 @@ A proposta é oferecer suporte aos formatos dessas ferramentas, para que as pess
 
 O Flare está sendo reescrito em **Rust**. Ele se baseia principalmente em *OpenToonz* e *Tahoma2D*, com recursos incorporados de *AnimationCraft* e *Next2Flash*, que foram absorvidos pelo Flare. O código C++ antigo fica guardado como arquivo em [`original/`](../../original/README.md).
 
+## Capturas de tela
+
+<img src="../../assets/screenshots/workspace.png" width="800" alt="O editor com um projeto aberto: as ferramentas, o palco, uma linha do tempo de três camadas com uma interpolação de movimento e as propriedades do documento.">
+
+O editor com um projeto aberto: as ferramentas, o palco, uma linha do tempo de três camadas com uma interpolação de movimento e as propriedades do documento.
+
+<img src="../../assets/screenshots/tween.png" width="800" alt="No meio da interpolação, com papel de cebola mostrando os quadros ao redor e o símbolo na biblioteca.">
+
+No meio da interpolação, com papel de cebola mostrando os quadros ao redor e o símbolo na biblioteca.
+
+Feitas na versão para navegador, que executa o mesmo editor do aplicativo de desktop.
+
 ## Recursos
 
 - Desenho com as ferramentas de caneta, pincel e formas, com uma ferramenta de seleção para mover, agrupar e editar formas, e estilos de traço (sólido, tracejado, pontilhado, stipple, hachurado, irregular, espinha de peixe, corda, ziguezague).

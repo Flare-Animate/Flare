@@ -28,6 +28,18 @@ The aim is to support the formats those tools use, so people can open and keep w
 
 It is being rewritten in **Rust**. It is based predominantly on *OpenToonz* and *Tahoma2D*, with features merged in from *AnimationCraft* and *Next2Flash*, which have been absorbed into Flare. The old C++ code is kept in [`original/`](original/README.md) as an archive.
 
+## Screenshots
+
+<img src="assets/screenshots/workspace.png" width="800" alt="The editor with a project open: the tools, the stage, a timeline of three layers with a motion tween, and the document's properties.">
+
+The editor with a project open: the tools, the stage, a timeline of three layers with a motion tween, and the document's properties.
+
+<img src="assets/screenshots/tween.png" width="800" alt="Halfway through the tween, with onion skin showing the frames around it and the symbol in the Library.">
+
+Halfway through the tween, with onion skin showing the frames around it and the symbol in the Library.
+
+Taken in the browser build, which runs the same editor as the desktop app.
+
 ## Features
 
 - Drawing with pen, brush and shape tools, with a selection tool for moving, grouping and editing shapes, and stroke styles (solid, dashed, dotted, stipple, hatched, ragged, herringbone, rope, zigzag).
