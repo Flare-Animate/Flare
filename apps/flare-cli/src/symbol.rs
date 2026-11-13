@@ -1,5 +1,7 @@
-//! `flare symbol` and `flare rig`: a symbol's kind and playback, and skeleton rigs. The behaviour
-//! is in `flare-commands` and `flare-rig`; this parses arguments and prints. A rig is a JSON file
+//! `flare symbol` and `flare rig`: converting artwork to a symbol, a symbol's kind and playback,
+//! layers made into a symbol, and skeleton rigs. The behaviour is in `flare-tools`,
+//! `flare-commands`, `flare-editor` and `flare-rig`; this parses arguments and prints. A rig is a
+//! JSON file
 //! of its own for now (see docs/SURFACES.md): the project file does not hold rigs yet.
 
 use std::path::{Path, PathBuf};
@@ -75,6 +77,18 @@ pub enum SymbolCommand {
         first_frame: u32,
         #[arg(long)]
         layer: Option<Uuid>,
+    },
+    /// Move layers (a folder with everything in it) into a new symbol, and put an instance of
+    /// it where they were: Convert Layers to Symbol.
+    FromLayers {
+        path: PathBuf,
+        /// A layer to convert; give `--layer` once for each.
+        #[arg(long = "layer", required = true)]
+        layers: Vec<Uuid>,
+        #[arg(long)]
+        name: String,
+        #[arg(long, value_parser = kind_arg, default_value = "graphic")]
+        kind: SymbolKind,
     },
 }
 
@@ -185,6 +199,32 @@ pub fn run_symbol(op: SymbolCommand) -> Result<Value> {
             }])?;
             crate::project::commit_session(&session, &path)?;
             Ok(json!({ "frame": at, "mode": mode.name(), "first_frame": first_frame }))
+        }
+        SymbolCommand::FromLayers {
+            path,
+            layers,
+            name,
+            kind,
+        } => {
+            let mut session = crate::project::open_session(&path)?;
+            let (scene, _) = crate::project::first_scene_layer(&session, None)?;
+            let picked: Vec<flare_core::LayerId> = layers
+                .into_iter()
+                .map(flare_core::LayerId::from_uuid)
+                .collect();
+            let done = flare_editor::layers_to_symbol::convert_layers_to_symbol(
+                session.document(),
+                scene,
+                &picked,
+                &name,
+                kind,
+            )?;
+            session.apply(done.commands)?;
+            crate::project::commit_session(&session, &path)?;
+            Ok(
+                json!({ "symbol": done.symbol.as_uuid(), "layer": done.layer.as_uuid(),
+                       "kind": kind.name() }),
+            )
         }
     }
 }

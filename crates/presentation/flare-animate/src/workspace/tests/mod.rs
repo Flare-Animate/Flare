@@ -43,6 +43,8 @@ mod home_recent;
 mod language;
 mod layer_drag;
 mod layer_names;
+mod layer_ops;
+mod layer_transparency;
 mod layers_and_symbols;
 mod line_shift;
 mod live_transform;

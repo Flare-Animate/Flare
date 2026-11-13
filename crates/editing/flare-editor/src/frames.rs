@@ -14,6 +14,10 @@ use flare_commands::Command;
 
 /// Content for a new keyframe copied from `content`: same artwork, fresh identities so
 /// IDs stay unique across the document.
+pub(crate) fn duplicate_content(content: &Content) -> Option<Content> {
+    duplicate(content)
+}
+
 fn duplicate(content: &Content) -> Option<Content> {
     Some(match content {
         Content::Empty => Content::Empty,

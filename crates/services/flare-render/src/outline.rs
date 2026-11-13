@@ -81,6 +81,7 @@ fn as_lines<'a>(frame: &Frame<'a>, shapes: &'a [Shape], clips: bool) -> Frame<'a
                     Vec::new()
                 },
                 outline: drawn.outline,
+                view_alpha: drawn.view_alpha,
             })
             .collect(),
         clips: if clips {

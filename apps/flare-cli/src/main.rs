@@ -189,6 +189,13 @@ fn run() -> Result<()> {
         Command::TestMovie { path, ruffle } => project::test_movie(&path, ruffle)?,
         Command::Open { paths } => project::open_app(&paths)?,
         Command::Layer {
+            op: project::LayerOperation::Opacity,
+            path,
+            layer,
+            percent,
+            ..
+        } => project::layer_opacity(&path, layer, percent)?,
+        Command::Layer {
             op,
             path,
             layer,

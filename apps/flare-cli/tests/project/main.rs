@@ -12,6 +12,7 @@ mod elements;
 mod flipnote;
 mod formats;
 mod game;
+mod layer_ops;
 mod layers_and_stage;
 mod lossless;
 mod magic_wand;

@@ -48,7 +48,7 @@ use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};
 #[allow(unused_imports)]
 use timeline::*;
-pub use timeline::{FrameOperation, LayerOperation, frame_op, layer_op};
+pub use timeline::{FrameOperation, LayerOperation, LayerPlace, frame_op, layer_op, layer_opacity};
 
 /// Opens a project: a `.flare`, or an Animate `.fla`, `.xfl` or XFL folder (a movie is read too,
 /// to inspect or convert, but never written back).
@@ -109,6 +109,7 @@ pub fn info(path: &Path) -> Result<Value> {
                     let armature = flare_tools::bones::is_armature_layer(layer);
                     json!({ "id": layer.id().as_uuid(), "name": layer.name(),
                             "visible": layer.is_visible(), "locked": layer.is_locked(),
+                            "opacity": layer.view_opacity(),
                             "spans": layer.spans().len(), "elements": elements,
                             "armature": armature })
                 })

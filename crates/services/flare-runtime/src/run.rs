@@ -165,6 +165,10 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
         .map(Rendered::Straight)
         .map_err(|e| e.to_string());
     }
+    // A transparent layer is a view aid: the stage fades it, and only the stage comes here.
+    if flare_render::has_view_alpha(&current) {
+        return stage_with_view_alpha(job, &ghosts, &current).map_err(|e| e.to_string());
+    }
     if ghosts.is_empty() {
         flare_render::render_viewport_premultiplied(
             &current,
@@ -200,6 +204,55 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
         };
         image.map(Rendered::Straight).map_err(|e| e.to_string())
     }
+}
+
+/// The frame with its transparent layers faded, over the ghosts when there are any.
+fn stage_with_view_alpha(
+    job: &RenderJob,
+    ghosts: &[(&flare_eval::Frame<'_>, f32, Option<flare_core::Rgba8>)],
+    current: &flare_eval::Frame<'_>,
+) -> Result<Rendered, flare_render::RenderError> {
+    let [width, height] = job.size;
+    if ghosts.is_empty() {
+        return flare_render::render_stage_viewport(
+            current,
+            &job.viewport,
+            width,
+            height,
+            job.background,
+        )
+        .map(Rendered::Straight);
+    }
+    let empty = flare_eval::Frame::default();
+    let mut image = if job.outlines {
+        let pixel = job.viewport.width / f64::from(width.max(1));
+        flare_render::render_onion_outlines_viewport(
+            ghosts,
+            &empty,
+            &job.viewport,
+            width,
+            height,
+            job.background,
+            pixel,
+        )?
+    } else {
+        flare_render::render_onion_viewport(
+            ghosts,
+            &empty,
+            &job.viewport,
+            width,
+            height,
+            job.background,
+        )?
+    };
+    image.composite(&flare_render::render_stage_viewport(
+        current,
+        &job.viewport,
+        width,
+        height,
+        flare_core::Rgba8::TRANSPARENT,
+    )?)?;
+    Ok(Rendered::Straight(image))
 }
 
 /// An import's outcome as the document and one line per thing that was not carried over.
@@ -290,6 +343,7 @@ fn show_text_preview(frame: &mut flare_eval::Frame<'_>, preview: &crate::jobs::T
             transform: glamx::DAffine2::IDENTITY,
             clips: Vec::new(),
             outline: flare_core::Rgba8::TRANSPARENT,
+            view_alpha: 1.0,
         }),
         (None, None) => {}
     }

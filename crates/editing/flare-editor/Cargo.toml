@@ -12,6 +12,7 @@ flare-core.workspace = true
 flare-document.workspace = true
 flare-eval.workspace = true
 flare-history.workspace = true
+thiserror.workspace = true
 
 [lints]
 workspace = true

@@ -20,6 +20,8 @@ pub enum LayerChange {
     Outline(Option<flare_core::Rgba8>),
     /// Puts the layer in a folder, or takes it out with `None`.
     Parent(Option<LayerId>),
+    /// How opaque the stage draws the layer, in percent (held at 100); exports ignore it.
+    ViewOpacity(u8),
 }
 
 #[derive(Debug, Clone, PartialEq)]

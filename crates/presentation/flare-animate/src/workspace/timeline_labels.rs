@@ -94,7 +94,10 @@ impl Workspace {
                     Rect::from_min_size(Pos2::new(x, y + 4.0), Vec2::splat(14.0)),
                 );
             };
-            let (eye, eye_tint) = if layer.is_visible() {
+            // A transparent layer's eye is half drawn, as the layer is.
+            let (eye, eye_tint) = if layer.is_visible() && layer.view_opacity() < 100 {
+                ("eye", ink.gamma_multiply(0.45))
+            } else if layer.is_visible() {
                 ("eye", ink)
             } else {
                 ("eye-off", dim)

@@ -155,6 +155,41 @@ pub enum LayerOperation {
     /// Move the layer (a folder with everything in it) to just above `--before`, or to the
     /// bottom without it, into the folder `--folder` or out of any folder without it.
     Move,
+    /// Show every hidden layer (`--layer` is not needed).
+    ShowAll,
+    /// Lock every layer but this one and the folders it is in, and unlock those.
+    LockOthers,
+    /// Hide every layer but this one and the folders it is in, and show those.
+    HideOthers,
+    /// Put a copy of the layer (a folder with everything in it) just above it.
+    Duplicate,
+    /// Draw the layer see-through on the stage while editing (`--percent`, 0 to 100); exports
+    /// always draw it whole.
+    Opacity,
+}
+
+/// Where `move` puts a layer: above which layer, and in which folder.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct LayerPlace {
+    pub before: Option<Uuid>,
+    pub folder: Option<Uuid>,
+}
+
+/// Sets how opaque the stage draws a layer while editing, as one undo step.
+pub fn layer_opacity(path: &Path, layer: Option<Uuid>, percent: Option<u8>) -> Result<Value> {
+    let percent = percent.context("opacity needs --percent, 0 to 100")?;
+    if percent > 100 {
+        anyhow::bail!("--percent is 0 to 100, not {percent}");
+    }
+    let mut session = open(path)?;
+    let (scene, layer) = target_layer(&session, layer)?;
+    session.apply([flare_commands::Command::UpdateLayer {
+        scene,
+        layer,
+        change: flare_commands::LayerChange::ViewOpacity(percent),
+    }])?;
+    commit(&session, path)?;
+    Ok(json!({ "applied": "Opacity", "layer": layer.as_uuid(), "percent": percent }))
 }
 
 /// Layer management on the first scene. `layer` defaults to the first layer.
@@ -165,6 +200,7 @@ pub fn layer_op(
     name: Option<&str>,
     place: LayerPlace,
 ) -> Result<Value> {
+    use flare_editor::layer_ops;
     let mut session = open(path)?;
     let (scene, layer) = target_layer(&session, layer)?;
     let named = |id: Option<Uuid>| -> Result<Option<flare_core::LayerId>> {
@@ -173,6 +209,7 @@ pub fn layer_op(
     };
     let (before, folder) = (named(place.before)?, named(place.folder)?);
     let document = session.document();
+    let mut copy = None;
     let commands = match op {
         LayerOperation::Rename => {
             layers::rename(scene, layer, name.context("rename needs --name")?)?
@@ -191,8 +228,19 @@ pub fn layer_op(
             }
             commands
         }
+        LayerOperation::ShowAll => layer_ops::show_all(document, scene),
+        LayerOperation::LockOthers => layer_ops::lock_others(document, scene, layer)?,
+        LayerOperation::HideOthers => layer_ops::hide_others(document, scene, layer)?,
+        LayerOperation::Opacity => anyhow::bail!("opacity needs --percent"),
+        LayerOperation::Duplicate => {
+            let (commands, id) = layer_ops::duplicate(document, scene, layer)?;
+            copy = Some(id);
+            commands
+        }
     };
     session.apply(commands)?;
     commit(&session, path)?;
-    Ok(json!({ "applied": format!("{op:?}"), "layer": layer.as_uuid() }))
+    Ok(
+        json!({ "applied": format!("{op:?}"), "layer": layer.as_uuid(), "copy": copy.as_ref().map(|c| c.as_uuid()) }),
+    )
 }

@@ -27,6 +27,7 @@ impl Layer {
             guide: false,
             camera: false,
             outline: None,
+            view_opacity: 100,
             parent: None,
             cues: Arc::from([]),
         })
@@ -42,6 +43,7 @@ impl Layer {
         layer.guide = self.guide;
         layer.camera = self.camera;
         layer.outline = self.outline;
+        layer.view_opacity = self.view_opacity;
         layer.parent = self.parent;
         layer.cues = Arc::clone(&self.cues);
         Ok(layer)
@@ -97,6 +99,14 @@ impl Layer {
         self
     }
 
+    /// How opaque the stage draws the layer while it is edited, in percent (held at 100). Below
+    /// 100 the layer is transparent, as Animate's Layer Properties has it; exports ignore it.
+    #[must_use]
+    pub fn with_view_opacity(mut self, percent: u8) -> Self {
+        self.view_opacity = percent.min(100);
+        self
+    }
+
     /// Makes this layer a folder (or a plain layer again). Folders hold no spans.
     #[must_use]
     pub fn with_folder(mut self, folder: bool) -> Self {
@@ -140,6 +150,11 @@ impl Layer {
     pub fn outline_or_default(&self, index: usize) -> Rgba8 {
         self.outline
             .unwrap_or(OUTLINE_PALETTE[index % OUTLINE_PALETTE.len()])
+    }
+
+    /// How opaque the stage draws the layer, in percent; 100 unless it is transparent.
+    pub fn view_opacity(&self) -> u8 {
+        self.view_opacity
     }
 
     pub fn is_guide(&self) -> bool {

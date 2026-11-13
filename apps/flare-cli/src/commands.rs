@@ -337,7 +337,8 @@ pub(crate) enum Command {
         #[arg(long)]
         onto: Option<uuid::Uuid>,
     },
-    /// Rename, hide/show, lock/unlock, reorder or delete a layer.
+    /// Rename, hide/show, lock/unlock, reorder, duplicate, delete or make transparent a layer;
+    /// show all layers, or lock or hide all but one.
     Layer {
         #[arg(value_enum)]
         op: project::LayerOperation,
@@ -354,6 +355,10 @@ pub(crate) enum Command {
         /// layer is taken out of any folder.
         #[arg(long)]
         folder: Option<uuid::Uuid>,
+        /// For `opacity`: how opaque the stage draws the layer while editing, 0 to 100 (100 is
+        /// opaque; exports always draw it whole).
+        #[arg(long)]
+        percent: Option<u8>,
     },
     /// Import an XFL directory, .xfl, .fla, .swf, Moho, BVH or Toonz file into a new project, listing what was
     /// not carried over.

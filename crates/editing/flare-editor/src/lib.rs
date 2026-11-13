@@ -5,6 +5,8 @@
 mod camera;
 mod context;
 pub mod frames;
+pub mod layer_ops;
+pub mod layers_to_symbol;
 pub mod loop_range;
 pub mod timeline_view;
 

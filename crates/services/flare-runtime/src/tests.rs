@@ -342,3 +342,47 @@ fn a_view_reaching_past_the_stage_draws_the_artwork_there_over_nothing() {
         "the stage color is the editor's to paint under the picture"
     );
 }
+
+#[test]
+fn the_stage_fades_a_transparent_layer_with_or_without_ghosts() {
+    use flare_document::{Content, FrameSpan, Shape};
+    let red = Rgba8::opaque(255, 0, 0);
+    let rect = Shape::rect(flare_core::ShapeId::new(), 0.0, 0.0, 16.0, 8.0, red).expect("rect");
+    let span = |start: u32| {
+        FrameSpan::new(
+            start,
+            std::num::NonZeroU32::new(1).expect("one"),
+            Content::Shape(rect.clone()),
+        )
+    };
+    let layer = Layer::new(LayerId::new(), "Rough", vec![span(0)])
+        .expect("layer")
+        .with_view_opacity(50);
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![layer]));
+    let document = Arc::new(
+        Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![scene],
+            vec![],
+        )
+        .expect("document"),
+    );
+    let mut runtime = Runtime::inline();
+    let plain = render_job(&mut runtime, &document);
+    let [r, g, b, _] = pixel_of(run_render(&plain), 4, 4);
+    assert!(
+        r == 255 && (126..=130).contains(&g) && g == b,
+        "half red: {r} {g} {b}"
+    );
+    // The onion path fades it too: an empty ghost under it changes nothing.
+    let ghosted = RenderJob {
+        ghosts: vec![(1, 0.3)],
+        ..render_job(&mut runtime, &document)
+    };
+    let [r, g, b, _] = pixel_of(run_render(&ghosted), 4, 4);
+    assert!(
+        r == 255 && (126..=130).contains(&g) && g == b,
+        "half red: {r} {g} {b}"
+    );
+}

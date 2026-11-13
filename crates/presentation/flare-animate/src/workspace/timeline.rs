@@ -376,6 +376,9 @@ impl Workspace {
             self.select_layer(id);
         } else if response.double_clicked() && layer_names::on_name(p.x, edge) {
             self.begin_layer_rename(id);
+        } else if response.clicked() && eye && response.ctx.input(|i| i.modifiers.shift) {
+            // Shift on the eye makes the layer transparent, or opaque again, as in Animate.
+            self.toggle_layer_transparent(id);
         } else if response.clicked() && eye {
             self.toggle_layer_visible(id);
         } else if response.clicked() && lock {

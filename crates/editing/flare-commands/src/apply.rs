@@ -174,6 +174,7 @@ fn step(
                 LayerChange::Guide(guide) => slot.clone().with_guide(guide),
                 LayerChange::Outline(color) => slot.clone().with_outline(color),
                 LayerChange::Parent(parent) => slot.clone().with_parent(parent),
+                LayerChange::ViewOpacity(percent) => slot.clone().with_view_opacity(percent),
             };
             Ok(())
         })?,

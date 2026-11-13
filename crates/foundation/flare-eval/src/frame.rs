@@ -69,6 +69,7 @@ impl Frame<'_> {
             bitmap.bitmap.id().hash(&mut hasher);
             bitmap.after_shapes.hash(&mut hasher);
             bitmap.opacity.to_bits().hash(&mut hasher);
+            bitmap.view_alpha.to_bits().hash(&mut hasher);
             bitmap.clips.hash(&mut hasher);
             for value in bitmap.transform.to_cols_array() {
                 value.to_bits().hash(&mut hasher);
@@ -81,6 +82,7 @@ impl Frame<'_> {
                 value.to_bits().hash(&mut hasher);
             }
             drawn.clips.hash(&mut hasher);
+            drawn.view_alpha.to_bits().hash(&mut hasher);
         }
         // Masks change what shows even when the masked shapes stay put.
         for clip in &self.clips {
@@ -114,6 +116,9 @@ pub struct DrawnShape<'a> {
     pub clips: Vec<usize>,
     /// The color of the layer the shape is on, which outline mode draws it in.
     pub outline: Rgba8,
+    /// How opaque the stage draws the shape while it is edited, from 0 to 1: the view opacity of
+    /// the layers it is on, multiplied down through symbols. Exports ignore it.
+    pub view_alpha: f32,
 }
 
 /// A bitmap placed on the stage.
@@ -127,4 +132,6 @@ pub struct DrawnBitmap<'a> {
     /// How many of `Frame::shapes` come before this bitmap in draw order.
     pub after_shapes: usize,
     pub clips: Vec<usize>,
+    /// As [`DrawnShape::view_alpha`]: for the stage only.
+    pub view_alpha: f32,
 }

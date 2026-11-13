@@ -17,6 +17,7 @@ mod paint_hits;
 mod shapes;
 mod still;
 mod stroke_patterns;
+mod view_alpha;
 mod viewport;
 
 const RED: Rgba8 = Rgba8::opaque(255, 0, 0);

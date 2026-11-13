@@ -275,6 +275,9 @@ pub struct Layer {
     camera: bool,
     /// The color the layer is drawn in by outline mode and marked with in the timeline.
     outline: Option<Rgba8>,
+    /// How opaque the layer is drawn on the stage while it is edited, in percent: Animate's
+    /// transparent layer, to draw over a rough. Exports always draw it whole.
+    view_opacity: u8,
     /// The folder this layer sits in. It must be a folder layer above this one.
     parent: Option<LayerId>,
     /// Sounds that start at frames of this layer, in order of frame. Shared like the spans.
