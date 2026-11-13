@@ -2161,6 +2161,7 @@ dependencies = [
  "flare-i18n",
  "flare-import",
  "flare-input",
+ "flare-mannequin",
  "flare-menubar",
  "flare-publish",
  "flare-recent",
@@ -2208,6 +2209,7 @@ dependencies = [
  "flare-game",
  "flare-history",
  "flare-import",
+ "flare-mannequin",
  "flare-menubar",
  "flare-publish",
  "flare-render",
@@ -2423,6 +2425,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "flare-mannequin"
+version = "0.1.0"
+dependencies = [
+ "flare-core",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "flare-mcp"
 version = "0.1.0"
 dependencies = [
@@ -2439,6 +2452,7 @@ dependencies = [
  "flare-game",
  "flare-history",
  "flare-import",
+ "flare-mannequin",
  "flare-menubar",
  "flare-publish",
  "flare-render",
@@ -2731,6 +2745,7 @@ dependencies = [
  "flare-game",
  "flare-history",
  "flare-input",
+ "flare-mannequin",
  "flare-tween",
  "glamx",
  "i_overlay",

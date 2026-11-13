@@ -33,6 +33,7 @@ flare-storage.workspace = true
 flare-text.workspace = true
 flare-menubar.workspace = true
 flare-tools.workspace = true
+flare-mannequin.workspace = true
 flare-stopmotion.workspace = true
 glamx.workspace = true
 uuid.workspace = true

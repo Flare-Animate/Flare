@@ -258,6 +258,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ShowTransform),
             Action(A::ShowHistory),
             Action(A::ShowInfo),
+            Action(A::ShowMannequin),
             Action(A::ShowOutput),
             Separator,
             Submenu(

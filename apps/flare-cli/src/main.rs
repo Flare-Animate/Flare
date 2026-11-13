@@ -3,6 +3,7 @@
 
 mod commands;
 mod game;
+mod mannequin;
 mod project;
 mod shortcuts;
 mod stopmotion;
@@ -122,6 +123,7 @@ fn run() -> Result<()> {
         Command::Tween { op } => tween::run(op)?,
         Command::Game { op } => game::run(op)?,
         Command::Shortcuts { op } => shortcuts::run(op)?,
+        Command::Mannequin { op } => mannequin::run(op)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,

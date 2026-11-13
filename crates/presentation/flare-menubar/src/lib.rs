@@ -170,10 +170,12 @@ pub enum MenuAction {
     CommandPalette,
     /// Window > Swatches.
     ShowSwatches,
+    /// Window > Mannequin: the posable figure to draw from.
+    ShowMannequin,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 138] = [
+    pub const ALL: [MenuAction; 139] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -312,6 +314,7 @@ impl MenuAction {
         Self::WorkspaceSmallScreen,
         Self::CommandPalette,
         Self::ShowSwatches,
+        Self::ShowMannequin,
     ];
 
     /// A stable identifier for native menu items (the variant name).

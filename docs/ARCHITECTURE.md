@@ -26,10 +26,11 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, the pressure-to-width curve, and the stabilizer that averages a hand's last samples. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
 | foundation | `flare-tween` | Interpolation and easing, cubic-bezier keyframe handles, extrapolation, in-betweens of strokes and of rasters. See Tweening below. |
 | foundation | `flare-rig` | Skeletal rigs for symbols: bones, keyed poses, forward kinematics and bounded IK, as pure data and functions. See Symbols and rigging below. |
+| foundation | `flare-mannequin` | The posable reference figure, a 3D drawing figure: a man's or a woman's body with seven proportions, seventeen joints held to anatomical limits, built-in poses (`data/poses.json`), forward kinematics, one smooth skinned surface built from cross-sections, an orbiting camera with optional perspective, and a software renderer that shades it with guide lines, an outline and a floor shadow; posing by dragging any part with pinned hands and feet, by rings that turn one axis, by a turn about the line of sight or a two-bone reach; a bounded, versioned JSON form and a `Request` the command line and MCP server build a figure from. See The reference mannequin below. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
-| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines (one width function for the outline and the live preview, with speed and tapers), nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, Edit Multiple Frames (the keyframes a range shows, picks and transforms), the anchor point tools, the Ruler and the Mirror, the Magic Wand (picking the pixels of a bitmap by color and clearing them), and the operations of the Paint Bucket, Ink Bottle and Eyedropper, the Eraser (cutting fills and lines along its path with `i_overlay`, or deleting whole elements), Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
+| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines (one width function for the outline and the live preview, with speed and tapers), nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, Edit Multiple Frames (the keyframes a range shows, picks and transforms), the anchor point tools, the Ruler and the Mirror, the Magic Wand (picking the pixels of a bitmap by color and clearing them), placing the reference mannequin on a layer (`mannequin`), and the operations of the Paint Bucket, Ink Bottle and Eyedropper, the Eraser (cutting fills and lines along its path with `i_overlay`, or deleting whole elements), Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
 | editing | `flare-stopmotion` | The stop-motion domain as data: a capture session, its frames, onion skin and the timeline it exports to. No camera is opened here (`NoCamera` answers with a named error). |
 | io | `flare-storage` | The `.flare` SQLite container with compressed CBOR records: save, load, revalidation, crash recovery files. |
 | io | `flare-import` | Import: XFL directories, zipped modern `.fla` files and Flash movies (`.swf`) into a Flare document, with a diagnostic for everything it cannot carry over. |
@@ -500,7 +501,7 @@ The policy is deliberately honest rather than clever:
 
 ## Frontends
 
-`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`, `camera`, `bone`, `bones`,
+`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`, `camera`, `bone`, `bones`, `mannequin`,
 `layer`, `place`, `frame`, `eval`, `export`, `export-frames`, `inspect`, `rate`.
 
 Inside `flare-animate`, `Workspace` is the one object the window talks to, and its topics are modules
@@ -585,6 +586,57 @@ on the desktop and in the browser, `flare tween` and the MCP tools; a span witho
 Animate-style Ease in `flare-eval` (`eased`). Not wired yet: per-property graphs over a whole
 `Curve`, which has no document model. See the rows in [SURFACES.md](SURFACES.md) and the plan in
 [ROADMAP.md](ROADMAP.md).
+
+## The reference mannequin
+
+A 3D figure to draw from, as Clip Studio's drawing figures are, and not a 3D editor: one body
+built in code, one light, and no file of its own beyond a small JSON form. `flare-mannequin` keeps
+it as data (a `Body`, `Proportions`, a `Pose` of seventeen joints' bend, twist and side angles
+plus a lift, and a `View` of yaw, pitch and field of view). A joint's angles twist about the bone
+first, then bend, then swing sideways, so a twist never moves where a bone points; the right
+side's twist and swing are mirrored, so one set of limits and presets serves both sides and Mirror
+is a swap. Reading a turned frame back into angles tries both solutions of the decomposition and
+keeps the one inside the limits, so an arm raised overhead does not flip.
+
+The body is one surface (`shape.rs`, `skin.rs`): tubes of cross-sections for the torso, neck,
+head, arms, legs, hands with fingers, feet and a woman's chest, from tables for each build drawn
+from the eight-heads figure of life drawing and scaled by the proportions, laid along the skeleton
+at rest. Each point is moved by up to two joints in shares (linear blend skinning), so a knee or
+an elbow bends as one surface; overlapping tubes join where the depth buffer meets them. Each
+point also carries where it is on the guide lines round and along the body. `render.rs` and
+`raster.rs` are a small software renderer: the triangles are filled into samples with a depth
+buffer, lit per corner from the upper left in front of the camera, with the guide lines drawn per
+sample from those coordinates (the lines down the middle of the front and back in orange), an
+outline where the body ends or a nearer part stands in front of a further one, and the shadow of
+every triangle cast straight onto the floor. Small pictures are made at twice the size and brought
+down. Each pixel keeps the joint whose part it shows, so a press picks what is seen. The camera
+looks at the middle of where the figure stands and stays there, so a lifted or lowered body is
+seen to move over a still floor.
+
+Posing (`grab.rs`, `rings.rs`, `manipulate.rs`): a part taken hold of follows the pointer at the
+depth it was taken. A hand, forearm, foot or shin is a two-bone reach of the hand or foot (the law
+of cosines for the elbow or knee, which bends only its own way, then the smallest swing of the
+shoulder or hip onto the point, at most eight rounds). An upper arm, thigh, the waist, chest, neck
+or head swings about its joint so its far end lands where the line of sight under the pointer
+meets the sphere it can reach, nearer the side it was on. The hips move the whole body. After
+each step the pinned hands and feet reach back to where they were. A ring turns one joint about
+one of its three axes by the distance the pointer went along it.
+
+The workspace keeps the figure outside the document (`workspace/mannequin.rs`): the Mannequin panel
+poses it, the stage can show it see-through over the artwork without it ever being in the document
+or an export, and the figure is kept with the preferences. Each picture on screen is made again
+only when the figure, the view or its size changes. Place on a Layer is
+`flare_tools::mannequin::place`: one batch that adds the shaded picture to the bitmap library and
+a layer at the top of the scene showing it, drawn at half opacity while editing, in a keyframe
+from the playhead to the end of the scene, at two pixels to a stage unit.
+`flare_tools::mannequin::place_onto` puts it on an existing layer instead: into the keyframe at
+the frame through `ops::place_contents` (the drawing tools' rules for which layers take art), or
+as a keyframe of its own there, cutting short the one shown at that frame. A picture the library
+already has (the same pose placed again) is shown rather than added twice. The workspace then
+selects it with Free Transform, and the Selection tools pick a bitmap where no shape is
+(`Workspace::pick`), so it is moved, scaled and turned like any picture. That layer is ordinary
+artwork and is exported unless it is hidden or deleted. `flare mannequin` and the MCP
+tools `list_mannequin`, `picture_mannequin` and `place_mannequin` call the same functions.
 
 ## Symbols and rigging
 

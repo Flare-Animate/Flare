@@ -296,9 +296,9 @@ change is one undo step.
 ## Icon strip
 
 The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
-kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor and Find and
-Replace. A click opens that panel beside the strip, 300 px wide and level with its icon, over the
-stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
+kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor, Find and
+Replace and Mannequin. A click opens that panel beside the strip, 300 px wide (its left edge drags
+it wider or narrower) and level with its icon, over the stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
 a press on the stage or another panel puts it away (a list or picker the panel opened does not).
 Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
 collapse it. A docked panel goes the other way from the collapse button at the right of its
@@ -525,6 +525,45 @@ gradient's end), and pointing at one shows its hex value. The + keeps the color 
 of the person's own (each color once, at most 120; a full list says so), and a right click on one
 of them deletes it. They are kept with the preferences, not in the document. The web-safe colors
 are the web's standard palette, not Animate's artwork.
+
+## Mannequin
+
+The Mannequin panel (Window > Mannequin, in the icon strip by default) is a 3D figure to pose and
+draw from, as Clip Studio's 3D drawing figures are: a smooth male or female body, pale grey and
+lit from the upper left, with guide lines round and along it (the lines down the middle of the
+front and back in orange), an outline, and its shadow on a floor grid. Posing works as it does
+with such a figure. A drag on any part pulls it and the body follows: a hand, forearm, foot or
+shin brings the arm or leg with it, an upper arm, thigh, the head or the chest swings about its
+joint, and the hips move the whole body. Pinned hands and feet stay where they are (both feet
+start pinned, so the hips dragged down crouch over them). A right click on a hand or foot, or the
+Pinned toggles under the view, pins or frees it. A click picks a part, tints it, and shows three
+rings round its joint (bend red, twist green, side blue, the half toward the viewer bold); a drag
+along a ring turns the joint about that axis alone. With Alt a drag turns a part about the line of
+sight. A drag anywhere else turns the view round the figure, a right or middle drag (or Shift)
+moves it across, and scrolling zooms. Every joint stops where a body does: a knee bends one way, a
+neck turns so far. Above the view: Reset view, guide lines on or off, pin both feet, and at the
+right the expand button, which makes the panel wide and the view tall (again to put it back). A
+grip under the view drags it taller or shorter (a double click puts it back). Under the view: the
+body, the built-in poses (Stand, T-Pose, A-Pose, Walk, Run, Sit, Crouch, Kneel, Jump, Reach Up,
+Wave), Mirror and Reset; Pinned; Bend, Twist and Side sliders for the picked joint (and Raise for
+the whole body); Proportions (head, shoulders, hips, arms, legs, torso and build); and View (turn,
+tilt, perspective, zoom, and Front, Side and Back).
+
+On the Stage shows the figure over the stage, see-through, at a place and height of its own (the
+middle of the stage, four fifths of its height, to start); it is only drawn on the screen and is
+never in the document or an export. Place on a Layer puts it, shaded as the view shows it, as a
+picture where Place Into says, as one undo step: New layer, a layer named Mannequin at the top of
+the scene from the playhead to the end, drawn at half opacity while editing; This keyframe, the
+active layer's keyframe at the playhead beside what it holds, so several figures share the same
+frames; or New keyframe here, a keyframe of its own on the active layer from the playhead (the one
+shown there is cut short), so each stretch of frames of one layer can hold another pose. Where the
+layer shows nothing at the playhead either of the last two starts a keyframe up to the layer's
+next one; a locked or hidden layer, a folder, mask, guide or camera layer is refused with the
+reason. The same pose placed again shows the picture the library already has. The placed figure
+is selected with Free Transform: drag it to move it and its handles to scale, turn or skew it, as
+any picture (the Selection tool picks it again anywhere in its rectangle; lock the layer to draw
+over it without picking it). It is artwork like any other, so it is hidden or deleted before
+export. The figure is kept with the preferences, not in the document.
 
 ## Info panel
 

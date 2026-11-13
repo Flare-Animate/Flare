@@ -44,6 +44,7 @@ mod home_list;
 mod language;
 mod layer_names;
 mod layers;
+mod mannequin;
 mod open_any;
 mod outlines;
 mod palette;
@@ -329,6 +330,8 @@ pub struct Workspace {
     styled_touch: Option<bool>,
     /// The command palette's state.
     search_palette: palette::Palette,
+    /// The reference mannequin and the panel's view of it.
+    mannequin: mannequin::MannequinState,
 }
 
 impl Workspace {
@@ -469,6 +472,7 @@ impl Workspace {
             touch: false,
             styled_touch: None,
             search_palette: palette::Palette::default(),
+            mannequin: mannequin::MannequinState::default(),
         }
     }
 }

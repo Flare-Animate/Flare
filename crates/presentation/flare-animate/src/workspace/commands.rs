@@ -169,6 +169,7 @@ impl Workspace {
             | MenuAction::ShowOutput
             | MenuAction::ShowInfo
             | MenuAction::ShowSwatches
+            | MenuAction::ShowMannequin
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleEditMultipleFrames
@@ -378,6 +379,7 @@ impl Workspace {
             MenuAction::ShowOutput => self.show_pane(Pane::Output),
             MenuAction::ShowInfo => self.show_pane(Pane::Info),
             MenuAction::ShowSwatches => self.show_pane(Pane::Swatches),
+            MenuAction::ShowMannequin => self.show_pane(Pane::Mannequin),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleEditMultipleFrames => {

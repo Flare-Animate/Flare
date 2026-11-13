@@ -51,6 +51,7 @@ mod line_shift;
 mod live_transform;
 mod loop_range;
 mod magic_wand;
+mod mannequin;
 mod menus_and_recovery;
 mod menus_like_animate;
 mod motion_editor;

@@ -34,3 +34,4 @@ swatches-yours = Vaše vzorky
 swatches-add = Ponechat aktuální barvu
 swatches-remove = Smazat vzorek
 swatches-full = Vaše vzorky jsou plné ({ $max }).
+strip-resize = Tažením panel rozšíříte nebo zúžíte

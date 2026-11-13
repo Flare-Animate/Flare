@@ -58,7 +58,7 @@ Drawing and tools
 - Perspective guides: one-, two- and three-point sets with editable vanishing points and a horizon, snapping, and no part of the exported artwork
 - Toon shading and lighting brushes: paint a chosen shadow or highlight level that stays at that level however often it is painted over, kept apart from the artwork so a recolor keeps the shading, with editable tone ramps
 - A reference board dock (images, notes, color picking and pinned views) that is saved with the project and never exported
-- A poseable mannequin for reference (joints, pose presets, adjustable proportions, a captured pose as a picture), not a 3D editor
+- A poseable 3D mannequin for reference: done (Window > Mannequin, `flare mannequin`, `picture_mannequin`, `place_mannequin`; see UI.md). Still to come: posing it on the stage itself, a list of the person's own poses, keeping it in the project, and fingers that bend
 - Selecting objects inside a bitmap, as Photoshop's Object Selection does
 
 Timeline, symbols and library

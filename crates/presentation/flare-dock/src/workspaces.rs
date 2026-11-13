@@ -104,6 +104,7 @@ impl Preset {
                     P::History,
                     P::MotionEditor,
                     P::FindReplace,
+                    P::Mannequin,
                 ]],
             }),
         };

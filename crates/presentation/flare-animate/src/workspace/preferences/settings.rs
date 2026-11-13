@@ -72,6 +72,9 @@ pub struct Preferences {
     pub recent: Vec<String>,
     /// The person's own swatches, as `[r, g, b, a]`.
     pub swatches: Vec<[u8; 4]>,
+    /// The reference mannequin as it was last posed (`flare_mannequin`'s figure JSON); empty is
+    /// the default figure.
+    pub mannequin: String,
 }
 
 fn rgb(color: flare_core::Rgba8) -> [u8; 3] {
@@ -125,6 +128,7 @@ impl Default for Preferences {
             shortcuts: String::new(),
             recent: Vec::new(),
             swatches: Vec::new(),
+            mannequin: String::new(),
         }
     }
 }

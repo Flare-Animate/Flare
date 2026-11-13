@@ -17,6 +17,7 @@ mod layer_ops;
 mod layers_and_stage;
 mod lossless;
 mod magic_wand;
+mod mannequin;
 mod moho;
 mod movies;
 mod multi_frame;

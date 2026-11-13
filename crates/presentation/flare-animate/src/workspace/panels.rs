@@ -26,6 +26,8 @@ mod onion_settings;
 pub(super) use info::color_at as info_color_at;
 mod character;
 pub(crate) mod library;
+pub(crate) mod mannequin;
+pub(crate) mod mannequin_view;
 mod properties;
 mod properties_interp;
 mod properties_object;

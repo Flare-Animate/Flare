@@ -34,3 +34,4 @@ swatches-yours = Tus muestras
 swatches-add = Guardar el color actual
 swatches-remove = Eliminar muestra
 swatches-full = Tus muestras están llenas ({ $max }).
+strip-resize = Arrastra para ensanchar o estrechar el panel

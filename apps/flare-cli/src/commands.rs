@@ -293,6 +293,11 @@ pub(crate) enum Command {
         #[command(subcommand)]
         op: crate::game::GameCommand,
     },
+    /// The reference mannequin: list what a figure can be, print one, place one on a layer.
+    Mannequin {
+        #[command(subcommand)]
+        op: crate::mannequin::MannequinCommand,
+    },
     /// Keyboard shortcuts: list a set, export one as a file, check and import a file.
     Shortcuts {
         #[command(subcommand)]

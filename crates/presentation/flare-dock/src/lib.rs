@@ -50,10 +50,12 @@ pub enum Pane {
     Assets,
     /// The web-safe colors, greys and the person's own swatches.
     Swatches,
+    /// The posable figure to draw from.
+    Mannequin,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 16] = [
+    pub const ALL: [Pane; 17] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
@@ -70,6 +72,7 @@ impl Pane {
         Pane::FindReplace,
         Pane::Assets,
         Pane::Swatches,
+        Pane::Mannequin,
     ];
 
     /// The icon of the panel in the strip at the right edge, for the panels that can be kept
@@ -88,6 +91,7 @@ impl Pane {
             Self::FindReplace => "panel-find",
             Self::Assets => "panel-assets",
             Self::Swatches => "panel-swatches",
+            Self::Mannequin => "panel-mannequin",
             Self::Tools | Self::Stage | Self::Timeline | Self::Output => return None,
         })
     }
@@ -117,6 +121,7 @@ impl Pane {
             Self::FindReplace => "pane-find-replace",
             Self::Assets => "pane-assets",
             Self::Swatches => "pane-swatches",
+            Self::Mannequin => "pane-mannequin",
         }
     }
 
@@ -139,6 +144,7 @@ impl Pane {
             Self::FindReplace => "Find and Replace",
             Self::Assets => "Assets",
             Self::Swatches => "Swatches",
+            Self::Mannequin => "Mannequin",
         }
     }
 }

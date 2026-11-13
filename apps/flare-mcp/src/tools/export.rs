@@ -15,7 +15,7 @@ use crate::server::{FlareServer, Outcome, State};
 use flare_runtime::StillFormat;
 
 /// The export directory, created if needed, or the reason exports are off.
-pub(super) fn export_dir(state: &State) -> Result<PathBuf, String> {
+pub(crate) fn export_dir(state: &State) -> Result<PathBuf, String> {
     let dir = state
         .permissions
         .export_dir
@@ -26,7 +26,7 @@ pub(super) fn export_dir(state: &State) -> Result<PathBuf, String> {
 }
 
 /// `dir/name`, refused when something is already there.
-pub(super) fn fresh(dir: &std::path::Path, name: &str) -> Result<PathBuf, String> {
+pub(crate) fn fresh(dir: &std::path::Path, name: &str) -> Result<PathBuf, String> {
     let out = dir.join(name);
     if out.exists() {
         return Err(format!("{name} already exists in the export directory"));

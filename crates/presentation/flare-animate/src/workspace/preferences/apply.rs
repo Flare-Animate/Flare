@@ -75,6 +75,7 @@ impl Workspace {
                 .iter()
                 .map(|c| [c.r, c.g, c.b, c.a])
                 .collect(),
+            mannequin: self.mannequin_preferences(),
         }
     }
 
@@ -89,6 +90,9 @@ impl Workspace {
                 .iter()
                 .map(|[r, g, b, a]| flare_core::Rgba8::new(*r, *g, *b, *a)),
         );
+        if !preferences.mannequin.is_empty() {
+            self.apply_mannequin_preferences(&preferences.mannequin);
+        }
         self.pinned_tools.clear();
         for name in &preferences.pinned_tools {
             self.pin_tool(name);
