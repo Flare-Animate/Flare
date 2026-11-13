@@ -61,7 +61,12 @@ impl App {
                 None
             }
         };
-        self.gpu = Some(Gpu::open(event_loop, &self.ctx, &mut self.workspace)?);
+        self.gpu = Some(Gpu::open(
+            event_loop,
+            &self.ctx,
+            &mut self.workspace,
+            self.proxy.clone(),
+        )?);
         #[cfg(feature = "autotest")]
         super::autotest::start(&mut self.workspace, self.proxy.clone());
         Ok(())
@@ -121,6 +126,23 @@ impl App {
                 }
             }
         }
+    }
+
+    /// What a screen reader asked: the tree is built only while one is listening, as egui's own
+    /// apps do, so nobody else pays for it.
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    fn accesskit_event(&mut self, event: egui_winit::accesskit_winit::Event) {
+        use egui_winit::accesskit_winit::WindowEvent as Ask;
+        let Some(gpu) = &mut self.gpu else { return };
+        if event.window_id != gpu.window.id() {
+            return;
+        }
+        match event.window_event {
+            Ask::InitialTreeRequested => self.ctx.enable_accesskit(),
+            Ask::ActionRequested(request) => gpu.state.on_accesskit_action_request(request),
+            Ask::AccessibilityDeactivated => self.ctx.disable_accesskit(),
+        }
+        gpu.window.request_redraw();
     }
 
     /// The native menu bar exists only on macOS; elsewhere the window draws its own menu.
@@ -195,6 +217,8 @@ impl ApplicationHandler<UserEvent> for App {
             UserEvent::MovieStarted(Err(error)) => {
                 self.say_error("dlg-cannot-start-movie", &error.to_string());
             }
+            #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+            UserEvent::AccessKit(event) => self.accesskit_event(event),
         }
     }
 

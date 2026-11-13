@@ -95,6 +95,18 @@ fn the_object_tab_draws_the_looping_section_for_a_graphic_with_its_current_choic
     });
     let text = drawn(&mut ws);
     assert!(text.iter().any(|t| t == "Single Frame"), "{text:?}");
+    for (mode, label) in [
+        (PlayMode::LoopReverse, "Loop Reverse"),
+        (PlayMode::PlayOnceReverse, "Play Once Reverse"),
+    ] {
+        ws.set_selection_playback(Playback {
+            mode,
+            first_frame: 0,
+        });
+        assert_eq!(ws.selected_playback().map(|(p, _)| p.mode), Some(mode));
+        let text = drawn(&mut ws);
+        assert!(text.iter().any(|t| t == label), "{label}: {text:?}");
+    }
 }
 
 #[test]

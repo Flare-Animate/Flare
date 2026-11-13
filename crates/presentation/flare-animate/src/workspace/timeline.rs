@@ -7,14 +7,16 @@ use flare_document::Layer;
 use flare_editor::timeline_view;
 
 use super::layer_names;
+use super::timeline_layer_drag::Grab;
 use super::*;
 
 /// How far each level of folder indents a name, in points.
 pub(super) const FOLDER_INDENT: f32 = 12.0;
 /// The height of a layer's row, and of the ruler.
 pub(super) const ROW: f32 = 20.0;
-/// The width of the column of layer names and toggles.
-pub(super) const LABEL_W: f32 = 140.0;
+/// The width of the column of layer names and toggles as it starts: wide enough for the layer
+/// buttons above it. Dragging its edge makes it narrower or wider (`timeline_names_edge.rs`).
+pub(super) const LABEL_W: f32 = 230.0;
 
 /// Where the parts of the timeline are, in the coordinates of the scrolled content. The name
 /// column and the ruler stay in view while the frames scroll under them, as Animate's do, so a
@@ -36,14 +38,15 @@ pub(super) struct Layout {
 }
 
 impl Layout {
-    /// The layout of `rect` scrolled so that `view` is what shows of it.
-    pub(super) fn new(rect: Rect, view: Rect, per_frame: f32) -> Self {
+    /// The layout of `rect` scrolled so that `view` is what shows of it, with a name column
+    /// `label_w` points wide.
+    pub(super) fn new(rect: Rect, view: Rect, per_frame: f32, label_w: f32) -> Self {
         let labels_left = rect.min.x + (view.min.x - rect.min.x).max(0.0);
         Self {
             rect,
-            track_left: rect.min.x + LABEL_W,
+            track_left: rect.min.x + label_w,
             labels_left,
-            label_edge: labels_left + LABEL_W,
+            label_edge: labels_left + label_w,
             ruler_top: rect.min.y + (view.min.y - rect.min.y).max(0.0),
             per_frame,
         }
@@ -164,23 +167,26 @@ impl Workspace {
                 })
                 .unwrap_or_default();
             let height = ROW * (rows.len() as f32 + 1.0);
-            let track_width = (available - LABEL_W).max(0.0);
+            let label_w = self.display.timeline_names;
+            let track_width = (available - label_w).max(0.0);
             if std::mem::take(&mut self.timeline_fit) {
                 self.timeline_zoom = timeline_view::fit_zoom(track_width, u64::from(frames));
             }
             let per_frame = timeline_view::frame_width(self.timeline_zoom);
             let shown = self.timeline_shown(track_width, per_frame);
             let (rect, response) = ui.allocate_exact_size(
-                Vec2::new(LABEL_W + per_frame * shown as f32, height),
+                Vec2::new(label_w + per_frame * shown as f32, height),
                 Sense::click_and_drag(),
             );
             let painter = ui.painter_at(rect);
-            let layout = Layout::new(rect, painter.clip_rect(), per_frame);
+            let layout = Layout::new(rect, painter.clip_rect(), per_frame, label_w);
             self.timeline_layout = Some(layout);
+            self.names_edge(ui, &layout);
             self.timeline_input(ui, &response, &layout, &rows, shown);
             // The frames first; the names and the ruler go over what has scrolled under them.
             self.timeline_rows(&painter, &layout, &rows, shown);
             self.timeline_labels(ui, &painter, &layout, &rows);
+            self.layer_drop_line(&painter, &layout, &rows);
             self.timeline_ruler(&painter, &layout, shown);
             self.layer_name_editor(
                 ui,
@@ -220,7 +226,7 @@ impl Workspace {
     }
 
     /// The layer on the `i`th row shown.
-    fn row_layer(&self, rows: &[(usize, usize)], i: usize) -> Option<LayerId> {
+    pub(super) fn row_layer(&self, rows: &[(usize, usize)], i: usize) -> Option<LayerId> {
         let layers = self.document().scenes().first()?.timeline().layers();
         rows.get(i)
             .and_then(|(layer, _)| layers.get(*layer))
@@ -236,9 +242,13 @@ impl Workspace {
         rows: &[(usize, usize)],
         shown: u32,
     ) {
-        // The onion-skin markers on the ruler come first: a press on one sets the range, not the
-        // playhead.
-        if self.onion_marker_drag(ui, response, l) {
+        // The loop bar and the onion-skin markers on the ruler come first: a press on one sets
+        // its range, not the playhead.
+        if self.loop_bar_input(ui, response, l)
+            || self.multi_bar_input(ui, response, l)
+            || self.onion_marker_drag(ui, response, l)
+            || self.layer_row_drag(ui, response, l, rows)
+        {
             return;
         }
         if response.drag_started()
@@ -249,11 +259,12 @@ impl Workspace {
         {
             self.select_layer(id);
         }
-        if self.span_drag.is_some() {
+        if matches!(self.timeline_grab, Some(Grab::Span(_))) {
             if response.dragged()
                 && let Some(p) = response.interact_pointer_pos()
             {
-                self.update_span_drag(l.frame_at(p.x).floor().max(0.0) as u32);
+                let onto = l.row_at(p).and_then(|i| self.row_layer(rows, i));
+                self.update_span_drag(l.frame_at(p.x).floor().max(0.0) as u32, onto);
             }
             if response.drag_stopped() {
                 self.end_span_drag();
@@ -318,11 +329,15 @@ impl Workspace {
         let onion = self.onion;
         if response.drag_started()
             && onion.enabled
+            && self.timeline_grab.is_none()
+            && !self.editing_multiple_frames()
             && let Some(p) = ui.input(|i| i.pointer.press_origin())
         {
-            self.onion_drag = l.onion_marker_at(p, self.frame, onion.before, onion.after);
+            self.timeline_grab = l
+                .onion_marker_at(p, self.frame, onion.before, onion.after)
+                .map(Grab::Onion);
         }
-        let Some(end) = self.onion_drag else {
+        let Some(Grab::Onion(end)) = self.timeline_grab else {
             return false;
         };
         if let Some(p) = response.interact_pointer_pos() {
@@ -331,7 +346,7 @@ impl Workspace {
             self.set_onion_range(before, after);
         }
         if response.drag_stopped() || !response.dragged() {
-            self.onion_drag = None;
+            self.timeline_grab = None;
         }
         true
     }
@@ -361,6 +376,9 @@ impl Workspace {
             self.select_layer(id);
         } else if response.double_clicked() && layer_names::on_name(p.x, edge) {
             self.begin_layer_rename(id);
+        } else if response.clicked() && eye && response.ctx.input(|i| i.modifiers.shift) {
+            // Shift on the eye makes the layer transparent, or opaque again, as in Animate.
+            self.toggle_layer_transparent(id);
         } else if response.clicked() && eye {
             self.toggle_layer_visible(id);
         } else if response.clicked() && lock {

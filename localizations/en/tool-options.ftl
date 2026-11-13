@@ -126,3 +126,15 @@ opt-picked-pixels =
     }
 opt-wand-invert = Invert
 opt-wand-clear = Clear pixels
+
+opt-gap-size = Gap size
+opt-gap-none = Don't close gaps
+opt-gap-small = Close small gaps
+opt-gap-medium = Close medium gaps
+opt-gap-large = Close large gaps
+opt-strength = Strength
+opt-hardness = Hardness
+opt-pressure-size = Pressure sets size
+opt-pressure-size-tip = A lighter touch makes a narrower stroke
+opt-color-stretch = Color stretch
+opt-color-stretch-tip = How far a picked-up color is carried along the stroke; 0 mixes in place

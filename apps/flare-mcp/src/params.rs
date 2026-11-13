@@ -62,7 +62,10 @@ pub struct AddLayer {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddSymbol {
+    /// A name the library already has is refused.
     pub name: String,
+    /// "graphic" (the default), "movie clip" or "button".
+    pub kind: Option<String>,
     /// Give the symbol one rectangle: its left edge.
     pub x: Option<f64>,
     pub y: Option<f64>,
@@ -91,63 +94,14 @@ pub struct PlaceInstance {
     pub expected_revision: Option<u64>,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum FrameOperation {
-    InsertFrame,
-    RemoveFrame,
-    /// Takes the frames from `at` to `to` out; what follows moves left.
-    RemoveFrames,
-    /// Reverses the keyframes from `at` to `to`, which must lie wholly inside the range.
-    ReverseFrames,
-    InsertKeyframe,
-    InsertBlankKeyframe,
-    ClearKeyframe,
-}
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub struct FrameOp {
-    pub operation: FrameOperation,
-    /// Frame number, counting from 0 (the first, for a range).
-    pub at: u32,
-    /// The last frame of the range, for `remove_frames` and `reverse_frames`.
-    pub to: Option<u32>,
-    /// Layer id; defaults to the first layer.
-    pub layer: Option<String>,
-    /// Fail unless the project is at this revision (from get_info).
-    pub expected_revision: Option<u64>,
-}
-
-#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum LayerOperation {
-    Rename,
-    Delete,
-    Hide,
-    Show,
-    Lock,
-    Unlock,
-    MoveUp,
-    MoveDown,
-}
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub struct LayerOp {
-    pub operation: LayerOperation,
-    /// Layer id; defaults to the first layer.
-    pub layer: Option<String>,
-    /// The new name, for `rename`.
-    pub name: Option<String>,
-    /// Fail unless the project is at this revision (from get_info).
-    pub expected_revision: Option<u64>,
-}
-
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct SetStage {
     pub width: Option<u32>,
     pub height: Option<u32>,
     /// RRGGBB or RRGGBBAA hex.
     pub background: Option<String>,
+    /// Frames per second, from 0.01 to 240 (for example 24, 29.97 or 12.5).
+    pub fps: Option<f64>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
@@ -482,6 +436,12 @@ pub struct ArmatureLayer {
     pub layer: Option<String>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct AnimateShortcutsParams {
+    /// The text of Animate's shortcut file (`Shortcuts/<set>.xml` in its settings folder).
+    pub xml: String,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]

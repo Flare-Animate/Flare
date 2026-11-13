@@ -11,6 +11,7 @@ bar-snap = Привязка к сетке
 bar-rulers = Линейки
 bar-grid = Сетка
 bar-home = Начальная страница
+bar-workspaces = Рабочие среды
 bar-interface-switcher = Переключатель интерфейса
 bar-commands = Команды
 bar-pause = Пауза
@@ -24,4 +25,3 @@ bar-window-restore = Восстановить
 bar-preferences = Настройки программы
 bar-redo = Повторить
 bar-undo = Отменить
-

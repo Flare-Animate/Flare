@@ -38,7 +38,9 @@ impl Workspace {
             | Tool::Pencil
             | Tool::Brush
             | Tool::Ruler
-            | Tool::Mirror => None,
+            | Tool::Mirror
+            | Tool::Blur
+            | Tool::Smudge => None,
             Tool::Subselection | Tool::ConvertAnchor => {
                 self.begin_anchor_drag(point);
                 None
@@ -100,6 +102,9 @@ impl Workspace {
             self.erase_dot(point);
             return;
         }
+        if self.blend_kind().is_some() {
+            return self.blend_dot(point);
+        }
         match self.tool {
             Tool::Bucket | Tool::InkBottle => self.pour_paint(point),
             Tool::Eyedropper => self.take_paint(point, shift),
@@ -138,6 +143,9 @@ impl Workspace {
             }
             self.live_erase = None;
             return;
+        }
+        if self.blend_kind().is_some() {
+            return self.blend_release(samples);
         }
         let strokes = self.stroke_set(samples);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
@@ -221,7 +229,16 @@ impl Workspace {
     pub(super) fn finish_lasso(&mut self, additive: bool) {
         let polygon = std::mem::take(&mut self.lasso);
         let Some(scene) = self.scene_id() else { return };
-        let found = ops::spans_in_polygon(self.document(), scene, self.frame, &polygon);
+        let found = match self.multi_frame_range() {
+            Some(r) => flare_tools::multi_frame::spans_in_polygon_range(
+                self.document(),
+                scene,
+                r.from(),
+                r.to(),
+                &polygon,
+            ),
+            None => ops::spans_in_polygon(self.document(), scene, self.frame, &polygon),
+        };
         let all =
             flare_tools::lasso::freehand::selection_after(&self.selection_all(), found, additive);
         self.selected = all.first().copied();
@@ -264,12 +281,13 @@ impl Workspace {
 
     /// Escape, tool switches and focus loss cancel a gesture without committing it.
     pub(super) fn cancel_drag(&mut self) {
-        self.span_drag = None;
+        self.timeline_grab = None;
         self.bone_drag = None;
         self.lasso.clear();
         self.freehand.clear();
         self.stabilizer = None;
         self.cancel_erase();
+        self.cancel_blend();
         if self.anchor_drag.take().is_some() {
             self.drag_cancelled = true;
         }

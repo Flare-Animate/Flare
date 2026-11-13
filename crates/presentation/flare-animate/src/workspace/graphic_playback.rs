@@ -47,6 +47,8 @@ impl Workspace {
                 PlayMode::Loop => "msg-play-loop",
                 PlayMode::PlayOnce => "msg-play-once",
                 PlayMode::SingleFrame => "msg-play-single",
+                PlayMode::LoopReverse => "msg-play-loop-reverse",
+                PlayMode::PlayOnceReverse => "msg-play-once-reverse",
             })
         };
         flare_ui::chrome::row(ui, &tr!(self, "msg-options"), |ui| {

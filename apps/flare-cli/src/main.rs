@@ -98,12 +98,13 @@ fn run() -> Result<()> {
             width,
             height,
             background,
+            fps,
         } => {
             let background = background
                 .as_deref()
                 .map(project::parse_color)
                 .transpose()?;
-            project::set_stage(&path, width, height, background)?
+            project::set_stage(&path, width, height, background, fps)?
         }
         Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
         Command::Camera {
@@ -124,6 +125,27 @@ fn run() -> Result<()> {
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
+        Command::TransformFrames {
+            path,
+            from,
+            to,
+            dx,
+            dy,
+            scale_x,
+            scale_y,
+            rotate,
+        } => project::transform_frames(
+            &path,
+            from,
+            to,
+            flare_tools::multi_frame::RangeTransform {
+                dx,
+                dy,
+                scale_x,
+                scale_y,
+                rotate_degrees: rotate,
+            },
+        )?,
         Command::Frame {
             op,
             path,
@@ -131,7 +153,8 @@ fn run() -> Result<()> {
             to,
             layer,
             ease,
-        } => project::frame_op(&path, op, at, to, layer, ease)?,
+            onto,
+        } => project::frame_op(&path, op, at, to, layer, ease, onto)?,
         Command::ExportFrames {
             path,
             directory,
@@ -166,15 +189,32 @@ fn run() -> Result<()> {
         Command::TestMovie { path, ruffle } => project::test_movie(&path, ruffle)?,
         Command::Open { paths } => project::open_app(&paths)?,
         Command::Layer {
+            op: project::LayerOperation::Opacity,
+            path,
+            layer,
+            percent,
+            ..
+        } => project::layer_opacity(&path, layer, percent)?,
+        Command::Layer {
             op,
             path,
             layer,
             name,
-        } => project::layer_op(&path, op, layer, name.as_deref())?,
+            before,
+            folder,
+            ..
+        } => project::layer_op(
+            &path,
+            op,
+            layer,
+            name.as_deref(),
+            project::LayerPlace { before, folder },
+        )?,
         Command::Info { path } => project::info(&path)?,
         Command::AddSymbol {
             path,
             name,
+            kind,
             rect,
             color,
             stroke,
@@ -182,7 +222,7 @@ fn run() -> Result<()> {
         } => {
             let style = project::rect_style(&color, stroke.as_deref(), stroke_width, None)?;
             let rect = rect.map(|r| ([r[0], r[1], r[2], r[3]], style));
-            project::add_symbol(&path, &name, rect)?
+            project::add_symbol(&path, &name, kind, rect)?
         }
         Command::DrawRect {
             path,
@@ -233,6 +273,10 @@ fn run() -> Result<()> {
                 dry_run,
             },
         )?,
+        Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
+        Command::Smudge(args) => {
+            project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?
+        }
         Command::AddText {
             path,
             text,

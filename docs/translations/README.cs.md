@@ -28,6 +28,18 @@ Cílem je podporovat formáty, které tyto nástroje používají, aby lidé moh
 
 Flare se přepisuje v jazyce **Rust**. Vychází především z *OpenToonzu* a *Tahoma2D* a obsahuje funkce převzaté z *AnimationCraftu* a *Next2Flash*, které byly do Flare začleněny. Původní kód v C++ je uchován jako archiv v [`original/`](../../original/README.md).
 
+## Snímky obrazovky
+
+<img src="../../assets/screenshots/workspace.png" width="800" alt="Editor s otevřeným projektem: nástroje, scéna, časová osa se třemi vrstvami a pohybovým doplněním a vlastnosti dokumentu.">
+
+Editor s otevřeným projektem: nástroje, scéna, časová osa se třemi vrstvami a pohybovým doplněním a vlastnosti dokumentu.
+
+<img src="../../assets/screenshots/tween.png" width="800" alt="V polovině doplnění, se cibulovými slupkami, které ukazují okolní snímky, a se symbolem v knihovně.">
+
+V polovině doplnění, se cibulovými slupkami, které ukazují okolní snímky, a se symbolem v knihovně.
+
+Pořízeno v prohlížečové verzi, která spouští stejný editor jako desktopová aplikace.
+
 ## Funkce
 
 - Kreslení perem, štětcem a tvarovými nástroji, s výběrovým nástrojem pro přesouvání, seskupování a úpravy tvarů a se styly tahu (plný, čárkovaný, tečkovaný, puntíkovaný, šrafovaný, roztřepený, rybí kost, lano, cik-cak).

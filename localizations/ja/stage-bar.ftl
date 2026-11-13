@@ -11,6 +11,7 @@ bar-snap = グリッドにスナップ
 bar-rulers = 定規
 bar-grid = グリッド
 bar-home = ホーム
+bar-workspaces = ワークスペース
 bar-interface-switcher = インターフェイス切り替え
 bar-commands = コマンド
 bar-pause = 一時停止
@@ -24,4 +25,3 @@ bar-window-restore = 元のサイズに戻す
 bar-preferences = 環境設定
 bar-redo = やり直し
 bar-undo = 取り消し
-

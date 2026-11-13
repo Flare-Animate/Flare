@@ -112,6 +112,12 @@ impl Workspace {
                 document,
                 result,
             } => self.wand_cleared_arrived(id, document, result),
+            Done::BlendEdited {
+                id,
+                document,
+                result,
+            } => self.blend_edited(id, document, result),
+            Done::BlendEnded { id, error } => self.blend_ended(id, error),
             Done::TextPreview { id, result } => self.text_preview_arrived(id, result),
             Done::Saved {
                 path: _,

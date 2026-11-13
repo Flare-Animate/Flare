@@ -56,3 +56,49 @@ fn a_search_lists_only_what_it_finds() {
     let none = json(&["shortcuts", "list", "--search", "zzzz"]);
     assert_eq!(none["shortcuts"], serde_json::json!([]));
 }
+
+#[test]
+fn an_animate_shortcut_file_is_read_onto_the_animate_set_with_a_report() {
+    let dir = tempfile::tempdir().expect("dir");
+    let xml = dir.path().join("Custom.xml");
+    std::fs::write(
+        &xml,
+        "<keyboardshortcuts>\
+         <keycmd><cmd>File.New</cmd><uchar>N</uchar><mod><cmdkey/></mod></keycmd>\
+         <keycmd><cmd>Tool.Rotate</cmd><uchar>R</uchar><mod/></keycmd>\
+         <keycmd><cmd>Debug.StepIn</cmd><key>12</key><mod><altkey/></mod></keycmd>\
+         </keyboardshortcuts>",
+    )
+    .expect("write");
+    let out = dir.path().join("keys.json");
+    let report = json(&[
+        "shortcuts",
+        "import-animate",
+        &xml.to_string_lossy(),
+        "--out",
+        &out.to_string_lossy(),
+    ]);
+    assert_eq!(report["applied"].as_array().expect("rows").len(), 2);
+    assert_eq!(report["skipped"][0]["command"], "Debug.StepIn");
+    let kept = json(&[
+        "shortcuts",
+        "list",
+        "--file",
+        &out.to_string_lossy(),
+        "--search",
+        "rotation",
+    ]);
+    assert_eq!(kept["shortcuts"][0]["shortcut"], "R");
+
+    std::fs::write(&xml, "<keyboardshortcuts><keycmd>").expect("write");
+    let bad = dir.path().join("bad.json");
+    let result = run(&[
+        "shortcuts",
+        "import-animate",
+        &xml.to_string_lossy(),
+        "--out",
+        &bad.to_string_lossy(),
+    ]);
+    assert!(!result.status.success());
+    assert!(!bad.exists(), "nothing is written");
+}

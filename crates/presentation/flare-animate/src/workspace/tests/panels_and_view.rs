@@ -156,7 +156,7 @@ fn playback_stops_on_the_last_frame_unless_looping_and_mute_silences_cues() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     rect(&mut ws); // 24 frames
     ws.perform(MenuAction::ToggleLoop);
-    assert!(!ws.loop_playback);
+    assert!(!ws.looping.on);
     assert_eq!(ws.label(MenuAction::ToggleLoop), "Loop Playback: Off");
     ws.set_frame(22);
     ws.playing = true;
@@ -278,6 +278,7 @@ fn the_library_draws_a_preview_of_the_selected_symbol_once_per_change() {
     let mut ws = workspace();
     draw_and_select(&mut ws);
     ws.perform(MenuAction::ConvertToSymbol);
+    ws.confirm_symbol_dialog();
     let symbol = ws.library.selected.expect("the new symbol is selected");
     let first = ws.symbol_preview(&ctx, symbol).expect("a preview");
     assert!(first.size()[0] > 0 && first.size()[1] > 0);
@@ -330,6 +331,7 @@ fn converting_a_selection_makes_the_chosen_kind_and_each_kind_has_its_own_icon()
     draw_and_select(&mut ws);
     ws.library.new_kind = SymbolKind::MovieClip;
     ws.perform(MenuAction::ConvertToSymbol);
+    ws.confirm_symbol_dialog();
     let id = ws.library.selected.expect("the symbol is selected");
     assert_eq!(
         ws.document().symbol(id).expect("symbol").kind(),

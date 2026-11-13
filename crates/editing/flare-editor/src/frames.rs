@@ -14,6 +14,10 @@ use flare_commands::Command;
 
 /// Content for a new keyframe copied from `content`: same artwork, fresh identities so
 /// IDs stay unique across the document.
+pub(crate) fn duplicate_content(content: &Content) -> Option<Content> {
+    duplicate(content)
+}
+
 fn duplicate(content: &Content) -> Option<Content> {
     Some(match content {
         Content::Empty => Content::Empty,
@@ -141,8 +145,23 @@ pub fn paste_frames(
     if stop > u64::from(u32::MAX) {
         return None;
     }
-    let mut out = Vec::with_capacity(layer.spans().len() + clip.spans.len() + 1);
-    for s in layer.spans() {
+    let mut out = cleared(layer.spans(), at, stop)?;
+    for pasted in &clip.spans {
+        out.push(fresh(
+            pasted,
+            at.checked_add(pasted.start())?,
+            pasted.duration().get(),
+        )?);
+    }
+    out.sort_by_key(FrameSpan::start);
+    Some(replace_spans(scene, layer, out))
+}
+
+/// `spans` with the frames from `at` up to `stop` emptied: a span inside goes, and one the range
+/// cuts through keeps its two ends, the far one with fresh identities so IDs stay unique.
+fn cleared(spans: &[FrameSpan], at: u32, stop: u64) -> Option<Vec<FrameSpan>> {
+    let mut out = Vec::with_capacity(spans.len() + 2);
+    for s in spans {
         if s.end() <= u64::from(at) || u64::from(s.start()) >= stop {
             out.push(s.clone());
             continue;
@@ -156,15 +175,7 @@ pub fn paste_frames(
             out.push(fresh(s, from, rest)?);
         }
     }
-    for pasted in &clip.spans {
-        out.push(fresh(
-            pasted,
-            at.checked_add(pasted.start())?,
-            pasted.duration().get(),
-        )?);
-    }
-    out.sort_by_key(FrameSpan::start);
-    Some(replace_spans(scene, layer, out))
+    Some(out)
 }
 
 /// Moves the sound cues after `frame` along with the spans they sit beside, by `delta` frames.
@@ -430,9 +441,13 @@ pub fn resize_span(
     ])
 }
 
+mod drop;
 mod ranges;
+pub use drop::drop_span;
 pub use ranges::{ReverseRefusal, remove_frames, reverse_frames};
 
+#[cfg(test)]
+mod drop_tests;
 #[cfg(test)]
 mod element_tests;
 #[cfg(test)]

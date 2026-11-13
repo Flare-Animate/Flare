@@ -17,5 +17,6 @@ mod shapes;
 mod sounds;
 mod support;
 mod symbols;
+mod symbols_reverse;
 
 use support::*;

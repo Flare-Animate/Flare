@@ -11,6 +11,7 @@ bar-snap = Accrocher à la grille
 bar-rulers = Règles
 bar-grid = Grille
 bar-home = Accueil
+bar-workspaces = Espaces de travail
 bar-interface-switcher = Sélecteur d’interface
 bar-commands = Commandes
 bar-pause = Pause
@@ -24,4 +25,3 @@ bar-window-restore = Restaurer
 bar-preferences = Préférences
 bar-redo = Rétablir
 bar-undo = Annuler
-

@@ -99,7 +99,28 @@ impl Workspace {
             self.toggle_layer_locked(layer);
             ui.close();
         }
+        self.transparency_menu(ui, layer);
+        if ui.button(tr!(self, "msg-layer-show-all")).clicked() {
+            self.show_all_layers();
+            ui.close();
+        }
+        if ui.button(tr!(self, "msg-layer-lock-others")).clicked() {
+            self.lock_other_layers(layer);
+            ui.close();
+        }
+        if ui.button(tr!(self, "msg-layer-hide-others")).clicked() {
+            self.hide_other_layers(layer);
+            ui.close();
+        }
         ui.separator();
+        if ui.button(tr!(self, "msg-layer-duplicate")).clicked() {
+            self.duplicate_layer(layer);
+            ui.close();
+        }
+        if ui.button(tr!(self, "msg-layer-to-symbol")).clicked() {
+            self.convert_layer_to_symbol(layer);
+            ui.close();
+        }
         for (label, action) in [
             ("msg-layer-mask", MenuAction::ToggleLayerMask),
             ("msg-layer-guide", MenuAction::ToggleLayerGuide),

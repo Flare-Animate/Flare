@@ -5,7 +5,7 @@ use flare_editor::frames;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 
 use crate::ops::{apply, first_scene, target_layer};
-use crate::params::{FrameOp, FrameOperation, LayerOp, LayerOperation};
+use crate::params_timeline::{FrameOp, FrameOperation, LayerOp, LayerOperation};
 use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = timeline_tools, vis = "pub(super)")]
@@ -15,15 +15,34 @@ impl FlareServer {
         self.write(args.expected_revision, |state| {
             let scene = first_scene(state)?;
             let layer_id = target_layer(state, args.layer.as_deref())?;
-            let layer = state
+            let onto_id = match args.onto.as_deref() {
+                Some(onto) => target_layer(state, Some(onto))?,
+                None => layer_id,
+            };
+            let layers = state
                 .session
                 .document()
                 .scenes()
                 .first()
-                .and_then(|s| s.timeline().layers().iter().find(|l| l.id() == layer_id))
-                .ok_or("layer disappeared")?;
+                .map(|s| s.timeline().layers())
+                .unwrap_or_default();
+            let find = |id| layers.iter().find(|l| l.id() == id);
+            let layer = find(layer_id).ok_or("layer disappeared")?;
             let at = args.at;
             let commands = match args.operation {
+                FrameOperation::MoveKeyframe => {
+                    let to = args
+                        .to
+                        .ok_or("move_keyframe needs `to`, the frame it goes to")?;
+                    let start = layer
+                        .span_at(at)
+                        .map(flare_document::FrameSpan::start)
+                        .ok_or_else(|| {
+                            format!("there is no keyframe at frame {at} of this layer")
+                        })?;
+                    let onto = find(onto_id).ok_or("layer disappeared")?;
+                    frames::drop_span(scene, layer, start, onto, to)
+                }
                 FrameOperation::RemoveFrames => {
                     let to = args.to.ok_or("remove_frames needs `to`, the last frame")?;
                     frames::remove_frames(scene, layer, at, to)
@@ -60,6 +79,11 @@ impl FlareServer {
         self.write(args.expected_revision, |state| {
             let scene = first_scene(state)?;
             let layer = target_layer(state, args.layer.as_deref())?;
+            let named = |id: Option<&str>| id.map(|id| target_layer(state, Some(id))).transpose();
+            let (before, folder) = (
+                named(args.before.as_deref())?,
+                named(args.folder.as_deref())?,
+            );
             let document = state.session.document();
             let commands = match args.operation {
                 LayerOperation::Rename => {
@@ -78,6 +102,14 @@ impl FlareServer {
                 }
                 LayerOperation::MoveDown => {
                     layers::move_by(document, scene, layer, 1).map_err(|e| e.to_string())?
+                }
+                LayerOperation::Move => {
+                    let commands = layers::move_to(document, scene, layer, before, folder)
+                        .map_err(|e| e.to_string())?;
+                    if commands.is_empty() {
+                        return Err("the layer is already there".into());
+                    }
+                    commands
                 }
             };
             apply(state, commands)

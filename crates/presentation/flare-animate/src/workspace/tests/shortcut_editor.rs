@@ -18,21 +18,61 @@ fn the_default_set_shows_the_builtin_keys() {
 }
 
 #[test]
-fn a_conflict_is_refused_and_changes_nothing() {
+fn keys_another_command_holds_are_taken_from_it_and_bad_keys_change_nothing() {
     let mut ws = workspace();
     let before = ws.shortcuts().clone();
-    let message = ws
-        .set_shortcut(MenuAction::Redo, "CmdOrCtrl+Z")
-        .expect_err("Undo has it");
-    assert!(message.contains("Ctrl") || message.contains("CmdOrCtrl"));
-    assert_eq!(ws.shortcuts(), &before);
     assert!(ws.set_shortcut(MenuAction::Redo, "not keys").is_err());
     assert_eq!(ws.shortcuts(), &before);
-    assert!(ws.set_shortcut(MenuAction::Redo, "CmdOrCtrl+Alt+K").is_ok());
+    let taken = ws
+        .set_shortcut(MenuAction::Redo, "CmdOrCtrl+Z")
+        .expect("Undo's keys are taken");
+    assert_eq!(taken, Some(MenuAction::Undo));
     assert_eq!(
         shortcut(&ws, MenuAction::Redo).as_deref(),
-        Some("CmdOrCtrl+Alt+K")
+        Some("CmdOrCtrl+Z")
     );
+    assert_eq!(shortcut(&ws, MenuAction::Undo), None);
+    let notice = ws
+        .shortcut_editor
+        .notice
+        .clone()
+        .expect("the editor says so");
+    assert!(notice.contains(&ws.label(MenuAction::Undo)), "{notice}");
+    // Reset gives Undo its keys back, from Redo.
+    assert_eq!(
+        ws.reset_shortcut(MenuAction::Undo).expect("reset"),
+        Some(MenuAction::Redo)
+    );
+    assert_eq!(
+        shortcut(&ws, MenuAction::Undo).as_deref(),
+        Some("CmdOrCtrl+Z")
+    );
+    assert_eq!(shortcut(&ws, MenuAction::Redo), None);
+    assert!(ws.shortcuts().conflicts().is_empty());
+    // Free keys take nothing and say nothing.
+    assert_eq!(
+        ws.set_shortcut(MenuAction::Redo, "CmdOrCtrl+Alt+K"),
+        Ok(None)
+    );
+    assert!(ws.shortcut_editor.notice.is_none());
+}
+
+#[test]
+fn a_taken_tool_letter_picks_the_new_tool() {
+    let mut ws = workspace();
+    // B is the Brush's: given to the Pen, it picks the Pen and the Brush has no letter.
+    assert_eq!(
+        ws.set_shortcut(MenuAction::ToolPen, "B"),
+        Ok(Some(MenuAction::ToolBrush))
+    );
+    let ctx = egui::Context::default();
+    run(&mut ws, &ctx, 0.0);
+    ws.set_tool(Tool::Select);
+    let mut out = ctx.run_ui(input(0.1, vec![key(Key::B, Modifiers::NONE)]), |ui| {
+        ws.show(ui)
+    });
+    out.textures_delta.clear();
+    assert_eq!(ws.tool(), Tool::Pen);
 }
 
 #[test]
@@ -176,4 +216,76 @@ fn the_search_narrows_the_list_by_name_in_the_persons_language_or_by_keys() {
     );
     ws.set_shortcut_search("");
     assert!(ws.search_shortcuts("").len() > 40);
+}
+
+#[test]
+fn animates_shortcut_file_is_put_in_force_and_what_was_skipped_is_in_output() {
+    let mut ws = workspace();
+    let xml = b"<keyboardshortcuts>\
+        <keycmd><cmd>File.New</cmd><uchar>J</uchar><mod><cmdkey/></mod></keycmd>\
+        <keycmd><cmd>Debug.StepIn</cmd><key>12</key><mod><altkey/></mod></keycmd>\
+        </keyboardshortcuts>";
+    ws.import_animate_shortcuts(xml);
+    assert_eq!(ws.shortcuts().set(), "animate");
+    assert_eq!(
+        shortcut(&ws, MenuAction::New).as_deref(),
+        Some("CmdOrCtrl+J")
+    );
+    assert!(
+        ws.log.iter().any(|l| l.contains("Debug.StepIn")),
+        "{:?}",
+        ws.log
+    );
+    assert!(
+        ws.status().is_some_and(|s| s.contains('1')),
+        "the summary counts: {:?}",
+        ws.status()
+    );
+
+    // A file that is not Animate's leaves the shortcuts in force alone and says why.
+    let before = ws.shortcuts().clone();
+    ws.import_animate_shortcuts(b"<a></b>");
+    assert_eq!(ws.shortcuts(), &before);
+    assert!(ws.shortcut_editor.error.is_some());
+    assert!(ws.status().is_some_and(|s| s.contains("XML")));
+}
+
+#[test]
+fn the_shortcut_list_asks_the_shell_for_animates_file() {
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    let label = ws.interface_text("shortcuts-import-animate");
+    let mut at = None;
+    for step in 0..3 {
+        let mut out = ctx.run_ui(input(f64::from(step) * 0.1, vec![]), |ui| {
+            ws.shortcut_editor_ui(ui);
+        });
+        out.textures_delta.clear();
+        for shape in &out.shapes {
+            if let egui::epaint::Shape::Text(t) = &shape.shape
+                && t.galley.text() == label
+            {
+                at = Some(t.visual_bounding_rect().center());
+            }
+        }
+    }
+    let at = at.expect("the button is drawn");
+    let click = |pressed| Event::PointerButton {
+        pos: at,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    for (time, events) in [
+        (0.5, vec![Event::PointerMoved(at)]),
+        (0.6, vec![click(true)]),
+        (0.7, vec![click(false)]),
+    ] {
+        let mut out = ctx.run_ui(input(time, events), |ui| ws.shortcut_editor_ui(ui));
+        out.textures_delta.clear();
+    }
+    assert_eq!(
+        ws.take_dialog(),
+        Some(DialogRequest::ImportAnimateShortcuts)
+    );
 }

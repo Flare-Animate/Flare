@@ -230,6 +230,8 @@ impl<'d> Builder<'d> {
                 PlayMode::Loop => (0, first),
                 PlayMode::PlayOnce => (1, first),
                 PlayMode::SingleFrame => (2, first),
+                PlayMode::LoopReverse => (3, first),
+                PlayMode::PlayOnceReverse => (4, first),
             },
         };
         let key = (symbol, mode, first);
@@ -239,13 +241,17 @@ impl<'d> Builder<'d> {
         if self.depth >= MAX_SYMBOL_DEPTH {
             return Err(PublishError::SymbolsTooDeep);
         }
+        // A sprite only plays forward, so a reverse mode is written as its frames in the order
+        // they are shown.
         let frames: Vec<u32> = match mode {
             0 => (0..length).map(|i| (first + i) % length).collect(),
             1 => (first..length).collect(),
+            3 => (0..length).map(|i| (first + length - i) % length).collect(),
+            4 => (0..=first).rev().collect(),
             _ => vec![first],
         };
         // Playing once ends on a stop, or the sprite would start over.
-        let stops = mode == 1 && frames.len() > 1;
+        let stops = (mode == 1 && frames.len() > 1) || mode == 4;
         let mut display = Display::default();
         let mut inner: Vec<Tag<'static>> = Vec::new();
         self.depth += 1;

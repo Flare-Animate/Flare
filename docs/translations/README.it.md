@@ -28,6 +28,18 @@ L'obiettivo è supportare i formati usati da questi strumenti, così che le pers
 
 Flare è riscritto in **Rust**. Si basa principalmente su *OpenToonz* e *Tahoma2D*, con funzionalità integrate da *AnimationCraft* e *Next2Flash*, assorbite in Flare. Il vecchio codice C++ è conservato come archivio in [`original/`](../../original/README.md).
 
+## Schermate
+
+<img src="../../assets/screenshots/workspace.png" width="800" alt="L'editor con un progetto aperto: gli strumenti, lo stage, una linea temporale di tre livelli con un'interpolazione di movimento e le proprietà del documento.">
+
+L'editor con un progetto aperto: gli strumenti, lo stage, una linea temporale di tre livelli con un'interpolazione di movimento e le proprietà del documento.
+
+<img src="../../assets/screenshots/tween.png" width="800" alt="A metà dell'interpolazione, con l'onion skin che mostra i fotogrammi vicini e il simbolo nella libreria.">
+
+A metà dell'interpolazione, con l'onion skin che mostra i fotogrammi vicini e il simbolo nella libreria.
+
+Catturate nella versione per browser, che esegue lo stesso editor dell'app desktop.
+
 ## Funzionalità
 
 - Disegno con penna, pennello e strumenti forma, con uno strumento di selezione per spostare, raggruppare e modificare le forme, e stili di tratto (continuo, tratteggiato, punteggiato, puntinato, tratteggio incrociato, irregolare, a spina di pesce, corda, zigzag).

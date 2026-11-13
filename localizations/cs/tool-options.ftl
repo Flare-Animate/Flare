@@ -127,3 +127,15 @@ opt-picked-pixels =
     }
 opt-wand-invert = Obrátit
 opt-wand-clear = Vymazat pixely
+
+opt-gap-size = Velikost mezery
+opt-gap-none = Neuzavírat mezery
+opt-gap-small = Uzavřít malé mezery
+opt-gap-medium = Uzavřít střední mezery
+opt-gap-large = Uzavřít velké mezery
+opt-strength = Síla
+opt-hardness = Tvrdost
+opt-pressure-size = Přítlak určuje velikost
+opt-pressure-size-tip = Lehčí dotek dá užší tah
+opt-color-stretch = Protažení barvy
+opt-color-stretch-tip = Jak daleko se nabraná barva nese podél tahu; 0 míchá na místě

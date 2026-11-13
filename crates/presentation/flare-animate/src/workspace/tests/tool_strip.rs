@@ -32,6 +32,8 @@ fn every_tool_is_in_exactly_one_slot_and_the_strip_has_categories() {
         Tool::Brush,
         Tool::Ruler,
         Tool::Mirror,
+        Tool::Blur,
+        Tool::Smudge,
     ];
     let listed: Vec<Tool> = SLOT_GROUPS
         .iter()

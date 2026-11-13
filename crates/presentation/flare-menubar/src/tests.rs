@@ -88,6 +88,7 @@ mod labels {
             text_italic: true,
             guides_shown: true,
             onion_on: true,
+            multiple_frames: true,
             outline_mode: true,
             // Shown is the default, so hidden is the other state.
             pasteboard_shown: false,

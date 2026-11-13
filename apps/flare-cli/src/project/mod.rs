@@ -10,16 +10,19 @@ use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
 
+mod blend;
 mod bones;
 mod camera;
 mod draw;
 mod interchange;
 mod magic_wand;
+mod multi_frame;
 mod render;
 mod sound;
 mod text;
 mod timeline;
 
+pub use blend::{BlendArgs, blend_stroke};
 pub use bones::{BoneAction, bone, bones_list};
 #[allow(unused_imports)]
 use camera::*;
@@ -37,6 +40,7 @@ pub use interchange::{
     test_movie,
 };
 pub use magic_wand::{WandRequest, magic_wand};
+pub use multi_frame::transform_frames;
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};
@@ -46,7 +50,7 @@ use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};
 #[allow(unused_imports)]
 use timeline::*;
-pub use timeline::{FrameOperation, LayerOperation, frame_op, layer_op};
+pub use timeline::{FrameOperation, LayerOperation, LayerPlace, frame_op, layer_op, layer_opacity};
 
 /// Opens a project: a `.flare`, or an Animate `.fla`, `.xfl` or XFL folder (a movie is read too,
 /// to inspect or convert, but never written back).
@@ -107,6 +111,7 @@ pub fn info(path: &Path) -> Result<Value> {
                     let armature = flare_tools::bones::is_armature_layer(layer);
                     json!({ "id": layer.id().as_uuid(), "name": layer.name(),
                             "visible": layer.is_visible(), "locked": layer.is_locked(),
+                            "opacity": layer.view_opacity(),
                             "spans": layer.spans().len(), "elements": elements,
                             "armature": armature })
                 })
@@ -117,7 +122,9 @@ pub fn info(path: &Path) -> Result<Value> {
     let symbols: Vec<Value> = document
         .symbols()
         .iter()
-        .map(|symbol| json!({ "id": symbol.id().as_uuid(), "name": symbol.name() }))
+        .map(|symbol| {
+            json!({ "id": symbol.id().as_uuid(), "name": symbol.name(), "kind": symbol.kind().name() })
+        })
         .collect();
     Ok(json!({
         "id": document.id().as_uuid(),

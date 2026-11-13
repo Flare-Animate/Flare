@@ -8,7 +8,7 @@ use flare_menubar::MenuAction;
 
 /// The commands a chord runs in the window. The rest of the menu is reached from the menu
 /// itself; Copy, Cut and Paste arrive as events, which text fields keep.
-const CHORD_ACTIONS: [MenuAction; 15] = [
+const CHORD_ACTIONS: [MenuAction; 16] = [
     MenuAction::Undo,
     MenuAction::Redo,
     MenuAction::Save,
@@ -24,6 +24,7 @@ const CHORD_ACTIONS: [MenuAction; 15] = [
     MenuAction::InsertBlankKeyframe,
     MenuAction::ZoomIn,
     MenuAction::ZoomOut,
+    MenuAction::CommandPalette,
 ];
 
 /// Whether a text field being edited keeps the chord for itself. Undo, Redo, Save and the like
@@ -31,7 +32,11 @@ const CHORD_ACTIONS: [MenuAction; 15] = [
 fn waits_for_typing(action: MenuAction) -> bool {
     !matches!(
         action,
-        MenuAction::Undo | MenuAction::Redo | MenuAction::Save | MenuAction::Preferences
+        MenuAction::Undo
+            | MenuAction::Redo
+            | MenuAction::Save
+            | MenuAction::Preferences
+            | MenuAction::CommandPalette
     )
 }
 

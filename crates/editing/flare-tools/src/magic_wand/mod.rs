@@ -363,7 +363,7 @@ pub fn clear(
 }
 
 /// How many elements, in every scene and symbol, show bitmap `id`.
-fn uses(document: &Document, id: BitmapId) -> usize {
+pub(crate) fn uses(document: &Document, id: BitmapId) -> usize {
     document
         .scenes()
         .iter()

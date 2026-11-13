@@ -183,6 +183,16 @@ pub enum Done {
         document: Arc<Document>,
         result: Result<Vec<flare_commands::Command>, String>,
     },
+    /// The next edit of a Blur or Smudge stroke, made for `document`: it applies to that document
+    /// only, and the stroke waits until the window sends a document with it applied.
+    BlendEdited {
+        id: u64,
+        document: Arc<Document>,
+        result: flare_tools::blend::BlendEdit,
+    },
+    /// A Blur or Smudge stroke is over: every change it made has been handed back, or `error`
+    /// says why it stopped (no bitmap where it started, or the bitmap changed under it).
+    BlendEnded { id: u64, error: Option<String> },
 }
 
 impl Done {

@@ -108,6 +108,8 @@ impl Workspace {
             Tool::Brush => "tool-brush",
             Tool::Ruler => "tool-ruler",
             Tool::Mirror => "tool-mirror",
+            Tool::Blur => "tool-blur",
+            Tool::Smudge => "tool-smudge",
         };
         let title = tr!(self, "tools-title", &[("name", &self.tr(&name_key(icon)))]);
         chrome::section(ui, icon, &title);
@@ -151,6 +153,7 @@ impl Workspace {
                 ui.weak(tr!(self, "tools-help-eyedropper"));
             }
             Tool::Bucket => {
+                self.bucket_options(ui);
                 ui.weak(tr!(self, "tools-help-bucket"));
             }
             Tool::InkBottle => {
@@ -209,6 +212,7 @@ impl Workspace {
                 ui.weak(tr!(self, "tools-help-polygon"));
             }
             Tool::MagicWand => self.wand_options(ui),
+            Tool::Blur | Tool::Smudge => self.blend_options(ui),
             Tool::Line => {
                 ui.weak(tr!(self, "tools-help-line"));
             }
@@ -262,6 +266,8 @@ impl Workspace {
             Tool::Brush => "tools-status-brush",
             Tool::Ruler => "tools-status-ruler",
             Tool::Mirror => "tools-status-mirror",
+            Tool::Blur => "tools-status-blur",
+            Tool::Smudge => "tools-status-smudge",
         };
         self.tr(key)
     }

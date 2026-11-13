@@ -40,8 +40,11 @@ fn the_panels_the_document_and_the_timeline_are_named_in_the_language() {
     // With the Selection tool and nothing selected, Properties shows the document.
     ws.set_tool(Tool::Select);
     let mut text = drawn(&mut ws);
-    ws.show_pane(Pane::Transform);
-    text.extend(drawn(&mut ws));
+    // Panels kept in the strip are named when they are open beside it.
+    for pane in [Pane::Transform, Pane::Layers, Pane::Align] {
+        ws.show_pane(pane);
+        text.extend(drawn(&mut ws));
+    }
     for wanted in [
         "Propiedades",
         "Biblioteca",

@@ -6,6 +6,8 @@ mod draw;
 mod export;
 mod game;
 mod history;
+mod layer_ops;
+mod multi_frame;
 mod pixels;
 mod read;
 mod shortcuts;
@@ -30,6 +32,8 @@ impl FlareServer {
             + Self::draw_tools()
             + Self::text_tools()
             + Self::timeline_tools()
+            + Self::layer_op_tools()
+            + Self::multi_frame_tools()
             + Self::history_tools()
             + Self::bone_tools()
             + Self::stopmotion_tools()

@@ -31,6 +31,7 @@ impl Workspace {
         self.paint.symmetry = from.paint.symmetry;
         self.paint.straight_edge = from.paint.straight_edge;
         self.library.new_kind = from.library.new_kind;
+        self.library.registration = from.library.registration;
         self.native_menu = from.native_menu;
         self.titlebar_inset = from.titlebar_inset;
         // The window's pen source writes to the feed it was given when the window opened, so
@@ -40,10 +41,7 @@ impl Workspace {
         self.window_maximized = from.window_maximized;
         self.recovery.dir = from.recovery.dir.take();
         self.apply_preferences(&from.preferences());
-        self.layout = std::mem::replace(
-            &mut from.layout,
-            egui_tiles::Tree::empty(egui::Id::unique("taken")),
-        );
+        self.panels = std::mem::take(&mut from.panels);
         self.onion = from.onion;
         // Whatever was playing belonged to the old project.
         self.audio.events = std::mem::take(&mut from.audio.events);
@@ -235,6 +233,22 @@ impl Workspace {
     /// `.fla`, or the name of a new document in the folder last used (none, for the system to
     /// choose).
     pub fn save_as_start(&self) -> (Option<PathBuf>, String) {
+        let (folder, name) = self.document_place();
+        (
+            folder,
+            format!("{name}.{}", flare_runtime::FileFormat::DEFAULT.extension()),
+        )
+    }
+
+    /// The folder and the name Publish starts from: the document's own, so `scene.fla` publishes
+    /// `scene.swf`, `scene.mp4` and the rest beside it, or `Untitled` for a new document. The name
+    /// has no ending, as every format ticked adds its own.
+    pub fn publish_start(&self) -> (Option<PathBuf>, String) {
+        self.document_place()
+    }
+
+    /// The document's folder and its name without the ending.
+    fn document_place(&self) -> (Option<PathBuf>, String) {
         let name = match self.path.as_deref().and_then(Path::file_stem) {
             Some(stem) => stem.to_string_lossy().into_owned(),
             None => tr!(self, "untitled"),
@@ -244,10 +258,7 @@ impl Workspace {
             .as_deref()
             .and_then(Path::parent)
             .map(Path::to_owned);
-        (
-            folder,
-            format!("{name}.{}", flare_runtime::FileFormat::DEFAULT.extension()),
-        )
+        (folder, name)
     }
 
     fn submit_save(&mut self, path: PathBuf) {

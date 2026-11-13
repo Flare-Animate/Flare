@@ -34,9 +34,12 @@ impl MenuAction {
             // these keys never scale the whole interface.
             Self::ZoomIn => "CmdOrCtrl+=",
             Self::ZoomOut => "CmdOrCtrl+-",
+            // Animate 2024's key for Edit Multiple Frames, which left the timeline's toolbar.
+            Self::ToggleEditMultipleFrames => "Alt+Shift+E",
             // Animate's key for View > Pasteboard.
             Self::TogglePasteboard => "CmdOrCtrl+Shift+W",
             Self::Preferences => "CmdOrCtrl+,",
+            Self::CommandPalette => "CmdOrCtrl+Shift+P",
             _ => return None,
         })
     }
@@ -127,6 +130,13 @@ impl MenuAction {
             Self::AddInstanceToSymbol => "duplicate",
             Self::IncrementInstances => "frame-insert",
             Self::BakeTransform => "tool-transform",
+            Self::WorkspaceEssentials
+            | Self::WorkspaceAnimator
+            | Self::WorkspaceDesigner
+            | Self::WorkspaceClassic
+            | Self::WorkspaceSmallScreen => "interface",
+            Self::CommandPalette => "search",
+            Self::ShowSwatches => "panel-swatches",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",
@@ -189,6 +199,7 @@ impl MenuAction {
             Self::ZoomOut => "zoom-out",
             Self::ZoomFit => "zoom-fit",
             Self::ToggleOnionSkin => "onion-skin",
+            Self::ToggleEditMultipleFrames => "edit-multiple-frames",
             Self::ToggleOutlineMode => "outline-square",
             Self::TogglePasteboard => "pasteboard",
             Self::ToggleRulers => "ruler",

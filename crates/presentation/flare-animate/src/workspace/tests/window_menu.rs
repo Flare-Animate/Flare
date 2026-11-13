@@ -9,7 +9,11 @@ fn all_in_one_stack(ws: &mut Workspace) {
         .collect();
     let root = tiles.insert_tab_tile(panes);
     let tree = egui_tiles::Tree::new(egui::Id::unique("stack"), root, tiles);
-    ws.restore_layout(&flare_dock::to_json(&tree).expect("serialize"))
+    let layout = flare_dock::Layout {
+        tree,
+        strip: Vec::new(),
+    };
+    ws.restore_layout(&flare_dock::to_json(&layout).expect("serialize"))
         .expect("a tab group of every panel is valid");
 }
 
@@ -110,6 +114,8 @@ fn insert_new_symbol_adds_an_empty_one_and_is_off_while_editing_inside_one() {
     assert!(ws.is_enabled(MenuAction::NewSymbol));
     let before = ws.document().symbols().len();
     ws.perform(MenuAction::NewSymbol);
+    ws.confirm_symbol_dialog();
+    assert!(ws.exit_symbol(), "the new symbol was opened for drawing");
     assert_eq!(ws.document().symbols().len(), before + 1);
     ws.undo();
     assert_eq!(ws.document().symbols().len(), before);

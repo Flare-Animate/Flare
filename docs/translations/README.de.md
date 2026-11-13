@@ -28,6 +28,18 @@ Ziel ist, die Formate dieser Werkzeuge zu unterstützen, damit Menschen ihre vor
 
 Flare wird in **Rust** neu geschrieben. Die Basis bilden überwiegend *OpenToonz* und *Tahoma2D*, mit Funktionen aus *AnimationCraft* und *Next2Flash*, die in Flare aufgegangen sind. Der alte C++-Code liegt als Archiv in [`original/`](../../original/README.md).
 
+## Bildschirmfotos
+
+<img src="../../assets/screenshots/workspace.png" width="800" alt="Der Editor mit einem geöffneten Projekt: die Werkzeuge, die Bühne, eine Zeitleiste mit drei Ebenen und einem Bewegungs-Tween und die Eigenschaften des Dokuments.">
+
+Der Editor mit einem geöffneten Projekt: die Werkzeuge, die Bühne, eine Zeitleiste mit drei Ebenen und einem Bewegungs-Tween und die Eigenschaften des Dokuments.
+
+<img src="../../assets/screenshots/tween.png" width="800" alt="Mitten im Tween, mit Zwiebelschalen, die die umliegenden Bilder zeigen, und dem Symbol in der Bibliothek.">
+
+Mitten im Tween, mit Zwiebelschalen, die die umliegenden Bilder zeigen, und dem Symbol in der Bibliothek.
+
+Aufgenommen in der Browser-Version, die denselben Editor wie die Desktop-App ausführt.
+
 ## Funktionen
 
 - Zeichnen mit Stift-, Pinsel- und Formwerkzeugen, mit einem Auswahlwerkzeug zum Verschieben, Gruppieren und Bearbeiten von Formen und mit Strichstilen (durchgezogen, gestrichelt, gepunktet, Stipple, schraffiert, zerfranst, Fischgrät, Seil, Zickzack).

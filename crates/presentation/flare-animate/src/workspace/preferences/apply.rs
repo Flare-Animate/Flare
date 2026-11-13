@@ -15,7 +15,8 @@ impl Workspace {
             show_grid: self.display.show_grid,
             snap_to_grid: self.display.snap_to_grid,
             grid_size: self.display.grid_size,
-            loop_playback: self.loop_playback,
+            loop_playback: self.looping.on,
+            timeline_names_width: self.display.timeline_names,
             onion_before: self.onion.before,
             onion_after: self.onion.after,
             onion_outlines: self.onion.outlines,
@@ -66,6 +67,13 @@ impl Workspace {
                 .iter()
                 .map(|p| p.to_string_lossy().into_owned())
                 .collect(),
+            swatches: self
+                .paint
+                .swatches
+                .colors()
+                .iter()
+                .map(|c| [c.r, c.g, c.b, c.a])
+                .collect(),
         }
     }
 
@@ -74,6 +82,12 @@ impl Workspace {
         self.set_language_choice(flare_i18n::Choice::from_code(&preferences.language));
         self.theme_mode = flare_ui::theme::Mode::from_code(&preferences.theme);
         // Only names the list has, each once; a file naming anything else changes nothing.
+        self.paint.swatches = flare_core::swatches::CustomSwatches::from_colors(
+            preferences
+                .swatches
+                .iter()
+                .map(|[r, g, b, a]| flare_core::Rgba8::new(*r, *g, *b, *a)),
+        );
         self.pinned_tools.clear();
         for name in &preferences.pinned_tools {
             self.pin_tool(name);
@@ -91,7 +105,9 @@ impl Workspace {
         self.display.snap_to_grid = preferences.snap_to_grid;
         self.display.grid_size =
             finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
-        self.loop_playback = preferences.loop_playback;
+        self.looping.on = preferences.loop_playback;
+        self.display.timeline_names =
+            super::super::timeline_names_edge::names_width(preferences.timeline_names_width);
         self.set_onion_range(preferences.onion_before, preferences.onion_after);
         self.set_onion_outlines(preferences.onion_outlines);
         self.set_onion_tinted(preferences.onion_tinted);

@@ -8,6 +8,7 @@ timeline-loop = Opakované přehrávání
 timeline-frame = Snímek
 timeline-onion = Cibulová slupka
 timeline-onion-outline = Cibulová slupka jako obrysy
+timeline-multiple-frames = Upravit více snímků
 timeline-new-layer = Nová vrstva
 timeline-new-folder = Nová složka vrstev
 timeline-folder = Složka

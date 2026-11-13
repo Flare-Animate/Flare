@@ -173,6 +173,10 @@ impl Workspace {
         if self.tool == Tool::Eraser {
             return self.eraser_previews(strokes);
         }
+        // Blur and Smudge show on the stage itself as they go.
+        if self.blend_kind().is_some() {
+            return Vec::new();
+        }
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
         let to_points = |stroke: &[InputSample]| -> Vec<Pos2> {
             stroke

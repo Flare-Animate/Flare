@@ -292,6 +292,7 @@ pub fn render_swf_frame(parsed: &Parsed, index: usize, background: Rgba8) -> fla
                 transform: placed.transform,
                 clips: placed.clips.clone(),
                 outline: flare_document::OUTLINE_PALETTE[0],
+                view_alpha: 1.0,
             });
         }
     }

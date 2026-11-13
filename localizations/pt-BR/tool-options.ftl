@@ -126,3 +126,15 @@ opt-picked-pixels =
     }
 opt-wand-invert = Inverter
 opt-wand-clear = Apagar pixels
+
+opt-gap-size = Tamanho do espaço
+opt-gap-none = Não fechar espaços
+opt-gap-small = Fechar espaços pequenos
+opt-gap-medium = Fechar espaços médios
+opt-gap-large = Fechar espaços grandes
+opt-strength = Intensidade
+opt-hardness = Dureza
+opt-pressure-size = A pressão define o tamanho
+opt-pressure-size-tip = Um toque mais leve dá um traço mais estreito
+opt-color-stretch = Estiramento de cor
+opt-color-stretch-tip = Até onde uma cor recolhida é levada ao longo do traço; 0 mistura no lugar

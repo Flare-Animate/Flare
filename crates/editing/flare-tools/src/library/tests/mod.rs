@@ -154,3 +154,4 @@ fn apply(
 mod add_to_symbol;
 mod bake;
 mod increment;
+mod symbols;

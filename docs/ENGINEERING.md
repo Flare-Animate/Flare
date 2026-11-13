@@ -179,8 +179,15 @@ could not be read from this environment, so nothing from it may be ported until 
   (`crates/editing/flare-tools/src/brush/stroke.rs`), and the pressure curve points and stabilizer
   levels of four inking pens as starting values for Flare's G-pen, Mapping pen, Turnip pen and Brush
   pen profiles. No code, tip images, textures or database files were copied, and the Rust is written
-  fresh. The report's raster dab engine (stroke coverage buffer, anti-aliased and Gaussian dabs,
-  paper texture, colour mixing) is not used: Flare has no raster brush yet (BACKLOG WP-11).
+  fresh. Blur and Smudge (`crates/editing/flare-tools/src/blend/`) follow the report's description
+  of the dab engine: dabs spaced by a fraction of their size with the remainder carried on, the
+  one-pixel distance ramp and the clipped Gaussian for a dab's edge, the rules for dabs under four
+  pixels, a per-stroke coverage capped at the stroke's strength over a copy of the bitmap from
+  before the stroke, blurring towards a blurred copy, and the smudged color as a running average of
+  what is under the brush (`5 / (stretch + 5)`), and the default sizes, hardness and stretch of the
+  Blur and Finger tip tools. The blur itself (three box blurs) and the tiling are Flare's own. Paper
+  texture, dual brushes and painting with color are not used: Flare has no raster brush yet
+  (BACKLOG WP-11).
 - i_overlay and its `i_float`, `i_shape`, `i_tree`, `i_key_sort` crates (MIT OR Apache-2.0, linked as a dependency, no code copied): the polygon booleans the Eraser cuts with.
 - usvg and its parser crates (MIT/Apache-2.0, linked as a dependency, no code copied): the SVG reader of `crates/io/flare-import/src/svg.rs`, with its text feature off.
 - SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.

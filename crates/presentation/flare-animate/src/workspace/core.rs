@@ -55,17 +55,12 @@ impl Workspace {
             self.report(tr!(self, "msg-leave-symbol-fps"));
             return;
         }
-        if !fps.is_finite() || !(0.01..=240.0).contains(&fps) {
-            self.report(tr!(self, "msg-fps-range"));
-            return;
-        }
-        let milli = (fps * 1000.0).round() as u32;
-        match flare_core::FrameRate::new(milli, 1000) {
+        match flare_core::FrameRate::from_per_second(fps) {
             Ok(rate) if rate != self.document().frame_rate() => {
                 self.run_batch(vec![Command::SetFrameRate(rate)], "change the frame rate");
             }
             Ok(_) => {}
-            Err(error) => self.report(error.to_string()),
+            Err(_) => self.report(tr!(self, "msg-fps-range")),
         }
     }
 

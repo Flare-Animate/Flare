@@ -277,6 +277,7 @@ fn nothing_in_these_sections_is_left_in_english() {
         ("start-size-standard", &["de", "fr", "it"][..]),
         ("start-details", &["de"][..]),
         ("start-pixels", &["fr", "pt-BR"][..]),
+        ("msg-layer-transparent", &["de", "fr"][..]),
     ];
     let english = Translator::new(Language::English);
     let mut english_left = Vec::new();

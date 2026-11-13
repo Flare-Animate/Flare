@@ -36,6 +36,10 @@ autotest = ["ruffle"]
 egui-winit = { workspace = true, features = ["clipboard", "links", "x11", "wayland"] }
 winit = { workspace = true, features = ["default"] }
 
+# Screen readers (VoiceOver, Narrator, Orca) read the interface through AccessKit on the desktops.
+[target.'cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))'.dependencies]
+egui-winit = { workspace = true, features = ["accesskit"] }
+
 [target.'cfg(target_os = "ios")'.dependencies]
 egui-winit = { workspace = true, features = ["links"] }
 winit = { workspace = true, features = ["rwh_06"] }

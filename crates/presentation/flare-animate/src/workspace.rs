@@ -23,6 +23,7 @@ mod background_work;
 mod chords;
 mod close_prompt;
 mod command_labels;
+mod command_palette;
 mod commands;
 mod core;
 mod dock;
@@ -65,12 +66,14 @@ mod splash;
 mod stage;
 mod stage_furniture;
 mod stage_menu;
+mod symbol_dialog;
 mod symbols;
 mod tabs;
 mod tools;
 mod touch;
 mod transform_cursor;
 mod window_controls;
+mod workspaces;
 use tools::{anchors, stroke_preview, text_preview};
 mod new_document;
 mod new_document_presets;
@@ -79,6 +82,8 @@ mod tests;
 mod timeline;
 mod timeline_cells;
 mod timeline_labels;
+mod timeline_layer_drag;
+mod timeline_names_edge;
 mod timeline_rows;
 mod timeline_sound;
 mod tool_kind;
@@ -222,8 +227,8 @@ pub struct Workspace {
     timeline_zoom: f32,
     /// Where the timeline's parts were drawn on the last pass, for pointing at a frame.
     timeline_layout: Option<timeline::Layout>,
-    /// The end of the onion-skin range being dragged on the ruler, if one is.
-    onion_drag: Option<timeline::OnionEnd>,
+    /// What a press on the timeline holds: a span, an onion-skin marker or a layer's row.
+    timeline_grab: Option<timeline_layer_drag::Grab>,
     /// The next timeline draw sets the zoom at which the scene fills the panel (the Fit button).
     timeline_fit: bool,
     /// Spans selected along with `selected` (Shift-click). Move and Delete act on all of them.
@@ -231,7 +236,6 @@ pub struct Workspace {
     stage_view: StageView,
     /// The stage panel's last rectangle, so menu zoom can aim at its center.
     stage_panel: Rect,
-    span_drag: Option<SpanDrag>,
     current_layer: Option<LayerId>,
     /// The layer being renamed in the timeline and the text so far.
     layer_renaming: Option<(LayerId, String)>,
@@ -252,8 +256,8 @@ pub struct Workspace {
     close_prompt: Option<usize>,
     /// The document on show is closed once the save asked for by the prompt has been written.
     close_after_save: bool,
-    /// The dockable panel arrangement.
-    layout: egui_tiles::Tree<Pane>,
+    /// The panel arrangement, the panel open beside the strip, and changes asked for while drawn.
+    panels: rail::Panels,
     onion: OnionSkin,
     test_movie_requested: bool,
     /// The pen tool's path while it is being drawn.
@@ -261,8 +265,8 @@ pub struct Workspace {
     /// Stage size being edited in the tools panel, applied when the edit finishes.
     stage_edit: Option<(u32, u32)>,
     fps_edit: Option<f64>,
-    /// Playback wraps to the first frame; off, it stops on the last.
-    loop_playback: bool,
+    /// Loop playback: on, playback goes round the loop range (the whole scene without one).
+    looping: timeline_labels::Looping,
     muted: bool,
     /// Everything `report` has said, oldest first, for the Output panel.
     log: Vec<String>,
@@ -304,6 +308,7 @@ pub struct Workspace {
     /// The keyboard shortcuts in force, and the editor's state.
     shortcuts: flare_menubar::ShortcutMap,
     shortcut_editor: shortcut_editor::ShortcutEditor,
+    palette: command_palette::Palette,
     slot_drag: Option<&'static str>,
     /// The Text tool's settings and the text being typed.
     text: groups::TextTool,
@@ -322,7 +327,7 @@ pub struct Workspace {
     /// Whether the touch style has been applied, and for which choice.
     styled_touch: Option<bool>,
     /// The command palette's state.
-    palette: palette::Palette,
+    search_palette: palette::Palette,
 }
 
 impl Workspace {
@@ -397,12 +402,11 @@ impl Workspace {
             clipboard: Vec::new(),
             timeline_zoom: 1.0,
             timeline_layout: None,
-            onion_drag: None,
+            timeline_grab: None,
             timeline_fit: false,
             also_selected: Vec::new(),
             stage_view: StageView::default(),
             stage_panel: Rect::NOTHING,
-            span_drag: None,
             current_layer: None,
             layer_renaming: None,
             layer_rename_serial: 0,
@@ -415,21 +419,18 @@ impl Workspace {
             tab_plus: egui::Rect::NOTHING,
             close_prompt: None,
             close_after_save: false,
-            layout: flare_dock::default_tree(),
+            panels: rail::Panels::default(),
             onion: OnionSkin {
-                enabled: false,
                 before: 1,
                 after: 1,
-                outlines: false,
                 tinted: true,
-                before_color: types::ONION_BEFORE_COLOR,
-                after_color: types::ONION_AFTER_COLOR,
+                ..OnionSkin::OFF
             },
             test_movie_requested: false,
             pen: PenPath::default(),
             stage_edit: None,
             fps_edit: None,
-            loop_playback: true,
+            looping: timeline_labels::Looping::default(),
             muted: false,
             log: Vec::new(),
             props_forced: None,
@@ -456,6 +457,7 @@ impl Workspace {
             pinned_tools: Vec::new(),
             shortcuts: flare_menubar::ShortcutMap::default(),
             shortcut_editor: shortcut_editor::ShortcutEditor::default(),
+            palette: command_palette::Palette::default(),
             slot_drag: None,
             text: groups::TextTool::default(),
             paint: groups::Paint::default(),
@@ -465,41 +467,7 @@ impl Workspace {
             audio: groups::AudioState::default(),
             touch: false,
             styled_touch: None,
-            palette: palette::Palette::default(),
-        }
-    }
-
-    /// A new untitled document: one scene with one empty layer at 24 fps, named in English. A
-    /// workspace that knows the language makes its own with [`Self::new_blank_document`].
-    pub fn untitled() -> Result<Self, String> {
-        Ok(Self::new(Self::blank_named("Scene 1", "Layer 1")?, None))
-    }
-
-    /// A blank document with a scene and a layer of these names, at 24 fps.
-    fn blank_named(scene: &str, layer: &str) -> Result<Document, String> {
-        let layer = Layer::new(LayerId::new(), layer, vec![]).map_err(|e| e.to_string())?;
-        let scene = Scene::new(SceneId::new(), scene, Timeline::new(vec![layer]));
-        let rate = FrameRate::new(24, 1).map_err(|e| e.to_string())?;
-        Document::new(DocumentId::new(), rate, vec![scene], vec![])
-            .map_err(|diagnostics| format!("{diagnostics:?}"))
-    }
-
-    /// A blank document whose scene and layer are named in the language being spoken.
-    pub(super) fn new_blank_document(&self) -> Result<Document, String> {
-        let number = [("n", "1")];
-        Self::blank_named(
-            &tr!(self, "name-new-scene", &number),
-            &tr!(self, "name-new-layer", &number),
-        )
-    }
-
-    /// Gives an untouched new document the names of the language chosen. The document made at
-    /// start-up is made before the language is known.
-    pub fn localize_new_document(&mut self) {
-        if self.is_blank()
-            && let Ok(document) = self.new_blank_document()
-        {
-            self.install_document(document, None);
+            search_palette: palette::Palette::default(),
         }
     }
 }

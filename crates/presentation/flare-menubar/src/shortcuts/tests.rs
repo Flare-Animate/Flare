@@ -73,6 +73,35 @@ fn a_conflicting_bind_changes_nothing() {
 }
 
 #[test]
+fn binding_over_keys_takes_them_and_frees_their_command() {
+    let mut map = ShortcutMap::default();
+    let taken = map.bind_taking(A::Redo, "CmdOrCtrl+Z").expect("taken");
+    assert_eq!(taken, Some(A::Undo));
+    assert_eq!(
+        map.get(A::Redo).map(|a| a.to_string()).as_deref(),
+        Some("CmdOrCtrl+Z")
+    );
+    assert!(map.get(A::Undo).is_none(), "Undo gave its keys up");
+    assert!(map.conflicts().is_empty());
+    // The freed command stays free through a save and a load.
+    let loaded = ShortcutMap::from_json(&map.to_json()).expect("load");
+    assert_eq!(loaded, map);
+    // Its own keys again take nothing; keys that are not a shortcut still change nothing.
+    assert_eq!(map.bind_taking(A::Redo, "CmdOrCtrl+Z").expect("same"), None);
+    let before = map.clone();
+    assert!(map.bind_taking(A::Redo, "bad key").is_err());
+    assert!(
+        map.bind_taking(A::Save, "S").is_err(),
+        "a bare letter is a tool's"
+    );
+    assert_eq!(map, before);
+    // Reset takes the set's own keys back from whoever holds them.
+    assert_eq!(map.reset_taking(A::Undo).expect("reset"), Some(A::Redo));
+    assert!(map.get(A::Redo).is_none());
+    assert!(map.conflicts().is_empty());
+}
+
+#[test]
 fn bind_unbind_reset() {
     let mut map = ShortcutMap::default();
     map.bind(A::Save, "CmdOrCtrl+Alt+S").expect("bind");

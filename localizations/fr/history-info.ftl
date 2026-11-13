@@ -65,3 +65,5 @@ out-count =
     }
 out-nothing = Rien à signaler
 hist-magic-wand = Effacer les pixels
+hist-blur = Flou
+hist-smudge = Doigt

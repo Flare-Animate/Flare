@@ -5,6 +5,7 @@ use flare_core::{LayerId, SceneId};
 use flare_document::Layer;
 use flare_editor::frames;
 
+use super::timeline_layer_drag::Grab;
 use super::*;
 
 impl Workspace {
@@ -194,24 +195,32 @@ impl Workspace {
                 offset: frame - span.start(),
             }
         };
-        self.span_drag = Some(SpanDrag {
+        self.timeline_grab = Some(Grab::Span(SpanDrag {
             layer,
             start: span.start(),
             grab,
             frame,
-        });
+            onto: layer,
+        }));
         true
     }
 
-    pub(super) fn update_span_drag(&mut self, frame: u32) {
-        if let Some(drag) = &mut self.span_drag {
+    /// Follows the pointer to `frame`, over the row of `onto` when it is over one.
+    pub(super) fn update_span_drag(&mut self, frame: u32, onto: Option<LayerId>) {
+        if let Some(Grab::Span(drag)) = &mut self.timeline_grab {
             drag.frame = frame;
+            if let Some(onto) = onto {
+                drag.onto = onto;
+            }
         }
     }
 
-    /// Where the dragged span would land: (layer, start, duration).
+    /// Where the dragged span would land: (layer, start, duration). A moved span lands on the
+    /// row under the pointer; a resized one stays on its own.
     pub(super) fn span_drag_preview(&self) -> Option<(LayerId, u32, u32)> {
-        let drag = self.span_drag?;
+        let Some(Grab::Span(drag)) = self.timeline_grab else {
+            return None;
+        };
         let span = self
             .layer(drag.layer)?
             .spans()
@@ -219,7 +228,7 @@ impl Workspace {
             .find(|s| s.start() == drag.start)?;
         Some(match drag.grab {
             SpanGrab::Move { offset } => (
-                drag.layer,
+                drag.onto,
                 drag.frame.saturating_sub(offset),
                 span.duration().get(),
             ),
@@ -236,24 +245,34 @@ impl Workspace {
 
     pub(super) fn end_span_drag(&mut self) {
         let Some((layer, start, duration)) = self.span_drag_preview() else {
-            self.span_drag = None;
+            self.timeline_grab = None;
             return;
         };
-        let Some(drag) = self.span_drag.take() else {
+        let Some(Grab::Span(drag)) = self.timeline_grab.take() else {
             return;
         };
-        let (Some(scene), Some(found)) = (self.scene_id(), self.layer(layer)) else {
+        let (Some(scene), Some(found), Some(onto)) =
+            (self.scene_id(), self.layer(drag.layer), self.layer(layer))
+        else {
             return;
         };
+        if onto.is_locked() {
+            self.report(self.tr("msg-cannot-move-span"));
+            return;
+        }
         let (commands, what) = match drag.grab {
-            SpanGrab::Move { .. } => (frames::move_span(scene, found, drag.start, start), "move"),
+            // Dropped over other frames, the span replaces them, on its own row or another.
+            SpanGrab::Move { .. } => (
+                frames::drop_span(scene, found, drag.start, onto, start),
+                "move",
+            ),
             SpanGrab::Resize => (
                 frames::resize_span(scene, found, drag.start, duration),
                 "resize",
             ),
         };
         let unchanged = match drag.grab {
-            SpanGrab::Move { .. } => start == drag.start,
+            SpanGrab::Move { .. } => start == drag.start && layer == drag.layer,
             SpanGrab::Resize => found
                 .spans()
                 .iter()
@@ -263,6 +282,9 @@ impl Workspace {
         match commands {
             Some(commands) => {
                 self.run_batch(commands, what);
+                if self.status.is_none() && layer != drag.layer {
+                    self.select_layer(layer);
+                }
                 self.set_frame(self.frame);
                 self.validate_selection();
             }
@@ -384,3 +406,6 @@ impl Workspace {
         }
     }
 }
+
+#[path = "layer_ops.rs"]
+mod layer_ops;

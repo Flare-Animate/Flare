@@ -65,3 +65,5 @@ out-count =
     }
 out-nothing = Nulla da segnalare
 hist-magic-wand = Cancella pixel
+hist-blur = Sfoca
+hist-smudge = Sfumino

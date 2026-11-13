@@ -11,6 +11,7 @@ bar-snap = Snap to grid
 bar-rulers = Rulers
 bar-grid = Grid
 bar-home = Home
+bar-workspaces = Workspaces
 bar-interface-switcher = Interface switcher
 bar-commands = Commands
 bar-pause = Pause

@@ -15,6 +15,7 @@ mod ops;
 mod params;
 mod params_game;
 mod params_pixels;
+mod params_timeline;
 mod server;
 mod tools;
 

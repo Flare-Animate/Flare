@@ -23,4 +23,5 @@ dlg-save-prompt = 내려받을 파일 이름 (확장자 .fla 또는 .flare)
 dlg-increment-from = 이 시작 프레임부터
 dlg-increment-by = 이동할 프레임 수
 dlg-increment-apply = 증분
-
+dlg-filter-animate-shortcuts = Animate 바로 가기
+dlg-cannot-read = 파일을 읽을 수 없습니다

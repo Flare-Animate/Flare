@@ -141,6 +141,17 @@ pub(super) fn write_layer(
     ctx: &mut Ctx<'_>,
 ) {
     let mut attrs = vec![a("name", layer.name())];
+    if layer.view_opacity() < 100 {
+        // A view aid only: nothing drawn changes, but the setting is not kept.
+        ctx.notes.push(Diagnostic {
+            severity: Severity::Warning,
+            location: format!("{place} / layer \"{}\"", layer.name()),
+            message: format!(
+                "the layer is shown at {}% while editing; XFL has no place for that, so it opens opaque",
+                layer.view_opacity()
+            ),
+        });
+    }
     if layer.is_camera() {
         // Written as an empty layer so the others keep their places.
         ctx.notes.push(Diagnostic {

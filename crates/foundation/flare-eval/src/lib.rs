@@ -38,6 +38,24 @@ fn hidden_by_folder(layers: &[flare_document::Layer], index: usize) -> bool {
     false
 }
 
+/// How opaque the stage draws `layers[index]` while it is edited: its own view opacity times that
+/// of every folder it is in, from 0 to 1. Bounded by the number of layers, so a damaged list of
+/// parents cannot loop.
+fn view_alpha_of(layers: &[flare_document::Layer], index: usize) -> f32 {
+    let percent = |l: &flare_document::Layer| f32::from(l.view_opacity()) / 100.0;
+    let mut alpha = percent(&layers[index]);
+    let mut parent = layers[index].parent();
+    for _ in 0..index {
+        let Some(folder) = parent.and_then(|id| layers[..index].iter().find(|l| l.id() == id))
+        else {
+            break;
+        };
+        alpha *= percent(folder);
+        parent = folder.parent();
+    }
+    alpha
+}
+
 fn scene_of(document: &Document, scene: SceneId) -> Result<&flare_document::Scene, EvalError> {
     document
         .scenes()
@@ -159,6 +177,7 @@ fn walk<'a>(
                 Content::Shape(shape) => Some(shape),
                 _ => None,
             });
+        let (shapes, bitmaps) = (out.shapes.len(), out.bitmaps.len());
         walk_layer(
             document,
             layer,
@@ -172,6 +191,16 @@ fn walk<'a>(
             },
             out,
         )?;
+        // A transparent layer (or folder) fades all it drew, symbols inside it too.
+        let alpha = view_alpha_of(layers, index);
+        if alpha < 1.0 {
+            out.shapes[shapes..]
+                .iter_mut()
+                .for_each(|s| s.view_alpha *= alpha);
+            out.bitmaps[bitmaps..]
+                .iter_mut()
+                .for_each(|b| b.view_alpha *= alpha);
+        }
     }
     Ok(())
 }
@@ -225,6 +254,7 @@ fn walk_layer<'a>(
                     transform: parent,
                     clips: clips.to_vec(),
                     outline: outline.unwrap_or(flare_document::OUTLINE_PALETTE[0]),
+                    view_alpha: 1.0,
                 });
             }
             Content::Instance(instance) => {
@@ -259,6 +289,7 @@ fn walk_layer<'a>(
                         opacity: placed.opacity(),
                         after_shapes: out.shapes.len(),
                         clips: clips.to_vec(),
+                        view_alpha: 1.0,
                     });
                 }
             }
@@ -331,7 +362,8 @@ fn walk_instance<'a>(
 
 /// The frame of its symbol an instance shows `elapsed` frames after its span began. A Button
 /// holds its first frame. A Graphic follows its playback: it starts at its first frame and then
-/// loops, plays to the end and holds the last frame, or holds the first frame. A Movie Clip
+/// loops, plays to the end and holds the last frame, or holds the first frame; the reverse modes
+/// count down instead, wrapping or holding the symbol's first frame. A Movie Clip
 /// loops from its first frame, as it would in a movie.
 fn child_frame(
     kind: flare_document::SymbolKind,
@@ -354,6 +386,9 @@ fn child_frame(
                 PlayMode::SingleFrame => first,
                 PlayMode::PlayOnce => (first + elapsed).min(last),
                 PlayMode::Loop => (first + elapsed) % length,
+                PlayMode::PlayOnceReverse => first.saturating_sub(elapsed),
+                // `first < length`, so adding `length` keeps the subtraction from going below 0.
+                PlayMode::LoopReverse => (first + length - elapsed % length) % length,
             }
         }
     };

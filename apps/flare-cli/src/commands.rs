@@ -63,6 +63,9 @@ pub(crate) enum Command {
         height: Option<u32>,
         #[arg(long)]
         background: Option<String>,
+        /// Frames per second, from 0.01 to 240 (for example 24, 29.97 or 12.5).
+        #[arg(long)]
+        fps: Option<f64>,
     },
     /// Rename the first scene of a project.
     RenameScene { path: PathBuf, name: String },
@@ -83,10 +86,14 @@ pub(crate) enum Command {
     },
     /// Summarize a project.
     Info { path: PathBuf },
-    /// Add a Graphic symbol to the library, optionally holding one filled rectangle.
+    /// Add a symbol to the library, optionally holding one filled rectangle. A name the library
+    /// already has is refused.
     AddSymbol {
         path: PathBuf,
         name: String,
+        /// graphic, movie clip or button.
+        #[arg(long, value_parser = crate::symbol::kind_arg, default_value = "graphic")]
+        kind: flare_document::SymbolKind,
         /// Rectangle as X Y WIDTH HEIGHT in document units.
         #[arg(long, num_args = 4, value_names = ["X", "Y", "W", "H"], allow_negative_numbers = true)]
         rect: Option<Vec<f64>>,
@@ -148,6 +155,10 @@ pub(crate) enum Command {
         #[arg(long)]
         dry_run: bool,
     },
+    /// Blur: soften the bitmap under the first point along a stroke of stage points.
+    Blur(project::BlendArgs),
+    /// Smudge: push the colors of the bitmap under the first point along a stroke of stage points.
+    Smudge(project::BlendArgs),
     /// Add editable text to a layer of the first scene.
     AddText {
         path: PathBuf,
@@ -289,6 +300,26 @@ pub(crate) enum Command {
     },
     /// Add an empty layer below the existing ones in the first scene.
     AddLayer { path: PathBuf, name: String },
+    /// Edit Multiple Frames: move, scale and turn everything in frames `--from` to `--to` on the
+    /// shown, unlocked layers together, about the middle of all of it, as one undo step.
+    TransformFrames {
+        path: PathBuf,
+        #[arg(long)]
+        from: u32,
+        #[arg(long)]
+        to: u32,
+        #[arg(long, default_value_t = 0.0, allow_hyphen_values = true)]
+        dx: f64,
+        #[arg(long, default_value_t = 0.0, allow_hyphen_values = true)]
+        dy: f64,
+        #[arg(long, default_value_t = 1.0, allow_hyphen_values = true)]
+        scale_x: f64,
+        #[arg(long, default_value_t = 1.0, allow_hyphen_values = true)]
+        scale_y: f64,
+        /// Clockwise, in degrees.
+        #[arg(long, default_value_t = 0.0, allow_hyphen_values = true)]
+        rotate: f64,
+    },
     /// Insert or remove frames and keyframes on a layer (default: the first layer).
     Frame {
         #[arg(value_enum)]
@@ -297,7 +328,8 @@ pub(crate) enum Command {
         /// Zero-based frame the operation applies at (the first, for a range).
         #[arg(long)]
         at: u32,
-        /// The last frame of the range, for `remove-frames` and `reverse-frames`.
+        /// The last frame of the range, for `remove-frames` and `reverse-frames`; for
+        /// `move-keyframe`, the frame the keyframe goes to.
         #[arg(long)]
         to: Option<u32>,
         #[arg(long)]
@@ -305,8 +337,12 @@ pub(crate) enum Command {
         /// Easing for `set-ease`, from -100 (starts slowly) to 100 (ends slowly).
         #[arg(long, allow_hyphen_values = true)]
         ease: Option<i8>,
+        /// For `move-keyframe`: the layer it goes to (default: its own).
+        #[arg(long)]
+        onto: Option<uuid::Uuid>,
     },
-    /// Rename, hide/show, lock/unlock, reorder or delete a layer.
+    /// Rename, hide/show, lock/unlock, reorder, duplicate, delete or make transparent a layer;
+    /// show all layers, or lock or hide all but one.
     Layer {
         #[arg(value_enum)]
         op: project::LayerOperation,
@@ -316,6 +352,17 @@ pub(crate) enum Command {
         /// New name, for `rename`.
         #[arg(long)]
         name: Option<String>,
+        /// For `move`: the layer to go just above; without it, the layer goes to the bottom.
+        #[arg(long)]
+        before: Option<uuid::Uuid>,
+        /// For `move`: the folder to go into (a folder above the new place); without it, the
+        /// layer is taken out of any folder.
+        #[arg(long)]
+        folder: Option<uuid::Uuid>,
+        /// For `opacity`: how opaque the stage draws the layer while editing, 0 to 100 (100 is
+        /// opaque; exports always draw it whole).
+        #[arg(long)]
+        percent: Option<u8>,
     },
     /// Import an XFL directory, .xfl, .fla, .swf, Moho, BVH or Toonz file into a new project, listing what was
     /// not carried over.

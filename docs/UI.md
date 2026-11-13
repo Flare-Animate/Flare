@@ -11,7 +11,14 @@ restores the default.
 `flare-ui/src/theme.rs` (shared widgets and the icon set are in `flare-ui`, the workspace in `flare-animate`) holds the palettes, spacing, rounding and type sizes; colours are
 named there and used by name. The default dark palette is flat greys with no tint, as animation
 tools use, so the colors on the stage are judged against nothing colored; the blue-tinted dark it
-replaced is the Blue theme. `chrome.rs` holds the shared widgets (icon buttons, section headers,
+replaced is the Blue theme. Every palette has three tones of ground, so neighbouring areas never
+merge into one: the gaps between panels and the pasteboard darkest (`#1d1d1d` in Dark), the bars a
+step up (`theme::chrome()`, `#282828`: the menu bar, the dock's tab rows and unchosen tabs, the
+document tabs, the panel rail and the status bar), and the panels themselves lightest (`#323232`,
+which the chosen tab shares so it reads as part of its panel). A test keeps each step at least
+1.08:1 in every palette. Fields are a shade darker than the panel, labels a quiet grey (`#9a9a9a`)
+and values near white (`#e3e3e3`). Text is 13 px (11 px small, 14 px headings), and a stack's tabs are 12 px in a
+22 px row, so a panel's own content reads before its name. `chrome.rs` holds the shared widgets (icon buttons, section headers,
 label/control rows) so every panel looks alike.
 
 ## Brand
@@ -58,6 +65,27 @@ bitmap (the old one stays in the library while anything else shows it), so other
 the same picture keep it whole. Picking and clearing run on the pixels worker
 ([PERFORMANCE.md](PERFORMANCE.md)); while one is out, further clicks wait for it.
 
+## Blur and Smudge
+
+Blur and Smudge work on bitmaps the way Clip Studio Paint's Blur and Finger tip do. Drag over a
+bitmap: Blur softens what the stroke passes over, and Smudge picks up the colors under it and
+pushes them along, as a finger through wet paint. Both work on the topmost bitmap under the start
+of the drag (on a layer that is shown and unlocked, as the Magic Wand finds it), and the stage
+shows the stroke as it is drawn. The whole drag is one undo step, Escape takes it back, and a click
+blurs one spot (a Smudge click has picked up nothing to lay down). A stroke is a row of round dabs
+whose width follows the pen's pressure. Its strength is a ceiling: going over the same place again
+in one stroke does not blur or smear it further, so lift the pen and go again for more.
+
+The options are Size (stage units, 1 to 1000; Blur starts at 80 and Smudge at 30, Clip Studio's
+values), Strength, Hardness (how sharp the edge of a dab is; Blur starts soft, Smudge half way),
+Pressure sets size, and for Smudge, Color stretch (0 to 100, 70 to start): how far a picked-up
+color is carried along the stroke; at 0 it mixes in place. Each tool keeps its own settings.
+Clear pixels blur and smudge too, so a picture's edge can be softened into the background. As
+with a wand clear, a stroke gives that one element a new bitmap, so other frames showing the same
+picture keep it as it was. Strokes are not mirrored by Symmetry or straightened by Shift. The
+dabs and the new bitmap are made on the pixels worker; a large bitmap shows the stroke a few
+times a second instead of every frame ([PERFORMANCE.md](PERFORMANCE.md)).
+
 ## Splash
 
 On a plain launch (desktop with no file named, and the browser build) a splash shows for 2.5 seconds or until a click or key. It is laid out as Animate's: a card with rounded corners and a soft shadow in the middle of the window (which a plain sheet hides meanwhile), light on the left with the mark (the flame on a dark tile), the name beside it, the version, the tagline and a line on who makes Flare, and "Loading…" at the bottom; on the right, set in with a white margin and its own rounded corners, Flare's own picture: a campfire at night under a moon and stars, between pines, with embers rising (`assets/ui/splash.svg`, no text in it); the fire on its logs is the app's mark, painted there by `flare-ui`'s `splash::paint`. The words are set by `workspace/splash.rs`, so they are translated like the rest. In a small window the card scales down to fit. Neither Animate's nor the old program's artwork is used.
@@ -76,9 +104,23 @@ Still planned (everything else in the menus and panels is built):
 
 ## Top bar
 
-The window has no system title bar, so the document's name is not written twice: the top bar takes its place. It is Animate's own bar: the home mark, the in-window menus where there is no native menu bar (File, Edit, View, Insert, Modify, Text, Commands, Control, Debug, Window and Help; Debug is dimmed, as Flare has no scripts to debug), and at the right Play, Publish and the workspace switcher (a dimmed place held for it), then the window buttons. The document's name is on its tab, undo and redo are in the Edit menu and on their keys, and Preferences are in the Edit menu. Empty space in the bar moves the window and a double click zooms it; the workspace asks and the desktop app does it (`WindowRequest`), so the UI crate stays free of window code.
+The window has no system title bar, so the document's name is not written twice: the top bar takes its place. It is Animate's own bar: the home mark, the in-window menus where there is no native menu bar (File, Edit, View, Insert, Modify, Text, Commands, Control, Debug, Window and Help; Debug is dimmed, as Flare has no scripts to debug), and at the right Play, Publish and the workspace switcher, then the window buttons. The document's name is on its tab, undo and redo are in the Edit menu and on their keys, and Preferences are in the Edit menu. Empty space in the bar moves the window and a double click zooms it; the workspace asks and the desktop app does it (`WindowRequest`), so the UI crate stays free of window code.
 
 On macOS the bar is 28 px high with room at the left for the window's own buttons. On Linux and Windows the window opens without the system's frame and the same bar carries its own minimize, maximize or restore, and close buttons at the right (close asks about unsaved work like Quit does); the window is resized from its edges and corners by the system's own resize (`drag_resize_window`), and `FLARE_SYSTEM_TITLEBAR=1` brings back the system's title bar for a window manager that does not get on with this. Not done: Windows 11's Snap Layouts flyout over the maximize button, which needs a hit-test hook that Flare's no-`unsafe` rule keeps out for now, and the shadow and rounded corners a compositor gives a framed window. This has been built and its logic tested on macOS only; it has not been run on Linux or Windows.
+
+## Screen readers
+
+On macOS, Windows and Linux the desktop app gives screen readers (VoiceOver, Narrator, Orca) the
+interface through AccessKit, which egui builds into its widgets; Animate's interface gives them
+nothing. The tree is made only while a reader asks for it (`flare-shell` turns it on when the
+reader's first request arrives and off when it lets go), so nobody else pays for it. The window
+opens hidden for the moment it takes to attach AccessKit, which must exist before the window is
+shown. Flare's own drawn widgets say what they are: an icon button (`chrome::icon_button`, which
+the tool strip, the top bar and the panel toolbars use) is a button named by its hint, read as
+pressed when it is on and unavailable when it is dimmed; the strip's icons are buttons named for
+their panels; a swatch is a button named by its hex value. Not yet named: the stage and the
+timeline's frame grid, which are drawn as one surface each. The tree is tested; it has not been
+tried with a real screen reader yet.
 
 ## Type
 
@@ -86,11 +128,15 @@ Interface text is Source Sans 3 Regular (`assets/ui/fonts`, SIL Open Font Licens
 
 ## Default layout
 
-Left to right: the tool strip, the stage, and one stack of tabs (Properties, Library, Color, Align, Transform, History, Info). Underneath, spanning the window, are the Timeline and Output tabs. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front. Any panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement.
+Left to right: the tool strip, the stage with the Timeline and Output tabs under it, one stack of tabs (Properties, Library and Assets, as Animate's Essentials has them), and the icon strip at the right edge. As in Animate, the stack runs the window's whole height and the timeline sits under the stage alone, so a long Properties panel is not cut short. Output keeps every message the status bar showed, so a refusal that scrolled past can be read again. The Window menu brings any panel to the front, or opens it beside the strip when it is kept there. Any docked panel can be dragged to another stack or out on its own, and View > Reset Layout restores this arrangement. A layout saved with the timeline running under the stack opens as this default; one saved before the strip existed opens with every panel docked where it was.
 
-An Interface switcher sits at the top right, left of the gear, where Animate has its workspace switcher. It will switch between whole interfaces; for now it is a dimmed button, and Window > Interfaces is a dimmed entry.
+## Workspaces
 
-Publish (the button beside Play, and File > Publish) opens a popup in the middle of the window, like Preferences. It lists the formats (Flash .swf, HTML5 Canvas .html, animated GIF .gif, and MP4 .mp4, the picture as H.264 and the cued sounds as AAC, written by Flare itself with nothing to install; the browser build does not make MP4 yet), the Publish button, which then asks where to save and writes each format ticked side by side, and Share: Twitter, YouTube, Newgrounds and Facebook. Only Twitter's button is live: it opens x.com with the text of the post already filled in. YouTube, Newgrounds and Facebook have no address that carries anything in, so they are dimmed as not available yet until they can be filled in (YouTube through its API, once the project has credentials). Flare has no account on any of them and nothing is uploaded. Twitter is called Twitter in the interface and opens x.com, as artists still call it. File > Publish Settings shows the same format choices on their own. File > Export has Image, Animated GIF, Flash Document (a `.fla`) and SVG (the frame on show, as a picture; animated SVG is not built).
+The workspace switcher sits at the top right, left of the gear, where Animate has its own, and Window > Workspaces lists the built-in ones. They are modelled on Animate's: **Essentials** (the default above), **Animator** (the timeline above the stage, Properties, Library and Assets in one stack on the right and Color, Swatches, Align, Transform and Info in a second under it), **Designer** (the timeline on top, Properties left of the stage, and Library and Assets, Align, Info and Transform, and Color and Swatches in three stacks on the right), **Classic** (the timeline on top, Properties and Assets on the right, everything else in the strip) and **Small Screen** (every panel in one stack on the right and nothing in the strip). Panels a workspace does not dock are in its icon strip.
+
+Each workspace keeps the changes made to it while it was in use, as Animate's do: switching away and back finds it as it was left. View > Reset Layout, or the arrow beside the one in use in the switcher, takes it back to how it was built in or saved. The switcher's New workspace field saves the arrangement on screen under a name (up to 40 characters, at most 20 of them; the same name in any case replaces the one saved) and makes it the one in use; the cross beside one of the person's own forgets it, and Essentials comes back when it was in use. A refusal says why in the status line. The workspaces are kept between sessions in the layout file with the arrangement on screen (`flare_dock::Workspaces`, at most 1 MiB); a file from before workspaces opens as Essentials arranged as it says, and a damaged one is refused and changes nothing. The panels and their arrangement belong to the window: the document is never touched.
+
+Publish (the button beside Play, and File > Publish) opens a popup in the middle of the window, like Preferences. It lists the formats (Flash .swf, HTML5 Canvas .html, animated GIF .gif, and MP4 .mp4, the picture as H.264 and the cued sounds as AAC, written by Flare itself with nothing to install; the browser build does not make MP4 yet), the Publish button, which then asks where to save, starting from the document's own folder and name (`scene.fla` publishes `scene.swf`, `scene.mp4` and the rest beside it; a new document is `Untitled`), and writes each format ticked side by side under the name chosen, and Share: Twitter, YouTube, Newgrounds and Facebook. Only Twitter's button is live: it opens x.com with the text of the post already filled in. YouTube, Newgrounds and Facebook have no address that carries anything in, so they are dimmed as not available yet until they can be filled in (YouTube through its API, once the project has credentials). Flare has no account on any of them and nothing is uploaded. Twitter is called Twitter in the interface and opens x.com, as artists still call it. File > Publish Settings shows the same format choices on their own. File > Export has Image, Animated GIF, Flash Document (a `.fla`, which Animate opens) and SVG (the frame on show, as a picture; animated SVG is not built).
 
 The command palette opens from the search button at the top right, or Ctrl+K (also with a native menu bar): a search box over every command and tool, matched by the letters of the query appearing in the name, run with a click or Enter, stepped through with the arrow keys, closed with Escape. It is AniCraft's (storytold/anicraft), re-implemented for Flare's command registry. A phone or tablet gets the touch form of the workspace: the panel rail, the dock's tab bar and every widget grow to finger sizes (`Workspace::set_touch`); the web build detects one and the Android build always uses it.
 
@@ -98,19 +144,19 @@ Theme: the General category also has Theme, Dark (the default) or Light. The pal
 
 Language: the General category of Preferences has a Language list, "System locale (English)" first and selected by default (the name in brackets is the language the system's locale maps to, English when Flare has none), then English, then the languages written in Latin letters alphabetically by their own names (Deutsch, Español, Français, Português (Brasil)), then the others by language tag (日本語, 한국어, 简体中文); each is written in itself. The code keeps the same order (`Language::ALL`, and a test checks it). The words are Fluent files, one per language and section, in `localizations/<language>/<section>.ftl` (`en`, `de`, `es`, `fr`, `pt-BR`, `ja`, `ko`, `zh-CN`), compiled in; a message a language lacks is shown in English. Everything the interface says is a message (menus, panels, tools and their hints, dialogs, status text, the names a new document gives its scene and layer, how long ago a project was opened); only "Flare", units, product and format names and what the person typed stay as they are. A file added to `localizations/en/` is a section with no registration, and every other language must have the same file and keys (the build stops, and tests check the keys, the `{ $placeholders }`, that no key is in two files, and that a count takes its language's plural form). Code asks for a message with `tr!(workspace, "key")`, whose key is checked when the program is built; a test draws every tool, panel and window in a pseudo language that puts each message between ⟦ and ⟧ and fails on a word outside the marks, and another reads the source for plain English given to a widget. Not yet translated: the text of errors that come from the libraries (a file that cannot be read, a document the editor refuses), which is shown in English after a translated sentence, and the command line and MCP server, which speak English. The translations were written by the maintainers' tooling and want a native reader's review. Japanese, Korean and Chinese need fonts with their characters, so the interface carries Noto Sans CJK cut down to the national character set of each (about 3.5 MB together, `scripts/fonts/subset_cjk.py`) and a test checks every character in a translation is in its font; the language list draws each name in its own font, so it reads right whatever the interface speaks.
 
-A selected Graphic instance has a Looping section in Properties, as Animate's does: Options (Loop, Play Once or Single Frame) and the First frame it starts on, counted from 1. Each change is one undo step. A Movie Clip, a Button, artwork or several selected things show no such section, because only a Graphic follows the setting (a Movie Clip loops from where its instance starts; a Button shows its Up state).
+A selected Graphic instance has a Looping section in Properties, as Animate's does: Options (Loop, Play Once, Single Frame, Loop Reverse or Play Once Reverse; the last two count down from the First frame, wrapping or holding the symbol's first frame) and the First frame it starts on, counted from 1. Each change is one undo step. A Movie Clip, a Button, artwork or several selected things show no such section, because only a Graphic follows the setting (a Movie Clip loops from where its instance starts; a Button shows its Up state).
 
-The Timeline's frames are small fixed cells (10 points at the normal zoom), not the panel's width shared among them: the scene's frames are followed by empty cells to the panel's edge, and on to the end of the longest sound, so a sound longer than the scene can be scrolled to whole and its frames clicked. The layer names stay at the left while the frames scroll sideways, and the ruler stays at the top while the layers scroll down. A sound's bar shows its waveform, and moving the paused playhead plays the stretch of sound under it. The zoom (Ctrl/Cmd and the wheel, or the buttons) widens or narrows them from 3 to 40 points, and Fit sets the zoom at which the scene fills the panel. Onion skin is the first of the two onion buttons in the timeline's toolbar; the second shows the ghosts as outlines, the two fields beside them are how many frames before and after are shown (up to 12 each), and the arrow after them opens its settings: Frames before and Frames after as sliders, Outlines, Tinted, the colors of earlier and later frames, and Reset colors. Tinted, as Animate's onion skin is by default, draws earlier frames in blue and later ones in green (lines in the color, fills in a pale shade of it, so the drawing still reads); off, each ghost is a faded copy in its own colors. While onion skin is on, the ruler shows its range as a band from the earliest ghost to the latest with a handle at each end in that side's color, and dragging a handle sets that side's range without moving the playhead. The range, outlines, tint and colors are kept with the preferences; whether onion skin is on is not, so a session starts with it off. Onion skin is a view of the stage and is never exported.
+The Timeline's frames are small fixed cells (10 points at the normal zoom), not the panel's width shared among them: the scene's frames are followed by empty cells to the panel's edge, and on to the end of the longest sound, so a sound longer than the scene can be scrolled to whole and its frames clicked. The layer names stay at the left while the frames scroll sideways, and the ruler stays at the top while the layers scroll down. The frame rate beside the frame field is a number field, as in Animate: drag it or click and type a rate from 0.01 to 240 frames a second (29.97 and 12.5 too), and it applies when let go or on Enter, as one undo step; the same field is in Properties > Doc, and both are dimmed while a symbol is being edited, since the rate belongs to the whole document. The edge between the names and the frames drags sideways to make the names column wider or narrower (120 to 600 points, 230 to start), and the width is kept with the preferences. The timeline's toolbar starts with what is done to layers, over their names as in Animate: New Layer, New Folder, the Folder menu, Motion Guide, Mask and Delete; the playback buttons, the frame field, the frame rate and the rest start over the frames, or just after the layer buttons when the column is narrower than they are. A sound's bar shows its waveform, and moving the paused playhead plays the stretch of sound under it. The zoom (Ctrl/Cmd and the wheel, or the buttons) widens or narrows them from 3 to 40 points, and Fit sets the zoom at which the scene fills the panel. Onion skin is the first of the two onion buttons in the timeline's toolbar; the second shows the ghosts as outlines, the two fields beside them are how many frames before and after are shown (up to 12 each), and the arrow after them opens its settings: Frames before and Frames after as sliders, Outlines, Tinted, the colors of earlier and later frames, and Reset colors. Tinted, as Animate's onion skin is by default, draws earlier frames in blue and later ones in green (lines in the color, fills in a pale shade of it, so the drawing still reads); off, each ghost is a faded copy in its own colors. While onion skin is on, the ruler shows its range as a band from the earliest ghost to the latest with a handle at each end in that side's color, and dragging a handle sets that side's range without moving the playhead. The range, outlines, tint and colors are kept with the preferences; whether onion skin is on is not, so a session starts with it off. Onion skin is a view of the stage and is never exported. While Loop playback is on, a bar along the top of the ruler shows the loop range, as Animate's does: faint over the whole scene until one of its handles is dragged, then strong over the frames that play round and round, so one stretch of a long scene can be watched while it is worked on. A playhead before the range plays on into it, and one after it goes to its start. A double click on the bar loops the whole scene again. The range belongs to the open document's tab, is cut to the scene if the scene gets shorter, and is never saved (`flare_editor::loop_range`). Edit Multiple Frames (the button after the onion buttons, View > Edit Multiple Frames, Alt+Shift+E as in Animate 2024) shows every keyframe in a range at full strength in its own colors and lets them be edited together, so a whole animation can be moved, scaled or turned and stay the same from frame to frame. Its bracket runs along the bottom of the ruler, over the whole scene until an end is dragged; a double click on it takes in the whole scene again. While it is on, a click picks what is under the pointer on the playhead's frame and then in the other keyframes shown (nearest first), and Select All and the Lasso take from all of them, on shown, unlocked layers; Move, the arrow keys and Free Transform then change them all as one undo step. Onion skin rests meanwhile, its markers hidden. At most 120 keyframes are drawn at once (`flare_tools::multi_frame`). The Selection tool has no drag-a-box marquee yet, so Select All or the Lasso takes everything.
 
 A click on any cell, an empty one past the layer's end too, makes its layer the active one, puts
 the playhead on it and shows it selected in Animate's blue (as are frames selected with Shift); the
-frame field in the toolbar follows the playhead there rather than pulling it back into the scene. The timeline's toolbar has the frame commands used most, after the frame number and rate: Insert Keyframe (F6), Insert Blank Keyframe (F7), Insert Frame (F5) and Remove Frames (Shift+F5). They are the commands of the Insert menu and of the frames' own menu, act on the active layer at the playhead (Insert Frame at an empty cell past a layer's end holds its last keyframe out to it; on a layer with no frames yet, such as a sound's, it makes blank frames up to the playhead, as Animate does), say their name and keys when pointed at, and are dimmed on a locked layer. In the Timeline each frame is a cell: a line between frames (a stronger one every fifth, so they can be counted), a dot on the first frame of a keyframe (hollow when the keyframe holds nothing) and a box on the last frame of a held keyframe, as Animate draws them. A right click on the stage picks the shape under the pointer (unless it is already selected) and opens a menu with Cut, Copy, Paste, Paste in Place, Duplicate, Delete, Group, Ungroup, Break Apart, Convert to Symbol, Select All, Deselect All, Undo, Redo and the zoom commands; on empty stage it clears the selection first. In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Mask, Motion guide, Move up and down, New layer, New folder and Delete. There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
+frame field in the toolbar follows the playhead there rather than pulling it back into the scene. The timeline's toolbar has the frame commands used most, after the frame number and rate: Insert Keyframe (F6), Insert Blank Keyframe (F7), Insert Frame (F5) and Remove Frames (Shift+F5). They are the commands of the Insert menu and of the frames' own menu, act on the active layer at the playhead (Insert Frame at an empty cell past a layer's end holds its last keyframe out to it; on a layer with no frames yet, such as a sound's, it makes blank frames up to the playhead, as Animate does), say their name and keys when pointed at, and are dimmed on a locked layer. In the Timeline each frame is a cell: a line between frames, every fifth frame (5, 10, 15) shaded a tone apart on empty cells and on keyframes alike so they can be counted, a dot on the first frame of a keyframe (hollow when the keyframe holds nothing) and a box on the last frame of a held keyframe, as Animate draws them. The ruler numbers frame 1 and then every fifth frame, every tenth or further apart when the frames are too narrow for that, with a taller tick on each fifth frame. A drawing's keyframes are a light grey, an instance's a cool grey, a picture's a warm one, a motion tween soft blue and a shape tween soft green, so the black marks read on either theme; the active layer's row is tinted only faintly over its frames. Dragging a keyframe by its body moves it, along its row or onto another layer's row, and dropping it over frames that hold something replaces them: a keyframe it covers goes, one it cuts keeps the frames either side, and the frames it left are empty, as one undo step; dragging its right edge lengthens or shortens it, and a length that would run into the next keyframe is refused. A locked layer neither gives nor takes one. Dragging a layer by its name moves it up or down the stack: a line shows where it will land, a folder takes everything in it along, and a drop just under an open folder puts the layer in it while a drop under a folder's last layer takes it out, as one undo step. A right click on the stage picks the shape under the pointer (unless it is already selected) and opens a menu with Cut, Copy, Paste, Paste in Place, Duplicate, Delete, Group, Ungroup, Break Apart, Convert to Symbol, Select All, Deselect All, Undo, Redo and the zoom commands; on empty stage it clears the selection first. In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Transparent and an Opacity slider, Show All, Lock Others, Hide Others, Duplicate Layer, Convert Layers to Symbol, Mask, Motion guide, Move up and down, New layer, New folder and Delete. Lock Others and Hide Others leave the layer, the folders it is in and (for a folder) what it holds as they need to be to work on it, and each is one undo step, or none when nothing changes; Duplicate Layer puts a copy (`Layer 1 copy`, then `copy 2`) with its own elements just above and makes it the active layer, a folder with everything in it; the camera's layer and a layer of bones are not duplicated (`flare_editor::layer_ops`). Convert Layers to Symbol moves the layer (a folder with everything in it), frames, tweens and folders as they are, into a new Graphic symbol named after it (`Layer 1`, or `Layer 1 2` when that is taken; rename it in the Library), and one layer of that name takes its place with an instance of the symbol from the first frame to the layers' last, so nothing moves on the stage; their sounds stay in the scene on that layer (`flare_editor::layers_to_symbol`). To convert several layers at once, put them in a folder first: the timeline selects one layer at a time. A transparent layer, as in Animate's Layer Properties, is one the stage draws see-through so a rough under it can be drawn over: Shift with a click on its eye, or Transparent in its menu, sets it to 50%, and the menu's Opacity slider sets any amount (applied when let go, one undo step). Its eye is drawn half bright. The layer is faded as one sheet (its strokes do not show its own fills through them), a transparent folder fades what it holds, and a symbol inside fades with it; exports, Test Movie and published files always draw it whole. It is kept in a `.flare` project; XFL has no place for it, so a `.fla` save says so and the layer opens opaque (`Layer::view_opacity`, `flare_render::render_stage_viewport`). There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
 
 ## Documents and tabs
 
 A window holds several documents as tabs above the stage; when there are more than fit the strip scrolls (the wheel turns it, and the tab you switch to or make is brought into view) and the new-document button stays beside it. One is edited; the others are parked whole and swapped in when their tab is chosen, so each keeps its own history, selection and view. The person's tool, colors, settings and panel layout stay with the window, not the document. Open (which takes a Flare project, a `.fla`, an `.xfl` or an XFL folder's `DOMDocument.xml`, and a `.swf`, as Animate's does for its own files: Animate's Import is for pictures, sound and video) and New open in a tab of their own, except that a blank untouched document gives way to what is opened. Revert reloads in the same tab, from the file the document lives in (the `.fla` too). Closing a tab with unsaved work asks first, in a box over the window: Save (writes the document in its own format, asking where for an untitled one, and closes the tab once it is on disk; if the place is not chosen the tab stays), Don't Save (closes it and drops its recovery copy) or Cancel (Escape does the same). Closing the window asks about every tab. Autosave and crash recovery cover only the document on show for now.
 
-Save formats, as in Animate: an animator can work without ever making a `.flare` and send the file to somebody who uses Animate. **File > Save As** offers Flash Document (`.fla`, first and the default), uncompressed Flash Document (`.xfl`) and Flare project (`.flare`); the ending of the name decides the format, in any case, and only the last ending counts (`a.flare.fla` is a `.fla`). A name with no ending, or an ending that is none of the three (`drawing.v2`, `movie.swf`), gets `.fla` added. The dialog starts from the document's own folder and name, or `Untitled.fla`. An `.xfl` is a folder, as in Animate: saving `dir/a.xfl` writes the folder `dir/a/` holding `DOMDocument.xml`, `LIBRARY/` and the stub `a.xfl`, and the document is then `dir/a/a.xfl` (a folder that came with another stub name keeps it); a folder that is already an XFL document is replaced in place, and any other existing folder of that name is refused. **File > Save** writes the document back to the file it lives in: a document opened from `x.fla`, `x.xfl` (or its folder, or its `DOMDocument.xml`, which all name the same stub) is saved back to it with no `.flare` made; one opened from `x.flare` stays a project; a new document asks Save As. Opening a `.fla` or `.xfl` does not make the document unsaved; the window title and tab show the file's real name and ending (`x.fla`), with `*` when unsaved, and the Recent list holds `.fla` and `.xfl` paths, which reopen through the normal Open. The file is replaced only by a whole new one written beside it (a read-only file, a full disk or a folder that cannot be written leaves the old file as it was, says why in the status line and keeps the document unsaved), and the work is done off the UI thread. A movie (`.swf`) or an Animate file Flare could not keep whole (a pre-CS5 binary `.fla`, one over the size cap) opens as an unsaved project and asks Save As; a pre-CS5 `.fla` is never overwritten. Autosave writes the same recovery snapshot (a `.flare`-format file in the recovery folder) for any document, and a recovered document is unsaved work with no file until it is saved. After a save to `.fla` or `.xfl` the status line says what was written, and the Output panel lists it: `Saved x.fla (unchanged original)`, or `Saved x.fla (3 of 14 files rebuilt, the rest carried over as they were)` with the names of the rebuilt files, plus, when the format cannot hold something Flare has (cubic curves approximated, sounds not written, a translucent background written opaque), the count of such notes and each one. In the browser build Save and Save As are a download with a name prompt (the last name offered again); `.fla` is the default, `.flare` is a choice, and `.xfl` is saved as a `.fla`, which holds the same files.
+Save formats, as in Animate: an animator can work without ever making a `.flare` and send the file to somebody who uses Animate. **File > Save As** offers Flash Document (`.fla`, first and the default), uncompressed Flash Document (`.xfl`) and Flare project (`.flare`); the ending of the name decides the format, in any case, and only the last ending counts (`a.flare.fla` is a `.fla`). A name with no ending, or an ending that is none of the three (`drawing.v2`, `movie.swf`), gets `.fla` added. The dialog starts from the document's own folder and name, or `Untitled.fla`. An `.xfl` is a folder, as in Animate: saving `dir/a.xfl` writes the folder `dir/a/` holding `DOMDocument.xml`, `LIBRARY/` and the stub `a.xfl`, and the document is then `dir/a/a.xfl` (a folder that came with another stub name keeps it); a folder that is already an XFL document is replaced in place, and any other existing folder of that name is refused. **File > Save** writes the document back to the file it lives in: a document opened from `x.fla`, `x.xfl` (or its folder, or its `DOMDocument.xml`, which all name the same stub) is saved back to it with no `.flare` made; one opened from `x.flare` stays a project; a new document asks Save As. Opening a `.fla` or `.xfl` does not make the document unsaved; the window title and tab show the file's real name and ending (`x.fla`), with `*` when unsaved, and the Recent list holds `.fla` and `.xfl` paths, which reopen through the normal Open. The file is replaced only by a whole new one written beside it (a read-only file, a full disk or a folder that cannot be written leaves the old file as it was, says why in the status line and keeps the document unsaved), and the work is done off the UI thread. A movie (`.swf`) or an Animate file Flare could not keep whole (a pre-CS5 binary `.fla`, one over the size cap) opens as an unsaved project and asks Save As; a pre-CS5 `.fla` is never overwritten. Autosave writes the same recovery snapshot (a `.flare`-format file in the recovery folder) for any document, and a recovered document is unsaved work with no file until it is saved. After a save to `.fla` or `.xfl` the status line says what was written, and the Output panel lists it: `Saved x.fla (unchanged original)`, or `Saved x.fla (3 of 14 files rebuilt, the rest carried over as they were)` with the names of the rebuilt files, plus, when the format cannot hold something Flare has (cubic curves approximated, sounds not written, a translucent background written opaque), the count of such notes and each one. In the browser build Save and Save As are a download with a name prompt (the last name offered again), and Publish downloads each format under the name of the file last opened or saved; `.fla` is the default, `.flare` is a choice, and `.xfl` is saved as a `.fla`, which holds the same files.
 
 ## Pasteboard
 
@@ -140,7 +186,7 @@ everything can be found; the evaluated frame carries each shape's layer color fo
 
 a Color panel with a fill-type dropdown, hex
 field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown
-and a close button on the document tab. The default arrangement stays as it is.
+and a close button on the document tab.
 
 ## Guides
 
@@ -169,7 +215,10 @@ document: drag on the stage to turn it about the panel's center (Shift: in steps
 double-click to set it upright. Tapping Alt alone (Option on a Mac) picks it and shows its dial at
 the foot of the stage: drag the needle to point where the top of the stage should be, step 15
 degrees either way, type an angle, or set it upright; a second tap, Escape or another tool puts
-the dial away and the tool held before back in hand. A tap is a press and release within half a
+the dial away and the tool held before back in hand. A turn is a quick look, as with Animate's
+spring-loaded tools: once a drag on the stage is let go, or a double-click has set it upright, the
+tool held before the Rotation tool is back in hand (the dial closes with it); a click that turns
+nothing leaves the Rotation tool in hand. A tap is a press and release within half a
 second with nothing else pressed (`flare_ui::tap::ModifierTap`), so Alt-click, Alt-drag and Alt
 chords keep their meaning. While the view is turned the stage bar shows the angle (a click sets it
 upright), the grid and guides turn with the stage, the rulers stay along the screen without
@@ -179,7 +228,23 @@ being typed turns with the stage while its invisible field stays upright.
 Help > Keyboard Shortcuts has a search field over the list: words find commands by their name in
 the interface language or their id (`save as`), and keys find what they run (`cmd+s`, `⌘⇧S`,
 `shift+f5`, or a modifier's name such as `option`). The matching is `flare_menubar::ShortcutQuery`,
-which the command line and MCP server use too.
+which the command line and MCP server use too. Keys another command already has are not refused:
+Change (or Reset, for the set's own keys) takes them from that command, which is left with no
+shortcut until it is given one, and the editor says which command lost them
+(`ShortcutMap::bind_taking`, `reset_taking`). So the map still never holds two commands on one key.
+Help > Find a Command (Cmd/Ctrl+Shift+P, a key Animate leaves free) is a command palette, which
+Animate does not have: a field near the top of the window that finds any menu command, with keys
+or without, by its name in the interface's language, its id or its keys, as the shortcut list's
+search does (`ShortcutMap::find_commands`). Up to 12 are listed with their keys; the arrows choose
+one and Enter or a click runs it. A command that cannot run now is listed dimmed and does nothing.
+Escape or a click outside closes it. It only reaches commands the menus have.
+
+Import from Animate… reads Animate's own shortcut file (`Shortcuts/<set>.xml` in Animate's
+settings folder, at most 512 KiB) onto Animate's set: each binding of a command Flare has is
+taken over, taking the keys from any command that had them, and the rest (a command Flare does
+not have, a second key for one command, a key code not yet matched against Animate's menus, a
+modifier not understood) is listed in Output with the reason. A file that is not XML, declares a
+document type, nests too deeply or holds more than 4096 bindings changes nothing.
 
 Over the stage the pointer is the tool in hand (`workspace/tools/stage_pointer.rs`). The Brush, the
 Pencil and the rubbing Eraser show only their tip: the outline of what they lay down, at its size,
@@ -222,12 +287,22 @@ Limit rotation with Min and Max, Remove bone (that bone and the ones below it go
 stay where they are) and Release armature (plain instances again, where the pose put them). Each
 change is one undo step.
 
-## Panel rail
+## Icon strip
 
-A narrow bar at the right edge, like Animate's collapsed panel strip, has an icon for each panel
-of the right-hand stack: Properties, Library, Layers, Color, Align, Transform, History and Info. Clicking one
-brings that panel to the front of its stack; the one showing is highlighted. It is a shortcut to what
-the tabs and Window menu already do, so no panel moves or closes. It is not shown on Home.
+The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
+kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor and Find and
+Replace. A click opens that panel beside the strip, 300 px wide and level with its icon, over the
+stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
+a press on the stage or another panel puts it away (a list or picker the panel opened does not).
+Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
+collapse it. A docked panel goes the other way from the collapse button at the right of its
+stack's tabs, or Collapse to icon on its tab's right-click menu; it is added at the end of the
+strip. The tool strip, the stage, the timeline and Output always stay docked. Where each panel is
+(docked or in the strip, and the strip's order) is saved with the layout (`flare_dock::Layout`),
+and a layout file that has a panel twice, the stage in the strip, or no stage, timeline, output or
+tool strip is refused; a panel added to Flare after the file was saved is put at the end of its
+strip. The
+strip is not shown on Home.
 
 The Layers panel is a compact stack for the active scene: click a row to choose its layer, double
 click its name to rename it, and use the eye and lock controls to change visibility and editing.
@@ -276,7 +351,7 @@ Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
 shows, and keys that pick a tool (A for Subselection, O for Oval) change what its cell shows too.
 The "…" button (More tools) opens a list of the tools that are not in the strip:
-Flare's own Mirror and Ruler, the Camera and the Bone tool, and 3D Rotation, 3D Translation, Deco, Bind and
+Flare's own Mirror and Ruler, Smudge and Blur (see Blur and Smudge above), the Camera and the Bone tool, and 3D Rotation, 3D Translation, Deco, Bind and
 Width, which are not built. Tools that are not built are dimmed with a note, like the menu's planned commands,
 and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a list. The strip scrolls
 when it is taller than its panel.
@@ -299,7 +374,7 @@ selection or the tool changes, and Object is dimmed with nothing selected. A too
 size, smoothing, stabilization, tapers, angle, flatness, pressure response, light touch, stroke
 width, corner radius, sides and depth) are Animate's slider rows: the name at the left and the value
 at the right on one line, a slider the panel's width below it; the value is also a number field to
-type or drag, and sizes slide on a logarithmic track so the small ones get most of it. Something selected on the stage: a shape shows Position and size and its Fill and stroke
+type or drag, and sizes slide on a logarithmic track so the small ones get most of it. The Tool tab shows only the paint a tool uses: the Paint Bucket its fill (and gradient) with Gap size, Animate's Don't close gaps, Close small gaps, Close medium gaps and Close large gaps (10, 24 and 48 screen points, so the same-looking gap closes at any zoom; small is the default); the Ink Bottle its stroke color, width, cap, join and style; a shape tool both. Something selected on the stage: a shape shows Position and size and its Fill and stroke
 (fill color, outline on or off, stroke color, width, cap and join), which are changed on the shape,
 a color when the picker is let go and a number when it is, each one undo step; a symbol instance
 shows its symbol and type, Edit Symbol, Position and size, Looping for a Graphic, and Color Effect,
@@ -308,6 +383,28 @@ Nothing selected but frames: the frame, with its tween and Ease. Nothing at all 
 settings of the tool in hand if it has any (the drawing tools), else the document (size, frame
 rate, background, Publish Settings). Modify > Document asks for the document until the selection or
 the tool changes.
+
+## Dialogs
+
+Every dialog is drawn with `flare_ui::dialog`: a card in the middle of the window over a dimmed
+backdrop, with 24 points of room at the sides and 20 above and below (egui's own popup frame is a
+menu's, too tight for a question), a bold title, labelled rows whose controls line up in one
+column, and the buttons at the bottom right, at least 88 by 28, the one that does the thing filled
+in the accent colour and rightmost. A choice that gives work up stands apart at the bottom left: the
+question a close of unsaved work asks says what is lost ("Your changes will be lost if you don't
+save them."), with Don't Save at the left and Cancel and Save at the right; Return saves, Escape
+cancels.
+
+**Insert > New Symbol** (Ctrl+F8), the Library's New Symbol button, **Modify > Convert to Symbol**
+(F8) and the stage menu's Convert to Symbol ask first, in Animate's Create New Symbol / Convert to
+Symbol dialog: Name (the first free "Symbol n", selected so typing replaces it), Type as three
+cards with their icons (Movie Clip, Button, Graphic, in Animate's order), Folder (Library root,
+dimmed until the library has folders) and, when converting, Registration, Animate's grid of nine
+points: the symbol's own origin goes on that point of the artwork's box and the instance stands
+there, so nothing moves on the stage. A name that is blank, too long or already in the library is
+explained under the field and dims OK. OK or Return makes the symbol as one undo step; a new symbol
+then opens for drawing in it, as in Animate, and a converted one stays selected on the stage. The
+next dialog starts on the type and registration chosen last; a dialog given up keeps nothing.
 
 ## New Document
 
@@ -355,7 +452,7 @@ project named on the command line or recovered after a crash opens straight to i
 
 Docked panels (everything but the stage and the timeline, which use their whole area) keep their
 content 10 px from the sides and 8 px from the top and bottom (`theme::PANEL_PADDING`); the gutter
-between panels and around the dock is 4 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
+between panels and around the dock is 3 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
 8 by 3 px of padding inside buttons and 22 px rows. These are set in one place, `theme::apply`.
 
 ## Eraser
@@ -411,6 +508,17 @@ straight stroke is kept, so the width a pen gave is kept in the drawing and
 playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
 after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is
 not kept in Preferences, so each session starts at 0.15.
+
+## Swatches
+
+The Swatches panel (Window > Swatches, in the icon strip by default) is Animate's: a row of
+twelve greys from black to white, the 216 web-safe colors in the classic twelve columns (the red
+steps in pairs side by side, green down the rows, blue across; `flare_core::swatches`), and Your
+swatches. A click on a cell makes it the color the Color panel is setting (fill, stroke or the
+gradient's end), and pointing at one shows its hex value. The + keeps the color being set as one
+of the person's own (each color once, at most 120; a full list says so), and a right click on one
+of them deletes it. They are kept with the preferences, not in the document. The web-safe colors
+are the web's standard palette, not Animate's artwork.
 
 ## Info panel
 

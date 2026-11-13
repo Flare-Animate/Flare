@@ -150,7 +150,7 @@ fn the_house_is_at_the_far_left_and_play_publish_and_the_switcher_hug_the_window
     let mut x = 1156.0;
     while x > 1040.0 {
         let hint = hint_at(x);
-        if hint.contains("Interface switcher") {
+        if hint.contains("Workspaces") {
             switcher.get_or_insert(x);
         }
         if hint.contains("Publish") {

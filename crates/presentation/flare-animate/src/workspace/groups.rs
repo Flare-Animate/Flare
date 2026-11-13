@@ -76,6 +76,8 @@ pub(super) struct Paint {
     pub(super) stroke_cap: Cap,
     pub(super) stroke_join: Join,
     pub(super) stroke_style: flare_document::StrokeStyle,
+    /// How wide a gap in the lines the Paint Bucket fills across.
+    pub(super) gap: flare_tools::paint::GapSize,
     /// Pencil and brush strokes are mirrored across these axes.
     pub(super) symmetry: Symmetry,
     /// Where the axes cross; the middle of the stage until one is set.
@@ -86,6 +88,10 @@ pub(super) struct Paint {
     pub(super) straight_held: bool,
     /// The stroke just committed, shown until the stage picture that has it arrives.
     pub(super) settling: Option<super::stroke_preview::Settling>,
+    /// The person's own swatches, kept with the preferences.
+    pub(super) swatches: flare_core::swatches::CustomSwatches,
+    /// Blur and Smudge: their settings and the stroke being laid.
+    pub(super) blend: super::tools::blend::BlendTools,
 }
 
 impl Default for Paint {
@@ -101,11 +107,14 @@ impl Default for Paint {
             stroke_cap: Cap::Round,
             stroke_join: Join::Round,
             stroke_style: flare_document::StrokeStyle::Solid,
+            gap: flare_tools::paint::GapSize::default(),
             symmetry: Symmetry::Off,
             symmetry_center: None,
             straight_edge: false,
             straight_held: false,
             settling: None,
+            swatches: flare_core::swatches::CustomSwatches::default(),
+            blend: Default::default(),
         }
     }
 }
@@ -130,6 +139,10 @@ pub(super) struct Display {
     pub(super) show_pasteboard: bool,
     /// What the Ruler tool last measured: from one stage point to another.
     pub(super) measure: Option<(Pos2, Pos2)>,
+    /// How wide the timeline's column of layer names is, in points.
+    pub(super) timeline_names: f32,
+    /// Edit Multiple Frames: whether it is on and the range its bracket marks.
+    pub(super) multi_frame: super::timeline_labels::MultiFrames,
 }
 
 impl Default for Display {
@@ -145,6 +158,8 @@ impl Default for Display {
             outline_mode: false,
             show_pasteboard: true,
             measure: None,
+            timeline_names: super::timeline::LABEL_W,
+            multi_frame: Default::default(),
         }
     }
 }
@@ -163,6 +178,8 @@ pub(super) struct OpenWindows {
     pub(super) home: bool,
     /// The Increment Instances popup: the symbol to act on, and the two numbers.
     pub(super) increment_instances: Option<IncrementInstances>,
+    /// The Create New Symbol or Convert to Symbol dialog.
+    pub(super) symbol: Option<super::symbol_dialog::SymbolDialog>,
     /// The start-up splash: the egui time it appeared (`None` until its first frame) while shown.
     pub(super) splash: Option<Option<f64>>,
     /// The command palette (Ctrl+K).
@@ -202,29 +219,32 @@ impl super::Workspace {
             self.tr("close"),
         );
         let mut run = false;
-        let response = egui::Modal::new(egui::Id::unique("increment_instances")).show(ctx, |ui| {
-            ui.set_width(300.0);
-            ui.heading(self.label(MenuAction::IncrementInstances));
-            ui.add_space(6.0);
-            ui.horizontal(|ui| {
-                ui.label(&from);
-                ui.add(egui::DragValue::new(&mut form.from).range(0..=u32::MAX));
+        let title = self.label(MenuAction::IncrementInstances);
+        let response =
+            flare_ui::dialog::modal(ctx, egui::Id::unique("increment_instances")).show(ctx, |ui| {
+                use flare_ui::dialog;
+                ui.set_width(320.0);
+                dialog::title(ui, &title);
+                dialog::field(ui, &from, |ui| {
+                    ui.add(egui::DragValue::new(&mut form.from).range(0..=u32::MAX));
+                });
+                dialog::field(ui, &by, |ui| {
+                    ui.add(egui::DragValue::new(&mut form.by).range(i32::MIN..=i32::MAX));
+                });
+                dialog::footer(
+                    ui,
+                    |_| {},
+                    |ui| {
+                        if dialog::primary_button(ui, &apply, true).clicked() {
+                            run = true;
+                            ui.close();
+                        }
+                        if dialog::button(ui, &close).clicked() {
+                            ui.close();
+                        }
+                    },
+                );
             });
-            ui.horizontal(|ui| {
-                ui.label(&by);
-                ui.add(egui::DragValue::new(&mut form.by).range(i32::MIN..=i32::MAX));
-            });
-            ui.add_space(8.0);
-            ui.horizontal(|ui| {
-                if ui.button(&apply).clicked() {
-                    run = true;
-                    ui.close();
-                }
-                if ui.button(&close).clicked() {
-                    ui.close();
-                }
-            });
-        });
         if run {
             match flare_tools::library::increment_instances(
                 self.document(),

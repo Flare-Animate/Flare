@@ -24,7 +24,11 @@ pub(super) fn rail_icon(touch: bool) -> f32 {
 
 /// The dock's tab bar height: a tab is a finger's target when the panel has to be switched.
 pub(super) fn tab_bar(touch: bool) -> f32 {
-    if touch { 34.0 } else { 26.0 }
+    if touch {
+        34.0
+    } else {
+        super::dock::TAB_BAR_HEIGHT
+    }
 }
 
 /// The spacing and sizes egui's own widgets use with fingers, laid over the palette's base

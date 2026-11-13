@@ -17,8 +17,9 @@ mod translation_tests;
 pub use labels::{LabelState, mock_key, submenu_key, title_key};
 pub use menu::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
 pub use shortcuts::{
-    Accelerator, Conflict, DEFAULT_SET, MAX_SEARCH_CHARS, MAX_SHORTCUT_FILE_BYTES,
-    SHORTCUT_SET_IDS, ShortcutError, ShortcutMap, ShortcutQuery, set_bindings,
+    Accelerator, AnimateImport, Conflict, DEFAULT_SET, MAX_ANIMATE_SHORTCUT_BYTES,
+    MAX_SEARCH_CHARS, MAX_SHORTCUT_FILE_BYTES, SHORTCUT_SET_IDS, ShortcutError, ShortcutMap,
+    ShortcutQuery, Skipped, set_bindings,
 };
 
 /// A user-invokable command. Variants map one-to-one onto menu items.
@@ -114,6 +115,8 @@ pub enum MenuAction {
     DeleteLayer,
     ResetLayout,
     ToggleOnionSkin,
+    /// Edit Multiple Frames: every keyframe in a range of frames shows and is edited at once.
+    ToggleEditMultipleFrames,
     ToggleRulers,
     ToggleGrid,
     ToggleSnap,
@@ -157,10 +160,20 @@ pub enum MenuAction {
     IncrementInstances,
     AddInstanceToSymbol,
     BakeTransform,
+    /// Window > Workspaces: switch to a built-in workspace (Animate's names).
+    WorkspaceEssentials,
+    WorkspaceAnimator,
+    WorkspaceDesigner,
+    WorkspaceClassic,
+    WorkspaceSmallScreen,
+    /// Help > Find a Command: a field that finds any command by its name, id or keys, and runs it.
+    CommandPalette,
+    /// Window > Swatches.
+    ShowSwatches,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 130] = [
+    pub const ALL: [MenuAction; 138] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -250,6 +263,7 @@ impl MenuAction {
         Self::DeleteLayer,
         Self::ResetLayout,
         Self::ToggleOnionSkin,
+        Self::ToggleEditMultipleFrames,
         Self::ToggleRulers,
         Self::ToggleGrid,
         Self::ToggleSnap,
@@ -291,6 +305,13 @@ impl MenuAction {
         Self::IncrementInstances,
         Self::AddInstanceToSymbol,
         Self::BakeTransform,
+        Self::WorkspaceEssentials,
+        Self::WorkspaceAnimator,
+        Self::WorkspaceDesigner,
+        Self::WorkspaceClassic,
+        Self::WorkspaceSmallScreen,
+        Self::CommandPalette,
+        Self::ShowSwatches,
     ];
 
     /// A stable identifier for native menu items (the variant name).

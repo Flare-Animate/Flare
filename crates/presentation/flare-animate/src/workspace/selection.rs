@@ -22,8 +22,8 @@ impl Workspace {
             self.pen.clear();
             self.finish_text_for_tool_change();
             self.wand_drop();
-            self.tool = tool;
-            self.rotate_view_tool_changed(tool);
+            let before = std::mem::replace(&mut self.tool, tool);
+            self.rotate_view_tool_changed(before, tool);
             if tool == Tool::Camera {
                 self.ensure_camera();
             }
@@ -91,15 +91,25 @@ impl Workspace {
 
     pub(super) fn glyph_hit(&self, point: Pos2) -> Option<SpanRef> {
         let scene = self.scene_id()?;
-        let frame =
-            flare_eval::evaluate_frame_without_camera(self.document(), scene, self.frame).ok()?;
         let at = DVec2::new(f64::from(point.x), f64::from(point.y));
-        flare_render::hit_test_all(&frame, at)
-            .into_iter()
-            .filter_map(|index| {
-                ops::locate_hit(self.document(), scene, self.frame, &frame.shapes[index])
-            })
-            .find(|span| self.on_unlocked_layer(*span))
+        let hit_at = |number: u32| {
+            let frame =
+                flare_eval::evaluate_frame_without_camera(self.document(), scene, number).ok()?;
+            flare_render::hit_test_all(&frame, at)
+                .into_iter()
+                .filter_map(|index| {
+                    ops::locate_hit(self.document(), scene, number, &frame.shapes[index])
+                })
+                .find(|span| self.on_unlocked_layer(*span))
+        };
+        // Editing multiple frames, what the playhead's frame does not have under the pointer is
+        // looked for in the other keyframes shown, nearest the playhead first.
+        hit_at(self.frame).or_else(|| {
+            let mut others = self.multi_frames_shown();
+            others.retain(|f| *f != self.frame);
+            others.sort_by_key(|f| f.abs_diff(self.frame));
+            others.into_iter().find_map(hit_at)
+        })
     }
 
     /// Whether `span` is on a layer that can be changed: neither it nor a folder it is in is
@@ -214,7 +224,12 @@ impl Workspace {
     /// Selects everything on unlocked layers at the current frame.
     pub fn select_all(&mut self) {
         let Some(scene) = self.scene_id() else { return };
-        let all = ops::spans_at_frame(self.document(), scene, self.frame);
+        let all = match self.multi_frame_range() {
+            Some(r) => {
+                flare_tools::multi_frame::spans_in_range(self.document(), scene, r.from(), r.to())
+            }
+            None => ops::spans_at_frame(self.document(), scene, self.frame),
+        };
         self.selected = all.first().copied();
         self.also_selected = all.into_iter().skip(1).collect();
     }

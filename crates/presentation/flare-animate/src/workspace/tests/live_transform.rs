@@ -209,3 +209,95 @@ fn a_new_position_waits_for_the_held_drag_picture_in_flight_but_a_release_does_n
     assert_eq!(ws.texture.as_ref().map(|t| t.preview), Some(None));
     assert_eq!(shape_bounds(&ws).max, Pos2::new(90.0, 90.0));
 }
+
+/// A Free Transform rotation dragged on the stage through the window's own events, with a
+/// second button pressed and let go part way, as a two-finger tap on a trackpad does. Returns
+/// the workspace after the primary button comes up, the undo steps it started with, and the
+/// turn, in degrees, shown just before the release.
+fn rotation_with_a_secondary_tap() -> (Workspace, usize, f64) {
+    let ctx = egui::Context::default();
+    let mut ws = workspace();
+    ws.commit_rectangle(Pos2::new(900.0, 500.0), Pos2::new(1000.0, 600.0));
+    ws.set_tool(Tool::FreeTransform);
+    ws.select_at(Pos2::new(950.0, 550.0), false);
+    for time in [0.0, 0.01, 0.02] {
+        run(&mut ws, &ctx, time);
+    }
+    let steps = ws.active().undo_labels().len();
+    let extent = ws.stage_extent();
+    let image = ws.stage_view.image_rect(ws.stage_panel, extent);
+    let scale = ws.stage_view.scale(ws.stage_panel, extent);
+    let screen = |p: Pos2| image.min + p.to_vec2() * scale;
+    let center = Pos2::new(950.0, 550.0);
+    // Just outside the top-left corner, in the rotate ring.
+    let reach = ws.handle_radius * 1.4;
+    let start = Pos2::new(900.0 - reach, 500.0 - reach);
+    let radius = (start - center).length();
+    let around = |degrees: f32| {
+        let a = (start - center).angle() + degrees.to_radians();
+        screen(center + Vec2::angled(a) * radius)
+    };
+    let button = |at, button, pressed| Event::PointerButton {
+        pos: at,
+        button,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    let (primary, secondary) = (egui::PointerButton::Primary, egui::PointerButton::Secondary);
+    let mut time = 0.1;
+    let mut step = |ws: &mut Workspace, events| {
+        time += 0.02;
+        pass(ws, &ctx, input(time, events));
+    };
+    step(&mut ws, vec![Event::PointerMoved(screen(start))]);
+    step(&mut ws, vec![button(screen(start), primary, true)]);
+    for degrees in [5.0, 10.0, 20.0, 30.0] {
+        step(&mut ws, vec![Event::PointerMoved(around(degrees))]);
+    }
+    // egui notices a drag only after the pointer has moved a little, so the turn is measured
+    // from where it stood before the tap.
+    let turned = |ws: &Workspace| match ws.drag.and_then(|drag| ws.drag_edit(&drag)) {
+        Some(super::super::drag_preview::DragEdit::Transform(m)) => {
+            m.matrix2.x_axis.y.atan2(m.matrix2.x_axis.x).to_degrees()
+        }
+        other => panic!("the rotation is still held: {other:?}"),
+    };
+    let before = turned(&ws);
+    step(&mut ws, vec![button(around(30.0), secondary, true)]);
+    step(&mut ws, vec![button(around(30.0), secondary, false)]);
+    for degrees in [45.0, 60.0, 90.0] {
+        step(&mut ws, vec![Event::PointerMoved(around(degrees))]);
+    }
+    let after = turned(&ws);
+    assert!(
+        (after - before - 60.0).abs() < 0.5,
+        "the turn follows the pointer past the tap: {before} then {after}"
+    );
+    step(&mut ws, vec![button(around(90.0), primary, false)]);
+    step(&mut ws, vec![]);
+    (ws, steps, after)
+}
+
+#[test]
+fn a_second_button_tapped_mid_rotation_neither_freezes_nor_strands_it() {
+    let (ws, steps, shown) = rotation_with_a_secondary_tap();
+    assert!(
+        ws.drag.is_none(),
+        "letting go of the primary button ends it"
+    );
+    assert_eq!(ws.active().undo_labels().len(), steps + 1, "one undo step");
+    // What is let go is what was shown: the top-left corner turned about the center.
+    let a = shown.to_radians();
+    let expected = (
+        950.0 - 50.0 * a.cos() + 50.0 * a.sin(),
+        550.0 - 50.0 * a.sin() - 50.0 * a.cos(),
+    );
+    let corner = match drawn_shape(&ws, 1).path().first() {
+        Some(flare_document::PathSegment::MoveTo(p)) => p.as_vec(),
+        other => panic!("a path expected: {other:?}"),
+    };
+    assert!(
+        (corner.x - expected.0).abs() < 0.01 && (corner.y - expected.1).abs() < 0.01,
+        "{corner:?} against {expected:?}"
+    );
+}

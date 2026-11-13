@@ -8,6 +8,7 @@ timeline-loop = ループ再生
 timeline-frame = フレーム
 timeline-onion = オニオンスキン
 timeline-onion-outline = オニオンスキンをアウトラインで表示
+timeline-multiple-frames = 複数フレームを編集
 timeline-new-layer = 新規レイヤー
 timeline-new-folder = 新規レイヤーフォルダー
 timeline-folder = フォルダー

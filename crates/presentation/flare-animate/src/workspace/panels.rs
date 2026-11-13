@@ -10,9 +10,11 @@ pub(super) const BAR_ICON: f32 = 16.0;
 
 mod align;
 mod brush_options;
+mod bucket_options;
 mod color;
 pub(crate) mod color_wells;
 mod drawing_mode;
+mod fps_field;
 mod history;
 mod layers_panel;
 pub(crate) use motion_editor::MotionEditor;
@@ -28,6 +30,7 @@ mod properties;
 mod properties_interp;
 mod properties_object;
 mod stage_bar;
+mod swatches;
 #[cfg(test)]
 mod tests;
 mod timeline_bar;

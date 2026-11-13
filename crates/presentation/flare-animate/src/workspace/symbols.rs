@@ -14,6 +14,8 @@ pub(super) struct LibraryState {
     pub(super) selected: Option<SymbolId>,
     /// What the next symbol made from a selection, or added to the library, is.
     pub(super) new_kind: flare_document::SymbolKind,
+    /// Where on its artwork the next symbol converted with the dialog has its origin.
+    pub(super) registration: flare_tools::library::Registration,
     pub(super) search: String,
     /// The symbol being renamed and the text so far.
     pub(super) renaming: Option<(SymbolId, String)>,
@@ -27,6 +29,7 @@ impl Default for LibraryState {
         Self {
             selected: None,
             new_kind: flare_document::SymbolKind::Graphic,
+            registration: flare_tools::library::Registration::default(),
             search: String::new(),
             renaming: None,
             preview: None,
@@ -176,30 +179,25 @@ impl Workspace {
         self.exit_to_depth(0)
     }
 
-    /// Adds an instance of the library-selected symbol, centered on the stage.
-    /// Adds an empty symbol to the library and selects it. Library edits belong to the main
-    /// document, so they wait until symbol editing is left.
+    /// Adds an empty symbol of the remembered type, with the first free name, to the library and
+    /// selects it, without asking (Insert > New Symbol asks first, in `symbol_dialog`). Library
+    /// edits belong to the main document, so they wait until symbol editing is left.
     pub fn new_symbol(&mut self) {
         if self.in_symbol() {
             self.report(tr!(self, "lib-leave-editing"));
             return;
         }
-        let taken: std::collections::HashSet<String> = self
-            .document()
-            .symbols()
-            .iter()
-            .map(|s| s.name().to_owned())
-            .collect();
-        let name = (1..)
-            .map(|n| tr!(self, "lib-symbol-name", &[("n", &n.to_string())]))
-            .find(|name| !taken.contains(name))
-            .unwrap_or_default();
-        let id = SymbolId::new();
-        let symbol = flare_document::Symbol::new(id, name, flare_document::Timeline::default())
-            .with_kind(self.library.new_kind);
-        self.run_batch(vec![Command::AddSymbol(symbol)], "add the symbol");
-        if self.status.is_none() {
-            self.library.selected = Some(id);
+        let name = flare_tools::library::free_symbol_name(self.document(), |n| {
+            tr!(self, "lib-symbol-name", &[("n", &n.to_string())])
+        });
+        match flare_tools::library::create_symbol(self.document(), &name, self.library.new_kind) {
+            Ok((commands, id)) => {
+                self.run_batch(commands, "add the symbol");
+                if self.status.is_none() {
+                    self.library.selected = Some(id);
+                }
+            }
+            Err(error) => self.report(error.to_string()),
         }
     }
 

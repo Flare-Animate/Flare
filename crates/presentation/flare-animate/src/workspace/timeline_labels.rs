@@ -3,6 +3,7 @@
 //! however far the layers are scrolled.
 
 use egui::{Align2, Color32, FontId, Painter, Pos2, Rect, Stroke, Vec2};
+use flare_editor::timeline_view;
 
 use super::timeline::{FOLDER_INDENT, Layout, ROW};
 use super::timeline_cells;
@@ -93,7 +94,10 @@ impl Workspace {
                     Rect::from_min_size(Pos2::new(x, y + 4.0), Vec2::splat(14.0)),
                 );
             };
-            let (eye, eye_tint) = if layer.is_visible() {
+            // A transparent layer's eye is half drawn, as the layer is.
+            let (eye, eye_tint) = if layer.is_visible() && layer.view_opacity() < 100 {
+                ("eye", ink.gamma_multiply(0.45))
+            } else if layer.is_visible() {
                 ("eye", ink)
             } else {
                 ("eye-off", dim)
@@ -132,7 +136,11 @@ impl Workspace {
             Stroke::new(1.0, flare_ui::theme::border()),
         );
         self.onion_markers(painter, l, band);
-        let step = ((40.0 / l.per_frame).ceil() as u32).max(1);
+        self.loop_bar(painter, l, band);
+        self.multi_bar(painter, l, band);
+        // Frame 1, then every fifth (or further apart when the frames are narrow), as Animate
+        // numbers them; each fifth frame has a taller tick so it can be counted to.
+        let step = timeline_view::ruler_step(l.per_frame);
         let first = l.frame_at(l.label_edge).floor().max(0.0) as u32;
         for f in first..shown {
             let x = l.frame_x(f as f32);
@@ -142,11 +150,18 @@ impl Workspace {
             if x < l.label_edge {
                 continue;
             }
-            let major = f % step == 0;
+            let major = timeline_view::is_numbered(f, step);
+            let (tick, color) = if major {
+                (7.0, flare_ui::theme::text_dim())
+            } else if timeline_view::is_fifth(f) {
+                (5.0, flare_ui::theme::text_dim())
+            } else {
+                (3.0, flare_ui::theme::text_disabled())
+            };
             painter.vline(
                 x,
-                (band.bottom() - if major { 7.0 } else { 3.0 })..=band.bottom(),
-                Stroke::new(1.0, flare_ui::theme::text_disabled()),
+                (band.bottom() - tick)..=band.bottom(),
+                Stroke::new(1.0, color),
             );
             if major {
                 painter.text(
@@ -164,7 +179,8 @@ impl Workspace {
     /// the earliest ghost to the latest, with a handle at each end in that side's color, to drag.
     fn onion_markers(&self, painter: &Painter, l: &Layout, band: Rect) {
         let onion = self.onion;
-        if !onion.enabled {
+        // Editing multiple frames, its bracket has this part of the ruler and onion skin rests.
+        if !onion.enabled || self.editing_multiple_frames() {
             return;
         }
         let (start, end) = l.onion_markers(self.frame, onion.before, onion.after);
@@ -194,3 +210,11 @@ impl Workspace {
         }
     }
 }
+
+#[path = "timeline_loop.rs"]
+mod timeline_loop;
+pub(super) use timeline_loop::Looping;
+
+#[path = "timeline_multi.rs"]
+mod timeline_multi;
+pub(super) use timeline_multi::MultiFrames;

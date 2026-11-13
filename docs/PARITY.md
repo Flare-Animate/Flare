@@ -14,7 +14,7 @@ first thing taken over and are in the importer and Flash adapter tests.
 | Merge-drawing model (Flash planar-map shapes: edge bending, boolean cuts) | Planned and the largest gap against Animate's drawing model; today every shape is a separate drawing object (Object Drawing), shown as a dimmed switch in the tool options |
 | AS3 decompile / ActionScript editing | Not planned for 0.1; ActionScript is preserved as data, never run |
 | Moho projects, rig rendering | Not planned; import is a later milestone after the Animate workflow |
-| FlipaClip layout profile, custom room layouts | Flare has dockable panels and "Reset layout"; switching between whole interfaces (Animate's workspace switcher) is a dimmed button at the top right and a dimmed Window > Interfaces entry |
+| FlipaClip layout profile, custom room layouts | Flare has dockable panels, Animate's icon strip, and named workspaces with Animate's switcher (five built in, the person's own saved under a name, each reset to how it was built in or saved); room layouts from OpenToonz profiles are not read by the interface |
 | Auto-update with SHA-256 verification | Planned after the first release exists to update from |
 | Windows installer (NSIS), Chocolatey | Planned; see [RELEASE.md](RELEASE.md) |
 | Android build, P2P remote control | Not planned |

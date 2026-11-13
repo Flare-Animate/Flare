@@ -1,16 +1,16 @@
 use super::*;
 
+/// The width of the names column the expectations are worked out for.
+const NAMES: f32 = 140.0;
+
 /// 20 layers of 50 frames at 10 points a frame: 640 by 420 points of content.
 fn content() -> Rect {
-    Rect::from_min_size(
-        Pos2::new(100.0, 50.0),
-        Vec2::new(LABEL_W + 500.0, ROW * 21.0),
-    )
+    Rect::from_min_size(Pos2::new(100.0, 50.0), Vec2::new(NAMES + 500.0, ROW * 21.0))
 }
 
 #[test]
 fn unscrolled_the_names_and_ruler_sit_at_the_contents_edges() {
-    let l = Layout::new(content(), content(), 10.0);
+    let l = Layout::new(content(), content(), 10.0, NAMES);
     assert_eq!(l.labels_left, 100.0);
     assert_eq!(l.label_edge, 240.0);
     assert_eq!(l.track_left, 240.0);
@@ -27,7 +27,7 @@ fn unscrolled_the_names_and_ruler_sit_at_the_contents_edges() {
 fn scrolled_the_names_and_ruler_stay_in_view_and_cover_what_is_under_them() {
     // The view shows the content from 300 points right and 100 points down.
     let view = Rect::from_min_size(Pos2::new(400.0, 150.0), Vec2::new(300.0, 200.0));
-    let l = Layout::new(content(), view, 10.0);
+    let l = Layout::new(content(), view, 10.0, NAMES);
     assert_eq!(l.labels_left, 400.0, "names at the left of the view");
     assert_eq!(l.label_edge, 540.0);
     assert_eq!(l.ruler_top, 150.0, "the ruler at its top");
@@ -50,7 +50,7 @@ fn scrolled_the_names_and_ruler_stay_in_view_and_cover_what_is_under_them() {
 
 #[test]
 fn the_onion_markers_bracket_the_ghosts_and_a_press_near_one_takes_it() {
-    let l = Layout::new(content(), content(), 10.0);
+    let l = Layout::new(content(), content(), 10.0, NAMES);
     // Playhead on frame 5, two frames each side: ghosts 3 and 4, 6 and 7.
     let (start, end) = l.onion_markers(5, 2, 2);
     assert_eq!((start, end), (l.frame_x(3.0), l.frame_x(8.0)));
@@ -76,7 +76,7 @@ fn the_onion_markers_bracket_the_ghosts_and_a_press_near_one_takes_it() {
 
 #[test]
 fn dragging_a_marker_sets_its_side_of_the_range_within_the_limit() {
-    let l = Layout::new(content(), content(), 10.0);
+    let l = Layout::new(content(), content(), 10.0, NAMES);
     // Playhead on frame 10, one a side.
     let before = l.onion_dragged(OnionEnd::Before, l.frame_x(6.0), 10, (1, 1), 12);
     assert_eq!(before, (4, 1), "the start dragged to frame 6");

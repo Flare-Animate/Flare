@@ -8,6 +8,7 @@ timeline-loop = 반복 재생
 timeline-frame = 프레임
 timeline-onion = 어니언 스킨
 timeline-onion-outline = 어니언 스킨을 윤곽선으로 표시
+timeline-multiple-frames = 여러 프레임 편집
 timeline-new-layer = 새 레이어
 timeline-new-folder = 새 레이어 폴더
 timeline-folder = 폴더

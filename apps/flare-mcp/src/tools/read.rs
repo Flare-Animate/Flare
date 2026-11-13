@@ -27,6 +27,7 @@ impl FlareServer {
                             let elements: usize = l.spans().iter().map(|s| s.element_count()).sum();
                             json!({ "id": l.id().as_uuid(), "name": l.name(),
                                     "visible": l.is_visible(), "locked": l.is_locked(),
+                                    "opacity": l.view_opacity(),
                                     "spans": l.spans().len(), "elements": elements,
                                     "armature": flare_tools::bones::is_armature_layer(l) })
                         })
@@ -38,7 +39,7 @@ impl FlareServer {
             let symbols: Vec<Value> = document
                 .symbols()
                 .iter()
-                .map(|s| json!({ "id": s.id().as_uuid(), "name": s.name() }))
+                .map(|s| json!({ "id": s.id().as_uuid(), "name": s.name(), "kind": s.kind().name() }))
                 .collect();
             let (rate, stage) = (document.frame_rate(), document.stage());
             Ok(json!({

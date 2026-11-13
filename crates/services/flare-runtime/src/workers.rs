@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::sync::mpsc::{Receiver, Sender};
 
 use crate::jobs::{AudioJob, Done, IoJob, RenderJob, TextJob};
-use crate::pixels::{PixelJob, run_pixels};
+use crate::pixels::{PixelJob, Pixels};
 use crate::run::{ExtraFonts, run_audio, run_io, run_render, run_text};
 
 /// Called after each result is queued, so the front end can wake up to show it.
@@ -77,11 +77,19 @@ pub(crate) fn io_loop(jobs: &Receiver<IoJob>, done: &Sender<Done>, wake: &Wake) 
     }
 }
 
-/// Pixel work, in the order it was asked for: a wand click builds on the one before it.
+/// Pixel work, in the order it was asked for: a wand click builds on the one before it, and each
+/// step of a stroke on the steps before it.
 pub(crate) fn pixels_loop(jobs: &Receiver<PixelJob>, done: &Sender<Done>, wake: &Wake) {
+    let mut pixels = Pixels::default();
     while let Ok(job) = jobs.recv() {
-        if done.send(run_pixels(job)).is_err() {
-            return;
+        let results = pixels.run(job);
+        if results.is_empty() {
+            continue;
+        }
+        for result in results {
+            if done.send(result).is_err() {
+                return;
+            }
         }
         wake();
     }

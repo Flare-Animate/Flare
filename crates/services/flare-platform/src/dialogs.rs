@@ -46,6 +46,11 @@ pub fn pick_sound(filter: &str) -> Option<PathBuf> {
     backend::pick_sound(filter)
 }
 
+/// Animate's keyboard shortcut file (`Shortcuts/<set>.xml` in its settings folder).
+pub fn pick_shortcut_xml(filter: &str) -> Option<PathBuf> {
+    backend::pick_shortcut_xml(filter)
+}
+
 pub fn save_png(filter: &str) -> Option<PathBuf> {
     backend::save_png(filter)
 }
@@ -64,9 +69,10 @@ pub fn save_svg(filter: &str) -> Option<PathBuf> {
     backend::save_svg(filter)
 }
 
-/// Asks where to publish. The name is shared by every format written, each with its own ending.
-pub fn save_publish(title: &str) -> Option<PathBuf> {
-    backend::save_publish(title)
+/// Asks where to publish, starting from `name` (the document's, with no ending) in `folder`. The
+/// name is shared by every format written, each with its own ending.
+pub fn save_publish(title: &str, name: &str, folder: Option<&std::path::Path>) -> Option<PathBuf> {
+    backend::save_publish(title, name, folder)
 }
 
 pub fn message(title: &str, text: &str) {

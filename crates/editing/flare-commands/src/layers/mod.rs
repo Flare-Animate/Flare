@@ -8,6 +8,9 @@ use thiserror::Error;
 
 use crate::{Command, LayerChange};
 
+mod order;
+pub use order::move_to;
+
 /// Why a layer operation was refused.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
 pub enum LayerRefusal {
@@ -211,5 +214,7 @@ pub fn set_folder(scene: SceneId, layer: LayerId, folder: Option<LayerId>) -> Ve
     update(scene, layer, LayerChange::Parent(folder))
 }
 
+#[cfg(test)]
+mod order_tests;
 #[cfg(test)]
 mod tests;

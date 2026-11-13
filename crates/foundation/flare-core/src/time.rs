@@ -26,6 +26,25 @@ pub enum RateError {
     Zero,
     #[error("frame timestamp exceeds the supported integer range")]
     TimestampOverflow,
+    #[error("a frame rate is from 0.01 to 240 frames per second")]
+    OutOfRange,
+}
+
+impl FrameRate {
+    /// The slowest rate a person can type: one frame every 100 seconds.
+    pub const MIN_PER_SECOND: f64 = 0.01;
+    /// The fastest, as Animate allows.
+    pub const MAX_PER_SECOND: f64 = 240.0;
+
+    /// The rate of `fps` frames a second, as a person types it (24, 29.97, 12.5), kept to a
+    /// thousandth of a frame. Refused outside [`Self::MIN_PER_SECOND`] to
+    /// [`Self::MAX_PER_SECOND`], or when it is not a number.
+    pub fn from_per_second(fps: f64) -> Result<Self, RateError> {
+        if !fps.is_finite() || !(Self::MIN_PER_SECOND..=Self::MAX_PER_SECOND).contains(&fps) {
+            return Err(RateError::OutOfRange);
+        }
+        Self::new((fps * 1000.0).round() as u32, 1000)
+    }
 }
 
 impl FrameRate {
@@ -114,6 +133,26 @@ mod tests {
             FrameRate::new(1, 1)?.frame_start_ns(u64::MAX),
             Err(RateError::TimestampOverflow)
         );
+        Ok(())
+    }
+
+    #[test]
+    fn a_typed_rate_is_kept_to_a_thousandth_and_kept_in_range() -> Result<(), RateError> {
+        assert_eq!(FrameRate::from_per_second(24.0)?, FrameRate::new(24, 1)?);
+        assert_eq!(FrameRate::from_per_second(12.5)?, FrameRate::new(25, 2)?);
+        assert_eq!(
+            FrameRate::from_per_second(29.97)?,
+            FrameRate::new(2997, 100)?
+        );
+        assert_eq!(FrameRate::from_per_second(0.01)?, FrameRate::new(1, 100)?);
+        assert_eq!(FrameRate::from_per_second(240.0)?, FrameRate::new(240, 1)?);
+        for bad in [0.0, -24.0, 0.009, 240.5, f64::NAN, f64::INFINITY] {
+            assert_eq!(
+                FrameRate::from_per_second(bad),
+                Err(RateError::OutOfRange),
+                "{bad}"
+            );
+        }
         Ok(())
     }
 

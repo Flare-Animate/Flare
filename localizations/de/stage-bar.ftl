@@ -11,6 +11,7 @@ bar-snap = Am Raster ausrichten
 bar-rulers = Lineale
 bar-grid = Raster
 bar-home = Startseite
+bar-workspaces = Arbeitsbereiche
 bar-interface-switcher = Oberflächenumschalter
 bar-commands = Befehle
 bar-pause = Pause
@@ -24,4 +25,3 @@ bar-window-restore = Wiederherstellen
 bar-preferences = Einstellungen
 bar-redo = Wiederholen
 bar-undo = Rückgängig
-

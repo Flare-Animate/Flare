@@ -3,7 +3,7 @@
 use anyhow::{Context, Result};
 use flare_commands::Command;
 use flare_core::{InstanceId, LayerId, Rgba8, SceneId, SymbolId, Transform2D};
-use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Symbol, Timeline, Tween};
+use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Timeline, Tween};
 use flare_history::EditorSession;
 use flare_tools::ops::{self, Target};
 use glamx::{DAffine2, DVec2};
@@ -14,15 +14,22 @@ use uuid::Uuid;
 
 use super::*;
 
-/// Adds a Graphic symbol, optionally containing one filled rectangle.
-pub fn add_symbol(path: &Path, name: &str, rect: Option<([f64; 4], RectStyle)>) -> Result<Value> {
+/// Adds a symbol of `kind`, optionally containing one filled rectangle, as the desktop's Create
+/// New Symbol does: a blank name or one the library already has is refused.
+pub fn add_symbol(
+    path: &Path,
+    name: &str,
+    kind: flare_document::SymbolKind,
+    rect: Option<([f64; 4], RectStyle)>,
+) -> Result<Value> {
     let mut session = open(path)?;
-    let id = SymbolId::new();
     let timeline = match rect {
         Some((rect, style)) => one_frame_timeline(rect_content(rect, style)?)?,
         None => Timeline::default(),
     };
-    session.apply([Command::AddSymbol(Symbol::new(id, name, timeline))])?;
+    let (commands, id) =
+        flare_tools::library::create_symbol_with(session.document(), name, kind, timeline)?;
+    session.apply(commands)?;
     commit(&session, path)?;
     Ok(json!({ "symbol": id.as_uuid() }))
 }
@@ -204,6 +211,7 @@ pub fn set_stage(
     width: Option<u32>,
     height: Option<u32>,
     background: Option<Rgba8>,
+    fps: Option<f64>,
 ) -> Result<Value> {
     let mut session = open(path)?;
     let current = session.document().stage();
@@ -212,7 +220,14 @@ pub fn set_stage(
         height.unwrap_or(current.height()),
         background.unwrap_or(current.background()),
     )?;
-    session.apply([Command::SetStage(stage)])?;
+    let mut commands = vec![Command::SetStage(stage)];
+    if let Some(fps) = fps {
+        commands.push(Command::SetFrameRate(
+            flare_core::FrameRate::from_per_second(fps)?,
+        ));
+    }
+    session.apply(commands)?;
     commit(&session, path)?;
-    Ok(json!({ "width": stage.width(), "height": stage.height() }))
+    let rate = session.document().frame_rate();
+    Ok(json!({ "width": stage.width(), "height": stage.height(), "fps": rate.per_second() }))
 }

@@ -2,6 +2,10 @@
 //! it open.
 
 use crate::workspace::*;
+use flare_ui::dialog;
+
+/// Wide enough for the question and the three buttons on one line.
+const PROMPT_WIDTH: f32 = 380.0;
 
 impl Workspace {
     /// The prompt for the tab being closed, and finishing a close that waited for its save.
@@ -16,28 +20,40 @@ impl Workspace {
         }
         let untitled = tr!(self, "untitled");
         let name = self.tabs().get(index).map_or(untitled, |t| t.title.clone());
-        let (text, save, discard, cancel) = (
+        let (text, detail, save, discard, cancel) = (
             tr!(self, "unsaved-save-changes", &[("name", &name)]),
+            tr!(self, "unsaved-lose-changes"),
             tr!(self, "unsaved-save"),
             tr!(self, "unsaved-dont-save"),
             tr!(self, "start-cancel"),
         );
         let mut choice = None;
-        let modal = egui::Modal::new(egui::Id::unique("unsaved-prompt")).show(ctx, |ui| {
-            ui.set_max_width(320.0);
-            ui.label(text);
-            ui.add_space(8.0);
-            ui.horizontal(|ui| {
-                if ui.button(save).clicked() {
-                    choice = Some(Choice::Save);
-                }
-                if ui.button(discard).clicked() {
-                    choice = Some(Choice::Discard);
-                }
-                if ui.button(cancel).clicked() {
-                    choice = Some(Choice::Keep);
-                }
-            });
+        // Laid out as the system's own question is: what is asked and what is at stake, the
+        // choice that gives the work up at the left, apart from Cancel and Save at the right.
+        let modal = dialog::modal(ctx, egui::Id::unique("unsaved-prompt")).show(ctx, |ui| {
+            ui.set_width(PROMPT_WIDTH);
+            dialog::title(ui, &text);
+            dialog::message(ui, &detail);
+            let mut discarded = false;
+            dialog::footer(
+                ui,
+                |ui| discarded = dialog::button(ui, &discard).clicked(),
+                |ui| {
+                    if dialog::primary_button(ui, &save, true).clicked() {
+                        choice = Some(Choice::Save);
+                    }
+                    if dialog::button(ui, &cancel).clicked() {
+                        choice = Some(Choice::Keep);
+                    }
+                },
+            );
+            if discarded {
+                choice = Some(Choice::Discard);
+            }
+            // Return answers the question with the button that stands out, as on every desktop.
+            if choice.is_none() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                choice = Some(Choice::Save);
+            }
         });
         if modal.should_close() && choice.is_none() {
             choice = Some(Choice::Keep);

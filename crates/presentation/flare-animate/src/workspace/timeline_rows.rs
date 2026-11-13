@@ -50,7 +50,9 @@ impl Workspace {
             }
             timeline_cells::grid_lines(painter, l.track_left, y, ROW, l.per_frame, shown);
             if Some(layer.id()) == active {
-                painter.rect_filled(band, 0.0, active_row());
+                // Fainter over the frames than over the name, so it marks the row without
+                // coloring the frames.
+                painter.rect_filled(band, 0.0, active_row().gamma_multiply(0.45));
             }
             for span in layer.spans() {
                 let x0 = l.frame_x(span.start() as f32);
@@ -70,7 +72,7 @@ impl Workspace {
                 timeline_cells::span_marks(painter, bar, span, l.per_frame);
                 // A tween has an arrow along its span, toward the next keyframe.
                 if span.tween() != flare_document::Tween::None && bar.width() > 12.0 {
-                    let line = Stroke::new(1.5, Color32::WHITE);
+                    let line = Stroke::new(1.5, Color32::from_black_alpha(170));
                     let (from, to) = (
                         bar.left_center() + Vec2::new(4.0, 0.0),
                         bar.right_center() - Vec2::new(4.0, 0.0),

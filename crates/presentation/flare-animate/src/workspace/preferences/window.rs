@@ -71,7 +71,7 @@ impl Workspace {
         let system_label = self.system_choice_label();
         // A dialog in the middle of the window over a dimmed backdrop, as PaintCraft's are:
         // Escape or a click outside closes it.
-        let response = egui::Modal::new(self.preferences_id).show(ctx, |ui| {
+        let response = flare_ui::dialog::modal(ctx, self.preferences_id).show(ctx, |ui| {
             ui.set_width(380.0);
             egui::Sides::new().show(
                 ui,

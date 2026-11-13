@@ -1,5 +1,6 @@
 //! Menu actions: whether they apply, what they are called and doing them.
 
+use flare_dock::Preset;
 use flare_document::Tween;
 use flare_menubar::MenuAction;
 use flare_tools::ops::{self, Stack};
@@ -144,7 +145,12 @@ impl Workspace {
             MenuAction::MoveLayerUp => position.is_some_and(|p| p > 0),
             MenuAction::MoveLayerDown => position.is_some_and(|p| p + 1 < layer_count),
             MenuAction::DeleteLayer => layer.is_some() && layer_count > 1,
-            MenuAction::ResetLayout => true,
+            MenuAction::ResetLayout
+            | MenuAction::WorkspaceEssentials
+            | MenuAction::WorkspaceAnimator
+            | MenuAction::WorkspaceDesigner
+            | MenuAction::WorkspaceClassic
+            | MenuAction::WorkspaceSmallScreen => true,
             MenuAction::TextBold
             | MenuAction::TextItalic
             | MenuAction::TextLarger
@@ -152,7 +158,7 @@ impl Workspace {
             MenuAction::ToggleGuides => true,
             MenuAction::ClearGuides => !self.display.guides.is_empty(),
             MenuAction::NewSymbol => !self.in_symbol(),
-            MenuAction::About | MenuAction::KeyboardShortcuts => true,
+            MenuAction::About | MenuAction::KeyboardShortcuts | MenuAction::CommandPalette => true,
             MenuAction::ShowProperties
             | MenuAction::ShowLibrary
             | MenuAction::ShowColor
@@ -162,8 +168,10 @@ impl Workspace {
             | MenuAction::ShowTimeline
             | MenuAction::ShowOutput
             | MenuAction::ShowInfo
+            | MenuAction::ShowSwatches
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
+            | MenuAction::ToggleEditMultipleFrames
             | MenuAction::ToggleOutlineMode
             | MenuAction::TogglePasteboard
             | MenuAction::ToggleRulers
@@ -245,7 +253,7 @@ impl Workspace {
             MenuAction::ScaleDown => {
                 self.transform_selection(DAffine2::from_scale(DVec2::splat(1.0 / SCALE_STEP)))
             }
-            MenuAction::ConvertToSymbol => self.convert_selection_to_symbol(),
+            MenuAction::ConvertToSymbol => self.open_convert_symbol_dialog(),
             MenuAction::BringToFront => self.stack_selection(Stack::Front),
             MenuAction::BringForward => self.stack_selection(Stack::Forward),
             MenuAction::SendBackward => self.stack_selection(Stack::Backward),
@@ -338,7 +346,12 @@ impl Workspace {
             MenuAction::MoveLayerDown => self.move_active_layer(1),
             MenuAction::DeleteLayer => self.delete_active_layer(),
             MenuAction::ResetLayout => self.reset_layout(),
-            MenuAction::NewSymbol => self.new_symbol(),
+            MenuAction::WorkspaceEssentials => self.switch_preset(Preset::Essentials),
+            MenuAction::WorkspaceAnimator => self.switch_preset(Preset::Animator),
+            MenuAction::WorkspaceDesigner => self.switch_preset(Preset::Designer),
+            MenuAction::WorkspaceClassic => self.switch_preset(Preset::Classic),
+            MenuAction::WorkspaceSmallScreen => self.switch_preset(Preset::SmallScreen),
+            MenuAction::NewSymbol => self.open_new_symbol_dialog(),
             MenuAction::TextBold => self.text.bold = !self.text.bold,
             MenuAction::TextItalic => self.text.italic = !self.text.italic,
             MenuAction::TextLarger => {
@@ -354,6 +367,7 @@ impl Workspace {
             }
             MenuAction::About => self.windows.about = true,
             MenuAction::KeyboardShortcuts => self.windows.shortcuts = true,
+            MenuAction::CommandPalette => self.open_command_palette(),
             MenuAction::ShowProperties => self.show_pane(Pane::Properties),
             MenuAction::ShowLibrary => self.show_pane(Pane::Library),
             MenuAction::ShowColor => self.show_pane(Pane::Color),
@@ -363,8 +377,12 @@ impl Workspace {
             MenuAction::ShowTimeline => self.show_pane(Pane::Timeline),
             MenuAction::ShowOutput => self.show_pane(Pane::Output),
             MenuAction::ShowInfo => self.show_pane(Pane::Info),
+            MenuAction::ShowSwatches => self.show_pane(Pane::Swatches),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
+            MenuAction::ToggleEditMultipleFrames => {
+                self.set_edit_multiple_frames(!self.editing_multiple_frames());
+            }
             MenuAction::ToggleOutlineMode => self.display.outline_mode = !self.display.outline_mode,
             MenuAction::TogglePasteboard => {
                 self.display.show_pasteboard = !self.display.show_pasteboard;
@@ -372,7 +390,7 @@ impl Workspace {
             MenuAction::ToggleRulers => self.display.show_rulers = !self.display.show_rulers,
             MenuAction::ToggleGrid => self.display.show_grid = !self.display.show_grid,
             MenuAction::ToggleSnap => self.display.snap_to_grid = !self.display.snap_to_grid,
-            MenuAction::ToggleLoop => self.loop_playback = !self.loop_playback,
+            MenuAction::ToggleLoop => self.looping.on = !self.looping.on,
             MenuAction::ToggleMute => {
                 self.muted = !self.muted;
                 // Sounds already started stop now; unmuting waits for the next start.

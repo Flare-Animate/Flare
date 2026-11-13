@@ -14,6 +14,7 @@ mod outline;
 mod paint;
 mod pattern;
 mod render;
+mod view_alpha;
 mod viewport;
 
 pub use hit::{PaintHit, hit_test, hit_test_all, paint_hits};
@@ -25,6 +26,7 @@ pub use outline::{render_onion_outlines_viewport, render_outline_mode_viewport};
 pub use render::{
     render, render_onion, render_onion_viewport, render_viewport, render_viewport_premultiplied,
 };
+pub use view_alpha::{has_view_alpha, render_stage_viewport};
 pub use viewport::Viewport;
 
 #[cfg(test)]

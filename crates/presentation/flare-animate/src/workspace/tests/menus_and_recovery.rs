@@ -246,7 +246,7 @@ fn the_dock_survives_drawing_and_every_panel_stays_present() {
     }
     let json = ws.layout_json().expect("serialize");
     assert!(
-        flare_dock::from_json(&json).is_ok(),
+        flare_dock::workspaces_from_json(&json).is_ok(),
         "all four panels are still in the layout"
     );
     assert!(
@@ -303,25 +303,28 @@ fn opening_a_project_keeps_the_users_panel_arrangement() {
         .collect();
     let root = tiles.insert_tab_tile(panes);
     let custom_tree = egui_tiles::Tree::new(egui::Id::unique("custom"), root, tiles);
-    let custom = flare_dock::to_json(&custom_tree).expect("serialize");
+    let custom = flare_dock::to_json(&flare_dock::Layout {
+        tree: custom_tree,
+        strip: Vec::new(),
+    })
+    .expect("serialize");
     ws.restore_layout(&custom)
         .expect("a tab group of every panel is valid");
 
     let value = |t: &str| serde_json::from_str::<serde_json::Value>(t).expect("json");
-    let default = flare_dock::to_json(&flare_dock::default_tree()).expect("serialize");
+    let default = flare_dock::to_json(&flare_dock::default_layout()).expect("serialize");
     assert_ne!(
         value(&custom),
         value(&default),
         "the test needs a non-default layout"
     );
 
+    // The arrangement on screen, without the workspaces kept beside it.
+    let shown = |ws: &Workspace| value(&flare_dock::to_json(&ws.panels.layout).expect("json"));
     ws.open(&project);
-    assert_eq!(value(&ws.layout_json().expect("serialize")), value(&custom));
+    assert_eq!(shown(&ws), value(&custom));
     ws.reset_layout();
-    assert_eq!(
-        value(&ws.layout_json().expect("serialize")),
-        value(&default)
-    );
+    assert_eq!(shown(&ws), value(&default));
 }
 
 #[test]

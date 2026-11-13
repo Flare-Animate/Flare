@@ -11,6 +11,7 @@ bar-snap = Přichytávat k mřížce
 bar-rulers = Pravítka
 bar-grid = Mřížka
 bar-home = Úvod
+bar-workspaces = Pracovní prostory
 bar-interface-switcher = Přepínač rozhraní
 bar-commands = Příkazy
 bar-pause = Pozastavit
@@ -24,4 +25,3 @@ bar-window-restore = Obnovit
 bar-preferences = Nastavení
 bar-redo = Znovu
 bar-undo = Zpět
-

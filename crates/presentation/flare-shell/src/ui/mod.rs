@@ -47,6 +47,16 @@ pub(crate) enum UserEvent {
     Autotest(autotest::Step),
     /// An export or publish finished on its own thread; an error is worded for the person.
     Exported(Result<(), String>),
+    /// A screen reader asked for the interface's tree, for an action, or let go (AccessKit).
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    AccessKit(egui_winit::accesskit_winit::Event),
+}
+
+#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+impl From<egui_winit::accesskit_winit::Event> for UserEvent {
+    fn from(event: egui_winit::accesskit_winit::Event) -> Self {
+        Self::AccessKit(event)
+    }
 }
 
 /// Runs the window until it is closed.

@@ -4,6 +4,9 @@
 //! zoom; the track scrolls horizontally, and empty cells go on to the panel's edge. Fit sets the
 //! zoom at which the scene just fills the panel.
 
+mod counting;
+pub use counting::{is_fifth, is_numbered, ruler_step};
+
 pub const MIN_ZOOM: f32 = 0.3;
 pub const MAX_ZOOM: f32 = 4.0;
 pub const STEP: f32 = 1.5;
@@ -99,21 +102,23 @@ pub fn shown_frames(available: f32, per_frame: f32, frames: u64) -> u64 {
     frames.max(to_fill).max(1)
 }
 
-/// The color of a span's bar in the timeline: by what it holds, and a tween has its own so it can
-/// be told from a held drawing (motion tweens blue, shape tweens green, as in Animate).
+/// The color of a span's bar in the timeline. A drawing's frames are Animate's light grey, other
+/// content a grey tinted by what it is, and a tween has a soft color of its own so it can be told
+/// from a held drawing (motion tweens blue, shape tweens green, as in Animate). All are light, so
+/// the black keyframe marks on them read on a dark interface and a light one.
 pub fn span_color(content: &flare_document::Content, tween: flare_document::Tween) -> [u8; 3] {
     use flare_document::{Content, Tween};
     match (content, tween) {
-        (_, Tween::Linear) => [100, 140, 220],
-        (_, Tween::Shape) => [100, 180, 110],
-        (Content::Empty, _) => [90, 90, 90],
-        (Content::Shape(_), _) => [70, 130, 180],
-        (Content::Instance(_), _) => [120, 170, 90],
-        (Content::Bitmap(_), _) => [180, 120, 170],
+        (_, Tween::Linear) => [160, 178, 228],
+        (_, Tween::Shape) => [156, 206, 150],
+        (Content::Empty, _) => [96, 96, 96],
+        (Content::Shape(_), _) => [184, 184, 184],
+        (Content::Instance(_), _) => [172, 184, 200],
+        (Content::Bitmap(_), _) => [196, 182, 192],
         // The camera's keyframes, in Animate's camera orange.
-        (Content::Camera(_), _) => [220, 150, 70],
+        (Content::Camera(_), _) => [226, 172, 110],
         // An armature's poses, in a green of their own.
-        (Content::Armature(_), _) => [150, 185, 80],
+        (Content::Armature(_), _) => [180, 204, 132],
     }
 }
 

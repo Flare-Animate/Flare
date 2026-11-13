@@ -12,32 +12,48 @@ use thiserror::Error;
 mod layer;
 
 /// How a Graphic instance plays the frames of its symbol, as in Animate's Properties: round and
-/// round, once and then holding the last frame, or one frame held.
+/// round, once and then holding the last frame, or one frame held; and the two reverse modes,
+/// which count down from the first frame instead of up.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum PlayMode {
     #[default]
     Loop,
     PlayOnce,
     SingleFrame,
+    /// Counts down from the first frame and wraps from the symbol's first frame to its last.
+    LoopReverse,
+    /// Counts down from the first frame to the symbol's first frame and holds it.
+    PlayOnceReverse,
 }
 
 impl PlayMode {
-    pub const ALL: [Self; 3] = [Self::Loop, Self::PlayOnce, Self::SingleFrame];
+    pub const ALL: [Self; 5] = [
+        Self::Loop,
+        Self::PlayOnce,
+        Self::SingleFrame,
+        Self::LoopReverse,
+        Self::PlayOnceReverse,
+    ];
 
     pub fn label(self) -> &'static str {
         match self {
             Self::Loop => "Loop",
             Self::PlayOnce => "Play Once",
             Self::SingleFrame => "Single Frame",
+            Self::LoopReverse => "Loop Reverse",
+            Self::PlayOnceReverse => "Play Once Reverse",
         }
     }
 
-    /// The name XFL and the project file use for it.
+    /// The name XFL and the project file use for it. The reverse names are the ones Animate
+    /// writes in a `DOMSymbolInstance`'s `loop` attribute.
     pub fn name(self) -> &'static str {
         match self {
             Self::Loop => "loop",
             Self::PlayOnce => "play once",
             Self::SingleFrame => "single frame",
+            Self::LoopReverse => "loop reverse",
+            Self::PlayOnceReverse => "play once reverse",
         }
     }
 
@@ -259,6 +275,9 @@ pub struct Layer {
     camera: bool,
     /// The color the layer is drawn in by outline mode and marked with in the timeline.
     outline: Option<Rgba8>,
+    /// How opaque the layer is drawn on the stage while it is edited, in percent: Animate's
+    /// transparent layer, to draw over a rough. Exports always draw it whole.
+    view_opacity: u8,
     /// The folder this layer sits in. It must be a folder layer above this one.
     parent: Option<LayerId>,
     /// Sounds that start at frames of this layer, in order of frame. Shared like the spans.

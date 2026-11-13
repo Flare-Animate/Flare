@@ -126,3 +126,15 @@ opt-picked-pixels =
     }
 opt-wand-invert = Umkehren
 opt-wand-clear = Pixel löschen
+
+opt-gap-size = Lückengröße
+opt-gap-none = Lücken nicht schließen
+opt-gap-small = Kleine Lücken schließen
+opt-gap-medium = Mittlere Lücken schließen
+opt-gap-large = Große Lücken schließen
+opt-strength = Stärke
+opt-hardness = Härte
+opt-pressure-size = Druck bestimmt Größe
+opt-pressure-size-tip = Leichterer Druck ergibt einen schmaleren Strich
+opt-color-stretch = Farbdehnung
+opt-color-stretch-tip = Wie weit eine aufgenommene Farbe den Strich entlang getragen wird; 0 mischt an Ort und Stelle

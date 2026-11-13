@@ -20,8 +20,9 @@ flare-import.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
-# The Magic Wand's picking and clearing run on the pixels worker.
+# The Magic Wand's picking and clearing, and Blur and Smudge strokes, run on the pixels worker.
 flare-tools.workspace = true
+flare-input.workspace = true
 flare-commands.workspace = true
 emath.workspace = true
 png.workspace = true

@@ -122,3 +122,15 @@ opt-picked = 고른 픽셀
 opt-picked-pixels = { $n }픽셀
 opt-wand-invert = 반전
 opt-wand-clear = 픽셀 지우기
+
+opt-gap-size = 간격 크기
+opt-gap-none = 간격을 닫지 않음
+opt-gap-small = 작은 간격 닫기
+opt-gap-medium = 중간 간격 닫기
+opt-gap-large = 큰 간격 닫기
+opt-strength = 강도
+opt-hardness = 경도
+opt-pressure-size = 필압으로 크기
+opt-pressure-size-tip = 가볍게 누를수록 획이 좁아집니다
+opt-color-stretch = 색 늘이기
+opt-color-stretch-tip = 집어 든 색을 획을 따라 얼마나 멀리 옮길지. 0은 그 자리에서 섞습니다

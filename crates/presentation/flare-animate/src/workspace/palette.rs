@@ -61,13 +61,13 @@ impl Workspace {
                 enabled: self.is_enabled(action),
                 action,
             })
-            .filter(|row| matches(&self.palette.query, &row.label))
+            .filter(|row| matches(&self.search_palette.query, &row.label))
             .collect();
-        let query_before = std::mem::take(&mut self.palette.query);
+        let query_before = std::mem::take(&mut self.search_palette.query);
         // The choice stays within the list the query has left.
         let mut state = (
             query_before.clone(),
-            self.palette.chosen.min(rows.len().saturating_sub(1)),
+            self.search_palette.chosen.min(rows.len().saturating_sub(1)),
         );
         let (placeholder, none, close_text) = (
             self.tr("palette-search"),
@@ -143,8 +143,8 @@ impl Workspace {
                 ui.close();
             }
         });
-        self.palette.query = state.0;
-        self.palette.chosen = state.1;
+        self.search_palette.query = state.0;
+        self.search_palette.chosen = state.1;
         if let Some(action) = chosen_action {
             self.windows.palette = false;
             self.perform(action);

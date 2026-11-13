@@ -11,6 +11,7 @@ bar-snap = Ajustar à grade
 bar-rulers = Réguas
 bar-grid = Grade
 bar-home = Início
+bar-workspaces = Espaços de trabalho
 bar-interface-switcher = Alternador de interface
 bar-commands = Comandos
 bar-pause = Pausar
@@ -24,4 +25,3 @@ bar-window-restore = Restaurar
 bar-preferences = Preferências
 bar-redo = Refazer
 bar-undo = Desfazer
-

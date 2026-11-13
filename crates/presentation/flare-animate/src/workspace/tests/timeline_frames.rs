@@ -22,10 +22,19 @@ fn zoom_widens_and_narrows_the_frames_and_fit_fills_the_panel_with_the_scene() {
     assert!(ws.timeline_frame_width() > normal);
     ws.zoom_timeline(0.1);
     assert!(ws.timeline_frame_width() < normal);
-    // Fit on a one-frame scene widens its cell as far as the range allows, not past it.
+    // Fit widens the cells until the scene's frames fill the panel, or as far as the range
+    // allows, never past it: either way no more than a cell or two of empty space is left.
     ws.timeline_fit = true;
     run(&mut ws, &ctx, 0.1);
     assert!(!ws.timeline_fit, "it is done once");
-    assert_eq!(ws.timeline_zoom, timeline_view::MAX_ZOOM);
+    assert!(ws.timeline_zoom > normal / timeline_view::BASE_FRAME_WIDTH);
+    let layout = ws.timeline_layout.expect("drawn");
+    // A whole number of cells, measured in floating point.
+    let cells = ((layout.rect.width() - ws.display.timeline_names) / layout.per_frame).round();
+    let frames = ws.scene_frames() as f32;
+    assert!(
+        ws.timeline_zoom == timeline_view::MAX_ZOOM || cells <= frames + 2.0,
+        "{cells} cells drawn for {frames} frames"
+    );
     assert!(!ws.is_dirty(), "the view is not the document");
 }

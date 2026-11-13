@@ -257,6 +257,10 @@ pub(super) struct LayerWire {
     /// Absent in files written before outline colors existed.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) outline: Option<[u8; 3]>,
+    /// How opaque the stage draws the layer, in percent; absent when it is 100, and in files
+    /// written before transparent layers existed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) view_opacity: Option<u8>,
     /// Absent in files written before sounds existed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(super) cues: Vec<CueWire>,
@@ -283,6 +287,7 @@ impl TimelineWire {
                 guide: layer.is_guide(),
                 camera: layer.is_camera(),
                 outline: layer.outline().map(|c| [c.r, c.g, c.b]),
+                view_opacity: (layer.view_opacity() < 100).then_some(layer.view_opacity()),
                 parent: layer.parent().map(|p| p.as_uuid().to_string()),
                 cues: layer
                     .cues()
@@ -359,6 +364,7 @@ impl TimelineWire {
                     .with_guide(layer.guide)
                     .with_camera(layer.camera)
                     .with_outline(layer.outline.map(|[r, g, b]| Rgba8::opaque(r, g, b)))
+                    .with_view_opacity(layer.view_opacity.unwrap_or(100))
                     .with_parent(
                         layer
                             .parent

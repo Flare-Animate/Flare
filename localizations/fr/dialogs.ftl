@@ -23,4 +23,5 @@ dlg-save-prompt = Nom du fichier à télécharger, avec l’extension .fla ou .f
 dlg-increment-from = À partir de cette image
 dlg-increment-by = Décaler d’images
 dlg-increment-apply = Incrémenter
-
+dlg-filter-animate-shortcuts = Raccourcis Animate
+dlg-cannot-read = Impossible de lire le fichier

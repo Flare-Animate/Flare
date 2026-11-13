@@ -53,4 +53,8 @@ pub enum Tool {
     Ruler,
     /// Click to set the axis that symmetric drawing and mirror copies use.
     Mirror,
+    /// Drag over a bitmap to soften it.
+    Blur,
+    /// Drag over a bitmap to push its colors along.
+    Smudge,
 }

@@ -72,11 +72,16 @@ pub fn icon_button_for(
         };
         icons::image(icon, size, tint).paint_at(ui, rect.shrink(pad));
     }
-    if unbuilt {
-        response.on_hover_text(format!("{hint} ({NOT_YET})"))
+    // A screen reader reads the picture's name, as the hint says it, and whether it is on.
+    let name = if unbuilt {
+        format!("{hint} ({NOT_YET})")
     } else {
-        response.on_hover_text(hint)
-    }
+        hint.to_owned()
+    };
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(egui::Role::Button, enabled, active, name.clone())
+    });
+    response.on_hover_text(name)
 }
 
 /// An icon button for something that does not exist yet: drawn normally, dimmed, and says so.
