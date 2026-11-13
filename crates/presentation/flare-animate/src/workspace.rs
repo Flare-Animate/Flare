@@ -210,9 +210,9 @@ pub struct Workspace {
     frame_range: Option<FrameRange>,
     /// What Copy Frames remembered, for Paste Frames.
     frame_clipboard: Option<frames::FrameClip>,
-    /// The document state the selection was last checked against, so an unchanged document is
-    /// not rechecked every frame.
-    selection_checked: Option<(u64, u64)>,
+    /// The document state and playhead the selection was last checked against, so an unchanged
+    /// one is not rechecked every frame.
+    selection_checked: Option<selection::SelectionStamp>,
     /// Bounds of the selected spans, for the document state and selection they were made for.
     selection_rects_cache: std::cell::RefCell<Option<SelectionRects>>,
     /// How close, in stage units, a press must be to a scale handle to grab it.

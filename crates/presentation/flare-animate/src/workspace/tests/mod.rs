@@ -81,6 +81,7 @@ mod rulers_and_mirror;
 mod save_flare;
 mod save_formats;
 mod scene_name;
+mod selection_follows_playhead;
 mod shortcut_editor;
 mod sound_scrub;
 mod span_drop;

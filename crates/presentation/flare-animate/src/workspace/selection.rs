@@ -38,9 +38,34 @@ impl Workspace {
         self.document().scenes().first().map(|scene| scene.id())
     }
 
-    /// Drops a selection whose span no longer exists (after undo, delete or open).
+    /// What the selection is checked against: the document state, the playhead and the frames
+    /// edited together.
+    pub(super) fn selection_stamp(&self) -> SelectionStamp {
+        (
+            self.context_serial,
+            self.active().revision(),
+            self.frame,
+            self.multi_frame_range(),
+        )
+    }
+
+    /// Checks the selection again when the document, the playhead or the bracket has changed
+    /// since it was last checked.
+    pub(super) fn refresh_selection(&mut self) {
+        if self.selection_checked != Some(self.selection_stamp()) {
+            self.validate_selection();
+        }
+    }
+
+    /// Drops a selection whose span no longer exists (after undo, delete or open), or is not on
+    /// the stage at the playhead. A keyframe left behind keeps a box, so without this its
+    /// handles sat where the playhead's drawing is and a drag turned the one left behind.
     pub(super) fn validate_selection(&mut self) {
-        self.selection_checked = Some((self.context_serial, self.active().revision()));
+        self.selection_checked = Some(self.selection_stamp());
+        // Editing multiple frames, every keyframe in the bracket is on the stage.
+        let (from, to) = self
+            .multi_frame_range()
+            .map_or((self.frame, self.frame), |r| (r.from(), r.to()));
         if self
             .frame_range
             .is_some_and(|r| self.layer(r.layer).is_none())
@@ -60,6 +85,7 @@ impl Workspace {
                 .flat_map(|l| {
                     l.spans()
                         .iter()
+                        .filter(|span| span.start() <= to && span.end() > u64::from(from))
                         .map(|span| ((l.id(), span.start()), span.element_count()))
                 })
                 .collect();
@@ -396,6 +422,9 @@ impl Workspace {
         }
     }
 }
+
+/// The document session, its revision, the playhead and the bracket of multiple-frame editing.
+pub(super) type SelectionStamp = (u64, u64, u32, Option<flare_editor::loop_range::LoopRange>);
 
 /// Whether `layers[index]` is locked, itself or by a locked folder around it.
 pub(super) fn locked_in_folders(layers: &[Layer], index: usize) -> bool {

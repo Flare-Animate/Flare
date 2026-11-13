@@ -36,11 +36,9 @@ impl Workspace {
         if !self.windows.home {
             self.handle_shortcuts(&ctx);
         }
-        // Only a changed document can make the selection stale; checking it every frame cost
-        // time in proportion to the selection times the layers.
-        if self.selection_checked != Some((self.context_serial, self.active().revision())) {
-            self.validate_selection();
-        }
+        // Only a changed document or a moved playhead can make the selection stale; checking it
+        // every frame cost time in proportion to the selection times the layers.
+        self.refresh_selection();
         self.ensure_stage_texture(&ctx);
 
         if self.document_controls_shown() {
