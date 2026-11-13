@@ -113,6 +113,16 @@ fn a_graphics_frame_setting_goes_out_as_xfl_writes_it_and_comes_back() {
             r#"loop="single frame" firstFrame="2""#,
         ),
         (PlayMode::Loop, 0, r#"loop="loop" firstFrame="0""#),
+        (
+            PlayMode::LoopReverse,
+            1,
+            r#"loop="loop reverse" firstFrame="1""#,
+        ),
+        (
+            PlayMode::PlayOnceReverse,
+            3,
+            r#"loop="play once reverse" firstFrame="3""#,
+        ),
     ] {
         let output = export_xfl(&make(mode, first)).expect("export");
         let main = file(&output.files, "DOMDocument.xml");

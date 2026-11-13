@@ -43,6 +43,18 @@ async fn kind_loop_and_rig() {
     .await;
     f.ok("set_instance_loop", json!({ "at": 1, "mode": "play-once" }))
         .await;
+    let reversed = f.revision().await;
+    f.ok(
+        "set_instance_loop",
+        json!({ "at": 1, "mode": "loop reverse", "first_frame": 1 }),
+    )
+    .await;
+    f.ok(
+        "set_instance_loop",
+        json!({ "at": 1, "mode": "play_once_reverse" }),
+    )
+    .await;
+    assert_eq!(f.revision().await, reversed + 2);
     let rev = f.revision().await;
     let (bad, _) = f
         .tool("set_instance_loop", json!({ "at": 9, "mode": "loop" }))

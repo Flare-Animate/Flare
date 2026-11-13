@@ -47,7 +47,7 @@ pub struct ConvertToSymbol {
 pub struct SetInstanceLoop {
     /// Frame the instance's keyframe starts at.
     pub at: u32,
-    /// "loop", "play once" or "single frame".
+    /// "loop", "play once", "single frame", "loop reverse" or "play once reverse".
     pub mode: String,
     #[serde(default)]
     pub first_frame: u32,
@@ -161,7 +161,7 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Set how the instance whose keyframe starts at `at` plays its symbol: loop, play once or single frame, from first_frame (needs write access)."
+        description = "Set how the instance whose keyframe starts at `at` plays its symbol: loop, play once, single frame, loop reverse or play once reverse, from first_frame (needs write access)."
     )]
     fn set_instance_loop(&self, Parameters(a): Parameters<SetInstanceLoop>) -> Outcome {
         self.write(a.expected_revision, |state| {

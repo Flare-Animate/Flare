@@ -29,7 +29,7 @@ fn registration_arg(text: &str) -> Result<Registration, String> {
 
 fn mode_arg(text: &str) -> Result<PlayMode, String> {
     PlayMode::parse(text)
-        .ok_or_else(|| format!("unknown mode {text:?}: loop, play once or single frame"))
+        .ok_or_else(|| format!("unknown mode {text:?}: loop, play once, single frame, loop reverse or play once reverse"))
 }
 
 #[derive(Subcommand)]
@@ -68,6 +68,7 @@ pub enum SymbolCommand {
         path: PathBuf,
         #[arg(long)]
         at: u32,
+        /// loop, play once, single frame, loop reverse or play once reverse.
         #[arg(long, value_parser = mode_arg)]
         mode: PlayMode,
         #[arg(long, default_value_t = 0)]

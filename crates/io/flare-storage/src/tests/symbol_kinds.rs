@@ -111,6 +111,8 @@ fn an_instances_playback_survives_saving_and_opening() {
         (PlayMode::PlayOnce, 3),
         (PlayMode::SingleFrame, 7),
         (PlayMode::Loop, 0),
+        (PlayMode::LoopReverse, 2),
+        (PlayMode::PlayOnceReverse, 5),
     ] {
         let path = dir
             .path()

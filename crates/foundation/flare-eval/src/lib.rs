@@ -331,7 +331,8 @@ fn walk_instance<'a>(
 
 /// The frame of its symbol an instance shows `elapsed` frames after its span began. A Button
 /// holds its first frame. A Graphic follows its playback: it starts at its first frame and then
-/// loops, plays to the end and holds the last frame, or holds the first frame. A Movie Clip
+/// loops, plays to the end and holds the last frame, or holds the first frame; the reverse modes
+/// count down instead, wrapping or holding the symbol's first frame. A Movie Clip
 /// loops from its first frame, as it would in a movie.
 fn child_frame(
     kind: flare_document::SymbolKind,
@@ -354,6 +355,9 @@ fn child_frame(
                 PlayMode::SingleFrame => first,
                 PlayMode::PlayOnce => (first + elapsed).min(last),
                 PlayMode::Loop => (first + elapsed) % length,
+                PlayMode::PlayOnceReverse => first.saturating_sub(elapsed),
+                // `first < length`, so adding `length` keeps the subtraction from going below 0.
+                PlayMode::LoopReverse => (first + length - elapsed % length) % length,
             }
         }
     };

@@ -101,6 +101,23 @@ fn a_graphics_frame_setting_is_read_and_an_odd_one_loops_with_a_note() {
             first_frame: 9
         }
     );
+    // Animate's two reverse modes, by the names its own files use.
+    let reverse = import(r#" loop="loop reverse" firstFrame="4""#);
+    assert_eq!(
+        playback(&reverse),
+        Playback {
+            mode: PlayMode::LoopReverse,
+            first_frame: 4
+        }
+    );
+    let once_reverse = import(r#" loop="play once reverse" firstFrame="2""#);
+    assert_eq!(
+        playback(&once_reverse),
+        Playback {
+            mode: PlayMode::PlayOnceReverse,
+            first_frame: 2
+        }
+    );
     // Neither attribute: a loop from the first frame.
     assert_eq!(playback(&import("")), Playback::default());
     // Garbage in either: the default, and the odd mode is said.

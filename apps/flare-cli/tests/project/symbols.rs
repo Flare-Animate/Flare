@@ -37,6 +37,42 @@ fn set_kind_and_loop_change_the_project() {
         "Play_Once",
     ]);
     assert_eq!(underscored["mode"], "play once");
+    // Animate's reverse modes, which count down from the first frame.
+    let reverse = json(&[
+        "symbol",
+        "set-loop",
+        &file,
+        "--at",
+        "2",
+        "--mode",
+        "loop-reverse",
+        "--first-frame",
+        "1",
+    ]);
+    assert_eq!(reverse["mode"], "loop reverse");
+    let once_reverse = json(&[
+        "symbol",
+        "set-loop",
+        &file,
+        "--at",
+        "2",
+        "--mode",
+        "Play Once Reverse",
+    ]);
+    assert_eq!(once_reverse["mode"], "play once reverse");
+    assert!(
+        !run(&[
+            "symbol",
+            "set-loop",
+            &file,
+            "--at",
+            "2",
+            "--mode",
+            "backwards"
+        ])
+        .status
+        .success()
+    );
     assert!(
         !run(&["symbol", "set-kind", &file, &symbol, "--kind", "sprite"])
             .status

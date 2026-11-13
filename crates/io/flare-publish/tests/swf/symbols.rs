@@ -5,7 +5,7 @@ use flare_document::{Instance, Layer, PlayMode, Playback, Symbol, SymbolKind, Tw
 
 use super::*;
 
-fn sprites(parsed: &Parsed) -> Vec<(u16, u16, usize)> {
+pub(super) fn sprites(parsed: &Parsed) -> Vec<(u16, u16, usize)> {
     parsed
         .tags
         .iter()
@@ -23,7 +23,7 @@ fn sprites(parsed: &Parsed) -> Vec<(u16, u16, usize)> {
         .collect()
 }
 
-fn playing(symbol: SymbolId, x: f64, y: f64, playback: Playback) -> Content {
+pub(super) fn playing(symbol: SymbolId, x: f64, y: f64, playback: Playback) -> Content {
     let transform =
         flare_core::Transform2D::new(glamx::DAffine2::from_translation(glamx::DVec2::new(x, y)))
             .expect("finite");
@@ -33,7 +33,7 @@ fn playing(symbol: SymbolId, x: f64, y: f64, playback: Playback) -> Content {
 }
 
 /// Three frames, each a square of its own color further right.
-fn steps() -> Timeline {
+pub(super) fn steps() -> Timeline {
     let square = |x: f64, c: Rgba8| Content::Shape(rect(x, 0.0, 8.0, 8.0, c));
     Timeline::new(vec![layer(
         "L",
@@ -45,7 +45,7 @@ fn steps() -> Timeline {
     )])
 }
 
-fn playback(mode: PlayMode, first_frame: u32) -> Playback {
+pub(super) fn playback(mode: PlayMode, first_frame: u32) -> Playback {
     Playback { mode, first_frame }
 }
 
