@@ -63,6 +63,9 @@ pub(crate) enum Command {
         height: Option<u32>,
         #[arg(long)]
         background: Option<String>,
+        /// Frames per second, from 0.01 to 240 (for example 24, 29.97 or 12.5).
+        #[arg(long)]
+        fps: Option<f64>,
     },
     /// Rename the first scene of a project.
     RenameScene { path: PathBuf, name: String },

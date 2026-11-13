@@ -204,6 +204,7 @@ pub fn set_stage(
     width: Option<u32>,
     height: Option<u32>,
     background: Option<Rgba8>,
+    fps: Option<f64>,
 ) -> Result<Value> {
     let mut session = open(path)?;
     let current = session.document().stage();
@@ -212,7 +213,14 @@ pub fn set_stage(
         height.unwrap_or(current.height()),
         background.unwrap_or(current.background()),
     )?;
-    session.apply([Command::SetStage(stage)])?;
+    let mut commands = vec![Command::SetStage(stage)];
+    if let Some(fps) = fps {
+        commands.push(Command::SetFrameRate(
+            flare_core::FrameRate::from_per_second(fps)?,
+        ));
+    }
+    session.apply(commands)?;
     commit(&session, path)?;
-    Ok(json!({ "width": stage.width(), "height": stage.height() }))
+    let rate = session.document().frame_rate();
+    Ok(json!({ "width": stage.width(), "height": stage.height(), "fps": rate.per_second() }))
 }

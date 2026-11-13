@@ -346,3 +346,31 @@ fn frame_ranges_are_taken_out_and_reversed_and_what_cannot_be_is_refused_without
     assert_ne!(std::fs::read(&file).expect("read"), before);
     assert_eq!(spans(&file), Some(2));
 }
+
+#[test]
+fn set_stage_changes_the_frame_rate_of_an_existing_project() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file, "--width", "20", "--height", "20"]);
+    let rate = || json(&["info", &file])["frame_rate"].clone();
+    let out = json(&["set-stage", &file, "--fps", "12.5"]);
+    assert_eq!(out["fps"], 12.5);
+    assert_eq!(
+        rate(),
+        serde_json::json!({ "numerator": 25, "denominator": 2 })
+    );
+    json(&["set-stage", &file, "--fps", "30"]);
+    assert_eq!(
+        rate(),
+        serde_json::json!({ "numerator": 30, "denominator": 1 })
+    );
+
+    let before = std::fs::read(&file).expect("read");
+    for bad in ["0", "-5", "500", "nan"] {
+        assert!(
+            !run(&["set-stage", &file, "--fps", bad]).status.success(),
+            "{bad}"
+        );
+    }
+    assert_eq!(std::fs::read(&file).expect("read"), before);
+}

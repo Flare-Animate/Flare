@@ -148,6 +148,8 @@ pub struct SetStage {
     pub height: Option<u32>,
     /// RRGGBB or RRGGBBAA hex.
     pub background: Option<String>,
+    /// Frames per second, from 0.01 to 240 (for example 24, 29.97 or 12.5).
+    pub fps: Option<f64>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }

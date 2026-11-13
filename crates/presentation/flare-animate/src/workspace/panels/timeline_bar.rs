@@ -1,10 +1,9 @@
 //! The timeline toolbar.
 
 use crate::workspace::{Command, Layer, LayerId, MAX_ONION_FRAMES, Workspace};
-use egui::{RichText, Ui};
+use egui::Ui;
 use flare_menubar::MenuAction;
 use flare_ui::chrome;
-use flare_ui::theme;
 
 use super::*;
 
@@ -127,9 +126,8 @@ impl Workspace {
         if changed && frame != self.frame {
             self.set_frame(frame);
         }
-        let rate = self.document().frame_rate();
-        let fps = rate.per_second();
-        ui.label(RichText::new(format!("{fps:.2} fps")).color(theme::text_dim()));
+        // The rate can be changed here, as in Animate, without going to the document's settings.
+        self.fps_field(ui);
         ui.separator();
         self.timeline_frame_buttons(ui);
         ui.separator();

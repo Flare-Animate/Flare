@@ -299,27 +299,9 @@ impl Workspace {
         let title = tr!(self, "doc-title");
         chrome::section(ui, "document", &title);
         self.stage_settings(ui);
-        let rate = self.document().frame_rate();
         let label = tr!(self, "doc-frame-rate");
         chrome::row(ui, &label, |ui| {
-            let current = rate.per_second();
-            let mut fps = self.fps_edit.unwrap_or(current);
-            let response = ui.add_enabled(
-                !self.in_symbol(),
-                egui::DragValue::new(&mut fps)
-                    .range(0.01..=240.0)
-                    .speed(0.1)
-                    .suffix(" fps"),
-            );
-            if response.changed() {
-                self.fps_edit = Some(fps);
-            }
-            // Applied on release or Enter, so scrubbing the value is one undo step.
-            if (response.drag_stopped() || response.lost_focus())
-                && let Some(fps) = self.fps_edit.take()
-            {
-                self.set_frame_rate(fps);
-            }
+            self.fps_field(ui);
         });
         let label = tr!(self, "doc-scenes");
         chrome::row(ui, &label, |ui| {

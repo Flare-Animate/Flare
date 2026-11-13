@@ -112,7 +112,9 @@ impl FlareServer {
         })
     }
 
-    #[tool(description = "Change the stage width, height and/or background (needs write access).")]
+    #[tool(
+        description = "Change the stage width, height, background and/or the frame rate (needs write access)."
+    )]
     fn set_stage(&self, Parameters(args): Parameters<SetStage>) -> Outcome {
         self.write(args.expected_revision, |state| {
             let current = state.session.document().stage();
@@ -120,7 +122,13 @@ impl FlareServer {
             let height = args.height.unwrap_or(current.height());
             let background: Rgba8 = color_or(args.background.as_deref(), current.background())?;
             let stage = Stage::new(width, height, background).map_err(|e| e.to_string())?;
-            apply(state, vec![Command::SetStage(stage)])
+            let mut commands = vec![Command::SetStage(stage)];
+            if let Some(fps) = args.fps {
+                let rate =
+                    flare_core::FrameRate::from_per_second(fps).map_err(|e| e.to_string())?;
+                commands.push(Command::SetFrameRate(rate));
+            }
+            apply(state, commands)
         })
     }
 

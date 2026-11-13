@@ -98,12 +98,13 @@ fn run() -> Result<()> {
             width,
             height,
             background,
+            fps,
         } => {
             let background = background
                 .as_deref()
                 .map(project::parse_color)
                 .transpose()?;
-            project::set_stage(&path, width, height, background)?
+            project::set_stage(&path, width, height, background, fps)?
         }
         Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
         Command::Camera {

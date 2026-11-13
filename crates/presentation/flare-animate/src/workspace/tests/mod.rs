@@ -34,6 +34,7 @@ mod command_palette;
 mod drawing_into_layers;
 mod eraser;
 mod frame_menu;
+mod frame_rate;
 mod frames_text_and_sound;
 mod graphic_playback;
 mod home;
