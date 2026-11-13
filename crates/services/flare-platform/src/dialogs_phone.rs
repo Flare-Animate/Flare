@@ -38,7 +38,11 @@ pub fn save_fla(_filter: &str) -> Option<std::path::PathBuf> {
     None
 }
 
-pub fn save_publish(_title: &str) -> Option<std::path::PathBuf> {
+pub fn save_publish(
+    _title: &str,
+    _name: &str,
+    _folder: Option<&std::path::Path>,
+) -> Option<std::path::PathBuf> {
     None
 }
 

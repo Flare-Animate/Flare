@@ -231,6 +231,33 @@ fn save_as_starts_from_the_documents_own_folder_and_name() {
 }
 
 #[test]
+fn publish_starts_from_the_documents_own_folder_and_name_with_no_ending() {
+    let (dir, path) = fla_copy();
+    let ws = opened(&path);
+    let (folder, name) = ws.publish_start();
+    assert_eq!(folder.as_deref(), Some(dir.path()));
+    assert_eq!(name, "sample", "every format ticked adds its own ending");
+}
+
+#[test]
+fn an_untitled_document_publishes_as_untitled() {
+    let (folder, name) = workspace().publish_start();
+    assert_eq!(folder, None);
+    assert_eq!(name, "Untitled");
+}
+
+#[test]
+fn a_saved_document_publishes_under_its_new_name() {
+    let dir = tempfile::tempdir().expect("dir");
+    let mut ws = workspace();
+    far_rect(&mut ws);
+    ws.save_as(&dir.path().join("Walk Cycle.fla"));
+    let (folder, name) = ws.publish_start();
+    assert_eq!(folder.as_deref(), Some(dir.path()));
+    assert_eq!(name, "Walk Cycle");
+}
+
+#[test]
 fn xfl_is_saved_as_a_folder_with_a_stub_and_saved_back_to_it() {
     let dir = tempfile::tempdir().expect("dir");
     let mut ws = workspace();

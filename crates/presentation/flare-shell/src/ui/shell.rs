@@ -113,9 +113,14 @@ impl App {
                         "dlg-publish",
                         &self.workspace.interface_text("dlg-choose-format"),
                     );
-                } else if let Some(path) =
-                    dialogs::save_publish(&self.workspace.interface_text("dlg-publish"))
-                {
+                } else if let Some(path) = {
+                    let (folder, name) = self.workspace.publish_start();
+                    dialogs::save_publish(
+                        &self.workspace.interface_text("dlg-publish"),
+                        &name,
+                        folder.as_deref(),
+                    )
+                } {
                     let (document, _) = self.workspace.image_export();
                     let plan = jobs::PublishPlan {
                         swf: settings.swf.then_some(jobs::PublishOptions {

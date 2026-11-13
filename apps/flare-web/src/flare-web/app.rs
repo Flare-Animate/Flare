@@ -31,8 +31,9 @@ pub struct WebApp {
     messages: Rc<RefCell<Vec<String>>>,
     /// The preferences as last written, so storage is touched only when they change.
     saved_preferences: String,
-    /// The name of the file last opened or saved, offered again by Save.
-    last_name: String,
+    /// The name of the file last opened or saved, offered again by Save and, without its ending,
+    /// by Publish; none for a new document.
+    last_name: Option<String>,
     /// Browser audio output; playback is driven by the same events as the desktop player.
     sound: BrowserSound,
 }
@@ -47,7 +48,7 @@ impl WebApp {
             picked_shortcuts: Rc::default(),
             messages: Rc::default(),
             saved_preferences,
-            last_name: "project.fla".to_owned(),
+            last_name: None,
             sound: BrowserSound::default(),
         }
     }
@@ -148,6 +149,7 @@ impl WebApp {
             }
             DialogRequest::Publish => {
                 let (document, _) = self.workspace.image_export();
+                let name = self.publish_name();
                 let settings = self.workspace.publish_settings();
                 if !settings.any() {
                     self.workspace
@@ -160,7 +162,11 @@ impl WebApp {
                     let result = flare_publish::publish_swf(&document, &options)
                         .map(|published| published.bytes)
                         .map_err(|e| e.to_string());
-                    self.deliver("movie.swf", "application/x-shockwave-flash", result);
+                    self.deliver(
+                        &format!("{name}.swf"),
+                        "application/x-shockwave-flash",
+                        result,
+                    );
                 }
                 if settings.mp4 {
                     self.workspace
@@ -168,14 +174,14 @@ impl WebApp {
                 }
                 if settings.gif {
                     self.deliver(
-                        "movie.gif",
+                        &format!("{name}.gif"),
                         "image/gif",
                         flare_runtime::gif_bytes(&document),
                     );
                 }
                 if settings.html5 {
                     let options = flare_publish::Html5Options {
-                        title: "movie".to_owned(),
+                        title: name.clone(),
                         loop_timeline: settings.loop_timeline,
                         center_stage: settings.center_stage,
                         responsive: settings.responsive,
@@ -183,7 +189,7 @@ impl WebApp {
                     let result = flare_publish::publish_html5(&document, &options)
                         .map(|published| published.html.into_bytes())
                         .map_err(|e| e.to_string());
-                    self.deliver("movie.html", "text/html", result);
+                    self.deliver(&format!("{name}.html"), "text/html", result);
                 }
             }
             DialogRequest::ImportAnimateShortcuts => {
@@ -257,7 +263,10 @@ impl WebApp {
         };
         let message = self.workspace.interface_text("dlg-save-prompt");
         let typed = window
-            .prompt_with_message_and_default(&message, &self.last_name)
+            .prompt_with_message_and_default(
+                &message,
+                self.last_name.as_deref().unwrap_or("project.fla"),
+            )
             .ok()
             .flatten()
             .unwrap_or_default();
@@ -296,7 +305,7 @@ impl WebApp {
         };
         self.deliver(&name, mime, bytes);
         if ok {
-            self.last_name = name.clone();
+            self.last_name = Some(name.clone());
             self.workspace.report_saved(&flare_runtime::Saved {
                 path: named,
                 format: if summary.is_some() {
@@ -348,6 +357,18 @@ impl WebApp {
         });
     }
 
+    /// What Publish names its downloads: the file last opened or saved, without its ending, or
+    /// the workspace's name for a new document.
+    fn publish_name(&self) -> String {
+        self.last_name
+            .as_deref()
+            .and_then(|name| std::path::Path::new(name).file_stem())
+            .map_or_else(
+                || self.workspace.publish_start().1,
+                |stem| stem.to_string_lossy().into_owned(),
+            )
+    }
+
     fn deliver(&mut self, name: &str, mime: &str, bytes: Result<Vec<u8>, String>) {
         match bytes.and_then(|b| files::download(name, mime, &b)) {
             Ok(()) => {}
@@ -368,7 +389,7 @@ impl eframe::App for WebApp {
         let ctx = ui.ctx().clone();
         let picked: Vec<Picked> = self.picked.borrow_mut().drain(..).collect();
         for file in picked {
-            self.last_name.clone_from(&file.name);
+            self.last_name = Some(file.name.clone());
             if is_flare(&file.name) {
                 self.open_flare(&file.name, &file.bytes);
             } else {

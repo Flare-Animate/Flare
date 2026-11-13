@@ -64,9 +64,10 @@ pub fn save_fla(filter: &str) -> Option<PathBuf> {
     backend::save_fla(filter)
 }
 
-/// Asks where to publish. The name is shared by every format written, each with its own ending.
-pub fn save_publish(title: &str) -> Option<PathBuf> {
-    backend::save_publish(title)
+/// Asks where to publish, starting from `name` (the document's, with no ending) in `folder`. The
+/// name is shared by every format written, each with its own ending.
+pub fn save_publish(title: &str, name: &str, folder: Option<&std::path::Path>) -> Option<PathBuf> {
+    backend::save_publish(title, name, folder)
 }
 
 pub fn message(title: &str, text: &str) {

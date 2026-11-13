@@ -112,12 +112,18 @@ pub fn save_fla(filter: &str) -> Option<std::path::PathBuf> {
         .save_file()
 }
 
-/// Asks where to publish. The name is shared by every format written, each with its own ending.
-pub fn save_publish(title: &str) -> Option<std::path::PathBuf> {
-    rfd::FileDialog::new()
-        .set_title(title)
-        .set_file_name("movie")
-        .save_file()
+/// Asks where to publish, starting from `name` in `folder`. The name is shared by every format
+/// written, each with its own ending.
+pub fn save_publish(
+    title: &str,
+    name: &str,
+    folder: Option<&std::path::Path>,
+) -> Option<std::path::PathBuf> {
+    let mut dialog = rfd::FileDialog::new().set_title(title).set_file_name(name);
+    if let Some(folder) = folder.filter(|f| f.is_dir()) {
+        dialog = dialog.set_directory(folder);
+    }
+    dialog.save_file()
 }
 
 pub fn message(title: &str, text: &str) {
