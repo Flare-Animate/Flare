@@ -81,6 +81,7 @@ msg-tween-needs-target = Uma interpolação de movimento precisa de uma instânc
 unsaved-save-changes = Salvar as alterações em { $name }?
 unsaved-save = Salvar
 unsaved-dont-save = Não salvar
+unsaved-lose-changes = Suas alterações serão perdidas se você não salvá-las.
 msg-paste-refused = Não é possível colar na camada "{ $name }": { $reason }
 msg-saved-detail-original = original sem alterações, gravado como estava
 msg-saved-detail-new = { $files } arquivos gravados a partir do projeto

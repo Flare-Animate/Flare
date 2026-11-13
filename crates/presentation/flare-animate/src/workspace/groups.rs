@@ -203,29 +203,32 @@ impl super::Workspace {
             self.tr("close"),
         );
         let mut run = false;
-        let response = egui::Modal::new(egui::Id::unique("increment_instances")).show(ctx, |ui| {
-            ui.set_width(300.0);
-            ui.heading(self.label(MenuAction::IncrementInstances));
-            ui.add_space(6.0);
-            ui.horizontal(|ui| {
-                ui.label(&from);
-                ui.add(egui::DragValue::new(&mut form.from).range(0..=u32::MAX));
+        let title = self.label(MenuAction::IncrementInstances);
+        let response =
+            flare_ui::dialog::modal(ctx, egui::Id::unique("increment_instances")).show(ctx, |ui| {
+                use flare_ui::dialog;
+                ui.set_width(320.0);
+                dialog::title(ui, &title);
+                dialog::field(ui, &from, |ui| {
+                    ui.add(egui::DragValue::new(&mut form.from).range(0..=u32::MAX));
+                });
+                dialog::field(ui, &by, |ui| {
+                    ui.add(egui::DragValue::new(&mut form.by).range(i32::MIN..=i32::MAX));
+                });
+                dialog::footer(
+                    ui,
+                    |_| {},
+                    |ui| {
+                        if dialog::primary_button(ui, &apply, true).clicked() {
+                            run = true;
+                            ui.close();
+                        }
+                        if dialog::button(ui, &close).clicked() {
+                            ui.close();
+                        }
+                    },
+                );
             });
-            ui.horizontal(|ui| {
-                ui.label(&by);
-                ui.add(egui::DragValue::new(&mut form.by).range(i32::MIN..=i32::MAX));
-            });
-            ui.add_space(8.0);
-            ui.horizontal(|ui| {
-                if ui.button(&apply).clicked() {
-                    run = true;
-                    ui.close();
-                }
-                if ui.button(&close).clicked() {
-                    ui.close();
-                }
-            });
-        });
         if run {
             match flare_tools::library::increment_instances(
                 self.document(),

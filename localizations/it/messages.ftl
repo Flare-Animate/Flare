@@ -81,6 +81,7 @@ msg-tween-needs-target = Un'interpolazione di movimento richiede un'istanza sele
 unsaved-save-changes = Salvare le modifiche a { $name }?
 unsaved-save = Salva
 unsaved-dont-save = Non salvare
+unsaved-lose-changes = Se non salvi, le modifiche andranno perse.
 msg-paste-refused = Impossibile incollare nel livello "{ $name }": { $reason }
 msg-saved-detail-original = originale non modificato, riscritto com'era
 msg-saved-detail-new = { $files } file scritti dal progetto

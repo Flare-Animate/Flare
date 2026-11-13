@@ -81,6 +81,7 @@ msg-tween-needs-target = Une interpolation de mouvement nécessite une occurrenc
 unsaved-save-changes = Enregistrer les modifications apportées à { $name } ?
 unsaved-save = Enregistrer
 unsaved-dont-save = Ne pas enregistrer
+unsaved-lose-changes = Vos modifications seront perdues si vous ne les enregistrez pas.
 msg-paste-refused = Impossible de coller dans le calque « { $name } » : { $reason }
 msg-saved-detail-original = original inchangé, réécrit tel quel
 msg-saved-detail-new = { $files } fichiers écrits à partir du projet

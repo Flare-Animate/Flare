@@ -82,6 +82,7 @@ msg-tween-needs-target = Для анимации движения нужен в�
 unsaved-save-changes = Сохранить изменения в «{ $name }»?
 unsaved-save = Сохранить
 unsaved-dont-save = Не сохранять
+unsaved-lose-changes = Если не сохранить, изменения будут потеряны.
 msg-paste-refused = Не удаётся вставить в слой «{ $name }»: { $reason }
 msg-saved-detail-original = исходный файл без изменений, записан обратно как был
 msg-saved-detail-new = файлов записано из проекта: { $files }

@@ -39,29 +39,30 @@ impl Workspace {
         let mut asked = Asked::default();
         // A dialog in the middle of the window over a dimmed backdrop, as Preferences and
         // Publish are: Escape or a click outside closes it.
-        let modal = egui::Modal::new(egui::Id::unique("new_document_dialog")).show(ctx, |ui| {
-            let title = self.tr("start-new-document");
-            let close = self.tr("close");
-            egui::Sides::new().show(
-                ui,
-                |ui| {
-                    ui.heading(title);
-                },
-                |ui| {
-                    if chrome::icon_button(ui, "close", 14.0, false, true, &close).clicked() {
-                        asked.cancel = true;
-                    }
-                },
-            );
-            ui.add_space(6.0);
-            self.new_document_tabs(ui, &mut doc);
-            ui.add_space(12.0);
-            ui.horizontal_top(|ui| {
-                ui.spacing_mut().item_spacing.x = 16.0;
-                ui.vertical(|ui| self.new_document_presets(ui, &mut doc));
-                ui.vertical(|ui| asked = self.new_document_details(ui, &mut doc, asked.cancel));
+        let modal =
+            flare_ui::dialog::modal(ctx, egui::Id::unique("new_document_dialog")).show(ctx, |ui| {
+                let title = self.tr("start-new-document");
+                let close = self.tr("close");
+                egui::Sides::new().show(
+                    ui,
+                    |ui| {
+                        ui.heading(title);
+                    },
+                    |ui| {
+                        if chrome::icon_button(ui, "close", 14.0, false, true, &close).clicked() {
+                            asked.cancel = true;
+                        }
+                    },
+                );
+                ui.add_space(6.0);
+                self.new_document_tabs(ui, &mut doc);
+                ui.add_space(12.0);
+                ui.horizontal_top(|ui| {
+                    ui.spacing_mut().item_spacing.x = 16.0;
+                    ui.vertical(|ui| self.new_document_presets(ui, &mut doc));
+                    ui.vertical(|ui| asked = self.new_document_details(ui, &mut doc, asked.cancel));
+                });
             });
-        });
         if modal.should_close() {
             asked.cancel = true;
         }

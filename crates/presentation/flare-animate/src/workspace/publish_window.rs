@@ -24,7 +24,7 @@ impl Workspace {
         .map(|key| (key, self.tr(key)))
         .collect();
         let tr = |key: &str| words.get(key).cloned().unwrap_or_default();
-        let response = egui::Modal::new(self.publish_id).show(ctx, |ui| {
+        let response = flare_ui::dialog::modal(ctx, self.publish_id).show(ctx, |ui| {
             ui.set_width(340.0);
             egui::Sides::new().show(
                 ui,

@@ -358,6 +358,17 @@ settings of the tool in hand if it has any (the drawing tools), else the documen
 rate, background, Publish Settings). Modify > Document asks for the document until the selection or
 the tool changes.
 
+## Dialogs
+
+Every dialog is drawn with `flare_ui::dialog`: a card in the middle of the window over a dimmed
+backdrop, with 24 points of room at the sides and 20 above and below (egui's own popup frame is a
+menu's, too tight for a question), a bold title, labelled rows whose controls line up in one
+column, and the buttons at the bottom right, at least 88 by 28, the one that does the thing filled
+in the accent colour and rightmost. A choice that gives work up stands apart at the bottom left: the
+question a close of unsaved work asks says what is lost ("Your changes will be lost if you don't
+save them."), with Don't Save at the left and Cancel and Save at the right; Return saves, Escape
+cancels.
+
 ## New Document
 
 File > New (Cmd/Ctrl+N) and Home's New File open the New Document dialog, laid out as Animate's: the

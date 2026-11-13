@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 pub mod chrome;
+pub mod dialog;
 pub mod icons;
 pub mod splash;
 pub mod tap;

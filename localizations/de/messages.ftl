@@ -81,6 +81,7 @@ msg-tween-needs-target = Für einen Bewegungs-Tween muss eine Instanz ausgewähl
 unsaved-save-changes = Änderungen an { $name } speichern?
 unsaved-save = Speichern
 unsaved-dont-save = Nicht speichern
+unsaved-lose-changes = Wenn Sie nicht speichern, gehen Ihre Änderungen verloren.
 msg-paste-refused = Einfügen in die Ebene „{ $name }“ nicht möglich: { $reason }
 msg-saved-detail-original = unverändertes Original, so zurückgeschrieben, wie es war
 msg-saved-detail-new = { $files } Dateien aus dem Projekt geschrieben

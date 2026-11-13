@@ -77,6 +77,7 @@ msg-tween-needs-target = モーショントゥイーンにはインスタンス�
 unsaved-save-changes = { $name } への変更内容を保存しますか?
 unsaved-save = 保存
 unsaved-dont-save = 保存しない
+unsaved-lose-changes = 保存しないと変更は失われます。
 msg-paste-refused = レイヤー「{ $name }」には貼り付けられません: { $reason }
 msg-saved-detail-original = 変更のない元のファイルをそのまま書き戻しました
 msg-saved-detail-new = プロジェクトから { $files } 個のファイルを書き出しました

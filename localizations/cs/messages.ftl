@@ -82,6 +82,7 @@ msg-tween-needs-target = Animace pohybu potřebuje vybranou instanci, animace tv
 unsaved-save-changes = Uložit změny v souboru { $name }?
 unsaved-save = Uložit
 unsaved-dont-save = Neukládat
+unsaved-lose-changes = Pokud změny neuložíte, přijdete o ně.
 msg-paste-refused = Do vrstvy „{ $name }“ nelze vložit: { $reason }
 msg-saved-detail-original = původní soubor beze změn, zapsán zpět tak, jak byl
 msg-saved-detail-new = souborů zapsáno z projektu: { $files }
