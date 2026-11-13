@@ -122,3 +122,9 @@ opt-picked = 고른 픽셀
 opt-picked-pixels = { $n }픽셀
 opt-wand-invert = 반전
 opt-wand-clear = 픽셀 지우기
+
+opt-gap-size = 간격 크기
+opt-gap-none = 간격을 닫지 않음
+opt-gap-small = 작은 간격 닫기
+opt-gap-medium = 중간 간격 닫기
+opt-gap-large = 큰 간격 닫기

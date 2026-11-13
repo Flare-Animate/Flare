@@ -8,8 +8,10 @@ use flare_document::{Content, Document, Gradient, Shape, Stroke};
 use crate::common::*;
 
 pub mod area;
+mod gap;
 mod place;
 
+pub use gap::{GapSize, MAX_GAP};
 pub use place::{area_shape, pour_above, pour_under};
 
 /// The span's shape repainted: `fill` replaces the solid fill (dropping a gradient) and `stroke`
@@ -127,6 +129,8 @@ pub fn runs_vertically(gradient: &Gradient) -> bool {
 
 #[cfg(test)]
 mod area_tests;
+#[cfg(test)]
+mod gap_tests;
 #[cfg(test)]
 mod place_tests;
 #[cfg(test)]

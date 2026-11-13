@@ -351,7 +351,7 @@ selection or the tool changes, and Object is dimmed with nothing selected. A too
 size, smoothing, stabilization, tapers, angle, flatness, pressure response, light touch, stroke
 width, corner radius, sides and depth) are Animate's slider rows: the name at the left and the value
 at the right on one line, a slider the panel's width below it; the value is also a number field to
-type or drag, and sizes slide on a logarithmic track so the small ones get most of it. Something selected on the stage: a shape shows Position and size and its Fill and stroke
+type or drag, and sizes slide on a logarithmic track so the small ones get most of it. The Tool tab shows only the paint a tool uses: the Paint Bucket its fill (and gradient) with Gap size, Animate's Don't close gaps, Close small gaps, Close medium gaps and Close large gaps (10, 24 and 48 screen points, so the same-looking gap closes at any zoom; small is the default); the Ink Bottle its stroke color, width, cap, join and style; a shape tool both. Something selected on the stage: a shape shows Position and size and its Fill and stroke
 (fill color, outline on or off, stroke color, width, cap and join), which are changed on the shape,
 a color when the picker is let go and a number when it is, each one undo step; a symbol instance
 shows its symbol and type, Edit Symbol, Position and size, Looping for a Graphic, and Color Effect,

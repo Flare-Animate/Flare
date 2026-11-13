@@ -103,18 +103,30 @@ impl Workspace {
 
     pub(crate) fn tool_tab(&mut self, ui: &mut Ui) {
         self.tool_options(ui);
-        chrome::section(ui, "fill-color", &tr!(self, "opt-fill-stroke"));
-        let (gradient, vertical, outline) = (
-            tr!(self, "opt-gradient-check"),
-            tr!(self, "opt-vertical"),
-            tr!(self, "opt-outline"),
-        );
-        let (none, round, square) = (
-            tr!(self, "opt-cap-none"),
-            tr!(self, "opt-round"),
-            tr!(self, "opt-square"),
-        );
-        let (bevel, miter) = (tr!(self, "opt-bevel"), tr!(self, "opt-miter"));
+        // Only the paint the tool uses: the Paint Bucket pours a fill and the Ink Bottle puts on
+        // a stroke, as Animate's Properties show them.
+        let (fill, stroke) = match self.tool {
+            Tool::Bucket => (true, false),
+            Tool::InkBottle => (false, true),
+            _ => (true, true),
+        };
+        let title = match (fill, stroke) {
+            (true, false) => tr!(self, "opt-fill"),
+            (false, true) => tr!(self, "opt-stroke"),
+            _ => tr!(self, "opt-fill-stroke"),
+        };
+        chrome::section(ui, "fill-color", &title);
+        if fill {
+            self.fill_controls(ui);
+        }
+        if stroke {
+            self.stroke_controls(ui, fill);
+        }
+    }
+
+    /// The fill color, and the gradient it can run into.
+    fn fill_controls(&mut self, ui: &mut Ui) {
+        let (gradient, vertical) = (tr!(self, "opt-gradient-check"), tr!(self, "opt-vertical"));
         chrome::row(ui, &tr!(self, "opt-fill"), |ui| {
             ui.color_edit_button_srgba(&mut self.paint.fill);
             ui.checkbox(&mut self.paint.gradient_enabled, &gradient);
@@ -125,12 +137,26 @@ impl Workspace {
                 ui.checkbox(&mut self.paint.gradient_vertical, &vertical);
             });
         }
+    }
+
+    /// The stroke: its color, width, caps, joins and style. With `optional`, a tool that also
+    /// fills, the stroke can be turned off and its settings are dimmed while it is.
+    fn stroke_controls(&mut self, ui: &mut Ui, optional: bool) {
+        let outline = tr!(self, "opt-outline");
+        let (none, round, square) = (
+            tr!(self, "opt-cap-none"),
+            tr!(self, "opt-round"),
+            tr!(self, "opt-square"),
+        );
+        let (bevel, miter) = (tr!(self, "opt-bevel"), tr!(self, "opt-miter"));
         chrome::row(ui, &tr!(self, "opt-stroke"), |ui| {
             ui.color_edit_button_srgba(&mut self.paint.stroke_color);
-            ui.checkbox(&mut self.paint.stroke_enabled, &outline);
+            if optional {
+                ui.checkbox(&mut self.paint.stroke_enabled, &outline);
+            }
         });
         let label = tr!(self, "opt-width");
-        ui.add_enabled_ui(self.paint.stroke_enabled, |ui| {
+        ui.add_enabled_ui(self.paint.stroke_enabled || !optional, |ui| {
             chrome::slider(
                 ui,
                 &label,

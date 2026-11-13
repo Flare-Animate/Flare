@@ -76,6 +76,8 @@ pub(super) struct Paint {
     pub(super) stroke_cap: Cap,
     pub(super) stroke_join: Join,
     pub(super) stroke_style: flare_document::StrokeStyle,
+    /// How wide a gap in the lines the Paint Bucket fills across.
+    pub(super) gap: flare_tools::paint::GapSize,
     /// Pencil and brush strokes are mirrored across these axes.
     pub(super) symmetry: Symmetry,
     /// Where the axes cross; the middle of the stage until one is set.
@@ -103,6 +105,7 @@ impl Default for Paint {
             stroke_cap: Cap::Round,
             stroke_join: Join::Round,
             stroke_style: flare_document::StrokeStyle::Solid,
+            gap: flare_tools::paint::GapSize::default(),
             symmetry: Symmetry::Off,
             symmetry_center: None,
             straight_edge: false,

@@ -15,13 +15,6 @@ use glamx::DVec2;
 
 use crate::workspace::*;
 
-/// How far apart, in screen points, the ends of a line may be for the Paint Bucket still to fill
-/// what it closes: a loop drawn by hand seldom meets itself exactly (Animate's Close Small Gaps).
-const GAP_POINTS: f32 = 10.0;
-
-/// The most that gap can stand for on the stage, however far out the view is zoomed.
-const MAX_GAP: f64 = 100.0;
-
 /// The finest an area is looked for at, in pixels per stage unit: finer than the screen when
 /// zoomed in, but no finer than this.
 const MAX_AREA_DETAIL: f64 = 4.0;
@@ -266,14 +259,10 @@ impl Workspace {
         image.pixel(0, 0).filter(|shown| on_stage || shown.a > 0)
     }
 
-    /// The gap, in stage units, the Paint Bucket closes at the current zoom.
-    fn paint_gap(&self) -> f64 {
-        let scale = self.stage_scale();
-        if scale.is_finite() && scale > 0.0 {
-            (f64::from(GAP_POINTS) / f64::from(scale)).min(MAX_GAP)
-        } else {
-            f64::from(GAP_POINTS)
-        }
+    /// The gap, in stage units, the Paint Bucket closes at the current zoom: the Gap Size
+    /// chosen, which is measured on the screen.
+    pub(in crate::workspace) fn paint_gap(&self) -> f64 {
+        self.paint.gap.on_stage(f64::from(self.stage_scale()))
     }
 
     /// What the Paint Bucket pours: the fill color, or the gradient when one is on.

@@ -151,6 +151,7 @@ impl Workspace {
                 ui.weak(tr!(self, "tools-help-eyedropper"));
             }
             Tool::Bucket => {
+                self.bucket_options(ui);
                 ui.weak(tr!(self, "tools-help-bucket"));
             }
             Tool::InkBottle => {

@@ -127,3 +127,9 @@ opt-picked-pixels =
     }
 opt-wand-invert = Обратить
 opt-wand-clear = Стереть пиксели
+
+opt-gap-size = Размер зазора
+opt-gap-none = Не закрывать зазоры
+opt-gap-small = Закрывать малые зазоры
+opt-gap-medium = Закрывать средние зазоры
+opt-gap-large = Закрывать большие зазоры

@@ -8,7 +8,7 @@ use flare_document::{Gradient, PathSegment, Stroke as ShapeStroke};
 const BLUE: Color32 = Color32::from_rgb(20, 40, 200);
 
 /// A workspace whose stage shows at 100%, so a screen point is a stage unit.
-fn at_full_size() -> Workspace {
+pub(super) fn at_full_size() -> Workspace {
     let mut ws = workspace();
     ws.set_stage_size(550, 400);
     ws.stage_panel = Rect::from_min_size(Pos2::ZERO, Vec2::new(550.0, 400.0));
@@ -21,7 +21,7 @@ fn point(x: f64, y: f64) -> DocumentPoint {
 
 /// A square outline from (100, 100) to (200, 200) with no fill, drawn as a pencil line is: open,
 /// its last side stopping `gap` short of where it started.
-fn hand_drawn_loop(ws: &mut Workspace, gap: f64) {
+pub(super) fn hand_drawn_loop(ws: &mut Workspace, gap: f64) {
     let path = vec![
         PathSegment::MoveTo(point(100.0, 100.0)),
         PathSegment::LineTo(point(200.0, 100.0)),

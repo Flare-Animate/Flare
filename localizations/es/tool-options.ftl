@@ -126,3 +126,9 @@ opt-picked-pixels =
     }
 opt-wand-invert = Invertir
 opt-wand-clear = Borrar píxeles
+
+opt-gap-size = Tamaño del espacio
+opt-gap-none = No cerrar espacios
+opt-gap-small = Cerrar espacios pequeños
+opt-gap-medium = Cerrar espacios medianos
+opt-gap-large = Cerrar espacios grandes

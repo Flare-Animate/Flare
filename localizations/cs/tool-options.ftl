@@ -127,3 +127,9 @@ opt-picked-pixels =
     }
 opt-wand-invert = Obrátit
 opt-wand-clear = Vymazat pixely
+
+opt-gap-size = Velikost mezery
+opt-gap-none = Neuzavírat mezery
+opt-gap-small = Uzavřít malé mezery
+opt-gap-medium = Uzavřít střední mezery
+opt-gap-large = Uzavřít velké mezery

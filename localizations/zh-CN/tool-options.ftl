@@ -122,3 +122,9 @@ opt-picked = 已选取
 opt-picked-pixels = { $n } 个像素
 opt-wand-invert = 反选
 opt-wand-clear = 清除像素
+
+opt-gap-size = 空隙大小
+opt-gap-none = 不封闭空隙
+opt-gap-small = 封闭小空隙
+opt-gap-medium = 封闭中等空隙
+opt-gap-large = 封闭大空隙

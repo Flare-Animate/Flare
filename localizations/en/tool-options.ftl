@@ -126,3 +126,9 @@ opt-picked-pixels =
     }
 opt-wand-invert = Invert
 opt-wand-clear = Clear pixels
+
+opt-gap-size = Gap size
+opt-gap-none = Don't close gaps
+opt-gap-small = Close small gaps
+opt-gap-medium = Close medium gaps
+opt-gap-large = Close large gaps

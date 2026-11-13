@@ -126,3 +126,9 @@ opt-picked-pixels =
     }
 opt-wand-invert = Umkehren
 opt-wand-clear = Pixel löschen
+
+opt-gap-size = Lückengröße
+opt-gap-none = Lücken nicht schließen
+opt-gap-small = Kleine Lücken schließen
+opt-gap-medium = Mittlere Lücken schließen
+opt-gap-large = Große Lücken schließen

@@ -122,3 +122,9 @@ opt-picked = 選択中
 opt-picked-pixels = { $n } ピクセル
 opt-wand-invert = 反転
 opt-wand-clear = ピクセルを消去
+
+opt-gap-size = 隙間のサイズ
+opt-gap-none = 隙間を閉じない
+opt-gap-small = 小さな隙間を閉じる
+opt-gap-medium = 中くらいの隙間を閉じる
+opt-gap-large = 大きな隙間を閉じる
