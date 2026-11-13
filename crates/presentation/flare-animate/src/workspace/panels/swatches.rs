@@ -92,9 +92,9 @@ impl Workspace {
     }
 }
 
-/// The colors as cells, twelve to a row, as wide as the panel allows; `salt` keeps each grid's
+/// The colors as cells, twelve to a row, as wide as the panel allows; `grid_id` keeps each grid's
 /// cells apart. With `remove`, a right click on a cell offers to delete it.
-fn grid(ui: &mut Ui, salt: &str, colors: &[Rgba8], remove: Option<&str>) -> Option<Pick> {
+fn grid(ui: &mut Ui, grid_id: &str, colors: &[Rgba8], remove: Option<&str>) -> Option<Pick> {
     if colors.is_empty() {
         return None;
     }
@@ -111,7 +111,7 @@ fn grid(ui: &mut Ui, salt: &str, colors: &[Rgba8], remove: Option<&str>) -> Opti
         let (row, column) = (index / COLUMNS, index % COLUMNS);
         let min = area.min + vec2(column as f32 * (cell + GAP), row as f32 * (cell + GAP));
         let rect = Rect::from_min_size(min, Vec2::splat(cell));
-        let response = ui.interact(rect, ui.scope_id().with((salt, index)), Sense::click());
+        let response = ui.interact(rect, ui.scope_id().with((grid_id, index)), Sense::click());
         ui.painter().rect_filled(rect, 1.0, to_egui(*color));
         if response.hovered() {
             ui.painter().rect_stroke(
