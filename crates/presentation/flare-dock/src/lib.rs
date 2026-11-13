@@ -12,10 +12,12 @@ use thiserror::Error;
 mod arrange;
 mod layout;
 mod migrate;
+mod resize;
 mod workspaces;
 
 pub use arrange::{DEFAULT_SIDE, DEFAULT_STRIP, Plan, arrange, arrangement};
 pub use layout::{Layout, check, default_layout, from_json, to_json};
+pub use resize::{MIN_STAGE_SIDE, MIN_TOOL_STRIP, keep_panel_sizes};
 pub use workspaces::{
     Custom, MAX_CUSTOM, MAX_NAME_CHARS, MAX_WORKSPACES_BYTES, Preset, WorkspaceId, Workspaces,
     workspaces_from_json, workspaces_to_json,

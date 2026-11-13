@@ -1,9 +1,13 @@
 //! Shortcuts, menus and the stage furniture.
 
 use egui::Key;
-use flare_menubar::{MENU_LAYOUT, MenuAction, MenuEntry};
+use flare_menubar::{MenuAction, MenuEntry};
 
 use super::*;
+
+/// The smallest window the workspace is laid out for, in points: the tool strip and the panels
+/// at their usual widths still leave the stage room, and nothing is cut off at the window's edge.
+pub const MIN_WINDOW_SIZE: [f32; 2] = [960.0, 600.0];
 
 impl Workspace {
     // ---- UI --------------------------------------------------------------------------
@@ -45,7 +49,8 @@ impl Workspace {
                 .frame(
                     egui::Frame::new()
                         .fill(flare_ui::theme::chrome())
-                        .inner_margin(egui::Margin::symmetric(8, 2)),
+                        // One point above and below: the bar's buttons are 22 high in its 24.
+                        .inner_margin(egui::Margin::symmetric(8, 1)),
                 )
                 .show(ui, |ui| self.status_bar(ui));
         }
@@ -79,6 +84,12 @@ impl Workspace {
                 let mut tree = std::mem::replace(
                     &mut self.panels.layout.tree,
                     egui_tiles::Tree::empty(egui::Id::unique("taken")),
+                );
+                // A resized window resizes the stage; the panels keep their size, as in Animate.
+                flare_dock::keep_panel_sizes(
+                    &mut tree,
+                    ui.available_rect_before_wrap(),
+                    flare_ui::theme::GUTTER,
                 );
                 tree.ui(&mut Dock { workspace: self }, ui);
                 self.panels.layout.tree = tree;
@@ -252,11 +263,8 @@ impl Workspace {
         }
     }
 
-    /// The top bar: room for the window buttons, the app mark, the in-window menus (when there
-    /// is no native menu bar), the document name, and quick actions. Empty space drags the
-    /// window.
     /// The entries of one menu, with a menu inside it opened as its own.
-    fn menu_entries(&mut self, ui: &mut egui::Ui, entries: &[MenuEntry]) {
+    pub(super) fn menu_entries(&mut self, ui: &mut egui::Ui, entries: &[MenuEntry]) {
         for entry in entries {
             match entry {
                 MenuEntry::Action(action) => self.action_item(ui, *action),
@@ -272,116 +280,6 @@ impl Workspace {
                 }
             }
         }
-    }
-
-    pub(super) fn menu_bar(&mut self, ui: &mut egui::Ui) {
-        let bar = ui.max_rect();
-        let drag = ui.interact(bar, self.top_bar_id, egui::Sense::click_and_drag());
-        if drag.double_clicked() {
-            self.window_request = Some(WindowRequest::ToggleMaximize);
-        } else if drag.drag_started() {
-            self.window_request = Some(WindowRequest::Drag);
-        }
-        self.window_buttons(ui, bar);
-        ui.painter().hline(
-            bar.x_range(),
-            bar.bottom() - 0.5,
-            egui::Stroke::new(1.0, flare_ui::theme::border()),
-        );
-        let publish_tip = tr!(self, "bar-publish");
-        ui.horizontal_centered(|ui| {
-            ui.add_space(self.titlebar_inset.max(10.0));
-            let home = ui
-                .horizontal(|ui| {
-                    ui.add(flare_ui::icons::image(
-                        "home",
-                        16.0,
-                        flare_ui::theme::text(),
-                    ));
-                    // With the system's menu bar the bar keeps its name beside the house; with
-                    // the in-window menus the menus take that place, as in Animate.
-                    if self.native_menu {
-                        ui.label(
-                            egui::RichText::new("Flare")
-                                .strong()
-                                .color(flare_ui::theme::text()),
-                        );
-                    }
-                })
-                .response
-                .interact(egui::Sense::click())
-                .on_hover_text(tr!(self, "bar-home"));
-            // The house goes to Home and stays there; it is not a switch. Pressing it on Home used
-            // to leave for the untouched document underneath, which looked like a new file. A tab
-            // is how a document is gone back to.
-            if home.clicked() {
-                self.windows.home = true;
-            }
-            ui.add_space(6.0);
-            egui::MenuBar::new().ui(ui, |ui| {
-                if self.native_menu {
-                    return;
-                }
-                for (title, entries) in MENU_LAYOUT {
-                    ui.menu_button(self.menu_title(title), |ui| self.menu_entries(ui, entries));
-                }
-            });
-            let controls_width = self.window_controls_width();
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.add_space(controls_width);
-                if self.native_menu {
-                    self.classic_bar_right(ui, bar, controls_width);
-                    return;
-                }
-                // Play, Publish and the workspace switcher belong to a document; Home has none,
-                // and no interface to switch.
-                if !self.document_controls_shown() {
-                    return;
-                }
-                // Animate's workspace switcher is in this corner too.
-                self.workspace_switcher(ui);
-                ui.add_space(6.0);
-                // The command palette: every command, one search away.
-                let commands_tip = tr!(self, "bar-commands");
-                if flare_ui::chrome::icon_button(
-                    ui,
-                    "search",
-                    16.0,
-                    self.windows.palette,
-                    true,
-                    &commands_tip,
-                )
-                .clicked()
-                {
-                    self.toggle_palette();
-                }
-                ui.add_space(6.0);
-                // Animate's Publish button is next to Play too.
-                let can_publish = self.is_enabled(MenuAction::Publish);
-                if flare_ui::chrome::icon_button(
-                    ui,
-                    "publish",
-                    16.0,
-                    false,
-                    can_publish,
-                    &publish_tip,
-                )
-                .clicked()
-                {
-                    self.perform(MenuAction::Publish);
-                }
-                let (icon, hint) = if self.is_playing() {
-                    ("transport-pause", tr!(self, "bar-pause"))
-                } else {
-                    ("transport-play", tr!(self, "bar-play"))
-                };
-                let play = flare_ui::chrome::icon_button(ui, icon, 16.0, false, true, &hint);
-                if play.clicked() {
-                    self.perform(MenuAction::PlayPause);
-                }
-                play.context_menu(|ui| self.transport_menu(ui));
-            });
-        });
     }
 
     /// The menu on a right click of the Play button: where Test Movie is, one click from Play.

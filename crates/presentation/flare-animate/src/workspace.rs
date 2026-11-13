@@ -87,6 +87,7 @@ mod timeline_names_edge;
 mod timeline_rows;
 mod timeline_sound;
 mod tool_kind;
+mod top_bar;
 mod top_bar_classic;
 mod types;
 
@@ -96,6 +97,7 @@ use types::*;
 pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
 pub use flare_audio::AudioEvent;
 pub use flare_tools::brush::BrushPreset;
+pub use furniture::MIN_WINDOW_SIZE;
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use publish_settings::PublishSettings;
 pub use types::{

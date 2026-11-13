@@ -55,6 +55,7 @@ mod menus_and_recovery;
 mod menus_like_animate;
 mod motion_editor;
 mod multiple_frames;
+mod narrow_window;
 mod native_pen;
 mod new_document_dialog;
 mod nothing_left_in_english;

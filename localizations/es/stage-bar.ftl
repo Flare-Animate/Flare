@@ -14,6 +14,7 @@ bar-home = Inicio
 bar-workspaces = Espacios de trabajo
 bar-interface-switcher = Selector de interfaz
 bar-commands = Comandos
+bar-more-menus = Más menús
 bar-pause = Pausar
 bar-play = Reproducir
 bar-publish = Publicar

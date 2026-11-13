@@ -14,6 +14,7 @@ bar-home = ホーム
 bar-workspaces = ワークスペース
 bar-interface-switcher = インターフェイス切り替え
 bar-commands = コマンド
+bar-more-menus = その他のメニュー
 bar-pause = 一時停止
 bar-play = 再生
 bar-publish = パブリッシュ
