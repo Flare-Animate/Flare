@@ -65,6 +65,27 @@ bitmap (the old one stays in the library while anything else shows it), so other
 the same picture keep it whole. Picking and clearing run on the pixels worker
 ([PERFORMANCE.md](PERFORMANCE.md)); while one is out, further clicks wait for it.
 
+## Blur and Smudge
+
+Blur and Smudge work on bitmaps the way Clip Studio Paint's Blur and Finger tip do. Drag over a
+bitmap: Blur softens what the stroke passes over, and Smudge picks up the colors under it and
+pushes them along, as a finger through wet paint. Both work on the topmost bitmap under the start
+of the drag (on a layer that is shown and unlocked, as the Magic Wand finds it), and the stage
+shows the stroke as it is drawn. The whole drag is one undo step, Escape takes it back, and a click
+blurs one spot (a Smudge click has picked up nothing to lay down). A stroke is a row of round dabs
+whose width follows the pen's pressure. Its strength is a ceiling: going over the same place again
+in one stroke does not blur or smear it further, so lift the pen and go again for more.
+
+The options are Size (stage units, 1 to 1000; Blur starts at 80 and Smudge at 30, Clip Studio's
+values), Strength, Hardness (how sharp the edge of a dab is; Blur starts soft, Smudge half way),
+Pressure sets size, and for Smudge, Color stretch (0 to 100, 70 to start): how far a picked-up
+color is carried along the stroke; at 0 it mixes in place. Each tool keeps its own settings.
+Clear pixels blur and smudge too, so a picture's edge can be softened into the background. As
+with a wand clear, a stroke gives that one element a new bitmap, so other frames showing the same
+picture keep it as it was. Strokes are not mirrored by Symmetry or straightened by Shift. The
+dabs and the new bitmap are made on the pixels worker; a large bitmap shows the stroke a few
+times a second instead of every frame ([PERFORMANCE.md](PERFORMANCE.md)).
+
 ## Splash
 
 On a plain launch (desktop with no file named, and the browser build) a splash shows for 2.5 seconds or until a click or key. It is laid out as Animate's: a card with rounded corners and a soft shadow in the middle of the window (which a plain sheet hides meanwhile), light on the left with the mark (the flame on a dark tile), the name beside it, the version, the tagline and a line on who makes Flare, and "Loading…" at the bottom; on the right, set in with a white margin and its own rounded corners, Flare's own picture: a campfire at night under a moon and stars, between pines, with embers rising (`assets/ui/splash.svg`, no text in it); the fire on its logs is the app's mark, painted there by `flare-ui`'s `splash::paint`. The words are set by `workspace/splash.rs`, so they are translated like the rest. In a small window the card scales down to fit. Neither Animate's nor the old program's artwork is used.
@@ -328,7 +349,7 @@ Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
 shows, and keys that pick a tool (A for Subselection, O for Oval) change what its cell shows too.
 The "…" button (More tools) opens a list of the tools that are not in the strip:
-Flare's own Mirror and Ruler, the Camera and the Bone tool, and 3D Rotation, 3D Translation, Deco, Bind and
+Flare's own Mirror and Ruler, Smudge and Blur (see Blur and Smudge above), the Camera and the Bone tool, and 3D Rotation, 3D Translation, Deco, Bind and
 Width, which are not built. Tools that are not built are dimmed with a note, like the menu's planned commands,
 and so is Asset Warp, a whole cell. Escape, a pick or a click elsewhere closes a list. The strip scrolls
 when it is taller than its panel.

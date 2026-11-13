@@ -273,6 +273,10 @@ fn run() -> Result<()> {
                 dry_run,
             },
         )?,
+        Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
+        Command::Smudge(args) => {
+            project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?
+        }
         Command::AddText {
             path,
             text,

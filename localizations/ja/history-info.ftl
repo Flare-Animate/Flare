@@ -61,3 +61,5 @@ out-clear = クリア
 out-count = { $n } 件のメッセージ
 out-nothing = 報告する内容はありません
 hist-magic-wand = ピクセルを消去
+hist-blur = ぼかし
+hist-smudge = 指先

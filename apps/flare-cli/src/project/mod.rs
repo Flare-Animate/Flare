@@ -10,6 +10,7 @@ use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
 
+mod blend;
 mod bones;
 mod camera;
 mod draw;
@@ -21,6 +22,7 @@ mod sound;
 mod text;
 mod timeline;
 
+pub use blend::{BlendArgs, blend_stroke};
 pub use bones::{BoneAction, bone, bones_list};
 #[allow(unused_imports)]
 use camera::*;

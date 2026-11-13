@@ -96,3 +96,5 @@ msg-saved-with-notes = 已保存 { $path }（{ $detail }）；输出面板中有
 msg-saved-rebuilt-names = 为 { $path } 重建的文件：{ $names }
 msg-magic-wand = 魔术棒：{ $reason }
 msg-magic-wand-changed = 清除像素时文档已更改，因此没有清除任何内容
+msg-blend = 模糊与涂抹：{ $reason }
+msg-blend-changed = 绘制笔画时文档发生了变化，因此其余部分未被应用

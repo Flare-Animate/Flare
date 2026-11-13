@@ -330,7 +330,7 @@ summary. Nothing here is scheduled. The maintainer orders it.
 - Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3),
   exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).
 - Large: Photoshop and image import (WP-4; SVG import is done, it needs a bitmap layer in the model first), filters and effects (WP-8; the EffectCraft
-  dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check).
+  dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check; Blur and Smudge on bitmaps are done and their dab engine is the start of it).
 - Extra-large, decision first: bones and inverse kinematics (WP-9), scripting (WP-12).
 - Licences decide what can be ported: AnimationCraft and ArtCraft are MIT or Apache-2.0; OpenToonz
   and Tahoma2D are BSD-3-Clause; nflare and the FFDec worker in Next2Flash are GPLv3 (behaviour

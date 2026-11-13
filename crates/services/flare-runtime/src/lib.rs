@@ -9,13 +9,15 @@
 //! - the **I/O worker** runs saves, opens and autosaves in the order they were asked for;
 //! - the **audio** and **text** workers decode and shape, each on a thread of its own because
 //!   the first use of either takes a while;
-//! - the **pixels** worker does the Magic Wand's work on bitmaps, in order.
+//! - the **pixels** worker does the Magic Wand's work on bitmaps, and lays Blur and Smudge
+//!   strokes, in order.
 //!
 //! In [`Mode::Inline`] a job runs on the calling thread and its result is queued exactly as a
 //! worker's would be, so everything above this crate follows one code path and headless tests
 //! stay deterministic.
 #![forbid(unsafe_code)]
 
+mod blend;
 mod document_file;
 mod export;
 mod export_game;
@@ -29,6 +31,7 @@ mod sprites;
 mod waveform;
 mod workers;
 
+pub use blend::BlendJob;
 pub use document_file::{
     ExportSummary, FileFormat, LoadError, Loaded, MAX_NAMED_FILES, SaveError, Saved, load,
     resolve_save_path, save, saves_in_place, summarize, xfl_folder,
@@ -45,7 +48,7 @@ pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
 pub use movie::{
     MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, animated_webp_bytes, apng_bytes, gif_bytes, gif_bytes_on,
 };
-pub use pixels::{PixelJob, WAND_PREVIEW_SIDE, WandPicked, run_pixels};
+pub use pixels::{PixelJob, WAND_PREVIEW_SIDE, WandPicked};
 pub use run::{ExtraFonts, font_families, run_audio, run_io, run_render, run_text, text_shape};
 pub use sound::{SoundImportError, SoundLayer, sound_layer};
 pub use sprites::{MAX_SHEET_FRAMES, MAX_SHEET_SIDE, SpriteSheet, sprite_sheet};
@@ -73,6 +76,8 @@ pub struct Runtime {
     /// Saves, opens and autosaves handed over and not yet reported back.
     io_in_flight: usize,
     fonts: ExtraFonts,
+    /// The pixel work run on this thread: inline, or when the worker has gone.
+    pixels: pixels::Pixels,
 }
 
 struct Workers {
@@ -95,6 +100,7 @@ impl Runtime {
             workers: None,
             io_in_flight: 0,
             fonts: Arc::default(),
+            pixels: pixels::Pixels::default(),
         }
     }
 
@@ -222,16 +228,16 @@ impl Runtime {
         }
     }
 
-    pub fn submit_pixels(&self, job: PixelJob) {
-        match self.workers.as_ref().and_then(|w| w.pixels_tx.as_ref()) {
-            Some(tx) => {
-                if let Err(failed) = tx.send(job) {
-                    let _ = self.done_tx.send(run_pixels(failed.0));
-                }
-            }
-            None => {
-                let _ = self.done_tx.send(run_pixels(job));
-            }
+    pub fn submit_pixels(&mut self, job: PixelJob) {
+        let job = match self.workers.as_ref().and_then(|w| w.pixels_tx.as_ref()) {
+            Some(tx) => match tx.send(job) {
+                Ok(()) => return,
+                Err(failed) => failed.0,
+            },
+            None => job,
+        };
+        for done in self.pixels.run(job) {
+            let _ = self.done_tx.send(done);
         }
     }
 

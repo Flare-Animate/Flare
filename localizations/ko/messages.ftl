@@ -96,3 +96,5 @@ msg-saved-with-notes = { $path }을(를) 저장했습니다 ({ $detail }). 이 �
 msg-saved-rebuilt-names = { $path }에서 다시 만든 파일: { $names }
 msg-magic-wand = 마술봉: { $reason }
 msg-magic-wand-changed = 픽셀을 지우는 동안 문서가 바뀌어 아무것도 지우지 않았습니다
+msg-blend = 흐리기와 손끝: { $reason }
+msg-blend-changed = 획을 그리는 동안 문서가 바뀌어 나머지는 적용되지 않았습니다

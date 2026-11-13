@@ -23,6 +23,7 @@ use sound_helpers::{drain_audio, wav_file};
 
 mod anchor_tools;
 mod basics;
+mod blend;
 mod bone;
 mod brush_nib;
 mod brush_stroke;

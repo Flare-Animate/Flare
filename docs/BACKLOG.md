@@ -385,6 +385,9 @@ approach" names the library tests (with failure paths) and the wiring tests the 
   unreadable preset file refused, and a performance measurement against PERFORMANCE.md (not a
   timing claim without numbers).
 - **Licence:** brush presets are the blocker: each preset file needs its own check. Engine written fresh.
+- **Status:** Blur and Smudge are built on a dab engine of their own (`flare_tools::blend`: spacing,
+  soft and anti-aliased dabs, a per-stroke coverage buffer, live on the pixels worker), which the
+  brushes here can reuse. Painting color, presets, paper texture and erasing pixels are not started.
 
 ### WP-12 Scripting (XL, lower, decision first)
 

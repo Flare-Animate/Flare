@@ -61,3 +61,5 @@ out-clear = 지우기
 out-count = 메시지 { $n }개
 out-nothing = 보고할 내용이 없습니다
 hist-magic-wand = 픽셀 지우기
+hist-blur = 흐리기
+hist-smudge = 손끝

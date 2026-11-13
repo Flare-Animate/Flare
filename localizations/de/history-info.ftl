@@ -65,3 +65,5 @@ out-count =
     }
 out-nothing = Nichts zu melden
 hist-magic-wand = Pixel löschen
+hist-blur = Weichzeichnen
+hist-smudge = Verwischen

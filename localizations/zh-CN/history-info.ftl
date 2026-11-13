@@ -61,3 +61,5 @@ out-clear = 清除
 out-count = { $n } 条消息
 out-nothing = 没有可报告的内容
 hist-magic-wand = 清除像素
+hist-blur = 模糊
+hist-smudge = 涂抹

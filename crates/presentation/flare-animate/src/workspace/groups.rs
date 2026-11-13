@@ -90,6 +90,8 @@ pub(super) struct Paint {
     pub(super) settling: Option<super::stroke_preview::Settling>,
     /// The person's own swatches, kept with the preferences.
     pub(super) swatches: flare_core::swatches::CustomSwatches,
+    /// Blur and Smudge: their settings and the stroke being laid.
+    pub(super) blend: super::tools::blend::BlendTools,
 }
 
 impl Default for Paint {
@@ -112,6 +114,7 @@ impl Default for Paint {
             straight_held: false,
             settling: None,
             swatches: flare_core::swatches::CustomSwatches::default(),
+            blend: Default::default(),
         }
     }
 }

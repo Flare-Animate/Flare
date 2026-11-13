@@ -104,3 +104,5 @@ msg-saved-with-notes =
 msg-saved-rebuilt-names = Refeitos para { $path }: { $names }
 msg-magic-wand = Varinha mágica: { $reason }
 msg-magic-wand-changed = O documento mudou enquanto os pixels eram apagados, então nada foi apagado
+msg-blend = Desfocar e Borrar: { $reason }
+msg-blend-changed = O documento mudou enquanto o traço era desenhado, então o resto não foi aplicado

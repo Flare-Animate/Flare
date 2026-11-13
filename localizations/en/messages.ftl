@@ -104,3 +104,5 @@ msg-saved-with-notes =
 msg-saved-rebuilt-names = Rebuilt for { $path }: { $names }
 msg-magic-wand = Magic Wand: { $reason }
 msg-magic-wand-changed = The document changed while the pixels were being cleared, so nothing was cleared
+msg-blend = Blur and Smudge: { $reason }
+msg-blend-changed = The document changed while the stroke was being drawn, so the rest of it was not laid

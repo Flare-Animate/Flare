@@ -128,6 +128,8 @@ pub(crate) static SLOT_GROUPS: &[&[Slot]] = &[
 pub(crate) static EXTRA: Slot = &[
     real("tool-mirror", "Mirror", "X", Tool::Mirror),
     real("tool-ruler", "Ruler", "M", Tool::Ruler),
+    real("tool-smudge", "Smudge", "", Tool::Smudge),
+    real("tool-blur", "Blur", "", Tool::Blur),
     mock("tool-3d-rotation", "3D Rotation"),
     mock("tool-3d-translation", "3D Translation"),
     mock("tool-deco", "Deco"),

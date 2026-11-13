@@ -155,6 +155,10 @@ pub(crate) enum Command {
         #[arg(long)]
         dry_run: bool,
     },
+    /// Blur: soften the bitmap under the first point along a stroke of stage points.
+    Blur(project::BlendArgs),
+    /// Smudge: push the colors of the bitmap under the first point along a stroke of stage points.
+    Smudge(project::BlendArgs),
     /// Add editable text to a layer of the first scene.
     AddText {
         path: PathBuf,

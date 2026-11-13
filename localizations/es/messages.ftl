@@ -104,3 +104,5 @@ msg-saved-with-notes =
 msg-saved-rebuilt-names = Reconstruido para { $path }: { $names }
 msg-magic-wand = Varita mágica: { $reason }
 msg-magic-wand-changed = El documento cambió mientras se borraban los píxeles, así que no se borró nada
+msg-blend = Desenfocar y Difuminar: { $reason }
+msg-blend-changed = El documento cambió mientras se dibujaba el trazo, así que el resto no se aplicó

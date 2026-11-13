@@ -106,3 +106,5 @@ msg-saved-with-notes =
 msg-saved-rebuilt-names = Пересобрано для { $path }: { $names }
 msg-magic-wand = Волшебная палочка: { $reason }
 msg-magic-wand-changed = Документ изменился, пока стирались пиксели, поэтому ничего не стёрто
+msg-blend = Размытие и палец: { $reason }
+msg-blend-changed = Документ изменился во время мазка, поэтому его остаток не нанесён

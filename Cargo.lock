@@ -2621,6 +2621,7 @@ dependencies = [
  "flare-game",
  "flare-history",
  "flare-import",
+ "flare-input",
  "flare-render",
  "flare-storage",
  "flare-text",

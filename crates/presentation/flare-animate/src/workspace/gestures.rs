@@ -38,7 +38,9 @@ impl Workspace {
             | Tool::Pencil
             | Tool::Brush
             | Tool::Ruler
-            | Tool::Mirror => None,
+            | Tool::Mirror
+            | Tool::Blur
+            | Tool::Smudge => None,
             Tool::Subselection | Tool::ConvertAnchor => {
                 self.begin_anchor_drag(point);
                 None
@@ -100,6 +102,9 @@ impl Workspace {
             self.erase_dot(point);
             return;
         }
+        if self.blend_kind().is_some() {
+            return self.blend_dot(point);
+        }
         match self.tool {
             Tool::Bucket | Tool::InkBottle => self.pour_paint(point),
             Tool::Eyedropper => self.take_paint(point, shift),
@@ -138,6 +143,9 @@ impl Workspace {
             }
             self.live_erase = None;
             return;
+        }
+        if self.blend_kind().is_some() {
+            return self.blend_release(samples);
         }
         let strokes = self.stroke_set(samples);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);
@@ -279,6 +287,7 @@ impl Workspace {
         self.freehand.clear();
         self.stabilizer = None;
         self.cancel_erase();
+        self.cancel_blend();
         if self.anchor_drag.take().is_some() {
             self.drag_cancelled = true;
         }

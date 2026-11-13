@@ -1,12 +1,13 @@
-//! Tools that work on the pixels of bitmaps: the Magic Wand.
+//! Tools that work on the pixels of bitmaps: the Magic Wand, Blur and Smudge.
 
 use flare_document::{Content, Document};
+use flare_tools::blend::{self, BlendKind, BlendSettings, InputSample, PointerKind};
 use flare_tools::magic_wand::{self, Pos2, Smoothing, WandSelection, WandSettings};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
 use crate::ops::{apply, first_scene};
-use crate::params_pixels::MagicWand;
+use crate::params_pixels::{Blend, MagicWand};
 use crate::server::{FlareServer, Outcome, State};
 
 #[tool_router(router = pixel_tools, vis = "pub(super)")]
@@ -37,6 +38,86 @@ impl FlareServer {
             Ok(out)
         })
     }
+
+    #[tool(
+        description = "Blur: drag a stroke through `points` over a bitmap to soften it, as Clip Studio Paint's Blur does, as one undo step. Going over a place again in one stroke does not soften it further; call again for more. Pressure sets the width unless `pressure_size` is false. The element gets a new picture; the old one leaves the library when nothing else shows it."
+    )]
+    fn blur(&self, Parameters(args): Parameters<Blend>) -> Outcome {
+        self.write(args.expected_revision, |state| {
+            blend_stroke(state, BlendKind::Blur, &args)
+        })
+    }
+
+    #[tool(
+        description = "Smudge: drag a stroke through `points` over a bitmap to push its colors along, as a finger through wet paint (Clip Studio Paint's Finger tip), as one undo step. `stretch` sets how far a picked-up color is carried. Pressure sets the width unless `pressure_size` is false."
+    )]
+    fn smudge(&self, Parameters(args): Parameters<Blend>) -> Outcome {
+        self.write(args.expected_revision, |state| {
+            blend_stroke(state, BlendKind::Smudge, &args)
+        })
+    }
+}
+
+/// Blurs or smudges along the stroke `args` gives and applies it.
+fn blend_stroke(state: &mut State, kind: BlendKind, args: &Blend) -> Result<Value, String> {
+    let name = match kind {
+        BlendKind::Blur => "Blur",
+        BlendKind::Smudge => "Smudge",
+    };
+    if kind == BlendKind::Blur && args.stretch.is_some() {
+        return Err("Blur: `stretch` is for smudge; blur carries no color".into());
+    }
+    if let Some(pressure) = &args.pressure
+        && pressure.len() != args.points.len()
+    {
+        return Err(format!(
+            "{name}: give one pressure for each of the {} points, not {}",
+            args.points.len(),
+            pressure.len()
+        ));
+    }
+    let samples = args
+        .points
+        .iter()
+        .enumerate()
+        .map(|(i, [x, y])| {
+            let pressure = args.pressure.as_ref().and_then(|p| p.get(i)).copied();
+            let pressure = pressure.unwrap_or(1.0);
+            if !(0.0..=1.0).contains(&pressure) {
+                return Err(format!("{name}: a pressure is 0 to 1, not {pressure}"));
+            }
+            InputSample::new(*x, *y, pressure, PointerKind::Pen)
+                .ok_or_else(|| format!("{name}: point {x}, {y} is not a number"))
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    let start = BlendSettings::for_kind(kind);
+    let settings = BlendSettings {
+        size: args.size.unwrap_or(start.size),
+        strength: args.strength.map_or(start.strength, |s| s / 100.0),
+        hardness: args.hardness.map_or(start.hardness, |h| h / 100.0),
+        pressure_size: args.pressure_size.unwrap_or(true),
+        stretch: args.stretch.unwrap_or(start.stretch),
+    };
+    let scene = first_scene(state)?;
+    let edit = blend::rub(
+        state.session.document(),
+        scene,
+        args.frame.unwrap_or(0),
+        kind,
+        settings,
+        &samples,
+    )
+    .map_err(|e| format!("{name}: {e}"))?;
+    let (at, bitmap) = (edit.at, edit.bitmap);
+    let revision = apply(state, edit.commands)?;
+    Ok(json!({
+        "tool": kind.name(),
+        "layer": at.layer.as_uuid(),
+        "start": at.start,
+        "element": at.element,
+        "bitmap": bitmap.as_uuid().to_string(),
+        "revision": revision["revision"].clone(),
+    }))
 }
 
 fn smoothing(args: &MagicWand) -> Result<Smoothing, String> {

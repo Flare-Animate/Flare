@@ -96,3 +96,5 @@ msg-saved-with-notes = { $path } を保存しました（{ $detail }）。この
 msg-saved-rebuilt-names = { $path } で作り直したファイル: { $names }
 msg-magic-wand = 魔法の杖：{ $reason }
 msg-magic-wand-changed = ピクセルの消去中にドキュメントが変更されたため、何も消去されませんでした
+msg-blend = ぼかしと指先: { $reason }
+msg-blend-changed = ストロークの描画中にドキュメントが変わったため、残りは適用されませんでした

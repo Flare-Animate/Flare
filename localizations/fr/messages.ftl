@@ -104,3 +104,5 @@ msg-saved-with-notes =
 msg-saved-rebuilt-names = Reconstruits pour { $path } : { $names }
 msg-magic-wand = Baguette magique : { $reason }
 msg-magic-wand-changed = Le document a changé pendant l’effacement des pixels, rien n’a donc été effacé
+msg-blend = Flou et Doigt : { $reason }
+msg-blend-changed = Le document a changé pendant le trait, le reste n’a donc pas été appliqué
