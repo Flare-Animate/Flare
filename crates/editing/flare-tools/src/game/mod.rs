@@ -111,6 +111,15 @@ pub fn playback_json(playback: &Playback) -> Value {
                 Event::Emit { entity, count } => {
                     json!({ "kind": "emit", "entity": entity, "count": count })
                 }
+                Event::Trigger { trigger, by, begin } => json!({
+                    "kind": "trigger",
+                    "trigger": trigger,
+                    "by": by,
+                    "begin": begin,
+                }),
+                Event::Hook { entity } => {
+                    json!({ "kind": "hook", "entity": entity })
+                }
             };
             value["frame"] = json!(frame);
             value

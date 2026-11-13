@@ -4,13 +4,16 @@
 
 use std::collections::BTreeSet;
 
-use crate::limits::{MAX_COORD, MAX_INPUT_TOKENS, MAX_RUN_FRAMES};
+use crate::limits::{MAX_ACTION_CHARS, MAX_COORD, MAX_INPUT_TOKENS, MAX_RUN_FRAMES};
 use crate::{GameError, Key};
 
 /// What the player does in one frame.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Input {
     keys: BTreeSet<Key>,
+    /// The named actions held this frame, which a surface sends as `action:<name>`. Unlike the
+    /// six keys, an action is only read by what binds it: a hook with `when=action:<name>`.
+    actions: BTreeSet<String>,
     pointer: Option<(f64, f64)>,
     pressed: bool,
 }
@@ -29,6 +32,17 @@ impl Input {
         }
     }
 
+    /// The named actions held this frame. Refused when a name is empty, too long or has
+    /// control characters.
+    pub fn with_actions(names: impl IntoIterator<Item = String>) -> Result<Self, GameError> {
+        let mut input = Self::none();
+        for name in names {
+            check_action(&name)?;
+            input.actions.insert(name);
+        }
+        Ok(input)
+    }
+
     /// A click at `(x, y)` this frame. Refused unless both coordinates are finite and inside the
     /// coordinate limit.
     pub fn click(x: f64, y: f64) -> Result<Self, GameError> {
@@ -44,6 +58,11 @@ impl Input {
         self.keys.contains(&key)
     }
 
+    /// Whether the named action was held this frame.
+    pub fn action(&self, name: &str) -> bool {
+        self.actions.contains(name)
+    }
+
     pub fn pointer(&self) -> Option<(f64, f64)> {
         self.pointer
     }
@@ -55,6 +74,9 @@ impl Input {
 
     /// Checks a value built some other way: the step calls this before it reads the input.
     pub(crate) fn validate(&self) -> Result<(), GameError> {
+        for name in &self.actions {
+            check_action(name)?;
+        }
         match self.pointer {
             None => Ok(()),
             Some((x, y)) => check_point(x, y),
@@ -92,6 +114,9 @@ impl Input {
                 check_point(x, y)?;
                 input.pointer = Some((x, y));
                 input.pressed = true;
+            } else if let Some(name) = token.strip_prefix("action:") {
+                check_action(name)?;
+                input.actions.insert(name.to_owned());
             } else {
                 let key =
                     Key::parse(token).ok_or_else(|| GameError::UnknownKey(token.to_owned()))?;
@@ -121,6 +146,17 @@ fn check_point(x: f64, y: f64) -> Result<(), GameError> {
                 "pointer {name} is outside the coordinate limit"
             )));
         }
+    }
+    Ok(())
+}
+
+/// A named input action: 1 to `MAX_ACTION_CHARS` characters, no control characters.
+fn check_action(name: &str) -> Result<(), GameError> {
+    let len = name.chars().count();
+    if len == 0 || len > MAX_ACTION_CHARS || name.chars().any(char::is_control) {
+        return Err(GameError::BadInput(format!(
+            "action name must be 1 to {MAX_ACTION_CHARS} characters with no control characters"
+        )));
     }
     Ok(())
 }

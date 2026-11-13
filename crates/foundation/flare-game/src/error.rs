@@ -12,6 +12,8 @@ pub enum GameError {
     TooManyEntities { limit: usize },
     #[error("a game holds at most {limit} entities with a body")]
     TooManyBodies { limit: usize },
+    #[error("a game holds at most {limit} trigger zones")]
+    TooManyTriggers { limit: usize },
     #[error("no entity {0:?}")]
     NoSuchEntity(EntityId),
     #[error("entity {0:?} already exists")]
@@ -32,6 +34,8 @@ pub enum GameError {
     },
     #[error("entity {0:?} is followed by a camera")]
     Followed(EntityId),
+    #[error("entity {0:?} is spawned by a hook")]
+    Spawned(EntityId),
     #[error("unknown component {0:?}")]
     UnknownComponent(String),
     #[error("{component} has no field {field:?}")]

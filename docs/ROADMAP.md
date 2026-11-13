@@ -127,7 +127,7 @@ raster painting, FX schematic and xsheet. [PARITY.md](PARITY.md) says why for ea
 
 | Milestone | Scope | Status |
 |---|---|---|
-| Game creation (`flare-game`; reverses the earlier Not planned entry): the entity-component world, its seven systems, game data in the project, runs under scripted input and export | The world, systems, commands, storage, `flare game`, MCP tools and the game export are built; the desktop and browser panel to edit and run a game is next. See [GAME.md](GAME.md) | In progress |
+| Game creation (`flare-game`; reverses the earlier Not planned entry): the entity-component world, its systems, trigger zones, declarative hooks and named input actions, game data in the project, runs under scripted input and export | The world, systems, commands, storage, `flare game`, MCP tools and the game export are built; the desktop and browser panel to edit and run a game is next. See [GAME.md](GAME.md) | In progress |
 | M0 baseline | Pinned toolchain, centralized dependencies, locked builds, honest tests, renderer decision | Done |
 | M1 source model and safe editing | Typed IDs, validated document, atomic edits, undo/redo, headless CLI | Done |
 | M2 usable vertical slice | Draw, convert to symbol, instances, tween, scrub/play, save/reopen, PNG export, one modern workspace | Done in code; needs hands-on checking (see below) |

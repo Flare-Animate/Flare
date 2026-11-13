@@ -29,6 +29,16 @@ pub enum Event {
     },
     /// An emitter produced `count` particles this step.
     Emit { entity: EntityId, count: u32 },
+    /// A body began (`begin`) or stopped (`!begin`) being inside a trigger zone. `by` is the
+    /// visitor and `trigger` the zone's entity.
+    Trigger {
+        trigger: EntityId,
+        by: EntityId,
+        begin: bool,
+    },
+    /// A hook fired: it has done its sound, spawn, follow and destroy. What it did is in the
+    /// components; the event only says it happened.
+    Hook { entity: EntityId },
 }
 
 /// A visible sprite and the frame it shows now.
@@ -53,6 +63,10 @@ pub(crate) struct Live {
     pub(crate) emit_carry: f64,
     /// Whether the audio system has already looked at this entity.
     pub(crate) sounded: bool,
+    /// Whether a `once` trigger has reported its first entry.
+    pub(crate) once_fired: bool,
+    /// Whether an action a hook listens for was held on the last step, for the rising edge.
+    pub(crate) hook_held: bool,
 }
 
 /// A game being run. Built from a [`GameSpec`] at a frame rate, then stepped one frame at a time.
@@ -62,6 +76,8 @@ pub struct World {
     pub(crate) gravity: (f64, f64),
     pub(crate) entities: BTreeMap<EntityId, Live>,
     pub(crate) overlaps: BTreeSet<(EntityId, EntityId)>,
+    /// The `(zone, visitor)` pairs inside a trigger zone, as `overlaps` is for bodies.
+    pub(crate) zone: BTreeSet<(EntityId, EntityId)>,
     steps: u64,
 }
 
@@ -93,6 +109,8 @@ impl World {
                         clock: 0.0,
                         emit_carry: 0.0,
                         sounded: false,
+                        once_fired: false,
+                        hook_held: false,
                     },
                 )
             })
@@ -102,6 +120,7 @@ impl World {
             gravity: spec.gravity(),
             entities,
             overlaps: BTreeSet::new(),
+            zone: BTreeSet::new(),
             steps: 0,
         })
     }

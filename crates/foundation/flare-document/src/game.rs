@@ -24,6 +24,13 @@ pub(crate) fn validate_game(document: &Document) -> Vec<Diagnostic> {
         {
             out.push(Diagnostic::Game(GameError::NoSuchSound(sound)));
         }
+        // A hook's sound is a reference into the library, like an audio component's.
+        if let Some(Component::Hook(hook)) = entity.component(flare_game::ComponentKind::Hook)
+            && let Some(sound) = hook.sound
+            && document.sound(sound).is_none()
+        {
+            out.push(Diagnostic::Game(GameError::NoSuchSound(sound)));
+        }
     }
     out
 }

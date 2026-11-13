@@ -5,6 +5,12 @@
 pub const MAX_ENTITIES: usize = 4096;
 /// Most entities with a body; the collision pass compares pairs, so this is the cost bound.
 pub const MAX_BODIES: usize = 1024;
+/// Most entities with a trigger zone; the trigger pass compares zones with bodies.
+pub const MAX_TRIGGERS: usize = 256;
+/// Most actions one entity listens to.
+pub const MAX_ACTIONS: usize = 8;
+/// Longest input action name, in characters.
+pub const MAX_ACTION_CHARS: usize = 32;
 /// Longest entity name or script name, in characters.
 pub const MAX_NAME_CHARS: usize = 128;
 /// Longest text on a UI element, in characters.

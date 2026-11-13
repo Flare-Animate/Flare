@@ -121,3 +121,117 @@ fn a_script_needs_a_name() {
         Err(GameError::BadField { field: "name", .. })
     ));
 }
+
+#[test]
+fn a_trigger_has_a_size_and_an_once_flag() {
+    let component = Component::parse("trigger", &fields(&[("width", "64"), ("once", "true")]))
+        .expect("trigger");
+    match component {
+        Component::Trigger(trigger) => {
+            assert_eq!(trigger.width, 64.0);
+            assert_eq!(trigger.height, 32.0, "the height keeps its default");
+            assert!(trigger.once);
+        }
+        other => panic!("expected a trigger, got {other:?}"),
+    }
+    assert!(matches!(
+        Component::parse("trigger", &fields(&[("width", "-1")])),
+        Err(GameError::BadField { field: "width", .. })
+    ));
+}
+
+#[test]
+fn a_hook_reads_its_when_its_sound_and_what_it_does() {
+    let component = Component::parse(
+        "hook",
+        &fields(&[
+            ("when", "trigger"),
+            ("sound", "3f2a1b6c-0000-4000-8000-000000000001"),
+            ("spawn", "4"),
+            ("follow", "true"),
+            ("destroy", "visitor"),
+        ]),
+    )
+    .expect("hook");
+    match component {
+        Component::Hook(hook) => {
+            assert_eq!(hook.when, flare_game::HookWhen::Trigger);
+            assert!(hook.sound.is_some());
+            assert_eq!(hook.spawn, Some(flare_game::EntityId::new(4).expect("id")));
+            assert!(hook.follow);
+            assert_eq!(hook.destroy, flare_game::DestroyWho::Visitor);
+        }
+        other => panic!("expected a hook, got {other:?}"),
+    }
+    let action = Component::parse("hook", &fields(&[("when", "action:pounce")]))
+        .expect("an action when parses");
+    match action {
+        Component::Hook(hook) => {
+            assert_eq!(hook.when, flare_game::HookWhen::Action("pounce".to_owned()))
+        }
+        other => panic!("expected a hook, got {other:?}"),
+    }
+}
+
+#[test]
+fn a_hook_when_must_be_trigger_or_an_action() {
+    assert!(matches!(
+        Component::parse("hook", &fields(&[("when", "pressure")])),
+        Err(GameError::BadField { field: "when", .. })
+    ));
+    assert!(matches!(
+        Component::parse("hook", &fields(&[("destroy", "both")])),
+        Err(GameError::BadField {
+            field: "destroy",
+            ..
+        })
+    ));
+    assert!(matches!(
+        Component::parse("hook", &fields(&[("spawn", "zero")])),
+        Err(GameError::BadField { field: "spawn", .. })
+    ));
+    assert!(matches!(
+        Component::parse("hook", &fields(&[("sound", "not-a-uuid")])),
+        Err(GameError::BadField { field: "sound", .. })
+    ));
+}
+
+#[test]
+fn an_actions_list_is_comma_separated_names() {
+    let component =
+        Component::parse("actions", &fields(&[("names", "pounce, hide ,")])).expect("actions");
+    match component {
+        Component::Actions(actions) => {
+            assert_eq!(actions.names, vec!["pounce".to_owned(), "hide".to_owned()]);
+        }
+        other => panic!("expected an actions list, got {other:?}"),
+    }
+    // An empty field is an empty list, not a name of one space.
+    let empty = Component::parse("actions", &fields(&[("names", "")])).expect("empty");
+    match empty {
+        Component::Actions(actions) => assert!(actions.names.is_empty()),
+        other => panic!("expected an actions list, got {other:?}"),
+    }
+}
+
+#[test]
+fn input_actions_are_named_tokens() {
+    let input = flare_game::Input::parse("action:pounce,action:hide").expect("actions");
+    assert!(input.action("pounce"));
+    assert!(input.action("hide"));
+    assert!(!input.action("roar"));
+    // A typo is refused by name, as the keys are.
+    assert!(matches!(
+        flare_game::Input::parse("action:"),
+        Err(GameError::BadInput(_))
+    ));
+    assert!(matches!(
+        flare_game::Input::parse("action:has\ncontrol"),
+        Err(GameError::BadInput(_))
+    ));
+    // Unknown bare tokens stay unknown keys, not actions.
+    assert_eq!(
+        flare_game::Input::parse("pounce"),
+        Err(GameError::UnknownKey("pounce".to_owned()))
+    );
+}

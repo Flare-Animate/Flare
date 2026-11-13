@@ -18,6 +18,8 @@ impl World {
             mix(&mut hash, &live.clock.to_bits().to_le_bytes());
             mix(&mut hash, &live.emit_carry.to_bits().to_le_bytes());
             mix(&mut hash, &[u8::from(live.sounded)]);
+            mix(&mut hash, &[u8::from(live.once_fired)]);
+            mix(&mut hash, &[u8::from(live.hook_held)]);
             for kind in ComponentKind::ALL {
                 match live.components.get(&kind) {
                     None => mix(&mut hash, &[0]),
@@ -54,5 +56,10 @@ fn numbers(component: &Component) -> Vec<f64> {
         Component::Audio(a) => vec![a.volume],
         Component::Particle(p) => vec![p.rate, p.life],
         Component::Script(_) => Vec::new(),
+        // Triggers, hooks and action lists are inputs to the systems, never changed by them;
+        // what the run remembers of a trigger lives in the digest's `once_fired` bit.
+        Component::Trigger(_) => Vec::new(),
+        Component::Hook(_) => Vec::new(),
+        Component::Actions(_) => Vec::new(),
     }
 }

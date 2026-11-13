@@ -41,11 +41,14 @@ pub(crate) fn run(world: &mut World, ctx: &mut StepContext) -> Result<(), GameEr
             _ => continue,
         };
         if let Some(target) = camera.follow.filter(|target| *target != id) {
-            let target = world.transform(target)?;
-            let k = (camera.lerp * dt).min(1.0);
-            let own = transform_mut(world, id)?;
-            own.x += (target.x - own.x) * k;
-            own.y += (target.y - own.y) * k;
+            // A destroyed follow target is tolerated: a hook may remove the visitor it handed
+            // the camera to, and the camera holds still rather than ending the step.
+            if let Ok(target) = world.transform(target) {
+                let k = (camera.lerp * dt).min(1.0);
+                let own = transform_mut(world, id)?;
+                own.x += (target.x - own.x) * k;
+                own.y += (target.y - own.y) * k;
+            }
         }
         if let Some(bounds) = camera.bounds {
             let own = transform_mut(world, id)?;

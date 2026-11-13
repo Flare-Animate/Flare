@@ -20,8 +20,9 @@ pub const SCHEMA_VERSION: i64 = 1;
 pub const BITMAP_SCHEMA_VERSION: i64 = 2;
 /// Written by a file that holds a game description, for the same reason as
 /// [`BITMAP_SCHEMA_VERSION`]: a build without games refuses it by name. Files without one keep the
-/// older version.
-pub const GAME_SCHEMA_VERSION: i64 = 3;
+/// older version. Version 4 is the same format with trigger zones, hooks and named input actions;
+/// a build of version 3 refuses a v4 file rather than misreading a hook as corrupt.
+pub const GAME_SCHEMA_VERSION: i64 = 4;
 
 impl Parts {
     /// The schema version these rows need to be read.
