@@ -59,7 +59,7 @@ impl Workspace {
             .show(ui, |ui| self.menu_bar(ui));
         if self.document_controls_shown() {
             egui::Panel::right("panel_rail")
-                .exact_size(rail::RAIL_WIDTH)
+                .exact_size(rail::rail_width(self.touch))
                 .frame(egui::Frame::new().fill(flare_ui::theme::chrome()))
                 .show(ui, |ui| self.panel_rail(ui));
         }
@@ -92,6 +92,7 @@ impl Workspace {
         self.publish_window(&ctx);
         self.increment_instances_window(&ctx);
         self.symbol_dialog_window(&ctx);
+        self.palette_window(&ctx);
         self.ensure_language_font(&ctx);
         self.file_windows(&ctx);
         self.close_prompt_window(&ctx);
@@ -119,6 +120,21 @@ impl Workspace {
         self.press_command_chords(ctx);
         self.watch_rotation_tap(ctx);
         self.press_zoom_plus(ctx);
+        // The command palette is its own chord, whatever the map says, as in AniCraft. It also
+        // closes it, and works over a native menu bar and while it is being typed in. Only
+        // Cmd/Ctrl+K itself: Cmd/Ctrl+Alt+K and the rest stay free to bind, and a chord being
+        // recorded in the shortcut editor is the editor's.
+        let palette_chord = self.shortcut_editor.capturing.is_none()
+            && ctx.input_mut(|i| {
+                let at = i.events.iter().position(|e| {
+                    matches!(e, egui::Event::Key { key: egui::Key::K, pressed: true, modifiers, .. }
+                        if modifiers.matches_exact(egui::Modifiers::COMMAND))
+                });
+                at.map(|n| i.events.remove(n)).is_some()
+            });
+        if palette_chord {
+            self.toggle_palette();
+        }
         let typing = ctx.egui_wants_keyboard_input();
         // Letters pick tools, but only when nothing is being typed and no modifier is held, so
         // they never fight a text field or a shortcut.
@@ -202,7 +218,8 @@ impl Workspace {
                 self.delete_selection();
             }
         }
-        if escape {
+        if escape && !self.windows.palette {
+            // Escape in the palette only closes it; the drags underneath wait.
             self.cancel_drag();
             self.pen_cancel();
             self.wand_drop();
@@ -323,6 +340,21 @@ impl Workspace {
                 }
                 // Animate's workspace switcher is in this corner too.
                 self.workspace_switcher(ui);
+                ui.add_space(6.0);
+                // The command palette: every command, one search away.
+                let commands_tip = tr!(self, "bar-commands");
+                if flare_ui::chrome::icon_button(
+                    ui,
+                    "search",
+                    16.0,
+                    self.windows.palette,
+                    true,
+                    &commands_tip,
+                )
+                .clicked()
+                {
+                    self.toggle_palette();
+                }
                 ui.add_space(6.0);
                 // Animate's Publish button is next to Play too.
                 let can_publish = self.is_enabled(MenuAction::Publish);

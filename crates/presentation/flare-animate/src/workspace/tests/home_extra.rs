@@ -325,7 +325,7 @@ fn the_house_in_the_top_bar_goes_to_home_and_stays_there() {
 fn with_a_native_menu_the_top_bar_keeps_its_gear_name_undo_redo_play_and_publish() {
     // The settings gear is centered over the rail's icons, 16.5 px in from the right edge of a
     // 1280 wide window; it is a 22 px button, so a click 10 px either side opens Preferences.
-    let center = 1280.0 - crate::workspace::rail::CENTER_FROM_EDGE;
+    let center = 1280.0 - crate::workspace::rail::center_from_edge(false);
     let opened = |home: bool, x: f32| {
         let mut ws = workspace();
         ws.set_native_menu(true);

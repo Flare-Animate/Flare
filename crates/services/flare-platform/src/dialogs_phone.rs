@@ -38,6 +38,10 @@ pub fn save_fla(_filter: &str) -> Option<std::path::PathBuf> {
     None
 }
 
+pub fn save_svg(_filter: &str) -> Option<std::path::PathBuf> {
+    None
+}
+
 pub fn save_publish(
     _title: &str,
     _name: &str,

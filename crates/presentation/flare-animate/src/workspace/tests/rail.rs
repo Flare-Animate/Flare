@@ -91,7 +91,7 @@ fn clicking_an_icon_opens_its_panel_and_a_second_click_or_a_press_on_the_stage_p
     assert_eq!(ws.panels.flyout, Some(Pane::Align));
     // A press inside the panel keeps it.
     let inside = Pos2::new(
-        1280.0 - crate::workspace::rail::RAIL_WIDTH - 40.0,
+        1280.0 - crate::workspace::rail::rail_width(false) - 40.0,
         icon_of(&ws, Pane::Align).center().y + 30.0,
     );
     click_at(&mut ws, &ctx, inside, 1.0);

@@ -46,6 +46,7 @@ mod layer_names;
 mod layers;
 mod open_any;
 mod outlines;
+mod palette;
 mod panels;
 mod pen_overlay;
 mod place;
@@ -69,6 +70,7 @@ mod symbol_dialog;
 mod symbols;
 mod tabs;
 mod tools;
+mod touch;
 mod transform_cursor;
 mod window_controls;
 mod workspaces;
@@ -320,6 +322,12 @@ pub struct Workspace {
     recovery: groups::Recovery,
     /// Sounds being decoded, imported and played.
     audio: groups::AudioState,
+    /// The interface is driven with fingers: bigger targets everywhere (see `touch.rs`).
+    touch: bool,
+    /// Whether the touch style has been applied, and for which choice.
+    styled_touch: Option<bool>,
+    /// The command palette's state.
+    search_palette: palette::Palette,
 }
 
 impl Workspace {
@@ -457,40 +465,9 @@ impl Workspace {
             windows: groups::OpenWindows::default(),
             recovery: groups::Recovery::default(),
             audio: groups::AudioState::default(),
-        }
-    }
-
-    /// A new untitled document: one scene with one empty layer at 24 fps, named in English. A
-    /// workspace that knows the language makes its own with [`Self::new_blank_document`].
-    pub fn untitled() -> Result<Self, String> {
-        Ok(Self::new(Self::blank_named("Scene 1", "Layer 1")?, None))
-    }
-
-    /// A blank document with a scene and a layer of these names, at 24 fps.
-    fn blank_named(scene: &str, layer: &str) -> Result<Document, String> {
-        let layer = Layer::new(LayerId::new(), layer, vec![]).map_err(|e| e.to_string())?;
-        let scene = Scene::new(SceneId::new(), scene, Timeline::new(vec![layer]));
-        let rate = FrameRate::new(24, 1).map_err(|e| e.to_string())?;
-        Document::new(DocumentId::new(), rate, vec![scene], vec![])
-            .map_err(|diagnostics| format!("{diagnostics:?}"))
-    }
-
-    /// A blank document whose scene and layer are named in the language being spoken.
-    pub(super) fn new_blank_document(&self) -> Result<Document, String> {
-        let number = [("n", "1")];
-        Self::blank_named(
-            &tr!(self, "name-new-scene", &number),
-            &tr!(self, "name-new-layer", &number),
-        )
-    }
-
-    /// Gives an untouched new document the names of the language chosen. The document made at
-    /// start-up is made before the language is known.
-    pub fn localize_new_document(&mut self) {
-        if self.is_blank()
-            && let Ok(document) = self.new_blank_document()
-        {
-            self.install_document(document, None);
+            touch: false,
+            styled_touch: None,
+            search_palette: palette::Palette::default(),
         }
     }
 }

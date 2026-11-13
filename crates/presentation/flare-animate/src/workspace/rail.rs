@@ -7,15 +7,17 @@ use flare_ui::{icons, theme};
 
 use super::*;
 
-/// Width of the rail.
-pub(super) const RAIL_WIDTH: f32 = 34.0;
+/// Width of the rail, in the touch sizes when the interface is driven with fingers.
+pub(super) fn rail_width(touch: bool) -> f32 {
+    touch::rail_width(touch)
+}
 
 /// How far the middle of the rail's icons is from the window's right edge: the rail is
-/// `RAIL_WIDTH` wide with a one pixel separator on its inner side.
-pub(super) const CENTER_FROM_EDGE: f32 = (RAIL_WIDTH - 1.0) / 2.0;
+/// `rail_width` wide with a one pixel separator on its inner side.
+pub(super) fn center_from_edge(touch: bool) -> f32 {
+    (rail_width(touch) - 1.0) / 2.0
+}
 
-const BUTTON: f32 = 28.0;
-const ICON: f32 = 18.0;
 /// Width of a panel open beside the strip, as wide as Animate's.
 pub(super) const FLYOUT_WIDTH: f32 = 300.0;
 
@@ -85,7 +87,9 @@ impl Workspace {
 
     /// The rail's contents: one icon for each panel kept in the strip.
     pub(super) fn panel_rail(&mut self, ui: &mut Ui) {
-        ui.spacing_mut().item_spacing = vec2(0.0, 4.0);
+        let touch = self.touch;
+        let (button, icon_size) = (touch::rail_button(touch), touch::rail_icon(touch));
+        ui.spacing_mut().item_spacing = vec2(0.0, if touch { 8.0 } else { 4.0 });
         ui.add_space(4.0);
         let mut clicked = None;
         let mut drawn = Vec::with_capacity(self.panels.layout.strip.len());
@@ -95,7 +99,9 @@ impl Workspace {
             };
             let open = self.pane_is_front(pane);
             let response = ui
-                .vertical_centered(|ui| rail_button(ui, icon, open, &self.tr(pane.key())))
+                .vertical_centered(|ui| {
+                    rail_button(ui, icon, open, &self.tr(pane.key()), button, icon_size)
+                })
                 .inner;
             if response.clicked() {
                 clicked = Some(pane);
@@ -130,7 +136,8 @@ impl Workspace {
             .iter()
             .find(|(p, _)| *p == pane)
             .map(|(_, r)| *r);
-        let right = screen.right() - RAIL_WIDTH - 2.0;
+        let rail = rail_width(self.touch);
+        let right = screen.right() - rail - 2.0;
         let top = icon.map_or(screen.top() + 40.0, |r| r.top());
         let max_height = (screen.bottom() - top - 30.0).max(160.0);
         let top = top
@@ -207,7 +214,7 @@ impl Workspace {
                     .flatten(),
             )
         });
-        let on_rail = |p: Pos2| p.x >= screen.right() - RAIL_WIDTH;
+        let on_rail = |p: Pos2| p.x >= screen.right() - rail;
         let away = pressed_at.is_some_and(|p| {
             // Popups the panel opened (a color picker, a list) are on layers above it; only a
             // press on the workspace itself puts the panel away.
@@ -222,8 +229,15 @@ impl Workspace {
     }
 }
 
-fn rail_button(ui: &mut Ui, icon: &str, open: bool, hint: &str) -> egui::Response {
-    let (rect, response) = ui.allocate_exact_size(vec2(BUTTON, BUTTON), Sense::click());
+fn rail_button(
+    ui: &mut Ui,
+    icon: &str,
+    open: bool,
+    hint: &str,
+    button: f32,
+    icon_size: f32,
+) -> egui::Response {
+    let (rect, response) = ui.allocate_exact_size(vec2(button, button), Sense::click());
     if open {
         ui.painter().rect_filled(rect, 5.0, theme::panel_raised());
     } else if response.hovered() {
@@ -235,8 +249,8 @@ fn rail_button(ui: &mut Ui, icon: &str, open: bool, hint: &str) -> egui::Respons
     } else {
         theme::text_dim()
     };
-    let at = Rect::from_center_size(rect.center(), vec2(ICON, ICON));
-    icons::image(icon, ICON, tint).paint_at(ui, at);
+    let at = Rect::from_center_size(rect.center(), vec2(icon_size, icon_size));
+    icons::image(icon, icon_size, tint).paint_at(ui, at);
     response.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, open, hint));
     response.on_hover_text(hint)
 }

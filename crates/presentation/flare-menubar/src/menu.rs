@@ -44,6 +44,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Action(A::ExportImage),
                     Action(A::ExportMovie),
                     Action(A::ExportFla),
+                    Action(A::ExportSvg),
                 ],
             ),
             Separator,

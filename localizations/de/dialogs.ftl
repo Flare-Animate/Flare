@@ -3,6 +3,7 @@ dlg-filter-sound = Ton
 dlg-filter-png = PNG-Bild
 dlg-filter-gif = GIF-Animation
 dlg-filter-fla = Flash-Dokument
+dlg-filter-svg = SVG-Bild
 dlg-publish = Veröffentlichen
 dlg-cannot-export = Export nicht möglich
 dlg-export-failed = Export fehlgeschlagen

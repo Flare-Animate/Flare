@@ -79,7 +79,7 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
     }
 
     fn tab_bar_height(&self, _style: &egui::Style) -> f32 {
-        TAB_BAR_HEIGHT
+        touch::tab_bar(self.workspace.touch)
     }
 
     fn gap_width(&self, _style: &egui::Style) -> f32 {

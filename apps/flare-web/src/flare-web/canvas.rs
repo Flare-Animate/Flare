@@ -10,6 +10,18 @@ use crate::{pen, preferences};
 /// The page element the workspace is drawn on.
 const CANVAS_ID: &str = "flare-canvas";
 
+/// Whether the page says a phone is showing it (`globalThis.flareMobile`, set by main.js from
+/// the pointer kind, the screen size and the touch support, with `?ui=` overriding).
+fn phone_page() -> bool {
+    web_sys::window()
+        .and_then(|window| {
+            js_sys::Reflect::get(&window, &"flareMobile".into())
+                .ok()
+                .and_then(|value| value.as_bool())
+        })
+        .unwrap_or(false)
+}
+
 /// Runs when the module loads: finds the canvas and starts the workspace on it.
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -21,6 +33,10 @@ pub fn start() {
         let (Some(canvas), Ok(mut workspace)) = (canvas, Workspace::untitled()) else {
             return;
         };
+        // A phone gets the touch interface: bigger targets everywhere.
+        if phone_page() {
+            workspace.set_touch(true);
+        }
         pen::install(workspace.pen_feed());
         if let Some(language) = web_sys::window().and_then(|w| w.navigator().language()) {
             workspace.set_system_locale(&language);

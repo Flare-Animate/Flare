@@ -80,11 +80,18 @@ Scripting
 - Full ActionScript 3 support: a script editor, authoring AS3 in a document and publishing it, running it in Test Movie and the published SWF, Code Snippets, and scripting with the Commands menu (ActionScript in an imported file is kept as data and never run today)
 
 Interface
+- The command palette (`Ctrl+K`: every command and tool, matched by the letters of its name,
+  run with a click or Enter) is in, re-implemented from AniCraft's (storytold/anicraft, MIT OR
+  Apache-2.0), behaviour only. The touch form of the workspace is in too: finger-sized rail,
+  dock tabs and widget sizes, auto-detected on the web (a coarse pointer, a small screen and
+  touch support, with `?ui=` forcing either) and always on for Android. Still to come for
+  touch: collapsible panels, a compact top bar, and pinch-zoom of the stage.
 - A Flash 8 interface skin, and custom themes (a contrast check for them, as `original/` had, so a theme cannot make text unreadable)
 - A fully rearrangeable toolbar (tools can already be pinned from the "…" list)
 
 Formats
 - Reading the artwork and keyframes of the old binary `.fla` (CS4 and before); today its stage, library and layer metadata are read
+- Still and animated SVG export: a still frame exports from the desktop and browser menus now (as well as `flare export --format svg`); the animated SVG, Lottie and XDTS exports remain (WP-5)
 - `.sol` shared objects, importing video, and Moho projects
 - Sprite export: sprite sheets and atlases of the stage or of one symbol or animation, with the pixels and the facts a game needs (frame durations, trim offsets, original sizes, pivots, animation names and loops), as PNG with JSON or a similar description
 - Layered PSD and PSB export with a Unity profile that keeps names, groups, bounds and order and bakes what Unity ignores (blend modes, opacity, effects) into the pixels
@@ -326,7 +333,8 @@ What the absorbed and upstream projects have that `main` lacks, checked against 
 2026-11-04. The evidence, licences and work packages are in [BACKLOG.md](BACKLOG.md); this is the
 summary. Nothing here is scheduled. The maintainer orders it.
 
-- Small: editable keyboard shortcuts and shortcut sets (WP-1, built except the chord dispatch).
+- Small: editable keyboard shortcuts and shortcut sets (WP-1, built except the chord dispatch);
+  the command palette (built, after AniCraft's).
 - Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3),
   exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).
 - Large: Photoshop and image import (WP-4; SVG import is done, it needs a bitmap layer in the model first), filters and effects (WP-8; the EffectCraft
@@ -335,6 +343,10 @@ summary. Nothing here is scheduled. The maintainer orders it.
 - Licences decide what can be ported: AnimationCraft and ArtCraft are MIT or Apache-2.0; OpenToonz
   and Tahoma2D are BSD-3-Clause; nflare and the FFDec worker in Next2Flash are GPLv3 (behaviour
   only); minnamate has no licence file (behaviour only).
+- The two AniCraft repositories (storytold, soof-golan) were read in November 2026: the command
+  palette comes from the first (MIT OR Apache-2.0, behaviour only); the second's ActionScript
+  timeline subset, FABRIK posing and SVG export are noted against WP-12, WP-9 and WP-5 (MIT OR
+  BSD-3-Clause), and its SVG export is in (above, Formats).
 - Replicraft was not found. The maintainer gives the URL.
 
 ### ViewSpace Keys (experimental)

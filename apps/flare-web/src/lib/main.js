@@ -11,6 +11,27 @@ import { installPenPressure } from "./pen-pressure.js";
 // Test Movie. Nothing of Ruffle is fetched until a movie is played.
 globalThis.flareRuffle = createFlareRuffle();
 
+// A phone or a tablet gets the touch interface: bigger targets everywhere, and a page that
+// does not zoom under the fingers. The workspace is told through `globalThis.flareMobile`
+// (read by canvas.rs). `?ui=desktop` says no and `?ui=mobile` says yes, for testing.
+const forced = new URLSearchParams(location.search).get("ui");
+const coarse = window.matchMedia("(pointer: coarse)").matches;
+const small = Math.min(screen.width, screen.height) <= 900;
+const touchable = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+globalThis.flareMobile =
+  forced === "mobile"
+    ? true
+    : forced === "desktop"
+      ? false
+      : coarse && touchable && small;
+if (globalThis.flareMobile) {
+  const viewport = document.querySelector('meta[name="viewport"]');
+  if (viewport) {
+    viewport.content =
+      "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no";
+  }
+}
+
 async function loadFlareFile() {
   try {
     const [{ default: sqlite3InitModule }, zstd, { createFlareFile }] = await Promise.all([

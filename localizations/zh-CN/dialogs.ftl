@@ -3,6 +3,7 @@ dlg-filter-sound = 声音
 dlg-filter-png = PNG 图像
 dlg-filter-gif = GIF 动画
 dlg-filter-fla = Flash 文档
+dlg-filter-svg = SVG 图像
 dlg-publish = 发布
 dlg-cannot-export = 无法导出
 dlg-export-failed = 导出失败

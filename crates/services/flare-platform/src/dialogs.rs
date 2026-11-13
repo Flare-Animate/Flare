@@ -64,6 +64,11 @@ pub fn save_fla(filter: &str) -> Option<PathBuf> {
     backend::save_fla(filter)
 }
 
+/// Where to write the frame on show as an SVG picture.
+pub fn save_svg(filter: &str) -> Option<PathBuf> {
+    backend::save_svg(filter)
+}
+
 /// Asks where to publish, starting from `name` (the document's, with no ending) in `folder`. The
 /// name is shared by every format written, each with its own ending.
 pub fn save_publish(title: &str, name: &str, folder: Option<&std::path::Path>) -> Option<PathBuf> {

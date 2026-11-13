@@ -60,7 +60,8 @@ fn commands_sit_where_animate_keeps_them() {
         [
             "Export Image...",
             "Export Animated GIF...",
-            "Export Flash Document (.fla)..."
+            "Export Flash Document (.fla)...",
+            "Export SVG..."
         ]
     );
     let top = shown(&ws, file);
