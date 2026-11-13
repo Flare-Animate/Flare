@@ -8,6 +8,7 @@ timeline-loop = Reproducción en bucle
 timeline-frame = Fotograma
 timeline-onion = Papel cebolla
 timeline-onion-outline = Mostrar el papel cebolla como contornos
+timeline-multiple-frames = Editar varios fotogramas
 timeline-new-layer = Capa nueva
 timeline-new-folder = Carpeta de capas nueva
 timeline-folder = Carpeta

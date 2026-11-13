@@ -34,6 +34,8 @@ impl MenuAction {
             // these keys never scale the whole interface.
             Self::ZoomIn => "CmdOrCtrl+=",
             Self::ZoomOut => "CmdOrCtrl+-",
+            // Animate 2024's key for Edit Multiple Frames, which left the timeline's toolbar.
+            Self::ToggleEditMultipleFrames => "Alt+Shift+E",
             // Animate's key for View > Pasteboard.
             Self::TogglePasteboard => "CmdOrCtrl+Shift+W",
             Self::Preferences => "CmdOrCtrl+,",
@@ -196,6 +198,7 @@ impl MenuAction {
             Self::ZoomOut => "zoom-out",
             Self::ZoomFit => "zoom-fit",
             Self::ToggleOnionSkin => "onion-skin",
+            Self::ToggleEditMultipleFrames => "edit-multiple-frames",
             Self::ToggleOutlineMode => "outline-square",
             Self::TogglePasteboard => "pasteboard",
             Self::ToggleRulers => "ruler",

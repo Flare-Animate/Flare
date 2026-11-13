@@ -8,6 +8,7 @@ timeline-loop = Loop playback
 timeline-frame = Frame
 timeline-onion = Onion skin
 timeline-onion-outline = Show onion skin as outlines
+timeline-multiple-frames = Edit multiple frames
 timeline-new-layer = New layer
 timeline-new-folder = New layer folder
 timeline-folder = Folder

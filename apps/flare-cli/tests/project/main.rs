@@ -17,6 +17,7 @@ mod lossless;
 mod magic_wand;
 mod moho;
 mod movies;
+mod multi_frame;
 mod open;
 mod rendering;
 mod save_formats;

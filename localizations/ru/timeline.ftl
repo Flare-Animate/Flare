@@ -8,6 +8,7 @@ timeline-loop = Повтор воспроизведения
 timeline-frame = Кадр
 timeline-onion = Калька
 timeline-onion-outline = Луковая кожа контурами
+timeline-multiple-frames = Редактировать несколько кадров
 timeline-new-layer = Новый слой
 timeline-new-folder = Новая папка слоёв
 timeline-folder = Папка

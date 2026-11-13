@@ -97,7 +97,14 @@ impl Workspace {
             self.texture = None;
             return;
         };
-        let ghost_frames = if onion.enabled {
+        let ghost_frames = if onion.multi.is_some() {
+            // Every keyframe in the range at full strength, under the playhead's frame.
+            self.multi_frames_shown()
+                .into_iter()
+                .filter(|f| *f != self.frame)
+                .map(|f| (f, 1.0))
+                .collect()
+        } else if onion.enabled {
             onion_ghosts(self.frame, self.scene_frames(), onion.before, onion.after)
         } else {
             Vec::new()
@@ -129,7 +136,7 @@ impl Workspace {
             // the view through the camera.
             self.camera_preview.hash(&mut hasher);
             text_epoch.hash(&mut hasher);
-            onion.outlines.hash(&mut hasher);
+            onion.ghost_outlines().hash(&mut hasher);
             // Tinted ghosts, and ghosts of other colors, are other pictures.
             onion.tints().hash(&mut hasher);
             self.display.outline_mode.hash(&mut hasher);
@@ -179,7 +186,7 @@ impl Workspace {
             document: snapshot,
             scene,
             frame: self.frame,
-            outlines: onion.outlines,
+            outlines: onion.ghost_outlines(),
             tints: onion.tints(),
             outline_mode: self.display.outline_mode,
             through_camera: self.camera_preview,

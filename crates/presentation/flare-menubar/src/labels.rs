@@ -23,6 +23,8 @@ pub struct LabelState {
     pub text_italic: bool,
     pub guides_shown: bool,
     pub onion_on: bool,
+    /// Edit Multiple Frames is on.
+    pub multiple_frames: bool,
     pub outline_mode: bool,
     /// Artwork off the stage shows.
     pub pasteboard_shown: bool,
@@ -49,6 +51,7 @@ impl Default for LabelState {
             text_italic: false,
             guides_shown: false,
             onion_on: false,
+            multiple_frames: false,
             outline_mode: false,
             // The workspace shows the pasteboard until it is hidden, as Animate does.
             pasteboard_shown: true,
@@ -141,6 +144,13 @@ impl MenuAction {
                     "menu-item-toggle-onion-skin-on"
                 } else {
                     "menu-item-toggle-onion-skin-off"
+                }
+            }
+            Self::ToggleEditMultipleFrames => {
+                if state.multiple_frames {
+                    "menu-item-toggle-multiple-frames-on"
+                } else {
+                    "menu-item-toggle-multiple-frames-off"
                 }
             }
             Self::ToggleOutlineMode => {

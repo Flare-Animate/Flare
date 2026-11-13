@@ -33,6 +33,9 @@ pub struct OnionSkin {
     pub tinted: bool,
     pub before_color: Rgba8,
     pub after_color: Rgba8,
+    /// Edit Multiple Frames' range while it is on: then the ghosts are every keyframe in it, at
+    /// full strength and in their own colors, in place of onion skin's.
+    pub multi: Option<flare_editor::loop_range::LoopRange>,
 }
 
 impl OnionSkin {
@@ -44,11 +47,18 @@ impl OnionSkin {
         tinted: false,
         before_color: ONION_BEFORE_COLOR,
         after_color: ONION_AFTER_COLOR,
+        multi: None,
     };
 
-    /// The colors the ghosts are drawn in, before and after, when tinted.
+    /// The colors the ghosts are drawn in, before and after, when tinted. The frames of Edit
+    /// Multiple Frames are never tinted.
     pub(super) fn tints(&self) -> Option<[Rgba8; 2]> {
-        self.tinted.then_some([self.before_color, self.after_color])
+        (self.tinted && self.multi.is_none()).then_some([self.before_color, self.after_color])
+    }
+
+    /// Whether the ghosts are drawn as outlines: onion skin's choice, never Edit Multiple Frames'.
+    pub(super) fn ghost_outlines(&self) -> bool {
+        self.outlines && self.multi.is_none()
     }
 }
 

@@ -48,6 +48,7 @@ impl Workspace {
             text_italic: self.text.italic,
             guides_shown: self.display.show_guides,
             onion_on: self.onion.enabled,
+            multiple_frames: self.editing_multiple_frames(),
             outline_mode: self.display.outline_mode,
             pasteboard_shown: self.display.show_pasteboard,
             rulers_shown: self.display.show_rulers,

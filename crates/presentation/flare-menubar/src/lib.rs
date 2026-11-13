@@ -114,6 +114,8 @@ pub enum MenuAction {
     DeleteLayer,
     ResetLayout,
     ToggleOnionSkin,
+    /// Edit Multiple Frames: every keyframe in a range of frames shows and is edited at once.
+    ToggleEditMultipleFrames,
     ToggleRulers,
     ToggleGrid,
     ToggleSnap,
@@ -170,7 +172,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 136] = [
+    pub const ALL: [MenuAction; 137] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -259,6 +261,7 @@ impl MenuAction {
         Self::DeleteLayer,
         Self::ResetLayout,
         Self::ToggleOnionSkin,
+        Self::ToggleEditMultipleFrames,
         Self::ToggleRulers,
         Self::ToggleGrid,
         Self::ToggleSnap,

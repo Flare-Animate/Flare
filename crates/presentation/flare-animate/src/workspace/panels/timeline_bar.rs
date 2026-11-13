@@ -174,6 +174,18 @@ impl Workspace {
             self.set_onion_range(before, after);
         });
         self.onion_settings_button(ui, BAR_ICON);
+        if chrome::icon_button(
+            ui,
+            "edit-multiple-frames",
+            BAR_ICON,
+            self.editing_multiple_frames(),
+            true,
+            &tr!(self, "timeline-multiple-frames"),
+        )
+        .clicked()
+        {
+            self.perform(MenuAction::ToggleEditMultipleFrames);
+        }
         ui.separator();
         for (icon, hint, factor) in [
             (

@@ -221,7 +221,16 @@ impl Workspace {
     pub(super) fn finish_lasso(&mut self, additive: bool) {
         let polygon = std::mem::take(&mut self.lasso);
         let Some(scene) = self.scene_id() else { return };
-        let found = ops::spans_in_polygon(self.document(), scene, self.frame, &polygon);
+        let found = match self.multi_frame_range() {
+            Some(r) => flare_tools::multi_frame::spans_in_polygon_range(
+                self.document(),
+                scene,
+                r.from(),
+                r.to(),
+                &polygon,
+            ),
+            None => ops::spans_in_polygon(self.document(), scene, self.frame, &polygon),
+        };
         let all =
             flare_tools::lasso::freehand::selection_after(&self.selection_all(), found, additive);
         self.selected = all.first().copied();

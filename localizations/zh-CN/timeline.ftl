@@ -8,6 +8,7 @@ timeline-loop = 循环播放
 timeline-frame = 帧
 timeline-onion = 绘图纸外观
 timeline-onion-outline = 以轮廓显示绘图纸外观
+timeline-multiple-frames = 编辑多个帧
 timeline-new-layer = 新建图层
 timeline-new-folder = 新建图层文件夹
 timeline-folder = 文件夹

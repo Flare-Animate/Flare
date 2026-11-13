@@ -8,6 +8,7 @@ timeline-loop = Riproduzione in ciclo
 timeline-frame = Fotogramma
 timeline-onion = Onion Skin
 timeline-onion-outline = Carta da lucido come contorni
+timeline-multiple-frames = Modifica più fotogrammi
 timeline-new-layer = Nuovo livello
 timeline-new-folder = Nuova cartella di livelli
 timeline-folder = Cartella

@@ -8,6 +8,7 @@ timeline-loop = Lecture en boucle
 timeline-frame = Image
 timeline-onion = Pelure d’oignon
 timeline-onion-outline = Afficher la pelure d’oignon en contours
+timeline-multiple-frames = Modifier plusieurs images
 timeline-new-layer = Nouveau calque
 timeline-new-folder = Nouveau dossier de calques
 timeline-folder = Dossier

@@ -413,13 +413,10 @@ impl Workspace {
             close_after_save: false,
             panels: rail::Panels::default(),
             onion: OnionSkin {
-                enabled: false,
                 before: 1,
                 after: 1,
-                outlines: false,
                 tinted: true,
-                before_color: types::ONION_BEFORE_COLOR,
-                after_color: types::ONION_AFTER_COLOR,
+                ..OnionSkin::OFF
             },
             test_movie_requested: false,
             pen: PenPath::default(),

@@ -134,6 +134,7 @@ impl Workspace {
         );
         self.onion_markers(painter, l, band);
         self.loop_bar(painter, l, band);
+        self.multi_bar(painter, l, band);
         // Frame 1, then every fifth (or further apart when the frames are narrow), as Animate
         // numbers them; each fifth frame has a taller tick so it can be counted to.
         let step = timeline_view::ruler_step(l.per_frame);
@@ -175,7 +176,8 @@ impl Workspace {
     /// the earliest ghost to the latest, with a handle at each end in that side's color, to drag.
     fn onion_markers(&self, painter: &Painter, l: &Layout, band: Rect) {
         let onion = self.onion;
-        if !onion.enabled {
+        // Editing multiple frames, its bracket has this part of the ruler and onion skin rests.
+        if !onion.enabled || self.editing_multiple_frames() {
             return;
         }
         let (start, end) = l.onion_markers(self.frame, onion.before, onion.after);

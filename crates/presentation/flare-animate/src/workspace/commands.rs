@@ -170,6 +170,7 @@ impl Workspace {
             | MenuAction::ShowSwatches
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
+            | MenuAction::ToggleEditMultipleFrames
             | MenuAction::ToggleOutlineMode
             | MenuAction::TogglePasteboard
             | MenuAction::ToggleRulers
@@ -377,6 +378,9 @@ impl Workspace {
             MenuAction::ShowSwatches => self.show_pane(Pane::Swatches),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
+            MenuAction::ToggleEditMultipleFrames => {
+                self.set_edit_multiple_frames(!self.editing_multiple_frames());
+            }
             MenuAction::ToggleOutlineMode => self.display.outline_mode = !self.display.outline_mode,
             MenuAction::TogglePasteboard => {
                 self.display.show_pasteboard = !self.display.show_pasteboard;

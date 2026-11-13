@@ -15,6 +15,7 @@ mod camera;
 mod draw;
 mod interchange;
 mod magic_wand;
+mod multi_frame;
 mod render;
 mod sound;
 mod text;
@@ -37,6 +38,7 @@ pub use interchange::{
     test_movie,
 };
 pub use magic_wand::{WandRequest, magic_wand};
+pub use multi_frame::transform_frames;
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};

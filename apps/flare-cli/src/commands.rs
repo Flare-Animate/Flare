@@ -292,6 +292,26 @@ pub(crate) enum Command {
     },
     /// Add an empty layer below the existing ones in the first scene.
     AddLayer { path: PathBuf, name: String },
+    /// Edit Multiple Frames: move, scale and turn everything in frames `--from` to `--to` on the
+    /// shown, unlocked layers together, about the middle of all of it, as one undo step.
+    TransformFrames {
+        path: PathBuf,
+        #[arg(long)]
+        from: u32,
+        #[arg(long)]
+        to: u32,
+        #[arg(long, default_value_t = 0.0, allow_hyphen_values = true)]
+        dx: f64,
+        #[arg(long, default_value_t = 0.0, allow_hyphen_values = true)]
+        dy: f64,
+        #[arg(long, default_value_t = 1.0, allow_hyphen_values = true)]
+        scale_x: f64,
+        #[arg(long, default_value_t = 1.0, allow_hyphen_values = true)]
+        scale_y: f64,
+        /// Clockwise, in degrees.
+        #[arg(long, default_value_t = 0.0, allow_hyphen_values = true)]
+        rotate: f64,
+    },
     /// Insert or remove frames and keyframes on a layer (default: the first layer).
     Frame {
         #[arg(value_enum)]

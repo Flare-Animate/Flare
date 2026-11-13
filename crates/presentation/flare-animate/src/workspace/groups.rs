@@ -135,6 +135,8 @@ pub(super) struct Display {
     pub(super) measure: Option<(Pos2, Pos2)>,
     /// How wide the timeline's column of layer names is, in points.
     pub(super) timeline_names: f32,
+    /// Edit Multiple Frames: whether it is on and the range its bracket marks.
+    pub(super) multi_frame: super::timeline_labels::MultiFrames,
 }
 
 impl Default for Display {
@@ -151,6 +153,7 @@ impl Default for Display {
             show_pasteboard: true,
             measure: None,
             timeline_names: super::timeline::LABEL_W,
+            multi_frame: Default::default(),
         }
     }
 }

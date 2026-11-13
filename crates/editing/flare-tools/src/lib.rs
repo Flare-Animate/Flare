@@ -29,6 +29,7 @@ pub mod library;
 pub mod line;
 pub mod magic_wand;
 pub mod mirror;
+pub mod multi_frame;
 pub mod not_yet;
 pub mod ops;
 pub mod paint;

@@ -8,6 +8,7 @@ timeline-loop = Reprodução em loop
 timeline-frame = Quadro
 timeline-onion = Papel de cebola
 timeline-onion-outline = Mostrar o papel de cebola como contornos
+timeline-multiple-frames = Editar vários quadros
 timeline-new-layer = Nova camada
 timeline-new-folder = Nova pasta de camadas
 timeline-folder = Pasta

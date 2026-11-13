@@ -59,6 +59,7 @@ const COMMANDS: &[(&str, MenuAction)] = &[
     ("Timeline.ConvertToBlankKeyframes", A::InsertBlankKeyframe),
     ("Timeline.ClearKeyframe", A::ClearKeyframe),
     ("Timeline.OnionSkin", A::ToggleOnionSkin),
+    ("Timeline.EditMultipleFrames", A::ToggleEditMultipleFrames),
     ("View.ZoomIn", A::ZoomIn),
     ("View.ZoomOut", A::ZoomOut),
     ("View.Rulers", A::ToggleRulers),

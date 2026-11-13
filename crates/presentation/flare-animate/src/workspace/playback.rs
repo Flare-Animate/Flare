@@ -33,12 +33,16 @@ impl Workspace {
 
     // ---- rendering -------------------------------------------------------------------
 
-    /// Onion skinning is off while playing, where it would only cost time.
+    /// Onion skinning is off while playing, where it would only cost time; while editing
+    /// multiple frames their keyframes are the ghosts.
     pub(super) fn effective_onion(&self) -> OnionSkin {
         if self.playing {
             OnionSkin::OFF
         } else {
-            self.onion
+            OnionSkin {
+                multi: self.multi_frame_range(),
+                ..self.onion
+            }
         }
     }
 

@@ -8,6 +8,7 @@ timeline-loop = Wiedergabe in Schleife
 timeline-frame = Bild
 timeline-onion = Zwiebelschaleneffekt
 timeline-onion-outline = Zwiebelschalen als Umrisse anzeigen
+timeline-multiple-frames = Mehrere Bilder bearbeiten
 timeline-new-layer = Neue Ebene
 timeline-new-folder = Neuer Ebenenordner
 timeline-folder = Ordner

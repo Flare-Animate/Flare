@@ -125,6 +125,27 @@ fn run() -> Result<()> {
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
+        Command::TransformFrames {
+            path,
+            from,
+            to,
+            dx,
+            dy,
+            scale_x,
+            scale_y,
+            rotate,
+        } => project::transform_frames(
+            &path,
+            from,
+            to,
+            flare_tools::multi_frame::RangeTransform {
+                dx,
+                dy,
+                scale_x,
+                scale_y,
+                rotate_degrees: rotate,
+            },
+        )?,
         Command::Frame {
             op,
             path,
