@@ -103,7 +103,7 @@ impl Workspace {
             ui,
             "transport-loop",
             BAR_ICON,
-            self.loop_playback,
+            self.looping.on,
             true,
             &tr!(self, "timeline-loop"),
         )

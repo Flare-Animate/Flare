@@ -262,8 +262,8 @@ pub struct Workspace {
     /// Stage size being edited in the tools panel, applied when the edit finishes.
     stage_edit: Option<(u32, u32)>,
     fps_edit: Option<f64>,
-    /// Playback wraps to the first frame; off, it stops on the last.
-    loop_playback: bool,
+    /// Loop playback: on, playback goes round the loop range (the whole scene without one).
+    looping: timeline_labels::Looping,
     muted: bool,
     /// Everything `report` has said, oldest first, for the Output panel.
     log: Vec<String>,
@@ -425,7 +425,7 @@ impl Workspace {
             pen: PenPath::default(),
             stage_edit: None,
             fps_edit: None,
-            loop_playback: true,
+            looping: timeline_labels::Looping::default(),
             muted: false,
             log: Vec::new(),
             props_forced: None,

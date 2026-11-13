@@ -133,6 +133,7 @@ impl Workspace {
             Stroke::new(1.0, flare_ui::theme::border()),
         );
         self.onion_markers(painter, l, band);
+        self.loop_bar(painter, l, band);
         // Frame 1, then every fifth (or further apart when the frames are narrow), as Animate
         // numbers them; each fifth frame has a taller tick so it can be counted to.
         let step = timeline_view::ruler_step(l.per_frame);
@@ -204,3 +205,11 @@ impl Workspace {
         }
     }
 }
+
+#[path = "timeline_loop.rs"]
+mod timeline_loop;
+pub(super) use timeline_loop::Looping;
+
+#[path = "timeline_multi.rs"]
+mod timeline_multi;
+pub(super) use timeline_multi::MultiFrames;

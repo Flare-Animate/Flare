@@ -5,6 +5,7 @@
 mod camera;
 mod context;
 pub mod frames;
+pub mod loop_range;
 pub mod timeline_view;
 
 pub use camera::{MAX_CAMERA_FRAME, camera_now, set_camera_key, set_camera_key_named};

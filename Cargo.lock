@@ -2298,6 +2298,7 @@ dependencies = [
  "flare-eval",
  "flare-history",
  "flare-tween",
+ "proptest",
 ]
 
 [[package]]

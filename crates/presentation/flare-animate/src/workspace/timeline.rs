@@ -240,9 +240,11 @@ impl Workspace {
         rows: &[(usize, usize)],
         shown: u32,
     ) {
-        // The onion-skin markers on the ruler come first: a press on one sets the range, not the
-        // playhead.
-        if self.onion_marker_drag(ui, response, l) {
+        // The loop bar and the onion-skin markers on the ruler come first: a press on one sets
+        // its range, not the playhead.
+        if self.loop_bar_input(ui, response, l)
+            || self.onion_marker_drag(ui, response, l)
+        {
             return;
         }
         if response.drag_started()

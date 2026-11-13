@@ -156,7 +156,7 @@ fn playback_stops_on_the_last_frame_unless_looping_and_mute_silences_cues() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     rect(&mut ws); // 24 frames
     ws.perform(MenuAction::ToggleLoop);
-    assert!(!ws.loop_playback);
+    assert!(!ws.looping.on);
     assert_eq!(ws.label(MenuAction::ToggleLoop), "Loop Playback: Off");
     ws.set_frame(22);
     ws.playing = true;

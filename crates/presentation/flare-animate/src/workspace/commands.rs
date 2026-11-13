@@ -384,7 +384,7 @@ impl Workspace {
             MenuAction::ToggleRulers => self.display.show_rulers = !self.display.show_rulers,
             MenuAction::ToggleGrid => self.display.show_grid = !self.display.show_grid,
             MenuAction::ToggleSnap => self.display.snap_to_grid = !self.display.snap_to_grid,
-            MenuAction::ToggleLoop => self.loop_playback = !self.loop_playback,
+            MenuAction::ToggleLoop => self.looping.on = !self.looping.on,
             MenuAction::ToggleMute => {
                 self.muted = !self.muted;
                 // Sounds already started stop now; unmuting waits for the next start.

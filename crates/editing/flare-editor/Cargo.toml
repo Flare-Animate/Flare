@@ -19,6 +19,7 @@ workspace = true
 [dev-dependencies]
 criterion.workspace = true
 flare-tween.workspace = true
+proptest.workspace = true
 
 [[bench]]
 name = "edit"

@@ -53,7 +53,7 @@ impl Workspace {
             rulers_shown: self.display.show_rulers,
             grid_shown: self.display.show_grid,
             snapping: self.display.snap_to_grid,
-            loop_playback: self.loop_playback,
+            loop_playback: self.looping.on,
             muted: self.muted,
         }
     }

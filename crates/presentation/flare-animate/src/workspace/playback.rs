@@ -16,15 +16,19 @@ impl Workspace {
         self.play_remainder += (now - last).max(0.0) * fps;
         let whole = self.play_remainder.floor();
         self.play_remainder -= whole;
-        let frames = self.scene_frames();
-        // `whole` is small (one UI frame's worth), so the cast cannot overflow.
-        let next = u64::from(self.frame) + whole as u64;
-        if !self.loop_playback && next >= u64::from(frames) {
-            self.frame = frames.saturating_sub(1);
-            self.playing = false;
+        if whole < 1.0 {
             return;
         }
-        self.frame = next.rem_euclid(u64::from(frames)) as u32;
+        // `whole` is small (one UI frame's worth), so the cast cannot overflow.
+        let (frame, playing) = flare_editor::loop_range::advance(
+            self.frame,
+            whole as u64,
+            self.scene_frames(),
+            self.looping.on,
+            self.looping.range,
+        );
+        self.frame = frame;
+        self.playing = playing;
     }
 
     // ---- rendering -------------------------------------------------------------------
