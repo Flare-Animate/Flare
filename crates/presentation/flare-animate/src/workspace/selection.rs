@@ -115,6 +115,18 @@ impl Workspace {
         self.glyph_hit(point).or_else(|| self.text_box_hit(point))
     }
 
+    /// What the Selection and Free Transform tools pick at `point`: what [`hit`](Self::hit)
+    /// finds, else a picture under it on a shown, unlocked layer (anywhere in its rectangle, as
+    /// Animate picks a bitmap), so a placed or imported picture can be moved and scaled. The
+    /// tools that change a shape's paint or points keep to shapes.
+    pub(super) fn pick(&self, point: Pos2) -> Option<SpanRef> {
+        self.hit(point).or_else(|| {
+            let scene = self.scene_id()?;
+            flare_tools::magic_wand::bitmap_at(self.document(), scene, self.frame, point)
+                .map(|found| found.at)
+        })
+    }
+
     pub(super) fn glyph_hit(&self, point: Pos2) -> Option<SpanRef> {
         let scene = self.scene_id()?;
         let at = DVec2::new(f64::from(point.x), f64::from(point.y));
@@ -162,7 +174,7 @@ impl Workspace {
     /// Selects what is at `point`. With `additive` (Shift) the span is toggled in or out of
     /// the selection; without it the selection becomes just that span, or empty.
     pub(super) fn select_at(&mut self, point: Pos2, additive: bool) {
-        let hit = self.hit(point);
+        let hit = self.pick(point);
         if !additive {
             self.selected = hit;
             self.also_selected.clear();
