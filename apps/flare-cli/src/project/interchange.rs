@@ -202,6 +202,9 @@ pub fn export_mp4(path: &Path, out: &Path) -> Result<Value> {
 /// Renders the first scene as a QuickTime movie with its sound, as [`export_mp4`] does, with no
 /// ffmpeg needed.
 pub fn export_mov(path: &Path, out: &Path) -> Result<Value> {
+    if out.exists() {
+        bail!("{} already exists", out.display());
+    }
     let session = open(path)?;
     flare_video::write_mov(session.document(), out).map_err(anyhow::Error::msg)?;
     let bytes = std::fs::metadata(out)?.len();
