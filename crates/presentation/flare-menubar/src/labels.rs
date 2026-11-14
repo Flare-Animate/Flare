@@ -204,6 +204,7 @@ impl MenuAction {
             }
             Self::Open => "menu-item-open",
             Self::ImportSound => "menu-item-import-sound",
+            Self::ImportVideo => "menu-item-import-video",
             Self::NewLayer => "menu-item-new-layer",
             Self::NewLayerFolder => "menu-item-new-layer-folder",
             Self::New => "menu-item-new",
@@ -307,6 +308,7 @@ impl MenuAction {
             Self::WorkspaceSmallScreen => "menu-item-workspace-small-screen",
             Self::CommandPalette => "menu-item-command-palette",
             Self::ShowSwatches => "menu-item-show-swatches",
+            Self::ShowMannequin => "menu-item-show-mannequin",
             Self::ClearGuides => "menu-item-clear-guides",
             Self::About => "menu-item-about",
             Self::KeyboardShortcuts => "menu-item-keyboard-shortcuts",

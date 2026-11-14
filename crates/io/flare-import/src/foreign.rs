@@ -30,7 +30,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "exr" => Some("exr"),
         "dds" => Some("dds"),
         "psd" => Some("psd"),
-        "mp4" | "mov" | "avi" | "mkv" | "webm" | "mpeg" | "mpg" | "flv" => Some("video"),
+        ext if crate::VIDEO_EXTENSIONS.contains(&ext) => Some("video"),
         // Adobe's own MP4 profiles: video (F4V) and protected-video media (F4P). The audio-only
         // F4A and F4B, the fragment F4F and the manifest F4M are refused in `file_kinds`.
         "f4v" | "f4p" => Some("video"),

@@ -47,6 +47,13 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
+            // A browser has no ffmpeg to read a movie with.
+            MenuAction::ImportVideo => {
+                !cfg!(target_arch = "wasm32")
+                    && !self.in_symbol()
+                    && self.scene_id().is_some()
+                    && !self.video_import_busy()
+            }
             MenuAction::NewLayer | MenuAction::NewLayerFolder => {
                 !self.document().scenes().is_empty()
             }
@@ -169,6 +176,7 @@ impl Workspace {
             | MenuAction::ShowOutput
             | MenuAction::ShowInfo
             | MenuAction::ShowSwatches
+            | MenuAction::ShowMannequin
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleEditMultipleFrames
@@ -192,6 +200,7 @@ impl Workspace {
         match action {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
+            MenuAction::ImportVideo => self.dialog = Some(DialogRequest::ImportVideo),
             // As in Animate, File > New asks what kind of project, in the New Document dialog.
             MenuAction::New => self.show_new_document(),
             MenuAction::Close => self.close_tab(self.position),
@@ -378,6 +387,7 @@ impl Workspace {
             MenuAction::ShowOutput => self.show_pane(Pane::Output),
             MenuAction::ShowInfo => self.show_pane(Pane::Info),
             MenuAction::ShowSwatches => self.show_pane(Pane::Swatches),
+            MenuAction::ShowMannequin => self.show_pane(Pane::Mannequin),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleEditMultipleFrames => {

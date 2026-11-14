@@ -136,6 +136,13 @@ could not be read from this environment, so nothing from it may be ported until 
 
 ## Third-party format references used
 
+- MoveNet SinglePose Lightning (Google, Apache-2.0; https://tfhub.dev/google/movenet/singlepose/lightning),
+  in the ONNX conversion published by Xenova (https://huggingface.co/Xenova/movenet-singlepose-lightning,
+  `onnx/model.onnx`, SHA-256 1ad4f8d6c2f776a9967db3993c9ca740bc350104f9d37c151dc183fc29a464ad):
+  the network itself, unchanged, in `crates/services/flare-pose/data/`, run by RTen (MIT or
+  Apache-2.0). Its origin and the licence's text are in `packaging/MODEL_LICENSES.txt`, which every
+  package carries beside the font licences. Not code: the weights are data the runtime reads.
+
 - OpenToonz (BSD-3-Clause, Copyright (c) DWANGO Co., Ltd. and contributors; LICENSE.txt in
   https://github.com/opentoonz/opentoonz): the PLI tag layout, dynamic-width integers, thick
   quadratic chain decoding and the style/colour tags in `crates/io/flare-toonz/src/pli.rs` are

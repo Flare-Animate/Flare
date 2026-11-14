@@ -27,6 +27,7 @@ pub struct WebApp {
     picked_sounds: Rc<RefCell<Vec<Picked>>>,
     /// Animate shortcut files picked, read on the next frame.
     picked_shortcuts: Rc<RefCell<Vec<Picked>>>,
+    picked_references: Rc<RefCell<Vec<Picked>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// The preferences as last written, so storage is touched only when they change.
@@ -46,6 +47,7 @@ impl WebApp {
             picked: Rc::default(),
             picked_sounds: Rc::default(),
             picked_shortcuts: Rc::default(),
+            picked_references: Rc::default(),
             messages: Rc::default(),
             saved_preferences,
             last_name: None,
@@ -151,14 +153,6 @@ impl WebApp {
                     flare_runtime::svg_export(&document, frame).map(|svg| svg.text.into_bytes());
                 self.deliver("frame.svg", "image/svg+xml", bytes);
             }
-            DialogRequest::Share(target) => {
-                let opened = web_sys::window()
-                    .and_then(|w| w.open_with_url_and_target(target.url(), "_blank").ok());
-                if opened.is_none() {
-                    self.workspace
-                        .report_message("The browser blocked the new tab");
-                }
-            }
             DialogRequest::Publish => {
                 let (document, _) = self.workspace.image_export();
                 let name = self.publish_name();
@@ -184,6 +178,10 @@ impl WebApp {
                     self.workspace
                         .report_message("MP4 is not available in the browser yet");
                 }
+                if settings.mov {
+                    self.workspace
+                        .report_message("MOV is not available in the browser yet");
+                }
                 if settings.gif {
                     self.deliver(
                         &format!("{name}.gif"),
@@ -203,6 +201,33 @@ impl WebApp {
                         .map_err(|e| e.to_string());
                     self.deliver(&format!("{name}.html"), "text/html", result);
                 }
+            }
+            DialogRequest::ImportMannequinReference => {
+                let (inbox, messages, ctx) = (
+                    Rc::clone(&self.picked_references),
+                    Rc::clone(&self.messages),
+                    ctx.clone(),
+                );
+                let filter = self.workspace.interface_text("mannequin-filter-picture");
+                wasm_bindgen_futures::spawn_local(async move {
+                    match files::pick_bounded(
+                        &filter,
+                        &flare_animate::REFERENCE_EXTENSIONS,
+                        flare_animate::MAX_REFERENCE_BYTES,
+                    )
+                    .await
+                    {
+                        Ok(Some((name, bytes))) => {
+                            inbox.borrow_mut().push(Picked { name, bytes });
+                            ctx.request_repaint();
+                        }
+                        Ok(None) => {}
+                        Err(error) => {
+                            messages.borrow_mut().push(error.to_string());
+                            ctx.request_repaint();
+                        }
+                    }
+                });
             }
             DialogRequest::ImportAnimateShortcuts => {
                 let (inbox, messages, ctx) = (
@@ -233,6 +258,11 @@ impl WebApp {
                     }
                 });
             }
+            // Dimmed in the browser, which has no ffmpeg; said again should anything ask.
+            DialogRequest::ImportVideo => self
+                .messages
+                .borrow_mut()
+                .push(self.workspace.interface_text("video-browser")),
             DialogRequest::ImportSound => {
                 let (inbox, messages, ctx) = (
                     Rc::clone(&self.picked_sounds),
@@ -415,6 +445,11 @@ impl eframe::App for WebApp {
         let shortcuts: Vec<Picked> = self.picked_shortcuts.borrow_mut().drain(..).collect();
         for file in shortcuts {
             self.workspace.import_animate_shortcuts(&file.bytes);
+        }
+        let references: Vec<Picked> = self.picked_references.borrow_mut().drain(..).collect();
+        for file in references {
+            self.workspace
+                .import_mannequin_reference_bytes(&file.name, file.bytes);
         }
         let messages: Vec<String> = self.messages.borrow_mut().drain(..).collect();
         for message in messages {

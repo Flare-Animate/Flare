@@ -34,3 +34,4 @@ swatches-yours = Eigene Farbfelder
 swatches-add = Aktuelle Farbe behalten
 swatches-remove = Farbfeld löschen
 swatches-full = Die eigenen Farbfelder sind voll ({ $max }).
+strip-resize = Ziehen, um das Bedienfeld breiter oder schmaler zu machen

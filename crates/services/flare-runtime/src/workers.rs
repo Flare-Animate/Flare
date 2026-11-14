@@ -6,6 +6,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use crate::jobs::{AudioJob, Done, IoJob, RenderJob, TextJob};
 use crate::pixels::{PixelJob, Pixels};
 use crate::run::{ExtraFonts, run_audio, run_io, run_render, run_text};
+use crate::video_import::{VideoJob, run_video};
 
 /// Called after each result is queued, so the front end can wake up to show it.
 pub type Wake = Arc<dyn Fn() + Send + Sync>;
@@ -71,6 +72,20 @@ pub(crate) fn text_loop(
 pub(crate) fn io_loop(jobs: &Receiver<IoJob>, done: &Sender<Done>, wake: &Wake) {
     while let Ok(job) = jobs.recv() {
         if done.send(run_io(job)).is_err() {
+            return;
+        }
+        wake();
+    }
+}
+
+/// Videos to bring in, one after another.
+pub(crate) fn video_loop(
+    jobs: &Receiver<(VideoJob, Option<flare_ffmpeg::Tools>)>,
+    done: &Sender<Done>,
+    wake: &Wake,
+) {
+    while let Ok((job, tools)) = jobs.recv() {
+        if done.send(run_video(job, tools.as_ref())).is_err() {
             return;
         }
         wake();

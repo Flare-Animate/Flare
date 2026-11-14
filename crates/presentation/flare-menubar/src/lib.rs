@@ -33,6 +33,8 @@ pub enum MenuAction {
     OpenRecent,
     PublishSettings,
     ImportSound,
+    /// File > Import > Import Video: a movie on a layer of its own, to draw over.
+    ImportVideo,
     ExportImage,
     ExportMovie,
     ExportFla,
@@ -170,10 +172,12 @@ pub enum MenuAction {
     CommandPalette,
     /// Window > Swatches.
     ShowSwatches,
+    /// Window > Mannequin: the posable figure to draw from.
+    ShowMannequin,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 138] = [
+    pub const ALL: [MenuAction; 140] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -182,6 +186,7 @@ impl MenuAction {
         Self::OpenRecent,
         Self::PublishSettings,
         Self::ImportSound,
+        Self::ImportVideo,
         Self::ExportImage,
         Self::ExportMovie,
         Self::ExportFla,
@@ -312,6 +317,7 @@ impl MenuAction {
         Self::WorkspaceSmallScreen,
         Self::CommandPalette,
         Self::ShowSwatches,
+        Self::ShowMannequin,
     ];
 
     /// A stable identifier for native menu items (the variant name).

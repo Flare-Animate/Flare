@@ -34,3 +34,4 @@ swatches-yours = Ваши образцы
 swatches-add = Сохранить текущий цвет
 swatches-remove = Удалить образец
 swatches-full = Ваши образцы заполнены ({ $max }).
+strip-resize = Перетащите, чтобы сделать панель шире или уже

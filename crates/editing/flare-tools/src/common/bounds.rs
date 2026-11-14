@@ -7,7 +7,8 @@ use glamx::{DAffine2, DVec2};
 
 use super::span::{SpanRef, find_span, scene_timeline};
 
-/// Control-polygon bounds of the shapes in a symbol's first frame (one level deep).
+/// Control-polygon bounds of the shapes and pictures in a symbol's first frame, following
+/// instances inside it.
 pub fn symbol_bounds(document: &Document, symbol: SymbolId) -> Option<Rect> {
     symbol_bounds_nested(document, symbol, 0)
 }
@@ -31,11 +32,14 @@ pub(crate) fn symbol_bounds_nested(
         for element in layer.span_at(0).into_iter().flat_map(FrameSpan::elements) {
             let rect = match element {
                 Content::Shape(shape) => shape_bounds(shape),
+                // A symbol of pictures alone (a video brought in, a picture made a symbol) has
+                // their box, or it could not be selected, moved or turned.
+                Content::Bitmap(placed) => bitmap_bounds(document, placed),
                 Content::Instance(instance) => {
                     symbol_bounds_nested(document, instance.symbol(), depth + 1)
                         .map(|inner| transformed(inner, instance.transform().as_affine()))
                 }
-                _ => None,
+                Content::Empty | Content::Camera(_) | Content::Armature(_) => None,
             };
             if let Some(rect) = rect {
                 bounds = Some(bounds.map_or(rect, |b| b.union(rect)));
@@ -43,6 +47,16 @@ pub(crate) fn symbol_bounds_nested(
         }
     }
     bounds
+}
+
+/// Where a picture is: its pixels' rectangle through its transform.
+fn bitmap_bounds(document: &Document, placed: &flare_document::BitmapInstance) -> Option<Rect> {
+    let bitmap = document.bitmap(placed.bitmap())?;
+    let local = Rect::from_min_max(
+        Pos2::ZERO,
+        Pos2::new(bitmap.width() as f32, bitmap.height() as f32),
+    );
+    Some(transformed(local, placed.transform().as_affine()))
 }
 
 /// The axis-aligned box around `rect` after `matrix`.
@@ -169,14 +183,7 @@ pub(crate) fn content_bounds(document: &Document, content: &Content) -> Option<R
         // bones (see `bones`), not selected and moved as one thing.
         Content::Empty | Content::Camera(_) | Content::Armature(_) => None,
         Content::Shape(shape) => shape_bounds(shape),
-        Content::Bitmap(placed) => {
-            let bitmap = document.bitmap(placed.bitmap())?;
-            let local = Rect::from_min_max(
-                Pos2::ZERO,
-                Pos2::new(bitmap.width() as f32, bitmap.height() as f32),
-            );
-            Some(transformed(local, placed.transform().as_affine()))
-        }
+        Content::Bitmap(placed) => bitmap_bounds(document, placed),
         Content::Instance(instance) => {
             let local = symbol_bounds(document, instance.symbol())?;
             Some(transformed(local, instance.transform().as_affine()))

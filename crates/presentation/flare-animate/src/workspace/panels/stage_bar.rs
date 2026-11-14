@@ -27,12 +27,11 @@ impl Workspace {
             ],
         );
         let hint = self.tool_hint();
+        let message = match &self.status {
+            Some(status) => RichText::new(status.as_str()).color(theme::warning()),
+            None => RichText::new(hint).color(theme::text_dim()),
+        };
         ui.horizontal(|ui| {
-            let message = match &self.status {
-                Some(status) => RichText::new(status.as_str()).color(theme::warning()),
-                None => RichText::new(hint).color(theme::text_dim()),
-            };
-            ui.label(message);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 // The zoom is in the bar above the stage; here is what the document is made of,
                 // and a click opens its settings.
@@ -64,6 +63,10 @@ impl Workspace {
                     ui.separator();
                     ui.label(RichText::new(working).color(theme::accent()));
                 }
+                // The message gets what the facts leave, cut short rather than run under them.
+                ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
+                    ui.add(egui::Label::new(message).truncate());
+                });
             });
         });
     }

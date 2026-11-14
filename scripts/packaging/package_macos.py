@@ -37,6 +37,7 @@ def populate_bundle(binary, destination, version):
     shutil.copy2(ICON, contents / "Resources" / ICON.name)
     shutil.copy2(ROOT / "LICENSE", contents / "Resources/LICENSE")
     shutil.copy2(ROOT / "packaging/FONT_LICENSES.txt", contents / "Resources/FONT_LICENSES.txt")
+    shutil.copy2(ROOT / "packaging/MODEL_LICENSES.txt", contents / "Resources/MODEL_LICENSES.txt")
     with (contents / "Info.plist").open("wb") as stream:
         plistlib.dump(metadata(version), stream, sort_keys=False)
     (contents / "PkgInfo").write_bytes(b"APPL????")

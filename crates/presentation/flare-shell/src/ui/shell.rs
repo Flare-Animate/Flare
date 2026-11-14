@@ -46,6 +46,21 @@ impl App {
                     self.workspace.import_sound(&path);
                 }
             }
+            DialogRequest::ImportVideo => {
+                if let Some(path) =
+                    dialogs::pick_video(&self.workspace.interface_text("dlg-filter-video"))
+                {
+                    self.workspace.import_video(&path);
+                }
+            }
+            DialogRequest::ImportMannequinReference => {
+                if let Some(path) = dialogs::pick_image(
+                    &self.workspace.interface_text("mannequin-filter-picture"),
+                    &flare_animate::REFERENCE_EXTENSIONS,
+                ) {
+                    self.workspace.import_mannequin_reference(&path);
+                }
+            }
             DialogRequest::ImportAnimateShortcuts => {
                 if let Some(path) = dialogs::pick_shortcut_xml(
                     &self
@@ -80,12 +95,12 @@ impl App {
                 }
             }
             DialogRequest::ExportMovie => {
-                if let Some(path) =
-                    dialogs::save_gif(&self.workspace.interface_text("dlg-filter-gif"))
-                {
+                let filters = ["dlg-filter-gif", "dlg-filter-mp4", "dlg-filter-mov"]
+                    .map(|key| self.workspace.interface_text(key));
+                if let Some(path) = dialogs::save_movie(filters.each_ref().map(String::as_str)) {
                     let (document, _) = self.workspace.image_export();
                     let done = exported(&self.proxy);
-                    if let Err(error) = jobs::export_gif(document, path, done) {
+                    if let Err(error) = jobs::export_movie(document, path, done) {
                         self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
@@ -110,11 +125,6 @@ impl App {
                     if let Err(error) = jobs::export_svg(document, frame, path, done) {
                         self.say_error("dlg-cannot-export", &error.to_string());
                     }
-                }
-            }
-            DialogRequest::Share(target) => {
-                if let Err(error) = flare_platform::browser::open_url(target.url()) {
-                    self.say_error("dlg-cannot-open-browser", &error.to_string());
                 }
             }
             DialogRequest::Publish => {
@@ -145,6 +155,7 @@ impl App {
                         }),
                         gif: settings.gif,
                         mp4: settings.mp4,
+                        mov: settings.mov,
                     };
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::publish(document, path, plan, done) {

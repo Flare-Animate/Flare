@@ -98,8 +98,8 @@ fn an_flp_imports_the_file_flash_opens_by_default() {
 #[test]
 fn an_flp_without_a_default_takes_its_first_listed_document() {
     let dir = tempfile::tempdir().expect("tempdir");
-    std::fs::write(dir.path().join("first.swf"), &moving_square()).expect("write");
-    std::fs::write(dir.path().join("second.swf"), &moving_square()).expect("write");
+    std::fs::write(dir.path().join("first.swf"), moving_square()).expect("write");
+    std::fs::write(dir.path().join("second.swf"), moving_square()).expect("write");
     std::fs::write(
         dir.path().join("project.flp"),
         flp_of(None, &["code.as", "first.swf", "second.swf"]),

@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "poses": [
+    {
+      "id": "stand",
+      "joints": {
+        "left_shoulder": [0, 0, 8], "right_shoulder": [0, 0, 8],
+        "left_elbow": [-12, 0, 0], "right_elbow": [-12, 0, 0],
+        "left_hip": [0, 0, 3], "right_hip": [0, 0, 3],
+        "left_knee": [3, 0, 0], "right_knee": [3, 0, 0],
+        "left_ankle": [0, 0, -3], "right_ankle": [0, 0, -3]
+      }
+    },
+    {
+      "id": "t_pose",
+      "joints": {
+        "left_shoulder": [0, 0, 90], "right_shoulder": [0, 0, 90]
+      }
+    },
+    {
+      "id": "a_pose",
+      "joints": {
+        "left_shoulder": [0, 0, 45], "right_shoulder": [0, 0, 45],
+        "left_elbow": [-5, 0, 0], "right_elbow": [-5, 0, 0]
+      }
+    },
+    {
+      "id": "walk",
+      "joints": {
+        "pelvis": [0, -6, 0], "spine": [4, 0, 0], "chest": [0, 8, 0],
+        "left_shoulder": [22, 0, 6], "left_elbow": [-15, 0, 0],
+        "right_shoulder": [-25, 0, 6], "right_elbow": [-30, 0, 0],
+        "left_hip": [-25, 0, 2], "left_knee": [5, 0, 0], "left_ankle": [-12, 0, 0],
+        "right_hip": [18, 0, 2], "right_knee": [20, 0, 0], "right_ankle": [12, 0, 0]
+      },
+      "lift": [0, -0.01, 0]
+    },
+    {
+      "id": "run",
+      "joints": {
+        "pelvis": [0, -8, 0], "spine": [14, 0, 0], "chest": [0, 12, 0], "head": [-10, 0, 0],
+        "left_shoulder": [40, 0, 8], "left_elbow": [-85, 0, 0],
+        "right_shoulder": [-50, 0, 8], "right_elbow": [-95, 0, 0],
+        "left_hip": [-60, 0, 0], "left_knee": [80, 0, 0], "left_ankle": [-10, 0, 0],
+        "right_hip": [20, 0, 0], "right_knee": [45, 0, 0], "right_ankle": [25, 0, 0]
+      },
+      "lift": [0, 0.03, 0]
+    },
+    {
+      "id": "sit",
+      "joints": {
+        "spine": [4, 0, 0],
+        "left_shoulder": [-18, 0, 4], "right_shoulder": [-18, 0, 4],
+        "left_elbow": [-55, 0, 0], "right_elbow": [-55, 0, 0],
+        "left_hip": [-90, 0, 6], "right_hip": [-90, 0, 6],
+        "left_knee": [90, 0, 0], "right_knee": [90, 0, 0],
+        "left_ankle": [0, 0, -6], "right_ankle": [0, 0, -6]
+      },
+      "lift": [0, -0.235, 0]
+    },
+    {
+      "id": "crouch",
+      "joints": {
+        "spine": [30, 0, 0], "chest": [10, 0, 0], "neck": [-20, 0, 0], "head": [-15, 0, 0],
+        "left_shoulder": [-45, 0, 10], "right_shoulder": [-45, 0, 10],
+        "left_elbow": [-50, 0, 0], "right_elbow": [-50, 0, 0],
+        "left_hip": [-100, 0, 10], "right_hip": [-100, 0, 10],
+        "left_knee": [120, 0, 0], "right_knee": [120, 0, 0],
+        "left_ankle": [-25, 0, -8], "right_ankle": [-25, 0, -8]
+      },
+      "lift": [0, -0.29, 0]
+    },
+    {
+      "id": "kneel",
+      "joints": {
+        "spine": [4, 0, 0],
+        "left_shoulder": [-10, 0, 6], "right_shoulder": [5, 0, 8],
+        "left_elbow": [-60, 0, 0], "right_elbow": [-15, 0, 0],
+        "left_hip": [-90, 0, 4], "left_knee": [90, 0, 0],
+        "right_hip": [10, 0, 4], "right_knee": [100, 0, 0], "right_ankle": [45, 0, 0]
+      },
+      "lift": [0, -0.22, 0]
+    },
+    {
+      "id": "jump",
+      "joints": {
+        "spine": [-8, 0, 0], "head": [-15, 0, 0],
+        "left_shoulder": [-160, 0, 10], "right_shoulder": [-160, 0, 10],
+        "left_elbow": [-10, 0, 0], "right_elbow": [-10, 0, 0],
+        "left_hip": [-45, 0, 4], "right_hip": [-15, 0, 4],
+        "left_knee": [80, 0, 0], "right_knee": [50, 0, 0],
+        "left_ankle": [35, 0, 0], "right_ankle": [35, 0, 0]
+      },
+      "lift": [0, 0.15, 0]
+    },
+    {
+      "id": "reach_up",
+      "joints": {
+        "chest": [-5, 0, 6], "head": [-25, 0, 0],
+        "left_shoulder": [-170, 0, 5], "left_elbow": [-5, 0, 0],
+        "right_shoulder": [0, 0, 8], "right_elbow": [-12, 0, 0],
+        "left_hip": [0, 0, 3], "right_hip": [0, 0, 3],
+        "left_ankle": [20, 0, 0], "right_ankle": [20, 0, 0]
+      },
+      "lift": [0, 0.02, 0]
+    },
+    {
+      "id": "wave",
+      "joints": {
+        "neck": [0, -10, 0], "head": [0, -10, 0],
+        "left_shoulder": [0, 0, 8], "left_elbow": [-12, 0, 0],
+        "right_shoulder": [0, 90, 80], "right_elbow": [-100, 0, 0],
+        "left_hip": [0, 0, 3], "right_hip": [0, 0, 3]
+      }
+    }
+  ]
+}

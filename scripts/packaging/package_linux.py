@@ -15,7 +15,7 @@ import package_release as release
 
 APP_ID = appimage.APP_ID
 ARCHITECTURES = ("x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu")
-NOTICES = ("FONT_LICENSES.txt",)
+NOTICES = ("FONT_LICENSES.txt", "MODEL_LICENSES.txt")
 
 
 def desktop_files():

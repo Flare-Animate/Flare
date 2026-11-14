@@ -198,6 +198,7 @@ impl Workspace {
 
     pub fn set_frame(&mut self, frame: u32) {
         self.frame = frame.min(self.scene_frames() - 1);
+        self.refresh_selection();
     }
 
     /// Scrubbing in the timeline: the playhead may rest in the empty cells past the scene's
@@ -206,6 +207,7 @@ impl Workspace {
     pub(super) fn set_frame_in_view(&mut self, frame: u32, shown: u32) {
         let max = shown.max(self.scene_frames()).saturating_sub(1);
         self.frame = frame.min(max);
+        self.refresh_selection();
     }
 
     /// The steps of the history for a list: "Original" first, then each step in order, and

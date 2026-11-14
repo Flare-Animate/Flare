@@ -1,5 +1,4 @@
-//! The Publish popup: which formats to write, the button that writes them, and where to share
-//! what was made.
+//! The Publish popup: which formats to write, and the button that writes them.
 
 use super::*;
 
@@ -17,8 +16,6 @@ impl Workspace {
             "pubpop-formats",
             "pubpop-button",
             "pubpop-button-hint",
-            "pubpop-share",
-            "pubpop-share-hint",
         ]
         .into_iter()
         .map(|key| (key, self.tr(key)))
@@ -42,20 +39,6 @@ impl Workspace {
             ui.add_space(4.0);
             flare_ui::chrome::section(ui, "file-publish", &tr("pubpop-formats"));
             self.publish_settings_ui(ui);
-            flare_ui::chrome::section(ui, "link", &tr("pubpop-share"));
-            ui.weak(tr("pubpop-share-hint"));
-            ui.horizontal(|ui| {
-                for target in ShareTarget::ALL {
-                    // A place with nothing to fill in is a dimmed button until it can be.
-                    let live = target.prefills();
-                    let button = ui.add_enabled(live, egui::Button::new(target.label()));
-                    if !live {
-                        button.on_disabled_hover_text(flare_ui::chrome::NOT_YET);
-                    } else if button.clicked() {
-                        request = Some(DialogRequest::Share(target));
-                    }
-                }
-            });
             ui.add_space(10.0);
             let row = egui::vec2(ui.available_width(), ui.spacing().interact_size.y + 6.0);
             ui.allocate_ui_with_layout(
@@ -78,15 +61,12 @@ impl Workspace {
                 },
             );
         });
-        // Choosing where to save leaves the popup; sharing keeps it, so a person can share the
-        // same file in several places.
-        if request == Some(DialogRequest::Publish) {
+        // Choosing where to save leaves the popup.
+        if request.is_some() {
             self.windows.publish = false;
+            self.dialog = request;
         } else {
             self.windows.publish = !response.should_close();
-        }
-        if request.is_some() {
-            self.dialog = request;
         }
     }
 }

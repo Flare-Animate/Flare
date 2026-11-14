@@ -58,7 +58,7 @@ Drawing and tools
 - Perspective guides: one-, two- and three-point sets with editable vanishing points and a horizon, snapping, and no part of the exported artwork
 - Toon shading and lighting brushes: paint a chosen shadow or highlight level that stays at that level however often it is painted over, kept apart from the artwork so a recolor keeps the shading, with editable tone ramps
 - A reference board dock (images, notes, color picking and pinned views) that is saved with the project and never exported
-- A poseable mannequin for reference (joints, pose presets, adjustable proportions, a captured pose as a picture), not a 3D editor
+- A poseable 3D mannequin for reference: done (Window > Mannequin, `flare mannequin`, `picture_mannequin`, `place_mannequin`; see UI.md), with a view that is moved round like a 3D program's and a pose copied from a picture of a person, found there by itself (MoveNet on RTen) and corrected by its marks. Still to come: posing it on the stage itself, the hands, feet and head turned from a picture, a list of the person's own poses, keeping it in the project, and fingers that bend
 - Selecting objects inside a bitmap, as Photoshop's Object Selection does
 
 Timeline, symbols and library
@@ -92,10 +92,10 @@ Interface
 Formats
 - Reading the artwork and keyframes of the old binary `.fla` (CS4 and before); today its stage, library and layer metadata are read
 - Still and animated SVG export: a still frame exports from the desktop and browser menus now (as well as `flare export --format svg`); the animated SVG, Lottie and XDTS exports remain (WP-5)
-- `.sol` shared objects, importing video, and Moho projects
+- `.sol` shared objects, and Moho projects. Importing a video to draw over is done (File > Import > Import Video, `flare video-import`, `import_video`); still to come: its sound, a start point other than the video's first frame, and a browser decoder
 - Sprite export: sprite sheets and atlases of the stage or of one symbol or animation, with the pixels and the facts a game needs (frame durations, trim offsets, original sizes, pivots, animation names and loops), as PNG with JSON or a similar description
 - Layered PSD and PSB export with a Unity profile that keeps names, groups, bounds and order and bakes what Unity ignores (blend modes, opacity, effects) into the pixels
-- More video containers (MOV, MKV and AVI) where the encoder behind them supports the picture, sound and transparency asked for
+- More video containers (MKV and AVI; MOV is done, as the MP4 branded for QuickTime) made by Flare itself where the encoder behind them supports the picture, sound and transparency asked for
 
 Sharing and releases
 - Sharing from the Share menu to YouTube and other services
@@ -146,7 +146,7 @@ If drawing, exporting and playing do not all work well, Flare is not released. W
 5. **Bones**: done in code: the Bone tool links symbol instances into an armature layer, the Selection tool poses it by inverse kinematics (joint limits, roots that move the whole armature), poses are keyframes that tween, and every export, SWF and HTML5 shows them; the command line and the MCP server do the same. Still to do: someone using it by hand, bones inside a shape and the Bind tool, XFL import and export of the armature itself (Animate's IK format), and pinning a joint while the rest is dragged.
 6. **Timeline controls** good enough to animate with, and **Ruffle** playback proven against a real player.
 7. **SWF that keeps its symbols**: symbols are published as sprites, each on the clock its playback says, and a real Ruffle plays them as Flare does (done). Still to do: buttons as buttons with their states (`DefineButton2`; today a Button is a sprite showing its Up state), shape tweens as morphs (`DefineMorphShape`; today each step is its own shape), masks of several shapes, and sounds inside symbols. The HTML5 page is still baked.
-8. **Sharing the way Animate does it**: its Share menu logs in to YouTube and Twitter and uploads the exported video itself. That needs each service's API with credentials the project registers (YouTube is the practical first, now that MP4 exists); only Twitter's button is live (it fills in the post); the others are dimmed until then.
+8. **Sharing the way Animate does it**: its Share menu logs in to YouTube and Twitter and uploads the exported video itself. That needs each service's API with credentials the project registers (YouTube is the practical first, now that MP4 exists). The Publish popup's row of buttons that only opened each site was taken out: it shared nothing. Sharing comes back with the first upload that works.
 
 ## M2 remaining
 

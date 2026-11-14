@@ -23,10 +23,15 @@ impl Workspace {
         let margin = egui::Margin::symmetric(TOOLBAR_MARGIN as i8, 6);
         egui::Frame::new().inner_margin(margin).show(ui, |ui| {
             let size = egui::vec2(ui.available_width(), TOOLBAR_ROW);
+            // A timeline too narrow for every control carries the rest onto a second row of the
+            // same height, rather than losing them past its edge.
             ui.allocate_ui_with_layout(
                 size,
-                egui::Layout::left_to_right(egui::Align::Center),
-                |ui| self.timeline_toolbar_row(ui),
+                egui::Layout::left_to_right(egui::Align::Center).with_main_wrap(true),
+                |ui| {
+                    ui.spacing_mut().interact_size.y = TOOLBAR_ROW;
+                    self.timeline_toolbar_row(ui);
+                },
             );
         });
     }

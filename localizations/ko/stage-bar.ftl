@@ -14,6 +14,7 @@ bar-home = 홈
 bar-workspaces = 작업 영역
 bar-interface-switcher = 인터페이스 전환
 bar-commands = 명령
+bar-more-menus = 추가 메뉴
 bar-pause = 일시 정지
 bar-play = 재생
 bar-publish = 게시

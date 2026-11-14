@@ -15,7 +15,7 @@ fn the_file_menu_names_publishing_as_animate_does() {
         "Publish Settings...",
         "Publish",
         "Export Image...",
-        "Export Animated GIF...",
+        "Export Movie...",
     ] {
         assert!(
             labels.iter().any(|l| l == wanted),
@@ -55,6 +55,7 @@ fn the_choices_are_kept_with_the_other_preferences_and_old_files_still_load() {
         responsive: true,
         gif: true,
         mp4: true,
+        mov: true,
     };
     let saved = ws.preferences_json().expect("json");
     let mut fresh = workspace();

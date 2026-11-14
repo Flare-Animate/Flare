@@ -50,7 +50,7 @@ Flare 正在用 **Rust** 重写。它主要基于 *OpenToonz* 和 *Tahoma2D*，�
 - 桌面端的声音播放，以及在 Ruffle 中运行已发布 SWF 的“测试影片”。
 - 打开和保存 `.flare` 项目。导入和导出 Animate 的 XFL 与 `.fla`，并可将 Flash 影片（`.swf`）作为可编辑项目打开。
 - 导入 Moho 项目和 BVH 动作、OpenToonz 的 `.tnz` 场景和 `.pli` 关卡，以及图像和影片（SVG、PNG、JPEG、GIF、WebP、PSD、MP4、MOV、AVI、MKV、WebM、MPEG、FLV），作为可编辑的项目。
-- 导出 PNG、JPEG、GIF、APNG、动画 WebP、SVG、PSD 和 MP4，其他影片格式通过 ffmpeg 导出，并发布 SWF 或 HTML5 Canvas 页面。
+- 导出 PNG、JPEG、GIF、APNG、动画 WebP、SVG、PSD、MP4 和 MOV，其他影片格式通过 ffmpeg 导出，并发布 SWF 或 HTML5 Canvas 页面。
 - 面向脚本的命令行（`flare`）和面向智能体的 MCP 服务器（`flare-mcp`），可通过脚本创建、编辑、导出和发布项目。
 - 同一编辑器的浏览器版本。差异请参阅 [docs/WEB.md](../WEB.md)。
 

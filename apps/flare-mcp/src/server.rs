@@ -30,6 +30,8 @@ pub(crate) struct State {
     pub permissions: Permissions,
     /// Fonts the operator gave, known by name to text next to the system's.
     pub fonts: flare_runtime::ExtraFonts,
+    /// The ffmpeg and ffprobe videos are read with, when not those on PATH.
+    pub video_tools: Option<flare_ffmpeg::Tools>,
 }
 
 /// The open project behind a handle that rmcp can clone into each request.
@@ -56,6 +58,7 @@ impl FlareServer {
                 owned: false,
                 permissions,
                 fonts: flare_runtime::ExtraFonts::default(),
+                video_tools: None,
             })),
             tool_router: Self::router(),
         })
@@ -65,6 +68,14 @@ impl FlareServer {
     #[must_use]
     pub fn with_fonts(self, fonts: Vec<Vec<u8>>) -> Self {
         self.lock().fonts = std::sync::Arc::new(fonts);
+        self
+    }
+
+    /// Reads videos with these programs rather than the ffmpeg and ffprobe on PATH. Tests use
+    /// this so they do not depend on what a machine has installed.
+    #[must_use]
+    pub fn with_video_tools(self, tools: flare_ffmpeg::Tools) -> Self {
+        self.lock().video_tools = Some(tools);
         self
     }
 

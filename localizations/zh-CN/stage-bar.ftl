@@ -14,6 +14,7 @@ bar-home = 主页
 bar-workspaces = 工作区
 bar-interface-switcher = 界面切换器
 bar-commands = 命令
+bar-more-menus = 更多菜单
 bar-pause = 暂停
 bar-play = 播放
 bar-publish = 发布

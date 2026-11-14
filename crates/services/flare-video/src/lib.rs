@@ -1,4 +1,4 @@
-//! The movie as an MP4 video with its sound, made here, with no encoder to install: the picture
+//! The movie as an MP4 video, or a QuickTime movie, with its sound, made here, with no encoder to install: the picture
 //! is H.264 from `rusty_h264`, the sound AAC-LC from OxideAV's `oxideav-aac`, and `muxide` writes
 //! the container. All three are pure Rust.
 //!
@@ -11,6 +11,7 @@
 mod audio;
 mod color;
 mod ffmpeg_movie;
+mod quicktime;
 
 use std::io::Write;
 use std::path::Path;
@@ -124,6 +125,17 @@ pub(crate) fn picture_encoder(size: (u32, u32), fps: f64) -> Result<Encoder, Str
 /// when it is whole, and an existing file is never replaced. Errors are worded for the person
 /// who asked for the export.
 pub fn write_mp4(document: &Document, path: &Path) -> Result<(), String> {
+    write_movie(document, path, false)
+}
+
+/// Makes a QuickTime movie (`.mov`) of the first scene at `path`, as [`write_mp4`] does: the same
+/// H.264 picture and AAC sound, branded for QuickTime, with nothing to install.
+pub fn write_mov(document: &Document, path: &Path) -> Result<(), String> {
+    write_movie(document, path, true)
+}
+
+/// [`write_mp4`], or [`write_mov`] when `quicktime` is set.
+fn write_movie(document: &Document, path: &Path, quicktime: bool) -> Result<(), String> {
     let scene = document
         .scenes()
         .first()
@@ -211,6 +223,10 @@ pub fn write_mp4(document: &Document, path: &Path) -> Result<(), String> {
     muxer
         .finish()
         .map_err(|e| format!("Cannot finish the movie: {e}"))?;
+    if quicktime {
+        quicktime::rebrand(staged.as_file_mut())
+            .map_err(|e| format!("Cannot finish the movie: {e}"))?;
+    }
     staged
         .flush()
         .map_err(|e| format!("Cannot write the movie: {e}"))?;

@@ -34,3 +34,4 @@ swatches-yours = I tuoi campioni
 swatches-add = Tieni il colore attuale
 swatches-remove = Elimina campione
 swatches-full = I tuoi campioni sono pieni ({ $max }).
+strip-resize = Trascina per allargare o restringere il pannello

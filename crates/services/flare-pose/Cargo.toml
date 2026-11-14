@@ -1,0 +1,20 @@
+[package]
+name = "flare-pose"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+flare-import.workspace = true
+flare-mannequin.workspace = true
+rten.workspace = true
+rten-tensor.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+flare-runtime.workspace = true
+
+[lints]
+workspace = true

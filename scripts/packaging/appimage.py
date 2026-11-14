@@ -31,7 +31,7 @@ PINS = {
 }
 TOOL_URL = "https://github.com/AppImage/appimagetool/releases/download/{version}/appimagetool-{arch}.AppImage"
 RUNTIME_URL = "https://github.com/AppImage/type2-runtime/releases/download/{version}/runtime-{arch}"
-NOTICES = ("FONT_LICENSES.txt",)
+NOTICES = ("FONT_LICENSES.txt", "MODEL_LICENSES.txt")
 
 
 def architecture(target):

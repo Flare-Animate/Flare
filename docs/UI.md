@@ -106,7 +106,13 @@ Still planned (everything else in the menus and panels is built):
 
 The window has no system title bar, so the document's name is not written twice: the top bar takes its place. It is Animate's own bar: the home mark, the in-window menus where there is no native menu bar (File, Edit, View, Insert, Modify, Text, Commands, Control, Debug, Window and Help; Debug is dimmed, as Flare has no scripts to debug), and at the right Play, Publish and the workspace switcher, then the window buttons. The document's name is on its tab, undo and redo are in the Edit menu and on their keys, and Preferences are in the Edit menu. Empty space in the bar moves the window and a double click zooms it; the workspace asks and the desktop app does it (`WindowRequest`), so the UI crate stays free of window code.
 
+The corner is laid out first, from the bar's right end, with its last button centred over the rail's icons below it, and the menus get what is left; a window too narrow for every menu keeps the last ones in a "»" menu after the others rather than letting them run under the corner (`workspace/top_bar.rs`).
+
 On macOS the bar is 28 px high with room at the left for the window's own buttons. On Linux and Windows the window opens without the system's frame and the same bar carries its own minimize, maximize or restore, and close buttons at the right (close asks about unsaved work like Quit does); the window is resized from its edges and corners by the system's own resize (`drag_resize_window`), and `FLARE_SYSTEM_TITLEBAR=1` brings back the system's title bar for a window manager that does not get on with this. Not done: Windows 11's Snap Layouts flyout over the maximize button, which needs a hit-test hook that Flare's no-`unsafe` rule keeps out for now, and the shadow and rounded corners a compositor gives a framed window. This has been built and its logic tested on macOS only; it has not been run on Linux or Windows.
+
+### Small windows
+
+The desktop window is never smaller than 960 by 600 points (`MIN_WINDOW_SIZE`), the least the workspace is laid out for. When the window changes size the panels keep their width and the stage gives way, as in Animate: a split whose size changed keeps each side that does not hold the stage at its size in points, and the stage's side takes the rest, down to 240 points before the panels give way too (`flare_dock::keep_panel_sizes`, run before the dock is drawn). The tool strip is never narrower than one tool. The timeline's toolbar takes a second row when the timeline is too narrow for it, rather than losing its last buttons, and the status bar's message is cut short rather than run under the document's facts. `workspace/tests/narrow_window.rs` draws the workspace at the smallest size and at usual ones and checks that nothing is cut off at the window's edge or past the end of a bar.
 
 ## Screen readers
 
@@ -136,7 +142,7 @@ The workspace switcher sits at the top right, left of the gear, where Animate ha
 
 Each workspace keeps the changes made to it while it was in use, as Animate's do: switching away and back finds it as it was left. View > Reset Layout, or the arrow beside the one in use in the switcher, takes it back to how it was built in or saved. The switcher's New workspace field saves the arrangement on screen under a name (up to 40 characters, at most 20 of them; the same name in any case replaces the one saved) and makes it the one in use; the cross beside one of the person's own forgets it, and Essentials comes back when it was in use. A refusal says why in the status line. The workspaces are kept between sessions in the layout file with the arrangement on screen (`flare_dock::Workspaces`, at most 1 MiB); a file from before workspaces opens as Essentials arranged as it says, and a damaged one is refused and changes nothing. The panels and their arrangement belong to the window: the document is never touched.
 
-Publish (the button beside Play, and File > Publish) opens a popup in the middle of the window, like Preferences. It lists the formats (Flash .swf, HTML5 Canvas .html, animated GIF .gif, and MP4 .mp4, the picture as H.264 and the cued sounds as AAC, written by Flare itself with nothing to install; the browser build does not make MP4 yet), the Publish button, which then asks where to save, starting from the document's own folder and name (`scene.fla` publishes `scene.swf`, `scene.mp4` and the rest beside it; a new document is `Untitled`), and writes each format ticked side by side under the name chosen, and Share: Twitter, YouTube, Newgrounds and Facebook. Only Twitter's button is live: it opens x.com with the text of the post already filled in. YouTube, Newgrounds and Facebook have no address that carries anything in, so they are dimmed as not available yet until they can be filled in (YouTube through its API, once the project has credentials). Flare has no account on any of them and nothing is uploaded. Twitter is called Twitter in the interface and opens x.com, as artists still call it. File > Publish Settings shows the same format choices on their own. File > Export has Image, Animated GIF, Flash Document (a `.fla`, which Animate opens) and SVG (the frame on show, as a picture; animated SVG is not built).
+Publish (the button beside Play, and File > Publish) opens a popup in the middle of the window, like Preferences. It lists the formats (Flash .swf, HTML5 Canvas .html, animated GIF .gif, MP4 .mp4, the picture as H.264 and the cued sounds as AAC, and QuickTime .mov, the same picture and sound branded for QuickTime, both written by Flare itself with nothing to install; the browser build does not make either yet) and the Publish button, which then asks where to save, starting from the document's own folder and name (`scene.fla` publishes `scene.swf`, `scene.mp4` and the rest beside it; a new document is `Untitled`), and writes each format ticked side by side under the name chosen. There is no Share section: buttons that only opened YouTube or Twitter, with the file still to add by hand, were taken out until sharing can upload (see the roadmap). File > Publish Settings shows the same format choices on their own. File > Export has Image, Movie (an animated GIF, an MP4 or a QuickTime movie, chosen in the save dialog by the name's ending; a name with none is a GIF), Flash Document (a `.fla`, which Animate opens) and SVG (the frame on show, as a picture; animated SVG is not built).
 
 The command palette opens from the search button at the top right, or Ctrl+K (also with a native menu bar): a search box over every command and tool, matched by the letters of the query appearing in the name, run with a click or Enter, stepped through with the arrow keys, closed with Escape. It is AniCraft's (storytold/anicraft), re-implemented for Flare's command registry. A phone or tablet gets the touch form of the workspace: the panel rail, the dock's tab bar and every widget grow to finger sizes (`Workspace::set_touch`); the web build detects one and the Android build always uses it.
 
@@ -146,7 +152,7 @@ Language: the General category of Preferences has a Language list, "System local
 
 A selected Graphic instance has a Looping section in Properties, as Animate's does: Options (Loop, Play Once, Single Frame, Loop Reverse or Play Once Reverse; the last two count down from the First frame, wrapping or holding the symbol's first frame) and the First frame it starts on, counted from 1. Each change is one undo step. A Movie Clip, a Button, artwork or several selected things show no such section, because only a Graphic follows the setting (a Movie Clip loops from where its instance starts; a Button shows its Up state).
 
-The Timeline's frames are small fixed cells (10 points at the normal zoom), not the panel's width shared among them: the scene's frames are followed by empty cells to the panel's edge, and on to the end of the longest sound, so a sound longer than the scene can be scrolled to whole and its frames clicked. The layer names stay at the left while the frames scroll sideways, and the ruler stays at the top while the layers scroll down. The frame rate beside the frame field is a number field, as in Animate: drag it or click and type a rate from 0.01 to 240 frames a second (29.97 and 12.5 too), and it applies when let go or on Enter, as one undo step; the same field is in Properties > Doc, and both are dimmed while a symbol is being edited, since the rate belongs to the whole document. The edge between the names and the frames drags sideways to make the names column wider or narrower (120 to 600 points, 230 to start), and the width is kept with the preferences. The timeline's toolbar starts with what is done to layers, over their names as in Animate: New Layer, New Folder, the Folder menu, Motion Guide, Mask and Delete; the playback buttons, the frame field, the frame rate and the rest start over the frames, or just after the layer buttons when the column is narrower than they are. A sound's bar shows its waveform, and moving the paused playhead plays the stretch of sound under it. The zoom (Ctrl/Cmd and the wheel, or the buttons) widens or narrows them from 3 to 40 points, and Fit sets the zoom at which the scene fills the panel. Onion skin is the first of the two onion buttons in the timeline's toolbar; the second shows the ghosts as outlines, the two fields beside them are how many frames before and after are shown (up to 12 each), and the arrow after them opens its settings: Frames before and Frames after as sliders, Outlines, Tinted, the colors of earlier and later frames, and Reset colors. Tinted, as Animate's onion skin is by default, draws earlier frames in blue and later ones in green (lines in the color, fills in a pale shade of it, so the drawing still reads); off, each ghost is a faded copy in its own colors. While onion skin is on, the ruler shows its range as a band from the earliest ghost to the latest with a handle at each end in that side's color, and dragging a handle sets that side's range without moving the playhead. The range, outlines, tint and colors are kept with the preferences; whether onion skin is on is not, so a session starts with it off. Onion skin is a view of the stage and is never exported. While Loop playback is on, a bar along the top of the ruler shows the loop range, as Animate's does: faint over the whole scene until one of its handles is dragged, then strong over the frames that play round and round, so one stretch of a long scene can be watched while it is worked on. A playhead before the range plays on into it, and one after it goes to its start. A double click on the bar loops the whole scene again. The range belongs to the open document's tab, is cut to the scene if the scene gets shorter, and is never saved (`flare_editor::loop_range`). Edit Multiple Frames (the button after the onion buttons, View > Edit Multiple Frames, Alt+Shift+E as in Animate 2024) shows every keyframe in a range at full strength in its own colors and lets them be edited together, so a whole animation can be moved, scaled or turned and stay the same from frame to frame. Its bracket runs along the bottom of the ruler, over the whole scene until an end is dragged; a double click on it takes in the whole scene again. While it is on, a click picks what is under the pointer on the playhead's frame and then in the other keyframes shown (nearest first), and Select All and the Lasso take from all of them, on shown, unlocked layers; Move, the arrow keys and Free Transform then change them all as one undo step. Onion skin rests meanwhile, its markers hidden. At most 120 keyframes are drawn at once (`flare_tools::multi_frame`). The Selection tool has no drag-a-box marquee yet, so Select All or the Lasso takes everything.
+The Timeline's frames are small fixed cells (10 points at the normal zoom), not the panel's width shared among them: the scene's frames are followed by empty cells to the panel's edge, and on to the end of the longest sound, so a sound longer than the scene can be scrolled to whole and its frames clicked. The layer names stay at the left while the frames scroll sideways, and the ruler stays at the top while the layers scroll down. The frame rate beside the frame field is a number field, as in Animate: drag it or click and type a rate from 0.01 to 240 frames a second (29.97 and 12.5 too), and it applies when let go or on Enter, as one undo step; the same field is in Properties > Doc, and both are dimmed while a symbol is being edited, since the rate belongs to the whole document. The edge between the names and the frames drags sideways to make the names column wider or narrower (120 to 600 points, 230 to start), and the width is kept with the preferences. The timeline's toolbar starts with what is done to layers, over their names as in Animate: New Layer, New Folder, the Folder menu, Motion Guide, Mask and Delete; the playback buttons, the frame field, the frame rate and the rest start over the frames, or just after the layer buttons when the column is narrower than they are. A sound's bar shows its waveform, and moving the paused playhead plays the stretch of sound under it. The zoom (Ctrl/Cmd and the wheel, or the buttons) widens or narrows them from 3 to 40 points, and Fit sets the zoom at which the scene fills the panel. Onion skin is the first of the two onion buttons in the timeline's toolbar; the second shows the ghosts as outlines, the two fields beside them are how many frames before and after are shown (up to 12 each), and the arrow after them opens its settings: Frames before and Frames after as sliders, Outlines, Tinted, the colors of earlier and later frames, and Reset colors. Tinted, as Animate's onion skin is by default, draws earlier frames in blue and later ones in green (lines in the color, fills in a pale shade of it, so the drawing still reads); off, each ghost is a faded copy in its own colors. While onion skin is on, the ruler shows its range as a band from the earliest ghost to the latest with a handle at each end in that side's color, and dragging a handle sets that side's range without moving the playhead. The range, outlines, tint and colors are kept with the preferences; whether onion skin is on is not, so a session starts with it off. Onion skin is a view of the stage and is never exported. While Loop playback is on, a bar along the top of the ruler shows the loop range, as Animate's does: faint over the whole scene until one of its handles is dragged, then strong over the frames that play round and round, so one stretch of a long scene can be watched while it is worked on. A playhead before the range plays on into it, and one after it goes to its start. A double click on the bar loops the whole scene again. The range belongs to the open document's tab, is cut to the scene if the scene gets shorter, and is never saved (`flare_editor::loop_range`). Edit Multiple Frames (the button after the onion buttons, View > Edit Multiple Frames, Alt+Shift+E as in Animate 2024) shows every keyframe in a range at full strength in its own colors and lets them be edited together, so a whole animation can be moved, scaled or turned and stay the same from frame to frame. Its bracket runs along the bottom of the ruler, over the whole scene until an end is dragged; a double click on it takes in the whole scene again. While it is on, a click picks what is under the pointer on the playhead's frame and then in the other keyframes shown (nearest first), and Select All and the Lasso take from all of them, on shown, unlocked layers; Move, the arrow keys and Free Transform then change them all as one undo step. Onion skin rests meanwhile, its markers hidden. At most 120 keyframes are drawn at once (`flare_tools::multi_frame`). The Selection tool has no drag-a-box marquee yet, so Select All or the Lasso takes everything. The Selection and Free Transform tools pick a picture (a bitmap) anywhere in its rectangle when no shape is under the pointer, so it can be moved, scaled and turned; the tools that paint, erase or edit points keep to shapes.
 
 A click on any cell, an empty one past the layer's end too, makes its layer the active one, puts
 the playhead on it and shows it selected in Animate's blue (as are frames selected with Shift); the
@@ -290,9 +296,9 @@ change is one undo step.
 ## Icon strip
 
 The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
-kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor and Find and
-Replace. A click opens that panel beside the strip, 300 px wide and level with its icon, over the
-stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
+kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor, Find and
+Replace and Mannequin. A click opens that panel beside the strip, 300 px wide (its left edge drags
+it wider or narrower) and level with its icon, over the stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
 a press on the stage or another panel puts it away (a list or picker the panel opened does not).
 Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
 collapse it. A docked panel goes the other way from the collapse button at the right of its
@@ -519,6 +525,95 @@ gradient's end), and pointing at one shows its hex value. The + keeps the color 
 of the person's own (each color once, at most 120; a full list says so), and a right click on one
 of them deletes it. They are kept with the preferences, not in the document. The web-safe colors
 are the web's standard palette, not Animate's artwork.
+
+## Mannequin
+
+The Mannequin panel (Window > Mannequin, in the icon strip by default) is a 3D figure to pose and
+draw from, as Clip Studio's 3D drawing figures are: a smooth male or female body, pale grey and
+lit from the upper left, with guide lines round and along it (the lines down the middle of the
+front and back in orange), an outline, and its shadow on a floor grid. Posing works as it does
+with such a figure. A drag on any part pulls it and the body follows: a hand, forearm, foot or
+shin brings the arm or leg with it, an upper arm, thigh, the head or the chest swings about its
+joint, and the hips move the whole body. Pinned hands and feet stay where they are (both feet
+start pinned, so the hips dragged down crouch over them). A right click on a hand or foot, or the
+Pinned toggles under the view, pins or frees it. A click picks a part, tints it, and shows three
+rings round its joint (bend red, twist green, side blue, the half toward the viewer bold); a drag
+along a ring turns the joint about that axis alone. With Alt a drag turns a part about the line of
+sight. A drag anywhere else turns the view round what it looks at, a right or middle drag (or
+Shift) slides it across, and scrolling or pinching zooms toward the pointer (Shift-scrolling
+slides); none of it scrolls the panel. A double click on a part makes the view look at that part
+and turn round it; on nothing, it frames the whole figure, wherever it was moved to. In the view's
+top right corner: Zoom out, Zoom in, Frame the figure, and a menu of the sides to see it square
+from (Front, Back, Left, Right, Top, Bottom). The view has no keys of its own: the arrow and letter
+keys stay the stage's. Every joint stops where a body does: a knee bends one way, a
+neck turns so far. Above the view: Reset view, guide lines on or off, pin both feet, and at the
+right the expand button, which makes the panel wide and the view tall (again to put it back). A
+grip under the view drags it taller or shorter (a double click puts it back). Under the view, Pose
+from a Picture: Import Picture brings in a picture of a person (any picture kind Flare imports),
+and the figure takes their pose by itself: the person is found in the picture (a pose detector
+built into Flare, which works offline; a spinner shows while the picture is read and looked in),
+and the figure turns to face the picture, which stands behind it, see-through, the figure over
+the person, and turns with it. The joints found show as fourteen marks, a stick figure (the
+person's left side blue, their right orange). A mark that is wrong is dragged onto the person's
+head, neck, shoulder, elbow, hand, hip, knee or foot, and a right click on one steps it through
+auto, nearer (+) and farther (−) than the part it hangs from, for what a flat picture cannot tell;
+Copy Pose then poses the figure again. With no one found, the panel says so and the marks start on
+the figure's joints, to drag onto the person by hand. Copy Pose poses the figure from the marks,
+turns it to the front and moves the picture so the figure stands over the person; with too few
+marks (both hips and the neck at least) it says so and changes nothing. Marks on the Figure puts
+the marks back where the figure's joints are, Show the marks hides them, Opacity, Remove Picture
+and Import Picture again for another. The picture is only looked at: it is not in the document,
+the preferences or an export. Then: the
+body, the built-in poses (Stand, T-Pose, A-Pose, Walk, Run, Sit, Crouch, Kneel, Jump, Reach Up,
+Wave), Mirror and Reset; Pinned; Bend, Twist and Side sliders for the picked joint (and Raise for
+the whole body); Proportions (head, shoulders, hips, arms, legs, torso and build); and View (turn,
+tilt, perspective, zoom, and Front, Side and Back).
+
+On the Stage shows the figure over the stage, see-through, at a place and height of its own (the
+middle of the stage, four fifths of its height, to start); it is only drawn on the screen and is
+never in the document or an export. Place on a Layer puts it, shaded as the view shows it, as a
+picture where Place Into says, as one undo step: New layer, a layer named Mannequin at the top of
+the scene from the playhead to the end, drawn at half opacity while editing; This keyframe, the
+active layer's keyframe at the playhead beside what it holds, so several figures share the same
+frames; or New keyframe here, a keyframe of its own on the active layer from the playhead (the one
+shown there is cut short), so each stretch of frames of one layer can hold another pose. Where the
+layer shows nothing at the playhead either of the last two starts a keyframe up to the layer's
+next one; a locked or hidden layer, a folder, mask, guide or camera layer is refused with the
+reason. The same pose placed again shows the picture the library already has. The placed figure
+is selected with Free Transform: drag it to move it and its handles to scale, turn or skew it, as
+any picture (the Selection tool picks it again anywhere in its rectangle; lock the layer to draw
+over it without picking it). It is artwork like any other, so it is hidden or deleted before
+export. The figure is kept with the preferences, not in the document.
+
+## Import Video
+
+File > Import > Import Video brings a movie in to draw over, as Animate's embedded video plays
+along the timeline. After the file is picked, ffprobe is asked what it is (on the video worker,
+so the window never waits) and the Import Video dialog opens with the file's name, size, rate and
+length, and the choices: Frame rate, how many pictures are taken from each second of the video,
+each one frame of the timeline (the document's rate to start, which keeps the video's timing; a
+button sets the document's and one the video's own); Import at most, the most of the video read
+from its start, in minutes (as much of the first minute as fits, to start); Longest side, the size
+each picture is kept at (960 pixels to start, never enlarged; the video is fitted to the stage
+whatever it is); and Opacity, how see-through the layer is while editing (half, to start). Under
+them the dialog says, as each choice changes, what it makes: how many frames and how much of the
+video, how long the frames last at the document's rate and whether that keeps the video's timing
+(12 pictures a second in a 24 fps document play at 200% of its speed, and it says which rate
+would keep it), and the megabytes the pictures take of the room the document has. Pictures are
+kept decoded, so a document holds 1 GiB of them and 4096 at most: a video that does not fit says
+so in red with a button for the longest length that fits and one for the largest size, and Import
+stays dimmed; above 256 MB it says in amber that the project will be slow to save and open. The
+note under it says where the video goes and to hide or delete its layer before exporting.
+
+Import (or Enter) reads the pictures on the video worker while a progress window counts them;
+Cancel or Escape stops the reading and changes nothing. The pictures become one Graphic symbol
+named after the file, a picture to a frame (a picture that repeats, as in a still shot, is kept
+once and held), and an instance of it plays once on a new layer at the bottom of the scene from
+the playhead, for as many frames as there are pictures, drawn see-through. It is one undo step.
+The instance is selected with Free Transform, so the video is lined up straight away: moving,
+scaling or turning it moves every picture, since they are one symbol. The Selection tool picks it
+again anywhere in its pictures' rectangle; lock the layer to draw over it without picking it. In
+the browser the menu item is dimmed: reading a movie needs ffmpeg, which a page does not have.
 
 ## Info panel
 

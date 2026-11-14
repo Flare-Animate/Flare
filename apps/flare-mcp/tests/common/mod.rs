@@ -52,10 +52,39 @@ pub async fn serve(
     exports: bool,
     fonts: Vec<Vec<u8>>,
 ) -> Fixture {
+    serve_with(dir, path, write, exports, |server| server.with_fonts(fonts)).await
+}
+
+/// A writable server for the default project, with exports, that reads videos with `tools`.
+pub async fn fixture_with_video_tools(
+    make_tools: impl FnOnce(&std::path::Path) -> flare_ffmpeg::Tools,
+) -> Fixture {
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let document = Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("doc");
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("p.flare");
+    flare_storage::save(&document, &path).expect("save");
+    let tools = make_tools(dir.path());
+    serve_with(dir, path, true, true, |server| {
+        server.with_video_tools(tools)
+    })
+    .await
+}
+
+/// A server for the project file `path` in `dir`, set up further by `configure`.
+pub async fn serve_with(
+    dir: tempfile::TempDir,
+    path: PathBuf,
+    write: bool,
+    exports: bool,
+    configure: impl FnOnce(FlareServer) -> FlareServer,
+) -> Fixture {
     let export_dir = exports.then(|| dir.path().join("exports"));
-    let server = FlareServer::open(path.clone(), Permissions { write, export_dir })
-        .expect("open")
-        .with_fonts(fonts);
+    let server = configure(
+        FlareServer::open(path.clone(), Permissions { write, export_dir }).expect("open"),
+    );
     let (server_io, client_io) = tokio::io::duplex(64 * 1024);
     tokio::spawn(async move {
         if let Ok(running) = server.serve(server_io).await {

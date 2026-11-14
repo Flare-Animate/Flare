@@ -50,7 +50,7 @@ Feitas na versão para navegador, que executa o mesmo editor do aplicativo de de
 - Reprodução de som no desktop, e Testar Filme, que executa o SWF publicado no Ruffle.
 - Abrir e salvar projetos `.flare`. Importar e exportar XFL e `.fla` do Animate, e abrir filmes Flash (`.swf`) como projetos editáveis.
 - Importar projetos Moho e movimento BVH, cenas `.tnz` e níveis `.pli` do OpenToonz, e arte e filmes (SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV) como projetos editáveis.
-- Exportar PNG, JPEG, GIF, APNG, WebP animado, SVG, PSD e MP4, outros formatos de vídeo pelo ffmpeg, e publicar um SWF ou uma página HTML5 Canvas.
+- Exportar PNG, JPEG, GIF, APNG, WebP animado, SVG, PSD, MP4 e MOV, outros formatos de vídeo pelo ffmpeg, e publicar um SWF ou uma página HTML5 Canvas.
 - Uma linha de comando (`flare`) e um servidor MCP (`flare-mcp`) para agentes, para criar, editar, exportar e publicar projetos a partir de scripts.
 - Uma versão para navegador do mesmo editor. Veja [docs/WEB.md](../WEB.md) para saber o que ela faz de forma diferente.
 

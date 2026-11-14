@@ -126,14 +126,12 @@ fn the_publish_popup_and_its_format_names_follow_the_language() {
     for wanted in [
         "Publicar",
         "Formatos",
-        "Compartir",
         "GIF animado (.gif)",
+        "Película QuickTime (.mov)",
         "Cerrar",
     ] {
         assert!(has(&all, wanted), "{wanted}: {all:?}");
     }
-    // The places to share are names, the same in every language.
-    assert!(has(&all, "Twitter") && has(&all, "Facebook"));
 }
 
 #[test]

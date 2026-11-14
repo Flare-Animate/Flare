@@ -158,6 +158,7 @@ def package(version, target, binary, output):
         executable.chmod(0o755)
         shutil.copy2(ROOT / "LICENSE", payload / "LICENSE")
         shutil.copy2(ROOT / "packaging/FONT_LICENSES.txt", payload / "FONT_LICENSES.txt")
+        shutil.copy2(ROOT / "packaging/MODEL_LICENSES.txt", payload / "MODEL_LICENSES.txt")
         shutil.copy2(ROOT / "CHANGELOG.md", payload / "CHANGELOG.md")
         if "windows" in target:
             with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as stream:

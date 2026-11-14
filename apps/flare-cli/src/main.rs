@@ -3,11 +3,13 @@
 
 mod commands;
 mod game;
+mod mannequin;
 mod project;
 mod shortcuts;
 mod stopmotion;
 mod symbol;
 mod tween;
+mod video;
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -122,6 +124,8 @@ fn run() -> Result<()> {
         Command::Tween { op } => tween::run(op)?,
         Command::Game { op } => game::run(op)?,
         Command::Shortcuts { op } => shortcuts::run(op)?,
+        Command::Mannequin { op } => mannequin::run(*op)?,
+        Command::VideoImport(args) => video::run(args)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
@@ -402,7 +406,7 @@ fn run() -> Result<()> {
                         project::ExportFormat::AnimatedWebp => {
                             project::export_animated_webp(&path, &out)?
                         }
-                        project::ExportFormat::Mov => project::export_movie(&path, &out, "mov")?,
+                        project::ExportFormat::Mov => project::export_mov(&path, &out)?,
                         project::ExportFormat::Avi => project::export_movie(&path, &out, "avi")?,
                         project::ExportFormat::Mkv => project::export_movie(&path, &out, "mkv")?,
                         project::ExportFormat::Webm => project::export_movie(&path, &out, "webm")?,

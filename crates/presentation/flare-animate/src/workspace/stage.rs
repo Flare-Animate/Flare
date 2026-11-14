@@ -370,6 +370,7 @@ impl Workspace {
         }
 
         self.stage_motion_guides(painter, to_screen);
+        self.stage_mannequin(painter, &to_screen);
         self.draw_pen_path(painter, &to_screen);
 
         let outline = Stroke::new(1.5, Color32::from_rgb(40, 120, 255));

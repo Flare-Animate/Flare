@@ -1,13 +1,15 @@
 dlg-filter-project = Proyecto de Flare
 dlg-filter-sound = Sonido
+dlg-filter-video = Vídeo
 dlg-filter-png = Imagen PNG
 dlg-filter-gif = Animación GIF
+dlg-filter-mp4 = Vídeo MP4
+dlg-filter-mov = Película QuickTime
 dlg-filter-fla = Documento de Flash
 dlg-filter-svg = Imagen SVG
 dlg-publish = Publicar
 dlg-cannot-export = No se puede exportar
 dlg-export-failed = Falló la exportación
-dlg-cannot-open-browser = No se puede abrir el navegador
 dlg-choose-format = Elige primero un formato en la configuración de publicación.
 dlg-cannot-publish = No se puede publicar
 dlg-cannot-start-movie = No se puede iniciar «Probar película»

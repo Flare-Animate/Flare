@@ -44,6 +44,8 @@ mod home_list;
 mod language;
 mod layer_names;
 mod layers;
+mod mannequin;
+mod mannequin_reference;
 mod open_any;
 mod outlines;
 mod palette;
@@ -87,8 +89,11 @@ mod timeline_names_edge;
 mod timeline_rows;
 mod timeline_sound;
 mod tool_kind;
+mod top_bar;
 mod top_bar_classic;
 mod types;
+mod video_dialog;
+mod video_import;
 
 use dock::*;
 use helpers::*;
@@ -96,11 +101,11 @@ use types::*;
 pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 255);
 pub use flare_audio::AudioEvent;
 pub use flare_tools::brush::BrushPreset;
+pub use furniture::MIN_WINDOW_SIZE;
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use publish_settings::PublishSettings;
 pub use types::{
-    DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, ShareTarget, Tool, WindowRequest,
-    onion_ghosts,
+    DialogRequest, FrameOp, MAX_ONION_FRAMES, OnionSkin, Tool, WindowRequest, onion_ghosts,
 };
 
 pub struct Workspace {
@@ -209,9 +214,9 @@ pub struct Workspace {
     frame_range: Option<FrameRange>,
     /// What Copy Frames remembered, for Paste Frames.
     frame_clipboard: Option<frames::FrameClip>,
-    /// The document state the selection was last checked against, so an unchanged document is
-    /// not rechecked every frame.
-    selection_checked: Option<(u64, u64)>,
+    /// The document state and playhead the selection was last checked against, so an unchanged
+    /// one is not rechecked every frame.
+    selection_checked: Option<selection::SelectionStamp>,
     /// Bounds of the selected spans, for the document state and selection they were made for.
     selection_rects_cache: std::cell::RefCell<Option<SelectionRects>>,
     /// How close, in stage units, a press must be to a scale handle to grab it.
@@ -328,6 +333,10 @@ pub struct Workspace {
     styled_touch: Option<bool>,
     /// The command palette's state.
     search_palette: palette::Palette,
+    /// The reference mannequin and the panel's view of it.
+    mannequin: mannequin::MannequinState,
+    /// A video being brought in: probed, asked about or read.
+    video_import: video_import::VideoImport,
 }
 
 impl Workspace {
@@ -468,6 +477,8 @@ impl Workspace {
             touch: false,
             styled_touch: None,
             search_palette: palette::Palette::default(),
+            mannequin: mannequin::MannequinState::default(),
+            video_import: video_import::VideoImport::default(),
         }
     }
 }

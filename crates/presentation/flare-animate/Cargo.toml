@@ -18,6 +18,7 @@ flare-editor.workspace = true
 flare-eval.workspace = true
 flare-history.workspace = true
 flare-import.workspace = true
+flare-pose.workspace = true
 flare-i18n.workspace = true
 flare-input.workspace = true
 flare-menubar.workspace = true
@@ -27,6 +28,7 @@ flare-runtime.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
 flare-tools.workspace = true
+flare-mannequin.workspace = true
 flare-tween.workspace = true
 flare-ui.workspace = true
 glamx.workspace = true
@@ -35,6 +37,7 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+flare-ffmpeg.workspace = true
 flare-export.workspace = true
 flare-publish.workspace = true
 zip = { workspace = true, features = ["deflate"] }

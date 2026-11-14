@@ -14,6 +14,7 @@ bar-home = Начальная страница
 bar-workspaces = Рабочие среды
 bar-interface-switcher = Переключатель интерфейса
 bar-commands = Команды
+bar-more-menus = Другие меню
 bar-pause = Пауза
 bar-play = Воспроизведение
 bar-publish = Опубликовать

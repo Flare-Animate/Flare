@@ -19,6 +19,8 @@ pub struct PublishSettings {
     pub gif: bool,
     /// Write an MP4 video (`.mp4`).
     pub mp4: bool,
+    /// Write a QuickTime movie (`.mov`).
+    pub mov: bool,
 }
 
 impl Default for PublishSettings {
@@ -32,6 +34,7 @@ impl Default for PublishSettings {
             responsive: false,
             gif: false,
             mp4: false,
+            mov: false,
         }
     }
 }
@@ -39,7 +42,7 @@ impl Default for PublishSettings {
 impl PublishSettings {
     /// Whether anything is switched on to publish.
     pub fn any(&self) -> bool {
-        self.swf || self.html5 || self.gif || self.mp4
+        self.swf || self.html5 || self.gif || self.mp4 || self.mov
     }
 }
 
@@ -67,6 +70,7 @@ impl Workspace {
         });
         ui.checkbox(&mut self.publish.gif, tr.text("pubpop-format-gif"));
         ui.checkbox(&mut self.publish.mp4, tr.text("pubpop-format-mp4"));
+        ui.checkbox(&mut self.publish.mov, tr.text("pubpop-format-mov"));
         if !self.publish.any() {
             ui.colored_label(flare_ui::theme::warning(), tr.text("pubpop-nothing-chosen"));
         }
