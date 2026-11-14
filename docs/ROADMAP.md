@@ -40,7 +40,7 @@ that this documentation change resolves them.
 - Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
-- Editable keyboard shortcuts: done in part (registry, four sets, editor, CLI and MCP; chords other than tool letters are still dispatched by fixed code, see SURFACES)
+- Editable keyboard shortcuts: done (registry, four sets, editor, CLI and MCP; every chord — a command on Ctrl, Cmd, Alt or a function key — is dispatched from the map in the window, see SURFACES)
 
 ### Lower priority
 

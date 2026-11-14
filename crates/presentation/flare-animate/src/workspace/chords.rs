@@ -4,28 +4,32 @@
 
 use crate::workspace::*;
 use egui::{Key, Modifiers};
-use flare_menubar::MenuAction;
+use flare_menubar::{Accelerator, MenuAction};
 
-/// The commands a chord runs in the window. The rest of the menu is reached from the menu
-/// itself; Copy, Cut and Paste arrive as events, which text fields keep.
-const CHORD_ACTIONS: [MenuAction; 16] = [
-    MenuAction::Undo,
-    MenuAction::Redo,
-    MenuAction::Save,
-    MenuAction::CopyFrames,
-    MenuAction::PasteFrames,
-    MenuAction::Preferences,
-    MenuAction::Duplicate,
-    MenuAction::ConvertToSymbol,
-    MenuAction::InsertFrame,
-    MenuAction::RemoveFrame,
-    MenuAction::InsertKeyframe,
-    MenuAction::ClearKeyframe,
-    MenuAction::InsertBlankKeyframe,
-    MenuAction::ZoomIn,
-    MenuAction::ZoomOut,
-    MenuAction::CommandPalette,
-];
+/// Whether the accelerator is a chord at all: it carries Ctrl or Cmd, or Alt, or it is a
+/// function key. A bare letter or digit is not one: that is the tool keys' form, and a command
+/// on one would take the key from every text field (meta.rs, `shortcut`'s rule).
+fn is_chord(accel: &Accelerator) -> bool {
+    accel.has_command() || accel.has_alt() || is_f_key(accel.key())
+}
+
+/// Whether a key name is a function key, from its name in the accelerator (`F5` and the like).
+fn is_f_key(name: &str) -> bool {
+    match name.strip_prefix('f').or_else(|| name.strip_prefix('F')) {
+        Some(digits) => !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()),
+        None => false,
+    }
+}
+
+/// The commands whose chords must not run here, because they arrive as events: Copy, Cut and
+/// Paste are the text fields' own while one is being edited, so a bound chord would act twice.
+/// Their frames forms (CopyFrames and the like) are separate commands and stay.
+fn arrives_as_event(action: MenuAction) -> bool {
+    matches!(
+        action,
+        MenuAction::Copy | MenuAction::Cut | MenuAction::Paste
+    )
+}
 
 /// Whether a text field being edited keeps the chord for itself. Undo, Redo, Save and the like
 /// still act, as they always did; commands on the selection or the frames wait.
@@ -61,7 +65,7 @@ impl Workspace {
             .shortcuts
             .entries()
             .into_iter()
-            .filter(|(action, _)| CHORD_ACTIONS.contains(action))
+            .filter(|(action, accel)| is_chord(accel) && !arrives_as_event(*action))
             .filter_map(|(action, accel)| {
                 let key = Key::from_name(accel.key())?;
                 let mods = Modifiers {
