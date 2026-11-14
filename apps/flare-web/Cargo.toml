@@ -13,6 +13,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 flare-animate.workspace = true
+flare-import.workspace = true
 flare-menubar.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

@@ -54,6 +54,9 @@ pub enum ProfileKind {
     Bundle,
 }
 
+/// The file endings a pen-profile picker offers: the kinds [`import_profile_bytes`] reads.
+pub const PROFILE_EXTENSIONS: &[&str] = &["abr", "kpp", "bundle"];
+
 /// Which of the kinds `path` names, by its extension.
 pub fn profile_kind(path: &Path) -> Option<ProfileKind> {
     let extension = path.extension()?.to_str()?.to_ascii_lowercase();

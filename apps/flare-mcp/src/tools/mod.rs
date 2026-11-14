@@ -2,6 +2,7 @@
 //! edit commands, frame operations and renderer that the CLI and desktop app use.
 
 mod bones;
+mod brushes;
 mod draw;
 mod export;
 mod game;
@@ -38,6 +39,7 @@ impl FlareServer {
             + Self::multi_frame_tools()
             + Self::history_tools()
             + Self::bone_tools()
+            + Self::brush_tools()
             + Self::stopmotion_tools()
             + Self::sound_tools()
             + Self::tween_tools()

@@ -2827,6 +2827,7 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-export",
+ "flare-import",
  "flare-input",
  "flare-menubar",
  "flare-publish",

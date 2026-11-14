@@ -106,3 +106,11 @@ msg-magic-wand = Zauberstab: { $reason }
 msg-magic-wand-changed = Das Dokument hat sich geändert, während die Pixel gelöscht wurden; es wurde nichts gelöscht
 msg-blend = Weichzeichner und Wischfinger: { $reason }
 msg-blend-changed = Das Dokument hat sich während des Strichs geändert, daher wurde der Rest nicht aufgetragen
+
+brushes-imported = { $n ->
+    [one] { $n } Pinselvoreinstellung importiert.
+   *[other] { $n } Pinselvoreinstellungen importiert.
+}
+brushes-import-refused = Die Pinselvoreinstellungen konnten nicht importiert werden: { $reason }
+brushes-import-note = Aus der Pinselvoreinstellungsdatei: { $line }
+brushes-shelf-full = Die Pinselliste ist voll; die Voreinstellungen wurden nicht importiert. Lösche einen Pinsel, um Platz zu schaffen.

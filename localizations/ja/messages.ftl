@@ -98,3 +98,8 @@ msg-magic-wand = 魔法の杖：{ $reason }
 msg-magic-wand-changed = ピクセルの消去中にドキュメントが変更されたため、何も消去されませんでした
 msg-blend = ぼかしと指先: { $reason }
 msg-blend-changed = ストロークの描画中にドキュメントが変わったため、残りは適用されませんでした
+
+brushes-imported = { $n } 個のブラシプリセットを読み込みました
+brushes-import-refused = ブラシプリセットを読み込めませんでした: { $reason }
+brushes-import-note = ブラシプリセットファイルから: { $line }
+brushes-shelf-full = ブラシ リストがいっぱいのため、プリセットは読み込まれませんでした。ブラシを削除して空きを作ってください。

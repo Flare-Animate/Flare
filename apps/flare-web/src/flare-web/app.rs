@@ -28,6 +28,8 @@ pub struct WebApp {
     /// Animate shortcut files picked, read on the next frame.
     picked_shortcuts: Rc<RefCell<Vec<Picked>>>,
     picked_references: Rc<RefCell<Vec<Picked>>>,
+    /// Pen-profile files picked, kept on the brush list on the next frame.
+    picked_brushes: Rc<RefCell<Vec<Picked>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// The preferences as last written, so storage is touched only when they change.
@@ -48,6 +50,7 @@ impl WebApp {
             picked_sounds: Rc::default(),
             picked_shortcuts: Rc::default(),
             picked_references: Rc::default(),
+            picked_brushes: Rc::default(),
             messages: Rc::default(),
             saved_preferences,
             last_name: None,
@@ -263,6 +266,33 @@ impl WebApp {
                 .messages
                 .borrow_mut()
                 .push(self.workspace.interface_text("video-browser")),
+            DialogRequest::ImportBrushProfiles => {
+                let (inbox, messages, ctx) = (
+                    Rc::clone(&self.picked_brushes),
+                    Rc::clone(&self.messages),
+                    ctx.clone(),
+                );
+                let filter = self.workspace.interface_text("dlg-filter-brushes");
+                wasm_bindgen_futures::spawn_local(async move {
+                    match files::pick_bounded(
+                        &filter,
+                        flare_import::brushes::PROFILE_EXTENSIONS,
+                        flare_import::brushes::MAX_OWNED_BYTES as usize,
+                    )
+                    .await
+                    {
+                        Ok(Some((name, bytes))) => {
+                            inbox.borrow_mut().push(Picked { name, bytes });
+                            ctx.request_repaint();
+                        }
+                        Ok(None) => {}
+                        Err(error) => {
+                            messages.borrow_mut().push(error.to_string());
+                            ctx.request_repaint();
+                        }
+                    }
+                });
+            }
             DialogRequest::ImportSound => {
                 let (inbox, messages, ctx) = (
                     Rc::clone(&self.picked_sounds),
@@ -450,6 +480,11 @@ impl eframe::App for WebApp {
         for file in references {
             self.workspace
                 .import_mannequin_reference_bytes(&file.name, file.bytes);
+        }
+        let brushes: Vec<Picked> = self.picked_brushes.borrow_mut().drain(..).collect();
+        for file in brushes {
+            self.workspace
+                .import_brush_profiles(&file.name, &file.bytes);
         }
         let messages: Vec<String> = self.messages.borrow_mut().drain(..).collect();
         for message in messages {

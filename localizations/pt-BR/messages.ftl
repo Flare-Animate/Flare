@@ -106,3 +106,11 @@ msg-magic-wand = Varinha mágica: { $reason }
 msg-magic-wand-changed = O documento mudou enquanto os pixels eram apagados, então nada foi apagado
 msg-blend = Desfocar e Borrar: { $reason }
 msg-blend-changed = O documento mudou enquanto o traço era desenhado, então o resto não foi aplicado
+
+brushes-imported = { $n ->
+    [one] Importada { $n } predefinição de pincel.
+   *[other] Importadas { $n } predefinições de pincel.
+}
+brushes-import-refused = Não é possível importar as predefinições de pincel: { $reason }
+brushes-import-note = Do arquivo de predefinições de pincel: { $line }
+brushes-shelf-full = A lista de pincéis está cheia; as predefinições não foram importadas. Exclua um pincel para abrir espaço.

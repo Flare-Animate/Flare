@@ -83,6 +83,11 @@ pub(crate) enum Command {
     /// import makes (frames, memory, the animation's length at the document's rate) and refuses
     /// one too large for the document, saying what would fit. Needs ffmpeg on the PATH.
     VideoImport(crate::video::VideoImportArgs),
+    /// Read another art tool's pen profiles (Photoshop `.abr`, Krita `.kpp` or `.bundle`) and
+    /// print them as Flare's brush presets, with notes of what the file held that does not map.
+    /// The same reading the desktop app's File > Import > Import Brush Presets uses. With
+    /// `--out` also writes them as Flare's portable brush-profile file.
+    BrushImport(crate::brush::BrushImportArgs),
     /// How loud each sound is on every frame from its cue (`[low, high]` samples), to animate to.
     SoundWaveform {
         path: PathBuf,

@@ -1,6 +1,7 @@
 //! Flare CLI: inspection, rational timing and headless project editing.
 #![forbid(unsafe_code)]
 
+mod brush;
 mod commands;
 mod game;
 mod mannequin;
@@ -126,6 +127,7 @@ fn run() -> Result<()> {
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(*op)?,
         Command::VideoImport(args) => video::run(args)?,
+        Command::BrushImport(args) => brush::run(args)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,

@@ -35,6 +35,9 @@ pub enum MenuAction {
     ImportSound,
     /// File > Import > Import Video: a movie on a layer of its own, to draw over.
     ImportVideo,
+    /// File > Import > Import Brush Presets: another art tool's pen profiles
+    /// (Photoshop `.abr`, Krita `.kpp` or `.bundle`) onto the brush list.
+    ImportBrushProfiles,
     ExportImage,
     ExportMovie,
     ExportFla,
@@ -177,7 +180,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 140] = [
+    pub const ALL: [MenuAction; 141] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -187,6 +190,7 @@ impl MenuAction {
         Self::PublishSettings,
         Self::ImportSound,
         Self::ImportVideo,
+        Self::ImportBrushProfiles,
         Self::ExportImage,
         Self::ExportMovie,
         Self::ExportFla,

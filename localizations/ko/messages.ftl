@@ -98,3 +98,8 @@ msg-magic-wand = 마술봉: { $reason }
 msg-magic-wand-changed = 픽셀을 지우는 동안 문서가 바뀌어 아무것도 지우지 않았습니다
 msg-blend = 흐리기와 손끝: { $reason }
 msg-blend-changed = 획을 그리는 동안 문서가 바뀌어 나머지는 적용되지 않았습니다
+
+brushes-imported = 브러시 프리셋 { $n }개를 가져왔습니다
+brushes-import-refused = 브러시 프리셋을 가져올 수 없습니다: { $reason }
+brushes-import-note = 브러시 프리셋 파일에서: { $line }
+brushes-shelf-full = 브러시 목록이 가득 찼기 때문에 프리셋을 가져오지 못했습니다. 브러시를 삭제해 공간을 만드세요.

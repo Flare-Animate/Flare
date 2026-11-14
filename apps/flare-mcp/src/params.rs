@@ -61,6 +61,13 @@ pub struct AddLayer {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct ImportBrushes {
+    /// The pen-profile file's name inside the configured export directory: a Photoshop
+    /// `.abr`, a Krita `.kpp` or a Krita `.bundle`.
+    pub source: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddSymbol {
     /// A name the library already has is refused.
     pub name: String,

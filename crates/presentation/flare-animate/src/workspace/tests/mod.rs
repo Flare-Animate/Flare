@@ -25,6 +25,7 @@ mod anchor_tools;
 mod basics;
 mod blend;
 mod bone;
+mod brush_import;
 mod brush_nib;
 mod brush_stroke;
 mod camera;
