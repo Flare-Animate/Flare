@@ -193,7 +193,7 @@ objc2-core-graphics = { version = "0.3.2", default-features = false }
 objc2-core-foundation = { version = "0.3.2", default-features = false }
 # A pen's pressure from the X server (XInput2), which winit does not pass on; pure Rust, no libxcb.
 x11rb = { version = "0.13.2", default-features = false, features = ["xinput"] }
-rfd = "0.17.2"
+rfd = "0.18.0"
 directories = "6"
 pollster = "1.0.1"
 js-sys = "0.3"
