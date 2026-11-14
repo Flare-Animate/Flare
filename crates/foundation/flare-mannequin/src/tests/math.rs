@@ -46,6 +46,19 @@ fn a_quarter_bend_comes_back_with_the_twist_folded_into_the_swing() {
 }
 
 #[test]
+fn a_share_of_a_turn_turns_that_far_about_the_same_axis() {
+    let axis = Vec3::new(0.6, 0.0, 0.8);
+    let r = Rot3::about_axis(axis, 120.0);
+    assert!(same(r.partial(0.5), Rot3::about_axis(axis, 60.0)));
+    assert!(same(r.partial(1.0), r));
+    assert!(same(r.partial(0.0), Rot3::IDENTITY));
+    assert!(same(Rot3::IDENTITY.partial(0.5), Rot3::IDENTITY));
+    // A half turn, where reading the axis back is least steady.
+    let half = Rot3::about_axis(axis, 180.0);
+    assert!(same(half.partial(0.5) * half.partial(0.5), half));
+}
+
+#[test]
 fn degrees_wrap_into_a_half_turn_either_way() {
     assert_eq!(wrap_degrees(190.0), -170.0);
     assert_eq!(wrap_degrees(-180.0), 180.0);
@@ -54,6 +67,17 @@ fn degrees_wrap_into_a_half_turn_either_way() {
 }
 
 proptest! {
+    #[test]
+    fn two_halves_of_a_turn_make_the_turn(
+        bend in -180.0f64..180.0,
+        twist in -180.0f64..180.0,
+        side in -180.0f64..180.0,
+    ) {
+        let r = Rot3::from_angles(Angles::new(bend, twist, side));
+        let half = r.partial(0.5);
+        prop_assert!(same(half * half, r));
+    }
+
     #[test]
     fn angles_come_back_from_their_rotation(
         bend in -89.0f64..89.0,

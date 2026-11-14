@@ -8,6 +8,7 @@ mod posing;
 mod request;
 mod rings;
 mod shading;
+mod surface;
 mod wire;
 
 use crate::{Placement, View};

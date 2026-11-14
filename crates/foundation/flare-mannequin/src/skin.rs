@@ -182,6 +182,21 @@ impl Mesh {
     }
 }
 
+/// `share` of a joint's turn. The cap of an arm or a leg, shared with the chest or the hips,
+/// takes its share of the swing but all of the twist: the bone turns in its socket and the
+/// round cap turns with it, where a share of the twist would wind the cap's rings into a fold.
+fn part_turn(joint: Joint, turn: Rot3, share: f64) -> Rot3 {
+    use Joint::*;
+    match joint {
+        LeftShoulder | RightShoulder | LeftHip | RightHip => {
+            let angles = turn.to_angles();
+            let swing = Rot3::about_z(angles.side) * Rot3::about_x(angles.bend);
+            swing.partial(share) * Rot3::about_y(angles.twist)
+        }
+        _ => turn.partial(share),
+    }
+}
+
 /// The posed surface: every point and the way it faces.
 pub(crate) struct Skinned {
     pub points: Vec<Vec3>,
@@ -189,6 +204,11 @@ pub(crate) struct Skinned {
 }
 
 /// Moves the surface from `rest` to `posed`: each point by its joints' turns, in shares.
+///
+/// A point shared by a joint and the joint it hangs from is turned that share of the way about
+/// the joint, along the arc, instead of set between the two places it would go (linear blend
+/// skinning): averaged places cut the corner, so a shoulder raised a quarter turn or a knee
+/// bent far would fold flat where the arc keeps the surface round.
 pub(crate) fn skin(mesh: &Mesh, rest: &Posed, posed: &Posed) -> Skinned {
     // At rest every frame is square to the figure, so a joint's move is its turn about the
     // place it rested and then the step to where it is.
@@ -196,18 +216,41 @@ pub(crate) fn skin(mesh: &Mesh, rest: &Posed, posed: &Posed) -> Skinned {
         let turn = posed.frame(j);
         (turn, posed.at(j) - turn.apply(rest.at(j)))
     });
+    // Each joint's own turn, within the frame of the joint it hangs from.
+    let local: [Rot3; JOINT_COUNT] =
+        Joint::ALL.map(|j| posed.parent_frame(j).transpose() * posed.frame(j));
     let mut points = Vec::with_capacity(mesh.vertices.len());
     let mut normals = Vec::with_capacity(mesh.vertices.len());
+    // A ring's points share their joints, so the part turn is worked out once a ring.
+    let mut part: Option<(Bones, Rot3)> = None;
     for v in &mesh.vertices {
-        let (mut p, mut n) = (Vec3::ZERO, Vec3::ZERO);
-        for (joint, share) in v.bones {
-            if share > 0.0 {
-                let (turn, step) = moves[joint.index()];
-                let share = f64::from(share);
-                p = p + (turn.apply(v.rest) + step).scale(share);
-                n = n + turn.apply(v.normal).scale(share);
+        let [(from, from_share), (to, share)] = v.bones;
+        let arc = share > 0.0 && from_share > 0.0 && to.parent() == Some(from);
+        let (p, n) = if arc {
+            let turn = match part {
+                Some((bones, turn)) if bones == v.bones => turn,
+                _ => {
+                    let turn = part_turn(to, local[to.index()], f64::from(share));
+                    part = Some((v.bones, turn));
+                    turn
+                }
+            };
+            let pivot = rest.at(to);
+            let (frame, step) = moves[from.index()];
+            let p = pivot + turn.apply(v.rest - pivot);
+            (frame.apply(p) + step, frame.apply(turn.apply(v.normal)))
+        } else {
+            let (mut p, mut n) = (Vec3::ZERO, Vec3::ZERO);
+            for (joint, share) in v.bones {
+                if share > 0.0 {
+                    let (turn, step) = moves[joint.index()];
+                    let share = f64::from(share);
+                    p = p + (turn.apply(v.rest) + step).scale(share);
+                    n = n + turn.apply(v.normal).scale(share);
+                }
             }
-        }
+            (p, n)
+        };
         points.push(p);
         normals.push(n.normalized().unwrap_or(v.normal));
     }

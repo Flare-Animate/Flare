@@ -153,6 +153,60 @@ impl Rot3 {
         }
     }
 
+    /// `share` of this turn, about the same axis: a half share turns half as far.
+    pub fn partial(self, share: f64) -> Self {
+        let (axis, angle) = self.axis_angle();
+        match axis {
+            Some(axis) => Self::about_axis(axis, angle * share),
+            None => Self::IDENTITY,
+        }
+    }
+
+    /// The axis this turn is about and how far it turns, in degrees from 0 to 180; no axis for
+    /// no turn. Read through the turn's quaternion, which stays exact near a half turn.
+    fn axis_angle(self) -> (Option<Vec3>, f64) {
+        let m = self.0;
+        let trace = m[0][0] + m[1][1] + m[2][2];
+        let (w, x, y, z) = if trace > 0.0 {
+            let s = (trace + 1.0).sqrt() * 2.0;
+            (
+                0.25 * s,
+                (m[2][1] - m[1][2]) / s,
+                (m[0][2] - m[2][0]) / s,
+                (m[1][0] - m[0][1]) / s,
+            )
+        } else if m[0][0] > m[1][1] && m[0][0] > m[2][2] {
+            let s = (1.0 + m[0][0] - m[1][1] - m[2][2]).sqrt() * 2.0;
+            (
+                (m[2][1] - m[1][2]) / s,
+                0.25 * s,
+                (m[0][1] + m[1][0]) / s,
+                (m[0][2] + m[2][0]) / s,
+            )
+        } else if m[1][1] > m[2][2] {
+            let s = (1.0 + m[1][1] - m[0][0] - m[2][2]).sqrt() * 2.0;
+            (
+                (m[0][2] - m[2][0]) / s,
+                (m[0][1] + m[1][0]) / s,
+                0.25 * s,
+                (m[1][2] + m[2][1]) / s,
+            )
+        } else {
+            let s = (1.0 + m[2][2] - m[0][0] - m[1][1]).sqrt() * 2.0;
+            (
+                (m[1][0] - m[0][1]) / s,
+                (m[0][2] + m[2][0]) / s,
+                (m[1][2] + m[2][1]) / s,
+                0.25 * s,
+            )
+        };
+        // The shorter way round.
+        let k = if w < 0.0 { -1.0 } else { 1.0 };
+        let v = Vec3::new(x * k, y * k, z * k);
+        let angle = 2.0 * v.length().atan2(w * k);
+        (v.normalized(), angle.to_degrees())
+    }
+
     pub fn transpose(self) -> Self {
         let m = self.0;
         Self([

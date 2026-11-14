@@ -601,8 +601,14 @@ keeps the one inside the limits, so an arm raised overhead does not flip.
 The body is one surface (`shape.rs`, `skin.rs`): tubes of cross-sections for the torso, neck,
 head, arms, legs, hands with fingers, feet and a woman's chest, from tables for each build drawn
 from the eight-heads figure of life drawing and scaled by the proportions, laid along the skeleton
-at rest. Each point is moved by up to two joints in shares (linear blend skinning), so a knee or
-an elbow bends as one surface; overlapping tubes join where the depth buffer meets them. Each
+at rest. Each point is moved by up to two joints in shares, so a knee or an elbow bends as one
+surface; overlapping tubes join where the depth buffer meets them. A point shared by a joint and
+the joint it hangs from is turned that share of the way about the joint, along the arc, rather
+than set between the two places each would take it (linear blend skinning), which cuts the
+corner and folds a raised shoulder or a deep knee flat. The shoulder is the deltoid capping the
+top of the arm, shared with the chest so a raised arm stays joined, under a trapezius that slopes
+from the neck; the cap of an arm or a leg takes its share of the swing but all of the twist, so a
+twisted arm turns its cap whole instead of winding it into a fold. Each
 point also carries where it is on the guide lines round and along the body. `render.rs` and
 `raster.rs` are a small software renderer: the triangles are filled into samples with a depth
 buffer, lit per corner from the upper left in front of the camera, with the guide lines drawn per

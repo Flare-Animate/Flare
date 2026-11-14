@@ -19,7 +19,7 @@ const Z: Vec3 = Vec3::new(0.0, 0.0, 1.0);
 /// the depth in front and behind, and how far forward its middle is.
 type TorsoRow = (Joint, f64, f64, f64, f64, f64);
 
-const MALE_TORSO: [TorsoRow; 17] = [
+const MALE_TORSO: [TorsoRow; 19] = [
     (Joint::Pelvis, -0.078, 0.0, 0.0, 0.0, 0.0),
     (Joint::Pelvis, -0.072, 0.04, 0.03, 0.04, 0.0),
     (Joint::Pelvis, -0.055, 0.084, 0.055, 0.065, 0.0),
@@ -28,18 +28,22 @@ const MALE_TORSO: [TorsoRow; 17] = [
     (Joint::Pelvis, 0.03, 0.091, 0.058, 0.062, 0.0),
     (Joint::Spine, 0.02, 0.082, 0.056, 0.052, 0.0),
     (Joint::Spine, 0.05, 0.08, 0.056, 0.05, 0.0),
-    (Joint::Chest, -0.025, 0.085, 0.06, 0.054, 0.0),
-    (Joint::Chest, 0.01, 0.092, 0.065, 0.058, 0.0),
-    (Joint::Chest, 0.045, 0.097, 0.07, 0.062, 0.0),
-    (Joint::Chest, 0.075, 0.1, 0.066, 0.062, 0.0),
-    (Joint::Chest, 0.098, 0.1, 0.052, 0.058, -0.004),
-    (Joint::Neck, -0.012, 0.07, 0.04, 0.048, -0.006),
-    (Joint::Neck, 0.005, 0.045, 0.034, 0.04, -0.006),
-    (Joint::Neck, 0.02, 0.03, 0.028, 0.032, -0.006),
-    (Joint::Neck, 0.03, 0.0, 0.0, 0.0, -0.006),
+    (Joint::Chest, -0.025, 0.084, 0.06, 0.054, 0.0),
+    (Joint::Chest, 0.01, 0.089, 0.065, 0.058, 0.0),
+    (Joint::Chest, 0.045, 0.092, 0.07, 0.062, 0.0),
+    // Above the armpits the chest narrows under the deltoids, then the trapezius slopes up
+    // the neck.
+    (Joint::Chest, 0.075, 0.089, 0.067, 0.062, 0.0),
+    (Joint::Chest, 0.1, 0.086, 0.058, 0.058, -0.004),
+    (Joint::Chest, 0.116, 0.087, 0.048, 0.054, -0.006),
+    (Joint::Neck, -0.006, 0.072, 0.043, 0.051, -0.008),
+    (Joint::Neck, 0.004, 0.058, 0.038, 0.046, -0.008),
+    (Joint::Neck, 0.014, 0.046, 0.034, 0.041, -0.008),
+    (Joint::Neck, 0.026, 0.037, 0.031, 0.036, -0.008),
+    (Joint::Neck, 0.036, 0.0, 0.0, 0.0, -0.008),
 ];
 
-const FEMALE_TORSO: [TorsoRow; 17] = [
+const FEMALE_TORSO: [TorsoRow; 19] = [
     (Joint::Pelvis, -0.078, 0.0, 0.0, 0.0, 0.0),
     (Joint::Pelvis, -0.072, 0.042, 0.03, 0.045, 0.0),
     (Joint::Pelvis, -0.055, 0.092, 0.055, 0.072, 0.0),
@@ -48,15 +52,17 @@ const FEMALE_TORSO: [TorsoRow; 17] = [
     (Joint::Pelvis, 0.03, 0.092, 0.054, 0.064, 0.0),
     (Joint::Spine, 0.02, 0.074, 0.05, 0.05, 0.0),
     (Joint::Spine, 0.05, 0.068, 0.05, 0.047, 0.0),
-    (Joint::Chest, -0.025, 0.074, 0.052, 0.049, 0.0),
-    (Joint::Chest, 0.01, 0.08, 0.056, 0.052, 0.0),
-    (Joint::Chest, 0.045, 0.084, 0.058, 0.054, 0.0),
-    (Joint::Chest, 0.075, 0.086, 0.055, 0.054, 0.0),
-    (Joint::Chest, 0.098, 0.086, 0.046, 0.05, -0.004),
-    (Joint::Neck, -0.012, 0.06, 0.035, 0.042, -0.006),
-    (Joint::Neck, 0.005, 0.04, 0.03, 0.035, -0.006),
-    (Joint::Neck, 0.02, 0.026, 0.025, 0.028, -0.006),
-    (Joint::Neck, 0.03, 0.0, 0.0, 0.0, -0.006),
+    (Joint::Chest, -0.025, 0.073, 0.052, 0.049, 0.0),
+    (Joint::Chest, 0.01, 0.078, 0.056, 0.052, 0.0),
+    (Joint::Chest, 0.045, 0.081, 0.058, 0.054, 0.0),
+    (Joint::Chest, 0.075, 0.079, 0.056, 0.054, 0.0),
+    (Joint::Chest, 0.1, 0.076, 0.051, 0.051, -0.004),
+    (Joint::Chest, 0.116, 0.077, 0.042, 0.047, -0.006),
+    (Joint::Neck, -0.006, 0.063, 0.037, 0.044, -0.008),
+    (Joint::Neck, 0.004, 0.051, 0.033, 0.04, -0.008),
+    (Joint::Neck, 0.014, 0.039, 0.029, 0.035, -0.008),
+    (Joint::Neck, 0.026, 0.031, 0.026, 0.031, -0.008),
+    (Joint::Neck, 0.036, 0.0, 0.0, 0.0, -0.008),
 ];
 
 /// A head cross-section, measured from the head joint and scaled by the head's size: height,
@@ -81,14 +87,19 @@ const EYE_LINE: f64 = 0.062;
 /// outward and inward, in front and behind, and the middle's step outward and forward.
 type LimbRow = (f64, f64, f64, f64, f64, f64, f64);
 
-const ARM: [LimbRow; 13] = [
-    (-0.016, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-    (-0.012, 0.022, 0.018, 0.026, 0.026, 0.002, 0.0),
-    (0.0, 0.034, 0.028, 0.036, 0.036, 0.004, 0.0),
-    (0.02, 0.037, 0.029, 0.036, 0.035, 0.005, 0.0),
-    (0.05, 0.034, 0.027, 0.033, 0.031, 0.003, 0.0),
-    (0.09, 0.03, 0.026, 0.031, 0.028, 0.0, 0.002),
-    (0.13, 0.026, 0.025, 0.026, 0.026, 0.0, 0.0),
+const ARM: [LimbRow; 16] = [
+    // The deltoid, capping the joint and running inward under the trapezius.
+    (-0.015, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+    (-0.013, 0.006, 0.02, 0.014, 0.015, 0.0, 0.0),
+    (-0.009, 0.014, 0.032, 0.025, 0.027, 0.0, 0.0),
+    (-0.002, 0.026, 0.036, 0.033, 0.035, 0.0, 0.0),
+    (0.005, 0.034, 0.033, 0.036, 0.036, 0.0, 0.0),
+    (0.025, 0.033, 0.028, 0.034, 0.033, 0.003, 0.0),
+    (0.05, 0.032, 0.027, 0.032, 0.03, 0.002, 0.0),
+    (0.075, 0.029, 0.026, 0.03, 0.029, 0.0, 0.001),
+    // The biceps in front and the triceps behind, down to the elbow.
+    (0.1, 0.028, 0.026, 0.03, 0.029, 0.0, 0.002),
+    (0.13, 0.026, 0.025, 0.027, 0.027, 0.0, 0.0),
     (0.17, 0.024, 0.023, 0.023, 0.024, 0.0, -0.002),
     (0.2, 0.028, 0.025, 0.026, 0.025, 0.0, 0.0),
     (0.25, 0.025, 0.022, 0.022, 0.021, 0.0, 0.0),
@@ -232,7 +243,7 @@ fn torso(mesh: &mut Mesh, b: &Build, rest: &Posed) {
     mesh.tube(shape, &rings);
     // The neck, from inside the shoulders to inside the head.
     let (neck, top) = (rest.at(Joint::Neck), rest.at(Joint::Head));
-    let r = if b.female { 0.027 } else { 0.031 } * b.thick;
+    let r = if b.female { 0.028 } else { 0.033 } * b.thick;
     let rows = [
         (neck.y - 0.03, 0.0, -0.004),
         (neck.y - 0.025, r, -0.004),
@@ -335,7 +346,15 @@ fn arm(mesh: &mut Mesh, b: &Build, rest: &Posed, side: f64) {
     };
     let (ku, kf) = (b.upper_arm_r.0 / 0.038, b.forearm_r.0 / 0.031);
     let thick = |t: f64| if t <= ELBOW_AT { ku } else { kf };
-    let bones = |t: f64| blend(shoulder, elbow, (t - 0.14) / 0.06);
+    // The top of the deltoid, under the trapezius, moves partly with the chest, so a raised
+    // arm leaves the shoulder one surface instead of lifting a cap off the torso.
+    let bones = |t: f64| {
+        if t <= 0.03 {
+            blend(Chest, shoulder, 0.4 + (t + 0.015) / 0.028 * 0.6)
+        } else {
+            blend(shoulder, elbow, (t - 0.14) / 0.06)
+        }
+    };
     limb(mesh, rest, shoulder, side, &ARM, place, thick, bones);
     hand(mesh, b, rest, wrist, side);
 }
