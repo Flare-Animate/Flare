@@ -116,6 +116,7 @@ mod transport;
 mod tween_inspector;
 mod tweens;
 mod undo_pictures;
+mod video_import;
 mod window_controls;
 mod window_menu;
 mod workspaces;

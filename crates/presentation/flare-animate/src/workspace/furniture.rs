@@ -101,6 +101,7 @@ impl Workspace {
         self.publish_window(&ctx);
         self.increment_instances_window(&ctx);
         self.symbol_dialog_window(&ctx);
+        self.video_import_window(&ctx);
         self.palette_window(&ctx);
         self.ensure_language_font(&ctx);
         self.file_windows(&ctx);
@@ -254,11 +255,20 @@ impl Workspace {
         if let Some(text) = self.shortcut_label(action) {
             button = button.shortcut_text(text);
         }
-        let clicked = ui.add_enabled(enabled, button).clicked();
-        if clicked {
+        let mut response = ui.add_enabled(enabled, button);
+        if !enabled && let Some(why) = self.unavailable_here(action) {
+            response = response.on_disabled_hover_text(why);
+        }
+        if response.clicked() {
             self.perform(action);
             ui.close();
         }
+    }
+
+    /// Why `action` can never run on this surface, for its dimmed menu item.
+    fn unavailable_here(&self, action: MenuAction) -> Option<String> {
+        (cfg!(target_arch = "wasm32") && action == MenuAction::ImportVideo)
+            .then(|| tr!(self, "video-browser"))
     }
 
     /// The entries of one menu, with a menu inside it opened as its own.

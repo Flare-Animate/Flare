@@ -31,6 +31,7 @@ mod swf_import;
 mod symbols;
 mod text;
 mod tween;
+mod video_import;
 mod wick;
 
 fn run(args: &[&str]) -> Output {

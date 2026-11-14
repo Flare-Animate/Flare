@@ -19,6 +19,7 @@ mod svg;
 mod swf;
 mod toonz;
 mod video;
+mod video_reference;
 mod webp;
 mod wick;
 mod xfl;
@@ -32,5 +33,9 @@ pub use flipnote::{looks_like_kwz, looks_like_ppm};
 pub use foreign::{foreign_kind, import_foreign_bytes, import_foreign_path};
 pub use source::{DirSource, ZipSource, import_bytes, import_fla_bytes, import_path};
 pub use swf::{import_swf_bytes, looks_like_swf};
+pub use video_reference::{
+    VIDEO_EXTENSIONS, VideoImportError, import_video, import_video_with, probe_video,
+    probe_video_with, read_video, read_video_with,
+};
 pub(crate) use wick::looks_like_wick;
 pub use xfl::{Diagnostic, FileSource, ImportError, Imported, Severity, frame_rate, import_xfl};

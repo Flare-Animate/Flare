@@ -46,6 +46,13 @@ impl App {
                     self.workspace.import_sound(&path);
                 }
             }
+            DialogRequest::ImportVideo => {
+                if let Some(path) =
+                    dialogs::pick_video(&self.workspace.interface_text("dlg-filter-video"))
+                {
+                    self.workspace.import_video(&path);
+                }
+            }
             DialogRequest::ImportAnimateShortcuts => {
                 if let Some(path) = dialogs::pick_shortcut_xml(
                     &self

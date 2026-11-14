@@ -20,6 +20,7 @@ mod symbols;
 mod text;
 mod timeline;
 mod tween;
+mod video;
 
 use rmcp::handler::server::router::tool::ToolRouter;
 
@@ -45,5 +46,6 @@ impl FlareServer {
             + Self::game_tools()
             + Self::pixel_tools()
             + Self::mannequin_tools()
+            + Self::video_tools()
     }
 }

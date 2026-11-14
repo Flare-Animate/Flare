@@ -9,6 +9,7 @@ mod shortcuts;
 mod stopmotion;
 mod symbol;
 mod tween;
+mod video;
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -124,6 +125,7 @@ fn run() -> Result<()> {
         Command::Game { op } => game::run(op)?,
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(op)?,
+        Command::VideoImport(args) => video::run(args)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,

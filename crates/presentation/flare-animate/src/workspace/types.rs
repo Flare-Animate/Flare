@@ -89,6 +89,8 @@ pub enum DialogRequest {
     Open,
     SaveAs,
     ImportSound,
+    /// A movie to bring in to draw over (File > Import > Import Video).
+    ImportVideo,
     /// Read Animate's keyboard shortcut file onto the shortcuts in force.
     ImportAnimateShortcuts,
     ExportImage,

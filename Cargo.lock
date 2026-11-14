@@ -2157,6 +2157,7 @@ dependencies = [
  "flare-editor",
  "flare-eval",
  "flare-export",
+ "flare-ffmpeg",
  "flare-history",
  "flare-i18n",
  "flare-import",
@@ -2387,6 +2388,7 @@ dependencies = [
 name = "flare-import"
 version = "0.1.0"
 dependencies = [
+ "flare-commands",
  "flare-core",
  "flare-document",
  "flare-eval",
@@ -2632,6 +2634,7 @@ dependencies = [
  "flare-document",
  "flare-eval",
  "flare-export",
+ "flare-ffmpeg",
  "flare-game",
  "flare-history",
  "flare-import",

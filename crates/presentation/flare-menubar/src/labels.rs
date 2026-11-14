@@ -204,6 +204,7 @@ impl MenuAction {
             }
             Self::Open => "menu-item-open",
             Self::ImportSound => "menu-item-import-sound",
+            Self::ImportVideo => "menu-item-import-video",
             Self::NewLayer => "menu-item-new-layer",
             Self::NewLayerFolder => "menu-item-new-layer-folder",
             Self::New => "menu-item-new",

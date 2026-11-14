@@ -46,6 +46,11 @@ pub fn pick_sound(filter: &str) -> Option<PathBuf> {
     backend::pick_sound(filter)
 }
 
+/// A movie to bring in to draw over, of the kinds ffmpeg is asked to read.
+pub fn pick_video(filter: &str) -> Option<PathBuf> {
+    backend::pick_video(filter)
+}
+
 /// Animate's keyboard shortcut file (`Shortcuts/<set>.xml` in its settings folder).
 pub fn pick_shortcut_xml(filter: &str) -> Option<PathBuf> {
     backend::pick_shortcut_xml(filter)

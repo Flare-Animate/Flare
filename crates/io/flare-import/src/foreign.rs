@@ -30,7 +30,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "exr" => Some("exr"),
         "dds" => Some("dds"),
         "psd" => Some("psd"),
-        "mp4" | "mov" | "avi" | "mkv" | "webm" | "mpeg" | "mpg" | "flv" => Some("video"),
+        ext if crate::VIDEO_EXTENSIONS.contains(&ext) => Some("video"),
         "gif" => Some("gif"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
         "ppm" | "kwz" | "kwc" => Some("flipnote"),

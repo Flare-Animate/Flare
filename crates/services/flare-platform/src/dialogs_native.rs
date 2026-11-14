@@ -84,6 +84,12 @@ pub fn pick_sound(filter: &str) -> Option<std::path::PathBuf> {
         .pick_file()
 }
 
+pub fn pick_video(filter: &str) -> Option<std::path::PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter(filter, flare_runtime::VIDEO_EXTENSIONS)
+        .pick_file()
+}
+
 pub fn pick_shortcut_xml(filter: &str) -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
         .add_filter(filter, &["xml"])

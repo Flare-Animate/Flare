@@ -109,6 +109,7 @@ impl MenuAction {
         Some(match self {
             Self::Open => "file-open",
             Self::ImportSound => "sound",
+            Self::ImportVideo => "film",
             Self::New => "file-new",
             Self::Close => "close",
             Self::Revert => "rotate-ccw",

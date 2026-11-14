@@ -9,6 +9,7 @@
 //! - the **I/O worker** runs saves, opens and autosaves in the order they were asked for;
 //! - the **audio** and **text** workers decode and shape, each on a thread of its own because
 //!   the first use of either takes a while;
+//! - the **video** worker reads a movie brought in to draw over, a picture at a time;
 //! - the **pixels** worker does the Magic Wand's work on bitmaps, and lays Blur and Smudge
 //!   strokes, in order.
 //!
@@ -28,6 +29,7 @@ mod pixels;
 mod run;
 mod sound;
 mod sprites;
+mod video_import;
 mod waveform;
 mod workers;
 
@@ -42,6 +44,7 @@ pub use export::{
 pub use export_game::{GAME_FORMAT, GAME_FORMAT_VERSION, GameExport, export_game};
 pub use flare_audio::MAX_INPUT_BYTES as MAX_AUDIO_INPUT_BYTES;
 pub use flare_audio::{Audio, AudioEvent, Decoded, Excerpt, Peaks};
+pub use flare_import::VIDEO_EXTENSIONS;
 pub use flare_render::StillFormat;
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
@@ -52,6 +55,7 @@ pub use pixels::{PixelJob, WAND_PREVIEW_SIDE, WandPicked};
 pub use run::{ExtraFonts, font_families, run_audio, run_io, run_render, run_text, text_shape};
 pub use sound::{SoundImportError, SoundLayer, sound_layer};
 pub use sprites::{MAX_SHEET_FRAMES, MAX_SHEET_SIDE, SpriteSheet, sprite_sheet};
+pub use video_import::{VideoJob, VideoOutcome, VideoProgress, run_video};
 pub use waveform::{WaveformError, frame_peaks, sound_waveforms};
 pub use workers::Wake;
 
@@ -78,6 +82,8 @@ pub struct Runtime {
     fonts: ExtraFonts,
     /// The pixel work run on this thread: inline, or when the worker has gone.
     pixels: pixels::Pixels,
+    /// The ffmpeg and ffprobe videos are read with, when not those on PATH.
+    video_tools: Option<flare_ffmpeg::Tools>,
 }
 
 struct Workers {
@@ -86,6 +92,7 @@ struct Workers {
     text_tx: Option<Sender<TextJob>>,
     audio_tx: Option<Sender<AudioJob>>,
     pixels_tx: Option<Sender<PixelJob>>,
+    video_tx: Option<Sender<(VideoJob, Option<flare_ffmpeg::Tools>)>>,
     handles: Vec<JoinHandle<()>>,
 }
 
@@ -101,6 +108,7 @@ impl Runtime {
             io_in_flight: 0,
             fonts: Arc::default(),
             pixels: pixels::Pixels::default(),
+            video_tools: None,
         }
     }
 
@@ -114,6 +122,12 @@ impl Runtime {
         Arc::make_mut(&mut self.fonts).push(font);
     }
 
+    /// Reads videos with these programs rather than the ffmpeg and ffprobe on PATH. Tests use
+    /// this so they do not depend on what a machine has installed.
+    pub fn use_video_tools(&mut self, tools: flare_ffmpeg::Tools) {
+        self.video_tools = Some(tools);
+    }
+
     /// Starts the worker threads. `wake` is called whenever a result is ready, so the front end
     /// can wake up to show it. Calling this again does nothing.
     pub fn start_threads(&mut self, wake: Wake) {
@@ -125,6 +139,7 @@ impl Runtime {
         let (text_tx, text_rx) = channel::<TextJob>();
         let (audio_tx, audio_rx) = channel::<AudioJob>();
         let (pixels_tx, pixels_rx) = channel::<PixelJob>();
+        let (video_tx, video_rx) = channel::<(VideoJob, Option<flare_ffmpeg::Tools>)>();
         let spawn = |name: &str, body: Box<dyn FnOnce() + Send>| {
             std::thread::Builder::new().name(name.into()).spawn(body)
         };
@@ -156,6 +171,13 @@ impl Runtime {
                 Box::new(move || workers::pixels_loop(&pixels_rx, &done, &wake)),
             )
         };
+        let video = {
+            let (done, wake) = (self.done_tx.clone(), Arc::clone(&wake));
+            spawn(
+                "flare-video-in",
+                Box::new(move || workers::video_loop(&video_rx, &done, &wake)),
+            )
+        };
         let text = {
             let (done, fonts) = (self.done_tx.clone(), Arc::clone(&self.fonts));
             spawn(
@@ -164,8 +186,8 @@ impl Runtime {
             )
         };
         // If a thread cannot be started, stay inline rather than lose the work.
-        let (Ok(render), Ok(io), Ok(text), Ok(audio), Ok(pixels)) =
-            (render, io, text, audio, pixels)
+        let (Ok(render), Ok(io), Ok(text), Ok(audio), Ok(pixels), Ok(video)) =
+            (render, io, text, audio, pixels, video)
         else {
             return;
         };
@@ -175,7 +197,8 @@ impl Runtime {
             text_tx: Some(text_tx),
             audio_tx: Some(audio_tx),
             pixels_tx: Some(pixels_tx),
-            handles: vec![render, io, text, audio, pixels],
+            video_tx: Some(video_tx),
+            handles: vec![render, io, text, audio, pixels, video],
         });
         self.mode = Mode::Threads;
     }
@@ -224,6 +247,21 @@ impl Runtime {
             }
             None => {
                 let _ = self.done_tx.send(run_text(&job, &self.fonts));
+            }
+        }
+    }
+
+    pub fn submit_video(&self, job: VideoJob) {
+        let tools = self.video_tools.clone();
+        match self.workers.as_ref().and_then(|w| w.video_tx.as_ref()) {
+            Some(tx) => {
+                if let Err(failed) = tx.send((job, tools)) {
+                    let (job, tools) = failed.0;
+                    let _ = self.done_tx.send(run_video(job, tools.as_ref()));
+                }
+            }
+            None => {
+                let _ = self.done_tx.send(run_video(job, tools.as_ref()));
             }
         }
     }
@@ -300,6 +338,7 @@ impl Drop for Runtime {
             workers.text_tx = None;
             workers.audio_tx = None;
             workers.pixels_tx = None;
+            workers.video_tx = None;
             for handle in workers.handles.drain(..) {
                 let _ = handle.join();
             }

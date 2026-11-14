@@ -30,11 +30,11 @@ Executables are in `apps/`. The folders mean:
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
-| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines (one width function for the outline and the live preview, with speed and tapers), nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, Edit Multiple Frames (the keyframes a range shows, picks and transforms), the anchor point tools, the Ruler and the Mirror, the Magic Wand (picking the pixels of a bitmap by color and clearing them), placing the reference mannequin on a layer (`mannequin`), and the operations of the Paint Bucket, Ink Bottle and Eyedropper, the Eraser (cutting fills and lines along its path with `i_overlay`, or deleting whole elements), Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
+| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines (one width function for the outline and the live preview, with speed and tapers), nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, Edit Multiple Frames (the keyframes a range shows, picks and transforms), the anchor point tools, the Ruler and the Mirror, the Magic Wand (picking the pixels of a bitmap by color and clearing them), placing the reference mannequin on a layer (`mannequin`), a video brought in to draw over (`video`: what an import makes and whether it fits, and the symbol and layer it becomes), and the operations of the Paint Bucket, Ink Bottle and Eyedropper, the Eraser (cutting fills and lines along its path with `i_overlay`, or deleting whole elements), Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
 | editing | `flare-stopmotion` | The stop-motion domain as data: a capture session, its frames, onion skin and the timeline it exports to. No camera is opened here (`NoCamera` answers with a named error). |
 | io | `flare-storage` | The `.flare` SQLite container with compressed CBOR records: save, load, revalidation, crash recovery files. |
-| io | `flare-import` | Import: XFL directories, zipped modern `.fla` files and Flash movies (`.swf`) into a Flare document, with a diagnostic for everything it cannot carry over. |
-| io | `flare-ffmpeg` | Video through the system's ffmpeg: the containers Flare writes no other way (AVI, Matroska, WebM, MPEG, Flash video) and the movies it reads (MP4 and the same set). A program run with a list of arguments and a time limit, never linked or bundled; without it, a typed error names ffmpeg. |
+| io | `flare-import` | Import: XFL directories, zipped modern `.fla` files and Flash movies (`.swf`) into a Flare document, with a diagnostic for everything it cannot carry over; and a video read into an open document to draw over (`import_video`). |
+| io | `flare-ffmpeg` | Video through the system's ffmpeg: the containers Flare writes no other way (AVI, Matroska, WebM, MPEG, Flash video) and the movies it reads (MP4 and the same set), whole or sampled at a rate and size as reference pictures handed over one at a time (`probe`, `read_frames`). A program run with a list of arguments and a time limit, never linked or bundled; without it, a typed error names ffmpeg. |
 | io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | io | `flare-publish` | SWF publishing: a document as a SWF with its symbols kept as sprites and its tweens baked, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
 | io | `flare-moho` | Moho and Anime Studio projects and BVH files, read into a typed model with every size and depth bounded. See [MOHO.md](MOHO.md). |
@@ -42,7 +42,7 @@ Executables are in `apps/`. The folders mean:
 | adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing, what the paint tools find under a point (on a line, on a fill, inside an outline), and a mask of where the lines leave ink, which the Paint Bucket finds an area in. |
-| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text and pixels (the Magic Wand, and Blur and Smudge strokes, which the pixels worker keeps between steps), with latest-wins where only the newest matters and an inline mode for tests; image export. No UI types. |
+| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text, pixels (the Magic Wand, and Blur and Smudge strokes, which the pixels worker keeps between steps) and a video brought in to draw over, with latest-wins where only the newest matters and an inline mode for tests; image export. No UI types. |
 | services | `flare-video` | The movie as an MP4, or a QuickTime movie (the same file with QuickTime's brand), with its sound, made in pure Rust: H.264 from `rusty_h264`, AAC-LC from OxideAV's `oxideav-aac`, the container from `muxide`. Frames are drawn, encoded and written one at a time, the cued sounds mixed and encoded beside them, and the file appears only when whole and never over another. Desktop only: the web build does not carry it. |
 | services | `flare-recent` | What a list of recent projects knows: each file's time and size read off the UI thread, its kind, the search over names and folders, and the sorting. No UI types. |
 | services | `flare-tablet` | A tablet pen's pressure from the operating system where the window system does not pass it on: one gated module per system, each writing into `flare-input`'s `PenFeed`. Today the X server's XInput2 raw events (Unix), with the check for a plugged-in pen that picks XWayland, and a local AppKit event monitor (macOS), the one module with `unsafe`, which is why this cannot live in `flare-input`; what its events mean is decided in a safe module beside it. A Windows module is still to come. |
@@ -643,6 +643,33 @@ selects it with Free Transform, and the Selection tools pick a bitmap where no s
 (`Workspace::pick`), so it is moved, scaled and turned like any picture. That layer is ordinary
 artwork and is exported unless it is hidden or deleted. `flare mannequin` and the MCP
 tools `list_mannequin`, `picture_mannequin` and `place_mannequin` call the same functions.
+
+## A video to draw over
+
+A video is brought into an open document in three steps, each in the layer it belongs to.
+`flare_ffmpeg::probe` asks ffprobe for the first stream's size and rate, the container's length
+and the turn a player gives it (a phone movie stored on its side has its sides swapped, as ffmpeg
+turns its pictures upright when it reads them). `flare_tools::video::plan` is pure: from that and
+the person's choices (pictures a second, the most seconds, the longest side, the opacity) it says
+how many pictures are read, their size and bytes, how long they last at the document's rate and at
+what speed against the video, and whether they fit in the room the document has left for
+pictures (4096 bitmaps and 1 GiB, `MAX_BITMAPS`, `MAX_TOTAL_BITMAP_BYTES`), with the longest
+length and the largest size that would. `flare_ffmpeg::read_frames` then runs ffmpeg with
+`fps=n/d,scale=w:h` and reads its raw RGBA output a picture at a time (`run::stream`), handing
+each over as it arrives, so memory is what the plan said and a caller can stop it; the reading
+is refused before ffmpeg runs when the plan does not fit. `flare_tools::video::place` makes one
+batch: each distinct picture into the library once (a repeat is shown again and held), a Graphic
+symbol with one keyframe per run of a picture, and a new layer at the bottom of the scene with one
+instance of it, Play Once, scaled to fit the stage and centred, at the opacity chosen as the
+layer's view opacity. Because the pictures are one symbol, the instance is what is moved, scaled
+or turned, and every picture follows. A symbol of pictures has their box (`symbol_bounds`), and a
+picture inside a symbol is picked by its rectangle (`selection::picture_at`), so the instance is
+selected and transformed like a picture on a layer. The desktop app probes and reads on a worker
+of its own (`VideoJob`, the progress shared through `VideoProgress`) and applies the batch on the
+UI thread; `flare video-import` and the MCP `import_video` call `flare_import::import_video`. Tests
+read through stand-in shell scripts in place of ffprobe and ffmpeg (`Runtime::use_video_tools`,
+`FlareServer::with_video_tools`), so the wiring is checked where ffmpeg is not installed; the real
+ffmpeg is exercised by `flare-ffmpeg`'s own tests where it is.
 
 ## Symbols and rigging
 

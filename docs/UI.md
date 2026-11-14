@@ -565,6 +565,36 @@ any picture (the Selection tool picks it again anywhere in its rectangle; lock t
 over it without picking it). It is artwork like any other, so it is hidden or deleted before
 export. The figure is kept with the preferences, not in the document.
 
+## Import Video
+
+File > Import > Import Video brings a movie in to draw over, as Animate's embedded video plays
+along the timeline. After the file is picked, ffprobe is asked what it is (on the video worker,
+so the window never waits) and the Import Video dialog opens with the file's name, size, rate and
+length, and the choices: Frame rate, how many pictures are taken from each second of the video,
+each one frame of the timeline (the document's rate to start, which keeps the video's timing; a
+button sets the document's and one the video's own); Import at most, the most of the video read
+from its start, in minutes (as much of the first minute as fits, to start); Longest side, the size
+each picture is kept at (960 pixels to start, never enlarged; the video is fitted to the stage
+whatever it is); and Opacity, how see-through the layer is while editing (half, to start). Under
+them the dialog says, as each choice changes, what it makes: how many frames and how much of the
+video, how long the frames last at the document's rate and whether that keeps the video's timing
+(12 pictures a second in a 24 fps document play at 200% of its speed, and it says which rate
+would keep it), and the megabytes the pictures take of the room the document has. Pictures are
+kept decoded, so a document holds 1 GiB of them and 4096 at most: a video that does not fit says
+so in red with a button for the longest length that fits and one for the largest size, and Import
+stays dimmed; above 256 MB it says in amber that the project will be slow to save and open. The
+note under it says where the video goes and to hide or delete its layer before exporting.
+
+Import (or Enter) reads the pictures on the video worker while a progress window counts them;
+Cancel or Escape stops the reading and changes nothing. The pictures become one Graphic symbol
+named after the file, a picture to a frame (a picture that repeats, as in a still shot, is kept
+once and held), and an instance of it plays once on a new layer at the bottom of the scene from
+the playhead, for as many frames as there are pictures, drawn see-through. It is one undo step.
+The instance is selected with Free Transform, so the video is lined up straight away: moving,
+scaling or turning it moves every picture, since they are one symbol. The Selection tool picks it
+again anywhere in its pictures' rectangle; lock the layer to draw over it without picking it. In
+the browser the menu item is dimmed: reading a movie needs ffmpeg, which a page does not have.
+
 ## Info panel
 
 Size and position of the selection, and under Pointer the stage position and the color of the

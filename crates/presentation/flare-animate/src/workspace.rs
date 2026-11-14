@@ -91,6 +91,8 @@ mod tool_kind;
 mod top_bar;
 mod top_bar_classic;
 mod types;
+mod video_dialog;
+mod video_import;
 
 use dock::*;
 use helpers::*;
@@ -332,6 +334,8 @@ pub struct Workspace {
     search_palette: palette::Palette,
     /// The reference mannequin and the panel's view of it.
     mannequin: mannequin::MannequinState,
+    /// A video being brought in: probed, asked about or read.
+    video_import: video_import::VideoImport,
 }
 
 impl Workspace {
@@ -473,6 +477,7 @@ impl Workspace {
             styled_touch: None,
             search_palette: palette::Palette::default(),
             mannequin: mannequin::MannequinState::default(),
+            video_import: video_import::VideoImport::default(),
         }
     }
 }

@@ -124,6 +124,11 @@ impl Workspace {
             let scene = self.scene_id()?;
             flare_tools::magic_wand::bitmap_at(self.document(), scene, self.frame, point)
                 .map(|found| found.at)
+                .or_else(|| {
+                    let at = DVec2::new(f64::from(point.x), f64::from(point.y));
+                    flare_tools::selection::picture_at(self.document(), scene, self.frame, at)
+                        .filter(|span| self.on_unlocked_layer(*span))
+                })
         })
     }
 

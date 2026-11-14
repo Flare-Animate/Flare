@@ -223,6 +223,11 @@ impl WebApp {
                     }
                 });
             }
+            // Dimmed in the browser, which has no ffmpeg; said again should anything ask.
+            DialogRequest::ImportVideo => self
+                .messages
+                .borrow_mut()
+                .push(self.workspace.interface_text("video-browser")),
             DialogRequest::ImportSound => {
                 let (inbox, messages, ctx) = (
                     Rc::clone(&self.picked_sounds),

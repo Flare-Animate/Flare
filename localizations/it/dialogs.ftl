@@ -1,5 +1,6 @@
 dlg-filter-project = Progetto Flare
 dlg-filter-sound = Audio
+dlg-filter-video = Video
 dlg-filter-png = Immagine PNG
 dlg-filter-gif = Animazione GIF
 dlg-filter-mp4 = Video MP4

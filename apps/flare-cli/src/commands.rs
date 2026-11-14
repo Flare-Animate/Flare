@@ -77,6 +77,12 @@ pub(crate) enum Command {
         #[arg(long, default_value_t = 0)]
         at: u32,
     },
+    /// Bring a video in to draw over: its pictures, taken at --fps, one to a frame of the
+    /// timeline from --frame, in one Graphic symbol on a new see-through layer at the bottom of
+    /// the first scene. Move or scale that instance and every picture follows. Prints what the
+    /// import makes (frames, memory, the animation's length at the document's rate) and refuses
+    /// one too large for the document, saying what would fit. Needs ffmpeg on the PATH.
+    VideoImport(crate::video::VideoImportArgs),
     /// How loud each sound is on every frame from its cue (`[low, high]` samples), to animate to.
     SoundWaveform {
         path: PathBuf,

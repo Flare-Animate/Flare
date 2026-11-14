@@ -36,6 +36,7 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+flare-ffmpeg.workspace = true
 flare-export.workspace = true
 flare-publish.workspace = true
 zip = { workspace = true, features = ["deflate"] }

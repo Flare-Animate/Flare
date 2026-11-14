@@ -37,7 +37,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::SaveAll),
             Action(A::Revert),
             Separator,
-            Submenu("Import", &[Action(A::ImportSound)]),
+            Submenu("Import", &[Action(A::ImportSound), Action(A::ImportVideo)]),
             Submenu(
                 "Export",
                 &[

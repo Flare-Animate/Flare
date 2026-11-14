@@ -92,7 +92,7 @@ Interface
 Formats
 - Reading the artwork and keyframes of the old binary `.fla` (CS4 and before); today its stage, library and layer metadata are read
 - Still and animated SVG export: a still frame exports from the desktop and browser menus now (as well as `flare export --format svg`); the animated SVG, Lottie and XDTS exports remain (WP-5)
-- `.sol` shared objects, importing video, and Moho projects
+- `.sol` shared objects, and Moho projects. Importing a video to draw over is done (File > Import > Import Video, `flare video-import`, `import_video`); still to come: its sound, a start point other than the video's first frame, and a browser decoder
 - Sprite export: sprite sheets and atlases of the stage or of one symbol or animation, with the pixels and the facts a game needs (frame durations, trim offsets, original sizes, pivots, animation names and loops), as PNG with JSON or a similar description
 - Layered PSD and PSB export with a Unity profile that keeps names, groups, bounds and order and bakes what Unity ignores (blend modes, opacity, effects) into the pixels
 - More video containers (MKV and AVI; MOV is done, as the MP4 branded for QuickTime) made by Flare itself where the encoder behind them supports the picture, sound and transparency asked for

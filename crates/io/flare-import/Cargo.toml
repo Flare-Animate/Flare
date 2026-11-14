@@ -33,6 +33,7 @@ serde_json.workspace = true
 zstd.workspace = true
 
 [dev-dependencies]
+flare-commands.workspace = true
 flare-video.workspace = true
 flare-eval.workspace = true
 flare-render.workspace = true
