@@ -46,6 +46,11 @@ pub fn pick_sound(filter: &str) -> Option<PathBuf> {
     backend::pick_sound(filter)
 }
 
+/// A picture to look at, of the kinds whose endings are `extensions`.
+pub fn pick_image(filter: &str, extensions: &[&str]) -> Option<PathBuf> {
+    backend::pick_image(filter, extensions)
+}
+
 /// A movie to bring in to draw over, of the kinds ffmpeg is asked to read.
 pub fn pick_video(filter: &str) -> Option<PathBuf> {
     backend::pick_video(filter)

@@ -1,10 +1,11 @@
 //! The Mannequin panel: a 3D figure to pose and draw from, as drawing programs give an artist
-//! one. A row of view buttons and the view (see `mannequin_view`), then the body, a built-in
+//! one. A row of view buttons and the view (see `mannequin_view`), the picture to pose from
+//! (see `mannequin_marks`), then the body, a built-in
 //! pose, the pinned hands and feet, the selected joint's angles, the proportions, the view, and
 //! the figure on the stage.
 
 use egui::Ui;
-use flare_mannequin::{Angles, Body, Joint, Proportion, Vec3};
+use flare_mannequin::{Angles, Body, Facing, Joint, Proportion, Vec3};
 use flare_ui::chrome;
 
 use crate::workspace::Workspace;
@@ -35,6 +36,8 @@ impl Workspace {
                 self.mannequin_view(ui);
                 ui.add_space(4.0);
                 ui.weak(tr!(self, "mannequin-hint"));
+                ui.add_space(6.0);
+                self.mannequin_reference_settings(ui);
                 ui.add_space(6.0);
                 self.mannequin_figure_row(ui);
                 ui.add_space(6.0);
@@ -67,7 +70,7 @@ impl Workspace {
         let feet = [Joint::LeftAnkle, Joint::RightAnkle];
         let pinned = feet.iter().all(|f| self.mannequin.held.contains(f));
         ui.horizontal(|ui| {
-            if chrome::icon_button(ui, "zoom-fit", 16.0, false, true, &hints[0]).clicked() {
+            if chrome::icon_button(ui, "zoom-actual", 16.0, false, true, &hints[0]).clicked() {
                 self.reset_mannequin_view();
             }
             let guides = self.mannequin.guides;
@@ -244,28 +247,31 @@ impl Workspace {
         view.set_yaw(yaw);
         view.set_pitch(pitch);
         view.set_fov(fov);
-        let (low, high) = crate::workspace::mannequin::ZOOM_RANGE;
-        chrome::slider(
-            ui,
-            &labels[3],
-            &mut self.mannequin.zoom,
-            low..=high,
-            "\u{d7}",
-            false,
-        );
+        let (low, high) = flare_mannequin::ZOOM_RANGE;
+        let mut zoom = self.mannequin.camera.zoom();
+        chrome::slider(ui, &labels[3], &mut zoom, low..=high, "\u{d7}", false);
+        if zoom != self.mannequin.camera.zoom() {
+            self.zoom_mannequin(zoom / self.mannequin.camera.zoom());
+        }
         let sides = [
             tr!(self, "mannequin-view-front"),
             tr!(self, "mannequin-view-side"),
             tr!(self, "mannequin-view-back"),
         ];
+        let mut chosen = None;
         ui.horizontal(|ui| {
-            for (label, yaw) in sides.iter().zip([0.0, 90.0, 180.0]) {
+            for (label, facing) in sides
+                .iter()
+                .zip([Facing::Front, Facing::Right, Facing::Back])
+            {
                 if ui.button(label).clicked() {
-                    self.mannequin.figure.view.set_yaw(yaw);
-                    self.mannequin.figure.view.set_pitch(0.0);
+                    chosen = Some(facing);
                 }
             }
         });
+        if let Some(facing) = chosen {
+            self.face_mannequin(facing);
+        }
     }
 
     /// Showing the figure over the stage, where and how large, and placing it on a layer.

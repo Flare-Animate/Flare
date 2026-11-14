@@ -45,6 +45,7 @@ mod language;
 mod layer_names;
 mod layers;
 mod mannequin;
+mod mannequin_reference;
 mod open_any;
 mod outlines;
 mod palette;

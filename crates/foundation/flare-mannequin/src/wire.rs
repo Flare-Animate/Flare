@@ -48,6 +48,10 @@ pub enum WireError {
         joint: &'static str,
         point: [f64; 3],
     },
+    #[error("there is no side called {0:?}; there are front, back, left, right, top and bottom")]
+    UnknownFacing(String),
+    #[error(transparent)]
+    Marks(#[from] crate::reference::MarksError),
     #[error(transparent)]
     Pose(#[from] PoseError),
     #[error(transparent)]

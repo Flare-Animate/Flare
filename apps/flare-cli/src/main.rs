@@ -124,7 +124,7 @@ fn run() -> Result<()> {
         Command::Tween { op } => tween::run(op)?,
         Command::Game { op } => game::run(op)?,
         Command::Shortcuts { op } => shortcuts::run(op)?,
-        Command::Mannequin { op } => mannequin::run(op)?,
+        Command::Mannequin { op } => mannequin::run(*op)?,
         Command::VideoImport(args) => video::run(args)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,

@@ -43,6 +43,7 @@ members = [
     "crates/services/flare-render",
     "crates/services/flare-runtime",
     "crates/services/flare-video",
+    "crates/services/flare-pose",
     "crates/services/flare-recent",
     "crates/services/flare-platform",
     "crates/services/flare-tablet",
@@ -115,6 +116,7 @@ flare-dock = { path = "crates/presentation/flare-dock" }
 flare-menubar = { path = "crates/presentation/flare-menubar" }
 flare-profile = { path = "crates/foundation/flare-profile" }
 flare-recent = { path = "crates/services/flare-recent" }
+flare-pose = { path = "crates/services/flare-pose" }
 flare-ui = { path = "crates/presentation/flare-ui" }
 flare-animate = { path = "crates/presentation/flare-animate" }
 
@@ -164,6 +166,12 @@ parley = "0.12.0"
 epaint_default_fonts = "0.37"   # egui's own fonts, for tests that need glyphs.
 skrifa = "0.44.0"          # Glyph outlines for the text tool; one copy, shared with the rasterizer.
 # usvg/resvg, lcms2, libmypaint, specialised codecs: add when a feature needs them.
+
+# ---- Machine learning ---------------------------------------------------------
+# A pure-Rust runtime that runs ONNX models on the CPU, in the browser too: the pose detector
+# that finds a person's joints in a picture for the mannequin (flare-pose).
+rten = { version = "0.28.0", default-features = false, features = ["onnx_format"] }
+rten-tensor = "0.28.0"
 
 # ---- GPU and desktop presentation: documented version family ----------------
 wgpu = { version = "30.0", default-features = false }
@@ -283,6 +291,21 @@ opt-level = 2
 # 1080p sample unoptimized, under a second with these two (zstd-sys is the C decoder under it).
 [profile.dev.package.flare-import]
 opt-level = 2
+# The pose detector's network takes seconds unoptimized and 10 ms optimized; the tests run it.
+[profile.dev.package.flare-pose]
+opt-level = 2
+[profile.dev.package.rten]
+opt-level = 3
+[profile.dev.package.rten-gemm]
+opt-level = 3
+[profile.dev.package.rten-simd]
+opt-level = 3
+[profile.dev.package.rten-vecmath]
+opt-level = 3
+[profile.dev.package.rten-tensor]
+opt-level = 3
+[profile.dev.package.rten-base]
+opt-level = 3
 [profile.dev.package.zstd-sys]
 opt-level = 2
 [profile.dev.package.flare-commands]

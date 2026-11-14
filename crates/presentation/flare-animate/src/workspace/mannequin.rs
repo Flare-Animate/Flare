@@ -5,16 +5,14 @@
 
 use std::cell::RefCell;
 
-use egui::{Color32, Pos2, Rect, Vec2};
+use egui::{Color32, Pos2, Rect};
 use flare_mannequin::{
-    Body, Grab, Joint, Look, MAX_PICTURE_SIDE, Mannequin, Picture, Placement, Pose, Proportions,
-    RingGrab,
+    Body, Camera, Grab, Joint, Look, MAX_PICTURE_SIDE, Mannequin, Picture, Placement, Pose,
+    Proportions, RingGrab,
 };
 
 use super::*;
 
-/// The smallest and largest zoom of the panel's view.
-pub(crate) const ZOOM_RANGE: (f32, f32) = (0.4, 4.0);
 /// The shortest and tallest the panel's view is made, in points.
 pub(crate) const VIEW_HEIGHT_RANGE: (f32, f32) = (200.0, 2400.0);
 /// The longest side of the picture over the stage, in pixels; a larger figure is stretched, so
@@ -34,6 +32,8 @@ pub(crate) enum MannequinDrag {
     Turn { joint: Joint, last: [f64; 2] },
     /// Turning a joint about one axis on its ring; the pointer's last place.
     Ring { grab: RingGrab, last: [f64; 2] },
+    /// Moving a mark on the reference picture.
+    Mark(Joint),
 }
 
 /// Where Place puts the figure.
@@ -64,9 +64,8 @@ pub(crate) struct Shown {
 pub(crate) struct MannequinState {
     pub(crate) figure: Mannequin,
     pub(crate) selected: Option<Joint>,
-    pub(crate) zoom: f32,
-    /// How far the view's middle is moved from the figure's, in points.
-    pub(crate) pan: Vec2,
+    /// Where the panel's view looks and how near it is.
+    pub(crate) camera: Camera,
     pub(crate) drag: Option<MannequinDrag>,
     /// The hands and feet that stay where they are while the body is posed.
     pub(crate) held: Vec<Joint>,
@@ -87,6 +86,12 @@ pub(crate) struct MannequinState {
     pub(crate) view_rect: Option<Rect>,
     pub(crate) shown: Option<Shown>,
     pub(crate) stage_shown: RefCell<Option<Shown>>,
+    /// The picture the figure is posed from, standing behind it in the view.
+    pub(crate) reference: Option<super::mannequin_reference::Reference>,
+    /// A picture being read for it.
+    pub(crate) loading: Option<super::mannequin_reference::Loading>,
+    /// The view is to frame the figure the next time it is drawn (it knows its size then).
+    pub(crate) frame_next: bool,
 }
 
 impl Default for MannequinState {
@@ -98,8 +103,7 @@ impl Default for MannequinState {
         Self {
             figure,
             selected: None,
-            zoom: 1.0,
-            pan: Vec2::ZERO,
+            camera: Camera::default(),
             drag: None,
             held: vec![Joint::LeftAnkle, Joint::RightAnkle],
             guides: true,
@@ -112,6 +116,9 @@ impl Default for MannequinState {
             view_rect: None,
             shown: None,
             stage_shown: RefCell::new(None),
+            reference: None,
+            loading: None,
+            frame_next: false,
         }
     }
 }
@@ -205,8 +212,7 @@ impl Workspace {
     /// The view as it first was: from the front and a little to the side, the whole figure.
     pub fn reset_mannequin_view(&mut self) {
         self.mannequin.figure.view = flare_mannequin::View::default();
-        self.mannequin.zoom = 1.0;
-        self.mannequin.pan = Vec2::ZERO;
+        self.mannequin.camera = Camera::default();
     }
 
     /// Pins a hand or a foot so it stays put while the body is posed, or lets it go. Whether

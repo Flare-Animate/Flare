@@ -78,18 +78,84 @@ impl View {
     pub(crate) fn toward_viewer(&self) -> Vec3 {
         self.rotation().transpose().apply(Vec3::new(0.0, 0.0, 1.0))
     }
+
+    /// The figure seen square from one side, with the same perspective.
+    #[must_use]
+    pub fn facing(self, facing: Facing) -> Self {
+        let (yaw, pitch) = facing.angles();
+        Self::new(yaw, pitch, self.fov)
+    }
 }
 
-/// Where the figure goes in a picture: the point its middle lands on, and how many units of the
+/// A side the figure can be seen square from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Facing {
+    Front,
+    Back,
+    /// Its left side toward the viewer.
+    Left,
+    Right,
+    /// Looking down on it.
+    Top,
+    /// Looking up at it.
+    Bottom,
+}
+
+impl Facing {
+    pub const ALL: [Facing; 6] = [
+        Self::Front,
+        Self::Back,
+        Self::Left,
+        Self::Right,
+        Self::Top,
+        Self::Bottom,
+    ];
+
+    /// The name used in files, the command line and the MCP server.
+    pub fn id(self) -> &'static str {
+        match self {
+            Self::Front => "front",
+            Self::Back => "back",
+            Self::Left => "left",
+            Self::Right => "right",
+            Self::Top => "top",
+            Self::Bottom => "bottom",
+        }
+    }
+
+    pub fn from_id(id: &str) -> Option<Facing> {
+        Self::ALL.into_iter().find(|f| f.id() == id)
+    }
+
+    /// The turn and the tilt that show it. Turning the figure to its left brings its right side
+    /// round toward the viewer.
+    fn angles(self) -> (f64, f64) {
+        match self {
+            Self::Front => (0.0, 0.0),
+            Self::Back => (180.0, 0.0),
+            Self::Left => (-90.0, 0.0),
+            Self::Right => (90.0, 0.0),
+            Self::Top => (0.0, MAX_PITCH),
+            Self::Bottom => (0.0, -MAX_PITCH),
+        }
+    }
+}
+
+/// Where the figure goes in a picture: the point the camera looks at (its focus, the middle of
+/// where the figure stands unless it is moved), where that lands, and how many units of the
 /// picture one figure unit (the default figure's height) takes. The picture's y runs down.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Placement {
     pub center: [f64; 2],
     pub height: f64,
+    focus: Vec3,
 }
 
 /// The largest figure, in picture units.
 pub const MAX_PLACEMENT_HEIGHT: f64 = 100_000.0;
+/// How far from the middle of the ground the camera may look, in figure units each way: past
+/// anywhere the figure can be moved to.
+pub const MAX_FOCUS: f64 = 4.0;
 
 impl Placement {
     pub fn new(center: [f64; 2], height: f64) -> Option<Self> {
@@ -100,7 +166,24 @@ impl Placement {
             && height.is_finite()
             && height > 0.0
             && height <= MAX_PLACEMENT_HEIGHT)
-            .then_some(Self { center, height })
+            .then_some(Self {
+                center,
+                height,
+                focus: Vec3::new(0.0, MIDDLE, 0.0),
+            })
+    }
+
+    /// The same placement with the camera looking at `focus`, a point of the figure's space,
+    /// which then lands on `center`; none for a point that is not a number or is past
+    /// [`MAX_FOCUS`].
+    pub fn with_focus(self, focus: Vec3) -> Option<Self> {
+        let inside = |v: f64| v.is_finite() && v.abs() <= MAX_FOCUS;
+        (inside(focus.x) && inside(focus.y) && inside(focus.z)).then_some(Self { focus, ..self })
+    }
+
+    /// The point of the figure's space the camera looks at.
+    pub fn focus(&self) -> Vec3 {
+        self.focus
     }
 }
 
@@ -124,18 +207,18 @@ pub struct Projector {
     distance: Option<f64>,
 }
 
-/// The middle of the figure, which the camera looks at.
+/// The middle of the figure, which the camera looks at unless it is moved.
 pub(crate) const MIDDLE: f64 = 0.5;
 
 impl Projector {
-    /// The camera looks at the middle of where the figure stands, and stays there when the
-    /// figure is moved or lifted, so the floor holds still and a body lowered over planted feet
-    /// is seen to crouch.
+    /// The camera looks at the placement's focus, by default the middle of where the figure
+    /// stands, and stays there when the figure is moved or lifted, so the floor holds still and
+    /// a body lowered over planted feet is seen to crouch.
     pub(crate) fn new(view: &View, placement: Placement) -> Self {
         let distance = (view.fov > 0.5).then(|| 0.5 / (view.fov.to_radians() / 2.0).tan() + 0.5);
         Self {
             rotation: view.rotation(),
-            target: Vec3::new(0.0, MIDDLE, 0.0),
+            target: placement.focus,
             placement,
             distance,
         }
@@ -171,5 +254,11 @@ impl Projector {
 
     pub fn placement(&self) -> Placement {
         self.placement
+    }
+
+    /// Whether a point at `depth` (as [`project`](Self::project) gives it) is in front of the
+    /// camera; with no perspective everything is.
+    pub(crate) fn in_front(&self, depth: f64) -> bool {
+        self.distance.is_none_or(|d| depth < d)
     }
 }

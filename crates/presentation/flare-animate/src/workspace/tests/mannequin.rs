@@ -49,7 +49,7 @@ fn laid_out() -> (Workspace, egui::Context, f64) {
 
 fn placement(ws: &Workspace) -> flare_mannequin::Placement {
     let rect = ws.mannequin.view_rect.expect("drawn");
-    view_placement(rect, ws.mannequin.zoom, ws.mannequin.pan).expect("placement")
+    view_placement(rect, &ws.mannequin.camera).expect("placement")
 }
 
 fn mark(ws: &Workspace, joint: Joint) -> Pos2 {
@@ -121,10 +121,10 @@ fn presets_bodies_mirror_and_reset_change_the_figure() {
     ws.reset_mannequin_pose();
     assert_eq!(ws.mannequin().pose, flare_mannequin::Pose::default());
     ws.mannequin.figure.orbit(40.0, 10.0);
-    ws.mannequin.zoom = 2.0;
+    ws.mannequin.camera.set_zoom(2.0);
     ws.reset_mannequin_view();
     assert_eq!(ws.mannequin().view, flare_mannequin::View::default());
-    assert_eq!(ws.mannequin.zoom, 1.0);
+    assert_eq!(ws.mannequin.camera, flare_mannequin::Camera::default());
 }
 
 #[test]

@@ -26,7 +26,7 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, the pressure-to-width curve, and the stabilizer that averages a hand's last samples. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
 | foundation | `flare-tween` | Interpolation and easing, cubic-bezier keyframe handles, extrapolation, in-betweens of strokes and of rasters. See Tweening below. |
 | foundation | `flare-rig` | Skeletal rigs for symbols: bones, keyed poses, forward kinematics and bounded IK, as pure data and functions. See Symbols and rigging below. |
-| foundation | `flare-mannequin` | The posable reference figure, a 3D drawing figure: a man's or a woman's body with seven proportions, seventeen joints held to anatomical limits, built-in poses (`data/poses.json`), forward kinematics, one smooth skinned surface built from cross-sections, an orbiting camera with optional perspective, and a software renderer that shades it with guide lines, an outline and a floor shadow; posing by dragging any part with pinned hands and feet, by rings that turn one axis, by a turn about the line of sight or a two-bone reach; a bounded, versioned JSON form and a `Request` the command line and MCP server build a figure from. See The reference mannequin below. |
+| foundation | `flare-mannequin` | The posable reference figure, a 3D drawing figure: a man's or a woman's body with seven proportions, seventeen joints held to anatomical limits, built-in poses (`data/poses.json`), forward kinematics, one smooth skinned surface built from cross-sections, a camera that turns round a focus, slides and zooms toward a point, with optional perspective, copying a pose from marks on a picture, and a software renderer that shades it with guide lines, an outline and a floor shadow; posing by dragging any part with pinned hands and feet, by rings that turn one axis, by a turn about the line of sight or a two-bone reach; a bounded, versioned JSON form and a `Request` the command line and MCP server build a figure from. See The reference mannequin below. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
@@ -44,6 +44,7 @@ Executables are in `apps/`. The folders mean:
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing, what the paint tools find under a point (on a line, on a fill, inside an outline), and a mask of where the lines leave ink, which the Paint Bucket finds an area in. |
 | services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text, pixels (the Magic Wand, and Blur and Smudge strokes, which the pixels worker keeps between steps) and a video brought in to draw over, with latest-wins where only the newest matters and an inline mode for tests; image export. No UI types. |
 | services | `flare-video` | The movie as an MP4, or a QuickTime movie (the same file with QuickTime's brand), with its sound, made in pure Rust: H.264 from `rusty_h264`, AAC-LC from OxideAV's `oxideav-aac`, the container from `muxide`. Frames are drawn, encoded and written one at a time, the cued sounds mixed and encoded beside them, and the file appears only when whole and never over another. Desktop only: the web build does not carry it. |
+| services | `flare-pose` | Finding a person's pose in a picture for the mannequin: MoveNet SinglePose Lightning (Google's pose estimation network, Apache-2.0, built in from `data/`) run on the CPU by RTen, a pure-Rust ONNX runtime that also builds for the browser; a look at the whole picture, then closer looks round the person while they are surer; the seventeen points found become `flare_mannequin::Marks`. No UI types. See The reference mannequin below. |
 | services | `flare-recent` | What a list of recent projects knows: each file's time and size read off the UI thread, its kind, the search over names and folders, and the sorting. No UI types. |
 | services | `flare-tablet` | A tablet pen's pressure from the operating system where the window system does not pass it on: one gated module per system, each writing into `flare-input`'s `PenFeed`. Today the X server's XInput2 raw events (Unix), with the check for a plugged-in pen that picks XWayland, and a local AppKit event monitor (macOS), the one module with `unsafe`, which is why this cannot live in `flare-input`; what its events mean is decided in a safe module beside it. A Windows module is still to come. |
 | services | `flare-platform` | What a desktop needs from the operating system: per-user directories (the `directories` crate), the sound card, native dialogs, recovery prompts, the Dock icon of a program run outside an app bundle (its one module that may use `unsafe`, for AppKit), and the threads for publishing, exporting and test movies. No UI types. |
@@ -616,8 +617,55 @@ sample from those coordinates (the lines down the middle of the front and back i
 outline where the body ends or a nearer part stands in front of a further one, and the shadow of
 every triangle cast straight onto the floor. Small pictures are made at twice the size and brought
 down. Each pixel keeps the joint whose part it shows, so a press picks what is seen. The camera
-looks at the middle of where the figure stands and stays there, so a lifted or lowered body is
-seen to move over a still floor.
+looks at a focus carried by the `Placement`, the middle of where the figure stands unless the
+view moved it, and stays there, so a lifted or lowered body is seen to move over a still floor.
+
+Moving round it (`camera.rs`): a `Camera` is the panel's focus and zoom; the turn is the figure's
+`View` (with `View::facing` for a side seen square on). A slide moves the focus across the plane
+through it that faces the camera; a zoom toward the pointer zooms, then slides the focus so the
+point that was under the pointer on that plane is again; framing looks at the middle of the
+posed joints (taking in the crown and the floor), zooms so the drawn figure fills most of the
+view, and puts its box in the middle (three rounds, as a slide is exact only on the focus plane
+under perspective). A picture, a placed figure and the command line keep the default focus.
+
+Finding the person (`flare-pose`): MoveNet SinglePose Lightning looks at a square of 192 by 192
+pixels and answers with seventeen points (nose, eyes, ears, shoulders, elbows, wrists, hips, knees
+and ankles, the person's left before their right) and how sure it is of each. The square is
+sampled from the picture with up to four by four samples a pixel, a see-through pixel against
+black. The first look is the whole picture in the middle of a square; the next is round the
+points it found, with room for the body (half again the points' extent, and at least four torsos
+round the hips, since a far look bunches its points), and another after that while each is surer
+than the last, at most three looks. A point less sure than 0.3 is not marked; a look less sure
+than 0.3 of the body on the whole, or without both shoulders and both hips, found no one. The head's
+mark is the middle of the face points seen, the neck's 18 percent of the way from the shoulders'
+middle to the head (the figure's own proportion). The network is MoveNet's full-precision ONNX
+conversion (9.4 MB, in every build that has the panel): the half-precision and eight-bit ones give
+wrong points under RTen. A look takes about 10 ms, a picture 35 to 55 ms in a release build.
+
+Copying a pose from a picture (`reference.rs`, `copy.rs`): `Marks` hold fourteen points on a
+picture in its own pixels (the middle of the head, the neck between the collarbones, shoulders,
+elbows, wrists, hips, knees and ankles) and, for each, whether it is nearer the viewer than the
+part it hangs from (`Depth`: auto, nearer, farther); a `Board` is where the picture stands in the
+figure's space, upright and facing the front. `Mannequin::copy_pose` reads the picture as the
+figure seen square from the front, flat: the scale is the smallest at which no long bone (torso,
+arms, legs) is longer than the figure's, and each line between marks gets back the depth its
+length lost (Pythagoras against the figure's own length). Up to `LEAN_SLACK` (25 degrees) of
+seeming lean is taken as none and the rest stretched to a quarter turn, unless the mark's depth was
+given: a person is not built as the figure is and a mark found in a photograph is a little off, and
+without the slack a standing person came back leaning by a quarter turn. An elbow or knee bent
+less than 15 degrees does not turn its limb about the upper bone, whose plane it cannot tell.
+Which way it leans is the mark's
+`Depth`, or else both ways are tried: the hips, the line up to the neck and the shoulders together
+(up to eight ways), then the neck and each limb on its own (up to four ways each), each posed and
+measured by how far its parts miss their lines; the best is kept, the one nearest the pose the
+figure had when two are as good. Posing goes from the hips out: the hips and the neck line give
+the whole figure's frame, the shoulders against them turn the waist and chest half each; each limb
+swings its upper bone onto its line, bends its elbow or knee to the angle between its two lines and
+turns about the upper bone until the lower lies on its line, every joint through the same limits.
+Then the lowest marked foot is put on the floor. It returns a `Fit` (where the hips are in the
+picture and in the figure's space, and the scale), from which `Board::fitted` moves the picture so
+the figure stands over the person. Parts without marks keep their pose; the hands, feet and head
+are not turned. A copy takes about 23 microseconds in a release build.
 
 Posing (`grab.rs`, `rings.rs`, `manipulate.rs`): a part taken hold of follows the pointer at the
 depth it was taken. A hand, forearm, foot or shin is a two-bone reach of the hand or foot (the law
@@ -631,7 +679,15 @@ one of its three axes by the distance the pointer went along it.
 The workspace keeps the figure outside the document (`workspace/mannequin.rs`): the Mannequin panel
 poses it, the stage can show it see-through over the artwork without it ever being in the document
 or an export, and the figure is kept with the preferences. Each picture on screen is made again
-only when the figure, the view or its size changes. Place on a Layer is
+only when the figure, the view or its size changes. A picture to pose from
+(`workspace/mannequin_reference.rs`) is read by `flare_import::read_still` on a thread of its own
+(inline in the browser and in tests), kept at most 2048 pixels a side, and the person in it found
+on the same thread (`flare_pose::find_pose`); the figure takes the pose found as soon as it
+arrives (`copy_pose`), turned to face the picture, and the marks found stay to be corrected. With
+no one found the marks start on the figure's joints. The picture is drawn behind the figure
+as a mesh of eight by eight squares projected through the view, so it turns with the figure; its
+marks are dragged on it through `Board::under` (where the line of sight meets the picture). It is
+not in the document, the preferences or an export. Place on a Layer is
 `flare_tools::mannequin::place`: one batch that adds the shaded picture to the bitmap library and
 a layer at the top of the scene showing it, drawn at half opacity while editing, in a keyframe
 from the playhead to the end of the scene, at two pixels to a stage unit.
@@ -642,7 +698,12 @@ already has (the same pose placed again) is shown rather than added twice. The w
 selects it with Free Transform, and the Selection tools pick a bitmap where no shape is
 (`Workspace::pick`), so it is moved, scaled and turned like any picture. That layer is ordinary
 artwork and is exported unless it is hidden or deleted. `flare mannequin` and the MCP
-tools `list_mannequin`, `picture_mannequin` and `place_mannequin` call the same functions.
+tools `list_mannequin`, `picture_mannequin` and `place_mannequin` call the same functions, and
+take marks (`--marks`, `marks`) or a picture to find the pose in (`--picture`, `picture`, through
+`flare_pose::find_pose_in_file`, which looks at it at most 1024 pixels a side) and a side to see it
+from (`--facing`, `facing`) through `Request`; a copied pose is seen from the front unless a view is
+asked for. `flare mannequin marks` prints the marks found in a `--picture`, or where the figure's
+joints lie on a picture of a given size.
 
 ## A video to draw over
 

@@ -58,7 +58,7 @@ Drawing and tools
 - Perspective guides: one-, two- and three-point sets with editable vanishing points and a horizon, snapping, and no part of the exported artwork
 - Toon shading and lighting brushes: paint a chosen shadow or highlight level that stays at that level however often it is painted over, kept apart from the artwork so a recolor keeps the shading, with editable tone ramps
 - A reference board dock (images, notes, color picking and pinned views) that is saved with the project and never exported
-- A poseable 3D mannequin for reference: done (Window > Mannequin, `flare mannequin`, `picture_mannequin`, `place_mannequin`; see UI.md). Still to come: posing it on the stage itself, a list of the person's own poses, keeping it in the project, and fingers that bend
+- A poseable 3D mannequin for reference: done (Window > Mannequin, `flare mannequin`, `picture_mannequin`, `place_mannequin`; see UI.md), with a view that is moved round like a 3D program's and a pose copied from a picture of a person, found there by itself (MoveNet on RTen) and corrected by its marks. Still to come: posing it on the stage itself, the hands, feet and head turned from a picture, a list of the person's own poses, keeping it in the project, and fingers that bend
 - Selecting objects inside a bitmap, as Photoshop's Object Selection does
 
 Timeline, symbols and library

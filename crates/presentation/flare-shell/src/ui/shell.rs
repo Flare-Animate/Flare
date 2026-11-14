@@ -53,6 +53,14 @@ impl App {
                     self.workspace.import_video(&path);
                 }
             }
+            DialogRequest::ImportMannequinReference => {
+                if let Some(path) = dialogs::pick_image(
+                    &self.workspace.interface_text("mannequin-filter-picture"),
+                    &flare_animate::REFERENCE_EXTENSIONS,
+                ) {
+                    self.workspace.import_mannequin_reference(&path);
+                }
+            }
             DialogRequest::ImportAnimateShortcuts => {
                 if let Some(path) = dialogs::pick_shortcut_xml(
                     &self

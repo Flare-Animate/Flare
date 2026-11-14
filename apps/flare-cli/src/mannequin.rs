@@ -6,7 +6,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Subcommand};
-use flare_mannequin::{Look, MAX_FIGURE_BYTES, MAX_PICTURE_SIDE, Placement, Request};
+use flare_mannequin::{
+    Board, Look, MAX_FIGURE_BYTES, MAX_MARK, MAX_PICTURE_SIDE, Marks, Placement, Request,
+};
 use serde_json::{Value, json};
 
 #[derive(Subcommand)]
@@ -18,6 +20,18 @@ pub enum MannequinCommand {
     Figure {
         #[command(flatten)]
         look: LookArgs,
+    },
+    /// Print marks, the form `--marks` reads: where the person's head, neck, shoulders, elbows,
+    /// hands, hips, knees and feet are in the `--picture` given, or else where the figure's lie
+    /// on a picture of this size seen from the front.
+    Marks {
+        #[command(flatten)]
+        look: LookArgs,
+        /// The picture's size, in its own units (pixels).
+        #[arg(long, default_value_t = 900.0)]
+        width: f64,
+        #[arg(long, default_value_t = 1200.0)]
+        height: f64,
     },
     /// Write a PNG of the figure shaded as a 3D drawing figure, with its guide lines, outline
     /// and shadow on the floor, see-through elsewhere.
@@ -81,6 +95,17 @@ pub struct LookArgs {
     /// A pose file: {"joints": {"left_elbow": [bend, twist, side], ...}, "lift": [x, y, z]}.
     #[arg(long)]
     pose_file: Option<PathBuf>,
+    /// Marks on a picture of a person, to copy their pose from as if the picture showed them
+    /// from the front: {"marks": {"left_elbow": [x, y], ...}, "depth": {"left_elbow":
+    /// "nearer"}}, x right and y down in the picture's pixels (`flare mannequin marks` prints a
+    /// start). Needs both hips and the neck; applied after the pose, before the joints.
+    #[arg(long, conflicts_with = "picture")]
+    marks: Option<PathBuf>,
+    /// A picture of a person (PNG, JPEG, WebP and the other kinds Flare imports): the person is
+    /// found in it and the figure takes their pose, as if the picture showed them from the
+    /// front. Applied where `--marks` would be.
+    #[arg(long)]
+    picture: Option<PathBuf>,
     /// One joint, as joint=bend,twist,side in degrees (left_knee=45,0,0); may be repeated.
     #[arg(long = "joint", value_parser = flare_mannequin::parse_joint_setting)]
     joints: Vec<(String, [f64; 3])>,
@@ -89,6 +114,10 @@ pub struct LookArgs {
     /// leg bends to follow. May be repeated.
     #[arg(long = "reach", value_parser = flare_mannequin::parse_reach_setting, allow_hyphen_values = true)]
     reach: Vec<(String, [f64; 3])>,
+    /// A side to see it square from: front, back, left, right, top or bottom (before the turn
+    /// and tilt, which change it).
+    #[arg(long)]
+    facing: Option<String>,
     /// Degrees the figure is turned to its left.
     #[arg(long, allow_hyphen_values = true)]
     yaw: Option<f64>,
@@ -98,6 +127,18 @@ pub struct LookArgs {
     /// Field of view in degrees; 0 is flat.
     #[arg(long)]
     fov: Option<f64>,
+}
+
+/// The marks of the person in the picture at `path`.
+fn found_marks(path: &Path) -> Result<Marks> {
+    let meta =
+        std::fs::metadata(path).with_context(|| format!("cannot read {}", path.display()))?;
+    if meta.len() > flare_import::MAX_STILL_BYTES as u64 {
+        bail!("{} is too large for a picture", path.display());
+    }
+    let bytes = std::fs::read(path).with_context(|| format!("cannot read {}", path.display()))?;
+    let name = path.to_string_lossy();
+    flare_pose::find_pose_in_file(&name, &bytes).map_err(|e| anyhow!(e))
 }
 
 fn read_small(path: &Path) -> Result<String> {
@@ -116,8 +157,14 @@ impl LookArgs {
             body: self.body,
             preset: self.pose,
             pose: self.pose_file.as_deref().map(read_small).transpose()?,
+            marks: match (&self.marks, &self.picture) {
+                (_, Some(picture)) => Some(found_marks(picture)?.to_json()),
+                (Some(file), None) => Some(read_small(file)?),
+                (None, None) => None,
+            },
             joints: self.joints,
             reach: self.reach,
+            facing: self.facing,
             yaw: self.yaw,
             pitch: self.pitch,
             fov: self.fov,
@@ -133,6 +180,22 @@ pub fn run(op: MannequinCommand) -> Result<Value> {
         MannequinCommand::Figure { look } => {
             let figure = look.build()?;
             Ok(serde_json::from_str(&figure.to_json())?)
+        }
+        MannequinCommand::Marks {
+            look,
+            width,
+            height,
+        } => {
+            if let Some(picture) = &look.picture {
+                return Ok(serde_json::from_str(&found_marks(picture)?.to_json())?);
+            }
+            let figure = look.build()?;
+            let board = Board::new([width, height]).with_context(|| {
+                format!("the picture's width and height are each 1 to {MAX_MARK}")
+            })?;
+            Ok(serde_json::from_str(
+                &Marks::from_figure(&figure, &board).to_json(),
+            )?)
         }
         MannequinCommand::Picture {
             out,

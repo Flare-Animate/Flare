@@ -302,7 +302,8 @@ pub(crate) enum Command {
     /// The reference mannequin: list what a figure can be, print one, place one on a layer.
     Mannequin {
         #[command(subcommand)]
-        op: crate::mannequin::MannequinCommand,
+        // Boxed: a figure's many options would make every command as large.
+        op: Box<crate::mannequin::MannequinCommand>,
     },
     /// Keyboard shortcuts: list a set, export one as a file, check and import a file.
     Shortcuts {

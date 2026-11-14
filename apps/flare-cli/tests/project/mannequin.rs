@@ -187,3 +187,92 @@ fn more_figures_go_on_one_layer_in_the_same_keyframe_or_a_keyframe_of_their_own(
     ]);
     assert!(String::from_utf8_lossy(&missing.stderr).contains("no layer"));
 }
+
+#[test]
+fn a_pose_is_copied_from_marks_on_a_picture() {
+    let marks = json(&["mannequin", "marks", "--width", "600", "--height", "800"]);
+    let at = |name: &str| {
+        let p = &marks["marks"][name];
+        [p[0].as_f64().expect("x"), p[1].as_f64().expect("y")]
+    };
+    assert_eq!(marks["marks"].as_object().map(|m| m.len()), Some(14));
+    // Raise the left arm straight out to the side: the elbow and hand level with the shoulder.
+    let shoulder = at("left_shoulder");
+    let reach = at("left_shoulder")[1] - at("left_wrist")[1];
+    let mut moved = marks.clone();
+    let half = reach.abs() * 0.53;
+    moved["marks"]["left_elbow"] = serde_json::json!([shoulder[0] + half, shoulder[1]]);
+    moved["marks"]["left_wrist"] = serde_json::json!([shoulder[0] + 2.0 * half, shoulder[1]]);
+    let dir = tempfile::tempdir().expect("dir");
+    let file = dir.path().join("marks.json");
+    std::fs::write(&file, moved.to_string()).expect("write");
+    let figure = json(&[
+        "mannequin",
+        "figure",
+        "--marks",
+        &file.to_string_lossy(),
+        "--facing",
+        "front",
+    ]);
+    let side = figure["pose"]["joints"]["left_shoulder"][2]
+        .as_f64()
+        .expect("the shoulder turned");
+    assert!((side - 90.0).abs() < 3.0, "{figure}");
+    assert_eq!(figure["view"]["yaw"], 0.0);
+
+    std::fs::write(&file, r#"{"marks": {"head": [1, 2]}}"#).expect("write");
+    let few = run(&["mannequin", "figure", "--marks", &file.to_string_lossy()]);
+    assert!(!few.status.success());
+    assert!(String::from_utf8_lossy(&few.stderr).contains("both hips and the neck"));
+    let side = run(&["mannequin", "figure", "--facing", "sideways"]);
+    assert!(String::from_utf8_lossy(&side.stderr).contains("no side called"));
+}
+
+#[test]
+fn the_pose_of_the_person_in_a_picture_is_found_and_copied() {
+    let dir = tempfile::tempdir().expect("dir");
+    let wave = dir.path().join("wave.png").to_string_lossy().into_owned();
+    // A picture of the mannequin itself waving, from the front.
+    json(&[
+        "mannequin",
+        "picture",
+        &wave,
+        "--pose",
+        "wave",
+        "--yaw",
+        "0",
+        "--pitch",
+        "0",
+        "--fov",
+        "0",
+        "--width",
+        "480",
+        "--height",
+        "640",
+    ]);
+    let figure = json(&["mannequin", "figure", "--picture", &wave]);
+    let elbow = figure["pose"]["joints"]["right_elbow"][0]
+        .as_f64()
+        .expect("the right elbow bent");
+    assert!(elbow < -60.0, "the waving arm is bent: {figure}");
+    assert_eq!(figure["view"]["yaw"], 0.0, "seen as the picture is");
+
+    let marks = json(&["mannequin", "marks", "--picture", &wave]);
+    let raised = marks["marks"]["right_wrist"][1].as_f64().expect("the hand");
+    let shoulder = marks["marks"]["right_shoulder"][1]
+        .as_f64()
+        .expect("the shoulder");
+    assert!(
+        raised < shoulder,
+        "the hand is found above the shoulder: {marks}"
+    );
+
+    let blank = dir.path().join("blank.png");
+    let rgba = vec![128u8; 40 * 30 * 4];
+    std::fs::write(&blank, flare_runtime::rgba_png(40, 30, &rgba).expect("png")).expect("write");
+    let none = run(&["mannequin", "figure", "--picture", &blank.to_string_lossy()]);
+    assert!(!none.status.success());
+    assert!(String::from_utf8_lossy(&none.stderr).contains("no person was found"));
+    let both = run(&["mannequin", "figure", "--picture", &wave, "--marks", &wave]);
+    assert!(String::from_utf8_lossy(&both.stderr).contains("cannot be used with"));
+}

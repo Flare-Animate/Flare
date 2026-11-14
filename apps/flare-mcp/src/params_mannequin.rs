@@ -14,6 +14,18 @@ pub struct PlaceMannequin {
     pub body: Option<String>,
     /// A built-in pose's id (list_mannequin lists them).
     pub preset: Option<String>,
+    /// Marks on a picture of a person, to copy their pose as if the picture showed them from
+    /// the front: {"marks": {"head": [x, y], "neck": [x, y], "left_shoulder": [x, y], ...},
+    /// "depth": {"left_wrist": "nearer"}}, x right and y down in the picture's pixels, as
+    /// list_mannequin's "example_marks". Needs both hips and the neck; "depth" (auto, nearer or
+    /// farther than the part it hangs from) settles what a flat picture cannot. Applied after
+    /// the preset, before joints.
+    pub marks: Option<serde_json::Value>,
+    /// A picture of a person, by file name in the export directory (PNG, JPEG, WebP and the
+    /// other kinds Flare imports): the person is found in it and the figure takes their pose,
+    /// seen from the front as the picture shows them unless a view is asked for. Instead of
+    /// `marks`; fails when no one is found.
+    pub picture: Option<String>,
     /// Joints to turn, by id, as [bend, twist, side] in degrees within each joint's limits
     /// (list_mannequin lists them); at most 64. Applied after the preset.
     pub joints: Option<BTreeMap<String, [f64; 3]>>,
@@ -21,6 +33,10 @@ pub struct PlaceMannequin {
     /// right_ankle), as [x, y, z]: x to the figure's left, y up from the ground, z to its
     /// front, the figure one unit tall; the arm or leg bends to follow. Applied after joints.
     pub reach: Option<BTreeMap<String, [f64; 3]>>,
+    /// A side to see the figure square from: front, back, left, right, top or bottom (before
+    /// yaw and pitch, which change it). A pose copied from marks matches its picture from the
+    /// front.
+    pub facing: Option<String>,
     /// Degrees the figure is turned to its left.
     pub yaw: Option<f64>,
     /// Degrees the view looks down on it, -89 to 89.
@@ -56,10 +72,16 @@ pub struct PictureMannequin {
     pub body: Option<String>,
     /// A built-in pose's id.
     pub preset: Option<String>,
+    /// Marks on a picture to copy a pose from, as place_mannequin takes them.
+    pub marks: Option<serde_json::Value>,
+    /// A picture of a person to copy the pose from, as place_mannequin takes it.
+    pub picture: Option<String>,
     /// Joints to turn, by id, as [bend, twist, side] in degrees.
     pub joints: Option<BTreeMap<String, [f64; 3]>>,
     /// Hands and feet to pull to points, as place_mannequin takes them.
     pub reach: Option<BTreeMap<String, [f64; 3]>>,
+    /// A side to see the figure square from, as place_mannequin takes it.
+    pub facing: Option<String>,
     pub yaw: Option<f64>,
     pub pitch: Option<f64>,
     pub fov: Option<f64>,

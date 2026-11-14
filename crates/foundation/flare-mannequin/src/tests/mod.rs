@@ -1,5 +1,7 @@
 #![allow(clippy::expect_used, clippy::unwrap_used)]
 
+mod camera;
+mod copy;
 mod drawing;
 mod figure;
 mod grab;

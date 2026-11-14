@@ -45,7 +45,7 @@ fn distance(a: Angles, b: Angles) -> f64 {
 /// The angles, as the pose keeps them (mirrored on the right), of `rotation` for `joint`: of the
 /// two sets that make it, the one inside the limits, else the one nearest `was`, so an arm raised
 /// overhead is not read as one turned round.
-fn angles_for(joint: Joint, rotation: Rot3, was: Angles) -> Angles {
+pub(crate) fn angles_for(joint: Joint, rotation: Rot3, was: Angles) -> Angles {
     let a = rotation.to_angles();
     let b = Angles::new(
         wrap_degrees(180.0 - a.bend),

@@ -1,5 +1,6 @@
 //! A figure asked for by name and number, as the command line and the MCP server ask: a figure
-//! file to start from, then a body, a built-in pose, a pose file, single joints and the view,
+//! file to start from, then a body, a built-in pose, a pose file, marks on a picture to copy a
+//! pose from, single joints and the view,
 //! each laid over what came before. Every value is checked, never brought into range, so a
 //! mistyped angle is refused with its reason instead of quietly changed.
 
@@ -10,8 +11,9 @@ use crate::figure::Mannequin;
 use crate::grab::ENDS;
 use crate::math::{Angles, Vec3};
 use crate::pose::{MAX_LIFT, Pose};
+use crate::reference::{MARKED, Marks};
 use crate::skeleton::Joint;
-use crate::view::{MAX_FOV, MAX_PITCH};
+use crate::view::{Facing, MAX_FOV, MAX_PITCH};
 use crate::wire::{WireError, presets};
 
 /// Most joints one request may set or pull one by one.
@@ -30,12 +32,19 @@ pub struct Request {
     pub preset: Option<String>,
     /// A pose, as `Pose::to_json` writes it.
     pub pose: Option<String>,
+    /// Marks on a picture of a person seen from the front, as `Marks::to_json` writes them,
+    /// to copy the pose from; the figure is then seen from the front, as the picture shows it,
+    /// unless a side, turn or tilt is asked for. Applied after the pose, before the joints.
+    pub marks: Option<String>,
     /// Joints set one by one, by id, as bend, twist and side in degrees.
     pub joints: Vec<(String, [f64; 3])>,
     /// Hands and feet pulled to points, by id, as x (to the figure's left), y (up from the
     /// ground) and z (to its front) in figure units, the default figure one unit tall; the arm
     /// or leg bends to follow. Applied after the joints.
     pub reach: Vec<(String, [f64; 3])>,
+    /// A side to see the figure square from (`front`, `back`, `left`, `right`, `top`,
+    /// `bottom`), before the turn and tilt, which change it.
+    pub facing: Option<String>,
     pub yaw: Option<f64>,
     pub pitch: Option<f64>,
     pub fov: Option<f64>,
@@ -61,6 +70,11 @@ impl Request {
         if let Some(text) = &self.pose {
             figure.pose = Pose::from_json(text)?;
         }
+        if let Some(text) = &self.marks {
+            figure.copy_pose(&Marks::from_json(text)?)?;
+            // Seen as the picture shows it, unless another view is asked for below.
+            figure.view = figure.view.facing(Facing::Front);
+        }
         if self.joints.len() + self.reach.len() > MAX_JOINT_SETTINGS {
             return Err(WireError::TooLarge);
         }
@@ -85,6 +99,10 @@ impl Request {
                     point: *point,
                 });
             }
+        }
+        if let Some(id) = &self.facing {
+            let facing = Facing::from_id(id).ok_or_else(|| WireError::UnknownFacing(id.clone()))?;
+            figure.view = figure.view.facing(facing);
         }
         let view = &mut figure.view;
         let (yaw, pitch, fov) = (
@@ -133,7 +151,8 @@ fn parse_three(text: &str, form: &str) -> Result<(String, [f64; 3]), String> {
 }
 
 /// Everything a figure can be asked to be: the bodies, the built-in poses, the proportions with
-/// their ranges, the joints with how far each turns, and the hands and feet that reach.
+/// their ranges, the joints with how far each turns, the hands and feet that reach, the parts
+/// marked on a picture to copy a pose from, and the sides it can be seen square from.
 pub fn catalog() -> Value {
     let pair = |(a, b): (f64, f64)| json!([a, b]);
     json!({
@@ -154,6 +173,9 @@ pub fn catalog() -> Value {
             })
         }).collect::<Vec<_>>(),
         "reach": ENDS.iter().map(|j| j.id()).collect::<Vec<_>>(),
+        "marks": MARKED.iter().map(|j| j.id()).collect::<Vec<_>>(),
+        "depths": ["auto", "nearer", "farther"],
+        "facings": Facing::ALL.iter().map(|f| f.id()).collect::<Vec<_>>(),
         "lift": pair((-MAX_LIFT, MAX_LIFT)),
         "pitch": pair((-MAX_PITCH, MAX_PITCH)),
         "fov": pair((0.0, MAX_FOV)),

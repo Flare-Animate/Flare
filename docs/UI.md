@@ -539,11 +539,31 @@ start pinned, so the hips dragged down crouch over them). A right click on a han
 Pinned toggles under the view, pins or frees it. A click picks a part, tints it, and shows three
 rings round its joint (bend red, twist green, side blue, the half toward the viewer bold); a drag
 along a ring turns the joint about that axis alone. With Alt a drag turns a part about the line of
-sight. A drag anywhere else turns the view round the figure, a right or middle drag (or Shift)
-moves it across, and scrolling zooms. Every joint stops where a body does: a knee bends one way, a
+sight. A drag anywhere else turns the view round what it looks at, a right or middle drag (or
+Shift) slides it across, and scrolling or pinching zooms toward the pointer (Shift-scrolling
+slides); none of it scrolls the panel. A double click on a part makes the view look at that part
+and turn round it; on nothing, it frames the whole figure, wherever it was moved to. In the view's
+top right corner: Zoom out, Zoom in, Frame the figure, and a menu of the sides to see it square
+from (Front, Back, Left, Right, Top, Bottom). The view has no keys of its own: the arrow and letter
+keys stay the stage's. Every joint stops where a body does: a knee bends one way, a
 neck turns so far. Above the view: Reset view, guide lines on or off, pin both feet, and at the
 right the expand button, which makes the panel wide and the view tall (again to put it back). A
-grip under the view drags it taller or shorter (a double click puts it back). Under the view: the
+grip under the view drags it taller or shorter (a double click puts it back). Under the view, Pose
+from a Picture: Import Picture brings in a picture of a person (any picture kind Flare imports),
+and the figure takes their pose by itself: the person is found in the picture (a pose detector
+built into Flare, which works offline; a spinner shows while the picture is read and looked in),
+and the figure turns to face the picture, which stands behind it, see-through, the figure over
+the person, and turns with it. The joints found show as fourteen marks, a stick figure (the
+person's left side blue, their right orange). A mark that is wrong is dragged onto the person's
+head, neck, shoulder, elbow, hand, hip, knee or foot, and a right click on one steps it through
+auto, nearer (+) and farther (−) than the part it hangs from, for what a flat picture cannot tell;
+Copy Pose then poses the figure again. With no one found, the panel says so and the marks start on
+the figure's joints, to drag onto the person by hand. Copy Pose poses the figure from the marks,
+turns it to the front and moves the picture so the figure stands over the person; with too few
+marks (both hips and the neck at least) it says so and changes nothing. Marks on the Figure puts
+the marks back where the figure's joints are, Show the marks hides them, Opacity, Remove Picture
+and Import Picture again for another. The picture is only looked at: it is not in the document,
+the preferences or an export. Then: the
 body, the built-in poses (Stand, T-Pose, A-Pose, Walk, Run, Sit, Crouch, Kneel, Jump, Reach Up,
 Wave), Mirror and Reset; Pinned; Bend, Twist and Side sliders for the picked joint (and Raise for
 the whole body); Proportions (head, shoulders, hips, arms, legs, torso and build); and View (turn,

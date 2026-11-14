@@ -13,6 +13,61 @@ async fn the_catalog_lists_poses_joints_and_an_example_figure() {
     assert!(catalog["poses"].as_array().is_some_and(|p| p.len() >= 10));
     assert_eq!(catalog["joints"].as_array().map(Vec::len), Some(17));
     assert_eq!(catalog["example"]["version"], 1);
+    assert_eq!(catalog["marks"].as_array().map(Vec::len), Some(14));
+    assert_eq!(
+        catalog["example_marks"]["marks"]
+            .as_object()
+            .map(|m| m.len()),
+        Some(14)
+    );
+}
+
+#[tokio::test]
+async fn a_pose_is_copied_from_marks_and_wrong_marks_are_refused() {
+    let f = fixture(true, true).await;
+    let catalog = f.ok("list_mannequin", json!({})).await;
+    let mut marks = catalog["example_marks"].clone();
+    let shoulder = &catalog["example_marks"]["marks"]["left_shoulder"];
+    let (x, y) = (
+        shoulder[0].as_f64().expect("x"),
+        shoulder[1].as_f64().expect("y"),
+    );
+    // The left arm raised straight out, level with the shoulder.
+    marks["marks"]["left_elbow"] = json!([x + 80.0, y]);
+    marks["marks"]["left_wrist"] = json!([x + 160.0, y]);
+    let written = f
+        .ok(
+            "picture_mannequin",
+            json!({ "marks": marks, "facing": "front", "width": 120, "height": 160, "name": "copied" }),
+        )
+        .await;
+    assert!(
+        written["path"]
+            .as_str()
+            .is_some_and(|p| p.ends_with("copied.png"))
+    );
+    let placed = f
+        .ok(
+            "place_mannequin",
+            json!({ "marks": marks, "facing": "left" }),
+        )
+        .await;
+    assert!(placed["layer"].as_str().is_some(), "{placed}");
+    for (args, says) in [
+        (
+            json!({ "marks": { "marks": { "head": [1, 2] } } }),
+            "both hips and the neck",
+        ),
+        (
+            json!({ "marks": { "marks": { "pelvis": [1, 2] } } }),
+            "pelvis",
+        ),
+        (json!({ "facing": "sideways" }), "sideways"),
+    ] {
+        let (is_error, message) = f.tool("place_mannequin", args.clone()).await;
+        assert!(is_error, "{args}");
+        assert!(message.to_string().contains(says), "{args}: {message}");
+    }
 }
 
 #[tokio::test]
@@ -136,4 +191,47 @@ async fn more_figures_join_a_layer_or_take_a_keyframe_of_their_own_there() {
         is_error && message.to_string().contains("layer"),
         "{message}"
     );
+}
+
+#[tokio::test]
+async fn the_pose_of_the_person_in_a_picture_is_found_and_copied() {
+    let f = fixture(true, true).await;
+    // A picture of the mannequin itself waving, written to the export directory.
+    f.ok(
+        "picture_mannequin",
+        json!({ "preset": "wave", "yaw": 0, "pitch": 0, "fov": 0, "width": 480, "height": 640, "name": "wave" }),
+    )
+    .await;
+    let copied = f
+        .ok(
+            "picture_mannequin",
+            json!({ "picture": "wave.png", "name": "copied" }),
+        )
+        .await;
+    assert!(
+        copied["path"]
+            .as_str()
+            .is_some_and(|p| p.ends_with("copied.png"))
+    );
+    let placed = f
+        .ok("place_mannequin", json!({ "picture": "wave.png" }))
+        .await;
+    assert!(placed["layer"].as_str().is_some(), "{placed}");
+
+    let blank = f.dir.path().join("exports").join("blank.png");
+    let rgba = vec![128u8; 40 * 30 * 4];
+    std::fs::write(&blank, flare_runtime::rgba_png(40, 30, &rgba).expect("png")).expect("write");
+    for (args, says) in [
+        (json!({ "picture": "blank.png" }), "no person"),
+        (json!({ "picture": "missing.png" }), "missing.png"),
+        (json!({ "picture": "../wave.png" }), "letters, digits"),
+        (
+            json!({ "picture": "wave.png", "marks": { "marks": {} } }),
+            "not both",
+        ),
+    ] {
+        let (is_error, message) = f.tool("place_mannequin", args.clone()).await;
+        assert!(is_error, "{args}");
+        assert!(message.to_string().contains(says), "{args}: {message}");
+    }
 }

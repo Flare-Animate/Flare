@@ -18,6 +18,7 @@ flare-editor.workspace = true
 flare-eval.workspace = true
 flare-history.workspace = true
 flare-import.workspace = true
+flare-pose.workspace = true
 flare-i18n.workspace = true
 flare-input.workspace = true
 flare-menubar.workspace = true
