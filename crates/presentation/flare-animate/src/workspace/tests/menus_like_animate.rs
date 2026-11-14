@@ -54,12 +54,15 @@ fn the_menu_bar_has_animates_menus_in_animates_order_and_no_others() {
 fn commands_sit_where_animate_keeps_them() {
     let ws = workspace();
     let file = menu("File");
-    assert_eq!(shown(&ws, submenu(file, "Import")), ["Import Sound..."]);
+    assert_eq!(
+        shown(&ws, submenu(file, "Import")),
+        ["Import Sound...", "Import Video..."]
+    );
     assert_eq!(
         shown(&ws, submenu(file, "Export")),
         [
             "Export Image...",
-            "Export Animated GIF...",
+            "Export Movie...",
             "Export Flash Document (.fla)...",
             "Export SVG..."
         ]

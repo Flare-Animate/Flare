@@ -34,3 +34,4 @@ swatches-yours = Your swatches
 swatches-add = Keep the current color
 swatches-remove = Delete swatch
 swatches-full = Your swatches are full ({ $max }).
+strip-resize = Drag to make the panel wider or narrower

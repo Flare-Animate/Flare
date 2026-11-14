@@ -109,6 +109,7 @@ impl MenuAction {
         Some(match self {
             Self::Open => "file-open",
             Self::ImportSound => "sound",
+            Self::ImportVideo => "film",
             Self::New => "file-new",
             Self::Close => "close",
             Self::Revert => "rotate-ccw",
@@ -137,6 +138,7 @@ impl MenuAction {
             | Self::WorkspaceSmallScreen => "interface",
             Self::CommandPalette => "search",
             Self::ShowSwatches => "panel-swatches",
+            Self::ShowMannequin => "panel-mannequin",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",

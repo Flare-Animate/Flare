@@ -37,6 +37,7 @@ assets = [
     { source = "packaging/flare-mime.xml", dest = "/usr/share/mime/packages/flare.xml", mode = "644" },
     { source = "LICENSE", dest = "/usr/share/licenses/flare/LICENSE", mode = "644", doc = true },
     { source = "packaging/FONT_LICENSES.txt", dest = "/usr/share/licenses/flare/FONT_LICENSES.txt", mode = "644", doc = true },
+    { source = "packaging/MODEL_LICENSES.txt", dest = "/usr/share/licenses/flare/MODEL_LICENSES.txt", mode = "644", doc = true },
 ]
 
 [package.metadata.generate-rpm.requires]

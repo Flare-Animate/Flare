@@ -55,6 +55,10 @@ impl Gpu {
             .with_visible(false)
             .with_title(workspace.title())
             .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0))
+            .with_min_inner_size(winit::dpi::LogicalSize::new(
+                f64::from(flare_animate::MIN_WINDOW_SIZE[0]),
+                f64::from(flare_animate::MIN_WINDOW_SIZE[1]),
+            ))
             .with_window_icon(super::window_icon::app_icon());
         // The top bar replaces the title bar on macOS; the traffic lights float over its left end.
         #[cfg(target_os = "macos")]

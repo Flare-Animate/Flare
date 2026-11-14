@@ -151,6 +151,71 @@ pub(crate) fn capture(
     Ok(out)
 }
 
+/// Runs `program` with `args` and hands what it writes to `each`, `chunk` bytes at a time, until
+/// it ends, `limit` chunks have come or `each` returns false. A short piece at the very end is not
+/// a chunk and is dropped. Returns how many chunks were handed over; a stop asked for by `each` is
+/// [`FfmpegError::Stopped`], and the program is ended either way.
+pub(crate) fn stream(
+    program: &Path,
+    args: &[std::ffi::OsString],
+    action: &'static str,
+    chunk: usize,
+    limit: u64,
+    each: &mut dyn FnMut(Vec<u8>) -> bool,
+) -> Result<u64, FfmpegError> {
+    if chunk == 0 {
+        return Err(FfmpegError::Refused("a picture has no bytes".to_owned()));
+    }
+    let run = spawn(program, args, Stdio::null(), Stdio::piped())?;
+    let stdout = lock(&run.child).stdout.take();
+    let (mut count, mut stopped) = (0_u64, false);
+    if let Some(mut stdout) = stdout {
+        while count < limit {
+            let mut piece = vec![0_u8; chunk];
+            match fill(&mut stdout, &mut piece) {
+                Ok(true) => {}
+                Ok(false) => break,
+                Err(error) => {
+                    run.kill();
+                    let _ = run.finish(action);
+                    return Err(error.into());
+                }
+            }
+            count += 1;
+            if !each(piece) {
+                stopped = true;
+                break;
+            }
+        }
+    }
+    if stopped || count >= limit {
+        // Ended here, so how it exits says nothing about the movie.
+        run.kill();
+        let _ = run.finish(action);
+        return if stopped {
+            Err(FfmpegError::Stopped)
+        } else {
+            Ok(count)
+        };
+    }
+    run.finish(action)?;
+    Ok(count)
+}
+
+/// Fills `piece` from `from`: true when it is full, false when the output ended first.
+fn fill(from: &mut impl Read, piece: &mut [u8]) -> std::io::Result<bool> {
+    let mut filled = 0;
+    while filled < piece.len() {
+        match from.read(&mut piece[filled..]) {
+            Ok(0) => return Ok(false),
+            Ok(n) => filled += n,
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {}
+            Err(error) => return Err(error),
+        }
+    }
+    Ok(true)
+}
+
 /// Runs `program` with `args`, letting `write` feed its input, and waits for it to end. When
 /// ffmpeg fails the input is cut short, so its own error is the one reported.
 pub(crate) fn feed(

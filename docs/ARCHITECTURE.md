@@ -26,14 +26,15 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-input` | What a pointing device reports: samples with position, pressure and device kind, the pressure-to-width curve, and the stabilizer that averages a hand's last samples. A mouse is just full pressure. `PenFeed` carries a native source's pressure to the stage. |
 | foundation | `flare-tween` | Interpolation and easing, cubic-bezier keyframe handles, extrapolation, in-betweens of strokes and of rasters. See Tweening below. |
 | foundation | `flare-rig` | Skeletal rigs for symbols: bones, keyed poses, forward kinematics and bounded IK, as pure data and functions. See Symbols and rigging below. |
+| foundation | `flare-mannequin` | The posable reference figure, a 3D drawing figure: a man's or a woman's body with seven proportions, seventeen joints held to anatomical limits, built-in poses (`data/poses.json`), forward kinematics, one smooth skinned surface built from cross-sections, a camera that turns round a focus, slides and zooms toward a point, with optional perspective, copying a pose from marks on a picture, and a software renderer that shades it with guide lines, an outline and a floor shadow; posing by dragging any part with pinned hands and feet, by rings that turn one axis, by a turn about the line of sight or a two-bone reach; a bounded, versioned JSON form and a `Request` the command line and MCP server build a figure from. See The reference mannequin below. |
 | editing | `flare-commands` | The vocabulary of edits (`Command`) and applying a batch as one validated step. |
 | editing | `flare-history` | `EditorSession`: undo and redo over validated edits, snapshots, the saved mark. |
 | editing | `flare-editor` | Operations built on commands: frame and keyframe operations, in-place symbol editing support. |
-| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines (one width function for the outline and the live preview, with speed and tapers), nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, Edit Multiple Frames (the keyframes a range shows, picks and transforms), the anchor point tools, the Ruler and the Mirror, the Magic Wand (picking the pixels of a bitmap by color and clearing them), and the operations of the Paint Bucket, Ink Bottle and Eyedropper, the Eraser (cutting fills and lines along its path with `i_overlay`, or deleting whole elements), Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
+| editing | `flare-tools` | What the tools compute with no window, a folder for each tool with its code and tests: the Pen's paths and the shape a finished path makes, the Pencil's smoothing, the Brush's pressure-sensitive outlines (one width function for the outline and the live preview, with speed and tapers), nibs, pressure profiles and bounded JSON preset collections, the Free Transform handles, selection and lasso picking, Edit Multiple Frames (the keyframes a range shows, picks and transforms), the anchor point tools, the Ruler and the Mirror, the Magic Wand (picking the pixels of a bitmap by color and clearing them), placing the reference mannequin on a layer (`mannequin`), a video brought in to draw over (`video`: what an import makes and whether it fits, and the symbol and layer it becomes), and the operations of the Paint Bucket, Ink Bottle and Eyedropper, the Eraser (cutting fills and lines along its path with `i_overlay`, or deleting whole elements), Text, grouping, the clipboard, alignment, tweens and Graphic playback. |
 | editing | `flare-stopmotion` | The stop-motion domain as data: a capture session, its frames, onion skin and the timeline it exports to. No camera is opened here (`NoCamera` answers with a named error). |
 | io | `flare-storage` | The `.flare` SQLite container with compressed CBOR records: save, load, revalidation, crash recovery files. |
-| io | `flare-import` | Import: XFL directories, zipped modern `.fla` files and Flash movies (`.swf`) into a Flare document, with a diagnostic for everything it cannot carry over. |
-| io | `flare-ffmpeg` | Video through the system's ffmpeg: the containers Flare writes no other way (MOV, AVI, Matroska, WebM, MPEG, Flash video) and the movies it reads (MP4 and the same set). A program run with a list of arguments and a time limit, never linked or bundled; without it, a typed error names ffmpeg. |
+| io | `flare-import` | Import: XFL directories, zipped modern `.fla` files and Flash movies (`.swf`) into a Flare document, with a diagnostic for everything it cannot carry over; and a video read into an open document to draw over (`import_video`). |
+| io | `flare-ffmpeg` | Video through the system's ffmpeg: the containers Flare writes no other way (AVI, Matroska, WebM, MPEG, Flash video) and the movies it reads (MP4 and the same set), whole or sampled at a rate and size as reference pictures handed over one at a time (`probe`, `read_frames`). A program run with a list of arguments and a time limit, never linked or bundled; without it, a typed error names ffmpeg. |
 | io | `flare-export` | XFL export: a Flare document as an XFL folder or a zipped `.fla`, with a diagnostic for everything the format cannot hold exactly. |
 | io | `flare-publish` | SWF publishing: a document as a SWF with its symbols kept as sprites and its tweens baked, encoded with Ruffle's `swf` crate; a file written whole or not at all. |
 | io | `flare-moho` | Moho and Anime Studio projects and BVH files, read into a typed model with every size and depth bounded. See [MOHO.md](MOHO.md). |
@@ -41,13 +42,14 @@ Executables are in `apps/`. The folders mean:
 | adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing, what the paint tools find under a point (on a line, on a fill, inside an outline), and a mask of where the lines leave ink, which the Paint Bucket finds an area in. |
-| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text and pixels (the Magic Wand, and Blur and Smudge strokes, which the pixels worker keeps between steps), with latest-wins where only the newest matters and an inline mode for tests; image export. No UI types. |
-| services | `flare-video` | The movie as an MP4 with its sound, made in pure Rust: H.264 from `rusty_h264`, AAC-LC from OxideAV's `oxideav-aac`, the container from `muxide`. Frames are drawn, encoded and written one at a time, the cued sounds mixed and encoded beside them, and the file appears only when whole and never over another. Desktop only: the web build does not carry it. |
+| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text, pixels (the Magic Wand, and Blur and Smudge strokes, which the pixels worker keeps between steps) and a video brought in to draw over, with latest-wins where only the newest matters and an inline mode for tests; image export. No UI types. |
+| services | `flare-video` | The movie as an MP4, or a QuickTime movie (the same file with QuickTime's brand), with its sound, made in pure Rust: H.264 from `rusty_h264`, AAC-LC from OxideAV's `oxideav-aac`, the container from `muxide`. Frames are drawn, encoded and written one at a time, the cued sounds mixed and encoded beside them, and the file appears only when whole and never over another. Desktop only: the web build does not carry it. |
+| services | `flare-pose` | Finding a person's pose in a picture for the mannequin: MoveNet SinglePose Lightning (Google's pose estimation network, Apache-2.0, built in from `data/`) run on the CPU by RTen, a pure-Rust ONNX runtime that also builds for the browser; a look at the whole picture, then closer looks round the person while they are surer; the seventeen points found become `flare_mannequin::Marks`. No UI types. See The reference mannequin below. |
 | services | `flare-recent` | What a list of recent projects knows: each file's time and size read off the UI thread, its kind, the search over names and folders, and the sorting. No UI types. |
 | services | `flare-tablet` | A tablet pen's pressure from the operating system where the window system does not pass it on: one gated module per system, each writing into `flare-input`'s `PenFeed`. Today the X server's XInput2 raw events (Unix), with the check for a plugged-in pen that picks XWayland, and a local AppKit event monitor (macOS), the one module with `unsafe`, which is why this cannot live in `flare-input`; what its events mean is decided in a safe module beside it. A Windows module is still to come. |
 | services | `flare-platform` | What a desktop needs from the operating system: per-user directories (the `directories` crate), the sound card, native dialogs, recovery prompts, the Dock icon of a program run outside an app bundle (its one module that may use `unsafe`, for AppKit), and the threads for publishing, exporting and test movies. No UI types. |
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the stage's pan, zoom and turn math (`view`, with `view::turn` turning painted shapes), and a modifier tapped on its own (`tap`). |
-| presentation | `flare-dock` | The dockable panel layout: which panels exist (`Pane`), where each one is (docked in the tree or an icon in the strip, `Layout`), how they are arranged by default, moving a panel between the dock and the strip, and reading and writing a saved arrangement as untrusted input (size-capped, every panel exactly once, else the default). |
+| presentation | `flare-dock` | The dockable panel layout: which panels exist (`Pane`), where each one is (docked in the tree or an icon in the strip, `Layout`), how they are arranged by default, moving a panel between the dock and the strip, keeping the panels' sizes when the window changes size so the stage gives way (`keep_panel_sizes`), and reading and writing a saved arrangement as untrusted input (size-capped, every panel exactly once, else the default). |
 | presentation | `flare-menubar` | The menu bar with no window in it: every command (`MenuAction`), the menus and their order, shortcuts, icons and what each item is called for the state of what it toggles (`LabelState`). Shared by the native macOS menu and the in-window one. |
 | presentation | `flare-shell` | The window shell as a library: one winit event loop, egui-winit input, egui-wgpu painting and the native menu, in `ui/`. `flare-desktop` runs it on a desktop and `flare-android` on a phone's activity, so neither app depends on the other. |
 | presentation | `flare-animate` | The Animate-style workspace built from them: stage, timeline, panels, and, in `workspace/tools/`, what the workspace does for each tool (wiring pointer events and settings to what `flare-tools` computes). No window or GPU code. |
@@ -92,7 +94,7 @@ validating constructors, so a file cannot smuggle in an invalid document.
 
 ## Editing
 
-A selection names one element: `SpanRef` is the layer, the start frame of the span and the element's index in `FrameSpan::elements()` (0 for a span of one, so single-element behaviour is unchanged). A hit on the stage, Select All and a lasso each give one `SpanRef` per element, and the operations of `flare-tools` (move, transform, restyle, delete, copy, duplicate, convert to symbol, group, break apart, path edits, arrange) act on the elements named. An edit rebuilds the span the element is in with `Command::RemoveSpan` and `Command::InsertSpan`, so it is one undo step with no new command; for several elements of one span `each_element`, `translate_many`, `transform_many` and `delete_many` edit the span once or one after another on a working copy, never from the same stale span. `bones` (the Bone tool and posing) turns a drag from one instance to another into an armature or a new joint of one (`connect`), pulls a joint toward a point by cyclic coordinate descent within the joints' limits (`reach`, `pose_joint`; a root is moved instead), keys a pose inside a keyframe by splitting it so the first part tweens into it, and detaches bones or releases the armature into plain keyframes; the desktop app, `flare bone` and the MCP bone tools all call it. `drawing::draw_shapes` decides where a new shape goes (the active layer's keyframe at the frame, a new keyframe, or a new layer in a document with none) and refuses a locked, hidden, folder, mask, guide or camera layer; the desktop app, `flare draw-rect` and the MCP `draw_rect` all call it.
+A selection names one element: `SpanRef` is the layer, the start frame of the span and the element's index in `FrameSpan::elements()` (0 for a span of one, so single-element behaviour is unchanged). A hit on the stage, Select All and a lasso each give one `SpanRef` per element. The desktop app's selection holds only what is on the stage at the playhead (its keyframe, or every keyframe in the Edit Multiple Frames bracket), checked again whenever the document, the playhead or the bracket changes: a keyframe left behind keeps its bounds, so a selection that outlived a playhead move put the Free Transform handles over the new frame's drawing and turned the old one. The operations of `flare-tools` (move, transform, restyle, delete, copy, duplicate, convert to symbol, group, break apart, path edits, arrange) act on the elements named. An edit rebuilds the span the element is in with `Command::RemoveSpan` and `Command::InsertSpan`, so it is one undo step with no new command; for several elements of one span `each_element`, `translate_many`, `transform_many` and `delete_many` edit the span once or one after another on a working copy, never from the same stale span. `bones` (the Bone tool and posing) turns a drag from one instance to another into an armature or a new joint of one (`connect`), pulls a joint toward a point by cyclic coordinate descent within the joints' limits (`reach`, `pose_joint`; a root is moved instead), keys a pose inside a keyframe by splitting it so the first part tweens into it, and detaches bones or releases the armature into plain keyframes; the desktop app, `flare bone` and the MCP bone tools all call it. `drawing::draw_shapes` decides where a new shape goes (the active layer's keyframe at the frame, a new keyframe, or a new layer in a document with none) and refuses a locked, hidden, folder, mask, guide or camera layer; the desktop app, `flare draw-rect` and the MCP `draw_rect` all call it.
 
 `EditorSession` owns the current document. `apply` takes a batch of `Command`s and runs
 them against a working copy; the session only changes if the whole batch succeeds, and a
@@ -500,7 +502,7 @@ The policy is deliberately honest rather than clever:
 
 ## Frontends
 
-`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`, `camera`, `bone`, `bones`,
+`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`, `camera`, `bone`, `bones`, `mannequin`,
 `layer`, `place`, `frame`, `eval`, `export`, `export-frames`, `inspect`, `rate`.
 
 Inside `flare-animate`, `Workspace` is the one object the window talks to, and its topics are modules
@@ -585,6 +587,150 @@ on the desktop and in the browser, `flare tween` and the MCP tools; a span witho
 Animate-style Ease in `flare-eval` (`eased`). Not wired yet: per-property graphs over a whole
 `Curve`, which has no document model. See the rows in [SURFACES.md](SURFACES.md) and the plan in
 [ROADMAP.md](ROADMAP.md).
+
+## The reference mannequin
+
+A 3D figure to draw from, as Clip Studio's drawing figures are, and not a 3D editor: one body
+built in code, one light, and no file of its own beyond a small JSON form. `flare-mannequin` keeps
+it as data (a `Body`, `Proportions`, a `Pose` of seventeen joints' bend, twist and side angles
+plus a lift, and a `View` of yaw, pitch and field of view). A joint's angles twist about the bone
+first, then bend, then swing sideways, so a twist never moves where a bone points; the right
+side's twist and swing are mirrored, so one set of limits and presets serves both sides and Mirror
+is a swap. Reading a turned frame back into angles tries both solutions of the decomposition and
+keeps the one inside the limits, so an arm raised overhead does not flip.
+
+The body is one surface (`shape.rs`, `skin.rs`): tubes of cross-sections for the torso, neck,
+head, arms, legs, hands with fingers, feet and a woman's chest, from tables for each build drawn
+from the eight-heads figure of life drawing and scaled by the proportions, laid along the skeleton
+at rest. Each point is moved by up to two joints in shares, so a knee or an elbow bends as one
+surface; overlapping tubes join where the depth buffer meets them. A point shared by a joint and
+the joint it hangs from is turned that share of the way about the joint, along the arc, rather
+than set between the two places each would take it (linear blend skinning), which cuts the
+corner and folds a raised shoulder or a deep knee flat. The shoulder is the deltoid capping the
+top of the arm, shared with the chest so a raised arm stays joined, under a trapezius that slopes
+from the neck; the cap of an arm or a leg takes its share of the swing but all of the twist, so a
+twisted arm turns its cap whole instead of winding it into a fold. Each
+point also carries where it is on the guide lines round and along the body. `render.rs` and
+`raster.rs` are a small software renderer: the triangles are filled into samples with a depth
+buffer, lit per corner from the upper left in front of the camera, with the guide lines drawn per
+sample from those coordinates (the lines down the middle of the front and back in orange), an
+outline where the body ends or a nearer part stands in front of a further one, and the shadow of
+every triangle cast straight onto the floor. Small pictures are made at twice the size and brought
+down. Each pixel keeps the joint whose part it shows, so a press picks what is seen. The camera
+looks at a focus carried by the `Placement`, the middle of where the figure stands unless the
+view moved it, and stays there, so a lifted or lowered body is seen to move over a still floor.
+
+Moving round it (`camera.rs`): a `Camera` is the panel's focus and zoom; the turn is the figure's
+`View` (with `View::facing` for a side seen square on). A slide moves the focus across the plane
+through it that faces the camera; a zoom toward the pointer zooms, then slides the focus so the
+point that was under the pointer on that plane is again; framing looks at the middle of the
+posed joints (taking in the crown and the floor), zooms so the drawn figure fills most of the
+view, and puts its box in the middle (three rounds, as a slide is exact only on the focus plane
+under perspective). A picture, a placed figure and the command line keep the default focus.
+
+Finding the person (`flare-pose`): MoveNet SinglePose Lightning looks at a square of 192 by 192
+pixels and answers with seventeen points (nose, eyes, ears, shoulders, elbows, wrists, hips, knees
+and ankles, the person's left before their right) and how sure it is of each. The square is
+sampled from the picture with up to four by four samples a pixel, a see-through pixel against
+black. The first look is the whole picture in the middle of a square; the next is round the
+points it found, with room for the body (half again the points' extent, and at least four torsos
+round the hips, since a far look bunches its points), and another after that while each is surer
+than the last, at most three looks. A point less sure than 0.3 is not marked; a look less sure
+than 0.3 of the body on the whole, or without both shoulders and both hips, found no one. The head's
+mark is the middle of the face points seen, the neck's 18 percent of the way from the shoulders'
+middle to the head (the figure's own proportion). The network is MoveNet's full-precision ONNX
+conversion (9.4 MB, in every build that has the panel): the half-precision and eight-bit ones give
+wrong points under RTen. A look takes about 10 ms, a picture 35 to 55 ms in a release build.
+
+Copying a pose from a picture (`reference.rs`, `copy.rs`): `Marks` hold fourteen points on a
+picture in its own pixels (the middle of the head, the neck between the collarbones, shoulders,
+elbows, wrists, hips, knees and ankles) and, for each, whether it is nearer the viewer than the
+part it hangs from (`Depth`: auto, nearer, farther); a `Board` is where the picture stands in the
+figure's space, upright and facing the front. `Mannequin::copy_pose` reads the picture as the
+figure seen square from the front, flat: the scale is the smallest at which no long bone (torso,
+arms, legs) is longer than the figure's, and each line between marks gets back the depth its
+length lost (Pythagoras against the figure's own length). Up to `LEAN_SLACK` (25 degrees) of
+seeming lean is taken as none and the rest stretched to a quarter turn, unless the mark's depth was
+given: a person is not built as the figure is and a mark found in a photograph is a little off, and
+without the slack a standing person came back leaning by a quarter turn. An elbow or knee bent
+less than 15 degrees does not turn its limb about the upper bone, whose plane it cannot tell.
+Which way it leans is the mark's
+`Depth`, or else both ways are tried: the hips, the line up to the neck and the shoulders together
+(up to eight ways), then the neck and each limb on its own (up to four ways each), each posed and
+measured by how far its parts miss their lines; the best is kept, the one nearest the pose the
+figure had when two are as good. Posing goes from the hips out: the hips and the neck line give
+the whole figure's frame, the shoulders against them turn the waist and chest half each; each limb
+swings its upper bone onto its line, bends its elbow or knee to the angle between its two lines and
+turns about the upper bone until the lower lies on its line, every joint through the same limits.
+Then the lowest marked foot is put on the floor. It returns a `Fit` (where the hips are in the
+picture and in the figure's space, and the scale), from which `Board::fitted` moves the picture so
+the figure stands over the person. Parts without marks keep their pose; the hands, feet and head
+are not turned. A copy takes about 23 microseconds in a release build.
+
+Posing (`grab.rs`, `rings.rs`, `manipulate.rs`): a part taken hold of follows the pointer at the
+depth it was taken. A hand, forearm, foot or shin is a two-bone reach of the hand or foot (the law
+of cosines for the elbow or knee, which bends only its own way, then the smallest swing of the
+shoulder or hip onto the point, at most eight rounds). An upper arm, thigh, the waist, chest, neck
+or head swings about its joint so its far end lands where the line of sight under the pointer
+meets the sphere it can reach, nearer the side it was on. The hips move the whole body. After
+each step the pinned hands and feet reach back to where they were. A ring turns one joint about
+one of its three axes by the distance the pointer went along it.
+
+The workspace keeps the figure outside the document (`workspace/mannequin.rs`): the Mannequin panel
+poses it, the stage can show it see-through over the artwork without it ever being in the document
+or an export, and the figure is kept with the preferences. Each picture on screen is made again
+only when the figure, the view or its size changes. A picture to pose from
+(`workspace/mannequin_reference.rs`) is read by `flare_import::read_still` on a thread of its own
+(inline in the browser and in tests), kept at most 2048 pixels a side, and the person in it found
+on the same thread (`flare_pose::find_pose`); the figure takes the pose found as soon as it
+arrives (`copy_pose`), turned to face the picture, and the marks found stay to be corrected. With
+no one found the marks start on the figure's joints. The picture is drawn behind the figure
+as a mesh of eight by eight squares projected through the view, so it turns with the figure; its
+marks are dragged on it through `Board::under` (where the line of sight meets the picture). It is
+not in the document, the preferences or an export. Place on a Layer is
+`flare_tools::mannequin::place`: one batch that adds the shaded picture to the bitmap library and
+a layer at the top of the scene showing it, drawn at half opacity while editing, in a keyframe
+from the playhead to the end of the scene, at two pixels to a stage unit.
+`flare_tools::mannequin::place_onto` puts it on an existing layer instead: into the keyframe at
+the frame through `ops::place_contents` (the drawing tools' rules for which layers take art), or
+as a keyframe of its own there, cutting short the one shown at that frame. A picture the library
+already has (the same pose placed again) is shown rather than added twice. The workspace then
+selects it with Free Transform, and the Selection tools pick a bitmap where no shape is
+(`Workspace::pick`), so it is moved, scaled and turned like any picture. That layer is ordinary
+artwork and is exported unless it is hidden or deleted. `flare mannequin` and the MCP
+tools `list_mannequin`, `picture_mannequin` and `place_mannequin` call the same functions, and
+take marks (`--marks`, `marks`) or a picture to find the pose in (`--picture`, `picture`, through
+`flare_pose::find_pose_in_file`, which looks at it at most 1024 pixels a side) and a side to see it
+from (`--facing`, `facing`) through `Request`; a copied pose is seen from the front unless a view is
+asked for. `flare mannequin marks` prints the marks found in a `--picture`, or where the figure's
+joints lie on a picture of a given size.
+
+## A video to draw over
+
+A video is brought into an open document in three steps, each in the layer it belongs to.
+`flare_ffmpeg::probe` asks ffprobe for the first stream's size and rate, the container's length
+and the turn a player gives it (a phone movie stored on its side has its sides swapped, as ffmpeg
+turns its pictures upright when it reads them). `flare_tools::video::plan` is pure: from that and
+the person's choices (pictures a second, the most seconds, the longest side, the opacity) it says
+how many pictures are read, their size and bytes, how long they last at the document's rate and at
+what speed against the video, and whether they fit in the room the document has left for
+pictures (4096 bitmaps and 1 GiB, `MAX_BITMAPS`, `MAX_TOTAL_BITMAP_BYTES`), with the longest
+length and the largest size that would. `flare_ffmpeg::read_frames` then runs ffmpeg with
+`fps=n/d,scale=w:h` and reads its raw RGBA output a picture at a time (`run::stream`), handing
+each over as it arrives, so memory is what the plan said and a caller can stop it; the reading
+is refused before ffmpeg runs when the plan does not fit. `flare_tools::video::place` makes one
+batch: each distinct picture into the library once (a repeat is shown again and held), a Graphic
+symbol with one keyframe per run of a picture, and a new layer at the bottom of the scene with one
+instance of it, Play Once, scaled to fit the stage and centred, at the opacity chosen as the
+layer's view opacity. Because the pictures are one symbol, the instance is what is moved, scaled
+or turned, and every picture follows. A symbol of pictures has their box (`symbol_bounds`), and a
+picture inside a symbol is picked by its rectangle (`selection::picture_at`), so the instance is
+selected and transformed like a picture on a layer. The desktop app probes and reads on a worker
+of its own (`VideoJob`, the progress shared through `VideoProgress`) and applies the batch on the
+UI thread; `flare video-import` and the MCP `import_video` call `flare_import::import_video`. Tests
+read through stand-in shell scripts in place of ffprobe and ffmpeg (`Runtime::use_video_tools`,
+`FlareServer::with_video_tools`), so the wiring is checked where ffmpeg is not installed; the real
+ffmpeg is exercised by `flare-ffmpeg`'s own tests where it is.
 
 ## Symbols and rigging
 

@@ -465,6 +465,21 @@ async fn export_animated_webp_writes_a_webp_and_export_movie_needs_ffmpeg_or_wri
 }
 
 #[tokio::test]
+async fn export_movie_writes_a_quicktime_movie_with_or_without_ffmpeg() {
+    let f = drawn().await;
+    let mov = f
+        .ok("export_movie", json!({ "name": "clip", "format": "mov" }))
+        .await;
+    let data = bytes(&mov["path"]);
+    assert_eq!(
+        data.get(4..12),
+        Some(b"ftypqt  ".as_slice()),
+        "QuickTime's brand"
+    );
+    assert!(mov["path"].as_str().expect("p").ends_with("clip.mov"));
+}
+
+#[tokio::test]
 async fn a_new_raster_format_in_the_export_directory_imports_and_apng_exports() {
     let f = drawn().await;
     let apng = f.ok("export_apng", json!({ "name": "anim" })).await;

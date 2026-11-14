@@ -3,7 +3,7 @@
 mod hit;
 mod spans;
 
-pub use hit::locate_hit;
+pub use hit::{locate_hit, picture_at};
 pub use spans::spans_at_frame;
 
 #[cfg(test)]

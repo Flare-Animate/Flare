@@ -134,7 +134,7 @@ pub(crate) fn decode_jpeg(file: &str, bytes: &[u8]) -> Result<Picture, ImportErr
 }
 
 /// GIF frames composed onto the logical screen, honouring each frame's disposal.
-fn decode_gif(file: &str, bytes: &[u8]) -> Result<Vec<Picture>, ImportError> {
+pub(crate) fn decode_gif(file: &str, bytes: &[u8]) -> Result<Vec<Picture>, ImportError> {
     let mut options = gif::DecodeOptions::new();
     options.set_color_output(gif::ColorOutput::RGBA);
     let mut decoder = options
@@ -293,7 +293,7 @@ pub(crate) fn import_raster(
     build(name, vec![picture], &[1], default_rate()?)
 }
 
-fn decode_raster(
+pub(crate) fn decode_raster(
     file: &str,
     bytes: &[u8],
     format: image::ImageFormat,

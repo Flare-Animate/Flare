@@ -3,7 +3,8 @@
 //! the Brush and its nib, the Free Transform handles, the Selection and Lasso picking, the
 //! Subselection, Add, Delete and Convert Anchor Point edits, the Ruler and the Mirror, the Magic
 //! Wand's picking and clearing of bitmap pixels, Blur and Smudge on those pixels, and the operations of the Paint Bucket and Ink Bottle, the Eraser, Text, grouping, the clipboard,
-//! alignment, tweens and Graphic playback. What several of them share is in `common`.
+//! alignment, tweens and Graphic playback, placing the reference mannequin, and a video brought in
+//! to draw over. What several of them share is in `common`.
 //!
 //! Everything here is a pure function of a document and numbers, so it is tested without a UI.
 //! [`ops`] gathers the operations that turn a gesture into commands under one name.
@@ -29,6 +30,7 @@ pub mod lasso;
 pub mod library;
 pub mod line;
 pub mod magic_wand;
+pub mod mannequin;
 pub mod mirror;
 pub mod multi_frame;
 pub mod not_yet;
@@ -45,3 +47,4 @@ pub mod subselection;
 mod test_support;
 pub mod text;
 pub mod tween;
+pub mod video;

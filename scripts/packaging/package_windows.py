@@ -22,6 +22,7 @@ def package(version, target, binary, output):
                     "-d", f"Icon={release.ROOT / 'assets/flare-icon.ico'}",
                     "-d", f"License={release.ROOT / 'LICENSE'}",
                     "-d", f"FontLicense={release.ROOT / 'packaging/FONT_LICENSES.txt'}",
+                    "-d", f"ModelLicense={release.ROOT / 'packaging/MODEL_LICENSES.txt'}",
                     "-o", str(installer), str(release.ROOT / "packaging/windows.wxs")], check=True)
     release.write_checksum(installer)
     print(installer)

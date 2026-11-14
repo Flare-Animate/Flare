@@ -38,9 +38,34 @@ impl Workspace {
         self.document().scenes().first().map(|scene| scene.id())
     }
 
-    /// Drops a selection whose span no longer exists (after undo, delete or open).
+    /// What the selection is checked against: the document state, the playhead and the frames
+    /// edited together.
+    pub(super) fn selection_stamp(&self) -> SelectionStamp {
+        (
+            self.context_serial,
+            self.active().revision(),
+            self.frame,
+            self.multi_frame_range(),
+        )
+    }
+
+    /// Checks the selection again when the document, the playhead or the bracket has changed
+    /// since it was last checked.
+    pub(super) fn refresh_selection(&mut self) {
+        if self.selection_checked != Some(self.selection_stamp()) {
+            self.validate_selection();
+        }
+    }
+
+    /// Drops a selection whose span no longer exists (after undo, delete or open), or is not on
+    /// the stage at the playhead. A keyframe left behind keeps a box, so without this its
+    /// handles sat where the playhead's drawing is and a drag turned the one left behind.
     pub(super) fn validate_selection(&mut self) {
-        self.selection_checked = Some((self.context_serial, self.active().revision()));
+        self.selection_checked = Some(self.selection_stamp());
+        // Editing multiple frames, every keyframe in the bracket is on the stage.
+        let (from, to) = self
+            .multi_frame_range()
+            .map_or((self.frame, self.frame), |r| (r.from(), r.to()));
         if self
             .frame_range
             .is_some_and(|r| self.layer(r.layer).is_none())
@@ -60,6 +85,7 @@ impl Workspace {
                 .flat_map(|l| {
                     l.spans()
                         .iter()
+                        .filter(|span| span.start() <= to && span.end() > u64::from(from))
                         .map(|span| ((l.id(), span.start()), span.element_count()))
                 })
                 .collect();
@@ -87,6 +113,23 @@ impl Workspace {
     pub(super) fn hit(&self, point: Pos2) -> Option<SpanRef> {
         // Text is picked anywhere in its box, not only on the ink of its letters.
         self.glyph_hit(point).or_else(|| self.text_box_hit(point))
+    }
+
+    /// What the Selection and Free Transform tools pick at `point`: what [`hit`](Self::hit)
+    /// finds, else a picture under it on a shown, unlocked layer (anywhere in its rectangle, as
+    /// Animate picks a bitmap), so a placed or imported picture can be moved and scaled. The
+    /// tools that change a shape's paint or points keep to shapes.
+    pub(super) fn pick(&self, point: Pos2) -> Option<SpanRef> {
+        self.hit(point).or_else(|| {
+            let scene = self.scene_id()?;
+            flare_tools::magic_wand::bitmap_at(self.document(), scene, self.frame, point)
+                .map(|found| found.at)
+                .or_else(|| {
+                    let at = DVec2::new(f64::from(point.x), f64::from(point.y));
+                    flare_tools::selection::picture_at(self.document(), scene, self.frame, at)
+                        .filter(|span| self.on_unlocked_layer(*span))
+                })
+        })
     }
 
     pub(super) fn glyph_hit(&self, point: Pos2) -> Option<SpanRef> {
@@ -136,7 +179,7 @@ impl Workspace {
     /// Selects what is at `point`. With `additive` (Shift) the span is toggled in or out of
     /// the selection; without it the selection becomes just that span, or empty.
     pub(super) fn select_at(&mut self, point: Pos2, additive: bool) {
-        let hit = self.hit(point);
+        let hit = self.pick(point);
         if !additive {
             self.selected = hit;
             self.also_selected.clear();
@@ -396,6 +439,9 @@ impl Workspace {
         }
     }
 }
+
+/// The document session, its revision, the playhead and the bracket of multiple-frame editing.
+pub(super) type SelectionStamp = (u64, u64, u32, Option<flare_editor::loop_range::LoopRange>);
 
 /// Whether `layers[index]` is locked, itself or by a locked folder around it.
 pub(super) fn locked_in_folders(layers: &[Layer], index: usize) -> bool {

@@ -14,6 +14,7 @@ bar-home = Úvod
 bar-workspaces = Pracovní prostory
 bar-interface-switcher = Přepínač rozhraní
 bar-commands = Příkazy
+bar-more-menus = Další nabídky
 bar-pause = Pozastavit
 bar-play = Přehrát
 bar-publish = Publikovat

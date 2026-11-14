@@ -17,6 +17,7 @@ mod layer_ops;
 mod layers_and_stage;
 mod lossless;
 mod magic_wand;
+mod mannequin;
 mod moho;
 mod movies;
 mod multi_frame;
@@ -30,6 +31,7 @@ mod swf_import;
 mod symbols;
 mod text;
 mod tween;
+mod video_import;
 mod wick;
 
 fn run(args: &[&str]) -> Output {

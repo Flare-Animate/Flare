@@ -46,6 +46,16 @@ pub fn pick_sound(filter: &str) -> Option<PathBuf> {
     backend::pick_sound(filter)
 }
 
+/// A picture to look at, of the kinds whose endings are `extensions`.
+pub fn pick_image(filter: &str, extensions: &[&str]) -> Option<PathBuf> {
+    backend::pick_image(filter, extensions)
+}
+
+/// A movie to bring in to draw over, of the kinds ffmpeg is asked to read.
+pub fn pick_video(filter: &str) -> Option<PathBuf> {
+    backend::pick_video(filter)
+}
+
 /// Animate's keyboard shortcut file (`Shortcuts/<set>.xml` in its settings folder).
 pub fn pick_shortcut_xml(filter: &str) -> Option<PathBuf> {
     backend::pick_shortcut_xml(filter)
@@ -55,8 +65,11 @@ pub fn save_png(filter: &str) -> Option<PathBuf> {
     backend::save_png(filter)
 }
 
-pub fn save_gif(filter: &str) -> Option<PathBuf> {
-    backend::save_gif(filter)
+/// Where to write the movie: the list offers an animated GIF (first, the default), an MP4 video
+/// and a QuickTime movie, each named by its words in `filters`; the ending of the name that comes
+/// back decides which is written (`flare_platform::jobs::write_movie`).
+pub fn save_movie(filters: [&str; 3]) -> Option<PathBuf> {
+    backend::save_movie(filters)
 }
 
 /// Where to write a project as a Flash document.

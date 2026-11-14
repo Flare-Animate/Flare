@@ -50,7 +50,7 @@ Catturate nella versione per browser, che esegue lo stesso editor dell'app deskt
 - Riproduzione audio su desktop e Filmato di prova, che esegue l'SWF pubblicato in Ruffle.
 - Apertura e salvataggio di progetti `.flare`. Importazione ed esportazione di XFL e `.fla` di Animate, e apertura di filmati Flash (`.swf`) come progetti modificabili.
 - Importazione di progetti Moho e movimenti BVH, scene `.tnz` e livelli `.pli` di OpenToonz, e opere e filmati (SVG, PNG, JPEG, GIF, WebP, PSD, MP4, MOV, AVI, MKV, WebM, MPEG, FLV) come progetti modificabili.
-- Esportazione in PNG, JPEG, GIF, APNG, WebP animato, SVG, PSD e MP4, altri formati video tramite ffmpeg, e pubblicazione di un SWF o di una pagina HTML5 Canvas.
+- Esportazione in PNG, JPEG, GIF, APNG, WebP animato, SVG, PSD, MP4 e MOV, altri formati video tramite ffmpeg, e pubblicazione di un SWF o di una pagina HTML5 Canvas.
 - Una riga di comando (`flare`) e un server MCP (`flare-mcp`) per gli agenti, per creare, modificare, esportare e pubblicare progetti da script.
 - Una versione per browser dello stesso editor. Vedi [docs/WEB.md](../WEB.md) per ciò che fa diversamente.
 

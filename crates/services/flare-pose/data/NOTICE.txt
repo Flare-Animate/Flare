@@ -1,0 +1,5 @@
+movenet-singlepose-lightning.onnx is MoveNet SinglePose Lightning, a pose estimation network by
+Google (Copyright Google LLC), in the ONNX conversion published by Xenova at
+https://huggingface.co/Xenova/movenet-singlepose-lightning, unchanged, under the Apache License,
+Version 2.0. Its origin and the licence's full text are in packaging/MODEL_LICENSES.txt, which
+every package of Flare carries.

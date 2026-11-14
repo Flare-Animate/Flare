@@ -17,6 +17,8 @@ flare-export.workspace = true
 glamx.workspace = true
 gif.workspace = true
 flare-import.workspace = true
+# The programs a video is read with, which tests can name (`Runtime::use_video_tools`).
+flare-ffmpeg.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true

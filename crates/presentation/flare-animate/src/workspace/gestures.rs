@@ -75,7 +75,7 @@ impl Workspace {
                 // another shape, which is picked instead.
                 let inside_frame = matches!(grabbed, Some((Grab::Move, _)));
                 let on_selection = !additive
-                    && match self.hit(point) {
+                    && match self.pick(point) {
                         Some(hit) => self.selection_all().contains(&hit),
                         None => inside_frame,
                     };

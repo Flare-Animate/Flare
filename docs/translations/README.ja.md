@@ -50,7 +50,7 @@ Flare は **Rust** で書き直している最中です。主に *OpenToonz* と
 - デスクトップでのサウンド再生、および公開された SWF を Ruffle で実行する「ムービーをテスト」。
 - `.flare` プロジェクトの開く・保存。Animate の XFL と `.fla` のインポート・エクスポート、Flash ムービー (`.swf`) を編集可能なプロジェクトとして開くこと。
 - Moho プロジェクトと BVH モーション、OpenToonz の `.tnz` シーンと `.pli` レベル、そして素材と動画（SVG、PNG、JPEG、GIF、WebP、PSD、MP4、MOV、AVI、MKV、WebM、MPEG、FLV）を、編集可能なプロジェクトとしてインポート。
-- PNG、JPEG、GIF、APNG、アニメーション WebP、SVG、PSD、MP4 のエクスポート（その他の動画形式は ffmpeg 経由）、SWF または HTML5 Canvas ページのパブリッシュ。
+- PNG、JPEG、GIF、APNG、アニメーション WebP、SVG、PSD、MP4、MOV のエクスポート（その他の動画形式は ffmpeg 経由）、SWF または HTML5 Canvas ページのパブリッシュ。
 - スクリプトからプロジェクトを作成・編集・エクスポート・パブリッシュするためのコマンドライン (`flare`) と、エージェント向けの MCP サーバー (`flare-mcp`)。
 - 同じエディターのブラウザ版。違いは [docs/WEB.md](../WEB.md) を参照してください。
 

@@ -4,7 +4,6 @@
 use std::ffi::OsString;
 use std::path::Path;
 
-use crate::encode::check_path;
 use crate::error::FfmpegError;
 use crate::run;
 use crate::tool::locate;
@@ -26,29 +25,9 @@ pub struct Clip {
 
 /// Reads at most `max_frames` pictures of the movie at `path`, scaled down to fit `max_side`.
 pub fn decode(path: &Path, max_frames: u32, max_side: u32) -> Result<Clip, FfmpegError> {
-    check_path(path)?;
     let tools = locate()?;
-    let probe_args: Vec<OsString> = [
-        "-v",
-        "error",
-        "-select_streams",
-        "v:0",
-        "-show_entries",
-        "stream=width,height,avg_frame_rate,r_frame_rate",
-        "-of",
-        "csv=p=0",
-    ]
-    .iter()
-    .map(OsString::from)
-    .chain(std::iter::once(path.as_os_str().to_owned()))
-    .collect();
-    let probe = run::capture(&tools.ffprobe, &probe_args, "read the movie", 4096)?;
-    eprintln!("DBG stream probe {:?}", String::from_utf8_lossy(&probe));
-    let mut source = parse_probe(&String::from_utf8_lossy(&probe))?;
-    if source.width == 0 || source.height == 0 {
-        // An animated WebP reports no size for its stream: its first frame gives it.
-        source = first_frame_size(&tools.ffprobe, path, source.rate)?;
-    }
+    // The probe swaps the sides of a movie stored on its side, as ffmpeg turns it upright.
+    let source = crate::sample::probe_with(&tools, path)?;
     let (w, h) = fit(source.width, source.height, max_side)?;
     let frame_bytes = u64::from(w) * u64::from(h) * 4;
     let allowed = (MAX_CLIP_BYTES / frame_bytes).min(u64::from(max_frames));
@@ -105,7 +84,11 @@ pub(crate) struct Source {
 }
 
 /// The size of the first frame, for a stream that reports none.
-fn first_frame_size(ffprobe: &Path, path: &Path, rate: (u32, u32)) -> Result<Source, FfmpegError> {
+pub(crate) fn first_frame_size(
+    ffprobe: &Path,
+    path: &Path,
+    rate: (u32, u32),
+) -> Result<Source, FfmpegError> {
     let args: Vec<OsString> = [
         "-v",
         "error",
@@ -124,7 +107,6 @@ fn first_frame_size(ffprobe: &Path, path: &Path, rate: (u32, u32)) -> Result<Sou
     .collect();
     let out = run::capture(ffprobe, &args, "read the movie", 4096)?;
     let text = String::from_utf8_lossy(&out);
-    eprintln!("DBG frame probe {:?}", text);
     let fields: Vec<&str> = text.trim().trim_end_matches(',').split(',').collect();
     let (width, height) = match fields.as_slice() {
         [w, h, ..] => (w.parse::<u32>().ok(), h.parse::<u32>().ok()),

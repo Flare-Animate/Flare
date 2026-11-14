@@ -14,8 +14,10 @@ mod color;
 mod ops;
 mod params;
 mod params_game;
+mod params_mannequin;
 mod params_pixels;
 mod params_timeline;
+mod params_video;
 mod server;
 mod tools;
 

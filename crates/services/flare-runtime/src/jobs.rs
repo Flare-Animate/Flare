@@ -190,6 +190,17 @@ pub enum Done {
         document: Arc<Document>,
         result: flare_tools::blend::BlendEdit,
     },
+    /// What ffprobe said about a movie to bring in.
+    VideoProbed {
+        id: u64,
+        path: PathBuf,
+        result: Result<flare_tools::video::Source, String>,
+    },
+    /// A movie brought in has been read, or stopped, or could not be.
+    VideoRead {
+        id: u64,
+        outcome: crate::video_import::VideoOutcome,
+    },
     /// A Blur or Smudge stroke is over: every change it made has been handed back, or `error`
     /// says why it stopped (no bitmap where it started, or the bitmap changed under it).
     BlendEnded { id: u64, error: Option<String> },

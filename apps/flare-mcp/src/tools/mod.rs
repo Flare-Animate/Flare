@@ -7,6 +7,7 @@ mod export;
 mod game;
 mod history;
 mod layer_ops;
+mod mannequin;
 mod multi_frame;
 mod pixels;
 mod read;
@@ -19,6 +20,7 @@ mod symbols;
 mod text;
 mod timeline;
 mod tween;
+mod video;
 
 use rmcp::handler::server::router::tool::ToolRouter;
 
@@ -43,5 +45,7 @@ impl FlareServer {
             + Self::symbol_tools()
             + Self::game_tools()
             + Self::pixel_tools()
+            + Self::mannequin_tools()
+            + Self::video_tools()
     }
 }

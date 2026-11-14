@@ -18,8 +18,13 @@ pub(super) fn center_from_edge(touch: bool) -> f32 {
     (rail_width(touch) - 1.0) / 2.0
 }
 
-/// Width of a panel open beside the strip, as wide as Animate's.
+/// Width of a panel open beside the strip, as wide as Animate's, until it is made wider.
 pub(super) const FLYOUT_WIDTH: f32 = 300.0;
+/// The narrowest a panel beside the strip is made, and the room it leaves of the window.
+const FLYOUT_LEAST: f32 = 240.0;
+const FLYOUT_ROOM: f32 = 80.0;
+/// The edge of a panel beside the strip that is dragged to widen it.
+const FLYOUT_EDGE: f32 = 6.0;
 
 /// A change to where a panel lives, asked for while the dock is being drawn and made after it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -38,6 +43,8 @@ pub(crate) struct Panels {
     pub(crate) workspaces: flare_dock::Workspaces,
     /// The name being typed to save the arrangement as a workspace.
     pub(crate) new_workspace: String,
+    /// The widths panels beside the strip were dragged to.
+    pub(crate) flyout_widths: Vec<(Pane, f32)>,
 }
 
 impl Default for Panels {
@@ -49,6 +56,7 @@ impl Default for Panels {
             icons: Vec::new(),
             workspaces: flare_dock::Workspaces::default(),
             new_workspace: String::new(),
+            flyout_widths: Vec::new(),
         }
     }
 }
@@ -119,6 +127,34 @@ impl Workspace {
         }
     }
 
+    /// How wide `pane` is beside the strip in a window `screen` wide: as it was dragged, wide
+    /// for a Mannequin panel made large, else Animate's width; never more than the window has.
+    pub(crate) fn flyout_width(&self, pane: Pane, screen: f32) -> f32 {
+        let most = (screen - rail_width(self.touch) - FLYOUT_ROOM).max(FLYOUT_LEAST);
+        let own = self
+            .panels
+            .flyout_widths
+            .iter()
+            .find(|(p, _)| *p == pane)
+            .map_or(FLYOUT_WIDTH, |(_, w)| *w);
+        let width = if pane == Pane::Mannequin && self.mannequin.expanded {
+            own.max((screen * 0.6).min(1100.0))
+        } else {
+            own
+        };
+        width.clamp(FLYOUT_LEAST, most)
+    }
+
+    fn set_flyout_width(&mut self, pane: Pane, width: f32) {
+        let widths = &mut self.panels.flyout_widths;
+        widths.retain(|(p, _)| *p != pane);
+        widths.push((pane, width));
+        if pane == Pane::Mannequin {
+            // A width chosen by hand is the panel's size from now on.
+            self.mannequin.expanded = false;
+        }
+    }
+
     /// The panel open beside the strip, if any: level with its icon, as high as the window allows.
     /// A press anywhere on the panels or the stage, Escape, or its icon again puts it away.
     pub(super) fn panel_flyout(&mut self, ctx: &egui::Context) {
@@ -144,6 +180,7 @@ impl Workspace {
             .min(screen.bottom() - max_height - 30.0)
             .max(screen.top());
         let id = egui::Id::NULL.with("strip-flyout");
+        let width = self.flyout_width(pane, screen.width());
         let title = self.tr(pane.key());
         let dock_hint = self.tr("strip-dock");
         let collapse_hint = self.tr("strip-collapse-to-icon");
@@ -158,7 +195,7 @@ impl Workspace {
                     .corner_radius(4)
                     .shadow(ui.visuals().popup_shadow)
                     .show(ui, |ui| {
-                        ui.set_width(FLYOUT_WIDTH);
+                        ui.set_width(width);
                         ui.set_max_height(max_height);
                         egui::Frame::new()
                             .fill(theme::chrome())
@@ -205,6 +242,28 @@ impl Workspace {
             });
         self.apply_panel_change();
         let rect = area.response.rect;
+        // The left edge widens the panel; it is anchored on the right, so a drag left widens it.
+        let edge = Rect::from_min_max(
+            Pos2::new(rect.left() - FLYOUT_EDGE / 2.0, rect.top()),
+            Pos2::new(rect.left() + FLYOUT_EDGE / 2.0, rect.bottom()),
+        );
+        let resize_hint = self.tr("strip-resize");
+        let handle = egui::Area::new(id.with("edge"))
+            .order(Order::Foreground)
+            .fixed_pos(edge.min)
+            .show(ctx, |ui| {
+                let (_, response) = ui.allocate_exact_size(edge.size(), Sense::drag());
+                response.widget_info(|| {
+                    egui::WidgetInfo::labeled(egui::Role::Slider, true, &resize_hint)
+                });
+                response.on_hover_cursor(egui::CursorIcon::ResizeHorizontal)
+            })
+            .inner;
+        if handle.dragged() {
+            let wider = width - handle.drag_delta().x;
+            self.set_flyout_width(pane, wider.clamp(FLYOUT_LEAST, screen.width()));
+        }
+        let rect = rect.union(edge);
         let (escape, pressed_at) = ctx.input(|i| {
             (
                 i.key_pressed(egui::Key::Escape),

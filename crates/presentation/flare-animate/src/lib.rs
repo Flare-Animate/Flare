@@ -15,8 +15,12 @@ mod no_literal_text;
 mod workspace;
 
 pub use flare_dock::{LayoutError, MAX_LAYOUT_BYTES, Pane};
+/// The pictures the Mannequin panel poses from: the endings a picker offers and the largest file.
+pub use flare_import::{
+    MAX_STILL_BYTES as MAX_REFERENCE_BYTES, STILL_EXTENSIONS as REFERENCE_EXTENSIONS,
+};
 pub use flare_input::PenFeed;
 pub use workspace::{
-    AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES, OnionSkin,
-    Preferences, PublishSettings, ShareTarget, Tool, WindowRequest, Workspace, onion_ghosts,
+    AudioEvent, DialogRequest, FrameOp, MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES, MIN_WINDOW_SIZE,
+    OnionSkin, Preferences, PublishSettings, Tool, WindowRequest, Workspace, onion_ghosts,
 };

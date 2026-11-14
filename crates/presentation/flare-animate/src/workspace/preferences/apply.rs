@@ -53,6 +53,7 @@ impl Workspace {
             html5_responsive: self.publish.responsive,
             publish_gif: self.publish.gif,
             publish_mp4: self.publish.mp4,
+            publish_mov: self.publish.mov,
             language: self.language_choice.code().to_owned(),
             theme: self.theme_mode.code().to_owned(),
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
@@ -74,6 +75,7 @@ impl Workspace {
                 .iter()
                 .map(|c| [c.r, c.g, c.b, c.a])
                 .collect(),
+            mannequin: self.mannequin_preferences(),
         }
     }
 
@@ -88,6 +90,9 @@ impl Workspace {
                 .iter()
                 .map(|[r, g, b, a]| flare_core::Rgba8::new(*r, *g, *b, *a)),
         );
+        if !preferences.mannequin.is_empty() {
+            self.apply_mannequin_preferences(&preferences.mannequin);
+        }
         self.pinned_tools.clear();
         for name in &preferences.pinned_tools {
             self.pin_tool(name);
@@ -160,6 +165,7 @@ impl Workspace {
             responsive: preferences.html5_responsive,
             gif: preferences.publish_gif,
             mp4: preferences.publish_mp4,
+            mov: preferences.publish_mov,
         };
         self.home.recent = preferences
             .recent

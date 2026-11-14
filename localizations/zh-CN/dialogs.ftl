@@ -1,13 +1,15 @@
 dlg-filter-project = Flare 项目
 dlg-filter-sound = 声音
+dlg-filter-video = 视频
 dlg-filter-png = PNG 图像
 dlg-filter-gif = GIF 动画
+dlg-filter-mp4 = MP4 视频
+dlg-filter-mov = QuickTime 影片
 dlg-filter-fla = Flash 文档
 dlg-filter-svg = SVG 图像
 dlg-publish = 发布
 dlg-cannot-export = 无法导出
 dlg-export-failed = 导出失败
-dlg-cannot-open-browser = 无法打开浏览器
 dlg-choose-format = 请先在发布设置中选择一种格式。
 dlg-cannot-publish = 无法发布
 dlg-cannot-start-movie = 无法启动“测试影片”

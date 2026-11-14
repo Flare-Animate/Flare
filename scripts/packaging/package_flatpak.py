@@ -52,6 +52,7 @@ def write_stage(stage, binary):
     shutil.copy2(root / "assets/flare-icon-256.png", stage / f"{APP_ID}.png")
     shutil.copy2(root / "LICENSE", stage / "LICENSE")
     shutil.copy2(root / "packaging/FONT_LICENSES.txt", stage / "FONT_LICENSES.txt")
+    shutil.copy2(root / "packaging/MODEL_LICENSES.txt", stage / "MODEL_LICENSES.txt")
 
 
 def manifest(stage):
@@ -74,6 +75,7 @@ def manifest(stage):
                 f"install -Dm644 {APP_ID}.png /app/share/icons/hicolor/256x256/apps/{APP_ID}.png",
                 "install -Dm644 LICENSE /app/share/licenses/flare/LICENSE",
                 "install -Dm644 FONT_LICENSES.txt /app/share/licenses/flare/FONT_LICENSES.txt",
+                "install -Dm644 MODEL_LICENSES.txt /app/share/licenses/flare/MODEL_LICENSES.txt",
             ],
             "sources": [{"type": "dir", "path": str(stage)}],
         }],
