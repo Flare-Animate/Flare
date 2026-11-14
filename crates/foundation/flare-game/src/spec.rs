@@ -8,8 +8,8 @@ use std::collections::BTreeMap;
 
 use flare_core::SymbolId;
 
-use crate::limits::{MAX_BODIES, MAX_COORD, MAX_ENTITIES, MAX_NAME_CHARS};
-use crate::{Component, ComponentKind, EntityId, GameError};
+use crate::limits::{MAX_BODIES, MAX_COORD, MAX_ENTITIES, MAX_NAME_CHARS, MAX_TRIGGERS};
+use crate::{Component, ComponentKind, EntityId, GameError, HookWhen};
 
 /// One entity: an ID, a name (its tag), the library symbol it draws if any, and at most one
 /// component of each kind.
@@ -45,7 +45,7 @@ impl EntitySpec {
     /// components must already satisfy what this one needs.
     pub fn with_component(mut self, component: Component) -> Result<Self, GameError> {
         component.validate()?;
-        self.check_requirement(component.kind())?;
+        self.check_requirement(&component)?;
         self.components.insert(component.kind(), component);
         Ok(self)
     }
@@ -70,26 +70,39 @@ impl EntitySpec {
         self.components.values()
     }
 
-    pub(crate) fn check_requirement(&self, kind: ComponentKind) -> Result<(), GameError> {
+    pub(crate) fn check_requirement(&self, component: &Component) -> Result<(), GameError> {
+        let kind = component.kind();
         match kind.requires() {
             Some(needs) if !self.components.contains_key(&needs) => {
-                Err(GameError::MissingComponent {
+                return Err(GameError::MissingComponent {
                     component: kind,
                     needs,
-                })
+                });
             }
-            _ => Ok(()),
+            _ => {}
         }
+        // A hook that listens for its zone needs the zone: an action `when` does not.
+        if let Component::Hook(hook) = component
+            && matches!(hook.when, HookWhen::Trigger)
+            && !self.components.contains_key(&ComponentKind::Trigger)
+        {
+            return Err(GameError::MissingComponent {
+                component: kind,
+                needs: ComponentKind::Trigger,
+            });
+        }
+        Ok(())
     }
 
     pub(crate) fn set_component(&mut self, component: Component) -> Result<(), GameError> {
         component.validate()?;
-        self.check_requirement(component.kind())?;
+        self.check_requirement(&component)?;
         self.components.insert(component.kind(), component);
         Ok(())
     }
 
-    /// Removes a component. Refused while another component on the entity needs it.
+    /// Removes a component. Refused while another component on the entity needs it, or while a
+    /// trigger-waiting hook would lose the zone it listens for.
     pub(crate) fn remove_component(&mut self, kind: ComponentKind) -> Result<(), GameError> {
         if let Some(by) = self
             .components
@@ -99,6 +112,16 @@ impl EntitySpec {
             return Err(GameError::StillNeeded {
                 component: kind,
                 by: *by,
+            });
+        }
+        if kind == ComponentKind::Trigger
+            && self.components.values().any(|component| {
+                matches!(component, Component::Hook(hook) if matches!(hook.when, HookWhen::Trigger))
+            })
+        {
+            return Err(GameError::StillNeeded {
+                component: kind,
+                by: ComponentKind::Hook,
             });
         }
         self.components.remove(&kind);
@@ -111,7 +134,7 @@ impl EntitySpec {
         for (kind, component) in &self.components {
             component.validate()?;
             debug_assert_eq!(*kind, component.kind());
-            self.check_requirement(*kind)?;
+            self.check_requirement(component)?;
         }
         Ok(())
     }
@@ -256,16 +279,32 @@ impl GameSpec {
         {
             return Err(GameError::NoSuchEntity(target));
         }
+        for component in entity.components.values() {
+            if let Component::Hook(hook) = component
+                && let Some(target) = hook.spawn
+                && target != entity.id
+                && !self.has(target, ComponentKind::Transform)
+            {
+                return Err(GameError::NoSuchEntity(target));
+            }
+        }
         let bodies =
             self.body_count() + usize::from(entity.components.contains_key(&ComponentKind::Body));
         if bodies > MAX_BODIES {
             return Err(GameError::TooManyBodies { limit: MAX_BODIES });
         }
+        let triggers = self.trigger_count()
+            + usize::from(entity.components.contains_key(&ComponentKind::Trigger));
+        if triggers > MAX_TRIGGERS {
+            return Err(GameError::TooManyTriggers {
+                limit: MAX_TRIGGERS,
+            });
+        }
         self.entities.insert(entity.id, entity);
         Ok(())
     }
 
-    /// Removes an entity. Refused while a camera follows it.
+    /// Removes an entity. Refused while a camera follows it or a hook spawns it.
     pub fn remove_entity(&mut self, id: EntityId) -> Result<EntitySpec, GameError> {
         if !self.entities.contains_key(&id) {
             return Err(GameError::NoSuchEntity(id));
@@ -273,16 +312,26 @@ impl GameSpec {
         if self.followers(id).next().is_some() {
             return Err(GameError::Followed(id));
         }
+        if self.spawners(id).next().is_some() {
+            return Err(GameError::Spawned(id));
+        }
         self.entities.remove(&id).ok_or(GameError::NoSuchEntity(id))
     }
 
     /// Sets a component on an entity, replacing one of its kind. Refused when the entity does
-    /// not satisfy what the component needs, when a camera would follow an entity that does not
-    /// exist, or when the body count would pass its limit. A refused edit changes nothing.
+    /// not satisfy what the component needs, when a camera would follow or a hook would spawn
+    /// an entity that does not exist, or when the body or trigger count would pass its limit. A
+    /// refused edit changes nothing.
     pub fn set_component(&mut self, id: EntityId, component: Component) -> Result<(), GameError> {
         let entity = self.entities.get(&id).ok_or(GameError::NoSuchEntity(id))?;
         if let Component::Camera(camera) = &component
             && let Some(target) = camera.follow
+            && !self.has(target, ComponentKind::Transform)
+        {
+            return Err(GameError::NoSuchEntity(target));
+        }
+        if let Component::Hook(hook) = &component
+            && let Some(target) = hook.spawn
             && !self.has(target, ComponentKind::Transform)
         {
             return Err(GameError::NoSuchEntity(target));
@@ -292,6 +341,14 @@ impl GameSpec {
             && self.body_count() >= MAX_BODIES
         {
             return Err(GameError::TooManyBodies { limit: MAX_BODIES });
+        }
+        if matches!(component, Component::Trigger(_))
+            && !entity.components.contains_key(&ComponentKind::Trigger)
+            && self.trigger_count() >= MAX_TRIGGERS
+        {
+            return Err(GameError::TooManyTriggers {
+                limit: MAX_TRIGGERS,
+            });
         }
         let entity = self
             .entities
@@ -323,16 +380,33 @@ impl GameSpec {
         if self.body_count() > MAX_BODIES {
             out.push(GameError::TooManyBodies { limit: MAX_BODIES });
         }
+        if self.trigger_count() > MAX_TRIGGERS {
+            out.push(GameError::TooManyTriggers {
+                limit: MAX_TRIGGERS,
+            });
+        }
         for entity in self.entities.values() {
             if let Err(error) = entity.check() {
                 out.push(error);
             }
-            for camera in entity.components.values() {
-                if let Component::Camera(c) = camera
-                    && let Some(target) = c.follow
-                    && !self.has(target, ComponentKind::Transform)
-                {
-                    out.push(GameError::NoSuchEntity(target));
+            for component in entity.components.values() {
+                match component {
+                    Component::Camera(c) => {
+                        if let Some(target) = c.follow
+                            && !self.has(target, ComponentKind::Transform)
+                        {
+                            out.push(GameError::NoSuchEntity(target));
+                        }
+                    }
+                    Component::Hook(hook) => {
+                        if let Some(target) = hook.spawn
+                            && target != entity.id
+                            && !self.has(target, ComponentKind::Transform)
+                        {
+                            out.push(GameError::NoSuchEntity(target));
+                        }
+                    }
+                    _ => {}
                 }
             }
         }
@@ -358,6 +432,26 @@ impl GameSpec {
             .values()
             .filter(|entity| entity.components.contains_key(&ComponentKind::Body))
             .count()
+    }
+
+    fn trigger_count(&self) -> usize {
+        self.entities
+            .values()
+            .filter(|entity| entity.components.contains_key(&ComponentKind::Trigger))
+            .count()
+    }
+
+    /// Every entity whose hooks bring `target` to life.
+    fn spawners(&self, target: EntityId) -> impl Iterator<Item = EntityId> + '_ {
+        self.entities.values().filter_map(move |entity| {
+            entity
+                .components
+                .values()
+                .find_map(|component| match component {
+                    Component::Hook(hook) if hook.spawn == Some(target) => Some(entity.id),
+                    _ => None,
+                })
+        })
     }
 
     fn followers(&self, target: EntityId) -> impl Iterator<Item = EntityId> + '_ {

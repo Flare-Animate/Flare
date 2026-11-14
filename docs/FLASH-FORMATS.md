@@ -17,7 +17,7 @@ format is known from notes but no real file was checked by hand. "Not built" mea
 | Format | Reader | Status | Checked against |
 |---|---|---|---|
 | SWF, uncompressed (`FWS`), zlib (`CWS`), LZMA (`ZWS`), any version | `flare-import` `swf/` | Verified for shapes, sprites, placements, names, stage, rate, background. Missing End records repaired (below). Other tags reported, not imported. A Flash 3D engine's scripts are recognised and named (below) | 5,046 `.swf` files; see results |
-| SPL (a SWF with a splash extension) | the SWF reader (the bytes decide) | Verified on one file | 1 `.spl` file |
+| SPL (a SWF with a splash extension) | the SWF reader (the bytes decide) | Verified on one file; offered by name in the open dialogs since 2026-11-13 | 1 `.spl` file |
 | Modern FLA (a ZIP of XFL parts, CS5 and later) | `flare-import` `xfl/`, `source.rs` | Verified: every zipped `.fla` in the corpus is read without a crash; a ZIP wrapper containing exactly one nested `.fla` is also imported (synthetic tests); many report unsupported items | 1,256 zipped `.fla` files; synthetic wrapper tests |
 | XFL folder and `.xfl` stub | `flare-import` `xfl/` | Verified by the existing `xfl*` tests | the XFL test suite (not the corpus) |
 | XFL motion tweens on instances, classic (`motion`) and motion object (`motion object`) | `flare-import` `xfl/timeline.rs`, `xfl/motion/` | Classic: a linear transform tween with the frame's `acceleration`. Motion object: the `AnimationCore` curves of X, Y, rotation, skew X and scale are sampled into one keyframe per frame (`tests/xfl_motion.rs`), so the motion follows the file's handles. Unsupported time maps, skew Y, colour and filter curves are reported, and a tween over 4096 frames stays linear | one real sample, Flashbang's `audio/sound2.fla` (see the motion section below) |
@@ -25,9 +25,14 @@ format is known from notes but no real file was checked by hand. "Not built" mea
 | Legacy binary FLA (Flash 5 to CS4, a compound file with a `Contents` stream) | `flare-import` `legacy/` | Stage, frame rate, background, library names/types and layer names/visibility/lock state are read. Layer scanning has synthetic tests; artwork and keyframe contents are not read. Import has a warning | 159 compound files in the corpus; `btnstrob.fla` (a real MX 2004 file, from the lifeart reference's fixtures) |
 | FLA `Contents` layouts other than the ones in `legacy/layout.rs` | none | Refused with the stream names and the format number | 5 synthetic fixtures from the lifeart reference (see below) |
 | SOL (AMF0 local shared object) | none | Not built | 7 `.sol` files in the corpus, not run |
-| `.as`, `.asc` (ActionScript text) | none | Not built; they are plain text and would be kept as source data | 4,728 `.as` files in the corpus, not run |
-| SWC and SWF templates (`.swc`, `.spa`) | none | Not built | none |
-| FLV (Flash Video) | none | Not built; `flare-video` does not read it | 24 `.flv` files in the corpus, not run |
+| `.as`, `.asc` (ActionScript text) | none | Not built; both refused by name (`.asc` names Flash Media Server, where its code runs) | 4,728 `.as` files in the corpus, not run |
+| ActionScript bytecode and side files: `.abc`, `.aso`, `.swd`, AMF `.amf` | none | Refused by name: bytecode is code for the Flash virtual machines, which Flare keeps as data and does not run; `.swd` is a debug file beside its `.swf`; AMF carries server messages | none |
+| SWC (component library) | `flare-import` `source.rs` | Built: the `library.swf` at the archive's root is imported as a movie; the `.swc` itself is not kept (a note says an export rebuilds from what Flare understood). Synthetic tests | synthetic `.swc` fixtures |
+| SWT (a Generator-templatized SWF) | the SWF reader (the bytes decide) | Built; offered by name in the open dialogs. Synthetic tests | synthetic `.swt` fixtures |
+| FLP (Flash project, an XML list of the files beside it) | `flare-import` `source.rs` | Built: the file Flash opens by default (`flashDefaultFile`, else the first listed `.fla`/`.xfl`/`.swf`/`.swc`) is imported from beside the `.flp`; the other files are counted in a note; a reference leaving the project's folder is refused. Read whole (browser, MCP) it is refused naming the document to open. Synthetic tests | synthetic `.flp` fixtures |
+| FLV (Flash Video) | `flare-import` `video.rs` through `flare-ffmpeg` | Built: read like any movie, one picture a keyframe; the sound is not imported. The doc said "not built" until 2026-11-13; the row was stale, the reader was not | none of the corpus's 24 `.flv` were run by hand; the reader is exercised by the movie tests |
+| Adobe's MP4 profiles | `flare-import` `video.rs` | `.f4v` and `.f4p` read as movies; audio-only `.f4a`/`.f4b`, the `.f4f` fragment and the `.f4m` manifest are refused by name (audio comes in through sound import) | synthetic classification tests |
+| MP3 and other sounds (WAV, Ogg Vorbis, FLAC) | `flare-runtime` `sound_layer` (decoded audio) | Built as sound import, not project import: a sound joins an existing project as a layer with one cue (`flare sound-import`, the desktop and browser Import > Sound). A sound is not a document, so it is not in the project-import list | the sound import tests |
 | JSFL | none | Not built (read only was the ask; no reader yet) | 1 `.jsfl` file in the corpus, not run |
 
 ## The SWF repair pass
@@ -153,7 +158,7 @@ the inner file is imported and the wrapper is not kept as the editable source.
    `btnstrob.fla`, which is the one real file. Add more real files before writing more code.
 2. The stage and frame-rate gaps above: decide the fallback with the maintainer, then test it.
 3. Desktop load on a worker thread for #117.
-4. SOL, `.as`, SWC, FLV: each needs its own reader and a sample set first.
+4. SOL, `.as`, `.spa`: each needs its own reader and a sample set first. (SWC, SWF templates, FLP and the Adobe MP4 profiles closed on 2026-11-13.)
 
 ## Real files found on the web (2026-11-06)
 

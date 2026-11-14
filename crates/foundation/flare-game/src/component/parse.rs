@@ -7,8 +7,9 @@ use flare_core::SoundId;
 use uuid::Uuid;
 
 use crate::{
-    Audio, Body, BodyKind, Bounds, Camera, Component, ComponentKind, Control, EntityId, GameError,
-    Key, Particle, Script, Sprite, Transform, Ui, UiKind,
+    Actions, Audio, Body, BodyKind, Bounds, Camera, Component, ComponentKind, Control, DestroyWho,
+    EntityId, GameError, Hook, HookWhen, Key, Particle, Script, Sprite, Transform, Trigger, Ui,
+    UiKind,
 };
 
 pub(super) fn parse(kind: &str, fields: &[(String, String)]) -> Result<Component, GameError> {
@@ -139,6 +140,63 @@ pub(super) fn parse(kind: &str, fields: &[(String, String)]) -> Result<Component
                 .text("name")
                 .ok_or_else(|| fields.bad("name", "is required"))?;
             Component::Script(Script { name })
+        }
+        ComponentKind::Trigger => {
+            let d = Trigger::default();
+            Component::Trigger(Trigger {
+                width: fields.f64("width", d.width)?,
+                height: fields.f64("height", d.height)?,
+                once: fields.bool("once", d.once)?,
+            })
+        }
+        ComponentKind::Hook => {
+            let d = Hook::default();
+            let when = match fields.text("when") {
+                None => d.when,
+                Some(text) => {
+                    if text == "trigger" {
+                        HookWhen::Trigger
+                    } else if let Some(name) = text.strip_prefix("action:") {
+                        HookWhen::Action(name.trim().to_owned())
+                    } else {
+                        return Err(fields.bad("when", "must be trigger or action:<name>"));
+                    }
+                }
+            };
+            let sound = match fields.text("sound") {
+                None => None,
+                Some(text) => Some(SoundId::from_uuid(
+                    Uuid::parse_str(&text).map_err(|_| fields.bad("sound", "is not a sound ID"))?,
+                )),
+            };
+            let spawn = match fields.u32_opt("spawn")? {
+                None | Some(0) => None,
+                Some(raw) => Some(
+                    EntityId::new(raw).ok_or_else(|| fields.bad("spawn", "is not an entity"))?,
+                ),
+            };
+            Component::Hook(Hook {
+                when,
+                sound,
+                spawn,
+                follow: fields.bool("follow", d.follow)?,
+                destroy: match fields.text("destroy") {
+                    None => d.destroy,
+                    Some(text) => DestroyWho::parse(&text)
+                        .ok_or_else(|| fields.bad("destroy", "must be never, visitor or this"))?,
+                },
+            })
+        }
+        ComponentKind::Actions => {
+            let names = match fields.text("names") {
+                None => Vec::new(),
+                Some(text) => text
+                    .split(',')
+                    .map(|name| name.trim().to_owned())
+                    .filter(|name| !name.is_empty())
+                    .collect(),
+            };
+            Component::Actions(Actions { names })
         }
     };
     fields.finish()?;

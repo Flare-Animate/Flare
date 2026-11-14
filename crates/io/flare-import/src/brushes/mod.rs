@@ -13,7 +13,10 @@
 mod abr;
 mod kpp;
 
+use std::io::Read;
 use std::path::Path;
+
+use flare_tools::brush::BrushPreset;
 
 /// A whole profile collection does not come in bigger than this, the same bound as any other
 /// foreign file.
@@ -62,10 +65,104 @@ pub fn profile_kind(path: &Path) -> Option<ProfileKind> {
     }
 }
 
-/// Reads whichever profile file `name` names out of `bytes`.
-pub fn import_profile_bytes(name: &Path, bytes: &[u8]) -> Result<Vec<BrushPresetEntry>, ...> {
-    unimplemented!()
+/// Reads whichever pen-profile file `name` names out of `bytes`. The extension decides the
+/// reader, so a file renamed behind Flare's back is read by what it is called, not by what it
+/// holds; the readers themselves check the format they were promised.
+///
+/// A `.gbr`, `.gih`, `.brushset` or `.myb` is refused by name: those files are pictures or
+/// tiles of pictures with no settings to map, and Flare's pen profile is settings. Saying so
+/// beats importing nothing and saying nothing.
+pub fn import_profile_bytes(name: &Path, bytes: &[u8]) -> Result<ProfileSet, BrushProfileError> {
+    if bytes.len() as u64 > MAX_OWNED_BYTES {
+        return Err(BrushProfileError::TooLarge);
+    }
+    match profile_kind(name) {
+        Some(ProfileKind::Abr) => abr::import(bytes),
+        Some(ProfileKind::Kpp) => kpp::import(None, bytes),
+        Some(ProfileKind::Bundle) => bundle(bytes),
+        None => match refused(name) {
+            Some(error) => Err(error),
+            None => Err(BrushProfileError::NotRecognized(format!(
+                "{} is not a pen profile file Flare reads (.abr, .kpp or .bundle)",
+                name.display()
+            ))),
+        },
+    }
 }
+
+/// The refusal for a pen-profile extension Flare does not read. `None` when the extension is
+/// not a pen profile at all and the caller should say what it knows.
+pub fn refused(name: &Path) -> Option<BrushProfileError> {
+    let extension = name.extension()?.to_str()?.to_ascii_lowercase();
+    let message = match extension.as_str() {
+        // GIMP: a brush is one picture, or a grid of them. No settings to map.
+        "gbr" | "gih" => {
+            "GIMP's {ext} brushes are pictures, and Flare's pen profile is settings: there is \
+             nothing to import"
+        }
+        // Procreate's brush set: a zip of Procreate brushes, its own format.
+        "brushset" => {
+            "a Procreate .brushset holds brushes in Procreate's own format, which Flare's \
+             pen-profile import does not read"
+        }
+        // MyPaint: a stack of pictures and a MyPaint settings file of its own kind.
+        "myb" | "overflow" => {
+            "a MyPaint .myb brush keeps its settings in MyPaint's own format, which Flare's \
+             pen-profile import does not read"
+        }
+        _ => return None,
+    };
+    Some(BrushProfileError::Unsupported(
+        message.replace("{ext}", &extension),
+    ))
+}
+
+/// A Krita bundle: a zip of `.kpp` presets. Each preset is read on its own; one that fails is
+/// named in a note and the rest still come over.
+fn bundle(bytes: &[u8]) -> Result<ProfileSet, BrushProfileError> {
+    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes))
+        .map_err(|error| BrushProfileError::Corrupt(format!("the bundle zip: {error}")))?;
+    let mut presets: Vec<BrushPreset> = Vec::new();
+    let mut notes: Vec<String> = Vec::new();
+    for index in 0..archive.len() {
+        let mut member = archive
+            .by_index(index)
+            .map_err(|error| BrushProfileError::Corrupt(format!("the bundle zip: {error}")))?;
+        let member_name = member
+            .name()
+            .map_err(|error| BrushProfileError::Corrupt(format!("the bundle zip: {error}")))?
+            .into_owned();
+        if !member_name.to_ascii_lowercase().ends_with(".kpp") {
+            continue;
+        }
+        let member_name = member_name
+            .rsplit('/')
+            .next()
+            .unwrap_or("preset")
+            .to_owned();
+        let mut contents = Vec::new();
+        let read = member
+            .by_ref()
+            .take(MAX_BUNDLE_MEMBER_BYTES)
+            .read_to_end(&mut contents)
+            .map_err(|error| BrushProfileError::Corrupt(format!("the bundle zip: {error}")))?;
+        if read as u64 >= MAX_BUNDLE_MEMBER_BYTES {
+            notes.push(format!("{member_name} is too large and was left out"));
+            continue;
+        }
+        match kpp::import(Some(&member_name), &contents) {
+            Ok(mut set) => {
+                presets.append(&mut set.presets);
+                notes.extend(set.notes);
+            }
+            Err(error) => notes.push(format!("{member_name}: {error}")),
+        }
+    }
+    Ok(ProfileSet { presets, notes })
+}
+
+/// The most one preset inside a bundle may be.
+const MAX_BUNDLE_MEMBER_BYTES: u64 = 1024 * 1024;
 
 /// The brushes of a file, in the file's order, plus anything about them a person should see.
 ///
@@ -85,20 +182,15 @@ const PLACEHOLDER_PREFIX: &str = "Brush";
 
 /// Passes over a byte reader with a plain u16 at the front; most profile tables start that way.
 mod shared {
-    /// `bytes` is at least `needed` long.
-    pub const fn enough(bytes: &[u8], needed: usize) -> bool {
-        bytes.len() >= needed
-    }
-
     /// An unsigned big-endian integer of `2` bytes.
-    pub const fn u16_at(bytes: &[u8], at: usize) -> Option<u16> {
+    pub fn u16_at(bytes: &[u8], at: usize) -> Option<u16> {
         let hi = *bytes.get(at)?;
         let lo = *bytes.get(at + 1)?;
         Some((u16::from(hi) << 8) | u16::from(lo))
     }
 
     /// A signed big-endian integer of `4` bytes.
-    pub const fn i32_at(bytes: &[u8], at: usize) -> Option<i32> {
+    pub fn i32_at(bytes: &[u8], at: usize) -> Option<i32> {
         let b0 = *bytes.get(at)?;
         let b1 = *bytes.get(at + 1)?;
         let b2 = *bytes.get(at + 2)?;

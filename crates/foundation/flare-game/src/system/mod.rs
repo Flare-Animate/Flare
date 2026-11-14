@@ -3,23 +3,28 @@
 
 pub(crate) mod audio;
 pub(crate) mod camera;
+pub(crate) mod hook;
 pub(crate) mod particle;
 pub(crate) mod physics;
 pub(crate) mod script;
 pub(crate) mod sprite;
+pub(crate) mod trigger;
 pub(crate) mod ui;
 
 pub use camera::View;
 
 use crate::limits::MAX_EVENTS_PER_STEP;
-use crate::{Event, GameError, Input, World};
+use crate::{EntityId, Event, GameError, Input, World};
 
 /// The systems. The C++ scaffold sorted its systems by a priority number; the port fixes the
-/// order here so that a camera follows the positions the physics system has just written.
+/// order here so that a camera follows the positions the physics system has just written, and a
+/// hook fires on the entries the trigger system has just reported, before the camera moves.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SystemKind {
     Script,
     Physics,
+    Trigger,
+    Hook,
     Camera,
     Sprite,
     Particle,
@@ -28,9 +33,11 @@ pub enum SystemKind {
 }
 
 impl SystemKind {
-    pub const ORDER: [SystemKind; 7] = [
+    pub const ORDER: [SystemKind; 9] = [
         SystemKind::Script,
         SystemKind::Physics,
+        SystemKind::Trigger,
+        SystemKind::Hook,
         SystemKind::Camera,
         SystemKind::Sprite,
         SystemKind::Particle,
@@ -42,6 +49,8 @@ impl SystemKind {
         match self {
             SystemKind::Script => "script",
             SystemKind::Physics => "physics",
+            SystemKind::Trigger => "trigger",
+            SystemKind::Hook => "hook",
             SystemKind::Camera => "camera",
             SystemKind::Sprite => "sprite",
             SystemKind::Particle => "particle",
@@ -51,10 +60,13 @@ impl SystemKind {
     }
 }
 
-/// What a step gives every system: the seconds it advances, the input, and the events so far.
+/// What a step gives every system: the seconds it advances, the input, the events so far, and
+/// the trigger entries this step, which the trigger system writes and the hook system reads.
 pub(crate) struct StepContext<'a> {
     pub(crate) dt: f64,
     pub(crate) input: &'a Input,
+    /// The `(zone, visitor)` pairs whose overlap began this step, in report order.
+    pub(crate) triggers: Vec<(EntityId, EntityId)>,
     events: Vec<Event>,
 }
 
@@ -63,6 +75,7 @@ impl<'a> StepContext<'a> {
         Self {
             dt,
             input,
+            triggers: Vec::new(),
             events: Vec::new(),
         }
     }
@@ -88,6 +101,8 @@ pub(crate) fn run(
     match kind {
         SystemKind::Script => script::run(world, ctx),
         SystemKind::Physics => physics::run(world, ctx),
+        SystemKind::Trigger => trigger::run(world, ctx),
+        SystemKind::Hook => hook::run(world, ctx),
         SystemKind::Camera => camera::run(world, ctx),
         SystemKind::Sprite => sprite::run(world, ctx),
         SystemKind::Particle => particle::run(world, ctx),

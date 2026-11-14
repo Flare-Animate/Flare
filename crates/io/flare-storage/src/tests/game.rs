@@ -42,7 +42,7 @@ fn a_game_survives_saving_and_opening() {
 }
 
 #[test]
-fn a_project_with_a_game_is_schema_three_and_one_without_is_still_one() {
+fn a_project_with_a_game_is_schema_four_and_one_without_is_still_one() {
     let dir = tempfile::tempdir().expect("dir");
     let with = dir.path().join("with.flare");
     save(&with_game(None), &with).expect("save");

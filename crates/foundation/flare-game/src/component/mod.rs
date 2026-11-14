@@ -10,8 +10,8 @@ mod validate;
 use std::fmt;
 
 pub use types::{
-    Audio, Body, BodyKind, Bounds, Camera, Control, Key, Particle, Script, Sprite, Transform, Ui,
-    UiKind,
+    Actions, Audio, Body, BodyKind, Bounds, Camera, Control, DestroyWho, Hook, HookWhen, Key,
+    Particle, Script, Sprite, Transform, Trigger, Ui, UiKind,
 };
 
 use crate::GameError;
@@ -29,10 +29,13 @@ pub enum ComponentKind {
     Audio,
     Particle,
     Script,
+    Trigger,
+    Hook,
+    Actions,
 }
 
 impl ComponentKind {
-    pub const ALL: [ComponentKind; 9] = [
+    pub const ALL: [ComponentKind; 12] = [
         ComponentKind::Transform,
         ComponentKind::Sprite,
         ComponentKind::Body,
@@ -42,6 +45,9 @@ impl ComponentKind {
         ComponentKind::Audio,
         ComponentKind::Particle,
         ComponentKind::Script,
+        ComponentKind::Trigger,
+        ComponentKind::Hook,
+        ComponentKind::Actions,
     ];
 
     /// The name the surfaces use, as in `flare game set-component ... body`.
@@ -56,6 +62,9 @@ impl ComponentKind {
             ComponentKind::Audio => "audio",
             ComponentKind::Particle => "particle",
             ComponentKind::Script => "script",
+            ComponentKind::Trigger => "trigger",
+            ComponentKind::Hook => "hook",
+            ComponentKind::Actions => "actions",
         }
     }
 
@@ -92,6 +101,9 @@ pub enum Component {
     Audio(Audio),
     Particle(Particle),
     Script(Script),
+    Trigger(Trigger),
+    Hook(Hook),
+    Actions(Actions),
 }
 
 impl Component {
@@ -106,6 +118,9 @@ impl Component {
             Component::Audio(_) => ComponentKind::Audio,
             Component::Particle(_) => ComponentKind::Particle,
             Component::Script(_) => ComponentKind::Script,
+            Component::Trigger(_) => ComponentKind::Trigger,
+            Component::Hook(_) => ComponentKind::Hook,
+            Component::Actions(_) => ComponentKind::Actions,
         }
     }
 

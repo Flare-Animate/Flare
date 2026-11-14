@@ -20,8 +20,8 @@ mod system;
 mod world;
 
 pub use component::{
-    Audio, Body, BodyKind, Bounds, Camera, Component, ComponentKind, Control, Key, Particle,
-    Script, Sprite, Transform, Ui, UiKind,
+    Actions, Audio, Body, BodyKind, Bounds, Camera, Component, ComponentKind, Control, DestroyWho,
+    Hook, HookWhen, Key, Particle, Script, Sprite, Transform, Trigger, Ui, UiKind,
 };
 pub use error::GameError;
 pub use fields::parse_fields;

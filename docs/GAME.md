@@ -9,16 +9,17 @@ point; this page says what was ported, what it does now, and what is still open.
 
 ## Status
 
-Built: the world, the seven systems, scripted runs, the description's commands and storage, the
-`flare game` commands, the MCP tools and the game export. Not yet: the desktop and browser panel
-(a gap recorded in [SURFACES.md](SURFACES.md)).
+Built: the world, the nine systems, trigger zones, declarative hooks, named input actions,
+scripted runs, the description's commands and storage, the `flare game` commands, the MCP tools
+and the game export. Not yet: the desktop and browser panel (a gap recorded in
+[SURFACES.md](SURFACES.md)).
 
 ## The model
 
 - **Entity**: an ID (a positive integer, handed out in order and never reused in a game), a name
   (its tag, 1 to 128 characters, no control characters), an optional library symbol it draws, and
   at most one component of each kind.
-- **Component**: data only. Nine kinds, each with named fields and defaults (`flare game
+- **Component**: data only. Twelve kinds, each with named fields and defaults (`flare game
   set-component` and MCP send them as `name=value`; an unknown field is an error):
 
   | Kind | Holds | Needs |
@@ -32,18 +33,23 @@ Built: the world, the seven systems, scripted runs, the description's commands a
   | `audio` | a sound of the document, loop, play on start, volume | transform |
   | `particle` | emission rate, life, auto play | transform |
   | `script` | a name | transform |
+  | `trigger` | zone width and height, `once` | transform |
+  | `hook` | `when` (`trigger` or `action:<name>`), a sound, a spawn, `follow`, `destroy` (`never`, `visitor`, `this`) | transform; a trigger too, when `when=trigger` |
+  | `actions` | up to 8 action names it listens for, 32 characters each | transform |
 
 - **Requirements** are checked on every edit: a component whose requirement is missing is refused,
-  and so is removing a component another one needs, or an entity a camera follows.
-- **Limits**, all in `flare-game`'s `limits.rs`: 4096 entities, 1024 bodies, coordinates within
-  one million pixels, 240 frames a second at most, 100 000 frames in one run, 4096 events in one
-  step, and 100 000 events in one run. A value over a limit is refused, never clipped.
+  and so is removing a component another one needs, or an entity a camera follows or a hook
+  spawns.
+- **Limits**, all in `flare-game`'s `limits.rs`: 4096 entities, 1024 bodies, 256 trigger zones,
+  coordinates within one million pixels, 240 frames a second at most, 100 000 frames in one run,
+  4096 events in one step, and 100 000 events in one run. A value over a limit is refused, never
+  clipped.
 - **Gravity** is one vector for the world, in pixels per second squared.
 
 ## The world and the step
 
 `World::from_spec(spec, frames_per_second)` builds the running world; the step is `1 / fps`
-seconds. `World::step(&Input)` runs the seven systems once each, in this order, and returns the
+seconds. `World::step(&Input)` runs the nine systems once each, in this order, and returns the
 events of that step. The step runs on a copy and is kept only when every system finishes, so a
 refused step changes nothing.
 
@@ -52,24 +58,29 @@ the script take no input. It returns the events with their frame numbers and a d
 state. The digest is FNV-1a over every entity's numbers, so two runs of the same description and
 script agree exactly, and a different script almost always differs.
 
-Input is text, one frame per `;`-separated part, keys as `,`-separated names, and a press as
-`click:x:y`:
+Input is text, one frame per `;`-separated part, keys as `,`-separated names, a press as
+`click:x:y`, and a named action as `action:<name>`:
 
-    right;right,down;;click:40:12
+    right;right,down;;click:40:12;action:pounce
 
-Keys are `left`, `right`, `up`, `down`, `space` and `enter`. A NaN or infinite pointer is refused.
+Keys are `left`, `right`, `up`, `down`, `space` and `enter`. Actions are the names a project's
+`actions` components declare; unlike the six keys, an action is read only by what binds it (a hook
+with `when=action:<name>`). A NaN or infinite pointer is refused.
 
-## The seven systems
+## The nine systems
 
 The C++ scaffold registers eight system classes; its docs count seven, because the transform
 system has no work (the C++ comment says "parent transform propagation would go here", and there is
-no hierarchy). The port runs these seven:
+no hierarchy). The port runs these nine; trigger and hook are new, in the spirit of the Flash
+engines' sensor and handler components:
 
 | System | What the port does | What the C++ had |
 |---|---|---|
 | Script | Nothing. Scripts are preserved as data and never run (PARITY) | `ScriptSystem::update` ran nothing |
 | Physics | Controls set velocities; dynamic bodies fall under gravity; bodies move; overlapping bodies whose masks meet are reported as a collision when they begin and when they part. Nothing is pushed apart | Box2D was never linked; the step is commented out |
-| Camera | Follows its target by `lerp * dt` (capped at 1) and clamps its centre to bounds | The lerp and the clamp were comments |
+| Trigger | Reports a body's entry into and exit from a trigger zone as a `Trigger` event; a `once` zone reports only its first entry and then is silent | Nothing; sensors were a Citrus Engine idea the scaffold never had |
+| Hook | On a hook's `when` first happening (its zone entered, or its action's rising edge), plays its sound, brings its spawn to the hook's place and in sight, hands the camera to the visitor, and removes the visitor or the zone. No scripting: these four things are all a hook does | Nothing; keydown and trigger handlers were a Flash pattern the scaffold never had |
+| Camera | Follows its target by `lerp * dt` (capped at 1) and clamps its centre to bounds; a destroyed follow target is tolerated and the camera holds still | The lerp and the clamp were comments |
 | Sprite | Advances the frame at the sprite's frame rate, looping or holding its last frame; `sprites_in_order` gives the visible sprites lowest order first | Advancing was a comment; the sort by order was real |
 | Particle | Counts particles at the emitter's rate and reports `Emit` events; the particles are not simulated | `update` and `createEmitter` were empty |
 | Audio | Reports a `Sound` event on the first step for each audio component that plays on start | `playSound` was empty |
@@ -103,13 +114,14 @@ changed only through command batches in `flare-commands`:
 
 A batch is validated once, as a whole, like every other batch: a refused command fails the batch and
 changes nothing, and the batch is one undo step. The document checks what the description names:
-an entity's symbol must be in the library, and an audio component's sound must be in the sound
-library. So removing a symbol or a sound that the game uses is refused by the same rule.
+an entity's symbol must be in the library, and a sound named by an audio component or by a hook
+must be in the sound library. So removing a symbol or a sound that the game uses is refused by the
+same rule.
 
-A project with a game is stored with a `game` record and schema version 3, which a build without
-games refuses by version. A project without one keeps the version it had, so it opens in older
-builds. The record is the description as CBOR; reading it goes through the same checks as an edit,
-so a damaged file is refused rather than run.
+A project with a game is stored with a `game` record and schema version 4, which a build without
+games or with the older game model refuses by version. A project without one keeps the version it
+had, so it opens in older builds. The record is the description as CBOR; reading it goes through the
+same checks as an edit, so a damaged file is refused rather than run.
 
 ## Surfaces and export
 

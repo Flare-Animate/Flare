@@ -2,10 +2,10 @@
 //! without producing a non-finite value.
 
 use crate::limits::{
-    MAX_COORD, MAX_EMIT_RATE, MAX_FPS, MAX_NAME_CHARS, MAX_SIZE, MAX_SPEED, MAX_SPRITE_FRAMES,
-    MAX_TEXT_CHARS,
+    MAX_ACTION_CHARS, MAX_ACTIONS, MAX_COORD, MAX_EMIT_RATE, MAX_FPS, MAX_NAME_CHARS, MAX_SIZE,
+    MAX_SPEED, MAX_SPRITE_FRAMES, MAX_TEXT_CHARS,
 };
-use crate::{Component, GameError};
+use crate::{Component, DestroyWho, GameError, HookWhen};
 
 pub(super) fn validate(component: &Component) -> Result<(), GameError> {
     let name = component.kind().name();
@@ -80,6 +80,48 @@ pub(super) fn validate(component: &Component) -> Result<(), GameError> {
                 ));
             }
         }
+        Component::Trigger(t) => {
+            check.range("width", t.width, 0.0, MAX_SIZE)?;
+            check.range("height", t.height, 0.0, MAX_SIZE)?;
+        }
+        Component::Hook(h) => {
+            if let HookWhen::Action(name) = &h.when {
+                check_action_name(&check, "when", name)?;
+            }
+            if h.follow && !matches!(h.when, HookWhen::Trigger) {
+                return Err(check.bad("follow", "needs a trigger to have a visitor to follow"));
+            }
+            if h.destroy == DestroyWho::Visitor && !matches!(h.when, HookWhen::Trigger) {
+                return Err(check.bad(
+                    "destroy",
+                    "visitor needs a trigger to have a visitor at all",
+                ));
+            }
+        }
+        Component::Actions(a) => {
+            if a.names.len() > MAX_ACTIONS {
+                return Err(check.bad("names", &format!("names more than {MAX_ACTIONS} actions")));
+            }
+            let mut seen: Vec<&str> = Vec::new();
+            for name in &a.names {
+                check_action_name(&check, "names", name)?;
+                if seen.contains(&name.as_str()) {
+                    return Err(check.bad("names", &format!("names {name:?} twice")));
+                }
+                seen.push(name);
+            }
+        }
+    }
+    Ok(())
+}
+
+fn check_action_name(check: &Check, field: &'static str, name: &str) -> Result<(), GameError> {
+    let len = name.chars().count();
+    if len == 0 || len > MAX_ACTION_CHARS || name.chars().any(char::is_control) {
+        return Err(check.bad(
+            field,
+            &format!("must be 1 to {MAX_ACTION_CHARS} characters with no control characters"),
+        ));
     }
     Ok(())
 }

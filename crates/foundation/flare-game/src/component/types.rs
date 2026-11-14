@@ -311,3 +311,109 @@ impl Default for Particle {
 pub struct Script {
     pub name: String,
 }
+
+/// An axis-aligned zone a body walks into. The zone has no body of its own: nothing bounces off
+/// it and it is never reported as a collision, it only says who is inside.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Trigger {
+    pub width: f64,
+    pub height: f64,
+    /// Report only the first entry, then never again.
+    pub once: bool,
+}
+
+impl Default for Trigger {
+    fn default() -> Self {
+        Self {
+            width: 32.0,
+            height: 32.0,
+            once: false,
+        }
+    }
+}
+
+/// What a hook listens for.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum HookWhen {
+    /// The entity's own trigger zone is entered.
+    Trigger,
+    /// A named input action is held; the hook fires on the frame it starts, and again when it
+    /// stops and starts once more.
+    Action(String),
+}
+
+impl HookWhen {
+    /// The name of an action `when`, or `None` for a trigger.
+    pub fn action(&self) -> Option<&str> {
+        match self {
+            HookWhen::Trigger => None,
+            HookWhen::Action(name) => Some(name),
+        }
+    }
+}
+
+/// Who a hook removes when it fires.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DestroyWho {
+    /// Nothing is removed.
+    Never,
+    /// The entity that entered the trigger.
+    Visitor,
+    /// The entity the hook is on, the trigger itself.
+    This,
+}
+
+impl DestroyWho {
+    pub fn name(self) -> &'static str {
+        match self {
+            DestroyWho::Never => "never",
+            DestroyWho::Visitor => "visitor",
+            DestroyWho::This => "this",
+        }
+    }
+
+    pub fn parse(text: &str) -> Option<Self> {
+        [DestroyWho::Never, DestroyWho::Visitor, DestroyWho::This]
+            .into_iter()
+            .find(|who| who.name() == text)
+    }
+}
+
+/// A declarative reaction, as the Flash engines' keydown and trigger handlers were: when `when`
+/// first happens, the hook plays `sound`, brings `spawn` to the entity's place and in sight,
+/// hands the camera to the visitor, and removes `destroy`. Needs a transform; a `when` of
+/// trigger needs a trigger on the same entity.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Hook {
+    pub when: HookWhen,
+    /// The sound to start, at full volume.
+    pub sound: Option<SoundId>,
+    /// The entity to bring to the hook's place and make visible.
+    pub spawn: Option<EntityId>,
+    /// Hand the camera to the entity that entered. Only with a trigger `when`: an action has no
+    /// visitor to follow.
+    pub follow: bool,
+    pub destroy: DestroyWho,
+}
+
+impl Default for Hook {
+    fn default() -> Self {
+        Self {
+            when: HookWhen::Trigger,
+            sound: None,
+            spawn: None,
+            follow: false,
+            destroy: DestroyWho::Never,
+        }
+    }
+}
+
+/// The named input actions the entity's hooks listen for. Actions are how a surface sends an
+/// input that is not one of the six keys: a script names one with `action:<name>`.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Actions {
+    pub names: Vec<String>,
+}
