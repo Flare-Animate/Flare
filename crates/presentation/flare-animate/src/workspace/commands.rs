@@ -47,6 +47,7 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
+            MenuAction::ImportBrushProfiles => true,
             // A browser has no ffmpeg to read a movie with.
             MenuAction::ImportVideo => {
                 !cfg!(target_arch = "wasm32")
@@ -201,6 +202,9 @@ impl Workspace {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
             MenuAction::ImportVideo => self.dialog = Some(DialogRequest::ImportVideo),
+            MenuAction::ImportBrushProfiles => {
+                self.dialog = Some(DialogRequest::ImportBrushProfiles)
+            }
             // As in Animate, File > New asks what kind of project, in the New Document dialog.
             MenuAction::New => self.show_new_document(),
             MenuAction::Close => self.close_tab(self.position),

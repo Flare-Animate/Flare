@@ -1,6 +1,7 @@
 dlg-filter-project = Flare 项目
 dlg-filter-sound = 声音
 dlg-filter-video = 视频
+dlg-filter-brushes = Photoshop 或 Krita 笔刷配置文件
 dlg-filter-png = PNG 图像
 dlg-filter-gif = GIF 动画
 dlg-filter-mp4 = MP4 视频

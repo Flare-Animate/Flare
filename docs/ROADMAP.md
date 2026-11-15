@@ -35,12 +35,12 @@ that this documentation change resolves them.
 ### High priority
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)
-- Drawing quality: brush dynamics (custom nib, drawn pressure curves, velocity and flow responses, a speed-aware stabilizer, quarter-sine tapers, inking-pen profiles, textured vector brushes (bristles and grain, with Dry brush, Bristle, Charcoal, Chalk and Crayon profiles), a brush gallery of sample strokes and pen pressure on the Pencil are in; pen profiles now import from Photoshop's legacy `.abr` and Krita's `.kpp` and `.bundle` in `flare_import::brushes`, with no surface wiring yet, and OpenToonz preset containers remain unsupported), and tracing a bitmap into vector shapes
+- Drawing quality: brush dynamics (custom nib, drawn pressure curves, velocity and flow responses, a speed-aware stabilizer, quarter-sine tapers, inking-pen profiles, textured vector brushes (bristles and grain, with Dry brush, Bristle, Charcoal, Chalk and Crayon profiles), a brush gallery of sample strokes and pen pressure on the Pencil are in; pen profiles import from Photoshop's legacy `.abr` and Krita's `.kpp` and `.bundle` in `flare_import::brushes`, wired into every surface (File > Import > Import Brush Presets on the desktop and web, `flare brush-import`, the MCP's `import_brush_profiles`; OpenToonz preset containers remain unsupported), and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols. Flash 3D engine recognition on import is in (issue #230: the import names the engine a movie's scripts are written against, and counts its embedded binary blocks; running the movie stays Ruffle's job, and reading a script's code back out is not started)
 - Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
-- Editable keyboard shortcuts: done in part (registry, four sets, editor, CLI and MCP; chords other than tool letters are still dispatched by fixed code, see SURFACES)
+- Editable keyboard shortcuts: done (registry, four sets, editor, CLI and MCP; every chord — a command on Ctrl, Cmd, Alt or a function key — is dispatched from the map in the window, see SURFACES)
 
 ### Lower priority
 

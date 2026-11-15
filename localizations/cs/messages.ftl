@@ -108,3 +108,8 @@ msg-magic-wand = Kouzelná hůlka: { $reason }
 msg-magic-wand-changed = Dokument se během mazání pixelů změnil, proto se nic nevymazalo
 msg-blend = Rozostření a rozmazání: { $reason }
 msg-blend-changed = Dokument se během tahu změnil, a tak zbytek tahu nebyl nanesen
+
+brushes-imported = Importováno předvoleb štětce: { $n }
+brushes-import-refused = Předvolby štětce nelze importovat: { $reason }
+brushes-import-note = Ze souboru předvoleb štětce: { $line }
+brushes-shelf-full = Seznam štětců je plný; předvolby nebyly importovány. Odstraňte štětec, aby vzniklo místo.

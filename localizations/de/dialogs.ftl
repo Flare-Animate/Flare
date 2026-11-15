@@ -1,6 +1,7 @@
 dlg-filter-project = Flare-Projekt
 dlg-filter-sound = Ton
 dlg-filter-video = Video
+dlg-filter-brushes = Photoshop- oder Krita-Stiftprofil
 dlg-filter-png = PNG-Bild
 dlg-filter-gif = GIF-Animation
 dlg-filter-mp4 = MP4-Video

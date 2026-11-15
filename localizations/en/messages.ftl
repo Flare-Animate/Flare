@@ -106,3 +106,11 @@ msg-magic-wand = Magic Wand: { $reason }
 msg-magic-wand-changed = The document changed while the pixels were being cleared, so nothing was cleared
 msg-blend = Blur and Smudge: { $reason }
 msg-blend-changed = The document changed while the stroke was being drawn, so the rest of it was not laid
+
+brushes-imported = { $n ->
+    [one] Imported { $n } brush preset.
+   *[other] Imported { $n } brush presets.
+}
+brushes-import-refused = Cannot import the brush presets: { $reason }
+brushes-import-note = From the brush preset file: { $line }
+brushes-shelf-full = The brush list is full; the presets were not imported. Delete a brush to make room.

@@ -106,3 +106,11 @@ msg-magic-wand = Varita mágica: { $reason }
 msg-magic-wand-changed = El documento cambió mientras se borraban los píxeles, así que no se borró nada
 msg-blend = Desenfocar y Difuminar: { $reason }
 msg-blend-changed = El documento cambió mientras se dibujaba el trazo, así que el resto no se aplicó
+
+brushes-imported = { $n ->
+    [one] Se importó { $n } preajuste de pincel.
+   *[other] Se importaron { $n } preajustes de pincel.
+}
+brushes-import-refused = No se pueden importar los preajustes de pincel: { $reason }
+brushes-import-note = Del archivo de preajustes de pincel: { $line }
+brushes-shelf-full = La lista de pinceles está llena; los preajustes no se importaron. Elimina un pincel para hacer sitio.

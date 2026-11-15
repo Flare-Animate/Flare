@@ -98,3 +98,8 @@ msg-magic-wand = 魔术棒：{ $reason }
 msg-magic-wand-changed = 清除像素时文档已更改，因此没有清除任何内容
 msg-blend = 模糊与涂抹：{ $reason }
 msg-blend-changed = 绘制笔画时文档发生了变化，因此其余部分未被应用
+
+brushes-imported = 已导入 { $n } 个画笔预设
+brushes-import-refused = 无法导入画笔预设：{ $reason }
+brushes-import-note = 来自画笔预设文件：{ $line }
+brushes-shelf-full = 画笔列表已满，未导入预设。请删除一个画笔以腾出空间。

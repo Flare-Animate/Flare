@@ -61,6 +61,24 @@ impl App {
                     self.workspace.import_mannequin_reference(&path);
                 }
             }
+            DialogRequest::ImportBrushProfiles => {
+                if let Some(path) = dialogs::pick_image(
+                    &self.workspace.interface_text("dlg-filter-brushes"),
+                    flare_animate::PROFILE_EXTENSIONS,
+                ) {
+                    // A profile collection is small; one larger than any real one is refused by
+                    // the reader, so check the size before the bytes are read.
+                    let too_large = std::fs::metadata(&path)
+                        .is_ok_and(|m| m.len() > flare_animate::MAX_BRUSH_PROFILE_FILE_BYTES);
+                    match std::fs::read(&path) {
+                        Ok(bytes) if !too_large => self
+                            .workspace
+                            .import_brush_profiles(&path.to_string_lossy(), &bytes),
+                        Ok(_) => self.say_error("dlg-cannot-read", "the file is too large"),
+                        Err(error) => self.say_error("dlg-cannot-read", &error.to_string()),
+                    }
+                }
+            }
             DialogRequest::ImportAnimateShortcuts => {
                 if let Some(path) = dialogs::pick_shortcut_xml(
                     &self

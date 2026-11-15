@@ -106,3 +106,11 @@ msg-magic-wand = Bacchetta magica: { $reason }
 msg-magic-wand-changed = Il documento è cambiato mentre si cancellavano i pixel, quindi non è stato cancellato nulla
 msg-blend = Sfoca e Sfumino: { $reason }
 msg-blend-changed = Il documento è cambiato mentre si disegnava il tratto, quindi il resto non è stato applicato
+
+brushes-imported = { $n ->
+    [one] Importata { $n } preimpostazione pennello.
+   *[other] Importate { $n } preimpostazioni pennello.
+}
+brushes-import-refused = Impossibile importare le preimpostazioni pennello: { $reason }
+brushes-import-note = Dal file di preimpostazioni pennello: { $line }
+brushes-shelf-full = L'elenco dei pennelli è pieno; le preimpostazioni non sono state importate. Elimina un pennello per fare spazio.

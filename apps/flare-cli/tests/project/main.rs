@@ -7,6 +7,7 @@ use std::process::{Command, Output};
 mod bitmap_tween;
 mod blend;
 mod bones;
+mod brush;
 mod camera;
 mod editing;
 mod elements;

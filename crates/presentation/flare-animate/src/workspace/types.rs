@@ -93,6 +93,8 @@ pub enum DialogRequest {
     ImportVideo,
     /// A picture of a person to pose the mannequin from (the Mannequin panel's Reference).
     ImportMannequinReference,
+    /// A pen-profile file (Photoshop `.abr`, Krita `.kpp` or `.bundle`) for the brush list.
+    ImportBrushProfiles,
     /// Read Animate's keyboard shortcut file onto the shortcuts in force.
     ImportAnimateShortcuts,
     ExportImage,

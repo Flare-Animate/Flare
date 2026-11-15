@@ -28,7 +28,10 @@ mod xfl;
 mod xml;
 
 pub use bitmap::{MAX_IMAGE_FRAMES, import_image_sequence};
-pub use brushes::{BrushProfileError, ProfileKind, ProfileSet, import_profile_bytes, profile_kind};
+pub use brushes::{
+    BrushProfileError, PROFILE_EXTENSIONS, ProfileKind, ProfileSet, import_profile_bytes,
+    profile_kind,
+};
 pub use file_kinds::{
     IMPORT_EXTENSIONS, PROJECT_EXTENSIONS, PathKind, XFL_DOCUMENT_FILE, classify, is_xfl_document,
 };

@@ -106,3 +106,11 @@ msg-magic-wand = Baguette magique : { $reason }
 msg-magic-wand-changed = Le document a changé pendant l’effacement des pixels, rien n’a donc été effacé
 msg-blend = Flou et Doigt : { $reason }
 msg-blend-changed = Le document a changé pendant le trait, le reste n’a donc pas été appliqué
+
+brushes-imported = { $n ->
+    [one] { $n } préréglage de pinceau importé.
+   *[other] { $n } préréglages de pinceau importés.
+}
+brushes-import-refused = Impossible d'importer les préréglages de pinceau : { $reason }
+brushes-import-note = Du fichier de préréglages de pinceau : { $line }
+brushes-shelf-full = La liste de pinceaux est pleine ; les préréglages n'ont pas été importés. Supprimez un pinceau pour faire de la place.
