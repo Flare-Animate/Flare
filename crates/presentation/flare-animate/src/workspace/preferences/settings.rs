@@ -45,6 +45,9 @@ pub struct Preferences {
     pub brush_stabilizer: u8,
     pub brush_taper_start: f32,
     pub brush_taper_end: f32,
+    /// The strands and grain of the brush in hand.
+    pub brush_bristles: u8,
+    pub brush_grain: f32,
     pub brush_builtin_profile: Option<flare_tools::brush::BuiltinBrushProfile>,
     /// Custom brushes, and the one in hand.
     pub brushes: Vec<BrushPreset>,
@@ -110,6 +113,8 @@ impl Default for Preferences {
             brush_stabilizer: 0,
             brush_taper_start: 0.0,
             brush_taper_end: 0.0,
+            brush_bristles: 0,
+            brush_grain: 0.0,
             brush_builtin_profile: None,
             brushes: Vec::new(),
             brush_selected: None,

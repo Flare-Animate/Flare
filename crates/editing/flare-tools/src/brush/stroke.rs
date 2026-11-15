@@ -7,7 +7,7 @@ use std::f64::consts::FRAC_PI_2;
 use flare_input::{InputSample, PressureCurve};
 use glamx::DVec2;
 
-use super::{Nib, SPEED_REACH};
+use super::{Nib, SPEED_REACH, Texture};
 
 /// The longest taper, in stage units.
 pub const MAX_TAPER: f64 = 2000.0;
@@ -77,7 +77,8 @@ impl Taper {
 }
 
 /// Everything about the brush that decides a stroke's shape: the width at full pressure, the
-/// pressure curve, the nib, how much the width answers speed instead of pressure, and the tapers.
+/// pressure curve, the nib, how much the width answers speed instead of pressure, the tapers, and
+/// the texture.
 #[derive(Clone, Debug, PartialEq)]
 pub struct BrushStroke {
     pub width: f64,
@@ -89,6 +90,8 @@ pub struct BrushStroke {
     /// without a tablet.
     pub velocity: f32,
     pub taper: Taper,
+    /// Strands and grain; solid by default.
+    pub texture: Texture,
 }
 
 impl BrushStroke {
@@ -100,6 +103,7 @@ impl BrushStroke {
             nib: Nib::ROUND,
             velocity: 0.0,
             taper: Taper::NONE,
+            texture: Texture::SOLID,
         }
     }
 

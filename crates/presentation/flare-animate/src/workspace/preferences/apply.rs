@@ -42,6 +42,8 @@ impl Workspace {
             brush_stabilizer: self.brush_shelf.stabilizer(),
             brush_taper_start: self.brush_shelf.taper().start() as f32,
             brush_taper_end: self.brush_shelf.taper().end() as f32,
+            brush_bristles: self.brush_shelf.texture().bristles(),
+            brush_grain: self.brush_shelf.texture().grain(),
             brush_builtin_profile: self.brush_shelf.builtin(),
             brushes: self.brush_shelf.presets().to_vec(),
             brush_selected: self.brush_shelf.selected(),
@@ -149,6 +151,8 @@ impl Workspace {
             f64::from(preferences.brush_taper_start),
             f64::from(preferences.brush_taper_end),
         );
+        self.brush_shelf
+            .set_texture(preferences.brush_bristles, preferences.brush_grain);
         if preferences.brush_selected.is_none()
             && let Some(profile) = preferences.brush_builtin_profile
         {

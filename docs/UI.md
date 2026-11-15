@@ -321,9 +321,28 @@ Calligraphy, OpenToonz-style Vector and Adobe Animate-style profiles, and four i
 (width follows pressure evenly), Mapping pen (fine, widens only under a firm press), Turnip pen
 (widens early) and Brush pen (a hairline under a light touch that comes in late and thins when the
 hand is quick). The inking pens thin to nothing at no pressure, each has its own drawn pressure
-curve, and all but the Brush pen taper both ends by 20 px. Nib shape, angle, flatness,
+curve, and all but the Brush pen taper both ends by 20 px. Five textured profiles follow: Dry
+brush (a flat, angled nib dragging a few separate hairs that run out where the pressure lifts),
+Bristle brush (loaded hairs that stay together), Charcoal, Chalk and Crayon (round sticks that
+catch on the grain of the paper, chalk most of all). Nib shape, angle, flatness,
 minimum pressure width and pressure response can be edited; New keeps the settings as a custom
 profile in preferences.
+
+The **Brush** list is a gallery (`workspace/panels/brush_gallery.rs`): every built-in and custom
+brush is shown drawing the same pen stroke, a wave pressed lightly at the start, hardest in the
+middle and lifting at the end, in three groups (Lines, Textured, Your brushes), so a brush is chosen
+by the mark it makes. The brush in hand is drawn under the list and redraws as its nib, tapers and
+texture are edited. Each swatch is the brush library's own outline of that stroke
+(`flare_tools::brush::swatch`), drawn with the live preview's mesh, so it is exactly what the brush
+paints.
+
+**Bristles** (0 to 24) and **Grain** (0 to 1) are the texture of the brush in hand. Bristles
+splits the stroke into that many strands side by side across its width, each in its own lane, so
+they never overlap; 0 or 1 is one solid stroke. Grain breaks the strands up along their length,
+most where the pen presses lightly and on the outer strands, as dry paint or charcoal does. The
+breaks come from a noise seeded by where the stroke starts, so the same drag always makes the
+same texture and the preview while dragging is what is kept. A textured stroke is still one vector
+shape: each run of a strand is one closed piece of its outline (`BrushStroke::pieces`).
 
 **Stabilization** (0 to 40, a Brush option) steadies the hand: each pen position, and its
 pressure, is the average of the last that many positions, so wobble and pressure flicker are

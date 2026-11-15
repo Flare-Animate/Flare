@@ -1,6 +1,7 @@
-//! The Brush's stroke options beyond its nib: the stabilizer that steadies the hand and the
-//! tapers at the two ends of a stroke. They belong to the brush in hand, so choosing a profile
-//! or a custom brush sets them, and editing them edits the custom brush chosen.
+//! The Brush's stroke options beyond its nib: the stabilizer that steadies the hand, the tapers
+//! at the two ends of a stroke, and its texture. They belong to the brush in hand, so choosing a
+//! profile or a custom brush sets them, and editing them edits the custom brush chosen. The
+//! Pencil's pressure options are here too, as the Pencil under a pen draws with the brush library.
 
 use egui::Ui;
 use flare_ui::chrome;
@@ -34,5 +35,21 @@ impl Workspace {
         let label = tr!(self, "opt-taper-end");
         chrome::slider(ui, &label, &mut end, 0.0..=MAX_TAPER_OPTION, " px", false);
         self.brush_shelf.set_taper(start, end);
+        let texture = self.brush_shelf.texture();
+        let (mut bristles, mut grain) = (texture.bristles(), texture.grain());
+        let (label, tip) = (tr!(self, "opt-bristles"), tr!(self, "opt-bristles-tip"));
+        chrome::slider(
+            ui,
+            &label,
+            &mut bristles,
+            0..=flare_tools::brush::MAX_BRISTLES,
+            "",
+            false,
+        )
+        .on_hover_text(tip);
+        let (label, tip) = (tr!(self, "opt-grain"), tr!(self, "opt-grain-tip"));
+        chrome::slider(ui, &label, &mut grain, 0.0..=1.0, "", false).on_hover_text(tip);
+        self.brush_shelf.set_texture(bristles, grain);
+    }
     }
 }
