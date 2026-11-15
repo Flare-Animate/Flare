@@ -163,6 +163,7 @@ impl Workspace {
             Tool::Pencil => {
                 let label = tr!(self, "opt-smoothing");
                 chrome::slider(ui, &label, &mut self.smoothing, 0.0..=20.0, "", false);
+                self.pencil_pressure_options(ui);
                 self.stroke_assists(ui);
                 ui.weak(tr!(self, "tools-help-pencil"));
             }

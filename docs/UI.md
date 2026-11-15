@@ -515,7 +515,13 @@ pointer; Shift can be pressed or let go during the drag, and the preview shows w
 Pencil and Brush also have **Straight**: with it on, or while Shift is held, a stroke is the
 straight line between where the drag began and where it ended.
 
-**Pen pressure** sets how wide a Brush stroke is. Size is the width at full pressure, and **Light
+**Pen pressure** sets how wide a Brush stroke is, and how wide a Pencil line is. The Pencil's
+**Pressure** option (on by default) has its own **Light touch** (0.1 by default, finer than the
+Brush's); under a pen its line thins where the pen presses lightly and is kept as the filled
+outline the Brush makes, round and in the stroke color, because a stroke of one width cannot hold
+a different width at each point (`flare_tools::pencil::PencilPressure`). A mouse line, a pen line
+pressed fully all the way, a dashed or other drawn style, and any line with Pressure off stay the
+plain stroked path, whose width, cap and style can still be changed later. For the Brush, Size is the width at full pressure, and **Light
 touch** (0 to 1, 0.15 by default, a tool option) is the fraction of it a stroke thins to at the
 lightest touch; in between the width follows the pressure in a straight line. A mouse, a finger,
 or a device that reports no pressure draws at full pressure. Pressure reaches the Brush from a pen

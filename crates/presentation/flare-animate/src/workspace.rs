@@ -208,6 +208,8 @@ pub struct Workspace {
     brush_light: f32,
     /// How quickly brush width grows with pressure.
     brush_pressure_gamma: f32,
+    /// Whether the Pencil follows a pen's pressure, and how fine its lightest touch is.
+    pencil_pressure: flare_tools::pencil::PencilPressure,
     /// How far a smoothed line may stray from the drag, in screen pixels.
     smoothing: f32,
     /// The frames selected in the timeline (Shift-click), if any.
@@ -400,6 +402,7 @@ impl Workspace {
             brush_shelf: flare_tools::brush::BrushShelf::default(),
             brush_light: 0.15,
             brush_pressure_gamma: 1.0,
+            pencil_pressure: flare_tools::pencil::PencilPressure::default(),
             smoothing: 2.0,
             frame_range: None,
             frame_clipboard: None,

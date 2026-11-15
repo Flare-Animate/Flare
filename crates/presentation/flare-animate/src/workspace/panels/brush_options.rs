@@ -51,5 +51,21 @@ impl Workspace {
         chrome::slider(ui, &label, &mut grain, 0.0..=1.0, "", false).on_hover_text(tip);
         self.brush_shelf.set_texture(bristles, grain);
     }
+
+    /// Whether the Pencil follows a pen's pressure, and how fine its lightest touch is.
+    pub(super) fn pencil_pressure_options(&mut self, ui: &mut Ui) {
+        let (mut on, mut light) = (self.pencil_pressure.is_on(), self.pencil_pressure.light());
+        let (follow, tip) = (
+            tr!(self, "opt-pencil-pressure-on"),
+            tr!(self, "opt-pencil-pressure-tip"),
+        );
+        chrome::row(ui, &tr!(self, "opt-pencil-pressure"), |ui| {
+            ui.checkbox(&mut on, follow).on_hover_text(tip);
+        });
+        ui.add_enabled_ui(on, |ui| {
+            let label = tr!(self, "opt-light-touch");
+            chrome::slider(ui, &label, &mut light, 0.0..=1.0, "", false);
+        });
+        self.pencil_pressure = flare_tools::pencil::PencilPressure::new(on, light);
     }
 }

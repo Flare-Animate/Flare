@@ -71,6 +71,7 @@ mod panels_and_view;
 mod paste_into_layer;
 mod pasteboard;
 mod pen_and_selection;
+mod pencil_pressure;
 mod polygon_lasso;
 mod preferences_dialog;
 mod properties_context;

@@ -240,19 +240,31 @@ impl Workspace {
                 .collect()
         };
         if self.tool != Tool::Brush {
-            // The curve the Pencil commits, not the points the pointer passed through.
+            // The curve the Pencil commits, not the points the pointer passed through; under a
+            // pen, the pressed outline it commits instead.
             let half = self.paint.stroke_width / 2.0;
+            let pressed = self
+                .pencil_pressure
+                .stroke(f64::from(self.paint.stroke_width));
             return strokes
                 .iter()
-                .map(|stroke| {
+                .flat_map(|stroke| {
+                    if self.pencil_follows_pressure(stroke) {
+                        return outline_previews(
+                            &pressed,
+                            stroke,
+                            tolerance,
+                            self.paint.stroke_color,
+                        );
+                    }
                     let points =
                         flare_tools::pencil::smoothed_points(&to_points(stroke), tolerance);
-                    PreviewStroke {
+                    vec![PreviewStroke {
                         halves: vec![half; points.len()],
                         points,
                         color: self.paint.stroke_color,
                         sides: None,
-                    }
+                    }]
                 })
                 .collect();
         }

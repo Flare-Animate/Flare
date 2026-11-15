@@ -339,6 +339,14 @@ mod stroke_preview {
         ws.set_tool(Tool::Pencil);
         ws.freehand = vec![light, full];
         ws.paint.stroke_width = 6.0;
+        // The Pencil follows the pen too, from its own lightest touch up to the stroke width.
+        let light_touch = ws.pencil_pressure.light() * 3.0;
+        let pressed = ws.freehand_preview(1.0);
+        assert_eq!(pressed.len(), 1);
+        assert!((pressed[0].halves[0] - light_touch).abs() < 1e-4);
+        assert!((pressed[0].halves[1] - 3.0).abs() < 1e-4);
+        // With pressure off it is a line of one width.
+        ws.pencil_pressure = flare_tools::pencil::PencilPressure::new(false, 0.1);
         assert_eq!(ws.freehand_preview(1.0)[0].halves, [3.0, 3.0]);
     }
 

@@ -1,6 +1,9 @@
 //! Turning a freehand drag into a clean path: fewer points (Ramer-Douglas-Peucker), joined by
 //! smooth cubic curves (Catmull-Rom). Pure functions, so the tools stay thin.
 
+mod pressure;
+pub use pressure::{DEFAULT_PENCIL_LIGHT, PencilPressure};
+
 use emath::{Pos2, Vec2};
 use flare_core::DocumentPoint;
 use flare_document::PathSegment;
@@ -105,6 +108,9 @@ pub fn smoothed_points(points: &[Pos2], tolerance: f32) -> Vec<Pos2> {
     }
     out
 }
+
+#[cfg(test)]
+mod pressure_tests;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
