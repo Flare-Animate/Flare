@@ -15,6 +15,7 @@ mod formats;
 mod game;
 mod layer_ops;
 mod layers_and_stage;
+mod lip_sync;
 mod lossless;
 mod magic_wand;
 mod mannequin;

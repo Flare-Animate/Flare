@@ -50,6 +50,8 @@ psd.workspace = true
 epaint_default_fonts.workspace = true
 flare-core.workspace = true
 flare-document.workspace = true
+# The voice a lip sync test reads, written as a WAV.
+flare-audio.workspace = true
 png.workspace = true
 rmcp = { workspace = true, features = ["client"] }
 zip.workspace = true

@@ -8,6 +8,8 @@ license.workspace = true
 
 [dependencies]
 emath.workspace = true
+# The mouth shapes lip sync places.
+flare-audio.workspace = true
 flare-commands.workspace = true
 flare-core.workspace = true
 flare-game.workspace = true

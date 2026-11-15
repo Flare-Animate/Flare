@@ -8,6 +8,8 @@ license.workspace = true
 
 [dependencies]
 rubato.workspace = true
+# Reading Rhubarb Lip Sync's JSON output.
+serde_json.workspace = true
 symphonia.workspace = true
 thiserror.workspace = true
 

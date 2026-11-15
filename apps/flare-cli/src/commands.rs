@@ -1,8 +1,7 @@
 //! The commands the line understands, and their arguments.
 
-use std::path::PathBuf;
-
 use clap::Subcommand;
+use std::path::PathBuf;
 
 use crate::project;
 
@@ -83,6 +82,8 @@ pub(crate) enum Command {
     /// import makes (frames, memory, the animation's length at the document's rate) and refuses
     /// one too large for the document, saying what would fit. Needs ffmpeg on the PATH.
     VideoImport(crate::video::VideoImportArgs),
+    /// Key a mouth Graphic to a voice, as Single Frame keyframes of its drawings.
+    LipSync(crate::lipsync::LipSyncArgs),
     /// How loud each sound is on every frame from its cue (`[low, high]` samples), to animate to.
     SoundWaveform {
         path: PathBuf,

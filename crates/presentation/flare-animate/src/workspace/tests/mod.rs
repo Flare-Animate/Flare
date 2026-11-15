@@ -49,6 +49,7 @@ mod layer_ops;
 mod layer_transparency;
 mod layers_and_symbols;
 mod line_shift;
+mod lip_sync;
 mod live_transform;
 mod loop_range;
 mod magic_wand;

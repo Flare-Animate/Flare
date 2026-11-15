@@ -3,6 +3,7 @@
 
 mod commands;
 mod game;
+mod lipsync;
 mod mannequin;
 mod project;
 mod shortcuts;
@@ -126,6 +127,7 @@ fn run() -> Result<()> {
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(*op)?,
         Command::VideoImport(args) => video::run(args)?,
+        Command::LipSync(args) => lipsync::run(args)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,

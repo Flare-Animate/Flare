@@ -2189,6 +2189,7 @@ version = "0.1.0"
 dependencies = [
  "criterion",
  "rubato",
+ "serde_json",
  "symphonia",
  "thiserror 2.0.18",
 ]
@@ -2200,6 +2201,7 @@ dependencies = [
  "anyhow",
  "clap",
  "epaint_default_fonts",
+ "flare-audio",
  "flare-commands",
  "flare-core",
  "flare-document",
@@ -2446,6 +2448,7 @@ dependencies = [
  "anyhow",
  "clap",
  "epaint_default_fonts",
+ "flare-audio",
  "flare-commands",
  "flare-core",
  "flare-document",
@@ -2756,6 +2759,7 @@ version = "0.1.0"
 dependencies = [
  "criterion",
  "emath",
+ "flare-audio",
  "flare-commands",
  "flare-core",
  "flare-document",

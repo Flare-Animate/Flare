@@ -3,7 +3,7 @@
 //! the Brush and its nib, the Free Transform handles, the Selection and Lasso picking, the
 //! Subselection, Add, Delete and Convert Anchor Point edits, the Ruler and the Mirror, the Magic
 //! Wand's picking and clearing of bitmap pixels, Blur and Smudge on those pixels, and the operations of the Paint Bucket and Ink Bottle, the Eraser, Text, grouping, the clipboard,
-//! alignment, tweens and Graphic playback, placing the reference mannequin, and a video brought in
+//! alignment, tweens and Graphic playback, lip sync (a mouth Graphic keyed to a sound), placing the reference mannequin, and a video brought in
 //! to draw over. What several of them share is in `common`.
 //!
 //! Everything here is a pure function of a document and numbers, so it is tested without a UI.
@@ -29,6 +29,7 @@ pub mod grouping;
 pub mod lasso;
 pub mod library;
 pub mod line;
+pub mod lipsync;
 pub mod magic_wand;
 pub mod mannequin;
 pub mod mirror;

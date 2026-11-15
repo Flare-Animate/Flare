@@ -74,7 +74,7 @@ Timeline, symbols and library
 Rigging and character animation
 - Rigs of Flare's own, as Spine and DragonBones have them: bones, attachment slots with their own draw order, skins, weighted mesh binding with weight painting, forward kinematics and IK, transform, path and physics constraints that run in a stated order, and a way to see why a bone moves; rig animations can be mixed and sit inside symbols next to the timeline
 - Puppet deformation with pins or a cage that keeps the original artwork and derives the deformed picture from it, so quality is not lost with each pose
-- Lip sync: a manual mouth-shape workflow first (a frame picker, a waveform and named mouth poses), then automatic cues from an optional analysis tool such as Rhubarb Lip Sync, with mappings for any number of mouth drawings and results that stay editable
+- Lip sync: done in part. A mouth Graphic is keyed to a sound with ten named shapes mapped to any of its frames, from Rhubarb Lip Sync when it is installed or a built-in analysis, as ordinary keyframes that stay editable, on every surface (see SURFACES). Still to come: the mapping saved in the project, and a frame picker that shows each drawing rather than its number
 
 Scripting
 - Full ActionScript 3 support: a script editor, authoring AS3 in a document and publishing it, running it in Test Movie and the published SWF, Code Snippets, and scripting with the Commands menu (ActionScript in an imported file is kept as data and never run today)

@@ -44,6 +44,8 @@ tempfile.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
+# The voice a lip sync test reads, written as a WAV.
+flare-audio.workspace = true
 psd.workspace = true
 epaint_default_fonts.workspace = true
 png.workspace = true

@@ -44,6 +44,7 @@ mod home_list;
 mod language;
 mod layer_names;
 mod layers;
+mod lip_sync;
 mod mannequin;
 mod mannequin_reference;
 mod open_any;
@@ -285,6 +286,8 @@ pub struct Workspace {
     /// Position and size typed into the Object tab: x, y, width, height.
     /// The first frame being typed or dragged in the Looping section, until it is let go.
     playback_first_edit: Option<u32>,
+    /// The Lip Syncing section's settings and the reading in progress.
+    lip_sync: lip_sync::LipSyncPanel,
     object_edit: Option<[f32; 4]>,
     status: Option<String>,
     dialog: Option<DialogRequest>,
@@ -449,6 +452,7 @@ impl Workspace {
             shape_paint_edit: None,
             object_edit: None,
             playback_first_edit: None,
+            lip_sync: Default::default(),
             status: None,
             dialog: None,
             window_request: None,

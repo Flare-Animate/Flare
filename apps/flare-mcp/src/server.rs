@@ -32,6 +32,9 @@ pub(crate) struct State {
     pub fonts: flare_runtime::ExtraFonts,
     /// The ffmpeg and ffprobe videos are read with, when not those on PATH.
     pub video_tools: Option<flare_ffmpeg::Tools>,
+    /// The Rhubarb Lip Sync program lip sync runs: `None` finds the installed one, `Some(None)`
+    /// means there is none.
+    pub rhubarb: Option<Option<PathBuf>>,
 }
 
 /// The open project behind a handle that rmcp can clone into each request.
@@ -59,6 +62,7 @@ impl FlareServer {
                 permissions,
                 fonts: flare_runtime::ExtraFonts::default(),
                 video_tools: None,
+                rhubarb: None,
             })),
             tool_router: Self::router(),
         })
@@ -76,6 +80,14 @@ impl FlareServer {
     #[must_use]
     pub fn with_video_tools(self, tools: flare_ffmpeg::Tools) -> Self {
         self.lock().video_tools = Some(tools);
+        self
+    }
+
+    /// Runs `rhubarb` for lip sync rather than the installed Rhubarb Lip Sync, or none with
+    /// `None`. Tests use this so they do not depend on what a machine has installed.
+    #[must_use]
+    pub fn with_rhubarb(self, rhubarb: Option<PathBuf>) -> Self {
+        self.lock().rhubarb = Some(rhubarb);
         self
     }
 

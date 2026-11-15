@@ -1,4 +1,5 @@
-//! Sound: decoding, and a mixer that turns sounds placed on a timeline into output samples.
+//! Sound: decoding, a mixer that turns sounds placed on a timeline into output samples, and lip
+//! sync (the mouth shape each frame of a voice shows, [`lipsync`]).
 //!
 //! Everything here is pure and testable without a sound card; the device itself is opened by
 //! `flare-platform`. Decoding handles WAV,
@@ -47,6 +48,7 @@ pub enum AudioError {
 
 mod audio;
 mod excerpt;
+pub mod lipsync;
 mod mixer;
 mod peaks;
 mod resample;
@@ -54,8 +56,10 @@ mod resample;
 mod tests;
 #[cfg(test)]
 mod tests_waveform;
+mod wav;
 
 pub use audio::{Audio, decode};
 pub use excerpt::Excerpt;
 pub use mixer::Mixer;
 pub use peaks::{Decoded, PEAKS_PER_SECOND, Peaks};
+pub use wav::wav_pcm16;
