@@ -1,0 +1,33 @@
+name: Beginner friendly task
+description: A small, well-scoped task for a new contributor.
+labels: [beginner friendly]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: What needs doing
+      description: One or two sentences. Point at the file, the command or the screen involved if you can.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps / hints
+      description: Rough steps, or where to start looking. Naming the crate or the test to read counts as a hint.
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Skill needed
+      options:
+        - Translation / text
+        - Docs
+        - UI tweak
+        - Small code fix (Rust)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: How do we know it is done?
+      description: What works, or what the test checks, when the task is finished.

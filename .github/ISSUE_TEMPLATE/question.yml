@@ -1,0 +1,18 @@
+name: Ask a question
+description: Questions about Flare.
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search the existing issues first, so the same question is not answered twice.
+        For quick back-and-forth, the [Discord](https://discord.com/invite/JpeScW8Awa) is the
+        quickest place.
+  - type: textarea
+    attributes:
+      label: Your question
+      placeholder: |
+        For example: I am having trouble opening my project file [...].
+        Where is the setting that does [...]? How is [...] meant to work?
+    validations:
+      required: true
