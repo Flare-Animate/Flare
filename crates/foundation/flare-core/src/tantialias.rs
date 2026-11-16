@@ -212,7 +212,7 @@ mod tests {
 
     #[test]
     fn one_colour_never_moves() {
-        let sheet = vec![3u8, 9, 40, 255].repeat(6 * 4);
+        let sheet = [3u8, 9, 40, 255].repeat(6 * 4);
         let mut buf = sheet.clone();
         tantialias(&mut buf, 6, 4, 10, 50).unwrap();
         assert_eq!(buf, sheet);

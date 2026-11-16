@@ -179,7 +179,7 @@ impl Workspace {
     }
 
     /// The open dialog, for the tests.
-    #[cfg(test)]
+    #[cfg(all(test, unix))]
     pub(super) fn video_form(&mut self) -> Option<&mut VideoForm> {
         match &mut self.video_import {
             VideoImport::Asking(form) => Some(form),
@@ -188,7 +188,7 @@ impl Workspace {
     }
 
     /// Pictures read so far and how many are wanted, while reading, for the tests.
-    #[cfg(test)]
+    #[cfg(all(test, unix))]
     pub(super) fn video_reading(&self) -> Option<(u32, u32)> {
         match &self.video_import {
             VideoImport::Reading {
