@@ -1,0 +1,9 @@
+# actionlint v1.7.7 (pinned in workflow-lint.yml) predates the macos-15-intel hosted runner
+# label, which platforms.yml uses for the Intel macOS release build.
+self-hosted-runner:
+  labels:
+    - macos-15-intel
+paths:
+  .github/workflows/**:
+    ignore:
+      - 'shellcheck reported issue in this script: SC.*'
