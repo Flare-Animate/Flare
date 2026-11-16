@@ -1,13 +1,13 @@
 //! A decoded sound, and decoding one from a file.
 
 use std::io::Cursor;
-use symphonia::core::audio::SampleBuffer;
-use symphonia::core::codecs::DecoderOptions;
+use symphonia::core::codecs::CodecParameters;
+use symphonia::core::codecs::audio::AudioDecoderOptions;
 use symphonia::core::errors::Error as SymphoniaError;
-use symphonia::core::formats::FormatOptions;
+use symphonia::core::formats::probe::Hint;
+use symphonia::core::formats::{FormatOptions, TrackType};
 use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
-use symphonia::core::probe::Hint;
 
 use crate::{AudioError, MAX_DECODED_SAMPLES, MAX_INPUT_BYTES};
 
@@ -91,36 +91,42 @@ pub fn decode(bytes: &[u8]) -> Result<Audio, AudioError> {
         return Err(AudioError::InputTooLarge);
     }
     let stream = MediaSourceStream::new(Box::new(Cursor::new(bytes.to_vec())), Default::default());
-    let probed = symphonia::default::get_probe()
-        .format(
+    let mut format = symphonia::default::get_probe()
+        .probe(
             &Hint::new(),
             stream,
-            &FormatOptions::default(),
-            &MetadataOptions::default(),
+            FormatOptions::default(),
+            MetadataOptions::default(),
         )
         .map_err(|_| AudioError::Unsupported)?;
-    let mut format = probed.format;
-    let track = format.default_track().ok_or(AudioError::Unsupported)?;
+    let track = format
+        .default_track(TrackType::Audio)
+        .ok_or(AudioError::Unsupported)?;
     let track_id = track.id;
+    let Some(CodecParameters::Audio(params)) = &track.codec_params else {
+        return Err(AudioError::Unsupported);
+    };
     let mut decoder = symphonia::default::get_codecs()
-        .make(&track.codec_params, &DecoderOptions::default())
+        .make_audio_decoder(params, &AudioDecoderOptions::default())
         .map_err(|_| AudioError::Unsupported)?;
-    let mut rate = track.codec_params.sample_rate;
-    let mut channels = track
-        .codec_params
+    let mut rate = params.sample_rate;
+    let mut channels = params
         .channels
+        .as_ref()
         .map(|c| u16::try_from(c.count()).unwrap_or(0));
     let mut samples: Vec<f32> = Vec::new();
+    let mut packet_samples: Vec<f32> = Vec::new();
     loop {
         let packet = match format.next_packet() {
-            Ok(packet) => packet,
+            Ok(Some(packet)) => packet,
+            Ok(None) => break,
             Err(SymphoniaError::IoError(e)) if e.kind() == std::io::ErrorKind::UnexpectedEof => {
                 break;
             }
             Err(SymphoniaError::ResetRequired) => break,
             Err(e) => return Err(AudioError::Corrupt(e.to_string())),
         };
-        if packet.track_id() != track_id {
+        if packet.track_id != track_id {
             continue;
         }
         let decoded = match decoder.decode(&packet) {
@@ -129,15 +135,15 @@ pub fn decode(bytes: &[u8]) -> Result<Audio, AudioError> {
             Err(SymphoniaError::DecodeError(_)) => continue,
             Err(e) => return Err(AudioError::Corrupt(e.to_string())),
         };
-        let spec = *decoded.spec();
-        rate = Some(spec.rate);
-        channels = Some(u16::try_from(spec.channels.count()).unwrap_or(0));
-        let mut buffer = SampleBuffer::<f32>::new(decoded.capacity() as u64, spec);
-        buffer.copy_interleaved_ref(decoded);
-        if samples.len() + buffer.samples().len() > MAX_DECODED_SAMPLES {
+        let spec = decoded.spec();
+        rate = Some(spec.rate());
+        channels = Some(u16::try_from(spec.channels().count()).unwrap_or(0));
+        // Checked before copying, so a packet that would pass the limit is never allocated for.
+        if samples.len() + decoded.samples_interleaved() > MAX_DECODED_SAMPLES {
             return Err(AudioError::TooLong);
         }
-        samples.extend_from_slice(buffer.samples());
+        decoded.copy_to_vec_interleaved(&mut packet_samples);
+        samples.extend_from_slice(&packet_samples);
     }
     let (Some(rate), Some(channels)) = (rate, channels) else {
         return Err(AudioError::Empty);

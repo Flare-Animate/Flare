@@ -5,7 +5,7 @@ use egui::{Stroke, Ui};
 use flare_menubar::MenuAction;
 use flare_ui::{chrome, theme};
 
-use super::tool_options_labels::{builtin_profile_key, symmetry_key};
+use super::tool_options_labels::symmetry_key;
 use super::tool_slots::{SLOT_GROUPS, Slot, is_extra, name_key};
 use super::*;
 
@@ -163,6 +163,7 @@ impl Workspace {
             Tool::Pencil => {
                 let label = tr!(self, "opt-smoothing");
                 chrome::slider(ui, &label, &mut self.smoothing, 0.0..=20.0, "", false);
+                self.pencil_pressure_options(ui);
                 self.stroke_assists(ui);
                 ui.weak(tr!(self, "tools-help-pencil"));
             }
@@ -274,69 +275,9 @@ impl Workspace {
 
     /// The brush's nib: its shape, the angle of its long axis and how flat it is.
     fn nib_controls(&mut self, ui: &mut Ui) {
-        use flare_tools::brush::{BuiltinBrushProfile, Nib, NibShape};
-        let (new, delete) = (tr!(self, "opt-new"), tr!(self, "opt-delete"));
-        let (new_tip, delete_tip) = (
-            tr!(self, "opt-new-brush-tip"),
-            tr!(self, "opt-delete-brush-tip"),
-        );
+        use flare_tools::brush::{Nib, NibShape};
         let (round, square) = (tr!(self, "opt-nib-round"), tr!(self, "opt-nib-square"));
-        chrome::row(ui, &tr!(self, "opt-brush"), |ui| {
-            let chosen = self.brush_shelf.selected();
-            let mut custom_pick = None;
-            let mut builtin_pick = None;
-            let builtin_name = |profile| self.tr(builtin_profile_key(profile));
-            let current_name = chosen.map_or_else(
-                || {
-                    self.brush_shelf
-                        .builtin()
-                        .map_or_else(|| tr!(self, "opt-profile-custom"), builtin_name)
-                },
-                |i| self.brush_shelf.presets()[i].name.clone(),
-            );
-            egui::ComboBox::from_id_salt("brush-list")
-                .selected_text(current_name)
-                .show_ui(ui, |ui| {
-                    for profile in BuiltinBrushProfile::ALL {
-                        if ui
-                            .selectable_label(
-                                chosen.is_none() && self.brush_shelf.builtin() == Some(profile),
-                                builtin_name(profile),
-                            )
-                            .clicked()
-                        {
-                            builtin_pick = Some(profile);
-                        }
-                    }
-                    for (i, brush) in self.brush_shelf.presets().iter().enumerate() {
-                        if ui
-                            .selectable_label(chosen == Some(i), &brush.name)
-                            .clicked()
-                        {
-                            custom_pick = Some(i);
-                        }
-                    }
-                });
-            if let Some(profile) = builtin_pick {
-                self.brush_shelf.choose_builtin(profile);
-            } else if let Some(index) = custom_pick {
-                self.brush_shelf.choose(Some(index));
-            }
-            if builtin_pick.is_some() || custom_pick.is_some() {
-                self.brush_light = self.brush_shelf.pressure_min();
-                self.brush_pressure_gamma = self.brush_shelf.pressure_gamma();
-            }
-            if ui.button(&new).on_hover_text(&new_tip).clicked() {
-                self.new_custom_brush();
-            }
-            if ui
-                .add_enabled(chosen.is_some(), egui::Button::new(&delete))
-                .on_hover_text(&delete_tip)
-                .clicked()
-            {
-                self.brush_shelf.delete_selected();
-            }
-        });
+        self.brush_picker(ui);
         // Choosing a brush above may have changed the nib: read the controls from it.
         let nib = self.brush_shelf.nib();
         let (mut shape, mut angle, mut flatness) = (

@@ -23,6 +23,23 @@
     <comment>Flash Movie</comment>
     <glob pattern="*.swf" />
   </mime-type>
+  <mime-type type="application/futuresplash">
+    <comment>FutureSplash Movie</comment>
+    <glob pattern="*.spl" />
+  </mime-type>
+  <mime-type type="application/x-flare-swt">
+    <comment>Flash Template</comment>
+    <glob pattern="*.swt" />
+  </mime-type>
+  <mime-type type="application/x-flare-swc">
+    <comment>Flash Component</comment>
+    <sub-class-of type="application/zip" />
+    <glob pattern="*.swc" />
+  </mime-type>
+  <mime-type type="application/x-flare-flp">
+    <comment>Flash Project</comment>
+    <glob pattern="*.flp" />
+  </mime-type>
   <mime-type type="application/x-flare-bvh">
     <comment>BVH Motion</comment>
     <glob pattern="*.bvh" />
@@ -99,6 +116,8 @@
   <mime-type type="video/mp4">
     <comment>video/mp4 movie</comment>
     <glob pattern="*.mp4" />
+    <glob pattern="*.f4v" />
+    <glob pattern="*.f4p" />
   </mime-type>
   <mime-type type="video/mpeg">
     <comment>video/mpeg movie</comment>

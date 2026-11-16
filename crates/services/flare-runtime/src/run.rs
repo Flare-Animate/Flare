@@ -51,6 +51,24 @@ pub fn run_audio(job: AudioJob) -> Done {
                 .map(flare_audio::Decoded::new)
                 .map_err(|e| e.to_string()),
         },
+        AudioJob::LipSync {
+            id,
+            document,
+            request,
+            rhubarb,
+        } => Done::LipSynced {
+            id,
+            result: {
+                // Looked for here rather than by the window: it walks the PATH.
+                let rhubarb = match (rhubarb, request.analysis) {
+                    (_, crate::Analysis::BuiltIn) => None,
+                    (Some(program), _) => Some(program),
+                    (None, _) => crate::locate_rhubarb(),
+                };
+                crate::lip_sync(&document, &request, rhubarb.as_deref()).map_err(|e| e.to_string())
+            },
+            document,
+        },
     }
 }
 

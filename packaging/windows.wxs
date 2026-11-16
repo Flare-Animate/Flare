@@ -56,6 +56,14 @@
                          Name="Flare.Animate" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.swf\OpenWithProgids"
                          Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.spl\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.swt\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.swc\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.flp\OpenWithProgids"
+                         Name="Flare.Animate" Type="string" Value="" />
           <!-- The image files Flare imports as bitmap layers are offered the same way, never
                made the default. -->
           <RegistryValue Root="HKMU" Key="Software\Classes\Flare.Image" Type="string"
@@ -85,6 +93,10 @@
           <RegistryValue Root="HKMU" Key="Software\Classes\.mpg\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.flv\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.f4v\OpenWithProgids"
+                         Name="Flare.Image" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\.f4p\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\.psd\OpenWithProgids"
                          Name="Flare.Image" Type="string" Value="" />
@@ -163,6 +175,14 @@
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".swf" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".spl" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".swt" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".swc" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".flp" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".png" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".jpg" Type="string" Value="" />
@@ -184,6 +204,10 @@
                          Name=".mpg" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".flv" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".f4v" Type="string" Value="" />
+          <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
+                         Name=".f4p" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
                          Name=".psd" Type="string" Value="" />
           <RegistryValue Root="HKMU" Key="Software\Classes\Applications\flare-desktop.exe\SupportedTypes"
@@ -263,6 +287,14 @@
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".swf" Type="string" Value="Flare.Animate" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".spl" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".swt" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".swc" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".flp" Type="string" Value="Flare.Animate" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".png" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".jpg" Type="string" Value="Flare.Image" />
@@ -284,6 +316,10 @@
                          Name=".mpg" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".flv" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".f4v" Type="string" Value="Flare.Image" />
+          <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
+                         Name=".f4p" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"
                          Name=".psd" Type="string" Value="Flare.Image" />
           <RegistryValue Root="HKMU" Key="Software\Flare\Capabilities\FileAssociations"

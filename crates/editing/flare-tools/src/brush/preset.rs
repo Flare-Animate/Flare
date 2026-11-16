@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::{MAX_TAPER, Nib, NibShape, Taper};
+use super::{BrushStroke, MAX_TAPER, Nib, NibShape, Taper, Texture};
 
 /// Most custom brushes kept.
 pub const MAX_BRUSHES: usize = 32;
@@ -42,6 +42,11 @@ pub struct BrushPreset {
     pub taper_start: f32,
     /// How long the end of a stroke tapers out, in stage units (0 for none).
     pub taper_end: f32,
+    /// How many strands the stroke splits into, 0 or 1 for a solid stroke, up to
+    /// [`super::MAX_BRISTLES`].
+    pub bristles: u8,
+    /// How broken up the strands are along their length, 0 (unbroken) to 1.
+    pub grain: f32,
 }
 
 impl Default for BrushPreset {
@@ -59,6 +64,8 @@ impl Default for BrushPreset {
             stabilizer: 0,
             taper_start: 0.0,
             taper_end: 0.0,
+            bristles: 0,
+            grain: 0.0,
         }
     }
 }
@@ -110,6 +117,30 @@ impl BrushPreset {
         self.taper_start = start;
         self.taper_end = end;
         self
+    }
+
+    #[must_use]
+    pub fn with_texture(mut self, bristles: u8, grain: f32) -> Self {
+        self.bristles = bristles;
+        self.grain = grain;
+        self
+    }
+
+    /// The strands and grain, in range.
+    pub fn texture(&self) -> Texture {
+        Texture::new(self.bristles, self.grain)
+    }
+
+    /// The shape a stroke `width` wide takes with this brush.
+    pub fn stroke(&self, width: f64) -> BrushStroke {
+        BrushStroke {
+            width,
+            curve: self.pressure_curve(),
+            nib: self.nib(),
+            velocity: self.velocity(),
+            taper: self.taper(),
+            texture: self.texture(),
+        }
     }
 
     pub fn nib(&self) -> Nib {
@@ -199,6 +230,8 @@ impl BrushPreset {
             stabilizer: self.stabilizer(),
             taper_start: self.taper().start() as f32,
             taper_end: self.taper().end() as f32,
+            bristles: self.texture().bristles(),
+            grain: self.texture().grain(),
         }
     }
 }
@@ -218,10 +251,15 @@ pub enum BuiltinBrushProfile {
     MappingPen,
     TurnipPen,
     BrushPen,
+    DryBrush,
+    Bristle,
+    Charcoal,
+    Chalk,
+    Crayon,
 }
 
 impl BuiltinBrushProfile {
-    pub const ALL: [Self; 11] = [
+    pub const ALL: [Self; 16] = [
         Self::Plain,
         Self::Pencil,
         Self::Ink,
@@ -233,7 +271,17 @@ impl BuiltinBrushProfile {
         Self::MappingPen,
         Self::TurnipPen,
         Self::BrushPen,
+        Self::DryBrush,
+        Self::Bristle,
+        Self::Charcoal,
+        Self::Chalk,
+        Self::Crayon,
     ];
+
+    /// Whether the profile paints a broken, textured stroke rather than a solid one.
+    pub fn is_textured(self) -> bool {
+        !self.preset().texture().is_solid()
+    }
 
     pub fn name(self) -> &'static str {
         match self {
@@ -248,6 +296,11 @@ impl BuiltinBrushProfile {
             Self::MappingPen => "Mapping pen",
             Self::TurnipPen => "Turnip pen",
             Self::BrushPen => "Brush pen",
+            Self::DryBrush => "Dry brush",
+            Self::Bristle => "Bristle brush",
+            Self::Charcoal => "Charcoal",
+            Self::Chalk => "Chalk",
+            Self::Crayon => "Crayon",
         }
     }
 
@@ -265,6 +318,13 @@ impl BuiltinBrushProfile {
             Self::GPen | Self::MappingPen | Self::TurnipPen | Self::BrushPen => {
                 (false, 0.0, 100.0, 0.0, 1.0)
             }
+            // Textured media: a flat, angled dry brush and bristle brush; round sticks of
+            // charcoal, chalk and wax that keep some width under a light touch.
+            Self::DryBrush => (false, 30.0, 60.0, 0.2, 1.2),
+            Self::Bristle => (false, 0.0, 100.0, 0.25, 1.0),
+            Self::Charcoal => (false, 0.0, 100.0, 0.3, 1.4),
+            Self::Chalk => (false, 0.0, 100.0, 0.45, 1.0),
+            Self::Crayon => (false, 0.0, 100.0, 0.5, 0.8),
         };
         let base = BrushPreset {
             name: self.name().to_owned(),
@@ -314,6 +374,18 @@ impl BuiltinBrushProfile {
                 ]))
                 .with_velocity(0.3)
                 .with_stabilizer(15),
+            // The textured media break their stroke into strands: a dry brush drags a few
+            // separate hairs that run out where the pressure lifts, a loaded bristle brush keeps
+            // its hairs together, and charcoal, chalk and crayon catch on the grain of the
+            // paper, chalk most of all.
+            Self::DryBrush => base.with_texture(9, 0.45).with_taper(10.0, 40.0),
+            Self::Bristle => base.with_texture(7, 0.08).with_taper(15.0, 25.0),
+            Self::Charcoal => base
+                .with_texture(14, 0.5)
+                .with_velocity(0.15)
+                .with_flow(0.9),
+            Self::Chalk => base.with_texture(18, 0.62).with_flow(0.95),
+            Self::Crayon => base.with_texture(12, 0.32),
             Self::Plain | Self::Ink | Self::Calligraphy | Self::Vector | Self::Animate => base,
         }
     }

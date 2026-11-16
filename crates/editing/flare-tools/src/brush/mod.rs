@@ -14,12 +14,16 @@ mod nib;
 mod preset;
 mod shelf;
 mod stroke;
+mod swatch;
+mod texture;
 pub use nib::{Nib, NibShape};
 pub use preset::{
     BrushPreset, BrushProfileFile, BuiltinBrushProfile, MAX_BRUSH_PROFILE_BYTES, MAX_BRUSHES,
 };
 pub use shelf::{BrushShelf, ShelfFull};
 pub use stroke::{BrushStroke, MAX_TAPER, Taper};
+pub use swatch::{swatch, swatch_samples};
+pub use texture::{MAX_BRISTLES, Texture, seed_at};
 
 /// Points added between two kept points when smoothing.
 const SUBDIVISIONS: usize = 4;
@@ -177,22 +181,35 @@ pub struct StrokeSides {
 
 impl BrushStroke {
     /// The closed outline of the stroke through `samples`, its centre line simplified to within
-    /// `tolerance`, or `None` for a click (no movement), a non-positive width or an outline that
-    /// would not be a valid path. It is [`BrushStroke::sides`] joined up.
+    /// `tolerance`, or `None` for a click (no movement), a non-positive width, a texture that
+    /// leaves nothing, or an outline that would not be a valid path. It is
+    /// [`BrushStroke::pieces`] joined up, one closed run per piece.
     pub fn outline(&self, samples: &[InputSample], tolerance: f64) -> Option<Vec<PathSegment>> {
-        let sides = self.sides(samples, tolerance)?;
         let point = |p: &DVec2| DocumentPoint::new(p.x, p.y).ok();
-        let mut points = sides.left.iter();
-        let mut path = vec![PathSegment::MoveTo(point(points.next()?)?)];
-        for p in points
-            .chain(&sides.end_cap)
-            .chain(sides.right.iter().rev())
-            .chain(&sides.start_cap)
-        {
-            path.push(PathSegment::LineTo(point(p)?));
+        let mut path = Vec::new();
+        for sides in self.pieces(samples, tolerance) {
+            let mut points = sides.left.iter();
+            path.push(PathSegment::MoveTo(point(points.next()?)?));
+            for p in points
+                .chain(&sides.end_cap)
+                .chain(sides.right.iter().rev())
+                .chain(&sides.start_cap)
+            {
+                path.push(PathSegment::LineTo(point(p)?));
+            }
+            path.push(PathSegment::Close);
         }
-        path.push(PathSegment::Close);
-        Some(path)
+        (!path.is_empty()).then_some(path)
+    }
+
+    /// The pieces of the stroke through `samples`: its [`BrushStroke::sides`] whole for a solid
+    /// brush, or broken into strands and grain by its [`Texture`], seeded by where it starts.
+    pub fn pieces(&self, samples: &[InputSample], tolerance: f64) -> Vec<StrokeSides> {
+        let Some(sides) = self.sides(samples, tolerance) else {
+            return Vec::new();
+        };
+        let seed = samples.first().map_or(0, |s| seed_at(s.x, s.y));
+        self.texture.pieces(sides, seed)
     }
 
     /// The sides and ends of the stroke through `samples` (see [`BrushStroke::outline`]).
@@ -301,3 +318,5 @@ mod shelf_tests;
 mod stroke_tests;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod texture_tests;

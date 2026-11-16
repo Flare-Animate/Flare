@@ -45,6 +45,7 @@ mod home_list;
 mod language;
 mod layer_names;
 mod layers;
+mod lip_sync;
 mod mannequin;
 mod mannequin_reference;
 mod open_any;
@@ -209,6 +210,8 @@ pub struct Workspace {
     brush_light: f32,
     /// How quickly brush width grows with pressure.
     brush_pressure_gamma: f32,
+    /// Whether the Pencil follows a pen's pressure, and how fine its lightest touch is.
+    pencil_pressure: flare_tools::pencil::PencilPressure,
     /// How far a smoothed line may stray from the drag, in screen pixels.
     smoothing: f32,
     /// The frames selected in the timeline (Shift-click), if any.
@@ -284,6 +287,8 @@ pub struct Workspace {
     /// Position and size typed into the Object tab: x, y, width, height.
     /// The first frame being typed or dragged in the Looping section, until it is let go.
     playback_first_edit: Option<u32>,
+    /// The Lip Syncing section's settings and the reading in progress.
+    lip_sync: lip_sync::LipSyncPanel,
     object_edit: Option<[f32; 4]>,
     status: Option<String>,
     dialog: Option<DialogRequest>,
@@ -401,6 +406,7 @@ impl Workspace {
             brush_shelf: flare_tools::brush::BrushShelf::default(),
             brush_light: 0.15,
             brush_pressure_gamma: 1.0,
+            pencil_pressure: flare_tools::pencil::PencilPressure::default(),
             smoothing: 2.0,
             frame_range: None,
             frame_clipboard: None,
@@ -447,6 +453,7 @@ impl Workspace {
             shape_paint_edit: None,
             object_edit: None,
             playback_first_edit: None,
+            lip_sync: Default::default(),
             status: None,
             dialog: None,
             window_request: None,

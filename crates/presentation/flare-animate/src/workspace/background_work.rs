@@ -107,6 +107,11 @@ impl Workspace {
             }
             Done::Families(families) => self.text.families = families,
             Done::WandPicked { id, result } => self.wand_picked_arrived(id, result),
+            Done::LipSynced {
+                id,
+                document,
+                result,
+            } => self.lip_synced(id, document, result),
             Done::WandCleared {
                 id,
                 document,

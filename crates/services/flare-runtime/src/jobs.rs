@@ -53,6 +53,15 @@ pub enum AudioJob {
     },
     /// Decode a sound already in the document.
     Decode { sound: SoundId, data: Arc<[u8]> },
+    /// Read a voice's mouth shapes and make the keys of a lip sync for `document` (see
+    /// [`crate::lip_sync`]), running `rhubarb` when the request wants Rhubarb Lip Sync, or the
+    /// installed one, looked for on the worker, when `rhubarb` is `None`.
+    LipSync {
+        id: u64,
+        document: Arc<Document>,
+        request: crate::LipSyncRequest,
+        rhubarb: Option<PathBuf>,
+    },
 }
 
 /// Work on text. Building the font database takes long enough that this has a worker of its
@@ -134,6 +143,12 @@ pub enum Done {
     SoundDecoded {
         sound: SoundId,
         result: Result<flare_audio::Decoded, String>,
+    },
+    /// A lip sync made for `document`: its commands apply to that document only.
+    LipSynced {
+        id: u64,
+        document: Arc<Document>,
+        result: Result<crate::LipSyncMade, String>,
     },
     Text {
         id: u64,

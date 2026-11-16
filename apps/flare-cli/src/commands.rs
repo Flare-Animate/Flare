@@ -1,8 +1,7 @@
 //! The commands the line understands, and their arguments.
 
-use std::path::PathBuf;
-
 use clap::Subcommand;
+use std::path::PathBuf;
 
 use crate::project;
 
@@ -83,6 +82,8 @@ pub(crate) enum Command {
     /// import makes (frames, memory, the animation's length at the document's rate) and refuses
     /// one too large for the document, saying what would fit. Needs ffmpeg on the PATH.
     VideoImport(crate::video::VideoImportArgs),
+    /// Key a mouth Graphic to a voice, as Single Frame keyframes of its drawings.
+    LipSync(crate::lipsync::LipSyncArgs),
     /// Read another art tool's pen profiles (Photoshop `.abr`, Krita `.kpp` or `.bundle`) and
     /// print them as Flare's brush presets, with notes of what the file held that does not map.
     /// The same reading the desktop app's File > Import > Import Brush Presets uses. With
@@ -143,29 +144,7 @@ pub(crate) enum Command {
     },
     /// Magic Wand: pick the pixels of a bitmap whose color is like the one at each point (stage
     /// coordinates, in the first scene) and clear them, or with --keep clear all the others.
-    MagicWand {
-        path: PathBuf,
-        /// A point on the bitmap; repeat to add the pixels picked from more points.
-        #[arg(long, num_args = 2, value_names = ["X", "Y"], allow_negative_numbers = true, required = true, action = clap::ArgAction::Append)]
-        at: Vec<f64>,
-        #[arg(long, default_value_t = 0)]
-        frame: u32,
-        /// How far a color may be from the clicked one, 0 to 200.
-        #[arg(long, default_value_t = magic_wand_default_threshold(), value_parser = clap::value_parser!(u8).range(0..=200))]
-        threshold: u8,
-        /// Pick every pixel of a like color in the picture, not only those joined to the point.
-        #[arg(long)]
-        global: bool,
-        /// How soft the edge left behind is: pixels, rough, normal or smooth.
-        #[arg(long, default_value = "normal")]
-        smoothing: String,
-        /// Clear every pixel except the picked ones.
-        #[arg(long)]
-        keep: bool,
-        /// Say how many pixels would be picked and change nothing.
-        #[arg(long)]
-        dry_run: bool,
-    },
+    MagicWand(crate::magic_wand::MagicWandArgs),
     /// Blur: soften the bitmap under the first point along a stroke of stage points.
     Blur(project::BlendArgs),
     /// Smudge: push the colors of the bitmap under the first point along a stroke of stage points.
@@ -497,8 +476,4 @@ pub(crate) enum Command {
         #[arg(long)]
         layer: Option<uuid::Uuid>,
     },
-}
-
-const fn magic_wand_default_threshold() -> u8 {
-    flare_tools::magic_wand::DEFAULT_THRESHOLD
 }

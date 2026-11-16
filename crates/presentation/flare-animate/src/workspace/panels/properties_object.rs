@@ -74,6 +74,7 @@ impl Workspace {
             }
             Picked::Instance { .. } => {
                 self.looping_section(ui);
+                self.lip_sync_section(ui);
                 let none = tr!(self, "opt-none");
                 for (icon, title, label) in [
                     ("fill-color", "opt-color-effect", "opt-style"),

@@ -7,7 +7,8 @@
 //!
 //! - the **render worker** keeps only the newest request;
 //! - the **I/O worker** runs saves, opens and autosaves in the order they were asked for;
-//! - the **audio** and **text** workers decode and shape, each on a thread of its own because
+//! - the **audio** and **text** workers decode and shape (the audio worker also reads a voice
+//!   for lip sync, running Rhubarb Lip Sync when asked), each on a thread of its own because
 //!   the first use of either takes a while;
 //! - the **video** worker reads a movie brought in to draw over, a picture at a time;
 //! - the **pixels** worker does the Magic Wand's work on bitmaps, and lays Blur and Smudge
@@ -24,6 +25,7 @@ mod export;
 mod export_game;
 mod jobs;
 mod launch;
+mod lipsync;
 mod movie;
 mod pixels;
 mod run;
@@ -48,6 +50,10 @@ pub use flare_import::VIDEO_EXTENSIONS;
 pub use flare_render::StillFormat;
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
+pub use lipsync::{
+    Analysis, LipSyncFailure, LipSyncMade, LipSyncRequest, RHUBARB_ENV, RHUBARB_TIME_LIMIT,
+    lip_sync, locate_rhubarb, pick_sound,
+};
 pub use movie::{
     MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, animated_webp_bytes, apng_bytes, gif_bytes, gif_bytes_on,
 };

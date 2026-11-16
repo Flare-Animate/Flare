@@ -14,6 +14,11 @@ pub(super) fn builtin_profile_key(
         BuiltinBrushProfile::MappingPen => "opt-profile-mapping-pen",
         BuiltinBrushProfile::TurnipPen => "opt-profile-turnip-pen",
         BuiltinBrushProfile::BrushPen => "opt-profile-brush-pen",
+        BuiltinBrushProfile::DryBrush => "opt-profile-dry-brush",
+        BuiltinBrushProfile::Bristle => "opt-profile-bristle",
+        BuiltinBrushProfile::Charcoal => "opt-profile-charcoal",
+        BuiltinBrushProfile::Chalk => "opt-profile-chalk",
+        BuiltinBrushProfile::Crayon => "opt-profile-crayon",
     }
 }
 

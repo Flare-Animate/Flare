@@ -202,7 +202,7 @@ found), **Not planned** (ROADMAP or PARITY says so).
 | Animated SVG (SMIL) and Lottie JSON | AnimationCraft | Gap | no match |
 | Editable keyboard shortcuts and shortcut sets | AnimationCraft (keyboard section), OpenToonz `shortcuts/*.ini` | Partial | `ShortcutMap` (`flare-menubar/src/shortcuts/`) holds four sets, conflict checks and a validated file; the Keyboard Shortcuts window edits it, tool letters follow it; Ctrl/Alt chords are still fixed key handling in `furniture.rs` and the macOS native menu |
 | Scripting: sandboxed frame scripts, Script Console, JSFL | AnimationCraft (`ac-script`), minnamate frame-script subset | Gap | not built; ROADMAP lists ActionScript 3 as lower priority |
-| Lip sync (mouth-shape workflow) | AnimationCraft | Gap | no match; ROADMAP lower priority |
+| Lip sync (mouth-shape workflow) | AnimationCraft, `original/` (`ac_audio` heuristic, Rhubarb adapter) | Partial | `flare_audio::lipsync`, `flare_tools::lipsync`, `flare_runtime::lip_sync`: ten shapes, Rhubarb or the built-in analysis, every surface; the mapping is not saved in the project (SURFACES) |
 | Shape hints | AnimationCraft | Partial | `flare-eval/src/morph.rs` mentions shape hints; ROADMAP says not done |
 | Free Transform Distort and Envelope | AnimationCraft | Gap | no match for Distort or Envelope in the code |
 | Gradient Transform tool | AnimationCraft, nflare | Partial | gradient fills exist (50 files); the tool is ROADMAP lower priority |

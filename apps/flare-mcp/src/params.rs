@@ -273,6 +273,25 @@ pub struct SoundWaveform {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct LipSync {
+    /// The frame the mouth keyframe starts on (zero based). It must hold one instance of a
+    /// Graphic symbol with a mouth drawing on each of its frames.
+    pub frame: u32,
+    /// The layer of the mouth keyframe, by id; the first layer that is not the camera by default.
+    pub layer: Option<String>,
+    /// The sound to follow, by name or id; the one sound on the timeline by default.
+    pub sound: Option<String>,
+    /// The symbol's frame (zero based) for each mouth shape, as `mbp=3,o=5`. Shapes not named
+    /// keep their place in the order neutral, mbp, ai, e, o, u, fv, l, wq, etc (frames 0 to 9).
+    pub map: Option<String>,
+    /// `auto` (Rhubarb Lip Sync when installed, else the built-in analysis; the default),
+    /// `built-in` or `rhubarb`.
+    pub analysis: Option<String>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddText {
     /// The words; a newline starts a new line.
     pub text: String,

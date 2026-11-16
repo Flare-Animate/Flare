@@ -2,7 +2,7 @@
 //! from the nib in hand, changing the nib while one is chosen edits it, and Delete removes it.
 
 use super::preset::{BrushPreset, BuiltinBrushProfile, MAX_BRUSHES, finite_range};
-use super::{BrushStroke, Nib, NibShape, Taper};
+use super::{BrushStroke, Nib, NibShape, Taper, Texture};
 
 /// There are already [`MAX_BRUSHES`] custom brushes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -23,6 +23,7 @@ pub struct BrushShelf {
     flow: f32,
     stabilizer: u8,
     taper: Taper,
+    texture: Texture,
 }
 
 impl Default for BrushShelf {
@@ -39,6 +40,7 @@ impl Default for BrushShelf {
             flow: 1.0,
             stabilizer: 0,
             taper: Taper::NONE,
+            texture: Texture::SOLID,
         }
     }
 }
@@ -63,6 +65,7 @@ impl BrushShelf {
             flow: 1.0,
             stabilizer: 0,
             taper: Taper::NONE,
+            texture: Texture::SOLID,
         };
         if selected.is_some() {
             shelf.choose(selected);
@@ -92,6 +95,7 @@ impl BrushShelf {
             flow: current.flow(),
             stabilizer: current.stabilizer(),
             taper: current.taper(),
+            texture: current.texture(),
         };
         if selected.is_some() {
             shelf.choose(selected);
@@ -151,6 +155,11 @@ impl BrushShelf {
         self.taper
     }
 
+    /// The strands and grain of the brush in hand.
+    pub fn texture(&self) -> Texture {
+        self.texture
+    }
+
     /// The shape a stroke `width` wide takes with the brush in hand.
     pub fn stroke(&self, width: f64) -> BrushStroke {
         BrushStroke {
@@ -159,6 +168,7 @@ impl BrushShelf {
             nib: self.nib,
             velocity: self.velocity,
             taper: self.taper,
+            texture: self.texture,
         }
     }
 
@@ -186,6 +196,7 @@ impl BrushShelf {
         self.flow = preset.flow();
         self.stabilizer = preset.stabilizer();
         self.taper = preset.taper();
+        self.texture = preset.texture();
     }
 
     /// Keeps the nib in hand as a new custom brush and chooses it. Refused past the limit.
@@ -202,7 +213,8 @@ impl BrushShelf {
             .with_flow(self.flow)
             .with_pressure_points(self.pressure_points.clone())
             .with_stabilizer(self.stabilizer)
-            .with_taper(self.taper.start() as f32, self.taper.end() as f32);
+            .with_taper(self.taper.start() as f32, self.taper.end() as f32)
+            .with_texture(self.texture.bristles(), self.texture.grain());
         let preset = BrushPreset {
             name,
             square: self.nib.shape() == NibShape::Square,
@@ -357,6 +369,20 @@ impl BrushShelf {
         if let Some(i) = self.selected() {
             self.presets[i].taper_start = taper.start() as f32;
             self.presets[i].taper_end = taper.end() as f32;
+        }
+    }
+
+    /// How many strands the stroke splits into and how broken up they are.
+    pub fn set_texture(&mut self, bristles: u8, grain: f32) {
+        let texture = Texture::new(bristles, grain);
+        if self.texture == texture {
+            return;
+        }
+        self.texture = texture;
+        self.builtin = None;
+        if let Some(i) = self.selected() {
+            self.presets[i].bristles = texture.bristles();
+            self.presets[i].grain = texture.grain();
         }
     }
 

@@ -182,6 +182,9 @@ impl Workspace {
         samples: &[InputSample],
         tolerance: f32,
     ) -> Result<Option<Shape>, String> {
+        if self.pencil_follows_pressure(samples) {
+            return self.pressed_pencil_shape(samples, tolerance);
+        }
         let points: Vec<Pos2> = samples
             .iter()
             .map(|s| Pos2::new(s.x as f32, s.y as f32))
@@ -201,6 +204,35 @@ impl Workspace {
         .with_style(self.paint.stroke_style);
         Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT)
             .map(|shape| Some(shape.with_stroke(stroke)))
+            .map_err(|e| e.to_string())
+    }
+
+    /// Whether the Pencil line through `samples` is drawn as a pressed outline: the Pencil follows
+    /// pressure, a pen drew it, and the line is solid (a dashed or drawn style is a stroke of one
+    /// width, so it keeps that).
+    pub(super) fn pencil_follows_pressure(&self, samples: &[InputSample]) -> bool {
+        self.tool == Tool::Pencil
+            && self.paint.stroke_style == flare_document::StrokeStyle::Solid
+            && self.pencil_pressure.applies(samples)
+    }
+
+    /// A Pencil line under a pen: the outline of a fine line whose width follows the pressure,
+    /// filled with the stroke color.
+    fn pressed_pencil_shape(
+        &self,
+        samples: &[InputSample],
+        tolerance: f32,
+    ) -> Result<Option<Shape>, String> {
+        let Some(path) = self
+            .pencil_pressure
+            .stroke(f64::from(self.paint.stroke_width))
+            .outline(samples, f64::from(tolerance))
+        else {
+            return Ok(None);
+        };
+        let c = self.paint.stroke_color.to_array();
+        Shape::new(ShapeId::new(), path, Rgba8::new(c[0], c[1], c[2], c[3]))
+            .map(Some)
             .map_err(|e| e.to_string())
     }
 

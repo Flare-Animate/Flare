@@ -4,6 +4,8 @@
 mod brush;
 mod commands;
 mod game;
+mod lipsync;
+mod magic_wand;
 mod mannequin;
 mod project;
 mod shortcuts;
@@ -127,6 +129,7 @@ fn run() -> Result<()> {
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(*op)?,
         Command::VideoImport(args) => video::run(args)?,
+        Command::LipSync(args) => lipsync::run(args)?,
         Command::BrushImport(args) => brush::run(args)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
@@ -253,32 +256,7 @@ fn run() -> Result<()> {
             duration,
             layer,
         )?,
-        Command::MagicWand {
-            path,
-            at,
-            frame,
-            threshold,
-            global,
-            smoothing,
-            keep,
-            dry_run,
-        } => project::magic_wand(
-            &path,
-            &project::WandRequest {
-                points: at
-                    .as_chunks::<2>()
-                    .0
-                    .iter()
-                    .map(|[x, y]| (*x, *y))
-                    .collect(),
-                frame,
-                threshold,
-                contiguous: !global,
-                smoothing,
-                keep,
-                dry_run,
-            },
-        )?,
+        Command::MagicWand(args) => magic_wand::run(args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
         Command::Smudge(args) => {
             project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?

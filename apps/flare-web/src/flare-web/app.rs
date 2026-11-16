@@ -206,60 +206,28 @@ impl WebApp {
                 }
             }
             DialogRequest::ImportMannequinReference => {
-                let (inbox, messages, ctx) = (
-                    Rc::clone(&self.picked_references),
-                    Rc::clone(&self.messages),
-                    ctx.clone(),
+                let label = self.workspace.interface_text("mannequin-filter-picture");
+                self.pick_into(
+                    ctx,
+                    &self.picked_references,
+                    label,
+                    &flare_animate::REFERENCE_EXTENSIONS,
+                    flare_animate::MAX_REFERENCE_BYTES,
+                    None,
                 );
-                let filter = self.workspace.interface_text("mannequin-filter-picture");
-                wasm_bindgen_futures::spawn_local(async move {
-                    match files::pick_bounded(
-                        &filter,
-                        &flare_animate::REFERENCE_EXTENSIONS,
-                        flare_animate::MAX_REFERENCE_BYTES,
-                    )
-                    .await
-                    {
-                        Ok(Some((name, bytes))) => {
-                            inbox.borrow_mut().push(Picked { name, bytes });
-                            ctx.request_repaint();
-                        }
-                        Ok(None) => {}
-                        Err(error) => {
-                            messages.borrow_mut().push(error.to_string());
-                            ctx.request_repaint();
-                        }
-                    }
-                });
             }
             DialogRequest::ImportAnimateShortcuts => {
-                let (inbox, messages, ctx) = (
-                    Rc::clone(&self.picked_shortcuts),
-                    Rc::clone(&self.messages),
-                    ctx.clone(),
-                );
-                let filter = self
+                let label = self
                     .workspace
                     .interface_text("dlg-filter-animate-shortcuts");
-                wasm_bindgen_futures::spawn_local(async move {
-                    match files::pick_bounded(
-                        &filter,
-                        &["xml"],
-                        flare_menubar::MAX_ANIMATE_SHORTCUT_BYTES,
-                    )
-                    .await
-                    {
-                        Ok(Some((name, bytes))) => {
-                            inbox.borrow_mut().push(Picked { name, bytes });
-                            ctx.request_repaint();
-                        }
-                        Ok(None) => {}
-                        Err(error) => {
-                            messages.borrow_mut().push(error.to_string());
-                            ctx.request_repaint();
-                        }
-                    }
-                });
+                self.pick_into(
+                    ctx,
+                    &self.picked_shortcuts,
+                    label,
+                    &["xml"],
+                    flare_menubar::MAX_ANIMATE_SHORTCUT_BYTES,
+                    None,
+                );
             }
             // Dimmed in the browser, which has no ffmpeg; said again should anything ask.
             DialogRequest::ImportVideo => self
@@ -267,61 +235,54 @@ impl WebApp {
                 .borrow_mut()
                 .push(self.workspace.interface_text("video-browser")),
             DialogRequest::ImportBrushProfiles => {
-                let (inbox, messages, ctx) = (
-                    Rc::clone(&self.picked_brushes),
-                    Rc::clone(&self.messages),
-                    ctx.clone(),
+                let label = self.workspace.interface_text("dlg-filter-brushes");
+                self.pick_into(
+                    ctx,
+                    &self.picked_brushes,
+                    label,
+                    flare_import::brushes::PROFILE_EXTENSIONS,
+                    flare_import::brushes::MAX_OWNED_BYTES as usize,
+                    None,
                 );
-                let filter = self.workspace.interface_text("dlg-filter-brushes");
-                wasm_bindgen_futures::spawn_local(async move {
-                    match files::pick_bounded(
-                        &filter,
-                        flare_import::brushes::PROFILE_EXTENSIONS,
-                        flare_import::brushes::MAX_OWNED_BYTES as usize,
-                    )
-                    .await
-                    {
-                        Ok(Some((name, bytes))) => {
-                            inbox.borrow_mut().push(Picked { name, bytes });
-                            ctx.request_repaint();
-                        }
-                        Ok(None) => {}
-                        Err(error) => {
-                            messages.borrow_mut().push(error.to_string());
-                            ctx.request_repaint();
-                        }
-                    }
-                });
             }
             DialogRequest::ImportSound => {
-                let (inbox, messages, ctx) = (
-                    Rc::clone(&self.picked_sounds),
-                    Rc::clone(&self.messages),
-                    ctx.clone(),
+                let label = "WAV, MP3, Ogg Vorbis or FLAC sound".to_owned();
+                self.pick_into(
+                    ctx,
+                    &self.picked_sounds,
+                    label,
+                    &["wav", "mp3", "ogg", "flac"],
+                    flare_runtime::MAX_AUDIO_INPUT_BYTES,
+                    Some("Cannot import sound"),
                 );
-                wasm_bindgen_futures::spawn_local(async move {
-                    match files::pick_bounded(
-                        "WAV, MP3, Ogg Vorbis or FLAC sound",
-                        &["wav", "mp3", "ogg", "flac"],
-                        flare_runtime::MAX_AUDIO_INPUT_BYTES,
-                    )
-                    .await
-                    {
-                        Ok(Some((name, bytes))) => {
-                            inbox.borrow_mut().push(Picked { name, bytes });
-                            ctx.request_repaint();
-                        }
-                        Ok(None) => {}
-                        Err(error) => {
-                            messages
-                                .borrow_mut()
-                                .push(format!("Cannot import sound: {error}"));
-                            ctx.request_repaint();
-                        }
-                    }
-                });
             }
         }
+    }
+
+    /// Opens the file picker for `extensions` and, off the frame, puts the file picked into
+    /// `inbox` (refusing one over `max_bytes` before reading it), or tells the person why not,
+    /// after `failure` when one is given.
+    fn pick_into(
+        &self,
+        ctx: &egui::Context,
+        inbox: &Rc<RefCell<Vec<Picked>>>,
+        label: String,
+        extensions: &'static [&'static str],
+        max_bytes: usize,
+        failure: Option<&'static str>,
+    ) {
+        let (inbox, messages, ctx) = (Rc::clone(inbox), Rc::clone(&self.messages), ctx.clone());
+        wasm_bindgen_futures::spawn_local(async move {
+            match files::pick_bounded(&label, extensions, max_bytes).await {
+                Ok(Some((name, bytes))) => inbox.borrow_mut().push(Picked { name, bytes }),
+                Ok(None) => return,
+                Err(error) => messages.borrow_mut().push(match failure {
+                    Some(failure) => format!("{failure}: {error}"),
+                    None => error,
+                }),
+            }
+            ctx.request_repaint();
+        });
     }
 
     /// Save and Save As are a download: a page has no file to write back to. The person names it,

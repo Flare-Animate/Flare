@@ -92,6 +92,61 @@ pub(in crate::workspace) struct Settling {
     pub(in crate::workspace) passes_left: u32,
 }
 
+/// The pieces `brush` commits for `stroke`, one preview each, so the shape on screen while
+/// dragging is the very outline the release keeps (smoothed, shaped by the nib, tapered, broken
+/// into strands). A stroke too short to have an outline yet shows as nothing.
+fn outline_previews(
+    brush: &flare_tools::brush::BrushStroke,
+    stroke: &[InputSample],
+    tolerance: f32,
+    color: Color32,
+) -> Vec<PreviewStroke> {
+    let spine = flare_tools::brush::BrushStroke::spine(stroke);
+    let pieces = brush.pieces(stroke, f64::from(tolerance));
+    if pieces.is_empty() {
+        // A press with no movement yet still shows its nib-wide dot as a ribbon.
+        return vec![PreviewStroke {
+            points: spine
+                .iter()
+                .map(|p| Pos2::new(p.x as f32, p.y as f32))
+                .collect(),
+            halves: brush
+                .half_widths(&spine)
+                .into_iter()
+                .map(|h| h as f32)
+                .collect(),
+            color,
+            sides: None,
+        }];
+    }
+    // A solid stroke keeps its centre line and widths too, as the ribbon it would be.
+    let solid = brush.texture.is_solid();
+    pieces
+        .iter()
+        .map(|piece| PreviewStroke {
+            points: if solid {
+                spine
+                    .iter()
+                    .map(|p| Pos2::new(p.x as f32, p.y as f32))
+                    .collect()
+            } else {
+                Vec::new()
+            },
+            halves: if solid {
+                brush
+                    .half_widths(&spine)
+                    .into_iter()
+                    .map(|h| h as f32)
+                    .collect()
+            } else {
+                Vec::new()
+            },
+            color,
+            sides: Some(PreviewSides::of(piece)),
+        })
+        .collect()
+}
+
 impl Workspace {
     /// Adds a sample to the stroke being drawn, unless it is too close to the last one to matter
     /// at this zoom or the stroke is as long as it may get.
@@ -185,19 +240,31 @@ impl Workspace {
                 .collect()
         };
         if self.tool != Tool::Brush {
-            // The curve the Pencil commits, not the points the pointer passed through.
+            // The curve the Pencil commits, not the points the pointer passed through; under a
+            // pen, the pressed outline it commits instead.
             let half = self.paint.stroke_width / 2.0;
+            let pressed = self
+                .pencil_pressure
+                .stroke(f64::from(self.paint.stroke_width));
             return strokes
                 .iter()
-                .map(|stroke| {
+                .flat_map(|stroke| {
+                    if self.pencil_follows_pressure(stroke) {
+                        return outline_previews(
+                            &pressed,
+                            stroke,
+                            tolerance,
+                            self.paint.stroke_color,
+                        );
+                    }
                     let points =
                         flare_tools::pencil::smoothed_points(&to_points(stroke), tolerance);
-                    PreviewStroke {
+                    vec![PreviewStroke {
                         halves: vec![half; points.len()],
                         points,
                         color: self.paint.stroke_color,
                         sides: None,
-                    }
+                    }]
                 })
                 .collect();
         }
@@ -211,27 +278,11 @@ impl Workspace {
             (f32::from(fill.a()) * self.brush_shelf.flow()) as u8,
         );
         // The widths come from the brush library, as the committed outline's do: pressure,
-        // speed, tapers and the reach of the nib across the line.
+        // speed, tapers, the reach of the nib across the line, and the strands of a texture.
         let brush = self.brush_shelf.stroke(f64::from(self.brush_size));
         strokes
             .iter()
-            .map(|stroke| {
-                let spine = flare_tools::brush::BrushStroke::spine(stroke);
-                PreviewStroke {
-                    points: to_points(&spine),
-                    halves: brush
-                        .half_widths(&spine)
-                        .into_iter()
-                        .map(|h| h as f32)
-                        .collect(),
-                    color,
-                    // The very outline the release commits: smoothed, shaped by the nib, tapered.
-                    sides: brush
-                        .sides(stroke, f64::from(tolerance))
-                        .as_ref()
-                        .map(PreviewSides::of),
-                }
-            })
+            .flat_map(|stroke| outline_previews(&brush, stroke, tolerance, color))
             .collect()
     }
 
