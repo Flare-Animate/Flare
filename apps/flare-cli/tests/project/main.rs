@@ -29,6 +29,7 @@ mod save_formats;
 mod shortcuts;
 mod sound;
 mod still_images;
+mod stopmotion;
 mod swf_import;
 mod symbols;
 mod text;

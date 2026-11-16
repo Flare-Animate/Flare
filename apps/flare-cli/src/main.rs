@@ -320,14 +320,28 @@ fn run() -> Result<()> {
             },
         )?,
         Command::BreakText { path, shape } => project::break_text(&path, shape)?,
-        Command::StopMotionNew {
-            fps,
-            hold,
-            onion_before,
-            onion_after,
-            onion_opacity,
-        } => stopmotion::new_session(fps, hold, onion_before, onion_after, onion_opacity)?,
-        Command::StopMotionCapture => stopmotion::capture()?,
+        Command::StopMotion(sub) => match sub {
+            stopmotion::Commands::StopMotionNew {
+                fps,
+                hold,
+                onion_before,
+                onion_after,
+                onion_opacity,
+            } => stopmotion::new_session(fps, hold, onion_before, onion_after, onion_opacity)?,
+            stopmotion::Commands::StopMotionCapture { simulated } => {
+                stopmotion::capture(simulated)?
+            }
+            stopmotion::Commands::StopMotionTimeline { fps, hold, frames } => {
+                stopmotion::timeline(fps, hold, frames)?
+            }
+            stopmotion::Commands::StopMotionOnion {
+                before,
+                after,
+                opacity,
+                frames,
+                frame,
+            } => stopmotion::onion(before, after, opacity, frames, frame)?,
+        },
         Command::Fonts { font_files } => project::font_families(&font_files)?,
         Command::Export {
             path,
