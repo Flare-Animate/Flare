@@ -61,6 +61,8 @@
                 <string>mpeg</string>
                 <string>mpg</string>
                 <string>flv</string>
+                <string>f4v</string>
+                <string>f4p</string>
                 <string>tif</string>
                 <string>tiff</string>
                 <string>webp</string>
@@ -103,6 +105,10 @@
                 <string>fla</string>
                 <string>xfl</string>
                 <string>swf</string>
+                <string>spl</string>
+                <string>swt</string>
+                <string>swc</string>
+                <string>flp</string>
                 <string>bvh</string>
                 <string>fc</string>
                 <string>wick</string>
