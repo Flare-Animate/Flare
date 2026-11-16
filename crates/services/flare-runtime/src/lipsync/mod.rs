@@ -4,6 +4,8 @@
 //! worker ([`crate::AudioJob::LipSync`]); the command line and the MCP server call [`lip_sync`].
 
 mod rhubarb;
+#[cfg(test)]
+mod rhubarb_tests;
 
 pub use rhubarb::{RHUBARB_ENV, RHUBARB_TIME_LIMIT, locate_rhubarb};
 

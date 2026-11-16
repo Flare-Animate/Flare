@@ -3,13 +3,14 @@
 //! a list (no shell reads a name), stopped after [`RHUBARB_TIME_LIMIT`], and read only as far as
 //! `flare_audio::lipsync::MAX_RHUBARB_OUTPUT_BYTES`. A browser has no programs to run.
 
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use flare_audio::Audio;
 
-/// The environment variable that names the Rhubarb program, ahead of the one next to Flare and
-/// the one on the PATH.
+/// The environment variable that names the Rhubarb program to run in place of the one next to
+/// Flare or on the PATH.
 pub const RHUBARB_ENV: &str = "FLARE_RHUBARB";
 /// How long one analysis may take: Rhubarb reads about ten times faster than speech, so ten
 /// minutes of voice, the longest sound, is well inside it.
@@ -21,11 +22,34 @@ const RATE: u32 = 16_000;
 #[cfg(not(target_arch = "wasm32"))]
 const STDERR_READ: u64 = 64 * 1024;
 
-/// The installed Rhubarb: the program [`RHUBARB_ENV`] names, then `rhubarb` beside this program
-/// (or in a `rhubarb` folder there, as its release archive unpacks), then on the PATH.
+/// The installed Rhubarb: the program [`RHUBARB_ENV`] names, else `rhubarb` beside this program
+/// (or in a `rhubarb` folder there, as its release archive unpacks), else on the PATH.
 pub fn locate_rhubarb() -> Option<PathBuf> {
     if cfg!(target_arch = "wasm32") {
         return None;
+    }
+    let beside = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(Path::to_path_buf));
+    choose_rhubarb(
+        std::env::var_os(RHUBARB_ENV),
+        beside.as_deref(),
+        std::env::var_os("PATH"),
+    )
+}
+
+/// The Rhubarb to run, given what [`RHUBARB_ENV`] holds, the folder this program is in and the
+/// PATH. A program named in [`RHUBARB_ENV`] is the only one looked at: when it is not a file
+/// there is no Rhubarb, rather than some other `rhubarb` on the PATH running in its place, which
+/// whoever could write to a folder on the PATH would choose. An empty value names nothing.
+pub(super) fn choose_rhubarb(
+    named: Option<OsString>,
+    beside: Option<&Path>,
+    path: Option<OsString>,
+) -> Option<PathBuf> {
+    if let Some(named) = named.filter(|named| !named.is_empty()) {
+        let named = PathBuf::from(named);
+        return named.is_file().then_some(named);
     }
     let name = if cfg!(windows) {
         "rhubarb.exe"
@@ -33,17 +57,11 @@ pub fn locate_rhubarb() -> Option<PathBuf> {
         "rhubarb"
     };
     let mut candidates: Vec<PathBuf> = Vec::new();
-    if let Some(named) = std::env::var_os(RHUBARB_ENV) {
-        candidates.push(named.into());
-    }
-    if let Some(dir) = std::env::current_exe()
-        .ok()
-        .and_then(|exe| exe.parent().map(Path::to_path_buf))
-    {
+    if let Some(dir) = beside {
         candidates.push(dir.join(name));
         candidates.push(dir.join("rhubarb").join(name));
     }
-    if let Some(path) = std::env::var_os("PATH") {
+    if let Some(path) = path {
         candidates.extend(std::env::split_paths(&path).map(|dir| dir.join(name)));
     }
     candidates.into_iter().find(|path| path.is_file())
@@ -163,6 +181,8 @@ impl Private {
             NEXT.fetch_add(1, Ordering::Relaxed)
         );
         let dir = std::env::temp_dir().join(name);
+        // Only Unix sets a mode on the builder; elsewhere it is never changed.
+        #[cfg_attr(not(unix), allow(unused_mut))]
         let mut builder = std::fs::DirBuilder::new();
         #[cfg(unix)]
         std::os::unix::fs::DirBuilderExt::mode(&mut builder, 0o700);
