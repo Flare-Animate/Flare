@@ -73,8 +73,11 @@ pub enum EdgeError {
     NoStart,
 }
 
-/// Parses one coordinate: plain decimal, or `#` hex with an optional `.hh` fraction
-/// (a signed 32-bit integer part plus 1/256ths).
+/// Parses one coordinate: plain decimal, or `#` hex with an optional `.hh` fraction.
+///
+/// The hex form is 24.8 fixed point: the integer part is a signed 24-bit value (so `FFFFC0` is
+/// -64, not 16777152) and the fraction is in 256ths. Animate writes only as many digits as the
+/// value needs, which for a small negative number is six, not eight.
 pub fn parse_number(token: &str) -> Result<f64, EdgeError> {
     let bad = || EdgeError::BadNumber(token.to_owned());
     if let Some(hex) = token.strip_prefix('#') {
@@ -83,8 +86,14 @@ pub fn parse_number(token: &str) -> Result<f64, EdgeError> {
             return Err(bad());
         }
         let int = u32::from_str_radix(int_part, 16).map_err(|_| bad())?;
-        // Two's complement: the stored value is a signed 32-bit integer.
-        let mut value = f64::from(i32::from_ne_bytes(int.to_ne_bytes()));
+        // Two's complement within 24 bits; any digits above them are sign padding.
+        let low = int & 0x00FF_FFFF;
+        let signed = if low & 0x0080_0000 == 0 {
+            low
+        } else {
+            low | 0xFF00_0000
+        };
+        let mut value = f64::from(i32::from_ne_bytes(signed.to_ne_bytes()));
         if !frac_part.is_empty() {
             let frac = u32::from_str_radix(frac_part, 16).map_err(|_| bad())?;
             // One digit means sixteenths, two digits mean 256ths.
@@ -266,6 +275,13 @@ mod tests {
         assert_eq!(parse_number("#C8.80").expect("n"), 200.5);
         assert_eq!(parse_number("#C8.8").expect("n"), 200.5);
         assert_eq!(parse_number("#FFFFFFE0").expect("n"), -32.0);
+        // Six digits are enough for a small negative number: 24-bit two's complement.
+        assert_eq!(parse_number("#FFFFC0").expect("n"), -64.0);
+        assert_eq!(parse_number("#FFFFC0.22").expect("n"), -64.0 + 34.0 / 256.0);
+        assert_eq!(parse_number("#FFFCE3.B5").expect("n"), -797.0 + 181.0 / 256.0);
+        assert_eq!(parse_number("#7FFFFF").expect("n"), 8_388_607.0);
+        assert_eq!(parse_number("#800000").expect("n"), -8_388_608.0);
+        assert_eq!(parse_number("#201.88").expect("n"), 513.0 + 136.0 / 256.0);
         for bad in [
             "",
             "abc",
