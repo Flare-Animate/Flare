@@ -1,0 +1,37 @@
+# Pre-installs what the GitHub Copilot coding agent needs to build and test this repository.
+# The job MUST be named exactly "copilot-setup-steps" for GitHub to recognise it.
+# Docs: https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/customize-the-agent-environment
+#
+# The old repository's version installed a Qt and vcpkg C++ toolchain; the build here is
+# Rust, so the pinned toolchain and the Linux system libraries are all that is needed.
+name: Copilot Setup Steps
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - '.github/workflows/copilot-setup-steps.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/copilot-setup-steps.yml'
+permissions:
+  contents: read
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache-key: copilot-setup
+      # The agent's work is checked against these rules, so they are named here on purpose.
+      - name: Verify the GitHub CLI and Python the scripts need
+        run: |
+          gh --version
+          python3 --version
+      # An early, cheap compile of a foundation crate, so the agent gets feedback on the
+      # toolchain before it starts a job instead of finding a broken setup mid-change.
+      - name: Smoke-check the build
+        run: cargo check -p flare-core --locked
