@@ -14,6 +14,7 @@ pub mod id;
 pub mod image_ops;
 pub mod resample;
 pub mod swatches;
+pub mod tantialias;
 pub mod time;
 
 pub use color::Rgba8;

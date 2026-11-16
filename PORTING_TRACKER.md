@@ -40,7 +40,8 @@ into the new crate architecture.
 ## Missing image processing (Main vs Rust ports)
 - [x] Erode/dilate (ported to Rust in Rust-Rewrite: terodilate)
 - [x] Antialias - our own morphological step antialias in flare-core (`image_ops::antialias`),
-  not the OpenToonz tantialias kernel; a faithful tantialias port is still open
+  plus the tantialias behaviour clean-room in `flare-core::tantialias`: threshold run
+  detection over line pairs and Reshetov ramp pulls at inner run ends, both axes
 - [x] Blur (tblur)
 - [x] Despeckle - connected-component removal up to a max area, our own (`image_ops::despeckle`)
 - [x] Distance transform - exact Euclidean (Felzenszwalb) into the alpha channel, our own
