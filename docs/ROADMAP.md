@@ -322,10 +322,15 @@ SimplSam/moho-bvh-bones is CC BY-NC-SA 4.0, so nothing was taken from it (behavi
   each skeleton in its bone layer; forward parents are resolved), switch layers as one symbol per
   alternative, and image layers as bitmaps from the project's folder (PNG only, see MOHO.md).
   Audio layers are named as unsupported. Moho units are assumed two per stage height.
-- Phase 5, round trip: write a Moho project back, or export to BVH and XFL, and read it again unchanged.
+- Phase 5, round trip: started — the `.mohoproj` JSON document is written back from the model
+  (`write_document`, tracks placed by their read paths; `parse(write(parse(x))) == parse(x)` is
+  tested). Still to come: the ZIP container written back, and export to XFL.
 - Gaps: bone-bound layers keep their own placement (the bone pose is not applied); actions and
-  interpolation other than linear and hold; Bezier handles; audio; pre-11 `.anme` is refused by name;
-  the audio key names are unverified. The verified and spec-only split is in [MOHO.md](MOHO.md).
+  interpolation other than linear and hold; Bezier handles; audio layers named unsupported (the
+  path itself is now kept on the layer and written back); pre-11 `.anme` is refused by name;
+  the audio key names are unverified. What the model does not keep cannot be written back:
+  Bezier handles, a drawing's fills past the first, and layer entries the source held as
+  something other than an object. The verified and spec-only split is in [MOHO.md](MOHO.md).
 
 ## Reference backlog
 

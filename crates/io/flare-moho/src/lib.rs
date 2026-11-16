@@ -5,7 +5,8 @@
 //! Reading is read-only and total. Every field has a default because Moho drops fields between
 //! format generations, and every size, depth and count is bounded (see [`limits`]). [`to_flare_document`],
 //! or [`to_flare_document_with`] given the pictures, and [`bvh::to_document`] turn a model into a
-//! Flare document as one validated command batch.
+//! Flare document as one validated command batch. [`write_document`] writes the model back as a
+//! `.mohoproj` document whose parse is the same model.
 #![forbid(unsafe_code)]
 
 pub mod bvh;
@@ -22,6 +23,7 @@ mod mesh;
 mod model;
 mod parse;
 mod tree;
+mod write;
 
 pub use container::{Container, detect, is_moho_path, parse_bytes, read_file};
 pub use convert::{Converted, Note, Severity, to_flare_document, to_flare_document_with};
@@ -31,3 +33,4 @@ pub use model::{
     Binding, Bone, Census, Channel, ChannelKind, Key, KeyValue, Layer, LayerKind, Mesh, MeshCurve,
     Project, SwitchCells, Track,
 };
+pub use write::write_document;

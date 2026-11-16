@@ -113,6 +113,7 @@ fn read_layers(
             image_path: opt_text(o, "image_path"),
             texture_path: opt_text(o, "fill_texture_path")
                 .or_else(|| opt_text(o, "line_texture_path")),
+            audio_path: opt_text(o, "audio_path").or_else(|| opt_text(o, "sound_path")),
             switch,
             mesh: if kind_is_vector {
                 crate::mesh::read(o.get("mesh"), &mut walk.mesh_budget)?

@@ -32,7 +32,7 @@ against the MIT-licensed `CharWalk.moho` and `CharWalk.mohoproj` from godot_moho
 | Pre-11 `.anme` (plain text, "Anime Studio Project") | refused by name | `moho.rs` |
 | Papagayo `.pgo`, `.animepro`, zipped `.anme` | not read (spec-only; no sample) | - |
 | Effects, dynamics (bone `bone_dynamics`), IK constraints | named Unsupported on the bone | `convert.rs` |
-| Writing a Moho project back | not built | - |
+| Writing a Moho project back (`.mohoproj` JSON): the model is written with Moho's field names, keyframe tracks placed by the paths they were read from, and reading the result gives the same model (`write.rs`, `tests/roundtrip.rs`) | verified (synthetic) | `write.rs` |
 
 ## Reference projects
 
