@@ -2,8 +2,7 @@
 #![allow(clippy::expect_used)]
 
 use super::*;
-use egui::{Color32, Key, Modifiers, Pos2, Rect, Vec2};
-use egui::{Event, RawInput};
+use egui::{Color32, Event, Key, Modifiers, Pos2, RawInput, Rect, Vec2};
 use flare_commands::Command;
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
 use flare_dock::{self, Pane};

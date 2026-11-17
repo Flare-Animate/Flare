@@ -278,7 +278,10 @@ mod tests {
         // Six digits are enough for a small negative number: 24-bit two's complement.
         assert_eq!(parse_number("#FFFFC0").expect("n"), -64.0);
         assert_eq!(parse_number("#FFFFC0.22").expect("n"), -64.0 + 34.0 / 256.0);
-        assert_eq!(parse_number("#FFFCE3.B5").expect("n"), -797.0 + 181.0 / 256.0);
+        assert_eq!(
+            parse_number("#FFFCE3.B5").expect("n"),
+            -797.0 + 181.0 / 256.0
+        );
         assert_eq!(parse_number("#7FFFFF").expect("n"), 8_388_607.0);
         assert_eq!(parse_number("#800000").expect("n"), -8_388_608.0);
         assert_eq!(parse_number("#201.88").expect("n"), 513.0 + 136.0 / 256.0);
