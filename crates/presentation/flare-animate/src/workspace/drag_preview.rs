@@ -4,10 +4,9 @@
 //! the very batch the release commits, so the artwork moves with the handles and what is let go
 //! is what was shown. The copy is never put in the history: only the release makes an undo step.
 
-use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
-use egui::Vec2;
+use egui::{Pos2, Vec2};
 use flare_commands::Command;
 use flare_tools::free_transform::handles;
 use glamx::{DAffine2, DVec2};
@@ -23,10 +22,54 @@ pub(super) enum DragEdit {
     Transform(DAffine2),
 }
 
-/// The document a held drag would leave, kept while the drag stays where it is.
-pub(super) struct DragPreview {
-    stamp: u64,
-    document: Arc<Document>,
+/// What a held drag's preview was made from. It is compared by value, not hashed: a hash could
+/// collide and show, then commit, the picture of one held state for another.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(super) enum PreviewKey {
+    Drag {
+        context: u64,
+        revision: u64,
+        edit: DragEdit,
+    },
+    Magnet {
+        context: u64,
+        revision: u64,
+        frame: u32,
+        from: Pos2,
+        to: Pos2,
+        radius: f32,
+    },
+}
+
+/// The document a held drag would leave, kept while the drag stays where it is, with the stamp
+/// the stage's render cache knows it by.
+pub(super) struct HeldPreview {
+    pub(super) key: PreviewKey,
+    pub(super) stamp: u64,
+    pub(super) document: Arc<Document>,
+}
+
+impl HeldPreview {
+    /// The kept document, if it was made from `key`.
+    pub(super) fn matching(&self, key: &PreviewKey) -> Option<(u64, Arc<Document>)> {
+        (self.key == *key).then(|| (self.stamp, Arc::clone(&self.document)))
+    }
+}
+
+/// The preview of a move or transform drag, and the numbering every held preview's stamp comes
+/// from, so two previews never share a stamp and the render cache never mixes their pictures.
+#[derive(Default)]
+pub(super) struct DragPreviews {
+    pub(super) held: Option<HeldPreview>,
+    serial: u64,
+}
+
+impl DragPreviews {
+    /// A stamp no preview made before has had.
+    pub(super) fn next_stamp(&mut self) -> u64 {
+        self.serial = self.serial.wrapping_add(1);
+        self.serial
+    }
 }
 
 impl Workspace {
@@ -90,28 +133,35 @@ impl Workspace {
             .and_then(|drag| self.drag_edit(&drag))
             .filter(|edit| *edit != DragEdit::Move(Vec2::ZERO));
         let Some(edit) = edit else {
-            self.drag_preview = None;
+            self.drag_preview.held = None;
             return None;
         };
-        let stamp = {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            (self.context_serial, self.active().revision()).hash(&mut hasher);
-            match edit {
-                DragEdit::Move(delta) => [delta.x, delta.y].map(f32::to_bits).hash(&mut hasher),
-                DragEdit::Transform(m) => m.to_cols_array().map(f64::to_bits).hash(&mut hasher),
-            }
-            hasher.finish()
+        let key = PreviewKey::Drag {
+            context: self.context_serial,
+            revision: self.active().revision(),
+            edit,
         };
-        if let Some(kept) = self.drag_preview.as_ref().filter(|p| p.stamp == stamp) {
-            return Some((stamp, Arc::clone(&kept.document)));
+        if let Some(kept) = self
+            .drag_preview
+            .held
+            .as_ref()
+            .and_then(|p| p.matching(&key))
+        {
+            return Some(kept);
         }
         let document = self
             .drag_edit_commands(edit)
             .and_then(|commands| flare_commands::apply_all(self.document(), commands).ok())
             .flatten()
             .map(Arc::new);
-        self.drag_preview = document.map(|document| DragPreview { stamp, document });
+        let stamp = self.drag_preview.next_stamp();
+        self.drag_preview.held = document.map(|document| HeldPreview {
+            key,
+            stamp,
+            document,
+        });
         self.drag_preview
+            .held
             .as_ref()
             .map(|p| (p.stamp, Arc::clone(&p.document)))
     }

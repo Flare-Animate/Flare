@@ -3,7 +3,6 @@
 //! the very batch the release commits, so what is let go is what was shown, as one undo step.
 //! With shapes selected only they are pulled; otherwise those on the layer being drawn on.
 
-use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
 use egui::{Color32, Painter, Pos2, Stroke, Ui};
@@ -15,6 +14,7 @@ use flare_tools::magnet::{
 use flare_ui::chrome;
 use glamx::DVec2;
 
+use crate::workspace::drag_preview::{HeldPreview, PreviewKey};
 use crate::workspace::*;
 
 /// What the Magnet is doing.
@@ -23,8 +23,8 @@ pub(in crate::workspace) struct MagnetState {
     pub(in crate::workspace) radius: f32,
     /// A pull being dragged: where it started and where the pointer is, on the stage.
     drag: Option<(Pos2, Pos2)>,
-    /// The document the pull would leave, with the stamp of the pull it was made for.
-    preview: Option<(u64, Arc<Document>)>,
+    /// The document the pull would leave, with the pull it was made for.
+    preview: Option<HeldPreview>,
 }
 
 impl Default for MagnetState {
@@ -114,18 +114,22 @@ impl Workspace {
     /// pull from another; `None` when nothing is held or the pull reaches nothing.
     pub(in crate::workspace) fn magnet_preview(&mut self) -> Option<(u64, Arc<Document>)> {
         let (from, to) = self.springs.magnet.drag.filter(|(a, b)| a != b)?;
-        let stamp = {
-            let mut hasher = std::collections::hash_map::DefaultHasher::new();
-            (self.context_serial, self.active().revision(), self.frame).hash(&mut hasher);
-            [from.x, from.y, to.x, to.y, self.springs.magnet.radius]
-                .map(f32::to_bits)
-                .hash(&mut hasher);
-            hasher.finish()
+        let key = PreviewKey::Magnet {
+            context: self.context_serial,
+            revision: self.active().revision(),
+            frame: self.frame,
+            from,
+            to,
+            radius: self.springs.magnet.radius,
         };
-        if let Some((kept, document)) = &self.springs.magnet.preview
-            && *kept == stamp
+        if let Some(kept) = self
+            .springs
+            .magnet
+            .preview
+            .as_ref()
+            .and_then(|p| p.matching(&key))
         {
-            return Some((stamp, Arc::clone(document)));
+            return Some(kept);
         }
         let document = self
             .magnet_commands(from, to)
@@ -133,12 +137,17 @@ impl Workspace {
             .and_then(|commands| flare_commands::apply_all(self.document(), commands).ok())
             .flatten()
             .map(Arc::new);
-        self.springs.magnet.preview = document.map(|d| (stamp, d));
+        let stamp = self.drag_preview.next_stamp();
+        self.springs.magnet.preview = document.map(|document| HeldPreview {
+            key,
+            stamp,
+            document,
+        });
         self.springs
             .magnet
             .preview
             .as_ref()
-            .map(|(stamp, document)| (*stamp, Arc::clone(document)))
+            .map(|p| (p.stamp, Arc::clone(&p.document)))
     }
 
     /// The circle the pull reaches over: at the pointer, or where a held pull started.

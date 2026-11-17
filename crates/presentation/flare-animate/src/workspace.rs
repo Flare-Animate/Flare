@@ -153,7 +153,7 @@ pub struct Workspace {
     frames_rendered: u64,
     drag: Option<Drag>,
     /// What the stage is drawn from while a move or transform drag is held.
-    drag_preview: Option<drag_preview::DragPreview>,
+    drag_preview: drag_preview::DragPreviews,
     /// The Motion Editor panel's state.
     motion: panels::MotionEditor,
     anchor_drag: Option<anchors::AnchorDrag>,
@@ -377,7 +377,7 @@ impl Workspace {
             revert_pending: false,
             frames_rendered: 0,
             drag: None,
-            drag_preview: None,
+            drag_preview: drag_preview::DragPreviews::default(),
             motion: panels::MotionEditor::default(),
             anchor_drag: None,
             bone_drag: None,
