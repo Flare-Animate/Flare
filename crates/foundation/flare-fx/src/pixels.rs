@@ -3,7 +3,7 @@
 use crate::FxError;
 
 /// A picture as premultiplied 8-bit RGBA, row by row: the form the rasterizer draws in.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Pixels {
     width: u32,
     height: u32,
@@ -27,12 +27,25 @@ impl Pixels {
         })
     }
 
-    /// A transparent picture.
-    pub fn transparent(width: u32, height: u32) -> Self {
-        Self {
+    /// A transparent picture, or `BadPixels` when `width * height` pixels cannot be held.
+    pub fn transparent(width: u32, height: u32) -> Result<Self, FxError> {
+        let len = (width as usize)
+            .checked_mul(height as usize)
+            .and_then(|n| n.checked_mul(4))
+            .ok_or(FxError::BadPixels)?;
+        Ok(Self {
             width,
             height,
-            data: vec![0; width as usize * height as usize * 4],
+            data: vec![0; len],
+        })
+    }
+
+    /// A transparent picture the size of this one. It cannot fail: this one's size is held.
+    pub fn cleared(&self) -> Self {
+        Self {
+            width: self.width,
+            height: self.height,
+            data: vec![0; self.data.len()],
         }
     }
 

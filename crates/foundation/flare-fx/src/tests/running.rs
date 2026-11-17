@@ -101,7 +101,7 @@ fn lengths_are_measured_on_the_stage_whatever_the_zoom() {
 #[test]
 fn snow_through_the_graph_follows_the_frame() {
     let (graph, _) = EffectGraph::new().append(EffectKind::Snow).expect("add");
-    let empty = || Pixels::transparent(64, 48);
+    let empty = || Pixels::transparent(64, 48).expect("pixels");
     let a = run(&graph, empty(), &whole(64, 48), 4).expect("run");
     let b = run(&graph, empty(), &whole(64, 48), 4).expect("run");
     let c = run(&graph, empty(), &whole(64, 48), 5).expect("run");
@@ -112,7 +112,7 @@ fn snow_through_the_graph_follows_the_frame() {
 
 #[test]
 fn a_bad_scale_or_picture_is_refused() {
-    let p = Pixels::transparent(2, 2);
+    let p = Pixels::transparent(2, 2).expect("pixels");
     let bad = Space {
         scale: 0.0,
         ..whole(2, 2)
@@ -123,4 +123,19 @@ fn a_bad_scale_or_picture_is_refused() {
         Pixels::new(u32::MAX, u32::MAX, vec![]),
         Err(FxError::BadPixels)
     );
+    // A blank picture too large to count is refused, not made with too few pixels.
+    assert_eq!(
+        Pixels::transparent(u32::MAX, u32::MAX),
+        Err(FxError::BadPixels)
+    );
+}
+
+#[test]
+fn a_cleared_picture_is_the_same_size_and_empty() {
+    let p = square(7, 5, [1, 1, 4, 4], [10, 20, 30, 255]);
+    let blank = p.cleared();
+    assert_eq!((blank.width(), blank.height()), (7, 5));
+    assert_eq!(blank.data().len(), p.data().len());
+    assert_eq!(total_alpha(&blank), 0);
+    assert_eq!(blank, Pixels::transparent(7, 5).expect("pixels"));
 }

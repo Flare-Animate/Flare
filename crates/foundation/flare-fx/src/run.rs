@@ -76,7 +76,8 @@ pub fn run(
     if !(space.scale.is_finite() && space.scale > 0.0) {
         return Err(FxError::BadScale);
     }
-    let (width, height) = (source.width(), source.height());
+    // Every picture is the source's size, which is already held, so a blank is a copy of this.
+    let blank = source.cleared();
     let order = graph.order();
     // How many inputs still to run read each node's picture.
     let mut readers: HashMap<NodeId, usize> = HashMap::with_capacity(order.len());
@@ -98,25 +99,21 @@ pub fn run(
         let mut inputs = Vec::with_capacity(node.inputs().len());
         for from in node.inputs() {
             let picture = match from {
-                None => Pixels::transparent(width, height),
-                Some(from) => take(&mut made, &mut readers, *from, width, height),
+                None => blank.clone(),
+                Some(from) => take(&mut made, &mut readers, *from, &blank),
             };
             inputs.push(picture);
         }
         let picture = match node.kind() {
-            EffectKind::Layer => source
-                .take()
-                .unwrap_or_else(|| Pixels::transparent(width, height)),
+            EffectKind::Layer => source.take().unwrap_or_else(|| blank.clone()),
             EffectKind::Output => {
-                return Ok(inputs
-                    .pop()
-                    .unwrap_or_else(|| Pixels::transparent(width, height)));
+                return Ok(inputs.pop().unwrap_or_else(|| blank.clone()));
             }
             _ => apply(&in_pixels(node, space.scale)?, inputs, space, frame),
         };
         made.insert(id, picture);
     }
-    Ok(Pixels::transparent(width, height))
+    Ok(blank)
 }
 
 /// The picture `from` made, for one reader: moved out to its last reader, copied for the others.
@@ -124,8 +121,7 @@ fn take(
     made: &mut HashMap<NodeId, Pixels>,
     readers: &mut HashMap<NodeId, usize>,
     from: NodeId,
-    width: u32,
-    height: u32,
+    blank: &Pixels,
 ) -> Pixels {
     let left = readers.get_mut(&from).map(|n| {
         *n = n.saturating_sub(1);
@@ -135,7 +131,7 @@ fn take(
         Some(0) => made.remove(&from),
         _ => made.get(&from).cloned(),
     }
-    .unwrap_or_else(|| Pixels::transparent(width, height))
+    .unwrap_or_else(|| blank.clone())
 }
 
 /// One node's picture from its inputs. `node`'s lengths are already in pixels.
@@ -149,7 +145,7 @@ fn apply(node: &Node, mut inputs: Vec<Pixels>, space: &Space, frame: u32) -> Pix
         }
     };
     let Some(mut picture) = first(&mut inputs) else {
-        return Pixels::transparent(0, 0);
+        return Pixels::default();
     };
     let (w, h) = (picture.width() as usize, picture.height() as usize);
     match node.kind() {

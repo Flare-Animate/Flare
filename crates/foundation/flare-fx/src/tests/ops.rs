@@ -65,6 +65,23 @@ fn a_half_pixel_offset_shares_the_shadow_between_two_pixels() {
 }
 
 #[test]
+fn a_shadow_falls_the_way_its_offset_points_down_the_picture_too() {
+    // One pixel at (1, 2); half a pixel past three rows down shares it between rows 5 and 6.
+    let p = square(3, 10, [1, 2, 2, 3], [255, 255, 255, 255]);
+    let out = shadow(&p, [0.0, 3.5], 0.0, Rgba8::opaque(0, 0, 0), 1.0);
+    let (a, b) = (out.pixel(1, 5)[3], out.pixel(1, 6)[3]);
+    assert!(
+        (120..=135).contains(&a) && (120..=135).contains(&b),
+        "{a} {b}"
+    );
+    assert_eq!(out.pixel(1, 0)[3], 0, "nothing above the shape");
+    // A whole-number offset lands on one row.
+    let whole_rows = shadow(&p, [0.0, 3.0], 0.0, Rgba8::opaque(0, 0, 0), 1.0);
+    assert_eq!(whole_rows.pixel(1, 5)[3], 255);
+    assert_eq!(whole_rows.pixel(1, 4)[3], 0);
+}
+
+#[test]
 fn a_glow_strength_past_one_makes_the_halo_stronger_but_not_past_opaque() {
     let p = square(30, 30, [10, 10, 20, 20], [0, 0, 0, 255]);
     let soft = shadow(&p, [0.0, 0.0], 8.0, Rgba8::opaque(255, 200, 0), 1.0);
@@ -180,7 +197,7 @@ fn fall() -> Snowfall {
 }
 
 fn snowed(frame: u32, fall: &Snowfall) -> Pixels {
-    let mut p = Pixels::transparent(120, 80);
+    let mut p = Pixels::transparent(120, 80).expect("pixels");
     snow(&mut p, fall, [0.0, 0.0, 120.0, 80.0], frame);
     p
 }
@@ -220,7 +237,7 @@ fn snow_is_the_same_on_the_same_frame_and_moves_on_the_next() {
 
 #[test]
 fn snow_stays_inside_the_stage() {
-    let mut p = Pixels::transparent(100, 100);
+    let mut p = Pixels::transparent(100, 100).expect("pixels");
     snow(
         &mut p,
         &Snowfall {
@@ -243,7 +260,7 @@ fn snow_stays_inside_the_stage() {
 
 #[test]
 fn snow_off_the_picture_draws_nothing_and_does_not_fail() {
-    let mut p = Pixels::transparent(10, 10);
+    let mut p = Pixels::transparent(10, 10).expect("pixels");
     snow(&mut p, &fall(), [500.0, 500.0, 900.0, 900.0], 2);
     assert_eq!(total_alpha(&p), 0);
     snow(&mut p, &fall(), [0.0, 0.0, 0.0, 0.0], 2);

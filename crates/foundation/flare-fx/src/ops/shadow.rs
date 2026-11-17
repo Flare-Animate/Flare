@@ -27,7 +27,7 @@ pub(crate) fn shadow(
         let mul = |c: u8| (f64::from(c) * a / 255.0).round() as u8;
         out.extend_from_slice(&[mul(color.r), mul(color.g), mul(color.b), a as u8]);
     }
-    let mut under = Pixels::transparent(input.width(), input.height());
+    let mut under = input.cleared();
     under.data_mut().copy_from_slice(&out);
     over_in_place(&mut under, input);
     under
