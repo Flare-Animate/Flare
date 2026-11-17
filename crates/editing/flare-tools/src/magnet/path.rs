@@ -99,9 +99,6 @@ pub(super) fn densified(path: &[PathSegment], pull: &Pull) -> Option<Vec<PathSeg
             out.push(PathSegment::LineTo(point(
                 from + (to - from) * (i as f64 / n as f64),
             )?));
-            if out.len() > MAX_SEGMENTS {
-                return None;
-            }
         }
         Some(())
     };
