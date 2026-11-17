@@ -52,8 +52,6 @@ stub!(/** Scan cleanup. Source: `original/flare/sources/tcleanupper/tcleanupper.
     cleanup, CLEANUP, "Scan cleanup", "original/flare/sources/tcleanupper/tcleanupper.cpp");
 stub!(/** Render farm task. Source: `original/flare/sources/flarefarm/tfarm/tfarmtask.cpp`. */
     render_farm, RENDER_FARM, "Render farm", "original/flare/sources/flarefarm/tfarm/tfarmtask.cpp");
-stub!(/** Magnet deformation tool. Source: `original/flare/sources/tnztools/magnettool.cpp`. */
-    magnet_tool, MAGNET, "Magnet tool", "original/flare/sources/tnztools/magnettool.cpp");
 stub!(/** Pinch deformation tool. Source: `original/flare/sources/tnztools/pinchtool.cpp`. */
     pinch_tool, PINCH, "Pinch tool", "original/flare/sources/tnztools/pinchtool.cpp");
 stub!(/** Pump deformation tool. Source: `original/flare/sources/tnztools/pumptool.cpp`. */
@@ -144,7 +142,7 @@ stub!(/** Vector tap tool. Source: `original/flare/sources/tnztools/vectortapeto
     vector_tape_tool2, VECTOR_TAPE2, "Vector tape tool 2", "original/flare/sources/tnztools/vectortapetool.cpp");
 
 /// All stubbed features.
-pub const ALL: [LegacyFeature; 52] = [
+pub const ALL: [LegacyFeature; 51] = [
     ASSISTANT,
     AUTOFILL_PLI,
     AUTOFILL_TLV,
@@ -165,7 +163,6 @@ pub const ALL: [LegacyFeature; 52] = [
     HOOK_SELECTION,
     IMAGE_GROUPING,
     IRON,
-    MAGNET,
     MORPH,
     MYPAINT_TOONZ_BRUSH,
     PAINT_BRUSH,

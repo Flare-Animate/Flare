@@ -20,6 +20,7 @@ mod layers_and_stage;
 mod lip_sync;
 mod lossless;
 mod magic_wand;
+mod magnet;
 mod mannequin;
 mod moho;
 mod movies;

@@ -55,6 +55,7 @@ mod lip_sync;
 mod live_transform;
 mod loop_range;
 mod magic_wand;
+mod magnet;
 mod mannequin;
 mod mannequin_reference;
 mod menus_and_recovery;

@@ -160,3 +160,7 @@ tools-help-blur = Arraste sobre um bitmap para suavizá-lo. Passar de novo no me
 tools-help-smudge = Arraste sobre um bitmap para levar suas cores junto, como um dedo na tinta molhada. Estiramento de cor define até onde uma cor é levada. A pressão define a largura.
 tools-status-blur = Desfocar: arraste sobre um bitmap para suavizá-lo
 tools-status-smudge = Borrar: arraste sobre um bitmap para levar suas cores junto
+tools-name-magnet = Ímã
+tools-status-magnet = Ímã: arraste perto de uma linha para dobrá-la
+tools-help-magnet = Arraste perto de uma linha ou forma: ela se dobra acompanhando, mais onde você começou e nada na borda do círculo. Com formas selecionadas só elas se dobram; senão, as da camada atual.
+tools-magnet-nothing = O Ímã não encontrou nenhuma linha ou forma dentro do círculo ali.

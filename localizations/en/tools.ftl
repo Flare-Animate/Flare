@@ -160,3 +160,7 @@ tools-help-blur = Drag over a bitmap to soften it. Going over a place again in o
 tools-help-smudge = Drag over a bitmap to push its colors along, as a finger through wet paint. Color stretch sets how far a color is carried. Pressure sets the width.
 tools-status-blur = Blur: drag over a bitmap to soften it
 tools-status-smudge = Smudge: drag over a bitmap to push its colors along
+tools-name-magnet = Magnet
+tools-status-magnet = Magnet: drag near a line to bend it
+tools-help-magnet = Drag near a line or shape: it bends to follow, most where you started and not at all at the edge of the circle. With shapes selected only they bend; otherwise those on the current layer.
+tools-magnet-nothing = The Magnet found no line or shape inside its circle there.

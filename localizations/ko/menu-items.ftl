@@ -157,3 +157,4 @@ menu-item-workspace-classic = 클래식
 menu-item-workspace-small-screen = 작은 화면
 menu-item-command-palette = 명령 찾기…
 menu-item-show-swatches = 견본
+menu-item-tool-magnet = 자석

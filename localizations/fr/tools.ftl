@@ -160,3 +160,7 @@ tools-help-blur = Faites glisser sur une image bitmap pour l’adoucir. Repasser
 tools-help-smudge = Faites glisser sur une image bitmap pour entraîner ses couleurs, comme un doigt dans la peinture fraîche. L’étirement de couleur règle jusqu’où une couleur est portée. La pression règle la largeur.
 tools-status-blur = Flou : faites glisser sur une image bitmap pour l’adoucir
 tools-status-smudge = Doigt : faites glisser sur une image bitmap pour entraîner ses couleurs
+tools-name-magnet = Aimant
+tools-status-magnet = Aimant : faites glisser près d’une ligne pour la courber
+tools-help-magnet = Faites glisser près d’une ligne ou d’une forme : elle se courbe à votre suite, surtout là où vous avez commencé et pas du tout au bord du cercle. Si des formes sont sélectionnées, seules elles se courbent ; sinon, celles du calque courant.
+tools-magnet-nothing = L’Aimant n’a trouvé aucune ligne ni forme dans son cercle à cet endroit.

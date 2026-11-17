@@ -63,3 +63,4 @@ out-nothing = 보고할 내용이 없습니다
 hist-magic-wand = 픽셀 지우기
 hist-blur = 흐리기
 hist-smudge = 손끝
+hist-bend-line = 선 구부리기

@@ -156,3 +156,7 @@ tools-help-blur = 비트맵 위를 드래그해 부드럽게 만듭니다. 한 �
 tools-help-smudge = 비트맵 위를 드래그해 젖은 물감을 손가락으로 밀듯 색을 끌고 갑니다. 색 늘이기는 색을 얼마나 멀리 옮길지 정합니다. 필압이 너비를 정합니다.
 tools-status-blur = 흐리기: 비트맵 위를 드래그해 부드럽게 만듭니다
 tools-status-smudge = 손끝: 비트맵 위를 드래그해 색을 끌고 갑니다
+tools-name-magnet = 자석
+tools-status-magnet = 자석: 선 근처를 드래그해 구부립니다
+tools-help-magnet = 선이나 도형 근처를 드래그하면 따라서 구부러집니다. 시작한 곳에서 가장 많이, 원의 가장자리에서는 전혀 움직이지 않습니다. 도형을 선택했으면 그것만, 아니면 현재 레이어의 것이 구부러집니다.
+tools-magnet-nothing = 자석의 원 안에서 선이나 도형을 찾지 못했습니다.

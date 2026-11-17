@@ -37,6 +37,9 @@ const SAME_AS_ENGLISH: &[(&str, &str)] = &[
     ("de", "menu-item-workspace-designer"),
     ("it", "menu-item-workspace-designer"),
     ("pt-BR", "menu-item-workspace-designer"),
+    // The tool's name is the same word in German and Czech.
+    ("de", "menu-item-tool-magnet"),
+    ("cs", "menu-item-tool-magnet"),
 ];
 
 fn allowed(tag: &str, key: &str) -> bool {

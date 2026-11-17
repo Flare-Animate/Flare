@@ -145,6 +145,10 @@ pub(crate) enum Command {
     /// Magic Wand: pick the pixels of a bitmap whose color is like the one at each point (stage
     /// coordinates, in the first scene) and clear them, or with --keep clear all the others.
     MagicWand(crate::magic_wand::MagicWandArgs),
+    /// Magnet: pull the lines and shapes near a stage point (first scene) toward another, most
+    /// at the point and not at all at the edge of the circle, adding points where a line has too
+    /// few to bend; one undo step. Nothing in reach is an error.
+    Magnet(crate::magnet::MagnetArgs),
     /// Blur: soften the bitmap under the first point along a stroke of stage points.
     Blur(project::BlendArgs),
     /// Smudge: push the colors of the bitmap under the first point along a stroke of stage points.

@@ -68,3 +68,4 @@ out-nothing = Není co hlásit
 hist-magic-wand = Vymazat pixely
 hist-blur = Rozostření
 hist-smudge = Rozmazání
+hist-bend-line = Ohnout čáru

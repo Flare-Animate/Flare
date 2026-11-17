@@ -160,3 +160,7 @@ tools-help-blur = Trascina su una bitmap per ammorbidirla. Ripassare nello stess
 tools-help-smudge = Trascina su una bitmap per spingerne i colori, come un dito nella pittura fresca. Allungamento colore decide fin dove un colore viene portato. La pressione decide la larghezza.
 tools-status-blur = Sfoca: trascina su una bitmap per ammorbidirla
 tools-status-smudge = Sfumino: trascina su una bitmap per spingerne i colori
+tools-name-magnet = Magnete
+tools-status-magnet = Magnete: trascina vicino a una linea per piegarla
+tools-help-magnet = Trascina vicino a una linea o forma: si piega seguendoti, di più dove hai iniziato e per nulla al bordo del cerchio. Con forme selezionate si piegano solo quelle, altrimenti quelle del livello corrente.
+tools-magnet-nothing = Il Magnete non ha trovato linee né forme nel suo cerchio in quel punto.

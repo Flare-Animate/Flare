@@ -160,3 +160,7 @@ tools-help-blur = Arrastre sobre un mapa de bits para suavizarlo. Volver a pasar
 tools-help-smudge = Arrastre sobre un mapa de bits para arrastrar sus colores, como un dedo en pintura húmeda. Estiramiento de color fija hasta dónde se lleva un color. La presión fija el ancho.
 tools-status-blur = Desenfocar: arrastre sobre un mapa de bits para suavizarlo
 tools-status-smudge = Difuminar: arrastre sobre un mapa de bits para arrastrar sus colores
+tools-name-magnet = Imán
+tools-status-magnet = Imán: arrastra cerca de una línea para doblarla
+tools-help-magnet = Arrastra cerca de una línea o forma: se dobla siguiéndote, más donde empezaste y nada en el borde del círculo. Con formas seleccionadas solo se doblan ellas; si no, las de la capa actual.
+tools-magnet-nothing = El Imán no encontró ninguna línea ni forma dentro de su círculo ahí.

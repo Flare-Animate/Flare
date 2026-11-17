@@ -173,6 +173,7 @@ impl MenuAction {
             Self::ToolPencil => "tool-pencil",
             Self::ToolBrush => "tool-brush",
             Self::ToolRuler => "tool-ruler",
+            Self::ToolMagnet => "tool-magnet",
             Self::ToolMirror | Self::MirrorCopyHorizontal | Self::MirrorCopyVertical => {
                 "tool-mirror"
             }

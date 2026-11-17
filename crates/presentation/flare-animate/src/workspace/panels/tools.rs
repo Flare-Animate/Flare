@@ -82,6 +82,7 @@ impl Workspace {
         let icon = match self.tool {
             Tool::Select => return,
             Tool::Subselection => "tool-subselection",
+            Tool::Magnet => "tool-magnet",
             Tool::AddAnchor => "tool-anchor-add",
             Tool::DeleteAnchor => "tool-anchor-delete",
             Tool::ConvertAnchor => "tool-anchor-convert",
@@ -145,6 +146,7 @@ impl Workspace {
             Tool::Hand => {
                 ui.weak(tr!(self, "tools-help-hand"));
             }
+            Tool::Magnet => self.magnet_options(ui),
             Tool::RotateView => self.rotate_view_options(ui),
             Tool::Zoom => {
                 ui.weak(tr!(self, "tools-help-zoom"));
@@ -241,6 +243,7 @@ impl Workspace {
         let key = match self.tool {
             Tool::Select => "tools-status-selection",
             Tool::Subselection => "tools-status-subselection",
+            Tool::Magnet => "tools-status-magnet",
             Tool::AddAnchor => "tools-status-add-anchor",
             Tool::DeleteAnchor => "tools-status-delete-anchor",
             Tool::ConvertAnchor => "tools-status-convert-anchor",

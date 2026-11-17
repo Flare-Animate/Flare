@@ -16,6 +16,7 @@ mod camera;
 mod draw;
 mod interchange;
 mod magic_wand;
+mod magnet;
 mod multi_frame;
 mod render;
 mod sound;
@@ -40,6 +41,7 @@ pub use interchange::{
     publish_swf, test_movie,
 };
 pub use magic_wand::{WandRequest, magic_wand};
+pub use magnet::{MagnetRequest, magnet};
 pub use multi_frame::transform_frames;
 #[allow(unused_imports)]
 use render::*;

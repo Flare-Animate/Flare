@@ -6,6 +6,7 @@ mod commands;
 mod game;
 mod lipsync;
 mod magic_wand;
+mod magnet;
 mod mannequin;
 mod project;
 mod shortcuts;
@@ -269,6 +270,7 @@ fn run() -> Result<()> {
             layer,
         )?,
         Command::MagicWand(args) => magic_wand::run(args)?,
+        Command::Magnet(args) => magnet::run(args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
         Command::Smudge(args) => {
             project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?

@@ -206,6 +206,20 @@ as Animate's and most painting programs' pickers do: pure red is 0°, 100%, 100%
 used before, had tracks with no numbers on them. The letters and names are in the interface's
 language; a hue is kept through a trip to grey or black, which have none.
 
+## The Magnet
+
+The Magnet (in the Selection cell, under Subselection) bends line art by pulling it, after
+OpenToonz's Magnet: drag near a line or shape and every point of it within the circle drawn
+around the pointer moves with the drag, the point where the drag started all the way, the rest
+less the farther they are, those at the circle's edge not at all. A line with too few points to
+bend smoothly (a straight line has two) gets points added along the stretch in the circle first,
+up to the segment limit. With shapes selected only they bend; otherwise the shapes on the layer
+being drawn on. The stage shows the pull while the button is held, made with the batch the release
+commits, and the release is one undo step (`Bend the line`); Escape drops it, and a pull that
+reaches nothing says so in the status bar. The size of the circle is in Properties, 2 to 1000
+pixels (40 to start). The geometry is `flare_tools::magnet`, which the command line and the MCP
+server use too.
+
 ## Grid
 
 View > Show Grid, or the grid button in the stage's bar, draws lines over the stage. The arrow just
@@ -399,7 +413,7 @@ The tools are in two columns, in the order Animate's toolbar has them, divided b
 categories: Selection, Free Transform, Lasso; Pencil, Brush, Eraser, Rectangle, Line; Pen, Text,
 Paint Bucket, Eyedropper, Asset Warp; Hand, Zoom and the "…" button. As in Animate a cell is a slot
 that holds related tools and shows the one in use, with a small triangle in its corner: Selection
-holds Subselection, Free Transform holds Gradient Transform, Lasso holds Polygon (click the corners of a loop; a double click, Enter or a click on the first corner closes it and selects what it encloses) and Magic Wand (see Magic Wand above),
+holds Subselection and the Magnet (see The Magnet below), Free Transform holds Gradient Transform, Lasso holds Polygon (click the corners of a loop; a double click, Enter or a click on the first corner closes it and selects what it encloses) and Magic Wand (see Magic Wand above),
 Rectangle holds Oval, Rectangle Primitive, Oval Primitive and PolyStar, Pen holds Add, Delete and
 Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, and Hand holds Rotation and Time scrub. Press and hold a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell

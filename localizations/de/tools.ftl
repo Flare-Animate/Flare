@@ -160,3 +160,7 @@ tools-help-blur = Ziehen Sie über eine Bitmap, um sie weichzuzeichnen. Erneutes
 tools-help-smudge = Ziehen Sie über eine Bitmap, um ihre Farben mitzuziehen wie ein Finger durch nasse Farbe. Farbdehnung bestimmt, wie weit eine Farbe getragen wird. Der Druck bestimmt die Breite.
 tools-status-blur = Weichzeichner: Ziehen Sie über eine Bitmap, um sie weichzuzeichnen
 tools-status-smudge = Wischfinger: Ziehen Sie über eine Bitmap, um ihre Farben mitzuziehen
+tools-name-magnet = Magnet
+tools-status-magnet = Magnet: nahe einer Linie ziehen, um sie zu biegen
+tools-help-magnet = Nahe einer Linie oder Form ziehen: Sie biegt sich mit, am meisten dort, wo Sie begonnen haben, am Rand des Kreises gar nicht. Sind Formen ausgewählt, biegen sich nur diese, sonst die auf der aktuellen Ebene.
+tools-magnet-nothing = Der Magnet hat dort in seinem Kreis keine Linie und keine Form gefunden.

@@ -59,6 +59,7 @@ pub(crate) static SLOT_GROUPS: &[&[Slot]] = &[
         &[
             real("tool-selection", "Selection", "V", Tool::Select),
             real("tool-subselection", "Subselection", "A", Tool::Subselection),
+            real("tool-magnet", "Magnet", "", Tool::Magnet),
         ],
         &[
             real("tool-transform", "Free Transform", "Q", Tool::FreeTransform),

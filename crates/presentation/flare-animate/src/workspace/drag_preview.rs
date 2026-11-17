@@ -81,6 +81,9 @@ impl Workspace {
     /// Making the copy costs what the release costs (a move of 100 spans in a 5 000-layer
     /// document is 0.5 ms, see docs/PERFORMANCE.md) and is redone only when the drag moves.
     pub(super) fn previewed_document(&mut self) -> Option<(u64, Arc<Document>)> {
+        if self.magnet_held() {
+            return self.magnet_preview();
+        }
         let edit = self
             .drag
             .filter(|_| !self.drag_cancelled)

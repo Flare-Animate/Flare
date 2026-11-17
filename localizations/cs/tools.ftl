@@ -161,3 +161,7 @@ tools-help-blur = Táhněte přes bitmapu a změkčíte ji. Opakovaný přejezd 
 tools-help-smudge = Táhněte přes bitmapu a posunete její barvy, jako prstem v mokré barvě. Protažení barvy určuje, jak daleko se barva nese. Přítlak určuje šířku.
 tools-status-blur = Rozostření: táhněte přes bitmapu a změkčíte ji
 tools-status-smudge = Rozmazání: táhněte přes bitmapu a posunete její barvy
+tools-name-magnet = Magnet
+tools-status-magnet = Magnet: táhněte u čáry a ohnete ji
+tools-help-magnet = Táhněte u čáry nebo tvaru: ohne se za vámi, nejvíc tam, kde jste začali, a na okraji kruhu vůbec. Jsou-li tvary vybrané, ohnou se jen ony, jinak ty na aktuální vrstvě.
+tools-magnet-nothing = Magnet tam ve svém kruhu nenašel žádnou čáru ani tvar.

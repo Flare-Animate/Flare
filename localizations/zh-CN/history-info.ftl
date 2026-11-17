@@ -63,3 +63,4 @@ out-nothing = 没有可报告的内容
 hist-magic-wand = 清除像素
 hist-blur = 模糊
 hist-smudge = 涂抹
+hist-bend-line = 弯曲线条

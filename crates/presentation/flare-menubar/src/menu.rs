@@ -316,6 +316,7 @@ pub const OFF_MENU: &[MenuAction] = &[
     A::ToolBrush,
     A::ToolRuler,
     A::ToolMirror,
+    A::ToolMagnet,
     A::ShowHome,
 ];
 

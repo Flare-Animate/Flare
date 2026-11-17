@@ -281,6 +281,7 @@ impl MenuAction {
             Self::ToolBrush => "menu-item-tool-brush",
             Self::ToolRuler => "menu-item-tool-ruler",
             Self::ToolMirror => "menu-item-tool-mirror",
+            Self::ToolMagnet => "menu-item-tool-magnet",
             Self::MirrorCopyHorizontal => "menu-item-mirror-copy-horizontal",
             Self::MirrorCopyVertical => "menu-item-mirror-copy-vertical",
             Self::ZoomIn => "menu-item-zoom-in",

@@ -156,3 +156,7 @@ tools-help-blur = 在位图上拖动以柔化它。一笔之内重复经过同�
 tools-help-smudge = 在位图上拖动，像手指划过湿颜料一样推开颜色。颜色延展决定颜色被带多远。压感决定宽度。
 tools-status-blur = 模糊：在位图上拖动以柔化它
 tools-status-smudge = 涂抹：在位图上拖动以推开颜色
+tools-name-magnet = 磁铁
+tools-status-magnet = 磁铁：在线条附近拖动以弯曲它
+tools-help-magnet = 在线条或形状附近拖动，它会跟着弯曲：起点处弯得最多，圆的边缘处完全不动。选中了形状时只弯曲选中的，否则弯曲当前图层上的。
+tools-magnet-nothing = 磁铁在那里的圆圈内没有找到线条或形状。

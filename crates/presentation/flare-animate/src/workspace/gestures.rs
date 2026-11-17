@@ -59,6 +59,10 @@ impl Workspace {
                 self.begin_anchor_drag(point);
                 None
             }
+            Tool::Magnet => {
+                self.begin_magnet(point);
+                None
+            }
             // These two act on a click; see `anchor_click`.
             Tool::AddAnchor | Tool::DeleteAnchor => None,
             Tool::Select | Tool::FreeTransform => {
@@ -295,6 +299,7 @@ impl Workspace {
 
     pub(super) fn update_drag(&mut self, point: Pos2) {
         self.update_anchor_drag(point);
+        self.update_magnet(point);
         if let Some(drag) = &mut self.drag {
             drag.current = point;
         }
@@ -303,6 +308,7 @@ impl Workspace {
     pub(super) fn end_drag(&mut self) {
         let cancelled = std::mem::take(&mut self.drag_cancelled);
         self.end_anchor_drag(cancelled);
+        self.end_magnet(cancelled);
         if let Some(drag) = self.drag.take()
             && !cancelled
         {
@@ -336,7 +342,7 @@ impl Workspace {
         self.stabilizer = None;
         self.cancel_erase();
         self.cancel_blend();
-        if self.anchor_drag.take().is_some() {
+        if self.anchor_drag.take().is_some() || self.cancel_magnet() {
             self.drag_cancelled = true;
         }
         if self.drag.take().is_some() {

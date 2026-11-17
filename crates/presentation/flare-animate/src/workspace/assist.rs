@@ -231,6 +231,7 @@ impl Workspace {
         to_screen: impl Fn(Pos2) -> Pos2,
         scale: f32,
     ) {
+        self.draw_magnet(painter, &to_screen, scale);
         if let Some(drag) = self.drag.filter(|d| d.mode == DragMode::Draw) {
             let (from, to) = (to_screen(drag.start), to_screen(self.draw_end(&drag)));
             let preview = Rect::from_two_pos(from, to);

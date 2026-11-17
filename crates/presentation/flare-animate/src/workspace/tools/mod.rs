@@ -10,6 +10,7 @@ pub(super) mod eraser;
 pub(super) mod hand;
 pub(super) mod lasso;
 pub(super) mod magic_wand;
+pub(super) mod magnet;
 pub(super) mod paint;
 pub(super) mod paint_pointer;
 pub(super) mod pen;
@@ -25,4 +26,5 @@ pub(super) mod text_preview;
 #[derive(Default)]
 pub(in crate::workspace) struct Springs {
     pub(in crate::workspace) hand: hand::HandSpring,
+    pub(in crate::workspace) magnet: magnet::MagnetState,
 }
