@@ -1,5 +1,6 @@
 //! The Preferences window, and the Open Recent window.
 
+use crate::workspace::stage_furniture::{MAX_GRID, MIN_GRID};
 use crate::workspace::*;
 
 impl Workspace {
@@ -67,6 +68,8 @@ impl Workspace {
             return;
         }
         let mut edited = self.preferences();
+        let color_texts = self.color_texts();
+        let grid_ink = self.grid_ink();
         let tr = &self.translator;
         let system_label = self.system_choice_label();
         // A dialog in the middle of the window over a dimmed backdrop, as PaintCraft's are:
@@ -151,13 +154,33 @@ impl Workspace {
                 ui.checkbox(&mut edited.show_rulers, tr.text("prefs-show-rulers"));
                 ui.checkbox(&mut edited.show_grid, tr.text("prefs-show-grid"));
                 ui.checkbox(&mut edited.snap_to_grid, tr.text("prefs-snap-to-grid"));
-                labelled(ui, "prefs-grid-size", &mut |ui| {
-                    ui.add(
-                        egui::DragValue::new(&mut edited.grid_size)
-                            .range(1.0..=500.0)
-                            .suffix(" px"),
-                    );
+                let mut down = edited.grid_size_down.unwrap_or(edited.grid_size);
+                for (key, size) in [
+                    ("bar-grid-across", &mut edited.grid_size),
+                    ("bar-grid-down", &mut down),
+                ] {
+                    labelled(ui, key, &mut |ui| {
+                        ui.add(
+                            egui::DragValue::new(&mut *size)
+                                .range(MIN_GRID..=MAX_GRID)
+                                .suffix(" px"),
+                        );
+                    });
+                }
+                edited.grid_size_down = Some(down);
+                let mut automatic = edited.grid_color.is_none();
+                let [r, g, b, a] = edited
+                    .grid_color
+                    .unwrap_or_else(|| grid_ink.to_srgba_unmultiplied());
+                let mut color = egui::Color32::from_rgba_unmultiplied(r, g, b, a);
+                ui.horizontal_wrapped(|ui| {
+                    ui.checkbox(&mut automatic, tr.text("bar-grid-color-auto"));
+                    ui.add_enabled_ui(!automatic, |ui| {
+                        flare_ui::color_picker::color_button(ui, &mut color, &color_texts);
+                        ui.label(tr.text("bar-grid-color"));
+                    });
                 });
+                edited.grid_color = (!automatic).then(|| color.to_srgba_unmultiplied());
             });
             flare_ui::chrome::group(ui, "transport-loop", &tr.text("prefs-timeline"), |ui| {
                 ui.checkbox(&mut edited.loop_playback, tr.text("prefs-loop-playback"));

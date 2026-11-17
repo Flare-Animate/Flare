@@ -206,6 +206,19 @@ as Animate's and most painting programs' pickers do: pure red is 0°, 100%, 100%
 used before, had tracks with no numbers on them. The letters and names are in the interface's
 language; a hue is kept through a trip to grey or black, which have none.
 
+## Grid
+
+View > Show Grid, or the grid button in the stage's bar, draws lines over the stage. The arrow just
+after the grid button opens the grid's settings, as Animate's Edit Grid has them: Show grid, Snap to
+grid, Horizontal spacing and Vertical spacing (each 1 to 500 units, 20 to start, as slider rows with
+their numbers), the color and Reset grid. The color is automatic to start: grey as Animate's is,
+dark on a light stage and light on a dark one, so the grid shows on any background; untick
+Automatic color and the swatch beside it picks any color, with its opacity. Preferences has the
+same spacing and color, and they are kept with the preferences (a file from before the two
+spacings has one for both). Lines closer than six screen points are not drawn, across and down
+apart. Snap to Grid rounds the points the drawing tools place, and moves, to the grid, each way on
+its own spacing.
+
 ## Guides
 
 Drag from the top or left ruler to pull a guide onto the stage; drag a guide to move it, or back

@@ -7,7 +7,61 @@ use flare_editor::timeline_view;
 
 use super::*;
 
+/// The grid's spacing to start with, across and down, in stage units.
+pub(super) const DEFAULT_GRID: f32 = 20.0;
+/// The closest and widest spacing the grid takes, in stage units.
+pub(super) const MIN_GRID: f32 = 1.0;
+pub(super) const MAX_GRID: f32 = 500.0;
+
+/// One spacing brought into range; one that is not a number is the default.
+pub(super) fn grid_step(step: f32) -> f32 {
+    if step.is_finite() {
+        step.clamp(MIN_GRID, MAX_GRID)
+    } else {
+        DEFAULT_GRID
+    }
+}
+
+/// The grid's lines on a stage of `background` when no color is chosen: grey, as Animate's are,
+/// dark on a light stage and light on a dark one, so they show on any stage (white lines were
+/// lost on the white stage most documents have).
+pub(super) fn automatic_grid_ink(background: Rgba8) -> Color32 {
+    let [r, g, b, _] = background.to_array();
+    let light = 0.299 * f32::from(r) + 0.587 * f32::from(g) + 0.114 * f32::from(b) > 128.0;
+    if light {
+        Color32::from_black_alpha(96)
+    } else {
+        Color32::from_white_alpha(96)
+    }
+}
+
 impl Workspace {
+    /// The grid's spacing across and down, in stage units.
+    pub fn grid_spacing(&self) -> Vec2 {
+        self.display.grid_size
+    }
+
+    /// Sets the grid's spacing across and down, each kept from 1 to 500 units.
+    pub fn set_grid_spacing(&mut self, across: f32, down: f32) {
+        self.display.grid_size = Vec2::new(grid_step(across), grid_step(down));
+    }
+
+    /// The grid's chosen color, or `None` when it follows the stage's background.
+    pub fn grid_color(&self) -> Option<Color32> {
+        self.display.grid_color
+    }
+
+    pub fn set_grid_color(&mut self, color: Option<Color32>) {
+        self.display.grid_color = color;
+    }
+
+    /// The color the grid's lines are drawn in.
+    pub(super) fn grid_ink(&self) -> Color32 {
+        self.display
+            .grid_color
+            .unwrap_or_else(|| automatic_grid_ink(self.document().stage().background()))
+    }
+
     /// Stage size and background. Size edits apply on release or Enter so that scrubbing a
     /// value is a single undo step.
     pub(super) fn stage_settings(&mut self, ui: &mut egui::Ui) {
@@ -86,27 +140,25 @@ impl Workspace {
         extent: Vec2,
         scale: f32,
     ) {
-        let step = self.display.grid_size.max(1.0);
-        if step * scale < 6.0 {
-            return;
-        }
-        let ink = Stroke::new(1.0, Color32::from_white_alpha(22));
+        // Lines too close together to see are not drawn: those across and those down apart.
+        let step = self.display.grid_size.max(Vec2::splat(MIN_GRID));
+        let ink = Stroke::new(1.0, self.grid_ink());
         let clip = image.intersect(panel);
         let mut x = 0.0;
-        while x <= extent.x {
+        while step.x * scale >= 6.0 && x <= extent.x {
             let sx = image.min.x + x * scale;
             if sx >= clip.min.x && sx <= clip.max.x {
                 painter.vline(sx, clip.y_range(), ink);
             }
-            x += step;
+            x += step.x;
         }
         let mut y = 0.0;
-        while y <= extent.y {
+        while step.y * scale >= 6.0 && y <= extent.y {
             let sy = image.min.y + y * scale;
             if sy >= clip.min.y && sy <= clip.max.y {
                 painter.hline(clip.x_range(), sy, ink);
             }
-            y += step;
+            y += step.y;
         }
     }
 

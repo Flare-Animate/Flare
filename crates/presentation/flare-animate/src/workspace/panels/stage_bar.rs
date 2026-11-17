@@ -285,6 +285,8 @@ impl Workspace {
                 {
                     self.perform(MenuAction::ToggleRulers);
                 }
+                // Laid out from the right: the arrow for the grid's settings sits just after it.
+                self.grid_settings_button(ui, BAR_ICON);
                 if chrome::icon_button(ui, "grid", BAR_ICON, self.display.show_grid, true, grid)
                     .clicked()
                 {

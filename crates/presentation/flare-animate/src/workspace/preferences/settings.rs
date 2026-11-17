@@ -18,8 +18,12 @@ pub struct Preferences {
     pub show_rulers: bool,
     pub show_grid: bool,
     pub snap_to_grid: bool,
-    /// Grid spacing in stage units.
+    /// Grid spacing in stage units: across, and down when it differs (files from before the two
+    /// were apart have one spacing for both).
     pub grid_size: f32,
+    pub grid_size_down: Option<f32>,
+    /// The grid's color as red, green, blue and alpha; `None` follows the stage's background.
+    pub grid_color: Option<[u8; 4]>,
     pub loop_playback: bool,
     /// How wide the timeline's column of layer names is, in points.
     pub timeline_names_width: f32,
@@ -98,6 +102,8 @@ impl Default for Preferences {
             show_grid: false,
             snap_to_grid: false,
             grid_size: 20.0,
+            grid_size_down: None,
+            grid_color: None,
             loop_playback: true,
             timeline_names_width: crate::workspace::timeline::LABEL_W,
             onion_before: 1,

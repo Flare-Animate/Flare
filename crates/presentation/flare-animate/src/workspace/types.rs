@@ -1,6 +1,6 @@
 //! The small types the workspace is made of.
 
-use egui::{Key, Pos2, Rect};
+use egui::{Key, Pos2, Rect, Vec2};
 use flare_core::{LayerId, Rgba8, SymbolId};
 use flare_history::EditorSession;
 use flare_runtime::{Rendered, Runtime};
@@ -186,12 +186,12 @@ pub(super) fn tool_acts_on_press(tool: Tool) -> bool {
     matches!(tool, Tool::Bucket | Tool::InkBottle | Tool::Eyedropper)
 }
 
-/// `point` rounded to the nearest multiple of `grid` on each axis.
-pub(super) fn snap_point(point: Pos2, grid: f32) -> Pos2 {
-    let grid = grid.max(f32::EPSILON);
+/// `point` rounded to the nearest multiple of `grid` on each axis: its spacing across and down.
+pub(super) fn snap_point(point: Pos2, grid: Vec2) -> Pos2 {
+    let grid = grid.max(Vec2::splat(f32::EPSILON));
     Pos2::new(
-        (point.x / grid).round() * grid,
-        (point.y / grid).round() * grid,
+        (point.x / grid.x).round() * grid.x,
+        (point.y / grid.y).round() * grid.y,
     )
 }
 

@@ -1,7 +1,7 @@
 //! Cohesive parts of the workspace's state, each with its own defaults, so the workspace itself
 //! holds a handful of concerns instead of every setting as a field of its own.
 
-use egui::{Color32, Pos2};
+use egui::{Color32, Pos2, Vec2};
 use flare_core::{SoundId, SymbolId};
 use flare_document::{Cap, Join};
 use flare_menubar::MenuAction;
@@ -125,8 +125,10 @@ pub(super) struct Display {
     pub(super) show_grid: bool,
     /// Points drawn and moves are rounded to the grid.
     pub(super) snap_to_grid: bool,
-    /// Grid spacing in stage units.
-    pub(super) grid_size: f32,
+    /// Grid spacing in stage units, across and down.
+    pub(super) grid_size: Vec2,
+    /// The grid's color; `None` picks one that shows on the stage's background.
+    pub(super) grid_color: Option<Color32>,
     /// Guides pulled out of the rulers, and whether they show.
     pub(super) guides: Vec<guides::Guide>,
     pub(super) show_guides: bool,
@@ -151,7 +153,8 @@ impl Default for Display {
             show_rulers: true,
             show_grid: false,
             snap_to_grid: false,
-            grid_size: 20.0,
+            grid_size: Vec2::splat(super::stage_furniture::DEFAULT_GRID),
+            grid_color: None,
             guides: Vec::new(),
             show_guides: true,
             guide_drag: None,
