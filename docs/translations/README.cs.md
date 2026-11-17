@@ -40,6 +40,10 @@ V polovině doplnění, se cibulovými slupkami, které ukazují okolní snímky
 
 Pořízeno v prohlížečové verzi, která spouští stejný editor jako desktopová aplikace.
 
+<img src="../../assets/screenshots/bouncing-ball.gif" width="800" alt="Ručně kreslený žlutý míček, který skáče, při dopadu se zplošťuje a při pádu natahuje.">
+
+Vytvořeno ve Flare: ručně kreslený skákající míček, který se při dopadu zplošťuje a při pádu natahuje.
+
 ## Funkce
 
 - Kreslení perem, štětcem a tvarovými nástroji, s výběrovým nástrojem pro přesouvání, seskupování a úpravy tvarů a se styly tahu (plný, čárkovaný, tečkovaný, puntíkovaný, šrafovaný, roztřepený, rybí kost, lano, cik-cak).

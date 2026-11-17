@@ -40,6 +40,10 @@ Halfway through the tween, with onion skin showing the frames around it and the 
 
 Taken in the browser build, which runs the same editor as the desktop app.
 
+<img src="assets/screenshots/bouncing-ball.gif" width="800" alt="A hand-drawn yellow ball bouncing, squashing as it lands and stretching as it falls.">
+
+Made in Flare: a hand-drawn bouncing ball, squashing as it lands and stretching as it falls.
+
 ## Features
 
 - Drawing with pen, brush and shape tools, with a selection tool for moving, grouping and editing shapes, and stroke styles (solid, dashed, dotted, stipple, hatched, ragged, herringbone, rope, zigzag).

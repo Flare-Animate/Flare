@@ -40,6 +40,10 @@ A mitad de la interpolación, con papel cebolla mostrando los fotogramas de alre
 
 Tomadas en la versión para navegador, que ejecuta el mismo editor que la aplicación de escritorio.
 
+<img src="../../assets/screenshots/bouncing-ball.gif" width="800" alt="Una pelota amarilla dibujada a mano que rebota, se aplasta al caer al suelo y se estira mientras cae.">
+
+Hecho con Flare: una pelota dibujada a mano que rebota, se aplasta al caer al suelo y se estira mientras cae.
+
 ## Funciones
 
 - Dibujo con herramientas de lápiz, pincel y formas, con una herramienta de selección para mover, agrupar y editar formas, y estilos de trazo (sólido, discontinuo, punteado, stipple, rayado, irregular, espina de pescado, cuerda, zigzag).

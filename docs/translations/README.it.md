@@ -40,6 +40,10 @@ A metà dell'interpolazione, con l'onion skin che mostra i fotogrammi vicini e i
 
 Catturate nella versione per browser, che esegue lo stesso editor dell'app desktop.
 
+<img src="../../assets/screenshots/bouncing-ball.gif" width="800" alt="Una palla gialla disegnata a mano che rimbalza, si schiaccia all'impatto e si allunga mentre cade.">
+
+Realizzato con Flare: una palla disegnata a mano che rimbalza, si schiaccia all'impatto e si allunga mentre cade.
+
 ## Funzionalità
 
 - Disegno con penna, pennello e strumenti forma, con uno strumento di selezione per spostare, raggruppare e modificare le forme, e stili di tratto (continuo, tratteggiato, punteggiato, puntinato, tratteggio incrociato, irregolare, a spina di pesce, corda, zigzag).
