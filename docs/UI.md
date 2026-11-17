@@ -194,6 +194,18 @@ a Color panel with a fill-type dropdown, hex
 field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown
 and a close button on the document tab.
 
+## Color picker
+
+Every color is picked with Flare's own picker (`flare_ui::color_picker`): the Color panel, the
+fill and stroke squares in the tool strip, the swatches in Properties, the stage and new-document
+backgrounds and the onion skin tints. A square sets saturation (across) and brightness (up) for the
+hue in hand; under it a track for each of hue, saturation, brightness and alpha has its number
+beside it (degrees for the hue, percent for the rest), which can be dragged or typed, and the red,
+green and blue are numbers from 0 to 255 under them. The numbers are counted over the sRGB values,
+as Animate's and most painting programs' pickers do: pure red is 0°, 100%, 100%. egui's picker,
+used before, had tracks with no numbers on them. The letters and names are in the interface's
+language; a hue is kept through a trip to grey or black, which have none.
+
 ## Guides
 
 Drag from the top or left ruler to pull a guide onto the stage; drag a guide to move it, or back

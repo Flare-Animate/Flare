@@ -59,13 +59,14 @@ impl Workspace {
         ui.checkbox(&mut onion.outlines, tr!(self, "timeline-onion-outlines"));
         ui.checkbox(&mut onion.tinted, tr!(self, "timeline-onion-tinted"));
         let (mut early, mut late) = (to_egui(onion.before_color), to_egui(onion.after_color));
+        let texts = self.color_texts();
         ui.add_enabled_ui(onion.tinted, |ui| {
             for (label, color) in [
                 (tr!(self, "timeline-onion-before-color"), &mut early),
                 (tr!(self, "timeline-onion-after-color"), &mut late),
             ] {
                 ui.horizontal(|ui| {
-                    ui.color_edit_button_srgba(color);
+                    flare_ui::color_picker::color_button(ui, color, &texts);
                     ui.label(label);
                 });
             }

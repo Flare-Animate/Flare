@@ -3,7 +3,6 @@
 //! them, as in Animate's toolbar. In a strip one tool wide the same box is drawn smaller. No color
 //! is at the top of each swatch's picker.
 
-use egui::color_picker::{Alpha, color_picker_color32};
 use egui::{Color32, Popup, PopupCloseBehavior, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, vec2};
 use flare_ui::{icons, theme};
 
@@ -111,6 +110,7 @@ impl Workspace {
             tr!(self, "col-no-fill"),
         );
         let (defaults_hint, swap_hint) = (tr!(self, "col-black-white"), tr!(self, "col-swap"));
+        let texts = self.color_texts();
         // The fill, behind.
         let fill = ui
             .interact(
@@ -155,7 +155,7 @@ impl Workspace {
             Popup::from_toggle_button_response(response)
                 .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
                 .show(|ui| {
-                    ui.spacing_mut().slider_width = 200.0;
+                    ui.set_width(240.0);
                     // As in Animate's swatch picker: a way to have none of this color.
                     let none = ui
                         .add(egui::Button::image_and_text(
@@ -169,7 +169,7 @@ impl Workspace {
                     if none.clicked() {
                         *color = Color32::TRANSPARENT;
                     }
-                    color_picker_color32(ui, color, Alpha::OnlyBlend);
+                    flare_ui::color_picker::color_picker(ui, color, &texts);
                 });
         }
         if tiny_button(ui, rects.defaults, "default-colors", &defaults_hint) {

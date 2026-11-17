@@ -39,7 +39,8 @@ impl Workspace {
         }
         let bg = stage.background().to_array();
         let mut color = Color32::from_rgba_unmultiplied(bg[0], bg[1], bg[2], bg[3]);
-        if ui.color_edit_button_srgba(&mut color).changed() {
+        let texts = self.color_texts();
+        if flare_ui::color_picker::color_button(ui, &mut color, &texts).changed() {
             let c = color.to_srgba_unmultiplied();
             self.set_stage_background(Rgba8::new(c[0], c[1], c[2], c[3]));
         }

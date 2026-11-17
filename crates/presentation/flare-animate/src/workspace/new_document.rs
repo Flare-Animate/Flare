@@ -156,6 +156,7 @@ impl Workspace {
             cancel,
         };
         section_title(ui, &self.tr("start-details"));
+        let texts = self.color_texts();
         let field = |ui: &mut Ui, label: String| {
             ui.label(egui::RichText::new(label).color(theme::text_dim()));
         };
@@ -192,7 +193,7 @@ impl Workspace {
                 field(ui, self.tr("start-background"));
                 let [r, g, b, a] = doc.background.to_array();
                 let mut color = Color32::from_rgba_unmultiplied(r, g, b, a);
-                if ui.color_edit_button_srgba(&mut color).changed() {
+                if flare_ui::color_picker::color_button(ui, &mut color, &texts).changed() {
                     let [r, g, b, a] = color.to_array();
                     doc.background = Rgba8::new(r, g, b, a);
                 }

@@ -38,6 +38,27 @@ const SWATCHES: [[u8; 3]; 24] = [
 impl Workspace {
     // ---- color -------------------------------------------------------------------------
 
+    /// The names Flare's color picker shows, in the person's language.
+    pub(crate) fn color_texts(&self) -> flare_ui::color_picker::ColorTexts {
+        let channel =
+            |short: String, name: String| flare_ui::color_picker::ChannelText { short, name };
+        flare_ui::color_picker::ColorTexts {
+            hue: channel(tr!(self, "col-hue-short"), tr!(self, "col-hue")),
+            saturation: channel(
+                tr!(self, "col-saturation-short"),
+                tr!(self, "col-saturation"),
+            ),
+            brightness: channel(
+                tr!(self, "col-brightness-short"),
+                tr!(self, "col-brightness"),
+            ),
+            alpha: channel(tr!(self, "col-alpha-short"), tr!(self, "col-alpha")),
+            red: channel(tr!(self, "col-red-short"), tr!(self, "col-red")),
+            green: channel(tr!(self, "col-green-short"), tr!(self, "col-green")),
+            blue: channel(tr!(self, "col-blue-short"), tr!(self, "col-blue")),
+        }
+    }
+
     pub(crate) fn color_panel(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             for (target, icon, hint) in [
@@ -63,12 +84,13 @@ impl Workspace {
             }));
         });
         let (hex_label, swatches) = (tr!(self, "col-hex"), tr!(self, "col-swatches"));
+        let texts = self.color_texts();
         let target = match self.color_target {
             ColorTarget::Fill => &mut self.paint.fill,
             ColorTarget::Stroke => &mut self.paint.stroke_color,
             ColorTarget::GradientEnd => &mut self.paint.gradient_end,
         };
-        egui::color_picker::color_picker_color32(ui, target, egui::color_picker::Alpha::OnlyBlend);
+        flare_ui::color_picker::color_picker(ui, target, &texts);
         ui.add_space(4.0);
         chrome::row(ui, &hex_label, |ui| {
             let c = *target;

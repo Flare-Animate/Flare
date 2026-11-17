@@ -208,6 +208,7 @@ impl Workspace {
         });
         chrome::section(ui, "fill-color", &tr!(self, "opt-fill-stroke"));
         let (gradient_word, outline_word) = (tr!(self, "opt-gradient"), tr!(self, "opt-outline"));
+        let texts = self.color_texts();
         let (none, round, square) = (
             tr!(self, "opt-cap-none"),
             tr!(self, "opt-round"),
@@ -216,7 +217,7 @@ impl Workspace {
         let (bevel, miter) = (tr!(self, "opt-bevel"), tr!(self, "opt-miter"));
         let (mut changed, mut immediate, mut typing) = (false, false, false);
         chrome::row(ui, &tr!(self, "opt-fill"), |ui| {
-            if ui.color_edit_button_srgba(&mut e.fill).changed() {
+            if flare_ui::color_picker::color_button(ui, &mut e.fill, &texts).changed() {
                 e.fill_changed = true;
                 changed = true;
             }
@@ -225,7 +226,7 @@ impl Workspace {
             }
         });
         chrome::row(ui, &tr!(self, "opt-stroke"), |ui| {
-            if ui.color_edit_button_srgba(&mut e.color).changed() {
+            if flare_ui::color_picker::color_button(ui, &mut e.color, &texts).changed() {
                 e.stroke_changed = true;
                 changed = true;
             }
