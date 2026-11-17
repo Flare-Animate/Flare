@@ -19,6 +19,20 @@ impl Workspace {
 
     pub(super) fn begin_drag_with(&mut self, point: Pos2, additive: bool) {
         self.drag_cancelled = false;
+        // Drawing lets go of the selection, as Animate does, so its box is not left over the
+        // new stroke (it looked like the stroke had become a rectangle's outline).
+        if matches!(
+            self.tool,
+            Tool::Pencil
+                | Tool::Brush
+                | Tool::Rectangle
+                | Tool::Ellipse
+                | Tool::Line
+                | Tool::PolyStar
+        ) {
+            self.selected = None;
+            self.also_selected.clear();
+        }
         let mode = match self.tool {
             Tool::Rectangle | Tool::Ellipse | Tool::Line | Tool::PolyStar => Some(DragMode::Draw),
             // The pen builds a path point by point; see `pen_press`.
