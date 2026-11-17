@@ -106,6 +106,46 @@ fn a_new_keyframe_stops_at_the_next_one_and_honours_an_explicit_length() {
 }
 
 #[test]
+fn drawing_on_an_empty_frame_past_a_keyframe_holds_that_keyframe_up_to_it() {
+    let mut f = fixture();
+    let target = Target::Layer(f.layer);
+    draw(&mut f, target, 0, vec![shape(0.0)]).expect("first");
+    draw(&mut f, target, 5, vec![shape(20.0)]).expect("past the gap");
+    let spans: Vec<_> = layer(&f, f.layer)
+        .spans()
+        .iter()
+        .map(|s| (s.start(), s.duration().get(), s.element_count()))
+        .collect();
+    assert_eq!(
+        spans,
+        vec![(0, 5, 1), (5, 1, 1)],
+        "frames 1 to 4 show the first drawing, not nothing"
+    );
+    f.session.undo();
+    let spans = layer(&f, f.layer).spans();
+    assert_eq!(
+        (spans.len(), spans[0].duration().get()),
+        (1, 1),
+        "one undo step takes the keyframe and the held frames back"
+    );
+
+    // A keyframe that already reaches the frame, and a frame before every keyframe, are left
+    // as they are.
+    draw(&mut f, target, 1, vec![shape(40.0)]).expect("right after");
+    assert_eq!(layer(&f, f.layer).spans()[0].duration().get(), 1);
+    let mut g = fixture();
+    let target = Target::Layer(g.layer);
+    add(&mut g, rect_span(8, 2, 0.0, 0.0, 5.0, 5.0));
+    draw(&mut g, target, 3, vec![shape(0.0)]).expect("before");
+    let spans: Vec<_> = layer(&g, g.layer)
+        .spans()
+        .iter()
+        .map(|s| (s.start(), s.duration().get()))
+        .collect();
+    assert_eq!(spans, vec![(3, 5), (8, 2)]);
+}
+
+#[test]
 fn a_document_without_layers_gets_one_and_the_default_target_skips_folders() {
     let mut f = fixture();
     f.session

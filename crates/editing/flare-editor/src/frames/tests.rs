@@ -176,8 +176,20 @@ fn keyframes_past_the_end_hold_then_add_a_one_frame_keyframe() {
     let cmds = insert_blank_keyframe(f.scene, layer(&f), 9);
     run(&mut f, cmds);
     assert_eq!(shape_of(&f), vec![(0, 6, 'S'), (6, 3, 'S'), (9, 1, 'E')]);
-    let gap = fixture(vec![shape_span(0, 2), shape_span(5, 2)]);
-    assert!(insert_keyframe(gap.scene, layer(&gap), 3).is_none());
+    // In a gap the keyframe before is held up to it, and the new one lasts to the next.
+    let mut gap = fixture(vec![shape_span(0, 2), shape_span(5, 2)]);
+    let cmds = insert_keyframe(gap.scene, layer(&gap), 3);
+    run(&mut gap, cmds);
+    assert_eq!(shape_of(&gap), vec![(0, 3, 'S'), (3, 2, 'S'), (5, 2, 'S')]);
+    let mut gap = fixture(vec![shape_span(0, 2), shape_span(5, 2)]);
+    let cmds = insert_blank_keyframe(gap.scene, layer(&gap), 4);
+    run(&mut gap, cmds);
+    assert_eq!(shape_of(&gap), vec![(0, 4, 'S'), (4, 1, 'E'), (5, 2, 'S')]);
+    let before = fixture(vec![shape_span(3, 2)]);
+    assert!(
+        insert_keyframe(before.scene, layer(&before), 1).is_none(),
+        "nothing comes before the first keyframe to hold"
+    );
 }
 
 #[test]

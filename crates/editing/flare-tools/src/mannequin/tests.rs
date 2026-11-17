@@ -162,14 +162,15 @@ fn a_new_keyframe_cuts_the_one_held_there_so_each_frame_range_has_its_own_figure
     // Another one at the same frame joins the keyframe that now starts there.
     onto(&mut f, 5, Keyframe::New).expect("placed");
     assert_eq!(spans(&f), vec![(0, 5, 1), (5, 7, 2)]);
-    // Where the layer shows nothing, it starts a keyframe up to the layer's next one.
+    // Where the layer shows nothing, it starts a keyframe up to the layer's next one, and the
+    // keyframe before holds the empty frames up to it, as a drawing there does.
     let mut h = fixture();
     add(&mut h, rect_span(0, 3, 0.0, 0.0, 10.0, 10.0));
     add(&mut h, rect_span(10, 2, 0.0, 0.0, 10.0, 10.0));
     onto(&mut h, 5, Keyframe::Join).expect("placed");
     assert_eq!(
         spans(&h),
-        vec![(0, 3, 1), (5, 5, 1), (10, 2, 1)],
+        vec![(0, 5, 1), (5, 5, 1), (10, 2, 1)],
         "up to the next keyframe"
     );
     assert!(f.session.undo() && f.session.undo());
