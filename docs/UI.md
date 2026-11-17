@@ -534,8 +534,9 @@ pointer event there, and a plain mouse event within a quarter of a second of the
 taken as the pen's motion, for drivers that send pressure and motion apart). Native Wayland does not pass pressure
 yet. A Brush
 stroke is saved as the outline it painted; its centre line is simplified only where neither the
-line nor its width changes by more than the Smoothing allows, so a press or a taper along a
-straight stroke is kept, so the width a pen gave is kept in the drawing and
+line nor its width changes by more than the Smoothing allows, and no point loses more than a
+quarter of its own width, so a press or a taper along a straight stroke is kept (a thin tapered
+pen kept only its pointed ends before, which left no line for the Paint Bucket to fill inside), so the width a pen gave is kept in the drawing and
 playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
 after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is
 not kept in Preferences, so each session starts at 0.15.

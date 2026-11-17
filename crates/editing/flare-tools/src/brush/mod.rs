@@ -34,6 +34,9 @@ const CAP_STEPS: usize = 8;
 /// point's speed. Surfaces preview the stroke with the same reach, so it is public.
 pub const SPEED_REACH: f64 = 24.0;
 
+/// The most of its width a point of the stroke may lose to simplifying, as a share of it.
+const MAX_WIDTH_LOSS: f64 = 0.25;
+
 /// A point of the centre line and how far the stroke reaches to each side of it.
 #[derive(Clone, Copy)]
 struct Spine {
@@ -69,11 +72,16 @@ fn simplify(points: &[Spine], tolerance: f64) -> Vec<usize> {
                 // An edge is the centre plus the half width, so it strays by both at once.
                 let off_line = (p.at - (a.at + ab * t)).length();
                 let off_width = (p.half - (a.half + (b.half - a.half) * t)).abs();
-                (i, off_line + off_width)
+                // A thin stroke is narrower than the tolerance itself: judged by the tolerance
+                // alone, a tapered hairline kept only its two pointed ends and lost all its
+                // width. So no point gives up more than a share of its own width.
+                let excess =
+                    (off_line + off_width - tolerance).max(off_width - p.half * MAX_WIDTH_LOSS);
+                (i, excess)
             })
             .max_by(|x, y| x.1.total_cmp(&y.1));
-        if let Some((index, away)) = far
-            && away > tolerance
+        if let Some((index, excess)) = far
+            && excess > 0.0
         {
             keep[index] = true;
             stack.push((from, index));

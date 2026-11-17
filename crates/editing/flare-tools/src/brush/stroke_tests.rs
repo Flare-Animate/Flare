@@ -180,3 +180,36 @@ fn uneven_steps_do_not_loop_the_line_back_past_its_start() {
         .fold(f64::MAX, f64::min);
     assert!(left > -1e-9, "{left}");
 }
+
+#[test]
+fn a_tapered_hairline_keeps_its_width_however_coarse_the_smoothing() {
+    // A 2-unit G-pen line, smoothed to within 2 units: judged by the tolerance alone, every
+    // point but the two pointed ends was dropped and the stroke had no width at all.
+    let stroke = BrushStroke {
+        taper: Taper::new(20.0, 20.0),
+        ..BrushStroke::new(2.0, PressureCurve::new(0.0, 1.0))
+    };
+    let path = stroke
+        .outline(&mouse_run(200.0, 5.0), 2.0)
+        .expect("outline");
+    let ys: Vec<f64> = path
+        .iter()
+        .filter_map(|s| match s {
+            PathSegment::MoveTo(p) | PathSegment::LineTo(p) => Some(p.as_vec().y),
+            _ => None,
+        })
+        .collect();
+    let thickness =
+        ys.iter().copied().fold(f64::MIN, f64::max) - ys.iter().copied().fold(f64::MAX, f64::min);
+    assert!(thickness > 1.5, "the line kept {thickness} of its 2 units");
+}
+
+#[test]
+fn a_wide_stroke_is_still_simplified() {
+    // The share of the width a point may lose only protects thin strokes: a wide straight one
+    // still drops its middle points.
+    let samples = mouse_run(200.0, 1.0);
+    let stroke = BrushStroke::new(20.0, PressureCurve::new(0.0, 1.0));
+    let path = stroke.outline(&samples, 2.0).expect("outline");
+    assert!(path.len() < samples.len() / 4, "{} segments", path.len());
+}
