@@ -146,6 +146,53 @@ fn hit_test_all_lists_every_overlapping_shape_topmost_first() {
 }
 
 #[test]
+fn a_near_pick_takes_the_nearest_hairline_within_reach() {
+    use flare_core::DocumentPoint;
+    use flare_document::PathSegment;
+    let line = |y: f64| {
+        let path = vec![
+            PathSegment::MoveTo(DocumentPoint::new(0.0, y).expect("point")),
+            PathSegment::LineTo(DocumentPoint::new(100.0, y).expect("point")),
+        ];
+        let stroke = flare_document::Stroke::new(0.5, RED).expect("stroke");
+        Content::Shape(
+            Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT)
+                .expect("line")
+                .with_stroke(stroke),
+        )
+    };
+    // Three hairlines at y = 10, 20 and 21; the last drawn is on top.
+    let (doc, id) = scene_with(
+        vec![span(line(10.0)), span(line(20.0)), span(line(21.0))],
+        vec![],
+    );
+    let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+    let at = DVec2::new(50.0, 14.0);
+    assert!(
+        hit_test_all(&frame, at).is_empty(),
+        "no line is under the point"
+    );
+    assert_eq!(
+        hit_test_near(&frame, at, 6.0),
+        vec![2, 1],
+        "y = 10 is nearest (the top layer), then y = 20; y = 21 is out of reach"
+    );
+    assert!(
+        hit_test_near(&frame, at, 2.0).is_empty(),
+        "too far for a small reach"
+    );
+    assert!(hit_test_near(&frame, at, f64::NAN).is_empty());
+    // What is under the point comes first, whatever is nearer the middle of something else.
+    let on = DVec2::new(50.0, 20.0);
+    assert_eq!(hit_test_near(&frame, on, 5.0)[0], 1);
+    // A filled shape is reached by its edge.
+    let (doc, id) = scene_with(vec![span(rect(0.0, 0.0, 10.0, 10.0, RED))], vec![]);
+    let frame = flare_eval::evaluate_frame(&doc, id, 0).expect("eval");
+    assert_eq!(hit_test_near(&frame, DVec2::new(13.0, 5.0), 4.0), vec![0]);
+    assert!(hit_test_near(&frame, DVec2::new(15.0, 5.0), 4.0).is_empty());
+}
+
+#[test]
 fn transparent_fills_and_singular_transforms_are_not_hittable() {
     let clear = Rgba8::new(1, 2, 3, 0);
     let (doc, id) = scene_with(vec![span(rect(0.0, 0.0, 10.0, 10.0, clear))], vec![]);

@@ -184,3 +184,64 @@ fn a_missing_program_is_reported_as_not_installed() {
     );
     assert!(found.is_none());
 }
+
+#[test]
+fn only_quicktime_and_webm_have_see_through_pictures_and_they_ask_ffmpeg_for_alpha() {
+    let movie = Movie {
+        size: (16, 8),
+        rate: (24, 1),
+        frames: 3,
+        sound: None,
+    };
+    let with_alpha: Vec<&str> = CONTAINERS
+        .iter()
+        .filter(|c| c.with_alpha().is_some())
+        .map(|c| c.id)
+        .collect();
+    assert_eq!(with_alpha, ["mov", "webm"]);
+
+    let mov = container("mov").and_then(|c| c.with_alpha()).expect("mov");
+    let args = text(&encode_args(&mov, Path::new("/tmp/o.mov"), &movie).expect("args"));
+    assert!(
+        args.windows(2).any(|w| w == ["-c:v", "prores_ks"]),
+        "{args:?}"
+    );
+    assert!(
+        args.windows(2).any(|w| w == ["-profile:v", "4444"]),
+        "{args:?}"
+    );
+    assert!(
+        args.windows(2).any(|w| w == ["-pix_fmt", "yuva444p10le"]),
+        "{args:?}"
+    );
+    assert!(
+        !args.iter().any(|a| a == "-b:v"),
+        "ProRes picks its own rate"
+    );
+    assert!(
+        mov.with_alpha().is_none(),
+        "asking twice changes nothing more"
+    );
+
+    let webm = container("webm")
+        .and_then(|c| c.with_alpha())
+        .expect("webm");
+    let args = text(&encode_args(&webm, Path::new("/tmp/o.webm"), &movie).expect("args"));
+    assert!(
+        args.windows(2).any(|w| w == ["-pix_fmt", "yuva420p"]),
+        "{args:?}"
+    );
+
+    let plain = text(
+        &encode_args(
+            container("mov").expect("mov"),
+            Path::new("/tmp/o.mov"),
+            &movie,
+        )
+        .expect("args"),
+    );
+    assert!(
+        plain.windows(2).any(|w| w == ["-pix_fmt", "yuv420p"]),
+        "{plain:?}"
+    );
+}

@@ -49,7 +49,7 @@ fn a_held_move_previews_the_snapped_move_with_the_select_tool_too() {
     let mut ws = two_rectangles();
     ws.select_at(Pos2::new(30.0, 30.0), false);
     ws.display.snap_to_grid = true;
-    ws.display.grid_size = 10.0;
+    ws.display.grid_size = Vec2::splat(10.0);
     ws.begin_drag(Pos2::new(30.0, 30.0));
     assert_eq!(ws.drag.map(|d| d.mode), Some(DragMode::Move));
     ws.update_drag(Pos2::new(53.0, 37.0)); // 23 x 7, which the grid makes 20 x 10

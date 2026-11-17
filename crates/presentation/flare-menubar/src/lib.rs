@@ -18,8 +18,8 @@ pub use labels::{LabelState, mock_key, submenu_key, title_key};
 pub use menu::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
 pub use shortcuts::{
     Accelerator, AnimateImport, Conflict, DEFAULT_SET, MAX_ANIMATE_SHORTCUT_BYTES,
-    MAX_SEARCH_CHARS, MAX_SHORTCUT_FILE_BYTES, SHORTCUT_SET_IDS, ShortcutError, ShortcutMap,
-    ShortcutQuery, Skipped, set_bindings,
+    MAX_KEYS_PER_COMMAND, MAX_SEARCH_CHARS, MAX_SHORTCUT_FILE_BYTES, SHORTCUT_SET_IDS,
+    ShortcutEdit, ShortcutError, ShortcutMap, ShortcutQuery, Skipped, set_bindings,
 };
 
 /// A user-invokable command. Variants map one-to-one onto menu items.
@@ -86,6 +86,7 @@ pub enum MenuAction {
     ToolBrush,
     ToolRuler,
     ToolMirror,
+    ToolMagnet,
     MirrorCopyHorizontal,
     MirrorCopyVertical,
     Cut,
@@ -180,7 +181,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 141] = [
+    pub const ALL: [MenuAction; 142] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -238,6 +239,7 @@ impl MenuAction {
         Self::ToolBrush,
         Self::ToolRuler,
         Self::ToolMirror,
+        Self::ToolMagnet,
         Self::MirrorCopyHorizontal,
         Self::MirrorCopyVertical,
         Self::Cut,

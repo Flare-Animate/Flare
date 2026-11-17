@@ -136,12 +136,12 @@ fn tools_and_home_have_no_menu_and_nothing_else_is_missing_from_the_menus() {
     for action in OFF_MENU {
         assert!(!in_menus.contains(action), "{action:?} is in a menu");
         assert!(
-            action.tool_key().is_some() || *action == MenuAction::ShowHome,
+            action.is_tool() || *action == MenuAction::ShowHome,
             "{action:?} is off the menus but is neither a tool nor Home"
         );
     }
     for action in MenuAction::ALL {
-        if action.tool_key().is_some() {
+        if action.is_tool() {
             assert!(
                 OFF_MENU.contains(&action),
                 "{action:?} is a tool and has no key shown elsewhere"

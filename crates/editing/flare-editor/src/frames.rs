@@ -248,12 +248,16 @@ pub fn insert_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
 }
 
 /// Remove Frame (Shift+F5): shortens the span at `frame` by one and shifts later spans
-/// left. A one-frame span disappears.
+/// left. A one-frame span disappears. On an empty frame between keyframes the empty frame goes,
+/// and what follows moves up to close the gap.
 pub fn remove_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Command>> {
     let spans = layer.spans();
-    let at = spans
+    let Some(at) = spans
         .iter()
-        .position(|s| s.start() <= frame && u64::from(frame) < s.end())?;
+        .position(|s| s.start() <= frame && u64::from(frame) < s.end())
+    else {
+        return remove_frames(scene, layer, frame, frame);
+    };
     let mut out = Vec::with_capacity(spans.len());
     for (i, s) in spans.iter().enumerate() {
         match i.cmp(&at) {
@@ -270,7 +274,9 @@ pub fn remove_frame(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Com
 }
 
 /// Splits the span at `frame` so a new keyframe starts there with `content` for the new
-/// part. Past the end of the layer, the last span is held up to `frame` first.
+/// part. On an empty frame, past the end of the layer or in a gap between keyframes, the span
+/// before is held up to `frame` first, and the new keyframe lasts up to the next one (one frame
+/// past the end).
 fn split_at(scene: SceneId, layer: &Layer, frame: u32, blank: bool) -> Option<Vec<Command>> {
     let spans = layer.spans();
     // The new part: nothing for a blank keyframe, else a copy of everything the span holds.
@@ -296,17 +302,20 @@ fn split_at(scene: SceneId, layer: &Layer, frame: u32, blank: bool) -> Option<Ve
         out.push(make(target, frame, rest)?);
         out.extend(spans[at + 1..].iter().cloned());
     } else {
-        let last = spans.last()?;
-        if u64::from(frame) < last.end() {
-            return None; // inside a gap
-        }
-        out.extend(spans[..spans.len() - 1].iter().cloned());
+        // Nothing before the first keyframe to hold or copy.
+        let before = spans.iter().rposition(|s| s.end() <= u64::from(frame))?;
+        let held = &spans[before];
+        let length = spans
+            .get(before + 1)
+            .map_or(Some(1), |next| next.start().checked_sub(frame))?;
+        out.extend(spans[..before].iter().cloned());
         out.push(retime(
-            last,
-            last.start(),
-            frame.checked_sub(last.start())?,
+            held,
+            held.start(),
+            frame.checked_sub(held.start())?,
         )?);
-        out.push(make(last, frame, 1)?);
+        out.push(make(held, frame, length)?);
+        out.extend(spans[before + 1..].iter().cloned());
     }
     Some(replace_spans(scene, layer, out))
 }
@@ -442,13 +451,17 @@ pub fn resize_span(
 }
 
 mod drop;
+mod moves;
 mod ranges;
 pub use drop::drop_span;
+pub use moves::{FramePlacement, place_frames};
 pub use ranges::{ReverseRefusal, remove_frames, reverse_frames};
 
 #[cfg(test)]
 mod drop_tests;
 #[cfg(test)]
 mod element_tests;
+#[cfg(test)]
+mod move_tests;
 #[cfg(test)]
 mod tests;

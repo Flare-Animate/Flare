@@ -142,7 +142,12 @@ The workspace switcher sits at the top right, left of the gear, where Animate ha
 
 Each workspace keeps the changes made to it while it was in use, as Animate's do: switching away and back finds it as it was left. View > Reset Layout, or the arrow beside the one in use in the switcher, takes it back to how it was built in or saved. The switcher's New workspace field saves the arrangement on screen under a name (up to 40 characters, at most 20 of them; the same name in any case replaces the one saved) and makes it the one in use; the cross beside one of the person's own forgets it, and Essentials comes back when it was in use. A refusal says why in the status line. The workspaces are kept between sessions in the layout file with the arrangement on screen (`flare_dock::Workspaces`, at most 1 MiB); a file from before workspaces opens as Essentials arranged as it says, and a damaged one is refused and changes nothing. The panels and their arrangement belong to the window: the document is never touched.
 
-Publish (the button beside Play, and File > Publish) opens a popup in the middle of the window, like Preferences. It lists the formats (Flash .swf, HTML5 Canvas .html, animated GIF .gif, MP4 .mp4, the picture as H.264 and the cued sounds as AAC, and QuickTime .mov, the same picture and sound branded for QuickTime, both written by Flare itself with nothing to install; the browser build does not make either yet) and the Publish button, which then asks where to save, starting from the document's own folder and name (`scene.fla` publishes `scene.swf`, `scene.mp4` and the rest beside it; a new document is `Untitled`), and writes each format ticked side by side under the name chosen. There is no Share section: buttons that only opened YouTube or Twitter, with the file still to add by hand, were taken out until sharing can upload (see the roadmap). File > Publish Settings shows the same format choices on their own. File > Export has Image, Movie (an animated GIF, an MP4 or a QuickTime movie, chosen in the save dialog by the name's ending; a name with none is a GIF), Flash Document (a `.fla`, which Animate opens) and SVG (the frame on show, as a picture; animated SVG is not built).
+Publish (the button beside Play, and File > Publish) opens a popup in the middle of the window, like Preferences. It lists the formats (Flash .swf, HTML5 Canvas .html, animated GIF .gif, MP4 .mp4, the picture as H.264 and the cued sounds as AAC, and QuickTime .mov, the same picture and sound branded for QuickTime, both written by Flare itself with nothing to install; the browser build does not make either yet) and the Publish button, which then asks where to save, starting from the document's own folder and name (`scene.fla` publishes `scene.swf`, `scene.mp4` and the rest beside it; a new document is `Untitled`), and writes each format ticked side by side under the name chosen. A new install has MP4 alone
+ticked (the browser build, which cannot write a video yet, has the animated GIF, and dims MP4 and
+QuickTime with the reason); the Flash movie and the HTML5 page are a tick away. Preferences saved
+before MP4 was the default with the formats as they came (Flash and HTML5, nothing else) are
+read as never chosen and get the new default; any other choice is kept
+(`PublishSettings::update_old_defaults`). There is no Share section: buttons that only opened YouTube or Twitter, with the file still to add by hand, were taken out until sharing can upload (see the roadmap). File > Publish Settings shows the same format choices on their own. File > Export has Image, Movie (an animated GIF, an MP4 or a QuickTime movie, chosen in the save dialog by the name's ending; a name with none is a GIF), Flash Document (a `.fla`, which Animate opens) and SVG (the frame on show, as a picture; animated SVG is not built).
 
 The command palette opens from the search button at the top right, or Ctrl+K (also with a native menu bar): a search box over every command and tool, matched by the letters of the query appearing in the name, run with a click or Enter, stepped through with the arrow keys, closed with Escape. It is AniCraft's (storytold/anicraft), re-implemented for Flare's command registry. A phone or tablet gets the touch form of the workspace: the panel rail, the dock's tab bar and every widget grow to finger sizes (`Workspace::set_touch`); the web build detects one and the Android build always uses it.
 
@@ -156,7 +161,7 @@ The Timeline's frames are small fixed cells (10 points at the normal zoom), not 
 
 A click on any cell, an empty one past the layer's end too, makes its layer the active one, puts
 the playhead on it and shows it selected in Animate's blue (as are frames selected with Shift); the
-frame field in the toolbar follows the playhead there rather than pulling it back into the scene. The timeline's toolbar has the frame commands used most, after the frame number and rate: Insert Keyframe (F6), Insert Blank Keyframe (F7), Insert Frame (F5) and Remove Frames (Shift+F5). They are the commands of the Insert menu and of the frames' own menu, act on the active layer at the playhead (Insert Frame at an empty cell past a layer's end holds its last keyframe out to it; on a layer with no frames yet, such as a sound's, it makes blank frames up to the playhead, as Animate does), say their name and keys when pointed at, and are dimmed on a locked layer. In the Timeline each frame is a cell: a line between frames, every fifth frame (5, 10, 15) shaded a tone apart on empty cells and on keyframes alike so they can be counted, a dot on the first frame of a keyframe (hollow when the keyframe holds nothing) and a box on the last frame of a held keyframe, as Animate draws them. The ruler numbers frame 1 and then every fifth frame, every tenth or further apart when the frames are too narrow for that, with a taller tick on each fifth frame. A drawing's keyframes are a light grey, an instance's a cool grey, a picture's a warm one, a motion tween soft blue and a shape tween soft green, so the black marks read on either theme; the active layer's row is tinted only faintly over its frames. Dragging a keyframe by its body moves it, along its row or onto another layer's row, and dropping it over frames that hold something replaces them: a keyframe it covers goes, one it cuts keeps the frames either side, and the frames it left are empty, as one undo step; dragging its right edge lengthens or shortens it, and a length that would run into the next keyframe is refused. A locked layer neither gives nor takes one. Dragging a layer by its name moves it up or down the stack: a line shows where it will land, a folder takes everything in it along, and a drop just under an open folder puts the layer in it while a drop under a folder's last layer takes it out, as one undo step. A right click on the stage picks the shape under the pointer (unless it is already selected) and opens a menu with Cut, Copy, Paste, Paste in Place, Duplicate, Delete, Group, Ungroup, Break Apart, Convert to Symbol, Select All, Deselect All, Undo, Redo and the zoom commands; on empty stage it clears the selection first. In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Transparent and an Opacity slider, Show All, Lock Others, Hide Others, Duplicate Layer, Convert Layers to Symbol, Mask, Motion guide, Move up and down, New layer, New folder and Delete. Lock Others and Hide Others leave the layer, the folders it is in and (for a folder) what it holds as they need to be to work on it, and each is one undo step, or none when nothing changes; Duplicate Layer puts a copy (`Layer 1 copy`, then `copy 2`) with its own elements just above and makes it the active layer, a folder with everything in it; the camera's layer and a layer of bones are not duplicated (`flare_editor::layer_ops`). Convert Layers to Symbol moves the layer (a folder with everything in it), frames, tweens and folders as they are, into a new Graphic symbol named after it (`Layer 1`, or `Layer 1 2` when that is taken; rename it in the Library), and one layer of that name takes its place with an instance of the symbol from the first frame to the layers' last, so nothing moves on the stage; their sounds stay in the scene on that layer (`flare_editor::layers_to_symbol`). To convert several layers at once, put them in a folder first: the timeline selects one layer at a time. A transparent layer, as in Animate's Layer Properties, is one the stage draws see-through so a rough under it can be drawn over: Shift with a click on its eye, or Transparent in its menu, sets it to 50%, and the menu's Opacity slider sets any amount (applied when let go, one undo step). Its eye is drawn half bright. The layer is faded as one sheet (its strokes do not show its own fills through them), a transparent folder fades what it holds, and a symbol inside fades with it; exports, Test Movie and published files always draw it whole. It is kept in a `.flare` project; XFL has no place for it, so a `.fla` save says so and the layer opens opaque (`Layer::view_opacity`, `flare_render::render_stage_viewport`). There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected.
+frame field in the toolbar follows the playhead there rather than pulling it back into the scene. The timeline's toolbar has the frame commands used most, after the frame number and rate: Insert Keyframe (F6), Insert Blank Keyframe (F7), Insert Frame (F5) and Remove Frames (Shift+F5). They are the commands of the Insert menu and of the frames' own menu, act on the active layer at the playhead (Insert Frame at an empty cell past a layer's end holds its last keyframe out to it; on a layer with no frames yet, such as a sound's, it makes blank frames up to the playhead, as Animate does), say their name and keys when pointed at, and are dimmed on a locked layer. In the Timeline each frame is a cell: a line between frames, every fifth frame (5, 10, 15) shaded a tone apart on empty cells and on keyframes alike so they can be counted, a dot on the first frame of a keyframe (hollow when the keyframe holds nothing) and a box on the last frame of a held keyframe, as Animate draws them. The ruler numbers frame 1 and then every fifth frame, every tenth or further apart when the frames are too narrow for that, with a taller tick on each fifth frame. A drawing's keyframes are a light grey, an instance's a cool grey, a picture's a warm one, a motion tween soft blue and a shape tween soft green, so the black marks read on either theme; the active layer's row is tinted only faintly over its frames. Dragging a keyframe by its body moves it, along its row or onto another layer's row, and dropping it over frames that hold something replaces them: a keyframe it covers goes, one it cuts keeps the frames either side, and the frames it left are empty, as one undo step; a press inside frames selected with Shift-click drags all of them, keyframes and the gaps between, the same way, and they stay selected where they land; Alt held as it is let go copies what is dragged instead of moving it, as in Animate; dragging its right edge lengthens or shortens it, and a length that would run into the next keyframe is refused. A locked layer neither gives nor takes one. Dragging a layer by its name moves it up or down the stack: a line shows where it will land, a folder takes everything in it along, and a drop just under an open folder puts the layer in it while a drop under a folder's last layer takes it out, as one undo step. A right click on the stage picks the shape under the pointer (unless it is already selected) and opens a menu with Cut, Copy, Paste, Paste in Place, Duplicate, Delete, Group, Ungroup, Break Apart, Convert to Symbol, Select All, Deselect All, Undo, Redo and the zoom commands; on empty stage it clears the selection first. In the Timeline a layer is renamed by double clicking its name, which becomes a text box (Enter keeps the name, Escape drops it, an empty name is refused). A right click on a layer's name opens its menu: Rename, Hide or Show, Lock or Unlock, Transparent and an Opacity slider, Show All, Lock Others, Hide Others, Duplicate Layer, Convert Layers to Symbol, Mask, Motion guide, Move up and down, New layer, New folder and Delete. Lock Others and Hide Others leave the layer, the folders it is in and (for a folder) what it holds as they need to be to work on it, and each is one undo step, or none when nothing changes; Duplicate Layer puts a copy (`Layer 1 copy`, then `copy 2`) with its own elements just above and makes it the active layer, a folder with everything in it; the camera's layer and a layer of bones are not duplicated (`flare_editor::layer_ops`). Convert Layers to Symbol moves the layer (a folder with everything in it), frames, tweens and folders as they are, into a new Graphic symbol named after it (`Layer 1`, or `Layer 1 2` when that is taken; rename it in the Library), and one layer of that name takes its place with an instance of the symbol from the first frame to the layers' last, so nothing moves on the stage; their sounds stay in the scene on that layer (`flare_editor::layers_to_symbol`). To convert several layers at once, put them in a folder first: the timeline selects one layer at a time. A transparent layer, as in Animate's Layer Properties, is one the stage draws see-through so a rough under it can be drawn over: Shift with a click on its eye, or Transparent in its menu, sets it to 50%, and the menu's Opacity slider sets any amount (applied when let go, one undo step). Its eye is drawn half bright. The layer is faded as one sheet (its strokes do not show its own fills through them), a transparent folder fades what it holds, and a symbol inside fades with it; exports, Test Movie and published files always draw it whole. It is kept in a `.flare` project; XFL has no place for it, so a `.fla` save says so and the layer opens opaque (`Layer::view_opacity`, `flare_render::render_stage_viewport`). There is no rename box in the timeline's toolbar. A right click on the frames picks the frame under it (unless it is inside the frames already selected) and opens the menu for frames: Insert Frame, Insert Keyframe, Insert Blank Keyframe, Clear Keyframe, Remove Frames, Create Motion Tween, Create Shape Tween, Cut, Copy, Paste, Select All and Reverse Frames. Cut Frames takes the frames out, so what follows moves left; Select All Frames selects the active layer's frames (the selection holds one layer); Reverse Frames needs whole keyframes selected. After a click among the timeline's frames, the plain Copy, Cut and Paste keys (Ctrl/Cmd+C, X, V) act on frames as Copy, Cut and Paste Frames do (Paste puts frames back only when frames were copied last), and Delete or Backspace takes empty frames out: on an empty frame between keyframes, or on selected frames that all show nothing, the keyframes after them move up and the gap closes, as one undo step. A click on the stage points those keys back at what is selected there. Insert Keyframe and Insert Blank Keyframe on an empty frame between keyframes hold the keyframe before up to it, and Remove Frames there takes the empty frame out.
 
 ## Documents and tabs
 
@@ -194,6 +199,45 @@ a Color panel with a fill-type dropdown, hex
 field and HSB/RGB modes; a Library with a preview, search and a linkage column; a zoom dropdown
 and a close button on the document tab.
 
+## Color picker
+
+Every color is picked with Flare's own picker (`flare_ui::color_picker`): the Color panel, the
+fill and stroke squares in the tool strip, the swatches in Properties, the stage and new-document
+backgrounds and the onion skin tints. A square sets saturation (across) and brightness (up) for the
+hue in hand; under it a track for each of hue, saturation, brightness and alpha has its number
+beside it (degrees for the hue, percent for the rest), which can be dragged or typed, and the red,
+green and blue are numbers from 0 to 255 under them. The numbers are counted over the sRGB values,
+as Animate's and most painting programs' pickers do: pure red is 0°, 100%, 100%. egui's picker,
+used before, had tracks with no numbers on them. The letters and names are in the interface's
+language; a hue is kept through a trip to grey or black, which have none.
+
+## The Magnet
+
+The Magnet (in the Selection cell, under Subselection) bends line art by pulling it, after
+OpenToonz's Magnet: drag near a line or shape and every point of it within the circle drawn
+around the pointer moves with the drag, the point where the drag started all the way, the rest
+less the farther they are, those at the circle's edge not at all. A line with too few points to
+bend smoothly (a straight line has two) gets points added along the stretch in the circle first,
+up to the segment limit. With shapes selected only they bend; otherwise the shapes on the layer
+being drawn on. The stage shows the pull while the button is held, made with the batch the release
+commits, and the release is one undo step (`Bend the line`); Escape drops it, and a pull that
+reaches nothing says so in the status bar. The size of the circle is in Properties, 2 to 1000
+pixels (40 to start). The geometry is `flare_tools::magnet`, which the command line and the MCP
+server use too.
+
+## Grid
+
+View > Show Grid, or the grid button in the stage's bar, draws lines over the stage. The arrow just
+after the grid button opens the grid's settings, as Animate's Edit Grid has them: Show grid, Snap to
+grid, Horizontal spacing and Vertical spacing (each 1 to 500 units, 20 to start, as slider rows with
+their numbers), the color and Reset grid. The color is automatic to start: grey as Animate's is,
+dark on a light stage and light on a dark one, so the grid shows on any background; untick
+Automatic color and the swatch beside it picks any color, with its opacity. Preferences has the
+same spacing and color, and they are kept with the preferences (a file from before the two
+spacings has one for both). Lines closer than six screen points are not drawn, across and down
+apart. Snap to Grid rounds the points the drawing tools place, and moves, to the grid, each way on
+its own spacing.
+
 ## Guides
 
 Drag from the top or left ruler to pull a guide onto the stage; drag a guide to move it, or back
@@ -224,7 +268,11 @@ degrees either way, type an angle, or set it upright; a second tap, Escape or an
 the dial away and the tool held before back in hand. A turn is a quick look, as with Animate's
 spring-loaded tools: once a drag on the stage is let go, or a double-click has set it upright, the
 tool held before the Rotation tool is back in hand (the dial closes with it); a click that turns
-nothing leaves the Rotation tool in hand. A tap is a press and release within half a
+nothing leaves the Rotation tool in hand. The Hand springs back the same way: once a pan with it
+is let go, the tool picked before it is back in hand, and the Rotation tool is never the one given
+back (a Hand picked while turning the view gives back the tool held before the turn;
+`workspace/tools/hand.rs`). A click with the Hand, or a Hand with nothing before it, stays in hand.
+A tap is a press and release within half a
 second with nothing else pressed (`flare_ui::tap::ModifierTap`), so Alt-click, Alt-drag and Alt
 chords keep their meaning. While the view is turned the stage bar shows the angle (a click sets it
 upright), the grid and guides turn with the stage, the rulers stay along the screen without
@@ -234,10 +282,16 @@ being typed turns with the stage while its invisible field stays upright.
 Help > Keyboard Shortcuts has a search field over the list: words find commands by their name in
 the interface language or their id (`save as`), and keys find what they run (`cmd+s`, `⌘⇧S`,
 `shift+f5`, or a modifier's name such as `option`). The matching is `flare_menubar::ShortcutQuery`,
-which the command line and MCP server use too. Keys another command already has are not refused:
-Change (or Reset, for the set's own keys) takes them from that command, which is left with no
-shortcut until it is given one, and the editor says which command lost them
-(`ShortcutMap::bind_taking`, `reset_taking`). So the map still never holds two commands on one key.
+which the command line and MCP server use too. A command or tool can have several shortcuts, up to
+four (`MAX_KEYS_PER_COMMAND`): each row lists its keys one by one, a click on one (marked ×) takes
+it off and leaves the others, Change replaces them all with the next keys pressed, and Add gives
+the command one more. The first is the one its menu item shows; every one of them runs it, with a
+native menu bar too (the menu registers the first, the workspace reads the rest). A tool's key is a
+letter or digit alone or with Shift. Keys another command already has are not refused: Change, Add
+(or Reset, for the set's own keys) takes them from that command, which keeps any other keys it has,
+and the editor says which command lost them (`ShortcutMap::bind_taking`, `add_key_taking`,
+`reset_taking`). So the map still never holds two commands on one key. The Magnet has no letter of
+its own, since every free one is taken in a built-in set, but can be given one.
 Help > Find a Command (Cmd/Ctrl+Shift+P, a key Animate leaves free) is a command palette, which
 Animate does not have: a field near the top of the window that finds any menu command, with keys
 or without, by its name in the interface's language, its id or its keys, as the shortcut list's
@@ -247,9 +301,10 @@ Escape or a click outside closes it. It only reaches commands the menus have.
 
 Import from Animate… reads Animate's own shortcut file (`Shortcuts/<set>.xml` in Animate's
 settings folder, at most 512 KiB) onto Animate's set: each binding of a command Flare has is
-taken over, taking the keys from any command that had them, and the rest (a command Flare does
-not have, a second key for one command, a key code not yet matched against Animate's menus, a
-modifier not understood) is listed in Output with the reason. A file that is not XML, declares a
+taken over, taking the keys from any command that had them (a second key for one command is kept
+beside its first), and the rest (a command Flare does not have, a key code not yet matched against
+Animate's menus, a modifier not understood, a fifth key for one command) is listed in Output with
+the reason. A file that is not XML, declares a
 document type, nests too deeply or holds more than 4096 bindings changes nothing.
 
 Over the stage the pointer is the tool in hand (`workspace/tools/stage_pointer.rs`). The Brush, the
@@ -370,7 +425,7 @@ The tools are in two columns, in the order Animate's toolbar has them, divided b
 categories: Selection, Free Transform, Lasso; Pencil, Brush, Eraser, Rectangle, Line; Pen, Text,
 Paint Bucket, Eyedropper, Asset Warp; Hand, Zoom and the "…" button. As in Animate a cell is a slot
 that holds related tools and shows the one in use, with a small triangle in its corner: Selection
-holds Subselection, Free Transform holds Gradient Transform, Lasso holds Polygon (click the corners of a loop; a double click, Enter or a click on the first corner closes it and selects what it encloses) and Magic Wand (see Magic Wand above),
+holds Subselection and the Magnet (see The Magnet below), Free Transform holds Gradient Transform, Lasso holds Polygon (click the corners of a loop; a double click, Enter or a click on the first corner closes it and selects what it encloses) and Magic Wand (see Magic Wand above),
 Rectangle holds Oval, Rectangle Primitive, Oval Primitive and PolyStar, Pen holds Add, Delete and
 Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, and Hand holds Rotation and Time scrub. Press and hold a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
@@ -399,7 +454,10 @@ selection or the tool changes, and Object is dimmed with nothing selected. A too
 size, smoothing, stabilization, tapers, angle, flatness, pressure response, light touch, stroke
 width, corner radius, sides and depth) are Animate's slider rows: the name at the left and the value
 at the right on one line, a slider the panel's width below it; the value is also a number field to
-type or drag, and sizes slide on a logarithmic track so the small ones get most of it. The Tool tab shows only the paint a tool uses: the Paint Bucket its fill (and gradient) with Gap size, Animate's Don't close gaps, Close small gaps, Close medium gaps and Close large gaps (10, 24 and 48 screen points, so the same-looking gap closes at any zoom; small is the default); the Ink Bottle its stroke color, width, cap, join and style; a shape tool both. Something selected on the stage: a shape shows Position and size and its Fill and stroke
+type or drag, and sizes slide on a logarithmic track so the small ones get most of it. Every row
+fits the panel's width, however narrow and in any language: a control that does not fit goes on to
+the next line and its words wrap, so no row runs past the edge and pushes the values after it out
+of sight (a test draws every tool's options in a 240-point panel in English, German and French). The Tool tab shows only the paint a tool uses: the Paint Bucket its fill (and gradient) with Gap size, Animate's Don't close gaps, Close small gaps, Close medium gaps and Close large gaps (10, 24 and 48 screen points, so the same-looking gap closes at any zoom; small is the default); the Ink Bottle its stroke color, width, cap, join and style; a shape tool both; the Eraser none, only its Size and Faucet. Something selected on the stage: a shape shows Position and size and its Fill and stroke
 (fill color, outline on or off, stroke color, width, cap and join), which are changed on the shape,
 a color when the picker is let go and a number when it is, each one undo step; a symbol instance
 shows its symbol and type, Edit Symbol, Position and size, Looping for a Graphic, and Color Effect,
@@ -483,18 +541,25 @@ between panels and around the dock is 3 px (`theme::GUTTER`). Between widgets: 6
 ## Eraser
 
 The **Eraser** (E) rubs out what it is dragged over as it goes: fills lose the area it covered and
-lines lose the stretches it crossed, on every shown, unlocked layer at the current frame, while the
-pointer moves, and the whole drag is one undo step. Escape (or anything else that cancels the drag)
+lines lose the stretches it crossed, at the current frame, while the pointer moves, and the whole
+drag is one undo step. It keeps to the layer chosen in the timeline (by clicking the layer or one
+of its frames, or by drawing on it; a chosen folder takes in the layers inside it), so what is
+drawn on the other layers is safe; with no layer chosen it reaches every shown, unlocked layer. It changes that frame and no other: on a frame
+a keyframe holds from before, the frame becomes a keyframe of its own first, so the keyframe and its
+other frames keep their drawing (on a keyframe's own first frame, the keyframe is what changes). Escape (or anything else that cancels the drag)
 puts back what it rubbed out. A click rubs out a dot. **Size** (1 to 400 px) is how wide it rubs;
 a round outline of that size follows the pointer. A straightened drag (Straight, or Shift held when
 it starts) shows the area it will rub out see-through and rubs it out on release. Pen pressure
-does not change it. With **Faucet** on, a click deletes the whole shape under it instead, which is
-what the Eraser did before it could rub. Symmetry and Straight (Shift) apply as they do to the
+does not change it. With **Faucet** on, a click deletes the whole shape under it instead, from that
+frame alone and on the chosen layer in the same way (looking past shapes on other layers drawn
+over it), which is what the Eraser did before it could rub. With the Eraser in
+hand, Properties shows the Tool tab with its Size and Faucet, and rubbing out does not move it to
+another tab. Symmetry and Straight (Shift) apply as they do to the
 Brush. Symbols, bitmaps and text are left whole.
 
 ## Ruler and Mirror
 
-Everything drawn goes into the **active layer**, as in Animate: a new shape (Rectangle, Oval, Line, PolyStar, Pencil, Brush, Pen, Text) joins the keyframe of that layer at the playhead as one more element, drawn above the others; on a frame with no keyframe a new one starts there and lasts to the end of the scene (one frame when the layer is alone and the scene is empty) or to the layer's next keyframe; a document with no layers gets "Layer 1" first. Locked, hidden, folder, mask, guide and camera layers, and a keyframe that tweens or holds a camera, refuse a drawing and say why in the status line. A click picks one element (a stroke is picked within a few units of its path, so a hairline pencil or line is not missed), Select All and the lasso pick every element (the lasso takes a stroke when any part of its path is inside the loop), and Move, Delete, Duplicate, Group, Convert to Symbol and the Align panel act on the elements picked. Modify > Arrange (Bring to Front, Bring Forward, Send Backward, Send to Back) and the Align panel's Bring to Front and Send to Back move an element up or down among the others of its keyframe, and a keyframe that holds only that element takes its layer to the top or bottom of the layers, as before. Every tool that draws shows **Object Drawing (J)** in its options, ticked and dimmed with the note that Merge Drawing is not built yet: until it is, every shape is a separate drawing object and shapes on a layer do not cut each other.
+Everything drawn goes into the **active layer**, as in Animate: a new shape (Rectangle, Oval, Line, PolyStar, Pencil, Brush, Pen, Text) joins the keyframe of that layer at the playhead as one more element, drawn above the others; on a frame with no keyframe a new one starts there and lasts to the end of the scene (one frame when the layer is alone and the scene is empty) or to the layer's next keyframe, and the layer's keyframe before it is held up to it, so the empty frames between show that drawing rather than nothing; a document with no layers gets "Layer 1" first. Starting to draw (Pencil, Brush, Rectangle, Oval, Line, PolyStar) lets go of the selection, so its box is not left over the new stroke. Locked, hidden, folder, mask, guide and camera layers, and a keyframe that tweens or holds a camera, refuse a drawing and say why in the status line. A click picks one element (a stroke is picked within a few units of its path, so a hairline pencil or line is not missed; a click that lands on nothing picks the line or shape edge nearest the pointer within 8 screen pixels at any zoom, so a rough sketch's thin lines can be picked without hitting one exactly), Select All and the lasso pick every element (the lasso takes a stroke when any part of its path is inside the loop), and Move, Delete, Duplicate, Group, Convert to Symbol and the Align panel act on the elements picked. Modify > Arrange (Bring to Front, Bring Forward, Send Backward, Send to Back) and the Align panel's Bring to Front and Send to Back move an element up or down among the others of its keyframe, and a keyframe that holds only that element takes its layer to the top or bottom of the layers, as before. Every tool that draws shows **Object Drawing (J)** in its options, ticked and dimmed with the note that Merge Drawing is not built yet: until it is, every shape is a separate drawing object and shapes on a layer do not cut each other.
 
 The **Ruler** tool (M) measures: drag between two points and the stage shows the distance, the
 angle (counter-clockwise from the right, up positive) and the offsets. The reading stays until the
@@ -534,8 +599,9 @@ pointer event there, and a plain mouse event within a quarter of a second of the
 taken as the pen's motion, for drivers that send pressure and motion apart). Native Wayland does not pass pressure
 yet. A Brush
 stroke is saved as the outline it painted; its centre line is simplified only where neither the
-line nor its width changes by more than the Smoothing allows, so a press or a taper along a
-straight stroke is kept, so the width a pen gave is kept in the drawing and
+line nor its width changes by more than the Smoothing allows, and no point loses more than a
+quarter of its own width, so a press or a taper along a straight stroke is kept (a thin tapered
+pen kept only its pointed ends before, which left no line for the Paint Bucket to fill inside), so the width a pen gave is kept in the drawing and
 playback and export draw the same width; the pressure itself is not kept, so it cannot be changed
 after the stroke is made. Pencil draws a line of one width and ignores pressure. Light touch is
 not kept in Preferences, so each session starts at 0.15.

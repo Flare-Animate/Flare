@@ -154,3 +154,23 @@ fn a_tween_keeps_its_curve_mirrored_when_reversed() {
     assert_eq!(spans[0].interp().map(|i| i.easing()), Some(Easing::Out));
     assert_eq!(spans[1].interp(), None);
 }
+
+#[test]
+fn empty_frames_between_keyframes_can_be_taken_out_to_close_the_gap() {
+    // A: 0..2, empty 2..5, B: 5..7.
+    let mut f = fixture(vec![shape_span(0, 2), shape_span(5, 2)]);
+    let commands = remove_frames(f.scene, layer(&f), 2, 3);
+    run(&mut f, commands);
+    assert_eq!(spans(&f), vec![(0, 2), (3, 2)], "B moved up by two");
+    let commands = remove_frame(f.scene, layer(&f), 2);
+    run(&mut f, commands);
+    assert_eq!(
+        spans(&f),
+        vec![(0, 2), (2, 2)],
+        "Shift+F5 on the last empty frame"
+    );
+    assert!(
+        remove_frame(f.scene, layer(&f), 9).is_none(),
+        "past the last keyframe there is nothing to pull left"
+    );
+}

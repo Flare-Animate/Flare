@@ -9,8 +9,10 @@ use crate::{RenderError, Viewport};
 use flare_core::Rgba8;
 
 /// How opaque a pixel must be to count as ink. Low, so the faint edge of a thin line still
-/// closes an area rather than letting it leak through.
-const INK_ALPHA: u8 = 24;
+/// closes an area rather than letting it leak through: a light pen stroke a fraction of a pixel
+/// wide covers only a few percent of each pixel it crosses, and at 24 a 1-point G-pen loop
+/// drawn with a light hand leaked.
+const INK_ALPHA: u8 = 8;
 
 /// The stage rectangle the shapes `frame.shapes[from..]` draw in, strokes included, or `None`
 /// when they draw nothing anywhere.

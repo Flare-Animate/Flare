@@ -12,3 +12,7 @@ pubpop-responsive = Make responsive
 pubpop-format-gif = Animated GIF (.gif)
 pubpop-format-mp4 = MP4 video (.mp4)
 pubpop-format-mov = QuickTime movie (.mov)
+pubpop-video-browser = A browser cannot write MP4 or QuickTime movies yet. Use the desktop app.
+pubpop-transparent = Transparent background
+pubpop-transparent-hint = Leave the stage colour out, so what is not drawn is see-through: in the GIF, the QuickTime movie, and Export Image, Export Movie and Export SVG. A transparent QuickTime movie is ProRes 4444, made by ffmpeg. The Flash movie and the HTML5 page keep the stage colour.
+pubpop-transparent-mp4 = An MP4 cannot be transparent, so it will not be written. Untick MP4, or publish a GIF or a QuickTime movie instead.

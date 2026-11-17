@@ -129,18 +129,25 @@ impl WebApp {
             DialogRequest::SaveAs => self.save_document(),
             DialogRequest::ExportImage => {
                 let (document, frame) = self.workspace.image_export();
+                let backdrop = self.workspace.publish_settings().backdrop();
                 self.deliver(
                     "frame.png",
                     "image/png",
-                    flare_runtime::png_bytes(&document, frame),
+                    flare_runtime::still_bytes(
+                        &document,
+                        frame,
+                        flare_runtime::StillFormat::Png,
+                        backdrop,
+                    ),
                 );
             }
             DialogRequest::ExportMovie => {
                 let (document, _) = self.workspace.image_export();
+                let backdrop = self.workspace.publish_settings().backdrop();
                 self.deliver(
                     "movie.gif",
                     "image/gif",
-                    flare_runtime::gif_bytes(&document),
+                    flare_runtime::gif_bytes(&document, backdrop),
                 );
             }
             DialogRequest::ExportFla => {
@@ -152,8 +159,10 @@ impl WebApp {
             }
             DialogRequest::ExportSvg => {
                 let (document, frame) = self.workspace.image_export();
+                let backdrop = self.workspace.publish_settings().backdrop();
                 let bytes: Result<Vec<u8>, String> =
-                    flare_runtime::svg_export(&document, frame).map(|svg| svg.text.into_bytes());
+                    flare_runtime::svg_export(&document, frame, backdrop)
+                        .map(|svg| svg.text.into_bytes());
                 self.deliver("frame.svg", "image/svg+xml", bytes);
             }
             DialogRequest::Publish => {
@@ -189,7 +198,7 @@ impl WebApp {
                     self.deliver(
                         &format!("{name}.gif"),
                         "image/gif",
-                        flare_runtime::gif_bytes(&document),
+                        flare_runtime::gif_bytes(&document, settings.backdrop()),
                     );
                 }
                 if settings.html5 {

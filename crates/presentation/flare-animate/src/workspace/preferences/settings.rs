@@ -18,8 +18,12 @@ pub struct Preferences {
     pub show_rulers: bool,
     pub show_grid: bool,
     pub snap_to_grid: bool,
-    /// Grid spacing in stage units.
+    /// Grid spacing in stage units: across, and down when it differs (files from before the two
+    /// were apart have one spacing for both).
     pub grid_size: f32,
+    pub grid_size_down: Option<f32>,
+    /// The grid's color as red, green, blue and alpha; `None` follows the stage's background.
+    pub grid_color: Option<[u8; 4]>,
     pub loop_playback: bool,
     /// How wide the timeline's column of layer names is, in points.
     pub timeline_names_width: f32,
@@ -66,6 +70,12 @@ pub struct Preferences {
     pub publish_gif: bool,
     pub publish_mp4: bool,
     pub publish_mov: bool,
+    /// Export and publish with a transparent background instead of the stage colour.
+    pub publish_transparent: bool,
+    /// Which defaults the format choices above were saved under (`PUBLISH_DEFAULTS`). A file
+    /// without it is from before, so it reads as 0 and not as the current value.
+    #[serde(default)]
+    pub publish_defaults: u32,
     /// The interface's language: `system`, or a language's tag such as `de` or `pt-BR`.
     pub language: String,
     /// The look of the interface: `dark` or `light`.
@@ -92,12 +102,15 @@ pub const MAX_RECENT: usize = 10;
 
 impl Default for Preferences {
     fn default() -> Self {
+        let publish = PublishSettings::default();
         Self {
             autosave_seconds: 30.0,
             show_rulers: true,
             show_grid: false,
             snap_to_grid: false,
             grid_size: 20.0,
+            grid_size_down: None,
+            grid_color: None,
             loop_playback: true,
             timeline_names_width: crate::workspace::timeline::LABEL_W,
             onion_before: 1,
@@ -123,15 +136,17 @@ impl Default for Preferences {
             brush_builtin_profile: None,
             brushes: Vec::new(),
             brush_selected: None,
-            publish_compress: true,
-            publish_swf: true,
-            publish_html5: true,
-            html5_loop: true,
-            html5_center: true,
-            html5_responsive: false,
-            publish_gif: false,
-            publish_mp4: false,
-            publish_mov: false,
+            publish_compress: publish.compress,
+            publish_swf: publish.swf,
+            publish_html5: publish.html5,
+            html5_loop: publish.loop_timeline,
+            html5_center: publish.center_stage,
+            html5_responsive: publish.responsive,
+            publish_gif: publish.gif,
+            publish_mp4: publish.mp4,
+            publish_mov: publish.mov,
+            publish_transparent: publish.transparent,
+            publish_defaults: crate::workspace::publish_settings::PUBLISH_DEFAULTS,
             language: "system".to_owned(),
             theme: "dark".to_owned(),
             pinned_tools: Vec::new(),

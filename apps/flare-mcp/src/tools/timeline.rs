@@ -10,7 +10,9 @@ use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = timeline_tools, vis = "pub(super)")]
 impl FlareServer {
-    #[tool(description = "Insert or remove frames and keyframes on a layer (needs write access).")]
+    #[tool(
+        description = "Insert or remove frames and keyframes on a layer, or move or copy a run of frames (needs write access)."
+    )]
     fn frame_operation(&self, Parameters(args): Parameters<FrameOp>) -> Outcome {
         self.write(args.expected_revision, |state| {
             let scene = first_scene(state)?;
@@ -42,6 +44,20 @@ impl FlareServer {
                         })?;
                     let onto = find(onto_id).ok_or("layer disappeared")?;
                     frames::drop_span(scene, layer, start, onto, to)
+                }
+                FrameOperation::MoveFrames | FrameOperation::CopyFrames => {
+                    let to = args
+                        .to
+                        .ok_or("move_frames and copy_frames need `to`, the last frame")?;
+                    let dest = args
+                        .dest
+                        .ok_or("move_frames and copy_frames need `dest`, where the frames go")?;
+                    let how = match args.operation {
+                        FrameOperation::CopyFrames => frames::FramePlacement::Copy,
+                        _ => frames::FramePlacement::Move,
+                    };
+                    let onto = find(onto_id).ok_or("layer disappeared")?;
+                    frames::place_frames(scene, layer, (at, to), onto, dest, how)
                 }
                 FrameOperation::RemoveFrames => {
                     let to = args.to.ok_or("remove_frames needs `to`, the last frame")?;

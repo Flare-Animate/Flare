@@ -31,6 +31,7 @@ pub mod library;
 pub mod line;
 pub mod lipsync;
 pub mod magic_wand;
+pub mod magnet;
 pub mod mannequin;
 pub mod mirror;
 pub mod multi_frame;

@@ -12,3 +12,7 @@ pubpop-responsive = Адаптивный размер
 pubpop-format-gif = Анимированный GIF (.gif)
 pubpop-format-mp4 = Видео MP4 (.mp4)
 pubpop-format-mov = Фильм QuickTime (.mov)
+pubpop-video-browser = Браузер пока не умеет записывать видео MP4 и QuickTime. Используйте настольное приложение.
+pubpop-transparent = Прозрачный фон
+pubpop-transparent-hint = Не включает цвет сцены, так что всё, что не нарисовано, остаётся прозрачным: в GIF, в фильме QuickTime и при экспорте изображения, фильма и SVG. Прозрачный фильм QuickTime записывается в ProRes 4444 с помощью ffmpeg. Фильм Flash и страница HTML5 сохраняют цвет сцены.
+pubpop-transparent-mp4 = MP4 не может быть прозрачным, поэтому он не будет записан. Снимите отметку MP4 или опубликуйте вместо него GIF или фильм QuickTime.

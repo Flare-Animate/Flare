@@ -15,7 +15,7 @@ use quick_xml::Reader;
 use quick_xml::events::Event;
 use serde_json::{Value, json};
 
-use super::{ShortcutError, ShortcutMap};
+use super::{Accelerator, ShortcutError, ShortcutMap};
 use crate::MenuAction;
 use crate::MenuAction as A;
 
@@ -239,10 +239,6 @@ impl ShortcutMap {
                 skip(raw, "Flare has no such command yet".to_owned());
                 continue;
             };
-            if applied.iter().any(|(a, _)| *a == action) {
-                skip(raw, "Flare keeps one shortcut a command".to_owned());
-                continue;
-            }
             let keys = match raw.accelerator() {
                 Ok(keys) => keys,
                 Err(reason) => {
@@ -250,13 +246,23 @@ impl ShortcutMap {
                     continue;
                 }
             };
-            match map.bind_taking(action, &keys) {
+            // The file's first key for a command replaces the set's; any more are added to it,
+            // as Animate keeps them.
+            let result = if applied.iter().any(|(a, _)| *a == action) {
+                map.add_key_taking(action, &keys)
+            } else {
+                map.bind_taking(action, &keys)
+            };
+            match result {
                 Ok(taken) => {
                     if let Some(taken) = taken {
                         // A key the file gave twice: the later binding wins, as it would in Animate's editor.
-                        applied.retain(|(a, _)| *a != taken);
+                        let shown: Vec<String> =
+                            map.keys(taken).iter().map(ToString::to_string).collect();
+                        applied.retain(|(a, k)| *a != taken || shown.contains(k));
                     }
-                    let shown = map.get(action).map(ToString::to_string).unwrap_or(keys);
+                    let shown =
+                        Accelerator::parse(&keys, action).map_or(keys, |accel| accel.to_string());
                     applied.push((action, shown));
                 }
                 Err(error) => skip(raw, error.to_string()),

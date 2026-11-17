@@ -16,6 +16,7 @@ mod camera;
 mod draw;
 mod interchange;
 mod magic_wand;
+mod magnet;
 mod multi_frame;
 mod render;
 mod sound;
@@ -40,6 +41,7 @@ pub use interchange::{
     publish_swf, test_movie,
 };
 pub use magic_wand::{WandRequest, magic_wand};
+pub use magnet::{MagnetRequest, magnet};
 pub use multi_frame::transform_frames;
 #[allow(unused_imports)]
 use render::*;
@@ -50,7 +52,9 @@ use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};
 #[allow(unused_imports)]
 use timeline::*;
-pub use timeline::{FrameOperation, LayerOperation, LayerPlace, frame_op, layer_op, layer_opacity};
+pub use timeline::{
+    FrameArgs, FrameOperation, LayerOperation, LayerPlace, frame_op, layer_op, layer_opacity,
+};
 
 /// Opens a project: a `.flare`, or an Animate `.fla`, `.xfl` or XFL folder (a movie is read too,
 /// to inspect or convert, but never written back).

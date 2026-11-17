@@ -40,6 +40,10 @@ Au milieu de l'interpolation, avec la pelure d'oignon qui montre les images vois
 
 Prises dans la version navigateur, qui exécute le même éditeur que l'application de bureau.
 
+<img src="../../assets/screenshots/bouncing-ball.gif" width="800" alt="Une balle jaune dessinée à la main qui rebondit, s'écrase à l'impact et s'étire pendant la chute.">
+
+Réalisé avec Flare : une balle dessinée à la main qui rebondit, s'écrase à l'impact et s'étire pendant la chute.
+
 ## Fonctions
 
 - Dessin avec les outils stylo, pinceau et formes, avec un outil de sélection pour déplacer, grouper et modifier les formes, et des styles de trait (plein, tireté, pointillé, stipple, hachuré, irrégulier, chevrons, corde, zigzag).

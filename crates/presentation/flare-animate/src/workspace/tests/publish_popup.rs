@@ -84,6 +84,7 @@ fn with_no_format_chosen_publish_does_nothing() {
     ws.publish.swf = false;
     ws.publish.html5 = false;
     ws.publish.gif = false;
+    ws.publish.mp4 = false;
     for _ in 0..3 {
         time += 0.1;
         find(&mut ws, &ctx, time, "Publish");
@@ -107,6 +108,7 @@ fn mp4_is_an_ordinary_format_that_ticks_counts_and_is_kept() {
     ws.publish.swf = false;
     ws.publish.html5 = false;
     ws.publish.gif = false;
+    ws.publish.mp4 = false;
     assert!(!ws.publish_settings().any(), "nothing ticked");
     // The warning that appears when nothing is ticked moves the boxes; let the popup settle.
     for _ in 0..3 {
@@ -155,6 +157,7 @@ fn mov_is_an_ordinary_format_that_ticks_counts_and_is_kept() {
     ws.publish.swf = false;
     ws.publish.html5 = false;
     ws.publish.gif = false;
+    ws.publish.mp4 = false;
     assert!(!ws.publish_settings().any(), "nothing ticked");
     for _ in 0..3 {
         time += 0.1;
@@ -173,5 +176,33 @@ fn mov_is_an_ordinary_format_that_ticks_counts_and_is_kept() {
     assert!(
         fresh.publish_settings().mov,
         "and kept with the preferences"
+    );
+}
+
+#[test]
+fn transparent_background_ticks_and_warns_that_an_mp4_cannot_be_transparent() {
+    let (ctx, mut ws, mut time) = opened();
+    let warning = "An MP4 cannot be transparent, so it will not be written. Untick MP4, or publish a GIF or a QuickTime movie instead.";
+    ws.publish.mp4 = true;
+    assert!(
+        find(&mut ws, &ctx, time, warning).is_none(),
+        "no warning yet"
+    );
+    click_text(&mut ws, &ctx, &mut time, "Transparent background");
+    assert!(ws.publish.transparent, "ticked");
+    for _ in 0..3 {
+        time += 0.1;
+        find(&mut ws, &ctx, time, "Publish");
+    }
+    time += 0.1;
+    assert!(
+        find(&mut ws, &ctx, time, warning).is_some(),
+        "the MP4 is warned about"
+    );
+    ws.publish.mp4 = false;
+    time += 0.1;
+    assert!(
+        find(&mut ws, &ctx, time, warning).is_none(),
+        "without MP4 there is nothing to warn of"
     );
 }

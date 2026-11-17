@@ -40,7 +40,8 @@ that this documentation change resolves them.
 - Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
-- Editable keyboard shortcuts: done (registry, four sets, editor, CLI and MCP; every chord — a command on Ctrl, Cmd, Alt or a function key — is dispatched from the map in the window, see SURFACES)
+- Editable keyboard shortcuts: done (registry, four sets, editor, CLI and MCP, up to four shortcuts to a command or tool; every chord — a command on Ctrl, Cmd, Alt or a function key — is dispatched from the map in the window, see SURFACES)
+- The Magnet, for bending line art by pulling it: done (library, desktop and browser tool, CLI and MCP; after OpenToonz's)
 
 ### Lower priority
 
@@ -198,7 +199,7 @@ Each of these can be its own branch and PR:
 
 1. Text: rich text (mixed styles in one field), paragraph settings, text on a path, and the text menu's commands. Text objects that are edited again after they are placed are done.
 2. Fills and strokes: radial and multi-stop gradients, editing gradients, gradients and masks in XFL import and SWF, and the rest of the Paint Bucket: Lock Fill. It fills a shape, the inside of an outline whose ends meet or come within the chosen gap size (Animate's four, from none to 48 screen points), or any area lines close off, whatever drew them and however many shapes they are (a new shape under the lines), with the fill color or gradient; the Eyedropper takes a line's whole stroke or a fill's color or gradient, through empty insides and inside groups, and otherwise the color shown there. All three act on the press and are their own pointer over the stage.
-3. Timeline UX: drag-moving selected frame ranges (one keyframe drags along its row or onto another layer, replacing what it lands on, and layers drag up and down the stack); sound: start/stop/loop options per cue, volume, playback that starts mid-sound (Animate's Stream sync), sounds in XFL and SWF. A loop range on the ruler, the waveform on a sound's bar, hearing a scrub, cells to the end of the longest sound, layer names and ruler that stay in view, and F5 on a layer with no frames are done.
+3. Timeline UX: sound: start/stop/loop options per cue, volume, playback that starts mid-sound (Animate's Stream sync), sounds in XFL and SWF. A loop range on the ruler, the waveform on a sound's bar, hearing a scrub, cells to the end of the longest sound, layer names and ruler that stay in view, F5 on a layer with no frames, and drag-moving keyframes and selected frame ranges (along a row or onto another layer, replacing what they land on, Alt to copy; layers drag up and down the stack) are done.
 4. Compatibility evidence: a lawful corpus of real Animate files to test import and export against, and check what the importer keeps against files Animate wrote.
 5. Input and accessibility: pen, IME and screen-reader results.
 6. Packaging: app bundles and installers, once the icons are trimmed.

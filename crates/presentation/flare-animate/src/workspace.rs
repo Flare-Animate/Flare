@@ -31,6 +31,7 @@ mod dock;
 mod drag_preview;
 mod draw;
 mod files;
+mod frame_focus;
 mod frame_ranges;
 mod furniture;
 mod gestures;
@@ -192,6 +193,7 @@ pub struct Workspace {
     wand: tools::magic_wand::WandTool,
     /// The Rotation tool's drag, its dial and the Alt tap that opens it.
     rotate: tools::rotate_view::RotateView,
+    springs: tools::Springs,
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
     freehand: Vec<InputSample>,
     /// The Brush's stabilizer for the stroke being drawn, if it has one.
@@ -218,6 +220,8 @@ pub struct Workspace {
     frame_range: Option<FrameRange>,
     /// What Copy Frames remembered, for Paste Frames.
     frame_clipboard: Option<frames::FrameClip>,
+    /// Whether Copy, Paste and Delete act on the timeline's frames or on the stage.
+    frame_focus: frame_focus::FrameFocus,
     /// The document state and playhead the selection was last checked against, so an unchanged
     /// one is not rechecked every frame.
     selection_checked: Option<selection::SelectionStamp>,
@@ -396,6 +400,7 @@ impl Workspace {
             lasso: Vec::new(),
             wand: Default::default(),
             rotate: Default::default(),
+            springs: Default::default(),
             freehand: Vec::new(),
             stabilizer: None,
             pen_feed: PenFeed::default(),
@@ -410,6 +415,7 @@ impl Workspace {
             smoothing: 2.0,
             frame_range: None,
             frame_clipboard: None,
+            frame_focus: frame_focus::FrameFocus::default(),
             selection_checked: None,
             selection_rects_cache: std::cell::RefCell::new(None),
             handle_radius: 6.0,

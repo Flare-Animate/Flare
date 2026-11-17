@@ -34,7 +34,7 @@ pub fn snap_to_guides(point: Pos2, guides: &[Guide], reach: f32) -> Pos2 {
 /// Guides pull whether or not the grid does.
 pub(super) fn snap_for_drawing(
     point: Pos2,
-    grid: Option<f32>,
+    grid: Option<Vec2>,
     guides: &[Guide],
     reach: f32,
 ) -> Pos2 {

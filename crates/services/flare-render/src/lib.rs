@@ -5,6 +5,7 @@
 //! lives in `flare-eval` and the file formats elsewhere.
 #![forbid(unsafe_code)]
 
+mod backdrop;
 mod hit;
 mod image;
 mod image_formats;
@@ -17,7 +18,8 @@ mod render;
 mod view_alpha;
 mod viewport;
 
-pub use hit::{PaintHit, hit_test, hit_test_all, paint_hits};
+pub use backdrop::{Backdrop, no_transparency};
+pub use hit::{PaintHit, hit_test, hit_test_all, hit_test_near, paint_hits};
 pub use image::{Image, PremultipliedImage, StillFormat};
 pub use image_formats::MAX_ICO_SIDE;
 pub use ink::{ink_bounds, ink_mask};

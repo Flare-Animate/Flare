@@ -1,10 +1,11 @@
 //! Keyboard shortcut sets: the same behaviour as `flare shortcuts`, from `flare_menubar`. The
 //! server keeps no shortcut file; a file is passed in as text and the checked form comes back.
 
-use flare_menubar::ShortcutMap;
+use flare_menubar::{ShortcutEdit, ShortcutMap};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 
 use crate::params::{AnimateShortcutsParams, ShortcutsParams};
+use crate::params_shortcuts::EditShortcutsParams;
 use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = shortcut_tools, vis = "pub(super)")]
@@ -26,6 +27,41 @@ impl FlareServer {
             out["file"] = map.file_value();
         }
         Ok(out.to_string())
+    }
+
+    #[tool(
+        description = "Change one command's keyboard shortcuts, starting from a set or from the shortcut file text passed as `file`, and return the new `file` with the command's `keys` (first one first; the first is the one its menu item shows). A command can have several shortcuts, up to 4: give exactly one of `keys` (replace them all), `add` (one more), `remove` (take one off, the others stay), `clear` or `reset` (the set's own keys). Keys another command has are taken from it and `taken_from` names it. A bad key, an unknown command, too many keys or keys it does not have are refused."
+    )]
+    fn edit_shortcuts(&self, Parameters(a): Parameters<EditShortcutsParams>) -> Outcome {
+        let asked = [
+            a.keys.clone().map(ShortcutEdit::Set),
+            a.add.clone().map(ShortcutEdit::Add),
+            a.remove.clone().map(ShortcutEdit::Remove),
+            a.clear.unwrap_or(false).then_some(ShortcutEdit::Clear),
+            a.reset.unwrap_or(false).then_some(ShortcutEdit::Reset),
+        ];
+        let mut asked = asked.into_iter().flatten();
+        let (Some(edit), None) = (asked.next(), asked.next()) else {
+            return Err("give exactly one of keys, add, remove, clear or reset".to_owned());
+        };
+        let mut map = match a.file.as_deref() {
+            Some(text) => ShortcutMap::from_json(text),
+            None => ShortcutMap::from_set(a.set.as_deref().unwrap_or("flare")),
+        }
+        .map_err(|e| e.to_string())?;
+        let taken = map
+            .edit(&a.action, &edit)
+            .map_err(|e| format!("{}: {e}", a.action))?;
+        let keys: Vec<String> = flare_menubar::MenuAction::from_id(&a.action)
+            .map(|action| map.keys(action).iter().map(ToString::to_string).collect())
+            .unwrap_or_default();
+        Ok(serde_json::json!({
+            "action": a.action,
+            "keys": keys,
+            "taken_from": taken.map(|t| t.id()),
+            "file": map.file_value(),
+        })
+        .to_string())
     }
 
     #[tool(

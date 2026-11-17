@@ -12,7 +12,8 @@ impl Workspace {
         let current = self.gap_label(self.paint.gap);
         chrome::row(ui, &tr!(self, "opt-gap-size"), |ui| {
             egui::ComboBox::from_id_salt("gap_size_menu")
-                .width(140.0)
+                .width(ui.available_width().min(140.0))
+                .truncate()
                 .selected_text(current)
                 .show_ui(ui, |ui| {
                     for size in GapSize::ALL {

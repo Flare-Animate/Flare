@@ -12,3 +12,7 @@ pubpop-responsive = 自适应窗口大小
 pubpop-format-gif = 动画 GIF（.gif）
 pubpop-format-mp4 = MP4 视频（.mp4）
 pubpop-format-mov = QuickTime 影片（.mov）
+pubpop-video-browser = 浏览器暂时无法写出 MP4 或 QuickTime 影片。请使用桌面应用。
+pubpop-transparent = 透明背景
+pubpop-transparent-hint = 不包含舞台颜色，未绘制的部分保持透明：适用于 GIF、QuickTime 影片，以及导出图像、影片和 SVG。透明的 QuickTime 影片为 ProRes 4444，由 ffmpeg 生成。Flash 影片和 HTML5 页面保留舞台颜色。
+pubpop-transparent-mp4 = MP4 不能透明，因此不会写出。请取消勾选 MP4，或改为发布 GIF 或 QuickTime 影片。

@@ -76,6 +76,7 @@ impl Workspace {
                 | Tool::Brush
                 | Tool::Bucket
                 | Tool::InkBottle
+                | Tool::Eraser
                 | Tool::Camera
                 | Tool::Bone
                 | Tool::Ruler
@@ -103,6 +104,10 @@ impl Workspace {
 
     pub(crate) fn tool_tab(&mut self, ui: &mut Ui) {
         self.tool_options(ui);
+        // The Eraser lays down no paint, so it has no colors to show.
+        if self.tool == Tool::Eraser {
+            return;
+        }
         // Only the paint the tool uses: the Paint Bucket pours a fill and the Ink Bottle puts on
         // a stroke, as Animate's Properties show them.
         let (fill, stroke) = match self.tool {
@@ -127,13 +132,14 @@ impl Workspace {
     /// The fill color, and the gradient it can run into.
     fn fill_controls(&mut self, ui: &mut Ui) {
         let (gradient, vertical) = (tr!(self, "opt-gradient-check"), tr!(self, "opt-vertical"));
+        let texts = self.color_texts();
         chrome::row(ui, &tr!(self, "opt-fill"), |ui| {
-            ui.color_edit_button_srgba(&mut self.paint.fill);
+            flare_ui::color_picker::color_button(ui, &mut self.paint.fill, &texts);
             ui.checkbox(&mut self.paint.gradient_enabled, &gradient);
         });
         if self.paint.gradient_enabled {
             chrome::row(ui, &tr!(self, "opt-to"), |ui| {
-                ui.color_edit_button_srgba(&mut self.paint.gradient_end);
+                flare_ui::color_picker::color_button(ui, &mut self.paint.gradient_end, &texts);
                 ui.checkbox(&mut self.paint.gradient_vertical, &vertical);
             });
         }
@@ -149,8 +155,9 @@ impl Workspace {
             tr!(self, "opt-square"),
         );
         let (bevel, miter) = (tr!(self, "opt-bevel"), tr!(self, "opt-miter"));
+        let texts = self.color_texts();
         chrome::row(ui, &tr!(self, "opt-stroke"), |ui| {
-            ui.color_edit_button_srgba(&mut self.paint.stroke_color);
+            flare_ui::color_picker::color_button(ui, &mut self.paint.stroke_color, &texts);
             if optional {
                 ui.checkbox(&mut self.paint.stroke_enabled, &outline);
             }

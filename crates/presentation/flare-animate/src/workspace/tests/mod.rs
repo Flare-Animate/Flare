@@ -2,8 +2,7 @@
 #![allow(clippy::expect_used)]
 
 use super::*;
-use egui::{Color32, Key, Modifiers, Pos2, Rect, Vec2};
-use egui::{Event, RawInput};
+use egui::{Color32, Event, Key, Modifiers, Pos2, RawInput, Rect, Vec2};
 use flare_commands::Command;
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId, ShapeId, SymbolId};
 use flare_dock::{self, Pane};
@@ -36,10 +35,12 @@ mod color_section;
 mod command_palette;
 mod drawing_into_layers;
 mod eraser;
+mod frame_focus;
 mod frame_menu;
 mod frame_rate;
 mod frames_text_and_sound;
 mod graphic_playback;
+mod hand_spring;
 mod home;
 mod home_extra;
 mod home_recent;
@@ -54,6 +55,7 @@ mod lip_sync;
 mod live_transform;
 mod loop_range;
 mod magic_wand;
+mod magnet;
 mod mannequin;
 mod mannequin_reference;
 mod menus_and_recovery;
@@ -66,6 +68,7 @@ mod new_document_dialog;
 mod nothing_left_in_english;
 mod onion_settings;
 mod open_any;
+mod options_fit;
 mod paint_areas;
 mod paint_gap_size;
 mod paint_tools;

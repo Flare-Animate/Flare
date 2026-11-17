@@ -132,9 +132,12 @@ pub fn group<R>(ui: &mut Ui, icon: &str, title: &str, add: impl FnOnce(&mut Ui) 
         .inner
 }
 
-/// A row of "label: control" with the label in a fixed column so controls line up.
+/// A row of "label: control" with the label in a fixed column so controls line up. Controls that
+/// do not fit the panel's width go on to the next line (and their text wraps) rather than running
+/// past its edge: a row wider than the panel widens everything after it, and the numbers each
+/// slider puts at the right edge would be drawn out of sight.
 pub fn row(ui: &mut Ui, label: &str, add: impl FnOnce(&mut Ui)) {
-    ui.horizontal(|ui| {
+    ui.horizontal_wrapped(|ui| {
         ui.add_sized(
             [64.0, 18.0],
             egui::Label::new(egui::RichText::new(label).color(theme::text_dim())),

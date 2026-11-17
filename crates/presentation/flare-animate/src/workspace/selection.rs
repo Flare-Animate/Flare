@@ -23,6 +23,7 @@ impl Workspace {
             self.finish_text_for_tool_change();
             self.wand_drop();
             let before = std::mem::replace(&mut self.tool, tool);
+            self.hand_tool_changed(before, tool);
             self.rotate_view_tool_changed(before, tool);
             if tool == Tool::Camera {
                 self.ensure_camera();
@@ -108,8 +109,9 @@ impl Workspace {
         }
     }
 
-    /// The scene-level element of the topmost shape under `point` at the current frame,
-    /// looking through locked layers.
+    /// The scene-level element of the topmost shape under `point` at the current frame, looking
+    /// through locked layers; with none under it, the shape whose line passes nearest, within a
+    /// few screen pixels, so a thin sketched line can be picked without landing on it exactly.
     pub(super) fn hit(&self, point: Pos2) -> Option<SpanRef> {
         // Text is picked anywhere in its box, not only on the ink of its letters.
         self.glyph_hit(point).or_else(|| self.text_box_hit(point))
@@ -133,17 +135,28 @@ impl Workspace {
     }
 
     pub(super) fn glyph_hit(&self, point: Pos2) -> Option<SpanRef> {
+        self.glyph_hit_where(point, |span| self.on_unlocked_layer(span))
+    }
+
+    /// [`glyph_hit`](Self::glyph_hit) for the shapes `keep` accepts, looking past the others.
+    pub(super) fn glyph_hit_where(
+        &self,
+        point: Pos2,
+        keep: impl Fn(SpanRef) -> bool,
+    ) -> Option<SpanRef> {
         let scene = self.scene_id()?;
         let at = DVec2::new(f64::from(point.x), f64::from(point.y));
         let hit_at = |number: u32| {
             let frame =
                 flare_eval::evaluate_frame_without_camera(self.document(), scene, number).ok()?;
-            flare_render::hit_test_all(&frame, at)
+            // The reach is the handles' grab radius: a few screen pixels at any zoom.
+            let reach = f64::from(self.handle_radius);
+            flare_render::hit_test_near(&frame, at, reach)
                 .into_iter()
                 .filter_map(|index| {
                     ops::locate_hit(self.document(), scene, number, &frame.shapes[index])
                 })
-                .find(|span| self.on_unlocked_layer(*span))
+                .find(|span| keep(*span))
         };
         // Editing multiple frames, what the playhead's frame does not have under the pointer is
         // looked for in the other keyframes shown, nearest the playhead first.
@@ -252,6 +265,7 @@ impl Workspace {
             .collect();
         if !items.is_empty() {
             self.clipboard = items;
+            self.frame_focus.frames_copied_last = false;
         }
     }
 

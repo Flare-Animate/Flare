@@ -236,18 +236,7 @@ fn export_format_gif_writes_an_animated_gif_never_overwrites_and_refuses_png_onl
         assert!(!refused.status.success(), "{option:?} is for PNG");
         assert!(String::from_utf8_lossy(&refused.stderr).contains("for PNG"));
     }
-    assert!(
-        !run(&[
-            "export",
-            &file,
-            &option_out,
-            "--format",
-            "gif",
-            "--transparent"
-        ])
-        .status
-        .success()
-    );
+    // A transparent GIF is made, not refused: see `transparent.rs`.
     assert!(!std::path::Path::new(&option_out).exists());
     let missing = dir.path().join("none.flare").to_string_lossy().into_owned();
     let other = dir.path().join("o.gif").to_string_lossy().into_owned();

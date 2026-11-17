@@ -5,6 +5,7 @@ use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 
 use super::*;
+use flare_runtime::Backdrop;
 
 /// Imports an XFL directory, `.xfl` file or zipped `.fla` into a new project file and
 /// reports everything that could not be carried over.
@@ -104,35 +105,36 @@ pub fn export_xfl(path: &Path, out: &Path) -> Result<Value> {
     }))
 }
 
-/// Renders every frame of the first scene as an endlessly looping GIF. Never overwrites; the
-/// file appears only when complete.
-pub fn export_gif(path: &Path, out: &Path) -> Result<Value> {
-    export_animation(path, out, flare_runtime::gif_bytes)
+/// Renders every frame of the first scene as an endlessly looping GIF over `backdrop`. Never
+/// overwrites; the file appears only when complete.
+pub fn export_gif(path: &Path, out: &Path, backdrop: Backdrop) -> Result<Value> {
+    export_animation(path, out, backdrop, flare_runtime::gif_bytes)
 }
 
-/// Renders every frame of the first scene as an endlessly repeating animated WebP (lossless). Never
-/// overwrites; the file appears only when complete.
-pub fn export_animated_webp(path: &Path, out: &Path) -> Result<Value> {
-    export_animation(path, out, flare_runtime::animated_webp_bytes)
+/// Renders every frame of the first scene as an endlessly repeating animated WebP (lossless) over
+/// `backdrop`. Never overwrites; the file appears only when complete.
+pub fn export_animated_webp(path: &Path, out: &Path, backdrop: Backdrop) -> Result<Value> {
+    export_animation(path, out, backdrop, flare_runtime::animated_webp_bytes)
 }
 
-/// Renders every frame of the first scene as an endlessly looping APNG (animated PNG). Never
-/// overwrites; the file appears only when complete.
-pub fn export_apng(path: &Path, out: &Path) -> Result<Value> {
-    export_animation(path, out, flare_runtime::apng_bytes)
+/// Renders every frame of the first scene as an endlessly looping APNG (animated PNG) over
+/// `backdrop`. Never overwrites; the file appears only when complete.
+pub fn export_apng(path: &Path, out: &Path, backdrop: Backdrop) -> Result<Value> {
+    export_animation(path, out, backdrop, flare_runtime::apng_bytes)
 }
 
 /// Writes an animation of the document made by `encode`, as a whole file or not at all.
 fn export_animation(
     path: &Path,
     out: &Path,
-    encode: fn(&flare_document::Document) -> Result<Vec<u8>, String>,
+    backdrop: Backdrop,
+    encode: fn(&flare_document::Document, Backdrop) -> Result<Vec<u8>, String>,
 ) -> Result<Value> {
     if out.exists() {
         bail!("{} already exists", out.display());
     }
     let session = open(path)?;
-    let bytes = encode(session.document()).map_err(anyhow::Error::msg)?;
+    let bytes = encode(session.document(), backdrop).map_err(anyhow::Error::msg)?;
     write_new(out, &bytes)
 }
 
@@ -151,62 +153,65 @@ fn write_new(out: &Path, bytes: &[u8]) -> Result<Value> {
     Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes.len() }))
 }
 
-/// Writes the first scene as a movie made by ffmpeg, in the container `id` (see `flare_ffmpeg`).
-/// Never overwrites; the file appears only when whole.
-pub fn export_movie(path: &Path, out: &Path, id: &str) -> Result<Value> {
+/// Writes the first scene as a movie made by ffmpeg, in the container `id` (see `flare_ffmpeg`),
+/// over `backdrop`. Never overwrites; the file appears only when whole.
+pub fn export_movie(path: &Path, out: &Path, id: &str, backdrop: Backdrop) -> Result<Value> {
     if out.exists() {
         bail!("{} already exists", out.display());
     }
     let container =
         flare_ffmpeg::container(id).with_context(|| format!("no movie format called {id}"))?;
     let session = open(path)?;
-    flare_video::write_with_ffmpeg(session.document(), out, container)
+    flare_video::write_with_ffmpeg(session.document(), out, container, backdrop)
         .map_err(anyhow::Error::msg)?;
     let bytes = std::fs::metadata(out)?.len();
     Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes }))
 }
 
-/// Renders one frame of the first scene as a flattened Photoshop (PSD) file at the stage's size.
-/// Never overwrites.
-pub fn export_psd(path: &Path, out: &Path, frame: u32) -> Result<Value> {
+/// Renders one frame of the first scene as a flattened Photoshop (PSD) file at the stage's size,
+/// over `backdrop`. Never overwrites.
+pub fn export_psd(path: &Path, out: &Path, frame: u32, backdrop: Backdrop) -> Result<Value> {
     if out.exists() {
         bail!("{} already exists", out.display());
     }
     let session = open(path)?;
-    let bytes = flare_runtime::psd_export(session.document(), frame).map_err(anyhow::Error::msg)?;
+    let bytes = flare_runtime::psd_export(session.document(), frame, backdrop)
+        .map_err(anyhow::Error::msg)?;
     write_new(out, &bytes)
 }
 
 /// Renders one frame of the first scene as an SVG picture (vector: at the stage size). Never
-/// overwrites. The notes say what SVG could not carry, and they are reported with the file.
-pub fn export_svg(path: &Path, out: &Path, frame: u32) -> Result<Value> {
+/// overwrites. The notes say what SVG could not carry, and they are reported with the file. A
+/// transparent `backdrop` leaves the stage rectangle out.
+pub fn export_svg(path: &Path, out: &Path, frame: u32, backdrop: Backdrop) -> Result<Value> {
     if out.exists() {
         bail!("{} already exists", out.display());
     }
     let session = open(path)?;
-    let svg = flare_runtime::svg_export(session.document(), frame).map_err(anyhow::Error::msg)?;
+    let svg = flare_runtime::svg_export(session.document(), frame, backdrop)
+        .map_err(anyhow::Error::msg)?;
     let mut value = write_new(out, svg.text.as_bytes())?;
     value["notes"] = json!(svg.notes);
     Ok(value)
 }
 
-/// Renders the first scene as an H.264 and AAC video, with its sound. Never overwrites; the file
-/// appears only when whole.
-pub fn export_mp4(path: &Path, out: &Path) -> Result<Value> {
+/// Renders the first scene as an H.264 and AAC video, with its sound. H.264 has no alpha, so a
+/// transparent `backdrop` is refused. Never overwrites; the file appears only when whole.
+pub fn export_mp4(path: &Path, out: &Path, backdrop: Backdrop) -> Result<Value> {
     let session = open(path)?;
-    flare_video::write_mp4(session.document(), out).map_err(anyhow::Error::msg)?;
+    flare_video::write_mp4_over(session.document(), out, backdrop).map_err(anyhow::Error::msg)?;
     let bytes = std::fs::metadata(out)?.len();
     Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes }))
 }
 
 /// Renders the first scene as a QuickTime movie with its sound, as [`export_mp4`] does, with no
-/// ffmpeg needed.
-pub fn export_mov(path: &Path, out: &Path) -> Result<Value> {
+/// ffmpeg needed; over a transparent `backdrop` it is ProRes 4444 made by ffmpeg.
+pub fn export_mov(path: &Path, out: &Path, backdrop: Backdrop) -> Result<Value> {
     if out.exists() {
         bail!("{} already exists", out.display());
     }
     let session = open(path)?;
-    flare_video::write_mov(session.document(), out).map_err(anyhow::Error::msg)?;
+    flare_video::write_mov_over(session.document(), out, backdrop).map_err(anyhow::Error::msg)?;
     let bytes = std::fs::metadata(out)?.len();
     Ok(json!({ "exported": out.to_string_lossy(), "bytes": bytes }))
 }

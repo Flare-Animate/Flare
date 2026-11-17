@@ -67,3 +67,4 @@ out-nothing = Nada a relatar
 hist-magic-wand = Apagar pixels
 hist-blur = Desfocar
 hist-smudge = Borrar
+hist-bend-line = Dobrar a linha

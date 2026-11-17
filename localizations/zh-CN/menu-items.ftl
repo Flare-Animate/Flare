@@ -157,3 +157,4 @@ menu-item-workspace-classic = 传统
 menu-item-workspace-small-screen = 小屏幕
 menu-item-command-palette = 查找命令…
 menu-item-show-swatches = 色板
+menu-item-tool-magnet = 磁铁

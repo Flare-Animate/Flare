@@ -203,7 +203,7 @@ fn guides_pull_points_whether_or_not_the_grid_is_on() {
         Pos2::new(100.0, 57.0)
     );
     assert_eq!(
-        snap_for_drawing(near, Some(20.0), &guides, 5.0),
+        snap_for_drawing(near, Some(Vec2::splat(20.0)), &guides, 5.0),
         Pos2::new(100.0, 60.0)
     );
     assert_eq!(snap_for_drawing(near, None, &[], 5.0), near);

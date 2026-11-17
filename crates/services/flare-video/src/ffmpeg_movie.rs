@@ -7,17 +7,30 @@ use std::path::Path;
 
 use flare_document::Document;
 use flare_ffmpeg::{Container, FfmpegError, Movie};
+use flare_render::Backdrop;
 
 use crate::audio;
 use crate::{Frames, MAX_VIDEO_FRAMES, video_size};
 
-/// Writes the first scene of `document` to `path` in `container`, through ffmpeg. The file appears
+/// Writes the first scene of `document` to `path` in `container` over `backdrop`, through ffmpeg.
+/// A transparent backdrop takes the container's see-through pictures (ProRes 4444 in a QuickTime
+/// movie, VP9 with alpha in a WebM) and is refused by a container that has none. The file appears
 /// only when whole, and an existing file is never replaced.
 pub fn write_with_ffmpeg(
     document: &Document,
     path: &Path,
     container: &Container,
+    backdrop: Backdrop,
 ) -> Result<(), String> {
+    let see_through;
+    let container = if backdrop.is_transparent() {
+        see_through = container
+            .with_alpha()
+            .ok_or_else(|| flare_render::no_transparency(&format!("{}s", container.label)))?;
+        &see_through
+    } else {
+        container
+    };
     let scene = document
         .scenes()
         .first()
@@ -45,7 +58,7 @@ pub fn write_with_ffmpeg(
     let fps = f64::from(num) / f64::from(den);
     let seconds = frames as f64 / fps;
 
-    let drawn = Frames::new(document, size)?;
+    let drawn = Frames::new(document, size, backdrop)?;
     let mut track = audio::Track::new(document, (num, den), seconds)?;
     // The sound is written to a file beside the output, and removed with the staging files.
     let sound = match track.as_mut() {

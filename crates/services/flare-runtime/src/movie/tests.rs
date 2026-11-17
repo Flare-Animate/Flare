@@ -47,7 +47,7 @@ fn decode(bytes: &[u8]) -> (gif::Decoder<&[u8]>, Vec<gif::Frame<'static>>) {
 
 #[test]
 fn every_frame_becomes_a_gif_frame_at_the_documents_rate_and_it_loops() {
-    let bytes = gif_bytes(&animation(6, (40, 20), (25, 1))).expect("gif");
+    let bytes = gif_bytes(&animation(6, (40, 20), (25, 1)), Backdrop::Stage).expect("gif");
     assert!(bytes.starts_with(b"GIF89a"));
     let (decoder, frames) = decode(&bytes);
     assert_eq!((decoder.width(), decoder.height()), (40, 20));
@@ -65,7 +65,7 @@ fn every_frame_becomes_a_gif_frame_at_the_documents_rate_and_it_loops() {
 
 #[test]
 fn big_stages_are_scaled_down_and_absurd_requests_are_refused_in_words() {
-    let bytes = gif_bytes(&animation(1, (1280, 640), (24, 1))).expect("gif");
+    let bytes = gif_bytes(&animation(1, (1280, 640), (24, 1)), Backdrop::Stage).expect("gif");
     let (decoder, _) = decode(&bytes);
     assert_eq!(
         (decoder.width(), decoder.height()),
@@ -73,10 +73,10 @@ fn big_stages_are_scaled_down_and_absurd_requests_are_refused_in_words() {
         "the long side fits the limit"
     );
     // A very fast rate still gets a delay a viewer will honour.
-    let fast = gif_bytes(&animation(2, (20, 20), (240, 1))).expect("gif");
+    let fast = gif_bytes(&animation(2, (20, 20), (240, 1)), Backdrop::Stage).expect("gif");
     assert!(decode(&fast).1.iter().all(|f| f.delay >= 2));
     let long = animation(MAX_MOVIE_FRAMES as u32 + 1, (10, 10), (24, 1));
-    let error = gif_bytes(&long).expect_err("too many frames");
+    let error = gif_bytes(&long, Backdrop::Stage).expect_err("too many frames");
     assert!(error.contains("limited to"), "{error}");
 }
 
@@ -93,8 +93,11 @@ proptest::proptest! {
         numerator in 1_u32..240,
         denominator in 1_u32..4,
     ) {
-        let bytes = gif_bytes(&animation(frames, (width, height), (numerator, denominator)))
-            .expect("gif");
+        let bytes = gif_bytes(
+            &animation(frames, (width, height), (numerator, denominator)),
+            Backdrop::Stage,
+        )
+        .expect("gif");
         let (decoder, pictures) = decode(&bytes);
         proptest::prop_assert_eq!(pictures.len(), frames as usize);
         proptest::prop_assert_eq!((u32::from(decoder.width()), u32::from(decoder.height())), (width, height));
@@ -105,18 +108,18 @@ proptest::proptest! {
 #[test]
 fn the_bytes_are_the_same_whatever_the_number_of_threads() {
     let doc = animation(40, (200, 120), (24, 1));
-    let one = gif_bytes_on(&doc, 1).expect("one thread");
+    let one = gif_bytes_on(&doc, 1, Backdrop::Stage).expect("one thread");
     for workers in [2, 3, 8] {
         assert_eq!(
-            gif_bytes_on(&doc, workers).expect("parallel"),
+            gif_bytes_on(&doc, workers, Backdrop::Stage).expect("parallel"),
             one,
             "{workers} threads"
         );
     }
-    assert_eq!(gif_bytes(&doc).expect("default"), one);
+    assert_eq!(gif_bytes(&doc, Backdrop::Stage).expect("default"), one);
     // And a failure on any frame is the failure of the export, not a short movie.
     let long = animation(3, (200, 120), (24, 1));
-    assert!(gif_bytes_on(&long, 4).is_ok());
+    assert!(gif_bytes_on(&long, 4, Backdrop::Stage).is_ok());
 }
 
 /// How long a busy 30-frame export takes on one thread and on several: printed, and required to
@@ -154,7 +157,7 @@ fn several_threads_are_not_slower_than_one_on_a_busy_movie() {
     .with_stage(Stage::new(1280, 720, Rgba8::WHITE).expect("stage"));
     let time = |workers| {
         let t = Instant::now();
-        gif_bytes_on(&doc, workers).expect("gif");
+        gif_bytes_on(&doc, workers, Backdrop::Stage).expect("gif");
         t.elapsed().as_secs_f64()
     };
     let (one, many) = (time(1), time(4));
@@ -171,7 +174,7 @@ fn several_threads_are_not_slower_than_one_on_a_busy_movie() {
 #[test]
 fn an_apng_has_a_frame_per_frame_loops_and_imports_back_with_the_same_frames() {
     let document = animation(6, (40, 20), (25, 1));
-    let bytes = crate::apng_bytes(&document).expect("apng");
+    let bytes = crate::apng_bytes(&document, Backdrop::Stage).expect("apng");
     let reader = png::Decoder::new(std::io::Cursor::new(&bytes))
         .read_info()
         .expect("info");
@@ -191,6 +194,6 @@ fn an_apng_has_a_frame_per_frame_loops_and_imports_back_with_the_same_frames() {
 #[test]
 fn an_apng_refuses_more_frames_than_a_movie_holds_in_words() {
     let document = animation(MAX_MOVIE_FRAMES as u32 + 1, (4, 4), (24, 1));
-    let error = crate::apng_bytes(&document).expect_err("too many frames");
+    let error = crate::apng_bytes(&document, Backdrop::Stage).expect_err("too many frames");
     assert!(error.contains("APNG is limited"), "{error}");
 }

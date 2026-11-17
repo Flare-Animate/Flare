@@ -37,6 +37,8 @@ pub enum Tool {
     Bone,
     /// Select a shape, then drag its points to reshape it.
     Subselection,
+    /// Drag near a line or shape and it bends to follow, most where the drag started.
+    Magnet,
     /// Click an outline to put a point there.
     AddAnchor,
     /// Click a point to take it out of the outline.

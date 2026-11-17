@@ -14,7 +14,9 @@ impl Workspace {
             show_rulers: self.display.show_rulers,
             show_grid: self.display.show_grid,
             snap_to_grid: self.display.snap_to_grid,
-            grid_size: self.display.grid_size,
+            grid_size: self.display.grid_size.x,
+            grid_size_down: Some(self.display.grid_size.y),
+            grid_color: self.display.grid_color.map(|c| c.to_srgba_unmultiplied()),
             loop_playback: self.looping.on,
             timeline_names_width: self.display.timeline_names,
             onion_before: self.onion.before,
@@ -58,6 +60,8 @@ impl Workspace {
             publish_gif: self.publish.gif,
             publish_mp4: self.publish.mp4,
             publish_mov: self.publish.mov,
+            publish_transparent: self.publish.transparent,
+            publish_defaults: crate::workspace::publish_settings::PUBLISH_DEFAULTS,
             language: self.language_choice.code().to_owned(),
             theme: self.theme_mode.code().to_owned(),
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
@@ -112,8 +116,15 @@ impl Workspace {
         self.display.show_rulers = preferences.show_rulers;
         self.display.show_grid = preferences.show_grid;
         self.display.snap_to_grid = preferences.snap_to_grid;
-        self.display.grid_size =
-            finite(f64::from(preferences.grid_size), 20.0).clamp(1.0, 500.0) as f32;
+        self.set_grid_spacing(
+            preferences.grid_size,
+            preferences.grid_size_down.unwrap_or(preferences.grid_size),
+        );
+        self.set_grid_color(
+            preferences
+                .grid_color
+                .map(|[r, g, b, a]| egui::Color32::from_rgba_unmultiplied(r, g, b, a)),
+        );
         self.looping.on = preferences.loop_playback;
         self.display.timeline_names =
             super::super::timeline_names_edge::names_width(preferences.timeline_names_width);
@@ -176,7 +187,9 @@ impl Workspace {
             gif: preferences.publish_gif,
             mp4: preferences.publish_mp4,
             mov: preferences.publish_mov,
-        };
+            transparent: preferences.publish_transparent,
+        }
+        .update_old_defaults(preferences.publish_defaults);
         self.home.recent = preferences
             .recent
             .iter()

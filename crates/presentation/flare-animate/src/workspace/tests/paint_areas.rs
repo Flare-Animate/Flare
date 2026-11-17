@@ -1,8 +1,11 @@
-//! The Paint Bucket fills the area lines close off, whatever drew them.
+//! The Paint Bucket fills the area lines close off, whatever drew them: lines and shapes, and
+//! loops drawn with the Brush itself, thin and light ones too.
 
 use super::*;
 use flare_core::DocumentPoint;
 use flare_document::{PathSegment, Stroke as ShapeStroke};
+use flare_input::{InputSample, PointerKind};
+use flare_tools::brush::BuiltinBrushProfile;
 
 const BLUE: Color32 = Color32::from_rgb(20, 40, 200);
 
@@ -159,4 +162,58 @@ fn the_eyedropper_takes_the_color_shown_where_no_shape_has_paint() {
         ws.paint.fill, BLUE,
         "off the stage there is nothing to take"
     );
+}
+
+// Loops drawn with the Brush itself, thin and light ones too.
+const LOOP_BLUE: Rgba8 = Rgba8::opaque(20, 40, 200);
+
+/// Draws a circle of radius 80 about (200, 200) with the Brush, as a pen would: the pressure
+/// rises and falls three times round it, and the hand shakes a little.
+fn brush_loop(profile: BuiltinBrushProfile, size: f32) -> Workspace {
+    let mut ws = workspace();
+    ws.set_stage_size(550, 400);
+    ws.stage_panel = Rect::from_min_size(Pos2::ZERO, Vec2::new(550.0, 400.0));
+    ws.set_tool(Tool::Brush);
+    ws.brush_size = size;
+    ws.brush_shelf.choose_builtin(profile);
+    for i in 0..=150 {
+        let a = std::f64::consts::TAU * f64::from(i) / 150.0;
+        let pressure = 0.5 + 0.4 * (a * 3.0).sin() as f32;
+        let (x, y) = (
+            200.0 + 80.0 * a.cos() + (a * 17.0).sin(),
+            200.0 + 80.0 * a.sin(),
+        );
+        let sample = InputSample::new(x, y, pressure, PointerKind::Pen).expect("sample");
+        let steady = ws.steady_freehand(sample, 1.0);
+        ws.push_freehand(steady, 1.0);
+    }
+    ws.finish_freehand(1.0);
+    ws
+}
+
+fn filled(ws: &Workspace) -> bool {
+    drawings(ws)
+        .iter()
+        .any(|c| matches!(c, Content::Shape(s) if s.fill() == LOOP_BLUE))
+}
+
+#[test]
+fn the_bucket_fills_a_loop_drawn_with_any_solid_brush_at_any_size() {
+    let mut open = Vec::new();
+    for profile in BuiltinBrushProfile::ALL {
+        // The dry brush is broken into strands on purpose; its gaps are the Gap Size's to close.
+        if profile == BuiltinBrushProfile::DryBrush {
+            continue;
+        }
+        for size in [1.0, 2.0, 5.0, 12.0] {
+            let mut ws = brush_loop(profile, size);
+            ws.set_tool(Tool::Bucket);
+            ws.paint.fill = Color32::from_rgb(LOOP_BLUE.r, LOOP_BLUE.g, LOOP_BLUE.b);
+            ws.click_with_tool(Pos2::new(200.0, 200.0), false);
+            if !filled(&ws) {
+                open.push(format!("{profile:?} at {size}"));
+            }
+        }
+    }
+    assert!(open.is_empty(), "the bucket found no area inside: {open:?}");
 }

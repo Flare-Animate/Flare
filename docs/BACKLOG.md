@@ -187,7 +187,7 @@ found), **Not planned** (ROADMAP or PARITY says so).
 | Bones and inverse kinematics | AnimationCraft (`rig.rs`, `ik.rs`), OpenToonz skeleton | Partial | `flare-rig` has bones, keyed poses, forward kinematics and bounded two-bone/CCD IK; weighted meshes, constraints and master controllers are still open (ROADMAP, SURFACES) |
 | Trace Bitmap, centerline | AnimationCraft (`trace.rs`, `centerline.rs`) | Gap | only a stub in `flare-tools/src/not_yet.rs` |
 | Shift and Trace | AnimationCraft, OpenToonz `shifttracetool.cpp` | Gap | listed in `not_yet.rs`, not implemented |
-| Deformers: Magnet, Pinch, Pump, Bender, Iron | AnimationCraft (`deform.rs`), OpenToonz | Gap | listed in `not_yet.rs` |
+| Deformers: Magnet, Pinch, Pump, Bender, Iron | AnimationCraft (`deform.rs`), OpenToonz | Partial: the Magnet is built (`flare-tools::magnet`, every surface); the rest are listed in `not_yet.rs` | |
 | Stroke styles (Herringbone, Rope, Zigzag, and Animate's Dashed, Dotted, Ragged, Stipple, Hatched) | AnimationCraft (`strokes.rs`), OpenToonz | Partly | `StrokeStyle` (solid, dashed, dotted, stipple, hatched, ragged, herringbone, rope, zigzag) is on every stroke, drawn by `flare-render` (the geometric ones in `pattern.rs`), saved in `.flare`, set in Properties and the tool options, and by `draw-rect --stroke-style` and `draw_rect`'s `stroke_style`. Deformers are still open |
 | Drawing assistants, perspective, vanishing point | AnimationCraft (`assist.rs`), OpenToonz `assistants/` | Gap | "Assistant tool" and "Edit assistant tool" in `not_yet.rs`; `flare-animate/src/workspace/assist.rs` exists and was not read, so check it first |
 | Raster (MyPaint) brushes, art brushes | AnimationCraft, OpenToonz | Gap | "MyPaint Toonz brush tool" in `not_yet.rs`; ROADMAP lower priority |
@@ -303,6 +303,9 @@ approach" names the library tests (with failure paths) and the wiring tests the 
 
 - **Goal:** Magnet, Pinch, Pump, Bender and Iron deformers on drawing objects and merge shapes;
   OpenToonz's extra stroke styles (Herringbone, Chain, Rope, Zigzag, Wave, Curl and the rest).
+- **Done:** the Magnet (`flare-tools::magnet`: a pull with a smooth falloff that adds points
+  where a line is too sparse to bend; the desktop and browser tool, `flare magnet`, and the MCP
+  `magnet` tool, by stage point rather than shape id).
 - **Read in reference:** AnimationCraft `ac-core/src/deform.rs`, `strokes.rs`; OpenToonz
   `magnettool.cpp`, `irontool.cpp`, and the stroke style sources in `toonz/sources/`.
 - **Target:** `flare-tools` (editing: the operations, as `ops::` functions and commands) and

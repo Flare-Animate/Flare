@@ -67,7 +67,9 @@ pub struct DrawPlan {
 ///
 /// With a span of the layer at `frame` the shapes join it as more elements. With none, a keyframe
 /// of their own starts at `frame` and lasts `duration` frames, or by default to the end of the
-/// scene (one frame on a layer with nothing else) but not into the layer's next keyframe. With no layer
+/// scene (one frame on a layer with nothing else) but not into the layer's next keyframe; the
+/// empty frames between it and the keyframe before it are held by that keyframe, as Animate fills
+/// them when a keyframe is made past them. With no layer
 /// to draw on at all, a layer named `new_layer` is made first. A layer that is locked (itself or
 /// by a folder), hidden, a folder, mask, guide or camera, and a keyframe that cannot hold several
 /// elements, is refused.
@@ -179,6 +181,9 @@ pub fn place_contents(
                 .map_or(u32::MAX, |next| next - frame);
             let length = duration
                 .unwrap_or_else(|| NonZeroU32::new(to_end.min(room)).unwrap_or(NonZeroU32::MIN));
+            if let Some(held) = existing.and_then(|l| hold_up_to(scene, l, frame)) {
+                commands.extend(held);
+            }
             FrameSpan::new(frame, length, first)
                 .with_extras(contents.collect())
                 .map_err(|_| DrawRefusal::TooMany)?
@@ -201,6 +206,33 @@ pub fn place_contents(
         layer: layer_id,
         placed,
     })
+}
+
+/// The commands that make the last keyframe of `layer` before `frame` last up to it, when empty
+/// frames lie between: the frames a new keyframe at `frame` leaves behind show what came before,
+/// not nothing. `None` when no keyframe comes before `frame` or it already reaches it.
+pub(crate) fn hold_up_to(scene: SceneId, layer: &Layer, frame: u32) -> Option<Vec<Command>> {
+    let before = layer
+        .spans()
+        .iter()
+        .rev()
+        .find(|s| s.end() <= u64::from(frame))?;
+    if before.end() == u64::from(frame) {
+        return None;
+    }
+    let length = NonZeroU32::new(frame.checked_sub(before.start())?)?;
+    Some(vec![
+        Command::RemoveSpan {
+            scene,
+            layer: layer.id(),
+            start: before.start(),
+        },
+        Command::InsertSpan {
+            scene,
+            layer: layer.id(),
+            span: before.retimed(before.start(), length),
+        },
+    ])
 }
 
 /// Whether a folder around `layers[index]`, however deep, is locked.

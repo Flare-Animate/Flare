@@ -37,7 +37,7 @@ fn a_flattened_psd_carries_the_frame_pixels_to_the_importer_and_the_psd_reader()
     .expect("rect");
     let doc = document(vec![red]);
     let (width, height, expected) = png_pixels(&doc);
-    let bytes = crate::psd_export(&doc, 0).expect("psd");
+    let bytes = crate::psd_export(&doc, 0, flare_render::Backdrop::Stage).expect("psd");
 
     let parsed = psd::Psd::from_bytes(&bytes).expect("the psd crate reads it");
     assert_eq!((parsed.width(), parsed.height()), (width, height));

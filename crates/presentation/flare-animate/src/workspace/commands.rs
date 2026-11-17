@@ -134,6 +134,7 @@ impl Workspace {
             | MenuAction::ToolBrush
             | MenuAction::ToolRuler
             | MenuAction::ToolMirror
+            | MenuAction::ToolMagnet
             | MenuAction::PlayPause
             | MenuAction::ZoomIn
             | MenuAction::ZoomOut => true,
@@ -307,6 +308,7 @@ impl Workspace {
             MenuAction::ToolBrush => self.set_tool(Tool::Brush),
             MenuAction::ToolRuler => self.set_tool(Tool::Ruler),
             MenuAction::ToolMirror => self.set_tool(Tool::Mirror),
+            MenuAction::ToolMagnet => self.set_tool(Tool::Magnet),
             MenuAction::MirrorCopyHorizontal => self.mirror_copy_selection(true),
             MenuAction::MirrorCopyVertical => self.mirror_copy_selection(false),
             MenuAction::InsertFrame => self.frame_edit(FrameOp::InsertFrame),

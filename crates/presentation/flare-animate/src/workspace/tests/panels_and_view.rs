@@ -1,5 +1,7 @@
 use super::*;
 
+mod grid;
+
 #[test]
 fn typed_transforms_apply_about_the_selection_center_and_colors_swap() {
     let mut ws = workspace();
@@ -130,7 +132,7 @@ fn rulers_grid_and_snapping_toggle_from_the_menu_and_snapping_rounds_to_the_grid
     ws.perform(MenuAction::ToggleSnap);
     assert!(ws.display.snap_to_grid);
     assert_eq!(
-        snap_point(Pos2::new(29.0, 31.0), 20.0),
+        snap_point(Pos2::new(29.0, 31.0), Vec2::splat(20.0)),
         Pos2::new(20.0, 40.0)
     );
     assert!(tool_places_points(Tool::Rectangle) && !tool_places_points(Tool::Select));
@@ -146,7 +148,7 @@ fn rulers_grid_and_snapping_toggle_from_the_menu_and_snapping_rounds_to_the_grid
     // A grid with lines too close together to see is skipped, not drawn.
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     ws.display.show_grid = true;
-    ws.display.grid_size = 1.0;
+    ws.display.grid_size = Vec2::splat(1.0);
     run(&mut ws, &ctx, 0.0);
     run(&mut ws, &ctx, 0.1);
 }

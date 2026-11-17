@@ -27,18 +27,15 @@ impl fmt::Display for ReverseRefusal {
 
 /// Takes frames `from..=to` out of `layer`: the spans they cut through are shortened, a span they
 /// cover entirely goes, and what comes after moves left by the number of frames taken, with the
-/// sound cues beside it. `None` when the range is backwards or holds no span.
+/// sound cues beside it. Empty frames between keyframes go the same way, so taking them out
+/// closes the gap. `None` when the range is backwards or nothing is in it or after it.
 pub fn remove_frames(scene: SceneId, layer: &Layer, from: u32, to: u32) -> Option<Vec<Command>> {
     if from > to {
         return None;
     }
     let stop = u64::from(to) + 1;
     let taken = u32::try_from(stop - u64::from(from)).ok()?;
-    if !layer
-        .spans()
-        .iter()
-        .any(|s| u64::from(s.start()) < stop && s.end() > u64::from(from))
-    {
+    if !layer.spans().iter().any(|s| s.end() > u64::from(from)) {
         return None;
     }
     let mut out = Vec::with_capacity(layer.spans().len());

@@ -40,6 +40,10 @@ Mitten im Tween, mit Zwiebelschalen, die die umliegenden Bilder zeigen, und dem 
 
 Aufgenommen in der Browser-Version, die denselben Editor wie die Desktop-App ausführt.
 
+<img src="../../assets/screenshots/bouncing-ball.gif" width="800" alt="Ein handgezeichneter gelber Ball, der hüpft, sich beim Aufprall staucht und im Fall streckt.">
+
+Mit Flare gemacht: ein handgezeichneter hüpfender Ball, der sich beim Aufprall staucht und im Fall streckt.
+
 ## Funktionen
 
 - Zeichnen mit Stift-, Pinsel- und Formwerkzeugen, mit einem Auswahlwerkzeug zum Verschieben, Gruppieren und Bearbeiten von Formen und mit Strichstilen (durchgezogen, gestrichelt, gepunktet, Stipple, schraffiert, zerfranst, Fischgrät, Seil, Zickzack).

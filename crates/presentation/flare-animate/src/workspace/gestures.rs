@@ -19,6 +19,20 @@ impl Workspace {
 
     pub(super) fn begin_drag_with(&mut self, point: Pos2, additive: bool) {
         self.drag_cancelled = false;
+        // Drawing lets go of the selection, as Animate does, so its box is not left over the
+        // new stroke (it looked like the stroke had become a rectangle's outline).
+        if matches!(
+            self.tool,
+            Tool::Pencil
+                | Tool::Brush
+                | Tool::Rectangle
+                | Tool::Ellipse
+                | Tool::Line
+                | Tool::PolyStar
+        ) {
+            self.selected = None;
+            self.also_selected.clear();
+        }
         let mode = match self.tool {
             Tool::Rectangle | Tool::Ellipse | Tool::Line | Tool::PolyStar => Some(DragMode::Draw),
             // The pen builds a path point by point; see `pen_press`.
@@ -43,6 +57,10 @@ impl Workspace {
             | Tool::Smudge => None,
             Tool::Subselection | Tool::ConvertAnchor => {
                 self.begin_anchor_drag(point);
+                None
+            }
+            Tool::Magnet => {
+                self.begin_magnet(point);
                 None
             }
             // These two act on a click; see `anchor_click`.
@@ -109,8 +127,10 @@ impl Workspace {
             Tool::Bucket | Tool::InkBottle => self.pour_paint(point),
             Tool::Eyedropper => self.take_paint(point, shift),
             Tool::Eraser => {
-                if let (Some(scene), Some(at)) = (self.scene_id(), self.hit(point)) {
-                    let commands = ops::delete(self.document(), scene, at);
+                // Faucet: the shape goes from this frame only, and from the chosen layer only, as
+                // rubbing out does.
+                if let (Some(scene), Some(at)) = (self.scene_id(), self.faucet_hit(point)) {
+                    let commands = ops::delete_on_frame(self.document(), scene, at, self.frame);
                     self.run_batch(commands, "paint");
                 }
             }
@@ -279,6 +299,7 @@ impl Workspace {
 
     pub(super) fn update_drag(&mut self, point: Pos2) {
         self.update_anchor_drag(point);
+        self.update_magnet(point);
         if let Some(drag) = &mut self.drag {
             drag.current = point;
         }
@@ -287,6 +308,7 @@ impl Workspace {
     pub(super) fn end_drag(&mut self) {
         let cancelled = std::mem::take(&mut self.drag_cancelled);
         self.end_anchor_drag(cancelled);
+        self.end_magnet(cancelled);
         if let Some(drag) = self.drag.take()
             && !cancelled
         {
@@ -320,7 +342,7 @@ impl Workspace {
         self.stabilizer = None;
         self.cancel_erase();
         self.cancel_blend();
-        if self.anchor_drag.take().is_some() {
+        if self.anchor_drag.take().is_some() || self.cancel_magnet() {
             self.drag_cancelled = true;
         }
         if self.drag.take().is_some() {

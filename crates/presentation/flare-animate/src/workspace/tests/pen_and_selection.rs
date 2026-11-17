@@ -423,3 +423,27 @@ fn transforming_a_group_pivots_on_the_center_of_the_whole_selection() {
         "one undo step"
     );
 }
+
+#[test]
+fn a_thin_line_is_picked_from_a_few_pixels_away_and_drawing_lets_go_of_it() {
+    let mut ws = workspace();
+    let line = flare_document::Stroke::new(0.5, Rgba8::opaque(0, 0, 0)).expect("stroke");
+    let shape = Shape::line(ShapeId::new(), (10.0, 50.0), (200.0, 50.0), line).expect("line");
+    ws.draw_shape(shape, "line");
+    ws.set_tool(Tool::Select);
+    ws.select_at(Pos2::new(100.0, 55.0), false);
+    assert!(
+        ws.selected.is_some(),
+        "five units off the hairline still picks it"
+    );
+    ws.select_at(Pos2::new(100.0, 80.0), false);
+    assert!(ws.selected.is_none(), "far from it picks nothing");
+
+    ws.select_at(Pos2::new(100.0, 50.0), false);
+    ws.set_tool(Tool::Pencil);
+    ws.begin_drag(Pos2::new(100.0, 50.0));
+    assert!(
+        ws.selected.is_none(),
+        "a stroke starting on it lets go of the selection"
+    );
+}

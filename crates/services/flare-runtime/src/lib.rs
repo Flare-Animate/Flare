@@ -47,7 +47,7 @@ pub use export_game::{GAME_FORMAT, GAME_FORMAT_VERSION, GameExport, export_game}
 pub use flare_audio::MAX_INPUT_BYTES as MAX_AUDIO_INPUT_BYTES;
 pub use flare_audio::{Audio, AudioEvent, Decoded, Excerpt, Peaks};
 pub use flare_import::VIDEO_EXTENSIONS;
-pub use flare_render::StillFormat;
+pub use flare_render::{Backdrop, StillFormat, no_transparency};
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
 pub use lipsync::{

@@ -5,7 +5,10 @@
 
 use crate::workspace::*;
 use egui::{Key, Modifiers};
-use flare_menubar::{MAX_SEARCH_CHARS, MenuAction, SHORTCUT_SET_IDS, ShortcutError, ShortcutMap};
+use flare_menubar::{
+    Accelerator, MAX_KEYS_PER_COMMAND, MAX_SEARCH_CHARS, MenuAction, SHORTCUT_SET_IDS,
+    ShortcutError, ShortcutMap,
+};
 
 /// A key press as the text a shortcut is written in; `None` for a key nothing can bind.
 pub(super) fn chord_text(key: Key, mods: Modifiers) -> String {
@@ -37,11 +40,21 @@ pub(super) fn chord_text(key: Key, mods: Modifiers) -> String {
     out
 }
 
+/// A change asked for from a row of the list, made once the list is drawn.
+enum RowEdit {
+    Clear,
+    Reset,
+    /// Take these keys (in the file's spelling) off the command.
+    Remove(String),
+}
+
 /// What the editor is doing right now.
 #[derive(Default)]
 pub(super) struct ShortcutEditor {
     /// The command waiting for its new keys.
     pub(super) capturing: Option<MenuAction>,
+    /// The keys pressed for it are one more shortcut, not a replacement for those it has.
+    pub(super) adding: bool,
     /// Why the last change was refused, already in the person's language.
     pub(super) error: Option<String>,
     /// Which command the last change took its keys from, already in the person's language.
@@ -80,16 +93,37 @@ impl Workspace {
         Ok(())
     }
 
-    /// Give a command new keys. Keys another command holds are taken from it, and that command is
-    /// returned, left with none. A refusal (keys that are not a shortcut) leaves every shortcut as
-    /// it was and is returned in the person's language.
+    /// Give a command new keys in place of all it has. Keys another command holds are taken from
+    /// it, and that command is returned. A refusal (keys that are not a shortcut) leaves every
+    /// shortcut as it was and is returned in the person's language.
     pub fn set_shortcut(
         &mut self,
         action: MenuAction,
         keys: &str,
     ) -> Result<Option<MenuAction>, String> {
         let result = self.shortcuts.bind_taking(action, keys);
-        self.shortcut_result(action, result)
+        self.shortcut_result(action, keys, result)
+    }
+
+    /// Give a command one more shortcut beside those it has, taking the keys from any command
+    /// that holds them, as [`Self::set_shortcut`] does. Refused, changing nothing, for keys that
+    /// are not a shortcut or a command that has [`MAX_KEYS_PER_COMMAND`] already.
+    pub fn add_shortcut(
+        &mut self,
+        action: MenuAction,
+        keys: &str,
+    ) -> Result<Option<MenuAction>, String> {
+        let result = self.shortcuts.add_key_taking(action, keys);
+        self.shortcut_result(action, keys, result)
+    }
+
+    /// Take one of a command's shortcuts off it; its others stay. False when it did not have
+    /// those keys.
+    pub fn remove_shortcut(&mut self, action: MenuAction, keys: &str) -> bool {
+        self.shortcut_editor.error = None;
+        self.shortcut_editor.notice = None;
+        Accelerator::parse(keys, action)
+            .is_ok_and(|accel| self.shortcuts.remove_key(action, &accel))
     }
 
     /// Puts the keys of Animate's shortcut file (its bytes, as picked) on Animate's set and makes
@@ -137,23 +171,30 @@ impl Workspace {
     /// Put a command back on its set's keys, taking them from any command that holds them now.
     pub fn reset_shortcut(&mut self, action: MenuAction) -> Result<Option<MenuAction>, String> {
         let result = self.shortcuts.reset_taking(action);
-        self.shortcut_result(action, result)
+        let keys = self.shortcuts.get(action).map(ToString::to_string);
+        self.shortcut_result(action, keys.as_deref().unwrap_or_default(), result)
     }
 
+    /// Says what a change did: which command it took `keys` from, or why it was refused.
     fn shortcut_result(
         &mut self,
         action: MenuAction,
+        keys: &str,
         result: Result<Option<MenuAction>, ShortcutError>,
     ) -> Result<Option<MenuAction>, String> {
         let taken = result.as_ref().ok().copied().flatten();
         self.shortcut_editor.notice = taken.map(|previous| {
-            let keys = self.shortcuts.text(action).unwrap_or_default();
+            let keys =
+                Accelerator::parse(keys, action).map_or_else(|_| keys.to_owned(), |a| a.display());
+            // A command that had other keys keeps them; say which case it is.
+            let left = self.shortcuts.keys(previous).is_empty();
             let previous = self.label(previous);
-            tr!(
-                self,
-                "shortcuts-taken",
-                &[("keys", keys.as_str()), ("previous", previous.as_str())]
-            )
+            let args = [("keys", keys.as_str()), ("previous", previous.as_str())];
+            if left {
+                tr!(self, "shortcuts-taken", &args)
+            } else {
+                tr!(self, "shortcuts-taken-kept", &args)
+            }
         });
         let result = result.map(|_| ());
         let message = result.err().map(|error| match error {
@@ -163,6 +204,13 @@ impl Workspace {
                     self,
                     "shortcuts-conflict",
                     &[("keys", accelerator.as_str()), ("action", action.as_str())]
+                )
+            }
+            ShortcutError::TooManyKeys(most) => {
+                tr!(
+                    self,
+                    "shortcuts-too-many",
+                    &[("most", most.to_string().as_str())]
                 )
             }
             _ => tr!(self, "shortcuts-bad"),
@@ -176,17 +224,24 @@ impl Workspace {
         if self.shortcut_editor.capturing.is_some() {
             return;
         }
+        // A tool's key is a letter, alone or with Shift; every key a tool has picks it.
         let hit = self
             .shortcuts
             .entries()
             .into_iter()
             .find_map(|(action, accel)| {
-                if action.tool_key().is_none() || !accel.is_bare() {
+                if !action.is_tool() || accel.has_command() || accel.has_alt() {
                     return None;
                 }
                 let key = Key::from_name(accel.key())?;
                 key_press(ctx, key)
-                    .is_some_and(|m| !m.any())
+                    .is_some_and(|m| {
+                        !m.command
+                            && !m.ctrl
+                            && !m.mac_cmd
+                            && !m.alt
+                            && m.shift == accel.has_shift()
+                    })
                     .then_some(action)
             });
         if let Some(action) = hit {
@@ -274,8 +329,14 @@ impl Workspace {
             });
             if let Some((key, mods)) = pressed {
                 self.shortcut_editor.capturing = None;
+                let adding = std::mem::take(&mut self.shortcut_editor.adding);
                 if key != Key::Escape {
-                    let _ = self.set_shortcut(action, &chord_text(key, mods));
+                    let keys = chord_text(key, mods);
+                    let _ = if adding {
+                        self.add_shortcut(action, &keys)
+                    } else {
+                        self.set_shortcut(action, &keys)
+                    };
                 }
             }
         }
@@ -300,30 +361,50 @@ impl Workspace {
             let query = self.shortcut_editor.query.as_str();
             ui.weak(tr!(self, "shortcuts-none", &[("query", query)]));
         }
-        let mut todo: Option<(MenuAction, bool)> = None;
+        let (add, remove) = (tr!(self, "shortcuts-add"), tr!(self, "shortcuts-remove"));
+        let mut todo: Option<(MenuAction, RowEdit)> = None;
         egui::ScrollArea::vertical()
             .max_height(360.0)
             .show(ui, |ui| {
                 egui::Grid::new("shortcuts").num_columns(4).show(ui, |ui| {
                     for action in rows {
-                        let keys = self.shortcuts.text(action);
                         ui.label(self.label(action));
-                        if self.shortcut_editor.capturing == Some(action) {
-                            ui.weak(&press);
-                        } else {
-                            ui.weak(keys.unwrap_or_default());
-                        }
-                        if ui.small_button(&change).clicked() {
-                            self.shortcut_editor.capturing = Some(action);
-                            self.shortcut_editor.error = None;
-                            self.shortcut_editor.notice = None;
-                        }
+                        // Each key on its own, so one of several can be taken off.
+                        ui.horizontal_wrapped(|ui| {
+                            for accel in self.shortcuts.keys(action) {
+                                let chip = ui
+                                    .small_button(format!("{} \u{d7}", accel.display()))
+                                    .on_hover_text(&remove);
+                                if chip.clicked() {
+                                    todo = Some((action, RowEdit::Remove(accel.to_string())));
+                                }
+                            }
+                            if self.shortcut_editor.capturing == Some(action) {
+                                ui.weak(&press);
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            let full = self.shortcuts.keys(action).len() >= MAX_KEYS_PER_COMMAND;
+                            for (label, adding, enabled) in
+                                [(&change, false, true), (&add, true, !full)]
+                            {
+                                if ui
+                                    .add_enabled(enabled, egui::Button::new(label).small())
+                                    .clicked()
+                                {
+                                    self.shortcut_editor.capturing = Some(action);
+                                    self.shortcut_editor.adding = adding;
+                                    self.shortcut_editor.error = None;
+                                    self.shortcut_editor.notice = None;
+                                }
+                            }
+                        });
                         ui.horizontal(|ui| {
                             if ui.small_button(&clear).clicked() {
-                                todo = Some((action, false));
+                                todo = Some((action, RowEdit::Clear));
                             }
                             if ui.small_button(&reset).clicked() {
-                                todo = Some((action, true));
+                                todo = Some((action, RowEdit::Reset));
                             }
                         });
                         ui.end_row();
@@ -331,9 +412,12 @@ impl Workspace {
                 });
             });
         match todo {
-            Some((action, false)) => self.clear_shortcut(action),
-            Some((action, true)) => {
+            Some((action, RowEdit::Clear)) => self.clear_shortcut(action),
+            Some((action, RowEdit::Reset)) => {
                 let _ = self.reset_shortcut(action);
+            }
+            Some((action, RowEdit::Remove(keys))) => {
+                self.remove_shortcut(action, &keys);
             }
             None => {}
         }

@@ -8,6 +8,7 @@ mod export;
 mod game;
 mod history;
 mod layer_ops;
+mod magnet;
 mod mannequin;
 mod multi_frame;
 mod pixels;
@@ -47,6 +48,7 @@ impl FlareServer {
             + Self::symbol_tools()
             + Self::game_tools()
             + Self::pixel_tools()
+            + Self::magnet_tools()
             + Self::mannequin_tools()
             + Self::video_tools()
     }

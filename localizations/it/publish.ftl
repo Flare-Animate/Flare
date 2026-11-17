@@ -12,3 +12,7 @@ pubpop-responsive = Rendi adattivo
 pubpop-format-gif = GIF animata (.gif)
 pubpop-format-mp4 = Video MP4 (.mp4)
 pubpop-format-mov = Filmato QuickTime (.mov)
+pubpop-video-browser = Un browser non può ancora scrivere filmati MP4 o QuickTime. Usa l’app desktop.
+pubpop-transparent = Sfondo trasparente
+pubpop-transparent-hint = Esclude il colore della scena, così ciò che non è disegnato resta trasparente: nel GIF, nel filmato QuickTime e nell’esportazione di immagine, filmato e SVG. Un filmato QuickTime trasparente è ProRes 4444, creato da ffmpeg. Il filmato Flash e la pagina HTML5 mantengono il colore della scena.
+pubpop-transparent-mp4 = Un MP4 non può essere trasparente, quindi non verrà scritto. Deseleziona MP4 oppure pubblica un GIF o un filmato QuickTime.

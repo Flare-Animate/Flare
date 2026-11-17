@@ -129,6 +129,10 @@ pub(crate) enum Command {
     /// Magic Wand: pick the pixels of a bitmap whose color is like the one at each point (stage
     /// coordinates, in the first scene) and clear them, or with --keep clear all the others.
     MagicWand(crate::magic_wand::MagicWandArgs),
+    /// Magnet: pull the lines and shapes near a stage point (first scene) toward another, most
+    /// at the point and not at all at the edge of the circle, adding points where a line has too
+    /// few to bend; one undo step. Nothing in reach is an error.
+    Magnet(crate::magnet::MagnetArgs),
     /// Blur: soften the bitmap under the first point along a stroke of stage points.
     Blur(project::BlendArgs),
     /// Smudge: push the colors of the bitmap under the first point along a stroke of stage points.
@@ -212,7 +216,9 @@ pub(crate) enum Command {
         /// Defaults to the stage height.
         #[arg(long)]
         height: Option<u32>,
-        /// Keep the background transparent instead of white (not for JPEG).
+        /// Leave the stage colour out, so what is not drawn is see-through: PNG and the other
+        /// still formats with alpha, SVG, PSD, GIF, APNG, animated WebP, WebM and MOV (ProRes
+        /// 4444, through ffmpeg). JPEG, HDR, MP4, AVI, MKV, MPEG and FLV refuse it.
         #[arg(long)]
         transparent: bool,
         /// JPEG quality from 1 to 100 (JPEG only; default 90).
@@ -308,16 +314,20 @@ pub(crate) enum Command {
         /// Zero-based frame the operation applies at (the first, for a range).
         #[arg(long)]
         at: u32,
-        /// The last frame of the range, for `remove-frames` and `reverse-frames`; for
-        /// `move-keyframe`, the frame the keyframe goes to.
+        /// The last frame of the range, for `remove-frames`, `reverse-frames`, `move-frames` and
+        /// `copy-frames`; for `move-keyframe`, the frame the keyframe goes to.
         #[arg(long)]
         to: Option<u32>,
+        /// For `move-frames` and `copy-frames`: the frame they go to.
+        #[arg(long)]
+        dest: Option<u32>,
         #[arg(long)]
         layer: Option<uuid::Uuid>,
         /// Easing for `set-ease`, from -100 (starts slowly) to 100 (ends slowly).
         #[arg(long, allow_hyphen_values = true)]
         ease: Option<i8>,
-        /// For `move-keyframe`: the layer it goes to (default: its own).
+        /// For `move-keyframe`, `move-frames` and `copy-frames`: the layer they go to (default:
+        /// their own).
         #[arg(long)]
         onto: Option<uuid::Uuid>,
     },

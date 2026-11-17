@@ -157,3 +157,4 @@ menu-item-workspace-classic = Classico
 menu-item-workspace-small-screen = Schermo piccolo
 menu-item-command-palette = Trova un comando…
 menu-item-show-swatches = Campioni
+menu-item-tool-magnet = Magnete

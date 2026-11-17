@@ -125,6 +125,7 @@ impl Workspace {
                 !i.modifiers.any() && (i.key_pressed(Key::Delete) || i.key_pressed(Key::Backspace)),
             )
         });
+        self.press_redo_alternate(ctx);
         // Ctrl, Alt and F-key commands come from the shortcut map, so a rebinding moves them. With
         // a native menu bar the menu owns them and nothing runs here (applying twice).
         self.press_command_chords(ctx);
@@ -146,8 +147,8 @@ impl Workspace {
             self.toggle_palette();
         }
         let typing = ctx.egui_wants_keyboard_input();
-        // Letters pick tools, but only when nothing is being typed and no modifier is held, so
-        // they never fight a text field or a shortcut.
+        // Letters pick tools, but only when nothing is being typed and no modifier but Shift is
+        // held, so they never fight a text field or a shortcut.
         if !typing {
             self.press_tool_keys(ctx);
         }
@@ -161,14 +162,15 @@ impl Workspace {
             )
         });
         if !typing {
+            // After a click in the timeline these act on its frames (`frame_focus.rs`).
             if copy {
-                self.copy_selection();
+                self.copy_in_focus();
             }
             if cut {
-                self.cut_selection();
+                self.cut_in_focus();
             }
             if paste {
-                self.paste();
+                self.paste_in_focus();
             }
             if toggle {
                 self.playing = !self.playing;
@@ -224,6 +226,8 @@ impl Workspace {
                 // The picked pixels went; the bitmap stays.
             } else if self.tool == Tool::Subselection && self.delete_selected_anchor() {
                 // The chosen point went; the shape stays.
+            } else if self.frame_focus.on_frames && self.delete_empty_frames() {
+                // The empty frames went, and the keyframes after them moved up.
             } else {
                 self.delete_selection();
             }

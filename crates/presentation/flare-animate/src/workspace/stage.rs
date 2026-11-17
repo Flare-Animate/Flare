@@ -163,9 +163,7 @@ impl Workspace {
             self.text_click(to_doc(p));
         }
         self.rotate_view_stage(ui, &response);
-        if self.tool == Tool::Hand && response.dragged_by(egui::PointerButton::Primary) {
-            self.stage_view.pan_by(response.drag_delta());
-        }
+        self.hand_stage(ui, &response);
         if matches!(self.tool, Tool::Ruler | Tool::Mirror) {
             let primary = egui::PointerButton::Primary;
             let origin = ui.input(|i| i.pointer.press_origin());
@@ -305,6 +303,9 @@ impl Workspace {
                 self.pen_release();
             }
         }
+        if response.clicked() || response.drag_started() {
+            self.frame_focus.on_frames = false;
+        }
         let additive = ui.input(|i| i.modifiers.shift);
         let primary = egui::PointerButton::Primary;
         if response.drag_started_by(primary)
@@ -319,14 +320,14 @@ impl Workspace {
             let p = &i.pointer;
             (p.primary_down(), p.primary_released(), p.interact_pos())
         });
-        let held = self.drag.is_some() || self.anchor_drag.is_some();
+        let held = self.drag.is_some() || self.anchor_drag.is_some() || self.magnet_held();
         if (response.dragged_by(primary) || (held && primary_down))
             && let Some(p) = response.interact_pointer_pos().or(pointer)
         {
             self.update_drag(to_doc(p));
             // The stage picture for where the pointer is now is asked for on the next pass,
             // which must come even if the pointer stops here.
-            if self.drag.is_some_and(|d| d.mode != DragMode::Draw) {
+            if self.drag.is_some_and(|d| d.mode != DragMode::Draw) || self.magnet_held() {
                 ui.ctx().request_repaint();
             }
         }

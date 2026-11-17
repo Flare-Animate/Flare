@@ -37,6 +37,7 @@ objc2-app-kit = { workspace = true, features = ["std", "NSApplication", "NSRespo
 [dev-dependencies]
 flare-import.workspace = true
 flare-core.workspace = true
+png.workspace = true
 
 [lints]
 workspace = true

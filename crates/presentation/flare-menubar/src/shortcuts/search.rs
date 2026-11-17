@@ -78,8 +78,9 @@ impl ShortcutQuery {
         }
     }
 
-    /// Whether a command with this name, id and keys answers the query.
-    pub fn matches(&self, name: &str, id: &str, keys: Option<&Accelerator>) -> bool {
+    /// Whether a command with this name, id and keys answers the query: a chord typed matches
+    /// when any of its keys is that chord.
+    pub fn matches(&self, name: &str, id: &str, keys: &[Accelerator]) -> bool {
         match self {
             Self::All => true,
             Self::Words(words) => {
@@ -87,7 +88,7 @@ impl ShortcutQuery {
                 words.iter().all(|word| {
                     name.contains(word.as_str())
                         || id.contains(word.as_str())
-                        || keys.is_some_and(|a| key_word(a, word))
+                        || keys.iter().any(|a| key_word(a, word))
                 })
             }
             Self::Keys {
@@ -95,7 +96,7 @@ impl ShortcutQuery {
                 alt,
                 shift,
                 key,
-            } => keys.is_some_and(|a| {
+            } => keys.iter().any(|a| {
                 let same =
                     a.has_command() == *command && a.has_alt() == *alt && a.has_shift() == *shift;
                 match key {
@@ -136,7 +137,7 @@ impl ShortcutMap {
         let query = ShortcutQuery::parse(query);
         MenuAction::ALL
             .into_iter()
-            .filter(|action| query.matches(&name(*action), &action.id(), self.get(*action)))
+            .filter(|action| query.matches(&name(*action), &action.id(), self.keys(*action)))
             .collect()
     }
 
@@ -148,13 +149,13 @@ impl ShortcutMap {
         MenuAction::ALL
             .into_iter()
             .filter(|action| self.listed(*action))
-            .filter(|action| query.matches(&name(*action), &action.id(), self.get(*action)))
+            .filter(|action| query.matches(&name(*action), &action.id(), self.keys(*action)))
             .collect()
     }
 
     /// Whether the shortcut list has a row for `action`.
     pub fn listed(&self, action: MenuAction) -> bool {
-        self.get(action).is_some() || action.shortcut().is_some() || action.tool_key().is_some()
+        self.get(action).is_some() || action.shortcut().is_some() || action.is_tool()
     }
 
     /// [`Self::list_json`] narrowed to what answers `query`, searched by English name.
@@ -165,11 +166,9 @@ impl ShortcutMap {
         let shortcuts: Vec<_> = found
             .into_iter()
             .map(|action| {
-                serde_json::json!({
-                    "action": action.id(),
-                    "name": action.label(&state),
-                    "shortcut": self.get(action).map(ToString::to_string),
-                })
+                let mut row = self.row_json(action);
+                row["name"] = action.label(&state).into();
+                row
             })
             .collect();
         out["search"] = query

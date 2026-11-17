@@ -146,69 +146,6 @@ pub struct ExportName {
     pub name: String,
 }
 
-/// The movie formats `export_movie` writes: a QuickTime movie made by Flare itself, the others
-/// through ffmpeg.
-#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum MovieKind {
-    Mov,
-    Avi,
-    Mkv,
-    Webm,
-    Mpeg,
-    Flv,
-}
-
-/// The movie export: a name and the container.
-#[derive(Debug, Deserialize, JsonSchema)]
-pub struct ExportMovie {
-    /// File name only: letters, digits, '.', '_' or '-'. The extension for the format is added
-    /// when missing.
-    pub name: String,
-    /// The container: mov, avi, mkv, webm, mpeg or flv. Every one but mov needs ffmpeg on the
-    /// computer.
-    pub format: MovieKind,
-}
-
-/// The SVG export: a name and the frame to draw.
-#[derive(Debug, Deserialize, JsonSchema)]
-pub struct ExportSvg {
-    /// File name only: letters, digits, '.', '_' or '-'. The extension is added when missing.
-    pub name: String,
-    /// The frame to draw, from 0. Defaults to the first.
-    pub frame: Option<u32>,
-}
-
-/// The still-image formats `export_still` writes.
-#[derive(Debug, Clone, Copy, Deserialize, JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum StillKind {
-    Png,
-    Jpeg,
-    Bmp,
-    Tga,
-    Tiff,
-    Webp,
-    Qoi,
-    Pnm,
-    Ico,
-    Exr,
-    Hdr,
-}
-
-#[derive(Debug, Deserialize, JsonSchema)]
-pub struct ExportStill {
-    /// File name only: letters, digits, '.', '_' or '-'. The extension for the format is added
-    /// when missing.
-    pub name: String,
-    /// The frame of the first scene to draw (0-based). Default 0.
-    pub frame: Option<u32>,
-    /// png (the default), jpeg, bmp or tga. A JPEG has no transparency and is always opaque.
-    pub format: Option<StillKind>,
-    /// JPEG quality from 1 to 100. Default 90. Only for jpeg.
-    pub quality: Option<u8>,
-}
-
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct ExportSpriteSheet {
     /// File name only: letters, digits, '.', '_' or '-'. `.png` is added when missing; the atlas

@@ -32,21 +32,66 @@ pub enum FrameOperation {
     /// Move the keyframe holding `--at` so it starts at `--to`, on `--onto` (default: the same
     /// layer), replacing the frames it lands on and leaving its old frames empty.
     MoveKeyframe,
+    /// Move the frames from `--at` to `--to`, keyframes and the gaps between them, so they start
+    /// at `--dest`, on `--onto` (default: the same layer), replacing the frames they land on and
+    /// leaving theirs empty.
+    MoveFrames,
+    /// Copy the frames from `--at` to `--to` so the copy starts at `--dest`, on `--onto`
+    /// (default: the same layer), replacing the frames it lands on.
+    CopyFrames,
 }
 
-pub fn frame_op(
-    path: &Path,
-    op: FrameOperation,
-    at: u32,
-    to: Option<u32>,
-    layer: Option<Uuid>,
-    ease: Option<i8>,
-    onto: Option<Uuid>,
-) -> Result<Value> {
+/// Where a frame operation applies, from the `frame` command's options.
+#[derive(Clone, Copy, Debug)]
+pub struct FrameArgs {
+    pub at: u32,
+    pub to: Option<u32>,
+    pub dest: Option<u32>,
+    pub layer: Option<Uuid>,
+    pub ease: Option<i8>,
+    pub onto: Option<Uuid>,
+}
+
+pub fn frame_op(path: &Path, op: FrameOperation, args: FrameArgs) -> Result<Value> {
     use flare_editor::frames;
     use flare_tools::ops::{self, SpanRef};
+    let FrameArgs {
+        at,
+        to,
+        dest,
+        layer,
+        ease,
+        onto,
+    } = args;
     let mut session = open(path)?;
     let (scene, layer_id) = target_layer(&session, layer)?;
+    if let FrameOperation::MoveFrames | FrameOperation::CopyFrames = op {
+        let to = to.context("move-frames and copy-frames need --to, the last frame to take")?;
+        let dest = dest.context("move-frames and copy-frames need --dest, where the frames go")?;
+        let onto_id = match onto {
+            Some(id) => target_layer(&session, Some(id))?.1,
+            None => layer_id,
+        };
+        let layers = session
+            .document()
+            .scenes()
+            .first()
+            .map(|s| s.timeline().layers())
+            .unwrap_or_default();
+        let find = |id| layers.iter().find(|l| l.id() == id);
+        let how = match op {
+            FrameOperation::CopyFrames => frames::FramePlacement::Copy,
+            _ => frames::FramePlacement::Move,
+        };
+        let from = find(layer_id).context("layer disappeared")?;
+        let onto = find(onto_id).context("layer disappeared")?;
+        let commands = frames::place_frames(scene, from, (at, to), onto, dest, how).with_context(|| {
+            format!("{op:?} does not apply: frames {at} to {to} hold no keyframe, they would not move, the layer is a folder, or they would run past the last frame")
+        })?;
+        session.apply(commands)?;
+        commit(&session, path)?;
+        return Ok(json!({ "applied": format!("{op:?}"), "frame": dest }));
+    }
     if let FrameOperation::MoveKeyframe = op {
         let to = to.context("move-keyframe needs --to, the frame the keyframe goes to")?;
         let onto_id = match onto {

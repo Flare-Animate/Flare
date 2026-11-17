@@ -40,6 +40,10 @@ No meio da interpolação, com papel de cebola mostrando os quadros ao redor e o
 
 Feitas na versão para navegador, que executa o mesmo editor do aplicativo de desktop.
 
+<img src="../../assets/screenshots/bouncing-ball.gif" width="800" alt="Uma bola amarela desenhada à mão quicando, achatando ao tocar o chão e esticando enquanto cai.">
+
+Feito no Flare: uma bola desenhada à mão quicando, achatando ao tocar o chão e esticando enquanto cai.
+
 ## Recursos
 
 - Desenho com as ferramentas de caneta, pincel e formas, com uma ferramenta de seleção para mover, agrupar e editar formas, e estilos de traço (sólido, tracejado, pontilhado, stipple, hachurado, irregular, espinha de peixe, corda, ziguezague).

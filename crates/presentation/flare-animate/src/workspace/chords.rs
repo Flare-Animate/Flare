@@ -6,6 +6,9 @@ use crate::workspace::*;
 use egui::{Key, Modifiers};
 use flare_menubar::{Accelerator, MenuAction};
 
+/// The second key for Redo, beside the one the shortcut map gives it.
+const REDO_ALTERNATE: &str = "CmdOrCtrl+Shift+Z";
+
 /// Whether the accelerator is a chord at all: it carries Ctrl or Cmd, or Alt, or it is a
 /// function key. A bare letter or digit is not one: that is the tool keys' form, and a command
 /// on one would take the key from every text field (meta.rs, `shortcut`'s rule).
@@ -46,9 +49,10 @@ fn waits_for_typing(action: MenuAction) -> bool {
 
 impl Workspace {
     /// Runs the command whose chord was pressed this frame, from the map in force. With a native
-    /// menu bar the menu owns the chords, so nothing runs here.
+    /// menu bar the menu owns each command's first chord, the one it shows; the others a command
+    /// has are still run here, since a menu item can register only one.
     pub(super) fn press_command_chords(&mut self, ctx: &egui::Context) {
-        if self.native_menu || self.shortcut_editor.capturing.is_some() {
+        if self.shortcut_editor.capturing.is_some() {
             return;
         }
         // Most frames have no key press: leave before the map is read.
@@ -61,10 +65,18 @@ impl Workspace {
             return;
         }
         let typing = ctx.egui_wants_keyboard_input();
-        let mut chords: Vec<(MenuAction, Modifiers, Key)> = self
-            .shortcuts
-            .entries()
+        let native = self.native_menu;
+        let mut chords: Vec<(MenuAction, Modifiers, Key)> = MenuAction::ALL
             .into_iter()
+            .flat_map(|action| {
+                let keys = self.shortcuts.keys(action);
+                // The native menu registers the first, except for a tool's (flare-shell's
+                // `bound_accelerator`); skip it then, or it would run twice.
+                let menu_owns = native && !action.is_tool();
+                keys.iter()
+                    .skip(usize::from(menu_owns))
+                    .map(move |accel| (action, accel))
+            })
             .filter(|(action, accel)| is_chord(accel) && !arrives_as_event(*action))
             .filter_map(|(action, accel)| {
                 let key = Key::from_name(accel.key())?;
@@ -88,6 +100,32 @@ impl Workspace {
             if ctx.input_mut(|i| i.consume_key(mods, key)) {
                 self.perform(action);
             }
+        }
+    }
+
+    /// Cmd/Ctrl+Shift+Z also redoes, the second key most programs give Redo, while Redo is on its
+    /// own key and nothing else has been bound to this one. No menu registers it, so it is read
+    /// here even with a native menu bar. It runs before the chords so Cmd/Ctrl+Z never takes it.
+    pub(super) fn press_redo_alternate(&mut self, ctx: &egui::Context) {
+        if self.shortcut_editor.capturing.is_some() {
+            return;
+        }
+        let default_redo = self
+            .shortcuts
+            .get(MenuAction::Redo)
+            .map(ToString::to_string)
+            == MenuAction::Redo.shortcut().map(str::to_owned);
+        let taken = self
+            .shortcuts
+            .entries()
+            .into_iter()
+            .any(|(_, accel)| accel.to_string() == REDO_ALTERNATE);
+        if !default_redo || taken {
+            return;
+        }
+        let shifted = Modifiers::COMMAND | Modifiers::SHIFT;
+        if ctx.input_mut(|i| i.consume_key(shifted, Key::Z)) {
+            self.perform(MenuAction::Redo);
         }
     }
 

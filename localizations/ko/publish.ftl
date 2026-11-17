@@ -12,3 +12,7 @@ pubpop-responsive = 반응형으로 만들기
 pubpop-format-gif = 애니메이션 GIF (.gif)
 pubpop-format-mp4 = MP4 동영상 (.mp4)
 pubpop-format-mov = QuickTime 동영상 (.mov)
+pubpop-video-browser = 브라우저에서는 아직 MP4나 QuickTime 동영상을 기록할 수 없습니다. 데스크톱 앱을 사용하세요.
+pubpop-transparent = 투명한 배경
+pubpop-transparent-hint = 스테이지 색을 빼서 그려지지 않은 부분을 투명하게 합니다. GIF, QuickTime 동영상, 그리고 이미지·동영상·SVG 내보내기에 적용됩니다. 투명한 QuickTime 동영상은 ProRes 4444이며 ffmpeg로 만듭니다. Flash 동영상과 HTML5 페이지는 스테이지 색을 유지합니다.
+pubpop-transparent-mp4 = MP4는 투명할 수 없으므로 기록되지 않습니다. MP4 선택을 해제하거나 대신 GIF나 QuickTime 동영상을 게시하세요.

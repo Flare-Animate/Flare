@@ -191,3 +191,38 @@ fn the_buttons_sit_a_little_clear_of_the_color_squares_in_both_sizes() {
         );
     }
 }
+
+#[test]
+fn the_color_picker_names_each_part_in_the_persons_language() {
+    let mut ws = workspace();
+    let english = ws.color_texts();
+    assert_eq!(
+        (english.hue.short.as_str(), english.hue.name.as_str()),
+        ("H", "Hue")
+    );
+    assert_eq!(english.alpha.short, "A");
+    for language in flare_i18n::Language::ALL {
+        ws.set_system_locale(language.code());
+        let texts = ws.color_texts();
+        for part in [
+            &texts.hue,
+            &texts.saturation,
+            &texts.brightness,
+            &texts.alpha,
+            &texts.red,
+            &texts.green,
+            &texts.blue,
+        ] {
+            assert!(
+                !part.short.is_empty() && !part.name.is_empty() && !part.name.starts_with("col-"),
+                "{language:?}: {part:?}"
+            );
+        }
+    }
+    ws.set_system_locale("fr-FR");
+    let french = ws.color_texts();
+    assert_eq!(
+        (french.hue.short.as_str(), french.hue.name.as_str()),
+        ("T", "Teinte")
+    );
+}
