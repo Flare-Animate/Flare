@@ -1,8 +1,8 @@
 //! Private on-disk payloads. Rebuilding goes through the validating constructors.
 
 use crate::StorageError;
-use flare_core::{DocumentId, FrameRate, Rgba8, SceneId, SymbolId};
-use flare_document::{Attachment, Document, Scene, Sound, Stage, Symbol, SymbolKind};
+use flare_core::{DocumentId, FrameRate, Rgba8, SceneId, ShaderGraph, ShaderNode, SymbolId};
+use flare_document::{Attachment, Document, Scene, ShaderAsset, Sound, Stage, Symbol, SymbolKind};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -68,6 +68,30 @@ pub(crate) struct SymbolWire {
     timeline: TimelineWire,
 }
 
+#[derive(Serialize, Deserialize)]
+pub(crate) struct ShaderGraphWire {
+    pub(crate) name: String,
+    pub(crate) nodes: Vec<ShaderNode>,
+    pub(crate) output: usize,
+}
+
+impl ShaderGraphWire {
+    pub(crate) fn of(asset: &ShaderAsset) -> Self {
+        Self {
+            name: asset.name().to_owned(),
+            nodes: asset.graph().nodes().to_vec(),
+            output: asset.graph().output(),
+        }
+    }
+
+    pub(crate) fn build(self) -> Result<ShaderAsset, StorageError> {
+        let graph = ShaderGraph::new(self.nodes, self.output)
+            .map_err(|error| StorageError::Corrupt(format!("invalid shader graph: {error}")))?;
+        ShaderAsset::new(self.name, graph)
+            .map_err(|error| StorageError::Corrupt(format!("invalid shader asset: {error}")))
+    }
+}
+
 impl SymbolWire {
     pub(crate) fn of(symbol: &Symbol) -> Self {
         Self {
@@ -106,6 +130,7 @@ pub(crate) fn assemble(
     bitmaps: Vec<flare_document::Bitmap>,
     origin: Option<flare_document::Origin>,
     game: Option<flare_game::GameSpec>,
+    shader_assets: Vec<ShaderAsset>,
 ) -> Result<Document, StorageError> {
     let settings: Settings = serde_json::from_str(settings)?;
     let rate = FrameRate::new(settings.frame_rate.0, settings.frame_rate.1)
@@ -125,6 +150,8 @@ pub(crate) fn assemble(
         .with_bitmaps(bitmaps)
         .map_err(StorageError::Invalid)?
         .with_game(game)
+        .map_err(StorageError::Invalid)?
+        .with_shader_assets(shader_assets)
         .map_err(StorageError::Invalid)?;
     let document = document.with_origin(origin.map(std::sync::Arc::new));
     match settings.stage {

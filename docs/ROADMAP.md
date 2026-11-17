@@ -27,6 +27,7 @@ priority is estimated against the roadmap above. Rows are ordered by priority, t
 | [#53](https://github.com/Flare-Animate/Flare/issues/53) Studio pipeline | Low | XL | Dockable panels, the icon strip, named workspaces with a switcher, and four workspace profile definitions | Node compositing, shared asset linking and collaboration |
 | [#123](https://github.com/Flare-Animate/Flare/issues/123) Interactive projects | Low | XL | Imported scripts are preserved as data; SWF playback is delegated to Ruffle | Authoring or running ActionScript 2/3 or JavaScript in Flare |
 | [#230](https://github.com/Flare-Animate/Flare/issues/230) Flash 3D engines | Low | XL | SWF import identifies known engines and reports embedded binary blocks | Reconstructing 3D scenes or producing working source code from compiled SWFs |
+| [#245](https://github.com/Flare-Animate/Flare/issues/245) Powerful shaders | Medium | XL | A bounded CPU graph evaluator, per-pixel source-image filtering, validated document assets, command editing, `.flare` persistence, portable graph import/export, CLI and MCP library tools, and on-demand frame rendering through ordered stacks | Timeline-attached effect stacks, desktop/browser authoring UI, OpenToonz shader compatibility and Unity/Blender graph import |
 
 The largest risks are model/format changes or untrusted code execution; those need separate
 designs, fixtures and surface-specific tests. The issue links are cross-references, not a claim
@@ -67,6 +68,7 @@ Timeline, symbols and library
 - Several named cameras and a shot track that picks the camera for each stretch of time, with hard cuts first, so a close-up can be framed without keyframes or a copy of the scene
 - Masking beyond mask layers: clipping groups, clip to base, and alpha and luminance masks, each with a defined order and no cycles
 - An ordered, non-destructive effect stack for post-processing objects, groups and the scene's output
+- Powerful shaders (#245): a bounded CPU graph evaluator, source-image filter, document shader library, atomic edit command, `.flare` schema v5 records, portable graph import/export, CLI/MCP library tools, and on-demand CLI/MCP frame rendering through a bounded stack are built; timeline-attached effects, desktop/browser authoring UI, OpenToonz Shader Fx compatibility, and Unity/Blender graph import remain unimplemented (see [SHADERS.md](SHADERS.md))
 - Find and Replace across text, fonts, colors and symbols
 - Shared and external libraries, and an Assets panel
 - A visual Frame Picker for a Graphic's first frame

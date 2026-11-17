@@ -4,8 +4,8 @@ use flare_core::{BitmapId, InstanceId, LayerId, SceneId, ShapeId, SoundId, Symbo
 use thiserror::Error;
 
 use crate::{
-    Anchor, Content, Document, MAX_ATTACHMENTS, MAX_BITMAPS, MAX_SOUNDS, MAX_TOTAL_BITMAP_BYTES,
-    MAX_TOTAL_SOUND_BYTES, Timeline,
+    Anchor, Content, Document, MAX_ATTACHMENTS, MAX_BITMAPS, MAX_SHADER_ASSETS, MAX_SOUNDS,
+    MAX_TOTAL_BITMAP_BYTES, MAX_TOTAL_SOUND_BYTES, Timeline,
 };
 
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -67,10 +67,28 @@ pub enum Diagnostic {
     DuplicateBitmap(BitmapId),
     #[error("a document holds at most {MAX_BITMAPS} bitmaps")]
     TooManyBitmaps,
+    #[error("a document holds at most {MAX_SHADER_ASSETS} shader graphs")]
+    TooManyShaderAssets,
+    #[error("shader graph asset name {0:?} is duplicated")]
+    DuplicateShaderAsset(String),
     #[error("a document holds at most {MAX_TOTAL_BITMAP_BYTES} bytes of bitmaps")]
     BitmapsTooLarge,
     #[error("layer {layer:?} shows bitmap {bitmap:?}, which is not in the document")]
     DanglingBitmap { layer: LayerId, bitmap: BitmapId },
+}
+
+pub(crate) fn validate_shader_assets(document: &Document) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    if document.shader_assets.len() > MAX_SHADER_ASSETS {
+        out.push(Diagnostic::TooManyShaderAssets);
+    }
+    let mut names = HashSet::with_capacity(document.shader_assets.len());
+    for asset in &document.shader_assets {
+        if !names.insert(asset.name()) {
+            out.push(Diagnostic::DuplicateShaderAsset(asset.name().to_owned()));
+        }
+    }
+    out
 }
 
 /// Every entity an attachment can hang off.
