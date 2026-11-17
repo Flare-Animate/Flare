@@ -54,6 +54,11 @@ impl Workspace {
         self.stage_view.reset_rotation();
     }
 
+    /// The tool the Rotation tool gives back when a turn is done, if it is in hand.
+    pub(in crate::workspace) fn rotate_view_before(&self) -> Option<Tool> {
+        self.rotate.before
+    }
+
     pub fn rotation_dial_open(&self) -> bool {
         self.rotate.dial.is_some()
     }

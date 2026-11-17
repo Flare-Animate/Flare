@@ -163,9 +163,7 @@ impl Workspace {
             self.text_click(to_doc(p));
         }
         self.rotate_view_stage(ui, &response);
-        if self.tool == Tool::Hand && response.dragged_by(egui::PointerButton::Primary) {
-            self.stage_view.pan_by(response.drag_delta());
-        }
+        self.hand_stage(ui, &response);
         if matches!(self.tool, Tool::Ruler | Tool::Mirror) {
             let primary = egui::PointerButton::Primary;
             let origin = ui.input(|i| i.pointer.press_origin());

@@ -193,6 +193,7 @@ pub struct Workspace {
     wand: tools::magic_wand::WandTool,
     /// The Rotation tool's drag, its dial and the Alt tap that opens it.
     rotate: tools::rotate_view::RotateView,
+    springs: tools::Springs,
     /// The points of the pencil or brush stroke being drawn, in stage coordinates.
     freehand: Vec<InputSample>,
     /// The Brush's stabilizer for the stroke being drawn, if it has one.
@@ -399,6 +400,7 @@ impl Workspace {
             lasso: Vec::new(),
             wand: Default::default(),
             rotate: Default::default(),
+            springs: Default::default(),
             freehand: Vec::new(),
             stabilizer: None,
             pen_feed: PenFeed::default(),
