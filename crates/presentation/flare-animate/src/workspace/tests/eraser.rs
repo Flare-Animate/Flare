@@ -211,3 +211,71 @@ fn the_eraser_shows_its_size_at_the_pointer_and_the_area_it_will_rub_while_dragg
         "Faucet deletes by clicking, with no rubbing size"
     );
 }
+
+#[test]
+fn rubbing_out_on_a_held_frame_changes_that_frame_and_no_other() {
+    let mut ws = workspace();
+    // The drawing joins the 24-frame keyframe at 0, so it shows on every frame.
+    ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(110.0, 60.0));
+    ws.set_tool(Tool::Eraser);
+    ws.set_frame(5);
+    ws.erase_dot(Pos2::new(60.0, 35.0));
+    assert_eq!(
+        active_spans(&ws),
+        vec![(0, 5), (5, 1), (6, 18)],
+        "frame 5 is a keyframe of its own"
+    );
+    assert_eq!(moves_of_first_drawing(&ws), 1, "frame 0 is whole");
+}
+
+/// How many pieces each shape at frame 0 on layer `id` is in.
+fn pieces_on(ws: &Workspace, id: flare_core::LayerId) -> Vec<usize> {
+    ws.layer(id)
+        .and_then(|layer| layer.span_at(0))
+        .map(|span| {
+            span.elements()
+                .filter_map(|content| match content {
+                    Content::Shape(shape) => Some(
+                        shape
+                            .path()
+                            .iter()
+                            .filter(|s| matches!(s, flare_document::PathSegment::MoveTo(_)))
+                            .count(),
+                    ),
+                    _ => None,
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+#[test]
+fn with_a_layer_chosen_the_eraser_rubs_out_only_on_that_layer() {
+    let mut ws = workspace();
+    ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(110.0, 60.0));
+    let below = ws.current_layer.expect("drawn on a layer");
+    ws.add_layer();
+    ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(110.0, 60.0));
+    let above = ws.current_layer.expect("the new layer");
+    assert_ne!(below, above, "the same bar on two layers");
+    ws.set_tool(Tool::Eraser);
+    ws.eraser_size = 10.0;
+
+    ws.select_layer(below);
+    ws.erase_dot(Pos2::new(60.0, 35.0));
+    assert_eq!(
+        pieces_on(&ws, below),
+        vec![2],
+        "the chosen layer is rubbed out"
+    );
+    assert_eq!(pieces_on(&ws, above), vec![1], "the other layer is not");
+
+    // Faucet looks past the bar drawn over the chosen layer's.
+    ws.eraser_faucet = true;
+    ws.click_with_tool(Pos2::new(20.0, 20.0), false);
+    assert!(
+        pieces_on(&ws, below).is_empty(),
+        "the chosen layer's bar went"
+    );
+    assert_eq!(pieces_on(&ws, above), vec![1], "the bar over it stayed");
+}

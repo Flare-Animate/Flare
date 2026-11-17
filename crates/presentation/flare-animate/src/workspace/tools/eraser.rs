@@ -1,10 +1,12 @@
-//! The Eraser in the workspace: dragging rubs out what the eraser passes over as it goes, on every
-//! layer a drawing tool may change, as one undo step; a click rubs out a dot. With Faucet on, a
-//! click deletes the whole shape under it instead, as the Eraser always did before it could rub.
+//! The Eraser in the workspace: dragging rubs out what the eraser passes over as it goes, on the
+//! layer chosen in the timeline (every layer a drawing tool may change when none is), as one undo
+//! step; a click rubs out a dot. With Faucet on, a click deletes the whole shape under it instead,
+//! as the Eraser always did before it could rub.
 //! A straightened drag (Straight, or Shift held as it starts) cannot be known until it ends, so it
 //! shows the area it will rub and rubs it out on release.
 
 use egui::{Color32, Pos2, Ui};
+use flare_core::LayerId;
 use flare_input::InputSample;
 use flare_tools::eraser::{MAX_ERASER_SIZE, eraser_outline};
 use flare_ui::chrome;
@@ -29,6 +31,37 @@ pub(in crate::workspace) struct LiveErase {
 }
 
 impl Workspace {
+    /// The layer the Eraser keeps to: the one chosen in the timeline (by clicking it or one of its
+    /// frames, or by drawing on it), so what is on the other layers is safe. With none chosen, or
+    /// one since deleted, it reaches every layer, as Animate's does.
+    pub(in crate::workspace) fn eraser_layer(&self) -> Option<LayerId> {
+        self.current_layer.filter(|id| self.layer(*id).is_some())
+    }
+
+    /// Whether the Eraser reaches the layer `span` is on: see [`eraser_layer`](Self::eraser_layer).
+    fn eraser_reaches(&self, span: SpanRef) -> bool {
+        let Some(scene) = self.document().scenes().first() else {
+            return false;
+        };
+        let layers = scene.timeline().layers();
+        layers
+            .iter()
+            .position(|l| l.id() == span.layer)
+            .is_some_and(|index| flare_tools::eraser::reaches(layers, index, self.eraser_layer()))
+    }
+
+    /// What a Faucet click at `point` deletes: the shape under it on a layer the Eraser reaches,
+    /// looking past shapes on the other layers drawn over it.
+    pub(in crate::workspace) fn faucet_hit(&self, point: Pos2) -> Option<SpanRef> {
+        self.glyph_hit_where(point, |span| {
+            self.on_unlocked_layer(span) && self.eraser_reaches(span)
+        })
+        .or_else(|| {
+            self.text_box_hit(point)
+                .filter(|span| self.eraser_reaches(*span))
+        })
+    }
+
     /// Whether the Eraser in hand rubs out along a drag (rather than deleting whole shapes).
     pub(in crate::workspace) fn eraser_rubs(&self) -> bool {
         self.tool == Tool::Eraser && !self.eraser_faucet
@@ -110,7 +143,13 @@ impl Workspace {
             .filter(|outline| outline.len() >= 3)
             .collect();
         let scene = self.scene_id()?;
-        let commands = flare_tools::eraser::erase(self.document(), scene, self.frame, &outlines);
+        let commands = flare_tools::eraser::erase(
+            self.document(),
+            scene,
+            self.frame,
+            &outlines,
+            self.eraser_layer(),
+        );
         if commands.is_empty() {
             return joining;
         }

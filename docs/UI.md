@@ -483,13 +483,20 @@ between panels and around the dock is 3 px (`theme::GUTTER`). Between widgets: 6
 ## Eraser
 
 The **Eraser** (E) rubs out what it is dragged over as it goes: fills lose the area it covered and
-lines lose the stretches it crossed, on every shown, unlocked layer at the current frame, while the
-pointer moves, and the whole drag is one undo step. Escape (or anything else that cancels the drag)
+lines lose the stretches it crossed, at the current frame, while the pointer moves, and the whole
+drag is one undo step. It keeps to the layer chosen in the timeline (by clicking the layer or one
+of its frames, or by drawing on it; a chosen folder takes in the layers inside it), so what is
+drawn on the other layers is safe; with no layer chosen it reaches every shown, unlocked layer. It changes that frame and no other: on a frame
+a keyframe holds from before, the frame becomes a keyframe of its own first, so the keyframe and its
+other frames keep their drawing (on a keyframe's own first frame, the keyframe is what changes). Escape (or anything else that cancels the drag)
 puts back what it rubbed out. A click rubs out a dot. **Size** (1 to 400 px) is how wide it rubs;
 a round outline of that size follows the pointer. A straightened drag (Straight, or Shift held when
 it starts) shows the area it will rub out see-through and rubs it out on release. Pen pressure
-does not change it. With **Faucet** on, a click deletes the whole shape under it instead, which is
-what the Eraser did before it could rub. Symmetry and Straight (Shift) apply as they do to the
+does not change it. With **Faucet** on, a click deletes the whole shape under it instead, from that
+frame alone and on the chosen layer in the same way (looking past shapes on other layers drawn
+over it), which is what the Eraser did before it could rub. With the Eraser in
+hand, Properties shows the Tool tab with its Size and Faucet, and rubbing out does not move it to
+another tab. Symmetry and Straight (Shift) apply as they do to the
 Brush. Symbols, bitmaps and text are left whole.
 
 ## Ruler and Mirror

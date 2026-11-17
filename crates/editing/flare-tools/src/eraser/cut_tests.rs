@@ -171,6 +171,7 @@ fn erasing_is_one_undo_step_across_the_layers_it_may_change() {
         f.scene,
         2,
         &[band(40.0, -10.0, 60.0, 50.0)],
+        None,
     );
     assert!(!commands.is_empty());
     f.session.apply(commands).expect("erase");
@@ -181,8 +182,9 @@ fn erasing_is_one_undo_step_across_the_layers_it_may_change() {
             .iter()
             .find(|l| l.id() == layer)
             .expect("layer");
+        // The eraser was on frame 2, so that is the frame that changed.
         layer
-            .span_at(0)
+            .span_at(2)
             .expect("span")
             .elements()
             .filter_map(|c| match c {
@@ -205,7 +207,8 @@ fn erasing_is_one_undo_step_across_the_layers_it_may_change() {
             f.session.document(),
             f.scene,
             2,
-            &[band(500.0, 500.0, 600.0, 600.0)]
+            &[band(500.0, 500.0, 600.0, 600.0)],
+            None,
         )
         .is_empty()
     );
@@ -220,6 +223,7 @@ fn erasing_the_last_of_a_keyframe_removes_the_keyframe() {
         f.scene,
         0,
         &[band(0.0, 0.0, 50.0, 50.0)],
+        None,
     );
     f.session.apply(commands).expect("erase");
     assert!(find_span(f.session.document(), f.scene, at(&f, 0)).is_none());

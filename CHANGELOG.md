@@ -10,6 +10,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 
 ### Fixed
 - Drawing on an empty frame past a keyframe starts a keyframe there and holds the keyframe before it across the empty frames between, as Animate does, instead of leaving them blank; Insert Keyframe and Insert Blank Keyframe in such a gap do the same, where before they did nothing. `flare draw-rect` and the MCP `draw_rect` follow it.
+- The Eraser changes only the frame it is on: on a frame a keyframe holds from before, that frame becomes a keyframe of its own, so the other frames keep their drawing. It also keeps to the layer chosen in the timeline (a chosen folder takes in its layers), so the other layers are safe; Faucet looks past shapes on other layers to the chosen one. With the Eraser in hand Properties shows its Size and Faucet on the Tool tab, and a click no longer moves the panel to the Doc tab.
 - Thin lines of a rough sketch can be picked: a click that lands on no line picks the nearest one within 8 screen pixels, at any zoom.
 - Starting to draw over a selected drawing lets go of the selection, so its box is no longer left over the new stroke like a rectangle's outline.
 - File > Open (and a file dropped on the window or given on the command line) opens a picture, a video or another program's project as a new project again, instead of failing with "not a Flare project file": every kind the importer reads is imported, not only `.swf`. Saving such a document asks for a name, and Save never writes a project over the picture or video it came from.

@@ -123,8 +123,10 @@ impl Workspace {
             Tool::Bucket | Tool::InkBottle => self.pour_paint(point),
             Tool::Eyedropper => self.take_paint(point, shift),
             Tool::Eraser => {
-                if let (Some(scene), Some(at)) = (self.scene_id(), self.hit(point)) {
-                    let commands = ops::delete(self.document(), scene, at);
+                // Faucet: the shape goes from this frame only, and from the chosen layer only, as
+                // rubbing out does.
+                if let (Some(scene), Some(at)) = (self.scene_id(), self.faucet_hit(point)) {
+                    let commands = ops::delete_on_frame(self.document(), scene, at, self.frame);
                     self.run_batch(commands, "paint");
                 }
             }

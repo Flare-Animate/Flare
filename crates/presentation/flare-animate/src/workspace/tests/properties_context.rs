@@ -204,3 +204,28 @@ fn several_things_selected_show_only_their_shared_position_and_size() {
     assert!(words.iter().any(|w| w == "Position and size"));
     assert!(!words.iter().any(|w| w == "Fill and stroke"));
 }
+
+#[test]
+fn the_eraser_in_hand_shows_its_own_options_and_rubbing_out_keeps_them() {
+    let mut ws = workspace();
+    rect(&mut ws);
+    ws.set_tool(Tool::Eraser);
+    assert_eq!(
+        ws.props_context(),
+        PropsContext::Tool,
+        "the eraser's size and faucet"
+    );
+    ws.click_with_tool(Pos2::new(60.0, 35.0), false);
+    assert_eq!(ws.active().undo_labels().count(), 2, "it rubbed out");
+    assert_eq!(
+        ws.props_context(),
+        PropsContext::Tool,
+        "not the document's tab after a click"
+    );
+    let shown = texts(&mut ws);
+    assert!(shown.contains(&tr!(ws, "opt-faucet")), "{shown:?}");
+    assert!(
+        !shown.contains(&tr!(ws, "opt-fill-stroke")),
+        "no paint to choose"
+    );
+}

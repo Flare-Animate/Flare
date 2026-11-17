@@ -76,6 +76,7 @@ impl Workspace {
                 | Tool::Brush
                 | Tool::Bucket
                 | Tool::InkBottle
+                | Tool::Eraser
                 | Tool::Camera
                 | Tool::Bone
                 | Tool::Ruler
@@ -103,6 +104,10 @@ impl Workspace {
 
     pub(crate) fn tool_tab(&mut self, ui: &mut Ui) {
         self.tool_options(ui);
+        // The Eraser lays down no paint, so it has no colors to show.
+        if self.tool == Tool::Eraser {
+            return;
+        }
         // Only the paint the tool uses: the Paint Bucket pours a fill and the Ink Bottle puts on
         // a stroke, as Animate's Properties show them.
         let (fill, stroke) = match self.tool {
