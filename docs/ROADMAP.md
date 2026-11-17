@@ -66,7 +66,7 @@ Timeline, symbols and library
 - Shape hints and more than one scene; a scene manager that reorders scenes by dragging and shows thumbnails
 - Several named cameras and a shot track that picks the camera for each stretch of time, with hard cuts first, so a close-up can be framed without keyframes or a copy of the scene
 - Masking beyond mask layers: clipping groups, clip to base, and alpha and luminance masks, each with a defined order and no cycles
-- An ordered, non-destructive effect stack for post-processing objects, groups and the scene's output
+- Effects beyond a scene layer's node graph (built: the Effects panel, `flare fx` and the MCP effect tools, see ARCHITECTURE.md): effects on symbols, folders and the scene's output, settings keyed over time, and more kinds of node (motion blur along real movement, rain, light rays)
 - Find and Replace across text, fonts, colors and symbols
 - Shared and external libraries, and an Assets panel
 - A visual Frame Picker for a Graphic's first frame
@@ -124,7 +124,8 @@ or refused with a reason.
 ### Not planned
 
 Android, P2P remote control, Adobe/Harman AIR and Flex SDK targets, and OpenToonz's
-raster painting, FX schematic and xsheet. [PARITY.md](PARITY.md) says why for each.
+raster painting and xsheet. [PARITY.md](PARITY.md) says why for each. (The FX schematic was
+reversed from this list: a scene layer's effects are a node graph in the Effects panel.)
 
 | Milestone | Scope | Status |
 |---|---|---|
@@ -240,7 +241,7 @@ appear, docs/UI.md); the profiles place them, but the interface does not read pr
 | Shortcut sets | `shortcuts/*.ini` | Four sets as data (`flare`, `opentoonz`, `animate`, `tahoma`) in `flare-menubar`'s `ShortcutMap`; edited, saved in Preferences, listed by `flare shortcuts` | P1 |
 | Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Eight palettes in `flare-ui` `theme.rs`, text at least 7:1 on every surface (tested) | Built |
 | Preferences | Preferences | Built in part (General, Stage, Timeline, Recent) | Built |
-| FX schematic and FX settings | Schematic, FxBrowser, FxSettings | Planned panels | P2 |
+| FX schematic and FX settings | Schematic, FxBrowser, FxSettings | Built for one scene layer at a time as the Effects panel (graph view and the chosen node's settings); a browser of saved effect presets is not built | Built |
 | Function editor | FunctionEditor | Built as the Motion Editor (one span's curve); per-property graphs are left | P2 |
 | Level strip and palettes | LevelStrip, LevelPalette, StyleEditor | Planned panels | P2 |
 | Scene cast and browser | SceneCast, Browser | Planned panels | P2 |

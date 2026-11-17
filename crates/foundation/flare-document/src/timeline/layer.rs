@@ -30,6 +30,7 @@ impl Layer {
             view_opacity: 100,
             parent: None,
             cues: Arc::from([]),
+            effects: None,
         })
     }
 
@@ -46,6 +47,7 @@ impl Layer {
         layer.view_opacity = self.view_opacity;
         layer.parent = self.parent;
         layer.cues = Arc::clone(&self.cues);
+        layer.effects = self.effects.clone();
         Ok(layer)
     }
 
@@ -131,6 +133,22 @@ impl Layer {
         cues.dedup_by_key(|c| c.start);
         self.cues = cues.into();
         Ok(self)
+    }
+
+    /// Sets the layer's effects, or takes them away with `None`. The plain graph (the Layer
+    /// straight into the Output and nothing else) is kept as none; one with nodes not connected
+    /// yet is kept, as it is being built.
+    #[must_use]
+    pub fn with_effects(mut self, effects: Option<flare_fx::EffectGraph>) -> Self {
+        self.effects = effects
+            .filter(|g| !(g.is_identity() && g.nodes().len() == 2))
+            .map(Arc::new);
+        self
+    }
+
+    /// The layer's effects, if it has any.
+    pub fn effects(&self) -> Option<&flare_fx::EffectGraph> {
+        self.effects.as_deref()
     }
 
     pub fn cues(&self) -> &[SoundCue] {

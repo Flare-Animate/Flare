@@ -261,57 +261,22 @@ fn fading_scales_alpha_only_and_composition_is_source_over() {
     assert_eq!(red.faded(-1.0).pixel(5, 5).map(|p| p.a), Some(0));
 
     // 50% red over opaque white: halfway between white and red.
-    let mut canvas = render(
-        &flare_eval::Frame {
-            placed: vec![],
-            shapes: vec![],
-            bitmaps: vec![],
-            clips: vec![],
-            warnings: vec![],
-        },
-        20,
-        20,
-        Rgba8::WHITE,
-    )
-    .expect("bg");
+    let mut canvas = render(&flare_eval::Frame::default(), 20, 20, Rgba8::WHITE).expect("bg");
     canvas.composite(&half).expect("composite");
     let p = canvas.pixel(5, 5).expect("pixel");
     assert_eq!((p.r, p.a), (255, 255));
     assert!(p.g.abs_diff(127) <= 1 && p.b.abs_diff(127) <= 1, "{p:?}");
 
     // Over a transparent canvas the ghost keeps its own color and alpha.
-    let mut clear = render(
-        &flare_eval::Frame {
-            placed: vec![],
-            shapes: vec![],
-            bitmaps: vec![],
-            clips: vec![],
-            warnings: vec![],
-        },
-        20,
-        20,
-        Rgba8::TRANSPARENT,
-    )
-    .expect("clear");
+    let mut clear =
+        render(&flare_eval::Frame::default(), 20, 20, Rgba8::TRANSPARENT).expect("clear");
     clear.composite(&half).expect("composite");
     assert_eq!(clear.pixel(5, 5), Some(Rgba8::new(255, 0, 0, 128)));
     // Transparent pixels change nothing, and mismatched sizes are refused.
     let before = canvas.clone();
     canvas.composite(&red.faded(0.0)).expect("composite");
     assert_eq!(canvas, before);
-    let small = render(
-        &flare_eval::Frame {
-            placed: vec![],
-            shapes: vec![],
-            bitmaps: vec![],
-            clips: vec![],
-            warnings: vec![],
-        },
-        4,
-        4,
-        Rgba8::WHITE,
-    )
-    .expect("small");
+    let small = render(&flare_eval::Frame::default(), 4, 4, Rgba8::WHITE).expect("small");
     assert!(canvas.composite(&small).is_err());
 }
 

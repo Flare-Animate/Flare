@@ -264,6 +264,9 @@ pub(super) struct LayerWire {
     /// Absent in files written before sounds existed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub(super) cues: Vec<CueWire>,
+    /// The layer's effect graph; absent when it has none, and in files written before effects.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) effects: Option<super::effects::EffectsWire>,
     pub(super) spans: Vec<SpanWire>,
 }
 
@@ -289,6 +292,7 @@ impl TimelineWire {
                 outline: layer.outline().map(|c| [c.r, c.g, c.b]),
                 view_opacity: (layer.view_opacity() < 100).then_some(layer.view_opacity()),
                 parent: layer.parent().map(|p| p.as_uuid().to_string()),
+                effects: layer.effects().map(super::effects::EffectsWire::of),
                 cues: layer
                     .cues()
                     .iter()
@@ -355,8 +359,13 @@ impl TimelineWire {
                     })
                 })
                 .collect::<Result<Vec<_>, StorageError>>()?;
+            let effects = layer
+                .effects
+                .map(super::effects::EffectsWire::build)
+                .transpose()?;
             layers.push(
                 Layer::new(LayerId::from_uuid(uuid(&layer.id)?), layer.name, spans)?
+                    .with_effects(effects)
                     .with_visible(layer.visible)
                     .with_locked(layer.locked)
                     .with_mask(layer.mask)

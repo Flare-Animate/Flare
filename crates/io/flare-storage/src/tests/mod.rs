@@ -22,6 +22,7 @@ use std::path::Path;
 mod armature;
 mod bitmaps;
 mod compression;
+mod effects;
 mod failures;
 mod game;
 mod many_elements;

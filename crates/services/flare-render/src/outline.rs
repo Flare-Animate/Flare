@@ -90,6 +90,8 @@ fn as_lines<'a>(frame: &Frame<'a>, shapes: &'a [Shape], clips: bool) -> Frame<'a
             Vec::new()
         },
         warnings: frame.warnings.clone(),
+        // Outline view shows the paths alone, as Animate's does with its filters.
+        effects: Vec::new(),
     }
 }
 

@@ -70,6 +70,8 @@ pub fn ink_mask(
         bitmaps: Vec::new(),
         clips: frame.clips.clone(),
         warnings: Vec::new(),
+        // A shadow or glow is not a line the Paint Bucket stops at.
+        effects: Vec::new(),
     };
     let image = render_viewport(&above, area, width, height, Rgba8::TRANSPARENT)?;
     Ok(image

@@ -29,7 +29,8 @@ impl FlareServer {
                                     "visible": l.is_visible(), "locked": l.is_locked(),
                                     "opacity": l.view_opacity(),
                                     "spans": l.spans().len(), "elements": elements,
-                                    "armature": flare_tools::bones::is_armature_layer(l) })
+                                    "armature": flare_tools::bones::is_armature_layer(l),
+                                    "effects": l.effects().is_some() })
                         })
                         .collect();
                     json!({ "id": scene.id().as_uuid(), "name": scene.name(),

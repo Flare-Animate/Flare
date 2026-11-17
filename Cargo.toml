@@ -11,6 +11,7 @@ members = [
     "apps/flare-web",
     # foundation
     "crates/foundation/flare-core",
+    "crates/foundation/flare-fx",
     "crates/foundation/flare-document",
     "crates/foundation/flare-eval",
     "crates/foundation/flare-tween",
@@ -68,6 +69,7 @@ license = "BSD-3-Clause"
 # ---- Internal packages: root owns all paths, listed by layer -----------------
 # foundation
 flare-core = { path = "crates/foundation/flare-core" }
+flare-fx = { path = "crates/foundation/flare-fx" }
 flare-document = { path = "crates/foundation/flare-document" }
 flare-game = { path = "crates/foundation/flare-game" }
 flare-tween = { path = "crates/foundation/flare-tween" }
@@ -319,6 +321,9 @@ opt-level = 2
 [profile.dev.package.flare-eval]
 opt-level = 2
 [profile.dev.package.flare-render]
+opt-level = 2
+# Effects run over every pixel of a layer; unoptimized a blurred stage takes most of a second.
+[profile.dev.package.flare-fx]
 opt-level = 2
 [profile.dev.package.vello_cpu]
 opt-level = 3

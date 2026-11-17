@@ -178,10 +178,12 @@ pub enum MenuAction {
     ShowSwatches,
     /// Window > Mannequin: the posable figure to draw from.
     ShowMannequin,
+    /// Window > Effects: the active layer's effects as a node graph.
+    ShowEffects,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 142] = [
+    pub const ALL: [MenuAction; 143] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -324,6 +326,7 @@ impl MenuAction {
         Self::CommandPalette,
         Self::ShowSwatches,
         Self::ShowMannequin,
+        Self::ShowEffects,
     ];
 
     /// A stable identifier for native menu items (the variant name).

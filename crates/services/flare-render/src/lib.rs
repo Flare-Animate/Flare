@@ -6,6 +6,7 @@
 #![forbid(unsafe_code)]
 
 mod backdrop;
+mod effects;
 mod hit;
 mod image;
 mod image_formats;

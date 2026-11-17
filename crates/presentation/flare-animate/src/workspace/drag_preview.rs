@@ -39,6 +39,12 @@ pub(super) enum PreviewKey {
         to: Pos2,
         radius: f32,
     },
+    /// A layer effect setting held in the Effects panel; `serial` numbers each held value.
+    Effects {
+        context: u64,
+        revision: u64,
+        serial: u64,
+    },
 }
 
 /// The document a held drag would leave, kept while the drag stays where it is, with the stamp
@@ -124,6 +130,9 @@ impl Workspace {
     /// Making the copy costs what the release costs (a move of 100 spans in a 5 000-layer
     /// document is 0.5 ms, see docs/PERFORMANCE.md) and is redone only when the drag moves.
     pub(super) fn previewed_document(&mut self) -> Option<(u64, Arc<Document>)> {
+        if self.effects.held.is_some() {
+            return self.effects_preview();
+        }
         if self.magnet_held() {
             return self.magnet_preview();
         }

@@ -12,6 +12,7 @@ use std::num::NonZeroU32;
 
 mod bitmaps;
 mod camera;
+mod effects;
 mod masks;
 mod paint_hits;
 mod shapes;

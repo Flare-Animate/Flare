@@ -152,6 +152,14 @@ pub(super) fn write_layer(
             ),
         });
     }
+    if layer.effects().is_some_and(|g| !g.is_identity()) {
+        // Animate keeps filters on each instance, not a graph on the layer.
+        ctx.notes.push(Diagnostic {
+            severity: Severity::Warning,
+            location: format!("{place} / layer \"{}\"", layer.name()),
+            message: "the layer's effects are not written to XFL, so it opens without them".into(),
+        });
+    }
     if layer.is_camera() {
         // Written as an empty layer so the others keep their places.
         ctx.notes.push(Diagnostic {

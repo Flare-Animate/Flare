@@ -352,7 +352,7 @@ change is one undo step.
 
 The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
 kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor, Find and
-Replace and Mannequin. A click opens that panel beside the strip, 300 px wide (its left edge drags
+Replace, Mannequin and Effects. A click opens that panel beside the strip, 300 px wide (its left edge drags
 it wider or narrower) and level with its icon, over the stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
 a press on the stage or another panel puts it away (a list or picker the panel opened does not).
 Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
@@ -616,6 +616,31 @@ gradient's end), and pointing at one shows its hex value. The + keeps the color 
 of the person's own (each color once, at most 120; a full list says so), and a right click on one
 of them deletes it. They are kept with the preferences, not in the document. The web-safe colors
 are the web's standard palette, not Animate's artwork.
+
+## Effects
+
+The Effects panel (Window > Effects, in the icon strip by default) is OpenToonz's and Tahoma2D's
+FX schematic for the active layer of the scene: the layer's picture flows from its Layer node
+through effect nodes into its Output node, and the Output is drawn in the layer's place, on the
+stage and in every raster export. Its title names the layer. Add Effect lists Drop Shadow, Glow,
+Blur, Adjust Color, Tint, Opacity, Snow and Over; the new node joins the end of the chain, so it
+shows at once, and is chosen. Remove takes the chosen node out and joins the chain again; Clear
+All takes every effect away. Each is one undo step.
+
+The graph view below them draws each node as a box, its inputs as dots down the left with their
+names and its output as a dot on the right, and the wires as curves; what reaches the Output is
+drawn in the accent color, the rest dimmed. Drag from an output to an input to connect them (a
+connection that would make a loop is refused with a message), click a connected input to cut it,
+drag a box to move it (the picture does not change), drag empty space to look around, and Delete
+removes the chosen node. A drag counts from where it was pressed, so a box follows the pointer
+exactly.
+
+Under the view are the chosen node's settings, each a slider with a number to type (a color has
+the color picker): lengths in px, measured on the stage, angles in degrees, amounts in percent.
+While a slider is dragged or a number typed, the stage shows the change at once without making an
+undo step; letting go applies it as one. A mask, guide, camera or folder layer draws nothing for
+effects to change, and inside a symbol effects are not offered: the panel says so in place of
+the graph.
 
 ## Mannequin
 

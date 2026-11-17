@@ -320,6 +320,7 @@ pub fn render_swf_frame(parsed: &Parsed, index: usize, background: Rgba8) -> fla
         bitmaps: Vec::new(),
         clips,
         warnings: Vec::new(),
+        effects: Vec::new(),
     };
     flare_render::render(
         &frame,

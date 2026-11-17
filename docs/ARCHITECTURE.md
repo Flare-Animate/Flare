@@ -15,7 +15,8 @@ Executables are in `apps/`. The folders mean:
 
 | Layer | Crate | Responsibility |
 |---|---|---|
-| foundation | `flare-core` | Typed IDs (UUIDv7), `FrameRate`, `DocumentPoint`, `Transform2D`, `Rgba8`, effect parameter sets with a scale (`fx_params`). No I/O. `flare_core::experimental` holds unstable work that is not wired into documents, commands or any front end; it has ViewSpace Keys (`experimental::viewspace`, see [experimental/VIEWSPACE.md](experimental/VIEWSPACE.md)). |
+| foundation | `flare-core` | Typed IDs (UUIDv7), `FrameRate`, `DocumentPoint`, `Transform2D`, `Rgba8`, effect parameter sets with a scale (`fx_params`, which `flare-fx` scales its lengths with). No I/O. `flare_core::experimental` holds unstable work that is not wired into documents, commands or any front end; it has ViewSpace Keys (`experimental::viewspace`, see [experimental/VIEWSPACE.md](experimental/VIEWSPACE.md)). |
+| foundation | `flare-fx` | Layer effects as a node graph, OpenToonz's FX schematic in small: the graph (a Layer node, an Output node and effect nodes between them, built only through checks: no loops, inputs that fit, settings in range, at most 32 nodes), the edits that make a new graph from an old one, `name=value` settings as text, and the pixel work (blur, drop shadow, glow, color adjustment, tint, opacity, snow, merge) on premultiplied pictures. Lengths scale to the picture through `flare_core::fx_params`. No I/O. See Layer effects below. |
 | foundation | `flare-game` | The game description and its world: entities with typed components, the nine systems (physics, trigger zones, hooks, camera, sprites, particles, audio, UI and the script placeholder) in a fixed order, a fixed-timestep step, scripted input with named actions and deterministic runs. No window, sound or file access. See [GAME.md](GAME.md). |
 | foundation | `flare-document` | The document model and its validation. No GUI, GPU, database or async code. |
 | foundation | `flare-eval` | Pure frame evaluation: document + scene + frame to placed instances and drawn shapes. |
@@ -145,6 +146,62 @@ Onion skinning composites translucent copies of neighbouring frames (up to 8 bef
 after, fainter with distance) beneath the current one using straight-alpha source-over
 blending in `flare-render`. It is a display aid only: it is off while playing and never
 affects exports.
+
+## Layer effects (`flare-fx`)
+
+A scene layer may carry an `EffectGraph` (`Layer::effects`, shared like the spans, so an undo
+snapshot copies no graph). The graph is OpenToonz's and Tahoma2D's FX schematic for one layer:
+node 1 is the Layer, the layer's own picture; node 2 is the Output, what is drawn in the layer's
+place; the nodes between are effects with typed inputs (`over` and `under` for a merge) and
+settings with ranges. Drop Shadow, Glow, Blur, Adjust Color (brightness, contrast, saturation,
+hue), Tint, Opacity, Snow and Over are built. A graph exists only through
+`EffectGraph::from_nodes`, which refuses a loop, an input from a node that is not there or from
+the Output, a setting out of range and more than 32 nodes; every edit (`append` into the chain,
+`connect`, `disconnect`, `remove` with the chain rejoined, `move_node`, `set_value`,
+`set_fields`) builds a new graph through it, so a refused edit changes nothing. The plain graph
+(the Layer straight into the Output) is kept as no effects; one with nodes not yet connected is
+kept, as it is being built. Validation refuses effects on a mask, guide, camera or folder layer,
+which draw nothing of their own, and on a symbol's layer (`EffectsOnSpecialLayer`,
+`EffectsInSymbol`): effects inside symbols and on folders are not built.
+
+`LayerChange::Effects` sets or clears a layer's graph as one undo step; `flare_tools::effects`
+builds every edit as that command from the layer's current graph, or refuses it with the reason,
+for the Effects panel, `flare fx` and the MCP tools alike.
+
+Evaluation marks what each scene layer with effects drew (`Frame::effects`: an `EffectRun` with
+the graph, the layer's range of shapes and bitmaps, the frame and the stage size), even a layer
+that drew nothing, since snow makes a picture from nothing. At most 64 layers run their effects
+at one frame (`MAX_EFFECT_RUNS`); past that a layer is drawn plainly and `Frame::warnings` says
+so. `Frame::signature` takes in each graph's fingerprint (its picture, not where its nodes sit in
+the view) and, for a graph that moves on its own, the frame, so a held drawing with snow is drawn
+again each frame and one with a shadow is drawn once.
+
+`flare-render` draws the frame in paint order; at a layer with effects it draws that layer's
+shapes alone on a transparent picture, a margin wider than the view by the graph's reach (held to
+1024 pixels and to the render limits), runs the graph over it (`flare_fx::run`) and lays the
+middle back where the layer sits. The margin is why a shadow cast from just outside a zoomed view
+still falls inside it. Lengths are stage units, scaled to the picture's pixels, so a shadow is the
+same on a zoomed stage, in a PNG and in a video. The stage's path for transparent layers keeps a
+layer with effects whole in one run. Outline view and the Paint Bucket's ink mask leave effects
+out. Every raster export (PNG and the other stills, GIF, video, sprite sheets) goes through this.
+SWF and HTML5 publishing and XFL export are vector formats with no place for a layer's graph:
+each draws the layer without it and names the layer in its notes.
+
+Snow is deterministic: each flake comes from the seed and its own number, and where it is
+follows from the frame alone, so scrubbing back or exporting shows what the stage showed. Flakes
+nearer the eye are larger, faster and brighter, sway as they fall, wrap round the stage and
+never leave it.
+
+A layer's graph is saved in its record as `effects` (absent when it has none, so files from
+before effects load unchanged): each node's number, kind by name, inputs, settings by name and
+place in the view. Loading rebuilds it through `EffectGraph::from_nodes`, so a damaged record is
+refused by name rather than loaded; a setting the file lacks takes its default and one Flare does
+not know is refused. The project's fingerprint is taken over the same records, so adding an
+effect to an imported movie is an edit and it is no longer written back byte for byte.
+
+What a graph costs is in [PERFORMANCE.md](PERFORMANCE.md). Each node keeps at most a picture the
+size of the layer's while it is needed, and a blur costs the same whatever its radius (three
+running-sum boxes each way).
 
 ## Storage
 

@@ -117,7 +117,7 @@ pub fn info(path: &Path) -> Result<Value> {
                             "visible": layer.is_visible(), "locked": layer.is_locked(),
                             "opacity": layer.view_opacity(),
                             "spans": layer.spans().len(), "elements": elements,
-                            "armature": armature })
+                            "armature": armature, "effects": layer.effects().is_some() })
                 })
                 .collect();
             json!({ "id": scene.id().as_uuid(), "name": scene.name(), "layers": layers })

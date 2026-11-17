@@ -148,6 +148,7 @@ impl MenuAction {
             Self::CommandPalette => "search",
             Self::ShowSwatches => "panel-swatches",
             Self::ShowMannequin => "panel-mannequin",
+            Self::ShowEffects => "panel-effects",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",

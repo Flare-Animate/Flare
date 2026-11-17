@@ -10,6 +10,7 @@ mod armature;
 mod attachment;
 mod bitmap;
 mod content;
+mod effects;
 pub(crate) mod game;
 mod origin;
 mod settings;
