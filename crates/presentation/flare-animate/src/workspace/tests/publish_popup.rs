@@ -178,3 +178,31 @@ fn mov_is_an_ordinary_format_that_ticks_counts_and_is_kept() {
         "and kept with the preferences"
     );
 }
+
+#[test]
+fn transparent_background_ticks_and_warns_that_an_mp4_cannot_be_transparent() {
+    let (ctx, mut ws, mut time) = opened();
+    let warning = "An MP4 cannot be transparent, so it will not be written. Untick MP4, or publish a GIF or a QuickTime movie instead.";
+    ws.publish.mp4 = true;
+    assert!(
+        find(&mut ws, &ctx, time, warning).is_none(),
+        "no warning yet"
+    );
+    click_text(&mut ws, &ctx, &mut time, "Transparent background");
+    assert!(ws.publish.transparent, "ticked");
+    for _ in 0..3 {
+        time += 0.1;
+        find(&mut ws, &ctx, time, "Publish");
+    }
+    time += 0.1;
+    assert!(
+        find(&mut ws, &ctx, time, warning).is_some(),
+        "the MP4 is warned about"
+    );
+    ws.publish.mp4 = false;
+    time += 0.1;
+    assert!(
+        find(&mut ws, &ctx, time, warning).is_none(),
+        "without MP4 there is nothing to warn of"
+    );
+}

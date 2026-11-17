@@ -7,9 +7,9 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
 use crate::color::{safe_file_name_with, safe_name};
-use crate::params::{
-    ExportMovie, ExportName, ExportSpriteSheet, ExportStill, ExportSvg, ExportXfl, ImportProject,
-    MovieKind, PublishHtml5, PublishSwf, StillKind,
+use crate::params::{ExportSpriteSheet, ExportXfl, ImportProject, PublishHtml5, PublishSwf};
+use crate::params_export::{
+    ExportAnimation, ExportMovie, ExportStill, ExportSvg, MovieKind, StillKind, backdrop,
 };
 use crate::server::{FlareServer, Outcome, State};
 use flare_runtime::StillFormat;
@@ -49,7 +49,7 @@ fn diagnostics<'a, D: 'a>(
 #[tool_router(router = export_tools, vis = "pub(super)")]
 impl FlareServer {
     #[tool(
-        description = "Render one frame of the first scene as a PNG, JPEG, BMP, TGA, TIFF, WebP (lossless), QOI, PNM (PAM), ICO (at most 256 pixels a side), OpenEXR or Radiance HDR image in the export directory (disabled when no export directory is configured). The background is the stage's. A quality (1 to 100, JPEG only) is refused for other formats."
+        description = "Render one frame of the first scene as a PNG, JPEG, BMP, TGA, TIFF, WebP (lossless), QOI, PNM (PAM), ICO (at most 256 pixels a side), OpenEXR or Radiance HDR image in the export directory (disabled when no export directory is configured). The background is the stage's, or see-through with `transparent` (refused by jpeg and hdr). A quality (1 to 100, JPEG only) is refused for other formats."
     )]
     fn export_still(&self, Parameters(args): Parameters<ExportStill>) -> Outcome {
         self.read(|state| {
@@ -81,6 +81,7 @@ impl FlareServer {
                 state.session.document(),
                 args.frame.unwrap_or(0),
                 format,
+                backdrop(args.transparent),
             )?;
             std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
@@ -88,73 +89,85 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Render the first scene as an endlessly looping GIF in the export directory (disabled when no export directory is configured)."
+        description = "Render the first scene as an endlessly looping GIF in the export directory (disabled when no export directory is configured). With `transparent` the stage colour is left out."
     )]
-    fn export_gif(&self, Parameters(args): Parameters<ExportName>) -> Outcome {
+    fn export_gif(&self, Parameters(args): Parameters<ExportAnimation>) -> Outcome {
         self.read(|state| {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, "gif")?)?;
-            let bytes = flare_runtime::gif_bytes(state.session.document())?;
+            let bytes =
+                flare_runtime::gif_bytes(state.session.document(), backdrop(args.transparent))?;
             std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
 
     #[tool(
-        description = "Render the first scene as an endlessly looping APNG (animated PNG, full colour and alpha) in the export directory (disabled when no export directory is configured)."
+        description = "Render the first scene as an endlessly looping APNG (animated PNG, full colour and alpha) in the export directory (disabled when no export directory is configured). With `transparent` the stage colour is left out."
     )]
-    fn export_apng(&self, Parameters(args): Parameters<ExportName>) -> Outcome {
+    fn export_apng(&self, Parameters(args): Parameters<ExportAnimation>) -> Outcome {
         self.read(|state| {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, "png")?)?;
-            let bytes = flare_runtime::apng_bytes(state.session.document())?;
+            let bytes =
+                flare_runtime::apng_bytes(state.session.document(), backdrop(args.transparent))?;
             std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
 
     #[tool(
-        description = "Render one frame of the first scene as an SVG picture in the export directory (disabled when no export directory is configured): shapes as paths with their fills, gradients, strokes and masks, pictures embedded as PNG. The reply's notes list what SVG cannot carry, such as a dashed stroke that is drawn solid."
+        description = "Render one frame of the first scene as an SVG picture in the export directory (disabled when no export directory is configured): shapes as paths with their fills, gradients, strokes and masks, pictures embedded as PNG. The reply's notes list what SVG cannot carry, such as a dashed stroke that is drawn solid. With `transparent` the stage rectangle is left out."
     )]
     fn export_svg(&self, Parameters(args): Parameters<ExportSvg>) -> Outcome {
         self.read(|state| {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, "svg")?)?;
-            let svg = flare_runtime::svg_export(state.session.document(), args.frame.unwrap_or(0))?;
+            let svg = flare_runtime::svg_export(
+                state.session.document(),
+                args.frame.unwrap_or(0),
+                backdrop(args.transparent),
+            )?;
             std::fs::write(&out, svg.text.as_bytes()).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": svg.text.len(), "notes": svg.notes }))
         })
     }
 
     #[tool(
-        description = "Render one frame of the first scene as a flattened Photoshop (PSD) file in the export directory (disabled when no export directory is configured). Its layers are not written: the picture is one layer, with its alpha."
+        description = "Render one frame of the first scene as a flattened Photoshop (PSD) file in the export directory (disabled when no export directory is configured). Its layers are not written: the picture is one layer, with its alpha. With `transparent` the stage colour is left out."
     )]
     fn export_psd(&self, Parameters(args): Parameters<ExportSvg>) -> Outcome {
         self.read(|state| {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, "psd")?)?;
-            let bytes =
-                flare_runtime::psd_export(state.session.document(), args.frame.unwrap_or(0))?;
+            let bytes = flare_runtime::psd_export(
+                state.session.document(),
+                args.frame.unwrap_or(0),
+                backdrop(args.transparent),
+            )?;
             std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
 
     #[tool(
-        description = "Render the first scene as an endlessly repeating animated WebP (lossless, every frame) in the export directory (disabled when no export directory is configured)."
+        description = "Render the first scene as an endlessly repeating animated WebP (lossless, every frame) in the export directory (disabled when no export directory is configured). With `transparent` the stage colour is left out."
     )]
-    fn export_animated_webp(&self, Parameters(args): Parameters<ExportName>) -> Outcome {
+    fn export_animated_webp(&self, Parameters(args): Parameters<ExportAnimation>) -> Outcome {
         self.read(|state| {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, "webp")?)?;
-            let bytes = flare_runtime::animated_webp_bytes(state.session.document())?;
+            let bytes = flare_runtime::animated_webp_bytes(
+                state.session.document(),
+                backdrop(args.transparent),
+            )?;
             std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
 
     #[tool(
-        description = "Write the first scene as a movie, with its sound, in the export directory: mov (a QuickTime movie Flare writes itself), or avi, mkv, webm, mpeg or flv through ffmpeg (disabled when no export directory is configured). The ffmpeg formats need ffmpeg on the computer; without it the reply says so."
+        description = "Write the first scene as a movie, with its sound, in the export directory: mov (a QuickTime movie Flare writes itself), or avi, mkv, webm, mpeg or flv through ffmpeg (disabled when no export directory is configured). The ffmpeg formats need ffmpeg on the computer; without it the reply says so. With `transparent` the stage colour is left out: mov is then ProRes 4444 made by ffmpeg, webm is VP9 with alpha, and the others refuse it."
     )]
     fn export_movie(&self, Parameters(args): Parameters<ExportMovie>) -> Outcome {
         self.read(|state| {
@@ -169,10 +182,16 @@ impl FlareServer {
             let container = flare_ffmpeg::container(id).ok_or("unknown movie format")?;
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, container.extension)?)?;
+            let backdrop = backdrop(args.transparent);
             if matches!(args.format, MovieKind::Mov) {
-                flare_video::write_mov(state.session.document(), &out)?;
+                flare_video::write_mov_over(state.session.document(), &out, backdrop)?;
             } else {
-                flare_video::write_with_ffmpeg(state.session.document(), &out, container)?;
+                flare_video::write_with_ffmpeg(
+                    state.session.document(),
+                    &out,
+                    container,
+                    backdrop,
+                )?;
             }
             let bytes = std::fs::metadata(&out).map_err(|e| e.to_string())?.len();
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes }))
@@ -208,13 +227,17 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Render the first scene as an MP4 video, with its sound, in the export directory (disabled when no export directory is configured). Encoding takes a while for a long movie."
+        description = "Render the first scene as an MP4 video, with its sound, in the export directory (disabled when no export directory is configured). Encoding takes a while for a long movie. An MP4 has no alpha, so `transparent` is refused: use export_movie with webm or mov."
     )]
-    fn export_mp4(&self, Parameters(args): Parameters<ExportName>) -> Outcome {
+    fn export_mp4(&self, Parameters(args): Parameters<ExportAnimation>) -> Outcome {
         self.read(|state| {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, "mp4")?)?;
-            flare_video::write_mp4(state.session.document(), &out)?;
+            flare_video::write_mp4_over(
+                state.session.document(),
+                &out,
+                backdrop(args.transparent),
+            )?;
             let bytes = std::fs::metadata(&out).map_err(|e| e.to_string())?.len();
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes }))
         })

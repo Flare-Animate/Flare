@@ -7,7 +7,7 @@
 
 use flare_core::{Rgba8, SceneId};
 use flare_document::Document;
-use flare_render::Viewport;
+use flare_render::{Backdrop, Viewport};
 
 /// Longest side of the movie in pixels; bigger stages are scaled down to it.
 pub const MAX_MOVIE_SIDE: u32 = 640;
@@ -30,15 +30,21 @@ fn workers() -> usize {
 }
 
 /// Renders every frame of the first scene and encodes them as an endlessly looping GIF at the
-/// document's frame rate (GIF delays are in hundredths of a second, so rates round to those).
-/// Errors are worded for the person who asked for the export.
-pub fn gif_bytes(document: &Document) -> Result<Vec<u8>, String> {
-    gif_bytes_on(document, workers())
+/// document's frame rate (GIF delays are in hundredths of a second, so rates round to those),
+/// over `backdrop`. A GIF pixel is either shown or not, so with a transparent backdrop an edge
+/// pixel at least half covered is shown whole and the rest are left out. Errors are worded for
+/// the person who asked for the export.
+pub fn gif_bytes(document: &Document, backdrop: Backdrop) -> Result<Vec<u8>, String> {
+    gif_bytes_on(document, workers(), backdrop)
 }
 
 /// [`gif_bytes`] with frames made `workers` at a time.
-pub fn gif_bytes_on(document: &Document, workers: usize) -> Result<Vec<u8>, String> {
-    let plan = plan(document)?;
+pub fn gif_bytes_on(
+    document: &Document,
+    workers: usize,
+    backdrop: Backdrop,
+) -> Result<Vec<u8>, String> {
+    let plan = plan(document, backdrop)?;
     check_frames(&plan, "GIF")?;
     let side = |n: u32| u16::try_from(n).map_err(|_| "The movie is too large.".to_owned());
     let (gif_w, gif_h) = (side(plan.width)?, side(plan.height)?);
@@ -47,8 +53,16 @@ pub fn gif_bytes_on(document: &Document, workers: usize) -> Result<Vec<u8>, Stri
     let picture = |frame: u32| -> Result<gif::Frame<'static>, String> {
         let image = draw(document, &plan, frame)?;
         let mut rgba = image.rgba().to_vec();
+        if backdrop.is_transparent() {
+            one_bit_alpha(&mut rgba);
+        }
         let mut picture = gif::Frame::from_rgba_speed(gif_w, gif_h, &mut rgba, 10);
         picture.delay = delay;
+        // Each frame is whole: clear it before the next is drawn, or what one frame leaves
+        // see-through would show the last one.
+        if backdrop.is_transparent() {
+            picture.dispose = gif::DisposalMethod::Background;
+        }
         Ok(picture)
     };
 
@@ -76,8 +90,16 @@ pub fn gif_bytes_on(document: &Document, workers: usize) -> Result<Vec<u8>, Stri
     Ok(bytes)
 }
 
+/// Makes every pixel fully shown or fully clear, cut at half coverage, as a GIF holds them.
+fn one_bit_alpha(rgba: &mut [u8]) {
+    for pixel in rgba.as_chunks_mut::<4>().0 {
+        pixel[3] = if pixel[3] >= 128 { 255 } else { 0 };
+    }
+}
+
 /// What an animation export draws: every frame of the first scene at one size, over the stage
-/// colour (the animation formats here have no partial transparency).
+/// colour made opaque (a partly see-through stage colour is for the stage, not for a movie), or
+/// over nothing.
 struct Plan {
     scene: SceneId,
     frames: u64,
@@ -88,7 +110,7 @@ struct Plan {
     background: Rgba8,
 }
 
-fn plan(document: &Document) -> Result<Plan, String> {
+fn plan(document: &Document, backdrop: Backdrop) -> Result<Plan, String> {
     let scene = document
         .scenes()
         .first()
@@ -111,10 +133,7 @@ fn plan(document: &Document) -> Result<Plan, String> {
         width: stage_w,
         height: stage_h,
     };
-    let background = {
-        let c = stage.background();
-        Rgba8::opaque(c.r, c.g, c.b)
-    };
+    let background = backdrop.over_opaque(stage.background());
     Ok(Plan {
         scene: scene.id(),
         frames,
@@ -151,9 +170,10 @@ fn draw(document: &Document, plan: &Plan, frame: u32) -> Result<flare_render::Im
 }
 
 /// Renders every frame of the first scene as an endlessly repeating animated WebP, lossless (the
-/// colours come back exactly), at the document's frame rate.
-pub fn animated_webp_bytes(document: &Document) -> Result<Vec<u8>, String> {
-    let plan = plan(document)?;
+/// colours come back exactly), at the document's frame rate, over `backdrop`. Each frame replaces
+/// the canvas, so a transparent one does not show the frame before.
+pub fn animated_webp_bytes(document: &Document, backdrop: Backdrop) -> Result<Vec<u8>, String> {
+    let plan = plan(document, backdrop)?;
     check_frames(&plan, "animated WebP")?;
     let delay_ms = ((1000.0 / plan.fps).round() as u32).max(1);
     let mut animation = flare_export::animated_webp::AnimatedWebp::new(plan.width, plan.height)
@@ -168,9 +188,10 @@ pub fn animated_webp_bytes(document: &Document) -> Result<Vec<u8>, String> {
 }
 
 /// Renders every frame of the first scene and encodes them as an endlessly looping APNG (animated
-/// PNG) at the document's frame rate. A PNG frame holds milliseconds, so the rate rounds to those.
-pub fn apng_bytes(document: &Document) -> Result<Vec<u8>, String> {
-    let plan = plan(document)?;
+/// PNG) at the document's frame rate, over `backdrop`. A PNG frame holds milliseconds, so the rate
+/// rounds to those. Each frame replaces what was there (the `Source` blend), alpha and all.
+pub fn apng_bytes(document: &Document, backdrop: Backdrop) -> Result<Vec<u8>, String> {
+    let plan = plan(document, backdrop)?;
     check_frames(&plan, "APNG")?;
     let start = |e: &dyn std::fmt::Display| format!("Cannot start the APNG: {e}");
     let delay_ms = ((1000.0 / plan.fps).round() as u16).max(1);
@@ -241,3 +262,5 @@ impl Maker {
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod transparent_tests;

@@ -146,7 +146,7 @@ fn round_trip(
 ) {
     let stage = document.stage();
     let size = video_size(stage.width(), stage.height());
-    let drawn = Frames::new(document, size).expect("frames");
+    let drawn = Frames::new(document, size, flare_render::Backdrop::Stage).expect("frames");
     let mut encoder = picture_encoder(size, 24.0).expect("encoder");
     let (mut units, mut sources, mut stream) = (Vec::new(), Vec::new(), Vec::new());
     for n in 0..frames {
@@ -435,3 +435,6 @@ mod delay;
 
 #[path = "mov_tests.rs"]
 mod mov;
+
+#[path = "transparent_tests.rs"]
+mod transparent;

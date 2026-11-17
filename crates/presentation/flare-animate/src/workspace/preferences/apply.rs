@@ -60,6 +60,7 @@ impl Workspace {
             publish_gif: self.publish.gif,
             publish_mp4: self.publish.mp4,
             publish_mov: self.publish.mov,
+            publish_transparent: self.publish.transparent,
             publish_defaults: crate::workspace::publish_settings::PUBLISH_DEFAULTS,
             language: self.language_choice.code().to_owned(),
             theme: self.theme_mode.code().to_owned(),
@@ -186,6 +187,7 @@ impl Workspace {
             gif: preferences.publish_gif,
             mp4: preferences.publish_mp4,
             mov: preferences.publish_mov,
+            transparent: preferences.publish_transparent,
         }
         .update_old_defaults(preferences.publish_defaults);
         self.home.recent = preferences

@@ -232,7 +232,9 @@ pub(crate) enum Command {
         /// Defaults to the stage height.
         #[arg(long)]
         height: Option<u32>,
-        /// Keep the background transparent instead of white (not for JPEG).
+        /// Leave the stage colour out, so what is not drawn is see-through: PNG and the other
+        /// still formats with alpha, SVG, PSD, GIF, APNG, animated WebP, WebM and MOV (ProRes
+        /// 4444, through ffmpeg). JPEG, HDR, MP4, AVI, MKV, MPEG and FLV refuse it.
         #[arg(long)]
         transparent: bool,
         /// JPEG quality from 1 to 100 (JPEG only; default 90).

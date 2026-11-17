@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use flare_document::Document;
 pub use flare_publish::{Html5Options, PublishOptions};
 pub use flare_ruffle::{TestMovie, TestMovieError};
+pub use flare_runtime::Backdrop;
 
 fn spawn(name: &str, job: impl FnOnce() + Send + 'static) -> io::Result<()> {
     std::thread::Builder::new()
@@ -15,52 +16,67 @@ fn spawn(name: &str, job: impl FnOnce() + Send + 'static) -> io::Result<()> {
         .map(|_| ())
 }
 
-/// Writes one frame as a PNG. `done` gets the outcome, worded for the person.
+/// Writes one frame as a PNG over `backdrop`. `done` gets the outcome, worded for the person.
 pub fn export_png(
     document: Document,
     frame: u32,
     path: PathBuf,
+    backdrop: Backdrop,
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-export-image", move || {
-        done(flare_runtime::export_png(&document, frame, &path));
+        done(flare_runtime::export_png(&document, frame, &path, backdrop));
     })
 }
 
 /// Writes the whole animation as the movie `path` names by its ending: an animated GIF (`.gif`),
 /// an MP4 video (`.mp4`) or a QuickTime movie (`.mov`), the last two with the sound. A name with
-/// no ending is a GIF, as Export Movie wrote before it had a choice. Never overwrites; the file
-/// appears only when complete.
+/// no ending is a GIF, as Export Movie wrote before it had a choice. Over a transparent
+/// `backdrop` the GIF is see-through, the QuickTime movie is ProRes 4444 made by ffmpeg, and an
+/// MP4 is refused. Never overwrites; the file appears only when complete.
 pub fn export_movie(
     document: Document,
     path: PathBuf,
+    backdrop: Backdrop,
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-export-movie", move || {
-        done(write_movie(&document, &path));
+        done(write_movie(&document, &path, backdrop));
     })
 }
 
 /// [`export_movie`] on the calling thread.
-pub fn write_movie(document: &Document, path: &std::path::Path) -> Result<(), String> {
+pub fn write_movie(
+    document: &Document,
+    path: &std::path::Path,
+    backdrop: Backdrop,
+) -> Result<(), String> {
     let ending = path
         .extension()
         .map(|e| e.to_string_lossy().to_ascii_lowercase());
     match ending.as_deref() {
-        None => write_gif(document, &path.with_extension("gif")),
-        Some("gif") => write_gif(document, path),
-        Some("mp4") => flare_video::write_mp4(document, path),
-        Some("mov") => flare_video::write_mov(document, path),
+        None => write_gif(document, &path.with_extension("gif"), backdrop),
+        Some("gif") => write_gif(document, path, backdrop),
+        Some("mp4") => flare_video::write_mp4_over(document, path, backdrop),
+        Some("mov") => flare_video::write_mov_over(document, path, backdrop),
         Some(other) => Err(format!(
             "A movie is written as .gif, .mp4 or .mov, not .{other}"
         )),
     }
 }
 
-/// Renders `document` as a GIF into `path`. Never overwrites; the file appears only when it is
-/// complete.
-fn write_gif(document: &Document, path: &std::path::Path) -> Result<(), String> {
-    write_new(path, &flare_runtime::gif_bytes(document)?)
+/// Renders `document` as a GIF over `backdrop` into `path`. Never overwrites; the file appears
+/// only when it is complete.
+fn write_gif(
+    document: &Document,
+    path: &std::path::Path,
+    backdrop: Backdrop,
+) -> Result<(), String> {
+    // Asked before every frame is drawn, not only when the file is about to be written.
+    if path.exists() {
+        return Err(format!("{} already exists", path.display()));
+    }
+    write_new(path, &flare_runtime::gif_bytes(document, backdrop)?)
 }
 
 /// Writes `bytes` to a file that does not exist yet: the file appears only when complete, and an
@@ -101,15 +117,16 @@ pub fn export_fla(
     })
 }
 
-/// Writes the frame on show as an SVG picture, on a thread. Never overwrites.
+/// Writes the frame on show as an SVG picture over `backdrop`, on a thread. Never overwrites.
 pub fn export_svg(
     document: Document,
     frame: u32,
     path: PathBuf,
+    backdrop: Backdrop,
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-export-svg", move || {
-        let result = flare_runtime::svg_export(&document, frame)
+        let result = flare_runtime::svg_export(&document, frame, backdrop)
             .and_then(|svg| write_new(&path, svg.text.as_bytes()));
         done(result);
     })
@@ -126,6 +143,9 @@ pub struct PublishPlan {
     pub mp4: bool,
     /// Also write a QuickTime movie.
     pub mov: bool,
+    /// What the GIF and the videos show where nothing is drawn. The Flash movie and the HTML5
+    /// page always have the stage colour.
+    pub backdrop: Backdrop,
 }
 
 /// The name a published file shares with its siblings: `path` without a `.swf` or `.html`
@@ -186,19 +206,19 @@ pub fn publish_now(
     }
     if plan.gif {
         let target = at("gif");
-        if let Err(error) = write_gif(document, &target) {
+        if let Err(error) = write_gif(document, &target, plan.backdrop) {
             failures.push(error);
         }
     }
     if plan.mp4 {
         let target = at("mp4");
-        if let Err(error) = flare_video::write_mp4(document, &target) {
+        if let Err(error) = flare_video::write_mp4_over(document, &target, plan.backdrop) {
             failures.push(error);
         }
     }
     if plan.mov {
         let target = at("mov");
-        if let Err(error) = flare_video::write_mov(document, &target) {
+        if let Err(error) = flare_video::write_mov_over(document, &target, plan.backdrop) {
             failures.push(error);
         }
     }

@@ -1,5 +1,6 @@
 //! What File > Publish writes and how: the formats and, for HTML5 Canvas, the options Animate's
-//! Publish Settings call Loop timeline, Center stage and Make responsive.
+//! Publish Settings call Loop timeline, Center stage and Make responsive. The transparent
+//! background is here too, and Export Image and Export Movie follow it as Publish does.
 
 use super::*;
 
@@ -21,6 +22,9 @@ pub struct PublishSettings {
     pub mp4: bool,
     /// Write a QuickTime movie (`.mov`).
     pub mov: bool,
+    /// Leave the stage colour out of the GIF, the videos and the exported pictures, so what is
+    /// not drawn is see-through.
+    pub transparent: bool,
 }
 
 /// Whether this build writes MP4 and QuickTime movies. The browser build does not yet: its video
@@ -45,6 +49,7 @@ impl Default for PublishSettings {
             gif: !VIDEO_PUBLISHES_HERE,
             mp4: VIDEO_PUBLISHES_HERE,
             mov: false,
+            transparent: false,
         }
     }
 }
@@ -70,6 +75,11 @@ impl PublishSettings {
     /// Whether anything is switched on to publish.
     pub fn any(&self) -> bool {
         self.swf || self.html5 || self.gif || self.mp4 || self.mov
+    }
+
+    /// What the exports show where nothing is drawn.
+    pub fn backdrop(&self) -> flare_render::Backdrop {
+        flare_render::Backdrop::transparent_if(self.transparent)
     }
 }
 
@@ -106,8 +116,17 @@ impl Workspace {
             )
             .on_disabled_hover_text(tr.text("pubpop-video-browser"));
         }
+        ui.separator();
+        ui.checkbox(&mut self.publish.transparent, tr.text("pubpop-transparent"))
+            .on_hover_text(tr.text("pubpop-transparent-hint"));
         if !self.publish.any() {
             ui.colored_label(flare_ui::theme::warning(), tr.text("pubpop-nothing-chosen"));
+        }
+        if self.publish.transparent && self.publish.mp4 {
+            ui.colored_label(
+                flare_ui::theme::warning(),
+                tr.text("pubpop-transparent-mp4"),
+            );
         }
     }
 }

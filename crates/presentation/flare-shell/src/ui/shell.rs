@@ -106,8 +106,9 @@ impl App {
                     dialogs::save_png(&self.workspace.interface_text("dlg-filter-png"))
                 {
                     let (document, frame) = self.workspace.image_export();
+                    let backdrop = self.workspace.publish_settings().backdrop();
                     let done = exported(&self.proxy);
-                    if let Err(error) = jobs::export_png(document, frame, path, done) {
+                    if let Err(error) = jobs::export_png(document, frame, path, backdrop, done) {
                         self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
@@ -117,8 +118,9 @@ impl App {
                     .map(|key| self.workspace.interface_text(key));
                 if let Some(path) = dialogs::save_movie(filters.each_ref().map(String::as_str)) {
                     let (document, _) = self.workspace.image_export();
+                    let backdrop = self.workspace.publish_settings().backdrop();
                     let done = exported(&self.proxy);
-                    if let Err(error) = jobs::export_movie(document, path, done) {
+                    if let Err(error) = jobs::export_movie(document, path, backdrop, done) {
                         self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
@@ -139,8 +141,9 @@ impl App {
                     dialogs::save_svg(&self.workspace.interface_text("dlg-filter-svg"))
                 {
                     let (document, frame) = self.workspace.image_export();
+                    let backdrop = self.workspace.publish_settings().backdrop();
                     let done = exported(&self.proxy);
-                    if let Err(error) = jobs::export_svg(document, frame, path, done) {
+                    if let Err(error) = jobs::export_svg(document, frame, path, backdrop, done) {
                         self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
@@ -174,6 +177,7 @@ impl App {
                         gif: settings.gif,
                         mp4: settings.mp4,
                         mov: settings.mov,
+                        backdrop: settings.backdrop(),
                     };
                     let done = exported(&self.proxy);
                     if let Err(error) = jobs::publish(document, path, plan, done) {

@@ -113,6 +113,7 @@ pub(crate) fn encode_args(
     }
     args.push(s("-c:v"));
     args.push(s(container.video_codec));
+    args.extend(container.video_options.iter().map(|o| s(o)));
     if let Some(pixel_format) = container.pixel_format {
         args.extend(["-pix_fmt", pixel_format].map(s));
     }

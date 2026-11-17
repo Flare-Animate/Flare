@@ -64,6 +64,7 @@ fn the_choices_are_kept_with_the_other_preferences_and_old_files_still_load() {
         gif: true,
         mp4: true,
         mov: true,
+        transparent: true,
     };
     let saved = ws.preferences_json().expect("json");
     let mut fresh = workspace();
@@ -75,6 +76,25 @@ fn the_choices_are_kept_with_the_other_preferences_and_old_files_still_load() {
         .expect("old file");
     let kept = old.publish_settings();
     assert!(!kept.compress && kept.mp4 && !kept.swf && !kept.html5);
+    assert!(
+        !kept.transparent,
+        "a file from before keeps the stage colour"
+    );
+}
+
+#[test]
+fn the_transparent_background_starts_off_and_gives_the_exports_their_backdrop() {
+    let mut ws = workspace();
+    assert!(!ws.publish_settings().transparent);
+    assert_eq!(
+        ws.publish_settings().backdrop(),
+        flare_render::Backdrop::Stage
+    );
+    ws.publish.transparent = true;
+    assert_eq!(
+        ws.publish_settings().backdrop(),
+        flare_render::Backdrop::Transparent
+    );
 }
 
 #[test]

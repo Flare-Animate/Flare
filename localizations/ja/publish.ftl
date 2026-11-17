@@ -13,3 +13,6 @@ pubpop-format-gif = アニメーションGIF（.gif）
 pubpop-format-mp4 = MP4ビデオ（.mp4）
 pubpop-format-mov = QuickTimeムービー（.mov）
 pubpop-video-browser = ブラウザーではまだMP4やQuickTimeのムービーを書き出せません。デスクトップアプリを使ってください。
+pubpop-transparent = 背景を透明にする
+pubpop-transparent-hint = ステージの色を含めず、描かれていない部分を透明にします。GIF、QuickTimeムービー、画像・ムービー・SVGの書き出しに適用されます。透明なQuickTimeムービーはProRes 4444で、ffmpegで作成されます。FlashムービーとHTML5ページはステージの色のままです。
+pubpop-transparent-mp4 = MP4は透明にできないため、書き出されません。MP4のチェックを外すか、代わりにGIFかQuickTimeムービーをパブリッシュしてください。

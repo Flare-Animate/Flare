@@ -67,7 +67,12 @@ fn a_frame_is_an_svg_of_its_fills_gradients_and_strokes() {
         Stroke::new(2.0, Rgba8::opaque(0, 0, 255)).expect("stroke"),
     )
     .expect("line");
-    let svg = crate::svg_export(&document(vec![red, gradient, line]), 0).expect("svg");
+    let svg = crate::svg_export(
+        &document(vec![red, gradient, line]),
+        0,
+        flare_render::Backdrop::Stage,
+    )
+    .expect("svg");
     let text = &svg.text;
     assert!(text.starts_with("<svg"), "{text}");
     assert!(
@@ -101,7 +106,8 @@ fn a_patterned_stroke_is_drawn_solid_and_the_notes_say_so() {
             .with_style(StrokeStyle::Dashed),
     )
     .expect("line");
-    let svg = crate::svg_export(&document(vec![dashed]), 0).expect("svg");
+    let svg =
+        crate::svg_export(&document(vec![dashed]), 0, flare_render::Backdrop::Stage).expect("svg");
     assert!(
         svg.text.contains("stroke-width"),
         "the stroke is still there"
@@ -131,7 +137,8 @@ fn the_svg_imports_back_with_its_shapes() {
         Stroke::new(2.0, Rgba8::opaque(0, 0, 255)).expect("stroke"),
     )
     .expect("line");
-    let svg = crate::svg_export(&document(vec![red, line]), 0).expect("svg");
+    let svg = crate::svg_export(&document(vec![red, line]), 0, flare_render::Backdrop::Stage)
+        .expect("svg");
     let imported = flare_import::import_foreign_bytes(Path::new("a.svg"), svg.text.into_bytes())
         .expect("the export imports back");
     let drawn =

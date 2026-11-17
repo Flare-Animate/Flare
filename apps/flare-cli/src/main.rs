@@ -364,20 +364,30 @@ fn run() -> Result<()> {
             )?,
             None => match format {
                 project::ExportFormat::Svg => {
-                    if width.is_some() || height.is_some() || transparent {
+                    if width.is_some() || height.is_some() {
                         bail!(
-                            "SVG is a vector picture at the stage size: --width, --height and --transparent do not apply"
+                            "SVG is a vector picture at the stage size: --width and --height do not apply"
                         );
                     }
-                    project::export_svg(&path, &out, frame.unwrap_or(0))?
+                    project::export_svg(
+                        &path,
+                        &out,
+                        frame.unwrap_or(0),
+                        flare_runtime::Backdrop::transparent_if(transparent),
+                    )?
                 }
                 project::ExportFormat::Psd => {
-                    if width.is_some() || height.is_some() || transparent {
+                    if width.is_some() || height.is_some() {
                         bail!(
-                            "a PSD is one picture at the stage size: --width, --height and --transparent do not apply"
+                            "a PSD is one picture at the stage size: --width and --height do not apply"
                         );
                     }
-                    project::export_psd(&path, &out, frame.unwrap_or(0))?
+                    project::export_psd(
+                        &path,
+                        &out,
+                        frame.unwrap_or(0),
+                        flare_runtime::Backdrop::transparent_if(transparent),
+                    )?
                 }
                 project::ExportFormat::Gif
                 | project::ExportFormat::Apng
@@ -389,24 +399,35 @@ fn run() -> Result<()> {
                 | project::ExportFormat::Mpeg
                 | project::ExportFormat::Flv
                 | project::ExportFormat::Mp4 => {
-                    if frame.is_some() || width.is_some() || height.is_some() || transparent {
+                    if frame.is_some() || width.is_some() || height.is_some() {
                         bail!(
-                            "a GIF or a video holds every frame at the stage size: --frame, --width, --height and --transparent are for PNG and the other still formats"
+                            "a GIF or a video holds every frame at the stage size: --frame, --width and --height are for PNG and the other still formats"
                         );
                     }
+                    let backdrop = flare_runtime::Backdrop::transparent_if(transparent);
                     match format {
-                        project::ExportFormat::Gif => project::export_gif(&path, &out)?,
-                        project::ExportFormat::Apng => project::export_apng(&path, &out)?,
+                        project::ExportFormat::Gif => project::export_gif(&path, &out, backdrop)?,
+                        project::ExportFormat::Apng => project::export_apng(&path, &out, backdrop)?,
                         project::ExportFormat::AnimatedWebp => {
-                            project::export_animated_webp(&path, &out)?
+                            project::export_animated_webp(&path, &out, backdrop)?
                         }
-                        project::ExportFormat::Mov => project::export_mov(&path, &out)?,
-                        project::ExportFormat::Avi => project::export_movie(&path, &out, "avi")?,
-                        project::ExportFormat::Mkv => project::export_movie(&path, &out, "mkv")?,
-                        project::ExportFormat::Webm => project::export_movie(&path, &out, "webm")?,
-                        project::ExportFormat::Mpeg => project::export_movie(&path, &out, "mpeg")?,
-                        project::ExportFormat::Flv => project::export_movie(&path, &out, "flv")?,
-                        _ => project::export_mp4(&path, &out)?,
+                        project::ExportFormat::Mov => project::export_mov(&path, &out, backdrop)?,
+                        project::ExportFormat::Avi => {
+                            project::export_movie(&path, &out, "avi", backdrop)?
+                        }
+                        project::ExportFormat::Mkv => {
+                            project::export_movie(&path, &out, "mkv", backdrop)?
+                        }
+                        project::ExportFormat::Webm => {
+                            project::export_movie(&path, &out, "webm", backdrop)?
+                        }
+                        project::ExportFormat::Mpeg => {
+                            project::export_movie(&path, &out, "mpeg", backdrop)?
+                        }
+                        project::ExportFormat::Flv => {
+                            project::export_movie(&path, &out, "flv", backdrop)?
+                        }
+                        _ => project::export_mp4(&path, &out, backdrop)?,
                     }
                 }
                 _ => bail!("unreachable: this format is a still image"),

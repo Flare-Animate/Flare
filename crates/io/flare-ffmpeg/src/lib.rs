@@ -15,7 +15,7 @@ mod sample;
 mod sample_tests;
 mod tool;
 
-pub use containers::{CONTAINERS, Container, container};
+pub use containers::{AlphaVideo, CONTAINERS, Container, container};
 pub use decode::{Clip, MAX_CLIP_BYTES, decode};
 pub use encode::{Movie, encode};
 pub use error::FfmpegError;

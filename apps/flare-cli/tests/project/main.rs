@@ -34,6 +34,7 @@ mod still_images;
 mod swf_import;
 mod symbols;
 mod text;
+mod transparent;
 mod tween;
 mod video_import;
 mod wick;

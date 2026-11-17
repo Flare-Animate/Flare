@@ -75,7 +75,11 @@ pub(crate) struct Frames<'a> {
 }
 
 impl<'a> Frames<'a> {
-    pub(crate) fn new(document: &'a Document, size: (u32, u32)) -> Result<Self, String> {
+    pub(crate) fn new(
+        document: &'a Document,
+        size: (u32, u32),
+        backdrop: flare_render::Backdrop,
+    ) -> Result<Self, String> {
         let scene = document
             .scenes()
             .first()
@@ -91,12 +95,12 @@ impl<'a> Frames<'a> {
                 width: f64::from(stage.width()),
                 height: f64::from(stage.height()),
             },
-            background: flare_core::Rgba8::opaque(c.r, c.g, c.b),
+            background: backdrop.over_opaque(c),
             size,
         })
     }
 
-    /// Frame `n` over the stage color, as RGBA.
+    /// Frame `n` over the backdrop, as RGBA.
     pub(crate) fn rgba(&self, n: u32) -> Result<Vec<u8>, String> {
         let drawn = flare_eval::evaluate_frame(self.document, self.scene, n)
             .map_err(|e| format!("Cannot draw frame {}: {e}", n + 1))?;
@@ -134,6 +138,34 @@ pub fn write_mov(document: &Document, path: &Path) -> Result<(), String> {
     write_movie(document, path, true)
 }
 
+/// [`write_mp4`] over `backdrop`. H.264 has no alpha channel, so a transparent backdrop is refused
+/// with the formats that have one.
+pub fn write_mp4_over(
+    document: &Document,
+    path: &Path,
+    backdrop: flare_render::Backdrop,
+) -> Result<(), String> {
+    if backdrop.is_transparent() {
+        return Err(flare_render::no_transparency("MP4 videos"));
+    }
+    write_mp4(document, path)
+}
+
+/// [`write_mov`] over `backdrop`. Flare's own QuickTime movie is H.264, which has no alpha, so a
+/// transparent one is ProRes 4444 written by ffmpeg, and needs ffmpeg as the other ffmpeg
+/// formats do.
+pub fn write_mov_over(
+    document: &Document,
+    path: &Path,
+    backdrop: flare_render::Backdrop,
+) -> Result<(), String> {
+    if !backdrop.is_transparent() {
+        return write_mov(document, path);
+    }
+    let container = flare_ffmpeg::container("mov").ok_or("QuickTime is not a movie format here")?;
+    write_with_ffmpeg(document, path, container, backdrop)
+}
+
 /// [`write_mp4`], or [`write_mov`] when `quicktime` is set.
 fn write_movie(document: &Document, path: &Path, quicktime: bool) -> Result<(), String> {
     let scene = document
@@ -163,7 +195,7 @@ fn write_movie(document: &Document, path: &Path, quicktime: bool) -> Result<(), 
     let size = video_size(stage.width(), stage.height());
     let seconds = frames as f64 / fps;
 
-    let drawn = Frames::new(document, size)?;
+    let drawn = Frames::new(document, size, flare_render::Backdrop::Stage)?;
     let mut encoder = picture_encoder(size, fps)?;
     let mut sound = audio::Track::new(document, (num, den), seconds)?;
 

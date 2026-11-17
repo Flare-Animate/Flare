@@ -70,6 +70,8 @@ pub struct Preferences {
     pub publish_gif: bool,
     pub publish_mp4: bool,
     pub publish_mov: bool,
+    /// Export and publish with a transparent background instead of the stage colour.
+    pub publish_transparent: bool,
     /// Which defaults the format choices above were saved under (`PUBLISH_DEFAULTS`). A file
     /// without it is from before, so it reads as 0 and not as the current value.
     #[serde(default)]
@@ -143,6 +145,7 @@ impl Default for Preferences {
             publish_gif: publish.gif,
             publish_mp4: publish.mp4,
             publish_mov: publish.mov,
+            publish_transparent: publish.transparent,
             publish_defaults: crate::workspace::publish_settings::PUBLISH_DEFAULTS,
             language: "system".to_owned(),
             theme: "dark".to_owned(),

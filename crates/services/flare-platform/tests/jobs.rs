@@ -31,13 +31,13 @@ fn a_movie_is_written_whole_once_and_never_over_an_existing_file() {
     let path = dir.path().join("movie.gif");
     let (tx, rx) = mpsc::channel();
     let report = tx.clone();
-    jobs::export_movie(document(), path.clone(), move |r| {
+    jobs::export_movie(document(), path.clone(), jobs::Backdrop::Stage, move |r| {
         let _ = report.send(r);
     })
     .expect("started");
     wait(&rx).expect("exported");
     assert!(std::fs::read(&path).expect("read").starts_with(b"GIF89a"));
-    jobs::export_movie(document(), path.clone(), move |r| {
+    jobs::export_movie(document(), path.clone(), jobs::Backdrop::Stage, move |r| {
         let _ = tx.send(r);
     })
     .expect("started");
@@ -55,9 +55,15 @@ fn an_image_and_a_swf_report_through_the_same_callback() {
     let dir = tempfile::tempdir().expect("dir");
     let (tx, rx) = mpsc::channel();
     let report = tx.clone();
-    jobs::export_png(document(), 0, dir.path().join("a.png"), move |r| {
-        let _ = report.send(r);
-    })
+    jobs::export_png(
+        document(),
+        0,
+        dir.path().join("a.png"),
+        jobs::Backdrop::Stage,
+        move |r| {
+            let _ = report.send(r);
+        },
+    )
     .expect("started");
     wait(&rx).expect("png");
     let plan = jobs::PublishPlan {
@@ -66,6 +72,7 @@ fn an_image_and_a_swf_report_through_the_same_callback() {
         gif: false,
         mp4: false,
         mov: false,
+        backdrop: jobs::Backdrop::Stage,
     };
     jobs::publish(document(), dir.path().join("a.swf"), plan, move |r| {
         let _ = tx.send(r);
@@ -82,6 +89,7 @@ fn plan(swf: bool, html5: bool) -> jobs::PublishPlan {
         gif: false,
         mp4: false,
         mov: false,
+        backdrop: jobs::Backdrop::Stage,
     }
 }
 
@@ -246,16 +254,21 @@ fn a_movie_for_the_in_app_player_is_published_on_a_thread_and_handed_back_as_byt
 fn export_movie_writes_the_kind_the_name_ends_in() {
     let dir = tempfile::tempdir().expect("dir");
     for name in ["a.gif", "b.MP4", "c.mov"] {
-        jobs::write_movie(&document(), &dir.path().join(name)).expect(name);
+        jobs::write_movie(&document(), &dir.path().join(name), jobs::Backdrop::Stage).expect(name);
     }
     let read = |name: &str| std::fs::read(dir.path().join(name)).expect(name);
     assert!(read("a.gif").starts_with(b"GIF89a"));
     assert_eq!(&read("b.MP4")[4..12], b"ftypisom");
     assert_eq!(&read("c.mov")[4..12], b"ftypqt  ");
     // No ending is a GIF, as before there was a choice.
-    jobs::write_movie(&document(), &dir.path().join("d")).expect("d");
+    jobs::write_movie(&document(), &dir.path().join("d"), jobs::Backdrop::Stage).expect("d");
     assert!(read("d.gif").starts_with(b"GIF89a"));
-    let error = jobs::write_movie(&document(), &dir.path().join("e.avi")).expect_err("avi");
+    let error = jobs::write_movie(
+        &document(),
+        &dir.path().join("e.avi"),
+        jobs::Backdrop::Stage,
+    )
+    .expect_err("avi");
     assert!(error.contains(".mov"), "{error}");
     assert!(!dir.path().join("e.avi").exists());
 }
@@ -277,4 +290,86 @@ fn a_quicktime_movie_is_published_beside_the_others() {
     only.mov = true;
     jobs::publish_now(&document(), &dir.path().join("n"), &only).expect("mov alone");
     assert!(dir.path().join("n.mov").exists());
+}
+
+/// Whether a GIF's first frame says it has a see-through colour and is cleared after it is shown.
+fn gif_is_see_through(bytes: &[u8]) -> bool {
+    // The Graphic Control Extension: 0x21 0xF9, its size 4, then the packed flags.
+    bytes
+        .windows(4)
+        .any(|w| w[..3] == [0x21, 0xF9, 0x04] && w[3] & 1 == 1 && (w[3] >> 2) & 7 == 2)
+}
+
+#[test]
+fn a_transparent_publish_makes_a_clear_gif_keeps_the_flash_movie_and_refuses_the_mp4() {
+    let dir = tempfile::tempdir().expect("dir");
+    let mut transparent = plan(true, false);
+    transparent.gif = true;
+    transparent.mp4 = true;
+    transparent.backdrop = jobs::Backdrop::Transparent;
+    let error = jobs::publish_now(&document(), &dir.path().join("t"), &transparent)
+        .expect_err("the MP4 cannot be see-through");
+    assert!(
+        error.contains("MP4 videos cannot have a transparent background"),
+        "{error}"
+    );
+    assert!(
+        dir.path().join("t.swf").exists(),
+        "the other formats are still made"
+    );
+    assert!(!dir.path().join("t.mp4").exists());
+    let gif = std::fs::read(dir.path().join("t.gif")).expect("gif");
+    assert!(gif_is_see_through(&gif));
+
+    let mut over_stage = transparent.clone();
+    over_stage.backdrop = jobs::Backdrop::Stage;
+    over_stage.mp4 = false;
+    jobs::publish_now(&document(), &dir.path().join("s"), &over_stage).expect("published");
+    let gif = std::fs::read(dir.path().join("s.gif")).expect("gif");
+    assert!(
+        !gif_is_see_through(&gif),
+        "over the stage colour nothing is clear"
+    );
+}
+
+#[test]
+fn export_movie_and_image_follow_the_backdrop() {
+    let dir = tempfile::tempdir().expect("dir");
+    let error = jobs::write_movie(
+        &document(),
+        &dir.path().join("a.mp4"),
+        jobs::Backdrop::Transparent,
+    )
+    .expect_err("no alpha");
+    assert!(error.contains("transparent background"), "{error}");
+    assert!(!dir.path().join("a.mp4").exists());
+    jobs::write_movie(
+        &document(),
+        &dir.path().join("b.gif"),
+        jobs::Backdrop::Transparent,
+    )
+    .expect("gif");
+    assert!(gif_is_see_through(
+        &std::fs::read(dir.path().join("b.gif")).expect("gif")
+    ));
+
+    let (tx, rx) = mpsc::channel();
+    let png = dir.path().join("c.png");
+    jobs::export_png(
+        document(),
+        0,
+        png.clone(),
+        jobs::Backdrop::Transparent,
+        move |r| {
+            let _ = tx.send(r);
+        },
+    )
+    .expect("started");
+    wait(&rx).expect("png");
+    let mut reader = png::Decoder::new(std::io::Cursor::new(std::fs::read(&png).expect("png")))
+        .read_info()
+        .expect("info");
+    let mut pixels = vec![0; reader.output_buffer_size().expect("size")];
+    reader.next_frame(&mut pixels).expect("frame");
+    assert_eq!(pixels[3], 0, "an empty stage is clear");
 }

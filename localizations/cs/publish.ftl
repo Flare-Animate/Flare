@@ -13,3 +13,6 @@ pubpop-format-gif = Animovaný GIF (.gif)
 pubpop-format-mp4 = Video MP4 (.mp4)
 pubpop-format-mov = Film QuickTime (.mov)
 pubpop-video-browser = Prohlížeč zatím neumí zapsat video MP4 ani QuickTime. Použijte desktopovou aplikaci.
+pubpop-transparent = Průhledné pozadí
+pubpop-transparent-hint = Vynechá barvu scény, takže co není nakresleno, je průhledné: v GIFu, ve filmu QuickTime a při exportu obrázku, filmu a SVG. Průhledný film QuickTime je ProRes 4444 a vytvoří ho ffmpeg. Film Flash a stránka HTML5 si barvu scény ponechají.
+pubpop-transparent-mp4 = MP4 nemůže být průhledné, proto se nezapíše. Zrušte zaškrtnutí MP4, nebo místo něj publikujte GIF či film QuickTime.
