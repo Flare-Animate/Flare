@@ -68,6 +68,7 @@ mod new_document_dialog;
 mod nothing_left_in_english;
 mod onion_settings;
 mod open_any;
+mod options_fit;
 mod paint_areas;
 mod paint_gap_size;
 mod paint_tools;

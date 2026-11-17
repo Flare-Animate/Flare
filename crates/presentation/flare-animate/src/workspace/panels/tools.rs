@@ -376,7 +376,7 @@ impl Workspace {
             tr!(self, "opt-flip-vertical"),
         );
         ui.add_enabled_ui(selected, |ui| {
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 if ui.button(&copy_lr).clicked() {
                     self.mirror_copy_selection(true);
                 }
@@ -384,7 +384,7 @@ impl Workspace {
                     self.mirror_copy_selection(false);
                 }
             });
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 if ui.button(&flip_h).clicked() {
                     self.perform(MenuAction::FlipHorizontal);
                 }

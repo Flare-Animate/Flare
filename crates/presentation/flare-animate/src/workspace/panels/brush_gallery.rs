@@ -40,14 +40,18 @@ impl Workspace {
         let chosen = self.brush_shelf.selected();
         chrome::row(ui, &tr!(self, "opt-brush"), |ui| {
             let mut pick = None;
+            // As wide as the gallery's entries where the panel has room, and no wider than it.
             egui::ComboBox::from_id_salt("brush-list")
                 .selected_text(self.brush_in_hand_name())
-                .width(ENTRY.x)
+                .width(ui.available_width().min(ENTRY.x))
+                .truncate()
                 .height(420.0)
                 .show_ui(ui, |ui| pick = self.brush_gallery(ui));
             if let Some(pick) = pick {
                 self.pick_brush(pick);
             }
+        });
+        ui.horizontal_wrapped(|ui| {
             if ui.button(&new).on_hover_text(&new_tip).clicked() {
                 self.new_custom_brush();
             }
@@ -59,9 +63,10 @@ impl Workspace {
                 self.brush_shelf.delete_selected();
             }
         });
-        // The brush in hand, as it draws now.
-        let stroke = self.brush_shelf.stroke(swatch_width(CURRENT));
-        let (rect, _) = ui.allocate_exact_size(CURRENT, Sense::hover());
+        // The brush in hand, as it draws now, narrower in a narrow panel.
+        let size = Vec2::new(ui.available_width().clamp(1.0, CURRENT.x), CURRENT.y);
+        let stroke = self.brush_shelf.stroke(swatch_width(size));
+        let (rect, _) = ui.allocate_exact_size(size, Sense::hover());
         let color = ui.visuals().text_color();
         let pixel = 1.0 / ui.ctx().pixels_per_point();
         ui.painter()
