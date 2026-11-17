@@ -201,6 +201,7 @@ impl Workspace {
             grab,
             frame,
             onto: layer,
+            copy: false,
         }));
         true
     }
@@ -221,6 +222,10 @@ impl Workspace {
         let Some(Grab::Span(drag)) = self.timeline_grab else {
             return None;
         };
+        if let SpanGrab::Range { last, offset } = drag.grab {
+            let length = last.saturating_sub(drag.start).saturating_add(1);
+            return Some((drag.onto, drag.frame.saturating_sub(offset), length));
+        }
         let span = self
             .layer(drag.layer)?
             .spans()
@@ -240,6 +245,7 @@ impl Workspace {
                     .saturating_sub(drag.start)
                     .max(1),
             ),
+            SpanGrab::Range { .. } => return None,
         })
     }
 
@@ -260,9 +266,13 @@ impl Workspace {
             self.report(self.tr("msg-cannot-move-span"));
             return;
         }
+        let copied = drag.copy && matches!(drag.grab, SpanGrab::Move { .. });
+        if copied || matches!(drag.grab, SpanGrab::Range { .. }) {
+            return self.place_dragged_frames(drag, start, duration);
+        }
         let (commands, what) = match drag.grab {
             // Dropped over other frames, the span replaces them, on its own row or another.
-            SpanGrab::Move { .. } => (
+            SpanGrab::Move { .. } | SpanGrab::Range { .. } => (
                 frames::drop_span(scene, found, drag.start, onto, start),
                 "move",
             ),
@@ -272,7 +282,9 @@ impl Workspace {
             ),
         };
         let unchanged = match drag.grab {
-            SpanGrab::Move { .. } => start == drag.start && layer == drag.layer,
+            SpanGrab::Move { .. } | SpanGrab::Range { .. } => {
+                start == drag.start && layer == drag.layer
+            }
             SpanGrab::Resize => found
                 .spans()
                 .iter()
@@ -325,7 +337,10 @@ impl Workspace {
             .layer(layer)
             .and_then(|l| frames::copy_frames(l, from, to))
         {
-            Some(clip) => self.frame_clipboard = Some(clip),
+            Some(clip) => {
+                self.frame_clipboard = Some(clip);
+                self.frame_focus.frames_copied_last = true;
+            }
             None => self.report(tr!(self, "msg-nothing-to-copy")),
         }
     }

@@ -324,16 +324,20 @@ pub(crate) enum Command {
         /// Zero-based frame the operation applies at (the first, for a range).
         #[arg(long)]
         at: u32,
-        /// The last frame of the range, for `remove-frames` and `reverse-frames`; for
-        /// `move-keyframe`, the frame the keyframe goes to.
+        /// The last frame of the range, for `remove-frames`, `reverse-frames`, `move-frames` and
+        /// `copy-frames`; for `move-keyframe`, the frame the keyframe goes to.
         #[arg(long)]
         to: Option<u32>,
+        /// For `move-frames` and `copy-frames`: the frame they go to.
+        #[arg(long)]
+        dest: Option<u32>,
         #[arg(long)]
         layer: Option<uuid::Uuid>,
         /// Easing for `set-ease`, from -100 (starts slowly) to 100 (ends slowly).
         #[arg(long, allow_hyphen_values = true)]
         ease: Option<i8>,
-        /// For `move-keyframe`: the layer it goes to (default: its own).
+        /// For `move-keyframe`, `move-frames` and `copy-frames`: the layer they go to (default:
+        /// their own).
         #[arg(long)]
         onto: Option<uuid::Uuid>,
     },

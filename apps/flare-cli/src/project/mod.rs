@@ -50,7 +50,9 @@ use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};
 #[allow(unused_imports)]
 use timeline::*;
-pub use timeline::{FrameOperation, LayerOperation, LayerPlace, frame_op, layer_op, layer_opacity};
+pub use timeline::{
+    FrameArgs, FrameOperation, LayerOperation, LayerPlace, frame_op, layer_op, layer_opacity,
+};
 
 /// Opens a project: a `.flare`, or an Animate `.fla`, `.xfl` or XFL folder (a movie is read too,
 /// to inspect or convert, but never written back).

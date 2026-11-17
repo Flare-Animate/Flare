@@ -18,6 +18,13 @@ pub enum FrameOperation {
     /// Moves the keyframe holding frame `at` so it starts at `to`, on `onto` (default: the same
     /// layer), replacing the frames it lands on and leaving its old frames empty.
     MoveKeyframe,
+    /// Moves frames `at` to `to`, keyframes and the gaps between them, so they start at `dest`,
+    /// on `onto` (default: the same layer), replacing the frames they land on and leaving theirs
+    /// empty.
+    MoveFrames,
+    /// Copies frames `at` to `to` so the copy starts at `dest`, on `onto` (default: the same
+    /// layer), replacing the frames it lands on.
+    CopyFrames,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -25,12 +32,15 @@ pub struct FrameOp {
     pub operation: FrameOperation,
     /// Frame number, counting from 0 (the first, for a range).
     pub at: u32,
-    /// The last frame of the range, for `remove_frames` and `reverse_frames`; for
-    /// `move_keyframe`, the frame the keyframe goes to.
+    /// The last frame of the range, for `remove_frames`, `reverse_frames`, `move_frames` and
+    /// `copy_frames`; for `move_keyframe`, the frame the keyframe goes to.
     pub to: Option<u32>,
+    /// For `move_frames` and `copy_frames`: the frame they go to.
+    pub dest: Option<u32>,
     /// Layer id; defaults to the first layer.
     pub layer: Option<String>,
-    /// For `move_keyframe`: the id of the layer it goes to; defaults to its own.
+    /// For `move_keyframe`, `move_frames` and `copy_frames`: the id of the layer they go to;
+    /// defaults to their own.
     pub onto: Option<String>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,

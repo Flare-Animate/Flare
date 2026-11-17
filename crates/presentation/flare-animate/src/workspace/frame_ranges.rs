@@ -8,7 +8,7 @@ use flare_menubar::MenuAction;
 impl Workspace {
     /// The frames the range commands act on: the selected ones, or with none selected the current
     /// frame, of the active layer.
-    fn frames_in_play(&self) -> Option<(LayerId, u32, u32)> {
+    pub(super) fn frames_in_play(&self) -> Option<(LayerId, u32, u32)> {
         match self.frame_range {
             Some(r) => Some((r.layer, r.from, r.to)),
             None => Some((self.active_layer_id()?, self.frame, self.frame)),
@@ -35,6 +35,7 @@ impl Workspace {
         self.run_batch(commands, "cut frames");
         if self.status.is_none() {
             self.frame_clipboard = Some(clip);
+            self.frame_focus.frames_copied_last = true;
             self.frame_range = None;
             self.set_frame(from);
             self.validate_selection();

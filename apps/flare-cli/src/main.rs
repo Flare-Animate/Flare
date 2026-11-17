@@ -160,10 +160,22 @@ fn run() -> Result<()> {
             path,
             at,
             to,
+            dest,
             layer,
             ease,
             onto,
-        } => project::frame_op(&path, op, at, to, layer, ease, onto)?,
+        } => project::frame_op(
+            &path,
+            op,
+            project::FrameArgs {
+                at,
+                to,
+                dest,
+                layer,
+                ease,
+                onto,
+            },
+        )?,
         Command::ExportFrames {
             path,
             directory,

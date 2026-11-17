@@ -161,14 +161,15 @@ impl Workspace {
             )
         });
         if !typing {
+            // After a click in the timeline these act on its frames (`frame_focus.rs`).
             if copy {
-                self.copy_selection();
+                self.copy_in_focus();
             }
             if cut {
-                self.cut_selection();
+                self.cut_in_focus();
             }
             if paste {
-                self.paste();
+                self.paste_in_focus();
             }
             if toggle {
                 self.playing = !self.playing;
@@ -224,6 +225,8 @@ impl Workspace {
                 // The picked pixels went; the bitmap stays.
             } else if self.tool == Tool::Subselection && self.delete_selected_anchor() {
                 // The chosen point went; the shape stays.
+            } else if self.frame_focus.on_frames && self.delete_empty_frames() {
+                // The empty frames went, and the keyframes after them moved up.
             } else {
                 self.delete_selection();
             }

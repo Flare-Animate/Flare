@@ -35,6 +35,7 @@ mod color_section;
 mod command_palette;
 mod drawing_into_layers;
 mod eraser;
+mod frame_focus;
 mod frame_menu;
 mod frame_rate;
 mod frames_text_and_sound;

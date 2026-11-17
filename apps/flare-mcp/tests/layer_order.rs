@@ -92,3 +92,57 @@ async fn move_keyframe_replaces_what_it_lands_on_on_its_layer_or_another() {
     }
     assert_eq!(f.revision().await, before);
 }
+
+#[tokio::test]
+async fn move_frames_and_copy_frames_take_a_run_of_frames_to_dest() {
+    let f = fixture(true, false).await;
+    f.ok(
+        "draw_rect",
+        json!({ "x": 0, "y": 0, "width": 5, "height": 5, "duration": 2 }),
+    )
+    .await;
+    let f = &f;
+    let spans = |i: usize| async move {
+        f.ok("get_info", json!({})).await["scenes"][0]["layers"][i]["spans"].as_u64()
+    };
+    f.ok(
+        "frame_operation",
+        json!({ "operation": "copy_frames", "at": 0, "to": 1, "dest": 4 }),
+    )
+    .await;
+    assert_eq!(spans(0).await, Some(2), "the original and the copy");
+    // The empty frames between them go, and the copy moves up.
+    f.ok(
+        "frame_operation",
+        json!({ "operation": "remove_frames", "at": 2, "to": 3 }),
+    )
+    .await;
+    f.ok(
+        "frame_operation",
+        json!({ "operation": "move_frames", "at": 0, "to": 3, "dest": 6 }),
+    )
+    .await;
+    assert_eq!(spans(0).await, Some(2), "both moved together");
+
+    let second = f.ok("add_layer", json!({ "name": "Second" })).await["layer"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    f.ok(
+        "frame_operation",
+        json!({ "operation": "move_frames", "at": 6, "to": 7, "dest": 0, "onto": second }),
+    )
+    .await;
+    assert_eq!((spans(0).await, spans(1).await), (Some(1), Some(1)));
+
+    let before = f.revision().await;
+    for refused in [
+        json!({ "operation": "move_frames", "at": 8, "to": 9 }),
+        json!({ "operation": "copy_frames", "at": 0, "to": 5, "dest": 9 }),
+        json!({ "operation": "move_frames", "at": 8, "to": 9, "dest": 8 }),
+    ] {
+        let (bad, message) = f.tool("frame_operation", refused).await;
+        assert!(bad, "{message}");
+    }
+    assert_eq!(f.revision().await, before);
+}

@@ -31,6 +31,7 @@ mod dock;
 mod drag_preview;
 mod draw;
 mod files;
+mod frame_focus;
 mod frame_ranges;
 mod furniture;
 mod gestures;
@@ -218,6 +219,8 @@ pub struct Workspace {
     frame_range: Option<FrameRange>,
     /// What Copy Frames remembered, for Paste Frames.
     frame_clipboard: Option<frames::FrameClip>,
+    /// Whether Copy, Paste and Delete act on the timeline's frames or on the stage.
+    frame_focus: frame_focus::FrameFocus,
     /// The document state and playhead the selection was last checked against, so an unchanged
     /// one is not rechecked every frame.
     selection_checked: Option<selection::SelectionStamp>,
@@ -410,6 +413,7 @@ impl Workspace {
             smoothing: 2.0,
             frame_range: None,
             frame_clipboard: None,
+            frame_focus: frame_focus::FrameFocus::default(),
             selection_checked: None,
             selection_rects_cache: std::cell::RefCell::new(None),
             handle_radius: 6.0,

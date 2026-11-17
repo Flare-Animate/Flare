@@ -13,6 +13,7 @@ mod editing;
 mod elements;
 mod flipnote;
 mod formats;
+mod frame_runs;
 mod game;
 mod layer_ops;
 mod layers_and_stage;

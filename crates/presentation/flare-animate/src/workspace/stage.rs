@@ -305,6 +305,9 @@ impl Workspace {
                 self.pen_release();
             }
         }
+        if response.clicked() || response.drag_started() {
+            self.frame_focus.on_frames = false;
+        }
         let additive = ui.input(|i| i.modifiers.shift);
         let primary = egui::PointerButton::Primary;
         if response.drag_started_by(primary)

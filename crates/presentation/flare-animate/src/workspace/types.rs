@@ -414,6 +414,8 @@ pub(super) enum SpanGrab {
     Move { offset: u32 },
     /// The right edge.
     Resize,
+    /// The frames selected, `start..=last`, grabbed `offset` frames in from the first.
+    Range { last: u32, offset: u32 },
 }
 
 /// A span being dragged in the timeline; the document changes when it is released.
@@ -426,6 +428,8 @@ pub(super) struct SpanDrag {
     pub(super) frame: u32,
     /// The layer whose row the pointer is over, where a moved span lands.
     pub(super) onto: LayerId,
+    /// Alt was held when it was let go: the frames are copied there, not moved.
+    pub(super) copy: bool,
 }
 
 /// One level of in-place symbol editing: a scratch document whose scene is the symbol's

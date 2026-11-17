@@ -251,11 +251,21 @@ impl Workspace {
         {
             return;
         }
+        // A click among the frames points Copy, Paste and Delete at frames.
+        if (response.clicked() || response.drag_started())
+            && response
+                .interact_pointer_pos()
+                .is_some_and(|p| !l.on_labels(p) && l.row_at(p).is_some())
+        {
+            self.frame_focus.on_frames = true;
+        }
+        // A press inside the selected frames drags them all; elsewhere, the keyframe under it.
         if response.drag_started()
             && let Some(p) = ui.input(|i| i.pointer.press_origin())
             && !l.on_labels(p)
             && let Some(id) = l.row_at(p).and_then(|i| self.row_layer(rows, i))
-            && self.begin_span_drag(id, l.frame_at(p.x), 6.0 / l.per_frame)
+            && (self.begin_frames_drag(id, l.frame_at(p.x))
+                || self.begin_span_drag(id, l.frame_at(p.x), 6.0 / l.per_frame))
         {
             self.select_layer(id);
         }
@@ -267,6 +277,8 @@ impl Workspace {
                 self.update_span_drag(l.frame_at(p.x).floor().max(0.0) as u32, onto);
             }
             if response.drag_stopped() {
+                // Alt as it is let go copies the frames instead of moving them, as in Animate.
+                self.set_span_drag_copy(ui.input(|i| i.modifiers.alt));
                 self.end_span_drag();
             }
         } else if (response.clicked() || response.dragged())

@@ -264,6 +264,7 @@ impl Workspace {
             .collect();
         if !items.is_empty() {
             self.clipboard = items;
+            self.frame_focus.frames_copied_last = false;
         }
     }
 
