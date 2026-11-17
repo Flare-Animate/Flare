@@ -68,6 +68,8 @@ pub struct Layer {
     pub flexible_bone_subset: String,
     pub image_path: Option<String>,
     pub texture_path: Option<String>,
+    /// The sound this layer plays, when the document held one.
+    pub audio_path: Option<String>,
     /// Present on switch layers: which child is shown over time.
     pub switch: Option<SwitchCells>,
     /// The drawing of a vector layer, when the document held one.

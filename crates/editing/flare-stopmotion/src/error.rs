@@ -1,3 +1,4 @@
+use crate::camera::CameraError;
 use crate::session::FrameId;
 
 /// Why a stop-motion session refused a change. A refused change leaves the session as it was.
@@ -23,4 +24,12 @@ pub enum StopMotionError {
     NoFrames,
     #[error("the timeline would need {frames} frames; the limit is {max}")]
     TimelineTooLong { frames: u64, max: u64 },
+    #[error("a capture of {bytes} bytes is not a whole number of RGBA8 pixels")]
+    BadCapturePixels { bytes: usize },
+    #[error("a capture of {bytes} bytes is over the {max}-byte pixel limit")]
+    CaptureTooLarge { bytes: usize, max: usize },
+    #[error("keeping {bytes} bytes of captures would pass the {max}-byte store budget")]
+    StoreFull { bytes: usize, max: usize },
+    #[error("the camera refused: {0}")]
+    Camera(CameraError),
 }

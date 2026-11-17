@@ -3,13 +3,15 @@
 //! failures are checked on a computer without ffmpeg.
 #![allow(clippy::expect_used)]
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
+#[cfg(unix)]
+use std::path::PathBuf;
 
 use crate::error::FfmpegError;
-use crate::sample::{
-    MAX_SAMPLE_SIDE, Sampling, parse_rotation, parse_seconds, probe_with, read_frames_with,
-    sample_args,
-};
+use crate::sample::{MAX_SAMPLE_SIDE, Sampling, parse_rotation, parse_seconds, sample_args};
+#[cfg(unix)]
+use crate::sample::{probe_with, read_frames_with};
+#[cfg(unix)]
 use crate::tool::Tools;
 
 #[cfg(unix)]
@@ -67,6 +69,7 @@ const SAMPLING: Sampling = Sampling {
     max_frames: 10,
 };
 /// One 4x2 RGBA picture.
+#[cfg(unix)]
 const PICTURE: usize = 4 * 2 * 4;
 
 #[cfg(unix)]

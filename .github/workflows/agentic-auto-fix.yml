@@ -1,0 +1,72 @@
+# Opt-in agentic build fix. It shows as 'skipped' on every pull request that lacks the
+# agentic-auto-fix label, and on labeled ones it runs the same gate CI does, uploads the
+# logs and posts their tail to the pull request, so the agent (see agentic-auto-fix.md)
+# and the reviewer both have the failure in the thread without opening the Actions tab.
+name: Agentic Auto-fix
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: agentic-auto-fix-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  auto-fix:
+    if: github.event_name == 'workflow_dispatch'
+      || contains(github.event.pull_request.labels.*.name, 'agentic-auto-fix')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache-key: agentic-auto-fix
+
+      - name: Formatting, lints and tests, with the logs kept
+        id: gate
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            echo "--- cargo fmt --all --check"
+            cargo fmt --all --check
+            echo "--- cargo clippy --workspace --all-targets --locked -- -D warnings"
+            cargo clippy --workspace --all-targets --locked -- -D warnings
+            echo "--- cargo test --workspace --locked"
+            cargo test --workspace --locked
+          } > gate.log 2>&1
+
+      - name: Upload the gate log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: agentic-auto-fix-gate-log
+          path: gate.log
+          if-no-files-found: ignore
+
+      - name: Post the tail of the log to the pull request
+        if: failure()
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let tail = '(no log was written)';
+            if (fs.existsSync('gate.log')) {
+              tail = fs.readFileSync('gate.log', 'utf8').slice(-4000);
+            }
+            const body = 'The agentic auto-fix gate failed. The full log is the'
+              + ' `agentic-auto-fix-gate-log` artifact; the tail:\n\n```\n' + tail + '\n```\n\n'
+              + 'Fixes follow the order in agentic-auto-fix.md: formatting, then lints,'
+              + ' then the failing tests, then the docs rows that must move with the behaviour.';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });

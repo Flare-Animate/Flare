@@ -1,0 +1,72 @@
+# Posts one consolidated CI status comment on a pull request every time the CI workflow
+# finishes, so nobody has to open the Checks tab to see whether the three platform jobs,
+# the web build and the audits all passed.
+#
+# The comment lists every check run on the head commit, whatever workflow produced it, so
+# a job name change does not silently drop a row from the table.
+name: CI Status Aggregator
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: ci-status-aggregator-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion != 'skipped'
+    steps:
+      - name: Post the consolidated status to the pull request
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const run = context.payload.workflow_run;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = (run.pull_requests || [])[0];
+            if (!pr) {
+              core.info('No pull request for this workflow run; skipping.');
+              return;
+            }
+
+            // Every check run on the head commit, whatever workflow ran it. A page of
+            // a hundred covers the run set of one commit with room to spare; if a commit
+            // ever carries more, the missing ones come back on the next comment.
+            const checks = await github.paginate(github.rest.checks.listForRef, {
+              owner, repo, ref: run.head_sha, per_page: 100,
+            });
+
+            const lines = checks.map(c =>
+              `- ${c.name}: ${c.conclusion === null ? c.status : c.conclusion}`);
+            const failed = checks.filter(c => c.conclusion && c.conclusion !== 'success');
+            const pending = checks.filter(c => c.conclusion === null);
+            let body = `CI status for commit ${run.head_sha.slice(0, 7)} on ${run.head_branch}:\n\n`
+              + lines.sort().join('\n') + '\n\n';
+            if (pending.length) {
+              body += 'Still running: ' + pending.map(c => c.name).sort().join(', ') + '.';
+            } else if (failed.length) {
+              body += 'One or more checks failed; the logs are in the workflow runs above.';
+            } else {
+              body += 'Every check passed.';
+            }
+
+            // One comment per pull request and commit: find and edit ours, else make it.
+            const comments = await github.rest.issues.listComments({
+              owner, repo, issue_number: pr.number, per_page: 100,
+            });
+            const marker = `<!-- ci-status-aggregator ${run.head_sha} -->`;
+            const ours = comments.data.find(c => c.body.includes(marker));
+            if (ours) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: ours.id, body: marker + '\n\n' + body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: pr.number, body: marker + '\n\n' + body,
+              });
+            }

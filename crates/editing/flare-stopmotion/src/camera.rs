@@ -3,6 +3,7 @@ pub const MAX_CAPTURE_BYTES: usize = 32 * 1024 * 1024;
 /// The feature names the named errors carry. The command line and MCP server print them.
 pub const NOT_YET_CAPTURE: &str = "camera capture";
 pub const NOT_YET_LIVE_VIEW: &str = "camera live view";
+pub const NOT_SIMULATED_LIVE_VIEW: &str = "simulated camera live view";
 
 /// Why a camera could not give a frame. Every variant names what happened.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]

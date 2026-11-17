@@ -116,6 +116,23 @@ fn the_card_is_light_on_the_left_and_fits_inside_the_window() {
             _ => None,
         })
         .expect("the name");
+    let all_flare_texts: Vec<egui::Rect> = out
+        .shapes
+        .iter()
+        .filter_map(|clipped| match &clipped.shape {
+            Shape::Text(t) if t.galley.text() == "Flare" => Some(t.visual_bounding_rect()),
+            _ => None,
+        })
+        .collect();
+    let whites: Vec<egui::Rect> = out
+        .shapes
+        .iter()
+        .filter_map(|clipped| match &clipped.shape {
+            Shape::Rect(r) if r.fill == egui::Color32::WHITE && r.rect != screen => Some(r.rect),
+            _ => None,
+        })
+        .collect();
+    eprintln!("DEBUG splash: card={card:?} screen={screen:?} name={name:?} all_flare={all_flare_texts:?} whites={whites:?}");
     assert!(
         name.right() < card.center().x,
         "the name is on the light half"

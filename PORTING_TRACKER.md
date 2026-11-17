@@ -40,7 +40,8 @@ into the new crate architecture.
 ## Missing image processing (Main vs Rust ports)
 - [x] Erode/dilate (ported to Rust in Rust-Rewrite: terodilate)
 - [x] Antialias - our own morphological step antialias in flare-core (`image_ops::antialias`),
-  not the OpenToonz tantialias kernel; a faithful tantialias port is still open
+  plus the tantialias behaviour clean-room in `flare-core::tantialias`: threshold run
+  detection over line pairs and Reshetov ramp pulls at inner run ends, both axes
 - [x] Blur (tblur)
 - [x] Despeckle - connected-component removal up to a max area, our own (`image_ops::despeckle`)
 - [x] Distance transform - exact Euclidean (Felzenszwalb) into the alpha channel, our own
@@ -127,7 +128,11 @@ into the new crate architecture.
 - Plastic tool: original/flare/sources/tnztools/plastictool.cpp
 - Hook tool: original/flare/sources/tnztools/hooktool.cpp
 - Cutter tool: original/flare/sources/tnztools/cuttertool.cpp
-- Stop motion: original/flare/sources/stopmotion/stopmotion.cpp
+- Stop motion: original/flare/sources/stopmotion/stopmotion.cpp — the domain rules are now in
+  `crates/editing/flare-stopmotion` (session operations: insert, duplicate, move, clear; a
+  bounded capture store with capture/recapture/duplicate-last; a simulated camera and the
+  live-difference overlay, all tested); the tool stub stays until a camera backend and a panel
+  exist, and no command line or MCP command carries the frame operations yet
 - Scan cleanup: original/flare/sources/tcleanupper/tcleanupper.cpp
 - Render farm: original/flare/sources/flarefarm/tfarm/tfarmtask.cpp
 
