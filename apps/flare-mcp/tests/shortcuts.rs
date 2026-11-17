@@ -63,3 +63,47 @@ async fn an_animate_shortcut_file_is_read_with_a_report_and_a_bad_one_refused() 
         .await;
     assert!(bad);
 }
+
+#[tokio::test]
+async fn a_command_gets_several_keys_one_comes_off_and_refusals_change_nothing() {
+    let f = fixture(false, false).await;
+    let added = f
+        .ok(
+            "edit_shortcuts",
+            json!({ "action": "ToolBrush", "add": "Shift+B" }),
+        )
+        .await;
+    assert_eq!(added["keys"], json!(["B", "Shift+B"]));
+    let file = added["file"].to_string();
+    let listed = f
+        .ok(
+            "list_shortcuts",
+            json!({ "file": file, "search": "shift+b" }),
+        )
+        .await;
+    assert_eq!(listed["shortcuts"][0]["keys"], json!(["B", "Shift+B"]));
+    let taken = f
+        .ok(
+            "edit_shortcuts",
+            json!({ "action": "ToolPen", "file": file, "add": "B" }),
+        )
+        .await;
+    assert_eq!(taken["taken_from"], "ToolBrush");
+    let removed = f
+        .ok(
+            "edit_shortcuts",
+            json!({ "action": "ToolBrush", "file": file, "remove": "B" }),
+        )
+        .await;
+    assert_eq!(removed["keys"], json!(["Shift+B"]));
+    for bad in [
+        json!({ "action": "ToolBrush" }),
+        json!({ "action": "ToolBrush", "add": "J", "clear": true }),
+        json!({ "action": "Nope", "clear": true }),
+        json!({ "action": "Save", "remove": "F12" }),
+        json!({ "action": "Save", "add": "Q" }),
+    ] {
+        let (refused, _) = f.tool("edit_shortcuts", bad.clone()).await;
+        assert!(refused, "{bad}");
+    }
+}

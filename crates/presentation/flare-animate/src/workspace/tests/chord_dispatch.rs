@@ -176,3 +176,29 @@ fn a_f_key_is_a_chord_even_without_a_modifier() {
         "F11 toggles the onion skin"
     );
 }
+
+#[test]
+fn redo_is_ctrl_y_and_ctrl_shift_z_still_redoes() {
+    let (ctx, mut ws) = drawn_once();
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.1, vec![key(Key::Z, Modifiers::COMMAND)]),
+    );
+    assert_eq!(drawing_count(&ws), 0);
+    pass(
+        &mut ws,
+        &ctx,
+        input(0.2, vec![key(Key::Y, Modifiers::COMMAND)]),
+    );
+    assert_eq!(drawing_count(&ws), 1, "Ctrl+Y redoes");
+    assert_eq!(MenuAction::Redo.shortcut(), Some("CmdOrCtrl+Y"));
+    // With Ctrl+Shift+Z given to something else it is that command's, not Redo's.
+    ws.undo();
+    ws.shortcuts
+        .bind_taking(MenuAction::ZoomIn, "CmdOrCtrl+Shift+Z")
+        .expect("bind");
+    let shifted = Modifiers::COMMAND | Modifiers::SHIFT;
+    pass(&mut ws, &ctx, input(0.3, vec![key(Key::Z, shifted)]));
+    assert_eq!(drawing_count(&ws), 0, "not redone");
+}

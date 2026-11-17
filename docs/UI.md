@@ -277,10 +277,16 @@ being typed turns with the stage while its invisible field stays upright.
 Help > Keyboard Shortcuts has a search field over the list: words find commands by their name in
 the interface language or their id (`save as`), and keys find what they run (`cmd+s`, `⌘⇧S`,
 `shift+f5`, or a modifier's name such as `option`). The matching is `flare_menubar::ShortcutQuery`,
-which the command line and MCP server use too. Keys another command already has are not refused:
-Change (or Reset, for the set's own keys) takes them from that command, which is left with no
-shortcut until it is given one, and the editor says which command lost them
-(`ShortcutMap::bind_taking`, `reset_taking`). So the map still never holds two commands on one key.
+which the command line and MCP server use too. A command or tool can have several shortcuts, up to
+four (`MAX_KEYS_PER_COMMAND`): each row lists its keys one by one, a click on one (marked ×) takes
+it off and leaves the others, Change replaces them all with the next keys pressed, and Add gives
+the command one more. The first is the one its menu item shows; every one of them runs it, with a
+native menu bar too (the menu registers the first, the workspace reads the rest). A tool's key is a
+letter or digit alone or with Shift. Keys another command already has are not refused: Change, Add
+(or Reset, for the set's own keys) takes them from that command, which keeps any other keys it has,
+and the editor says which command lost them (`ShortcutMap::bind_taking`, `add_key_taking`,
+`reset_taking`). So the map still never holds two commands on one key. The Magnet has no letter of
+its own, since every free one is taken in a built-in set, but can be given one.
 Help > Find a Command (Cmd/Ctrl+Shift+P, a key Animate leaves free) is a command palette, which
 Animate does not have: a field near the top of the window that finds any menu command, with keys
 or without, by its name in the interface's language, its id or its keys, as the shortcut list's
@@ -290,9 +296,10 @@ Escape or a click outside closes it. It only reaches commands the menus have.
 
 Import from Animate… reads Animate's own shortcut file (`Shortcuts/<set>.xml` in Animate's
 settings folder, at most 512 KiB) onto Animate's set: each binding of a command Flare has is
-taken over, taking the keys from any command that had them, and the rest (a command Flare does
-not have, a second key for one command, a key code not yet matched against Animate's menus, a
-modifier not understood) is listed in Output with the reason. A file that is not XML, declares a
+taken over, taking the keys from any command that had them (a second key for one command is kept
+beside its first), and the rest (a command Flare does not have, a key code not yet matched against
+Animate's menus, a modifier not understood, a fifth key for one command) is listed in Output with
+the reason. A file that is not XML, declares a
 document type, nests too deeply or holds more than 4096 bindings changes nothing.
 
 Over the stage the pointer is the tool in hand (`workspace/tools/stage_pointer.rs`). The Brush, the

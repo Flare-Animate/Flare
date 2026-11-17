@@ -22,7 +22,7 @@ pub fn bound_accelerator(
     workspace: &flare_animate::Workspace,
     action: MenuAction,
 ) -> Option<String> {
-    if action.tool_key().is_some() {
+    if action.is_tool() {
         return None;
     }
     workspace

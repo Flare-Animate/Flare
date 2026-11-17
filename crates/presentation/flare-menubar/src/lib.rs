@@ -18,8 +18,8 @@ pub use labels::{LabelState, mock_key, submenu_key, title_key};
 pub use menu::{MENU_LAYOUT, MenuEntry, OFF_MENU, all_entries};
 pub use shortcuts::{
     Accelerator, AnimateImport, Conflict, DEFAULT_SET, MAX_ANIMATE_SHORTCUT_BYTES,
-    MAX_SEARCH_CHARS, MAX_SHORTCUT_FILE_BYTES, SHORTCUT_SET_IDS, ShortcutError, ShortcutMap,
-    ShortcutQuery, Skipped, set_bindings,
+    MAX_KEYS_PER_COMMAND, MAX_SEARCH_CHARS, MAX_SHORTCUT_FILE_BYTES, SHORTCUT_SET_IDS,
+    ShortcutEdit, ShortcutError, ShortcutMap, ShortcutQuery, Skipped, set_bindings,
 };
 
 /// A user-invokable command. Variants map one-to-one onto menu items.

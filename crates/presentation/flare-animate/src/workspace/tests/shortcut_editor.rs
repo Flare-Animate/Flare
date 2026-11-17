@@ -1,4 +1,5 @@
-//! The keyboard shortcut editor: rebinding, refusals, tool letters from the map, and saving.
+//! The keyboard shortcut editor: rebinding, refusals, tool letters from the map, several keys to
+//! one command, and saving.
 
 use super::*;
 use crate::workspace::shortcut_editor::chord_text;
@@ -288,4 +289,145 @@ fn the_shortcut_list_asks_the_shell_for_animates_file() {
         ws.take_dialog(),
         Some(DialogRequest::ImportAnimateShortcuts)
     );
+}
+
+// A command or tool with several shortcuts: every one of them runs it, one can be taken off
+// without the others, and they are kept with the preferences.
+
+fn drawn_once_keys() -> (egui::Context, Workspace) {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    run(&mut ws, &ctx, 0.0);
+    rect(&mut ws);
+    (ctx, ws)
+}
+
+fn all_keys(ws: &Workspace, action: MenuAction) -> Vec<String> {
+    ws.shortcuts()
+        .keys(action)
+        .iter()
+        .map(ToString::to_string)
+        .collect()
+}
+
+fn press(ws: &mut Workspace, ctx: &egui::Context, time: f64, k: Key, mods: Modifiers) {
+    pass(ws, ctx, input(time, vec![key(k, mods)]));
+}
+
+#[test]
+fn a_tool_with_two_letters_is_picked_by_either_and_shift_counts() {
+    let (ctx, mut ws) = drawn_once_keys();
+    assert_eq!(ws.add_shortcut(MenuAction::ToolBrush, "J"), Ok(None));
+    assert_eq!(ws.add_shortcut(MenuAction::ToolBrush, "Shift+U"), Ok(None));
+    assert_eq!(all_keys(&ws, MenuAction::ToolBrush), ["B", "J", "Shift+U"]);
+    for (time, k, mods) in [
+        (0.1, Key::B, Modifiers::NONE),
+        (0.3, Key::J, Modifiers::NONE),
+        (0.5, Key::U, Modifiers::SHIFT),
+    ] {
+        ws.set_tool(Tool::Select);
+        press(&mut ws, &ctx, time, k, mods);
+        assert_eq!(ws.tool(), Tool::Brush, "{k:?} with {mods:?}");
+    }
+    // U alone is not Shift+U.
+    ws.set_tool(Tool::Select);
+    press(&mut ws, &ctx, 0.7, Key::U, Modifiers::NONE);
+    assert_ne!(ws.tool(), Tool::Brush);
+    // Taking J off leaves the others.
+    assert!(ws.remove_shortcut(MenuAction::ToolBrush, "J"));
+    assert!(
+        !ws.remove_shortcut(MenuAction::ToolBrush, "J"),
+        "it is gone"
+    );
+    assert_eq!(all_keys(&ws, MenuAction::ToolBrush), ["B", "Shift+U"]);
+    ws.set_tool(Tool::Select);
+    press(&mut ws, &ctx, 0.9, Key::J, Modifiers::NONE);
+    assert_ne!(ws.tool(), Tool::Brush, "J no longer picks the Brush");
+}
+
+#[test]
+fn a_second_chord_runs_the_command_with_or_without_a_native_menu() {
+    for native in [false, true] {
+        let (ctx, mut ws) = drawn_once_keys();
+        ws.native_menu = native;
+        ws.add_shortcut(MenuAction::Undo, "CmdOrCtrl+Alt+U")
+            .expect("a free chord");
+        assert_eq!(
+            all_keys(&ws, MenuAction::Undo),
+            ["CmdOrCtrl+Z", "CmdOrCtrl+Alt+U"]
+        );
+        press(
+            &mut ws,
+            &ctx,
+            0.1,
+            Key::U,
+            Modifiers::COMMAND | Modifiers::ALT,
+        );
+        assert_eq!(drawing_count(&ws), 0, "undone by the second chord");
+        // The first chord is the native menu's to run; without one the workspace runs it.
+        ws.redo();
+        press(&mut ws, &ctx, 0.2, Key::Z, Modifiers::COMMAND);
+        let expected = if native { 1 } else { 0 };
+        assert_eq!(drawing_count(&ws), expected, "native menu: {native}");
+        // The menu item shows the first.
+        assert_eq!(
+            ws.shortcuts()
+                .get(MenuAction::Undo)
+                .map(ToString::to_string)
+                .as_deref(),
+            Some("CmdOrCtrl+Z")
+        );
+    }
+}
+
+#[test]
+fn adding_keys_another_command_has_takes_only_those_and_too_many_is_refused() {
+    let mut ws = workspace();
+    ws.add_shortcut(MenuAction::Redo, "CmdOrCtrl+Alt+R")
+        .expect("free");
+    // Undo takes Redo's second chord; Redo keeps its first.
+    assert_eq!(
+        ws.add_shortcut(MenuAction::Undo, "CmdOrCtrl+Alt+R"),
+        Ok(Some(MenuAction::Redo))
+    );
+    assert!(
+        !all_keys(&ws, MenuAction::Redo).is_empty(),
+        "Redo keeps a key"
+    );
+    let notice = ws.shortcut_editor.notice.clone().expect("said so");
+    assert!(notice.contains(&ws.label(MenuAction::Redo)), "{notice}");
+    // Up to the most a command may have; one more changes nothing and says why.
+    for keys in ["CmdOrCtrl+Alt+1", "CmdOrCtrl+Alt+2"] {
+        ws.add_shortcut(MenuAction::Undo, keys).expect("room");
+    }
+    assert_eq!(
+        all_keys(&ws, MenuAction::Undo).len(),
+        flare_menubar::MAX_KEYS_PER_COMMAND
+    );
+    let before = ws.shortcuts().clone();
+    let refused = ws
+        .add_shortcut(MenuAction::Undo, "CmdOrCtrl+Alt+3")
+        .expect_err("too many");
+    assert!(refused.contains('4'), "{refused}");
+    assert_eq!(ws.shortcuts(), &before);
+    // Change replaces them all with one.
+    ws.set_shortcut(MenuAction::Undo, "CmdOrCtrl+Z")
+        .expect("own key");
+    assert_eq!(all_keys(&ws, MenuAction::Undo), ["CmdOrCtrl+Z"]);
+}
+
+#[test]
+fn several_keys_are_kept_with_the_preferences() {
+    let mut ws = workspace();
+    ws.add_shortcut(MenuAction::ToolPencil, "J").expect("free");
+    ws.add_shortcut(MenuAction::Save, "CmdOrCtrl+Alt+S")
+        .expect("free");
+    let saved = ws.preferences_json().expect("json");
+    let mut fresh = workspace();
+    fresh.restore_preferences(&saved).expect("restored");
+    assert_eq!(all_keys(&fresh, MenuAction::ToolPencil), ["Y", "J"]);
+    assert_eq!(
+        all_keys(&fresh, MenuAction::Save),
+        ["CmdOrCtrl+S", "CmdOrCtrl+Alt+S"]
+    );
+    assert_eq!(fresh.shortcuts(), ws.shortcuts());
 }

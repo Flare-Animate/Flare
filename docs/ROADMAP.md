@@ -40,7 +40,7 @@ that this documentation change resolves them.
 - Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files
 - Bones and inverse kinematics (the Bone and Bind tools)
-- Editable keyboard shortcuts: done (registry, four sets, editor, CLI and MCP; every chord — a command on Ctrl, Cmd, Alt or a function key — is dispatched from the map in the window, see SURFACES)
+- Editable keyboard shortcuts: done (registry, four sets, editor, CLI and MCP, up to four shortcuts to a command or tool; every chord — a command on Ctrl, Cmd, Alt or a function key — is dispatched from the map in the window, see SURFACES)
 - The Magnet, for bending line art by pulling it: done (library, desktop and browser tool, CLI and MCP; after OpenToonz's)
 
 ### Lower priority

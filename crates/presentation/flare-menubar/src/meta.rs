@@ -15,7 +15,8 @@ impl MenuAction {
             Self::SaveAs => "CmdOrCtrl+Shift+S",
             Self::Quit => "CmdOrCtrl+Q",
             Self::Undo => "CmdOrCtrl+Z",
-            Self::Redo => "CmdOrCtrl+Shift+Z",
+            // Ctrl+Y, as Animate and Windows have it; Ctrl+Shift+Z also redoes (`chords.rs`).
+            Self::Redo => "CmdOrCtrl+Y",
             Self::Duplicate => "CmdOrCtrl+D",
             Self::ConvertToSymbol => "F8",
             Self::EditSymbol => "CmdOrCtrl+E",
@@ -102,6 +103,13 @@ impl MenuAction {
             Self::ToolEllipse => "O",
             _ => return None,
         })
+    }
+
+    /// Whether the action picks a tool, so a bare letter may be its shortcut: every tool with a
+    /// letter of its own, and those that have none until a person gives them one (the Magnet's
+    /// letters are all taken in one built-in set or another).
+    pub fn is_tool(self) -> bool {
+        self.tool_key().is_some() || matches!(self, Self::ToolMagnet)
     }
 
     /// The icon drawn beside the menu item, if it has one.

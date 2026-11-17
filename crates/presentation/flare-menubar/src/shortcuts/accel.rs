@@ -21,6 +21,10 @@ pub enum ShortcutError {
     BadFile(String),
     #[error("the shortcut file is larger than {0} bytes")]
     TooLarge(usize),
+    #[error("a command can have at most {0} shortcuts")]
+    TooManyKeys(usize),
+    #[error("{action} has no shortcut `{accelerator}`")]
+    NotBound { accelerator: String, action: String },
 }
 
 /// A chord: modifiers (`CmdOrCtrl`, `Alt`, `Shift`) and one key, in canonical order and case so
@@ -91,7 +95,7 @@ impl Accelerator {
         };
         let bare = !accel.cmd && !accel.alt && !accel.shift;
         let typeable = accel.key.chars().count() == 1 && !",.-=/;[]".contains(accel.key.as_str());
-        if bare && typeable && action.tool_key().is_none() {
+        if bare && typeable && !action.is_tool() {
             return Err(ShortcutError::BareKey(accel.key));
         }
         Ok(accel)

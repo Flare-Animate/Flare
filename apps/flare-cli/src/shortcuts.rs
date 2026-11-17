@@ -5,7 +5,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow};
 use clap::Subcommand;
-use flare_menubar::{MAX_ANIMATE_SHORTCUT_BYTES, MAX_SHORTCUT_FILE_BYTES, ShortcutMap};
+use flare_menubar::{
+    MAX_ANIMATE_SHORTCUT_BYTES, MAX_SHORTCUT_FILE_BYTES, ShortcutEdit, ShortcutMap,
+};
 use serde_json::{Value, json};
 
 #[derive(Subcommand)]
@@ -37,6 +39,37 @@ pub enum ShortcutsCommand {
     /// command, a bad key or two commands on one key is refused and nothing is written.
     Import {
         file: PathBuf,
+        #[arg(long)]
+        out: Option<PathBuf>,
+    },
+    /// Change one command's shortcuts in a set (or a shortcut file) and write the result as a
+    /// shortcut file. A command can have several shortcuts: `--add` gives it one more, `--remove`
+    /// takes one off, `--keys` replaces them all. Keys another command has are taken from it,
+    /// and the reply names that command. A bad key, an unknown command or too many keys is
+    /// refused and nothing is written.
+    Edit {
+        /// The command, by id (`Save`, `ToolBrush`; `list` shows them).
+        action: String,
+        #[arg(long, default_value = "flare", conflicts_with = "file")]
+        set: String,
+        #[arg(long)]
+        file: Option<PathBuf>,
+        /// Give it these keys in place of all it has.
+        #[arg(long, group = "edit")]
+        keys: Option<String>,
+        /// Give it these keys beside those it has.
+        #[arg(long, group = "edit")]
+        add: Option<String>,
+        /// Take these keys off it; its other shortcuts stay.
+        #[arg(long, group = "edit")]
+        remove: Option<String>,
+        /// Leave it with no shortcut.
+        #[arg(long, group = "edit")]
+        clear: bool,
+        /// Give it the set's own keys again.
+        #[arg(long, group = "edit")]
+        reset: bool,
+        /// Where to write the file; without it the file is printed.
         #[arg(long)]
         out: Option<PathBuf>,
     },
@@ -88,6 +121,43 @@ pub fn run(op: ShortcutsCommand) -> Result<Value> {
         ShortcutsCommand::Import { file, out } => {
             let map = read_file(&file)?;
             write_or_print(&map, out.as_deref())
+        }
+        ShortcutsCommand::Edit {
+            action,
+            set,
+            file,
+            keys,
+            add,
+            remove,
+            clear,
+            reset,
+            out,
+        } => {
+            let edit = match (keys, add, remove, clear, reset) {
+                (Some(keys), ..) => ShortcutEdit::Set(keys),
+                (_, Some(keys), ..) => ShortcutEdit::Add(keys),
+                (_, _, Some(keys), ..) => ShortcutEdit::Remove(keys),
+                (_, _, _, true, _) => ShortcutEdit::Clear,
+                (_, _, _, _, true) => ShortcutEdit::Reset,
+                _ => {
+                    return Err(anyhow!(
+                        "say what to change: --keys, --add, --remove, --clear or --reset"
+                    ));
+                }
+            };
+            let mut map = pick(&set, file.as_deref())?;
+            let taken = map
+                .edit(&action, &edit)
+                .map_err(|e| anyhow!("{action}: {e}"))?;
+            let mut reply = write_or_print(&map, out.as_deref())?;
+            let row = map.list_json()["shortcuts"]
+                .as_array()
+                .and_then(|rows| rows.iter().find(|r| r["action"] == action.as_str()))
+                .map_or_else(|| json!([]), |r| r["keys"].clone());
+            reply["action"] = json!(action);
+            reply["keys"] = row;
+            reply["taken_from"] = json!(taken.map(|a| a.id()));
+            Ok(reply)
         }
         ShortcutsCommand::ImportAnimate { file, out } => {
             let meta = std::fs::metadata(&file)

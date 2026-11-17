@@ -23,7 +23,8 @@ the in-window menu is used. See `crates/presentation/flare-menubar/` and
 
 Shortcuts follow the familiar Animate profile: F5 insert frame, Shift+F5 remove frame, F6
 insert keyframe, Shift+F6 clear keyframe, F7 insert blank keyframe, F8 convert to symbol,
-plus the usual Cmd/Ctrl+Z, Shift+Z, S. Modifiers are read from the key event itself. Single
+plus the usual Cmd/Ctrl+Z, S, and Cmd/Ctrl+Y for Redo (Cmd/Ctrl+Shift+Z redoes too while
+nothing else is bound to it). Modifiers are read from the key event itself. Single
 letter accelerators are avoided so typing into text fields is never hijacked.
 
 ## Docking: egui_tiles

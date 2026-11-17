@@ -100,17 +100,25 @@ fn what_flare_cannot_use_is_skipped_with_the_reason_and_the_rest_is_kept() {
     assert!(reason("Debug.StepIn", "").contains("no such command"));
     assert!(reason("File.Save", "99").contains("not known yet"));
     assert!(reason("File.Open", "O").contains("hyperkey"));
-    assert!(reason("Tool.Rotate", "H").contains("one shortcut"));
     assert!(reason("Edit.Copy", "C").contains("bare key"));
     assert!(reason("File.Close", "").contains("no key"));
-    assert_eq!(import.skipped.len(), 6);
+    assert_eq!(import.skipped.len(), 5);
+    // A second key for one command is kept beside the first, as Animate keeps it.
     assert_eq!(
         import.applied,
         vec![
             (A::ToolRotateView, "R".to_owned()),
+            (A::ToolRotateView, "Shift+H".to_owned()),
             (A::New, "CmdOrCtrl+N".to_owned())
         ]
     );
+    let rotate: Vec<String> = import
+        .map
+        .keys(A::ToolRotateView)
+        .iter()
+        .map(ToString::to_string)
+        .collect();
+    assert_eq!(rotate, ["R", "Shift+H"]);
     // The skipped command keeps Animate's own key.
     let base = ShortcutMap::from_set("animate").expect("set");
     assert_eq!(import.map.get(A::Save), base.get(A::Save));
