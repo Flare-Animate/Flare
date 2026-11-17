@@ -12,3 +12,4 @@ pubpop-responsive = 반응형으로 만들기
 pubpop-format-gif = 애니메이션 GIF (.gif)
 pubpop-format-mp4 = MP4 동영상 (.mp4)
 pubpop-format-mov = QuickTime 동영상 (.mov)
+pubpop-video-browser = 브라우저에서는 아직 MP4나 QuickTime 동영상을 기록할 수 없습니다. 데스크톱 앱을 사용하세요.

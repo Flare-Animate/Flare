@@ -70,6 +70,10 @@ pub struct Preferences {
     pub publish_gif: bool,
     pub publish_mp4: bool,
     pub publish_mov: bool,
+    /// Which defaults the format choices above were saved under (`PUBLISH_DEFAULTS`). A file
+    /// without it is from before, so it reads as 0 and not as the current value.
+    #[serde(default)]
+    pub publish_defaults: u32,
     /// The interface's language: `system`, or a language's tag such as `de` or `pt-BR`.
     pub language: String,
     /// The look of the interface: `dark` or `light`.
@@ -96,6 +100,7 @@ pub const MAX_RECENT: usize = 10;
 
 impl Default for Preferences {
     fn default() -> Self {
+        let publish = PublishSettings::default();
         Self {
             autosave_seconds: 30.0,
             show_rulers: true,
@@ -129,15 +134,16 @@ impl Default for Preferences {
             brush_builtin_profile: None,
             brushes: Vec::new(),
             brush_selected: None,
-            publish_compress: true,
-            publish_swf: true,
-            publish_html5: true,
-            html5_loop: true,
-            html5_center: true,
-            html5_responsive: false,
-            publish_gif: false,
-            publish_mp4: false,
-            publish_mov: false,
+            publish_compress: publish.compress,
+            publish_swf: publish.swf,
+            publish_html5: publish.html5,
+            html5_loop: publish.loop_timeline,
+            html5_center: publish.center_stage,
+            html5_responsive: publish.responsive,
+            publish_gif: publish.gif,
+            publish_mp4: publish.mp4,
+            publish_mov: publish.mov,
+            publish_defaults: crate::workspace::publish_settings::PUBLISH_DEFAULTS,
             language: "system".to_owned(),
             theme: "dark".to_owned(),
             pinned_tools: Vec::new(),

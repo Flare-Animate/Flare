@@ -12,3 +12,4 @@ pubpop-responsive = レスポンシブにする
 pubpop-format-gif = アニメーションGIF（.gif）
 pubpop-format-mp4 = MP4ビデオ（.mp4）
 pubpop-format-mov = QuickTimeムービー（.mov）
+pubpop-video-browser = ブラウザーではまだMP4やQuickTimeのムービーを書き出せません。デスクトップアプリを使ってください。

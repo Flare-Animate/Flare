@@ -31,12 +31,20 @@ fn the_file_menu_names_publishing_as_animate_does() {
 }
 
 #[test]
-fn publish_opens_its_popup_and_settings_start_with_both_formats_and_no_gif() {
+fn publish_opens_its_popup_and_settings_start_with_an_mp4_video_alone() {
     let mut ws = workspace();
     let settings = ws.publish_settings();
-    assert!(settings.swf && settings.html5 && settings.compress && settings.any());
-    assert!(settings.loop_timeline && settings.center_stage && !settings.responsive);
-    assert!(!settings.gif);
+    assert!(
+        settings.mp4 && settings.any(),
+        "MP4 is ticked: {settings:?}"
+    );
+    assert!(
+        !settings.swf && !settings.html5 && !settings.gif && !settings.mov,
+        "and nothing else: {settings:?}"
+    );
+    // Ticking the movie or the page brings back their usual options.
+    assert!(settings.compress && settings.loop_timeline && settings.center_stage);
+    assert!(!settings.responsive);
     assert!(ws.is_enabled(MenuAction::Publish));
     ws.perform(MenuAction::Publish);
     assert!(ws.windows.publish, "the popup opens");
@@ -66,7 +74,37 @@ fn the_choices_are_kept_with_the_other_preferences_and_old_files_still_load() {
     old.restore_preferences(r#"{"publish_compress": false}"#)
         .expect("old file");
     let kept = old.publish_settings();
-    assert!(!kept.compress && kept.swf && kept.html5);
+    assert!(!kept.compress && kept.mp4 && !kept.swf && !kept.html5);
+}
+
+#[test]
+fn old_untouched_defaults_become_mp4_but_a_choice_is_kept() {
+    // Saved before MP4 was the default, with the Flash movie and the page as they came.
+    let untouched = r#"{"publish_swf": true, "publish_html5": true, "publish_gif": false,
+        "publish_mp4": false, "publish_mov": false, "html5_responsive": true}"#;
+    let mut ws = workspace();
+    ws.restore_preferences(untouched).expect("old file");
+    let now = ws.publish_settings();
+    assert!(now.mp4 && !now.swf && !now.html5, "{now:?}");
+    assert!(
+        now.responsive,
+        "the page's own options are still the person's"
+    );
+    // Saved before too, but with a format the person ticked themselves: nothing moves.
+    let chosen = r#"{"publish_swf": true, "publish_html5": true, "publish_gif": true,
+        "publish_mp4": false, "publish_mov": false}"#;
+    ws.restore_preferences(chosen).expect("old file");
+    let now = ws.publish_settings();
+    assert!(now.swf && now.html5 && now.gif && !now.mp4, "{now:?}");
+    // Saved now, the Flash movie and the page ticked on purpose stay ticked.
+    ws.publish.swf = true;
+    ws.publish.html5 = true;
+    ws.publish.gif = false;
+    ws.publish.mp4 = false;
+    let saved = ws.preferences_json().expect("json");
+    let mut fresh = workspace();
+    fresh.restore_preferences(&saved).expect("restored");
+    assert_eq!(fresh.publish_settings(), ws.publish_settings());
 }
 
 #[test]
@@ -74,6 +112,7 @@ fn the_settings_window_and_the_document_tab_draw_and_say_when_nothing_is_chosen(
     let mut ws = workspace();
     ws.publish.swf = false;
     ws.publish.html5 = false;
+    ws.publish.mp4 = false;
     assert!(!ws.publish_settings().any());
     ws.perform(MenuAction::PublishSettings);
     let ctx = egui::Context::default();

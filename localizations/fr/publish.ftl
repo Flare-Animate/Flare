@@ -12,3 +12,4 @@ pubpop-responsive = Rendre adaptatif
 pubpop-format-gif = GIF animé (.gif)
 pubpop-format-mp4 = Vidéo MP4 (.mp4)
 pubpop-format-mov = Film QuickTime (.mov)
+pubpop-video-browser = Un navigateur ne peut pas encore écrire de vidéos MP4 ou QuickTime. Utilisez l’application de bureau.

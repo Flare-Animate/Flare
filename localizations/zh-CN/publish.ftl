@@ -12,3 +12,4 @@ pubpop-responsive = 自适应窗口大小
 pubpop-format-gif = 动画 GIF（.gif）
 pubpop-format-mp4 = MP4 视频（.mp4）
 pubpop-format-mov = QuickTime 影片（.mov）
+pubpop-video-browser = 浏览器暂时无法写出 MP4 或 QuickTime 影片。请使用桌面应用。

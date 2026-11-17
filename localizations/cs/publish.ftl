@@ -12,3 +12,4 @@ pubpop-responsive = Responzivní velikost
 pubpop-format-gif = Animovaný GIF (.gif)
 pubpop-format-mp4 = Video MP4 (.mp4)
 pubpop-format-mov = Film QuickTime (.mov)
+pubpop-video-browser = Prohlížeč zatím neumí zapsat video MP4 ani QuickTime. Použijte desktopovou aplikaci.

@@ -12,3 +12,4 @@ pubpop-responsive = Адаптивный размер
 pubpop-format-gif = Анимированный GIF (.gif)
 pubpop-format-mp4 = Видео MP4 (.mp4)
 pubpop-format-mov = Фильм QuickTime (.mov)
+pubpop-video-browser = Браузер пока не умеет записывать видео MP4 и QuickTime. Используйте настольное приложение.
