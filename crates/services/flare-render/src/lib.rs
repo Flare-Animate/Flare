@@ -17,7 +17,7 @@ mod render;
 mod view_alpha;
 mod viewport;
 
-pub use hit::{PaintHit, hit_test, hit_test_all, paint_hits};
+pub use hit::{PaintHit, hit_test, hit_test_all, hit_test_near, paint_hits};
 pub use image::{Image, PremultipliedImage, StillFormat};
 pub use image_formats::MAX_ICO_SIDE;
 pub use ink::{ink_bounds, ink_mask};

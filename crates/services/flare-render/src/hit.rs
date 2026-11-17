@@ -1,7 +1,7 @@
 //! What lies under a point of the stage.
 
 use flare_eval::{DrawnShape, Frame};
-use vello_cpu::kurbo::{BezPath, PathEl, Point, Shape as _};
+use vello_cpu::kurbo::{BezPath, ParamCurveNearest, PathEl, Point, Shape as _};
 
 #[allow(unused_imports)]
 use crate::image::unpremultiply_in_place;
@@ -38,6 +38,58 @@ pub fn hit_test_all(frame: &Frame<'_>, point: glamx::DVec2) -> Vec<usize> {
         })
         .map(|(index, _)| index)
         .collect()
+}
+
+/// [`hit_test_all`], followed by the shapes whose ink passes within `reach` stage units of
+/// `point` without touching it, nearest first. A rough sketch is many hairlines, and landing on
+/// one exactly is hard; a pick that misses them all takes the line nearest the pointer, as long
+/// as it is within reach. A `reach` that is not a positive number adds nothing.
+pub fn hit_test_near(frame: &Frame<'_>, point: glamx::DVec2, reach: f64) -> Vec<usize> {
+    let mut out = hit_test_all(frame, point);
+    if !(reach.is_finite() && reach > 0.0) {
+        return out;
+    }
+    let clip_paths: Vec<BezPath> = frame.clips.iter().map(|clip| clip_path(clip)).collect();
+    let scene_point = Point::new(point.x, point.y);
+    let mut near: Vec<(f64, usize)> = frame
+        .shapes
+        .iter()
+        .enumerate()
+        .rev()
+        .filter(|(index, _)| !out.contains(index))
+        .filter_map(|(index, drawn)| {
+            let stroke = drawn.shape.stroke();
+            if drawn.shape.fill_is_invisible() && stroke.is_none() {
+                return None;
+            }
+            let (local, scale) = local_point(drawn, &clip_paths, scene_point, point)?;
+            let path = bez_path(drawn.shape.path());
+            // A line is picked by where it is drawn; a fill by its edge, closed as it is painted.
+            let (edge, half) = match stroke {
+                Some(stroke) => (path, stroke.width() / 2.0),
+                None => (closed(&path), 0.0),
+            };
+            let slack = reach / scale + half;
+            if !edge.bounding_box().inflate(slack, slack).contains(local) {
+                return None;
+            }
+            let gap = (distance_to(&edge, local)? - half).max(0.0) * scale;
+            (gap <= reach).then_some((gap, index))
+        })
+        .collect();
+    // A stable sort, so of two lines as near the upper one comes first.
+    near.sort_by(|a, b| a.0.total_cmp(&b.0));
+    out.extend(near.into_iter().map(|(_, index)| index));
+    out
+}
+
+/// How far `point` is from the nearest point of `path`, in the path's own units; `None` for a
+/// path with no segments.
+fn distance_to(path: &BezPath, point: Point) -> Option<f64> {
+    path.segments()
+        .map(|segment| segment.nearest(point, 1e-3).distance_sq)
+        .min_by(f64::total_cmp)
+        .map(f64::sqrt)
 }
 
 /// Index into `frame.shapes` of the topmost shape under `point`; see [`hit_test_all`].

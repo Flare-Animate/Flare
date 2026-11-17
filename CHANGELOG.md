@@ -10,6 +10,7 @@ The first release of the Rust rewrite. An early alpha: see docs/releases/v0.1.0.
 
 ### Fixed
 - Drawing on an empty frame past a keyframe starts a keyframe there and holds the keyframe before it across the empty frames between, as Animate does, instead of leaving them blank; Insert Keyframe and Insert Blank Keyframe in such a gap do the same, where before they did nothing. `flare draw-rect` and the MCP `draw_rect` follow it.
+- Thin lines of a rough sketch can be picked: a click that lands on no line picks the nearest one within 8 screen pixels, at any zoom.
 - File > Open (and a file dropped on the window or given on the command line) opens a picture, a video or another program's project as a new project again, instead of failing with "not a Flare project file": every kind the importer reads is imported, not only `.swf`. Saving such a document asks for a name, and Save never writes a project over the picture or video it came from.
 - The start-up splash covers the whole window from the first frame it shows, so the app is not seen before or behind it.
 - Playing or rendering an imported `.fla` no longer fails with "cannot be tweened: its matrix has shear or reflection": motion tweens interpolate any 2D matrix (rotation, skew, signed scales, translation), and a tween that cannot be computed holds its keyframe and records a warning instead of blanking the frame.
