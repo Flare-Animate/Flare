@@ -65,6 +65,12 @@ For each of six targets (Windows, macOS and Linux, x64 and arm64):
 The command line archive holds `flare` (the command line) and `flare-mcp`. The desktop app's program is `flare-desktop` on Linux and Windows (inside `Flare.app` on macOS), so the two never share a name on `PATH`; `flare open` starts it. A `SHA256SUMS.txt` covers everything.
 The web build is experimental and not released.
 
+A published release also packs its Windows portable archive into a Chocolatey package
+([`publish-chocolatey.yml`](../.github/workflows/publish-chocolatey.yml)): the archive's SHA-256 is
+baked in before packing, the package installs to `Program Files\Flare`, and pushing to the community
+feed needs the `CHOCO_API_KEY` secret. The workflow only runs when a release is published, and never
+creates or moves a tag.
+
 ## Nightly builds
 
 [`nightly.yml`](../.github/workflows/nightly.yml) runs every day at 03:17 UTC and by hand. When `main` has no commits
