@@ -13,6 +13,7 @@ mod game;
 mod interp;
 mod layer_queries;
 mod origin;
+mod shader;
 mod shape;
 mod sound;
 mod span_elements;
@@ -37,6 +38,7 @@ pub use origin::{
     Baseline, MAX_ORIGIN_BYTES, MAX_ORIGIN_FILES, MAX_ORIGIN_NAME_BYTES, Origin, OriginData,
     OriginError, OriginFile, OriginKind, SharedOrigin, SymbolBaseline, is_safe_entry_name,
 };
+pub use shader::{MAX_SHADER_ASSETS, MAX_SHADER_NAME_CHARS, ShaderAsset, ShaderAssetError};
 pub use shape::{
     Cap, Gradient, GradientError, Join, MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape,
     ShapeError, Stroke,
@@ -225,6 +227,7 @@ pub struct Document {
     bitmaps: Vec<Bitmap>,
     origin: Option<SharedOrigin>,
     game: Option<flare_game::GameSpec>,
+    shader_assets: Vec<ShaderAsset>,
 }
 
 impl Document {
@@ -246,6 +249,7 @@ impl Document {
             bitmaps: Vec::new(),
             origin: None,
             game: None,
+            shader_assets: Vec::new(),
         };
         let diagnostics = validate::validate(&document);
         if diagnostics.is_empty() {
@@ -341,6 +345,24 @@ impl Document {
         self.game.as_ref()
     }
 
+    pub fn shader_assets(&self) -> &[ShaderAsset] {
+        &self.shader_assets
+    }
+
+    /// Replaces the shader graph library, enforcing its asset count and name uniqueness.
+    pub fn with_shader_assets(
+        mut self,
+        shader_assets: Vec<ShaderAsset>,
+    ) -> Result<Self, Vec<Diagnostic>> {
+        self.shader_assets = shader_assets;
+        let diagnostics = validate::validate_shader_assets(&self);
+        if diagnostics.is_empty() {
+            Ok(self)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
     /// Attaches a game description, checking it and its references into this document's library:
     /// every entity's symbol and every audio component's sound must exist. Replaces any game
     /// already present; `None` removes it.
@@ -404,5 +426,7 @@ mod bitmap_tests;
 mod effects_tests;
 #[cfg(test)]
 mod origin_tests;
+#[cfg(test)]
+mod shader_tests;
 #[cfg(test)]
 mod tests;

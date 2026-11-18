@@ -30,6 +30,7 @@ thiserror.workspace = true
 usvg.workspace = true
 zip = { workspace = true, features = ["deflate"] }
 serde_json.workspace = true
+serde.workspace = true
 zstd.workspace = true
 
 [dev-dependencies]

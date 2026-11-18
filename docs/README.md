@@ -13,6 +13,7 @@ Flash workspaces and OpenToonz-inspired features follow once the core workflow i
 - [TESTING.md](TESTING.md): what is tested, how, and in CI
 - [RELEASE.md](RELEASE.md): release checklist, packaging, the manual smoke test
 - [SURFACES.md](SURFACES.md): what the desktop app, the browser build, the command line and the MCP server each do, and the gaps
+- [SHADERS.md](SHADERS.md): the portable shader graph API and JSON format, current bounds, and unsupported source formats
 - [experimental/VIEWSPACE.md](experimental/VIEWSPACE.md): ViewSpace Keys, multi-view 2D interpolation: the full spec, what is built, every stub id (experimental, unstable, not in the document)
 
 - [MOHO.md](MOHO.md): Moho and Anime Studio projects and BVH: what is read, verified, and still a gap

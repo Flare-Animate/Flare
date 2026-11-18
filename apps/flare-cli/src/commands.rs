@@ -73,6 +73,11 @@ pub(crate) enum Command {
     /// The same reading the desktop app's File > Import > Import Brush Presets uses. With
     /// `--out` also writes them as Flare's portable brush-profile file.
     BrushImport(crate::brush::BrushImportArgs),
+    /// List or import portable shader-graph assets.
+    Shader {
+        #[command(subcommand)]
+        op: crate::shader::ShaderCommand,
+    },
     /// How loud each sound is on every frame from its cue (`[low, high]` samples), to animate to.
     SoundWaveform {
         path: PathBuf,

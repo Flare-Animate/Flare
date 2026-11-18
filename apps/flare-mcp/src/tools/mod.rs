@@ -14,6 +14,7 @@ mod mannequin;
 mod multi_frame;
 mod pixels;
 mod read;
+mod shaders;
 mod shortcuts;
 mod sound;
 mod stopmotion;
@@ -47,6 +48,7 @@ impl FlareServer {
             + Self::sound_tools()
             + Self::tween_tools()
             + Self::shortcut_tools()
+            + Self::shader_tools()
             + Self::symbol_tools()
             + Self::game_tools()
             + Self::pixel_tools()

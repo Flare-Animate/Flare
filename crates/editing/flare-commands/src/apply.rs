@@ -1,7 +1,9 @@
 //! Applying a batch of commands to a document.
 
 use flare_core::{FrameRate, LayerId, SceneId};
-use flare_document::{Bitmap, Content, Document, FrameSpan, Layer, Scene, Sound, Stage, Symbol};
+use flare_document::{
+    Bitmap, Content, Document, FrameSpan, Layer, Scene, ShaderAsset, Sound, Stage, Symbol,
+};
 use flare_game::GameSpec;
 
 use crate::{Command, EditError, LayerChange, MAX_SCENE_NAME_CHARS};
@@ -27,6 +29,7 @@ pub fn apply_all(
     let mut stage = document.stage();
     let mut rate = document.frame_rate();
     let mut game = document.game().cloned();
+    let mut shader_assets = document.shader_assets().to_vec();
     for command in commands {
         step(
             &mut scenes,
@@ -36,6 +39,7 @@ pub fn apply_all(
             &mut stage,
             &mut rate,
             &mut game,
+            &mut shader_assets,
             command,
         )?;
     }
@@ -47,6 +51,7 @@ pub fn apply_all(
             .with_bitmaps(bitmaps)?
             .with_stage(stage)
             .with_game(game)?
+            .with_shader_assets(shader_assets)?
             .with_attachments_retained(document.attachments())
             .with_origin(document.origin().cloned()),
     ))
@@ -62,6 +67,7 @@ fn step(
     stage: &mut Stage,
     rate: &mut FrameRate,
     game: &mut Option<GameSpec>,
+    shader_assets: &mut Vec<ShaderAsset>,
     command: Command,
 ) -> Result<(), EditError> {
     match command {
@@ -125,6 +131,7 @@ fn step(
         }
         Command::SetStage(new_stage) => *stage = new_stage,
         Command::SetFrameRate(new_rate) => *rate = new_rate,
+        Command::SetShaderAssets(assets) => *shader_assets = assets,
         Command::AddBitmap(bitmap) => {
             if let Some(same) = bitmaps
                 .iter()

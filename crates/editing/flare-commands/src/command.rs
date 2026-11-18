@@ -3,8 +3,8 @@
 use flare_core::{BitmapId, FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
 use flare_document::{
-    Bitmap, FrameSpan, Layer, Playback, Scene, Sound, SoundCue, SpanInterp, Stage, Symbol,
-    SymbolKind,
+    Bitmap, FrameSpan, Layer, Playback, Scene, ShaderAsset, Sound, SoundCue, SpanInterp, Stage,
+    Symbol, SymbolKind,
 };
 
 /// A property change on a layer.
@@ -60,6 +60,8 @@ pub enum Command {
     },
     SetStage(Stage),
     SetFrameRate(FrameRate),
+    /// Replaces the document's shader-graph library atomically.
+    SetShaderAssets(Vec<ShaderAsset>),
     /// Adds a bitmap to the library. Refused when an identical image (same content hash) is
     /// already there: place that one instead, so repeated frames are stored once.
     AddBitmap(Bitmap),
