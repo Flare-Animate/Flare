@@ -9,6 +9,9 @@ mod error;
 mod game;
 pub mod layers;
 
+#[cfg(test)]
+mod shader_tests;
+
 pub use apply::apply_all;
 pub use command::{Command, LayerChange};
 pub use error::{EditError, MAX_SCENE_NAME_CHARS};

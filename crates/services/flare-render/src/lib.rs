@@ -15,6 +15,7 @@ mod outline;
 mod paint;
 mod pattern;
 mod render;
+mod shader;
 mod view_alpha;
 mod viewport;
 
@@ -27,6 +28,9 @@ pub use limits::{MAX_DIMENSION, MAX_PIXELS, RenderError};
 pub use outline::{render_onion_outlines_viewport, render_outline_mode_viewport};
 pub use render::{
     render, render_onion, render_onion_viewport, render_viewport, render_viewport_premultiplied,
+};
+pub use shader::{
+    MAX_SHADER_STACK, ShaderRenderError, apply_shader, apply_shader_stack, render_shader,
 };
 pub use view_alpha::{has_view_alpha, render_stage_viewport};
 pub use viewport::Viewport;

@@ -132,7 +132,9 @@ fn the_card_is_light_on_the_left_and_fits_inside_the_window() {
             _ => None,
         })
         .collect();
-    eprintln!("DEBUG splash: card={card:?} screen={screen:?} name={name:?} all_flare={all_flare_texts:?} whites={whites:?}");
+    eprintln!(
+        "DEBUG splash: card={card:?} screen={screen:?} name={name:?} all_flare={all_flare_texts:?} whites={whites:?}"
+    );
     assert!(
         name.right() < card.center().x,
         "the name is on the light half"

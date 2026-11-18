@@ -23,11 +23,15 @@ pub const BITMAP_SCHEMA_VERSION: i64 = 2;
 /// older version. Version 4 is the same format with trigger zones, hooks and named input actions;
 /// a build of version 3 refuses a v4 file rather than misreading a hook as corrupt.
 pub const GAME_SCHEMA_VERSION: i64 = 4;
+/// Written by a project containing shader graphs; older readers refuse it instead of discarding them.
+pub const SHADER_SCHEMA_VERSION: i64 = 5;
 
 impl Parts {
     /// The schema version these rows need to be read.
     pub fn schema_version(&self) -> i64 {
-        if self.records.iter().any(|r| r.kind == "game") {
+        if self.records.iter().any(|r| r.kind == "shader") {
+            SHADER_SCHEMA_VERSION
+        } else if self.records.iter().any(|r| r.kind == "game") {
             GAME_SCHEMA_VERSION
         } else if self.records.iter().any(|r| r.kind == "bitmap") {
             BITMAP_SCHEMA_VERSION
@@ -44,12 +48,13 @@ pub const MAX_ENTITIES: usize = 1_000_000;
 pub const MAX_PAYLOAD_BYTES: usize = 256 * 1024 * 1024;
 /// The most a sound record may be: the largest sound file, and its fields.
 pub const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES + 64 * 1024 + 4;
+pub const MAX_SHADER_PAYLOAD_BYTES: usize = 1024 * 1024;
 
 /// One stored record, as its row holds it.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Record {
     pub id: String,
-    /// `scene`, `symbol`, `attachment`, `sound`, `bitmap`, `origin` or `game`.
+    /// `scene`, `symbol`, `attachment`, `sound`, `bitmap`, `origin`, `game` or `shader`.
     pub kind: String,
     pub ordinal: i64,
     /// `cbor` or `cbor+zstd`.
@@ -76,6 +81,7 @@ fn limit_of(kind: &str) -> usize {
         "bitmap" => wire::MAX_BITMAP_RECORD_BYTES,
         "origin" => wire::MAX_ORIGIN_RECORD_BYTES,
         "game" => wire::MAX_GAME_RECORD_BYTES,
+        "shader" => MAX_SHADER_PAYLOAD_BYTES,
         _ => MAX_PAYLOAD_BYTES,
     }
 }
@@ -132,6 +138,10 @@ pub fn to_parts(document: &Document, zstd: &mut dyn Zstd) -> Result<Parts, Stora
         let raw = wire::game::frame(game)?;
         put("game".to_owned(), "game", 0, &raw)?;
     }
+    for (ordinal, shader) in (0_i64..).zip(document.shader_assets()) {
+        let raw = to_cbor(&wire::ShaderGraphWire::of(shader))?;
+        put(format!("shader-{ordinal}"), "shader", ordinal, &raw)?;
+    }
     Ok(Parts {
         project_id: document.id().as_uuid().to_string(),
         settings,
@@ -154,6 +164,7 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
     let mut bitmaps = Vec::new();
     let mut origin = None;
     let mut game = None;
+    let mut shader_assets = Vec::new();
     for record in &parts.records {
         let raw = unpack(
             zstd,
@@ -179,6 +190,12 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
                     return Err(StorageError::Corrupt("two game records".into()));
                 }
             }
+            "shader" => {
+                if shader_assets.len() >= flare_document::MAX_SHADER_ASSETS {
+                    return Err(StorageError::Limit("shader graph count"));
+                }
+                shader_assets.push(from_cbor::<wire::ShaderGraphWire>(&raw)?.build()?);
+            }
             other => {
                 return Err(StorageError::Corrupt(format!(
                     "unknown entity kind {other}"
@@ -196,5 +213,6 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
         bitmaps,
         origin,
         game,
+        shader_assets,
     )
 }

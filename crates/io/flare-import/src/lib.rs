@@ -15,6 +15,7 @@ mod keep;
 pub mod legacy;
 mod moho_images;
 mod psd;
+mod shader_graph;
 mod source;
 mod still;
 mod svg;
@@ -37,6 +38,9 @@ pub use file_kinds::{
 };
 pub use flipnote::{looks_like_kwz, looks_like_ppm};
 pub use foreign::{foreign_kind, import_foreign_bytes, import_foreign_path};
+pub use shader_graph::{
+    MAX_SHADER_GRAPH_FILE_BYTES, ShaderGraphImportError, export_shader_graph, import_shader_graph,
+};
 pub use source::{DirSource, ZipSource, import_bytes, import_fla_bytes, import_path};
 pub use still::{MAX_STILL_BYTES, STILL_EXTENSIONS, Still, read_still};
 pub use swf::{import_swf_bytes, looks_like_swf};
