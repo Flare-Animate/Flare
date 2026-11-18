@@ -56,7 +56,7 @@ fn shifted(mask: &[u8], w: usize, h: usize, offset: [f64; 2]) -> Vec<u8> {
             // The source pixel is (x - dx, y - dy): between four pixels when the offset is not whole.
             let (sx, sy) = (x - ix, y - iy);
             let top = at(sx, sy) * (1.0 - tx) + at(sx - 1, sy) * tx;
-            let bottom = at(sx, sy + 1) * (1.0 - tx) + at(sx - 1, sy + 1) * tx;
+            let bottom = at(sx, sy - 1) * (1.0 - tx) + at(sx - 1, sy - 1) * tx;
             let value = top * (1.0 - ty) + bottom * ty;
             out[y as usize * w + x as usize] = value.round().clamp(0.0, 255.0) as u8;
         }
