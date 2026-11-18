@@ -296,6 +296,10 @@ attribution in docs/ENGINEERING.md) and not yet checked against user files.
 - [x] Phase 3, sniffing: `.pli` (`PLIM`/`MILP`) and `.tlv` (`TLV10`..`TLV12`).
 - [x] Phase 3b, vector `.pli` decoding (version 5.7 and later): thick quadratic chains, groups,
   colour tags, precision scale, palette style tags. Filled regions are counted, not decoded.
+- [x] Phase 3c, XDTS timing sheets (`.xdts`): the identifier line and JSON are read and written with
+  one track per level column (bottom first, named after its level), an entry wherever the exposure
+  changes, and the null cell for a blank. Import maps a track onto the level columns its name
+  matches and rebuilds their cell runs. Rows, tracks and cells are bounded.
 - [ ] Phase 4, raster `.tlv` decoding (LZO-compressed tiles and the icon and frame tables).
   Returns NotYetImplemented; a scene with raster levels converts with empty cells and a named note.
 - [ ] Phase 5, fx schematics: fx nodes and their ports in the scene.

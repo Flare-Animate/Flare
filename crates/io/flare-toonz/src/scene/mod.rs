@@ -13,6 +13,7 @@ use crate::tree::{self, Node};
 pub use model::{CellRun, Column, FrameId, LevelDecl, Scene, SoundCells};
 
 use cells::parse_cell_run;
+pub(crate) use cells::parse_frame;
 
 /// Parses the text of a `.tnz` file.
 pub fn parse_scene(input: &str) -> Result<Scene, ToonzError> {

@@ -2817,6 +2817,7 @@ dependencies = [
  "flare-core",
  "flare-document",
  "quick-xml 0.42.0",
+ "serde_json",
  "thiserror 2.0.18",
 ]
 
