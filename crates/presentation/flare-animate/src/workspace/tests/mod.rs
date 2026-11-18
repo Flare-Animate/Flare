@@ -19,7 +19,6 @@ use std::path::PathBuf;
 mod rotate_view;
 mod sound_helpers;
 use sound_helpers::{drain_audio, wav_file};
-
 mod anchor_tools;
 mod basics;
 mod blend;
@@ -34,6 +33,7 @@ mod close_prompt;
 mod color_section;
 mod command_palette;
 mod drawing_into_layers;
+mod effects;
 mod eraser;
 mod frame_focus;
 mod frame_menu;

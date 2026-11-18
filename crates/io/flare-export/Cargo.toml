@@ -21,6 +21,7 @@ zip = { workspace = true, features = ["deflate"] }
 
 [dev-dependencies]
 flare-commands.workspace = true
+flare-fx.workspace = true
 flare-history.workspace = true
 flare-eval.workspace = true
 flare-import.workspace = true

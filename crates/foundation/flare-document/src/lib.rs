@@ -423,6 +423,8 @@ impl Document {
 #[cfg(test)]
 mod bitmap_tests;
 #[cfg(test)]
+mod effects_tests;
+#[cfg(test)]
 mod origin_tests;
 #[cfg(test)]
 mod shader_tests;

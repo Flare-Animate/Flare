@@ -63,6 +63,12 @@ pub enum Diagnostic {
     DanglingSound { layer: LayerId, sound: SoundId },
     #[error("the game description: {0}")]
     Game(#[from] flare_game::GameError),
+    #[error(
+        "layer {0:?} has effects but is a mask, a guide, a camera or a folder; effects go on a layer that is drawn"
+    )]
+    EffectsOnSpecialLayer(LayerId),
+    #[error("layer {0:?} has effects inside a symbol; effects are on a scene's layers")]
+    EffectsInSymbol(LayerId),
     #[error("duplicate bitmap id {0:?}")]
     DuplicateBitmap(BitmapId),
     #[error("a document holds at most {MAX_BITMAPS} bitmaps")]
@@ -267,6 +273,7 @@ pub(crate) fn validate(document: &Document) -> Vec<Diagnostic> {
     }
 
     validate_cameras(document, &mut out);
+    validate_effects(document, &mut out);
     validate_armatures(document, &mut out);
     out.extend(find_cycles(document));
     out
@@ -311,6 +318,28 @@ fn validate_cameras(document: &Document, out: &mut Vec<Diagnostic>) {
     }
     for symbol in &document.symbols {
         check(&symbol.timeline, false, out);
+    }
+}
+
+/// Effects are on a scene's drawn layers: a mask, guide, camera or folder draws nothing of its
+/// own to run them over, and a symbol's layers are drawn inside its instances, where a layer's
+/// effects are not run (yet).
+fn validate_effects(document: &Document, out: &mut Vec<Diagnostic>) {
+    for scene in &document.scenes {
+        for layer in scene.timeline.layers() {
+            if layer.effects().is_some()
+                && (layer.is_mask() || layer.is_guide() || layer.is_camera() || layer.is_folder())
+            {
+                out.push(Diagnostic::EffectsOnSpecialLayer(layer.id()));
+            }
+        }
+    }
+    for symbol in &document.symbols {
+        for layer in symbol.timeline.layers() {
+            if layer.effects().is_some() {
+                out.push(Diagnostic::EffectsInSymbol(layer.id()));
+            }
+        }
     }
 }
 

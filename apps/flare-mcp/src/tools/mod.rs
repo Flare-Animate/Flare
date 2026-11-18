@@ -4,6 +4,7 @@
 mod bones;
 mod brushes;
 mod draw;
+mod effects;
 mod export;
 mod game;
 mod history;
@@ -38,6 +39,7 @@ impl FlareServer {
             + Self::text_tools()
             + Self::timeline_tools()
             + Self::layer_op_tools()
+            + Self::effect_tools()
             + Self::multi_frame_tools()
             + Self::history_tools()
             + Self::bone_tools()

@@ -170,6 +170,52 @@ fn a_dense_line_is_bent_without_passing_the_segment_limit() {
 }
 
 #[test]
+fn a_line_just_under_the_limit_is_not_split_past_it() {
+    // Far from the pull the line has a point every unit, filling all but ten of the segments a
+    // path may have; then one long piece runs through the pull, which would want 27 pieces.
+    let max = flare_document::MAX_SEGMENTS;
+    let mut path = vec![PathSegment::MoveTo(p(-2000.0, 0.0))];
+    while path.len() < max - 10 {
+        path.push(PathSegment::LineTo(p(
+            -2000.0 + path.len() as f64 * 1e-3,
+            0.0,
+        )));
+    }
+    path.push(PathSegment::LineTo(p(200.0, 0.0)));
+    let pull = pull_of((100.0, 0.0), (100.0, 10.0), 30.0);
+    assert!(
+        path::densified(&path, &pull).is_none(),
+        "the pieces do not fit"
+    );
+    let shape = Shape::new(ShapeId::new(), path.clone(), Rgba8::TRANSPARENT).expect("shape");
+    let bent = pull_shape(&shape, &pull);
+    // Nothing is added, and the points there are stay out of reach, so nothing moves.
+    assert!(bent.is_none_or(|b| b.path().len() == path.len()));
+    // A line with room left is split.
+    let short = [
+        PathSegment::MoveTo(p(0.0, 0.0)),
+        PathSegment::LineTo(p(200.0, 0.0)),
+    ];
+    let split = path::densified(&short, &pull).expect("room to split");
+    assert_eq!(split.len(), 28);
+}
+
+#[test]
+fn room_is_counted_up_to_the_limit_and_not_past_it() {
+    let max = flare_document::MAX_SEGMENTS;
+    let full = vec![PathSegment::Close; max - 1];
+    assert!(path::room(&full, 1).is_some(), "the last segment fits");
+    assert!(
+        path::room(&full, 2).is_none(),
+        "one past the limit does not"
+    );
+    assert!(
+        path::room(&full, usize::MAX).is_none(),
+        "a count that would overflow does not"
+    );
+}
+
+#[test]
 fn the_document_pull_finds_the_shapes_in_reach_and_is_one_batch() {
     let mut f = fixture();
     let near = FrameSpan::new(

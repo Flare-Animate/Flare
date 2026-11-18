@@ -282,6 +282,9 @@ pub struct Layer {
     parent: Option<LayerId>,
     /// Sounds that start at frames of this layer, in order of frame. Shared like the spans.
     cues: Arc<[SoundCue]>,
+    /// The layer's effects: a node graph its picture runs through before it is drawn. Shared,
+    /// so an undo snapshot copies no graph.
+    effects: Option<Arc<flare_fx::EffectGraph>>,
 }
 
 /// Layers ordered top to bottom.

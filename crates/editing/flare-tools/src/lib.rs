@@ -20,6 +20,7 @@ mod common;
 pub mod convert_anchor;
 pub mod delete_anchor;
 pub mod drawing;
+pub mod effects;
 #[cfg(test)]
 mod elements_tests;
 pub mod eraser;

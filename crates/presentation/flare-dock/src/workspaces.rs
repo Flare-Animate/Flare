@@ -105,6 +105,7 @@ impl Preset {
                     P::MotionEditor,
                     P::FindReplace,
                     P::Mannequin,
+                    P::Effects,
                 ]],
             }),
         };

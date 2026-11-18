@@ -3,6 +3,7 @@
 
 mod brush;
 mod commands;
+mod fx;
 mod game;
 mod lipsync;
 mod magic_wand;
@@ -128,6 +129,7 @@ fn run() -> Result<()> {
         Command::Bones { path, frame } => project::bones_list(&path, frame)?,
         Command::Tween { op } => tween::run(op)?,
         Command::Game { op } => game::run(op)?,
+        Command::Fx { op } => fx::run(op)?,
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(*op)?,
         Command::VideoImport(args) => video::run(args)?,

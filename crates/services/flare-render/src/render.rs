@@ -1,5 +1,7 @@
 //! Rasterizing a frame, whole or in part, with onion-skin ghosts or without.
 
+use std::ops::Range;
+
 use flare_core::Rgba8;
 use flare_eval::Frame;
 use vello_cpu::kurbo::{Affine, BezPath, Rect};
@@ -7,6 +9,7 @@ use vello_cpu::peniko::ImageAlphaType;
 use vello_cpu::peniko::{Extend, ImageBrush, ImageQuality, ImageSampler};
 use vello_cpu::{ImageSource, Pixmap, RenderContext, Resources};
 
+use crate::effects;
 #[allow(unused_imports)]
 use crate::image::unpremultiply_in_place;
 #[allow(unused_imports)]
@@ -154,6 +157,20 @@ pub(crate) fn rasterize(
     height: u32,
     background: Rgba8,
 ) -> Result<Pixmap, RenderError> {
+    rasterize_part(frame, None, viewport, width, height, background)
+}
+
+/// Rasterizes `frame`, or with `only` just those of its shapes and bitmaps (one layer's, for its
+/// effects, which are then not run again). A whole frame runs each layer's effects where the
+/// layer sits in the paint order.
+pub(crate) fn rasterize_part(
+    frame: &Frame<'_>,
+    only: Option<(Range<usize>, Range<usize>)>,
+    viewport: &Viewport,
+    width: u32,
+    height: u32,
+    background: Rgba8,
+) -> Result<Pixmap, RenderError> {
     if !viewport.is_valid() {
         return Err(RenderError::InvalidSize(width, height));
     }
@@ -168,7 +185,8 @@ pub(crate) fn rasterize(
     }
     // Both fit u16 because MAX_DIMENSION < u16::MAX.
     let (w16, h16) = (width as u16, height as u16);
-    let threads = render_threads(frame.shapes.len(), available_cores());
+    let shapes = only.as_ref().map_or(frame.shapes.len(), |(s, _)| s.len());
+    let threads = render_threads(shapes, available_cores());
     let mut ctx = RenderContext::new_with(
         w16,
         h16,
@@ -188,49 +206,111 @@ pub(crate) fn rasterize(
         f64::from(height) / viewport.height,
     ) * Affine::translate((-viewport.x, -viewport.y));
     let clip_paths: Vec<BezPath> = frame.clips.iter().map(|clip| clip_path(clip)).collect();
-    let mut bitmaps = frame.bitmaps.iter().peekable();
-    for (index, drawn) in frame.shapes.iter().enumerate() {
-        while let Some(bitmap) = bitmaps.next_if(|b| b.after_shapes <= index) {
-            draw_bitmap(&mut ctx, base, &clip_paths, bitmap);
-        }
-        // Masks live in scene space, so they are pushed with the view transform alone, before
-        // the shape's own.
-        ctx.set_transform(base);
-        let mut pushed = 0;
-        for index in &drawn.clips {
-            if let Some(region) = clip_paths.get(*index) {
-                ctx.push_clip_layer(region);
-                pushed += 1;
+    let items = Items {
+        frame,
+        base,
+        clip_paths: &clip_paths,
+    };
+    match only {
+        Some((shapes, bitmaps)) => items.draw(&mut ctx, shapes, bitmaps),
+        None => {
+            let (mut shapes, mut bitmaps) = (0, 0);
+            for run in effects::runs(frame) {
+                items.draw(
+                    &mut ctx,
+                    shapes..run.shapes.start,
+                    bitmaps..run.bitmaps.start,
+                );
+                match effects::picture(frame, run, viewport, width, height) {
+                    Some(picture) => effects::lay(&mut ctx, picture, width, height),
+                    // A picture too large to pad, or a graph that cannot run: drawn as it is.
+                    None => items.draw(&mut ctx, run.shapes.clone(), run.bitmaps.clone()),
+                }
+                (shapes, bitmaps) = (run.shapes.end, run.bitmaps.end);
             }
+            items.draw(
+                &mut ctx,
+                shapes..frame.shapes.len(),
+                bitmaps..frame.bitmaps.len(),
+            );
         }
-        let [a, b, c, d, e, f] = drawn.transform.to_cols_array();
-        ctx.set_transform(base * Affine::new([a, b, c, d, e, f]));
-        let path = bez_path(drawn.shape.path());
-        match drawn.shape.gradient() {
-            Some(gradient) => ctx.set_paint(linear_gradient(&gradient)),
-            None => ctx.set_paint(color(drawn.shape.fill())),
-        }
-        ctx.fill_path(&path);
-        if let Some(stroke) = drawn.shape.stroke() {
-            ctx.set_stroke(stroke_style(stroke.width(), stroke));
-            ctx.set_paint(color(stroke.color()));
-            // A geometric style is drawn as the path it builds from the line, not the line.
-            match pattern(&path, stroke.width(), stroke.style()) {
-                Some(built) => ctx.stroke_path(&built),
-                None => ctx.stroke_path(&path),
-            }
-        }
-        for _ in 0..pushed {
-            ctx.pop_layer();
-        }
-    }
-    for bitmap in bitmaps {
-        draw_bitmap(&mut ctx, base, &clip_paths, bitmap);
     }
     ctx.flush();
     let mut pixmap = Pixmap::new(w16, h16);
     ctx.render(&mut pixmap, &mut Resources::new());
     Ok(pixmap)
+}
+
+/// What drawing a stretch of a frame needs.
+struct Items<'f, 'a> {
+    frame: &'f Frame<'a>,
+    base: Affine,
+    clip_paths: &'f [BezPath],
+}
+
+impl Items<'_, '_> {
+    /// Draws the frame's shapes in `shapes` and bitmaps in `bitmaps`, interleaved as the frame
+    /// orders them.
+    fn draw(&self, ctx: &mut RenderContext, shapes: Range<usize>, bitmaps: Range<usize>) {
+        let (base, clip_paths) = (self.base, self.clip_paths);
+        let mut bitmaps = self
+            .frame
+            .bitmaps
+            .get(bitmaps)
+            .unwrap_or_default()
+            .iter()
+            .peekable();
+        for index in shapes {
+            let Some(drawn) = self.frame.shapes.get(index) else {
+                break;
+            };
+            while let Some(bitmap) = bitmaps.next_if(|b| b.after_shapes <= index) {
+                draw_bitmap(ctx, base, clip_paths, bitmap);
+            }
+            draw_shape(ctx, base, clip_paths, drawn);
+        }
+        for bitmap in bitmaps {
+            draw_bitmap(ctx, base, clip_paths, bitmap);
+        }
+    }
+}
+
+fn draw_shape(
+    ctx: &mut RenderContext,
+    base: Affine,
+    clip_paths: &[BezPath],
+    drawn: &flare_eval::DrawnShape<'_>,
+) {
+    // Masks live in scene space, so they are pushed with the view transform alone, before
+    // the shape's own.
+    ctx.set_transform(base);
+    let mut pushed = 0;
+    for index in &drawn.clips {
+        if let Some(region) = clip_paths.get(*index) {
+            ctx.push_clip_layer(region);
+            pushed += 1;
+        }
+    }
+    let [a, b, c, d, e, f] = drawn.transform.to_cols_array();
+    ctx.set_transform(base * Affine::new([a, b, c, d, e, f]));
+    let path = bez_path(drawn.shape.path());
+    match drawn.shape.gradient() {
+        Some(gradient) => ctx.set_paint(linear_gradient(&gradient)),
+        None => ctx.set_paint(color(drawn.shape.fill())),
+    }
+    ctx.fill_path(&path);
+    if let Some(stroke) = drawn.shape.stroke() {
+        ctx.set_stroke(stroke_style(stroke.width(), stroke));
+        ctx.set_paint(color(stroke.color()));
+        // A geometric style is drawn as the path it builds from the line, not the line.
+        match pattern(&path, stroke.width(), stroke.style()) {
+            Some(built) => ctx.stroke_path(&built),
+            None => ctx.stroke_path(&path),
+        }
+    }
+    for _ in 0..pushed {
+        ctx.pop_layer();
+    }
 }
 
 /// One bitmap, its top-left corner at the origin of its transform. Pixels are premultiplied for

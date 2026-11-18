@@ -2,7 +2,9 @@
 
 use std::borrow::Cow;
 
-use flare_core::{InstanceId, Rgba8, SceneId, SymbolId};
+use std::ops::Range;
+
+use flare_core::{InstanceId, LayerId, Rgba8, SceneId, SymbolId};
 use flare_document::{Bitmap, Shape};
 use glamx::DAffine2;
 use thiserror::Error;
@@ -44,6 +46,25 @@ pub struct Frame<'a> {
     /// Things that went wrong but did not stop the frame, such as a tween that fell back to the
     /// span's own keyframe.
     pub warnings: Vec<String>,
+    /// The scene layers whose picture runs through effects, in paint order, each with the run of
+    /// `shapes` and `bitmaps` it drew.
+    pub effects: Vec<EffectRun<'a>>,
+}
+
+/// A scene layer with effects: what it drew at this frame, which the renderer draws on its own,
+/// runs through `graph` and lays back in the layer's place.
+#[derive(Debug, Clone, PartialEq)]
+pub struct EffectRun<'a> {
+    pub layer: LayerId,
+    pub graph: &'a flare_fx::EffectGraph,
+    /// The layer's shapes in [`Frame::shapes`].
+    pub shapes: Range<usize>,
+    /// The layer's bitmaps in [`Frame::bitmaps`].
+    pub bitmaps: Range<usize>,
+    /// The scene frame, which moving effects such as snow follow.
+    pub frame: u32,
+    /// The stage's width and height, which snow falls across.
+    pub stage: [f64; 2],
 }
 
 /// One shape of a mask: the mask's region is the union of these.
@@ -83,6 +104,16 @@ impl Frame<'_> {
             }
             drawn.clips.hash(&mut hasher);
             drawn.view_alpha.to_bits().hash(&mut hasher);
+        }
+        // Effects change what a layer's shapes look like, and moving ones do so every frame.
+        for run in &self.effects {
+            run.graph.fingerprint().hash(&mut hasher);
+            run.shapes.hash(&mut hasher);
+            run.bitmaps.hash(&mut hasher);
+            run.stage.map(f64::to_bits).hash(&mut hasher);
+            if run.graph.is_animated() {
+                run.frame.hash(&mut hasher);
+            }
         }
         // Masks change what shows even when the masked shapes stay put.
         for clip in &self.clips {

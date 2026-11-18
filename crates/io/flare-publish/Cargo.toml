@@ -21,6 +21,7 @@ thiserror.workspace = true
 
 [dev-dependencies]
 flare-commands.workspace = true
+flare-fx.workspace = true
 flare-history.workspace = true
 flare-import.workspace = true
 flare-render.workspace = true

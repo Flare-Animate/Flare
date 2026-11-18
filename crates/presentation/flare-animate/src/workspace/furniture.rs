@@ -39,6 +39,7 @@ impl Workspace {
         // Only a changed document or a moved playhead can make the selection stale; checking it
         // every frame cost time in proportion to the selection times the layers.
         self.refresh_selection();
+        self.settle_effects(ctx.cumulative_pass_nr());
         self.ensure_stage_texture(&ctx);
 
         if self.document_controls_shown() {

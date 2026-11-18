@@ -80,27 +80,32 @@ fn cubic_piece(p: [DVec2; 4], t0: f64, t1: f64) -> [DVec2; 3] {
     [a + derivative(t0) * span, b - derivative(t1) * span, b]
 }
 
+/// `Some` when `more` segments still fit in `out` under the segment limit. Checked before a
+/// segment's pieces are added, so the path being built never grows past the limit.
+pub(super) fn room(out: &[PathSegment], more: usize) -> Option<()> {
+    (out.len().saturating_add(more) <= MAX_SEGMENTS).then_some(())
+}
+
 /// `path` with the segments near the pull split into pieces, or `None` when that would pass
 /// the segment limit (the pull then bends only the points there are).
-fn densified(path: &[PathSegment], pull: &Pull) -> Option<Vec<PathSegment>> {
+pub(super) fn densified(path: &[PathSegment], pull: &Pull) -> Option<Vec<PathSegment>> {
     let mut out: Vec<PathSegment> = Vec::with_capacity(path.len());
     let (mut at, mut start) = (DVec2::ZERO, DVec2::ZERO);
     let line = |out: &mut Vec<PathSegment>, from: DVec2, to: DVec2| -> Option<()> {
         let (near, long) = polyline_reach(pull.from, &[from, to]);
         let n = pieces(near, long, pull);
+        room(out, n)?;
         for i in 1..=n {
             out.push(PathSegment::LineTo(point(
                 from + (to - from) * (i as f64 / n as f64),
             )?));
-            if out.len() > MAX_SEGMENTS {
-                return None;
-            }
         }
         Some(())
     };
     for segment in path {
         match *segment {
             PathSegment::MoveTo(p) => {
+                room(&out, 1)?;
                 (at, start) = (pos(p), pos(p));
                 out.push(*segment);
             }
@@ -113,6 +118,7 @@ fn densified(path: &[PathSegment], pull: &Pull) -> Option<Vec<PathSegment>> {
                 let (near, long) =
                     polyline_reach(pull.from, &cubic_samples(at, curve[1], curve[2], curve[3]));
                 let n = pieces(near, long, pull);
+                room(&out, n)?;
                 for i in 0..n {
                     let (t0, t1) = (i as f64 / n as f64, (i + 1) as f64 / n as f64);
                     let [a, b, end] = cubic_piece(curve, t0, t1);
@@ -124,6 +130,8 @@ fn densified(path: &[PathSegment], pull: &Pull) -> Option<Vec<PathSegment>> {
                 // The closing edge is drawn back to the start: split it too, short of the start.
                 let (near, long) = polyline_reach(pull.from, &[at, start]);
                 let n = pieces(near, long, pull);
+                // `n - 1` lines and the close itself.
+                room(&out, n)?;
                 for i in 1..n {
                     out.push(PathSegment::LineTo(point(
                         at + (start - at) * (i as f64 / n as f64),
@@ -132,9 +140,6 @@ fn densified(path: &[PathSegment], pull: &Pull) -> Option<Vec<PathSegment>> {
                 out.push(PathSegment::Close);
                 at = start;
             }
-        }
-        if out.len() > MAX_SEGMENTS {
-            return None;
         }
     }
     Some(out)

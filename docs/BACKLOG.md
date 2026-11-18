@@ -192,7 +192,7 @@ found), **Not planned** (ROADMAP or PARITY says so).
 | Drawing assistants, perspective, vanishing point | AnimationCraft (`assist.rs`), OpenToonz `assistants/` | Gap | "Assistant tool" and "Edit assistant tool" in `not_yet.rs`; `flare-animate/src/workspace/assist.rs` exists and was not read, so check it first |
 | Raster (MyPaint) brushes, art brushes | AnimationCraft, OpenToonz | Gap | "MyPaint Toonz brush tool" in `not_yet.rs`; ROADMAP lower priority |
 | Particles | AnimationCraft (`particles.rs`) | Gap | only an i18n string matches |
-| Drop shadow, glow, blur, motion blur, colour filters | AnimationCraft (`fx.rs`), nflare, minnamate (`filters.rs`) | Gap | "drop shadow", "glow", "motion blur" match nothing |
+| Drop shadow, glow, blur, motion blur, colour filters | AnimationCraft (`fx.rs`), nflare, minnamate (`filters.rs`) | Partly | drop shadow, glow, blur, colour adjustment and tint are built for a scene layer as nodes of its effect graph (`flare-fx`); motion blur and filters on an instance are not |
 | EffectCraft effects (about 200) | AnimationCraft (`effectcraft.rs`) | Gap | none found; a git dependency on ArtCraft crates would be needed |
 | Import SVG | AnimationCraft | Gap | "svg" appears only in icon build code and the HTML5 publisher; ROADMAP high priority |
 | Import Photoshop PSD | AnimationCraft, ArtCraft (`photocraft-psd`) | Gap | no match; ROADMAP high priority ("artwork from Photoshop") |
@@ -334,6 +334,10 @@ approach" names the library tests (with failure paths) and the wiring tests the 
 
 - **Goal:** an ordered effect stack for objects and groups: drop shadow, glow, blur, colour
   adjust, motion blur along real movement, and then the EffectCraft set (about 200 effects).
+- **Done so far:** a scene layer's effects as a node graph (`flare-fx`, the Effects panel,
+  `flare fx`, the MCP effect tools) with drop shadow, glow, blur, colour adjustment, tint,
+  opacity, snow and a merge. Still to do here: filters on instances and groups, kept as Animate
+  keeps them and published to SWF where it can hold them, and motion blur.
 - **Read in reference:** AnimationCraft `ac-core/src/fx.rs`, `ac-render/src/effectcraft.rs`;
   minnamate `filters.rs` (kept in the element's `Extra`); nflare's `FilterDef.hx` (behaviour).
 - **Target:** `flare-document` (the stack, as data), `flare-core` (pixel work), `flare-render`

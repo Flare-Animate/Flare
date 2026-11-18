@@ -156,6 +156,7 @@ impl Workspace {
             Pane::Assets => inset.show(ui, |ui| self.assets_panel(ui)).inner,
             Pane::Swatches => inset.show(ui, |ui| self.swatches_panel(ui)).inner,
             Pane::Mannequin => inset.show(ui, |ui| self.mannequin_panel(ui)).inner,
+            Pane::Effects => inset.show(ui, |ui| self.effects_panel(ui)).inner,
         }
     }
 }

@@ -311,6 +311,7 @@ impl MenuAction {
             Self::CommandPalette => "menu-item-command-palette",
             Self::ShowSwatches => "menu-item-show-swatches",
             Self::ShowMannequin => "menu-item-show-mannequin",
+            Self::ShowEffects => "menu-item-show-effects",
             Self::ClearGuides => "menu-item-clear-guides",
             Self::About => "menu-item-about",
             Self::KeyboardShortcuts => "menu-item-keyboard-shortcuts",

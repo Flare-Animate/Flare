@@ -52,10 +52,12 @@ pub enum Pane {
     Swatches,
     /// The posable figure to draw from.
     Mannequin,
+    /// The active layer's effects as a node graph, with the chosen node's settings.
+    Effects,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 17] = [
+    pub const ALL: [Pane; 18] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
@@ -73,6 +75,7 @@ impl Pane {
         Pane::Assets,
         Pane::Swatches,
         Pane::Mannequin,
+        Pane::Effects,
     ];
 
     /// The icon of the panel in the strip at the right edge, for the panels that can be kept
@@ -92,6 +95,7 @@ impl Pane {
             Self::Assets => "panel-assets",
             Self::Swatches => "panel-swatches",
             Self::Mannequin => "panel-mannequin",
+            Self::Effects => "panel-effects",
             Self::Tools | Self::Stage | Self::Timeline | Self::Output => return None,
         })
     }
@@ -122,6 +126,7 @@ impl Pane {
             Self::Assets => "pane-assets",
             Self::Swatches => "pane-swatches",
             Self::Mannequin => "pane-mannequin",
+            Self::Effects => "pane-effects",
         }
     }
 
@@ -145,6 +150,7 @@ impl Pane {
             Self::Assets => "Assets",
             Self::Swatches => "Swatches",
             Self::Mannequin => "Mannequin",
+            Self::Effects => "Effects",
         }
     }
 }

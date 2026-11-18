@@ -82,3 +82,37 @@ fn with_a_shape_selected_only_it_is_pulled() {
     assert_eq!(top_of(&all[0]), 10.0, "the first was not selected");
     assert!(top_of(&all[1]) < -10.0, "the selected one bent");
 }
+
+#[test]
+fn a_held_pull_keeps_its_stamp_until_it_moves_and_no_two_previews_share_one() {
+    let mut ws = two_rectangles();
+    // A move drag first, so its preview has taken a stamp.
+    ws.select_at(Pos2::new(30.0, 30.0), false);
+    ws.begin_drag(Pos2::new(30.0, 30.0));
+    ws.update_drag(Pos2::new(40.0, 40.0));
+    let (moved, _) = ws.previewed_document().expect("a move preview");
+    ws.cancel_drag();
+    ws.end_drag();
+
+    ws.selected = None;
+    ws.set_tool(Tool::Magnet);
+    ws.springs.magnet.radius = 30.0;
+    ws.begin_drag(Pos2::new(30.0, 10.0));
+    ws.update_drag(Pos2::new(30.0, -20.0));
+    let (first, shown) = ws.previewed_document().expect("a pull preview");
+    let (again, kept) = ws.previewed_document().expect("still held");
+    assert_eq!(first, again, "the same pull is the same picture");
+    assert!(
+        std::sync::Arc::ptr_eq(&shown, &kept),
+        "and is not made again"
+    );
+    assert_ne!(first, moved, "a pull never reuses the move's stamp");
+    ws.update_drag(Pos2::new(30.0, -25.0));
+    let (later, _) = ws.previewed_document().expect("moved on");
+    assert_ne!(later, first, "a pull that moved is a new picture");
+    ws.springs.magnet.radius = 40.0;
+    let (wider, _) = ws.previewed_document().expect("wider");
+    assert_ne!(wider, later, "a wider reach is a new picture");
+    ws.cancel_drag();
+    ws.end_drag();
+}

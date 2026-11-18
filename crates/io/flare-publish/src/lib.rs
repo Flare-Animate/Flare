@@ -47,6 +47,40 @@ pub struct Diagnostic {
     pub message: String,
 }
 
+/// Most layer names a note about layer effects lists before it says how many more there are.
+const NAMED_LAYERS: usize = 5;
+
+/// The note that `format` drew the layers with effects without them, naming the first few;
+/// `None` when no layer's effects change its picture. Effects are pixels and these formats are
+/// vectors, so they are not baked in silently.
+pub(crate) fn effects_note(document: &Document, format: &str) -> Option<Diagnostic> {
+    let names: Vec<&str> = document
+        .scenes()
+        .iter()
+        .flat_map(|s| s.timeline().layers())
+        .filter(|l| l.effects().is_some_and(|g| !g.is_identity()))
+        .map(flare_document::Layer::name)
+        .collect();
+    if names.is_empty() {
+        return None;
+    }
+    let mut listed = names
+        .iter()
+        .take(NAMED_LAYERS)
+        .map(|n| format!("\"{n}\""))
+        .collect::<Vec<_>>()
+        .join(", ");
+    if names.len() > NAMED_LAYERS {
+        listed.push_str(&format!(" and {} more", names.len() - NAMED_LAYERS));
+    }
+    Some(Diagnostic {
+        severity: Severity::Warning,
+        message: format!(
+            "{format} holds no layer effects, so these layers were drawn without them: {listed}; export a video, GIF or PNG sequence to keep them"
+        ),
+    })
+}
+
 /// SWF character ids are 16 bits and 0 is reserved; the top id is kept free as well.
 const MAX_SHAPES: u32 = 65_534;
 
@@ -233,6 +267,7 @@ pub fn publish_swf(
             message: "a SWF has one timeline, so the scenes were played one after another".into(),
         });
     }
+    diagnostics.extend(effects_note(document, "a SWF"));
     diagnostics.push(Diagnostic {
         severity: Severity::Info,
         message:

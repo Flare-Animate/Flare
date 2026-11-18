@@ -18,43 +18,14 @@ use glamx::DAffine2;
 pub(crate) const MAX_DEPTH: usize = 64;
 pub(crate) const MAX_NODES: usize = 100_000;
 
+mod effects;
 mod frame;
+mod layer_flags;
 
-pub use frame::{ClipShape, DrawnBitmap, DrawnShape, EvalError, Frame, Placed};
+use layer_flags::{hidden_by_folder, view_alpha_of};
 
-/// Whether a folder above `layers[index]` that holds it (directly or through other folders) is
-/// hidden. Parents are always earlier layers, so one pass up the list finds them all.
-fn hidden_by_folder(layers: &[flare_document::Layer], index: usize) -> bool {
-    let mut parent = layers[index].parent();
-    while let Some(id) = parent {
-        let Some(folder) = layers[..index].iter().find(|l| l.id() == id) else {
-            return false;
-        };
-        if !folder.is_visible() {
-            return true;
-        }
-        parent = folder.parent();
-    }
-    false
-}
-
-/// How opaque the stage draws `layers[index]` while it is edited: its own view opacity times that
-/// of every folder it is in, from 0 to 1. Bounded by the number of layers, so a damaged list of
-/// parents cannot loop.
-fn view_alpha_of(layers: &[flare_document::Layer], index: usize) -> f32 {
-    let percent = |l: &flare_document::Layer| f32::from(l.view_opacity()) / 100.0;
-    let mut alpha = percent(&layers[index]);
-    let mut parent = layers[index].parent();
-    for _ in 0..index {
-        let Some(folder) = parent.and_then(|id| layers[..index].iter().find(|l| l.id() == id))
-        else {
-            break;
-        };
-        alpha *= percent(folder);
-        parent = folder.parent();
-    }
-    alpha
-}
+pub use effects::MAX_EFFECT_RUNS;
+pub use frame::{ClipShape, DrawnBitmap, DrawnShape, EffectRun, EvalError, Frame, Placed};
 
 fn scene_of(document: &Document, scene: SceneId) -> Result<&flare_document::Scene, EvalError> {
     document
@@ -200,6 +171,9 @@ fn walk<'a>(
             out.bitmaps[bitmaps..]
                 .iter_mut()
                 .for_each(|b| b.view_alpha *= alpha);
+        }
+        if path.is_empty() {
+            effects::record(document, layer, frame, (shapes, bitmaps), out);
         }
     }
     Ok(())

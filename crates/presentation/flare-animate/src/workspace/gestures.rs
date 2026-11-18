@@ -319,7 +319,7 @@ impl Workspace {
                 self.commit_drag_edit(edit);
             }
         }
-        self.drag_preview = None;
+        self.drag_preview.held = None;
     }
 
     /// Where the shape being dragged out ends: at the pointer, except that Shift holds a line to

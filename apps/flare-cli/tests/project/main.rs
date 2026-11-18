@@ -14,6 +14,7 @@ mod elements;
 mod flipnote;
 mod formats;
 mod frame_runs;
+mod fx;
 mod game;
 mod layer_ops;
 mod layers_and_stage;

@@ -278,6 +278,11 @@ pub(crate) enum Command {
         #[command(subcommand)]
         op: crate::game::GameCommand,
     },
+    /// A layer's effects, as a node graph: list the kinds, show, add, set, connect, remove.
+    Fx {
+        #[command(subcommand)]
+        op: crate::fx::FxCommand,
+    },
     /// The reference mannequin: list what a figure can be, print one, place one on a layer.
     Mannequin {
         #[command(subcommand)]

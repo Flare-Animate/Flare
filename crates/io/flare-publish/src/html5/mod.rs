@@ -224,6 +224,7 @@ pub fn publish_html5(
                 .into(),
         });
     }
+    diagnostics.extend(crate::effects_note(document, "an HTML5 page"));
     diagnostics.push(Diagnostic {
         severity: Severity::Info,
         message: "frames were baked: tweens became per-frame positions and symbols were flattened"

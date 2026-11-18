@@ -22,6 +22,8 @@ pub enum LayerChange {
     Parent(Option<LayerId>),
     /// How opaque the stage draws the layer, in percent (held at 100); exports ignore it.
     ViewOpacity(u8),
+    /// Sets the layer's effect graph, or takes its effects away with `None`.
+    Effects(Option<flare_fx::EffectGraph>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
