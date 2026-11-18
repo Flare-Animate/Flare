@@ -148,6 +148,14 @@ Flare stands on these projects. Their licence notices are kept where code was po
 - **ArtCraft** (`MIT OR Apache-2.0`) and **minnamate** (no licence file, behaviour only) are studied sources. Their licences are listed in [docs/BACKLOG.md](docs/BACKLOG.md).
 - **nflare** and **FFDec** (GPLv3): behaviour only, no code. **SimplSam/moho-bvh-bones** (CC BY-NC-SA 4.0): not used.
 
+## Is this Vibecoded?
+
+Yes and No.
+
+While it is true that Agents such as Claude have been used during Flare's development, and at times carrying the bulk of development, the project is built ontop of a human-written codebase and is overseen and, when we are able, worked on by people.
+
+We actively try our best to put as much human output into the project as possible and are currently looking for more developers that can donate their time to the project.
+
 ## Community
 
 [Discord](https://discord.com/invite/JpeScW8Awa) · [Website](https://flare-animate.github.io/website/) · [Discussions](https://github.com/orgs/Flare-Animate/discussions) · [Issues](https://github.com/Flare-Animate/Flare/issues)
