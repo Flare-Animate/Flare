@@ -66,6 +66,9 @@ impl Workspace {
                 let visuals = ui.visuals_mut();
                 visuals.text_cursor.stroke = Stroke::NONE;
                 visuals.selection.bg_fill = Color32::TRANSPARENT;
+                // egui draws selected letters in the selection color, which would show the
+                // field's own letters over the real ones.
+                visuals.selection.stroke.color = Color32::TRANSPARENT;
                 let field = id.with("field");
                 let end = egui::text::CCursor::new(edit.buffer.chars().count());
                 let at_end = egui::text::CCursorRange::one(end);
