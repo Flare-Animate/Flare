@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The version is a placeholder: the publish workflow replaces it with the release's
+     version before packing, so the committed file never goes stale. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>flare</id>
+    <version>0.0.0</version>
+    <title>Flare</title>
+    <authors>Flare-Animate</authors>
+    <owners>Flare-Animate</owners>
+    <projectUrl>https://github.com/Flare-Animate/Flare</projectUrl>
+    <packageSourceUrl>https://github.com/Flare-Animate/Flare/tree/main/packaging/chocolatey</packageSourceUrl>
+    <license type="expression">BSD-3-Clause</license>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Flare is an open-source animation tool in the tradition of Flash and Animate. This package installs the official Windows build to Program Files and puts it on the machine PATH.</description>
+    <summary>An open-source animation tool in the Flash and Animate tradition.</summary>
+    <releaseNotes>https://github.com/Flare-Animate/Flare/blob/main/CHANGELOG.md</releaseNotes>
+    <tags>animation animator flash animate toonz flare</tags>
+  </metadata>
+</package>

@@ -25,8 +25,8 @@ pub use codec::NativeZstd;
 pub use codec::{Codec, Packer, Stored, Zstd, unpack};
 pub use fingerprint::{Fingerprint, baseline, fingerprint};
 pub use records::{
-    MAX_ENTITIES, MAX_PAYLOAD_BYTES, MAX_SOUND_PAYLOAD_BYTES, Parts, Record, SCHEMA_VERSION,
-    from_parts, to_parts,
+    MAX_ENTITIES, MAX_PAYLOAD_BYTES, MAX_SHADER_PAYLOAD_BYTES, MAX_SOUND_PAYLOAD_BYTES, Parts,
+    Record, SCHEMA_VERSION, SHADER_SCHEMA_VERSION, from_parts, to_parts,
 };
 pub use recovery::{
     RecoveryEntry, discard_recovery, list_recoveries, recovery_path, save_recovery,

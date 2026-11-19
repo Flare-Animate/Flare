@@ -27,3 +27,5 @@ pub const MAX_PALETTE_ITEMS: usize = 1_000_000;
 pub const MAX_FPS: f64 = 1000.0;
 /// Most tags read from one PLI file.
 pub const MAX_PLI_TAGS: usize = 4_000_000;
+/// Rows, tracks and cells of one XDTS timing sheet; a sheet over any of these is refused.
+pub const MAX_XDTS_ROWS: u32 = 1_000_000;

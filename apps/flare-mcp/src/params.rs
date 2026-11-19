@@ -26,6 +26,8 @@ pub struct ExportPng {
     pub width: Option<u32>,
     /// Output height in pixels; defaults to the stage height.
     pub height: Option<u32>,
+    /// Ordered named shader graphs to apply; at most 16. Defaults to no shader effects.
+    pub shaders: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]

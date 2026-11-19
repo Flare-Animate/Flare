@@ -27,6 +27,7 @@ priority is estimated against the roadmap above. Rows are ordered by priority, t
 | [#53](https://github.com/Flare-Animate/Flare/issues/53) Studio pipeline | Low | XL | Dockable panels, the icon strip, named workspaces with a switcher, and four workspace profile definitions | Node compositing, shared asset linking and collaboration |
 | [#123](https://github.com/Flare-Animate/Flare/issues/123) Interactive projects | Low | XL | Imported scripts are preserved as data; SWF playback is delegated to Ruffle | Authoring or running ActionScript 2/3 or JavaScript in Flare |
 | [#230](https://github.com/Flare-Animate/Flare/issues/230) Flash 3D engines | Low | XL | SWF import identifies known engines and reports embedded binary blocks | Reconstructing 3D scenes or producing working source code from compiled SWFs |
+| [#245](https://github.com/Flare-Animate/Flare/issues/245) Powerful shaders | Medium | XL | A bounded CPU graph evaluator, per-pixel source-image filtering, validated document assets, command editing, `.flare` persistence, portable graph import/export, CLI and MCP library tools, and on-demand frame rendering through ordered stacks | Timeline-attached effect stacks, desktop/browser authoring UI, OpenToonz shader compatibility and Unity/Blender graph import |
 
 The largest risks are model/format changes or untrusted code execution; those need separate
 designs, fixtures and surface-specific tests. The issue links are cross-references, not a claim
@@ -67,6 +68,8 @@ Timeline, symbols and library
 - Several named cameras and a shot track that picks the camera for each stretch of time, with hard cuts first, so a close-up can be framed without keyframes or a copy of the scene
 - Masking beyond mask layers: clipping groups, clip to base, and alpha and luminance masks, each with a defined order and no cycles
 - Effects beyond a scene layer's node graph (built: the Effects panel, `flare fx` and the MCP effect tools, see ARCHITECTURE.md): effects on symbols, folders and the scene's output, settings keyed over time, and more kinds of node (motion blur along real movement, rain, light rays)
+- An ordered, non-destructive effect stack for post-processing objects, groups and the scene's output
+- Powerful shaders (#245): a bounded CPU graph evaluator, source-image filter, document shader library, atomic edit command, `.flare` schema v5 records, portable graph import/export, CLI/MCP library tools, and on-demand CLI/MCP frame rendering through a bounded stack are built; timeline-attached effects, desktop/browser authoring UI, OpenToonz Shader Fx compatibility, and Unity/Blender graph import remain unimplemented (see [SHADERS.md](SHADERS.md))
 - Find and Replace across text, fonts, colors and symbols
 - Shared and external libraries, and an Assets panel
 - A visual Frame Picker for a Graphic's first frame
@@ -293,6 +296,10 @@ attribution in docs/ENGINEERING.md) and not yet checked against user files.
 - [x] Phase 3, sniffing: `.pli` (`PLIM`/`MILP`) and `.tlv` (`TLV10`..`TLV12`).
 - [x] Phase 3b, vector `.pli` decoding (version 5.7 and later): thick quadratic chains, groups,
   colour tags, precision scale, palette style tags. Filled regions are counted, not decoded.
+- [x] Phase 3c, XDTS timing sheets (`.xdts`): the identifier line and JSON are read and written with
+  one track per level column (bottom first, named after its level), an entry wherever the exposure
+  changes, and the null cell for a blank. Import maps a track onto the level columns its name
+  matches and rebuilds their cell runs. Rows, tracks and cells are bounded.
 - [ ] Phase 4, raster `.tlv` decoding (LZO-compressed tiles and the icon and frame tables).
   Returns NotYetImplemented; a scene with raster levels converts with empty cells and a named note.
 - [ ] Phase 5, fx schematics: fx nodes and their ports in the scene.

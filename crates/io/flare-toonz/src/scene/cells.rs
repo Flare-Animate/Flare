@@ -54,7 +54,7 @@ fn number<T: std::str::FromStr>(field: Option<&str>, what: &str) -> Result<T, To
 }
 
 /// Parses a frame id such as `3` or `12a`. An empty id is refused.
-fn parse_frame(text: &str) -> Result<FrameId, ToonzError> {
+pub(crate) fn parse_frame(text: &str) -> Result<FrameId, ToonzError> {
     let digits = text.bytes().take_while(u8::is_ascii_digit).count();
     let (number, rest) = text.split_at(digits);
     if number.is_empty() {

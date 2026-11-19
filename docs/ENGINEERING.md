@@ -84,13 +84,22 @@ code it protects and confirm the test notices.
 ## Continuous integration
 
 Workflows are in `.github/workflows/`; the toolchain, cache and Linux libraries are set up once
-in `.github/actions/setup-rust`. Every workflow except `nightly.yml` (a daily schedule, and by hand) and `platforms.yml` (called by `release.yml` and `nightly.yml`) runs on pushes to `main`, on pull requests and by
-hand (`workflow_dispatch`), cancels a superseded run of the same branch or pull request (never on `main`), and has read-only
-`contents` permission unless a job says otherwise.
+in `.github/actions/setup-rust`. A workflow runs on pushes to `main`, on pull requests and by hand
+(`workflow_dispatch`) unless it has a narrower trigger: `workflow-lint.yml` and
+`copilot-setup-steps.yml` follow their own files, `ci-status-aggregator.yml` follows the runs of
+`ci.yml`, `agentic-auto-fix.yml` waits for its label on a pull request, `publish-chocolatey.yml`
+follows a published release, and `nightly.yml` is the daily schedule. A run of the same branch or
+pull request is cancelled when superseded (never on `main`), and `contents` is read-only unless a
+job says otherwise.
 
 | Workflow | What it does | Target |
 | --- | --- | --- |
 | `ci.yml` | fmt (Linux only), clippy and tests on Linux, Windows and macOS; scripts tests, wasm checks, `cargo audit`, file-length and docs rules | Linux, Windows, macOS, Web |
+| `workflow-lint.yml` | actionlint over every workflow, on a change to one of them or to `.github/actionlint.yml`; the config names the runner labels the pinned actionlint predates | the workflows themselves |
+| `ci-status-aggregator.yml` | when `ci.yml` finishes, one comment on the pull request lists every check run on its head commit, edited in place per commit | pull requests |
+| `copilot-setup-steps.yml` | the environment the GitHub Copilot agent starts from: pinned toolchain, Linux libraries and a compile of `flare-core` to prove it | Copilot |
+| `agentic-auto-fix.yml` | opt-in with the `agentic-auto-fix` label: runs the fmt, clippy and test gate, keeps the log as an artifact and posts its tail to the pull request; the fixes to try are in `agentic-auto-fix.md` | pull requests |
+| `publish-chocolatey.yml` | when a release is published, packs its Windows portable archive into a Chocolatey package with the archive's SHA-256 baked in, and pushes it to the community feed | Windows |
 | `android.yml` | universal, arm64-v8a and x86_64 APKs with `cargo apk` (ChromeOS runs the x86_64 or arm64 one; the manifest makes touch, keyboard, mouse and camera optional and the window resizable) | Android |
 | `ios.yml` | compiles `flare-shell` and the desktop binary for `aarch64-apple-ios` (window-system and clipboard crates are gated off iOS in `flare-shell`'s Cargo.toml, and rfd is gated off iOS in `flare-platform`'s), then wraps the binary in an experimental unsigned `.ipa`. This is a build check, not an iOS app; see SURFACES.md | iOS (not yet an app) |
 | `pages.yml` | builds the page with `apps/flare-web/scripts/build.sh`; a push to `main` deploys it to GitHub Pages | Web |

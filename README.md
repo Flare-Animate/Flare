@@ -114,11 +114,15 @@ On Linux install the libraries listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Drawn by an agent through `flare-mcp`: on the right, the body movement of the dance clip on the left, found frame by frame with a pose model and brushed onto 410 keyframes with the `brush_stroke` tool.
 
-## Why Flare exists
+## Why does this exist?
 
-Adobe [announced](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) the end of life of Animate and later [reversed course](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). The reversal does not change how volatile the animation industry is, or how much of it one company controls. Animators were thrown into legitimate panic, and people's careers should not depend on one company's decision to keep selling a product.
+Well, for a few reasons.
 
-Flare began as a playground for making animation easier to learn, was later open-sourced, and grew from there.
+First and foremost, due to the [Announcement](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) by Adobe earlier this year to discontinue Adobe Animate. While this was later [u-turned on](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459), in my opinion it shows how volatile the Animation Industry is and displays how much of a monopoly certain companies have on it. There was legitimate panic over it, and I think that people shouldn't have to be concerned for their careers just because one product isn't being sold anymore.
+
+Secondly, it was for personal use, I used Flare in the first few months as a playground to experiment with making Animation easier for me to learn, so I could basically finetune it to what I liked  best, and I decided to Open Source it, to which many people liked it, and with one Discord and the announcement of ArtCraft later, interest in contributing to Flare went up quite a bit!
+
+I had been slowly just experimenting with Flare with minimal focus over the previous months, but now that I had finished with another side-project, I decided to put more time into fleshing out Flare.
 
 ## Roadmap
 
@@ -157,6 +161,14 @@ Flare stands on these projects. Their licence notices are kept where code was po
 - **Ruffle** (`third_party/ruffle`, a submodule used unmodified under its own licence): Flash playback for Test Movie, and the `swf` crate for SWF publishing.
 - **ArtCraft** (`MIT OR Apache-2.0`) and **minnamate** (no licence file, behaviour only) are studied sources. Their licences are listed in [docs/BACKLOG.md](docs/BACKLOG.md).
 - **nflare** and **FFDec** (GPLv3): behaviour only, no code. **SimplSam/moho-bvh-bones** (CC BY-NC-SA 4.0): not used.
+
+## Is this Vibecoded?
+
+Yes and No.
+
+While it is true that Agents such as Claude have been used during Flare's development, and at times carrying the bulk of development, the project is built ontop of a human-written codebase and is overseen and, when we are able, worked on by people.
+
+We actively try our best to put as much human output into the project as possible and are currently looking for more developers that can donate their time to the project.
 
 ## Community
 

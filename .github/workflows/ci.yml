@@ -65,6 +65,10 @@ jobs:
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s scripts/tests -p 'test_layers.py' -v
 
+      - name: The CI monitor reads checks and schedules its polls
+        if: runner.os == 'Linux'
+        run: python3 -m unittest discover -s scripts/tests -p 'test_ci_monitor.py' -v
+
       - name: The manifests follow the workspace rules and the surfaces table is well formed
         if: runner.os == 'Linux'
         run: |

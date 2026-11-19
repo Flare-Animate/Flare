@@ -82,7 +82,7 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Render a frame to a PNG in the export directory (disabled when no export directory is configured)."
+        description = "Render a frame to a PNG in the export directory (disabled when no export directory is configured). Optionally apply up to 16 named shader graphs in order; each graph receives the previous result as its source color."
     )]
     fn export_png(&self, Parameters(args): Parameters<ExportPng>) -> Outcome {
         self.read(|state| {
@@ -106,6 +106,31 @@ impl FlareServer {
                 .map_err(|e| e.to_string())?;
             let image = flare_render::render(&evaluated, width, height, stage.background())
                 .map_err(|e| e.to_string())?;
+            let shader_names = args.shaders.unwrap_or_default();
+            if shader_names.len() > flare_render::MAX_SHADER_STACK {
+                return Err(format!(
+                    "shader stacks are limited to {} graphs",
+                    flare_render::MAX_SHADER_STACK
+                ));
+            }
+            let graphs = shader_names
+                .iter()
+                .map(|name| {
+                    document
+                        .shader_assets()
+                        .iter()
+                        .find(|asset| asset.name() == name)
+                        .map(|asset| asset.graph())
+                        .ok_or_else(|| format!("shader graph {name:?} is not in this project"))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            let time = document
+                .frame_rate()
+                .frame_start_ns(u64::from(args.frame))
+                .map_err(|error| error.to_string())? as f32
+                / 1_000_000_000.0;
+            let image = flare_render::apply_shader_stack(&graphs, &image, time)
+                .map_err(|error| error.to_string())?;
             std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
             // Written beside the target and renamed, so a reader never sees half a file.
             let mut staged = tempfile::NamedTempFile::new_in(&dir).map_err(|e| e.to_string())?;
@@ -114,7 +139,12 @@ impl FlareServer {
                 .map_err(|e| e.to_string())?;
             let out = dir.join(&file);
             staged.persist(&out).map_err(|e| e.error.to_string())?;
-            Ok(json!({ "path": out.to_string_lossy(), "width": width, "height": height }))
+            Ok(json!({
+                "path": out.to_string_lossy(),
+                "width": width,
+                "height": height,
+                "shaders": shader_names,
+            }))
         })
     }
 }

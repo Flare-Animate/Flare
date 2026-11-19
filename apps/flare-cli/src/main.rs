@@ -10,6 +10,7 @@ mod magic_wand;
 mod magnet;
 mod mannequin;
 mod project;
+mod shader;
 mod shortcuts;
 mod stopmotion;
 mod symbol;
@@ -134,6 +135,7 @@ fn run() -> Result<()> {
         Command::VideoImport(args) => video::run(args)?,
         Command::LipSync(args) => lipsync::run(args)?,
         Command::BrushImport(args) => brush::run(args)?,
+        Command::Shader { op } => shader::run(op)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
         Command::AddLayer { path, name } => project::add_layer(&path, &name)?,

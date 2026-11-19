@@ -1,0 +1,59 @@
+# Packs the Windows portable archive of a published release into a Chocolatey package and
+# pushes it to the community feed. It runs on the release's own event, so nothing here
+# creates or moves a tag; a release that is never published never reaches the feed.
+name: Publish Chocolatey Package
+on:
+  release:
+    types: [published]
+permissions:
+  contents: read
+concurrency:
+  group: publish-chocolatey-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download the Windows portable archive and hash it
+        id: archive
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          if (-not $tag.StartsWith('v')) {
+            Write-Error "Release tag $tag does not start with v; the assets are named from it."
+          }
+          $version = $tag.Substring(1)
+          $asset = "flare-$version-windows-x64-portable.zip"
+          $url = "https://github.com/${{ github.repository }}/releases/download/$tag/$asset"
+          Write-Host "Downloading $url"
+          Invoke-WebRequest -Uri $url -OutFile $asset -UseBasicParsing
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "checksum=$((Get-FileHash $asset -Algorithm SHA256).Hash.ToLower())" >> $env:GITHUB_OUTPUT
+      - name: Fill the version and checksum into the package
+        shell: pwsh
+        run: |
+          $nuspec = 'packaging/chocolatey/flare.nuspec'
+          $install = 'packaging/chocolatey/tools/chocolateyinstall.ps1'
+          $version = '${{ steps.archive.outputs.version }}'
+          $checksum = '${{ steps.archive.outputs.checksum }}'
+          (Get-Content $nuspec) -replace '<version>0.0.0</version>', "<version>$version</version>" | Set-Content $nuspec
+          (Get-Content $install) -replace '__VERSION__', $version -replace '__CHECKSUM__', $checksum | Set-Content $install
+      - name: Pack and check the package
+        shell: pwsh
+        run: |
+          choco pack packaging/chocolatey --outdir dist
+          $nupkg = Get-ChildItem dist -Filter 'flare.*.nupkg' | Select-Object -First 1
+          if (-not $nupkg) { Write-Error 'choco pack produced no package'; exit 1 }
+          choco install $nupkg.FullName --noop --yes --force
+      - name: Push to the community feed
+        shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: |
+          if (-not $env:CHOCO_API_KEY) {
+            Write-Error 'CHOCO_API_KEY is not configured; the package was packed and checked but not pushed.'
+          }
+          $nupkg = Get-ChildItem dist -Filter 'flare.*.nupkg' | Select-Object -First 1
+          choco push $nupkg.FullName --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY

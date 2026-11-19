@@ -87,7 +87,7 @@ def rerun_failed(runs, repo):
     return run_ids
 
 
-def watch(repo, sha, branch, rerun, interval, max_wait, log):
+def watch(repo, sha, branch, rerun, max_wait, log):
     """Poll until the checks are done or the wait runs out; log and print every poll."""
     waited = 0.0
     current = 0.0
@@ -136,11 +136,7 @@ def main():
         parser.error("watch a --pr or a --sha")
     with open(args.log, "a", encoding="utf-8") as log:
         log.write(f"---- watch of {sha} started ----\n")
-        sys.exit(watch(repo, sha, branch, args.rerun_failed,
-                       DEFAULT_INTERVAL, args.max_wait, log))
-
-
-import os  # noqa: E402  (after the docstring's imports block, kept beside its only user)
+        sys.exit(watch(repo, sha, branch, args.rerun_failed, args.max_wait, log))
 
 
 if __name__ == "__main__":
