@@ -70,7 +70,7 @@ play. Removing the ignore means moving the Ruffle pin to a version that has fixe
 The notes it passes are tracked: `ttf-parser` (through the window-decoration font code),
 `proc-macro-error` and `paste`, `chrono` (through Ruffle), the `zbus` family (through the file
 dialogs; `zbus_names`, `zvariant` and `zvariant_derive` are unmaintained as separate crates now
-that `zbus` 6 has absorbed them), and the unsoundness in `glib`'s `VariantStrIter` (through the
-menu library's GTK support, which only exists in its Linux build; Flare uses that library on
-macOS only, so `glib` is in `Cargo.lock` but not in any shipped program). They are tracked and
-will be replaced when their parents move.
+that `zbus` 6 has absorbed them), and the unsoundness in `glib`'s `VariantStrIter`
+(`RUSTSEC-2024-0429`; `glib` reaches the lock file only through the GTK backend of `muda`, the
+macOS menu library, so no target Flare builds selects it). They are tracked and will be replaced
+when their parents move.
