@@ -47,6 +47,9 @@ The rules are in [AGENTS.md](AGENTS.md) and [docs/ENGINEERING.md](docs/ENGINEERI
 - No `unwrap`, `expect` or panics on user data; errors are typed.
 - Exports and publishes write beside the target and rename into place, never overwrite, and leave
   nothing behind on failure.
+- Archives are read through their central directory, the index other tools inspect, and entries
+  are never extracted to a path taken from the archive; an entry whose local and central names
+  disagree is read under its central name.
 - The MCP server only writes inside an export directory chosen at start-up, accepts plain file
   names only, and caps image sizes.
 - Property tests feed random and truncated data to the importers, storage and the editing core;

@@ -63,6 +63,12 @@ impl FileSource for DirSource {
 }
 
 /// A zipped modern `.fla`, which is an XFL directory in an archive.
+///
+/// Entries are read through the central directory ([`zip::ZipArchive`]), the index other tools
+/// read, and are looked up by name rather than extracted to disk. Where an archive's local header
+/// names an entry differently from the central directory, the central name is the one used, so a
+/// payload can never arrive under a name that was only in the local header. Adding a streaming
+/// extractor would change that guarantee.
 pub struct ZipSource<R = File>(RefCell<zip::ZipArchive<R>>);
 
 impl ZipSource {
