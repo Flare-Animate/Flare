@@ -3,9 +3,8 @@
 use std::num::NonZeroU32;
 
 use flare_commands::Command;
-use flare_core::{InstanceId, LayerId, Rgba8, SymbolId, Transform2D};
+use flare_core::{InstanceId, LayerId, Rgba8, SymbolId};
 use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Timeline, Tween};
-use glamx::{DAffine2, DVec2};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
 
@@ -96,7 +95,9 @@ impl FlareServer {
         })
     }
 
-    #[tool(description = "Place a symbol instance on a layer (needs write access).")]
+    #[tool(
+        description = "Place a symbol instance on a layer: its registration point at `x`, `y`, turned `rotate` degrees clockwise and scaled by `scale_x`, `scale_y` about it; with `tween` it tweens to the next span of the same symbol (needs write access)."
+    )]
     fn place_instance(&self, Parameters(args): Parameters<PlaceInstance>) -> Outcome {
         self.write(args.expected_revision, |state| {
             let symbol = parse_id(&args.symbol, "symbol")?;
@@ -104,9 +105,14 @@ impl FlareServer {
                 first_scene(state)?,
                 target_layer(state, args.layer.as_deref())?,
             );
-            let at = DVec2::new(args.x.unwrap_or(0.0), args.y.unwrap_or(0.0));
-            let transform =
-                Transform2D::new(DAffine2::from_translation(at)).map_err(|e| e.to_string())?;
+            let transform = flare_tools::ops::placement(
+                args.x.unwrap_or(0.0),
+                args.y.unwrap_or(0.0),
+                args.rotate.unwrap_or(0.0),
+                args.scale_x.unwrap_or(1.0),
+                args.scale_y.unwrap_or(1.0),
+            )
+            .map_err(|e| format!("cannot place: {e}"))?;
             let instance = Instance::new(InstanceId::new(), SymbolId::from_uuid(symbol), transform);
             let mut span = FrameSpan::new(
                 args.start.unwrap_or(0),

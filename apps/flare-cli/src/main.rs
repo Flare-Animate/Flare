@@ -449,27 +449,7 @@ fn run() -> Result<()> {
                 _ => bail!("unreachable: this format is a still image"),
             },
         },
-        Command::Place {
-            path,
-            symbol,
-            start,
-            duration,
-            x,
-            y,
-            tween,
-            layer,
-        } => project::place(
-            &path,
-            project::PlaceOptions {
-                symbol,
-                start,
-                duration,
-                x,
-                y,
-                tween,
-                layer,
-            },
-        )?,
+        Command::Place(args) => project::place(&args)?,
     };
     let stdout = std::io::stdout();
     let mut stdout = stdout.lock();

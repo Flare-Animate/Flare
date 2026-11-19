@@ -457,22 +457,5 @@ pub(crate) enum Command {
         columns: Option<u32>,
     },
     /// Place a symbol instance on the first layer of the first scene.
-    Place {
-        path: PathBuf,
-        symbol: uuid::Uuid,
-        #[arg(long, default_value_t = 0)]
-        start: u32,
-        #[arg(long, default_value_t = 1)]
-        duration: u32,
-        #[arg(long, default_value_t = 0.0)]
-        x: f64,
-        #[arg(long, default_value_t = 0.0)]
-        y: f64,
-        /// Tween linearly to the next adjacent span of the same symbol.
-        #[arg(long)]
-        tween: bool,
-        /// Layer id from `add-layer` or `info` (default: the first layer).
-        #[arg(long)]
-        layer: Option<uuid::Uuid>,
-    },
+    Place(project::PlaceArgs),
 }
