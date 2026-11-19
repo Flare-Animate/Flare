@@ -16,7 +16,8 @@ swf.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-flare-as3 = { path = ".", features = ["fixtures"] }
+# Its own fixtures, for its tests.
+flare-as3 = { workspace = true, features = ["fixtures"] }
 
 [lints]
 workspace = true
