@@ -31,6 +31,7 @@ mod pixels;
 mod run;
 mod sound;
 mod sprites;
+mod text;
 mod video_import;
 mod waveform;
 mod workers;
@@ -58,9 +59,12 @@ pub use movie::{
     MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, animated_webp_bytes, apng_bytes, gif_bytes, gif_bytes_on,
 };
 pub use pixels::{PixelJob, WAND_PREVIEW_SIDE, WandPicked};
-pub use run::{ExtraFonts, font_families, run_audio, run_io, run_render, run_text, text_shape};
+pub use run::{run_audio, run_io, run_render};
 pub use sound::{SoundImportError, SoundLayer, sound_layer};
 pub use sprites::{MAX_SHEET_FRAMES, MAX_SHEET_SIDE, SpriteSheet, sprite_sheet};
+pub use text::{
+    ExtraFonts, add_google_fonts, font_families, google_font_families, run_text, text_shape,
+};
 pub use video_import::{VideoJob, VideoOutcome, VideoProgress, run_video};
 pub use waveform::{WaveformError, frame_peaks, sound_waveforms};
 pub use workers::Wake;
@@ -248,11 +252,15 @@ impl Runtime {
         match self.workers.as_ref().and_then(|w| w.text_tx.as_ref()) {
             Some(tx) => {
                 if let Err(failed) = tx.send(job) {
-                    let _ = self.done_tx.send(run_text(&failed.0, &self.fonts));
+                    for done in run_text(failed.0, &self.fonts) {
+                        let _ = self.done_tx.send(done);
+                    }
                 }
             }
             None => {
-                let _ = self.done_tx.send(run_text(&job, &self.fonts));
+                for done in run_text(job, &self.fonts) {
+                    let _ = self.done_tx.send(done);
+                }
             }
         }
     }

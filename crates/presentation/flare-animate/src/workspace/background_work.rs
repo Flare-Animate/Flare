@@ -105,7 +105,9 @@ impl Workspace {
                 // The stored letters are back in charge, or the new ones are.
                 self.clear_text_preview();
             }
-            Done::Families(families) => self.text.families = families,
+            Done::Families(families) => self.families_arrived(families),
+            Done::FontsWanted(families) => self.fonts_wanted(families),
+            Done::FontsAdded { family, result } => self.fonts_added(family, result),
             Done::WandPicked { id, result } => self.wand_picked_arrived(id, result),
             Done::LipSynced {
                 id,

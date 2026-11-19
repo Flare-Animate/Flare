@@ -73,6 +73,7 @@ opt-bold = Полужирный
 opt-italic = Курсив
 opt-filter = Фильтр
 opt-no-font = Ни один шрифт не подходит.
+opt-google-fonts = Google Fonts
 opt-text-error = Не удаётся изменить текст: { $error }
 opt-nothing-selected = Ничего не выбрано
 opt-select-something = Выделите что-нибудь на сцене.

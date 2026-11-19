@@ -73,6 +73,7 @@ opt-bold = Tučné
 opt-italic = Kurzíva
 opt-filter = Filtr
 opt-no-font = Žádné písmo neodpovídá.
+opt-google-fonts = Google Fonts
 opt-text-error = Text nelze změnit: { $error }
 opt-nothing-selected = Nic není vybráno
 opt-select-something = Vyberte něco na scéně.

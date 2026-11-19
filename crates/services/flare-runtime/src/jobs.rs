@@ -87,6 +87,12 @@ pub enum TextJob {
         shape: flare_core::ShapeId,
         fill: flare_core::Rgba8,
     },
+    /// The files of the Google Fonts family `family`, as the front end downloaded them after a
+    /// [`Done::FontsWanted`], or why it could not. Text waiting for the family is then set.
+    AddFonts {
+        family: String,
+        fonts: Result<Vec<Vec<u8>>, String>,
+    },
 }
 
 pub enum IoJob {
@@ -156,6 +162,15 @@ pub enum Done {
     },
     /// The font families there are, sorted.
     Families(Vec<String>),
+    /// Text names these Google Fonts families, which are not here: the front end downloads each
+    /// (`flare_text::GoogleFamily::urls`) and answers with [`TextJob::AddFonts`]. Text to set
+    /// waits for them; it is asked again for a family until that answer comes.
+    FontsWanted(Vec<String>),
+    /// A family from [`TextJob::AddFonts`] was added, or why not (then text falls back).
+    FontsAdded {
+        family: String,
+        result: Result<(), String>,
+    },
     /// Text being typed: its shape so far (none while it has no letters) and its caret.
     TextPreview {
         id: u64,

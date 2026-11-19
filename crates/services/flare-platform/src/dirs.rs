@@ -49,6 +49,15 @@ pub fn config_dir() -> Option<PathBuf> {
     settings_dir()
 }
 
+/// Where downloaded Google Fonts families are kept, so each is downloaded once. A cache: the
+/// platform may clear it, and then a family is downloaded again when text needs it.
+pub fn font_cache_dir() -> Option<PathBuf> {
+    if let Some(root) = APP_ROOT.get() {
+        return Some(root.join("cache").join("google-fonts"));
+    }
+    flare_webfonts::default_cache_dir()
+}
+
 /// The per-user recovery directory: unsaved work written in case of a crash.
 pub fn recovery_dir() -> Option<PathBuf> {
     application_dir().map(|dir| dir.join("recovery"))
@@ -143,6 +152,11 @@ mod tests {
         assert_eq!(layout.parent(), prefs.parent(), "settings sit together");
         assert!(layout.ends_with("layout.json") && prefs.ends_with("preferences.json"));
         assert!(recovery.ends_with("recovery"));
+        let fonts = font_cache_dir().expect("a home has a cache too");
+        assert!(
+            fonts.is_absolute() && fonts.ends_with("google-fonts"),
+            "{fonts:?}"
+        );
         // The platform's own convention, asked directly: the app-root test names a root for the
         // whole process, so the files above may sit under that instead.
         let Some(dirs) = project() else { return };
@@ -164,6 +178,9 @@ mod tests {
         assert!(layout.ends_with("layout.json"));
         assert!(prefs.ends_with("preferences.json"));
         assert!(recovery.ends_with("recovery"));
+        let fonts = font_cache_dir().expect("fonts");
+        assert!(fonts.starts_with(dir.path()), "{fonts:?}");
+        assert!(fonts.ends_with("google-fonts"));
     }
 
     #[test]

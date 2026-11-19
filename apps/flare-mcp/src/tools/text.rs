@@ -45,10 +45,23 @@ fn find_text(state: &State, shape: &str) -> Result<(SceneId, SpanRef, Shape), St
     Err(format!("no shape {id} in the first scene"))
 }
 
+/// Downloads the Google Fonts families `source` needs and this machine lacks, unless the
+/// operator turned that off.
+fn google_fonts(state: &State, source: &TextSource) -> Result<(), String> {
+    match &state.google_fonts {
+        Some(downloader) => {
+            flare_runtime::add_google_fonts(source.family(), &state.fonts, |name| {
+                downloader.fetch(name)
+            })
+        }
+        None => Ok(()),
+    }
+}
+
 #[tool_router(router = text_tools, vis = "pub(super)")]
 impl FlareServer {
     #[tool(
-        description = "Add editable text on a layer of the first scene. It is drawn as outlines and remembers its words and font, so set_text can change them (needs write access)."
+        description = "Add editable text on a layer of the first scene. It is drawn as outlines and remembers its words and font, so set_text can change them. A Google Fonts family list_fonts names is downloaded first (needs write access)."
     )]
     fn add_text(&self, Parameters(args): Parameters<AddText>) -> Outcome {
         self.write(args.expected_revision, |state| {
@@ -71,6 +84,7 @@ impl FlareServer {
                 .as_deref()
                 .map_or(Ok(flare_core::Rgba8::opaque(0, 0, 0)), parse_color)?;
             let id = ShapeId::new();
+            google_fonts(state, &source)?;
             let shape = flare_runtime::text_shape(&source, id, fill, &state.fonts)?;
             let span = FrameSpan::new(
                 args.start.unwrap_or(0),
@@ -104,6 +118,7 @@ impl FlareServer {
                 Some(color) => parse_color(color)?,
                 None => old.fill(),
             };
+            google_fonts(state, &source)?;
             let new = flare_runtime::text_shape(&source, old.id(), fill, &state.fonts)?
                 .painted_like(&old);
             let commands = replace_shape(state.session.document(), scene, at, new)
@@ -124,8 +139,20 @@ impl FlareServer {
         })
     }
 
-    #[tool(description = "List the font families text can be set in.")]
+    #[tool(
+        description = "List the font families text can be set in: `families` are on this machine, and `google` are Google Fonts families that are downloaded when text names them."
+    )]
     fn list_fonts(&self) -> Outcome {
-        self.read(|state| Ok(json!({ "families": flare_runtime::font_families(&state.fonts) })))
+        self.read(|state| {
+            let google = if state.google_fonts.is_some() {
+                flare_runtime::google_font_families(&state.fonts)
+            } else {
+                Vec::new()
+            };
+            Ok(json!({
+                "families": flare_runtime::font_families(&state.fonts),
+                "google": google,
+            }))
+        })
     }
 }

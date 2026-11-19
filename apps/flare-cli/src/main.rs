@@ -294,6 +294,7 @@ fn run() -> Result<()> {
             duration,
             layer,
             font_files,
+            no_google_fonts,
         } => project::add_text(
             &path,
             project::TextOptions {
@@ -309,6 +310,7 @@ fn run() -> Result<()> {
                 duration,
                 layer,
                 font_files,
+                google_fonts: !no_google_fonts,
             },
         )?,
         Command::SetText {
@@ -323,6 +325,7 @@ fn run() -> Result<()> {
             italic,
             color,
             font_files,
+            no_google_fonts,
         } => project::set_text(
             &path,
             shape,
@@ -336,6 +339,7 @@ fn run() -> Result<()> {
                 italic,
                 color,
                 font_files,
+                google_fonts: !no_google_fonts,
             },
         )?,
         Command::BreakText { path, shape } => project::break_text(&path, shape)?,
@@ -361,7 +365,10 @@ fn run() -> Result<()> {
                 frame,
             } => stopmotion::onion(before, after, opacity, frames, frame)?,
         },
-        Command::Fonts { font_files } => project::font_families(&font_files)?,
+        Command::Fonts {
+            font_files,
+            no_google_fonts,
+        } => project::font_families(&font_files, !no_google_fonts)?,
         Command::Export {
             path,
             out,

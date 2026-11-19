@@ -23,6 +23,10 @@ struct Arguments {
     /// A font file (.ttf, .otf) to make known to text by its family name; repeatable.
     #[arg(long = "font-file")]
     font_files: Vec<PathBuf>,
+    /// Do not download the Google Fonts families text names and this machine lacks; text in one
+    /// falls back to the next family in its list.
+    #[arg(long)]
+    no_google_fonts: bool,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -40,6 +44,11 @@ async fn main() -> Result<()> {
     let server = FlareServer::open(arguments.project.clone(), permissions)
         .with_context(|| format!("cannot open {}", arguments.project.display()))?
         .with_fonts(fonts);
+    let server = if arguments.no_google_fonts {
+        server.with_google_fonts(None)
+    } else {
+        server
+    };
     // Stdout carries only protocol; anything for a person goes to stderr.
     let running = server
         .serve(stdio())

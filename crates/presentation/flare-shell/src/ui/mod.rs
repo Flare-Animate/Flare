@@ -47,6 +47,8 @@ pub(crate) enum UserEvent {
     Autotest(autotest::Step),
     /// An export or publish finished on its own thread; an error is worded for the person.
     Exported(Result<(), String>),
+    /// A Google Fonts family text asked for was downloaded on its own thread, or could not be.
+    FontDownloaded(String, Result<Vec<Vec<u8>>, String>),
     /// A screen reader asked for the interface's tree, for an action, or let go (AccessKit).
     #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     AccessKit(egui_winit::accesskit_winit::Event),

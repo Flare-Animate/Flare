@@ -19,6 +19,7 @@ flare-publish.workspace = true
 flare-ruffle.workspace = true
 flare-runtime.workspace = true
 flare-storage.workspace = true
+flare-webfonts.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
 

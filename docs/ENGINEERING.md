@@ -145,6 +145,14 @@ could not be read from this environment, so nothing from it may be ported until 
 
 ## Third-party format references used
 
+- Google Fonts (https://github.com/google/fonts): `crates/foundation/flare-text/data/google-fonts.tsv`
+  lists each family's name and category and the paths of its files at one commit, written by
+  `scripts/fonts/google_catalog.py` from the repository's file list and fonts.google.com's family
+  list. No font is built in from it: the files are downloaded when text names a family, under their
+  own licences (SIL Open Font License, Apache 2.0 or the Ubuntu Font Licence, as the folder says).
+  The tests use one, Squada One (OFL), in `crates/foundation/flare-text/data/test/` with its
+  licence beside it; it is not packaged.
+
 - MoveNet SinglePose Lightning (Google, Apache-2.0; https://tfhub.dev/google/movenet/singlepose/lightning),
   in the ONNX conversion published by Xenova (https://huggingface.co/Xenova/movenet-singlepose-lightning,
   `onnx/model.onnx`, SHA-256 1ad4f8d6c2f776a9967db3993c9ca740bc350104f9d37c151dc183fc29a464ad):

@@ -73,6 +73,7 @@ opt-bold = 粗体
 opt-italic = 斜体
 opt-filter = 筛选
 opt-no-font = 没有匹配的字体。
+opt-google-fonts = Google Fonts
 opt-text-error = 无法更改文本：{ $error }
 opt-nothing-selected = 未选择任何内容
 opt-select-something = 请在舞台上选择内容。

@@ -2,19 +2,8 @@
 //! answer.
 
 use std::path::PathBuf;
-use std::sync::Arc;
 
-use crate::jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob};
-
-/// Fonts a front end wants known by name in addition to the system's (tests use this so they do
-/// not depend on what a machine has installed).
-pub type ExtraFonts = Arc<Vec<Vec<u8>>>;
-
-thread_local! {
-    /// The font database of this thread, built the first time text is asked for.
-    static TEXT_ENGINE: std::cell::RefCell<Option<flare_text::TextEngine>> =
-        const { std::cell::RefCell::new(None) };
-}
+use crate::jobs::{AudioJob, Done, IoJob, RenderJob, Rendered};
 
 pub fn run_audio(job: AudioJob) -> Done {
     match job {
@@ -70,70 +59,6 @@ pub fn run_audio(job: AudioJob) -> Done {
             document,
         },
     }
-}
-
-/// Runs `work` with this thread's font database, built the first time it is needed.
-fn with_engine<T>(fonts: &ExtraFonts, work: impl FnOnce(&mut flare_text::TextEngine) -> T) -> T {
-    TEXT_ENGINE.with(|slot| {
-        let mut slot = slot.borrow_mut();
-        let engine = slot.get_or_insert_with(|| {
-            let mut engine = flare_text::TextEngine::new();
-            for font in fonts.iter() {
-                engine.register_font(font.clone());
-            }
-            engine
-        });
-        work(engine)
-    })
-}
-
-pub fn run_text(job: &TextJob, fonts: &ExtraFonts) -> Done {
-    match job {
-        TextJob::Set {
-            id,
-            source,
-            shape,
-            fill,
-        } => Done::Text {
-            id: *id,
-            result: text_shape(source, *shape, *fill, fonts),
-        },
-        TextJob::Families => Done::Families(font_families(fonts)),
-        TextJob::Preview {
-            id,
-            text,
-            style,
-            origin,
-            cursor,
-            shape,
-            fill,
-        } => Done::TextPreview {
-            id: *id,
-            result: with_engine(fonts, |engine| {
-                engine
-                    .preview(text, style, *origin, *cursor, *shape, *fill)
-                    .map_err(|e| e.to_string())
-            }),
-        },
-    }
-}
-
-/// The shape `source` sets, with identity `shape` and `fill`. The first call on a thread builds
-/// the font database, which scans the system's fonts.
-pub fn text_shape(
-    source: &flare_document::TextSource,
-    shape: flare_core::ShapeId,
-    fill: flare_core::Rgba8,
-    fonts: &ExtraFonts,
-) -> Result<flare_document::Shape, String> {
-    with_engine(fonts, |engine| {
-        engine.shape(source, shape, fill).map_err(|e| e.to_string())
-    })
-}
-
-/// The font families there are to set text in, sorted.
-pub fn font_families(fonts: &ExtraFonts) -> Vec<String> {
-    with_engine(fonts, flare_text::TextEngine::families)
 }
 
 /// Draws the frame.

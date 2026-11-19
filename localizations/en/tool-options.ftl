@@ -73,6 +73,7 @@ opt-bold = Bold
 opt-italic = Italic
 opt-filter = Filter
 opt-no-font = No font matches.
+opt-google-fonts = Google Fonts
 opt-text-error = Cannot change the text: { $error }
 opt-nothing-selected = Nothing selected
 opt-select-something = Select something on the stage.

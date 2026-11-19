@@ -32,6 +32,7 @@ flare-ffmpeg.workspace = true
 flare-render.workspace = true
 flare-storage.workspace = true
 flare-text.workspace = true
+flare-webfonts.workspace = true
 flare-menubar.workspace = true
 flare-tools.workspace = true
 flare-mannequin.workspace = true

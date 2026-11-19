@@ -102,6 +102,7 @@ mod status_bar;
 mod swatches;
 mod symbol_dialog;
 mod tab_strip;
+mod text_fonts;
 mod text_keys;
 mod text_objects;
 mod timeline_animating;

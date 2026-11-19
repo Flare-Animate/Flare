@@ -34,6 +34,13 @@ keep them together.
   worker, off the UI thread, and the newest request wins. A file written on another machine
   opens with its stored outlines; only editing it asks this machine's fonts, and a family it lacks
   falls back to the system's default, so edited text can look different from what was stored.
+- A family this machine lacks that Google Fonts has is downloaded when text names it, from the
+  google/fonts repository at the commit the catalog was made from, so a file edited on another
+  machine finds the same font. Only names before the first family the machine has are fetched
+  (nothing after it would be used). Setting text waits for the download; previews do not. The
+  bytes must be fonts naming the family, at most 32 MB each, or nothing is added. A family that
+  cannot be had falls back as a missing one always did, in the window; the command line and MCP
+  server refuse instead, since nobody is watching to see the wrong font.
 
 ## Editing on the stage
 

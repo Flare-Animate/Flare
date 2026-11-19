@@ -19,6 +19,7 @@ pub(super) mod rotate_view;
 pub(super) mod stage_pointer;
 pub(super) mod stroke_preview;
 pub(super) mod text;
+pub(super) mod text_fonts;
 pub(super) mod text_preview;
 
 /// The state of the tools that act on a drag and then let go: the Hand, which gives back the

@@ -20,7 +20,7 @@ Executables are in `apps/`. The folders mean:
 | foundation | `flare-game` | The game description and its world: entities with typed components, the nine systems (physics, trigger zones, hooks, camera, sprites, particles, audio, UI and the script placeholder) in a fixed order, a fixed-timestep step, scripted input with named actions and deterministic runs. No window, sound or file access. See [GAME.md](GAME.md). |
 | foundation | `flare-document` | The document model and its validation, including a bounded library of named shader-graph assets. No GUI, GPU, database or async code. |
 | foundation | `flare-eval` | Pure frame evaluation: document + scene + frame to placed instances and drawn shapes. |
-| foundation | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. |
+| foundation | `flare-text` | Text to vector outlines: shaping with `parley`, glyph outlines with `skrifa`. Holds the font database, so it is created off the UI thread. Also the Google Fonts catalog (`google`, from `data/google-fonts.tsv`) and the check that downloaded files are the family's fonts; it downloads nothing. |
 | foundation | `flare-audio` | Sound: decoding with `symphonia` (WAV, MP3, Ogg Vorbis, FLAC, with size limits), a pure stereo mixer that plays a whole sound or an excerpt (a scrub), the waveform summary the timeline draws (`Peaks`), the events a front end sends to the sound card, and lip sync's reading of a voice (`lipsync`: ten mouth shapes, a built-in analysis of each frame's loudness, zero crossings and four frequency bands, and Rhubarb Lip Sync's JSON read as untrusted input). |
 | foundation | `flare-i18n` | The words of the interface: Fluent files per language and section under `localizations/`, compiled in, with English as the fallback; a build script finds the files, and `has_key` lets a `tr!` check its key while the program is built. |
 | foundation | `flare-profile` | Workspace profiles as data: rooms, dock trees, toolbars and defaults, read through checks (size, depth, ranges, every panel placed). Four built in, as JSON in `data/`. |
@@ -48,7 +48,8 @@ Executables are in `apps/`. The folders mean:
 | services | `flare-pose` | Finding a person's pose in a picture for the mannequin: MoveNet SinglePose Lightning (Google's pose estimation network, Apache-2.0, built in from `data/`) run on the CPU by RTen, a pure-Rust ONNX runtime that also builds for the browser; a look at the whole picture, then closer looks round the person while they are surer; the seventeen points found become `flare_mannequin::Marks`. No UI types. See The reference mannequin below. |
 | services | `flare-recent` | What a list of recent projects knows: each file's time and size read off the UI thread, its kind, the search over names and folders, and the sorting. No UI types. |
 | services | `flare-tablet` | A tablet pen's pressure from the operating system where the window system does not pass it on: one gated module per system, each writing into `flare-input`'s `PenFeed`. Today the X server's XInput2 raw events (Unix), with the check for a plugged-in pen that picks XWayland, and a local AppKit event monitor (macOS), the one module with `unsafe`, which is why this cannot live in `flare-input`; what its events mean is decided in a safe module beside it. A Windows module is still to come. |
-| services | `flare-platform` | What a desktop needs from the operating system: per-user directories (the `directories` crate), the sound card, native dialogs, recovery prompts, the Dock icon of a program run outside an app bundle (its one module that may use `unsafe`, for AppKit), and the threads for publishing, exporting and test movies. No UI types. |
+| services | `flare-platform` | What a desktop needs from the operating system: per-user directories (the `directories` crate), the sound card, native dialogs, recovery prompts, the Dock icon of a program run outside an app bundle (its one module that may use `unsafe`, for AppKit), and the threads for publishing, exporting, test movies and downloading fonts. No UI types. |
+| services | `flare-webfonts` | Downloading Google Fonts families off the browser: one blocking `ureq` request per file (rustls, a size limit and a time limit), the files checked by `flare-text` and kept in a cache directory, one folder per google/fonts commit. Used by `flare-platform`, `flare-cli` and `flare-mcp`; a browser uses its own `fetch`. |
 | presentation | `flare-ui` | Shared egui building blocks: palette and type, the icon set, small widgets, the color picker with a number on every track (`color_picker`, hue, saturation and brightness counted over sRGB), the stage's pan, zoom and turn math (`view`, with `view::turn` turning painted shapes), and a modifier tapped on its own (`tap`). |
 | presentation | `flare-dock` | The dockable panel layout: which panels exist (`Pane`), where each one is (docked in the tree or an icon in the strip, `Layout`), how they are arranged by default, moving a panel between the dock and the strip, keeping the panels' sizes when the window changes size so the stage gives way (`keep_panel_sizes`), and reading and writing a saved arrangement as untrusted input (size-capped, every panel exactly once, else the default). |
 | presentation | `flare-menubar` | The menu bar with no window in it: every command (`MenuAction`), the menus and their order, shortcuts, icons and what each item is called for the state of what it toggles (`LabelState`). Shared by the native macOS menu and the in-window one. |
@@ -304,6 +305,20 @@ file keeps the source in an optional `text` record on the shape, so files from b
 be edited open as plain outlines. `flare add-text`, `set-text`, `break-text` and `fonts`, and the
 MCP tools `add_text`, `set_text`, `break_text` and `list_fonts`, are the same operations; both
 take font files the person brings (`--font-file`) next to the system's.
+
+Text can also name a Google Fonts family the machine lacks. The catalog of families
+(`flare_text::google`, written by `scripts/fonts/google_catalog.py`) names each family's files in
+the google/fonts repository at one commit, so the addresses never change, and the files are plain
+TrueType that a browser may read. No library downloads: when a text job names a missing family,
+the text worker answers `Done::FontsWanted`, the workspace hands the name to its shell
+(`Workspace::take_font_downloads`), the shell downloads it its own way (`flare_platform::jobs::download_font`
+on a thread, `fetch` in the browser) and gives it back (`Workspace::font_downloaded`, which sends
+`TextJob::AddFonts`). Text to set waits for the family, so what is committed is in the right font
+and one undo step; a preview is drawn at once in the fallback font and asked for again when the family
+arrives. A family that cannot be had is reported and not asked for again in that session, and
+the text falls back to the next family in its list. The command line and the MCP server download
+before setting text (`flare_runtime::add_google_fonts`), and there a family that cannot be had is
+an error naming it.
 
 ## Import (SWF)
 

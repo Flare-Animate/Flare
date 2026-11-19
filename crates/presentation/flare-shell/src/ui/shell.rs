@@ -188,6 +188,22 @@ impl App {
         }
     }
 
+    /// Downloads the Google Fonts families text asked for, each on a thread of its own; the
+    /// workspace gets them back through the event loop.
+    pub(super) fn handle_font_downloads(&mut self) {
+        for family in self.workspace.take_font_downloads() {
+            let proxy = self.proxy.clone();
+            let started = jobs::download_font(family.clone(), move |family, result| {
+                // A closed event loop means the app is exiting.
+                let _ = proxy.send_event(UserEvent::FontDownloaded(family, result));
+            });
+            if let Err(error) = started {
+                self.workspace
+                    .font_downloaded(family, Err(error.to_string()));
+            }
+        }
+    }
+
     /// Plays the document when the workspace asks to: in a window of this app, or in a Ruffle
     /// of its own, depending on how the app was built.
     pub(super) fn handle_test_movie(&mut self) {
