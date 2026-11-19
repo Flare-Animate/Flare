@@ -28,7 +28,7 @@ mod motion_editor_ui;
 mod onion_settings;
 #[cfg(test)]
 pub(super) use info::color_at as info_color_at;
-mod character;
+pub(in crate::workspace) mod character;
 pub(crate) mod effects;
 pub(crate) mod effects_graph;
 pub(crate) mod library;

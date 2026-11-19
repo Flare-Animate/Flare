@@ -111,3 +111,72 @@ async fn text_that_cannot_be_set_is_refused_and_a_read_only_server_does_not_chan
         "{listed}"
     );
 }
+
+/// A server whose Google Fonts come from a cache holding Squada One (a small OFL font, licence
+/// text beside it) and never from the network.
+async fn with_google_cache() -> Fixture {
+    let base = with_hack(true).await;
+    let (dir, path) = (base.dir, base.path);
+    let fonts = dir.path().join("fonts");
+    let family = flare_text::google::family_named("Squada One").expect("in the catalog");
+    let file = fonts.join(&family.cache_names()[0]);
+    std::fs::create_dir_all(file.parent().expect("parent")).expect("dirs");
+    std::fs::write(
+        &file,
+        include_bytes!("../../../crates/foundation/flare-text/data/test/SquadaOne-Regular.ttf"),
+    )
+    .expect("write font");
+    let offline = |url: &str| {
+        Err(flare_webfonts::FetchError::Download {
+            url: url.into(),
+            reason: "offline".into(),
+        })
+    };
+    let downloader = flare_webfonts::Downloader::new(Some(flare_webfonts::Cache::new(fonts)))
+        .with_transport(offline);
+    common::serve_with(dir, path, true, true, |server| {
+        server.with_google_fonts(Some(downloader))
+    })
+    .await
+}
+
+#[tokio::test]
+async fn text_in_a_google_font_is_downloaded_first_and_one_that_cannot_be_is_an_error() {
+    let f = with_google_cache().await;
+    let listed = f.ok("list_fonts", json!({})).await;
+    assert!(
+        listed["google"]
+            .as_array()
+            .expect("list")
+            .iter()
+            .any(|f| f == "Roboto"),
+        "{listed}"
+    );
+    let added = f
+        .ok(
+            "add_text",
+            json!({ "text": "Flare", "x": 0, "y": 0, "family": "Squada One", "size": 14 }),
+        )
+        .await;
+    let shape = added["shape"].as_str().expect("id").to_owned();
+    let listed = f.ok("list_fonts", json!({})).await;
+    assert!(
+        listed["families"]
+            .as_array()
+            .expect("list")
+            .iter()
+            .any(|f| f == "Squada One"),
+        "the downloaded family is not listed: {listed}"
+    );
+    let before = f.revision().await;
+    let (is_error, message) = f
+        .tool("set_text", json!({ "shape": shape, "family": "Abel" }))
+        .await;
+    assert!(is_error, "{message}");
+    let message = message.as_str().expect("message");
+    assert!(
+        message.contains("Abel") && message.contains("offline"),
+        "{message}"
+    );
+    assert_eq!(f.revision().await, before, "nothing changed");
+}

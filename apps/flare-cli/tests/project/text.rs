@@ -152,3 +152,100 @@ fn the_fonts_command_lists_families_including_one_that_was_brought() {
         .collect();
     assert!(families.contains(&"Hack"), "{families:?}");
 }
+
+/// A cache of downloaded Google Fonts holding Squada One (a small OFL font, licence text beside
+/// it), so the tests set text in a Google font without the network.
+fn google_cache(dir: &Path) -> std::path::PathBuf {
+    let cache = dir.join("fonts");
+    let family = flare_text::google::family_named("Squada One").expect("in the catalog");
+    let file = cache.join(&family.cache_names()[0]);
+    std::fs::create_dir_all(file.parent().expect("parent")).expect("dirs");
+    std::fs::write(
+        &file,
+        include_bytes!("../../../../crates/foundation/flare-text/data/test/SquadaOne-Regular.ttf"),
+    )
+    .expect("write font");
+    cache
+}
+
+fn run_with_cache(cache: &Path, args: &[&str]) -> Output {
+    Command::new(env!("CARGO_BIN_EXE_flare"))
+        .args(args)
+        .env("FLARE_FONT_CACHE", cache)
+        // Anything that does reach for the network fails at once instead.
+        .env("HTTPS_PROXY", "http://127.0.0.1:1")
+        .env("ALL_PROXY", "http://127.0.0.1:1")
+        .output()
+        .expect("run cli")
+}
+
+#[test]
+fn text_in_a_google_font_is_set_in_it_and_can_be_told_not_to_download() {
+    let dir = tempfile::tempdir().expect("dir");
+    let cache = google_cache(dir.path());
+    let drawn = |name: &str, extra: &[&str]| {
+        let file = dir
+            .path()
+            .join(format!("{name}.flare"))
+            .to_string_lossy()
+            .into_owned();
+        let png = dir
+            .path()
+            .join(format!("{name}.png"))
+            .to_string_lossy()
+            .into_owned();
+        json(&["new", &file, "--width", "200", "--height", "60"]);
+        let mut args = vec![
+            "add-text",
+            &file,
+            "Flare",
+            "--family",
+            "Squada One",
+            "--size",
+            "40",
+        ];
+        args.extend(extra);
+        let output = run_with_cache(&cache, &args);
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        json(&["export", &file, &png]);
+        dark_pixels(&png)
+    };
+    let downloaded = drawn("google", &[]);
+    let fallback = drawn("fallback", &["--no-google-fonts"]);
+    assert!(downloaded > 50 && fallback > 50, "{downloaded} {fallback}");
+    assert_ne!(downloaded, fallback, "the Google font was not used");
+
+    let listed = run_with_cache(&cache, &["fonts"]);
+    let listed: Value = serde_json::from_slice(&listed.stdout).expect("json");
+    let google = listed["google"].as_array().expect("list");
+    assert!(google.len() > 1500, "{}", google.len());
+    assert!(google.iter().any(|f| f == "Roboto"));
+    let off = run_with_cache(&cache, &["fonts", "--no-google-fonts"]);
+    let off: Value = serde_json::from_slice(&off.stdout).expect("json");
+    assert_eq!(off["google"], serde_json::json!([]));
+}
+
+#[test]
+fn a_google_font_that_cannot_be_downloaded_is_an_error_naming_it() {
+    let dir = tempfile::tempdir().expect("dir");
+    let empty = dir.path().join("empty-cache");
+    let file = path(dir.path());
+    json(&["new", &file]);
+    let before = std::fs::read(&file).expect("read");
+    let output = run_with_cache(&empty, &["add-text", &file, "x", "--family", "Abel"]);
+    assert!(!output.status.success());
+    let message = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        message.contains("Abel") && message.contains("Google Fonts"),
+        "{message}"
+    );
+    assert_eq!(
+        std::fs::read(&file).expect("read"),
+        before,
+        "nothing was written"
+    );
+}

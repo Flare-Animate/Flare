@@ -16,11 +16,15 @@ use skrifa::raw::types::F2Dot14;
 use skrifa::{FontRef, GlyphId, MetadataProvider};
 use thiserror::Error;
 
+mod fetched;
+pub mod google;
 mod pen;
 mod source;
 #[cfg(test)]
 mod tests;
 
+pub use fetched::check_google_family;
+pub use google::{Face, GoogleFamily, MAX_FONT_BYTES};
 use pen::Pen;
 pub use source::Caret;
 
@@ -44,6 +48,12 @@ pub enum TextError {
     NoGlyphs,
     #[error("the text would leave the drawable range")]
     OutOfRange,
+    #[error("the file is not a font that can set text")]
+    NotAFont,
+    #[error("a font file is larger than {} MB", MAX_FONT_BYTES / (1024 * 1024))]
+    FontTooLarge,
+    #[error("the font for {wanted} names itself {found:?}")]
+    WrongFamily { wanted: String, found: String },
 }
 
 #[derive(Debug, Clone, PartialEq)]

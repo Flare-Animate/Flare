@@ -73,6 +73,7 @@ opt-bold = 太字
 opt-italic = 斜体
 opt-filter = フィルター
 opt-no-font = 一致するフォントがありません。
+opt-google-fonts = Google Fonts
 opt-text-error = テキストを変更できません: { $error }
 opt-nothing-selected = 何も選択されていません
 opt-select-something = ステージ上で何かを選択してください。

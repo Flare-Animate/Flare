@@ -73,6 +73,7 @@ opt-bold = Gras
 opt-italic = Italique
 opt-filter = Filtrer
 opt-no-font = Aucune police ne correspond.
+opt-google-fonts = Google Fonts
 opt-text-error = Impossible de modifier le texte : { $error }
 opt-nothing-selected = Aucune sélection
 opt-select-something = Sélectionnez quelque chose sur la scène.

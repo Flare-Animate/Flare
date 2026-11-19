@@ -27,6 +27,8 @@ pub struct TextOptions {
     pub layer: Option<Uuid>,
     /// Font files to make known by their family names.
     pub font_files: Vec<std::path::PathBuf>,
+    /// Download the Google Fonts families the text names and this machine lacks.
+    pub google_fonts: bool,
 }
 
 /// What `set-text` changes; what is `None` stays as it was.
@@ -41,6 +43,7 @@ pub struct TextChanges {
     pub italic: Option<bool>,
     pub color: Option<String>,
     pub font_files: Vec<std::path::PathBuf>,
+    pub google_fonts: bool,
 }
 
 fn origin(x: f64, y: f64) -> Result<DocumentPoint> {
@@ -70,6 +73,22 @@ fn fonts(files: &[std::path::PathBuf]) -> Result<flare_runtime::ExtraFonts> {
     Ok(std::sync::Arc::new(loaded))
 }
 
+/// The fonts `files` holds, and, when `google` allows, the Google Fonts families the family list
+/// `family` needs, downloaded (or read from where they were kept) so the text is set in them.
+fn fonts_for(
+    family: &str,
+    files: &[std::path::PathBuf],
+    google: bool,
+) -> Result<flare_runtime::ExtraFonts> {
+    let fonts = fonts(files)?;
+    if google {
+        let downloader = flare_webfonts::Downloader::for_programs();
+        flare_runtime::add_google_fonts(family, &fonts, |name| downloader.fetch(name))
+            .map_err(anyhow::Error::msg)?;
+    }
+    Ok(fonts)
+}
+
 /// Adds text to a layer of the first scene as an editable text object.
 pub fn add_text(path: &Path, options: TextOptions) -> Result<Value> {
     let mut session = open(path)?;
@@ -85,8 +104,8 @@ pub fn add_text(path: &Path, options: TextOptions) -> Result<Value> {
     )?;
     let fill = parse_color(&options.color)?;
     let id = ShapeId::new();
-    let shape = flare_runtime::text_shape(&source, id, fill, &fonts(&options.font_files)?)
-        .map_err(anyhow::Error::msg)?;
+    let fonts = fonts_for(source.family(), &options.font_files, options.google_fonts)?;
+    let shape = flare_runtime::text_shape(&source, id, fill, &fonts).map_err(anyhow::Error::msg)?;
     let span = FrameSpan::new(options.start, duration, Content::Shape(shape));
     session.apply([Command::InsertSpan { scene, layer, span }])?;
     commit(&session, path)?;
@@ -146,7 +165,8 @@ pub fn set_text(path: &Path, shape: Uuid, changes: TextChanges) -> Result<Value>
         Some(color) => parse_color(&color)?,
         None => old.fill(),
     };
-    let new = flare_runtime::text_shape(&source, old.id(), fill, &fonts(&changes.font_files)?)
+    let fonts = fonts_for(source.family(), &changes.font_files, changes.google_fonts)?;
+    let new = flare_runtime::text_shape(&source, old.id(), fill, &fonts)
         .map_err(anyhow::Error::msg)?
         .painted_like(&old);
     let commands = replace_shape(session.document(), scene, at, new)
@@ -166,7 +186,17 @@ pub fn break_text(path: &Path, shape: Uuid) -> Result<Value> {
     Ok(json!({ "shape": shape, "text": false }))
 }
 
-/// The font families text can be set in.
-pub fn font_families(font_files: &[std::path::PathBuf]) -> Result<Value> {
-    Ok(json!({ "families": flare_runtime::font_families(&fonts(font_files)?) }))
+/// The font families text can be set in: those here, and the Google Fonts families that are
+/// downloaded when text names them (none when `google` is off).
+pub fn font_families(font_files: &[std::path::PathBuf], google: bool) -> Result<Value> {
+    let fonts = fonts(font_files)?;
+    let downloadable = if google {
+        flare_runtime::google_font_families(&fonts)
+    } else {
+        Vec::new()
+    };
+    Ok(json!({
+        "families": flare_runtime::font_families(&fonts),
+        "google": downloadable,
+    }))
 }

@@ -26,8 +26,15 @@ pub(super) struct TextTool {
     pub(super) families: Vec<String>,
     /// The list was asked for, so it is not asked for again.
     pub(super) families_asked: bool,
+    /// The Google Fonts families that are not here, which text can name to download them.
+    pub(super) google: Vec<&'static str>,
+    /// Families, lowercased, the shell is downloading; and those to hand it next.
+    pub(super) downloading: std::collections::HashSet<String>,
+    pub(super) downloads: Vec<String>,
     /// Typed in the family list's filter box.
     pub(super) family_filter: String,
+    /// The filter box was given the keyboard since the list opened.
+    pub(super) family_filter_focused: bool,
     /// A size being dragged or typed for the selected text, applied when it is let go.
     pub(super) size_edit: Option<f32>,
     /// The text as typed so far, shown on the stage in place of the stored letters.
@@ -53,7 +60,11 @@ impl Default for TextTool {
             editor_id: egui::Id::unique("flare_text_editor"),
             families: Vec::new(),
             families_asked: false,
+            google: Vec::new(),
+            downloading: std::collections::HashSet::new(),
+            downloads: Vec::new(),
             family_filter: String::new(),
+            family_filter_focused: false,
             size_edit: None,
             preview: None,
             preview_asked: None,

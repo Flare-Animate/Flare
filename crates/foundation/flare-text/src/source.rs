@@ -130,6 +130,9 @@ impl TextEngine {
             .fonts
             .collection
             .family_names()
+            // A name starting with a dot is one a system keeps for itself (macOS has dozens,
+            // such as ".New York"); its own font menus never show them.
+            .filter(|name| !name.starts_with('.'))
             .map(str::to_owned)
             .collect();
         names.sort_by_key(|n| n.to_lowercase());

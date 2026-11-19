@@ -99,6 +99,7 @@ impl App {
             gpu.apply(request);
         }
         self.handle_test_movie();
+        self.handle_font_downloads();
         if self.workspace.take_quit_request() && self.confirm_close() {
             self.persist_layout();
             self.persist_preferences();
@@ -213,6 +214,12 @@ impl ApplicationHandler<UserEvent> for App {
             UserEvent::Autotest(step) => self.autotest_step(event_loop, step),
             UserEvent::Exported(Ok(())) => {}
             UserEvent::Exported(Err(message)) => self.say_error("dlg-export-failed", &message),
+            UserEvent::FontDownloaded(family, result) => {
+                self.workspace.font_downloaded(family, result);
+                if let Some(gpu) = &self.gpu {
+                    gpu.window.request_redraw();
+                }
+            }
             #[cfg(not(feature = "ruffle"))]
             UserEvent::MovieStarted(Err(error)) => {
                 self.say_error("dlg-cannot-start-movie", &error.to_string());

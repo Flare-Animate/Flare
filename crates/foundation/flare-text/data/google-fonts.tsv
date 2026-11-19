@@ -1,0 +1,1956 @@
+# Google Fonts at github.com/google/fonts, written by scripts/fonts/google_catalog.py.
+# Each family: name, category, folder, then style:file for its files.
+commit	5bd87dfc525c8a0d1d8529d3684716e00c3fc59a
+ABeeZee	Sans Serif	ofl/abeezee	r:ABeeZee-Regular.ttf|i:ABeeZee-Italic.ttf
+Abel	Sans Serif	ofl/abel	r:Abel-Regular.ttf
+Abhaya Libre	Serif	ofl/abhayalibre	r:AbhayaLibre-Regular.ttf|b:AbhayaLibre-Bold.ttf
+Aboreto	Display	ofl/aboreto	r:Aboreto-Regular.ttf
+Abril Fatface	Display	ofl/abrilfatface	r:AbrilFatface-Regular.ttf
+Abyssinica SIL	Serif	ofl/abyssinicasil	r:AbyssinicaSIL-Regular.ttf
+Aclonica	Sans Serif	apache/aclonica	r:Aclonica-Regular.ttf
+Acme	Sans Serif	ofl/acme	r:Acme-Regular.ttf
+Actor	Sans Serif	ofl/actor	r:Actor-Regular.ttf
+Adamina	Serif	ofl/adamina	r:Adamina-Regular.ttf
+ADLaM Display	Display	ofl/adlamdisplay	r:ADLaMDisplay-Regular.ttf
+Advent Pro	Sans Serif	ofl/adventpro	r:AdventPro[wdth,wght].ttf|i:AdventPro-Italic[wdth,wght].ttf
+Afacad	Sans Serif	ofl/afacad	r:Afacad[wght].ttf|i:Afacad-Italic[wght].ttf
+Afacad Flux	Sans Serif	ofl/afacadflux	r:AfacadFlux[slnt,wght].ttf
+Agbalumo	Display	ofl/agbalumo	r:Agbalumo-Regular.ttf
+Agdasima	Sans Serif	ofl/agdasima	r:Agdasima-Regular.ttf|b:Agdasima-Bold.ttf
+Agrave Pro	Handwriting	ofl/agravepro	r:AgravePro[wght].ttf
+Agu Display	Display	ofl/agudisplay	r:AguDisplay[MORF].ttf
+Aguafina Script	Handwriting	ofl/aguafinascript	r:AguafinaScript-Regular.ttf
+Akatab	Sans Serif	ofl/akatab	r:Akatab-Regular.ttf|b:Akatab-Bold.ttf
+Akaya Kanadaka	Display	ofl/akayakanadaka	r:AkayaKanadaka-Regular.ttf
+Akaya Telivigala	Display	ofl/akayatelivigala	r:AkayaTelivigala-Regular.ttf
+Akronim	Display	ofl/akronim	r:Akronim-Regular.ttf
+Akshar	Sans Serif	ofl/akshar	r:Akshar[CTRS,wght].ttf
+Akt	Sans Serif	ofl/akt	r:Akt[wght].ttf
+Aladin	Display	ofl/aladin	r:Aladin-Regular.ttf
+Alan Sans	Sans Serif	ofl/alansans	r:AlanSans[wght].ttf
+Alata	Sans Serif	ofl/alata	r:Alata-Regular.ttf
+Alatsi	Sans Serif	ofl/alatsi	r:Alatsi-Regular.ttf
+Albert Sans	Sans Serif	ofl/albertsans	r:AlbertSans[wght].ttf|i:AlbertSans-Italic[wght].ttf
+Aldrich	Sans Serif	ofl/aldrich	r:Aldrich-Regular.ttf
+Alef	Sans Serif	ofl/alef	r:Alef-Regular.ttf|b:Alef-Bold.ttf
+Alegreya	Serif	ofl/alegreya	r:Alegreya[wght].ttf|i:Alegreya-Italic[wght].ttf
+Alegreya Sans	Sans Serif	ofl/alegreyasans	r:AlegreyaSans-Regular.ttf|b:AlegreyaSans-Bold.ttf|i:AlegreyaSans-Italic.ttf|bi:AlegreyaSans-BoldItalic.ttf
+Alegreya Sans SC	Sans Serif	ofl/alegreyasanssc	r:AlegreyaSansSC-Regular.ttf|b:AlegreyaSansSC-Bold.ttf|i:AlegreyaSansSC-Italic.ttf|bi:AlegreyaSansSC-BoldItalic.ttf
+Alegreya SC	Serif	ofl/alegreyasc	r:AlegreyaSC-Regular.ttf|b:AlegreyaSC-Bold.ttf|i:AlegreyaSC-Italic.ttf|bi:AlegreyaSC-BoldItalic.ttf
+Aleo	Serif	ofl/aleo	r:Aleo[wght].ttf|i:Aleo-Italic[wght].ttf
+Alex Brush	Handwriting	ofl/alexbrush	r:AlexBrush-Regular.ttf
+Alexandria	Sans Serif	ofl/alexandria	r:Alexandria[wght].ttf
+Alfa Slab One	Display	ofl/alfaslabone	r:AlfaSlabOne-Regular.ttf
+Alice	Serif	ofl/alice	r:Alice-Regular.ttf
+Alien Block	Display	ofl/alienblock	r:AlienBlock-Regular.ttf
+Alike	Serif	ofl/alike	r:Alike-Regular.ttf
+Alike Angular	Serif	ofl/alikeangular	r:AlikeAngular-Regular.ttf
+Alkalami	Serif	ofl/alkalami	r:Alkalami-Regular.ttf
+Alkatra	Display	ofl/alkatra	r:Alkatra[wght].ttf
+Allan	Display	ofl/allan	r:Allan-Regular.ttf|b:Allan-Bold.ttf
+Allerta	Sans Serif	ofl/allerta	r:Allerta-Regular.ttf
+Allerta Stencil	Sans Serif	ofl/allertastencil	r:AllertaStencil-Regular.ttf
+Allison	Handwriting	ofl/allison	r:Allison-Regular.ttf
+Allkin	Display	ofl/allkin	r:Allkin-Regular.ttf
+Allura	Handwriting	ofl/allura	r:Allura-Regular.ttf
+Almarai	Sans Serif	ofl/almarai	r:Almarai-Regular.ttf|b:Almarai-Bold.ttf
+Almendra	Serif	ofl/almendra	r:Almendra-Regular.ttf|b:Almendra-Bold.ttf|i:Almendra-Italic.ttf|bi:Almendra-BoldItalic.ttf
+Almendra Display	Display	ofl/almendradisplay	r:AlmendraDisplay-Regular.ttf
+Almendra SC	Serif	ofl/almendrasc	r:AlmendraSC-Regular.ttf
+Alumni Sans	Sans Serif	ofl/alumnisans	r:AlumniSans[wght].ttf|i:AlumniSans-Italic[wght].ttf
+Alumni Sans Collegiate One	Sans Serif	ofl/alumnisanscollegiateone	r:AlumniSansCollegiateOne-Regular.ttf|i:AlumniSansCollegiateOne-Italic.ttf
+Alumni Sans Inline One	Display	ofl/alumnisansinlineone	r:AlumniSansInlineOne-Regular.ttf|i:AlumniSansInlineOne-Italic.ttf
+Alumni Sans Pinstripe	Sans Serif	ofl/alumnisanspinstripe	r:AlumniSansPinstripe-Regular.ttf|i:AlumniSansPinstripe-Italic.ttf
+Alumni Sans SC	Sans Serif	ofl/alumnisanssc	r:AlumniSansSC[wght].ttf|i:AlumniSansSC-Italic[wght].ttf
+Alyamama	Serif	ofl/alyamama	r:Alyamama[wght].ttf
+Amarante	Display	ofl/amarante	r:Amarante-Regular.ttf
+Amaranth	Sans Serif	ofl/amaranth	r:Amaranth-Regular.ttf|b:Amaranth-Bold.ttf|i:Amaranth-Italic.ttf|bi:Amaranth-BoldItalic.ttf
+Amarna	Sans Serif	ofl/amarna	r:Amarna[wght].ttf|i:Amarna-Italic[wght].ttf
+Amatic SC	Handwriting	ofl/amaticsc	r:AmaticSC-Regular.ttf|b:AmaticSC-Bold.ttf
+Amethysta	Serif	ofl/amethysta	r:Amethysta-Regular.ttf
+Amiko	Sans Serif	ofl/amiko	r:Amiko-Regular.ttf|b:Amiko-Bold.ttf
+Amiri	Serif	ofl/amiri	r:Amiri-Regular.ttf|b:Amiri-Bold.ttf|i:Amiri-Italic.ttf|bi:Amiri-BoldItalic.ttf
+Amiri Quran	Serif	ofl/amiriquran	r:AmiriQuran-Regular.ttf
+Amita	Handwriting	ofl/amita	r:Amita-Regular.ttf|b:Amita-Bold.ttf
+Anaheim	Sans Serif	ofl/anaheim	r:Anaheim[wght].ttf
+Ancizar Sans	Sans Serif	ofl/ancizarsans	r:AncizarSans[wght].ttf|i:AncizarSans-Italic[wght].ttf
+Ancizar Serif	Serif	ofl/ancizarserif	r:AncizarSerif[wght].ttf|i:AncizarSerif-Italic[wght].ttf
+Andada Pro	Serif	ofl/andadapro	r:AndadaPro[wght].ttf|i:AndadaPro-Italic[wght].ttf
+Andika	Sans Serif	ofl/andika	r:Andika-Regular.ttf|b:Andika-Bold.ttf|i:Andika-Italic.ttf|bi:Andika-BoldItalic.ttf
+Anek Bangla	Sans Serif	ofl/anekbangla	r:AnekBangla[wdth,wght].ttf
+Anek Devanagari	Sans Serif	ofl/anekdevanagari	r:AnekDevanagari[wdth,wght].ttf
+Anek Gujarati	Sans Serif	ofl/anekgujarati	r:AnekGujarati[wdth,wght].ttf
+Anek Gurmukhi	Sans Serif	ofl/anekgurmukhi	r:AnekGurmukhi[wdth,wght].ttf
+Anek Kannada	Sans Serif	ofl/anekkannada	r:AnekKannada[wdth,wght].ttf
+Anek Latin	Sans Serif	ofl/aneklatin	r:AnekLatin[wdth,wght].ttf
+Anek Malayalam	Sans Serif	ofl/anekmalayalam	r:AnekMalayalam[wdth,wght].ttf
+Anek Odia	Sans Serif	ofl/anekodia	r:AnekOdia[wdth,wght].ttf
+Anek Tamil	Sans Serif	ofl/anektamil	r:AnekTamil[wdth,wght].ttf
+Anek Telugu	Sans Serif	ofl/anektelugu	r:AnekTelugu[wdth,wght].ttf
+Angkor	Display	ofl/angkor	r:Angkor-Regular.ttf
+Annapurna SIL	Serif	ofl/annapurnasil	r:AnnapurnaSIL-Regular.ttf|b:AnnapurnaSIL-Bold.ttf
+Annie Use Your Telescope	Handwriting	ofl/annieuseyourtelescope	r:AnnieUseYourTelescope-Regular.ttf
+Anonymous Pro	Monospace	ofl/anonymouspro	r:AnonymousPro-Regular.ttf|b:AnonymousPro-Bold.ttf|i:AnonymousPro-Italic.ttf|bi:AnonymousPro-BoldItalic.ttf
+Anta	Sans Serif	ofl/anta	r:Anta-Regular.ttf
+Antic	Sans Serif	ofl/antic	r:Antic-Regular.ttf
+Antic Didone	Serif	ofl/anticdidone	r:AnticDidone-Regular.ttf
+Antic Slab	Serif	ofl/anticslab	r:AnticSlab-Regular.ttf
+Anton	Sans Serif	ofl/anton	r:Anton-Regular.ttf
+Anton SC	Sans Serif	ofl/antonsc	r:AntonSC-Regular.ttf
+Antonio	Sans Serif	ofl/antonio	r:Antonio[wght].ttf
+Anuphan	Sans Serif	ofl/anuphan	r:Anuphan[wght].ttf
+Anybody	Display	ofl/anybody	r:Anybody[wdth,wght].ttf|i:Anybody-Italic[wdth,wght].ttf
+Aoboshi One	Serif	ofl/aoboshione	r:AoboshiOne-Regular.ttf
+AR One Sans	Sans Serif	ofl/aronesans	r:AROneSans[ARRR,wght].ttf
+Arapey	Serif	ofl/arapey	r:Arapey-Regular.ttf|i:Arapey-Italic.ttf
+Arbutus	Serif	ofl/arbutus	r:Arbutus-Regular.ttf
+Arbutus Slab	Serif	ofl/arbutusslab	r:ArbutusSlab-Regular.ttf
+Architects Daughter	Handwriting	ofl/architectsdaughter	r:ArchitectsDaughter-Regular.ttf
+Archivo	Sans Serif	ofl/archivo	r:Archivo[wdth,wght].ttf|i:Archivo-Italic[wdth,wght].ttf
+Archivo Black	Sans Serif	ofl/archivoblack	r:ArchivoBlack-Regular.ttf
+Archivo Narrow	Sans Serif	ofl/archivonarrow	r:ArchivoNarrow[wght].ttf|i:ArchivoNarrow-Italic[wght].ttf
+Are You Serious	Handwriting	ofl/areyouserious	r:AreYouSerious-Regular.ttf
+Aref Ruqaa	Serif	ofl/arefruqaa	r:ArefRuqaa-Regular.ttf|b:ArefRuqaa-Bold.ttf
+Aref Ruqaa Ink	Serif	ofl/arefruqaaink	r:ArefRuqaaInk-Regular.ttf|b:ArefRuqaaInk-Bold.ttf
+Arima	Display	ofl/arima	r:Arima[wght].ttf
+Arimo	Sans Serif	ofl/arimo	r:Arimo[wght].ttf|i:Arimo-Italic[wght].ttf
+Arizonia	Handwriting	ofl/arizonia	r:Arizonia-Regular.ttf
+Armata	Sans Serif	ofl/armata	r:Armata-Regular.ttf
+Arsenal	Sans Serif	ofl/arsenal	r:Arsenal-Regular.ttf|b:Arsenal-Bold.ttf|i:Arsenal-Italic.ttf|bi:Arsenal-BoldItalic.ttf
+Arsenal SC	Sans Serif	ofl/arsenalsc	r:ArsenalSC-Regular.ttf|b:ArsenalSC-Bold.ttf|i:ArsenalSC-Italic.ttf|bi:ArsenalSC-BoldItalic.ttf
+Artifika	Serif	ofl/artifika	r:Artifika-Regular.ttf
+Arvo	Serif	ofl/arvo	r:Arvo-Regular.ttf|b:Arvo-Bold.ttf|i:Arvo-Italic.ttf|bi:Arvo-BoldItalic.ttf
+Arya	Sans Serif	ofl/arya	r:Arya-Regular.ttf|b:Arya-Bold.ttf
+Asap	Sans Serif	ofl/asap	r:Asap[wdth,wght].ttf|i:Asap-Italic[wdth,wght].ttf
+Asap Condensed	Sans Serif	ofl/asapcondensed	r:AsapCondensed-Regular.ttf|b:AsapCondensed-Bold.ttf|i:AsapCondensed-Italic.ttf|bi:AsapCondensed-BoldItalic.ttf
+Asap Sharp	Sans Serif	ofl/asapsharp	r:AsapSharp[wdth,wght].ttf|i:AsapSharp-Italic[wdth,wght].ttf
+Asar	Serif	ofl/asar	r:Asar-Regular.ttf
+Asimovian	Sans Serif	ofl/asimovian	r:Asimovian-Regular.ttf
+Asset	Display	ofl/asset	r:Asset-Regular.ttf
+Assistant	Sans Serif	ofl/assistant	r:Assistant[wght].ttf
+Asta Sans	Sans Serif	ofl/astasans	r:AstaSans[wght].ttf
+Astloch	Display	ofl/astloch	r:Astloch-Regular.ttf|b:Astloch-Bold.ttf
+Asul	Serif	ofl/asul	r:Asul-Regular.ttf|b:Asul-Bold.ttf
+Athiti	Sans Serif	ofl/athiti	r:Athiti-Regular.ttf|b:Athiti-Bold.ttf
+Atkinson Hyperlegible	Sans Serif	ofl/atkinsonhyperlegible	r:AtkinsonHyperlegible-Regular.ttf|b:AtkinsonHyperlegible-Bold.ttf|i:AtkinsonHyperlegible-Italic.ttf|bi:AtkinsonHyperlegible-BoldItalic.ttf
+Atkinson Hyperlegible Mono	Sans Serif	ofl/atkinsonhyperlegiblemono	r:AtkinsonHyperlegibleMono[wght].ttf|i:AtkinsonHyperlegibleMono-Italic[wght].ttf
+Atkinson Hyperlegible Next	Sans Serif	ofl/atkinsonhyperlegiblenext	r:AtkinsonHyperlegibleNext[wght].ttf|i:AtkinsonHyperlegibleNext-Italic[wght].ttf
+Atma	Display	ofl/atma	r:Atma-Regular.ttf|b:Atma-Bold.ttf
+Atomic Age	Display	ofl/atomicage	r:AtomicAge-Regular.ttf
+Aubrey	Display	ofl/aubrey	r:Aubrey-Regular.ttf
+Audiowide	Display	ofl/audiowide	r:Audiowide-Regular.ttf
+Autour One	Display	ofl/autourone	r:AutourOne-Regular.ttf
+Average	Serif	ofl/average	r:Average-Regular.ttf
+Average Sans	Sans Serif	ofl/averagesans	r:AverageSans-Regular.ttf
+Averia Gruesa Libre	Display	ofl/averiagruesalibre	r:AveriaGruesaLibre-Regular.ttf
+Averia Libre	Display	ofl/averialibre	r:AveriaLibre-Regular.ttf|b:AveriaLibre-Bold.ttf|i:AveriaLibre-Italic.ttf|bi:AveriaLibre-BoldItalic.ttf
+Averia Sans Libre	Display	ofl/averiasanslibre	r:AveriaSansLibre-Regular.ttf|b:AveriaSansLibre-Bold.ttf|i:AveriaSansLibre-Italic.ttf|bi:AveriaSansLibre-BoldItalic.ttf
+Averia Serif Libre	Display	ofl/averiaseriflibre	r:AveriaSerifLibre-Regular.ttf|b:AveriaSerifLibre-Bold.ttf|i:AveriaSerifLibre-Italic.ttf|bi:AveriaSerifLibre-BoldItalic.ttf
+Azeret Mono	Monospace	ofl/azeretmono	r:AzeretMono[wght].ttf|i:AzeretMono-Italic[wght].ttf
+B612	Sans Serif	ofl/b612	r:B612-Regular.ttf|b:B612-Bold.ttf|i:B612-Italic.ttf|bi:B612-BoldItalic.ttf
+B612 Mono	Monospace	ofl/b612mono	r:B612Mono-Regular.ttf|b:B612Mono-Bold.ttf|i:B612Mono-Italic.ttf|bi:B612Mono-BoldItalic.ttf
+Babylonica	Handwriting	ofl/babylonica	r:Babylonica-Regular.ttf
+Bacasime Antique	Serif	ofl/bacasimeantique	r:BacasimeAntique-Regular.ttf
+Bad Script	Handwriting	ofl/badscript	r:BadScript-Regular.ttf
+Badeen Display	Display	ofl/badeendisplay	r:BadeenDisplay-Regular.ttf
+Bagel Fat One	Display	ofl/bagelfatone	r:BagelFatOne-Regular.ttf
+Bahiana	Display	ofl/bahiana	r:Bahiana-Regular.ttf
+Bahianita	Display	ofl/bahianita	r:Bahianita-Regular.ttf
+Bai Jamjuree	Sans Serif	ofl/baijamjuree	r:BaiJamjuree-Regular.ttf|b:BaiJamjuree-Bold.ttf|i:BaiJamjuree-Italic.ttf|bi:BaiJamjuree-BoldItalic.ttf
+Bakbak One	Display	ofl/bakbakone	r:BakbakOne-Regular.ttf
+Ballet	Handwriting	ofl/ballet	r:Ballet[opsz].ttf
+Baloo 2	Display	ofl/baloo2	r:Baloo2[wght].ttf
+Baloo Bhai 2	Display	ofl/baloobhai2	r:BalooBhai2[wght].ttf
+Baloo Bhaijaan 2	Display	ofl/baloobhaijaan2	r:BalooBhaijaan2[wght].ttf
+Baloo Bhaina 2	Display	ofl/baloobhaina2	r:BalooBhaina2[wght].ttf
+Baloo Chettan 2	Display	ofl/baloochettan2	r:BalooChettan2[wght].ttf
+Baloo Da 2	Display	ofl/balooda2	r:BalooDa2[wght].ttf
+Baloo Paaji 2	Display	ofl/baloopaaji2	r:BalooPaaji2[wght].ttf
+Baloo Tamma 2	Display	ofl/balootamma2	r:BalooTamma2[wght].ttf
+Baloo Tammudu 2	Display	ofl/balootammudu2	r:BalooTammudu2[wght].ttf
+Baloo Thambi 2	Display	ofl/baloothambi2	r:BalooThambi2[wght].ttf
+Balsamiq Sans	Display	ofl/balsamiqsans	r:BalsamiqSans-Regular.ttf|b:BalsamiqSans-Bold.ttf|i:BalsamiqSans-Italic.ttf|bi:BalsamiqSans-BoldItalic.ttf
+Balthazar	Serif	ofl/balthazar	r:Balthazar-Regular.ttf
+Bangers	Display	ofl/bangers	r:Bangers-Regular.ttf
+Barlow	Sans Serif	ofl/barlow	r:Barlow-Regular.ttf|b:Barlow-Bold.ttf|i:Barlow-Italic.ttf|bi:Barlow-BoldItalic.ttf
+Barlow Condensed	Sans Serif	ofl/barlowcondensed	r:BarlowCondensed-Regular.ttf|b:BarlowCondensed-Bold.ttf|i:BarlowCondensed-Italic.ttf|bi:BarlowCondensed-BoldItalic.ttf
+Barlow Semi Condensed	Sans Serif	ofl/barlowsemicondensed	r:BarlowSemiCondensed-Regular.ttf|b:BarlowSemiCondensed-Bold.ttf|i:BarlowSemiCondensed-Italic.ttf|bi:BarlowSemiCondensed-BoldItalic.ttf
+Barriecito	Display	ofl/barriecito	r:Barriecito-Regular.ttf
+Barrio	Display	ofl/barrio	r:Barrio-Regular.ttf
+Basic	Sans Serif	ofl/basic	r:Basic-Regular.ttf
+Baskervville	Serif	ofl/baskervville	r:Baskervville[wght].ttf|i:Baskervville-Italic[wght].ttf
+Baskervville SC	Serif	ofl/baskervvillesc	r:BaskervvilleSC[wght].ttf
+Battambang	Display	ofl/battambang	r:Battambang-Regular.ttf|b:Battambang-Bold.ttf
+Baumans	Display	ofl/baumans	r:Baumans-Regular.ttf
+Bayon	Sans Serif	ofl/bayon	r:Bayon-Regular.ttf
+BBH Bartle	Sans Serif	ofl/bbhbartle	r:BBHBartle-Regular.ttf
+BBH Bogle	Sans Serif	ofl/bbhbogle	r:BBHBogle-Regular.ttf
+BBH Hegarty	Sans Serif	ofl/bbhhegarty	r:BBHHegarty-Regular.ttf
+Be Vietnam Pro	Sans Serif	ofl/bevietnampro	r:BeVietnamPro-Regular.ttf|b:BeVietnamPro-Bold.ttf|i:BeVietnamPro-Italic.ttf|bi:BeVietnamPro-BoldItalic.ttf
+Beau Rivage	Handwriting	ofl/beaurivage	r:BeauRivage-Regular.ttf
+Bebas Neue	Sans Serif	ofl/bebasneue	r:BebasNeue-Regular.ttf
+Beiruti	Sans Serif	ofl/beiruti	r:Beiruti[wght].ttf
+Belanosima	Sans Serif	ofl/belanosima	r:Belanosima-Regular.ttf|b:Belanosima-Bold.ttf
+Belgrano	Serif	ofl/belgrano	r:Belgrano-Regular.ttf
+Bellefair	Serif	ofl/bellefair	r:Bellefair-Regular.ttf
+Belleza	Sans Serif	ofl/belleza	r:Belleza-Regular.ttf
+Bellota	Display	ofl/bellota	r:Bellota-Regular.ttf|b:Bellota-Bold.ttf|i:Bellota-Italic.ttf|bi:Bellota-BoldItalic.ttf
+Bellota Text	Display	ofl/bellotatext	r:BellotaText-Regular.ttf|b:BellotaText-Bold.ttf|i:BellotaText-Italic.ttf|bi:BellotaText-BoldItalic.ttf
+BenchNine	Sans Serif	ofl/benchnine	r:BenchNine-Regular.ttf|b:BenchNine-Bold.ttf
+Benne	Serif	ofl/benne	r:Benne-Regular.ttf
+Bentham	Serif	ofl/bentham	r:Bentham-Regular.ttf
+Berkshire Swash	Handwriting	ofl/berkshireswash	r:BerkshireSwash-Regular.ttf
+Besley	Serif	ofl/besley	r:Besley[wght].ttf|i:Besley-Italic[wght].ttf
+Betania Patmos	Handwriting	ofl/betaniapatmos	r:BetaniaPatmos-Regular.ttf
+Betania Patmos GDL	Handwriting	ofl/betaniapatmosgdl	r:BetaniaPatmosGDL-Regular.ttf
+Betania Patmos In	Handwriting	ofl/betaniapatmosin	r:BetaniaPatmosIn-Regular.ttf
+Betania Patmos In GDL	Handwriting	ofl/betaniapatmosingdl	r:BetaniaPatmosInGDL-Regular.ttf
+Beth Ellen	Handwriting	ofl/bethellen	r:BethEllen-Regular.ttf
+Bevan	Serif	ofl/bevan	r:Bevan-Regular.ttf|i:Bevan-Italic.ttf
+BhuTuka Expanded One	Serif	ofl/bhutukaexpandedone	r:BhuTukaExpandedOne-Regular.ttf
+Big Shoulders	Display	ofl/bigshoulders	r:BigShoulders[opsz,wght].ttf
+Big Shoulders Inline	Display	ofl/bigshouldersinline	r:BigShouldersInline[opsz,wght].ttf
+Big Shoulders Stencil	Display	ofl/bigshouldersstencil	r:BigShouldersStencil[opsz,wght].ttf
+Bigelow Rules	Display	ofl/bigelowrules	r:BigelowRules-Regular.ttf
+Bigshot One	Display	ofl/bigshotone	r:BigshotOne-Regular.ttf
+Bilbo	Handwriting	ofl/bilbo	r:Bilbo-Regular.ttf
+Bilbo Swash Caps	Handwriting	ofl/bilboswashcaps	r:BilboSwashCaps-Regular.ttf
+BioRhyme	Serif	ofl/biorhyme	r:BioRhyme[wdth,wght].ttf
+BioRhyme Expanded	Serif	ofl/biorhymeexpanded	r:BioRhymeExpanded-Regular.ttf|b:BioRhymeExpanded-Bold.ttf
+Birthstone	Handwriting	ofl/birthstone	r:Birthstone-Regular.ttf
+Birthstone Bounce	Handwriting	ofl/birthstonebounce	r:BirthstoneBounce-Regular.ttf
+Biryani	Sans Serif	ofl/biryani	r:Biryani-Regular.ttf|b:Biryani-Bold.ttf
+Bitcount	Display	ofl/bitcount	r:Bitcount[CRSV,ELSH,ELXP,slnt,wght].ttf
+Bitcount Grid Double	Display	ofl/bitcountgriddouble	r:BitcountGridDouble[CRSV,ELSH,ELXP,slnt,wght].ttf
+Bitcount Grid Double Ink	Display	ofl/bitcountgriddoubleink	r:BitcountGridDoubleInk[CRSV,ELSH,ELXP,SZP1,SZP2,XPN1,XPN2,YPN1,YPN2,slnt,wght].ttf
+Bitcount Grid Single	Display	ofl/bitcountgridsingle	r:BitcountGridSingle[CRSV,ELSH,ELXP,slnt,wght].ttf
+Bitcount Grid Single Ink	Display	ofl/bitcountgridsingleink	r:BitcountGridSingleInk[CRSV,ELSH,ELXP,SZP1,SZP2,XPN1,XPN2,YPN1,YPN2,slnt,wght].ttf
+Bitcount Ink	Display	ofl/bitcountink	r:BitcountInk[CRSV,ELSH,ELXP,SZP1,SZP2,XPN1,XPN2,YPN1,YPN2,slnt,wght].ttf
+Bitcount Prop Double	Display	ofl/bitcountpropdouble	r:BitcountPropDouble[CRSV,ELSH,ELXP,slnt,wght].ttf
+Bitcount Prop Double Ink	Display	ofl/bitcountpropdoubleink	r:BitcountPropDoubleInk[CRSV,ELSH,ELXP,SZP1,SZP2,XPN1,XPN2,YPN1,YPN2,slnt,wght].ttf
+Bitcount Prop Single	Display	ofl/bitcountpropsingle	r:BitcountPropSingle[CRSV,ELSH,ELXP,slnt,wght].ttf
+Bitcount Prop Single Ink	Display	ofl/bitcountpropsingleink	r:BitcountPropSingleInk[CRSV,ELSH,ELXP,SZP1,SZP2,XPN1,XPN2,YPN1,YPN2,slnt,wght].ttf
+Bitcount Single	Display	ofl/bitcountsingle	r:BitcountSingle[CRSV,ELSH,ELXP,slnt,wght].ttf
+Bitcount Single Ink	Display	ofl/bitcountsingleink	r:BitcountSingleInk[CRSV,ELSH,ELXP,SZP1,SZP2,XPN1,XPN2,YPN1,YPN2,slnt,wght].ttf
+Bitter	Serif	ofl/bitter	r:Bitter[wght].ttf|i:Bitter-Italic[wght].ttf
+BIZ UDGothic	Sans Serif	ofl/bizudgothic	r:BIZUDGothic-Regular.ttf|b:BIZUDGothic-Bold.ttf
+BIZ UDMincho	Serif	ofl/bizudmincho	r:BIZUDMincho-Regular.ttf|b:BIZUDMincho-Bold.ttf
+BIZ UDPGothic	Sans Serif	ofl/bizudpgothic	r:BIZUDPGothic-Regular.ttf|b:BIZUDPGothic-Bold.ttf
+BIZ UDPMincho	Serif	ofl/bizudpmincho	r:BIZUDPMincho-Regular.ttf|b:BIZUDPMincho-Bold.ttf
+BJCree	Serif	ofl/bjcree	r:BJCree-Regular.ttf|b:BJCree-Bold.ttf
+Black And White Picture	Display	ofl/blackandwhitepicture	r:BlackAndWhitePicture-Regular.ttf
+Black Han Sans	Sans Serif	ofl/blackhansans	r:BlackHanSans-Regular.ttf
+Black Ops One	Display	ofl/blackopsone	r:BlackOpsOne-Regular.ttf
+Blaka	Display	ofl/blaka	r:Blaka-Regular.ttf
+Blaka Hollow	Display	ofl/blakahollow	r:BlakaHollow-Regular.ttf
+Blaka Ink	Display	ofl/blakaink	r:BlakaInk-Regular.ttf
+Blinker	Sans Serif	ofl/blinker	r:Blinker-Regular.ttf|b:Blinker-Bold.ttf
+Bodoni Moda	Serif	ofl/bodonimoda	r:BodoniModa[opsz,wght].ttf|i:BodoniModa-Italic[opsz,wght].ttf
+Bodoni Moda SC	Serif	ofl/bodonimodasc	r:BodoniModaSC[opsz,wght].ttf|i:BodoniModaSC-Italic[opsz,wght].ttf
+Bokor	Display	ofl/bokor	r:Bokor-Regular.ttf
+Boldonse	Display	ofl/boldonse	r:Boldonse-Regular.ttf
+Bona Nova	Serif	ofl/bonanova	r:BonaNova-Regular.ttf|b:BonaNova-Bold.ttf|i:BonaNova-Italic.ttf
+Bona Nova SC	Serif	ofl/bonanovasc	r:BonaNovaSC-Regular.ttf|b:BonaNovaSC-Bold.ttf|i:BonaNovaSC-Italic.ttf
+Bonbon	Handwriting	ofl/bonbon	r:Bonbon-Regular.ttf
+Bonheur Royale	Handwriting	ofl/bonheurroyale	r:BonheurRoyale-Regular.ttf
+Boogaloo	Display	ofl/boogaloo	r:Boogaloo-Regular.ttf
+Borel	Handwriting	ofl/borel	r:Borel-Regular.ttf
+Bowlby One	Display	ofl/bowlbyone	r:BowlbyOne-Regular.ttf
+Bowlby One SC	Display	ofl/bowlbyonesc	r:BowlbyOneSC-Regular.ttf
+Bpmf Huninn	Sans Serif	ofl/bpmfhuninn	r:BpmfHuninn-Regular.ttf
+Bpmf Iansui	Handwriting	ofl/bpmfiansui	r:BpmfIansui-Regular.ttf
+Bpmf Zihi Kai Std	Sans Serif	ofl/bpmfzihikaistd	r:BpmfZihiKaiStd-Regular.ttf
+Braah One	Sans Serif	ofl/braahone	r:BraahOne-Regular.ttf
+Brawler	Serif	ofl/brawler	r:Brawler-Regular.ttf|b:Brawler-Bold.ttf
+Bree Serif	Serif	ofl/breeserif	r:BreeSerif-Regular.ttf
+Bricolage Grotesque	Sans Serif	ofl/bricolagegrotesque	r:BricolageGrotesque[opsz,wdth,wght].ttf
+Bruno Ace	Display	ofl/brunoace	r:BrunoAce-Regular.ttf
+Bruno Ace SC	Display	ofl/brunoacesc	r:BrunoAceSC-Regular.ttf
+Brygada 1918	Serif	ofl/brygada1918	r:Brygada1918[wght].ttf|i:Brygada1918-Italic[wght].ttf
+Bubblegum Sans	Display	ofl/bubblegumsans	r:BubblegumSans-Regular.ttf
+Bubbler One	Sans Serif	ofl/bubblerone	r:BubblerOne-Regular.ttf
+Buda	Display	ofl/buda	r:Buda-Light.ttf
+Buenard	Serif	ofl/buenard	r:Buenard[wght].ttf
+Bungee	Display	ofl/bungee	r:Bungee-Regular.ttf
+Bungee Hairline	Display	ofl/bungeehairline	r:BungeeHairline-Regular.ttf
+Bungee Inline	Display	ofl/bungeeinline	r:BungeeInline-Regular.ttf
+Bungee Outline	Display	ofl/bungeeoutline	r:BungeeOutline-Regular.ttf
+Bungee Shade	Display	ofl/bungeeshade	r:BungeeShade-Regular.ttf
+Bungee Spice	Display	ofl/bungeespice	r:BungeeSpice-Regular.ttf
+Bungee Tint	Display	ofl/bungeetint	r:BungeeTint-Regular.ttf
+Butcherman	Display	ofl/butcherman	r:Butcherman-Regular.ttf
+Butterfly Kids	Handwriting	ofl/butterflykids	r:ButterflyKids-Regular.ttf
+Bytesized	Sans Serif	ofl/bytesized	r:Bytesized-Regular.ttf
+Caacupe One	Display	ofl/caacupeone	r:CaacupeOne-Regular.ttf
+Cabin	Sans Serif	ofl/cabin	r:Cabin[wdth,wght].ttf|i:Cabin-Italic[wdth,wght].ttf
+Cabin Condensed	Sans Serif	ofl/cabincondensed	r:CabinCondensed-Regular.ttf|b:CabinCondensed-Bold.ttf
+Cabin Sketch	Display	ofl/cabinsketch	r:CabinSketch-Regular.ttf|b:CabinSketch-Bold.ttf
+Cactus Classical Serif	Serif	ofl/cactusclassicalserif	r:CactusClassicalSerif-Regular.ttf
+Caesar Dressing	Display	ofl/caesardressing	r:CaesarDressing-Regular.ttf
+Cagliostro	Sans Serif	ofl/cagliostro	r:Cagliostro-Regular.ttf
+Cairo	Sans Serif	ofl/cairo	r:Cairo[slnt,wght].ttf
+Cairo Play	Sans Serif	ofl/cairoplay	r:CairoPlay[slnt,wght].ttf
+Cal Sans	Sans Serif	ofl/calsans	r:CalSans-Regular.ttf
+Caladea	Serif	ofl/caladea	r:Caladea-Regular.ttf|b:Caladea-Bold.ttf|i:Caladea-Italic.ttf|bi:Caladea-BoldItalic.ttf
+Calistoga	Display	ofl/calistoga	r:Calistoga-Regular.ttf
+Calligraffitti	Handwriting	apache/calligraffitti	r:Calligraffitti-Regular.ttf
+Cambay	Sans Serif	ofl/cambay	r:Cambay-Regular.ttf|b:Cambay-Bold.ttf|i:Cambay-Italic.ttf|bi:Cambay-BoldItalic.ttf
+Cambo	Serif	ofl/cambo	r:Cambo-Regular.ttf
+Candal	Sans Serif	ofl/candal	r:Candal.ttf
+Cantarell	Sans Serif	ofl/cantarell	r:Cantarell-Regular.ttf|b:Cantarell-Bold.ttf|i:Cantarell-Italic.ttf|bi:Cantarell-BoldItalic.ttf
+Cantata One	Serif	ofl/cantataone	r:CantataOne-Regular.ttf
+Cantora One	Sans Serif	ofl/cantoraone	r:CantoraOne-Regular.ttf
+Caprasimo	Display	ofl/caprasimo	r:Caprasimo-Regular.ttf
+Capriola	Sans Serif	ofl/capriola	r:Capriola[wght].ttf
+Caramel	Handwriting	ofl/caramel	r:Caramel-Regular.ttf
+Carattere	Handwriting	ofl/carattere	r:Carattere-Regular.ttf
+Cardo	Serif	ofl/cardo	r:Cardo-Regular.ttf|b:Cardo-Bold.ttf|i:Cardo-Italic.ttf
+Carlito	Sans Serif	ofl/carlito	r:Carlito-Regular.ttf|b:Carlito-Bold.ttf|i:Carlito-Italic.ttf|bi:Carlito-BoldItalic.ttf
+Carme	Sans Serif	ofl/carme	r:Carme-Regular.ttf
+Carrois Gothic	Sans Serif	ofl/carroisgothic	r:CarroisGothic-Regular.ttf
+Carrois Gothic SC	Sans Serif	ofl/carroisgothicsc	r:CarroisGothicSC-Regular.ttf
+Carter One	Display	ofl/carterone	r:CarterOne.ttf
+Cascadia Code	Sans Serif	ofl/cascadiacode	r:CascadiaCode[wght].ttf|i:CascadiaCode-Italic[wght].ttf
+Cascadia Mono	Sans Serif	ofl/cascadiamono	r:CascadiaMono[wght].ttf|i:CascadiaMono-Italic[wght].ttf
+Castoro	Serif	ofl/castoro	r:Castoro[wght].ttf|i:Castoro-Italic[wght].ttf
+Castoro Titling	Display	ofl/castorotitling	r:CastoroTitling-Regular.ttf
+Catamaran	Sans Serif	ofl/catamaran	r:Catamaran[wght].ttf
+Caudex	Serif	ofl/caudex	r:Caudex-Regular.ttf|b:Caudex-Bold.ttf|i:Caudex-Italic.ttf|bi:Caudex-BoldItalic.ttf
+Cause	Handwriting	ofl/cause	r:Cause[wght].ttf
+Caveat	Handwriting	ofl/caveat	r:Caveat[wght].ttf
+Caveat Brush	Handwriting	ofl/caveatbrush	r:CaveatBrush-Regular.ttf
+Cedarville Cursive	Handwriting	ofl/cedarvillecursive	r:Cedarville-Cursive.ttf
+Ceviche One	Display	ofl/cevicheone	r:CevicheOne-Regular.ttf
+Chakra Petch	Sans Serif	ofl/chakrapetch	r:ChakraPetch-Regular.ttf|b:ChakraPetch-Bold.ttf|i:ChakraPetch-Italic.ttf|bi:ChakraPetch-BoldItalic.ttf
+Changa	Sans Serif	ofl/changa	r:Changa[wght].ttf
+Changa One	Display	ofl/changaone	r:ChangaOne-Regular.ttf|i:ChangaOne-Italic.ttf
+Chango	Display	ofl/chango	r:Chango-Regular.ttf
+Charis SIL	Serif	ofl/charissil	r:CharisSIL-Regular.ttf|b:CharisSIL-Bold.ttf|i:CharisSIL-Italic.ttf|bi:CharisSIL-BoldItalic.ttf
+Charm	Handwriting	ofl/charm	r:Charm-Regular.ttf|b:Charm-Bold.ttf
+Charmonman	Handwriting	ofl/charmonman	r:Charmonman-Regular.ttf|b:Charmonman-Bold.ttf
+Chathura	Sans Serif	ofl/chathura	r:Chathura-Regular.ttf|b:Chathura-Bold.ttf
+Chau Philomene One	Sans Serif	ofl/chauphilomeneone	r:ChauPhilomeneOne-Regular.ttf|i:ChauPhilomeneOne-Italic.ttf
+Chela One	Display	ofl/chelaone	r:ChelaOne-Regular.ttf
+Chelsea Market	Display	ofl/chelseamarket	r:ChelseaMarket-Regular.ttf
+Chenla	Display	ofl/chenla	r:Chenla.ttf
+Cherish	Handwriting	ofl/cherish	r:Cherish-Regular.ttf
+Cherry Bomb One	Display	ofl/cherrybombone	r:CherryBombOne-Regular.ttf
+Cherry Cream Soda	Display	apache/cherrycreamsoda	r:CherryCreamSoda-Regular.ttf
+Cherry Swash	Display	ofl/cherryswash	r:CherrySwash-Regular.ttf|b:CherrySwash-Bold.ttf
+Chewy	Display	apache/chewy	r:Chewy-Regular.ttf
+Chicle	Display	ofl/chicle	r:Chicle-Regular.ttf
+Chilanka	Handwriting	ofl/chilanka	r:Chilanka-Regular.ttf
+Chiron Hei HK	Sans Serif	ofl/chironheihk	r:ChironHeiHK[wght].ttf|i:ChironHeiHK-Italic[wght].ttf
+Chivo	Sans Serif	ofl/chivo	r:Chivo[wght].ttf|i:Chivo-Italic[wght].ttf
+Chivo Mono	Monospace	ofl/chivomono	r:ChivoMono[wght].ttf|i:ChivoMono-Italic[wght].ttf
+Chocolate Classical Sans	Sans Serif	ofl/chocolateclassicalsans	r:ChocolateClassicalSans-Regular.ttf
+Chokokutai	Display	ofl/chokokutai	r:Chokokutai-Regular.ttf
+Chonburi	Display	ofl/chonburi	r:Chonburi-Regular.ttf
+Cinzel	Serif	ofl/cinzel	r:Cinzel[wght].ttf
+Cinzel Decorative	Display	ofl/cinzeldecorative	r:CinzelDecorative-Regular.ttf|b:CinzelDecorative-Bold.ttf
+Clarity City	Sans Serif	ofl/claritycity	r:ClarityCity[wght].ttf|i:ClarityCity-Italic[wght].ttf
+Clicker Script	Handwriting	ofl/clickerscript	r:ClickerScript-Regular.ttf
+Climate Crisis	Display	ofl/climatecrisis	r:ClimateCrisis[YEAR].ttf
+Coda	Display	ofl/coda	r:Coda-Regular.ttf
+Codystar	Display	ofl/codystar	r:Codystar-Regular.ttf
+Coiny	Display	ofl/coiny	r:Coiny-Regular.ttf
+Combo	Display	ofl/combo	r:Combo-Regular.ttf
+Comfortaa	Display	ofl/comfortaa	r:Comfortaa[wght].ttf
+Comforter	Handwriting	ofl/comforter	r:Comforter-Regular.ttf
+Comforter Brush	Handwriting	ofl/comforterbrush	r:ComforterBrush-Regular.ttf
+Comic Neue	Handwriting	ofl/comicneue	r:ComicNeue-Regular.ttf|b:ComicNeue-Bold.ttf|i:ComicNeue-Italic.ttf|bi:ComicNeue-BoldItalic.ttf
+Comic Relief	Display	ofl/comicrelief	r:ComicRelief-Regular.ttf|b:ComicRelief-Bold.ttf
+Coming Soon	Handwriting	apache/comingsoon	r:ComingSoon-Regular.ttf
+Comme	Sans Serif	ofl/comme	r:Comme[wght].ttf
+Commissioner	Sans Serif	ofl/commissioner	r:Commissioner[FLAR,VOLM,slnt,wght].ttf
+Concert One	Display	ofl/concertone	r:ConcertOne-Regular.ttf
+Condiment	Handwriting	ofl/condiment	r:Condiment-Regular.ttf
+Content	Display	ofl/content	r:Content-Regular.ttf|b:Content-Bold.ttf
+Contrail One	Display	ofl/contrailone	r:ContrailOne-Regular.ttf
+Convergence	Sans Serif	ofl/convergence	r:Convergence-Regular.ttf
+Cookie	Handwriting	ofl/cookie	r:Cookie-Regular.ttf
+Copse	Serif	ofl/copse	r:Copse-Regular.ttf
+Coral Pixels	Display	ofl/coralpixels	r:CoralPixels-Regular.ttf
+Corben	Display	ofl/corben	r:Corben-Regular.ttf|b:Corben-Bold.ttf
+Corinthia	Handwriting	ofl/corinthia	r:Corinthia-Regular.ttf|b:Corinthia-Bold.ttf
+Cormorant	Serif	ofl/cormorant	r:Cormorant[wght].ttf|i:Cormorant-Italic[wght].ttf
+Cormorant Garamond	Serif	ofl/cormorantgaramond	r:CormorantGaramond[wght].ttf|i:CormorantGaramond-Italic[wght].ttf
+Cormorant Infant	Serif	ofl/cormorantinfant	r:CormorantInfant[wght].ttf|i:CormorantInfant-Italic[wght].ttf
+Cormorant SC	Serif	ofl/cormorantsc	r:CormorantSC-Regular.ttf|b:CormorantSC-Bold.ttf
+Cormorant Unicase	Serif	ofl/cormorantunicase	r:CormorantUnicase-Regular.ttf|b:CormorantUnicase-Bold.ttf
+Cormorant Upright	Serif	ofl/cormorantupright	r:CormorantUpright-Regular.ttf|b:CormorantUpright-Bold.ttf
+Cossette Texte	Sans Serif	ofl/cossettetexte	r:CossetteTexte-Regular.ttf|b:CossetteTexte-Bold.ttf
+Cossette Titre	Sans Serif	ofl/cossettetitre	r:CossetteTitre-Regular.ttf|b:CossetteTitre-Bold.ttf
+Courgette	Handwriting	ofl/courgette	r:Courgette-Regular.ttf
+Courier Prime	Monospace	ofl/courierprime	r:CourierPrime-Regular.ttf|b:CourierPrime-Bold.ttf|i:CourierPrime-Italic.ttf|bi:CourierPrime-BoldItalic.ttf
+Cousine	Monospace	ofl/cousine	r:Cousine-Regular.ttf|b:Cousine-Bold.ttf|i:Cousine-Italic.ttf|bi:Cousine-BoldItalic.ttf
+Coustard	Serif	ofl/coustard	r:Coustard-Regular.ttf
+Covered By Your Grace	Handwriting	ofl/coveredbyyourgrace	r:CoveredByYourGrace.ttf
+Crafty Girls	Handwriting	apache/craftygirls	r:CraftyGirls-Regular.ttf
+Creepster	Display	ofl/creepster	r:Creepster-Regular.ttf
+Crete Round	Serif	ofl/creteround	r:CreteRound-Regular.ttf|i:CreteRound-Italic.ttf
+Crimson Pro	Serif	ofl/crimsonpro	r:CrimsonPro[wght].ttf|i:CrimsonPro-Italic[wght].ttf
+Crimson Text	Serif	ofl/crimsontext	r:CrimsonText-Regular.ttf|b:CrimsonText-Bold.ttf|i:CrimsonText-Italic.ttf|bi:CrimsonText-BoldItalic.ttf
+Croissant One	Display	ofl/croissantone	r:CroissantOne-Regular.ttf
+Crushed	Display	apache/crushed	r:Crushed-Regular.ttf
+Cuprum	Sans Serif	ofl/cuprum	r:Cuprum[wght].ttf|i:Cuprum-Italic[wght].ttf
+Cute Font	Display	ofl/cutefont	r:CuteFont-Regular.ttf
+Cutive	Serif	ofl/cutive	r:Cutive-Regular.ttf
+Cutive Mono	Monospace	ofl/cutivemono	r:CutiveMono-Regular.ttf
+Dai Banna SIL	Serif	ofl/daibannasil	r:DaiBannaSIL-Regular.ttf|b:DaiBannaSIL-Bold.ttf|i:DaiBannaSIL-Italic.ttf|bi:DaiBannaSIL-BoldItalic.ttf
+Damion	Handwriting	ofl/damion	r:Damion-Regular.ttf
+Dancing Script	Handwriting	ofl/dancingscript	r:DancingScript[wght].ttf
+Danfo	Serif	ofl/danfo	r:Danfo[ELSH].ttf
+Dangrek	Display	ofl/dangrek	r:Dangrek-Regular.ttf
+Darker Grotesque	Sans Serif	ofl/darkergrotesque	r:DarkerGrotesque[wght].ttf
+Darumadrop One	Display	ofl/darumadropone	r:DarumadropOne-Regular.ttf
+Datatype	Monospace	ofl/datatype	r:Datatype[wdth,wght].ttf
+David Libre	Serif	ofl/davidlibre	r:DavidLibre-Regular.ttf|b:DavidLibre-Bold.ttf
+Dawning of a New Day	Handwriting	ofl/dawningofanewday	r:DawningofaNewDay.ttf
+Days One	Sans Serif	ofl/daysone	r:DaysOne-Regular.ttf
+Dekko	Handwriting	ofl/dekko	r:Dekko-Regular.ttf
+Dela Gothic One	Display	ofl/delagothicone	r:DelaGothicOne-Regular.ttf
+Delicious Handrawn	Handwriting	ofl/delicioushandrawn	r:DeliciousHandrawn-Regular.ttf
+Delius	Handwriting	ofl/delius	r:Delius-Regular.ttf
+Delius Swash Caps	Handwriting	ofl/deliusswashcaps	r:DeliusSwashCaps-Regular.ttf
+Delius Unicase	Handwriting	ofl/deliusunicase	r:DeliusUnicase-Regular.ttf|b:DeliusUnicase-Bold.ttf
+Della Respira	Serif	ofl/dellarespira	r:DellaRespira-Regular.ttf
+Denk One	Sans Serif	ofl/denkone	r:DenkOne-Regular.ttf
+Devonshire	Handwriting	ofl/devonshire	r:Devonshire-Regular.ttf
+Dhurjati	Sans Serif	ofl/dhurjati	r:Dhurjati-Regular.ttf
+Didact Gothic	Sans Serif	ofl/didactgothic	r:DidactGothic-Regular.ttf
+Diphylleia	Serif	ofl/diphylleia	r:Diphylleia-Regular.ttf
+Diplomata	Display	ofl/diplomata	r:Diplomata-Regular.ttf
+Diplomata SC	Display	ofl/diplomatasc	r:DiplomataSC-Regular.ttf
+DM Mono	Monospace	ofl/dmmono	r:DMMono-Regular.ttf|i:DMMono-Italic.ttf
+DM Sans	Sans Serif	ofl/dmsans	r:DMSans[opsz,wght].ttf|i:DMSans-Italic[opsz,wght].ttf
+DM Serif Display	Serif	ofl/dmserifdisplay	r:DMSerifDisplay-Regular.ttf|i:DMSerifDisplay-Italic.ttf
+DM Serif Text	Serif	ofl/dmseriftext	r:DMSerifText-Regular.ttf|i:DMSerifText-Italic.ttf
+Do Hyeon	Sans Serif	ofl/dohyeon	r:DoHyeon-Regular.ttf
+Dokdo	Display	ofl/dokdo	r:Dokdo-Regular.ttf
+Domine	Serif	ofl/domine	r:Domine[wght].ttf
+Donegal One	Serif	ofl/donegalone	r:DonegalOne-Regular.ttf
+Dongle	Sans Serif	ofl/dongle	r:Dongle-Regular.ttf|b:Dongle-Bold.ttf
+Doppio One	Sans Serif	ofl/doppioone	r:DoppioOne-Regular.ttf
+Dorsa	Sans Serif	ofl/dorsa	r:Dorsa-Regular.ttf
+Dosis	Sans Serif	ofl/dosis	r:Dosis[wght].ttf
+DotGothic16	Sans Serif	ofl/dotgothic16	r:DotGothic16-Regular.ttf
+Doto	Sans Serif	ofl/doto	r:Doto[ROND,wght].ttf
+Dr Sugiyama	Handwriting	ofl/drsugiyama	r:DrSugiyama-Regular.ttf
+Duru Sans	Sans Serif	ofl/durusans	r:DuruSans-Regular.ttf
+Dynalight	Display	ofl/dynalight	r:Dynalight-Regular.ttf
+DynaPuff	Display	ofl/dynapuff	r:DynaPuff[wdth,wght].ttf
+Eagle Lake	Handwriting	ofl/eaglelake	r:EagleLake-Regular.ttf
+East Sea Dokdo	Handwriting	ofl/eastseadokdo	r:EastSeaDokdo-Regular.ttf
+Eater	Display	ofl/eater	r:Eater-Regular.ttf
+EB Garamond	Serif	ofl/ebgaramond	r:EBGaramond[wght].ttf|i:EBGaramond-Italic[wght].ttf
+Economica	Sans Serif	ofl/economica	r:Economica-Regular.ttf|b:Economica-Bold.ttf|i:Economica-Italic.ttf|bi:Economica-BoldItalic.ttf
+Eczar	Serif	ofl/eczar	r:Eczar[wght].ttf
+Edu AU VIC WA NT Arrows	Handwriting	ofl/eduauvicwantarrows	r:EduAUVICWANTArrows[wght].ttf
+Edu AU VIC WA NT Dots	Handwriting	ofl/eduauvicwantdots	r:EduAUVICWANTDots[wght].ttf
+Edu AU VIC WA NT Guides	Handwriting	ofl/eduauvicwantguides	r:EduAUVICWANTGuides[wght].ttf
+Edu AU VIC WA NT Hand	Handwriting	ofl/eduauvicwanthand	r:EduAUVICWANTHand[wght].ttf
+Edu AU VIC WA NT Pre	Handwriting	ofl/eduauvicwantpre	r:EduAUVICWANTPre[wght].ttf
+Edu NSW ACT Foundation	Handwriting	ofl/edunswactfoundation	r:EduNSWACTFoundation[wght].ttf
+Edu QLD Beginner	Handwriting	ofl/eduqldbeginner	r:EduQLDBeginner[wght].ttf
+Edu SA Beginner	Handwriting	ofl/edusabeginner	r:EduSABeginner[wght].ttf
+Edu TAS Beginner	Handwriting	ofl/edutasbeginner	r:EduTASBeginner[wght].ttf
+Edu VIC WA NT Beginner	Handwriting	ofl/eduvicwantbeginner	r:EduVICWANTBeginner[wght].ttf
+El Messiri	Sans Serif	ofl/elmessiri	r:ElMessiri[wght].ttf
+Electrolize	Sans Serif	ofl/electrolize	r:Electrolize-Regular.ttf
+Elms Sans	Sans Serif	ofl/elmssans	r:ElmsSans[wght].ttf|i:ElmsSans-Italic[wght].ttf
+Elsie	Display	ofl/elsie	r:Elsie-Regular.ttf
+Elsie Swash Caps	Display	ofl/elsieswashcaps	r:ElsieSwashCaps-Regular.ttf
+Emblema One	Display	ofl/emblemaone	r:EmblemaOne-Regular.ttf
+Emilys Candy	Display	ofl/emilyscandy	r:EmilysCandy-Regular.ttf
+Encode Sans	Sans Serif	ofl/encodesans	r:EncodeSans[wdth,wght].ttf
+Encode Sans Condensed	Sans Serif	ofl/encodesanscondensed	r:EncodeSansCondensed-Regular.ttf|b:EncodeSansCondensed-Bold.ttf
+Encode Sans Expanded	Sans Serif	ofl/encodesansexpanded	r:EncodeSansExpanded-Regular.ttf|b:EncodeSansExpanded-Bold.ttf
+Encode Sans SC	Sans Serif	ofl/encodesanssc	r:EncodeSansSC[wdth,wght].ttf
+Encode Sans Semi Condensed	Sans Serif	ofl/encodesanssemicondensed	r:EncodeSansSemiCondensed-Regular.ttf|b:EncodeSansSemiCondensed-Bold.ttf
+Encode Sans Semi Expanded	Sans Serif	ofl/encodesanssemiexpanded	r:EncodeSansSemiExpanded-Regular.ttf|b:EncodeSansSemiExpanded-Bold.ttf
+Engagement	Handwriting	ofl/engagement	r:Engagement-Regular.ttf
+Englebert	Sans Serif	ofl/englebert	r:Englebert-Regular.ttf
+Enriqueta	Serif	ofl/enriqueta	r:Enriqueta-Regular.ttf|b:Enriqueta-Bold.ttf
+Ephesis	Handwriting	ofl/ephesis	r:Ephesis-Regular.ttf
+Epilogue	Sans Serif	ofl/epilogue	r:Epilogue[wght].ttf|i:Epilogue-Italic[wght].ttf
+Epunda Sans	Sans Serif	ofl/epundasans	r:EpundaSans[wght].ttf|i:EpundaSans-Italic[wght].ttf
+Epunda Slab	Serif	ofl/epundaslab	r:EpundaSlab[wght].ttf|i:EpundaSlab-Italic[wght].ttf
+Erica One	Display	ofl/ericaone	r:EricaOne-Regular.ttf
+Esteban	Serif	ofl/esteban	r:Esteban-Regular.ttf
+Estedad	Sans Serif	ofl/estedad	r:Estedad[wght].ttf
+Estonia	Handwriting	ofl/estonia	r:Estonia-Regular.ttf
+Euphoria Script	Handwriting	ofl/euphoriascript	r:EuphoriaScript-Regular.ttf
+Ewert	Display	ofl/ewert	r:Ewert-Regular.ttf
+Exile	Display	ofl/exile	r:Exile-Regular.ttf
+Exo	Sans Serif	ofl/exo	r:Exo[wght].ttf|i:Exo-Italic[wght].ttf
+Exo 2	Sans Serif	ofl/exo2	r:Exo2[wght].ttf|i:Exo2-Italic[wght].ttf
+Expletus Sans	Display	ofl/expletussans	r:ExpletusSans[wght].ttf|i:ExpletusSans-Italic[wght].ttf
+Explora	Handwriting	ofl/explora	r:Explora-Regular.ttf
+Faculty Glyphic	Sans Serif	ofl/facultyglyphic	r:FacultyGlyphic-Regular.ttf
+Fahkwang	Sans Serif	ofl/fahkwang	r:Fahkwang-Regular.ttf|b:Fahkwang-Bold.ttf|i:Fahkwang-Italic.ttf|bi:Fahkwang-BoldItalic.ttf
+Familjen Grotesk	Sans Serif	ofl/familjengrotesk	r:FamiljenGrotesk[wght].ttf|i:FamiljenGrotesk-Italic[wght].ttf
+Fanwood Text	Serif	ofl/fanwoodtext	r:FanwoodText-Regular.ttf|i:FanwoodText-Italic.ttf
+Farro	Sans Serif	ofl/farro	r:Farro-Regular.ttf|b:Farro-Bold.ttf
+Farsan	Display	ofl/farsan	r:Farsan-Regular.ttf
+Fascinate	Display	ofl/fascinate	r:Fascinate-Regular.ttf
+Fascinate Inline	Display	ofl/fascinateinline	r:FascinateInline-Regular.ttf
+Faster One	Display	ofl/fasterone	r:FasterOne-Regular.ttf
+Fasthand	Display	ofl/fasthand	r:Fasthand-Regular.ttf
+Fauna One	Serif	ofl/faunaone	r:FaunaOne-Regular.ttf
+Faustina	Serif	ofl/faustina	r:Faustina[wght].ttf|i:Faustina-Italic[wght].ttf
+Federant	Display	ofl/federant	r:Federant-Regular.ttf
+Federo	Sans Serif	ofl/federo	r:Federo-Regular.ttf
+Felipa	Handwriting	ofl/felipa	r:Felipa-Regular.ttf
+Fenix	Serif	ofl/fenix	r:Fenix-Regular.ttf
+Festive	Handwriting	ofl/festive	r:Festive-Regular.ttf
+Figtree	Sans Serif	ofl/figtree	r:Figtree[wght].ttf|i:Figtree-Italic[wght].ttf
+Finger Paint	Display	ofl/fingerpaint	r:FingerPaint-Regular.ttf
+Finlandica Headline	Sans Serif	ofl/finlandicaheadline	r:FinlandicaHeadline[wght].ttf|i:FinlandicaHeadline-Italic[wght].ttf
+Finlandica Text	Sans Serif	ofl/finlandicatext	r:FinlandicaText[wght].ttf|i:FinlandicaText-Italic[wght].ttf
+Fira Code	Monospace	ofl/firacode	r:FiraCode[wght].ttf
+Fira Mono	Monospace	ofl/firamono	r:FiraMono-Regular.ttf|b:FiraMono-Bold.ttf
+Fira Sans	Sans Serif	ofl/firasans	r:FiraSans-Regular.ttf|b:FiraSans-Bold.ttf|i:FiraSans-Italic.ttf|bi:FiraSans-BoldItalic.ttf
+Fira Sans Condensed	Sans Serif	ofl/firasanscondensed	r:FiraSansCondensed-Regular.ttf|b:FiraSansCondensed-Bold.ttf|i:FiraSansCondensed-Italic.ttf|bi:FiraSansCondensed-BoldItalic.ttf
+Fira Sans Extra Condensed	Sans Serif	ofl/firasansextracondensed	r:FiraSansExtraCondensed-Regular.ttf|b:FiraSansExtraCondensed-Bold.ttf|i:FiraSansExtraCondensed-Italic.ttf|bi:FiraSansExtraCondensed-BoldItalic.ttf
+Firjar	Sans Serif	ofl/firjar	r:Firjar[wdth,wght].ttf
+Fjalla One	Sans Serif	ofl/fjallaone	r:FjallaOne-Regular.ttf
+Fjord One	Serif	ofl/fjordone	r:FjordOne-Regular.ttf
+Flamenco	Display	ofl/flamenco	r:Flamenco-Regular.ttf
+Flavors	Display	ofl/flavors	r:Flavors-Regular.ttf
+Fleur De Leah	Handwriting	ofl/fleurdeleah	r:FleurDeLeah-Regular.ttf
+Flow Block	Display	ofl/flowblock	r:FlowBlock-Regular.ttf
+Flow Circular	Display	ofl/flowcircular	r:FlowCircular-Regular.ttf
+Flow Rounded	Display	ofl/flowrounded	r:FlowRounded-Regular.ttf
+Foldit	Display	ofl/foldit	r:Foldit[wght].ttf
+Fondamento	Handwriting	ofl/fondamento	r:Fondamento-Regular.ttf|i:Fondamento-Italic.ttf
+Fontdiner Swanky	Display	apache/fontdinerswanky	r:FontdinerSwanky-Regular.ttf
+Forum	Display	ofl/forum	r:Forum-Regular.ttf
+Fragment Mono	Monospace	ofl/fragmentmono	r:FragmentMono-Regular.ttf|i:FragmentMono-Italic.ttf
+Francois One	Sans Serif	ofl/francoisone	r:FrancoisOne-Regular.ttf
+Frank Ruhl Libre	Serif	ofl/frankruhllibre	r:FrankRuhlLibre[wght].ttf
+Fraunces	Serif	ofl/fraunces	r:Fraunces[SOFT,WONK,opsz,wght].ttf|i:Fraunces-Italic[SOFT,WONK,opsz,wght].ttf
+Freckle Face	Display	ofl/freckleface	r:FreckleFace-Regular.ttf
+Fredericka the Great	Display	ofl/frederickathegreat	r:FrederickatheGreat-Regular.ttf
+Fredoka	Sans Serif	ofl/fredoka	r:Fredoka[wdth,wght].ttf
+Freehand	Display	ofl/freehand	r:Freehand-Regular.ttf
+Freeman	Display	ofl/freeman	r:Freeman-Regular.ttf
+Fresca	Sans Serif	ofl/fresca	r:Fresca-Regular.ttf
+Frijole	Display	ofl/frijole	r:Frijole-Regular.ttf
+Fruktur	Display	ofl/fruktur	r:Fruktur-Regular.ttf|i:Fruktur-Italic.ttf
+Fugaz One	Display	ofl/fugazone	r:FugazOne-Regular.ttf
+Fuggles	Handwriting	ofl/fuggles	r:Fuggles-Regular.ttf
+Funnel Display	Display	ofl/funneldisplay	r:FunnelDisplay[wght].ttf
+Funnel Sans	Sans Serif	ofl/funnelsans	r:FunnelSans[wght].ttf|i:FunnelSans-Italic[wght].ttf
+Fustat	Sans Serif	ofl/fustat	r:Fustat[wght].ttf
+Fuzzy Bubbles	Handwriting	ofl/fuzzybubbles	r:FuzzyBubbles-Regular.ttf|b:FuzzyBubbles-Bold.ttf
+Ga Maamli	Display	ofl/gamaamli	r:GaMaamli-Regular.ttf
+Gabarito	Display	ofl/gabarito	r:Gabarito[wght].ttf
+Gabriela	Serif	ofl/gabriela	r:Gabriela-Regular.ttf
+Gaegu	Handwriting	ofl/gaegu	r:Gaegu-Regular.ttf|b:Gaegu-Bold.ttf
+Gafata	Sans Serif	ofl/gafata	r:Gafata-Regular.ttf
+Gajraj One	Display	ofl/gajrajone	r:GajrajOne-Regular.ttf
+Galada	Display	ofl/galada	r:Galada-Regular.ttf
+Galdeano	Sans Serif	ofl/galdeano	r:Galdeano-Regular.ttf
+Galindo	Display	ofl/galindo	r:Galindo-Regular.ttf
+Gamja Flower	Handwriting	ofl/gamjaflower	r:GamjaFlower-Regular.ttf
+Gantari	Sans Serif	ofl/gantari	r:Gantari[wght].ttf|i:Gantari-Italic[wght].ttf
+Gasoek One	Sans Serif	ofl/gasoekone	r:GasoekOne-Regular.ttf
+Gayathri	Sans Serif	ofl/gayathri	r:Gayathri-Regular.ttf|b:Gayathri-Bold.ttf
+Geist	Sans Serif	ofl/geist	r:Geist[wght].ttf|i:Geist-Italic[wght].ttf
+Geist Mono	Monospace	ofl/geistmono	r:GeistMono[wght].ttf|i:GeistMono-Italic[wght].ttf
+Geist Pixel	Display	ofl/geistpixel	r:GeistPixel[ELSH].ttf
+Gelasio	Serif	ofl/gelasio	r:Gelasio[wght].ttf|i:Gelasio-Italic[wght].ttf
+Gemunu Libre	Sans Serif	ofl/gemunulibre	r:GemunuLibre[wght].ttf
+Genos	Sans Serif	ofl/genos	r:Genos[wght].ttf|i:Genos-Italic[wght].ttf
+Gentium Book Plus	Serif	ofl/gentiumbookplus	r:GentiumBookPlus-Regular.ttf|b:GentiumBookPlus-Bold.ttf|i:GentiumBookPlus-Italic.ttf|bi:GentiumBookPlus-BoldItalic.ttf
+Gentium Plus	Serif	ofl/gentiumplus	r:GentiumPlus-Regular.ttf|b:GentiumPlus-Bold.ttf|i:GentiumPlus-Italic.ttf|bi:GentiumPlus-BoldItalic.ttf
+Geo	Sans Serif	ofl/geo	r:Geo-Regular.ttf
+Geologica	Sans Serif	ofl/geologica	r:Geologica[CRSV,SHRP,slnt,wght].ttf
+Geom	Sans Serif	ofl/geom	r:Geom[wght].ttf|i:Geom-Italic[wght].ttf
+Geomini	Sans Serif	ofl/geomini	r:Geomini[wght].ttf
+Georama	Sans Serif	ofl/georama	r:Georama[wdth,wght].ttf|i:Georama-Italic[wdth,wght].ttf
+Geostar	Display	ofl/geostar	r:Geostar-Regular.ttf
+Geostar Fill	Display	ofl/geostarfill	r:GeostarFill-Regular.ttf
+Germania One	Display	ofl/germaniaone	r:GermaniaOne-Regular.ttf
+GFS Didot	Serif	ofl/gfsdidot	r:GFSDidot-Regular.ttf
+GFS Neohellenic	Sans Serif	ofl/gfsneohellenic	r:GFSNeohellenic.ttf|i:GFSNeohellenicBoldItalic.ttf
+Gideon Roman	Display	ofl/gideonroman	r:GideonRoman-Regular.ttf
+Gidole	Sans Serif	ofl/gidole	r:Gidole-Regular.ttf
+Gidugu	Sans Serif	ofl/gidugu	r:Gidugu-Regular.ttf
+Gilda Display	Serif	ofl/gildadisplay	r:GildaDisplay-Regular.ttf
+Girassol	Display	ofl/girassol	r:Girassol-Regular.ttf
+Give You Glory	Handwriting	ofl/giveyouglory	r:GiveYouGlory.ttf
+Glass Antiqua	Display	ofl/glassantiqua	r:GlassAntiqua-Regular.ttf
+Glegoo	Serif	ofl/glegoo	r:Glegoo-Regular.ttf|b:Glegoo-Bold.ttf
+Gloock	Serif	ofl/gloock	r:Gloock-Regular.ttf
+Gloria Hallelujah	Handwriting	ofl/gloriahallelujah	r:GloriaHallelujah.ttf
+Glory	Sans Serif	ofl/glory	r:Glory[wght].ttf|i:Glory-Italic[wght].ttf
+Gluten	Display	ofl/gluten	r:Gluten[slnt,wght].ttf
+Goblin One	Display	ofl/goblinone	r:GoblinOne.ttf
+Gochi Hand	Handwriting	ofl/gochihand	r:GochiHand-Regular.ttf
+Goldman	Display	ofl/goldman	r:Goldman-Regular.ttf|b:Goldman-Bold.ttf
+Golos Text	Sans Serif	ofl/golostext	r:GolosText[wght].ttf
+Google Sans	Sans Serif	ofl/googlesans	r:GoogleSans[GRAD,opsz,wght].ttf|i:GoogleSans-Italic[GRAD,opsz,wght].ttf
+Google Sans Code	Monospace	ofl/googlesanscode	r:GoogleSansCode[wght].ttf|i:GoogleSansCode-Italic[wght].ttf
+Google Sans Flex	Sans Serif	ofl/googlesansflex	r:GoogleSansFlex[ROND,opsz,slnt,wdth,wght].ttf
+Gorditas	Display	ofl/gorditas	r:Gorditas-Regular.ttf|b:Gorditas-Bold.ttf
+Gothic A1	Sans Serif	ofl/gothica1	r:GothicA1-Regular.ttf|b:GothicA1-Bold.ttf
+Gotu	Sans Serif	ofl/gotu	r:Gotu-Regular.ttf
+Goudy Bookletter 1911	Serif	ofl/goudybookletter1911	r:GoudyBookletter1911.ttf
+Gowun Batang	Serif	ofl/gowunbatang	r:GowunBatang-Regular.ttf|b:GowunBatang-Bold.ttf
+Gowun Dodum	Sans Serif	ofl/gowundodum	r:GowunDodum-Regular.ttf
+Graduate	Serif	ofl/graduate	r:Graduate-Regular.ttf
+Grand Hotel	Handwriting	ofl/grandhotel	r:GrandHotel-Regular.ttf
+Grandiflora One	Serif	ofl/grandifloraone	r:GrandifloraOne-Regular.ttf
+Grandstander	Display	ofl/grandstander	r:Grandstander[wght].ttf|i:Grandstander-Italic[wght].ttf
+Grape Nuts	Handwriting	ofl/grapenuts	r:GrapeNuts-Regular.ttf
+Gravitas One	Display	ofl/gravitasone	r:GravitasOne.ttf
+Great Vibes	Handwriting	ofl/greatvibes	r:GreatVibes-Regular.ttf
+Grechen Fuemen	Handwriting	ofl/grechenfuemen	r:GrechenFuemen-Regular.ttf
+Grenze	Serif	ofl/grenze	r:Grenze[wght].ttf|i:Grenze-Italic[wght].ttf
+Grenze Gotisch	Display	ofl/grenzegotisch	r:GrenzeGotisch[wght].ttf
+Grey Qo	Handwriting	ofl/greyqo	r:GreyQo-Regular.ttf
+Griffy	Display	ofl/griffy	r:Griffy-Regular.ttf
+Gruppo	Sans Serif	ofl/gruppo	r:Gruppo-Regular.ttf
+Gudea	Sans Serif	ofl/gudea	r:Gudea-Regular.ttf|b:Gudea-Bold.ttf|i:Gudea-Italic.ttf
+Gugi	Display	ofl/gugi	r:Gugi-Regular.ttf
+Gulzar	Serif	ofl/gulzar	r:Gulzar-Regular.ttf
+Gupter	Serif	ofl/gupter	r:Gupter-Regular.ttf|b:Gupter-Bold.ttf
+Gurajada	Sans Serif	ofl/gurajada	r:Gurajada-Regular.ttf
+Gveret Levin	Handwriting	ofl/gveretlevin	r:GveretLevin-Regular.ttf
+Gwendolyn	Handwriting	ofl/gwendolyn	r:Gwendolyn-Regular.ttf|b:Gwendolyn-Bold.ttf
+Habibi	Serif	ofl/habibi	r:Habibi-Regular.ttf
+Hachi Maru Pop	Handwriting	ofl/hachimarupop	r:HachiMaruPop-Regular.ttf
+Hahmlet	Serif	ofl/hahmlet	r:Hahmlet[wght].ttf
+Halant	Serif	ofl/halant	r:Halant-Regular.ttf|b:Halant-Bold.ttf
+Hammersmith One	Sans Serif	ofl/hammersmithone	r:HammersmithOne-Regular.ttf
+Hanalei	Display	ofl/hanalei	r:Hanalei-Regular.ttf
+Hanalei Fill	Display	ofl/hanaleifill	r:HanaleiFill-Regular.ttf
+Handjet	Display	ofl/handjet	r:Handjet[ELGR,ELSH,wght].ttf
+Handlee	Handwriting	ofl/handlee	r:Handlee-Regular.ttf
+Hanken Grotesk	Sans Serif	ofl/hankengrotesk	r:HankenGrotesk[wght].ttf|i:HankenGrotesk-Italic[wght].ttf
+Hanuman	Serif	ofl/hanuman	r:Hanuman[wght].ttf
+Happy Monkey	Display	ofl/happymonkey	r:HappyMonkey-Regular.ttf
+Harmattan	Sans Serif	ofl/harmattan	r:Harmattan-Regular.ttf|b:Harmattan-Bold.ttf
+Headland One	Serif	ofl/headlandone	r:HeadlandOne-Regular.ttf
+Hedvig Letters Sans	Sans Serif	ofl/hedvigletterssans	r:HedvigLettersSans-Regular.ttf
+Hedvig Letters Serif	Serif	ofl/hedviglettersserif	r:HedvigLettersSerif[opsz].ttf
+Heebo	Sans Serif	ofl/heebo	r:Heebo[wght].ttf
+Henny Penny	Display	ofl/hennypenny	r:HennyPenny-Regular.ttf
+Hepta Slab	Serif	ofl/heptaslab	r:HeptaSlab[wght].ttf
+Herr Von Muellerhoff	Handwriting	ofl/herrvonmuellerhoff	r:HerrVonMuellerhoff-Regular.ttf
+Hi Melody	Handwriting	ofl/himelody	r:HiMelody-Regular.ttf
+Hibur Mono	Monospace	ofl/hiburmono	r:HiburMono-Regular.ttf
+Hina Mincho	Serif	ofl/hinamincho	r:HinaMincho-Regular.ttf
+Hind	Sans Serif	ofl/hind	r:Hind-Regular.ttf|b:Hind-Bold.ttf
+Hind Guntur	Sans Serif	ofl/hindguntur	r:HindGuntur-Regular.ttf|b:HindGuntur-Bold.ttf
+Hind Madurai	Sans Serif	ofl/hindmadurai	r:HindMadurai-Regular.ttf|b:HindMadurai-Bold.ttf
+Hind Mysuru	Sans Serif	ofl/hindmysuru	r:HindMysuru-Regular.ttf|b:HindMysuru-Bold.ttf
+Hind Siliguri	Sans Serif	ofl/hindsiliguri	r:HindSiliguri-Regular.ttf|b:HindSiliguri-Bold.ttf
+Hind Vadodara	Sans Serif	ofl/hindvadodara	r:HindVadodara-Regular.ttf|b:HindVadodara-Bold.ttf
+Holtwood One SC	Serif	ofl/holtwoodonesc	r:HoltwoodOneSC-Regular.ttf
+Homemade Apple	Handwriting	apache/homemadeapple	r:HomemadeApple-Regular.ttf
+Homenaje	Sans Serif	ofl/homenaje	r:Homenaje-Regular.ttf
+Honk	Display	ofl/honk	r:Honk[MORF,SHLN].ttf
+Host Grotesk	Sans Serif	ofl/hostgrotesk	r:HostGrotesk[wght].ttf|i:HostGrotesk-Italic[wght].ttf
+Hubballi	Sans Serif	ofl/hubballi	r:Hubballi-Regular.ttf
+Hubot Sans	Sans Serif	ofl/hubotsans	r:HubotSans[wdth,wght].ttf|i:HubotSans-Italic[wdth,wght].ttf
+Huninn	Sans Serif	ofl/huninn	r:Huninn-Regular.ttf
+Hurricane	Handwriting	ofl/hurricane	r:Hurricane-Regular.ttf
+Iansui	Handwriting	ofl/iansui	r:Iansui-Regular.ttf
+Ibarra Real Nova	Serif	ofl/ibarrarealnova	r:IbarraRealNova[wght].ttf|i:IbarraRealNova-Italic[wght].ttf
+IBM Plex Mono	Monospace	ofl/ibmplexmono	r:IBMPlexMono-Regular.ttf|b:IBMPlexMono-Bold.ttf|i:IBMPlexMono-Italic.ttf|bi:IBMPlexMono-BoldItalic.ttf
+IBM Plex Sans	Sans Serif	ofl/ibmplexsans	r:IBMPlexSans[wdth,wght].ttf|i:IBMPlexSans-Italic[wdth,wght].ttf
+IBM Plex Sans Arabic	Sans Serif	ofl/ibmplexsansarabic	r:IBMPlexSansArabic-Regular.ttf|b:IBMPlexSansArabic-Bold.ttf
+IBM Plex Sans Condensed	Sans Serif	ofl/ibmplexsanscondensed	r:IBMPlexSansCondensed-Regular.ttf|b:IBMPlexSansCondensed-Bold.ttf|i:IBMPlexSansCondensed-Italic.ttf|bi:IBMPlexSansCondensed-BoldItalic.ttf
+IBM Plex Sans Devanagari	Sans Serif	ofl/ibmplexsansdevanagari	r:IBMPlexSansDevanagari-Regular.ttf|b:IBMPlexSansDevanagari-Bold.ttf
+IBM Plex Sans Hebrew	Sans Serif	ofl/ibmplexsanshebrew	r:IBMPlexSansHebrew-Regular.ttf|b:IBMPlexSansHebrew-Bold.ttf
+IBM Plex Sans JP	Sans Serif	ofl/ibmplexsansjp	r:IBMPlexSansJP-Regular.ttf|b:IBMPlexSansJP-Bold.ttf
+IBM Plex Sans KR	Sans Serif	ofl/ibmplexsanskr	r:IBMPlexSansKR-Regular.ttf|b:IBMPlexSansKR-Bold.ttf
+IBM Plex Sans Thai	Sans Serif	ofl/ibmplexsansthai	r:IBMPlexSansThai-Regular.ttf|b:IBMPlexSansThai-Bold.ttf
+IBM Plex Sans Thai Looped	Sans Serif	ofl/ibmplexsansthailooped	r:IBMPlexSansThaiLooped-Regular.ttf|b:IBMPlexSansThaiLooped-Bold.ttf
+IBM Plex Serif	Serif	ofl/ibmplexserif	r:IBMPlexSerif-Regular.ttf|b:IBMPlexSerif-Bold.ttf|i:IBMPlexSerif-Italic.ttf|bi:IBMPlexSerif-BoldItalic.ttf
+Iceberg	Display	ofl/iceberg	r:Iceberg-Regular.ttf
+Iceland	Display	ofl/iceland	r:Iceland-Regular.ttf
+Idiqlat	Serif	ofl/idiqlat	r:Idiqlat-Regular.ttf
+IM Fell Double Pica	Serif	ofl/imfelldoublepica	r:IMFELLDoublePica-Regular.ttf|i:IMFELLDoublePica-Italic.ttf
+IM Fell Double Pica SC	Serif	ofl/imfelldoublepicasc	r:IMFeDPsc28P.ttf
+IM Fell DW Pica	Serif	ofl/imfelldwpica	r:IMFePIit28P.ttf
+IM Fell DW Pica SC	Serif	ofl/imfelldwpicasc	r:IMFePIsc28P.ttf
+IM Fell English	Serif	ofl/imfellenglish	r:IMFeENit28P.ttf
+IM Fell English SC	Serif	ofl/imfellenglishsc	r:IMFeENsc28P.ttf
+IM Fell French Canon	Serif	ofl/imfellfrenchcanon	r:IMFeFCit28P.ttf
+IM Fell French Canon SC	Serif	ofl/imfellfrenchcanonsc	r:IMFeFCsc28P.ttf
+IM Fell Great Primer	Serif	ofl/imfellgreatprimer	r:IMFeGPit28P.ttf
+IM Fell Great Primer SC	Serif	ofl/imfellgreatprimersc	r:IMFeGPsc28P.ttf
+Imbue	Serif	ofl/imbue	r:Imbue[opsz,wght].ttf
+Imperial Script	Handwriting	ofl/imperialscript	r:ImperialScript-Regular.ttf
+Imprima	Sans Serif	ofl/imprima	r:Imprima-Regular.ttf
+Inclusive Sans	Sans Serif	ofl/inclusivesans	r:InclusiveSans[wght].ttf|i:InclusiveSans-Italic[wght].ttf
+Inconsolata	Monospace	ofl/inconsolata	r:Inconsolata[wdth,wght].ttf
+Inder	Sans Serif	ofl/inder	r:Inder-Regular.ttf
+Indie Flower	Handwriting	ofl/indieflower	r:IndieFlower-Regular.ttf
+Ingrid Darling	Handwriting	ofl/ingriddarling	r:IngridDarling-Regular.ttf
+Inika	Serif	ofl/inika	r:Inika-Regular.ttf|b:Inika-Bold.ttf
+Inknut Antiqua	Serif	ofl/inknutantiqua	r:InknutAntiqua-Regular.ttf|b:InknutAntiqua-Bold.ttf
+Inria Sans	Sans Serif	ofl/inriasans	r:InriaSans-Regular.ttf|b:InriaSans-Bold.ttf|i:InriaSans-Italic.ttf|bi:InriaSans-BoldItalic.ttf
+Inria Serif	Serif	ofl/inriaserif	r:InriaSerif-Regular.ttf|b:InriaSerif-Bold.ttf|i:InriaSerif-Italic.ttf|bi:InriaSerif-BoldItalic.ttf
+Inspiration	Handwriting	ofl/inspiration	r:Inspiration-Regular.ttf
+Instrument Sans	Sans Serif	ofl/instrumentsans	r:InstrumentSans[wdth,wght].ttf|i:InstrumentSans-Italic[wdth,wght].ttf
+Instrument Serif	Serif	ofl/instrumentserif	r:InstrumentSerif-Regular.ttf|i:InstrumentSerif-Italic.ttf
+Intel One Mono	Monospace	ofl/intelonemono	r:IntelOneMono[wght].ttf|i:IntelOneMono-Italic[wght].ttf
+Inter	Sans Serif	ofl/inter	r:Inter[opsz,wght].ttf|i:Inter-Italic[opsz,wght].ttf
+Inter Tight	Sans Serif	ofl/intertight	r:InterTight[wght].ttf|i:InterTight-Italic[wght].ttf
+Iosevka Charon	Monospace	ofl/iosevkacharon	r:IosevkaCharon-Regular.ttf|b:IosevkaCharon-Bold.ttf|i:IosevkaCharon-Italic.ttf|bi:IosevkaCharon-BoldItalic.ttf
+Iosevka Charon Mono	Monospace	ofl/iosevkacharonmono	r:IosevkaCharonMono-Regular.ttf|b:IosevkaCharonMono-Bold.ttf|i:IosevkaCharonMono-Italic.ttf|bi:IosevkaCharonMono-BoldItalic.ttf
+Irish Grover	Display	apache/irishgrover	r:IrishGrover-Regular.ttf
+Island Moments	Handwriting	ofl/islandmoments	r:IslandMoments-Regular.ttf
+Isometra	Serif	ofl/isometra	r:Isometra-Regular.ttf
+Istok Web	Sans Serif	ofl/istokweb	r:IstokWeb-Regular.ttf|b:IstokWeb-Bold.ttf|i:IstokWeb-Italic.ttf|bi:IstokWeb-BoldItalic.ttf
+Italiana	Sans Serif	ofl/italiana	r:Italiana-Regular.ttf
+Italianno	Handwriting	ofl/italianno	r:Italianno-Regular.ttf
+Itim	Handwriting	ofl/itim	r:Itim-Regular.ttf
+Jacquard 12	Display	ofl/jacquard12	r:Jacquard12-Regular.ttf
+Jacquard 12 Charted	Display	ofl/jacquard12charted	r:Jacquard12Charted-Regular.ttf
+Jacquard 24	Display	ofl/jacquard24	r:Jacquard24-Regular.ttf
+Jacquard 24 Charted	Display	ofl/jacquard24charted	r:Jacquard24Charted-Regular.ttf
+Jacquarda Bastarda 9	Display	ofl/jacquardabastarda9	r:JacquardaBastarda9-Regular.ttf
+Jacquarda Bastarda 9 Charted	Display	ofl/jacquardabastarda9charted	r:JacquardaBastarda9Charted-Regular.ttf
+Jacques Francois	Serif	ofl/jacquesfrancois	r:JacquesFrancois-Regular.ttf
+Jacques Francois Shadow	Display	ofl/jacquesfrancoisshadow	r:JacquesFrancoisShadow-Regular.ttf
+Jaini	Display	ofl/jaini	r:Jaini-Regular.ttf
+Jaini Purva	Display	ofl/jainipurva	r:JainiPurva-Regular.ttf
+Jaldi	Sans Serif	ofl/jaldi	r:Jaldi-Regular.ttf|b:Jaldi-Bold.ttf
+Jaro	Sans Serif	ofl/jaro	r:Jaro[opsz].ttf
+Jersey 10	Display	ofl/jersey10	r:Jersey10-Regular.ttf
+Jersey 10 Charted	Display	ofl/jersey10charted	r:Jersey10Charted-Regular.ttf
+Jersey 15	Display	ofl/jersey15	r:Jersey15-Regular.ttf
+Jersey 15 Charted	Display	ofl/jersey15charted	r:Jersey15Charted-Regular.ttf
+Jersey 20	Display	ofl/jersey20	r:Jersey20-Regular.ttf
+Jersey 20 Charted	Display	ofl/jersey20charted	r:Jersey20Charted-Regular.ttf
+Jersey 25	Display	ofl/jersey25	r:Jersey25-Regular.ttf
+Jersey 25 Charted	Display	ofl/jersey25charted	r:Jersey25Charted-Regular.ttf
+JetBrains Mono	Monospace	ofl/jetbrainsmono	r:JetBrainsMono[wght].ttf|i:JetBrainsMono-Italic[wght].ttf
+Jim Nightshade	Handwriting	ofl/jimnightshade	r:JimNightshade-Regular.ttf
+Joan	Serif	ofl/joan	r:Joan-Regular.ttf
+Jockey One	Sans Serif	ofl/jockeyone	r:JockeyOne-Regular.ttf
+Jolly Lodger	Display	ofl/jollylodger	r:JollyLodger-Regular.ttf
+Jomhuria	Display	ofl/jomhuria	r:Jomhuria-Regular.ttf
+Jomolhari	Serif	ofl/jomolhari	r:Jomolhari-Regular.ttf
+Josefin Sans	Sans Serif	ofl/josefinsans	r:JosefinSans[wght].ttf|i:JosefinSans-Italic[wght].ttf
+Josefin Slab	Serif	ofl/josefinslab	r:JosefinSlab[wght].ttf|i:JosefinSlab-Italic[wght].ttf
+Jost	Sans Serif	ofl/jost	r:Jost[wght].ttf|i:Jost-Italic[wght].ttf
+Joti One	Display	ofl/jotione	r:JotiOne-Regular.ttf
+Jua	Sans Serif	ofl/jua	r:Jua-Regular.ttf
+Judson	Serif	ofl/judson	r:Judson-Regular.ttf|b:Judson-Bold.ttf|i:Judson-Italic.ttf
+Julee	Handwriting	ofl/julee	r:Julee-Regular.ttf
+Julius Sans One	Sans Serif	ofl/juliussansone	r:JuliusSansOne-Regular.ttf
+Junge	Serif	ofl/junge	r:Junge-Regular.ttf
+Jura	Sans Serif	ofl/jura	r:Jura[wght].ttf
+Just Another Hand	Handwriting	apache/justanotherhand	r:JustAnotherHand-Regular.ttf
+Just Me Again Down Here	Handwriting	ofl/justmeagaindownhere	r:JustMeAgainDownHere.ttf
+K2D	Sans Serif	ofl/k2d	r:K2D-Regular.ttf|b:K2D-Bold.ttf|i:K2D-Italic.ttf|bi:K2D-BoldItalic.ttf
+Kablammo	Display	ofl/kablammo	r:Kablammo[MORF].ttf
+Kadwa	Serif	ofl/kadwa	r:Kadwa-Regular.ttf|b:Kadwa-Bold.ttf
+Kaisei Decol	Serif	ofl/kaiseidecol	r:KaiseiDecol-Regular.ttf|b:KaiseiDecol-Bold.ttf
+Kaisei HarunoUmi	Serif	ofl/kaiseiharunoumi	r:KaiseiHarunoUmi-Regular.ttf|b:KaiseiHarunoUmi-Bold.ttf
+Kaisei Opti	Serif	ofl/kaiseiopti	r:KaiseiOpti-Regular.ttf|b:KaiseiOpti-Bold.ttf
+Kaisei Tokumin	Serif	ofl/kaiseitokumin	r:KaiseiTokumin-Regular.ttf|b:KaiseiTokumin-Bold.ttf
+Kalam	Handwriting	ofl/kalam	r:Kalam-Regular.ttf|b:Kalam-Bold.ttf
+Kalnia	Serif	ofl/kalnia	r:Kalnia[wdth,wght].ttf
+Kalnia Glaze	Display	ofl/kalniaglaze	r:KalniaGlaze[wdth,wght].ttf
+Kameron	Serif	ofl/kameron	r:Kameron[wght].ttf
+Kanchenjunga	Sans Serif	ofl/kanchenjunga	r:Kanchenjunga-Regular.ttf|b:Kanchenjunga-Bold.ttf
+Kanit	Sans Serif	ofl/kanit	r:Kanit-Regular.ttf|b:Kanit-Bold.ttf|i:Kanit-Italic.ttf|bi:Kanit-BoldItalic.ttf
+Kantumruy Pro	Sans Serif	ofl/kantumruypro	r:KantumruyPro[wght].ttf|i:KantumruyPro-Italic[wght].ttf
+Kapakana	Handwriting	ofl/kapakana	r:Kapakana[wght].ttf
+Karantina	Display	ofl/karantina	r:Karantina-Regular.ttf|b:Karantina-Bold.ttf
+Karla	Sans Serif	ofl/karla	r:Karla[wght].ttf|i:Karla-Italic[wght].ttf
+Karla Tamil Inclined	Sans Serif	ofl/karlatamilinclined	r:KarlaTamilInclined-Regular.ttf|b:KarlaTamilInclined-Bold.ttf
+Karla Tamil Upright	Sans Serif	ofl/karlatamilupright	r:KarlaTamilUpright-Regular.ttf|b:KarlaTamilUpright-Bold.ttf
+Karma	Serif	ofl/karma	r:Karma-Regular.ttf|b:Karma-Bold.ttf
+Katibeh	Display	ofl/katibeh	r:Katibeh-Regular.ttf
+Kaushan Script	Handwriting	ofl/kaushanscript	r:KaushanScript-Regular.ttf
+Kavivanar	Handwriting	ofl/kavivanar	r:Kavivanar-Regular.ttf
+Kavoon	Display	ofl/kavoon	r:Kavoon-Regular.ttf
+Kay Pho Du	Serif	ofl/kayphodu	r:KayPhoDu-Regular.ttf|b:KayPhoDu-Bold.ttf
+Kdam Thmor Pro	Sans Serif	ofl/kdamthmorpro	r:KdamThmorPro-Regular.ttf
+Keania One	Display	ofl/keaniaone	r:KeaniaOne-Regular.ttf
+Kedebideri	Sans Serif	ofl/kedebideri	r:Kedebideri-Regular.ttf|b:Kedebideri-Bold.ttf
+Kelly Slab	Display	ofl/kellyslab	r:KellySlab-Regular.ttf
+Kenia	Display	ofl/kenia	r:Kenia-Regular.ttf
+Khand	Sans Serif	ofl/khand	r:Khand-Regular.ttf|b:Khand-Bold.ttf
+Khmer	Sans Serif	ofl/khmer	r:Khmer.ttf
+Khula	Sans Serif	ofl/khula	r:Khula-Regular.ttf|b:Khula-Bold.ttf
+Kings	Handwriting	ofl/kings	r:Kings-Regular.ttf
+Kirang Haerang	Display	ofl/kiranghaerang	r:KirangHaerang-Regular.ttf
+Kite One	Sans Serif	ofl/kiteone	r:KiteOne-Regular.ttf
+Kiwi Maru	Serif	ofl/kiwimaru	r:KiwiMaru-Regular.ttf
+Klee One	Handwriting	ofl/kleeone	r:KleeOne-Regular.ttf
+Knewave	Display	ofl/knewave	r:Knewave-Regular.ttf
+Kodchasan	Sans Serif	ofl/kodchasan	r:Kodchasan-Regular.ttf|b:Kodchasan-Bold.ttf|i:Kodchasan-Italic.ttf|bi:Kodchasan-BoldItalic.ttf
+Kode Mono	Monospace	ofl/kodemono	r:KodeMono[ROND,wdth,wght].ttf
+Koh Santepheap	Serif	ofl/kohsantepheap	r:KohSantepheap-Regular.ttf|b:KohSantepheap-Bold.ttf
+KoHo	Sans Serif	ofl/koho	r:KoHo-Regular.ttf|b:KoHo-Bold.ttf|i:KoHo-Italic.ttf|bi:KoHo-BoldItalic.ttf
+Kolker Brush	Handwriting	ofl/kolkerbrush	r:KolkerBrush-Regular.ttf
+Konkhmer Sleokchher	Display	ofl/konkhmersleokchher	r:KonkhmerSleokchher-Regular.ttf
+Kosugi	Sans Serif	apache/kosugi	r:Kosugi-Regular.ttf
+Kosugi Maru	Sans Serif	apache/kosugimaru	r:KosugiMaru-Regular.ttf
+Kotta One	Serif	ofl/kottaone	r:KottaOne-Regular.ttf
+Koulen	Display	ofl/koulen	r:Koulen-Regular.ttf
+Kranky	Display	apache/kranky	r:Kranky-Regular.ttf
+Kreon	Serif	ofl/kreon	r:Kreon[wght].ttf
+Kripa	Sans Serif	ofl/kripa	r:Kripa[wght].ttf
+Kristi	Handwriting	ofl/kristi	r:Kristi-Regular.ttf
+Krona One	Sans Serif	ofl/kronaone	r:KronaOne-Regular.ttf
+Krub	Sans Serif	ofl/krub	r:Krub-Regular.ttf|b:Krub-Bold.ttf|i:Krub-Italic.ttf|bi:Krub-BoldItalic.ttf
+Kufam	Sans Serif	ofl/kufam	r:Kufam[wght].ttf|i:Kufam-Italic[wght].ttf
+Kulim Park	Sans Serif	ofl/kulimpark	r:KulimPark-Regular.ttf|b:KulimPark-Bold.ttf|i:KulimPark-Italic.ttf|bi:KulimPark-BoldItalic.ttf
+Kumar One	Display	ofl/kumarone	r:KumarOne-Regular.ttf
+Kumar One Outline	Display	ofl/kumaroneoutline	r:KumarOneOutline-Regular.ttf
+Kumbh Sans	Sans Serif	ofl/kumbhsans	r:KumbhSans[YOPQ,wght].ttf
+Kurale	Serif	ofl/kurale	r:Kurale-Regular.ttf
+La Belle Aurore	Handwriting	ofl/labelleaurore	r:LaBelleAurore.ttf
+Labrada	Serif	ofl/labrada	r:Labrada[wght].ttf|i:Labrada-Italic[wght].ttf
+Lacquer	Display	ofl/lacquer	r:Lacquer-Regular.ttf
+Laila	Serif	ofl/laila	r:Laila-Regular.ttf|b:Laila-Bold.ttf
+Lakki Reddy	Handwriting	ofl/lakkireddy	r:LakkiReddy-Regular.ttf
+Lalezar	Sans Serif	ofl/lalezar	r:Lalezar-Regular.ttf
+Lancelot	Display	ofl/lancelot	r:Lancelot-Regular.ttf
+Langar	Display	ofl/langar	r:Langar-Regular.ttf
+Lateef	Serif	ofl/lateef	r:Lateef-Regular.ttf|b:Lateef-Bold.ttf
+Lato	Sans Serif	ofl/lato	r:Lato-Regular.ttf|b:Lato-Bold.ttf|i:Lato-Italic.ttf|bi:Lato-BoldItalic.ttf
+Lavishly Yours	Handwriting	ofl/lavishlyyours	r:LavishlyYours-Regular.ttf
+League Gothic	Sans Serif	ofl/leaguegothic	r:LeagueGothic[wdth].ttf
+League Script	Handwriting	ofl/leaguescript	r:LeagueScript-Regular.ttf
+League Spartan	Sans Serif	ofl/leaguespartan	r:LeagueSpartan[wght].ttf
+Leckerli One	Handwriting	ofl/leckerlione	r:LeckerliOne-Regular.ttf
+Ledger	Serif	ofl/ledger	r:Ledger-Regular.ttf
+Lekton	Monospace	ofl/lekton	r:Lekton-Regular.ttf|b:Lekton-Bold.ttf|i:Lekton-Italic.ttf
+Lemon	Display	ofl/lemon	r:Lemon-Regular.ttf
+Lemonada	Display	ofl/lemonada	r:Lemonada[wght].ttf
+Lexend	Sans Serif	ofl/lexend	r:Lexend[wght].ttf
+Lexend Deca	Sans Serif	ofl/lexenddeca	r:LexendDeca[wght].ttf
+Lexend Exa	Sans Serif	ofl/lexendexa	r:LexendExa[wght].ttf
+Lexend Giga	Sans Serif	ofl/lexendgiga	r:LexendGiga[wght].ttf
+Lexend Mega	Sans Serif	ofl/lexendmega	r:LexendMega[wght].ttf
+Lexend Peta	Sans Serif	ofl/lexendpeta	r:LexendPeta[wght].ttf
+Lexend Tera	Sans Serif	ofl/lexendtera	r:LexendTera[wght].ttf
+Lexend Zetta	Sans Serif	ofl/lexendzetta	r:LexendZetta[wght].ttf
+Libertinus Keyboard	Display	ofl/libertinuskeyboard	r:LibertinusKeyboard-Regular.ttf
+Libertinus Math	Display	ofl/libertinusmath	r:LibertinusMath-Regular.ttf
+Libertinus Mono	Monospace	ofl/libertinusmono	r:LibertinusMono-Regular.ttf
+Libertinus Sans	Sans Serif	ofl/libertinussans	r:LibertinusSans-Regular.ttf|b:LibertinusSans-Bold.ttf|i:LibertinusSans-Italic.ttf
+Libertinus Serif	Serif	ofl/libertinusserif	r:LibertinusSerif-Regular.ttf|b:LibertinusSerif-Bold.ttf|i:LibertinusSerif-Italic.ttf|bi:LibertinusSerif-BoldItalic.ttf
+Libertinus Serif Display	Display	ofl/libertinusserifdisplay	r:LibertinusSerifDisplay-Regular.ttf
+Libre Barcode 128	Display	ofl/librebarcode128	r:LibreBarcode128-Regular.ttf
+Libre Barcode 128 Text	Display	ofl/librebarcode128text	r:LibreBarcode128Text-Regular.ttf
+Libre Barcode 39	Display	ofl/librebarcode39	r:LibreBarcode39-Regular.ttf
+Libre Barcode 39 Extended	Display	ofl/librebarcode39extended	r:LibreBarcode39Extended-Regular.ttf
+Libre Barcode 39 Extended Text	Display	ofl/librebarcode39extendedtext	r:LibreBarcode39ExtendedText-Regular.ttf
+Libre Barcode 39 Text	Display	ofl/librebarcode39text	r:LibreBarcode39Text-Regular.ttf
+Libre Barcode EAN13 Text	Display	ofl/librebarcodeean13text	r:LibreBarcodeEAN13Text-Regular.ttf
+Libre Baskerville	Serif	ofl/librebaskerville	r:LibreBaskerville[wght].ttf|i:LibreBaskerville-Italic[wght].ttf
+Libre Bodoni	Serif	ofl/librebodoni	r:LibreBodoni[wght].ttf|i:LibreBodoni-Italic[wght].ttf
+Libre Caslon Condensed	Serif	ofl/librecasloncondensed	r:LibreCaslonCondensed[wght].ttf|i:LibreCaslonCondensed-Italic[wght].ttf
+Libre Caslon Display	Serif	ofl/librecaslondisplay	r:LibreCaslonDisplay-Regular.ttf
+Libre Caslon Text	Serif	ofl/librecaslontext	r:LibreCaslonText[wght].ttf|i:LibreCaslonText-Italic[wght].ttf
+Libre Franklin	Sans Serif	ofl/librefranklin	r:LibreFranklin[wght].ttf|i:LibreFranklin-Italic[wght].ttf
+Licorice	Handwriting	ofl/licorice	r:Licorice-Regular.ttf
+Life Savers	Display	ofl/lifesavers	r:LifeSavers-Regular.ttf|b:LifeSavers-Bold.ttf
+Lilex	Monospace	ofl/lilex	r:Lilex[wght].ttf|i:Lilex-Italic[wght].ttf
+Lilita One	Display	ofl/lilitaone	r:LilitaOne-Regular.ttf
+Lily Script One	Display	ofl/lilyscriptone	r:LilyScriptOne-Regular.ttf
+Limelight	Display	ofl/limelight	r:Limelight-Regular.ttf
+Linden Hill	Serif	ofl/lindenhill	r:LindenHill-Regular.ttf|i:LindenHill-Italic.ttf
+LINE Seed JP	Sans Serif	ofl/lineseedjp	r:LINESeedJP-Regular.ttf|b:LINESeedJP-Bold.ttf
+Linefont	Display	ofl/linefont	r:Linefont[wdth,wght].ttf
+Lisu Bosa	Serif	ofl/lisubosa	r:LisuBosa-Regular.ttf|b:LisuBosa-Bold.ttf|i:LisuBosa-Italic.ttf|bi:LisuBosa-BoldItalic.ttf
+Liter	Sans Serif	ofl/liter	r:Liter-Regular.ttf
+Literata	Serif	ofl/literata	r:Literata[opsz,wght].ttf|i:Literata-Italic[opsz,wght].ttf
+Liu Jian Mao Cao	Handwriting	ofl/liujianmaocao	r:LiuJianMaoCao-Regular.ttf
+Livvic	Sans Serif	ofl/livvic	r:Livvic-Regular.ttf|b:Livvic-Bold.ttf|i:Livvic-Italic.ttf|bi:Livvic-BoldItalic.ttf
+Lobster	Display	ofl/lobster	r:Lobster-Regular.ttf
+Lobster Two	Display	ofl/lobstertwo	r:LobsterTwo-Regular.ttf|b:LobsterTwo-Bold.ttf|i:LobsterTwo-Italic.ttf|bi:LobsterTwo-BoldItalic.ttf
+Londrina Outline	Display	ofl/londrinaoutline	r:LondrinaOutline-Regular.ttf
+Londrina Shadow	Display	ofl/londrinashadow	r:LondrinaShadow-Regular.ttf
+Londrina Sketch	Display	ofl/londrinasketch	r:LondrinaSketch-Regular.ttf
+Londrina Solid	Display	ofl/londrinasolid	r:LondrinaSolid-Regular.ttf
+Long Cang	Handwriting	ofl/longcang	r:LongCang-Regular.ttf
+Lora	Serif	ofl/lora	r:Lora[wght].ttf|i:Lora-Italic[wght].ttf
+Love Light	Handwriting	ofl/lovelight	r:LoveLight-Regular.ttf
+Love Ya Like A Sister	Display	ofl/loveyalikeasister	r:LoveYaLikeASister.ttf
+Loved by the King	Handwriting	ofl/lovedbytheking	r:LovedbytheKing.ttf
+Lovers Quarrel	Handwriting	ofl/loversquarrel	r:LoversQuarrel-Regular.ttf
+Luckiest Guy	Display	apache/luckiestguy	r:LuckiestGuy-Regular.ttf
+Lugrasimo	Handwriting	ofl/lugrasimo	r:Lugrasimo-Regular.ttf
+Lumanosimo	Handwriting	ofl/lumanosimo	r:Lumanosimo-Regular.ttf
+Lunasima	Sans Serif	ofl/lunasima	r:Lunasima-Regular.ttf|b:Lunasima-Bold.ttf
+Lusitana	Serif	ofl/lusitana	r:Lusitana-Regular.ttf|b:Lusitana-Bold.ttf
+Lustria	Serif	ofl/lustria	r:Lustria-Regular.ttf
+Luxurious Roman	Display	ofl/luxuriousroman	r:LuxuriousRoman-Regular.ttf
+Luxurious Script	Handwriting	ofl/luxuriousscript	r:LuxuriousScript-Regular.ttf
+LXGW Marker Gothic	Sans Serif	ofl/lxgwmarkergothic	r:LXGWMarkerGothic-Regular.ttf
+LXGW WenKai Mono TC	Monospace	ofl/lxgwwenkaimonotc	r:LXGWWenKaiMonoTC-Regular.ttf|b:LXGWWenKaiMonoTC-Bold.ttf
+LXGW WenKai TC	Handwriting	ofl/lxgwwenkaitc	r:LXGWWenKaiTC-Regular.ttf|b:LXGWWenKaiTC-Bold.ttf
+M PLUS 1	Sans Serif	ofl/mplus1	r:MPLUS1[wght].ttf
+M PLUS 1 Code	Monospace	ofl/mplus1code	r:MPLUS1Code[wght].ttf
+M PLUS 1p	Sans Serif	ofl/mplus1p	r:MPLUS1p-Regular.ttf|b:MPLUS1p-Bold.ttf
+M PLUS 2	Sans Serif	ofl/mplus2	r:MPLUS2[wght].ttf
+M PLUS Code Latin	Sans Serif	ofl/mpluscodelatin	r:MPLUSCodeLatin[wdth,wght].ttf
+M PLUS Rounded 1c	Sans Serif	ofl/mplusrounded1c	r:MPLUSRounded1c-Regular.ttf|b:MPLUSRounded1c-Bold.ttf
+M PLUS U	Sans Serif	ofl/mplusu	r:MPLUSU[wght].ttf
+Ma Shan Zheng	Handwriting	ofl/mashanzheng	r:MaShanZheng-Regular.ttf
+Macondo	Display	ofl/macondo	r:Macondo-Regular.ttf
+Macondo Swash Caps	Display	ofl/macondoswashcaps	r:MacondoSwashCaps-Regular.ttf
+Mada	Sans Serif	ofl/mada	r:Mada[wght].ttf
+Madimi One	Sans Serif	ofl/madimione	r:MadimiOne-Regular.ttf
+Magra	Sans Serif	ofl/magra	r:Magra-Regular.ttf|b:Magra-Bold.ttf
+Maiden Orange	Serif	apache/maidenorange	r:MaidenOrange-Regular.ttf
+Maitree	Serif	ofl/maitree	r:Maitree-Regular.ttf|b:Maitree-Bold.ttf
+Major Mono Display	Monospace	ofl/majormonodisplay	r:MajorMonoDisplay-Regular.ttf
+Mako	Sans Serif	ofl/mako	r:Mako-Regular.ttf
+Mali	Handwriting	ofl/mali	r:Mali-Regular.ttf|b:Mali-Bold.ttf|i:Mali-Italic.ttf|bi:Mali-BoldItalic.ttf
+Mallanna	Sans Serif	ofl/mallanna	r:Mallanna-Regular.ttf
+Maname	Serif	ofl/maname	r:Maname-Regular.ttf
+Mandali	Sans Serif	ofl/mandali	r:Mandali-Regular.ttf
+Manjari	Sans Serif	ofl/manjari	r:Manjari-Regular.ttf|b:Manjari-Bold.ttf
+Manrope	Sans Serif	ofl/manrope	r:Manrope[wght].ttf
+Mansalva	Handwriting	ofl/mansalva	r:Mansalva-Regular.ttf
+Manuale	Serif	ofl/manuale	r:Manuale[wght].ttf|i:Manuale-Italic[wght].ttf
+Manufacturing Consent	Display	ofl/manufacturingconsent	r:ManufacturingConsent-Regular.ttf
+Marcellus	Serif	ofl/marcellus	r:Marcellus-Regular.ttf
+Marcellus SC	Serif	ofl/marcellussc	r:MarcellusSC-Regular.ttf
+Marck Script	Handwriting	ofl/marckscript	r:MarckScript-Regular.ttf
+Margarine	Display	ofl/margarine	r:Margarine-Regular.ttf
+Marhey	Display	ofl/marhey	r:Marhey[wght].ttf
+Markazi Text	Serif	ofl/markazitext	r:MarkaziText[wght].ttf
+Marko One	Serif	ofl/markoone	r:MarkoOne-Regular.ttf
+Marmelad	Sans Serif	ofl/marmelad	r:Marmelad-Regular.ttf
+Martel	Serif	ofl/martel	r:Martel-Regular.ttf|b:Martel-Bold.ttf
+Martel Sans	Sans Serif	ofl/martelsans	r:MartelSans-Regular.ttf|b:MartelSans-Bold.ttf
+Martian Mono	Monospace	ofl/martianmono	r:MartianMono[wdth,wght].ttf
+Marvel	Sans Serif	ofl/marvel	r:Marvel-Regular.ttf|b:Marvel-Bold.ttf|i:Marvel-Italic.ttf|bi:Marvel-BoldItalic.ttf
+Matangi	Sans Serif	ofl/matangi	r:Matangi[wght].ttf
+Mate	Serif	ofl/mate	r:Mate-Regular.ttf|i:Mate-Italic.ttf
+Mate SC	Serif	ofl/matesc	r:MateSC-Regular.ttf
+Matemasie	Sans Serif	ofl/matemasie	r:Matemasie-Regular.ttf
+Maven Pro	Sans Serif	ofl/mavenpro	r:MavenPro[wght].ttf
+McLaren	Display	ofl/mclaren	r:McLaren-Regular.ttf
+Mea Culpa	Handwriting	ofl/meaculpa	r:MeaCulpa-Regular.ttf
+Meddon	Handwriting	ofl/meddon	r:Meddon.ttf
+MedievalSharp	Display	ofl/medievalsharp	r:MedievalSharp.ttf
+Medula One	Display	ofl/medulaone	r:MedulaOne-Regular.ttf
+Meera Inimai	Sans Serif	ofl/meerainimai	r:MeeraInimai-Regular.ttf
+Megrim	Display	ofl/megrim	r:Megrim.ttf
+Meie Script	Handwriting	ofl/meiescript	r:MeieScript-Regular.ttf
+Menbere	Sans Serif	ofl/menbere	r:Menbere[wght].ttf
+Meow Script	Handwriting	ofl/meowscript	r:MeowScript-Regular.ttf
+Merienda	Handwriting	ofl/merienda	r:Merienda[wght].ttf
+Merriweather	Serif	ofl/merriweather	r:Merriweather[opsz,wdth,wght].ttf|i:Merriweather-Italic[opsz,wdth,wght].ttf
+Merriweather Sans	Sans Serif	ofl/merriweathersans	r:MerriweatherSans[wght].ttf|i:MerriweatherSans-Italic[wght].ttf
+Metal	Display	ofl/metal	r:Metal-Regular.ttf
+Metal Mania	Display	ofl/metalmania	r:MetalMania-Regular.ttf
+Metamorphous	Display	ofl/metamorphous	r:Metamorphous-Regular.ttf
+Metrophobic	Sans Serif	ofl/metrophobic	r:Metrophobic-Regular.ttf
+Michroma	Sans Serif	ofl/michroma	r:Michroma-Regular.ttf
+Micro 5	Display	ofl/micro5	r:Micro5-Regular.ttf
+Micro 5 Charted	Display	ofl/micro5charted	r:Micro5Charted-Regular.ttf
+Milonga	Display	ofl/milonga	r:Milonga-Regular.ttf
+Miltonian	Display	ofl/miltonian	r:Miltonian-Regular.ttf
+Miltonian Tattoo	Display	ofl/miltoniantattoo	r:MiltonianTattoo-Regular.ttf
+Mina	Sans Serif	ofl/mina	r:Mina-Regular.ttf|b:Mina-Bold.ttf
+Mingzat	Sans Serif	ofl/mingzat	r:Mingzat-Regular.ttf
+Miniver	Display	ofl/miniver	r:Miniver-Regular.ttf
+Miranda Sans	Sans Serif	ofl/mirandasans	r:MirandaSans[wght].ttf|i:MirandaSans-Italic[wght].ttf
+Miriam Libre	Sans Serif	ofl/miriamlibre	r:MiriamLibre[wght].ttf
+Mirza	Serif	ofl/mirza	r:Mirza-Regular.ttf|b:Mirza-Bold.ttf
+Miss Fajardose	Handwriting	ofl/missfajardose	r:MissFajardose-Regular.ttf
+Mitr	Sans Serif	ofl/mitr	r:Mitr-Regular.ttf|b:Mitr-Bold.ttf
+Mochiy Pop One	Sans Serif	ofl/mochiypopone	r:MochiyPopOne-Regular.ttf
+Mochiy Pop P One	Sans Serif	ofl/mochiypoppone	r:MochiyPopPOne-Regular.ttf
+Modak	Display	ofl/modak	r:Modak-Regular.ttf
+Modern Antiqua	Display	ofl/modernantiqua	r:ModernAntiqua-Regular.ttf
+Moderustic	Sans Serif	ofl/moderustic	r:Moderustic[wght].ttf
+Mogra	Display	ofl/mogra	r:Mogra-Regular.ttf
+Mohave	Sans Serif	ofl/mohave	r:Mohave[wght].ttf|i:Mohave-Italic[wght].ttf
+Moirai One	Display	ofl/moiraione	r:MoiraiOne-Regular.ttf
+Molengo	Sans Serif	ofl/molengo	r:Molengo-Regular.ttf
+Molle	Handwriting	ofl/molle	r:Molle-Regular.ttf
+Momo Signature	Sans Serif	ofl/momosignature	r:MomoSignature-Regular.ttf
+Momo Trust Display	Sans Serif	ofl/momotrustdisplay	r:MomoTrustDisplay-Regular.ttf
+Momo Trust Sans	Sans Serif	ofl/momotrustsans	r:MomoTrustSans[wght].ttf
+Mona Sans	Sans Serif	ofl/monasans	r:MonaSans[wdth,wght].ttf|i:MonaSans-Italic[wdth,wght].ttf
+Monda	Sans Serif	ofl/monda	r:Monda[wght].ttf
+Monofett	Monospace	ofl/monofett	r:Monofett-Regular.ttf
+Monomakh	Display	ofl/monomakh	r:Monomakh-Regular.ttf
+Monomaniac One	Sans Serif	ofl/monomaniacone	r:MonomaniacOne-Regular.ttf
+Monoton	Display	ofl/monoton	r:Monoton-Regular.ttf
+Monsieur La Doulaise	Handwriting	ofl/monsieurladoulaise	r:MonsieurLaDoulaise-Regular.ttf
+Montaga	Serif	ofl/montaga	r:Montaga-Regular.ttf
+Montagu Slab	Serif	ofl/montaguslab	r:MontaguSlab[opsz,wght].ttf
+MonteCarlo	Handwriting	ofl/montecarlo	r:MonteCarlo-Regular.ttf
+Montenegrin Gothic One	Serif	ofl/montenegringothicone	r:MontenegrinGothicOne-Regular.ttf
+Montez	Handwriting	apache/montez	r:Montez-Regular.ttf
+Montserrat	Sans Serif	ofl/montserrat	r:Montserrat[wght].ttf|i:Montserrat-Italic[wght].ttf
+Montserrat Alternates	Sans Serif	ofl/montserratalternates	r:MontserratAlternates-Regular.ttf|b:MontserratAlternates-Bold.ttf|i:MontserratAlternates-Italic.ttf|bi:MontserratAlternates-BoldItalic.ttf
+Montserrat Underline	Sans Serif	ofl/montserratunderline	r:MontserratUnderline[wght].ttf|i:MontserratUnderline-Italic[wght].ttf
+Moo Lah Lah	Display	ofl/moolahlah	r:MooLahLah-Regular.ttf
+Mooli	Sans Serif	ofl/mooli	r:Mooli-Regular.ttf
+Moon Dance	Handwriting	ofl/moondance	r:MoonDance-Regular.ttf
+Moul	Display	ofl/moul	r:Moul-Regular.ttf
+Moulpali	Sans Serif	ofl/moulpali	r:Moulpali-Regular.ttf
+Mountains of Christmas	Display	apache/mountainsofchristmas	r:MountainsofChristmas-Regular.ttf|b:MountainsofChristmas-Bold.ttf
+Mouse Memoirs	Sans Serif	ofl/mousememoirs	r:MouseMemoirs-Regular.ttf
+Mozilla Headline	Sans Serif	ofl/mozillaheadline	r:MozillaHeadline[wdth,wght].ttf
+Mozilla Text	Sans Serif	ofl/mozillatext	r:MozillaText[wght].ttf
+Mr Bedfort	Handwriting	ofl/mrbedfort	r:MrBedfort-Regular.ttf
+Mr Dafoe	Handwriting	ofl/mrdafoe	r:MrDafoe-Regular.ttf
+Mr De Haviland	Handwriting	ofl/mrdehaviland	r:MrDeHaviland-Regular.ttf
+Mrs Saint Delafield	Handwriting	ofl/mrssaintdelafield	r:MrsSaintDelafield-Regular.ttf
+Mrs Sheppards	Handwriting	ofl/mrssheppards	r:MrsSheppards-Regular.ttf
+Ms Madi	Handwriting	ofl/msmadi	r:MsMadi-Regular.ttf
+Mukta	Sans Serif	ofl/mukta	r:Mukta-Regular.ttf|b:Mukta-Bold.ttf
+Mukta Mahee	Sans Serif	ofl/muktamahee	r:MuktaMahee-Regular.ttf|b:MuktaMahee-Bold.ttf
+Mukta Malar	Sans Serif	ofl/muktamalar	r:MuktaMalar-Regular.ttf|b:MuktaMalar-Bold.ttf
+Mukta Vaani	Sans Serif	ofl/muktavaani	r:MuktaVaani-Regular.ttf|b:MuktaVaani-Bold.ttf
+Mulish	Sans Serif	ofl/mulish	r:Mulish[wght].ttf|i:Mulish-Italic[wght].ttf
+Murecho	Sans Serif	ofl/murecho	r:Murecho[wght].ttf
+MuseoModerno	Display	ofl/museomoderno	r:MuseoModerno[wght].ttf|i:MuseoModerno-Italic[wght].ttf
+My Soul	Handwriting	ofl/mysoul	r:MySoul-Regular.ttf
+Mynerve	Handwriting	ofl/mynerve	r:Mynerve-Regular.ttf
+Mystery Quest	Display	ofl/mysteryquest	r:MysteryQuest-Regular.ttf
+Nabla	Display	ofl/nabla	r:Nabla[EDPT,EHLT].ttf
+Namdhinggo	Serif	ofl/namdhinggo	r:Namdhinggo-Regular.ttf|b:Namdhinggo-Bold.ttf
+Nanum Brush Script	Handwriting	ofl/nanumbrushscript	r:NanumBrushScript-Regular.ttf
+Nanum Gothic	Sans Serif	ofl/nanumgothic	r:NanumGothic-Regular.ttf|b:NanumGothic-Bold.ttf
+Nanum Gothic Coding	Handwriting	ofl/nanumgothiccoding	r:NanumGothicCoding-Regular.ttf|b:NanumGothicCoding-Bold.ttf
+Nanum Myeongjo	Serif	ofl/nanummyeongjo	r:NanumMyeongjo-Regular.ttf|b:NanumMyeongjo-Bold.ttf
+Nanum Pen Script	Handwriting	ofl/nanumpenscript	r:NanumPenScript-Regular.ttf
+Narnoor	Sans Serif	ofl/narnoor	r:Narnoor-Regular.ttf|b:Narnoor-Bold.ttf
+Nata Sans	Sans Serif	ofl/natasans	r:NataSans[wght].ttf
+National Park	Sans Serif	ofl/nationalpark	r:NationalPark[wght].ttf
+Neonderthaw	Handwriting	ofl/neonderthaw	r:Neonderthaw-Regular.ttf
+Nerko One	Handwriting	ofl/nerkoone	r:NerkoOne-Regular.ttf
+Neucha	Handwriting	ofl/neucha	r:Neucha.ttf
+Neuton	Serif	ofl/neuton	r:Neuton-Regular.ttf|b:Neuton-Bold.ttf|i:Neuton-Italic.ttf
+New Amsterdam	Sans Serif	ofl/newamsterdam	r:NewAmsterdam-Regular.ttf
+New Rocker	Display	ofl/newrocker	r:NewRocker-Regular.ttf
+New Tegomin	Serif	ofl/newtegomin	r:NewTegomin-Regular.ttf
+News Cycle	Sans Serif	ofl/newscycle	r:NewsCycle-Regular.ttf|b:NewsCycle-Bold.ttf
+Newsreader	Serif	ofl/newsreader	r:Newsreader[opsz,wght].ttf|i:Newsreader-Italic[opsz,wght].ttf
+Niconne	Handwriting	ofl/niconne	r:Niconne-Regular.ttf
+Niramit	Sans Serif	ofl/niramit	r:Niramit-Regular.ttf|b:Niramit-Bold.ttf|i:Niramit-Italic.ttf|bi:Niramit-BoldItalic.ttf
+Nixie One	Display	ofl/nixieone	r:NixieOne-Regular.ttf
+Nobile	Sans Serif	ofl/nobile	r:Nobile-Regular.ttf|b:Nobile-Bold.ttf|i:Nobile-Italic.ttf|bi:Nobile-BoldItalic.ttf
+Nokora	Sans Serif	ofl/nokora	r:Nokora[wght].ttf
+Norican	Handwriting	ofl/norican	r:Norican-Regular.ttf
+Nosifer	Display	ofl/nosifer	r:Nosifer-Regular.ttf
+Notable	Sans Serif	ofl/notable	r:Notable-Regular.ttf
+Nothing You Could Do	Handwriting	ofl/nothingyoucoulddo	r:NothingYouCouldDo.ttf
+Noticia Text	Serif	ofl/noticiatext	r:NoticiaText-Regular.ttf|b:NoticiaText-Bold.ttf|i:NoticiaText-Italic.ttf|bi:NoticiaText-BoldItalic.ttf
+Noto Color Emoji	Sans Serif	ofl/notocoloremoji	r:NotoColorEmoji-Regular.ttf
+Noto Emoji	Sans Serif	ofl/notoemoji	r:NotoEmoji[wght].ttf
+Noto Kufi Arabic	Sans Serif	ofl/notokufiarabic	r:NotoKufiArabic[wght].ttf
+Noto Music	Sans Serif	ofl/notomusic	r:NotoMusic-Regular.ttf
+Noto Naskh Arabic	Serif	ofl/notonaskharabic	r:NotoNaskhArabic[wght].ttf
+Noto Nastaliq Urdu	Serif	ofl/notonastaliqurdu	r:NotoNastaliqUrdu[wght].ttf
+Noto Rashi Hebrew	Serif	ofl/notorashihebrew	r:NotoRashiHebrew[wght].ttf
+Noto Sans	Sans Serif	ofl/notosans	r:NotoSans[wdth,wght].ttf|i:NotoSans-Italic[wdth,wght].ttf
+Noto Sans Adlam	Sans Serif	ofl/notosansadlam	r:NotoSansAdlam[wght].ttf
+Noto Sans Adlam Unjoined	Sans Serif	ofl/notosansadlamunjoined	r:NotoSansAdlamUnjoined[wght].ttf
+Noto Sans Anatolian Hieroglyphs	Sans Serif	ofl/notosansanatolianhieroglyphs	r:NotoSansAnatolianHieroglyphs-Regular.ttf
+Noto Sans Arabic	Sans Serif	ofl/notosansarabic	r:NotoSansArabic[wdth,wght].ttf
+Noto Sans Armenian	Sans Serif	ofl/notosansarmenian	r:NotoSansArmenian[wdth,wght].ttf
+Noto Sans Avestan	Sans Serif	ofl/notosansavestan	r:NotoSansAvestan-Regular.ttf
+Noto Sans Balinese	Sans Serif	ofl/notosansbalinese	r:NotoSansBalinese[wght].ttf
+Noto Sans Bamum	Sans Serif	ofl/notosansbamum	r:NotoSansBamum[wght].ttf
+Noto Sans Bassa Vah	Sans Serif	ofl/notosansbassavah	r:NotoSansBassaVah[wght].ttf
+Noto Sans Batak	Sans Serif	ofl/notosansbatak	r:NotoSansBatak-Regular.ttf
+Noto Sans Bengali	Sans Serif	ofl/notosansbengali	r:NotoSansBengali[wdth,wght].ttf
+Noto Sans Bhaiksuki	Sans Serif	ofl/notosansbhaiksuki	r:NotoSansBhaiksuki-Regular.ttf
+Noto Sans Brahmi	Sans Serif	ofl/notosansbrahmi	r:NotoSansBrahmi-Regular.ttf
+Noto Sans Buginese	Sans Serif	ofl/notosansbuginese	r:NotoSansBuginese-Regular.ttf
+Noto Sans Buhid	Sans Serif	ofl/notosansbuhid	r:NotoSansBuhid-Regular.ttf
+Noto Sans Canadian Aboriginal	Sans Serif	ofl/notosanscanadianaboriginal	r:NotoSansCanadianAboriginal[wght].ttf
+Noto Sans Carian	Sans Serif	ofl/notosanscarian	r:NotoSansCarian-Regular.ttf
+Noto Sans Caucasian Albanian	Sans Serif	ofl/notosanscaucasianalbanian	r:NotoSansCaucasianAlbanian-Regular.ttf
+Noto Sans Chakma	Sans Serif	ofl/notosanschakma	r:NotoSansChakma-Regular.ttf
+Noto Sans Cham	Sans Serif	ofl/notosanscham	r:NotoSansCham[wght].ttf
+Noto Sans Cherokee	Sans Serif	ofl/notosanscherokee	r:NotoSansCherokee[wght].ttf
+Noto Sans Chorasmian	Sans Serif	ofl/notosanschorasmian	r:NotoSansChorasmian-Regular.ttf
+Noto Sans Coptic	Sans Serif	ofl/notosanscoptic	r:NotoSansCoptic-Regular.ttf
+Noto Sans Cuneiform	Sans Serif	ofl/notosanscuneiform	r:NotoSansCuneiform-Regular.ttf
+Noto Sans Cypriot	Sans Serif	ofl/notosanscypriot	r:NotoSansCypriot-Regular.ttf
+Noto Sans Cypro Minoan	Sans Serif	ofl/notosanscyprominoan	r:NotoSansCyproMinoan-Regular.ttf
+Noto Sans Deseret	Sans Serif	ofl/notosansdeseret	r:NotoSansDeseret-Regular.ttf
+Noto Sans Devanagari	Sans Serif	ofl/notosansdevanagari	r:NotoSansDevanagari[wdth,wght].ttf
+Noto Sans Display	Sans Serif	ofl/notosansdisplay	r:NotoSansDisplay[wdth,wght].ttf|i:NotoSansDisplay-Italic[wdth,wght].ttf
+Noto Sans Duployan	Sans Serif	ofl/notosansduployan	r:NotoSansDuployan-Regular.ttf|b:NotoSansDuployan-Bold.ttf
+Noto Sans Egyptian Hieroglyphs	Sans Serif	ofl/notosansegyptianhieroglyphs	r:NotoSansEgyptianHieroglyphs-Regular.ttf
+Noto Sans Elbasan	Sans Serif	ofl/notosanselbasan	r:NotoSansElbasan-Regular.ttf
+Noto Sans Elymaic	Sans Serif	ofl/notosanselymaic	r:NotoSansElymaic-Regular.ttf
+Noto Sans Ethiopic	Sans Serif	ofl/notosansethiopic	r:NotoSansEthiopic[wdth,wght].ttf
+Noto Sans Georgian	Sans Serif	ofl/notosansgeorgian	r:NotoSansGeorgian[wdth,wght].ttf
+Noto Sans Glagolitic	Sans Serif	ofl/notosansglagolitic	r:NotoSansGlagolitic-Regular.ttf
+Noto Sans Gothic	Sans Serif	ofl/notosansgothic	r:NotoSansGothic-Regular.ttf
+Noto Sans Grantha	Sans Serif	ofl/notosansgrantha	r:NotoSansGrantha-Regular.ttf
+Noto Sans Gujarati	Sans Serif	ofl/notosansgujarati	r:NotoSansGujarati[wdth,wght].ttf
+Noto Sans Gunjala Gondi	Sans Serif	ofl/notosansgunjalagondi	r:NotoSansGunjalaGondi[wght].ttf
+Noto Sans Gurmukhi	Sans Serif	ofl/notosansgurmukhi	r:NotoSansGurmukhi[wdth,wght].ttf
+Noto Sans Hanifi Rohingya	Sans Serif	ofl/notosanshanifirohingya	r:NotoSansHanifiRohingya[wght].ttf
+Noto Sans Hanunoo	Sans Serif	ofl/notosanshanunoo	r:NotoSansHanunoo-Regular.ttf
+Noto Sans Hatran	Sans Serif	ofl/notosanshatran	r:NotoSansHatran-Regular.ttf
+Noto Sans Hebrew	Sans Serif	ofl/notosanshebrew	r:NotoSansHebrew[wdth,wght].ttf
+Noto Sans HK	Sans Serif	ofl/notosanshk	r:NotoSansHK[wght].ttf
+Noto Sans Imperial Aramaic	Sans Serif	ofl/notosansimperialaramaic	r:NotoSansImperialAramaic-Regular.ttf
+Noto Sans Indic Siyaq Numbers	Sans Serif	ofl/notosansindicsiyaqnumbers	r:NotoSansIndicSiyaqNumbers-Regular.ttf
+Noto Sans Inscriptional Pahlavi	Sans Serif	ofl/notosansinscriptionalpahlavi	r:NotoSansInscriptionalPahlavi-Regular.ttf
+Noto Sans Inscriptional Parthian	Sans Serif	ofl/notosansinscriptionalparthian	r:NotoSansInscriptionalParthian-Regular.ttf
+Noto Sans Javanese	Sans Serif	ofl/notosansjavanese	r:NotoSansJavanese[wght].ttf
+Noto Sans JP	Sans Serif	ofl/notosansjp	r:NotoSansJP[wght].ttf
+Noto Sans Kaithi	Sans Serif	ofl/notosanskaithi	r:NotoSansKaithi-Regular.ttf
+Noto Sans Kannada	Sans Serif	ofl/notosanskannada	r:NotoSansKannada[wdth,wght].ttf
+Noto Sans Kawi	Sans Serif	ofl/notosanskawi	r:NotoSansKawi[wght].ttf
+Noto Sans Kayah Li	Sans Serif	ofl/notosanskayahli	r:NotoSansKayahLi[wght].ttf
+Noto Sans Kharoshthi	Sans Serif	ofl/notosanskharoshthi	r:NotoSansKharoshthi-Regular.ttf
+Noto Sans Khmer	Sans Serif	ofl/notosanskhmer	r:NotoSansKhmer[wdth,wght].ttf
+Noto Sans Khojki	Sans Serif	ofl/notosanskhojki	r:NotoSansKhojki-Regular.ttf
+Noto Sans Khudawadi	Sans Serif	ofl/notosanskhudawadi	r:NotoSansKhudawadi-Regular.ttf
+Noto Sans KR	Sans Serif	ofl/notosanskr	r:NotoSansKR[wght].ttf
+Noto Sans Lao	Sans Serif	ofl/notosanslao	r:NotoSansLao[wdth,wght].ttf
+Noto Sans Lao Looped	Sans Serif	ofl/notosanslaolooped	r:NotoSansLaoLooped[wdth,wght].ttf
+Noto Sans Lepcha	Sans Serif	ofl/notosanslepcha	r:NotoSansLepcha-Regular.ttf
+Noto Sans Limbu	Sans Serif	ofl/notosanslimbu	r:NotoSansLimbu-Regular.ttf
+Noto Sans Linear A	Sans Serif	ofl/notosanslineara	r:NotoSansLinearA-Regular.ttf
+Noto Sans Linear B	Sans Serif	ofl/notosanslinearb	r:NotoSansLinearB-Regular.ttf
+Noto Sans Lisu	Sans Serif	ofl/notosanslisu	r:NotoSansLisu[wght].ttf
+Noto Sans Lycian	Sans Serif	ofl/notosanslycian	r:NotoSansLycian-Regular.ttf
+Noto Sans Lydian	Sans Serif	ofl/notosanslydian	r:NotoSansLydian-Regular.ttf
+Noto Sans Mahajani	Sans Serif	ofl/notosansmahajani	r:NotoSansMahajani-Regular.ttf
+Noto Sans Malayalam	Sans Serif	ofl/notosansmalayalam	r:NotoSansMalayalam[wdth,wght].ttf
+Noto Sans Mandaic	Sans Serif	ofl/notosansmandaic	r:NotoSansMandaic-Regular.ttf
+Noto Sans Manichaean	Sans Serif	ofl/notosansmanichaean	r:NotoSansManichaean-Regular.ttf
+Noto Sans Marchen	Sans Serif	ofl/notosansmarchen	r:NotoSansMarchen-Regular.ttf
+Noto Sans Masaram Gondi	Sans Serif	ofl/notosansmasaramgondi	r:NotoSansMasaramGondi-Regular.ttf
+Noto Sans Math	Sans Serif	ofl/notosansmath	r:NotoSansMath-Regular.ttf
+Noto Sans Mayan Numerals	Sans Serif	ofl/notosansmayannumerals	r:NotoSansMayanNumerals-Regular.ttf
+Noto Sans Medefaidrin	Sans Serif	ofl/notosansmedefaidrin	r:NotoSansMedefaidrin[wght].ttf
+Noto Sans Meetei Mayek	Sans Serif	ofl/notosansmeeteimayek	r:NotoSansMeeteiMayek[wght].ttf
+Noto Sans Mende Kikakui	Sans Serif	ofl/notosansmendekikakui	r:NotoSansMendeKikakui-Regular.ttf
+Noto Sans Meroitic	Sans Serif	ofl/notosansmeroitic	r:NotoSansMeroitic-Regular.ttf
+Noto Sans Miao	Sans Serif	ofl/notosansmiao	r:NotoSansMiao-Regular.ttf
+Noto Sans Modi	Sans Serif	ofl/notosansmodi	r:NotoSansModi-Regular.ttf
+Noto Sans Mongolian	Sans Serif	ofl/notosansmongolian	r:NotoSansMongolian-Regular.ttf
+Noto Sans Mono	Sans Serif	ofl/notosansmono	r:NotoSansMono[wdth,wght].ttf
+Noto Sans Mro	Sans Serif	ofl/notosansmro	r:NotoSansMro-Regular.ttf
+Noto Sans Multani	Sans Serif	ofl/notosansmultani	r:NotoSansMultani-Regular.ttf
+Noto Sans Myanmar	Sans Serif	ofl/notosansmyanmar	r:NotoSansMyanmar[wdth,wght].ttf
+Noto Sans Nabataean	Sans Serif	ofl/notosansnabataean	r:NotoSansNabataean-Regular.ttf
+Noto Sans Nag Mundari	Sans Serif	ofl/notosansnagmundari	r:NotoSansNagMundari[wght].ttf
+Noto Sans Nandinagari	Sans Serif	ofl/notosansnandinagari	r:NotoSansNandinagari-Regular.ttf
+Noto Sans New Tai Lue	Sans Serif	ofl/notosansnewtailue	r:NotoSansNewTaiLue[wght].ttf
+Noto Sans Newa	Sans Serif	ofl/notosansnewa	r:NotoSansNewa-Regular.ttf
+Noto Sans NKo	Sans Serif	ofl/notosansnko	r:NotoSansNKo-Regular.ttf
+Noto Sans NKo Unjoined	Sans Serif	ofl/notosansnkounjoined	r:NotoSansNKoUnjoined[wght].ttf
+Noto Sans Nushu	Sans Serif	ofl/notosansnushu	r:NotoSansNushu-Regular.ttf
+Noto Sans Ogham	Sans Serif	ofl/notosansogham	r:NotoSansOgham-Regular.ttf
+Noto Sans Ol Chiki	Sans Serif	ofl/notosansolchiki	r:NotoSansOlChiki[wght].ttf
+Noto Sans Old Hungarian	Sans Serif	ofl/notosansoldhungarian	r:NotoSansOldHungarian-Regular.ttf
+Noto Sans Old Italic	Sans Serif	ofl/notosansolditalic	i:NotoSansOldItalic-Regular.ttf
+Noto Sans Old North Arabian	Sans Serif	ofl/notosansoldnortharabian	r:NotoSansOldNorthArabian-Regular.ttf
+Noto Sans Old Permic	Sans Serif	ofl/notosansoldpermic	r:NotoSansOldPermic-Regular.ttf
+Noto Sans Old Persian	Sans Serif	ofl/notosansoldpersian	r:NotoSansOldPersian-Regular.ttf
+Noto Sans Old Sogdian	Sans Serif	ofl/notosansoldsogdian	r:NotoSansOldSogdian-Regular.ttf
+Noto Sans Old South Arabian	Sans Serif	ofl/notosansoldsoutharabian	r:NotoSansOldSouthArabian-Regular.ttf
+Noto Sans Old Turkic	Sans Serif	ofl/notosansoldturkic	r:NotoSansOldTurkic-Regular.ttf
+Noto Sans Oriya	Sans Serif	ofl/notosansoriya	r:NotoSansOriya[wdth,wght].ttf
+Noto Sans Osage	Sans Serif	ofl/notosansosage	r:NotoSansOsage-Regular.ttf
+Noto Sans Osmanya	Sans Serif	ofl/notosansosmanya	r:NotoSansOsmanya-Regular.ttf
+Noto Sans Pahawh Hmong	Sans Serif	ofl/notosanspahawhhmong	r:NotoSansPahawhHmong-Regular.ttf
+Noto Sans Palmyrene	Sans Serif	ofl/notosanspalmyrene	r:NotoSansPalmyrene-Regular.ttf
+Noto Sans Pau Cin Hau	Sans Serif	ofl/notosanspaucinhau	r:NotoSansPauCinHau-Regular.ttf
+Noto Sans PhagsPa	Sans Serif	ofl/notosansphagspa	r:NotoSansPhagsPa-Regular.ttf
+Noto Sans Phoenician	Sans Serif	ofl/notosansphoenician	r:NotoSansPhoenician-Regular.ttf
+Noto Sans Psalter Pahlavi	Sans Serif	ofl/notosanspsalterpahlavi	r:NotoSansPsalterPahlavi-Regular.ttf
+Noto Sans Rejang	Sans Serif	ofl/notosansrejang	r:NotoSansRejang-Regular.ttf
+Noto Sans Runic	Sans Serif	ofl/notosansrunic	r:NotoSansRunic-Regular.ttf
+Noto Sans Samaritan	Sans Serif	ofl/notosanssamaritan	r:NotoSansSamaritan-Regular.ttf
+Noto Sans Saurashtra	Sans Serif	ofl/notosanssaurashtra	r:NotoSansSaurashtra-Regular.ttf
+Noto Sans SC	Sans Serif	ofl/notosanssc	r:NotoSansSC[wght].ttf
+Noto Sans Sharada	Sans Serif	ofl/notosanssharada	r:NotoSansSharada-Regular.ttf
+Noto Sans Shavian	Sans Serif	ofl/notosansshavian	r:NotoSansShavian-Regular.ttf
+Noto Sans Siddham	Sans Serif	ofl/notosanssiddham	r:NotoSansSiddham-Regular.ttf
+Noto Sans SignWriting	Sans Serif	ofl/notosanssignwriting	r:NotoSansSignWriting-Regular.ttf
+Noto Sans Sinhala	Sans Serif	ofl/notosanssinhala	r:NotoSansSinhala[wdth,wght].ttf
+Noto Sans Sogdian	Sans Serif	ofl/notosanssogdian	r:NotoSansSogdian-Regular.ttf
+Noto Sans Sora Sompeng	Sans Serif	ofl/notosanssorasompeng	r:NotoSansSoraSompeng[wght].ttf
+Noto Sans Soyombo	Sans Serif	ofl/notosanssoyombo	r:NotoSansSoyombo-Regular.ttf
+Noto Sans Sundanese	Sans Serif	ofl/notosanssundanese	r:NotoSansSundanese[wght].ttf
+Noto Sans Sunuwar	Sans Serif	ofl/notosanssunuwar	r:NotoSansSunuwar-Regular.ttf
+Noto Sans Syloti Nagri	Sans Serif	ofl/notosanssylotinagri	r:NotoSansSylotiNagri-Regular.ttf
+Noto Sans Symbols	Sans Serif	ofl/notosanssymbols	r:NotoSansSymbols[wght].ttf
+Noto Sans Symbols 2	Sans Serif	ofl/notosanssymbols2	r:NotoSansSymbols2-Regular.ttf
+Noto Sans Syriac	Sans Serif	ofl/notosanssyriac	r:NotoSansSyriac[wght].ttf
+Noto Sans Syriac Eastern	Sans Serif	ofl/notosanssyriaceastern	r:NotoSansSyriacEastern[wght].ttf
+Noto Sans Syriac Western	Sans Serif	ofl/notosanssyriacwestern	r:NotoSansSyriacWestern[wght].ttf
+Noto Sans Tagalog	Sans Serif	ofl/notosanstagalog	r:NotoSansTagalog-Regular.ttf
+Noto Sans Tagbanwa	Sans Serif	ofl/notosanstagbanwa	r:NotoSansTagbanwa-Regular.ttf
+Noto Sans Tai Le	Sans Serif	ofl/notosanstaile	r:NotoSansTaiLe-Regular.ttf
+Noto Sans Tai Tham	Sans Serif	ofl/notosanstaitham	r:NotoSansTaiTham[wght].ttf
+Noto Sans Tai Viet	Sans Serif	ofl/notosanstaiviet	r:NotoSansTaiViet-Regular.ttf
+Noto Sans Takri	Sans Serif	ofl/notosanstakri	r:NotoSansTakri-Regular.ttf
+Noto Sans Tamil	Sans Serif	ofl/notosanstamil	r:NotoSansTamil[wdth,wght].ttf
+Noto Sans Tamil Supplement	Sans Serif	ofl/notosanstamilsupplement	r:NotoSansTamilSupplement-Regular.ttf
+Noto Sans Tangsa	Sans Serif	ofl/notosanstangsa	r:NotoSansTangsa[wght].ttf
+Noto Sans TC	Sans Serif	ofl/notosanstc	r:NotoSansTC[wght].ttf
+Noto Sans Telugu	Sans Serif	ofl/notosanstelugu	r:NotoSansTelugu[wdth,wght].ttf
+Noto Sans Thaana	Sans Serif	ofl/notosansthaana	r:NotoSansThaana[wght].ttf
+Noto Sans Thai	Sans Serif	ofl/notosansthai	r:NotoSansThai[wdth,wght].ttf
+Noto Sans Thai Looped	Sans Serif	ofl/notosansthailooped	r:NotoSansThaiLooped[wdth,wght].ttf
+Noto Sans Tifinagh	Sans Serif	ofl/notosanstifinagh	r:NotoSansTifinagh-Regular.ttf
+Noto Sans Tirhuta	Sans Serif	ofl/notosanstirhuta	r:NotoSansTirhuta-Regular.ttf
+Noto Sans Ugaritic	Sans Serif	ofl/notosansugaritic	r:NotoSansUgaritic-Regular.ttf
+Noto Sans Vai	Sans Serif	ofl/notosansvai	r:NotoSansVai-Regular.ttf
+Noto Sans Vithkuqi	Sans Serif	ofl/notosansvithkuqi	r:NotoSansVithkuqi[wght].ttf
+Noto Sans Wancho	Sans Serif	ofl/notosanswancho	r:NotoSansWancho-Regular.ttf
+Noto Sans Warang Citi	Sans Serif	ofl/notosanswarangciti	r:NotoSansWarangCiti-Regular.ttf
+Noto Sans Yi	Sans Serif	ofl/notosansyi	r:NotoSansYi-Regular.ttf
+Noto Sans Zanabazar Square	Sans Serif	ofl/notosanszanabazarsquare	r:NotoSansZanabazarSquare-Regular.ttf
+Noto Serif	Serif	ofl/notoserif	r:NotoSerif[wdth,wght].ttf|i:NotoSerif-Italic[wdth,wght].ttf
+Noto Serif Ahom	Serif	ofl/notoserifahom	r:NotoSerifAhom-Regular.ttf
+Noto Serif Armenian	Serif	ofl/notoserifarmenian	r:NotoSerifArmenian[wdth,wght].ttf
+Noto Serif Balinese	Serif	ofl/notoserifbalinese	r:NotoSerifBalinese-Regular.ttf
+Noto Serif Bengali	Serif	ofl/notoserifbengali	r:NotoSerifBengali[wdth,wght].ttf
+Noto Serif Devanagari	Serif	ofl/notoserifdevanagari	r:NotoSerifDevanagari[wdth,wght].ttf
+Noto Serif Display	Serif	ofl/notoserifdisplay	r:NotoSerifDisplay[wdth,wght].ttf|i:NotoSerifDisplay-Italic[wdth,wght].ttf
+Noto Serif Dives Akuru	Serif	ofl/notoserifdivesakuru	r:NotoSerifDivesAkuru-Regular.ttf
+Noto Serif Dogra	Serif	ofl/notoserifdogra	r:NotoSerifDogra-Regular.ttf
+Noto Serif Ethiopic	Serif	ofl/notoserifethiopic	r:NotoSerifEthiopic[wdth,wght].ttf
+Noto Serif Georgian	Serif	ofl/notoserifgeorgian	r:NotoSerifGeorgian[wdth,wght].ttf
+Noto Serif Grantha	Serif	ofl/notoserifgrantha	r:NotoSerifGrantha-Regular.ttf
+Noto Serif Gujarati	Serif	ofl/notoserifgujarati	r:NotoSerifGujarati[wght].ttf
+Noto Serif Gurmukhi	Serif	ofl/notoserifgurmukhi	r:NotoSerifGurmukhi[wght].ttf
+Noto Serif Hebrew	Serif	ofl/notoserifhebrew	r:NotoSerifHebrew[wdth,wght].ttf
+Noto Serif Hentaigana	Serif	ofl/notoserifhentaigana	r:NotoSerifHentaigana[wght].ttf
+Noto Serif HK	Serif	ofl/notoserifhk	r:NotoSerifHK[wght].ttf
+Noto Serif JP	Serif	ofl/notoserifjp	r:NotoSerifJP[wght].ttf
+Noto Serif Kannada	Serif	ofl/notoserifkannada	r:NotoSerifKannada[wght].ttf
+Noto Serif Khitan Small Script	Serif	ofl/notoserifkhitansmallscript	r:NotoSerifKhitanSmallScript-Regular.ttf
+Noto Serif Khmer	Serif	ofl/notoserifkhmer	r:NotoSerifKhmer[wdth,wght].ttf
+Noto Serif Khojki	Serif	ofl/notoserifkhojki	r:NotoSerifKhojki[wght].ttf
+Noto Serif KR	Serif	ofl/notoserifkr	r:NotoSerifKR[wght].ttf
+Noto Serif Lao	Serif	ofl/notoseriflao	r:NotoSerifLao[wdth,wght].ttf
+Noto Serif Makasar	Serif	ofl/notoserifmakasar	r:NotoSerifMakasar-Regular.ttf
+Noto Serif Malayalam	Serif	ofl/notoserifmalayalam	r:NotoSerifMalayalam[wght].ttf
+Noto Serif Myanmar	Serif	ofl/notoserifmyanmar	r:NotoSerifMyanmar-Regular.ttf|b:NotoSerifMyanmar-Bold.ttf
+Noto Serif NP Hmong	Serif	ofl/notoserifnphmong	r:NotoSerifNPHmong[wght].ttf
+Noto Serif Old Uyghur	Serif	ofl/notoserifolduyghur	r:NotoSerifOldUyghur-Regular.ttf
+Noto Serif Oriya	Serif	ofl/notoseriforiya	r:NotoSerifOriya[wght].ttf
+Noto Serif Ottoman Siyaq	Serif	ofl/notoserifottomansiyaq	r:NotoSerifOttomanSiyaq-Regular.ttf
+Noto Serif SC	Serif	ofl/notoserifsc	r:NotoSerifSC[wght].ttf
+Noto Serif Sinhala	Serif	ofl/notoserifsinhala	r:NotoSerifSinhala[wdth,wght].ttf
+Noto Serif Tamil	Serif	ofl/notoseriftamil	r:NotoSerifTamil[wdth,wght].ttf|i:NotoSerifTamil-Italic[wdth,wght].ttf
+Noto Serif Tangut	Serif	ofl/notoseriftangut	r:NotoSerifTangut-Regular.ttf
+Noto Serif TC	Serif	ofl/notoseriftc	r:NotoSerifTC[wght].ttf
+Noto Serif Telugu	Serif	ofl/notoseriftelugu	r:NotoSerifTelugu[wght].ttf
+Noto Serif Thai	Serif	ofl/notoserifthai	r:NotoSerifThai[wdth,wght].ttf
+Noto Serif Tibetan	Serif	ofl/notoseriftibetan	r:NotoSerifTibetan[wght].ttf
+Noto Serif Todhri	Serif	ofl/notoseriftodhri	r:NotoSerifTodhri-Regular.ttf
+Noto Serif Toto	Serif	ofl/notoseriftoto	r:NotoSerifToto[wght].ttf
+Noto Serif Vithkuqi	Serif	ofl/notoserifvithkuqi	r:NotoSerifVithkuqi[wght].ttf
+Noto Serif Yezidi	Serif	ofl/notoserifyezidi	r:NotoSerifYezidi[wght].ttf
+Noto Traditional Nushu	Sans Serif	ofl/nototraditionalnushu	r:NotoTraditionalNushu[wght].ttf
+Noto Znamenny Musical Notation	Sans Serif	ofl/notoznamennymusicalnotation	r:NotoZnamennyMusicalNotation-Regular.ttf
+Nova Cut	Display	ofl/novacut	r:NovaCut.ttf
+Nova Flat	Display	ofl/novaflat	r:NovaFlat.ttf
+Nova Mono	Monospace	ofl/novamono	r:NovaMono.ttf
+Nova Oval	Display	ofl/novaoval	r:NovaOval.ttf
+Nova Round	Display	ofl/novaround	r:NovaRound.ttf
+Nova Script	Display	ofl/novascript	r:NovaScript-Regular.ttf
+Nova Slim	Display	ofl/novaslim	r:NovaSlim.ttf
+Nova Square	Display	ofl/novasquare	r:NovaSquare.ttf
+NTR	Sans Serif	ofl/ntr	r:NTR-Regular.ttf
+Numans	Sans Serif	ofl/numans	r:Numans-Regular.ttf
+Nunito	Sans Serif	ofl/nunito	r:Nunito[wght].ttf|i:Nunito-Italic[wght].ttf
+Nunito Sans	Sans Serif	ofl/nunitosans	r:NunitoSans[YTLC,opsz,wdth,wght].ttf|i:NunitoSans-Italic[YTLC,opsz,wdth,wght].ttf
+Nuosu SIL	Sans Serif	ofl/nuosusil	r:NuosuSIL-Regular.ttf
+Odibee Sans	Display	ofl/odibeesans	r:OdibeeSans-Regular.ttf
+Odor Mean Chey	Serif	ofl/odormeanchey	r:OdorMeanChey-Regular.ttf
+Offside	Display	ofl/offside	r:Offside-Regular.ttf
+Oi	Display	ofl/oi	r:Oi-Regular.ttf
+Ojuju	Sans Serif	ofl/ojuju	r:Ojuju[wght].ttf
+Old Standard TT	Serif	ofl/oldstandardtt	r:OldStandard-Regular.ttf|b:OldStandard-Bold.ttf|i:OldStandard-Italic.ttf
+Oldenburg	Display	ofl/oldenburg	r:Oldenburg-Regular.ttf
+Ole	Handwriting	ofl/ole	r:Ole-Regular.ttf
+Oleo Script	Display	ofl/oleoscript	r:OleoScript-Regular.ttf|b:OleoScript-Bold.ttf
+Oleo Script Swash Caps	Display	ofl/oleoscriptswashcaps	r:OleoScriptSwashCaps-Regular.ttf|b:OleoScriptSwashCaps-Bold.ttf
+Onest	Sans Serif	ofl/onest	r:Onest[wght].ttf
+Oooh Baby	Handwriting	ofl/ooohbaby	r:OoohBaby-Regular.ttf
+Open Sans	Sans Serif	ofl/opensans	r:OpenSans[wdth,wght].ttf|i:OpenSans-Italic[wdth,wght].ttf
+Oranienbaum	Serif	ofl/oranienbaum	r:Oranienbaum-Regular.ttf
+Orbit	Sans Serif	ofl/orbit	r:Orbit-Regular.ttf
+Orbitron	Sans Serif	ofl/orbitron	r:Orbitron[wght].ttf
+Oregano	Display	ofl/oregano	r:Oregano-Regular.ttf|i:Oregano-Italic.ttf
+Orelega One	Display	ofl/orelegaone	r:OrelegaOne-Regular.ttf
+Orienta	Sans Serif	ofl/orienta	r:Orienta-Regular.ttf
+Original Surfer	Display	ofl/originalsurfer	r:OriginalSurfer-Regular.ttf
+Oswald	Sans Serif	ofl/oswald	r:Oswald[wght].ttf
+Outfit	Sans Serif	ofl/outfit	r:Outfit[wght].ttf
+Over the Rainbow	Handwriting	ofl/overtherainbow	r:OvertheRainbow.ttf
+Overlock	Display	ofl/overlock	r:Overlock-Regular.ttf|b:Overlock-Bold.ttf|i:Overlock-Italic.ttf|bi:Overlock-BoldItalic.ttf
+Overlock SC	Display	ofl/overlocksc	r:OverlockSC-Regular.ttf
+Overpass	Sans Serif	ofl/overpass	r:Overpass[wght].ttf|i:Overpass-Italic[wght].ttf
+Overpass Mono	Monospace	ofl/overpassmono	r:OverpassMono[wght].ttf
+Ovo	Serif	ofl/ovo	r:Ovo-Regular.ttf
+Oxanium	Display	ofl/oxanium	r:Oxanium[wght].ttf
+Oxygen	Sans Serif	ofl/oxygen	r:Oxygen-Regular.ttf|b:Oxygen-Bold.ttf
+Oxygen Mono	Monospace	ofl/oxygenmono	r:OxygenMono-Regular.ttf
+Pacifico	Handwriting	ofl/pacifico	r:Pacifico-Regular.ttf
+Padauk	Sans Serif	ofl/padauk	r:Padauk-Regular.ttf|b:Padauk-Bold.ttf
+Padyakke Expanded One	Serif	ofl/padyakkeexpandedone	r:PadyakkeExpandedOne-Regular.ttf
+Palanquin	Sans Serif	ofl/palanquin	r:Palanquin-Regular.ttf|b:Palanquin-Bold.ttf
+Palanquin Dark	Sans Serif	ofl/palanquindark	r:PalanquinDark-Regular.ttf|b:PalanquinDark-Bold.ttf
+Palette Mosaic	Display	ofl/palettemosaic	r:PaletteMosaic-Regular.ttf
+Pangolin	Handwriting	ofl/pangolin	r:Pangolin-Regular.ttf
+Paprika	Display	ofl/paprika	r:Paprika-Regular.ttf
+Parastoo	Serif	ofl/parastoo	r:Parastoo[wght].ttf
+Parisienne	Handwriting	ofl/parisienne	r:Parisienne-Regular.ttf
+Parkinsans	Sans Serif	ofl/parkinsans	r:Parkinsans[wght].ttf
+Passero One	Display	ofl/passeroone	r:PasseroOne-Regular.ttf
+Passion One	Display	ofl/passionone	r:PassionOne-Regular.ttf|b:PassionOne-Bold.ttf
+Passions Conflict	Handwriting	ofl/passionsconflict	r:PassionsConflict-Regular.ttf
+Pathway Extreme	Sans Serif	ofl/pathwayextreme	r:PathwayExtreme[opsz,wdth,wght].ttf|i:PathwayExtreme-Italic[opsz,wdth,wght].ttf
+Pathway Gothic One	Sans Serif	ofl/pathwaygothicone	r:PathwayGothicOne-Regular.ttf
+Patrick Hand	Handwriting	ofl/patrickhand	r:PatrickHand-Regular.ttf
+Patrick Hand SC	Handwriting	ofl/patrickhandsc	r:PatrickHandSC-Regular.ttf
+Pattaya	Sans Serif	ofl/pattaya	r:Pattaya-Regular.ttf
+Patua One	Display	ofl/patuaone	r:PatuaOne-Regular.ttf
+Pavanam	Sans Serif	ofl/pavanam	r:Pavanam-Regular.ttf
+Paytone One	Sans Serif	ofl/paytoneone	r:PaytoneOne-Regular.ttf
+Peddana	Serif	ofl/peddana	r:Peddana-Regular.ttf
+Peralta	Serif	ofl/peralta	r:Peralta-Regular.ttf
+Permanent Marker	Handwriting	apache/permanentmarker	r:PermanentMarker-Regular.ttf
+Petemoss	Handwriting	ofl/petemoss	r:Petemoss-Regular.ttf
+Petit Formal Script	Handwriting	ofl/petitformalscript	r:PetitFormalScript-Regular.ttf
+Petrona	Serif	ofl/petrona	r:Petrona[wght].ttf|i:Petrona-Italic[wght].ttf
+Phetsarath	Sans Serif	ofl/phetsarath	r:Phetsarath-Regular.ttf|b:Phetsarath-Bold.ttf
+Philosopher	Sans Serif	ofl/philosopher	r:Philosopher-Regular.ttf|b:Philosopher-Bold.ttf|i:Philosopher-Italic.ttf|bi:Philosopher-BoldItalic.ttf
+Phudu	Display	ofl/phudu	r:Phudu[wght].ttf
+Piazzolla	Serif	ofl/piazzolla	r:Piazzolla[opsz,wght].ttf|i:Piazzolla-Italic[opsz,wght].ttf
+Piedra	Display	ofl/piedra	r:Piedra-Regular.ttf
+Pinyon Script	Handwriting	ofl/pinyonscript	r:PinyonScript-Regular.ttf
+Pirata One	Display	ofl/pirataone	r:PirataOne-Regular.ttf
+Pixelify Sans	Display	ofl/pixelifysans	r:PixelifySans[wght].ttf
+Plaster	Display	ofl/plaster	r:Plaster-Regular.ttf
+Platypi	Serif	ofl/platypi	r:Platypi[wght].ttf|i:Platypi-Italic[wght].ttf
+Play	Sans Serif	ofl/play	r:Play-Regular.ttf|b:Play-Bold.ttf
+Playball	Display	ofl/playball	r:Playball-Regular.ttf
+Playfair	Serif	ofl/playfair	r:Playfair[opsz,wdth,wght].ttf|i:Playfair-Italic[opsz,wdth,wght].ttf
+Playfair Display	Serif	ofl/playfairdisplay	r:PlayfairDisplay[wght].ttf|i:PlayfairDisplay-Italic[wght].ttf
+Playfair Display SC	Serif	ofl/playfairdisplaysc	r:PlayfairDisplaySC-Regular.ttf|b:PlayfairDisplaySC-Bold.ttf|i:PlayfairDisplaySC-Italic.ttf|bi:PlayfairDisplaySC-BoldItalic.ttf
+Playpen Sans	Handwriting	ofl/playpensans	r:PlaypenSans[wght].ttf
+Playpen Sans Arabic	Handwriting	ofl/playpensansarabic	r:PlaypenSansArabic[wght].ttf
+Playpen Sans Deva	Handwriting	ofl/playpensansdeva	r:PlaypenSansDeva[wght].ttf
+Playpen Sans Hebrew	Handwriting	ofl/playpensanshebrew	r:PlaypenSansHebrew[wght].ttf
+Playpen Sans Thai	Handwriting	ofl/playpensansthai	r:PlaypenSansThai[wght].ttf
+Playwrite AR	Handwriting	ofl/playwritear	r:PlaywriteAR[wght].ttf
+Playwrite AR Guides	Handwriting	ofl/playwritearguides	r:PlaywriteARGuides-Regular.ttf
+Playwrite AT	Handwriting	ofl/playwriteat	r:PlaywriteAT[wght].ttf|i:PlaywriteAT-Italic[wght].ttf
+Playwrite AT Guides	Handwriting	ofl/playwriteatguides	r:PlaywriteATGuides-Regular.ttf|i:PlaywriteATGuides-Italic.ttf
+Playwrite AU NSW	Handwriting	ofl/playwriteaunsw	r:PlaywriteAUNSW[wght].ttf
+Playwrite AU NSW Guides	Handwriting	ofl/playwriteaunswguides	r:PlaywriteAUNSWGuides-Regular.ttf
+Playwrite AU QLD	Handwriting	ofl/playwriteauqld	r:PlaywriteAUQLD[wght].ttf
+Playwrite AU QLD Guides	Handwriting	ofl/playwriteauqldguides	r:PlaywriteAUQLDGuides-Regular.ttf
+Playwrite AU SA	Handwriting	ofl/playwriteausa	r:PlaywriteAUSA[wght].ttf
+Playwrite AU SA Guides	Handwriting	ofl/playwriteausaguides	r:PlaywriteAUSAGuides-Regular.ttf
+Playwrite AU TAS	Handwriting	ofl/playwriteautas	r:PlaywriteAUTAS[wght].ttf
+Playwrite AU TAS Guides	Handwriting	ofl/playwriteautasguides	r:PlaywriteAUTASGuides-Regular.ttf
+Playwrite AU VIC	Handwriting	ofl/playwriteauvic	r:PlaywriteAUVIC[wght].ttf
+Playwrite AU VIC Guides	Handwriting	ofl/playwriteauvicguides	r:PlaywriteAUVICGuides-Regular.ttf
+Playwrite BE VLG	Handwriting	ofl/playwritebevlg	r:PlaywriteBEVLG[wght].ttf
+Playwrite BE VLG Guides	Handwriting	ofl/playwritebevlgguides	r:PlaywriteBEVLGGuides-Regular.ttf
+Playwrite BE WAL	Handwriting	ofl/playwritebewal	r:PlaywriteBEWAL[wght].ttf
+Playwrite BE WAL Guides	Handwriting	ofl/playwritebewalguides	r:PlaywriteBEWALGuides-Regular.ttf
+Playwrite BR	Handwriting	ofl/playwritebr	r:PlaywriteBR[wght].ttf
+Playwrite BR Guides	Handwriting	ofl/playwritebrguides	r:PlaywriteBRGuides-Regular.ttf
+Playwrite CA	Handwriting	ofl/playwriteca	r:PlaywriteCA[wght].ttf
+Playwrite CA Guides	Handwriting	ofl/playwritecaguides	r:PlaywriteCAGuides-Regular.ttf
+Playwrite CL	Handwriting	ofl/playwritecl	r:PlaywriteCL[wght].ttf
+Playwrite CL Guides	Handwriting	ofl/playwriteclguides	r:PlaywriteCLGuides-Regular.ttf
+Playwrite CO	Handwriting	ofl/playwriteco	r:PlaywriteCO[wght].ttf
+Playwrite CO Guides	Handwriting	ofl/playwritecoguides	r:PlaywriteCOGuides-Regular.ttf
+Playwrite CU	Handwriting	ofl/playwritecu	r:PlaywriteCU[wght].ttf
+Playwrite CU Guides	Handwriting	ofl/playwritecuguides	r:PlaywriteCUGuides-Regular.ttf
+Playwrite CZ	Handwriting	ofl/playwritecz	r:PlaywriteCZ[wght].ttf
+Playwrite CZ Guides	Handwriting	ofl/playwriteczguides	r:PlaywriteCZGuides-Regular.ttf
+Playwrite DE Grund	Handwriting	ofl/playwritedegrund	r:PlaywriteDEGrund[wght].ttf
+Playwrite DE Grund Guides	Handwriting	ofl/playwritedegrundguides	r:PlaywriteDEGrundGuides-Regular.ttf
+Playwrite DE LA	Handwriting	ofl/playwritedela	r:PlaywriteDELA[wght].ttf
+Playwrite DE LA Guides	Handwriting	ofl/playwritedelaguides	r:PlaywriteDELAGuides-Regular.ttf
+Playwrite DE SAS	Handwriting	ofl/playwritedesas	r:PlaywriteDESAS[wght].ttf
+Playwrite DE SAS Guides	Handwriting	ofl/playwritedesasguides	r:PlaywriteDESASGuides-Regular.ttf
+Playwrite DE VA	Handwriting	ofl/playwritedeva	r:PlaywriteDEVA[wght].ttf
+Playwrite DE VA Guides	Handwriting	ofl/playwritedevaguides	r:PlaywriteDEVAGuides-Regular.ttf
+Playwrite DK Loopet	Handwriting	ofl/playwritedkloopet	r:PlaywriteDKLoopet[wght].ttf
+Playwrite DK Loopet Guides	Handwriting	ofl/playwritedkloopetguides	r:PlaywriteDKLoopetGuides-Regular.ttf
+Playwrite DK Uloopet	Handwriting	ofl/playwritedkuloopet	r:PlaywriteDKUloopet[wght].ttf
+Playwrite DK Uloopet Guides	Handwriting	ofl/playwritedkuloopetguides	r:PlaywriteDKUloopetGuides-Regular.ttf
+Playwrite ES	Handwriting	ofl/playwritees	r:PlaywriteES[wght].ttf
+Playwrite ES Deco	Handwriting	ofl/playwriteesdeco	r:PlaywriteESDeco[wght].ttf
+Playwrite ES Deco Guides	Handwriting	ofl/playwriteesdecoguides	r:PlaywriteESDecoGuides-Regular.ttf
+Playwrite ES Guides	Handwriting	ofl/playwriteesguides	r:PlaywriteESGuides-Regular.ttf
+Playwrite FR Moderne	Handwriting	ofl/playwritefrmoderne	r:PlaywriteFRModerne[wght].ttf
+Playwrite FR Moderne Guides	Handwriting	ofl/playwritefrmoderneguides	r:PlaywriteFRModerneGuides-Regular.ttf
+Playwrite FR Trad	Handwriting	ofl/playwritefrtrad	r:PlaywriteFRTrad[wght].ttf
+Playwrite FR Trad Guides	Handwriting	ofl/playwritefrtradguides	r:PlaywriteFRTradGuides-Regular.ttf
+Playwrite GB J	Handwriting	ofl/playwritegbj	r:PlaywriteGBJ[wght].ttf|i:PlaywriteGBJ-Italic[wght].ttf
+Playwrite GB J Guides	Handwriting	ofl/playwritegbjguides	r:PlaywriteGBJGuides-Regular.ttf|i:PlaywriteGBJGuides-Italic.ttf
+Playwrite GB S	Handwriting	ofl/playwritegbs	r:PlaywriteGBS[wght].ttf|i:PlaywriteGBS-Italic[wght].ttf
+Playwrite GB S Guides	Handwriting	ofl/playwritegbsguides	r:PlaywriteGBSGuides-Regular.ttf|i:PlaywriteGBSGuides-Italic.ttf
+Playwrite HR	Handwriting	ofl/playwritehr	r:PlaywriteHR[wght].ttf
+Playwrite HR Guides	Handwriting	ofl/playwritehrguides	r:PlaywriteHRGuides-Regular.ttf
+Playwrite HR Lijeva	Handwriting	ofl/playwritehrlijeva	r:PlaywriteHRLijeva[wght].ttf
+Playwrite HR Lijeva Guides	Handwriting	ofl/playwritehrlijevaguides	r:PlaywriteHRLijevaGuides-Regular.ttf
+Playwrite HU	Handwriting	ofl/playwritehu	r:PlaywriteHU[wght].ttf
+Playwrite HU Guides	Handwriting	ofl/playwritehuguides	r:PlaywriteHUGuides-Regular.ttf
+Playwrite ID	Handwriting	ofl/playwriteid	r:PlaywriteID[wght].ttf
+Playwrite ID Guides	Handwriting	ofl/playwriteidguides	r:PlaywriteIDGuides-Regular.ttf
+Playwrite IE	Handwriting	ofl/playwriteie	r:PlaywriteIE[wght].ttf
+Playwrite IE Guides	Handwriting	ofl/playwriteieguides	r:PlaywriteIEGuides-Regular.ttf
+Playwrite IN	Handwriting	ofl/playwritein	r:PlaywriteIN[wght].ttf
+Playwrite IN Guides	Handwriting	ofl/playwriteinguides	r:PlaywriteINGuides-Regular.ttf
+Playwrite IS	Handwriting	ofl/playwriteis	r:PlaywriteIS[wght].ttf
+Playwrite IS Guides	Handwriting	ofl/playwriteisguides	r:PlaywriteISGuides-Regular.ttf
+Playwrite IT Moderna	Handwriting	ofl/playwriteitmoderna	r:PlaywriteITModerna[wght].ttf
+Playwrite IT Moderna Guides	Handwriting	ofl/playwriteitmodernaguides	r:PlaywriteITModernaGuides-Regular.ttf
+Playwrite IT Trad	Handwriting	ofl/playwriteittrad	r:PlaywriteITTrad[wght].ttf
+Playwrite IT Trad Guides	Handwriting	ofl/playwriteittradguides	r:PlaywriteITTradGuides-Regular.ttf
+Playwrite MX	Handwriting	ofl/playwritemx	r:PlaywriteMX[wght].ttf
+Playwrite MX Guides	Handwriting	ofl/playwritemxguides	r:PlaywriteMXGuides-Regular.ttf
+Playwrite NG Modern	Handwriting	ofl/playwritengmodern	r:PlaywriteNGModern[wght].ttf
+Playwrite NG Modern Guides	Handwriting	ofl/playwritengmodernguides	r:PlaywriteNGModernGuides-Regular.ttf
+Playwrite NL	Handwriting	ofl/playwritenl	r:PlaywriteNL[wght].ttf
+Playwrite NL Guides	Handwriting	ofl/playwritenlguides	r:PlaywriteNLGuides-Regular.ttf
+Playwrite NO	Handwriting	ofl/playwriteno	r:PlaywriteNO[wght].ttf
+Playwrite NO Guides	Handwriting	ofl/playwritenoguides	r:PlaywriteNOGuides-Regular.ttf
+Playwrite NZ	Handwriting	ofl/playwritenz	r:PlaywriteNZ[wght].ttf
+Playwrite NZ Basic	Handwriting	ofl/playwritenzbasic	r:PlaywriteNZBasic[wght].ttf
+Playwrite NZ Basic Guides	Handwriting	ofl/playwritenzbasicguides	r:PlaywriteNZBasicGuides-Regular.ttf
+Playwrite NZ Guides	Handwriting	ofl/playwritenzguides	r:PlaywriteNZGuides-Regular.ttf
+Playwrite PE	Handwriting	ofl/playwritepe	r:PlaywritePE[wght].ttf
+Playwrite PE Guides	Handwriting	ofl/playwritepeguides	r:PlaywritePEGuides-Regular.ttf
+Playwrite PL	Handwriting	ofl/playwritepl	r:PlaywritePL[wght].ttf
+Playwrite PL Guides	Handwriting	ofl/playwriteplguides	r:PlaywritePLGuides-Regular.ttf
+Playwrite PT	Handwriting	ofl/playwritept	r:PlaywritePT[wght].ttf
+Playwrite PT Guides	Handwriting	ofl/playwriteptguides	r:PlaywritePTGuides-Regular.ttf
+Playwrite RO	Handwriting	ofl/playwritero	r:PlaywriteRO[wght].ttf
+Playwrite RO Guides	Handwriting	ofl/playwriteroguides	r:PlaywriteROGuides-Regular.ttf
+Playwrite SK	Handwriting	ofl/playwritesk	r:PlaywriteSK[wght].ttf
+Playwrite SK Guides	Handwriting	ofl/playwriteskguides	r:PlaywriteSKGuides-Regular.ttf
+Playwrite TZ	Handwriting	ofl/playwritetz	r:PlaywriteTZ[wght].ttf
+Playwrite TZ Guides	Handwriting	ofl/playwritetzguides	r:PlaywriteTZGuides-Regular.ttf
+Playwrite US Modern	Handwriting	ofl/playwriteusmodern	r:PlaywriteUSModern[wght].ttf
+Playwrite US Modern Guides	Handwriting	ofl/playwriteusmodernguides	r:PlaywriteUSModernGuides-Regular.ttf
+Playwrite US Trad	Handwriting	ofl/playwriteustrad	r:PlaywriteUSTrad[wght].ttf
+Playwrite US Trad Guides	Handwriting	ofl/playwriteustradguides	r:PlaywriteUSTradGuides-Regular.ttf
+Playwrite VN	Handwriting	ofl/playwritevn	r:PlaywriteVN[wght].ttf
+Playwrite VN Guides	Handwriting	ofl/playwritevnguides	r:PlaywriteVNGuides-Regular.ttf
+Playwrite ZA	Handwriting	ofl/playwriteza	r:PlaywriteZA[wght].ttf
+Playwrite ZA Guides	Handwriting	ofl/playwritezaguides	r:PlaywriteZAGuides-Regular.ttf
+Pliant	Sans Serif	ofl/pliant	r:Pliant[wdth,wght].ttf|i:Pliant-Italic[wdth,wght].ttf
+Plus Jakarta Sans	Sans Serif	ofl/plusjakartasans	r:PlusJakartaSans[wght].ttf|i:PlusJakartaSans-Italic[wght].ttf
+Pochaevsk	Display	ofl/pochaevsk	r:Pochaevsk-Regular.ttf
+Podkova	Serif	ofl/podkova	r:Podkova[wght].ttf
+Poetsen One	Display	ofl/poetsenone	r:PoetsenOne-Regular.ttf
+Poiret One	Display	ofl/poiretone	r:PoiretOne-Regular.ttf
+Poller One	Display	ofl/pollerone	r:PollerOne.ttf
+Poltawski Nowy	Serif	ofl/poltawskinowy	r:PoltawskiNowy[wght].ttf|i:PoltawskiNowy-Italic[wght].ttf
+Poly	Serif	ofl/poly	r:Poly-Regular.ttf|i:Poly-Italic.ttf
+Pompiere	Display	ofl/pompiere	r:Pompiere-Regular.ttf
+Ponnala	Display	ofl/ponnala	r:Ponnala-Regular.ttf
+Ponomar	Display	ofl/ponomar	r:Ponomar-Regular.ttf
+Pontano Sans	Sans Serif	ofl/pontanosans	r:PontanoSans[wght].ttf
+Poor Story	Display	ofl/poorstory	r:PoorStory-Regular.ttf
+Poppins	Sans Serif	ofl/poppins	r:Poppins-Regular.ttf|b:Poppins-Bold.ttf|i:Poppins-Italic.ttf|bi:Poppins-BoldItalic.ttf
+Port Lligat Sans	Sans Serif	ofl/portlligatsans	r:PortLligatSans-Regular.ttf
+Port Lligat Slab	Serif	ofl/portlligatslab	r:PortLligatSlab-Regular.ttf
+Potta One	Display	ofl/pottaone	r:PottaOne-Regular.ttf
+Pragati Narrow	Sans Serif	ofl/pragatinarrow	r:PragatiNarrow-Regular.ttf|b:PragatiNarrow-Bold.ttf
+Praise	Handwriting	ofl/praise	r:Praise-Regular.ttf
+Prata	Serif	ofl/prata	r:Prata-Regular.ttf
+Preahvihear	Sans Serif	ofl/preahvihear	r:Preahvihear-Regular.ttf
+Press Start 2P	Display	ofl/pressstart2p	r:PressStart2P-Regular.ttf
+Pridi	Serif	ofl/pridi	r:Pridi-Regular.ttf|b:Pridi-Bold.ttf
+Princess Sofia	Handwriting	ofl/princesssofia	r:PrincessSofia-Regular.ttf
+Prociono	Serif	ofl/prociono	r:Prociono-Regular.ttf
+Prompt	Sans Serif	ofl/prompt	r:Prompt-Regular.ttf|b:Prompt-Bold.ttf|i:Prompt-Italic.ttf|bi:Prompt-BoldItalic.ttf
+Prosto One	Display	ofl/prostoone	r:ProstoOne-Regular.ttf
+Protest Guerrilla	Display	ofl/protestguerrilla	r:ProtestGuerrilla-Regular.ttf
+Protest Revolution	Display	ofl/protestrevolution	r:ProtestRevolution-Regular.ttf
+Protest Riot	Display	ofl/protestriot	r:ProtestRiot-Regular.ttf
+Protest Strike	Display	ofl/proteststrike	r:ProtestStrike-Regular.ttf
+Proza Libre	Sans Serif	ofl/prozalibre	r:ProzaLibre-Regular.ttf|b:ProzaLibre-Bold.ttf|i:ProzaLibre-Italic.ttf|bi:ProzaLibre-BoldItalic.ttf
+PT Mono	Monospace	ofl/ptmono	r:PTM55FT.ttf
+PT Sans	Sans Serif	ofl/ptsans	r:PT_Sans-Web-Regular.ttf|b:PT_Sans-Web-Bold.ttf|i:PT_Sans-Web-Italic.ttf|bi:PT_Sans-Web-BoldItalic.ttf
+PT Sans Caption	Sans Serif	ofl/ptsanscaption	r:PT_Sans-Caption-Web-Regular.ttf|b:PT_Sans-Caption-Web-Bold.ttf
+PT Sans Narrow	Sans Serif	ofl/ptsansnarrow	r:PT_Sans-Narrow-Web-Regular.ttf|b:PT_Sans-Narrow-Web-Bold.ttf
+PT Serif	Serif	ofl/ptserif	r:PT_Serif-Web-Regular.ttf|b:PT_Serif-Web-Bold.ttf|i:PT_Serif-Web-Italic.ttf|bi:PT_Serif-Web-BoldItalic.ttf
+PT Serif Caption	Serif	ofl/ptserifcaption	r:PT_Serif-Caption-Web-Regular.ttf|i:PT_Serif-Caption-Web-Italic.ttf
+Public Sans	Sans Serif	ofl/publicsans	r:PublicSans[wght].ttf|i:PublicSans-Italic[wght].ttf
+Puppies Play	Handwriting	ofl/puppiesplay	r:PuppiesPlay-Regular.ttf
+Puritan	Sans Serif	ofl/puritan	r:Puritan-Regular.ttf|b:Puritan-Bold.ttf|i:Puritan-Italic.ttf|bi:Puritan-BoldItalic.ttf
+Purple Purse	Display	ofl/purplepurse	r:PurplePurse-Regular.ttf
+Qahiri	Sans Serif	ofl/qahiri	r:Qahiri-Regular.ttf
+Quando	Serif	ofl/quando	r:Quando-Regular.ttf
+Quantico	Sans Serif	ofl/quantico	r:Quantico-Regular.ttf|b:Quantico-Bold.ttf|i:Quantico-Italic.ttf|bi:Quantico-BoldItalic.ttf
+Quattrocento	Serif	ofl/quattrocento	r:Quattrocento-Regular.ttf|b:Quattrocento-Bold.ttf
+Quattrocento Sans	Sans Serif	ofl/quattrocentosans	r:QuattrocentoSans-Regular.ttf|b:QuattrocentoSans-Bold.ttf|i:QuattrocentoSans-Italic.ttf|bi:QuattrocentoSans-BoldItalic.ttf
+Questrial	Sans Serif	ofl/questrial	r:Questrial-Regular.ttf
+Quicksand	Sans Serif	ofl/quicksand	r:Quicksand[wght].ttf
+Quintessential	Handwriting	ofl/quintessential	r:Quintessential-Regular.ttf
+Qwigley	Handwriting	ofl/qwigley	r:Qwigley-Regular.ttf
+Qwitcher Grypen	Handwriting	ofl/qwitchergrypen	r:QwitcherGrypen-Regular.ttf|b:QwitcherGrypen-Bold.ttf
+Racing Sans One	Display	ofl/racingsansone	r:RacingSansOne-Regular.ttf
+Radio Canada	Sans Serif	ofl/radiocanada	r:RadioCanada[wdth,wght].ttf|i:RadioCanada-Italic[wdth,wght].ttf
+Radio Canada Big	Sans Serif	ofl/radiocanadabig	r:RadioCanadaBig[wght].ttf|i:RadioCanadaBig-Italic[wght].ttf
+Radley	Serif	ofl/radley	r:Radley-Regular.ttf|i:Radley-Italic.ttf
+Rajdhani	Sans Serif	ofl/rajdhani	r:Rajdhani-Regular.ttf|b:Rajdhani-Bold.ttf
+Rakkas	Display	ofl/rakkas	r:Rakkas-Regular.ttf
+Raleway	Sans Serif	ofl/raleway	r:Raleway[wght].ttf|i:Raleway-Italic[wght].ttf
+Raleway Dots	Display	ofl/ralewaydots	r:RalewayDots-Regular.ttf
+Ramabhadra	Sans Serif	ofl/ramabhadra	r:Ramabhadra-Regular.ttf
+Ramaraja	Serif	ofl/ramaraja	r:Ramaraja-Regular.ttf
+Rambla	Sans Serif	ofl/rambla	r:Rambla-Regular.ttf|b:Rambla-Bold.ttf|i:Rambla-Italic.ttf|bi:Rambla-BoldItalic.ttf
+Rammetto One	Display	ofl/rammettoone	r:RammettoOne-Regular.ttf
+Rampart One	Display	ofl/rampartone	r:RampartOne-Regular.ttf
+Ramsina	Serif	ofl/ramsina	r:Ramsina-Regular.ttf
+Ranchers	Display	ofl/ranchers	r:Ranchers-Regular.ttf
+Rancho	Handwriting	apache/rancho	r:Rancho-Regular.ttf
+Ranga	Display	ofl/ranga	r:Ranga-Regular.ttf|b:Ranga-Bold.ttf
+Rasa	Serif	ofl/rasa	r:Rasa[wght].ttf|i:Rasa-Italic[wght].ttf
+Rationale	Sans Serif	ofl/rationale	r:Rationale-Regular.ttf
+Ravi Prakash	Display	ofl/raviprakash	r:RaviPrakash-Regular.ttf
+Readex Pro	Sans Serif	ofl/readexpro	r:ReadexPro[HEXP,wght].ttf
+Recursive	Sans Serif	ofl/recursive	r:Recursive[CASL,CRSV,MONO,slnt,wght].ttf
+Red Hat Display	Sans Serif	ofl/redhatdisplay	r:RedHatDisplay[wght].ttf|i:RedHatDisplay-Italic[wght].ttf
+Red Hat Mono	Monospace	ofl/redhatmono	r:RedHatMono[wght].ttf|i:RedHatMono-Italic[wght].ttf
+Red Hat Text	Sans Serif	ofl/redhattext	r:RedHatText[wght].ttf|i:RedHatText-Italic[wght].ttf
+Red Rose	Display	ofl/redrose	r:RedRose[wght].ttf
+Redacted	Display	ofl/redacted	r:Redacted-Regular.ttf
+Redacted Script	Display	ofl/redactedscript	r:RedactedScript-Regular.ttf|b:RedactedScript-Bold.ttf
+Redaction	Serif	ofl/redaction	r:Redaction-Regular.ttf|b:Redaction-Bold.ttf|i:Redaction-Italic.ttf
+Redaction 10	Serif	ofl/redaction10	r:Redaction10-Regular.ttf|b:Redaction10-Bold.ttf|i:Redaction10-Italic.ttf
+Redaction 100	Display	ofl/redaction100	r:Redaction100-Regular.ttf|b:Redaction100-Bold.ttf|i:Redaction100-Italic.ttf
+Redaction 20	Serif	ofl/redaction20	r:Redaction20-Regular.ttf|b:Redaction20-Bold.ttf|i:Redaction20-Italic.ttf
+Redaction 35	Display	ofl/redaction35	r:Redaction35-Regular.ttf|b:Redaction35-Bold.ttf|i:Redaction35-Italic.ttf
+Redaction 50	Display	ofl/redaction50	r:Redaction50-Regular.ttf|b:Redaction50-Bold.ttf|i:Redaction50-Italic.ttf
+Redaction 70	Display	ofl/redaction70	r:Redaction70-Regular.ttf|b:Redaction70-Bold.ttf|i:Redaction70-Italic.ttf
+Reddit Mono	Monospace	ofl/redditmono	r:RedditMono[wght].ttf
+Reddit Sans	Sans Serif	ofl/redditsans	r:RedditSans[wght].ttf|i:RedditSans-Italic[wght].ttf
+Reddit Sans Condensed	Sans Serif	ofl/redditsanscondensed	r:RedditSansCondensed[wght].ttf
+Redressed	Handwriting	apache/redressed	r:Redressed-Regular.ttf
+Reem Kufi	Sans Serif	ofl/reemkufi	r:ReemKufi[wght].ttf
+Reem Kufi Fun	Sans Serif	ofl/reemkufifun	r:ReemKufiFun[wght].ttf
+Reem Kufi Ink	Sans Serif	ofl/reemkufiink	r:ReemKufiInk-Regular.ttf
+Reenie Beanie	Handwriting	ofl/reeniebeanie	r:ReenieBeanie.ttf
+Reggae One	Display	ofl/reggaeone	r:ReggaeOne-Regular.ttf
+REM	Sans Serif	ofl/rem	r:REM[wght].ttf|i:REM-Italic[wght].ttf
+Rethink Sans	Sans Serif	ofl/rethinksans	r:RethinkSans[wght].ttf|i:RethinkSans-Italic[wght].ttf
+Revalia	Display	ofl/revalia	r:Revalia-Regular.ttf
+Rhodium Libre	Serif	ofl/rhodiumlibre	r:RhodiumLibre-Regular.ttf
+Ribeye	Display	ofl/ribeye	r:Ribeye-Regular.ttf
+Ribeye Marrow	Display	ofl/ribeyemarrow	r:RibeyeMarrow-Regular.ttf
+Righteous	Display	ofl/righteous	r:Righteous-Regular.ttf
+Risque	Display	ofl/risque	r:Risque-Regular.ttf
+Road Rage	Display	ofl/roadrage	r:RoadRage-Regular.ttf
+Roboto	Sans Serif	ofl/roboto	r:Roboto[wdth,wght].ttf|i:Roboto-Italic[wdth,wght].ttf
+Roboto Condensed	Sans Serif	ofl/robotocondensed	r:RobotoCondensed[wght].ttf|i:RobotoCondensed-Italic[wght].ttf
+Roboto Flex	Sans Serif	ofl/robotoflex	r:RobotoFlex[GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght].ttf
+Roboto Mono	Monospace	ofl/robotomono	r:RobotoMono[wght].ttf|i:RobotoMono-Italic[wght].ttf
+Roboto Serif	Serif	ofl/robotoserif	r:RobotoSerif[GRAD,opsz,wdth,wght].ttf|i:RobotoSerif-Italic[GRAD,opsz,wdth,wght].ttf
+Roboto Slab	Serif	apache/robotoslab	r:RobotoSlab[wght].ttf
+Rochester	Handwriting	apache/rochester	r:Rochester-Regular.ttf
+Rock 3D	Display	ofl/rock3d	r:Rock3D-Regular.ttf
+Rock Salt	Handwriting	apache/rocksalt	r:RockSalt-Regular.ttf
+RocknRoll One	Sans Serif	ofl/rocknrollone	r:RocknRollOne-Regular.ttf
+Rokkitt	Serif	ofl/rokkitt	r:Rokkitt[wght].ttf|i:Rokkitt-Italic[wght].ttf
+Romanesco	Handwriting	ofl/romanesco	r:Romanesco-Regular.ttf
+Ropa Sans	Sans Serif	ofl/ropasans	r:RopaSans-Regular.ttf|i:RopaSans-Italic.ttf
+Rosario	Sans Serif	ofl/rosario	r:Rosario[wght].ttf|i:Rosario-Italic[wght].ttf
+Rosarivo	Serif	ofl/rosarivo	r:Rosarivo-Regular.ttf|i:Rosarivo-Italic.ttf
+Rouge Script	Handwriting	ofl/rougescript	r:RougeScript-Regular.ttf
+Rowdies	Display	ofl/rowdies	r:Rowdies-Regular.ttf|b:Rowdies-Bold.ttf
+Rozha One	Serif	ofl/rozhaone	r:RozhaOne-Regular.ttf
+Rubik	Sans Serif	ofl/rubik	r:Rubik[wght].ttf|i:Rubik-Italic[wght].ttf
+Rubik 80s Fade	Display	ofl/rubik80sfade	r:Rubik80sFade-Regular.ttf
+Rubik Beastly	Display	ofl/rubikbeastly	r:RubikBeastly-Regular.ttf
+Rubik Broken Fax	Display	ofl/rubikbrokenfax	r:RubikBrokenFax-Regular.ttf
+Rubik Bubbles	Display	ofl/rubikbubbles	r:RubikBubbles-Regular.ttf
+Rubik Burned	Display	ofl/rubikburned	r:RubikBurned-Regular.ttf
+Rubik Dirt	Display	ofl/rubikdirt	r:RubikDirt-Regular.ttf
+Rubik Distressed	Display	ofl/rubikdistressed	r:RubikDistressed-Regular.ttf
+Rubik Doodle Shadow	Display	ofl/rubikdoodleshadow	r:RubikDoodleShadow-Regular.ttf
+Rubik Doodle Triangles	Display	ofl/rubikdoodletriangles	r:RubikDoodleTriangles-Regular.ttf
+Rubik Gemstones	Display	ofl/rubikgemstones	r:RubikGemstones-Regular.ttf
+Rubik Glitch	Display	ofl/rubikglitch	r:RubikGlitch-Regular.ttf
+Rubik Glitch Pop	Display	ofl/rubikglitchpop	r:RubikGlitchPop-Regular.ttf
+Rubik Iso	Display	ofl/rubikiso	r:RubikIso-Regular.ttf
+Rubik Lines	Display	ofl/rubiklines	r:RubikLines-Regular.ttf
+Rubik Maps	Display	ofl/rubikmaps	r:RubikMaps-Regular.ttf
+Rubik Marker Hatch	Display	ofl/rubikmarkerhatch	r:RubikMarkerHatch-Regular.ttf
+Rubik Maze	Display	ofl/rubikmaze	r:RubikMaze-Regular.ttf
+Rubik Microbe	Display	ofl/rubikmicrobe	r:RubikMicrobe-Regular.ttf
+Rubik Mono One	Sans Serif	ofl/rubikmonoone	r:RubikMonoOne-Regular.ttf
+Rubik Moonrocks	Display	ofl/rubikmoonrocks	r:RubikMoonrocks-Regular.ttf
+Rubik Pixels	Display	ofl/rubikpixels	r:RubikPixels-Regular.ttf
+Rubik Puddles	Display	ofl/rubikpuddles	r:RubikPuddles-Regular.ttf
+Rubik Scribble	Display	ofl/rubikscribble	r:RubikScribble-Regular.ttf
+Rubik Spray Paint	Display	ofl/rubikspraypaint	r:RubikSprayPaint-Regular.ttf
+Rubik Storm	Display	ofl/rubikstorm	r:RubikStorm-Regular.ttf
+Rubik Vinyl	Display	ofl/rubikvinyl	r:RubikVinyl-Regular.ttf
+Rubik Wet Paint	Display	ofl/rubikwetpaint	r:RubikWetPaint-Regular.ttf
+Ruda	Sans Serif	ofl/ruda	r:Ruda[wght].ttf
+Rufina	Serif	ofl/rufina	r:Rufina-Regular.ttf|b:Rufina-Bold.ttf
+Ruge Boogie	Handwriting	ofl/rugeboogie	r:RugeBoogie-Regular.ttf
+Ruluko	Sans Serif	ofl/ruluko	r:Ruluko-Regular.ttf
+Rum Raisin	Sans Serif	ofl/rumraisin	r:RumRaisin-Regular.ttf
+Ruslan Display	Display	ofl/ruslandisplay	r:RuslanDisplay-Regular.ttf
+Russo One	Sans Serif	ofl/russoone	r:RussoOne-Regular.ttf
+Ruthie	Handwriting	ofl/ruthie	r:Ruthie-Regular.ttf
+Ruwudu	Serif	ofl/ruwudu	r:Ruwudu-Regular.ttf|b:Ruwudu-Bold.ttf
+Rye	Display	ofl/rye	r:Rye-Regular.ttf
+Sacramento	Handwriting	ofl/sacramento	r:Sacramento-Regular.ttf
+Sahitya	Serif	ofl/sahitya	r:Sahitya-Regular.ttf|b:Sahitya-Bold.ttf
+Sail	Display	ofl/sail	r:Sail-Regular.ttf
+Saira	Sans Serif	ofl/saira	r:Saira[wdth,wght].ttf|i:Saira-Italic[wdth,wght].ttf
+Saira Condensed	Sans Serif	ofl/sairacondensed	r:SairaCondensed-Regular.ttf|b:SairaCondensed-Bold.ttf
+Saira Extra Condensed	Sans Serif	ofl/sairaextracondensed	r:SairaExtraCondensed-Regular.ttf|b:SairaExtraCondensed-Bold.ttf
+Saira Semi Condensed	Sans Serif	ofl/sairasemicondensed	r:SairaSemiCondensed-Regular.ttf|b:SairaSemiCondensed-Bold.ttf
+Saira Stencil	Display	ofl/sairastencil	r:SairaStencil[wdth,wght].ttf|i:SairaStencil-Italic[wdth,wght].ttf
+Salsa	Display	ofl/salsa	r:Salsa-Regular.ttf
+Sanchez	Serif	ofl/sanchez	r:Sanchez-Regular.ttf|i:Sanchez-Italic.ttf
+Sancreek	Display	ofl/sancreek	r:Sancreek-Regular.ttf
+Sankofa Display	Sans Serif	ofl/sankofadisplay	r:SankofaDisplay-Regular.ttf
+Sansation	Sans Serif	ofl/sansation	r:Sansation-Regular.ttf|b:Sansation-Bold.ttf|i:Sansation-Italic.ttf|bi:Sansation-BoldItalic.ttf
+Sansita	Sans Serif	ofl/sansita	r:Sansita-Regular.ttf|b:Sansita-Bold.ttf|i:Sansita-Italic.ttf|bi:Sansita-BoldItalic.ttf
+Sansita Swashed	Display	ofl/sansitaswashed	r:SansitaSwashed[wght].ttf
+Sarabun	Sans Serif	ofl/sarabun	r:Sarabun-Regular.ttf|b:Sarabun-Bold.ttf|i:Sarabun-Italic.ttf|bi:Sarabun-BoldItalic.ttf
+Sarala	Sans Serif	ofl/sarala	r:Sarala-Regular.ttf|b:Sarala-Bold.ttf
+Sarina	Display	ofl/sarina	r:Sarina-Regular.ttf
+Sarpanch	Sans Serif	ofl/sarpanch	r:Sarpanch-Regular.ttf|b:Sarpanch-Bold.ttf
+Sassy Frass	Handwriting	ofl/sassyfrass	r:SassyFrass-Regular.ttf
+Satisfy	Handwriting	apache/satisfy	r:Satisfy-Regular.ttf
+Savate	Sans Serif	ofl/savate	r:Savate[wght].ttf|i:Savate-Italic[wght].ttf
+Sawarabi Gothic	Sans Serif	ofl/sawarabigothic	r:SawarabiGothic-Regular.ttf
+Sawarabi Mincho	Serif	ofl/sawarabimincho	r:SawarabiMincho-Regular.ttf
+Scada	Sans Serif	ofl/scada	r:Scada-Regular.ttf|b:Scada-Bold.ttf|i:Scada-Italic.ttf|bi:Scada-BoldItalic.ttf
+Scheherazade New	Serif	ofl/scheherazadenew	r:ScheherazadeNew-Regular.ttf|b:ScheherazadeNew-Bold.ttf
+Schibsted Grotesk	Sans Serif	ofl/schibstedgrotesk	r:SchibstedGrotesk[wght].ttf|i:SchibstedGrotesk-Italic[wght].ttf
+Schoolbell	Handwriting	apache/schoolbell	r:Schoolbell-Regular.ttf
+Science Gothic	Sans Serif	ofl/sciencegothic	r:ScienceGothic[CTRS,slnt,wdth,wght].ttf
+Scope One	Serif	ofl/scopeone	r:ScopeOne-Regular.ttf
+Scoutie Sans	Sans Serif	ofl/scoutiesans	r:ScoutieSans[wght].ttf|i:ScoutieSans-Italic[wght].ttf
+Seaweed Script	Display	ofl/seaweedscript	r:SeaweedScript-Regular.ttf
+Secular One	Sans Serif	ofl/secularone	r:SecularOne-Regular.ttf
+Sedan	Serif	ofl/sedan	r:Sedan-Regular.ttf|i:Sedan-Italic.ttf
+Sedan SC	Serif	ofl/sedansc	r:SedanSC-Regular.ttf
+Sedgwick Ave	Handwriting	ofl/sedgwickave	r:SedgwickAve-Regular.ttf
+Sedgwick Ave Display	Handwriting	ofl/sedgwickavedisplay	r:SedgwickAveDisplay-Regular.ttf
+Sekuya	Display	ofl/sekuya	r:Sekuya-Regular.ttf
+Sen	Sans Serif	ofl/sen	r:Sen[wght].ttf
+Send Flowers	Handwriting	ofl/sendflowers	r:SendFlowers-Regular.ttf
+Sevillana	Display	ofl/sevillana	r:Sevillana-Regular.ttf
+Seymour One	Sans Serif	ofl/seymourone	r:SeymourOne-Regular.ttf
+Shadows Into Light	Handwriting	ofl/shadowsintolight	r:ShadowsIntoLight.ttf
+Shadows Into Light Two	Handwriting	ofl/shadowsintolighttwo	r:ShadowsIntoLightTwo-Regular.ttf
+Shafarik	Display	ofl/shafarik	r:Shafarik-Regular.ttf
+Shalimar	Handwriting	ofl/shalimar	r:Shalimar-Regular.ttf
+Shantell Sans	Display	ofl/shantellsans	r:ShantellSans[BNCE,INFM,SPAC,wght].ttf|i:ShantellSans-Italic[BNCE,INFM,SPAC,wght].ttf
+Shanti	Sans Serif	ofl/shanti	r:Shanti-Regular.ttf
+Share	Sans Serif	ofl/share	r:Share-Regular.ttf|b:Share-Bold.ttf|i:Share-Italic.ttf|bi:Share-BoldItalic.ttf
+Share Tech	Sans Serif	ofl/sharetech	r:ShareTech-Regular.ttf
+Share Tech Mono	Monospace	ofl/sharetechmono	r:ShareTechMono-Regular.ttf
+Shippori Antique	Sans Serif	ofl/shipporiantique	r:ShipporiAntique-Regular.ttf
+Shippori Antique B1	Sans Serif	ofl/shipporiantiqueb1	r:ShipporiAntiqueB1-Regular.ttf
+Shippori Mincho	Serif	ofl/shipporimincho	r:ShipporiMincho-Regular.ttf|b:ShipporiMincho-Bold.ttf
+Shippori Mincho B1	Serif	ofl/shipporiminchob1	r:ShipporiMinchoB1-Regular.ttf|b:ShipporiMinchoB1-Bold.ttf
+Shizuru	Display	ofl/shizuru	r:Shizuru-Regular.ttf
+Shojumaru	Display	ofl/shojumaru	r:Shojumaru-Regular.ttf
+Short Stack	Handwriting	ofl/shortstack	r:ShortStack-Regular.ttf
+Shrikhand	Display	ofl/shrikhand	r:Shrikhand-Regular.ttf
+Siemreap	Sans Serif	ofl/siemreap	r:Siemreap.ttf
+Sigmar	Display	ofl/sigmar	r:Sigmar-Regular.ttf
+Sigmar One	Display	ofl/sigmarone	r:SigmarOne-Regular.ttf
+Signika	Sans Serif	ofl/signika	r:Signika[GRAD,wght].ttf
+Signika Negative	Sans Serif	ofl/signikanegative	r:SignikaNegative[wght].ttf
+Silkscreen	Display	ofl/silkscreen	r:Silkscreen-Regular.ttf|b:Silkscreen-Bold.ttf
+Simonetta	Display	ofl/simonetta	r:Simonetta-Regular.ttf|i:Simonetta-Italic.ttf
+Single Day	Display	ofl/singleday	r:SingleDay-Regular.ttf
+Sintony	Sans Serif	ofl/sintony	r:Sintony-Regular.ttf|b:Sintony-Bold.ttf
+Sirin Stencil	Display	ofl/sirinstencil	r:SirinStencil-Regular.ttf
+Sirivennela	Sans Serif	ofl/sirivennela	r:Sirivennela-Regular.ttf
+Six Caps	Sans Serif	ofl/sixcaps	r:SixCaps.ttf
+Sixtyfour	Monospace	ofl/sixtyfour	r:Sixtyfour[BLED,SCAN].ttf
+Sixtyfour Convergence	Monospace	ofl/sixtyfourconvergence	r:SixtyfourConvergence[BLED,SCAN,XELA,YELA].ttf
+Skranji	Display	ofl/skranji	r:Skranji-Regular.ttf|b:Skranji-Bold.ttf
+Slabo 13px	Serif	ofl/slabo13px	r:Slabo13px-Regular.ttf
+Slabo 27px	Serif	ofl/slabo27px	r:Slabo27px-Regular.ttf
+Slackey	Display	apache/slackey	r:Slackey-Regular.ttf
+Slackside One	Handwriting	ofl/slacksideone	r:SlacksideOne-Regular.ttf
+Smokum	Display	apache/smokum	r:Smokum-Regular.ttf
+Smooch	Handwriting	ofl/smooch	r:Smooch-Regular.ttf
+Smooch Sans	Sans Serif	ofl/smoochsans	r:SmoochSans[wght].ttf
+Smythe	Display	ofl/smythe	r:Smythe-Regular.ttf
+SN Pro	Sans Serif	ofl/snpro	r:SNPro[wght].ttf|i:SNPro-Italic[wght].ttf
+Sniglet	Display	ofl/sniglet	r:Sniglet-Regular.ttf
+Snippet	Sans Serif	ofl/snippet	r:Snippet.ttf
+Snowburst One	Display	ofl/snowburstone	r:SnowburstOne-Regular.ttf
+Sofadi One	Display	ofl/sofadione	r:SofadiOne-Regular.ttf
+Sofia	Handwriting	ofl/sofia	r:Sofia-Regular.ttf
+Sofia Sans	Sans Serif	ofl/sofiasans	r:SofiaSans[wght].ttf|i:SofiaSans-Italic[wght].ttf
+Sofia Sans Condensed	Sans Serif	ofl/sofiasanscondensed	r:SofiaSansCondensed[wght].ttf|i:SofiaSansCondensed-Italic[wght].ttf
+Sofia Sans Extra Condensed	Sans Serif	ofl/sofiasansextracondensed	r:SofiaSansExtraCondensed[wght].ttf|i:SofiaSansExtraCondensed-Italic[wght].ttf
+Sofia Sans Semi Condensed	Sans Serif	ofl/sofiasanssemicondensed	r:SofiaSansSemiCondensed[wght].ttf|i:SofiaSansSemiCondensed-Italic[wght].ttf
+Solitreo	Handwriting	ofl/solitreo	r:Solitreo-Regular.ttf
+Solway	Serif	ofl/solway	r:Solway-Regular.ttf|b:Solway-Bold.ttf
+Sometype Mono	Monospace	ofl/sometypemono	r:SometypeMono[wght].ttf|i:SometypeMono-Italic[wght].ttf
+Song Myung	Serif	ofl/songmyung	r:SongMyung-Regular.ttf
+Sono	Sans Serif	ofl/sono	r:Sono[MONO,wght].ttf
+Sonsie One	Display	ofl/sonsieone	r:SonsieOne-Regular.ttf
+Sora	Sans Serif	ofl/sora	r:Sora[wght].ttf
+Sorts Mill Goudy	Serif	ofl/sortsmillgoudy	r:SortsMillGoudy-Regular.ttf|i:SortsMillGoudy-Italic.ttf
+Sour Gummy	Sans Serif	ofl/sourgummy	r:SourGummy[wdth,wght].ttf|i:SourGummy-Italic[wdth,wght].ttf
+Source Code Pro	Monospace	ofl/sourcecodepro	r:SourceCodePro[wght].ttf|i:SourceCodePro-Italic[wght].ttf
+Source Sans 3	Sans Serif	ofl/sourcesans3	r:SourceSans3[wght].ttf|i:SourceSans3-Italic[wght].ttf
+Source Serif 4	Serif	ofl/sourceserif4	r:SourceSerif4[opsz,wght].ttf|i:SourceSerif4-Italic[opsz,wght].ttf
+Space Grotesk	Sans Serif	ofl/spacegrotesk	r:SpaceGrotesk[wght].ttf
+Space Mono	Monospace	ofl/spacemono	r:SpaceMono-Regular.ttf|b:SpaceMono-Bold.ttf|i:SpaceMono-Italic.ttf|bi:SpaceMono-BoldItalic.ttf
+Special Elite	Display	apache/specialelite	r:SpecialElite-Regular.ttf
+Special Gothic	Sans Serif	ofl/specialgothic	r:SpecialGothic[wdth,wght].ttf
+Special Gothic Condensed One	Sans Serif	ofl/specialgothiccondensedone	r:SpecialGothicCondensedOne-Regular.ttf
+Special Gothic Expanded One	Sans Serif	ofl/specialgothicexpandedone	r:SpecialGothicExpandedOne-Regular.ttf
+Spectral	Serif	ofl/spectral	r:Spectral-Regular.ttf|b:Spectral-Bold.ttf|i:Spectral-Italic.ttf|bi:Spectral-BoldItalic.ttf
+Spectral SC	Serif	ofl/spectralsc	r:SpectralSC-Regular.ttf|b:SpectralSC-Bold.ttf|i:SpectralSC-Italic.ttf|bi:SpectralSC-BoldItalic.ttf
+Spicy Rice	Display	ofl/spicyrice	r:SpicyRice-Regular.ttf
+Spinnaker	Sans Serif	ofl/spinnaker	r:Spinnaker-Regular.ttf
+Spirax	Display	ofl/spirax	r:Spirax-Regular.ttf
+Splash	Handwriting	ofl/splash	r:Splash-Regular.ttf
+Spline Sans	Sans Serif	ofl/splinesans	r:SplineSans[wght].ttf
+Spline Sans Mono	Monospace	ofl/splinesansmono	r:SplineSansMono[wght].ttf|i:SplineSansMono-Italic[wght].ttf
+Squada One	Display	ofl/squadaone	r:SquadaOne-Regular.ttf
+Square Peg	Handwriting	ofl/squarepeg	r:SquarePeg-Regular.ttf
+Sree Krushnadevaraya	Serif	ofl/sreekrushnadevaraya	r:SreeKrushnadevaraya-Regular.ttf
+Sriracha	Handwriting	ofl/sriracha	r:Sriracha-Regular.ttf
+Srisakdi	Display	ofl/srisakdi	r:Srisakdi-Regular.ttf|b:Srisakdi-Bold.ttf
+Staatliches	Display	ofl/staatliches	r:Staatliches-Regular.ttf
+Stack Sans Headline	Sans Serif	ofl/stacksansheadline	r:StackSansHeadline[wght].ttf
+Stack Sans Notch	Sans Serif	ofl/stacksansnotch	r:StackSansNotch[wght].ttf
+Stack Sans Text	Sans Serif	ofl/stacksanstext	r:StackSansText[wght].ttf
+Stalemate	Handwriting	ofl/stalemate	r:Stalemate-Regular.ttf
+Stalinist One	Display	ofl/stalinistone	r:StalinistOne-Regular.ttf
+Stardos Stencil	Display	ofl/stardosstencil	r:StardosStencil-Regular.ttf|b:StardosStencil-Bold.ttf
+Stick	Sans Serif	ofl/stick	r:Stick-Regular.ttf
+Stick No Bills	Sans Serif	ofl/sticknobills	r:StickNoBills[wght].ttf
+Stint Ultra Condensed	Serif	ofl/stintultracondensed	r:StintUltraCondensed-Regular.ttf
+Stint Ultra Expanded	Serif	ofl/stintultraexpanded	r:StintUltraExpanded-Regular.ttf
+STIX Two Math	Serif	ofl/stixtwomath	r:STIXTwoMath-Regular.ttf
+STIX Two Text	Serif	ofl/stixtwotext	r:STIXTwoText[wght].ttf|i:STIXTwoText-Italic[wght].ttf
+Stoke	Serif	ofl/stoke	r:Stoke-Regular.ttf
+Story Script	Sans Serif	ofl/storyscript	r:StoryScript-Regular.ttf
+Strait	Sans Serif	ofl/strait	r:Strait-Regular.ttf
+Strichpunkt Sans	Sans Serif	ofl/strichpunktsans	r:StrichpunktSans[wdth,wght].ttf
+Style Script	Handwriting	ofl/stylescript	r:StyleScript-Regular.ttf
+Stylish	Sans Serif	ofl/stylish	r:Stylish-Regular.ttf
+Sue Ellen Francisco	Handwriting	ofl/sueellenfrancisco	r:SueEllenFrancisco-Regular.ttf
+Suez One	Serif	ofl/suezone	r:SuezOne-Regular.ttf
+Sulphur Point	Sans Serif	ofl/sulphurpoint	r:SulphurPoint-Regular.ttf|b:SulphurPoint-Bold.ttf
+Sumana	Serif	ofl/sumana	r:Sumana-Regular.ttf|b:Sumana-Bold.ttf
+Sunflower	Sans Serif	ofl/sunflower	r:Sunflower-Bold.ttf|b:Sunflower-Bold.ttf
+Sunshiney	Handwriting	apache/sunshiney	r:Sunshiney-Regular.ttf
+Supermercado One	Display	ofl/supermercadoone	r:SupermercadoOne-Regular.ttf
+Sura	Serif	ofl/sura	r:Sura-Regular.ttf|b:Sura-Bold.ttf
+Suranna	Serif	ofl/suranna	r:Suranna-Regular.ttf
+Suravaram	Serif	ofl/suravaram	r:Suravaram-Regular.ttf
+SUSE	Sans Serif	ofl/suse	r:SUSE[wght].ttf|i:SUSE-Italic[wght].ttf
+SUSE Mono	Sans Serif	ofl/susemono	r:SUSEMono[wght].ttf|i:SUSEMono-Italic[wght].ttf
+Suwannaphum	Serif	ofl/suwannaphum	r:Suwannaphum-Regular.ttf|b:Suwannaphum-Bold.ttf
+Swanky and Moo Moo	Handwriting	ofl/swankyandmoomoo	r:SwankyandMooMoo.ttf
+Syncopate	Sans Serif	apache/syncopate	r:Syncopate-Regular.ttf|b:Syncopate-Bold.ttf
+Syne	Sans Serif	ofl/syne	r:Syne[wght].ttf
+Syne Mono	Monospace	ofl/synemono	r:SyneMono-Regular.ttf
+Syne Tactile	Display	ofl/synetactile	r:SyneTactile-Regular.ttf
+Tac One	Sans Serif	ofl/tacone	r:TacOne-Regular.ttf
+Tagesschrift	Display	ofl/tagesschrift	r:Tagesschrift-Regular.ttf
+Tai Heritage Pro	Serif	ofl/taiheritagepro	r:TaiHeritagePro-Regular.ttf|b:TaiHeritagePro-Bold.ttf
+Tajawal	Sans Serif	ofl/tajawal	r:Tajawal-Regular.ttf|b:Tajawal-Bold.ttf
+Tangerine	Handwriting	ofl/tangerine	r:Tangerine-Regular.ttf|b:Tangerine-Bold.ttf
+Tapestry	Handwriting	ofl/tapestry	r:Tapestry-Regular.ttf
+Taprom	Display	ofl/taprom	r:Taprom-Regular.ttf
+TASA Explorer	Sans Serif	ofl/tasaexplorer	r:TASAExplorer[wght].ttf
+TASA Orbiter	Sans Serif	ofl/tasaorbiter	r:TASAOrbiter[wght].ttf
+Tauri	Sans Serif	ofl/tauri	r:Tauri-Regular.ttf
+Taviraj	Serif	ofl/taviraj	r:Taviraj-Regular.ttf|b:Taviraj-Bold.ttf|i:Taviraj-Italic.ttf|bi:Taviraj-BoldItalic.ttf
+Teachers	Sans Serif	ofl/teachers	r:Teachers[wght].ttf|i:Teachers-Italic[wght].ttf
+Teko	Sans Serif	ofl/teko	r:Teko[wght].ttf
+Tektur	Display	ofl/tektur	r:Tektur[wdth,wght].ttf
+Telex	Sans Serif	ofl/telex	r:Telex-Regular.ttf
+Tenali Ramakrishna	Sans Serif	ofl/tenaliramakrishna	r:TenaliRamakrishna-Regular.ttf
+Tenor Sans	Sans Serif	ofl/tenorsans	r:TenorSans-Regular.ttf
+Text Me One	Sans Serif	ofl/textmeone	r:TextMeOne-Regular.ttf
+Texturina	Serif	ofl/texturina	r:Texturina[opsz,wght].ttf|i:Texturina-Italic[opsz,wght].ttf
+Thasadith	Sans Serif	ofl/thasadith	r:Thasadith-Regular.ttf|b:Thasadith-Bold.ttf|i:Thasadith-Italic.ttf|bi:Thasadith-BoldItalic.ttf
+The Girl Next Door	Handwriting	ofl/thegirlnextdoor	r:TheGirlNextDoor.ttf
+The Nautigal	Handwriting	ofl/thenautigal	r:TheNautigal-Regular.ttf|b:TheNautigal-Bold.ttf
+Tienne	Serif	ofl/tienne	r:Tienne-Regular.ttf|b:Tienne-Bold.ttf
+TikTok Sans	Sans Serif	ofl/tiktoksans	r:TikTokSans[opsz,slnt,wdth,wght].ttf
+Tillana	Display	ofl/tillana	r:Tillana-Regular.ttf|b:Tillana-Bold.ttf
+Tilt Neon	Display	ofl/tiltneon	r:TiltNeon[XROT,YROT].ttf
+Tilt Prism	Display	ofl/tiltprism	r:TiltPrism[XROT,YROT].ttf
+Tilt Warp	Display	ofl/tiltwarp	r:TiltWarp[XROT,YROT].ttf
+Timmana	Sans Serif	ofl/timmana	r:Timmana-Regular.ttf
+Tinos	Serif	ofl/tinos	r:Tinos-Regular.ttf|b:Tinos-Bold.ttf|i:Tinos-Italic.ttf|bi:Tinos-BoldItalic.ttf
+Tiny5	Display	ofl/tiny5	r:Tiny5[BLED,JITT,ROND,wdth,wght].ttf|i:Tiny5-Italic[BLED,JITT,ROND,wdth,wght].ttf
+Tiny5 Duo	Display	ofl/tiny5duo	r:Tiny5Duo[BLED,JITT,ROND,wdth,wght].ttf|i:Tiny5Duo-Italic[BLED,JITT,ROND,wdth,wght].ttf
+Tiro Bangla	Serif	ofl/tirobangla	r:TiroBangla-Regular.ttf|i:TiroBangla-Italic.ttf
+Tiro Devanagari Hindi	Serif	ofl/tirodevanagarihindi	r:TiroDevanagariHindi-Regular.ttf|i:TiroDevanagariHindi-Italic.ttf
+Tiro Devanagari Marathi	Serif	ofl/tirodevanagarimarathi	r:TiroDevanagariMarathi-Regular.ttf|i:TiroDevanagariMarathi-Italic.ttf
+Tiro Devanagari Sanskrit	Serif	ofl/tirodevanagarisanskrit	r:TiroDevanagariSanskrit-Regular.ttf|i:TiroDevanagariSanskrit-Italic.ttf
+Tiro Gurmukhi	Serif	ofl/tirogurmukhi	r:TiroGurmukhi-Regular.ttf|i:TiroGurmukhi-Italic.ttf
+Tiro Kannada	Serif	ofl/tirokannada	r:TiroKannada-Regular.ttf|i:TiroKannada-Italic.ttf
+Tiro Tamil	Serif	ofl/tirotamil	r:TiroTamil-Regular.ttf|i:TiroTamil-Italic.ttf
+Tiro Telugu	Serif	ofl/tirotelugu	r:TiroTelugu-Regular.ttf|i:TiroTelugu-Italic.ttf
+Tirra	Sans Serif	ofl/tirra	r:Tirra-Regular.ttf|b:Tirra-Bold.ttf
+Titan One	Display	ofl/titanone	r:TitanOne-Regular.ttf
+Titillium Web	Sans Serif	ofl/titilliumweb	r:TitilliumWeb-Regular.ttf|b:TitilliumWeb-Bold.ttf|i:TitilliumWeb-Italic.ttf|bi:TitilliumWeb-BoldItalic.ttf
+Tomorrow	Sans Serif	ofl/tomorrow	r:Tomorrow-Regular.ttf|b:Tomorrow-Bold.ttf|i:Tomorrow-Italic.ttf|bi:Tomorrow-BoldItalic.ttf
+Tourney	Display	ofl/tourney	r:Tourney[wdth,wght].ttf|i:Tourney-Italic[wdth,wght].ttf
+Trade Winds	Display	ofl/tradewinds	r:TradeWinds-Regular.ttf
+Train One	Display	ofl/trainone	r:TrainOne-Regular.ttf
+Triodion	Display	ofl/triodion	r:Triodion-Regular.ttf
+Trirong	Serif	ofl/trirong	r:Trirong-Regular.ttf|b:Trirong-Bold.ttf|i:Trirong-Italic.ttf|bi:Trirong-BoldItalic.ttf
+Trispace	Sans Serif	ofl/trispace	r:Trispace[wdth,wght].ttf
+Trocchi	Serif	ofl/trocchi	r:Trocchi-Regular.ttf
+Trochut	Display	ofl/trochut	r:Trochut-Regular.ttf|b:Trochut-Bold.ttf|i:Trochut-Italic.ttf
+Truculenta	Sans Serif	ofl/truculenta	r:Truculenta[opsz,wdth,wght].ttf
+Trykker	Serif	ofl/trykker	r:Trykker-Regular.ttf
+Tsukimi Rounded	Sans Serif	ofl/tsukimirounded	r:TsukimiRounded-Regular.ttf|b:TsukimiRounded-Bold.ttf
+Tuffy	Sans Serif	ofl/tuffy	r:Tuffy-Regular.ttf|b:Tuffy-Bold.ttf|i:Tuffy-Italic.ttf|bi:Tuffy-BoldItalic.ttf
+Tulpen One	Display	ofl/tulpenone	r:TulpenOne-Regular.ttf
+Turret Road	Display	ofl/turretroad	r:TurretRoad-Regular.ttf|b:TurretRoad-Bold.ttf
+Twinkle Star	Handwriting	ofl/twinklestar	r:TwinkleStar-Regular.ttf
+Ubuntu	Sans Serif	ufl/ubuntu	r:Ubuntu-Regular.ttf|b:Ubuntu-Bold.ttf|i:Ubuntu-Italic.ttf|bi:Ubuntu-BoldItalic.ttf
+Ubuntu Condensed	Sans Serif	ufl/ubuntucondensed	r:UbuntuCondensed-Regular.ttf
+Ubuntu Mono	Monospace	ufl/ubuntumono	r:UbuntuMono-Regular.ttf|b:UbuntuMono-Bold.ttf|i:UbuntuMono-Italic.ttf|bi:UbuntuMono-BoldItalic.ttf
+Ubuntu Sans	Sans Serif	ufl/ubuntusans	r:UbuntuSans[wdth,wght].ttf|i:UbuntuSans-Italic[wdth,wght].ttf
+Ubuntu Sans Mono	Monospace	ufl/ubuntusansmono	r:UbuntuSansMono[wght].ttf|i:UbuntuSansMono-Italic[wght].ttf
+Uchen	Serif	ofl/uchen	r:Uchen-Regular.ttf
+Ultra	Serif	apache/ultra	r:Ultra-Regular.ttf
+Unbounded	Sans Serif	ofl/unbounded	r:Unbounded[wght].ttf
+Uncial Antiqua	Display	ofl/uncialantiqua	r:UncialAntiqua-Regular.ttf
+Underdog	Display	ofl/underdog	r:Underdog-Regular.ttf
+Unica One	Display	ofl/unicaone	r:UnicaOne-Regular.ttf
+UnifrakturCook	Display	ofl/unifrakturcook	r:UnifrakturCook-Bold.ttf|b:UnifrakturCook-Bold.ttf
+UnifrakturMaguntia	Display	ofl/unifrakturmaguntia	r:UnifrakturMaguntia-Book.ttf
+Unkempt	Display	apache/unkempt	r:Unkempt-Regular.ttf|b:Unkempt-Bold.ttf
+Unlock	Display	ofl/unlock	r:Unlock-Regular.ttf
+Unna	Serif	ofl/unna	r:Unna-Regular.ttf|b:Unna-Bold.ttf|i:Unna-Italic.ttf|bi:Unna-BoldItalic.ttf
+UoqMunThenKhung	Serif	ofl/uoqmunthenkhung	r:UoqMunThenKhung-Regular.ttf
+Updock	Handwriting	ofl/updock	r:Updock-Regular.ttf
+Urbanist	Sans Serif	ofl/urbanist	r:Urbanist[wght].ttf|i:Urbanist-Italic[wght].ttf
+Valley Sans	Sans Serif	ofl/valleysans	r:ValleySans[wght].ttf|i:ValleySans-Italic[wght].ttf
+Vampiro One	Display	ofl/vampiroone	r:VampiroOne-Regular.ttf
+Varela	Sans Serif	ofl/varela	r:Varela-Regular.ttf
+Varela Round	Sans Serif	ofl/varelaround	r:VarelaRound-Regular.ttf
+Varta	Sans Serif	ofl/varta	r:Varta[wght].ttf
+Vast Shadow	Serif	ofl/vastshadow	r:VastShadow-Regular.ttf
+Vazirmatn	Sans Serif	ofl/vazirmatn	r:Vazirmatn[wght].ttf
+Vend Sans	Sans Serif	ofl/vendsans	r:VendSans[wght].ttf|i:VendSans-Italic[wght].ttf
+Vesper Libre	Serif	ofl/vesperlibre	r:VesperLibre-Regular.ttf|b:VesperLibre-Bold.ttf
+Viaoda Libre	Display	ofl/viaodalibre	r:ViaodaLibre-Regular.ttf
+Vibes	Display	ofl/vibes	r:Vibes-Regular.ttf
+Vibur	Handwriting	ofl/vibur	r:Vibur-Regular.ttf
+Victor Mono	Monospace	ofl/victormono	r:VictorMono[wght].ttf|i:VictorMono-Italic[wght].ttf
+Vidaloka	Serif	ofl/vidaloka	r:Vidaloka-Regular.ttf
+Viga	Sans Serif	ofl/viga	r:Viga-Regular.ttf
+Vina Sans	Display	ofl/vinasans	r:VinaSans-Regular.ttf
+Voces	Sans Serif	ofl/voces	r:Voces-Regular.ttf
+Volkhov	Serif	ofl/volkhov	r:Volkhov-Regular.ttf|b:Volkhov-Bold.ttf|i:Volkhov-Italic.ttf|bi:Volkhov-BoldItalic.ttf
+Vollkorn	Serif	ofl/vollkorn	r:Vollkorn[wght].ttf|i:Vollkorn-Italic[wght].ttf
+Vollkorn SC	Serif	ofl/vollkornsc	r:VollkornSC-Regular.ttf|b:VollkornSC-Bold.ttf
+Voltaire	Sans Serif	ofl/voltaire	r:Voltaire-Regular.ttf
+VT323	Monospace	ofl/vt323	r:VT323-Regular.ttf
+Vujahday Script	Handwriting	ofl/vujahdayscript	r:VujahdayScript-Regular.ttf
+Waiting for the Sunrise	Handwriting	ofl/waitingforthesunrise	r:WaitingfortheSunrise.ttf
+Wallpoet	Display	ofl/wallpoet	r:Wallpoet-Regular.ttf
+Walter Turncoat	Handwriting	apache/walterturncoat	r:WalterTurncoat-Regular.ttf
+Warnes	Display	ofl/warnes	r:Warnes-Regular.ttf
+Water Brush	Handwriting	ofl/waterbrush	r:WaterBrush-Regular.ttf
+Waterfall	Handwriting	ofl/waterfall	r:Waterfall-Regular.ttf
+Wavefont	Display	ofl/wavefont	r:Wavefont[ROND,YELA,wght].ttf
+WDXL Lubrifont JP N	Sans Serif	ofl/wdxllubrifontjpn	r:WDXLLubrifontJPN-Regular.ttf
+WDXL Lubrifont SC	Sans Serif	ofl/wdxllubrifontsc	r:WDXLLubrifontSC-Regular.ttf
+WDXL Lubrifont TC	Sans Serif	ofl/wdxllubrifonttc	r:WDXLLubrifontTC-Regular.ttf
+Wellfleet	Serif	ofl/wellfleet	r:Wellfleet-Regular.ttf
+Wendy One	Sans Serif	ofl/wendyone	r:WendyOne-Regular.ttf
+Whisper	Handwriting	ofl/whisper	r:Whisper-Regular.ttf
+WindSong	Handwriting	ofl/windsong	r:WindSong-Regular.ttf
+Winky Rough	Sans Serif	ofl/winkyrough	r:WinkyRough[wght].ttf|i:WinkyRough-Italic[wght].ttf
+Winky Sans	Sans Serif	ofl/winkysans	r:WinkySans[wght].ttf|i:WinkySans-Italic[wght].ttf
+Wire One	Sans Serif	ofl/wireone	r:WireOne-Regular.ttf
+Wittgenstein	Serif	ofl/wittgenstein	r:Wittgenstein[wght].ttf|i:Wittgenstein-Italic[wght].ttf
+Wix Madefor Display	Sans Serif	ofl/wixmadefordisplay	r:WixMadeforDisplay[wght].ttf
+Wix Madefor Text	Sans Serif	ofl/wixmadefortext	r:WixMadeforText[wght].ttf|i:WixMadeforText-Italic[wght].ttf
+Work Sans	Sans Serif	ofl/worksans	r:WorkSans[wght].ttf|i:WorkSans-Italic[wght].ttf
+Workbench	Monospace	ofl/workbench	r:Workbench[BLED,SCAN].ttf
+Xanh Mono	Monospace	ofl/xanhmono	r:XanhMono-Regular.ttf|i:XanhMono-Italic.ttf
+Xmind	Sans Serif	ofl/xmind	r:Xmind[wght].ttf|i:Xmind-Italic[wght].ttf
+Yaldevi	Sans Serif	ofl/yaldevi	r:Yaldevi[wght].ttf
+Yanone Kaffeesatz	Sans Serif	ofl/yanonekaffeesatz	r:YanoneKaffeesatz[wght].ttf
+Yantramanav	Sans Serif	ofl/yantramanav	r:Yantramanav-Regular.ttf|b:Yantramanav-Bold.ttf
+Yarndings 12	Display	ofl/yarndings12	r:Yarndings12-Regular.ttf
+Yarndings 12 Charted	Display	ofl/yarndings12charted	r:Yarndings12Charted-Regular.ttf
+Yarndings 20	Display	ofl/yarndings20	r:Yarndings20-Regular.ttf
+Yarndings 20 Charted	Display	ofl/yarndings20charted	r:Yarndings20Charted-Regular.ttf
+Yatra One	Display	ofl/yatraone	r:YatraOne-Regular.ttf
+Yellowtail	Handwriting	apache/yellowtail	r:Yellowtail-Regular.ttf
+Yeon Sung	Display	ofl/yeonsung	r:YeonSung-Regular.ttf
+Yeseva One	Display	ofl/yesevaone	r:YesevaOne-Regular.ttf
+Yesteryear	Handwriting	ofl/yesteryear	r:Yesteryear-Regular.ttf
+Yomogi	Handwriting	ofl/yomogi	r:Yomogi-Regular.ttf
+Young Serif	Serif	ofl/youngserif	r:YoungSerif-Regular.ttf
+Yrsa	Serif	ofl/yrsa	r:Yrsa[wght].ttf|i:Yrsa-Italic[wght].ttf
+Ysabeau	Sans Serif	ofl/ysabeau	r:Ysabeau[wght].ttf|i:Ysabeau-Italic[wght].ttf
+Ysabeau Infant	Sans Serif	ofl/ysabeauinfant	r:YsabeauInfant[wght].ttf|i:YsabeauInfant-Italic[wght].ttf
+Ysabeau Office	Sans Serif	ofl/ysabeauoffice	r:YsabeauOffice[wght].ttf|i:YsabeauOffice-Italic[wght].ttf
+Ysabeau SC	Sans Serif	ofl/ysabeausc	r:YsabeauSC[wght].ttf
+Yuji Boku	Serif	ofl/yujiboku	r:YujiBoku-Regular.ttf
+Yuji Hentaigana Akari	Handwriting	ofl/yujihentaiganaakari	r:YujiHentaiganaAkari-Regular.ttf
+Yuji Hentaigana Akebono	Handwriting	ofl/yujihentaiganaakebono	r:YujiHentaiganaAkebono-Regular.ttf
+Yuji Mai	Serif	ofl/yujimai	r:YujiMai-Regular.ttf
+Yuji Syuku	Serif	ofl/yujisyuku	r:YujiSyuku-Regular.ttf
+Yusei Magic	Sans Serif	ofl/yuseimagic	r:YuseiMagic-Regular.ttf
+Yuyu	Handwriting	ofl/yuyu	r:Yuyu-Regular.ttf
+Yuyu Short	Handwriting	ofl/yuyushort	r:YuyuShort-Regular.ttf
+Zain	Sans Serif	ofl/zain	r:Zain-Regular.ttf|b:Zain-Bold.ttf|i:Zain-Italic.ttf
+Zalando Sans	Sans Serif	ofl/zalandosans	r:ZalandoSans[wdth,wght].ttf|i:ZalandoSans-Italic[wdth,wght].ttf
+Zalando Sans Expanded	Sans Serif	ofl/zalandosansexpanded	r:ZalandoSansExpanded[wght].ttf|i:ZalandoSansExpanded-Italic[wght].ttf
+Zalando Sans SemiExpanded	Sans Serif	ofl/zalandosanssemiexpanded	r:ZalandoSansSemiExpanded[wght].ttf|i:ZalandoSansSemiExpanded-Italic[wght].ttf
+ZCOOL KuaiLe	Sans Serif	ofl/zcoolkuaile	r:ZCOOLKuaiLe-Regular.ttf
+ZCOOL QingKe HuangYou	Sans Serif	ofl/zcoolqingkehuangyou	r:ZCOOLQingKeHuangYou-Regular.ttf
+ZCOOL XiaoWei	Sans Serif	ofl/zcoolxiaowei	r:ZCOOLXiaoWei-Regular.ttf
+Zen Antique	Serif	ofl/zenantique	r:ZenAntique-Regular.ttf
+Zen Antique Soft	Serif	ofl/zenantiquesoft	r:ZenAntiqueSoft-Regular.ttf
+Zen Dots	Display	ofl/zendots	r:ZenDots-Regular.ttf
+Zen Kaku Gothic Antique	Sans Serif	ofl/zenkakugothicantique	r:ZenKakuGothicAntique-Regular.ttf|b:ZenKakuGothicAntique-Bold.ttf
+Zen Kaku Gothic New	Sans Serif	ofl/zenkakugothicnew	r:ZenKakuGothicNew-Regular.ttf|b:ZenKakuGothicNew-Bold.ttf
+Zen Kurenaido	Sans Serif	ofl/zenkurenaido	r:ZenKurenaido-Regular.ttf
+Zen Loop	Display	ofl/zenloop	r:ZenLoop-Regular.ttf|i:ZenLoop-Italic.ttf
+Zen Maru Gothic	Sans Serif	ofl/zenmarugothic	r:ZenMaruGothic-Regular.ttf|b:ZenMaruGothic-Bold.ttf
+Zen Old Mincho	Serif	ofl/zenoldmincho	r:ZenOldMincho-Regular.ttf|b:ZenOldMincho-Bold.ttf
+Zen Tokyo Zoo	Display	ofl/zentokyozoo	r:ZenTokyoZoo-Regular.ttf
+Zeyada	Handwriting	ofl/zeyada	r:Zeyada.ttf
+Zhi Mang Xing	Handwriting	ofl/zhimangxing	r:ZhiMangXing-Regular.ttf
+Zilla Slab	Serif	ofl/zillaslab	r:ZillaSlab-Regular.ttf|b:ZillaSlab-Bold.ttf|i:ZillaSlab-Italic.ttf|bi:ZillaSlab-BoldItalic.ttf
+Zilla Slab Highlight	Serif	ofl/zillaslabhighlight	r:ZillaSlabHighlight-Regular.ttf|b:ZillaSlabHighlight-Bold.ttf

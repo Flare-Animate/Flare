@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::sound::BrowserSound;
-use crate::{files, flare_file, preferences, ruffle};
+use crate::{files, flare_file, fonts, preferences, ruffle};
 use eframe::egui;
 use flare_animate::{DialogRequest, Workspace};
 
@@ -32,6 +32,8 @@ pub struct WebApp {
     picked_brushes: Rc<RefCell<Vec<Picked>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
+    /// Google Fonts families downloaded for text (or why not), handed over on the next frame.
+    fonts: Rc<RefCell<Vec<(String, Result<Vec<Vec<u8>>, String>)>>>,
     /// The preferences as last written, so storage is touched only when they change.
     saved_preferences: String,
     /// The name of the file last opened or saved, offered again by Save and, without its ending,
@@ -52,6 +54,7 @@ impl WebApp {
             picked_references: Rc::default(),
             picked_brushes: Rc::default(),
             messages: Rc::default(),
+            fonts: Rc::default(),
             saved_preferences,
             last_name: None,
             sound: BrowserSound::default(),
@@ -418,6 +421,18 @@ impl WebApp {
         }
     }
 
+    /// Downloads the Google Fonts families text asked for, off the frame.
+    fn handle_font_downloads(&mut self, ctx: &egui::Context) {
+        for family in self.workspace.take_font_downloads() {
+            let (inbox, ctx) = (Rc::clone(&self.fonts), ctx.clone());
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = fonts::download(&family).await;
+                inbox.borrow_mut().push((family, result));
+                ctx.request_repaint();
+            });
+        }
+    }
+
     fn handle_audio(&mut self) {
         let events = self.workspace.take_audio_events();
         if let Err(message) = self.sound.apply(events) {
@@ -460,10 +475,15 @@ impl eframe::App for WebApp {
         for message in messages {
             self.workspace.report_message(&message);
         }
+        let downloaded: Vec<_> = self.fonts.borrow_mut().drain(..).collect();
+        for (family, result) in downloaded {
+            self.workspace.font_downloaded(family, result);
+        }
         self.workspace.show(ui);
         self.handle_audio();
         self.handle_dialog(&ctx);
         self.handle_test_movie(&ctx);
+        self.handle_font_downloads(&ctx);
         if let Ok(json) = self.workspace.preferences_json()
             && json != self.saved_preferences
         {

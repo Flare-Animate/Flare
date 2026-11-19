@@ -173,6 +173,10 @@ pub(crate) enum Command {
         /// A font file (.ttf, .otf) to make known by its family name; repeatable.
         #[arg(long = "font-file")]
         font_files: Vec<PathBuf>,
+        /// Do not download Google Fonts families the text names and this machine lacks; text
+        /// in one falls back to the next family in its list.
+        #[arg(long)]
+        no_google_fonts: bool,
     },
     /// Change a text object: its words, font, place or color.
     SetText {
@@ -198,6 +202,10 @@ pub(crate) enum Command {
         /// A font file (.ttf, .otf) to make known by its family name; repeatable.
         #[arg(long = "font-file")]
         font_files: Vec<PathBuf>,
+        /// Do not download Google Fonts families the text names and this machine lacks; text
+        /// in one falls back to the next family in its list.
+        #[arg(long)]
+        no_google_fonts: bool,
     },
     /// Take text apart into plain outlines.
     BreakText { path: PathBuf, shape: uuid::Uuid },
@@ -206,6 +214,10 @@ pub(crate) enum Command {
         /// A font file (.ttf, .otf) to make known by its family name; repeatable.
         #[arg(long = "font-file")]
         font_files: Vec<PathBuf>,
+        /// Do not download Google Fonts families the text names and this machine lacks; text
+        /// in one falls back to the next family in its list.
+        #[arg(long)]
+        no_google_fonts: bool,
     },
     /// Render the first scene: one frame as a PNG (the default), a JPEG, a BMP or a TGA, every frame
     /// as a looping GIF, or a video with its sound as an MP4 or a QuickTime movie (`mov`).

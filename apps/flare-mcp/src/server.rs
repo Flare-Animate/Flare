@@ -30,6 +30,9 @@ pub(crate) struct State {
     pub permissions: Permissions,
     /// Fonts the operator gave, known by name to text next to the system's.
     pub fonts: flare_runtime::ExtraFonts,
+    /// How Google Fonts families text names are downloaded; `None` when the operator turned
+    /// that off, and text then falls back to the next family in its list.
+    pub google_fonts: Option<flare_webfonts::Downloader>,
     /// The ffmpeg and ffprobe videos are read with, when not those on PATH.
     pub video_tools: Option<flare_ffmpeg::Tools>,
     /// The Rhubarb Lip Sync program lip sync runs: `None` finds the installed one, `Some(None)`
@@ -61,6 +64,7 @@ impl FlareServer {
                 owned: false,
                 permissions,
                 fonts: flare_runtime::ExtraFonts::default(),
+                google_fonts: Some(flare_webfonts::Downloader::for_programs()),
                 video_tools: None,
                 rhubarb: None,
             })),
@@ -72,6 +76,13 @@ impl FlareServer {
     #[must_use]
     pub fn with_fonts(self, fonts: Vec<Vec<u8>>) -> Self {
         self.lock().fonts = std::sync::Arc::new(fonts);
+        self
+    }
+
+    /// Downloads Google Fonts families with `downloader`, or never with `None`.
+    #[must_use]
+    pub fn with_google_fonts(self, downloader: Option<flare_webfonts::Downloader>) -> Self {
+        self.lock().google_fonts = downloader;
         self
     }
 

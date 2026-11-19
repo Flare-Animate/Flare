@@ -373,3 +373,19 @@ fn export_movie_and_image_follow_the_backdrop() {
     reader.next_frame(&mut pixels).expect("frame");
     assert_eq!(pixels[3], 0, "an empty stage is clear");
 }
+
+#[test]
+fn a_font_download_reports_back_with_its_family_and_a_reason_when_it_fails() {
+    let (tx, rx) = mpsc::channel();
+    // Not a Google Fonts family, so it fails before anything is downloaded.
+    jobs::download_font("Comic Sans MS".into(), move |family, result| {
+        let _ = tx.send((family, result));
+    })
+    .expect("the thread starts");
+    let (family, result) = rx
+        .recv_timeout(Duration::from_secs(20))
+        .expect("the job reports back");
+    assert_eq!(family, "Comic Sans MS");
+    let error = result.expect_err("unknown family");
+    assert!(error.contains("Comic Sans MS"), "{error}");
+}

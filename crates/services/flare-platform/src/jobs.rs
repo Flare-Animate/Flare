@@ -16,6 +16,19 @@ fn spawn(name: &str, job: impl FnOnce() + Send + 'static) -> io::Result<()> {
         .map(|_| ())
 }
 
+/// Downloads the Google Fonts family `family` (or reads it from where downloaded fonts are kept)
+/// for text that names it. `done` gets the family and its files, or why they could not be had.
+pub fn download_font(
+    family: String,
+    done: impl FnOnce(String, Result<Vec<Vec<u8>>, String>) + Send + 'static,
+) -> io::Result<()> {
+    spawn("flare-font-download", move || {
+        let cache = crate::dirs::font_cache_dir().map(flare_webfonts::Cache::new);
+        let result = flare_webfonts::Downloader::new(cache).fetch(&family);
+        done(family, result);
+    })
+}
+
 /// Writes one frame as a PNG over `backdrop`. `done` gets the outcome, worded for the person.
 pub fn export_png(
     document: Document,

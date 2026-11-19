@@ -5,7 +5,8 @@ use std::sync::mpsc::{Receiver, Sender};
 
 use crate::jobs::{AudioJob, Done, IoJob, RenderJob, TextJob};
 use crate::pixels::{PixelJob, Pixels};
-use crate::run::{ExtraFonts, run_audio, run_io, run_render, run_text};
+use crate::run::{run_audio, run_io, run_render};
+use crate::text::{ExtraFonts, run_text};
 use crate::video_import::{VideoJob, run_video};
 
 /// Called after each result is queued, so the front end can wake up to show it.
@@ -43,25 +44,29 @@ pub(crate) fn text_loop(
 ) {
     while let Ok(first) = jobs.recv() {
         // Only the newest text matters, but a list of families is a different question and is
-        // answered however many texts came after it.
-        let (mut set, mut preview, mut families) = (None, None, false);
+        // answered however many texts came after it, and fonts that arrived are all added, in
+        // order and before the text that may be waiting for them.
+        let (mut fonts_in, mut set, mut preview, mut families) = (Vec::new(), None, None, false);
         let mut take = |job: TextJob| match job {
             TextJob::Families => families = true,
             job @ TextJob::Set { .. } => set = Some(job),
             job @ TextJob::Preview { .. } => preview = Some(job),
+            job @ TextJob::AddFonts { .. } => fonts_in.push(job),
         };
         take(first);
         while let Ok(newer) = jobs.try_recv() {
             take(newer);
         }
-        let answers = families
-            .then_some(TextJob::Families)
+        let answers = fonts_in
             .into_iter()
+            .chain(families.then_some(TextJob::Families))
             .chain(set)
             .chain(preview);
         for job in answers {
-            if done.send(run_text(&job, fonts)).is_err() {
-                return;
+            for answer in run_text(job, fonts) {
+                if done.send(answer).is_err() {
+                    return;
+                }
             }
         }
         wake();

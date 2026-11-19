@@ -48,6 +48,7 @@ members = [
     "crates/services/flare-recent",
     "crates/services/flare-platform",
     "crates/services/flare-tablet",
+    "crates/services/flare-webfonts",
     # presentation
     "crates/presentation/flare-ui",
     "crates/presentation/flare-dock",
@@ -113,6 +114,7 @@ flare-runtime = { path = "crates/services/flare-runtime" }
 flare-video = { path = "crates/services/flare-video" }
 flare-platform = { path = "crates/services/flare-platform" }
 flare-tablet = { path = "crates/services/flare-tablet" }
+flare-webfonts = { path = "crates/services/flare-webfonts" }
 # presentation
 flare-dock = { path = "crates/presentation/flare-dock" }
 flare-menubar = { path = "crates/presentation/flare-menubar" }
@@ -197,6 +199,9 @@ objc2-core-foundation = { version = "0.3.2", default-features = false }
 x11rb = { version = "0.13.2", default-features = false, features = ["xinput"] }
 rfd = "0.18.0"
 directories = "6"
+# Downloading Google Fonts families (flare-webfonts) off the browser: blocking, rustls with ring
+# and the webpki roots, no compression (fonts do not shrink).
+ureq = { version = "3.5.1", default-features = false, features = ["rustls"] }
 pollster = "1.0.1"
 js-sys = "0.3"
 wasm-bindgen = "0.2.129"

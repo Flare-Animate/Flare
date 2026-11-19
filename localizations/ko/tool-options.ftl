@@ -73,6 +73,7 @@ opt-bold = 굵게
 opt-italic = 기울임꼴
 opt-filter = 필터
 opt-no-font = 일치하는 글꼴이 없습니다.
+opt-google-fonts = Google Fonts
 opt-text-error = 텍스트를 변경할 수 없습니다: { $error }
 opt-nothing-selected = 선택된 항목 없음
 opt-select-something = 스테이지에서 항목을 선택하세요.
