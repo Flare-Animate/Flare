@@ -104,6 +104,16 @@ Rust 版本固定在 `rust-toolchain.toml` 中。Ruffle 是 git 子模块，因�
     flare publish-html5 project.flare page.html
     flare --help
 
+## MCP 服务器
+
+`flare-mcp` 通过 Model Context Protocol 把一个项目提供给 AI 智能体，编辑、校验和撤销都与编辑器相同。除非允许写入，它是只读的，并且只导出到指定的文件夹。
+
+    flare-mcp project.flare --allow-write --export-dir exports
+
+<img src="../../assets/screenshots/dance-side-by-side.gif" width="480" alt="左边是在练功房里跳舞的舞者，右边是做出同样动作的简单人体模型：向前迈步、挥动双臂、蹲下、双臂在头顶交叉跪地。">
+
+由智能体通过 `flare-mcp` 绘制：右边是左边舞蹈视频中的身体动作，用姿态模型逐帧找出，再用 `brush_stroke` 工具画到 410 个关键帧上。
+
 ## 为什么有 Flare
 
 Adobe [宣布](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220)了 Animate 的停止支持，之后又[改变了决定](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459)。即便如此，这也说明动画行业何等不稳定，以及某家公司对它的控制有多大。动画师们陷入了恐慌，这种恐慌是合理的。一家公司是否继续销售某款产品，不应决定人们的职业前途。
