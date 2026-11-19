@@ -57,10 +57,18 @@ The rules are in [AGENTS.md](AGENTS.md) and [docs/ENGINEERING.md](docs/ENGINEERI
 
 ## Dependencies
 
-CI runs `cargo audit` on `Cargo.lock` for every push. At the time of 0.1.0 it reports no
-vulnerabilities. It does warn that a few indirect dependencies are unmaintained or carry an
-unsoundness advisory: `ttf-parser` (through the window-decoration font code), `proc-macro-error`,
-the `zbus` family (through the file dialogs), and `glib` (through the menu library's GTK support,
-which only exists in its Linux build; Flare uses that library on macOS only, so `glib` is in
-`Cargo.lock` but not in any shipped program). They are tracked and will be replaced when their
-parents move.
+CI runs `cargo audit` on `Cargo.lock` for every push. It fails on advisories about vulnerabilities
+and passes on the "unmaintained" and "unsound" notes. Two vulnerability advisories are ignored in
+[`.cargo/audit.toml`](.cargo/audit.toml): `RUSTSEC-2026-0194` and `RUSTSEC-2026-0195`, quadratic
+and unbounded work while parsing XML, which are fixed in `quick-xml` 0.41. Flare's own crates use
+`quick-xml` 0.42; the affected 0.37 comes only with the pinned Ruffle submodule, and the player
+meets it while running a movie rather than before, so the movie is the one the person chose to
+play. Removing the ignore means moving the Ruffle pin to a version that has fixed it.
+
+The notes it passes are tracked: `ttf-parser` (through the window-decoration font code),
+`proc-macro-error` and `paste`, `chrono` (through Ruffle), the `zbus` family (through the file
+dialogs; `zbus_names`, `zvariant` and `zvariant_derive` are unmaintained as separate crates now
+that `zbus` 6 has absorbed them), and the unsoundness in `glib`'s `VariantStrIter` (through the
+menu library's GTK support, which only exists in its Linux build; Flare uses that library on
+macOS only, so `glib` is in `Cargo.lock` but not in any shipped program). They are tracked and
+will be replaced when their parents move.
