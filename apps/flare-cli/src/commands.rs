@@ -287,6 +287,12 @@ pub(crate) enum Command {
         #[command(subcommand)]
         op: crate::tween::TweenCommand,
     },
+    /// A Flash movie's ActionScript 3: list its classes, write one out, list its strings, and
+    /// patch strings into a new movie (an old game's server address, say).
+    Scripts {
+        #[command(subcommand)]
+        op: crate::scripts::ScriptsCommand,
+    },
     /// The game description: entities and components, gravity, runs under scripted input, export.
     Game {
         #[command(subcommand)]

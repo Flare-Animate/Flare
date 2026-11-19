@@ -2194,6 +2194,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "flare-as3"
+version = "0.1.0"
+dependencies = [
+ "flare-as3",
+ "serde",
+ "swf",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "flare-audio"
 version = "0.1.0"
 dependencies = [
@@ -2211,6 +2221,7 @@ dependencies = [
  "anyhow",
  "clap",
  "epaint_default_fonts",
+ "flare-as3",
  "flare-audio",
  "flare-commands",
  "flare-core",
@@ -2475,6 +2486,7 @@ dependencies = [
  "anyhow",
  "clap",
  "epaint_default_fonts",
+ "flare-as3",
  "flare-audio",
  "flare-commands",
  "flare-core",
@@ -2508,6 +2520,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "swf",
  "tempfile",
  "tokio",
  "uuid",

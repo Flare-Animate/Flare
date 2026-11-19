@@ -66,6 +66,20 @@ is the first step for someone re-hosting or patching an old 3D game. Running suc
 Ruffle's job (Test Movie uses an external Ruffle), and Flare imports the movie's 2D artwork as
 it does for any SWF.
 
+The next step is `flare-as3`, on the command line (`flare scripts`) and the MCP server. It
+lists the classes the blocks define, with each member's type, value or signature as the
+bytecode records them; writes one class out as an ActionScript declaration, with each method
+body listed as instructions when asked; lists the strings the scripts carry, with what uses
+each one; and replaces strings, the usual patch for an old game whose server has moved. A
+patch walks the movie's tags at the byte level and, in each block that has the string,
+rewrites only the string section of the constant pool: every index, every other byte of the
+block and every other tag stays as it was, and the movie keeps its compression (zlib, LZMA or
+none). A string the code also links by (a class, package, property or method name) is refused
+unless renaming is asked for, since the code finds things by those names; a string found
+nowhere, or one in a block that cannot be read, refuses the whole patch. Bodies are not
+decompiled into statements, and nothing compiles ActionScript. Code a game loads at run time
+(a second SWF, often encrypted) is not in the movie and is not reached.
+
 ## Results on the Ruffle corpus
 
 Counts are from `flare import` on each file, one process per file, 30 s limit each. The run was

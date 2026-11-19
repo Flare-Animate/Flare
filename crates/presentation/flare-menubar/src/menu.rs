@@ -251,6 +251,10 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Mock("Step Out"),
             Separator,
             Mock("Remove All Breakpoints"),
+            Separator,
+            // A movie's scripts listed and their strings patched: `flare scripts` and the MCP
+            // server have it (flare_as3); the window does not yet.
+            Mock("Movie Scripts..."),
         ],
     ),
     (

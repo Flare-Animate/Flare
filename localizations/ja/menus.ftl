@@ -41,3 +41,4 @@ menu-mock-step-over = ステップオーバー
 menu-mock-step-in = ステップイン
 menu-mock-step-out = ステップアウト
 menu-mock-remove-all-breakpoints = すべてのブレークポイントを削除
+menu-mock-movie-scripts = ムービーのスクリプト...

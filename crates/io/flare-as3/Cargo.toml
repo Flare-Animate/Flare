@@ -1,0 +1,22 @@
+[package]
+name = "flare-as3"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[features]
+# A small movie with a game's kind of scripts, for the tests of this crate and of the surfaces.
+fixtures = []
+
+[dependencies]
+serde.workspace = true
+swf.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+flare-as3 = { path = ".", features = ["fixtures"] }
+
+[lints]
+workspace = true

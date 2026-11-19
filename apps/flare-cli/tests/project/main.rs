@@ -30,6 +30,7 @@ mod multi_frame;
 mod open;
 mod rendering;
 mod save_formats;
+mod scripts;
 mod shortcuts;
 mod sound;
 mod still_images;
