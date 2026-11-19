@@ -13,8 +13,6 @@ use flare_tools::brush::{self, BrushRequest, Placement};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
-use super::export::export_dir;
-use crate::color::safe_name;
 use crate::ops::{apply, color_or, first_scene, target_layer};
 use crate::params::ImportBrushes;
 use crate::params_brush::BrushStrokes;
@@ -26,20 +24,7 @@ const MAX_PROFILE_BYTES: u64 = flare_import::brushes::MAX_OWNED_BYTES;
 impl State {
     /// The pen-profile file called `source` in the export directory, which it must stay inside.
     fn profile_path(&self, source: &str) -> Result<PathBuf, String> {
-        let dir = export_dir(self)?
-            .canonicalize()
-            .map_err(|error| format!("cannot resolve the export directory: {error}"))?;
-        let path = dir.join(safe_name(source)?);
-        if !path.is_file() {
-            return Err(format!("{source} is not a file in the export directory"));
-        }
-        let path = path
-            .canonicalize()
-            .map_err(|error| format!("cannot resolve {source}: {error}"))?;
-        if !path.starts_with(&dir) {
-            return Err("the profile file must stay inside the export directory".to_owned());
-        }
-        Ok(path)
+        super::export::export_file(self, source, "the profile file")
     }
 }
 
