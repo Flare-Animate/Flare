@@ -51,7 +51,8 @@ The rules are in [AGENTS.md](AGENTS.md) and [docs/ENGINEERING.md](docs/ENGINEERI
   are never extracted to a path taken from the archive; an entry whose local and central names
   disagree is read under its central name. The pinned `zip` also rejects a symlink target longer
   than 4096 bytes before reserving the size it declares, on both of its extracting paths, and
-  Flare calls neither of them.
+  Flare calls neither of them. Password-encrypted entries are refused rather than decrypted: the
+  reader is built without `zip`'s AES feature, so that code is never compiled.
 - The MCP server only writes inside an export directory chosen at start-up, accepts plain file
   names only, and caps image sizes.
 - Property tests feed random and truncated data to the importers, storage and the editing core;
