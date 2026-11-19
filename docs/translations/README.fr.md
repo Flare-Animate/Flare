@@ -104,6 +104,16 @@ Sous Linux, installez les bibliothèques listées dans [CONTRIBUTING.md](../../C
     flare publish-html5 project.flare page.html
     flare --help
 
+## Serveur MCP
+
+`flare-mcp` met un projet à la disposition d'un agent d'IA via le Model Context Protocol, avec les mêmes modifications, vérifications et annulations que l'éditeur. Il est en lecture seule tant que l'écriture n'est pas autorisée, et n'exporte que dans un dossier désigné.
+
+    flare-mcp project.flare --allow-write --export-dir exports
+
+<img src="../../assets/screenshots/dance-side-by-side.gif" width="480" alt="À gauche, une danseuse dans un studio ; à droite, un simple mannequin qui fait les mêmes mouvements : il avance d'un pas, balaie l'air de ses bras, s'accroupit et s'agenouille les bras croisés au-dessus de la tête.">
+
+Dessiné par un agent via `flare-mcp` : à droite, le mouvement du corps de la vidéo de danse de gauche, repéré image par image avec un modèle de pose et peint sur 410 images clés avec l'outil `brush_stroke`.
+
 ## Pourquoi Flare existe
 
 Adobe a [annoncé](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) la fin de vie d'Animate, puis a [fait marche arrière](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). Ce revirement ne change rien à la volatilité de l'industrie de l'animation ni à la part que contrôle une seule entreprise. Les animateurs ont été saisis d'une panique légitime, et la carrière de quiconque ne devrait pas dépendre de la décision d'une entreprise de continuer à vendre un produit.

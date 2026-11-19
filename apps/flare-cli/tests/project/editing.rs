@@ -295,3 +295,59 @@ fn layers_allow_overlapping_frames_and_unknown_layers_are_rejected() {
         .success()
     );
 }
+
+#[test]
+fn place_turns_and_scales_about_the_registration_point() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file]);
+    let symbol = json(&["add-symbol", &file, "Arm"])["symbol"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    json(&[
+        "place",
+        &file,
+        &symbol,
+        "--duration",
+        "10",
+        "--x",
+        "100",
+        "--y",
+        "50",
+        "--rotate",
+        "90",
+        "--scale-x",
+        "2",
+        "--tween",
+    ]);
+    json(&[
+        "place",
+        &file,
+        &symbol,
+        "--start",
+        "10",
+        "--x",
+        "100",
+        "--y",
+        "50",
+        "--rotate",
+        "0",
+        "--scale-x",
+        "2",
+    ]);
+    // Columns a, b, c, d, tx, ty: the x axis scaled by 2 and turned clockwise to point down.
+    let m = &json(&["eval", &file, "--frame", "0"])["placed"][0]["matrix"];
+    let close =
+        |v: &serde_json::Value, want: f64| (v.as_f64().expect("number") - want).abs() < 1e-9;
+    assert!(close(&m[0], 0.0) && close(&m[1], 2.0), "{m}");
+    assert!(close(&m[4], 100.0) && close(&m[5], 50.0), "{m}");
+    // Halfway through the tween the turn is halfway, and the registration point has not moved.
+    let m = &json(&["eval", &file, "--frame", "5"])["placed"][0]["matrix"];
+    let half = 2.0 * std::f64::consts::FRAC_1_SQRT_2;
+    assert!(close(&m[0], half) && close(&m[1], half), "{m}");
+    assert!(close(&m[4], 100.0) && close(&m[5], 50.0), "{m}");
+    let zero = run(&["place", &file, &symbol, "--start", "20", "--scale-y", "0"]);
+    assert!(!zero.status.success());
+    assert!(String::from_utf8_lossy(&zero.stderr).contains("flatten"));
+}

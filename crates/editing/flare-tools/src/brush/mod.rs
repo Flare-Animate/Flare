@@ -1,34 +1,43 @@
 //! A brush stroke as a filled outline whose width follows the pressure of the pen.
 //!
-//! The centre line is simplified, smoothed with a centripetal Catmull-Rom spline, and offset to both sides by
-//! half the width at each point; the ends are round. A mouse reports full pressure everywhere, so
+//! The centre line is simplified, smoothed with a centripetal Catmull-Rom spline (its widths
+//! with a monotone cubic, see `curve`), and offset to both sides by half the width at each
+//! point; the ends are round. A mouse reports full pressure everywhere, so
 //! it gives a stroke of one width unless the brush tapers its ends or answers speed. The widths
 //! come from [`BrushStroke::width_factors`], which the live preview uses too.
 
 use flare_core::DocumentPoint;
-use flare_document::{MAX_SEGMENTS, PathSegment};
-use flare_input::{InputSample, PressureCurve};
+use flare_document::PathSegment;
+use flare_input::PressureCurve;
 use glamx::DVec2;
 
+mod curve;
+mod lay;
 mod nib;
 mod preset;
+mod request;
 mod shelf;
 mod stroke;
 mod swatch;
 mod texture;
+/// What a stroke is made of, for callers that build one from numbers.
+pub use flare_input::{InputSample, PointerKind};
+pub use lay::{
+    LayPlan, LayRefusal, MAX_STROKE_SAMPLES, MAX_STROKES, MAX_TOTAL_SAMPLES, Paint, Placement,
+    lay_strokes, steady, stroke_shape,
+};
 pub use nib::{Nib, NibShape};
 pub use preset::{
     BrushPreset, BrushProfileFile, BuiltinBrushProfile, MAX_BRUSH_PROFILE_BYTES, MAX_BRUSHES,
+};
+pub use request::{
+    BRUSH_SIZE_RANGE, BrushRequest, DEFAULT_SMOOTHING, MAX_SMOOTHING, RequestError, stroke_samples,
 };
 pub use shelf::{BrushShelf, ShelfFull};
 pub use stroke::{BrushStroke, MAX_TAPER, Taper};
 pub use swatch::{swatch, swatch_samples};
 pub use texture::{MAX_BRISTLES, Texture, seed_at};
 
-/// Points added between two kept points when smoothing.
-const SUBDIVISIONS: usize = 4;
-/// Points in each round end.
-const CAP_STEPS: usize = 8;
 /// The step between two samples, in pixels, that counts as drawing "at speed". Samples arrive one
 /// frame apart, so half of the step from the sample before to the one after a point is that
 /// point's speed. Surfaces preview the stroke with the same reach, so it is public.
@@ -89,58 +98,6 @@ fn simplify(points: &[Spine], tolerance: f64) -> Vec<usize> {
         }
     }
     (0..points.len()).filter(|i| keep[*i]).collect()
-}
-
-/// Points along the centripetal Catmull-Rom spline through `spine`, with the widths blended
-/// between them.
-///
-/// The centripetal form spaces its knots by the square root of the distance between points.
-/// Hand-drawn points are rarely evenly spaced (a stabilizer, for one, starts a stroke with tiny
-/// steps), and the uniform form overshoots where a short step meets a long one, looping back
-/// past the start of a line; the centripetal form never makes a cusp or a loop inside a segment.
-fn smooth(spine: &[Spine], steps: usize) -> Vec<Spine> {
-    let last = spine.len() - 1;
-    let mut out = vec![spine[0]];
-    for i in 0..last {
-        let (p1, p2) = (spine[i].at, spine[i + 1].at);
-        // Past the ends, the line runs on as it was heading.
-        let p0 = if i == 0 {
-            p1 * 2.0 - p2
-        } else {
-            spine[i - 1].at
-        };
-        let p3 = if i + 1 == last {
-            p2 * 2.0 - p1
-        } else {
-            spine[i + 2].at
-        };
-        for s in 1..=steps {
-            let t = s as f64 / steps as f64;
-            let at = centripetal(p0, p1, p2, p3, t);
-            let half = spine[i].half + (spine[i + 1].half - spine[i].half) * t;
-            out.push(Spine { at, half });
-        }
-    }
-    out
-}
-
-/// The point `t` (0 to 1) of the way from `p1` to `p2` on the centripetal Catmull-Rom spline
-/// through the four points (Barry and Goldman's pyramid).
-fn centripetal(p0: DVec2, p1: DVec2, p2: DVec2, p3: DVec2, t: f64) -> DVec2 {
-    let knot = |a: DVec2, b: DVec2| (b - a).length().sqrt().max(1e-9);
-    let t1 = knot(p0, p1);
-    let t2 = t1 + knot(p1, p2);
-    let t3 = t2 + knot(p2, p3);
-    let u = t1 + (t2 - t1) * t;
-    let lerp = |a: DVec2, b: DVec2, from: f64, to: f64| {
-        a * ((to - u) / (to - from)) + b * ((u - from) / (to - from))
-    };
-    let a1 = lerp(p0, p1, 0.0, t1);
-    let a2 = lerp(p1, p2, t1, t2);
-    let a3 = lerp(p2, p3, t2, t3);
-    let b1 = lerp(a1, a2, 0.0, t2);
-    let b2 = lerp(a2, a3, t1, t3);
-    lerp(b1, b2, t1, t2)
 }
 
 /// The closed outline of a round brush stroke through `samples` at `width`, or `None` for a click
@@ -247,14 +204,9 @@ impl BrushStroke {
             .into_iter()
             .map(|i| full[i])
             .collect();
-        // Keep the outline well inside the segment limit however long the drag was.
-        let steps = if spine.len() * SUBDIVISIONS * 2 + 2 * CAP_STEPS + 3 < MAX_SEGMENTS {
-            SUBDIVISIONS
-        } else {
-            1
-        };
         let nib = self.nib;
-        let line = smooth(&spine, steps);
+        // The pieces are bounded in `curve`, well inside the path's segment limit.
+        let line = curve::smooth(&spine);
         let normals = normals(&line);
         let end = line.len() - 1;
         Some(StrokeSides {
@@ -265,8 +217,8 @@ impl BrushStroke {
             right: (0..=end)
                 .map(|i| line[i].at - nib.support(normals[i]) * line[i].half)
                 .collect(),
-            end_cap: cap(line[end].at, normals[end], line[end].half, nib),
-            start_cap: cap(line[0].at, -normals[0], line[0].half, nib),
+            end_cap: curve::cap(line[end].at, normals[end], line[end].half, nib),
+            start_cap: curve::cap(line[0].at, -normals[0], line[0].half, nib),
         })
     }
 }
@@ -308,18 +260,12 @@ fn normals(line: &[Spine]) -> Vec<DVec2> {
         .collect()
 }
 
-/// The half circle around `centre` from the `normal` side to the opposite side, turning the way
-/// the stroke is heading (without the two end points, which the sides already have).
-fn cap(centre: DVec2, normal: DVec2, radius: f64, nib: Nib) -> Vec<DVec2> {
-    let heading = DVec2::new(normal.y, -normal.x);
-    (1..CAP_STEPS)
-        .map(|k| {
-            let angle = std::f64::consts::PI * k as f64 / CAP_STEPS as f64;
-            centre + nib.support(normal * angle.cos() + heading * angle.sin()) * radius
-        })
-        .collect()
-}
-
+#[cfg(test)]
+mod curve_tests;
+#[cfg(test)]
+mod lay_tests;
+#[cfg(test)]
+mod request_tests;
 #[cfg(test)]
 mod shelf_tests;
 #[cfg(test)]

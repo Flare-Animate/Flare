@@ -2,11 +2,10 @@
 
 use anyhow::{Context, Result};
 use flare_commands::Command;
-use flare_core::{InstanceId, LayerId, Rgba8, SceneId, SymbolId, Transform2D};
+use flare_core::{InstanceId, LayerId, Rgba8, SceneId, SymbolId};
 use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Timeline, Tween};
 use flare_history::EditorSession;
 use flare_tools::ops::{self, Target};
-use glamx::{DAffine2, DVec2};
 use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
@@ -126,38 +125,55 @@ pub fn add_layer(path: &Path, name: &str) -> Result<Value> {
     Ok(json!({ "layer": id.as_uuid() }))
 }
 
-/// Places an instance on the first layer of the first scene.
-pub struct PlaceOptions {
+/// What `flare place` takes.
+#[derive(clap::Args)]
+pub struct PlaceArgs {
+    pub path: std::path::PathBuf,
     pub symbol: Uuid,
+    #[arg(long, default_value_t = 0)]
     pub start: u32,
+    #[arg(long, default_value_t = 1)]
     pub duration: u32,
+    /// Where the registration point goes.
+    #[arg(long, default_value_t = 0.0, allow_negative_numbers = true)]
     pub x: f64,
+    #[arg(long, default_value_t = 0.0, allow_negative_numbers = true)]
     pub y: f64,
+    /// Turned about the registration point, clockwise, in degrees.
+    #[arg(long, default_value_t = 0.0, allow_negative_numbers = true)]
+    pub rotate: f64,
+    /// Scaled about the registration point, before the turn; a negative scale mirrors.
+    #[arg(long, default_value_t = 1.0, allow_negative_numbers = true)]
+    pub scale_x: f64,
+    #[arg(long, default_value_t = 1.0, allow_negative_numbers = true)]
+    pub scale_y: f64,
+    /// Tween linearly to the next adjacent span of the same symbol.
+    #[arg(long)]
     pub tween: bool,
+    /// Layer id from `add-layer` or `info` (default: the first layer).
+    #[arg(long)]
     pub layer: Option<Uuid>,
 }
 
-pub fn place(path: &Path, options: PlaceOptions) -> Result<Value> {
-    let PlaceOptions {
-        symbol,
-        start,
-        duration,
-        x,
-        y,
-        tween,
-        layer,
-    } = options;
-    let mut session = open(path)?;
-    let (scene, layer) = target_layer(&session, layer)?;
-    let transform = Transform2D::new(DAffine2::from_translation(DVec2::new(x, y)))?;
-    let instance = Instance::new(InstanceId::new(), SymbolId::from_uuid(symbol), transform);
-    let duration = NonZeroU32::new(duration).context("duration must be at least 1")?;
-    let mut span = FrameSpan::new(start, duration, Content::Instance(instance.clone()));
-    if tween {
+/// Places an instance on a layer of the first scene: its registration point at `x`, `y`, turned
+/// and scaled about it.
+pub fn place(args: &PlaceArgs) -> Result<Value> {
+    let mut session = open(&args.path)?;
+    let (scene, layer) = target_layer(&session, args.layer)?;
+    let transform = ops::placement(args.x, args.y, args.rotate, args.scale_x, args.scale_y)
+        .map_err(|e| anyhow::anyhow!("cannot place: {e}"))?;
+    let instance = Instance::new(
+        InstanceId::new(),
+        SymbolId::from_uuid(args.symbol),
+        transform,
+    );
+    let duration = NonZeroU32::new(args.duration).context("duration must be at least 1")?;
+    let mut span = FrameSpan::new(args.start, duration, Content::Instance(instance.clone()));
+    if args.tween {
         span = span.with_tween(Tween::Linear);
     }
     session.apply([Command::InsertSpan { scene, layer, span }])?;
-    commit(&session, path)?;
+    commit(&session, &args.path)?;
     Ok(json!({ "instance": instance.id().as_uuid() }))
 }
 

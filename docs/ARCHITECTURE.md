@@ -286,7 +286,11 @@ changed or removed alone; their tests may call other tools through `ops`. `ops` 
 operations a UI calls (`ops::translate`, `ops::restyle`, ...) under one name and holds none of
 their code. What a tool computes belongs here; the workspace in `flare-animate` only turns pointer
 events and settings into calls (the pen's `path_shape` builds the shape, `pen_tool.rs` wires the
-mouse).
+mouse). The Brush's `brush::stroke_shape` is the outline a finished stroke leaves, and
+`brush::lay_strokes` lays whole strokes as one undo step, with `brush::BrushRequest` reading a
+profile and settings, so the desktop, `flare brush` and the MCP `brush_stroke` tool paint the same. The outline (`brush::curve`) blends
+widths along a monotone cubic and cuts each span into as many pieces as it bends, and each round
+end into as many as its radius needs, so a stroke stays smooth when the stage is zoomed far in.
 
 ## Text
 
@@ -559,7 +563,7 @@ The policy is deliberately honest rather than clever:
 
 ## Frontends
 
-`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `add-layer`, `camera`, `bone`, `bones`, `mannequin`,
+`flare` commands: `new`, `info`, `set-stage`, `add-symbol`, `draw-rect`, `brush`, `add-layer`, `camera`, `bone`, `bones`, `mannequin`,
 `layer`, `place`, `frame`, `eval`, `export`, `export-frames`, `inspect`, `rate`.
 
 Inside `flare-animate`, `Workspace` is the one object the window talks to, and its topics are modules

@@ -104,6 +104,16 @@ Linux에서는 [CONTRIBUTING.md](../../CONTRIBUTING.md)에 나열된 라이브�
     flare publish-html5 project.flare page.html
     flare --help
 
+## MCP 서버
+
+`flare-mcp`는 Model Context Protocol로 프로젝트 하나를 AI 에이전트에 제공하며, 편집·검사·실행 취소는 에디터와 같습니다. 쓰기를 허용하지 않으면 읽기 전용이고, 지정한 폴더로만 내보냅니다.
+
+    flare-mcp project.flare --allow-write --export-dir exports
+
+<img src="../../assets/screenshots/dance-side-by-side.gif" width="480" alt="왼쪽은 스튜디오에서 춤추는 댄서, 오른쪽은 같은 동작을 하는 단순한 마네킹: 앞으로 한 걸음 내딛고, 팔을 크게 휘두르고, 쪼그려 앉고, 머리 위로 팔을 교차한 채 무릎을 꿇는다.">
+
+에이전트가 `flare-mcp`로 그린 것: 오른쪽은 왼쪽 춤 영상 속 몸의 움직임을 포즈 모델로 프레임마다 찾아 `brush_stroke` 도구로 키프레임 410개에 그린 것입니다.
+
 ## Flare가 존재하는 이유
 
 Adobe는 Animate의 지원 종료를 [발표했다가](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) 나중에 [방침을 철회했습니다](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). 철회되었다고 해서 애니메이션 업계가 얼마나 불안정한지, 그리고 한 회사가 그 업계를 얼마나 좌우하는지가 달라지지는 않습니다. 애니메이터들은 정당하게 공황에 빠졌고, 한 제품을 계속 판매할지에 대한 한 회사의 결정에 사람들의 경력이 좌우되어서는 안 됩니다.

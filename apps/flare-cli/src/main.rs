@@ -275,6 +275,7 @@ fn run() -> Result<()> {
         )?,
         Command::MagicWand(args) => magic_wand::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
+        Command::Brush(args) => project::brush_strokes(&args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
         Command::Smudge(args) => {
             project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?
@@ -451,27 +452,7 @@ fn run() -> Result<()> {
                 _ => bail!("unreachable: this format is a still image"),
             },
         },
-        Command::Place {
-            path,
-            symbol,
-            start,
-            duration,
-            x,
-            y,
-            tween,
-            layer,
-        } => project::place(
-            &path,
-            project::PlaceOptions {
-                symbol,
-                start,
-                duration,
-                x,
-                y,
-                tween,
-                layer,
-            },
-        )?,
+        Command::Place(args) => project::place(&args)?,
     };
     let stdout = std::io::stdout();
     let mut stdout = stdout.lock();

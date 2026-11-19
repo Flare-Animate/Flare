@@ -91,8 +91,15 @@ pub struct AddSymbol {
 pub struct PlaceInstance {
     /// Symbol id (from get_info or add_symbol).
     pub symbol: String,
+    /// Where the registration point goes; defaults to 0.
     pub x: Option<f64>,
     pub y: Option<f64>,
+    /// Turned about the registration point, clockwise, in degrees; defaults to 0.
+    pub rotate: Option<f64>,
+    /// Scaled about the registration point, before the turn; defaults to 1. A negative scale
+    /// mirrors; 0 is refused.
+    pub scale_x: Option<f64>,
+    pub scale_y: Option<f64>,
     pub start: Option<u32>,
     pub duration: Option<u32>,
     /// Interpolate to the next exposure of the same symbol.

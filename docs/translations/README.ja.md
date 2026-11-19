@@ -104,6 +104,16 @@ Linux では [CONTRIBUTING.md](../../CONTRIBUTING.md) に記載のライブラ�
     flare publish-html5 project.flare page.html
     flare --help
 
+## MCP サーバー
+
+`flare-mcp` は Model Context Protocol を通じて、1 つのプロジェクトを AI エージェントに提供します。編集・検証・取り消しはエディターと同じです。書き込みを許可しない限り読み取り専用で、エクスポート先は指定したフォルダーだけです。
+
+    flare-mcp project.flare --allow-write --export-dir exports
+
+<img src="../../assets/screenshots/dance-side-by-side.gif" width="480" alt="左はスタジオで踊るダンサー、右は同じ動きをするシンプルなマネキン。一歩前に出て、腕を大きく振り、しゃがみ、頭上で腕を交差させてひざまずく。">
+
+エージェントが `flare-mcp` を通じて描いたもの: 右は、左のダンス動画の体の動きをポーズモデルで 1 フレームずつ検出し、`brush_stroke` ツールで 410 枚のキーフレームに描いたものです。
+
 ## Flare が存在する理由
 
 Adobe は Animate の提供終了を[発表し](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220)、その後[方針を撤回しました](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459)。撤回があっても、アニメーション業界がいかに不安定で、一社がどれほどの支配力を持っているかは変わりません。アニメーターたちは正当にパニックに陥りました。一つの製品を販売し続けるかどうかという一社の判断に、人のキャリアが左右されるべきではありません。

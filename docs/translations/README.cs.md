@@ -104,6 +104,16 @@ Na Linuxu nainstalujte knihovny uvedené v [CONTRIBUTING.md](../../CONTRIBUTING.
     flare publish-html5 project.flare page.html
     flare --help
 
+## Server MCP
+
+`flare-mcp` zpřístupní projekt agentovi umělé inteligence přes Model Context Protocol, se stejnými úpravami, kontrolami a vracením zpět jako editor. Bez povolení zápisu je jen pro čtení a exportuje pouze do zadané složky.
+
+    flare-mcp project.flare --allow-write --export-dir exports
+
+<img src="../../assets/screenshots/dance-side-by-side.gif" width="480" alt="Vlevo tanečnice ve studiu, vpravo jednoduchá figurína, která dělá stejné pohyby: krok vpřed, máchnutí pažemi, dřep a poklek s rukama zkříženýma nad hlavou.">
+
+Nakreslil agent přes `flare-mcp`: vpravo pohyb těla z tanečního videa vlevo, rozpoznaný snímek po snímku modelem pózy a namalovaný na 410 klíčových snímků nástrojem `brush_stroke`.
+
 ## Proč Flare existuje
 
 Adobe [oznámila](https://community.adobe.com/announcements-539/adobe-animate-end-of-life-and-support-timeline-1548220) konec životnosti Animate a později [změnila kurz](https://community.adobe.com/announcements-539/update-on-the-status-of-adobe-animate-1548459). Obrat nic nemění na tom, jak nestabilní animační průmysl je ani na tom, kolik z něj ovládá jedna firma. Animátoři upadli do oprávněné paniky a kariéry lidí by neměly záviset na rozhodnutí jedné firmy dál prodávat produkt.

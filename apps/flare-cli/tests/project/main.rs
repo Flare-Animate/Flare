@@ -8,6 +8,7 @@ mod bitmap_tween;
 mod blend;
 mod bones;
 mod brush;
+mod brush_stroke;
 mod camera;
 mod editing;
 mod elements;

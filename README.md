@@ -104,6 +104,16 @@ On Linux install the libraries listed in [CONTRIBUTING.md](CONTRIBUTING.md).
     flare publish-html5 project.flare page.html
     flare --help
 
+## MCP server
+
+`flare-mcp` serves one project to an AI agent over the Model Context Protocol, with the same edits, checks and undo as the editor. It is read-only unless writing is allowed, and exports only into a folder you name.
+
+    flare-mcp project.flare --allow-write --export-dir exports
+
+<img src="assets/screenshots/dance-side-by-side.gif" width="480" alt="A dancer in a studio on the left and, on the right, a plain mannequin figure making the same moves: stepping forward, sweeping its arms, squatting, kneeling with its arms crossed overhead.">
+
+Drawn by an agent through `flare-mcp`: on the right, the body movement of the dance clip on the left, found frame by frame with a pose model and brushed onto 410 keyframes with the `brush_stroke` tool.
+
 ## Why does this exist?
 
 Well, for a few reasons.

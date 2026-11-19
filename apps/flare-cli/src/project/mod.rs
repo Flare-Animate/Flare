@@ -12,6 +12,7 @@ use std::path::Path;
 
 mod blend;
 mod bones;
+mod brush_stroke;
 mod camera;
 mod draw;
 mod interchange;
@@ -25,14 +26,13 @@ mod timeline;
 
 pub use blend::{BlendArgs, blend_stroke};
 pub use bones::{BoneAction, bone, bones_list};
+pub use brush_stroke::{BrushArgs, brush_strokes};
 #[allow(unused_imports)]
 use camera::*;
 pub use camera::{CameraMotion, camera};
 #[allow(unused_imports)]
 use draw::*;
-pub use draw::{
-    PlaceOptions, add_layer, add_symbol, draw_rect, eval, place, rename_scene, set_stage,
-};
+pub use draw::{PlaceArgs, add_layer, add_symbol, draw_rect, eval, place, rename_scene, set_stage};
 #[allow(unused_imports)]
 use interchange::*;
 pub use interchange::{
