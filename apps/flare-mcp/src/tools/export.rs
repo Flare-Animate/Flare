@@ -25,6 +25,25 @@ pub(crate) fn export_dir(state: &State) -> Result<PathBuf, String> {
     Ok(dir)
 }
 
+/// The file called `source` in the export directory, which it must stay inside (no link may lead
+/// out of it). `what` names the file in the refusal: "the video", "the profile file".
+pub(crate) fn export_file(state: &State, source: &str, what: &str) -> Result<PathBuf, String> {
+    let dir = export_dir(state)?
+        .canonicalize()
+        .map_err(|error| format!("cannot resolve the export directory: {error}"))?;
+    let path = dir.join(safe_name(source)?);
+    if !path.is_file() {
+        return Err(format!("{source} is not a file in the export directory"));
+    }
+    let path = path
+        .canonicalize()
+        .map_err(|error| format!("cannot resolve {source}: {error}"))?;
+    if !path.starts_with(&dir) {
+        return Err(format!("{what} must stay inside the export directory"));
+    }
+    Ok(path)
+}
+
 /// `dir/name`, refused when something is already there.
 pub(crate) fn fresh(dir: &std::path::Path, name: &str) -> Result<PathBuf, String> {
     let out = dir.join(name);

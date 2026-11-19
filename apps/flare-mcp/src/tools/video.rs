@@ -6,7 +6,6 @@ use std::path::PathBuf;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
-use crate::color::safe_name;
 use crate::ops::{apply, first_scene};
 use crate::params_video::{ImportVideo, PlanVideoImport};
 use crate::server::{FlareServer, Outcome, State};
@@ -18,20 +17,7 @@ const MAX_NAME: usize = 256;
 impl State {
     /// The movie called `source` in the export directory, which it must stay inside.
     fn video_path(&self, source: &str) -> Result<PathBuf, String> {
-        let dir = super::export::export_dir(self)?
-            .canonicalize()
-            .map_err(|error| format!("cannot resolve the export directory: {error}"))?;
-        let path = dir.join(safe_name(source)?);
-        if !path.is_file() {
-            return Err(format!("{source} is not a file in the export directory"));
-        }
-        let path = path
-            .canonicalize()
-            .map_err(|error| format!("cannot resolve {source}: {error}"))?;
-        if !path.starts_with(&dir) {
-            return Err("the video must stay inside the export directory".to_owned());
-        }
-        Ok(path)
+        super::export::export_file(self, source, "the video")
     }
 
     /// What importing the movie at `path` with `asked` would make in the open project.
