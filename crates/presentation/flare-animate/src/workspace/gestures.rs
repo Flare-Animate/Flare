@@ -261,20 +261,15 @@ impl Workspace {
         samples: &[InputSample],
         tolerance: f64,
     ) -> Result<Option<Shape>, String> {
-        let Some(path) = self
-            .brush_shelf
-            .stroke(f64::from(self.brush_size))
-            .outline(samples, tolerance)
-        else {
-            return Ok(None);
-        };
         let c = self.paint.fill.to_array();
-        // Flow is how opaque the paint is at the first touch, so a low flow commits the stroke
-        // partly see-through.
-        let alpha = (f32::from(c[3]) * self.brush_shelf.flow()) as u8;
-        Shape::new(ShapeId::new(), path, Rgba8::new(c[0], c[1], c[2], alpha))
-            .map(Some)
-            .map_err(|e| e.to_string())
+        flare_tools::brush::stroke_shape(
+            &self.brush_shelf.stroke(f64::from(self.brush_size)),
+            samples,
+            Rgba8::new(c[0], c[1], c[2], c[3]),
+            self.brush_shelf.flow(),
+            tolerance,
+        )
+        .map_err(|e| e.to_string())
     }
 
     /// Selects what the finished lasso loop encloses; with `additive` it adds to the selection.

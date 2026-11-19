@@ -273,6 +273,7 @@ fn run() -> Result<()> {
         )?,
         Command::MagicWand(args) => magic_wand::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
+        Command::Brush(args) => project::brush_strokes(&args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
         Command::Smudge(args) => {
             project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?

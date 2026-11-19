@@ -133,6 +133,8 @@ pub(crate) enum Command {
     /// at the point and not at all at the edge of the circle, adding points where a line has too
     /// few to bend; one undo step. Nothing in reach is an error.
     Magnet(crate::magnet::MagnetArgs),
+    /// Brush: lay brush strokes through stage points on a layer of the first scene, as one undo step.
+    Brush(project::BrushArgs),
     /// Blur: soften the bitmap under the first point along a stroke of stage points.
     Blur(project::BlendArgs),
     /// Smudge: push the colors of the bitmap under the first point along a stroke of stage points.

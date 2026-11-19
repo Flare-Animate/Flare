@@ -8,19 +8,30 @@
 
 use flare_core::DocumentPoint;
 use flare_document::PathSegment;
-use flare_input::{InputSample, PressureCurve};
+use flare_input::PressureCurve;
 use glamx::DVec2;
 
 mod curve;
+mod lay;
 mod nib;
 mod preset;
+mod request;
 mod shelf;
 mod stroke;
 mod swatch;
 mod texture;
+/// What a stroke is made of, for callers that build one from numbers.
+pub use flare_input::{InputSample, PointerKind};
+pub use lay::{
+    LayPlan, LayRefusal, MAX_STROKE_SAMPLES, MAX_STROKES, MAX_TOTAL_SAMPLES, Paint, Placement,
+    lay_strokes, steady, stroke_shape,
+};
 pub use nib::{Nib, NibShape};
 pub use preset::{
     BrushPreset, BrushProfileFile, BuiltinBrushProfile, MAX_BRUSH_PROFILE_BYTES, MAX_BRUSHES,
+};
+pub use request::{
+    BRUSH_SIZE_RANGE, BrushRequest, DEFAULT_SMOOTHING, MAX_SMOOTHING, RequestError, stroke_samples,
 };
 pub use shelf::{BrushShelf, ShelfFull};
 pub use stroke::{BrushStroke, MAX_TAPER, Taper};
@@ -251,6 +262,10 @@ fn normals(line: &[Spine]) -> Vec<DVec2> {
 
 #[cfg(test)]
 mod curve_tests;
+#[cfg(test)]
+mod lay_tests;
+#[cfg(test)]
+mod request_tests;
 #[cfg(test)]
 mod shelf_tests;
 #[cfg(test)]
