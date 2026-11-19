@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used)]
 
+use flare_document::MAX_SEGMENTS;
 use flare_input::PointerKind;
 
 use super::*;

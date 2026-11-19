@@ -286,7 +286,9 @@ changed or removed alone; their tests may call other tools through `ops`. `ops` 
 operations a UI calls (`ops::translate`, `ops::restyle`, ...) under one name and holds none of
 their code. What a tool computes belongs here; the workspace in `flare-animate` only turns pointer
 events and settings into calls (the pen's `path_shape` builds the shape, `pen_tool.rs` wires the
-mouse).
+mouse). The Brush's outline (`brush::curve`) blends widths along a monotone cubic
+and cuts each span into as many pieces as it bends, and each round end into as many as its radius
+needs, so a stroke stays smooth when the stage is zoomed far in.
 
 ## Text
 

@@ -210,6 +210,11 @@ fn a_wide_stroke_is_still_simplified() {
     // still drops its middle points.
     let samples = mouse_run(200.0, 1.0);
     let stroke = BrushStroke::new(20.0, PressureCurve::new(0.0, 1.0));
-    let path = stroke.outline(&samples, 2.0).expect("outline");
-    assert!(path.len() < samples.len() / 4, "{} segments", path.len());
+    // The sides, not the ends: how round an end is drawn is no part of simplifying.
+    let sides = stroke.sides(&samples, 2.0).expect("sides");
+    assert!(
+        sides.left.len() < samples.len() / 4,
+        "{} points",
+        sides.left.len()
+    );
 }
