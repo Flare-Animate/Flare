@@ -15,6 +15,7 @@ flare-core.workspace = true
 flare-fx.workspace = true
 flare-game.workspace = true
 flare-flash.workspace = true
+flare-as3.workspace = true
 flare-document.workspace = true
 flare-commands.workspace = true
 flare-editor.workspace = true
@@ -46,6 +47,8 @@ tempfile.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
+# The fixture game whose scripts the `flare scripts` tests read and patch.
+flare-as3 = { workspace = true, features = ["fixtures"] }
 # The voice a lip sync test reads, written as a WAV.
 flare-audio.workspace = true
 psd.workspace = true

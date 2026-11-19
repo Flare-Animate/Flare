@@ -24,6 +24,7 @@ flare-eval.workspace = true
 flare-rig.workspace = true
 flare-export.workspace = true
 flare-import.workspace = true
+flare-as3.workspace = true
 flare-publish.workspace = true
 flare-runtime.workspace = true
 flare-tween.workspace = true
@@ -48,6 +49,9 @@ tokio = { workspace = true, features = ["rt", "macros", "io-std"] }
 uuid.workspace = true
 
 [dev-dependencies]
+# The fixture game whose scripts the script tools read and patch.
+flare-as3 = { workspace = true, features = ["fixtures"] }
+swf.workspace = true
 psd.workspace = true
 epaint_default_fonts.workspace = true
 flare-core.workspace = true

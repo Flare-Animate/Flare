@@ -101,6 +101,7 @@ Still planned (everything else in the menus and panels is built):
 
 - Library: folders.
 - Edit, Modify, Text, Commands and Help entries still listed dimmed in the menus (Window and the Help windows are real now: panels come to the front, About and a read-only shortcut list).
+- Debug > Movie Scripts..., a window over `flare_as3`: a movie's classes and strings, and replacing strings (the command line and the MCP server have it).
 
 ## Top bar
 

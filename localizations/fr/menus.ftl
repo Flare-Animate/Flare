@@ -41,3 +41,4 @@ menu-mock-step-over = Pas à pas principal
 menu-mock-step-in = Pas à pas détaillé
 menu-mock-step-out = Pas à pas sortant
 menu-mock-remove-all-breakpoints = Supprimer tous les points d’arrêt
+menu-mock-movie-scripts = Scripts de l’animation...

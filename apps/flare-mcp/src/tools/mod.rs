@@ -14,6 +14,7 @@ mod mannequin;
 mod multi_frame;
 mod pixels;
 mod read;
+mod scripts;
 mod shaders;
 mod shortcuts;
 mod sound;
@@ -55,5 +56,6 @@ impl FlareServer {
             + Self::magnet_tools()
             + Self::mannequin_tools()
             + Self::video_tools()
+            + Self::script_tools()
     }
 }

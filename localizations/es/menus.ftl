@@ -41,3 +41,4 @@ menu-mock-step-over = Paso por encima
 menu-mock-step-in = Paso a paso por instrucciones
 menu-mock-step-out = Paso para salir
 menu-mock-remove-all-breakpoints = Quitar todos los puntos de interrupción
+menu-mock-movie-scripts = Scripts de la película...

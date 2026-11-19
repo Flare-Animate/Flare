@@ -10,6 +10,7 @@ mod magic_wand;
 mod magnet;
 mod mannequin;
 mod project;
+mod scripts;
 mod shader;
 mod shortcuts;
 mod stopmotion;
@@ -129,6 +130,7 @@ fn run() -> Result<()> {
         Command::Bones { path, frame } => project::bones_list(&path, frame)?,
         Command::Tween { op } => tween::run(op)?,
         Command::Game { op } => game::run(op)?,
+        Command::Scripts { op } => scripts::run(op)?,
         Command::Fx { op } => fx::run(op)?,
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(*op)?,

@@ -41,3 +41,4 @@ menu-mock-step-over = Krokovat přes
 menu-mock-step-in = Krokovat dovnitř
 menu-mock-step-out = Krokovat ven
 menu-mock-remove-all-breakpoints = Odstranit všechny zarážky
+menu-mock-movie-scripts = Skripty filmu...

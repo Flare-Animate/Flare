@@ -20,6 +20,7 @@ mod params_game;
 mod params_magnet;
 mod params_mannequin;
 mod params_pixels;
+mod params_scripts;
 mod params_shader;
 mod params_shortcuts;
 mod params_timeline;

@@ -12,7 +12,7 @@ first thing taken over and are in the importer and Flash adapter tests.
 | `.sol` (shared object) container and AMF0 reading | Planned: belongs in `flare-flash`, with its own fixtures |
 | Everything drawn on a layer stays on that layer (many elements in a keyframe) | Done: new shapes join the active layer's keyframe at the playhead, selection and every edit name one element, the exporters and `flare draw-rect` / `draw_rect` follow (docs/decisions/ELEMENTS.md) |
 | Merge-drawing model (Flash planar-map shapes: edge bending, boolean cuts) | Planned and the largest gap against Animate's drawing model; today every shape is a separate drawing object (Object Drawing), shown as a dimmed switch in the tool options |
-| AS3 decompile / ActionScript editing | Not planned for 0.1; ActionScript is preserved as data, never run |
+| AS3 decompile / ActionScript editing | A movie's AS3 is read as data (`flare-as3`: classes, declarations, method bodies as instructions, strings) and its strings patched in place, on the command line and the MCP server; decompiling bodies into statements, and editing or compiling ActionScript, are not planned for 0.1. Nothing is run |
 | Moho projects, rig rendering | Not planned; import is a later milestone after the Animate workflow |
 | FlipaClip layout profile, custom room layouts | Flare has dockable panels, Animate's icon strip, and named workspaces with Animate's switcher (five built in, the person's own saved under a name, each reset to how it was built in or saved); room layouts from OpenToonz profiles are not read by the interface |
 | Auto-update with SHA-256 verification | Planned after the first release exists to update from |
