@@ -15,6 +15,9 @@ struct Picked {
     bytes: Vec<u8>,
 }
 
+/// A Google Fonts family downloaded for text: its name and its files, or why it could not be had.
+type Fetched = (String, Result<Vec<Vec<u8>>, String>);
+
 /// Whether `name` is a Flare project (`.flare`), which the page reads itself, rather than a
 /// Flash document to import.
 fn is_flare(name: &str) -> bool {
@@ -33,7 +36,7 @@ pub struct WebApp {
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// Google Fonts families downloaded for text (or why not), handed over on the next frame.
-    fonts: Rc<RefCell<Vec<(String, Result<Vec<Vec<u8>>, String>)>>>,
+    fonts: Rc<RefCell<Vec<Fetched>>>,
     /// The preferences as last written, so storage is touched only when they change.
     saved_preferences: String,
     /// The name of the file last opened or saved, offered again by Save and, without its ending,
