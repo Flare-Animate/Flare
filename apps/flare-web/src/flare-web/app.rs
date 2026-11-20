@@ -76,6 +76,7 @@ impl WebApp {
                             "flare",
                             "fla",
                             "swf",
+                            "xstage",
                             "moho",
                             "anime",
                             "mohoproj",

@@ -12,6 +12,7 @@ pub fn pick_open(filter: &str) -> Option<std::path::PathBuf> {
                 "fla",
                 "xfl",
                 "swf",
+                "xstage",
                 "xml",
                 "moho",
                 "anime",
