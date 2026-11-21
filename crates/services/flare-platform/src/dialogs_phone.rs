@@ -34,11 +34,11 @@ pub fn pick_shortcut_xml(_filter: &str) -> Option<std::path::PathBuf> {
     None
 }
 
-pub fn save_png(_filter: &str) -> Option<std::path::PathBuf> {
+pub fn save_image(_filter: &str, _extensions: &[&str]) -> Option<std::path::PathBuf> {
     None
 }
 
-pub fn save_movie(_filters: [&str; 3]) -> Option<std::path::PathBuf> {
+pub fn save_movie(_filters: &[(&str, &[&str])]) -> Option<std::path::PathBuf> {
     None
 }
 

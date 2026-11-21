@@ -1,6 +1,8 @@
 untitled = 名称未設定
 name-new-scene = シーン { $n }
 name-new-layer = レイヤー { $n }
+name-painting = ペイント
+name-converted-bitmap = ビットマップ
 name-new-text-layer = テキスト
 doc-title = ドキュメント
 doc-publish-settings = パブリッシュ設定

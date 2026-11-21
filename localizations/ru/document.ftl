@@ -1,6 +1,8 @@
 untitled = Безымянный
 name-new-scene = Сцена { $n }
 name-new-layer = Слой { $n }
+name-painting = Рисунок
+name-converted-bitmap = Растровое изображение
 name-new-text-layer = Текст
 doc-title = Документ
 doc-publish-settings = Настройки публикации

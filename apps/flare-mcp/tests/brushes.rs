@@ -118,3 +118,24 @@ async fn the_presets_are_flare_preset_objects_that_round_trip() {
     );
     assert_eq!(preset["name"], "Round");
 }
+
+#[cfg(unix)]
+#[tokio::test]
+async fn a_link_that_leads_out_of_the_export_directory_is_refused() {
+    let f = fixture(true, true).await;
+    let exports = f.dir.path().join("exports");
+    std::fs::create_dir_all(&exports).expect("exports");
+    let outside = f.dir.path().join("outside.abr");
+    std::fs::write(&outside, one_brush_abr()).expect("write");
+    std::os::unix::fs::symlink(&outside, exports.join("brushes.abr")).expect("link");
+    let (bad, message) = f
+        .tool("import_brush_profiles", json!({ "source": "brushes.abr" }))
+        .await;
+    assert!(bad, "{message}");
+    assert!(
+        message
+            .to_string()
+            .contains("must stay inside the export directory"),
+        "{message}"
+    );
+}

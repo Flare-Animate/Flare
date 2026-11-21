@@ -1,8 +1,8 @@
-//! The pixels a Blur or Smudge stroke works on. The stroke never paints over its own work: each
-//! pixel it reaches keeps how much of it the stroke has covered so far, capped at the stroke's
-//! strength, and its color is rebuilt from the bitmap as it was before the stroke began. So going
-//! over the same place again in one stroke does not blur or smear it further; lifting the pen and
-//! going again does.
+//! The pixels a Blur, Smudge or Raster Brush stroke works on. The stroke never paints over its
+//! own work: each pixel it reaches keeps how much of it the stroke has covered so far, capped at
+//! the stroke's strength, and its color is rebuilt from the bitmap as it was before the stroke
+//! began. So going over the same place again in one stroke does not blur, smear or paint it
+//! further; lifting the pen and going again does.
 //!
 //! What is kept per pixel is stored in square tiles, made only where the stroke goes, so a short
 //! stroke on a large bitmap costs what it touches.
@@ -24,7 +24,7 @@ struct Tile {
     /// How much of each pixel the stroke has covered, 0 to the strength.
     cover: Vec<f32>,
     /// What each pixel is moving towards, premultiplied, 0 to 65535 a channel: the blurred
-    /// bitmap for Blur, the paint the stroke has laid for Smudge.
+    /// bitmap for Blur, the paint the stroke has laid for Smudge and the Raster Brush.
     target: Vec<[u16; 4]>,
 }
 
@@ -104,6 +104,36 @@ impl Canvas {
             canvas.put(index, lerp(before, laid, new));
         });
         (weight > 0.0).then(|| sum.map(|s| s / weight))
+    }
+
+    /// What the bitmap under `dab` was before the stroke: the coverage weighted average,
+    /// premultiplied, `None` where the dab is off the bitmap.
+    pub(super) fn sample(&mut self, dab: &Dab) -> Option<Premul> {
+        let mut sum = [0.0f32; 4];
+        let mut weight = 0.0f32;
+        self.each_pixel(dab, |canvas, _, _, index, coverage| {
+            for (s, b) in sum.iter_mut().zip(canvas.before(index)) {
+                *s += b * coverage;
+            }
+            weight += coverage;
+        });
+        (weight > 0.0).then(|| sum.map(|s| s / weight))
+    }
+
+    /// One Raster Brush dab laying `paint`. A pixel's coverage is the most any dab of the stroke
+    /// gave it, not their sum, so an opaque stroke is opaque in its middle at once, its soft or
+    /// anti-aliased edge stays as one dab drew it however many dabs overlap there, and it never
+    /// passes the stroke's opacity.
+    pub(super) fn lay_dab(&mut self, dab: &Dab, ceiling: f32, paint: Premul) {
+        self.each_pixel(dab, |canvas, tile, offset, index, coverage| {
+            let Some((old, new)) = cover_most(tile, offset, coverage * dab.strength * ceiling)
+            else {
+                return;
+            };
+            let laid = lerp(unpack(tile.target[offset]), paint, (new - old) / new);
+            tile.target[offset] = pack(laid);
+            canvas.put(index, lerp(canvas.before(index), laid, new));
+        });
     }
 
     /// Calls `visit` for each pixel `dab` covers, with its tile, its place in the tile and in
@@ -207,6 +237,18 @@ fn cover(tile: &mut Tile, offset: usize, amount: f32, ceiling: f32) -> Option<(f
     let new = (old + (1.0 - old) * amount).min(ceiling);
     tile.cover[offset] = new;
     (new > old).then_some((old, new))
+}
+
+/// Raises the coverage of the pixel at `offset` to `amount` if that is more; gives the coverage
+/// before and after, or `None` when it was already as much.
+fn cover_most(tile: &mut Tile, offset: usize, amount: f32) -> Option<(f32, f32)> {
+    let old = tile.cover[offset];
+    let new = amount.clamp(0.0, 1.0);
+    if new <= old {
+        return None;
+    }
+    tile.cover[offset] = new;
+    Some((old, new))
 }
 
 /// One box blur of `radius` along `count` values of `values` from `start`, `stride` apart, with

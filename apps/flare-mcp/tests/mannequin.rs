@@ -235,3 +235,27 @@ async fn the_pose_of_the_person_in_a_picture_is_found_and_copied() {
         assert!(message.to_string().contains(says), "{args}: {message}");
     }
 }
+
+#[tokio::test]
+async fn under_places_a_locked_guide_at_the_bottom_and_refuses_a_layer_with_it() {
+    let f = fixture(true, true).await;
+    f.ok(
+        "draw_rect",
+        json!({ "x": 0, "y": 0, "width": 5, "height": 5, "color": "FF0000" }),
+    )
+    .await;
+    let placed = f
+        .ok("place_mannequin", json!({ "under": true, "name": "Guide" }))
+        .await;
+    assert_eq!(placed["keyframe"], 0);
+    let info = f.ok("get_info", json!({})).await;
+    let layers = info["scenes"][0]["layers"].as_array().expect("layers");
+    assert_eq!(layers.len(), 2);
+    assert_eq!(layers[1]["name"], "Guide");
+
+    let layer = layers[0]["id"].as_str().expect("id");
+    let (is_error, message) = f
+        .tool("place_mannequin", json!({ "under": true, "layer": layer }))
+        .await;
+    assert!(is_error, "{message}");
+}

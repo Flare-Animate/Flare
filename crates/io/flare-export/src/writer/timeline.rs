@@ -289,6 +289,10 @@ pub(super) fn write_timeline(
             out.raw(xml);
             written += 1;
         }
+        // A reference (a mannequin to draw over) is for the stage only, not in the file.
+        if layer.is_reference() {
+            continue;
+        }
         // A mask masks, and a motion guide guides, the layer directly below it in the document;
         // XFL points the layer below at either by index.
         let parent = mask_index.take();

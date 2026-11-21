@@ -160,8 +160,8 @@ fn contrast(a: Color32, b: Color32) -> f32 {
 }
 
 #[test]
-fn the_home_buttons_can_be_read_on_their_fills_in_both_themes() {
-    for theme in ["dark", "light"] {
+fn the_home_buttons_can_be_read_on_their_fills_in_every_theme() {
+    for theme in flare_ui::theme::Mode::ALL.map(flare_ui::theme::Mode::code) {
         let (ctx, mut ws) = (egui::Context::default(), workspace());
         flare_ui::icons::install(&ctx);
         let mut prefs = ws.preferences();

@@ -30,7 +30,7 @@ impl FlareServer {
                 state.session.document(),
                 scene,
                 target,
-                args.start.unwrap_or(0),
+                args.start.unwrap_or(state.playhead),
                 Some(duration(args.duration)?),
                 vec![args.shape()?],
                 "Layer 1",
@@ -49,7 +49,9 @@ impl FlareServer {
         self.write(args.expected_revision, |state| {
             let scene = first_scene(state)?;
             let id = LayerId::new();
-            let layer = Layer::new(id, &args.name, vec![]).map_err(|e| e.to_string())?;
+            let layer = Layer::new(id, &args.name, vec![])
+                .map_err(|e| e.to_string())?
+                .with_hold(true);
             let mut out = apply(state, vec![Command::AddLayer { scene, layer }])?;
             out["layer"] = json!(id.as_uuid());
             Ok(out)

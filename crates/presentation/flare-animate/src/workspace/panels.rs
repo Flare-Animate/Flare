@@ -18,6 +18,7 @@ mod color;
 pub(crate) mod color_wells;
 mod drawing_mode;
 mod fps_field;
+mod frame_picker;
 mod grid_settings;
 mod history;
 mod layers_panel;

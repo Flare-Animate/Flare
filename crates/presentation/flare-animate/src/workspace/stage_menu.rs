@@ -30,6 +30,7 @@ impl Workspace {
                 MenuAction::Ungroup,
                 MenuAction::BreakApart,
                 MenuAction::ConvertToSymbol,
+                MenuAction::ConvertToBitmap,
             ],
             &[MenuAction::SelectAll, MenuAction::DeselectAll],
             &[MenuAction::Undo, MenuAction::Redo],

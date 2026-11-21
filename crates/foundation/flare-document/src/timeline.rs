@@ -271,6 +271,10 @@ pub struct Layer {
     folder: bool,
     /// A motion guide is never drawn: its path steers the motion tween of the layer below it.
     guide: bool,
+    /// A drawing stays on show past the layer's last keyframe (see `Layer::with_hold`).
+    hold: bool,
+    /// A picture to draw over: on the stage, in no export (see `Layer::with_reference`).
+    reference: bool,
     /// The scene's camera: never drawn, and its spans say where the picture is taken from.
     camera: bool,
     /// The color the layer is drawn in by outline mode and marked with in the timeline.

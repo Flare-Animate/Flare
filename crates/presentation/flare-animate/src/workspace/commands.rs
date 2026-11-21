@@ -1,5 +1,6 @@
 //! Menu actions: whether they apply, what they are called and doing them.
 
+use super::mannequin::PlaceInto;
 use flare_dock::Preset;
 use flare_document::Tween;
 use flare_menubar::MenuAction;
@@ -66,13 +67,17 @@ impl Workspace {
             MenuAction::ExportImage
             | MenuAction::ExportMovie
             | MenuAction::ExportFla
-            | MenuAction::ExportSvg => !self.document().scenes().is_empty(),
+            | MenuAction::ExportSvg
+            | MenuAction::ExportSpriteSheet => !self.document().scenes().is_empty(),
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
             MenuAction::Paste | MenuAction::PasteInPlace => !self.clipboard.is_empty(),
             MenuAction::SelectAll => self.scene_id().is_some_and(|scene| {
                 !ops::spans_at_frame(self.document(), scene, self.frame).is_empty()
             }),
+            MenuAction::PlaceMannequinUnder | MenuAction::PlaceMannequinOnLayer => {
+                !self.document().scenes().is_empty()
+            }
             MenuAction::Rewind | MenuAction::StepBackward => self.frame > 0,
             MenuAction::GoToEnd => self.frame + 1 < self.scene_frames(),
             MenuAction::StepForward | MenuAction::ActualSize => true,
@@ -99,6 +104,7 @@ impl Workspace {
             | MenuAction::ScaleUp
             | MenuAction::ScaleDown => self.has_selection(),
             MenuAction::ConvertToSymbol => self.can_convert_selection(),
+            MenuAction::ConvertToBitmap => self.can_convert_to_bitmap(),
             MenuAction::BringToFront
             | MenuAction::BringForward
             | MenuAction::SendBackward
@@ -179,6 +185,7 @@ impl Workspace {
             | MenuAction::ShowInfo
             | MenuAction::ShowSwatches
             | MenuAction::ShowMannequin
+            | MenuAction::ToggleMannequinOnStage
             | MenuAction::ShowEffects
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
@@ -220,6 +227,7 @@ impl Workspace {
             MenuAction::ExportMovie => self.dialog = Some(DialogRequest::ExportMovie),
             MenuAction::ExportFla => self.dialog = Some(DialogRequest::ExportFla),
             MenuAction::ExportSvg => self.dialog = Some(DialogRequest::ExportSvg),
+            MenuAction::ExportSpriteSheet => self.dialog = Some(DialogRequest::ExportSpriteSheet),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
             MenuAction::Quit => self.quit_requested = true,
@@ -269,6 +277,7 @@ impl Workspace {
                 self.transform_selection(DAffine2::from_scale(DVec2::splat(1.0 / SCALE_STEP)))
             }
             MenuAction::ConvertToSymbol => self.open_convert_symbol_dialog(),
+            MenuAction::ConvertToBitmap => self.convert_selection_to_bitmap(),
             MenuAction::BringToFront => self.stack_selection(Stack::Front),
             MenuAction::BringForward => self.stack_selection(Stack::Forward),
             MenuAction::SendBackward => self.stack_selection(Stack::Backward),
@@ -395,6 +404,15 @@ impl Workspace {
             MenuAction::ShowInfo => self.show_pane(Pane::Info),
             MenuAction::ShowSwatches => self.show_pane(Pane::Swatches),
             MenuAction::ShowMannequin => self.show_pane(Pane::Mannequin),
+            MenuAction::ToggleMannequinOnStage => {
+                self.mannequin.on_stage = !self.mannequin.on_stage;
+            }
+            MenuAction::PlaceMannequinUnder => {
+                self.place_mannequin_as(PlaceInto::Underlay);
+            }
+            MenuAction::PlaceMannequinOnLayer => {
+                self.place_mannequin_as(PlaceInto::NewLayer);
+            }
             MenuAction::ShowEffects => self.show_pane(Pane::Effects),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),

@@ -54,7 +54,8 @@ impl Workspace {
             | Tool::Ruler
             | Tool::Mirror
             | Tool::Blur
-            | Tool::Smudge => None,
+            | Tool::Smudge
+            | Tool::RasterBrush => None,
             Tool::Subselection | Tool::ConvertAnchor => {
                 self.begin_anchor_drag(point);
                 None

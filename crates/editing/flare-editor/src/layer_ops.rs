@@ -185,6 +185,8 @@ pub fn duplicate(
             .with_locked(original.is_locked())
             .with_mask(original.is_mask())
             .with_guide(original.is_guide())
+            .with_hold(original.is_hold())
+            .with_reference(original.is_reference())
             .with_folder(original.is_folder())
             .with_outline(original.outline())
             .with_view_opacity(original.view_opacity())
