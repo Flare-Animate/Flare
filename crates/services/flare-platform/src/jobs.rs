@@ -327,3 +327,18 @@ pub fn test_movie(
     })?;
     Ok(Ok(()))
 }
+
+/// Runs `pick`, a file picker that blocks until the person answers, off the calling thread, and
+/// hands what it returned to `done` (on that thread). A picker run on the UI thread stops the
+/// window painting, and on some desktops stays blank until touched; this keeps the window live.
+/// macOS wants its pickers on the main thread, so there `pick` runs on the calling thread.
+pub fn ask<T: Send + 'static>(
+    pick: impl FnOnce() -> Option<T> + Send + 'static,
+    done: impl FnOnce(Option<T>) + Send + 'static,
+) -> io::Result<()> {
+    if cfg!(target_os = "macos") {
+        done(pick());
+        return Ok(());
+    }
+    spawn("flare-file-picker", move || done(pick()))
+}
