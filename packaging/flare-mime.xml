@@ -168,6 +168,10 @@
     <comment>Flipnote Studio Animation</comment>
     <glob pattern="*.ppm" />
   </mime-type>
+  <mime-type type="application/x-flare-xstage">
+    <comment>Toon Boom Harmony Scene</comment>
+    <glob pattern="*.xstage" />
+  </mime-type>
   <mime-type type="application/x-flare-kwz">
     <comment>Flipnote Studio 3D Animation</comment>
     <glob pattern="*.kwz" />
