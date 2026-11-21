@@ -376,9 +376,44 @@ pub fn ask<T: Send + 'static>(
     pick: impl FnOnce() -> Option<T> + Send + 'static,
     done: impl FnOnce(Option<T>) + Send + 'static,
 ) -> io::Result<()> {
+    // A picker that panics (a broken system dialog) must still answer, with nothing: the caller
+    // keeps one picker open at a time and would wait for this one for ever.
+    let ask = move || std::panic::catch_unwind(std::panic::AssertUnwindSafe(pick)).unwrap_or(None);
     if cfg!(target_os = "macos") {
-        done(pick());
+        done(ask());
         return Ok(());
     }
-    spawn("flare-file-picker", move || done(pick()))
+    spawn("flare-file-picker", move || done(ask()))
+}
+
+#[cfg(test)]
+mod ask_tests {
+    #![allow(clippy::expect_used)]
+
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    use super::ask;
+
+    #[test]
+    fn a_picker_that_panics_answers_with_nothing_and_one_that_answers_is_passed_on() {
+        let (send, receive) = mpsc::channel();
+        let again = send.clone();
+        ask(
+            || -> Option<u8> { panic!("a broken dialog") },
+            move |answer| {
+                let _ = send.send(answer);
+            },
+        )
+        .expect("thread");
+        assert_eq!(receive.recv_timeout(Duration::from_secs(5)), Ok(None));
+        ask(
+            || Some(7_u8),
+            move |answer| {
+                let _ = again.send(answer);
+            },
+        )
+        .expect("thread");
+        assert_eq!(receive.recv_timeout(Duration::from_secs(5)), Ok(Some(7)));
+    }
 }

@@ -27,6 +27,7 @@ impl Workspace {
             collapsed_folders: std::collections::HashSet::new(),
             library: symbols::LibraryState::default(),
             shaders: panels::shaders::ShaderPanel::default(),
+            game: panels::game::GamePanel::default(),
             importing: None,
             reverting: None,
             revert_pending: false,

@@ -40,6 +40,7 @@ mod frame_menu;
 mod frame_picker;
 mod frame_rate;
 mod frames_text_and_sound;
+mod game_panel;
 mod graphic_playback;
 mod hand_spring;
 mod held_move;

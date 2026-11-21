@@ -10,7 +10,7 @@ pub const DEFAULT_SIDE: [Pane; 3] = [Pane::Properties, Pane::Library, Pane::Asse
 
 /// The panels kept as icons in the strip at the right edge by default; each opens beside the
 /// strip with the stack still in view.
-pub const DEFAULT_STRIP: [Pane; 12] = [
+pub const DEFAULT_STRIP: [Pane; 13] = [
     Pane::Layers,
     Pane::Color,
     Pane::Swatches,
@@ -23,6 +23,7 @@ pub const DEFAULT_STRIP: [Pane; 12] = [
     Pane::Mannequin,
     Pane::Effects,
     Pane::Shaders,
+    Pane::Game,
 ];
 
 /// Where the docked panels go: stacks in a column left of the stage, the timeline above or below

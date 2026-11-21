@@ -1,0 +1,17 @@
+pane-game = 게임
+menu-item-show-game = 게임
+game-empty = 아직 게임이 없습니다. 아래에서 엔티티 이름을 정하고 추가하세요.
+game-gravity = 중력(픽셀/초²)
+game-entity-name = 이름
+game-add-entity = 엔티티 추가
+game-remove-entity = 엔티티 제거
+game-kind = 컴포넌트
+game-fields = name=value 필드, 예: mass=2
+game-set-component = 컴포넌트 설정
+game-remove-component = 컴포넌트 제거
+game-frames = 실행할 프레임
+game-run = 실행
+game-ran = { $frames }프레임 실행: 이벤트 { $events }개, 상태 { $digest }
+game-cannot = 게임에서 할 수 없습니다: { $error }
+game-note = 여기서는 입력 없이 게임을 실행합니다. 스크립트 입력, 게임 스프라이트, 내보내기는 `flare game`과 MCP 서버에 있습니다.
+hist-edit-game = 게임 편집

@@ -32,6 +32,7 @@ pub(super) use info::color_at as info_color_at;
 pub(in crate::workspace) mod character;
 pub(crate) mod effects;
 pub(crate) mod effects_graph;
+pub(crate) mod game;
 pub(crate) mod library;
 pub(crate) mod mannequin;
 pub(crate) mod mannequin_marks;

@@ -152,6 +152,7 @@ pub struct Workspace {
     /// The library panel's state.
     library: symbols::LibraryState,
     shaders: panels::shaders::ShaderPanel,
+    game: panels::game::GamePanel,
     /// The import being read, if any.
     importing: Option<u64>,
     reverting: Option<u64>,

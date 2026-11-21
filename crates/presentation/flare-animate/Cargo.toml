@@ -14,6 +14,7 @@ flare-audio.workspace = true
 flare-commands.workspace = true
 flare-core.workspace = true
 flare-fx.workspace = true
+flare-game.workspace = true
 flare-dock.workspace = true
 flare-document.workspace = true
 flare-editor.workspace = true

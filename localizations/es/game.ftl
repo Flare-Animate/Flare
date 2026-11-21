@@ -1,0 +1,17 @@
+pane-game = Juego
+menu-item-show-game = Juego
+game-empty = Aún no hay juego. Pon nombre a una entidad abajo y añádela.
+game-gravity = Gravedad (píxeles por segundo al cuadrado)
+game-entity-name = Nombre
+game-add-entity = Añadir entidad
+game-remove-entity = Quitar entidad
+game-kind = Componente
+game-fields = campos nombre=valor, como mass=2
+game-set-component = Fijar componente
+game-remove-component = Quitar componente
+game-frames = Fotogramas a ejecutar
+game-run = Ejecutar
+game-ran = Se ejecutaron { $frames } fotogramas: { $events } eventos, estado { $digest }
+game-cannot = El juego no puede hacerlo: { $error }
+game-note = El juego se ejecuta aquí sin entrada. La entrada con guion, los sprites del juego y su exportación están en `flare game` y en el servidor MCP.
+hist-edit-game = Editar el juego

@@ -107,6 +107,7 @@ impl Preset {
                     P::Mannequin,
                     P::Effects,
                     P::Shaders,
+                    P::Game,
                 ]],
             }),
         };

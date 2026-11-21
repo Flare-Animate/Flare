@@ -11,8 +11,9 @@ point; this page says what was ported, what it does now, and what is still open.
 
 Built: the world, the nine systems, trigger zones, declarative hooks, named input actions,
 scripted runs, the description's commands and storage, the `flare game` commands, the MCP tools
-and the game export. Not yet: the desktop and browser panel (a gap recorded in
-[SURFACES.md](SURFACES.md)).
+the game export, and the Game panel (Window > Game) on the desktop and in the browser: gravity,
+entities, components and a run. Not yet: scripted input, the entities drawn, and the export in the
+panel (a gap recorded in [SURFACES.md](SURFACES.md)).
 
 ## The model
 

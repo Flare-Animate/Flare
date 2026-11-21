@@ -388,7 +388,7 @@ change is one undo step.
 
 The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
 kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor, Find and
-Replace, Mannequin, Effects and Shaders. A click opens that panel beside the strip, 300 px wide (its left edge drags
+Replace, Mannequin, Effects, Shaders and Game. A click opens that panel beside the strip, 300 px wide (its left edge drags
 it wider or narrower) and level with its icon, over the stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
 a press on the stage or another panel puts it away (a list or picker the panel opened does not).
 Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
@@ -659,6 +659,14 @@ The Shaders panel (Window > Shaders, in the icon strip by default) lists the pro
 graphs, each with a 48 px picture of what it draws, drawn again only when its graph changes. Import...
 reads a graph file (JSON, at most 1 MiB), Export... writes the chosen one, Remove takes it out;
 each is one undo step and goes through `flare_editor::shader_library`. There is no node editor yet.
+
+## Game
+
+The Game panel (Window > Game, in the icon strip by default) edits the project's game description
+with `flare_tools::game`, so each edit is one undo step: gravity, entities (add, remove), the
+chosen entity's components set from `name=value` fields or removed, and a run of up to 600 frames
+at the document's rate that says how many events happened and the state's digest. Scripted input,
+the entities drawn and the export are in `flare game` and the MCP server.
 
 ## Effects
 

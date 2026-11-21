@@ -17,6 +17,9 @@ struct Picked {
     bytes: Vec<u8>,
 }
 
+/// The files of one picture sequence picked: name and bytes of each.
+type SequenceFiles = Vec<(String, Vec<u8>)>;
+
 /// A Google Fonts family downloaded for text: its name and its files, or why it could not be had.
 type Fetched = (String, Result<Vec<Vec<u8>>, String>);
 
@@ -40,7 +43,7 @@ pub struct WebApp {
     /// Shader graph files picked, added to the project on the next frame.
     picked_shaders: Rc<RefCell<Vec<Picked>>>,
     /// Picture sequences picked, turned into a project on the next frame.
-    picked_sequences: Rc<RefCell<Vec<Vec<(String, Vec<u8>)>>>>,
+    picked_sequences: Rc<RefCell<Vec<SequenceFiles>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// Google Fonts families downloaded for text (or why not), handed over on the next frame.

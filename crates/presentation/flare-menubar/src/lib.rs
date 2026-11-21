@@ -195,10 +195,11 @@ pub enum MenuAction {
     /// Window > Effects: the active layer's effects as a node graph.
     ShowEffects,
     ShowShaders,
+    ShowGame,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 151] = [
+    pub const ALL: [MenuAction; 152] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -350,6 +351,7 @@ impl MenuAction {
         Self::PlaceMannequinOnLayer,
         Self::ShowEffects,
         Self::ShowShaders,
+        Self::ShowGame,
     ];
 
     /// A stable identifier for native menu items (the variant name).

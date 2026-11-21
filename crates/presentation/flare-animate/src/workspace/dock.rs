@@ -158,6 +158,7 @@ impl Workspace {
             Pane::Mannequin => inset.show(ui, |ui| self.mannequin_panel(ui)).inner,
             Pane::Effects => inset.show(ui, |ui| self.effects_panel(ui)).inner,
             Pane::Shaders => inset.show(ui, |ui| self.shaders_panel(ui)).inner,
+            Pane::Game => inset.show(ui, |ui| self.game_panel(ui)).inner,
         }
     }
 }
