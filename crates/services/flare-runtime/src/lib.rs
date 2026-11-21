@@ -27,6 +27,7 @@ mod jobs;
 mod launch;
 mod lipsync;
 mod movie;
+mod picture;
 mod pixels;
 mod run;
 mod sound;
@@ -58,6 +59,7 @@ pub use lipsync::{
 pub use movie::{
     MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, animated_webp_bytes, apng_bytes, gif_bytes, gif_bytes_on,
 };
+pub use picture::{STILL_ENDINGS, is_still_ending, picture_bytes};
 pub use pixels::{PixelJob, WAND_PREVIEW_SIDE, WandPicked};
 pub use run::{run_audio, run_io, run_render};
 pub use sound::{SoundImportError, SoundLayer, sound_layer};
@@ -360,6 +362,8 @@ impl Drop for Runtime {
     }
 }
 
+#[cfg(test)]
+mod picture_tests;
 #[cfg(test)]
 mod pixels_tests;
 #[cfg(test)]
