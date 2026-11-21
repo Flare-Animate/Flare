@@ -86,3 +86,55 @@ fn goto_lands_on_frames_and_keyframes_and_refuses_to_leave_the_scene() {
         Err(GotoError::NoFrames)
     );
 }
+
+/// What `cells` says, asked of each frame one at a time the slow way.
+fn slow(timeline: &Timeline, first: u32, count: u32) -> Vec<FrameCell> {
+    (first..first + count)
+        .filter(|f| u64::from(*f) < timeline.frame_count())
+        .map(|frame| FrameCell {
+            frame,
+            keyframes: timeline
+                .layers()
+                .iter()
+                .filter(|l| l.spans().iter().any(|s| s.start() == frame))
+                .count(),
+            shows_art: timeline.layers().iter().any(|l| {
+                l.span_at(frame)
+                    .is_some_and(|s| s.elements().any(super::is_art))
+            }),
+        })
+        .collect()
+}
+
+#[test]
+fn the_cells_agree_with_asking_each_frame_with_gaps_holds_and_several_layers() {
+    let held = Layer::new(LayerId::new(), "H", vec![span(2, 2), span(7, 1)])
+        .expect("layer")
+        .with_hold(true);
+    let gappy = Layer::new(LayerId::new(), "G", vec![span(1, 1), span(12, 3)]).expect("layer");
+    let empty = Layer::new(
+        LayerId::new(),
+        "E",
+        vec![FrameSpan::new(
+            0,
+            NonZeroU32::new(30).expect("nonzero"),
+            Content::Empty,
+        )],
+    )
+    .expect("layer");
+    let timeline = Timeline::new(vec![held, gappy, empty]);
+    for (first, count) in [(0, 40), (5, 10), (8, 3), (13, 100), (29, 5), (30, 5)] {
+        assert_eq!(
+            cells(&timeline, first, count),
+            slow(&timeline, first, count),
+            "{first}+{count}"
+        );
+    }
+}
+
+#[test]
+fn stepping_back_from_past_the_end_lands_on_the_last_frame() {
+    let t = timeline();
+    assert_eq!(resolve(&t, 50, Goto::Previous), Ok(10));
+    assert_eq!(resolve(&t, 0, Goto::Previous), Err(GotoError::NothingThere));
+}

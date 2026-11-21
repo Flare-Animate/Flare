@@ -217,6 +217,23 @@ impl Workspace {
         }
     }
 
+    /// [`run_batch`](Self::run_batch) for an edit of the selection that may have started
+    /// keyframes (a held drawing edited on a frame it was only held on): when it applies, the
+    /// selection follows to `refs`, the elements as they are afterwards.
+    pub(super) fn run_selection_batch(
+        &mut self,
+        commands: Vec<Command>,
+        refs: Vec<SpanRef>,
+        what: &str,
+    ) {
+        let before = self.active().revision();
+        self.run_batch(commands, what);
+        if self.active().revision() != before {
+            self.selected = refs.first().copied();
+            self.also_selected = refs.into_iter().skip(1).collect();
+        }
+    }
+
     /// The union of the bounds of every selected span.
     pub(super) fn selection_bounds(&self) -> Option<Rect> {
         self.selection_rects().into_iter().reduce(|a, b| a.union(b))

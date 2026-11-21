@@ -1,0 +1,13 @@
+pane-shaders = 着色器
+menu-item-show-shaders = 着色器
+hist-import-shader = 导入着色器图
+hist-remove-shader = 移除着色器图
+shaders-empty = 此项目还没有着色器图。请从图文件导入。
+shaders-import = 导入...
+shaders-export = 导出...
+shaders-remove = 移除
+shaders-nodes = { $count } 个节点
+shaders-select = 选择一个图来导出或移除。
+shaders-cannot-import = 无法导入 { $name }：{ $error }
+shaders-cannot-export = 无法导出 { $name }：{ $error }
+shaders-note = 图保存在项目中。`flare shader render` 和 MCP 服务器的 export_png 会把它们应用到某一帧。

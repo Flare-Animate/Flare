@@ -48,7 +48,8 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
-            MenuAction::ImportBrushProfiles => true,
+            MenuAction::ImportBrushProfiles | MenuAction::MovieScripts => true,
+            MenuAction::ImportImageSequence => !self.in_symbol(),
             // A browser has no ffmpeg to read a movie with.
             MenuAction::ImportVideo => {
                 !cfg!(target_arch = "wasm32")
@@ -187,6 +188,8 @@ impl Workspace {
             | MenuAction::ShowMannequin
             | MenuAction::ToggleMannequinOnStage
             | MenuAction::ShowEffects
+            | MenuAction::ShowShaders
+            | MenuAction::ShowGame
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleEditMultipleFrames
@@ -211,6 +214,10 @@ impl Workspace {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
             MenuAction::ImportVideo => self.dialog = Some(DialogRequest::ImportVideo),
+            MenuAction::ImportImageSequence => {
+                self.dialog = Some(DialogRequest::ImportImageSequence)
+            }
+            MenuAction::MovieScripts => self.dialog = Some(DialogRequest::MovieScripts),
             MenuAction::ImportBrushProfiles => {
                 self.dialog = Some(DialogRequest::ImportBrushProfiles)
             }
@@ -414,6 +421,8 @@ impl Workspace {
                 self.place_mannequin_as(PlaceInto::NewLayer);
             }
             MenuAction::ShowEffects => self.show_pane(Pane::Effects),
+            MenuAction::ShowShaders => self.show_pane(Pane::Shaders),
+            MenuAction::ShowGame => self.show_pane(Pane::Game),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleEditMultipleFrames => {

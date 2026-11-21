@@ -168,8 +168,9 @@ impl TextEngine {
             builder.push_default(StyleProperty::FontStyle(FontStyle::Italic));
         }
         let mut layout = builder.build(text);
+        // parley 0.13 sets the alignment before the lines are broken, and applies it then.
+        layout.set_alignment(Alignment::Start, AlignmentOptions::default());
         layout.break_all_lines(None);
-        layout.align(Alignment::Start, AlignmentOptions::default());
 
         let mut path = Vec::new();
         let mut glyphs = 0_usize;

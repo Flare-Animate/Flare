@@ -6,9 +6,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
 use clap::Subcommand;
-use flare_commands::Command;
 use flare_core::Rgba8;
-use flare_document::ShaderAsset;
 use flare_render::{StillFormat, apply_shader_stack};
 use serde_json::{Value, json};
 
@@ -26,6 +24,8 @@ pub(crate) enum ShaderCommand {
         name: String,
         graph: PathBuf,
     },
+    /// Take a named graph out of the project (one undo step in the apps).
+    Remove { path: PathBuf, name: String },
     /// Export a named graph in Flare's versioned JSON interchange form.
     Export {
         path: PathBuf,
@@ -61,6 +61,13 @@ pub(crate) fn run(command: ShaderCommand) -> Result<Value> {
         }
         ShaderCommand::Import { path, name, graph } => import(&path, &name, &graph),
         ShaderCommand::Export { path, name, out } => export(&path, &name, &out),
+        ShaderCommand::Remove { path, name } => {
+            let mut session = project::open_session(&path)?;
+            let command = flare_editor::shader_library::remove_graph(session.document(), &name)?;
+            session.apply([command])?;
+            project::commit_session(&session, &path)?;
+            Ok(json!({"removed": name.trim()}))
+        }
         ShaderCommand::Render {
             path,
             out,
@@ -171,12 +178,9 @@ fn import(path: &std::path::Path, name: &str, graph_path: &std::path::Path) -> R
         bail!("shader graph file exceeds {MAX_SHADER_FILE_BYTES} bytes");
     }
     let graph = flare_import::import_shader_graph(&bytes).context("invalid shader graph")?;
-    let asset = ShaderAsset::new(name, graph)?;
     let mut session = project::open_session(path)?;
-    let mut assets = session.document().shader_assets().to_vec();
-    assets.retain(|existing| existing.name() != asset.name());
-    assets.push(asset);
-    session.apply([Command::SetShaderAssets(assets)])?;
+    let command = flare_editor::shader_library::set_graph(session.document(), name, graph)?;
+    session.apply([command])?;
     project::commit_session(&session, path)?;
     Ok(json!({"imported": name.trim()}))
 }

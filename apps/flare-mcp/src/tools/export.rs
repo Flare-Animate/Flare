@@ -8,7 +8,9 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
 use crate::color::{safe_file_name_with, safe_name};
-use crate::params::{ExportSpriteSheet, ExportXfl, ImportProject, PublishHtml5, PublishSwf};
+use crate::params::{
+    ExportSpriteSheet, ExportXfl, ImportImageSequence, ImportProject, PublishHtml5, PublishSwf,
+};
 use crate::params_export::{
     ExportAnimation, ExportMovie, ExportStill, ExportSvg, MovieKind, StillKind, backdrop,
 };
@@ -412,6 +414,40 @@ impl FlareServer {
                 "diagnostics": diagnostics(&imported.diagnostics, |d| (
                     format!("{:?}", d.severity).to_lowercase(),
                     format!("{}: {}", d.location, d.message))),
+            }))
+        })
+    }
+
+    #[tool(
+        description = "Import numbered PNG files in the export directory, or one folder of them, as a new .flare project beside it: one layer with a keyframe per picture in natural order (2 before 10), 24 frames a second, each distinct picture stored once. The open project is not changed."
+    )]
+    fn import_image_sequence(&self, Parameters(args): Parameters<ImportImageSequence>) -> Outcome {
+        self.read(|state| {
+            let dir = export_dir(state)?;
+            let mut sources = Vec::with_capacity(args.sources.len());
+            for name in &args.sources {
+                let source = dir.join(safe_name(name)?);
+                if !source.exists() {
+                    return Err(format!("{name} is not in the export directory"));
+                }
+                sources.push(source);
+            }
+            let out = fresh(&dir, &safe_file_name_with(&args.name, "flare")?)?;
+            let files = flare_import::read_sequence_files(&sources).map_err(|e| e.to_string())?;
+            let imported = flare_import::import_image_sequence(files).map_err(|e| e.to_string())?;
+            keep_fresh(&out, |path| {
+                flare_storage::save(&imported.document, path).map_err(|e| e.to_string())
+            })?;
+            let pictures = imported
+                .document
+                .scenes()
+                .first()
+                .and_then(|s| s.timeline().layers().first())
+                .map_or(0, |l| l.spans().len());
+            Ok(json!({
+                "path": out.to_string_lossy(),
+                "pictures": pictures,
+                "bitmaps": imported.document.bitmaps().len(),
             }))
         })
     }

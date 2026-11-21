@@ -104,6 +104,7 @@ impl Workspace {
         self.increment_instances_window(&ctx);
         self.symbol_dialog_window(&ctx);
         self.video_import_window(&ctx);
+        self.movie_scripts_window(&ctx);
         self.palette_window(&ctx);
         self.ensure_language_font(&ctx);
         self.file_windows(&ctx);

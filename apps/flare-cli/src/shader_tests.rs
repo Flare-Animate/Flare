@@ -81,3 +81,28 @@ fn renders_a_project_frame_through_the_named_shader_stack() {
     let still = flare_import::read_still("render.png", &bytes, 1).expect("decode rendered image");
     assert_eq!(still.rgba, vec![255, 0, 0, 255]);
 }
+
+#[test]
+fn removes_a_graph_and_refuses_one_that_is_not_there() {
+    let dir = tempfile::tempdir().expect("directory");
+    let project_path = dir.path().join("shaders.flare");
+    project::new(&project_path, 24, 1, flare_document::Stage::default()).expect("project");
+    let graph_path = dir.path().join("flat.json");
+    std::fs::write(
+        &graph_path,
+        br#"{"version":1,"nodes":[{"op":"constant","args":0.0},{"op":"color","args":[0,0,0,0]}],"output":1}"#,
+    )
+    .expect("write graph");
+    import(&project_path, "Flat", &graph_path).expect("import");
+    let remove = || ShaderCommand::Remove {
+        path: project_path.clone(),
+        name: "Flat".to_owned(),
+    };
+    run(remove()).expect("remove");
+    let listed = run(ShaderCommand::List {
+        path: project_path.clone(),
+    })
+    .expect("list");
+    assert_eq!(listed["shader_graphs"], serde_json::json!([]));
+    assert!(run(remove()).is_err());
+}

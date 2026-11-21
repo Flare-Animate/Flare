@@ -386,3 +386,58 @@ fn a_legacy_binary_fla_imports_as_a_skeleton_with_a_warning() {
         (Some(550), Some(400))
     );
 }
+
+#[test]
+fn import_sequence_makes_a_project_with_a_keyframe_per_picture_and_refuses_what_is_wrong() {
+    let dir = tempfile::tempdir().expect("dir");
+    let png = |value: u8| {
+        let mut out = Vec::new();
+        let mut encoder = png::Encoder::new(&mut out, 1, 1);
+        encoder.set_color(png::ColorType::Rgba);
+        encoder.set_depth(png::BitDepth::Eight);
+        encoder
+            .write_header()
+            .expect("header")
+            .write_image_data(&[value, 0, 0, 255])
+            .expect("data");
+        out
+    };
+    let pictures = dir.path().join("pictures");
+    std::fs::create_dir(&pictures).expect("dir");
+    for (name, value) in [("a_10.png", 1), ("a_2.png", 2), ("a_1.png", 3)] {
+        std::fs::write(pictures.join(name), png(value)).expect("write");
+    }
+    let out = dir.path().join("seq.flare");
+    let made = json(&[
+        "import-sequence",
+        pictures.to_str().expect("path"),
+        "--out",
+        out.to_str().expect("path"),
+    ]);
+    assert_eq!(made["pictures"], 3);
+    assert_eq!(made["bitmaps"], 3);
+    assert!(out.exists());
+    // An existing project is never written over.
+    assert!(
+        !run(&[
+            "import-sequence",
+            pictures.to_str().expect("path"),
+            "--out",
+            out.to_str().expect("path")
+        ])
+        .status
+        .success()
+    );
+    let empty = dir.path().join("empty");
+    std::fs::create_dir(&empty).expect("dir");
+    assert!(
+        !run(&[
+            "import-sequence",
+            empty.to_str().expect("path"),
+            "--out",
+            dir.path().join("x.flare").to_str().expect("path")
+        ])
+        .status
+        .success()
+    );
+}

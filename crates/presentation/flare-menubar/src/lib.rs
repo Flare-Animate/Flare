@@ -35,6 +35,10 @@ pub enum MenuAction {
     ImportSound,
     /// File > Import > Import Video: a movie on a layer of its own, to draw over.
     ImportVideo,
+    /// Numbered pictures as one layer with a keyframe each.
+    ImportImageSequence,
+    /// A movie's ActionScript 3 read in a window (Debug > Movie Scripts).
+    MovieScripts,
     /// File > Import > Import Brush Presets: another art tool's pen profiles
     /// (Photoshop `.abr`, Krita `.kpp` or `.bundle`) onto the brush list.
     ImportBrushProfiles,
@@ -190,10 +194,12 @@ pub enum MenuAction {
     PlaceMannequinOnLayer,
     /// Window > Effects: the active layer's effects as a node graph.
     ShowEffects,
+    ShowShaders,
+    ShowGame,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 148] = [
+    pub const ALL: [MenuAction; 152] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -203,6 +209,8 @@ impl MenuAction {
         Self::PublishSettings,
         Self::ImportSound,
         Self::ImportVideo,
+        Self::ImportImageSequence,
+        Self::MovieScripts,
         Self::ImportBrushProfiles,
         Self::ExportImage,
         Self::ExportMovie,
@@ -342,6 +350,8 @@ impl MenuAction {
         Self::PlaceMannequinUnder,
         Self::PlaceMannequinOnLayer,
         Self::ShowEffects,
+        Self::ShowShaders,
+        Self::ShowGame,
     ];
 
     /// A stable identifier for native menu items (the variant name).

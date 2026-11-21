@@ -390,9 +390,10 @@ pub(crate) enum Command {
         #[arg(long)]
         percent: Option<u8>,
     },
-    /// Import an XFL directory, .xfl, .fla, .swf, Moho, BVH or Toonz file into a new project, listing what was
-    /// not carried over.
+    /// Import an XFL, .fla, .swf, Moho, BVH or Toonz file as a project, listing what was lost.
     Import { source: PathBuf, out: PathBuf },
+    /// Import numbered PNG files, or a folder of them, as one layer with a keyframe each.
+    ImportSequence(crate::sequence::SequenceArgs),
     /// Convert a project to the format OUT's ending says: .fla, .xfl (a folder with the .xfl stub
     /// inside) or .flare, as Save As does. The source can be any of them (or a .swf to read). An
     /// Animate document that was not edited is written back as the original.

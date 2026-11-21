@@ -154,20 +154,7 @@ pub fn run(op: ScriptsCommand) -> Result<Value> {
 }
 
 fn read(path: &Path) -> Result<Movie> {
-    let meta =
-        std::fs::metadata(path).with_context(|| format!("cannot open {}", path.display()))?;
-    if !meta.is_file() {
-        bail!("{} is not a file", path.display());
-    }
-    if meta.len() > flare_as3::MAX_MOVIE_BYTES {
-        bail!(
-            "{} is larger than {} bytes, more than a movie is read at",
-            path.display(),
-            flare_as3::MAX_MOVIE_BYTES
-        );
-    }
-    let bytes = std::fs::read(path).with_context(|| format!("cannot read {}", path.display()))?;
-    Ok(Movie::read(&bytes)?)
+    Ok(Movie::open(path)?)
 }
 
 /// Writes `bytes` to `path`, which must not exist yet. The file appears whole or not at all.

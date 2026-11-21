@@ -100,6 +100,16 @@ impl Workspace {
         self.settle_inline();
     }
 
+    /// Opens numbered pictures (name and bytes) as a new project with a keyframe each, decoded
+    /// off the UI thread.
+    pub fn import_image_sequence(&mut self, files: Vec<(String, Vec<u8>)>) {
+        let id = self.background.next_id();
+        self.importing = Some(id);
+        self.background
+            .submit_io(IoJob::ImportSequence { id, files });
+        self.settle_inline();
+    }
+
     /// Replaces the document in its tab with an empty one. The caller has made sure that loses
     /// nothing.
     pub(super) fn new_document_in_place(&mut self) {

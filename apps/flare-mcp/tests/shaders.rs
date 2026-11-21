@@ -95,3 +95,23 @@ async fn png_export_applies_named_shader_graphs_in_order() {
     let image = flare_import::read_still("shader.png", &png, 1).expect("decode PNG");
     assert_eq!(image.rgba, vec![255, 0, 0, 255]);
 }
+
+#[tokio::test]
+async fn a_graph_is_removed_in_one_step_and_a_missing_one_is_refused() {
+    let f = fixture(true, true).await;
+    f.ok(
+        "set_shader_graph",
+        json!({"name":"Wavy","graph_json":VALID}),
+    )
+    .await;
+    f.ok("remove_shader_graph", json!({"name":"Wavy"})).await;
+    assert_eq!(
+        f.ok("list_shader_graphs", json!({})).await["shader_graphs"],
+        json!([])
+    );
+    let (error, message) = f.tool("remove_shader_graph", json!({"name":"Wavy"})).await;
+    assert!(
+        error && message.to_string().contains("not in this project"),
+        "{message}"
+    );
+}

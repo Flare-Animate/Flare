@@ -16,6 +16,7 @@ mod keep;
 pub mod legacy;
 mod moho_images;
 mod psd;
+mod sequence_files;
 mod shader_graph;
 mod source;
 mod still;
@@ -39,6 +40,7 @@ pub use file_kinds::{
 };
 pub use flipnote::{looks_like_kwz, looks_like_ppm};
 pub use foreign::{foreign_kind, import_foreign_bytes, import_foreign_path};
+pub use sequence_files::{SEQUENCE_EXTENSIONS, read_sequence_files, sequence_paths};
 pub use shader_graph::{
     MAX_SHADER_GRAPH_FILE_BYTES, ShaderGraphImportError, export_shader_graph, import_shader_graph,
 };

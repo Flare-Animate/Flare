@@ -119,6 +119,11 @@ pub enum IoJob {
         name: String,
         bytes: Vec<u8>,
     },
+    /// Numbered pictures (name and file bytes) as one layer with a keyframe each.
+    ImportSequence {
+        id: u64,
+        files: Vec<(String, Vec<u8>)>,
+    },
 }
 
 /// A drawn frame, in whichever form the rasterizer produced it: the common one (no ghosts)

@@ -1,0 +1,13 @@
+pane-shaders = Nuanceurs
+menu-item-show-shaders = Nuanceurs
+hist-import-shader = Importer un graphe de nuanceur
+hist-remove-shader = Retirer un graphe de nuanceur
+shaders-empty = Ce projet n'a pas encore de graphe de nuanceur. Importez-en un depuis un fichier de graphe.
+shaders-import = Importer...
+shaders-export = Exporter...
+shaders-remove = Retirer
+shaders-nodes = { $count } nœuds
+shaders-select = Choisissez un graphe pour l'exporter ou le retirer.
+shaders-cannot-import = Impossible d'importer { $name } : { $error }
+shaders-cannot-export = Impossible d'exporter { $name } : { $error }
+shaders-note = Les graphes sont conservés dans le projet. `flare shader render` et export_png du serveur MCP les appliquent à une image.

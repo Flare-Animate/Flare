@@ -12,6 +12,7 @@ mod magnet;
 mod mannequin;
 mod project;
 mod scripts;
+mod sequence;
 mod shader;
 mod shortcuts;
 mod stopmotion;
@@ -203,6 +204,7 @@ fn run() -> Result<()> {
             columns,
         } => project::export_sprites(&path, &out, start, end, columns)?,
         Command::Import { source, out } => project::import(&source, &out)?,
+        Command::ImportSequence(args) => sequence::run(&args)?,
         Command::Convert { source, out, force } => project::convert(&source, &out, force)?,
         Command::ExportXfl { path, out } => project::export_xfl(&path, &out)?,
         Command::PublishSwf {

@@ -30,3 +30,6 @@ dlg-increment-apply = Zvýšit
 dlg-filter-animate-shortcuts = Zkratky Animate
 dlg-cannot-read = Soubor nelze přečíst
 dlg-filter-sprite-sheet = Obrázek sprite sheet
+dlg-filter-movie-scripts = Flashový film
+dlg-filter-image-sequence = Obrázky PNG
+dlg-filter-shader = Graf shaderu

@@ -1,0 +1,13 @@
+pane-shaders = Шейдеры
+menu-item-show-shaders = Шейдеры
+hist-import-shader = Импорт графа шейдера
+hist-remove-shader = Удалить граф шейдера
+shaders-empty = В этом проекте пока нет графов шейдеров. Импортируйте граф из файла.
+shaders-import = Импорт...
+shaders-export = Экспорт...
+shaders-remove = Удалить
+shaders-nodes = Узлов: { $count }
+shaders-select = Выберите граф, чтобы экспортировать или удалить его.
+shaders-cannot-import = Не удалось импортировать { $name }: { $error }
+shaders-cannot-export = Не удалось экспортировать { $name }: { $error }
+shaders-note = Графы хранятся в проекте. `flare shader render` и export_png сервера MCP применяют их к кадру.
