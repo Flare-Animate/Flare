@@ -3,6 +3,7 @@
 
 mod brush;
 mod commands;
+mod frames;
 mod fx;
 mod game;
 mod lipsync;
@@ -126,6 +127,8 @@ fn run() -> Result<()> {
             motion,
             ease,
         } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
+        Command::Frames(args) => crate::frames::list(args)?,
+        Command::Goto(args) => crate::frames::goto(args)?,
         Command::Bone { action } => project::bone(action)?,
         Command::Bones { path, frame } => project::bones_list(&path, frame)?,
         Command::Tween { op } => tween::run(op)?,
@@ -282,6 +285,8 @@ fn run() -> Result<()> {
         Command::Smudge(args) => {
             project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?
         }
+        Command::RasterBrush(args) => project::raster_brush(&args)?,
+        Command::ConvertToBitmap(args) => project::convert_to_bitmap(&args)?,
         Command::AddText {
             path,
             text,

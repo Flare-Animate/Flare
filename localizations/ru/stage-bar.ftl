@@ -32,3 +32,7 @@ bar-grid-down = Шаг по вертикали
 bar-grid-color = Цвет сетки
 bar-grid-color-auto = Автоматический цвет
 bar-grid-reset = Сбросить сетку
+bar-frame-picker = Перейти к кадру
+bar-frame-number = Кадр
+bar-frame-previous-keyframe = Предыдущий ключевой кадр
+bar-frame-next-keyframe = Следующий ключевой кадр

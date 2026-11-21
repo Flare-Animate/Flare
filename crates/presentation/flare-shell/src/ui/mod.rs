@@ -5,6 +5,7 @@
 mod app;
 #[cfg(feature = "autotest")]
 mod autotest;
+mod dialog_requests;
 mod frame;
 #[cfg(test)]
 mod frame_tests;
@@ -32,7 +33,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 
 /// Events sent to the event loop from outside it (native menu clicks arrive on AppKit's side,
 /// background work finishes on its own thread).
-pub(crate) enum UserEvent {
+enum UserEvent {
     #[cfg(target_os = "macos")]
     Menu(flare_menubar::MenuAction),
     /// A test movie finished starting (or failed to) on its own thread, in a Ruffle program of
@@ -47,6 +48,8 @@ pub(crate) enum UserEvent {
     Autotest(autotest::Step),
     /// An export or publish finished on its own thread; an error is worded for the person.
     Exported(Result<(), String>),
+    /// A file picker (run on its own thread) was answered or cancelled; this is what to do next.
+    Answer(dialog_requests::Answer),
     /// A Google Fonts family text asked for was downloaded on its own thread, or could not be.
     FontDownloaded(String, Result<Vec<Vec<u8>>, String>),
     /// A screen reader asked for the interface's tree, for an action, or let go (AccessKit).

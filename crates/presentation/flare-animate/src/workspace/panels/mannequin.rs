@@ -314,6 +314,7 @@ impl Workspace {
             tr!(self, "mannequin-place-new-layer"),
             tr!(self, "mannequin-place-this-keyframe"),
             tr!(self, "mannequin-place-new-keyframe"),
+            tr!(self, "mannequin-place-underlay"),
         ];
         let labels: Vec<&str> = names.iter().map(String::as_str).collect();
         let current = PlaceInto::ALL

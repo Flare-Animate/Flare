@@ -37,6 +37,7 @@ mod effects;
 mod eraser;
 mod frame_focus;
 mod frame_menu;
+mod frame_picker;
 mod frame_rate;
 mod frames_text_and_sound;
 mod graphic_playback;
@@ -77,6 +78,7 @@ mod paste_into_layer;
 mod pasteboard;
 mod pen_and_selection;
 mod pencil_pressure;
+mod phone_layout;
 mod polygon_lasso;
 mod preferences_dialog;
 mod properties_context;
@@ -103,6 +105,7 @@ mod swatches;
 mod symbol_dialog;
 mod tab_strip;
 mod text_fonts;
+mod text_helpers;
 mod text_keys;
 mod text_objects;
 mod timeline_animating;
@@ -129,6 +132,7 @@ mod video_import;
 mod window_controls;
 mod window_menu;
 mod workspaces;
+use text_helpers::{drawn_shape, text_workspace, type_text};
 
 fn document() -> Document {
     // A blank 24-frame keyframe, so a drawing joins a span of the length the old drawing default
@@ -471,30 +475,4 @@ fn layer_spans(ws: &Workspace, id: LayerId) -> Vec<(u32, u32)> {
         .iter()
         .map(|s| (s.start(), s.duration().get()))
         .collect()
-}
-
-/// A workspace whose text jobs use the Hack font by name, whatever the machine has.
-fn text_workspace() -> Workspace {
-    let mut ws = workspace();
-    ws.text.family = "Hack".into();
-    ws.text.size = 40.0;
-    ws.set_tool(Tool::Text);
-    ws
-}
-
-fn type_text(ws: &mut Workspace, at: Pos2, text: &str) {
-    ws.text.edit = Some(PendingText {
-        at,
-        buffer: text.into(),
-        focused: true,
-        editing: None,
-    });
-    ws.place_text();
-}
-
-fn drawn_shape(ws: &Workspace, layer: usize) -> Shape {
-    match drawings(ws).get(layer - 1) {
-        Some(Content::Shape(shape)) => shape.clone(),
-        _ => panic!("shape expected"),
-    }
 }

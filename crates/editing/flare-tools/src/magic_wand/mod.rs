@@ -183,7 +183,11 @@ pub fn bitmap_at(
     None
 }
 
-fn pixel_under(placed: &BitmapInstance, bitmap: &Bitmap, point: DVec2) -> Option<(u32, u32)> {
+pub(crate) fn pixel_under(
+    placed: &BitmapInstance,
+    bitmap: &Bitmap,
+    point: DVec2,
+) -> Option<(u32, u32)> {
     let matrix = placed.transform().as_affine();
     if matrix.matrix2.determinant().abs() < 1e-12 {
         return None;

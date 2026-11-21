@@ -32,3 +32,7 @@ bar-grid-down = Espaciado vertical
 bar-grid-color = Color de la cuadrícula
 bar-grid-color-auto = Color automático
 bar-grid-reset = Restablecer la cuadrícula
+bar-frame-picker = Ir a un fotograma
+bar-frame-number = Fotograma
+bar-frame-previous-keyframe = Fotograma clave anterior
+bar-frame-next-keyframe = Fotograma clave siguiente

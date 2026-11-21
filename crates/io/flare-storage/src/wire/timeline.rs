@@ -251,6 +251,12 @@ pub(super) struct LayerWire {
     /// Absent in files written before motion guides existed.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub(super) guide: bool,
+    /// Absent in files written before layers could hold their last drawing.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub(super) hold: bool,
+    /// Absent in files written before reference layers existed.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub(super) reference: bool,
     /// Absent in files written before cameras existed.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub(super) camera: bool,
@@ -288,6 +294,8 @@ impl TimelineWire {
                 mask: layer.is_mask(),
                 folder: layer.is_folder(),
                 guide: layer.is_guide(),
+                hold: layer.is_hold(),
+                reference: layer.is_reference(),
                 camera: layer.is_camera(),
                 outline: layer.outline().map(|c| [c.r, c.g, c.b]),
                 view_opacity: (layer.view_opacity() < 100).then_some(layer.view_opacity()),
@@ -371,6 +379,8 @@ impl TimelineWire {
                     .with_mask(layer.mask)
                     .with_folder(layer.folder)
                     .with_guide(layer.guide)
+                    .with_hold(layer.hold)
+                    .with_reference(layer.reference)
                     .with_camera(layer.camera)
                     .with_outline(layer.outline.map(|[r, g, b]| Rgba8::opaque(r, g, b)))
                     .with_view_opacity(layer.view_opacity.unwrap_or(100))

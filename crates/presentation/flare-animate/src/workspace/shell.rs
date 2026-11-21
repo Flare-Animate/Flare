@@ -11,7 +11,9 @@ impl Workspace {
     /// The workspaces, with the arrangement on screen as the active one's, as JSON, for saving
     /// between sessions.
     pub fn layout_json(&self) -> Result<String, serde_json::Error> {
-        flare_dock::workspaces_to_json(&self.panels.workspaces, &self.panels.layout)
+        // A phone's arrangement is not the person's own: the one saved is the one put away.
+        let layout = self.phone_stash.as_ref().unwrap_or(&self.panels.layout);
+        flare_dock::workspaces_to_json(&self.panels.workspaces, layout)
     }
 
     /// Restores saved workspaces (or a layout saved before there were any). An unusable file is

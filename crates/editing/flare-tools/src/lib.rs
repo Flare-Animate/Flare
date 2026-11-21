@@ -49,5 +49,6 @@ pub mod subselection;
 #[cfg(test)]
 mod test_support;
 pub mod text;
+pub mod to_bitmap;
 pub mod tween;
 pub mod video;

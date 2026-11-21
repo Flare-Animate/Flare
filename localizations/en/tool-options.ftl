@@ -154,3 +154,6 @@ opt-pressure-size = Pressure sets size
 opt-pressure-size-tip = A lighter touch makes a narrower stroke
 opt-color-stretch = Color stretch
 opt-color-stretch-tip = How far a picked-up color is carried along the stroke; 0 mixes in place
+opt-opacity = Opacity
+opt-color-mix = Color mix
+opt-color-mix-tip = How much of the color under the brush mixes into the paint; 0 lays the paint as it is

@@ -14,6 +14,7 @@ image = { workspace = true, features = ["png"] }
 
 [dev-dependencies]
 flare-i18n.workspace = true
+flare-profile.workspace = true
 
 [lints]
 workspace = true

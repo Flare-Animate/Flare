@@ -32,3 +32,7 @@ bar-grid-down = Spaziatura verticale
 bar-grid-color = Colore griglia
 bar-grid-color-auto = Colore automatico
 bar-grid-reset = Ripristina griglia
+bar-frame-picker = Vai a un fotogramma
+bar-frame-number = Fotogramma
+bar-frame-previous-keyframe = Fotogramma chiave precedente
+bar-frame-next-keyframe = Fotogramma chiave successivo

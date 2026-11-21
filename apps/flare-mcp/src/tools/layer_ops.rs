@@ -43,6 +43,17 @@ pub struct LayerOpacity {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct LayerHold {
+    /// Layer id; defaults to the first layer.
+    pub layer: Option<String>,
+    /// True: the layer keeps its last drawing on show past its last keyframe until something
+    /// new is drawn or a blank keyframe ends it. False: it shows nothing there.
+    pub hold: bool,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct WholeScene {
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
@@ -134,6 +145,20 @@ impl FlareServer {
                     change: flare_commands::LayerChange::ViewOpacity(args.percent),
                 }]
             };
+            apply_some(state, commands)
+        })
+    }
+
+    #[tool(
+        description = "Make a layer hold its last drawing (hold true) so it stays on show in the frames after its last keyframe until something new is drawn or a blank keyframe ends it, or show nothing there (hold false) (needs write access)."
+    )]
+    fn set_layer_hold(&self, Parameters(args): Parameters<LayerHold>) -> Outcome {
+        self.write(args.expected_revision, |state| {
+            let scene = first_scene(state)?;
+            let layer = target_layer(state, args.layer.as_deref())?;
+            let commands =
+                flare_commands::layers::set_hold(state.session.document(), scene, layer, args.hold)
+                    .map_err(|e| e.to_string())?;
             apply_some(state, commands)
         })
     }

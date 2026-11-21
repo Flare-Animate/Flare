@@ -99,8 +99,11 @@ msg-saved-with-notes = { $path }을(를) 저장했습니다 ({ $detail }). 이 �
 msg-saved-rebuilt-names = { $path }에서 다시 만든 파일: { $names }
 msg-magic-wand = 마술봉: { $reason }
 msg-magic-wand-changed = 픽셀을 지우는 동안 문서가 바뀌어 아무것도 지우지 않았습니다
+msg-to-bitmap = 비트맵으로 변환: { $reason }
+msg-to-bitmap-changed = 비트맵을 만드는 동안 문서가 바뀌어 아무것도 변환하지 않았습니다
 msg-blend = 흐리기와 손끝: { $reason }
 msg-blend-changed = 획을 그리는 동안 문서가 바뀌어 나머지는 적용되지 않았습니다
+msg-raster-brush = 래스터 브러시: { $reason }
 
 brushes-imported = 브러시 프리셋 { $n }개를 가져왔습니다
 brushes-import-refused = 브러시 프리셋을 가져올 수 없습니다: { $reason }

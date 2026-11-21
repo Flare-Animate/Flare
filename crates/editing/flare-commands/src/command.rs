@@ -16,6 +16,10 @@ pub enum LayerChange {
     Mask(bool),
     /// Makes the layer a motion guide (or a plain layer again).
     Guide(bool),
+    /// Whether the layer holds its last drawing past its last keyframe.
+    Hold(bool),
+    /// Whether the layer is a reference: shown on the stage, never exported.
+    Reference(bool),
     /// Sets the layer's outline color, or clears it.
     Outline(Option<flare_core::Rgba8>),
     /// Puts the layer in a folder, or takes it out with `None`.

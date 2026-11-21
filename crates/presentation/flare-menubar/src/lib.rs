@@ -42,6 +42,8 @@ pub enum MenuAction {
     ExportMovie,
     ExportFla,
     ExportSvg,
+    /// File > Export > Export Sprite Sheet: every frame on one picture, with its JSON atlas.
+    ExportSpriteSheet,
     Save,
     SaveAs,
     Quit,
@@ -52,6 +54,8 @@ pub enum MenuAction {
     Paste,
     Duplicate,
     ConvertToSymbol,
+    /// Turn the selected shapes, instances and bitmaps of one keyframe into one bitmap.
+    ConvertToBitmap,
     Group,
     BringToFront,
     BringForward,
@@ -178,12 +182,18 @@ pub enum MenuAction {
     ShowSwatches,
     /// Window > Mannequin: the posable figure to draw from.
     ShowMannequin,
+    /// View > Mannequin > Show on the Stage: the figure over the stage, never exported.
+    ToggleMannequinOnStage,
+    /// View > Mannequin > Insert Under the Drawing: the figure as a locked guide at the bottom.
+    PlaceMannequinUnder,
+    /// View > Mannequin > Insert on a New Layer: the figure as a picture on a layer at the top.
+    PlaceMannequinOnLayer,
     /// Window > Effects: the active layer's effects as a node graph.
     ShowEffects,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 143] = [
+    pub const ALL: [MenuAction; 148] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -198,6 +208,7 @@ impl MenuAction {
         Self::ExportMovie,
         Self::ExportFla,
         Self::ExportSvg,
+        Self::ExportSpriteSheet,
         Self::Save,
         Self::SaveAs,
         Self::Quit,
@@ -208,6 +219,7 @@ impl MenuAction {
         Self::Paste,
         Self::Duplicate,
         Self::ConvertToSymbol,
+        Self::ConvertToBitmap,
         Self::Group,
         Self::BringToFront,
         Self::BringForward,
@@ -326,6 +338,9 @@ impl MenuAction {
         Self::CommandPalette,
         Self::ShowSwatches,
         Self::ShowMannequin,
+        Self::ToggleMannequinOnStage,
+        Self::PlaceMannequinUnder,
+        Self::PlaceMannequinOnLayer,
         Self::ShowEffects,
     ];
 
