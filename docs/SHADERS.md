@@ -8,7 +8,7 @@ pixel-center `UvX`/`UvY` coordinates and time in seconds.
 
 The current interchange file is versioned JSON. `flare shader import PROJECT NAME GRAPH.json`
 adds or replaces an asset by name, `flare shader export PROJECT NAME GRAPH.json` writes an asset
-back to that format, and `flare shader list PROJECT` lists saved assets.
+back to that format, `flare shader remove PROJECT NAME` takes one out, and `flare shader list PROJECT` lists saved assets.
 `flare shader render PROJECT OUTPUT.png --shader NAME` renders a project frame through an ordered
 stack of up to 16 named graphs (`--frame`, `--width`, `--height` and `--transparent` are available).
 Each graph receives the preceding graph's output as its source color. MCP exposes the same graph
@@ -39,6 +39,6 @@ records; loading validates the graph again.
 The CLI and MCP server can list, export and edit these portable graph assets, and both can render a
 frame through a shader stack. This is the foundation, not full source-format compatibility. Effects
 are not yet attached to timeline objects or automatically applied by regular project export, and
-there is no desktop or browser authoring panel. OpenToonz
+the desktop app and the browser have a Shaders panel (Window > Shaders) to import, export and remove graphs, with a picture of each, but no node editor. OpenToonz
 Shader Fx XML descriptors and GLSL programs are not executed. Unity `.shadergraph` files and
 Blender `.blend` node graphs are not imported.

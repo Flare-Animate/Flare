@@ -30,3 +30,6 @@ dlg-increment-apply = 증분
 dlg-filter-animate-shortcuts = Animate 바로 가기
 dlg-cannot-read = 파일을 읽을 수 없습니다
 dlg-filter-sprite-sheet = 스프라이트 시트 그림
+dlg-filter-movie-scripts = Flash 동영상
+dlg-filter-image-sequence = PNG 그림
+dlg-filter-shader = 셰이더 그래프

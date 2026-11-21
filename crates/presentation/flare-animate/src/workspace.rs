@@ -84,6 +84,8 @@ mod transform_cursor;
 mod window_controls;
 mod workspaces;
 use tools::{anchors, stroke_preview, text_preview};
+mod movie_scripts;
+mod movie_scripts_window;
 mod new_document;
 mod new_document_presets;
 #[cfg(test)]
@@ -149,6 +151,8 @@ pub struct Workspace {
     collapsed_folders: std::collections::HashSet<LayerId>,
     /// The library panel's state.
     library: symbols::LibraryState,
+    shaders: panels::shaders::ShaderPanel,
+    game: panels::game::GamePanel,
     /// The import being read, if any.
     importing: Option<u64>,
     reverting: Option<u64>,
@@ -358,4 +362,6 @@ pub struct Workspace {
     effects: effects::EffectsState,
     /// A video being brought in: probed, asked about or read.
     video_import: video_import::VideoImport,
+    /// The Movie Scripts window, while a movie is open in it.
+    movie_scripts: Option<movie_scripts::MovieScripts>,
 }

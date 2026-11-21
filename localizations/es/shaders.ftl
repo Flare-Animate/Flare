@@ -1,0 +1,13 @@
+pane-shaders = Sombreadores
+menu-item-show-shaders = Sombreadores
+hist-import-shader = Importar un grafo de sombreador
+hist-remove-shader = Quitar un grafo de sombreador
+shaders-empty = Este proyecto aún no tiene grafos de sombreador. Importa uno desde un archivo de grafo.
+shaders-import = Importar...
+shaders-export = Exportar...
+shaders-remove = Quitar
+shaders-nodes = { $count } nodos
+shaders-select = Elige un grafo para exportarlo o quitarlo.
+shaders-cannot-import = No se puede importar { $name }: { $error }
+shaders-cannot-export = No se puede exportar { $name }: { $error }
+shaders-note = Los grafos se guardan en el proyecto. `flare shader render` y export_png del servidor MCP los aplican a un fotograma.

@@ -51,6 +51,16 @@ pub fn pick_image(filter: &str, extensions: &[&str]) -> Option<PathBuf> {
     backend::pick_image(filter, extensions)
 }
 
+/// Where to write a small JSON file, offering `name` first.
+pub fn save_json(filter: &str, name: &str) -> Option<PathBuf> {
+    backend::save_json(filter, name)
+}
+
+/// Several pictures at once (an image sequence), of the kinds whose endings are `extensions`.
+pub fn pick_images(filter: &str, extensions: &[&str]) -> Option<Vec<PathBuf>> {
+    backend::pick_images(filter, extensions)
+}
+
 /// A movie to bring in to draw over, of the kinds ffmpeg is asked to read.
 pub fn pick_video(filter: &str) -> Option<PathBuf> {
     backend::pick_video(filter)

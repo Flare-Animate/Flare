@@ -261,6 +261,11 @@ pub fn run_io(job: IoJob) -> Done {
                 },
             ),
         },
+        IoJob::ImportSequence { id, files } => Done::Imported {
+            id,
+            path: PathBuf::from("Sequence"),
+            result: imported(flare_import::import_image_sequence(files)),
+        },
         IoJob::Autosave { id, dir, document } => Done::Autosaved {
             id,
             result: flare_storage::save_recovery(&document, &dir).map_err(|e| e.to_string()),

@@ -1,0 +1,15 @@
+scripts-title = Movie Scripts: { $name }
+scripts-classes = Classes
+scripts-strings = Strings
+scripts-find = Find
+scripts-find-hint = Part of a name or text, then Enter
+scripts-search = Search
+scripts-code = List method bodies as instructions
+scripts-text-only = Only text the code uses
+scripts-pick-class = Choose a class to read it.
+scripts-truncated = The text stops here: it is longer than a window shows.
+scripts-cannot-read = Cannot read { $name }: { $error }
+scripts-use-text = text
+scripts-use-name = name
+scripts-use-other = other
+scripts-note = Read only: Flare does not run these scripts. To change a string, patch the movie with `flare scripts patch` or the MCP server.

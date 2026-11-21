@@ -14,11 +14,13 @@ mod icon_names;
 mod no_literal_text;
 mod workspace;
 
+pub use flare_as3::{Movie, ScriptError};
 pub use flare_dock::{LayoutError, MAX_LAYOUT_BYTES, Pane};
 /// The endings a pen-profile picker offers and the largest profile file.
 pub use flare_import::brushes::{
     MAX_OWNED_BYTES as MAX_BRUSH_PROFILE_FILE_BYTES, PROFILE_EXTENSIONS,
 };
+pub use flare_import::{MAX_SHADER_GRAPH_FILE_BYTES, SEQUENCE_EXTENSIONS, read_sequence_files};
 /// The pictures the Mannequin panel poses from: the endings a picker offers and the largest file.
 pub use flare_import::{
     MAX_STILL_BYTES as MAX_REFERENCE_BYTES, STILL_EXTENSIONS as REFERENCE_EXTENSIONS,

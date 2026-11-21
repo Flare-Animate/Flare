@@ -298,7 +298,16 @@ pub(super) fn write_timeline(
         let parent = mask_index.take();
         let folder = layer.parent().and_then(|id| indexes.get(&id).copied());
         indexes.insert(layer.id(), written);
-        write_layer(out, layer, parent, folder, place, ctx);
+        // Animate has no holding past a layer's last keyframe, so the hold is written out.
+        let held = layer.with_hold_written(timeline.frame_count());
+        write_layer(
+            out,
+            held.as_ref().unwrap_or(layer),
+            parent,
+            folder,
+            place,
+            ctx,
+        );
         if layer.is_mask() || layer.is_guide() {
             mask_index = Some(written);
         }

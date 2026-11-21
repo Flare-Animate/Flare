@@ -59,6 +59,7 @@ fn commands_sit_where_animate_keeps_them() {
         [
             "Import Sound...",
             "Import Video...",
+            "Import Image Sequence...",
             "Import Brush Presets..."
         ]
     );
