@@ -111,6 +111,7 @@ msg-magic-wand = Kouzelná hůlka: { $reason }
 msg-magic-wand-changed = Dokument se během mazání pixelů změnil, proto se nic nevymazalo
 msg-blend = Rozostření a rozmazání: { $reason }
 msg-blend-changed = Dokument se během tahu změnil, a tak zbytek tahu nebyl nanesen
+msg-raster-brush = Rastrový štětec: { $reason }
 
 brushes-imported = Importováno předvoleb štětce: { $n }
 brushes-import-refused = Předvolby štětce nelze importovat: { $reason }

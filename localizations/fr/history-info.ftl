@@ -67,4 +67,5 @@ out-nothing = Rien à signaler
 hist-magic-wand = Effacer les pixels
 hist-blur = Flou
 hist-smudge = Doigt
+hist-raster-brush = Pinceau matriciel
 hist-bend-line = Courber la ligne

@@ -1,10 +1,12 @@
-//! Blur and Smudge in the workspace: a drag over a bitmap is laid by the pixels worker and shown as
-//! it goes, the whole drag one undo step; a cancelled drag leaves nothing, and a drag off any
-//! bitmap says so.
+//! Blur, Smudge and the Raster Brush in the workspace: a drag is laid by the pixels worker and
+//! shown as it goes, the whole drag one undo step; a cancelled drag leaves nothing, and a drag off
+//! any bitmap (Blur, Smudge) or on a layer that cannot be drawn on (the Raster Brush) says so. The
+//! Raster Brush paints the fill color into a new picture on an empty layer, and a second drag
+//! paints into the same picture and mixes with it.
 
 use super::*;
 use flare_core::{BitmapId, InstanceId, Transform2D};
-use flare_document::{Bitmap, BitmapInstance};
+use flare_document::{Bitmap, BitmapInstance, Stage};
 use flare_input::InputSample;
 
 /// One-pixel stripes of black and white, 100 pixels square, drawn thirty times its size from
@@ -169,4 +171,141 @@ fn each_tool_keeps_its_own_settings() {
     assert_eq!(ws.blend_size(), Some(12.0));
     ws.set_tool(Tool::Eraser);
     assert_eq!(ws.blend_size(), None);
+}
+
+/// A 200 by 100 stage with one empty layer.
+fn empty_workspace() -> Workspace {
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
+        .expect("document")
+        .with_stage(Stage::new(200, 100, Rgba8::WHITE).expect("stage"));
+    Workspace::new(document, None)
+}
+
+/// Drags the tool in hand through `points`, the worker showing it as it goes, and lets go.
+fn drag(ws: &mut Workspace, points: &[(f64, f64)]) {
+    let (first, rest) = points.split_first().expect("a point");
+    ws.freehand = vec![at(first.0, first.1)];
+    ws.blend_as_dragged();
+    for (x, y) in rest {
+        ws.freehand.push(at(*x, *y));
+        ws.blend_as_dragged();
+    }
+    ws.finish_freehand(1.0);
+}
+
+/// The pictures on the first layer at frame 0, bottom first.
+fn pictures(ws: &Workspace) -> Vec<Bitmap> {
+    let document = ws.document();
+    let Some(span) = document.scenes()[0].timeline().layers()[0].span_at(0) else {
+        return Vec::new();
+    };
+    span.elements()
+        .filter_map(|content| match content {
+            Content::Bitmap(placed) => document.bitmap(placed.bitmap()).cloned(),
+            _ => None,
+        })
+        .collect()
+}
+
+fn pixel(bitmap: &Bitmap, x: u32, y: u32) -> [u8; 4] {
+    let i = ((y * bitmap.width() + x) * 4) as usize;
+    let p = &bitmap.pixels()[i..i + 4];
+    [p[0], p[1], p[2], p[3]]
+}
+
+#[test]
+fn a_drag_on_an_empty_layer_paints_the_fill_color_into_a_new_picture_in_one_step() {
+    let mut ws = empty_workspace();
+    ws.set_tool(Tool::RasterBrush);
+    ws.paint.fill = Color32::from_rgb(0, 0, 255);
+    let before = ws.document().clone();
+    let steps = ws.active().undo_labels().count();
+    ws.freehand = vec![at(20.0, 50.0), at(100.0, 50.0)];
+    ws.blend_as_dragged();
+    assert_eq!(pictures(&ws).len(), 1, "painted before the pen is lifted");
+    ws.freehand.push(at(180.0, 50.0));
+    ws.finish_freehand(1.0);
+    assert!(!ws.paint.blend.stroking(), "the stroke is over");
+    let painted = pictures(&ws);
+    assert_eq!(painted.len(), 1, "one picture, painted on as the drag went");
+    let picture = &painted[0];
+    assert_eq!(
+        (picture.width(), picture.height()),
+        (200, 100),
+        "the stage's size"
+    );
+    assert_eq!(pixel(picture, 60, 50), [0, 0, 255, 255]);
+    assert_eq!(
+        pixel(picture, 160, 50),
+        [0, 0, 255, 255],
+        "the last stretch"
+    );
+    assert_eq!(pixel(picture, 60, 10), [0, 0, 0, 0]);
+    assert_eq!(ws.document().bitmaps().len(), 1, "no picture left over");
+    assert_eq!(ws.active().undo_labels().count(), steps + 1, "one step");
+    assert_eq!(ws.active().undo_labels().last(), Some("Raster Brush"));
+    ws.undo();
+    assert_eq!(ws.document(), &before, "one undo puts it back");
+}
+
+#[test]
+fn a_second_drag_paints_into_the_same_picture_and_mixes_with_the_first() {
+    let mut ws = empty_workspace();
+    ws.set_tool(Tool::RasterBrush);
+    ws.paint.blend.raster.size = 30.0;
+    ws.paint.fill = Color32::from_rgb(255, 0, 0);
+    drag(&mut ws, &[(10.0, 50.0), (190.0, 50.0)]);
+    ws.paint.fill = Color32::from_rgb(0, 0, 255);
+    ws.paint.blend.raster.mix = 0.5;
+    drag(&mut ws, &[(20.0, 50.0), (180.0, 50.0)]);
+    let painted = pictures(&ws);
+    assert_eq!(painted.len(), 1, "painted into, not stacked on");
+    assert_eq!(ws.document().bitmaps().len(), 1);
+    let mixed = pixel(&painted[0], 100, 50);
+    assert!(
+        (100..=155).contains(&mixed[0]) && (100..=155).contains(&mixed[2]),
+        "blue painted half mixed over red: {mixed:?}"
+    );
+}
+
+#[test]
+fn a_locked_layer_is_not_painted_and_says_why() {
+    let mut ws = empty_workspace();
+    let layer = ws.document().scenes()[0].timeline().layers()[0].id();
+    ws.toggle_layer_locked(layer);
+    ws.set_tool(Tool::RasterBrush);
+    let before = ws.document().clone();
+    drag(&mut ws, &[(20.0, 50.0), (100.0, 50.0)]);
+    assert_eq!(ws.document(), &before);
+    assert!(!ws.paint.blend.stroking());
+    let message = tr!(ws, "tools-draw-locked", &[("name", "Layer 1")]);
+    assert_eq!(ws.status.as_deref(), Some(message.as_str()));
+}
+
+#[test]
+fn cancelling_a_drag_takes_back_the_new_picture() {
+    let mut ws = empty_workspace();
+    ws.set_tool(Tool::RasterBrush);
+    let before = ws.document().clone();
+    ws.freehand = vec![at(20.0, 50.0), at(100.0, 50.0)];
+    ws.blend_as_dragged();
+    assert_ne!(ws.document(), &before, "shown while dragging");
+    ws.cancel_drag();
+    assert_eq!(ws.document(), &before, "the cancelled drag leaves nothing");
+    assert!(!ws.paint.blend.stroking());
+}
+
+#[test]
+fn the_raster_brush_keeps_its_own_settings() {
+    let mut ws = empty_workspace();
+    ws.set_tool(Tool::RasterBrush);
+    assert_eq!(ws.blend_size(), Some(20.0));
+    ws.paint.blend.raster.size = 44.0;
+    ws.set_tool(Tool::Smudge);
+    assert_eq!(ws.blend_size(), Some(30.0));
+    ws.set_tool(Tool::RasterBrush);
+    assert_eq!(ws.blend_size(), Some(44.0));
 }

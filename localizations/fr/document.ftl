@@ -1,6 +1,7 @@
 untitled = Sans titre
 name-new-scene = Séquence { $n }
 name-new-layer = Calque { $n }
+name-painting = Peinture
 name-new-text-layer = Texte
 doc-title = Document
 doc-publish-settings = Paramètres de publication

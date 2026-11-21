@@ -1,15 +1,21 @@
-//! Blur and Smudge: drag over a bitmap to soften it, or to push its colors along, as Clip Studio
-//! Paint's blending tools do. Both work on the bitmap under the start of the stroke, in its own
-//! pixels, and a stroke makes a new bitmap for that one element (as a Magic Wand clear does), so
-//! other frames that show the same picture keep it as it was.
+//! Strokes on a bitmap's pixels: Blur and Smudge, which soften a bitmap or push its colors along
+//! as Clip Studio Paint's blending tools do, and the Raster Brush, which paints a color into it
+//! and mixes in the colors already there. Blur and Smudge work on the bitmap under the start of
+//! the stroke; the Raster Brush on the one under it on the layer it paints, or on a new clear
+//! bitmap the size of the stage (see `paint`). Each stroke makes a new bitmap for that one
+//! element (as a Magic Wand clear does), so other frames that show the same picture keep it as
+//! it was.
 //!
 //! A stroke is a row of round dabs along the drag, spaced by a fraction of their size. Blur moves
 //! each pixel a dab covers towards a blurred copy of the bitmap; Smudge picks up the colors under
-//! each dab, carries a running mix of them along, and lays it down at the next. The stroke is
-//! capped at its strength (see `canvas`), and pen pressure sets the size of each dab.
+//! each dab, carries a running mix of them along, and lays it down at the next; the Raster Brush
+//! lays its paint, tinted by the running mix as far as its Color mix says. The stroke is capped
+//! at its strength (see `canvas`), and pen pressure sets the size of each dab.
 
 mod canvas;
 mod dab;
+mod paint;
+mod settings;
 
 use flare_commands::Command;
 use flare_core::{BitmapId, SceneId};
@@ -17,133 +23,21 @@ use flare_document::{Bitmap, BitmapInstance, Content, Document};
 /// The samples a stroke takes; named here so a caller needs no `flare-input` of its own.
 pub use flare_input::{InputSample, PointerKind};
 use glamx::{DAffine2, DVec2};
-use thiserror::Error;
 
 use crate::common::{SpanRef, find_element, replace_element};
-use crate::magic_wand::{Pos2, bitmap_at, uses};
+use crate::magic_wand::{BitmapHit, Pos2, bitmap_at, uses};
 use canvas::{Canvas, Premul};
 use dab::Dab;
+use paint::{Painting, Unplaced};
+pub use paint::{RasterPaint, check_paint, lay_paint};
+pub use settings::{BlendError, BlendKind, BlendSettings, MAX_SIZE, MAX_STRETCH};
 
-/// The largest size, in stage units.
-pub const MAX_SIZE: f32 = 1000.0;
 /// The widest a dab is drawn, in bitmap pixels, however the bitmap is scaled.
 pub const MAX_DAB_PIXELS: f32 = 1024.0;
-/// The most Color stretch.
-pub const MAX_STRETCH: u8 = 100;
 /// Most points one [`rub`] takes.
 pub const MAX_POINTS: usize = 4096;
 /// Most dabs one stroke lays; past this the stroke stops changing the bitmap.
 pub const MAX_DABS: usize = 200_000;
-
-/// Which of the two tools a stroke is.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum BlendKind {
-    /// Softens what it passes over.
-    Blur,
-    /// Pushes colors along the drag, as a finger through wet paint.
-    Smudge,
-}
-
-impl BlendKind {
-    pub const ALL: [BlendKind; 2] = [Self::Blur, Self::Smudge];
-
-    /// The word for it on a command line and in a message key.
-    pub fn name(self) -> &'static str {
-        match self {
-            Self::Blur => "blur",
-            Self::Smudge => "smudge",
-        }
-    }
-
-    pub fn parse(word: &str) -> Option<Self> {
-        Self::ALL
-            .into_iter()
-            .find(|k| k.name().eq_ignore_ascii_case(word.trim()))
-    }
-}
-
-/// A Blur or Smudge tool's settings.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct BlendSettings {
-    /// The width of a dab at full pressure, in stage units, 1 to [`MAX_SIZE`].
-    pub size: f32,
-    /// How far a stroke goes at most, 0 to 1: at 1 the middle of a Blur stroke is the blurred
-    /// picture and the middle of a Smudge stroke is the carried color.
-    pub strength: f32,
-    /// How sharp a dab's edge is, 0 (soft) to 1.
-    pub hardness: f32,
-    /// Pen pressure sets the size of each dab; off, every dab is full size.
-    pub pressure_size: bool,
-    /// Smudge only: how far a picked-up color is carried, 0 (hardly at all, which mixes in
-    /// place) to [`MAX_STRETCH`].
-    pub stretch: u8,
-}
-
-impl BlendSettings {
-    /// Where each tool starts, from Clip Studio's own Blur and Finger tip.
-    pub fn for_kind(kind: BlendKind) -> Self {
-        match kind {
-            BlendKind::Blur => Self {
-                size: 80.0,
-                strength: 1.0,
-                hardness: 0.0,
-                pressure_size: true,
-                stretch: 0,
-            },
-            BlendKind::Smudge => Self {
-                size: 30.0,
-                strength: 1.0,
-                hardness: 0.5,
-                pressure_size: true,
-                stretch: 70,
-            },
-        }
-    }
-
-    pub fn validate(&self) -> Result<(), BlendError> {
-        if !(1.0..=MAX_SIZE).contains(&self.size) {
-            return Err(BlendError::Size);
-        }
-        if !(0.0..=1.0).contains(&self.strength) {
-            return Err(BlendError::Strength);
-        }
-        if !(0.0..=1.0).contains(&self.hardness) {
-            return Err(BlendError::Hardness);
-        }
-        if self.stretch > MAX_STRETCH {
-            return Err(BlendError::Stretch);
-        }
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Error)]
-pub enum BlendError {
-    #[error("Blur and Smudge work on bitmaps; there is no bitmap where the stroke starts")]
-    NoBitmap,
-    #[error("the element is not a bitmap any more")]
-    NotBitmap,
-    #[error("the bitmap changed while the stroke was being made")]
-    Stale,
-    #[error("the bitmap is squashed flat, so a stroke cannot reach its pixels")]
-    Flat,
-    #[error("give at least one point")]
-    NoPoints,
-    #[error("at most {MAX_POINTS} points at a time")]
-    TooManyPoints,
-    #[error("the size is 1 to {MAX_SIZE}")]
-    Size,
-    #[error("the strength is 0 to 100%")]
-    Strength,
-    #[error("the hardness is 0 to 100%")]
-    Hardness,
-    #[error("the color stretch is 0 to {MAX_STRETCH}")]
-    Stretch,
-    #[error("the stroke did not change any pixel")]
-    NothingChanged,
-    #[error("the bitmap could not be rebuilt: {0}")]
-    Bitmap(String),
-}
 
 /// What a stroke's commands put on the stage: apply `commands`, then tell the stroke with
 /// [`BlendStroke::shows`].
@@ -156,13 +50,14 @@ pub struct BlendEdit {
     pub at: SpanRef,
 }
 
-/// A Blur or Smudge stroke in progress on one bitmap element.
+/// A Blur, Smudge or Raster Brush stroke in progress on one bitmap element.
 pub struct BlendStroke {
     kind: BlendKind,
     settings: BlendSettings,
     at: SpanRef,
-    /// The bitmap the element shows now.
-    bitmap: BitmapId,
+    /// The bitmap the element shows now; `None` while a Raster Brush stroke's new bitmap has not
+    /// been placed yet.
+    bitmap: Option<BitmapId>,
     name: String,
     /// From the stage to the bitmap's pixels.
     to_pixels: DAffine2,
@@ -176,12 +71,17 @@ pub struct BlendStroke {
     next: f64,
     /// Smudge: the color carried along, premultiplied.
     carry: Option<Premul>,
+    /// Raster Brush: its paint and the color it has picked up.
+    painting: Option<Painting>,
+    /// Raster Brush on a new bitmap: where the bitmap goes when its first edit is made.
+    unplaced: Option<Unplaced>,
     dabs: usize,
 }
 
 impl BlendStroke {
-    /// Starts a stroke at `start` on the topmost bitmap under it at `frame` (on a layer that is
-    /// shown and unlocked, as the Magic Wand finds it). Lays no dab yet.
+    /// Starts a Blur or Smudge stroke at `start` on the topmost bitmap under it at `frame` (on a
+    /// layer that is shown and unlocked, as the Magic Wand finds it). Lays no dab yet. The Raster
+    /// Brush starts with [`BlendStroke::paint`], since it needs a color and a layer.
     pub fn begin(
         document: &Document,
         scene: SceneId,
@@ -190,8 +90,22 @@ impl BlendStroke {
         kind: BlendKind,
         settings: BlendSettings,
     ) -> Result<Self, BlendError> {
+        if kind == BlendKind::RasterBrush {
+            return Err(BlendError::NeedsPaint);
+        }
         settings.validate()?;
         let hit = bitmap_at(document, scene, frame, start).ok_or(BlendError::NoBitmap)?;
+        Self::on_bitmap(document, scene, &hit, kind, settings)
+    }
+
+    /// A stroke on the bitmap element `hit` names.
+    fn on_bitmap(
+        document: &Document,
+        scene: SceneId,
+        hit: &BitmapHit,
+        kind: BlendKind,
+        settings: BlendSettings,
+    ) -> Result<Self, BlendError> {
         let Some(Content::Bitmap(placed)) = find_element(document, scene, hit.at) else {
             return Err(BlendError::NotBitmap);
         };
@@ -202,30 +116,52 @@ impl BlendStroke {
             return Err(BlendError::Flat);
         }
         let per_unit = (1.0 / area.sqrt()) as f32;
-        let diameter = (settings.size * per_unit).min(MAX_DAB_PIXELS);
-        // The blur reaches about a sixth of the dab, as a blur linked to the brush size does.
-        let blur =
-            (kind == BlendKind::Blur).then(|| ((diameter / 12.0).round() as u32).clamp(1, 24));
-        Ok(Self {
+        let canvas = Canvas::new(
+            bitmap.width(),
+            bitmap.height(),
+            bitmap.shared_pixels(),
+            blur_radius(kind, settings.size * per_unit),
+        );
+        Ok(Self::new(
             kind,
             settings,
-            at: hit.at,
-            bitmap: hit.bitmap,
-            name: bitmap.name().to_owned(),
-            to_pixels: matrix.inverse(),
-            diameter,
-            canvas: Canvas::new(
-                bitmap.width(),
-                bitmap.height(),
-                bitmap.shared_pixels(),
-                blur,
-            ),
+            hit.at,
+            Some(hit.bitmap),
+            bitmap.name().to_owned(),
+            matrix.inverse(),
+            per_unit,
+            canvas,
+        ))
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        kind: BlendKind,
+        settings: BlendSettings,
+        at: SpanRef,
+        bitmap: Option<BitmapId>,
+        name: String,
+        to_pixels: DAffine2,
+        per_unit: f32,
+        canvas: Canvas,
+    ) -> Self {
+        Self {
+            kind,
+            settings,
+            at,
+            bitmap,
+            name,
+            to_pixels,
+            diameter: (settings.size * per_unit).min(MAX_DAB_PIXELS),
+            canvas,
             last: None,
             since: 0.0,
             next: 0.0,
             carry: None,
+            painting: None,
+            unplaced: None,
             dabs: 0,
-        })
+        }
     }
 
     /// The element the stroke works on.
@@ -313,28 +249,49 @@ impl BlendStroke {
         }
         self.dabs += 1;
         let size = self.size_at(pressure);
-        let ratio = self.interval(pressure) as f32 / size.max(f32::EPSILON);
+        // Blur and Smudge build up dab by dab, closer dabs each adding less; the Raster Brush
+        // takes the strongest dab at each pixel, so each lays at full strength.
+        let strength = if self.kind == BlendKind::RasterBrush {
+            1.0
+        } else {
+            dab::per_dab(self.interval(pressure) as f32 / size.max(f32::EPSILON))
+        };
         let dab = Dab::new(
             at.x as f32,
             at.y as f32,
             size,
             self.settings.hardness,
-            dab::per_dab(ratio),
+            strength,
         );
         let ceiling = self.settings.strength;
+        // How quickly the carried color follows what is under the brush: slowly as the stretch
+        // is long, quickly as it is short.
+        let keep = 5.0 / (f32::from(self.settings.stretch) + 5.0);
         match self.kind {
             BlendKind::Blur => self.canvas.blur_dab(&dab, ceiling),
             BlendKind::Smudge => {
                 let under = self.canvas.smudge_dab(&dab, ceiling, self.carry);
                 if let Some(under) = under {
-                    // The carried color follows what is under the brush slowly or quickly as the
-                    // stretch is long or short.
-                    let keep = 5.0 / (f32::from(self.settings.stretch) + 5.0);
                     self.carry = Some(match self.carry {
                         Some(carried) => canvas::lerp(carried, under, keep),
                         None => under,
                     });
                 }
+            }
+            BlendKind::RasterBrush => {
+                let Some(painting) = self.painting.as_mut() else {
+                    return;
+                };
+                let mix = self.settings.mix;
+                // With no mix the color under the brush is never read, so a plain brush costs
+                // only the laying.
+                let under = if mix > 0.0 {
+                    self.canvas.sample(&dab)
+                } else {
+                    None
+                };
+                let color = painting.next_color(under, mix, keep);
+                self.canvas.lay_dab(&dab, ceiling, color);
             }
         }
     }
@@ -348,42 +305,27 @@ impl BlendStroke {
     /// (or one already there with the same pixels), the element showing it, and the bitmap it
     /// showed taken out of the library when nothing else shows it. One batch, so one undo step.
     pub fn edit(&self, document: &Document, scene: SceneId) -> Result<BlendEdit, BlendError> {
+        if let Some(unplaced) = &self.unplaced {
+            return self.place(document, scene, unplaced);
+        }
         let Some(Content::Bitmap(placed)) = find_element(document, scene, self.at) else {
             return Err(BlendError::NotBitmap);
         };
         let old = document
             .bitmap(placed.bitmap())
             .ok_or(BlendError::NotBitmap)?;
-        if placed.bitmap() != self.bitmap
+        if Some(placed.bitmap()) != self.bitmap
             || old.width() != self.canvas.width
             || old.height() != self.canvas.height
         {
             return Err(BlendError::Stale);
         }
-        let new = Bitmap::new(
-            BitmapId::new(),
-            self.name.clone(),
-            self.canvas.width,
-            self.canvas.height,
-            self.canvas.working.clone(),
-        )
-        .map_err(|e| BlendError::Bitmap(e.to_string()))?;
+        let new = self.made()?;
         if new.content_hash() == old.content_hash() {
             return Err(BlendError::NothingChanged);
         }
         let mut commands = Vec::new();
-        let id = match document
-            .bitmaps()
-            .iter()
-            .find(|b| b.content_hash() == new.content_hash())
-        {
-            Some(same) => same.id(),
-            None => {
-                let id = new.id();
-                commands.push(Command::AddBitmap(new));
-                id
-            }
-        };
+        let id = in_library(document, new, &mut commands);
         let content = Content::Bitmap(
             BitmapInstance::new(placed.id(), id, placed.transform()).with_opacity(placed.opacity()),
         );
@@ -400,18 +342,61 @@ impl BlendStroke {
         })
     }
 
-    /// The bitmap the stroke takes its element to show: the next edit is refused as stale if
-    /// the element shows another.
-    pub fn bitmap(&self) -> BitmapId {
+    /// The bitmap of the stroke's pixels as they are now.
+    fn made(&self) -> Result<Bitmap, BlendError> {
+        Bitmap::new(
+            BitmapId::new(),
+            self.name.clone(),
+            self.canvas.width,
+            self.canvas.height,
+            self.canvas.working.clone(),
+        )
+        .map_err(|e| BlendError::Bitmap(e.to_string()))
+    }
+
+    /// The bitmap the element shows, which the next edit is refused as stale without; `None`
+    /// before a Raster Brush stroke's new bitmap is placed.
+    pub fn bitmap(&self) -> Option<BitmapId> {
         self.bitmap
     }
 
-    /// Records that the element now shows `bitmap`, with every change the stroke has made so far
-    /// (after an edit was applied, or found to change nothing), so the next edit builds on it.
-    pub fn shows(&mut self, bitmap: BitmapId) {
-        self.bitmap = bitmap;
+    /// Records that `edit` was applied, with every change the stroke has made so far, so the next
+    /// edit builds on it. A new bitmap's first edit places it: the stroke goes on on that element.
+    pub fn shows(&mut self, edit: &BlendEdit) {
+        self.bitmap = Some(edit.bitmap);
+        self.at = edit.at;
+        self.unplaced = None;
         self.canvas.dirty = false;
     }
+
+    /// Records that an edit was found to change nothing, so the stroke waits for its next change.
+    pub fn unchanged(&mut self) {
+        self.canvas.dirty = false;
+    }
+}
+
+/// `bitmap`'s id in the library: one already there with the same pixels, else its own, with the
+/// command that adds it.
+fn in_library(document: &Document, bitmap: Bitmap, commands: &mut Vec<Command>) -> BitmapId {
+    match document
+        .bitmaps()
+        .iter()
+        .find(|b| b.content_hash() == bitmap.content_hash())
+    {
+        Some(same) => same.id(),
+        None => {
+            let id = bitmap.id();
+            commands.push(Command::AddBitmap(bitmap));
+            id
+        }
+    }
+}
+
+/// The blur radius of a Blur stroke whose dabs are `diameter` pixels wide; `None` for the others.
+fn blur_radius(kind: BlendKind, diameter: f32) -> Option<u32> {
+    // The blur reaches about a sixth of the dab, as a blur linked to the brush size does.
+    (kind == BlendKind::Blur)
+        .then(|| ((diameter.min(MAX_DAB_PIXELS) / 12.0).round() as u32).clamp(1, 24))
 }
 
 /// A whole stroke through `points` at once, as a front end with no pointer gives it: the

@@ -1,6 +1,7 @@
 untitled = Sin título
 name-new-scene = Escena { $n }
 name-new-layer = Capa { $n }
+name-painting = Pintura
 name-new-text-layer = Texto
 doc-title = Documento
 doc-publish-settings = Configuración de publicación

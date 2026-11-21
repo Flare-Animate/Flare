@@ -101,6 +101,7 @@ msg-magic-wand = 魔法の杖：{ $reason }
 msg-magic-wand-changed = ピクセルの消去中にドキュメントが変更されたため、何も消去されませんでした
 msg-blend = ぼかしと指先: { $reason }
 msg-blend-changed = ストロークの描画中にドキュメントが変わったため、残りは適用されませんでした
+msg-raster-brush = ラスターブラシ: { $reason }
 
 brushes-imported = { $n } 個のブラシプリセットを読み込みました
 brushes-import-refused = ブラシプリセットを読み込めませんでした: { $reason }

@@ -28,6 +28,7 @@ mod moho;
 mod movies;
 mod multi_frame;
 mod open;
+mod raster_brush;
 mod rendering;
 mod save_formats;
 mod scripts;

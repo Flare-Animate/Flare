@@ -1,6 +1,7 @@
 untitled = Unbenannt
 name-new-scene = Szene { $n }
 name-new-layer = Ebene { $n }
+name-painting = Gemälde
 name-new-text-layer = Text
 doc-title = Dokument
 doc-publish-settings = Veröffentlichungseinstellungen

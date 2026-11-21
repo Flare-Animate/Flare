@@ -63,4 +63,5 @@ out-nothing = 報告する内容はありません
 hist-magic-wand = ピクセルを消去
 hist-blur = ぼかし
 hist-smudge = 指先
+hist-raster-brush = ラスターブラシ
 hist-bend-line = 線を曲げる

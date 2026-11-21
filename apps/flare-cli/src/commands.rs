@@ -144,6 +144,10 @@ pub(crate) enum Command {
     Blur(project::BlendArgs),
     /// Smudge: push the colors of the bitmap under the first point along a stroke of stage points.
     Smudge(project::BlendArgs),
+    /// Raster Brush: paint a color into a bitmap on a layer along a stroke of stage points,
+    /// mixing in the colors there (a new bitmap the size of the stage when none is under the
+    /// first point); one undo step.
+    RasterBrush(project::RasterBrushArgs),
     /// Add editable text to a layer of the first scene.
     AddText {
         path: PathBuf,

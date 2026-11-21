@@ -68,4 +68,5 @@ out-nothing = Нечего сообщить
 hist-magic-wand = Стереть пиксели
 hist-blur = Размытие
 hist-smudge = Палец
+hist-raster-brush = Растровая кисть
 hist-bend-line = Изогнуть линию

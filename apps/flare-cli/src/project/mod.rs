@@ -24,7 +24,7 @@ mod sound;
 mod text;
 mod timeline;
 
-pub use blend::{BlendArgs, blend_stroke};
+pub use blend::{BlendArgs, RasterBrushArgs, blend_stroke, raster_brush};
 pub use bones::{BoneAction, bone, bones_list};
 pub use brush_stroke::{BrushArgs, brush_strokes};
 #[allow(unused_imports)]

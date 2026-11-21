@@ -109,6 +109,7 @@ msg-magic-wand = Zauberstab: { $reason }
 msg-magic-wand-changed = Das Dokument hat sich geändert, während die Pixel gelöscht wurden; es wurde nichts gelöscht
 msg-blend = Weichzeichner und Wischfinger: { $reason }
 msg-blend-changed = Das Dokument hat sich während des Strichs geändert, daher wurde der Rest nicht aufgetragen
+msg-raster-brush = Rasterpinsel: { $reason }
 
 brushes-imported = { $n ->
     [one] { $n } Pinselvoreinstellung importiert.

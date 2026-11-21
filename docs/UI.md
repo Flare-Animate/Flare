@@ -86,6 +86,29 @@ picture keep it as it was. Strokes are not mirrored by Symmetry or straightened 
 dabs and the new bitmap are made on the pixels worker; a large bitmap shows the stroke a few
 times a second instead of every frame ([PERFORMANCE.md](PERFORMANCE.md)).
 
+## Raster Brush
+
+The Raster Brush (in the Brush's slot) paints pixels, where the Brush draws a vector shape. Drag on
+the stage: the fill color is painted into the topmost bitmap of the current layer's keyframe under
+the start of the drag, or, with none there, into a new clear bitmap the size of the stage, which
+the stroke places on the layer (a keyframe or a layer is made as drawing a shape would make one;
+the bitmap is named Painting in the library). A second stroke over the first paints into the same
+picture, so the two can blend. A locked, hidden, folder, mask, guide or camera layer is refused
+with the same message drawing a shape there gives. The whole drag is one undo step, Escape takes it
+back, and a click paints a dot.
+
+Color mix (0 to 100%, 50 to start) is how much of the color under the brush mixes into the paint,
+as wet paint does: at 0 the paint lays as it is, at 100 the brush only smears what is there. The
+brush carries what it picks up, a running mix of the colors it has passed over, and Color stretch
+(0 to 100, 30 to start) is how far it carries them, as with Smudge. Clear pixels have no color to
+give, so on a clear bitmap the paint lays as it is whatever the mix. Only the bitmap being painted
+mixes in: paint over a picture on another layer, or over vector shapes, does not take their color.
+The other options are Size (1 to 1000 stage units, 20 to start), Opacity (the most a stroke covers:
+going over a place again in one stroke does not build it up further), Hardness (80% to start) and
+Pressure sets size. Like Blur and Smudge, a stroke is a row of round dabs, worked on the pixels
+worker, and is not mirrored by Symmetry or straightened by Shift. There is no pixel eraser yet; the
+Eraser rubs out shapes, not pixels.
+
 ## Splash
 
 On a plain launch (desktop with no file named, and the browser build) a splash shows for 2.5 seconds or until a click or key. It is laid out as Animate's: a card with rounded corners and a soft shadow in the middle of the window (which a plain sheet hides meanwhile), light on the left with the mark (the flame on a dark tile), the name beside it, the version, the tagline and a line on who makes Flare, and "Loading…" at the bottom; on the right, set in with a white margin and its own rounded corners, Flare's own picture: a campfire at night under a moon and stars, between pines, with embers rising (`assets/ui/splash.svg`, no text in it); the fire on its logs is the app's mark, painted there by `flare-ui`'s `splash::paint`. The words are set by `workspace/splash.rs`, so they are translated like the rest. In a small window the card scales down to fit. Neither Animate's nor the old program's artwork is used.
@@ -428,7 +451,7 @@ Paint Bucket, Eyedropper, Asset Warp; Hand, Zoom and the "…" button. As in Ani
 that holds related tools and shows the one in use, with a small triangle in its corner: Selection
 holds Subselection and the Magnet (see The Magnet below), Free Transform holds Gradient Transform, Lasso holds Polygon (click the corners of a loop; a double click, Enter or a click on the first corner closes it and selects what it encloses) and Magic Wand (see Magic Wand above),
 Rectangle holds Oval, Rectangle Primitive, Oval Primitive and PolyStar, Pen holds Add, Delete and
-Convert Anchor Point, Pencil holds Paint Brush, Paint Bucket holds Ink Bottle, and Hand holds Rotation and Time scrub. Press and hold a
+Convert Anchor Point, Pencil holds Paint Brush, Brush holds the Raster Brush (see Raster Brush above), Paint Bucket holds Ink Bottle, and Hand holds Rotation and Time scrub. Press and hold a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
 shows, and keys that pick a tool (A for Subselection, O for Oval) change what its cell shows too.
 The "…" button (More tools) opens a list of the tools that are not in the strip:

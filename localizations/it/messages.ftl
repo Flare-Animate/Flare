@@ -109,6 +109,7 @@ msg-magic-wand = Bacchetta magica: { $reason }
 msg-magic-wand-changed = Il documento è cambiato mentre si cancellavano i pixel, quindi non è stato cancellato nulla
 msg-blend = Sfoca e Sfumino: { $reason }
 msg-blend-changed = Il documento è cambiato mentre si disegnava il tratto, quindi il resto non è stato applicato
+msg-raster-brush = Pennello raster: { $reason }
 
 brushes-imported = { $n ->
     [one] Importata { $n } preimpostazione pennello.

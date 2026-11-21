@@ -155,3 +155,6 @@ opt-pressure-size = Přítlak určuje velikost
 opt-pressure-size-tip = Lehčí dotek dá užší tah
 opt-color-stretch = Protažení barvy
 opt-color-stretch-tip = Jak daleko se nabraná barva nese podél tahu; 0 míchá na místě
+opt-opacity = Krytí
+opt-color-mix = Míchání barvy
+opt-color-mix-tip = Kolik barvy pod štětcem se přimíchá do malby; 0 nanáší barvu beze změny

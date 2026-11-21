@@ -101,6 +101,7 @@ msg-magic-wand = 魔术棒：{ $reason }
 msg-magic-wand-changed = 清除像素时文档已更改，因此没有清除任何内容
 msg-blend = 模糊与涂抹：{ $reason }
 msg-blend-changed = 绘制笔画时文档发生了变化，因此其余部分未被应用
+msg-raster-brush = 栅格画笔：{ $reason }
 
 brushes-imported = 已导入 { $n } 个画笔预设
 brushes-import-refused = 无法导入画笔预设：{ $reason }
