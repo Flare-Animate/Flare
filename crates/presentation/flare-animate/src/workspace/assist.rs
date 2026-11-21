@@ -72,15 +72,17 @@ impl Workspace {
     /// pointer shows what a click would leave. `None` unless the Brush, the Pencil or the rubbing
     /// Eraser is in hand over the stage.
     pub(super) fn brush_cursor(&self) -> Option<Vec<Pos2>> {
-        // The Brush shows its nib, the Pencil the round end of its line, the Eraser, Blur and
-        // Smudge the circle they rub with.
+        // The Brush shows its nib, the Pencil the round end of its line, the Eraser, Blur, Smudge
+        // and the Raster Brush the circle they rub or paint with.
         let (nib, size) = match self.tool {
             Tool::Brush => (self.brush_shelf.nib(), self.brush_size),
             Tool::Pencil => (flare_tools::brush::Nib::ROUND, self.paint.stroke_width),
             Tool::Eraser if self.eraser_rubs() => {
                 (flare_tools::brush::Nib::ROUND, self.eraser_size)
             }
-            Tool::Blur | Tool::Smudge => (flare_tools::brush::Nib::ROUND, self.blend_size()?),
+            Tool::Blur | Tool::Smudge | Tool::RasterBrush => {
+                (flare_tools::brush::Nib::ROUND, self.blend_size()?)
+            }
             _ => return None,
         };
         let at = self.pointer_stage?;

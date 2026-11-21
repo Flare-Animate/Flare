@@ -125,6 +125,11 @@ impl Workspace {
                 result,
             } => self.blend_edited(id, document, result),
             Done::BlendEnded { id, error } => self.blend_ended(id, error),
+            Done::ToBitmapMade {
+                id,
+                document,
+                result,
+            } => self.bitmap_conversion_arrived(id, document, result),
             Done::VideoProbed { id, path, result } => self.video_probed(id, path, result),
             Done::VideoRead { id, outcome } => self.video_read(id, outcome),
             Done::TextPreview { id, result } => self.text_preview_arrived(id, result),

@@ -4,6 +4,7 @@
 
 mod camera;
 mod context;
+pub mod frame_picker;
 pub mod frames;
 pub mod layer_ops;
 pub mod layers_to_symbol;

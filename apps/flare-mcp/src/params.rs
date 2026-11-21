@@ -44,7 +44,7 @@ pub struct DrawRect {
     pub stroke_width: Option<f64>,
     /// Outline pattern: solid (default), dashed, dotted, stipple, hatched, ragged, herringbone, rope or zigzag.
     pub stroke_style: Option<String>,
-    /// First frame; defaults to 0.
+    /// First frame; defaults to the frame `goto_frame` last went to (0 at first).
     pub start: Option<u32>,
     /// Frames the rectangle lasts; defaults to 1.
     pub duration: Option<u32>,

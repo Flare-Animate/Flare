@@ -77,6 +77,7 @@ pub fn evaluate_level<'a>(
             || layer.is_guide()
             || layer.is_camera()
             || layer.is_folder()
+            || layer.is_reference()
             || hidden_by_folder(layers, index)
         {
             continue;

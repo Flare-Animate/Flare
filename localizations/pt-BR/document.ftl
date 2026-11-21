@@ -1,6 +1,8 @@
 untitled = Sem título
 name-new-scene = Cena { $n }
 name-new-layer = Camada { $n }
+name-painting = Pintura
+name-converted-bitmap = Bitmap
 name-new-text-layer = Texto
 doc-title = Documento
 doc-publish-settings = Configurações de publicação

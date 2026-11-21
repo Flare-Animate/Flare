@@ -93,6 +93,17 @@ pub fn toggle_mask(
     Ok(update(scene, layer, LayerChange::Mask(!mask)))
 }
 
+/// Turns a layer's holding of its last drawing on or off (see `Layer::with_hold`).
+pub fn set_hold(
+    document: &Document,
+    scene: SceneId,
+    layer: LayerId,
+    hold: bool,
+) -> Result<Vec<Command>, LayerRefusal> {
+    layer_in(document, scene, layer)?;
+    Ok(update(scene, layer, LayerChange::Hold(hold)))
+}
+
 /// Makes the layer a motion guide for the layer below it, or a normal layer again.
 pub fn toggle_guide(
     document: &Document,

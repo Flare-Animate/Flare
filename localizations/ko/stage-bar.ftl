@@ -32,3 +32,7 @@ bar-grid-down = 세로 간격
 bar-grid-color = 격자 색상
 bar-grid-color-auto = 자동 색상
 bar-grid-reset = 격자 초기화
+bar-frame-picker = 프레임으로 이동
+bar-frame-number = 프레임
+bar-frame-previous-keyframe = 이전 키프레임
+bar-frame-next-keyframe = 다음 키프레임

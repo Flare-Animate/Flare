@@ -174,15 +174,48 @@ fn the_theme_is_dark_by_default_light_when_chosen_and_kept_with_the_preferences(
 #[test]
 fn the_theme_row_is_in_general_and_in_the_chosen_language() {
     let mut ws = workspace();
+    // A closed list shows the theme chosen.
     let text = preferences_text(&mut ws);
-    for wanted in ["Theme", "Dark", "Light"] {
+    for wanted in ["Theme", "Dark"] {
         assert!(has(&text, wanted), "{wanted}: {text:?}");
     }
     let mut prefs = ws.preferences();
     prefs.language = "de".to_owned();
+    prefs.theme = "contrast".to_owned();
     ws.apply_preferences(&prefs);
     let text = preferences_text(&mut ws);
-    for wanted in ["Design", "Dunkel", "Hell"] {
+    for wanted in ["Design", "Hoher Kontrast"] {
         assert!(has(&text, wanted), "{wanted}: {text:?}");
     }
+    flare_ui::theme::set_mode(flare_ui::theme::Mode::Dark);
+}
+
+#[test]
+fn every_theme_is_kept_with_the_preferences_and_named_in_every_language() {
+    use crate::workspace::preferences::window::theme_key;
+    let ctx = egui::Context::default();
+    flare_ui::icons::install(&ctx);
+    for mode in flare_ui::theme::Mode::ALL {
+        let mut ws = workspace();
+        let mut prefs = ws.preferences();
+        prefs.theme = mode.code().to_owned();
+        ws.apply_preferences(&prefs);
+        run(&mut ws, &ctx, 0.0);
+        assert_eq!(flare_ui::theme::mode(), mode);
+        assert_eq!(
+            ctx.global_style().visuals.dark_mode,
+            !mode.is_light(),
+            "{mode:?} restyles egui"
+        );
+        let mut fresh = workspace();
+        fresh
+            .restore_preferences(&ws.preferences_json().expect("json"))
+            .expect("restored");
+        assert_eq!(fresh.preferences().theme, mode.code(), "{mode:?} is kept");
+        for language in Language::ALL {
+            let tr = flare_i18n::Translator::new(language);
+            assert!(tr.has(&theme_key(mode)), "{language:?} names {mode:?}");
+        }
+    }
+    flare_ui::theme::set_mode(flare_ui::theme::Mode::Dark);
 }

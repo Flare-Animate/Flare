@@ -32,3 +32,7 @@ bar-grid-down = Vertikaler Abstand
 bar-grid-color = Rasterfarbe
 bar-grid-color-auto = Automatische Farbe
 bar-grid-reset = Raster zurücksetzen
+bar-frame-picker = Zu einem Bild springen
+bar-frame-number = Bild
+bar-frame-previous-keyframe = Vorheriges Schlüsselbild
+bar-frame-next-keyframe = Nächstes Schlüsselbild

@@ -2563,8 +2563,10 @@ dependencies = [
  "flare-core",
  "flare-document",
  "flare-export",
+ "flare-ffmpeg",
  "flare-import",
  "flare-publish",
+ "flare-render",
  "flare-ruffle",
  "flare-runtime",
  "flare-storage",
@@ -2691,6 +2693,7 @@ dependencies = [
 name = "flare-runtime"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "emath",
  "flare-audio",
  "flare-commands",
@@ -2852,6 +2855,7 @@ dependencies = [
  "egui",
  "egui_extras",
  "flare-i18n",
+ "flare-profile",
  "image",
 ]
 

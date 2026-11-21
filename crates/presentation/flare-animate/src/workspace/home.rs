@@ -1,7 +1,7 @@
 //! The Home page, laid out like Animate's: a narrow sidebar with New File and Open, and in the
 //! main area the presets to create a project from, then the recent projects as cards.
 
-use egui::{Align2, Color32, FontId, Rect, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
+use egui::{Align2, FontId, Rect, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId};
 use flare_document::{Document, Layer, Scene, Stage, Timeline};
 use flare_ui::{chrome, icons, theme};
@@ -88,7 +88,8 @@ impl Workspace {
     ) -> Result<Document, String> {
         let number = [("n", "1")];
         let layer = Layer::new(LayerId::new(), tr!(self, "name-new-layer", &number), vec![])
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| e.to_string())?
+            .with_hold(true);
         let scene = Scene::new(
             SceneId::new(),
             tr!(self, "name-new-scene", &number),
@@ -349,10 +350,10 @@ fn wide_button(ui: &mut Ui, width: f32, icon: &str, label: &str, primary: bool) 
     );
     let icon_rect =
         Rect::from_center_size(pos2(rect.left() + 18.0, rect.center().y), Vec2::splat(16.0));
-    // White on the accent fill; on the plain fill, the palette's own text, which is dark on the
-    // light palette.
+    // On the accent fill, white or black as the accent needs (black on High contrast's yellow);
+    // on the plain fill, the palette's own text, which is dark on the light palettes.
     let ink = if primary {
-        Color32::WHITE
+        theme::ink_on(fill)
     } else {
         theme::text()
     };

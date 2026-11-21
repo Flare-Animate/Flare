@@ -154,3 +154,6 @@ opt-pressure-size = Druck bestimmt Größe
 opt-pressure-size-tip = Leichterer Druck ergibt einen schmaleren Strich
 opt-color-stretch = Farbdehnung
 opt-color-stretch-tip = Wie weit eine aufgenommene Farbe den Strich entlang getragen wird; 0 mischt an Ort und Stelle
+opt-opacity = Deckkraft
+opt-color-mix = Farbmischung
+opt-color-mix-tip = Wie viel der Farbe unter dem Pinsel in die Farbe gemischt wird; 0 trägt die Farbe unverändert auf

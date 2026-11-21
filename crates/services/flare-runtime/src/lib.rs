@@ -27,11 +27,13 @@ mod jobs;
 mod launch;
 mod lipsync;
 mod movie;
+mod picture;
 mod pixels;
 mod run;
 mod sound;
 mod sprites;
 mod text;
+mod to_bitmap;
 mod video_import;
 mod waveform;
 mod workers;
@@ -58,6 +60,7 @@ pub use lipsync::{
 pub use movie::{
     MAX_MOVIE_FRAMES, MAX_MOVIE_SIDE, animated_webp_bytes, apng_bytes, gif_bytes, gif_bytes_on,
 };
+pub use picture::{STILL_ENDINGS, is_still_ending, picture_bytes};
 pub use pixels::{PixelJob, WAND_PREVIEW_SIDE, WandPicked};
 pub use run::{run_audio, run_io, run_render};
 pub use sound::{SoundImportError, SoundLayer, sound_layer};
@@ -65,6 +68,7 @@ pub use sprites::{MAX_SHEET_FRAMES, MAX_SHEET_SIDE, SpriteSheet, sprite_sheet};
 pub use text::{
     ExtraFonts, add_google_fonts, font_families, google_font_families, run_text, text_shape,
 };
+pub use to_bitmap::convert_to_bitmap;
 pub use video_import::{VideoJob, VideoOutcome, VideoProgress, run_video};
 pub use waveform::{WaveformError, frame_peaks, sound_waveforms};
 pub use workers::Wake;
@@ -360,6 +364,8 @@ impl Drop for Runtime {
     }
 }
 
+#[cfg(test)]
+mod picture_tests;
 #[cfg(test)]
 mod pixels_tests;
 #[cfg(test)]

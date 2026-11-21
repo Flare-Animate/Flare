@@ -4,6 +4,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+mod exports;
+
 use crate::sound::BrowserSound;
 use crate::{files, flare_file, fonts, preferences, ruffle};
 use eframe::egui;
@@ -14,6 +16,9 @@ struct Picked {
     name: String,
     bytes: Vec<u8>,
 }
+
+/// A Google Fonts family downloaded for text: its name and its files, or why it could not be had.
+type Fetched = (String, Result<Vec<Vec<u8>>, String>);
 
 /// Whether `name` is a Flare project (`.flare`), which the page reads itself, rather than a
 /// Flash document to import.
@@ -33,7 +38,7 @@ pub struct WebApp {
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// Google Fonts families downloaded for text (or why not), handed over on the next frame.
-    fonts: Rc<RefCell<Vec<(String, Result<Vec<Vec<u8>>, String>)>>>,
+    fonts: Rc<RefCell<Vec<Fetched>>>,
     /// The preferences as last written, so storage is touched only when they change.
     saved_preferences: String,
     /// The name of the file last opened or saved, offered again by Save and, without its ending,
@@ -131,44 +136,11 @@ impl WebApp {
                 });
             }
             DialogRequest::SaveAs => self.save_document(),
-            DialogRequest::ExportImage => {
-                let (document, frame) = self.workspace.image_export();
-                let backdrop = self.workspace.publish_settings().backdrop();
-                self.deliver(
-                    "frame.png",
-                    "image/png",
-                    flare_runtime::still_bytes(
-                        &document,
-                        frame,
-                        flare_runtime::StillFormat::Png,
-                        backdrop,
-                    ),
-                );
-            }
-            DialogRequest::ExportMovie => {
-                let (document, _) = self.workspace.image_export();
-                let backdrop = self.workspace.publish_settings().backdrop();
-                self.deliver(
-                    "movie.gif",
-                    "image/gif",
-                    flare_runtime::gif_bytes(&document, backdrop),
-                );
-            }
-            DialogRequest::ExportFla => {
-                let (document, _) = self.workspace.image_export();
-                let bytes = flare_export::export_xfl(&document)
-                    .and_then(|output| flare_export::fla_bytes(&output))
-                    .map_err(|e| e.to_string());
-                self.deliver("project.fla", "application/zip", bytes);
-            }
-            DialogRequest::ExportSvg => {
-                let (document, frame) = self.workspace.image_export();
-                let backdrop = self.workspace.publish_settings().backdrop();
-                let bytes: Result<Vec<u8>, String> =
-                    flare_runtime::svg_export(&document, frame, backdrop)
-                        .map(|svg| svg.text.into_bytes());
-                self.deliver("frame.svg", "image/svg+xml", bytes);
-            }
+            request @ (DialogRequest::ExportImage
+            | DialogRequest::ExportMovie
+            | DialogRequest::ExportFla
+            | DialogRequest::ExportSvg
+            | DialogRequest::ExportSpriteSheet) => self.handle_export(request),
             DialogRequest::Publish => {
                 let (document, _) = self.workspace.image_export();
                 let name = self.publish_name();
@@ -298,29 +270,31 @@ impl WebApp {
         });
     }
 
+    /// Asks for a file name in the browser's own box, starting from `default`. A path typed in is
+    /// cut to its last part; an empty answer, or a cancelled box, is none.
+    fn prompt_file_name(&self, default: &str) -> Option<String> {
+        let window = web_sys::window()?;
+        let message = self.workspace.interface_text("dlg-save-prompt");
+        let typed = window
+            .prompt_with_message_and_default(&message, default)
+            .ok()
+            .flatten()
+            .unwrap_or_default();
+        let name = std::path::Path::new(typed.trim()).file_name()?;
+        Some(name.to_string_lossy().into_owned())
+    }
+
     /// Save and Save As are a download: a page has no file to write back to. The person names it,
     /// and the ending picks the format as on the desktop: `.fla` (the default, as in Animate) is a
     /// Flash document Animate opens, `.flare` is Flare's own project (the page brings SQLite and
     /// zstd as WebAssembly for it, see `flare_file`). A folder cannot be downloaded, so `.xfl`
     /// is saved as a `.fla`, which holds the same files.
     fn save_document(&mut self) {
-        let Some(window) = web_sys::window() else {
+        let Some(name) = self.prompt_file_name(self.last_name.as_deref().unwrap_or("project.fla"))
+        else {
             return;
         };
-        let message = self.workspace.interface_text("dlg-save-prompt");
-        let typed = window
-            .prompt_with_message_and_default(
-                &message,
-                self.last_name.as_deref().unwrap_or("project.fla"),
-            )
-            .ok()
-            .flatten()
-            .unwrap_or_default();
-        // A name only: a path typed in is cut to its last part.
-        let Some(name) = std::path::Path::new(typed.trim()).file_name() else {
-            return;
-        };
-        let (named, format) = flare_runtime::resolve_save_path(std::path::Path::new(name));
+        let (named, format) = flare_runtime::resolve_save_path(std::path::Path::new(&name));
         let named = if format == flare_runtime::FileFormat::Xfl {
             named.with_extension("fla")
         } else {

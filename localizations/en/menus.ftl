@@ -42,3 +42,4 @@ menu-mock-step-in = Step In
 menu-mock-step-out = Step Out
 menu-mock-remove-all-breakpoints = Remove All Breakpoints
 menu-mock-movie-scripts = Movie Scripts...
+menu-submenu-mannequin = Mannequin

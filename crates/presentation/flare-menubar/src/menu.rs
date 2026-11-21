@@ -52,6 +52,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Action(A::ExportMovie),
                     Action(A::ExportFla),
                     Action(A::ExportSvg),
+                    Action(A::ExportSpriteSheet),
                 ],
             ),
             Separator,
@@ -116,6 +117,15 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ToggleOutlineMode),
             Action(A::TogglePasteboard),
             Separator,
+            Submenu(
+                "Mannequin",
+                &[
+                    Action(A::ToggleMannequinOnStage),
+                    Action(A::PlaceMannequinUnder),
+                    Action(A::PlaceMannequinOnLayer),
+                ],
+            ),
+            Separator,
             Action(A::ResetLayout),
         ],
     ),
@@ -147,6 +157,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::DocumentSettings),
             Separator,
             Action(A::ConvertToSymbol),
+            Action(A::ConvertToBitmap),
             Action(A::BreakApart),
             Separator,
             Submenu(

@@ -252,6 +252,52 @@ pub enum StillFormat {
     Hdr,
 }
 
+impl StillFormat {
+    /// Every file ending a still picture is written with, lower case, the ones
+    /// [`StillFormat::from_extension`] reads.
+    pub const EXTENSIONS: [&'static str; 14] = [
+        "png", "jpg", "jpeg", "bmp", "tga", "tif", "tiff", "webp", "qoi", "pnm", "pam", "ico",
+        "exr", "hdr",
+    ];
+
+    /// The format a file ending names, ignoring case. A JPEG takes `quality` 90, as the command
+    /// line and the MCP server do when none is given. `None` for an ending no still format has.
+    pub fn from_extension(ending: &str) -> Option<StillFormat> {
+        let ending = ending.to_ascii_lowercase();
+        Some(match ending.as_str() {
+            "png" => StillFormat::Png,
+            "jpg" | "jpeg" => StillFormat::Jpeg { quality: 90 },
+            "bmp" => StillFormat::Bmp,
+            "tga" => StillFormat::Tga,
+            "tif" | "tiff" => StillFormat::Tiff,
+            "webp" => StillFormat::WebpLossless,
+            "qoi" => StillFormat::Qoi,
+            "pnm" | "pam" => StillFormat::Pnm,
+            "ico" => StillFormat::Ico,
+            "exr" => StillFormat::Exr,
+            "hdr" => StillFormat::Hdr,
+            _ => return None,
+        })
+    }
+
+    /// The file ending this format is written with.
+    pub fn extension(self) -> &'static str {
+        match self {
+            StillFormat::Png => "png",
+            StillFormat::Jpeg { .. } => "jpg",
+            StillFormat::Bmp => "bmp",
+            StillFormat::Tga => "tga",
+            StillFormat::Tiff => "tif",
+            StillFormat::WebpLossless => "webp",
+            StillFormat::Qoi => "qoi",
+            StillFormat::Pnm => "pnm",
+            StillFormat::Ico => "ico",
+            StillFormat::Exr => "exr",
+            StillFormat::Hdr => "hdr",
+        }
+    }
+}
+
 /// Converts premultiplied RGBA8 to straight alpha with rounding, in place. Opaque and fully
 /// transparent pixels are already the same in both forms and are not touched.
 pub(crate) fn unpremultiply_in_place(rgba: &mut [u8]) {
@@ -269,3 +315,7 @@ pub(crate) fn unpremultiply_in_place(rgba: &mut [u8]) {
 #[cfg(test)]
 #[path = "image_tint_tests.rs"]
 mod tint_tests;
+
+#[cfg(test)]
+#[path = "image_format_tests.rs"]
+mod format_tests;

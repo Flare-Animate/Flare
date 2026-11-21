@@ -150,3 +150,6 @@ opt-pressure-size = 筆圧でサイズ
 opt-pressure-size-tip = 軽く触れるほど細いストロークになります
 opt-color-stretch = 色延び
 opt-color-stretch-tip = 拾った色をストロークに沿ってどこまで運ぶか。0 はその場で混ぜます
+opt-opacity = 不透明度
+opt-color-mix = 混色
+opt-color-mix-tip = ブラシの下の色を絵の具にどれだけ混ぜるか。0 は絵の具をそのまま塗ります

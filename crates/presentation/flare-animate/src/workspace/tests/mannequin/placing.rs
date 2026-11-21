@@ -181,3 +181,51 @@ fn the_figure_is_kept_with_the_preferences_and_a_bad_one_is_ignored() {
     kept.apply_preferences(&bad);
     assert_eq!(*kept.mannequin(), default);
 }
+
+#[test]
+fn the_view_menu_places_the_figure_under_the_drawing_and_on_a_layer_without_changing_the_panels_choice()
+ {
+    let mut ws = workspace();
+    let before = layer_count(&ws);
+    ws.set_mannequin_place_into(PlaceInto::ThisKeyframe);
+    let drawing = ws.document().scenes()[0].timeline().layers()[0].id();
+
+    assert!(ws.is_enabled(MenuAction::PlaceMannequinUnder));
+    ws.perform(MenuAction::PlaceMannequinUnder);
+    let layers = ws.document().scenes()[0].timeline().layers().to_vec();
+    assert_eq!(layers.len(), before + 1);
+    let guide = layers.last().expect("bottom layer");
+    assert!(
+        guide.is_reference() && guide.is_locked(),
+        "a locked guide at the bottom"
+    );
+    assert_eq!(layers[0].id(), drawing, "the drawing layer stays on top");
+    assert!(
+        ws.tool() != Tool::FreeTransform,
+        "the tool in hand is left alone"
+    );
+    assert_eq!(
+        ws.mannequin.into,
+        PlaceInto::ThisKeyframe,
+        "the panel's choice stays"
+    );
+
+    ws.perform(MenuAction::PlaceMannequinOnLayer);
+    let top = ws.document().scenes()[0].timeline().layers()[0].clone();
+    assert_eq!(top.name(), "Mannequin");
+    assert!(
+        !top.is_reference(),
+        "this one is an ordinary picture on top"
+    );
+    assert_eq!(ws.mannequin.into, PlaceInto::ThisKeyframe);
+}
+
+#[test]
+fn the_view_menu_shows_the_figure_on_the_stage_and_hides_it_again() {
+    let mut ws = workspace();
+    assert!(!ws.mannequin.on_stage);
+    ws.perform(MenuAction::ToggleMannequinOnStage);
+    assert!(ws.mannequin.on_stage);
+    ws.perform(MenuAction::ToggleMannequinOnStage);
+    assert!(!ws.mannequin.on_stage);
+}

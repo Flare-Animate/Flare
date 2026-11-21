@@ -42,3 +42,4 @@ menu-mock-step-in = 한 단계씩 코드 실행
 menu-mock-step-out = 프로시저 나가기
 menu-mock-remove-all-breakpoints = 모든 중단점 제거
 menu-mock-movie-scripts = 동영상 스크립트...
+menu-submenu-mannequin = 마네킹

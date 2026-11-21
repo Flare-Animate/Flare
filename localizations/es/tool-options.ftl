@@ -154,3 +154,6 @@ opt-pressure-size = La presión fija el tamaño
 opt-pressure-size-tip = Un toque más suave da un trazo más estrecho
 opt-color-stretch = Estiramiento de color
 opt-color-stretch-tip = Hasta dónde se lleva un color recogido a lo largo del trazo; 0 mezcla en el sitio
+opt-opacity = Opacidad
+opt-color-mix = Mezcla de color
+opt-color-mix-tip = Cuánto del color bajo el pincel se mezcla con la pintura; 0 aplica la pintura tal cual

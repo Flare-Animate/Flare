@@ -42,3 +42,4 @@ menu-mock-step-in = Einzelschritt
 menu-mock-step-out = Ausführen bis Rücksprung
 menu-mock-remove-all-breakpoints = Alle Haltepunkte entfernen
 menu-mock-movie-scripts = Filmskripte...
+menu-submenu-mannequin = Gliederpuppe

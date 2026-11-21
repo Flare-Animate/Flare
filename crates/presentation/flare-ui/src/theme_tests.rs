@@ -81,17 +81,8 @@ fn contrast(a: Color32, b: Color32) -> f32 {
 }
 
 #[test]
-fn both_palettes_keep_text_readable_on_every_surface_and_the_light_one_is_light() {
-    for mode in [
-        Mode::Dark,
-        Mode::Light,
-        Mode::Clay,
-        Mode::Synthwave,
-        Mode::Blue,
-        Mode::Neutral,
-        Mode::Green,
-        Mode::LiquidGlass,
-    ] {
+fn every_palette_keeps_text_readable_on_every_surface_and_the_light_one_is_light() {
+    for mode in Mode::ALL {
         set_mode(mode);
         for surface in [bg(), chrome(), panel(), panel_raised(), field(), hover()] {
             assert!(
@@ -118,25 +109,72 @@ fn both_palettes_keep_text_readable_on_every_surface_and_the_light_one_is_light(
     let dark_panel = luminance(panel());
     set_mode(Mode::Light);
     assert!(luminance(panel()) > 0.7 && dark_panel < 0.05);
-    assert!(
-        luminance(field()) < luminance(panel_raised()),
-        "the inset box is the lower surface"
-    );
     set_mode(Mode::Dark);
 }
 
 #[test]
-fn ground_bars_and_panels_are_three_tones_apart_in_every_palette() {
-    for mode in [
+fn a_light_theme_has_pale_panels_and_a_dark_one_dark_panels() {
+    for mode in Mode::ALL {
+        set_mode(mode);
+        if mode.is_light() {
+            assert!(luminance(panel()) > 0.4, "{mode:?} is light");
+            assert!(
+                luminance(text()) < luminance(panel()),
+                "{mode:?} draws dark on light"
+            );
+            assert!(
+                luminance(field()) < luminance(panel_raised()),
+                "{mode:?}: the inset box is the lower surface"
+            );
+        } else {
+            assert!(luminance(panel()) < 0.05, "{mode:?} is dark");
+        }
+    }
+    set_mode(Mode::Dark);
+    let lights = Mode::ALL.iter().filter(|m| m.is_light()).count();
+    assert!(
+        lights >= 4 && Mode::ALL.len() - lights >= 4,
+        "both kinds to choose from"
+    );
+}
+
+#[test]
+fn the_grey_themes_run_from_darkest_to_lightest_as_listed() {
+    let greys = [
+        Mode::Darkest,
         Mode::Dark,
+        Mode::Medium,
         Mode::Light,
-        Mode::Clay,
-        Mode::Synthwave,
-        Mode::Blue,
-        Mode::Neutral,
-        Mode::Green,
-        Mode::LiquidGlass,
-    ] {
+        Mode::Lightest,
+    ];
+    assert_eq!(Mode::ALL[..5], greys, "the greys lead the list");
+    let panels: Vec<f32> = greys
+        .iter()
+        .map(|&m| {
+            set_mode(m);
+            luminance(panel())
+        })
+        .collect();
+    set_mode(Mode::Dark);
+    assert!(panels.windows(2).all(|w| w[0] < w[1]), "{panels:?}");
+}
+
+#[test]
+fn every_theme_has_its_own_code_and_a_profile_may_name_each() {
+    let mut codes: Vec<&str> = Mode::ALL.iter().map(|m| m.code()).collect();
+    assert_eq!(
+        codes,
+        flare_profile::THEMES,
+        "profiles know every theme, in order"
+    );
+    codes.sort_unstable();
+    codes.dedup();
+    assert_eq!(codes.len(), Mode::ALL.len(), "no two themes share a code");
+}
+
+#[test]
+fn ground_bars_and_panels_are_three_tones_apart_in_every_palette() {
+    for mode in Mode::ALL {
         set_mode(mode);
         let (ground, bars, panels) = (luminance(bg()), luminance(chrome()), luminance(panel()));
         assert!(
@@ -164,19 +202,11 @@ fn the_mode_is_per_thread_kept_by_code_and_unknown_codes_are_dark() {
     assert_eq!(other, Mode::Dark, "another thread is not affected");
     assert_eq!(mode(), Mode::Light);
     set_mode(Mode::Dark);
-    for m in [
-        Mode::Dark,
-        Mode::Light,
-        Mode::Clay,
-        Mode::Synthwave,
-        Mode::Blue,
-        Mode::Neutral,
-        Mode::Green,
-        Mode::LiquidGlass,
-    ] {
+    for m in Mode::ALL {
         assert_eq!(Mode::from_code(m.code()), m);
     }
     assert_eq!(Mode::from_code("neon"), Mode::Dark);
+    assert_eq!(Mode::from_code("Dark"), Mode::Dark, "codes are exact");
     assert_eq!(Mode::from_code(""), Mode::Dark);
 }
 
@@ -192,4 +222,48 @@ fn the_palette_is_applied_to_eguis_own_widgets_in_both_modes() {
     let dark = ctx.global_style().visuals.clone();
     assert!(dark.dark_mode && dark.panel_fill == panel());
     assert_ne!(light.panel_fill, dark.panel_fill);
+    for mode in Mode::ALL {
+        set_mode(mode);
+        apply_palette(&ctx);
+        let visuals = ctx.global_style().visuals.clone();
+        assert_eq!(visuals.dark_mode, !mode.is_light(), "{mode:?}");
+        assert_eq!(visuals.panel_fill, panel(), "{mode:?}");
+    }
+    set_mode(Mode::Dark);
+}
+
+#[test]
+fn ink_on_a_fill_is_whichever_of_white_and_black_reads_better() {
+    for fill in [
+        Color32::BLACK,
+        Color32::WHITE,
+        rgb(0xff, 0xd4, 0x00),
+        rgb(0x4c, 0x8d, 0xff),
+        rgb(0x13, 0x7a, 0x52),
+        rgb(0x76, 0x76, 0x76),
+        rgb(0x77, 0x77, 0x77),
+    ] {
+        let ink = ink_on(fill);
+        let other = if ink == Color32::WHITE {
+            Color32::BLACK
+        } else {
+            Color32::WHITE
+        };
+        assert!(contrast(ink, fill) >= contrast(other, fill), "{fill:?}");
+    }
+    assert_eq!(ink_on(rgb(0xff, 0xd4, 0x00)), Color32::BLACK);
+    assert_eq!(ink_on(rgb(0x1f, 0x6c, 0xe0)), Color32::WHITE);
+}
+
+#[test]
+fn a_button_filled_with_the_accent_can_be_read_in_every_theme() {
+    for mode in Mode::ALL {
+        set_mode(mode);
+        assert!(
+            contrast(ink_on(accent()), accent()) >= 4.5,
+            "{mode:?}: the label on {:?}",
+            accent()
+        );
+    }
+    set_mode(Mode::Dark);
 }

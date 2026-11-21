@@ -42,3 +42,4 @@ menu-mock-step-in = Шаг с заходом
 menu-mock-step-out = Шаг с выходом
 menu-mock-remove-all-breakpoints = Удалить все точки останова
 menu-mock-movie-scripts = Скрипты ролика...
+menu-submenu-mannequin = Манекен

@@ -214,3 +214,15 @@ fn the_palette_opens_and_performs_the_chosen_command() {
     ws.handle_shortcuts(&ctx);
     assert!(!ws.windows.palette, "Ctrl+K closed it again");
 }
+
+#[test]
+fn export_sprite_sheet_asks_for_a_place_to_write_the_sheet() {
+    let mut ws = workspace();
+    assert!(ws.is_enabled(MenuAction::ExportSpriteSheet));
+    assert_eq!(
+        ws.label(MenuAction::ExportSpriteSheet),
+        "Export Sprite Sheet..."
+    );
+    ws.perform(MenuAction::ExportSpriteSheet);
+    assert_eq!(ws.take_dialog(), Some(DialogRequest::ExportSpriteSheet));
+}

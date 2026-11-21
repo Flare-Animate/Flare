@@ -37,8 +37,10 @@ fn rectangles_drawn_at_one_frame_share_the_layer_and_its_keyframe() {
         (Some(0), Some(1))
     );
     let info = json(&["info", &file]);
-    assert_eq!(layer_of(&info, 0)["spans"], 1);
-    assert_eq!(layer_of(&info, 0)["elements"], 2);
+    // Frame 4 only showed the first keyframe, so the new one starts there with a copy of what
+    // was held and the new rectangle beside it; frames 0 to 3 are as they were.
+    assert_eq!(layer_of(&info, 0)["spans"], 2);
+    assert_eq!(layer_of(&info, 0)["elements"], 3);
     assert_eq!(
         info["scenes"][0]["layers"]
             .as_array()
@@ -54,6 +56,9 @@ fn a_frame_without_a_keyframe_starts_one_and_a_named_layer_is_used() {
     let file = path(dir.path());
     let out = dir.path().join("f.png").to_string_lossy().into_owned();
     json(&["new", &file]);
+    // Layer 1 would hold its red square over the ground at frame 5; released, it ends at its
+    // keyframe, so what shows at frame 5 is the ground's own keyframe.
+    json(&["layer", "release", &file]);
     let ground = json(&["add-layer", &file, "Ground"])["layer"]
         .as_str()
         .expect("id")

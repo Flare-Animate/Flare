@@ -136,11 +136,18 @@ impl Workspace {
                         });
                 });
                 labelled(ui, "prefs-theme", &mut |ui| {
-                    for (code, key) in
-                        [("dark", "prefs-theme-dark"), ("light", "prefs-theme-light")]
-                    {
-                        ui.selectable_value(&mut edited.theme, code.to_owned(), tr.text(key));
-                    }
+                    let chosen = flare_ui::theme::Mode::from_code(&edited.theme);
+                    egui::ComboBox::from_id_salt("theme")
+                        .selected_text(tr.text(&theme_key(chosen)))
+                        .show_ui(ui, |ui| {
+                            for mode in flare_ui::theme::Mode::ALL {
+                                ui.selectable_value(
+                                    &mut edited.theme,
+                                    mode.code().to_owned(),
+                                    tr.text(&theme_key(mode)),
+                                );
+                            }
+                        });
                 });
                 labelled(ui, "prefs-autosave", &mut |ui| {
                     ui.add(
@@ -238,4 +245,9 @@ impl Workspace {
         self.apply_preferences(&edited);
         self.windows.preferences = !response.should_close();
     }
+}
+
+/// The message that names `mode` in the Theme list: `prefs-theme-` and its code.
+pub(in crate::workspace) fn theme_key(mode: flare_ui::theme::Mode) -> String {
+    format!("prefs-theme-{}", mode.code())
 }

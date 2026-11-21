@@ -43,12 +43,7 @@ impl Workspace {
             name.to_lowercase()
         };
         let draw_label = tr!(self, "tools-draw-label", &[("name", &noun)]);
-        // The layer chosen in the timeline; with none chosen (or a deleted one) the topmost that
-        // can take art.
-        let target = self
-            .current_layer
-            .filter(|id| self.layer(*id).is_some())
-            .map_or(Target::Default, Target::Layer);
+        let target = self.drawing_target();
         let new_layer = tr!(self, "name-new-layer", &[("n", "1")]);
         let plan = match (under, shapes.as_slice()) {
             (true, [shape]) => flare_tools::paint::pour_under(
@@ -89,7 +84,16 @@ impl Workspace {
         }
     }
 
-    fn drawing_refusal(&self, refusal: &DrawRefusal) -> String {
+    /// The layer a drawing goes on: the one chosen in the timeline; with none chosen (or a
+    /// deleted one) the topmost that can take art.
+    pub(super) fn drawing_target(&self) -> Target {
+        self.current_layer
+            .filter(|id| self.layer(*id).is_some())
+            .map_or(Target::Default, Target::Layer)
+    }
+
+    /// What `refusal` is said as, naming the active layer.
+    pub(super) fn drawing_refusal(&self, refusal: &DrawRefusal) -> String {
         let name = self
             .active_layer()
             .map(|l| l.name().to_owned())

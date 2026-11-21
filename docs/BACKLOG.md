@@ -403,8 +403,10 @@ approach" names the library tests (with failure paths) and the wiring tests the 
   timing claim without numbers).
 - **Licence:** brush presets are the blocker: each preset file needs its own check. Engine written fresh.
 - **Status:** Blur and Smudge are built on a dab engine of their own (`flare_tools::blend`: spacing,
-  soft and anti-aliased dabs, a per-stroke coverage buffer, live on the pixels worker), which the
-  brushes here can reuse. Painting color, presets, paper texture and erasing pixels are not started.
+  soft and anti-aliased dabs, a per-stroke coverage buffer, live on the pixels worker), and the
+  Raster Brush paints color with it, with color mixing (Color mix and Color stretch) into a bitmap
+  on the layer or a new one the size of the stage, on every surface. Presets, paper texture, brush
+  tips that are pictures and erasing pixels are not started.
 
 ### WP-12 Scripting (XL, lower, decision first)
 

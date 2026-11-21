@@ -109,8 +109,11 @@ msg-saved-with-notes =
 msg-saved-rebuilt-names = Пересобрано для { $path }: { $names }
 msg-magic-wand = Волшебная палочка: { $reason }
 msg-magic-wand-changed = Документ изменился, пока стирались пиксели, поэтому ничего не стёрто
+msg-to-bitmap = Преобразовать в растровое изображение: { $reason }
+msg-to-bitmap-changed = Документ изменился, пока создавалось растровое изображение, поэтому ничего не преобразовано
 msg-blend = Размытие и палец: { $reason }
 msg-blend-changed = Документ изменился во время мазка, поэтому его остаток не нанесён
+msg-raster-brush = Растровая кисть: { $reason }
 
 brushes-imported = Импортировано настроек кисти: { $n }
 brushes-import-refused = Не удалось импортировать настройки кисти: { $reason }
