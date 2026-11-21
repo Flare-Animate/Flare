@@ -115,10 +115,12 @@ impl Workspace {
         match edit {
             DragEdit::Move(delta) => {
                 let delta = DVec2::new(f64::from(delta.x), f64::from(delta.y));
-                ops::translate_many(self.document(), scene, &selection, delta)
+                ops::translate_many_at(self.document(), scene, &selection, self.frame, delta)
+                    .map(|(commands, _)| commands)
             }
             DragEdit::Transform(matrix) => {
-                ops::transform_many(self.document(), scene, &selection, matrix)
+                ops::transform_many_at(self.document(), scene, &selection, self.frame, matrix)
+                    .map(|(commands, _)| commands)
             }
         }
     }

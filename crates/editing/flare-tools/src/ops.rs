@@ -21,7 +21,8 @@ pub use crate::delete_anchor::delete_anchor;
 pub use crate::drawing::{DrawPlan, DrawRefusal, Target, draw_shapes, place_contents};
 pub use crate::eraser::{delete, delete_many, delete_on_frame};
 pub use crate::free_transform::{
-    PlacementError, placement, transform, transform_many, translate, translate_many,
+    PlacementError, own_held, placement, transform, transform_many, transform_many_at, translate,
+    translate_many, translate_many_at,
 };
 pub use crate::grouping::{break_apart, break_apart_many, group};
 pub use crate::lasso::{polygon_contains, spans_in_polygon};
