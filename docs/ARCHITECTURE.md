@@ -271,7 +271,8 @@ stdio; stdout carries only protocol messages, which `rmcp` frames and validates.
 operations and renderer as the UI, so validation, atomic batches and undo apply to agents
 too. The server is read-only unless started with `--allow-write`, and nothing reaches disk
 until the `save` tool. The exports (`export_png`, `export_gif`, `export_mp4`, `publish_swf`, `publish_html5`, `export_xfl`) and `import_project` are off
-unless `--export-dir` is given; they write only a sanitized file name inside it, never overwrite, and read
+unless `--export-dir` is given; they write only a sanitized file name inside it, never overwrite (each file is made aside and
+hard-linked into place only if the name is still free, `tools::export::keep_fresh`), and read
 only from it. Mutating tools accept `expected_revision` (from `get_info`)
 and fail on a mismatch, so an agent cannot overwrite changes it has not seen. Tool failures
 are results with `isError` set, so the agent can read and react; arguments of the wrong shape

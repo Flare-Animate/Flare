@@ -5,7 +5,7 @@ use flare_mannequin::{Board, Look, Mannequin, Marks, Placement, Request};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
 
-use super::export::{export_dir, fresh};
+use super::export::{export_dir, fresh, write_fresh};
 use crate::color::{safe_file_name_with, safe_name};
 use crate::ops::{apply, first_scene, target_layer};
 use crate::params_mannequin::{PictureMannequin, PlaceMannequin};
@@ -152,7 +152,7 @@ impl FlareServer {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, "png")?)?;
             let bytes = picture_png(&figure, width, height, args.guides.unwrap_or(true))?;
-            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            write_fresh(&out, &bytes)?;
             Ok(json!({ "path": out.to_string_lossy(), "width": width, "height": height }))
         })
     }
