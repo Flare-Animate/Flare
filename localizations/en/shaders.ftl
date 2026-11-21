@@ -1,0 +1,13 @@
+pane-shaders = Shaders
+menu-item-show-shaders = Shaders
+shaders-empty = No shader graphs in this project yet. Import one from a graph file.
+shaders-import = Import...
+shaders-export = Export...
+shaders-remove = Remove
+shaders-nodes = { $count } nodes
+shaders-select = Choose a graph to export or remove it.
+shaders-cannot-import = Cannot import { $name }: { $error }
+shaders-cannot-export = Cannot export { $name }: { $error }
+shaders-note = Graphs are kept in the project. `flare shader render` and the MCP server's export_png apply them to a frame.
+hist-import-shader = Import a shader graph
+hist-remove-shader = Remove a shader graph

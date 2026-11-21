@@ -81,6 +81,72 @@ impl App {
                     |app, path| app.workspace.import_video(&path),
                 );
             }
+            DialogRequest::ImportShader => {
+                let filter = text(self, "dlg-filter-shader");
+                // Read where the picker is, refusing a file larger than any graph first.
+                self.ask(
+                    move || {
+                        let path = dialogs::pick_image(&filter, &["json"])?;
+                        let name = path.file_stem()?.to_string_lossy().into_owned();
+                        let read = (|| {
+                            let meta = std::fs::metadata(&path).map_err(|e| e.to_string())?;
+                            if meta.len() > flare_animate::MAX_SHADER_GRAPH_FILE_BYTES as u64 {
+                                return Err("the file is larger than a shader graph".to_owned());
+                            }
+                            std::fs::read(&path).map_err(|e| e.to_string())
+                        })();
+                        Some((name, read))
+                    },
+                    |app, (name, read)| match read {
+                        Ok(bytes) => app.workspace.import_shader_graph(&name, &bytes),
+                        Err(error) => app.workspace.shader_export_failed(&name, &error),
+                    },
+                );
+            }
+            DialogRequest::ExportShader => {
+                let Some((name, bytes)) = self.workspace.shader_export() else {
+                    return;
+                };
+                let filter = text(self, "dlg-filter-shader");
+                self.ask(
+                    move || {
+                        let path = dialogs::save_json(&filter, &format!("{name}.json"))?;
+                        Some((name, jobs::write_whole(&path, &bytes)))
+                    },
+                    |app, (name, written)| {
+                        if let Err(error) = written {
+                            app.workspace.shader_export_failed(&name, &error);
+                        }
+                    },
+                );
+            }
+            DialogRequest::ImportImageSequence => {
+                let filter = text(self, "dlg-filter-image-sequence");
+                // The files are read where the picker is, off the UI thread.
+                self.ask(
+                    move || {
+                        let paths =
+                            dialogs::pick_images(&filter, &flare_animate::SEQUENCE_EXTENSIONS)?;
+                        Some(flare_animate::read_sequence_files(&paths))
+                    },
+                    |app, files| match files {
+                        Ok(files) => app.workspace.import_image_sequence(files),
+                        Err(error) => app.workspace.report_message(&error.to_string()),
+                    },
+                );
+            }
+            DialogRequest::MovieScripts => {
+                let filter = text(self, "dlg-filter-movie-scripts");
+                // The movie is read where the picker is, off the UI thread.
+                self.ask(
+                    move || {
+                        let path = dialogs::pick_image(&filter, &["swf"])?;
+                        let name = path.file_name()?.to_string_lossy().into_owned();
+                        Some((name, flare_animate::Movie::open(&path)))
+                    },
+                    |app, (name, movie)| app.workspace.show_movie_scripts(name, movie),
+                );
+            }
             DialogRequest::ImportMannequinReference => {
                 let filter = text(self, "mannequin-filter-picture");
                 self.ask(

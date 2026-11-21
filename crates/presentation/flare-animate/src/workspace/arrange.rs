@@ -15,10 +15,14 @@ impl Workspace {
             return;
         };
         let delta = DVec2::new(f64::from(delta.x), f64::from(delta.y));
-        if let Some(commands) =
-            ops::translate_many(self.document(), scene, &self.selection_all(), delta)
-        {
-            self.run_batch(commands, "move");
+        if let Some((commands, refs)) = ops::translate_many_at(
+            self.document(),
+            scene,
+            &self.selection_all(),
+            self.frame,
+            delta,
+        ) {
+            self.run_selection_batch(commands, refs, "move");
         }
     }
 

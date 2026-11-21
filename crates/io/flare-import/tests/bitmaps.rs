@@ -178,3 +178,33 @@ fn a_damaged_or_truncated_bmp_or_tga_is_refused_with_its_name() {
     };
     assert!(import_foreign_bytes(Path::new("a.bmp"), bmp[..bmp.len() / 2].to_vec()).is_err());
 }
+
+#[test]
+fn a_folder_or_files_are_read_as_a_sequence_and_what_is_not_there_is_refused() {
+    let dir = tempfile::tempdir().expect("dir");
+    let png = png_bytes(1, 1, &[9, 9, 9, 255]);
+    for name in ["s_2.png", "s_1.PNG"] {
+        std::fs::write(dir.path().join(name), &png).expect("write");
+    }
+    std::fs::write(dir.path().join("notes.txt"), b"x").expect("write");
+    let files = flare_import::read_sequence_files(&[dir.path().to_path_buf()]).expect("folder");
+    assert_eq!(files.len(), 2, "only the pictures in the folder");
+    assert_eq!(
+        import_image_sequence(files)
+            .expect("import")
+            .document
+            .scenes()
+            .len(),
+        1
+    );
+    let one = dir.path().join("s_2.png");
+    assert_eq!(
+        flare_import::read_sequence_files(&[one])
+            .expect("file")
+            .len(),
+        1
+    );
+    assert!(flare_import::read_sequence_files(&[dir.path().join("absent")]).is_err());
+    let empty = tempfile::tempdir().expect("empty");
+    assert!(flare_import::read_sequence_files(&[empty.path().to_path_buf()]).is_err());
+}

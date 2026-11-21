@@ -33,7 +33,7 @@ class Associations(unittest.TestCase):
             IMPORT,
             {
                 "fla", "xfl", "svg", "png", "jpg", "jpeg", "bmp", "tga", "psd", "mp4", "mov", "avi", "mkv", "webm", "mpeg", "mpg", "flv", "f4v", "f4p", "spl", "swt", "swc", "flp", "tif", "tiff", "webp", "ico", "qoi", "pnm", "pbm", "pgm", "pam", "hdr", "exr", "dds", "gif", "swf", "bvh", "fc", "ppm", "kwz", "tnz",
-                "tpl", "plt", "tlv", "pli", "moho", "anime", "mohoproj", "animeproj", "anme", "wick",
+                "tpl", "plt", "tlv", "pli", "moho", "anime", "mohoproj", "animeproj", "anme", "wick", "xstage",
             },
         )
 

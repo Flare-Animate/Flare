@@ -18,3 +18,11 @@ pub struct GetShaderGraph {
     /// Name of the saved graph.
     pub name: String,
 }
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct RemoveShaderGraph {
+    /// Name of the saved graph to take out.
+    pub name: String,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}

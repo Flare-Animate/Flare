@@ -268,6 +268,23 @@ impl Layer {
         self.spans.get(index).filter(|span| span.start() <= frame)
     }
 
+    /// The layer with its hold written out: when the last drawing stays on show past its end, a
+    /// copy whose last span reaches `frames`, for a file format that has no holding (a `.fla`
+    /// shows nothing after a layer's last keyframe). `None` when there is nothing to write.
+    #[must_use]
+    pub fn with_hold_written(&self, frames: u64) -> Option<Layer> {
+        let last = self.held_past_the_end(u32::try_from(self.spans.last()?.end()).ok()?)?;
+        let duration = u32::try_from(frames.checked_sub(u64::from(last.start()))?)
+            .ok()
+            .and_then(std::num::NonZeroU32::new)?;
+        if u64::from(duration.get()) <= u64::from(last.duration().get()) {
+            return None;
+        }
+        let mut spans = self.spans.to_vec();
+        *spans.last_mut()? = last.retimed(last.start(), duration);
+        self.with_spans(spans).ok()
+    }
+
     /// The last span, for a frame after it, when what it holds is a drawing that stays: shapes,
     /// instances and pictures that do not move by a tween. A blank keyframe, a camera, an
     /// armature or a tween ends where it ends, so a blank keyframe is how a drawing is made to

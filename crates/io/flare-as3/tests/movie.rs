@@ -124,3 +124,23 @@ fn a_block_that_cannot_be_read_is_reported_and_not_patched() {
         Err(ScriptError::Unreadable { block: 0, .. })
     ));
 }
+
+#[test]
+fn a_movie_is_opened_from_a_file_and_a_missing_or_directory_path_is_refused() {
+    let dir = std::env::temp_dir().join(format!("flare-as3-open-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("dir");
+    let file = dir.join("game.swf");
+    std::fs::write(&file, movie(Compression::Zlib).expect("movie")).expect("write");
+    assert!(Movie::open(&file).is_ok());
+    assert!(matches!(
+        Movie::open(&dir.join("absent.swf")),
+        Err(ScriptError::Io(_))
+    ));
+    assert!(matches!(Movie::open(&dir), Err(ScriptError::Io(_))));
+    std::fs::write(dir.join("junk.swf"), b"not a movie").expect("write");
+    assert!(matches!(
+        Movie::open(&dir.join("junk.swf")),
+        Err(ScriptError::NotSwf(_))
+    ));
+    std::fs::remove_dir_all(&dir).expect("clean");
+}

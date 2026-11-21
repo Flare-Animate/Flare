@@ -20,15 +20,7 @@ const DEFAULT_STRINGS: usize = 500;
 
 fn movie(state: &State, source: &str) -> Result<Movie, String> {
     let path = export_file(state, source, "the movie")?;
-    let meta = std::fs::metadata(&path).map_err(|e| e.to_string())?;
-    if meta.len() > flare_as3::MAX_MOVIE_BYTES {
-        return Err(format!(
-            "{source} is larger than {} bytes, more than a movie is read at",
-            flare_as3::MAX_MOVIE_BYTES
-        ));
-    }
-    let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
-    Movie::read(&bytes).map_err(|e| e.to_string())
+    Movie::open(&path).map_err(|e| e.to_string())
 }
 
 fn to_json(value: impl serde::Serialize) -> Result<Value, String> {
