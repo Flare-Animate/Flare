@@ -1,2 +1,4 @@
 [advisories]
+# Both are XML-parsing denial of service, fixed in quick-xml 0.41. The affected 0.37 arrives only
+# with the pinned Ruffle submodule; Flare's own crates use 0.42. Remove these with a Ruffle bump.
 ignore = ["RUSTSEC-2026-0194", "RUSTSEC-2026-0195"]

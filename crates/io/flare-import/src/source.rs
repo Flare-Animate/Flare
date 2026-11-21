@@ -63,6 +63,12 @@ impl FileSource for DirSource {
 }
 
 /// A zipped modern `.fla`, which is an XFL directory in an archive.
+///
+/// Entries are read through the central directory ([`zip::ZipArchive`]), the index other tools
+/// read, and are looked up by name rather than extracted to disk. Where an archive's local header
+/// names an entry differently from the central directory, the central name is the one used, so a
+/// payload can never arrive under a name that was only in the local header. Adding a streaming
+/// extractor would change that guarantee.
 pub struct ZipSource<R = File>(RefCell<zip::ZipArchive<R>>);
 
 impl ZipSource {
@@ -304,6 +310,10 @@ pub fn import_bytes(bytes: Vec<u8>) -> Result<Imported, ImportError> {
         legacy::import_legacy_bytes(&bytes)
     } else if crate::looks_like_wick(&bytes) {
         crate::wick::import("Project.wick", &bytes)
+    } else if crate::harmony::looks_like_xstage(&bytes) {
+        // A scene read whole has no folder for its drawings, but its stage and columns are
+        // still its own; the note says what stayed behind.
+        crate::harmony::import("Scene.xstage", &bytes)
     } else if looks_like_flash_project(&bytes) {
         // A .flp read whole can name the files beside it, but here there is no beside: the
         // person who has only the project file is sent to the document it names.

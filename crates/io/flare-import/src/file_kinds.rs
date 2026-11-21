@@ -8,7 +8,7 @@ use std::path::Path;
 /// OpenToonz (`.tnz`, `.tpl`, `.plt`, `.tlv`, `.pli`), Moho, BVH, FlipaClip and Flipnote files
 /// come back here with their importers.
 pub const PROJECT_EXTENSIONS: [&str; 1] = ["flare"];
-pub const IMPORT_EXTENSIONS: [&str; 52] = [
+pub const IMPORT_EXTENSIONS: [&str; 53] = [
     "fla",
     "xfl",
     "svg",
@@ -61,6 +61,7 @@ pub const IMPORT_EXTENSIONS: [&str; 52] = [
     "animeproj",
     "anme",
     "wick",
+    "xstage",
 ];
 
 /// The file inside an XFL folder that is the document. A person who has only the folder, with no
@@ -108,7 +109,7 @@ pub fn classify(path: &Path, is_dir: bool) -> Option<PathKind> {
 
 /// Formats people meet beside Flash and Toonz files, which Flare does not import, with the reason
 /// the refusal names. Anything else gets the generic message.
-const UNSUPPORTED: [(&str, &str); 15] = [
+const UNSUPPORTED: [(&str, &str); 25] = [
     (
         "as",
         "an ActionScript source file (.as) holds code, not an animation; open the .fla or .swf it belongs to",
@@ -169,6 +170,46 @@ const UNSUPPORTED: [(&str, &str); 15] = [
         "tnx",
         "the OpenToonz .tnx format is not read; open the .tnz scene instead",
     ),
+    (
+        "ai",
+        "an Illustrator file (.ai) is Adobe's PDF-based artwork; in Illustrator use Save As and choose SVG, which Flare imports",
+    ),
+    (
+        "aep",
+        "an After Effects project (.aep) is Adobe's binary project file; render a PNG sequence or a movie from After Effects and import that",
+    ),
+    (
+        "tvpp",
+        "a TVPaint project (.tvpp) is TVPaint's binary project file; export a PNG or PSD sequence, or JSON with its images, from TVPaint and import that",
+    ),
+    (
+        "tvp",
+        "the older TVPaint .tvp project is TVPaint's binary project file; export a PNG or PSD sequence from TVPaint and import that",
+    ),
+    (
+        "clip",
+        "a Clip Studio Paint file (.clip) keeps its layers in a database of proprietary drawing data; export a PSD or a PNG sequence from Clip Studio Paint and import that",
+    ),
+    (
+        "blend",
+        "a Blender file (.blend) is a 3D scene, which Flare does not read; render a PNG sequence or export glTF (not read yet) from Blender",
+    ),
+    (
+        "puppet",
+        "a Character Animator puppet (.puppet) is Adobe's self-contained puppet; export a PNG sequence from Character Animator, or import the artwork's PSD or SVG",
+    ),
+    (
+        "chproj",
+        "a Character Animator project (.chproj) is Adobe's scene file; export a PNG sequence from Character Animator and import that",
+    ),
+    (
+        "vbd",
+        "a Harmony compact scene (.vbd) is not read; open it in Harmony and save a regular .xstage scene",
+    ),
+    (
+        "xstage~",
+        "a .xstage~ file is Harmony's backup of a scene; open the .xstage beside it",
+    ),
 ];
 
 /// Why `path` is not imported, for a name Flare knows and does not read. `None` when the name
@@ -188,8 +229,31 @@ mod tests {
     #[test]
     fn each_unsupported_kind_names_its_reason_and_others_do_not() {
         for name in [
-            "a.as", "a.AS2", "a.as3", "a.abc", "a.asc", "a.aso", "a.swd", "a.amf", "a.jsfl",
-            "a.sol", "a.f4a", "a.f4b", "a.f4f", "a.f4m", "a.tnx",
+            "a.as",
+            "a.AS2",
+            "a.as3",
+            "a.abc",
+            "a.asc",
+            "a.aso",
+            "a.swd",
+            "a.amf",
+            "a.jsfl",
+            "a.sol",
+            "a.f4a",
+            "a.f4b",
+            "a.f4f",
+            "a.f4m",
+            "a.tnx",
+            "a.ai",
+            "a.aep",
+            "a.tvpp",
+            "a.tvp",
+            "a.clip",
+            "a.blend",
+            "a.puppet",
+            "a.chproj",
+            "a.vbd",
+            "a.xstage~",
         ] {
             let reason = unsupported_reason(Path::new(name));
             assert!(reason.is_some_and(|r| !r.is_empty()), "{name}");
@@ -236,6 +300,7 @@ mod tests {
             "a.animeproj",
             "a.anme",
             "a.wick",
+            "a.xstage",
         ] {
             assert_eq!(kind(name, false), Some(PathKind::Import), "{name}");
         }

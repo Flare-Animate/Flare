@@ -27,6 +27,7 @@ code only if its licence allows it to be copied into a BSD-3 project with its no
 | ArtCraft's `Replicraft` | Not found (see below) | Unknown | Not used |
 | bitmapflow (`Bauxitedev/bitmapflow`) | **No LICENSE file** in the repository; its README says MIT, which is not relied on | Unknown | Behaviour and ideas only, no code (ENGINEERING.md) |
 | godot_moho_importer (`jpdurigan/godot_moho_importer`) | `MIT` (`LICENSE`) | Yes, with attribution | Format facts used with attribution (see Sources 9) |
+| harmonyparser (`PoloB/harmonyparser`) | `MIT` (`LICENSE`, Copyright 2024 Paul Boiste) | Yes, with attribution | Format facts for Harmony `.xstage` scenes (see Sources 11); no code copied |
 | moho-file-analyzer (`sinahojati/moho-file-analyzer`) | No LICENSE file | No (no permission to copy) | Behaviour only, no code |
 | fla-decoder (`eddiemoore/fla-decoder`, binary FLA notes and a Python decoder) | `MIT` (`LICENSE`, Copyright 2026 Ed Moore; `NOTICE` repeats MIT) | Yes, with the notice kept | Its format notes inform the clean-room bounded layer reader; no decoder code is ported (see [FLASH-FORMATS.md](FLASH-FORMATS.md)) |
 | fla-viewer (`lifeart/fla-viewer`, TypeScript binary FLA viewer) | `ISC` per `package.json` and the README badge; **no LICENSE file** in the repository | Probably yes, but not confirmed from a licence file | Facts and behaviour only, no code. Its fixtures are used locally, not committed |
@@ -166,6 +167,15 @@ The reference list for `docs/FLIPNOTE.md`. Each source's licence is in the table
 
 The real Moho 13 files and their layout are recorded in [MOHO.md](MOHO.md). Samples are not
 committed; the tests use synthetic files written to match the layout.
+
+### 11. Toon Boom Harmony (`.xstage`)
+
+| Source | Licence (file read) | Use |
+|---|---|---|
+| PoloB/harmonyparser | `MIT` (`LICENSE`, Copyright 2024 Paul Boiste) | Format facts for the Harmony 21 scene XML: `<project creator="harmony">`, `<resolution size="W,H">`, `<framerate val>`, `<scene nbframes startFrame stopFrame>`, `<columns><column name displayOrder>`. Its `new_scene_21.xstage` was read in place, not committed; the tests write their own scene in the same shape. |
+
+The reader is `flare-import` `harmony.rs`; [INDUSTRY-FORMATS.md](INDUSTRY-FORMATS.md) says what is
+read and what stays in Harmony.
 
 ### Replicraft: not found
 

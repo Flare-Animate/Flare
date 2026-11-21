@@ -11,6 +11,7 @@ mod flash_bitmap;
 mod flipaclip;
 pub mod flipnote;
 mod foreign;
+pub mod harmony;
 mod keep;
 pub mod legacy;
 mod moho_images;

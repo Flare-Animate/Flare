@@ -36,6 +36,7 @@ pub fn foreign_kind(path: &Path) -> Option<&'static str> {
         "f4v" | "f4p" => Some("video"),
         "gif" => Some("gif"),
         "tnz" | "tpl" | "plt" | "pli" | "tlv" => Some("toonz"),
+        "xstage" => Some("harmony"),
         "ppm" | "kwz" | "kwc" => Some("flipnote"),
         "fc" => Some("flipaclip"),
         "wick" => Some("wick"),
@@ -115,6 +116,7 @@ pub fn import_foreign_bytes(name: &Path, bytes: Vec<u8>) -> Result<Imported, Imp
         }
         Some("flipnote") => crate::flipnote::import(file, &bytes),
         Some("toonz") => crate::toonz::import(name, &bytes).map_err(|e| foreign(&e)),
+        Some("harmony") => crate::harmony::import(file, &bytes),
         _ => Err(ImportError::NotXfl("unknown file type".into())),
     }
 }
