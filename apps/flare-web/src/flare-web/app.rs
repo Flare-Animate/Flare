@@ -37,6 +37,8 @@ pub struct WebApp {
     picked_brushes: Rc<RefCell<Vec<Picked>>>,
     /// Flash movies picked for the Movie Scripts window.
     picked_movies: Rc<RefCell<Vec<Picked>>>,
+    /// Shader graph files picked, added to the project on the next frame.
+    picked_shaders: Rc<RefCell<Vec<Picked>>>,
     /// Picture sequences picked, turned into a project on the next frame.
     picked_sequences: Rc<RefCell<Vec<Vec<(String, Vec<u8>)>>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
@@ -63,6 +65,7 @@ impl WebApp {
             picked_references: Rc::default(),
             picked_brushes: Rc::default(),
             picked_movies: Rc::default(),
+            picked_shaders: Rc::default(),
             picked_sequences: Rc::default(),
             messages: Rc::default(),
             fonts: Rc::default(),
@@ -225,6 +228,22 @@ impl WebApp {
                 .messages
                 .borrow_mut()
                 .push(self.workspace.interface_text("video-browser")),
+            DialogRequest::ImportShader => {
+                let label = self.workspace.interface_text("dlg-filter-shader");
+                self.pick_into(
+                    ctx,
+                    &self.picked_shaders,
+                    label,
+                    &["json"],
+                    flare_import::MAX_SHADER_GRAPH_FILE_BYTES,
+                    None,
+                );
+            }
+            DialogRequest::ExportShader => {
+                if let Some((name, bytes)) = self.workspace.shader_export() {
+                    self.deliver(&format!("{name}.json"), "application/json", Ok(bytes));
+                }
+            }
             DialogRequest::ImportImageSequence => {
                 let label = self.workspace.interface_text("dlg-filter-image-sequence");
                 let (inbox, messages, ctx) = (
@@ -485,6 +504,11 @@ impl eframe::App for WebApp {
         for file in brushes {
             self.workspace
                 .import_brush_profiles(&file.name, &file.bytes);
+        }
+        let shaders: Vec<Picked> = self.picked_shaders.borrow_mut().drain(..).collect();
+        for file in shaders {
+            let name = file.name.strip_suffix(".json").unwrap_or(&file.name);
+            self.workspace.import_shader_graph(name, &file.bytes);
         }
         let sequences: Vec<_> = self.picked_sequences.borrow_mut().drain(..).collect();
         for files in sequences {

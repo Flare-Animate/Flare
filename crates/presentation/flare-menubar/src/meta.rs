@@ -155,6 +155,7 @@ impl MenuAction {
             | Self::PlaceMannequinUnder
             | Self::PlaceMannequinOnLayer => "panel-mannequin",
             Self::ShowEffects => "panel-effects",
+            Self::ShowShaders => "panel-shaders",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",

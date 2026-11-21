@@ -30,3 +30,6 @@ dlg-increment-apply = Увеличить
 dlg-filter-animate-shortcuts = Сочетания клавиш Animate
 dlg-cannot-read = Не удаётся прочитать файл
 dlg-filter-sprite-sheet = Изображение спрайт-листа
+dlg-filter-movie-scripts = Flash-ролик
+dlg-filter-image-sequence = Изображения PNG
+dlg-filter-shader = Граф шейдера

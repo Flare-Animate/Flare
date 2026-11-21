@@ -319,6 +319,7 @@ impl MenuAction {
             Self::PlaceMannequinUnder => "menu-item-mannequin-under",
             Self::PlaceMannequinOnLayer => "menu-item-mannequin-on-layer",
             Self::ShowEffects => "menu-item-show-effects",
+            Self::ShowShaders => "menu-item-show-shaders",
             Self::ClearGuides => "menu-item-clear-guides",
             Self::About => "menu-item-about",
             Self::KeyboardShortcuts => "menu-item-keyboard-shortcuts",

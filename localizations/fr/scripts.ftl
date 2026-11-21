@@ -1,1 +1,15 @@
-# Not translated yet: English is shown until it is.
+scripts-title = Scripts de l'animation : { $name }
+scripts-classes = Classes
+scripts-strings = Chaînes
+scripts-find = Chercher
+scripts-find-hint = Une partie d'un nom ou d'un texte, puis Entrée
+scripts-search = Chercher
+scripts-code = Lister les corps des méthodes en instructions
+scripts-text-only = Seulement le texte utilisé par le code
+scripts-pick-class = Choisissez une classe pour la lire.
+scripts-truncated = Le texte s'arrête ici : il est plus long que ce que la fenêtre montre.
+scripts-cannot-read = Impossible de lire { $name } : { $error }
+scripts-use-text = texte
+scripts-use-name = nom
+scripts-use-other = autre
+scripts-note = Lecture seule : Flare n'exécute pas ces scripts. Pour changer une chaîne, corrigez l'animation avec `flare scripts patch` ou le serveur MCP.

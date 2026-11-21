@@ -81,6 +81,45 @@ impl App {
                     |app, path| app.workspace.import_video(&path),
                 );
             }
+            DialogRequest::ImportShader => {
+                let filter = text(self, "dlg-filter-shader");
+                // Read where the picker is, refusing a file larger than any graph first.
+                self.ask(
+                    move || {
+                        let path = dialogs::pick_image(&filter, &["json"])?;
+                        let name = path.file_stem()?.to_string_lossy().into_owned();
+                        let read = (|| {
+                            let meta = std::fs::metadata(&path).map_err(|e| e.to_string())?;
+                            if meta.len() > flare_animate::MAX_SHADER_GRAPH_FILE_BYTES as u64 {
+                                return Err("the file is larger than a shader graph".to_owned());
+                            }
+                            std::fs::read(&path).map_err(|e| e.to_string())
+                        })();
+                        Some((name, read))
+                    },
+                    |app, (name, read)| match read {
+                        Ok(bytes) => app.workspace.import_shader_graph(&name, &bytes),
+                        Err(error) => app.workspace.shader_export_failed(&name, &error),
+                    },
+                );
+            }
+            DialogRequest::ExportShader => {
+                let Some((name, bytes)) = self.workspace.shader_export() else {
+                    return;
+                };
+                let filter = text(self, "dlg-filter-shader");
+                self.ask(
+                    move || {
+                        let path = dialogs::save_json(&filter, &format!("{name}.json"))?;
+                        Some((name, jobs::write_whole(&path, &bytes)))
+                    },
+                    |app, (name, written)| {
+                        if let Err(error) = written {
+                            app.workspace.shader_export_failed(&name, &error);
+                        }
+                    },
+                );
+            }
             DialogRequest::ImportImageSequence => {
                 let filter = text(self, "dlg-filter-image-sequence");
                 // The files are read where the picker is, off the UI thread.

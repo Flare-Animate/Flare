@@ -39,6 +39,7 @@ pub(crate) mod mannequin_view;
 mod properties;
 mod properties_interp;
 mod properties_object;
+pub(crate) mod shaders;
 mod stage_bar;
 mod swatches;
 #[cfg(test)]

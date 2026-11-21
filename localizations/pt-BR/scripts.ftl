@@ -1,1 +1,15 @@
-# Not translated yet: English is shown until it is.
+scripts-title = Scripts do filme: { $name }
+scripts-classes = Classes
+scripts-strings = Strings
+scripts-find = Buscar
+scripts-find-hint = Parte de um nome ou texto, depois Enter
+scripts-search = Buscar
+scripts-code = Listar o corpo dos métodos como instruções
+scripts-text-only = Somente o texto que o código usa
+scripts-pick-class = Escolha uma classe para lê-la.
+scripts-truncated = O texto para aqui: é mais longo do que a janela mostra.
+scripts-cannot-read = Não foi possível ler { $name }: { $error }
+scripts-use-text = texto
+scripts-use-name = nome
+scripts-use-other = outro
+scripts-note = Somente leitura: o Flare não executa esses scripts. Para mudar uma string, aplique um patch no filme com `flare scripts patch` ou o servidor MCP.

@@ -1,1 +1,15 @@
-# Not translated yet: English is shown until it is.
+scripts-title = Filmskripte: { $name }
+scripts-classes = Klassen
+scripts-strings = Zeichenketten
+scripts-find = Suchen
+scripts-find-hint = Teil eines Namens oder Texts, dann Eingabe
+scripts-search = Suchen
+scripts-code = Methodenrümpfe als Anweisungen auflisten
+scripts-text-only = Nur Text, den der Code verwendet
+scripts-pick-class = Wähle eine Klasse, um sie zu lesen.
+scripts-truncated = Der Text endet hier: Er ist länger, als das Fenster zeigt.
+scripts-cannot-read = { $name } kann nicht gelesen werden: { $error }
+scripts-use-text = Text
+scripts-use-name = Name
+scripts-use-other = andere
+scripts-note = Nur lesen: Flare führt diese Skripte nicht aus. Um eine Zeichenkette zu ändern, patche den Film mit `flare scripts patch` oder dem MCP-Server.

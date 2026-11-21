@@ -38,7 +38,7 @@ fn choosing_a_class_writes_it_out_and_a_search_narrows_the_list() {
     let (_, source) = window.chosen.as_ref().expect("chosen");
     assert!(source.as_ref().expect("source").text.contains("class"));
     let all = window.outline.matched;
-    window.find = "no-such-class-anywhere".into();
+    window.find = "zzzzzz".into();
     window.search();
     assert_eq!(window.outline.matched, 0);
     assert!(all > 0);

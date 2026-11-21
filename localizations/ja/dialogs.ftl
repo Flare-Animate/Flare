@@ -30,3 +30,6 @@ dlg-increment-apply = 増分
 dlg-filter-animate-shortcuts = Animate のショートカット
 dlg-cannot-read = ファイルを読み込めません
 dlg-filter-sprite-sheet = スプライトシート画像
+dlg-filter-movie-scripts = Flash ムービー
+dlg-filter-image-sequence = PNG 画像
+dlg-filter-shader = シェーダーグラフ

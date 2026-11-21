@@ -354,6 +354,20 @@ pub fn test_movie(
     Ok(Ok(()))
 }
 
+/// Writes `bytes` to `path` whole or not at all: they go to a file beside it that then takes its
+/// place, so a failed write leaves what was there.
+pub fn write_whole(path: &std::path::Path, bytes: &[u8]) -> Result<(), String> {
+    use std::io::Write;
+    let dir = path
+        .parent()
+        .filter(|d| !d.as_os_str().is_empty())
+        .unwrap_or(std::path::Path::new("."));
+    let mut staged = tempfile::NamedTempFile::new_in(dir).map_err(|e| e.to_string())?;
+    staged.write_all(bytes).map_err(|e| e.to_string())?;
+    staged.persist(path).map_err(|e| e.error.to_string())?;
+    Ok(())
+}
+
 /// Runs `pick`, a file picker that blocks until the person answers, off the calling thread, and
 /// hands what it returned to `done` (on that thread). A picker run on the UI thread stops the
 /// window painting, and on some desktops stays blank until touched; this keeps the window live.

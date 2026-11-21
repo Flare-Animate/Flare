@@ -95,6 +95,7 @@ mod save_flare;
 mod save_formats;
 mod scene_name;
 mod selection_follows_playhead;
+mod shaders_panel;
 mod shortcut_editor;
 mod sound_scrub;
 mod span_drop;

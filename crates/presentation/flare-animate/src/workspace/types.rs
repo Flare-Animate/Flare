@@ -91,6 +91,10 @@ pub enum DialogRequest {
     ImportSound,
     /// A movie to bring in to draw over (File > Import > Import Video).
     ImportVideo,
+    /// A shader graph file (`.json`) to add to the project's graphs.
+    ImportShader,
+    /// Write the chosen shader graph out as a `.json` file.
+    ExportShader,
     /// Several numbered pictures (PNG) to make one layer of keyframes.
     ImportImageSequence,
     /// A Flash movie (`.swf`) whose ActionScript 3 the Movie Scripts window lists.

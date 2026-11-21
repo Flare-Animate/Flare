@@ -188,6 +188,7 @@ impl Workspace {
             | MenuAction::ShowMannequin
             | MenuAction::ToggleMannequinOnStage
             | MenuAction::ShowEffects
+            | MenuAction::ShowShaders
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleEditMultipleFrames
@@ -419,6 +420,7 @@ impl Workspace {
                 self.place_mannequin_as(PlaceInto::NewLayer);
             }
             MenuAction::ShowEffects => self.show_pane(Pane::Effects),
+            MenuAction::ShowShaders => self.show_pane(Pane::Shaders),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleEditMultipleFrames => {

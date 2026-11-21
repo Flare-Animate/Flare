@@ -1,0 +1,13 @@
+pane-shaders = Shader
+menu-item-show-shaders = Shader
+hist-import-shader = Importa un grafo shader
+hist-remove-shader = Rimuovi un grafo shader
+shaders-empty = Questo progetto non ha ancora grafi shader. Importane uno da un file di grafo.
+shaders-import = Importa...
+shaders-export = Esporta...
+shaders-remove = Rimuovi
+shaders-nodes = { $count } nodi
+shaders-select = Scegli un grafo per esportarlo o rimuoverlo.
+shaders-cannot-import = Impossibile importare { $name }: { $error }
+shaders-cannot-export = Impossibile esportare { $name }: { $error }
+shaders-note = I grafi sono salvati nel progetto. `flare shader render` e export_png del server MCP li applicano a un fotogramma.

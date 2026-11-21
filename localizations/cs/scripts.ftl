@@ -1,1 +1,15 @@
-# Not translated yet: English is shown until it is.
+scripts-title = Skripty filmu: { $name }
+scripts-classes = Třídy
+scripts-strings = Řetězce
+scripts-find = Hledat
+scripts-find-hint = Část názvu nebo textu, pak Enter
+scripts-search = Hledat
+scripts-code = Vypsat těla metod jako instrukce
+scripts-text-only = Jen text, který kód používá
+scripts-pick-class = Vyberte třídu, kterou chcete číst.
+scripts-truncated = Text se tu zastavuje: je delší, než okno ukáže.
+scripts-cannot-read = { $name } nelze přečíst: { $error }
+scripts-use-text = text
+scripts-use-name = název
+scripts-use-other = jiné
+scripts-note = Jen ke čtení: Flare tyto skripty nespouští. Řetězec změníte opravou filmu pomocí `flare scripts patch` nebo serveru MCP.

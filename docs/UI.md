@@ -136,7 +136,7 @@ Still planned (everything else in the menus and panels is built):
 
 - Library: folders.
 - Edit, Modify, Text, Commands and Help entries still listed dimmed in the menus (Window and the Help windows are real now: panels come to the front, About and a read-only shortcut list).
-- Debug > Movie Scripts..., a window over `flare_as3`: a movie's classes and strings, and replacing strings (the command line and the MCP server have it).
+- Debug > Movie Scripts... reads a movie's classes and strings (a window over `flare_as3`); replacing strings is still only in the command line and the MCP server.
 
 ## Top bar
 
@@ -388,7 +388,7 @@ change is one undo step.
 
 The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
 kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor, Find and
-Replace, Mannequin and Effects. A click opens that panel beside the strip, 300 px wide (its left edge drags
+Replace, Mannequin, Effects and Shaders. A click opens that panel beside the strip, 300 px wide (its left edge drags
 it wider or narrower) and level with its icon, over the stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
 a press on the stage or another panel puts it away (a list or picker the panel opened does not).
 Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
@@ -652,6 +652,13 @@ gradient's end), and pointing at one shows its hex value. The + keeps the color 
 of the person's own (each color once, at most 120; a full list says so), and a right click on one
 of them deletes it. They are kept with the preferences, not in the document. The web-safe colors
 are the web's standard palette, not Animate's artwork.
+
+## Shaders
+
+The Shaders panel (Window > Shaders, in the icon strip by default) lists the project's named shader
+graphs, each with a 48 px picture of what it draws, drawn again only when its graph changes. Import...
+reads a graph file (JSON, at most 1 MiB), Export... writes the chosen one, Remove takes it out;
+each is one undo step and goes through `flare_editor::shader_library`. There is no node editor yet.
 
 ## Effects
 

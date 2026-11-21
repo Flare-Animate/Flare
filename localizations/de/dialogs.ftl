@@ -30,3 +30,6 @@ dlg-increment-apply = Inkrementieren
 dlg-filter-animate-shortcuts = Animate-Tastaturbefehle
 dlg-cannot-read = Die Datei kann nicht gelesen werden
 dlg-filter-sprite-sheet = Sprite-Sheet-Bild
+dlg-filter-movie-scripts = Flash-Film
+dlg-filter-image-sequence = PNG-Bilder
+dlg-filter-shader = Shader-Graph
