@@ -8,7 +8,7 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
 use crate::ops::{apply, color_or, first_scene, target_layer};
-use crate::params_pixels::{Blend, MagicWand, RasterBrush};
+use crate::params_pixels::{Blend, ConvertToBitmap, MagicWand, RasterBrush};
 use crate::server::{FlareServer, Outcome, State};
 
 #[tool_router(router = pixel_tools, vis = "pub(super)")]
@@ -64,6 +64,59 @@ impl FlareServer {
     fn raster_brush(&self, Parameters(args): Parameters<RasterBrush>) -> Outcome {
         self.write(args.expected_revision, |state| paint_stroke(state, &args))
     }
+
+    #[tool(
+        description = "Convert to Bitmap, as Animate's Modify menu has it: the shapes, symbol instances and bitmaps of one keyframe (all of them, or `elements`, counting from the bottom at 0) become one bitmap of how they look at `frame`, in the same place, as one undo step, so `raster_brush`, `blur` and `smudge` can work on them. It goes one way: the pixels keep no outlines. `scale` is bitmap pixels to a stage unit, 1 to 4. A tweened keyframe or a locked layer is refused."
+    )]
+    fn convert_to_bitmap(&self, Parameters(args): Parameters<ConvertToBitmap>) -> Outcome {
+        self.write(args.expected_revision, |state| to_bitmap(state, &args))
+    }
+}
+
+/// Converts the keyframe `args` names and applies it.
+fn to_bitmap(state: &mut State, args: &ConvertToBitmap) -> Result<Value, String> {
+    let label = |e: String| format!("Convert to Bitmap: {e}");
+    let layer = match args.layer.as_deref() {
+        Some(text) => Some(target_layer(state, Some(text)).map_err(label)?),
+        None => None,
+    };
+    let scene = first_scene(state)?;
+    let frame = args.frame.unwrap_or(0);
+    let document = state.session.document();
+    let selection = flare_tools::to_bitmap::keyframe_selection(
+        document,
+        scene,
+        layer,
+        frame,
+        args.elements.as_deref(),
+    )
+    .map_err(|e| label(e.to_string()))?;
+    let edit = flare_runtime::convert_to_bitmap(
+        document,
+        scene,
+        frame,
+        &selection,
+        args.scale.unwrap_or(1),
+        "Bitmap",
+    )
+    .map_err(|e| label(e.to_string()))?;
+    let (at, bitmap) = (edit.at, edit.bitmap);
+    let revision = apply(state, edit.commands)?;
+    let size = state
+        .session
+        .document()
+        .bitmap(bitmap)
+        .map_or((0, 0), |b| (b.width(), b.height()));
+    Ok(json!({
+        "converted": selection.len(),
+        "layer": at.layer.as_uuid(),
+        "start": at.start,
+        "element": at.element,
+        "bitmap": bitmap.as_uuid().to_string(),
+        "width": size.0,
+        "height": size.1,
+        "revision": revision["revision"].clone(),
+    }))
 }
 
 /// Paints along the stroke `args` gives and applies it.

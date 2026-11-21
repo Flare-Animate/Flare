@@ -28,6 +28,7 @@ hist-duplicate = Zdvojit
 hist-convert-symbol = Převést na symbol
 hist-group = Seskupit
 hist-break-apart = Rozdělit
+hist-convert-bitmap = Převést na bitmapu
 hist-paint = Malba
 hist-transform = Transformace
 hist-edit-symbol = Upravit symbol

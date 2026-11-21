@@ -76,6 +76,7 @@ mod stage_menu;
 mod symbol_dialog;
 mod symbols;
 mod tabs;
+mod to_bitmap;
 mod tools;
 mod touch;
 mod transform_cursor;
@@ -193,6 +194,8 @@ pub struct Workspace {
     lasso: Vec<Pos2>,
     /// The Magic Wand's settings and the pixels it has picked.
     wand: tools::magic_wand::WandTool,
+    /// The Convert to Bitmap job on the pixels worker, while it is out.
+    to_bitmap: Option<u64>,
     /// The Rotation tool's drag, its dial and the Alt tap that opens it.
     rotate: tools::rotate_view::RotateView,
     springs: tools::Springs,

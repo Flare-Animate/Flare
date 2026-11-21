@@ -28,6 +28,7 @@ hist-duplicate = 복제
 hist-convert-symbol = 심볼로 변환
 hist-group = 그룹화
 hist-break-apart = 분리
+hist-convert-bitmap = 비트맵으로 변환
 hist-paint = 칠하기
 hist-transform = 변형
 hist-edit-symbol = 심볼 편집

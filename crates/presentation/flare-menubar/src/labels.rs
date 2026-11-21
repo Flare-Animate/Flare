@@ -248,6 +248,7 @@ impl MenuAction {
             Self::ScaleUp => "menu-item-scale-up",
             Self::ScaleDown => "menu-item-scale-down",
             Self::ConvertToSymbol => "menu-item-convert-to-symbol",
+            Self::ConvertToBitmap => "menu-item-convert-to-bitmap",
             Self::Group => "menu-item-group",
             Self::BringToFront => "menu-item-bring-to-front",
             Self::BringForward => "menu-item-bring-forward",

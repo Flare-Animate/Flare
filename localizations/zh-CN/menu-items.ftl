@@ -82,6 +82,7 @@ menu-item-rotate-counterclockwise = 逆时针旋转 90°
 menu-item-scale-up = 放大比例
 menu-item-scale-down = 缩小比例
 menu-item-convert-to-symbol = 转换为元件
+menu-item-convert-to-bitmap = 转换为位图
 menu-item-group = 组合
 menu-item-bring-to-front = 置于顶层
 menu-item-bring-forward = 上移一层

@@ -2,6 +2,7 @@ untitled = 未命名
 name-new-scene = 场景 { $n }
 name-new-layer = 图层 { $n }
 name-painting = 绘画
+name-converted-bitmap = 位图
 name-new-text-layer = 文本
 doc-title = 文档
 doc-publish-settings = 发布设置

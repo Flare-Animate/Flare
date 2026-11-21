@@ -79,3 +79,19 @@ pub struct RasterBrush {
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
+
+/// The arguments of `convert_to_bitmap`.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ConvertToBitmap {
+    /// Layer id; by default the first layer.
+    pub layer: Option<String>,
+    /// A frame of the keyframe converted; what it shows there is drawn. Defaults to 0.
+    pub frame: Option<u32>,
+    /// The elements of the keyframe to convert, counting from the bottom one at 0; by default
+    /// all of them.
+    pub elements: Option<Vec<usize>>,
+    /// Bitmap pixels to a stage unit along each side, 1 to 4; defaults to 1.
+    pub scale: Option<u32>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}

@@ -2,7 +2,8 @@
 //! shown as it goes, the whole drag one undo step; a cancelled drag leaves nothing, and a drag off
 //! any bitmap (Blur, Smudge) or on a layer that cannot be drawn on (the Raster Brush) says so. The
 //! Raster Brush paints the fill color into a new picture on an empty layer, and a second drag
-//! paints into the same picture and mixes with it.
+//! paints into the same picture and mixes with it. Modify > Convert to Bitmap turns a selected
+//! shape into pixels the Raster Brush then mixes with.
 
 use super::*;
 use flare_core::{BitmapId, InstanceId, Transform2D};
@@ -308,4 +309,93 @@ fn the_raster_brush_keeps_its_own_settings() {
     assert_eq!(ws.blend_size(), Some(30.0));
     ws.set_tool(Tool::RasterBrush);
     assert_eq!(ws.blend_size(), Some(44.0));
+}
+
+/// The empty workspace with a red band across the middle of its stage, selected.
+fn red_band_selected() -> Workspace {
+    let mut ws = empty_workspace();
+    let layer = ws.document().scenes()[0].timeline().layers()[0].id();
+    let band = Shape::rect(
+        ShapeId::new(),
+        0.0,
+        30.0,
+        200.0,
+        40.0,
+        Rgba8::opaque(255, 0, 0),
+    )
+    .expect("rect");
+    let scene = ws.scene_id().expect("scene");
+    ws.run_batch(
+        vec![Command::InsertSpan {
+            scene,
+            layer,
+            span: FrameSpan::new(0, NonZeroU32::MIN, Content::Shape(band)),
+        }],
+        "draw",
+    );
+    ws.selected = Some(SpanRef {
+        layer,
+        start: 0,
+        element: 0,
+    });
+    ws
+}
+
+#[test]
+fn convert_to_bitmap_turns_a_shape_into_pixels_the_raster_brush_mixes_with() {
+    let mut ws = red_band_selected();
+    let steps = ws.active().undo_labels().count();
+    assert!(ws.is_enabled(MenuAction::ConvertToBitmap));
+    ws.perform(MenuAction::ConvertToBitmap);
+    assert_eq!(ws.active().undo_labels().count(), steps + 1, "one step");
+    assert_eq!(ws.active().undo_labels().last(), Some("Convert to bitmap"));
+    let painted = pictures(&ws);
+    assert_eq!(painted.len(), 1, "the shape became one picture");
+    assert_eq!((painted[0].width(), painted[0].height()), (200, 40));
+    assert_eq!(pixel(&painted[0], 100, 20), [255, 0, 0, 255]);
+    let selected = ws.selected.expect("the bitmap is selected");
+    assert!(matches!(
+        ops::find_element(ws.document(), ws.scene_id().expect("scene"), selected),
+        Some(Content::Bitmap(_))
+    ));
+    // The Raster Brush paints into it and mixes with the red.
+    ws.set_tool(Tool::RasterBrush);
+    ws.paint.blend.raster.size = 30.0;
+    ws.paint.fill = Color32::from_rgb(0, 0, 255);
+    drag(&mut ws, &[(20.0, 50.0), (180.0, 50.0)]);
+    let painted = pictures(&ws);
+    assert_eq!(painted.len(), 1, "painted into the converted picture");
+    let mixed = pixel(&painted[0], 100, 20);
+    assert!(
+        (100..=155).contains(&mixed[0]) && (100..=155).contains(&mixed[2]),
+        "blue mixed with the converted red: {mixed:?}"
+    );
+}
+
+#[test]
+fn convert_to_bitmap_needs_a_selection_and_says_why_it_cannot() {
+    let mut ws = red_band_selected();
+    ws.selected = None;
+    assert!(
+        !ws.is_enabled(MenuAction::ConvertToBitmap),
+        "nothing selected"
+    );
+    let mut ws = red_band_selected();
+    let layer = ws.document().scenes()[0].timeline().layers()[0].id();
+    // A selection on two keyframes cannot be one bitmap.
+    ws.also_selected = vec![SpanRef {
+        layer,
+        start: 9,
+        element: 0,
+    }];
+    let before = ws.document().clone();
+    ws.perform(MenuAction::ConvertToBitmap);
+    assert_eq!(ws.document(), &before);
+    assert!(
+        ws.status
+            .as_deref()
+            .is_some_and(|s| s.contains("one keyframe")),
+        "{:?}",
+        ws.status
+    );
 }

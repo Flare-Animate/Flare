@@ -283,6 +283,7 @@ fn run() -> Result<()> {
             project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?
         }
         Command::RasterBrush(args) => project::raster_brush(&args)?,
+        Command::ConvertToBitmap(args) => project::convert_to_bitmap(&args)?,
         Command::AddText {
             path,
             text,

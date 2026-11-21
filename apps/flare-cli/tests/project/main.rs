@@ -39,6 +39,7 @@ mod stopmotion;
 mod swf_import;
 mod symbols;
 mod text;
+mod to_bitmap;
 mod transparent;
 mod tween;
 mod video_import;

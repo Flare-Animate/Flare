@@ -147,6 +147,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::DocumentSettings),
             Separator,
             Action(A::ConvertToSymbol),
+            Action(A::ConvertToBitmap),
             Action(A::BreakApart),
             Separator,
             Submenu(

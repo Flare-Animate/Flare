@@ -2691,6 +2691,7 @@ dependencies = [
 name = "flare-runtime"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "emath",
  "flare-audio",
  "flare-commands",

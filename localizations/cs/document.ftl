@@ -2,6 +2,7 @@ untitled = Bez názvu
 name-new-scene = Scéna { $n }
 name-new-layer = Vrstva { $n }
 name-painting = Malba
+name-converted-bitmap = Bitmapa
 name-new-text-layer = Textová vrstva
 doc-title = Dokument
 doc-publish-settings = Nastavení publikování

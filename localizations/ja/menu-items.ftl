@@ -82,6 +82,7 @@ menu-item-rotate-counterclockwise = 90° 反時計回りに回転
 menu-item-scale-up = 拡大
 menu-item-scale-down = 縮小
 menu-item-convert-to-symbol = シンボルに変換
+menu-item-convert-to-bitmap = ビットマップに変換
 menu-item-group = グループ化
 menu-item-bring-to-front = 最前面へ
 menu-item-bring-forward = 前面へ

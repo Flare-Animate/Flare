@@ -28,6 +28,7 @@ hist-duplicate = 複製
 hist-convert-symbol = シンボルに変換
 hist-group = グループ化
 hist-break-apart = 分解
+hist-convert-bitmap = ビットマップに変換
 hist-paint = ペイント
 hist-transform = 変形
 hist-edit-symbol = シンボルを編集

@@ -82,6 +82,7 @@ menu-item-rotate-counterclockwise = Повернуть на 90° против ч
 menu-item-scale-up = Увеличить
 menu-item-scale-down = Уменьшить
 menu-item-convert-to-symbol = Преобразовать в символ
+menu-item-convert-to-bitmap = Преобразовать в растровое изображение
 menu-item-group = Группа
 menu-item-bring-to-front = Поднять на передний план
 menu-item-bring-forward = Поднять выше

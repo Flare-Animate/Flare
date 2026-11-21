@@ -28,6 +28,7 @@ hist-duplicate = 直接复制
 hist-convert-symbol = 转换为元件
 hist-group = 组合
 hist-break-apart = 分离
+hist-convert-bitmap = 转换为位图
 hist-paint = 涂色
 hist-transform = 变形
 hist-edit-symbol = 编辑元件

@@ -28,6 +28,7 @@ hist-duplicate = Дублировать
 hist-convert-symbol = Преобразовать в символ
 hist-group = Группа
 hist-break-apart = Разбить
+hist-convert-bitmap = Преобразование в растровое изображение
 hist-paint = Заливка
 hist-transform = Трансформация
 hist-edit-symbol = Редактировать символ

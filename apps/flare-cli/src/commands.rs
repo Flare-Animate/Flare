@@ -148,6 +148,8 @@ pub(crate) enum Command {
     /// mixing in the colors there (a new bitmap the size of the stage when none is under the
     /// first point); one undo step.
     RasterBrush(project::RasterBrushArgs),
+    /// Convert to Bitmap: one keyframe's elements become one bitmap of how they look; one step.
+    ConvertToBitmap(project::ToBitmapArgs),
     /// Add editable text to a layer of the first scene.
     AddText {
         path: PathBuf,

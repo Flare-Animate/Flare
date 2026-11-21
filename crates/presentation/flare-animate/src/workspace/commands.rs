@@ -99,6 +99,7 @@ impl Workspace {
             | MenuAction::ScaleUp
             | MenuAction::ScaleDown => self.has_selection(),
             MenuAction::ConvertToSymbol => self.can_convert_selection(),
+            MenuAction::ConvertToBitmap => self.can_convert_to_bitmap(),
             MenuAction::BringToFront
             | MenuAction::BringForward
             | MenuAction::SendBackward
@@ -269,6 +270,7 @@ impl Workspace {
                 self.transform_selection(DAffine2::from_scale(DVec2::splat(1.0 / SCALE_STEP)))
             }
             MenuAction::ConvertToSymbol => self.open_convert_symbol_dialog(),
+            MenuAction::ConvertToBitmap => self.convert_selection_to_bitmap(),
             MenuAction::BringToFront => self.stack_selection(Stack::Front),
             MenuAction::BringForward => self.stack_selection(Stack::Forward),
             MenuAction::SendBackward => self.stack_selection(Stack::Backward),

@@ -377,7 +377,11 @@ impl BlendStroke {
 
 /// `bitmap`'s id in the library: one already there with the same pixels, else its own, with the
 /// command that adds it.
-fn in_library(document: &Document, bitmap: Bitmap, commands: &mut Vec<Command>) -> BitmapId {
+pub(crate) fn in_library(
+    document: &Document,
+    bitmap: Bitmap,
+    commands: &mut Vec<Command>,
+) -> BitmapId {
     match document
         .bitmaps()
         .iter()

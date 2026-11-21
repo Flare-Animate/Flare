@@ -2,6 +2,7 @@ untitled = 제목 없음
 name-new-scene = 장면 { $n }
 name-new-layer = 레이어 { $n }
 name-painting = 그림
+name-converted-bitmap = 비트맵
 name-new-text-layer = 텍스트
 doc-title = 문서
 doc-publish-settings = 게시 설정

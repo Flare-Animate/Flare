@@ -28,6 +28,7 @@ hist-duplicate = Dupliquer
 hist-convert-symbol = Convertir en symbole
 hist-group = Grouper
 hist-break-apart = Séparer
+hist-convert-bitmap = Convertir en bitmap
 hist-paint = Peindre
 hist-transform = Transformer
 hist-edit-symbol = Modifier le symbole
