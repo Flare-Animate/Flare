@@ -203,6 +203,15 @@ pub struct ImportProject {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct ImportImageSequence {
+    /// PNG files in the export directory (file names only), or the name of one folder in it
+    /// holding them. Ordered by name, `2.png` before `10.png`.
+    pub sources: Vec<String>,
+    /// File name for the new project; `.flare` is added when missing.
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct ImportSound {
     /// WAV, MP3, Ogg Vorbis or FLAC file name inside the configured export directory.
     pub source: String,

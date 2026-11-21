@@ -118,6 +118,8 @@ impl MenuAction {
             Self::Open => "file-open",
             Self::ImportSound => "sound",
             Self::ImportVideo => "film",
+            Self::ImportImageSequence => "file-import",
+            Self::MovieScripts => "file-open",
             Self::ImportBrushProfiles => "tool-brush",
             Self::New => "file-new",
             Self::Close => "close",

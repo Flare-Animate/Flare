@@ -150,6 +150,7 @@ impl Workspace {
             mannequin: mannequin::MannequinState::default(),
             effects: effects::EffectsState::default(),
             video_import: video_import::VideoImport::default(),
+            movie_scripts: None,
         }
     }
 }

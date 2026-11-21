@@ -97,6 +97,12 @@ pub fn pick_image(filter: &str, extensions: &[&str]) -> Option<std::path::PathBu
         .pick_file()
 }
 
+pub fn pick_images(filter: &str, extensions: &[&str]) -> Option<Vec<std::path::PathBuf>> {
+    rfd::FileDialog::new()
+        .add_filter(filter, extensions)
+        .pick_files()
+}
+
 pub fn pick_video(filter: &str) -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
         .add_filter(filter, flare_runtime::VIDEO_EXTENSIONS)

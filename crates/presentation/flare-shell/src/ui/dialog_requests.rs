@@ -81,6 +81,33 @@ impl App {
                     |app, path| app.workspace.import_video(&path),
                 );
             }
+            DialogRequest::ImportImageSequence => {
+                let filter = text(self, "dlg-filter-image-sequence");
+                // The files are read where the picker is, off the UI thread.
+                self.ask(
+                    move || {
+                        let paths =
+                            dialogs::pick_images(&filter, &flare_animate::SEQUENCE_EXTENSIONS)?;
+                        Some(flare_animate::read_sequence_files(&paths))
+                    },
+                    |app, files| match files {
+                        Ok(files) => app.workspace.import_image_sequence(files),
+                        Err(error) => app.workspace.report_message(&error.to_string()),
+                    },
+                );
+            }
+            DialogRequest::MovieScripts => {
+                let filter = text(self, "dlg-filter-movie-scripts");
+                // The movie is read where the picker is, off the UI thread.
+                self.ask(
+                    move || {
+                        let path = dialogs::pick_image(&filter, &["swf"])?;
+                        let name = path.file_name()?.to_string_lossy().into_owned();
+                        Some((name, flare_animate::Movie::open(&path)))
+                    },
+                    |app, (name, movie)| app.workspace.show_movie_scripts(name, movie),
+                );
+            }
             DialogRequest::ImportMannequinReference => {
                 let filter = text(self, "mannequin-filter-picture");
                 self.ask(

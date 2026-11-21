@@ -48,7 +48,8 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
-            MenuAction::ImportBrushProfiles => true,
+            MenuAction::ImportBrushProfiles | MenuAction::MovieScripts => true,
+            MenuAction::ImportImageSequence => !self.in_symbol(),
             // A browser has no ffmpeg to read a movie with.
             MenuAction::ImportVideo => {
                 !cfg!(target_arch = "wasm32")
@@ -211,6 +212,10 @@ impl Workspace {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
             MenuAction::ImportVideo => self.dialog = Some(DialogRequest::ImportVideo),
+            MenuAction::ImportImageSequence => {
+                self.dialog = Some(DialogRequest::ImportImageSequence)
+            }
+            MenuAction::MovieScripts => self.dialog = Some(DialogRequest::MovieScripts),
             MenuAction::ImportBrushProfiles => {
                 self.dialog = Some(DialogRequest::ImportBrushProfiles)
             }

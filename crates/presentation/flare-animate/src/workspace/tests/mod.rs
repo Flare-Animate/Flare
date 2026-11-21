@@ -63,6 +63,7 @@ mod mannequin_reference;
 mod menus_and_recovery;
 mod menus_like_animate;
 mod motion_editor;
+mod movie_scripts;
 mod multiple_frames;
 mod narrow_window;
 mod native_pen;

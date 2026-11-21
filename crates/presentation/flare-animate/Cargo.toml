@@ -9,6 +9,7 @@ license.workspace = true
 [dependencies]
 egui = { workspace = true, features = ["default_fonts"] }
 egui_tiles = { workspace = true, features = ["serde"] }
+flare-as3.workspace = true
 flare-audio.workspace = true
 flare-commands.workspace = true
 flare-core.workspace = true
@@ -38,6 +39,8 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+flare-as3 = { workspace = true, features = ["fixtures"] }
+swf.workspace = true
 flare-ffmpeg.workspace = true
 flare-export.workspace = true
 flare-publish.workspace = true

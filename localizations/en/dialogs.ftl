@@ -30,3 +30,5 @@ dlg-increment-apply = Increment
 dlg-filter-animate-shortcuts = Animate shortcut file
 dlg-cannot-read = Cannot read the file
 dlg-filter-sprite-sheet = Sprite sheet picture
+dlg-filter-movie-scripts = Flash movie
+dlg-filter-image-sequence = PNG pictures

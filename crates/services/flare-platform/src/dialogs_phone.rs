@@ -26,6 +26,10 @@ pub fn pick_image(_filter: &str, _extensions: &[&str]) -> Option<std::path::Path
     None
 }
 
+pub fn pick_images(_filter: &str, _extensions: &[&str]) -> Option<Vec<std::path::PathBuf>> {
+    None
+}
+
 pub fn pick_video(_filter: &str) -> Option<std::path::PathBuf> {
     None
 }

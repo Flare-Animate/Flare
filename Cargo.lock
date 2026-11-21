@@ -2158,6 +2158,7 @@ dependencies = [
  "egui",
  "egui_tiles",
  "epaint_default_fonts",
+ "flare-as3",
  "flare-audio",
  "flare-commands",
  "flare-core",
@@ -2188,6 +2189,7 @@ dependencies = [
  "png 0.18.1",
  "serde",
  "serde_json",
+ "swf",
  "tempfile",
  "thiserror 2.0.18",
  "zip",
@@ -2881,6 +2883,7 @@ version = "0.1.0"
 dependencies = [
  "eframe",
  "flare-animate",
+ "flare-as3",
  "flare-core",
  "flare-document",
  "flare-export",

@@ -35,6 +35,10 @@ pub struct WebApp {
     picked_references: Rc<RefCell<Vec<Picked>>>,
     /// Pen-profile files picked, kept on the brush list on the next frame.
     picked_brushes: Rc<RefCell<Vec<Picked>>>,
+    /// Flash movies picked for the Movie Scripts window.
+    picked_movies: Rc<RefCell<Vec<Picked>>>,
+    /// Picture sequences picked, turned into a project on the next frame.
+    picked_sequences: Rc<RefCell<Vec<Vec<(String, Vec<u8>)>>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// Google Fonts families downloaded for text (or why not), handed over on the next frame.
@@ -58,6 +62,8 @@ impl WebApp {
             picked_shortcuts: Rc::default(),
             picked_references: Rc::default(),
             picked_brushes: Rc::default(),
+            picked_movies: Rc::default(),
+            picked_sequences: Rc::default(),
             messages: Rc::default(),
             fonts: Rc::default(),
             saved_preferences,
@@ -219,6 +225,40 @@ impl WebApp {
                 .messages
                 .borrow_mut()
                 .push(self.workspace.interface_text("video-browser")),
+            DialogRequest::ImportImageSequence => {
+                let label = self.workspace.interface_text("dlg-filter-image-sequence");
+                let (inbox, messages, ctx) = (
+                    Rc::clone(&self.picked_sequences),
+                    Rc::clone(&self.messages),
+                    ctx.clone(),
+                );
+                wasm_bindgen_futures::spawn_local(async move {
+                    match files::pick_many(
+                        &label,
+                        &flare_import::SEQUENCE_EXTENSIONS,
+                        flare_import::MAX_IMAGE_FRAMES,
+                        512 * 1024 * 1024,
+                    )
+                    .await
+                    {
+                        Ok(files) if files.is_empty() => return,
+                        Ok(files) => inbox.borrow_mut().push(files),
+                        Err(error) => messages.borrow_mut().push(error),
+                    }
+                    ctx.request_repaint();
+                });
+            }
+            DialogRequest::MovieScripts => {
+                let label = self.workspace.interface_text("dlg-filter-movie-scripts");
+                self.pick_into(
+                    ctx,
+                    &self.picked_movies,
+                    label,
+                    &["swf"],
+                    flare_as3::MAX_MOVIE_BYTES as usize,
+                    None,
+                );
+            }
             DialogRequest::ImportBrushProfiles => {
                 let label = self.workspace.interface_text("dlg-filter-brushes");
                 self.pick_into(
@@ -445,6 +485,15 @@ impl eframe::App for WebApp {
         for file in brushes {
             self.workspace
                 .import_brush_profiles(&file.name, &file.bytes);
+        }
+        let sequences: Vec<_> = self.picked_sequences.borrow_mut().drain(..).collect();
+        for files in sequences {
+            self.workspace.import_image_sequence(files);
+        }
+        let movies: Vec<Picked> = self.picked_movies.borrow_mut().drain(..).collect();
+        for file in movies {
+            let movie = flare_as3::Movie::read(&file.bytes);
+            self.workspace.show_movie_scripts(file.name, movie);
         }
         let messages: Vec<String> = self.messages.borrow_mut().drain(..).collect();
         for message in messages {

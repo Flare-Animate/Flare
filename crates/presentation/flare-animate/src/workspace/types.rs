@@ -91,6 +91,10 @@ pub enum DialogRequest {
     ImportSound,
     /// A movie to bring in to draw over (File > Import > Import Video).
     ImportVideo,
+    /// Several numbered pictures (PNG) to make one layer of keyframes.
+    ImportImageSequence,
+    /// A Flash movie (`.swf`) whose ActionScript 3 the Movie Scripts window lists.
+    MovieScripts,
     /// A picture of a person to pose the mannequin from (the Mannequin panel's Reference).
     ImportMannequinReference,
     /// A pen-profile file (Photoshop `.abr`, Krita `.kpp` or `.bundle`) for the brush list.
