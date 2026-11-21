@@ -254,6 +254,7 @@ fn place(
 /// what they show, and a keyframe of its own starts at `frame` with a copy of everything held
 /// and the new elements beside it, up to where the held span stopped (or, past its end, as far
 /// as the scene goes). The held drawing stays; nothing is lost from the frames before.
+#[allow(clippy::too_many_arguments)]
 fn draw_beside_held(
     scene: SceneId,
     scene_frames: u64,

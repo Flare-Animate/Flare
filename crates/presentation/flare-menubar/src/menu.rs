@@ -120,7 +120,6 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Submenu(
                 "Mannequin",
                 &[
-                    Action(A::ShowMannequin),
                     Action(A::ToggleMannequinOnStage),
                     Action(A::PlaceMannequinUnder),
                     Action(A::PlaceMannequinOnLayer),

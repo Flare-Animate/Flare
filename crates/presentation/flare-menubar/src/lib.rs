@@ -193,7 +193,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 144] = [
+    pub const ALL: [MenuAction; 148] = [
         Self::Open,
         Self::New,
         Self::Close,

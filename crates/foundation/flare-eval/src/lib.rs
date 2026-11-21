@@ -83,6 +83,7 @@ fn evaluate_frame_seen_by(
     Ok(out)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn walk<'a>(
     document: &'a Document,
     timeline: &'a Timeline,

@@ -68,6 +68,8 @@ fn every_refusal_leaves_the_file_as_it_was() {
     let dir = tempfile::tempdir().expect("dir");
     let file = path(dir.path());
     stage(&file);
+    // A held layer shows its last keyframe at frame 500; released, nothing does.
+    json(&["layer", "release", &file]);
     let before = std::fs::read(&file).expect("read");
     let unknown = "6f1c2d3e-4a5b-4c6d-8e7f-001122334455";
     for (args, says) in [

@@ -81,9 +81,32 @@ async fn drawing_with_no_start_happens_at_the_playhead_and_a_read_only_server_ca
         "a keyframe starts at the playhead"
     );
 
-    let read_only = fixture(false, false).await;
-    let (is_error, message) = read_only
-        .tool("goto_frame", json!({ "target": "first" }))
+    // Going to a frame is not an edit of the project, so a read-only server does it.
+    let layer = flare_document::Layer::new(
+        flare_core::LayerId::new(),
+        "L",
+        vec![flare_document::FrameSpan::new(
+            0,
+            std::num::NonZeroU32::new(3).expect("nonzero"),
+            flare_document::Content::Empty,
+        )],
+    )
+    .expect("layer");
+    let scene = flare_document::Scene::new(
+        flare_core::SceneId::new(),
+        "S",
+        flare_document::Timeline::new(vec![layer]),
+    );
+    let document = flare_document::Document::new(
+        flare_core::DocumentId::new(),
+        flare_core::FrameRate::new(24, 1).expect("rate"),
+        vec![scene],
+        vec![],
+    )
+    .expect("document");
+    let read_only = common::fixture_of(&document, false, false, vec![]).await;
+    let went = read_only
+        .ok("goto_frame", json!({ "target": "last" }))
         .await;
-    assert!(!is_error, "{message}");
+    assert_eq!(went["frame"], 2);
 }

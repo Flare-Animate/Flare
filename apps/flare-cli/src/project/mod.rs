@@ -15,7 +15,6 @@ mod bones;
 mod brush_stroke;
 mod camera;
 mod draw;
-mod frames;
 mod interchange;
 mod magic_wand;
 mod magnet;
@@ -35,7 +34,6 @@ pub use camera::{CameraMotion, camera};
 #[allow(unused_imports)]
 use draw::*;
 pub use draw::{PlaceArgs, add_layer, add_symbol, draw_rect, eval, place, rename_scene, set_stage};
-pub use frames::{frames_list, goto};
 #[allow(unused_imports)]
 use interchange::*;
 pub use interchange::{

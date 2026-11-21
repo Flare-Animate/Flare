@@ -2,18 +2,37 @@
 //! request such as `next-keyframe` lands. Both ask `flare_editor::frame_picker`, as the window's
 //! picker does.
 
-use std::path::Path;
+use std::path::PathBuf;
 
 use anyhow::{Context, Result};
+use clap::Args;
 use flare_editor::frame_picker::{self, Goto};
 use serde_json::{Value, json};
 
-use super::open;
+use crate::project::open_session as open;
+
+#[derive(Args)]
+pub struct FramesArgs {
+    pub path: PathBuf,
+    #[arg(long, default_value_t = 0)]
+    pub first: u32,
+    #[arg(long, default_value_t = 200)]
+    pub count: u32,
+}
+
+#[derive(Args)]
+pub struct GotoArgs {
+    pub path: PathBuf,
+    pub target: String,
+    #[arg(long, default_value_t = 0)]
+    pub from: u32,
+}
 
 /// The frames of the first scene from `first`, up to `count` of them, each with how many layers
 /// start a keyframe there and whether it shows any art.
-pub fn frames_list(path: &Path, first: u32, count: u32) -> Result<Value> {
-    let session = open(path)?;
+pub fn list(args: FramesArgs) -> Result<Value> {
+    let FramesArgs { path, first, count } = args;
+    let session = open(&path)?;
     let scene = session
         .document()
         .scenes()
@@ -33,9 +52,10 @@ pub fn frames_list(path: &Path, first: u32, count: u32) -> Result<Value> {
 
 /// Where `target` (a zero-based frame, or first, last, next, previous, next-keyframe or
 /// previous-keyframe) leads from frame `from`; an error says why not.
-pub fn goto(path: &Path, target: &str, from: u32) -> Result<Value> {
+pub fn goto(args: GotoArgs) -> Result<Value> {
+    let GotoArgs { path, target, from } = args;
     let goto: Goto = target.parse()?;
-    let session = open(path)?;
+    let session = open(&path)?;
     let scene = session
         .document()
         .scenes()
