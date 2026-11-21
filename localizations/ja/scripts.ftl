@@ -1,0 +1,15 @@
+scripts-title = ムービースクリプト: { $name }
+scripts-classes = クラス
+scripts-strings = 文字列
+scripts-find = 検索
+scripts-find-hint = 名前や文字列の一部を入力して Enter
+scripts-search = 検索
+scripts-code = メソッド本体を命令として一覧表示
+scripts-text-only = コードが使う文字列のみ
+scripts-pick-class = 読むクラスを選んでください。
+scripts-truncated = ここでテキストが途切れています。ウィンドウに表示できる長さを超えています。
+scripts-cannot-read = { $name } を読み込めません: { $error }
+scripts-use-text = テキスト
+scripts-use-name = 名前
+scripts-use-other = その他
+scripts-note = 読み取り専用です。Flare はこれらのスクリプトを実行しません。文字列を変えるには `flare scripts patch` か MCP サーバーでムービーにパッチを当ててください。

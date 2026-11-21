@@ -179,6 +179,8 @@ fn step(
                 LayerChange::Locked(locked) => slot.clone().with_locked(locked),
                 LayerChange::Mask(mask) => slot.clone().with_mask(mask),
                 LayerChange::Guide(guide) => slot.clone().with_guide(guide),
+                LayerChange::Hold(hold) => slot.clone().with_hold(hold),
+                LayerChange::Reference(on) => slot.clone().with_reference(on),
                 LayerChange::Outline(color) => slot.clone().with_outline(color),
                 LayerChange::Parent(parent) => slot.clone().with_parent(parent),
                 LayerChange::ViewOpacity(percent) => slot.clone().with_view_opacity(percent),

@@ -1,0 +1,15 @@
+scripts-title = Script del filmato: { $name }
+scripts-classes = Classi
+scripts-strings = Stringhe
+scripts-find = Cerca
+scripts-find-hint = Parte di un nome o testo, poi Invio
+scripts-search = Cerca
+scripts-code = Elenca i corpi dei metodi come istruzioni
+scripts-text-only = Solo il testo usato dal codice
+scripts-pick-class = Scegli una classe per leggerla.
+scripts-truncated = Il testo si ferma qui: è più lungo di quanto mostra la finestra.
+scripts-cannot-read = Impossibile leggere { $name }: { $error }
+scripts-use-text = testo
+scripts-use-name = nome
+scripts-use-other = altro
+scripts-note = Sola lettura: Flare non esegue questi script. Per cambiare una stringa, modifica il filmato con `flare scripts patch` o il server MCP.

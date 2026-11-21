@@ -1,0 +1,15 @@
+scripts-title = 동영상 스크립트: { $name }
+scripts-classes = 클래스
+scripts-strings = 문자열
+scripts-find = 찾기
+scripts-find-hint = 이름이나 텍스트의 일부를 입력하고 Enter
+scripts-search = 검색
+scripts-code = 메서드 본문을 명령어로 나열
+scripts-text-only = 코드가 사용하는 텍스트만
+scripts-pick-class = 읽을 클래스를 선택하세요.
+scripts-truncated = 텍스트가 여기서 끝납니다. 창에 표시할 수 있는 길이를 넘었습니다.
+scripts-cannot-read = { $name }을(를) 읽을 수 없습니다: { $error }
+scripts-use-text = 텍스트
+scripts-use-name = 이름
+scripts-use-other = 기타
+scripts-note = 읽기 전용입니다. Flare는 이 스크립트를 실행하지 않습니다. 문자열을 바꾸려면 `flare scripts patch` 또는 MCP 서버로 동영상을 패치하세요.

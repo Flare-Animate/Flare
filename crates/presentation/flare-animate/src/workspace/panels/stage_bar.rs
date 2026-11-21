@@ -51,7 +51,7 @@ impl Workspace {
                     self.perform(MenuAction::DocumentSettings);
                 }
                 ui.separator();
-                ui.label(RichText::new(frame_text).color(theme::text_dim()));
+                self.frame_picker_button(ui, RichText::new(frame_text).color(theme::text_dim()));
                 ui.separator();
                 let at = match self.pointer_stage {
                     Some(p) => format!("{:.0}, {:.0}", p.x, p.y),

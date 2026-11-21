@@ -32,3 +32,7 @@ bar-grid-down = Espacement vertical
 bar-grid-color = Couleur de la grille
 bar-grid-color-auto = Couleur automatique
 bar-grid-reset = Réinitialiser la grille
+bar-frame-picker = Aller à une image
+bar-frame-number = Image
+bar-frame-previous-keyframe = Image clé précédente
+bar-frame-next-keyframe = Image clé suivante

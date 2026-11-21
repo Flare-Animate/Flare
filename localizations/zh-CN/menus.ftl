@@ -42,3 +42,4 @@ menu-mock-step-in = 逐语句
 menu-mock-step-out = 跳出
 menu-mock-remove-all-breakpoints = 删除所有断点
 menu-mock-movie-scripts = 影片脚本...
+menu-submenu-mannequin = 人体模型

@@ -150,3 +150,6 @@ opt-pressure-size = 压感控制大小
 opt-pressure-size-tip = 按得越轻，笔画越窄
 opt-color-stretch = 颜色延展
 opt-color-stretch-tip = 拾取的颜色沿笔画带多远；0 表示就地混合
+opt-opacity = 不透明度
+opt-color-mix = 颜色混合
+opt-color-mix-tip = 画笔下方的颜色有多少混入颜料；0 表示按原样涂上颜料

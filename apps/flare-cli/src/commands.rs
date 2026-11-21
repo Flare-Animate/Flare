@@ -144,6 +144,12 @@ pub(crate) enum Command {
     Blur(project::BlendArgs),
     /// Smudge: push the colors of the bitmap under the first point along a stroke of stage points.
     Smudge(project::BlendArgs),
+    /// Raster Brush: paint a color into a bitmap on a layer along a stroke of stage points,
+    /// mixing in the colors there (a new bitmap the size of the stage when none is under the
+    /// first point); one undo step.
+    RasterBrush(project::RasterBrushArgs),
+    /// Convert to Bitmap: one keyframe's elements become one bitmap of how they look; one step.
+    ConvertToBitmap(project::ToBitmapArgs),
     /// Add editable text to a layer of the first scene.
     AddText {
         path: PathBuf,
@@ -384,9 +390,10 @@ pub(crate) enum Command {
         #[arg(long)]
         percent: Option<u8>,
     },
-    /// Import an XFL directory, .xfl, .fla, .swf, Moho, BVH or Toonz file into a new project, listing what was
-    /// not carried over.
+    /// Import an XFL, .fla, .swf, Moho, BVH or Toonz file as a project, listing what was lost.
     Import { source: PathBuf, out: PathBuf },
+    /// Import numbered PNG files, or a folder of them, as one layer with a keyframe each.
+    ImportSequence(crate::sequence::SequenceArgs),
     /// Convert a project to the format OUT's ending says: .fla, .xfl (a folder with the .xfl stub
     /// inside) or .flare, as Save As does. The source can be any of them (or a .swf to read). An
     /// Animate document that was not edited is written back as the original.
@@ -443,6 +450,12 @@ pub(crate) enum Command {
     /// Open the desktop app, on the given projects if any (the app is found next to this program,
     /// on PATH, or at $FLARE_DESKTOP).
     Open { paths: Vec<PathBuf> },
+    /// The frame picker: list the first scene's frames from `--first`, up to `--count`, each
+    /// with how many layers start a keyframe there and whether it shows art.
+    Frames(crate::frames::FramesArgs),
+    /// Where a frame request leads: a zero-based number, or first, last, next, previous,
+    /// next-keyframe or previous-keyframe, from frame `--from`.
+    Goto(crate::frames::GotoArgs),
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,

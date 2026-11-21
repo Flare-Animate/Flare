@@ -97,6 +97,19 @@ pub fn pick_image(filter: &str, extensions: &[&str]) -> Option<std::path::PathBu
         .pick_file()
 }
 
+pub fn save_json(filter: &str, name: &str) -> Option<std::path::PathBuf> {
+    rfd::FileDialog::new()
+        .add_filter(filter, &["json"])
+        .set_file_name(name)
+        .save_file()
+}
+
+pub fn pick_images(filter: &str, extensions: &[&str]) -> Option<Vec<std::path::PathBuf>> {
+    rfd::FileDialog::new()
+        .add_filter(filter, extensions)
+        .pick_files()
+}
+
 pub fn pick_video(filter: &str) -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
         .add_filter(filter, flare_runtime::VIDEO_EXTENSIONS)
@@ -109,20 +122,19 @@ pub fn pick_shortcut_xml(filter: &str) -> Option<std::path::PathBuf> {
         .pick_file()
 }
 
-pub fn save_png(filter: &str) -> Option<std::path::PathBuf> {
+pub fn save_image(filter: &str, extensions: &[&str]) -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
-        .add_filter(filter, &["png"])
+        .add_filter(filter, extensions)
         .set_file_name("frame.png")
         .save_file()
 }
 
-pub fn save_movie([gif, mp4, mov]: [&str; 3]) -> Option<std::path::PathBuf> {
-    rfd::FileDialog::new()
-        .add_filter(gif, &["gif"])
-        .add_filter(mp4, &["mp4"])
-        .add_filter(mov, &["mov"])
-        .set_file_name("movie.gif")
-        .save_file()
+pub fn save_movie(filters: &[(&str, &[&str])]) -> Option<std::path::PathBuf> {
+    let mut dialog = rfd::FileDialog::new();
+    for (name, extensions) in filters {
+        dialog = dialog.add_filter(*name, extensions);
+    }
+    dialog.set_file_name("movie.gif").save_file()
 }
 
 /// Where to write a project as a Flash document.

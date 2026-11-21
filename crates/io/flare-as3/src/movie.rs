@@ -44,6 +44,23 @@ pub struct BlockInfo {
 }
 
 impl Movie {
+    /// Reads a movie from a file. The size is checked before the file is read, so a huge file is
+    /// refused without being loaded; this is the one way every surface opens a movie.
+    pub fn open(path: &std::path::Path) -> Result<Self, ScriptError> {
+        let io = |e: std::io::Error| ScriptError::Io(format!("{}: {e}", path.display()));
+        let meta = std::fs::metadata(path).map_err(io)?;
+        if !meta.is_file() {
+            return Err(ScriptError::Io(format!("{} is not a file", path.display())));
+        }
+        if meta.len() > MAX_MOVIE_BYTES {
+            return Err(ScriptError::TooLarge {
+                what: "on disk",
+                limit: MAX_MOVIE_BYTES,
+            });
+        }
+        Self::read(&std::fs::read(path).map_err(io)?)
+    }
+
     /// Reads a movie from its bytes: uncompressed, zlib or LZMA, any version.
     pub fn read(bytes: &[u8]) -> Result<Self, ScriptError> {
         if bytes.len() as u64 > MAX_MOVIE_BYTES {

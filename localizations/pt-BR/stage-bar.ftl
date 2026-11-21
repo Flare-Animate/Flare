@@ -32,3 +32,7 @@ bar-grid-down = Espaçamento vertical
 bar-grid-color = Cor da grade
 bar-grid-color-auto = Cor automática
 bar-grid-reset = Redefinir grade
+bar-frame-picker = Ir para um quadro
+bar-frame-number = Quadro
+bar-frame-previous-keyframe = Quadro-chave anterior
+bar-frame-next-keyframe = Próximo quadro-chave

@@ -3,7 +3,7 @@
 //! with the one that does the thing filled in the accent colour. egui's own popup frame is a
 //! menu's, too tight for a question someone has to read and answer.
 
-use egui::{Color32, Frame, Id, Margin, Response, RichText, Sense, Stroke, Ui, Vec2, vec2};
+use egui::{Frame, Id, Margin, Response, RichText, Sense, Stroke, Ui, Vec2, vec2};
 
 use crate::{icons, theme};
 
@@ -90,10 +90,14 @@ pub fn button(ui: &mut Ui, text: &str) -> Response {
 /// The button that does what the dialog is for, filled in the accent colour. `enabled` false
 /// dims it, while what was filled in cannot be used.
 pub fn primary_button(ui: &mut Ui, text: &str, enabled: bool) -> Response {
-    let button = egui::Button::new(RichText::new(text).color(Color32::WHITE).strong())
-        .min_size(BUTTON_SIZE)
-        .corner_radius(6)
-        .fill(theme::accent());
+    let button = egui::Button::new(
+        RichText::new(text)
+            .color(theme::ink_on(theme::accent()))
+            .strong(),
+    )
+    .min_size(BUTTON_SIZE)
+    .corner_radius(6)
+    .fill(theme::accent());
     ui.add_enabled(enabled, button)
 }
 

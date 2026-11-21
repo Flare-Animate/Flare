@@ -14,6 +14,15 @@ use flare_ffmpeg::Tools;
 use flare_import::{VideoImportError, import_video_with, probe_video_with, read_video_with};
 use flare_tools::video::{Settings, plan};
 
+/// Linux refuses to run a script while any process still holds it open for writing, and a test
+/// thread that forks while another writes one inherits that handle (ETXTBSY). The tests of this
+/// file take turns so a stand-in is never being written while another test spawns.
+static TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+fn turn() -> std::sync::MutexGuard<'static, ()> {
+    TURN.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
 fn script(dir: &Path, name: &str, body: &str) -> PathBuf {
     let path = dir.join(name);
     std::fs::write(&path, format!("#!/bin/sh\n{body}\n")).expect("write");
@@ -72,6 +81,7 @@ fn settings(fps: u32, seconds: f64, side: u32) -> Settings {
 
 #[test]
 fn a_probed_video_planned_and_read_becomes_a_layer_of_one_symbol() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let tools = tools(dir.path(), 24);
     let movie = dir.path().join("walk.mp4");
@@ -103,6 +113,7 @@ fn a_probed_video_planned_and_read_becomes_a_layer_of_one_symbol() {
 
 #[test]
 fn a_progress_that_says_stop_stops_the_reading() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let tools = tools(dir.path(), 24);
     let movie = dir.path().join("walk.mp4");
@@ -123,6 +134,7 @@ fn a_progress_that_says_stop_stops_the_reading() {
 
 #[test]
 fn a_plan_too_large_for_the_document_is_refused_before_ffmpeg_runs() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let tools = tools(dir.path(), 1);
     let movie = dir.path().join("walk.mp4");
@@ -143,6 +155,7 @@ fn a_plan_too_large_for_the_document_is_refused_before_ffmpeg_runs() {
 
 #[test]
 fn a_file_ffmpeg_cannot_read_is_reported_with_what_it_said() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let tools = Tools {
         ffprobe: script(

@@ -119,6 +119,11 @@ pub enum IoJob {
         name: String,
         bytes: Vec<u8>,
     },
+    /// Numbered pictures (name and file bytes) as one layer with a keyframe each.
+    ImportSequence {
+        id: u64,
+        files: Vec<(String, Vec<u8>)>,
+    },
 }
 
 /// A drawn frame, in whichever form the rasterizer produced it: the common one (no ghosts)
@@ -219,6 +224,12 @@ pub enum Done {
         id: u64,
         document: Arc<Document>,
         result: flare_tools::blend::BlendEdit,
+    },
+    /// The edit Convert to Bitmap made from `document`: it applies to that document only.
+    ToBitmapMade {
+        id: u64,
+        document: Arc<Document>,
+        result: Result<flare_tools::to_bitmap::ToBitmapEdit, String>,
     },
     /// What ffprobe said about a movie to bring in.
     VideoProbed {

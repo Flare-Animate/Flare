@@ -44,7 +44,7 @@ pub struct DrawRect {
     pub stroke_width: Option<f64>,
     /// Outline pattern: solid (default), dashed, dotted, stipple, hatched, ragged, herringbone, rope or zigzag.
     pub stroke_style: Option<String>,
-    /// First frame; defaults to 0.
+    /// First frame; defaults to the frame `goto_frame` last went to (0 at first).
     pub start: Option<u32>,
     /// Frames the rectangle lasts; defaults to 1.
     pub duration: Option<u32>,
@@ -198,6 +198,15 @@ pub struct ExportXfl {
 pub struct ImportProject {
     /// An XFL folder, `.xfl` or `.fla` already inside the export directory (a file name only).
     pub source: String,
+    /// File name for the new project; `.flare` is added when missing.
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ImportImageSequence {
+    /// PNG files in the export directory (file names only), or the name of one folder in it
+    /// holding them. Ordered by name, `2.png` before `10.png`.
+    pub sources: Vec<String>,
     /// File name for the new project; `.flare` is added when missing.
     pub name: String,
 }

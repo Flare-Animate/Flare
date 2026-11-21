@@ -1,4 +1,4 @@
-//! A Blur or Smudge drag on the pixels worker. The window hands over the drag a few samples at a
+//! A Blur, Smudge or Raster Brush drag on the pixels worker. The window hands over the drag a few samples at a
 //! time; the worker lays their dabs and sends back an edit (the commands that show the bitmap as
 //! the stroke has left it) whenever the last one has been applied. So a large bitmap, whose edit
 //! takes longest to build (see PERFORMANCE.md), shows the stroke less often instead of holding up
@@ -10,7 +10,7 @@ use emath::Pos2;
 use flare_core::{BitmapId, SceneId};
 use flare_document::{Content, Document};
 use flare_input::InputSample;
-use flare_tools::blend::{BlendError, BlendKind, BlendSettings, BlendStroke};
+use flare_tools::blend::{BlendError, BlendKind, BlendSettings, BlendStroke, RasterPaint};
 
 use crate::jobs::Done;
 
@@ -25,6 +25,17 @@ pub enum BlendJob {
         start: Pos2,
         kind: BlendKind,
         settings: BlendSettings,
+    },
+    /// Starts a Raster Brush stroke at `start` painting with `paint` on its layer at `frame`: on
+    /// the bitmap of that layer under `start`, or a new one. One stroke at a time, as `Begin`.
+    BeginPaint {
+        id: u64,
+        document: Arc<Document>,
+        scene: SceneId,
+        frame: u32,
+        start: Pos2,
+        settings: BlendSettings,
+        paint: RasterPaint,
     },
     /// More of the drag (perhaps none), with the document as the window has it now. `last` says
     /// the drag has ended: the stroke ends once its last change has been shown.
@@ -44,8 +55,8 @@ pub(crate) struct LiveBlend {
     scene: SceneId,
     stroke: BlendStroke,
     /// The edit handed back and not yet seen applied: the bitmap it shows, and the one shown
-    /// before it.
-    awaiting: Option<(BitmapId, BitmapId)>,
+    /// before it (none before a Raster Brush stroke's new bitmap is placed).
+    awaiting: Option<(BitmapId, Option<BitmapId>)>,
     last: bool,
 }
 
@@ -60,22 +71,26 @@ pub(crate) fn run_blend(live: &mut Option<LiveBlend>, job: BlendJob) -> Vec<Done
             start,
             kind,
             settings,
-        } => match BlendStroke::begin(&document, scene, frame, start, kind, settings) {
-            Ok(stroke) => {
-                *live = Some(LiveBlend {
-                    id,
-                    scene,
-                    stroke,
-                    awaiting: None,
-                    last: false,
-                });
-                Vec::new()
-            }
-            Err(error) => {
-                *live = None;
-                vec![ended(id, Some(error))]
-            }
-        },
+        } => started(
+            live,
+            id,
+            scene,
+            BlendStroke::begin(&document, scene, frame, start, kind, settings),
+        ),
+        BlendJob::BeginPaint {
+            id,
+            document,
+            scene,
+            frame,
+            start,
+            settings,
+            paint,
+        } => started(
+            live,
+            id,
+            scene,
+            BlendStroke::paint(&document, scene, frame, start, settings, paint),
+        ),
         BlendJob::Step {
             id,
             document,
@@ -100,6 +115,31 @@ pub(crate) fn run_blend(live: &mut Option<LiveBlend>, job: BlendJob) -> Vec<Done
     }
 }
 
+/// Keeps the stroke that `begun` started, or says why it could not start.
+fn started(
+    live: &mut Option<LiveBlend>,
+    id: u64,
+    scene: SceneId,
+    begun: Result<BlendStroke, BlendError>,
+) -> Vec<Done> {
+    match begun {
+        Ok(stroke) => {
+            *live = Some(LiveBlend {
+                id,
+                scene,
+                stroke,
+                awaiting: None,
+                last: false,
+            });
+            Vec::new()
+        }
+        Err(error) => {
+            *live = None;
+            vec![ended(id, Some(error))]
+        }
+    }
+}
+
 fn step(
     live: &mut LiveBlend,
     document: Arc<Document>,
@@ -109,28 +149,28 @@ fn step(
     live.stroke.extend(samples);
     live.last |= last;
     if let Some((made, before)) = live.awaiting {
-        match shown(&document, live.scene, &live.stroke) {
-            Some(bitmap) if bitmap == made => live.awaiting = None,
+        let now = shown(&document, live.scene, &live.stroke);
+        if now == Some(made) {
+            live.awaiting = None;
+        } else if now == before {
             // Still on its way to the window; it will send the document again once applied.
-            Some(bitmap) if bitmap == before => return Vec::new(),
-            _ => return vec![ended(live.id, Some(BlendError::Stale))],
+            return Vec::new();
+        } else {
+            return vec![ended(live.id, Some(BlendError::Stale))];
         }
     }
     if live.stroke.changed() {
         match live.stroke.edit(&document, live.scene) {
             Ok(edit) => {
                 live.awaiting = Some((edit.bitmap, live.stroke.bitmap()));
-                live.stroke.shows(edit.bitmap);
+                live.stroke.shows(&edit);
                 return vec![Done::BlendEdited {
                     id: live.id,
                     document,
                     result: edit,
                 }];
             }
-            Err(BlendError::NothingChanged) => {
-                let bitmap = live.stroke.bitmap();
-                live.stroke.shows(bitmap);
-            }
+            Err(BlendError::NothingChanged) => live.stroke.unchanged(),
             Err(error) => return vec![ended(live.id, Some(error))],
         }
     }

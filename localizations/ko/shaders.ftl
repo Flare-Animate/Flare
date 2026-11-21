@@ -1,0 +1,13 @@
+pane-shaders = 셰이더
+menu-item-show-shaders = 셰이더
+hist-import-shader = 셰이더 그래프 가져오기
+hist-remove-shader = 셰이더 그래프 제거
+shaders-empty = 이 프로젝트에는 아직 셰이더 그래프가 없습니다. 그래프 파일에서 가져오세요.
+shaders-import = 가져오기...
+shaders-export = 내보내기...
+shaders-remove = 제거
+shaders-nodes = 노드 { $count }개
+shaders-select = 내보내거나 제거할 그래프를 선택하세요.
+shaders-cannot-import = { $name }을(를) 가져올 수 없습니다: { $error }
+shaders-cannot-export = { $name }을(를) 내보낼 수 없습니다: { $error }
+shaders-note = 그래프는 프로젝트에 저장됩니다. `flare shader render`와 MCP 서버의 export_png가 프레임에 적용합니다.

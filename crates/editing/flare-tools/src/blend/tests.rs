@@ -320,7 +320,7 @@ fn a_stroke_applied_as_it_goes_keeps_one_picture_in_the_library() {
         assert!(stroke.changed());
         let edit = stroke.edit(f.session.document(), f.scene).expect("edit");
         f.session.apply(edit.commands.clone()).expect("apply");
-        stroke.shows(edit.bitmap);
+        stroke.shows(&edit);
         assert!(!stroke.changed());
     }
     assert_eq!(f.session.document().bitmaps().len(), 1);

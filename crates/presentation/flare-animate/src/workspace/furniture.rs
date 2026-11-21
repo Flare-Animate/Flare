@@ -61,6 +61,7 @@ impl Workspace {
             })
             .frame(egui::Frame::new().fill(flare_ui::theme::chrome()))
             .show(ui, |ui| self.menu_bar(ui));
+        self.apply_phone_arrangement(ui.ctx().content_rect().width());
         if self.document_controls_shown() {
             egui::Panel::right("panel_rail")
                 .exact_size(rail::rail_width(self.touch))
@@ -103,6 +104,7 @@ impl Workspace {
         self.increment_instances_window(&ctx);
         self.symbol_dialog_window(&ctx);
         self.video_import_window(&ctx);
+        self.movie_scripts_window(&ctx);
         self.palette_window(&ctx);
         self.ensure_language_font(&ctx);
         self.file_windows(&ctx);

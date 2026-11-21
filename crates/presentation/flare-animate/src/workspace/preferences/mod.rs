@@ -2,6 +2,6 @@
 
 mod apply;
 mod settings;
-mod window;
+pub(in crate::workspace) mod window;
 
 pub use settings::{MAX_PREFERENCES_BYTES, Preferences};

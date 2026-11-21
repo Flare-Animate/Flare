@@ -289,12 +289,25 @@ pub(super) fn write_timeline(
             out.raw(xml);
             written += 1;
         }
+        // A reference (a mannequin to draw over) is for the stage only, not in the file.
+        if layer.is_reference() {
+            continue;
+        }
         // A mask masks, and a motion guide guides, the layer directly below it in the document;
         // XFL points the layer below at either by index.
         let parent = mask_index.take();
         let folder = layer.parent().and_then(|id| indexes.get(&id).copied());
         indexes.insert(layer.id(), written);
-        write_layer(out, layer, parent, folder, place, ctx);
+        // Animate has no holding past a layer's last keyframe, so the hold is written out.
+        let held = layer.with_hold_written(timeline.frame_count());
+        write_layer(
+            out,
+            held.as_ref().unwrap_or(layer),
+            parent,
+            folder,
+            place,
+            ctx,
+        );
         if layer.is_mask() || layer.is_guide() {
             mask_index = Some(written);
         }

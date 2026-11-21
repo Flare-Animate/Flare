@@ -1,0 +1,13 @@
+pane-shaders = シェーダー
+menu-item-show-shaders = シェーダー
+hist-import-shader = シェーダーグラフを読み込む
+hist-remove-shader = シェーダーグラフを削除
+shaders-empty = このプロジェクトにはまだシェーダーグラフがありません。グラフファイルから読み込んでください。
+shaders-import = 読み込み...
+shaders-export = 書き出し...
+shaders-remove = 削除
+shaders-nodes = { $count } ノード
+shaders-select = 書き出しや削除をするグラフを選んでください。
+shaders-cannot-import = { $name } を読み込めません: { $error }
+shaders-cannot-export = { $name } を書き出せません: { $error }
+shaders-note = グラフはプロジェクトに保存されます。`flare shader render` と MCP サーバーの export_png がフレームに適用します。

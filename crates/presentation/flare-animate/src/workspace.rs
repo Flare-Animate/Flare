@@ -56,6 +56,7 @@ mod outlines;
 mod palette;
 mod panels;
 mod pen_overlay;
+mod phone;
 mod place;
 mod playback;
 mod preferences;
@@ -76,12 +77,15 @@ mod stage_menu;
 mod symbol_dialog;
 mod symbols;
 mod tabs;
+mod to_bitmap;
 mod tools;
 mod touch;
 mod transform_cursor;
 mod window_controls;
 mod workspaces;
 use tools::{anchors, stroke_preview, text_preview};
+mod movie_scripts;
+mod movie_scripts_window;
 mod new_document;
 mod new_document_presets;
 #[cfg(test)]
@@ -147,6 +151,8 @@ pub struct Workspace {
     collapsed_folders: std::collections::HashSet<LayerId>,
     /// The library panel's state.
     library: symbols::LibraryState,
+    shaders: panels::shaders::ShaderPanel,
+    game: panels::game::GamePanel,
     /// The import being read, if any.
     importing: Option<u64>,
     reverting: Option<u64>,
@@ -193,6 +199,8 @@ pub struct Workspace {
     lasso: Vec<Pos2>,
     /// The Magic Wand's settings and the pixels it has picked.
     wand: tools::magic_wand::WandTool,
+    /// The Convert to Bitmap job on the pixels worker, while it is out.
+    to_bitmap: Option<u64>,
     /// The Rotation tool's drag, its dial and the Alt tap that opens it.
     rotate: tools::rotate_view::RotateView,
     springs: tools::Springs,
@@ -343,6 +351,9 @@ pub struct Workspace {
     touch: bool,
     /// Whether the touch style has been applied, and for which choice.
     styled_touch: Option<bool>,
+    /// The arrangement a phone-sized window put away, kept to be given back at a wider size (see
+    /// `phone.rs`); `None` while the window is wide.
+    phone_stash: Option<flare_dock::Layout>,
     /// The command palette's state.
     search_palette: palette::Palette,
     /// The reference mannequin and the panel's view of it.
@@ -351,4 +362,6 @@ pub struct Workspace {
     effects: effects::EffectsState,
     /// A video being brought in: probed, asked about or read.
     video_import: video_import::VideoImport,
+    /// The Movie Scripts window, while a movie is open in it.
+    movie_scripts: Option<movie_scripts::MovieScripts>,
 }

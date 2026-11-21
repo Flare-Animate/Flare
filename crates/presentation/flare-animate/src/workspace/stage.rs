@@ -175,7 +175,7 @@ impl Workspace {
         }
         if matches!(
             self.tool,
-            Tool::Pencil | Tool::Brush | Tool::Blur | Tool::Smudge
+            Tool::Pencil | Tool::Brush | Tool::Blur | Tool::Smudge | Tool::RasterBrush
         ) || self.eraser_rubs()
         {
             let primary = egui::PointerButton::Primary;

@@ -106,6 +106,8 @@ impl Preset {
                     P::FindReplace,
                     P::Mannequin,
                     P::Effects,
+                    P::Shaders,
+                    P::Game,
                 ]],
             }),
         };

@@ -13,6 +13,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 flare-animate.workspace = true
+flare-as3.workspace = true
 flare-import.workspace = true
 flare-menubar.workspace = true
 

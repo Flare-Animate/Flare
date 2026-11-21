@@ -48,3 +48,50 @@ pub struct Blend {
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
+
+/// The arguments of `raster_brush`.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct RasterBrush {
+    /// The stroke as points on the stage, [x, y] in order, in the first scene. At most 4096.
+    pub points: Vec<[f64; 2]>,
+    /// The pen's pressure at each point, 0 to 1, one per point; without it every point is at full
+    /// pressure.
+    pub pressure: Option<Vec<f32>>,
+    /// Frame; defaults to 0.
+    pub frame: Option<u32>,
+    /// Paint color, RRGGBB or RRGGBBAA hex. Defaults to black.
+    pub color: Option<String>,
+    /// How much of the color under the brush mixes into the paint, 0 to 100 (%); defaults to 50.
+    /// 0 lays the paint as it is.
+    pub mix: Option<f32>,
+    /// Width of the stroke in stage units, 1 to 1000; defaults to 20.
+    pub size: Option<f32>,
+    /// How opaque the stroke is at most, 0 to 100 (%); defaults to 100.
+    pub opacity: Option<f32>,
+    /// How sharp the stroke's edge is, 0 to 100 (%); defaults to 80.
+    pub hardness: Option<f32>,
+    /// Pressure sets the size of each dab (default); false keeps every dab full size.
+    pub pressure_size: Option<bool>,
+    /// How far a picked-up color is carried, 0 to 100; defaults to 30.
+    pub stretch: Option<u8>,
+    /// Layer id; by default the topmost that can take art, or a new "Layer 1".
+    pub layer: Option<String>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+/// The arguments of `convert_to_bitmap`.
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ConvertToBitmap {
+    /// Layer id; by default the first layer.
+    pub layer: Option<String>,
+    /// A frame of the keyframe converted; what it shows there is drawn. Defaults to 0.
+    pub frame: Option<u32>,
+    /// The elements of the keyframe to convert, counting from the bottom one at 0; by default
+    /// all of them.
+    pub elements: Option<Vec<usize>>,
+    /// Bitmap pixels to a stage unit along each side, 1 to 4; defaults to 1.
+    pub scale: Option<u32>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}

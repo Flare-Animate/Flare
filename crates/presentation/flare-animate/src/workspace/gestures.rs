@@ -54,7 +54,8 @@ impl Workspace {
             | Tool::Ruler
             | Tool::Mirror
             | Tool::Blur
-            | Tool::Smudge => None,
+            | Tool::Smudge
+            | Tool::RasterBrush => None,
             Tool::Subselection | Tool::ConvertAnchor => {
                 self.begin_anchor_drag(point);
                 None
@@ -371,13 +372,20 @@ impl Workspace {
         let Some(scene) = self.scene_id() else {
             return;
         };
-        match ops::transform_many(self.document(), scene, &self.selection_all(), about) {
+        let moved = ops::transform_many_at(
+            self.document(),
+            scene,
+            &self.selection_all(),
+            self.frame,
+            about,
+        );
+        match moved {
             None => {
                 if about != DAffine2::IDENTITY {
                     self.report(tr!(self, "msg-nothing-transformed"));
                 }
             }
-            Some(commands) => self.run_batch(commands, "transform"),
+            Some((commands, refs)) => self.run_selection_batch(commands, refs, "transform"),
         }
     }
 }

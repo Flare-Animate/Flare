@@ -1,20 +1,25 @@
-//! What a Blur or Smudge drag costs each frame: laying the dabs of one frame's stretch of the drag
-//! (30 stage units at size 80 for Blur, 30 for Smudge), starting a stroke (the copy of the
-//! bitmap it works on), and the edit that shows the stroke (the new bitmap and its hash). Against
-//! the size of the bitmap, made outside the timed section.
+//! What a Blur, Smudge or Raster Brush drag costs each frame: laying the dabs of one frame's
+//! stretch of the drag (30 stage units at size 80 for Blur, 30 for Smudge, 20 for the Raster Brush
+//! at half mix), starting a stroke (the copy of the bitmap it works on, or for the Raster Brush on
+//! an empty layer a clear bitmap the size of the 1920x1080 stage), and the edit that shows the
+//! stroke (the new bitmap and its hash). Against the size of the bitmap, made outside the timed
+//! section.
 #![allow(clippy::expect_used, missing_docs)]
 
 use std::hint::black_box;
 use std::num::NonZeroU32;
 
 use criterion::{BatchSize, BenchmarkId, Criterion, criterion_group, criterion_main};
-use flare_core::{BitmapId, DocumentId, FrameRate, InstanceId, LayerId, SceneId, Transform2D};
+use flare_core::{
+    BitmapId, DocumentId, FrameRate, InstanceId, LayerId, Rgba8, SceneId, Transform2D,
+};
 use flare_document::{
     Bitmap, BitmapInstance, Content, Document, FrameSpan, Layer, Scene, Timeline,
 };
 use flare_input::InputSample;
-use flare_tools::blend::{BlendKind, BlendSettings, BlendStroke};
+use flare_tools::blend::{BlendKind, BlendSettings, BlendStroke, RasterPaint};
 use flare_tools::magic_wand::Pos2;
+use flare_tools::ops::Target;
 use glamx::DAffine2;
 
 /// A document whose one frame shows a `w` by `h` picture of stripes at the origin.
@@ -47,6 +52,27 @@ fn document(w: u32, h: u32) -> (Document, SceneId) {
     (document, id)
 }
 
+/// Blue paint on the topmost layer.
+fn paint() -> RasterPaint {
+    RasterPaint {
+        color: Rgba8::opaque(0, 0, 255),
+        layer: Target::Default,
+        new_layer: "Layer 1".into(),
+        bitmap_name: "Painting".into(),
+    }
+}
+
+/// Starts a `kind` stroke at `start`.
+fn begin(doc: &Document, scene: SceneId, start: Pos2, kind: BlendKind) -> BlendStroke {
+    let settings = BlendSettings::for_kind(kind);
+    let begun = if kind == BlendKind::RasterBrush {
+        BlendStroke::paint(doc, scene, 0, start, settings, paint())
+    } else {
+        BlendStroke::begin(doc, scene, 0, start, kind, settings)
+    };
+    begun.expect("on it")
+}
+
 fn samples(from: (f64, f64), to: (f64, f64), count: usize) -> Vec<InputSample> {
     (0..=count)
         .map(|i| {
@@ -65,10 +91,8 @@ fn blend(c: &mut Criterion) {
         let size = format!("{w}x{h}");
         let start = Pos2::new(400.0, 400.0);
         for kind in BlendKind::ALL {
-            let settings = BlendSettings::for_kind(kind);
             let begin = || {
-                let mut stroke =
-                    BlendStroke::begin(&doc, scene, 0, start, kind, settings).expect("on it");
+                let mut stroke = begin(&doc, scene, start, kind);
                 // Already under way, as a stroke is after its first frame.
                 stroke.extend(&samples((400.0, 400.0), (430.0, 400.0), 6));
                 stroke
@@ -106,6 +130,29 @@ fn blend(c: &mut Criterion) {
             b.iter(|| black_box(stroke.edit(&doc, scene)));
         });
     }
+    // The Raster Brush on an empty layer starts on a clear bitmap the size of the stage.
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
+    let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
+    let empty_scene = scene.id();
+    let rate = FrameRate::new(24, 1).expect("rate");
+    let empty = Document::new(DocumentId::new(), rate, vec![scene], vec![]).expect("document");
+    let start = Pos2::new(400.0, 400.0);
+    let settings = BlendSettings::for_kind(BlendKind::RasterBrush);
+    group.bench_function(
+        BenchmarkId::new("raster-brush_begin_new", "1920x1080"),
+        |b| {
+            b.iter(|| {
+                black_box(BlendStroke::paint(
+                    &empty,
+                    empty_scene,
+                    0,
+                    start,
+                    settings,
+                    paint(),
+                ))
+            });
+        },
+    );
     group.finish();
 }
 

@@ -32,3 +32,7 @@ bar-grid-down = 垂直方向の間隔
 bar-grid-color = グリッドの色
 bar-grid-color-auto = 色を自動で選ぶ
 bar-grid-reset = グリッドをリセット
+bar-frame-picker = フレームへ移動
+bar-frame-number = フレーム
+bar-frame-previous-keyframe = 前のキーフレーム
+bar-frame-next-keyframe = 次のキーフレーム

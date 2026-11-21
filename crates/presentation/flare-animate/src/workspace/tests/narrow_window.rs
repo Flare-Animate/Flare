@@ -6,11 +6,11 @@ use super::*;
 use egui::epaint::Shape;
 use egui::{PointerButton, pos2};
 
-fn screen(size: [f32; 2]) -> Rect {
+pub(super) fn screen(size: [f32; 2]) -> Rect {
     Rect::from_min_size(Pos2::ZERO, Vec2::from(size))
 }
 
-fn sized(size: [f32; 2], time: f64, events: Vec<Event>) -> RawInput {
+pub(super) fn sized(size: [f32; 2], time: f64, events: Vec<Event>) -> RawInput {
     RawInput {
         time: Some(time),
         screen_rect: Some(screen(size)),
@@ -20,7 +20,7 @@ fn sized(size: [f32; 2], time: f64, events: Vec<Event>) -> RawInput {
 }
 
 /// Draws one pass in a window of `size` and gives back the text drawn, with where each is.
-fn pass_at(
+pub(super) fn pass_at(
     ws: &mut Workspace,
     ctx: &egui::Context,
     time: &mut f64,
@@ -41,7 +41,7 @@ fn pass_at(
 }
 
 /// A workspace drawn a few times in a window of `size`.
-fn drawn(size: [f32; 2]) -> (egui::Context, Workspace, f64) {
+pub(super) fn drawn(size: [f32; 2]) -> (egui::Context, Workspace, f64) {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);
     let mut time = 0.0;
@@ -52,7 +52,7 @@ fn drawn(size: [f32; 2]) -> (egui::Context, Workspace, f64) {
 }
 
 /// Every control that can be clicked, with its whole rectangle and the part of it on show.
-fn controls(ctx: &egui::Context) -> Vec<(Rect, Rect)> {
+pub(super) fn controls(ctx: &egui::Context) -> Vec<(Rect, Rect)> {
     ctx.viewport(|v| {
         v.this_pass
             .widgets
@@ -64,7 +64,7 @@ fn controls(ctx: &egui::Context) -> Vec<(Rect, Rect)> {
     })
 }
 
-fn tile_rect(ws: &Workspace, pane: Pane) -> Rect {
+pub(super) fn tile_rect(ws: &Workspace, pane: Pane) -> Rect {
     let tree = &ws.panels.layout.tree;
     let tile = tree.tiles.find_pane(&pane).expect("docked");
     tree.tiles.rect(tile).expect("drawn")

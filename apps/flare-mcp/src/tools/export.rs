@@ -1,13 +1,16 @@
 //! Tools that write the project out in another form, into the export directory only. They do
-//! not change the open project, so reading is enough, and none of them overwrites a file.
+//! not change the open project, so reading is enough, and none of them overwrites a file: each
+//! file is made aside and linked into place only if its name is still free ([`keep_fresh`]).
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
 use crate::color::{safe_file_name_with, safe_name};
-use crate::params::{ExportSpriteSheet, ExportXfl, ImportProject, PublishHtml5, PublishSwf};
+use crate::params::{
+    ExportSpriteSheet, ExportXfl, ImportImageSequence, ImportProject, PublishHtml5, PublishSwf,
+};
 use crate::params_export::{
     ExportAnimation, ExportMovie, ExportStill, ExportSvg, MovieKind, StillKind, backdrop,
 };
@@ -31,15 +34,17 @@ pub(crate) fn export_file(state: &State, source: &str, what: &str) -> Result<Pat
     let dir = export_dir(state)?
         .canonicalize()
         .map_err(|error| format!("cannot resolve the export directory: {error}"))?;
-    let path = dir.join(safe_name(source)?);
-    if !path.is_file() {
-        return Err(format!("{source} is not a file in the export directory"));
-    }
-    let path = path
+    // Resolved first and then checked, so what is checked is the file the caller opens: no link
+    // can be swapped between the two.
+    let path = dir
+        .join(safe_name(source)?)
         .canonicalize()
-        .map_err(|error| format!("cannot resolve {source}: {error}"))?;
+        .map_err(|_| format!("{source} is not a file in the export directory"))?;
     if !path.starts_with(&dir) {
         return Err(format!("{what} must stay inside the export directory"));
+    }
+    if !path.is_file() {
+        return Err(format!("{source} is not a file in the export directory"));
     }
     Ok(path)
 }
@@ -51,6 +56,40 @@ pub(crate) fn fresh(dir: &std::path::Path, name: &str) -> Result<PathBuf, String
         return Err(format!("{name} already exists in the export directory"));
     }
     Ok(out)
+}
+
+/// Writes `bytes` to `out`, a name [`fresh`] gave, whole or not at all.
+pub(crate) fn write_fresh(out: &Path, bytes: impl AsRef<[u8]>) -> Result<(), String> {
+    keep_fresh(out, |path| {
+        std::fs::write(path, bytes).map_err(|e| e.to_string())
+    })
+}
+
+/// Has `make` write the file `out` names (a name [`fresh`] gave) at a path of its own, under the
+/// same name in a private folder beside it, and then puts it at `out`. Putting it there is a hard
+/// link, which fails when something is at `out` by then, so a file that arrived since `fresh`
+/// looked is never written over, and a file half made is never seen there.
+pub(crate) fn keep_fresh<T>(
+    out: &Path,
+    make: impl FnOnce(&Path) -> Result<T, String>,
+) -> Result<T, String> {
+    let (Some(dir), Some(name)) = (out.parent(), out.file_name()) else {
+        return Err(format!("{} is not a file name", out.display()));
+    };
+    let private = tempfile::Builder::new()
+        .prefix(".flare-export-")
+        .tempdir_in(dir)
+        .map_err(|e| e.to_string())?;
+    let made_at = private.path().join(name);
+    let made = make(&made_at)?;
+    std::fs::hard_link(&made_at, out).map_err(|error| match error.kind() {
+        std::io::ErrorKind::AlreadyExists => format!(
+            "{} already exists in the export directory",
+            name.to_string_lossy()
+        ),
+        _ => format!("cannot write {}: {error}", name.to_string_lossy()),
+    })?;
+    Ok(made)
 }
 
 fn diagnostics<'a, D: 'a>(
@@ -102,7 +141,7 @@ impl FlareServer {
                 format,
                 backdrop(args.transparent),
             )?;
-            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            write_fresh(&out, &bytes)?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
@@ -116,7 +155,7 @@ impl FlareServer {
             let out = fresh(&dir, &safe_file_name_with(&args.name, "gif")?)?;
             let bytes =
                 flare_runtime::gif_bytes(state.session.document(), backdrop(args.transparent))?;
-            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            write_fresh(&out, &bytes)?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
@@ -130,7 +169,7 @@ impl FlareServer {
             let out = fresh(&dir, &safe_file_name_with(&args.name, "png")?)?;
             let bytes =
                 flare_runtime::apng_bytes(state.session.document(), backdrop(args.transparent))?;
-            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            write_fresh(&out, &bytes)?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
@@ -147,7 +186,7 @@ impl FlareServer {
                 args.frame.unwrap_or(0),
                 backdrop(args.transparent),
             )?;
-            std::fs::write(&out, svg.text.as_bytes()).map_err(|e| e.to_string())?;
+            write_fresh(&out, svg.text.as_bytes())?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": svg.text.len(), "notes": svg.notes }))
         })
     }
@@ -164,7 +203,7 @@ impl FlareServer {
                 args.frame.unwrap_or(0),
                 backdrop(args.transparent),
             )?;
-            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            write_fresh(&out, &bytes)?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
@@ -180,7 +219,7 @@ impl FlareServer {
                 state.session.document(),
                 backdrop(args.transparent),
             )?;
-            std::fs::write(&out, &bytes).map_err(|e| e.to_string())?;
+            write_fresh(&out, &bytes)?;
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes.len() }))
         })
     }
@@ -202,16 +241,19 @@ impl FlareServer {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, container.extension)?)?;
             let backdrop = backdrop(args.transparent);
-            if matches!(args.format, MovieKind::Mov) {
-                flare_video::write_mov_over(state.session.document(), &out, backdrop)?;
-            } else {
-                flare_video::write_with_ffmpeg(
-                    state.session.document(),
-                    &out,
-                    container,
-                    backdrop,
-                )?;
-            }
+            keep_fresh(&out, |path| {
+                if matches!(args.format, MovieKind::Mov) {
+                    flare_video::write_mov_over(state.session.document(), path, backdrop)
+                } else {
+                    flare_video::write_with_ffmpeg(
+                        state.session.document(),
+                        path,
+                        container,
+                        backdrop,
+                    )
+                }
+                .map_err(|e| e.to_string())
+            })?;
             let bytes = std::fs::metadata(&out).map_err(|e| e.to_string())?.len();
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes }))
         })
@@ -233,8 +275,8 @@ impl FlareServer {
                 args.columns,
                 &png_name,
             )?;
-            std::fs::write(&png_out, &sheet.png).map_err(|e| e.to_string())?;
-            std::fs::write(&json_out, &sheet.json).map_err(|e| e.to_string())?;
+            write_fresh(&png_out, &sheet.png)?;
+            write_fresh(&json_out, &sheet.json)?;
             Ok(json!({
                 "path": png_out.to_string_lossy(),
                 "atlas": json_out.to_string_lossy(),
@@ -252,11 +294,14 @@ impl FlareServer {
         self.read(|state| {
             let dir = export_dir(state)?;
             let out = fresh(&dir, &safe_file_name_with(&args.name, "mp4")?)?;
-            flare_video::write_mp4_over(
-                state.session.document(),
-                &out,
-                backdrop(args.transparent),
-            )?;
+            keep_fresh(&out, |path| {
+                flare_video::write_mp4_over(
+                    state.session.document(),
+                    path,
+                    backdrop(args.transparent),
+                )
+                .map_err(|e| e.to_string())
+            })?;
             let bytes = std::fs::metadata(&out).map_err(|e| e.to_string())?.len();
             Ok(json!({ "path": out.to_string_lossy(), "bytes": bytes }))
         })
@@ -272,9 +317,10 @@ impl FlareServer {
             let options = flare_publish::PublishOptions {
                 compress: !args.no_compress.unwrap_or(false),
             };
-            let published =
-                flare_publish::publish_to_file(state.session.document(), &options, &out)
-                    .map_err(|e| e.to_string())?;
+            let published = keep_fresh(&out, |path| {
+                flare_publish::publish_to_file(state.session.document(), &options, path)
+                    .map_err(|e| e.to_string())
+            })?;
             Ok(json!({
                 "path": out.to_string_lossy(),
                 "frames": published.frames,
@@ -300,9 +346,10 @@ impl FlareServer {
                 center_stage: !args.no_center.unwrap_or(false),
                 responsive: args.responsive.unwrap_or(false),
             };
-            let published =
-                flare_publish::publish_html5_to_file(state.session.document(), &options, &out)
-                    .map_err(|e| e.to_string())?;
+            let published = keep_fresh(&out, |path| {
+                flare_publish::publish_html5_to_file(state.session.document(), &options, path)
+                    .map_err(|e| e.to_string())
+            })?;
             Ok(json!({
                 "path": out.to_string_lossy(),
                 "frames": published.frames,
@@ -325,11 +372,13 @@ impl FlareServer {
                 flare_export::export_xfl(state.session.document()).map_err(|e| e.to_string())?;
             let zipped = name.to_ascii_lowercase().ends_with(".fla");
             if zipped {
-                flare_export::write_fla(&output, &out)
+                keep_fresh(&out, |path| {
+                    flare_export::write_fla(&output, path).map_err(|e| e.to_string())
+                })?;
             } else {
-                flare_export::write_directory(&output, &out)
+                // A folder cannot be linked into place; `fresh` checked that nothing is there.
+                flare_export::write_directory(&output, &out).map_err(|e| e.to_string())?;
             }
-            .map_err(|e| e.to_string())?;
             Ok(json!({
                 "path": out.to_string_lossy(),
                 "format": if zipped { "fla" } else { "xfl" },
@@ -354,7 +403,9 @@ impl FlareServer {
             }
             let out = fresh(&dir, &safe_file_name_with(&args.name, "flare")?)?;
             let imported = flare_import::import_path(&source).map_err(|e| e.to_string())?;
-            flare_storage::save(&imported.document, &out).map_err(|e| e.to_string())?;
+            keep_fresh(&out, |path| {
+                flare_storage::save(&imported.document, path).map_err(|e| e.to_string())
+            })?;
             Ok(json!({
                 "path": out.to_string_lossy(),
                 "scenes": imported.document.scenes().len(),
@@ -366,4 +417,42 @@ impl FlareServer {
             }))
         })
     }
+
+    #[tool(
+        description = "Import numbered PNG files in the export directory, or one folder of them, as a new .flare project beside it: one layer with a keyframe per picture in natural order (2 before 10), 24 frames a second, each distinct picture stored once. The open project is not changed."
+    )]
+    fn import_image_sequence(&self, Parameters(args): Parameters<ImportImageSequence>) -> Outcome {
+        self.read(|state| {
+            let dir = export_dir(state)?;
+            let mut sources = Vec::with_capacity(args.sources.len());
+            for name in &args.sources {
+                let source = dir.join(safe_name(name)?);
+                if !source.exists() {
+                    return Err(format!("{name} is not in the export directory"));
+                }
+                sources.push(source);
+            }
+            let out = fresh(&dir, &safe_file_name_with(&args.name, "flare")?)?;
+            let files = flare_import::read_sequence_files(&sources).map_err(|e| e.to_string())?;
+            let imported = flare_import::import_image_sequence(files).map_err(|e| e.to_string())?;
+            keep_fresh(&out, |path| {
+                flare_storage::save(&imported.document, path).map_err(|e| e.to_string())
+            })?;
+            let pictures = imported
+                .document
+                .scenes()
+                .first()
+                .and_then(|s| s.timeline().layers().first())
+                .map_or(0, |l| l.spans().len());
+            Ok(json!({
+                "path": out.to_string_lossy(),
+                "pictures": pictures,
+                "bitmaps": imported.document.bitmaps().len(),
+            }))
+        })
+    }
 }
+
+#[cfg(test)]
+#[path = "export_tests.rs"]
+mod tests;

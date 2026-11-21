@@ -26,6 +26,8 @@ impl Workspace {
             home: home::HomeState::default(),
             collapsed_folders: std::collections::HashSet::new(),
             library: symbols::LibraryState::default(),
+            shaders: panels::shaders::ShaderPanel::default(),
+            game: panels::game::GamePanel::default(),
             importing: None,
             reverting: None,
             revert_pending: false,
@@ -53,6 +55,7 @@ impl Workspace {
             poly_inner: 0.5,
             lasso: Vec::new(),
             wand: Default::default(),
+            to_bitmap: None,
             rotate: Default::default(),
             springs: Default::default(),
             freehand: Vec::new(),
@@ -144,10 +147,12 @@ impl Workspace {
             audio: groups::AudioState::default(),
             touch: false,
             styled_touch: None,
+            phone_stash: None,
             search_palette: palette::Palette::default(),
             mannequin: mannequin::MannequinState::default(),
             effects: effects::EffectsState::default(),
             video_import: video_import::VideoImport::default(),
+            movie_scripts: None,
         }
     }
 }
