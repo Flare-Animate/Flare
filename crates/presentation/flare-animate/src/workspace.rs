@@ -56,6 +56,7 @@ mod outlines;
 mod palette;
 mod panels;
 mod pen_overlay;
+mod phone;
 mod place;
 mod playback;
 mod preferences;
@@ -343,6 +344,9 @@ pub struct Workspace {
     touch: bool,
     /// Whether the touch style has been applied, and for which choice.
     styled_touch: Option<bool>,
+    /// The arrangement a phone-sized window put away, kept to be given back at a wider size (see
+    /// `phone.rs`); `None` while the window is wide.
+    phone_stash: Option<flare_dock::Layout>,
     /// The command palette's state.
     search_palette: palette::Palette,
     /// The reference mannequin and the panel's view of it.

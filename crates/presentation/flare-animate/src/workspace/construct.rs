@@ -144,6 +144,7 @@ impl Workspace {
             audio: groups::AudioState::default(),
             touch: false,
             styled_touch: None,
+            phone_stash: None,
             search_palette: palette::Palette::default(),
             mannequin: mannequin::MannequinState::default(),
             effects: effects::EffectsState::default(),

@@ -77,6 +77,7 @@ mod paste_into_layer;
 mod pasteboard;
 mod pen_and_selection;
 mod pencil_pressure;
+mod phone_layout;
 mod polygon_lasso;
 mod preferences_dialog;
 mod properties_context;
