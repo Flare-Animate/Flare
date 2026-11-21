@@ -8,7 +8,9 @@ use flare_commands::Command;
 use flare_core::{LayerId, SceneId};
 use flare_document::{Content, Document, FrameSpan, Layer, Shape};
 
-use crate::common::{SpanRef, scene_timeline};
+use glamx::DAffine2;
+
+use crate::common::{SpanRef, fresh_content, scene_timeline};
 
 /// Which layer a drawing goes to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -83,8 +85,8 @@ pub fn draw_shapes(
     new_layer: &str,
 ) -> Result<DrawPlan, DrawRefusal> {
     let contents = shapes.into_iter().map(Content::Shape).collect();
-    place_contents(
-        document, scene, target, frame, duration, contents, new_layer,
+    place(
+        document, scene, target, frame, duration, contents, new_layer, true,
     )
 }
 
@@ -98,6 +100,26 @@ pub fn place_contents(
     duration: Option<NonZeroU32>,
     contents: Vec<Content>,
     new_layer: &str,
+) -> Result<DrawPlan, DrawRefusal> {
+    place(
+        document, scene, target, frame, duration, contents, new_layer, false,
+    )
+}
+
+/// `own_keyframe` is for drawing: on a frame that only shows what an earlier keyframe holds, it
+/// starts a keyframe there (the held drawing copied, the new elements beside it) and leaves the
+/// frames before as they were. Without it the elements join the keyframe that shows there, as a
+/// paste or a placed picture is meant to.
+#[allow(clippy::too_many_arguments)]
+fn place(
+    document: &Document,
+    scene: SceneId,
+    target: Target,
+    frame: u32,
+    duration: Option<NonZeroU32>,
+    contents: Vec<Content>,
+    new_layer: &str,
+    own_keyframe: bool,
 ) -> Result<DrawPlan, DrawRefusal> {
     let timeline = scene_timeline(document, scene).ok_or(DrawRefusal::NoSuchScene)?;
     let layers = timeline.layers();
@@ -127,7 +149,9 @@ pub fn place_contents(
         }
         None => {
             let id = LayerId::new();
-            let layer = Layer::new(id, new_layer, vec![]).map_err(|_| DrawRefusal::TooMany)?;
+            let layer = Layer::new(id, new_layer, vec![])
+                .map_err(|_| DrawRefusal::TooMany)?
+                .with_hold(true);
             commands.push(Command::AddLayer { scene, layer });
             (id, None)
         }
@@ -141,6 +165,24 @@ pub fn place_contents(
         });
     };
     let span = match existing.and_then(|l| l.span_at(frame)) {
+        Some(span)
+            if own_keyframe
+                && span.start() < frame
+                && !matches!(span.content(), Content::Empty) =>
+        {
+            let layer = existing.ok_or(DrawRefusal::NoSuchLayer)?;
+            return draw_beside_held(
+                scene,
+                timeline.frame_count(),
+                duration,
+                layer,
+                span,
+                frame,
+                first,
+                contents.collect(),
+                commands,
+            );
+        }
         Some(span) => {
             let before = span.element_count();
             let mut grown = span.with_appended(first).ok_or(DrawRefusal::Held)?;
@@ -208,6 +250,85 @@ pub fn place_contents(
     })
 }
 
+/// Drawing on a frame that only shows what an earlier keyframe holds: the frames before it keep
+/// what they show, and a keyframe of its own starts at `frame` with a copy of everything held
+/// and the new elements beside it, up to where the held span stopped (or, past its end, as far
+/// as the scene goes). The held drawing stays; nothing is lost from the frames before.
+fn draw_beside_held(
+    scene: SceneId,
+    scene_frames: u64,
+    duration: Option<NonZeroU32>,
+    layer: &Layer,
+    held: &FrameSpan,
+    frame: u32,
+    first: Content,
+    more: Vec<Content>,
+    mut commands: Vec<Command>,
+) -> Result<DrawPlan, DrawRefusal> {
+    if held.tween() != flare_document::Tween::None {
+        return Err(DrawRefusal::Held);
+    }
+    let before = NonZeroU32::new(frame - held.start()).ok_or(DrawRefusal::TooMany)?;
+    // Inside the held keyframe the new one lasts to where it ended. Past its end it lasts as
+    // long as asked, else to the end of the scene.
+    let length = if u64::from(frame) < held.end() {
+        NonZeroU32::new(
+            u32::try_from(held.end() - u64::from(frame)).map_err(|_| DrawRefusal::TooMany)?,
+        )
+    } else {
+        duration.or_else(|| {
+            NonZeroU32::new(
+                u32::try_from(scene_frames)
+                    .unwrap_or(u32::MAX)
+                    .saturating_sub(frame),
+            )
+        })
+    }
+    .unwrap_or(NonZeroU32::MIN);
+    let mut elements: Vec<Content> = held
+        .elements()
+        .filter(|element| !matches!(element, Content::Empty))
+        .map(|element| fresh_content(element, DAffine2::IDENTITY))
+        .collect::<Option<_>>()
+        .ok_or(DrawRefusal::TooMany)?;
+    let carried = elements.len();
+    elements.push(first);
+    elements.extend(more);
+    let mut grown = FrameSpan::new(frame, length, Content::Empty).with_motion_of(held);
+    grown = grown
+        .with_elements(elements)
+        .ok()
+        .flatten()
+        .ok_or(DrawRefusal::TooMany)?;
+    let placed = (carried..grown.element_count())
+        .map(|element| SpanRef {
+            layer: layer.id(),
+            start: frame,
+            element,
+        })
+        .collect();
+    commands.push(Command::RemoveSpan {
+        scene,
+        layer: layer.id(),
+        start: held.start(),
+    });
+    commands.push(Command::InsertSpan {
+        scene,
+        layer: layer.id(),
+        span: held.retimed(held.start(), before),
+    });
+    commands.push(Command::InsertSpan {
+        scene,
+        layer: layer.id(),
+        span: grown,
+    });
+    Ok(DrawPlan {
+        commands,
+        layer: layer.id(),
+        placed,
+    })
+}
+
 /// The commands that make the last keyframe of `layer` before `frame` last up to it, when empty
 /// frames lie between: the frames a new keyframe at `frame` leaves behind show what came before,
 /// not nothing. `None` when no keyframe comes before `frame` or it already reaches it.
@@ -252,3 +373,6 @@ fn locked_by_folder(layers: &[Layer], index: usize) -> bool {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod hold_tests;

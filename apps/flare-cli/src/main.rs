@@ -126,6 +126,8 @@ fn run() -> Result<()> {
             motion,
             ease,
         } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
+        Command::Frames { path, first, count } => project::frames_list(&path, first, count)?,
+        Command::Goto { path, target, from } => project::goto(&path, &target, from)?,
         Command::Bone { action } => project::bone(action)?,
         Command::Bones { path, frame } => project::bones_list(&path, frame)?,
         Command::Tween { op } => tween::run(op)?,

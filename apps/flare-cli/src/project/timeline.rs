@@ -211,6 +211,11 @@ pub enum LayerOperation {
     /// Draw the layer see-through on the stage while editing (`--percent`, 0 to 100); exports
     /// always draw it whole.
     Opacity,
+    /// The layer keeps its last drawing on show past its last keyframe, until something new is
+    /// drawn or a blank keyframe ends it.
+    Hold,
+    /// The layer shows nothing after its last keyframe, as Animate's layers do.
+    Release,
 }
 
 /// Where `move` puts a layer: above which layer, and in which folder.
@@ -277,6 +282,8 @@ pub fn layer_op(
         LayerOperation::LockOthers => layer_ops::lock_others(document, scene, layer)?,
         LayerOperation::HideOthers => layer_ops::hide_others(document, scene, layer)?,
         LayerOperation::Opacity => anyhow::bail!("opacity needs --percent"),
+        LayerOperation::Hold => layers::set_hold(document, scene, layer, true)?,
+        LayerOperation::Release => layers::set_hold(document, scene, layer, false)?,
         LayerOperation::Duplicate => {
             let (commands, id) = layer_ops::duplicate(document, scene, layer)?;
             copy = Some(id);

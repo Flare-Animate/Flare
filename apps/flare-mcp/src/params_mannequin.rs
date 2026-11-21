@@ -60,6 +60,10 @@ pub struct PlaceMannequin {
     /// With `layer`: a keyframe of its own from `frame`, cutting short the one shown there, so
     /// each stretch of frames of one layer can hold another figure. Defaults to false.
     pub new_keyframe: Option<bool>,
+    /// A guide to draw over: place the figure on a locked reference layer at the bottom of the
+    /// layers, below every drawing, shown on the stage and in no export. Not with `layer` or
+    /// `new_keyframe`. Change its opacity with `set_layer_opacity`, hide the layer to switch it off.
+    pub under: Option<bool>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }

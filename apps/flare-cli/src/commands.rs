@@ -443,6 +443,24 @@ pub(crate) enum Command {
     /// Open the desktop app, on the given projects if any (the app is found next to this program,
     /// on PATH, or at $FLARE_DESKTOP).
     Open { paths: Vec<PathBuf> },
+    /// The frame picker: list the first scene's frames from `--first`, up to `--count`, each
+    /// with how many layers start a keyframe there and whether it shows art.
+    Frames {
+        path: PathBuf,
+        #[arg(long, default_value_t = 0)]
+        first: u32,
+        #[arg(long, default_value_t = 200)]
+        count: u32,
+    },
+    /// Where a frame request leads: a zero-based number, or first, last, next, previous,
+    /// next-keyframe or previous-keyframe, from frame `--from`. Prints the frame and what it
+    /// holds; an error says why there is no such frame.
+    Goto {
+        path: PathBuf,
+        target: String,
+        #[arg(long, default_value_t = 0)]
+        from: u32,
+    },
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,

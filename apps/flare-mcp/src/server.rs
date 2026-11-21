@@ -35,6 +35,9 @@ pub(crate) struct State {
     pub google_fonts: Option<flare_webfonts::Downloader>,
     /// The ffmpeg and ffprobe videos are read with, when not those on PATH.
     pub video_tools: Option<flare_ffmpeg::Tools>,
+    /// The frame `goto_frame` last went to; where `draw_rect` draws when it is not told a frame.
+    /// It is where a person is looking, not part of the project, so it is not saved or undone.
+    pub playhead: u32,
     /// The Rhubarb Lip Sync program lip sync runs: `None` finds the installed one, `Some(None)`
     /// means there is none.
     pub rhubarb: Option<Option<PathBuf>>,
@@ -66,6 +69,7 @@ impl FlareServer {
                 fonts: flare_runtime::ExtraFonts::default(),
                 google_fonts: Some(flare_webfonts::Downloader::for_programs()),
                 video_tools: None,
+                playhead: 0,
                 rhubarb: None,
             })),
             tool_router: Self::router(),
@@ -102,7 +106,7 @@ impl FlareServer {
         self
     }
 
-    fn lock(&self) -> MutexGuard<'_, State> {
+    pub(crate) fn lock(&self) -> MutexGuard<'_, State> {
         // A panic while the project was locked cannot leave it half-edited (edits are applied
         // whole or not at all), so the data is still sound.
         self.state.lock().unwrap_or_else(|e| e.into_inner())

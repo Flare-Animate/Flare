@@ -15,6 +15,7 @@ mod bones;
 mod brush_stroke;
 mod camera;
 mod draw;
+mod frames;
 mod interchange;
 mod magic_wand;
 mod magnet;
@@ -33,6 +34,7 @@ pub use camera::{CameraMotion, camera};
 #[allow(unused_imports)]
 use draw::*;
 pub use draw::{PlaceArgs, add_layer, add_symbol, draw_rect, eval, place, rename_scene, set_stage};
+pub use frames::{frames_list, goto};
 #[allow(unused_imports)]
 use interchange::*;
 pub use interchange::{
@@ -83,7 +85,7 @@ pub fn new(path: &Path, numerator: u32, denominator: u32, stage: Stage) -> Resul
     if path.exists() {
         bail!("{} already exists", path.display());
     }
-    let layer = Layer::new(LayerId::new(), "Layer 1", vec![])?;
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![])?.with_hold(true);
     let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
     let rate = FrameRate::new(numerator, denominator)?;
     let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])

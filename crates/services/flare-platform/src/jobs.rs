@@ -192,6 +192,32 @@ pub fn export_svg(
     })
 }
 
+/// Writes every frame of the first scene as a sprite sheet picture at `path` (a PNG) and its JSON
+/// atlas beside it (the same name, `.json`), on a thread. Both are written only once the whole
+/// sheet is made; a file that exists is replaced, as the save dialog has asked the person.
+pub fn export_sprites(
+    document: Document,
+    path: PathBuf,
+    done: impl FnOnce(Result<(), String>) + Send + 'static,
+) -> io::Result<()> {
+    spawn("flare-export-sprites", move || {
+        done(write_sprites(&document, &path));
+    })
+}
+
+/// [`export_sprites`] on the calling thread.
+pub fn write_sprites(document: &Document, path: &std::path::Path) -> Result<(), String> {
+    let png = path.with_extension("png");
+    let name = png.file_name().map_or_else(
+        || "sprites.png".to_owned(),
+        |n| n.to_string_lossy().into_owned(),
+    );
+    let sheet = flare_runtime::sprite_sheet(document, 0, None, None, &name)?;
+    std::fs::write(&png, &sheet.png).map_err(|e| format!("Cannot write the sprite sheet: {e}"))?;
+    std::fs::write(png.with_extension("json"), sheet.json.as_bytes())
+        .map_err(|e| format!("Cannot write the atlas: {e}"))
+}
+
 /// What to publish: each format that is present is written, beside the others.
 #[derive(Clone, Debug)]
 pub struct PublishPlan {

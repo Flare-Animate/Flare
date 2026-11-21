@@ -98,6 +98,34 @@ pub fn place(
     placement: Placement,
     name: &str,
 ) -> Result<Placed, PlaceRefusal> {
+    place_new(document, scene, frame, figure, placement, name, false)
+}
+
+/// Places `figure` as a guide to draw over: a new layer called `name` at the bottom of `scene`,
+/// below every drawing layer, that is a reference (shown on the stage, in no export or publish),
+/// locked so a click on the stage draws and selects on the layers above it and not on it, and
+/// drawn see-through (`REFERENCE_OPACITY`, changed with the layer's opacity). It holds from
+/// `frame` on, so the guide stays under the frames drawn over it. Hide it to toggle it off.
+pub fn place_under(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+    figure: &Mannequin,
+    placement: Placement,
+    name: &str,
+) -> Result<Placed, PlaceRefusal> {
+    place_new(document, scene, frame, figure, placement, name, true)
+}
+
+fn place_new(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+    figure: &Mannequin,
+    placement: Placement,
+    name: &str,
+    under: bool,
+) -> Result<Placed, PlaceRefusal> {
     let timeline = scene_timeline(document, scene).ok_or(PlaceRefusal::NoSuchScene)?;
     let (bitmap, shown, size) = pictured(document, figure, placement, name)?;
     let bitmap_id = shown.bitmap();
@@ -113,15 +141,21 @@ pub fn place(
     let layer = Layer::new(id, name, vec![span])
         .map_err(|_| PlaceRefusal::TooMany)?
         .with_view_opacity(REFERENCE_OPACITY);
+    let layer = if under {
+        layer.with_reference(true).with_locked(true).with_hold(true)
+    } else {
+        layer
+    };
     let mut commands: Vec<Command> = bitmap.into_iter().map(Command::AddBitmap).collect();
-    commands.extend([
-        Command::AddLayer { scene, layer },
-        Command::MoveLayer {
+    // A new layer is added at the bottom; the figure on top is moved up, the guide stays.
+    commands.push(Command::AddLayer { scene, layer });
+    if !under {
+        commands.push(Command::MoveLayer {
             scene,
             layer: id,
             index: 0,
-        },
-    ]);
+        });
+    }
     Ok(Placed {
         commands,
         layer: id,
@@ -178,7 +212,7 @@ pub fn place_onto(
         .layers()
         .iter()
         .find(|l| l.id() == layer)
-        .and_then(|l| l.span_at(frame))
+        .and_then(|l| l.span_covering(frame))
         .filter(|span| span.start() < frame);
     let mut commands: Vec<Command> = bitmap.into_iter().map(Command::AddBitmap).collect();
     let at = match (keyframe, held) {
@@ -265,3 +299,5 @@ fn pictured(
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod underlay_tests;

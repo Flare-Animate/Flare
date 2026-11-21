@@ -25,6 +25,8 @@ impl Layer {
             mask: false,
             folder: false,
             guide: false,
+            hold: false,
+            reference: false,
             camera: false,
             outline: None,
             view_opacity: 100,
@@ -42,6 +44,8 @@ impl Layer {
         layer.mask = self.mask;
         layer.folder = self.folder;
         layer.guide = self.guide;
+        layer.hold = self.hold;
+        layer.reference = self.reference;
         layer.camera = self.camera;
         layer.outline = self.outline;
         layer.view_opacity = self.view_opacity;
@@ -91,6 +95,23 @@ impl Layer {
     #[must_use]
     pub fn with_guide(mut self, guide: bool) -> Self {
         self.guide = guide;
+        self
+    }
+
+    /// Makes the layer hold its last drawing: past its last keyframe a still drawing stays on
+    /// show until something new is drawn (or a blank keyframe ends it), where otherwise the
+    /// layer shows nothing after its last span.
+    #[must_use]
+    pub fn with_hold(mut self, hold: bool) -> Self {
+        self.hold = hold;
+        self
+    }
+
+    /// Makes the layer a reference: a picture to draw over (a mannequin, a rough) that shows on
+    /// the stage while the document is edited and is never in an export, a publish or a symbol.
+    #[must_use]
+    pub fn with_reference(mut self, reference: bool) -> Self {
+        self.reference = reference;
         self
     }
 
@@ -175,6 +196,16 @@ impl Layer {
         self.view_opacity
     }
 
+    /// Whether the layer holds its last drawing past its last keyframe (see [`Layer::with_hold`]).
+    pub fn is_hold(&self) -> bool {
+        self.hold
+    }
+
+    /// Whether the layer is a reference, shown on the stage and kept out of every export.
+    pub fn is_reference(&self) -> bool {
+        self.reference
+    }
+
     pub fn is_guide(&self) -> bool {
         self.guide
     }
@@ -220,11 +251,39 @@ impl Layer {
             .filter(|s| u64::from(s.start()) == frame)
     }
 
-    /// The span exposing `frame`, if any. Spans are sorted and non-overlapping.
+    /// The span exposing `frame`, if any. Spans are sorted and non-overlapping. Past the last
+    /// span the last one is still on show when it is a still drawing (see
+    /// [`Layer::span_covering`]): a drawing stays until something new is drawn, and is not
+    /// gone at the next frame.
     pub fn span_at(&self, frame: u32) -> Option<&FrameSpan> {
+        self.span_covering(frame)
+            .or_else(|| self.held_past_the_end(frame))
+    }
+
+    /// The span that holds `frame` by its own length, with no holding past the end.
+    pub fn span_covering(&self, frame: u32) -> Option<&FrameSpan> {
         let index = self
             .spans
             .partition_point(|span| span.end() <= u64::from(frame));
         self.spans.get(index).filter(|span| span.start() <= frame)
+    }
+
+    /// The last span, for a frame after it, when what it holds is a drawing that stays: shapes,
+    /// instances and pictures that do not move by a tween. A blank keyframe, a camera, an
+    /// armature or a tween ends where it ends, so a blank keyframe is how a drawing is made to
+    /// stop.
+    fn held_past_the_end(&self, frame: u32) -> Option<&FrameSpan> {
+        if !self.hold || self.camera || self.folder || self.guide {
+            return None;
+        }
+        let last = self.spans.last()?;
+        let stays = last.tween() == Tween::None
+            && last.elements().any(|element| {
+                matches!(
+                    element,
+                    Content::Shape(_) | Content::Instance(_) | Content::Bitmap(_)
+                )
+            });
+        (stays && u64::from(frame) >= last.end()).then_some(last)
     }
 }
