@@ -146,7 +146,7 @@ pub struct Profile {
     pub title: String,
     /// The keyboard shortcut set this profile starts with.
     pub shortcut_set: String,
-    /// The theme this profile starts with, by its code (`dark`, `light`, `liquidglass`).
+    /// The theme this profile starts with, by its code (one of `load::THEMES`).
     pub theme: String,
     pub toolbars: Vec<Toolbar>,
     pub rooms: Vec<Room>,

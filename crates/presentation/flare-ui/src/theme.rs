@@ -7,44 +7,80 @@ use egui::{Color32, CornerRadius, FontId, Stroke, TextStyle, Visuals};
 /// Which of the palettes is in use.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Mode {
+    Darkest,
     #[default]
     Dark,
+    Medium,
     Light,
-    Clay,
-    Synthwave,
-    Blue,
+    Lightest,
+    HighContrast,
     Neutral,
+    Blue,
+    Teal,
     Green,
+    Clay,
+    Rose,
+    Synthwave,
     LiquidGlass,
+    Sepia,
+    Mint,
 }
 
 impl Mode {
+    /// Every theme, in the order Preferences lists them: the greys from darkest to lightest, as
+    /// Animate's interface brightness runs, then high contrast, then the tinted ones.
+    pub const ALL: [Self; 16] = [
+        Self::Darkest,
+        Self::Dark,
+        Self::Medium,
+        Self::Light,
+        Self::Lightest,
+        Self::HighContrast,
+        Self::Neutral,
+        Self::Blue,
+        Self::Teal,
+        Self::Green,
+        Self::Clay,
+        Self::Rose,
+        Self::Synthwave,
+        Self::LiquidGlass,
+        Self::Sepia,
+        Self::Mint,
+    ];
+
     /// How it is kept in the preferences file.
     pub fn code(self) -> &'static str {
         match self {
+            Self::Darkest => "darkest",
             Self::Dark => "dark",
+            Self::Medium => "medium",
             Self::Light => "light",
-            Self::Clay => "clay",
-            Self::Synthwave => "synthwave",
-            Self::Blue => "blue",
+            Self::Lightest => "lightest",
+            Self::HighContrast => "contrast",
             Self::Neutral => "neutral",
+            Self::Blue => "blue",
+            Self::Teal => "teal",
             Self::Green => "green",
+            Self::Clay => "clay",
+            Self::Rose => "rose",
+            Self::Synthwave => "synthwave",
             Self::LiquidGlass => "liquidglass",
+            Self::Sepia => "sepia",
+            Self::Mint => "mint",
         }
     }
 
     /// A kept value back; anything not understood is dark, the default.
     pub fn from_code(code: &str) -> Self {
-        match code {
-            "light" => Self::Light,
-            "clay" => Self::Clay,
-            "synthwave" => Self::Synthwave,
-            "blue" => Self::Blue,
-            "neutral" => Self::Neutral,
-            "green" => Self::Green,
-            "liquidglass" => Self::LiquidGlass,
-            _ => Self::Dark,
-        }
+        Self::ALL
+            .into_iter()
+            .find(|mode| mode.code() == code)
+            .unwrap_or_default()
+    }
+
+    /// Whether the theme is drawn dark on light, with egui's light visuals under it.
+    pub fn is_light(self) -> bool {
+        palette_of(self).light
     }
 }
 
@@ -63,197 +99,33 @@ pub fn mode() -> Mode {
     MODE.with(std::cell::Cell::get)
 }
 
-struct Palette {
-    bg: Color32,
-    chrome: Color32,
-    panel: Color32,
-    panel_raised: Color32,
-    field: Color32,
-    faint: Color32,
-    border: Color32,
-    border_strong: Color32,
-    hover: Color32,
-    text: Color32,
-    text_strong: Color32,
-    text_dim: Color32,
-    text_disabled: Color32,
-    accent: Color32,
-    warning: Color32,
-    stage_surround: Color32,
+#[path = "theme_palettes.rs"]
+mod palettes;
+use palettes::*;
+
+fn palette_of(mode: Mode) -> &'static Palette {
+    match mode {
+        Mode::Darkest => &DARKEST,
+        Mode::Dark => &DARK,
+        Mode::Medium => &MEDIUM,
+        Mode::Light => &LIGHT,
+        Mode::Lightest => &LIGHTEST,
+        Mode::HighContrast => &HIGH_CONTRAST,
+        Mode::Neutral => &NEUTRAL,
+        Mode::Blue => &BLUE,
+        Mode::Teal => &TEAL,
+        Mode::Green => &GREEN,
+        Mode::Clay => &CLAY,
+        Mode::Rose => &ROSE,
+        Mode::Synthwave => &SYNTHWAVE,
+        Mode::LiquidGlass => &LIQUID_GLASS,
+        Mode::Sepia => &SEPIA,
+        Mode::Mint => &MINT,
+    }
 }
-
-const fn rgb(r: u8, g: u8, b: u8) -> Color32 {
-    Color32::from_rgb(r, g, b)
-}
-
-// Flat greys with no tint, as animation tools are, so the colors on the stage are judged against
-// nothing colored; the blue-tinted dark is the Blue mode. Every palette has three steps of ground:
-// the gaps between panels and the pasteboard darkest, the bars (menu, tab rows, rail, status) a
-// step up, and the panels themselves lightest, so neighbouring areas never merge. Labels are a
-// quiet grey and values near white.
-const DARK: Palette = Palette {
-    bg: rgb(0x1d, 0x1d, 0x1d),
-    chrome: rgb(0x28, 0x28, 0x28),
-    panel: rgb(0x32, 0x32, 0x32),
-    panel_raised: rgb(0x39, 0x39, 0x39),
-    field: rgb(0x26, 0x26, 0x26),
-    faint: rgb(0x2e, 0x2e, 0x2e),
-    border: rgb(0x46, 0x46, 0x46),
-    border_strong: rgb(0x60, 0x60, 0x60),
-    hover: rgb(0x3e, 0x3e, 0x3e),
-    text: rgb(0xe3, 0xe3, 0xe3),
-    text_strong: Color32::WHITE,
-    text_dim: rgb(0x9a, 0x9a, 0x9a),
-    text_disabled: rgb(0x66, 0x66, 0x66),
-    accent: rgb(0x4c, 0x8d, 0xff),
-    warning: rgb(0xe8, 0xb3, 0x4a),
-    stage_surround: rgb(0x1d, 0x1d, 0x1d),
-};
-
-const LIGHT: Palette = Palette {
-    bg: rgb(0xd3, 0xd7, 0xde),
-    chrome: rgb(0xe3, 0xe6, 0xeb),
-    panel: rgb(0xf1, 0xf3, 0xf6),
-    panel_raised: rgb(0xfb, 0xfc, 0xfd),
-    field: rgb(0xe4, 0xe7, 0xec),
-    faint: rgb(0xec, 0xee, 0xf2),
-    border: rgb(0xc6, 0xcb, 0xd3),
-    border_strong: rgb(0xa5, 0xac, 0xb7),
-    hover: rgb(0xdf, 0xe3, 0xe9),
-    text: rgb(0x22, 0x26, 0x2c),
-    text_strong: Color32::BLACK,
-    text_dim: rgb(0x58, 0x5f, 0x6a),
-    text_disabled: rgb(0xa2, 0xa8, 0xb2),
-    accent: rgb(0x2c, 0x6c, 0xe0),
-    warning: rgb(0xa8, 0x6a, 0x10),
-    stage_surround: rgb(0xcd, 0xd1, 0xd8),
-};
-
-const CLAY: Palette = Palette {
-    bg: rgb(0x20, 0x1b, 0x16),
-    chrome: rgb(0x2a, 0x24, 0x1e),
-    panel: rgb(0x33, 0x2c, 0x24),
-    panel_raised: rgb(0x3d, 0x35, 0x2c),
-    field: rgb(0x22, 0x1d, 0x18),
-    faint: rgb(0x38, 0x30, 0x28),
-    border: rgb(0x5a, 0x4e, 0x40),
-    border_strong: rgb(0x7a, 0x6a, 0x55),
-    hover: rgb(0x45, 0x3b, 0x30),
-    text: rgb(0xe8, 0xdd, 0xcc),
-    text_strong: Color32::WHITE,
-    text_dim: rgb(0xb0, 0xa0, 0x88),
-    text_disabled: rgb(0x6a, 0x5e, 0x50),
-    accent: rgb(0xd4, 0x8a, 0x4a),
-    warning: rgb(0xe8, 0xb3, 0x4a),
-    stage_surround: rgb(0x1e, 0x18, 0x14),
-};
-
-const SYNTHWAVE: Palette = Palette {
-    bg: rgb(0x0a, 0x03, 0x16),
-    chrome: rgb(0x1a, 0x0a, 0x2e),
-    panel: rgb(0x26, 0x12, 0x3e),
-    panel_raised: rgb(0x2a, 0x14, 0x44),
-    field: rgb(0x14, 0x08, 0x24),
-    faint: rgb(0x26, 0x12, 0x3e),
-    border: rgb(0x5a, 0x2a, 0x7a),
-    border_strong: rgb(0x8a, 0x4a, 0xaa),
-    hover: rgb(0x3a, 0x1a, 0x5a),
-    text: rgb(0xe0, 0xd0, 0xff),
-    text_strong: Color32::WHITE,
-    text_dim: rgb(0xa0, 0x80, 0xcc),
-    text_disabled: rgb(0x5a, 0x40, 0x7a),
-    accent: rgb(0xff, 0x4a, 0xc8),
-    warning: rgb(0xff, 0xb3, 0x4a),
-    stage_surround: rgb(0x12, 0x06, 0x20),
-};
-
-const BLUE: Palette = Palette {
-    bg: rgb(0x12, 0x17, 0x22),
-    chrome: rgb(0x1a, 0x20, 0x2e),
-    panel: rgb(0x20, 0x28, 0x38),
-    panel_raised: rgb(0x28, 0x32, 0x44),
-    field: rgb(0x14, 0x1a, 0x28),
-    faint: rgb(0x24, 0x2e, 0x40),
-    border: rgb(0x3a, 0x4a, 0x6a),
-    border_strong: rgb(0x55, 0x6a, 0x8a),
-    hover: rgb(0x2e, 0x3a, 0x52),
-    text: rgb(0xd0, 0xdc, 0xf0),
-    text_strong: Color32::WHITE,
-    text_dim: rgb(0x8a, 0x9a, 0xbb),
-    text_disabled: rgb(0x4a, 0x5a, 0x7a),
-    accent: rgb(0x4a, 0x8d, 0xff),
-    warning: rgb(0xe8, 0xb3, 0x4a),
-    stage_surround: rgb(0x12, 0x18, 0x24),
-};
-
-const NEUTRAL: Palette = Palette {
-    bg: rgb(0x20, 0x20, 0x20),
-    chrome: rgb(0x2a, 0x2a, 0x2a),
-    panel: rgb(0x33, 0x33, 0x33),
-    panel_raised: rgb(0x3d, 0x3d, 0x3d),
-    field: rgb(0x22, 0x22, 0x22),
-    faint: rgb(0x38, 0x38, 0x38),
-    border: rgb(0x55, 0x55, 0x55),
-    border_strong: rgb(0x77, 0x77, 0x77),
-    hover: rgb(0x40, 0x40, 0x40),
-    text: rgb(0xd9, 0xd9, 0xd9),
-    text_strong: Color32::WHITE,
-    text_dim: rgb(0x99, 0x99, 0x99),
-    text_disabled: rgb(0x5a, 0x5a, 0x5a),
-    accent: rgb(0x88, 0x88, 0x88),
-    warning: rgb(0xe8, 0xb3, 0x4a),
-    stage_surround: rgb(0x1e, 0x1e, 0x1e),
-};
-
-const GREEN: Palette = Palette {
-    bg: rgb(0x12, 0x1a, 0x12),
-    chrome: rgb(0x1a, 0x24, 0x1a),
-    panel: rgb(0x20, 0x2e, 0x20),
-    panel_raised: rgb(0x28, 0x38, 0x28),
-    field: rgb(0x14, 0x1e, 0x14),
-    faint: rgb(0x24, 0x32, 0x24),
-    border: rgb(0x3a, 0x5a, 0x3a),
-    border_strong: rgb(0x55, 0x7a, 0x55),
-    hover: rgb(0x2e, 0x42, 0x2e),
-    text: rgb(0xd0, 0xe8, 0xd0),
-    text_strong: Color32::WHITE,
-    text_dim: rgb(0x8a, 0xaa, 0x8a),
-    text_disabled: rgb(0x4a, 0x6a, 0x4a),
-    accent: rgb(0x4a, 0xc8, 0x4a),
-    warning: rgb(0xe8, 0xb3, 0x4a),
-    stage_surround: rgb(0x12, 0x1c, 0x12),
-};
-
-const LIQUID_GLASS: Palette = Palette {
-    bg: rgb(0x10, 0x18, 0x25),
-    chrome: rgb(0x17, 0x21, 0x31),
-    panel: rgb(0x1f, 0x2b, 0x3f),
-    panel_raised: rgb(0x22, 0x2f, 0x45),
-    field: rgb(0x0f, 0x16, 0x21),
-    faint: rgb(0x26, 0x32, 0x40),
-    border: rgb(0x4a, 0x5e, 0x80),
-    border_strong: rgb(0x7d, 0x8f, 0xb0),
-    hover: rgb(0x2e, 0x3e, 0x58),
-    text: rgb(0xe6, 0xed, 0xf6),
-    text_strong: Color32::WHITE,
-    text_dim: rgb(0x9f, 0xb0, 0xc8),
-    text_disabled: rgb(0x78, 0x86, 0xa0),
-    accent: rgb(0x5f, 0xb4, 0xf0),
-    warning: rgb(0xe8, 0xb3, 0x4a),
-    stage_surround: rgb(0x0f, 0x16, 0x21),
-};
 
 fn palette() -> &'static Palette {
-    match mode() {
-        Mode::Dark => &DARK,
-        Mode::Light => &LIGHT,
-        Mode::Clay => &CLAY,
-        Mode::Synthwave => &SYNTHWAVE,
-        Mode::Blue => &BLUE,
-        Mode::Neutral => &NEUTRAL,
-        Mode::Green => &GREEN,
-        Mode::LiquidGlass => &LIQUID_GLASS,
-    }
+    palette_of(mode())
 }
 
 pub fn bg() -> Color32 {
@@ -299,6 +171,32 @@ pub fn accent() -> Color32 {
 pub fn warning() -> Color32 {
     palette().warning
 }
+/// Text and icons drawn on `fill`: white or black, whichever stands out more. An accent is blue in
+/// some themes and yellow or pink in others, so white on the accent is not always readable.
+pub fn ink_on(fill: Color32) -> Color32 {
+    // The relative luminance at which white and black stand out equally (WCAG's formula).
+    if relative_luminance(fill) > 0.179 {
+        Color32::BLACK
+    } else {
+        Color32::WHITE
+    }
+}
+
+/// WCAG relative luminance of a color. A see-through fill is measured as egui keeps it,
+/// premultiplied, which is how it looks over a dark panel.
+fn relative_luminance(c: Color32) -> f32 {
+    let (r, g, b) = (c.r(), c.g(), c.b());
+    let channel = |v: u8| {
+        let v = f32::from(v) / 255.0;
+        if v <= 0.03928 {
+            v / 12.92
+        } else {
+            ((v + 0.055) / 1.055).powf(2.4)
+        }
+    };
+    0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+}
+
 /// A button that throws work away.
 pub fn danger() -> Color32 {
     Color32::from_rgb(0xc2, 0x3b, 0x3b)
@@ -395,15 +293,10 @@ pub fn apply(ctx: &egui::Context) {
 /// The colors, spacing and type sizes of the palette in use, without touching the fonts: called
 /// again when the person switches between the dark and the light one.
 pub fn apply_palette(ctx: &egui::Context) {
-    let mut visuals = match mode() {
-        Mode::Light => Visuals::light(),
-        Mode::Dark
-        | Mode::Clay
-        | Mode::Synthwave
-        | Mode::Blue
-        | Mode::Neutral
-        | Mode::Green
-        | Mode::LiquidGlass => Visuals::dark(),
+    let mut visuals = if mode().is_light() {
+        Visuals::light()
+    } else {
+        Visuals::dark()
     };
     visuals.panel_fill = panel();
     visuals.window_fill = panel_raised();

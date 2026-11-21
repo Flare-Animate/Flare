@@ -201,7 +201,7 @@ impl Workspace {
         ui.add_space(16.0);
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             let create = egui::Button::new(
-                egui::RichText::new(self.tr("start-create")).color(Color32::WHITE),
+                egui::RichText::new(self.tr("start-create")).color(theme::ink_on(theme::accent())),
             )
             .fill(theme::accent())
             .min_size(vec2(76.0, 26.0));

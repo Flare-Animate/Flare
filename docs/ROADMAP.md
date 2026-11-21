@@ -243,7 +243,7 @@ appear, docs/UI.md); the profiles place them, but the interface does not read pr
 | Tool strip and options | ToolBar, ToolOptions | Built; More tools lists the unbuilt ones dimmed | Built |
 | Workspace profiles | rooms, `layouts.txt` | Data model, loader and four built-in profiles in `flare-profile`; the interface does not read them yet | P1 |
 | Shortcut sets | `shortcuts/*.ini` | Four sets as data (`flare`, `opentoonz`, `animate`, `tahoma`) in `flare-menubar`'s `ShortcutMap`; edited, saved in Preferences, listed by `flare shortcuts` | P1 |
-| Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Eight palettes in `flare-ui` `theme.rs`, text at least 7:1 on every surface (tested) | Built |
+| Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Sixteen palettes in `flare-ui` `theme_palettes.rs`, all in Preferences: Animate's grey steps from Darkest to Lightest, High contrast, and tinted dark and light ones; text at least 7:1 on every surface (tested) | Built |
 | Preferences | Preferences | Built in part (General, Stage, Timeline, Recent) | Built |
 | FX schematic and FX settings | Schematic, FxBrowser, FxSettings | Built for one scene layer at a time as the Effects panel (graph view and the chosen node's settings); a browser of saved effect presets is not built | Built |
 | Function editor | FunctionEditor | Built as the Motion Editor (one span's curve); per-property graphs are left | P2 |
