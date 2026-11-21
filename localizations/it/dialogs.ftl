@@ -29,3 +29,4 @@ dlg-increment-by = Sposta di fotogrammi
 dlg-increment-apply = Incrementa
 dlg-filter-animate-shortcuts = Scelte rapide di Animate
 dlg-cannot-read = Impossibile leggere il file
+dlg-filter-sprite-sheet = Immagine sprite sheet

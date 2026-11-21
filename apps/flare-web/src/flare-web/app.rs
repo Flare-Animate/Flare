@@ -186,6 +186,21 @@ impl WebApp {
                         .map(|svg| svg.text.into_bytes());
                 self.deliver("frame.svg", "image/svg+xml", bytes);
             }
+            DialogRequest::ExportSpriteSheet => {
+                // The picture and its atlas are two downloads, named alike.
+                let (document, _) = self.workspace.image_export();
+                match flare_runtime::sprite_sheet(&document, 0, None, None, "sprites.png") {
+                    Ok(sheet) => {
+                        self.deliver("sprites.png", "image/png", Ok(sheet.png));
+                        self.deliver(
+                            "sprites.json",
+                            "application/json",
+                            Ok(sheet.json.into_bytes()),
+                        );
+                    }
+                    Err(error) => self.workspace.report_message(&error),
+                }
+            }
             DialogRequest::Publish => {
                 let (document, _) = self.workspace.image_export();
                 let name = self.publish_name();

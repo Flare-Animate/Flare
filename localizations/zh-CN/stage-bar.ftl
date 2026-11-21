@@ -32,3 +32,7 @@ bar-grid-down = 垂直间距
 bar-grid-color = 网格颜色
 bar-grid-color-auto = 自动颜色
 bar-grid-reset = 重置网格
+bar-frame-picker = 跳转到帧
+bar-frame-number = 帧
+bar-frame-previous-keyframe = 上一个关键帧
+bar-frame-next-keyframe = 下一个关键帧

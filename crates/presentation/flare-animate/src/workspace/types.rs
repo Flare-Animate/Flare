@@ -103,6 +103,8 @@ pub enum DialogRequest {
     ExportFla,
     /// Write the frame on show as an SVG picture.
     ExportSvg,
+    /// Write every frame of the scene as a sprite sheet picture and its JSON atlas beside it.
+    ExportSpriteSheet,
     Publish,
 }
 

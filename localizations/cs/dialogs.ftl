@@ -29,3 +29,4 @@ dlg-increment-by = Posunout o snímky
 dlg-increment-apply = Zvýšit
 dlg-filter-animate-shortcuts = Zkratky Animate
 dlg-cannot-read = Soubor nelze přečíst
+dlg-filter-sprite-sheet = Obrázek sprite sheet

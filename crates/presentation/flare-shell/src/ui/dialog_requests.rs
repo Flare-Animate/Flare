@@ -174,6 +174,19 @@ impl App {
                     },
                 );
             }
+            DialogRequest::ExportSpriteSheet => {
+                let filter = text(self, "dlg-filter-sprite-sheet");
+                self.ask(
+                    move || dialogs::save_image(&filter, &["png"]),
+                    |app, path| {
+                        let (document, _) = app.workspace.image_export();
+                        let done = exported(&app.proxy);
+                        if let Err(error) = jobs::export_sprites(document, path, done) {
+                            app.say_error("dlg-cannot-export", &error.to_string());
+                        }
+                    },
+                );
+            }
             DialogRequest::Publish => self.ask_publish(),
         }
     }

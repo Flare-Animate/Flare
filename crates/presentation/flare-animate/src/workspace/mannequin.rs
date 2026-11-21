@@ -46,10 +46,18 @@ pub enum PlaceInto {
     ThisKeyframe,
     /// A keyframe of its own on the active layer from the playhead.
     NewKeyframe,
+    /// A guide under every drawing layer: a locked reference layer, on the stage and in no
+    /// export, to draw over.
+    Underlay,
 }
 
 impl PlaceInto {
-    pub const ALL: [PlaceInto; 3] = [Self::NewLayer, Self::ThisKeyframe, Self::NewKeyframe];
+    pub const ALL: [PlaceInto; 4] = [
+        Self::NewLayer,
+        Self::ThisKeyframe,
+        Self::NewKeyframe,
+        Self::Underlay,
+    ];
 }
 
 /// A picture of the figure made for the screen, and what it was made of, so it is made again
@@ -245,6 +253,15 @@ impl Workspace {
         self.mannequin.into = into;
     }
 
+    /// Places the figure where `into` says, whatever the panel has chosen (the View menu's
+    /// Insert commands); the panel's choice stays as it was.
+    pub fn place_mannequin_as(&mut self, into: PlaceInto) -> bool {
+        let chosen = std::mem::replace(&mut self.mannequin.into, into);
+        let placed = self.place_mannequin();
+        self.mannequin.into = chosen;
+        placed
+    }
+
     /// Places the figure, as the panel shows it, where the panel says (a new layer at the top
     /// of the scene, or the active layer's keyframe at the playhead, or a new keyframe there),
     /// as one undo step, and selects it with Free Transform, so it can be dragged into place and
@@ -259,6 +276,14 @@ impl Workspace {
         let name = tr!(self, "mannequin-layer-name");
         let figure = self.mannequin.figure;
         let placed = match (self.mannequin.into, self.active_layer_id()) {
+            (PlaceInto::Underlay, _) => flare_tools::mannequin::place_under(
+                self.document(),
+                scene,
+                self.frame,
+                &figure,
+                placement,
+                &name,
+            ),
             (PlaceInto::NewLayer, _) | (_, None) => flare_tools::mannequin::place(
                 self.document(),
                 scene,
@@ -294,6 +319,13 @@ impl Workspace {
                 .map_err(|e| e.to_string())
         });
         match outcome {
+            // A guide under the drawing is locked and kept out of the way: the layer the person
+            // draws on and the tool in hand stay as they are.
+            Ok(_) if self.mannequin.into == PlaceInto::Underlay => {
+                let message = tr!(self, "mannequin-placed-under", &[("name", &name)]);
+                self.report(message);
+                true
+            }
             Ok(at) => {
                 self.current_layer = Some(at.layer);
                 self.set_tool(Tool::FreeTransform);

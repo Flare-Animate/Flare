@@ -13,7 +13,11 @@ goes and what a change bought, not what any other machine will do.
 2. **Nothing slow runs on the UI thread.** Drawing a frame, reading or writing a project, and
    publishing run on workers (`flare-runtime`). The UI hands over an immutable
    snapshot and polls for the result. A new slow operation (export, import, publish, a new
-   effect) is a new job type there, not a blocking call in a handler.
+   effect) is a new job type there, not a blocking call in a handler. A file picker is one of
+   these too: it blocks until the person answers, so the desktop app runs it on a thread of its
+   own (`flare_platform::jobs::ask`) and the answer comes back through the event loop. Opened
+   on the UI thread, the window stopped painting and on some desktops the picker stayed blank
+   until it was touched.
 3. **Share, do not copy.** Documents are immutable snapshots made of shared parts (`Arc`
    shapes, spans, names, layer lists). An edit copies the part it changes. Take a snapshot
    with `EditorSession::snapshot` to give work to another thread.

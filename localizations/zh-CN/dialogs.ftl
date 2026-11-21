@@ -29,3 +29,4 @@ dlg-increment-by = 移动帧数
 dlg-increment-apply = 递增
 dlg-filter-animate-shortcuts = Animate 快捷键
 dlg-cannot-read = 无法读取文件
+dlg-filter-sprite-sheet = 精灵图图片

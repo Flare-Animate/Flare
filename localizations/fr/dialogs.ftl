@@ -29,3 +29,4 @@ dlg-increment-by = Décaler d’images
 dlg-increment-apply = Incrémenter
 dlg-filter-animate-shortcuts = Raccourcis Animate
 dlg-cannot-read = Impossible de lire le fichier
+dlg-filter-sprite-sheet = Image de planche de sprites

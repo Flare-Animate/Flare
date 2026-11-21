@@ -693,7 +693,11 @@ picture where Place Into says, as one undo step: New layer, a layer named Manneq
 the scene from the playhead to the end, drawn at half opacity while editing; This keyframe, the
 active layer's keyframe at the playhead beside what it holds, so several figures share the same
 frames; or New keyframe here, a keyframe of its own on the active layer from the playhead (the one
-shown there is cut short), so each stretch of frames of one layer can hold another pose. Where the
+shown there is cut short), so each stretch of frames of one layer can hold another pose; or Under
+the drawing, a guide to draw over: a locked layer at the bottom of the layers, below every
+drawing layer, that shows on the stage (half see-through; its Opacity is the layer's, and hiding
+the layer switches it off) and is in no export, publish or saved Animate file. It keeps the layer
+you draw on and the tool in hand as they are. Where the
 layer shows nothing at the playhead either of the last two starts a keyframe up to the layer's
 next one; a locked or hidden layer, a folder, mask, guide or camera layer is refused with the
 reason. The same pose placed again shows the picture the library already has. The placed figure
@@ -701,6 +705,23 @@ is selected with Free Transform: drag it to move it and its handles to scale, tu
 any picture (the Selection tool picks it again anywhere in its rectangle; lock the layer to draw
 over it without picking it). It is artwork like any other, so it is hidden or deleted before
 export. The figure is kept with the preferences, not in the document.
+
+## Drawings that stay, and the frame picker
+
+A drawing stays on show in the frames after it, until something new is drawn or a blank keyframe
+(Insert Blank Keyframe) ends it: a layer made in Flare *holds* its last keyframe past its end (a
+layer imported from Animate keeps the ending it has; `flare layer hold` and the MCP's
+`set_layer_hold` change it). Drawing on a frame that only shows what an earlier keyframe holds
+starts a keyframe there with a copy of what was held and the new strokes beside it, so the frames
+before are as they were and the held drawing stays; it is one undo step. A tween cannot share its
+keyframe, so drawing inside one is refused as before. A paste or a placed picture still joins the
+keyframe that shows at the frame.
+
+The frame count in the status bar opens the frame picker: a frame number field (from 1), Previous
+and Next Keyframe, and a grid of the scene's frames (a keyframe is lighter, the playhead is the
+accent colour; a click goes there). `flare frames` and `flare goto`, and the MCP server's
+`list_frames` and `goto_frame`, ask the same library (`flare_editor::frame_picker`); the MCP
+server remembers the frame it went to, and `draw_rect` draws there when it is given no start.
 
 ## Import Video
 

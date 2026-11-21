@@ -29,3 +29,4 @@ dlg-increment-by = Сдвинуть на кадры
 dlg-increment-apply = Увеличить
 dlg-filter-animate-shortcuts = Сочетания клавиш Animate
 dlg-cannot-read = Не удаётся прочитать файл
+dlg-filter-sprite-sheet = Изображение спрайт-листа

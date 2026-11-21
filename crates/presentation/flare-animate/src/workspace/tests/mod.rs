@@ -37,6 +37,7 @@ mod effects;
 mod eraser;
 mod frame_focus;
 mod frame_menu;
+mod frame_picker;
 mod frame_rate;
 mod frames_text_and_sound;
 mod graphic_playback;

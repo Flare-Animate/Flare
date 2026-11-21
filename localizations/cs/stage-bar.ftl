@@ -32,3 +32,7 @@ bar-grid-down = Svislé rozestupy
 bar-grid-color = Barva mřížky
 bar-grid-color-auto = Automatická barva
 bar-grid-reset = Obnovit mřížku
+bar-frame-picker = Přejít na snímek
+bar-frame-number = Snímek
+bar-frame-previous-keyframe = Předchozí klíčový snímek
+bar-frame-next-keyframe = Další klíčový snímek

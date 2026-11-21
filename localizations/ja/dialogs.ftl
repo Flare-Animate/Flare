@@ -29,3 +29,4 @@ dlg-increment-by = 移動するフレーム数
 dlg-increment-apply = 増分
 dlg-filter-animate-shortcuts = Animate のショートカット
 dlg-cannot-read = ファイルを読み込めません
+dlg-filter-sprite-sheet = スプライトシート画像
