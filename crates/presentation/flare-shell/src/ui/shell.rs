@@ -102,21 +102,31 @@ impl App {
                 }
             }
             DialogRequest::ExportImage => {
-                if let Some(path) =
-                    dialogs::save_png(&self.workspace.interface_text("dlg-filter-png"))
-                {
+                let filter = self.workspace.interface_text("dlg-filter-image");
+                if let Some(path) = dialogs::save_image(&filter, &jobs::IMAGE_ENDINGS) {
                     let (document, frame) = self.workspace.image_export();
                     let backdrop = self.workspace.publish_settings().backdrop();
                     let done = exported(&self.proxy);
-                    if let Err(error) = jobs::export_png(document, frame, path, backdrop, done) {
+                    if let Err(error) = jobs::export_image(document, frame, path, backdrop, done) {
                         self.say_error("dlg-cannot-export", &error.to_string());
                     }
                 }
             }
             DialogRequest::ExportMovie => {
-                let filters = ["dlg-filter-gif", "dlg-filter-mp4", "dlg-filter-mov"]
-                    .map(|key| self.workspace.interface_text(key));
-                if let Some(path) = dialogs::save_movie(filters.each_ref().map(String::as_str)) {
+                let names = [
+                    "dlg-filter-gif",
+                    "dlg-filter-mp4",
+                    "dlg-filter-mov",
+                    "dlg-filter-movie",
+                ]
+                .map(|key| self.workspace.interface_text(key));
+                let filters = [
+                    (names[0].as_str(), &["gif"][..]),
+                    (names[1].as_str(), &["mp4"][..]),
+                    (names[2].as_str(), &["mov"][..]),
+                    (names[3].as_str(), &jobs::OTHER_MOVIE_ENDINGS),
+                ];
+                if let Some(path) = dialogs::save_movie(&filters) {
                     let (document, _) = self.workspace.image_export();
                     let backdrop = self.workspace.publish_settings().backdrop();
                     let done = exported(&self.proxy);

@@ -29,8 +29,24 @@ pub fn download_font(
     })
 }
 
-/// Writes one frame as a PNG over `backdrop`. `done` gets the outcome, worded for the person.
-pub fn export_png(
+/// The endings a still picture is written with (`png`, `jpg`, ..., `psd`), the Export Image
+/// dialog's list.
+pub const IMAGE_ENDINGS: [&str; 15] = flare_runtime::STILL_ENDINGS;
+
+/// The endings a movie is written with: an animated GIF, MP4, QuickTime, and the rest of
+/// [`OTHER_MOVIE_ENDINGS`].
+pub const MOVIE_ENDINGS: [&str; 10] = [
+    "gif", "mp4", "mov", "apng", "webm", "mkv", "avi", "mpg", "mpeg", "flv",
+];
+
+/// The movie endings the Export Movie dialog's last filter offers: an APNG and the containers
+/// ffmpeg writes (which need ffmpeg on the computer).
+pub const OTHER_MOVIE_ENDINGS: [&str; 7] = ["apng", "webm", "mkv", "avi", "mpg", "mpeg", "flv"];
+
+/// Writes one frame to `path` in the format its ending names (a PNG when it has none), over
+/// `backdrop`. `done` gets the outcome, worded for the person. An ending that is no still
+/// format is refused, and the file is written only once the frame is encoded.
+pub fn export_image(
     document: Document,
     frame: u32,
     path: PathBuf,
@@ -38,12 +54,35 @@ pub fn export_png(
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-export-image", move || {
-        done(flare_runtime::export_png(&document, frame, &path, backdrop));
+        done(write_image(&document, frame, &path, backdrop));
     })
 }
 
+/// [`export_image`] on the calling thread. A file that exists is replaced, as the save dialog
+/// has asked the person first.
+pub fn write_image(
+    document: &Document,
+    frame: u32,
+    path: &std::path::Path,
+    backdrop: Backdrop,
+) -> Result<(), String> {
+    let ending = path.extension().map_or_else(
+        || "png".to_owned(),
+        |e| e.to_string_lossy().to_ascii_lowercase(),
+    );
+    if !flare_runtime::is_still_ending(&ending) {
+        return Err(format!(
+            "A picture is written as .png, .jpg or the other still formats, not .{ending}"
+        ));
+    }
+    let bytes = flare_runtime::picture_bytes(document, frame, &ending, backdrop)?;
+    std::fs::write(path, bytes).map_err(|e| format!("Cannot write the image: {e}"))
+}
+
 /// Writes the whole animation as the movie `path` names by its ending: an animated GIF (`.gif`),
-/// an MP4 video (`.mp4`) or a QuickTime movie (`.mov`), the last two with the sound. A name with
+/// an APNG (`.apng`), an MP4 video (`.mp4`), a QuickTime movie (`.mov`) or a movie ffmpeg writes
+/// (`.webm`, `.mkv`, `.avi`, `.mpg`, `.flv`, which needs ffmpeg on the computer), the video ones
+/// with the sound. A name with
 /// no ending is a GIF, as Export Movie wrote before it had a choice. Over a transparent
 /// `backdrop` the GIF is see-through, the QuickTime movie is ProRes 4444 made by ffmpeg, and an
 /// MP4 is refused. Never overwrites; the file appears only when complete.
@@ -70,11 +109,19 @@ pub fn write_movie(
     match ending.as_deref() {
         None => write_gif(document, &path.with_extension("gif"), backdrop),
         Some("gif") => write_gif(document, path, backdrop),
+        Some("apng") => write_new(path, &flare_runtime::apng_bytes(document, backdrop)?),
         Some("mp4") => flare_video::write_mp4_over(document, path, backdrop),
         Some("mov") => flare_video::write_mov_over(document, path, backdrop),
-        Some(other) => Err(format!(
-            "A movie is written as .gif, .mp4 or .mov, not .{other}"
-        )),
+        Some(other) => match flare_ffmpeg::CONTAINERS
+            .iter()
+            .find(|c| c.extension == other || (other == "mpeg" && c.id == "mpeg"))
+        {
+            Some(container) => flare_video::write_with_ffmpeg(document, path, container, backdrop),
+            None => Err(format!(
+                "A movie is written as {}, not .{other}",
+                MOVIE_ENDINGS.map(|e| format!(".{e}")).join(", ")
+            )),
+        },
     }
 }
 

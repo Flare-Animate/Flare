@@ -61,14 +61,16 @@ pub fn pick_shortcut_xml(filter: &str) -> Option<PathBuf> {
     backend::pick_shortcut_xml(filter)
 }
 
-pub fn save_png(filter: &str) -> Option<PathBuf> {
-    backend::save_png(filter)
+/// Where to write a picture: the name's ending picks its format (`png` is the default). The
+/// list offers `extensions` under the filter's name.
+pub fn save_image(filter: &str, extensions: &[&str]) -> Option<PathBuf> {
+    backend::save_image(filter, extensions)
 }
 
-/// Where to write the movie: the list offers an animated GIF (first, the default), an MP4 video
-/// and a QuickTime movie, each named by its words in `filters`; the ending of the name that comes
-/// back decides which is written (`flare_platform::jobs::write_movie`).
-pub fn save_movie(filters: [&str; 3]) -> Option<PathBuf> {
+/// Where to write the movie: each filter is a name and the endings it offers, in the order the
+/// list shows them (the first is the default); the ending of the name that comes back decides the
+/// format (`flare_platform::jobs::write_movie`).
+pub fn save_movie(filters: &[(&str, &[&str])]) -> Option<PathBuf> {
     backend::save_movie(filters)
 }
 

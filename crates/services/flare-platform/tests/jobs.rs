@@ -55,7 +55,7 @@ fn an_image_and_a_swf_report_through_the_same_callback() {
     let dir = tempfile::tempdir().expect("dir");
     let (tx, rx) = mpsc::channel();
     let report = tx.clone();
-    jobs::export_png(
+    jobs::export_image(
         document(),
         0,
         dir.path().join("a.png"),
@@ -263,14 +263,29 @@ fn export_movie_writes_the_kind_the_name_ends_in() {
     // No ending is a GIF, as before there was a choice.
     jobs::write_movie(&document(), &dir.path().join("d"), jobs::Backdrop::Stage).expect("d");
     assert!(read("d.gif").starts_with(b"GIF89a"));
+    // AVI goes to ffmpeg: without it the write says so, and with it the file appears.
+    let avi = dir.path().join("e.avi");
+    match jobs::write_movie(&document(), &avi, jobs::Backdrop::Stage) {
+        Err(error) => {
+            assert!(
+                error.contains("ffmpeg"),
+                "an AVI without ffmpeg says so: {error}"
+            );
+            assert!(!avi.exists(), "a refused movie writes no file");
+        }
+        Ok(()) => assert!(avi.exists(), "an AVI written by ffmpeg is on disk"),
+    }
     let error = jobs::write_movie(
         &document(),
-        &dir.path().join("e.avi"),
+        &dir.path().join("f.svg"),
         jobs::Backdrop::Stage,
     )
-    .expect_err("avi");
-    assert!(error.contains(".mov"), "{error}");
-    assert!(!dir.path().join("e.avi").exists());
+    .expect_err("not a movie");
+    assert!(
+        error.contains(".mov"),
+        "the refusal lists the movie endings: {error}"
+    );
+    assert!(!dir.path().join("f.svg").exists());
 }
 
 #[test]
@@ -355,7 +370,7 @@ fn export_movie_and_image_follow_the_backdrop() {
 
     let (tx, rx) = mpsc::channel();
     let png = dir.path().join("c.png");
-    jobs::export_png(
+    jobs::export_image(
         document(),
         0,
         png.clone(),
@@ -388,4 +403,115 @@ fn a_font_download_reports_back_with_its_family_and_a_reason_when_it_fails() {
     assert_eq!(family, "Comic Sans MS");
     let error = result.expect_err("unknown family");
     assert!(error.contains("Comic Sans MS"), "{error}");
+}
+
+#[test]
+fn an_image_is_written_in_the_format_its_ending_names_and_a_movie_ending_is_refused() {
+    let dir = tempfile::tempdir().expect("dir");
+    jobs::write_image(
+        &document(),
+        0,
+        &dir.path().join("a.JPG"),
+        jobs::Backdrop::Stage,
+    )
+    .expect("jpeg");
+    let jpeg = std::fs::read(dir.path().join("a.JPG")).expect("jpeg");
+    assert_eq!(&jpeg[..2], &[0xFF, 0xD8], "a JPEG starts with its marker");
+
+    let error = jobs::write_image(
+        &document(),
+        0,
+        &dir.path().join("b.gif"),
+        jobs::Backdrop::Stage,
+    )
+    .expect_err("a GIF is a movie, not an image");
+    assert!(error.contains(".gif"), "{error}");
+    assert!(
+        !dir.path().join("b.gif").exists(),
+        "a refused image writes no file"
+    );
+}
+
+#[test]
+fn an_image_with_no_ending_is_a_png_and_a_jpeg_over_a_transparent_backdrop_is_refused_clear() {
+    let dir = tempfile::tempdir().expect("dir");
+    jobs::write_image(
+        &document(),
+        0,
+        &dir.path().join("plain"),
+        jobs::Backdrop::Stage,
+    )
+    .expect("png");
+    let bytes = std::fs::read(dir.path().join("plain")).expect("png");
+    assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n", "no ending writes a PNG");
+
+    let error = jobs::write_image(
+        &document(),
+        0,
+        &dir.path().join("see.jpg"),
+        jobs::Backdrop::Transparent,
+    )
+    .expect_err("a JPEG has no alpha");
+    assert!(error.contains("JPEG"), "{error}");
+    assert!(!dir.path().join("see.jpg").exists());
+}
+
+#[test]
+fn an_apng_movie_is_written_and_an_existing_one_is_never_replaced() {
+    let dir = tempfile::tempdir().expect("dir");
+    let path = dir.path().join("a.apng");
+    jobs::write_movie(&document(), &path, jobs::Backdrop::Stage).expect("apng");
+    let bytes = std::fs::read(&path).expect("apng");
+    assert!(
+        bytes.windows(4).any(|w| w == b"acTL"),
+        "an APNG has its animation chunk"
+    );
+    let error = jobs::write_movie(&document(), &path, jobs::Backdrop::Stage).expect_err("exists");
+    assert!(error.contains("already exists"), "{error}");
+}
+
+#[test]
+fn a_movie_ending_nothing_writes_is_refused_with_the_endings_it_takes() {
+    let dir = tempfile::tempdir().expect("dir");
+    let error = jobs::write_movie(
+        &document(),
+        &dir.path().join("a.svg"),
+        jobs::Backdrop::Stage,
+    )
+    .expect_err("not a movie");
+    for ending in ["gif", "mp4", "mov", "webm", "mkv", "avi", "flv"] {
+        assert!(
+            error.contains(ending),
+            "the refusal lists .{ending}: {error}"
+        );
+    }
+    assert!(!dir.path().join("a.svg").exists());
+}
+
+#[test]
+fn the_dialog_lists_name_only_endings_the_writers_take() {
+    for ending in jobs::IMAGE_ENDINGS {
+        // Every offered ending is written, except that an ICO holds at most 256 pixels a side,
+        // so the stage of this test is refused for it by that reason and no other.
+        if let Err(error) =
+            flare_runtime::picture_bytes(&document(), 0, ending, jobs::Backdrop::Stage)
+        {
+            assert!(
+                ending == "ico" && error.contains("ICO holds at most 256 pixels a side"),
+                "{ending} is offered but refused: {error}"
+            );
+        }
+    }
+    for ending in jobs::MOVIE_ENDINGS
+        .iter()
+        .chain(jobs::OTHER_MOVIE_ENDINGS.iter())
+    {
+        assert!(
+            ["gif", "apng", "mp4", "mov"].contains(ending)
+                || flare_ffmpeg::CONTAINERS
+                    .iter()
+                    .any(|c| { c.extension == *ending || (*ending == "mpeg" && c.id == "mpeg") }),
+            "{ending} is offered but nothing writes it"
+        );
+    }
 }

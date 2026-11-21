@@ -21,6 +21,9 @@ fn is_flare(name: &str) -> bool {
     name.to_ascii_lowercase().ends_with(".flare")
 }
 
+/// Font families downloaded for text, with the files or the reason each could not be had.
+type FontInbox = Vec<(String, Result<Vec<Vec<u8>>, String>)>;
+
 pub struct WebApp {
     workspace: Workspace,
     picked: Rc<RefCell<Vec<Picked>>>,
@@ -33,7 +36,7 @@ pub struct WebApp {
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// Google Fonts families downloaded for text (or why not), handed over on the next frame.
-    fonts: Rc<RefCell<Vec<(String, Result<Vec<Vec<u8>>, String>)>>>,
+    fonts: Rc<RefCell<FontInbox>>,
     /// The preferences as last written, so storage is touched only when they change.
     saved_preferences: String,
     /// The name of the file last opened or saved, offered again by Save and, without its ending,
@@ -132,27 +135,41 @@ impl WebApp {
             }
             DialogRequest::SaveAs => self.save_document(),
             DialogRequest::ExportImage => {
+                // The name's ending picks the format, as on the desktop; no ending is a PNG.
+                let Some(name) = self.prompt_file_name("frame.png") else {
+                    return;
+                };
+                let name = with_default_ending(name, "png");
+                let ending = ending_of(&name);
                 let (document, frame) = self.workspace.image_export();
                 let backdrop = self.workspace.publish_settings().backdrop();
-                self.deliver(
-                    "frame.png",
-                    "image/png",
-                    flare_runtime::still_bytes(
-                        &document,
-                        frame,
-                        flare_runtime::StillFormat::Png,
-                        backdrop,
-                    ),
-                );
+                let bytes = if flare_runtime::is_still_ending(&ending) {
+                    flare_runtime::picture_bytes(&document, frame, &ending, backdrop)
+                } else {
+                    Err(format!(
+                        "A picture is written as .png, .jpg or the other still formats, not .{ending}"
+                    ))
+                };
+                self.deliver(&name, picture_mime(&ending), bytes);
             }
             DialogRequest::ExportMovie => {
+                // The browser writes an animated GIF or APNG; MP4, QuickTime and the ffmpeg
+                // containers need the desktop app, which has the video encoders.
+                let Some(name) = self.prompt_file_name("movie.gif") else {
+                    return;
+                };
+                let name = with_default_ending(name, "gif");
+                let ending = ending_of(&name);
                 let (document, _) = self.workspace.image_export();
                 let backdrop = self.workspace.publish_settings().backdrop();
-                self.deliver(
-                    "movie.gif",
-                    "image/gif",
-                    flare_runtime::gif_bytes(&document, backdrop),
-                );
+                let bytes = if matches!(ending.as_str(), "gif" | "apng") {
+                    flare_runtime::picture_bytes(&document, 0, &ending, backdrop)
+                } else {
+                    Err(format!(
+                        "The browser writes a movie as .gif or .apng, not .{ending}; MP4, QuickTime and the other video formats need the desktop app."
+                    ))
+                };
+                self.deliver(&name, picture_mime(&ending), bytes);
             }
             DialogRequest::ExportFla => {
                 let (document, _) = self.workspace.image_export();
@@ -298,29 +315,31 @@ impl WebApp {
         });
     }
 
+    /// Asks for a file name in the browser's own box, starting from `default`. A path typed in is
+    /// cut to its last part; an empty answer, or a cancelled box, is none.
+    fn prompt_file_name(&self, default: &str) -> Option<String> {
+        let window = web_sys::window()?;
+        let message = self.workspace.interface_text("dlg-save-prompt");
+        let typed = window
+            .prompt_with_message_and_default(&message, default)
+            .ok()
+            .flatten()
+            .unwrap_or_default();
+        let name = std::path::Path::new(typed.trim()).file_name()?;
+        Some(name.to_string_lossy().into_owned())
+    }
+
     /// Save and Save As are a download: a page has no file to write back to. The person names it,
     /// and the ending picks the format as on the desktop: `.fla` (the default, as in Animate) is a
     /// Flash document Animate opens, `.flare` is Flare's own project (the page brings SQLite and
     /// zstd as WebAssembly for it, see `flare_file`). A folder cannot be downloaded, so `.xfl`
     /// is saved as a `.fla`, which holds the same files.
     fn save_document(&mut self) {
-        let Some(window) = web_sys::window() else {
+        let Some(name) = self.prompt_file_name(self.last_name.as_deref().unwrap_or("project.fla"))
+        else {
             return;
         };
-        let message = self.workspace.interface_text("dlg-save-prompt");
-        let typed = window
-            .prompt_with_message_and_default(
-                &message,
-                self.last_name.as_deref().unwrap_or("project.fla"),
-            )
-            .ok()
-            .flatten()
-            .unwrap_or_default();
-        // A name only: a path typed in is cut to its last part.
-        let Some(name) = std::path::Path::new(typed.trim()).file_name() else {
-            return;
-        };
-        let (named, format) = flare_runtime::resolve_save_path(std::path::Path::new(name));
+        let (named, format) = flare_runtime::resolve_save_path(std::path::Path::new(&name));
         let named = if format == flare_runtime::FileFormat::Xfl {
             named.with_extension("fla")
         } else {
@@ -491,5 +510,37 @@ impl eframe::App for WebApp {
             preferences::save(&json);
             self.saved_preferences = json;
         }
+    }
+}
+
+/// `name` with `ending` added when it has none, so a name typed without one is written as that
+/// format.
+fn with_default_ending(name: String, ending: &str) -> String {
+    if std::path::Path::new(&name).extension().is_some() {
+        name
+    } else {
+        format!("{name}.{ending}")
+    }
+}
+
+/// The ending of `name`, lower case; empty when it has none.
+fn ending_of(name: &str) -> String {
+    std::path::Path::new(name)
+        .extension()
+        .map(|e| e.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default()
+}
+
+/// The media type a download of a picture or movie named with `ending` is offered as.
+fn picture_mime(ending: &str) -> &'static str {
+    match ending {
+        "png" | "apng" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "bmp" => "image/bmp",
+        "tif" | "tiff" => "image/tiff",
+        "webp" => "image/webp",
+        "svg" => "image/svg+xml",
+        _ => "application/octet-stream",
     }
 }
