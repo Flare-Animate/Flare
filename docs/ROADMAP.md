@@ -36,7 +36,7 @@ that this documentation change resolves them.
 ### High priority
 
 - Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today every shape is a separate drawing object, though shapes drawn on a layer now share its keyframe)
-- Drawing quality: brush dynamics (custom nib, drawn pressure curves, velocity and flow responses, a speed-aware stabilizer, quarter-sine tapers, inking-pen profiles, textured vector brushes (bristles and grain, with Dry brush, Bristle, Charcoal, Chalk and Crayon profiles), a brush gallery of sample strokes, pen pressure on the Pencil, and Brush strokes laid from points with any profile on the command line and the MCP server (`flare brush`, `brush_stroke`) are in; pen profiles import from Photoshop's legacy `.abr` and Krita's `.kpp` and `.bundle` in `flare_import::brushes`, wired into every surface (File > Import > Import Brush Presets on the desktop and web, `flare brush-import`, the MCP's `import_brush_profiles`; OpenToonz preset containers remain unsupported), and tracing a bitmap into vector shapes
+- Drawing quality: brush dynamics (custom nib, drawn pressure curves, velocity and flow responses, a speed-aware stabilizer, quarter-sine tapers, inking-pen profiles, textured vector brushes (bristles and grain, with Dry brush, Bristle, Charcoal, Chalk and Crayon profiles), a brush gallery of sample strokes, pen pressure on the Pencil, and Brush strokes laid from points with any profile on the command line and the MCP server (`flare brush`, `brush_stroke`) are in; pen profiles import from Photoshop's legacy `.abr` and Krita's `.kpp` and `.bundle` in `flare_import::brushes`, wired into every surface (File > Import > Import Brush Presets on the desktop and web, `flare brush-import`, the MCP's `import_brush_profiles`; OpenToonz preset containers remain unsupported), a Raster Brush that paints pixels with color mixing on every surface, Convert to Bitmap so drawn strokes can be painted into, and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols. Flash 3D engine recognition on import is in (issue #230: the import names the engine a movie's scripts are written against, and counts its embedded binary blocks; running the movie stays Ruffle's job. A movie's scripts can be read and their strings patched, `flare scripts` and the MCP's `movie_scripts` and `patch_movie_strings`; decompiling bodies into statements is not started)
 - Motion Editor, remaining: per-property graphs (the segment editor with draggable handles, family, easing, handle kind, copy, paste and reset is in)
 - Importing artwork from SVG and Photoshop files
@@ -244,7 +244,7 @@ appear, docs/UI.md); the profiles place them, but the interface does not read pr
 | Tool strip and options | ToolBar, ToolOptions | Built; More tools lists the unbuilt ones dimmed | Built |
 | Workspace profiles | rooms, `layouts.txt` | Data model, loader and four built-in profiles in `flare-profile`; the interface does not read them yet | P1 |
 | Shortcut sets | `shortcuts/*.ini` | Four sets as data (`flare`, `opentoonz`, `animate`, `tahoma`) in `flare-menubar`'s `ShortcutMap`; edited, saved in Preferences, listed by `flare shortcuts` | P1 |
-| Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Eight palettes in `flare-ui` `theme.rs`, text at least 7:1 on every surface (tested) | Built |
+| Themes | `config/qss` (Clay, Synthwave, LiquidGlass, ...) | Sixteen palettes in `flare-ui` `theme_palettes.rs`, all in Preferences: Animate's grey steps from Darkest to Lightest, High contrast, and tinted dark and light ones; text at least 7:1 on every surface (tested) | Built |
 | Preferences | Preferences | Built in part (General, Stage, Timeline, Recent) | Built |
 | FX schematic and FX settings | Schematic, FxBrowser, FxSettings | Built for one scene layer at a time as the Effects panel (graph view and the chosen node's settings); a browser of saved effect presets is not built | Built |
 | Function editor | FunctionEditor | Built as the Motion Editor (one span's curve); per-property graphs are left | P2 |
@@ -354,7 +354,7 @@ summary. Nothing here is scheduled. The maintainer orders it.
 - Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3),
   exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).
 - Large: Photoshop and image import (WP-4; SVG import is done, it needs a bitmap layer in the model first), filters and effects (WP-8; the EffectCraft
-  dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check; Blur and Smudge on bitmaps are done and their dab engine is the start of it).
+  dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check; Blur, Smudge and a Raster Brush that paints with color mixing are done on one dab engine; presets, paper texture and a pixel eraser remain).
 - Extra-large, decision first: bones and inverse kinematics (WP-9), scripting (WP-12).
 - Licences decide what can be ported: AnimationCraft and ArtCraft are MIT or Apache-2.0; OpenToonz
   and Tahoma2D are BSD-3-Clause; nflare and the FFDec worker in Next2Flash are GPLv3 (behaviour

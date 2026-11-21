@@ -82,6 +82,7 @@ menu-item-rotate-counterclockwise = Rotation de 90° dans le sens antihoraire
 menu-item-scale-up = Agrandir
 menu-item-scale-down = Réduire
 menu-item-convert-to-symbol = Convertir en symbole
+menu-item-convert-to-bitmap = Convertir en bitmap
 menu-item-group = Grouper
 menu-item-bring-to-front = Premier plan
 menu-item-bring-forward = Avancer

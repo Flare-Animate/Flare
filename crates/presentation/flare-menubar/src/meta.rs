@@ -137,6 +137,7 @@ impl MenuAction {
             Self::Duplicate => "duplicate",
             Self::Delete => "delete",
             Self::ConvertToSymbol | Self::NewSymbol => "convert-symbol",
+            Self::ConvertToBitmap => "bitmap",
             Self::AddInstanceToSymbol => "duplicate",
             Self::IncrementInstances => "frame-insert",
             Self::BakeTransform => "tool-transform",

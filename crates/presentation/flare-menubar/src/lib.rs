@@ -54,6 +54,8 @@ pub enum MenuAction {
     Paste,
     Duplicate,
     ConvertToSymbol,
+    /// Turn the selected shapes, instances and bitmaps of one keyframe into one bitmap.
+    ConvertToBitmap,
     Group,
     BringToFront,
     BringForward,
@@ -191,7 +193,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 143] = [
+    pub const ALL: [MenuAction; 144] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -217,6 +219,7 @@ impl MenuAction {
         Self::Paste,
         Self::Duplicate,
         Self::ConvertToSymbol,
+        Self::ConvertToBitmap,
         Self::Group,
         Self::BringToFront,
         Self::BringForward,

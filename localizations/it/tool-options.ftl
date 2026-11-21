@@ -154,3 +154,6 @@ opt-pressure-size = La pressione decide la dimensione
 opt-pressure-size-tip = Un tocco più leggero dà un tratto più stretto
 opt-color-stretch = Allungamento colore
 opt-color-stretch-tip = Fin dove un colore raccolto viene portato lungo il tratto; 0 mescola sul posto
+opt-opacity = Opacità
+opt-color-mix = Miscela colore
+opt-color-mix-tip = Quanto del colore sotto il pennello si mescola alla pittura; 0 stende la pittura così com'è

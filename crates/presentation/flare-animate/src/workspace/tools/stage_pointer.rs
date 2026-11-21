@@ -46,7 +46,9 @@ pub(in crate::workspace) fn stage_pointer(tool: Tool, rubs: bool) -> StagePointe
     // Every tool is named, so a new one has to choose its pointer.
     match tool {
         Tool::Select => StagePointer::Arrow,
-        Tool::Brush | Tool::Pencil | Tool::Blur | Tool::Smudge => StagePointer::Tip,
+        Tool::Brush | Tool::Pencil | Tool::Blur | Tool::Smudge | Tool::RasterBrush => {
+            StagePointer::Tip
+        }
         Tool::Eraser if rubs => StagePointer::Tip,
         Tool::Eraser => marked("tool-eraser"),
         // The bucket's drip, the bottle's base, the dropper's tip, the nib, the arrow's point,

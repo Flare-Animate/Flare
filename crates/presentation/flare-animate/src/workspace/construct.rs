@@ -53,6 +53,7 @@ impl Workspace {
             poly_inner: 0.5,
             lasso: Vec::new(),
             wand: Default::default(),
+            to_bitmap: None,
             rotate: Default::default(),
             springs: Default::default(),
             freehand: Vec::new(),

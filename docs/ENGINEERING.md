@@ -209,9 +209,12 @@ could not be read from this environment, so nothing from it may be ported until 
   pixels, a per-stroke coverage capped at the stroke's strength over a copy of the bitmap from
   before the stroke, blurring towards a blurred copy, and the smudged color as a running average of
   what is under the brush (`5 / (stretch + 5)`), and the default sizes, hardness and stretch of the
-  Blur and Finger tip tools. The blur itself (three box blurs) and the tiling are Flare's own. Paper
-  texture, dual brushes and painting with color are not used: Flare has no raster brush yet
-  (BACKLOG WP-11).
+  Blur and Finger tip tools. The blur itself (three box blurs) and the tiling are Flare's own. The
+  Raster Brush (`blend/paint.rs`) paints on the same engine, taking from the report only the idea of
+  color mixing as a dab color moved towards the running average under the brush; how far it moves
+  (the mix times how much paint that average holds, so clear pixels give none), keeping each
+  pixel's strongest dab instead of building dabs up, and its defaults are Flare's own. Paper
+  texture, dual brushes and brush tips that are pictures are not used (BACKLOG WP-11).
 - i_overlay and its `i_float`, `i_shape`, `i_tree`, `i_key_sort` crates (MIT OR Apache-2.0, linked as a dependency, no code copied): the polygon booleans the Eraser cuts with.
 - usvg and its parser crates (MIT/Apache-2.0, linked as a dependency, no code copied): the SVG reader of `crates/io/flare-import/src/svg.rs`, with its text feature off.
 - SimplSam/moho-bvh-bones (CC BY-NC-SA 4.0): not used; nothing was copied or ported.

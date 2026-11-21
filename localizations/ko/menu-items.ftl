@@ -82,6 +82,7 @@ menu-item-rotate-counterclockwise = 시계 반대 방향으로 90° 회전
 menu-item-scale-up = 확대
 menu-item-scale-down = 축소
 menu-item-convert-to-symbol = 심볼로 변환
+menu-item-convert-to-bitmap = 비트맵으로 변환
 menu-item-group = 그룹화
 menu-item-bring-to-front = 맨 앞으로 가져오기
 menu-item-bring-forward = 앞으로 가져오기

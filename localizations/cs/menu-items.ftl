@@ -82,6 +82,7 @@ menu-item-rotate-counterclockwise = Otočit o 90° doleva
 menu-item-scale-up = Zvětšit
 menu-item-scale-down = Zmenšit
 menu-item-convert-to-symbol = Převést na symbol
+menu-item-convert-to-bitmap = Převést na bitmapu
 menu-item-group = Seskupit
 menu-item-bring-to-front = Přenést do popředí
 menu-item-bring-forward = Posunout dopředu

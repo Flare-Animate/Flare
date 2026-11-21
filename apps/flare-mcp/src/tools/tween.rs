@@ -6,7 +6,7 @@ use flare_tween::raster::FlowParams;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
 
-use super::export::{export_dir, fresh};
+use super::export::{export_dir, fresh, write_fresh};
 use crate::color::safe_file_name_with;
 use crate::ops::{apply, first_scene, target_layer};
 use crate::params::{BitmapInbetweens, EvalCurve, Inbetween, SetInterpolation};
@@ -123,7 +123,7 @@ impl FlareServer {
             let mut written = Vec::with_capacity(outs.len());
             for (out, rgba) in outs.iter().zip(&frames.frames) {
                 let png = flare_runtime::rgba_png(frames.width, frames.height, rgba)?;
-                std::fs::write(out, &png).map_err(|e| e.to_string())?;
+                write_fresh(out, &png)?;
                 written.push(out.to_string_lossy().into_owned());
             }
             Ok(json!({ "width": frames.width, "height": frames.height, "frames": written }))

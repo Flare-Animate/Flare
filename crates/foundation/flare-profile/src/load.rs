@@ -21,8 +21,26 @@ const MIN_FRACTION: f32 = 0.05;
 const MAX_FRACTION: f32 = 0.95;
 /// The shortcut sets a profile may name (the `def*.ini` and `ot*.ini` presets in `original/`).
 pub const SHORTCUT_SETS: [&str; 4] = ["flare", "opentoonz", "animate", "tahoma"];
-/// The themes a profile may name, as `flare_ui::theme::Mode::code` writes them.
-pub const THEMES: [&str; 3] = ["dark", "light", "liquidglass"];
+/// The themes a profile may name, as `flare_ui::theme::Mode::code` writes them (a test in
+/// `flare-ui` keeps the two the same).
+pub const THEMES: [&str; 16] = [
+    "darkest",
+    "dark",
+    "medium",
+    "light",
+    "lightest",
+    "contrast",
+    "neutral",
+    "blue",
+    "teal",
+    "green",
+    "clay",
+    "rose",
+    "synthwave",
+    "liquidglass",
+    "sepia",
+    "mint",
+];
 
 /// Reads and checks one profile. Nothing is returned unless every check passes.
 pub fn parse(json: &str) -> Result<Profile, ProfileError> {

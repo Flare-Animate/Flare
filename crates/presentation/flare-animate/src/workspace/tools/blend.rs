@@ -1,5 +1,5 @@
-//! Blur and Smudge in the workspace: a drag over a bitmap is handed to the pixels worker a few
-//! samples a frame, and each edit that comes back is applied at once, all of them joined into one
+//! Blur, Smudge and the Raster Brush in the workspace: a drag is handed to the pixels worker a
+//! few samples a frame, and each edit that comes back is applied at once, all of them joined into one
 //! undo step, so the stroke shows on the stage as it is drawn. The work itself is
 //! `flare_tools::blend`; the worker (`flare_runtime::BlendJob`) keeps building the new picture
 //! off the window's thread, however large the bitmap.
@@ -7,17 +7,19 @@
 use std::sync::Arc;
 
 use egui::{Pos2, Ui};
+use flare_core::Rgba8;
 use flare_input::InputSample;
 use flare_runtime::{BlendJob, PixelJob};
-use flare_tools::blend::{BlendEdit, BlendKind, BlendSettings, MAX_SIZE, MAX_STRETCH};
+use flare_tools::blend::{BlendEdit, BlendKind, BlendSettings, MAX_SIZE, MAX_STRETCH, RasterPaint};
 use flare_ui::chrome;
 
 use crate::workspace::*;
 
-/// The two tools' settings and the stroke on the worker.
+/// The three tools' settings and the stroke on the worker.
 pub(in crate::workspace) struct BlendTools {
     pub(in crate::workspace) blur: BlendSettings,
     pub(in crate::workspace) smudge: BlendSettings,
+    pub(in crate::workspace) raster: BlendSettings,
     live: Option<LiveStroke>,
     /// A drag let go while the stroke before it was still finishing: started when that ends.
     queued: Option<(BlendKind, Vec<InputSample>)>,
@@ -28,6 +30,7 @@ impl Default for BlendTools {
         Self {
             blur: BlendSettings::for_kind(BlendKind::Blur),
             smudge: BlendSettings::for_kind(BlendKind::Smudge),
+            raster: BlendSettings::for_kind(BlendKind::RasterBrush),
             live: None,
             queued: None,
         }
@@ -56,21 +59,13 @@ impl BlendTools {
     }
 }
 
-impl LiveStroke {
-    fn label(&self) -> &'static str {
-        match self.kind {
-            BlendKind::Blur => "Blur",
-            BlendKind::Smudge => "Smudge",
-        }
-    }
-}
-
 impl Workspace {
-    /// Which of the two the tool in hand is, if either.
+    /// Which of the three the tool in hand is, if any.
     pub(in crate::workspace) fn blend_kind(&self) -> Option<BlendKind> {
         match self.tool {
             Tool::Blur => Some(BlendKind::Blur),
             Tool::Smudge => Some(BlendKind::Smudge),
+            Tool::RasterBrush => Some(BlendKind::RasterBrush),
             _ => None,
         }
     }
@@ -79,6 +74,15 @@ impl Workspace {
         match kind {
             BlendKind::Blur => self.paint.blend.blur,
             BlendKind::Smudge => self.paint.blend.smudge,
+            BlendKind::RasterBrush => self.paint.blend.raster,
+        }
+    }
+
+    /// What a stroke of `kind` going wrong is reported as.
+    fn blend_message(&self, kind: BlendKind, reason: &str) -> String {
+        match kind {
+            BlendKind::RasterBrush => tr!(self, "msg-raster-brush", &[("reason", reason)]),
+            BlendKind::Blur | BlendKind::Smudge => tr!(self, "msg-blend", &[("reason", reason)]),
         }
     }
 
@@ -121,7 +125,8 @@ impl Workspace {
         self.blend_send(&samples, true);
     }
 
-    /// A click: one dab where it lands (Blur softens a spot; Smudge has picked up nothing yet).
+    /// A click: one dab where it lands (Blur softens a spot, the Raster Brush paints a dot; Smudge
+    /// has picked up nothing yet).
     pub(in crate::workspace) fn blend_dot(&mut self, point: Pos2) {
         if let Some(at) = InputSample::mouse(f64::from(point.x), f64::from(point.y)) {
             self.blend_release(vec![at]);
@@ -129,12 +134,51 @@ impl Workspace {
     }
 
     /// Starts a stroke on the worker at `first`, the first sample of the drag; `false` when
-    /// there is no scene to stroke in.
+    /// there is no scene to stroke in, or a layer the Raster Brush cannot paint on (which is said
+    /// as drawing a shape there would be).
     fn blend_begin(&mut self, kind: BlendKind, first: InputSample) -> bool {
         let Some(scene) = self.scene_id() else {
             return false;
         };
+        let start = Pos2::new(first.x as f32, first.y as f32);
+        let settings = self.blend_settings(kind);
+        let document = self.active().snapshot();
         let id = self.background.next_id();
+        let job = if kind == BlendKind::RasterBrush {
+            let target = self.drawing_target();
+            if let Err(refusal) =
+                flare_tools::blend::check_paint(&document, scene, target, self.frame)
+            {
+                let message = self.drawing_refusal(&refusal);
+                self.report(message);
+                return false;
+            }
+            let c = self.paint.fill.to_array();
+            BlendJob::BeginPaint {
+                id,
+                document,
+                scene,
+                frame: self.frame,
+                start,
+                settings,
+                paint: RasterPaint {
+                    color: Rgba8::new(c[0], c[1], c[2], c[3]),
+                    layer: target,
+                    new_layer: tr!(self, "name-new-layer", &[("n", "1")]),
+                    bitmap_name: tr!(self, "name-painting"),
+                },
+            }
+        } else {
+            BlendJob::Begin {
+                id,
+                document,
+                scene,
+                frame: self.frame,
+                start,
+                kind,
+                settings,
+            }
+        };
         self.paint.blend.live = Some(LiveStroke {
             id,
             kind,
@@ -143,16 +187,7 @@ impl Workspace {
             step: None,
             released: false,
         });
-        self.background
-            .submit_pixels(PixelJob::Blend(BlendJob::Begin {
-                id,
-                document: self.active().snapshot(),
-                scene,
-                frame: self.frame,
-                start: Pos2::new(first.x as f32, first.y as f32),
-                kind,
-                settings: self.blend_settings(kind),
-            }));
+        self.background.submit_pixels(PixelJob::Blend(job));
         true
     }
 
@@ -219,15 +254,19 @@ impl Workspace {
         }
         match self
             .active_mut()
-            .apply_joining(edit.commands, live.label(), live.step)
+            .apply_joining(edit.commands, live.kind.label(), live.step)
         {
             Ok(revision) => live.step = revision.or(live.step),
             Err(error) => {
-                let message = tr!(self, "msg-blend", &[("reason", &error.to_string())]);
+                let message = self.blend_message(live.kind, &error.to_string());
                 return self.blend_stop(id, message);
             }
         }
         self.status = None;
+        if live.kind == BlendKind::RasterBrush {
+            // A painting may have made the layer it went on; that layer is the one now chosen.
+            self.current_layer = Some(edit.at.layer);
+        }
         self.paint.blend.live = Some(live);
         self.background
             .submit_pixels(PixelJob::Blend(BlendJob::Step {
@@ -241,12 +280,13 @@ impl Workspace {
 
     /// The stroke is over; `error` says why, when it stopped early.
     pub(in crate::workspace) fn blend_ended(&mut self, id: u64, error: Option<String>) {
-        if self.paint.blend.live.is_none_or(|l| l.id != id) {
+        let Some(live) = self.paint.blend.live.filter(|l| l.id == id) else {
             return;
-        }
+        };
         self.paint.blend.live = None;
         if let Some(reason) = error {
-            self.report(tr!(self, "msg-blend", &[("reason", &reason)]));
+            let message = self.blend_message(live.kind, &reason);
+            self.report(message);
         }
         if let Some((kind, samples)) = self.paint.blend.queued.take()
             && let Some(&first) = samples.first()
@@ -267,19 +307,27 @@ impl Workspace {
         let Some(kind) = self.blend_kind() else {
             return;
         };
+        let strength = if kind == BlendKind::RasterBrush {
+            tr!(self, "opt-opacity")
+        } else {
+            tr!(self, "opt-strength")
+        };
         let labels = [
             tr!(self, "opt-size"),
-            tr!(self, "opt-strength"),
+            strength,
             tr!(self, "opt-hardness"),
             tr!(self, "opt-pressure-size"),
             tr!(self, "opt-pressure-size-tip"),
             tr!(self, "opt-color-stretch"),
             tr!(self, "opt-color-stretch-tip"),
+            tr!(self, "opt-color-mix"),
+            tr!(self, "opt-color-mix-tip"),
         ];
         let help = self.tr(&format!("tools-help-{}", kind.name()));
         let settings = match kind {
             BlendKind::Blur => &mut self.paint.blend.blur,
             BlendKind::Smudge => &mut self.paint.blend.smudge,
+            BlendKind::RasterBrush => &mut self.paint.blend.raster,
         };
         chrome::slider(
             ui,
@@ -295,7 +343,10 @@ impl Workspace {
             ui.checkbox(&mut settings.pressure_size, "")
                 .on_hover_text(&labels[4]);
         });
-        if kind == BlendKind::Smudge {
+        if kind == BlendKind::RasterBrush {
+            percent(ui, &labels[7], &mut settings.mix).on_hover_text(&labels[8]);
+        }
+        if kind.carries_color() {
             chrome::slider(
                 ui,
                 &labels[5],
@@ -311,9 +362,11 @@ impl Workspace {
 }
 
 /// A slider for an amount kept from 0 to 1 and shown as a percentage.
-fn percent(ui: &mut Ui, label: &str, value: &mut f32) {
+fn percent(ui: &mut Ui, label: &str, value: &mut f32) -> egui::Response {
     let mut shown = (*value * 100.0).round().clamp(0.0, 100.0) as u8;
-    if chrome::slider(ui, label, &mut shown, 0..=100, " %", false).changed() {
+    let response = chrome::slider(ui, label, &mut shown, 0..=100, " %", false);
+    if response.changed() {
         *value = f32::from(shown) / 100.0;
     }
+    response
 }

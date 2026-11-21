@@ -1,6 +1,8 @@
 untitled = Untitled
 name-new-scene = Scene { $n }
 name-new-layer = Layer { $n }
+name-painting = Painting
+name-converted-bitmap = Bitmap
 name-new-text-layer = Text
 doc-title = Document
 doc-publish-settings = Publish Settings

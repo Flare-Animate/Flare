@@ -24,8 +24,9 @@ mod render;
 mod sound;
 mod text;
 mod timeline;
+mod to_bitmap;
 
-pub use blend::{BlendArgs, blend_stroke};
+pub use blend::{BlendArgs, RasterBrushArgs, blend_stroke, raster_brush};
 pub use bones::{BoneAction, bone, bones_list};
 pub use brush_stroke::{BrushArgs, brush_strokes};
 #[allow(unused_imports)]
@@ -57,6 +58,7 @@ use timeline::*;
 pub use timeline::{
     FrameArgs, FrameOperation, LayerOperation, LayerPlace, frame_op, layer_op, layer_opacity,
 };
+pub use to_bitmap::{ToBitmapArgs, convert_to_bitmap};
 
 /// Opens a project: a `.flare`, or an Animate `.fla`, `.xfl` or XFL folder (a movie is read too,
 /// to inspect or convert, but never written back).

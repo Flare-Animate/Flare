@@ -54,7 +54,10 @@ The rules are in [AGENTS.md](AGENTS.md) and [docs/ENGINEERING.md](docs/ENGINEERI
   Flare calls neither of them. Password-encrypted entries are refused rather than decrypted: the
   reader is built without `zip`'s AES feature, so that code is never compiled.
 - The MCP server only writes inside an export directory chosen at start-up, accepts plain file
-  names only, and caps image sizes.
+  names only, and caps image sizes. Each file it writes is made in a private folder beside its
+  name and hard-linked into place, which fails if anything has arrived at that name since it was
+  checked, so it never writes over a file. A file it reads is resolved first and then checked to
+  be inside the directory, so a link cannot lead out of it.
 - Property tests feed random and truncated data to the importers, storage and the editing core;
   see [docs/TESTING.md](docs/TESTING.md).
 

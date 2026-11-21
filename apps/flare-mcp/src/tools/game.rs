@@ -10,7 +10,7 @@ use flare_tools::game as model;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
 
-use super::export::{export_dir, fresh};
+use super::export::{export_dir, fresh, write_fresh};
 use crate::color::safe_name;
 use crate::ops::{apply, parse_id};
 use crate::params_game::{
@@ -140,9 +140,9 @@ impl FlareServer {
                 a.columns,
                 base,
             )?;
-            std::fs::write(&json, &export.json).map_err(|e| e.to_string())?;
-            std::fs::write(&png, &export.sheet.png).map_err(|e| e.to_string())?;
-            std::fs::write(&atlas, &export.sheet.json).map_err(|e| e.to_string())?;
+            write_fresh(&json, &export.json)?;
+            write_fresh(&png, &export.sheet.png)?;
+            write_fresh(&atlas, &export.sheet.json)?;
             Ok(json!({
                 "json": json.to_string_lossy(),
                 "image": png.to_string_lossy(),

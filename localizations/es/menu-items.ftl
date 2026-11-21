@@ -82,6 +82,7 @@ menu-item-rotate-counterclockwise = Girar 90° a la izquierda
 menu-item-scale-up = Aumentar escala
 menu-item-scale-down = Reducir escala
 menu-item-convert-to-symbol = Convertir en símbolo
+menu-item-convert-to-bitmap = Convertir en mapa de bits
 menu-item-group = Agrupar
 menu-item-bring-to-front = Traer al frente
 menu-item-bring-forward = Traer adelante

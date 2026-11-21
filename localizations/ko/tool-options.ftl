@@ -150,3 +150,6 @@ opt-pressure-size = 필압으로 크기
 opt-pressure-size-tip = 가볍게 누를수록 획이 좁아집니다
 opt-color-stretch = 색 늘이기
 opt-color-stretch-tip = 집어 든 색을 획을 따라 얼마나 멀리 옮길지. 0은 그 자리에서 섞습니다
+opt-opacity = 불투명도
+opt-color-mix = 색 혼합
+opt-color-mix-tip = 브러시 아래 색을 물감에 얼마나 섞을지; 0이면 물감을 그대로 칠합니다
