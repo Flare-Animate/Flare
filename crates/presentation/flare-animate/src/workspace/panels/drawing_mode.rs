@@ -14,6 +14,7 @@ impl Workspace {
                 | Tool::Ellipse
                 | Tool::Line
                 | Tool::PolyStar
+                | Tool::Polygon
                 | Tool::Pencil
                 | Tool::Brush
                 | Tool::Pen

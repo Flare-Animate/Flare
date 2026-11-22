@@ -48,23 +48,7 @@ impl Workspace {
             return;
         }
         let rectangle_name = tr!(self, "tools-layer-rectangle");
-        let fill = {
-            let c = self.paint.fill.to_array();
-            Rgba8::new(c[0], c[1], c[2], c[3])
-        };
-        let stroke = {
-            let c = self.paint.stroke_color.to_array();
-            ShapeStroke::new(
-                f64::from(self.paint.stroke_width),
-                Rgba8::new(c[0], c[1], c[2], c[3]),
-            )
-            .map(|stroke| {
-                stroke
-                    .with_cap(self.paint.stroke_cap)
-                    .with_join(self.paint.stroke_join)
-                    .with_style(self.paint.stroke_style)
-            })
-        };
+        let (fill, stroke) = (self.paint_fill(), self.paint_stroke());
         let id = ShapeId::new();
         let (x0, y0) = (f64::from(x0), f64::from(y0));
         let (shape, name) = match tool {
@@ -110,7 +94,47 @@ impl Workspace {
             self.report(message);
             return;
         };
-        if self.paint.gradient_enabled && tool != Tool::Line {
+        if tool != Tool::Line {
+            let Some(painted) = self.painted(shape, (x0, y0, w, h)) else {
+                return;
+            };
+            shape = painted;
+        }
+        self.draw_shape(shape, &name);
+        if self.status.is_none() {
+            self.settle_committed_shape(tool, a, b);
+        }
+    }
+
+    /// The fill color in hand, as the document keeps colors.
+    pub(super) fn paint_fill(&self) -> Rgba8 {
+        let c = self.paint.fill.to_array();
+        Rgba8::new(c[0], c[1], c[2], c[3])
+    }
+
+    /// The stroke in hand: its color, width, caps, joins and pattern.
+    pub(super) fn paint_stroke(&self) -> Result<ShapeStroke, flare_document::ShapeError> {
+        let c = self.paint.stroke_color.to_array();
+        ShapeStroke::new(
+            f64::from(self.paint.stroke_width),
+            Rgba8::new(c[0], c[1], c[2], c[3]),
+        )
+        .map(|stroke| {
+            stroke
+                .with_cap(self.paint.stroke_cap)
+                .with_join(self.paint.stroke_join)
+                .with_style(self.paint.stroke_style)
+        })
+    }
+
+    /// `shape`, filling the box at `(x, y)` `w` by `h`, given the gradient and the outline in
+    /// hand when they are on; `None`, said in the status line, when either cannot be made.
+    pub(super) fn painted(
+        &mut self,
+        mut shape: Shape,
+        (x0, y0, w, h): (f64, f64, f64, f64),
+    ) -> Option<Shape> {
+        if self.paint.gradient_enabled {
             let end = {
                 let c = self.paint.gradient_end.to_array();
                 Rgba8::new(c[0], c[1], c[2], c[3])
@@ -121,6 +145,7 @@ impl Workspace {
                 ((x0, y0), (x0 + w, y0))
             };
             let point = |(x, y): (f64, f64)| flare_core::DocumentPoint::new(x, y).ok();
+            let fill = self.paint_fill();
             let gradient = point(from)
                 .zip(point(to))
                 .and_then(|(from, to)| flare_document::Gradient::linear(from, to, fill, end).ok());
@@ -128,20 +153,21 @@ impl Workspace {
                 Some(gradient) => shape = shape.with_gradient(gradient),
                 None => {
                     let message = tr!(self, "tools-gradient-size");
-                    return self.report(message);
+                    self.report(message);
+                    return None;
                 }
             }
         }
-        if self.paint.stroke_enabled && tool != Tool::Line {
-            match stroke {
+        if self.paint.stroke_enabled {
+            match self.paint_stroke() {
                 Ok(stroke) => shape = shape.with_stroke(stroke),
-                Err(error) => return self.report(error.to_string()),
+                Err(error) => {
+                    self.report(error.to_string());
+                    return None;
+                }
             }
         }
-        self.draw_shape(shape, &name);
-        if self.status.is_none() {
-            self.settle_committed_shape(tool, a, b);
-        }
+        Some(shape)
     }
 
     /// Keeps what a geometry tool just committed on screen from the release until the stage

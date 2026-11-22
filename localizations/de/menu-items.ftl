@@ -114,6 +114,7 @@ menu-item-tool-bucket = Farbeimer
 menu-item-tool-ink-bottle = Tintenfass
 menu-item-tool-eraser = Radiergummi
 menu-item-tool-poly-star = Polystern
+menu-item-tool-polygon = Polygon
 menu-item-tool-lasso = Lasso
 menu-item-tool-pencil = Bleistift
 menu-item-tool-brush = Pinsel

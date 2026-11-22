@@ -281,6 +281,7 @@ fn run() -> Result<()> {
             duration,
             layer,
         )?,
+        Command::DrawPolygon(args) => project::draw_polygon(args)?,
         Command::MagicWand(args) => magic_wand::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
         Command::Brush(args) => project::brush_strokes(&args)?,

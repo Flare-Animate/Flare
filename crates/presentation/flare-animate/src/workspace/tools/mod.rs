@@ -14,6 +14,7 @@ pub(super) mod magnet;
 pub(super) mod paint;
 pub(super) mod paint_pointer;
 pub(super) mod pen;
+pub(super) mod polygon;
 pub(super) mod preview_mesh;
 pub(super) mod rotate_view;
 pub(super) mod stage_pointer;

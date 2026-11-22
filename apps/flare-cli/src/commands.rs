@@ -127,6 +127,8 @@ pub(crate) enum Command {
         #[arg(long)]
         layer: Option<uuid::Uuid>,
     },
+    /// Draw a shape through the corners given, as the Polygon tool does.
+    DrawPolygon(crate::project::DrawPolygonArgs),
     /// Magic Wand: pick the pixels of a bitmap whose color is like the one at each point (stage
     /// coordinates, in the first scene) and clear them, or with --keep clear all the others.
     MagicWand(crate::magic_wand::MagicWandArgs),

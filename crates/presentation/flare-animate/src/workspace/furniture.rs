@@ -188,6 +188,7 @@ impl Workspace {
                 self.pen_finish();
                 let additive = ctx.input(|i| i.modifiers.shift);
                 self.polygon_lasso_finish(additive);
+                self.polygon_finish();
             }
             // Animate steps frames with the comma and the period, and the arrow keys nudge the
             // selection by screen pixels instead (issue #213): one press moves one screen

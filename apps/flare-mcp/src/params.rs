@@ -56,6 +56,28 @@ pub struct DrawRect {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct DrawPolygon {
+    /// The corners, [x, y] each, in order around the outline; at least three, at most 4096.
+    pub points: Vec<[f64; 2]>,
+    /// Fill, RRGGBB or RRGGBBAA hex. Defaults to black.
+    pub color: Option<String>,
+    /// Outline color, RRGGBB or RRGGBBAA hex. No outline when omitted.
+    pub stroke: Option<String>,
+    /// Outline width; defaults to 2.
+    pub stroke_width: Option<f64>,
+    /// Outline pattern: solid (default), dashed, dotted, stipple, hatched, ragged, herringbone, rope or zigzag.
+    pub stroke_style: Option<String>,
+    /// First frame; defaults to the frame `goto_frame` last went to (0 at first).
+    pub start: Option<u32>,
+    /// Frames the shape lasts when it starts a keyframe; defaults to 1.
+    pub duration: Option<u32>,
+    /// Layer id; defaults to the topmost layer that is not a folder or the camera.
+    pub layer: Option<String>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddLayer {
     pub name: String,
     /// Fail unless the project is at this revision (from get_info).

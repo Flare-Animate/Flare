@@ -20,6 +20,7 @@ mod interchange;
 mod magic_wand;
 mod magnet;
 mod multi_frame;
+mod polygon;
 mod render;
 mod sound;
 mod text;
@@ -46,6 +47,7 @@ pub use interchange::{
 pub use magic_wand::{WandRequest, magic_wand};
 pub use magnet::{MagnetRequest, magnet};
 pub use multi_frame::transform_frames;
+pub use polygon::{DrawPolygonArgs, draw_polygon};
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};

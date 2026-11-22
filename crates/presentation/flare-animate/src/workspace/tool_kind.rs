@@ -25,6 +25,8 @@ pub enum Tool {
     Eraser,
     /// Drag from the center out: a regular polygon, or a star.
     PolyStar,
+    /// Click the corners of an outline; closing it makes one shape in the fill and stroke.
+    Polygon,
     /// Drag a freehand loop around shapes to select them.
     Lasso,
     /// Click the corners of a loop around shapes to select them.

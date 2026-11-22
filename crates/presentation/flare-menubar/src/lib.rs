@@ -94,6 +94,8 @@ pub enum MenuAction {
     ToolInkBottle,
     ToolEraser,
     ToolPolyStar,
+    /// The Polygon tool: click the corners of a shape.
+    ToolPolygon,
     ToolLasso,
     ToolPencil,
     ToolBrush,
@@ -204,7 +206,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 154] = [
+    pub const ALL: [MenuAction; 155] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -263,6 +265,7 @@ impl MenuAction {
         Self::ToolInkBottle,
         Self::ToolEraser,
         Self::ToolPolyStar,
+        Self::ToolPolygon,
         Self::ToolLasso,
         Self::ToolPencil,
         Self::ToolBrush,

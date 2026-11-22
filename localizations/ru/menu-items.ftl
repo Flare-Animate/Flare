@@ -114,6 +114,7 @@ menu-item-tool-bucket = Заливка
 menu-item-tool-ink-bottle = Контур
 menu-item-tool-eraser = Ластик
 menu-item-tool-poly-star = Многоугольник и звезда
+menu-item-tool-polygon = Многоугольник
 menu-item-tool-lasso = Лассо
 menu-item-tool-pencil = Карандаш
 menu-item-tool-brush = Кисть

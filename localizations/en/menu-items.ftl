@@ -114,6 +114,7 @@ menu-item-tool-bucket = Paint Bucket
 menu-item-tool-ink-bottle = Ink Bottle
 menu-item-tool-eraser = Eraser
 menu-item-tool-poly-star = PolyStar
+menu-item-tool-polygon = Polygon
 menu-item-tool-lasso = Lasso
 menu-item-tool-pencil = Pencil
 menu-item-tool-brush = Brush

@@ -15,6 +15,7 @@ mod magnet;
 mod mannequin;
 mod multi_frame;
 mod pixels;
+mod polygon;
 mod read;
 mod scripts;
 mod shaders;
@@ -39,6 +40,7 @@ impl FlareServer {
         Self::read_tools()
             + Self::export_tools()
             + Self::draw_tools()
+            + Self::polygon_tools()
             + Self::frame_tools()
             + Self::text_tools()
             + Self::timeline_tools()

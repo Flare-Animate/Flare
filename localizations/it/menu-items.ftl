@@ -114,6 +114,7 @@ menu-item-tool-bucket = Secchiello
 menu-item-tool-ink-bottle = Calamaio
 menu-item-tool-eraser = Gomma
 menu-item-tool-poly-star = Poligono e stella
+menu-item-tool-polygon = Poligono
 menu-item-tool-lasso = Lazo
 menu-item-tool-pencil = Matita
 menu-item-tool-brush = Pennello

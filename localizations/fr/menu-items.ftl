@@ -114,6 +114,7 @@ menu-item-tool-bucket = Pot de peinture
 menu-item-tool-ink-bottle = Encrier
 menu-item-tool-eraser = Gomme
 menu-item-tool-poly-star = Polygone/Étoile
+menu-item-tool-polygon = Polygone
 menu-item-tool-lasso = Lasso
 menu-item-tool-pencil = Crayon
 menu-item-tool-brush = Pinceau

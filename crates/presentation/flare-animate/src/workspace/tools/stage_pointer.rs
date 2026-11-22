@@ -67,6 +67,7 @@ pub(in crate::workspace) fn stage_pointer(tool: Tool, rubs: bool) -> StagePointe
         Tool::Rectangle => marked("tool-rectangle"),
         Tool::Ellipse => marked("tool-oval"),
         Tool::PolyStar => marked("tool-polystar"),
+        Tool::Polygon => marked("tool-polygon"),
         Tool::Line => marked("tool-line"),
         Tool::Text => marked("tool-text"),
         Tool::Lasso => marked("tool-lasso"),

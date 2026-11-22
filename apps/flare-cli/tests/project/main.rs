@@ -30,6 +30,7 @@ mod moho;
 mod movies;
 mod multi_frame;
 mod open;
+mod polygon;
 mod raster_brush;
 mod rendering;
 mod save_formats;

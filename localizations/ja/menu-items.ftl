@@ -114,6 +114,7 @@ menu-item-tool-bucket = ペイントバケット
 menu-item-tool-ink-bottle = インクボトル
 menu-item-tool-eraser = 消しゴム
 menu-item-tool-poly-star = 多角形・星形
+menu-item-tool-polygon = 多角形
 menu-item-tool-lasso = 投げ縄
 menu-item-tool-pencil = 鉛筆
 menu-item-tool-brush = ブラシ

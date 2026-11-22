@@ -85,6 +85,7 @@ mod pen_and_selection;
 mod pencil_pressure;
 mod phone_layout;
 mod polygon_lasso;
+mod polygon_tool;
 mod preferences_dialog;
 mod properties_context;
 mod properties_tabs;

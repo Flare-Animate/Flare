@@ -141,6 +141,7 @@ impl Workspace {
             | MenuAction::ToolInkBottle
             | MenuAction::ToolEraser
             | MenuAction::ToolPolyStar
+            | MenuAction::ToolPolygon
             | MenuAction::ToolLasso
             | MenuAction::ToolPencil
             | MenuAction::ToolBrush
@@ -327,6 +328,7 @@ impl Workspace {
             MenuAction::ToolInkBottle => self.set_tool(Tool::InkBottle),
             MenuAction::ToolEraser => self.set_tool(Tool::Eraser),
             MenuAction::ToolPolyStar => self.set_tool(Tool::PolyStar),
+            MenuAction::ToolPolygon => self.set_tool(Tool::Polygon),
             MenuAction::ToolLasso => self.set_tool(Tool::Lasso),
             MenuAction::ToolPencil => self.set_tool(Tool::Pencil),
             MenuAction::ToolBrush => self.set_tool(Tool::Brush),

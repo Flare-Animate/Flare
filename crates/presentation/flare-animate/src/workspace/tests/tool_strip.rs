@@ -18,6 +18,7 @@ fn every_tool_is_in_exactly_one_slot_and_the_strip_has_categories() {
         Tool::InkBottle,
         Tool::Eraser,
         Tool::PolyStar,
+        Tool::Polygon,
         Tool::Lasso,
         Tool::PolygonLasso,
         Tool::MagicWand,

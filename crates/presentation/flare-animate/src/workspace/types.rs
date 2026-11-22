@@ -188,6 +188,7 @@ pub(super) fn tool_places_points(tool: Tool) -> bool {
             | Tool::Line
             | Tool::Pen
             | Tool::PolyStar
+            | Tool::Polygon
             | Tool::Text
             | Tool::Ruler
             | Tool::Mirror

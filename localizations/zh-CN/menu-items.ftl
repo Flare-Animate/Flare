@@ -114,6 +114,7 @@ menu-item-tool-bucket = 颜料桶
 menu-item-tool-ink-bottle = 墨水瓶
 menu-item-tool-eraser = 橡皮擦
 menu-item-tool-poly-star = 多角星形
+menu-item-tool-polygon = 多边形
 menu-item-tool-lasso = 套索
 menu-item-tool-pencil = 铅笔
 menu-item-tool-brush = 画笔

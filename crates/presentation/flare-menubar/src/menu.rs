@@ -331,6 +331,7 @@ pub const OFF_MENU: &[MenuAction] = &[
     A::ToolInkBottle,
     A::ToolEraser,
     A::ToolPolyStar,
+    A::ToolPolygon,
     A::ToolLasso,
     A::ToolPencil,
     A::ToolBrush,

@@ -46,6 +46,7 @@ impl Workspace {
             | Tool::Eraser
             | Tool::Lasso
             | Tool::PolygonLasso
+            | Tool::Polygon
             | Tool::MagicWand
             | Tool::Camera
             | Tool::Bone

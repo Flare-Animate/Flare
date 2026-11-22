@@ -114,6 +114,7 @@ menu-item-tool-bucket = 페인트 통
 menu-item-tool-ink-bottle = 잉크병
 menu-item-tool-eraser = 지우개
 menu-item-tool-poly-star = 다각형/별
+menu-item-tool-polygon = 다각형
 menu-item-tool-lasso = 올가미
 menu-item-tool-pencil = 연필
 menu-item-tool-brush = 브러시

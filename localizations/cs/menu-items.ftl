@@ -114,6 +114,7 @@ menu-item-tool-bucket = Výplň
 menu-item-tool-ink-bottle = Lahvička s inkoustem
 menu-item-tool-eraser = Guma
 menu-item-tool-poly-star = Mnohoúhelník a hvězda
+menu-item-tool-polygon = Mnohoúhelník
 menu-item-tool-lasso = Laso
 menu-item-tool-pencil = Tužka
 menu-item-tool-brush = Štětec

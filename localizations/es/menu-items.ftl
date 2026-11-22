@@ -114,6 +114,7 @@ menu-item-tool-bucket = Bote de pintura
 menu-item-tool-ink-bottle = Bote de tinta
 menu-item-tool-eraser = Borrador
 menu-item-tool-poly-star = Polígono/estrella
+menu-item-tool-polygon = Polígono
 menu-item-tool-lasso = Lazo
 menu-item-tool-pencil = Lápiz
 menu-item-tool-brush = Pincel

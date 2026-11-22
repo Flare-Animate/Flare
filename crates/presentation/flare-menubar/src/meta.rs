@@ -107,9 +107,9 @@ impl MenuAction {
 
     /// Whether the action picks a tool, so a bare letter may be its shortcut: every tool with a
     /// letter of its own, and those that have none until a person gives them one (the Magnet's
-    /// letters are all taken in one built-in set or another).
+    /// letters are all taken in one built-in set or another, and Polygon has none in Animate).
     pub fn is_tool(self) -> bool {
-        self.tool_key().is_some() || matches!(self, Self::ToolMagnet)
+        self.tool_key().is_some() || matches!(self, Self::ToolMagnet | Self::ToolPolygon)
     }
 
     /// The icon drawn beside the menu item, if it has one.
@@ -187,6 +187,7 @@ impl MenuAction {
             Self::ToolInkBottle => "tool-ink-bottle",
             Self::ToolEraser => "tool-eraser",
             Self::ToolPolyStar => "tool-polystar",
+            Self::ToolPolygon => "tool-polygon",
             Self::ToolLasso => "tool-lasso",
             Self::ToolPencil => "tool-pencil",
             Self::ToolBrush => "tool-brush",
