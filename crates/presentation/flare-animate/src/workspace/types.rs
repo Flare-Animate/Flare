@@ -222,6 +222,9 @@ pub(super) fn into_color_image(rendered: Rendered) -> egui::ColorImage {
 pub(super) const TOP_BAR_HEIGHT: f32 = 38.0;
 
 pub(super) const INTEGRATED_TOP_BAR_HEIGHT: f32 = 28.0;
+/// The least the integrated bar is in points at a larger interface size: its buttons and a point
+/// above and below.
+pub(super) const MIN_INTEGRATED_TOP_BAR: f32 = 24.0;
 
 /// Most decoded audio kept for playback, in samples (all channels): about 64 MB of floats.
 pub(super) const DECODED_AUDIO_SAMPLES: usize = 16_000_000;

@@ -148,7 +148,7 @@ On macOS the bar is 28 px high with room at the left for the window's own button
 
 ### Small windows
 
-The desktop window is never smaller than 960 by 600 points (`MIN_WINDOW_SIZE`), the least the workspace is laid out for. When the window changes size the panels keep their width and the stage gives way, as in Animate: a split whose size changed keeps each side that does not hold the stage at its size in points, and the stage's side takes the rest, down to 240 points before the panels give way too (`flare_dock::keep_panel_sizes`, run before the dock is drawn). The tool strip is never narrower than one tool. The timeline's toolbar takes a second row when the timeline is too narrow for it, rather than losing its last buttons, and the status bar's message is cut short rather than run under the document's facts. `workspace/tests/narrow_window.rs` draws the workspace at the smallest size and at usual ones and checks that nothing is cut off at the window's edge or past the end of a bar.
+The desktop window is never smaller than 960 by 600 points (`MIN_WINDOW_SIZE`), the least the workspace is laid out for. When the window changes size the panels keep their width and the stage gives way, as in Animate: a split whose size changed keeps each side that does not hold the stage at its size in points, and the stage's side takes the rest, down to 240 points before the panels give way too (`flare_dock::keep_panel_sizes`, run before the dock is drawn). The tool strip is never narrower than one tool. The timeline starts at about a quarter of the height under the top bar, as Animate's does (`flare_dock::TIMELINE_SHARE`, 0.26), and is never shorter than 170 points (`MIN_TIMELINE`): its tabs, its toolbar on two rows, the ruler and three layers. The timeline's toolbar takes a second row when the timeline is too narrow for it, rather than losing its last buttons; its dividers are one row tall and its controls are not grouped, so a wrapped row cannot push the ruler and layers out of sight, and the status bar's message is cut short rather than run under the document's facts. `workspace/tests/narrow_window.rs` draws the workspace at the smallest size and at usual ones and checks that nothing is cut off at the window's edge or past the end of a bar.
 
 ## Screen readers
 
@@ -573,6 +573,17 @@ Docked panels (everything but the stage and the timeline, which use their whole 
 content 10 px from the sides and 8 px from the top and bottom (`theme::PANEL_PADDING`); the gutter
 between panels and around the dock is 3 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
 8 by 3 px of padding inside buttons and 22 px rows. These are set in one place, `theme::apply`.
+
+All of these are the design size. The interface is drawn larger than that by default, at 115%,
+since at its design size it read as small beside Animate's. Preferences > General > Interface size
+offers 90%, 100%, 115%, 125%, 150%, 175% and 200%, kept with the preferences (`interface_size`, a
+factor brought into 0.75 to 2 when read). It is applied as egui's zoom (`flare_ui::scale`), so every
+panel, row, icon and text grows together and nothing is sized twice. A size above 100% is lowered
+as far as it has to be for the window to keep the workspace's smallest layout
+(`MIN_WINDOW_SIZE`, 960 by 600 points), but never below 100% for that reason, so a small window
+is not cut off. On macOS the integrated top bar keeps the title bar's height on the screen
+(28 points, at least 24 at the interface's size) and the window buttons' width, which the system
+draws at a fixed size. The stage's zoom is separate and unchanged by this.
 
 ## Eraser
 

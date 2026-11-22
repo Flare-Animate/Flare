@@ -78,8 +78,10 @@ pub struct Preferences {
     pub publish_defaults: u32,
     /// The interface's language: `system`, or a language's tag such as `de` or `pt-BR`.
     pub language: String,
-    /// The look of the interface: `dark` or `light`.
+    /// The look of the interface, by a theme's code (`flare_ui::theme::Mode::code`).
     pub theme: String,
+    /// How large the interface is drawn, as a factor of its design size (`flare_ui::scale`).
+    pub interface_size: f32,
     /// Tools from the "…" list kept in the tool strip.
     pub pinned_tools: Vec<String>,
     /// The keyboard shortcuts as a `flare_menubar` shortcut file; empty is the Flare set.
@@ -149,6 +151,7 @@ impl Default for Preferences {
             publish_defaults: crate::workspace::publish_settings::PUBLISH_DEFAULTS,
             language: "system".to_owned(),
             theme: "dark".to_owned(),
+            interface_size: flare_ui::scale::DEFAULT,
             pinned_tools: Vec::new(),
             shortcuts: String::new(),
             recent: Vec::new(),

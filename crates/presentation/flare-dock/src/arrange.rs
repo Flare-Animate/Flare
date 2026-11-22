@@ -59,13 +59,13 @@ pub fn arrange(plan: &Plan<'_>) -> Tree<Pane> {
     let timeline_stack = tiles.insert_tab_tile(vec![timeline, output]);
     let middle = if plan.timeline_on_top {
         let middle = tiles.insert_vertical_tile(vec![timeline_stack, stage]);
-        set_share(&mut tiles, middle, timeline_stack, 0.3);
-        set_share(&mut tiles, middle, stage, 0.7);
+        set_share(&mut tiles, middle, timeline_stack, TIMELINE_SHARE);
+        set_share(&mut tiles, middle, stage, 1.0 - TIMELINE_SHARE);
         middle
     } else {
         let middle = tiles.insert_vertical_tile(vec![stage, timeline_stack]);
-        set_share(&mut tiles, middle, stage, 0.68);
-        set_share(&mut tiles, middle, timeline_stack, 0.32);
+        set_share(&mut tiles, middle, stage, 1.0 - TIMELINE_SHARE);
+        set_share(&mut tiles, middle, timeline_stack, TIMELINE_SHARE);
         middle
     };
     let left = column(&mut tiles, plan.left, &mut placed);
@@ -120,6 +120,10 @@ fn column(tiles: &mut Tiles<Pane>, stacks: &[&[Pane]], placed: &mut Vec<Pane>) -
         _ => Some(tiles.insert_vertical_tile(column)),
     }
 }
+
+/// The timeline's share of the height under the top bar, as Animate's on a 1280 by 720 screen
+/// (about 170 of 663 points): the stage takes the rest.
+pub const TIMELINE_SHARE: f32 = 0.26;
 
 /// The tool strip's share of the window's width: 38 px of 1280, one tool wide.
 const TOOLS_SHARE: f32 = 0.03;

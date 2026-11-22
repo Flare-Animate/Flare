@@ -66,7 +66,9 @@ impl Workspace {
             |ui| {
                 // Nothing on the left is drawn under the corner, however narrow the window.
                 ui.shrink_clip_rect(left_area);
-                ui.add_space(self.titlebar_inset.max(BAR_MARGIN));
+                // The inset is the window buttons' width on the screen, which the interface
+                // size does not change.
+                ui.add_space((self.titlebar_inset / ui.ctx().zoom_factor()).max(BAR_MARGIN));
                 self.home_button(ui);
                 ui.add_space(6.0);
                 if !self.native_menu {

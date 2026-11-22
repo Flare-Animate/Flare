@@ -319,6 +319,8 @@ pub struct Workspace {
     /// The palette in use, and the one the egui styles were last set up for.
     theme_mode: flare_ui::theme::Mode,
     styled_for: Option<flare_ui::theme::Mode>,
+    /// How large the interface is drawn (`flare_ui::scale`), as a factor of its design size.
+    interface_size: f32,
     /// Which tool of each tool-strip slot was last picked from its list, by the slot's first name.
     slot_choice: std::collections::HashMap<&'static str, usize>,
     /// The slot whose list of tools is open, by its first name.

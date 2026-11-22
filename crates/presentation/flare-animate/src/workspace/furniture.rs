@@ -7,7 +7,7 @@ use super::*;
 
 /// The smallest window the workspace is laid out for, in points: the tool strip and the panels
 /// at their usual widths still leave the stage room, and nothing is cut off at the window's edge.
-pub const MIN_WINDOW_SIZE: [f32; 2] = [960.0, 600.0];
+pub const MIN_WINDOW_SIZE: [f32; 2] = flare_ui::scale::LAYOUT_MIN;
 
 impl Workspace {
     // ---- UI --------------------------------------------------------------------------
@@ -25,6 +25,7 @@ impl Workspace {
             self.styled_for = Some(self.theme_mode);
         }
         self.ensure_palette(&ctx);
+        flare_ui::scale::apply(&ctx, self.interface_size);
         let now = ui.input(|i| i.time);
         self.open_dropped(&ctx);
         self.drain_background();
@@ -54,7 +55,12 @@ impl Workspace {
                 .show(ui, |ui| self.status_bar(ui));
         }
         egui::Panel::top("menu")
-            .exact_size(if self.titlebar_inset > 0.0 || self.window_controls {
+            .exact_size(if self.titlebar_inset > 0.0 {
+                // macOS draws its window buttons at a fixed place whatever the interface size,
+                // so the bar under them keeps the title bar's height on the screen while it can
+                // still hold its 22-point buttons.
+                (INTEGRATED_TOP_BAR_HEIGHT / ctx.zoom_factor()).max(MIN_INTEGRATED_TOP_BAR)
+            } else if self.window_controls {
                 INTEGRATED_TOP_BAR_HEIGHT
             } else {
                 TOP_BAR_HEIGHT

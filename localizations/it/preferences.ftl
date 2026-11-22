@@ -17,6 +17,7 @@ prefs-clear-recent = Cancella progetti recenti
 prefs-clear-recent-hint = Dimentica l'elenco nella pagina Home e in Apri recenti. I file restano dove sono.
 prefs-restore-defaults = Ripristina predefiniti
 prefs-theme = Tema
+prefs-interface-size = Dimensione dell'interfaccia
 prefs-theme-dark = Scuro
 prefs-theme-light = Chiaro
 prefs-theme-darkest = Scurissimo

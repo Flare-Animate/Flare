@@ -130,6 +130,7 @@ impl Workspace {
             cjk_font_for: None,
             theme_mode: flare_ui::theme::Mode::Dark,
             styled_for: None,
+            interface_size: flare_ui::scale::DEFAULT,
             slot_choice: std::collections::HashMap::new(),
             slot_open: None,
             pinned_tools: Vec::new(),

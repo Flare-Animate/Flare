@@ -64,6 +64,7 @@ impl Workspace {
             publish_defaults: crate::workspace::publish_settings::PUBLISH_DEFAULTS,
             language: self.language_choice.code().to_owned(),
             theme: self.theme_mode.code().to_owned(),
+            interface_size: self.interface_size,
             pinned_tools: self.pinned_tools.iter().map(|n| (*n).to_owned()).collect(),
             shortcuts: if self.shortcuts == flare_menubar::ShortcutMap::default() {
                 String::new()
@@ -91,6 +92,7 @@ impl Workspace {
     pub fn apply_preferences(&mut self, preferences: &Preferences) {
         self.set_language_choice(flare_i18n::Choice::from_code(&preferences.language));
         self.theme_mode = flare_ui::theme::Mode::from_code(&preferences.theme);
+        self.interface_size = flare_ui::scale::clamp(preferences.interface_size);
         // Only names the list has, each once; a file naming anything else changes nothing.
         self.paint.swatches = flare_core::swatches::CustomSwatches::from_colors(
             preferences

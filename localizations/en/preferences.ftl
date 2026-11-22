@@ -17,6 +17,7 @@ prefs-clear-recent = Clear recent projects
 prefs-clear-recent-hint = Forgets the list on the Home page and in Open Recent. The files stay where they are.
 prefs-restore-defaults = Restore defaults
 prefs-theme = Theme
+prefs-interface-size = Interface size
 prefs-theme-dark = Dark
 prefs-theme-light = Light
 prefs-theme-darkest = Darkest

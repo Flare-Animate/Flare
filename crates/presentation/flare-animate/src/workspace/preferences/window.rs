@@ -149,6 +149,19 @@ impl Workspace {
                             }
                         });
                 });
+                labelled(ui, "prefs-interface-size", &mut |ui| {
+                    egui::ComboBox::from_id_salt("interface_size")
+                        .selected_text(flare_ui::scale::label(edited.interface_size))
+                        .show_ui(ui, |ui| {
+                            for size in flare_ui::scale::SIZES {
+                                ui.selectable_value(
+                                    &mut edited.interface_size,
+                                    size,
+                                    flare_ui::scale::label(size),
+                                );
+                            }
+                        });
+                });
                 labelled(ui, "prefs-autosave", &mut |ui| {
                     ui.add(
                         egui::DragValue::new(&mut edited.autosave_seconds)
