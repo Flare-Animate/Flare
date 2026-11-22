@@ -38,6 +38,11 @@ pub enum MenuAction {
     /// File > Import > Import Brush Presets: another art tool's pen profiles
     /// (Photoshop `.abr`, Krita `.kpp` or `.bundle`) onto the brush list.
     ImportBrushProfiles,
+    /// File > Import > Import to Stage: a Flash movie (or another file Flare imports) brought
+    /// into this document as a symbol, placed on a new layer at the playhead.
+    ImportToStage,
+    /// File > Import > Import to Library: the same, into the library only.
+    ImportToLibrary,
     ExportImage,
     ExportMovie,
     ExportFla,
@@ -185,7 +190,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 144] = [
+    pub const ALL: [MenuAction; 146] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -196,6 +201,8 @@ impl MenuAction {
         Self::ImportSound,
         Self::ImportVideo,
         Self::ImportBrushProfiles,
+        Self::ImportToStage,
+        Self::ImportToLibrary,
         Self::ExportImage,
         Self::ExportMovie,
         Self::ExportFla,

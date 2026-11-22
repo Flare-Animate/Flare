@@ -119,6 +119,7 @@ impl MenuAction {
             Self::ImportSound => "sound",
             Self::ImportVideo => "film",
             Self::ImportBrushProfiles => "tool-brush",
+            Self::ImportToStage | Self::ImportToLibrary => "file-open",
             Self::New => "file-new",
             Self::Close => "close",
             Self::Revert => "rotate-ccw",

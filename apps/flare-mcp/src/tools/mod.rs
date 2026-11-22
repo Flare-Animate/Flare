@@ -8,6 +8,7 @@ mod effects;
 mod export;
 mod game;
 mod history;
+mod import_into;
 mod layer_ops;
 mod magnet;
 mod mannequin;
@@ -47,6 +48,7 @@ impl FlareServer {
             + Self::brush_tools()
             + Self::stopmotion_tools()
             + Self::sound_tools()
+            + Self::import_into_tools()
             + Self::tween_tools()
             + Self::shortcut_tools()
             + Self::shader_tools()

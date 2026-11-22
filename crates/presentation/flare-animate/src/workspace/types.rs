@@ -95,6 +95,11 @@ pub enum DialogRequest {
     ImportMannequinReference,
     /// A pen-profile file (Photoshop `.abr`, Krita `.kpp` or `.bundle`) for the brush list.
     ImportBrushProfiles,
+    /// A Flash movie (or another file Flare imports) to bring into this document, onto a new
+    /// layer at the playhead (`true` on [`super::Workspace::import_into_document`]).
+    ImportToStage,
+    /// The same, into the library only.
+    ImportToLibrary,
     /// Read Animate's keyboard shortcut file onto the shortcuts in force.
     ImportAnimateShortcuts,
     ExportImage,

@@ -33,6 +33,9 @@ pub struct WebApp {
     picked_references: Rc<RefCell<Vec<Picked>>>,
     /// Pen-profile files picked, kept on the brush list on the next frame.
     picked_brushes: Rc<RefCell<Vec<Picked>>>,
+    /// Flash movies picked to bring into this document: onto the stage, and into the library.
+    picked_to_stage: Rc<RefCell<Vec<Picked>>>,
+    picked_to_library: Rc<RefCell<Vec<Picked>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// Google Fonts families downloaded for text (or why not), handed over on the next frame.
@@ -56,6 +59,8 @@ impl WebApp {
             picked_shortcuts: Rc::default(),
             picked_references: Rc::default(),
             picked_brushes: Rc::default(),
+            picked_to_stage: Rc::default(),
+            picked_to_library: Rc::default(),
             messages: Rc::default(),
             fonts: Rc::default(),
             saved_preferences,
@@ -75,56 +80,7 @@ impl WebApp {
                 wasm_bindgen_futures::spawn_local(async move {
                     if let Some((name, bytes)) = files::pick(
                         "Flare project, Flash, Moho, Toonz, BVH or SVG file",
-                        &[
-                            "flare",
-                            "fla",
-                            "swf",
-                            "xstage",
-                            "moho",
-                            "anime",
-                            "mohoproj",
-                            "animeproj",
-                            "bvh",
-                            "svg",
-                            "jpg",
-                            "jpeg",
-                            "bmp",
-                            "tga",
-                            "psd",
-                            "mp4",
-                            "mov",
-                            "avi",
-                            "mkv",
-                            "webm",
-                            "mpeg",
-                            "mpg",
-                            "flv",
-                            "f4v",
-                            "f4p",
-                            "spl",
-                            "swt",
-                            "swc",
-                            "flp",
-                            "tif",
-                            "tiff",
-                            "webp",
-                            "ico",
-                            "qoi",
-                            "pnm",
-                            "pbm",
-                            "pgm",
-                            "pam",
-                            "hdr",
-                            "exr",
-                            "dds",
-                            "tnz",
-                            "tpl",
-                            "plt",
-                            "pli",
-                            "tlv",
-                            "fc",
-                            "wick",
-                        ],
+                        files::OPEN_EXTENSIONS,
                     )
                     .await
                     {
@@ -258,6 +214,22 @@ impl WebApp {
                     label,
                     flare_import::brushes::PROFILE_EXTENSIONS,
                     flare_import::brushes::MAX_OWNED_BYTES as usize,
+                    None,
+                );
+            }
+            DialogRequest::ImportToStage | DialogRequest::ImportToLibrary => {
+                let inbox = if request == DialogRequest::ImportToStage {
+                    &self.picked_to_stage
+                } else {
+                    &self.picked_to_library
+                };
+                let label = self.workspace.interface_text("dlg-filter-import-into");
+                self.pick_into(
+                    ctx,
+                    inbox,
+                    label,
+                    &flare_animate::IMPORT_INTO_EXTENSIONS,
+                    flare_animate::MAX_IMPORT_INTO_BYTES,
                     None,
                 );
             }
@@ -460,6 +432,16 @@ impl eframe::App for WebApp {
         let sounds: Vec<Picked> = self.picked_sounds.borrow_mut().drain(..).collect();
         for sound in sounds {
             self.workspace.import_sound_bytes(&sound.name, sound.bytes);
+        }
+        for (inbox, to_stage) in [
+            (&self.picked_to_stage, true),
+            (&self.picked_to_library, false),
+        ] {
+            let files: Vec<Picked> = inbox.borrow_mut().drain(..).collect();
+            for file in files {
+                self.workspace
+                    .import_into_document_bytes(&file.name, file.bytes, to_stage);
+            }
         }
         let shortcuts: Vec<Picked> = self.picked_shortcuts.borrow_mut().drain(..).collect();
         for file in shortcuts {

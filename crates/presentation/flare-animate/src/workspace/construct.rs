@@ -27,6 +27,7 @@ impl Workspace {
             collapsed_folders: std::collections::HashSet::new(),
             library: symbols::LibraryState::default(),
             importing: None,
+            importing_into: None,
             reverting: None,
             revert_pending: false,
             frames_rendered: 0,

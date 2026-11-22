@@ -46,6 +46,15 @@ impl App {
                     self.workspace.import_sound(&path);
                 }
             }
+            DialogRequest::ImportToStage | DialogRequest::ImportToLibrary => {
+                if let Some(path) = dialogs::pick_image(
+                    &self.workspace.interface_text("dlg-filter-import-into"),
+                    &flare_animate::IMPORT_INTO_EXTENSIONS,
+                ) {
+                    let to_stage = request == DialogRequest::ImportToStage;
+                    self.workspace.import_into_document(&path, to_stage);
+                }
+            }
             DialogRequest::ImportVideo => {
                 if let Some(path) =
                     dialogs::pick_video(&self.workspace.interface_text("dlg-filter-video"))

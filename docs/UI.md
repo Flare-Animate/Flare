@@ -750,6 +750,15 @@ export. The figure is kept with the preferences, not in the document.
 
 ## Import Video
 
+File > Import > Import to Stage and Import to Library bring a Flash movie (or a `.fla`) into the
+open document instead of opening it on its own. The file is read on a worker; its library comes
+along (a symbol whose name is taken here is renamed, `Ball 2`; a picture the document already has
+is shared), and its main timeline becomes a Graphic symbol named after the file. Import to Stage
+also puts that symbol on a new layer at the top, from the playhead, so the movie plays frame for
+frame with the scene and sits where it was on its own stage; Import to Library only adds it. It is
+one undo step, and what was left out (other scenes, the camera, a different frame rate, sounds not
+placed) goes to the Output panel (`flare_editor::import_into`). Both are dimmed inside a symbol.
+
 File > Import > Import Video brings a movie in to draw over, as Animate's embedded video plays
 along the timeline. After the file is picked, ffprobe is asked what it is (on the video worker,
 so the window never waits) and the Import Video dialog opens with the file's name, size, rate and

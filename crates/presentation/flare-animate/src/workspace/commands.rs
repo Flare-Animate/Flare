@@ -48,6 +48,11 @@ impl Workspace {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
             MenuAction::ImportBrushProfiles => true,
+            // Brought into the scene's document, so not from inside a symbol; one read at a time.
+            MenuAction::ImportToStage => {
+                !self.in_symbol() && self.scene_id().is_some() && self.importing_into.is_none()
+            }
+            MenuAction::ImportToLibrary => !self.in_symbol() && self.importing_into.is_none(),
             // A browser has no ffmpeg to read a movie with.
             MenuAction::ImportVideo => {
                 !cfg!(target_arch = "wasm32")
@@ -205,6 +210,8 @@ impl Workspace {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
             MenuAction::ImportVideo => self.dialog = Some(DialogRequest::ImportVideo),
+            MenuAction::ImportToStage => self.dialog = Some(DialogRequest::ImportToStage),
+            MenuAction::ImportToLibrary => self.dialog = Some(DialogRequest::ImportToLibrary),
             MenuAction::ImportBrushProfiles => {
                 self.dialog = Some(DialogRequest::ImportBrushProfiles)
             }

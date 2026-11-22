@@ -66,6 +66,10 @@ pub(crate) enum Command {
     /// import makes (frames, memory, the animation's length at the document's rate) and refuses
     /// one too large for the document, saying what would fit. Needs ffmpeg on the PATH.
     VideoImport(crate::video::VideoImportArgs),
+    /// Bring a Flash movie (or another file `import` reads) into a project, as File > Import >
+    /// Import to Stage: its library, and its main timeline as a Graphic on a new top layer from
+    /// --frame. With --library, into the library only (Import to Library).
+    ImportInto(crate::project::ImportIntoArgs),
     /// Key a mouth Graphic to a voice, as Single Frame keyframes of its drawings.
     LipSync(crate::lipsync::LipSyncArgs),
     /// Read another art tool's pen profiles (Photoshop `.abr`, Krita `.kpp` or `.bundle`) and

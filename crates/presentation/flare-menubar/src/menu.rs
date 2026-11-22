@@ -40,6 +40,9 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Submenu(
                 "Import",
                 &[
+                    Action(A::ImportToStage),
+                    Action(A::ImportToLibrary),
+                    Separator,
                     Action(A::ImportSound),
                     Action(A::ImportVideo),
                     Action(A::ImportBrushProfiles),

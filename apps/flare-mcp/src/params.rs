@@ -213,6 +213,18 @@ pub struct ImportSound {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+pub struct ImportIntoProject {
+    /// The movie or document's file name inside the configured export directory.
+    pub source: String,
+    /// Only into the library (Import to Library); by default also onto a new top layer.
+    pub library: Option<bool>,
+    /// The frame the movie starts on when placed (zero based); defaults to 0.
+    pub frame: Option<u32>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
 pub struct SoundWaveform {
     /// Only this sound, by name or id; every sound when left out.
     pub sound: Option<String>,

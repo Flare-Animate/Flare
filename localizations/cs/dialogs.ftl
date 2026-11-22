@@ -21,6 +21,7 @@ dlg-startup-intro = Flare se nepodařilo spustit.
 dlg-startup-advice = Pokud jde o grafické zařízení nebo plochu, aktualizujte ovladače grafiky (Vulkan nebo OpenGL).
 dlg-startup-terminal = Spuštění flare-desktop z terminálu vypíše podrobnější informace.
 dlg-filter-open = Projekt Flare nebo dokument Flash
+dlg-filter-import-into = Film nebo dokument Flash
 dlg-filter-xfl = Dokument Flash bez komprese (složka)
 dlg-save-prompt = Název souboru ke stažení, končí na .fla nebo .flare
 dlg-increment-from = Od tohoto snímku

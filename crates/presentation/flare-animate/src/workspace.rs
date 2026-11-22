@@ -42,6 +42,8 @@ mod groups;
 mod guides;
 mod help;
 mod helpers;
+mod import_into;
+pub use import_into::{IMPORT_INTO_EXTENSIONS, MAX_IMPORT_INTO_BYTES};
 mod home;
 mod home_custom;
 mod home_list;
@@ -150,6 +152,8 @@ pub struct Workspace {
     library: symbols::LibraryState,
     /// The import being read, if any.
     importing: Option<u64>,
+    /// The file being read to bring into this document, and whether it goes on the stage.
+    importing_into: Option<(u64, bool)>,
     reverting: Option<u64>,
     revert_pending: bool,
     /// How many frames have been rendered (as opposed to taken from the cache).

@@ -17,6 +17,7 @@ mod formats;
 mod frame_runs;
 mod fx;
 mod game;
+mod import_into;
 mod layer_ops;
 mod layers_and_stage;
 mod lip_sync;
