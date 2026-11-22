@@ -32,3 +32,7 @@ bar-grid-down = Vertical spacing
 bar-grid-color = Grid color
 bar-grid-color-auto = Automatic color
 bar-grid-reset = Reset grid
+bar-frame-picker = Go to a frame
+bar-frame-number = Frame
+bar-frame-previous-keyframe = Previous keyframe
+bar-frame-next-keyframe = Next keyframe

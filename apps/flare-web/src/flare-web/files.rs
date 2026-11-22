@@ -44,6 +44,36 @@ pub async fn pick(label: &str, extensions: &[&str]) -> Option<(String, Vec<u8>)>
     Some((handle.file_name(), handle.read().await))
 }
 
+/// Asks for several files with one of `extensions` and reads them all, refusing more than
+/// `max_files` or more than `max_bytes` in all before reading any. An empty list when the person
+/// cancels.
+pub async fn pick_many(
+    label: &str,
+    extensions: &[&str],
+    max_files: usize,
+    max_bytes: usize,
+) -> Result<Vec<(String, Vec<u8>)>, String> {
+    let handles = rfd::AsyncFileDialog::new()
+        .add_filter(label, extensions)
+        .pick_files()
+        .await
+        .unwrap_or_default();
+    if handles.len() > max_files {
+        return Err(format!("more than {max_files} files"));
+    }
+    let total: f64 = handles.iter().map(|h| h.inner().size()).sum();
+    if total > max_bytes as f64 {
+        return Err(format!(
+            "the files are larger than {max_bytes} bytes together"
+        ));
+    }
+    let mut files = Vec::with_capacity(handles.len());
+    for handle in handles {
+        files.push((handle.file_name(), handle.read().await));
+    }
+    Ok(files)
+}
+
 /// Like [`pick`], but refuses an oversized file before reading it into memory.
 pub async fn pick_bounded(
     label: &str,

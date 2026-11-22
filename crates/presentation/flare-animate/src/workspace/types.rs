@@ -91,6 +91,14 @@ pub enum DialogRequest {
     ImportSound,
     /// A movie to bring in to draw over (File > Import > Import Video).
     ImportVideo,
+    /// A shader graph file (`.json`) to add to the project's graphs.
+    ImportShader,
+    /// Write the chosen shader graph out as a `.json` file.
+    ExportShader,
+    /// Several numbered pictures (PNG) to make one layer of keyframes.
+    ImportImageSequence,
+    /// A Flash movie (`.swf`) whose ActionScript 3 the Movie Scripts window lists.
+    MovieScripts,
     /// A picture of a person to pose the mannequin from (the Mannequin panel's Reference).
     ImportMannequinReference,
     /// A pen-profile file (Photoshop `.abr`, Krita `.kpp` or `.bundle`) for the brush list.
@@ -108,6 +116,8 @@ pub enum DialogRequest {
     ExportFla,
     /// Write the frame on show as an SVG picture.
     ExportSvg,
+    /// Write every frame of the scene as a sprite sheet picture and its JSON atlas beside it.
+    ExportSpriteSheet,
     Publish,
 }
 

@@ -53,22 +53,14 @@ pub(crate) enum Command {
     /// Rename the first scene of a project.
     RenameScene { path: PathBuf, name: String },
     /// Add a sound file (WAV, MP3, Ogg Vorbis or FLAC) on a new layer.
-    SoundImport {
-        path: PathBuf,
-        sound: PathBuf,
-        /// Frame at which playback starts (zero based).
-        #[arg(long, default_value_t = 0)]
-        at: u32,
-    },
+    SoundImport(crate::project::SoundImportArgs),
     /// Bring a video in to draw over: its pictures, taken at --fps, one to a frame of the
     /// timeline from --frame, in one Graphic symbol on a new see-through layer at the bottom of
     /// the first scene. Move or scale that instance and every picture follows. Prints what the
     /// import makes (frames, memory, the animation's length at the document's rate) and refuses
     /// one too large for the document, saying what would fit. Needs ffmpeg on the PATH.
     VideoImport(crate::video::VideoImportArgs),
-    /// Bring a Flash movie (or another file `import` reads) into a project, as File > Import >
-    /// Import to Stage: its library, and its main timeline as a Graphic on a new top layer from
-    /// --frame. With --library, into the library only (Import to Library).
+    /// Bring a Flash movie into a project, as File > Import > Import to Stage or Library.
     ImportInto(crate::project::ImportIntoArgs),
     /// Key a mouth Graphic to a voice, as Single Frame keyframes of its drawings.
     LipSync(crate::lipsync::LipSyncArgs),
@@ -394,9 +386,10 @@ pub(crate) enum Command {
         #[arg(long)]
         percent: Option<u8>,
     },
-    /// Import an XFL directory, .xfl, .fla, .swf, Moho, BVH or Toonz file into a new project, listing what was
-    /// not carried over.
+    /// Import an XFL, .fla, .swf, Moho, BVH or Toonz file as a project, listing what was lost.
     Import { source: PathBuf, out: PathBuf },
+    /// Import numbered PNG files, or a folder of them, as one layer with a keyframe each.
+    ImportSequence(crate::sequence::SequenceArgs),
     /// Convert a project to the format OUT's ending says: .fla, .xfl (a folder with the .xfl stub
     /// inside) or .flare, as Save As does. The source can be any of them (or a .swf to read). An
     /// Animate document that was not edited is written back as the original.
@@ -453,6 +446,12 @@ pub(crate) enum Command {
     /// Open the desktop app, on the given projects if any (the app is found next to this program,
     /// on PATH, or at $FLARE_DESKTOP).
     Open { paths: Vec<PathBuf> },
+    /// The frame picker: list the first scene's frames from `--first`, up to `--count`, each
+    /// with how many layers start a keyframe there and whether it shows art.
+    Frames(crate::frames::FramesArgs),
+    /// Where a frame request leads: a zero-based number, or first, last, next, previous,
+    /// next-keyframe or previous-keyframe, from frame `--from`.
+    Goto(crate::frames::GotoArgs),
     /// Evaluate one frame and print the placed instances.
     Eval {
         path: PathBuf,

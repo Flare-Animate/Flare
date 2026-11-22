@@ -63,6 +63,8 @@ pub const MAX_REPLACEMENT_BYTES: usize = 64 * 1024;
 pub enum ScriptError {
     #[error("the file is not a Flash movie: {0}")]
     NotSwf(String),
+    #[error("the movie file cannot be read: {0}")]
+    Io(String),
     #[error("the movie is larger than {limit} bytes {what}")]
     TooLarge { what: &'static str, limit: u64 },
     #[error("the movie has no ActionScript 3 (no DoABC blocks)")]

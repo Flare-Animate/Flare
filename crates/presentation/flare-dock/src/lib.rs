@@ -54,10 +54,14 @@ pub enum Pane {
     Mannequin,
     /// The active layer's effects as a node graph, with the chosen node's settings.
     Effects,
+    /// The document's named shader graphs: import, export, remove, with a small picture of each.
+    Shaders,
+    /// The game description: gravity, entities and their components, and a scripted run.
+    Game,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 18] = [
+    pub const ALL: [Pane; 20] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
@@ -76,6 +80,8 @@ impl Pane {
         Pane::Swatches,
         Pane::Mannequin,
         Pane::Effects,
+        Pane::Shaders,
+        Pane::Game,
     ];
 
     /// The icon of the panel in the strip at the right edge, for the panels that can be kept
@@ -96,6 +102,8 @@ impl Pane {
             Self::Swatches => "panel-swatches",
             Self::Mannequin => "panel-mannequin",
             Self::Effects => "panel-effects",
+            Self::Shaders => "panel-shaders",
+            Self::Game => "panel-game",
             Self::Tools | Self::Stage | Self::Timeline | Self::Output => return None,
         })
     }
@@ -127,6 +135,8 @@ impl Pane {
             Self::Swatches => "pane-swatches",
             Self::Mannequin => "pane-mannequin",
             Self::Effects => "pane-effects",
+            Self::Shaders => "pane-shaders",
+            Self::Game => "pane-game",
         }
     }
 
@@ -151,6 +161,8 @@ impl Pane {
             Self::Swatches => "Swatches",
             Self::Mannequin => "Mannequin",
             Self::Effects => "Effects",
+            Self::Shaders => "Shaders",
+            Self::Game => "Game",
         }
     }
 }

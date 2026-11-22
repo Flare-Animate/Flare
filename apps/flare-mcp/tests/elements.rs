@@ -6,7 +6,8 @@ use common::fixture;
 use serde_json::json;
 
 #[tokio::test]
-async fn drawn_rectangles_join_the_keyframe_of_the_layer_and_get_info_counts_them() {
+async fn a_rectangle_on_a_later_frame_starts_a_keyframe_beside_the_held_one_and_get_info_counts_them()
+ {
     let f = fixture(true, false).await;
     let a = f
         .ok(
@@ -29,7 +30,9 @@ async fn drawn_rectangles_join_the_keyframe_of_the_layer_and_get_info_counts_the
     let layer = &info["scenes"][0]["layers"][0];
     assert_eq!(
         (layer["spans"].as_u64(), layer["elements"].as_u64()),
-        (Some(1), Some(2))
+        // Frame 3 only showed the first keyframe: a keyframe of its own starts there with a copy
+        // of the held rectangle and the new one beside it.
+        (Some(2), Some(3))
     );
     assert_eq!(
         info["scenes"][0]["layers"]

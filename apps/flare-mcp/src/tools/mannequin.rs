@@ -158,7 +158,7 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Pose the reference mannequin and place it as a shaded picture of the 3D figure to draw over (x, y and height say where and how large): on a new layer at the top of the first scene, or with `layer` into that layer's keyframe at `frame` beside the figures already there, or with `new_keyframe` as a keyframe of its own from `frame` (shown half see-through while editing; hide or delete the layer before exporting). `picture` (a photo or drawing of a person in the export directory) finds the person and gives the figure their pose. One undo step (needs write access)."
+        description = "Pose the reference mannequin and place it as a shaded picture of the 3D figure to draw over (x, y and height say where and how large): on a new layer at the top of the first scene, or with `layer` into that layer's keyframe at `frame` beside the figures already there, or with `new_keyframe` as a keyframe of its own from `frame`, or with `under` as a locked guide at the bottom of the layers below every drawing, on the stage and in no export (shown half see-through while editing; hide or delete the layer before exporting). `picture` (a photo or drawing of a person in the export directory) finds the person and gives the figure their pose. One undo step (needs write access)."
     )]
     fn place_mannequin(&self, Parameters(args): Parameters<PlaceMannequin>) -> Outcome {
         self.write(args.expected_revision, |state| {
@@ -201,7 +201,17 @@ impl FlareServer {
             })?;
             let frame = args.frame.unwrap_or(0);
             let document = state.session.document();
+            if args.under.unwrap_or(false)
+                && (args.layer.is_some() || args.new_keyframe.unwrap_or(false))
+            {
+                return Err(
+                    "under is a layer of its own: not with layer or new_keyframe".to_owned(),
+                );
+            }
             let placed = match args.layer.as_deref() {
+                None if args.under.unwrap_or(false) => flare_tools::mannequin::place_under(
+                    document, scene, frame, &figure, placement, &name,
+                ),
                 None if args.new_keyframe.unwrap_or(false) => {
                     return Err("new_keyframe needs the layer to place it on".to_owned());
                 }

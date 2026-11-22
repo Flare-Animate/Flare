@@ -14,6 +14,17 @@ use crate::sample::{probe_with, read_frames_with};
 #[cfg(unix)]
 use crate::tool::Tools;
 
+/// Linux refuses to run a script while a forked child still holds it open for writing (ETXTBSY),
+/// which a test thread spawning at the wrong moment causes; tests that write and run stand-ins
+/// take turns.
+#[cfg(unix)]
+static TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+#[cfg(unix)]
+fn turn() -> std::sync::MutexGuard<'static, ()> {
+    TURN.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
 #[cfg(unix)]
 fn script(dir: &Path, name: &str, body: &str) -> PathBuf {
     use std::os::unix::fs::PermissionsExt;
@@ -75,6 +86,7 @@ const PICTURE: usize = 4 * 2 * 4;
 #[cfg(unix)]
 #[test]
 fn a_probe_gives_the_size_rate_and_length_with_a_quarter_turn_swapping_the_sides() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let movie = dir.path().join("clip.mp4");
     let upright = probe_with(&tools(dir.path(), "", 0, 0, ""), &movie).expect("probe");
@@ -98,6 +110,7 @@ fn a_probe_gives_the_size_rate_and_length_with_a_quarter_turn_swapping_the_sides
 #[cfg(unix)]
 #[test]
 fn pictures_arrive_one_at_a_time_and_a_piece_short_of_one_at_the_end_is_dropped() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let tools = tools(dir.path(), "", PICTURE * 2 + PICTURE / 2, 0, "");
     let mut got = Vec::new();
@@ -128,6 +141,7 @@ fn pictures_arrive_one_at_a_time_and_a_piece_short_of_one_at_the_end_is_dropped(
 #[cfg(unix)]
 #[test]
 fn a_stop_ends_the_reading_and_says_so() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let tools = tools(dir.path(), "", PICTURE * 5, 0, "");
     let mut seen = 0;
@@ -142,6 +156,7 @@ fn a_stop_ends_the_reading_and_says_so() {
 #[cfg(unix)]
 #[test]
 fn no_more_than_the_pictures_asked_for_are_taken_even_when_ffmpeg_writes_more() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let tools = tools(dir.path(), "", PICTURE * 6, 0, "");
     let sampling = Sampling {
@@ -160,6 +175,7 @@ fn no_more_than_the_pictures_asked_for_are_taken_even_when_ffmpeg_writes_more() 
 #[cfg(unix)]
 #[test]
 fn a_failing_ffmpeg_is_reported_with_what_it_said_and_a_movie_with_no_pictures_too() {
+    let _turn = turn();
     let dir = tempfile::tempdir().expect("dir");
     let movie = dir.path().join("clip.mp4");
     let failing = tools(dir.path(), "", 0, 1, "Invalid data found");

@@ -1,0 +1,15 @@
+scripts-title = 影片脚本：{ $name }
+scripts-classes = 类
+scripts-strings = 字符串
+scripts-find = 查找
+scripts-find-hint = 输入名称或文本的一部分，然后按回车
+scripts-search = 搜索
+scripts-code = 将方法体列为指令
+scripts-text-only = 仅显示代码使用的文本
+scripts-pick-class = 选择一个类来阅读。
+scripts-truncated = 文本在此处截断：它比窗口能显示的更长。
+scripts-cannot-read = 无法读取 { $name }：{ $error }
+scripts-use-text = 文本
+scripts-use-name = 名称
+scripts-use-other = 其他
+scripts-note = 只读：Flare 不会运行这些脚本。要修改字符串，请用 `flare scripts patch` 或 MCP 服务器给影片打补丁。

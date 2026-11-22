@@ -136,7 +136,7 @@ Still planned (everything else in the menus and panels is built):
 
 - Library: folders.
 - Edit, Modify, Text, Commands and Help entries still listed dimmed in the menus (Window and the Help windows are real now: panels come to the front, About and a read-only shortcut list).
-- Debug > Movie Scripts..., a window over `flare_as3`: a movie's classes and strings, and replacing strings (the command line and the MCP server have it).
+- Debug > Movie Scripts... reads a movie's classes and strings (a window over `flare_as3`); replacing strings is still only in the command line and the MCP server.
 
 ## Top bar
 
@@ -183,9 +183,9 @@ ticked (the browser build, which cannot write a video yet, has the animated GIF,
 QuickTime with the reason); the Flash movie and the HTML5 page are a tick away. Preferences saved
 before MP4 was the default with the formats as they came (Flash and HTML5, nothing else) are
 read as never chosen and get the new default; any other choice is kept
-(`PublishSettings::update_old_defaults`). There is no Share section: buttons that only opened YouTube or Twitter, with the file still to add by hand, were taken out until sharing can upload (see the roadmap). File > Publish Settings shows the same format choices on their own. File > Export has Image, Movie (an animated GIF, an MP4 or a QuickTime movie, chosen in the save dialog by the name's ending; a name with none is a GIF), Flash Document (a `.fla`, which Animate opens) and SVG (the frame on show, as a picture; animated SVG is not built).
+(`PublishSettings::update_old_defaults`). There is no Share section: buttons that only opened YouTube or Twitter, with the file still to add by hand, were taken out until sharing can upload (see the roadmap). File > Publish Settings shows the same format choices on their own. File > Export has Image, Movie, Flash Document (a `.fla`, which Animate opens) and SVG (the frame on show, as a picture; animated SVG is not built). Image writes the frame on show in the format its name's ending gives (`png`, `jpg`, `bmp`, `tga`, `tif`, `webp`, `qoi`, `pnm` or `pam`, `ico`, `exr`, `hdr`, or `psd`, one flattened picture; a name with none is a PNG), over the stage colour or see-through when the background is transparent, and a format with no alpha channel refuses that by name. Movie writes the whole animation by its ending: an animated GIF (the default), an APNG, an MP4, a QuickTime movie, or a WebM, Matroska, AVI, MPEG or Flash video, which need ffmpeg on the computer and say so when it is missing. The browser build writes Image and Movie as downloads named by a prompt, with the same endings: a still format, a GIF or an APNG; an MP4, QuickTime or ffmpeg movie is refused there with the reason.
 
-The command palette opens from the search button at the top right, or Ctrl+K (also with a native menu bar): a search box over every command and tool, matched by the letters of the query appearing in the name, run with a click or Enter, stepped through with the arrow keys, closed with Escape. It is AniCraft's (storytold/anicraft), re-implemented for Flare's command registry. A phone or tablet gets the touch form of the workspace: the panel rail, the dock's tab bar and every widget grow to finger sizes (`Workspace::set_touch`); the web build detects one and the Android build always uses it.
+The command palette opens from the search button at the top right, or Ctrl+K (also with a native menu bar): a search box over every command and tool, matched by the letters of the query appearing in the name, run with a click or Enter, stepped through with the arrow keys, closed with Escape. It is AniCraft's (storytold/anicraft), re-implemented for Flare's command registry. A phone or tablet gets the touch form of the workspace: the panel rail, the dock's tab bar and every widget grow to finger sizes (`Workspace::set_touch`); the web build detects one and the Android build always uses it. A touch window narrower than 600 points is a phone, and then every side panel is put into the icon strip, so the stage keeps the width and each panel opens as a sheet over it (`workspace/phone.rs`). Widening the window gives back the arrangement that was there, and the layout saved between sessions is never the phone's. Not done: a compact top bar, a bottom toolbar, and pinch-zoom of the stage.
 
 Theme: the General category also has Theme, a list of sixteen with Dark the default (`flare_ui::theme::Mode::ALL`, in the order the list shows them). First come the greys from darkest to lightest, the steps Animate's interface brightness takes: Darkest, Dark, Medium grey, Light and Lightest. Then High contrast (white on black, hard edges, a yellow accent), then the tinted ones: Neutral, Blue, Teal, Green, Clay, Rose, Synthwave, Liquid Glass, and the light Sepia and Mint. Each palette is a set of colors in `flare-ui`'s `theme_palettes.rs`, read by name through functions (`theme::text()`, `theme::panel()`), and says whether it is light, which puts egui's light widgets under it. The choice is kept with the preferences by its code (`dark`, `contrast`, `sepia`); a code Flare does not know is Dark, and a profile may name any of them (`flare_profile::THEMES`, which a test keeps the same as the list). Colors drawn on the document itself (the stage, guides, selection handles, the timeline's span colors) are the same in every theme. Tests hold every palette to the same rules: text at least 7:1 against every surface, labels 3.5:1, three tones of ground at least 1.08:1 apart, and the accent at least 3:1 on a panel. A label on an accent fill is white or black, whichever reads better (`theme::ink_on`), as High contrast's yellow needs black. Nobody has looked at the new palettes on a screen yet, so expect rough edges in places that draw their own colors.
 
@@ -388,7 +388,7 @@ change is one undo step.
 
 The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
 kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor, Find and
-Replace, Mannequin and Effects. A click opens that panel beside the strip, 300 px wide (its left edge drags
+Replace, Mannequin, Effects, Shaders and Game. A click opens that panel beside the strip, 300 px wide (its left edge drags
 it wider or narrower) and level with its icon, over the stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
 a press on the stage or another panel puts it away (a list or picker the panel opened does not).
 Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
@@ -664,6 +664,21 @@ of the person's own (each color once, at most 120; a full list says so), and a r
 of them deletes it. They are kept with the preferences, not in the document. The web-safe colors
 are the web's standard palette, not Animate's artwork.
 
+## Shaders
+
+The Shaders panel (Window > Shaders, in the icon strip by default) lists the project's named shader
+graphs, each with a 48 px picture of what it draws, drawn again only when its graph changes. Import...
+reads a graph file (JSON, at most 1 MiB), Export... writes the chosen one, Remove takes it out;
+each is one undo step and goes through `flare_editor::shader_library`. There is no node editor yet.
+
+## Game
+
+The Game panel (Window > Game, in the icon strip by default) edits the project's game description
+with `flare_tools::game`, so each edit is one undo step: gravity, entities (add, remove), the
+chosen entity's components set from `name=value` fields or removed, and a run of up to 600 frames
+at the document's rate that says how many events happened and the state's digest. Scripted input,
+the entities drawn and the export are in `flare game` and the MCP server.
+
 ## Effects
 
 The Effects panel (Window > Effects, in the icon strip by default) is OpenToonz's and Tahoma2D's
@@ -739,7 +754,11 @@ picture where Place Into says, as one undo step: New layer, a layer named Manneq
 the scene from the playhead to the end, drawn at half opacity while editing; This keyframe, the
 active layer's keyframe at the playhead beside what it holds, so several figures share the same
 frames; or New keyframe here, a keyframe of its own on the active layer from the playhead (the one
-shown there is cut short), so each stretch of frames of one layer can hold another pose. Where the
+shown there is cut short), so each stretch of frames of one layer can hold another pose; or Under
+the drawing, a guide to draw over: a locked layer at the bottom of the layers, below every
+drawing layer, that shows on the stage (half see-through; its Opacity is the layer's, and hiding
+the layer switches it off) and is in no export, publish or saved Animate file. It keeps the layer
+you draw on and the tool in hand as they are. Where the
 layer shows nothing at the playhead either of the last two starts a keyframe up to the layer's
 next one; a locked or hidden layer, a folder, mask, guide or camera layer is refused with the
 reason. The same pose placed again shows the picture the library already has. The placed figure
@@ -747,6 +766,23 @@ is selected with Free Transform: drag it to move it and its handles to scale, tu
 any picture (the Selection tool picks it again anywhere in its rectangle; lock the layer to draw
 over it without picking it). It is artwork like any other, so it is hidden or deleted before
 export. The figure is kept with the preferences, not in the document.
+
+## Drawings that stay, and the frame picker
+
+A drawing stays on show in the frames after it, until something new is drawn or a blank keyframe
+(Insert Blank Keyframe) ends it: a layer made in Flare *holds* its last keyframe past its end (a
+layer imported from Animate keeps the ending it has; `flare layer hold` and the MCP's
+`set_layer_hold` change it). Drawing on a frame that only shows what an earlier keyframe holds
+starts a keyframe there with a copy of what was held and the new strokes beside it, so the frames
+before are as they were and the held drawing stays; it is one undo step. A tween cannot share its
+keyframe, so drawing inside one is refused as before. A paste or a placed picture still joins the
+keyframe that shows at the frame.
+
+The frame count in the status bar opens the frame picker: a frame number field (from 1), Previous
+and Next Keyframe, and a grid of the scene's frames (a keyframe is lighter, the playhead is the
+accent colour; a click goes there). `flare frames` and `flare goto`, and the MCP server's
+`list_frames` and `goto_frame`, ask the same library (`flare_editor::frame_picker`); the MCP
+server remembers the frame it went to, and `draw_rect` draws there when it is given no start.
 
 ## Import Video
 

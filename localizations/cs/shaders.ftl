@@ -1,0 +1,13 @@
+pane-shaders = Shadery
+menu-item-show-shaders = Shadery
+hist-import-shader = Importovat graf shaderu
+hist-remove-shader = Odebrat graf shaderu
+shaders-empty = V tomto projektu zatím nejsou žádné grafy shaderů. Importujte jeden ze souboru grafu.
+shaders-import = Importovat...
+shaders-export = Exportovat...
+shaders-remove = Odebrat
+shaders-nodes = { $count } uzlů
+shaders-select = Vyberte graf, abyste ho mohli exportovat nebo odebrat.
+shaders-cannot-import = { $name } nelze importovat: { $error }
+shaders-cannot-export = { $name } nelze exportovat: { $error }
+shaders-note = Grafy jsou uloženy v projektu. `flare shader render` a export_png serveru MCP je použijí na snímek.

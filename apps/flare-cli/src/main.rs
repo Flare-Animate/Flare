@@ -3,6 +3,7 @@
 
 mod brush;
 mod commands;
+mod frames;
 mod fx;
 mod game;
 mod lipsync;
@@ -11,6 +12,7 @@ mod magnet;
 mod mannequin;
 mod project;
 mod scripts;
+mod sequence;
 mod shader;
 mod shortcuts;
 mod stopmotion;
@@ -100,7 +102,7 @@ fn run() -> Result<()> {
             project::new(&path, numerator, denominator, stage)?
         }
         Command::RenameScene { path, name } => project::rename_scene(&path, &name)?,
-        Command::SoundImport { path, sound, at } => project::sound_import(&path, &sound, at)?,
+        Command::SoundImport(args) => project::sound_import(&args.path, &args.sound, args.at)?,
         Command::SoundWaveform { path, sound } => project::sound_waveform(&path, sound.as_deref())?,
         Command::SetStage {
             path,
@@ -126,6 +128,8 @@ fn run() -> Result<()> {
             motion,
             ease,
         } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
+        Command::Frames(args) => crate::frames::list(args)?,
+        Command::Goto(args) => crate::frames::goto(args)?,
         Command::Bone { action } => project::bone(action)?,
         Command::Bones { path, frame } => project::bones_list(&path, frame)?,
         Command::Tween { op } => tween::run(op)?,
@@ -201,6 +205,7 @@ fn run() -> Result<()> {
             columns,
         } => project::export_sprites(&path, &out, start, end, columns)?,
         Command::Import { source, out } => project::import(&source, &out)?,
+        Command::ImportSequence(args) => sequence::run(&args)?,
         Command::Convert { source, out, force } => project::convert(&source, &out, force)?,
         Command::ExportXfl { path, out } => project::export_xfl(&path, &out)?,
         Command::PublishSwf {

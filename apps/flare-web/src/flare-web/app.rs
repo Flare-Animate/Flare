@@ -4,6 +4,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+mod exports;
+mod picked;
+
 use crate::sound::BrowserSound;
 use crate::{files, flare_file, fonts, preferences, ruffle};
 use eframe::egui;
@@ -14,6 +17,9 @@ struct Picked {
     name: String,
     bytes: Vec<u8>,
 }
+
+/// The files of one picture sequence picked: name and bytes of each.
+type SequenceFiles = Vec<(String, Vec<u8>)>;
 
 /// A Google Fonts family downloaded for text: its name and its files, or why it could not be had.
 type Fetched = (String, Result<Vec<Vec<u8>>, String>);
@@ -36,6 +42,12 @@ pub struct WebApp {
     /// Flash movies picked to bring into this document: onto the stage, and into the library.
     picked_to_stage: Rc<RefCell<Vec<Picked>>>,
     picked_to_library: Rc<RefCell<Vec<Picked>>>,
+    /// Flash movies picked for the Movie Scripts window.
+    picked_movies: Rc<RefCell<Vec<Picked>>>,
+    /// Shader graph files picked, added to the project on the next frame.
+    picked_shaders: Rc<RefCell<Vec<Picked>>>,
+    /// Picture sequences picked, turned into a project on the next frame.
+    picked_sequences: Rc<RefCell<Vec<SequenceFiles>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
     messages: Rc<RefCell<Vec<String>>>,
     /// Google Fonts families downloaded for text (or why not), handed over on the next frame.
@@ -61,6 +73,9 @@ impl WebApp {
             picked_brushes: Rc::default(),
             picked_to_stage: Rc::default(),
             picked_to_library: Rc::default(),
+            picked_movies: Rc::default(),
+            picked_shaders: Rc::default(),
+            picked_sequences: Rc::default(),
             messages: Rc::default(),
             fonts: Rc::default(),
             saved_preferences,
@@ -90,44 +105,11 @@ impl WebApp {
                 });
             }
             DialogRequest::SaveAs => self.save_document(),
-            DialogRequest::ExportImage => {
-                let (document, frame) = self.workspace.image_export();
-                let backdrop = self.workspace.publish_settings().backdrop();
-                self.deliver(
-                    "frame.png",
-                    "image/png",
-                    flare_runtime::still_bytes(
-                        &document,
-                        frame,
-                        flare_runtime::StillFormat::Png,
-                        backdrop,
-                    ),
-                );
-            }
-            DialogRequest::ExportMovie => {
-                let (document, _) = self.workspace.image_export();
-                let backdrop = self.workspace.publish_settings().backdrop();
-                self.deliver(
-                    "movie.gif",
-                    "image/gif",
-                    flare_runtime::gif_bytes(&document, backdrop),
-                );
-            }
-            DialogRequest::ExportFla => {
-                let (document, _) = self.workspace.image_export();
-                let bytes = flare_export::export_xfl(&document)
-                    .and_then(|output| flare_export::fla_bytes(&output))
-                    .map_err(|e| e.to_string());
-                self.deliver("project.fla", "application/zip", bytes);
-            }
-            DialogRequest::ExportSvg => {
-                let (document, frame) = self.workspace.image_export();
-                let backdrop = self.workspace.publish_settings().backdrop();
-                let bytes: Result<Vec<u8>, String> =
-                    flare_runtime::svg_export(&document, frame, backdrop)
-                        .map(|svg| svg.text.into_bytes());
-                self.deliver("frame.svg", "image/svg+xml", bytes);
-            }
+            request @ (DialogRequest::ExportImage
+            | DialogRequest::ExportMovie
+            | DialogRequest::ExportFla
+            | DialogRequest::ExportSvg
+            | DialogRequest::ExportSpriteSheet) => self.handle_export(request),
             DialogRequest::Publish => {
                 let (document, _) = self.workspace.image_export();
                 let name = self.publish_name();
@@ -206,6 +188,56 @@ impl WebApp {
                 .messages
                 .borrow_mut()
                 .push(self.workspace.interface_text("video-browser")),
+            DialogRequest::ImportShader => {
+                let label = self.workspace.interface_text("dlg-filter-shader");
+                self.pick_into(
+                    ctx,
+                    &self.picked_shaders,
+                    label,
+                    &["json"],
+                    flare_import::MAX_SHADER_GRAPH_FILE_BYTES,
+                    None,
+                );
+            }
+            DialogRequest::ExportShader => {
+                if let Some((name, bytes)) = self.workspace.shader_export() {
+                    self.deliver(&format!("{name}.json"), "application/json", Ok(bytes));
+                }
+            }
+            DialogRequest::ImportImageSequence => {
+                let label = self.workspace.interface_text("dlg-filter-image-sequence");
+                let (inbox, messages, ctx) = (
+                    Rc::clone(&self.picked_sequences),
+                    Rc::clone(&self.messages),
+                    ctx.clone(),
+                );
+                wasm_bindgen_futures::spawn_local(async move {
+                    match files::pick_many(
+                        &label,
+                        &flare_import::SEQUENCE_EXTENSIONS,
+                        flare_import::MAX_IMAGE_FRAMES,
+                        512 * 1024 * 1024,
+                    )
+                    .await
+                    {
+                        Ok(files) if files.is_empty() => return,
+                        Ok(files) => inbox.borrow_mut().push(files),
+                        Err(error) => messages.borrow_mut().push(error),
+                    }
+                    ctx.request_repaint();
+                });
+            }
+            DialogRequest::MovieScripts => {
+                let label = self.workspace.interface_text("dlg-filter-movie-scripts");
+                self.pick_into(
+                    ctx,
+                    &self.picked_movies,
+                    label,
+                    &["swf"],
+                    flare_as3::MAX_MOVIE_BYTES as usize,
+                    None,
+                );
+            }
             DialogRequest::ImportBrushProfiles => {
                 let label = self.workspace.interface_text("dlg-filter-brushes");
                 self.pick_into(
@@ -273,29 +305,31 @@ impl WebApp {
         });
     }
 
+    /// Asks for a file name in the browser's own box, starting from `default`. A path typed in is
+    /// cut to its last part; an empty answer, or a cancelled box, is none.
+    fn prompt_file_name(&self, default: &str) -> Option<String> {
+        let window = web_sys::window()?;
+        let message = self.workspace.interface_text("dlg-save-prompt");
+        let typed = window
+            .prompt_with_message_and_default(&message, default)
+            .ok()
+            .flatten()
+            .unwrap_or_default();
+        let name = std::path::Path::new(typed.trim()).file_name()?;
+        Some(name.to_string_lossy().into_owned())
+    }
+
     /// Save and Save As are a download: a page has no file to write back to. The person names it,
     /// and the ending picks the format as on the desktop: `.fla` (the default, as in Animate) is a
     /// Flash document Animate opens, `.flare` is Flare's own project (the page brings SQLite and
     /// zstd as WebAssembly for it, see `flare_file`). A folder cannot be downloaded, so `.xfl`
     /// is saved as a `.fla`, which holds the same files.
     fn save_document(&mut self) {
-        let Some(window) = web_sys::window() else {
+        let Some(name) = self.prompt_file_name(self.last_name.as_deref().unwrap_or("project.fla"))
+        else {
             return;
         };
-        let message = self.workspace.interface_text("dlg-save-prompt");
-        let typed = window
-            .prompt_with_message_and_default(
-                &message,
-                self.last_name.as_deref().unwrap_or("project.fla"),
-            )
-            .ok()
-            .flatten()
-            .unwrap_or_default();
-        // A name only: a path typed in is cut to its last part.
-        let Some(name) = std::path::Path::new(typed.trim()).file_name() else {
-            return;
-        };
-        let (named, format) = flare_runtime::resolve_save_path(std::path::Path::new(name));
+        let (named, format) = flare_runtime::resolve_save_path(std::path::Path::new(&name));
         let named = if format == flare_runtime::FileFormat::Xfl {
             named.with_extension("fla")
         } else {
@@ -420,43 +454,7 @@ impl WebApp {
 impl eframe::App for WebApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
-        let picked: Vec<Picked> = self.picked.borrow_mut().drain(..).collect();
-        for file in picked {
-            self.last_name = Some(file.name.clone());
-            if is_flare(&file.name) {
-                self.open_flare(&file.name, &file.bytes);
-            } else {
-                self.workspace.import_project_bytes(&file.name, file.bytes);
-            }
-        }
-        let sounds: Vec<Picked> = self.picked_sounds.borrow_mut().drain(..).collect();
-        for sound in sounds {
-            self.workspace.import_sound_bytes(&sound.name, sound.bytes);
-        }
-        for (inbox, to_stage) in [
-            (&self.picked_to_stage, true),
-            (&self.picked_to_library, false),
-        ] {
-            let files: Vec<Picked> = inbox.borrow_mut().drain(..).collect();
-            for file in files {
-                self.workspace
-                    .import_into_document_bytes(&file.name, file.bytes, to_stage);
-            }
-        }
-        let shortcuts: Vec<Picked> = self.picked_shortcuts.borrow_mut().drain(..).collect();
-        for file in shortcuts {
-            self.workspace.import_animate_shortcuts(&file.bytes);
-        }
-        let references: Vec<Picked> = self.picked_references.borrow_mut().drain(..).collect();
-        for file in references {
-            self.workspace
-                .import_mannequin_reference_bytes(&file.name, file.bytes);
-        }
-        let brushes: Vec<Picked> = self.picked_brushes.borrow_mut().drain(..).collect();
-        for file in brushes {
-            self.workspace
-                .import_brush_profiles(&file.name, &file.bytes);
-        }
+        self.hand_over_picked();
         let messages: Vec<String> = self.messages.borrow_mut().drain(..).collect();
         for message in messages {
             self.workspace.report_message(&message);

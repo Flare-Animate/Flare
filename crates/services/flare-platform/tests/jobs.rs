@@ -55,7 +55,7 @@ fn an_image_and_a_swf_report_through_the_same_callback() {
     let dir = tempfile::tempdir().expect("dir");
     let (tx, rx) = mpsc::channel();
     let report = tx.clone();
-    jobs::export_png(
+    jobs::export_image(
         document(),
         0,
         dir.path().join("a.png"),
@@ -263,14 +263,29 @@ fn export_movie_writes_the_kind_the_name_ends_in() {
     // No ending is a GIF, as before there was a choice.
     jobs::write_movie(&document(), &dir.path().join("d"), jobs::Backdrop::Stage).expect("d");
     assert!(read("d.gif").starts_with(b"GIF89a"));
+    // AVI goes to ffmpeg: without it the write says so, and with it the file appears.
+    let avi = dir.path().join("e.avi");
+    match jobs::write_movie(&document(), &avi, jobs::Backdrop::Stage) {
+        Err(error) => {
+            assert!(
+                error.contains("ffmpeg"),
+                "an AVI without ffmpeg says so: {error}"
+            );
+            assert!(!avi.exists(), "a refused movie writes no file");
+        }
+        Ok(()) => assert!(avi.exists(), "an AVI written by ffmpeg is on disk"),
+    }
     let error = jobs::write_movie(
         &document(),
-        &dir.path().join("e.avi"),
+        &dir.path().join("f.svg"),
         jobs::Backdrop::Stage,
     )
-    .expect_err("avi");
-    assert!(error.contains(".mov"), "{error}");
-    assert!(!dir.path().join("e.avi").exists());
+    .expect_err("not a movie");
+    assert!(
+        error.contains(".mov"),
+        "the refusal lists the movie endings: {error}"
+    );
+    assert!(!dir.path().join("f.svg").exists());
 }
 
 #[test]
@@ -355,7 +370,7 @@ fn export_movie_and_image_follow_the_backdrop() {
 
     let (tx, rx) = mpsc::channel();
     let png = dir.path().join("c.png");
-    jobs::export_png(
+    jobs::export_image(
         document(),
         0,
         png.clone(),

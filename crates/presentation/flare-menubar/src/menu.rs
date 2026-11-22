@@ -45,6 +45,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Separator,
                     Action(A::ImportSound),
                     Action(A::ImportVideo),
+                    Action(A::ImportImageSequence),
                     Action(A::ImportBrushProfiles),
                 ],
             ),
@@ -55,6 +56,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Action(A::ExportMovie),
                     Action(A::ExportFla),
                     Action(A::ExportSvg),
+                    Action(A::ExportSpriteSheet),
                 ],
             ),
             Separator,
@@ -118,6 +120,15 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ToggleEditMultipleFrames),
             Action(A::ToggleOutlineMode),
             Action(A::TogglePasteboard),
+            Separator,
+            Submenu(
+                "Mannequin",
+                &[
+                    Action(A::ToggleMannequinOnStage),
+                    Action(A::PlaceMannequinUnder),
+                    Action(A::PlaceMannequinOnLayer),
+                ],
+            ),
             Separator,
             Action(A::ResetLayout),
         ],
@@ -256,9 +267,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Separator,
             Mock("Remove All Breakpoints"),
             Separator,
-            // A movie's scripts listed and their strings patched: `flare scripts` and the MCP
-            // server have it (flare_as3); the window does not yet.
-            Mock("Movie Scripts..."),
+            Action(A::MovieScripts),
         ],
     ),
     (
@@ -275,6 +284,8 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Action(A::ShowInfo),
             Action(A::ShowMannequin),
             Action(A::ShowEffects),
+            Action(A::ShowShaders),
+            Action(A::ShowGame),
             Action(A::ShowOutput),
             Separator,
             Submenu(

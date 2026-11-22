@@ -29,8 +29,24 @@ pub fn download_font(
     })
 }
 
-/// Writes one frame as a PNG over `backdrop`. `done` gets the outcome, worded for the person.
-pub fn export_png(
+/// The endings a still picture is written with (`png`, `jpg`, ..., `psd`), the Export Image
+/// dialog's list.
+pub const IMAGE_ENDINGS: [&str; 15] = flare_runtime::STILL_ENDINGS;
+
+/// The endings a movie is written with: an animated GIF, MP4, QuickTime, and the rest of
+/// [`OTHER_MOVIE_ENDINGS`].
+pub const MOVIE_ENDINGS: [&str; 10] = [
+    "gif", "mp4", "mov", "apng", "webm", "mkv", "avi", "mpg", "mpeg", "flv",
+];
+
+/// The movie endings the Export Movie dialog's last filter offers: an APNG and the containers
+/// ffmpeg writes (which need ffmpeg on the computer).
+pub const OTHER_MOVIE_ENDINGS: [&str; 7] = ["apng", "webm", "mkv", "avi", "mpg", "mpeg", "flv"];
+
+/// Writes one frame to `path` in the format its ending names (a PNG when it has none), over
+/// `backdrop`. `done` gets the outcome, worded for the person. An ending that is no still
+/// format is refused, and the file is written only once the frame is encoded.
+pub fn export_image(
     document: Document,
     frame: u32,
     path: PathBuf,
@@ -38,12 +54,35 @@ pub fn export_png(
     done: impl FnOnce(Result<(), String>) + Send + 'static,
 ) -> io::Result<()> {
     spawn("flare-export-image", move || {
-        done(flare_runtime::export_png(&document, frame, &path, backdrop));
+        done(write_image(&document, frame, &path, backdrop));
     })
 }
 
+/// [`export_image`] on the calling thread. A file that exists is replaced, as the save dialog
+/// has asked the person first.
+pub fn write_image(
+    document: &Document,
+    frame: u32,
+    path: &std::path::Path,
+    backdrop: Backdrop,
+) -> Result<(), String> {
+    let ending = path.extension().map_or_else(
+        || "png".to_owned(),
+        |e| e.to_string_lossy().to_ascii_lowercase(),
+    );
+    if !flare_runtime::is_still_ending(&ending) {
+        return Err(format!(
+            "A picture is written as .png, .jpg or the other still formats, not .{ending}"
+        ));
+    }
+    let bytes = flare_runtime::picture_bytes(document, frame, &ending, backdrop)?;
+    std::fs::write(path, bytes).map_err(|e| format!("Cannot write the image: {e}"))
+}
+
 /// Writes the whole animation as the movie `path` names by its ending: an animated GIF (`.gif`),
-/// an MP4 video (`.mp4`) or a QuickTime movie (`.mov`), the last two with the sound. A name with
+/// an APNG (`.apng`), an MP4 video (`.mp4`), a QuickTime movie (`.mov`) or a movie ffmpeg writes
+/// (`.webm`, `.mkv`, `.avi`, `.mpg`, `.flv`, which needs ffmpeg on the computer), the video ones
+/// with the sound. A name with
 /// no ending is a GIF, as Export Movie wrote before it had a choice. Over a transparent
 /// `backdrop` the GIF is see-through, the QuickTime movie is ProRes 4444 made by ffmpeg, and an
 /// MP4 is refused. Never overwrites; the file appears only when complete.
@@ -70,11 +109,19 @@ pub fn write_movie(
     match ending.as_deref() {
         None => write_gif(document, &path.with_extension("gif"), backdrop),
         Some("gif") => write_gif(document, path, backdrop),
+        Some("apng") => write_new(path, &flare_runtime::apng_bytes(document, backdrop)?),
         Some("mp4") => flare_video::write_mp4_over(document, path, backdrop),
         Some("mov") => flare_video::write_mov_over(document, path, backdrop),
-        Some(other) => Err(format!(
-            "A movie is written as .gif, .mp4 or .mov, not .{other}"
-        )),
+        Some(other) => match flare_ffmpeg::CONTAINERS
+            .iter()
+            .find(|c| c.extension == other || (other == "mpeg" && c.id == "mpeg"))
+        {
+            Some(container) => flare_video::write_with_ffmpeg(document, path, container, backdrop),
+            None => Err(format!(
+                "A movie is written as {}, not .{other}",
+                MOVIE_ENDINGS.map(|e| format!(".{e}")).join(", ")
+            )),
+        },
     }
 }
 
@@ -143,6 +190,32 @@ pub fn export_svg(
             .and_then(|svg| write_new(&path, svg.text.as_bytes()));
         done(result);
     })
+}
+
+/// Writes every frame of the first scene as a sprite sheet picture at `path` (a PNG) and its JSON
+/// atlas beside it (the same name, `.json`), on a thread. Both are written only once the whole
+/// sheet is made; a file that exists is replaced, as the save dialog has asked the person.
+pub fn export_sprites(
+    document: Document,
+    path: PathBuf,
+    done: impl FnOnce(Result<(), String>) + Send + 'static,
+) -> io::Result<()> {
+    spawn("flare-export-sprites", move || {
+        done(write_sprites(&document, &path));
+    })
+}
+
+/// [`export_sprites`] on the calling thread.
+pub fn write_sprites(document: &Document, path: &std::path::Path) -> Result<(), String> {
+    let png = path.with_extension("png");
+    let name = png.file_name().map_or_else(
+        || "sprites.png".to_owned(),
+        |n| n.to_string_lossy().into_owned(),
+    );
+    let sheet = flare_runtime::sprite_sheet(document, 0, None, None, &name)?;
+    std::fs::write(&png, &sheet.png).map_err(|e| format!("Cannot write the sprite sheet: {e}"))?;
+    std::fs::write(png.with_extension("json"), sheet.json.as_bytes())
+        .map_err(|e| format!("Cannot write the atlas: {e}"))
 }
 
 /// What to publish: each format that is present is written, beside the others.
@@ -279,4 +352,68 @@ pub fn test_movie(
         done(flare_ruffle::launch_test_movie(&document, &player));
     })?;
     Ok(Ok(()))
+}
+
+/// Writes `bytes` to `path` whole or not at all: they go to a file beside it that then takes its
+/// place, so a failed write leaves what was there.
+pub fn write_whole(path: &std::path::Path, bytes: &[u8]) -> Result<(), String> {
+    use std::io::Write;
+    let dir = path
+        .parent()
+        .filter(|d| !d.as_os_str().is_empty())
+        .unwrap_or(std::path::Path::new("."));
+    let mut staged = tempfile::NamedTempFile::new_in(dir).map_err(|e| e.to_string())?;
+    staged.write_all(bytes).map_err(|e| e.to_string())?;
+    staged.persist(path).map_err(|e| e.error.to_string())?;
+    Ok(())
+}
+
+/// Runs `pick`, a file picker that blocks until the person answers, off the calling thread, and
+/// hands what it returned to `done` (on that thread). A picker run on the UI thread stops the
+/// window painting, and on some desktops stays blank until touched; this keeps the window live.
+/// macOS wants its pickers on the main thread, so there `pick` runs on the calling thread.
+pub fn ask<T: Send + 'static>(
+    pick: impl FnOnce() -> Option<T> + Send + 'static,
+    done: impl FnOnce(Option<T>) + Send + 'static,
+) -> io::Result<()> {
+    // A picker that panics (a broken system dialog) must still answer, with nothing: the caller
+    // keeps one picker open at a time and would wait for this one for ever.
+    let ask = move || std::panic::catch_unwind(std::panic::AssertUnwindSafe(pick)).unwrap_or(None);
+    if cfg!(target_os = "macos") {
+        done(ask());
+        return Ok(());
+    }
+    spawn("flare-file-picker", move || done(ask()))
+}
+
+#[cfg(test)]
+mod ask_tests {
+    #![allow(clippy::expect_used)]
+
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    use super::ask;
+
+    #[test]
+    fn a_picker_that_panics_answers_with_nothing_and_one_that_answers_is_passed_on() {
+        let (send, receive) = mpsc::channel();
+        let again = send.clone();
+        ask(
+            || -> Option<u8> { panic!("a broken dialog") },
+            move |answer| {
+                let _ = send.send(answer);
+            },
+        )
+        .expect("thread");
+        assert_eq!(receive.recv_timeout(Duration::from_secs(5)), Ok(None));
+        ask(
+            || Some(7_u8),
+            move |answer| {
+                let _ = again.send(answer);
+            },
+        )
+        .expect("thread");
+        assert_eq!(receive.recv_timeout(Duration::from_secs(5)), Ok(Some(7)));
+    }
 }

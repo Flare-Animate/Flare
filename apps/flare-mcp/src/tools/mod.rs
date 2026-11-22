@@ -6,6 +6,7 @@ mod brushes;
 mod draw;
 mod effects;
 mod export;
+mod frames;
 mod game;
 mod history;
 mod import_into;
@@ -38,6 +39,7 @@ impl FlareServer {
         Self::read_tools()
             + Self::export_tools()
             + Self::draw_tools()
+            + Self::frame_tools()
             + Self::text_tools()
             + Self::timeline_tools()
             + Self::layer_op_tools()

@@ -10,7 +10,9 @@ use std::path::PathBuf;
 
 use super::{commit, open};
 
-/// What `flare import-into` is asked.
+/// Bring a Flash movie (or another file `import` reads) into a project, as File > Import >
+/// Import to Stage: its library, and its main timeline as a Graphic on a new top layer from
+/// --frame. With --library, into the library only (Import to Library).
 #[derive(Args)]
 pub struct ImportIntoArgs {
     /// The project to bring the file into; it is written back in place.

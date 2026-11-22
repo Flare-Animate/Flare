@@ -49,7 +49,7 @@ pub use multi_frame::transform_frames;
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};
-pub use sound::{sound_import, sound_waveform};
+pub use sound::{SoundImportArgs, sound_import, sound_waveform};
 #[allow(unused_imports)]
 use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};
@@ -87,7 +87,7 @@ pub fn new(path: &Path, numerator: u32, denominator: u32, stage: Stage) -> Resul
     if path.exists() {
         bail!("{} already exists", path.display());
     }
-    let layer = Layer::new(LayerId::new(), "Layer 1", vec![])?;
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![])?.with_hold(true);
     let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
     let rate = FrameRate::new(numerator, denominator)?;
     let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])

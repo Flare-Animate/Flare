@@ -4,11 +4,13 @@
 
 mod camera;
 mod context;
+pub mod frame_picker;
 pub mod frames;
 pub mod import_into;
 pub mod layer_ops;
 pub mod layers_to_symbol;
 pub mod loop_range;
+pub mod shader_library;
 pub mod timeline_view;
 
 pub use camera::{MAX_CAMERA_FRAME, camera_now, set_camera_key, set_camera_key_named};

@@ -42,3 +42,4 @@ menu-mock-step-in = Depurar passo a passo
 menu-mock-step-out = Sair
 menu-mock-remove-all-breakpoints = Remover todos os pontos de interrupção
 menu-mock-movie-scripts = Scripts do filme...
+menu-submenu-mannequin = Manequim

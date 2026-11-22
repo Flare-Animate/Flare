@@ -1,0 +1,15 @@
+scripts-title = Скрипты ролика: { $name }
+scripts-classes = Классы
+scripts-strings = Строки
+scripts-find = Найти
+scripts-find-hint = Часть имени или текста, затем Enter
+scripts-search = Искать
+scripts-code = Показывать тела методов как инструкции
+scripts-text-only = Только текст, используемый кодом
+scripts-pick-class = Выберите класс, чтобы прочитать его.
+scripts-truncated = Текст обрывается: он длиннее, чем показывает окно.
+scripts-cannot-read = Не удалось прочитать { $name }: { $error }
+scripts-use-text = текст
+scripts-use-name = имя
+scripts-use-other = другое
+scripts-note = Только чтение: Flare не запускает эти скрипты. Чтобы изменить строку, исправьте ролик командой `flare scripts patch` или через сервер MCP.

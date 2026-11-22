@@ -32,6 +32,11 @@ fn create_edit_reopen_workflow() {
     assert_eq!(first["placed"][0]["matrix"][5], 0.0);
     let second = json(&["eval", &file, "--frame", "12"]);
     assert_eq!(second["placed"][0]["matrix"][4], 0.0);
+    // A layer made by `new` holds its last keyframe: the last placement stays on show.
+    let held = json(&["eval", &file, "--frame", "18"]);
+    assert_eq!(held["placed"].as_array().expect("placed").len(), 1);
+    // Released, it ends where its last keyframe does, as an Animate layer does.
+    json(&["layer", "release", &file]);
     assert!(
         json(&["eval", &file, "--frame", "18"])["placed"]
             .as_array()

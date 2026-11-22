@@ -276,3 +276,54 @@ fn the_pose_of_the_person_in_a_picture_is_found_and_copied() {
     let both = run(&["mannequin", "figure", "--picture", &wave, "--marks", &wave]);
     assert!(String::from_utf8_lossy(&both.stderr).contains("cannot be used with"));
 }
+
+#[test]
+fn under_places_a_guide_below_the_drawing_that_no_export_shows() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file, "--width", "200", "--height", "200"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "0",
+        "0",
+        "10",
+        "10",
+        "--color",
+        "FF0000",
+    ]);
+    let placed = json(&["mannequin", "place", &file, "--under", "--name", "Guide"]);
+    assert_eq!(placed["keyframe"], 0);
+    let layers = json(&["info", &file])["scenes"][0]["layers"].clone();
+    let layers = layers.as_array().expect("layers");
+    assert_eq!(layers.len(), 2);
+    assert_eq!(layers[1]["name"], "Guide", "the guide is the bottom layer");
+    assert_eq!(layers[1]["locked"], true);
+
+    // The picture an export writes has the drawing and none of the guide: the corner is red and
+    // the middle, where the figure stands, is the white of the stage.
+    let out = dir.path().join("out.png").to_string_lossy().into_owned();
+    json(&["export", &file, &out, "--frame", "0"]);
+    let image = read_png(&out);
+    assert_eq!(pixel(&image, 5, 5), [255, 0, 0, 255]);
+    assert!(
+        (0..200)
+            .all(|y| (0..200)
+                .all(|x| x < 10 && y < 10 || pixel(&image, x, y) == [255, 255, 255, 255])),
+        "nothing of the guide is in the picture"
+    );
+}
+
+#[test]
+fn under_is_not_for_an_existing_layer() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file]);
+    let layer = json(&["info", &file])["scenes"][0]["layers"][0]["id"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    let out = run(&["mannequin", "place", &file, "--under", "--layer", &layer]);
+    assert!(!out.status.success());
+}

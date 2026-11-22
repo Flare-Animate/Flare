@@ -89,7 +89,8 @@ Interface
   Apache-2.0), behaviour only. The touch form of the workspace is in too: finger-sized rail,
   dock tabs and widget sizes, auto-detected on the web (a coarse pointer, a small screen and
   touch support, with `?ui=` forcing either) and always on for Android. Still to come for
-  touch: collapsible panels, a compact top bar, and pinch-zoom of the stage.
+  touch: a compact top bar, a bottom toolbar, and pinch-zoom of the stage. Collapsible panels are in: on a
+  phone-width touch window the side panels move into the icon strip (`workspace/phone.rs`).
 - A Flash 8 interface skin, and custom themes (a contrast check for them, as `original/` had, so a theme cannot make text unreadable)
 - A fully rearrangeable toolbar (tools can already be pinned from the "…" list)
 

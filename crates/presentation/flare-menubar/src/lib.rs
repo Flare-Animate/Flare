@@ -35,6 +35,10 @@ pub enum MenuAction {
     ImportSound,
     /// File > Import > Import Video: a movie on a layer of its own, to draw over.
     ImportVideo,
+    /// Numbered pictures as one layer with a keyframe each.
+    ImportImageSequence,
+    /// A movie's ActionScript 3 read in a window (Debug > Movie Scripts).
+    MovieScripts,
     /// File > Import > Import Brush Presets: another art tool's pen profiles
     /// (Photoshop `.abr`, Krita `.kpp` or `.bundle`) onto the brush list.
     ImportBrushProfiles,
@@ -47,6 +51,8 @@ pub enum MenuAction {
     ExportMovie,
     ExportFla,
     ExportSvg,
+    /// File > Export > Export Sprite Sheet: every frame on one picture, with its JSON atlas.
+    ExportSpriteSheet,
     Save,
     SaveAs,
     Quit,
@@ -185,12 +191,20 @@ pub enum MenuAction {
     ShowSwatches,
     /// Window > Mannequin: the posable figure to draw from.
     ShowMannequin,
+    /// View > Mannequin > Show on the Stage: the figure over the stage, never exported.
+    ToggleMannequinOnStage,
+    /// View > Mannequin > Insert Under the Drawing: the figure as a locked guide at the bottom.
+    PlaceMannequinUnder,
+    /// View > Mannequin > Insert on a New Layer: the figure as a picture on a layer at the top.
+    PlaceMannequinOnLayer,
     /// Window > Effects: the active layer's effects as a node graph.
     ShowEffects,
+    ShowShaders,
+    ShowGame,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 146] = [
+    pub const ALL: [MenuAction; 154] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -200,6 +214,8 @@ impl MenuAction {
         Self::PublishSettings,
         Self::ImportSound,
         Self::ImportVideo,
+        Self::ImportImageSequence,
+        Self::MovieScripts,
         Self::ImportBrushProfiles,
         Self::ImportToStage,
         Self::ImportToLibrary,
@@ -207,6 +223,7 @@ impl MenuAction {
         Self::ExportMovie,
         Self::ExportFla,
         Self::ExportSvg,
+        Self::ExportSpriteSheet,
         Self::Save,
         Self::SaveAs,
         Self::Quit,
@@ -336,7 +353,12 @@ impl MenuAction {
         Self::CommandPalette,
         Self::ShowSwatches,
         Self::ShowMannequin,
+        Self::ToggleMannequinOnStage,
+        Self::PlaceMannequinUnder,
+        Self::PlaceMannequinOnLayer,
         Self::ShowEffects,
+        Self::ShowShaders,
+        Self::ShowGame,
     ];
 
     /// A stable identifier for native menu items (the variant name).

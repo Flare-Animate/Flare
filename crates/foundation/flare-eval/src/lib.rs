@@ -48,7 +48,7 @@ pub fn evaluate_frame(
     frame: u32,
 ) -> Result<Frame<'_>, EvalError> {
     let view = camera_view(document, scene_of(document, scene)?.timeline(), frame);
-    evaluate_frame_seen_by(document, scene, frame, view)
+    evaluate_frame_seen_by(document, scene, frame, view, false)
 }
 
 /// [`evaluate_frame`] with the camera ignored: the scene in its own coordinates, which is what
@@ -58,7 +58,7 @@ pub fn evaluate_frame_without_camera(
     scene: SceneId,
     frame: u32,
 ) -> Result<Frame<'_>, EvalError> {
-    evaluate_frame_seen_by(document, scene, frame, DAffine2::IDENTITY)
+    evaluate_frame_seen_by(document, scene, frame, DAffine2::IDENTITY, true)
 }
 
 fn evaluate_frame_seen_by(
@@ -66,6 +66,7 @@ fn evaluate_frame_seen_by(
     scene: SceneId,
     frame: u32,
     view: DAffine2,
+    show_reference: bool,
 ) -> Result<Frame<'_>, EvalError> {
     let scene = scene_of(document, scene)?;
     let mut out = Frame::default();
@@ -76,11 +77,13 @@ fn evaluate_frame_seen_by(
         view,
         &mut Vec::new(),
         &[],
+        show_reference,
         &mut out,
     )?;
     Ok(out)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn walk<'a>(
     document: &'a Document,
     timeline: &'a Timeline,
@@ -88,6 +91,7 @@ fn walk<'a>(
     parent: DAffine2,
     path: &mut Vec<InstanceId>,
     inherited: &[usize],
+    show_reference: bool,
     out: &mut Frame<'a>,
 ) -> Result<(), EvalError> {
     if path.len() >= MAX_DEPTH {
@@ -102,6 +106,9 @@ fn walk<'a>(
             || layer.is_guide()
             || layer.is_camera()
             || layer.is_folder()
+            // A reference layer (a mannequin to draw over) shows on the stage only, never in
+            // an export, in a symbol or in what is published.
+            || (layer.is_reference() && !(show_reference && path.is_empty()))
             || hidden_by_folder(layers, index)
         {
             continue;
@@ -326,6 +333,7 @@ fn walk_instance<'a>(
                 transform,
                 path,
                 clips,
+                false,
                 out,
             )?;
         }

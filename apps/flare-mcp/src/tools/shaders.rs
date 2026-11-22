@@ -1,12 +1,10 @@
 //! Read and update the project's portable shader graph library.
 
-use flare_commands::Command;
-use flare_document::ShaderAsset;
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::json;
 
 use crate::ops::apply;
-use crate::params_shader::{GetShaderGraph, SetShaderGraph};
+use crate::params_shader::{GetShaderGraph, RemoveShaderGraph, SetShaderGraph};
 use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = shader_tools, vis = "pub(super)")]
@@ -28,6 +26,16 @@ impl FlareServer {
         })
     }
 
+    #[tool(description = "Take a named shader graph asset out of the open project. One undo step.")]
+    fn remove_shader_graph(&self, Parameters(a): Parameters<RemoveShaderGraph>) -> Outcome {
+        self.write(a.expected_revision, |state| {
+            let command =
+                flare_editor::shader_library::remove_graph(state.session.document(), &a.name)
+                    .map_err(|error| error.to_string())?;
+            apply(state, vec![command])
+        })
+    }
+
     #[tool(description = "List the named shader graph assets saved in the open project.")]
     fn list_shader_graphs(&self) -> Outcome {
         self.read(|state| {
@@ -46,11 +54,10 @@ impl FlareServer {
         self.write(a.expected_revision, |state| {
             let graph = flare_import::import_shader_graph(a.graph_json.as_bytes())
                 .map_err(|error| error.to_string())?;
-            let asset = ShaderAsset::new(&a.name, graph).map_err(|error| error.to_string())?;
-            let mut assets = state.session.document().shader_assets().to_vec();
-            assets.retain(|existing| existing.name() != asset.name());
-            assets.push(asset);
-            apply(state, vec![Command::SetShaderAssets(assets)])
+            let command =
+                flare_editor::shader_library::set_graph(state.session.document(), &a.name, graph)
+                    .map_err(|error| error.to_string())?;
+            apply(state, vec![command])
         })
     }
 }

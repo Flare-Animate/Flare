@@ -19,6 +19,8 @@ pub(super) struct App {
     /// The sound card, if there is one. Sounds are silent without it; nothing else changes.
     player: Option<flare_platform::audio::Player>,
     pub(super) proxy: EventLoopProxy<UserEvent>,
+    /// A file picker is open on its own thread; no second one is opened over it.
+    pub(super) dialog_open: bool,
     #[cfg(target_os = "macos")]
     menu: Option<super::menu::NativeMenu>,
     pub(super) ctx: egui::Context,
@@ -37,6 +39,7 @@ impl App {
             movie: Default::default(),
             player: None,
             proxy,
+            dialog_open: false,
             #[cfg(target_os = "macos")]
             menu: None,
             ctx: super::window::new_context(),
@@ -212,6 +215,12 @@ impl ApplicationHandler<UserEvent> for App {
             UserEvent::MovieStarted(Ok(movie)) => self.movies.push(movie),
             #[cfg(feature = "autotest")]
             UserEvent::Autotest(step) => self.autotest_step(event_loop, step),
+            UserEvent::Answer(follow) => {
+                follow(self);
+                if let Some(gpu) = &self.gpu {
+                    gpu.window.request_redraw();
+                }
+            }
             UserEvent::Exported(Ok(())) => {}
             UserEvent::Exported(Err(message)) => self.say_error("dlg-export-failed", &message),
             UserEvent::FontDownloaded(family, result) => {

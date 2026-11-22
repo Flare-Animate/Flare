@@ -118,6 +118,8 @@ impl MenuAction {
             Self::Open => "file-open",
             Self::ImportSound => "sound",
             Self::ImportVideo => "film",
+            Self::ImportImageSequence => "file-import",
+            Self::MovieScripts => "file-open",
             Self::ImportBrushProfiles => "tool-brush",
             Self::ImportToStage | Self::ImportToLibrary => "file-open",
             Self::New => "file-new",
@@ -129,7 +131,7 @@ impl MenuAction {
             Self::ExportImage => "file-export",
             Self::ExportMovie => "test-movie",
             Self::ExportFla => "file-export",
-            Self::ExportSvg => "file-export",
+            Self::ExportSvg | Self::ExportSpriteSheet => "file-export",
             Self::Save | Self::SaveAs => "file-save",
             Self::Undo => "undo",
             Self::Redo => "redo",
@@ -149,8 +151,13 @@ impl MenuAction {
             | Self::WorkspaceSmallScreen => "interface",
             Self::CommandPalette => "search",
             Self::ShowSwatches => "panel-swatches",
-            Self::ShowMannequin => "panel-mannequin",
+            Self::ShowMannequin
+            | Self::ToggleMannequinOnStage
+            | Self::PlaceMannequinUnder
+            | Self::PlaceMannequinOnLayer => "panel-mannequin",
             Self::ShowEffects => "panel-effects",
+            Self::ShowShaders => "panel-shaders",
+            Self::ShowGame => "panel-game",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",
             Self::ToolSubselection => "tool-subselection",

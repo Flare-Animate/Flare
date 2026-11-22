@@ -77,6 +77,11 @@ pub enum MannequinCommand {
         /// there, so each stretch of frames can hold another figure.
         #[arg(long, requires = "layer")]
         new_keyframe: bool,
+        /// A guide to draw over: a locked reference layer at the bottom of the layers, below
+        /// every drawing, shown on the stage and in no export, see-through (change it with
+        /// `flare layer opacity`, hide it with `flare layer hide`).
+        #[arg(long, conflicts_with_all = ["layer", "new_keyframe"])]
+        under: bool,
     },
 }
 
@@ -235,6 +240,7 @@ pub fn run(op: MannequinCommand) -> Result<Value> {
             name,
             layer,
             new_keyframe,
+            under,
         } => {
             let figure = look.build()?;
             let mut session = crate::project::open_session(&path)?;
@@ -256,6 +262,9 @@ pub fn run(op: MannequinCommand) -> Result<Value> {
                 })?;
             let document = session.document();
             let placed = match layer {
+                None if under => flare_tools::mannequin::place_under(
+                    document, scene, frame, &figure, placement, &name,
+                ),
                 None => {
                     flare_tools::mannequin::place(document, scene, frame, &figure, placement, &name)
                 }

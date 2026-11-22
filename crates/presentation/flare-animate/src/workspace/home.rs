@@ -88,7 +88,8 @@ impl Workspace {
     ) -> Result<Document, String> {
         let number = [("n", "1")];
         let layer = Layer::new(LayerId::new(), tr!(self, "name-new-layer", &number), vec![])
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| e.to_string())?
+            .with_hold(true);
         let scene = Scene::new(
             SceneId::new(),
             tr!(self, "name-new-scene", &number),

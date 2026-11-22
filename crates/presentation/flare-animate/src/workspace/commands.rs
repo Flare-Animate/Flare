@@ -1,5 +1,6 @@
 //! Menu actions: whether they apply, what they are called and doing them.
 
+use super::mannequin::PlaceInto;
 use flare_dock::Preset;
 use flare_document::Tween;
 use flare_menubar::MenuAction;
@@ -47,12 +48,13 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
-            MenuAction::ImportBrushProfiles => true,
             // Brought into the scene's document, so not from inside a symbol; one read at a time.
             MenuAction::ImportToStage => {
                 !self.in_symbol() && self.scene_id().is_some() && self.importing_into.is_none()
             }
             MenuAction::ImportToLibrary => !self.in_symbol() && self.importing_into.is_none(),
+            MenuAction::ImportBrushProfiles | MenuAction::MovieScripts => true,
+            MenuAction::ImportImageSequence => !self.in_symbol(),
             // A browser has no ffmpeg to read a movie with.
             MenuAction::ImportVideo => {
                 !cfg!(target_arch = "wasm32")
@@ -71,13 +73,17 @@ impl Workspace {
             MenuAction::ExportImage
             | MenuAction::ExportMovie
             | MenuAction::ExportFla
-            | MenuAction::ExportSvg => !self.document().scenes().is_empty(),
+            | MenuAction::ExportSvg
+            | MenuAction::ExportSpriteSheet => !self.document().scenes().is_empty(),
             MenuAction::Undo => self.active().can_undo(),
             MenuAction::Redo => self.active().can_redo(),
             MenuAction::Paste | MenuAction::PasteInPlace => !self.clipboard.is_empty(),
             MenuAction::SelectAll => self.scene_id().is_some_and(|scene| {
                 !ops::spans_at_frame(self.document(), scene, self.frame).is_empty()
             }),
+            MenuAction::PlaceMannequinUnder | MenuAction::PlaceMannequinOnLayer => {
+                !self.document().scenes().is_empty()
+            }
             MenuAction::Rewind | MenuAction::StepBackward => self.frame > 0,
             MenuAction::GoToEnd => self.frame + 1 < self.scene_frames(),
             MenuAction::StepForward | MenuAction::ActualSize => true,
@@ -185,7 +191,10 @@ impl Workspace {
             | MenuAction::ShowInfo
             | MenuAction::ShowSwatches
             | MenuAction::ShowMannequin
+            | MenuAction::ToggleMannequinOnStage
             | MenuAction::ShowEffects
+            | MenuAction::ShowShaders
+            | MenuAction::ShowGame
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
             | MenuAction::ToggleEditMultipleFrames
@@ -212,6 +221,10 @@ impl Workspace {
             MenuAction::ImportVideo => self.dialog = Some(DialogRequest::ImportVideo),
             MenuAction::ImportToStage => self.dialog = Some(DialogRequest::ImportToStage),
             MenuAction::ImportToLibrary => self.dialog = Some(DialogRequest::ImportToLibrary),
+            MenuAction::ImportImageSequence => {
+                self.dialog = Some(DialogRequest::ImportImageSequence)
+            }
+            MenuAction::MovieScripts => self.dialog = Some(DialogRequest::MovieScripts),
             MenuAction::ImportBrushProfiles => {
                 self.dialog = Some(DialogRequest::ImportBrushProfiles)
             }
@@ -228,6 +241,7 @@ impl Workspace {
             MenuAction::ExportMovie => self.dialog = Some(DialogRequest::ExportMovie),
             MenuAction::ExportFla => self.dialog = Some(DialogRequest::ExportFla),
             MenuAction::ExportSvg => self.dialog = Some(DialogRequest::ExportSvg),
+            MenuAction::ExportSpriteSheet => self.dialog = Some(DialogRequest::ExportSpriteSheet),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
             MenuAction::Quit => self.quit_requested = true,
@@ -404,7 +418,18 @@ impl Workspace {
             MenuAction::ShowInfo => self.show_pane(Pane::Info),
             MenuAction::ShowSwatches => self.show_pane(Pane::Swatches),
             MenuAction::ShowMannequin => self.show_pane(Pane::Mannequin),
+            MenuAction::ToggleMannequinOnStage => {
+                self.mannequin.on_stage = !self.mannequin.on_stage;
+            }
+            MenuAction::PlaceMannequinUnder => {
+                self.place_mannequin_as(PlaceInto::Underlay);
+            }
+            MenuAction::PlaceMannequinOnLayer => {
+                self.place_mannequin_as(PlaceInto::NewLayer);
+            }
             MenuAction::ShowEffects => self.show_pane(Pane::Effects),
+            MenuAction::ShowShaders => self.show_pane(Pane::Shaders),
+            MenuAction::ShowGame => self.show_pane(Pane::Game),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),
             MenuAction::ToggleEditMultipleFrames => {
