@@ -142,7 +142,7 @@ thiserror = "2"
 anyhow = "1"               # Executable boundaries, not public library errors.
 
 # ---- Persistence, compression and content identity --------------------------
-rusqlite = { version = "0.41.1", default-features = false }
+rusqlite = { version = "0.43.0", default-features = false }
 # flare-storage adds bundled/backup/blob/limits/hooks at its dependency site.
 blake3 = "1"
 tempfile = "3"
