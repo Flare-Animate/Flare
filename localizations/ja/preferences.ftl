@@ -17,6 +17,7 @@ prefs-clear-recent = 最近使ったプロジェクトを消去
 prefs-clear-recent-hint = ホームページと「最近使用したファイルを開く」の一覧を消去します。ファイルはそのまま残ります。
 prefs-restore-defaults = 初期設定に戻す
 prefs-theme = テーマ
+prefs-interface-size = インターフェイスのサイズ
 prefs-theme-dark = ダーク
 prefs-theme-light = ライト
 prefs-theme-darkest = 最も暗い

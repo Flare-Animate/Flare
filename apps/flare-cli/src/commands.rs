@@ -53,19 +53,15 @@ pub(crate) enum Command {
     /// Rename the first scene of a project.
     RenameScene { path: PathBuf, name: String },
     /// Add a sound file (WAV, MP3, Ogg Vorbis or FLAC) on a new layer.
-    SoundImport {
-        path: PathBuf,
-        sound: PathBuf,
-        /// Frame at which playback starts (zero based).
-        #[arg(long, default_value_t = 0)]
-        at: u32,
-    },
+    SoundImport(crate::project::SoundImportArgs),
     /// Bring a video in to draw over: its pictures, taken at --fps, one to a frame of the
     /// timeline from --frame, in one Graphic symbol on a new see-through layer at the bottom of
     /// the first scene. Move or scale that instance and every picture follows. Prints what the
     /// import makes (frames, memory, the animation's length at the document's rate) and refuses
     /// one too large for the document, saying what would fit. Needs ffmpeg on the PATH.
     VideoImport(crate::video::VideoImportArgs),
+    /// Bring a Flash movie into a project, as File > Import > Import to Stage or Library.
+    ImportInto(crate::project::ImportIntoArgs),
     /// Key a mouth Graphic to a voice, as Single Frame keyframes of its drawings.
     LipSync(crate::lipsync::LipSyncArgs),
     /// Read another art tool's pen profiles (Photoshop `.abr`, Krita `.kpp` or `.bundle`) and
@@ -131,6 +127,8 @@ pub(crate) enum Command {
         #[arg(long)]
         layer: Option<uuid::Uuid>,
     },
+    /// Draw a shape through the corners given, as the Polygon tool does.
+    DrawPolygon(crate::project::DrawPolygonArgs),
     /// Magic Wand: pick the pixels of a bitmap whose color is like the one at each point (stage
     /// coordinates, in the first scene) and clear them, or with --keep clear all the others.
     MagicWand(crate::magic_wand::MagicWandArgs),

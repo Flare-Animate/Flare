@@ -242,3 +242,22 @@ fn a_narrower_window_narrows_the_stage_and_keeps_the_panels_their_width() {
         "the stage gave up what the window lost"
     );
 }
+
+#[test]
+fn a_timeline_whose_toolbar_wraps_still_shows_its_layers() {
+    // 1113 by 626 points: a 1280 by 720 screen at the default interface size, where the
+    // timeline is too narrow for its toolbar on one row.
+    let size = [1113.0, 626.0];
+    let (ctx, mut ws, mut time) = drawn(size);
+    let texts = pass_at(&mut ws, &ctx, &mut time, size, vec![]);
+    let timeline = tile_rect(&ws, Pane::Timeline);
+    let layer = texts
+        .iter()
+        .find(|(text, _)| text == "Layer 1")
+        .map(|(_, rect)| *rect)
+        .unwrap_or_else(|| panic!("the layer's name is drawn: {texts:?}"));
+    assert!(
+        timeline.contains_rect(layer),
+        "Layer 1 at {layer:?} is inside the timeline at {timeline:?}"
+    );
+}

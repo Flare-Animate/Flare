@@ -17,6 +17,7 @@ prefs-clear-recent = 최근 프로젝트 지우기
 prefs-clear-recent-hint = 홈 페이지와 ‘최근 파일 열기’의 목록을 지웁니다. 파일은 그대로 남아 있습니다.
 prefs-restore-defaults = 기본값 복원
 prefs-theme = 테마
+prefs-interface-size = 인터페이스 크기
 prefs-theme-dark = 어둡게
 prefs-theme-light = 밝게
 prefs-theme-darkest = 가장 어둡게

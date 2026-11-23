@@ -15,10 +15,12 @@ mod bones;
 mod brush_stroke;
 mod camera;
 mod draw;
+mod import_into;
 mod interchange;
 mod magic_wand;
 mod magnet;
 mod multi_frame;
+mod polygon;
 mod render;
 mod sound;
 mod text;
@@ -34,6 +36,7 @@ pub use camera::{CameraMotion, camera};
 #[allow(unused_imports)]
 use draw::*;
 pub use draw::{PlaceArgs, add_layer, add_symbol, draw_rect, eval, place, rename_scene, set_stage};
+pub use import_into::{ImportIntoArgs, import_into};
 #[allow(unused_imports)]
 use interchange::*;
 pub use interchange::{
@@ -44,10 +47,11 @@ pub use interchange::{
 pub use magic_wand::{WandRequest, magic_wand};
 pub use magnet::{MagnetRequest, magnet};
 pub use multi_frame::transform_frames;
+pub use polygon::{DrawPolygonArgs, draw_polygon};
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};
-pub use sound::{sound_import, sound_waveform};
+pub use sound::{SoundImportArgs, sound_import, sound_waveform};
 #[allow(unused_imports)]
 use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};

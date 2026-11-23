@@ -48,6 +48,11 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
+            // Brought into the scene's document, so not from inside a symbol; one read at a time.
+            MenuAction::ImportToStage => {
+                !self.in_symbol() && self.scene_id().is_some() && self.importing_into.is_none()
+            }
+            MenuAction::ImportToLibrary => !self.in_symbol() && self.importing_into.is_none(),
             MenuAction::ImportBrushProfiles | MenuAction::MovieScripts => true,
             MenuAction::ImportImageSequence => !self.in_symbol(),
             // A browser has no ffmpeg to read a movie with.
@@ -136,6 +141,7 @@ impl Workspace {
             | MenuAction::ToolInkBottle
             | MenuAction::ToolEraser
             | MenuAction::ToolPolyStar
+            | MenuAction::ToolPolygon
             | MenuAction::ToolLasso
             | MenuAction::ToolPencil
             | MenuAction::ToolBrush
@@ -214,6 +220,8 @@ impl Workspace {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
             MenuAction::ImportVideo => self.dialog = Some(DialogRequest::ImportVideo),
+            MenuAction::ImportToStage => self.dialog = Some(DialogRequest::ImportToStage),
+            MenuAction::ImportToLibrary => self.dialog = Some(DialogRequest::ImportToLibrary),
             MenuAction::ImportImageSequence => {
                 self.dialog = Some(DialogRequest::ImportImageSequence)
             }
@@ -320,6 +328,7 @@ impl Workspace {
             MenuAction::ToolInkBottle => self.set_tool(Tool::InkBottle),
             MenuAction::ToolEraser => self.set_tool(Tool::Eraser),
             MenuAction::ToolPolyStar => self.set_tool(Tool::PolyStar),
+            MenuAction::ToolPolygon => self.set_tool(Tool::Polygon),
             MenuAction::ToolLasso => self.set_tool(Tool::Lasso),
             MenuAction::ToolPencil => self.set_tool(Tool::Pencil),
             MenuAction::ToolBrush => self.set_tool(Tool::Brush),

@@ -17,6 +17,7 @@ prefs-clear-recent = Vymazat nedávné projekty
 prefs-clear-recent-hint = Zapomene seznam na úvodní stránce a v nabídce Otevřít nedávné. Soubory zůstanou tam, kde jsou.
 prefs-restore-defaults = Obnovit výchozí nastavení
 prefs-theme = Motiv
+prefs-interface-size = Velikost rozhraní
 prefs-theme-dark = Tmavý
 prefs-theme-light = Světlo
 prefs-theme-darkest = Nejtmavší

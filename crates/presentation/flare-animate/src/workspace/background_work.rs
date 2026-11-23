@@ -170,6 +170,10 @@ impl Workspace {
                 }
             }
             Done::Imported { id, path, result } => {
+                if self.importing_into.is_some_and(|(wanted, _)| wanted == id) {
+                    self.finish_import_into(id, &path, result);
+                    return;
+                }
                 if self.importing != Some(id) {
                     return;
                 }

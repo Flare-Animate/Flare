@@ -5,6 +5,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 mod exports;
+mod picked;
 
 use crate::sound::BrowserSound;
 use crate::{files, flare_file, fonts, preferences, ruffle};
@@ -38,6 +39,9 @@ pub struct WebApp {
     picked_references: Rc<RefCell<Vec<Picked>>>,
     /// Pen-profile files picked, kept on the brush list on the next frame.
     picked_brushes: Rc<RefCell<Vec<Picked>>>,
+    /// Flash movies picked to bring into this document: onto the stage, and into the library.
+    picked_to_stage: Rc<RefCell<Vec<Picked>>>,
+    picked_to_library: Rc<RefCell<Vec<Picked>>>,
     /// Flash movies picked for the Movie Scripts window.
     picked_movies: Rc<RefCell<Vec<Picked>>>,
     /// Shader graph files picked, added to the project on the next frame.
@@ -67,6 +71,8 @@ impl WebApp {
             picked_shortcuts: Rc::default(),
             picked_references: Rc::default(),
             picked_brushes: Rc::default(),
+            picked_to_stage: Rc::default(),
+            picked_to_library: Rc::default(),
             picked_movies: Rc::default(),
             picked_shaders: Rc::default(),
             picked_sequences: Rc::default(),
@@ -89,56 +95,7 @@ impl WebApp {
                 wasm_bindgen_futures::spawn_local(async move {
                     if let Some((name, bytes)) = files::pick(
                         "Flare project, Flash, Moho, Toonz, BVH or SVG file",
-                        &[
-                            "flare",
-                            "fla",
-                            "swf",
-                            "xstage",
-                            "moho",
-                            "anime",
-                            "mohoproj",
-                            "animeproj",
-                            "bvh",
-                            "svg",
-                            "jpg",
-                            "jpeg",
-                            "bmp",
-                            "tga",
-                            "psd",
-                            "mp4",
-                            "mov",
-                            "avi",
-                            "mkv",
-                            "webm",
-                            "mpeg",
-                            "mpg",
-                            "flv",
-                            "f4v",
-                            "f4p",
-                            "spl",
-                            "swt",
-                            "swc",
-                            "flp",
-                            "tif",
-                            "tiff",
-                            "webp",
-                            "ico",
-                            "qoi",
-                            "pnm",
-                            "pbm",
-                            "pgm",
-                            "pam",
-                            "hdr",
-                            "exr",
-                            "dds",
-                            "tnz",
-                            "tpl",
-                            "plt",
-                            "pli",
-                            "tlv",
-                            "fc",
-                            "wick",
-                        ],
+                        files::OPEN_EXTENSIONS,
                     )
                     .await
                     {
@@ -289,6 +246,22 @@ impl WebApp {
                     label,
                     flare_import::brushes::PROFILE_EXTENSIONS,
                     flare_import::brushes::MAX_OWNED_BYTES as usize,
+                    None,
+                );
+            }
+            DialogRequest::ImportToStage | DialogRequest::ImportToLibrary => {
+                let inbox = if request == DialogRequest::ImportToStage {
+                    &self.picked_to_stage
+                } else {
+                    &self.picked_to_library
+                };
+                let label = self.workspace.interface_text("dlg-filter-import-into");
+                self.pick_into(
+                    ctx,
+                    inbox,
+                    label,
+                    &flare_animate::IMPORT_INTO_EXTENSIONS,
+                    flare_animate::MAX_IMPORT_INTO_BYTES,
                     None,
                 );
             }
@@ -481,47 +454,7 @@ impl WebApp {
 impl eframe::App for WebApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
-        let picked: Vec<Picked> = self.picked.borrow_mut().drain(..).collect();
-        for file in picked {
-            self.last_name = Some(file.name.clone());
-            if is_flare(&file.name) {
-                self.open_flare(&file.name, &file.bytes);
-            } else {
-                self.workspace.import_project_bytes(&file.name, file.bytes);
-            }
-        }
-        let sounds: Vec<Picked> = self.picked_sounds.borrow_mut().drain(..).collect();
-        for sound in sounds {
-            self.workspace.import_sound_bytes(&sound.name, sound.bytes);
-        }
-        let shortcuts: Vec<Picked> = self.picked_shortcuts.borrow_mut().drain(..).collect();
-        for file in shortcuts {
-            self.workspace.import_animate_shortcuts(&file.bytes);
-        }
-        let references: Vec<Picked> = self.picked_references.borrow_mut().drain(..).collect();
-        for file in references {
-            self.workspace
-                .import_mannequin_reference_bytes(&file.name, file.bytes);
-        }
-        let brushes: Vec<Picked> = self.picked_brushes.borrow_mut().drain(..).collect();
-        for file in brushes {
-            self.workspace
-                .import_brush_profiles(&file.name, &file.bytes);
-        }
-        let shaders: Vec<Picked> = self.picked_shaders.borrow_mut().drain(..).collect();
-        for file in shaders {
-            let name = file.name.strip_suffix(".json").unwrap_or(&file.name);
-            self.workspace.import_shader_graph(name, &file.bytes);
-        }
-        let sequences: Vec<_> = self.picked_sequences.borrow_mut().drain(..).collect();
-        for files in sequences {
-            self.workspace.import_image_sequence(files);
-        }
-        let movies: Vec<Picked> = self.picked_movies.borrow_mut().drain(..).collect();
-        for file in movies {
-            let movie = flare_as3::Movie::read(&file.bytes);
-            self.workspace.show_movie_scripts(file.name, movie);
-        }
+        self.hand_over_picked();
         let messages: Vec<String> = self.messages.borrow_mut().drain(..).collect();
         for message in messages {
             self.workspace.report_message(&message);

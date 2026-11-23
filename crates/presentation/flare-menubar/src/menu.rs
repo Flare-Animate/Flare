@@ -40,6 +40,9 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
             Submenu(
                 "Import",
                 &[
+                    Action(A::ImportToStage),
+                    Action(A::ImportToLibrary),
+                    Separator,
                     Action(A::ImportSound),
                     Action(A::ImportVideo),
                     Action(A::ImportImageSequence),
@@ -328,6 +331,7 @@ pub const OFF_MENU: &[MenuAction] = &[
     A::ToolInkBottle,
     A::ToolEraser,
     A::ToolPolyStar,
+    A::ToolPolygon,
     A::ToolLasso,
     A::ToolPencil,
     A::ToolBrush,

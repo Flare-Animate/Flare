@@ -7,6 +7,16 @@ use std::path::Path;
 
 use super::{commit, open};
 
+/// What `flare sound-import` is asked.
+#[derive(clap::Args)]
+pub struct SoundImportArgs {
+    pub path: std::path::PathBuf,
+    pub sound: std::path::PathBuf,
+    /// Frame at which playback starts (zero based).
+    #[arg(long, default_value_t = 0)]
+    pub at: u32,
+}
+
 /// Adds a sound as a new layer and one cue, in one validated edit.
 pub fn sound_import(path: &Path, sound_path: &Path, at: u32) -> Result<Value> {
     let metadata = std::fs::metadata(sound_path)

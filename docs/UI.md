@@ -148,7 +148,7 @@ On macOS the bar is 28 px high with room at the left for the window's own button
 
 ### Small windows
 
-The desktop window is never smaller than 960 by 600 points (`MIN_WINDOW_SIZE`), the least the workspace is laid out for. When the window changes size the panels keep their width and the stage gives way, as in Animate: a split whose size changed keeps each side that does not hold the stage at its size in points, and the stage's side takes the rest, down to 240 points before the panels give way too (`flare_dock::keep_panel_sizes`, run before the dock is drawn). The tool strip is never narrower than one tool. The timeline's toolbar takes a second row when the timeline is too narrow for it, rather than losing its last buttons, and the status bar's message is cut short rather than run under the document's facts. `workspace/tests/narrow_window.rs` draws the workspace at the smallest size and at usual ones and checks that nothing is cut off at the window's edge or past the end of a bar.
+The desktop window is never smaller than 960 by 600 points (`MIN_WINDOW_SIZE`), the least the workspace is laid out for. When the window changes size the panels keep their width and the stage gives way, as in Animate: a split whose size changed keeps each side that does not hold the stage at its size in points, and the stage's side takes the rest, down to 240 points before the panels give way too (`flare_dock::keep_panel_sizes`, run before the dock is drawn). The tool strip is never narrower than one tool. The timeline starts at about a quarter of the height under the top bar, as Animate's does (`flare_dock::TIMELINE_SHARE`, 0.26), and is never shorter than 170 points (`MIN_TIMELINE`): its tabs, its toolbar on two rows, the ruler and three layers. The timeline's toolbar takes a second row when the timeline is too narrow for it, rather than losing its last buttons; its dividers are one row tall and its controls are not grouped, so a wrapped row cannot push the ruler and layers out of sight, and the status bar's message is cut short rather than run under the document's facts. `workspace/tests/narrow_window.rs` draws the workspace at the smallest size and at usual ones and checks that nothing is cut off at the window's edge or past the end of a bar.
 
 ## Screen readers
 
@@ -462,7 +462,7 @@ categories: Selection, Free Transform, Lasso; Pencil, Brush, Eraser, Rectangle, 
 Paint Bucket, Eyedropper, Asset Warp; Hand, Zoom and the "…" button. As in Animate a cell is a slot
 that holds related tools and shows the one in use, with a small triangle in its corner: Selection
 holds Subselection and the Magnet (see The Magnet below), Free Transform holds Gradient Transform, Lasso holds Polygon (click the corners of a loop; a double click, Enter or a click on the first corner closes it and selects what it encloses) and Magic Wand (see Magic Wand above),
-Rectangle holds Oval, Rectangle Primitive, Oval Primitive and PolyStar, Pen holds Add, Delete and
+Rectangle holds Oval, Rectangle Primitive, Oval Primitive, PolyStar and Polygon (click each corner of an outline; a double click, Enter or a click on the first corner closes it into one shape in the fill and stroke in hand, and Escape drops it), Pen holds Add, Delete and
 Convert Anchor Point, Pencil holds Paint Brush, Brush holds the Raster Brush (see Raster Brush above), Paint Bucket holds Ink Bottle, and Hand holds Rotation and Time scrub. Press and hold a
 slot, or right-click it, to open its list; picking a tool from the list makes it the one the cell
 shows, and keys that pick a tool (A for Subselection, O for Oval) change what its cell shows too.
@@ -574,6 +574,17 @@ content 10 px from the sides and 8 px from the top and bottom (`theme::PANEL_PAD
 between panels and around the dock is 3 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
 8 by 3 px of padding inside buttons and 22 px rows. These are set in one place, `theme::apply`.
 
+All of these are the design size. The interface is drawn larger than that by default, at 115%,
+since at its design size it read as small beside Animate's. Preferences > General > Interface size
+offers 90%, 100%, 115%, 125%, 150%, 175% and 200%, kept with the preferences (`interface_size`, a
+factor brought into 0.75 to 2 when read). It is applied as egui's zoom (`flare_ui::scale`), so every
+panel, row, icon and text grows together and nothing is sized twice. A size above 100% is lowered
+as far as it has to be for the window to keep the workspace's smallest layout
+(`MIN_WINDOW_SIZE`, 960 by 600 points), but never below 100% for that reason, so a small window
+is not cut off. On macOS the integrated top bar keeps the title bar's height on the screen
+(28 points, at least 24 at the interface's size) and the window buttons' width, which the system
+draws at a fixed size. The stage's zoom is separate and unchanged by this.
+
 ## Eraser
 
 The **Eraser** (E) rubs out what it is dragged over as it goes: fills lose the area it covered and
@@ -595,7 +606,7 @@ Brush. Symbols, bitmaps and text are left whole.
 
 ## Ruler and Mirror
 
-Everything drawn goes into the **active layer**, as in Animate: a new shape (Rectangle, Oval, Line, PolyStar, Pencil, Brush, Pen, Text) joins the keyframe of that layer at the playhead as one more element, drawn above the others; on a frame with no keyframe a new one starts there and lasts to the end of the scene (one frame when the layer is alone and the scene is empty) or to the layer's next keyframe, and the layer's keyframe before it is held up to it, so the empty frames between show that drawing rather than nothing; a document with no layers gets "Layer 1" first. Starting to draw (Pencil, Brush, Rectangle, Oval, Line, PolyStar) lets go of the selection, so its box is not left over the new stroke. Locked, hidden, folder, mask, guide and camera layers, and a keyframe that tweens or holds a camera, refuse a drawing and say why in the status line. A click picks one element (a stroke is picked within a few units of its path, so a hairline pencil or line is not missed; a click that lands on nothing picks the line or shape edge nearest the pointer within 8 screen pixels at any zoom, so a rough sketch's thin lines can be picked without hitting one exactly), Select All and the lasso pick every element (the lasso takes a stroke when any part of its path is inside the loop), and Move, Delete, Duplicate, Group, Convert to Symbol and the Align panel act on the elements picked. Modify > Arrange (Bring to Front, Bring Forward, Send Backward, Send to Back) and the Align panel's Bring to Front and Send to Back move an element up or down among the others of its keyframe, and a keyframe that holds only that element takes its layer to the top or bottom of the layers, as before. Every tool that draws shows **Object Drawing (J)** in its options, ticked and dimmed with the note that Merge Drawing is not built yet: until it is, every shape is a separate drawing object and shapes on a layer do not cut each other.
+Everything drawn goes into the **active layer**, as in Animate: a new shape (Rectangle, Oval, Line, PolyStar, Polygon, Pencil, Brush, Pen, Text) joins the keyframe of that layer at the playhead as one more element, drawn above the others; on a frame with no keyframe a new one starts there and lasts to the end of the scene (one frame when the layer is alone and the scene is empty) or to the layer's next keyframe, and the layer's keyframe before it is held up to it, so the empty frames between show that drawing rather than nothing; a document with no layers gets "Layer 1" first. Starting to draw (Pencil, Brush, Rectangle, Oval, Line, PolyStar) lets go of the selection, so its box is not left over the new stroke. Locked, hidden, folder, mask, guide and camera layers, and a keyframe that tweens or holds a camera, refuse a drawing and say why in the status line. A click picks one element (a stroke is picked within a few units of its path, so a hairline pencil or line is not missed; a click that lands on nothing picks the line or shape edge nearest the pointer within 8 screen pixels at any zoom, so a rough sketch's thin lines can be picked without hitting one exactly), Select All and the lasso pick every element (the lasso takes a stroke when any part of its path is inside the loop), and Move, Delete, Duplicate, Group, Convert to Symbol and the Align panel act on the elements picked. Modify > Arrange (Bring to Front, Bring Forward, Send Backward, Send to Back) and the Align panel's Bring to Front and Send to Back move an element up or down among the others of its keyframe, and a keyframe that holds only that element takes its layer to the top or bottom of the layers, as before. Every tool that draws shows **Object Drawing (J)** in its options, ticked and dimmed with the note that Merge Drawing is not built yet: until it is, every shape is a separate drawing object and shapes on a layer do not cut each other.
 
 The **Ruler** tool (M) measures: drag between two points and the stage shows the distance, the
 angle (counter-clockwise from the right, up positive) and the offsets. The reading stays until the
@@ -774,6 +785,15 @@ accent colour; a click goes there). `flare frames` and `flare goto`, and the MCP
 server remembers the frame it went to, and `draw_rect` draws there when it is given no start.
 
 ## Import Video
+
+File > Import > Import to Stage and Import to Library bring a Flash movie (or a `.fla`) into the
+open document instead of opening it on its own. The file is read on a worker; its library comes
+along (a symbol whose name is taken here is renamed, `Ball 2`; a picture the document already has
+is shared), and its main timeline becomes a Graphic symbol named after the file. Import to Stage
+also puts that symbol on a new layer at the top, from the playhead, so the movie plays frame for
+frame with the scene and sits where it was on its own stage; Import to Library only adds it. It is
+one undo step, and what was left out (other scenes, the camera, a different frame rate, sounds not
+placed) goes to the Output panel (`flare_editor::import_into`). Both are dimmed inside a symbol.
 
 File > Import > Import Video brings a movie in to draw over, as Animate's embedded video plays
 along the timeline. After the file is picked, ffprobe is asked what it is (on the video worker,

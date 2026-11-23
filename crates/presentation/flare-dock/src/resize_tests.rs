@@ -154,3 +154,46 @@ fn the_side_with_the_stage_takes_what_the_others_leave() {
     let lengths = lengths_for(&[20.0, 900.0, 300.0], &[36.0, 0.0, 0.0], Some(1), 1000.0);
     assert_eq!(lengths, vec![36.0, 664.0, 300.0]);
 }
+
+fn height_of(tree: &Tree<Pane>, pane: Pane) -> f32 {
+    let tile = find(tree, pane).expect("docked");
+    tree.tiles.rect(tile).expect("drawn").height()
+}
+
+/// Draws `tree` in a window 1280 across and `height` down, keeping the panels' sizes.
+fn draw_tall(tree: &mut Tree<Pane>, ctx: &egui::Context, height: f32) {
+    let input = egui::RawInput {
+        screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1280.0, height))),
+        ..Default::default()
+    };
+    let mut output = ctx.run_ui(input, |ui| {
+        keep_panel_sizes(tree, ui.available_rect_before_wrap(), GAP);
+        tree.ui(&mut Blank, ui);
+    });
+    output.textures_delta.clear();
+}
+
+#[test]
+fn a_short_window_keeps_the_timeline_tall_enough_for_some_layers() {
+    let (ctx, mut tree) = (egui::Context::default(), default_layout().tree);
+    // Its share of a short window is less than the least it keeps; the next draw makes it that.
+    draw_tall(&mut tree, &ctx, 540.0);
+    assert!(height_of(&tree, Pane::Timeline) < MIN_TIMELINE);
+    draw_tall(&mut tree, &ctx, 540.0);
+    let timeline = find(&tree, Pane::Timeline).expect("docked");
+    let stack = tree.tiles.parent_of(timeline).expect("stack");
+    let stack = tree.tiles.rect(stack).expect("drawn").height();
+    assert!(
+        (stack - MIN_TIMELINE).abs() < 1.0,
+        "the timeline is {stack} tall"
+    );
+    assert!(height_of(&tree, Pane::Stage) >= MIN_STAGE_SIDE);
+    // A tall window gives the stage the room, and the timeline keeps its height.
+    draw_tall(&mut tree, &ctx, 1000.0);
+    let stack = tree.tiles.parent_of(timeline).expect("stack");
+    let stack = tree.tiles.rect(stack).expect("drawn").height();
+    assert!(
+        (stack - MIN_TIMELINE).abs() < 1.0,
+        "the timeline is {stack} tall"
+    );
+}

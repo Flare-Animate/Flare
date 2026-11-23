@@ -236,17 +236,7 @@ impl Workspace {
                 ));
             }
         }
-        if self.tool == Tool::PolygonLasso {
-            let additive = ui.input(|i| i.modifiers.shift);
-            if response.double_clicked() {
-                self.polygon_lasso_finish(additive);
-            } else if response.clicked()
-                && let Some(p) = response.interact_pointer_pos()
-            {
-                self.polygon_lasso_click(to_doc(p), scale, additive);
-            }
-            self.draw_polygon_lasso(painter, to_screen);
-        }
+        self.corner_tools(ui, &response, scale, to_doc, to_screen, painter);
         if self.tool == Tool::MagicWand {
             if response.clicked()
                 && let Some(p) = response.interact_pointer_pos()

@@ -17,6 +17,7 @@ prefs-clear-recent = Borrar proyectos recientes
 prefs-clear-recent-hint = Borra la lista de la página de inicio y de Abrir reciente. Los archivos no se tocan.
 prefs-restore-defaults = Restaurar valores predeterminados
 prefs-theme = Tema
+prefs-interface-size = Tamaño de la interfaz
 prefs-theme-dark = Oscuro
 prefs-theme-light = Claro
 prefs-theme-darkest = Muy oscuro

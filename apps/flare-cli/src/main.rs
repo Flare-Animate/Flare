@@ -102,7 +102,7 @@ fn run() -> Result<()> {
             project::new(&path, numerator, denominator, stage)?
         }
         Command::RenameScene { path, name } => project::rename_scene(&path, &name)?,
-        Command::SoundImport { path, sound, at } => project::sound_import(&path, &sound, at)?,
+        Command::SoundImport(args) => project::sound_import(&args.path, &args.sound, args.at)?,
         Command::SoundWaveform { path, sound } => project::sound_waveform(&path, sound.as_deref())?,
         Command::SetStage {
             path,
@@ -139,6 +139,7 @@ fn run() -> Result<()> {
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(*op)?,
         Command::VideoImport(args) => video::run(args)?,
+        Command::ImportInto(args) => project::import_into(args)?,
         Command::LipSync(args) => lipsync::run(args)?,
         Command::BrushImport(args) => brush::run(args)?,
         Command::Shader { op } => shader::run(op)?,
@@ -280,6 +281,7 @@ fn run() -> Result<()> {
             duration,
             layer,
         )?,
+        Command::DrawPolygon(args) => project::draw_polygon(args)?,
         Command::MagicWand(args) => magic_wand::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
         Command::Brush(args) => project::brush_strokes(&args)?,

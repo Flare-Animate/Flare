@@ -154,6 +154,14 @@ impl App {
                     |app, path| app.workspace.import_mannequin_reference(&path),
                 );
             }
+            DialogRequest::ImportToStage | DialogRequest::ImportToLibrary => {
+                let filter = text(self, "dlg-filter-import-into");
+                let to_stage = request == DialogRequest::ImportToStage;
+                self.ask(
+                    move || dialogs::pick_image(&filter, &flare_animate::IMPORT_INTO_EXTENSIONS),
+                    move |app, path| app.workspace.import_into_document(&path, to_stage),
+                );
+            }
             DialogRequest::ImportBrushProfiles => {
                 let filter = text(self, "dlg-filter-brushes");
                 self.ask(

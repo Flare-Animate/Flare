@@ -320,3 +320,18 @@ fn a_layout_saved_before_a_panel_existed_opens_with_it_at_the_end_of_the_strip()
     arrange::remove(&mut no_stage.tree, Pane::Stage);
     assert!(from_json(&to_json(&no_stage).expect("json")).is_err());
 }
+
+#[test]
+fn the_timeline_starts_about_a_quarter_of_the_height_as_animates_does() {
+    let tree = default_layout().tree;
+    let id_of = |wanted: Pane| find(&tree, wanted).expect("pane");
+    let stage = id_of(Pane::Stage);
+    let timeline_stack = tree.tiles.parent_of(id_of(Pane::Timeline)).expect("stack");
+    let column = tree.tiles.parent_of(stage).expect("column");
+    let Some(Tile::Container(Container::Linear(column))) = tree.tiles.get(column) else {
+        panic!("the stage and timeline are a column");
+    };
+    let (timeline, stage) = (column.shares[timeline_stack], column.shares[stage]);
+    let part = timeline / (timeline + stage);
+    assert!((0.24..=0.28).contains(&part), "the timeline's part: {part}");
+}
