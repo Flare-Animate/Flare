@@ -245,7 +245,7 @@ impl Workspace {
             MenuAction::ExportSpriteSheet => self.dialog = Some(DialogRequest::ExportSpriteSheet),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
-            MenuAction::Quit => self.quit_requested = true,
+            MenuAction::Quit => self.request_quit(),
             MenuAction::Undo => self.undo(),
             MenuAction::Redo => self.redo(),
             MenuAction::Delete => {

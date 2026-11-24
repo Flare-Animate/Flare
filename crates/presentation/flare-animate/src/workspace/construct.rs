@@ -99,6 +99,7 @@ impl Workspace {
             tab_plus: egui::Rect::NOTHING,
             close_prompt: None,
             close_after_save: false,
+            awaiting_save_as: false,
             panels: rail::Panels::default(),
             onion: OnionSkin {
                 before: 1,

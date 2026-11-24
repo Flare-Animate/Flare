@@ -39,6 +39,9 @@ impl Workspace {
         self.pen_feed = from.pen_feed.clone();
         self.window_controls = from.window_controls;
         self.window_maximized = from.window_maximized;
+        // A quit is the app's, not a document's: it goes on while the documents it asks about
+        // come and go, and is taken so that a tab put away cannot bring it back later.
+        self.quit_requested = std::mem::take(&mut from.quit_requested);
         self.recovery.dir = from.recovery.dir.take();
         self.apply_preferences(&from.preferences());
         self.panels = std::mem::take(&mut from.panels);
@@ -228,8 +231,18 @@ impl Workspace {
     pub fn save(&mut self) {
         match self.path.clone() {
             Some(path) => self.submit_save(path),
-            None => self.dialog = Some(DialogRequest::SaveAs),
+            None => {
+                // A close that waits for this save waits for the picker's answer too.
+                self.awaiting_save_as = self.close_after_save;
+                self.dialog = Some(DialogRequest::SaveAs);
+            }
         }
+    }
+
+    /// The Save As picker has closed, with whatever save it led to already handed over. The
+    /// shell calls this whether a place was chosen or not.
+    pub fn end_save_as(&mut self) {
+        self.awaiting_save_as = false;
     }
 
     /// Saves to `path`. Its extension decides the format (`.fla`, `.xfl` or `.flare`, in any case);

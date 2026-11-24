@@ -91,6 +91,7 @@ mod properties_context;
 mod properties_tabs;
 mod publish_popup;
 mod publish_settings;
+mod quit;
 mod rail;
 mod release_frame;
 mod rendering_and_workers;

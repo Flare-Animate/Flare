@@ -74,9 +74,3 @@ pub fn message(title: &str, text: &str) {
 pub fn startup_failed_in(title: &str, text: &str) {
     eprintln!("{title}: {text}");
 }
-
-/// Nothing is discarded without an answer: the person closes the app through the system, and
-/// the recovery files (which a phone keeps, under its own data directory) are the last resort.
-pub fn confirm_discard(_title: &str, _question: &str) -> bool {
-    false
-}

@@ -17,7 +17,10 @@ goes and what a change bought, not what any other machine will do.
    these too: it blocks until the person answers, so the desktop app runs it on a thread of its
    own (`flare_platform::jobs::ask`) and the answer comes back through the event loop. Opened
    on the UI thread, the window stopped painting and on some desktops the picker stayed blank
-   until it was touched.
+   until it was touched. A question the person must answer before anything else (unsaved work
+   on quit) is a `flare_ui::dialog` box in the window, never a system message box: one opened
+   from the window's event handling held that handling until it was answered, and on Windows it
+   could open behind the frameless window, which then stopped responding with no way to reach it.
 3. **Share, do not copy.** Documents are immutable snapshots made of shared parts (`Arc`
    shapes, spans, names, layer lists). An edit copies the part it changes. Take a snapshot
    with `EditorSession::snapshot` to give work to another thread.

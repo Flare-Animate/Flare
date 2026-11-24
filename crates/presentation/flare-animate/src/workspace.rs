@@ -276,6 +276,8 @@ pub struct Workspace {
     frame_menu_open: bool,
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
+    /// Quit was asked for and is under way: every document with unsaved work is asked about in
+    /// turn, in the window, before the app may close. Cancel on any of them ends it.
     quit_requested: bool,
     /// Where the new-document button of the tab strip was drawn last.
     tab_plus: egui::Rect,
@@ -283,6 +285,8 @@ pub struct Workspace {
     close_prompt: Option<usize>,
     /// The document on show is closed once the save asked for by the prompt has been written.
     close_after_save: bool,
+    /// The save the prompt asked for is waiting on the Save As picker, which the shell shows.
+    awaiting_save_as: bool,
     /// The panel arrangement, the panel open beside the strip, and changes asked for while drawn.
     panels: rail::Panels,
     onion: OnionSkin,
