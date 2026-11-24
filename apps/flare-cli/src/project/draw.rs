@@ -5,7 +5,7 @@ use flare_commands::Command;
 use flare_core::{InstanceId, LayerId, Rgba8, SceneId, SymbolId};
 use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Timeline, Tween};
 use flare_history::EditorSession;
-use flare_tools::ops::{self, Target};
+use flare_tools::ops;
 use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
@@ -31,58 +31,6 @@ pub fn add_symbol(
     session.apply(commands)?;
     commit(&session, path)?;
     Ok(json!({ "symbol": id.as_uuid() }))
-}
-
-/// Draws a filled rectangle into a layer of the first scene, as the desktop app does: it joins the
-/// layer's keyframe at `start` as one more element, or starts a keyframe of `duration` frames
-/// there. The layer is the one named, else the topmost that is not a folder or the camera; a
-/// document with none gets "Layer 1". A locked, hidden, folder, mask, guide or camera layer, or a
-/// keyframe that tweens, is refused.
-pub fn draw_rect(
-    path: &Path,
-    rect: [f64; 4],
-    style: RectStyle,
-    start: u32,
-    duration: u32,
-    layer: Option<Uuid>,
-) -> Result<Value> {
-    let mut session = open(path)?;
-    let scene = session
-        .document()
-        .scenes()
-        .first()
-        .context("document has no scene")?
-        .id();
-    let duration = NonZeroU32::new(duration).context("duration must be at least 1")?;
-    let Content::Shape(shape) = rect_content(rect, style)? else {
-        bail!("a rectangle is a shape");
-    };
-    let target = match layer {
-        Some(id) => Target::Layer(
-            session.document().scenes()[0]
-                .timeline()
-                .layers()
-                .iter()
-                .find(|candidate| *candidate.id().as_uuid() == id)
-                .with_context(|| format!("no layer {id} in the first scene"))?
-                .id(),
-        ),
-        None => Target::Default,
-    };
-    let plan = ops::draw_shapes(
-        session.document(),
-        scene,
-        target,
-        start,
-        Some(duration),
-        vec![shape],
-        "Layer 1",
-    )
-    .context("cannot draw")?;
-    let element = plan.placed.first().map_or(0, |at| at.element);
-    session.apply(plan.commands)?;
-    commit(&session, path)?;
-    Ok(json!({ "drawn": true, "layer": plan.layer.as_uuid(), "element": element }))
 }
 
 /// The first scene and the requested layer (default: its first layer that is not the camera).

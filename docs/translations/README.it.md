@@ -124,7 +124,7 @@ Flare è nato come un terreno di gioco per rendere l'animazione più facile da i
 
 Le cose successive, dalla più importante. La maggior parte è mostrata in tono attenuato nell'interfaccia. [docs/ROADMAP.md](../ROADMAP.md) ripete questo elenco e prosegue con tutto ciò che ha priorità minore.
 
-- Unione dei disegni: le forme a mappa planare di Flash, in cui le forme sovrapposte si tagliano e si fondono a vicenda (oggi le forme sono oggetti separati)
+- Unione dei disegni: le forme a mappa planare di Flash, in cui le forme sovrapposte si tagliano e si fondono a vicenda (con il disegno a oggetti disattivato, le forme si tagliano e si uniscono già; il prossimo passo sono i bordi condivisi che si piegano insieme)
 - Qualità del disegno: dinamica del pennello e tracciamento di una bitmap in forme vettoriali
 - SWF che conserva più del documento: pulsanti con i loro stati, interpolazioni di forma come morph, maschere di più forme e suoni dentro i simboli
 - Un Editor del movimento: grafici per proprietà e curve di accelerazione personalizzate per le interpolazioni

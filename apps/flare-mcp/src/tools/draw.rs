@@ -17,7 +17,7 @@ use crate::server::{FlareServer, Outcome};
 #[tool_router(router = draw_tools, vis = "pub(super)")]
 impl FlareServer {
     #[tool(
-        description = "Draw a filled rectangle into a layer of the first scene, as the desktop app does: it joins the layer's keyframe at `start` as one more element, or starts a keyframe of `duration` frames there. The layer is the one given, else the topmost that is not a folder or the camera; a project with none gets \"Layer 1\". Locked, hidden, folder, mask, guide and camera layers, and keyframes that tween, are refused (needs write access)."
+        description = "Draw a filled rectangle into a layer of the first scene, as the desktop app does: it joins the layer's keyframe at `start` as one more element, or starts a keyframe of `duration` frames there. The layer is the one given, else the topmost that is not a folder or the camera; a project with none gets \"Layer 1\". With `merge` it is Merge Drawing (Object Drawing off): it cuts away the layer's merged drawing it covers, joins a merged fill of the same colour it overlaps, and its fill and outline are two elements; `elements` lists where its pieces went. Locked, hidden, folder, mask, guide and camera layers, and keyframes that tween, are refused (needs write access)."
     )]
     fn draw_rect(&self, Parameters(args): Parameters<DrawRect>) -> Outcome {
         self.write(args.expected_revision, |state| {
@@ -32,14 +32,15 @@ impl FlareServer {
                 target,
                 args.start.unwrap_or(state.playhead),
                 Some(duration(args.duration)?),
-                vec![args.shape()?],
+                vec![args.shape()?.merged(args.merge.unwrap_or(false))],
                 "Layer 1",
             )
             .map_err(|e| format!("cannot draw: {e}"))?;
-            let element = plan.placed.first().map_or(0, |at| at.element);
+            let elements: Vec<usize> = plan.placed.iter().map(|at| at.element).collect();
             let mut out = apply(state, plan.commands)?;
             out["layer"] = json!(plan.layer.as_uuid());
-            out["element"] = json!(element);
+            out["element"] = json!(elements.first().copied().unwrap_or(0));
+            out["elements"] = json!(elements);
             Ok(out)
         })
     }

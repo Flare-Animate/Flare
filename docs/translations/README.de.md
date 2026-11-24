@@ -124,7 +124,7 @@ Flare begann als Spielwiese, um Animation leichter lernbar zu machen, wurde spä
 
 Die nächsten Punkte, das Wichtigste zuerst. Vieles davon ist in der Oberfläche abgeblendet zu sehen. [docs/ROADMAP.md](../ROADMAP.md) wiederholt diese Liste und behandelt danach alles mit geringerer Priorität.
 
-- Zusammenführen beim Zeichnen: Flash-Planarkarten, bei denen sich überlappende Formen gegenseitig schneiden und verschmelzen (heute sind Formen getrennte Objekte)
+- Zusammenführen beim Zeichnen: Flash-Planarkarten, bei denen sich überlappende Formen gegenseitig schneiden und verschmelzen (mit ausgeschalteter Objektzeichnung schneiden und verbinden sich Formen schon; als Nächstes kommen gemeinsame Kanten, die sich zusammen biegen)
 - Zeichenqualität: Pinseldynamik und das Nachzeichnen einer Pixelgrafik zu Vektorformen
 - SWF, das mehr vom Dokument erhält: Schaltflächen mit ihren Zuständen, Formtweens als Morphs, Masken aus mehreren Formen und Töne in Symbolen
 - Ein Motion Editor: Graphen je Eigenschaft und eigene Ease-Kurven für Tweens

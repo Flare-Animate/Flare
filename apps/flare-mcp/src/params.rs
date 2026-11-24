@@ -51,6 +51,9 @@ pub struct DrawRect {
     /// Layer id; defaults to the topmost layer that is not a folder or the camera. If a keyframe
     /// of the layer covers `start` the rectangle joins it and `duration` is not used.
     pub layer: Option<String>,
+    /// Merge Drawing (Object Drawing off): cut and join the layer's merged drawing, fill and
+    /// outline as two elements. Defaults to false, a drawing object.
+    pub merge: Option<bool>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
@@ -73,6 +76,8 @@ pub struct DrawPolygon {
     pub duration: Option<u32>,
     /// Layer id; defaults to the topmost layer that is not a folder or the camera.
     pub layer: Option<String>,
+    /// Merge Drawing, as for `draw_rect`. Defaults to false, a drawing object.
+    pub merge: Option<bool>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }

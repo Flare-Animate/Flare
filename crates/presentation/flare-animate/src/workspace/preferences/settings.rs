@@ -52,6 +52,9 @@ pub struct Preferences {
     /// The strands and grain of the brush in hand.
     pub brush_bristles: u8,
     pub brush_grain: f32,
+    /// Object Drawing on the drawing tools; off is Merge Drawing. Files from before it read as
+    /// on, which is how everything was drawn then.
+    pub object_drawing: bool,
     /// Whether the Pencil follows a pen's pressure, and its lightest touch.
     pub pencil_pressure: bool,
     pub pencil_light: f32,
@@ -133,6 +136,7 @@ impl Default for Preferences {
             brush_taper_end: 0.0,
             brush_bristles: 0,
             brush_grain: 0.0,
+            object_drawing: true,
             pencil_pressure: true,
             pencil_light: flare_tools::pencil::DEFAULT_PENCIL_LIGHT,
             brush_builtin_profile: None,

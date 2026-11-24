@@ -104,6 +104,10 @@ pub struct Shape {
     stroke: Option<Stroke>,
     /// For text: the words and font the path was made from. The path is a copy of them.
     text: Option<Arc<TextSource>>,
+    /// Part of the layer's merged drawing (Animate's Merge Drawing), which later shapes drawn
+    /// that way cut and join, rather than a drawing object of its own. Off for everything made
+    /// before Merge Drawing existed.
+    merged: bool,
 }
 
 impl Shape {
@@ -136,7 +140,20 @@ impl Shape {
             gradient: None,
             stroke: None,
             text: None,
+            merged: false,
         })
+    }
+
+    /// This shape as part of the layer's merged drawing, or as a drawing object of its own.
+    #[must_use]
+    pub fn merged(mut self, merged: bool) -> Self {
+        self.merged = merged;
+        self
+    }
+
+    /// Whether this shape is part of the layer's merged drawing, not a drawing object.
+    pub fn is_merged(&self) -> bool {
+        self.merged
     }
 
     /// Adds an outline. A transparent fill with a stroke gives an outline-only shape.
@@ -162,11 +179,13 @@ impl Shape {
         self
     }
 
-    /// Carries `other`'s stroke and gradient over to this shape (a rebuilt or copied one).
+    /// Carries `other`'s stroke and gradient over to this shape (a rebuilt or copied one), and
+    /// whether it is merged drawing, which a move or an edit does not change.
     #[must_use]
     pub fn painted_like(mut self, other: &Shape) -> Self {
         self.stroke = other.stroke;
         self.gradient = other.gradient;
+        self.merged = other.merged;
         self
     }
 

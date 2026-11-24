@@ -120,13 +120,15 @@ pub struct LayPlan {
     pub skipped: Vec<usize>,
 }
 
-/// Where the strokes go: the scene, the layer, the frame and, for a new keyframe, its length.
+/// Where the strokes go: the scene, the layer, the frame and, for a new keyframe, its length;
+/// and whether they are merged drawing (Object Drawing off) or drawing objects.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Placement {
     pub scene: SceneId,
     pub target: Target,
     pub frame: u32,
     pub duration: Option<NonZeroU32>,
+    pub merge: bool,
 }
 
 /// The commands that lay `strokes` with `brush` and `paint` at `placement`, as one batch and so
@@ -164,7 +166,7 @@ pub fn lay_strokes(
     for (index, stroke) in strokes.iter().enumerate() {
         let samples = steady(stroke, paint.stabilizer);
         match stroke_shape(brush, &samples, paint.color, paint.flow, paint.tolerance) {
-            Ok(Some(shape)) => shapes.push(shape),
+            Ok(Some(shape)) => shapes.push(shape.merged(placement.merge)),
             Ok(None) => skipped.push(index),
             Err(error) => return Err(LayRefusal::Shape { index, error }),
         }

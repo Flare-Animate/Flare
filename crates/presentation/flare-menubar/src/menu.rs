@@ -338,6 +338,8 @@ pub const OFF_MENU: &[MenuAction] = &[
     A::ToolRuler,
     A::ToolMirror,
     A::ToolMagnet,
+    // A switch in the drawing tools' options, as in Animate, with its letter.
+    A::ToggleObjectDrawing,
     A::ShowHome,
 ];
 

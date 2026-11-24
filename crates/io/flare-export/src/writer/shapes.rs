@@ -109,7 +109,12 @@ pub(super) fn write_shape(
         });
         return;
     }
-    out.open("DOMShape", []);
+    // Animate marks a drawing object; a shape without the mark is its merged drawing.
+    if shape.is_merged() {
+        out.open("DOMShape", []);
+    } else {
+        out.open("DOMShape", [a("isDrawingObject", "true")]);
+    }
     if has_fill {
         out.open("fills", []);
         out.open("FillStyle", [a("index", 1)]);

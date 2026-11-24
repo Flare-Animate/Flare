@@ -131,7 +131,7 @@ I had been slowly just experimenting with Flare with minimal focus over the prev
 
 The next things, most important first. Most of it is shown dimmed in the interface. [docs/ROADMAP.md](docs/ROADMAP.md) repeats this list and goes on to everything of lower priority.
 
-- Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
+- Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (with Object Drawing off, shapes already cut and join each other; edges that bend together are next)
 - Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
 - A Motion Editor: per-property graphs and custom ease curves for tweens

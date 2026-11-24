@@ -143,6 +143,9 @@ pub enum MenuAction {
     ToggleSnap,
     ToggleLoop,
     ToggleMute,
+    /// Object Drawing on the drawing tools: on, each shape is a drawing object of its own; off,
+    /// Merge Drawing, where shapes on a layer cut and join each other.
+    ToggleObjectDrawing,
     TestMovie,
     ZoomIn,
     ZoomOut,
@@ -206,7 +209,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 155] = [
+    pub const ALL: [MenuAction; 156] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -312,6 +315,7 @@ impl MenuAction {
         Self::ToggleSnap,
         Self::ToggleLoop,
         Self::ToggleMute,
+        Self::ToggleObjectDrawing,
         Self::TestMovie,
         Self::ZoomIn,
         Self::ZoomOut,

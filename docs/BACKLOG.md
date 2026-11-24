@@ -192,7 +192,7 @@ found), **Not planned** (ROADMAP or PARITY says so).
 
 | Feature | Found in | Status on main | Evidence |
 |---|---|---|---|
-| Merge drawing (planar map, shapes cut and merge) | AnimationCraft | Gap | ROADMAP high priority; only a drawing-mode switch in `flare-animate` `panels/drawing_mode.rs` |
+| Merge drawing (planar map, shapes cut and merge) | AnimationCraft | Partly | Cutting and joining with Object Drawing off (`flare_tools::drawing::merge_into`); shared edges and Combine Objects remain (ROADMAP high priority) |
 | Motion Editor and custom eases | AnimationCraft (`motion.rs`, `tween_edit.rs`), minnamate motion tweens | Partial | Segment editor built (`flare_tween::edit`, Motion Editor panel); per-property graphs left (ROADMAP, SURFACES) |
 | Bones and inverse kinematics | AnimationCraft (`rig.rs`, `ik.rs`), OpenToonz skeleton | Partial | `flare-rig` has bones, keyed poses, forward kinematics and bounded two-bone/CCD IK; weighted meshes, constraints and master controllers are still open (ROADMAP, SURFACES) |
 | Trace Bitmap, centerline | AnimationCraft (`trace.rs`, `centerline.rs`) | Gap | only a stub in `flare-tools/src/not_yet.rs` |

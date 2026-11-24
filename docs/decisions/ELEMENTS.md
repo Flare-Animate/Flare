@@ -1,6 +1,6 @@
 # Decision: many elements in a keyframe
 
-Status: accepted; stages 1 (the document model and the project file), 2 (reading everywhere) and 3 (drawing into the layer) done; 4 (import and export: the XFL parts are done with stage 2) and 5 (Merge Drawing) next.
+Status: accepted; stages 1 (the document model and the project file), 2 (reading everywhere) and 3 (drawing into the layer) done, and 5 (Merge Drawing) done in its first part; 4 (import and export: the XFL parts are done with stage 2) next.
 
 ## The problem
 
@@ -34,13 +34,22 @@ Selection names an element by its span and its index in `elements()` (`SpanRef::
    operations (insert, clear, reverse, copy, paste), the Library and the exporters.
 3. **Drawing into the layer**: the tools append to the layer's keyframe at the playhead (a blank
    keyframe is made if the frame has none) instead of adding a layer; selection, move, delete,
-   group and convert to symbol act on one element. Until Merge Drawing exists every shape is a
-   drawing object, and the Merge/Object toggle is shown dimmed as a mock.
+   group and convert to symbol act on one element.
 4. **Import and export**: XFL/FLA keep a keyframe's elements together (the importer no longer
    spreads them over extra layers); SWF import stays one layer per depth, which is how a SWF is
    built.
 5. **Merge Drawing**: the planar map: overlapping fills cut each other, strokes and fills select
    apart, Union and the other Combine Objects commands.
+
+   Done first, without a planar map: a shape carries whether it is merged drawing
+   (`Shape::is_merged`, kept in the project file and as Animate's `isDrawingObject` in XFL), and
+   `flare_tools::drawing::merge_into` draws a merged shape into a keyframe by cutting and joining the keyframe's
+   other merged shapes with the polygon booleans the Eraser uses. The merged drawing is a run of
+   ordinary shape elements below the keyframe's other elements, so selection, moving, undo, the
+   renderer and every exporter work on it as they work on any shape. Still to do: edges shared
+   between pieces (so dragging one bends both sides, and a line drawn over a fill splits it),
+   curves kept as curves through a cut, marquee selection of part of the merged drawing, and
+   Modify > Combine Objects.
 
 Every stage keeps the whole workspace's checks passing, and updates the surfaces (CLI, MCP, the
 browser build) with the desktop.

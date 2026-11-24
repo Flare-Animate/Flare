@@ -202,6 +202,7 @@ impl MenuAction {
                     "menu-item-toggle-mute-off"
                 }
             }
+            Self::ToggleObjectDrawing => "menu-item-toggle-object-drawing",
             Self::Open => "menu-item-open",
             Self::ImportSound => "menu-item-import-sound",
             Self::ImportVideo => "menu-item-import-video",

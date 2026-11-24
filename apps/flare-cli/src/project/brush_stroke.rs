@@ -67,6 +67,10 @@ pub struct BrushArgs {
     /// The layer drawn on; by default the topmost that can take art, or a new "Layer 1".
     #[arg(long)]
     pub layer: Option<uuid::Uuid>,
+    /// Merge Drawing: the strokes cut and join the layer's merged drawing, as with Object
+    /// Drawing off; a stroke of the same colour over another becomes one with it.
+    #[arg(long)]
+    pub merge: bool,
 }
 
 /// The strokes `args` give: one from `--along`, or every one in the `--strokes` file.
@@ -161,6 +165,7 @@ pub fn brush_strokes(args: &BrushArgs) -> Result<Value> {
         target,
         frame: args.frame,
         duration,
+        merge: args.merge,
     };
     let plan = brush::lay_strokes(session.document(), placement, &stroke, paint, &strokes)
         .map_err(|e| anyhow!("Brush: {e}"))?;

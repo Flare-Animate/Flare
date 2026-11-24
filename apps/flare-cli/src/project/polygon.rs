@@ -37,6 +37,10 @@ pub struct DrawPolygonArgs {
     duration: u32,
     #[arg(long)]
     layer: Option<uuid::Uuid>,
+    /// Merge Drawing: the shape cuts and joins the layer's merged drawing, and its fill and
+    /// outline become two elements, as with Object Drawing off. Without it, a drawing object.
+    #[arg(long)]
+    merge: bool,
 }
 
 pub fn draw_polygon(args: DrawPolygonArgs) -> Result<Value> {
@@ -78,17 +82,19 @@ pub fn draw_polygon(args: DrawPolygonArgs) -> Result<Value> {
         target,
         args.start,
         Some(duration),
-        vec![shape],
+        vec![shape.merged(args.merge)],
         "Layer 1",
     )
     .context("cannot draw")?;
-    let element = plan.placed.first().map_or(0, |at| at.element);
+    let elements: Vec<usize> = plan.placed.iter().map(|at| at.element).collect();
+    let element = elements.first().copied().unwrap_or(0);
     session.apply(plan.commands)?;
     commit(&session, &args.path)?;
     Ok(json!({
         "drawn": true,
         "layer": plan.layer.as_uuid(),
         "element": element,
+        "elements": elements,
         "corners": corners.len(),
     }))
 }

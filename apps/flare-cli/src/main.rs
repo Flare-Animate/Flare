@@ -258,29 +258,7 @@ fn run() -> Result<()> {
             let rect = rect.map(|r| ([r[0], r[1], r[2], r[3]], style));
             project::add_symbol(&path, &name, kind, rect)?
         }
-        Command::DrawRect {
-            path,
-            rect,
-            color,
-            stroke,
-            stroke_width,
-            stroke_style,
-            start,
-            duration,
-            layer,
-        } => project::draw_rect(
-            &path,
-            [rect[0], rect[1], rect[2], rect[3]],
-            project::rect_style(
-                &color,
-                stroke.as_deref(),
-                stroke_width,
-                stroke_style.as_deref(),
-            )?,
-            start,
-            duration,
-            layer,
-        )?,
+        Command::DrawRect(args) => project::draw_rect(args)?,
         Command::DrawPolygon(args) => project::draw_polygon(args)?,
         Command::MagicWand(args) => magic_wand::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,

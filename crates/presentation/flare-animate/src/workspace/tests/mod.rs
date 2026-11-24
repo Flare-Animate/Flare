@@ -72,6 +72,7 @@ mod narrow_window;
 mod native_pen;
 mod new_document_dialog;
 mod nothing_left_in_english;
+mod object_drawing;
 mod onion_settings;
 mod open_any;
 mod options_fit;

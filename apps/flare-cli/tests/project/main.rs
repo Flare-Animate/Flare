@@ -26,6 +26,7 @@ mod lossless;
 mod magic_wand;
 mod magnet;
 mod mannequin;
+mod merge_drawing;
 mod moho;
 mod movies;
 mod multi_frame;
