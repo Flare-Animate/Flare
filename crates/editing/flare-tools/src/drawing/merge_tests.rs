@@ -87,10 +87,27 @@ fn drawing_on_a_held_frame_merges_with_the_copy_and_leaves_the_frames_before() {
         }])
         .expect("keyframe");
     draw(&mut f, 0, vec![merged(0.0, RED)]).expect("first");
-    draw(&mut f, 5, vec![merged(10.0, RED)]).expect("later");
+    let plan = draw(&mut f, 5, vec![merged(10.0, RED)]).expect("later");
     assert_eq!(span_at(&f, 0).element_count(), 1);
     assert_eq!(span_at(&f, 5).start(), 5, "a keyframe of its own");
     assert_eq!(span_at(&f, 5).element_count(), 1, "joined with the copy");
+    assert_eq!(plan.placed, vec![element(&f, 5, 0)], "the joined fill");
+}
+
+#[test]
+fn a_drawing_object_in_a_batch_with_merged_shapes_stays_an_object() {
+    let mut f = fixture();
+    draw(&mut f, 0, vec![merged(0.0, RED)]).expect("first");
+    let object = Shape::rect(ShapeId::new(), 10.0, 0.0, 20.0, 20.0, RED).expect("object");
+    let plan = draw(&mut f, 0, vec![object.clone(), merged(10.0, RED)]).expect("mixed");
+    let span = span_at(&f, 0);
+    assert_eq!(span.element_count(), 2, "one joined fill, one object");
+    assert_eq!(
+        span.element(1),
+        Some(&Content::Shape(object)),
+        "whole, on top"
+    );
+    assert_eq!(plan.placed, vec![element(&f, 0, 0), element(&f, 0, 1)]);
 }
 
 #[test]

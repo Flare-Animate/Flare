@@ -31,9 +31,11 @@ pub struct Merged {
     pub placed: Vec<usize>,
 }
 
-/// `elements` (a keyframe's, bottom first) with `fresh` drawn above them as merged drawing, in
-/// order, by the rules in the module's description. A shape made from text is a drawing object
-/// whatever it is asked to be, as Animate's text is, and joins the objects above.
+/// `elements` (a keyframe's, bottom first) with `fresh` drawn above them in order. The shapes
+/// marked as merged drawing ([`Shape::is_merged`]) are drawn by the rules in the module's
+/// description; the others are drawing objects and join the objects above as they are, so a
+/// batch that mixes the two never turns an object into merged drawing. A shape made from text is
+/// a drawing object whatever it is asked to be, as Animate's text is.
 pub fn merge_into(elements: Vec<Content>, fresh: Vec<Shape>) -> Merged {
     // (the piece, whether it comes from a shape drawn now)
     let mut pieces: Vec<(Shape, bool)> = Vec::new();
@@ -46,11 +48,10 @@ pub fn merge_into(elements: Vec<Content>, fresh: Vec<Shape>) -> Merged {
         }
     }
     for shape in fresh {
-        if shape.text().is_some() {
+        if shape.text().is_some() || !shape.is_merged() {
             objects.push((Content::Shape(shape.merged(false)), true));
             continue;
         }
-        let shape = shape.merged(true);
         let (fill, line) = split(&shape);
         if let Some(fill) = fill {
             pieces = cover(pieces, fill);

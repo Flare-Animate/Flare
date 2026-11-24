@@ -7,8 +7,14 @@ const RED: Rgba8 = Rgba8::new(220, 0, 0, 255);
 const BLUE: Rgba8 = Rgba8::new(0, 0, 220, 255);
 const BLACK: Rgba8 = Rgba8::new(0, 0, 0, 255);
 
-fn square(x: f64, y: f64, size: f64, fill: Rgba8) -> Shape {
+/// A drawing object: what merging is asked never to touch.
+fn object(x: f64, y: f64, size: f64, fill: Rgba8) -> Shape {
     Shape::rect(ShapeId::new(), x, y, size, size, fill).expect("rect")
+}
+
+/// A square drawn as merged drawing.
+fn square(x: f64, y: f64, size: f64, fill: Rgba8) -> Shape {
+    object(x, y, size, fill).merged(true)
 }
 
 fn line(from: (f64, f64), to: (f64, f64)) -> Shape {
@@ -19,6 +25,7 @@ fn line(from: (f64, f64), to: (f64, f64)) -> Shape {
         Stroke::new(2.0, BLACK).expect("stroke"),
     )
     .expect("line")
+    .merged(true)
 }
 
 fn merged(elements: &[Content]) -> Vec<&Shape> {
@@ -142,7 +149,7 @@ fn a_fill_cuts_the_line_under_it_and_a_line_cuts_nothing() {
 
 #[test]
 fn drawing_objects_are_never_cut_and_stay_above_the_merged_drawing() {
-    let object = Content::Shape(square(0.0, 0.0, 100.0, RED));
+    let object = Content::Shape(object(0.0, 0.0, 100.0, RED));
     let drawn = merge_into(vec![object.clone()], vec![square(50.0, 50.0, 100.0, BLUE)]);
     assert_eq!(drawn.elements.len(), 2);
     assert_eq!(drawn.elements[1], object, "the object, whole and on top");
@@ -196,4 +203,24 @@ fn an_empty_keyframe_takes_the_drawing_as_it_is() {
     let drawn = merge_into(vec![Content::Empty], vec![square(0.0, 0.0, 10.0, RED)]);
     assert_eq!(drawn.elements.len(), 1);
     assert_eq!(drawn.placed, vec![0]);
+}
+
+#[test]
+fn a_drawing_object_drawn_with_merged_shapes_stays_an_object() {
+    let under = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]);
+    let drawn = merge_into(
+        under.elements,
+        vec![object(50.0, 50.0, 100.0, RED), square(50.0, 0.0, 20.0, RED)],
+    );
+    let Some(Content::Shape(top)) = drawn.elements.last() else {
+        panic!("a shape");
+    };
+    assert!(!top.is_merged(), "still a drawing object");
+    assert_eq!(top.path().len(), 5, "whole, not joined or cut");
+    assert_eq!(
+        merged(&drawn.elements).len(),
+        1,
+        "the merged squares joined"
+    );
+    assert_eq!(drawn.placed, vec![0, 1], "both shapes drawn now are named");
 }
