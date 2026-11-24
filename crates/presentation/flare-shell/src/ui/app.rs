@@ -103,7 +103,13 @@ impl App {
         }
         self.handle_test_movie();
         self.handle_font_downloads();
-        if self.workspace.take_quit_request() && self.confirm_close() {
+        self.quit_if_ready(event_loop);
+    }
+
+    /// Closes the app once the workspace says it may: the unsaved work has been asked about in
+    /// the window and no file is still being written.
+    fn quit_if_ready(&mut self, event_loop: &ActiveEventLoop) {
+        if self.workspace.take_quit_request() {
             self.persist_layout();
             self.persist_preferences();
             event_loop.exit();
@@ -275,11 +281,10 @@ impl ApplicationHandler<UserEvent> for App {
         }
         match event {
             WindowEvent::CloseRequested => {
-                if self.confirm_close() {
-                    self.persist_layout();
-                    self.persist_preferences();
-                    event_loop.exit();
-                }
+                // The same road as Quit in the menu; a frame is drawn to show its question.
+                gpu.window.request_redraw();
+                self.workspace.request_quit();
+                self.quit_if_ready(event_loop);
             }
             WindowEvent::Resized(size) => {
                 if let (Some(w), Some(h)) = (

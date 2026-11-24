@@ -95,6 +95,11 @@ pub(super) struct Paint {
     pub(super) symmetry_center: Option<Pos2>,
     /// Pencil and brush strokes are straightened to a line between their ends.
     pub(super) straight_edge: bool,
+    /// Object Drawing: each shape drawn is a drawing object of its own. Off is Merge Drawing,
+    /// where shapes on a layer cut and join each other. On by default, unlike Animate: Merge
+    /// Drawing turns what it cuts into straight pieces and has no edge bending yet, so it is
+    /// chosen, not imposed on drawings made the way Flare always made them.
+    pub(super) object_drawing: bool,
     /// Shift is held, which straightens a stroke for as long as it is.
     pub(super) straight_held: bool,
     /// The stroke just committed, shown until the stage picture that has it arrives.
@@ -122,6 +127,7 @@ impl Default for Paint {
             symmetry: Symmetry::Off,
             symmetry_center: None,
             straight_edge: false,
+            object_drawing: true,
             straight_held: false,
             settling: None,
             swatches: flare_core::swatches::CustomSwatches::default(),

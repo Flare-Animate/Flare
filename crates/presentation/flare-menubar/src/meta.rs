@@ -101,6 +101,8 @@ impl MenuAction {
             Self::ToolLine => "N",
             Self::ToolRectangle => "R",
             Self::ToolEllipse => "O",
+            // Not a tool, but a tool's own switch, a bare letter as in Animate.
+            Self::ToggleObjectDrawing => "J",
             _ => return None,
         })
     }
@@ -258,6 +260,7 @@ impl MenuAction {
             Self::DeselectAll => return None,
             Self::About | Self::KeyboardShortcuts => return None,
             Self::Quit => return None,
+            Self::ToggleObjectDrawing => return None,
         })
     }
 }

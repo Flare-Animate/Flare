@@ -21,6 +21,7 @@ mod magic_wand;
 mod magnet;
 mod multi_frame;
 mod polygon;
+mod rect;
 mod render;
 mod sound;
 mod text;
@@ -35,7 +36,7 @@ use camera::*;
 pub use camera::{CameraMotion, camera};
 #[allow(unused_imports)]
 use draw::*;
-pub use draw::{PlaceArgs, add_layer, add_symbol, draw_rect, eval, place, rename_scene, set_stage};
+pub use draw::{PlaceArgs, add_layer, add_symbol, eval, place, rename_scene, set_stage};
 pub use import_into::{ImportIntoArgs, import_into};
 #[allow(unused_imports)]
 use interchange::*;
@@ -48,6 +49,7 @@ pub use magic_wand::{WandRequest, magic_wand};
 pub use magnet::{MagnetRequest, magnet};
 pub use multi_frame::transform_frames;
 pub use polygon::{DrawPolygonArgs, draw_polygon};
+pub use rect::{DrawRectArgs, draw_rect};
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};
@@ -123,6 +125,7 @@ pub fn info(path: &Path) -> Result<Value> {
                             "visible": layer.is_visible(), "locked": layer.is_locked(),
                             "opacity": layer.view_opacity(),
                             "spans": layer.spans().len(), "elements": elements,
+                            "merged": flare_tools::drawing::merged_count(layer),
                             "armature": armature, "effects": layer.effects().is_some() })
                 })
                 .collect();

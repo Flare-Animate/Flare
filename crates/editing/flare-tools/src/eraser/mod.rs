@@ -10,9 +10,8 @@ use glamx::DVec2;
 use crate::brush::BrushStroke;
 use crate::common::{SpanRef, by_span, find_span, remove_element, replace_span, scene_timeline};
 
-mod cut;
 mod frame;
-pub use cut::{Cut, cut};
+pub use crate::common::cut::{Cut, cut};
 
 /// The widest eraser, in stage units.
 pub const MAX_ERASER_SIZE: f64 = 400.0;

@@ -184,13 +184,3 @@ pub fn startup_failed_in(title: &str, text: &str) {
         .set_buttons(rfd::MessageButtons::Ok)
         .show();
 }
-
-/// Asks whether to close and lose unsaved changes.
-pub fn confirm_discard(title: &str, question: &str) -> bool {
-    rfd::MessageDialog::new()
-        .set_title(title)
-        .set_description(question)
-        .set_buttons(rfd::MessageButtons::YesNo)
-        .show()
-        == rfd::MessageDialogResult::Yes
-}

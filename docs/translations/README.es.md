@@ -124,7 +124,7 @@ Flare empezó como un espacio de pruebas para que la animación fuera más fáci
 
 Lo siguiente, por orden de importancia. La mayor parte aparece atenuada en la interfaz. [docs/ROADMAP.md](../ROADMAP.md) repite esta lista y continúa con todo lo de menor prioridad.
 
-- Fusión de dibujo: las formas de mapa plano de Flash, donde las formas que se solapan se cortan y se fusionan (hoy las formas son objetos separados)
+- Fusión de dibujo: las formas de mapa plano de Flash, donde las formas que se solapan se cortan y se fusionan (con el dibujo de objetos desactivado, las formas ya se cortan y se unen; lo siguiente son bordes compartidos que se doblan juntos)
 - Calidad de dibujo: dinámica de pincel, y trazar un mapa de bits a formas vectoriales
 - SWF que conserve más del documento: botones con sus estados, interpolaciones de forma como morphs, máscaras de varias formas y sonidos dentro de símbolos
 - Un Motion Editor: gráficos por propiedad y curvas de easing personalizadas para las interpolaciones

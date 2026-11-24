@@ -26,6 +26,7 @@ mod effects;
 mod failures;
 mod game;
 mod many_elements;
+mod merged;
 mod origin;
 mod records;
 mod roundtrip;

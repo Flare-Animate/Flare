@@ -104,7 +104,11 @@ impl WebApp {
                     }
                 });
             }
-            DialogRequest::SaveAs => self.save_document(),
+            DialogRequest::SaveAs => {
+                self.save_document();
+                // Named or not, the question is over, so a close waiting on it stops waiting.
+                self.workspace.end_save_as();
+            }
             request @ (DialogRequest::ExportImage
             | DialogRequest::ExportMovie
             | DialogRequest::ExportFla

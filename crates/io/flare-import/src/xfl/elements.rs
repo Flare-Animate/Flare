@@ -12,7 +12,14 @@ impl Importer {
         let mut out = Vec::new();
         for element in &elements.children {
             match element.name.as_str() {
-                "DOMShape" => out.extend(self.shape(element, place)),
+                "DOMShape" => {
+                    // Without Animate's mark a shape is the layer's merged drawing.
+                    let merged = element.attr("isDrawingObject") != Some("true");
+                    out.extend(self.shape(element, place).into_iter().map(|c| match c {
+                        Content::Shape(shape) => Content::Shape(shape.merged(merged)),
+                        other => other,
+                    }));
+                }
                 "DOMSymbolInstance" => out.extend(self.instance(element, place)),
                 "DOMBitmapInstance" => match self.bitmap_instance(element, place) {
                     Some(content) => out.push(content),

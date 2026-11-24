@@ -124,7 +124,7 @@ Flare začal jako hřiště pro snazší učení animace, později byl zveřejn�
 
 Další kroky, nejdůležitější jako první. Většina je v rozhraní zobrazena zašedle. [docs/ROADMAP.md](../ROADMAP.md) tento seznam opakuje a pokračuje k vší méně důležité práci.
 
-- Slučování kreseb: planární mapy tvarů z Flash, kde se překrývající tvary navzájem řežou a slučují (dnes jsou tvary samostatné objekty)
+- Slučování kreseb: planární mapy tvarů z Flash, kde se překrývající tvary navzájem řežou a slučují (s vypnutým kreslením objektů se tvary už navzájem řežou a spojují; další na řadě jsou společné hrany, které se ohýbají spolu)
 - Kvalita kreslení: dynamika štětce a převod bitmapy na vektorové tvary
 - SWF, které zachová více z dokumentu: tlačítka se svými stavy, tvarové animace jako morfy, masky z více tvarů a zvuky uvnitř symbolů
 - Editor pohybu: grafy pro jednotlivé vlastnosti a vlastní křivky zpomalení pro animace

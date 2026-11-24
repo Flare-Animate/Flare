@@ -16,6 +16,7 @@ impl Workspace {
     /// A layer that is locked, hidden, a folder, mask, guide or camera, and a keyframe that
     /// cannot hold several elements, is refused with a message saying why.
     pub(super) fn draw_shapes(&mut self, shapes: Vec<Shape>, name: &str) {
+        let shapes = self.in_drawing_mode(shapes);
         self.place_drawn(shapes, name, false);
     }
 

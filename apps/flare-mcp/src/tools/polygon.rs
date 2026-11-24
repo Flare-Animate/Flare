@@ -14,7 +14,7 @@ use crate::server::{FlareServer, Outcome};
 #[tool_router(router = polygon_tools, vis = "pub(super)")]
 impl FlareServer {
     #[tool(
-        description = "Draw a filled shape with straight sides through `points` ([x, y] corners, at least three, in order around the outline), as the Polygon tool does: it joins the layer's keyframe at `start` as one more element, or starts a keyframe of `duration` frames there, in the layer given or the topmost that can take it. Corners on one line, or fewer than three, are refused. One undo step (needs write access)."
+        description = "Draw a filled shape with straight sides through `points` ([x, y] corners, at least three, in order around the outline), as the Polygon tool does: it joins the layer's keyframe at `start` as one more element, or starts a keyframe of `duration` frames there, in the layer given or the topmost that can take it. With `merge` it is Merge Drawing, as for `draw_rect`; `elements` lists where its pieces went. Corners on one line, or fewer than three, are refused. One undo step (needs write access)."
     )]
     fn draw_polygon(&self, Parameters(args): Parameters<DrawPolygon>) -> Outcome {
         self.write(args.expected_revision, |state| {
@@ -52,14 +52,15 @@ impl FlareServer {
                 target,
                 args.start.unwrap_or(state.playhead),
                 Some(duration(args.duration)?),
-                vec![shape],
+                vec![shape.merged(args.merge.unwrap_or(false))],
                 "Layer 1",
             )
             .map_err(|e| format!("cannot draw: {e}"))?;
-            let element = plan.placed.first().map_or(0, |at| at.element);
+            let elements: Vec<usize> = plan.placed.iter().map(|at| at.element).collect();
             let mut out = apply(state, plan.commands)?;
             out["layer"] = json!(plan.layer.as_uuid());
-            out["element"] = json!(element);
+            out["element"] = json!(elements.first().copied().unwrap_or(0));
+            out["elements"] = json!(elements);
             out["corners"] = json!(corners.len());
             Ok(out)
         })

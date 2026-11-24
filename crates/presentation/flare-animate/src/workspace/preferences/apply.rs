@@ -46,6 +46,7 @@ impl Workspace {
             brush_taper_end: self.brush_shelf.taper().end() as f32,
             brush_bristles: self.brush_shelf.texture().bristles(),
             brush_grain: self.brush_shelf.texture().grain(),
+            object_drawing: self.paint.object_drawing,
             pencil_pressure: self.pencil_pressure.is_on(),
             pencil_light: self.pencil_pressure.light(),
             brush_builtin_profile: self.brush_shelf.builtin(),
@@ -168,6 +169,7 @@ impl Workspace {
         );
         self.brush_shelf
             .set_texture(preferences.brush_bristles, preferences.brush_grain);
+        self.paint.object_drawing = preferences.object_drawing;
         self.pencil_pressure = flare_tools::pencil::PencilPressure::new(
             preferences.pencil_pressure,
             preferences.pencil_light,

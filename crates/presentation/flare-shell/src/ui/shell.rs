@@ -134,22 +134,4 @@ impl App {
             eprintln!("could not save the preferences: {error}");
         }
     }
-
-    /// Whether closing may go ahead, asking first if there is unsaved work.
-    pub(super) fn confirm_close(&mut self) -> bool {
-        // A save still being written must finish first, or its work would be reported as lost.
-        self.workspace.finish_background();
-        if !self.workspace.any_dirty() {
-            return true;
-        }
-        let discard = dialogs::confirm_discard(
-            &self.workspace.interface_text("dlg-unsaved-title"),
-            &self.workspace.interface_text("dlg-unsaved-text"),
-        );
-        if discard {
-            // Closing without saving really discards the work, including its recovery file.
-            self.workspace.discard_recovery();
-        }
-        discard
-    }
 }

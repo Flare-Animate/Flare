@@ -20,6 +20,8 @@ const OPENTOONZ: &[(MenuAction, &str)] = &[
     (A::ToolEyedropper, "K"),
     (A::ToolText, "Y"),
     (A::ToolPencil, "J"),
+    // J is the Pencil here, so Object Drawing is beside it.
+    (A::ToggleObjectDrawing, "Shift+J"),
     (A::Redo, "CmdOrCtrl+Y"),
 ];
 
@@ -32,6 +34,7 @@ const TAHOMA: &[(MenuAction, &str)] = &[
     (A::ToolBucket, "G"),
     (A::ToolPolyStar, "W"),
     (A::ToolPencil, "J"),
+    (A::ToggleObjectDrawing, "Shift+J"),
     (A::Redo, "CmdOrCtrl+Y"),
 ];
 

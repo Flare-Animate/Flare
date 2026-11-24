@@ -119,7 +119,12 @@ fn a_default_chord_outside_the_old_list_runs_open_and_quit() {
         &ctx,
         input(0.2, vec![key(Key::Q, Modifiers::COMMAND)]),
     );
-    assert!(ws.take_quit_request(), "Cmd+Q asks to quit");
+    assert!(!ws.take_quit_request(), "the drawing is not saved yet");
+    assert_eq!(
+        ws.close_prompt,
+        Some(0),
+        "Cmd+Q asks to quit, about the unsaved drawing first"
+    );
 }
 
 #[test]

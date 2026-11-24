@@ -48,6 +48,7 @@ fn place(f: &Fixture) -> Placement {
         target: Target::Layer(f.layer),
         frame: 0,
         duration: None,
+        merge: false,
     }
 }
 

@@ -56,7 +56,7 @@ impl FlareServer {
         })
     }
     #[tool(
-        description = "Brush: lay brush strokes on a layer of the first scene, as the desktop's Brush lays a drag when the pen lifts, all of them as one undo step. Each stroke is a filled outline in `color` whose width follows the pressure given with each point, shaped by the ready-made `profile` (its nib, pressure curve, taper and texture) and the settings given. They join the layer's keyframe at `frame` as more elements, or start a keyframe there. Locked, hidden, folder, mask, guide and camera layers, and keyframes that tween, are refused, as are settings out of range and points that are not numbers; a refusal changes nothing (needs write access)."
+        description = "Brush: lay brush strokes on a layer of the first scene, as the desktop's Brush lays a drag when the pen lifts, all of them as one undo step. Each stroke is a filled outline in `color` whose width follows the pressure given with each point, shaped by the ready-made `profile` (its nib, pressure curve, taper and texture) and the settings given. They join the layer's keyframe at `frame` as more elements, or start a keyframe there; with `merge` they are Merge Drawing, as for `draw_rect`. Locked, hidden, folder, mask, guide and camera layers, and keyframes that tween, are refused, as are settings out of range and points that are not numbers; a refusal changes nothing (needs write access)."
     )]
     fn brush_stroke(&self, Parameters(args): Parameters<BrushStrokes>) -> Outcome {
         self.write(args.expected_revision, |state| {
@@ -96,6 +96,7 @@ impl FlareServer {
                 target,
                 frame: args.frame.unwrap_or(0),
                 duration,
+                merge: args.merge.unwrap_or(false),
             };
             let plan = brush::lay_strokes(
                 state.session.document(),

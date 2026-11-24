@@ -152,6 +152,8 @@ impl Workspace {
             | MenuAction::ZoomIn
             | MenuAction::ZoomOut => true,
             MenuAction::ZoomFit => !self.stage_view.is_fit(),
+            // Only where the switch is shown: the tools that draw shapes.
+            MenuAction::ToggleObjectDrawing => self.tool.has_drawing_mode(),
             MenuAction::InsertFrame
             | MenuAction::RemoveFrame
             | MenuAction::InsertKeyframe
@@ -245,7 +247,7 @@ impl Workspace {
             MenuAction::ExportSpriteSheet => self.dialog = Some(DialogRequest::ExportSpriteSheet),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
-            MenuAction::Quit => self.quit_requested = true,
+            MenuAction::Quit => self.request_quit(),
             MenuAction::Undo => self.undo(),
             MenuAction::Redo => self.redo(),
             MenuAction::Delete => {
@@ -444,6 +446,9 @@ impl Workspace {
             MenuAction::ToggleRulers => self.display.show_rulers = !self.display.show_rulers,
             MenuAction::ToggleGrid => self.display.show_grid = !self.display.show_grid,
             MenuAction::ToggleSnap => self.display.snap_to_grid = !self.display.snap_to_grid,
+            MenuAction::ToggleObjectDrawing => {
+                self.paint.object_drawing = !self.paint.object_drawing;
+            }
             MenuAction::ToggleLoop => self.looping.on = !self.looping.on,
             MenuAction::ToggleMute => {
                 self.muted = !self.muted;

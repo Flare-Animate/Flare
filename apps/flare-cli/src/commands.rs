@@ -105,28 +105,7 @@ pub(crate) enum Command {
         stroke_width: f64,
     },
     /// Draw a filled rectangle on the first layer of the first scene.
-    DrawRect {
-        path: PathBuf,
-        #[arg(long, num_args = 4, value_names = ["X", "Y", "W", "H"], allow_negative_numbers = true, required = true)]
-        rect: Vec<f64>,
-        #[arg(long, default_value = "000000")]
-        color: String,
-        /// Outline color RRGGBB or RRGGBBAA (no outline when omitted).
-        #[arg(long)]
-        stroke: Option<String>,
-        /// Outline width in document units.
-        #[arg(long, default_value_t = 2.0)]
-        stroke_width: f64,
-        /// Outline pattern: solid, dashed, dotted, stipple, hatched, ragged, herringbone, rope or zigzag.
-        #[arg(long)]
-        stroke_style: Option<String>,
-        #[arg(long, default_value_t = 0)]
-        start: u32,
-        #[arg(long, default_value_t = 1)]
-        duration: u32,
-        #[arg(long)]
-        layer: Option<uuid::Uuid>,
-    },
+    DrawRect(crate::project::DrawRectArgs),
     /// Draw a shape through the corners given, as the Polygon tool does.
     DrawPolygon(crate::project::DrawPolygonArgs),
     /// Magic Wand: pick the pixels of a bitmap whose color is like the one at each point (stage

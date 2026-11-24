@@ -1,8 +1,10 @@
-//! What several tools share: finding a span, where things are, copies of what a span holds, and
-//! path editing. A tool's own folder holds everything else about it.
+//! What several tools share: finding a span, where things are, copies of what a span holds, path
+//! editing, and cutting a shape's fill and line by an area (the Eraser's and Merge Drawing's).
+//! A tool's own folder holds everything else about it.
 
 pub mod bounds;
 pub(crate) mod content;
+pub(crate) mod cut;
 mod many;
 pub(crate) mod path_edit;
 mod span;
