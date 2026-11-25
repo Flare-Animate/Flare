@@ -21,6 +21,8 @@ pub(super) struct App {
     pub(super) proxy: EventLoopProxy<UserEvent>,
     /// A file picker is open on its own thread; no second one is opened over it.
     pub(super) dialog_open: bool,
+    /// The person answered the unsaved-work question with discard: leave on the next event.
+    pub(super) exit_now: bool,
     #[cfg(target_os = "macos")]
     menu: Option<super::menu::NativeMenu>,
     pub(super) ctx: egui::Context,
@@ -40,6 +42,7 @@ impl App {
             player: None,
             proxy,
             dialog_open: false,
+            exit_now: false,
             #[cfg(target_os = "macos")]
             menu: None,
             ctx: super::window::new_context(),
@@ -219,6 +222,11 @@ impl ApplicationHandler<UserEvent> for App {
                 follow(self);
                 if let Some(gpu) = &self.gpu {
                     gpu.window.request_redraw();
+                }
+                if self.exit_now {
+                    self.persist_layout();
+                    self.persist_preferences();
+                    event_loop.exit();
                 }
             }
             UserEvent::Exported(Ok(())) => {}
