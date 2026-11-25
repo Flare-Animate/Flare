@@ -1,6 +1,7 @@
 //! Flare CLI: inspection, rational timing and headless project editing.
 #![forbid(unsafe_code)]
 
+mod bend_edge;
 mod brush;
 mod commands;
 mod frames;
@@ -261,6 +262,7 @@ fn run() -> Result<()> {
         Command::DrawRect(args) => project::draw_rect(args)?,
         Command::DrawPolygon(args) => project::draw_polygon(args)?,
         Command::MagicWand(args) => magic_wand::run(args)?,
+        Command::BendEdge(args) => bend_edge::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
         Command::Brush(args) => project::brush_strokes(&args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,

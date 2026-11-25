@@ -39,6 +39,13 @@ pub(super) enum PreviewKey {
         to: Pos2,
         radius: f32,
     },
+    EdgeBend {
+        context: u64,
+        revision: u64,
+        frame: u32,
+        from: Pos2,
+        to: Pos2,
+    },
     /// A layer effect setting held in the Effects panel; `serial` numbers each held value.
     Effects {
         context: u64,
@@ -134,6 +141,9 @@ impl Workspace {
     pub(super) fn previewed_document(&mut self) -> Option<(u64, Arc<Document>)> {
         if self.effects.held.is_some() {
             return self.effects_preview();
+        }
+        if self.edge_bend_held() {
+            return self.edge_bend_preview();
         }
         if self.magnet_held() {
             return self.magnet_preview();

@@ -14,13 +14,13 @@
 //! or joined is made of straight pieces, as what the Eraser leaves is.
 
 use flare_core::{Rgba8, ShapeId};
-use flare_document::{Content, Layer, Shape};
+use flare_document::{Content, Layer, MAX_ELEMENTS, Shape};
 use glamx::DVec2;
 use i_overlay::core::fill_rule::FillRule;
 use i_overlay::core::overlay_rule::OverlayRule;
 use i_overlay::float::single::SingleFloatOverlay;
 
-use crate::common::cut::{Contour, Cut, boxes_meet, cut, fill_piece, subpaths};
+use crate::common::cut::{Contour, Cut, boxes_meet, cut, fill_piece, hull, hulls_meet, subpaths};
 
 /// A keyframe's elements once merged shapes have been drawn into it.
 #[derive(Clone, Debug, PartialEq)]
@@ -31,12 +31,17 @@ pub struct Merged {
     pub placed: Vec<usize>,
 }
 
+/// More pieces than a keyframe may hold: stopped as soon as it is certain, so a crowded keyframe
+/// or a huge batch is refused before the cutting of every shape is paid for.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TooManyPieces;
+
 /// `elements` (a keyframe's, bottom first) with `fresh` drawn above them in order. The shapes
 /// marked as merged drawing ([`Shape::is_merged`]) are drawn by the rules in the module's
 /// description; the others are drawing objects and join the objects above as they are, so a
 /// batch that mixes the two never turns an object into merged drawing. A shape made from text is
 /// a drawing object whatever it is asked to be, as Animate's text is.
-pub fn merge_into(elements: Vec<Content>, fresh: Vec<Shape>) -> Merged {
+pub fn merge_into(elements: Vec<Content>, fresh: Vec<Shape>) -> Result<Merged, TooManyPieces> {
     // (the piece, whether it comes from a shape drawn now)
     let mut pieces: Vec<(Shape, bool)> = Vec::new();
     let mut objects: Vec<(Content, bool)> = Vec::new();
@@ -48,6 +53,9 @@ pub fn merge_into(elements: Vec<Content>, fresh: Vec<Shape>) -> Merged {
         }
     }
     for shape in fresh {
+        if pieces.len() + objects.len() > MAX_ELEMENTS {
+            return Err(TooManyPieces);
+        }
         if shape.text().is_some() || !shape.is_merged() {
             objects.push((Content::Shape(shape.merged(false)), true));
             continue;
@@ -59,6 +67,9 @@ pub fn merge_into(elements: Vec<Content>, fresh: Vec<Shape>) -> Merged {
         if let Some(line) = line {
             pieces.push((line, true));
         }
+    }
+    if pieces.len() + objects.len() > MAX_ELEMENTS {
+        return Err(TooManyPieces);
     }
     let mut placed = Vec::new();
     let mut out = Vec::with_capacity(pieces.len() + objects.len());
@@ -73,10 +84,10 @@ pub fn merge_into(elements: Vec<Content>, fresh: Vec<Shape>) -> Merged {
         }
         out.push(content);
     }
-    Merged {
+    Ok(Merged {
         elements: out,
         placed,
-    }
+    })
 }
 
 /// `shape`'s fill alone and its line alone, either absent when it has none. The fill keeps the
@@ -131,9 +142,14 @@ fn cover(pieces: Vec<(Shape, bool)>, fill: Shape) -> Vec<(Shape, bool)> {
         return pieces;
     }
     let mut joined = area.clone();
+    let mut joined_reach = hull(fill.path());
     let mut absorbed = vec![false; pieces.len()];
     for (index, (piece, _)) in pieces.iter().enumerate() {
-        if joins(piece, &fill) {
+        let near = match (joined_reach, hull(piece.path())) {
+            (Some(a), Some(b)) => hulls_meet(a, b),
+            _ => true,
+        };
+        if near && joins(piece, &fill) {
             let theirs = areas(piece);
             if overlap(&theirs, &joined) {
                 joined = joined
@@ -142,6 +158,13 @@ fn cover(pieces: Vec<(Shape, bool)>, fill: Shape) -> Vec<(Shape, bool)> {
                     .flatten()
                     .collect();
                 absorbed[index] = true;
+                joined_reach = match (joined_reach, hull(piece.path())) {
+                    (Some(a), Some(b)) => Some((
+                        [a.0[0].min(b.0[0]), a.0[1].min(b.0[1])],
+                        [a.1[0].max(b.1[0]), a.1[1].max(b.1[1])],
+                    )),
+                    (a, b) => a.or(b),
+                };
             }
         }
     }
@@ -161,9 +184,17 @@ fn cover(pieces: Vec<(Shape, bool)>, fill: Shape) -> Vec<(Shape, bool)> {
         .iter()
         .map(|contour| contour.iter().map(|p| DVec2::new(p[0], p[1])).collect())
         .collect();
+    let reach = hull(fill.path());
     let mut out = Vec::with_capacity(pieces.len() + 1);
     for ((piece, new), gone) in pieces.into_iter().zip(absorbed) {
         if gone {
+            continue;
+        }
+        // Far from the new fill: nothing to cut, and nothing worth flattening to find out.
+        if let (Some(reach), Some(there)) = (reach, hull(piece.path()))
+            && !hulls_meet(reach, there)
+        {
+            out.push((piece, new));
             continue;
         }
         match cut(&piece, &cutter) {
@@ -189,3 +220,7 @@ pub fn merged_count(layer: &Layer) -> usize {
 #[cfg(test)]
 #[path = "merge_rules_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "merge_bounds_tests.rs"]
+mod bounds_tests;

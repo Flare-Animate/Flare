@@ -4,6 +4,7 @@ use serde_json::Value;
 use std::path::Path;
 use std::process::{Command, Output};
 
+mod bend_edge;
 mod bitmap_tween;
 mod blend;
 mod bones;

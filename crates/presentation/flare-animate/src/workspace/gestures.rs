@@ -99,6 +99,14 @@ impl Workspace {
                         Some(hit) => self.selection_all().contains(&hit),
                         None => inside_frame,
                     };
+                // An edge of merged drawing that is not selected is reshaped, not picked.
+                if !on_selection
+                    && !additive
+                    && self.tool == Tool::Select
+                    && self.begin_edge_bend(point)
+                {
+                    return;
+                }
                 if !on_selection {
                     self.select_at(point, additive);
                 }
@@ -297,6 +305,7 @@ impl Workspace {
     pub(super) fn update_drag(&mut self, point: Pos2) {
         self.update_anchor_drag(point);
         self.update_magnet(point);
+        self.update_edge_bend(point);
         if let Some(drag) = &mut self.drag {
             drag.current = point;
         }
@@ -306,6 +315,7 @@ impl Workspace {
         let cancelled = std::mem::take(&mut self.drag_cancelled);
         self.end_anchor_drag(cancelled);
         self.end_magnet(cancelled);
+        self.end_edge_bend(cancelled);
         if let Some(drag) = self.drag.take()
             && !cancelled
         {
@@ -339,7 +349,7 @@ impl Workspace {
         self.stabilizer = None;
         self.cancel_erase();
         self.cancel_blend();
-        if self.anchor_drag.take().is_some() || self.cancel_magnet() {
+        if self.anchor_drag.take().is_some() || self.cancel_magnet() || self.cancel_edge_bend() {
             self.drag_cancelled = true;
         }
         if self.drag.take().is_some() {

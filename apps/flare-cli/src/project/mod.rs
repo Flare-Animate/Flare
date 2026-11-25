@@ -10,6 +10,7 @@ use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
 
+mod bend_edge;
 mod blend;
 mod bones;
 mod brush_stroke;
@@ -28,6 +29,7 @@ mod text;
 mod timeline;
 mod to_bitmap;
 
+pub use bend_edge::{BendEdgeRequest, bend_edge};
 pub use blend::{BlendArgs, RasterBrushArgs, blend_stroke, raster_brush};
 pub use bones::{BoneAction, bone, bones_list};
 pub use brush_stroke::{BrushArgs, brush_strokes};

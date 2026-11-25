@@ -33,6 +33,7 @@ mod close_prompt;
 mod color_section;
 mod command_palette;
 mod drawing_into_layers;
+mod edge_bend;
 mod effects;
 mod eraser;
 mod frame_focus;

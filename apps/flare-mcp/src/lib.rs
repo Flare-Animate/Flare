@@ -13,6 +13,7 @@
 mod color;
 mod ops;
 mod params;
+mod params_bend_edge;
 mod params_brush;
 mod params_effects;
 mod params_export;
