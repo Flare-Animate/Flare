@@ -39,6 +39,8 @@ impl MenuAction {
             Self::ToggleEditMultipleFrames => "Alt+Shift+E",
             // Animate's key for View > Pasteboard.
             Self::TogglePasteboard => "CmdOrCtrl+Shift+W",
+            // Animate's key for View > Grid > Show Grid (issue #213).
+            Self::ToggleGrid => "CmdOrCtrl+Alt+G",
             Self::Preferences => "CmdOrCtrl+,",
             Self::CommandPalette => "CmdOrCtrl+Shift+P",
             _ => return None,
