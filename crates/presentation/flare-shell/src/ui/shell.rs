@@ -134,4 +134,41 @@ impl App {
             eprintln!("could not save the preferences: {error}");
         }
     }
+
+    /// Whether closing may go ahead now. With unsaved work the question is asked on a thread of
+    /// its own and this says no for now: a message box blocking the UI thread inside the close
+    /// event froze the window on Windows. A yes sets `exit_now`, which the event loop acts on.
+    pub(super) fn confirm_close(&mut self) -> bool {
+        // A save still being written must finish first, or its work would be reported as lost.
+        self.workspace.finish_background();
+        if !self.workspace.any_dirty() {
+            return true;
+        }
+        if self.dialog_open {
+            return false;
+        }
+        let title = self.workspace.interface_text("dlg-unsaved-title");
+        let text = self.workspace.interface_text("dlg-unsaved-text");
+        self.dialog_open = true;
+        let proxy = self.proxy.clone();
+        let started = jobs::ask(
+            move || dialogs::confirm_discard(&title, &text).then_some(()),
+            move |answer| {
+                let follow: super::dialog_requests::Answer = Box::new(move |app| {
+                    app.dialog_open = false;
+                    if answer.is_some() {
+                        // Closing without saving really discards the work, and its recovery file.
+                        app.workspace.discard_recovery();
+                        app.exit_now = true;
+                    }
+                });
+                let _ = proxy.send_event(UserEvent::Answer(follow));
+            },
+        );
+        if started.is_err() {
+            // No thread to ask on: keep the work rather than lose it.
+            self.dialog_open = false;
+        }
+        false
+    }
 }
