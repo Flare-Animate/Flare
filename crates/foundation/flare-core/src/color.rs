@@ -25,7 +25,7 @@ impl Rgba8 {
     /// anything else. The one parser the command line, the MCP server and effect settings share.
     pub fn from_hex(text: &str) -> Option<Self> {
         let hex = text.trim().trim_start_matches('#');
-        if !(hex.len() == 6 || hex.len() == 8) || !hex.is_ascii() {
+        if !(hex.len() == 6 || hex.len() == 8) || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
             return None;
         }
         let byte = |i: usize| u8::from_str_radix(hex.get(i..i + 2)?, 16).ok();
