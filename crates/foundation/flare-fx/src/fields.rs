@@ -29,13 +29,7 @@ pub fn parse_fields<S: AsRef<str>>(tokens: &[S]) -> Result<Vec<(String, String)>
 
 /// A color as `RRGGBB` or `RRGGBBAA`, with or without a leading `#`.
 pub fn parse_color(text: &str) -> Option<Rgba8> {
-    let hex = text.trim().trim_start_matches('#');
-    if !(hex.len() == 6 || hex.len() == 8) || !hex.is_ascii() {
-        return None;
-    }
-    let byte = |i: usize| u8::from_str_radix(hex.get(i..i + 2)?, 16).ok();
-    let alpha = if hex.len() == 8 { byte(6)? } else { 255 };
-    Some(Rgba8::new(byte(0)?, byte(2)?, byte(4)?, alpha))
+    Rgba8::from_hex(text)
 }
 
 /// The value `text` gives the setting `spec`, checked against its range.

@@ -337,14 +337,7 @@ fn index(value: f64) -> Result<usize> {
 }
 
 fn interp(name: &str) -> Result<Interp> {
-    Ok(match name {
-        "constant" => Interp::Constant,
-        "linear" => Interp::Linear,
-        "ease-in" => Interp::EaseIn,
-        "ease-out" => Interp::EaseOut,
-        "ease-in-out" => Interp::EaseInOut,
-        other => bail!("unknown interpolation {other:?}"),
-    })
+    Interp::from_name(name).ok_or_else(|| anyhow!("unknown interpolation {name:?}"))
 }
 
 pub fn run_rig(op: RigCmd) -> Result<Value> {

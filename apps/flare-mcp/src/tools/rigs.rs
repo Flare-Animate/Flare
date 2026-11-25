@@ -13,14 +13,7 @@ use crate::server::{FlareServer, Outcome, State};
 
 /// A named interpolation, as `rig_set_pose` and `project_rig_set_pose` take it.
 pub(super) fn interp_named(name: &str) -> Result<Interp, String> {
-    Ok(match name {
-        "constant" => Interp::Constant,
-        "linear" => Interp::Linear,
-        "ease-in" => Interp::EaseIn,
-        "ease-out" => Interp::EaseOut,
-        "ease-in-out" => Interp::EaseInOut,
-        other => return Err(format!("unknown interpolation {other:?}")),
-    })
+    Interp::from_name(name).ok_or_else(|| format!("unknown interpolation {name:?}"))
 }
 
 fn symbol_of(text: &str) -> Result<SymbolId, String> {

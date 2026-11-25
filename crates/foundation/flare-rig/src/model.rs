@@ -74,6 +74,21 @@ pub enum Interp {
     EaseInOut,
 }
 
+impl Interp {
+    /// The interpolation called `name` (`constant`, `linear`, `ease-in`, `ease-out` or
+    /// `ease-in-out`); the one parser the command line and the MCP server share.
+    pub fn from_name(name: &str) -> Option<Self> {
+        Some(match name {
+            "constant" => Self::Constant,
+            "linear" => Self::Linear,
+            "ease-in" => Self::EaseIn,
+            "ease-out" => Self::EaseOut,
+            "ease-in-out" => Self::EaseInOut,
+            _ => return None,
+        })
+    }
+}
+
 /// A bone's allowed pose rotation (radians, relative to its rest angle).
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct AngleLimit {
