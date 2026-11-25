@@ -6,7 +6,7 @@
 use egui::Ui;
 use flare_core::SymbolId;
 use flare_editor::rig_library;
-use flare_rig::{Bone, PoseKey, Rig, RigCommand};
+use flare_rig::{Bone, IkGoal, PoseKey, Rig, RigCommand};
 use flare_ui::{chrome, theme};
 
 use crate::workspace::Workspace;
@@ -23,6 +23,10 @@ pub(crate) struct RigPanel {
     pub(crate) pose_frame: u32,
     pub(crate) pose_bone: usize,
     pub(crate) pose_angle: f64,
+    /// The IK goal being typed: the chain's tip bone, its length in bones, and the target.
+    pub(crate) ik_tip: usize,
+    pub(crate) ik_chain: usize,
+    pub(crate) ik_target: [f64; 2],
 }
 
 impl Default for RigPanel {
@@ -36,6 +40,9 @@ impl Default for RigPanel {
             pose_frame: 0,
             pose_bone: 0,
             pose_angle: 0.0,
+            ik_tip: 0,
+            ik_chain: 2,
+            ik_target: [0.0, 0.0],
         }
     }
 }
@@ -105,6 +112,29 @@ impl Workspace {
             Err(error) => return self.rig_failed(error),
         };
         key.pose.rotations.insert(bone, angle);
+        let command = rig_library::edit(
+            self.document(),
+            symbol,
+            &[RigCommand::SetRigPose { frame, key }],
+        );
+        self.rig_apply(command);
+    }
+
+    /// Keys an IK goal on `frame`: the chain of `chain` bones ending at `tip` reaches for
+    /// `target`. The key keeps its rotations and its other goals; a goal for the same tip is
+    /// replaced, so typing it again moves it.
+    pub(crate) fn rig_set_ik(&mut self, symbol: SymbolId, frame: u32, goal: IkGoal) {
+        let mut key = match rig_library::find(self.document(), symbol) {
+            Ok(Some(rig)) => rig
+                .keys
+                .get(&frame)
+                .cloned()
+                .unwrap_or_else(PoseKey::default),
+            Ok(None) => return self.rig_failed(rig_library::RigLibraryError::NoRig),
+            Err(error) => return self.rig_failed(error),
+        };
+        key.pose.ik.retain(|g| g.tip != goal.tip);
+        key.pose.ik.push(goal);
         let command = rig_library::edit(
             self.document(),
             symbol,
@@ -210,9 +240,11 @@ impl Workspace {
         for (frame, key) in &rig.keys {
             ui.horizontal(|ui| {
                 ui.label(format!(
-                    "{frame}: {} {}",
+                    "{frame}: {} {}, {} {}",
                     key.pose.rotations.len(),
-                    tr!(self, "rigs-rotations")
+                    tr!(self, "rigs-rotations"),
+                    key.pose.ik.len(),
+                    tr!(self, "rigs-ik-goals")
                 ));
                 if ui.small_button(tr!(self, "rigs-remove-pose")).clicked() {
                     self.rig_remove_pose(symbol, *frame);
@@ -233,6 +265,21 @@ impl Workspace {
                     self.rigs.pose_angle,
                 );
                 self.rig_set_pose(symbol, frame, bone, angle);
+            }
+        });
+        ui.horizontal(|ui| {
+            let last = rig.bones.len().saturating_sub(1);
+            ui.add(egui::DragValue::new(&mut self.rigs.ik_tip).range(0..=last));
+            ui.add(egui::DragValue::new(&mut self.rigs.ik_chain).range(1..=last + 1));
+            ui.add(egui::DragValue::new(&mut self.rigs.ik_target[0]).speed(0.5));
+            ui.add(egui::DragValue::new(&mut self.rigs.ik_target[1]).speed(0.5));
+            if ui.button(tr!(self, "rigs-set-ik")).clicked() {
+                let goal = IkGoal {
+                    tip: self.rigs.ik_tip,
+                    chain: self.rigs.ik_chain,
+                    target: self.rigs.ik_target,
+                };
+                self.rig_set_ik(symbol, self.rigs.pose_frame, goal);
             }
         });
         ui.separator();

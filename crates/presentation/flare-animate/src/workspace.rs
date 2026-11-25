@@ -43,6 +43,7 @@ mod guides;
 mod help;
 mod helpers;
 mod import_into;
+mod rig_overlay;
 pub use import_into::{IMPORT_INTO_EXTENSIONS, MAX_IMPORT_INTO_BYTES};
 mod home;
 mod home_custom;

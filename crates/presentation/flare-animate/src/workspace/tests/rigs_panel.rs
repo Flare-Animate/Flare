@@ -101,3 +101,60 @@ fn the_panel_draws_empty_and_with_a_rig_and_the_menu_opens_it() {
     run(&mut ws, &ctx, 1.0);
     run(&mut ws, &ctx, 2.0);
 }
+
+#[test]
+fn an_ik_goal_is_keyed_beside_the_rotations_and_retyping_it_moves_it() {
+    let (mut ws, id) = with_symbol();
+    ws.rig_create(id);
+    ws.rig_add_bone(id, bone("upper", None));
+    ws.rig_add_bone(id, bone("lower", Some(0)));
+    ws.rig_set_pose(id, 3, 0, 0.5);
+    let goal = |x| flare_rig::IkGoal {
+        tip: 1,
+        chain: 2,
+        target: [x, 4.0],
+    };
+    ws.rig_set_ik(id, 3, goal(5.0));
+    ws.rig_set_ik(id, 3, goal(7.0));
+    let rig = rig_of(&ws, id).expect("rig");
+    assert_eq!(rig.keys[&3].pose.rotations.len(), 1, "the rotation stays");
+    assert_eq!(rig.keys[&3].pose.ik, vec![goal(7.0)], "one goal per tip");
+    ws.undo();
+    assert_eq!(
+        rig_of(&ws, id).expect("rig").keys[&3].pose.ik,
+        vec![goal(5.0)],
+        "each goal is one undo step"
+    );
+    let revision = ws.active().revision();
+    ws.rig_set_ik(
+        id,
+        3,
+        flare_rig::IkGoal {
+            tip: 9,
+            chain: 2,
+            target: [0.0, 0.0],
+        },
+    );
+    assert_eq!(
+        ws.active().revision(),
+        revision,
+        "a missing bone is refused"
+    );
+}
+
+#[test]
+fn the_rig_shows_on_the_stage_only_where_its_symbol_is_being_edited() {
+    let (mut ws, id) = with_symbol();
+    ws.rig_create(id);
+    ws.rig_add_bone(id, bone("upper", None));
+    assert_eq!(
+        ws.rig_bones_on_stage(),
+        None,
+        "no instance picked, not inside it"
+    );
+    ws.enter_symbol(id);
+    let bones = ws
+        .rig_bones_on_stage()
+        .expect("inside the symbol the rig shows");
+    assert_eq!(bones, vec![(Pos2::new(0.0, 0.0), Pos2::new(10.0, 0.0))]);
+}

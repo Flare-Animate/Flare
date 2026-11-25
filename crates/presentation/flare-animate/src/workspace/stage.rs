@@ -117,6 +117,7 @@ impl Workspace {
         self.stage_guides(ui, response.rect, image_rect, scale);
         let reach = self.stage_view.upright_reach(response.rect);
         self.assist_overlay(painter, reach, image_rect, scale);
+        self.rig_overlay(painter, image_rect, scale);
         self.text_editor(ui.ctx(), image_rect, scale);
         self.handle_radius = 8.0 / scale.max(f32::EPSILON);
         self.uniform_scale = ui.input(|i| i.modifiers.shift);
