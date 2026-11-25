@@ -230,3 +230,97 @@ fn convert_names_the_symbol_itself_when_no_name_is_given() {
     assert_eq!(made["kind"], "graphic");
     assert_eq!(made["registration"], "top-left");
 }
+
+#[test]
+fn increment_bake_and_add_instance_edit_the_project_and_refuse_bad_input() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file, "--width", "100", "--height", "100"]);
+    json(&["draw-rect", &file, "--rect", "10", "10", "8", "8"]);
+    let made = json(&["symbol", "convert", &file, "--at", "0", "--name", "Box"]);
+    let symbol = made["symbol"].as_str().expect("id").to_string();
+    // The instance Convert left in place stands at the shape's corner, so baking moves that
+    // offset into the artwork.
+    let baked = json(&["symbol", "bake", &file, "--at", "0"]);
+    assert!(baked["changes"].as_u64().expect("count") >= 1);
+    assert!(
+        !run(&["symbol", "bake", &file, "--at", "0"])
+            .status
+            .success(),
+        "an instance with no transform has nothing to bake"
+    );
+    json(&[
+        "symbol",
+        "set-loop",
+        &file,
+        "--at",
+        "0",
+        "--mode",
+        "loop",
+        "--first-frame",
+        "2",
+    ]);
+    let moved = json(&["symbol", "increment", &file, &symbol, "--by", "3"]);
+    assert_eq!(moved["by"], 3);
+    assert!(
+        !run(&["symbol", "increment", &file, &symbol, "--by", "-9"])
+            .status
+            .success(),
+        "a frame before the symbol's first is refused"
+    );
+    assert!(
+        !run(&["symbol", "increment", &file, &symbol, "--by", "0"])
+            .status
+            .success(),
+        "a no-op is refused"
+    );
+    // Another symbol takes a copy of the picked element.
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "40",
+        "40",
+        "8",
+        "8",
+        "--start",
+        "5",
+    ]);
+    let other = json(&["add-symbol", &file, "Other"])["symbol"]
+        .as_str()
+        .expect("id")
+        .to_string();
+    let added = json(&[
+        "symbol",
+        "add-instance",
+        &file,
+        &symbol,
+        "--at",
+        "5",
+        "--element",
+        "1",
+    ]);
+    assert_eq!(added["added"], true);
+    assert!(
+        !run(&[
+            "symbol",
+            "add-instance",
+            &file,
+            &other,
+            "--at",
+            "5",
+            "--element",
+            "1"
+        ])
+        .status
+        .success(),
+        "a symbol with no layer cannot take the frame"
+    );
+    let missing = "00000000-0000-4000-8000-000000000001";
+    assert!(
+        !run(&["symbol", "add-instance", &file, missing, "--at", "5"])
+            .status
+            .success(),
+        "a symbol the library lacks is refused"
+    );
+}

@@ -192,3 +192,65 @@ async fn place_turns_and_scales_about_the_registration_point() {
     );
     assert_eq!(f.revision().await, before);
 }
+
+#[tokio::test]
+async fn increment_bake_and_add_instance_to_symbol_edit_and_refuse_bad_input() {
+    let f = fixture(true, false).await;
+    f.ok(
+        "draw_rect",
+        json!({ "x": 10, "y": 4, "width": 8, "height": 6 }),
+    )
+    .await;
+    let made = f
+        .ok("convert_to_symbol", json!({ "at": 0, "name": "Box" }))
+        .await;
+    let sym = made["symbol"].as_str().expect("id").to_string();
+    f.ok("bake_transform", json!({ "at": 0 })).await;
+    let rev = f.revision().await;
+    let (bad, _) = f.tool("bake_transform", json!({ "at": 0 })).await;
+    assert!(bad, "nothing left to bake");
+    f.ok(
+        "set_instance_loop",
+        json!({ "at": 0, "mode": "loop", "first_frame": 2 }),
+    )
+    .await;
+    f.ok("increment_instances", json!({ "symbol": sym, "by": 3 }))
+        .await;
+    let rev = f.revision().await.max(rev);
+    for args in [
+        json!({ "symbol": sym, "by": -9 }),
+        json!({ "symbol": sym, "by": 0 }),
+    ] {
+        let (bad, _) = f.tool("increment_instances", args.clone()).await;
+        assert!(bad, "{args}");
+    }
+    assert_eq!(f.revision().await, rev, "a refusal changes nothing");
+    f.ok(
+        "draw_rect",
+        json!({ "x": 20, "y": 4, "width": 4, "height": 4, "start": 0 }),
+    )
+    .await;
+    let other = f.ok("add_symbol", json!({ "name": "Other" })).await["symbol"]
+        .as_str()
+        .expect("id")
+        .to_string();
+    f.ok(
+        "add_instance_to_symbol",
+        json!({ "symbol": sym, "at": 0, "element": 1 }),
+    )
+    .await;
+    let (bad, _) = f
+        .tool(
+            "add_instance_to_symbol",
+            json!({ "symbol": other, "at": 0, "element": 1 }),
+        )
+        .await;
+    assert!(bad, "a symbol with no layer cannot take the frame");
+    let (bad, _) = f
+        .tool(
+            "add_instance_to_symbol",
+            json!({ "symbol": "00000000-0000-4000-8000-000000000001", "at": 0 }),
+        )
+        .await;
+    assert!(bad);
+}

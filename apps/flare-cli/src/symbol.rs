@@ -78,6 +78,39 @@ pub enum SymbolCommand {
         #[arg(long)]
         layer: Option<Uuid>,
     },
+    /// Increment Instances: every instance of a symbol whose playback begins at `--from` or
+    /// later begins `--by` frames further on (negative moves back).
+    Increment {
+        path: PathBuf,
+        symbol: Uuid,
+        #[arg(long, default_value_t = 0)]
+        from: u32,
+        #[arg(long, allow_hyphen_values = true)]
+        by: i64,
+    },
+    /// Bake Transform: the transform of the instance at `--at` becomes part of its symbol's
+    /// artwork and every instance of the symbol takes the reverse.
+    Bake {
+        path: PathBuf,
+        #[arg(long)]
+        at: u32,
+        #[arg(long)]
+        layer: Option<Uuid>,
+        #[arg(long, default_value_t = 0)]
+        element: usize,
+    },
+    /// Add Instance to Symbol: a copy of the element at `--at` becomes one frame at the end of
+    /// the symbol's first layer.
+    AddInstance {
+        path: PathBuf,
+        symbol: Uuid,
+        #[arg(long)]
+        at: u32,
+        #[arg(long)]
+        layer: Option<Uuid>,
+        #[arg(long, default_value_t = 0)]
+        element: usize,
+    },
     /// Move layers (a folder with everything in it) into a new symbol, and put an instance of
     /// it where they were: Convert Layers to Symbol.
     FromLayers {
@@ -148,6 +181,25 @@ pub enum RigCmd {
 
 pub fn run_symbol(op: SymbolCommand) -> Result<Value> {
     match op {
+        SymbolCommand::Increment {
+            path,
+            symbol,
+            from,
+            by,
+        } => crate::symbol_edit::increment(&path, symbol, from, by),
+        SymbolCommand::Bake {
+            path,
+            at,
+            layer,
+            element,
+        } => crate::symbol_edit::bake(&path, at, layer, element),
+        SymbolCommand::AddInstance {
+            path,
+            symbol,
+            at,
+            layer,
+            element,
+        } => crate::symbol_edit::add_instance(&path, symbol, at, layer, element),
         SymbolCommand::Convert {
             path,
             at,

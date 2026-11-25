@@ -20,6 +20,7 @@ mod shortcuts;
 mod stopmotion;
 mod stopmotion_project;
 mod symbol;
+mod symbol_edit;
 mod tween;
 mod video;
 
