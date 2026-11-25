@@ -1,0 +1,16 @@
+pane-stop-motion = Stop motion
+menu-item-show-stop-motion = Stop motion
+stop-motion-empty = Pas encore de session de stop motion. Réglez la cadence, démarrez-en une, puis ajoutez des images comme photogrammes.
+stop-motion-start = Démarrer la session
+stop-motion-fps = Cadence (images par seconde)
+stop-motion-hold = Durée
+stop-motion-rate = Régler la cadence
+stop-motion-add = Ajouter des images...
+stop-motion-lay = Placer sur le scénario
+stop-motion-end = Terminer la session
+stop-motion-remove = Retirer
+stop-motion-summary = { $frames } images, { $duration } images de scénario, { $fps } par seconde
+stop-motion-layer = Stop motion
+stop-motion-cannot = La session de stop motion ne peut pas faire cela : { $error }
+stop-motion-note = La session est conservée dans le projet. Aucune caméra n'est prise en charge : les images viennent de fichiers. `flare stop-motion-project` et les outils stop_motion du serveur MCP font de même.
+hist-edit-stop-motion = Modifier le stop motion

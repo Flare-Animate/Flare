@@ -1,0 +1,16 @@
+pane-stop-motion = 스톱모션
+menu-item-show-stop-motion = 스톱모션
+stop-motion-empty = 스톱모션 세션이 아직 없습니다. 속도를 정하고 시작한 뒤 그림을 프레임으로 추가하세요.
+stop-motion-start = 세션 시작
+stop-motion-fps = 속도(초당 프레임)
+stop-motion-hold = 유지
+stop-motion-rate = 속도 설정
+stop-motion-add = 그림 추가...
+stop-motion-lay = 타임라인에 놓기
+stop-motion-end = 세션 끝내기
+stop-motion-remove = 제거
+stop-motion-summary = { $frames } 프레임, 타임라인 { $duration } 프레임, 초당 { $fps }
+stop-motion-layer = 스톱모션
+stop-motion-cannot = 스톱모션 세션에서 할 수 없습니다: { $error }
+stop-motion-note = 세션은 프로젝트에 저장됩니다. 카메라는 지원하지 않으며 프레임은 그림 파일에서 가져옵니다. `flare stop-motion-project`와 MCP 서버의 stop_motion 도구도 같은 일을 합니다.
+hist-edit-stop-motion = 스톱모션 편집

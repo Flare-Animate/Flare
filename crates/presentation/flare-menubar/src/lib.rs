@@ -205,11 +205,15 @@ pub enum MenuAction {
     /// Window > Effects: the active layer's effects as a node graph.
     ShowEffects,
     ShowShaders,
+    /// Window > Rigs: the skeleton rig of a library symbol.
+    ShowRigs,
+    /// Window > Stop Motion: the project's capture session.
+    ShowStopMotion,
     ShowGame,
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 156] = [
+    pub const ALL: [MenuAction; 158] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -365,6 +369,8 @@ impl MenuAction {
         Self::PlaceMannequinOnLayer,
         Self::ShowEffects,
         Self::ShowShaders,
+        Self::ShowRigs,
+        Self::ShowStopMotion,
         Self::ShowGame,
     ];
 

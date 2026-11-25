@@ -2180,6 +2180,7 @@ dependencies = [
  "flare-publish",
  "flare-recent",
  "flare-render",
+ "flare-rig",
  "flare-runtime",
  "flare-storage",
  "flare-text",
@@ -2332,8 +2333,10 @@ dependencies = [
  "flare-document",
  "flare-eval",
  "flare-history",
+ "flare-rig",
  "flare-tween",
  "proptest",
+ "serde_json",
  "thiserror 2.0.18",
 ]
 
@@ -2767,6 +2770,7 @@ dependencies = [
  "flare-document",
  "flare-fx",
  "flare-game",
+ "flare-rig",
  "flare-tween",
  "glamx",
  "proptest",

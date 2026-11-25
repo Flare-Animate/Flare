@@ -20,6 +20,12 @@ pub(crate) enum Command {
     /// Stop-motion sessions, their captures and their views.
     #[command(flatten)]
     StopMotion(stopmotion::Commands),
+    /// The stop-motion session a project keeps: start, add a PNG as the next frame, list, hold,
+    /// remove, change the rate, lay the frames on a layer, end; each one undo step.
+    StopMotionProject {
+        #[command(subcommand)]
+        op: crate::stopmotion_project::ProjectCommands,
+    },
     /// Create an empty project with one scene and one layer.
     New {
         path: PathBuf,

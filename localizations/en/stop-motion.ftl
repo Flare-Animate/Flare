@@ -1,0 +1,16 @@
+pane-stop-motion = Stop Motion
+menu-item-show-stop-motion = Stop Motion
+stop-motion-empty = No stop-motion session yet. Set the rate and start one, then add pictures as frames.
+stop-motion-start = Start session
+stop-motion-fps = Rate (frames a second)
+stop-motion-hold = Hold
+stop-motion-rate = Set rate
+stop-motion-add = Add pictures...
+stop-motion-lay = Lay on timeline
+stop-motion-end = End session
+stop-motion-remove = Remove
+stop-motion-summary = { $frames } frames, { $duration } timeline frames, { $fps } a second
+stop-motion-layer = Stop motion
+stop-motion-cannot = The stop-motion session cannot do that: { $error }
+stop-motion-note = The session is kept in the project. No camera backend is built, so frames come from picture files. `flare stop-motion-project` and the MCP server's stop_motion tools do the same.
+hist-edit-stop-motion = Edit stop motion

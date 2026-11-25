@@ -13,11 +13,13 @@ mod game;
 mod interp;
 mod layer_queries;
 mod origin;
+mod rig;
 mod shader;
 mod shape;
 mod sound;
 mod span_elements;
 mod stage;
+mod stop_motion;
 mod stroke;
 mod stroke_style;
 mod text;
@@ -38,6 +40,7 @@ pub use origin::{
     Baseline, MAX_ORIGIN_BYTES, MAX_ORIGIN_FILES, MAX_ORIGIN_NAME_BYTES, Origin, OriginData,
     OriginError, OriginFile, OriginKind, SharedOrigin, SymbolBaseline, is_safe_entry_name,
 };
+pub use rig::{MAX_RIG_ASSETS, MAX_RIG_PAYLOAD_BYTES, RigAsset, RigAssetError};
 pub use shader::{MAX_SHADER_ASSETS, MAX_SHADER_NAME_CHARS, ShaderAsset, ShaderAssetError};
 pub use shape::{
     Cap, Gradient, GradientError, Join, MAX_SEGMENTS, MAX_STROKE_WIDTH, PathSegment, Shape,
@@ -49,6 +52,10 @@ pub use sound::{
 };
 pub use span_elements::MAX_ELEMENTS;
 pub use stage::{MAX_STAGE_SIDE, Stage, StageError};
+pub use stop_motion::{
+    MAX_STOP_MOTION_FPS, MAX_STOP_MOTION_FRAMES, MAX_STOP_MOTION_HOLD, StopFrame, StopMotion,
+    StopMotionError,
+};
 pub use stroke_style::StrokeStyle;
 pub use text::{
     MAX_FAMILY_CHARS, MAX_TEXT_CHARS, MAX_TEXT_SIZE, MIN_TEXT_SIZE, TextSource, TextSourceError,
@@ -228,6 +235,8 @@ pub struct Document {
     origin: Option<SharedOrigin>,
     game: Option<flare_game::GameSpec>,
     shader_assets: Vec<ShaderAsset>,
+    rig_assets: Vec<RigAsset>,
+    stop_motion: Option<StopMotion>,
 }
 
 impl Document {
@@ -250,6 +259,8 @@ impl Document {
             origin: None,
             game: None,
             shader_assets: Vec::new(),
+            rig_assets: Vec::new(),
+            stop_motion: None,
         };
         let diagnostics = validate::validate(&document);
         if diagnostics.is_empty() {
@@ -356,6 +367,42 @@ impl Document {
     ) -> Result<Self, Vec<Diagnostic>> {
         self.shader_assets = shader_assets;
         let diagnostics = validate::validate_shader_assets(&self);
+        if diagnostics.is_empty() {
+            Ok(self)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
+    /// The rigs of the project's symbols.
+    pub fn rig_assets(&self) -> &[RigAsset] {
+        &self.rig_assets
+    }
+
+    /// Replaces the rigs, enforcing their count, one rig for a symbol and that the symbol exists.
+    pub fn with_rig_assets(mut self, rig_assets: Vec<RigAsset>) -> Result<Self, Vec<Diagnostic>> {
+        self.rig_assets = rig_assets;
+        let diagnostics = validate::validate_rig_assets(&self);
+        if diagnostics.is_empty() {
+            Ok(self)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
+    /// The stop-motion session, if the project has one.
+    pub fn stop_motion(&self) -> Option<&StopMotion> {
+        self.stop_motion.as_ref()
+    }
+
+    /// Attaches a stop-motion session, checking that every picture it names is in the library;
+    /// `None` removes it.
+    pub fn with_stop_motion(
+        mut self,
+        stop_motion: Option<StopMotion>,
+    ) -> Result<Self, Vec<Diagnostic>> {
+        self.stop_motion = stop_motion;
+        let diagnostics = validate::validate_stop_motion(&self);
         if diagnostics.is_empty() {
             Ok(self)
         } else {

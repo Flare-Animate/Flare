@@ -3,8 +3,8 @@
 use flare_core::{BitmapId, FrameRate, LayerId, SceneId, SoundId, SymbolId};
 use flare_document::Timeline;
 use flare_document::{
-    Bitmap, FrameSpan, Layer, Playback, Scene, ShaderAsset, Sound, SoundCue, SpanInterp, Stage,
-    Symbol, SymbolKind,
+    Bitmap, FrameSpan, Layer, Playback, RigAsset, Scene, ShaderAsset, Sound, SoundCue, SpanInterp,
+    Stage, StopMotion, Symbol, SymbolKind,
 };
 
 /// A property change on a layer.
@@ -66,6 +66,11 @@ pub enum Command {
     SetFrameRate(FrameRate),
     /// Replaces the document's shader-graph library atomically.
     SetShaderAssets(Vec<ShaderAsset>),
+    /// Replaces the document's rigs atomically. Each is for a symbol that exists.
+    SetRigAssets(Vec<RigAsset>),
+    /// Replaces (or with `None` removes) the stop-motion session atomically. Every picture it
+    /// names is in the library.
+    SetStopMotion(Option<StopMotion>),
     /// Adds a bitmap to the library. Refused when an identical image (same content hash) is
     /// already there: place that one instead, so repeated frames are stored once.
     AddBitmap(Bitmap),

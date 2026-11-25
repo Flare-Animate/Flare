@@ -30,7 +30,7 @@ mod wick;
 mod xfl;
 mod xml;
 
-pub use bitmap::{MAX_IMAGE_FRAMES, import_image_sequence};
+pub use bitmap::{MAX_IMAGE_FRAMES, import_bitmap, import_image_sequence};
 pub use brushes::{
     BrushProfileError, PROFILE_EXTENSIONS, ProfileKind, ProfileSet, import_profile_bytes,
     profile_kind,

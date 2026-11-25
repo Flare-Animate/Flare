@@ -197,6 +197,8 @@ impl Workspace {
             | MenuAction::ToggleMannequinOnStage
             | MenuAction::ShowEffects
             | MenuAction::ShowShaders
+            | MenuAction::ShowRigs
+            | MenuAction::ShowStopMotion
             | MenuAction::ShowGame
             | MenuAction::ShowHome => true,
             MenuAction::ToggleOnionSkin
@@ -433,6 +435,8 @@ impl Workspace {
             }
             MenuAction::ShowEffects => self.show_pane(Pane::Effects),
             MenuAction::ShowShaders => self.show_pane(Pane::Shaders),
+            MenuAction::ShowRigs => self.show_pane(Pane::Rigs),
+            MenuAction::ShowStopMotion => self.show_pane(Pane::StopMotion),
             MenuAction::ShowGame => self.show_pane(Pane::Game),
             MenuAction::ShowHome => self.windows.home = !self.windows.home,
             MenuAction::ToggleOnionSkin => self.set_onion_skin(!self.onion.enabled),

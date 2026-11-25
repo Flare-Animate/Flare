@@ -159,6 +159,8 @@ impl MenuAction {
             | Self::PlaceMannequinOnLayer => "panel-mannequin",
             Self::ShowEffects => "panel-effects",
             Self::ShowShaders => "panel-shaders",
+            Self::ShowRigs => "panel-rigs",
+            Self::ShowStopMotion => "panel-stop-motion",
             Self::ShowGame => "panel-game",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",

@@ -1,0 +1,14 @@
+pane-rigs = Kostry
+menu-item-show-rigs = Kostry
+rigs-empty = Nejprve přidejte symbol do knihovny a pak mu tady dejte kostru.
+rigs-has-rig = má rig
+rigs-select = Vyberte symbol, kterému chcete přidat rig.
+rigs-add-rig = Přidat rig
+rigs-add-bone = Přidat kost
+rigs-rotations = rotace
+rigs-remove-pose = Odebrat
+rigs-set-pose = Nastavit pózu
+rigs-remove-rig = Odebrat rig
+rigs-cannot = Rig to nedokáže: { $error }
+rigs-note = Rigy jsou uloženy v projektu. Upravují a vyhodnocují je také `flare rig project` a nástroje project_rig serveru MCP.
+hist-edit-rig = Upravit rig

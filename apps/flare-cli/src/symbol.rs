@@ -132,6 +132,12 @@ pub enum RigCmd {
         #[arg(long, default_value = "linear")]
         interp: String,
     },
+    /// The rigs stored in a project file: the same bones, poses and evaluation, but the rig is
+    /// kept in the project and every change is one undo step in the apps.
+    Project {
+        #[command(subcommand)]
+        op: crate::rig_project::ProjectRigCmd,
+    },
     /// Evaluate the bones at a frame.
     Eval {
         rig: PathBuf,
@@ -229,6 +235,64 @@ pub fn run_symbol(op: SymbolCommand) -> Result<Value> {
     }
 }
 
+/// A bone from the arguments `rig add-bone` takes, with the same checks for a rig file and one in
+/// a project.
+pub(crate) fn bone_of(
+    name: String,
+    parent: Option<usize>,
+    length: f64,
+    rest_angle: f64,
+    limit: Option<Vec<f64>>,
+    target: Option<Uuid>,
+) -> Result<Bone> {
+    let limit = match limit.as_deref() {
+        Some(&[min, max]) => Some(AngleLimit::new(min, max)?),
+        _ => None,
+    };
+    Ok(Bone {
+        name,
+        parent,
+        length,
+        rest_angle,
+        limit,
+        target: target.map(flare_core::InstanceId::from_uuid),
+    })
+}
+
+/// A pose key from the arguments `rig set-pose` takes.
+pub(crate) fn pose_key(interpolation: &str, rotate: &[String], ik: &[String]) -> Result<PoseKey> {
+    let mut key = PoseKey {
+        interp: interp(interpolation)?,
+        ..PoseKey::default()
+    };
+    for r in rotate {
+        let v = nums(r, 2)?;
+        key.pose.rotations.insert(index(v[0])?, v[1]);
+    }
+    for g in ik {
+        let v = nums(g, 4)?;
+        key.pose.ik.push(IkGoal {
+            tip: index(v[0])?,
+            chain: index(v[1])?,
+            target: [v[2], v[3]],
+        });
+    }
+    Ok(key)
+}
+
+/// A rig's bones at a frame, as the command line and the MCP server print them.
+pub(crate) fn eval_json(rig: &Rig, frame: u32) -> Result<Value> {
+    let bones: Vec<Value> = evaluate_rig(rig, frame)?
+        .iter()
+        .zip(&rig.bones)
+        .map(|(t, b)| {
+            json!({ "name": b.name, "origin": t.origin, "angle": t.angle,
+                "length": t.length, "target": t.target.map(|i| *i.as_uuid()) })
+        })
+        .collect();
+    Ok(json!({ "frame": frame, "clock": format!("{:?}", rig.clock), "bones": bones }))
+}
+
 fn read(path: &Path) -> Result<Rig> {
     let bytes = flare_core_read(path)?;
     let rig: Rig = serde_json::from_slice(&bytes).context("not a rig file")?;
@@ -302,18 +366,7 @@ pub fn run_rig(op: RigCmd) -> Result<Value> {
             target,
         } => {
             let rig = read(&path)?;
-            let limit = match limit.as_deref() {
-                Some(&[min, max]) => Some(AngleLimit::new(min, max)?),
-                _ => None,
-            };
-            let bone = Bone {
-                name,
-                parent,
-                length,
-                rest_angle,
-                limit,
-                target: target.map(flare_core::InstanceId::from_uuid),
-            };
+            let bone = bone_of(name, parent, length, rest_angle, limit, target)?;
             let rig = rig.apply(&[RigCommand::AddBone(bone)])?;
             write(&path, &rig)?;
             Ok(json!({ "bone": rig.bones.len() - 1 }))
@@ -326,40 +379,15 @@ pub fn run_rig(op: RigCmd) -> Result<Value> {
             interp: name,
         } => {
             let rig = read(&path)?;
-            let mut key = PoseKey {
-                interp: interp(&name)?,
-                ..PoseKey::default()
-            };
-            for r in &rotate {
-                let v = nums(r, 2)?;
-                key.pose.rotations.insert(index(v[0])?, v[1]);
-            }
-            for g in &ik {
-                let v = nums(g, 4)?;
-                key.pose.ik.push(IkGoal {
-                    tip: index(v[0])?,
-                    chain: 0,
-                    target: [v[2], v[3]],
-                });
-                if let Some(goal) = key.pose.ik.last_mut() {
-                    goal.chain = index(v[1])?;
-                }
-            }
+            let key = pose_key(&name, &rotate, &ik)?;
             let rig = rig.apply(&[RigCommand::SetRigPose { frame, key }])?;
             write(&path, &rig)?;
             Ok(json!({ "frame": frame, "keys": rig.keys.len() }))
         }
+        RigCmd::Project { op } => crate::rig_project::run(op),
         RigCmd::Eval { rig, frame } => {
             let rig = read(&rig)?;
-            let bones: Vec<Value> = evaluate_rig(&rig, frame)?
-                .iter()
-                .zip(&rig.bones)
-                .map(|(t, b)| {
-                    json!({ "name": b.name, "origin": t.origin, "angle": t.angle,
-                        "length": t.length, "target": t.target.map(|i| *i.as_uuid()) })
-                })
-                .collect();
-            Ok(json!({ "frame": frame, "clock": format!("{:?}", rig.clock), "bones": bones }))
+            eval_json(&rig, frame)
         }
     }
 }

@@ -95,6 +95,8 @@ pub enum DialogRequest {
     ImportShader,
     /// Write the chosen shader graph out as a `.json` file.
     ExportShader,
+    /// Several pictures (PNG) to add as stop-motion frames.
+    AddStopMotionFrames,
     /// Several numbered pictures (PNG) to make one layer of keyframes.
     ImportImageSequence,
     /// A Flash movie (`.swf`) whose ActionScript 3 the Movie Scripts window lists.

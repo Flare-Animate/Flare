@@ -10,7 +10,7 @@ pub const DEFAULT_SIDE: [Pane; 3] = [Pane::Properties, Pane::Library, Pane::Asse
 
 /// The panels kept as icons in the strip at the right edge by default; each opens beside the
 /// strip with the stack still in view.
-pub const DEFAULT_STRIP: [Pane; 13] = [
+pub const DEFAULT_STRIP: [Pane; 15] = [
     Pane::Layers,
     Pane::Color,
     Pane::Swatches,
@@ -23,6 +23,8 @@ pub const DEFAULT_STRIP: [Pane; 13] = [
     Pane::Mannequin,
     Pane::Effects,
     Pane::Shaders,
+    Pane::Rigs,
+    Pane::StopMotion,
     Pane::Game,
 ];
 

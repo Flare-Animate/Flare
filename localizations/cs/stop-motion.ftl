@@ -1,0 +1,16 @@
+pane-stop-motion = Stop motion
+menu-item-show-stop-motion = Stop motion
+stop-motion-empty = Zatím žádná relace stop motion. Nastavte rychlost, spusťte ji a přidejte obrázky jako políčka.
+stop-motion-start = Spustit relaci
+stop-motion-fps = Rychlost (políček za sekundu)
+stop-motion-hold = Držení
+stop-motion-rate = Nastavit rychlost
+stop-motion-add = Přidat obrázky...
+stop-motion-lay = Položit na časovou osu
+stop-motion-end = Ukončit relaci
+stop-motion-remove = Odebrat
+stop-motion-summary = { $frames } políček, { $duration } políček časové osy, { $fps } za sekundu
+stop-motion-layer = Stop motion
+stop-motion-cannot = Relace stop motion to nedokáže: { $error }
+stop-motion-note = Relace je uložena v projektu. Kamera není podporována, políčka pocházejí ze souborů s obrázky. Totéž dělají `flare stop-motion-project` a nástroje stop_motion serveru MCP.
+hist-edit-stop-motion = Upravit stop motion

@@ -113,6 +113,7 @@ pub(crate) const ANCHOR_INK: egui::Color32 = egui::Color32::from_rgb(40, 120, 25
 pub use flare_audio::AudioEvent;
 pub use flare_tools::brush::BrushPreset;
 pub use furniture::MIN_WINDOW_SIZE;
+pub use panels::stop_motion::{Pictures, decode_stop_motion_pictures};
 pub use preferences::{MAX_PREFERENCES_BYTES, Preferences};
 pub use publish_settings::PublishSettings;
 pub use types::{
@@ -155,6 +156,8 @@ pub struct Workspace {
     library: symbols::LibraryState,
     shaders: panels::shaders::ShaderPanel,
     game: panels::game::GamePanel,
+    rigs: panels::rigs::RigPanel,
+    stop_motion: panels::stop_motion::StopMotionPanel,
     /// The import being read, if any.
     importing: Option<u64>,
     /// The file being read to bring into this document, and whether it goes on the stage.

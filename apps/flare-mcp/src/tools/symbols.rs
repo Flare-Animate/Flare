@@ -5,7 +5,7 @@
 use flare_commands::Command;
 use flare_core::{InstanceId, SymbolId};
 use flare_document::{PlayMode, Playback, SymbolKind};
-use flare_rig::{AngleLimit, Bone, IkGoal, Interp, PoseKey, Rig, RigCommand, evaluate_rig};
+use flare_rig::{AngleLimit, Bone, IkGoal, PoseKey, Rig, RigCommand, evaluate_rig};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -229,14 +229,7 @@ impl FlareServer {
     )]
     fn rig_set_pose(&self, Parameters(a): Parameters<RigSetPose>) -> Outcome {
         let rig = rig_in(a.rig)?;
-        let interp = match a.interp.as_deref().unwrap_or("linear") {
-            "constant" => Interp::Constant,
-            "linear" => Interp::Linear,
-            "ease-in" => Interp::EaseIn,
-            "ease-out" => Interp::EaseOut,
-            "ease-in-out" => Interp::EaseInOut,
-            other => return Err(format!("unknown interpolation {other:?}")),
-        };
+        let interp = super::rigs::interp_named(a.interp.as_deref().unwrap_or("linear"))?;
         let mut key = PoseKey {
             interp,
             ..PoseKey::default()

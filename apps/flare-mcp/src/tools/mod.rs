@@ -18,10 +18,12 @@ mod multi_frame;
 mod pixels;
 mod polygon;
 mod read;
+mod rigs;
 mod scripts;
 mod shaders;
 mod shortcuts;
 mod sound;
+mod stop_motion;
 mod stopmotion;
 #[cfg(test)]
 mod stopmotion_tests;
@@ -62,6 +64,8 @@ impl FlareServer {
             + Self::pixel_tools()
             + Self::bend_edge_tools()
             + Self::magnet_tools()
+            + Self::project_rig_tools()
+            + Self::stop_motion_tools()
             + Self::mannequin_tools()
             + Self::video_tools()
             + Self::script_tools()

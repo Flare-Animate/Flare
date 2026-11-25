@@ -12,6 +12,8 @@ flare-core.workspace = true
 flare-document.workspace = true
 flare-eval.workspace = true
 flare-history.workspace = true
+flare-rig.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 
 [lints]

@@ -137,12 +137,12 @@ fn newer_schema_versions_are_refused() {
         .pragma_update(
             None,
             "user_version",
-            crate::records::SHADER_SCHEMA_VERSION + 1,
+            crate::records::STOP_MOTION_SCHEMA_VERSION + 1,
         )
         .expect("set");
     assert!(matches!(
         load(&path),
-        Err(StorageError::UnsupportedVersion(version)) if version == crate::records::SHADER_SCHEMA_VERSION + 1
+        Err(StorageError::UnsupportedVersion(version)) if version == crate::records::STOP_MOTION_SCHEMA_VERSION + 1
     ));
 }
 

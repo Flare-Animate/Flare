@@ -1,0 +1,16 @@
+pane-stop-motion = Stop motion
+menu-item-show-stop-motion = Stop motion
+stop-motion-empty = Nessuna sessione di stop motion. Imposta la frequenza, avviane una e aggiungi immagini come fotogrammi.
+stop-motion-start = Avvia sessione
+stop-motion-fps = Frequenza (fotogrammi al secondo)
+stop-motion-hold = Durata
+stop-motion-rate = Imposta frequenza
+stop-motion-add = Aggiungi immagini...
+stop-motion-lay = Metti sulla timeline
+stop-motion-end = Termina sessione
+stop-motion-remove = Rimuovi
+stop-motion-summary = { $frames } fotogrammi, { $duration } fotogrammi di timeline, { $fps } al secondo
+stop-motion-layer = Stop motion
+stop-motion-cannot = La sessione di stop motion non può farlo: { $error }
+stop-motion-note = La sessione è salvata nel progetto. Non c'è supporto per la fotocamera: i fotogrammi vengono da file immagine. `flare stop-motion-project` e gli strumenti stop_motion del server MCP fanno lo stesso.
+hist-edit-stop-motion = Modifica stop motion

@@ -48,6 +48,11 @@ impl WebApp {
             let name = file.name.strip_suffix(".json").unwrap_or(&file.name);
             self.workspace.import_shader_graph(name, &file.bytes);
         }
+        let frames: Vec<_> = self.picked_frames.borrow_mut().drain(..).collect();
+        for files in frames {
+            self.workspace
+                .add_stop_motion_pictures(flare_animate::decode_stop_motion_pictures(files));
+        }
         let sequences: Vec<_> = self.picked_sequences.borrow_mut().drain(..).collect();
         for files in sequences {
             self.workspace.import_image_sequence(files);

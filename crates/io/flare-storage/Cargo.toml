@@ -11,6 +11,7 @@ flare-core.workspace = true
 flare-document.workspace = true
 flare-fx.workspace = true
 flare-game.workspace = true
+flare-rig.workspace = true
 flare-tween.workspace = true
 blake3.workspace = true
 ciborium.workspace = true

@@ -28,6 +28,6 @@ pub use flare_import::{
 pub use flare_input::PenFeed;
 pub use workspace::{
     AudioEvent, DialogRequest, FrameOp, IMPORT_INTO_EXTENSIONS, MAX_IMPORT_INTO_BYTES,
-    MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES, MIN_WINDOW_SIZE, OnionSkin, Preferences,
-    PublishSettings, Tool, WindowRequest, Workspace, onion_ghosts,
+    MAX_ONION_FRAMES, MAX_PREFERENCES_BYTES, MIN_WINDOW_SIZE, OnionSkin, Pictures, Preferences,
+    PublishSettings, Tool, WindowRequest, Workspace, decode_stop_motion_pictures, onion_ghosts,
 };

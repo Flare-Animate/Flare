@@ -29,6 +29,7 @@ mod many_elements;
 mod merged;
 mod origin;
 mod records;
+mod rigs;
 mod roundtrip;
 mod shaders;
 mod stroke_style;

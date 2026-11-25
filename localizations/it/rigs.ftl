@@ -1,0 +1,14 @@
+pane-rigs = Scheletri
+menu-item-show-rigs = Scheletri
+rigs-empty = Aggiungi prima un simbolo alla libreria, poi dagli qui uno scheletro.
+rigs-has-rig = ha un rig
+rigs-select = Scegli un simbolo per dargli un rig.
+rigs-add-rig = Aggiungi rig
+rigs-add-bone = Aggiungi osso
+rigs-rotations = rotazioni
+rigs-remove-pose = Rimuovi
+rigs-set-pose = Imposta posa
+rigs-remove-rig = Rimuovi rig
+rigs-cannot = Il rig non può farlo: { $error }
+rigs-note = I rig sono salvati nel progetto. Anche `flare rig project` e gli strumenti project_rig del server MCP li modificano e li valutano.
+hist-edit-rig = Modifica un rig

@@ -338,6 +338,20 @@ pub(crate) fn import_animation(
     build(name, pictures, &holds, rate)
 }
 
+/// One PNG file as a library bitmap called `name`, for a stop-motion frame or any single picture.
+/// A picture that is too large or not a PNG is refused with the file's name.
+pub fn import_bitmap(name: &str, bytes: &[u8]) -> Result<Bitmap, ImportError> {
+    let picture = decode_png(name, bytes)?;
+    Bitmap::new(
+        BitmapId::new(),
+        name,
+        picture.width,
+        picture.height,
+        picture.rgba,
+    )
+    .map_err(|e| bad(name, e))
+}
+
 /// Numbered picture files as one layer, in natural order (`2.png` before `10.png`): one keyframe
 /// per file, 24 frames a second. Only PNG is read.
 pub fn import_image_sequence(files: Vec<(String, Vec<u8>)>) -> Result<Imported, ImportError> {

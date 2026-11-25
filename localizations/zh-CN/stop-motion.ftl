@@ -1,0 +1,16 @@
+pane-stop-motion = 定格动画
+menu-item-show-stop-motion = 定格动画
+stop-motion-empty = 还没有定格动画会话。设置帧率并开始，然后把图片添加为帧。
+stop-motion-start = 开始会话
+stop-motion-fps = 帧率（每秒帧数）
+stop-motion-hold = 保持
+stop-motion-rate = 设置帧率
+stop-motion-add = 添加图片...
+stop-motion-lay = 放到时间轴
+stop-motion-end = 结束会话
+stop-motion-remove = 移除
+stop-motion-summary = { $frames } 帧，时间轴 { $duration } 帧，每秒 { $fps }
+stop-motion-layer = 定格动画
+stop-motion-cannot = 定格动画会话无法执行该操作：{ $error }
+stop-motion-note = 会话保存在项目中。尚未支持摄像头，帧来自图片文件。`flare stop-motion-project` 和 MCP 服务器的 stop_motion 工具也能做同样的事。
+hist-edit-stop-motion = 编辑定格动画

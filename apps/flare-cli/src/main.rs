@@ -12,11 +12,13 @@ mod magic_wand;
 mod magnet;
 mod mannequin;
 mod project;
+mod rig_project;
 mod scripts;
 mod sequence;
 mod shader;
 mod shortcuts;
 mod stopmotion;
+mod stopmotion_project;
 mod symbol;
 mod tween;
 mod video;
@@ -333,6 +335,7 @@ fn run() -> Result<()> {
                 google_fonts: !no_google_fonts,
             },
         )?,
+        Command::StopMotionProject { op } => stopmotion_project::run(op)?,
         Command::BreakText { path, shape } => project::break_text(&path, shape)?,
         Command::StopMotion(sub) => match sub {
             stopmotion::Commands::StopMotionNew {

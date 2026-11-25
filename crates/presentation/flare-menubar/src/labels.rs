@@ -324,6 +324,8 @@ impl MenuAction {
             Self::PlaceMannequinOnLayer => "menu-item-mannequin-on-layer",
             Self::ShowEffects => "menu-item-show-effects",
             Self::ShowShaders => "menu-item-show-shaders",
+            Self::ShowRigs => "menu-item-show-rigs",
+            Self::ShowStopMotion => "menu-item-show-stop-motion",
             Self::ShowGame => "menu-item-show-game",
             Self::ClearGuides => "menu-item-clear-guides",
             Self::About => "menu-item-about",
