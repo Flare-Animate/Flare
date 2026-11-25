@@ -17,6 +17,7 @@ prefs-clear-recent = Zuletzt verwendete Projekte löschen
 prefs-clear-recent-hint = Löscht die Liste auf der Startseite und unter „Zuletzt geöffnet“. Die Dateien bleiben erhalten.
 prefs-restore-defaults = Standardwerte wiederherstellen
 prefs-theme = Design
+prefs-interface-size = Größe der Oberfläche
 prefs-theme-dark = Dunkel
 prefs-theme-light = Hell
 prefs-theme-darkest = Sehr dunkel

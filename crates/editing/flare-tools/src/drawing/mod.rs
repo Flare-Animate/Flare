@@ -12,6 +12,9 @@ use glamx::DAffine2;
 
 use crate::common::{SpanRef, fresh_content, scene_timeline};
 
+mod merge;
+pub use merge::{Merged, TooManyPieces, merge_into, merged_count};
+
 /// Which layer a drawing goes to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Target {
@@ -75,6 +78,10 @@ pub struct DrawPlan {
 /// to draw on at all, a layer named `new_layer` is made first. A layer that is locked (itself or
 /// by a folder), hidden, a folder, mask, guide or camera, and a keyframe that cannot hold several
 /// elements, is refused.
+///
+/// Shapes marked as merged drawing ([`Shape::is_merged`]) are drawn by Merge Drawing's rules
+/// ([`merge_into`]): they cut and join the merged drawing already in the keyframe, and `placed`
+/// names the pieces they left.
 pub fn draw_shapes(
     document: &Document,
     scene: SceneId,
@@ -84,10 +91,47 @@ pub fn draw_shapes(
     shapes: Vec<Shape>,
     new_layer: &str,
 ) -> Result<DrawPlan, DrawRefusal> {
+    let merging = shapes.iter().any(Shape::is_merged);
     let contents = shapes.into_iter().map(Content::Shape).collect();
-    place(
+    let plan = place(
         document, scene, target, frame, duration, contents, new_layer, true,
-    )
+    )?;
+    if merging { merge_plan(plan) } else { Ok(plan) }
+}
+
+/// `plan` with the shapes it adds merged into the keyframe it adds them to. The keyframe is the
+/// last span the plan inserts, whichever way `place` found or made it, so the rules about where a
+/// drawing may go are the ones every drawing follows.
+fn merge_plan(mut plan: DrawPlan) -> Result<DrawPlan, DrawRefusal> {
+    let Some(Command::InsertSpan { span, .. }) = plan.commands.last_mut() else {
+        return Ok(plan);
+    };
+    let fresh: Vec<usize> = plan.placed.iter().map(|at| at.element).collect();
+    let mut kept = Vec::new();
+    let mut drawn = Vec::new();
+    for (index, element) in span.elements().enumerate() {
+        match element {
+            Content::Shape(shape) if fresh.contains(&index) => drawn.push(shape.clone()),
+            other => kept.push(other.clone()),
+        }
+    }
+    let merged = merge_into(kept, drawn).map_err(|_| DrawRefusal::TooMany)?;
+    *span = span
+        .with_elements(merged.elements)
+        .ok()
+        .flatten()
+        .ok_or(DrawRefusal::TooMany)?;
+    let start = span.start();
+    plan.placed = merged
+        .placed
+        .into_iter()
+        .map(|element| SpanRef {
+            layer: plan.layer,
+            start,
+            element,
+        })
+        .collect();
+    Ok(plan)
 }
 
 /// [`draw_shapes`] for anything a keyframe can hold: shapes and symbol instances, as a paste
@@ -377,3 +421,6 @@ mod tests;
 
 #[cfg(test)]
 mod hold_tests;
+
+#[cfg(test)]
+mod merge_tests;

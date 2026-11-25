@@ -81,6 +81,12 @@ fn a_save_that_is_not_made_leaves_the_tab_open() {
     let ctx = egui::Context::default();
     run(&mut ws, &ctx, 0.0);
     assert!(
+        ws.close_after_save,
+        "the close waits while the picker is open"
+    );
+    ws.end_save_as();
+    run(&mut ws, &ctx, 0.1);
+    assert!(
         !ws.close_after_save,
         "the wish to close ended with the dialog"
     );

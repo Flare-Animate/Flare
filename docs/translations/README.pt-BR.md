@@ -124,7 +124,7 @@ O Flare começou como um espaço de experimentação para tornar a animação ma
 
 Os próximos itens, do mais importante para o menos. A maior parte aparece esmaecida na interface. O [docs/ROADMAP.md](../ROADMAP.md) repete esta lista e segue com tudo o que tem prioridade menor.
 
-- Mesclagem de desenho: formas de mapa planar do Flash, em que formas sobrepostas se cortam e se mesclam (hoje as formas são objetos separados)
+- Mesclagem de desenho: formas de mapa planar do Flash, em que formas sobrepostas se cortam e se mesclam (com o desenho de objeto desligado, as formas já se cortam e se unem; o próximo passo são bordas compartilhadas que se dobram juntas)
 - Qualidade de desenho: dinâmica de pincel, e converter um bitmap em formas vetoriais
 - SWF que mantenha mais do documento: botões com seus estados, interpolações de forma como morphs, máscaras de várias formas e sons dentro de símbolos
 - Um Motion Editor: gráficos por propriedade e curvas de easing personalizadas para as interpolações

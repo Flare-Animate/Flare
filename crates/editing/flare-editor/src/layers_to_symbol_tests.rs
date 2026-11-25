@@ -246,3 +246,27 @@ fn a_free_name_counts_up_past_the_taken_ones() {
     s.apply(made.commands).expect("valid");
     assert_eq!(free_name(s.document(), "Flower"), "Flower 2");
 }
+
+#[test]
+fn a_reference_layer_is_refused_rather_than_lost_inside_the_symbol() {
+    let (mut s, scene, _) = session();
+    let reference = LayerId::new();
+    s.apply([Command::AddLayer {
+        scene,
+        layer: Layer::new(reference, "Guide figure", vec![])
+            .expect("layer")
+            .with_reference(true),
+    }])
+    .expect("reference");
+    assert_eq!(
+        convert_layers_to_symbol(
+            s.document(),
+            scene,
+            &[reference],
+            "Ref",
+            SymbolKind::Graphic
+        )
+        .map(|_| ()),
+        Err(ConvertRefusal::Reference)
+    );
+}

@@ -10,21 +10,26 @@ use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
 
+mod bend_edge;
 mod blend;
 mod bones;
 mod brush_stroke;
 mod camera;
 mod draw;
+mod import_into;
 mod interchange;
 mod magic_wand;
 mod magnet;
 mod multi_frame;
+mod polygon;
+mod rect;
 mod render;
 mod sound;
 mod text;
 mod timeline;
 mod to_bitmap;
 
+pub use bend_edge::{BendEdgeRequest, bend_edge};
 pub use blend::{BlendArgs, RasterBrushArgs, blend_stroke, raster_brush};
 pub use bones::{BoneAction, bone, bones_list};
 pub use brush_stroke::{BrushArgs, brush_strokes};
@@ -33,7 +38,8 @@ use camera::*;
 pub use camera::{CameraMotion, camera};
 #[allow(unused_imports)]
 use draw::*;
-pub use draw::{PlaceArgs, add_layer, add_symbol, draw_rect, eval, place, rename_scene, set_stage};
+pub use draw::{PlaceArgs, add_layer, add_symbol, eval, place, rename_scene, set_stage};
+pub use import_into::{ImportIntoArgs, import_into};
 #[allow(unused_imports)]
 use interchange::*;
 pub use interchange::{
@@ -44,10 +50,12 @@ pub use interchange::{
 pub use magic_wand::{WandRequest, magic_wand};
 pub use magnet::{MagnetRequest, magnet};
 pub use multi_frame::transform_frames;
+pub use polygon::{DrawPolygonArgs, draw_polygon};
+pub use rect::{DrawRectArgs, draw_rect};
 #[allow(unused_imports)]
 use render::*;
 pub use render::{ExportFormat, export, export_frames};
-pub use sound::{sound_import, sound_waveform};
+pub use sound::{SoundImportArgs, sound_import, sound_waveform};
 #[allow(unused_imports)]
 use text::*;
 pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, set_text};
@@ -119,6 +127,7 @@ pub fn info(path: &Path) -> Result<Value> {
                             "visible": layer.is_visible(), "locked": layer.is_locked(),
                             "opacity": layer.view_opacity(),
                             "spans": layer.spans().len(), "elements": elements,
+                            "merged": flare_tools::drawing::merged_count(layer),
                             "armature": armature, "effects": layer.effects().is_some() })
                 })
                 .collect();

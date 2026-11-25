@@ -6,6 +6,7 @@ pub(super) mod blend;
 pub(super) mod bone;
 pub(super) mod brush;
 pub(super) mod camera;
+pub(super) mod edge_bend;
 pub(super) mod eraser;
 pub(super) mod hand;
 pub(super) mod lasso;
@@ -14,6 +15,7 @@ pub(super) mod magnet;
 pub(super) mod paint;
 pub(super) mod paint_pointer;
 pub(super) mod pen;
+pub(super) mod polygon;
 pub(super) mod preview_mesh;
 pub(super) mod rotate_view;
 pub(super) mod stage_pointer;
@@ -28,4 +30,5 @@ pub(super) mod text_preview;
 pub(in crate::workspace) struct Springs {
     pub(in crate::workspace) hand: hand::HandSpring,
     pub(in crate::workspace) magnet: magnet::MagnetState,
+    pub(in crate::workspace) edge_bend: edge_bend::EdgeBendState,
 }

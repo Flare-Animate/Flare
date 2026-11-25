@@ -48,6 +48,11 @@ impl Workspace {
         match action {
             MenuAction::Open | MenuAction::Save | MenuAction::SaveAs | MenuAction::Quit => true,
             MenuAction::ImportSound => !self.in_symbol(),
+            // Brought into the scene's document, so not from inside a symbol; one read at a time.
+            MenuAction::ImportToStage => {
+                !self.in_symbol() && self.scene_id().is_some() && self.importing_into.is_none()
+            }
+            MenuAction::ImportToLibrary => !self.in_symbol() && self.importing_into.is_none(),
             MenuAction::ImportBrushProfiles | MenuAction::MovieScripts => true,
             MenuAction::ImportImageSequence => !self.in_symbol(),
             // A browser has no ffmpeg to read a movie with.
@@ -136,6 +141,7 @@ impl Workspace {
             | MenuAction::ToolInkBottle
             | MenuAction::ToolEraser
             | MenuAction::ToolPolyStar
+            | MenuAction::ToolPolygon
             | MenuAction::ToolLasso
             | MenuAction::ToolPencil
             | MenuAction::ToolBrush
@@ -146,6 +152,8 @@ impl Workspace {
             | MenuAction::ZoomIn
             | MenuAction::ZoomOut => true,
             MenuAction::ZoomFit => !self.stage_view.is_fit(),
+            // Only where the switch is shown: the tools that draw shapes.
+            MenuAction::ToggleObjectDrawing => self.tool.has_drawing_mode(),
             MenuAction::InsertFrame
             | MenuAction::RemoveFrame
             | MenuAction::InsertKeyframe
@@ -214,6 +222,8 @@ impl Workspace {
             MenuAction::Open => self.dialog = Some(DialogRequest::Open),
             MenuAction::ImportSound => self.dialog = Some(DialogRequest::ImportSound),
             MenuAction::ImportVideo => self.dialog = Some(DialogRequest::ImportVideo),
+            MenuAction::ImportToStage => self.dialog = Some(DialogRequest::ImportToStage),
+            MenuAction::ImportToLibrary => self.dialog = Some(DialogRequest::ImportToLibrary),
             MenuAction::ImportImageSequence => {
                 self.dialog = Some(DialogRequest::ImportImageSequence)
             }
@@ -237,7 +247,7 @@ impl Workspace {
             MenuAction::ExportSpriteSheet => self.dialog = Some(DialogRequest::ExportSpriteSheet),
             MenuAction::Save => self.save(),
             MenuAction::SaveAs => self.dialog = Some(DialogRequest::SaveAs),
-            MenuAction::Quit => self.quit_requested = true,
+            MenuAction::Quit => self.request_quit(),
             MenuAction::Undo => self.undo(),
             MenuAction::Redo => self.redo(),
             MenuAction::Delete => {
@@ -320,6 +330,7 @@ impl Workspace {
             MenuAction::ToolInkBottle => self.set_tool(Tool::InkBottle),
             MenuAction::ToolEraser => self.set_tool(Tool::Eraser),
             MenuAction::ToolPolyStar => self.set_tool(Tool::PolyStar),
+            MenuAction::ToolPolygon => self.set_tool(Tool::Polygon),
             MenuAction::ToolLasso => self.set_tool(Tool::Lasso),
             MenuAction::ToolPencil => self.set_tool(Tool::Pencil),
             MenuAction::ToolBrush => self.set_tool(Tool::Brush),
@@ -435,6 +446,9 @@ impl Workspace {
             MenuAction::ToggleRulers => self.display.show_rulers = !self.display.show_rulers,
             MenuAction::ToggleGrid => self.display.show_grid = !self.display.show_grid,
             MenuAction::ToggleSnap => self.display.snap_to_grid = !self.display.snap_to_grid,
+            MenuAction::ToggleObjectDrawing => {
+                self.paint.object_drawing = !self.paint.object_drawing;
+            }
             MenuAction::ToggleLoop => self.looping.on = !self.looping.on,
             MenuAction::ToggleMute => {
                 self.muted = !self.muted;

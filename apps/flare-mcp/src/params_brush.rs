@@ -38,6 +38,9 @@ pub struct BrushStrokes {
     pub duration: Option<u32>,
     /// Layer id; by default the topmost that can take art, or a new "Layer 1".
     pub layer: Option<String>,
+    /// Merge Drawing, as for `draw_rect`: strokes cut and join the layer's merged drawing.
+    /// Defaults to false, drawing objects.
+    pub merge: Option<bool>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }

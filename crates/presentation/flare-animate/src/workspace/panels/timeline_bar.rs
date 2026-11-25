@@ -46,7 +46,7 @@ impl Workspace {
         if gap > 0.0 {
             ui.add_space(gap);
         }
-        ui.separator();
+        bar_separator(ui);
         let last = self.scene_frames() - 1;
         if chrome::icon_button(
             ui,
@@ -116,7 +116,7 @@ impl Workspace {
         {
             self.perform(MenuAction::ToggleLoop);
         }
-        ui.separator();
+        bar_separator(ui);
         // The playhead may rest on an empty cell past the scene's end (a click there, to give
         // the layer frames up to it), so the field's range reaches it: a range that stopped at the
         // scene clamped the playhead back to it on the next repaint.
@@ -133,9 +133,9 @@ impl Workspace {
         }
         // The rate can be changed here, as in Animate, without going to the document's settings.
         self.fps_field(ui);
-        ui.separator();
+        bar_separator(ui);
         self.timeline_frame_buttons(ui);
-        ui.separator();
+        bar_separator(ui);
         let mut onion = self.onion.enabled;
         if chrome::icon_button(
             ui,
@@ -150,34 +150,34 @@ impl Workspace {
             onion = !onion;
         }
         self.set_onion_skin(onion);
-        ui.add_enabled_ui(onion, |ui| {
-            if chrome::icon_button(
-                ui,
-                "onion-outline",
-                BAR_ICON,
-                self.onion.outlines,
-                true,
-                &tr!(self, "timeline-onion-outline"),
-            )
-            .clicked()
-            {
-                self.set_onion_outlines(!self.onion.outlines);
-            }
-        });
-        ui.add_enabled_ui(onion, |ui| {
-            let (mut before, mut after) = (self.onion.before, self.onion.after);
-            ui.add(
-                egui::DragValue::new(&mut before)
-                    .range(0..=MAX_ONION_FRAMES)
-                    .prefix("\u{2190} "),
-            );
-            ui.add(
-                egui::DragValue::new(&mut after)
-                    .range(0..=MAX_ONION_FRAMES)
-                    .suffix(" \u{2192}"),
-            );
-            self.set_onion_range(before, after);
-        });
+        // Each control is dimmed on its own rather than in a group: a group is a child of the
+        // wrapping row, which wraps inside itself and threw the rows after it out of line.
+        if chrome::icon_button(
+            ui,
+            "onion-outline",
+            BAR_ICON,
+            self.onion.outlines,
+            onion,
+            &tr!(self, "timeline-onion-outline"),
+        )
+        .clicked()
+        {
+            self.set_onion_outlines(!self.onion.outlines);
+        }
+        let (mut before, mut after) = (self.onion.before, self.onion.after);
+        ui.add_enabled(
+            onion,
+            egui::DragValue::new(&mut before)
+                .range(0..=MAX_ONION_FRAMES)
+                .prefix("\u{2190} "),
+        );
+        ui.add_enabled(
+            onion,
+            egui::DragValue::new(&mut after)
+                .range(0..=MAX_ONION_FRAMES)
+                .suffix(" \u{2192}"),
+        );
+        self.set_onion_range(before, after);
         self.onion_settings_button(ui, BAR_ICON);
         if chrome::icon_button(
             ui,
@@ -191,7 +191,7 @@ impl Workspace {
         {
             self.perform(MenuAction::ToggleEditMultipleFrames);
         }
-        ui.separator();
+        bar_separator(ui);
         for (icon, hint, factor) in [
             (
                 "zoom-out",
@@ -332,4 +332,14 @@ impl Workspace {
             self.current_layer = Some(id);
         }
     }
+}
+
+/// A line between groups of the toolbar, one row tall. egui's own separator is as tall as the
+/// space left, which on a toolbar wrapped onto a second row is the whole timeline below it: the
+/// row grew that tall and pushed the ruler and the layers out of sight.
+fn bar_separator(ui: &mut Ui) {
+    ui.add_sized(
+        egui::vec2(ui.spacing().item_spacing.x, TOOLBAR_ROW),
+        egui::Separator::default().vertical(),
+    );
 }

@@ -202,12 +202,15 @@ impl MenuAction {
                     "menu-item-toggle-mute-off"
                 }
             }
+            Self::ToggleObjectDrawing => "menu-item-toggle-object-drawing",
             Self::Open => "menu-item-open",
             Self::ImportSound => "menu-item-import-sound",
             Self::ImportVideo => "menu-item-import-video",
             Self::ImportImageSequence => "menu-item-import-image-sequence",
             Self::MovieScripts => "menu-mock-movie-scripts",
             Self::ImportBrushProfiles => "menu-item-import-brushes",
+            Self::ImportToStage => "menu-item-import-to-stage",
+            Self::ImportToLibrary => "menu-item-import-to-library",
             Self::NewLayer => "menu-item-new-layer",
             Self::NewLayerFolder => "menu-item-new-layer-folder",
             Self::New => "menu-item-new",
@@ -280,6 +283,7 @@ impl MenuAction {
             Self::ToolInkBottle => "menu-item-tool-ink-bottle",
             Self::ToolEraser => "menu-item-tool-eraser",
             Self::ToolPolyStar => "menu-item-tool-poly-star",
+            Self::ToolPolygon => "menu-item-tool-polygon",
             Self::ToolLasso => "menu-item-tool-lasso",
             Self::ToolPencil => "menu-item-tool-pencil",
             Self::ToolBrush => "menu-item-tool-brush",

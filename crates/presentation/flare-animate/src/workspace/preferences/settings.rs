@@ -52,6 +52,9 @@ pub struct Preferences {
     /// The strands and grain of the brush in hand.
     pub brush_bristles: u8,
     pub brush_grain: f32,
+    /// Object Drawing on the drawing tools; off is Merge Drawing. Files from before it read as
+    /// on, which is how everything was drawn then.
+    pub object_drawing: bool,
     /// Whether the Pencil follows a pen's pressure, and its lightest touch.
     pub pencil_pressure: bool,
     pub pencil_light: f32,
@@ -78,8 +81,10 @@ pub struct Preferences {
     pub publish_defaults: u32,
     /// The interface's language: `system`, or a language's tag such as `de` or `pt-BR`.
     pub language: String,
-    /// The look of the interface: `dark` or `light`.
+    /// The look of the interface, by a theme's code (`flare_ui::theme::Mode::code`).
     pub theme: String,
+    /// How large the interface is drawn, as a factor of its design size (`flare_ui::scale`).
+    pub interface_size: f32,
     /// Tools from the "…" list kept in the tool strip.
     pub pinned_tools: Vec<String>,
     /// The keyboard shortcuts as a `flare_menubar` shortcut file; empty is the Flare set.
@@ -131,6 +136,7 @@ impl Default for Preferences {
             brush_taper_end: 0.0,
             brush_bristles: 0,
             brush_grain: 0.0,
+            object_drawing: true,
             pencil_pressure: true,
             pencil_light: flare_tools::pencil::DEFAULT_PENCIL_LIGHT,
             brush_builtin_profile: None,
@@ -149,6 +155,7 @@ impl Default for Preferences {
             publish_defaults: crate::workspace::publish_settings::PUBLISH_DEFAULTS,
             language: "system".to_owned(),
             theme: "dark".to_owned(),
+            interface_size: flare_ui::scale::DEFAULT,
             pinned_tools: Vec::new(),
             shortcuts: String::new(),
             recent: Vec::new(),

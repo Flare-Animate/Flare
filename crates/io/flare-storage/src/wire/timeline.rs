@@ -137,6 +137,10 @@ pub(super) enum ContentWire {
         /// text.
         #[serde(default)]
         text: Option<TextWire>,
+        /// Part of the layer's merged drawing; absent for a drawing object, and in files written
+        /// before Merge Drawing existed, where every shape was one.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        merged: bool,
     },
     Instance {
         id: String,

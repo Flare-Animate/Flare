@@ -79,11 +79,11 @@ fn a_taken_tool_letter_picks_the_new_tool() {
 #[test]
 fn a_rebound_tool_letter_picks_the_tool_and_the_old_letter_does_nothing() {
     let mut ws = workspace();
-    ws.set_shortcut(MenuAction::ToolBrush, "J").expect("free");
+    ws.set_shortcut(MenuAction::ToolBrush, "W").expect("free");
     let ctx = egui::Context::default();
     run(&mut ws, &ctx, 0.0);
     ws.set_tool(Tool::Select);
-    let mut out = ctx.run_ui(input(0.1, vec![key(Key::J, Modifiers::NONE)]), |ui| {
+    let mut out = ctx.run_ui(input(0.1, vec![key(Key::W, Modifiers::NONE)]), |ui| {
         ws.show(ui)
     });
     out.textures_delta.clear();
@@ -316,12 +316,13 @@ fn press(ws: &mut Workspace, ctx: &egui::Context, time: f64, k: Key, mods: Modif
 #[test]
 fn a_tool_with_two_letters_is_picked_by_either_and_shift_counts() {
     let (ctx, mut ws) = drawn_once_keys();
-    assert_eq!(ws.add_shortcut(MenuAction::ToolBrush, "J"), Ok(None));
+    // W is a letter nothing has; J is Object Drawing's.
+    assert_eq!(ws.add_shortcut(MenuAction::ToolBrush, "W"), Ok(None));
     assert_eq!(ws.add_shortcut(MenuAction::ToolBrush, "Shift+U"), Ok(None));
-    assert_eq!(all_keys(&ws, MenuAction::ToolBrush), ["B", "J", "Shift+U"]);
+    assert_eq!(all_keys(&ws, MenuAction::ToolBrush), ["B", "W", "Shift+U"]);
     for (time, k, mods) in [
         (0.1, Key::B, Modifiers::NONE),
-        (0.3, Key::J, Modifiers::NONE),
+        (0.3, Key::W, Modifiers::NONE),
         (0.5, Key::U, Modifiers::SHIFT),
     ] {
         ws.set_tool(Tool::Select);
@@ -332,16 +333,16 @@ fn a_tool_with_two_letters_is_picked_by_either_and_shift_counts() {
     ws.set_tool(Tool::Select);
     press(&mut ws, &ctx, 0.7, Key::U, Modifiers::NONE);
     assert_ne!(ws.tool(), Tool::Brush);
-    // Taking J off leaves the others.
-    assert!(ws.remove_shortcut(MenuAction::ToolBrush, "J"));
+    // Taking W off leaves the others.
+    assert!(ws.remove_shortcut(MenuAction::ToolBrush, "W"));
     assert!(
-        !ws.remove_shortcut(MenuAction::ToolBrush, "J"),
+        !ws.remove_shortcut(MenuAction::ToolBrush, "W"),
         "it is gone"
     );
     assert_eq!(all_keys(&ws, MenuAction::ToolBrush), ["B", "Shift+U"]);
     ws.set_tool(Tool::Select);
-    press(&mut ws, &ctx, 0.9, Key::J, Modifiers::NONE);
-    assert_ne!(ws.tool(), Tool::Brush, "J no longer picks the Brush");
+    press(&mut ws, &ctx, 0.9, Key::W, Modifiers::NONE);
+    assert_ne!(ws.tool(), Tool::Brush, "W no longer picks the Brush");
 }
 
 #[test]
@@ -418,13 +419,17 @@ fn adding_keys_another_command_has_takes_only_those_and_too_many_is_refused() {
 #[test]
 fn several_keys_are_kept_with_the_preferences() {
     let mut ws = workspace();
-    ws.add_shortcut(MenuAction::ToolPencil, "J").expect("free");
+    assert_eq!(
+        ws.add_shortcut(MenuAction::ToolPencil, "W"),
+        Ok(None),
+        "free"
+    );
     ws.add_shortcut(MenuAction::Save, "CmdOrCtrl+Alt+S")
         .expect("free");
     let saved = ws.preferences_json().expect("json");
     let mut fresh = workspace();
     fresh.restore_preferences(&saved).expect("restored");
-    assert_eq!(all_keys(&fresh, MenuAction::ToolPencil), ["Y", "J"]);
+    assert_eq!(all_keys(&fresh, MenuAction::ToolPencil), ["Y", "W"]);
     assert_eq!(
         all_keys(&fresh, MenuAction::Save),
         ["CmdOrCtrl+S", "CmdOrCtrl+Alt+S"]

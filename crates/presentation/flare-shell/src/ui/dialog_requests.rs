@@ -59,13 +59,28 @@ impl App {
                 let (folder, name) = self.workspace.save_as_start();
                 let filters = ["dlg-filter-fla", "dlg-filter-xfl", "dlg-filter-project"]
                     .map(|key| text(self, key));
+                // Answered even when cancelled, so a close waiting on this save stops waiting.
                 self.ask(
                     move || {
                         let [fla, xfl, flare] = &filters;
-                        dialogs::save_document(fla, xfl, flare, &name, folder.as_deref())
+                        Some(dialogs::save_document(
+                            fla,
+                            xfl,
+                            flare,
+                            &name,
+                            folder.as_deref(),
+                        ))
                     },
-                    |app, path| app.workspace.save_as(&path),
+                    |app, path| {
+                        if let Some(path) = path {
+                            app.workspace.save_as(&path);
+                        }
+                        app.workspace.end_save_as();
+                    },
                 );
+                if !self.dialog_open {
+                    self.workspace.end_save_as();
+                }
             }
             DialogRequest::ImportSound => {
                 let filter = text(self, "dlg-filter-sound");
@@ -152,6 +167,14 @@ impl App {
                 self.ask(
                     move || dialogs::pick_image(&filter, &flare_animate::REFERENCE_EXTENSIONS),
                     |app, path| app.workspace.import_mannequin_reference(&path),
+                );
+            }
+            DialogRequest::ImportToStage | DialogRequest::ImportToLibrary => {
+                let filter = text(self, "dlg-filter-import-into");
+                let to_stage = request == DialogRequest::ImportToStage;
+                self.ask(
+                    move || dialogs::pick_image(&filter, &flare_animate::IMPORT_INTO_EXTENSIONS),
+                    move |app, path| app.workspace.import_into_document(&path, to_stage),
                 );
             }
             DialogRequest::ImportBrushProfiles => {

@@ -236,17 +236,7 @@ impl Workspace {
                 ));
             }
         }
-        if self.tool == Tool::PolygonLasso {
-            let additive = ui.input(|i| i.modifiers.shift);
-            if response.double_clicked() {
-                self.polygon_lasso_finish(additive);
-            } else if response.clicked()
-                && let Some(p) = response.interact_pointer_pos()
-            {
-                self.polygon_lasso_click(to_doc(p), scale, additive);
-            }
-            self.draw_polygon_lasso(painter, to_screen);
-        }
+        self.corner_tools(ui, &response, scale, to_doc, to_screen, painter);
         if self.tool == Tool::MagicWand {
             if response.clicked()
                 && let Some(p) = response.interact_pointer_pos()
@@ -320,14 +310,20 @@ impl Workspace {
             let p = &i.pointer;
             (p.primary_down(), p.primary_released(), p.interact_pos())
         });
-        let held = self.drag.is_some() || self.anchor_drag.is_some() || self.magnet_held();
+        let held = self.drag.is_some()
+            || self.anchor_drag.is_some()
+            || self.magnet_held()
+            || self.edge_bend_held();
         if (response.dragged_by(primary) || (held && primary_down))
             && let Some(p) = response.interact_pointer_pos().or(pointer)
         {
             self.update_drag(to_doc(p));
             // The stage picture for where the pointer is now is asked for on the next pass,
             // which must come even if the pointer stops here.
-            if self.drag.is_some_and(|d| d.mode != DragMode::Draw) || self.magnet_held() {
+            if self.drag.is_some_and(|d| d.mode != DragMode::Draw)
+                || self.magnet_held()
+                || self.edge_bend_held()
+            {
                 ui.ctx().request_repaint();
             }
         }

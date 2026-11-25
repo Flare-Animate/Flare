@@ -51,6 +51,33 @@ pub struct DrawRect {
     /// Layer id; defaults to the topmost layer that is not a folder or the camera. If a keyframe
     /// of the layer covers `start` the rectangle joins it and `duration` is not used.
     pub layer: Option<String>,
+    /// Merge Drawing (Object Drawing off): cut and join the layer's merged drawing, fill and
+    /// outline as two elements. Defaults to false, a drawing object.
+    pub merge: Option<bool>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct DrawPolygon {
+    /// The corners, [x, y] each, in order around the outline; at least three, at most 4096.
+    pub points: Vec<[f64; 2]>,
+    /// Fill, RRGGBB or RRGGBBAA hex. Defaults to black.
+    pub color: Option<String>,
+    /// Outline color, RRGGBB or RRGGBBAA hex. No outline when omitted.
+    pub stroke: Option<String>,
+    /// Outline width; defaults to 2.
+    pub stroke_width: Option<f64>,
+    /// Outline pattern: solid (default), dashed, dotted, stipple, hatched, ragged, herringbone, rope or zigzag.
+    pub stroke_style: Option<String>,
+    /// First frame; defaults to the frame `goto_frame` last went to (0 at first).
+    pub start: Option<u32>,
+    /// Frames the shape lasts when it starts a keyframe; defaults to 1.
+    pub duration: Option<u32>,
+    /// Layer id; defaults to the topmost layer that is not a folder or the camera.
+    pub layer: Option<String>,
+    /// Merge Drawing, as for `draw_rect`. Defaults to false, a drawing object.
+    pub merge: Option<bool>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }
@@ -217,6 +244,18 @@ pub struct ImportSound {
     pub source: String,
     /// Frame at which playback starts; defaults to 0.
     pub start: Option<u32>,
+    /// Fail unless the project is at this revision (from get_info).
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ImportIntoProject {
+    /// The movie or document's file name inside the configured export directory.
+    pub source: String,
+    /// Only into the library (Import to Library); by default also onto a new top layer.
+    pub library: Option<bool>,
+    /// The frame the movie starts on when placed (zero based); defaults to 0.
+    pub frame: Option<u32>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }

@@ -100,6 +100,7 @@ impl Workspace {
             Tool::InkBottle => "tool-ink-bottle",
             Tool::Eraser => "tool-eraser",
             Tool::PolyStar => "tool-polystar",
+            Tool::Polygon => "tool-polygon",
             Tool::Lasso => "tool-lasso",
             Tool::PolygonLasso => "tool-lasso-polygon",
             Tool::MagicWand => "tool-magic-wand",
@@ -115,7 +116,7 @@ impl Workspace {
         };
         let title = tr!(self, "tools-title", &[("name", &self.tr(&name_key(icon)))]);
         chrome::section(ui, icon, &title);
-        self.drawing_mode_mock(ui);
+        self.drawing_mode_switch(ui);
         match self.tool {
             Tool::Text => {
                 self.character_section(ui, None);
@@ -143,6 +144,9 @@ impl Workspace {
                     chrome::slider(ui, &label, &mut self.poly_inner, 0.05..=0.95, "", false);
                 }
                 ui.weak(tr!(self, "tools-help-polystar"));
+            }
+            Tool::Polygon => {
+                ui.weak(tr!(self, "tools-help-polygon-shape"));
             }
             Tool::Hand => {
                 ui.weak(tr!(self, "tools-help-hand"));
@@ -262,6 +266,7 @@ impl Workspace {
             Tool::InkBottle => "tools-status-ink",
             Tool::Eraser => "tools-status-eraser",
             Tool::PolyStar => "tools-status-polystar",
+            Tool::Polygon => "tools-status-polygon-shape",
             Tool::Lasso => "tools-status-lasso",
             Tool::PolygonLasso => "tools-status-polygon",
             Tool::MagicWand => "tools-status-magic-wand",

@@ -14,6 +14,11 @@ pub const MIN_STAGE_SIDE: f32 = 240.0;
 /// The tool strip is never narrower than one tool and its margins.
 pub const MIN_TOOL_STRIP: f32 = 36.0;
 
+/// The timeline is never shorter than its tabs, its toolbar on two rows (as it wraps beside a
+/// narrow stage), the ruler and three layers: about Animate's own height on a 720-point screen.
+/// A share of a short window alone left it no layer to see.
+pub const MIN_TIMELINE: f32 = 170.0;
+
 /// Called just before `tree` is drawn in `area`, with `gap` between tiles (the dock's
 /// `gap_width`). Every split whose size changed since the last draw keeps the size, in points,
 /// of each side that does not hold the stage; the side holding the stage gets the rest, down to
@@ -135,10 +140,17 @@ fn holds(tiles: &Tiles<Pane>, tile: TileId, wanted: Pane) -> bool {
     }
 }
 
-/// The least width a split's child takes across: one tool for the tool strip, nothing else.
+/// The least length a split's child takes along it: one tool across for the tool strip, and
+/// [`MIN_TIMELINE`] down for the timeline under or over the stage; nothing for the others.
 fn least_width(tiles: &Tiles<Pane>, tile: TileId, horizontal: bool) -> f32 {
     match tiles.get(tile) {
         Some(Tile::Pane(Pane::Tools)) if horizontal => MIN_TOOL_STRIP,
+        _ if !horizontal
+            && holds(tiles, tile, Pane::Timeline)
+            && !holds(tiles, tile, Pane::Stage) =>
+        {
+            MIN_TIMELINE
+        }
         _ => 0.0,
     }
 }

@@ -29,6 +29,7 @@ impl Workspace {
             shaders: panels::shaders::ShaderPanel::default(),
             game: panels::game::GamePanel::default(),
             importing: None,
+            importing_into: None,
             reverting: None,
             revert_pending: false,
             frames_rendered: 0,
@@ -98,6 +99,7 @@ impl Workspace {
             tab_plus: egui::Rect::NOTHING,
             close_prompt: None,
             close_after_save: false,
+            awaiting_save_as: false,
             panels: rail::Panels::default(),
             onion: OnionSkin {
                 before: 1,
@@ -132,6 +134,7 @@ impl Workspace {
             cjk_font_for: None,
             theme_mode: flare_ui::theme::Mode::Dark,
             styled_for: None,
+            interface_size: flare_ui::scale::DEFAULT,
             slot_choice: std::collections::HashMap::new(),
             slot_open: None,
             pinned_tools: Vec::new(),

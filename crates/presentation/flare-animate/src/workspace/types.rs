@@ -103,6 +103,11 @@ pub enum DialogRequest {
     ImportMannequinReference,
     /// A pen-profile file (Photoshop `.abr`, Krita `.kpp` or `.bundle`) for the brush list.
     ImportBrushProfiles,
+    /// A Flash movie (or another file Flare imports) to bring into this document, onto a new
+    /// layer at the playhead (`true` on [`super::Workspace::import_into_document`]).
+    ImportToStage,
+    /// The same, into the library only.
+    ImportToLibrary,
     /// Read Animate's keyboard shortcut file onto the shortcuts in force.
     ImportAnimateShortcuts,
     ExportImage,
@@ -183,6 +188,7 @@ pub(super) fn tool_places_points(tool: Tool) -> bool {
             | Tool::Line
             | Tool::Pen
             | Tool::PolyStar
+            | Tool::Polygon
             | Tool::Text
             | Tool::Ruler
             | Tool::Mirror
@@ -232,6 +238,9 @@ pub(super) fn into_color_image(rendered: Rendered) -> egui::ColorImage {
 pub(super) const TOP_BAR_HEIGHT: f32 = 38.0;
 
 pub(super) const INTEGRATED_TOP_BAR_HEIGHT: f32 = 28.0;
+/// The least the integrated bar is in points at a larger interface size: its buttons and a point
+/// above and below.
+pub(super) const MIN_INTEGRATED_TOP_BAR: f32 = 24.0;
 
 /// Most decoded audio kept for playback, in samples (all channels): about 64 MB of floats.
 pub(super) const DECODED_AUDIO_SAMPLES: usize = 16_000_000;

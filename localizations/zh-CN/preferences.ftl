@@ -17,6 +17,7 @@ prefs-clear-recent = 清除最近的项目
 prefs-clear-recent-hint = 清除主页和“打开最近的文件”中的列表。文件本身不会被删除。
 prefs-restore-defaults = 恢复默认设置
 prefs-theme = 主题
+prefs-interface-size = 界面大小
 prefs-theme-dark = 深色
 prefs-theme-light = 浅色
 prefs-theme-darkest = 最深

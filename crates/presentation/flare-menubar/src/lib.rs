@@ -42,6 +42,11 @@ pub enum MenuAction {
     /// File > Import > Import Brush Presets: another art tool's pen profiles
     /// (Photoshop `.abr`, Krita `.kpp` or `.bundle`) onto the brush list.
     ImportBrushProfiles,
+    /// File > Import > Import to Stage: a Flash movie (or another file Flare imports) brought
+    /// into this document as a symbol, placed on a new layer at the playhead.
+    ImportToStage,
+    /// File > Import > Import to Library: the same, into the library only.
+    ImportToLibrary,
     ExportImage,
     ExportMovie,
     ExportFla,
@@ -89,6 +94,8 @@ pub enum MenuAction {
     ToolInkBottle,
     ToolEraser,
     ToolPolyStar,
+    /// The Polygon tool: click the corners of a shape.
+    ToolPolygon,
     ToolLasso,
     ToolPencil,
     ToolBrush,
@@ -136,6 +143,9 @@ pub enum MenuAction {
     ToggleSnap,
     ToggleLoop,
     ToggleMute,
+    /// Object Drawing on the drawing tools: on, each shape is a drawing object of its own; off,
+    /// Merge Drawing, where shapes on a layer cut and join each other.
+    ToggleObjectDrawing,
     TestMovie,
     ZoomIn,
     ZoomOut,
@@ -199,7 +209,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 152] = [
+    pub const ALL: [MenuAction; 156] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -212,6 +222,8 @@ impl MenuAction {
         Self::ImportImageSequence,
         Self::MovieScripts,
         Self::ImportBrushProfiles,
+        Self::ImportToStage,
+        Self::ImportToLibrary,
         Self::ExportImage,
         Self::ExportMovie,
         Self::ExportFla,
@@ -256,6 +268,7 @@ impl MenuAction {
         Self::ToolInkBottle,
         Self::ToolEraser,
         Self::ToolPolyStar,
+        Self::ToolPolygon,
         Self::ToolLasso,
         Self::ToolPencil,
         Self::ToolBrush,
@@ -302,6 +315,7 @@ impl MenuAction {
         Self::ToggleSnap,
         Self::ToggleLoop,
         Self::ToggleMute,
+        Self::ToggleObjectDrawing,
         Self::TestMovie,
         Self::ZoomIn,
         Self::ZoomOut,

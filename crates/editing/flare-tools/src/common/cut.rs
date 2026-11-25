@@ -1,5 +1,5 @@
-//! Cutting what an eraser passed over out of a shape: its fill loses the area, its line loses the
-//! stretches inside it. A shape's fill and its line are cut apart, so what is left of a filled,
+//! Cutting an area out of a shape, as the Eraser rubs one out and a merged fill covers one: its
+//! fill loses the area, its line loses the stretches inside it. A shape's fill and its line are cut apart, so what is left of a filled,
 //! outlined shape is a fill and a line, as erasing does in Animate: the cut edge of a fill gets no
 //! outline of its own.
 
@@ -15,7 +15,7 @@ use i_overlay::string::clip::ClipRule;
 /// Straight pieces a curve of a shape is flattened into.
 const CURVE_STEPS: usize = 16;
 
-type Contour = Vec<[f64; 2]>;
+pub(crate) type Contour = Vec<[f64; 2]>;
 
 /// What erasing did to one shape.
 #[derive(Clone, Debug, PartialEq)]
@@ -27,7 +27,7 @@ pub enum Cut {
 }
 
 /// The points of each subpath of `path`, curves flattened, and whether the subpath was closed.
-fn subpaths(path: &[PathSegment]) -> Vec<(Contour, bool)> {
+pub(crate) fn subpaths(path: &[PathSegment]) -> Vec<(Contour, bool)> {
     let mut out: Vec<(Contour, bool)> = Vec::new();
     let mut current: Contour = Vec::new();
     let mut at = DVec2::ZERO;
@@ -77,7 +77,7 @@ fn subpaths(path: &[PathSegment]) -> Vec<(Contour, bool)> {
 }
 
 /// A path of straight segments through `contours`, each closed or left open.
-fn path_of(contours: &[Contour], closed: bool) -> Option<Vec<PathSegment>> {
+pub(crate) fn path_of(contours: &[Contour], closed: bool) -> Option<Vec<PathSegment>> {
     let point = |p: &[f64; 2]| DocumentPoint::new(p[0], p[1]).ok();
     let mut path = Vec::new();
     for contour in contours.iter().filter(|c| c.len() >= 2) {
@@ -92,8 +92,39 @@ fn path_of(contours: &[Contour], closed: bool) -> Option<Vec<PathSegment>> {
     (!path.is_empty() && path.len() <= MAX_SEGMENTS).then_some(path)
 }
 
+/// The box round a path's points, control points included (a curve stays inside them), found
+/// without flattening anything, so a crowd of far-off shapes is passed over cheaply.
+pub(crate) fn hull(path: &[PathSegment]) -> Option<([f64; 2], [f64; 2])> {
+    let mut lo = [f64::MAX; 2];
+    let mut hi = [f64::MIN; 2];
+    let mut any = false;
+    let mut take = |p: &DocumentPoint| {
+        let v = p.as_vec();
+        lo = [lo[0].min(v.x), lo[1].min(v.y)];
+        hi = [hi[0].max(v.x), hi[1].max(v.y)];
+        any = true;
+    };
+    for segment in path {
+        match segment {
+            PathSegment::MoveTo(p) | PathSegment::LineTo(p) => take(p),
+            PathSegment::CubicTo(a, b, c) => {
+                take(a);
+                take(b);
+                take(c);
+            }
+            PathSegment::Close => {}
+        }
+    }
+    any.then_some((lo, hi))
+}
+
+/// Whether two boxes from [`hull`] overlap.
+pub(crate) fn hulls_meet(a: ([f64; 2], [f64; 2]), b: ([f64; 2], [f64; 2])) -> bool {
+    a.0[0] <= b.1[0] && b.0[0] <= a.1[0] && a.0[1] <= b.1[1] && b.0[1] <= a.1[1]
+}
+
 /// Whether the boxes round `a` and `b` overlap.
-fn boxes_meet(a: &[Contour], b: &[Contour]) -> bool {
+pub(crate) fn boxes_meet(a: &[Contour], b: &[Contour]) -> bool {
     if a.is_empty() || b.is_empty() {
         return false;
     }
@@ -176,7 +207,7 @@ pub fn cut(shape: &Shape, eraser: &[Vec<DVec2>]) -> Cut {
         if inside.is_empty() {
             let line = Shape::new(ShapeId::new(), shape.path().to_vec(), Rgba8::TRANSPARENT)
                 .ok()
-                .map(|s| s.with_stroke(stroke));
+                .map(|s| s.with_stroke(stroke).merged(shape.is_merged()));
             left.push(line);
         } else {
             touched = true;
@@ -191,7 +222,7 @@ pub fn cut(shape: &Shape, eraser: &[Vec<DVec2>]) -> Cut {
             if !outside.is_empty() {
                 let line = path_of(&outside, false)
                     .and_then(|path| Shape::new(ShapeId::new(), path, Rgba8::TRANSPARENT).ok())
-                    .map(|s| s.with_stroke(stroke));
+                    .map(|s| s.with_stroke(stroke).merged(shape.is_merged()));
                 left.push(line);
             }
         }
@@ -206,10 +237,13 @@ pub fn cut(shape: &Shape, eraser: &[Vec<DVec2>]) -> Cut {
     }
 }
 
-/// The fill of `shape` over `rest`, its colour or gradient kept, with no line.
-fn fill_piece(shape: &Shape, rest: &[Contour]) -> Option<Shape> {
+/// The fill of `shape` over `rest`, its colour or gradient kept, with no line. What is left of
+/// merged drawing is merged drawing still.
+pub(crate) fn fill_piece(shape: &Shape, rest: &[Contour]) -> Option<Shape> {
     let path = path_of(rest, true)?;
-    let piece = Shape::new(ShapeId::new(), path, shape.fill()).ok()?;
+    let piece = Shape::new(ShapeId::new(), path, shape.fill())
+        .ok()?
+        .merged(shape.is_merged());
     Some(match shape.gradient() {
         Some(gradient) => piece.with_gradient(gradient),
         None => piece,

@@ -72,6 +72,7 @@ impl Workspace {
                 | Tool::Pen
                 | Tool::Text
                 | Tool::PolyStar
+                | Tool::Polygon
                 | Tool::Pencil
                 | Tool::Brush
                 | Tool::Bucket

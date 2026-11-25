@@ -40,6 +40,8 @@ const SAME_AS_ENGLISH: &[(&str, &str)] = &[
     // The tool's name is the same word in German and Czech.
     ("de", "menu-item-tool-magnet"),
     ("cs", "menu-item-tool-magnet"),
+    // So is Polygon in German.
+    ("de", "menu-item-tool-polygon"),
 ];
 
 fn allowed(tag: &str, key: &str) -> bool {

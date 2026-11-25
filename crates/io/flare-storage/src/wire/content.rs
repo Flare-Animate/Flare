@@ -33,6 +33,7 @@ pub(super) fn wire_content(content: &Content) -> ContentWire {
                 start: g.start().to_array(),
                 end: g.end().to_array(),
             }),
+            merged: shape.is_merged(),
         },
         Content::Instance(instance) => ContentWire::Instance {
             id: instance.id().as_uuid().to_string(),
@@ -68,6 +69,7 @@ pub(super) fn build_content(content: ContentWire) -> Result<Content, StorageErro
             stroke,
             gradient,
             text,
+            merged,
         } => {
             let path = path
                 .iter()
@@ -109,7 +111,7 @@ pub(super) fn build_content(content: ContentWire) -> Result<Content, StorageErro
             if let Some(text) = text {
                 shape = shape.with_text(text.build()?);
             }
-            Content::Shape(shape)
+            Content::Shape(shape.merged(merged))
         }
         ContentWire::Instance {
             id,

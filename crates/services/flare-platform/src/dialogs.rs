@@ -104,11 +104,6 @@ pub fn message(title: &str, text: &str) {
     backend::message(title, text);
 }
 
-/// Asks whether to close and lose unsaved changes.
-pub fn confirm_discard(title: &str, question: &str) -> bool {
-    backend::confirm_discard(title, question)
-}
-
 /// What the box says when the program could not start, in English. See [`startup_text_in`].
 pub fn startup_text(detail: &str) -> String {
     startup_text_in(

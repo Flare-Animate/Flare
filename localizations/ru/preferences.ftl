@@ -17,6 +17,7 @@ prefs-clear-recent = Очистить недавние проекты
 prefs-clear-recent-hint = Очищает список на начальной странице и в меню «Недавние». Сами файлы остаются на месте.
 prefs-restore-defaults = Восстановить настройки по умолчанию
 prefs-theme = Тема
+prefs-interface-size = Размер интерфейса
 prefs-theme-dark = Тёмная
 prefs-theme-light = Свет
 prefs-theme-darkest = Самая тёмная

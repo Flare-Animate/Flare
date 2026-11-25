@@ -13,6 +13,9 @@
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/JpeScW8Awa)
 [![Issues](https://img.shields.io/github/issues/Flare-Animate/Flare)](https://github.com/Flare-Animate/Flare/issues)
 ![Status](https://img.shields.io/badge/status-early%20alpha-red)
+<a href="https://remade.wiki/projects/flare-animate/">
+  <img src="https://remade.wiki/badges/listed-on-remade.svg" alt="Listed on Remade" width="127" height="20">
+</a>
 
 [Website](https://flare-animate.github.io/website/) · [Web version](https://flare-animate.github.io/Flare/) · [Discord](https://discord.com/invite/JpeScW8Awa) · [Build](docs/BUILDING.md) · [Issues](https://github.com/Flare-Animate/Flare/issues)
 
@@ -128,7 +131,7 @@ I had been slowly just experimenting with Flare with minimal focus over the prev
 
 The next things, most important first. Most of it is shown dimmed in the interface. [docs/ROADMAP.md](docs/ROADMAP.md) repeats this list and goes on to everything of lower priority.
 
-- Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (today shapes are separate objects)
+- Merge drawing: Flash's planar-map shapes, where overlapping shapes cut and merge each other (with Object Drawing off, shapes already cut and join each other; edges that bend together are next)
 - Drawing quality: brush dynamics, and tracing a bitmap into vector shapes
 - SWF that keeps more of the document: buttons with their states, shape tweens as morphs, masks of several shapes and sounds inside symbols
 - A Motion Editor: per-property graphs and custom ease curves for tweens

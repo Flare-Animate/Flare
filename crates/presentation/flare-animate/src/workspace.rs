@@ -42,6 +42,8 @@ mod groups;
 mod guides;
 mod help;
 mod helpers;
+mod import_into;
+pub use import_into::{IMPORT_INTO_EXTENSIONS, MAX_IMPORT_INTO_BYTES};
 mod home;
 mod home_custom;
 mod home_list;
@@ -155,6 +157,8 @@ pub struct Workspace {
     game: panels::game::GamePanel,
     /// The import being read, if any.
     importing: Option<u64>,
+    /// The file being read to bring into this document, and whether it goes on the stage.
+    importing_into: Option<(u64, bool)>,
     reverting: Option<u64>,
     revert_pending: bool,
     /// How many frames have been rendered (as opposed to taken from the cache).
@@ -272,6 +276,8 @@ pub struct Workspace {
     frame_menu_open: bool,
     /// A native menu bar owns the menu and its shortcuts, so the in-window ones step aside.
     native_menu: bool,
+    /// Quit was asked for and is under way: every document with unsaved work is asked about in
+    /// turn, in the window, before the app may close. Cancel on any of them ends it.
     quit_requested: bool,
     /// Where the new-document button of the tab strip was drawn last.
     tab_plus: egui::Rect,
@@ -279,6 +285,8 @@ pub struct Workspace {
     close_prompt: Option<usize>,
     /// The document on show is closed once the save asked for by the prompt has been written.
     close_after_save: bool,
+    /// The save the prompt asked for is waiting on the Save As picker, which the shell shows.
+    awaiting_save_as: bool,
     /// The panel arrangement, the panel open beside the strip, and changes asked for while drawn.
     panels: rail::Panels,
     onion: OnionSkin,
@@ -324,6 +332,8 @@ pub struct Workspace {
     /// The palette in use, and the one the egui styles were last set up for.
     theme_mode: flare_ui::theme::Mode,
     styled_for: Option<flare_ui::theme::Mode>,
+    /// How large the interface is drawn (`flare_ui::scale`), as a factor of its design size.
+    interface_size: f32,
     /// Which tool of each tool-strip slot was last picked from its list, by the slot's first name.
     slot_choice: std::collections::HashMap<&'static str, usize>,
     /// The slot whose list of tools is open, by its first name.

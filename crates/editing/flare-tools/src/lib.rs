@@ -42,6 +42,8 @@ pub mod paint;
 pub mod pen;
 pub mod pencil;
 pub mod playback;
+pub mod polygon;
+pub mod reshape;
 pub mod ruler;
 pub mod selection;
 pub mod stacking;

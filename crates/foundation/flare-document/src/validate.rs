@@ -51,6 +51,10 @@ pub enum Diagnostic {
     CameraKeyframesElsewhere(LayerId),
     #[error("layer {0:?} is a camera inside a symbol; only a scene has a camera")]
     CameraInSymbol(LayerId),
+    #[error(
+        "layer {0:?} is a reference layer inside a symbol; a reference picture is drawn on a scene's stage only, so it would never show there"
+    )]
+    ReferenceInSymbol(LayerId),
     #[error("scene {0:?} has more than one camera layer")]
     TooManyCameras(SceneId),
     #[error("layer {0:?} holds an armature but is a mask or a guide")]
@@ -318,6 +322,11 @@ fn validate_cameras(document: &Document, out: &mut Vec<Diagnostic>) {
     }
     for symbol in &document.symbols {
         check(&symbol.timeline, false, out);
+        // A reference layer is drawn on a scene's stage only, so inside a symbol it would
+        // vanish without a word.
+        for layer in symbol.timeline.layers().iter().filter(|l| l.is_reference()) {
+            out.push(Diagnostic::ReferenceInSymbol(layer.id()));
+        }
     }
 }
 

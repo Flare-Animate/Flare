@@ -111,6 +111,7 @@ fn every_tool_and_every_window_draws_only_messages() {
         Tool::InkBottle,
         Tool::Eraser,
         Tool::PolyStar,
+        Tool::Polygon,
         Tool::Lasso,
         Tool::PolygonLasso,
         Tool::MagicWand,

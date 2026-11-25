@@ -41,11 +41,6 @@ impl Workspace {
         self.native_menu = native;
     }
 
-    /// Returns (and clears) a request to quit the application.
-    pub fn take_quit_request(&mut self) -> bool {
-        std::mem::take(&mut self.quit_requested)
-    }
-
     /// What an image export needs, shared not copied: the saved document and the frame on show.
     pub fn image_export(&self) -> (Document, u32) {
         (self.main_document().clone(), self.frame)

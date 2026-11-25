@@ -101,15 +101,17 @@ impl MenuAction {
             Self::ToolLine => "N",
             Self::ToolRectangle => "R",
             Self::ToolEllipse => "O",
+            // Not a tool, but a tool's own switch, a bare letter as in Animate.
+            Self::ToggleObjectDrawing => "J",
             _ => return None,
         })
     }
 
     /// Whether the action picks a tool, so a bare letter may be its shortcut: every tool with a
     /// letter of its own, and those that have none until a person gives them one (the Magnet's
-    /// letters are all taken in one built-in set or another).
+    /// letters are all taken in one built-in set or another, and Polygon has none in Animate).
     pub fn is_tool(self) -> bool {
-        self.tool_key().is_some() || matches!(self, Self::ToolMagnet)
+        self.tool_key().is_some() || matches!(self, Self::ToolMagnet | Self::ToolPolygon)
     }
 
     /// The icon drawn beside the menu item, if it has one.
@@ -121,6 +123,7 @@ impl MenuAction {
             Self::ImportImageSequence => "file-import",
             Self::MovieScripts => "file-open",
             Self::ImportBrushProfiles => "tool-brush",
+            Self::ImportToStage | Self::ImportToLibrary => "file-open",
             Self::New => "file-new",
             Self::Close => "close",
             Self::Revert => "rotate-ccw",
@@ -186,6 +189,7 @@ impl MenuAction {
             Self::ToolInkBottle => "tool-ink-bottle",
             Self::ToolEraser => "tool-eraser",
             Self::ToolPolyStar => "tool-polystar",
+            Self::ToolPolygon => "tool-polygon",
             Self::ToolLasso => "tool-lasso",
             Self::ToolPencil => "tool-pencil",
             Self::ToolBrush => "tool-brush",
@@ -256,6 +260,7 @@ impl MenuAction {
             Self::DeselectAll => return None,
             Self::About | Self::KeyboardShortcuts => return None,
             Self::Quit => return None,
+            Self::ToggleObjectDrawing => return None,
         })
     }
 }

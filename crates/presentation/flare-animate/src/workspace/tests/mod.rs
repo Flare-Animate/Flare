@@ -33,6 +33,7 @@ mod close_prompt;
 mod color_section;
 mod command_palette;
 mod drawing_into_layers;
+mod edge_bend;
 mod effects;
 mod eraser;
 mod frame_focus;
@@ -47,6 +48,8 @@ mod held_move;
 mod home;
 mod home_extra;
 mod home_recent;
+mod import_into;
+mod interface_size;
 mod language;
 mod layer_drag;
 mod layer_names;
@@ -70,6 +73,7 @@ mod narrow_window;
 mod native_pen;
 mod new_document_dialog;
 mod nothing_left_in_english;
+mod object_drawing;
 mod onion_settings;
 mod open_any;
 mod options_fit;
@@ -83,11 +87,13 @@ mod pen_and_selection;
 mod pencil_pressure;
 mod phone_layout;
 mod polygon_lasso;
+mod polygon_tool;
 mod preferences_dialog;
 mod properties_context;
 mod properties_tabs;
 mod publish_popup;
 mod publish_settings;
+mod quit;
 mod rail;
 mod release_frame;
 mod rendering_and_workers;
@@ -157,8 +163,12 @@ fn blank_workspace() -> Workspace {
     Workspace::new(document, None)
 }
 
+/// A workspace drawn at the interface's design size, so a test's points are its window's: a
+/// zoom taking hold between two passes would lay the window out again under the clicks.
 fn workspace() -> Workspace {
-    Workspace::new(document(), None)
+    let mut ws = Workspace::new(document(), None);
+    ws.interface_size = 1.0;
+    ws
 }
 
 fn layer_count(ws: &Workspace) -> usize {

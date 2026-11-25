@@ -57,6 +57,8 @@ fn commands_sit_where_animate_keeps_them() {
     assert_eq!(
         shown(&ws, submenu(file, "Import")),
         [
+            "Import to Stage...",
+            "Import to Library...",
             "Import Sound...",
             "Import Video...",
             "Import Image Sequence...",

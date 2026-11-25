@@ -1,6 +1,7 @@
 //! Flare CLI: inspection, rational timing and headless project editing.
 #![forbid(unsafe_code)]
 
+mod bend_edge;
 mod brush;
 mod commands;
 mod frames;
@@ -102,7 +103,7 @@ fn run() -> Result<()> {
             project::new(&path, numerator, denominator, stage)?
         }
         Command::RenameScene { path, name } => project::rename_scene(&path, &name)?,
-        Command::SoundImport { path, sound, at } => project::sound_import(&path, &sound, at)?,
+        Command::SoundImport(args) => project::sound_import(&args.path, &args.sound, args.at)?,
         Command::SoundWaveform { path, sound } => project::sound_waveform(&path, sound.as_deref())?,
         Command::SetStage {
             path,
@@ -139,6 +140,7 @@ fn run() -> Result<()> {
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(*op)?,
         Command::VideoImport(args) => video::run(args)?,
+        Command::ImportInto(args) => project::import_into(args)?,
         Command::LipSync(args) => lipsync::run(args)?,
         Command::BrushImport(args) => brush::run(args)?,
         Command::Shader { op } => shader::run(op)?,
@@ -257,30 +259,10 @@ fn run() -> Result<()> {
             let rect = rect.map(|r| ([r[0], r[1], r[2], r[3]], style));
             project::add_symbol(&path, &name, kind, rect)?
         }
-        Command::DrawRect {
-            path,
-            rect,
-            color,
-            stroke,
-            stroke_width,
-            stroke_style,
-            start,
-            duration,
-            layer,
-        } => project::draw_rect(
-            &path,
-            [rect[0], rect[1], rect[2], rect[3]],
-            project::rect_style(
-                &color,
-                stroke.as_deref(),
-                stroke_width,
-                stroke_style.as_deref(),
-            )?,
-            start,
-            duration,
-            layer,
-        )?,
+        Command::DrawRect(args) => project::draw_rect(args)?,
+        Command::DrawPolygon(args) => project::draw_polygon(args)?,
         Command::MagicWand(args) => magic_wand::run(args)?,
+        Command::BendEdge(args) => bend_edge::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
         Command::Brush(args) => project::brush_strokes(&args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
