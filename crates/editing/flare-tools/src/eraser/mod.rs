@@ -7,7 +7,7 @@ use flare_document::{Content, Document, Layer, Tween};
 use flare_input::{InputSample, PressureCurve};
 use glamx::DVec2;
 
-use crate::brush::BrushStroke;
+use crate::brush::{BrushStroke, StrokeSides};
 use crate::common::{SpanRef, by_span, find_span, remove_element, replace_span, scene_timeline};
 
 mod frame;
@@ -18,23 +18,21 @@ pub const MAX_ERASER_SIZE: f64 = 400.0;
 /// Points round the outline of an eraser that is pressed without moving.
 const DOT_STEPS: usize = 32;
 
+/// How narrow a light touch makes a pressure-sensitive eraser, as a share of its size: never so
+/// thin that a feather touch rubs out nothing.
+pub const MIN_ERASER_PRESSURE_WIDTH: f32 = 0.1;
+
 /// The area a round eraser `size` across covers along `samples`: the outline of the stroke it
-/// rubs, or a disc where it was only pressed. Empty for a size that is not a positive number.
-pub fn eraser_outline(samples: &[InputSample], size: f64) -> Vec<DVec2> {
+/// rubs, or a disc where it was only pressed. With `pressure`, how hard a pen presses sets the
+/// width there, down to [`MIN_ERASER_PRESSURE_WIDTH`] of `size`; without it, it rubs as wide
+/// wherever it goes, whatever the pen says. A mouse always presses fully. Empty for a size that
+/// is not a positive number.
+pub fn eraser_outline(samples: &[InputSample], size: f64, pressure: bool) -> Vec<DVec2> {
     if !(size.is_finite() && size > 0.0) {
         return Vec::new();
     }
     let size = size.min(MAX_ERASER_SIZE);
-    // An eraser rubs as hard wherever it goes: full width everywhere, whatever the pen says.
-    let firm: Vec<InputSample> = samples
-        .iter()
-        .map(|s| InputSample {
-            pressure: 1.0,
-            ..*s
-        })
-        .collect();
-    let stroke = BrushStroke::new(size, PressureCurve::new(1.0, 1.0));
-    if let Some(sides) = stroke.sides(&firm, 0.0) {
+    if let Some(sides) = eraser_sides(samples, size, pressure) {
         return sides
             .left
             .iter()
@@ -44,13 +42,37 @@ pub fn eraser_outline(samples: &[InputSample], size: f64) -> Vec<DVec2> {
             .copied()
             .collect();
     }
-    let Some(at) = samples.first() else {
+    let Some(at) = pressed(samples, pressure).first().copied() else {
         return Vec::new();
     };
+    let size = size * f64::from(eraser_curve().width_factor(at.pressure));
     (0..DOT_STEPS)
         .map(|k| {
             let angle = std::f64::consts::TAU * k as f64 / DOT_STEPS as f64;
             DVec2::new(at.x, at.y) + DVec2::new(angle.cos(), angle.sin()) * (size / 2.0)
+        })
+        .collect()
+}
+
+/// The sides of the stroke a round eraser `size` across rubs along `samples`, with or without
+/// `pressure` as [`eraser_outline`] takes it; `None` for a press that does not move. A preview of
+/// what a drag will rub out draws these, so it matches what is rubbed out.
+pub fn eraser_sides(samples: &[InputSample], size: f64, pressure: bool) -> Option<StrokeSides> {
+    BrushStroke::new(size.min(MAX_ERASER_SIZE), eraser_curve())
+        .sides(&pressed(samples, pressure), 0.0)
+}
+
+fn eraser_curve() -> PressureCurve {
+    PressureCurve::new(MIN_ERASER_PRESSURE_WIDTH, 1.0)
+}
+
+/// `samples` as the eraser reads them: pressed fully throughout unless `pressure` is on.
+fn pressed(samples: &[InputSample], pressure: bool) -> Vec<InputSample> {
+    samples
+        .iter()
+        .map(|s| InputSample {
+            pressure: if pressure { s.pressure } else { 1.0 },
+            ..*s
         })
         .collect()
 }

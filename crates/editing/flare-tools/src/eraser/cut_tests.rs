@@ -232,7 +232,7 @@ fn erasing_the_last_of_a_keyframe_removes_the_keyframe() {
 #[test]
 fn the_eraser_covers_its_path_or_a_dot_and_refuses_a_bad_size() {
     let mouse = |x: f64, y: f64| InputSample::mouse(x, y).expect("sample");
-    let dot = eraser_outline(&[mouse(5.0, 5.0)], 10.0);
+    let dot = eraser_outline(&[mouse(5.0, 5.0)], 10.0, false);
     assert_eq!(dot.len(), DOT_STEPS);
     assert!(
         dot.iter()
@@ -241,21 +241,22 @@ fn the_eraser_covers_its_path_or_a_dot_and_refuses_a_bad_size() {
     let drag = eraser_outline(
         &[mouse(0.0, 0.0), mouse(50.0, 0.0), mouse(100.0, 0.0)],
         20.0,
+        false,
     );
     let (lo, hi) = drag.iter().fold((DVec2::MAX, DVec2::MIN), |(lo, hi), p| {
         (lo.min(*p), hi.max(*p))
     });
     assert!((lo.x - -10.0).abs() < 0.5 && (hi.x - 110.0).abs() < 0.5);
     assert!((lo.y - -10.0).abs() < 0.5 && (hi.y - 10.0).abs() < 0.5);
-    // A light touch rubs as wide as a firm one.
+    // Without pressure, a light touch rubs as wide as a firm one.
     let light: Vec<InputSample> = [0.0, 50.0, 100.0]
         .iter()
         .map(|x| InputSample::new(*x, 0.0, 0.05, flare_input::PointerKind::Pen).expect("pen"))
         .collect();
-    assert_eq!(eraser_outline(&light, 20.0), drag);
-    assert!(eraser_outline(&[mouse(0.0, 0.0)], f64::NAN).is_empty());
-    assert!(eraser_outline(&[], 10.0).is_empty());
-    let huge = eraser_outline(&[mouse(0.0, 0.0)], 1.0e9);
+    assert_eq!(eraser_outline(&light, 20.0, false), drag);
+    assert!(eraser_outline(&[mouse(0.0, 0.0)], f64::NAN, true).is_empty());
+    assert!(eraser_outline(&[], 10.0, true).is_empty());
+    let huge = eraser_outline(&[mouse(0.0, 0.0)], 1.0e9, true);
     assert!(
         huge.iter()
             .all(|p| p.length() <= MAX_ERASER_SIZE / 2.0 + 1e-9)
@@ -278,6 +279,7 @@ fn a_brush_stroke_is_cut_like_any_fill() {
                 InputSample::mouse(50.0, 40.0).expect("s"),
             ],
             8.0,
+            false,
         )],
     ));
     assert_eq!(moves(&pieces[0]), 2);
@@ -291,4 +293,36 @@ fn several_outlines_are_rubbed_out_in_one_cut() {
         &[band(20.0, -5.0, 30.0, 25.0), band(70.0, -5.0, 80.0, 25.0)],
     ));
     assert_eq!(moves(&pieces[0]), 3, "two cuts leave three pieces");
+}
+
+#[test]
+fn with_pressure_a_light_touch_rubs_narrower_and_a_mouse_rubs_full_width() {
+    let pen = |x: f64, pressure: f32| {
+        InputSample::new(x, 0.0, pressure, flare_input::PointerKind::Pen).expect("pen")
+    };
+    let height = |outline: &[DVec2]| {
+        let (lo, hi) = outline.iter().fold((f64::MAX, f64::MIN), |(lo, hi), p| {
+            (lo.min(p.y), hi.max(p.y))
+        });
+        hi - lo
+    };
+    let light: Vec<InputSample> = [0.0, 50.0, 100.0].map(|x| pen(x, 0.05)).to_vec();
+    let firm: Vec<InputSample> = [0.0, 50.0, 100.0].map(|x| pen(x, 1.0)).to_vec();
+    let narrow = height(&eraser_outline(&light, 20.0, true));
+    let expected = 20.0 * f64::from(MIN_ERASER_PRESSURE_WIDTH + 0.9 * 0.05);
+    assert!((narrow - expected).abs() < 0.5, "narrow: {narrow}");
+    assert!((height(&eraser_outline(&firm, 20.0, true)) - 20.0).abs() < 0.5);
+    // A mouse presses fully, so pressure changes nothing for it.
+    let mouse: Vec<InputSample> = [0.0, 50.0, 100.0]
+        .map(|x| InputSample::mouse(x, 0.0).expect("sample"))
+        .to_vec();
+    assert_eq!(
+        eraser_outline(&mouse, 20.0, true),
+        eraser_outline(&mouse, 20.0, false)
+    );
+    // A light click rubs a smaller dot, but never nothing.
+    let dot = eraser_outline(&[pen(0.0, 0.0)], 20.0, true);
+    assert_eq!(dot.len(), DOT_STEPS);
+    let radius = dot[0].length();
+    assert!((radius - 10.0 * f64::from(MIN_ERASER_PRESSURE_WIDTH)).abs() < 1e-9);
 }

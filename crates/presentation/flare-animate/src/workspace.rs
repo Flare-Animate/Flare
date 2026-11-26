@@ -218,6 +218,8 @@ pub struct Workspace {
     /// How wide the Eraser rubs, in stage units, and whether it deletes whole shapes instead.
     eraser_size: f32,
     eraser_faucet: bool,
+    /// Whether how hard a pen presses sets the Eraser's width, as on a raster layer.
+    eraser_pressure: bool,
     /// How far the Eraser has rubbed out along the drag in progress, when it rubs as it goes.
     live_erase: Option<tools::eraser::LiveErase>,
     /// The tip the brush paints with, and the nibs kept under a name.

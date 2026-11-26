@@ -8,7 +8,7 @@
 use egui::{Color32, Pos2, Ui};
 use flare_core::LayerId;
 use flare_input::InputSample;
-use flare_tools::eraser::{MAX_ERASER_SIZE, eraser_outline};
+use flare_tools::eraser::{MAX_ERASER_SIZE, eraser_outline, eraser_sides};
 use flare_ui::chrome;
 
 use super::stroke_preview::{PreviewSides, PreviewStroke};
@@ -139,7 +139,7 @@ impl Workspace {
         let outlines: Vec<_> = self
             .stroke_set(samples)
             .iter()
-            .map(|stroke| eraser_outline(stroke, size))
+            .map(|stroke| eraser_outline(stroke, size, self.eraser_pressure))
             .filter(|outline| outline.len() >= 3)
             .collect();
         let scene = self.scene_id()?;
@@ -189,18 +189,7 @@ impl Workspace {
         strokes
             .iter()
             .filter_map(|stroke| {
-                let firm: Vec<InputSample> = stroke
-                    .iter()
-                    .map(|s| InputSample {
-                        pressure: 1.0,
-                        ..*s
-                    })
-                    .collect();
-                let round = flare_tools::brush::BrushStroke::new(
-                    size,
-                    flare_input::PressureCurve::new(1.0, 1.0),
-                );
-                let sides = round.sides(&firm, 0.0)?;
+                let sides = eraser_sides(stroke, size, self.eraser_pressure)?;
                 Some(PreviewStroke {
                     points: Vec::new(),
                     halves: Vec::new(),
@@ -211,14 +200,24 @@ impl Workspace {
             .collect()
     }
 
-    /// The Eraser's options: its size, and Faucet.
+    /// The Eraser's options: its size, whether pen pressure sets it, and Faucet.
     pub(in crate::workspace) fn eraser_options(&mut self, ui: &mut Ui) {
-        chrome::row(ui, &tr!(self, "opt-size"), |ui| {
-            ui.add(
-                egui::DragValue::new(&mut self.eraser_size)
-                    .range(1.0..=MAX_ERASER_SIZE as f32)
-                    .suffix(" px"),
-            );
+        let size = tr!(self, "opt-size");
+        chrome::slider(
+            ui,
+            &size,
+            &mut self.eraser_size,
+            1.0..=MAX_ERASER_SIZE as f32,
+            " px",
+            true,
+        );
+        let (pressure, tip) = (
+            tr!(self, "opt-pressure-size"),
+            tr!(self, "opt-pressure-size-tip"),
+        );
+        chrome::row(ui, &pressure, |ui| {
+            ui.checkbox(&mut self.eraser_pressure, "")
+                .on_hover_text(&tip);
         });
         let (faucet, tip) = (tr!(self, "opt-faucet"), tr!(self, "opt-faucet-tip"));
         chrome::row(ui, &faucet, |ui| {
