@@ -31,6 +31,7 @@ workspace-saved = 已保存工作区“{ $name }”。
 workspace-refused = 工作区未更改：{ $reason }
 pane-swatches = 色板
 swatches-yours = 你的色板
+swatches-skin = 肤色
 swatches-add = 保留当前颜色
 swatches-remove = 删除色板
 swatches-full = 你的色板已满（{ $max }）。

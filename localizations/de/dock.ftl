@@ -31,6 +31,7 @@ workspace-saved = Arbeitsbereich { $name } gespeichert.
 workspace-refused = Der Arbeitsbereich wurde nicht geändert: { $reason }
 pane-swatches = Farbfelder
 swatches-yours = Eigene Farbfelder
+swatches-skin = Hauttöne
 swatches-add = Aktuelle Farbe behalten
 swatches-remove = Farbfeld löschen
 swatches-full = Die eigenen Farbfelder sind voll ({ $max }).

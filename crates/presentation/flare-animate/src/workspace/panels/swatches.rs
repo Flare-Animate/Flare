@@ -1,5 +1,5 @@
-//! The Swatches panel, as Animate's: greys and the 216 web-safe colors in twelve columns, then the
-//! person's own swatches. A click makes a swatch the fill or stroke color, whichever the Color
+//! The Swatches panel, as Animate's: greys and the 216 web-safe colors in twelve columns, skin
+//! tones, then the person's own swatches. A click makes a swatch the fill or stroke color, whichever the Color
 //! panel is setting; + keeps the current one; a right click on one of the person's own deletes it.
 
 use egui::{Color32, Rect, Sense, Ui, Vec2, vec2};
@@ -59,31 +59,42 @@ impl Workspace {
     }
 
     pub(crate) fn swatches_panel(&mut self, ui: &mut Ui) {
-        let (add_hint, remove_label, yours) = (
+        let (add_hint, remove_label, yours, skin) = (
             tr!(self, "swatches-add"),
             tr!(self, "swatches-remove"),
             tr!(self, "swatches-yours"),
+            tr!(self, "swatches-skin"),
         );
         ui.weak(self.tr(match self.color_target {
             ColorTarget::Fill => "col-fill",
             ColorTarget::Stroke => "col-stroke",
             ColorTarget::GradientEnd => "col-gradient-end",
         }));
-        let mut pick = None;
-        pick = pick.or(grid(ui, "greys", &swatches::greys(), None));
-        ui.add_space(4.0);
-        pick = pick.or(grid(ui, "web-safe", &swatches::web_safe(), None));
-        ui.add_space(8.0);
-        ui.horizontal(|ui| {
-            ui.weak(&yours);
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if chrome::icon_button(ui, "plus", 14.0, false, true, &add_hint).clicked() {
-                    self.add_swatch();
-                }
-            });
-        });
-        let own = self.paint.swatches.colors().to_vec();
-        pick = pick.or(grid(ui, "own", &own, Some(&remove_label)));
+        // The panel is taller than a docked stack usually leaves it, so the grids scroll under
+        // the fixed label saying which color a click sets.
+        let pick = egui::ScrollArea::vertical()
+            .auto_shrink(false)
+            .show(ui, |ui| {
+                let mut pick = None;
+                pick = pick.or(grid(ui, "greys", &swatches::greys(), None));
+                ui.add_space(4.0);
+                pick = pick.or(grid(ui, "web-safe", &swatches::web_safe(), None));
+                ui.add_space(8.0);
+                ui.weak(&skin);
+                pick = pick.or(grid(ui, "skin", &swatches::skin_tones(), None));
+                ui.add_space(8.0);
+                ui.horizontal(|ui| {
+                    ui.weak(&yours);
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if chrome::icon_button(ui, "plus", 14.0, false, true, &add_hint).clicked() {
+                            self.add_swatch();
+                        }
+                    });
+                });
+                let own = self.paint.swatches.colors().to_vec();
+                pick.or(grid(ui, "own", &own, Some(&remove_label)))
+            })
+            .inner;
         match pick {
             Some(Pick::Choose(color)) => self.choose_swatch(color),
             Some(Pick::Remove(index)) => self.remove_swatch(index),

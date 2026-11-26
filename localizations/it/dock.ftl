@@ -31,6 +31,7 @@ workspace-saved = Area di lavoro { $name } salvata.
 workspace-refused = L’area di lavoro non è cambiata: { $reason }
 pane-swatches = Campioni
 swatches-yours = I tuoi campioni
+swatches-skin = Toni della pelle
 swatches-add = Tieni il colore attuale
 swatches-remove = Elimina campione
 swatches-full = I tuoi campioni sono pieni ({ $max }).

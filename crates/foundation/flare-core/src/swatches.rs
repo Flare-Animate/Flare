@@ -1,7 +1,8 @@
 //! The swatches a person picks colors from, as Animate's Swatches panel has them: the 216
 //! web-safe colors (every mix of 0, 51, 102, 153, 204 and 255 in red, green and blue) in the
-//! classic twelve-column layout, a row of greys, and the person's own colors, kept in a bounded
-//! list. The web-safe palette is a standard of the web, not any program's artwork.
+//! classic twelve-column layout, a row of greys, skin tones, and the person's own colors, kept in
+//! a bounded list. The web-safe palette is a standard of the web, not any program's artwork; the
+//! skin tones are Flare's own.
 
 use crate::Rgba8;
 
@@ -35,6 +36,34 @@ pub fn greys() -> Vec<Rgba8> {
             Rgba8::opaque(v, v, v)
         })
         .collect()
+}
+
+/// Twelve skin tones from the fairest to the deepest, chosen by eye for characters in flat color.
+const SKIN_BASES: [(u8, u8, u8); 12] = [
+    (0xFD, 0xE7, 0xD6),
+    (0xF8, 0xD5, 0xBE),
+    (0xF3, 0xC4, 0xA5),
+    (0xEB, 0xB0, 0x8C),
+    (0xE0, 0xA0, 0x7A),
+    (0xCF, 0x8B, 0x64),
+    (0xBD, 0x77, 0x52),
+    (0xA6, 0x64, 0x43),
+    (0x8D, 0x52, 0x36),
+    (0x74, 0x42, 0x2C),
+    (0x5C, 0x34, 0x23),
+    (0x45, 0x27, 0x1B),
+];
+
+/// Skin tones in two rows of twelve: the tones from fairest to deepest, and under each its shadow,
+/// darker and warmer, because a cartoon's skin is a base color and one shade of it. Blue and green
+/// fall faster than red so the shadow does not go grey.
+pub fn skin_tones() -> Vec<Rgba8> {
+    let shade = |v: u8, keep: u16| u8::try_from(u16::from(v) * keep / 100).unwrap_or(u8::MAX);
+    let bases = SKIN_BASES.iter().map(|&(r, g, b)| Rgba8::opaque(r, g, b));
+    let shadows = SKIN_BASES
+        .iter()
+        .map(|&(r, g, b)| Rgba8::opaque(shade(r, 84), shade(g, 74), shade(b, 70)));
+    bases.chain(shadows).collect()
 }
 
 /// The person's own swatches, in the order added, each once, at most [`MAX_CUSTOM_SWATCHES`].
@@ -109,6 +138,25 @@ mod tests {
                 .windows(2)
                 .all(|w| w[0].r < w[1].r && w[1].r == w[1].g)
         );
+    }
+
+    #[test]
+    fn skin_tones_run_fair_to_deep_with_a_warmer_shadow_under_each() {
+        let tones = skin_tones();
+        assert_eq!(tones.len(), 24);
+        let light = |c: &Rgba8| u32::from(c.r) * 299 + u32::from(c.g) * 587 + u32::from(c.b) * 114;
+        let (bases, shadows) = tones.split_at(12);
+        assert!(bases.windows(2).all(|w| light(&w[0]) > light(&w[1])));
+        for (base, shadow) in bases.iter().zip(shadows) {
+            assert!(light(shadow) < light(base), "{base:?} {shadow:?}");
+            assert!(
+                shadow.r >= shadow.g && shadow.g >= shadow.b,
+                "warm: {shadow:?}"
+            );
+            assert_eq!(shadow.a, 255);
+        }
+        let unique: std::collections::HashSet<_> = tones.iter().map(|c| (c.r, c.g, c.b)).collect();
+        assert_eq!(unique.len(), 24);
     }
 
     #[test]

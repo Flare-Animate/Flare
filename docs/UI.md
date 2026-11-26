@@ -725,12 +725,14 @@ not kept in Preferences, so each session starts at 0.15.
 
 The Swatches panel (Window > Swatches, in the icon strip by default) is Animate's: a row of
 twelve greys from black to white, the 216 web-safe colors in the classic twelve columns (the red
-steps in pairs side by side, green down the rows, blue across; `flare_core::swatches`), and Your
-swatches. A click on a cell makes it the color the Color panel is setting (fill, stroke or the
+steps in pairs side by side, green down the rows, blue across; `flare_core::swatches`), Skin
+tones (twelve from the fairest to the deepest, and under each its shadow, darker and warmer, so a
+character's skin and its shade are picked side by side; `flare_core::swatches::skin_tones`), and
+Your swatches. A click on a cell makes it the color the Color panel is setting (fill, stroke or the
 gradient's end), and pointing at one shows its hex value. The + keeps the color being set as one
 of the person's own (each color once, at most 120; a full list says so), and a right click on one
 of them deletes it. They are kept with the preferences, not in the document. The web-safe colors
-are the web's standard palette, not Animate's artwork.
+are the web's standard palette, not Animate's artwork; the skin tones are Flare's own.
 
 ## Shaders
 
