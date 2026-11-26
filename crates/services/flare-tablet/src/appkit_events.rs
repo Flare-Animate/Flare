@@ -70,8 +70,9 @@ pub(crate) struct Tracker {
 impl Tracker {
     /// The update for an event from `source` at the time `at` (`NSEvent.timestamp`, seconds).
     /// `pressure` is read only for a pen's point, and `entering` only for a proximity event: a
-    /// pen that arrives has not pressed yet, and one that leaves is no longer the device in
-    /// use. A plain mouse event takes the pen away only when the pen has been quiet for
+    /// pen that arrives is the device in use without pressing yet, and one that leaves is no
+    /// longer. Some drivers (UGEE's) send a leave and an arrival just before the click of the
+    /// pen's side button, so the arrival has to bring the pen back. A plain mouse event takes the pen away only when the pen has been quiet for
     /// [`PEN_HOLD`]; a time that is not a number, or runs backwards, counts as quiet.
     pub(crate) fn apply(
         &mut self,
@@ -85,7 +86,10 @@ impl Tracker {
                 self.last_pen = Some(at);
                 Update::Pen(pressure)
             }
-            Source::Proximity if entering => Update::Keep,
+            Source::Proximity if entering => {
+                self.last_pen = Some(at);
+                Update::Pen(0.0)
+            }
             Source::Mouse
                 if self
                     .last_pen

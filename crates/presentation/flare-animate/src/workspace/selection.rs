@@ -24,6 +24,7 @@ impl Workspace {
             self.wand_drop();
             let before = std::mem::replace(&mut self.tool, tool);
             self.rotate_view_tool_changed(before, tool);
+            self.pen_button_tool_changed(tool);
             if tool == Tool::Camera {
                 self.ensure_camera();
             }

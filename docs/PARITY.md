@@ -52,6 +52,12 @@ first thing taken over and are in the importer and Flash adapter tests.
   (XInput2 raw events on the root window, which still arrive while winit holds the pointer during a drag; the "Abs Pressure" axis) and the window opens through X11 (XWayland under Wayland) when such a pen is
   plugged in; `FLARE_TABLET=off` keeps the native window system, and on macOS leaves the pen a mouse. Not built: Wayland's own tablet protocol, tilt, and
   the eraser end of a pen. It is untested on real hardware.
+- **Pen side button:** tablet drivers send a pen's side button as a right click. On the stage, a right click while a pen
+  is the device in use puts the Eraser in hand, and the next gives back the tool held before (the Brush, after an Eraser
+  picked from the toolbar); picking any tool by hand ends the flip. A mouse's right click still opens the stage's menu.
+  Animate leaves the button to the tablet driver's own settings. On macOS `flare-tablet` reads the right button's events
+  too, and a pen arriving near the tablet counts as the pen in use: a UGEE driver sends a leave and an arrival before
+  each press of the button, and the click itself as a plain mouse event.
 - **Brush outline size:** the smooth line is cut at least four pieces between two input samples, a point every
   quarter of a unit; the saved outline leaves out the points both its edges pass within 0.02 of a unit of (the sag a
   round end is allowed) and never more than a tenth of the width there, so a straight run keeps its ends and a curve

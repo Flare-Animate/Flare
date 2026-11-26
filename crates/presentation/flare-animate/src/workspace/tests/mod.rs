@@ -84,6 +84,7 @@ mod panels_and_view;
 mod paste_into_layer;
 mod pasteboard;
 mod pen_and_selection;
+mod pen_button;
 mod pencil_pressure;
 mod phone_layout;
 mod polygon_lasso;
