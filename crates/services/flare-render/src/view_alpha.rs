@@ -1,11 +1,13 @@
 //! The stage's picture of a frame with transparent layers: each run of shapes and pictures that
 //! share a view opacity is drawn on its own, faded as a whole and laid over what came before, so
 //! a transparent layer is see-through as one sheet (its strokes do not show its fills through
-//! them), as Animate draws a transparent layer. Exports never come here.
+//! them), as Animate draws a transparent layer. A layer with a blend mode is a run of its own,
+//! laid over what came before by its mode. Exports never come here.
 
 use flare_core::Rgba8;
 use std::ops::Range;
 
+use flare_document::LayerBlend;
 use flare_eval::{DrawnBitmap, DrawnShape, EffectRun, Frame};
 
 use crate::{Image, RenderError, Viewport, render_viewport};
@@ -34,13 +36,15 @@ pub fn render_stage_viewport(
         if run.alpha < 1.0 {
             layer.fade_in_place(run.alpha);
         }
-        image.composite(&layer)?;
+        crate::blend::composite(&mut image, &layer, run.blend)?;
     }
     Ok(image)
 }
 
 struct Run<'a> {
     alpha: f32,
+    /// How the run is laid over what came before; a blended layer is always a run alone.
+    blend: LayerBlend,
     frame: Frame<'a>,
 }
 
@@ -115,12 +119,18 @@ fn runs<'a>(frame: &Frame<'a>) -> Vec<Run<'a>> {
                 .or_else(|| frame.bitmaps.get(run.bitmaps.start).map(|b| b.view_alpha))
                 .unwrap_or(1.0),
         };
-        let same = runs
-            .last()
-            .is_some_and(|r| r.alpha.to_bits() == alpha.to_bits());
+        let blend = match &item {
+            Item::Effects(run) => run.blend,
+            _ => LayerBlend::Normal,
+        };
+        let same = blend.is_normal()
+            && runs
+                .last()
+                .is_some_and(|r| r.alpha.to_bits() == alpha.to_bits() && r.blend.is_normal());
         if !same {
             runs.push(Run {
                 alpha,
+                blend,
                 frame: Frame {
                     clips: frame.clips.clone(),
                     ..Frame::default()
@@ -152,9 +162,11 @@ fn runs<'a>(frame: &Frame<'a>) -> Vec<Run<'a>> {
                         Item::Effects(_) => {}
                     }
                 }
+                // The run is mixed in by its mode as it is laid, so inside it the layer is plain.
                 run.frame.effects.push(EffectRun {
                     shapes: s0..run.frame.shapes.len(),
                     bitmaps: b0..run.frame.bitmaps.len(),
+                    blend: LayerBlend::Normal,
                     ..effects.clone()
                 });
             }

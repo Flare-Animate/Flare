@@ -2,6 +2,8 @@ use crate::appkit_events::{PEN_HOLD, Source, Tracker, Update, source};
 
 const LEFT_DOWN: usize = 1;
 const LEFT_UP: usize = 2;
+const RIGHT_DOWN: usize = 3;
+const RIGHT_UP: usize = 4;
 const MOVED: usize = 5;
 const LEFT_DRAGGED: usize = 6;
 const KEY_DOWN: usize = 10;
@@ -20,7 +22,15 @@ fn a_plain_mouse_event_is_a_mouse_whatever_the_button() {
 
 #[test]
 fn a_mouse_event_marked_by_the_tablet_is_the_pen() {
-    for event in [LEFT_DOWN, LEFT_UP, MOVED, LEFT_DRAGGED] {
+    // The right button too: a pen's side button.
+    for event in [
+        LEFT_DOWN,
+        LEFT_UP,
+        RIGHT_DOWN,
+        RIGHT_UP,
+        MOVED,
+        LEFT_DRAGGED,
+    ] {
         assert_eq!(source(event, 1), Some(Source::Pen), "type {event}");
         assert_eq!(source(event, 2), Some(Source::Proximity), "type {event}");
     }
@@ -65,11 +75,11 @@ fn a_pens_point_gives_its_pressure_and_a_mouse_takes_the_pen_away() {
 }
 
 #[test]
-fn a_pen_that_leaves_is_no_longer_in_use_and_one_that_arrives_changes_nothing_yet() {
+fn a_pen_that_leaves_is_no_longer_in_use_and_one_that_arrives_is_without_pressing() {
     let mut tracker = Tracker::default();
     assert_eq!(
         tracker.apply(Source::Proximity, 0.0, true, 1.0),
-        Update::Keep
+        Update::Pen(0.0)
     );
     assert_eq!(
         tracker.apply(Source::Pen, 0.5, false, 1.0),
@@ -124,4 +134,25 @@ fn a_time_that_is_not_a_number_or_runs_backwards_is_not_held() {
     );
     tracker.apply(Source::Pen, 0.5, false, 5.0);
     assert_eq!(tracker.apply(Source::Mouse, 1.0, false, 4.0), Update::Mouse);
+}
+
+#[test]
+fn a_pen_back_near_the_tablet_is_in_use_when_its_side_button_clicks() {
+    // What a UGEE driver sent around each press of the side button: the pen leaves and arrives,
+    // then the right click comes as a plain mouse event.
+    let mut tracker = Tracker::default();
+    tracker.apply(Source::Pen, 0.0, false, 3.0);
+    assert_eq!(
+        tracker.apply(Source::Proximity, 0.0, false, 3.01),
+        Update::Mouse
+    );
+    assert_eq!(
+        tracker.apply(Source::Proximity, 0.0, true, 3.02),
+        Update::Pen(0.0)
+    );
+    assert_eq!(
+        tracker.apply(Source::Mouse, 0.0, false, 3.03),
+        Update::Keep,
+        "the click is the pen's"
+    );
 }

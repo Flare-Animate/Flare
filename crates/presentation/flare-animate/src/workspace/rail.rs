@@ -31,6 +31,8 @@ const FLYOUT_EDGE: f32 = 6.0;
 pub(crate) enum PanelChange {
     Collapse(Pane),
     Dock(Pane),
+    /// Hide the timeline or the output in its place.
+    Hide(Pane),
 }
 
 /// The arrangement, the panel open beside the strip, and where its icons were drawn last.
@@ -88,6 +90,10 @@ impl Workspace {
                 if self.panels.flyout == Some(pane) {
                     self.panels.flyout = None;
                 }
+            }
+            Some(PanelChange::Hide(pane)) => {
+                // Only panels that can be hidden are offered.
+                let _ = self.panels.layout.set_hidden(pane, true);
             }
             None => {}
         }

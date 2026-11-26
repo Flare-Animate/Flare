@@ -69,4 +69,7 @@ hist-magic-wand = Clear pixels
 hist-blur = Blur
 hist-smudge = Smudge
 hist-raster-brush = Raster Brush
+hist-erase-pixels = Erase pixels
+hist-layer-blend = Change the layer's blend mode
+hist-layer-convert = Convert the layer
 hist-bend-line = Bend the line

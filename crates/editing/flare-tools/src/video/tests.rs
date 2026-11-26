@@ -26,6 +26,7 @@ fn settings(fps: u32, max_seconds: f64, max_side: u32) -> Settings {
         max_seconds,
         max_side,
         opacity: 40,
+        photo_quality: Some(flare_document::DEFAULT_PHOTO_QUALITY),
     }
 }
 
@@ -457,3 +458,6 @@ fn what_was_asked_is_laid_over_the_suggestion_and_the_plan_reads_as_json() {
             .is_some_and(|r| r.contains("MB"))
     );
 }
+
+#[path = "tests_photo.rs"]
+mod photo;

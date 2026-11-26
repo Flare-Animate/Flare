@@ -57,6 +57,8 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Action(A::ExportFla),
                     Action(A::ExportSvg),
                     Action(A::ExportSpriteSheet),
+                    Separator,
+                    Action(A::ToggleTransparentExport),
                 ],
             ),
             Separator,
@@ -142,6 +144,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                 "Timeline",
                 &[
                     Action(A::NewLayer),
+                    Action(A::NewRasterLayer),
                     Action(A::NewLayerFolder),
                     Action(A::InsertFrame),
                     Action(A::InsertKeyframe),

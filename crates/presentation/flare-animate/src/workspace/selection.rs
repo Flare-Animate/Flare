@@ -23,11 +23,12 @@ impl Workspace {
             self.finish_text_for_tool_change();
             self.wand_drop();
             let before = std::mem::replace(&mut self.tool, tool);
-            self.hand_tool_changed(before, tool);
             self.rotate_view_tool_changed(before, tool);
+            self.pen_button_tool_changed(tool);
             if tool == Tool::Camera {
                 self.ensure_camera();
             }
+            self.view_tool_picked(tool);
         }
     }
 

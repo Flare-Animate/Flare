@@ -15,33 +15,13 @@ use rusqlite::{Connection, OpenFlags, config::DbConfig, params};
 use crate::StorageError;
 use crate::codec::NativeZstd;
 use crate::records::{
-    BITMAP_SCHEMA_VERSION, GAME_SCHEMA_VERSION, MAX_ENTITIES, Parts, RIG_SCHEMA_VERSION, Record,
-    SCHEMA_VERSION, SHADER_SCHEMA_VERSION, STOP_MOTION_SCHEMA_VERSION, from_parts, to_parts,
+    MAX_ENTITIES, Parts, Record, TABLES, check_schema_version, from_parts, to_parts,
 };
 
 /// ASCII "FLAR".
 pub(crate) const APPLICATION_ID: i64 = 0x464C_4152;
 /// Small pages waste less on the many small records and the empty space after the last one.
 pub(crate) const PAGE_SIZE: i64 = 1024;
-
-pub(crate) const SCHEMA: &str = "
-CREATE TABLE project (
-    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
-    project_id TEXT NOT NULL,
-    schema_version INTEGER NOT NULL,
-    settings_json TEXT NOT NULL
-) STRICT;
-CREATE TABLE entity (
-    id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'origin', 'game', 'shader', 'rig', 'stopmotion')),
-    ordinal INTEGER NOT NULL,
-    payload_version INTEGER NOT NULL CHECK (payload_version > 0),
-    codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
-    size INTEGER NOT NULL CHECK (size >= 0),
-    digest BLOB NOT NULL CHECK (length(digest) = 32),
-    payload BLOB NOT NULL
-) STRICT, WITHOUT ROWID;
-";
 
 /// Writes `document` to `path`, replacing any existing file only on full success.
 pub fn save(document: &Document, path: &Path) -> Result<(), StorageError> {
@@ -60,7 +40,7 @@ pub fn save(document: &Document, path: &Path) -> Result<(), StorageError> {
         let version = parts.schema_version();
         conn.pragma_update(None, "user_version", version)?;
         let tx = conn.transaction()?;
-        tx.execute_batch(SCHEMA)?;
+        tx.execute_batch(TABLES)?;
         tx.execute(
             "INSERT INTO project VALUES (1, ?1, ?2, ?3)",
             params![parts.project_id, version, parts.settings],
@@ -102,17 +82,7 @@ pub fn load(path: &Path) -> Result<Document, StorageError> {
         return Err(StorageError::NotFlareFile);
     }
     let version: i64 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    if !matches!(
-        version,
-        SCHEMA_VERSION
-            | BITMAP_SCHEMA_VERSION
-            | GAME_SCHEMA_VERSION
-            | SHADER_SCHEMA_VERSION
-            | RIG_SCHEMA_VERSION
-            | STOP_MOTION_SCHEMA_VERSION
-    ) {
-        return Err(StorageError::UnsupportedVersion(version));
-    }
+    check_schema_version(version)?;
 
     let count: i64 = conn.query_row("SELECT count(*) FROM entity", [], |row| row.get(0))?;
     if usize::try_from(count).map_or(true, |n| n > MAX_ENTITIES) {

@@ -216,6 +216,13 @@ pub enum LayerOperation {
     Hold,
     /// The layer shows nothing after its last keyframe, as Animate's layers do.
     Release,
+    /// Mix the layer with the layers under it by `--mode` (Normal lays it on top).
+    Blend,
+    /// Convert the layer to a raster layer, painted in pixels: its shapes and instances are drawn
+    /// into a painting on each keyframe.
+    Raster,
+    /// Convert the layer to a vector layer: its paintings are traced into filled shapes.
+    Vector,
 }
 
 /// Where `move` puts a layer: above which layer, and in which folder.
@@ -240,6 +247,41 @@ pub fn layer_opacity(path: &Path, layer: Option<Uuid>, percent: Option<u8>) -> R
     }])?;
     commit(&session, path)?;
     Ok(json!({ "applied": "Opacity", "layer": layer.as_uuid(), "percent": percent }))
+}
+
+/// Sets how a layer is mixed with the layers under it, as one undo step (none when it already is).
+pub fn layer_blend(path: &Path, layer: Option<Uuid>, mode: Option<&str>) -> Result<Value> {
+    let mode = mode.context("blend needs --mode, such as multiply or screen")?;
+    let blend = flare_document::LayerBlend::parse(mode).with_context(|| {
+        let known: Vec<&str> = flare_document::LayerBlend::ALL
+            .iter()
+            .map(|b| b.name())
+            .collect();
+        format!("unknown blend mode {mode:?}; one of {}", known.join(", "))
+    })?;
+    let mut session = open(path)?;
+    let (scene, layer) = target_layer(&session, layer)?;
+    let commands = flare_commands::layers::set_blend(session.document(), scene, layer, blend)?;
+    let changed = !commands.is_empty();
+    session.apply(commands)?;
+    commit(&session, path)?;
+    Ok(
+        json!({ "applied": "Blend", "layer": layer.as_uuid(), "mode": blend.name(), "changed": changed }),
+    )
+}
+
+/// Converts a layer to a raster or a vector layer, keeping what it shows (its shapes drawn into
+/// paintings, or its paintings traced into shapes), as one undo step (none when it already is).
+pub fn layer_kind(path: &Path, layer: Option<Uuid>, raster: bool) -> Result<Value> {
+    let mut session = open(path)?;
+    let (scene, layer) = target_layer(&session, layer)?;
+    let commands =
+        flare_runtime::convert_layer(session.document(), scene, layer, raster, "Painting")?;
+    let changed = !commands.is_empty();
+    session.apply(commands)?;
+    commit(&session, path)?;
+    let kind = if raster { "raster" } else { "vector" };
+    Ok(json!({ "applied": kind, "layer": layer.as_uuid(), "changed": changed }))
 }
 
 /// Layer management on the first scene. `layer` defaults to the first layer.
@@ -282,6 +324,10 @@ pub fn layer_op(
         LayerOperation::LockOthers => layer_ops::lock_others(document, scene, layer)?,
         LayerOperation::HideOthers => layer_ops::hide_others(document, scene, layer)?,
         LayerOperation::Opacity => anyhow::bail!("opacity needs --percent"),
+        LayerOperation::Blend => anyhow::bail!("blend needs --mode"),
+        LayerOperation::Raster | LayerOperation::Vector => {
+            anyhow::bail!("{op:?} is handled with the layer's conversion")
+        }
         LayerOperation::Hold => layers::set_hold(document, scene, layer, true)?,
         LayerOperation::Release => layers::set_hold(document, scene, layer, false)?,
         LayerOperation::Duplicate => {

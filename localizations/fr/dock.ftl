@@ -36,3 +36,4 @@ swatches-add = Garder la couleur actuelle
 swatches-remove = Supprimer la nuance
 swatches-full = Vos nuances sont pleines ({ $max }).
 strip-resize = Faites glisser pour élargir ou rétrécir le panneau
+dock-hide-panel = Masquer (le menu Fenêtre le réaffiche)

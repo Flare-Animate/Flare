@@ -101,6 +101,13 @@ fn painted(f: &Fixture) -> Bitmap {
     }
 }
 
+/// The pixel of `bitmap` under stage point `(x, y)`, for a picture placed at the origin on the
+/// 64 by 48 stage: a new painting has [`PAINT_DENSITY`] pixels to a stage unit, a picture one.
+fn at_stage(bitmap: &Bitmap, x: u32, y: u32) -> [u8; 4] {
+    let density = bitmap.width() / 64;
+    pixel(bitmap, x * density, y * density)
+}
+
 fn pixel(bitmap: &Bitmap, x: u32, y: u32) -> [u8; 4] {
     let i = ((y * bitmap.width() + x) * 4) as usize;
     let p = &bitmap.pixels()[i..i + 4];
@@ -113,10 +120,23 @@ fn a_stroke_on_an_empty_layer_paints_a_new_bitmap_the_size_of_the_stage() {
     // Clear pixels have no color to give, so even a full mix lays the paint as it is.
     stroke(&mut f, brush(1.0), BLUE, &[(8.0, 24.0), (56.0, 24.0)]);
     let after = painted(&f);
-    assert_eq!((after.width(), after.height()), (64, 48));
+    // Twice as many pixels across and down as the stage, drawn at the stage's size.
+    let d = PAINT_DENSITY;
+    assert_eq!((after.width(), after.height()), (64 * d, 48 * d));
+    let span = find_span(
+        f.session.document(),
+        f.scene,
+        crate::test_support::at(&f, 0),
+    )
+    .expect("a keyframe at 0");
+    let Some(Content::Bitmap(placed)) = span.element(0) else {
+        panic!("the painting is placed");
+    };
+    let scale = placed.transform().as_affine().matrix2.x_axis.x;
+    assert!((scale - 1.0 / f64::from(d)).abs() < 1e-12, "{scale}");
     assert_eq!(after.name(), "Painting");
-    assert_eq!(pixel(&after, 32, 24), [0, 0, 255, 255]);
-    assert_eq!(pixel(&after, 32, 2), [0, 0, 0, 0], "above the stroke");
+    assert_eq!(at_stage(&after, 32, 24), [0, 0, 255, 255]);
+    assert_eq!(at_stage(&after, 32, 2), [0, 0, 0, 0], "above the stroke");
     assert_eq!(f.session.document().bitmaps().len(), 1);
     // The whole stroke is one step: undone, the bitmap and the keyframe are gone.
     assert!(f.session.undo());
@@ -181,22 +201,22 @@ fn a_second_stroke_paints_into_the_same_picture_and_mixes_with_the_first() {
     assert_eq!(library.len(), 1, "the first picture left the library");
     assert_ne!(library[0].id(), first);
     let after = painted(&f);
-    let crossing = pixel(&after, 32, 24);
+    let crossing = at_stage(&after, 32, 24);
     // The brush picks the red up as it reaches it, so a thin line tints it less than a wide
     // field would, and it carries some on past the line.
     assert!(
         crossing[0] >= 20 && crossing[2] > 150,
         "where they cross the colors mix: {crossing:?}"
     );
-    let past = pixel(&after, 32, 34);
+    let past = at_stage(&after, 32, 34);
     assert!(past[0] > 0, "red carried on past the line: {past:?}");
     assert_eq!(
-        pixel(&after, 32, 6),
+        at_stage(&after, 32, 6),
         [0, 0, 255, 255],
         "over clear it is blue"
     );
     assert_eq!(
-        pixel(&after, 8, 24),
+        at_stage(&after, 8, 24),
         RED,
         "the red away from the crossing is kept"
     );
@@ -228,8 +248,8 @@ fn a_click_paints_a_dot() {
     let mut f = stage();
     stroke(&mut f, brush(0.5), BLUE, &[(20.0, 20.0)]);
     let after = painted(&f);
-    assert_eq!(pixel(&after, 20, 20), [0, 0, 255, 255]);
-    assert_eq!(pixel(&after, 40, 20), [0, 0, 0, 0]);
+    assert_eq!(at_stage(&after, 20, 20), [0, 0, 255, 255]);
+    assert_eq!(at_stage(&after, 40, 20), [0, 0, 0, 0]);
 }
 
 #[test]
@@ -265,7 +285,7 @@ fn it_paints_its_own_layer_and_leaves_a_picture_on_another_alone() {
     };
     let painting = doc.bitmap(placed.bitmap()).expect("painting");
     // Only the bitmap's own pixels mix, and the new one held none.
-    assert_eq!(pixel(painting, 32, 24), [0, 0, 255, 255]);
+    assert_eq!(at_stage(painting, 32, 24), [0, 0, 255, 255]);
 }
 
 #[test]
@@ -297,7 +317,7 @@ fn a_stroke_applied_as_it_goes_places_its_bitmap_once_and_paints_on() {
     let span = find_span(f.session.document(), f.scene, live.at()).expect("span");
     assert_eq!(span.element_count(), 1);
     assert_eq!(
-        pixel(&painted(&f), 56, 24),
+        at_stage(&painted(&f), 56, 24),
         [0, 0, 255, 255],
         "the second stretch"
     );

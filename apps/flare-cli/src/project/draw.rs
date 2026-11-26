@@ -3,7 +3,7 @@
 use anyhow::{Context, Result};
 use flare_commands::Command;
 use flare_core::{InstanceId, LayerId, Rgba8, SceneId, SymbolId};
-use flare_document::{Content, FrameSpan, Instance, Layer, Stage, Timeline, Tween};
+use flare_document::{Content, FrameSpan, Instance, Stage, Timeline, Tween};
 use flare_history::EditorSession;
 use flare_tools::ops;
 use serde_json::{Value, json};
@@ -57,8 +57,9 @@ pub(super) fn target_layer(
     Ok((scene.id(), layer.id()))
 }
 
-/// Adds an empty layer below the existing ones in the first scene.
-pub fn add_layer(path: &Path, name: &str) -> Result<Value> {
+/// Adds an empty layer to the first scene, just under `under` or below the existing ones: a
+/// vector layer, or a raster layer when `raster` is set.
+pub fn add_layer(path: &Path, name: &str, raster: bool, under: Option<Uuid>) -> Result<Value> {
     let mut session = open(path)?;
     let scene = session
         .document()
@@ -67,10 +68,18 @@ pub fn add_layer(path: &Path, name: &str) -> Result<Value> {
         .context("document has no scene")?
         .id();
     let id = LayerId::new();
-    let layer = Layer::new(id, name, vec![])?.with_hold(true);
-    session.apply([Command::AddLayer { scene, layer }])?;
+    let layer = flare_commands::layers::new_layer(id, name, raster)?;
+    let under = under.map(LayerId::from_uuid);
+    let commands = flare_commands::layers::add_under(session.document(), scene, layer, under)
+        .map_err(|refusal| match refusal {
+            flare_commands::layers::LayerRefusal::NoSuchLayer => {
+                anyhow::anyhow!("--under names no layer in the first scene")
+            }
+            other => other.into(),
+        })?;
+    session.apply(commands)?;
     commit(&session, path)?;
-    Ok(json!({ "layer": id.as_uuid() }))
+    Ok(json!({ "layer": id.as_uuid(), "raster": raster }))
 }
 
 /// What `flare place` takes.

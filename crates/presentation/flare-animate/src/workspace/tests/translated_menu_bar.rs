@@ -101,6 +101,7 @@ fn every_action_menu_title_and_planned_command_is_translated_in_every_language()
         snapping: true,
         loop_playback: true,
         muted: true,
+        transparent_export: true,
     };
     for tag in ["de", "es", "fr", "pt-BR", "ja", "ko", "zh-CN"] {
         let ws = speaking(tag);

@@ -11,7 +11,9 @@ use crate::server::{FlareServer, Outcome};
 
 #[tool_router(router = read_tools, vis = "pub(super)")]
 impl FlareServer {
-    #[tool(description = "Summarize the project: revision, stage, scenes, layers and symbols.")]
+    #[tool(
+        description = "Summarize the project: revision, stage, scenes, layers, symbols, and the bitmaps (how many, how many are kept as photos, and the bytes they take)."
+    )]
     fn get_info(&self) -> Outcome {
         self.read(|state| {
             let document = state.session.document();
@@ -28,6 +30,7 @@ impl FlareServer {
                             json!({ "id": l.id().as_uuid(), "name": l.name(),
                                     "visible": l.is_visible(), "locked": l.is_locked(),
                                     "opacity": l.view_opacity(),
+                                    "blend": l.blend().name(), "raster": l.is_raster(),
                                     "spans": l.spans().len(), "elements": elements,
                                     "merged": flare_tools::drawing::merged_count(l),
                                     "armature": flare_tools::bones::is_armature_layer(l),
@@ -55,6 +58,7 @@ impl FlareServer {
                            "background": stage.background().to_array() },
                 "scenes": scenes,
                 "symbols": symbols,
+                "bitmaps": flare_tools::library::bitmap_summary(document),
             }))
         })
     }

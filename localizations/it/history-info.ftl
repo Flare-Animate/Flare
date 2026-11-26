@@ -69,4 +69,7 @@ hist-magic-wand = Cancella pixel
 hist-blur = Sfoca
 hist-smudge = Sfumino
 hist-raster-brush = Pennello raster
+hist-erase-pixels = Cancella pixel
+hist-layer-blend = Cambia il metodo di fusione del livello
+hist-layer-convert = Converti il livello
 hist-bend-line = Piega la linea

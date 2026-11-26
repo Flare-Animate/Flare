@@ -71,6 +71,7 @@ fn keys() -> Vec<String> {
         snapping: true,
         loop_playback: true,
         muted: true,
+        transparent_export: true,
     };
     for action in MenuAction::ALL {
         for state in [LabelState::default(), on] {

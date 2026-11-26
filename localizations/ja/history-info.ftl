@@ -65,4 +65,7 @@ hist-magic-wand = ピクセルを消去
 hist-blur = ぼかし
 hist-smudge = 指先
 hist-raster-brush = ラスターブラシ
+hist-erase-pixels = ピクセルを消去
+hist-layer-blend = レイヤーの描画モードを変更
+hist-layer-convert = レイヤーを変換
 hist-bend-line = 線を曲げる

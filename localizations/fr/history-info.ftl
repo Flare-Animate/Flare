@@ -69,4 +69,7 @@ hist-magic-wand = Effacer les pixels
 hist-blur = Flou
 hist-smudge = Doigt
 hist-raster-brush = Pinceau matriciel
+hist-erase-pixels = Effacer des pixels
+hist-layer-blend = Changer le mode de fusion du calque
+hist-layer-convert = Convertir le calque
 hist-bend-line = Courber la ligne

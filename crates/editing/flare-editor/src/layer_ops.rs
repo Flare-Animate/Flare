@@ -191,6 +191,8 @@ pub fn duplicate(
             .with_outline(original.outline())
             .with_view_opacity(original.view_opacity())
             .with_effects(original.effects().cloned())
+            .with_blend(original.blend())
+            .with_raster(original.is_raster())
             .with_parent(parent)
             .with_cues(original.cues().to_vec())
             .map_err(|_| LayerOpRefusal::Invalid)?;

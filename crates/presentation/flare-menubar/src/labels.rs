@@ -33,6 +33,8 @@ pub struct LabelState {
     pub snapping: bool,
     pub loop_playback: bool,
     pub muted: bool,
+    /// Exports leave the stage colour out, so what is not drawn is see-through.
+    pub transparent_export: bool,
 }
 
 impl Default for LabelState {
@@ -60,6 +62,7 @@ impl Default for LabelState {
             snapping: false,
             loop_playback: false,
             muted: false,
+            transparent_export: false,
         }
     }
 }
@@ -130,6 +133,13 @@ impl MenuAction {
                     "menu-item-text-italic-on"
                 } else {
                     "menu-item-text-italic-off"
+                }
+            }
+            Self::ToggleTransparentExport => {
+                if state.transparent_export {
+                    "menu-item-transparent-export-on"
+                } else {
+                    "menu-item-transparent-export-off"
                 }
             }
             Self::ToggleGuides => {
@@ -212,6 +222,7 @@ impl MenuAction {
             Self::ImportToStage => "menu-item-import-to-stage",
             Self::ImportToLibrary => "menu-item-import-to-library",
             Self::NewLayer => "menu-item-new-layer",
+            Self::NewRasterLayer => "menu-item-new-raster-layer",
             Self::NewLayerFolder => "menu-item-new-layer-folder",
             Self::New => "menu-item-new",
             Self::SaveAll => "menu-item-save-all",

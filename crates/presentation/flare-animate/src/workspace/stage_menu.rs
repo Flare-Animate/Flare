@@ -6,8 +6,14 @@ use flare_menubar::MenuAction;
 
 impl Workspace {
     /// A right click picks what is under the pointer, unless it is already part of the selection
-    /// (so the menu acts on all of that), and clicking empty stage clears the selection.
+    /// (so the menu acts on all of that), and clicking empty stage clears the selection. With the
+    /// Hand, Rotate View or Zoom in hand it picks nothing: a two-finger tap on a trackpad, or a
+    /// pen's side button sent as a right click, while getting round the stage left a shape
+    /// selected with its box over the drawing.
     pub(super) fn pick_for_stage_menu(&mut self, point: egui::Pos2) {
+        if self.tool.only_views() {
+            return;
+        }
         let hit = self.hit(point);
         match hit {
             Some(span) if self.selection_all().contains(&span) => {}

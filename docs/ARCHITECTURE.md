@@ -44,7 +44,7 @@ Executables are in `apps/`. The folders mean:
 | adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing, what the paint tools find under a point (on a line, on a fill, inside an outline), a mask of where the lines leave ink, which the Paint Bucket finds an area in, and CPU evaluation of procedural shader graphs to bounded RGBA images (`render_shader`). |
-| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text, pixels (the Magic Wand, Blur, Smudge and Raster Brush strokes, which the pixels worker keeps between steps, and Convert to Bitmap, which `convert_to_bitmap` draws between `flare_tools::to_bitmap`'s plan and edit) and a video brought in to draw over, with latest-wins where only the newest matters and an inline mode for tests; image export; lip sync from start to end (`lip_sync`: decode, read the shapes, place them), running Rhubarb Lip Sync as a program with a time limit when it is installed. No UI types. |
+| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text, pixels (the Magic Wand, Blur, Smudge, and the Brush and Eraser strokes on raster layers, which the pixels worker keeps between steps, and Convert to Bitmap, which `convert_to_bitmap` draws between `flare_tools::to_bitmap`'s plan and edit) and a video brought in to draw over, with latest-wins where only the newest matters and an inline mode for tests; image export; lip sync from start to end (`lip_sync`: decode, read the shapes, place them), running Rhubarb Lip Sync as a program with a time limit when it is installed. No UI types. |
 | services | `flare-video` | The movie as an MP4, or a QuickTime movie (the same file with QuickTime's brand), with its sound, made in pure Rust: H.264 from `rusty_h264`, AAC-LC from OxideAV's `oxideav-aac`, the container from `muxide`. Frames are drawn, encoded and written one at a time, the cued sounds mixed and encoded beside them, and the file appears only when whole and never over another. Desktop only: the web build does not carry it. |
 | services | `flare-pose` | Finding a person's pose in a picture for the mannequin: MoveNet SinglePose Lightning (Google's pose estimation network, Apache-2.0, built in from `data/`) run on the CPU by RTen, a pure-Rust ONNX runtime that also builds for the browser; a look at the whole picture, then closer looks round the person while they are surer; the seventeen points found become `flare_mannequin::Marks`. No UI types. See The reference mannequin below. |
 | services | `flare-recent` | What a list of recent projects knows: each file's time and size read off the UI thread, its kind, the search over names and folders, and the sorting. No UI types. |
@@ -97,7 +97,7 @@ validating constructors, so a file cannot smuggle in an invalid document.
 
 ## Editing
 
-A selection names one element: `SpanRef` is the layer, the start frame of the span and the element's index in `FrameSpan::elements()` (0 for a span of one, so single-element behaviour is unchanged). A hit on the stage, Select All and a lasso each give one `SpanRef` per element. The desktop app's selection holds only what is on the stage at the playhead (its keyframe, or every keyframe in the Edit Multiple Frames bracket), checked again whenever the document, the playhead or the bracket changes: a keyframe left behind keeps its bounds, so a selection that outlived a playhead move put the Free Transform handles over the new frame's drawing and turned the old one. The operations of `flare-tools` (move, transform, restyle, delete, copy, duplicate, convert to symbol, group, break apart, path edits, arrange) act on the elements named. An edit rebuilds the span the element is in with `Command::RemoveSpan` and `Command::InsertSpan`, so it is one undo step with no new command; for several elements of one span `each_element`, `translate_many`, `transform_many` and `delete_many` edit the span once or one after another on a working copy, never from the same stale span. `bones` (the Bone tool and posing) turns a drag from one instance to another into an armature or a new joint of one (`connect`), pulls a joint toward a point by cyclic coordinate descent within the joints' limits (`reach`, `pose_joint`; a root is moved instead), keys a pose inside a keyframe by splitting it so the first part tweens into it, and detaches bones or releases the armature into plain keyframes; the desktop app, `flare bone` and the MCP bone tools all call it. `drawing::draw_shapes` decides where a new shape goes (the active layer's keyframe at the frame, a new keyframe, with the keyframe before it held across the empty frames up to it, or a new layer in a document with none) and refuses a locked, hidden, folder, mask, guide or camera layer; shapes marked `Shape::is_merged` are then merged into that keyframe by `drawing::merge_into`, which keeps the merged drawing below the keyframe's other elements; the desktop app, `flare draw-rect` and the MCP `draw_rect` all call it.
+A selection names one element: `SpanRef` is the layer, the start frame of the span and the element's index in `FrameSpan::elements()` (0 for a span of one, so single-element behaviour is unchanged). A hit on the stage, Select All and a lasso each give one `SpanRef` per element. The desktop app's selection holds only what is on the stage at the playhead (its keyframe, or every keyframe in the Edit Multiple Frames bracket), checked again whenever the document, the playhead or the bracket changes: a keyframe left behind keeps its bounds, so a selection that outlived a playhead move put the Free Transform handles over the new frame's drawing and turned the old one. The operations of `flare-tools` (move, transform, restyle, delete, copy, duplicate, convert to symbol, group, break apart, path edits, arrange) act on the elements named. An edit rebuilds the span the element is in with `Command::RemoveSpan` and `Command::InsertSpan`, so it is one undo step with no new command; for several elements of one span `each_element`, `translate_many`, `transform_many` and `delete_many` edit the span once or one after another on a working copy, never from the same stale span. `bones` (the Bone tool and posing) turns a drag from one instance to another into an armature or a new joint of one (`connect`), pulls a joint toward a point by cyclic coordinate descent within the joints' limits (`reach`, `pose_joint`; a root is moved instead), keys a pose inside a keyframe by splitting it so the first part tweens into it, and detaches bones or releases the armature into plain keyframes; the desktop app, `flare bone` and the MCP bone tools all call it. `drawing::draw_shapes` decides where a new shape goes (the active layer's keyframe at the frame, a new keyframe up to the layer's own next one or of one frame, never sized by another layer, with the keyframe before it held across the empty frames up to it, or a new layer in a document with none) and refuses a locked, hidden, folder, mask, guide or camera layer; shapes marked `Shape::is_merged` are then merged into that keyframe by `drawing::merge_into`, which keeps the merged drawing below the keyframe's other elements; the desktop app, `flare draw-rect` and the MCP `draw_rect` all call it.
 
 `EditorSession` owns the current document. `apply` takes a batch of `Command`s and runs
 them against a working copy; the session only changes if the whole batch succeeds, and a
@@ -148,6 +148,17 @@ Onion skinning composites translucent copies of neighbouring frames (up to 8 bef
 after, fainter with distance) beneath the current one using straight-alpha source-over
 blending in `flare-render`. It is a display aid only: it is off while playing and never
 affects exports.
+
+## Layer kinds and blend modes
+
+A layer is a vector layer or a raster layer (`Layer::is_raster`); the kind decides only what the
+Brush and the Eraser do on it (shapes, or pixels through `flare_tools::blend`), so the document
+needs no new kind of content: a raster layer's paintings are bitmap instances like any other. A
+layer also has a `LayerBlend`. `flare-eval` records every scene layer with effects or a blend mode
+as an `EffectRun` (its run of shapes and bitmaps, its graph if any and its blend), and the renderer
+draws that run inside a vello blend layer, so the layer is mixed with what is under it as it is
+popped. The stage's own path for transparent layers gives a blended layer a run of its own and
+lays it on with the same mode (`flare_render::blend::composite`).
 
 ## Layer effects (`flare-fx`)
 
@@ -207,13 +218,25 @@ running-sum boxes each way).
 
 ## Storage
 
-A `.flare` file is a SQLite database (`application_id` "FLAR", `user_version` 1) with a
+A `.flare` file is a SQLite database (`application_id` "FLAR", `user_version` 1, or the version the newest part it holds
+needs: 2 for bitmaps up to 8 for photos; `records::check_schema_version` says which a build reads, and the browser asks
+it too, getting the tables and the version to write from `flare-storage` rather than keeping copies) with a
 `project` row (frame rate, stage) and an `entity` table with one row for each scene, symbol,
 sound, source attachment and, for an imported file, its source (below). A row's payload is the record's fields as CBOR, compressed with zstd
 (level 3, 256 KiB window, content size and checksum) when that is smaller, beside the record's
 `codec`, its uncompressed `size` and the BLAKE3 `digest` of the stored bytes. A sound is one
 record too: the length of its fields, the fields as CBOR, then the audio file as its own bytes,
 not as text.
+
+A bitmap is a record of its fields and its RGBA pixels, or, kept as a photo (`flare_document::Photo`, Animate's "Photo
+(JPEG)" compression), a `photo` record of its fields, the JPEG and its transparency when it has any: its pixels are
+the ones the JPEG decodes to, so a photo opened again is the same bitmap. Video import keeps its pictures as photos at
+quality 92 unless asked to keep them lossless, and the Doc tab, `flare bitmap-compression` and the MCP tool
+`set_bitmap_compression` store a library either way (`flare_tools::library::set_bitmap_compression`). A frame of video
+takes about a ninth of the room as a photo: measured on a project with two imported videos (718 frames of 864x576 and
+540x360), 438 KB a frame as zstd-compressed pixels against 49 KB as JPEG at 92; a better lossless method
+(prediction then zstd) would have taken 227 KB. A file holding a photo is written as version 8, so an older build
+refuses it by name.
 
 The database is arranged to cost little: 1 KiB pages and an `entity` table without a second
 index (`WITHOUT ROWID`), so an empty project is about 2 KiB and a large one about 1% over its
@@ -238,7 +261,8 @@ project `flare-cli` made and write one back, and has the desktop's code read tha
 - Load treats the file as untrusted: defensive SQLite settings, schema trust off, a version check
   that refuses other versions, the entity count limited, each record's digest checked before it is
   decoded, its stated size limited before anything is allocated (256 MiB for one record: far
-  above what drawing produces, and a bound all the same) and the
+  above what drawing produces, and a bound all the same; save checks the same limits first and
+  refuses, naming the part that is too large, rather than write a file that would not open) and the
   decompressor held to that
   size and to the window the writer uses (so a record cannot be a decompression bomb), CBOR
   nesting limited, and full revalidation through the document's constructors.

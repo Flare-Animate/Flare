@@ -7,8 +7,11 @@ use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
 use crate::ops::{apply, first_scene};
-use crate::params_video::{ImportVideo, PlanVideoImport};
+use crate::params_video::{ImportVideo, PlanVideoImport, SetBitmapCompression};
 use crate::server::{FlareServer, Outcome, State};
+use flare_core::BitmapId;
+use flare_document::DEFAULT_PHOTO_QUALITY;
+use flare_tools::library::{Compression, set_bitmap_compression};
 use flare_tools::video::{Asked, Plan, plan, plan_json};
 
 /// Longest layer name taken.
@@ -48,6 +51,8 @@ impl FlareServer {
                 max_minutes: args.max_minutes,
                 max_side: args.max_side,
                 opacity: None,
+                quality: args.quality,
+                lossless: args.lossless.unwrap_or(false),
             };
             Ok(plan_json(&state.video_plan(&path, &asked)?))
         })
@@ -64,6 +69,8 @@ impl FlareServer {
                 max_minutes: args.max_minutes,
                 max_side: args.max_side,
                 opacity: args.opacity,
+                quality: args.quality,
+                lossless: args.lossless.unwrap_or(false),
             };
             let plan = state.video_plan(&path, &asked)?;
             if let Some(why) = plan.too_large {
@@ -100,6 +107,54 @@ impl FlareServer {
             out["frame"] = json!(frame);
             out["frames"] = json!(placed.frames);
             out["distinct_pictures"] = json!(placed.distinct);
+            Ok(out)
+        })
+    }
+
+    #[tool(
+        description = "Choose how the library's bitmaps are stored, as Animate's Bitmap Properties do: \"photo\" keeps each as a JPEG at `quality` (about a ninth of the room for a frame of video, which looks the same; a drawing with hard edges is better lossless), \"lossless\" keeps every pixel. Every bitmap unless `bitmaps` names some; one a JPEG would not shrink stays lossless. Says how many changed and the bytes before and after. One undo step (needs write access)."
+    )]
+    fn set_bitmap_compression(
+        &self,
+        Parameters(args): Parameters<SetBitmapCompression>,
+    ) -> Outcome {
+        self.write(args.expected_revision, |state| {
+            let compression = match (args.compression.as_str(), args.quality) {
+                ("photo", quality) => Compression::Photo {
+                    quality: quality.unwrap_or(DEFAULT_PHOTO_QUALITY),
+                },
+                ("lossless", None) => Compression::Lossless,
+                ("lossless", Some(_)) => {
+                    return Err("quality is for photo; lossless keeps every pixel".to_owned());
+                }
+                (other, _) => {
+                    return Err(format!(
+                        "compression is \"photo\" or \"lossless\", not {other:?}"
+                    ));
+                }
+            };
+            let which = args
+                .bitmaps
+                .unwrap_or_default()
+                .iter()
+                .map(|id| {
+                    uuid::Uuid::parse_str(id)
+                        .map(BitmapId::from_uuid)
+                        .map_err(|_| format!("{id:?} is not a bitmap id"))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            let done = set_bitmap_compression(state.session.document(), &which, compression)
+                .map_err(|e| e.to_string())?;
+            let mut out = if done.commands.is_empty() {
+                json!({ "revision": state.session.revision() })
+            } else {
+                apply(state, done.commands)?
+            };
+            out["changed"] = json!(done.changed);
+            out["unchanged"] = json!(done.unchanged);
+            out["kept_lossless_not_smaller"] = json!(done.not_smaller);
+            out["bitmap_bytes_before"] = json!(done.bytes_before);
+            out["bitmap_bytes_after"] = json!(done.bytes_after);
             Ok(out)
         })
     }

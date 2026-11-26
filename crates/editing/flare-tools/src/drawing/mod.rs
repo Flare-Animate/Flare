@@ -193,9 +193,7 @@ fn place(
         }
         None => {
             let id = LayerId::new();
-            let layer = Layer::new(id, new_layer, vec![])
-                .map_err(|_| DrawRefusal::TooMany)?
-                .with_hold(true);
+            let layer = Layer::new(id, new_layer, vec![]).map_err(|_| DrawRefusal::TooMany)?;
             commands.push(Command::AddLayer { scene, layer });
             (id, None)
         }
@@ -259,14 +257,13 @@ fn place(
             });
         }
         None => {
-            let to_end = u32::try_from(timeline.frame_count())
-                .unwrap_or(u32::MAX)
-                .saturating_sub(frame);
+            // A keyframe drawn on an empty frame fills the gap up to the layer's own next
+            // keyframe, else is one frame long, unless a length is asked for. Layers are
+            // independent: another layer's length (the scene's) is not this one's.
             let room = existing
                 .and_then(|l| l.spans().iter().map(FrameSpan::start).find(|s| *s > frame))
-                .map_or(u32::MAX, |next| next - frame);
-            let length = duration
-                .unwrap_or_else(|| NonZeroU32::new(to_end.min(room)).unwrap_or(NonZeroU32::MIN));
+                .and_then(|next| NonZeroU32::new(next - frame));
+            let length = duration.or(room).unwrap_or(NonZeroU32::MIN);
             if let Some(held) = existing.and_then(|l| hold_up_to(scene, l, frame)) {
                 commands.extend(held);
             }

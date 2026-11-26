@@ -57,3 +57,5 @@ video-stopped = L'importazione del video è stata interrotta
 video-error = Impossibile importare il video: { $error }
 video-leave-symbol = Esci dal simbolo per importare un video
 video-browser = Per importare un video serve ffmpeg, che un browser non ha. Usa l'app desktop.
+video-pictures = Immagini
+video-pictures-tip = Come foto (JPEG) le immagini occupano circa un nono dello spazio nel file e appaiono uguali. Senza perdita conserva ogni pixel.

@@ -99,7 +99,6 @@ impl Workspace {
             self.toggle_layer_locked(layer);
             ui.close();
         }
-        self.transparency_menu(ui, layer);
         if ui.button(tr!(self, "msg-layer-show-all")).clicked() {
             self.show_all_layers();
             ui.close();
@@ -110,6 +109,23 @@ impl Workspace {
         }
         if ui.button(tr!(self, "msg-layer-hide-others")).clicked() {
             self.hide_other_layers(layer);
+            ui.close();
+        }
+        // A folder, guide or camera shows no drawing of its own to hold.
+        let (draws, mut hold) = self.layer(layer).map_or((false, false), |l| {
+            (
+                !(l.is_folder() || l.is_guide() || l.is_camera()),
+                l.is_hold(),
+            )
+        });
+        if ui
+            .add_enabled(
+                draws,
+                egui::Checkbox::new(&mut hold, tr!(self, "msg-layer-hold")),
+            )
+            .clicked()
+        {
+            self.toggle_layer_hold(layer);
             ui.close();
         }
         ui.separator();
@@ -127,6 +143,7 @@ impl Workspace {
             ("msg-layer-move-up", MenuAction::MoveLayerUp),
             ("msg-layer-move-down", MenuAction::MoveLayerDown),
             ("msg-layer-new", MenuAction::NewLayer),
+            ("msg-layer-new-raster", MenuAction::NewRasterLayer),
             ("msg-layer-new-folder", MenuAction::NewLayerFolder),
         ] {
             if ui

@@ -130,7 +130,6 @@ impl Workspace {
         }
     }
 
-    /// Rulers along the top and left edge of the stage view, in stage units.
     /// Grid lines over the stage, skipped when they would be too close to see.
     pub(super) fn stage_grid(
         &self,
@@ -162,6 +161,7 @@ impl Workspace {
         }
     }
 
+    /// Rulers along the top and left edge of the stage view, in stage units.
     pub(super) fn stage_rulers(
         &self,
         painter: &egui::Painter,
@@ -183,6 +183,9 @@ impl Workspace {
         }
         let tick = Stroke::new(1.0, flare_ui::theme::text_disabled());
         let font = FontId::monospace(9.0);
+        // Each ruler's numbers stay inside its own strip, never on the stage or past the panel.
+        let top_painter = painter.with_clip_rect(top.intersect(painter.clip_rect()));
+        let left_painter = painter.with_clip_rect(left.intersect(painter.clip_rect()));
         for t in flare_ui::view::ruler_ticks(
             image.min.x,
             scale,
@@ -191,9 +194,9 @@ impl Workspace {
             56.0,
         ) {
             let height = if t.major { THICKNESS - 4.0 } else { 4.0 };
-            painter.vline(t.screen, (top.bottom() - height)..=top.bottom(), tick);
+            top_painter.vline(t.screen, (top.bottom() - height)..=top.bottom(), tick);
             if t.major {
-                painter.text(
+                top_painter.text(
                     Pos2::new(t.screen + 2.0, top.top() + 1.0),
                     Align2::LEFT_TOP,
                     format!("{}", t.value.round()),
@@ -210,14 +213,19 @@ impl Workspace {
             56.0,
         ) {
             let width = if t.major { THICKNESS - 4.0 } else { 4.0 };
-            painter.hline((left.right() - width)..=left.right(), t.screen, tick);
+            left_painter.hline((left.right() - width)..=left.right(), t.screen, tick);
             if t.major {
-                painter.text(
-                    Pos2::new(left.left() + 1.0, t.screen + 2.0),
-                    Align2::LEFT_TOP,
-                    format!("{}", t.value.round()),
-                    font.clone(),
-                    flare_ui::theme::text_dim(),
+                // Written down the strip, a quarter turn clockwise: "1000" is wider than the ruler.
+                let ink = flare_ui::theme::text_dim();
+                let galley =
+                    left_painter.layout_no_wrap(format!("{}", t.value.round()), font.clone(), ink);
+                left_painter.add(
+                    egui::epaint::TextShape::new(
+                        Pos2::new(left.right() - 1.0, t.screen + 2.0),
+                        galley,
+                        ink,
+                    )
+                    .with_angle(std::f32::consts::FRAC_PI_2),
                 );
             }
         }

@@ -274,7 +274,9 @@ fn increment_bake_and_add_instance_edit_the_project_and_refuse_bad_input() {
             .success(),
         "a no-op is refused"
     );
-    // Another symbol takes a copy of the picked element.
+    // Another symbol takes a copy of the picked element. Held, the layer still shows the
+    // instance at frame 5, so the rectangle drawn there joins it as element 1.
+    json(&["layer", "hold", &file]);
     json(&[
         "draw-rect",
         &file,

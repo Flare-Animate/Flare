@@ -5,6 +5,7 @@ use std::path::Path;
 use std::process::{Command, Output};
 
 mod bend_edge;
+mod bitmap_compression;
 mod bitmap_tween;
 mod blend;
 mod bones;
@@ -34,6 +35,7 @@ mod multi_frame;
 mod open;
 mod polygon;
 mod raster_brush;
+mod raster_layers;
 mod rendering;
 mod rig_project;
 mod save_formats;

@@ -55,8 +55,7 @@ impl Workspace {
             | Tool::Ruler
             | Tool::Mirror
             | Tool::Blur
-            | Tool::Smudge
-            | Tool::RasterBrush => None,
+            | Tool::Smudge => None,
             Tool::Subselection | Tool::ConvertAnchor => {
                 self.begin_anchor_drag(point);
                 None
@@ -167,15 +166,16 @@ impl Workspace {
     pub(super) fn finish_freehand(&mut self, scale: f32) {
         self.catch_up_freehand(scale);
         let samples = std::mem::take(&mut self.freehand);
+        // On a raster layer the Brush and the Eraser work in pixels, as Blur and Smudge do.
+        if self.blend_kind().is_some() {
+            return self.blend_release(samples);
+        }
         if self.tool == Tool::Eraser {
             if self.eraser_rubs() && !samples.is_empty() {
                 self.finish_erase(samples);
             }
             self.live_erase = None;
             return;
-        }
-        if self.blend_kind().is_some() {
-            return self.blend_release(samples);
         }
         let strokes = self.stroke_set(samples);
         let tolerance = self.smoothing / scale.max(f32::EPSILON);

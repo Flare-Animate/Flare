@@ -22,7 +22,7 @@ fn empty() -> Document {
     .with_stage(Stage::new(100, 60, Rgba8::WHITE).expect("stage"))
 }
 
-/// The pixel at `(x, y)` of the picture on the first layer in the saved project, and how many
+/// The pixel under stage point `(x, y)` of the picture on the first layer in the saved project, and how many
 /// pictures the project holds; `None` with no picture there.
 async fn saved(f: &Fixture, x: usize, y: usize) -> Option<([u8; 4], usize)> {
     f.ok("save", json!({})).await;
@@ -32,6 +32,9 @@ async fn saved(f: &Fixture, x: usize, y: usize) -> Option<([u8; 4], usize)> {
         return None;
     };
     let bitmap = doc.bitmap(placed.bitmap())?;
+    // A new painting has `PAINT_DENSITY` pixels to a stage unit; `(x, y)` is a stage point.
+    let d = bitmap.width() as usize / 100;
+    let (x, y) = (x * d, y * d);
     let i = (y * bitmap.width() as usize + x) * 4;
     let p = &bitmap.pixels()[i..i + 4];
     Some(([p[0], p[1], p[2], p[3]], doc.bitmaps().len()))

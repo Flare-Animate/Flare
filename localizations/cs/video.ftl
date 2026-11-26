@@ -62,3 +62,5 @@ video-stopped = Import videa byl zastaven
 video-error = Video nelze importovat: { $error }
 video-leave-symbol = Chcete-li importovat video, opusťte symbol
 video-browser = Import videa potřebuje ffmpeg, který prohlížeč nemá. Použijte desktopovou aplikaci.
+video-pictures = Obrázky
+video-pictures-tip = Jako fotografie (JPEG) zaberou obrázky v souboru asi devítinu místa a vypadají stejně. Bezeztrátově zachová každý pixel.

@@ -61,7 +61,7 @@ fn button(at: Pos2, pressed: bool) -> Event {
     }
 }
 
-fn at(x: f64, y: f64) -> InputSample {
+pub(super) fn at(x: f64, y: f64) -> InputSample {
     InputSample::mouse(x, y).expect("sample")
 }
 
@@ -175,7 +175,7 @@ fn each_tool_keeps_its_own_settings() {
 }
 
 /// A 200 by 100 stage with one empty layer.
-fn empty_workspace() -> Workspace {
+pub(super) fn empty_workspace() -> Workspace {
     let layer = Layer::new(LayerId::new(), "Layer 1", vec![]).expect("layer");
     let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
     let rate = FrameRate::new(24, 1).expect("rate");
@@ -186,7 +186,7 @@ fn empty_workspace() -> Workspace {
 }
 
 /// Drags the tool in hand through `points`, the worker showing it as it goes, and lets go.
-fn drag(ws: &mut Workspace, points: &[(f64, f64)]) {
+pub(super) fn drag(ws: &mut Workspace, points: &[(f64, f64)]) {
     let (first, rest) = points.split_first().expect("a point");
     ws.freehand = vec![at(first.0, first.1)];
     ws.blend_as_dragged();
@@ -198,7 +198,7 @@ fn drag(ws: &mut Workspace, points: &[(f64, f64)]) {
 }
 
 /// The pictures on the first layer at frame 0, bottom first.
-fn pictures(ws: &Workspace) -> Vec<Bitmap> {
+pub(super) fn pictures(ws: &Workspace) -> Vec<Bitmap> {
     let document = ws.document();
     let Some(span) = document.scenes()[0].timeline().layers()[0].span_at(0) else {
         return Vec::new();
@@ -211,6 +211,20 @@ fn pictures(ws: &Workspace) -> Vec<Bitmap> {
         .collect()
 }
 
+/// The Brush on the first layer made a raster layer, as the Raster Brush was before raster layers.
+fn raster_brush(ws: &mut Workspace) {
+    let layer = ws.document().scenes()[0].timeline().layers()[0].id();
+    ws.convert_layer(layer, true);
+    ws.set_tool(Tool::Brush);
+}
+
+/// The pixel of a new painting under stage point `(x, y)`: it has `PAINT_DENSITY` pixels to a
+/// stage unit.
+pub(super) fn at_stage(bitmap: &Bitmap, x: u32, y: u32) -> [u8; 4] {
+    let d = flare_tools::blend::PAINT_DENSITY;
+    pixel(bitmap, x * d, y * d)
+}
+
 fn pixel(bitmap: &Bitmap, x: u32, y: u32) -> [u8; 4] {
     let i = ((y * bitmap.width() + x) * 4) as usize;
     let p = &bitmap.pixels()[i..i + 4];
@@ -220,7 +234,7 @@ fn pixel(bitmap: &Bitmap, x: u32, y: u32) -> [u8; 4] {
 #[test]
 fn a_drag_on_an_empty_layer_paints_the_fill_color_into_a_new_picture_in_one_step() {
     let mut ws = empty_workspace();
-    ws.set_tool(Tool::RasterBrush);
+    raster_brush(&mut ws);
     ws.paint.fill = Color32::from_rgb(0, 0, 255);
     let before = ws.document().clone();
     let steps = ws.active().undo_labels().count();
@@ -233,18 +247,19 @@ fn a_drag_on_an_empty_layer_paints_the_fill_color_into_a_new_picture_in_one_step
     let painted = pictures(&ws);
     assert_eq!(painted.len(), 1, "one picture, painted on as the drag went");
     let picture = &painted[0];
+    let d = flare_tools::blend::PAINT_DENSITY;
     assert_eq!(
         (picture.width(), picture.height()),
-        (200, 100),
-        "the stage's size"
+        (200 * d, 100 * d),
+        "the stage's size, at the painting's density"
     );
-    assert_eq!(pixel(picture, 60, 50), [0, 0, 255, 255]);
+    assert_eq!(at_stage(picture, 60, 50), [0, 0, 255, 255]);
     assert_eq!(
-        pixel(picture, 160, 50),
+        at_stage(picture, 160, 50),
         [0, 0, 255, 255],
         "the last stretch"
     );
-    assert_eq!(pixel(picture, 60, 10), [0, 0, 0, 0]);
+    assert_eq!(at_stage(picture, 60, 10), [0, 0, 0, 0]);
     assert_eq!(ws.document().bitmaps().len(), 1, "no picture left over");
     assert_eq!(ws.active().undo_labels().count(), steps + 1, "one step");
     assert_eq!(ws.active().undo_labels().last(), Some("Raster Brush"));
@@ -255,7 +270,7 @@ fn a_drag_on_an_empty_layer_paints_the_fill_color_into_a_new_picture_in_one_step
 #[test]
 fn a_second_drag_paints_into_the_same_picture_and_mixes_with_the_first() {
     let mut ws = empty_workspace();
-    ws.set_tool(Tool::RasterBrush);
+    raster_brush(&mut ws);
     ws.paint.blend.raster.size = 30.0;
     ws.paint.fill = Color32::from_rgb(255, 0, 0);
     drag(&mut ws, &[(10.0, 50.0), (190.0, 50.0)]);
@@ -265,7 +280,7 @@ fn a_second_drag_paints_into_the_same_picture_and_mixes_with_the_first() {
     let painted = pictures(&ws);
     assert_eq!(painted.len(), 1, "painted into, not stacked on");
     assert_eq!(ws.document().bitmaps().len(), 1);
-    let mixed = pixel(&painted[0], 100, 50);
+    let mixed = at_stage(&painted[0], 100, 50);
     assert!(
         (100..=155).contains(&mixed[0]) && (100..=155).contains(&mixed[2]),
         "blue painted half mixed over red: {mixed:?}"
@@ -276,8 +291,8 @@ fn a_second_drag_paints_into_the_same_picture_and_mixes_with_the_first() {
 fn a_locked_layer_is_not_painted_and_says_why() {
     let mut ws = empty_workspace();
     let layer = ws.document().scenes()[0].timeline().layers()[0].id();
+    raster_brush(&mut ws);
     ws.toggle_layer_locked(layer);
-    ws.set_tool(Tool::RasterBrush);
     let before = ws.document().clone();
     drag(&mut ws, &[(20.0, 50.0), (100.0, 50.0)]);
     assert_eq!(ws.document(), &before);
@@ -289,7 +304,7 @@ fn a_locked_layer_is_not_painted_and_says_why() {
 #[test]
 fn cancelling_a_drag_takes_back_the_new_picture() {
     let mut ws = empty_workspace();
-    ws.set_tool(Tool::RasterBrush);
+    raster_brush(&mut ws);
     let before = ws.document().clone();
     ws.freehand = vec![at(20.0, 50.0), at(100.0, 50.0)];
     ws.blend_as_dragged();
@@ -302,12 +317,12 @@ fn cancelling_a_drag_takes_back_the_new_picture() {
 #[test]
 fn the_raster_brush_keeps_its_own_settings() {
     let mut ws = empty_workspace();
-    ws.set_tool(Tool::RasterBrush);
+    raster_brush(&mut ws);
     assert_eq!(ws.blend_size(), Some(20.0));
     ws.paint.blend.raster.size = 44.0;
     ws.set_tool(Tool::Smudge);
     assert_eq!(ws.blend_size(), Some(30.0));
-    ws.set_tool(Tool::RasterBrush);
+    ws.set_tool(Tool::Brush);
     assert_eq!(ws.blend_size(), Some(44.0));
 }
 
@@ -358,9 +373,10 @@ fn convert_to_bitmap_turns_a_shape_into_pixels_the_raster_brush_mixes_with() {
         ops::find_element(ws.document(), ws.scene_id().expect("scene"), selected),
         Some(Content::Bitmap(_))
     ));
-    // The Raster Brush paints into it and mixes with the red.
-    ws.set_tool(Tool::RasterBrush);
+    // The Brush on the layer made raster paints into it and mixes with the red.
+    raster_brush(&mut ws);
     ws.paint.blend.raster.size = 30.0;
+    ws.paint.blend.raster.mix = 0.5;
     ws.paint.fill = Color32::from_rgb(0, 0, 255);
     drag(&mut ws, &[(20.0, 50.0), (180.0, 50.0)]);
     let painted = pictures(&ws);

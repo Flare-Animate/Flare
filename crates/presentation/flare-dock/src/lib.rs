@@ -122,6 +122,13 @@ impl Pane {
         self.rail_icon().is_some()
     }
 
+    /// Whether the panel can be hidden in its place, so the stage takes its room: the timeline and
+    /// the output, which have no icon to collapse to. Someone who only draws has no use for them,
+    /// as Animate's Window > Timeline turns its timeline off.
+    pub fn can_hide(self) -> bool {
+        matches!(self, Self::Timeline | Self::Output)
+    }
+
     /// The key of the panel's name in the interface's language.
     pub fn key(self) -> &'static str {
         match self {
@@ -193,3 +200,6 @@ pub(crate) const TREE_ID: &str = "flare_workspace_layout";
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod hide_tests;

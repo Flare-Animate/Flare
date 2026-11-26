@@ -73,18 +73,23 @@ impl Workspace {
     /// Eraser is in hand over the stage.
     pub(super) fn brush_cursor(&self) -> Option<Vec<Pos2>> {
         // The Brush shows its nib, the Pencil the round end of its line, the Eraser, Blur, Smudge
-        // and the Raster Brush the circle they rub or paint with.
+        // and the Brush and Eraser on a raster layer the circle they rub or paint with.
+        if let Some(size) = self.blend_size() {
+            return self.tip_outline(flare_tools::brush::Nib::ROUND, size);
+        }
         let (nib, size) = match self.tool {
             Tool::Brush => (self.brush_shelf.nib(), self.brush_size),
             Tool::Pencil => (flare_tools::brush::Nib::ROUND, self.paint.stroke_width),
             Tool::Eraser if self.eraser_rubs() => {
                 (flare_tools::brush::Nib::ROUND, self.eraser_size)
             }
-            Tool::Blur | Tool::Smudge | Tool::RasterBrush => {
-                (flare_tools::brush::Nib::ROUND, self.blend_size()?)
-            }
             _ => return None,
         };
+        self.tip_outline(nib, size)
+    }
+
+    /// The outline of `nib` at `size` stage units about the pointer.
+    fn tip_outline(&self, nib: flare_tools::brush::Nib, size: f32) -> Option<Vec<Pos2>> {
         let at = self.pointer_stage?;
         let half = f64::from(size) / 2.0;
         Some(

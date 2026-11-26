@@ -36,3 +36,4 @@ swatches-add = Guardar el color actual
 swatches-remove = Eliminar muestra
 swatches-full = Tus muestras están llenas ({ $max }).
 strip-resize = Arrastra para ensanchar o estrechar el panel
+dock-hide-panel = Ocultar (el menú Ventana lo vuelve a mostrar)

@@ -130,6 +130,16 @@ impl Workspace {
                 document,
                 result,
             } => self.bitmap_conversion_arrived(id, document, result),
+            Done::BitmapsCompressed {
+                id,
+                document,
+                result,
+            } => self.bitmaps_stored(id, document, result),
+            Done::LayerConverted {
+                id,
+                document,
+                result,
+            } => self.layer_conversion_arrived(id, document, result),
             Done::VideoProbed { id, path, result } => self.video_probed(id, path, result),
             Done::VideoRead { id, outcome } => self.video_read(id, outcome),
             Done::TextPreview { id, result } => self.text_preview_arrived(id, result),

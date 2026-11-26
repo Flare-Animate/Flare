@@ -10,6 +10,7 @@ timeline-onion = 어니언 스킨
 timeline-onion-outline = 어니언 스킨을 윤곽선으로 표시
 timeline-multiple-frames = 여러 프레임 편집
 timeline-new-layer = 새 레이어
+timeline-new-raster-layer = 새 래스터 레이어 (픽셀로 칠하기)
 timeline-new-folder = 새 레이어 폴더
 timeline-folder = 폴더
 timeline-move-into = { $name }(으)로 이동

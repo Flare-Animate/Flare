@@ -221,10 +221,20 @@ pub(crate) fn rasterize_part(
                     shapes..run.shapes.start,
                     bitmaps..run.bitmaps.start,
                 );
+                // The layer is drawn into a layer of its own, which is mixed with what is under
+                // it by its blend mode as it is popped.
+                let blended = !run.blend.is_normal();
+                if blended {
+                    ctx.push_blend_layer(crate::blend::mode(run.blend));
+                }
                 match effects::picture(frame, run, viewport, width, height) {
                     Some(picture) => effects::lay(&mut ctx, picture, width, height),
-                    // A picture too large to pad, or a graph that cannot run: drawn as it is.
+                    // No effects, a picture too large to pad, or a graph that cannot run: drawn
+                    // as it is.
                     None => items.draw(&mut ctx, run.shapes.clone(), run.bitmaps.clone()),
+                }
+                if blended {
+                    ctx.pop_layer();
                 }
                 (shapes, bitmaps) = (run.shapes.end, run.bitmaps.end);
             }

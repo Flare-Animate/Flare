@@ -28,6 +28,10 @@ pub enum LayerChange {
     ViewOpacity(u8),
     /// Sets the layer's effect graph, or takes its effects away with `None`.
     Effects(Option<flare_fx::EffectGraph>),
+    /// How the layer's picture is mixed with the layers under it.
+    Blend(flare_document::LayerBlend),
+    /// Makes the layer a raster layer, painted in pixels, or a vector layer again.
+    Raster(bool),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -76,6 +80,10 @@ pub enum Command {
     AddBitmap(Bitmap),
     /// Removes a bitmap from the library. Fails while a frame still shows it.
     RemoveBitmap(BitmapId),
+    /// Puts this bitmap in place of the library's one with the same identity, which must be the
+    /// same size: how a bitmap is stored (lossless or as a photo) changes without touching the
+    /// frames that show it.
+    ReplaceBitmap(Bitmap),
     /// Adds a sound to the library.
     AddSound(Sound),
     /// Removes a sound from the library. Fails if a cue still plays it.

@@ -223,7 +223,14 @@ fn the_eraser_in_hand_shows_its_own_options_and_rubbing_out_keeps_them() {
         "not the document's tab after a click"
     );
     let shown = texts(&mut ws);
-    assert!(shown.contains(&tr!(ws, "opt-faucet")), "{shown:?}");
+    let rows = [
+        tr!(ws, "opt-faucet"),
+        tr!(ws, "opt-size"),
+        tr!(ws, "opt-pressure-size"),
+    ];
+    for row in rows {
+        assert!(shown.contains(&row), "{row}: {shown:?}");
+    }
     assert!(
         !shown.contains(&tr!(ws, "opt-fill-stroke")),
         "no paint to choose"

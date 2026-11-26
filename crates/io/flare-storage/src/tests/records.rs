@@ -164,3 +164,34 @@ pub(super) fn set_key(value: &mut Value, key: &str, to: &Value) {
         _ => {}
     }
 }
+
+#[test]
+fn saving_refuses_a_record_that_loading_would_refuse_and_says_what() {
+    use crate::records::{fits, limit_of};
+    let scene = limit_of("scene");
+    assert!(fits("scene", scene).is_ok(), "the limit itself is allowed");
+    let refused = fits("scene", scene + 1).expect_err("one byte more is not");
+    assert!(matches!(refused, StorageError::TooLarge { limit, .. } if limit == scene));
+    let words = refused.to_string();
+    assert!(words.contains("a scene's drawings and timeline"), "{words}");
+    assert!(words.contains("nothing was saved"), "{words}");
+    // Each kind is held to its own limit, the one loading uses.
+    assert!(fits("bitmap", limit_of("bitmap")).is_ok());
+    assert!(fits("bitmap", limit_of("bitmap") + 1).is_err());
+}
+
+#[test]
+fn a_save_with_a_scene_over_its_limit_is_refused_before_anything_is_packed() {
+    use crate::records::to_parts_within;
+    let tiny = |kind: &str| if kind == "scene" { 16 } else { usize::MAX };
+    let refused = to_parts_within(&sample(), &mut NativeZstd::new().expect("zstd"), tiny)
+        .expect_err("too big");
+    assert!(matches!(refused, StorageError::TooLarge { what, .. } if what.contains("scene")));
+    // With room for it, the same document packs.
+    assert!(
+        to_parts_within(&sample(), &mut NativeZstd::new().expect("zstd"), |_| {
+            usize::MAX
+        })
+        .is_ok()
+    );
+}

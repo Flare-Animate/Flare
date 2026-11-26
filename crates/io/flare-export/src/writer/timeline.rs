@@ -160,6 +160,25 @@ pub(super) fn write_layer(
             message: "the layer's effects are not written to XFL, so it opens without them".into(),
         });
     }
+    if !layer.blend().is_normal() {
+        // Animate keeps a blend mode on a movie clip instance, not on a layer.
+        ctx.notes.push(Diagnostic {
+            severity: Severity::Warning,
+            location: format!("{place} / layer \"{}\"", layer.name()),
+            message: format!(
+                "the layer's {} blend mode is not written to XFL, so it opens as Normal",
+                layer.blend().label()
+            ),
+        });
+    }
+    if layer.is_raster() {
+        // Its pictures are written as bitmaps like any other; only the kind is lost.
+        ctx.notes.push(Diagnostic {
+            severity: Severity::Warning,
+            location: format!("{place} / layer \"{}\"", layer.name()),
+            message: "Animate has no raster layers, so the layer opens as an ordinary layer holding its pictures".into(),
+        });
+    }
     if layer.is_camera() {
         // Written as an empty layer so the others keep their places.
         ctx.notes.push(Diagnostic {

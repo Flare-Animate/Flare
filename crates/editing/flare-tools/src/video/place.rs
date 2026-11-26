@@ -9,8 +9,8 @@ use std::num::NonZeroU32;
 use flare_commands::Command;
 use flare_core::{BitmapId, InstanceId, LayerId, SceneId, SymbolId, Transform2D};
 use flare_document::{
-    Bitmap, BitmapInstance, Content, Document, FrameSpan, Instance, Layer, MAX_BITMAPS,
-    MAX_TOTAL_BITMAP_BYTES, PlayMode, Playback, Symbol, SymbolKind, Timeline,
+    Bitmap, BitmapError, BitmapInstance, Content, Document, FrameSpan, Instance, Layer,
+    MAX_BITMAPS, MAX_TOTAL_BITMAP_BYTES, PlayMode, Playback, Symbol, SymbolKind, Timeline,
 };
 use glamx::{DAffine2, DVec2};
 
@@ -58,7 +58,13 @@ pub fn place(
     }
     let frames = u32::try_from(pictures.len()).map_err(|_| too_many(pictures.len(), document))?;
     let name = short_name(name);
-    let library = library(document, &name, w, h, pictures)?;
+    let library = library(
+        document,
+        &name,
+        (w, h),
+        plan.settings.photo_quality,
+        pictures,
+    )?;
     let symbol = video_symbol(document, &name, &library.order)?;
     let symbol_id = symbol.id();
     let instance = Instance::new(
@@ -122,12 +128,14 @@ struct Library {
 }
 
 /// Each distinct picture once: one the library already holds is shown rather than added again,
-/// and the room the document has left is checked against what is really added.
+/// and the room the document has left is checked against what is really added. With a
+/// `photo_quality` each is kept as a photo (a JPEG); one a JPEG would not make smaller stays
+/// lossless.
 fn library(
     document: &Document,
     name: &str,
-    w: u32,
-    h: u32,
+    (w, h): (u32, u32),
+    photo_quality: Option<u8>,
     pictures: Vec<Vec<u8>>,
 ) -> Result<Library, VideoRefusal> {
     let mut known: HashMap<[u8; 32], BitmapId> = document
@@ -147,6 +155,12 @@ fn library(
             rgba,
         )
         .map_err(|e| VideoRefusal::Build(e.to_string()))?;
+        // The same picture makes the same JPEG, so a repeat is still found by its hash.
+        let bitmap = match photo_quality.map(|q| bitmap.as_photo(q)) {
+            None | Some(Err(BitmapError::PhotoNotSmaller)) => bitmap,
+            Some(Ok(photo)) => photo,
+            Some(Err(e)) => return Err(VideoRefusal::Build(e.to_string())),
+        };
         if let Some(id) = known.get(bitmap.content_hash()) {
             order.push(*id);
             continue;

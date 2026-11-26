@@ -114,7 +114,7 @@ fn a_tween_cannot_share_itself_so_drawing_inside_it_is_refused() {
 }
 
 #[test]
-fn a_new_layer_made_by_drawing_holds_and_a_blank_keyframe_ends_the_hold() {
+fn a_new_layer_made_by_drawing_does_not_hold_until_asked_and_a_blank_keyframe_ends_the_hold() {
     let mut f = fixture();
     f.session
         .apply([flare_commands::Command::RemoveLayer {
@@ -134,8 +134,17 @@ fn a_new_layer_made_by_drawing_holds_and_a_blank_keyframe_ends_the_hold() {
     .expect("draw");
     f.session.apply(plan.commands).expect("apply");
     let layer = &f.session.document().scenes()[0].timeline().layers()[0];
-    assert!(layer.is_hold());
-    assert!(layer.span_at(50).is_some(), "still on show long after");
+    assert!(!layer.is_hold());
+    assert!(layer.span_at(0).is_some());
+    assert!(
+        layer.span_at(1).is_none(),
+        "a keyframe shows for its own frames"
+    );
+    let layer = layer.clone().with_hold(true);
+    assert!(
+        layer.span_at(50).is_some(),
+        "held, still on show long after"
+    );
 
     let blank = flare_document::FrameSpan::new(5, NonZeroU32::MIN, Content::Empty);
     let ended = layer
@@ -162,4 +171,48 @@ fn a_layer_that_does_not_hold_shows_nothing_past_its_last_keyframe() {
     assert!(!layer.is_hold());
     assert!(layer.span_at(2).is_some());
     assert!(layer.span_at(3).is_none(), "as Animate's layers end");
+}
+
+#[test]
+fn drawing_on_a_new_layer_beside_a_long_one_fills_only_the_frame_drawn_on() {
+    let mut f = fixture();
+    add(&mut f, rect_span(0, 40, 0.0, 0.0, 5.0, 5.0));
+    let layer = flare_commands::layers::new_layer(flare_core::LayerId::new(), "Layer 2", false)
+        .expect("layer");
+    let id = layer.id();
+    f.session
+        .apply([flare_commands::Command::AddLayer {
+            scene: f.scene,
+            layer,
+        }])
+        .expect("add");
+    let plan = draw_shapes(
+        f.session.document(),
+        f.scene,
+        Target::Layer(id),
+        0,
+        None,
+        vec![shape(30.0)],
+        "Layer 2",
+    )
+    .expect("draw");
+    f.session.apply(plan.commands).expect("apply");
+    let timeline = f.session.document().scenes()[0].timeline();
+    let new = timeline
+        .layers()
+        .iter()
+        .find(|l| l.id() == id)
+        .expect("new layer");
+    let spans: Vec<(u32, u32)> = new
+        .spans()
+        .iter()
+        .map(|s| (s.start(), s.duration().get()))
+        .collect();
+    assert_eq!(spans, vec![(0, 1)], "one keyframe on frame 1");
+    assert!(new.span_at(0).is_some());
+    assert!(
+        new.span_at(1).is_none() && new.span_at(39).is_none(),
+        "the other layer's length is not the new one's"
+    );
+    assert_eq!(timeline.frame_count(), 40, "the long layer is as it was");
 }

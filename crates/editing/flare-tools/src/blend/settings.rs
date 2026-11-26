@@ -1,9 +1,12 @@
-//! What a stroke on a bitmap is and how it is set: the three tools that lay dabs on pixels (Blur,
-//! Smudge and the Raster Brush), their settings, and why a stroke is refused.
+//! What a stroke on a bitmap is and how it is set: the tools that lay dabs on pixels (Blur,
+//! Smudge, the Brush on a raster layer and the Eraser there), their settings, and why a stroke is
+//! refused.
 
 use thiserror::Error;
 
 use crate::drawing::DrawRefusal;
+
+use super::presets::RasterPresetSettings;
 
 /// The largest size, in stage units.
 pub const MAX_SIZE: f32 = 1000.0;
@@ -18,12 +21,14 @@ pub enum BlendKind {
     /// Pushes colors along the drag, as a finger through wet paint.
     Smudge,
     /// Paints a color into the pixels, mixing in as much of the color already there as its
-    /// Color mix says.
+    /// Color mix says: the Brush on a raster layer.
     RasterBrush,
+    /// Rubs pixels out, leaving them clear: the Eraser on a raster layer.
+    Erase,
 }
 
 impl BlendKind {
-    pub const ALL: [BlendKind; 3] = [Self::Blur, Self::Smudge, Self::RasterBrush];
+    pub const ALL: [BlendKind; 4] = [Self::Blur, Self::Smudge, Self::RasterBrush, Self::Erase];
 
     /// The word for it on a command line and in a message key.
     pub fn name(self) -> &'static str {
@@ -31,6 +36,7 @@ impl BlendKind {
             Self::Blur => "blur",
             Self::Smudge => "smudge",
             Self::RasterBrush => "raster-brush",
+            Self::Erase => "erase",
         }
     }
 
@@ -40,6 +46,7 @@ impl BlendKind {
             Self::Blur => "Blur",
             Self::Smudge => "Smudge",
             Self::RasterBrush => "Raster Brush",
+            Self::Erase => "Eraser",
         }
     }
 
@@ -51,7 +58,13 @@ impl BlendKind {
 
     /// Whether the tool picks up colors and carries them, so Color stretch means something.
     pub fn carries_color(self) -> bool {
-        self != Self::Blur
+        matches!(self, Self::Smudge | Self::RasterBrush)
+    }
+
+    /// Whether each dab lays at full strength, a pixel keeping the most any dab gave it (painting
+    /// and rubbing out), rather than building up dab by dab (Blur and Smudge).
+    pub(super) fn lays(self) -> bool {
+        matches!(self, Self::RasterBrush | Self::Erase)
     }
 }
 
@@ -98,13 +111,16 @@ impl BlendSettings {
                 stretch: 70,
                 mix: 0.0,
             },
-            BlendKind::RasterBrush => Self {
+            // A hard round brush that lays its color as it is, as a painting program's default
+            // brush does: a soft edge or a mix are a preset away (see `RasterPreset`).
+            BlendKind::RasterBrush => RasterPresetSettings::ROUND,
+            BlendKind::Erase => Self {
                 size: 20.0,
                 strength: 1.0,
-                hardness: 0.8,
+                hardness: 1.0,
                 pressure_size: true,
-                stretch: 30,
-                mix: 0.5,
+                stretch: 0,
+                mix: 0.0,
             },
         }
     }
@@ -133,6 +149,8 @@ impl BlendSettings {
 pub enum BlendError {
     #[error("Blur and Smudge work on bitmaps; there is no bitmap where the stroke starts")]
     NoBitmap,
+    #[error("there is no painting on this layer where the stroke starts to rub out")]
+    NothingToErase,
     #[error("the element is not a bitmap any more")]
     NotBitmap,
     #[error("the bitmap changed while the stroke was being made")]

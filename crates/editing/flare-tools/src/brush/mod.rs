@@ -20,6 +20,7 @@ mod shelf;
 mod stroke;
 mod swatch;
 mod texture;
+mod thin;
 /// What a stroke is made of, for callers that build one from numbers.
 pub use flare_input::{InputSample, PointerKind};
 pub use lay::{
@@ -148,16 +149,20 @@ impl BrushStroke {
     /// The closed outline of the stroke through `samples`, its centre line simplified to within
     /// `tolerance`, or `None` for a click (no movement), a non-positive width, a texture that
     /// leaves nothing, or an outline that would not be a valid path. It is
-    /// [`BrushStroke::pieces`] joined up, one closed run per piece.
+    /// [`BrushStroke::pieces`] joined up, one closed run per piece, with the points its edges
+    /// pass within a fiftieth of a unit of left out (see `thin`).
     pub fn outline(&self, samples: &[InputSample], tolerance: f64) -> Option<Vec<PathSegment>> {
         let point = |p: &DVec2| DocumentPoint::new(p.x, p.y).ok();
         let mut path = Vec::new();
         for sides in self.pieces(samples, tolerance) {
-            let mut points = sides.left.iter();
+            let kept = thin::thin(&sides.left, &sides.right);
+            let left: Vec<DVec2> = kept.iter().map(|&i| sides.left[i]).collect();
+            let right: Vec<DVec2> = kept.iter().map(|&i| sides.right[i]).collect();
+            let mut points = left.iter();
             path.push(PathSegment::MoveTo(point(points.next()?)?));
             for p in points
                 .chain(&sides.end_cap)
-                .chain(sides.right.iter().rev())
+                .chain(right.iter().rev())
                 .chain(&sides.start_cap)
             {
                 path.push(PathSegment::LineTo(point(p)?));

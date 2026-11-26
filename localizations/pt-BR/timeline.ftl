@@ -10,6 +10,7 @@ timeline-onion = Papel de cebola
 timeline-onion-outline = Mostrar o papel de cebola como contornos
 timeline-multiple-frames = Editar vários quadros
 timeline-new-layer = Nova camada
+timeline-new-raster-layer = Nova camada raster (pintada em pixels)
 timeline-new-folder = Nova pasta de camadas
 timeline-folder = Pasta
 timeline-move-into = Mover para { $name }

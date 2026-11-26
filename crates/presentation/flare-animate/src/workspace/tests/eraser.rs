@@ -205,6 +205,14 @@ fn the_eraser_shows_its_size_at_the_pointer_and_the_area_it_will_rub_while_dragg
         (half - 15.0).abs() < 1e-3,
         "a light touch rubs as wide as a firm one"
     );
+    ws.eraser_pressure = true;
+    let preview = ws.previews_of(std::slice::from_ref(&samples), 1.0);
+    let sides = preview[0].sides.as_ref().expect("the covered area");
+    let half = (sides.left[middle] - sides.right[middle]).length() / 2.0;
+    assert!(
+        half < 5.0,
+        "with pressure on, a light touch shows narrower: {half}"
+    );
     ws.eraser_faucet = true;
     assert!(
         ws.brush_cursor().is_none(),
@@ -278,4 +286,36 @@ fn with_a_layer_chosen_the_eraser_rubs_out_only_on_that_layer() {
         "the chosen layer's bar went"
     );
     assert_eq!(pieces_on(&ws, above), vec![1], "the bar over it stayed");
+}
+
+/// Drags a 60 px Eraser along the middle of the 10 to 110 by 10 to 60 bar with a light pen, with
+/// pen pressure setting its width or not; gives the pieces left of the bar.
+fn after_a_light_rub(pressure_sets_size: bool) -> Vec<usize> {
+    let mut ws = workspace();
+    ws.commit_rectangle(Pos2::new(10.0, 10.0), Pos2::new(110.0, 60.0));
+    let layer = ws.current_layer.expect("drawn on a layer");
+    ws.set_tool(Tool::Eraser);
+    ws.eraser_size = 60.0;
+    ws.eraser_pressure = pressure_sets_size;
+    let samples = (0..=12)
+        .map(|i| {
+            flare_input::InputSample::new(
+                f64::from(i) * 10.0,
+                35.0,
+                0.05,
+                flare_input::PointerKind::Pen,
+            )
+            .expect("s")
+        })
+        .collect();
+    ws.finish_erase(samples);
+    pieces_on(&ws, layer)
+}
+
+#[test]
+fn with_pressure_on_a_light_touch_rubs_out_a_narrower_band() {
+    // Full width covers the bar from top to bottom: nothing is left of it.
+    assert!(after_a_light_rub(false).is_empty());
+    // Pressed lightly with pressure on, it cuts a thin band, leaving the top and the bottom.
+    assert_eq!(after_a_light_rub(true), vec![2]);
 }

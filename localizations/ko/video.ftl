@@ -37,3 +37,5 @@ video-stopped = 비디오 가져오기를 중지했습니다
 video-error = 비디오를 가져올 수 없습니다: { $error }
 video-leave-symbol = 비디오를 가져오려면 심볼에서 나가세요
 video-browser = 비디오를 가져오려면 ffmpeg가 필요하지만 브라우저에는 없습니다. 데스크톱 앱을 사용하세요.
+video-pictures = 이미지
+video-pictures-tip = 사진 (JPEG)으로 저장하면 파일에서 약 9분의 1의 용량을 차지하고 보기에는 같습니다. 무손실은 모든 픽셀을 그대로 둡니다.

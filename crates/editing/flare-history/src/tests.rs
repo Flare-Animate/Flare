@@ -261,4 +261,6 @@ fn revision_changes_with_every_document_change_but_not_on_failure() {
     assert!(f.session.revision() > edited);
 }
 
+#[path = "tests/budget.rs"]
+mod budget;
 mod more;

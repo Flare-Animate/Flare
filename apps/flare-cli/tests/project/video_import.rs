@@ -189,3 +189,39 @@ fn without_ffmpeg_the_command_says_it_is_needed() {
     let said = String::from_utf8_lossy(&output.stderr);
     assert!(said.contains("needs ffmpeg"), "{said}");
 }
+
+#[test]
+fn video_pictures_are_stored_as_photos_unless_asked_to_stay_lossless() {
+    for (extra, expected) in [
+        (vec![], Some(92)),
+        (vec!["--quality", "60"], Some(60)),
+        (vec!["--lossless"], None),
+    ] {
+        let dir = tempfile::tempdir().expect("dir");
+        let bin = stand_ins(dir.path(), 1, 4);
+        let file = path(dir.path());
+        json(&["new", &file]);
+        let movie = dir.path().join("walk.mp4").to_string_lossy().into_owned();
+        let mut args = vec![
+            "video-import",
+            &file,
+            &movie,
+            "--fps",
+            "4",
+            "--max-side",
+            "160",
+        ];
+        args.extend(extra.iter().copied());
+        let done = json_with(&bin, &args);
+        assert_eq!(done["photo_quality"].as_u64(), expected.map(u64::from));
+        let doc = flare_storage::load(Path::new(&file)).expect("load");
+        let qualities: Vec<Option<u8>> = doc
+            .bitmaps()
+            .iter()
+            .map(|b| b.photo().map(|p| p.quality()))
+            .collect();
+        // Even the stand-in's noise is smaller as a JPEG than as pixels with an alpha channel.
+        assert!(!qualities.is_empty());
+        assert!(qualities.iter().all(|q| *q == expected), "{qualities:?}");
+    }
+}

@@ -147,3 +147,31 @@ fn layer_opacity_makes_a_layer_see_through_and_bad_values_are_refused() {
         "nothing written"
     );
 }
+
+#[test]
+fn add_layer_under_puts_the_new_layer_just_under_the_one_named() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file]);
+    json(&["add-layer", &file, "B"]);
+    let first = layers(&file)[0]["id"].as_str().expect("id").to_owned();
+    json(&["add-layer", &file, "Under", "--under", &first]);
+    let names: Vec<String> = layers(&file)
+        .iter()
+        .map(|l| l["name"].as_str().expect("name").to_owned())
+        .collect();
+    assert_eq!(names, vec!["Layer 1", "Under", "B"]);
+
+    // A layer that is not there is refused and nothing is written.
+    let before = std::fs::read(&file).expect("read");
+    let bad = run(&[
+        "add-layer",
+        &file,
+        "Lost",
+        "--under",
+        "00000000-0000-0000-0000-000000000000",
+    ]);
+    assert!(!bad.status.success());
+    assert!(String::from_utf8_lossy(&bad.stderr).contains("--under"));
+    assert_eq!(std::fs::read(&file).expect("read"), before);
+}

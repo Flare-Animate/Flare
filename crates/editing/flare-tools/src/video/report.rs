@@ -17,6 +17,10 @@ pub struct Asked {
     pub max_minutes: Option<f64>,
     pub max_side: Option<u32>,
     pub opacity: Option<u8>,
+    /// The JPEG quality to keep the pictures at, 1 to 100.
+    pub quality: Option<u8>,
+    /// Keep the pictures exactly, not as JPEGs (which takes about nine times the room).
+    pub lossless: bool,
 }
 
 impl Asked {
@@ -36,6 +40,15 @@ impl Asked {
         }
         if let Some(opacity) = self.opacity {
             settings.opacity = opacity;
+        }
+        if let Some(quality) = self.quality {
+            if !(1..=100).contains(&quality) {
+                return Err(VideoRefusal::Setting("the JPEG quality is 1 to 100"));
+            }
+            settings.photo_quality = Some(quality);
+        }
+        if self.lossless {
+            settings.photo_quality = None;
         }
         Ok(settings)
     }
@@ -64,6 +77,8 @@ pub fn plan_json(plan: &Plan) -> Value {
         "max_minutes": plan.settings.max_seconds / 60.0,
         "max_side": plan.settings.max_side,
         "opacity": plan.settings.opacity,
+        // The JPEG quality the pictures are kept at; null when they stay lossless.
+        "photo_quality": plan.settings.photo_quality,
         "picture": { "width": plan.size.0, "height": plan.size.1 },
         "frames": plan.frames,
         "seconds_of_video": plan.seconds,

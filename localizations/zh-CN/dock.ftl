@@ -36,3 +36,4 @@ swatches-add = 保留当前颜色
 swatches-remove = 删除色板
 swatches-full = 你的色板已满（{ $max }）。
 strip-resize = 拖动可调整面板宽度
+dock-hide-panel = 隐藏（可从“窗口”菜单重新显示）

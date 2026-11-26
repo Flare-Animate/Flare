@@ -353,10 +353,10 @@ summary. Nothing here is scheduled. The maintainer orders it.
 
 - Small: editable keyboard shortcuts and shortcut sets (WP-1, built except the chord dispatch);
   the command palette (built, after AniCraft's).
-- Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3),
+- Medium: Motion Editor and tween curves (WP-2, clean-room), Trace Bitmap and Shift and Trace (WP-3; an outline tracer of a picture's colors converts raster layers to vector, the dialog, its options and a centerline mode remain),
   exports for sprite sheets, animated SVG, Lottie and XDTS (WP-5), deformers (WP-6), drawing assistants (WP-7), timeline and symbol extras (WP-10).
 - Large: Photoshop and image import (WP-4; SVG import is done, it needs a bitmap layer in the model first), filters and effects (WP-8; the EffectCraft
-  dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check; Blur, Smudge and a Raster Brush that paints with color mixing are done on one dab engine; presets, paper texture and a pixel eraser remain).
+  dependency needs a decision), raster brush engine (WP-11; each preset needs a licence check; Blur, Smudge, raster layers where the Brush paints with color mixing and the Eraser rubs out pixels, and Flare's own presets are done on one dab engine, as are layer blend modes; textured dabs, paper texture and porting MyPaint's or Krita's presets remain).
 - Extra-large, decision first: bones and inverse kinematics (WP-9), scripting (WP-12).
 - Licences decide what can be ported: AnimationCraft and ArtCraft are MIT or Apache-2.0; OpenToonz
   and Tahoma2D are BSD-3-Clause; nflare and the FFDec worker in Next2Flash are GPLv3 (behaviour

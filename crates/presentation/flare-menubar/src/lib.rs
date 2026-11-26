@@ -53,6 +53,8 @@ pub enum MenuAction {
     ExportSvg,
     /// File > Export > Export Sprite Sheet: every frame on one picture, with its JSON atlas.
     ExportSpriteSheet,
+    /// Leave the stage colour out of exported pictures and movies, or put it back.
+    ToggleTransparentExport,
     Save,
     SaveAs,
     Quit,
@@ -130,6 +132,8 @@ pub enum MenuAction {
     ToggleLayerMask,
     ToggleLayerGuide,
     NewLayer,
+    /// A new raster layer, painted in pixels, above the others.
+    NewRasterLayer,
     NewLayerFolder,
     MoveLayerUp,
     MoveLayerDown,
@@ -234,6 +238,7 @@ impl MenuAction {
         Self::ExportFla,
         Self::ExportSvg,
         Self::ExportSpriteSheet,
+        Self::ToggleTransparentExport,
         Self::Save,
         Self::SaveAs,
         Self::Quit,
@@ -308,6 +313,7 @@ impl MenuAction {
         Self::ToggleLayerMask,
         Self::ToggleLayerGuide,
         Self::NewLayer,
+        Self::NewRasterLayer,
         Self::NewLayerFolder,
         Self::MoveLayerUp,
         Self::MoveLayerDown,

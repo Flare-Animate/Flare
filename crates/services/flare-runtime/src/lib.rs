@@ -25,6 +25,7 @@ mod export;
 mod export_game;
 mod jobs;
 mod launch;
+mod layer_convert;
 mod lipsync;
 mod movie;
 mod picture;
@@ -53,6 +54,7 @@ pub use flare_import::VIDEO_EXTENSIONS;
 pub use flare_render::{Backdrop, StillFormat, no_transparency};
 pub use jobs::{AudioJob, Done, IoJob, RenderJob, Rendered, TextJob, TextPreviewRender};
 pub use launch::{MAX_OPEN_FILES, find_desktop, find_desktop_with, open_desktop};
+pub use layer_convert::{LayerConvertError, convert_layer};
 pub use lipsync::{
     Analysis, LipSyncFailure, LipSyncMade, LipSyncRequest, RHUBARB_ENV, RHUBARB_TIME_LIMIT,
     lip_sync, locate_rhubarb, pick_sound,

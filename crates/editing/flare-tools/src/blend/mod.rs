@@ -14,7 +14,10 @@
 
 mod canvas;
 mod dab;
+mod erase;
 mod paint;
+mod presets;
+mod preview;
 mod settings;
 
 use flare_commands::Command;
@@ -28,8 +31,11 @@ use crate::common::{SpanRef, find_element, replace_element};
 use crate::magic_wand::{BitmapHit, Pos2, bitmap_at, uses};
 use canvas::{Canvas, Premul};
 use dab::Dab;
+pub use erase::rub_out;
+pub use paint::{PAINT_DENSITY, RasterPaint, check_paint, lay_paint};
 use paint::{Painting, Unplaced};
-pub use paint::{RasterPaint, check_paint, lay_paint};
+pub use presets::RasterPreset;
+pub use preview::{MAX_SWATCH_SIDE, raster_swatch};
 pub use settings::{BlendError, BlendKind, BlendSettings, MAX_SIZE, MAX_STRETCH};
 
 /// The widest a dab is drawn, in bitmap pixels, however the bitmap is scaled.
@@ -249,9 +255,9 @@ impl BlendStroke {
         }
         self.dabs += 1;
         let size = self.size_at(pressure);
-        // Blur and Smudge build up dab by dab, closer dabs each adding less; the Raster Brush
-        // takes the strongest dab at each pixel, so each lays at full strength.
-        let strength = if self.kind == BlendKind::RasterBrush {
+        // Blur and Smudge build up dab by dab, closer dabs each adding less; painting and rubbing
+        // out take the strongest dab at each pixel, so each lays at full strength.
+        let strength = if self.kind.lays() {
             1.0
         } else {
             dab::per_dab(self.interval(pressure) as f32 / size.max(f32::EPSILON))
@@ -293,6 +299,8 @@ impl BlendStroke {
                 let color = painting.next_color(under, mix, keep);
                 self.canvas.lay_dab(&dab, ceiling, color);
             }
+            // Laying clear paint takes the pixel's color and coverage away together.
+            BlendKind::Erase => self.canvas.lay_dab(&dab, ceiling, [0.0; 4]),
         }
     }
 
@@ -453,5 +461,8 @@ fn clip(a: DVec2, b: DVec2, [x0, y0, x1, y1]: [f64; 4]) -> Option<(f64, f64)> {
     (enter <= leave).then_some((enter, leave))
 }
 
+#[cfg(test)]
+#[path = "raster_tests.rs"]
+mod raster_tests;
 #[cfg(test)]
 mod tests;

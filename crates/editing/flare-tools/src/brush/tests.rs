@@ -117,13 +117,18 @@ fn height(path: &[PathSegment]) -> f64 {
     ys.iter().copied().fold(f64::MIN, f64::max) - ys.iter().copied().fold(f64::MAX, f64::min)
 }
 
+/// How wide the outline is across the line at height `y`: from where its edges cross that line,
+/// so it measures the shape, however few points its straight edges keep.
 fn horizontal_extent_near(path: &[PathSegment], y: f64) -> f64 {
-    let near: Vec<f64> = points(path)
-        .into_iter()
-        .filter(|p| (p.y - y).abs() < 2.5)
-        .map(|p| p.x)
+    let ring = points(path);
+    let crossings: Vec<f64> = ring
+        .iter()
+        .zip(ring.iter().cycle().skip(1))
+        .filter(|(a, b)| (a.y - y) * (b.y - y) <= 0.0 && (a.y - b.y).abs() > f64::EPSILON)
+        .map(|(a, b)| a.x + (b.x - a.x) * (y - a.y) / (b.y - a.y))
         .collect();
-    near.iter().copied().fold(f64::MIN, f64::max) - near.iter().copied().fold(f64::MAX, f64::min)
+    crossings.iter().copied().fold(f64::MIN, f64::max)
+        - crossings.iter().copied().fold(f64::MAX, f64::min)
 }
 
 #[test]

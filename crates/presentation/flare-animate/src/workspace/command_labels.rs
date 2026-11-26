@@ -56,6 +56,7 @@ impl Workspace {
             snapping: self.display.snap_to_grid,
             loop_playback: self.looping.on,
             muted: self.muted,
+            transparent_export: self.publish.transparent,
         }
     }
 }

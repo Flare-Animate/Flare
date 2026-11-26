@@ -70,4 +70,7 @@ hist-magic-wand = Стереть пиксели
 hist-blur = Размытие
 hist-smudge = Палец
 hist-raster-brush = Растровая кисть
+hist-erase-pixels = Стереть пиксели
+hist-layer-blend = Изменить режим наложения слоя
+hist-layer-convert = Преобразовать слой
 hist-bend-line = Изогнуть линию

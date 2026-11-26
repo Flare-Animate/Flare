@@ -10,6 +10,7 @@ timeline-onion = Pelure d’oignon
 timeline-onion-outline = Afficher la pelure d’oignon en contours
 timeline-multiple-frames = Modifier plusieurs images
 timeline-new-layer = Nouveau calque
+timeline-new-raster-layer = Nouveau calque raster (peint en pixels)
 timeline-new-folder = Nouveau dossier de calques
 timeline-folder = Dossier
 timeline-move-into = Déplacer dans { $name }

@@ -196,7 +196,7 @@ fn flood(blocked: &[bool], w: usize, h: usize, start: usize) -> Option<Vec<bool>
 /// The edges between the pixels of `set` and the rest, joined into closed loops. Each edge runs
 /// with the set on the same side, so the loops' windings add up to one inside it and none
 /// outside, however the loops are joined where two corners touch.
-fn trace(set: &[bool], w: usize, h: usize) -> Option<Vec<Outline>> {
+pub(crate) fn trace(set: &[bool], w: usize, h: usize) -> Option<Vec<Outline>> {
     let corner = |x: usize, y: usize| y * (w + 1) + x;
     let inside = |x: usize, y: usize| set[y * w + x];
     let mut edges: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
@@ -269,7 +269,7 @@ fn take_edge(edges: &mut BTreeMap<usize, Vec<usize>>, from: usize) -> Option<usi
 
 /// `loop_` with the points that stray less than [`OUTLINE_TOLERANCE`] from a straight line
 /// between their neighbours left out; `None` when too little is left to enclose anything.
-fn simplify(loop_: &Outline) -> Option<Outline> {
+pub(crate) fn simplify(loop_: &Outline) -> Option<Outline> {
     if loop_.len() < 3 {
         return None;
     }

@@ -60,6 +60,10 @@ pub struct Settings {
     pub max_side: u32,
     /// How opaque the stage draws the video's layer while editing, 0 to 100; exports draw it whole.
     pub opacity: u8,
+    /// The JPEG quality the pictures are kept at (Animate's "Photo (JPEG)"), or `None` to keep them
+    /// lossless. A frame of video was compressed already, so as a photo it looks the same and
+    /// takes about a ninth of the room in the file.
+    pub photo_quality: Option<u8>,
 }
 
 impl Settings {
@@ -75,6 +79,7 @@ impl Settings {
                 .clamp(1.0 / rate.per_second(), DEFAULT_SECONDS),
             max_side: DEFAULT_SIDE.clamp(MIN_VIDEO_SIDE, MAX_VIDEO_SIDE),
             opacity: DEFAULT_OPACITY,
+            photo_quality: Some(flare_document::DEFAULT_PHOTO_QUALITY),
         };
         if let Ok(plan) = plan(document, source, &settings)
             && !plan.fits()

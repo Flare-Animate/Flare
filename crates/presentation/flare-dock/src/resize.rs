@@ -44,7 +44,7 @@ fn fit(tiles: &mut Tiles<Pane>, tile: TileId, area: Rect, gap: f32) {
                 .children
                 .iter()
                 .copied()
-                .filter(|c| tiles.is_visible(*c))
+                .filter(|c| tiles.is_visible_in_layout(*c))
                 .collect();
             let Some(before) = children
                 .iter()
@@ -129,8 +129,11 @@ pub(crate) fn lengths_for(old: &[f32], least: &[f32], stage: Option<usize>, room
     lengths
 }
 
-/// Whether `tile` is `wanted` or holds it.
+/// Whether `tile` is `wanted` or holds it, shown: a hidden timeline asks for no room.
 fn holds(tiles: &Tiles<Pane>, tile: TileId, wanted: Pane) -> bool {
+    if !tiles.is_visible(tile) {
+        return false;
+    }
     match tiles.get(tile) {
         Some(Tile::Pane(pane)) => *pane == wanted,
         Some(Tile::Container(container)) => container

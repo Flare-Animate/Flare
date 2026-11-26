@@ -145,15 +145,22 @@ pub fn brush_strokes(args: &BrushArgs) -> Result<Value> {
         .first()
         .context("document has no scene")?;
     let target = match args.layer {
-        Some(id) => Target::Layer(
-            scene
+        Some(id) => {
+            let layer = scene
                 .timeline()
                 .layers()
                 .iter()
                 .find(|candidate| *candidate.id().as_uuid() == id)
-                .with_context(|| format!("no layer {id} in the first scene"))?
-                .id(),
-        ),
+                .with_context(|| format!("no layer {id} in the first scene"))?;
+            // On a raster layer the Brush paints pixels, which `raster-brush` does.
+            if layer.is_raster() {
+                anyhow::bail!(
+                    "layer \"{}\" is a raster layer: paint on it with `flare raster-brush`",
+                    layer.name()
+                );
+            }
+            Target::Layer(layer.id())
+        }
         None => Target::Default,
     };
     let duration = match args.duration {

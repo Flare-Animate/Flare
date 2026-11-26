@@ -3,7 +3,7 @@ use super::*;
 use egui::PointerButton;
 
 /// A workspace with its rectangle drawn, and the screen point of the middle of that rectangle.
-fn drawn() -> (egui::Context, Workspace, egui::Pos2, f64) {
+pub(super) fn drawn() -> (egui::Context, Workspace, egui::Pos2, f64) {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);
     // Well inside the stage, clear of the rulers along its edges.
@@ -20,7 +20,7 @@ fn drawn() -> (egui::Context, Workspace, egui::Pos2, f64) {
     (ctx, ws, at, time)
 }
 
-fn right_click(ws: &mut Workspace, ctx: &egui::Context, time: &mut f64, at: egui::Pos2) {
+pub(super) fn right_click(ws: &mut Workspace, ctx: &egui::Context, time: &mut f64, at: egui::Pos2) {
     for events in [
         vec![Event::PointerMoved(at)],
         vec![press(at, PointerButton::Secondary, true)],

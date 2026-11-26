@@ -1,6 +1,6 @@
 //! The timeline toolbar.
 
-use crate::workspace::{Command, Layer, LayerId, MAX_ONION_FRAMES, Workspace};
+use crate::workspace::{Layer, LayerId, MAX_ONION_FRAMES, Workspace};
 use egui::Ui;
 use flare_menubar::MenuAction;
 use flare_ui::chrome;
@@ -239,6 +239,18 @@ impl Workspace {
         }
         if chrome::icon_button(
             ui,
+            "layer-raster",
+            BAR_ICON,
+            false,
+            true,
+            &tr!(self, "timeline-new-raster-layer"),
+        )
+        .clicked()
+        {
+            self.add_raster_layer();
+        }
+        if chrome::icon_button(
+            ui,
             "layer-folder",
             BAR_ICON,
             false,
@@ -306,8 +318,19 @@ impl Workspace {
         }
     }
 
-    /// A new empty layer above the others, made the active one: one undo step.
+    /// A new empty vector layer just under the active one (in its folder), made the active
+    /// one: one undo step. It is found where the eye already is, not at the bottom of the list.
     pub fn add_layer(&mut self) {
+        self.add_layer_of_kind(false);
+    }
+
+    /// A new empty raster layer, painted in pixels, just under the active one, made the active
+    /// one.
+    pub fn add_raster_layer(&mut self) {
+        self.add_layer_of_kind(true);
+    }
+
+    fn add_layer_of_kind(&mut self, raster: bool) {
         let Some(scene) = self.scene_id() else {
             return;
         };
@@ -317,17 +340,15 @@ impl Workspace {
             .first()
             .map_or(0, |s| s.timeline().layers().len());
         let id = LayerId::new();
-        let layer = match Layer::new(
-            id,
-            tr!(self, "name-new-layer", &[("n", &(count + 1).to_string())]),
-            vec![],
-        )
-        .map(|layer| layer.with_hold(true))
-        {
-            Ok(layer) => layer,
+        let name = tr!(self, "name-new-layer", &[("n", &(count + 1).to_string())]);
+        let under = self.active_layer_id();
+        let commands = flare_commands::layers::new_layer(id, &name, raster).and_then(|layer| {
+            flare_commands::layers::add_under(self.document(), scene, layer, under)
+        });
+        match commands {
+            Ok(commands) => self.run_batch(commands, "add a layer"),
             Err(error) => return self.report(error.to_string()),
-        };
-        self.run_batch(vec![Command::AddLayer { scene, layer }], "add a layer");
+        }
         if self.status.is_none() {
             self.current_layer = Some(id);
         }

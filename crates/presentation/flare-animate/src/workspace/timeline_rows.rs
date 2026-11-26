@@ -48,7 +48,10 @@ impl Workspace {
             if i % 2 == 1 {
                 painter.rect_filled(band, 0.0, stripe());
             }
-            timeline_cells::grid_lines(painter, l.track_left, y, ROW, l.per_frame, shown);
+            // A folder holds no frames of its own, so its row is a plain band, as in Animate.
+            if !layer.is_folder() {
+                timeline_cells::grid_lines(painter, l.track_left, y, ROW, l.per_frame, shown);
+            }
             if Some(layer.id()) == active {
                 // Fainter over the frames than over the name, so it marks the row without
                 // coloring the frames.
@@ -101,14 +104,9 @@ impl Workspace {
                     1.0 / (per_second * f64::from(l.per_frame)),
                 );
             }
-            // The frames selected, or with none the cell under the playhead on the active layer,
-            // in Animate's blue, so a click on any cell (an empty one too) shows where the next
-            // frame command acts.
-            let selected = match self.frame_range {
-                Some(range) => (range.layer == layer.id()).then_some((range.from, range.to)),
-                None => (Some(layer.id()) == active).then_some((self.frame, self.frame)),
-            };
-            if let Some((from, to)) = selected {
+            // The frames selected, in Animate's blue, so a click on any cell (an empty one too)
+            // shows where the next frame command acts.
+            if let Some((from, to)) = self.marked_cells(layer) {
                 let marked = Rect::from_min_max(
                     Pos2::new(l.frame_x(from as f32) + 1.0, y + 2.0),
                     Pos2::new(l.frame_x(to as f32 + 1.0) - 1.0, y + ROW - 2.0),
@@ -135,6 +133,20 @@ impl Workspace {
                     Stroke::new(2.0, Color32::from_rgb(40, 120, 255)),
                     StrokeKind::Inside,
                 );
+            }
+        }
+    }
+
+    /// The frames marked on `layer`'s row: those selected, or with none the cell under the
+    /// playhead on the active layer. None on a folder, which has no frames to act on.
+    pub(super) fn marked_cells(&self, layer: &flare_document::Layer) -> Option<(u32, u32)> {
+        if layer.is_folder() {
+            return None;
+        }
+        match self.frame_range {
+            Some(range) => (range.layer == layer.id()).then_some((range.from, range.to)),
+            None => {
+                (self.active_layer_id() == Some(layer.id())).then_some((self.frame, self.frame))
             }
         }
     }

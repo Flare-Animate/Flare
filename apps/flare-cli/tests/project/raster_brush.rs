@@ -18,7 +18,8 @@ fn stage(file: &str) {
     ]);
 }
 
-/// The pixel at `(x, y)` of the topmost picture on the first layer at frame 0, with how many
+/// The pixel under stage point `(x, y)` of the topmost picture on the first layer at frame 0
+/// (a new painting, at the origin), with how many
 /// pictures the project holds.
 fn painted(file: &str, x: usize, y: usize) -> ([u8; 4], usize) {
     let doc = flare_storage::load(Path::new(file)).expect("load");
@@ -30,6 +31,9 @@ fn painted(file: &str, x: usize, y: usize) -> ([u8; 4], usize) {
         panic!("not a bitmap");
     };
     let bitmap = doc.bitmap(placed.bitmap()).expect("bitmap");
+    // A painting has `PAINT_DENSITY` pixels to a stage unit; `(x, y)` is a stage point.
+    let d = bitmap.width() as usize / 100;
+    let (x, y) = (x * d, y * d);
     let i = (y * bitmap.width() as usize + x) * 4;
     let p = &bitmap.pixels()[i..i + 4];
     ([p[0], p[1], p[2], p[3]], doc.bitmaps().len())

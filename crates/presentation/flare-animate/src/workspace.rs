@@ -20,6 +20,7 @@ use flare_input::{InputSample, PenFeed};
 mod arrange;
 mod assist;
 mod background_work;
+mod bitmap_store;
 mod brush_import;
 mod chords;
 mod close_prompt;
@@ -49,6 +50,7 @@ mod home;
 mod home_custom;
 mod home_list;
 mod language;
+mod layer_kind;
 mod layer_names;
 mod layers;
 mod lip_sync;
@@ -209,6 +211,9 @@ pub struct Workspace {
     wand: tools::magic_wand::WandTool,
     /// The Convert to Bitmap job on the pixels worker, while it is out.
     to_bitmap: Option<u64>,
+    bitmap_store: bitmap_store::BitmapStore,
+    /// The layer conversion on the pixels worker, if one is under way.
+    layer_converting: Option<u64>,
     /// The Rotation tool's drag, its dial and the Alt tap that opens it.
     rotate: tools::rotate_view::RotateView,
     springs: tools::Springs,
@@ -222,6 +227,8 @@ pub struct Workspace {
     /// How wide the Eraser rubs, in stage units, and whether it deletes whole shapes instead.
     eraser_size: f32,
     eraser_faucet: bool,
+    /// Whether how hard a pen presses sets the Eraser's width, as on a raster layer.
+    eraser_pressure: bool,
     /// How far the Eraser has rubbed out along the drag in progress, when it rubs as it goes.
     live_erase: Option<tools::eraser::LiveErase>,
     /// The tip the brush paints with, and the nibs kept under a name.

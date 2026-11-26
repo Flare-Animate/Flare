@@ -11,33 +11,8 @@
 //   const file = createFlareFile({ sqlite3, zstd });
 
 const APPLICATION_ID = 0x464c4152; // "FLAR"
-const SCHEMA_VERSION = 1;
-// Written by files that hold bitmaps; older builds refuse them by version.
-const BITMAP_SCHEMA_VERSION = 2;
-// Written by files that hold a game description (`flare-game`), for the same reason.
-const GAME_SCHEMA_VERSION = 3;
 const PAGE_SIZE = 1024;
 const ZSTD_LEVEL = 3;
-
-// The same tables the desktop app writes (crates/io/flare-storage/src/sqlite.rs).
-const SCHEMA = `
-CREATE TABLE project (
-    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
-    project_id TEXT NOT NULL,
-    schema_version INTEGER NOT NULL,
-    settings_json TEXT NOT NULL
-) STRICT;
-CREATE TABLE entity (
-    id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'origin', 'game')),
-    ordinal INTEGER NOT NULL,
-    payload_version INTEGER NOT NULL CHECK (payload_version > 0),
-    codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
-    size INTEGER NOT NULL CHECK (size >= 0),
-    digest BLOB NOT NULL CHECK (length(digest) = 32),
-    payload BLOB NOT NULL
-) STRICT, WITHOUT ROWID;
-`;
 
 export function createFlareFile({ sqlite3, zstd }) {
   const { capi, wasm, oo1 } = sqlite3;
@@ -87,10 +62,8 @@ export function createFlareFile({ sqlite3, zstd }) {
         if (applicationId !== APPLICATION_ID) {
           throw new Error("not a Flare project file");
         }
-        const version = one(db, "PRAGMA user_version");
-        if (version !== SCHEMA_VERSION && version !== BITMAP_SCHEMA_VERSION && version !== GAME_SCHEMA_VERSION) {
-          throw new Error(`project schema version ${version} is not supported by this build; it was made by a newer Flare`);
-        }
+        // Which versions this build reads is Rust's to say (flare-storage's check_schema_version).
+        const schemaVersion = one(db, "PRAGMA user_version");
         const project = db.selectObject(
           "SELECT project_id, settings_json FROM project WHERE singleton = 1",
         );
@@ -101,6 +74,7 @@ export function createFlareFile({ sqlite3, zstd }) {
           "SELECT id, kind, ordinal, codec, size, digest, payload FROM entity ORDER BY kind, ordinal",
         );
         return {
+          schemaVersion,
           projectId: project.project_id,
           settings: project.settings_json,
           records: records.map((r) => ({
@@ -118,21 +92,22 @@ export function createFlareFile({ sqlite3, zstd }) {
       }
     },
 
-    // The bytes of a .flare file holding these rows ({ projectId, settings, records }).
+    // The bytes of a .flare file holding these rows ({ schemaVersion, tables, projectId, settings,
+    // records }). The version and the tables come from Rust (flare-storage's schema_version and
+    // TABLES), so the page writes exactly what the desktop app does and cannot fall behind it.
     write(parts) {
+      if (!Number.isInteger(parts.schemaVersion) || typeof parts.tables !== "string") {
+        throw new Error("the rows to write need their schema version and tables");
+      }
       const db = new oo1.DB(":memory:", "c");
-      const version = parts.records.some((r) => r.kind === "game")
-        ? GAME_SCHEMA_VERSION
-        : parts.records.some((r) => r.kind === "bitmap")
-          ? BITMAP_SCHEMA_VERSION
-          : SCHEMA_VERSION;
+      const version = parts.schemaVersion;
       try {
         // The page size can only be chosen before the first table exists.
         db.exec(`PRAGMA page_size = ${PAGE_SIZE}`);
         db.exec(`PRAGMA application_id = ${APPLICATION_ID}`);
         db.exec(`PRAGMA user_version = ${version}`);
         db.transaction(() => {
-          db.exec(SCHEMA);
+          db.exec(parts.tables);
           db.exec({
             sql: "INSERT INTO project VALUES (1, ?, ?, ?)",
             bind: [parts.projectId, version, parts.settings],

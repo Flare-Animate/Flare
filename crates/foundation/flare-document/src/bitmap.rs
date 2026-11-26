@@ -24,6 +24,12 @@ pub enum BitmapError {
     Size,
     #[error("a bitmap is limited to {MAX_BITMAP_PIXELS} pixels")]
     TooManyPixels,
+    #[error("a photo's quality is from 1 to 100, not {0}")]
+    PhotoQuality(u8),
+    #[error("the JPEG could not be made or read: {0}")]
+    Photo(String),
+    #[error("as a JPEG the bitmap would not be any smaller, so it stays lossless")]
+    PhotoNotSmaller,
     #[error("a {width}x{height} bitmap needs {expected} bytes of RGBA, got {got}")]
     PixelLength {
         width: u32,
@@ -43,6 +49,9 @@ pub struct Bitmap {
     /// Shared, so a snapshot of the document never copies the pixels.
     pixels: Arc<[u8]>,
     hash: [u8; 32],
+    /// The JPEG the pixels were decoded from, when the bitmap is kept as a photo; see
+    /// `bitmap_photo`.
+    pub(crate) photo: Option<crate::bitmap_photo::Photo>,
 }
 
 impl Bitmap {
@@ -54,13 +63,7 @@ impl Bitmap {
         height: u32,
         rgba: Vec<u8>,
     ) -> Result<Self, BitmapError> {
-        if width == 0 || height == 0 || width > MAX_BITMAP_SIDE || height > MAX_BITMAP_SIDE {
-            return Err(BitmapError::Size);
-        }
-        let count = u64::from(width) * u64::from(height);
-        if count > MAX_BITMAP_PIXELS {
-            return Err(BitmapError::TooManyPixels);
-        }
+        let count = Self::check_size(width, height)?;
         if rgba.len() as u64 != count * 4 {
             return Err(BitmapError::PixelLength {
                 width,
@@ -80,7 +83,20 @@ impl Bitmap {
             height,
             pixels: rgba.into(),
             hash: *hasher.finalize().as_bytes(),
+            photo: None,
         })
+    }
+
+    /// The pixel count of a `width` by `height` bitmap, or why there cannot be one.
+    pub(crate) fn check_size(width: u32, height: u32) -> Result<u64, BitmapError> {
+        if width == 0 || height == 0 || width > MAX_BITMAP_SIDE || height > MAX_BITMAP_SIDE {
+            return Err(BitmapError::Size);
+        }
+        let count = u64::from(width) * u64::from(height);
+        if count > MAX_BITMAP_PIXELS {
+            return Err(BitmapError::TooManyPixels);
+        }
+        Ok(count)
     }
 
     pub fn id(&self) -> BitmapId {

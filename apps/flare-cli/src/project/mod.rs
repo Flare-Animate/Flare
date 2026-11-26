@@ -30,7 +30,9 @@ mod timeline;
 mod to_bitmap;
 
 pub use bend_edge::{BendEdgeRequest, bend_edge};
-pub use blend::{BlendArgs, RasterBrushArgs, blend_stroke, raster_brush};
+pub use blend::{
+    BlendArgs, RasterBrushArgs, RasterEraseArgs, blend_stroke, raster_brush, raster_erase,
+};
 pub use bones::{BoneAction, bone, bones_list};
 pub use brush_stroke::{BrushArgs, brush_strokes};
 #[allow(unused_imports)]
@@ -62,7 +64,8 @@ pub use text::{TextChanges, TextOptions, add_text, break_text, font_families, se
 #[allow(unused_imports)]
 use timeline::*;
 pub use timeline::{
-    FrameArgs, FrameOperation, LayerOperation, LayerPlace, frame_op, layer_op, layer_opacity,
+    FrameArgs, FrameOperation, LayerOperation, LayerPlace, frame_op, layer_blend, layer_kind,
+    layer_op, layer_opacity,
 };
 pub use to_bitmap::{ToBitmapArgs, convert_to_bitmap};
 
@@ -93,7 +96,7 @@ pub fn new(path: &Path, numerator: u32, denominator: u32, stage: Stage) -> Resul
     if path.exists() {
         bail!("{} already exists", path.display());
     }
-    let layer = Layer::new(LayerId::new(), "Layer 1", vec![])?.with_hold(true);
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![])?;
     let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
     let rate = FrameRate::new(numerator, denominator)?;
     let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])
@@ -126,6 +129,7 @@ pub fn info(path: &Path) -> Result<Value> {
                     json!({ "id": layer.id().as_uuid(), "name": layer.name(),
                             "visible": layer.is_visible(), "locked": layer.is_locked(),
                             "opacity": layer.view_opacity(),
+                            "blend": layer.blend().name(), "raster": layer.is_raster(),
                             "spans": layer.spans().len(), "elements": elements,
                             "merged": flare_tools::drawing::merged_count(layer),
                             "armature": armature, "effects": layer.effects().is_some() })
@@ -153,6 +157,7 @@ pub fn info(path: &Path) -> Result<Value> {
         "scenes": scenes,
         "symbols": symbols,
         "attachments": document.attachments().len(),
+        "bitmaps": flare_tools::library::bitmap_summary(document),
     }))
 }
 

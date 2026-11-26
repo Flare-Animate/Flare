@@ -58,6 +58,10 @@ pub fn watch(feed: PenFeed) -> Result<(), TabletError> {
     let mask = NSEventMask::LeftMouseDown
         | NSEventMask::LeftMouseUp
         | NSEventMask::LeftMouseDragged
+        // A pen's side button comes as the right button, and says it is the pen's.
+        | NSEventMask::RightMouseDown
+        | NSEventMask::RightMouseUp
+        | NSEventMask::RightMouseDragged
         | NSEventMask::MouseMoved
         | NSEventMask::TabletPoint
         | NSEventMask::TabletProximity;

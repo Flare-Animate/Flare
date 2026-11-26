@@ -36,3 +36,4 @@ swatches-add = 現在の色を追加
 swatches-remove = スウォッチを削除
 swatches-full = 自分のスウォッチがいっぱいです（{ $max }）。
 strip-resize = ドラッグしてパネルの幅を変更します
+dock-hide-panel = 非表示 (ウィンドウメニューで再表示)

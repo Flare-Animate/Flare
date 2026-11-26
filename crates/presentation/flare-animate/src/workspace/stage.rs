@@ -143,8 +143,15 @@ impl Workspace {
         };
         self.pointer_stage = response.hover_pos().map(to_doc);
         let to_screen = |p: Pos2| image_rect.min + p.to_vec2() * scale;
-        // A second button tapped while a gesture is held is not a request for the menu.
-        if self.drag.is_none() && self.anchor_drag.is_none() {
+        // A second button tapped while a gesture is held is not a request for the menu. From a
+        // pen it is the side button, which flips to the Eraser and back. It flips on the press:
+        // a hand holding a pen moves it while pressing, so the press rarely ends as a click.
+        if self.drag.is_none() && self.anchor_drag.is_none() && self.pen_in_use() {
+            let pressed = ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Secondary));
+            if pressed && response.contains_pointer() {
+                self.pen_button();
+            }
+        } else if self.drag.is_none() && self.anchor_drag.is_none() {
             if response.secondary_clicked()
                 && let Some(p) = response.interact_pointer_pos()
             {
@@ -164,7 +171,7 @@ impl Workspace {
             self.text_click(to_doc(p));
         }
         self.rotate_view_stage(ui, &response);
-        self.hand_stage(ui, &response);
+        self.hand_stage(&response);
         if matches!(self.tool, Tool::Ruler | Tool::Mirror) {
             let primary = egui::PointerButton::Primary;
             let origin = ui.input(|i| i.pointer.press_origin());
@@ -176,8 +183,9 @@ impl Workspace {
         }
         if matches!(
             self.tool,
-            Tool::Pencil | Tool::Brush | Tool::Blur | Tool::Smudge | Tool::RasterBrush
+            Tool::Pencil | Tool::Brush | Tool::Blur | Tool::Smudge
         ) || self.eraser_rubs()
+            || self.blend_kind().is_some()
         {
             let primary = egui::PointerButton::Primary;
             self.paint.straight_held = ui.input(|i| i.modifiers.shift);

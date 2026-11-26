@@ -42,6 +42,9 @@ impl MenuAction {
             // Animate's key for View > Grid > Show Grid (issue #213).
             Self::ToggleGrid => "CmdOrCtrl+Alt+G",
             Self::Preferences => "CmdOrCtrl+,",
+            // Animate's keys for Window > Timeline and Window > Output.
+            Self::ShowTimeline => "CmdOrCtrl+Alt+T",
+            Self::ShowOutput => "F2",
             Self::CommandPalette => "CmdOrCtrl+Shift+P",
             _ => return None,
         })
@@ -135,7 +138,9 @@ impl MenuAction {
             Self::ExportImage => "file-export",
             Self::ExportMovie => "test-movie",
             Self::ExportFla => "file-export",
-            Self::ExportSvg | Self::ExportSpriteSheet => "file-export",
+            Self::ExportSvg | Self::ExportSpriteSheet | Self::ToggleTransparentExport => {
+                "file-export"
+            }
             Self::Save | Self::SaveAs => "file-save",
             Self::Undo => "undo",
             Self::Redo => "redo",
@@ -221,6 +226,7 @@ impl MenuAction {
             Self::ToggleLayerMask => "layer-mask",
             Self::ToggleLayerGuide => "layer-motion-guide",
             Self::NewLayer => "layer-new",
+            Self::NewRasterLayer => "layer-raster",
             Self::NewLayerFolder => "layer-folder",
             Self::MoveLayerUp => "chevron-up",
             Self::MoveLayerDown => "chevron-down",

@@ -48,6 +48,15 @@ impl Workspace {
         self.validate_selection();
     }
 
+    /// Makes the layer keep its last drawing on show past its last keyframe, or stop doing so.
+    /// New layers do not hold, so a drawing stays on the frames its keyframe covers.
+    pub fn toggle_layer_hold(&mut self, layer: LayerId) {
+        let hold = !self.layer(layer).is_some_and(Layer::is_hold);
+        self.layer_edit("change the hold", layer, |document, scene, layer| {
+            layers::set_hold(document, scene, layer, hold)
+        });
+    }
+
     /// Asks `flare_commands::layers` for the commands that do `build` to `layer`, and runs them. A
     /// layer that is no longer there is not worth a message; any other refusal is shown.
     fn layer_edit(
@@ -312,9 +321,10 @@ impl Workspace {
         }
     }
 
-    /// Selects frames `a..=b` (either order) of `layer` for copying.
+    /// Selects frames `a..=b` (either order) of `layer` for copying. A folder has no frames, so
+    /// nothing is selected on one.
     pub fn select_frames(&mut self, layer: LayerId, a: u32, b: u32) {
-        if self.layer(layer).is_some() {
+        if self.layer(layer).is_some_and(|l| !l.is_folder()) {
             self.frame_range = Some(FrameRange {
                 layer,
                 from: a.min(b),

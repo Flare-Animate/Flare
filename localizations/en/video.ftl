@@ -57,3 +57,5 @@ video-stopped = The video import was stopped
 video-error = Cannot import the video: { $error }
 video-leave-symbol = Leave the symbol to import a video
 video-browser = Importing a video needs ffmpeg, which a browser does not have. Use the desktop app.
+video-pictures = Pictures
+video-pictures-tip = As photos (JPEG) the pictures take about a ninth of the room in the file and look the same. Lossless keeps every pixel.
