@@ -139,4 +139,7 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
 - Region-limited recomputation inside a frame (only the changed area) and tile caching.
 - A priority scheduler and cancellation of a frame already being drawn (a newer request
   currently waits for the current one to finish; stale results are dropped).
-- Memory budgeting across all caches and history together (each has its own limit).
+- Memory budgeting across all caches and history together (each has its own limit; the undo
+  history holds at most `MAX_UNDO_PIXEL_BYTES`, 2 GiB, of pictures no later state shows, since a
+  stroke on a painting keeps the whole picture it replaced: 33 MB for a 1920 by 1080 stage at
+  two pixels a unit).

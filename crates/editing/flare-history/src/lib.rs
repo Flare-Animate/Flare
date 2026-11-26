@@ -6,7 +6,7 @@
 //! exactly. Structural sharing can replace this if profiling demands it.
 #![forbid(unsafe_code)]
 
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
 
 use flare_document::Document;
@@ -14,6 +14,24 @@ use flare_document::Document;
 use flare_commands::{Command, EditError, apply_all};
 
 const DEFAULT_HISTORY_DEPTH: usize = 1000;
+
+/// The most the undo steps may hold on to in pictures no later state shows, in bytes. Each stroke
+/// on a painting keeps the whole picture it replaced (a 1920 by 1080 stage painted at two pixels a
+/// unit is 33 MB), so a count of steps alone let painting take all the memory there is. Past
+/// this the oldest steps are forgotten first; the newest is always kept.
+pub const MAX_UNDO_PIXEL_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+
+/// The bytes of pictures `before` holds that `after` does not: what keeping `before` as an undo
+/// step costs beyond keeping `after`.
+fn pixels_left_behind(before: &Document, after: &Document) -> u64 {
+    let kept: HashSet<_> = after.bitmaps().iter().map(|b| b.id()).collect();
+    before
+        .bitmaps()
+        .iter()
+        .filter(|b| !kept.contains(&b.id()))
+        .map(|b| b.pixels().len() as u64)
+        .sum()
+}
 
 /// Owns the current document, undo/redo history and clean/dirty tracking.
 pub struct EditorSession {
@@ -26,6 +44,13 @@ pub struct EditorSession {
     redo_labels: Vec<String>,
     saved: Option<Arc<Document>>,
     max_depth: usize,
+    /// What each undo step holds in pictures (see [`pixels_left_behind`]), one per entry of
+    /// `undo`, and each redo step, one per entry of `redo`.
+    undo_bytes: VecDeque<u64>,
+    redo_bytes: Vec<u64>,
+    /// The sum of `undo_bytes`, held at most to `max_bytes` by forgetting the oldest steps.
+    held_bytes: u64,
+    max_bytes: u64,
     revision: u64,
 }
 
@@ -36,6 +61,12 @@ impl EditorSession {
 
     /// `max_depth` bounds the undo stack; the oldest entries are dropped first.
     pub fn with_history_depth(document: Document, max_depth: usize) -> Self {
+        Self::with_history_limits(document, max_depth, MAX_UNDO_PIXEL_BYTES)
+    }
+
+    /// `max_depth` bounds the number of undo steps and `max_bytes` what they hold in pictures
+    /// no later state shows; the oldest steps are dropped first, and the newest is always kept.
+    pub fn with_history_limits(document: Document, max_depth: usize, max_bytes: u64) -> Self {
         let current = Arc::new(document);
         Self {
             saved: Some(Arc::clone(&current)),
@@ -45,8 +76,30 @@ impl EditorSession {
             undo_labels: VecDeque::new(),
             redo_labels: Vec::new(),
             max_depth,
+            undo_bytes: VecDeque::new(),
+            redo_bytes: Vec::new(),
+            held_bytes: 0,
+            max_bytes,
             revision: 0,
         }
+    }
+
+    /// Forgets the oldest undo steps while there are more than `max_depth`, or while they hold
+    /// more than `max_bytes` in pictures and more than one is left.
+    fn trim(&mut self) {
+        while self.undo.len() > self.max_depth
+            || (self.held_bytes > self.max_bytes && self.undo.len() > 1)
+        {
+            self.undo.pop_front();
+            self.undo_labels.pop_front();
+            let bytes = self.undo_bytes.pop_front().unwrap_or(0);
+            self.held_bytes = self.held_bytes.saturating_sub(bytes);
+        }
+    }
+
+    /// What the undo steps hold in pictures no later state shows, in bytes.
+    pub fn held_picture_bytes(&self) -> u64 {
+        self.held_bytes
     }
 
     /// Increases on every change to the current document (apply, undo, redo). Use it
@@ -74,14 +127,15 @@ impl EditorSession {
             return Ok(());
         };
         let previous = std::mem::replace(&mut self.current, Arc::new(working));
+        let bytes = pixels_left_behind(&previous, &self.current);
         self.undo.push_back(previous);
         self.undo_labels.push_back(label.to_owned());
-        if self.undo.len() > self.max_depth {
-            self.undo.pop_front();
-            self.undo_labels.pop_front();
-        }
+        self.undo_bytes.push_back(bytes);
+        self.held_bytes += bytes;
+        self.trim();
         self.redo.clear();
         self.redo_labels.clear();
+        self.redo_bytes.clear();
         self.revision += 1;
         Ok(())
     }
@@ -110,8 +164,15 @@ impl EditorSession {
         };
         // The step's "before" stays the document from before the gesture began.
         self.current = Arc::new(working);
+        if let (Some(before), Some(bytes)) = (self.undo.back(), self.undo_bytes.back_mut()) {
+            let now = pixels_left_behind(before, &self.current);
+            self.held_bytes = self.held_bytes.saturating_sub(*bytes) + now;
+            *bytes = now;
+        }
+        self.trim();
         self.redo.clear();
         self.redo_labels.clear();
+        self.redo_bytes.clear();
         self.revision += 1;
         Ok(Some(self.revision))
     }
@@ -132,6 +193,9 @@ impl EditorSession {
         self.redo.clear();
         self.undo_labels.clear();
         self.redo_labels.clear();
+        self.undo_bytes.clear();
+        self.redo_bytes.clear();
+        self.held_bytes = 0;
     }
 
     pub fn can_undo(&self) -> bool {
@@ -151,6 +215,9 @@ impl EditorSession {
         if let Some(label) = self.undo_labels.pop_back() {
             self.redo_labels.push(label);
         }
+        let bytes = self.undo_bytes.pop_back().unwrap_or(0);
+        self.held_bytes = self.held_bytes.saturating_sub(bytes);
+        self.redo_bytes.push(bytes);
         self.revision += 1;
         true
     }
@@ -164,6 +231,9 @@ impl EditorSession {
         if let Some(label) = self.redo_labels.pop() {
             self.undo_labels.push_back(label);
         }
+        let bytes = self.redo_bytes.pop().unwrap_or(0);
+        self.undo_bytes.push_back(bytes);
+        self.held_bytes += bytes;
         self.revision += 1;
         true
     }
