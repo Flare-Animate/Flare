@@ -21,6 +21,10 @@ fn every_preset_places_every_panel_once_and_they_differ() {
         seen.push(json);
     }
     assert!(Preset::SmallScreen.layout().strip.is_empty());
+    assert!(
+        !Preset::Game.layout().in_strip(Pane::Game),
+        "the Game workspace docks the Game panel"
+    );
     assert_eq!(
         Preset::Essentials.layout().strip,
         layout::default_layout().strip
