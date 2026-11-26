@@ -20,6 +20,7 @@ workspace-essentials = Základy
 workspace-animator = Animátor
 workspace-designer = Návrhář
 workspace-classic = Klasický
+workspace-game = Hra
 workspace-small-screen = Malá obrazovka
 workspace-new = Nový pracovní prostor
 workspace-save = Uložit pracovní prostor

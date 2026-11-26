@@ -20,6 +20,7 @@ workspace-essentials = Essenziali
 workspace-animator = Animatore
 workspace-designer = Designer
 workspace-classic = Classico
+workspace-game = Gioco
 workspace-small-screen = Schermo piccolo
 workspace-new = Nuova area di lavoro
 workspace-save = Salva area di lavoro

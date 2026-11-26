@@ -20,6 +20,7 @@ workspace-essentials = 初期設定
 workspace-animator = アニメーター
 workspace-designer = デザイナー
 workspace-classic = クラシック
+workspace-game = ゲーム
 workspace-small-screen = 小さい画面
 workspace-new = 新規ワークスペース
 workspace-save = ワークスペースを保存

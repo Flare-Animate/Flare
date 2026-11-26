@@ -16,6 +16,8 @@ pub(crate) struct GamePanel {
     pub(crate) kind: ComponentKind,
     pub(crate) fields: String,
     pub(crate) frames: u32,
+    /// Input for the run, one frame per `;`-separated part.
+    pub(crate) script: String,
     /// Gravity as edited, applied when the drag or typing is done.
     pub(crate) gravity: Option<(f64, f64)>,
     /// What the last run said.
@@ -30,6 +32,7 @@ impl Default for GamePanel {
             kind: ComponentKind::ALL[0],
             fields: String::new(),
             frames: 60,
+            script: String::new(),
             gravity: None,
             last_run: None,
         }
@@ -104,11 +107,14 @@ impl Workspace {
         self.game_edit(model::set_gravity(x, y));
     }
 
-    /// Steps the game for the panel's frames at the document's rate and keeps what it says.
+    /// Steps the game for the panel's frames at the document's rate under the panel's script and
+    /// keeps what it says.
     pub(crate) fn game_run(&mut self) {
         let fps = self.document().frame_rate().per_second();
         let frames = self.game.frames.clamp(1, MAX_RUN_FRAMES);
-        match model::run(self.document(), fps, frames, None) {
+        let script = self.game.script.trim();
+        let script = (!script.is_empty()).then_some(script);
+        match model::run(self.document(), fps, frames, script) {
             Ok(playback) => {
                 let (n, events, digest) = (
                     playback.frames.to_string(),
@@ -208,6 +214,13 @@ impl Workspace {
             self.game_component_form(ui);
         }
         ui.separator();
+        ui.label(tr!(self, "game-script-label"));
+        let script_hint = tr!(self, "game-script");
+        ui.add(
+            egui::TextEdit::singleline(&mut self.game.script)
+                .hint_text(script_hint)
+                .desired_width(f32::INFINITY),
+        );
         ui.horizontal(|ui| {
             ui.label(tr!(self, "game-frames"));
             ui.add(egui::DragValue::new(&mut self.game.frames).range(1..=MAX_RUN_FRAMES));

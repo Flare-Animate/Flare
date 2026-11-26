@@ -68,6 +68,35 @@ fn a_run_says_what_happened_and_a_project_with_no_game_says_so() {
 }
 
 #[test]
+fn a_scripted_run_moves_the_world_and_a_bad_script_is_refused_unchanged() {
+    let mut ws = workspace();
+    ws.game_add_entity("Ball");
+    for kind in [
+        ComponentKind::Transform,
+        ComponentKind::Body,
+        ComponentKind::Control,
+    ] {
+        ws.game_set_component(kind, "");
+    }
+    ws.game.frames = 5;
+    ws.game_run();
+    let plain = ws.game.last_run.clone().expect("ran");
+    ws.game.script = "right".into();
+    ws.game_run();
+    let scripted = ws.game.last_run.clone().expect("ran");
+    assert_ne!(plain, scripted, "the script changes the run");
+
+    ws.game.script = "not-a-key".into();
+    ws.game_run();
+    assert_eq!(
+        ws.game.last_run.as_deref(),
+        Some(scripted.as_str()),
+        "a refused script changes nothing"
+    );
+    assert!(ws.status().is_some_and(|s| s.contains("cannot")));
+}
+
+#[test]
 fn the_panel_draws_empty_and_with_an_entity_chosen() {
     let mut ws = workspace();
     let ctx = egui::Context::default();
