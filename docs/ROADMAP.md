@@ -10,9 +10,9 @@ animating with Flare misses the thing, not how hard it is. It was drawn up from 
 `original/` (see [PARITY.md](PARITY.md)) and from Animate's own feature list, and it is the
 maintainer's to reorder.
 
-### Open GitHub issue triage (2026-11-11)
+### Open GitHub issue triage (2026-11-26)
 
-This checks the nine linked issues against the Rust workspace. Sizes are relative estimates;
+This checks the eleven open issues against the Rust workspace. Sizes are relative estimates;
 priority is estimated against the roadmap above. Rows are ordered by priority, then size
 (smallest first). Partial work does not close an issue.
 
@@ -20,16 +20,16 @@ priority is estimated against the roadmap above. Rows are ordered by priority, t
 |---|---|---:|---|---|
 | [#11](https://github.com/Flare-Animate/Flare/issues/11) Custom toolbar | Medium | L | Built-in tools can be pinned, removed and saved in preferences | User-defined script actions, including the three JSFL workflows in the issue |
 | [#25](https://github.com/Flare-Animate/Flare/issues/25) Editable vector brush | Medium | XL | Brush pressure profiles, nib settings and custom presets | Pencil strokes do not retain editable centerlines, pressure samples or width profiles |
-| [#47](https://github.com/Flare-Animate/Flare/issues/47) FLA opening and workspace | Medium | XL | Modern FLA/XFL import, ZIP wrappers containing one `.fla`, and the shared open path; legacy binary FLA settings, library and layer metadata | Legacy artwork and timeline reconstruction; the reported BFDI sample is not verified |
-| [#49](https://github.com/Flare-Animate/Flare/issues/49) Rigging | Medium | XL | Bones, keyed poses, forward kinematics and bounded inverse kinematics | Weighted mesh deformation, node constraints, master controllers and auto-patching |
+| [#49](https://github.com/Flare-Animate/Flare/issues/49) Rigging | Medium | XL | Bones drawn on the stage, keyed poses and IK goals in the Rigs panel, forward kinematics and bounded inverse kinematics | Weighted mesh deformation, node constraints, master controllers and auto-patching |
+| [#258](https://github.com/Flare-Animate/Flare/issues/258) Stick-figure tools (question) | Low | S | The Bone tool and Rigs panel pose a figure, and the Mannequin is a posable reference | No one-click rigged stickman or dedicated template; the issue needs an answer, not new code |
 | [#207](https://github.com/Flare-Animate/Flare/issues/207) ArtCraft UI modules | Low | M | Flare has its own tested egui/egui_tiles presentation stack | ArtCraft module reuse is unimplemented; the issue gives no reproducible UI defect |
+| [#15](https://github.com/Flare-Animate/Flare/issues/15) Migrate features from Tahoma | Low | XL | OpenToonz-derived work: the Mannequin, the Magnet tool and the Pencil/brush plan | A general migration (the look, node compositing, plastic deformation, the FX schematic) is not scoped |
 | [#52](https://github.com/Flare-Animate/Flare/issues/52) JSFL and extensions | Low | XL | No JSFL or plugin integration | JSFL compatibility and safe ZXP/MXP plugin loading |
-| [#53](https://github.com/Flare-Animate/Flare/issues/53) Studio pipeline | Low | XL | Dockable panels, the icon strip, named workspaces with a switcher, and four workspace profile definitions | Node compositing, shared asset linking and collaboration |
+| [#53](https://github.com/Flare-Animate/Flare/issues/53) Studio pipeline | Low | XL | Dockable panels, the icon strip, named workspaces with a switcher, and six workspace profile definitions | Node compositing, shared asset linking and collaboration |
 | [#123](https://github.com/Flare-Animate/Flare/issues/123) Interactive projects | Low | XL | Imported scripts are preserved as data; SWF playback is delegated to Ruffle | Authoring or running ActionScript 2/3 or JavaScript in Flare |
 | [#230](https://github.com/Flare-Animate/Flare/issues/230) Flash 3D engines | Low | XL | SWF import identifies known engines and reports embedded binary blocks; `flare-as3` lists a movie's classes, writes one out with its bodies as instructions, and patches its strings (a server's address) in place, on the CLI and MCP | Decompiling method bodies into statements, recompiling edited code, the desktop and browser window, and reconstructing 3D scenes |
-| [#245](https://github.com/Flare-Animate/Flare/issues/245) Powerful shaders | Medium | XL | A bounded CPU graph evaluator, per-pixel source-image filtering, validated document assets, command editing, `.flare` persistence, portable graph import/export, CLI and MCP library tools, and on-demand frame rendering through ordered stacks | Timeline-attached effect stacks, desktop/browser authoring UI, OpenToonz shader compatibility and Unity/Blender graph import |
 
-Issue #213 (vector mechanics): built and tested are arrow-key nudging in screen pixels with Shift for ten, zoom 4% to 2000%, the grid with spacing, colour and snapping, and Ctrl+Alt+G for Show Grid. Not built: the grid's "show over objects" choice (the grid is always drawn over the artwork), a grid origin tied to a symbol's 0,0, double-click selecting connected segments, endpoint snapping, subselection marquee parity, and splitting strokes at intersections with merging same-coloured touching strokes in Merge Drawing mode. Issue #49: rig bones are drawn on the stage and IK goals are keyed in the Rigs panel; the schematic view, plastic mesh deformation and master controllers are not built. Issue #25 has its plan in [decisions/BRUSH-STROKES.md](decisions/BRUSH-STROKES.md).
+Issue #213 (vector mechanics): built and tested are arrow-key nudging in screen pixels with Shift for ten, zoom 4% to 2000%, the grid with spacing, colour and snapping, and Ctrl+Alt+G for Show Grid. Not built: the grid's "show over objects" choice (the grid is always drawn over the artwork), a grid origin tied to a symbol's 0,0, double-click selecting connected segments, endpoint snapping, subselection marquee parity, and splitting strokes at intersections with merging same-coloured touching strokes in Merge Drawing mode. Issue #25 has its plan in [decisions/BRUSH-STROKES.md](decisions/BRUSH-STROKES.md).
 
 The largest risks are model/format changes or untrusted code execution; those need separate
 designs, fixtures and surface-specific tests. The issue links are cross-references, not a claim
