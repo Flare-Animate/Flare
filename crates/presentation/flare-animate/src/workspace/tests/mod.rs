@@ -109,6 +109,7 @@ mod spans_and_handles;
 mod splash;
 mod stage_menu;
 mod stage_pointer;
+mod stage_rulers;
 mod status_bar;
 mod swatches;
 mod symbol_dialog;
