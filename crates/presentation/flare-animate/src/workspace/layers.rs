@@ -321,9 +321,10 @@ impl Workspace {
         }
     }
 
-    /// Selects frames `a..=b` (either order) of `layer` for copying.
+    /// Selects frames `a..=b` (either order) of `layer` for copying. A folder has no frames, so
+    /// nothing is selected on one.
     pub fn select_frames(&mut self, layer: LayerId, a: u32, b: u32) {
-        if self.layer(layer).is_some() {
+        if self.layer(layer).is_some_and(|l| !l.is_folder()) {
             self.frame_range = Some(FrameRange {
                 layer,
                 from: a.min(b),

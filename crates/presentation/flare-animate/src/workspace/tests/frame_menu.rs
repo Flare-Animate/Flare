@@ -162,3 +162,23 @@ fn a_right_click_on_a_frame_opens_the_menu_for_frames_and_choosing_an_item_acts_
         "a keyframe was inserted at the frame clicked"
     );
 }
+
+#[test]
+fn a_folder_row_has_no_frames_to_mark_or_select() {
+    let (mut ws, layer) = two_exposures();
+    ws.select_layer(layer);
+    ws.perform(MenuAction::NewLayerFolder);
+    let folder = ws.active_layer_id().expect("the folder is active");
+    let row = ws.layer(folder).expect("folder").clone();
+    assert!(row.is_folder());
+    assert_eq!(ws.marked_cells(&row), None, "no cell under the playhead");
+    ws.select_frames(folder, 2, 5);
+    assert!(
+        ws.frame_range.is_none(),
+        "a folder's frames cannot be selected"
+    );
+    // A layer it holds still marks its cell.
+    let held = ws.layer(layer).expect("layer").clone();
+    ws.select_layer(layer);
+    assert_eq!(ws.marked_cells(&held), Some((ws.frame, ws.frame)));
+}
