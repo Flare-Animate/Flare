@@ -321,9 +321,7 @@ impl Workspace {
             id,
             tr!(self, "name-new-layer", &[("n", &(count + 1).to_string())]),
             vec![],
-        )
-        .map(|layer| layer.with_hold(true))
-        {
+        ) {
             Ok(layer) => layer,
             Err(error) => return self.report(error.to_string()),
         };

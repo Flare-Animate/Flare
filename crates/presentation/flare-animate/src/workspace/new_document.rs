@@ -230,9 +230,7 @@ impl Workspace {
 
     /// A blank document with a scene and a layer of these names, at 24 fps.
     fn blank_named(scene: &str, layer: &str) -> Result<Document, String> {
-        let layer = Layer::new(LayerId::new(), layer, vec![])
-            .map_err(|e| e.to_string())?
-            .with_hold(true);
+        let layer = Layer::new(LayerId::new(), layer, vec![]).map_err(|e| e.to_string())?;
         let scene = Scene::new(SceneId::new(), scene, Timeline::new(vec![layer]));
         let rate = FrameRate::new(24, 1).map_err(|e| e.to_string())?;
         Document::new(DocumentId::new(), rate, vec![scene], vec![])

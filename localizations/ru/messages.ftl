@@ -46,6 +46,7 @@ msg-layer-opacity = Непрозрачность
 msg-layer-show-all = Показать все
 msg-layer-lock-others = Заблокировать остальные
 msg-layer-hide-others = Скрыть остальные
+msg-layer-hold = Удерживать последний рисунок
 msg-layer-duplicate = Дублировать слой
 msg-layer-to-symbol = Преобразовать слои в символ
 msg-layer-mask = Маска

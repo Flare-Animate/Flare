@@ -45,6 +45,7 @@ msg-layer-opacity = Deckkraft
 msg-layer-show-all = Alle einblenden
 msg-layer-lock-others = Andere sperren
 msg-layer-hide-others = Andere ausblenden
+msg-layer-hold = Letzte Zeichnung halten
 msg-layer-duplicate = Ebene duplizieren
 msg-layer-to-symbol = Ebenen in Symbol konvertieren
 msg-layer-mask = Maske

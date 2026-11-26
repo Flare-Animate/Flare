@@ -67,7 +67,7 @@ pub fn add_layer(path: &Path, name: &str) -> Result<Value> {
         .context("document has no scene")?
         .id();
     let id = LayerId::new();
-    let layer = Layer::new(id, name, vec![])?.with_hold(true);
+    let layer = Layer::new(id, name, vec![])?;
     session.apply([Command::AddLayer { scene, layer }])?;
     commit(&session, path)?;
     Ok(json!({ "layer": id.as_uuid() }))

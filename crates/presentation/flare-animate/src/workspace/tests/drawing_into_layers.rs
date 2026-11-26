@@ -362,3 +362,56 @@ fn the_arrow_keys_nudge_the_selection_one_screen_pixel_at_a_time() {
     let bounds = ops::span_bounds(ws.document(), scene, at).expect("bounds");
     assert_eq!(bounds.min, Pos2::new(10.0, 10.0), "back where it was drawn");
 }
+
+#[test]
+fn a_new_layer_beside_a_long_one_takes_only_the_frame_drawn_on() {
+    let mut ws = blank_workspace();
+    let scene = ws.scene_id().expect("scene");
+    let long = layers(&ws)[0].id();
+    let span = FrameSpan::new(0, NonZeroU32::new(60).expect("nonzero"), Content::Empty);
+    ws.active_mut()
+        .apply([Command::InsertSpan {
+            scene,
+            layer: long,
+            span,
+        }])
+        .expect("insert");
+    ws.add_layer();
+    let added = ws.active_layer_id().expect("active");
+    rect(&mut ws);
+    let new = layers(&ws)
+        .iter()
+        .find(|l| l.id() == added)
+        .expect("new layer");
+    assert!(!new.is_hold(), "a new layer does not hold");
+    let spans: Vec<(u32, u32)> = new
+        .spans()
+        .iter()
+        .map(|s| (s.start(), s.duration().get()))
+        .collect();
+    assert_eq!(
+        spans,
+        vec![(0, 1)],
+        "frame 1 only, not the other layer's 60"
+    );
+    assert!(new.span_at(30).is_none());
+}
+
+#[test]
+fn the_layer_menu_hold_switch_keeps_a_drawing_on_show_and_is_one_undo_step() {
+    let mut ws = blank_workspace();
+    let layer = layers(&ws)[0].id();
+    rect(&mut ws);
+    assert!(layers(&ws)[0].span_at(10).is_none());
+    ws.toggle_layer_hold(layer);
+    assert!(layers(&ws)[0].is_hold());
+    assert!(
+        layers(&ws)[0].span_at(10).is_some(),
+        "held past its keyframe"
+    );
+    ws.undo();
+    assert!(!layers(&ws)[0].is_hold());
+    ws.toggle_layer_hold(layer);
+    ws.toggle_layer_hold(layer);
+    assert!(!layers(&ws)[0].is_hold(), "the switch turns it off again");
+}

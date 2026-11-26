@@ -114,7 +114,7 @@ fn a_tween_cannot_share_itself_so_drawing_inside_it_is_refused() {
 }
 
 #[test]
-fn a_new_layer_made_by_drawing_holds_and_a_blank_keyframe_ends_the_hold() {
+fn a_new_layer_made_by_drawing_does_not_hold_until_asked_and_a_blank_keyframe_ends_the_hold() {
     let mut f = fixture();
     f.session
         .apply([flare_commands::Command::RemoveLayer {
@@ -134,8 +134,17 @@ fn a_new_layer_made_by_drawing_holds_and_a_blank_keyframe_ends_the_hold() {
     .expect("draw");
     f.session.apply(plan.commands).expect("apply");
     let layer = &f.session.document().scenes()[0].timeline().layers()[0];
-    assert!(layer.is_hold());
-    assert!(layer.span_at(50).is_some(), "still on show long after");
+    assert!(!layer.is_hold());
+    assert!(layer.span_at(0).is_some());
+    assert!(
+        layer.span_at(1).is_none(),
+        "a keyframe shows for its own frames"
+    );
+    let layer = layer.clone().with_hold(true);
+    assert!(
+        layer.span_at(50).is_some(),
+        "held, still on show long after"
+    );
 
     let blank = flare_document::FrameSpan::new(5, NonZeroU32::MIN, Content::Empty);
     let ended = layer

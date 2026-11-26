@@ -41,6 +41,7 @@ msg-layer-opacity = 不透明度
 msg-layer-show-all = すべて表示
 msg-layer-lock-others = 他をロック
 msg-layer-hide-others = 他を非表示
+msg-layer-hold = 最後の絵を保持
 msg-layer-duplicate = レイヤーを複製
 msg-layer-to-symbol = レイヤーをシンボルに変換
 msg-layer-mask = マスク

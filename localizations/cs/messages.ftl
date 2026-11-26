@@ -46,6 +46,7 @@ msg-layer-opacity = Krytí
 msg-layer-show-all = Zobrazit vše
 msg-layer-lock-others = Zamknout ostatní
 msg-layer-hide-others = Skrýt ostatní
+msg-layer-hold = Podržet poslední kresbu
 msg-layer-duplicate = Duplikovat vrstvu
 msg-layer-to-symbol = Převést vrstvy na symbol
 msg-layer-mask = Maska

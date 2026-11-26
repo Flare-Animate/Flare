@@ -45,6 +45,7 @@ msg-layer-opacity = Opacity
 msg-layer-show-all = Show All
 msg-layer-lock-others = Lock Others
 msg-layer-hide-others = Hide Others
+msg-layer-hold = Hold Last Drawing
 msg-layer-duplicate = Duplicate Layer
 msg-layer-to-symbol = Convert Layers to Symbol
 msg-layer-mask = Mask

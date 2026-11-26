@@ -91,7 +91,7 @@ pub fn new(path: &Path, numerator: u32, denominator: u32, stage: Stage) -> Resul
     if path.exists() {
         bail!("{} already exists", path.display());
     }
-    let layer = Layer::new(LayerId::new(), "Layer 1", vec![])?.with_hold(true);
+    let layer = Layer::new(LayerId::new(), "Layer 1", vec![])?;
     let scene = Scene::new(SceneId::new(), "Scene 1", Timeline::new(vec![layer]));
     let rate = FrameRate::new(numerator, denominator)?;
     let document = Document::new(DocumentId::new(), rate, vec![scene], vec![])

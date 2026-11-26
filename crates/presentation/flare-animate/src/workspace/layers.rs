@@ -48,6 +48,15 @@ impl Workspace {
         self.validate_selection();
     }
 
+    /// Makes the layer keep its last drawing on show past its last keyframe, or stop doing so.
+    /// New layers do not hold, so a drawing stays on the frames its keyframe covers.
+    pub fn toggle_layer_hold(&mut self, layer: LayerId) {
+        let hold = !self.layer(layer).is_some_and(Layer::is_hold);
+        self.layer_edit("change the hold", layer, |document, scene, layer| {
+            layers::set_hold(document, scene, layer, hold)
+        });
+    }
+
     /// Asks `flare_commands::layers` for the commands that do `build` to `layer`, and runs them. A
     /// layer that is no longer there is not worth a message; any other refusal is shown.
     fn layer_edit(

@@ -41,6 +41,7 @@ msg-layer-opacity = 불투명도
 msg-layer-show-all = 모두 표시
 msg-layer-lock-others = 나머지 잠그기
 msg-layer-hide-others = 나머지 숨기기
+msg-layer-hold = 마지막 그림 유지
 msg-layer-duplicate = 레이어 복제
 msg-layer-to-symbol = 레이어를 심볼로 변환
 msg-layer-mask = 마스크

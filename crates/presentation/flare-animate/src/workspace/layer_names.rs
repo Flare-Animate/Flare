@@ -112,6 +112,23 @@ impl Workspace {
             self.hide_other_layers(layer);
             ui.close();
         }
+        // A folder, guide or camera shows no drawing of its own to hold.
+        let (draws, mut hold) = self.layer(layer).map_or((false, false), |l| {
+            (
+                !(l.is_folder() || l.is_guide() || l.is_camera()),
+                l.is_hold(),
+            )
+        });
+        if ui
+            .add_enabled(
+                draws,
+                egui::Checkbox::new(&mut hold, tr!(self, "msg-layer-hold")),
+            )
+            .clicked()
+        {
+            self.toggle_layer_hold(layer);
+            ui.close();
+        }
         ui.separator();
         if ui.button(tr!(self, "msg-layer-duplicate")).clicked() {
             self.duplicate_layer(layer);

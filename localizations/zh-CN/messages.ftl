@@ -41,6 +41,7 @@ msg-layer-opacity = 不透明度
 msg-layer-show-all = 全部显示
 msg-layer-lock-others = 锁定其他图层
 msg-layer-hide-others = 隐藏其他图层
+msg-layer-hold = 保留最后的画面
 msg-layer-duplicate = 复制图层
 msg-layer-to-symbol = 将图层转换为元件
 msg-layer-mask = 遮罩
