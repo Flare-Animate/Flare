@@ -18,7 +18,7 @@ priority is estimated against the roadmap above. Rows are ordered by priority, t
 
 | Issue | Priority | Size | Already built | Main gap |
 |---|---|---:|---|---|
-| [#11](https://github.com/Flare-Animate/Flare/issues/11) Custom toolbar | Medium | L | Built-in tools can be pinned, removed and saved in preferences | User-defined script actions, including the three JSFL workflows in the issue |
+| [#11](https://github.com/Flare-Animate/Flare/issues/11) Custom toolbar | Medium | L | Built-in tools can be pinned, removed and saved in preferences; the issue's three workflows are commands (Increment Instances, Add Instance to Symbol, Bake Transform) on every surface | User-defined script actions and command buttons on the toolbar |
 | [#25](https://github.com/Flare-Animate/Flare/issues/25) Editable vector brush | Medium | XL | Brush pressure profiles, nib settings and custom presets | Pencil strokes do not retain editable centerlines, pressure samples or width profiles |
 | [#49](https://github.com/Flare-Animate/Flare/issues/49) Rigging | Medium | XL | Bones drawn on the stage, keyed poses and IK goals in the Rigs panel, forward kinematics and bounded inverse kinematics | Weighted mesh deformation, node constraints, master controllers and auto-patching |
 | [#258](https://github.com/Flare-Animate/Flare/issues/258) Stick-figure tools (question) | Low | S | The Bone tool and Rigs panel pose a figure, and the Mannequin is a posable reference | No one-click rigged stickman or dedicated template; the issue needs an answer, not new code |

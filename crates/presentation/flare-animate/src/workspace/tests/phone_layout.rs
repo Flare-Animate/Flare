@@ -49,6 +49,31 @@ fn a_phone_draws_with_no_control_or_text_past_its_right_edge() {
 }
 
 #[test]
+fn pinching_the_stage_zooms_about_the_fingers() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    flare_ui::icons::install(&ctx);
+    ws.set_touch(true);
+    let mut time = 0.0;
+    for _ in 0..3 {
+        pass_at(&mut ws, &ctx, &mut time, PHONE, vec![]);
+    }
+    let before = ws.stage_view.scale(ws.stage_panel, ws.stage_extent());
+    let fingers = ws.stage_panel.center();
+    pass_at(
+        &mut ws,
+        &ctx,
+        &mut time,
+        PHONE,
+        vec![Event::PointerMoved(fingers), Event::Zoom(1.5)],
+    );
+    let after = ws.stage_view.scale(ws.stage_panel, ws.stage_extent());
+    assert!(
+        after > before * 1.1,
+        "a pinch zoomed the stage: {before} -> {after}"
+    );
+}
+
+#[test]
 fn a_window_widened_from_a_phone_gets_its_panels_back() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);
