@@ -75,7 +75,9 @@ pub struct Parts {
     pub records: Vec<Record>,
 }
 
-fn limit_of(kind: &str) -> usize {
+/// The most a record of `kind` may hold once unpacked. Loading refuses a bigger one, so saving
+/// checks the same number: a project that saves always opens.
+pub(crate) fn limit_of(kind: &str) -> usize {
     match kind {
         "sound" => MAX_SOUND_PAYLOAD_BYTES,
         "bitmap" => wire::MAX_BITMAP_RECORD_BYTES,
@@ -86,12 +88,55 @@ fn limit_of(kind: &str) -> usize {
     }
 }
 
+/// An error when a record of `kind` that unpacks to `size` bytes is more than loading takes.
+#[cfg(test)]
+pub(crate) fn fits(kind: &str, size: usize) -> Result<(), StorageError> {
+    fits_within(kind, size, limit_of)
+}
+
+fn fits_within(kind: &str, size: usize, limit_of: fn(&str) -> usize) -> Result<(), StorageError> {
+    let limit = limit_of(kind);
+    if size > limit {
+        return Err(StorageError::TooLarge {
+            what: what_is(kind),
+            size,
+            limit,
+        });
+    }
+    Ok(())
+}
+
+/// What a record of `kind` holds, as a person would call it.
+fn what_is(kind: &str) -> &'static str {
+    match kind {
+        "scene" => "a scene's drawings and timeline",
+        "symbol" => "a symbol",
+        "bitmap" => "a bitmap",
+        "sound" => "a sound",
+        "attachment" => "an attachment",
+        "origin" => "the original file kept with the project",
+        "game" => "the game description",
+        "shader" => "a shader",
+        _ => "a part of the project",
+    }
+}
+
 /// `document` as rows, compressed with `zstd`.
 pub fn to_parts(document: &Document, zstd: &mut dyn Zstd) -> Result<Parts, StorageError> {
+    to_parts_within(document, zstd, limit_of)
+}
+
+/// [`to_parts`] with the limits given, so a test can reach them without a huge document.
+pub(crate) fn to_parts_within(
+    document: &Document,
+    zstd: &mut dyn Zstd,
+    limit_of: fn(&str) -> usize,
+) -> Result<Parts, StorageError> {
     let settings = serde_json::to_string(&wire::Settings::of(document))?;
     let mut packer = Packer::new(zstd);
     let mut records = Vec::new();
     let mut put = |id: String, kind: &str, ordinal: i64, raw: &[u8]| -> Result<(), StorageError> {
+        fits_within(kind, raw.len(), limit_of)?;
         let stored = packer.pack(raw)?;
         records.push(Record {
             id,

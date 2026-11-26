@@ -59,6 +59,17 @@ pub enum StorageError {
     UnsupportedVersion(i64),
     #[error("project exceeds a safety limit: {0}")]
     Limit(&'static str),
+    /// Saving refused a record that loading would refuse: nothing was written.
+    #[error(
+        "{what} takes {} MB, more than a project can hold ({} MB), so nothing was saved",
+        size.div_ceil(1 << 20),
+        limit >> 20
+    )]
+    TooLarge {
+        what: &'static str,
+        size: usize,
+        limit: usize,
+    },
     #[error("corrupt project: {0}")]
     Corrupt(String),
     #[error(transparent)]

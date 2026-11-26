@@ -238,7 +238,8 @@ project `flare-cli` made and write one back, and has the desktop's code read tha
 - Load treats the file as untrusted: defensive SQLite settings, schema trust off, a version check
   that refuses other versions, the entity count limited, each record's digest checked before it is
   decoded, its stated size limited before anything is allocated (256 MiB for one record: far
-  above what drawing produces, and a bound all the same) and the
+  above what drawing produces, and a bound all the same; save checks the same limits first and
+  refuses, naming the part that is too large, rather than write a file that would not open) and the
   decompressor held to that
   size and to the window the writer uses (so a record cannot be a decompression bomb), CBOR
   nesting limited, and full revalidation through the document's constructors.
