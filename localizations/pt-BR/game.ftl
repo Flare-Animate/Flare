@@ -10,8 +10,10 @@ game-fields = campos nome=valor, como mass=2
 game-set-component = Definir componente
 game-remove-component = Remover componente
 game-frames = Quadros a executar
+game-script-label = Entrada por roteiro
+game-script = um quadro por ;, como right; vazio para nenhum
 game-run = Executar
 game-ran = { $frames } quadros executados: { $events } eventos, estado { $digest }
 game-cannot = O jogo não pode fazer isso: { $error }
-game-note = O jogo roda aqui sem entrada. Entrada por roteiro, sprites do jogo e exportação estão em `flare game` e no servidor MCP.
+game-note = O jogo roda aqui com a entrada por roteiro acima. Os sprites e a exportação estão em `flare game` e no servidor MCP.
 hist-edit-game = Editar o jogo

@@ -10,8 +10,10 @@ game-fields = поля имя=значение, например mass=2
 game-set-component = Задать компонент
 game-remove-component = Удалить компонент
 game-frames = Число кадров
+game-script-label = Скриптовый ввод
+game-script = один кадр на ;, например right; пусто — без ввода
 game-run = Запустить
 game-ran = Выполнено кадров: { $frames }, событий: { $events }, состояние { $digest }
 game-cannot = Игра не может этого сделать: { $error }
-game-note = Здесь игра запускается без ввода. Скриптовый ввод, спрайты игры и экспорт есть в `flare game` и на сервере MCP.
+game-note = Игра запускается здесь с вводом из скрипта выше. Спрайты и экспорт — в `flare game` и на сервере MCP.
 hist-edit-game = Изменить игру

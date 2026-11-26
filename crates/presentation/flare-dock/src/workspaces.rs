@@ -26,16 +26,19 @@ pub enum Preset {
     Designer,
     /// The timeline above the stage and most panels in the strip, as Flash had them.
     Classic,
+    /// The Game panel with Library and Assets over Properties, for game work.
+    Game,
     /// Every panel in one stack on the right and nothing in the strip, for a small display.
     SmallScreen,
 }
 
 impl Preset {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Essentials,
         Self::Animator,
         Self::Designer,
         Self::Classic,
+        Self::Game,
         Self::SmallScreen,
     ];
 
@@ -46,6 +49,7 @@ impl Preset {
             Self::Animator => "workspace-animator",
             Self::Designer => "workspace-designer",
             Self::Classic => "workspace-classic",
+            Self::Game => "workspace-game",
             Self::SmallScreen => "workspace-small-screen",
         }
     }
@@ -57,6 +61,7 @@ impl Preset {
             Self::Animator => "Animator",
             Self::Designer => "Designer",
             Self::Classic => "Classic",
+            Self::Game => "Game",
             Self::SmallScreen => "Small Screen",
         }
     }
@@ -87,6 +92,14 @@ impl Preset {
                 timeline_on_top: true,
                 left: &[],
                 right: &[&[P::Properties, P::Assets]],
+            }),
+            Self::Game => arrange::arrange(&Plan {
+                timeline_on_top: false,
+                left: &[],
+                right: &[
+                    &[P::Game, P::Library, P::Assets],
+                    &[P::Properties, P::Transform, P::Info],
+                ],
             }),
             Self::SmallScreen => arrange::arrange(&Plan {
                 timeline_on_top: false,

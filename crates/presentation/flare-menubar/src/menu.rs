@@ -300,6 +300,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Action(A::WorkspaceAnimator),
                     Action(A::WorkspaceDesigner),
                     Action(A::WorkspaceClassic),
+                    Action(A::WorkspaceGame),
                     Action(A::WorkspaceSmallScreen),
                 ],
             ),

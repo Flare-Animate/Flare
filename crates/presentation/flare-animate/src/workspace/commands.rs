@@ -174,6 +174,7 @@ impl Workspace {
             | MenuAction::WorkspaceAnimator
             | MenuAction::WorkspaceDesigner
             | MenuAction::WorkspaceClassic
+            | MenuAction::WorkspaceGame
             | MenuAction::WorkspaceSmallScreen => true,
             MenuAction::TextBold
             | MenuAction::TextItalic
@@ -396,6 +397,7 @@ impl Workspace {
             MenuAction::WorkspaceAnimator => self.switch_preset(Preset::Animator),
             MenuAction::WorkspaceDesigner => self.switch_preset(Preset::Designer),
             MenuAction::WorkspaceClassic => self.switch_preset(Preset::Classic),
+            MenuAction::WorkspaceGame => self.switch_preset(Preset::Game),
             MenuAction::WorkspaceSmallScreen => self.switch_preset(Preset::SmallScreen),
             MenuAction::NewSymbol => self.open_new_symbol_dialog(),
             MenuAction::TextBold => self.text.bold = !self.text.bold,

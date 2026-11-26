@@ -10,8 +10,10 @@ game-fields = name=value fields, such as mass=2
 game-set-component = Set component
 game-remove-component = Remove component
 game-frames = Frames to run
+game-script-label = Scripted input
+game-script = one frame per ; such as right; empty for none
 game-run = Run
 game-ran = Ran { $frames } frames: { $events } events, state { $digest }
 game-cannot = The game cannot do that: { $error }
-game-note = The game runs here without input. Scripted input, the game's sprites and its export are in `flare game` and the MCP server.
+game-note = The game runs here with the scripted input above. The sprites and the export are in `flare game` and the MCP server.
 hist-edit-game = Edit the game

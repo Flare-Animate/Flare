@@ -163,6 +163,7 @@ menu-item-workspace-essentials = Grundlagen
 menu-item-workspace-animator = Animator
 menu-item-workspace-designer = Designer
 menu-item-workspace-classic = Klassisch
+menu-item-workspace-game = Spiel
 menu-item-workspace-small-screen = Kleiner Bildschirm
 menu-item-command-palette = Befehl suchen…
 menu-item-show-swatches = Farbfelder

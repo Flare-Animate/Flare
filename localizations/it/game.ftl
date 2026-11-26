@@ -10,8 +10,10 @@ game-fields = campi nome=valore, come mass=2
 game-set-component = Imposta componente
 game-remove-component = Rimuovi componente
 game-frames = Fotogrammi da eseguire
+game-script-label = Input da script
+game-script = un fotogramma per ;, ad esempio right; vuoto per nessuno
 game-run = Esegui
 game-ran = Eseguiti { $frames } fotogrammi: { $events } eventi, stato { $digest }
 game-cannot = Il gioco non può farlo: { $error }
-game-note = Il gioco qui gira senza input. Input da script, sprite del gioco ed esportazione sono in `flare game` e nel server MCP.
+game-note = Il gioco qui gira con l'input da script sopra. Gli sprite e l'esportazione sono in `flare game` e nel server MCP.
 hist-edit-game = Modifica il gioco

@@ -20,6 +20,7 @@ workspace-essentials = Основные
 workspace-animator = Аниматор
 workspace-designer = Дизайнер
 workspace-classic = Классический
+workspace-game = Игра
 workspace-small-screen = Маленький экран
 workspace-new = Новая рабочая среда
 workspace-save = Сохранить рабочую среду

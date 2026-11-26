@@ -10,8 +10,10 @@ game-fields = pole název=hodnota, např. mass=2
 game-set-component = Nastavit komponentu
 game-remove-component = Odebrat komponentu
 game-frames = Počet snímků
+game-script-label = Skriptovaný vstup
+game-script = jeden snímek na ;, například right; prázdné pro žádný
 game-run = Spustit
 game-ran = Proběhlo { $frames } snímků: { $events } událostí, stav { $digest }
 game-cannot = Hra to nedokáže: { $error }
-game-note = Hra se tu spouští bez vstupu. Skriptovaný vstup, spritey hry a její export jsou v `flare game` a na serveru MCP.
+game-note = Hra se zde spouští se skriptovaným vstupem výše. Spritey a export jsou v `flare game` a na serveru MCP.
 hist-edit-game = Upravit hru
