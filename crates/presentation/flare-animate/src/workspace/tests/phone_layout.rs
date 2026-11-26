@@ -74,6 +74,35 @@ fn pinching_the_stage_zooms_about_the_fingers() {
 }
 
 #[test]
+fn a_phone_home_puts_its_actions_on_a_header_and_the_projects_below() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    flare_ui::icons::install(&ctx);
+    ws.set_touch(true);
+    ws.set_home(true);
+    let mut time = 0.0;
+    let mut texts = Vec::new();
+    for _ in 0..4 {
+        texts = pass_at(&mut ws, &ctx, &mut time, PHONE, vec![]);
+    }
+    let title = ws.tr("start-create-new");
+    let (_, rect) = texts
+        .iter()
+        .find(|(text, _)| *text == title)
+        .expect("the projects draw on a phone");
+    assert!(
+        rect.left() < 100.0,
+        "the projects use the phone's width: {rect:?}"
+    );
+    let edge = screen(PHONE).right();
+    for (text, bounds) in &texts {
+        assert!(
+            bounds.right() <= edge + 0.5,
+            "“{text}” runs past the right edge of a phone: {bounds:?}"
+        );
+    }
+}
+
+#[test]
 fn a_window_widened_from_a_phone_gets_its_panels_back() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);

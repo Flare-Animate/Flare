@@ -619,7 +619,7 @@ the rows, because one slip there forgets every project. The time reads as how lo
 ago", then days, months and years), never a date, so it is the same in every time zone; a file that
 is gone says "Not found". The files are read on a thread of their own, so a slow drive never
 stalls the page, and a row says "Reading…" until the answer is in. The presets are Flare's own, not Animate's. Choosing a card, New File,
-Open or Import leaves Home; a new project over an untouched document replaces it instead of adding a tab.
+Open or Import leaves Home; a new project over an untouched document replaces it instead of adding a tab. On a phone (a touch window narrower than 600 points) the sidebar becomes a band across the top: the icon, name and version, with New File and Open side by side under them, and the projects run the window's full width.
 
 The top bar's right end holds, from the left, Publish (an arrow up out of a tray, as Animate has a Publish button there), Play, Undo, Redo and the settings gear (Preferences), which is the rightmost button of the top bar, in the same corner on Home and in the editor. Preferences opens as a dialog in the middle of the window over a dimmed backdrop, like PaintCraft's. It has an X at the top right and Close at the bottom right, and Escape or a click outside closes it; Restore defaults, red, is at the bottom left. Its categories (General, Stage, Timeline and drawing, Recent projects) each have a bold heading with a picture, and the controls sit in a box inset below the dialog's own color, so a category reads as a block; they are not tabs.
 
