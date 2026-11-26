@@ -315,6 +315,7 @@ impl MenuAction {
             Self::WorkspaceAnimator => "menu-item-workspace-animator",
             Self::WorkspaceDesigner => "menu-item-workspace-designer",
             Self::WorkspaceClassic => "menu-item-workspace-classic",
+            Self::WorkspaceGame => "menu-item-workspace-game",
             Self::WorkspaceSmallScreen => "menu-item-workspace-small-screen",
             Self::CommandPalette => "menu-item-command-palette",
             Self::ShowSwatches => "menu-item-show-swatches",

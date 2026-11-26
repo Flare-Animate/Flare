@@ -10,8 +10,10 @@ game-fields = campos nombre=valor, como mass=2
 game-set-component = Fijar componente
 game-remove-component = Quitar componente
 game-frames = Fotogramas a ejecutar
+game-script-label = Entrada con guion
+game-script = un fotograma por ;, por ejemplo right; vacío para ninguna
 game-run = Ejecutar
 game-ran = Se ejecutaron { $frames } fotogramas: { $events } eventos, estado { $digest }
 game-cannot = El juego no puede hacerlo: { $error }
-game-note = El juego se ejecuta aquí sin entrada. La entrada con guion, los sprites del juego y su exportación están en `flare game` y en el servidor MCP.
+game-note = El juego se ejecuta aquí con la entrada con guion de arriba. Los sprites y la exportación están en `flare game` y en el servidor MCP.
 hist-edit-game = Editar el juego

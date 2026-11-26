@@ -10,8 +10,10 @@ game-fields = name=value のフィールド（例: mass=2）
 game-set-component = コンポーネントを設定
 game-remove-component = コンポーネントを削除
 game-frames = 実行するフレーム数
+game-script-label = スクリプト入力
+game-script = ; ごとに1フレーム、例: right。空なら入力なし
 game-run = 実行
 game-ran = { $frames } フレームを実行: イベント { $events } 件、状態 { $digest }
 game-cannot = ゲームでは実行できません: { $error }
-game-note = ここでは入力なしでゲームを実行します。スクリプト入力、ゲームのスプライト、書き出しは `flare game` と MCP サーバーにあります。
+game-note = ゲームは上のスクリプト入力でここで実行されます。スプライトとエクスポートは `flare game` と MCP サーバーにあります。
 hist-edit-game = ゲームを編集

@@ -152,6 +152,7 @@ impl MenuAction {
             | Self::WorkspaceAnimator
             | Self::WorkspaceDesigner
             | Self::WorkspaceClassic
+            | Self::WorkspaceGame
             | Self::WorkspaceSmallScreen => "interface",
             Self::CommandPalette => "search",
             Self::ShowSwatches => "panel-swatches",

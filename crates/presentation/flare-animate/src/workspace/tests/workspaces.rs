@@ -34,6 +34,7 @@ fn the_window_menu_switches_workspace_and_each_keeps_its_own_changes() {
         MenuAction::WorkspaceAnimator,
         MenuAction::WorkspaceDesigner,
         MenuAction::WorkspaceClassic,
+        MenuAction::WorkspaceGame,
         MenuAction::WorkspaceSmallScreen,
     ] {
         assert!(ws.is_enabled(action));

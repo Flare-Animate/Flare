@@ -10,8 +10,10 @@ game-fields = name=value 필드, 예: mass=2
 game-set-component = 컴포넌트 설정
 game-remove-component = 컴포넌트 제거
 game-frames = 실행할 프레임
+game-script-label = 스크립트 입력
+game-script = ;마다 한 프레임, 예: right. 비우면 입력 없음
 game-run = 실행
 game-ran = { $frames }프레임 실행: 이벤트 { $events }개, 상태 { $digest }
 game-cannot = 게임에서 할 수 없습니다: { $error }
-game-note = 여기서는 입력 없이 게임을 실행합니다. 스크립트 입력, 게임 스프라이트, 내보내기는 `flare game`과 MCP 서버에 있습니다.
+game-note = 게임은 위의 스크립트 입력으로 여기서 실행됩니다. 스프라이트와 내보내기는 `flare game`과 MCP 서버에 있습니다.
 hist-edit-game = 게임 편집

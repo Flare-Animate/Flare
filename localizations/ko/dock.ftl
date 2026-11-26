@@ -20,6 +20,7 @@ workspace-essentials = 필수
 workspace-animator = 애니메이터
 workspace-designer = 디자이너
 workspace-classic = 클래식
+workspace-game = 게임
 workspace-small-screen = 작은 화면
 workspace-new = 새 작업 영역
 workspace-save = 작업 영역 저장

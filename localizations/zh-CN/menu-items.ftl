@@ -160,6 +160,7 @@ menu-item-workspace-essentials = 基本功能
 menu-item-workspace-animator = 动画
 menu-item-workspace-designer = 设计人员
 menu-item-workspace-classic = 传统
+menu-item-workspace-game = 游戏
 menu-item-workspace-small-screen = 小屏幕
 menu-item-command-palette = 查找命令…
 menu-item-show-swatches = 色板

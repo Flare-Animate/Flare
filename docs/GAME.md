@@ -10,10 +10,10 @@ point; this page says what was ported, what it does now, and what is still open.
 ## Status
 
 Built: the world, the nine systems, trigger zones, declarative hooks, named input actions,
-scripted runs, the description's commands and storage, the `flare game` commands, the MCP tools
+scripted runs, the description's commands and storage, the `flare game` commands, the MCP tools,
 the game export, and the Game panel (Window > Game) on the desktop and in the browser: gravity,
-entities, components and a run. Not yet: scripted input, the entities drawn, and the export in the
-panel (a gap recorded in [SURFACES.md](SURFACES.md)).
+entities, components, a Game workspace and a run under a scripted input. Not yet: the entities
+drawn, and the export in the panel (a gap recorded in [SURFACES.md](SURFACES.md)).
 
 ## The model
 

@@ -20,6 +20,7 @@ workspace-essentials = 基本功能
 workspace-animator = 动画
 workspace-designer = 设计人员
 workspace-classic = 传统
+workspace-game = 游戏
 workspace-small-screen = 小屏幕
 workspace-new = 新建工作区
 workspace-save = 保存工作区
