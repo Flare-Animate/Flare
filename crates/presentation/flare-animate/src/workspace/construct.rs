@@ -28,6 +28,8 @@ impl Workspace {
             library: symbols::LibraryState::default(),
             shaders: panels::shaders::ShaderPanel::default(),
             game: panels::game::GamePanel::default(),
+            rigs: panels::rigs::RigPanel::default(),
+            stop_motion: panels::stop_motion::StopMotionPanel::default(),
             importing: None,
             importing_into: None,
             reverting: None,

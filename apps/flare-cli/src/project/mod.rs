@@ -10,6 +10,7 @@ use serde_json::{Value, json};
 use std::num::NonZeroU32;
 use std::path::Path;
 
+mod bend_edge;
 mod blend;
 mod bones;
 mod brush_stroke;
@@ -28,6 +29,7 @@ mod text;
 mod timeline;
 mod to_bitmap;
 
+pub use bend_edge::{BendEdgeRequest, bend_edge};
 pub use blend::{
     BlendArgs, RasterBrushArgs, RasterEraseArgs, blend_stroke, raster_brush, raster_erase,
 };
@@ -161,17 +163,8 @@ pub fn info(path: &Path) -> Result<Value> {
 
 /// `#RRGGBB` or `#RRGGBBAA` (the `#` is optional).
 pub fn parse_color(text: &str) -> Result<Rgba8> {
-    let hex = text.trim_start_matches('#');
-    let byte = |i: usize| {
-        hex.get(i..i + 2)
-            .and_then(|pair| u8::from_str_radix(pair, 16).ok())
-            .with_context(|| format!("bad color {text:?}, expected RRGGBB or RRGGBBAA"))
-    };
-    match hex.len() {
-        6 => Ok(Rgba8::opaque(byte(0)?, byte(2)?, byte(4)?)),
-        8 => Ok(Rgba8::new(byte(0)?, byte(2)?, byte(4)?, byte(6)?)),
-        _ => bail!("bad color {text:?}, expected RRGGBB or RRGGBBAA"),
-    }
+    Rgba8::from_hex(text)
+        .with_context(|| format!("bad color {text:?}, expected RRGGBB or RRGGBBAA"))
 }
 
 /// Fill, and optionally an outline of (width, color), for a rectangle.

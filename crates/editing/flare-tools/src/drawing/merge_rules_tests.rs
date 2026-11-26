@@ -73,8 +73,8 @@ fn fills_at(elements: &[Content], x: f64, y: f64) -> usize {
 
 #[test]
 fn a_fill_cuts_away_the_part_of_another_colour_it_covers() {
-    let first = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]);
-    let both = merge_into(first.elements, vec![square(50.0, 50.0, 100.0, BLUE)]);
+    let first = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]).expect("merged");
+    let both = merge_into(first.elements, vec![square(50.0, 50.0, 100.0, BLUE)]).expect("merged");
     assert_eq!(both.elements.len(), 2);
     assert_eq!(top_at(&both.elements, 25.0, 25.0), Some(RED), "red left");
     assert_eq!(top_at(&both.elements, 75.0, 75.0), Some(BLUE));
@@ -88,8 +88,8 @@ fn a_fill_cuts_away_the_part_of_another_colour_it_covers() {
 
 #[test]
 fn a_fill_of_the_same_colour_that_overlaps_joins_into_one() {
-    let first = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]);
-    let both = merge_into(first.elements, vec![square(50.0, 50.0, 100.0, RED)]);
+    let first = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]).expect("merged");
+    let both = merge_into(first.elements, vec![square(50.0, 50.0, 100.0, RED)]).expect("merged");
     assert_eq!(both.elements.len(), 1, "one fill");
     assert_eq!(both.placed, vec![0]);
     let Content::Shape(one) = &both.elements[0] else {
@@ -102,8 +102,8 @@ fn a_fill_of_the_same_colour_that_overlaps_joins_into_one() {
 
 #[test]
 fn fills_of_the_same_colour_apart_stay_two() {
-    let first = merge_into(Vec::new(), vec![square(0.0, 0.0, 10.0, RED)]);
-    let both = merge_into(first.elements, vec![square(50.0, 0.0, 10.0, RED)]);
+    let first = merge_into(Vec::new(), vec![square(0.0, 0.0, 10.0, RED)]).expect("merged");
+    let both = merge_into(first.elements, vec![square(50.0, 0.0, 10.0, RED)]).expect("merged");
     assert_eq!(both.elements.len(), 2);
 }
 
@@ -111,7 +111,7 @@ fn fills_of_the_same_colour_apart_stay_two() {
 fn a_shape_with_a_line_becomes_a_fill_and_a_line() {
     let shape = square(0.0, 0.0, 50.0, RED).with_stroke(Stroke::new(3.0, BLACK).expect("stroke"));
     let id = shape.id();
-    let drawn = merge_into(Vec::new(), vec![shape]);
+    let drawn = merge_into(Vec::new(), vec![shape]).expect("merged");
     let pieces = merged(&drawn.elements);
     assert_eq!(pieces.len(), 2);
     assert_eq!(drawn.placed, vec![0, 1]);
@@ -123,8 +123,8 @@ fn a_shape_with_a_line_becomes_a_fill_and_a_line() {
 
 #[test]
 fn a_fill_cuts_the_line_under_it_and_a_line_cuts_nothing() {
-    let under = merge_into(Vec::new(), vec![line((0.0, 50.0), (200.0, 50.0))]);
-    let over = merge_into(under.elements, vec![square(50.0, 0.0, 100.0, RED)]);
+    let under = merge_into(Vec::new(), vec![line((0.0, 50.0), (200.0, 50.0))]).expect("merged");
+    let over = merge_into(under.elements, vec![square(50.0, 0.0, 100.0, RED)]).expect("merged");
     let lines: Vec<_> = merged(&over.elements)
         .into_iter()
         .filter(|s| s.stroke().is_some())
@@ -138,11 +138,12 @@ fn a_fill_cuts_the_line_under_it_and_a_line_cuts_nothing() {
     });
     assert!(!inside, "nothing of the line is left under the fill");
 
-    let fill = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]);
+    let fill = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]).expect("merged");
     let Content::Shape(before) = fill.elements[0].clone() else {
         panic!("a shape");
     };
-    let crossed = merge_into(fill.elements, vec![line((-10.0, 50.0), (110.0, 50.0))]);
+    let crossed =
+        merge_into(fill.elements, vec![line((-10.0, 50.0), (110.0, 50.0))]).expect("merged");
     assert_eq!(crossed.elements[0], Content::Shape(before), "untouched");
     assert_eq!(crossed.placed, vec![1]);
 }
@@ -150,7 +151,8 @@ fn a_fill_cuts_the_line_under_it_and_a_line_cuts_nothing() {
 #[test]
 fn drawing_objects_are_never_cut_and_stay_above_the_merged_drawing() {
     let object = Content::Shape(object(0.0, 0.0, 100.0, RED));
-    let drawn = merge_into(vec![object.clone()], vec![square(50.0, 50.0, 100.0, BLUE)]);
+    let drawn =
+        merge_into(vec![object.clone()], vec![square(50.0, 50.0, 100.0, BLUE)]).expect("merged");
     assert_eq!(drawn.elements.len(), 2);
     assert_eq!(drawn.elements[1], object, "the object, whole and on top");
     assert_eq!(drawn.placed, vec![0], "the merged drawing goes beneath it");
@@ -166,11 +168,12 @@ fn a_gradient_never_joins_a_fill_of_its_colour() {
         BLUE,
     )
     .expect("gradient");
-    let first = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]);
+    let first = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]).expect("merged");
     let both = merge_into(
         first.elements,
         vec![square(50.0, 50.0, 100.0, RED).with_gradient(gradient)],
-    );
+    )
+    .expect("merged");
     assert_eq!(both.elements.len(), 2, "cut, not joined");
     assert_eq!(fills_at(&both.elements, 75.0, 75.0), 1);
 }
@@ -186,9 +189,9 @@ fn text_stays_a_drawing_object() {
         flare_core::DocumentPoint::new(10.0, 10.0).expect("point"),
     )
     .expect("text");
-    let fill = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]);
+    let fill = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]).expect("merged");
     let text = square(0.0, 0.0, 100.0, BLUE).with_text(source);
-    let drawn = merge_into(fill.elements, vec![text]);
+    let drawn = merge_into(fill.elements, vec![text]).expect("merged");
     assert_eq!(drawn.elements.len(), 2);
     assert_eq!(fills_at(&drawn.elements, 50.0, 50.0), 1, "nothing was cut");
     let Content::Shape(text) = &drawn.elements[1] else {
@@ -200,18 +203,20 @@ fn text_stays_a_drawing_object() {
 
 #[test]
 fn an_empty_keyframe_takes_the_drawing_as_it_is() {
-    let drawn = merge_into(vec![Content::Empty], vec![square(0.0, 0.0, 10.0, RED)]);
+    let drawn =
+        merge_into(vec![Content::Empty], vec![square(0.0, 0.0, 10.0, RED)]).expect("merged");
     assert_eq!(drawn.elements.len(), 1);
     assert_eq!(drawn.placed, vec![0]);
 }
 
 #[test]
 fn a_drawing_object_drawn_with_merged_shapes_stays_an_object() {
-    let under = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]);
+    let under = merge_into(Vec::new(), vec![square(0.0, 0.0, 100.0, RED)]).expect("merged");
     let drawn = merge_into(
         under.elements,
         vec![object(50.0, 50.0, 100.0, RED), square(50.0, 0.0, 20.0, RED)],
-    );
+    )
+    .expect("merged");
     let Some(Content::Shape(top)) = drawn.elements.last() else {
         panic!("a shape");
     };

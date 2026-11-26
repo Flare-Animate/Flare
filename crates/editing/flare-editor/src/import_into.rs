@@ -63,6 +63,8 @@ pub enum ImportNote {
     SoundsNotPlaced(usize),
     /// Shader graphs the file carried were not brought in.
     ShadersLeftOut(usize),
+    /// Rigs the file carried were not brought in.
+    RigsLeftOut(usize),
     /// A symbol was renamed, as the library already had its name: from, to.
     Renamed(String, String),
 }
@@ -83,6 +85,7 @@ impl std::fmt::Display for ImportNote {
             Self::ShadersLeftOut(n) => {
                 write!(f, "{n} shader graph(s) in the file were not imported")
             }
+            Self::RigsLeftOut(n) => write!(f, "{n} rig(s) in the file were not imported"),
             Self::Renamed(from, to) => write!(f, "symbol \"{from}\" was imported as \"{to}\""),
         }
     }
@@ -119,6 +122,9 @@ pub fn import_into(
     }
     if !source.shader_assets().is_empty() {
         notes.push(ImportNote::ShadersLeftOut(source.shader_assets().len()));
+    }
+    if !source.rig_assets().is_empty() {
+        notes.push(ImportNote::RigsLeftOut(source.rig_assets().len()));
     }
     let place = match destination {
         Destination::Library => None,

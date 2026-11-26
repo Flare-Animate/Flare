@@ -33,6 +33,8 @@ pub enum ConvertRefusal {
     NameTaken,
     #[error("the camera's layer belongs to the scene and cannot go into a symbol")]
     Camera,
+    #[error("a reference layer shows on the stage only, so it cannot go into a symbol")]
+    Reference,
     #[error("a layer of bones cannot go into a symbol yet")]
     Armature,
     #[error("the layers have no frames to put in a symbol")]
@@ -89,6 +91,9 @@ pub fn convert_layers_to_symbol(
     for l in &moved {
         if l.is_camera() {
             return Err(ConvertRefusal::Camera);
+        }
+        if l.is_reference() {
+            return Err(ConvertRefusal::Reference);
         }
         if l.spans()
             .iter()

@@ -145,3 +145,15 @@ mod labels {
         assert_eq!(MenuAction::Preferences.label(&on), "Preferences...");
     }
 }
+
+#[test]
+fn show_grid_has_animates_ctrl_alt_g() {
+    assert_eq!(MenuAction::ToggleGrid.shortcut(), Some("CmdOrCtrl+Alt+G"));
+    assert_eq!(
+        MenuAction::ToggleGrid
+            .shortcut_text()
+            .as_deref()
+            .map(|t| t.ends_with("G")),
+        Some(true)
+    );
+}

@@ -25,8 +25,12 @@ pub const BITMAP_SCHEMA_VERSION: i64 = 2;
 pub const GAME_SCHEMA_VERSION: i64 = 4;
 /// Written by a project containing shader graphs; older readers refuse it instead of discarding them.
 pub const SHADER_SCHEMA_VERSION: i64 = 5;
+/// Written by a project containing rigs, for the same reason.
+pub const RIG_SCHEMA_VERSION: i64 = 6;
+/// Written by a project holding a stop-motion session, for the same reason.
+pub const STOP_MOTION_SCHEMA_VERSION: i64 = 7;
 /// Written by a project with a bitmap kept as a photo (a JPEG); older readers refuse it by name.
-pub const PHOTO_SCHEMA_VERSION: i64 = 6;
+pub const PHOTO_SCHEMA_VERSION: i64 = 8;
 
 /// The tables of a project file, the same for the desktop app and the browser (which gets them
 /// from here, so the two cannot drift apart).
@@ -39,7 +43,7 @@ CREATE TABLE project (
 ) STRICT;
 CREATE TABLE entity (
     id TEXT PRIMARY KEY,
-    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'photo', 'origin', 'game', 'shader')),
+    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'photo', 'origin', 'game', 'shader', 'rig', 'stopmotion')),
     ordinal INTEGER NOT NULL,
     payload_version INTEGER NOT NULL CHECK (payload_version > 0),
     codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
@@ -57,6 +61,8 @@ pub fn check_schema_version(version: i64) -> Result<(), StorageError> {
         | BITMAP_SCHEMA_VERSION
         | GAME_SCHEMA_VERSION
         | SHADER_SCHEMA_VERSION
+        | RIG_SCHEMA_VERSION
+        | STOP_MOTION_SCHEMA_VERSION
         | PHOTO_SCHEMA_VERSION => Ok(()),
         other => Err(StorageError::UnsupportedVersion(other)),
     }
@@ -67,6 +73,10 @@ impl Parts {
     pub fn schema_version(&self) -> i64 {
         if self.records.iter().any(|r| r.kind == "photo") {
             PHOTO_SCHEMA_VERSION
+        } else if self.records.iter().any(|r| r.kind == "stopmotion") {
+            STOP_MOTION_SCHEMA_VERSION
+        } else if self.records.iter().any(|r| r.kind == "rig") {
+            RIG_SCHEMA_VERSION
         } else if self.records.iter().any(|r| r.kind == "shader") {
             SHADER_SCHEMA_VERSION
         } else if self.records.iter().any(|r| r.kind == "game") {
@@ -87,12 +97,15 @@ pub const MAX_PAYLOAD_BYTES: usize = 256 * 1024 * 1024;
 /// The most a sound record may be: the largest sound file, and its fields.
 pub const MAX_SOUND_PAYLOAD_BYTES: usize = flare_document::MAX_SOUND_BYTES + 64 * 1024 + 4;
 pub const MAX_SHADER_PAYLOAD_BYTES: usize = 1024 * 1024;
+/// A session of 10 000 frames is at most this many bytes of CBOR.
+pub const MAX_STOP_MOTION_RECORD_BYTES: usize = 1024 * 1024;
+pub const MAX_RIG_RECORD_BYTES: usize = flare_document::MAX_RIG_PAYLOAD_BYTES + 1024;
 
 /// One stored record, as its row holds it.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Record {
     pub id: String,
-    /// `scene`, `symbol`, `attachment`, `sound`, `bitmap`, `origin`, `game` or `shader`.
+    /// `scene`, `symbol`, `attachment`, `sound`, `bitmap`, `photo`, `origin`, `game`, `shader`, `rig` or `stopmotion`.
     pub kind: String,
     pub ordinal: i64,
     /// `cbor` or `cbor+zstd`.
@@ -123,6 +136,8 @@ pub(crate) fn limit_of(kind: &str) -> usize {
         "origin" => wire::MAX_ORIGIN_RECORD_BYTES,
         "game" => wire::MAX_GAME_RECORD_BYTES,
         "shader" => MAX_SHADER_PAYLOAD_BYTES,
+        "rig" => MAX_RIG_RECORD_BYTES,
+        "stopmotion" => MAX_STOP_MOTION_RECORD_BYTES,
         _ => MAX_PAYLOAD_BYTES,
     }
 }
@@ -156,6 +171,8 @@ fn what_is(kind: &str) -> &'static str {
         "origin" => "the original file kept with the project",
         "game" => "the game description",
         "shader" => "a shader",
+        "rig" => "a rig",
+        "stopmotion" => "the stop-motion session",
         _ => "a part of the project",
     }
 }
@@ -229,6 +246,14 @@ pub(crate) fn to_parts_within(
         let raw = to_cbor(&wire::ShaderGraphWire::of(shader))?;
         put(format!("shader-{ordinal}"), "shader", ordinal, &raw)?;
     }
+    for (ordinal, rig) in (0_i64..).zip(document.rig_assets()) {
+        let raw = to_cbor(&wire::RigWire::of(rig))?;
+        put(format!("rig-{ordinal}"), "rig", ordinal, &raw)?;
+    }
+    if let Some(session) = document.stop_motion() {
+        let raw = to_cbor(&wire::StopMotionWire::of(session))?;
+        put("stopmotion".to_owned(), "stopmotion", 0, &raw)?;
+    }
     Ok(Parts {
         project_id: document.id().as_uuid().to_string(),
         settings,
@@ -252,6 +277,8 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
     let mut origin = None;
     let mut game = None;
     let mut shader_assets = Vec::new();
+    let mut rig_assets = Vec::new();
+    let mut stop_motion = None;
     for record in &parts.records {
         let raw = unpack(
             zstd,
@@ -286,6 +313,20 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
                 }
                 shader_assets.push(from_cbor::<wire::ShaderGraphWire>(&raw)?.build()?);
             }
+            "rig" => {
+                if rig_assets.len() >= flare_document::MAX_RIG_ASSETS {
+                    return Err(StorageError::Limit("rig count"));
+                }
+                rig_assets.push(from_cbor::<wire::RigWire>(&raw)?.build()?);
+            }
+            "stopmotion" => {
+                if stop_motion
+                    .replace(from_cbor::<wire::StopMotionWire>(&raw)?.build()?)
+                    .is_some()
+                {
+                    return Err(StorageError::Corrupt("two stop-motion records".into()));
+                }
+            }
             other => {
                 return Err(StorageError::Corrupt(format!(
                     "unknown entity kind {other}"
@@ -308,5 +349,7 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
         origin,
         game,
         shader_assets,
+        rig_assets,
+        stop_motion,
     )
 }

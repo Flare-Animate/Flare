@@ -1,0 +1,16 @@
+pane-stop-motion = Покадровая анимация
+menu-item-show-stop-motion = Покадровая анимация
+stop-motion-empty = Сеанса покадровой съёмки пока нет. Задайте частоту, начните сеанс и добавьте картинки как кадры.
+stop-motion-start = Начать сеанс
+stop-motion-fps = Частота (кадров в секунду)
+stop-motion-hold = Удержание
+stop-motion-rate = Задать частоту
+stop-motion-add = Добавить картинки...
+stop-motion-lay = Положить на шкалу времени
+stop-motion-end = Завершить сеанс
+stop-motion-remove = Убрать
+stop-motion-summary = { $frames } кадров, { $duration } кадров шкалы времени, { $fps } в секунду
+stop-motion-layer = Покадровая анимация
+stop-motion-cannot = Сеанс покадровой съёмки не может этого сделать: { $error }
+stop-motion-note = Сеанс хранится в проекте. Камеры нет: кадры берутся из файлов картинок. То же делают `flare stop-motion-project` и инструменты stop_motion сервера MCP.
+hist-edit-stop-motion = Изменить покадровую съёмку

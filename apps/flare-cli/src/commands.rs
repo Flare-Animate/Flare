@@ -20,6 +20,12 @@ pub(crate) enum Command {
     /// Stop-motion sessions, their captures and their views.
     #[command(flatten)]
     StopMotion(stopmotion::Commands),
+    /// The stop-motion session a project keeps: start, add a PNG as the next frame, list, hold,
+    /// remove, change the rate, lay the frames on a layer, end; each one undo step.
+    StopMotionProject {
+        #[command(subcommand)]
+        op: crate::stopmotion_project::ProjectCommands,
+    },
     /// Create an empty project with one scene and one layer.
     New {
         path: PathBuf,
@@ -114,6 +120,10 @@ pub(crate) enum Command {
     /// Magic Wand: pick the pixels of a bitmap whose color is like the one at each point (stage
     /// coordinates, in the first scene) and clear them, or with --keep clear all the others.
     MagicWand(crate::magic_wand::MagicWandArgs),
+    /// Bend Edge: take hold of the merged line or shape edge nearest a stage point (first scene)
+    /// and drag it to another, as the Selection tool does on the desktop: the edge curves through
+    /// the drop and its ends stay; one undo step. No edge near the point is an error.
+    BendEdge(crate::bend_edge::BendEdgeArgs),
     /// Magnet: pull the lines and shapes near a stage point (first scene) toward another, most
     /// at the point and not at all at the edge of the circle, adding points where a line has too
     /// few to bend; one undo step. Nothing in reach is an error.

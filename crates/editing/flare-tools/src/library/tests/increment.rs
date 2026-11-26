@@ -55,3 +55,28 @@ fn increment_instances_refuses_a_no_op() {
         Err(LibraryError::NoSuchSymbol)
     );
 }
+
+#[test]
+fn increment_instances_keeps_each_instances_play_mode() {
+    // Single frame, play once and loop all keep their mode; only where they begin moves.
+    for mode in [PlayMode::Loop, PlayMode::PlayOnce, PlayMode::SingleFrame] {
+        let LibraryFixture { mut f, sym, .. } = library_fixture();
+        let start = f.session.document().scenes()[0].timeline().layers()[0].spans()[0].start();
+        let _ = start;
+        f.session
+            .apply([Command::SetInstancePlayback {
+                scene: f.scene,
+                layer: at(&f, 0).layer,
+                start: 0,
+                playback: Playback {
+                    mode,
+                    first_frame: 3,
+                },
+            }])
+            .expect("mode");
+        apply(&mut f, |doc| increment_instances(doc, sym, 0, 2));
+        let moved = playback_at(&f, 0);
+        assert_eq!(moved.mode, mode);
+        assert_eq!(moved.first_frame, 5);
+    }
+}

@@ -39,6 +39,8 @@ impl MenuAction {
             Self::ToggleEditMultipleFrames => "Alt+Shift+E",
             // Animate's key for View > Pasteboard.
             Self::TogglePasteboard => "CmdOrCtrl+Shift+W",
+            // Animate's key for View > Grid > Show Grid (issue #213).
+            Self::ToggleGrid => "CmdOrCtrl+Alt+G",
             Self::Preferences => "CmdOrCtrl+,",
             // Animate's keys for Window > Timeline and Window > Output.
             Self::ShowTimeline => "CmdOrCtrl+Alt+T",
@@ -164,6 +166,8 @@ impl MenuAction {
             | Self::PlaceMannequinOnLayer => "panel-mannequin",
             Self::ShowEffects => "panel-effects",
             Self::ShowShaders => "panel-shaders",
+            Self::ShowRigs => "panel-rigs",
+            Self::ShowStopMotion => "panel-stop-motion",
             Self::ShowGame => "panel-game",
             Self::EditSymbol | Self::ExitSymbol => "symbol-graphic",
             Self::ToolSelect => "tool-selection",

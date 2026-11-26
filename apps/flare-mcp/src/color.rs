@@ -4,18 +4,7 @@ use flare_core::Rgba8;
 
 /// `RRGGBB` or `RRGGBBAA` hex, with or without a leading `#`.
 pub fn parse_color(text: &str) -> Result<Rgba8, String> {
-    let bad = || format!("bad color {text:?}, expected RRGGBB or RRGGBBAA");
-    let hex = text.trim_start_matches('#');
-    let byte = |i: usize| {
-        hex.get(i..i + 2)
-            .and_then(|pair| u8::from_str_radix(pair, 16).ok())
-            .ok_or_else(bad)
-    };
-    match hex.len() {
-        6 => Ok(Rgba8::opaque(byte(0)?, byte(2)?, byte(4)?)),
-        8 => Ok(Rgba8::new(byte(0)?, byte(2)?, byte(4)?, byte(6)?)),
-        _ => Err(bad()),
-    }
+    Rgba8::from_hex(text).ok_or_else(|| format!("bad color {text:?}, expected RRGGBB or RRGGBBAA"))
 }
 
 /// A name that cannot escape the export directory: no separators, no leading '.' or '-'.

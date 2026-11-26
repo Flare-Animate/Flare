@@ -1,0 +1,16 @@
+pane-rigs = Риги
+menu-item-show-rigs = Риги
+rigs-empty = Сначала добавьте символ в библиотеку, затем задайте ему здесь скелет.
+rigs-has-rig = есть риг
+rigs-select = Выберите символ, чтобы добавить ему риг.
+rigs-add-rig = Добавить риг
+rigs-add-bone = Добавить кость
+rigs-rotations = повороты
+rigs-remove-pose = Убрать
+rigs-set-pose = Задать позу
+rigs-ik-goals = цели IK
+rigs-set-ik = Задать цель IK
+rigs-remove-rig = Удалить риг
+rigs-cannot = Риг не может этого сделать: { $error }
+rigs-note = Риги хранятся в проекте. Их также редактируют и вычисляют `flare rig project` и инструменты project_rig сервера MCP.
+hist-edit-rig = Изменить риг

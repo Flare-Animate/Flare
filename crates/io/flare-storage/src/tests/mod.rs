@@ -31,6 +31,7 @@ mod merged;
 mod origin;
 mod photos;
 mod records;
+mod rigs;
 mod roundtrip;
 mod shaders;
 mod stroke_style;

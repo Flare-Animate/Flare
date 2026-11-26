@@ -5,7 +5,7 @@
 use flare_commands::Command;
 use flare_core::{InstanceId, SymbolId};
 use flare_document::{PlayMode, Playback, SymbolKind};
-use flare_rig::{AngleLimit, Bone, IkGoal, Interp, PoseKey, Rig, RigCommand, evaluate_rig};
+use flare_rig::{AngleLimit, Bone, IkGoal, PoseKey, Rig, RigCommand, evaluate_rig};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -52,6 +52,38 @@ pub struct SetInstanceLoop {
     #[serde(default)]
     pub first_frame: u32,
     pub layer: Option<String>,
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct IncrementInstances {
+    pub symbol: String,
+    /// Instances whose playback begins at this frame or later move.
+    #[serde(default)]
+    pub from: u32,
+    /// How many frames further on they begin; negative moves back.
+    pub by: i64,
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct ElementAt {
+    /// Frame the keyframe starts at.
+    pub at: u32,
+    pub layer: Option<String>,
+    /// Which of the keyframe's elements, counted from 0 at the bottom.
+    #[serde(default)]
+    pub element: usize,
+    pub expected_revision: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct AddInstanceToSymbol {
+    pub symbol: String,
+    pub at: u32,
+    pub layer: Option<String>,
+    #[serde(default)]
+    pub element: usize,
     pub expected_revision: Option<u64>,
 }
 
@@ -151,6 +183,57 @@ impl FlareServer {
         })
     }
 
+    #[tool(
+        description = "Increment Instances: every instance of the symbol whose playback begins at `from` or later begins `by` frames further on (needs write access)."
+    )]
+    fn increment_instances(&self, Parameters(a): Parameters<IncrementInstances>) -> Outcome {
+        self.write(a.expected_revision, |state| {
+            let symbol = SymbolId::from_uuid(parse_id(&a.symbol, "symbol")?);
+            let commands =
+                library::increment_instances(state.session.document(), symbol, a.from, a.by)
+                    .map_err(|e| e.to_string())?;
+            apply(state, commands)
+        })
+    }
+
+    #[tool(
+        description = "Bake Transform: the transform of the instance at `at` becomes part of its symbol's artwork and every instance of the symbol takes the reverse, so nothing seen changes (needs write access)."
+    )]
+    fn bake_transform(&self, Parameters(a): Parameters<ElementAt>) -> Outcome {
+        self.write(a.expected_revision, |state| {
+            let scene = first_scene(state)?;
+            let layer = target_layer(state, a.layer.as_deref())?;
+            let at = SpanRef {
+                layer,
+                start: a.at,
+                element: a.element,
+            };
+            let commands = library::bake_transform(state.session.document(), scene, at)
+                .map_err(|e| e.to_string())?;
+            apply(state, commands)
+        })
+    }
+
+    #[tool(
+        description = "Add Instance to Symbol: a copy of the element at `at` becomes one frame at the end of the symbol's first layer; the scene is unchanged (needs write access)."
+    )]
+    fn add_instance_to_symbol(&self, Parameters(a): Parameters<AddInstanceToSymbol>) -> Outcome {
+        self.write(a.expected_revision, |state| {
+            let symbol = SymbolId::from_uuid(parse_id(&a.symbol, "symbol")?);
+            let scene = first_scene(state)?;
+            let layer = target_layer(state, a.layer.as_deref())?;
+            let at = SpanRef {
+                layer,
+                start: a.at,
+                element: a.element,
+            };
+            let commands =
+                library::add_instance_to_symbol(state.session.document(), symbol, scene, at)
+                    .map_err(|e| e.to_string())?;
+            apply(state, commands)
+        })
+    }
+
     #[tool(description = "Make a symbol a Graphic, a Movie Clip or a Button (needs write access).")]
     fn set_symbol_kind(&self, Parameters(a): Parameters<SetSymbolKind>) -> Outcome {
         self.write(a.expected_revision, |state| {
@@ -229,14 +312,7 @@ impl FlareServer {
     )]
     fn rig_set_pose(&self, Parameters(a): Parameters<RigSetPose>) -> Outcome {
         let rig = rig_in(a.rig)?;
-        let interp = match a.interp.as_deref().unwrap_or("linear") {
-            "constant" => Interp::Constant,
-            "linear" => Interp::Linear,
-            "ease-in" => Interp::EaseIn,
-            "ease-out" => Interp::EaseOut,
-            "ease-in-out" => Interp::EaseInOut,
-            other => return Err(format!("unknown interpolation {other:?}")),
-        };
+        let interp = super::rigs::interp_named(a.interp.as_deref().unwrap_or("linear"))?;
         let mut key = PoseKey {
             interp,
             ..PoseKey::default()

@@ -1,0 +1,16 @@
+pane-stop-motion = Stop motion
+menu-item-show-stop-motion = Stop motion
+stop-motion-empty = Ainda não há sessão de stop motion. Defina a taxa, inicie uma e adicione imagens como quadros.
+stop-motion-start = Iniciar sessão
+stop-motion-fps = Taxa (quadros por segundo)
+stop-motion-hold = Duração
+stop-motion-rate = Definir taxa
+stop-motion-add = Adicionar imagens...
+stop-motion-lay = Colocar na linha do tempo
+stop-motion-end = Encerrar sessão
+stop-motion-remove = Remover
+stop-motion-summary = { $frames } quadros, { $duration } quadros de linha do tempo, { $fps } por segundo
+stop-motion-layer = Stop motion
+stop-motion-cannot = A sessão de stop motion não pode fazer isso: { $error }
+stop-motion-note = A sessão fica guardada no projeto. Não há câmera integrada: os quadros vêm de arquivos de imagem. `flare stop-motion-project` e as ferramentas stop_motion do servidor MCP fazem o mesmo.
+hist-edit-stop-motion = Editar stop motion

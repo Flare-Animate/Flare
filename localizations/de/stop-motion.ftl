@@ -1,0 +1,16 @@
+pane-stop-motion = Stop-Motion
+menu-item-show-stop-motion = Stop-Motion
+stop-motion-empty = Noch keine Stop-Motion-Sitzung. Stelle die Rate ein, starte eine und füge Bilder als Einzelbilder hinzu.
+stop-motion-start = Sitzung starten
+stop-motion-fps = Rate (Bilder pro Sekunde)
+stop-motion-hold = Haltedauer
+stop-motion-rate = Rate setzen
+stop-motion-add = Bilder hinzufügen...
+stop-motion-lay = Auf Zeitleiste legen
+stop-motion-end = Sitzung beenden
+stop-motion-remove = Entfernen
+stop-motion-summary = { $frames } Einzelbilder, { $duration } Zeitleistenbilder, { $fps } pro Sekunde
+stop-motion-layer = Stop Motion
+stop-motion-cannot = Die Stop-Motion-Sitzung kann das nicht: { $error }
+stop-motion-note = Die Sitzung wird im Projekt gespeichert. Es gibt keine Kamera-Anbindung, die Einzelbilder kommen aus Bilddateien. `flare stop-motion-project` und die stop_motion-Werkzeuge des MCP-Servers tun dasselbe.
+hist-edit-stop-motion = Stop Motion bearbeiten

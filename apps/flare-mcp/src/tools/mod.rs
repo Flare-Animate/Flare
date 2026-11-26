@@ -1,6 +1,7 @@
 //! The tools an agent can call, grouped by what they touch. Each is a thin layer over the same
 //! edit commands, frame operations and renderer that the CLI and desktop app use.
 
+mod bend_edge;
 mod bones;
 mod brushes;
 mod draw;
@@ -18,10 +19,12 @@ mod multi_frame;
 mod pixels;
 mod polygon;
 mod read;
+mod rigs;
 mod scripts;
 mod shaders;
 mod shortcuts;
 mod sound;
+mod stop_motion;
 mod stopmotion;
 #[cfg(test)]
 mod stopmotion_tests;
@@ -61,7 +64,10 @@ impl FlareServer {
             + Self::symbol_tools()
             + Self::game_tools()
             + Self::pixel_tools()
+            + Self::bend_edge_tools()
             + Self::magnet_tools()
+            + Self::project_rig_tools()
+            + Self::stop_motion_tools()
             + Self::mannequin_tools()
             + Self::video_tools()
             + Self::script_tools()

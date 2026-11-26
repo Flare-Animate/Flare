@@ -1,0 +1,16 @@
+pane-rigs = 리그
+menu-item-show-rigs = 리그
+rigs-empty = 먼저 라이브러리에 심볼을 추가한 뒤 여기서 스켈레톤을 만드세요.
+rigs-has-rig = 리그 있음
+rigs-select = 리그를 만들 심볼을 선택하세요.
+rigs-add-rig = 리그 추가
+rigs-add-bone = 본 추가
+rigs-rotations = 회전
+rigs-remove-pose = 제거
+rigs-set-pose = 포즈 설정
+rigs-ik-goals = IK 목표
+rigs-set-ik = IK 목표 설정
+rigs-remove-rig = 리그 제거
+rigs-cannot = 리그에서 할 수 없습니다: { $error }
+rigs-note = 리그는 프로젝트에 저장됩니다. `flare rig project`와 MCP 서버의 project_rig 도구로도 편집하고 평가할 수 있습니다.
+hist-edit-rig = 리그 편집

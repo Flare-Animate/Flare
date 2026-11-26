@@ -13,7 +13,7 @@ use glamx::DAffine2;
 use crate::common::{SpanRef, fresh_content, scene_timeline};
 
 mod merge;
-pub use merge::{Merged, merge_into, merged_count};
+pub use merge::{Merged, TooManyPieces, merge_into, merged_count};
 
 /// Which layer a drawing goes to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -115,7 +115,7 @@ fn merge_plan(mut plan: DrawPlan) -> Result<DrawPlan, DrawRefusal> {
             other => kept.push(other.clone()),
         }
     }
-    let merged = merge_into(kept, drawn);
+    let merged = merge_into(kept, drawn).map_err(|_| DrawRefusal::TooMany)?;
     *span = span
         .with_elements(merged.elements)
         .ok()

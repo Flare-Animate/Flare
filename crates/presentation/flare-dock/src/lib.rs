@@ -56,12 +56,16 @@ pub enum Pane {
     Effects,
     /// The document's named shader graphs: import, export, remove, with a small picture of each.
     Shaders,
+    /// The skeleton rig of a library symbol: bones and keyed poses, kept in the project.
+    Rigs,
+    /// The project's stop-motion session: frames from picture files, holds, laid on a layer.
+    StopMotion,
     /// The game description: gravity, entities and their components, and a scripted run.
     Game,
 }
 
 impl Pane {
-    pub const ALL: [Pane; 20] = [
+    pub const ALL: [Pane; 22] = [
         Pane::Tools,
         Pane::Stage,
         Pane::Library,
@@ -81,6 +85,8 @@ impl Pane {
         Pane::Mannequin,
         Pane::Effects,
         Pane::Shaders,
+        Pane::Rigs,
+        Pane::StopMotion,
         Pane::Game,
     ];
 
@@ -103,6 +109,8 @@ impl Pane {
             Self::Mannequin => "panel-mannequin",
             Self::Effects => "panel-effects",
             Self::Shaders => "panel-shaders",
+            Self::Rigs => "panel-rigs",
+            Self::StopMotion => "panel-stop-motion",
             Self::Game => "panel-game",
             Self::Tools | Self::Stage | Self::Timeline | Self::Output => return None,
         })
@@ -143,6 +151,8 @@ impl Pane {
             Self::Mannequin => "pane-mannequin",
             Self::Effects => "pane-effects",
             Self::Shaders => "pane-shaders",
+            Self::Rigs => "pane-rigs",
+            Self::StopMotion => "pane-stop-motion",
             Self::Game => "pane-game",
         }
     }
@@ -169,6 +179,8 @@ impl Pane {
             Self::Mannequin => "Mannequin",
             Self::Effects => "Effects",
             Self::Shaders => "Shaders",
+            Self::Rigs => "Rigs",
+            Self::StopMotion => "Stop Motion",
             Self::Game => "Game",
         }
     }

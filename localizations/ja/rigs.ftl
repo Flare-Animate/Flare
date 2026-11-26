@@ -1,0 +1,16 @@
+pane-rigs = リグ
+menu-item-show-rigs = リグ
+rigs-empty = まずライブラリにシンボルを追加し、ここでスケルトンを付けます。
+rigs-has-rig = リグあり
+rigs-select = リグを付けるシンボルを選んでください。
+rigs-add-rig = リグを追加
+rigs-add-bone = ボーンを追加
+rigs-rotations = 回転
+rigs-remove-pose = 削除
+rigs-set-pose = ポーズを設定
+rigs-ik-goals = IK ゴール
+rigs-set-ik = IK ゴールを設定
+rigs-remove-rig = リグを削除
+rigs-cannot = リグでは実行できません: { $error }
+rigs-note = リグはプロジェクトに保存されます。`flare rig project` と MCP サーバーの project_rig ツールでも編集と評価ができます。
+hist-edit-rig = リグを編集

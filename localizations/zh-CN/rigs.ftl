@@ -1,0 +1,16 @@
+pane-rigs = 骨架
+menu-item-show-rigs = 骨架
+rigs-empty = 请先在库中添加元件，然后在此为它添加骨架。
+rigs-has-rig = 已有骨架
+rigs-select = 选择一个元件以添加骨架。
+rigs-add-rig = 添加骨架
+rigs-add-bone = 添加骨骼
+rigs-rotations = 旋转
+rigs-remove-pose = 移除
+rigs-set-pose = 设置姿势
+rigs-ik-goals = IK 目标
+rigs-set-ik = 设置 IK 目标
+rigs-remove-rig = 移除骨架
+rigs-cannot = 骨架无法执行该操作：{ $error }
+rigs-note = 骨架保存在项目中。`flare rig project` 和 MCP 服务器的 project_rig 工具也可编辑和评估它们。
+hist-edit-rig = 编辑骨架

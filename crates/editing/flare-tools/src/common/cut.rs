@@ -92,6 +92,37 @@ pub(crate) fn path_of(contours: &[Contour], closed: bool) -> Option<Vec<PathSegm
     (!path.is_empty() && path.len() <= MAX_SEGMENTS).then_some(path)
 }
 
+/// The box round a path's points, control points included (a curve stays inside them), found
+/// without flattening anything, so a crowd of far-off shapes is passed over cheaply.
+pub(crate) fn hull(path: &[PathSegment]) -> Option<([f64; 2], [f64; 2])> {
+    let mut lo = [f64::MAX; 2];
+    let mut hi = [f64::MIN; 2];
+    let mut any = false;
+    let mut take = |p: &DocumentPoint| {
+        let v = p.as_vec();
+        lo = [lo[0].min(v.x), lo[1].min(v.y)];
+        hi = [hi[0].max(v.x), hi[1].max(v.y)];
+        any = true;
+    };
+    for segment in path {
+        match segment {
+            PathSegment::MoveTo(p) | PathSegment::LineTo(p) => take(p),
+            PathSegment::CubicTo(a, b, c) => {
+                take(a);
+                take(b);
+                take(c);
+            }
+            PathSegment::Close => {}
+        }
+    }
+    any.then_some((lo, hi))
+}
+
+/// Whether two boxes from [`hull`] overlap.
+pub(crate) fn hulls_meet(a: ([f64; 2], [f64; 2]), b: ([f64; 2], [f64; 2])) -> bool {
+    a.0[0] <= b.1[0] && b.0[0] <= a.1[0] && a.0[1] <= b.1[1] && b.0[1] <= a.1[1]
+}
+
 /// Whether the boxes round `a` and `b` overlap.
 pub(crate) fn boxes_meet(a: &[Contour], b: &[Contour]) -> bool {
     if a.is_empty() || b.is_empty() {

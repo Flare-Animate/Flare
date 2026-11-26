@@ -4,8 +4,8 @@ use flare_core::{BitmapId, InstanceId, LayerId, SceneId, ShapeId, SoundId, Symbo
 use thiserror::Error;
 
 use crate::{
-    Anchor, Content, Document, MAX_ATTACHMENTS, MAX_BITMAPS, MAX_SHADER_ASSETS, MAX_SOUNDS,
-    MAX_TOTAL_BITMAP_BYTES, MAX_TOTAL_SOUND_BYTES, Timeline,
+    Anchor, Content, Document, MAX_ATTACHMENTS, MAX_BITMAPS, MAX_RIG_ASSETS, MAX_SHADER_ASSETS,
+    MAX_SOUNDS, MAX_TOTAL_BITMAP_BYTES, MAX_TOTAL_SOUND_BYTES, Timeline,
 };
 
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -51,6 +51,10 @@ pub enum Diagnostic {
     CameraKeyframesElsewhere(LayerId),
     #[error("layer {0:?} is a camera inside a symbol; only a scene has a camera")]
     CameraInSymbol(LayerId),
+    #[error(
+        "layer {0:?} is a reference layer inside a symbol; a reference picture is drawn on a scene's stage only, so it would never show there"
+    )]
+    ReferenceInSymbol(LayerId),
     #[error("scene {0:?} has more than one camera layer")]
     TooManyCameras(SceneId),
     #[error("layer {0:?} holds an armature but is a mask or a guide")]
@@ -73,6 +77,14 @@ pub enum Diagnostic {
     DuplicateBitmap(BitmapId),
     #[error("a document holds at most {MAX_BITMAPS} bitmaps")]
     TooManyBitmaps,
+    #[error("the stop-motion session shows bitmap {0:?}, which is not in the document")]
+    DanglingStopFrame(BitmapId),
+    #[error("a document holds at most {MAX_RIG_ASSETS} rigs")]
+    TooManyRigs,
+    #[error("symbol {0:?} has more than one rig")]
+    DuplicateRig(SymbolId),
+    #[error("a rig is for symbol {0:?}, which is not in the document")]
+    DanglingRig(SymbolId),
     #[error("a document holds at most {MAX_SHADER_ASSETS} shader graphs")]
     TooManyShaderAssets,
     #[error("shader graph asset name {0:?} is duplicated")]
@@ -81,6 +93,36 @@ pub enum Diagnostic {
     BitmapsTooLarge,
     #[error("layer {layer:?} shows bitmap {bitmap:?}, which is not in the document")]
     DanglingBitmap { layer: LayerId, bitmap: BitmapId },
+}
+
+pub(crate) fn validate_stop_motion(document: &Document) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    if let Some(session) = &document.stop_motion {
+        let known: HashSet<BitmapId> = document.bitmaps.iter().map(|b| b.id()).collect();
+        for frame in session.frames() {
+            if !known.contains(&frame.bitmap()) {
+                out.push(Diagnostic::DanglingStopFrame(frame.bitmap()));
+            }
+        }
+    }
+    out
+}
+
+pub(crate) fn validate_rig_assets(document: &Document) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    if document.rig_assets.len() > MAX_RIG_ASSETS {
+        out.push(Diagnostic::TooManyRigs);
+    }
+    let mut seen = HashSet::with_capacity(document.rig_assets.len());
+    for rig in &document.rig_assets {
+        if !seen.insert(rig.symbol()) {
+            out.push(Diagnostic::DuplicateRig(rig.symbol()));
+        }
+        if !document.symbols.iter().any(|s| s.id == rig.symbol()) {
+            out.push(Diagnostic::DanglingRig(rig.symbol()));
+        }
+    }
+    out
 }
 
 pub(crate) fn validate_shader_assets(document: &Document) -> Vec<Diagnostic> {
@@ -318,6 +360,11 @@ fn validate_cameras(document: &Document, out: &mut Vec<Diagnostic>) {
     }
     for symbol in &document.symbols {
         check(&symbol.timeline, false, out);
+        // A reference layer is drawn on a scene's stage only, so inside a symbol it would
+        // vanish without a word.
+        for layer in symbol.timeline.layers().iter().filter(|l| l.is_reference()) {
+            out.push(Diagnostic::ReferenceInSymbol(layer.id()));
+        }
     }
 }
 

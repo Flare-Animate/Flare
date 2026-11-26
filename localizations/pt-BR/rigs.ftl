@@ -1,0 +1,16 @@
+pane-rigs = Esqueletos
+menu-item-show-rigs = Esqueletos
+rigs-empty = Primeiro adicione um símbolo à biblioteca e dê a ele um esqueleto aqui.
+rigs-has-rig = tem rig
+rigs-select = Escolha um símbolo para dar a ele um rig.
+rigs-add-rig = Adicionar rig
+rigs-add-bone = Adicionar osso
+rigs-rotations = rotações
+rigs-remove-pose = Remover
+rigs-set-pose = Definir pose
+rigs-ik-goals = metas de IK
+rigs-set-ik = Definir meta de IK
+rigs-remove-rig = Remover rig
+rigs-cannot = O rig não pode fazer isso: { $error }
+rigs-note = Os rigs ficam guardados no projeto. `flare rig project` e as ferramentas project_rig do servidor MCP também os editam e avaliam.
+hist-edit-rig = Editar um rig

@@ -12,7 +12,7 @@ use super::*;
 impl Workspace {
     /// The English names the edits give their undo steps, with the message that says each in the
     /// language being spoken. The steps keep the English name so that one list serves every language.
-    pub(crate) const HISTORY_LABELS: [(&str, &str); 65] = [
+    pub(crate) const HISTORY_LABELS: [(&str, &str); 67] = [
         ("Resize the stage", "hist-resize-stage"),
         ("Change the background", "hist-background"),
         ("Change the frame rate", "hist-frame-rate"),
@@ -75,6 +75,8 @@ impl Workspace {
         ("Draw pencil line", "hist-draw-pencil"),
         ("Change the layer's effects", "hist-layer-effects"),
         ("Edit the game", "hist-edit-game"),
+        ("Edit a rig", "hist-edit-rig"),
+        ("Edit stop motion", "hist-edit-stop-motion"),
         ("Import a shader graph", "hist-import-shader"),
         ("Remove a shader graph", "hist-remove-shader"),
         ("Original", "hist-original"),

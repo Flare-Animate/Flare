@@ -46,6 +46,7 @@ pub struct WebApp {
     picked_movies: Rc<RefCell<Vec<Picked>>>,
     /// Shader graph files picked, added to the project on the next frame.
     picked_shaders: Rc<RefCell<Vec<Picked>>>,
+    picked_frames: Rc<RefCell<Vec<SequenceFiles>>>,
     /// Picture sequences picked, turned into a project on the next frame.
     picked_sequences: Rc<RefCell<Vec<SequenceFiles>>>,
     /// What background work (the movie player) wants the person told, delivered on the next frame.
@@ -75,6 +76,7 @@ impl WebApp {
             picked_to_library: Rc::default(),
             picked_movies: Rc::default(),
             picked_shaders: Rc::default(),
+            picked_frames: Rc::default(),
             picked_sequences: Rc::default(),
             messages: Rc::default(),
             fonts: Rc::default(),
@@ -208,29 +210,8 @@ impl WebApp {
                     self.deliver(&format!("{name}.json"), "application/json", Ok(bytes));
                 }
             }
-            DialogRequest::ImportImageSequence => {
-                let label = self.workspace.interface_text("dlg-filter-image-sequence");
-                let (inbox, messages, ctx) = (
-                    Rc::clone(&self.picked_sequences),
-                    Rc::clone(&self.messages),
-                    ctx.clone(),
-                );
-                wasm_bindgen_futures::spawn_local(async move {
-                    match files::pick_many(
-                        &label,
-                        &flare_import::SEQUENCE_EXTENSIONS,
-                        flare_import::MAX_IMAGE_FRAMES,
-                        512 * 1024 * 1024,
-                    )
-                    .await
-                    {
-                        Ok(files) if files.is_empty() => return,
-                        Ok(files) => inbox.borrow_mut().push(files),
-                        Err(error) => messages.borrow_mut().push(error),
-                    }
-                    ctx.request_repaint();
-                });
-            }
+            DialogRequest::ImportImageSequence => self.pick_pictures(ctx, &self.picked_sequences),
+            DialogRequest::AddStopMotionFrames => self.pick_pictures(ctx, &self.picked_frames),
             DialogRequest::MovieScripts => {
                 let label = self.workspace.interface_text("dlg-filter-movie-scripts");
                 self.pick_into(
@@ -304,6 +285,28 @@ impl WebApp {
                     Some(failure) => format!("{failure}: {error}"),
                     None => error,
                 }),
+            }
+            ctx.request_repaint();
+        });
+    }
+
+    /// Opens the picker for several pictures (PNG) and, off the frame, puts them into `inbox`, or
+    /// tells the person why not. The image sequence and the stop-motion frames both pick this way.
+    fn pick_pictures(&self, ctx: &egui::Context, inbox: &Rc<RefCell<Vec<SequenceFiles>>>) {
+        let label = self.workspace.interface_text("dlg-filter-image-sequence");
+        let (inbox, messages, ctx) = (Rc::clone(inbox), Rc::clone(&self.messages), ctx.clone());
+        wasm_bindgen_futures::spawn_local(async move {
+            match files::pick_many(
+                &label,
+                &flare_import::SEQUENCE_EXTENSIONS,
+                flare_import::MAX_IMAGE_FRAMES,
+                512 * 1024 * 1024,
+            )
+            .await
+            {
+                Ok(files) if files.is_empty() => return,
+                Ok(files) => inbox.borrow_mut().push(files),
+                Err(error) => messages.borrow_mut().push(error),
             }
             ctx.request_repaint();
         });

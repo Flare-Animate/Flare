@@ -219,7 +219,7 @@ running-sum boxes each way).
 ## Storage
 
 A `.flare` file is a SQLite database (`application_id` "FLAR", `user_version` 1, or the version the newest part it holds
-needs: 2 for bitmaps up to 6 for photos; `records::check_schema_version` says which a build reads, and the browser asks
+needs: 2 for bitmaps up to 8 for photos; `records::check_schema_version` says which a build reads, and the browser asks
 it too, getting the tables and the version to write from `flare-storage` rather than keeping copies) with a
 `project` row (frame rate, stage) and an `entity` table with one row for each scene, symbol,
 sound, source attachment and, for an imported file, its source (below). A row's payload is the record's fields as CBOR, compressed with zstd
@@ -235,7 +235,7 @@ quality 92 unless asked to keep them lossless, and the Doc tab, `flare bitmap-co
 `set_bitmap_compression` store a library either way (`flare_tools::library::set_bitmap_compression`). A frame of video
 takes about a ninth of the room as a photo: measured on a project with two imported videos (718 frames of 864x576 and
 540x360), 438 KB a frame as zstd-compressed pixels against 49 KB as JPEG at 92; a better lossless method
-(prediction then zstd) would have taken 227 KB. A file holding a photo is written as version 6, so an older build
+(prediction then zstd) would have taken 227 KB. A file holding a photo is written as version 8, so an older build
 refuses it by name.
 
 The database is arranged to cost little: 1 KiB pages and an `entity` table without a second

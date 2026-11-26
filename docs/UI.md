@@ -445,7 +445,7 @@ change is one undo step.
 
 The narrow bar at the right edge is Animate's icon panel strip. It holds an icon for each panel
 kept there, by default Layers, Color, Swatches, Align, Transform, Info, History, Motion Editor, Find and
-Replace, Mannequin, Effects, Shaders and Game. A click opens that panel beside the strip, 300 px wide (its left edge drags
+Replace, Mannequin, Effects, Shaders, Rigs, Stop Motion and Game. A click opens that panel beside the strip, 300 px wide (its left edge drags
 it wider or narrower) and level with its icon, over the stage, so Properties stays in view while a color is picked; a second click on the icon, Escape, or
 a press on the stage or another panel puts it away (a list or picker the panel opened does not).
 Its title row has two buttons: dock it, which moves it into the stack on the right, in front, and
@@ -733,6 +733,25 @@ The Shaders panel (Window > Shaders, in the icon strip by default) lists the pro
 graphs, each with a 48 px picture of what it draws, drawn again only when its graph changes. Import...
 reads a graph file (JSON, at most 1 MiB), Export... writes the chosen one, Remove takes it out;
 each is one undo step and goes through `flare_editor::shader_library`. There is no node editor yet.
+
+## Rigs
+
+The Rigs panel (Window > Rigs, in the icon strip by default) lists the project's library symbols
+and marks those with a rig. Choosing one (or choosing it in the Library) shows its bones (index,
+name, parent, length) and its keyed poses, with Add bone (name, parent, length, rest angle), Set
+pose (frame, bone, angle), Remove on a pose and Remove rig; a symbol without one offers Add rig.
+Each is one undo step and goes through `flare_editor::rig_library`, which refuses a bad parent, a
+missing bone or a second rig for a symbol and says why. Angle limits, IK goals and the instance a
+bone moves are set from the command line and the MCP server.
+
+## Stop Motion
+
+The Stop Motion panel (Window > Stop Motion, in the icon strip by default) is the project's capture
+session. With none, it offers the rate and hold to start one; with one it shows the frame count and
+length, the rate, each frame's hold (drag to change it) and Remove, Add pictures... (PNG files, read
+off the UI thread), Lay on timeline (a new layer of keyframes, each held for its hold) and End
+session. No camera backend is built, so frames come from picture files. Each edit is one undo step
+and goes through `flare_editor::stop_motion_library`.
 
 ## Game
 

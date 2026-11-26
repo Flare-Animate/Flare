@@ -71,6 +71,70 @@ pub(crate) struct SymbolWire {
 }
 
 #[derive(Serialize, Deserialize)]
+pub(crate) struct StopMotionWire {
+    fps: u32,
+    default_hold: u32,
+    frames: Vec<(flare_core::BitmapId, u32)>,
+}
+
+impl StopMotionWire {
+    pub(crate) fn of(session: &flare_document::StopMotion) -> Self {
+        Self {
+            fps: session.fps(),
+            default_hold: session.default_hold(),
+            frames: session
+                .frames()
+                .iter()
+                .map(|f| (f.bitmap(), f.hold()))
+                .collect(),
+        }
+    }
+
+    pub(crate) fn build(self) -> Result<flare_document::StopMotion, StorageError> {
+        let corrupt = |error: flare_document::StopMotionError| {
+            StorageError::Corrupt(format!("invalid stop-motion session: {error}"))
+        };
+        let frames = self
+            .frames
+            .into_iter()
+            .map(|(bitmap, hold)| flare_document::StopFrame::new(bitmap, hold))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(corrupt)?;
+        flare_document::StopMotion::new(self.fps, self.default_hold)
+            .and_then(|session| session.with_frames(frames))
+            .map_err(corrupt)
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct RigWire {
+    pub(crate) symbol: SymbolId,
+    pub(crate) payload: String,
+}
+
+impl RigWire {
+    pub(crate) fn of(rig: &flare_document::RigAsset) -> Self {
+        Self {
+            symbol: rig.symbol(),
+            payload: rig.payload().to_owned(),
+        }
+    }
+
+    /// A rig that does not read back as a valid rig for its symbol is a corrupt file.
+    pub(crate) fn build(self) -> Result<flare_document::RigAsset, StorageError> {
+        let rig: flare_rig::Rig = serde_json::from_str(&self.payload)
+            .map_err(|error| StorageError::Corrupt(format!("invalid rig: {error}")))?;
+        rig.validate()
+            .map_err(|error| StorageError::Corrupt(format!("invalid rig: {error}")))?;
+        if rig.symbol != self.symbol {
+            return Err(StorageError::Corrupt("a rig is for another symbol".into()));
+        }
+        flare_document::RigAsset::new(self.symbol, self.payload)
+            .map_err(|error| StorageError::Corrupt(format!("invalid rig: {error}")))
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 pub(crate) struct ShaderGraphWire {
     pub(crate) name: String,
     pub(crate) nodes: Vec<ShaderNode>,
@@ -133,6 +197,8 @@ pub(crate) fn assemble(
     origin: Option<flare_document::Origin>,
     game: Option<flare_game::GameSpec>,
     shader_assets: Vec<ShaderAsset>,
+    rig_assets: Vec<flare_document::RigAsset>,
+    stop_motion: Option<flare_document::StopMotion>,
 ) -> Result<Document, StorageError> {
     let settings: Settings = serde_json::from_str(settings)?;
     let rate = FrameRate::new(settings.frame_rate.0, settings.frame_rate.1)
@@ -154,6 +220,10 @@ pub(crate) fn assemble(
         .with_game(game)
         .map_err(StorageError::Invalid)?
         .with_shader_assets(shader_assets)
+        .map_err(StorageError::Invalid)?
+        .with_rig_assets(rig_assets)
+        .map_err(StorageError::Invalid)?
+        .with_stop_motion(stop_motion)
         .map_err(StorageError::Invalid)?;
     let document = document.with_origin(origin.map(std::sync::Arc::new));
     match settings.stage {

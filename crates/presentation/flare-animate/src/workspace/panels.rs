@@ -40,8 +40,10 @@ pub(crate) mod mannequin_view;
 mod properties;
 mod properties_interp;
 mod properties_object;
+pub(crate) mod rigs;
 pub(crate) mod shaders;
 mod stage_bar;
+pub mod stop_motion;
 mod swatches;
 #[cfg(test)]
 mod tests;

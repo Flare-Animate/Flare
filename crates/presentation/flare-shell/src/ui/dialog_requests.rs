@@ -150,6 +150,24 @@ impl App {
                     },
                 );
             }
+            DialogRequest::AddStopMotionFrames => {
+                let filter = text(self, "dlg-filter-image-sequence");
+                // Read and decoded where the picker is, off the UI thread.
+                self.ask(
+                    move || {
+                        let paths =
+                            dialogs::pick_images(&filter, &flare_animate::SEQUENCE_EXTENSIONS)?;
+                        Some(
+                            flare_animate::read_sequence_files(&paths)
+                                .map(flare_animate::decode_stop_motion_pictures),
+                        )
+                    },
+                    |app, pictures| match pictures {
+                        Ok(pictures) => app.workspace.add_stop_motion_pictures(pictures),
+                        Err(error) => app.workspace.report_message(&error.to_string()),
+                    },
+                );
+            }
             DialogRequest::MovieScripts => {
                 let filter = text(self, "dlg-filter-movie-scripts");
                 // The movie is read where the picker is, off the UI thread.

@@ -30,7 +30,23 @@ pub fn apply_all(
     let mut rate = document.frame_rate();
     let mut game = document.game().cloned();
     let mut shader_assets = document.shader_assets().to_vec();
+    let mut rig_assets = document.rig_assets().to_vec();
+    let mut stop_motion = document.stop_motion().cloned();
     for command in commands {
+        if let Command::SetStopMotion(session) = command {
+            stop_motion = session;
+            continue;
+        }
+        if let Command::SetRigAssets(rigs) = command {
+            if let Some(rig) = rigs
+                .iter()
+                .find(|r| !symbols.iter().any(|s| s.id() == r.symbol()))
+            {
+                return Err(EditError::NoSuchSymbol(rig.symbol()));
+            }
+            rig_assets = rigs;
+            continue;
+        }
         step(
             &mut scenes,
             &mut symbols,
@@ -43,6 +59,9 @@ pub fn apply_all(
             command,
         )?;
     }
+    // A rig goes with its symbol: one whose symbol an edit removed is dropped, as an anchored
+    // attachment is.
+    rig_assets.retain(|rig| symbols.iter().any(|s| s.id() == rig.symbol()));
     // The stage, the file the document came from and source attachments are carried through every edit; attachments whose
     // anchor the edit removed (a deleted layer) are dropped with it.
     Ok(Some(
@@ -52,6 +71,8 @@ pub fn apply_all(
             .with_stage(stage)
             .with_game(game)?
             .with_shader_assets(shader_assets)?
+            .with_rig_assets(rig_assets)?
+            .with_stop_motion(stop_motion)?
             .with_attachments_retained(document.attachments())
             .with_origin(document.origin().cloned()),
     ))
@@ -132,6 +153,8 @@ fn step(
         Command::SetStage(new_stage) => *stage = new_stage,
         Command::SetFrameRate(new_rate) => *rate = new_rate,
         Command::SetShaderAssets(assets) => *shader_assets = assets,
+        // Handled by the caller, which holds the rigs.
+        Command::SetRigAssets(_) | Command::SetStopMotion(_) => {}
         Command::AddBitmap(bitmap) => {
             if let Some(same) = bitmaps
                 .iter()

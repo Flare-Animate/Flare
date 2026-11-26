@@ -13,6 +13,7 @@
 mod color;
 mod ops;
 mod params;
+mod params_bend_edge;
 mod params_brush;
 mod params_effects;
 mod params_export;
@@ -20,6 +21,7 @@ mod params_game;
 mod params_magnet;
 mod params_mannequin;
 mod params_pixels;
+mod params_rigs;
 mod params_scripts;
 mod params_shader;
 mod params_shortcuts;

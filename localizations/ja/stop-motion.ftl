@@ -1,0 +1,16 @@
+pane-stop-motion = コマ撮り
+menu-item-show-stop-motion = コマ撮り
+stop-motion-empty = コマ撮りセッションはまだありません。レートを設定して開始し、画像をコマとして追加します。
+stop-motion-start = セッションを開始
+stop-motion-fps = レート（毎秒のコマ数）
+stop-motion-hold = ホールド
+stop-motion-rate = レートを設定
+stop-motion-add = 画像を追加...
+stop-motion-lay = タイムラインに配置
+stop-motion-end = セッションを終了
+stop-motion-remove = 削除
+stop-motion-summary = { $frames } コマ、タイムライン { $duration } フレーム、毎秒 { $fps }
+stop-motion-layer = コマ撮り
+stop-motion-cannot = コマ撮りセッションでは実行できません: { $error }
+stop-motion-note = セッションはプロジェクトに保存されます。カメラには未対応で、コマは画像ファイルから取り込みます。`flare stop-motion-project` と MCP サーバーの stop_motion ツールでも同じことができます。
+hist-edit-stop-motion = コマ撮りを編集

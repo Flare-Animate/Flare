@@ -1,6 +1,7 @@
 //! Flare CLI: inspection, rational timing and headless project editing.
 #![forbid(unsafe_code)]
 
+mod bend_edge;
 mod bitmaps;
 mod brush;
 mod commands;
@@ -12,12 +13,15 @@ mod magic_wand;
 mod magnet;
 mod mannequin;
 mod project;
+mod rig_project;
 mod scripts;
 mod sequence;
 mod shader;
 mod shortcuts;
 mod stopmotion;
+mod stopmotion_project;
 mod symbol;
+mod symbol_edit;
 mod tween;
 mod video;
 
@@ -281,6 +285,7 @@ fn run() -> Result<()> {
         Command::DrawRect(args) => project::draw_rect(args)?,
         Command::DrawPolygon(args) => project::draw_polygon(args)?,
         Command::MagicWand(args) => magic_wand::run(args)?,
+        Command::BendEdge(args) => bend_edge::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
         Command::Brush(args) => project::brush_strokes(&args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
@@ -352,6 +357,7 @@ fn run() -> Result<()> {
                 google_fonts: !no_google_fonts,
             },
         )?,
+        Command::StopMotionProject { op } => stopmotion_project::run(op)?,
         Command::BreakText { path, shape } => project::break_text(&path, shape)?,
         Command::StopMotion(sub) => match sub {
             stopmotion::Commands::StopMotionNew {

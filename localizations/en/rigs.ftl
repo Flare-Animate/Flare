@@ -1,0 +1,16 @@
+pane-rigs = Rigs
+menu-item-show-rigs = Rigs
+rigs-empty = Add a symbol to the library first, then give it a skeleton here.
+rigs-has-rig = has a rig
+rigs-select = Choose a symbol to rig it.
+rigs-add-rig = Add rig
+rigs-add-bone = Add bone
+rigs-rotations = rotations
+rigs-remove-pose = Remove
+rigs-set-pose = Set pose
+rigs-ik-goals = IK goals
+rigs-set-ik = Set IK goal
+rigs-remove-rig = Remove rig
+rigs-cannot = The rig cannot do that: { $error }
+rigs-note = Rigs are kept in the project. `flare rig project` and the MCP server's project_rig tools edit and evaluate them too.
+hist-edit-rig = Edit a rig
