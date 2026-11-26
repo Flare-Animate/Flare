@@ -64,3 +64,12 @@ pub enum Tool {
     /// Drag to paint the fill color into a bitmap on the layer, mixing in the colors there.
     RasterBrush,
 }
+
+impl Tool {
+    /// The tools that only change how the stage is looked at (pan, turn, zoom). Picking one lets
+    /// go of the selection, and they never pick anything: getting round the stage should not
+    /// leave a box over the drawing.
+    pub fn only_views(self) -> bool {
+        matches!(self, Self::Hand | Self::RotateView | Self::Zoom)
+    }
+}

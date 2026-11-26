@@ -163,7 +163,7 @@ impl Workspace {
             self.text_click(to_doc(p));
         }
         self.rotate_view_stage(ui, &response);
-        self.hand_stage(ui, &response);
+        self.hand_stage(&response);
         if matches!(self.tool, Tool::Ruler | Tool::Mirror) {
             let primary = egui::PointerButton::Primary;
             let origin = ui.input(|i| i.pointer.press_origin());

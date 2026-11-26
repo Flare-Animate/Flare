@@ -23,10 +23,8 @@ pub(super) mod text;
 pub(super) mod text_fonts;
 pub(super) mod text_preview;
 
-/// The state of the tools that act on a drag and then let go: the Hand, which gives back the
-/// tool before it, and the Magnet's pull.
+/// The state of the tools that act on a drag and then let go: the Magnet's pull.
 #[derive(Default)]
 pub(in crate::workspace) struct Springs {
-    pub(in crate::workspace) hand: hand::HandSpring,
     pub(in crate::workspace) magnet: magnet::MagnetState,
 }

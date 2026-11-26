@@ -43,7 +43,7 @@ mod frame_rate;
 mod frames_text_and_sound;
 mod game_panel;
 mod graphic_playback;
-mod hand_spring;
+mod hand_pan;
 mod held_move;
 mod home;
 mod home_extra;

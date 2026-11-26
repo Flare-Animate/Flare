@@ -304,10 +304,11 @@ degrees either way, type an angle, or set it upright; a second tap, Escape or an
 the dial away and the tool held before back in hand. A turn is a quick look, as with Animate's
 spring-loaded tools: once a drag on the stage is let go, or a double-click has set it upright, the
 tool held before the Rotation tool is back in hand (the dial closes with it); a click that turns
-nothing leaves the Rotation tool in hand. The Hand springs back the same way: once a pan with it
-is let go, the tool picked before it is back in hand, and the Rotation tool is never the one given
-back (a Hand picked while turning the view gives back the tool held before the turn;
-`workspace/tools/hand.rs`). A click with the Hand, or a Hand with nothing before it, stays in hand.
+nothing leaves the Rotation tool in hand. The Hand does not spring back: it stays in hand after a
+pan, because crossing a large stage takes pan after pan (`workspace/tools/hand.rs`). The Hand, the
+Rotation tool and the Zoom tool only look: picking one lets go of the selection, so no selection
+box is left over the drawing while the view moves, and a right click with one (a two-finger tap
+on a trackpad, or a pen's side button sent as a right click) picks nothing.
 A tap is a press and release within half a
 second with nothing else pressed (`flare_ui::tap::ModifierTap`), so Alt-click, Alt-drag and Alt
 chords keep their meaning. While the view is turned the stage bar shows the angle (a click sets it
