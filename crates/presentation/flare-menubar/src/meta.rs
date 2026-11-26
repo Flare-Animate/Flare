@@ -40,6 +40,9 @@ impl MenuAction {
             // Animate's key for View > Pasteboard.
             Self::TogglePasteboard => "CmdOrCtrl+Shift+W",
             Self::Preferences => "CmdOrCtrl+,",
+            // Animate's keys for Window > Timeline and Window > Output.
+            Self::ShowTimeline => "CmdOrCtrl+Alt+T",
+            Self::ShowOutput => "F2",
             Self::CommandPalette => "CmdOrCtrl+Shift+P",
             _ => return None,
         })
@@ -133,7 +136,9 @@ impl MenuAction {
             Self::ExportImage => "file-export",
             Self::ExportMovie => "test-movie",
             Self::ExportFla => "file-export",
-            Self::ExportSvg | Self::ExportSpriteSheet => "file-export",
+            Self::ExportSvg | Self::ExportSpriteSheet | Self::ToggleTransparentExport => {
+                "file-export"
+            }
             Self::Save | Self::SaveAs => "file-save",
             Self::Undo => "undo",
             Self::Redo => "redo",

@@ -35,3 +35,4 @@ swatches-add = Aktuelle Farbe behalten
 swatches-remove = Farbfeld löschen
 swatches-full = Die eigenen Farbfelder sind voll ({ $max }).
 strip-resize = Ziehen, um das Bedienfeld breiter oder schmaler zu machen
+dock-hide-panel = Ausblenden (das Menü Fenster zeigt es wieder an)

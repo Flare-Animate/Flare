@@ -35,3 +35,4 @@ swatches-add = Guardar a cor atual
 swatches-remove = Excluir amostra
 swatches-full = Suas amostras estão cheias ({ $max }).
 strip-resize = Arraste para alargar ou estreitar o painel
+dock-hide-panel = Ocultar (o menu Janela mostra de novo)

@@ -72,7 +72,10 @@ fn commands_sit_where_animate_keeps_them() {
             "Export Movie...",
             "Export Flash Document (.fla)...",
             "Export SVG...",
-            "Export Sprite Sheet..."
+            "Export Sprite Sheet...",
+            // Not Animate's: its Export Image dialog has the choice, and a native save dialog
+            // here cannot, so the switch sits beside the exports.
+            "Export with a Transparent Background"
         ]
     );
     let top = shown(&ws, file);

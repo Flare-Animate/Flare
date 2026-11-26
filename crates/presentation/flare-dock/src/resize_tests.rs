@@ -197,3 +197,29 @@ fn a_short_window_keeps_the_timeline_tall_enough_for_some_layers() {
         "the timeline is {stack} tall"
     );
 }
+
+#[test]
+fn hiding_the_timeline_and_output_gives_the_stage_the_whole_height_and_showing_them_takes_it_back()
+{
+    let ctx = egui::Context::default();
+    let mut layout = default_layout();
+    draw(&mut layout.tree, &ctx, 1400.0, true);
+    draw(&mut layout.tree, &ctx, 1400.0, true);
+    let with_timeline = height_of(&layout.tree, Pane::Stage);
+    assert!(with_timeline < 700.0, "the timeline shares the height");
+
+    layout.set_hidden(Pane::Timeline, true).expect("hide");
+    layout.set_hidden(Pane::Output, true).expect("hide");
+    draw(&mut layout.tree, &ctx, 1400.0, true);
+    draw(&mut layout.tree, &ctx, 1400.0, true);
+    assert!(
+        height_of(&layout.tree, Pane::Stage) > 790.0,
+        "the stage fills the window's height"
+    );
+
+    layout.set_hidden(Pane::Timeline, false).expect("show");
+    draw(&mut layout.tree, &ctx, 1400.0, true);
+    draw(&mut layout.tree, &ctx, 1400.0, true);
+    assert!(height_of(&layout.tree, Pane::Timeline) >= MIN_TIMELINE - 1.0);
+    assert!((height_of(&layout.tree, Pane::Stage) - with_timeline).abs() < 2.0);
+}

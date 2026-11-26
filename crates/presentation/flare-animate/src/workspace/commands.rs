@@ -179,7 +179,7 @@ impl Workspace {
             | MenuAction::TextItalic
             | MenuAction::TextLarger
             | MenuAction::TextSmaller => true,
-            MenuAction::ToggleGuides => true,
+            MenuAction::ToggleGuides | MenuAction::ToggleTransparentExport => true,
             MenuAction::ClearGuides => !self.display.guides.is_empty(),
             MenuAction::NewSymbol => !self.in_symbol(),
             MenuAction::About | MenuAction::KeyboardShortcuts | MenuAction::CommandPalette => true,
@@ -404,6 +404,11 @@ impl Workspace {
                 self.text.size = (self.text.size / 1.25).max(flare_text::MIN_SIZE)
             }
             MenuAction::ToggleGuides => self.display.show_guides = !self.display.show_guides,
+            // The same setting as Publish Settings' Transparent background, put where pictures
+            // are exported from: Export Image, Export Movie and Export SVG follow it.
+            MenuAction::ToggleTransparentExport => {
+                self.publish.transparent = !self.publish.transparent
+            }
             MenuAction::ClearGuides => {
                 self.display.guides.clear();
                 self.display.guide_drag = None;
@@ -417,8 +422,8 @@ impl Workspace {
             MenuAction::ShowAlign => self.show_pane(Pane::Align),
             MenuAction::ShowTransform => self.show_pane(Pane::Transform),
             MenuAction::ShowHistory => self.show_pane(Pane::History),
-            MenuAction::ShowTimeline => self.show_pane(Pane::Timeline),
-            MenuAction::ShowOutput => self.show_pane(Pane::Output),
+            MenuAction::ShowTimeline => self.toggle_pane(Pane::Timeline),
+            MenuAction::ShowOutput => self.toggle_pane(Pane::Output),
             MenuAction::ShowInfo => self.show_pane(Pane::Info),
             MenuAction::ShowSwatches => self.show_pane(Pane::Swatches),
             MenuAction::ShowMannequin => self.show_pane(Pane::Mannequin),

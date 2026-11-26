@@ -37,6 +37,15 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
             return button_response;
         };
         let pane = *pane;
+        if pane.can_hide() {
+            let label = self.workspace.tr("dock-hide-panel");
+            button_response.context_menu(|ui| {
+                if ui.button(label).clicked() {
+                    self.workspace.panels.change = Some(PanelChange::Hide(pane));
+                    ui.close();
+                }
+            });
+        }
         if pane.can_collapse() {
             let label = self.workspace.tr("strip-collapse-to-icon");
             button_response.context_menu(|ui| {
@@ -62,6 +71,13 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
         let Some(egui_tiles::Tile::Pane(pane)) = tabs.active.and_then(|a| tiles.get(a)) else {
             return;
         };
+        if pane.can_hide() {
+            let hint = self.workspace.tr("dock-hide-panel");
+            if flare_ui::chrome::icon_button(ui, "panel-hide", 14.0, false, true, &hint).clicked() {
+                self.workspace.panels.change = Some(PanelChange::Hide(*pane));
+            }
+            return;
+        }
         if !pane.can_collapse() {
             return;
         }

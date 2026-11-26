@@ -353,6 +353,7 @@ pub fn workspaces_from_json(json: &str) -> Result<(Workspaces, Layout), LayoutEr
         .chain(workspaces.custom.iter_mut().map(|c| &mut c.layout))
     {
         layout.add_missing_to_strip();
+        layout.show_all_but_hideable();
     }
     workspaces.check()?;
     let active = workspaces.active.clone();

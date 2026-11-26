@@ -35,3 +35,4 @@ swatches-add = 현재 색상 보관
 swatches-remove = 견본 삭제
 swatches-full = 내 견본이 가득 찼습니다({ $max }).
 strip-resize = 드래그해 패널 너비를 바꿉니다
+dock-hide-panel = 숨기기 (창 메뉴에서 다시 표시)

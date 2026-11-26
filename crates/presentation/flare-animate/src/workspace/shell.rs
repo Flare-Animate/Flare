@@ -57,6 +57,13 @@ impl Workspace {
         self.session.document()
     }
 
+    /// Turns the timeline or the output on and off, as Window > Timeline does in Animate (see
+    /// `Layout::toggle_hidden`). Hiding gives the panel's room to the stage, for drawing alone.
+    pub(super) fn toggle_pane(&mut self, pane: Pane) {
+        // Only the timeline and the output are passed here, and both are always docked.
+        let _ = self.panels.layout.toggle_hidden(pane);
+    }
+
     /// Brings a panel's tab to the front of its stack, or opens it beside the strip when it is
     /// kept there.
     pub(super) fn show_pane(&mut self, pane: Pane) {

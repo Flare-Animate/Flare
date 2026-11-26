@@ -32,6 +32,7 @@ mod chord_dispatch;
 mod close_prompt;
 mod color_section;
 mod command_palette;
+mod drawing_alone;
 mod drawing_into_layers;
 mod effects;
 mod eraser;

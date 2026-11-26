@@ -53,6 +53,8 @@ pub enum MenuAction {
     ExportSvg,
     /// File > Export > Export Sprite Sheet: every frame on one picture, with its JSON atlas.
     ExportSpriteSheet,
+    /// Leave the stage colour out of exported pictures and movies, or put it back.
+    ToggleTransparentExport,
     Save,
     SaveAs,
     Quit,
@@ -209,7 +211,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 156] = [
+    pub const ALL: [MenuAction; 157] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -229,6 +231,7 @@ impl MenuAction {
         Self::ExportFla,
         Self::ExportSvg,
         Self::ExportSpriteSheet,
+        Self::ToggleTransparentExport,
         Self::Save,
         Self::SaveAs,
         Self::Quit,

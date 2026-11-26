@@ -57,6 +57,8 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                     Action(A::ExportFla),
                     Action(A::ExportSvg),
                     Action(A::ExportSpriteSheet),
+                    Separator,
+                    Action(A::ToggleTransparentExport),
                 ],
             ),
             Separator,

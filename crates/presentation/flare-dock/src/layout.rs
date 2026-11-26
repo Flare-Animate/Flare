@@ -64,6 +64,62 @@ impl Layout {
         Ok(())
     }
 
+    /// Whether `pane` is docked but hidden, giving its room to the stage.
+    pub fn is_hidden(&self, pane: Pane) -> bool {
+        arrange::find(&self.tree, pane).is_some_and(|tile| !self.tree.tiles.is_visible(tile))
+    }
+
+    /// Hides or shows a docked panel in its place. Only the timeline and the output can be hidden
+    /// (see [`Pane::can_hide`]); a shown panel comes to the front of its stack.
+    pub fn set_hidden(&mut self, pane: Pane, hidden: bool) -> Result<(), LayoutError> {
+        if !pane.can_hide() {
+            return Err(LayoutError::Invalid(format!(
+                "the {} panel cannot be hidden",
+                pane.title()
+            )));
+        }
+        let Some(tile) = arrange::find(&self.tree, pane) else {
+            return Err(LayoutError::Invalid(format!(
+                "the {} panel is not docked",
+                pane.title()
+            )));
+        };
+        self.tree.tiles.set_visible(tile, !hidden);
+        if !hidden {
+            self.tree.make_active(|id, _| id == tile);
+        }
+        Ok(())
+    }
+
+    /// Window > Timeline and Window > Output, which turn their panel on and off as Animate's do:
+    /// a hidden panel is shown in front, one in front is hidden, and one behind another tab comes
+    /// to the front. Returns whether the panel is shown afterwards.
+    pub fn toggle_hidden(&mut self, pane: Pane) -> Result<bool, LayoutError> {
+        if self.is_hidden(pane) {
+            self.set_hidden(pane, false)?;
+            return Ok(true);
+        }
+        let tile = arrange::find(&self.tree, pane);
+        if tile.is_some_and(|tile| self.tree.active_tiles().contains(&tile)) {
+            self.set_hidden(pane, true)?;
+            return Ok(false);
+        }
+        self.set_hidden(pane, false)?;
+        Ok(true)
+    }
+
+    /// Shows every tile but a hidden timeline or output. A layout read from disk is untrusted, and
+    /// a hidden stage, tool strip or stack would leave no way to get it back.
+    pub(crate) fn show_all_but_hideable(&mut self) {
+        let ids: Vec<_> = self.tree.tiles.tile_ids().collect();
+        for id in ids {
+            let hideable = matches!(self.tree.tiles.get(id), Some(Tile::Pane(p)) if p.can_hide());
+            if !hideable {
+                self.tree.tiles.set_visible(id, true);
+            }
+        }
+    }
+
     /// Moves a panel from the strip into the stack on the right, in front.
     pub fn dock(&mut self, pane: Pane) {
         let Some(at) = self.strip.iter().position(|p| *p == pane) else {
@@ -139,6 +195,7 @@ pub fn from_json(json: &str) -> Result<Layout, LayoutError> {
         migrate::add_panels_older_layouts_lack(&mut layout.tree);
     }
     layout.add_missing_to_strip();
+    layout.show_all_but_hideable();
     check(&layout)?;
     if !is_layout
         && (migrate::tool_strip_is_beside_the_stage(&layout.tree)
