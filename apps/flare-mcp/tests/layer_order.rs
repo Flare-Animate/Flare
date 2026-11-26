@@ -146,3 +146,37 @@ async fn move_frames_and_copy_frames_take_a_run_of_frames_to_dest() {
     }
     assert_eq!(f.revision().await, before);
 }
+
+#[tokio::test]
+async fn add_layer_under_puts_the_new_layer_just_under_the_one_named() {
+    let f = fixture(true, false).await;
+    f.ok("add_layer", json!({ "name": "B" })).await;
+    let info = f.ok("get_info", json!({})).await;
+    let first = info["scenes"][0]["layers"][0]["id"]
+        .as_str()
+        .expect("id")
+        .to_owned();
+    let first_name = info["scenes"][0]["layers"][0]["name"]
+        .as_str()
+        .expect("name")
+        .to_owned();
+    f.ok("add_layer", json!({ "name": "Under", "under": first }))
+        .await;
+    let names: Vec<String> = f.ok("get_info", json!({})).await["scenes"][0]["layers"]
+        .as_array()
+        .expect("layers")
+        .iter()
+        .map(|l| l["name"].as_str().expect("name").to_owned())
+        .collect();
+    assert_eq!(names, [first_name.as_str(), "Under", "B"]);
+
+    let before = f.revision().await;
+    let (bad, message) = f
+        .tool(
+            "add_layer",
+            json!({ "name": "Lost", "under": "00000000-0000-0000-0000-000000000000" }),
+        )
+        .await;
+    assert!(bad, "{message}");
+    assert_eq!(f.revision().await, before, "nothing changed");
+}

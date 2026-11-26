@@ -25,6 +25,7 @@ mod compression;
 mod effects;
 mod failures;
 mod game;
+mod layer_blend;
 mod many_elements;
 mod merged;
 mod origin;

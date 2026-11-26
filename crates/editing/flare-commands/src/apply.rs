@@ -195,6 +195,8 @@ fn step(
                 LayerChange::Parent(parent) => slot.clone().with_parent(parent),
                 LayerChange::ViewOpacity(percent) => slot.clone().with_view_opacity(percent),
                 LayerChange::Effects(graph) => slot.clone().with_effects(graph),
+                LayerChange::Blend(blend) => slot.clone().with_blend(blend),
+                LayerChange::Raster(raster) => slot.clone().with_raster(raster),
             };
             Ok(())
         })?,

@@ -8,7 +8,11 @@ use thiserror::Error;
 
 use crate::{Command, LayerChange};
 
+mod add;
+mod kind;
 mod order;
+pub use add::add_under;
+pub use kind::{new_layer, set_blend, set_raster};
 pub use order::move_to;
 
 /// Why a layer operation was refused.
@@ -225,6 +229,12 @@ pub fn set_folder(scene: SceneId, layer: LayerId, folder: Option<LayerId>) -> Ve
     update(scene, layer, LayerChange::Parent(folder))
 }
 
+#[cfg(test)]
+#[path = "add_tests.rs"]
+mod add_tests;
+#[cfg(test)]
+#[path = "kind_tests.rs"]
+mod kind_tests;
 #[cfg(test)]
 mod order_tests;
 #[cfg(test)]

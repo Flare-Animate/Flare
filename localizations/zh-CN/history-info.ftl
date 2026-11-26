@@ -65,4 +65,7 @@ hist-magic-wand = 清除像素
 hist-blur = 模糊
 hist-smudge = 涂抹
 hist-raster-brush = 栅格画笔
+hist-erase-pixels = 擦除像素
+hist-layer-blend = 更改图层混合模式
+hist-layer-convert = 转换图层
 hist-bend-line = 弯曲线条

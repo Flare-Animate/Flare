@@ -132,6 +132,8 @@ pub enum MenuAction {
     ToggleLayerMask,
     ToggleLayerGuide,
     NewLayer,
+    /// A new raster layer, painted in pixels, above the others.
+    NewRasterLayer,
     NewLayerFolder,
     MoveLayerUp,
     MoveLayerDown,
@@ -211,7 +213,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 157] = [
+    pub const ALL: [MenuAction; 158] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -306,6 +308,7 @@ impl MenuAction {
         Self::ToggleLayerMask,
         Self::ToggleLayerGuide,
         Self::NewLayer,
+        Self::NewRasterLayer,
         Self::NewLayerFolder,
         Self::MoveLayerUp,
         Self::MoveLayerDown,

@@ -51,5 +51,6 @@ pub mod subselection;
 mod test_support;
 pub mod text;
 pub mod to_bitmap;
+pub mod trace;
 pub mod tween;
 pub mod video;

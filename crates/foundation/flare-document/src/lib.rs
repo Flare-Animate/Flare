@@ -9,6 +9,7 @@ mod armature;
 mod attachment;
 mod bitmap;
 mod bitmap_photo;
+mod blend;
 mod camera;
 mod game;
 mod interp;
@@ -34,6 +35,7 @@ pub use bitmap::{
     MAX_TOTAL_BITMAP_BYTES,
 };
 pub use bitmap_photo::{DEFAULT_PHOTO_QUALITY, Photo};
+pub use blend::LayerBlend;
 pub use camera::{Camera, CameraError, MAX_ZOOM, MIN_ZOOM};
 pub use interp::{SpanInterp, SpanInterpError};
 pub use origin::{
@@ -424,6 +426,8 @@ impl Document {
 
 #[cfg(test)]
 mod bitmap_tests;
+#[cfg(test)]
+mod blend_tests;
 #[cfg(test)]
 mod effects_tests;
 #[cfg(test)]

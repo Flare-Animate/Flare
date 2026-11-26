@@ -99,7 +99,6 @@ impl Workspace {
             self.toggle_layer_locked(layer);
             ui.close();
         }
-        self.transparency_menu(ui, layer);
         if ui.button(tr!(self, "msg-layer-show-all")).clicked() {
             self.show_all_layers();
             ui.close();
@@ -144,6 +143,7 @@ impl Workspace {
             ("msg-layer-move-up", MenuAction::MoveLayerUp),
             ("msg-layer-move-down", MenuAction::MoveLayerDown),
             ("msg-layer-new", MenuAction::NewLayer),
+            ("msg-layer-new-raster", MenuAction::NewRasterLayer),
             ("msg-layer-new-folder", MenuAction::NewLayerFolder),
         ] {
             if ui

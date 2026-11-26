@@ -64,7 +64,7 @@ fn shift_on_the_eye_makes_the_layer_transparent_and_back() {
 }
 
 #[test]
-fn the_layer_menu_has_transparent_and_opacity_and_setting_it_twice_is_one_step() {
+fn the_layer_tab_has_transparent_and_opacity_and_setting_it_twice_is_one_step() {
     let (ctx, mut ws) = (egui::Context::default(), workspace());
     flare_ui::icons::install(&ctx);
     rect(&mut ws);
@@ -74,6 +74,7 @@ fn the_layer_menu_has_transparent_and_opacity_and_setting_it_twice_is_one_step()
         time += 0.1;
         at = find(&mut ws, &ctx, time, vec![], "Layer 1").or(at);
     }
+    // The layer's right-click menu no longer has them: they are in the Properties panel.
     click(
         &mut ws,
         &ctx,
@@ -81,6 +82,14 @@ fn the_layer_menu_has_transparent_and_opacity_and_setting_it_twice_is_one_step()
         at.expect("drawn"),
         PointerButton::Secondary,
     );
+    time += 0.1;
+    assert!(
+        find(&mut ws, &ctx, time, vec![], "Duplicate Layer").is_some(),
+        "the menu is open"
+    );
+    assert!(find(&mut ws, &ctx, time, vec![], "Transparent").is_none());
+    settle(&mut ws, &ctx, &mut time);
+    ws.show_props_context(PropsContext::Layer);
     let mut item = None;
     for _ in 0..4 {
         time += 0.1;
@@ -92,7 +101,7 @@ fn the_layer_menu_has_transparent_and_opacity_and_setting_it_twice_is_one_step()
         &mut ws,
         &ctx,
         &mut time,
-        item.expect("the menu offers Transparent"),
+        item.expect("the Layer tab offers Transparent"),
         PointerButton::Primary,
     );
     settle(&mut ws, &ctx, &mut time);

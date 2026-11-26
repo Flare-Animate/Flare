@@ -1,4 +1,5 @@
-//! Blur, Smudge and the Raster Brush in the workspace: a drag is handed to the pixels worker a
+//! Blur, Smudge, and the Brush and Eraser on a raster layer in the workspace: a drag is handed to
+//! the pixels worker a
 //! few samples a frame, and each edit that comes back is applied at once, all of them joined into one
 //! undo step, so the stroke shows on the stage as it is drawn. The work itself is
 //! `flare_tools::blend`; the worker (`flare_runtime::BlendJob`) keeps building the new picture
@@ -15,11 +16,16 @@ use flare_ui::chrome;
 
 use crate::workspace::*;
 
-/// The three tools' settings and the stroke on the worker.
+/// The pixel tools' settings and the stroke on the worker.
 pub(in crate::workspace) struct BlendTools {
     pub(in crate::workspace) blur: BlendSettings,
     pub(in crate::workspace) smudge: BlendSettings,
+    /// The Brush on a raster layer.
     pub(in crate::workspace) raster: BlendSettings,
+    /// The Eraser on a raster layer.
+    pub(in crate::workspace) erase: BlendSettings,
+    /// The pictures of the Brush's presets on a raster layer, made once each.
+    pub(in crate::workspace) swatches: super::raster_swatch::Swatches,
     live: Option<LiveStroke>,
     /// A drag let go while the stroke before it was still finishing: started when that ends.
     queued: Option<(BlendKind, Vec<InputSample>)>,
@@ -31,6 +37,8 @@ impl Default for BlendTools {
             blur: BlendSettings::for_kind(BlendKind::Blur),
             smudge: BlendSettings::for_kind(BlendKind::Smudge),
             raster: BlendSettings::for_kind(BlendKind::RasterBrush),
+            erase: BlendSettings::for_kind(BlendKind::Erase),
+            swatches: Default::default(),
             live: None,
             queued: None,
         }
@@ -60,12 +68,14 @@ impl BlendTools {
 }
 
 impl Workspace {
-    /// Which of the three the tool in hand is, if any.
+    /// Which pixel stroke the tool in hand makes, if any: Blur and Smudge anywhere, and the Brush
+    /// and the rubbing Eraser on a raster layer.
     pub(in crate::workspace) fn blend_kind(&self) -> Option<BlendKind> {
         match self.tool {
             Tool::Blur => Some(BlendKind::Blur),
             Tool::Smudge => Some(BlendKind::Smudge),
-            Tool::RasterBrush => Some(BlendKind::RasterBrush),
+            Tool::Brush if self.on_raster_layer() => Some(BlendKind::RasterBrush),
+            Tool::Eraser if self.on_raster_layer() && !self.eraser_faucet => Some(BlendKind::Erase),
             _ => None,
         }
     }
@@ -75,6 +85,7 @@ impl Workspace {
             BlendKind::Blur => self.paint.blend.blur,
             BlendKind::Smudge => self.paint.blend.smudge,
             BlendKind::RasterBrush => self.paint.blend.raster,
+            BlendKind::Erase => self.paint.blend.erase,
         }
     }
 
@@ -82,6 +93,7 @@ impl Workspace {
     fn blend_message(&self, kind: BlendKind, reason: &str) -> String {
         match kind {
             BlendKind::RasterBrush => tr!(self, "msg-raster-brush", &[("reason", reason)]),
+            BlendKind::Erase => tr!(self, "msg-raster-erase", &[("reason", reason)]),
             BlendKind::Blur | BlendKind::Smudge => tr!(self, "msg-blend", &[("reason", reason)]),
         }
     }
@@ -144,7 +156,28 @@ impl Workspace {
         let settings = self.blend_settings(kind);
         let document = self.active().snapshot();
         let id = self.background.next_id();
-        let job = if kind == BlendKind::RasterBrush {
+        let job = if kind == BlendKind::Erase {
+            let target = self.drawing_target();
+            if let Err(refusal) =
+                flare_tools::blend::check_paint(&document, scene, target, self.frame)
+            {
+                let message = self.drawing_refusal(&refusal);
+                self.report(message);
+                return false;
+            }
+            let Some(layer) = self.active_layer_id() else {
+                return false;
+            };
+            BlendJob::BeginErase {
+                id,
+                document,
+                scene,
+                frame: self.frame,
+                start,
+                settings,
+                layer,
+            }
+        } else if kind == BlendKind::RasterBrush {
             let target = self.drawing_target();
             if let Err(refusal) =
                 flare_tools::blend::check_paint(&document, scene, target, self.frame)
@@ -307,6 +340,9 @@ impl Workspace {
         let Some(kind) = self.blend_kind() else {
             return;
         };
+        if kind == BlendKind::RasterBrush {
+            self.raster_presets(ui);
+        }
         let strength = if kind == BlendKind::RasterBrush {
             tr!(self, "opt-opacity")
         } else {
@@ -328,6 +364,7 @@ impl Workspace {
             BlendKind::Blur => &mut self.paint.blend.blur,
             BlendKind::Smudge => &mut self.paint.blend.smudge,
             BlendKind::RasterBrush => &mut self.paint.blend.raster,
+            BlendKind::Erase => &mut self.paint.blend.erase,
         };
         chrome::slider(
             ui,

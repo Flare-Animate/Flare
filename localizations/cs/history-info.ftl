@@ -70,4 +70,7 @@ hist-magic-wand = Vymazat pixely
 hist-blur = Rozostření
 hist-smudge = Rozmazání
 hist-raster-brush = Rastrový štětec
+hist-erase-pixels = Vymazat pixely
+hist-layer-blend = Změnit režim prolnutí vrstvy
+hist-layer-convert = Převést vrstvu
 hist-bend-line = Ohnout čáru

@@ -1,14 +1,17 @@
-//! Tools that work on the pixels of bitmaps: the Magic Wand, Blur, Smudge and the Raster Brush.
+//! Tools that work on the pixels of bitmaps: the Magic Wand, Blur, Smudge, and the Brush and the
+//! Eraser on a raster layer.
 
 use flare_core::Rgba8;
 use flare_document::{Content, Document};
-use flare_tools::blend::{self, BlendEdit, BlendKind, BlendSettings, InputSample, PointerKind};
+use flare_tools::blend::{
+    self, BlendEdit, BlendKind, BlendSettings, InputSample, PointerKind, RasterPreset,
+};
 use flare_tools::magic_wand::{self, Pos2, Smoothing, WandSelection, WandSettings};
 use rmcp::{handler::server::wrapper::Parameters, tool, tool_router};
 use serde_json::{Value, json};
 
 use crate::ops::{apply, color_or, first_scene, target_layer};
-use crate::params_pixels::{Blend, ConvertToBitmap, MagicWand, RasterBrush};
+use crate::params_pixels::{Blend, ConvertToBitmap, MagicWand, RasterBrush, RasterErase};
 use crate::server::{FlareServer, Outcome, State};
 
 #[tool_router(router = pixel_tools, vis = "pub(super)")]
@@ -59,10 +62,17 @@ impl FlareServer {
     }
 
     #[tool(
-        description = "Raster Brush: paint `color` along a stroke through `points` into a bitmap on a layer, as one undo step: the topmost bitmap of the layer's keyframe under the first point, or a new clear one the size of the stage. `mix` (0 to 100) blends in the colors already there, as wet paint does: 0 lays the paint as it is, 100 only smears what is there; clear pixels give no color. `stretch` sets how far a picked-up color is carried. Pressure sets the width unless `pressure_size` is false. A locked, hidden, folder, mask, guide or camera layer is refused."
+        description = "Raster Brush, the Brush on a raster layer: paint `color` along a stroke through `points` into a bitmap on a layer, as one undo step: the topmost bitmap of the layer's keyframe under the first point, or a new clear one the size of the stage at two pixels a stage unit. `preset` starts from a named brush (round, soft-round, pencil, ink, marker, airbrush, wet-paint, blender). `mix` (0 to 100) blends in the colors already there, as wet paint does: 0 lays the paint as it is, 100 only smears what is there; clear pixels give no color. `stretch` sets how far a picked-up color is carried. Pressure sets the width unless `pressure_size` is false. A locked, hidden, folder, mask, guide or camera layer is refused."
     )]
     fn raster_brush(&self, Parameters(args): Parameters<RasterBrush>) -> Outcome {
         self.write(args.expected_revision, |state| paint_stroke(state, &args))
+    }
+
+    #[tool(
+        description = "Raster Erase, the Eraser on a raster layer: rub pixels out along a stroke through `points`, leaving them clear, as one undo step: the painting on `layer` under the first point, or the topmost picture there. Going over a place again in one stroke takes no more. Pressure sets the width unless `pressure_size` is false."
+    )]
+    fn raster_erase(&self, Parameters(args): Parameters<RasterErase>) -> Outcome {
+        self.write(args.expected_revision, |state| erase_stroke(state, &args))
     }
 
     #[tool(
@@ -123,12 +133,23 @@ fn to_bitmap(state: &mut State, args: &ConvertToBitmap) -> Result<Value, String>
 fn paint_stroke(state: &mut State, args: &RasterBrush) -> Result<Value, String> {
     let kind = BlendKind::RasterBrush;
     let samples = stroke_samples(kind, &args.points, args.pressure.as_deref())?;
-    let start = BlendSettings::for_kind(kind);
+    let start = match args.preset.as_deref() {
+        Some(name) => RasterPreset::parse(name)
+            .ok_or_else(|| {
+                let known: Vec<&str> = RasterPreset::ALL.iter().map(|p| p.name()).collect();
+                format!(
+                    "Raster Brush: unknown preset {name:?}; one of {}",
+                    known.join(", ")
+                )
+            })?
+            .settings(),
+        None => BlendSettings::for_kind(kind),
+    };
     let settings = BlendSettings {
         size: args.size.unwrap_or(start.size),
         strength: args.opacity.map_or(start.strength, |s| s / 100.0),
         hardness: args.hardness.map_or(start.hardness, |h| h / 100.0),
-        pressure_size: args.pressure_size.unwrap_or(true),
+        pressure_size: args.pressure_size.unwrap_or(start.pressure_size),
         stretch: args.stretch.unwrap_or(start.stretch),
         mix: args.mix.map_or(start.mix, |m| m / 100.0),
     };
@@ -152,6 +173,36 @@ fn paint_stroke(state: &mut State, args: &RasterBrush) -> Result<Value, String> 
         args.frame.unwrap_or(0),
         settings,
         paint,
+        &samples,
+    )
+    .map_err(|e| label(e.to_string()))?;
+    applied(state, kind, edit)
+}
+
+/// Rubs pixels out along the stroke `args` gives and applies it.
+fn erase_stroke(state: &mut State, args: &RasterErase) -> Result<Value, String> {
+    let kind = BlendKind::Erase;
+    let samples = stroke_samples(kind, &args.points, args.pressure.as_deref())?;
+    let start = BlendSettings::for_kind(kind);
+    let settings = BlendSettings {
+        size: args.size.unwrap_or(start.size),
+        strength: args.strength.map_or(start.strength, |s| s / 100.0),
+        hardness: args.hardness.map_or(start.hardness, |h| h / 100.0),
+        pressure_size: args.pressure_size.unwrap_or(true),
+        ..start
+    };
+    let label = |e: String| format!("Eraser: {e}");
+    let layer = match args.layer.as_deref() {
+        Some(text) => Some(target_layer(state, Some(text)).map_err(label)?),
+        None => None,
+    };
+    let scene = first_scene(state)?;
+    let edit = blend::rub_out(
+        state.session.document(),
+        scene,
+        args.frame.unwrap_or(0),
+        settings,
+        layer,
         &samples,
     )
     .map_err(|e| label(e.to_string()))?;

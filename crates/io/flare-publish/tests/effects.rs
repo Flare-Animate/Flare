@@ -87,3 +87,27 @@ fn a_long_list_names_the_first_few_and_counts_the_rest() {
     assert!(swf.contains("\"L4\"") && !swf.contains("\"L5\""), "{swf}");
     assert!(swf.contains("and 3 more"), "{swf}");
 }
+
+#[test]
+fn both_formats_name_the_layers_drawn_as_normal_instead_of_their_blend_mode() {
+    let shade = layer("Shade", None).with_blend(flare_document::LayerBlend::Multiply);
+    let doc = document(vec![shade, layer("Ground", None)]);
+    let blend = |diagnostics: &[Diagnostic]| {
+        diagnostics
+            .iter()
+            .map(|d| d.message.clone())
+            .find(|m| m.contains("blend mode"))
+    };
+    let swf = publish_swf(&doc, &PublishOptions::default()).expect("swf");
+    let swf = blend(&swf.diagnostics).expect("the SWF says so");
+    assert!(
+        swf.contains("\"Shade\"") && !swf.contains("Ground"),
+        "{swf}"
+    );
+    let html = publish_html5(&doc, &Html5Options::default()).expect("html");
+    assert!(blend(&html.diagnostics).is_some(), "the page says so");
+
+    let plain = document(vec![layer("A", None)]);
+    let swf = publish_swf(&plain, &PublishOptions::default()).expect("swf");
+    assert!(blend(&swf.diagnostics).is_none(), "nothing to say");
+}

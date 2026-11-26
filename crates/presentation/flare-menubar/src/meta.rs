@@ -221,6 +221,7 @@ impl MenuAction {
             Self::ToggleLayerMask => "layer-mask",
             Self::ToggleLayerGuide => "layer-motion-guide",
             Self::NewLayer => "layer-new",
+            Self::NewRasterLayer => "layer-raster",
             Self::NewLayerFolder => "layer-folder",
             Self::MoveLayerUp => "chevron-up",
             Self::MoveLayerDown => "chevron-down",

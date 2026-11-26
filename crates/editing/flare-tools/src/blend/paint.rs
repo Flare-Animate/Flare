@@ -27,6 +27,11 @@ use crate::common::{SpanRef, scene_timeline};
 use crate::drawing::{DrawRefusal, Target, place_contents};
 use crate::magic_wand::{BitmapHit, Pos2, pixel_under};
 
+/// How many pixels a new painting has to a stage unit, across and down. Two keep a stroke sharp
+/// on a high-density screen at 100% and soft-edged only past 200%, where one pixel a unit showed
+/// each pixel as a block three or four screen pixels wide. A stage too large for that gets one.
+pub const PAINT_DENSITY: u32 = 2;
+
 /// What the Raster Brush paints with, and where.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RasterPaint {
@@ -50,7 +55,7 @@ pub(super) struct Painting {
 }
 
 impl Painting {
-    fn new(color: Rgba8) -> Self {
+    pub(super) fn new(color: Rgba8) -> Self {
         let [r, g, b, a] = [color.r, color.g, color.b, color.a].map(|c| f32::from(c) / 255.0);
         Self {
             paint: [r, g, b, a],
@@ -114,7 +119,8 @@ impl BlendStroke {
         Ok(stroke)
     }
 
-    /// A stroke on a new clear bitmap covering the stage, one pixel to a stage unit.
+    /// A stroke on a new clear bitmap covering the stage, [`PAINT_DENSITY`] pixels to a stage
+    /// unit where the bitmap may be that large, else one.
     fn blank(
         document: &Document,
         settings: BlendSettings,
@@ -122,11 +128,18 @@ impl BlendStroke {
         frame: u32,
     ) -> Result<Self, BlendError> {
         let stage = document.stage();
-        let (width, height) = (stage.width(), stage.height());
+        let fits = |density: u32| {
+            let (w, h) = (stage.width() * density, stage.height() * density);
+            w <= MAX_BITMAP_SIDE
+                && h <= MAX_BITMAP_SIDE
+                && u64::from(w) * u64::from(h) <= MAX_BITMAP_PIXELS
+        };
+        let density = [PAINT_DENSITY, 1]
+            .into_iter()
+            .find(|d| fits(*d))
+            .ok_or(BlendError::StageTooLarge(stage.width(), stage.height()))?;
+        let (width, height) = (stage.width() * density, stage.height() * density);
         let pixels = u64::from(width) * u64::from(height);
-        if width > MAX_BITMAP_SIDE || height > MAX_BITMAP_SIDE || pixels > MAX_BITMAP_PIXELS {
-            return Err(BlendError::StageTooLarge(width, height));
-        }
         let clear: Arc<[u8]> = vec![0u8; pixels as usize * 4].into();
         // Nothing is at this place until the first edit puts the bitmap on the layer.
         let nowhere = SpanRef {
@@ -140,8 +153,8 @@ impl BlendStroke {
             nowhere,
             None,
             paint.bitmap_name.clone(),
-            DAffine2::IDENTITY,
-            1.0,
+            DAffine2::from_scale(DVec2::splat(f64::from(density))),
+            density as f32,
             Canvas::new(width, height, clear, None),
         );
         stroke.unplaced = Some(Unplaced {
@@ -164,7 +177,10 @@ impl BlendStroke {
         }
         let mut commands = Vec::new();
         let id = in_library(document, self.made()?, &mut commands);
-        let placed = BitmapInstance::new(InstanceId::new(), id, Transform2D::IDENTITY);
+        // Back from the painting's pixels to stage units: a dense painting is drawn smaller.
+        let transform = Transform2D::new(self.to_pixels.inverse())
+            .map_err(|_| BlendError::Bitmap("the painting's scale is not finite".into()))?;
+        let placed = BitmapInstance::new(InstanceId::new(), id, transform);
         let plan = place_contents(
             document,
             scene,
@@ -247,7 +263,7 @@ fn paint_layer(
 }
 
 /// The topmost bitmap of `layer`'s keyframe at `frame` with a pixel under `point`.
-fn bitmap_on_layer(
+pub(super) fn bitmap_on_layer(
     document: &Document,
     scene: SceneId,
     layer: LayerId,

@@ -222,6 +222,7 @@ impl MenuAction {
             Self::ImportToStage => "menu-item-import-to-stage",
             Self::ImportToLibrary => "menu-item-import-to-library",
             Self::NewLayer => "menu-item-new-layer",
+            Self::NewRasterLayer => "menu-item-new-raster-layer",
             Self::NewLayerFolder => "menu-item-new-layer-folder",
             Self::New => "menu-item-new",
             Self::SaveAll => "menu-item-save-all",

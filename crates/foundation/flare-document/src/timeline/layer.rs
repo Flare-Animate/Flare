@@ -33,6 +33,8 @@ impl Layer {
             parent: None,
             cues: Arc::from([]),
             effects: None,
+            blend: crate::LayerBlend::Normal,
+            raster: false,
         })
     }
 
@@ -52,6 +54,8 @@ impl Layer {
         layer.parent = self.parent;
         layer.cues = Arc::clone(&self.cues);
         layer.effects = self.effects.clone();
+        layer.blend = self.blend;
+        layer.raster = self.raster;
         Ok(layer)
     }
 
@@ -130,6 +134,22 @@ impl Layer {
         self
     }
 
+    /// Sets how the layer's picture is mixed with the layers under it, on the stage and in
+    /// every export.
+    #[must_use]
+    pub fn with_blend(mut self, blend: crate::LayerBlend) -> Self {
+        self.blend = blend;
+        self
+    }
+
+    /// Makes the layer a raster layer, painted in pixels, or a vector layer again. What it
+    /// already holds stays as it is: only what the Brush and the Eraser do on it changes.
+    #[must_use]
+    pub fn with_raster(mut self, raster: bool) -> Self {
+        self.raster = raster;
+        self
+    }
+
     /// Makes this layer a folder (or a plain layer again). Folders hold no spans.
     #[must_use]
     pub fn with_folder(mut self, folder: bool) -> Self {
@@ -189,6 +209,16 @@ impl Layer {
     pub fn outline_or_default(&self, index: usize) -> Rgba8 {
         self.outline
             .unwrap_or(OUTLINE_PALETTE[index % OUTLINE_PALETTE.len()])
+    }
+
+    /// How the layer is mixed with the layers under it.
+    pub fn blend(&self) -> crate::LayerBlend {
+        self.blend
+    }
+
+    /// Whether the layer is painted in pixels (see [`Layer::with_raster`]).
+    pub fn is_raster(&self) -> bool {
+        self.raster
     }
 
     /// How opaque the stage draws the layer, in percent; 100 unless it is transparent.

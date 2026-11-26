@@ -30,6 +30,7 @@ impl FlareServer {
                             json!({ "id": l.id().as_uuid(), "name": l.name(),
                                     "visible": l.is_visible(), "locked": l.is_locked(),
                                     "opacity": l.view_opacity(),
+                                    "blend": l.blend().name(), "raster": l.is_raster(),
                                     "spans": l.spans().len(), "elements": elements,
                                     "merged": flare_tools::drawing::merged_count(l),
                                     "armature": flare_tools::bones::is_armature_layer(l),

@@ -279,6 +279,11 @@ fn nothing_in_these_sections_is_left_in_english() {
         ("start-pixels", &["fr", "pt-BR"][..]),
         ("msg-layer-transparent", &["de", "fr"][..]),
         ("dlg-filter-video", &["de", "it", "cs"][..]),
+        // Blend modes named as the painting programs in these languages name them.
+        ("blend-normal", &["de", "es", "fr", "pt-BR"][..]),
+        ("blend-color", &["es"][..]),
+        ("blend-exclusion", &["fr"][..]),
+        ("blend-saturation", &["fr"][..]),
         // "Bitmaps" is the word these languages use too.
         ("msg-bitmaps", &["de", "pt-BR"][..]),
     ];

@@ -10,6 +10,7 @@ mod frames;
 mod game;
 mod history;
 mod import_into;
+mod layer_kind;
 mod layer_ops;
 mod magnet;
 mod mannequin;
@@ -45,6 +46,7 @@ impl FlareServer {
             + Self::text_tools()
             + Self::timeline_tools()
             + Self::layer_op_tools()
+            + Self::layer_kind_tools()
             + Self::effect_tools()
             + Self::multi_frame_tools()
             + Self::history_tools()

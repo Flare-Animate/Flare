@@ -289,6 +289,11 @@ pub struct Layer {
     /// The layer's effects: a node graph its picture runs through before it is drawn. Shared,
     /// so an undo snapshot copies no graph.
     effects: Option<Arc<flare_fx::EffectGraph>>,
+    /// How the layer's picture is mixed with the layers under it, in every picture made of it.
+    blend: crate::LayerBlend,
+    /// A raster layer is painted in pixels: the Brush paints and the Eraser rubs out pixels on
+    /// it. A vector layer (the default) takes shapes.
+    raster: bool,
 }
 
 /// Layers ordered top to bottom.

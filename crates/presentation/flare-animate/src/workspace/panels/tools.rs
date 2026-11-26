@@ -112,7 +112,6 @@ impl Workspace {
             Tool::Mirror => "tool-mirror",
             Tool::Blur => "tool-blur",
             Tool::Smudge => "tool-smudge",
-            Tool::RasterBrush => "tool-raster-brush",
         };
         let title = tr!(self, "tools-title", &[("name", &self.tr(&name_key(icon)))]);
         chrome::section(ui, icon, &title);
@@ -166,6 +165,7 @@ impl Workspace {
             Tool::InkBottle => {
                 ui.weak(tr!(self, "tools-help-ink"));
             }
+            Tool::Eraser if self.blend_kind().is_some() => self.blend_options(ui),
             Tool::Eraser => self.eraser_options(ui),
             Tool::Pencil => {
                 let label = tr!(self, "opt-smoothing");
@@ -174,6 +174,7 @@ impl Workspace {
                 self.stroke_assists(ui);
                 ui.weak(tr!(self, "tools-help-pencil"));
             }
+            Tool::Brush if self.blend_kind().is_some() => self.blend_options(ui),
             Tool::Brush => {
                 let label = tr!(self, "opt-size");
                 chrome::slider(ui, &label, &mut self.brush_size, 1.0..=200.0, " px", true);
@@ -220,7 +221,7 @@ impl Workspace {
                 ui.weak(tr!(self, "tools-help-polygon"));
             }
             Tool::MagicWand => self.wand_options(ui),
-            Tool::Blur | Tool::Smudge | Tool::RasterBrush => self.blend_options(ui),
+            Tool::Blur | Tool::Smudge => self.blend_options(ui),
             Tool::Line => {
                 ui.weak(tr!(self, "tools-help-line"));
             }
@@ -264,6 +265,7 @@ impl Workspace {
             Tool::Eyedropper => "tools-status-eyedropper",
             Tool::Bucket => "tools-status-bucket",
             Tool::InkBottle => "tools-status-ink",
+            Tool::Eraser if self.on_raster_layer() => "tools-status-raster-eraser",
             Tool::Eraser => "tools-status-eraser",
             Tool::PolyStar => "tools-status-polystar",
             Tool::Polygon => "tools-status-polygon-shape",
@@ -273,12 +275,12 @@ impl Workspace {
             Tool::Camera => "tools-status-camera",
             Tool::Bone => "tools-status-bone",
             Tool::Pencil => "tools-status-pencil",
+            Tool::Brush if self.on_raster_layer() => "tools-status-raster-brush",
             Tool::Brush => "tools-status-brush",
             Tool::Ruler => "tools-status-ruler",
             Tool::Mirror => "tools-status-mirror",
             Tool::Blur => "tools-status-blur",
             Tool::Smudge => "tools-status-smudge",
-            Tool::RasterBrush => "tools-status-raster-brush",
         };
         self.tr(key)
     }

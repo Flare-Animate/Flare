@@ -45,6 +45,7 @@ menu-item-import-brushes = Импортировать настройки кис�
 menu-item-import-to-stage = Импорт в рабочую область...
 menu-item-import-to-library = Импорт в библиотеку...
 menu-item-new-layer = Слой
+menu-item-new-raster-layer = Растровый слой
 menu-item-new-layer-folder = Папка слоёв
 menu-item-new = Новый
 menu-item-save-all = Сохранить все

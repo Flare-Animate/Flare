@@ -62,7 +62,7 @@ impl Workspace {
                     && self.scene_id().is_some()
                     && !self.video_import_busy()
             }
-            MenuAction::NewLayer | MenuAction::NewLayerFolder => {
+            MenuAction::NewLayer | MenuAction::NewRasterLayer | MenuAction::NewLayerFolder => {
                 !self.document().scenes().is_empty()
             }
             MenuAction::New | MenuAction::Close => !self.in_symbol(),
@@ -235,6 +235,7 @@ impl Workspace {
             MenuAction::New => self.show_new_document(),
             MenuAction::Close => self.close_tab(self.position),
             MenuAction::NewLayer => self.add_layer(),
+            MenuAction::NewRasterLayer => self.add_raster_layer(),
             MenuAction::NewLayerFolder => self.add_layer_folder(),
             MenuAction::SaveAll => self.save(),
             MenuAction::OpenRecent => self.windows.recent = true,

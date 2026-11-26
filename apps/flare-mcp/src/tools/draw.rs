@@ -45,14 +45,26 @@ impl FlareServer {
         })
     }
 
-    #[tool(description = "Add an empty layer below the existing ones (needs write access).")]
+    #[tool(
+        description = "Add an empty layer just under the layer `under` (in its folder), or below the existing ones without it: a vector layer, or a raster layer (painted in pixels) with `raster` (needs write access)."
+    )]
     fn add_layer(&self, Parameters(args): Parameters<AddLayer>) -> Outcome {
         self.write(args.expected_revision, |state| {
             let scene = first_scene(state)?;
             let id = LayerId::new();
-            let layer = Layer::new(id, &args.name, vec![]).map_err(|e| e.to_string())?;
-            let mut out = apply(state, vec![Command::AddLayer { scene, layer }])?;
+            let raster = args.raster.unwrap_or(false);
+            let layer = flare_commands::layers::new_layer(id, &args.name, raster)
+                .map_err(|e| e.to_string())?;
+            let under = match args.under.as_deref() {
+                Some(text) => Some(target_layer(state, Some(text))?),
+                None => None,
+            };
+            let commands =
+                flare_commands::layers::add_under(state.session.document(), scene, layer, under)
+                    .map_err(|e| e.to_string())?;
+            let mut out = apply(state, commands)?;
             out["layer"] = json!(id.as_uuid());
+            out["raster"] = json!(raster);
             Ok(out)
         })
     }

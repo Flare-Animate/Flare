@@ -10,6 +10,7 @@ timeline-onion = Onion skin
 timeline-onion-outline = Show onion skin as outlines
 timeline-multiple-frames = Edit multiple frames
 timeline-new-layer = New layer
+timeline-new-raster-layer = New raster layer (painted in pixels)
 timeline-new-folder = New layer folder
 timeline-folder = Folder
 timeline-move-into = Move into { $name }

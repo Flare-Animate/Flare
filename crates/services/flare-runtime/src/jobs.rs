@@ -238,6 +238,13 @@ pub enum Done {
         document: Arc<Document>,
         result: Result<flare_tools::library::Compressed, String>,
     },
+    /// The commands converting a layer between vector and raster, made from `document`: they
+    /// apply to that document only.
+    LayerConverted {
+        id: u64,
+        document: Arc<Document>,
+        result: Result<Vec<flare_commands::Command>, String>,
+    },
     /// What ffprobe said about a movie to bring in.
     VideoProbed {
         id: u64,

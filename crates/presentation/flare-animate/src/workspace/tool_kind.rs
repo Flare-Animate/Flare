@@ -61,8 +61,6 @@ pub enum Tool {
     Blur,
     /// Drag over a bitmap to push its colors along.
     Smudge,
-    /// Drag to paint the fill color into a bitmap on the layer, mixing in the colors there.
-    RasterBrush,
 }
 
 impl Tool {

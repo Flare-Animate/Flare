@@ -11,6 +11,7 @@ use glamx::{DAffine2, DVec2};
 use std::num::NonZeroU32;
 
 mod bitmaps;
+mod blend;
 mod camera;
 mod effects;
 mod masks;

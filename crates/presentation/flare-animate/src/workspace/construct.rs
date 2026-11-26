@@ -58,6 +58,7 @@ impl Workspace {
             wand: Default::default(),
             to_bitmap: None,
             bitmap_store: Default::default(),
+            layer_converting: None,
             rotate: Default::default(),
             springs: Default::default(),
             freehand: Vec::new(),

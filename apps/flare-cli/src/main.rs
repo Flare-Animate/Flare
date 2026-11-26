@@ -147,7 +147,12 @@ fn run() -> Result<()> {
         Command::Shader { op } => shader::run(op)?,
         Command::Symbol { op } => symbol::run_symbol(op)?,
         Command::Rig { op } => symbol::run_rig(op)?,
-        Command::AddLayer { path, name } => project::add_layer(&path, &name)?,
+        Command::AddLayer {
+            path,
+            name,
+            raster,
+            under,
+        } => project::add_layer(&path, &name, raster, under)?,
         Command::TransformFrames {
             path,
             from,
@@ -232,6 +237,19 @@ fn run() -> Result<()> {
             ..
         } => project::layer_opacity(&path, layer, percent)?,
         Command::Layer {
+            op: project::LayerOperation::Blend,
+            path,
+            layer,
+            mode,
+            ..
+        } => project::layer_blend(&path, layer, mode.as_deref())?,
+        Command::Layer {
+            op: op @ (project::LayerOperation::Raster | project::LayerOperation::Vector),
+            path,
+            layer,
+            ..
+        } => project::layer_kind(&path, layer, matches!(op, project::LayerOperation::Raster))?,
+        Command::Layer {
             op,
             path,
             layer,
@@ -270,6 +288,7 @@ fn run() -> Result<()> {
             project::blend_stroke(flare_tools::blend::BlendKind::Smudge, &args)?
         }
         Command::RasterBrush(args) => project::raster_brush(&args)?,
+        Command::RasterErase(args) => project::raster_erase(&args)?,
         Command::ConvertToBitmap(args) => project::convert_to_bitmap(&args)?,
         Command::AddText {
             path,

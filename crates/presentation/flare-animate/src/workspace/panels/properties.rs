@@ -22,29 +22,33 @@ impl Workspace {
                 PropsContext::Frame => self.frame_tab(ui),
                 PropsContext::Tool => self.tool_tab(ui),
                 PropsContext::Document => self.doc_tab(ui),
+                PropsContext::Layer => self.layer_tab(ui),
             });
     }
 
-    /// Animate's tabs over the panel: Tool, Object, Frame and Doc. The panel follows the
-    /// selection on its own, and the tab it chose is the one raised; a click on another shows
-    /// that one until the selection or the tool changes. Object is dimmed with nothing selected.
+    /// Animate's tabs over the panel: Tool, Object, Frame and Doc, and Layer for the active
+    /// layer's kind, blend mode and transparency. The panel follows the selection on its own, and
+    /// the tab it chose is the one raised; a click on another shows that one until the selection
+    /// or the tool changes. Object is dimmed with nothing selected.
     fn props_tabs(&mut self, ui: &mut Ui) {
-        const ORDER: [PropsContext; 4] = [
+        const ORDER: [PropsContext; 5] = [
             PropsContext::Tool,
             PropsContext::Object,
             PropsContext::Frame,
+            PropsContext::Layer,
             PropsContext::Document,
         ];
         let labels = [
             tr!(self, "prop-tab-tool"),
             tr!(self, "prop-tab-object"),
             tr!(self, "prop-tab-frame"),
+            tr!(self, "prop-tab-layer"),
             tr!(self, "prop-tab-doc"),
         ];
         let labels: Vec<&str> = labels.iter().map(String::as_str).collect();
         let current = self.props_context();
         let selected = ORDER.iter().position(|c| *c == current).unwrap_or(0);
-        let enabled = [true, self.selection_bounds().is_some(), true, true];
+        let enabled = [true, self.selection_bounds().is_some(), true, true, true];
         if let Some(index) = chrome::segmented_some(ui, &labels, selected, &enabled)
             && let Some(context) = ORDER.get(index)
         {

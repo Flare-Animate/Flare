@@ -70,6 +70,15 @@ impl Workspace {
                 );
                 text_x += 32.0;
             }
+            // A raster layer is marked by its pixels, so which layers the Brush paints in pixels
+            // can be seen at a glance.
+            if layer.is_raster() {
+                flare_ui::icons::image("layer-raster", 14.0, ink).paint_at(
+                    ui,
+                    Rect::from_min_size(Pos2::new(text_x, y + 3.0), Vec2::splat(14.0)),
+                );
+                text_x += 18.0;
+            }
             let name = if layer.is_mask() {
                 format!("Mask: {}", layer.name())
             } else if layer.is_guide() {

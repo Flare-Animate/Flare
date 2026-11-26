@@ -92,6 +92,8 @@ fn commands_sit_where_animate_keeps_them() {
         shown(&ws, submenu(insert, "Timeline")),
         [
             "Layer",
+            // Not Animate's, which has no raster layers.
+            "Raster Layer",
             "Layer Folder",
             "Frame",
             "Keyframe",

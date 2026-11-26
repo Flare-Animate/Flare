@@ -97,6 +97,7 @@ mod publish_popup;
 mod publish_settings;
 mod quit;
 mod rail;
+mod raster_layers;
 mod release_frame;
 mod rendering_and_workers;
 mod rulers_and_mirror;

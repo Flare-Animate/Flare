@@ -49,6 +49,7 @@ mod home;
 mod home_custom;
 mod home_list;
 mod language;
+mod layer_kind;
 mod layer_names;
 mod layers;
 mod lip_sync;
@@ -207,6 +208,8 @@ pub struct Workspace {
     /// The Convert to Bitmap job on the pixels worker, while it is out.
     to_bitmap: Option<u64>,
     bitmap_store: bitmap_store::BitmapStore,
+    /// The layer conversion on the pixels worker, if one is under way.
+    layer_converting: Option<u64>,
     /// The Rotation tool's drag, its dial and the Alt tap that opens it.
     rotate: tools::rotate_view::RotateView,
     springs: tools::Springs,

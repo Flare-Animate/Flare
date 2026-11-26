@@ -3,7 +3,7 @@
 use crate::StorageError;
 use flare_core::{DocumentPoint, LayerId, Rgba8, SoundId};
 use flare_document::{
-    Cap, FrameSpan, Join, Layer, PathSegment, SoundCue, TextSource, Timeline, Tween,
+    Cap, FrameSpan, Join, Layer, LayerBlend, PathSegment, SoundCue, TextSource, Timeline, Tween,
 };
 use serde::{Deserialize, Serialize};
 use std::num::NonZeroU32;
@@ -277,6 +277,13 @@ pub(super) struct LayerWire {
     /// The layer's effect graph; absent when it has none, and in files written before effects.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) effects: Option<super::effects::EffectsWire>,
+    /// How the layer is mixed with those under it (`LayerBlend::name`); absent when Normal, and
+    /// in files written before blend modes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) blend: Option<String>,
+    /// Absent in files written before raster layers, and on a vector layer.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub(super) raster: bool,
     pub(super) spans: Vec<SpanWire>,
 }
 
@@ -305,6 +312,8 @@ impl TimelineWire {
                 view_opacity: (layer.view_opacity() < 100).then_some(layer.view_opacity()),
                 parent: layer.parent().map(|p| p.as_uuid().to_string()),
                 effects: layer.effects().map(super::effects::EffectsWire::of),
+                blend: (!layer.blend().is_normal()).then(|| layer.blend().name().to_owned()),
+                raster: layer.is_raster(),
                 cues: layer
                     .cues()
                     .iter()
@@ -375,9 +384,17 @@ impl TimelineWire {
                 .effects
                 .map(super::effects::EffectsWire::build)
                 .transpose()?;
+            let blend = match layer.blend.as_deref() {
+                None => LayerBlend::Normal,
+                Some(name) => LayerBlend::parse(name).ok_or_else(|| {
+                    StorageError::Corrupt(format!("unknown blend mode \"{name}\""))
+                })?,
+            };
             layers.push(
                 Layer::new(LayerId::from_uuid(uuid(&layer.id)?), layer.name, spans)?
                     .with_effects(effects)
+                    .with_blend(blend)
+                    .with_raster(layer.raster)
                     .with_visible(layer.visible)
                     .with_locked(layer.locked)
                     .with_mask(layer.mask)

@@ -62,9 +62,10 @@ impl Workspace {
         })
     }
 
-    /// Whether the Eraser in hand rubs out along a drag (rather than deleting whole shapes).
+    /// Whether the Eraser in hand rubs out shapes along a drag (rather than deleting whole shapes,
+    /// or rubbing out pixels on a raster layer, which `blend_kind` takes).
     pub(in crate::workspace) fn eraser_rubs(&self) -> bool {
-        self.tool == Tool::Eraser && !self.eraser_faucet
+        self.tool == Tool::Eraser && !self.eraser_faucet && !self.on_raster_layer()
     }
 
     /// Rubs out the stretch of the drag in progress since the last frame, and its mirror images,

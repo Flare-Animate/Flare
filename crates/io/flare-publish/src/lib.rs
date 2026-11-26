@@ -54,11 +54,43 @@ const NAMED_LAYERS: usize = 5;
 /// `None` when no layer's effects change its picture. Effects are pixels and these formats are
 /// vectors, so they are not baked in silently.
 pub(crate) fn effects_note(document: &Document, format: &str) -> Option<Diagnostic> {
+    layers_note(
+        document,
+        |l| l.effects().is_some_and(|g| !g.is_identity()),
+        |listed| {
+            format!(
+                "{format} holds no layer effects, so these layers were drawn without them: {listed}; export a video, GIF or PNG sequence to keep them"
+            )
+        },
+    )
+}
+
+/// The note that `format` drew the layers with a blend mode as Normal, naming the first few;
+/// `None` when every layer blends normally.
+pub(crate) fn blend_note(document: &Document, format: &str) -> Option<Diagnostic> {
+    layers_note(
+        document,
+        |l| !l.blend().is_normal(),
+        |listed| {
+            format!(
+                "{format} does not mix layers by blend mode, so these layers were drawn as Normal: {listed}; export a video, GIF or PNG sequence to keep them"
+            )
+        },
+    )
+}
+
+/// A warning naming the first few layers `wanted` picks, worded by `message`; `None` when it
+/// picks none.
+fn layers_note(
+    document: &Document,
+    wanted: impl Fn(&flare_document::Layer) -> bool,
+    message: impl FnOnce(&str) -> String,
+) -> Option<Diagnostic> {
     let names: Vec<&str> = document
         .scenes()
         .iter()
         .flat_map(|s| s.timeline().layers())
-        .filter(|l| l.effects().is_some_and(|g| !g.is_identity()))
+        .filter(|l| wanted(l))
         .map(flare_document::Layer::name)
         .collect();
     if names.is_empty() {
@@ -75,9 +107,7 @@ pub(crate) fn effects_note(document: &Document, format: &str) -> Option<Diagnost
     }
     Some(Diagnostic {
         severity: Severity::Warning,
-        message: format!(
-            "{format} holds no layer effects, so these layers were drawn without them: {listed}; export a video, GIF or PNG sequence to keep them"
-        ),
+        message: message(&listed),
     })
 }
 
@@ -268,6 +298,7 @@ pub fn publish_swf(
         });
     }
     diagnostics.extend(effects_note(document, "a SWF"));
+    diagnostics.extend(blend_note(document, "a SWF"));
     diagnostics.push(Diagnostic {
         severity: Severity::Info,
         message:

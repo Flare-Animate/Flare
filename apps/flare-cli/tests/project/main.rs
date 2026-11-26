@@ -34,6 +34,7 @@ mod multi_frame;
 mod open;
 mod polygon;
 mod raster_brush;
+mod raster_layers;
 mod rendering;
 mod save_formats;
 mod scripts;

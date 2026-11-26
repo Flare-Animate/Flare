@@ -65,4 +65,7 @@ hist-magic-wand = 픽셀 지우기
 hist-blur = 흐리기
 hist-smudge = 손끝
 hist-raster-brush = 래스터 브러시
+hist-erase-pixels = 픽셀 지우기
+hist-layer-blend = 레이어 혼합 모드 변경
+hist-layer-convert = 레이어 변환
 hist-bend-line = 선 구부리기

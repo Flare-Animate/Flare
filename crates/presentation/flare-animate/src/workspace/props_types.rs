@@ -11,6 +11,8 @@ pub(super) enum PropsContext {
     Frame,
     Tool,
     Document,
+    /// The active layer: its kind, blend mode and transparency.
+    Layer,
 }
 
 /// What was selected and in hand when a context was asked for by a command, so the request lasts

@@ -17,6 +17,7 @@ pub(super) mod pen;
 pub(super) mod pen_button;
 pub(super) mod polygon;
 pub(super) mod preview_mesh;
+pub(super) mod raster_swatch;
 pub(super) mod rotate_view;
 pub(super) mod stage_pointer;
 pub(super) mod stroke_preview;

@@ -182,8 +182,9 @@ impl Workspace {
         }
         if matches!(
             self.tool,
-            Tool::Pencil | Tool::Brush | Tool::Blur | Tool::Smudge | Tool::RasterBrush
+            Tool::Pencil | Tool::Brush | Tool::Blur | Tool::Smudge
         ) || self.eraser_rubs()
+            || self.blend_kind().is_some()
         {
             let primary = egui::PointerButton::Primary;
             self.paint.straight_held = ui.input(|i| i.modifiers.shift);

@@ -10,6 +10,7 @@ timeline-onion = オニオンスキン
 timeline-onion-outline = オニオンスキンをアウトラインで表示
 timeline-multiple-frames = 複数フレームを編集
 timeline-new-layer = 新規レイヤー
+timeline-new-raster-layer = 新規ラスターレイヤー (ピクセルで描画)
 timeline-new-folder = 新規レイヤーフォルダー
 timeline-folder = フォルダー
 timeline-move-into = { $name } に移動

@@ -144,6 +144,7 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
                 "Timeline",
                 &[
                     Action(A::NewLayer),
+                    Action(A::NewRasterLayer),
                     Action(A::NewLayerFolder),
                     Action(A::InsertFrame),
                     Action(A::InsertKeyframe),

@@ -415,3 +415,22 @@ fn the_layer_menu_hold_switch_keeps_a_drawing_on_show_and_is_one_undo_step() {
     ws.toggle_layer_hold(layer);
     assert!(!layers(&ws)[0].is_hold(), "the switch turns it off again");
 }
+
+#[test]
+fn a_new_layer_goes_just_under_the_active_one_not_to_the_bottom() {
+    let mut ws = blank_workspace();
+    ws.add_layer();
+    ws.add_layer();
+    let top = layers(&ws)[0].id();
+    ws.select_layer(top);
+    ws.add_layer();
+    let added = ws.active_layer_id().expect("active");
+    assert_eq!(
+        layers(&ws)[1].id(),
+        added,
+        "right under the layer worked on"
+    );
+    assert_eq!(layer_count(&ws), 4);
+    ws.undo();
+    assert_eq!(layer_count(&ws), 3, "one undo step");
+}

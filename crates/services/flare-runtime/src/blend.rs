@@ -37,6 +37,17 @@ pub enum BlendJob {
         settings: BlendSettings,
         paint: RasterPaint,
     },
+    /// Starts rubbing out at `start` on the picture of `layer` under it at `frame`: the Eraser
+    /// on a raster layer. One stroke at a time, as `Begin`.
+    BeginErase {
+        id: u64,
+        document: Arc<Document>,
+        scene: SceneId,
+        frame: u32,
+        start: Pos2,
+        settings: BlendSettings,
+        layer: flare_core::LayerId,
+    },
     /// More of the drag (perhaps none), with the document as the window has it now. `last` says
     /// the drag has ended: the stroke ends once its last change has been shown.
     Step {
@@ -90,6 +101,20 @@ pub(crate) fn run_blend(live: &mut Option<LiveBlend>, job: BlendJob) -> Vec<Done
             id,
             scene,
             BlendStroke::paint(&document, scene, frame, start, settings, paint),
+        ),
+        BlendJob::BeginErase {
+            id,
+            document,
+            scene,
+            frame,
+            start,
+            settings,
+            layer,
+        } => started(
+            live,
+            id,
+            scene,
+            BlendStroke::erase(&document, scene, frame, start, settings, Some(layer)),
         ),
         BlendJob::Step {
             id,

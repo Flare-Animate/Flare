@@ -85,6 +85,12 @@ pub struct DrawPolygon {
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct AddLayer {
     pub name: String,
+    /// True makes a raster layer, painted in pixels; by default a vector layer.
+    pub raster: Option<bool>,
+    /// Layer id to go just under (in its folder); by default below the existing layers. Under a
+    /// folder the new layer follows everything in it; under a mask or motion guide it follows
+    /// the layer that one acts on.
+    pub under: Option<String>,
     /// Fail unless the project is at this revision (from get_info).
     pub expected_revision: Option<u64>,
 }

@@ -69,4 +69,7 @@ hist-magic-wand = Borrar píxeles
 hist-blur = Desenfocar
 hist-smudge = Difuminar
 hist-raster-brush = Pincel ráster
+hist-erase-pixels = Borrar píxeles
+hist-layer-blend = Cambiar el modo de fusión de la capa
+hist-layer-convert = Convertir la capa
 hist-bend-line = Doblar la línea

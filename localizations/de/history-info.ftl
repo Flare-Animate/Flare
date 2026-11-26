@@ -69,4 +69,7 @@ hist-magic-wand = Pixel löschen
 hist-blur = Weichzeichnen
 hist-smudge = Verwischen
 hist-raster-brush = Rasterpinsel
+hist-erase-pixels = Pixel radieren
+hist-layer-blend = Füllmethode der Ebene ändern
+hist-layer-convert = Ebene umwandeln
 hist-bend-line = Linie biegen

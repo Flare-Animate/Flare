@@ -46,17 +46,20 @@ pub struct Frame<'a> {
     /// Things that went wrong but did not stop the frame, such as a tween that fell back to the
     /// span's own keyframe.
     pub warnings: Vec<String>,
-    /// The scene layers whose picture runs through effects, in paint order, each with the run of
-    /// `shapes` and `bitmaps` it drew.
+    /// The scene layers whose picture is drawn on its own, in paint order, each with the run of
+    /// `shapes` and `bitmaps` it drew: those with effects, and those with a blend mode.
     pub effects: Vec<EffectRun<'a>>,
 }
 
-/// A scene layer with effects: what it drew at this frame, which the renderer draws on its own,
-/// runs through `graph` and lays back in the layer's place.
+/// A scene layer drawn on its own: what it drew at this frame, which the renderer draws apart,
+/// runs through `graph` when it has effects, and lays back in the layer's place mixed by `blend`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct EffectRun<'a> {
     pub layer: LayerId,
-    pub graph: &'a flare_fx::EffectGraph,
+    /// The layer's effects; `None` for a layer that only has a blend mode.
+    pub graph: Option<&'a flare_fx::EffectGraph>,
+    /// How the layer's picture is mixed with what is under it.
+    pub blend: flare_document::LayerBlend,
     /// The layer's shapes in [`Frame::shapes`].
     pub shapes: Range<usize>,
     /// The layer's bitmaps in [`Frame::bitmaps`].
@@ -107,11 +110,12 @@ impl Frame<'_> {
         }
         // Effects change what a layer's shapes look like, and moving ones do so every frame.
         for run in &self.effects {
-            run.graph.fingerprint().hash(&mut hasher);
+            run.graph.map(|g| g.fingerprint()).hash(&mut hasher);
+            run.blend.hash(&mut hasher);
             run.shapes.hash(&mut hasher);
             run.bitmaps.hash(&mut hasher);
             run.stage.map(f64::to_bits).hash(&mut hasher);
-            if run.graph.is_animated() {
+            if run.graph.is_some_and(|g| g.is_animated()) {
                 run.frame.hash(&mut hasher);
             }
         }

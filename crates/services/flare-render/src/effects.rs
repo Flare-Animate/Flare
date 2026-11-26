@@ -35,8 +35,8 @@ pub(crate) fn runs<'f, 'a>(frame: &'f Frame<'a>) -> impl Iterator<Item = &'f Eff
 
 /// How many pixels beyond each edge the layer's picture takes in: the graph's reach at this
 /// zoom, held to [`MAX_REACH_PIXELS`] and to what a picture may be.
-fn margin(run: &EffectRun<'_>, scale: f64, width: u32, height: u32) -> u32 {
-    let wanted = (run.graph.reach() * scale)
+fn margin(graph: &flare_fx::EffectGraph, scale: f64, width: u32, height: u32) -> u32 {
+    let wanted = (graph.reach() * scale)
         .min(MAX_REACH_PIXELS)
         .ceil()
         .max(0.0) as u32;
@@ -56,7 +56,8 @@ fn margin(run: &EffectRun<'_>, scale: f64, width: u32, height: u32) -> u32 {
 }
 
 /// The layer `run` drew, with its effects, as a picture `width` by `height` of `viewport`.
-/// `None` when the graph cannot run (a view with no size), so the layer is drawn plainly.
+/// `None` when the layer has no effects, or the graph cannot run (a view with no size), so the
+/// layer is drawn plainly.
 pub(crate) fn picture(
     frame: &Frame<'_>,
     run: &EffectRun<'_>,
@@ -68,8 +69,9 @@ pub(crate) fn picture(
         f64::from(width) / viewport.width,
         f64::from(height) / viewport.height,
     );
+    let graph = run.graph?;
     let scale = (sx * sy).sqrt();
-    let m = margin(run, scale, width, height);
+    let m = margin(graph, scale, width, height);
     let (pw, ph) = (width + 2 * m, height + 2 * m);
     let padded = Viewport {
         x: viewport.x - f64::from(m) / sx,
@@ -95,7 +97,7 @@ pub(crate) fn picture(
         ],
         stage: run.stage,
     };
-    let done = flare_fx::run(run.graph, source, &space, run.frame).ok()?;
+    let done = flare_fx::run(graph, source, &space, run.frame).ok()?;
     crop(&done, m, width, height)
 }
 

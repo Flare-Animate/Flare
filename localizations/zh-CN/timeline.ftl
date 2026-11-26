@@ -10,6 +10,7 @@ timeline-onion = 绘图纸外观
 timeline-onion-outline = 以轮廓显示绘图纸外观
 timeline-multiple-frames = 编辑多个帧
 timeline-new-layer = 新建图层
+timeline-new-raster-layer = 新建栅格图层（以像素绘制）
 timeline-new-folder = 新建图层文件夹
 timeline-folder = 文件夹
 timeline-move-into = 移入 { $name }

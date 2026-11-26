@@ -128,6 +128,9 @@ pub(crate) enum Command {
     /// mixing in the colors there (a new bitmap the size of the stage when none is under the
     /// first point); one undo step.
     RasterBrush(project::RasterBrushArgs),
+    /// Raster Erase: rub pixels out of the painting under the first point along a stroke of stage
+    /// points, as the Eraser does on a raster layer; one undo step.
+    RasterErase(project::RasterEraseArgs),
     /// Convert to Bitmap: one keyframe's elements become one bitmap of how they look; one step.
     ConvertToBitmap(project::ToBitmapArgs),
     /// Add editable text to a layer of the first scene.
@@ -300,8 +303,20 @@ pub(crate) enum Command {
         #[command(subcommand)]
         op: crate::shortcuts::ShortcutsCommand,
     },
-    /// Add an empty layer below the existing ones in the first scene.
-    AddLayer { path: PathBuf, name: String },
+    /// Add an empty layer to the first scene: just under `--under` (in its folder), or below
+    /// the existing ones without it.
+    AddLayer {
+        path: PathBuf,
+        name: String,
+        /// Make a raster layer, which `raster-brush` paints and `raster-erase` rubs out in
+        /// pixels; without it the layer is a vector layer.
+        #[arg(long)]
+        raster: bool,
+        /// The layer to go just under. Under a folder the new layer follows everything in it;
+        /// under a mask or a motion guide it follows the layer that one acts on.
+        #[arg(long)]
+        under: Option<uuid::Uuid>,
+    },
     /// Edit Multiple Frames: move, scale and turn everything in frames `--from` to `--to` on the
     /// shown, unlocked layers together, about the middle of all of it, as one undo step.
     TransformFrames {
@@ -369,6 +384,11 @@ pub(crate) enum Command {
         /// opaque; exports always draw it whole).
         #[arg(long)]
         percent: Option<u8>,
+        /// For `blend`: how the layer is mixed with the layers under it: normal, multiply,
+        /// screen, overlay, darken, lighten, color-dodge, color-burn, hard-light, soft-light,
+        /// difference, exclusion, hue, saturation, color, luminosity or add.
+        #[arg(long)]
+        mode: Option<String>,
     },
     /// Import an XFL, .fla, .swf, Moho, BVH or Toonz file as a project, listing what was lost.
     Import { source: PathBuf, out: PathBuf },

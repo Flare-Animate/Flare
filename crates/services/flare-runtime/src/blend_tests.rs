@@ -292,9 +292,76 @@ fn a_raster_brush_drag_places_its_new_bitmap_once_and_paints_on_inline_and_on_th
             panic!("a bitmap");
         };
         let bitmap = document.bitmap(placed.bitmap()).expect("in the library");
-        let at = |x: usize| &bitmap.pixels()[(32 * 64 + x) * 4..(32 * 64 + x) * 4 + 4];
+        // A painting has `PAINT_DENSITY` pixels to a stage unit: stage point (x, 32).
+        let d = flare_tools::blend::PAINT_DENSITY as usize;
+        let width = bitmap.width() as usize;
+        assert_eq!(width, 64 * d);
+        let at = |x: usize| {
+            let i = (32 * d * width + x * d) * 4;
+            &bitmap.pixels()[i..i + 4]
+        };
         assert_eq!(at(20), [0, 0, 255, 255], "the first stretch");
         assert_eq!(at(50), [0, 0, 255, 255], "the second");
         assert_eq!(session.undo_labels().len(), 1, "one step");
     }
+}
+
+#[test]
+fn an_erase_drag_rubs_the_layers_painting_out_on_the_worker() {
+    let mut runtime = Runtime::inline();
+    let (mut session, scene, layer) = empty();
+    let paint = flare_tools::blend::RasterPaint {
+        color: flare_core::Rgba8::opaque(0, 0, 255),
+        layer: flare_tools::ops::Target::Layer(layer),
+        new_layer: "Layer 2".into(),
+        bitmap_name: "Painting".into(),
+    };
+    let edit = flare_tools::blend::lay_paint(
+        session.document(),
+        scene,
+        0,
+        BlendSettings::for_kind(BlendKind::RasterBrush),
+        paint,
+        &samples(&[(4.0, 32.0), (60.0, 32.0)]),
+    )
+    .expect("paint");
+    session.apply(edit.commands).expect("apply");
+    runtime.submit_pixels(PixelJob::Blend(BlendJob::BeginErase {
+        id: 1,
+        document: session.snapshot(),
+        scene,
+        frame: 0,
+        start: Pos2::new(32.0, 20.0),
+        settings: BlendSettings::for_kind(BlendKind::Erase),
+        layer,
+    }));
+    step(&mut runtime, &session, &[(32.0, 20.0), (32.0, 44.0)], true);
+    let mut joining = None;
+    loop {
+        match wait(&mut runtime) {
+            Done::BlendEdited { id: 1, result, .. } => {
+                joining = session
+                    .apply_joining(result.commands, "Eraser", joining)
+                    .expect("applies");
+                step(&mut runtime, &session, &[], true);
+            }
+            Done::BlendEnded { id: 1, error } => {
+                assert_eq!(error, None);
+                break;
+            }
+            _ => panic!("not a stroke's result"),
+        }
+    }
+    let document = session.snapshot();
+    let span = document.scenes()[0].timeline().layers()[0]
+        .span_at(0)
+        .expect("a keyframe");
+    let Some(Content::Bitmap(placed)) = span.element(0) else {
+        panic!("a bitmap");
+    };
+    let bitmap = document.bitmap(placed.bitmap()).expect("in the library");
+    let d = flare_tools::blend::PAINT_DENSITY as usize;
+    let alpha = |x: usize| bitmap.pixels()[(32 * d * bitmap.width() as usize + x * d) * 4 + 3];
+    assert_eq!(alpha(32), 0, "rubbed out");
+    assert_eq!(alpha(10), 255, "kept");
 }

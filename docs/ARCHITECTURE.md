@@ -44,7 +44,7 @@ Executables are in `apps/`. The folders mean:
 | adapters | `flare-flash` | Container signature inspection only (SWF/ZIP/CFB prefixes). Not a parser. |
 | adapters | `flare-ruffle` | Ruffle, the Flash player: Test Movie publishes a SWF and plays it in an external Ruffle process, kept at arm's length (private directory, no shell, one argument). |
 | services | `flare-render` | CPU rasterization (vello_cpu), PNG output, hit testing, what the paint tools find under a point (on a line, on a fill, inside an outline), a mask of where the lines leave ink, which the Paint Bucket finds an area in, and CPU evaluation of procedural shader graphs to bounded RGBA images (`render_shader`). |
-| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text, pixels (the Magic Wand, Blur, Smudge and Raster Brush strokes, which the pixels worker keeps between steps, and Convert to Bitmap, which `convert_to_bitmap` draws between `flare_tools::to_bitmap`'s plan and edit) and a video brought in to draw over, with latest-wins where only the newest matters and an inline mode for tests; image export; lip sync from start to end (`lip_sync`: decode, read the shapes, place them), running Rhubarb Lip Sync as a program with a time limit when it is installed. No UI types. |
+| services | `flare-runtime` | Work that must stay off the UI thread: workers for drawing, files, sound, text, pixels (the Magic Wand, Blur, Smudge, and the Brush and Eraser strokes on raster layers, which the pixels worker keeps between steps, and Convert to Bitmap, which `convert_to_bitmap` draws between `flare_tools::to_bitmap`'s plan and edit) and a video brought in to draw over, with latest-wins where only the newest matters and an inline mode for tests; image export; lip sync from start to end (`lip_sync`: decode, read the shapes, place them), running Rhubarb Lip Sync as a program with a time limit when it is installed. No UI types. |
 | services | `flare-video` | The movie as an MP4, or a QuickTime movie (the same file with QuickTime's brand), with its sound, made in pure Rust: H.264 from `rusty_h264`, AAC-LC from OxideAV's `oxideav-aac`, the container from `muxide`. Frames are drawn, encoded and written one at a time, the cued sounds mixed and encoded beside them, and the file appears only when whole and never over another. Desktop only: the web build does not carry it. |
 | services | `flare-pose` | Finding a person's pose in a picture for the mannequin: MoveNet SinglePose Lightning (Google's pose estimation network, Apache-2.0, built in from `data/`) run on the CPU by RTen, a pure-Rust ONNX runtime that also builds for the browser; a look at the whole picture, then closer looks round the person while they are surer; the seventeen points found become `flare_mannequin::Marks`. No UI types. See The reference mannequin below. |
 | services | `flare-recent` | What a list of recent projects knows: each file's time and size read off the UI thread, its kind, the search over names and folders, and the sorting. No UI types. |
@@ -148,6 +148,17 @@ Onion skinning composites translucent copies of neighbouring frames (up to 8 bef
 after, fainter with distance) beneath the current one using straight-alpha source-over
 blending in `flare-render`. It is a display aid only: it is off while playing and never
 affects exports.
+
+## Layer kinds and blend modes
+
+A layer is a vector layer or a raster layer (`Layer::is_raster`); the kind decides only what the
+Brush and the Eraser do on it (shapes, or pixels through `flare_tools::blend`), so the document
+needs no new kind of content: a raster layer's paintings are bitmap instances like any other. A
+layer also has a `LayerBlend`. `flare-eval` records every scene layer with effects or a blend mode
+as an `EffectRun` (its run of shapes and bitmaps, its graph if any and its blend), and the renderer
+draws that run inside a vello blend layer, so the layer is mixed with what is under it as it is
+popped. The stage's own path for transparent layers gives a blended layer a run of its own and
+lays it on with the same mode (`flare_render::blend::composite`).
 
 ## Layer effects (`flare-fx`)
 

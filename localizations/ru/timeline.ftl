@@ -10,6 +10,7 @@ timeline-onion = Калька
 timeline-onion-outline = Луковая кожа контурами
 timeline-multiple-frames = Редактировать несколько кадров
 timeline-new-layer = Новый слой
+timeline-new-raster-layer = Новый растровый слой (рисование пикселями)
 timeline-new-folder = Новая папка слоёв
 timeline-folder = Папка
 timeline-move-into = Переместить в { $name }

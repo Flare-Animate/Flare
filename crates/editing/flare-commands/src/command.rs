@@ -28,6 +28,10 @@ pub enum LayerChange {
     ViewOpacity(u8),
     /// Sets the layer's effect graph, or takes its effects away with `None`.
     Effects(Option<flare_fx::EffectGraph>),
+    /// How the layer's picture is mixed with the layers under it.
+    Blend(flare_document::LayerBlend),
+    /// Makes the layer a raster layer, painted in pixels, or a vector layer again.
+    Raster(bool),
 }
 
 #[derive(Debug, Clone, PartialEq)]
