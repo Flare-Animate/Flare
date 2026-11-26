@@ -218,7 +218,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 159] = [
+    pub const ALL: [MenuAction; 161] = [
         Self::Open,
         Self::New,
         Self::Close,

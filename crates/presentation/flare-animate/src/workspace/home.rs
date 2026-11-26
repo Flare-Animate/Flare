@@ -22,6 +22,9 @@ pub(super) const PRESETS: [(&str, u32, u32, u32); 5] = [
 const RECENT_SHOWN: usize = 12;
 
 const SIDEBAR_WIDTH: f32 = 190.0;
+/// On a phone the sidebar becomes a band this tall across the top: the icon and name, then New
+/// File and Open side by side.
+const PHONE_HEADER_HEIGHT: f32 = 104.0;
 const PAGE_MARGIN: f32 = 28.0;
 const GAP: f32 = 12.0;
 const TILE_WIDTH: f32 = 168.0;
@@ -107,17 +110,33 @@ impl Workspace {
         let mut open: Option<PathBuf> = None;
         let mut dialog = None;
         let area = ui.available_rect_before_wrap();
-        let side = Rect::from_min_max(area.min, pos2(area.min.x + SIDEBAR_WIDTH, area.max.y));
-        let main = Rect::from_min_max(pos2(side.max.x, area.min.y), area.max);
-        ui.painter().rect_filled(side, 0.0, theme::panel());
-        ui.painter().vline(
-            side.max.x - 0.5,
-            side.y_range(),
-            Stroke::new(1.0, theme::border()),
-        );
-        ui.scope_builder(egui::UiBuilder::new().max_rect(side.shrink(14.0)), |ui| {
-            self.home_sidebar(ui, &mut dialog);
-        });
+        let phone = super::phone::is_phone(self.touch, area.width());
+        let main = if phone {
+            let header =
+                Rect::from_min_max(area.min, pos2(area.max.x, area.min.y + PHONE_HEADER_HEIGHT));
+            ui.painter().rect_filled(header, 0.0, theme::panel());
+            ui.painter().hline(
+                header.x_range(),
+                header.max.y - 0.5,
+                Stroke::new(1.0, theme::border()),
+            );
+            ui.scope_builder(egui::UiBuilder::new().max_rect(header.shrink(14.0)), |ui| {
+                self.home_phone_header(ui, &mut dialog)
+            });
+            Rect::from_min_max(pos2(area.min.x, header.max.y), area.max)
+        } else {
+            let side = Rect::from_min_max(area.min, pos2(area.min.x + SIDEBAR_WIDTH, area.max.y));
+            ui.painter().rect_filled(side, 0.0, theme::panel());
+            ui.painter().vline(
+                side.max.x - 0.5,
+                side.y_range(),
+                Stroke::new(1.0, theme::border()),
+            );
+            ui.scope_builder(egui::UiBuilder::new().max_rect(side.shrink(14.0)), |ui| {
+                self.home_sidebar(ui, &mut dialog);
+            });
+            Rect::from_min_max(pos2(side.max.x, area.min.y), area.max)
+        };
         ui.scope_builder(
             egui::UiBuilder::new().max_rect(main.shrink2(vec2(PAGE_MARGIN, 0.0))),
             |ui| {
@@ -182,6 +201,41 @@ impl Workspace {
         if wide_button(ui, width, "file-open", &tr!(self, "start-open"), false).clicked() {
             *dialog = Some(DialogRequest::Open);
         }
+    }
+
+    fn home_phone_header(&mut self, ui: &mut Ui, dialog: &mut Option<DialogRequest>) {
+        let version = tr!(
+            self,
+            "start-version",
+            &[("version", env!("CARGO_PKG_VERSION"))]
+        );
+        ui.horizontal(|ui| {
+            ui.add(icons::app_icon(32.0));
+            ui.add_space(4.0);
+            ui.vertical(|ui| {
+                ui.spacing_mut().item_spacing.y = 0.0;
+                ui.label(
+                    egui::RichText::new("Flare")
+                        .font(FontId::proportional(18.0))
+                        .color(theme::text_strong()),
+                );
+                ui.label(
+                    egui::RichText::new(version)
+                        .font(FontId::proportional(11.0))
+                        .color(theme::text_dim()),
+                );
+            });
+        });
+        ui.add_space(6.0);
+        let width = (ui.available_width() - GAP) / 2.0;
+        ui.horizontal(|ui| {
+            if wide_button(ui, width, "file-new", &tr!(self, "start-new-file"), true).clicked() {
+                self.show_new_document();
+            }
+            if wide_button(ui, width, "file-open", &tr!(self, "start-open"), false).clicked() {
+                *dialog = Some(DialogRequest::Open);
+            }
+        });
     }
 
     fn home_main(
