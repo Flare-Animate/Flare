@@ -150,10 +150,21 @@ impl egui_tiles::Behavior<Pane> for Dock<'_> {
 
 impl Workspace {
     /// What a panel shows, docked or open beside the strip. The stage and the timeline use their
-    /// whole area; every other panel keeps its content off the edge.
+    /// whole area; every other panel keeps its content off the edge. A panel whose content can be
+    /// taller than a stack leaves it scrolls: those with a list keep their own scroll area (so a
+    /// header stays put), the rest are given one here. The Motion Editor is sized to fit instead,
+    /// its graph taking whatever height is left.
     pub(super) fn pane_contents(&mut self, ui: &mut egui::Ui, pane: Pane) {
         let (horizontal, vertical) = flare_ui::theme::PANEL_PADDING;
         let inset = egui::Frame::new().inner_margin(egui::Margin::symmetric(horizontal, vertical));
+        let scrolling = |ui: &mut egui::Ui, body: &mut dyn FnMut(&mut egui::Ui)| {
+            inset.show(ui, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt(("pane", pane))
+                    .auto_shrink(false)
+                    .show(ui, |ui| body(ui));
+            });
+        };
         match pane {
             Pane::Stage => self.stage(ui),
             Pane::Timeline => self.timeline(ui),
@@ -161,21 +172,21 @@ impl Workspace {
             Pane::Library => inset.show(ui, |ui| self.library_panel(ui)).inner,
             Pane::Layers => inset.show(ui, |ui| self.layers_panel(ui)).inner,
             Pane::Properties => inset.show(ui, |ui| self.properties_panel(ui)).inner,
-            Pane::Color => inset.show(ui, |ui| self.color_panel(ui)).inner,
-            Pane::Align => inset.show(ui, |ui| self.align_panel(ui)).inner,
-            Pane::Transform => inset.show(ui, |ui| self.transform_panel(ui)).inner,
+            Pane::Color => scrolling(ui, &mut |ui| self.color_panel(ui)),
+            Pane::Align => scrolling(ui, &mut |ui| self.align_panel(ui)),
+            Pane::Transform => scrolling(ui, &mut |ui| self.transform_panel(ui)),
             Pane::History => inset.show(ui, |ui| self.history_panel(ui)).inner,
-            Pane::Info => inset.show(ui, |ui| self.info_panel(ui)).inner,
+            Pane::Info => scrolling(ui, &mut |ui| self.info_panel(ui)),
             Pane::Output => inset.show(ui, |ui| self.output_panel(ui)).inner,
             Pane::MotionEditor => inset.show(ui, |ui| self.motion_editor_panel(ui)).inner,
-            Pane::FindReplace => inset.show(ui, |ui| self.find_replace_panel(ui)).inner,
-            Pane::Assets => inset.show(ui, |ui| self.assets_panel(ui)).inner,
+            Pane::FindReplace => scrolling(ui, &mut |ui| self.find_replace_panel(ui)),
+            Pane::Assets => scrolling(ui, &mut |ui| self.assets_panel(ui)),
             Pane::Swatches => inset.show(ui, |ui| self.swatches_panel(ui)).inner,
             Pane::Mannequin => inset.show(ui, |ui| self.mannequin_panel(ui)).inner,
             Pane::Effects => inset.show(ui, |ui| self.effects_panel(ui)).inner,
             Pane::Shaders => inset.show(ui, |ui| self.shaders_panel(ui)).inner,
-            Pane::Rigs => inset.show(ui, |ui| self.rigs_panel(ui)).inner,
-            Pane::StopMotion => inset.show(ui, |ui| self.stop_motion_panel(ui)).inner,
+            Pane::Rigs => scrolling(ui, &mut |ui| self.rigs_panel(ui)),
+            Pane::StopMotion => scrolling(ui, &mut |ui| self.stop_motion_panel(ui)),
             Pane::Game => inset.show(ui, |ui| self.game_panel(ui)).inner,
         }
     }

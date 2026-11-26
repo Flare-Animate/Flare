@@ -637,6 +637,11 @@ content 10 px from the sides and 8 px from the top and bottom (`theme::PANEL_PAD
 between panels and around the dock is 3 px (`theme::GUTTER`). Between widgets: 6 by 4 px, with
 8 by 3 px of padding inside buttons and 22 px rows. These are set in one place, `theme::apply`.
 
+A panel taller than the space its stack leaves it scrolls. Panels with a list or a header that
+should stay put (Properties, Library, Layers, History, Output, Swatches and others) keep their own
+scroll area; the rest are given one where panels are hosted (`Workspace::pane_contents`). The
+Motion Editor does not scroll: its graph takes whatever height is left.
+
 All of these are the design size. The interface is drawn larger than that by default, at 115%,
 since at its design size it read as small beside Animate's. Preferences > General > Interface size
 offers 90%, 100%, 115%, 125%, 150%, 175% and 200%, kept with the preferences (`interface_size`, a

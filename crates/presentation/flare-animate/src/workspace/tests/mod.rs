@@ -82,6 +82,7 @@ mod options_fit;
 mod paint_areas;
 mod paint_gap_size;
 mod paint_tools;
+mod panel_scrolling;
 mod panels_and_view;
 mod paste_into_layer;
 mod pasteboard;
