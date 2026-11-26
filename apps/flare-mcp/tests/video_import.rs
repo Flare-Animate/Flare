@@ -110,3 +110,39 @@ async fn a_movie_outside_the_export_directory_a_missing_one_and_a_bad_length_are
     );
     assert!(!f.dir.path().join("ran").exists(), "nothing was read");
 }
+
+#[tokio::test]
+async fn video_pictures_are_photos_unless_asked_to_stay_lossless() {
+    let f = fixture_with_video_tools(tools).await;
+    let plan = |args| f.ok("plan_video_import", args);
+    assert_eq!(
+        plan(json!({ "source": "walk.mp4" })).await["photo_quality"],
+        92
+    );
+    assert_eq!(
+        plan(json!({ "source": "walk.mp4", "quality": 55 })).await["photo_quality"],
+        55
+    );
+    assert!(
+        plan(json!({ "source": "walk.mp4", "lossless": true })).await["photo_quality"].is_null()
+    );
+    let done = f
+        .ok(
+            "import_video",
+            json!({ "source": "walk.mp4", "fps": 12, "quality": 70 }),
+        )
+        .await;
+    assert_eq!(done["plan"]["photo_quality"], 70);
+    let info = f.ok("get_info", json!({})).await;
+    assert_eq!(
+        info["bitmaps"]["photos"], info["bitmaps"]["count"],
+        "every picture a photo"
+    );
+    let (is_error, _) = f
+        .tool(
+            "plan_video_import",
+            json!({ "source": "walk.mp4", "quality": 0 }),
+        )
+        .await;
+    assert!(is_error, "a quality of 0 is refused");
+}

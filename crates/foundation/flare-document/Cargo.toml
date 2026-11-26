@@ -13,6 +13,7 @@ flare-fx.workspace = true
 flare-game.workspace = true
 flare-tween.workspace = true
 glamx.workspace = true
+image = { workspace = true, features = ["jpeg"] }
 thiserror.workspace = true
 
 [dev-dependencies]

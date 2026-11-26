@@ -37,3 +37,5 @@ video-stopped = ビデオの読み込みを中止しました
 video-error = ビデオを読み込めません: { $error }
 video-leave-symbol = ビデオを読み込むにはシンボルを出てください
 video-browser = ビデオの読み込みには ffmpeg が必要ですが、ブラウザーにはありません。デスクトップアプリを使ってください。
+video-pictures = 画像
+video-pictures-tip = 写真 (JPEG) にするとファイル内の容量は約 9 分の 1 になり、見た目は変わりません。ロスレスはすべてのピクセルを保ちます。

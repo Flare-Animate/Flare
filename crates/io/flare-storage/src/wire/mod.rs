@@ -13,6 +13,7 @@ mod content;
 mod effects;
 pub(crate) mod game;
 mod origin;
+pub(crate) mod photo;
 mod settings;
 mod sound;
 mod timeline;

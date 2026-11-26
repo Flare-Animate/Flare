@@ -151,6 +151,7 @@ pub fn info(path: &Path) -> Result<Value> {
         "scenes": scenes,
         "symbols": symbols,
         "attachments": document.attachments().len(),
+        "bitmaps": flare_tools::library::bitmap_summary(document),
     }))
 }
 

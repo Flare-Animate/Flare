@@ -279,6 +279,8 @@ fn nothing_in_these_sections_is_left_in_english() {
         ("start-pixels", &["fr", "pt-BR"][..]),
         ("msg-layer-transparent", &["de", "fr"][..]),
         ("dlg-filter-video", &["de", "it", "cs"][..]),
+        // "Bitmaps" is the word these languages use too.
+        ("msg-bitmaps", &["de", "pt-BR"][..]),
     ];
     let english = Translator::new(Language::English);
     let mut english_left = Vec::new();

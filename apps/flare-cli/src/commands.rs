@@ -60,6 +60,9 @@ pub(crate) enum Command {
     /// import makes (frames, memory, the animation's length at the document's rate) and refuses
     /// one too large for the document, saying what would fit. Needs ffmpeg on the PATH.
     VideoImport(crate::video::VideoImportArgs),
+    /// Store the library's bitmaps as photos (JPEG, about a ninth of the room for video frames)
+    /// or lossless, as Animate's Bitmap Properties do; every bitmap unless `--bitmap` names some.
+    BitmapCompression(crate::bitmaps::BitmapCompressionArgs),
     /// Bring a Flash movie into a project, as File > Import > Import to Stage or Library.
     ImportInto(crate::project::ImportIntoArgs),
     /// Key a mouth Graphic to a voice, as Single Frame keyframes of its drawings.

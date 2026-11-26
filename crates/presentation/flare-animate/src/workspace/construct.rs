@@ -57,6 +57,7 @@ impl Workspace {
             lasso: Vec::new(),
             wand: Default::default(),
             to_bitmap: None,
+            bitmap_store: Default::default(),
             rotate: Default::default(),
             springs: Default::default(),
             freehand: Vec::new(),

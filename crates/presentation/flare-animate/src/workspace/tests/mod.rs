@@ -21,6 +21,7 @@ mod sound_helpers;
 use sound_helpers::{drain_audio, wav_file};
 mod anchor_tools;
 mod basics;
+mod bitmap_store;
 mod blend;
 mod bone;
 mod brush_import;

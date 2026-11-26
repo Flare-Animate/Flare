@@ -1,6 +1,7 @@
 //! Flare CLI: inspection, rational timing and headless project editing.
 #![forbid(unsafe_code)]
 
+mod bitmaps;
 mod brush;
 mod commands;
 mod frames;
@@ -139,6 +140,7 @@ fn run() -> Result<()> {
         Command::Shortcuts { op } => shortcuts::run(op)?,
         Command::Mannequin { op } => mannequin::run(*op)?,
         Command::VideoImport(args) => video::run(args)?,
+        Command::BitmapCompression(args) => bitmaps::run(args)?,
         Command::ImportInto(args) => project::import_into(args)?,
         Command::LipSync(args) => lipsync::run(args)?,
         Command::BrushImport(args) => brush::run(args)?,

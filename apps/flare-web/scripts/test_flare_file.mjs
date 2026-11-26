@@ -31,6 +31,15 @@ for (const r of parts.records) {
 }
 
 // 2. Written back, it is a database the desktop code opens, with 1 KiB pages and the same rows.
+// The page writes the version and tables Rust gives it; here they are the native file's own.
+assert.ok(Number.isInteger(parts.schemaVersion));
+const nativeDb = new sqlite3.oo1.DB(":memory:", "c");
+const nativeBytes = sqlite3.wasm.allocFromTypedArray(native);
+sqlite3.capi.sqlite3_deserialize(nativeDb.pointer, "main", nativeBytes, native.length, native.length,
+  sqlite3.capi.SQLITE_DESERIALIZE_FREEONCLOSE);
+parts.tables = nativeDb.selectValues("SELECT sql FROM sqlite_master WHERE type = 'table'").join(";\n") + ";";
+nativeDb.close();
+assert.throws(() => file.write({ ...parts, tables: undefined }), /schema version and tables/);
 const rewritten = file.write(parts);
 writeFileSync(join(outDir, "rewritten.flare"), rewritten);
 const again = file.read(rewritten);

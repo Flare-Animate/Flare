@@ -121,3 +121,7 @@ brushes-imported = { $n ->
 brushes-import-refused = Não é possível importar as predefinições de pincel: { $reason }
 brushes-import-note = Do arquivo de predefinições de pincel: { $line }
 brushes-shelf-full = A lista de pincéis está cheia; as predefinições não foram importadas. Exclua um pincel para abrir espaço.
+msg-bitmaps-stored = { $changed } bitmaps salvos de outro jeito: { $before } MB viraram { $after } MB
+msg-bitmaps-unchanged = Todos os bitmaps já estão salvos assim
+msg-bitmaps-changed = O documento mudou enquanto os bitmaps eram salvos, então nada foi alterado
+msg-bitmaps = Bitmaps: { $reason }

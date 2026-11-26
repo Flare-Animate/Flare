@@ -110,3 +110,7 @@ brushes-imported = 已导入 { $n } 个画笔预设
 brushes-import-refused = 无法导入画笔预设：{ $reason }
 brushes-import-note = 来自画笔预设文件：{ $line }
 brushes-shelf-full = 画笔列表已满，未导入预设。请删除一个画笔以腾出空间。
+msg-bitmaps-stored = 已改变 { $changed } 个位图的存储方式：{ $before } MB 变为 { $after } MB
+msg-bitmaps-unchanged = 所有位图已经是这种存储方式
+msg-bitmaps-changed = 存储位图时文档发生了变化，因此没有做任何更改
+msg-bitmaps = 位图：{ $reason }

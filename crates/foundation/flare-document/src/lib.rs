@@ -8,6 +8,7 @@
 mod armature;
 mod attachment;
 mod bitmap;
+mod bitmap_photo;
 mod camera;
 mod game;
 mod interp;
@@ -32,6 +33,7 @@ pub use bitmap::{
     Bitmap, BitmapError, BitmapInstance, MAX_BITMAP_PIXELS, MAX_BITMAP_SIDE, MAX_BITMAPS,
     MAX_TOTAL_BITMAP_BYTES,
 };
+pub use bitmap_photo::{DEFAULT_PHOTO_QUALITY, Photo};
 pub use camera::{Camera, CameraError, MAX_ZOOM, MIN_ZOOM};
 pub use interp::{SpanInterp, SpanInterpError};
 pub use origin::{

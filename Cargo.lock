@@ -2318,6 +2318,7 @@ dependencies = [
  "flare-game",
  "flare-tween",
  "glamx",
+ "image",
  "proptest",
  "thiserror 2.0.18",
 ]

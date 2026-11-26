@@ -28,6 +28,13 @@ pub struct VideoImportArgs {
     /// How opaque the stage draws the layer while editing, 0 to 100 (50 by default).
     #[arg(long)]
     opacity: Option<u8>,
+    /// The JPEG quality the pictures are kept at, 1 to 100 (92 by default): a frame of video
+    /// as a JPEG takes about a ninth of the room in the file.
+    #[arg(long, conflicts_with = "lossless")]
+    quality: Option<u8>,
+    /// Keep the pictures exactly instead of as JPEGs, at about nine times the size.
+    #[arg(long)]
+    lossless: bool,
     /// The frame the video starts on (zero based).
     #[arg(long, default_value_t = 0)]
     frame: u32,
@@ -45,6 +52,8 @@ pub fn run(args: VideoImportArgs) -> Result<Value> {
         max_minutes: args.max_minutes,
         max_side: args.max_side,
         opacity: args.opacity,
+        quality: args.quality,
+        lossless: args.lossless,
     };
     let mut session = crate::project::open_session(&args.path)?;
     let scene = session

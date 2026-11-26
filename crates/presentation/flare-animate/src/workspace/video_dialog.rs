@@ -179,6 +179,31 @@ fn video_choices(
         ui.add(egui::Slider::new(&mut form.settings.opacity, 0..=100).suffix("%"))
             .on_hover_text(&texts.opacity_tip);
     });
+    // As photos (JPEG) the pictures take about a ninth of the room in the file.
+    dialog::field(ui, &texts.pictures, |ui| {
+        let mut photo = form.settings.photo_quality.is_some();
+        let mut quality = form
+            .settings
+            .photo_quality
+            .unwrap_or(flare_document::DEFAULT_PHOTO_QUALITY);
+        egui::ComboBox::from_id_salt("video_pictures")
+            .selected_text(if photo { &texts.photo } else { &texts.lossless })
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut photo, true, &texts.photo);
+                ui.selectable_value(&mut photo, false, &texts.lossless);
+            })
+            .response
+            .on_hover_text(&texts.pictures_tip);
+        if photo {
+            ui.add(
+                egui::DragValue::new(&mut quality)
+                    .range(1..=100)
+                    .suffix("%"),
+            )
+            .on_hover_text(&texts.pictures_tip);
+        }
+        form.settings.photo_quality = photo.then_some(quality);
+    });
 }
 
 /// What the plan makes, said in sentences, with the ways out when it does not fit.
@@ -231,6 +256,10 @@ struct DialogText {
     size_result: String,
     opacity: String,
     opacity_tip: String,
+    pictures: String,
+    pictures_tip: String,
+    photo: String,
+    lossless: String,
     takes: String,
     length: String,
     timing: String,
@@ -367,6 +396,10 @@ impl DialogText {
             size_result,
             opacity: tr!(ws, "video-opacity"),
             opacity_tip: tr!(ws, "video-opacity-tip"),
+            pictures: tr!(ws, "video-pictures"),
+            pictures_tip: tr!(ws, "video-pictures-tip"),
+            photo: tr!(ws, "doc-bitmaps-photo"),
+            lossless: tr!(ws, "doc-bitmaps-lossless"),
             takes,
             length,
             timing,

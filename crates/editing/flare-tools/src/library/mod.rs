@@ -15,6 +15,10 @@ use thiserror::Error;
 
 use crate::common::*;
 
+mod compression;
+pub use compression::{
+    Compressed, Compression, CompressionError, bitmap_summary, set_bitmap_compression, stored_bytes,
+};
 mod symbols;
 pub use symbols::{
     MAX_SYMBOL_NAME_CHARS, Registration, SymbolError, check_symbol_name, convert_to_symbol,

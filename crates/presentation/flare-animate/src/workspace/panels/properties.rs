@@ -345,5 +345,6 @@ impl Workspace {
         chrome::row(ui, &label, |ui| {
             ui.label(self.document().sounds().len().to_string());
         });
+        self.bitmaps_section(ui);
     }
 }

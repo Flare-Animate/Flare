@@ -76,6 +76,7 @@ fn settings(fps: u32, seconds: f64, side: u32) -> Settings {
         max_seconds: seconds,
         max_side: side,
         opacity: 50,
+        photo_quality: None,
     }
 }
 

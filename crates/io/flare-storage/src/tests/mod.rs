@@ -28,6 +28,7 @@ mod game;
 mod many_elements;
 mod merged;
 mod origin;
+mod photos;
 mod records;
 mod roundtrip;
 mod shaders;

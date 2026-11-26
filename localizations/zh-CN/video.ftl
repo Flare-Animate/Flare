@@ -37,3 +37,5 @@ video-stopped = 视频导入已停止
 video-error = 无法导入视频：{ $error }
 video-leave-symbol = 请先退出元件再导入视频
 video-browser = 导入视频需要 ffmpeg，而浏览器没有它。请使用桌面应用。
+video-pictures = 图像
+video-pictures-tip = 存为照片 (JPEG) 时，图像在文件中约占九分之一的空间，看起来一样。无损保留每个像素。

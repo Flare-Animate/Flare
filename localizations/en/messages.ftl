@@ -121,3 +121,7 @@ brushes-imported = { $n ->
 brushes-import-refused = Cannot import the brush presets: { $reason }
 brushes-import-note = From the brush preset file: { $line }
 brushes-shelf-full = The brush list is full; the presets were not imported. Delete a brush to make room.
+msg-bitmaps-stored = Stored { $changed } bitmaps the new way: { $before } MB became { $after } MB
+msg-bitmaps-unchanged = Every bitmap is already stored that way
+msg-bitmaps-changed = The document changed while the bitmaps were being stored, so nothing was changed
+msg-bitmaps = Bitmaps: { $reason }

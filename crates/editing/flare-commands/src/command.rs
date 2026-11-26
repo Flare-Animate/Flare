@@ -71,6 +71,10 @@ pub enum Command {
     AddBitmap(Bitmap),
     /// Removes a bitmap from the library. Fails while a frame still shows it.
     RemoveBitmap(BitmapId),
+    /// Puts this bitmap in place of the library's one with the same identity, which must be the
+    /// same size: how a bitmap is stored (lossless or as a photo) changes without touching the
+    /// frames that show it.
+    ReplaceBitmap(Bitmap),
     /// Adds a sound to the library.
     AddSound(Sound),
     /// Removes a sound from the library. Fails if a cue still plays it.

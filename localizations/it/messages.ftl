@@ -121,3 +121,7 @@ brushes-imported = { $n ->
 brushes-import-refused = Impossibile importare le preimpostazioni pennello: { $reason }
 brushes-import-note = Dal file di preimpostazioni pennello: { $line }
 brushes-shelf-full = L'elenco dei pennelli è pieno; le preimpostazioni non sono state importate. Elimina un pennello per fare spazio.
+msg-bitmaps-stored = { $changed } bitmap salvate in altro modo: { $before } MB sono diventati { $after } MB
+msg-bitmaps-unchanged = Ogni bitmap è già salvata così
+msg-bitmaps-changed = Il documento è cambiato mentre le bitmap venivano salvate, quindi non è cambiato nulla
+msg-bitmaps = Bitmap: { $reason }

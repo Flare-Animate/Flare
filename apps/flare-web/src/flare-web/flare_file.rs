@@ -7,7 +7,9 @@
 //! compresses, and hands over rows.
 
 use flare_document::Document;
-use flare_storage::{Parts, Record, StorageError, Zstd, from_parts, to_parts};
+use flare_storage::{
+    Parts, Record, StorageError, TABLES, Zstd, check_schema_version, from_parts, to_parts,
+};
 use js_sys::{Array, Function, Object, Reflect, Uint8Array};
 use wasm_bindgen::{JsCast, JsValue};
 
@@ -58,6 +60,7 @@ impl FlareFile {
     /// The document in the bytes of a `.flare` file.
     pub fn read(&self, bytes: &[u8]) -> Result<Document, StorageError> {
         let rows = self.call("read", &Uint8Array::from(bytes).into())?;
+        check_schema_version(number(&rows, "schemaVersion")?)?;
         from_parts(parts_from_js(&rows)?, &mut BrowserZstd(self))
     }
 
@@ -171,6 +174,12 @@ fn parts_to_js(parts: &Parts) -> JsValue {
         records.push(&row);
     }
     let out = Object::new();
+    set(
+        &out,
+        "schemaVersion",
+        &JsValue::from_f64(parts.schema_version() as f64),
+    );
+    set(&out, "tables", &JsValue::from_str(TABLES));
     set(&out, "projectId", &JsValue::from_str(&parts.project_id));
     set(&out, "settings", &JsValue::from_str(&parts.settings));
     set(&out, "records", &records);

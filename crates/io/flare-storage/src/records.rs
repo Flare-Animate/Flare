@@ -25,11 +25,49 @@ pub const BITMAP_SCHEMA_VERSION: i64 = 2;
 pub const GAME_SCHEMA_VERSION: i64 = 4;
 /// Written by a project containing shader graphs; older readers refuse it instead of discarding them.
 pub const SHADER_SCHEMA_VERSION: i64 = 5;
+/// Written by a project with a bitmap kept as a photo (a JPEG); older readers refuse it by name.
+pub const PHOTO_SCHEMA_VERSION: i64 = 6;
+
+/// The tables of a project file, the same for the desktop app and the browser (which gets them
+/// from here, so the two cannot drift apart).
+pub const TABLES: &str = "
+CREATE TABLE project (
+    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+    project_id TEXT NOT NULL,
+    schema_version INTEGER NOT NULL,
+    settings_json TEXT NOT NULL
+) STRICT;
+CREATE TABLE entity (
+    id TEXT PRIMARY KEY,
+    kind TEXT NOT NULL CHECK (kind IN ('scene', 'symbol', 'attachment', 'sound', 'bitmap', 'photo', 'origin', 'game', 'shader')),
+    ordinal INTEGER NOT NULL,
+    payload_version INTEGER NOT NULL CHECK (payload_version > 0),
+    codec TEXT NOT NULL CHECK (codec IN ('cbor', 'cbor+zstd')),
+    size INTEGER NOT NULL CHECK (size >= 0),
+    digest BLOB NOT NULL CHECK (length(digest) = 32),
+    payload BLOB NOT NULL
+) STRICT, WITHOUT ROWID;
+";
+
+/// Whether this build reads a file of schema `version`, or the error that says it was made by a
+/// newer Flare.
+pub fn check_schema_version(version: i64) -> Result<(), StorageError> {
+    match version {
+        SCHEMA_VERSION
+        | BITMAP_SCHEMA_VERSION
+        | GAME_SCHEMA_VERSION
+        | SHADER_SCHEMA_VERSION
+        | PHOTO_SCHEMA_VERSION => Ok(()),
+        other => Err(StorageError::UnsupportedVersion(other)),
+    }
+}
 
 impl Parts {
     /// The schema version these rows need to be read.
     pub fn schema_version(&self) -> i64 {
-        if self.records.iter().any(|r| r.kind == "shader") {
+        if self.records.iter().any(|r| r.kind == "photo") {
+            PHOTO_SCHEMA_VERSION
+        } else if self.records.iter().any(|r| r.kind == "shader") {
             SHADER_SCHEMA_VERSION
         } else if self.records.iter().any(|r| r.kind == "game") {
             GAME_SCHEMA_VERSION
@@ -80,7 +118,8 @@ pub struct Parts {
 pub(crate) fn limit_of(kind: &str) -> usize {
     match kind {
         "sound" => MAX_SOUND_PAYLOAD_BYTES,
-        "bitmap" => wire::MAX_BITMAP_RECORD_BYTES,
+        // A photo is kept only while it is smaller than its pixels, so a bitmap's room holds it.
+        "bitmap" | "photo" => wire::MAX_BITMAP_RECORD_BYTES,
         "origin" => wire::MAX_ORIGIN_RECORD_BYTES,
         "game" => wire::MAX_GAME_RECORD_BYTES,
         "shader" => MAX_SHADER_PAYLOAD_BYTES,
@@ -111,7 +150,7 @@ fn what_is(kind: &str) -> &'static str {
     match kind {
         "scene" => "a scene's drawings and timeline",
         "symbol" => "a symbol",
-        "bitmap" => "a bitmap",
+        "bitmap" | "photo" => "a bitmap",
         "sound" => "a sound",
         "attachment" => "an attachment",
         "origin" => "the original file kept with the project",
@@ -168,8 +207,11 @@ pub(crate) fn to_parts_within(
         put(sound.id().as_uuid().to_string(), "sound", ordinal, &raw)?;
     }
     for (ordinal, bitmap) in (0_i64..).zip(document.bitmaps()) {
-        let raw = wire::BitmapMeta::frame(bitmap)?;
-        put(bitmap.id().as_uuid().to_string(), "bitmap", ordinal, &raw)?;
+        let id = bitmap.id().as_uuid().to_string();
+        match wire::photo::frame(bitmap)? {
+            Some(raw) => put(id, "photo", ordinal, &raw)?,
+            None => put(id, "bitmap", ordinal, &wire::BitmapMeta::frame(bitmap)?)?,
+        }
     }
     for (ordinal, symbol) in (0_i64..).zip(document.symbols()) {
         let raw = to_cbor(&wire::SymbolWire::of(symbol))?;
@@ -224,7 +266,10 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
             "symbol" => symbols.push(from_cbor::<wire::SymbolWire>(&raw)?.build(&record.id)?),
             "attachment" => attachments.push(from_cbor::<wire::AttachmentWire>(&raw)?.build()?),
             "sound" => sounds.push(wire::SoundMeta::unframe(&record.id, &raw)?),
-            "bitmap" => bitmaps.push(wire::BitmapMeta::unframe(&record.id, &raw)?),
+            "bitmap" => {
+                bitmaps.push((record.ordinal, wire::BitmapMeta::unframe(&record.id, &raw)?))
+            }
+            "photo" => bitmaps.push((record.ordinal, wire::photo::unframe(&record.id, &raw)?)),
             "origin" => {
                 if origin.replace(wire::OriginMeta::unframe(&raw)?).is_some() {
                     return Err(StorageError::Corrupt("two source records".into()));
@@ -248,6 +293,10 @@ pub fn from_parts(mut parts: Parts, zstd: &mut dyn Zstd) -> Result<Document, Sto
             }
         }
     }
+    // Records come sorted by kind, so the lossless bitmaps and the photos are put back in the order
+    // the library had them.
+    bitmaps.sort_by_key(|(ordinal, _)| *ordinal);
+    let bitmaps = bitmaps.into_iter().map(|(_, b)| b).collect();
     wire::assemble(
         &parts.project_id,
         &parts.settings,

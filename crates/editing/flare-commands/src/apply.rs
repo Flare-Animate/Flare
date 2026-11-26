@@ -148,6 +148,16 @@ fn step(
                 return Err(EditError::NoSuchBitmap(id));
             }
         }
+        Command::ReplaceBitmap(bitmap) => {
+            let slot = bitmaps
+                .iter_mut()
+                .find(|b| b.id() == bitmap.id())
+                .ok_or(EditError::NoSuchBitmap(bitmap.id()))?;
+            if (slot.width(), slot.height()) != (bitmap.width(), bitmap.height()) {
+                return Err(EditError::BitmapSize(bitmap.id()));
+            }
+            *slot = bitmap;
+        }
         Command::AddSound(sound) => sounds.push(sound),
         Command::RemoveSound(id) => {
             let before = sounds.len();

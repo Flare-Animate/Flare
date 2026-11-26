@@ -20,6 +20,7 @@ use flare_input::{InputSample, PenFeed};
 mod arrange;
 mod assist;
 mod background_work;
+mod bitmap_store;
 mod brush_import;
 mod chords;
 mod close_prompt;
@@ -205,6 +206,7 @@ pub struct Workspace {
     wand: tools::magic_wand::WandTool,
     /// The Convert to Bitmap job on the pixels worker, while it is out.
     to_bitmap: Option<u64>,
+    bitmap_store: bitmap_store::BitmapStore,
     /// The Rotation tool's drag, its dial and the Alt tap that opens it.
     rotate: tools::rotate_view::RotateView,
     springs: tools::Springs,

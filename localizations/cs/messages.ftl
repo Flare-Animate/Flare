@@ -120,3 +120,7 @@ brushes-imported = Importováno předvoleb štětce: { $n }
 brushes-import-refused = Předvolby štětce nelze importovat: { $reason }
 brushes-import-note = Ze souboru předvoleb štětce: { $line }
 brushes-shelf-full = Seznam štětců je plný; předvolby nebyly importovány. Odstraňte štětec, aby vzniklo místo.
+msg-bitmaps-stored = Bitmapy uložené jinak: { $changed }; z { $before } MB je { $after } MB
+msg-bitmaps-unchanged = Všechny bitmapy už jsou uložené takto
+msg-bitmaps-changed = Dokument se změnil během ukládání bitmap, a tak se nic nezměnilo
+msg-bitmaps = Bitmapy: { $reason }

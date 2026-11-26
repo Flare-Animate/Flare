@@ -121,3 +121,7 @@ brushes-imported = { $n ->
 brushes-import-refused = Impossible d'importer les préréglages de pinceau : { $reason }
 brushes-import-note = Du fichier de préréglages de pinceau : { $line }
 brushes-shelf-full = La liste de pinceaux est pleine ; les préréglages n'ont pas été importés. Supprimez un pinceau pour faire de la place.
+msg-bitmaps-stored = { $changed } bitmaps enregistrés autrement : { $before } Mo sont devenus { $after } Mo
+msg-bitmaps-unchanged = Chaque bitmap est déjà enregistré ainsi
+msg-bitmaps-changed = Le document a changé pendant l'enregistrement des bitmaps, rien n'a donc été modifié
+msg-bitmaps = Bitmaps : { $reason }

@@ -121,3 +121,7 @@ brushes-imported = { $n ->
 brushes-import-refused = No se pueden importar los preajustes de pincel: { $reason }
 brushes-import-note = Del archivo de preajustes de pincel: { $line }
 brushes-shelf-full = La lista de pinceles está llena; los preajustes no se importaron. Elimina un pincel para hacer sitio.
+msg-bitmaps-stored = { $changed } mapas de bits guardados de otra forma: { $before } MB pasaron a { $after } MB
+msg-bitmaps-unchanged = Todos los mapas de bits ya se guardan así
+msg-bitmaps-changed = El documento cambió mientras se guardaban los mapas de bits, así que no se cambió nada
+msg-bitmaps = Mapas de bits: { $reason }

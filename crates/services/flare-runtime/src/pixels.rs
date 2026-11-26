@@ -52,6 +52,13 @@ pub enum PixelJob {
         scale: u32,
         name: String,
     },
+    /// Storing the library's bitmaps as `compression` says (all of them): a JPEG a frame of video
+    /// takes about 10 ms to make, so a library of them takes seconds.
+    CompressBitmaps {
+        id: u64,
+        document: Arc<Document>,
+        compression: flare_tools::library::Compression,
+    },
 }
 
 /// What a wand click picked, with a picture of it small enough to draw every frame.
@@ -86,6 +93,20 @@ impl Pixels {
                 )
                 .map_err(|e| e.to_string());
                 vec![Done::ToBitmapMade {
+                    id,
+                    document,
+                    result,
+                }]
+            }
+            PixelJob::CompressBitmaps {
+                id,
+                document,
+                compression,
+            } => {
+                let result =
+                    flare_tools::library::set_bitmap_compression(&document, &[], compression)
+                        .map_err(|e| e.to_string());
+                vec![Done::BitmapsCompressed {
                     id,
                     document,
                     result,

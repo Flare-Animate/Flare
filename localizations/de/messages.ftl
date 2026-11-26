@@ -121,3 +121,7 @@ brushes-imported = { $n ->
 brushes-import-refused = Die Pinselvoreinstellungen konnten nicht importiert werden: { $reason }
 brushes-import-note = Aus der Pinselvoreinstellungsdatei: { $line }
 brushes-shelf-full = Die Pinselliste ist voll; die Voreinstellungen wurden nicht importiert. Lösche einen Pinsel, um Platz zu schaffen.
+msg-bitmaps-stored = { $changed } Bitmaps anders gespeichert: aus { $before } MB wurden { $after } MB
+msg-bitmaps-unchanged = Jedes Bitmap ist schon so gespeichert
+msg-bitmaps-changed = Das Dokument hat sich geändert, während die Bitmaps gespeichert wurden, daher wurde nichts geändert
+msg-bitmaps = Bitmaps: { $reason }

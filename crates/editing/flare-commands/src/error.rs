@@ -31,6 +31,8 @@ pub enum EditError {
     NoSuchBitmap(BitmapId),
     #[error("an identical bitmap is already in the library as {0:?}")]
     DuplicateBitmap(BitmapId),
+    #[error("bitmap {0:?} would change size; only how it is stored may change")]
+    BitmapSize(BitmapId),
     #[error(transparent)]
     Game(#[from] flare_game::GameError),
     #[error("not a game edit")]
