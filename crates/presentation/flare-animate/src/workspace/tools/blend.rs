@@ -75,7 +75,13 @@ impl Workspace {
             Tool::Blur => Some(BlendKind::Blur),
             Tool::Smudge => Some(BlendKind::Smudge),
             Tool::Brush if self.on_raster_layer() => Some(BlendKind::RasterBrush),
-            Tool::Eraser if self.on_raster_layer() && !self.eraser_faucet => Some(BlendKind::Erase),
+            Tool::Eraser
+                if self.on_raster_layer()
+                    && !self.eraser_faucet
+                    && self.vector_eraser().is_none() =>
+            {
+                Some(BlendKind::Erase)
+            }
             _ => None,
         }
     }

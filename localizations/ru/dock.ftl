@@ -32,6 +32,7 @@ workspace-saved = Рабочая среда «{ $name }» сохранена.
 workspace-refused = Рабочая среда не изменилась: { $reason }
 pane-swatches = Образцы
 swatches-yours = Ваши образцы
+swatches-skin = Оттенки кожи
 swatches-add = Сохранить текущий цвет
 swatches-remove = Удалить образец
 swatches-full = Ваши образцы заполнены ({ $max }).

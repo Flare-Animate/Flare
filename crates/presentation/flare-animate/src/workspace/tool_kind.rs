@@ -21,7 +21,8 @@ pub enum Tool {
     Bucket,
     /// Click a shape to give it the current stroke.
     InkBottle,
-    /// Click a shape to delete it.
+    /// Drag to erase with the eraser picked in its list: rubbing out what it passes over (with
+    /// Faucet, clicking deletes a shape), or a vector eraser taking lines by the piece or whole.
     Eraser,
     /// Drag from the center out: a regular polygon, or a star.
     PolyStar,

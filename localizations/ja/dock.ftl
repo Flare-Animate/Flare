@@ -32,6 +32,7 @@ workspace-saved = ワークスペース「{ $name }」を保存しました。
 workspace-refused = ワークスペースは変更されませんでした: { $reason }
 pane-swatches = スウォッチ
 swatches-yours = 自分のスウォッチ
+swatches-skin = 肌の色
 swatches-add = 現在の色を追加
 swatches-remove = スウォッチを削除
 swatches-full = 自分のスウォッチがいっぱいです（{ $max }）。

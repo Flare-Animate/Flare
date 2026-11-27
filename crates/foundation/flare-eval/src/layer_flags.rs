@@ -33,3 +33,29 @@ pub(crate) fn view_alpha_of(layers: &[flare_document::Layer], index: usize) -> f
     }
     alpha
 }
+
+/// Whether `layers[index]` is `layer` or lies inside it, directly or through other folders.
+/// Parents are earlier layers, so the climb is bounded by the list.
+pub(crate) fn within(
+    layers: &[flare_document::Layer],
+    index: usize,
+    layer: flare_core::LayerId,
+) -> bool {
+    if layers[index].id() == layer {
+        return true;
+    }
+    let mut parent = layers[index].parent();
+    for _ in 0..index {
+        let Some(id) = parent else {
+            return false;
+        };
+        if id == layer {
+            return true;
+        }
+        parent = layers[..index]
+            .iter()
+            .find(|l| l.id() == id)
+            .and_then(flare_document::Layer::parent);
+    }
+    false
+}

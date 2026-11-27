@@ -32,6 +32,7 @@ workspace-saved = Pracovní prostor { $name } uložen.
 workspace-refused = Pracovní prostor se nezměnil: { $reason }
 pane-swatches = Vzorník
 swatches-yours = Vaše vzorky
+swatches-skin = Odstíny pleti
 swatches-add = Ponechat aktuální barvu
 swatches-remove = Smazat vzorek
 swatches-full = Vaše vzorky jsou plné ({ $max }).

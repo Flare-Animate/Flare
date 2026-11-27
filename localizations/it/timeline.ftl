@@ -30,3 +30,5 @@ timeline-onion-tinted = Colorato
 timeline-onion-before-color = Fotogrammi precedenti
 timeline-onion-after-color = Fotogrammi successivi
 timeline-onion-reset-colors = Ripristina colori
+timeline-length = Durata
+timeline-length-tip = Fotogrammi: { $frames }, a { $fps } fps

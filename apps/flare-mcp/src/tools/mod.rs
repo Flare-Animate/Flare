@@ -32,6 +32,7 @@ mod symbols;
 mod text;
 mod timeline;
 mod tween;
+mod vector_erase;
 mod video;
 
 use rmcp::handler::server::router::tool::ToolRouter;
@@ -66,6 +67,7 @@ impl FlareServer {
             + Self::pixel_tools()
             + Self::bend_edge_tools()
             + Self::magnet_tools()
+            + Self::vector_erase_tools()
             + Self::project_rig_tools()
             + Self::stop_motion_tools()
             + Self::mannequin_tools()

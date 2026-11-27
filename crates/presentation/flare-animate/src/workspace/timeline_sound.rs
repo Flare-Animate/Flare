@@ -9,11 +9,26 @@ const FILL: Color32 = Color32::from_rgb(214, 140, 60);
 /// The waveform, dark on the fill so it reads in both themes.
 const WAVE: Color32 = Color32::from_rgb(92, 50, 14);
 
+/// The most a quiet sound's waveform is enlarged: a soft recording (a tenth of full scale, say)
+/// still fills the bar, while near-silence keeps looking like near-silence, not like sound.
+const MAX_GAIN: f32 = 20.0;
+
+/// How much the waveform of a sound whose loudest sample is `loudest` is enlarged so that sample
+/// reaches the bar's edge: a quiet track drawn at its true size is a flat line a point high.
+fn gain(loudest: f32) -> f32 {
+    if loudest.is_finite() && loudest > 0.0 {
+        (1.0 / loudest).min(MAX_GAIN)
+    } else {
+        1.0
+    }
+}
+
 /// The shape of `peaks` across `bar`, one column a point, for only the columns that are on
 /// screen (`clip`): the timeline repaints while playing, and a long sound runs far past the
 /// panel's edge. `seconds_per_point` is how much of the sound one point covers. Each column is
 /// a line from the lowest to the highest sample under it, about the bar's middle; silence is a
-/// one-point line, so a quiet stretch still reads as part of the sound.
+/// one-point line, so a quiet stretch still reads as part of the sound. The shape is enlarged
+/// to the sound's loudest sample (see [`gain`]), as audio editors draw it.
 pub(super) fn waveform(
     bar: Rect,
     clip: Rect,
@@ -28,6 +43,7 @@ pub(super) fn waveform(
     }
     let middle = bar.center().y;
     let half = (bar.height() / 2.0 - 1.0).max(0.5);
+    let gain = gain(peaks.loudest());
     let first = (visible.min.x - bar.min.x).floor().max(0.0) as u32;
     let last = (visible.max.x - bar.min.x).ceil().max(0.0) as u32;
     (first..last)
@@ -35,8 +51,8 @@ pub(super) fn waveform(
             let from = f64::from(column) * seconds_per_point;
             let [low, high] = peaks.between(from, from + seconds_per_point)?;
             let x = bar.min.x + column as f32 + 0.5;
-            let top = middle - high * half;
-            let bottom = (middle - low * half).max(top + 1.0);
+            let top = middle - (high * gain).clamp(-1.0, 1.0) * half;
+            let bottom = (middle - (low * gain).clamp(-1.0, 1.0) * half).max(top + 1.0);
             Some(Shape::line_segment(
                 [Pos2::new(x, top), Pos2::new(x, bottom)],
                 stroke,

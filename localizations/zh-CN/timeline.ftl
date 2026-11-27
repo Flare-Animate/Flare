@@ -30,3 +30,5 @@ timeline-onion-tinted = 着色
 timeline-onion-before-color = 之前的帧
 timeline-onion-after-color = 之后的帧
 timeline-onion-reset-colors = 重置颜色
+timeline-length = 时长
+timeline-length-tip = 帧数：{ $frames }，{ $fps } fps

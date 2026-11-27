@@ -78,6 +78,18 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
         }
     };
     let mut current = evaluate(job.frame).map_err(|e| e.to_string())?;
+    let evaluate_ghost = |frame: u32| match job.ghost_layer {
+        None => evaluate(frame),
+        Some(layer) if job.through_camera => {
+            flare_eval::evaluate_frame_of_layer(&job.document, job.scene, frame, layer)
+        }
+        Some(layer) => flare_eval::evaluate_frame_of_layer_without_camera(
+            &job.document,
+            job.scene,
+            frame,
+            layer,
+        ),
+    };
     if let Some(preview) = &job.text_preview {
         show_text_preview(&mut current, preview);
     }
@@ -89,7 +101,11 @@ fn draw(job: &RenderJob) -> Result<Rendered, String> {
     let evaluated: Vec<(flare_eval::Frame<'_>, f32, Option<flare_core::Rgba8>)> = job
         .ghosts
         .iter()
-        .filter_map(|(frame, opacity)| evaluate(*frame).ok().map(|e| (e, *opacity, tint(*frame))))
+        .filter_map(|(frame, opacity)| {
+            evaluate_ghost(*frame)
+                .ok()
+                .map(|e| (e, *opacity, tint(*frame)))
+        })
         .collect();
     let ghosts: Vec<(&flare_eval::Frame<'_>, f32, Option<flare_core::Rgba8>)> =
         evaluated.iter().map(|(e, o, t)| (e, *o, *t)).collect();

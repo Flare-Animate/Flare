@@ -26,6 +26,7 @@ mod params_scripts;
 mod params_shader;
 mod params_shortcuts;
 mod params_timeline;
+mod params_vector_erase;
 mod params_video;
 mod server;
 mod tools;

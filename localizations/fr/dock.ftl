@@ -32,6 +32,7 @@ workspace-saved = Espace de travail { $name } enregistré.
 workspace-refused = L’espace de travail n’a pas changé : { $reason }
 pane-swatches = Nuancier
 swatches-yours = Vos nuances
+swatches-skin = Teintes de peau
 swatches-add = Garder la couleur actuelle
 swatches-remove = Supprimer la nuance
 swatches-full = Vos nuances sont pleines ({ $max }).

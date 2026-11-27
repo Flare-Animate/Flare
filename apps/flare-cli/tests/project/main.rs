@@ -51,6 +51,7 @@ mod text;
 mod to_bitmap;
 mod transparent;
 mod tween;
+mod vector_erase;
 mod video_import;
 mod wick;
 

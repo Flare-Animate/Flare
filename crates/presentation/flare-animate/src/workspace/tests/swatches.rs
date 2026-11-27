@@ -88,3 +88,115 @@ fn the_panel_is_in_the_strip_and_a_click_on_a_cell_picks_its_color() {
     }
     assert_eq!(ws.paint.fill, Color32::BLACK);
 }
+
+#[test]
+fn the_panel_has_skin_tones_and_a_click_on_one_picks_it() {
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    ctx.enable_accesskit();
+    let tone = flare_core::swatches::skin_tones()[0];
+    let hex = format!("#{:02X}{:02X}{:02X}", tone.r, tone.g, tone.b);
+    let mut cell = None;
+    for step in 0..3 {
+        let mut out = ctx.run_ui(input(f64::from(step) * 0.1, vec![]), |ui| {
+            ws.swatches_panel(ui);
+        });
+        out.textures_delta.clear();
+        let nodes = out.platform_output.accesskit_update.map(|u| u.nodes);
+        cell = nodes.into_iter().flatten().find_map(|(_, n)| {
+            let b = n.bounds()?;
+            (n.label() == Some(hex.as_str()))
+                .then(|| egui::pos2(((b.x0 + b.x1) / 2.0) as f32, ((b.y0 + b.y1) / 2.0) as f32))
+        });
+    }
+    let at = cell.expect("the first skin tone is a button named by its hex");
+    let click = |pressed| Event::PointerButton {
+        pos: at,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    for (time, events) in [
+        (0.5, vec![Event::PointerMoved(at)]),
+        (0.6, vec![click(true)]),
+        (0.7, vec![click(false)]),
+    ] {
+        let mut out = ctx.run_ui(input(time, events), |ui| ws.swatches_panel(ui));
+        out.textures_delta.clear();
+    }
+    assert_eq!(ws.paint.fill, Color32::from_rgb(tone.r, tone.g, tone.b));
+}
+
+/// One pass of the Swatches panel in `area`; returns the middle of the cell named `hex`.
+fn skin_cell(
+    ws: &mut Workspace,
+    ctx: &egui::Context,
+    area: Rect,
+    time: f64,
+    events: Vec<Event>,
+    hex: &str,
+) -> Option<egui::Pos2> {
+    let mut out = ctx.run_ui(input(time, events), |ui| {
+        ui.scope_builder(egui::UiBuilder::new().max_rect(area), |ui| {
+            ws.swatches_panel(ui)
+        });
+    });
+    out.textures_delta.clear();
+    let nodes = out.platform_output.accesskit_update.map(|u| u.nodes);
+    nodes.into_iter().flatten().find_map(|(_, n)| {
+        let b = n.bounds()?;
+        (n.label() == Some(hex))
+            .then(|| egui::pos2(((b.x0 + b.x1) / 2.0) as f32, ((b.y0 + b.y1) / 2.0) as f32))
+    })
+}
+
+#[test]
+fn a_short_panel_scrolls_down_to_the_skin_tones() {
+    let mut ws = workspace();
+    let ctx = egui::Context::default();
+    ctx.enable_accesskit();
+    let area = Rect::from_min_size(egui::Pos2::ZERO, Vec2::new(240.0, 200.0));
+    let tone = flare_core::swatches::skin_tones()[12];
+    let hex = format!("#{:02X}{:02X}{:02X}", tone.r, tone.g, tone.b);
+    let mut cell = None;
+    for step in 0..3 {
+        cell = skin_cell(&mut ws, &ctx, area, f64::from(step) * 0.1, vec![], &hex);
+    }
+    let before = cell.expect("the skin tones are laid out");
+    assert!(!area.contains(before), "below a short panel at first");
+
+    let pointer = area.center();
+    let wheel = Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Point,
+        delta: Vec2::new(0.0, -2000.0),
+        phase: egui::TouchPhase::Move,
+        source: egui::MouseWheelSource::Wheel,
+        modifiers: Modifiers::NONE,
+    };
+    let mut time = 0.5;
+    for events in [vec![Event::PointerMoved(pointer)], vec![wheel]]
+        .into_iter()
+        .chain((0..30).map(|_| vec![]))
+    {
+        cell = skin_cell(&mut ws, &ctx, area, time, events, &hex);
+        time += 0.05;
+    }
+    let after = cell.expect("still laid out");
+    assert!(area.contains(after), "scrolled into view: {after:?}");
+
+    let click = |pressed| Event::PointerButton {
+        pos: after,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: Modifiers::NONE,
+    };
+    for events in [
+        vec![Event::PointerMoved(after)],
+        vec![click(true)],
+        vec![click(false)],
+    ] {
+        skin_cell(&mut ws, &ctx, area, time, events, &hex);
+        time += 0.1;
+    }
+    assert_eq!(ws.paint.fill, Color32::from_rgb(tone.r, tone.g, tone.b));
+}

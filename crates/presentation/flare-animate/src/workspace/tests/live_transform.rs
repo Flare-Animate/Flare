@@ -187,6 +187,7 @@ fn a_new_position_waits_for_the_held_drag_picture_in_flight_but_a_release_does_n
         key: texture.key,
         document: ws.active().snapshot(),
         onion: texture.onion,
+        ghost_layer: texture.ghost_layer,
         view: texture.view,
         signature: 0,
         text_epoch: texture.text_epoch,

@@ -32,6 +32,7 @@ workspace-saved = Saved the workspace { $name }.
 workspace-refused = The workspace was not changed: { $reason }
 pane-swatches = Swatches
 swatches-yours = Your swatches
+swatches-skin = Skin tones
 swatches-add = Keep the current color
 swatches-remove = Delete swatch
 swatches-full = Your swatches are full ({ $max }).

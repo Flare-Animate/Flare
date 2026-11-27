@@ -70,6 +70,7 @@ impl Workspace {
             eraser_size: 20.0,
             eraser_faucet: false,
             eraser_pressure: false,
+            eraser_kind: Default::default(),
             live_erase: None,
             brush_shelf: flare_tools::brush::BrushShelf::default(),
             brush_light: 0.15,

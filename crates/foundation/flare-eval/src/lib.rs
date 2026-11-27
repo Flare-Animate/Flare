@@ -11,7 +11,7 @@
 
 use std::borrow::Cow;
 
-use flare_core::{InstanceId, Rgba8, SceneId};
+use flare_core::{InstanceId, LayerId, Rgba8, SceneId};
 use flare_document::{Content, Document, Instance, Layer, Shape, Timeline, Tween};
 use glamx::DAffine2;
 
@@ -21,8 +21,12 @@ pub(crate) const MAX_NODES: usize = 100_000;
 mod effects;
 mod frame;
 mod layer_flags;
+mod only;
 
-use layer_flags::{hidden_by_folder, view_alpha_of};
+use layer_flags::{hidden_by_folder, view_alpha_of, within};
+use only::Top;
+
+pub use only::{evaluate_frame_of_layer, evaluate_frame_of_layer_without_camera};
 
 pub use effects::MAX_EFFECT_RUNS;
 pub use frame::{ClipShape, DrawnBitmap, DrawnShape, EffectRun, EvalError, Frame, Placed};
@@ -48,7 +52,7 @@ pub fn evaluate_frame(
     frame: u32,
 ) -> Result<Frame<'_>, EvalError> {
     let view = camera_view(document, scene_of(document, scene)?.timeline(), frame);
-    evaluate_frame_seen_by(document, scene, frame, view, false)
+    evaluate_frame_seen_by(document, scene, frame, view, false, None)
 }
 
 /// [`evaluate_frame`] with the camera ignored: the scene in its own coordinates, which is what
@@ -58,7 +62,7 @@ pub fn evaluate_frame_without_camera(
     scene: SceneId,
     frame: u32,
 ) -> Result<Frame<'_>, EvalError> {
-    evaluate_frame_seen_by(document, scene, frame, DAffine2::IDENTITY, true)
+    evaluate_frame_seen_by(document, scene, frame, DAffine2::IDENTITY, true, None)
 }
 
 fn evaluate_frame_seen_by(
@@ -67,6 +71,7 @@ fn evaluate_frame_seen_by(
     frame: u32,
     view: DAffine2,
     show_reference: bool,
+    only: Option<LayerId>,
 ) -> Result<Frame<'_>, EvalError> {
     let scene = scene_of(document, scene)?;
     let mut out = Frame::default();
@@ -77,7 +82,10 @@ fn evaluate_frame_seen_by(
         view,
         &mut Vec::new(),
         &[],
-        show_reference,
+        Top {
+            show_reference,
+            only,
+        },
         &mut out,
     )?;
     Ok(out)
@@ -91,9 +99,13 @@ fn walk<'a>(
     parent: DAffine2,
     path: &mut Vec<InstanceId>,
     inherited: &[usize],
-    show_reference: bool,
+    top: Top,
     out: &mut Frame<'a>,
 ) -> Result<(), EvalError> {
+    let Top {
+        show_reference,
+        only,
+    } = top;
     if path.len() >= MAX_DEPTH {
         return Err(EvalError::TooDeep);
     }
@@ -110,6 +122,7 @@ fn walk<'a>(
             // an export, in a symbol or in what is published.
             || (layer.is_reference() && !(show_reference && path.is_empty()))
             || hidden_by_folder(layers, index)
+            || only.is_some_and(|layer| !within(layers, index, layer))
         {
             continue;
         }
@@ -333,7 +346,7 @@ fn walk_instance<'a>(
                 transform,
                 path,
                 clips,
-                false,
+                Top::default(),
                 out,
             )?;
         }
