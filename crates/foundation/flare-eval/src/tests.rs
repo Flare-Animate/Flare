@@ -363,6 +363,7 @@ fn masked_scene(layers: Vec<Layer>) -> (Document, SceneId) {
 mod effects;
 mod elements;
 mod more;
+mod only_layer;
 
 #[test]
 fn a_graphic_starts_at_its_first_frame_and_loops_plays_once_or_holds_as_asked() {

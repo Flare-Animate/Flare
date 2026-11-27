@@ -149,3 +149,35 @@ fn a_new_color_draws_the_stage_again() {
         "the stage on show has the new color"
     );
 }
+
+#[test]
+fn onion_skin_shows_the_frames_around_the_layer_being_drawn_on_only() {
+    let (ctx, mut ws) = (egui::Context::default(), workspace());
+    flare_ui::icons::install(&ctx);
+    rect(&mut ws);
+    let first = ws.active_layer_id().expect("layer");
+    assert_eq!(
+        ws.ghost_layer(ws.effective_onion()),
+        None,
+        "no ghosts while off"
+    );
+    ws.set_onion_skin(true);
+    assert_eq!(ws.ghost_layer(ws.effective_onion()), Some(first));
+    ws.add_layer();
+    let second = ws.active_layer_id().expect("layer");
+    assert_ne!(second, first);
+    assert_eq!(ws.ghost_layer(ws.effective_onion()), Some(second));
+
+    // Choosing another layer draws the stage again with that layer's ghosts.
+    let mut time = 0.0;
+    settle(&mut ws, &ctx, &mut time);
+    let shown = |ws: &Workspace| ws.texture.as_ref().and_then(|t| t.ghost_layer);
+    assert_eq!(shown(&ws), Some(second));
+    ws.select_layer(first);
+    settle(&mut ws, &ctx, &mut time);
+    assert_eq!(shown(&ws), Some(first));
+
+    // Edit Multiple Frames can edit any layer's keyframes, so it shows them all.
+    ws.perform(MenuAction::ToggleEditMultipleFrames);
+    assert_eq!(ws.ghost_layer(ws.effective_onion()), None);
+}

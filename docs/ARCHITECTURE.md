@@ -144,10 +144,12 @@ side and 100 million pixels. Hit testing counts a fill (same non-zero rule) and 
 caps and joins, width scaled by the transform), so a line or an outline-only shape can be picked.
 It returns candidates topmost first so callers can skip locked layers.
 
-Onion skinning composites translucent copies of neighbouring frames (up to 8 before and
+Onion skinning composites translucent copies of neighbouring frames (up to 12 before and
 after, fainter with distance) beneath the current one using straight-alpha source-over
-blending in `flare-render`. It is a display aid only: it is off while playing and never
-affects exports.
+blending in `flare-render`. The ghosts are of the active layer only (and what it holds, for a
+folder), evaluated by `flare_eval::evaluate_frame_of_layer`, so the frames around the drawing
+being worked on are not lost among every other layer's; Edit Multiple Frames still shows every
+layer. It is a display aid only: it is off while playing and never affects exports.
 
 ## Layer kinds and blend modes
 

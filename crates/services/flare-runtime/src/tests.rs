@@ -28,6 +28,7 @@ fn render_job(runtime: &mut Runtime, document: &Arc<Document>) -> RenderJob {
         scene: document.scenes()[0].id(),
         frame: 0,
         ghosts: Vec::new(),
+        ghost_layer: None,
         outlines: false,
         tints: None,
         outline_mode: false,
@@ -385,4 +386,47 @@ fn the_stage_fades_a_transparent_layer_with_or_without_ghosts() {
         r == 255 && (126..=130).contains(&g) && g == b,
         "half red: {r} {g} {b}"
     );
+}
+
+#[test]
+fn ghosts_of_one_layer_leave_the_other_layers_out() {
+    use flare_document::{Content, FrameSpan, Shape};
+    // Two layers drawn only on frame 1, side by side: red on the left, blue on the right. Frame 0
+    // is empty, so all that shows there is the ghost of frame 1.
+    let square = |x: f64, color: Rgba8| {
+        let shape = Shape::rect(flare_core::ShapeId::new(), x, 0.0, 8.0, 8.0, color).expect("rect");
+        FrameSpan::new(1, std::num::NonZeroU32::MIN, Content::Shape(shape))
+    };
+    let (red, blue) = (Rgba8::opaque(255, 0, 0), Rgba8::opaque(0, 0, 255));
+    let left = Layer::new(LayerId::new(), "Left", vec![square(0.0, red)]).expect("layer");
+    let right = Layer::new(LayerId::new(), "Right", vec![square(8.0, blue)]).expect("layer");
+    let left_id = left.id();
+    let scene = Scene::new(SceneId::new(), "S", Timeline::new(vec![left, right]));
+    let document = Arc::new(
+        Document::new(
+            DocumentId::new(),
+            FrameRate::new(24, 1).expect("rate"),
+            vec![scene],
+            vec![],
+        )
+        .expect("document"),
+    );
+    let mut runtime = Runtime::inline();
+    let mut draw = |ghost_layer: Option<LayerId>| {
+        let job = RenderJob {
+            ghosts: vec![(1, 1.0)],
+            ghost_layer,
+            ..render_job(&mut runtime, &document)
+        };
+        let done = run_render(&job);
+        let right = pixel_of(run_render(&job), 12, 4);
+        (pixel_of(done, 4, 4), right)
+    };
+    let white = [255, 255, 255, 255];
+    let (left_pixel, right_pixel) = draw(None);
+    assert_ne!(left_pixel, white, "every layer's ghost");
+    assert_ne!(right_pixel, white, "every layer's ghost");
+    let (left_pixel, right_pixel) = draw(Some(left_id));
+    assert_ne!(left_pixel, white, "the chosen layer's ghost shows");
+    assert_eq!(right_pixel, white, "the other layer's is left out");
 }

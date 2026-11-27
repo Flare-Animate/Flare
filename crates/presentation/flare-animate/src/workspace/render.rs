@@ -12,6 +12,15 @@ impl Workspace {
         self.display.show_pasteboard && !self.camera_preview
     }
 
+    /// The layer onion skin's ghosts are drawn of: the one being drawn on, so the frames around
+    /// it are not lost among every other layer's. Edit Multiple Frames shows every layer, since
+    /// any of them can be edited there.
+    pub(super) fn ghost_layer(&self, onion: OnionSkin) -> Option<flare_core::LayerId> {
+        (onion.enabled && onion.multi.is_none())
+            .then(|| self.active_layer_id())
+            .flatten()
+    }
+
     /// The part of the stage, and of the pasteboard when it shows, to render and at what size:
     /// what is on screen, at the resolution it is shown, as of the last layout. Before any layout
     /// it is the whole stage.
@@ -57,6 +66,7 @@ impl Workspace {
         let preview = self.previewed_document();
         let preview_stamp = preview.as_ref().map(|(stamp, _)| *stamp);
         let onion = self.effective_onion();
+        let ghost_layer = self.ghost_layer(onion);
         let text_epoch = self.text_epoch();
         let Some(view) = self.desired_texture_view(ctx.pixels_per_point(), texture_side_limit(ctx))
         else {
@@ -66,6 +76,7 @@ impl Workspace {
         if self.texture.as_ref().is_some_and(|t| {
             t.key == key
                 && t.onion == onion
+                && t.ghost_layer == ghost_layer
                 && t.view == view
                 && t.text_epoch == text_epoch
                 && t.preview == preview_stamp
@@ -75,6 +86,7 @@ impl Workspace {
         if self.pending_render.as_ref().is_some_and(|p| {
             p.key == key
                 && p.onion == onion
+                && p.ghost_layer == ghost_layer
                 && p.view == view
                 && p.text_epoch == text_epoch
                 && p.preview == preview_stamp
@@ -123,6 +135,16 @@ impl Workspace {
                     flare_eval::evaluate_frame_without_camera(document, scene, frame)
                 }
             };
+            // The ghosts are of one layer when onion skin shows only the layer drawn on.
+            let evaluate_ghost = |frame: u32| match ghost_layer {
+                None => evaluate(frame),
+                Some(layer) if self.camera_preview => {
+                    flare_eval::evaluate_frame_of_layer(document, scene, frame, layer)
+                }
+                Some(layer) => flare_eval::evaluate_frame_of_layer_without_camera(
+                    document, scene, frame, layer,
+                ),
+            };
             let current = match evaluate(self.frame) {
                 Ok(frame) => frame,
                 Err(e) => {
@@ -141,7 +163,7 @@ impl Workspace {
             onion.tints().hash(&mut hasher);
             self.display.outline_mode.hash(&mut hasher);
             for (frame, opacity) in &ghost_frames {
-                if let Ok(ghost) = evaluate(*frame) {
+                if let Ok(ghost) = evaluate_ghost(*frame) {
                     ghost.signature().hash(&mut hasher);
                     opacity.to_bits().hash(&mut hasher);
                 }
@@ -165,6 +187,7 @@ impl Workspace {
                 view,
                 key,
                 onion,
+                ghost_layer,
                 text_epoch,
                 preview: preview_stamp,
             });
@@ -176,6 +199,7 @@ impl Workspace {
             key,
             document: std::sync::Arc::clone(&snapshot),
             onion,
+            ghost_layer,
             view,
             signature,
             text_epoch,
@@ -191,6 +215,7 @@ impl Workspace {
             outline_mode: self.display.outline_mode,
             through_camera: self.camera_preview,
             ghosts: ghost_frames,
+            ghost_layer,
             viewport: flare_render::Viewport {
                 x: f64::from(view.region.min.x),
                 y: f64::from(view.region.min.y),
@@ -245,6 +270,7 @@ impl Workspace {
                 view: pending.view,
                 key: pending.key,
                 onion: pending.onion,
+                ghost_layer: pending.ghost_layer,
                 text_epoch: pending.text_epoch,
                 preview: pending.preview,
             });
