@@ -30,3 +30,5 @@ timeline-onion-tinted = С оттенком
 timeline-onion-before-color = Предыдущие кадры
 timeline-onion-after-color = Следующие кадры
 timeline-onion-reset-colors = Сбросить цвета
+timeline-length = Длительность
+timeline-length-tip = Кадров: { $frames }, при { $fps } к/с

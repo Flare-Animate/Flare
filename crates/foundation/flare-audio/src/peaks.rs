@@ -14,6 +14,8 @@ pub struct Peaks {
     stretch_seconds: f64,
     /// `[low, high]` of each stretch, in order, each in -1..=1.
     stretches: Vec<[f32; 2]>,
+    /// The largest distance from silence of any sample, 0 to 1.
+    loudest: f32,
 }
 
 impl Peaks {
@@ -35,11 +37,21 @@ impl Peaks {
                     [low.min(s), high.max(s)]
                 })
             })
-            .collect();
+            .collect::<Vec<[f32; 2]>>();
+        let loudest = stretches
+            .iter()
+            .fold(0.0_f32, |most, [low, high]| most.max(-low).max(*high));
         Self {
             stretch_seconds: per_stretch as f64 / f64::from(audio.sample_rate()),
             stretches,
+            loudest,
         }
+    }
+
+    /// The largest distance from silence of any sample in the sound, from 0 (silent) to 1 (full
+    /// scale), so a quiet recording's waveform can be drawn as large as a loud one's.
+    pub fn loudest(&self) -> f32 {
+        self.loudest
     }
 
     /// How many stretches the summary holds.

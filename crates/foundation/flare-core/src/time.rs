@@ -72,6 +72,27 @@ impl FrameRate {
         f64::from(self.numerator) / f64::from(self.denominator)
     }
 
+    /// How long `frames` frames last at this rate, in seconds: an animation's length.
+    pub fn seconds_for(self, frames: u64) -> f64 {
+        frames as f64 * f64::from(self.denominator) / f64::from(self.numerator)
+    }
+
+    /// `seconds` as a clock shows a length, to the hundredth: `0:14.96`, `2:05.00`, `1:02:07.50`.
+    pub fn clock(seconds: f64) -> String {
+        let hundredths = if seconds.is_finite() {
+            (seconds.max(0.0) * 100.0).round() as u64
+        } else {
+            0
+        };
+        let (whole, part) = (hundredths / 100, hundredths % 100);
+        let (h, m, s) = (whole / 3600, whole / 60 % 60, whole % 60);
+        if h > 0 {
+            format!("{h}:{m:02}:{s:02}.{part:02}")
+        } else {
+            format!("{m}:{s:02}.{part:02}")
+        }
+    }
+
     /// Timestamp of a zero-based frame boundary, rounded down to nanoseconds.
     ///
     /// This is a boundary conversion, not the engine's canonical time type.
@@ -111,6 +132,25 @@ mod tests {
         assert_eq!(FrameRate::new(24, 1)?.per_second(), 24.0);
         assert_eq!(FrameRate::new(48, 2)?.per_second(), 24.0);
         assert!((FrameRate::new(30_000, 1_001)?.per_second() - 29.97).abs() < 0.001);
+        Ok(())
+    }
+
+    #[test]
+    fn a_length_in_frames_is_a_length_in_seconds_and_reads_as_a_clock() -> Result<(), RateError> {
+        assert_eq!(FrameRate::new(24, 1)?.seconds_for(359), 359.0 / 24.0);
+        assert_eq!(FrameRate::new(24, 1)?.seconds_for(0), 0.0);
+        let ntsc = FrameRate::new(30_000, 1_001)?.seconds_for(30_000);
+        assert!((ntsc - 1_001.0).abs() < 1e-9);
+        assert_eq!(FrameRate::clock(359.0 / 24.0), "0:14.96");
+        assert_eq!(FrameRate::clock(125.0), "2:05.00");
+        assert_eq!(FrameRate::clock(3727.5), "1:02:07.50");
+        assert_eq!(
+            FrameRate::clock(59.996),
+            "1:00.00",
+            "rounding carries into the minute"
+        );
+        assert_eq!(FrameRate::clock(-3.0), "0:00.00");
+        assert_eq!(FrameRate::clock(f64::NAN), "0:00.00");
         Ok(())
     }
 

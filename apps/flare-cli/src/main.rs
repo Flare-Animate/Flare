@@ -23,6 +23,7 @@ mod stopmotion_project;
 mod symbol;
 mod symbol_edit;
 mod tween;
+mod vector_erase;
 mod video;
 
 use std::fs::File;
@@ -123,7 +124,7 @@ fn run() -> Result<()> {
             project::set_stage(&path, width, height, background, fps)?
         }
         Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
-        Command::Camera {
+        Command::Camera(project::CameraArgs {
             path,
             frame,
             x,
@@ -132,7 +133,7 @@ fn run() -> Result<()> {
             rotation,
             motion,
             ease,
-        } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
+        }) => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
         Command::Frames(args) => crate::frames::list(args)?,
         Command::Goto(args) => crate::frames::goto(args)?,
         Command::Bone { action } => project::bone(action)?,
@@ -287,6 +288,7 @@ fn run() -> Result<()> {
         Command::MagicWand(args) => magic_wand::run(args)?,
         Command::BendEdge(args) => bend_edge::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
+        Command::VectorErase(args) => vector_erase::run(args)?,
         Command::Brush(args) => project::brush_strokes(&args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
         Command::Smudge(args) => {

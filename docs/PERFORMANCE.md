@@ -92,7 +92,13 @@ small frames (100 shapes: 2.0 ms against 0.9 ms), so the cap is four and the thr
   shapes whose bounds that stretch meets, so the cost does not grow with the length of the drag.
   Measured (release build, a 20 px eraser crossing a closed filled shape, 60 frames): 0.12 ms a
   frame on a 500-point shape, 0.54 ms on 2 000 points and 2.1 ms (worst 3.2 ms) on 8 000, the
-  brush's sample cap, so it stays on the UI thread. A straightened drag is cut once, on release. Modify > Combine Objects is the next place it fits.
+  brush's sample cap, so it stays on the UI thread. A straightened drag is cut once, on release.
+  The vector eraser's Segment type (`flare-tools/src/eraser/segment/`) does more on each frame:
+  for each shape the stretch touches it finds what crosses it on its layer (only the shapes whose
+  bounds meet it), then splits a line where their edges meet it or slices a thin fill along them
+  with i_overlay. Measured (release build, `measure_segment_erasing`, run by hand: a 20 px tip
+  across a 120-point stroke crossed by 60 others of 40 points, 60 frames): 0.87 ms a frame, so it
+  stays on the UI thread too. Modify > Combine Objects is the next place it fits.
 
 - **bytemuck** is used for pixel buffers (`flare-render`): reinterpreting RGBA bytes as pixels
   without copying. It is the right tool wherever a buffer changes shape without changing

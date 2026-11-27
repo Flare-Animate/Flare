@@ -135,7 +135,8 @@ impl Workspace {
         match self.tool {
             Tool::Bucket | Tool::InkBottle => self.pour_paint(point),
             Tool::Eyedropper => self.take_paint(point, shift),
-            Tool::Eraser => {
+            // A vector eraser's box or loop takes nothing on a click.
+            Tool::Eraser if self.vector_eraser().is_none() => {
                 // Faucet: the shape goes from this frame only, and from the chosen layer only, as
                 // rubbing out does.
                 if let (Some(scene), Some(at)) = (self.scene_id(), self.faucet_hit(point)) {
@@ -173,6 +174,8 @@ impl Workspace {
         if self.tool == Tool::Eraser {
             if self.eraser_rubs() && !samples.is_empty() {
                 self.finish_erase(samples);
+            } else if self.vector_encloses() {
+                self.finish_vector_area(&samples);
             }
             self.live_erase = None;
             return;

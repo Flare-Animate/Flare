@@ -106,3 +106,16 @@ fn decoding_with_peaks_summarises_the_same_sound() {
     assert_eq!(decoded.peaks.len(), 200);
     assert!(!decoded.peaks.is_empty());
 }
+
+#[test]
+fn peaks_know_the_loudest_sample_either_side_of_silence() {
+    let quiet = Peaks::of(&Audio::new(1000, 1, vec![0.1, -0.15, 0.05, 0.0]).expect("audio"));
+    assert!(
+        (quiet.loudest() - 0.15).abs() < 1e-6,
+        "below silence counts"
+    );
+    let clipped = Peaks::of(&Audio::new(1000, 1, vec![0.2, 4.0]).expect("audio"));
+    assert_eq!(clipped.loudest(), 1.0, "clamped to full scale");
+    let silent = Peaks::of(&Audio::new(1000, 1, vec![0.0; 10]).expect("audio"));
+    assert_eq!(silent.loudest(), 0.0);
+}

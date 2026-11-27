@@ -45,6 +45,7 @@ that this documentation change resolves them.
 - Bones and inverse kinematics (the Bone and Bind tools)
 - Editable keyboard shortcuts: done (registry, four sets, editor, CLI and MCP, up to four shortcuts to a command or tool; every chord — a command on Ctrl, Cmd, Alt or a function key — is dispatched from the map in the window, see SURFACES)
 - The Magnet, for bending line art by pulling it: done (library, desktop and browser tool, CLI and MCP; after OpenToonz's)
+- Vector erasers in the Eraser's list (Segment, which erases a line out to where other lines cross it; Whole Line; Rectangle; Freehand): done (library, desktop and browser, CLI and MCP; after OpenToonz's; Polyline open)
 
 ### Lower priority
 

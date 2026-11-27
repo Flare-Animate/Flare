@@ -49,6 +49,7 @@ pub use import_into::{IMPORT_INTO_EXTENSIONS, MAX_IMPORT_INTO_BYTES};
 mod home;
 mod home_custom;
 mod home_list;
+mod home_widgets;
 mod language;
 mod layer_kind;
 mod layer_names;
@@ -230,6 +231,8 @@ pub struct Workspace {
     eraser_faucet: bool,
     /// Whether how hard a pen presses sets the Eraser's width, as on a raster layer.
     eraser_pressure: bool,
+    /// Which eraser the Eraser is: the one that rubs out, or a vector eraser of a type.
+    eraser_kind: tools::vector_eraser::EraserKind,
     /// How far the Eraser has rubbed out along the drag in progress, when it rubs as it goes.
     live_erase: Option<tools::eraser::LiveErase>,
     /// The tip the brush paints with, and the nibs kept under a name.

@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use flare_core::{Rgba8, SceneId, SoundId};
+use flare_core::{LayerId, Rgba8, SceneId, SoundId};
 use flare_document::Document;
 
 /// One frame to draw: the part of the stage in `viewport`, at `size` pixels, with onion-skin
@@ -15,6 +15,9 @@ pub struct RenderJob {
     pub frame: u32,
     /// (frame, opacity), farthest first.
     pub ghosts: Vec<(u32, f32)>,
+    /// The one scene layer the ghosts show, as onion skin shows the frames around the layer being
+    /// drawn on; `None` shows every layer, as Edit Multiple Frames does.
+    pub ghost_layer: Option<LayerId>,
     /// Draw the ghosts as thin outlines rather than faded pictures.
     pub outlines: bool,
     /// Colors for the ghosts before and after `frame`, as Animate's tinted onion skin has them;

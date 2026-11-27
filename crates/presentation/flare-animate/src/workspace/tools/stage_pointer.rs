@@ -48,6 +48,8 @@ pub(in crate::workspace) fn stage_pointer(tool: Tool, rubs: bool) -> StagePointe
         Tool::Select => StagePointer::Arrow,
         Tool::Brush | Tool::Pencil | Tool::Blur | Tool::Smudge => StagePointer::Tip,
         Tool::Eraser if rubs => StagePointer::Tip,
+        // Faucet deletes what is clicked; a vector eraser's Rectangle and Freehand draw a box or
+        // loop round what they take.
         Tool::Eraser => marked("tool-eraser"),
         // The bucket's drip, the bottle's base, the dropper's tip, the nib, the arrow's point,
         // the middle of the palm and of the lens.

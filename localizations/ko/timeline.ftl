@@ -30,3 +30,5 @@ timeline-onion-tinted = 색조
 timeline-onion-before-color = 이전 프레임
 timeline-onion-after-color = 이후 프레임
 timeline-onion-reset-colors = 색상 초기화
+timeline-length = 길이
+timeline-length-tip = 프레임: { $frames }개, { $fps } fps

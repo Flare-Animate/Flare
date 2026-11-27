@@ -32,6 +32,7 @@ workspace-saved = Espaço de trabalho { $name } salvo.
 workspace-refused = O espaço de trabalho não mudou: { $reason }
 pane-swatches = Amostras
 swatches-yours = Suas amostras
+swatches-skin = Tons de pele
 swatches-add = Guardar a cor atual
 swatches-remove = Excluir amostra
 swatches-full = Suas amostras estão cheias ({ $max }).

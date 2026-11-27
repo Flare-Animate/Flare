@@ -3,7 +3,7 @@
 
 use flare_commands::Command;
 use flare_core::{LayerId, SceneId};
-use flare_document::{Content, Document, Layer, Tween};
+use flare_document::{Content, Document, FrameSpan, Layer, Shape, Tween};
 use flare_input::{InputSample, PressureCurve};
 use glamx::DVec2;
 
@@ -11,6 +11,8 @@ use crate::brush::{BrushStroke, StrokeSides};
 use crate::common::{SpanRef, by_span, find_span, remove_element, replace_span, scene_timeline};
 
 mod frame;
+mod segment;
+pub mod vector;
 pub use crate::common::cut::{Cut, cut};
 
 /// The widest eraser, in stage units.
@@ -91,6 +93,22 @@ pub fn erase(
     eraser: &[Vec<DVec2>],
     only: Option<LayerId>,
 ) -> Vec<Command> {
+    rework(document, scene, frame, only, |_, _, shape| {
+        cut(shape, eraser)
+    })
+}
+
+/// The commands that put what `change` makes of each shape in place of it, at `frame` on the
+/// layers an eraser may change, as [`erase`] says; the Eraser and the Vector Eraser differ only
+/// in `change`, which is given the span the shape is in and its place there too, so it can see
+/// what else is drawn with it. A shape `change` leaves [`Cut::Untouched`] stays as it was.
+fn rework(
+    document: &Document,
+    scene: SceneId,
+    frame: u32,
+    only: Option<LayerId>,
+    change: impl Fn(&FrameSpan, usize, &Shape) -> Cut,
+) -> Vec<Command> {
     let Some(timeline) = scene_timeline(document, scene) else {
         return Vec::new();
     };
@@ -113,9 +131,9 @@ pub fn erase(
         }
         let mut changed = false;
         let mut kept = Vec::with_capacity(span.element_count());
-        for content in span.elements() {
+        for (index, content) in span.elements().enumerate() {
             match content {
-                Content::Shape(shape) => match cut(shape, eraser) {
+                Content::Shape(shape) => match change(span, index, shape) {
                     Cut::Untouched => kept.push(content.clone()),
                     Cut::Left(pieces) => {
                         changed = true;
@@ -242,4 +260,8 @@ pub fn delete_many(document: &Document, scene: SceneId, refs: &[SpanRef]) -> Vec
 #[cfg(test)]
 mod cut_tests;
 #[cfg(test)]
+mod segment_tests;
+#[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod vector_tests;

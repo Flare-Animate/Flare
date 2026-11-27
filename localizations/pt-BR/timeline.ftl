@@ -30,3 +30,5 @@ timeline-onion-tinted = Colorido
 timeline-onion-before-color = Quadros anteriores
 timeline-onion-after-color = Quadros seguintes
 timeline-onion-reset-colors = Redefinir cores
+timeline-length = Duração
+timeline-length-tip = Quadros: { $frames }, a { $fps } fps

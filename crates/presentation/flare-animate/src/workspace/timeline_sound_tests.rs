@@ -69,3 +69,35 @@ fn nothing_is_drawn_off_screen_or_at_a_degenerate_scale() {
         );
     }
 }
+
+/// A second of a steady tone at `level` of full scale, at 1 kHz.
+fn tone(level: f32) -> Peaks {
+    let samples = (0..1000)
+        .map(|i| if i % 2 == 0 { level } else { -level })
+        .collect();
+    Peaks::of(&Audio::new(1000, 1, samples).expect("audio"))
+}
+
+#[test]
+fn a_quiet_sound_is_drawn_as_large_as_a_loud_one_but_hiss_stays_small() {
+    let bar = Rect::from_min_size(Pos2::new(0.0, 0.0), Vec2::new(100.0, 20.0));
+    let height = |peaks: &Peaks| {
+        let line = segments(&waveform(bar, bar, peaks, 0.01, Stroke::NONE))[50];
+        line[1].y - line[0].y
+    };
+    // A soft recording, as a song mixed quietly is: its loudest moment reaches the edges.
+    assert!(
+        (height(&tone(0.15)) - 18.0).abs() < 1e-3,
+        "{}",
+        height(&tone(0.15))
+    );
+    assert!((height(&tone(1.0)) - 18.0).abs() < 1e-3);
+    // Near-silence is enlarged only twenty times, so it does not pass for sound: a twenty-fifth
+    // of full scale reaches four fifths of the way out, and hiss stays a one-point line.
+    assert!(
+        (height(&tone(0.04)) - 14.4).abs() < 1e-3,
+        "{}",
+        height(&tone(0.04))
+    );
+    assert!((height(&tone(0.001)) - 1.0).abs() < 1e-3);
+}

@@ -28,6 +28,7 @@ mod sound;
 mod text;
 mod timeline;
 mod to_bitmap;
+mod vector_erase;
 
 pub use bend_edge::{BendEdgeRequest, bend_edge};
 pub use blend::{
@@ -37,7 +38,7 @@ pub use bones::{BoneAction, bone, bones_list};
 pub use brush_stroke::{BrushArgs, brush_strokes};
 #[allow(unused_imports)]
 use camera::*;
-pub use camera::{CameraMotion, camera};
+pub use camera::{CameraArgs, camera};
 #[allow(unused_imports)]
 use draw::*;
 pub use draw::{PlaceArgs, add_layer, add_symbol, eval, place, rename_scene, set_stage};
@@ -68,6 +69,7 @@ pub use timeline::{
     layer_op, layer_opacity,
 };
 pub use to_bitmap::{ToBitmapArgs, convert_to_bitmap};
+pub use vector_erase::{VectorEraseRequest, vector_erase};
 
 /// Opens a project: a `.flare`, or an Animate `.fla`, `.xfl` or XFL folder (a movie is read too,
 /// to inspect or convert, but never written back).
@@ -135,7 +137,9 @@ pub fn info(path: &Path) -> Result<Value> {
                             "armature": armature, "effects": layer.effects().is_some() })
                 })
                 .collect();
-            json!({ "id": scene.id().as_uuid(), "name": scene.name(), "layers": layers })
+            let frames = scene.timeline().frame_count();
+            json!({ "id": scene.id().as_uuid(), "name": scene.name(), "frames": frames,
+                    "seconds": document.frame_rate().seconds_for(frames), "layers": layers })
         })
         .collect();
     let symbols: Vec<Value> = document

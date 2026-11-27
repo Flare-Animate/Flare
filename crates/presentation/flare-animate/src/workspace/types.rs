@@ -332,6 +332,8 @@ pub(super) struct PendingRender {
     /// The document state being drawn.
     pub(super) document: std::sync::Arc<flare_document::Document>,
     pub(super) onion: OnionSkin,
+    /// The layer the ghosts were drawn of (see `Workspace::ghost_layer`).
+    pub(super) ghost_layer: Option<LayerId>,
     pub(super) view: TextureView,
     pub(super) signature: u64,
     pub(super) text_epoch: u64,
@@ -371,6 +373,8 @@ pub(super) struct StageTexture {
     pub(super) view: TextureView,
     /// The onion-skin settings the texture was rendered with.
     pub(super) onion: OnionSkin,
+    /// The layer its ghosts are of, when onion skin shows one.
+    pub(super) ghost_layer: Option<LayerId>,
     /// (context, session revision, frame) the texture was rendered for.
     pub(super) key: (u64, u64, u32),
     /// The typed-text state it shows (see `Workspace::text_epoch`).
