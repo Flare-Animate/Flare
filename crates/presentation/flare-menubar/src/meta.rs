@@ -261,6 +261,7 @@ impl MenuAction {
             Self::ShowOutput => "panel-tools",
             Self::ShowInfo => "panel-properties",
             Self::ShowHome => "home",
+            Self::Learn => "help",
             Self::Cut => "cut",
             Self::SelectAll => "select-all",
             Self::Rewind => "transport-first",

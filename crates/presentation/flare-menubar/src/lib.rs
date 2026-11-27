@@ -170,6 +170,8 @@ pub enum MenuAction {
     ShowOutput,
     ShowHome,
     ShowInfo,
+    /// Help > Learn: the short lessons on the Home page.
+    Learn,
     About,
     KeyboardShortcuts,
     ToggleOutlineMode,
@@ -218,7 +220,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
-    pub const ALL: [MenuAction; 161] = [
+    pub const ALL: [MenuAction; 162] = [
         Self::Open,
         Self::New,
         Self::Close,
@@ -347,6 +349,7 @@ impl MenuAction {
         Self::ShowOutput,
         Self::ShowHome,
         Self::ShowInfo,
+        Self::Learn,
         Self::About,
         Self::KeyboardShortcuts,
         Self::ToggleOutlineMode,

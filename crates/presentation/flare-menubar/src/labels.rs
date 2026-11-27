@@ -341,6 +341,7 @@ impl MenuAction {
             Self::ShowGame => "menu-item-show-game",
             Self::ClearGuides => "menu-item-clear-guides",
             Self::About => "menu-item-about",
+            Self::Learn => "menu-item-learn",
             Self::KeyboardShortcuts => "menu-item-keyboard-shortcuts",
             Self::ShowProperties => "menu-item-show-properties",
             Self::ShowLibrary => "menu-item-show-library",

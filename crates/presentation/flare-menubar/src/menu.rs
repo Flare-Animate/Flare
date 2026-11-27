@@ -309,8 +309,8 @@ pub const MENU_LAYOUT: &[(&str, &[MenuEntry])] = &[
     (
         "Help",
         &[
-            Mock("Flare Help"),
             Action(A::CommandPalette),
+            Action(A::Learn),
             Action(A::KeyboardShortcuts),
             Separator,
             Action(A::About),

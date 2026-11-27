@@ -4,7 +4,7 @@
 use egui::{Align2, FontId, Rect, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
 use flare_core::{DocumentId, FrameRate, LayerId, Rgba8, SceneId};
 use flare_document::{Document, Layer, Scene, Stage, Timeline};
-use flare_ui::{chrome, icons, theme};
+use flare_ui::{icons, theme};
 use std::path::PathBuf;
 
 use super::*;
@@ -46,6 +46,10 @@ pub(super) struct HomeState {
     pub(super) new_document_kind: usize,
     /// Whether the dialog was opened from Home, so leaving Home closes it.
     pub(super) new_document_from_home: bool,
+    /// Which page of the Home area is shown: the projects or the lessons.
+    pub(super) tab: super::learn::HomeTab,
+    /// The first-run welcome has been read, so it is not shown again.
+    pub(super) welcome_seen: bool,
 }
 
 impl Workspace {
@@ -144,7 +148,11 @@ impl Workspace {
                     .auto_shrink(false)
                     .show(ui, |ui| {
                         ui.add_space(PAGE_MARGIN);
-                        self.home_main(ui, &mut chosen, &mut open);
+                        if self.home.tab == super::learn::HomeTab::Learn {
+                            self.learn_page(ui);
+                        } else {
+                            self.home_main(ui, &mut chosen, &mut open);
+                        }
                         ui.add_space(PAGE_MARGIN);
                     });
             },
@@ -185,13 +193,13 @@ impl Workspace {
             });
         });
         ui.add_space(18.0);
-        nav_item(ui, "home", &tr!(self, "start-nav-home"), true);
-        // Planned, not built: shown dimmed, as the rest of the interface does.
-        ui.add_enabled_ui(false, |ui| {
-            nav_item(ui, "panel-library", &tr!(self, "start-nav-learn"), false);
-        })
-        .response
-        .on_disabled_hover_text(chrome::NOT_YET);
+        let on_home = self.home.tab == super::learn::HomeTab::Home;
+        if nav_item(ui, "home", &tr!(self, "start-nav-home"), on_home).clicked() {
+            self.home.tab = super::learn::HomeTab::Home;
+        }
+        if nav_item(ui, "help", &tr!(self, "start-nav-learn"), !on_home).clicked() {
+            self.home.tab = super::learn::HomeTab::Learn;
+        }
         ui.add_space(18.0);
         let width = ui.available_width();
         if wide_button(ui, width, "file-new", &tr!(self, "start-new-file"), true).clicked() {
@@ -247,6 +255,10 @@ impl Workspace {
         if let Some(status) = &self.status {
             ui.label(egui::RichText::new(status.as_str()).color(theme::warning()));
             ui.add_space(8.0);
+        }
+        if !self.home.welcome_seen {
+            self.welcome_card(ui);
+            ui.add_space(PAGE_MARGIN);
         }
         section_title(ui, &tr!(self, "start-create-new"));
         ui.horizontal_wrapped(|ui| {

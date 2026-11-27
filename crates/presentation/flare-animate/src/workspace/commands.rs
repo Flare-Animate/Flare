@@ -40,6 +40,7 @@ impl Workspace {
                     | MenuAction::ShowHome
                     | MenuAction::Preferences
                     | MenuAction::About
+                    | MenuAction::Learn
                     | MenuAction::KeyboardShortcuts
             )
         {
@@ -183,7 +184,10 @@ impl Workspace {
             MenuAction::ToggleGuides | MenuAction::ToggleTransparentExport => true,
             MenuAction::ClearGuides => !self.display.guides.is_empty(),
             MenuAction::NewSymbol => !self.in_symbol(),
-            MenuAction::About | MenuAction::KeyboardShortcuts | MenuAction::CommandPalette => true,
+            MenuAction::About
+            | MenuAction::Learn
+            | MenuAction::KeyboardShortcuts
+            | MenuAction::CommandPalette => true,
             MenuAction::ShowProperties
             | MenuAction::ShowLibrary
             | MenuAction::ShowColor
@@ -419,6 +423,7 @@ impl Workspace {
                 self.display.guide_drag = None;
             }
             MenuAction::About => self.windows.about = true,
+            MenuAction::Learn => self.show_learn(),
             MenuAction::KeyboardShortcuts => self.windows.shortcuts = true,
             MenuAction::CommandPalette => self.open_command_palette(),
             MenuAction::ShowProperties => self.show_pane(Pane::Properties),

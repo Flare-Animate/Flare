@@ -53,6 +53,7 @@ mod language;
 mod layer_kind;
 mod layer_names;
 mod layers;
+mod learn;
 mod lip_sync;
 mod mannequin;
 mod mannequin_reference;

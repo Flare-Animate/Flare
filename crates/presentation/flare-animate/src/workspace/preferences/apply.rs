@@ -86,6 +86,7 @@ impl Workspace {
                 .map(|c| [c.r, c.g, c.b, c.a])
                 .collect(),
             mannequin: self.mannequin_preferences(),
+            learn_welcome_seen: self.home.welcome_seen,
         }
     }
 
@@ -201,6 +202,7 @@ impl Workspace {
             .take(MAX_RECENT)
             .map(PathBuf::from)
             .collect();
+        self.home.welcome_seen = preferences.learn_welcome_seen;
     }
 
     /// The settings as text to keep between sessions.

@@ -96,6 +96,9 @@ pub struct Preferences {
     /// The reference mannequin as it was last posed (`flare_mannequin`'s figure JSON); empty is
     /// the default figure.
     pub mannequin: String,
+    /// The first-run welcome and the Learn page's invitation have been read, so they are not
+    /// shown again.
+    pub learn_welcome_seen: bool,
 }
 
 fn rgb(color: flare_core::Rgba8) -> [u8; 3] {
@@ -161,6 +164,7 @@ impl Default for Preferences {
             recent: Vec::new(),
             swatches: Vec::new(),
             mannequin: String::new(),
+            learn_welcome_seen: false,
         }
     }
 }
