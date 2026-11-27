@@ -76,3 +76,21 @@ async fn a_layer_that_takes_no_drawing_and_an_unknown_layer_are_errors_that_chan
     assert!(is_error);
     assert_eq!(f.revision().await, before);
 }
+
+#[tokio::test]
+async fn get_info_says_how_long_each_scene_runs() {
+    let f = fixture(true, false).await;
+    f.ok(
+        "draw_rect",
+        json!({ "x": 0.0, "y": 0.0, "width": 10.0, "height": 10.0, "duration": 48 }),
+    )
+    .await;
+    let info = f.ok("get_info", json!({})).await;
+    let rate = &info["frame_rate"];
+    assert_eq!(
+        (rate["numerator"].as_u64(), rate["denominator"].as_u64()),
+        (Some(24), Some(1))
+    );
+    assert_eq!(info["scenes"][0]["frames"], 48);
+    assert_eq!(info["scenes"][0]["seconds"], 2.0, "48 frames at 24 fps");
+}

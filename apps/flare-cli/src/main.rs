@@ -23,6 +23,7 @@ mod stopmotion_project;
 mod symbol;
 mod symbol_edit;
 mod tween;
+mod vector_erase;
 mod video;
 
 use std::fs::File;
@@ -287,6 +288,7 @@ fn run() -> Result<()> {
         Command::MagicWand(args) => magic_wand::run(args)?,
         Command::BendEdge(args) => bend_edge::run(args)?,
         Command::Magnet(args) => magnet::run(args)?,
+        Command::VectorErase(args) => vector_erase::run(args)?,
         Command::Brush(args) => project::brush_strokes(&args)?,
         Command::Blur(args) => project::blend_stroke(flare_tools::blend::BlendKind::Blur, &args)?,
         Command::Smudge(args) => {

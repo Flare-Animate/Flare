@@ -128,6 +128,11 @@ pub(crate) enum Command {
     /// at the point and not at all at the edge of the circle, adding points where a line has too
     /// few to bend; one undo step. Nothing in reach is an error.
     Magnet(crate::magnet::MagnetArgs),
+    /// Vector Eraser: take from the lines (first scene) a round tip along the points touches the
+    /// stretch out to where other lines cross them (segment, the default), the shapes it touches
+    /// whole, or those wholly inside a box or loop, at one frame; one undo step. Taking nothing
+    /// is an error.
+    VectorErase(crate::vector_erase::VectorEraseArgs),
     /// Brush: lay brush strokes through stage points on a layer of the first scene, as one undo step.
     Brush(project::BrushArgs),
     /// Blur: soften the bitmap under the first point along a stroke of stage points.

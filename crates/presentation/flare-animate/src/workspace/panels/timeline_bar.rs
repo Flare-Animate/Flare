@@ -220,6 +220,33 @@ impl Workspace {
         {
             self.timeline_fit = true;
         }
+        bar_separator(ui);
+        let (text, tip) = (self.timeline_length_text(), self.timeline_length_tip());
+        ui.label(text).on_hover_text(tip);
+    }
+
+    /// How long the animation runs, as the toolbar shows it: `Length 0:14.96`, from its frames
+    /// and the document's rate.
+    pub(in crate::workspace) fn timeline_length_text(&self) -> String {
+        let rate = self.document().frame_rate();
+        let seconds = rate.seconds_for(u64::from(self.scene_frames()));
+        format!(
+            "{} {}",
+            tr!(self, "timeline-length"),
+            flare_core::FrameRate::clock(seconds)
+        )
+    }
+
+    /// What the length is made of, shown when it is pointed at: its frames and the rate.
+    fn timeline_length_tip(&self) -> String {
+        let frames = self.scene_frames().to_string();
+        let fps =
+            crate::workspace::video_dialog::fps_text(self.document().frame_rate().per_second());
+        tr!(
+            self,
+            "timeline-length-tip",
+            &[("frames", frames.as_str()), ("fps", fps.as_str())]
+        )
     }
 
     /// New layer, new folder, the Folder menu, motion guide, mask and delete: what is done to

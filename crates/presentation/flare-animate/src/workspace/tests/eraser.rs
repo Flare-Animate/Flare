@@ -2,7 +2,7 @@
 
 use super::*;
 
-fn button(at: Pos2, pressed: bool) -> Event {
+pub(super) fn button(at: Pos2, pressed: bool) -> Event {
     Event::PointerButton {
         pos: at,
         button: egui::PointerButton::Primary,
@@ -13,7 +13,13 @@ fn button(at: Pos2, pressed: bool) -> Event {
 
 /// Presses the tool in hand at `from` and moves it to `to` in ten steps, in window points,
 /// through pointer events, starting at `time` seconds; gives the time it ended at, still pressed.
-fn press_and_move(ws: &mut Workspace, ctx: &egui::Context, time: f64, from: Pos2, to: Pos2) -> f64 {
+pub(super) fn press_and_move(
+    ws: &mut Workspace,
+    ctx: &egui::Context,
+    time: f64,
+    from: Pos2,
+    to: Pos2,
+) -> f64 {
     let mut time = time;
     pass(ws, ctx, input(time, vec![Event::PointerMoved(from)]));
     time += 0.1;
@@ -27,7 +33,7 @@ fn press_and_move(ws: &mut Workspace, ctx: &egui::Context, time: f64, from: Pos2
 }
 
 /// Drags the tool in hand from `from` to `to`, as [`press_and_move`], and lets go.
-fn drag_with_pointer(
+pub(super) fn drag_with_pointer(
     ws: &mut Workspace,
     ctx: &egui::Context,
     time: f64,
@@ -57,7 +63,7 @@ fn bar_then_eraser(ws: &mut Workspace, ctx: &egui::Context) -> f64 {
     time
 }
 
-fn moves_of_first_drawing(ws: &Workspace) -> usize {
+pub(super) fn moves_of_first_drawing(ws: &Workspace) -> usize {
     match drawings(ws).first() {
         Some(Content::Shape(shape)) => shape
             .path()

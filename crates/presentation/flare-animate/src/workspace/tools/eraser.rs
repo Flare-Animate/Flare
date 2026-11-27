@@ -62,10 +62,17 @@ impl Workspace {
         })
     }
 
-    /// Whether the Eraser in hand rubs out shapes along a drag (rather than deleting whole shapes,
-    /// or rubbing out pixels on a raster layer, which `blend_kind` takes).
+    /// Whether the eraser in hand works along a drag with its round tip: the Eraser rubbing out
+    /// shapes (rather than deleting whole shapes, or rubbing out pixels on a raster layer, which
+    /// `blend_kind` takes), or a vector eraser of a type that uses the tip.
     pub(in crate::workspace) fn eraser_rubs(&self) -> bool {
-        self.tool == Tool::Eraser && !self.eraser_faucet && !self.on_raster_layer()
+        if self.tool != Tool::Eraser {
+            return false;
+        }
+        match self.vector_eraser() {
+            Some(kind) => kind.uses_tip(),
+            None => !self.eraser_faucet && !self.on_raster_layer(),
+        }
     }
 
     /// Rubs out the stretch of the drag in progress since the last frame, and its mirror images,
@@ -144,13 +151,24 @@ impl Workspace {
             .filter(|outline| outline.len() >= 3)
             .collect();
         let scene = self.scene_id()?;
-        let commands = flare_tools::eraser::erase(
-            self.document(),
-            scene,
-            self.frame,
-            &outlines,
-            self.eraser_layer(),
-        );
+        let commands = if let Some(kind) = self.vector_eraser() {
+            flare_tools::eraser::vector::erase_with(
+                self.document(),
+                scene,
+                self.frame,
+                &outlines,
+                kind.take(),
+                self.eraser_layer(),
+            )
+        } else {
+            flare_tools::eraser::erase(
+                self.document(),
+                scene,
+                self.frame,
+                &outlines,
+                self.eraser_layer(),
+            )
+        };
         if commands.is_empty() {
             return joining;
         }
@@ -201,8 +219,31 @@ impl Workspace {
             .collect()
     }
 
-    /// The Eraser's options: its size, whether pen pressure sets it, and Faucet.
+    /// The Eraser's options: which eraser it is, then for the one that rubs out its size, whether
+    /// pen pressure sets it, and Faucet; a vector eraser has its own.
     pub(in crate::workspace) fn eraser_options(&mut self, ui: &mut Ui) {
+        self.eraser_picker(ui);
+        if let Some(kind) = self.vector_eraser() {
+            return self.vector_eraser_options(ui, kind);
+        }
+        if self.blend_kind().is_some() {
+            return self.blend_options(ui);
+        }
+        self.eraser_tip_options(ui);
+        let (faucet, tip) = (tr!(self, "opt-faucet"), tr!(self, "opt-faucet-tip"));
+        chrome::row(ui, &faucet, |ui| {
+            ui.checkbox(&mut self.eraser_faucet, "").on_hover_text(&tip);
+        });
+        ui.weak(if self.eraser_faucet {
+            tr!(self, "tools-help-eraser-faucet")
+        } else {
+            tr!(self, "tools-help-eraser")
+        });
+    }
+
+    /// The round tip's Size and whether pen pressure sets it, which the rubbing Eraser and the
+    /// vector erasers that use a tip share.
+    pub(in crate::workspace) fn eraser_tip_options(&mut self, ui: &mut Ui) {
         let size = tr!(self, "opt-size");
         chrome::slider(
             ui,
@@ -219,15 +260,6 @@ impl Workspace {
         chrome::row(ui, &pressure, |ui| {
             ui.checkbox(&mut self.eraser_pressure, "")
                 .on_hover_text(&tip);
-        });
-        let (faucet, tip) = (tr!(self, "opt-faucet"), tr!(self, "opt-faucet-tip"));
-        chrome::row(ui, &faucet, |ui| {
-            ui.checkbox(&mut self.eraser_faucet, "").on_hover_text(&tip);
-        });
-        ui.weak(if self.eraser_faucet {
-            tr!(self, "tools-help-eraser-faucet")
-        } else {
-            tr!(self, "tools-help-eraser")
         });
     }
 }

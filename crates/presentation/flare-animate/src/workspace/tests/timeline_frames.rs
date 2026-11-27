@@ -38,3 +38,37 @@ fn zoom_widens_and_narrows_the_frames_and_fit_fills_the_panel_with_the_scene() {
     );
     assert!(!ws.is_dirty(), "the view is not the document");
 }
+
+#[test]
+fn the_toolbar_says_how_long_the_animation_runs_and_follows_the_rate() {
+    let mut ws = workspace();
+    let frames = f64::from(ws.scene_frames());
+    let fps = ws.document().frame_rate().per_second();
+    assert_eq!(
+        ws.timeline_length_text(),
+        format!("Length {}", flare_core::FrameRate::clock(frames / fps))
+    );
+    ws.set_frame_rate(fps * 2.0);
+    assert_eq!(
+        ws.timeline_length_text(),
+        format!(
+            "Length {}",
+            flare_core::FrameRate::clock(frames / fps / 2.0)
+        ),
+        "twice the rate, half the length"
+    );
+    // The toolbar draws it.
+    let ctx = egui::Context::default();
+    flare_ui::icons::install(&ctx);
+    let wanted = ws.timeline_length_text();
+    let mut seen = false;
+    for step in 0..4 {
+        let mut out = ctx.run_ui(input(f64::from(step) * 0.1, vec![]), |ui| ws.show(ui));
+        out.textures_delta.clear();
+        seen = out
+            .shapes
+            .iter()
+            .any(|s| matches!(&s.shape, egui::epaint::Shape::Text(t) if t.galley.text() == wanted));
+    }
+    assert!(seen, "{wanted} is drawn in the timeline's toolbar");
+}

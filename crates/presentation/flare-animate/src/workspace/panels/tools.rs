@@ -165,7 +165,6 @@ impl Workspace {
             Tool::InkBottle => {
                 ui.weak(tr!(self, "tools-help-ink"));
             }
-            Tool::Eraser if self.blend_kind().is_some() => self.blend_options(ui),
             Tool::Eraser => self.eraser_options(ui),
             Tool::Pencil => {
                 let label = tr!(self, "opt-smoothing");
@@ -265,6 +264,7 @@ impl Workspace {
             Tool::Eyedropper => "tools-status-eyedropper",
             Tool::Bucket => "tools-status-bucket",
             Tool::InkBottle => "tools-status-ink",
+            Tool::Eraser if self.vector_eraser().is_some() => "tools-status-vector-eraser",
             Tool::Eraser if self.on_raster_layer() => "tools-status-raster-eraser",
             Tool::Eraser => "tools-status-eraser",
             Tool::PolyStar => "tools-status-polystar",

@@ -30,3 +30,5 @@ timeline-onion-tinted = Barevné
 timeline-onion-before-color = Dřívější snímky
 timeline-onion-after-color = Pozdější snímky
 timeline-onion-reset-colors = Obnovit barvy
+timeline-length = Délka
+timeline-length-tip = Snímků: { $frames }, při { $fps } fps

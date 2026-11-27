@@ -30,3 +30,5 @@ timeline-onion-tinted = Tinted
 timeline-onion-before-color = Earlier frames
 timeline-onion-after-color = Later frames
 timeline-onion-reset-colors = Reset colors
+timeline-length = Length
+timeline-length-tip = Frames: { $frames }, at { $fps } fps

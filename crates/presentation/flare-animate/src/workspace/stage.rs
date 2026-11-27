@@ -185,6 +185,7 @@ impl Workspace {
             self.tool,
             Tool::Pencil | Tool::Brush | Tool::Blur | Tool::Smudge
         ) || self.eraser_rubs()
+            || self.vector_encloses()
             || self.blend_kind().is_some()
         {
             let primary = egui::PointerButton::Primary;
@@ -225,6 +226,7 @@ impl Workspace {
                     &strokes, to_screen, pixel,
                 )));
             }
+            self.draw_vector_area(painter, to_screen);
         }
         if self.tool == Tool::Lasso {
             let primary = egui::PointerButton::Primary;

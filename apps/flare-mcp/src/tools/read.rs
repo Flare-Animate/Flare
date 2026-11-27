@@ -37,8 +37,10 @@ impl FlareServer {
                                     "effects": l.effects().is_some() })
                         })
                         .collect();
-                    json!({ "id": scene.id().as_uuid(), "name": scene.name(),
-                            "frames": scene.timeline().frame_count(), "layers": layers })
+                    let frames = scene.timeline().frame_count();
+                    json!({ "id": scene.id().as_uuid(), "name": scene.name(), "frames": frames,
+                            "seconds": document.frame_rate().seconds_for(frames),
+                            "layers": layers })
                 })
                 .collect();
             let symbols: Vec<Value> = document

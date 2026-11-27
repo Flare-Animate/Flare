@@ -76,8 +76,6 @@ stub!(/** Full color eraser tool. Source: `original/flare/sources/tnztools/fullc
     full_color_eraser_tool, FULL_COLOR_ERASER, "Full color eraser tool", "original/flare/sources/tnztools/fullcolorerasertool.cpp");
 stub!(/** Full color fill tool. Source: `original/flare/sources/tnztools/fullcolorfilltool.cpp`. */
     full_color_fill_tool, FULL_COLOR_FILL, "Full color fill tool", "original/flare/sources/tnztools/fullcolorfilltool.cpp");
-stub!(/** Vector eraser tool. Source: `original/flare/sources/tnztools/vectorerasertool.cpp`. */
-    vector_eraser_tool, VECTOR_ERASER, "Vector eraser tool", "original/flare/sources/tnztools/vectorerasertool.cpp");
 stub!(/** Vector selection tool. Source: `original/flare/sources/tnztools/vectorselectiontool.cpp`. */
     vector_selection_tool, VECTOR_SELECTION, "Vector selection tool", "original/flare/sources/tnztools/vectorselectiontool.cpp");
 stub!(/** Raster selection tool. Source: `original/flare/sources/tnztools/rasterselectiontool.cpp`. */
@@ -142,7 +140,7 @@ stub!(/** Vector tap tool. Source: `original/flare/sources/tnztools/vectortapeto
     vector_tape_tool2, VECTOR_TAPE2, "Vector tape tool 2", "original/flare/sources/tnztools/vectortapetool.cpp");
 
 /// All stubbed features.
-pub const ALL: [LegacyFeature; 51] = [
+pub const ALL: [LegacyFeature; 50] = [
     ASSISTANT,
     AUTOFILL_PLI,
     AUTOFILL_TLV,
@@ -190,7 +188,6 @@ pub const ALL: [LegacyFeature; 51] = [
     TOONZ_VECTOR_BRUSH,
     TRACKER,
     TYPE_TOOL,
-    VECTOR_ERASER,
     VECTOR_SELECTION,
     VECTOR_TAPE,
     VECTOR_TAPE2,

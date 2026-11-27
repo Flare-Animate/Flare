@@ -25,6 +25,7 @@ pub(super) mod stroke_preview;
 pub(super) mod text;
 pub(super) mod text_fonts;
 pub(super) mod text_preview;
+pub(super) mod vector_eraser;
 
 /// The state of the tools that act on a drag and then let go: the Magnet's pull, and the tool
 /// the pen's button gives back from the Eraser.

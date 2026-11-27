@@ -127,3 +127,24 @@ fn a_layer_that_takes_no_drawing_is_refused_and_the_project_is_not_touched() {
             .success()
     );
 }
+
+#[test]
+fn info_says_how_long_each_scene_runs() {
+    let dir = tempfile::tempdir().expect("dir");
+    let file = path(dir.path());
+    json(&["new", &file, "--numerator", "12"]);
+    json(&[
+        "draw-rect",
+        &file,
+        "--rect",
+        "0",
+        "0",
+        "10",
+        "10",
+        "--duration",
+        "48",
+    ]);
+    let scene = &json(&["info", &file])["scenes"][0];
+    assert_eq!(scene["frames"], 48);
+    assert_eq!(scene["seconds"], 4.0, "48 frames at 12 fps");
+}

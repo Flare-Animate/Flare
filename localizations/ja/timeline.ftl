@@ -30,3 +30,5 @@ timeline-onion-tinted = 色付き
 timeline-onion-before-color = 前のフレーム
 timeline-onion-after-color = 後のフレーム
 timeline-onion-reset-colors = 色をリセット
+timeline-length = 長さ
+timeline-length-tip = フレーム数: { $frames }（{ $fps } fps）
