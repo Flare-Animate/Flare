@@ -250,29 +250,7 @@ pub(crate) enum Command {
     },
     /// Point the first scene's camera from a frame on (the camera layer is made when there is
     /// none). What is not given stays what the camera has at that frame.
-    Camera {
-        path: PathBuf,
-        #[arg(long, default_value_t = 0)]
-        frame: u32,
-        /// The point of the scene at the middle of the picture.
-        #[arg(long, allow_hyphen_values = true)]
-        x: Option<f64>,
-        #[arg(long, allow_hyphen_values = true)]
-        y: Option<f64>,
-        /// 1 shows the stage as it is, 2 twice as large; from 0.01 to 100.
-        #[arg(long)]
-        zoom: Option<f64>,
-        /// Degrees, clockwise.
-        #[arg(long, allow_hyphen_values = true)]
-        rotation: Option<f64>,
-        /// Hold the camera until the next keyframe, or move it to the next one.
-        #[arg(long, value_enum)]
-        motion: Option<project::CameraMotion>,
-        /// The motion's ease, from -100 (starts slowly) to 100 (ends slowly); an ease alone makes it a
-        /// motion.
-        #[arg(long, allow_hyphen_values = true)]
-        ease: Option<i8>,
-    },
+    Camera(project::CameraArgs),
     /// Link instances with bones and pose the armature, as Animate's Bone tool and posing do.
     Bone {
         #[command(subcommand)]

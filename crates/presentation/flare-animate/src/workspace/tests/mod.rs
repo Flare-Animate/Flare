@@ -19,6 +19,8 @@ use std::path::PathBuf;
 mod rotate_view;
 mod sound_helpers;
 use sound_helpers::{drain_audio, wav_file};
+mod waiting;
+use waiting::wait_until;
 mod anchor_tools;
 mod basics;
 mod bitmap_store;
@@ -452,22 +454,6 @@ fn held_then_changing() -> Workspace {
     ws.frame_edit(FrameOp::InsertKeyframe);
     ws.set_frame(0);
     ws
-}
-
-/// Runs UI passes until `done` holds or fifteen seconds pass (a font job takes about three in a debug build, more
-/// on a busy machine), the way a running app would.
-fn wait_until(ws: &mut Workspace, ctx: &egui::Context, done: impl Fn(&Workspace) -> bool) {
-    let started = std::time::Instant::now();
-    let mut time = 100.0;
-    while !done(ws) {
-        assert!(
-            started.elapsed().as_secs() < 15,
-            "timed out waiting for background work"
-        );
-        run(ws, ctx, time);
-        time += 0.016;
-        std::thread::sleep(std::time::Duration::from_millis(2));
-    }
 }
 
 /// A selected 100 x 50 rectangle at (10, 10), center (60, 35), for rotate and skew drags.

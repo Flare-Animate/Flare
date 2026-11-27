@@ -38,7 +38,7 @@ pub use bones::{BoneAction, bone, bones_list};
 pub use brush_stroke::{BrushArgs, brush_strokes};
 #[allow(unused_imports)]
 use camera::*;
-pub use camera::{CameraMotion, camera};
+pub use camera::{CameraArgs, camera};
 #[allow(unused_imports)]
 use draw::*;
 pub use draw::{PlaceArgs, add_layer, add_symbol, eval, place, rename_scene, set_stage};

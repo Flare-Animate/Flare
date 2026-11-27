@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use flare_core::DocumentPoint;
 use flare_document::{Camera, Tween};
 use serde_json::{Value, json};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use super::*;
 
@@ -15,6 +15,32 @@ pub enum CameraMotion {
     None,
     /// Move the camera to the next keyframe's.
     Motion,
+}
+
+/// The `camera` command's arguments.
+#[derive(clap::Args)]
+pub struct CameraArgs {
+    pub path: PathBuf,
+    #[arg(long, default_value_t = 0)]
+    pub frame: u32,
+    /// The point of the scene at the middle of the picture.
+    #[arg(long, allow_hyphen_values = true)]
+    pub x: Option<f64>,
+    #[arg(long, allow_hyphen_values = true)]
+    pub y: Option<f64>,
+    /// 1 shows the stage as it is, 2 twice as large; from 0.01 to 100.
+    #[arg(long)]
+    pub zoom: Option<f64>,
+    /// Degrees, clockwise.
+    #[arg(long, allow_hyphen_values = true)]
+    pub rotation: Option<f64>,
+    /// Hold the camera until the next keyframe, or move it to the next one.
+    #[arg(long, value_enum)]
+    pub motion: Option<CameraMotion>,
+    /// The motion's ease, from -100 (starts slowly) to 100 (ends slowly); an ease alone makes it a
+    /// motion.
+    #[arg(long, allow_hyphen_values = true)]
+    pub ease: Option<i8>,
 }
 
 /// Makes the camera `camera` from `frame` on, creating the camera layer if the first scene has

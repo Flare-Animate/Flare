@@ -49,6 +49,7 @@ pub use import_into::{IMPORT_INTO_EXTENSIONS, MAX_IMPORT_INTO_BYTES};
 mod home;
 mod home_custom;
 mod home_list;
+mod home_widgets;
 mod language;
 mod layer_kind;
 mod layer_names;

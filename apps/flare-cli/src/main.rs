@@ -124,7 +124,7 @@ fn run() -> Result<()> {
             project::set_stage(&path, width, height, background, fps)?
         }
         Command::Eval { path, frame, scene } => project::eval(&path, frame, scene)?,
-        Command::Camera {
+        Command::Camera(project::CameraArgs {
             path,
             frame,
             x,
@@ -133,7 +133,7 @@ fn run() -> Result<()> {
             rotation,
             motion,
             ease,
-        } => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
+        }) => project::camera(&path, frame, (x, y), zoom, rotation, motion, ease)?,
         Command::Frames(args) => crate::frames::list(args)?,
         Command::Goto(args) => crate::frames::goto(args)?,
         Command::Bone { action } => project::bone(action)?,
