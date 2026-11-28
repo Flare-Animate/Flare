@@ -2156,9 +2156,20 @@ checksum = "b97b65636e5b9ef369943878ac74335ba1c55c1cb6adbf1e2c293c624248d693"
 
 [[package]]
 name = "fearless_simd"
-version = "0.7.0"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4beca3cb2444e3304ac30843cc091f44ed58932353cd492ce740067bfce6b12"
+checksum = "6a7107516a8be9a4ffe92495f3dbfe04348be0ad18f17c67a1d846511f99e599"
+
+[[package]]
+name = "fearless_simd_macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e91d94c6885390b81782d7ee60fd6583b33907333a8b340de25ccf468353315"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.9",
+]
 
 [[package]]
 name = "field-offset"
@@ -2697,7 +2708,7 @@ dependencies = [
  "image",
  "png 0.18.1",
  "thiserror 2.0.18",
- "vello_cpu 0.3.0",
+ "vello_cpu 0.4.0",
 ]
 
 [[package]]
@@ -3533,9 +3544,9 @@ dependencies = [
 
 [[package]]
 name = "glifo"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f1218dedd5348c1b166ec3b8b3cbca49d2f527bd43b3fa072ea5123c523ed3f"
+checksum = "9ae2e3b09ea1cc45c994a405e4d4154901d4caa867d3e1be3a02be641f62fefa"
 dependencies = [
  "bytemuck",
  "foldhash 0.2.0",
@@ -3543,9 +3554,9 @@ dependencies = [
  "log",
  "peniko",
  "png 0.18.1",
- "skrifa 0.44.0",
+ "skrifa 0.49.0",
  "smallvec",
- "vello_common 0.3.0",
+ "vello_common 0.4.0",
 ]
 
 [[package]]
@@ -8374,12 +8385,13 @@ dependencies = [
 
 [[package]]
 name = "vello_common"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73c2fbe53548bcd25c8ff42f75a93770a8611a16b37bee56d7ef7b44e36027f1"
+checksum = "6d9447018538224861c1bd825471dcc67ffa973c97de666bf6296b72dbb2f166"
 dependencies = [
  "bytemuck",
- "fearless_simd 0.7.0",
+ "fearless_simd 1.3.0",
+ "fearless_simd_macros",
  "guillotiere",
  "log",
  "peniko",
@@ -8402,19 +8414,21 @@ dependencies = [
 
 [[package]]
 name = "vello_cpu"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed1fec424fbba6acf6cbc78bb526447eb77590d95f40419d598870fe37535212"
+checksum = "5d6b3db720c5d3aa8783cb1c042d8a77142df70bd0f742dc9005f6d6efe33ebf"
 dependencies = [
  "bytemuck",
  "crossbeam-channel",
- "glifo 0.4.0",
+ "fearless_simd 1.3.0",
+ "fearless_simd_macros",
+ "glifo 0.5.0",
  "hashbrown 0.17.1",
  "ordered-channel",
  "png 0.18.1",
  "rayon",
  "thread_local",
- "vello_common 0.3.0",
+ "vello_common 0.4.0",
 ]
 
 [[package]]
